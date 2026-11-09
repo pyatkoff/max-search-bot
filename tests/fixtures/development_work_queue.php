@@ -7,7 +7,7 @@ final class DevelopmentWorkTestSchema
     public static array $lastProof=[];
     public static function tables(): array
     {
-        return ['development_work_server_amendments','development_work_server_attempts','development_work_server_events','development_work_server_controls','development_work_connection_handoffs','development_work_events','development_work_appends','development_work_retirements','development_work_resolutions','development_work_receipts',
+        return ['development_work_server_raw_bytes','development_work_server_amendments','development_work_server_attempts','development_work_server_events','development_work_server_controls','development_work_connection_handoffs','development_work_events','development_work_appends','development_work_retirements','development_work_resolutions','development_work_receipts',
             'development_work_items','development_work_queues','development_work_lane'];
     }
     public static function create(PDO $pdo,bool $reset=true): void

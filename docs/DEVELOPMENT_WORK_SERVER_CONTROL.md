@@ -274,3 +274,27 @@ four retained attempts, both real authenticated wrappers, immutable originals,
 publication waiting, once-only amendment and later B, forged/missing terminal
 and lineage, expiry and no replay. Passing tests alone are not installation,
 operative approval, A02 acceptance or completion of the development roadmap.
+
+
+The release gate also authenticates primary original Actions metadata: the
+successful push/a1 installation and performed verification steps, then the
+successful original closer/a1 release-slot job. Its exact canonical status
+digest (canonical JSON plus LF) binding step must precede the successful terminal
+step. A shaped status file and owner comment without that real workflow/job
+evidence cannot activate the amendment. A separate60-read budget is reserved
+before fixed public GETs; reads never run under an SQL lock.
+
+The retained original state/claim fingerprint is frozen before public reads and
+must match immediately before credit. The actual complete saved status, including
+preparation, all amendment/publication data and both original/future captures, is
+checked inside the acceptance transaction. Failure rolls back acceptance, claim
+release, resolution and B. Provider capture is retained separately from a failed
+credit using a savepoint, and bounded usage metadata never substitutes for raw.
+
+Newly captured invalid UTF8 prefixes use a byte-exact BLOB sidecar with explicit
+PDO LOB binding. Existing096 TEXT columns and the old actual two attempt rows
+are not altered or rewritten. Status returns the exact original byte SHA/base64;
+it never repairs, drops or normalizes the truncated byte. Native MySQL and both
+authenticated wrappers exercise this boundary. Unknown usage extras remain only
+in the unchanged complete raw response; the existing bounded metadata projection
+and the global/HOTEL parser remain unchanged.

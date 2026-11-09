@@ -185,6 +185,38 @@ trait DevelopmentWorkServerControl
             throw new DomainException('development_server_policy_changed');
         return $effective;
     }
+    /** Old TEXT bytes remain untouched; only newly captured non-UTF8 bytes need the BLOB sidecar. */
+    private function serverHydrateRaw(array $row): array
+    {
+        $blob=$this->one('SELECT * FROM development_work_server_raw_bytes WHERE attempt_id=?',[$row['attempt_id']]);
+        if($blob)foreach(['response','actual_request'] as $part)if($blob[$part.'_blob']!==null){
+            $bytes=$blob[$part.'_blob'];
+            if(is_resource($bytes))$bytes=stream_get_contents($bytes,16385);
+            if(!is_string($bytes)||$row[$part.'_bytes']!==null||strlen($bytes)>($part==='response'?16384:8192)
+                ||hash('sha256',$bytes)!==$row[$part.'_sha256'])throw new DomainException('development_server_raw_blob_conflict');
+            $row[$part.'_bytes']=$bytes;$row[$part.'_storage']='byte_exact_blob';
+        }
+        return $row;
+    }
+    private function serverRetainRaw(string $attempt,string $part,string $bytes): void
+    {
+        if(!in_array($part,['response','actual_request'],true))throw new DomainException('development_server_raw_part');
+        $digest=hash('sha256',$bytes);
+        if(preg_match('//u',$bytes)===1){
+            $this->execute('UPDATE development_work_server_attempts SET '.$part.'_bytes=?,'.$part.'_sha256=? WHERE attempt_id=?',
+                [$bytes,$digest,$attempt]);return;
+        }
+        $existing=$this->one('SELECT attempt_id FROM development_work_server_raw_bytes WHERE attempt_id=?',[$attempt]);
+        $sql=$existing?'UPDATE development_work_server_raw_bytes SET '.$part.'_blob=? WHERE attempt_id=?'
+            :'INSERT INTO development_work_server_raw_bytes('.$part.'_blob,attempt_id) VALUES(?,?)';
+        $s=$this->pdo->prepare($sql);$s->bindValue(1,$bytes,PDO::PARAM_LOB);$s->bindValue(2,$attempt,PDO::PARAM_STR);$s->execute();
+        $this->execute('UPDATE development_work_server_attempts SET '.$part.'_bytes=NULL,'.$part.'_sha256=? WHERE attempt_id=?',[$digest,$attempt]);
+    }
+    private function serverAssertFullReadback(array $q): void
+    {
+        $c=$this->serverControl($q);
+        $this->serverExtendStatus($q,$this->project($q),$c['execution_connection_id']);
+    }
     private function serverProof(array $q,array $c): array
     {
         $b=$this->serverBinding($q,$c);$events=[];$attempts=[];$receipts=[];
@@ -194,6 +226,7 @@ trait DevelopmentWorkServerControl
         $s=$this->pdo->prepare('SELECT * FROM development_work_server_attempts WHERE queue_id=? ORDER BY cron_at,attempt_id');
         $s->execute([$q['queue_id']]);
         foreach($s->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $row=$this->serverHydrateRaw($row);
             foreach(['job','request','actual_request','response','report'] as $part) {
                 $key=$part.'_bytes';$bytes=$row[$key];
                 if($bytes!==null) {
@@ -237,7 +270,8 @@ trait DevelopmentWorkServerControl
         $out['server_amendment_preparation']=['operative'=>false,'scope'=>'fixed_original_A02_only',
             'future_policy'=>DevelopmentWorkServerContract::futurePolicy(),
             'future_implementation'=>$this->serverFutureImplementation(),
-            'native_root_terminal_required'=>true,'no_mcp_mutation_or_claim_key'=>true];
+            'native_root_terminal_required'=>true,'no_mcp_mutation_or_claim_key'=>true,
+            'actual_local_source_sha'=>(new DevelopmentWorkServerAmendmentGate())->sourceSha()];
         DevelopmentWorkServerContract::assertReadback($out);
         return $out;
     }
@@ -477,6 +511,7 @@ trait DevelopmentWorkServerControl
             $lane=$this->lane();
             $a=$this->one('SELECT * FROM development_work_server_attempts WHERE attempt_id=?',[$attemptId]);
             if(!$a)throw new DomainException('development_server_original_attempt_required');
+            $a=$this->serverHydrateRaw($a);
             $q=$this->one('SELECT * FROM development_work_queues WHERE queue_id=?'.$this->lock(),[$a['queue_id']]);
             if(!$q||!($control=$this->serverControl($q)))throw new DomainException('development_server_binding_required');
             $binding=$this->serverBinding($q,$control);$transport=$result['transport']??null;
@@ -493,12 +528,10 @@ trait DevelopmentWorkServerControl
             // The real DEV transport is bounded at capture. A malformed backend result also cannot
             // poison the sole supported getter: retain a labelled prefix, never claim it is full.
             $retained=$raw===null?null:substr($raw,0,$rawLimit);
-            if($retained!==null)$this->execute('UPDATE development_work_server_attempts SET response_bytes=?,response_sha256=? WHERE attempt_id=?',
-                [$retained,hash('sha256',$retained),$attemptId]);
+            if($retained!==null)$this->serverRetainRaw($attemptId,'response',$retained);
             if($actual!==null&&$actual!==$a['request_bytes']) {
                 $prefix=substr($actual,0,$wireLimit);
-                $this->execute('UPDATE development_work_server_attempts SET actual_request_bytes=?,actual_request_sha256=? WHERE attempt_id=?',
-                    [$prefix,hash('sha256',$prefix),$attemptId]);
+                $this->serverRetainRaw($attemptId,'actual_request',$prefix);
             }
             $meta=null;$report=null;$http=is_int($transport['http_status']??null)?$transport['http_status']:null;
             if($raw!==null&&$http!==null&&strlen($raw)<=ManagerDraftClient::MAX_RESPONSE_BYTES)
@@ -567,18 +600,28 @@ trait DevelopmentWorkServerControl
                     'wire_response_sha256'=>hash('sha256',$raw),'report_sha256'=>hash('sha256',$reportBytes),'original_observation'=>$observation];
                 $this->execute('UPDATE development_work_server_attempts SET response_id=?,report_bytes=?,report_sha256=?,metadata_bytes=? WHERE attempt_id=?',
                     [$meta['response_id'],$reportBytes,hash('sha256',$reportBytes),self::canonical($metadata),$attemptId]);
-                $fresh=$this->serverProof($q,$this->serverControl($q));
-                DevelopmentWorkServerContract::assertReadback(['server_control'=>$fresh,'reserved_receipt_and_next_input'=>str_repeat('x',4096)]);
+                $this->serverAssertFullReadback($q);
             } catch(DomainException|InvalidArgumentException|JsonException $error) {
                 return $this->serverUnknown($q,'original_result_not_admitted');
             }
-            $this->execute('UPDATE development_work_server_attempts SET state=? WHERE attempt_id=?',['succeeded',$attemptId]);
-            if($a['role']==='producer') {
-                $this->execute('UPDATE development_work_items SET current_run_id=? WHERE queue_id=? AND task_id=?',[$meta['response_id'],$q['queue_id'],$a['task_id']]);
-                $this->execute('UPDATE development_work_server_controls SET state=? WHERE queue_id=?',['candidate',$q['queue_id']]);
-                return ['handled'=>true,'state'=>'candidate','provider_calls'=>1];
+            // Keep the original capture even when the actual post-credit getter fails.
+            $this->pdo->exec('SAVEPOINT development_server_completion');
+            try{
+                $this->execute('UPDATE development_work_server_attempts SET state=? WHERE attempt_id=?',['succeeded',$attemptId]);
+                if($a['role']==='producer'){
+                    $this->execute('UPDATE development_work_items SET current_run_id=? WHERE queue_id=? AND task_id=?',[$meta['response_id'],$q['queue_id'],$a['task_id']]);
+                    $this->execute('UPDATE development_work_server_controls SET state=? WHERE queue_id=?',['candidate',$q['queue_id']]);
+                    $out=['handled'=>true,'state'=>'candidate','provider_calls'=>1];
+                }else $out=$this->serverAccept($q,$lane,$a,$binding);
+                $fresh=$this->owned($q['queue_id'],(int)$q['admin_id'],$q['oauth_connection_id']);
+                $this->serverBinding($fresh,$this->serverControl($fresh),true);
+                $this->serverAssertFullReadback($fresh);
+                $this->pdo->exec('RELEASE SAVEPOINT development_server_completion');return $out;
+            }catch(DomainException|InvalidArgumentException|JsonException $error){
+                $this->pdo->exec('ROLLBACK TO SAVEPOINT development_server_completion');
+                $this->pdo->exec('RELEASE SAVEPOINT development_server_completion');
+                return $this->serverUnknown($q,'saved_readback_not_admitted');
             }
-            return $this->serverAccept($q,$lane,$a,$binding);
         });
     }
     private function serverAccept(array $q,array $lane,array $reviewer,array $binding): array

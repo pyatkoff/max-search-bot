@@ -15,6 +15,8 @@ final class DevelopmentWorkServerAmendmentGate
     public const FILE='../config/development_work_one_a02_amendment.json';
     public const MAX_MANIFEST_BYTES=8192;
     public const MAX_RELEASE_PROOF_BYTES=12288;
+    private $readBudget=null;
+    private array $canonicalReadDigests=[];
     private const REPOSITORY='pyatkoff/max-search-bot';
     public function __construct(private ?array $fixture=null,private $fetcher=null,private $installedSha=null) {}
     public function manifest(int $now): ?array
@@ -75,14 +77,15 @@ final class DevelopmentWorkServerAmendmentGate
         self::ensure(strlen(DevelopmentWorkServerContract::json($m))<=self::MAX_MANIFEST_BYTES,'amendment_manifest_budget');
         return $m;
     }
-    public function release(array $manifest): array
+    public function release(array $manifest,callable $readBudget): array
     {
+        $this->readBudget=$readBudget;
         $sha=$this->sourceSha();
         self::ensure(is_string($sha)&&preg_match('/\A[a-f0-9]{40}\z/D',$sha)===1,'amendment_installed_source_unavailable');
         $status=$this->read('https://raw.githubusercontent.com/'.self::REPOSITORY.'/diagnostics/deploy_status.json');
-        $comment=$this->read('https://api.github.com/repos/'.self::REPOSITORY.'/issues/comments/6483628958');
         $r=$status['repository_release']??null;$closure=$r['closure']??null;$binding=$closure['binding']??null;
         self::ensure(is_array($r)&&($status['sha']??null)===$sha&&($r['kind']??null)==='installed'
+            &&($status['schema']??null)===2&&($r['schema']??null)===1&&($r['phase']??null)==='pending_terminal'
             &&($r['application_sha']??null)===$sha&&($r['repository_sha']??null)===$sha
             &&($r['release']['event']??null)==='push'&&($r['release']['run_attempt']??null)===1
             &&($status['install_attempt']??null)===1&&($status['diagnostics_attempt']??null)===1
@@ -105,6 +108,7 @@ final class DevelopmentWorkServerAmendmentGate
                 &&(($match[0]['conclusion']??null)==='success'||($path==='modeled-pipeline-monitor-activation.yml'&&($match[0]['conclusion']??null)==='skipped')),
                 'amendment_gate_not_successful');
         }
+        $comment=$this->read('https://api.github.com/repos/'.self::REPOSITORY.'/issues/comments/6483628958');
         $terminal='PR'.$binding['pr'].': установлено, выпуск свободен';
         self::ensure(($comment['id']??null)===6483628958&&($comment['user']['id']??null)===226193297
             &&($comment['issue_url']??null)==='https://api.github.com/repos/'.self::REPOSITORY.'/issues/1122'
@@ -112,17 +116,95 @@ final class DevelopmentWorkServerAmendmentGate
             &&($comment['body']??null)===$terminal&&($closure['expected_terminal']??null)===$terminal
             &&is_string($binding['updated_at']??null)&&is_string($comment['updated_at']??null)
             &&strtotime($comment['updated_at'])>strtotime($binding['updated_at']),'amendment_publisher_not_released');
-        $proof=['schema'=>'development-amendment-original-release-proof-v1','installed_sha'=>$sha,
+        $provenance=$this->originalPublication($status,$sha);
+        $proof=['schema'=>'development-amendment-original-release-proof-v1','installed_sha'=>$sha,'original_provenance'=>$provenance,
             'status'=>$status,'publisher'=>array_intersect_key($comment,array_flip(['id','issue_url','body','updated_at','author_association']))
                 +['owner_id'=>$comment['user']['id']]];
         self::ensure(strlen(DevelopmentWorkServerContract::json($proof))<=self::MAX_RELEASE_PROOF_BYTES,'amendment_release_proof_budget');
         return $proof;
     }
+    private static function positiveId(mixed $id): string
+    {
+        $s=is_int($id)?(string)$id:$id;
+        self::ensure(is_string($s)&&preg_match('/\A[1-9][0-9]{0,15}\z/D',$s)===1
+            &&(float)$s<=9007199254740991,'amendment_invalid_original_run');return $s;
+    }
+    /** Narrow original-attempt1 subset of deployment_release.js deploymentProof/authenticatePublication. */
+    private function originalPublication(array $status,string $sha): array
+    {
+        $r=$status['repository_release'];$deployId=self::positiveId($r['release']['run_id']);
+        $closerId=self::positiveId($r['closure']['run_id']??null);
+        $root='https://api.github.com/repos/'.self::REPOSITORY.'/actions/runs/';
+        $deploy=$this->read($root.$deployId);
+        $deployment=$this->runEvidence($deploy,$deployId,$sha,'.github/workflows/deploy.yml','push');
+        $jobs=$this->jobs($this->read($root.$deployId.'/attempts/1/jobs?per_page=100'));
+        $required=['verify-inventory','verify-syntax','verify / application','verify / diagnostics','deploy','verify'];$installed=[];
+        foreach($required as $name){
+            $job=$this->job($jobs,$name,$deployId,$sha);$steps=[];
+            $names=$name==='deploy'?['Build exact deployment bundle','Sync canonical production checkout',
+                'Apply database migrations and fence the old hotel contour','Reconcile canonical MAX webhook ownership',
+                'Ensure Metrika offline uploader cron','Apply profile and retain exact diagnostic snapshot']:
+                ($name==='verify'?['Verify installed production checks','Download exact installed diagnostic snapshot','Publish verification stage status']:[]);
+            foreach($names as $step)$steps[]=$this->step($job,$step);
+            $installed[]=['id'=>$job['id'],'name'=>$name,'status'=>'completed','conclusion'=>'success','performed_steps'=>$steps];
+        }
+        $run=$this->read($root.$closerId);
+        $closer=$this->runEvidence($run,$closerId,$sha,'.github/workflows/modeled-conversion-value-export.yml','workflow_run');
+        self::ensure(($run['display_title']??null)==='deploy-proof:v1:'.$deployId.':1','amendment_original_closer_origin');
+        $all=$this->read($root.$closerId.'/attempts/1/jobs?per_page=100');$rows=$this->jobs($all);
+        $job=$this->job($rows,'release-slot',$closerId,$sha);
+        // Canonical publication digest is SHA256(canonical JSON + LF), not plain JSON.
+        $statusUrl='https://raw.githubusercontent.com/'.self::REPOSITORY.'/diagnostics/deploy_status.json';
+        $digest=$this->canonicalReadDigests[$statusUrl]??throw new DomainException('amendment_original_digest_unavailable');
+        $bound=$this->step($job,'Bind the terminal candidate to the original closer run — '.$digest);
+        $terminal=$this->step($job,'Release only the admitted publisher after all original mandatory gates');
+        self::ensure($bound['number']<$terminal['number'],'amendment_original_terminal_order');
+        return ['contract'=>'canonical_original_a1_installation_and_closed_publication',
+            'record_digest'=>$digest,'deployment'=>$deployment,'installation_jobs'=>$installed,'closer'=>$closer,
+            'closure_job'=>['id'=>$job['id'],'name'=>$job['name'],'status'=>'completed','conclusion'=>'success',
+                'binding_step'=>$bound,'terminal_step'=>$terminal],
+            'original_closer_jobs_sha256'=>DevelopmentWorkServerContract::hash($all)];
+    }
+    private function runEvidence(array $run,string $id,string $sha,string $path,string $event): array
+    {
+        self::ensure((string)($run['id']??'')===$id&&($run['run_attempt']??null)===1
+            &&($run['path']??null)===$path&&($run['event']??null)===$event
+            &&($run['head_sha']??null)===$sha&&($run['head_branch']??null)==='main'
+            &&($run['head_repository']['full_name']??null)===self::REPOSITORY
+            &&($run['status']??null)==='completed'&&($run['conclusion']??null)==='success'
+            &&is_string($run['created_at']??null)&&preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:]{8}Z\z/D',$run['created_at'])===1,
+            'amendment_original_workflow_unconfirmed');
+        return array_intersect_key($run,array_flip(['id','run_attempt','path','event','head_sha','head_branch','status','conclusion','created_at']))
+            +['original_metadata_sha256'=>DevelopmentWorkServerContract::hash($run)];
+    }
+    private function jobs(array $data): array
+    {
+        $rows=$data['jobs']??null;$total=$data['total_count']??null;
+        self::ensure(is_array($rows)&&is_int($total)&&$total===count($rows)&&$total<100
+            &&count(array_unique(array_column($rows,'id')))===count($rows),'amendment_original_jobs_incomplete');return $rows;
+    }
+    private function job(array $rows,string $name,string $run,string $sha): array
+    {
+        $found=array_values(array_filter($rows,static fn($j):bool=>is_array($j)&&($j['name']??null)===$name));
+        self::ensure(count($found)===1,'amendment_original_job_missing');$j=$found[0];self::positiveId($j['id']??null);
+        self::ensure((string)($j['run_id']??'')===$run&&($j['head_sha']??null)===$sha&&($j['status']??null)==='completed'
+            &&($j['conclusion']??null)==='success'&&is_array($j['steps']??null),'amendment_original_job_unconfirmed');return $j;
+    }
+    private function step(array $job,string $name): array
+    {
+        $found=array_values(array_filter($job['steps'],static fn($s):bool=>is_array($s)&&($s['name']??null)===$name));
+        self::ensure(count($found)===1,'amendment_original_step_missing');$s=$found[0];
+        self::ensure(($s['status']??null)==='completed'&&($s['conclusion']??null)==='success'
+            &&is_int($s['number']??null)&&$s['number']>0,'amendment_original_step_unconfirmed');
+        return array_intersect_key($s,array_flip(['number','name','status','conclusion']));
+    }
     public function sourceSha(): ?string
     {return $this->installedSha===null?self::checkoutSha():($this->installedSha)();}
     private function read(string $url): array
     {
-        if($this->fetcher!==null){$r=($this->fetcher)($url);self::ensure(is_array($r),'amendment_public_metadata_unavailable');return $r;}
+        if($this->readBudget!==null)($this->readBudget)();
+        if($this->fetcher!==null){$r=($this->fetcher)($url);self::ensure(is_array($r),'amendment_public_metadata_unavailable');
+            $this->canonicalReadDigests[$url]=hash('sha256',self::canonicalValue($r)."\n");return $r;}
         if(!function_exists('curl_init'))throw new DomainException('amendment_public_metadata_unavailable');
         $bytes='';$h=curl_init($url);
         if($h===false)throw new DomainException('amendment_public_metadata_unavailable');
@@ -132,13 +214,30 @@ final class DevelopmentWorkServerAmendmentGate
                 CURLOPT_FOLLOWLOCATION=>false,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_SSL_VERIFYPEER=>true,
                 CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_PROXY=>'',CURLOPT_RETURNTRANSFER=>false,
                 CURLOPT_WRITEFUNCTION=>static function($unused,string $chunk)use(&$bytes):int{
-                    if(strlen($bytes)+strlen($chunk)>32768)return 0;$bytes.=$chunk;return strlen($chunk);
+                    if(strlen($bytes)+strlen($chunk)>131072)return 0;$bytes.=$chunk;return strlen($chunk);
                 }]),'amendment_public_metadata_unavailable');
             $ok=curl_exec($h);$code=(int)curl_getinfo($h,CURLINFO_HTTP_CODE);
             self::ensure($ok!==false&&curl_errno($h)===0&&$code===200,'amendment_public_metadata_unavailable');
         }finally{curl_close($h);}
+        $this->canonicalReadDigests[$url]=hash('sha256',self::canonicalValue(json_decode($bytes,false,32,JSON_THROW_ON_ERROR))."\n");
         $r=json_decode($bytes,true,32,JSON_THROW_ON_ERROR);
         self::ensure(is_array($r),'amendment_public_metadata_unavailable');return $r;
+    }
+    /** Preserve empty object versus array exactly as the canonical Node publication contract. */
+    private static function canonicalValue(mixed $v): string
+    {
+        if($v instanceof stdClass){
+            $vars=get_object_vars($v);ksort($vars,SORT_STRING);$parts=[];
+            foreach($vars as $key=>$value)$parts[]=json_encode((string)$key,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).':'.self::canonicalValue($value);
+            return '{'.implode(',',$parts).'}';
+        }
+        if(is_array($v)){
+            if(array_is_list($v))return '['.implode(',',array_map(self::canonicalValue(...),$v)).']';
+            ksort($v,SORT_STRING);$parts=[];
+            foreach($v as $key=>$value)$parts[]=json_encode((string)$key,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).':'.self::canonicalValue($value);
+            return '{'.implode(',',$parts).'}';
+        }
+        return json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
     }
     private static function checkoutSha(): ?string
     {
@@ -168,7 +267,8 @@ trait DevelopmentWorkServerAmendment
     {
         $out=$this->serverImplementation();
         foreach(['DevelopmentWorkServerAmendment.php','DevelopmentWorkHealth.php','DevelopmentWorkCronVerifier.php',
-            '../migrations/097_development_work_server_amendment.sql'] as $file){
+            '../migrations/097_development_work_server_amendment.sql','../tools/deployment_release.js',
+            '../tools/release_slot_close.js','../.github/workflows/deploy.yml','../.github/workflows/modeled-conversion-value-export.yml'] as $file){
             $hash=hash_file('sha256',__DIR__.'/'.$file);
             if(!is_string($hash))throw new DomainException('amendment_implementation_unavailable');$out['files'][$file]=$hash;
         }
@@ -187,7 +287,9 @@ trait DevelopmentWorkServerAmendment
         $sets=[];foreach($indexes as $cols){ksort($cols);$sets[]=implode(',',array_values($cols));}
         foreach(['queue_id,task_id','manifest_sha256'] as $needed)
             if(!in_array($needed,$sets,true))throw new DomainException('amendment_unique_schema_required');
-        $out['schema']='097_development_work_server_amendment';$out['amendment_uniqueness']=true;return $out;
+        $raw=$this->pdo->query('SELECT attempt_id,response_blob,actual_request_blob FROM development_work_server_raw_bytes WHERE 1=0');$raw->closeCursor();
+        $out['schema']='097_development_work_server_amendment';$out['amendment_uniqueness']=true;
+        $out['byte_exact_invalid_utf8_storage']='new_raw_blob_sidecar_old_TEXT_unchanged';return $out;
     }
     private function serverAmendmentEffective(array $q,array $c,array $original,bool $current): array
     {
@@ -223,7 +325,7 @@ trait DevelopmentWorkServerAmendment
         $this->ownsLane($q,$lane);$this->project($q);$this->serverBinding($q,$c);
         $this->serverExecutionAuthority($q,$c['execution_connection_id']);$o=$m['original'];
         $item=$this->current($q,DevelopmentWorkServerContract::A,$o['spec_sha256']);
-        if($q['state']!=='unknown'||$item['state']!=='unknown'||!is_string($item['claim_sha256'])
+        if($q['state']!=='unknown'||$item['state']!=='unknown'||!is_string($item['claim_sha256'])||preg_match('/\\A[a-f0-9]{64}\\z/D',$item['claim_sha256'])!==1
             ||$q['plan_sha256']!==$o['plan_sha256']||$item['input_sha256']!==$o['input_sha256']
             ||$item['acceptance_contract_sha256']!==$o['acceptance_contract_sha256']
             ||$c['binding_sha256']!==$o['binding_sha256']||$c['legacy_sha256']!==$o['legacy_sha256']
@@ -275,15 +377,17 @@ trait DevelopmentWorkServerAmendment
         if($original['record']['receipt_sha256']!==$o['unknown_receipt_sha256']||$original['receipt']['outcome']!=='unknown'
             ||$original['receipt']['run_id']!==$producer['response_id']||$original['receipt']['owned_claims_released']!==false)
             throw new DomainException('amendment_original_unknown_changed');
-        return [$item,$producer,$failed,$original];
+        $fingerprint=self::hash(['queue'=>$q,'control'=>$c,'item'=>$item,'producer'=>$producer,
+            'failed_reviewer'=>$failed,'original_unknown'=>$original,'lane'=>$lane]);
+        return [$item,$producer,$failed,$original,$fingerprint];
     }
     /** At most one public metadata pair per ordinary minute, and 30 total. No DB lock over HTTP. */
     private function serverApplyReviewedAmendment(array $origin): ?array
     {
         $gate=$this->serverAmendmentGate??new DevelopmentWorkServerAmendmentGate();$now=$this->timestamp();
+        $m=$gate->manifest($now);if($m===null)return null;
         if($origin['started_at']>$now||$now-$origin['started_at']>30)
             return ['handled'=>true,'state'=>'hold','reason'=>'amendment_fresh_ordinary_cron_required','provider_calls'=>0];
-        $m=$gate->manifest($now);if($m===null)return null;
         $hash=self::hash($m);$bytes=self::canonical($m);
         $prepared=$this->transaction(function()use($m,$hash,$bytes,$now):array{
             $lane=$this->lane();$q=$this->one('SELECT * FROM development_work_queues WHERE queue_id=?'.$this->lock(),[DevelopmentWorkServerContract::QUEUE]);
@@ -293,12 +397,13 @@ trait DevelopmentWorkServerAmendment
             if($a&&$a['state']==='applied')return ['skip'=>true];
             if($now>=$m['review']['completed_at']+$m['future']['activation_window_seconds'])
                 return ['wait'=>'amendment_activation_expired'];
-            $this->serverAmendmentOriginal($q,$c,$lane,$m);
+            [, , , ,$fingerprint]=$this->serverAmendmentOriginal($q,$c,$lane,$m);
+            if($a&&$a['original_state_sha256']!==$fingerprint)throw new DomainException('amendment_retained_state_changed');
             if(self::hash($this->serverFutureImplementation())!==self::hash($m['future']['implementation']))
                 throw new DomainException('amendment_current_implementation_conflict');
             if(!$a){
-                $this->execute('INSERT INTO development_work_server_amendments(queue_id,task_id,manifest_sha256,manifest_bytes,state,probe_count) VALUES(?,?,?,?,?,0)',
-                    [$q['queue_id'],DevelopmentWorkServerContract::A,$hash,$bytes,'pending']);
+                $this->execute('INSERT INTO development_work_server_amendments(queue_id,task_id,manifest_sha256,manifest_bytes,state,original_state_sha256,metadata_reads,probe_count) VALUES(?,?,?,?,?,?,0,0)',
+                    [$q['queue_id'],DevelopmentWorkServerContract::A,$hash,$bytes,'pending',$fingerprint]);
                 $a=$this->serverAmendmentRow($q);
             }
             if($a['manifest_bytes']!==$bytes)throw new DomainException('amendment_manifest_conflict');
@@ -307,15 +412,25 @@ trait DevelopmentWorkServerAmendment
             if($a['probe_slot']!==null&&$slot<=(int)$a['probe_slot'])return ['wait'=>'amendment_waiting_next_cron'];
             $this->execute('UPDATE development_work_server_amendments SET probe_count=probe_count+1,probe_slot=? WHERE queue_id=? AND task_id=?',
                 [$slot,$q['queue_id'],DevelopmentWorkServerContract::A]);
-            return ['probe'=>true];
+            return ['probe'=>true,'state_fingerprint'=>$fingerprint];
         });
         if(isset($prepared['skip']))return null;
         if(isset($prepared['wait']))return $this->serverAmendmentWait($prepared['wait']);
-        try{$release=$gate->release($m);}
+        $readBudget=function()use($hash):void{
+            $this->transaction(function()use($hash):void{
+                $lane=$this->lane();$q=$this->one('SELECT * FROM development_work_queues WHERE queue_id=?'.$this->lock(),[DevelopmentWorkServerContract::QUEUE]);
+                $row=$this->serverAmendmentRow($q);
+                if(!$row||$row['manifest_sha256']!==$hash||$row['state']!=='pending'||(int)$row['metadata_reads']>=60)
+                    throw new DomainException('amendment_public_metadata_read_budget');
+                $this->execute('UPDATE development_work_server_amendments SET metadata_reads=metadata_reads+1 WHERE queue_id=? AND task_id=?',
+                    [$q['queue_id'],DevelopmentWorkServerContract::A]);
+            });
+        };
+        try{$release=$gate->release($m,$readBudget);}
         catch(DomainException|JsonException $error){return $this->serverAmendmentWait(
             preg_match('/\\Aamendment_[a-z_]+\\z/D',$error->getMessage())?$error->getMessage():'amendment_public_metadata_unavailable');}
         $releaseBytes=self::canonical($release);
-        return $this->transaction(function()use($m,$hash,$origin,$releaseBytes,$release,$gate):array{
+        return $this->transaction(function()use($m,$hash,$origin,$releaseBytes,$release,$gate,$prepared):array{
             $lane=$this->lane();$q=$this->one('SELECT * FROM development_work_queues WHERE queue_id=?'.$this->lock(),[DevelopmentWorkServerContract::QUEUE]);
             $c=$this->serverControl($q);$a=$this->serverAmendmentRow($q);
             if(!$a||$a['manifest_sha256']!==$hash)throw new DomainException('amendment_manifest_conflict');
@@ -324,7 +439,9 @@ trait DevelopmentWorkServerAmendment
             if($now>=$m['review']['completed_at']+$m['future']['activation_window_seconds']
                 ||$origin['started_at']>$now||$now-$origin['started_at']>30)
                 return ['handled'=>true,'state'=>'hold','reason'=>'amendment_activation_expired_or_stale_cron','provider_calls'=>0];
-            [$item,$producer]=$this->serverAmendmentOriginal($q,$c,$lane,$m);
+            [$item,$producer,,, $fingerprint]=$this->serverAmendmentOriginal($q,$c,$lane,$m);
+            if($fingerprint!==$prepared['state_fingerprint']||$a['original_state_sha256']!==$fingerprint)
+                throw new DomainException('amendment_retained_state_changed');
             $local=($this->serverAmendmentGate??new DevelopmentWorkServerAmendmentGate())->manifest($now);
             if($gate->sourceSha()!==$release['installed_sha']||$local===null||self::hash($local)!==$hash
                 ||self::hash($this->serverFutureImplementation())!==self::hash($m['future']['implementation'])
@@ -357,6 +474,10 @@ trait DevelopmentWorkServerAmendment
             $this->execute('UPDATE development_work_server_events SET state=? WHERE queue_id=? AND task_id=?',['consumed',$q['queue_id'],$item['task_id']]);
             $this->serverMaterializeB($next,$origin['cron_id'],$now);
             $this->serverExecutionAuthority($q,$c['execution_connection_id']);
+            $fresh=$this->owned($q['queue_id'],(int)$q['admin_id'],$q['oauth_connection_id']);
+            $this->serverBinding($fresh,$this->serverControl($fresh),true);
+            if($gate->sourceSha()!==$release['installed_sha'])throw new DomainException('amendment_source_before_commit_changed');
+            $this->serverAssertFullReadback($fresh);
             return ['handled'=>true,'state'=>'ready','accepted_task'=>$item['task_id'],'acceptance_kind'=>'supplementary_original_ROOT_review',
                 'receipt_sha256'=>$receiptHash,'provider_calls'=>0];
         });

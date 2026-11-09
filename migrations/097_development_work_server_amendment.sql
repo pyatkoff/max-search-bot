@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS development_work_server_amendments (
     future_binding_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
     future_binding_bytes MEDIUMTEXT NULL,
     state VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    original_state_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    metadata_reads INT UNSIGNED NOT NULL DEFAULT 0,
     probe_count INT UNSIGNED NOT NULL DEFAULT 0,
     probe_slot BIGINT UNSIGNED NULL,
     release_proof_bytes MEDIUMTEXT NULL,
@@ -18,4 +20,10 @@ CREATE TABLE IF NOT EXISTS development_work_server_amendments (
     applied_at BIGINT UNSIGNED NULL,
     PRIMARY KEY (queue_id,task_id),
     UNIQUE KEY uq_development_server_amendment_manifest (manifest_sha256)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS development_work_server_raw_bytes (
+    attempt_id CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    response_blob MEDIUMBLOB NULL,
+    actual_request_blob MEDIUMBLOB NULL,
+    PRIMARY KEY (attempt_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
