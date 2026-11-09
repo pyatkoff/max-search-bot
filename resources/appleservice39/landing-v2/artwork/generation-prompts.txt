@@ -1,0 +1,227 @@
+Built-in image generation. 15 final selected catalog covers; all individually visually reviewed.
+
+repair-iphone-15-battery-replacement
+Use case: ads-marketing. Create ONE final portrait PNG1122x1402 catalog card, not a collage. Input image1 is the STYLE AND LAYOUT REFERENCE: the corrected AppleService39 catalog card WITHOUT a question headline. Make a sibling service card in this exact coherent catalog design, replacing all model/service/price/qualifier text and the repair object with the target below. Do not carry over battery text or the6000 price unless supplied here.
+Composition and invariants: preserve warm off-white/graphite/electric-lime palette, brand header, Kaliningrad label, typography, margin rhythm, service as the largest headline near top, model badge directly below, price with readable qualifications at lower left, polished illustrative device/part on right, and compact full address footer. NO question or problem-led headline. NO duplicated service label. NO slogan, CTA strip, drawn button, Apple logo, QR code or watermark.
+Subject: one phone with a separate black replacement battery, preserving the illustrative catalog character. The phone MUST be the exact iPhone 15 with Dynamic Island and a green body. This is an illustration, not a purported photograph of an actual customer repair.
+Use ONLY these exact strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Замена аккумулятора"
+"iPhone 15"
+"6 000 ₽"
+"По прайсу. Цену и наличие уточним до ремонта."
+"Ленинский проспект, 18 · офис 404"
+All copy must be legible and spelled correctly. Keep the service/model/price immediately clear on mobile; adjust the badge for long model names. Use only the exact supplied price(s), with their qualifier.
+No invented repair times, guarantees, original-parts promises, ratings or reviews. No claim of free diagnostics unless exactly in the supplied copy. For glass preserve the complete condition about working image/touch and possible display preservation. For X display preserve BOTH labeled price variants. Rebalance white space instead of adding text.
+
+repair-iphone-x-battery-replacement
+Use case: ads-marketing. Create ONE final portrait PNG1122x1402 catalog card, not a collage. Input image1 is the STYLE AND LAYOUT REFERENCE: the already corrected AppleService39 iPhone15 battery card WITHOUT a question headline. Make a sibling service card in this exact coherent catalog design, replacing all model/service/price/qualifier text and the repair object with the target below. Do not carry over battery text or the6000 price unless supplied here.
+Composition and invariants: preserve warm off-white/graphite/electric-lime palette, brand header, Kaliningrad label, typography, margin rhythm, service as the largest headline near top, model badge directly below, price with readable qualifications at lower left, polished illustrative device/part on right, and compact full address footer. NO question or problem-led headline. NO duplicated service label. NO slogan, CTA strip, drawn button, Apple logo, QR code or watermark.
+Subject: one phone with a separate black replacement battery, preserving the illustrative catalog character. The phone MUST be an iPhone X with its wide original notch, no Dynamic Island. This is an illustration, not a purported photograph of an actual customer repair.
+Use ONLY these exact strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Замена аккумулятора"
+"iPhone X"
+"3 500 ₽"
+"По прайсу. Диагностика бесплатная. Цену и наличие уточним до ремонта."
+"Ленинский проспект, 18 · офис 404"
+All copy must be legible and spelled correctly. Keep the service/model/price immediately clear on mobile; adjust the badge for long model names. Use only the exact supplied price(s), with their qualifier.
+No invented repair times, guarantees, original-parts promises, ratings or reviews. No claim of free diagnostics unless exactly in the supplied copy. For glass preserve the complete condition about working image/touch and possible display preservation. For X display preserve BOTH labeled price variants. Rebalance white space instead of adding text.
+
+repair-iphone-x-front-glass-replacement
+Use case: ads-marketing. Create ONE final portrait PNG1122x1402 catalog card, not a collage. Input image1 is the STYLE AND LAYOUT REFERENCE: the already corrected AppleService39 iPhone15 battery card WITHOUT a question headline. Make a sibling service card in this exact coherent catalog design, replacing all model/service/price/qualifier text and the repair object with the target below. Do not carry over battery text or the6000 price unless supplied here.
+Composition and invariants: preserve warm off-white/graphite/electric-lime palette, brand header, Kaliningrad label, typography, margin rhythm, service as the largest headline near top, model badge directly below, price with readable qualifications at lower left, polished illustrative device/part on right, and compact full address footer. NO question or problem-led headline. NO duplicated service label. NO slogan, CTA strip, drawn button, Apple logo, QR code or watermark.
+Subject: one phone with cracked front glass and a working lit image underneath, with a thin transparent glass layer suggesting glass-only replacement; no before-and-after comparison. The phone MUST be an iPhone X with its wide original notch, no Dynamic Island. This is an illustration, not a purported photograph of an actual customer repair.
+Use ONLY these exact strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Замена стекла"
+"iPhone X"
+"5 000 ₽"
+"Если изображение и касания работают, мастер проверит возможность сохранить дисплей. Цену и наличие уточним до ремонта."
+"Ленинский проспект, 18 · офис 404"
+All copy must be legible and spelled correctly. Keep the service/model/price immediately clear on mobile; adjust the badge for long model names. Use only the exact supplied price(s), with their qualifier.
+No invented repair times, guarantees, original-parts promises, ratings or reviews. No claim of free diagnostics unless exactly in the supplied copy. For glass preserve the complete condition about working image/touch and possible display preservation. For X display preserve BOTH labeled price variants. Rebalance white space instead of adding text.
+
+repair-iphone-x-display
+Use case: ads-marketing. Create ONE final portrait PNG1122x1402 catalog card, not a collage. Input image1 is the STYLE AND LAYOUT REFERENCE: the already corrected AppleService39 iPhone15 battery card WITHOUT a question headline. Make a sibling service card in this exact coherent catalog design, replacing all model/service/price/qualifier text and the repair object with the target below. Do not carry over battery text or the6000 price unless supplied here.
+Composition and invariants: preserve warm off-white/graphite/electric-lime palette, brand header, Kaliningrad label, typography, margin rhythm, service as the largest headline near top, model badge directly below, price with readable qualifications at lower left, polished illustrative device/part on right, and compact full address footer. NO question or problem-led headline. NO duplicated service label. NO slogan, CTA strip, drawn button, Apple logo, QR code or watermark.
+Subject: one phone with a dark damaged display and restrained vertical lines, plus a separate display assembly, no battery. The phone MUST be an iPhone X with its wide original notch, no Dynamic Island. This is an illustration, not a purported photograph of an actual customer repair.
+Use ONLY these exact strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Замена дисплея"
+"iPhone X"
+"Аналог — 6 000 ₽
+Оригинальный — 12 000 ₽"
+"Цены по прайсу. Вариант и наличие уточним до ремонта."
+"Ленинский проспект, 18 · офис 404"
+All copy must be legible and spelled correctly. Keep the service/model/price immediately clear on mobile; adjust the badge for long model names. Use only the exact supplied price(s), with their qualifier.
+No invented repair times, guarantees, original-parts promises, ratings or reviews. No claim of free diagnostics unless exactly in the supplied copy. For glass preserve the complete condition about working image/touch and possible display preservation. For X display preserve BOTH labeled price variants. Rebalance white space instead of adding text.
+
+repair-iphone-15-front-glass-replacement
+Use case: ads-marketing. Create ONE final portrait PNG1122x1402 catalog card, not a collage. Input image1 is the STYLE AND LAYOUT REFERENCE: the already corrected AppleService39 iPhone15 battery card WITHOUT a question headline. Make a sibling service card in this exact coherent catalog design, replacing all model/service/price/qualifier text and the repair object with the target below. Do not carry over battery text or the6000 price unless supplied here.
+Composition and invariants: preserve warm off-white/graphite/electric-lime palette, brand header, Kaliningrad label, typography, margin rhythm, service as the largest headline near top, model badge directly below, price with readable qualifications at lower left, polished illustrative device/part on right, and compact full address footer. NO question or problem-led headline. NO duplicated service label. NO slogan, CTA strip, drawn button, Apple logo, QR code or watermark.
+Subject: one phone with cracked front glass and a working lit image underneath, with a thin transparent glass layer suggesting glass-only replacement; no before-and-after comparison. The phone MUST be the exact iPhone 15 with Dynamic Island and a green body. This is an illustration, not a purported photograph of an actual customer repair.
+Use ONLY these exact strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Замена стекла"
+"iPhone 15"
+"7 000 ₽"
+"Если изображение и касания работают, мастер проверит возможность сохранить дисплей. Цену и наличие уточним до ремонта."
+"Ленинский проспект, 18 · офис 404"
+All copy must be legible and spelled correctly. Keep the service/model/price immediately clear on mobile; adjust the badge for long model names. Use only the exact supplied price(s), with their qualifier.
+No invented repair times, guarantees, original-parts promises, ratings or reviews. No claim of free diagnostics unless exactly in the supplied copy. For glass preserve the complete condition about working image/touch and possible display preservation. For X display preserve BOTH labeled price variants. Rebalance white space instead of adding text.
+
+repair-iphone-15-display
+Use case: ads-marketing. Create ONE final portrait PNG1122x1402 catalog card, not a collage. Input image1 is the STYLE AND LAYOUT REFERENCE: the already corrected AppleService39 iPhone15 battery card WITHOUT a question headline. Make a sibling service card in this exact coherent catalog design, replacing all model/service/price/qualifier text and the repair object with the target below. Do not carry over battery text or the6000 price unless supplied here.
+Composition and invariants: preserve warm off-white/graphite/electric-lime palette, brand header, Kaliningrad label, typography, margin rhythm, service as the largest headline near top, model badge directly below, price with readable qualifications at lower left, polished illustrative device/part on right, and compact full address footer. NO question or problem-led headline. NO duplicated service label. NO slogan, CTA strip, drawn button, Apple logo, QR code or watermark.
+Subject: one phone with a dark damaged display and restrained vertical lines, plus a separate display assembly, no battery. The phone MUST be the exact iPhone 15 with Dynamic Island and a green body. This is an illustration, not a purported photograph of an actual customer repair.
+Use ONLY these exact strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Замена дисплея"
+"iPhone 15"
+"Цена по запросу"
+"Вариант дисплея, цену и наличие уточним до ремонта."
+"Ленинский проспект, 18 · офис 404"
+All copy must be legible and spelled correctly. Keep the service/model/price immediately clear on mobile; adjust the badge for long model names. There must be NO numeric repair price anywhere in this card.
+No invented repair times, guarantees, original-parts promises, ratings or reviews. No claim of free diagnostics unless exactly in the supplied copy. For glass preserve the complete condition about working image/touch and possible display preservation. For X display preserve BOTH labeled price variants. Rebalance white space instead of adding text.
+
+repair-iphone-15-plus-battery-replacement
+Use case: ads-marketing. Create ONE final portrait PNG1122x1402 catalog card, not a collage. Input image1 is the STYLE AND LAYOUT REFERENCE: the already corrected AppleService39 iPhone15 battery card WITHOUT a question headline. Make a sibling service card in this exact coherent catalog design, replacing all model/service/price/qualifier text and the repair object with the target below. Do not carry over battery text or the6000 price unless supplied here.
+Composition and invariants: preserve warm off-white/graphite/electric-lime palette, brand header, Kaliningrad label, typography, margin rhythm, service as the largest headline near top, model badge directly below, price with readable qualifications at lower left, polished illustrative device/part on right, and compact full address footer. NO question or problem-led headline. NO duplicated service label. NO slogan, CTA strip, drawn button, Apple logo, QR code or watermark.
+Subject: one phone with a separate black replacement battery, preserving the illustrative catalog character. The phone MUST be the exact iPhone 15 Plus with Dynamic Island and a green body. This is an illustration, not a purported photograph of an actual customer repair.
+Use ONLY these exact strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Замена аккумулятора"
+"iPhone 15 Plus"
+"6 000 ₽"
+"По прайсу. Цену и наличие уточним до ремонта."
+"Ленинский проспект, 18 · офис 404"
+All copy must be legible and spelled correctly. Keep the service/model/price immediately clear on mobile; adjust the badge for long model names. Use only the exact supplied price(s), with their qualifier.
+No invented repair times, guarantees, original-parts promises, ratings or reviews. No claim of free diagnostics unless exactly in the supplied copy. For glass preserve the complete condition about working image/touch and possible display preservation. For X display preserve BOTH labeled price variants. Rebalance white space instead of adding text.
+
+repair-iphone-15-plus-front-glass-replacement
+Use case: ads-marketing. Create ONE final portrait PNG1122x1402 catalog card, not a collage. Input image1 is the STYLE AND LAYOUT REFERENCE: the already corrected AppleService39 iPhone15 battery card WITHOUT a question headline. Make a sibling service card in this exact coherent catalog design, replacing all model/service/price/qualifier text and the repair object with the target below. Do not carry over battery text or the6000 price unless supplied here.
+Composition and invariants: preserve warm off-white/graphite/electric-lime palette, brand header, Kaliningrad label, typography, margin rhythm, service as the largest headline near top, model badge directly below, price with readable qualifications at lower left, polished illustrative device/part on right, and compact full address footer. NO question or problem-led headline. NO duplicated service label. NO slogan, CTA strip, drawn button, Apple logo, QR code or watermark.
+Subject: one phone with cracked front glass and a working lit image underneath, with a thin transparent glass layer suggesting glass-only replacement; no before-and-after comparison. The phone MUST be the exact iPhone 15 Plus with Dynamic Island and a green body. This is an illustration, not a purported photograph of an actual customer repair.
+Use ONLY these exact strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Замена стекла"
+"iPhone 15 Plus"
+"8 000 ₽"
+"Если изображение и касания работают, мастер проверит возможность сохранить дисплей. Цену и наличие уточним до ремонта."
+"Ленинский проспект, 18 · офис 404"
+All copy must be legible and spelled correctly. Keep the service/model/price immediately clear on mobile; adjust the badge for long model names. Use only the exact supplied price(s), with their qualifier.
+No invented repair times, guarantees, original-parts promises, ratings or reviews. No claim of free diagnostics unless exactly in the supplied copy. For glass preserve the complete condition about working image/touch and possible display preservation. For X display preserve BOTH labeled price variants. Rebalance white space instead of adding text.
+
+repair-iphone-15-plus-display
+Use case: ads-marketing. Create ONE final portrait PNG1122x1402 catalog card, not a collage. Input image1 is the STYLE AND LAYOUT REFERENCE: the already corrected AppleService39 iPhone15 battery card WITHOUT a question headline. Make a sibling service card in this exact coherent catalog design, replacing all model/service/price/qualifier text and the repair object with the target below. Do not carry over battery text or the6000 price unless supplied here.
+Composition and invariants: preserve warm off-white/graphite/electric-lime palette, brand header, Kaliningrad label, typography, margin rhythm, service as the largest headline near top, model badge directly below, price with readable qualifications at lower left, polished illustrative device/part on right, and compact full address footer. NO question or problem-led headline. NO duplicated service label. NO slogan, CTA strip, drawn button, Apple logo, QR code or watermark.
+Subject: one phone with a dark damaged display and restrained vertical lines, plus a separate display assembly, no battery. The phone MUST be the exact iPhone 15 Plus with Dynamic Island and a green body. This is an illustration, not a purported photograph of an actual customer repair.
+Use ONLY these exact strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Замена дисплея"
+"iPhone 15 Plus"
+"Цена по запросу"
+"Вариант дисплея, цену и наличие уточним до ремонта."
+"Ленинский проспект, 18 · офис 404"
+All copy must be legible and spelled correctly. Keep the service/model/price immediately clear on mobile; adjust the badge for long model names. There must be NO numeric repair price anywhere in this card.
+No invented repair times, guarantees, original-parts promises, ratings or reviews. No claim of free diagnostics unless exactly in the supplied copy. For glass preserve the complete condition about working image/touch and possible display preservation. For X display preserve BOTH labeled price variants. Rebalance white space instead of adding text.
+
+repair-iphone-15-pro-battery-replacement
+Use case: ads-marketing. Create ONE final portrait PNG1122x1402 catalog card, not a collage. Input image1 is the STYLE AND LAYOUT REFERENCE: the already corrected AppleService39 iPhone15 battery card WITHOUT a question headline. Make a sibling service card in this exact coherent catalog design, replacing all model/service/price/qualifier text and the repair object with the target below. Do not carry over battery text or the6000 price unless supplied here.
+Composition and invariants: preserve warm off-white/graphite/electric-lime palette, brand header, Kaliningrad label, typography, margin rhythm, service as the largest headline near top, model badge directly below, price with readable qualifications at lower left, polished illustrative device/part on right, and compact full address footer. NO question or problem-led headline. NO duplicated service label. NO slogan, CTA strip, drawn button, Apple logo, QR code or watermark.
+Subject: one phone with a separate black replacement battery, preserving the illustrative catalog character. The phone MUST be the exact iPhone 15 Pro with Dynamic Island and a dark titanium-tone body. This is an illustration, not a purported photograph of an actual customer repair.
+Use ONLY these exact strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Замена аккумулятора"
+"iPhone 15 Pro"
+"7 000 ₽"
+"По прайсу. Цену и наличие уточним до ремонта."
+"Ленинский проспект, 18 · офис 404"
+All copy must be legible and spelled correctly. Keep the service/model/price immediately clear on mobile; adjust the badge for long model names. Use only the exact supplied price(s), with their qualifier.
+No invented repair times, guarantees, original-parts promises, ratings or reviews. No claim of free diagnostics unless exactly in the supplied copy. For glass preserve the complete condition about working image/touch and possible display preservation. For X display preserve BOTH labeled price variants. Rebalance white space instead of adding text.
+
+repair-iphone-15-pro-front-glass-replacement
+Use case: ads-marketing. Create ONE final portrait PNG1122x1402 catalog card, not a collage. Input image1 is the STYLE AND LAYOUT REFERENCE: the already corrected AppleService39 iPhone15 battery card WITHOUT a question headline. Make a sibling service card in this exact coherent catalog design, replacing all model/service/price/qualifier text and the repair object with the target below. Do not carry over battery text or the6000 price unless supplied here.
+Composition and invariants: preserve warm off-white/graphite/electric-lime palette, brand header, Kaliningrad label, typography, margin rhythm, service as the largest headline near top, model badge directly below, price with readable qualifications at lower left, polished illustrative device/part on right, and compact full address footer. NO question or problem-led headline. NO duplicated service label. NO slogan, CTA strip, drawn button, Apple logo, QR code or watermark.
+Subject: one phone with cracked front glass and a working lit image underneath, with a thin transparent glass layer suggesting glass-only replacement; no before-and-after comparison. The phone MUST be the exact iPhone 15 Pro with Dynamic Island and a dark titanium-tone body. This is an illustration, not a purported photograph of an actual customer repair.
+Use ONLY these exact strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Замена стекла"
+"iPhone 15 Pro"
+"9 000 ₽"
+"Если изображение и касания работают, мастер проверит возможность сохранить дисплей. Цену и наличие уточним до ремонта."
+"Ленинский проспект, 18 · офис 404"
+All copy must be legible and spelled correctly. Keep the service/model/price immediately clear on mobile; adjust the badge for long model names. Use only the exact supplied price(s), with their qualifier.
+No invented repair times, guarantees, original-parts promises, ratings or reviews. No claim of free diagnostics unless exactly in the supplied copy. For glass preserve the complete condition about working image/touch and possible display preservation. For X display preserve BOTH labeled price variants. Rebalance white space instead of adding text.
+
+repair-iphone-15-pro-display
+Use case: ads-marketing. Create ONE final portrait PNG1122x1402 catalog card, not a collage. Input image1 is the STYLE AND LAYOUT REFERENCE: the already corrected AppleService39 iPhone15 battery card WITHOUT a question headline. Make a sibling service card in this exact coherent catalog design, replacing all model/service/price/qualifier text and the repair object with the target below. Do not carry over battery text or the6000 price unless supplied here.
+Composition and invariants: preserve warm off-white/graphite/electric-lime palette, brand header, Kaliningrad label, typography, margin rhythm, service as the largest headline near top, model badge directly below, price with readable qualifications at lower left, polished illustrative device/part on right, and compact full address footer. NO question or problem-led headline. NO duplicated service label. NO slogan, CTA strip, drawn button, Apple logo, QR code or watermark.
+Subject: one phone with a dark damaged display and restrained vertical lines, plus a separate display assembly, no battery. The phone MUST be the exact iPhone 15 Pro with Dynamic Island and a dark titanium-tone body. This is an illustration, not a purported photograph of an actual customer repair.
+Use ONLY these exact strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Замена дисплея"
+"iPhone 15 Pro"
+"Цена по запросу"
+"Вариант дисплея, цену и наличие уточним до ремонта."
+"Ленинский проспект, 18 · офис 404"
+All copy must be legible and spelled correctly. Keep the service/model/price immediately clear on mobile; adjust the badge for long model names. There must be NO numeric repair price anywhere in this card.
+No invented repair times, guarantees, original-parts promises, ratings or reviews. No claim of free diagnostics unless exactly in the supplied copy. For glass preserve the complete condition about working image/touch and possible display preservation. For X display preserve BOTH labeled price variants. Rebalance white space instead of adding text.
+
+repair-iphone-15-pro-max-battery-replacement
+Use case: ads-marketing. Create ONE final portrait PNG1122x1402 catalog card, not a collage. Input image1 is the STYLE AND LAYOUT REFERENCE: the already corrected AppleService39 iPhone15 battery card WITHOUT a question headline. Make a sibling service card in this exact coherent catalog design, replacing all model/service/price/qualifier text and the repair object with the target below. Do not carry over battery text or the6000 price unless supplied here.
+Composition and invariants: preserve warm off-white/graphite/electric-lime palette, brand header, Kaliningrad label, typography, margin rhythm, service as the largest headline near top, model badge directly below, price with readable qualifications at lower left, polished illustrative device/part on right, and compact full address footer. NO question or problem-led headline. NO duplicated service label. NO slogan, CTA strip, drawn button, Apple logo, QR code or watermark.
+Subject: one phone with a separate black replacement battery, preserving the illustrative catalog character. The phone MUST be the exact iPhone 15 Pro Max with Dynamic Island and a dark titanium-tone body. This is an illustration, not a purported photograph of an actual customer repair.
+Use ONLY these exact strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Замена аккумулятора"
+"iPhone 15 Pro Max"
+"7 000 ₽"
+"По прайсу. Цену и наличие уточним до ремонта."
+"Ленинский проспект, 18 · офис 404"
+All copy must be legible and spelled correctly. Keep the service/model/price immediately clear on mobile; adjust the badge for long model names. Use only the exact supplied price(s), with their qualifier.
+No invented repair times, guarantees, original-parts promises, ratings or reviews. No claim of free diagnostics unless exactly in the supplied copy. For glass preserve the complete condition about working image/touch and possible display preservation. For X display preserve BOTH labeled price variants. Rebalance white space instead of adding text.
+
+repair-iphone-15-pro-max-front-glass-replacement
+Use case: ads-marketing. Create ONE final portrait PNG1122x1402 catalog card, not a collage. Input image1 is the STYLE AND LAYOUT REFERENCE: the already corrected AppleService39 iPhone15 battery card WITHOUT a question headline. Make a sibling service card in this exact coherent catalog design, replacing all model/service/price/qualifier text and the repair object with the target below. Do not carry over battery text or the6000 price unless supplied here.
+Composition and invariants: preserve warm off-white/graphite/electric-lime palette, brand header, Kaliningrad label, typography, margin rhythm, service as the largest headline near top, model badge directly below, price with readable qualifications at lower left, polished illustrative device/part on right, and compact full address footer. NO question or problem-led headline. NO duplicated service label. NO slogan, CTA strip, drawn button, Apple logo, QR code or watermark.
+Subject: one phone with cracked front glass and a working lit image underneath, with a thin transparent glass layer suggesting glass-only replacement; no before-and-after comparison. The phone MUST be the exact iPhone 15 Pro Max with Dynamic Island and a dark titanium-tone body. This is an illustration, not a purported photograph of an actual customer repair.
+Use ONLY these exact strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Замена стекла"
+"iPhone 15 Pro Max"
+"10 000 ₽"
+"Если изображение и касания работают, мастер проверит возможность сохранить дисплей. Цену и наличие уточним до ремонта."
+"Ленинский проспект, 18 · офис 404"
+All copy must be legible and spelled correctly. Keep the service/model/price immediately clear on mobile; adjust the badge for long model names. Use only the exact supplied price(s), with their qualifier.
+No invented repair times, guarantees, original-parts promises, ratings or reviews. No claim of free diagnostics unless exactly in the supplied copy. For glass preserve the complete condition about working image/touch and possible display preservation. For X display preserve BOTH labeled price variants. Rebalance white space instead of adding text.
+
+repair-iphone-15-pro-max-display
+Use case: ads-marketing. Create ONE final portrait PNG1122x1402 catalog card, not a collage. Input image1 is the STYLE AND LAYOUT REFERENCE: the already corrected AppleService39 iPhone15 battery card WITHOUT a question headline. Make a sibling service card in this exact coherent catalog design, replacing all model/service/price/qualifier text and the repair object with the target below. Do not carry over battery text or the6000 price unless supplied here.
+Composition and invariants: preserve warm off-white/graphite/electric-lime palette, brand header, Kaliningrad label, typography, margin rhythm, service as the largest headline near top, model badge directly below, price with readable qualifications at lower left, polished illustrative device/part on right, and compact full address footer. NO question or problem-led headline. NO duplicated service label. NO slogan, CTA strip, drawn button, Apple logo, QR code or watermark.
+Subject: one phone with a dark damaged display and restrained vertical lines, plus a separate display assembly, no battery. The phone MUST be the exact iPhone 15 Pro Max with Dynamic Island and a dark titanium-tone body. This is an illustration, not a purported photograph of an actual customer repair.
+Use ONLY these exact strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Замена дисплея"
+"iPhone 15 Pro Max"
+"Цена по запросу"
+"Вариант дисплея, цену и наличие уточним до ремонта."
+"Ленинский проспект, 18 · офис 404"
+All copy must be legible and spelled correctly. Keep the service/model/price immediately clear on mobile; adjust the badge for long model names. There must be NO numeric repair price anywhere in this card.
+No invented repair times, guarantees, original-parts promises, ratings or reviews. No claim of free diagnostics unless exactly in the supplied copy. For glass preserve the complete condition about working image/touch and possible display preservation. For X display preserve BOTH labeled price variants. Rebalance white space instead of adding text.
