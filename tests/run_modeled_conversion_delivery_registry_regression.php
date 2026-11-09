@@ -412,6 +412,12 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     $check('Telegram has its own row and provider processing never becomes a confirmed visit',
         $tg['sent']===['events'=>1,'conversations'=>1,'value_rub'=>100000]
         &&$tg['api_accepted']['events']===1&&$tg['provider_processing']['events']===1&&$tg['visit_linked']['events']===0);
+    $processedB=$todayB;$processedB['upload_status']='PROCESSED';$processedB['state']='processed';$processedB['value_processed_at_unix']=$now;
+    $advanced=ModeledConversionVisitProof::dailySentCohort([$processedB],[],$now,$archived);
+    $check('a newly persisted processing receipt survives an older archived intermediate status without inventing a visit',
+        $advanced['by_platform']['telegram']['processed']['events']===1
+        &&$advanced['by_platform']['telegram']['visit_linked']['events']===0
+        &&$advanced['by_platform']['telegram']['unverified_visits']['events']===1);
     $reader=new ReflectionMethod(ModeledConversionVisitProof::class,'dailySummary');
     $summary=$reader->invoke(null,$daily,$now);$bad=$daily;$bad['by_platform']['max']['visit_linked']['value_rub']++;
     $check('private daily summary validates arithmetic before publishing cached values',

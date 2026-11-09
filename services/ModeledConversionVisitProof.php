@@ -308,8 +308,9 @@ final class ModeledConversionVisitProof
                 &&hash_equals((string)($old['fingerprint']??''),self::fingerprint($r));
             $accepted=(string)($r['upload_id']??'')!=='';
             $status=$proof?($old['upload_status']??$r['upload_status']??null):($r['upload_status']??null);
-            $processed=$accepted&&($status==='PROCESSED'||($status===null&&($r['state']??null)==='processed'));
-            $failed=$accepted&&($status==='LINKAGE_FAILURE'||($status===null&&($r['state']??null)==='unmatched'));
+            // A newer durable processing receipt must not be downgraded by an older archived UPLOADED check.
+            $processed=$accepted&&($status==='PROCESSED'||($r['upload_status']??null)==='PROCESSED'||($r['state']??null)==='processed');
+            $failed=$accepted&&!$processed&&($status==='LINKAGE_FAILURE'||($r['upload_status']??null)==='LINKAGE_FAILURE'||($r['state']??null)==='unmatched');
             $linked=$processed&&$proof&&($old['upload_status']??null)==='PROCESSED'&&($old['linkage']??null)==='unique_visit_reconciled';
             $flags=['sent'=>true,'api_accepted'=>$accepted,'processed'=>$processed,'visit_linked'=>$linked,
                 'linkage_failed'=>$failed,'provider_processing'=>$accepted&&!$processed&&!$failed,
