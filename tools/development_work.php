@@ -39,9 +39,17 @@ try {
     ProjectAccessService::initializeReadOnly();
     $authorize=static fn(string $connection,int $admin,array $required):bool=>
         (new ManagerPreparationOAuth())->developmentConnectionAuthorizedAcrossProfiles($connection,$admin);
+    require_once dirname(__DIR__).'/services/DevelopmentWorkServerRuntime.php';
+    $stage='server_model';
+    $server=DevelopmentWorkServerRuntime::tick(ConversationDb::connection(),$trigger,
+        static fn(string $connection,int $admin):bool=>$authorize($connection,$admin,[]));
+    if($server['handled']) {
+        $safe=array_intersect_key($server,array_flip(['state','reason','provider_calls']));
+        DevelopmentWorkHealth::record('ok','server_model',$safe,$trigger);$finished=true;
+        echo json_encode(['ok'=>true,'execution_kind'=>'server_model']+$safe,JSON_THROW_ON_ERROR)."\n";exit;
+    }
     $events=new DevelopmentWorkEventService(null,null,null,$authorize);$stage='subscription';
-    // A real current development OAuth grant and verified subscription are prerequisites.
-    // The CLI never starts a hosted worker or invokes any model/provider itself.
+    // Native mode alone requires a real authorized verified callback subscription.
     if (!$events->hasActiveSubscriptions()) {
         DevelopmentWorkHealth::record('awaiting_connection',$stage,[],$trigger);$finished=true;
         echo "{\"ok\":true,\"state\":\"awaiting_connection\",\"provider_calls\":0}\n";exit;
@@ -56,5 +64,5 @@ try {
 } catch (Throwable $ignored) {
     DevelopmentWorkHealth::record('failed',$stage,[],$trigger);$finished=true;
     // Fixed stage only: no SQL, exception text, queue IDs, callback or credentials.
-    fwrite(STDERR,json_encode(['ok'=>false,'state'=>'unavailable','stage'=>$stage,'provider_calls'=>0],JSON_THROW_ON_ERROR)."\n");exit(1);
+    fwrite(STDERR,json_encode(['ok'=>false,'state'=>'unavailable','stage'=>$stage,'provider_calls'=>$stage==='server_model'?null:0],JSON_THROW_ON_ERROR)."\n");exit(1);
 }

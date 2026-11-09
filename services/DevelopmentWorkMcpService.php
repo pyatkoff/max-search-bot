@@ -30,6 +30,8 @@ final class DevelopmentWorkMcpService
             &&($rpc['params']['name']??null)==='development_work_status';
         if (($rpc['jsonrpc']??null)!=='2.0'||!is_string($rpc['method']??null)
             ||(!is_int($id)&&!is_string($id)&&$id!==null)) return self::error(null,-32600,'Invalid Request');
+        // DEV-status ID is bounded before auth/errors as well as on the full success wire.
+        if($status&&is_string($id)&&strlen($id)>1024)return self::error(null,-32600,'Invalid Request');
         try {
             $this->requireContext($admin,$connection,$scopes);
             $params=$rpc['params']??[];
@@ -51,7 +53,10 @@ final class DevelopmentWorkMcpService
                 default=>throw new OutOfBoundsException(),
             };
             $this->requireContext($admin,$connection,$scopes);
-            return array_key_exists('id',$rpc)?['jsonrpc'=>'2.0','id'=>$id,'result'=>$result]:[];
+            $response=array_key_exists('id',$rpc)?['jsonrpc'=>'2.0','id'=>$id,'result'=>$result]:[];
+            if($status&&strlen(json_encode($response,JSON_THROW_ON_ERROR))>262144)
+                return self::error($id,-32603,'Development status exceeds byte limit');
+            return $response;
         } catch (DevelopmentWorkCallbackError $error) {
             return self::error($id,-32015,'CallbackEndpointError',['reason'=>$error->reason]);
         } catch (DomainException $error) {
