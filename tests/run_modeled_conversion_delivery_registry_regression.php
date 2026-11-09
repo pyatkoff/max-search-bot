@@ -380,6 +380,45 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     $check('stable original-cohort evidence remains available without repeating its requests',
         $retainedProof['events'][0]===$proof['events'][0]&&$retainedProof['selected_rows']===0&&count($api->calls)===$deadlineCalls);
 
+
+    $todayA=$a;$todayA['claimed_at_unix']=$day+3600;$todayA['value_api_accepted_at_unix']=$day+3601;
+    $todayB=$b;$todayB['claimed_at_unix']=$day+4000;$todayB['value_api_accepted_at_unix']=$day+4001;
+    $todayB['upload_status']='UPLOADED';$todayB['state']='accepted';
+    $todayC=$a;$todayC['id']='4';$todayC['target']=ModeledConversionValueContract::predictionKey('4');$todayC['value_profile_id']='4';
+    $todayC['upload_id']='504';$todayC['value_rub']=20;$todayC['claimed_at_unix']=$day+4100;
+    $todayC['value_api_accepted_at_unix']=$day+4101;$todayC['upload_status']='LINKAGE_FAILURE';$todayC['state']='unmatched';
+    $yesterday=$todayA;$yesterday['id']='5';$yesterday['claimed_at_unix']=$day+3599;$yesterday['value_processed_at_unix']=$now-1;
+    $archived=static function(array $r)use($todayB,$todayC,$now):array{
+        $e=['fingerprint'=>ModeledConversionVisitProof::fingerprint($r),'upload_status'=>$r['id']===$todayC['id']?'LINKAGE_FAILURE':'UPLOADED',
+            'linkage'=>$r['id']===$todayC['id']?'failed':'not_checked'];
+        return ['at'=>$now-1,'event'=>$e];
+    };
+    $daily=ModeledConversionVisitProof::dailySentCohort([$todayA,$todayB,$todayC,$yesterday],
+        [(string)$todayA['id']=>$proof['events'][0]],$now,$archived);
+    $m=$daily['by_platform']['max'];$tg=$daily['by_platform']['telegram'];
+    $check('daily export report uses Kaliningrad midnight and excludes an earlier send processed today',
+        $daily['date']==='2026-11-02'&&$daily['timezone']==='Europe/Kaliningrad'
+        &&$daily['window']['from']===gmdate('Y-m-d\\TH:i:s\\Z',$day+3600)&&$m['sent']===['events'=>2,'conversations'=>1,'value_rub'=>37]);
+    $check('receipt processing and exact visit evidence stay separate within the same sent cohort',
+        $m['api_accepted']['value_rub']===37&&$m['processed']['value_rub']===17&&$m['visit_linked']['value_rub']===17
+        &&$m['linkage_failed']['value_rub']===20&&$m['proof_missing']['events']===0);
+    $check('Telegram has its own row and provider processing never becomes a confirmed visit',
+        $tg['sent']===['events'=>1,'conversations'=>1,'value_rub'=>100000]
+        &&$tg['api_accepted']['events']===1&&$tg['provider_processing']['events']===1&&$tg['visit_linked']['events']===0);
+    $reader=new ReflectionMethod(ModeledConversionVisitProof::class,'dailySummary');
+    $summary=$reader->invoke(null,$daily,$now);$bad=$daily;$bad['by_platform']['max']['visit_linked']['value_rub']++;
+    $check('private daily summary validates arithmetic before publishing cached values',
+        $summary['available']&&$summary['fresh']&&!$reader->invoke(null,$bad,$now)['available']
+        &&!$reader->invoke(null,null,$now)['available']);
+    $check('daily cached summary becomes explicitly stale and contains no individual advertising identities',
+        !$reader->invoke(null,$daily,$now+901)['fresh']
+        &&!str_contains(json_encode($summary,JSON_THROW_ON_ERROR),'900000000000000001')
+        &&!str_contains(json_encode($summary,JSON_THROW_ON_ERROR),'conversation_id'));
+    $changedProof=$proof['events'][0];$changedProof['fingerprint']=str_repeat('a',64);
+    $unbound=ModeledConversionVisitProof::dailySentCohort([$todayA],[(string)$todayA['id']=>$changedProof],$now,$archived);
+    $check('a different event fingerprint cannot contribute to daily confirmed visit totals',
+        $unbound['by_platform']['max']['visit_linked']['events']===0&&$unbound['by_platform']['max']['proof_missing']['events']===1);
+
     deliveryRegistrySchema($p);
     for($i=0;$i<35;$i++)deliveryRegistryFixtureEvent($p,610,1,$day+100+$i,['predictive'=>true,'value'=>10]);
     deliveryRegistryFixtureEvent($p,611,1,$day+200,['predictive'=>true,'value'=>0,'state'=>'failed','error'=>'price_loss_reconciled']);

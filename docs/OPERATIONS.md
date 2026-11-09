@@ -423,3 +423,20 @@ This is a conservative source-clock admission, not proof that the counter
 recorded a visit. Actual visit linkage still requires the provider report.
 Already accepted/processed/failed receipts are never reset or resent by this
 guard; no historical queue sweep is introduced.
+
+
+### Private same-cohort daily delivery totals
+
+The cached visit proof also carries fixed goal/counter, aggregate-only current-day
+delivery totals in Europe/Kaliningrad. Sent rows are selected by their last
+persisted upload-claim time. API receipts, processing, failed linkage and exact
+visit reconciliation are measured on those same rows; they are not the separate
+first-observed-today cohorts on the existing Moscow calendar report.
+
+Each platform reports distinct conversations, goal rows and RUB independently.
+Conversation counts overlap across status groups and must not be added.
+Missing/stale per-event evidence and receipt clocks remain explicit. Processing
+alone never credits a visit. The ordinary fixed private MCP reader validates the
+cached arithmetic and calendar, exposes no individual identities, performs no
+new provider/DB read for this projection, and does not change the existing UI
+calendar, goals, values, source profiles or delivery queues.

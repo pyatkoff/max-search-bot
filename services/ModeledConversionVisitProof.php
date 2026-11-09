@@ -18,7 +18,7 @@ final class ModeledConversionVisitProof
         require_once __DIR__.'/ModeledConversionDeliveryRegistry.php';
         $mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
         $q=$pdo->query('SELECT o.id,o.conversation_id,o.project_key,o.counter_id,o.transport_target,o.value_contract,o.platform,o.target,o.value_profile_id,'
-            .'o.value_stage,o.value_rub,o.event_unix,o.client_id,o.upload_id,o.external_user_id,o.state,o.upload_status,o.value_api_accepted_at_unix,o.value_processed_at_unix '
+            .'o.value_stage,o.value_rub,o.event_unix,o.client_id,o.upload_id,o.external_user_id,o.state,o.upload_status,o.value_api_accepted_at_unix,o.value_processed_at_unix,o.claimed_at_unix '
             .ModeledConversionDeliveryRegistry::sourceSql($mysql).' ORDER BY o.id DESC LIMIT 1001');
         $rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
         if(count($rows)>=1001)throw new RuntimeException('verification_ledger_bound');
@@ -128,7 +128,7 @@ final class ModeledConversionVisitProof
             'checked_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),'checkpoint_at'=>gmdate('Y-m-d\TH:i:s\Z',$checkpoint),
             'basis'=>'unique_client_and_second_precision_visit_start_reconciliation_not_native_visit_id_or_event_log',
             'ledger_complete'=>true,'selected_rows'=>count($selected),'other_rows_omitted'=>max(0,count($ledger)-count($records)),
-            'events'=>array_values($records),'provider_write_requests'=>0,'source_writes'=>0];
+            'events'=>array_values($records),'today_sent_cohort'=>self::dailySentCohort($ledger,$records,$now),'provider_write_requests'=>0,'source_writes'=>0];
     }
     public static function path():string{return dirname(__DIR__,2).'/max-search-bot-modeled-visit-proof/last-check.json';}
     public static function failureReason(array $report,int $event):string
@@ -179,7 +179,7 @@ final class ModeledConversionVisitProof
         self::directory(dirname(self::path()));
         // Keep per-row evidence after it rotates out of the bounded current report.
         foreach($receipt['events']as$e){
-            $one=$receipt;$one['events']=[$e];$one['selected_rows']=1;
+            $one=$receipt;unset($one['today_sent_cohort']);$one['events']=[$e];$one['selected_rows']=1;
             self::storeAt(dirname(self::path()).'/events/'.$e['fingerprint'].'.json',$one);
         }
         self::storeAt(self::path(),$receipt);
@@ -279,12 +279,98 @@ final class ModeledConversionVisitProof
         $prior=self::prior($row,$now);if($prior!==[])return self::forEvent($prior['cache'],$row,$now);
         return ['available'=>false,'reason'=>'not_in_checked_window'];
     }
+
+    private const DAILY_GROUPS=['sent','api_accepted','processed','visit_linked','linkage_failed','provider_processing',
+        'unverified_visits','proof_missing','stale_proof','accepted_clock_unknown'];
+    /** One fixed calendar and one sent-row cohort; all amounts remain private aggregates. */
+    public static function dailySentCohort(array $ledger,array $current,int $now,?callable $archive=null):array
+    {
+        if(count($ledger)>=1001||$now<946684800)throw new RuntimeException('verification_daily_scope');
+        $zone=new DateTimeZone('Europe/Kaliningrad');$day=(new DateTimeImmutable('@'.$now))->setTimezone($zone)->setTime(0,0);
+        $from=$day->getTimestamp();$until=$day->modify('+1 day')->getTimestamp();$out=[];$people=[];
+        foreach(['max','telegram']as$platform)foreach(self::DAILY_GROUPS as$group){
+            $out[$platform][$group]=['events'=>0,'conversations'=>0,'value_rub'=>0];$people[$platform][$group]=[];
+        }
+        $archive??=static fn(array $r):array=>self::prior($r,$now);
+        foreach($ledger as$r){
+            $claim=(int)($r['claimed_at_unix']??0);
+            if($claim<$from||$claim>=$until||$claim>$now)continue;
+            $platform=$r['platform']??null;$value=(int)($r['value_rub']??0);
+            if(!in_array($platform,['max','telegram'],true)||$value<=0||$value>ModeledConversionValueContract::MAX_VALUE_RUB
+                ||($r['project_key']??null)!=='anytour'||(string)($r['counter_id']??'')!=='98615635'
+                ||($r['transport_target']??null)!==ModeledConversionValueContract::TARGET
+                ||($r['value_contract']??null)!==ModeledConversionValueContract::VERSION)throw new RuntimeException('verification_daily_binding');
+            $old=$current[(string)$r['id']]??null;$at=is_array($old)?strtotime((string)($old['checked_at']??'')):false;
+            if(!is_array($old)){$prior=$archive($r);$old=$prior['event']??null;$at=$prior['at']??false;}
+            $proof=is_array($old)&&is_int($at)&&$at>=946684800&&$at<=$now
+                &&hash_equals((string)($old['fingerprint']??''),self::fingerprint($r));
+            $accepted=(string)($r['upload_id']??'')!=='';
+            $status=$proof?($old['upload_status']??$r['upload_status']??null):($r['upload_status']??null);
+            $processed=$accepted&&($status==='PROCESSED'||($status===null&&($r['state']??null)==='processed'));
+            $failed=$accepted&&($status==='LINKAGE_FAILURE'||($status===null&&($r['state']??null)==='unmatched'));
+            $linked=$processed&&$proof&&($old['upload_status']??null)==='PROCESSED'&&($old['linkage']??null)==='unique_visit_reconciled';
+            $flags=['sent'=>true,'api_accepted'=>$accepted,'processed'=>$processed,'visit_linked'=>$linked,
+                'linkage_failed'=>$failed,'provider_processing'=>$accepted&&!$processed&&!$failed,
+                'unverified_visits'=>$processed&&!$linked,'proof_missing'=>!$proof,
+                'stale_proof'=>$proof&&$now-$at>900,'accepted_clock_unknown'=>$accepted&&(int)($r['value_api_accepted_at_unix']??0)<=0];
+            foreach($flags as$group=>$include)if($include){
+                $out[$platform][$group]['events']++;$out[$platform][$group]['value_rub']+=$value;
+                $people[$platform][$group][(string)$r['conversation_id']]=true;
+            }
+        }
+        foreach(['max','telegram']as$platform)foreach(self::DAILY_GROUPS as$group)
+            $out[$platform][$group]['conversations']=count($people[$platform][$group]);
+        return ['version'=>'modeled_today_sent_cohort_v1','available'=>true,'goal_id'=>'678187097','counter_id'=>'98615635','currency'=>'RUB',
+            'date'=>$day->format('Y-m-d'),'timezone'=>'Europe/Kaliningrad','as_of'=>gmdate('Y-m-d\\TH:i:s\\Z',$now),
+            'window'=>['from'=>gmdate('Y-m-d\\TH:i:s\\Z',$from),'until_exclusive'=>gmdate('Y-m-d\\TH:i:s\\Z',$until)],
+            'basis'=>'last_persisted_upload_claim_same_cohort_receipt_and_visit_evidence_not_payment_or_session_day',
+            'ledger_complete'=>true,'by_platform'=>$out];
+    }
+    private static function dailySummary(mixed $d,int $now):array
+    {
+        $fail=['available'=>false,'reason'=>'not_recorded'];
+        if(!is_array($d))return $fail;
+        if(($d['version']??null)!=='modeled_today_sent_cohort_v1'||($d['available']??null)!==true||($d['goal_id']??null)!=='678187097'
+            ||($d['counter_id']??null)!=='98615635'||($d['currency']??null)!=='RUB'||($d['timezone']??null)!=='Europe/Kaliningrad'
+            ||($d['ledger_complete']??null)!==true||!is_string($d['as_of']??null)||!is_string($d['date']??null)
+            ||!is_array($d['window']??null)||array_keys($d['window'])!==['from','until_exclusive']
+            ||!is_array($d['by_platform']??null)||array_keys($d['by_platform'])!==['max','telegram'])return ['available'=>false,'reason'=>'invalid_daily_cache'];
+        $at=strtotime($d['as_of']);if($at===false||$at>$now||$at<946684800)return ['available'=>false,'reason'=>'invalid_daily_cache'];
+        $zone=new DateTimeZone('Europe/Kaliningrad');$day=(new DateTimeImmutable('@'.$at))->setTimezone($zone)->setTime(0,0);
+        if($d['date']!==$day->format('Y-m-d')||($d['window']['from']??null)!==gmdate('Y-m-d\\TH:i:s\\Z',$day->getTimestamp())
+            ||($d['window']['until_exclusive']??null)!==gmdate('Y-m-d\\TH:i:s\\Z',$day->modify('+1 day')->getTimestamp()))return ['available'=>false,'reason'=>'invalid_daily_cache'];
+        $safe=[];
+        foreach(['max','telegram']as$p){
+            $groups=$d['by_platform'][$p];if(!is_array($groups)||array_keys($groups)!==self::DAILY_GROUPS)return ['available'=>false,'reason'=>'invalid_daily_cache'];
+            foreach($groups as$k=>$v){
+                if(!is_array($v)||array_keys($v)!==['events','conversations','value_rub']
+                    ||!is_int($v['events'])||!is_int($v['conversations'])||!is_int($v['value_rub'])||$v['events']<0||$v['events']>1000
+                    ||$v['conversations']<0||$v['conversations']>$v['events']||$v['value_rub']<0||$v['value_rub']>1000*ModeledConversionValueContract::MAX_VALUE_RUB
+                    ||$v['value_rub']<$v['events']||$v['value_rub']>$v['events']*ModeledConversionValueContract::MAX_VALUE_RUB
+                    ||($v['events']>0&&$v['conversations']===0)||($v['events']===0&&$v['value_rub']!==0))return ['available'=>false,'reason'=>'invalid_daily_cache'];
+                if($k!=='sent'&&($v['events']>$groups['sent']['events']||$v['value_rub']>$groups['sent']['value_rub']||$v['conversations']>$groups['sent']['conversations']))return ['available'=>false,'reason'=>'invalid_daily_cache'];
+            }
+            if($groups['processed']['events']+$groups['linkage_failed']['events']+$groups['provider_processing']['events']!==$groups['api_accepted']['events']
+                ||$groups['visit_linked']['events']+$groups['unverified_visits']['events']!==$groups['processed']['events'])return ['available'=>false,'reason'=>'invalid_daily_cache'];
+            if($groups['processed']['value_rub']+$groups['linkage_failed']['value_rub']+$groups['provider_processing']['value_rub']!==$groups['api_accepted']['value_rub']
+                ||$groups['visit_linked']['value_rub']+$groups['unverified_visits']['value_rub']!==$groups['processed']['value_rub']
+                ||$groups['accepted_clock_unknown']['events']>$groups['api_accepted']['events']
+                ||$groups['accepted_clock_unknown']['value_rub']>$groups['api_accepted']['value_rub'])return ['available'=>false,'reason'=>'invalid_daily_cache'];
+            $safe[$p]=$groups;
+        }
+        return ['available'=>true,'fresh'=>$now-$at<=900&&$day->format('Y-m-d')===(new DateTimeImmutable('@'.$now))->setTimezone($zone)->format('Y-m-d'),
+            'date'=>$d['date'],'timezone'=>$d['timezone'],'as_of'=>$d['as_of'],'window'=>$d['window'],'goal_id'=>'678187097','currency'=>'RUB',
+            'basis'=>'last_persisted_upload_claim_same_cohort_receipt_and_visit_evidence_not_payment_or_session_day',
+            'ledger_complete'=>true,'by_platform'=>$safe];
+    }
+
     public static function privateSummary(int $now,ModeledConversionStatusBudget $budget):array
     {
         $c=self::readCache($now,$budget);if(($c['available']??false)!==true)return [...$c,'automatic'=>self::automatic($now)];
         $r=$c['receipt'];$out=['available'=>true,'fresh'=>$c['fresh'],'checked_at'=>$r['checked_at'],'checkpoint_at'=>$r['checkpoint_at'],
             'goal_id'=>'678187097','currency'=>'RUB','basis'=>$r['basis'],'automatic'=>self::automatic($now),
-            'selected_rows'=>$r['selected_rows'],'other_rows_omitted'=>$r['other_rows_omitted'],'cohort_events'=>0,'cohort_value_rub'=>0,
+            'selected_rows'=>$r['selected_rows'],'other_rows_omitted'=>$r['other_rows_omitted'],
+            'today_sent_cohort'=>self::dailySummary($r['today_sent_cohort']??null,$now),'cohort_events'=>0,'cohort_value_rub'=>0,
             'processed_events'=>0,'processed_value_rub'=>0,'reconciled_events'=>0,'reconciled_value_rub'=>0,'examples'=>[]];
         $cases=[];
         foreach($r['events']as$e)if($e['cohort']){
