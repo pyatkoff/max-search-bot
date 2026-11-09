@@ -147,13 +147,19 @@ and skipped the protected operations. No new live probe or acceptance is run.
 
 A same-source scheduled monitor may independently create a skipped activation
 while the original deployment tail is running. The closer classifies that child
-separately: the exact origin ID must identify a successful original scheduled
-monitor in this repository, on main and at the same source; the child must retain
-that exact origin. Only a completed child with one original `activate` job,
+separately: the exact origin ID must identify a completed original scheduled
+monitor with a `success` or `failure` conclusion in this repository, on main and
+at the same source; the child must retain that exact origin. Only a completed
+child with one original `activate` job,
 explicitly skipped and with zero steps, is excluded from release candidates.
 The original deployment monitor's activation remains mandatory and is the only
-activation written into the terminal proof. A pending independent child shares
-the existing finite metadata wait; it cannot silently permit closure. Duplicate
+activation written into the terminal proof. A failed independent scheduled
+monitor remains a failure in the observed metadata; neither it nor its skipped
+child becomes accepted release evidence. In particular, a scheduled consumer
+refusing a still-pending release cannot make its harmless child a new closure
+gate. Cancelled, pending and unknown parent outcomes still refuse. A pending
+independent child shares the existing finite metadata wait; it cannot silently
+permit closure. Duplicate
 origins, wrong repository/source/attempt, failed or executed jobs, incomplete
 metadata and API failures retain the publisher. This classification starts no
 monitor, activation, installation or retry and changes no workflow or schedule.
@@ -163,6 +169,14 @@ the existing server job. Completed gates are not rerun. Failed/cancelled/skipped
 mandatory gates, changed main, unavailable/ambiguous metadata, API refusal,
 rate limiting and timeouts stop without freeing the slot. There is no retry on
 429 or other API errors.
+
+On `gate_deadline`, `release_slot_pending` names the missing original workflow
+files and the exact IDs/statuses of still-pending runs. Independently scheduled
+children also retain their scheduled-parent ID. This bounded diagnostic contains
+only fixed workflow names, validated IDs and allowlisted states from the final
+snapshot; it includes no raw API response, log, customer data or credentials.
+It neither changes the finite wait nor permits a retry or terminal mutation.
+This forward correction does not retroactively close an already failed closer.
 
 An original consumer of an ordinary push installation may briefly await one narrowly pending
 Jobs API snapshot before any protected operation. The original Deploy and its
@@ -252,3 +266,4 @@ workflow, queue, publisher, customer message or failure experiment is introduced
 
 Recovery is effective only for releases containing this package. Do not repeat
 an accepted older installation to obtain the new workflow layout.
+
