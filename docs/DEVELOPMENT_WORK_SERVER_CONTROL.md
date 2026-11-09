@@ -165,3 +165,34 @@ existing owner, review a concrete operational packet, explicitly append only A02
 then observe four distinct original cron calls and both complete receipts. Report
 actual scheduled times and any gaps honestly. Keep the full roadmap goal open
 until its separate task owners, inputs and acceptance are actually established.
+
+
+## Forward publication after the 9 November Actions incident
+
+The independently accepted runtime source is 12704bef385ec62dfee07b8a6e75af62bab8b088,
+tree77c2f0f1be6aaa412bdbc43cc3faba22998b4424, merged by PR1430 as
+697a95f2b60b41f810f7316885db3f51a8bf8ffb. Original source regression42669128303/attempt1
+and guard42669129861/attempt1 passed; SQLite/native MySQL queue618, native authority84
+and events203 checks are retained as their exact historical source evidence.
+
+The original push installation42671730103/attempt1 and push guard42671729909/attempt1
+failed during the GitHub Actions/Checks incident
+(https://www.githubstatus.com/incidents/tp8cghg7tlc4). The provider reported Internal
+server error with correlation4e61c661-d188-4f77-ab14-88c044865b37 for deployment and
+cd573499-dcfc-4b96-b0be-0042493c2d83 for the guard. Complete original job metadata
+contains only successful inventory, syntax and diagnostics verifiers. The application
+verification lane and installer/deploy/SSH/sync/migration/verification/closer jobs
+were not created; no installation artifact exists. This failed publication is not
+an installed baseline, and it authorizes no hotel/development work or model call.
+
+A reviewed successor may publish only this factual handoff through the normal PR,
+required checks, fresh main/priority/CAS and the same existing publisher. Runtime
+and schema blobs must match the accepted source exactly. The previous failed push
+and accepted old PR1233 terminal6488310537 remain in history; the occupied publisher
+must be explicitly rebound to the concrete successor under its existing owner,
+without a manual FREE or new publisher. The successor's original automatic push
+must complete a normal installation and all original mandatory gates. Neither a
+rerun of the failed deployment nor an unrelated manual diagnostic may substitute
+for that proof. Before actual finite ARM, independently read the installed candidate
+and verify its historical baseline, actual execution authority, profile, budget,
+deadline and once-only state. No real A02/B acceptance has yet been established.
