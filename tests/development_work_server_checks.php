@@ -318,7 +318,7 @@ function devServerWrapperChecks(array $savedStatus): void
         CREATE TABLE manager_preparation_oauth_grants(grant_id TEXT PRIMARY KEY,client_id TEXT,admin_id INTEGER,project_key TEXT,resource TEXT,scopes TEXT,created_at INTEGER,expires_at INTEGER,revoked_at INTEGER);
         CREATE TABLE manager_preparation_oauth_codes(code_hash TEXT PRIMARY KEY,grant_id TEXT,redirect_uri TEXT,code_challenge TEXT,expires_at INTEGER,consumed_at INTEGER);
         CREATE TABLE manager_preparation_oauth_tokens(token_hash TEXT PRIMARY KEY,grant_id TEXT,token_kind TEXT,expires_at INTEGER,consumed_at INTEGER);
-        INSERT INTO managers VALUES(1,'admin',1,0);INSERT INTO projects VALUES(1,'anytour','Synthetic',1);INSERT INTO manager_projects VALUES(1,1);");
+        INSERT INTO managers VALUES(1,'admin',1,0);INSERT INTO projects VALUES(1,'anytour','Synthetic project',1);INSERT INTO manager_projects VALUES(1,1);");
     $prior=(new ReflectionProperty(ConversationDb::class,'pdo'))->getValue();
     $schema=(new ReflectionProperty(ProjectAccessService::class,'schemaReady'))->getValue();
     (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
