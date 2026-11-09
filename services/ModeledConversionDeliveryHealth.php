@@ -2,7 +2,6 @@
 declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionStatusBudget.php';
 require_once __DIR__.'/ModeledConversionPipelineMonitorStatus.php';
-require_once __DIR__.'/ModeledConversionVisitProof.php';
 
 /** Fixed-scope technical health; no capture, network, customer data or mutation. */
 final class ModeledConversionDeliveryHealth
@@ -92,6 +91,7 @@ final class ModeledConversionDeliveryHealth
             if(count($rows)!==1)throw new UnexpectedValueException('invalid_metadata');
             foreach(['ready_queue_stale','upload_outcome_unknown','api_row_rejected']as$key)if(self::bit($rows[0][$key]??null))$flags[]=$key;
             if(self::bit($rows[0]['invalid_clock']??null))throw new UnexpectedValueException('invalid_clock');
+            require_once __DIR__.'/ModeledConversionVisitProof.php';
             $automatic=ModeledConversionVisitProof::automatic($now);
             if(($automatic['available']??false)===true){
                 if($automatic['status']==='failed'||($automatic['status']==='running'&&$now-$automatic['attempt_unix']>120))$flags[]='visit_proof_refresh_failed';
