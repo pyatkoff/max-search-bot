@@ -101,6 +101,8 @@ PendingMonthStore::set($chatId, 7, 2030, true);
 $attachedClarification = AiDateContextService::resolveLocal($chatId, '9апреля 2030');
 dcrCheck('attached explicit date also completes pending window clarification',
     $attachedClarification['date'] === '09.04.2030' && PendingMonthStore::get($chatId) === []);
+// A failed negative control must not leak its pending month into later cases.
+DateContextResolver::clear($chatId);
 
 // Synthetic cross-month windows cannot borrow a phase from another month.
 foreach (['конец июня — начало июля', 'июль или июнь', 'с середины августа до начала сентября'] as $window) {
