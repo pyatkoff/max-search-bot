@@ -1,0 +1,248 @@
+repair-iphone-15-battery-replacement
+Use case: ads-marketing.
+Edit target/reference: the existing AppleService39 iPhone 15 battery-replacement cover most recently shown in this conversation. Completely redesign that cover into a polished, finished, persuasive social-channel landing-post image while retaining the exact business, model, service and brand palette. Produce ONE portrait image 1024 x 1280, no collage, no mockup frame. It must work at mobile thumbnail size.
+
+Brand: AppleService39, independent iPhone repair service in Kaliningrad. Reference palette: warm off-white, very dark graphite and electric lime. Keep a restrained premium editorial look, spacious but purposeful, precise typographic hierarchy, excellent Russian text, sophisticated photographic-quality 3D product illustration. Avoid the large empty middle area and generic thin outline icon of the old cover.
+
+Composition: compact wordmark/locale at top; a large problem-led headline near the upper left; clearly visible iPhone 15 and service; large price; compelling central-right/front product rendering of an iPhone 15 with Dynamic Island and a separate realistic battery as an illustrative repair composition. Every major area should support the offer. Neat alignment, generous safe margins, rounded graphic accent areas, clean contrast. Do not draw any fake clickable button: the post will have exactly one real bot button underneath it. No QR code.
+
+Text to render verbatim, with deliberate hierarchy:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Заряда не хватает до вечера?"
+"iPhone 15"
+"Замена аккумулятора"
+"6 000 ₽"
+"По прайсу. Цену и наличие уточним до ремонта."
+"Уточните стоимость и возможность записи"
+"Ленинский проспект, 18 · офис 404"
+
+Typography: large modern sans serif with immaculate Cyrillic; the problem, model, service and price must all remain easily legible on a phone. Make the price a clear focal point. The qualifier must be readable, never hidden as tiny legal text.
+
+Constraints: Show exactly iPhone 15, not Pro/Pro Max or another model. No unsupported promises of repair time, warranty length, original parts, free diagnostics or restored capacity. No Apple logo, Apple certification claim, invented ratings, reviews, badges or before/after evidence. No "до/после" claims. The illustration should communicate battery repair, without implying a real customer's phone or a photo of this workshop. No watermark, no additional text beyond the supplied copy.
+
+repair-iphone-x-battery-replacement
+Use case: ads-marketing. Produce ONE final portrait repair-service cover, matching the reference image's typography, warm off-white/graphite/electric-lime palette, hierarchy, spacing and polished 3D product style. It is a coherent sibling card in the same AppleService39 campaign, not a collage. Preserve brand and address. Replace ALL model, service, problem and price wording with the exact new copy below. Do not carry over the reference battery service or6000 price when they are absent from the supplied copy.
+Layout: large problem-led headline at top, a clear model badge, service title, the exact price or price-on-request as the price-area focal point, readable qualifications and compact address. Balance a premium illustrative 3D rendering of the exact phone model and a separate replacement battery, coherent with the reference with the copy. The phone MUST be iPhone X: a wide traditional notch, never Dynamic Island, and the correct X-era front. Remove every inherited iPhone15 reference.
+Use only these exact Russian/brand text strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Заряда не хватает до вечера?"
+"iPhone X"
+"Замена аккумулятора"
+"3 500 ₽"
+"По прайсу. Цену и наличие уточним до ремонта."
+"Диагностика бесплатно"
+"Уточните стоимость и возможность записи"
+"Ленинский проспект, 18 · офис 404"
+All supplied copy must be legible and correctly spelled. The model/service/price must be immediately clear on mobile. For long model names adjust type size and badge width to prevent overlap. Use only the supplied repair price, with its qualifier.
+Constraints: no invented repair times, warranty periods, original-parts promises beyond the explicitly supplied variant label, certification, ratings or reviews. No claim of free diagnostics unless exactly present in the supplied copy. No Apple logo, QR code, watermark, fake clickable button or drawn navigation controls. The bottom call to action is a static text note; the real post gets one bot button underneath it. No extra text, no repeated labels, no before/after claim. A finished advertising image, not a screenshot or a device mockup frame.
+
+repair-iphone-x-front-glass-replacement
+Use case: ads-marketing. Produce ONE final portrait repair-service cover, matching the reference image's typography, warm off-white/graphite/electric-lime palette, hierarchy, spacing and polished 3D product style. It is a coherent sibling card in the same AppleService39 campaign, not a collage. Preserve brand and address. Replace ALL model, service, problem and price wording with the exact new copy below. Do not carry over the reference battery service or6000 price when they are absent from the supplied copy.
+Layout: large problem-led headline at top, a clear model badge, service title, the exact price or price-on-request as the price-area focal point, readable qualifications and compact address. Balance a premium illustrative 3D rendering of the exact phone model, with carefully depicted cracked front glass but a clean intact working display beneath; a thin clear glass layer helps explain glass-only repair, without a before/after comparison with the copy. The phone MUST be iPhone X: a wide traditional notch, never Dynamic Island, and the correct X-era front. Remove every inherited iPhone15 reference.
+Use only these exact Russian/brand text strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Разбилось стекло?"
+"iPhone X"
+"Замена стекла"
+"5 000 ₽"
+"Если изображение и касания работают, мастер проверит возможность сохранить дисплей. Цену и наличие уточним до ремонта."
+"Уточните стоимость и возможность записи"
+"Ленинский проспект, 18 · офис 404"
+All supplied copy must be legible and correctly spelled. The model/service/price must be immediately clear on mobile. For long model names adjust type size and badge width to prevent overlap. Use only the supplied repair price, with its qualifier.
+Constraints: no invented repair times, warranty periods, original-parts promises beyond the explicitly supplied variant label, certification, ratings or reviews. No claim of free diagnostics unless exactly present in the supplied copy. No Apple logo, QR code, watermark, fake clickable button or drawn navigation controls. The bottom call to action is a static text note; the real post gets one bot button underneath it. No extra text, no repeated labels, no before/after claim. A finished advertising image, not a screenshot or a device mockup frame.
+
+repair-iphone-x-display
+Use case: ads-marketing. Produce ONE final portrait repair-service cover, matching the reference image's typography, warm off-white/graphite/electric-lime palette, hierarchy, spacing and polished 3D product style. It is a coherent sibling card in the same AppleService39 campaign, not a collage. Preserve brand and address. Replace ALL model, service, problem and price wording with the exact new copy below. Do not carry over the reference battery service or6000 price when they are absent from the supplied copy.
+Layout: large problem-led headline at top, a clear model badge, service title, the exact price or price-on-request as the price-area focal point, readable qualifications and compact address. Balance a premium illustrative 3D rendering of the exact phone model with a dark damaged display with restrained vertical lines, plus a separate display assembly; no battery object with the copy. The phone MUST be iPhone X: a wide traditional notch, never Dynamic Island, and the correct X-era front. Remove every inherited iPhone15 reference.
+Use only these exact Russian/brand text strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Не работает экран?"
+"iPhone X"
+"Замена дисплея"
+"Аналог — 6 000 ₽
+Оригинальный — 12 000 ₽"
+"Цены по прайсу. Вариант и наличие уточним до ремонта."
+"Уточните стоимость и возможность записи"
+"Ленинский проспект, 18 · офис 404"
+All supplied copy must be legible and correctly spelled. The model/service/price must be immediately clear on mobile. For long model names adjust type size and badge width to prevent overlap. Both approved price variants must be clear and legible; do not collapse them into a single price or «от».
+Constraints: no invented repair times, warranty periods, original-parts promises beyond the explicitly supplied variant label, certification, ratings or reviews. No claim of free diagnostics unless exactly present in the supplied copy. No Apple logo, QR code, watermark, fake clickable button or drawn navigation controls. The bottom call to action is a static text note; the real post gets one bot button underneath it. No extra text, no repeated labels, no before/after claim. A finished advertising image, not a screenshot or a device mockup frame.
+
+repair-iphone-15-front-glass-replacement
+Use case: ads-marketing. Produce ONE final portrait repair-service cover, matching the reference image's typography, warm off-white/graphite/electric-lime palette, hierarchy, spacing and polished 3D product style. It is a coherent sibling card in the same AppleService39 campaign, not a collage. Preserve brand and address. Replace ALL model, service, problem and price wording with the exact new copy below. Do not carry over the reference battery service or6000 price when they are absent from the supplied copy.
+Layout: large problem-led headline at top, a clear model badge, service title, the exact price or price-on-request as the price-area focal point, readable qualifications and compact address. Balance a premium illustrative 3D rendering of the exact phone model, with carefully depicted cracked front glass but a clean intact working display beneath; a thin clear glass layer helps explain glass-only repair, without a before/after comparison with the copy. The phone MUST be iPhone 15 with Dynamic Island; retain the correct model label exactly.
+Use only these exact Russian/brand text strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Разбилось стекло?"
+"iPhone 15"
+"Замена стекла"
+"7 000 ₽"
+"Если изображение и касания работают, мастер проверит возможность сохранить дисплей. Цену и наличие уточним до ремонта."
+"Уточните стоимость и возможность записи"
+"Ленинский проспект, 18 · офис 404"
+All supplied copy must be legible and correctly spelled. The model/service/price must be immediately clear on mobile. For long model names adjust type size and badge width to prevent overlap. Use only the supplied repair price, with its qualifier.
+Constraints: no invented repair times, warranty periods, original-parts promises beyond the explicitly supplied variant label, certification, ratings or reviews. No claim of free diagnostics unless exactly present in the supplied copy. No Apple logo, QR code, watermark, fake clickable button or drawn navigation controls. The bottom call to action is a static text note; the real post gets one bot button underneath it. No extra text, no repeated labels, no before/after claim. A finished advertising image, not a screenshot or a device mockup frame.
+
+repair-iphone-15-display
+Use case: ads-marketing. Produce ONE final portrait repair-service cover, matching the reference image's typography, warm off-white/graphite/electric-lime palette, hierarchy, spacing and polished 3D product style. It is a coherent sibling card in the same AppleService39 campaign, not a collage. Preserve brand and address. Replace ALL model, service, problem and price wording with the exact new copy below. Do not carry over the reference battery service or6000 price when they are absent from the supplied copy.
+Layout: large problem-led headline at top, a clear model badge, service title, the exact price or price-on-request as the price-area focal point, readable qualifications and compact address. Balance a premium illustrative 3D rendering of the exact phone model with a dark damaged display with restrained vertical lines, plus a separate display assembly; no battery object with the copy. The phone MUST be iPhone 15 with Dynamic Island; retain the correct model label exactly.
+Use only these exact Russian/brand text strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Не работает экран?"
+"iPhone 15"
+"Замена дисплея"
+"Цена по запросу"
+"Вариант дисплея, цену и наличие уточним до ремонта."
+"Уточните стоимость и возможность записи"
+"Ленинский проспект, 18 · офис 404"
+All supplied copy must be legible and correctly spelled. The model/service/price must be immediately clear on mobile. For long model names adjust type size and badge width to prevent overlap. The price area must say only «Цена по запросу»: NO numeric repair price anywhere.
+Constraints: no invented repair times, warranty periods, original-parts promises beyond the explicitly supplied variant label, certification, ratings or reviews. No claim of free diagnostics unless exactly present in the supplied copy. No Apple logo, QR code, watermark, fake clickable button or drawn navigation controls. The bottom call to action is a static text note; the real post gets one bot button underneath it. No extra text, no repeated labels, no before/after claim. A finished advertising image, not a screenshot or a device mockup frame.
+
+repair-iphone-15-plus-battery-replacement
+Use case: ads-marketing. Produce ONE final portrait repair-service cover, matching the reference image's typography, warm off-white/graphite/electric-lime palette, hierarchy, spacing and polished 3D product style. It is a coherent sibling card in the same AppleService39 campaign, not a collage. Preserve brand and address. Replace ALL model, service, problem and price wording with the exact new copy below. Do not carry over the reference battery service or6000 price when they are absent from the supplied copy.
+Layout: large problem-led headline at top, a clear model badge, service title, the exact price or price-on-request as the price-area focal point, readable qualifications and compact address. Balance a premium illustrative 3D rendering of the exact phone model and a separate replacement battery, coherent with the reference with the copy. The phone MUST be iPhone 15 Plus with Dynamic Island; retain the correct model label exactly.
+Use only these exact Russian/brand text strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Заряда не хватает до вечера?"
+"iPhone 15 Plus"
+"Замена аккумулятора"
+"6 000 ₽"
+"По прайсу. Цену и наличие уточним до ремонта."
+"Уточните стоимость и возможность записи"
+"Ленинский проспект, 18 · офис 404"
+All supplied copy must be legible and correctly spelled. The model/service/price must be immediately clear on mobile. For long model names adjust type size and badge width to prevent overlap. Use only the supplied repair price, with its qualifier.
+Constraints: no invented repair times, warranty periods, original-parts promises beyond the explicitly supplied variant label, certification, ratings or reviews. No claim of free diagnostics unless exactly present in the supplied copy. No Apple logo, QR code, watermark, fake clickable button or drawn navigation controls. The bottom call to action is a static text note; the real post gets one bot button underneath it. No extra text, no repeated labels, no before/after claim. A finished advertising image, not a screenshot or a device mockup frame.
+
+repair-iphone-15-plus-front-glass-replacement
+Use case: ads-marketing. Produce ONE final portrait repair-service cover, matching the reference image's typography, warm off-white/graphite/electric-lime palette, hierarchy, spacing and polished 3D product style. It is a coherent sibling card in the same AppleService39 campaign, not a collage. Preserve brand and address. Replace ALL model, service, problem and price wording with the exact new copy below. Do not carry over the reference battery service or6000 price when they are absent from the supplied copy.
+Layout: large problem-led headline at top, a clear model badge, service title, the exact price or price-on-request as the price-area focal point, readable qualifications and compact address. Balance a premium illustrative 3D rendering of the exact phone model, with carefully depicted cracked front glass but a clean intact working display beneath; a thin clear glass layer helps explain glass-only repair, without a before/after comparison with the copy. The phone MUST be iPhone 15 Plus with Dynamic Island; retain the correct model label exactly.
+Use only these exact Russian/brand text strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Разбилось стекло?"
+"iPhone 15 Plus"
+"Замена стекла"
+"8 000 ₽"
+"Если изображение и касания работают, мастер проверит возможность сохранить дисплей. Цену и наличие уточним до ремонта."
+"Уточните стоимость и возможность записи"
+"Ленинский проспект, 18 · офис 404"
+All supplied copy must be legible and correctly spelled. The model/service/price must be immediately clear on mobile. For long model names adjust type size and badge width to prevent overlap. Use only the supplied repair price, with its qualifier.
+Constraints: no invented repair times, warranty periods, original-parts promises beyond the explicitly supplied variant label, certification, ratings or reviews. No claim of free diagnostics unless exactly present in the supplied copy. No Apple logo, QR code, watermark, fake clickable button or drawn navigation controls. The bottom call to action is a static text note; the real post gets one bot button underneath it. No extra text, no repeated labels, no before/after claim. A finished advertising image, not a screenshot or a device mockup frame.
+
+repair-iphone-15-plus-display
+Use case: ads-marketing. Produce ONE final portrait repair-service cover, matching the reference image's typography, warm off-white/graphite/electric-lime palette, hierarchy, spacing and polished 3D product style. It is a coherent sibling card in the same AppleService39 campaign, not a collage. Preserve brand and address. Replace ALL model, service, problem and price wording with the exact new copy below. Do not carry over the reference battery service or6000 price when they are absent from the supplied copy.
+Layout: large problem-led headline at top, a clear model badge, service title, the exact price or price-on-request as the price-area focal point, readable qualifications and compact address. Balance a premium illustrative 3D rendering of the exact phone model with a dark damaged display with restrained vertical lines, plus a separate display assembly; no battery object with the copy. The phone MUST be iPhone 15 Plus with Dynamic Island; retain the correct model label exactly.
+Use only these exact Russian/brand text strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Не работает экран?"
+"iPhone 15 Plus"
+"Замена дисплея"
+"Цена по запросу"
+"Вариант дисплея, цену и наличие уточним до ремонта."
+"Уточните стоимость и возможность записи"
+"Ленинский проспект, 18 · офис 404"
+All supplied copy must be legible and correctly spelled. The model/service/price must be immediately clear on mobile. For long model names adjust type size and badge width to prevent overlap. The price area must say only «Цена по запросу»: NO numeric repair price anywhere.
+Constraints: no invented repair times, warranty periods, original-parts promises beyond the explicitly supplied variant label, certification, ratings or reviews. No claim of free diagnostics unless exactly present in the supplied copy. No Apple logo, QR code, watermark, fake clickable button or drawn navigation controls. The bottom call to action is a static text note; the real post gets one bot button underneath it. No extra text, no repeated labels, no before/after claim. A finished advertising image, not a screenshot or a device mockup frame.
+
+repair-iphone-15-pro-battery-replacement
+Use case: ads-marketing. Produce ONE final portrait repair-service cover, matching the reference image's typography, warm off-white/graphite/electric-lime palette, hierarchy, spacing and polished 3D product style. It is a coherent sibling card in the same AppleService39 campaign, not a collage. Preserve brand and address. Replace ALL model, service, problem and price wording with the exact new copy below. Do not carry over the reference battery service or6000 price when they are absent from the supplied copy.
+Layout: large problem-led headline at top, a clear model badge, service title, the exact price or price-on-request as the price-area focal point, readable qualifications and compact address. Balance a premium illustrative 3D rendering of the exact phone model and a separate replacement battery, coherent with the reference with the copy. The phone MUST be iPhone 15 Pro with Dynamic Island and a refined dark/titanium body, not an iPhone X or a standard model mislabeled as Pro.
+Use only these exact Russian/brand text strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Заряда не хватает до вечера?"
+"iPhone 15 Pro"
+"Замена аккумулятора"
+"7 000 ₽"
+"По прайсу. Цену и наличие уточним до ремонта."
+"Уточните стоимость и возможность записи"
+"Ленинский проспект, 18 · офис 404"
+All supplied copy must be legible and correctly spelled. The model/service/price must be immediately clear on mobile. For long model names adjust type size and badge width to prevent overlap. Use only the supplied repair price, with its qualifier.
+Constraints: no invented repair times, warranty periods, original-parts promises beyond the explicitly supplied variant label, certification, ratings or reviews. No claim of free diagnostics unless exactly present in the supplied copy. No Apple logo, QR code, watermark, fake clickable button or drawn navigation controls. The bottom call to action is a static text note; the real post gets one bot button underneath it. No extra text, no repeated labels, no before/after claim. A finished advertising image, not a screenshot or a device mockup frame.
+
+repair-iphone-15-pro-front-glass-replacement
+Use case: ads-marketing. Produce ONE final portrait repair-service cover, matching the reference image's typography, warm off-white/graphite/electric-lime palette, hierarchy, spacing and polished 3D product style. It is a coherent sibling card in the same AppleService39 campaign, not a collage. Preserve brand and address. Replace ALL model, service, problem and price wording with the exact new copy below. Do not carry over the reference battery service or6000 price when they are absent from the supplied copy.
+Layout: large problem-led headline at top, a clear model badge, service title, the exact price or price-on-request as the price-area focal point, readable qualifications and compact address. Balance a premium illustrative 3D rendering of the exact phone model, with carefully depicted cracked front glass but a clean intact working display beneath; a thin clear glass layer helps explain glass-only repair, without a before/after comparison with the copy. The phone MUST be iPhone 15 Pro with Dynamic Island and a refined dark/titanium body, not an iPhone X or a standard model mislabeled as Pro.
+Use only these exact Russian/brand text strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Разбилось стекло?"
+"iPhone 15 Pro"
+"Замена стекла"
+"9 000 ₽"
+"Если изображение и касания работают, мастер проверит возможность сохранить дисплей. Цену и наличие уточним до ремонта."
+"Уточните стоимость и возможность записи"
+"Ленинский проспект, 18 · офис 404"
+All supplied copy must be legible and correctly spelled. The model/service/price must be immediately clear on mobile. For long model names adjust type size and badge width to prevent overlap. Use only the supplied repair price, with its qualifier.
+Constraints: no invented repair times, warranty periods, original-parts promises beyond the explicitly supplied variant label, certification, ratings or reviews. No claim of free diagnostics unless exactly present in the supplied copy. No Apple logo, QR code, watermark, fake clickable button or drawn navigation controls. The bottom call to action is a static text note; the real post gets one bot button underneath it. No extra text, no repeated labels, no before/after claim. A finished advertising image, not a screenshot or a device mockup frame.
+
+repair-iphone-15-pro-display
+Use case: ads-marketing. Produce ONE final portrait repair-service cover, matching the reference image's typography, warm off-white/graphite/electric-lime palette, hierarchy, spacing and polished 3D product style. It is a coherent sibling card in the same AppleService39 campaign, not a collage. Preserve brand and address. Replace ALL model, service, problem and price wording with the exact new copy below. Do not carry over the reference battery service or6000 price when they are absent from the supplied copy.
+Layout: large problem-led headline at top, a clear model badge, service title, the exact price or price-on-request as the price-area focal point, readable qualifications and compact address. Balance a premium illustrative 3D rendering of the exact phone model with a dark damaged display with restrained vertical lines, plus a separate display assembly; no battery object with the copy. The phone MUST be iPhone 15 Pro with Dynamic Island and a refined dark/titanium body, not an iPhone X or a standard model mislabeled as Pro.
+Use only these exact Russian/brand text strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Не работает экран?"
+"iPhone 15 Pro"
+"Замена дисплея"
+"Цена по запросу"
+"Вариант дисплея, цену и наличие уточним до ремонта."
+"Уточните стоимость и возможность записи"
+"Ленинский проспект, 18 · офис 404"
+All supplied copy must be legible and correctly spelled. The model/service/price must be immediately clear on mobile. For long model names adjust type size and badge width to prevent overlap. The price area must say only «Цена по запросу»: NO numeric repair price anywhere.
+Constraints: no invented repair times, warranty periods, original-parts promises beyond the explicitly supplied variant label, certification, ratings or reviews. No claim of free diagnostics unless exactly present in the supplied copy. No Apple logo, QR code, watermark, fake clickable button or drawn navigation controls. The bottom call to action is a static text note; the real post gets one bot button underneath it. No extra text, no repeated labels, no before/after claim. A finished advertising image, not a screenshot or a device mockup frame.
+
+repair-iphone-15-pro-max-battery-replacement
+Use case: ads-marketing. Produce ONE final portrait repair-service cover, matching the reference image's typography, warm off-white/graphite/electric-lime palette, hierarchy, spacing and polished 3D product style. It is a coherent sibling card in the same AppleService39 campaign, not a collage. Preserve brand and address. Replace ALL model, service, problem and price wording with the exact new copy below. Do not carry over the reference battery service or6000 price when they are absent from the supplied copy.
+Layout: large problem-led headline at top, a clear model badge, service title, the exact price or price-on-request as the price-area focal point, readable qualifications and compact address. Balance a premium illustrative 3D rendering of the exact phone model and a separate replacement battery, coherent with the reference with the copy. The phone MUST be iPhone 15 Pro Max with Dynamic Island and a refined dark/titanium body, not an iPhone X or a standard model mislabeled as Pro.
+Use only these exact Russian/brand text strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Заряда не хватает до вечера?"
+"iPhone 15 Pro Max"
+"Замена аккумулятора"
+"7 000 ₽"
+"По прайсу. Цену и наличие уточним до ремонта."
+"Уточните стоимость и возможность записи"
+"Ленинский проспект, 18 · офис 404"
+All supplied copy must be legible and correctly spelled. The model/service/price must be immediately clear on mobile. For long model names adjust type size and badge width to prevent overlap. Use only the supplied repair price, with its qualifier.
+Constraints: no invented repair times, warranty periods, original-parts promises beyond the explicitly supplied variant label, certification, ratings or reviews. No claim of free diagnostics unless exactly present in the supplied copy. No Apple logo, QR code, watermark, fake clickable button or drawn navigation controls. The bottom call to action is a static text note; the real post gets one bot button underneath it. No extra text, no repeated labels, no before/after claim. A finished advertising image, not a screenshot or a device mockup frame.
+
+repair-iphone-15-pro-max-front-glass-replacement
+Use case: ads-marketing. Produce ONE final portrait repair-service cover, matching the reference image's typography, warm off-white/graphite/electric-lime palette, hierarchy, spacing and polished 3D product style. It is a coherent sibling card in the same AppleService39 campaign, not a collage. Preserve brand and address. Replace ALL model, service, problem and price wording with the exact new copy below. Do not carry over the reference battery service or6000 price when they are absent from the supplied copy.
+Layout: large problem-led headline at top, a clear model badge, service title, the exact price or price-on-request as the price-area focal point, readable qualifications and compact address. Balance a premium illustrative 3D rendering of the exact phone model, with carefully depicted cracked front glass but a clean intact working display beneath; a thin clear glass layer helps explain glass-only repair, without a before/after comparison with the copy. The phone MUST be iPhone 15 Pro Max with Dynamic Island and a refined dark/titanium body, not an iPhone X or a standard model mislabeled as Pro.
+Use only these exact Russian/brand text strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Разбилось стекло?"
+"iPhone 15 Pro Max"
+"Замена стекла"
+"10 000 ₽"
+"Если изображение и касания работают, мастер проверит возможность сохранить дисплей. Цену и наличие уточним до ремонта."
+"Уточните стоимость и возможность записи"
+"Ленинский проспект, 18 · офис 404"
+All supplied copy must be legible and correctly spelled. The model/service/price must be immediately clear on mobile. For long model names adjust type size and badge width to prevent overlap. Use only the supplied repair price, with its qualifier.
+Constraints: no invented repair times, warranty periods, original-parts promises beyond the explicitly supplied variant label, certification, ratings or reviews. No claim of free diagnostics unless exactly present in the supplied copy. No Apple logo, QR code, watermark, fake clickable button or drawn navigation controls. The bottom call to action is a static text note; the real post gets one bot button underneath it. No extra text, no repeated labels, no before/after claim. A finished advertising image, not a screenshot or a device mockup frame.
+
+repair-iphone-15-pro-max-display
+Use case: ads-marketing. Produce ONE final portrait repair-service cover, matching the reference image's typography, warm off-white/graphite/electric-lime palette, hierarchy, spacing and polished 3D product style. It is a coherent sibling card in the same AppleService39 campaign, not a collage. Preserve brand and address. Replace ALL model, service, problem and price wording with the exact new copy below. Do not carry over the reference battery service or6000 price when they are absent from the supplied copy.
+Layout: large problem-led headline at top, a clear model badge, service title, the exact price or price-on-request as the price-area focal point, readable qualifications and compact address. Balance a premium illustrative 3D rendering of the exact phone model with a dark damaged display with restrained vertical lines, plus a separate display assembly; no battery object with the copy. The phone MUST be iPhone 15 Pro Max with Dynamic Island and a refined dark/titanium body, not an iPhone X or a standard model mislabeled as Pro.
+Use only these exact Russian/brand text strings, with natural line breaks:
+"AppleService39"
+"КАЛИНИНГРАД"
+"Не работает экран?"
+"iPhone 15 Pro Max"
+"Замена дисплея"
+"Цена по запросу"
+"Вариант дисплея, цену и наличие уточним до ремонта."
+"Уточните стоимость и возможность записи"
+"Ленинский проспект, 18 · офис 404"
+All supplied copy must be legible and correctly spelled. The model/service/price must be immediately clear on mobile. For long model names adjust type size and badge width to prevent overlap. The price area must say only «Цена по запросу»: NO numeric repair price anywhere.
+Constraints: no invented repair times, warranty periods, original-parts promises beyond the explicitly supplied variant label, certification, ratings or reviews. No claim of free diagnostics unless exactly present in the supplied copy. No Apple logo, QR code, watermark, fake clickable button or drawn navigation controls. The bottom call to action is a static text note; the real post gets one bot button underneath it. No extra text, no repeated labels, no before/after claim. A finished advertising image, not a screenshot or a device mockup frame.
