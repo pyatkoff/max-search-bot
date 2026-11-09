@@ -27,6 +27,6 @@ final class DevelopmentWorkCronVerifier
         if ($interval<45||$interval>90) throw new RuntimeException('development_cron_interval_out_of_bounds');
         return ['trigger'=>'cron','first_started_at'=>$this->first['started_at'],'second_started_at'=>$started,
             'observed_interval_seconds'=>$interval,'first_state'=>$this->first['state'],'second_state'=>$health['state']]
-            +(($held||$this->first['state']==='held_unknown')?['retained_work_state'=>'unknown','work_accepted'=>false]:[]);
+            +(($held&&$this->first['state']==='held_unknown')?['retained_work_state'=>'unknown','work_accepted'=>false]:[]);
     }
 }

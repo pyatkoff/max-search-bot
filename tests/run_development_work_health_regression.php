@@ -67,6 +67,14 @@ try {
     try{$v->observe(array_replace($heldSample(1080),['held_evidence_sha256'=>str_repeat('b',64)]),1085);}
     catch(RuntimeException $error){$rejected=$error->getMessage()==='development_cron_held_state_changed';}
     developmentHealthCheck('changed receipt budget claim or source digest is not unchanged held proof',$rejected);
+    foreach([false,true] as $startsHeld){
+        $v=new DevelopmentWorkCronVerifier(1000);
+        $v->observe($startsHeld?$heldSample(1020):$sample(1020),1025);
+        $mixed=$v->observe($startsHeld?$sample(1080):$heldSample(1080),1085);
+        developmentHealthCheck('mixed schedule transition does not assert retained unknown or acceptance '.($startsHeld?'held-to-ok':'ok-to-held'),
+            $mixed['observed_interval_seconds']===60&&!array_key_exists('retained_work_state',$mixed)&&!array_key_exists('work_accepted',$mixed));
+    }
+
 
     $raw=file_get_contents($file);DevelopmentWorkHealth::record('PRIVATE','PRIVATE');
     developmentHealthCheck('unknown categories rejected',file_get_contents($file)===$raw);
