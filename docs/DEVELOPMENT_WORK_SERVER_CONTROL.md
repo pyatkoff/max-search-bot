@@ -20,8 +20,10 @@ for at most four original future ordinary-cron sends under the frozen policy:
 A02 producer, A02 stateless reviewer, B producer, B stateless reviewer. The append
 itself sends no request and creates no B task/input hash/outbox. An ordinary
 append, guessed hashes, a precreated B row, another queue or a copied native claim
-does not grant this authority. The existing authenticated DEV owner remains the
-owner; callers cannot select a principal or claim a native HOST identity.
+does not grant this authority. The historical native queue owner remains unchanged. This new pair may bind the
+actual existing same-admin DEV connection as its separate immutable execution
+authorizer; callers cannot select that connection in tool arguments or claim a
+native HOST identity.
 
 The candidate pins the actual installed code-file hashes, schema and required
 unique indexes, current configured transport profile, templates/instructions,
@@ -33,6 +35,36 @@ spend. Before real ARM, the existing coordinator must independently accept the
 installed candidate and its actual applicability, budget, deadline, owner and
 baseline. Old A01/76 configuration UNKNOWN, old factory UNKNOWN and their spent
 budgets are not reconciled, retried, refunded or reassigned by this code.
+
+## Narrow admission authority overlay
+
+The original q.oauth_connection_id, A01 bytes, retirement and completed handoff
+remain unchanged. This does not repeat their consumed operation or inherit old
+execution permission. Only this fixed eligible unstarted server pair may use the
+actual current same-admin/project DEV connection: the backend positively verifies
+both historical grant metadata and the active current canonical grant. No secret,
+credential, new account/grant/consent, changed administrator or queue discovery is
+involved. Canonical supported scope names/order/reply-pair checks remain exact;
+the scope byte bound is derived from the actual resource scope catalogue
+(including a valid 152-byte legacy profile), not a guessed 100-byte maximum.
+
+Only existing status and exact A-only append use this route. Native create,
+ordinary append, claim/started/complete/resolve/retire/handoff/subscription powers
+do not widen. The candidate pins the backend's actual current execution authorizer
+and the frozen native owner; a copied candidate from another connection cannot
+authorize ARM. These private identities are not hard-coded into public source or
+chosen by caller arguments. The uninstalled096 sidecar stores the independent
+execution connection and its immutable binding. A lane/queue transaction, plan
+CAS and unique control row permit one ARM in an old-owner/current-authorizer race.
+
+After binding, status is limited to the historical native owner or the exact
+bound execution authorizer, with fresh positive authority for the overlay. A third
+same-admin connection cannot read/rebind it. The runtime uses the sidecar
+authorizer. Before every send and acceptance it checks an active current authority:
+assertCurrent for native-owner mode, assertPair for the overlay. Revocation during
+a provider call preserves the original observations in UNKNOWN, without acceptance,
+B materialization, refund or resend. Historical same-admin metadata alone never
+permits server execution.
 
 ## Existing cron only
 
@@ -117,7 +149,10 @@ four-call A02→B byte/readback/ledger lineage, actual next-cron dependency,
 same-minute and native bypass denials, labelled oversized/incomplete/late held
 evidence through both real authenticated MCP handles, UTF-8/escaping/RPC-ID bounds,
 storage loss, duplicate IDs, missing/foreign refs, subscription/admission
-serialization and two independent processes sharing one real database while the
+serialization, actual same-admin admission/negative metadata checks and valid
+152-byte profiles in SQLite and native MySQL, native-owner/overlay revocation
+during the send, two-process old-owner/current-authorizer ARM races in both orders,
+and two independent processes sharing one real database while the
 first send is in flight. The sender is synthetic; no key/model/provider/live queue
 is used in tests. These tests must actually pass in original current-source CI;
 their presence is not a PASS claim.

@@ -6,6 +6,7 @@ require_once dirname(__DIR__).'/services/DevelopmentWorkServerRuntime.php';
 function devServerFixture(?PDO $pdo=null,bool $arm=true): array
 {
     $pdo??=new DevelopmentWorkTestPdo();$clock=(object)['at'=>1794200400];
+    devServerSeedNativeAuthority($pdo,$clock);
     $q=new DevelopmentWorkQueue($pdo,static fn():int=>$clock->at);
     $old=devSpec('DEV-CONTROL-COMMISSION-20261028-01');
     $old['owner_task_id']='Automation_76dda46db37c8191815e12bde323b6aa';
@@ -64,6 +65,8 @@ function devServerSender(?callable $mutate=null,?callable $before=null): array
 /** Independent process joins the same real SQLite/MySQL queue; no in-process lock fake. */
 function devServerRaceChild(array $argv): void
 {
+    require_once dirname(__DIR__).'/services/DevelopmentWorkConnectionAuthority.php';
+    ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'Synthetic project']]);
     [$unused,$mode,$file,$out,$go]=array_pad($argv,5,'');
     $pdo=new DevelopmentWorkTestPdo($file==='MYSQL'?null:$file,false);
     $clock=(object)['at'=>1794200400];$q=new DevelopmentWorkQueue($pdo,static fn():int=>$clock->at);
@@ -228,6 +231,7 @@ function devServerChecks(): void
     $p->beforeExecute=null;$time->at+=60;
     devAssert($queue->serverTick($fake,devServerOrigin($time))['provider_calls']===0&&count($seen->sent)===1,
         'lost_result_commit_retains_original_unknown_reservation');
+    devServerOverlayChecks();
     devServerSubscriptionRaceChecks();
     devServerConcurrentTickCheck();
 }
@@ -366,5 +370,336 @@ function devServerWrapperChecks(array $savedStatus): void
     } finally {
         (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$prior);
         (new ReflectionProperty(ProjectAccessService::class,'schemaReady'))->setValue(null,$schema);
+    }
+}
+
+/** Actual OAuth/grant SQL and actual wrappers; all identities are synthetic. */
+function devServerOverlayDb(?string $file=null): PDO
+{
+    if(getenv('DEVELOPMENT_WORK_NATIVE_MYSQL')==='1') {
+        $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
+        if(preg_match('/\Amysql:.*(?:\Amysql:|;)dbname=(maxbot_prepared_test(?:_[a-zA-Z0-9_]+)?)(?:;|\z)/D',$dsn,$m)!==1)
+            throw new RuntimeException('unsafe_server_authority_fixture_database');
+        $pdo=new PDO($dsn,getenv('PREPARED_REPLY_MYSQL_USER')?:null,getenv('PREPARED_REPLY_MYSQL_PASS')?:null,
+            [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_EMULATE_PREPARES=>false,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+        if($pdo->query('SELECT DATABASE()')->fetchColumn()!==$m[1])throw new RuntimeException('unsafe_server_authority_fixture_database');
+    } else $pdo=new PDO($file===null?'sqlite::memory:':'sqlite:'.$file,null,null,
+        [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite')$pdo->exec('PRAGMA busy_timeout=5000');
+    foreach(devServerAuthTables() as $table)$pdo->exec('DROP TABLE IF EXISTS '.$table);
+    $engine=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' ENGINE=InnoDB':'';
+    $pdo->exec("CREATE TABLE managers(id INTEGER PRIMARY KEY,role VARCHAR(32),is_active INTEGER,is_working INTEGER)$engine;
+        CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key VARCHAR(64),display_name VARCHAR(255),is_active INTEGER)$engine;
+        CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER)$engine;
+        INSERT INTO managers VALUES(1,'admin',1,0),(2,'admin',1,0);
+        INSERT INTO projects VALUES(1,'anytour','Synthetic project',1),(2,'other','Other',1);
+        INSERT INTO manager_projects VALUES(1,1),(2,2);");
+    if($engine!=='') {
+        $pdo->exec(file_get_contents(dirname(__DIR__).'/migrations/045_manager_preparation_oauth.sql'));
+        $pdo->exec(file_get_contents(dirname(__DIR__).'/migrations/092_monthly_reply_quality_scope.sql'));
+    } else $pdo->exec("CREATE TABLE manager_preparation_oauth_clients(client_id TEXT PRIMARY KEY,redirect_uri TEXT,registration_bucket TEXT,created_at INTEGER);
+        CREATE TABLE manager_preparation_oauth_grants(grant_id TEXT PRIMARY KEY,client_id TEXT,admin_id INTEGER,project_key TEXT,resource TEXT,scopes TEXT,created_at INTEGER,expires_at INTEGER,revoked_at INTEGER);
+        CREATE TABLE manager_preparation_oauth_codes(code_hash TEXT PRIMARY KEY,grant_id TEXT,redirect_uri TEXT,code_challenge TEXT,expires_at INTEGER,consumed_at INTEGER);
+        CREATE TABLE manager_preparation_oauth_tokens(token_hash TEXT PRIMARY KEY,grant_id TEXT,token_kind TEXT,expires_at INTEGER,consumed_at INTEGER);");
+    DevelopmentWorkTestSchema::create($pdo);
+    return $pdo;
+}
+function devServerAuthTables(): array
+{return ['manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants',
+    'manager_preparation_oauth_clients','manager_projects','projects','managers'];}
+function devServerIssue(PDO $pdo,object $clock,string $profile,string $scope): array
+{
+    $oauth=new ManagerPreparationOAuth($pdo,static fn():int=>$clock->at,$profile);
+    $resource=ManagerPreparationOAuth::resourceMetadata($profile)['resource'];
+    $client=$oauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI],'scope'=>$scope],'server-overlay-synthetic')['client_id'];
+    $session=['csrf'=>'server-overlay-synthetic-csrf'];$verifier=str_repeat('v',43);
+    $pending=$oauth->beginAuthorization($session,['client_id'=>$client,'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,
+        'resource'=>$resource,'response_type'=>'code','scope'=>$scope,'state'=>'synthetic-overlay',
+        'code_challenge_method'=>'S256','code_challenge'=>rtrim(strtr(base64_encode(hash('sha256',$verifier,true)),'+/','-_'),'=')]);
+    $url=$oauth->completeAuthorization($session,$pending,1,$session['csrf'],true);
+    parse_str((string)parse_url($url,PHP_URL_QUERY),$query);
+    $tokens=$oauth->exchange(['grant_type'=>'authorization_code','client_id'=>$client,'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,
+        'resource'=>$resource,'code'=>$query['code'],'code_verifier'=>$verifier]);
+    return $oauth->contextForBearer('Bearer '.$tokens['access_token']);
+}
+function devServerOverlayFixture(string $profile='legacy',?string $file=null): array
+{
+    require_once dirname(__DIR__).'/services/DevelopmentWorkMcpService.php';
+    require_once dirname(__DIR__).'/services/ManagerPreparationMcpService.php';
+    require_once dirname(__DIR__).'/services/DevelopmentWorkConnectionAuthority.php';
+    ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'Synthetic project']]);
+    $pdo=devServerOverlayDb($file);$clock=(object)['at'=>time()];
+    $scope=ManagerPreparationOAuth::DEVELOPMENT_SCOPE;
+    $historical=devServerIssue($pdo,$clock,'legacy',$scope);$old=devServerIssue($pdo,$clock,'legacy',$scope);
+    $all=implode(' ',ManagerPreparationOAuth::resourceMetadata($profile)['scopes_supported']);
+    $current=devServerIssue($pdo,$clock,$profile,$all);$third=devServerIssue($pdo,$clock,'development',$scope);
+    $queue=new DevelopmentWorkQueue($pdo,static fn():int=>$clock->at);
+    $spec=devSpec('DEV-CONTROL-COMMISSION-20261028-01');$spec['owner_task_id']='Automation_76dda46db37c8191815e12bde323b6aa';
+    $s=$queue->create(1,$historical['connection_id'],['queue_id'=>DevelopmentWorkServerContract::QUEUE,
+        'plan_sha256'=>str_repeat('0',64),'tasks'=>[$spec]]);
+    $queue->handoff_connection(1,$old['connection_id'],['queue_id'=>$s['queue_id'],'task_id'=>$s['task_id'],
+        'spec_sha256'=>$s['spec_sha256'],'expected_plan_sha256'=>$s['plan_sha256'],
+        'expected_pending_event_id'=>$s['expected_pending_event_id'],'old_connection_id'=>$historical['connection_id'],
+        'expected_caller_connection_id'=>$old['connection_id'],
+        'decision'=>['decision_sha256'=>str_repeat('4',64),'readback_sha256'=>str_repeat('5',64),'reviewer_run_id'=>'SYNTHETIC-INDEPENDENT-HANDOFF']],
+        static fn(string $prior,int $admin):bool=>(new DevelopmentWorkConnectionAuthority($pdo,static fn():int=>$clock->at))
+            ->assertPair($admin,$prior,$old['connection_id']));
+    return [$pdo,$queue,$clock,$old,$current,$third,$spec];
+}
+function devServerOldBytes(PDO $pdo): array
+{
+    $out=['owner'=>$pdo->query('SELECT oauth_connection_id FROM development_work_queues WHERE queue_id='
+        .$pdo->quote(DevelopmentWorkServerContract::QUEUE))->fetchColumn()];
+    foreach(['items','retirements','connection_handoffs'] as $table) {
+        $sql='SELECT * FROM development_work_'.$table.' WHERE queue_id='.$pdo->quote(DevelopmentWorkServerContract::QUEUE);
+        if($table==='items')$sql.=' AND task_id='.$pdo->quote('DEV-CONTROL-COMMISSION-20261028-01');
+        $out[$table]=$pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    }return $out;
+}
+function devServerOverlayService(PDO $pdo,DevelopmentWorkQueue $queue,object $clock,string $profile): object
+{
+    return $profile==='development'?new DevelopmentWorkMcpService($pdo,$queue,static fn():int=>$clock->at):
+        new ManagerPreparationMcpService($pdo,clock:static fn():int=>$clock->at,developmentStore:$queue);
+}
+function devServerOverlayCall(object $service,array $context,string $method,array $args,int $admin=1): array
+{
+    return $service->handle(['jsonrpc'=>'2.0','id'=>1,'method'=>'tools/call',
+        'params'=>['name'=>'development_work_'.$method,'arguments'=>$args]],$admin,$context['connection_id'],$context['scopes']);
+}
+function devServerOverlayChecks(): void
+{
+    $pdo=null;
+    try {
+        foreach(['legacy','development'] as $profile) {
+            [$pdo,$queue,$clock,$old,$current,$third,$oldSpec]=devServerOverlayFixture($profile);
+            $oldBytes=devServerOldBytes($pdo);$service=devServerOverlayService($pdo,$queue,$clock,$profile);
+            $read=static fn()=>devServerOverlayCall($service,$current,'status',['queue_id'=>DevelopmentWorkServerContract::QUEUE]);
+            $reply=$read();$s=$reply['result']['structuredContent']??[];
+            devAssert(!isset($reply['error'])&&isset($s['server_model_candidate'])
+                &&$s['execution_kind']==='server_model_candidate'&&$oldBytes===devServerOldBytes($pdo),
+                'actual_'.$profile.'_same_admin_overlay_candidate_preserves_old_native_bytes');
+            $p=$s['server_model_candidate'];$args=array_intersect_key($p,array_flip(['queue_id','expected_plan_sha256','plan_sha256','tasks']));
+            devAssert($p['authority']['native_owner_connection_id']===$old['connection_id']
+                &&$p['authority']['execution_connection_id']===$current['connection_id']
+                &&$p['authority']['kind']==='same_admin_overlay','candidate_pins_actual_backend_authorizer_and_frozen_old_owner');
+            if($profile==='legacy')devAssert(strlen(implode(' ',$current['scopes']))===152,
+                'actual_canonical_152_byte_legacy_scope_passes_metadata_authority');
+            $nativeCandidate=$queue->status(1,$old['connection_id'],DevelopmentWorkServerContract::QUEUE)['server_model_candidate'];
+            $nativeArgs=array_intersect_key($nativeCandidate,array_flip(['queue_id','expected_plan_sha256','plan_sha256','tasks']));
+            foreach(['ordinary','precreate_B','copied_candidate'] as $case) {
+                $bad=$args;$who=$current;
+                if($case==='ordinary'){$bad['tasks']=[devSpec('UNRELATED')];$bad['plan_sha256']=str_repeat('f',64);}
+                if($case==='precreate_B')$bad['tasks'][]=devSpec(DevelopmentWorkServerContract::B);
+                if($case==='copied_candidate')$who=$third;
+                $target=$case==='copied_candidate'?devServerOverlayService($pdo,$queue,$clock,'development'):$service;
+                $denied=devServerOverlayCall($target,$who,'append',$bad);
+                devAssert(isset($denied['error'])||($denied['result']['structuredContent']['ok']??true)===false,
+                    'overlay_rejects_'.$case.'_without_arm');
+            }
+            $rows=$pdo->query('SELECT * FROM manager_preparation_oauth_grants WHERE grant_id='.$pdo->quote($old['connection_id']))->fetch(PDO::FETCH_ASSOC);
+            foreach(['unsupported','malformed','foreign_admin','foreign_project','wrong_resource','missing'] as $case) {
+                if($case==='missing')$pdo->prepare('DELETE FROM manager_preparation_oauth_grants WHERE grant_id=?')->execute([$old['connection_id']]);
+                else {
+                    $column=match($case){'unsupported','malformed'=>'scopes','foreign_admin'=>'admin_id','foreign_project'=>'project_key',default=>'resource'};
+                    $value=match($case){'unsupported'=>ManagerPreparationOAuth::DEVELOPMENT_SCOPE.' unsupported:read',
+                        'malformed'=>ManagerPreparationOAuth::DEVELOPMENT_SCOPE.' '.ManagerPreparationOAuth::DEVELOPMENT_SCOPE,
+                        'foreign_admin'=>2,'foreign_project'=>'other',default=>'https://invalid.example/mcp'};
+                    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET '.$column.'=? WHERE grant_id=?')->execute([$value,$old['connection_id']]);
+                }
+                $denied=$read();
+                devAssert(isset($denied['error'])||($denied['result']['structuredContent']['reason']??null)==='OWNED_QUEUE_UNAVAILABLE',
+                    'overlay_requires_positive_historical_authority_'.$case);
+                if($case==='missing') {
+                    $columns=array_keys($rows);$pdo->prepare('INSERT INTO manager_preparation_oauth_grants('.implode(',',$columns).') VALUES('.implode(',',array_fill(0,count($columns),'?')).')')
+                        ->execute(array_values($rows));
+                } else $pdo->prepare('UPDATE manager_preparation_oauth_grants SET scopes=?,admin_id=?,project_key=?,resource=? WHERE grant_id=?')
+                    ->execute([$rows['scopes'],$rows['admin_id'],$rows['project_key'],$rows['resource'],$old['connection_id']]);
+            }
+            $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$clock->at,$current['connection_id']]);
+            devAssert(isset($read()['error']),'revoked_current_cannot_read_overlay_candidate');
+            $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$current['connection_id']]);
+            devAssert(isset(devServerOverlayCall($service,$current,'status',['queue_id'=>DevelopmentWorkServerContract::QUEUE],2)['error']),
+                'foreign_actual_admin_cannot_use_overlay');
+            $queue->create(1,$old['connection_id'],['queue_id'=>'UNRELATED_QUEUE','plan_sha256'=>str_repeat('c',64),'tasks'=>[devSpec('OTHER')]]);
+            $other=$queue->status(1,$old['connection_id'],'UNRELATED_QUEUE');
+            $queue->retire_unclaimed(1,$old['connection_id'],['queue_id'=>'UNRELATED_QUEUE','task_id'=>'OTHER',
+                'spec_sha256'=>$other['spec_sha256'],'expected_plan_sha256'=>$other['plan_sha256'],
+                'expected_pending_event_id'=>$other['expected_pending_event_id'],
+                'decision'=>['decision_sha256'=>str_repeat('4',64),'readback_sha256'=>str_repeat('5',64),'reviewer_run_id'=>'SYNTHETIC-OTHER-RETIRE']]);
+            $denied=devServerOverlayCall($service,$current,'status',['queue_id'=>'UNRELATED_QUEUE']);
+            devAssert(($denied['result']['structuredContent']['reason']??null)==='OWNED_QUEUE_UNAVAILABLE',
+                'same_admin_overlay_never_opens_another_owned_native_queue');
+            $done=devServerOverlayCall($service,$current,'append',$args)['result']['structuredContent']??[];
+            devAssert(($done['append_status']??null)==='appended'&&$done['worker_receipt_count']===0,
+                'exact_actual_authenticated_A_only_append_arms_without_model_send');
+            $control=$pdo->query('SELECT * FROM development_work_server_controls')->fetch(PDO::FETCH_ASSOC);
+            devAssert($control['execution_connection_id']===$current['connection_id']
+                &&(int)$control['reserved_calls']===0&&$oldBytes===devServerOldBytes($pdo),
+                'immutable_sidecar_authority_does_not_rewrite_native_owner_or_history');
+            $repeat=devServerOverlayCall($service,$current,'append',$args)['result']['structuredContent']??[];
+            devAssert(($repeat['append_status']??null)==='already_recorded'
+                &&$control===$pdo->query('SELECT * FROM development_work_server_controls')->fetch(PDO::FETCH_ASSOC),
+                'repeated_exact_arm_has_no_budget_claim_or_authority_reset');
+            $denied=devServerOverlayCall($service,$current,'append',$nativeArgs);
+            devAssert(isset($denied['error'])||($denied['result']['structuredContent']['ok']??true)===false,
+                'native_owner_candidate_cannot_replace_existing_overlay_binding');
+            $thirdService=devServerOverlayService($pdo,$queue,$clock,'development');
+            $denied=devServerOverlayCall($thirdService,$third,'status',['queue_id'=>DevelopmentWorkServerContract::QUEUE]);
+            devAssert(($denied['result']['structuredContent']['reason']??null)==='OWNED_QUEUE_UNAVAILABLE',
+                'third_same_admin_connection_cannot_read_or_rebind_bound_server_pair');
+            $qstate=$queue->status(1,$old['connection_id'],DevelopmentWorkServerContract::QUEUE);
+            $native=['queue_id'=>DevelopmentWorkServerContract::QUEUE,'task_id'=>$qstate['task_id'],
+                'spec_sha256'=>$qstate['spec_sha256'],'claim_key'=>str_repeat('b',64)];
+            foreach([$current['connection_id'],$old['connection_id']] as $actor) {
+                foreach([
+                    fn()=>$queue->claim(1,$actor,$native+['expected_pending_event_id'=>'dev_evt_'.str_repeat('e',64)]),
+                    fn()=>$queue->started(1,$actor,$native+['run_id'=>'NATIVE-FAKE']),
+                    fn()=>$queue->complete(1,$actor,$native+['receipt'=>devReceipt()]),
+                    fn()=>$queue->markEventDelivered(1,$actor,DevelopmentWorkServerContract::QUEUE,'dev_evt_'.str_repeat('e',64)),
+                    fn()=>$queue->nativeEventWrite(1,$actor,DevelopmentWorkServerContract::QUEUE,static fn()=>null),
+                ] as $deny)devReject($deny,[DomainException::class,DevelopmentWorkQueueConflict::class],'overlay_gives_no_native_claim_dispatch_ack_or_subscription_power');
+            }
+            [$provider,$log]=devServerSender();
+            $authorize=static fn(string $connection,int $admin):bool=>
+                $connection===$current['connection_id']&&$admin===1
+                &&(new ManagerPreparationOAuth($pdo,static fn():int=>$clock->at))->developmentConnectionAuthorizedAcrossProfiles($connection,$admin);
+            for($i=0;$i<4;++$i) {
+                $r=DevelopmentWorkServerRuntime::tick($pdo,'cron',$authorize,$provider,static fn():int=>$clock->at);$clock->at+=60;
+            }
+            $final=devServerOverlayCall($service,$current,'status',['queue_id'=>DevelopmentWorkServerContract::QUEUE])['result']['structuredContent']??[];
+            devAssert(($final['accepted_count']??null)===2&&$final['server_control']['state']==='complete'
+                &&count($log->sent)===4&&$oldBytes===devServerOldBytes($pdo),
+                'actual_overlay_authorized_runtime_completes_both_tasks_without_old_owner_mutation');
+            devAssert(strlen(json_encode(devServerOverlayCall($service,$current,'status',['queue_id'=>DevelopmentWorkServerContract::QUEUE]),JSON_THROW_ON_ERROR))<=262144,
+                'actual_overlay_full_final_proof_fits_supported_handle');
+        }
+        devServerOverlayRevocationChecks();
+        devServerArmRaceCheck();
+    } finally {
+        if($pdo instanceof PDO)foreach(devServerAuthTables() as $table)$pdo->exec('DROP TABLE IF EXISTS '.$table);
+    }
+}
+
+function devServerSeedNativeAuthority(PDO $pdo,object $clock): void
+{
+    require_once dirname(__DIR__).'/services/DevelopmentWorkConnectionAuthority.php';
+    ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'Synthetic project']]);
+    foreach(devServerAuthTables() as $table)$pdo->exec('DROP TABLE IF EXISTS '.$table);
+    $engine=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' ENGINE=InnoDB':'';
+    $pdo->exec("CREATE TABLE managers(id INTEGER PRIMARY KEY,role VARCHAR(32),is_active INTEGER,is_working INTEGER)$engine;
+        CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key VARCHAR(64),display_name VARCHAR(255),is_active INTEGER)$engine;
+        CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER)$engine;
+        INSERT INTO managers VALUES(1,'admin',1,0);
+        INSERT INTO projects VALUES(1,'anytour','Synthetic project',1);INSERT INTO manager_projects VALUES(1,1);");
+    // Same synthetic canonical grant schema, with no credential issued or provider configured.
+    $pdo->exec("CREATE TABLE manager_preparation_oauth_clients(client_id VARCHAR(64) PRIMARY KEY,redirect_uri VARCHAR(255),registration_bucket VARCHAR(64),created_at BIGINT)$engine;
+        CREATE TABLE manager_preparation_oauth_grants(grant_id VARCHAR(32) PRIMARY KEY,client_id VARCHAR(64),admin_id INTEGER,project_key VARCHAR(64),resource VARCHAR(255),scopes VARCHAR(160),created_at BIGINT,expires_at BIGINT,revoked_at BIGINT NULL)$engine;
+        CREATE TABLE manager_preparation_oauth_codes(code_hash VARCHAR(64) PRIMARY KEY,grant_id VARCHAR(32),redirect_uri VARCHAR(255),code_challenge VARCHAR(128),expires_at BIGINT,consumed_at BIGINT NULL)$engine;
+        CREATE TABLE manager_preparation_oauth_tokens(token_hash VARCHAR(64) PRIMARY KEY,grant_id VARCHAR(32),token_kind VARCHAR(16),expires_at BIGINT,consumed_at BIGINT NULL)$engine;");
+    $client=str_repeat('c',48);$grant=str_repeat('a',32);$now=(int)$clock->at;$until=$now+31536000;
+    $pdo->exec("INSERT INTO manager_preparation_oauth_clients VALUES(".$pdo->quote($client).",".$pdo->quote(ManagerPreparationOAuth::REDIRECT_URI).",'synthetic-server',".$now.");
+        INSERT INTO manager_preparation_oauth_grants VALUES(".$pdo->quote($grant).",".$pdo->quote($client).",1,'anytour',".$pdo->quote(ManagerPreparationOAuth::RESOURCE).",".$pdo->quote(ManagerPreparationOAuth::DEVELOPMENT_SCOPE).",".$now.",".$until.",NULL);");
+}
+
+function devServerOverlayRevocationChecks(): void
+{
+    foreach(['native_owner','overlay'] as $mode) {
+        [$pdo,$queue,$clock,$old,$current]=devServerOverlayFixture('legacy');
+        $actor=$mode==='native_owner'?$old:$current;
+        $p=$queue->status(1,$actor['connection_id'],DevelopmentWorkServerContract::QUEUE)['server_model_candidate'];
+        $queue->append(1,$actor['connection_id'],array_intersect_key($p,array_flip(['queue_id','expected_plan_sha256','plan_sha256','tasks'])));
+        [$provider,$log]=devServerSender(null,static function()use($pdo,$actor,$clock):void {
+            $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')
+                ->execute([$clock->at,$actor['connection_id']]);
+        });
+        $queue->serverTick($provider,devServerOrigin($clock));
+        $control=$pdo->query('SELECT * FROM development_work_server_controls')->fetch(PDO::FETCH_ASSOC);
+        $attempt=$pdo->query('SELECT * FROM development_work_server_attempts')->fetch(PDO::FETCH_ASSOC);
+        $q=$pdo->query('SELECT * FROM development_work_queues')->fetch(PDO::FETCH_ASSOC);
+        devAssert($control['state']==='unknown'&&(int)$control['reserved_calls']===1
+            &&(int)$q['accepted_count']===0&&$attempt['response_id']==='resp_SYNTHETIC_1'
+            &&$attempt['response_bytes']===$log->results[0]['transport']['wire_response_bytes']
+            &&(int)$pdo->query('SELECT COUNT(*) FROM development_work_items')->fetchColumn()===2,
+            $mode.'_revoked_during_send_retains_original_bytes_and_no_acceptance_or_B');
+        $clock->at+=60;
+        devAssert($queue->serverTick($provider,devServerOrigin($clock))['provider_calls']===0&&count($log->sent)===1,
+            $mode.'_revoked_result_never_refunds_or_resends_original_attempt');
+        // Restore only synthetic fixture authority to prove the held result is readable, not executable.
+        $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$actor['connection_id']]);
+        $s=$queue->status(1,$actor['connection_id'],DevelopmentWorkServerContract::QUEUE);
+        devAssert($s['state']==='unknown'&&$s['server_control']['reserved_calls']===1
+            &&count($s['server_control']['attempts'])===1,'revoked_original_evidence_remains_available_after_fixture_authority_restore');
+    }
+}
+
+/** Separate real process for original-owner vs actual-current simultaneous ARM. */
+function devServerArmRaceChild(array $argv): void
+{
+    [$unused,$mode,$file,$input,$out,$go,$winner]=array_pad($argv,7,'');
+    require_once dirname(__DIR__).'/services/DevelopmentWorkConnectionAuthority.php';
+    ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'Synthetic project']]);
+    $job=json_decode(file_get_contents($input),true,32,JSON_THROW_ON_ERROR);
+    $pdo=new DevelopmentWorkTestPdo($file==='MYSQL'?null:$file,false);$armed=false;
+    $clock=static function()use($job,$out,&$armed):int {
+        if($armed) {
+            $armed=false;file_put_contents($out.'.locked','locked');$until=microtime(true)+10;
+            while(!is_file($out.'.release')&&microtime(true)<$until)usleep(1000);
+            if(!is_file($out.'.release'))throw new RuntimeException('arm_race_release_missing');
+        }return $job['at'];
+    };
+    $queue=new DevelopmentWorkQueue($pdo,$clock);file_put_contents($out.'.ready','ready');
+    $until=microtime(true)+10;while(!is_file($go)&&microtime(true)<$until)usleep(1000);
+    if(!is_file($go))exit(3);$armed=$winner==='winner';
+    try {$r=$queue->append(1,$job['connection'],$job['args']);$state=$r['append_status'];}
+    catch(DomainException|DevelopmentWorkQueueConflict $expected){$state='denied';}
+    file_put_contents($out,json_encode(['state'=>$state],JSON_THROW_ON_ERROR));exit(0);
+}
+function devServerArmRaceCheck(): void
+{
+    foreach(['old_first','current_first'] as $case) {
+        $dir=sys_get_temp_dir().'/dev-arm-race-'.bin2hex(random_bytes(6));if(!mkdir($dir,0700))throw new RuntimeException('arm_race_directory');
+        $processes=[];$pdo=null;$queue=null;
+        try {
+            $file=getenv('DEVELOPMENT_WORK_NATIVE_MYSQL')==='1'?'MYSQL':$dir.'/queue.sqlite';
+            [$pdo,$queue,$clock,$old,$current]=devServerOverlayFixture('legacy',$file==='MYSQL'?null:$file);
+            $before=devServerOldBytes($pdo);
+            $winner=$case==='old_first'?0:1;
+            foreach([$old,$current] as $i=>$actor) {
+                $proposal=$queue->status(1,$actor['connection_id'],DevelopmentWorkServerContract::QUEUE)['server_model_candidate'];
+                file_put_contents($dir.'/input'.$i,json_encode(['at'=>$clock->at,'connection'=>$actor['connection_id'],
+                    'args'=>array_intersect_key($proposal,array_flip(['queue_id','expected_plan_sha256','plan_sha256','tasks']))],JSON_THROW_ON_ERROR));
+                $pipes=[];$proc=proc_open([PHP_BINARY,__DIR__.'/run_development_work_queue_regression.php','--development-arm-race-child',
+                    $file,$dir.'/input'.$i,$dir.'/out'.$i,$dir.'/go'.$i,$i===$winner?'winner':'contender'],
+                    [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+                if(!is_resource($proc))throw new RuntimeException('arm_race_process');fclose($pipes[0]);$processes[]=[$proc,$pipes];
+            }
+            $wait=static function(string $path):bool {$until=microtime(true)+10;while(!is_file($path)&&microtime(true)<$until)usleep(1000);return is_file($path);};
+            devAssert($wait($dir.'/out0.ready')&&$wait($dir.'/out1.ready'),'both_actual_authority_arm_processes_ready');
+            file_put_contents($dir.'/go'.$winner,'go');devAssert($wait($dir.'/out'.$winner.'.locked'),'arm_winner_holds_real_lane_queue_lock');
+            $other=1-$winner;file_put_contents($dir.'/go'.$other,'go');usleep(100000);
+            devAssert(!is_file($dir.'/out'.$other)&&proc_get_status($processes[$other][0])['running'],
+                'different_actual_authorizer_arm_waits_for_original_transaction');
+            file_put_contents($dir.'/out'.$winner.'.release','release');
+            devAssert($wait($dir.'/out0')&&$wait($dir.'/out1'),'both_actual_authority_arm_processes_finish');
+            foreach($processes as [$proc,$pipes]) {
+                $stdout=stream_get_contents($pipes[1]);$stderr=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);
+                devAssert(proc_close($proc)===0&&$stdout===''&&$stderr==='','arm_process_clean');
+            }
+            $a=json_decode(file_get_contents($dir.'/out'.$winner),true,16,JSON_THROW_ON_ERROR);
+            $b=json_decode(file_get_contents($dir.'/out'.$other),true,16,JSON_THROW_ON_ERROR);
+            $control=$pdo->query('SELECT * FROM development_work_server_controls')->fetch(PDO::FETCH_ASSOC);
+            $expected=$winner===0?$old['connection_id']:$current['connection_id'];
+            devAssert($a['state']==='appended'&&$b['state']==='denied'&&$control['execution_connection_id']===$expected
+                &&(int)$control['reserved_calls']===0&&(int)$pdo->query('SELECT COUNT(*) FROM development_work_server_controls')->fetchColumn()===1
+                &&(int)$pdo->query('SELECT COUNT(*) FROM development_work_items')->fetchColumn()===2
+                &&(int)$pdo->query('SELECT COUNT(*) FROM development_work_server_attempts')->fetchColumn()===0
+                &&$before===devServerOldBytes($pdo),'one_original_ARM_wins_without_send_rebind_or_native_history_mutation_'.$case);
+        } finally {
+            foreach($processes as [$proc,$pipes]) {
+                foreach($pipes as $pipe)if(is_resource($pipe))fclose($pipe);
+                if(is_resource($proc)){proc_terminate($proc,9);proc_close($proc);}
+            }
+            $queue=null;$pdo=null;foreach(glob($dir.'/*')?:[] as $path)unlink($path);rmdir($dir);
+        }
     }
 }

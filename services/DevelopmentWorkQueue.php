@@ -50,7 +50,7 @@ final class DevelopmentWorkQueue
             if ($q['plan_sha256']===$plan) {
                 $audit=$this->appendMetadata($q);
                 if ($audit===null||$audit['expected_plan_sha256']!==$expected||$audit['tasks_sha256']!==$tasksHash||$audit['task_count']!==count($tasks)) throw new DevelopmentWorkQueueConflict('plan_conflict');
-                $this->serverPairAuthority($q,$connection);return $this->project($q)+['append_status'=>'already_recorded'];
+                $this->serverAdmissionFinish($q,$connection);return $this->project($q)+['append_status'=>'already_recorded'];
             }
             if ($q['plan_sha256']!==$expected||$expected===$plan||$plan===$q['initial_plan_sha256']
                 ||$this->one('SELECT plan_sha256 FROM development_work_appends WHERE queue_id=? AND plan_sha256=?',[$id,$plan])) throw new DevelopmentWorkQueueConflict('plan_conflict');
@@ -64,7 +64,7 @@ final class DevelopmentWorkQueue
             $this->execute('UPDATE development_work_queues SET plan_sha256=?,task_count=?,updated_at=? WHERE queue_id=?',[$plan,$count+count($tasks),$now,$id]);
             $q=$this->serverAdmissionOwned($id,$admin,$connection);
             if ($q['current_task_id']===null) $q=$this->selectNext($q,$lane,$now);
-            $this->serverPairAuthority($q,$connection);return $this->project($q)+['append_status'=>'appended'];
+            $this->serverAdmissionFinish($q,$connection);return $this->project($q)+['append_status'=>'appended'];
         });
     }
     public function status(int $admin,string $connection,string $queueId): array

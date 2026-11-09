@@ -39,6 +39,20 @@ trait DevelopmentWorkServerControl
         (new DevelopmentWorkConnectionAuthority($this->pdo,$this->clock))
             ->assertPair((int)$q['admin_id'],$q['oauth_connection_id'],$connection);
     }
+    /** New server execution always needs a fresh active authority, including native-owner mode. */
+    private function serverExecutionAuthority(array $q,string $connection): void
+    {
+        require_once __DIR__.'/DevelopmentWorkConnectionAuthority.php';
+        $authority=new DevelopmentWorkConnectionAuthority($this->pdo,$this->clock);
+        if(hash_equals($q['oauth_connection_id'],$connection))$authority->assertCurrent((int)$q['admin_id'],$connection);
+        else $authority->assertPair((int)$q['admin_id'],$q['oauth_connection_id'],$connection);
+    }
+    private function serverAdmissionFinish(array $q,string $connection): void
+    {
+        $this->serverPairAuthority($q,$connection);$control=$this->serverControl($q);
+        if($control!==null&&hash_equals($control['execution_connection_id'],$connection))
+            $this->serverExecutionAuthority($q,$connection);
+    }
     private function serverAuthority(array $q,string $connection): array
     {
         return ['schema'=>'development-server-authority-overlay-v1','admin_id'=>(int)$q['admin_id'],
@@ -136,6 +150,7 @@ trait DevelopmentWorkServerControl
             throw new DevelopmentWorkQueueConflict('development_work_unresolved');
         if($this->one('SELECT subscription_id FROM development_work_events WHERE queue_id=? AND is_active=1 AND expires_at>? LIMIT 1',[$q['queue_id'],$this->now()]))
             throw new DevelopmentWorkQueueConflict('development_server_native_subscription_active');
+        $this->serverExecutionAuthority($q,$connection);
         $at=$this->timestamp();
         $binding=['schema'=>'development-server-binding-v1','execution_kind'=>'server_model','proposal'=>$p,
             'admitted_at'=>$at,'deadline_at'=>$at+$p['policy']['duration_seconds'],
@@ -156,7 +171,7 @@ trait DevelopmentWorkServerControl
         if(!is_string($c['execution_connection_id'])||preg_match('/\A[a-f0-9]{32}\z/D',$c['execution_connection_id'])!==1
             ||self::hash($b['proposal']['authority']??[])!==self::hash($this->serverAuthority($q,$c['execution_connection_id'])))
             throw new DomainException('development_server_authority_binding_conflict');
-        if($current)$this->serverPairAuthority($q,$c['execution_connection_id']);
+        if($current)$this->serverExecutionAuthority($q,$c['execution_connection_id']);
         $policy=$b['proposal']['policy'];
         if((int)$c['reserved_calls']<0||(int)$c['reserved_calls']>4
             ||(int)$c['reserved_tokens']!==(int)$c['reserved_calls']*$policy['tokens_per_call']
