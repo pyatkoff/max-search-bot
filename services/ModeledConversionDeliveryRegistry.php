@@ -144,7 +144,7 @@ final class ModeledConversionDeliveryRegistry
                         if($item['platform']!==null&&$item['platform']!==$row['platform'])throw new UnexpectedValueException();
                         $item['platform']=$row['platform'];$name=trim((string)$row['customer_name']);if($name!=='')$item['customer_name']=$name;
                         $event['in_selected_day']=(int)$row['event_unix']>=$from&&(int)$row['event_unix']<$until;
-                        $event['visit_check']=ModeledConversionVisitProof::forEvent($proof,$row);
+                        $event['visit_check']=ModeledConversionVisitProof::forEvent($proof,$row,$now);
                         $item['events'][]=$event;
                     }
                     $items[]=$item;
@@ -157,6 +157,7 @@ final class ModeledConversionDeliveryRegistry
                 'basis'=>'saved_value_event_unix','as_of'=>gmdate('Y-m-d\TH:i:s\Z',$asOf),'checked_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),
                 'window'=>['from'=>gmdate('Y-m-d\TH:i:s\Z',$from),'until_exclusive'=>gmdate('Y-m-d\TH:i:s\Z',$until)],
                 'platform'=>$platform,'currency'=>'RUB','summary'=>$summary,'rows'=>$items,
+                'visit_verification'=>ModeledConversionVisitProof::automatic($now),
                 'pagination'=>['page_size'=>self::PAGE_SIZE,'shown'=>count($items),'has_more'=>$hasMore,'next_cursor'=>$next],
                 'interpretation'=>['day_is_saved_assignment_not_upload_or_customer_message_day'=>true,
                     'total_is_same_contract_lifetime_reserved_value_not_income'=>true,'receipt_and_processed_overlap'=>true,
