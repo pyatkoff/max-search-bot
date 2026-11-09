@@ -7,7 +7,7 @@
   "channel_url": "https://max.ru/channel_appleservice39ru",
   "source_key": "max:appleservice39-main",
   "base_manifest_sha256": "93212e4cd8bc62f5bb1098ea690528106b4c520087c92bc49ea658b2c7a955f3",
-  "asset_policy": "reuse_verified_original_images",
+  "asset_policy": "reviewed_repair_artwork",
   "contact_source": "https://appleservice39.ru/kontakty/",
   "posts": [
     {
@@ -681,5 +681,6 @@
         }
       ]
     }
-  ]
+  ],
+  "artwork_manifest_sha256": "54c68afe9afb51529c664cb97f0b106ec4b8431964b24126e625243f1db6ab8d"
 }

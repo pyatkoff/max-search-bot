@@ -62,6 +62,7 @@ final class ApplePilotTestProvider
     public bool $reorderButtons = false;
     public bool $dropCreateImageId = false;
     public bool $failLandingReadOnce = false;
+    public bool $preserveLandingTokens = true;
     public ?string $fixedMid = null;
     public ?string $fixedPhotoId = null;
     public ?string $fixedUrl = null;
@@ -79,6 +80,7 @@ final class ApplePilotTestProvider
         $method = $request['method'];
         if (str_starts_with($request['url'], 'https://iu.oneme.ru/')) {
             as39ProviderAssert($request['token'] === '' && $request['file'] !== null, 'upload never forwards bot credential');
+            if ($this->mode === 'landing_upload_timeout' && str_contains($request['file'], '/artwork/')) return ['http'=>0,'transport_error'=>true,'data'=>null];
             $id = $query['id']; return $this->ok(['photos'=>[($this->zeroUploadKey ? '0' : $id)=>['token'=>'photo_'.$id]]]);
         }
         as39ProviderAssert($request['token'] === 'synthetic-apple-token-12345', 'API uses the exact project token');
@@ -106,6 +108,11 @@ final class ApplePilotTestProvider
                 $this->failLandingReadOnce = false;
                 return ['http'=>0,'transport_error'=>true,'data'=>null];
             }
+            if (isset($message['body']['markup']) && str_starts_with($this->mode, 'landing_')) {
+                if ($this->mode === 'landing_foreign_image') $message['body']['attachments'][0]['payload'] = ['photo_id'=>'999999','token'=>'foreign-image'];
+                if ($this->mode === 'landing_missing_image_id') unset($message['body']['attachments'][0]['payload']['photo_id']);
+                if ($this->mode === 'landing_missing_token') unset($message['body']['attachments'][0]['payload']['token']);
+            }
             if ($this->mode === 'wrong_image') $message['body']['attachments'][0]['payload']['photo_id'] = '999999';
             if (in_array($this->mode, ['remapped_image','remapped_wrong_token','missing_id_same_token'], true)) {
                 $image = &$message['body']['attachments'][0]['payload'];
@@ -132,7 +139,9 @@ final class ApplePilotTestProvider
         if ($method === 'PUT' && $path === '/messages') {
             $mid = $query['message_id'] ?? '';
             as39ProviderAssert(isset($this->messages[$mid]), 'edit targets an exact prior created MID');
+            $priorImage = $this->messages[$mid]['body']['attachments'][0];
             if ($this->mode !== 'edit_unchanged_timeout') $this->messages[$mid] = $this->message($mid, $request['body']);
+            if ($this->mode === 'landing_success_old_image') $this->messages[$mid]['body']['attachments'][0] = $priorImage;
             if (in_array($this->mode, ['edit_timeout','edit_unchanged_timeout'], true)) return ['http'=>0,'transport_error'=>true,'data'=>null];
             return $this->ok(['success'=>true]);
         }
@@ -147,8 +156,10 @@ final class ApplePilotTestProvider
     {
         $attachments = $body['attachments'] ?? [];
         foreach ($attachments as &$attachment) if ($attachment['type'] === 'image') {
+            $submitted = $attachment['payload']['token'];
             $attachment['payload']['photo_id'] = $this->fixedPhotoId ?? substr($attachment['payload']['token'], strlen('photo_'));
-            $attachment['payload']['token'] = 'renewed_'.$attachment['payload']['photo_id'];
+            $attachment['payload']['token'] = ($body['format'] ?? null) === 'html' && $this->preserveLandingTokens
+                && (int)substr($submitted, strlen('photo_')) > 24 ? $submitted : 'renewed_'.$attachment['payload']['photo_id'];
         }
         unset($attachment);
         $native = ['mid'=>$mid,'text'=>$body['text'],'attachments'=>$attachments];
@@ -208,6 +219,23 @@ function as39LandingRegression(PDO $pdo, ApplePilotTestProvider $provider, Apple
     as39Expect($provider->writes() === $writes, 'landing never silently repins or replaces an operator pin');
     $provider->pinned = $pin;
 
+    as39Refuses(static fn()=>$publisher->run('landing_apply'), 'landing_images_not_prepared');
+    as39Expect($provider->writes() === $writes && $store->rows() === $original,
+        'missing new uploads stop all edits without creating a revision claim');
+    $publisher->run('landing_prepare');
+    as39Expect($provider->count('POST', '/uploads') === 39 && $provider->count('PUT', '/messages') === 24,
+        'the fifteen reviewed repair images upload in a separate phase without editing a post');
+    $uploadWrites = $provider->writes(); $publisher->run('landing_prepare');
+    as39Expect($provider->writes() === $uploadWrites, 'verified landing uploads are reused without another reservation or multipart send');
+    foreach ($revision->posts() as $post) {
+        $upload = $store->operation($post['id'], 'landing_upload'); $asset = $revision->artwork($post['id']);
+        as39Expect($asset === null ? $upload === null : $upload !== null && $upload['state'] === 'verified'
+            && (int)$upload['write_attempts'] === 1 && $upload['request']['source_sha256'] === $asset['sha256']
+            && $upload['request']['mid'] === $store->operation($post['id'], 'create')['external_message_id'],
+            'only the exact fifteen source-bound repair uploads acquire one claim');
+    }
+    $writes = $provider->writes();
+
     $provider->failLandingReadOnce = true;
     as39Refuses(static fn()=>$publisher->run('landing_apply'), 'landing_edit_held');
     $first = $manifest->posts()[0]['id']; $row = $store->operation($first, 'landing_edit');
@@ -234,9 +262,9 @@ function as39LandingRegression(PDO $pdo, ApplePilotTestProvider $provider, Apple
         'one coherent revision updates all original messages and preserves the existing menu pin');
     $publisher->run('landing_apply'); $publisher->run('landing_reconcile'); $publisher->run('landing_inspect');
     as39Expect($provider->writes() === $writes+24 && $provider->count('POST', '/messages') === 24
-        && $provider->count('POST', '/uploads') === 24 && $provider->count('PUT', '/chats/-12345/pin') === 1,
+        && $provider->count('POST', '/uploads') === 39 && $provider->count('PUT', '/chats/-12345/pin') === 1,
         'completed revision repeats no edits, publications, uploads or pin operations');
-    $oldRows = array_values(array_filter($store->rows(), static fn(array $r): bool => $r['operation'] !== 'landing_edit'));
+    $oldRows = array_values(array_filter($store->rows(), static fn(array $r): bool => !str_starts_with($r['operation'], 'landing_')));
     as39Expect($oldRows === $original, 'all original campaign operations and image receipts remain byte-for-byte unchanged');
 
     $links = 0;
@@ -261,10 +289,18 @@ function as39LandingRegression(PDO $pdo, ApplePilotTestProvider $provider, Apple
         }
         $links += count($navigation);
         $entry = AppleService39PilotCatalog::forPost($post['id']);
+        if ($entry !== null) {
+            $image = $row['outcome']['image_receipt'] ?? [];
+            as39Expect(($image['kind'] ?? null) === 'exact_upload_token'
+                && $image['source_sha256'] === $revision->artwork($post['id'])['sha256']
+                && $image['photo_id'] !== $store->operation($post['id'], 'create')['outcome']['image_receipt']['photo_id']
+                && $image['request_sha256'] === $row['payload_sha256'],
+                'new native image is bound to its own source upload and exact same-MID edit');
+        }
         if ($entry !== null) as39Expect(str_contains($body['text'], $entry['price_text']),
             'landing preserves the exact approved price qualification');
     }
-    as39Expect($links === 86, 'all 86 navigation links survive the one-button revision');
+    as39Expect($links === 86 && $finished['landing_verified_new_images'] === 15, 'all 86 navigation links and15 native source-image proofs survive the one-button revision');
     $markup = [['type'=>'link','from'=>2,'length'=>3,'url'=>'https://max.ru/channel_appleservice39ru/a']];
     as39Expect(AppleService39LandingRevision::sameMarkup([array_reverse($markup[0], true)], $markup),
         'native markup object key order is immaterial');
@@ -318,14 +354,69 @@ function as39FullPublicationRegression(PDO $pdo): void
     as39Refuses(static fn()=>$publisher->run('inspect'), 'active_project_admin_and_source_required');
 }
 
+function as39LandingImageSafetyRegression(): void
+{
+    foreach (['landing_foreign_image','landing_missing_image_id','landing_missing_token','landing_success_old_image','rotated_native_token'] as $mode) {
+        ProjectMaxConnection::resetForTests(as39Registry()); $pdo = as39Sqlite();
+        $provider = new ApplePilotTestProvider; $provider->zeroUploadKey = true;
+        $publisher = as39Publisher($pdo, $provider);
+        foreach (['prepare','publish','finalize','pin','landing_prepare'] as $phase) $publisher->run($phase);
+        $store = new AppleService39PilotPublicationStore($pdo);
+        $provider->mode = $mode; $provider->preserveLandingTokens = $mode !== 'rotated_native_token';
+        $writes = $provider->writes();
+        as39Refuses(static fn()=>$publisher->run('landing_apply'), 'landing_edit_held');
+        $first = AppleService39PilotManifest::installed()->posts()[0]['id'];
+        $row = $store->operation($first, 'landing_edit');
+        as39Expect($row['state'] === 'unknown' && (int)$row['write_attempts'] === 1
+            && !isset($row['outcome']['image_receipt']) && $provider->writes() === $writes+1,
+            'ACK/changed photoID without exact source token cannot establish a new image receipt: '.$mode);
+        $result = $publisher->run('landing_reconcile');
+        as39Expect(!$result['ok'] && $result['landing_verified_new_images'] === 0 && $provider->writes() === $writes+1,
+            'an arbitrary fresh image GET does not close or replay the held edit: '.$mode);
+        as39Refuses(static fn()=>$publisher->run('landing_apply'), 'landing_edit_held');
+        as39Expect($provider->writes() === $writes+1, 'held same-MID image edits never replay: '.$mode);
+        // Supply the real unique token from this fixture's own recorded upload.
+        $provider->mode = ''; $provider->preserveLandingTokens = true;
+        $upload = $store->operation($first, 'landing_upload');
+        $provider->messages[$row['external_message_id']]['body']['attachments'][0]['payload'] = [
+            'photo_id'=>'5000001','token'=>$upload['outcome']['token']];
+        $recovered = as39Publisher($pdo, $provider)->run('landing_reconcile');
+        $saved = $store->operation($first, 'landing_edit');
+        as39Expect($recovered['ok'] && $recovered['landing_verified_new_images'] === 1
+            && $saved['state'] === 'verified' && (int)$saved['write_attempts'] === 1 && $provider->writes() === $writes+1,
+            'only the exact original source token may reconcile the original image attempt by GET');
+        $proof = $saved['outcome']['image_receipt']; $proof['source_sha256'] = str_repeat('f',64);
+        as39Refuses(static fn()=>$store->finish($saved, 'unknown', ['image_receipt'=>$proof]), 'image_receipt_changed');
+        as39Expect($store->operation($first, 'landing_edit') === $saved, 'completion/hold cannot overwrite immutable native image evidence');
+    }
+
+    ProjectMaxConnection::resetForTests(as39Registry()); $pdo = as39Sqlite(); $provider = new ApplePilotTestProvider;
+    $publisher = as39Publisher($pdo, $provider);
+    foreach (['prepare','publish','finalize','pin'] as $phase) $publisher->run($phase);
+    $provider->mode = 'landing_upload_timeout'; $writes = $provider->writes();
+    as39Refuses(static fn()=>$publisher->run('landing_prepare'), 'landing_upload_held');
+    $store = new AppleService39PilotPublicationStore($pdo); $first = AppleService39PilotManifest::installed()->posts()[0]['id'];
+    $held = $store->operation($first, 'landing_upload');
+    as39Expect($held['state'] === 'unknown' && (int)$held['write_attempts'] === 1 && $provider->writes() === $writes+2,
+        'lost image-upload response retains one reservation/multipart attempt');
+    $provider->mode = '';
+    as39Refuses(static fn()=>$publisher->run('landing_prepare'), 'landing_upload_held');
+    $result = $publisher->run('landing_reconcile');
+    as39Expect(!$result['ok'] && $provider->writes() === $writes+2 && $store->operation($first, 'landing_edit') === null,
+        'new process/read-only reconcile cannot repeat or adopt an unknown upload');
+    as39Refuses(static fn()=>$store->prepare($first, 'landing_upload', array_merge($held['request'], ['source_sha256'=>str_repeat('f',64)])), 'pilot_operation_changed');
+}
+
 if (!defined('APPLESERVICE39_PUBLISHER_FIXTURES_ONLY')) {
     as39FullPublicationRegression(as39Sqlite());
+    as39LandingImageSafetyRegression();
 
     // Provider did not apply a timed-out edit: reconciliation must keep the original hold.
     ProjectMaxConnection::resetForTests(as39Registry());
     $landingPdo = as39Sqlite(); $landingProvider = new ApplePilotTestProvider;
     $landingPublisher = as39Publisher($landingPdo, $landingProvider);
     foreach (['prepare','publish','finalize','pin'] as $phase) $landingPublisher->run($phase);
+    $landingPublisher->run('landing_prepare');
     $landingProvider->mode = 'edit_unchanged_timeout';
     $landingWrites = $landingProvider->writes();
     as39Refuses(static fn()=>$landingPublisher->run('landing_apply'), 'landing_edit_held');

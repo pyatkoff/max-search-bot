@@ -49,7 +49,7 @@ final class AppleService39PilotPublicationStore
 
     public function prepare(string $post, string $operation, array $request): array
     {
-        if (!preg_match('/\A[a-z][a-z0-9_-]{0,55}\z/D', $post) || !in_array($operation, ['upload','create','links','pin','landing_edit'], true)) throw new RuntimeException('invalid_pilot_operation');
+        if (!preg_match('/\A[a-z][a-z0-9_-]{0,55}\z/D', $post) || !in_array($operation, ['upload','create','links','pin','landing_upload','landing_edit'], true)) throw new RuntimeException('invalid_pilot_operation');
         $json = self::json($request); $hash = hash('sha256', $json);
         $row = $this->operation($post, $operation);
         if ($row === null) {
@@ -116,6 +116,37 @@ final class AppleService39PilotPublicationStore
         $query = $this->pdo->prepare("UPDATE appleservice39_pilot_operations SET outcome_json=?,updated_at=? WHERE id=? AND payload_sha256=? AND state IN ('write_started','unknown') AND write_attempts=1 AND external_message_id=? AND outcome_json=?");
         $query->execute([self::json($outcome),gmdate('Y-m-d H:i:s'),(int)$row['id'],$row['payload_sha256'],$receipt['message_id'],$current['outcome_json']]);
         $saved = $this->operation((string)$row['post_key'], 'create');
+        if (!$saved || ($saved['outcome']['image_receipt'] ?? null) !== $receipt) throw new RuntimeException('image_receipt_storage_unknown');
+    }
+
+    /** Only a source-upload-token witness may bind a replacement native image. */
+    public function rememberLandingImageReceipt(array $row, array $receipt): void
+    {
+        if ($this->pdo->inTransaction()) throw new RuntimeException('pilot_requires_autocommit');
+        $current = $this->operation((string)$row['post_key'], 'landing_edit');
+        if (($row['operation'] ?? '') !== 'landing_edit' || !$current || (int)$current['id'] !== (int)$row['id']
+            || $current['payload_sha256'] !== $row['payload_sha256']
+            || !in_array($current['state'], ['write_started','unknown'], true) || (int)$current['write_attempts'] !== 1
+            || array_keys($receipt) !== ['kind','message_id','photo_id','source_sha256','upload_token_sha256','request_sha256','revision_sha256']
+            || $receipt['kind'] !== 'exact_upload_token' || $receipt['message_id'] !== $current['external_message_id']
+            || $receipt['message_id'] !== ($current['request']['mid'] ?? null)
+            || !is_string($receipt['photo_id']) || preg_match('/\A(?:0|-?[1-9][0-9]{0,18})\z/D', $receipt['photo_id']) !== 1
+            || $receipt['source_sha256'] !== ($current['request']['source_sha256'] ?? null)
+            || $receipt['upload_token_sha256'] !== ($current['request']['upload_token_sha256'] ?? null)
+            || $receipt['revision_sha256'] !== ($current['request']['revision_sha256'] ?? null)
+            || $receipt['request_sha256'] !== $current['payload_sha256']) throw new RuntimeException('invalid_landing_image_receipt');
+        foreach (['source_sha256','upload_token_sha256','request_sha256','revision_sha256'] as $key) {
+            if (!is_string($receipt[$key]) || preg_match('/\A[a-f0-9]{64}\z/D', $receipt[$key]) !== 1) throw new RuntimeException('invalid_landing_image_receipt');
+        }
+        $old = $current['outcome']['image_receipt'] ?? null;
+        if ($old !== null) {
+            if ($old !== $receipt) throw new RuntimeException('image_receipt_changed');
+            return;
+        }
+        $outcome = $current['outcome']; $outcome['image_receipt'] = $receipt;
+        $query = $this->pdo->prepare("UPDATE appleservice39_pilot_operations SET outcome_json=?,updated_at=? WHERE id=? AND payload_sha256=? AND state IN ('write_started','unknown') AND write_attempts=1 AND external_message_id=? AND outcome_json=?");
+        $query->execute([self::json($outcome),gmdate('Y-m-d H:i:s'),(int)$row['id'],$row['payload_sha256'],$receipt['message_id'],$current['outcome_json']]);
+        $saved = $this->operation((string)$row['post_key'], 'landing_edit');
         if (!$saved || ($saved['outcome']['image_receipt'] ?? null) !== $receipt) throw new RuntimeException('image_receipt_storage_unknown');
     }
 

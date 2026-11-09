@@ -42,7 +42,7 @@ Button objects use exact key sets and strict typed field values independent of J
 
 The owner's requested one-button/text-navigation revision updates the same 24 original MAX messages. Its immutable source is resources/appleservice39/landing-v2/manifest.json. The original v1 manifest, campaign binding, uploads, creates, links, pin, MIDs, public URLs and image receipts remain unchanged.
 
-This revision improves the copy and navigation and deliberately reuses the existing verified covers. It is not a new image-design release or a claim that the artwork has reached a measured quality score. Repair prices and their qualifiers must exactly match the accepted pilot catalog. The current public contact page was read on 9 November: Leninsky Prospekt18, floor4, office404. Conflicting general hours, repair durations and blanket warranty periods are not promoted into fixed promises.
+This revision combines the reviewed copy/navigation with fifteen new repair illustrations from the prepared a63e1c9b artwork package. The nine navigation pages keep their original verified covers. The source artwork manifest binds every1122x1402 PNG, file size and SHA-256 to the exact accepted model/service/price qualification. These are reviewed source illustrations, not native MAX receipts or a measured design score. Repair prices and their qualifiers must exactly match the accepted pilot catalog. The current public contact page was read on 9 November: Leninsky Prospekt18, floor4, office404. Conflicting general hours, repair durations and blanket warranty periods are not promoted into fixed promises.
 
 Every post has exactly one bot CTA. The15 repair entries retain their exact service/model and price policy. The9 navigation pages use a finite menu/model/service allowlist; they do not guess a repair or its price. A menu consultation preserves the existing conversation's known repair metadata. Existing manager ownership, one-event reply claims, uncertain-delivery holds and tourism behavior are retained.
 
@@ -50,7 +50,8 @@ Navigation uses HTML text anchors to the original verified own-post URLs, not ke
 
 Use the existing approved workflow with:
 - landing_inspect: read-only inspection; expected button/link totals are explicitly labeled as expected. This creates no campaign or operation.
-- landing_apply: a full current24-message and pin preflight, then one immutable landing_edit claim per original MID. Each exact body is reread immediately before the edit and independently after it. No new posts, uploads or pin operations are issued.
+- landing_prepare: a full current24-message and pin preflight, then one immutable landing_upload claim for each of the fifteen new source images. Each claim binds the revision/source hash and original MID/URL. A reservation plus multipart send is attempted once; an unknown upload cannot be repeated or adopted by GET. This phase issues no message/pin writes and allows provider processing before apply.
+- landing_apply: require all fifteen verified uploads and a full current24-message and pin preflight, then one immutable landing_edit claim per original MID. Each exact body is reread immediately before the edit and independently after it. No new posts or pin operations are issued; apply never uploads or retries a media file.
 - landing_reconcile: read-only provider reconciliation of the exact already-claimed edits. A complete matching native result may close the original claim. A still-old, changed, missing or ambiguous result remains held; no edit is retried.
 
 A lost edit response may be accepted only through its exact independent native readback. A failed or missing readback retains UNKNOWN/write_attempts1. Repeated apply cannot repeat that edit. Once reconciliation verifies the original attempt, apply may finish only the remaining unsent posts. Changed revision data or original operation identity cannot reset an attempt. Intervening manual content or pin changes stop the revision.
@@ -58,3 +59,10 @@ A lost edit response may be accepted only through its exact independent native r
 The ordinary required current-source CI, installation and original release gates remain prerequisites. Source tests and a merged PR do not establish that the MAX posts were updated. Published acceptance requires all24 final native message readbacks, their original URLs and the preserved menu pin.
 
 Pavel already confirmed the real iPhoneX battery button and the correct contextual answer on9November. Do not repeat that customer test. The same real conversation's visibility in the common manager panel remains a separate open read-only acceptance; this revision does not assert that it has been completed.
+
+
+## Replacement image evidence
+
+The upload photos-map key can be an index (including0) and is never treated as the native image identity. PUT /messages returns only a success result; that acknowledgement plus any changed photoID is not image proof. The first native replacement receipt requires a valid photoID and the exact unique token from this post's own source-bound upload. Complete channel/MID/text/markup/button/URL verification precedes storing it. The immutable receipt binds native photoID, source SHA, upload-token hash, revision and original one-attempt edit payload. Later reads validate this receipt without changing the original create receipt.
+
+A lost PUT response can be reconciled by GET only when this exact source-token witness and the complete planned native body are present. Missing/renewed/foreign tokens, missing identity, old imagery or incomplete readback retain UNKNOWN/write_attempts1; provider success alone does not close it. If MAX renews the first readback token, the run stops for exact native/source evidence in this same owner chain. The current code has no generic override, perceptual-similarity approval, token decoding, alternate publisher or automatic resend. Source tests do not assert that the provider will preserve this token in a future live edit.

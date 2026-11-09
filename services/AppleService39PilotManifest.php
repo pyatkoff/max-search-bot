@@ -122,13 +122,15 @@ final class AppleService39PilotManifest
 }
 
 
-/** Fixed text revision of the original 24 messages; original assets and receipts remain authoritative. */
+/** Fixed text/artwork revision; original campaign assets and receipts are immutable. */
 final class AppleService39LandingRevision
 {
     public const KEY = 'landing-v2';
     private array $data;
     private string $sha256;
     private AppleService39PilotManifest $original;
+    private array $artwork = [];
+    private string $artworkDirectory;
 
     public function __construct(AppleService39PilotManifest $original, ?string $path = null)
     {
@@ -145,7 +147,7 @@ final class AppleService39LandingRevision
             && ($data['source_key'] ?? null) === AppleService39PilotManifest::SOURCE
             && ($data['channel_url'] ?? null) === AppleService39PilotManifest::CHANNEL
             && ($data['base_manifest_sha256'] ?? null) === $original->sha256()
-            && ($data['asset_policy'] ?? null) === 'reuse_verified_original_images'
+            && ($data['asset_policy'] ?? null) === 'reviewed_repair_artwork'
             && ($data['contact_source'] ?? null) === 'https://appleservice39.ru/kontakty/',
             'landing_revision_identity_mismatch');
         self::check(is_array($data['posts'] ?? null) && array_is_list($data['posts'])
@@ -165,10 +167,53 @@ final class AppleService39LandingRevision
                 && str_contains($post['title'], $entry['model']), 'landing_reviewed_price_required');
         }
         $this->original = $original; $this->data = $data; $this->sha256 = hash('sha256', $raw);
+        $this->artworkDirectory = dirname((string)realpath($path)).'/artwork';
+        $assetPath = $this->artworkDirectory.'/asset-manifest.json';
+        self::check(is_file($assetPath) && !is_link($assetPath) && filesize($assetPath) <= 65536
+            && is_string($data['artwork_manifest_sha256'] ?? null)
+            && hash_file('sha256', $assetPath) === $data['artwork_manifest_sha256'], 'landing_artwork_manifest_changed');
+        $assets = json_decode((string)file_get_contents($assetPath), true, 32, JSON_THROW_ON_ERROR);
+        self::check(is_array($assets) && ($assets['schema_version'] ?? null) === 1
+            && ($assets['project_key'] ?? null) === AppleService39PilotManifest::PROJECT
+            && ($assets['media_kind'] ?? null) === 'AI_generated_illustration'
+            && is_array($assets['posts'] ?? null) && array_is_list($assets['posts']) && count($assets['posts']) === 15,
+            'landing_artwork_manifest_changed');
+        foreach ($assets['posts'] as $asset) {
+            $id = $asset['post_id'] ?? null;
+            self::check(is_string($id) && !isset($this->artwork[$id]), 'landing_artwork_manifest_changed');
+            $entry = AppleService39PilotCatalog::forPost($id);
+            self::check($entry !== null && ($asset['path'] ?? null) === 'covers/'.$id.'.png'
+                && ($asset['source_artwork_visually_reviewed'] ?? null) === true
+                && ($asset['width'] ?? null) === 1122 && ($asset['height'] ?? null) === 1402
+                && is_int($asset['bytes'] ?? null) && $asset['bytes'] > 0 && $asset['bytes'] < 1900000
+                && is_string($asset['sha256'] ?? null) && preg_match('/\A[a-f0-9]{64}\z/D', $asset['sha256']) === 1,
+                'landing_artwork_manifest_changed');
+            foreach (['model','service','service_key','price_kind','price_text','source_urls'] as $key) {
+                self::check(($asset[$key] ?? null) === $entry[$key], 'landing_artwork_catalog_changed');
+            }
+            $this->artwork[$id] = $asset;
+            $this->validateArtwork($id);
+        }
     }
 
     public function sha256(): string { return $this->sha256; }
     public function posts(): array { return $this->data['posts']; }
+    public function artwork(string $postId): ?array { return $this->artwork[$postId] ?? null; }
+
+    public function validateArtwork(string $postId): string
+    {
+        $asset = $this->artwork[$postId] ?? null;
+        self::check(is_array($asset), 'landing_artwork_manifest_changed');
+        $path = $this->artworkDirectory.'/'.$asset['path'];
+        $resolved = realpath($path); $directory = realpath($this->artworkDirectory.'/covers');
+        self::check(is_string($resolved) && is_string($directory) && dirname($resolved) === $directory
+            && !is_link($path) && is_file($path) && filesize($path) === $asset['bytes']
+            && hash_file('sha256', $path) === $asset['sha256'], 'landing_artwork_changed');
+        $image = @getimagesize($path);
+        self::check(is_array($image) && ($image[2] ?? null) === IMAGETYPE_PNG
+            && $image[0] === 1122 && $image[1] === 1402, 'landing_artwork_changed');
+        return $path;
+    }
 
     /** Build both the outgoing HTML and its exact native text/link projection. */
     public function plan(array $post, array $upload, array $urls): array

@@ -35,7 +35,7 @@ final class AppleService39PilotPublisher
 
     public function run(string $operation): array
     {
-        self::check(in_array($operation, ['inspect','prepare','publish','finalize','pin','reconcile','landing_inspect','landing_apply','landing_reconcile'], true), 'unsupported_pilot_operation');
+        self::check(in_array($operation, ['inspect','prepare','publish','finalize','pin','reconcile','landing_inspect','landing_prepare','landing_apply','landing_reconcile'], true), 'unsupported_pilot_operation');
         $this->readbackDiagnostics = [];
         $binding = $this->preflight();
         $this->store->assertBinding($binding);
@@ -295,16 +295,43 @@ final class AppleService39PilotPublisher
     }
 
 
-    /** Same original MIDs, images and campaign; one immutable edit attempt per post. */
+    /** Same original MIDs/campaign; one upload per new asset and one edit per post. */
     private function landing(string $operation, array $binding): array
     {
         self::check($this->store->campaign() !== null, 'landing_existing_campaign_required');
         $revision = new AppleService39LandingRevision($this->manifest);
         $targets = $this->landingTargets($revision);
         self::check($this->pinnedMid() === $targets[$this->manifest->menuPostId()]['mid'], 'landing_menu_pin_changed');
-        if ($operation === 'landing_apply') {
+        if ($operation === 'landing_prepare') {
+            // Validate every original message and pin before the first new upload.
+            $this->landingRead($targets, false);
+            foreach ($targets as $id=>$target) {
+                if ($target['asset'] === null) continue;
+                $row = $this->store->prepare($id, 'landing_upload', $target['upload_request']);
+                if ($row['state'] === 'verified') continue;
+                self::check($row['state'] === 'prepared', 'landing_upload_held');
+                $path = $revision->validateArtwork($id);
+                $this->beforeWrite($row, function () use ($target): void {
+                    $message = self::read($this->transport->message($target['mid']));
+                    self::check($this->verifyMessage($message, $target['mid'], $target['prior'], $target['post'])
+                        === $target['url'], 'post_url_changed');
+                    self::check($this->pinnedMid() === $target['menu_mid'], 'landing_menu_pin_changed');
+                });
+                try {
+                    $receipt = AppleService39ChannelTransport::uploadReceipt($this->transport->upload($path));
+                    self::check($receipt !== null, 'landing_upload_held');
+                    $this->store->finish($row, 'verified', $receipt);
+                } catch (Throwable $error) {
+                    $this->hold($row, 'landing_upload_outcome_unknown');
+                    throw new RuntimeException('landing_upload_held');
+                }
+            }
+            // Uploads are a separate phase; no message edit is hidden in preparation.
+            $targets = $this->landingTargets($revision);
+        } elseif ($operation === 'landing_apply') {
             // All 24 current bodies and the existing pin are verified before any edit.
             $this->landingRead($targets, false);
+            foreach ($targets as $target) self::check($target['plan'] !== null, 'landing_images_not_prepared');
             foreach ($targets as $id=>$target) {
                 $row = $this->store->prepare($id, 'landing_edit', $target['request']);
                 if ($row['state'] === 'verified') continue;
@@ -319,7 +346,7 @@ final class AppleService39PilotPublisher
                 try {
                     $this->store->rememberMessage($row, $target['mid'], $target['url']);
                     $this->transport->edit($target['mid'], $target['plan']['body']);
-                    $this->verifyLandingTarget($target);
+                    $this->verifyLandingTarget($target, true);
                     $this->store->rememberMessage($row, $target['mid'], $target['url']);
                     $this->store->finish($row, 'verified', ['readback'=>true,
                         'revision_sha256'=>$revision->sha256(),'button_object_key_order_normalized'=>$this->buttonsNormalized]);
@@ -335,12 +362,16 @@ final class AppleService39PilotPublisher
                 if ($row === null || !in_array($row['state'], ['write_started','unknown'], true)) continue;
                 try {
                     $this->store->assertBinding($this->preflight());
-                    $this->verifyLandingTarget($target);
+                    $this->verifyLandingTarget($target, true);
                     $this->store->finish($row, 'verified', ['readback'=>true,
                         'revision_sha256'=>$revision->sha256(),'button_object_key_order_normalized'=>$this->buttonsNormalized]);
                 } catch (Throwable $error) {
+                    $safeReasons = ['provider_read_unknown','post_readback_mismatch','post_attachment_mismatch',
+                        'post_button_mismatch','post_image_mismatch','post_url_changed','native_post_url_required',
+                        'landing_native_image_evidence_required','invalid_landing_image_receipt'];
                     $this->readbackDiagnostics[] = ['post_id'=>$id,'operation'=>'landing_edit',
-                        'message_id'=>$target['mid'],'reason'=>'landing_readback_held'];
+                        'message_id'=>$target['mid'],'reason'=>in_array($error->getMessage(), $safeReasons, true)
+                            ? $error->getMessage() : 'landing_readback_held'];
                 }
             }
         }
@@ -353,6 +384,9 @@ final class AppleService39PilotPublisher
         $result['landing_verified_posts'] = count(array_filter($observation, static fn(array $row): bool => $row['state'] === 'verified'));
         $result['landing_expected_navigation_links'] = 86;
         $result['landing_expected_bot_buttons'] = 24;
+        $result['landing_expected_new_images'] = 15;
+        $result['landing_verified_new_images'] = count(array_filter($observation,
+            static fn(array $row): bool => $row['state'] === 'verified' && $row['image_receipt_kind'] === 'exact_upload_token'));
         $result['landing_menu_pin_preserved'] = true;
         return $result;
     }
@@ -381,20 +415,41 @@ final class AppleService39PilotPublisher
             self::check($target['prior'] === $this->manifest->body($target['post'], $upload, $urls)
                 && $this->store->operation($post['id'], 'create')['request']['body']
                     === $this->manifest->body($target['post'], $upload), 'landing_original_receipts_required');
-            $target['plan'] = $revision->plan($post, $upload, $urls);
             $target['menu_mid'] = $mids[$this->manifest->menuPostId()];
-            $target['request'] = ['revision'=>AppleService39LandingRevision::KEY,
+            $target['asset'] = $revision->artwork($post['id']);
+            $target['upload_request'] = $target['asset'] === null ? null : [
+                'revision'=>AppleService39LandingRevision::KEY,'revision_sha256'=>$revision->sha256(),
+                'mid'=>$target['mid'],'url'=>$target['url'],'source_sha256'=>$target['asset']['sha256']];
+            $replacement = $this->store->operation($post['id'], 'landing_upload');
+            if ($replacement !== null) {
+                self::check($target['upload_request'] !== null
+                    && $replacement['request_json'] === json_encode($target['upload_request'], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)
+                    && $replacement['payload_sha256'] === hash('sha256', $replacement['request_json']), 'landing_revision_changed');
+            }
+            $target['image_upload'] = $target['asset'] === null ? $upload : null;
+            if ($target['asset'] !== null && $replacement !== null && $replacement['state'] === 'verified') {
+                $value = $replacement['outcome'];
+                self::check((int)$replacement['write_attempts'] === 1 && is_string($value['token'] ?? null)
+                    && $value['token'] !== '' && is_string($value['photo_id'] ?? null)
+                    && preg_match('/\A[0-9]+\z/D', $value['photo_id']) === 1, 'landing_upload_receipt_required');
+                $target['image_upload'] = $value;
+            }
+            $target['plan'] = $target['image_upload'] === null ? null : $revision->plan($post, $target['image_upload'], $urls);
+            $target['request'] = $target['plan'] === null ? null : ['revision'=>AppleService39LandingRevision::KEY,
                 'revision_sha256'=>$revision->sha256(),'mid'=>$target['mid'],'url'=>$target['url'],
                 'prior_body_sha256'=>hash('sha256', json_encode($target['prior'], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),
                 'body'=>$target['plan']['body'],'native_text'=>$target['plan']['native_text'],
-                'native_markup'=>$target['plan']['native_markup']];
+                'native_markup'=>$target['plan']['native_markup'],
+                'source_sha256'=>$target['asset']['sha256'] ?? $target['post']['image']['sha256'],
+                'upload_token_sha256'=>hash('sha256', $target['image_upload']['token'])];
             $row = $this->store->operation($post['id'], 'landing_edit');
             if ($row !== null) {
+                self::check($target['request'] !== null, 'landing_revision_changed');
                 $json = json_encode($target['request'], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
                 self::check($row['request_json'] === $json && $row['payload_sha256'] === hash('sha256', $json),
                     'landing_revision_changed');
                 self::check(($row['external_message_id'] === null || $row['external_message_id'] === $target['mid'])
-                    && ($row['public_url'] === '' || $row['public_url'] === $target['url']),
+                    && (in_array($row['public_url'], [null,''], true) || $row['public_url'] === $target['url']),
                     'landing_original_receipts_required');
             }
             unset($target);
@@ -402,11 +457,40 @@ final class AppleService39PilotPublisher
         return $targets;
     }
 
-    private function verifyLandingTarget(array $target): void
+    private function verifyLandingTarget(array $target, bool $remember = false): void
     {
+        self::check($target['plan'] !== null, 'landing_images_not_prepared');
         $message = self::read($this->transport->message($target['mid']));
+        $replacement = null; $newReceipt = null;
+        if ($target['asset'] !== null) {
+            $row = $this->store->operation($target['post']['id'], 'landing_edit');
+            self::check($row !== null && in_array($row['state'], ['write_started','unknown','verified'], true)
+                && (int)$row['write_attempts'] === 1 && $row['external_message_id'] === $target['mid']
+                && $row['public_url'] === $target['url'] && $row['request'] === $target['request'], 'landing_original_receipts_required');
+            $receipt = $row['outcome']['image_receipt'] ?? null;
+            if ($receipt === null) {
+                $payload = $this->imagePayload($message); $photoId = self::nativePhotoId($payload['photo_id'] ?? null);
+                // A PUT returns only success. Neither that ACK, a changed photoID,
+                // the photos-map index nor an arbitrary GET proves our new PNG.
+                self::check($remember && $photoId !== '' && is_string($payload['token'] ?? null)
+                    && hash_equals($target['image_upload']['token'], $payload['token']), 'landing_native_image_evidence_required');
+                $newReceipt = $receipt = ['kind'=>'exact_upload_token','message_id'=>$target['mid'],'photo_id'=>$photoId,
+                    'source_sha256'=>$target['asset']['sha256'],
+                    'upload_token_sha256'=>hash('sha256', $target['image_upload']['token']),
+                    'request_sha256'=>$row['payload_sha256'],'revision_sha256'=>$target['request']['revision_sha256']];
+            }
+            self::check(is_array($receipt) && array_keys($receipt) === ['kind','message_id','photo_id','source_sha256','upload_token_sha256','request_sha256','revision_sha256']
+                && $receipt['kind'] === 'exact_upload_token' && $receipt['message_id'] === $target['mid']
+                && self::nativePhotoId($receipt['photo_id']) !== '' && $receipt['photo_id'] === (string)$receipt['photo_id']
+                && $receipt['source_sha256'] === $target['asset']['sha256']
+                && $receipt['upload_token_sha256'] === $target['request']['upload_token_sha256']
+                && $receipt['request_sha256'] === $row['payload_sha256']
+                && $receipt['revision_sha256'] === $target['request']['revision_sha256'], 'invalid_landing_image_receipt');
+            $replacement = ['upload'=>$target['image_upload'],'receipt'=>$receipt];
+        }
         self::check($this->verifyMessage($message, $target['mid'], $target['plan']['body'],
-            $target['post'], null, $target['plan']) === $target['url'], 'post_url_changed');
+            $target['post'], null, $target['plan'], $replacement) === $target['url'], 'post_url_changed');
+        if ($newReceipt !== null) $this->store->rememberLandingImageReceipt($row, $newReceipt);
     }
 
     /** Inspection does not change a claim, receipt, pin or provider message. */
@@ -425,7 +509,8 @@ final class AppleService39PilotPublisher
                     $target['post']) === $target['url'], 'post_url_changed');
             }
             $observed[] = ['post_id'=>$id,'message_id'=>$target['mid'],'url'=>$target['url'],
-                'state'=>$state,'write_attempts'=>(int)($row['write_attempts'] ?? 0)];
+                'state'=>$state,'write_attempts'=>(int)($row['write_attempts'] ?? 0),
+                'image_receipt_kind'=>$row['outcome']['image_receipt']['kind'] ?? null];
         }
         return $observed;
     }
@@ -440,7 +525,7 @@ final class AppleService39PilotPublisher
                 && (!isset($sender['is_bot']) || $sender['is_bot'] === true));
     }
 
-    private function verifyMessage(array $message, string $mid, array $body, array $post, ?array $candidate = null, ?array $native = null): string
+    private function verifyMessage(array $message, string $mid, array $body, array $post, ?array $candidate = null, ?array $native = null, ?array $replacement = null): string
     {
         $this->buttonsNormalized = false;
         self::check($this->messageIdentity($message) && $message['body']['mid'] === $mid
@@ -451,11 +536,17 @@ final class AppleService39PilotPublisher
         $actual = $message['body']['attachments'] ?? [];
         $expected = $body['attachments'] ?? [];
         self::check(is_array($actual) && array_is_list($actual) && count($actual) === count($expected), 'post_attachment_mismatch');
-        $upload = $this->upload($post);
-        $created = $this->store->operation($post['id'], 'create');
-        $receipt = $candidate ?? ($created['outcome']['image_receipt'] ?? null);
-        self::check($created !== null && is_array($receipt) && $this->validImageReceipt($receipt, $created, $post, $upload, $mid),
-            'native_image_receipt_required');
+        if ($replacement === null) {
+            $upload = $this->upload($post);
+            $created = $this->store->operation($post['id'], 'create');
+            $receipt = $candidate ?? ($created['outcome']['image_receipt'] ?? null);
+            self::check($created !== null && is_array($receipt) && $this->validImageReceipt($receipt, $created, $post, $upload, $mid),
+                'native_image_receipt_required');
+        } else {
+            // The sole caller validates the source/claim-bound replacement receipt.
+            self::check($native !== null && $candidate === null, 'invalid_landing_image_receipt');
+            $upload = $replacement['upload']; $receipt = $replacement['receipt'];
+        }
         foreach ($expected as $index=>$attachment) {
             $observed = $actual[$index];
             self::check(is_array($observed) && ($observed['type'] ?? null) === $attachment['type'], 'post_attachment_mismatch');

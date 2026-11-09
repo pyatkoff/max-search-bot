@@ -18,7 +18,9 @@ if (($argv[1] ?? '') === '--claim-worker') {
     $directory = $argv[2] ?? '';
     if (!is_dir($directory) || !str_starts_with($directory, sys_get_temp_dir().'/as39-claim-')) throw new RuntimeException('Invalid barrier directory');
     $pdo = as39NativeConnection(); $store = new AppleService39PilotPublicationStore($pdo);
-    $row = $store->operation('concurrent', 'create');
+    $operation = $argv[3] ?? '';
+    if (!in_array($operation, ['create','landing_upload','landing_edit'], true)) throw new RuntimeException('Invalid native claim operation');
+    $row = $store->operation('concurrent', $operation);
     if (!$row) throw new RuntimeException('Missing native claim fixture');
     file_put_contents($directory.'/ready-'.getmypid(), 'ready');
     $deadline = microtime(true)+10;
@@ -35,36 +37,38 @@ as39Schema($pdo);
 as39FullPublicationRegression($pdo);
 $pdo->exec('INSERT INTO manager_projects VALUES (2,1)');
 $store = new AppleService39PilotPublicationStore($pdo);
-$row = $store->prepare('concurrent', 'create', ['body'=>['text'=>'Synthetic concurrent one-attempt fixture']]);
-$directory = sys_get_temp_dir().'/as39-claim-'.bin2hex(random_bytes(8));
-if (!mkdir($directory, 0700)) throw new RuntimeException('Cannot create native barrier');
-register_shutdown_function(static function () use ($directory): void {
-    foreach (glob($directory.'/*') ?: [] as $path) @unlink($path);
-    @rmdir($directory);
-});
-$workers = [];
-for ($i=0; $i<2; $i++) {
-    $pipes = [];
-    $worker = proc_open([PHP_BINARY,__FILE__,'--claim-worker',$directory], [['pipe','r'],['pipe','w'],['pipe','w']], $pipes);
-    if (!is_resource($worker)) throw new RuntimeException('Cannot create native claim worker');
-    fclose($pipes[0]); $workers[] = [$worker,$pipes];
+foreach (['create','landing_upload','landing_edit'] as $claimOperation) {
+    $row = $store->prepare('concurrent', $claimOperation, ['body'=>['text'=>'Synthetic concurrent one-attempt fixture']]);
+    $directory = sys_get_temp_dir().'/as39-claim-'.bin2hex(random_bytes(8));
+    if (!mkdir($directory, 0700)) throw new RuntimeException('Cannot create native barrier');
+    register_shutdown_function(static function () use ($directory): void {
+        foreach (glob($directory.'/*') ?: [] as $path) @unlink($path);
+        @rmdir($directory);
+    });
+    $workers = [];
+    for ($i=0; $i<2; $i++) {
+        $pipes = [];
+        $worker = proc_open([PHP_BINARY,__FILE__,'--claim-worker',$directory,$claimOperation], [['pipe','r'],['pipe','w'],['pipe','w']], $pipes);
+        if (!is_resource($worker)) throw new RuntimeException('Cannot create native claim worker');
+        fclose($pipes[0]); $workers[] = [$worker,$pipes];
+    }
+    $deadline = microtime(true)+10;
+    while (count(glob($directory.'/ready-*') ?: [])<2 && microtime(true)<$deadline) usleep(10000);
+    as39Expect(count(glob($directory.'/ready-*') ?: [])===2, 'two independent native connections observed the same prepared operation');
+    file_put_contents($directory.'/go', 'go');
+    foreach ($workers as [$worker,$pipes]) {
+        $output = stream_get_contents($pipes[1]); fclose($pipes[1]);
+        $errors = stream_get_contents($pipes[2]); fclose($pipes[2]);
+        if (proc_close($worker)!==0) throw new RuntimeException('Native claim worker failed: '.$output.$errors);
+    }
+    $results = array_map(static fn(string $path): string=>trim((string)file_get_contents($path)), glob($directory.'/result-*') ?: []);
+    sort($results);
+    as39Expect($results===['0','1'], 'simultaneous native claims admit exactly one provider attempt');
+    $fresh = new AppleService39PilotPublicationStore(as39NativeConnection());
+    $held = $fresh->operation('concurrent',$claimOperation);
+    as39Expect($held !== null && $held['state']==='write_started' && (int)$held['write_attempts']===1 && !$fresh->claim($held), 'unrecorded/crashed native attempt remains held on a new connection');
+    as39Refuses(static fn()=>$fresh->prepare('concurrent',$claimOperation,['body'=>['text'=>'Changed payload cannot reset the claim']]), 'pilot_operation_changed');
 }
-$deadline = microtime(true)+10;
-while (count(glob($directory.'/ready-*') ?: [])<2 && microtime(true)<$deadline) usleep(10000);
-as39Expect(count(glob($directory.'/ready-*') ?: [])===2, 'two independent native connections observed the same prepared operation');
-file_put_contents($directory.'/go', 'go');
-foreach ($workers as [$worker,$pipes]) {
-    $output = stream_get_contents($pipes[1]); fclose($pipes[1]);
-    $errors = stream_get_contents($pipes[2]); fclose($pipes[2]);
-    if (proc_close($worker)!==0) throw new RuntimeException('Native claim worker failed: '.$output.$errors);
-}
-$results = array_map(static fn(string $path): string=>trim((string)file_get_contents($path)), glob($directory.'/result-*') ?: []);
-sort($results);
-as39Expect($results===['0','1'], 'simultaneous native claims admit exactly one provider attempt');
-$fresh = new AppleService39PilotPublicationStore(as39NativeConnection());
-$held = $fresh->operation('concurrent','create');
-as39Expect($held !== null && $held['state']==='write_started' && (int)$held['write_attempts']===1 && !$fresh->claim($held), 'unrecorded/crashed native attempt remains held on a new connection');
-as39Refuses(static fn()=>$fresh->prepare('concurrent','create',['body'=>['text'=>'Changed payload cannot reset the claim']]), 'pilot_operation_changed');
 $binding = $fresh->campaign(); $binding['manifest_sha256']=str_repeat('f',64); unset($binding['created_at']);
 as39Refuses(static fn()=>$fresh->bind($binding), 'campaign_binding_changed');
 as39Expect((int)$pdo->query("SELECT write_attempts FROM appleservice39_pilot_operations WHERE post_key='concurrent'")->fetchColumn()===1, 'source/manifest drift never grants another native attempt');

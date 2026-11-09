@@ -23,10 +23,10 @@ function applePilotCheckout(string $root, string $expected): bool
 try {
     $mode = $argv[1] ?? '';
     if ($mode === '--help' && $argc === 2) {
-        echo "php tools/publish_appleservice39_pilot.php inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_apply|landing_reconcile --expected-sha=<accepted application SHA> --channel-id=<exact negative numeric ID>\n";
+        echo "php tools/publish_appleservice39_pilot.php inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile --expected-sha=<accepted application SHA> --channel-id=<exact negative numeric ID>\n";
         exit(0);
     }
-    if (!in_array($mode, ['inspect','prepare','publish','finalize','pin','reconcile','landing_inspect','landing_apply','landing_reconcile'], true) || $argc !== 4) throw new RuntimeException('fixed_operation_and_target_required');
+    if (!in_array($mode, ['inspect','prepare','publish','finalize','pin','reconcile','landing_inspect','landing_prepare','landing_apply','landing_reconcile'], true) || $argc !== 4) throw new RuntimeException('fixed_operation_and_target_required');
     $options = [];
     foreach (array_slice($argv, 2) as $argument) {
         if (!preg_match('/\A--(expected-sha|channel-id)=(.*)\z/D', $argument, $match) || isset($options[$match[1]])) throw new RuntimeException('fixed_operation_and_target_required');
@@ -67,6 +67,9 @@ try {
         'landing_revision_changed','landing_revision_unavailable','landing_revision_identity_mismatch','landing_exact_posts_required',
         'landing_post_invalid','landing_entry_invalid','landing_reviewed_price_required','landing_verified_link_required',
         'landing_post_too_long','landing_original_image_required','landing_plain_text_required',
+        'landing_artwork_manifest_changed','landing_artwork_catalog_changed','landing_artwork_changed',
+        'landing_upload_held','landing_upload_receipt_required','landing_images_not_prepared',
+        'landing_native_image_evidence_required','invalid_landing_image_receipt','image_receipt_storage_unknown',
         'provider_read_unknown','approved_image_changed','approved_image_invalid','resolved_post_too_long'];
     $reason = in_array($error->getMessage(), $allowed, true) ? $error->getMessage() : 'pilot_operation_unavailable';
     echo json_encode(['ok'=>false,'state'=>'stopped','reason'=>$reason,'automatic_retry'=>false], JSON_UNESCAPED_SLASHES).PHP_EOL;
