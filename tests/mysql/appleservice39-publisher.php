@@ -34,6 +34,9 @@ if (($argv[1] ?? '') === '--claim-worker') {
 $pdo = as39NativeConnection();
 foreach (['appleservice39_pilot_operations','appleservice39_pilot_campaigns','manager_projects','conversation_sources','managers','projects'] as $table) $pdo->exec('DROP TABLE IF EXISTS '.$table);
 as39Schema($pdo);
+as39ReviewedLandingRegression($pdo);
+foreach (['appleservice39_pilot_operations','appleservice39_pilot_campaigns','manager_projects','conversation_sources','managers','projects'] as $table) $pdo->exec('DROP TABLE IF EXISTS '.$table);
+as39Schema($pdo);
 as39FullPublicationRegression($pdo);
 $pdo->exec('INSERT INTO manager_projects VALUES (2,1)');
 $store = new AppleService39PilotPublicationStore($pdo);

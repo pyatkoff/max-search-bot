@@ -158,6 +158,7 @@ final class ApplePilotTestProvider
         foreach ($attachments as &$attachment) if ($attachment['type'] === 'image') {
             $submitted = $attachment['payload']['token'];
             $attachment['payload']['photo_id'] = $this->fixedPhotoId ?? substr($attachment['payload']['token'], strlen('photo_'));
+            $attachment['payload']['url'] = 'https://i.oneme.ru/synthetic-image/'.$attachment['payload']['photo_id'].'.jpg';
             $attachment['payload']['token'] = ($body['format'] ?? null) === 'html' && $this->preserveLandingTokens
                 && (int)substr($submitted, strlen('photo_')) > 24 ? $submitted : 'renewed_'.$attachment['payload']['photo_id'];
         }
@@ -354,6 +355,101 @@ function as39FullPublicationRegression(PDO $pdo): void
     as39Refuses(static fn()=>$publisher->run('inspect'), 'active_project_admin_and_source_required');
 }
 
+/** Synthetic evidence only; restore every source byte even when a negative case fails. */
+function as39ReviewedLandingRegression(PDO $pdo): void
+{
+    $directory = dirname(__DIR__).'/resources/appleservice39/landing-v2/reconciliation';
+    $id = AppleService39PilotManifest::installed()->posts()[0]['id'];
+    $indexPath = $directory.'/index.json'; $proofPath = $directory.'/'.$id.'.json'; $previewPath = $directory.'/'.$id.'.jpg';
+    $savedFiles = [];
+    foreach ([$indexPath,$proofPath,$previewPath] as $path) $savedFiles[$path] = is_file($path) ? file_get_contents($path) : null;
+    $index = json_decode((string)$savedFiles[$indexPath], true, 16, JSON_THROW_ON_ERROR); $index['approvals'] = [];
+    $json = static fn(array $value): string => json_encode($value, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT|JSON_THROW_ON_ERROR)."\n";
+    try {
+        file_put_contents($indexPath, $json($index));
+        ProjectMaxConnection::resetForTests(as39Registry()); $provider = new ApplePilotTestProvider;
+        $provider->zeroUploadKey = true; $provider->preserveLandingTokens = false;
+        $publisher = as39Publisher($pdo, $provider);
+        foreach (['prepare','publish','finalize','pin','landing_prepare'] as $phase) $publisher->run($phase);
+        $store = new AppleService39PilotPublicationStore($pdo);
+        $writes = $provider->writes(); as39Refuses(static fn()=>$publisher->run('landing_apply'), 'landing_edit_held');
+        $row = $store->operation($id, 'landing_edit'); $upload = $store->operation($id, 'landing_upload');
+        $before = $store->rows(); $inspection = $publisher->run('landing_inspect');
+        $observation = $inspection['landing_readback'][0]['held_image_observation'];
+        as39Expect($observation['observation_only'] && $observation['native_identity_matches'] && $observation['native_url_matches']
+            && $observation['edit_operation_id'] === (int)$row['id'] && $observation['upload_operation_id'] === (int)$upload['id']
+            && $store->rows() === $before && $provider->writes() === $writes+1,
+            'held native inspection exposes bound evidence without accepting it or changing a claim');
+        $safe = json_encode($inspection, JSON_THROW_ON_ERROR);
+        as39Expect(!str_contains($safe, 'photo_25') && !str_contains($safe, 'renewed_25')
+            && !str_contains($safe, 'i.oneme.ru/synthetic-image'), 'held observations disclose hashes, never image URLs or tokens');
+        // This old JPEG is deliberately a synthetic fixture, not a production approval of new artwork.
+        $preview = file_get_contents(dirname(__DIR__).'/resources/appleservice39/pilot/reconciliation/first-create-preview.jpg');
+        file_put_contents($previewPath, $preview); $size = getimagesize($previewPath);
+        $proof = ['schema_version'=>1,'kind'=>'reviewed_native_replacement','campaign_key'=>AppleService39PilotManifest::CAMPAIGN,
+            'project_key'=>AppleService39PilotManifest::PROJECT,'bot_key'=>AppleService39PilotManifest::BOT,'channel_id'=>$provider->channelId,
+            'post_id'=>$id,'message_id'=>$row['external_message_id'],'public_url'=>$row['public_url'],
+            'revision_sha256'=>$row['request']['revision_sha256'],'source_sha256'=>$row['request']['source_sha256'],
+            'upload_operation_id'=>(int)$upload['id'],'upload_request_sha256'=>$upload['payload_sha256'],
+            'upload_token_sha256'=>$row['request']['upload_token_sha256'],'edit_operation_id'=>(int)$row['id'],
+            'edit_request_sha256'=>$row['payload_sha256'],'edit_started_ms'=>(int)$row['started_ms'],
+            'native_photo_id'=>$observation['native_photo_id'],'native_preview_sha256'=>hash('sha256',$preview),
+            'native_preview_width'=>$size[0],'native_preview_height'=>$size[1],
+            'native_payload_url_sha256'=>$observation['native_payload_url_sha256'],
+            'native_readback_run_id'=>101,'native_readback_job_id'=>102,
+            'visual_review'=>['source_asset_opened'=>true,'native_preview_opened'=>true,'exact_layout_model_service_price_qualifiers'=>true]];
+        $register = static function (array $value) use ($index,$indexPath,$proofPath,$json,$id,$preview): void {
+            $raw = $json($value); file_put_contents($proofPath, $raw);
+            $approved = $index; $approved['approvals'] = [['post_id'=>$id,'proof_sha256'=>hash('sha256',$raw),
+                'native_preview_sha256'=>hash('sha256',$preview)]];
+            file_put_contents($indexPath, $json($approved));
+        };
+        file_put_contents($proofPath, $json($proof));
+        $result = $publisher->run('landing_reconcile');
+        as39Expect(!$result['ok'] && !isset($store->operation($id,'landing_edit')['outcome']['image_receipt']),
+            'a plausible but unregistered review JSON/JPEG grants no image evidence');
+        foreach (['message_id'=>'other_mid','public_url'=>'https://max.ru/channel_appleservice39ru/other',
+            'source_sha256'=>str_repeat('f',64),'revision_sha256'=>str_repeat('f',64),
+            'upload_operation_id'=>99999,'upload_request_sha256'=>str_repeat('f',64),'upload_token_sha256'=>str_repeat('f',64),
+            'edit_operation_id'=>99999,'edit_request_sha256'=>str_repeat('f',64),'edit_started_ms'=>1,
+            'native_photo_id'=>'99999','visual_review'=>['source_asset_opened'=>true,'native_preview_opened'=>false,'exact_layout_model_service_price_qualifiers'=>true]] as $key=>$bad) {
+            $changed = $proof; $changed[$key] = $bad; $register($changed);
+            $result = $publisher->run('landing_reconcile');
+            as39Expect(!$result['ok'] && $store->operation($id,'landing_edit')['state'] === 'unknown'
+                && $provider->writes() === $writes+1, 'self-consistent file hashes cannot approve foreign/missing review context: '.$key);
+        }
+        $register($proof); file_put_contents($previewPath, $preview."changed");
+        as39Refuses(static fn()=>$publisher->run('landing_reconcile'), 'landing_review_evidence_changed');
+        file_put_contents($previewPath, $preview);
+        $native = $provider->messages[$row['external_message_id']];
+        $provider->messages[$row['external_message_id']]['body']['text'] .= 'intervening change';
+        $held = $publisher->run('landing_reconcile');
+        as39Expect(!$held['ok'] && $store->operation($id,'landing_edit')['state'] === 'unknown',
+            'admitted image review does not bypass the fresh complete native body guard');
+        $provider->messages[$row['external_message_id']] = $native;
+        $result = as39Publisher($pdo, $provider)->run('landing_reconcile');
+        $receipt = $store->operation($id,'landing_edit')['outcome']['image_receipt'];
+        as39Expect($result['ok'] && $result['landing_verified_new_images'] === 1 && $provider->writes() === $writes+1
+            && $receipt['kind'] === 'reviewed_native_replacement' && $receipt['source_sha256'] === $proof['source_sha256']
+            && $receipt['evidence_sha256'] === hash_file('sha256',$proofPath)
+            && $receipt['native_preview_sha256'] === hash('sha256',$preview),
+            'exact registered source/native file review closes only the original renewed-token edit by GET');
+        $provider->messages[$row['external_message_id']]['body']['attachments'][0]['payload'] = [
+            'photo_id'=>'99999','token'=>$upload['outcome']['token'],'url'=>'https://i.oneme.ru/synthetic-image/99999.jpg'];
+        as39Refuses(static fn()=>$publisher->run('landing_inspect'), 'landing_review_evidence_mismatch');
+        $provider->messages[$row['external_message_id']] = $native;
+        $provider->preserveLandingTokens = true;
+        $finished = $publisher->run('landing_apply');
+        as39Expect($finished['ok'] && $finished['landing_verified_posts'] === 24 && $finished['landing_verified_new_images'] === 15
+            && $provider->writes() === $writes+24 && (int)$store->operation($id,'landing_edit')['write_attempts'] === 1,
+            'after exact review, apply continues only remaining edits and retains all24 URLs/pin');
+        $publisher->run('landing_reconcile');
+        as39Expect($provider->writes() === $writes+24, 'reviewed native receipts never authorize a repeated upload/edit/pin');
+    } finally {
+        foreach ($savedFiles as $path=>$bytes) { if ($bytes === null) @unlink($path); else file_put_contents($path, $bytes); }
+    }
+}
+
 function as39LandingImageSafetyRegression(): void
 {
     foreach (['landing_foreign_image','landing_missing_image_id','landing_missing_token','landing_success_old_image','rotated_native_token'] as $mode) {
@@ -409,6 +505,7 @@ function as39LandingImageSafetyRegression(): void
 
 if (!defined('APPLESERVICE39_PUBLISHER_FIXTURES_ONLY')) {
     as39FullPublicationRegression(as39Sqlite());
+    as39ReviewedLandingRegression(as39Sqlite());
     as39LandingImageSafetyRegression();
 
     // Provider did not apply a timed-out edit: reconciliation must keep the original hold.

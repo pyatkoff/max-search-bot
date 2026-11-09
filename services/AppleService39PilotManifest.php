@@ -131,6 +131,7 @@ final class AppleService39LandingRevision
     private AppleService39PilotManifest $original;
     private array $artwork = [];
     private string $artworkDirectory;
+    private string $reviewDirectory;
 
     public function __construct(AppleService39PilotManifest $original, ?string $path = null)
     {
@@ -168,6 +169,7 @@ final class AppleService39LandingRevision
         }
         $this->original = $original; $this->data = $data; $this->sha256 = hash('sha256', $raw);
         $this->artworkDirectory = dirname((string)realpath($path)).'/artwork';
+        $this->reviewDirectory = dirname((string)realpath($path)).'/reconciliation';
         $assetPath = $this->artworkDirectory.'/asset-manifest.json';
         self::check(is_file($assetPath) && !is_link($assetPath) && filesize($assetPath) <= 65536
             && is_string($data['artwork_manifest_sha256'] ?? null)
@@ -199,6 +201,50 @@ final class AppleService39LandingRevision
     public function sha256(): string { return $this->sha256; }
     public function posts(): array { return $this->data['posts']; }
     public function artwork(string $postId): ?array { return $this->artwork[$postId] ?? null; }
+
+    /** Source-controlled approvals only. An unregistered JSON/JPEG is never evidence. */
+    public function reviewedNativeImage(string $postId): ?array
+    {
+        $indexPath = $this->reviewDirectory.'/index.json';
+        self::check(is_file($indexPath) && !is_link($indexPath) && filesize($indexPath) <= 16384,
+            'landing_review_index_unavailable');
+        $index = json_decode((string)file_get_contents($indexPath), true, 16, JSON_THROW_ON_ERROR);
+        self::check(is_array($index) && array_keys($index) === ['schema_version','revision_key','project_key','policy','approvals']
+            && $index['schema_version'] === 1 && $index['revision_key'] === self::KEY
+            && $index['project_key'] === AppleService39PilotManifest::PROJECT
+            && $index['policy'] === 'exact_source_and_native_visual_review'
+            && is_array($index['approvals']) && array_is_list($index['approvals']) && count($index['approvals']) <= 15,
+            'landing_review_index_unavailable');
+        $ids = []; $selected = null;
+        foreach ($index['approvals'] as $item) {
+            self::check(is_array($item) && array_keys($item) === ['post_id','proof_sha256','native_preview_sha256']
+                && is_string($item['post_id']) && $this->artwork($item['post_id']) !== null
+                && !isset($ids[$item['post_id']]), 'landing_review_index_unavailable');
+            foreach (['proof_sha256','native_preview_sha256'] as $key) self::check(is_string($item[$key])
+                && preg_match('/\A[a-f0-9]{64}\z/D', $item[$key]) === 1, 'landing_review_index_unavailable');
+            $ids[$item['post_id']] = true;
+            if ($item['post_id'] === $postId) $selected = $item;
+        }
+        if ($selected === null) return null;
+        $proofPath = $this->reviewDirectory.'/'.$postId.'.json';
+        $previewPath = $this->reviewDirectory.'/'.$postId.'.jpg';
+        foreach ([$proofPath,$previewPath] as $file) self::check(is_file($file) && !is_link($file)
+            && dirname((string)realpath($file)) === (string)realpath($this->reviewDirectory), 'landing_review_evidence_unavailable');
+        self::check(filesize($proofPath) > 0 && filesize($proofPath) <= 16384
+            && filesize($previewPath) > 0 && filesize($previewPath) <= 5242880
+            && hash_file('sha256', $proofPath) === $selected['proof_sha256']
+            && hash_file('sha256', $previewPath) === $selected['native_preview_sha256'], 'landing_review_evidence_changed');
+        $proof = json_decode((string)file_get_contents($proofPath), true, 16, JSON_THROW_ON_ERROR);
+        $image = @getimagesize($previewPath);
+        self::check(is_array($proof) && is_array($image) && $image[2] === IMAGETYPE_JPEG
+            && $image[0] > 0 && $image[0] <= 7680 && $image[1] > 0 && $image[1] <= 7680
+            && ($proof['native_preview_width'] ?? null) === $image[0]
+            && ($proof['native_preview_height'] ?? null) === $image[1]
+            && ($proof['native_preview_sha256'] ?? null) === $selected['native_preview_sha256'],
+            'landing_review_evidence_changed');
+        return ['proof'=>$proof,'evidence_sha256'=>$selected['proof_sha256'],
+            'native_preview_sha256'=>$selected['native_preview_sha256']];
+    }
 
     public function validateArtwork(string $postId): string
     {

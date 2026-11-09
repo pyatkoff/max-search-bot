@@ -70,6 +70,7 @@ try {
         'landing_artwork_manifest_changed','landing_artwork_catalog_changed','landing_artwork_changed',
         'landing_upload_held','landing_upload_receipt_required','landing_images_not_prepared',
         'landing_native_image_evidence_required','invalid_landing_image_receipt','image_receipt_storage_unknown',
+        'landing_review_index_unavailable','landing_review_evidence_unavailable','landing_review_evidence_changed','landing_review_evidence_mismatch',
         'provider_read_unknown','approved_image_changed','approved_image_invalid','resolved_post_too_long'];
     $reason = in_array($error->getMessage(), $allowed, true) ? $error->getMessage() : 'pilot_operation_unavailable';
     echo json_encode(['ok'=>false,'state'=>'stopped','reason'=>$reason,'automatic_retry'=>false], JSON_UNESCAPED_SLASHES).PHP_EOL;

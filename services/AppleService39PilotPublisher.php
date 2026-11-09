@@ -368,7 +368,8 @@ final class AppleService39PilotPublisher
                 } catch (Throwable $error) {
                     $safeReasons = ['provider_read_unknown','post_readback_mismatch','post_attachment_mismatch',
                         'post_button_mismatch','post_image_mismatch','post_url_changed','native_post_url_required',
-                        'landing_native_image_evidence_required','invalid_landing_image_receipt'];
+                        'landing_native_image_evidence_required','invalid_landing_image_receipt',
+                        'landing_review_evidence_mismatch','landing_review_evidence_changed','landing_review_evidence_unavailable'];
                     $this->readbackDiagnostics[] = ['post_id'=>$id,'operation'=>'landing_edit',
                         'message_id'=>$target['mid'],'reason'=>in_array($error->getMessage(), $safeReasons, true)
                             ? $error->getMessage() : 'landing_readback_held'];
@@ -386,7 +387,8 @@ final class AppleService39PilotPublisher
         $result['landing_expected_bot_buttons'] = 24;
         $result['landing_expected_new_images'] = 15;
         $result['landing_verified_new_images'] = count(array_filter($observation,
-            static fn(array $row): bool => $row['state'] === 'verified' && $row['image_receipt_kind'] === 'exact_upload_token'));
+            static fn(array $row): bool => $row['state'] === 'verified'
+                && in_array($row['image_receipt_kind'], ['exact_upload_token','reviewed_native_replacement'], true)));
         $result['landing_menu_pin_preserved'] = true;
         return $result;
     }
@@ -421,6 +423,8 @@ final class AppleService39PilotPublisher
                 'revision'=>AppleService39LandingRevision::KEY,'revision_sha256'=>$revision->sha256(),
                 'mid'=>$target['mid'],'url'=>$target['url'],'source_sha256'=>$target['asset']['sha256']];
             $replacement = $this->store->operation($post['id'], 'landing_upload');
+            $target['upload_row'] = $replacement;
+            $target['reviewed_image'] = $target['asset'] === null ? null : $revision->reviewedNativeImage($post['id']);
             if ($replacement !== null) {
                 self::check($target['upload_request'] !== null
                     && $replacement['request_json'] === json_encode($target['upload_request'], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)
@@ -472,15 +476,22 @@ final class AppleService39PilotPublisher
                 $payload = $this->imagePayload($message); $photoId = self::nativePhotoId($payload['photo_id'] ?? null);
                 // A PUT returns only success. Neither that ACK, a changed photoID,
                 // the photos-map index nor an arbitrary GET proves our new PNG.
-                self::check($remember && $photoId !== '' && is_string($payload['token'] ?? null)
-                    && hash_equals($target['image_upload']['token'], $payload['token']), 'landing_native_image_evidence_required');
-                $newReceipt = $receipt = ['kind'=>'exact_upload_token','message_id'=>$target['mid'],'photo_id'=>$photoId,
-                    'source_sha256'=>$target['asset']['sha256'],
-                    'upload_token_sha256'=>hash('sha256', $target['image_upload']['token']),
-                    'request_sha256'=>$row['payload_sha256'],'revision_sha256'=>$target['request']['revision_sha256']];
+                self::check($remember && $photoId !== '', 'landing_native_image_evidence_required');
+                if (is_string($payload['token'] ?? null) && hash_equals($target['image_upload']['token'], $payload['token'])) {
+                    $newReceipt = $receipt = ['kind'=>'exact_upload_token','message_id'=>$target['mid'],'photo_id'=>$photoId,
+                        'source_sha256'=>$target['asset']['sha256'],
+                        'upload_token_sha256'=>hash('sha256', $target['image_upload']['token']),
+                        'request_sha256'=>$row['payload_sha256'],'revision_sha256'=>$target['request']['revision_sha256']];
+                } else $newReceipt = $receipt = $this->reviewedReplacementReceipt($target, $row, $message);
             }
-            self::check(is_array($receipt) && array_keys($receipt) === ['kind','message_id','photo_id','source_sha256','upload_token_sha256','request_sha256','revision_sha256']
-                && $receipt['kind'] === 'exact_upload_token' && $receipt['message_id'] === $target['mid']
+            $keys = ['kind','message_id','photo_id','source_sha256','upload_token_sha256','request_sha256','revision_sha256'];
+            if (($receipt['kind'] ?? null) === 'reviewed_native_replacement') {
+                $keys[] = 'evidence_sha256'; $keys[] = 'native_preview_sha256';
+                self::check($receipt === $this->reviewedReplacementReceipt($target, $row, $message), 'invalid_landing_image_receipt');
+            }
+            self::check(is_array($receipt) && array_keys($receipt) === $keys
+                && in_array($receipt['kind'], ['exact_upload_token','reviewed_native_replacement'], true)
+                && $receipt['message_id'] === $target['mid']
                 && self::nativePhotoId($receipt['photo_id']) !== '' && $receipt['photo_id'] === (string)$receipt['photo_id']
                 && $receipt['source_sha256'] === $target['asset']['sha256']
                 && $receipt['upload_token_sha256'] === $target['request']['upload_token_sha256']
@@ -491,6 +502,44 @@ final class AppleService39PilotPublisher
         self::check($this->verifyMessage($message, $target['mid'], $target['plan']['body'],
             $target['post'], null, $target['plan'], $replacement) === $target['url'], 'post_url_changed');
         if ($newReceipt !== null) $this->store->rememberLandingImageReceipt($row, $newReceipt);
+    }
+
+    /** A separately reviewed, source-pinned native file; never an assertion from a GET/ACK alone. */
+    private function reviewedReplacementReceipt(array $target, array $row, array $message): array
+    {
+        $evidence = $target['reviewed_image'];
+        self::check(is_array($evidence), 'landing_native_image_evidence_required');
+        $p = $evidence['proof']; $upload = $target['upload_row'];
+        $keys = ['schema_version','kind','campaign_key','project_key','bot_key','channel_id','post_id',
+            'message_id','public_url','revision_sha256','source_sha256','upload_operation_id','upload_request_sha256',
+            'upload_token_sha256','edit_operation_id','edit_request_sha256','edit_started_ms','native_photo_id',
+            'native_preview_sha256','native_preview_width','native_preview_height','native_payload_url_sha256',
+            'native_readback_run_id','native_readback_job_id','visual_review'];
+        self::check(is_array($p) && count($p) === count($keys) && array_diff(array_keys($p), $keys) === []
+            && $p['schema_version'] === 1 && $p['kind'] === 'reviewed_native_replacement'
+            && $p['campaign_key'] === AppleService39PilotManifest::CAMPAIGN
+            && $p['project_key'] === AppleService39PilotManifest::PROJECT && $p['bot_key'] === AppleService39PilotManifest::BOT
+            && $p['channel_id'] === $this->channelId && $p['post_id'] === $target['post']['id']
+            && $p['message_id'] === $target['mid'] && $p['public_url'] === $target['url']
+            && $p['revision_sha256'] === $target['request']['revision_sha256']
+            && $p['source_sha256'] === $target['asset']['sha256']
+            && $upload !== null && $upload['state'] === 'verified' && (int)$upload['write_attempts'] === 1
+            && $p['upload_operation_id'] === (int)$upload['id'] && $p['upload_request_sha256'] === $upload['payload_sha256']
+            && $p['upload_token_sha256'] === $target['request']['upload_token_sha256']
+            && $p['edit_operation_id'] === (int)$row['id'] && $p['edit_request_sha256'] === $row['payload_sha256']
+            && is_int($p['edit_started_ms']) && $p['edit_started_ms'] > 0 && $p['edit_started_ms'] === (int)$row['started_ms']
+            && is_string($p['native_photo_id']) && self::nativePhotoId($p['native_photo_id']) !== ''
+            && $p['native_photo_id'] === self::nativePhotoId($this->imagePayload($message)['photo_id'] ?? null)
+            && $p['native_preview_sha256'] === $evidence['native_preview_sha256']
+            && is_string($p['native_payload_url_sha256']) && preg_match('/\A[a-f0-9]{64}\z/D', $p['native_payload_url_sha256']) === 1
+            && is_int($p['native_readback_run_id']) && $p['native_readback_run_id'] > 0
+            && is_int($p['native_readback_job_id']) && $p['native_readback_job_id'] > 0
+            && $p['visual_review'] === ['source_asset_opened'=>true,'native_preview_opened'=>true,
+                'exact_layout_model_service_price_qualifiers'=>true], 'landing_review_evidence_mismatch');
+        return ['kind'=>'reviewed_native_replacement','message_id'=>$target['mid'],'photo_id'=>$p['native_photo_id'],
+            'source_sha256'=>$target['asset']['sha256'],'upload_token_sha256'=>$target['request']['upload_token_sha256'],
+            'request_sha256'=>$row['payload_sha256'],'revision_sha256'=>$target['request']['revision_sha256'],
+            'evidence_sha256'=>$evidence['evidence_sha256'],'native_preview_sha256'=>$evidence['native_preview_sha256']];
     }
 
     /** Inspection does not change a claim, receipt, pin or provider message. */
@@ -508,9 +557,28 @@ final class AppleService39PilotPublisher
                 self::check($this->verifyMessage($message, $target['mid'], $target['prior'],
                     $target['post']) === $target['url'], 'post_url_changed');
             }
+            $observation = null;
+            if ($held) {
+                try {
+                    $native = self::read($this->transport->message($target['mid']));
+                    $image = $this->imagePayload($native); $upload = $target['upload_row'];
+                    $observation = ['observation_only'=>true,'native_identity_matches'=>$this->messageIdentity($native)
+                            && ($native['body']['mid'] ?? null) === $target['mid'],
+                        'native_url_matches'=>($native['url'] ?? null) === $target['url'],
+                        'native_photo_id'=>self::nativePhotoId($image['photo_id'] ?? null),
+                        'native_payload_url_sha256'=>is_string($image['url'] ?? null) ? hash('sha256', $image['url']) : null,
+                        'source_sha256'=>$target['request']['source_sha256'] ?? null,
+                        'revision_sha256'=>$target['request']['revision_sha256'] ?? null,
+                        'upload_operation_id'=>$upload === null ? null : (int)$upload['id'],
+                        'upload_request_sha256'=>$upload['payload_sha256'] ?? null,
+                        'upload_token_sha256'=>$target['request']['upload_token_sha256'] ?? null,
+                        'edit_operation_id'=>(int)$row['id'],'edit_request_sha256'=>$row['payload_sha256'],
+                        'edit_started_ms'=>(int)$row['started_ms']];
+                } catch (Throwable $error) { $observation = ['observation_only'=>true,'native_readback_unavailable'=>true]; }
+            }
             $observed[] = ['post_id'=>$id,'message_id'=>$target['mid'],'url'=>$target['url'],
                 'state'=>$state,'write_attempts'=>(int)($row['write_attempts'] ?? 0),
-                'image_receipt_kind'=>$row['outcome']['image_receipt']['kind'] ?? null];
+                'image_receipt_kind'=>$row['outcome']['image_receipt']['kind'] ?? null,'held_image_observation'=>$observation];
         }
         return $observed;
     }
@@ -550,7 +618,9 @@ final class AppleService39PilotPublisher
         foreach ($expected as $index=>$attachment) {
             $observed = $actual[$index];
             self::check(is_array($observed) && ($observed['type'] ?? null) === $attachment['type'], 'post_attachment_mismatch');
-            if ($attachment['type'] === 'image') self::check(self::imageIdentity((array)($observed['payload'] ?? []), $upload, $receipt), 'post_image_mismatch');
+            if ($attachment['type'] === 'image') self::check(($receipt['kind'] ?? null) === 'reviewed_native_replacement'
+                ? self::nativePhotoId($observed['payload']['photo_id'] ?? null) === $receipt['photo_id']
+                : self::imageIdentity((array)($observed['payload'] ?? []), $upload, $receipt), 'post_image_mismatch');
             else {
                 $buttons = $observed['payload']['buttons'] ?? null;
                 self::check(self::sameButtons($buttons, $attachment['payload']['buttons']), 'post_button_mismatch');

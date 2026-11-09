@@ -119,16 +119,21 @@ final class AppleService39PilotPublicationStore
         if (!$saved || ($saved['outcome']['image_receipt'] ?? null) !== $receipt) throw new RuntimeException('image_receipt_storage_unknown');
     }
 
-    /** Only a source-upload-token witness may bind a replacement native image. */
+    /** A source-bound token witness or admitted native-file review binds a replacement image. */
     public function rememberLandingImageReceipt(array $row, array $receipt): void
     {
         if ($this->pdo->inTransaction()) throw new RuntimeException('pilot_requires_autocommit');
         $current = $this->operation((string)$row['post_key'], 'landing_edit');
+        $keys = ['kind','message_id','photo_id','source_sha256','upload_token_sha256','request_sha256','revision_sha256'];
+        if (($receipt['kind'] ?? null) === 'reviewed_native_replacement') {
+            $keys[] = 'evidence_sha256'; $keys[] = 'native_preview_sha256';
+        }
         if (($row['operation'] ?? '') !== 'landing_edit' || !$current || (int)$current['id'] !== (int)$row['id']
             || $current['payload_sha256'] !== $row['payload_sha256']
             || !in_array($current['state'], ['write_started','unknown'], true) || (int)$current['write_attempts'] !== 1
-            || array_keys($receipt) !== ['kind','message_id','photo_id','source_sha256','upload_token_sha256','request_sha256','revision_sha256']
-            || $receipt['kind'] !== 'exact_upload_token' || $receipt['message_id'] !== $current['external_message_id']
+            || array_keys($receipt) !== $keys
+            || !in_array($receipt['kind'], ['exact_upload_token','reviewed_native_replacement'], true)
+            || $receipt['message_id'] !== $current['external_message_id']
             || $receipt['message_id'] !== ($current['request']['mid'] ?? null)
             || !is_string($receipt['photo_id']) || preg_match('/\A(?:0|-?[1-9][0-9]{0,18})\z/D', $receipt['photo_id']) !== 1
             || $receipt['source_sha256'] !== ($current['request']['source_sha256'] ?? null)
@@ -136,6 +141,9 @@ final class AppleService39PilotPublicationStore
             || $receipt['revision_sha256'] !== ($current['request']['revision_sha256'] ?? null)
             || $receipt['request_sha256'] !== $current['payload_sha256']) throw new RuntimeException('invalid_landing_image_receipt');
         foreach (['source_sha256','upload_token_sha256','request_sha256','revision_sha256'] as $key) {
+            if (!is_string($receipt[$key]) || preg_match('/\A[a-f0-9]{64}\z/D', $receipt[$key]) !== 1) throw new RuntimeException('invalid_landing_image_receipt');
+        }
+        if ($receipt['kind'] === 'reviewed_native_replacement') foreach (['evidence_sha256','native_preview_sha256'] as $key) {
             if (!is_string($receipt[$key]) || preg_match('/\A[a-f0-9]{64}\z/D', $receipt[$key]) !== 1) throw new RuntimeException('invalid_landing_image_receipt');
         }
         $old = $current['outcome']['image_receipt'] ?? null;
