@@ -108,6 +108,29 @@ def pipeline_health():
     except Exception:
         return _unavailable_health()
 
+
+def refresh_visit_proof(elapsed):
+    """Best-effort derived GET verification after alerts, inside the existing 45s cron budget."""
+    budget = min(20, int(39 - elapsed))
+    if budget < 5:
+        return "no_time_budget"
+    try:
+        with tempfile.TemporaryFile(mode="w+b") as output:
+            completed = subprocess.run(
+                ["/usr/bin/php", "tools/modeled_conversion_visit_proof.php", "scheduled", str(budget)],
+                cwd=str(ROOT), stdout=output, stderr=subprocess.DEVNULL, timeout=budget + 2, check=False)
+            output.seek(0)
+            raw = output.read(1025)
+        value = runtime._decode(raw) if 0 < len(raw) <= 1024 else None
+        if completed.returncode != 0 or not isinstance(value, dict) or set(value) != {
+                "ok", "private_verification_saved", "provider_write_requests", "source_writes"} \
+                or value["ok"] is not True or type(value["private_verification_saved"]) is not bool \
+                or value["provider_write_requests"] is not False or value["source_writes"] is not False:
+            return "unavailable"
+        return "saved" if value["private_verification_saved"] else "skipped"
+    except Exception:
+        return "unavailable"
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     action = parser.add_mutually_exclusive_group(required=True)
@@ -124,11 +147,13 @@ def main(argv=None):
         if status["configured"] is not True:
             print(json.dumps(status, sort_keys=True, separators=(",", ":")))
             return 1
+        started = time.monotonic()
         source_sha = _source_sha()
         checker = runtime.DurableMonitorRuntime(
             PRIVATE_DIR, pipeline_health, monitor.telegram_wire, role="pipeline", clock=time.time,
             receipt_context=lambda: {"origin": "server_cron", "source_sha": source_sha})
         result = checker.cycle()
+        result["visit_proof_refresh"] = refresh_visit_proof(time.monotonic() - started)
         print(json.dumps(result, sort_keys=True, separators=(",", ":")))
         return 0 if result["ok"] is True else 1
     except Exception:

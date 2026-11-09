@@ -41,6 +41,14 @@ final class ModeledConversionDeliveryRegistryView
         if(!$ok){
             $html.='<div class="notice error" role="status"><h3>Реестр сейчас недоступен</h3><p>Не удалось получить актуальные начисления. Обновите страницу позже.</p></div>';
         }else{
+            $automatic=is_array($page['visit_verification']??null)?$page['visit_verification']:[];
+            if(($automatic['available']??false)===true){
+                $html.='<p class="scope-note">Сверка с визитами: автоматическая проверка раз в 5 минут. Последнее успешное обновление: '
+                    .self::moment(($automatic['success_unix']??0)>0?gmdate('c',$automatic['success_unix']):null)
+                    .'. Новые начисления и ранее не проверенные строки проходят по очереди; завершённые результаты проверяются повторно раз в сутки.'
+                    .(($automatic['fresh']??false)===true?'':' Обновление задерживается.')
+                    .' Время проверки каждой строки указано в её карточке.</p>';
+            }
             $summary=is_array($page['summary']??null)?$page['summary']:[];
             $html.='<div class="totals" aria-label="Итоги выбранного дня"><div class="total"><span>Начислено за день</span><strong>'.self::money($summary['value_rub']??null).'</strong>'
                 .'<small>Начислений: '.self::integer($summary['events']??null).' · диалогов: '.self::integer($summary['conversations']??null).'</small></div>';
@@ -171,8 +179,18 @@ final class ModeledConversionDeliveryRegistryView
         $p=is_array($e['visit_check']??null)?$e['visit_check']:[];
         if(($p['available']??false)===true){
             $linked=($p['linkage']??null)==='unique_visit_reconciled';
-            $html.='<div class="ground"><strong>'.($linked?'Однозначно сверено с целевым визитом':'Привязка к визиту ещё не подтверждена').'</strong>'
+            $failed=($p['linkage']??null)==='failed';
+            $html.='<div class="ground"><strong>'.($linked?'Однозначно сверено с целевым визитом':($failed?'Метрика не привязала начисление к визиту':'Привязка к визиту ещё не подтверждена')).'</strong>'
                 .'<p>Дополнительная проверка Метрики: '.self::moment($p['checked_at']??null).'. Статус загрузки: '.self::e($p['upload_status']??'не получен').'.</p>';
+            $why=match($p['reason']??null){
+                'no_reported_client_visits'=>'В счётчике не найдены визиты сохранённого ClientID за проверенный период.',
+                'only_later_or_expired_client_visits'=>'Найдены только визиты после сигнала или вне окна атрибуции.',
+                'no_client_visit_in_attribution_window'=>'Для этого сигнала нет визита в пределах 21 дня.',
+                'eligible_visit_but_provider_linkage_failed'=>'Подходящий по времени визит найден, но Метрика вернула отказ привязки.',
+                'client_visit_report_unavailable'=>'Отказ привязки получен; отчёт визитов для уточнения причины недоступен.',
+                default=>null,
+            };
+            if($why!==null)$html.='<p>'.self::e($why).'</p>';
             if(($p['fresh']??false)!==true)$html.='<p class="hold-reason">Проверка устарела; это сохранённый результат.</p>';
             if($linked)$html.='<p>Начало визита: '.self::moment($p['visit_started_at']??null).'. Достижений этой цели в визите: '
                 .self::integer($p['visit_goal_reaches']??null).'; сумма: '.self::money($p['visit_goal_value_rub']??null).'. Учтены прежние начисления того же посетителя.</p>'
