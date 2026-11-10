@@ -141,12 +141,46 @@ function devAmendmentGate(array $m,object $state): DevelopmentWorkServerAmendmen
         return $primary[$key]??[];
     },static fn():string=>$state->sha);
 }
+function devServerConfigurationReadbackChecks(): void
+{
+    $inactive=" {\n\"schema\":\"development-one-a02-amendment-v1\", \"operative\":false\n}\n";
+    $active=DevelopmentWorkServerContract::json(['schema'=>'development-one-a02-amendment-v1',
+        'operative'=>true,'original'=>['private'=>'SYNTHETIC_BODY_MUST_NOT_ESCAPE']]);
+    $off=DevelopmentWorkServerAmendmentGate::configurationSummary($inactive);
+    $on=DevelopmentWorkServerAmendmentGate::configurationSummary($active);
+    devAssert($off['available']&&$off['operative']===false&&$on['available']&&$on['operative']===true,
+        'configuration_readback_reports_observed_boolean_not_a_constant');
+    devAssert($off['file_sha256']===hash('sha256',$inactive)&&$off['bytes']===strlen($inactive)
+        &&$off['file_sha256']!==DevelopmentWorkServerContract::hash(json_decode($inactive,true)),
+        'configuration_readback_hashes_exact_file_whitespace_and_newline');
+    $keys=array_keys($on);sort($keys);
+    devAssert($keys===['available','bytes','file_sha256','operative']
+        &&!str_contains(json_encode($on,JSON_THROW_ON_ERROR),'SYNTHETIC_BODY'),
+        'configuration_readback_never_exports_private_body_or_unknown_fields');
+    foreach(['','{','[]','{"schema":"other","operative":false}',
+        '{"schema":"development-one-a02-amendment-v1","operative":"false"}',
+        "{\"schema\":\"development-one-a02-amendment-v1\",\"operative\":false,\"invalid\":\"\xC3\"}",
+        str_repeat('x',DevelopmentWorkServerAmendmentGate::MAX_MANIFEST_BYTES+1)] as $raw){
+        $bad=DevelopmentWorkServerAmendmentGate::configurationSummary($raw);
+        devAssert(!$bad['available']&&!array_key_exists('operative',$bad),
+            'unreadable_or_invalid_configuration_is_unknown_not_inactive');
+    }
+}
 function devServerAmendmentChecks(): void
 {
+    devServerConfigurationReadbackChecks();
     devServerRawBoundaryStorageChecks();
     devServerRawSchemaNegativeChecks();
     // The real callback sees a small report plus a large opaque envelope, not a tiny fake report only.
     [$p,$q,$clock,$provider,$log,$m,$before]=devAmendmentFixture();
+    $writes=$p->writes;$statusReadback=devServerStatus($q);
+    $localConfiguration=(new DevelopmentWorkServerAmendmentGate())->configurationReadback();
+    devAssert($p->writes===$writes&&$localConfiguration['available']
+        &&$localConfiguration['file_sha256']===hash_file('sha256',dirname(__DIR__).'/config/development_work_one_a02_amendment.json')
+        &&$statusReadback['server_amendment_preparation']['local_configuration']===$localConfiguration
+        &&$statusReadback['server_amendment_preparation']['operative']===$localConfiguration['operative'],
+        'status_getter_returns_actual_local_configuration_without_queue_writes');
+
     $oldProducer=base64_decode($before['server_control']['attempts'][0]['response_base64'],true);
     $lost=devAmendmentLostReview();$v1=devAmendmentCapture($lost,8192);$v2=devAmendmentCapture($lost,16384);
     devAssert(strlen($oldProducer)===6162&&strlen($v1['raw'])===8192&&!$v1['wire_complete']&&$v1['provider']===null,

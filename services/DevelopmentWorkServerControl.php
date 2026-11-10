@@ -267,9 +267,12 @@ trait DevelopmentWorkServerControl
         }
         $out['execution_kind']='server_model';$out['expected_pending_event_id']=null;
         $out['server_control']=$this->serverProof($q,$c);
-        $out['server_amendment_preparation']=['operative'=>false,'scope'=>'fixed_original_A02_only',
+        $inspectionGate=new DevelopmentWorkServerAmendmentGate();
+        $localConfiguration=$inspectionGate->configurationReadback();
+        $out['server_amendment_preparation']=['operative'=>$localConfiguration['operative']??null,
+            'local_configuration'=>$localConfiguration,'scope'=>'fixed_original_A02_only',
             'native_root_terminal_required'=>true,'no_mcp_mutation_or_claim_key'=>true,
-            'actual_local_source_sha'=>(new DevelopmentWorkServerAmendmentGate())->sourceSha()];
+            'actual_local_source_sha'=>$inspectionGate->sourceSha()];
         try{$out['server_amendment_preparation']+=['available'=>true,'future_policy'=>DevelopmentWorkServerContract::futurePolicy(),
             'future_implementation'=>$this->serverFutureImplementation()];}
         catch(DomainException|PDOException $error){$out['server_amendment_preparation']+=['available'=>false,'reason'=>'future_profile_or_schema_unavailable'];}

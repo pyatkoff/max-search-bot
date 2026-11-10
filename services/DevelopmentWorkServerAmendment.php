@@ -19,6 +19,28 @@ final class DevelopmentWorkServerAmendmentGate
     private array $canonicalReadDigests=[];
     private const REPOSITORY='pyatkoff/max-search-bot';
     public function __construct(private ?array $fixture=null,private $fetcher=null,private $installedSha=null) {}
+    /** Exact fixed local bytes only. This observation never approves a manifest. */
+    public function configurationReadback(): array
+    {
+        $file=__DIR__.'/'.self::FILE;
+        if(!is_file($file))return ['available'=>false,'reason'=>'local_configuration_unavailable'];
+        $raw=@file_get_contents($file,false,null,0,self::MAX_MANIFEST_BYTES+1);
+        if(!is_string($raw))return ['available'=>false,'reason'=>'local_configuration_unavailable'];
+        return self::configurationSummary($raw);
+    }
+    /** Pure bounded projection; never returns configuration bodies or arbitrary fields. */
+    public static function configurationSummary(string $raw): array
+    {
+        $size=strlen($raw);
+        if($size<1||$size>self::MAX_MANIFEST_BYTES)
+            return ['available'=>false,'reason'=>'local_configuration_budget'];
+        $proof=['file_sha256'=>hash('sha256',$raw),'bytes'=>$size];
+        try{$m=json_decode($raw,true,32,JSON_THROW_ON_ERROR);}
+        catch(JsonException $error){return $proof+['available'=>false,'reason'=>'local_configuration_invalid_json'];}
+        if(!is_array($m)||($m['schema']??null)!=='development-one-a02-amendment-v1'||!is_bool($m['operative']??null))
+            return $proof+['available'=>false,'reason'=>'local_configuration_invalid_header'];
+        return $proof+['available'=>true,'operative'=>$m['operative']];
+    }
     public function manifest(int $now): ?array
     {
         $m=$this->fixture;
