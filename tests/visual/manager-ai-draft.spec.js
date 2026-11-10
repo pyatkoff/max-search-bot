@@ -12,7 +12,7 @@ const visualPreparedAt=new Date().toISOString();
 const prepared=(changes={})=>proposal({prepared:true,prepared_at:visualPreparedAt,expires_at:new Date(Date.now()+3600000).toISOString(),source:'chatgpt',draft_id:null,...changes});
 // Render the actual PHP shell and canonical assets. Every identity, message,
 // proposal and HTTP response in this fixture is synthetic and stays in loopback.
-async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hideNotice=false,supervisor=false,owner=false,ownerState='manager',previewHandler=null,blocked=false,manualTask=false,profilePanel=false,preparationControls=false}={}){
+async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hideNotice=false,supervisor=false,owner=false,ownerState='manager',previewHandler=null,blocked=false,manualTask=false,profilePanel=false,preparationControls=false,unsupportedProject=false}={}){
   const calls=[],unexpected=[],errors=[],messages=new Map();
   let preparationHandler=null;const personal=require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot();
   let profileHandler=null,profileRevision='1'.repeat(64);const profiles=new Map(),handoffContexts=new Map();
@@ -22,7 +22,7 @@ async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hi
   let ai=async data=>data.action==='prepared'?{body:prepared()}:data.action==='generate'?{body:proposal()}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id||null}};
   let preview=previewHandler|| (async()=>({body:prepared({should_draft:readiness!=='recommendations',draft:readiness==='recommendations'?null:proposal().draft,next_action:readiness==='recommendations'?'no_contact':'clarify',reason:readiness==='recommendations'?'Менеджер уже ответил, нового вопроса нет.':proposal().reason,expires_at:new Date(Date.now()+3600000).toISOString()})}));
   const manager={id:7,role:owner?'admin':'manager',display_name:'Мария',is_working:true,supervision_available:supervisor||owner};
-  const conversation=id=>({id,...(profilePanel?{project_key:'anytour'}:{}),status:owner&&id===11?ownerState:'manager',manager_id:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?9:7,manager_name:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?'Другой менеджер':'Мария',channel:blocked&&id===11?'max':'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов',...(blocked&&id===11?{delivery_failure_category:deliveryBlocked?'suspended':null}:{})});
+  const conversation=id=>({id,...(unsupportedProject?{project_key:'iphone_repair'}:profilePanel?{project_key:'anytour'}:{}),status:owner&&id===11?ownerState:'manager',manager_id:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?9:7,manager_name:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?'Другой менеджер':'Мария',channel:unsupportedProject||blocked&&id===11?'max':'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов',...(blocked&&id===11?{delivery_failure_category:deliveryBlocked?'suspended':null}:{})});
   const assistantItem=()=>({conversation_id:11,display_name:'Анна Морозова',channel:'max',project_key:'anytour',project_name:'AnyTour',manager_name:'Другой менеджер',last_message_at:'2026-10-17T12:00:00Z',delivery_suspended:deliveryBlocked,delivery_notice:deliveryBlocked?'Ответ станет доступен после новой активности клиента.':null,operational:{awaiting_manager_reply:true,due_task:manualTask},tasks:manualTask?[{id:901,title:'Проверить вручную сохранённый документ',status:'open',due_state:'overdue',overdue:true,due_at_utc:'2026-10-17 13:00:00',is_pinned:false}]:[],recommendation:deliveryBlocked?{revision:'1'.repeat(64),next_action:'answer_question',reason:'Противоречивая рекомендация из старого снимка',checks:[],prepared_at:prepared().prepared_at,expires_at:new Date(Date.now()+3600000).toISOString(),latest_message_id:35,evidence_message_ids:[35],history_incomplete:false,decision:null}:null});
   for(const id of [11,12])messages.set(id,Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3?'customer':'manager',manager_id:i%3?null:7,text:'Синтетическое сообщение '+(i+1)+'. Обсуждаем пожелания к поездке.',created_at:'2026-10-17 12:00:00'})));
   page.on('pageerror',error=>errors.push(error.message));
@@ -76,7 +76,7 @@ async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hi
     }
     if(url.pathname==='/manager/ai-draft.php'){
       expect(data.csrf).toBe('fixture-csrf');expect([11,12]).toContain(data.conversation_id);
-      expect(['prepared','prepared_preview','generate','validate','prepared_status','ensure_prepared']).toContain(data.action);if(data.action==='prepared_preview'){const result=await preview(data);return reply(result.body,result.status||200)}if(data.action==='prepared_status')return reply(readiness||automaticComplete?{ok:true,prepared:true,should_draft:readiness!=='recommendations',revision:'1'.repeat(64),latest_message_id:data.latest_message_id,prepared_at:prepared().prepared_at,expires_at:new Date(Date.now()+3600000).toISOString(),preparation_source:'chatgpt_assistant',automatic_preparation:automatic}:{ok:true,prepared:false,automatic_preparation:automatic});if(data.action==='ensure_prepared'){const result=ensureHandler?await ensureHandler(data):{body:{ok:true,requested:true,queued:true,preparation_state:'pending'}};return reply(result.body,result.status||200)}const result=await ai(data);return reply(result.body,result.status||200);
+      expect(['prepared','prepared_preview','generate','validate','prepared_status','ensure_prepared']).toContain(data.action);if(unsupportedProject)return reply({ok:false,error:'project_not_supported'},503);if(data.action==='prepared_preview'){const result=await preview(data);return reply(result.body,result.status||200)}if(data.action==='prepared_status')return reply(readiness||automaticComplete?{ok:true,prepared:true,should_draft:readiness!=='recommendations',revision:'1'.repeat(64),latest_message_id:data.latest_message_id,prepared_at:prepared().prepared_at,expires_at:new Date(Date.now()+3600000).toISOString(),preparation_source:'chatgpt_assistant',automatic_preparation:automatic}:{ok:true,prepared:false,automatic_preparation:automatic});if(data.action==='ensure_prepared'){const result=ensureHandler?await ensureHandler(data):{body:{ok:true,requested:true,queued:true,preparation_state:'pending'}};return reply(result.body,result.status||200)}const result=await ai(data);return reply(result.body,result.status||200);
     }
     unexpected.push(method+' '+url.pathname+' '+data.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
   });
@@ -172,6 +172,35 @@ for(const width of [390,1440])for(const owner of [false,true])test('Automatic pr
   state.completePreparation();await expect.poll(()=>state.previewCalls().length,{timeout:20000}).toBe(1);
   if(owner){await expect(reply).toHaveValue('');await expect(page.locator('#composer')).toBeHidden()}else{await expect(reply).toHaveValue(proposal().draft);await expect(reply).toBeFocused();await expect(page.locator('#mediaSelection')).toContainText('automatic.txt');await replyFitsAssistant(page)}
   expect(state.aiCalls().map(c=>c.action)).toEqual(['ensure_prepared']);await capture(page,browserName,{width,height:900},'automatic-native-'+owner);clean(state);
+});
+// Capability refusal is terminal for this saved project, rather than a temporary
+// outage. Exercise the shipped shell/editor with native File and a real HTTP503.
+for(const width of [390,430,768,1440])test('Unsupported repair AI keeps native reply and ends polling '+width,async({page,browserName},testInfo)=>{
+  await page.setViewportSize({width,height:900});await page.clock.install();
+  const state=await setup(page,{unsupportedProject:true}),reply=page.locator('#replyText'),text='Свой ответ о ремонте: уточним модель и проблему.',fileBuffer=Buffer.from('Synthetic repair File');
+  await expect(page.locator('#aiDraftOpen')).toHaveAttribute('data-ai-state','unavailable');
+  expect(await page.evaluate(()=>WorkspaceV2.S.detail.conversation.project_key)).toBe('iphone_repair');
+  await reply.fill(text);await page.locator('#replyFile').setInputFiles({name:'repair-preserved.txt',mimeType:'text/plain',buffer:fileBuffer});
+  await openAi(page);await expect(page.locator('#aiDraftStatus')).toHaveText('Для этого проекта AI-подсказки пока не подключены. Ваш текст и вложения сохранены.');
+  await expect(page.locator('#aiDraftRetry')).toBeHidden();await expect(page.locator('#aiDraftInsert')).toBeHidden();await expect(page.locator('#sendReply')).toBeEnabled();
+  expect(state.statusCalls()).toHaveLength(1);expect(state.previewCalls()).toEqual([]);expect(state.aiCalls()).toEqual([]);expect(state.ensureCalls()).toEqual([]);
+  const aiCount=state.calls.filter(call=>call.path==='/manager/ai-draft.php').length;
+  await page.clock.fastForward(45001);await page.evaluate(()=>{for(let i=0;i<4;i++)WorkspaceV2AiDraft.sync()});
+  await expect(page.locator('#aiDraftOpen')).toHaveAttribute('data-ai-state','unavailable');
+  expect(state.calls.filter(call=>call.path==='/manager/ai-draft.php')).toHaveLength(aiCount);
+  await page.locator('.aiDraftClose').click();await openAi(page);
+  await expect(page.locator('#aiDraftRetry')).toBeHidden();expect(state.calls.filter(call=>call.path==='/manager/ai-draft.php')).toHaveLength(aiCount);
+  await expect(reply).toHaveValue(text);await expect(page.locator('#mediaSelection')).toContainText('repair-preserved.txt');
+  // Canonical media captures the File in its queue and clears the native input.
+  expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(true);
+  const attachment=page.locator('#mediaSelection .mediaSelectedItem');await expect(attachment).toHaveCount(1);await expect(attachment).toBeVisible();
+  await expect(attachment.locator('.mediaFileName')).toHaveText('repair-preserved.txt');await expect(attachment.locator('.mediaFileSize')).toHaveText(`${(fileBuffer.length/1024).toFixed(1)} КБ`);
+  await expect(page.locator('#sendReply')).toBeEnabled();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+  await readAssistantSection(page,'#aiDraftStatus');await expect(page.locator('#aiDraftStatus')).toBeInViewport();
+  const bounds=await page.locator('#aiDraftStatus').boundingBox();expect(bounds.x).toBeGreaterThanOrEqual(-1);expect(bounds.x+bounds.width).toBeLessThanOrEqual(width+1);
+  await capture(page,browserName,{width,height:900},'project-unavailable');const image=path.join(root,'manager2-artifacts',`ai-draft-${browserName}-${width}-900-project-unavailable.png`);await testInfo.attach('ai-project-unavailable-'+width,{body:fs.readFileSync(image),contentType:'image/png'});
+  clean(state);
 });
 test('Automatic outage is compact and does not invoke manual generation without an AI click',async({page})=>{
   const state=await setup(page,{automatic:true,ensureHandler:async()=>({body:{ok:false,error:'preparation_unavailable'},status:503}),previewHandler:async()=>({body:{ok:true,prepared:false}})});

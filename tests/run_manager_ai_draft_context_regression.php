@@ -126,6 +126,99 @@ function draftContextMessageReads(DraftContextPdo $pdo): array
     return array_values(array_filter($pdo->executed, static fn(string $sql): bool => str_contains($sql, 'FROM messages')));
 }
 
+/** Real registered repair conversations remain available to their manual managers. */
+function draftRepairBoundaryFixture(string $projectKey, bool $waiting = false): DraftContextPdo
+{
+    $pdo = draftContextFixture();
+    $pdo->exec("ALTER TABLE conversations ADD COLUMN is_test INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE conversations ADD COLUMN metadata_json TEXT;
+ALTER TABLE conversation_sources ADD COLUMN project_id INTEGER;
+ALTER TABLE conversation_sources ADD COLUMN channel TEXT;
+INSERT INTO manager_conversation_reads VALUES(2,1,1,'2026-10-17 12:00:00');");
+    $pdo->prepare('INSERT INTO projects VALUES(3,?,?,1)')->execute([$projectKey,'Synthetic repair']);
+    $pdo->exec('INSERT INTO manager_projects VALUES(1,3),(2,3)');
+    $botKey = $projectKey==='appleservice39'?'id390521129062_bot':'synthetic_'.$projectKey.'_bot';
+    $metadata = ['max_bot_key'=>$botKey,
+        'repair_context'=>['model'=>'Synthetic device','service'=>'Synthetic repair','entry_code'=>'repair_entry']];
+    $pdo->prepare('UPDATE conversations SET project_key=?,channel=?,status=?,manager_id=?,metadata_json=? WHERE id=1')->execute([
+        $projectKey,'max',$waiting?'waiting_manager':'manager',$waiting?null:1,json_encode($metadata,JSON_THROW_ON_ERROR),
+    ]);
+    $pdo->exec("UPDATE messages SET channel='max',text='Synthetic repair symptoms';
+INSERT INTO conversation_events VALUES(1,1,'waiting_manager','customer','{\"repair\":true}','2026-10-17 12:00:00')");
+    draftWorkingSave($pdo,draftWorkingOffers());
+    ProjectMaxConnection::resetForTests([
+        $projectKey=>['project'=>['id'=>$projectKey,'business'=>['kind'=>'device_repair'],
+            'brand'=>['name'=>'Synthetic repair'],'routing'=>['source_key'=>'max:'.$projectKey.'-main'],
+            'messenger'=>['max'=>['webhook_url'=>'https://app.anytoour.ru/project_max_webhook.php?project='.$projectKey]]],
+            'max'=>['bot_key'=>$metadata['max_bot_key'],'token'=>'synthetic-'.$projectKey.'-token',
+                'webhook_secret'=>str_repeat('r',32)]],
+    ]);
+    return $pdo;
+}
+
+function draftRepairBoundaryState(DraftContextPdo $pdo): array
+{
+    $state = [];
+    foreach (['conversations','messages','conversation_events','manager_conversation_reads',
+        'manager_tour_selection_drafts','manager_projects','managers'] as $table) {
+        $state[$table] = $pdo->query('SELECT * FROM '.$table.' ORDER BY rowid')->fetchAll();
+    }
+    return $state;
+}
+
+/** Exercise each public capture path against the same production SQL/ACL owners. */
+function draftRepairBoundaryChecks(): void
+{
+    foreach (['appleservice39','iphone_repair'] as $projectKey) {
+        foreach ([false,true] as $waiting) {
+            $pdo = draftRepairBoundaryFixture($projectKey,$waiting);
+            try {
+                draftContextCheck('repair boundary fixture has a configured project connection '.$projectKey,
+                    ProjectMaxConnection::resolve($projectKey) instanceof ProjectMaxConnection);
+                $before = draftRepairBoundaryState($pdo);
+                $calls = $waiting
+                    ? ['waiting preparation'=>static fn():array=>ManagerAiDraftContextService::preparationSnapshot(1,0),
+                        'waiting admin viewer'=>static fn():array=>ManagerAiDraftContextService::viewerSnapshot(1,2)]
+                    : ['reply owner'=>static fn():array=>ManagerAiDraftContextService::snapshot(1,1),
+                        'assigned preparation'=>static fn():array=>ManagerAiDraftContextService::preparationSnapshot(1,1),
+                        'owner viewer'=>static fn():array=>ManagerAiDraftContextService::viewerSnapshot(1,1),
+                        'supervising admin'=>static fn():array=>ManagerAiDraftContextService::viewerSnapshot(1,2)];
+                foreach ($calls as $name=>$capture) {
+                    $messageReads = 0;
+                    $pdo->executed = [];
+                    $pdo->observeRead = static function (string $sql) use (&$messageReads): void {
+                        if (preg_match('/\b(?:FROM|JOIN)\s+messages\b/i',$sql)) {
+                            ++$messageReads;
+                            throw new RuntimeException('fixture_rejected_repair_ai_history_read');
+                        }
+                    };
+                    $result = $capture();
+                    $pdo->observeRead = null;
+                    draftContextCheck('repair '.$projectKey.' '.$name.' refuses the unconfigured AI provider before transcript reads',
+                        $result === ['ok'=>false,'error'=>'project_not_supported'] && $messageReads === 0
+                        && draftContextMessageReads($pdo) === []);
+                    draftContextCheck('repair '.$projectKey.' '.$name.' retains ownership history drafts and read markers without writes',
+                        !$pdo->inTransaction() && $pdo->writeAttempts === 0 && $pdo->commits === 0
+                        && draftRepairBoundaryState($pdo) === $before);
+                }
+                $pdo->executed = [];
+                draftContextCheck('repair '.$projectKey.' access denial still precedes provider configuration',
+                    ManagerAiDraftContextService::snapshot(1,3) === ['ok'=>false,'error'=>'not_found']
+                    && draftContextMessageReads($pdo) === [] && !$pdo->inTransaction());
+                $manual = ManagerConversationService::detail(1,$waiting?2:1,0,120,false);
+                draftContextCheck('manual '.$projectKey.' '.($waiting?'waiting admin':'reply owner').' still reads the exact repair dialogue',
+                    is_array($manual) && $manual['conversation']['project_key'] === $projectKey
+                    && array_column($manual['messages'],'id') === [1,2]
+                    && ($manual['conversation']['repair_context']['model'] ?? null) === 'Synthetic device'
+                    && draftRepairBoundaryState($pdo) === $before && !$pdo->inTransaction() && $pdo->writeAttempts === 0);
+            } finally {
+                $pdo->observeRead = null;
+                ProjectMaxConnection::resetForTests();
+            }
+        }
+    }
+}
+
 /** Synthetic native inquiry; actual source/publication normalizers own the shape. */
 function draftHotelFixture(string $hotelId = '9374', string $hotelName = 'SUNRISE ARABIAN BEACH RESORT', string $countryId = '1'): array
 {
@@ -383,6 +476,12 @@ function draftSearch3Checks(): void
         $large['context']===$baseline['context'] && ($large['search3_inquiry_admission']['reason']??null)==='request_budget');
 }
 
+if (($argv[1]??'')==='--repair-boundary-only') {
+    draftRepairBoundaryChecks();
+    echo 'Manager repair AI boundary: '.$passed." checks passed\n";
+    exit(0);
+}
+
 if (($argv[1]??'')==='--search3-only') {
     draftSearch3Checks();
     echo 'Manager Search3 reply context: '.$passed." checks passed\n";
@@ -432,6 +531,7 @@ if (($argv[1]??'')==='--hotel-knowledge-http') {
 }
 
 try {
+    draftRepairBoundaryChecks();
     $pdo = draftContextFixture();
     $unmarkedClock = draftContextCapture($pdo);
     $clockReceipt = json_encode(ConversationRecordClock::stamp(['type'=>'message'], strtotime('2026-11-04T07:26:00Z')), JSON_THROW_ON_ERROR);
@@ -1059,7 +1159,7 @@ INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(9
     $pdo->exec("INSERT INTO manager_projects VALUES(1,2); UPDATE conversations SET project_key='other' WHERE id=1");
     $otherProject=draftContextCapture($pdo);
     draftContextCheck('an authorized different project cannot borrow AnyTour working evidence',
-        !empty($otherProject['ok']) && !isset(draftWorkingInput($otherProject)['context']['working_selection']));
+        $otherProject===['ok'=>false,'error'=>'project_not_supported'] && draftContextMessageReads($pdo)===[]);
     $pdo=draftContextFixture();draftWorkingSave($pdo,draftWorkingOffers());
     $pdo->exec("ALTER TABLE conversations ADD COLUMN is_test INTEGER NOT NULL DEFAULT 0; UPDATE conversations SET status='waiting_manager',manager_id=NULL WHERE id=1");
     $waitingWorking=ManagerAiDraftContextService::preparationSnapshot(1,0);

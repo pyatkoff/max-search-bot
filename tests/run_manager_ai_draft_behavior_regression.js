@@ -9,7 +9,7 @@ const cases=[];function test(name,run){cases.push({name,run})}
 const generated=(changes={})=>({ok:true,should_draft:true,draft:'Уточните удобные даты поездки.',next_action:'clarify',reason:'В запросе нет даты вылета.',checks:['Проверить состав туристов'],evidence_message_ids:[8],history_incomplete:false,revision:'synthetic-revision-1',latest_message_id:8,...changes});
 const preparedAt=new Date().toISOString(),expiresAt=new Date(Date.now()+3600000).toISOString();
 const prepared=(changes={})=>({...generated(),prepared:true,prepared_at:preparedAt,expires_at:expiresAt,source:'chatgpt',...changes});
-async function harness(handler=()=>response(prepared()),{manager2=false,hosted=false,policyDuration=null}={}){
+async function harness(handler=()=>response(prepared()),{manager2=false,hosted=false,policyDuration=null,projectKey=null}={}){
   const h=createHarness();await h.start();
   const form=h.ids.get('composer'),reply=h.ids.get('replyText'),prototype=Object.getPrototypeOf(reply);
   prototype.setSelectionRange=function(start,end,direction='none'){this.selectionStart=Math.min(start,this.value.length);this.selectionEnd=Math.min(end,this.value.length);this.selectionDirection=direction};
@@ -50,6 +50,7 @@ async function harness(handler=()=>response(prepared()),{manager2=false,hosted=f
     h.document.querySelector=selector=>selector==='#conversationZone .conversationHead'?head:null;
   }
   reply.selectionStart=reply.selectionEnd=0;reply.selectionDirection='none';reply.scrollLeft=0;
+  if(projectKey!==null)h.W.S.detail.conversation.project_key=projectKey;
   h.W.S.detail.messages=[{id:5,sender_type:'manager',text:'Synthetic previous reply'},{id:8,sender_type:'customer',text:'Synthetic request'}];
   const observers=[];
   class Observer{constructor(callback){observers.push(callback)}observe(){}}
@@ -103,6 +104,43 @@ test('binding is lazy and adds one stable button without another draft, file or 
 const readiness=(changes={})=>({ok:true,prepared:true,should_draft:true,revision:'synthetic-revision-1',latest_message_id:8,prepared_at:preparedAt,expires_at:expiresAt,...changes});
 const automaticMiss={ok:true,prepared:false,automatic_preparation:true};
 async function pollAi(h){const timer=[...h.aiTimers.entries()].filter(([,value])=>value.ms===15000).at(-1);assert.ok(timer);h.aiTimers.delete(timer[0]);await timer[1].fn();await tick()}
+for(const status of [400,503])test('unsupported project status stops passive polling and preserves the native composer '+status,async()=>{
+  const h=await harness(()=>response({ok:false,error:'project_not_supported'},status),{manager2:true,projectKey:'appleservice39'});await tick();
+  const reply=h.ids.get('replyText'),file={name:'repair-attachment.txt'};await h.draft('Мой ответ о ремонте');h.setFile(file);reply.focus();reply.setSelectionRange(1,5,'backward');
+  const calls=h.aiCalls().length;assert.deepEqual(h.aiCalls().map(call=>call.action),['prepared_status']);
+  h.advanceAiClock(7200000);h.ai.sync();h.observe();h.ai.sync();await tick();
+  h.document.visibilityState='hidden';h.documentEvents.get('visibilitychange')();h.document.visibilityState='visible';h.documentEvents.get('visibilitychange')();await tick();
+  assert.equal(h.aiCalls().length,calls);assert.equal(h.aiTimers.size,0);assert.equal(h.ids.get('aiDraftOpen').dataset.aiState,'unavailable');
+  assert.equal(h.ids.get('aiPreparationNotice').hidden,true);assert.equal(reply.value,'Мой ответ о ремонте');assert.equal(h.getFile(),file);assert.equal(h.ids.get('sendReply').disabled,false);
+  await h.click('aiDraftOpen');assert.match(h.ids.get('aiDraftStatus').textContent,/Для этого проекта AI-подсказки пока не подключены/);assert.equal(h.ids.get('aiDraftRetry').hidden,true);assert.equal(h.aiCalls().length,calls);
+  await h.click('aiDraftRetry');assert.equal(h.aiCalls().length,calls);assert.equal(reply.value,'Мой ответ о ремонте');assert.equal(h.getFile(),file);assertNoMutations(h);
+  // The capability refusal affects AI only: the existing explicit media send remains usable.
+  let mediaCalls=0;h.window.WorkspaceV2Media.send=async()=>{mediaCalls++;return {ok:false,confirmed_count:0,failure:{category:'unavailable'}}};
+  await h.C.sendReply();assert.equal(mediaCalls,1);assert.equal(reply.value,'Мой ответ о ремонте');assert.equal(h.getFile(),file);assert.equal(h.aiCalls().length,calls);
+});
+for(const hosted of [false,true])for(const status of [400,503])test('explicit prepared refusal never falls back to generation '+hosted+' '+status,async()=>{
+  const h=await harness(data=>response(data.action==='prepared_status'?{ok:true,prepared:false}:{ok:false,error:'project_not_supported'},data.action==='prepared_status'?200:status),{manager2:hosted,hosted,projectKey:'appleservice39'});await tick();
+  const reply=h.ids.get('replyText'),file={name:'keep-manual-repair.txt'};await h.draft('Написанный менеджером ответ');h.setFile(file);await h.click('aiDraftOpen');
+  assert.deepEqual(h.aiCalls().map(call=>call.action),hosted?['prepared_status','prepared_preview']:['prepared']);assert.match(h.ids.get('aiDraftStatus').textContent,/Ваш текст и вложения сохранены/);
+  assert.equal(h.ids.get('aiDraftRetry').hidden,true);assert.equal(h.ids.get('aiDraftInsert').hidden,true);assert.equal(h.ids.get('sendReply').disabled,false);
+  const calls=h.aiCalls().length;await h.close();await h.click('aiDraftOpen');await h.click('aiDraftRetry');h.advanceAiClock(600001);h.ai.sync();h.observe();await tick();
+  assert.equal(h.aiCalls().length,calls);assert.equal(h.aiTimers.size,0);assert.equal(reply.value,'Написанный менеджером ответ');assert.equal(h.getFile(),file);assertNoMutations(h);
+});
+for(const action of ['prepared_preview','ensure_prepared'])test('terminal project capability refusal ends the passive '+action+' chain',async()=>{
+  const h=await harness(data=>response(data.action==='prepared_status'?action==='prepared_preview'?readiness():automaticMiss:{ok:false,error:'project_not_supported'},data.action==='prepared_status'?200:400),{manager2:true,projectKey:'appleservice39'});await tick();
+  assert.deepEqual(h.aiCalls().map(call=>call.action),['prepared_status',action]);assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assert.equal(h.ids.get('aiPreparationNotice').hidden,true);
+  const calls=h.aiCalls().length;h.advanceAiClock(7200000);h.ai.sync();h.observe();await tick();assert.equal(h.aiCalls().length,calls);assert.equal(h.aiTimers.size,0);assertNoMutations(h);
+});
+for(const action of ['prepared_status','prepared_preview'])test('a late unsupported-project '+action+' response cannot disable the next conversation',async()=>{
+  const late=deferred();let pending=true;
+  const h=await harness(data=>data.action===action&&pending?late.promise:response(data.action==='prepared_status'?readiness({latest_message_id:data.latest_message_id}):prepared({latest_message_id:data.latest_message_id})),{manager2:true,projectKey:'appleservice39'});await tick();
+  pending=false;await h.C.open(102);h.W.S.detail.conversation.project_key='anytour';h.ai.sync();await tick();late.resolve(response({ok:false,error:'project_not_supported'},400));await tick();
+  assert.equal(h.ids.get('aiDraftOpen').dataset.aiState,'prepared');assert.equal(h.ids.get('aiDraftSuggestion').hidden,false);assert.ok([...h.aiTimers.values()].some(timer=>timer.ms===15000));assertNoMutations(h);
+});
+test('AnyTour provider-not-configured503 retains the existing explicit generation fallback',async()=>{
+  const h=await harness(()=>response({ok:false,error:'provider_not_configured'},503));await h.draft('Свой туристический ответ');await h.click('aiDraftOpen');
+  assert.deepEqual(h.aiCalls().map(call=>call.action),['prepared','generate']);assert.match(h.ids.get('aiDraftStatus').textContent,/AI сейчас недоступен/);assert.equal(h.ids.get('aiDraftRetry').hidden,false);assert.equal(h.ids.get('replyText').value,'Свой туристический ответ');assertNoMutations(h);
+});
 test('opening an empty own chat queues one automatic preparation and later shows a Tab-ready ghost without AI click',async()=>{
   let completed=false;const queued=deferred(),h=await harness(data=>data.action==='prepared_status'?response(completed?readiness():automaticMiss):data.action==='ensure_prepared'?queued.promise:inlineHandler(data),{manager2:true});await tick();
   const reply=h.ids.get('replyText'),file={name:'keep-auto.txt'};h.setFile(file);reply.focus();

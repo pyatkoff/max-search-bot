@@ -119,7 +119,11 @@ function managerWorkspaceOwnerRegression(): void
     $p->mutate("UPDATE conversations SET manager_id=1,status='manager',project_key='other',source_id=21 WHERE id=101;INSERT INTO manager_projects VALUES(1,2),(2,2);INSERT INTO manager_group_members VALUES(1,11)");
     ProjectConfig::resetForTests(['id'=>'other']);$canonical=ManagerAiDraftContextService::snapshot(101,1);$q=ManagerPreparedReplyService::enqueue([preparedReplyRow($canonical,['project_key'=>'other'])]);$job=$q['job_ids'][0]??'';$saved=ManagerPreparedReplyService::complete($job,$canonical['revision'],preparedReplyProposal());
     ProjectConfig::resetForTests(['id'=>'anytour']);$view=ManagerAiDraftContextService::viewerSnapshot(101,2);
-    $check('owner can read ready answer across explicitly accessible projects',!empty($saved['ok'])&&!empty($view['ok'])&&!empty(ManagerPreparedReplyService::prepared(101,1,$view)['prepared']));
+    $check('an accessible foreign project cannot expose its ready answer through the current travel AI',!empty($saved['ok'])&&$view===['ok'=>false,'error'=>'project_not_supported']);
+    $manualBefore=managerSupervisorBusiness($p);$manualOther=ManagerConversationService::detail(101,2);
+    $check('an accessible foreign project keeps manual owner transcript access without changing its data',
+        $manualOther!==null&&$manualOther['conversation']['project_key']==='other'&&$manualOther['owner_read']
+        &&!empty($manualOther['messages'])&&$manualBefore===managerSupervisorBusiness($p));
     $check('cross-project prepared read is not granted to an ordinary manager',empty(ManagerPreparedReplyService::prepared(101,1,$canonical)['prepared']));
     $p->mutate('DELETE FROM manager_projects WHERE manager_id=2 AND project_id=2');
     $check('project revoke discards even an earlier owner snapshot',empty(ManagerAiDraftContextService::viewerSnapshot(101,2)['ok'])&&empty(ManagerPreparedReplyService::prepared(101,1,$view)['prepared']));
