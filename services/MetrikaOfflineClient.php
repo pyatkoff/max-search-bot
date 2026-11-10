@@ -293,7 +293,7 @@ final class MetrikaOfflineClient
         return $this->visitReport($clientId,$activated,$now,false);
     }
     /** Exact last-transition source, unaffected by historical attribution models. GET only. */
-    public function modeledAttributionVisits(string $clientId,int $activated,int $now):array
+    public function modeledAttributionVisits(string $clientId,int $activated,int $now,?callable $admitExtraRead=null):array
     {
         // Optional advertising dimensions can omit visits with undefined source labels.
         // Keep the complete unfiltered visit list; source evidence may only enrich it.
@@ -302,8 +302,11 @@ final class MetrikaOfflineClient
         foreach($base['visits']as&$visit)$visit['source_class']='other_or_unknown';unset($visit);
         $window=ModeledConversionAttributionWindow::assess($base,$activated,$now);
         if($window['visit_at']===null||$window['allowed']||$now-$window['visit_at']>ModeledConversionAttributionWindow::MAX_SECONDS)return $base;
+        if($admitExtraRead!==null)$admitExtraRead();
         $sources=$this->visitReport($clientId,$activated,$now,false,true);
         if(($sources['status']??null)!=='ok')return $base;
+        $baseTimes=array_fill_keys(array_column($base['visits'],'started_at'),true);
+        foreach($sources['visits']as$source)if(!isset($baseTimes[$source['started_at']]))return $base;
         foreach($base['visits']as&$visit){
             $matches=array_values(array_filter($sources['visits'],static fn(array $source):bool=>$source['started_at']===$visit['started_at']));
             if(count($matches)===1&&$matches[0]['visits']===$visit['visits']&&$matches[0]['source_class']==='yandex_direct')$visit['source_class']='yandex_direct';

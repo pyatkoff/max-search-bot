@@ -404,6 +404,25 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
         !ModeledConversionAttributionWindow::assess($retainedVisits,$sourceNow,$sourceNow)['allowed']
         &&array_values(array_unique($sourceMethods))===['GET']);
 
+    $sourceBase=[['at'=>$sourceNow-9*86400,'visits'=>2]];$sourceDetails=[['at'=>$sourceNow-9*86400,'direct'=>true,'visits'=>1]];
+    $retainedVisits=$sourceApi->modeledAttributionVisits('900000000000000001',$sourceNow,$sourceNow);
+    $check('partial source coverage of a multi-visit second cannot grant ten days',
+        $retainedVisits['visits'][0]['visits']===2&&!ModeledConversionAttributionWindow::assess($retainedVisits,$sourceNow,$sourceNow)['allowed']);
+    $sourceBase=[['at'=>$sourceNow-9*86400]];$sourceDetails=[['at'=>$sourceNow-9*86400,'direct'=>true],['at'=>$sourceNow-4*86400,'direct'=>false]];
+    $retainedVisits=$sourceApi->modeledAttributionVisits('900000000000000001',$sourceNow,$sourceNow);
+    $check('incoherent source-only rows cannot create visits or promote an older base visit',
+        count($retainedVisits['visits'])===1&&!ModeledConversionAttributionWindow::assess($retainedVisits,$sourceNow,$sourceNow)['allowed']);
+    $sourceDetails=[['at'=>$sourceNow-9*86400,'direct'=>true]];
+    $readsBefore=count($sourceQueries);$budgetRefused=false;
+    try{$sourceApi->modeledAttributionVisits('900000000000000001',$sourceNow,$sourceNow,static function():void{throw new RuntimeException('fixture_read_budget');});}
+    catch(RuntimeException $e){$budgetRefused=$e->getMessage()==='fixture_read_budget';}
+    $check('the shared admission refuses the optional source request before it reaches transport',
+        $budgetRefused&&count($sourceQueries)===$readsBefore+1&&count(explode(',',$sourceQueries[count($sourceQueries)-1]['dimensions']))===2);
+    $sourceBase=[];$sourceDetails=[['at'=>$sourceNow-86400,'direct'=>true]];$readsBefore=count($sourceQueries);
+    $retainedVisits=$sourceApi->modeledAttributionVisits('900000000000000001',$sourceNow,$sourceNow);
+    $check('source evidence cannot invent a missing canonical visit or trigger an unneeded request',
+        $retainedVisits['status']==='ok'&&$retainedVisits['visits']===[]&&count($sourceQueries)===$readsBefore+1);
+
     $wireApi=new MetrikaOfflineClient('98615635','SYNTHETIC_TOKEN',$wireTransport);
     $repair=$wireApi->uploadModeledWireCorrection([$wireFirst,$wireSecond],$auditNow);
     $wirePosts=array_values(array_filter($wireCalls,static fn(array $c):bool=>$c[0]==='POST'));$csvLines=explode("\n",trim($wirePosts[0][2]));$csvRow=str_getcsv($csvLines[1]);
