@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     env:
-      EXPECTED_APPLICATION_SHA: 77af57d7756d81240ae4973035e1de20a7aee5cb
+      EXPECTED_APPLICATION_SHA: d57bb403977c3e69aab70936415934bb664c572a
     steps:
       - name: Check out the exact fixed reader
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
