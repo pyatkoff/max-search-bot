@@ -21,6 +21,7 @@ final class InboxQueryPdo extends PDO
         $this->database->sqliteCreateFunction('GREATEST',function($value,$minimum){$this->annotations++;return max((int)$value,(int)$minimum);});
         $this->database->sqliteCreateFunction('JSON_UNQUOTE',static fn($value)=>$value);
     }
+    public function getAttribute(int $attribute):mixed{return $this->database->getAttribute($attribute);}
     public function prepare(string $query,array $options=[]):PDOStatement|false
     {
         $isList=str_starts_with($query,'SELECT c.id,c.project_key');
@@ -197,11 +198,11 @@ queryPageCheck('Mine ranking and list reads never advance read markers',$db->que
 $db->exec("UPDATE managers SET role='admin' WHERE id=7");
 
 // Compare both projections against the same real SQL, data and routing owner.
-// Full list is an unchanged reference; the smaller path must preserve its page.
+// The smaller path must preserve the full list's page and current-wait rank.
 $countFields=['id','project_key','source_id','manager_id','status','started_at','last_message_at','unread_count'];
 $projectCountRows=static function(array $rows,string $queue)use($countFields):array{
     $fields=[...$countFields,$queue==='mine'?'awaiting_manager_reply':'manager_request_at'];
-    if($queue==='waiting')$fields[]='delivery_failure_category';
+    if($queue==='waiting')array_push($fields,'reply_wait_started_unix','delivery_failure_category');
     return array_map(static fn(array $row):array=>array_intersect_key($row,array_flip($fields)),$rows);
 };
 $pdo->executions=0;$pdo->listWork=[];$pdo->annotations=0;$fullCountRows=[];

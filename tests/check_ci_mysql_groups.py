@@ -18,6 +18,7 @@ GROUPS = {
     'replies': ['tests/run_manager_prepared_reply_regression.php'],
     'migrations': [
         'tests/mysql/manager-preparation-migrations.php',
+        'tests/mysql/manager-reply-queue.php',
         'tests/mysql/virtual-reply-sampling.php',
         'tests/mysql/virtual-reply-controls.php',
         'tests/mysql/manager-tour-delivery.php',
@@ -86,8 +87,8 @@ def verify(document):
     expected.extend(['*) exit 2 ;;', 'esac'])
     script = step['run']
     check([line.strip() for line in script.splitlines() if line.strip()] == expected,
-          'all ten commands must execute exactly once in their original group order')
-    check(len({command for commands in GROUPS.values() for command in commands}) == 10,
+          'all eleven commands must execute exactly once in their group order')
+    check(len({command for commands in GROUPS.values() for command in commands}) == 11,
           'partition must not duplicate any command')
     aggregate = jobs['regression']
     check('prepared-mysql' in aggregate['needs'] and aggregate['if'] == 'always()'

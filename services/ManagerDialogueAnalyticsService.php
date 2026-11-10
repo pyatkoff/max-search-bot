@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/ManagerSupervisorAccessService.php';
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
+require_once __DIR__.'/ManagerReplyQueueService.php';
 
 /** Full server-side read model, independent of Inbox/board caps and model work. */
 final class ManagerDialogueAnalyticsService
@@ -49,7 +50,7 @@ final class ManagerDialogueAnalyticsService
             $lastRequest="(SELECT MAX(lr.created_at) FROM conversation_events lr WHERE lr.conversation_id=c.id AND lr.event_type='waiting_manager')";
             $lastCustomer="(SELECT MAX(im.id) FROM messages im WHERE im.conversation_id=c.id AND im.direction='inbound' AND im.sender_type='customer' AND ".self::humanSql('im',$mysql).")";
             $lastReply="(SELECT MAX(om.id) FROM messages om WHERE om.conversation_id=c.id AND om.direction='outbound' AND om.sender_type='manager')";
-            $waiting="(c.status='waiting_manager' OR (c.status='manager' AND (($lastRequest IS NOT NULL AND NOT EXISTS(SELECT 1 FROM messages ar WHERE ar.conversation_id=c.id AND ar.direction='outbound' AND ar.sender_type='manager' AND ar.created_at>=$lastRequest)) OR COALESCE($lastCustomer,0)>COALESCE($lastReply,0))))";
+            $waiting=ManagerReplyQueueService::neededSql('c',$mysql);
             $base="SELECT c.id,c.project_key,c.source_id,c.channel,c.manager_id,c.status,c.started_at,COALESCE(cn.working_name,cu.display_name,'Турист') AS display_name,COALESCE(m.display_name,m.login,'Без назначения') AS manager_name,$request AS requested_at,fr.created_at AS first_reply_at,fr.sender_id AS first_reply_manager_id,CASE WHEN fr.id IS NOT NULL THEN $latency END AS first_reply_seconds,CASE WHEN $continuation THEN 1 ELSE 0 END AS continued,CASE WHEN $waiting THEN 1 ELSE 0 END AS waiting,CASE WHEN $ready THEN 1 ELSE 0 END AS ready_candidate,CASE WHEN c.lead_outcome_updated_at IS NOT NULL AND c.lead_outcome IN ('won','lost') THEN c.lead_outcome END AS outcome,CASE WHEN EXISTS(SELECT 1 FROM lead_stage_history sh WHERE sh.conversation_id=c.id AND sh.to_stage_key=c.lead_stage_key) THEN c.lead_stage_key END AS recorded_stage FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN manager_customer_names cn ON cn.customer_id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN messages fr ON fr.id=$reply WHERE ".implode(' AND ',$where);
             $params=array_merge($prefix,$args);
             $aggregate="COUNT(*) AS conversations,SUM(CASE WHEN manager_id IS NOT NULL THEN 1 ELSE 0 END) AS assigned,SUM(CASE WHEN requested_at IS NOT NULL THEN 1 ELSE 0 END) AS requested,SUM(CASE WHEN first_reply_at IS NOT NULL THEN 1 ELSE 0 END) AS replied,SUM(continued) AS continued,SUM(waiting) AS waiting,SUM(ready_candidate) AS ready_candidates,SUM(CASE WHEN outcome='won' THEN 1 ELSE 0 END) AS won,SUM(CASE WHEN outcome='lost' THEN 1 ELSE 0 END) AS lost,SUM(CASE WHEN recorded_stage IS NOT NULL THEN 1 ELSE 0 END) AS recorded_stage,SUM(CASE WHEN first_reply_seconds IS NOT NULL THEN 1 ELSE 0 END) AS reply_n,AVG(first_reply_seconds) AS reply_mean_seconds";

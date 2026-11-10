@@ -5,7 +5,7 @@ const vm = require('node:vm');
 
 // DOM behavior only: no layout, production session, transport, or credentials.
 // App logic comes directly from the canonical production asset files.
-function createHarness({storage, managerId=7, mobile=false, sessionHistory, inbox=false} = {}) {
+function createHarness({storage, managerId=7, mobile=false, sessionHistory, inbox=false,replyQueue=false} = {}) {
 if(!storage){const values=new Map();storage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)}}
 const ids = new Map();
 class Element {
@@ -48,6 +48,7 @@ class Element {
   get nextSibling() { return this.parentNode?.children[this.parentNode.children.indexOf(this)+1] || null; }
   get isConnected() { return this===body || !!this._harnessRoot || !!this.parentNode?.isConnected; }
   appendChild(child) { return this.insertBefore(child,null); }
+  insertAdjacentElement(position,child) { if(position==='afterend'&&this.parentNode)return this.parentNode.insertBefore(child,this.nextSibling);throw new Error('Unsupported synthetic DOM position'); }
   insertBefore(child,before) {
     if(child===before)return child;
     if(child.tagName==='FRAGMENT'){for(const node of [...child.children])this.insertBefore(node,before);return child;}
@@ -97,6 +98,7 @@ const document = {
  'conversationTitle','conversationAvatar','conversationState','conversationMeta',
  'deliveryFailure','composerLocked','replyStatus','conversationZone','messages','workspaceRoot','leadZone','mobileBack','mobileLeadBtn','mobileLeadClose'].forEach(id => add(id));
 add('composer', 'form', 'composer hidden'); add('replyText', 'textarea'); add('replyFile', 'input'); add('sendReply', 'button');
+if(replyQueue){const head=new Element('div');head.className='conversationHead';const actions=new Element('div');actions.className='actions';head.appendChild(actions);ids.get('conversationZone').appendChild(head);document.querySelector=selector=>ids.get('conversationZone').querySelector(selector);}
 
 const calls = [];
 let hook = null;
@@ -132,8 +134,8 @@ const window = {
 const history=sessionHistory||{entries:[null],index:0,get state(){return this.entries[this.index]},replaceState(state){this.entries[this.index]=state},pushState(state){this.entries.splice(++this.index);this.entries.push(state)},async back(){if(this.index>0){this.index--;await this.listener(this.state)}},async forward(){if(this.index<this.entries.length-1){this.index++;await this.listener(this.state)}}};
 history.listener=async state=>{const handler=events.get('popstate');if(handler)await handler({state})};
 const reloads=[];
-const context = vm.createContext({window,document,fetch,location:{pathname:'/manager/',search:'',hash:'',href:'https://example.invalid/manager/',reload:()=>reloads.push(history.state)},history,setTimeout:()=>0,setInterval:(fn,ms)=>{timers.push({fn,ms});return timers.length},console,sessionStorage:storage});
-for (const file of ['manager-time.js','workspace-v2.js','workspace-v2-conversation.js',...(inbox?['workspace-v2-inbox.js']:[]),...(mobile?['workspace-v2-mobile.js']:[])]) vm.runInContext(fs.readFileSync(path.join(__dirname,'../manager/assets',file),'utf8'),context,{filename:file});
+const context = vm.createContext({window,document,fetch,location:{pathname:'/manager/',search:'',hash:'',href:'https://example.invalid/manager/',reload:()=>reloads.push(history.state)},history,setTimeout:()=>0,setInterval:(fn,ms)=>{timers.push({fn,ms});return timers.length},console,sessionStorage:storage,localStorage:storage});
+for (const file of ['manager-time.js','workspace-v2.js','workspace-v2-conversation.js',...(inbox?['workspace-v2-inbox.js']:[]),...(mobile?['workspace-v2-mobile.js']:[]),...(replyQueue?['workspace-v2-reply-queue.js']:[])]) vm.runInContext(fs.readFileSync(path.join(__dirname,'../manager/assets',file),'utf8'),context,{filename:file});
 
 const W=window.WorkspaceV2,C=window.WorkspaceV2Conversation;
 async function start({open=true}={}){await W.boot();if(open)await C.open(101);}
