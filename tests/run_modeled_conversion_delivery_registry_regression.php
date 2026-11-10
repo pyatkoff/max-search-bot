@@ -688,6 +688,33 @@ PHP;
         $unbound['by_platform']['max']['visit_linked']['events']===0&&$unbound['by_platform']['max']['proof_missing']['events']===1);
 
 
+
+    $beforeCalendarRead=count($api->calls);
+    $calendar=ModeledConversionVisitProof::verify([$yesterday],$api,$day,$day+500,$now,[]);
+    $previous=$calendar['yesterday_sent_cohort'];$previousDay=new ReflectionMethod(ModeledConversionVisitProof::class,'previousDayReference');
+    $reference=$previousDay->invoke(null,$now);
+    $previousSummary=$reader->invoke(null,$previous,$now,$reference);
+    $check('previous-day report uses the same complete ledger without another provider request',
+        count($api->calls)===$beforeCalendarRead&&$calendar['today_sent_cohort']['by_platform']['max']['sent']['events']===0
+        &&$previous['date']==='2026-11-01'&&$previous['as_of']===gmdate('Y-m-d\\TH:i:s\\Z',$now)
+        &&$previous['by_platform']['max']['sent']===['events'=>1,'conversations'=>1,'value_rub'=>17]
+        &&$previous['by_platform']['max']['processed']['events']===1
+        &&$previous['by_platform']['max']['visit_linked']['events']===0);
+    $check('private previous-day projection validates its date and keeps unavailable historical caches explicit',
+        $previousSummary['available']&&$previousSummary['fresh']&&$previousSummary['date']==='2026-11-01'
+        &&!$reader->invoke(null,$previous,$now)['available']
+        &&!$reader->invoke(null,null,$now,$reference)['available']
+        &&!$reader->invoke(null,$previous,$now+86400,$reference+86400)['available']
+        &&!str_contains(json_encode($previousSummary,JSON_THROW_ON_ERROR),'conversation_id')
+        &&!str_contains(json_encode($previousSummary,JSON_THROW_ON_ERROR),'900000000000000001'));
+    foreach([['2027-01-01T00:05:00+02:00','2026-12-31'],['2026-12-01T00:05:00+02:00','2026-11-30']]as[$instant,$date]){
+        $clock=strtotime($instant);$ref=$previousDay->invoke(null,$clock);
+        $closed=ModeledConversionVisitProof::dailySentCohort([],[],$clock,null,$ref);
+        $check('previous-day calendar crosses month/year boundaries: '.$date,
+            $closed['date']===$date&&$reader->invoke(null,$closed,$clock,$ref)['available']
+            &&$closed['window']['from']===gmdate('Y-m-d\\TH:i:s\\Z',strtotime($date.'T00:00:00+02:00')));
+    }
+
     $cut=$day+5000;$beforeA=$todayA;$beforeA['value_processed_at_unix']=$day+4500;
     $afterB=$todayB;$afterB['value_processed_at_unix']=$day+7000;$afterB['state']='processed';$afterB['upload_status']='PROCESSED';
     $newer=$todayA;$newer['id']='6';$newer['claimed_at_unix']=$day+6000;$newer['value_rub']=19;

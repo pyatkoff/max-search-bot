@@ -154,7 +154,9 @@ final class ModeledConversionVisitProof
             'checked_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),'checkpoint_at'=>gmdate('Y-m-d\TH:i:s\Z',$checkpoint),
             'basis'=>'unique_client_and_second_precision_visit_start_reconciliation_not_native_visit_id_or_event_log',
             'ledger_complete'=>true,'selected_rows'=>count($selected),'other_rows_omitted'=>max(0,count($ledger)-count($records)),
-            'events'=>array_values($records),'today_sent_cohort'=>self::dailySentCohort($ledger,$records,$now),'provider_write_requests'=>0,'source_writes'=>0];
+            'events'=>array_values($records),'today_sent_cohort'=>self::dailySentCohort($ledger,$records,$now),
+            'yesterday_sent_cohort'=>self::dailySentCohort($ledger,$records,$now,null,self::previousDayReference($now)),
+            'provider_write_requests'=>0,'source_writes'=>0];
         if($followupCheckpoint!==null){
             $result['followup_checkpoint_at']=gmdate('Y-m-d\\TH:i:s\\Z',$followupCheckpoint);
             $result['followup_sent_cohort']=self::followupReport($ledger,$records,$followupCheckpoint,$now);
@@ -298,7 +300,7 @@ final class ModeledConversionVisitProof
         self::directory(dirname(self::path()));
         // Keep per-row evidence after it rotates out of the bounded current report.
         foreach($receipt['events']as$e){
-            $one=$receipt;unset($one['today_sent_cohort'],$one['followup_checkpoint_at'],$one['followup_sent_cohort']);$one['events']=[$e];$one['selected_rows']=1;
+            $one=$receipt;unset($one['today_sent_cohort'],$one['yesterday_sent_cohort'],$one['followup_checkpoint_at'],$one['followup_sent_cohort']);$one['events']=[$e];$one['selected_rows']=1;
             self::storeAt(dirname(self::path()).'/events/'.$e['fingerprint'].'.json',$one);
         }
         self::storeAt(self::path(),$receipt);
@@ -447,6 +449,11 @@ final class ModeledConversionVisitProof
             'window'=>['from'=>gmdate('Y-m-d\\TH:i:s\\Z',$from),'until_exclusive'=>gmdate('Y-m-d\\TH:i:s\\Z',$until)],
             'basis'=>'last_persisted_upload_claim_same_cohort_receipt_and_visit_evidence_not_payment_or_session_day',
             'ledger_complete'=>true,'by_platform'=>$out];
+    }
+    private static function previousDayReference(int $now):int
+    {
+        return (new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))
+            ->setTime(0,0)->modify('-1 day')->getTimestamp();
     }
     private static function dailySummary(mixed $d,int $now,?int $dayReference=null):array
     {
@@ -630,6 +637,7 @@ final class ModeledConversionVisitProof
             'goal_id'=>'678187097','currency'=>'RUB','current_attribution_policy'=>ModeledConversionAttributionWindow::metadata(),'basis'=>$r['basis'],'automatic'=>self::automatic($now),
             'selected_rows'=>$r['selected_rows'],'other_rows_omitted'=>$r['other_rows_omitted'],
             'today_sent_cohort'=>self::dailySummary($r['today_sent_cohort']??null,$now),
+            'yesterday_sent_cohort'=>self::dailySummary($r['yesterday_sent_cohort']??null,$now,self::previousDayReference($now)),
             'followup_sent_cohort'=>self::followupSummary($r['followup_sent_cohort']??null,$now),'cohort_events'=>0,'cohort_value_rub'=>0,
             'processed_events'=>0,'processed_value_rub'=>0,'reconciled_events'=>0,'reconciled_value_rub'=>0,'examples'=>[]];
         $cases=[];
