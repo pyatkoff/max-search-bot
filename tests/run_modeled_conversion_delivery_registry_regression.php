@@ -384,31 +384,44 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     copy(__DIR__.'/../services/ModeledConversionWireValue.php',$isolated.'/app/services/ModeledConversionWireValue.php');
     foreach(['MetrikaOfflineClient','ModeledConversionValueContract']as$name)
         file_put_contents($isolated.'/app/services/'.$name.'.php','<?php require_once '.var_export(realpath(__DIR__.'/../services/'.$name.'.php'),true).';');
-    file_put_contents($isolated.'/app/services/ModeledConversionVisitProof.php', '<?php final class ModeledConversionVisitProof {public static function fingerprint(array $r):string{return hash("sha256",json_encode(array_map(static fn(string $k):string=>(string)($r[$k]??""),["id","conversation_id","platform","target","value_rub","event_unix","client_id","upload_id"]),JSON_THROW_ON_ERROR));}}');
+    copy(__DIR__.'/../services/ModeledConversionVisitProof.php',$isolated.'/app/services/ModeledConversionVisitProof.php');
     $fixtureScript= <<<'PHP'
 <?php
 require __FIXTURE_ROOT__.'/app/services/ModeledConversionWireValue.php';
 $rows=json_decode(__FIXTURE_ROWS__,true,32,JSON_THROW_ON_ERROR);$now=__FIXTURE_NOW__;
+foreach($rows as&$member){$member['value_api_accepted_at_unix']=(int)$member['event_unix']+10;$member['value_processed_at_unix']=$member['state']==='processed'?(int)$member['event_unix']+20:null;}unset($member);
 $plan=ModeledConversionWireValue::plan($rows,$now);$r=$rows[0];
 $j=['version'=>'modeled_wire_correction_v1','wire_key'=>$plan['wire_key'],'members'=>$plan['members'],
 'total_rub'=>$plan['total_rub'],'comment'=>$plan['comment'],'state'=>'sending','upload_id'=>null,'upload_status'=>null,
 'sent_at_unix'=>$now-301,'checked_at_unix'=>$now-301];
 ModeledConversionWireValue::save($r,$j);
 if(ModeledConversionWireValue::read($r)!==$j)throw new RuntimeException('intent_not_durable');
-$api=new class($plan){public int $reads=0;public int $writes=0;public function __construct(private array $plan){}
+$api=new class($plan,$rows){public int $reads=0;public int $writes=0;public function __construct(private array $plan,private array $rows){}
 public function findModeledWireCorrection($members,$now){$this->reads++;return ['id'=>'5999','status'=>'UPLOADED','source_quantity'=>1,'line_quantity'=>1,'comment'=>$this->plan['comment']];}
-public function poll($id){$this->reads++;return ['id'=>$id,'status'=>'PROCESSED','source_quantity'=>1,'line_quantity'=>1,'comment'=>$this->plan['comment']];}
+public function poll($id){$this->reads++;if($id!=='5999')foreach($this->rows as$r)if($r['upload_id']===$id)return ['id'=>$id,'status'=>$r['upload_status'],'source_quantity'=>1,'line_quantity'=>1,'comment'=>MetrikaOfflineClient::comment($r)];return ['id'=>$id,'status'=>'PROCESSED','source_quantity'=>1,'line_quantity'=>1,'comment'=>$this->plan['comment']];}
+public function modeledValueVisits($cid,$activation,$now){return ['status'=>'ok','visits'=>[['started_at'=>gmdate('Y-m-d\\TH:i:s\\Z',(int)$this->rows[0]['event_unix']-60),'visits'=>1,'goal_reaches'=>1,'revenue_rub'=>40]]];}
 public function uploadModeledWireCorrection($members,$now){$this->writes++;throw new RuntimeException('forbidden');}};
+$budgetRefused=false;try{ModeledConversionWireValue::observe($r,$rows,$api,$now,static function():void{throw new RuntimeException('budget');});}catch(RuntimeException $e){$budgetRefused=true;}
 $first=ModeledConversionWireValue::observe($r,$rows,$api,$now);
 $again=ModeledConversionWireValue::observe($r,$rows,$api,$now);
 $last=ModeledConversionWireValue::observe($r,$rows,$api,$now+301);
 $read=ModeledConversionWireValue::read($r);
+$noReplay=$api->reads===2&&$api->writes===0;
+$proof=ModeledConversionVisitProof::verify($rows,$api,(int)$r['event_unix']-1,(int)$r['event_unix']+5,$now+301,[(string)$rows[1]['id']]);
+$expectedTotal=count($proof['events'])===1&&$proof['events'][0]['linkage']==='unique_visit_reconciled'
+&&$proof['events'][0]['expected_goal_reaches']===1&&$proof['events'][0]['expected_goal_value_rub']===40.0;
+$ordinary=$rows[1];$ordinary['id']='999';$ordinary['upload_id']='9999';$ordinary['client_id']='900000000000000009';
+$ordinary['target']=ModeledConversionValueContract::predictionKey('999');$ordinary['value_profile_id']='999';
+$selection=ModeledConversionVisitProof::dueIds([$ordinary,...$rows],(int)$r['event_unix']+5,$now+602,
+static fn(array $item):array=>['at'=>$now-400,'event'=>['upload_status'=>$item['id']==='999'?'UPLOADED':$item['upload_status'],
+'linkage'=>'failed','failure_audit'=>['diagnosis'=>'wire_collision']]],2);
+$repairPriority=count($selection)===2&&$selection[0]===(string)$rows[0]['id']&&in_array('999',$selection,true);
 $path=__FIXTURE_ROOT__.'/max-search-bot-modeled-visit-proof/wire-corrections/'.$plan['wire_key'].'.json';
 $private=(fileperms($path)&0777)===0600&&(fileperms(dirname($path))&0777)===0700;
 chmod($path,0644);clearstatcache(true,$path);$blocked=false;
 try{ModeledConversionWireValue::read($r);}catch(RuntimeException $e){$blocked=true;}
 echo json_encode(['ok'=>$first==='accepted'&&$again==='accepted'&&$last==='processed'
-&&$read['state']==='processed'&&$api->reads===2&&$api->writes===0&&$private&&$blocked],JSON_THROW_ON_ERROR);
+&&$read['state']==='processed'&&$noReplay&&$api->writes===0&&$budgetRefused&&$expectedTotal&&$repairPriority&&$private&&$blocked],JSON_THROW_ON_ERROR);
 PHP;
     $fixtureScript=str_replace(['__FIXTURE_ROOT__','__FIXTURE_ROWS__','__FIXTURE_NOW__'],
         [var_export($isolated,true),var_export(json_encode([$wireFirst,$wireSecond],JSON_THROW_ON_ERROR),true),(string)$auditNow],$fixtureScript);
@@ -417,7 +430,7 @@ PHP;
         if(!is_resource($process))throw new RuntimeException('wire_fixture_process');
         fwrite($pipes[0],$fixtureScript);fclose($pipes[0]);$result=stream_get_contents($pipes[1],2048);fclose($pipes[1]);
         $error=stream_get_contents($pipes[2],2048);fclose($pipes[2]);$code=proc_close($process);
-        $check('private sending intent survives reload and lost acknowledgements reconcile by GET without any POST',
+        $check('wire evidence keeps original allocations, one reported goal, bounded repair priority and lost-ack GET recovery',
             $code===0&&json_decode($result,true)===['ok'=>true]&&$error==='');
     }finally{
         $remove=function(string $dir)use(&$remove):void{foreach(new DirectoryIterator($dir)as$f){
