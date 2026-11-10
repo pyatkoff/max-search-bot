@@ -238,6 +238,47 @@ freeTextNightsCheck('word alternatives retain canonical resolver provenance',
     [$wordResolved['recognized'], $wordResolved['value'], $wordResolved['source']],
     [true, '12-13', 'deterministic:nights_parser']);
 
+// A digit-adjacent zero typo remains a complete nights answer, never another need.
+foreach ([
+    ['1о-12','10-12'], ['9-1O','9-10'], ['На 2О ночей','20'],
+] as [$text,$expected]) {
+    $resolved=NeedValueResolver::resolve('nights',$text);
+    freeTextNightsCheck('zero typo uses canonical nights resolver: '.$text,
+        [$resolved['recognized'],$resolved['value'],$resolved['source']],
+        [true,$expected,'deterministic:nights_parser']);
+}
+foreach ([
+    'о','1оо-12','1o0-12','12-1о','1о-29','1о.12','ребёнку 1о лет',
+    'бюджет 1о тысяч','через 1о дней','1о или 12','девять или 1о?',
+] as $text) {
+    freeTextNightsCheck('zero typo does not widen unsupported input: '.$text,
+        NeedValueResolver::resolve('nights',$text)['recognized'],false);
+}
+$messenger=freeTextNightsReset(180);
+$knownRowId=11;
+foreach ([
+    MaxSearchApi::$statusCityChoose=>'1', MaxSearchApi::$statusContryChoose=>'4',
+    MaxSearchApi::$statusAdults=>'2', MaxSearchApi::$statusChild=>'0',
+    MaxSearchApi::$statusStars=>'5', MaxSearchApi::$statusMeal=>'7',
+] as $status=>$value) {
+    FreeTextNightsFakeData::$rows[]=['ID'=>$knownRowId++,
+        'UF_CHAT_ID'=>180,'UF_STATUS'=>$status,'UF_VALUE'=>$value];
+}
+$knownTripRows=array_values(array_filter(FreeTextNightsFakeData::$rows,
+    static fn(array $row):bool=>$row['UF_STATUS']!==MaxSearchApi::$statusNights));
+StateMessageHandler::handle(['text'=>'1о-12'],180,MaxSearchApi::$statusNights);
+freeTextNightsCheck('zero typo stores the exact requested interval',
+    MaxSearchApi::getSavedData(180)[MaxSearchApi::$statusNights]??null,'10-12');
+freeTextNightsCheck('zero typo retains every other stored trip row',
+    array_values(array_filter(FreeTextNightsFakeData::$rows,
+        static fn(array $row):bool=>$row['UF_STATUS']!==MaxSearchApi::$statusNights)),$knownTripRows);
+freeTextNightsCheck('zero typo advances to the date once',MaxSearchApi::$transitions,[MaxSearchApi::$statusDate]);
+freeTextNightsCheck('zero typo renders the date once',count($messenger->buttons),1);
+freeTextNightsCheck('zero typo avoids the repeated validation question',$messenger->sent,[]);
+freeTextNightsCheck('zero typo avoids the legacy direct writer',MaxSearchApi::$directSaves,[]);
+freeTextNightsCheck('zero typo does not append a storage row',FreeTextNightsFakeData::$adds,0);
+freeTextNightsCheck('zero typo records one canonical transition',count(freeTextNightsTransitionEvents()),1);
+
 // An implicit year rolls forward once this departure day has passed, not only after October.
 $combinedYear = mktime(0, 0, 0, 10, 3, (int)date('Y')) < strtotime('today') ? ((int)date('Y') + 1) : (int)date('Y');
 $combinedDate = sprintf('03.10.%04d', $combinedYear);

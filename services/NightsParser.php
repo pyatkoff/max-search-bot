@@ -15,6 +15,10 @@ class NightsParser
             ? mb_strtolower($text, 'UTF-8')
             : strtolower($text);
         $normalized = str_replace(['–', '—'], '-', $normalized);
+        // A zero typed as Cyrillic/Latin o is eligible only after a digit.
+        // The complete short-answer grammar and bounds below still decide.
+        $normalized = preg_replace('/(?<=\d)[оo](?![\p{L}\d])/ui', '0', $normalized);
+
         $normalized = trim(preg_replace('/[.!?,]+$/u', '', $normalized));
 
         if (preg_match('/^(?:на\s+)?недел(?:я|ю|ьку)$/ui', $normalized)) {
