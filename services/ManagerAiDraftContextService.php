@@ -114,6 +114,12 @@ final class ManagerAiDraftContextService
                 || (int)($conversation['manager_id'] ?? 0) !== $actor)) {
                 return self::failure('reply_not_allowed');
             }
+            // The current draft client owns the legacy travel policy only.
+            // Other companies keep their manual messenger without sending
+            // their history, selections or photos through that AI policy.
+            if (!ProjectMaxConnection::isLegacyProject((string)($conversation['project_key'] ?? ''))) {
+                return self::failure('project_not_supported');
+            }
             if (($conversation['channel'] ?? '') === 'max'
                 && ManagerDeliveryStateService::activeFailure($conversationId) !== null) {
                 return self::failure('suspended');

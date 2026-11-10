@@ -25,7 +25,8 @@
   // The current Manager2 shell uses its one native composer; older shells keep the overlay.
   const editablePreview=()=>manager2()&&!!assistantHost();
   const automaticAttempts=new Map();
-  let automaticIdentity='';
+  let automaticIdentity='',unsupportedProjectKey='';
+  const unsupportedProjectText='Для этого проекта AI-подсказки пока не подключены. Ваш текст и вложения сохранены.';
   let placeholder='',suggestionLargeFont=null,composing=false;
   const dismissedNotices=new Set(),manager2=()=>document.body.classList.contains('manager2');
   const visible=()=>document.visibilityState!=='hidden';
@@ -46,6 +47,18 @@
     return !!saved&&!!current&&Object.keys(current).every(key=>current[key]===saved[key]);
   }
   const ownerBinding=()=>JSON.stringify([S.detail?.conversation?.manager_id,S.detail?.conversation?.status,S.detail?.conversation?.project_key,S.detail?.conversation?.source_id,S.detail?.supervisor_read,S.detail?.owner_read,S.manager?.role]);
+  const capabilityKey=()=>JSON.stringify([S.manager?.id,S.authGeneration,!!S.authExpired,S.current,ownerBinding()]);
+  const projectUnsupported=()=>unsupportedProjectKey!==''&&unsupportedProjectKey===capabilityKey();
+  const unsupportedResult=result=>result?.error==='project_not_supported';
+  function markProjectUnsupported(saved){
+    if(!currentSnapshot(saved))return;
+    unsupportedProjectKey=capabilityKey();
+    if(watch){watch.blocked=true;watch.refreshStatus=false;window.clearTimeout?.(watch.deadlineTimer);watch.deadlineTimer=null}
+    abortStatusRead();clearReady();
+    if(view){view.result=null;delete view.retryAction;clearBody();status.textContent=unsupportedProjectText}
+    if(retry)retry.hidden=true;
+    renderButton();
+  }
   function snapshot(){const ids=new Set((S.detail?.messages||[]).map(message=>String(message.id)));return {context:context(),latest:latestMessageId(),messageIds:ids,messages:messageState(ids),owner:ownerBinding()}}
   function currentSnapshot(saved){return canAnalyze()&&sameContext(saved?.context)&&saved.latest===latestMessageId()&&saved.messages===messageState(saved.messageIds)&&saved.owner===ownerBinding()}
   function timeValue(value){const parsed=window.ManagerTime?.parse?.(value)||new Date(String(value||'').replace(' ','T')+(/(?:Z|[+-]\d{2}:?\d{2})$/.test(String(value||''))?'':'Z'));return Number.isNaN(parsed.getTime())?0:parsed.getTime()}
@@ -126,7 +139,7 @@
   }
   function preparationPermission(){return window.WorkspaceV2PersonalWorkspace?.preparationPermission?.()||{allowed:true,token:'legacy',until:null}}
   function automaticEligible(saved){
-    return !!saved&&watch===saved&&preparationPermission().allowed&&saved.policyToken===preparationPermission().token&&currentSnapshot(saved.snapshot)&&visible()&&window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()!==false&&(ownerRead()||canCompose()&&$('replyText').value==='');
+    return !!saved&&!projectUnsupported()&&watch===saved&&preparationPermission().allowed&&saved.policyToken===preparationPermission().token&&currentSnapshot(saved.snapshot)&&visible()&&window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()!==false&&(ownerRead()||canCompose()&&$('replyText').value==='');
   }
   function syncAutomaticIdentity(){
     const identity=JSON.stringify([S.manager?.id,S.authGeneration,!!S.authExpired]);
@@ -179,6 +192,7 @@
     try{
       const result=await W.request('ai-draft.php','ensure_prepared',{conversation_id:saved.snapshot.context.conversationId,latest_message_id:saved.snapshot.latest},{signal:current.controller?.signal,isCurrent});
       if(!isCurrent())return;
+      if(unsupportedResult(result)){markProjectUnsupported(saved.snapshot);return}
       if(result?.preparation_policy?.allowed===false){saved.blocked=true;if(ready?.kind!=='generated')clearReady();return}
       if(result?.http_status===403||result?.http_status===404){saved.blocked=true;clearReady();resetSession({keepReady:true});return}
       if(result?.ok===true&&(result.requested===true||result.queued===true)){
@@ -195,14 +209,15 @@
   function renderButton(){
     if(!bound||!manager2())return;
     let state='idle',label='Помощник',hint='Запрос туриста, текст ответа и проверки менеджеру.';
-    if(ready&&currentSnapshot(ready.snapshot)&&ready.expires>Date.now()){
+    if(projectUnsupported()){state='unavailable';hint=unsupportedProjectText}
+    else if(ready&&currentSnapshot(ready.snapshot)&&ready.expires>Date.now()){
       state=ready.kind;label=ready.should_draft?'Помощник — Ответ готов':'Помощник — Нужна проверка';
       hint=(state==='prepared'?'Подготовлен автоматически':'Сформирован по нажатию')+(timeLabel(ready.prepared_at)?': '+timeLabel(ready.prepared_at):'')+'. Нажмите, чтобы проверить '+(ready.should_draft?'черновик.':'рекомендации.');
     }else if(view?.stale){state='stale';label='Помощник — Обновить';hint='Переписка изменилась. Прежний черновик нужно обновить.'}
     if(flight){state='loading';label=flight.action==='generate'?'Помощник — Готовим ответ':'Помощник — Проверяем';hint=flight.action==='generate'?'Готовим новый вариант по вашему нажатию.':'Проверяем готовый ответ и актуальность переписки.'}
     if(editablePreview()){
       label='AI';
-      if(!ready&&!flight&&watch?.automatic){
+      if(!projectUnsupported()&&!ready&&!flight&&watch?.automatic){
         const attempt=watch.automatic;state=attempt.phase==='failed'?'error':'loading';
         hint=attempt.phase==='failed'?'Автоподготовка недоступна. Ответ можно подготовить вручную кнопкой AI.':Date.now()>=watch.until?'Подготовка ответа задерживается.':'Ответ готовится автоматически.';
       }
@@ -239,6 +254,7 @@
     try{
       const result=await W.request('ai-draft.php','prepared_status',{conversation_id:saved.snapshot.context.conversationId,latest_message_id:saved.snapshot.latest},{signal:current.controller?.signal,isCurrent});
       if(!isCurrent())return;
+      if(unsupportedResult(result)){markProjectUnsupported(saved.snapshot);return}
       if(result?.http_status===403||result?.http_status===404){saved.blocked=true;clearReady();resetSession({keepReady:true});return}
       if(result?.ok===true&&result.prepared===true&&typeof result.should_draft==='boolean'&&typeof result.revision==='string'&&result.revision&&result.latest_message_id===saved.snapshot.latest){
         if(saved.automatic)saved.automatic.phase='complete';
@@ -248,6 +264,7 @@
             // Passive full-text reads never generate, register use or move focus.
             const proposal=await W.request('ai-draft.php','prepared_preview',{conversation_id:saved.snapshot.context.conversationId,latest_message_id:saved.snapshot.latest},{signal:current.controller?.signal,isCurrent});
             if(!isCurrent())return;
+            if(unsupportedResult(proposal)){markProjectUnsupported(saved.snapshot);return}
             if(proposal?.http_status===403||proposal?.http_status===404){saved.blocked=true;clearReady();resetSession({keepReady:true});return}
             if((!result.preparation_policy||proposal.preparation_policy?.allowed===true&&proposal.preparation_policy.binding===result.preparation_policy.binding)&&hasReadyProposal(proposal,saved.snapshot)&&proposal.prepared===true&&proposal.should_draft===result.should_draft&&proposal.revision===result.revision&&proposal.prepared_at===result.prepared_at)rememberReady(proposal,saved.snapshot,'prepared');
             else clearReady();
@@ -266,6 +283,7 @@
     // A server predating the new preference does not advertise readiness support.
     if(!manager2()||!(canCompose()||ownerRead())||!visible()||window.WorkspaceV2PersonalWorkspace?.supportsAiReadiness?.()===false){stopWatching();return}
     const permission=preparationPermission();
+    if(projectUnsupported())return;
     if(!permission.allowed){stopWatching({keepManual:true});return}
     if(watch&&watch.policyToken===permission.token&&currentSnapshot(watch.snapshot))return;
     stopWatching({keepManual:true});watch={snapshot:snapshot(),policyToken:permission.token,until:Math.min(Date.now()+600000,permission.until||Infinity)};void readStatus(watch);
@@ -288,7 +306,7 @@
   function setBusy(value){
     panel.setAttribute('aria-busy',String(value));
     insert.disabled=value||!view?.result?.should_draft||!canCompose();retry.disabled=value;
-    retry.hidden=view?.retryAction==='validate';
+    retry.hidden=view?.retryAction==='validate'||projectUnsupported();
     insert.textContent=view?.retryAction==='validate'?'Повторить вставку':'Добавить в ответ';
     const disabled=!canAnalyze()||value;if(button.disabled!==disabled)button.disabled=disabled;
     renderButton();
@@ -377,6 +395,7 @@
   }
   function failure(result,action){
     clearBody();view.result=null;
+    if(unsupportedResult(result)){markProjectUnsupported(view.snapshot);return}
     if(['context_changed','context_stale','stale_context','stale_revision','revision_changed'].includes(result?.error)){stale();return}
     if(action==='prepared'){
       if(result?.http_status===403||result?.http_status===404){resetSession();return}
@@ -403,12 +422,14 @@
     const saved=snapshot(),savedSelection=selection(),reading=readerPosition();abortFlight();
     view={snapshot:saved,selection:savedSelection,result:null,stale:false,...(recovery?{retryAction:'prepared'}:{})};
     panel.hidden=false;button.setAttribute('aria-expanded','true');clearBody();retry.textContent=recovery?'Повторить проверку':'Повторить подготовку';status.textContent=recovery?'Проверяем AI-подсказку…':'Читаем переписку и фото, готовим ответ…';
+    if(projectUnsupported()){status.textContent=unsupportedProjectText;setBusy(false);positionPanel(true);panel.focus({preventScroll:true});restoreReader(reading);return false}
     const current={ticket:sequence,action,controller:typeof AbortController==='function'?new AbortController():null};flight=current;setBusy(true);positionPanel(true);panel.focus({preventScroll:true});restoreReader(reading);
     const isCurrent=()=>flight===current&&current.ticket===sequence&&!!view&&currentSnapshot(saved);
     try{
       const request=kind=>W.request('ai-draft.php',editablePreview()&&kind==='prepared'?'prepared_preview':kind,{conversation_id:saved.context.conversationId,latest_message_id:saved.latest},{signal:current.controller?.signal,isCurrent});
       let result=await request(action);
       if(!isCurrent()){sync();return false}
+      if(unsupportedResult(result)){markProjectUnsupported(saved);return false}
       const staleError=['context_changed','context_stale','stale_context','stale_revision','revision_changed'].includes(result?.error);
       const cacheMiss=result?.ok===true&&result.prepared===false;
       const needsReply=validResult(result,saved)&&result.prepared===true&&!result.should_draft&&result.next_action!=='no_contact';
@@ -449,6 +470,7 @@
         // Only this explicit insertion registers provenance; passive appearance does not.
         const registered=await W.request('ai-draft.php','prepared',{conversation_id:saved.context.conversationId,latest_message_id:saved.latest},{signal:current.controller?.signal,isCurrent});
         if(!isCurrent()){sync();return false}
+        if(unsupportedResult(registered)){markProjectUnsupported(saved);return false}
         if(registered?.http_status===403||registered?.http_status===404){resetSession();return false}
         if(!validResult(registered,saved)||registered.prepared!==true||registered.revision!==result.revision||registered.draft!==result.draft||registered.prepared_at!==result.prepared_at){
           view.insertionIssue=true;status.textContent='Не удалось проверить сохранённый AI-ответ. Текст и файлы сохранены. Повторите вставку.';return false;
@@ -457,6 +479,7 @@
       }
       const checked=await W.request('ai-draft.php','validate',{conversation_id:saved.context.conversationId,latest_message_id:saved.latest,revision:result.revision,...(draftId?{draft_id:draftId}:{})},{signal:current.controller?.signal,isCurrent});
       if(!isCurrent()){sync();return false}
+      if(unsupportedResult(checked)){markProjectUnsupported(saved);return false}
       if(checked?.ok!==true||checked.revision!==result.revision||checked.latest_message_id!==saved.latest){
         if(checked?.http_status===403||checked?.http_status===404){resetSession();return false}
         view.insertionIssue=true;
@@ -502,6 +525,7 @@
       // fresh validation and composer insertion path as the full preview.
       const result=await W.request('ai-draft.php','prepared',{conversation_id:saved.context.conversationId,latest_message_id:saved.latest},{signal:current.controller?.signal,isCurrent});
       if(!isCurrent())return false;
+      if(unsupportedResult(result)){markProjectUnsupported(saved);showInsertionIssue(saved,unsupportedProjectText);return false}
       if(result?.http_status===403||result?.http_status===404){resetSession();return false}
       if(!validResult(result,saved)||result.prepared!==true||result.revision!==candidate.revision||result.draft!==candidate.draft||result.prepared_at!==candidate.prepared_at){
         clearReady();showInsertionIssue(saved,result?.ok===true?'AI-подсказка изменилась. Проверьте актуальный вариант.':'Не удалось проверить AI-подсказку. Текст и файлы сохранены. Повторите проверку.');return false;
