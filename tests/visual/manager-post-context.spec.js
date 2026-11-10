@@ -10,13 +10,14 @@ const photo='<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><r
 function post(id=11,entryId=101,overrides={}){
  return {entry_id:entryId,title:id===11?'Турция — семейный отдых в октябре':'Египет — отдых у моря',channel_name:'AnyTour Москва',platform:'max',post_url:'https://max.ru/c/-80095447388179/AaE53iyDMmw',entered_at:'2026-10-14 09:20:00',version_number:2,media_count:1,media_url:`/manager/post-context-media.php?conversation_id=${id}&entry_id=${entryId}&attachment=0`,text:'Турция, Анталья. Вылет из Москвы 24 октября, 7 ночей.\nОтель 5★, всё включено. 2 взрослых.\nЦена из публикации: 150 000 ₽ за всех.\n'+Array.from({length:12},(_,i)=>`Условие ${i+1}: уточнить доступность отеля и цену на новые даты.`).join('\n'),...overrides};
 }
-async function setup(page,{holdPostIds=[],postStatus=200,postFailure=false,photoFailure=false,managerRole='manager'}={}){
+async function setup(page,{holdPostIds=[],postStatus=200,postFailure=false,photoFailure=false,managerRole='manager',repairEntry=false}={}){
  const calls=[],unexpected=[],errors=[],held=[],holdIds=new Set(holdPostIds);let detailStatus=200;
  const manager={id:7,role:managerRole,display_name:'Мария',is_working:true};
  const contexts=new Map([[11,{current:post(),history:[post(11,100,{title:'Предыдущий пост — Кемер',text:'Предыдущие условия: 130 000 ₽ за двоих.',version_number:1})]}],[12,{current:post(12,202,{text:'Египет, 8 ночей. Цена из публикации: 180 000 ₽ за всех.'}),history:[]}]]);
  const revisions=new Map([[11,0],[12,0]]);
- const conv=id=>({id,manager_id:7,manager_name:'Мария',status:'manager',channel:'max',source_name:'AnyTour Москва',display_name:id===11?'Анна Морозова':'Алексей Иванов',last_message_at:`2026-10-14 09:20:0${revisions.get(id)||0}`});
- const messages=id=>Array.from({length:35+(revisions.get(id)||0)},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?7:null,text:i>=34?'А сколько будет на других датах, на двоих с ребёнком?':'Сообщение '+(i+1)+'. Обсуждаем семейный отдых, отели и даты.',created_at:'2026-10-14 09:20:00'}));
+ const isRepair=id=>repairEntry&&id===11;
+ const conv=id=>({id,manager_id:7,manager_name:'Мария',status:'manager',channel:'max',source_name:isRepair(id)?'AppleService39':'AnyTour Москва',display_name:id===11?'Анна Морозова':'Алексей Иванов',last_message_at:`2026-10-14 09:20:0${revisions.get(id)||0}`,...(isRepair(id)?{project_key:'appleservice39',repair_context:{model:'iPhone 15 Pro Max',service:'Замена аккумулятора',entry_code:'as39_repair-iphone-15-pro-max-battery-replacement'}}:{})});
+ const messages=id=>Array.from({length:35+(revisions.get(id)||0)},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?7:null,text:isRepair(id)?(i>=34?'Можно записаться на замену аккумулятора завтра?':'Сообщение '+(i+1)+'. Обсуждаем модель телефона и удобное время ремонта.'):(i>=34?'А сколько будет на других датах, на двоих с ребёнком?':'Сообщение '+(i+1)+'. Обсуждаем семейный отдых, отели и даты.'),created_at:'2026-10-14 09:20:00'}));
  await page.addInitScript(()=>{
   sessionStorage.clear();
   Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{register:async()=>({scope:location.origin+'/manager/',active:{state:'activated',postMessage(){}},pushManager:{getSubscription:async()=>null}}),addEventListener(){}}});
@@ -53,8 +54,8 @@ async function setup(page,{holdPostIds=[],postStatus=200,postFailure=false,photo
   if(url.pathname==='/manager/pipeline-api.php'){
    if(d.action==='catalog')return reply({ok:true,stages:[],tags:[],outcomes:{open:'В работе'},close_reasons:{}});
    if(d.action==='filter_options')return reply({ok:true,filters:{sources:[],managers:[manager]}});
-   if(d.action==='list')return reply({ok:true,conversations:[11,12].map(id=>({...conv(id),project_label:'AnyTour',origin_label:'MAX · канал',can_edit_pipeline:true,last_text:'А сколько будет на других датах?',unread_count:1,last_sender_type:'customer',lead_outcome:'open'}))});
-   if(d.action==='detail')return reply({ok:true,can_edit_pipeline:true,pipeline:{stage:null,tags:[],stage_history:[],outcome:{outcome:'open'}},tasks:[],trip:{city:'Москва',country:'Турция',adults:2},contact:{},source:{},handoff:{}});
+   if(d.action==='list')return reply({ok:true,conversations:[11,12].map(id=>({...conv(id),project_label:isRepair(id)?'AppleService39':'AnyTour',origin_label:'MAX · канал',can_edit_pipeline:true,last_text:isRepair(id)?'Можно записаться завтра?':'А сколько будет на других датах?',unread_count:1,last_sender_type:'customer',lead_outcome:'open'}))});
+   if(d.action==='detail')return reply({ok:true,can_edit_pipeline:true,pipeline:{stage:null,tags:[],stage_history:[],outcome:{outcome:'open'}},tasks:[],trip:isRepair(d.conversation_id)?{}:{city:'Москва',country:'Турция',adults:2},contact:{},source:{},handoff:{}});
   }
   if(method==='POST'&&url.pathname==='/manager/personal-workspace-api.php'&&d.action==='snapshot'&&d.csrf==='fixture-csrf')return reply(require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot());
   if(url.pathname==='/manager/quick-replies-api.php'&&d.action==='toolbar')return reply({ok:true,replies:[{id:901,title:'Уточнить даты',body:'На какие даты рассчитать тур?',scope:'personal',category:'Уточнение',version:1,is_favorite:true,can_edit:true}],version:'1'.padStart(64,'0'),max_replies:100});
@@ -95,6 +96,25 @@ function clean(s){expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 
 for(const width of [390,430,768,1440])test.describe('Source publication at '+width,()=>{
  test.use({viewport:{width,height:900}});
+ test('repair entry keeps captured reply, honest send status and source link usable beside the composer',async({page,browserName})=>{
+  const s=await setup(page,{repairEntry:true}),url='https://max.ru/channel_appleservice39ru/AaRepairFixture';
+  s.contexts.set(11,{current:null,history:[],repair:{event_id:51,model:'iPhone 15 Pro Max',service:'Замена аккумулятора',post_url:url,
+   reply:{state:'delivered',text:'Здравствуйте! Это AppleService39.\nЗамена аккумулятора — iPhone 15 Pro Max.\nСохранённая при переходе стоимость: 6 500 ₽.\n<b>Текст сохранён без исполнения разметки.</b>'}}});
+  await openLead(page);const host=page.locator('#conversationPostContext');await expect(host).toHaveAttribute('data-state','ready');
+  await expect(host.locator('.postContextTeaser')).toHaveText('iPhone 15 Pro Max · Замена аккумулятора');
+  await page.locator('#replyText').fill('Уточню удобное время записи.');const before=await conversationCapacity(page);await openPostOverlay(page);
+  await expect(host.locator('.postContextOverlayTitle')).toHaveText('Контекст ремонта');
+  await expect(host.locator('.postContextOriginal')).toHaveAttribute('href',url);await expect(host).toContainText('Отправка подтверждена');
+  await host.locator('.postContextRepair summary').click();await expect(host.locator('.postContextText')).toContainText('6 500 ₽');
+  await expect(host.locator('.postContextText b')).toHaveCount(0);await expect(host.locator('img')).toHaveCount(0);
+  await expect(host).not.toContainText(/Публикация №|Условия и цены из публикации/);
+  await unchangedCapacity(page,before);await bounded(page);await capture(page,browserName,width,'repair-entry');
+  s.contexts.get(11).repair.reply.state='unknown';s.revise(11);await refresh(page);
+  await expect(host).toContainText('Отправка ответа не подтверждена');await expect(host).not.toContainText('Отправка подтверждена');
+  await expect(page.locator('#replyText')).toHaveValue('Уточню удобное время записи.');
+  await openLead(page,12);await expect(host.locator('.postContextTeaser')).toHaveText('Египет — отдых у моря');await openPostOverlay(page);
+  await expect(host.locator('.postContextOverlayTitle')).toHaveText('Исходный пост');await expect(host).not.toContainText(/iPhone|6 500|ответ бота/);clean(s);
+ });
  test('published unpriced Rixos post keeps its original link and explicit source',async({page,browserName})=>{
   const s=await setup(page),url='https://max.ru/channel_anytour/AaF5iOyMXHU';
   s.contexts.set(11,{current:post(11,101,{publication_id:70,version_id:82,title:'Rixos Premium Magawish Suites & Villas',post_url:url,source_name:'AnyTour Москва',source_key:'max_anytour_msk1',text:'Rixos Premium Magawish Suites & Villas\nЕгипет · Хургада\n\nПросторные сьюты и виллы, песчаный пляж и «ультра всё включено» — для отдыха семьёй или вдвоём.\n\nОтель для семей и пар.'}),history:[]});

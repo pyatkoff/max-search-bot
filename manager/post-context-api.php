@@ -29,6 +29,8 @@ try {
     if (!$conversation) ManagerHttp::respond(['ok'=>false, 'error'=>'not_found'], 404);
     if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
     $context = (new ChannelPostRegistryService())->managerContext($id, (string)$conversation['project_key'], 5);
+    $repair = ManagerConversationService::repairEntryContext($conversation);
+    if ($repair !== null) $context['repair'] = $repair;
     ManagerHttp::respond(['ok'=>true, 'conversation_id'=>$id, 'context'=>$context]);
 } catch (Throwable $e) {
     // Neither storage errors nor provider media/credentials are returned or logged.

@@ -38,7 +38,9 @@
     const id=Number(S.current||0),managerId=Number(S.manager?.id||0);
     if(S.authExpired||!id||!managerId||Number(conversation?.id)!==id||Number(S.detail?.conversation?.id)!==id)return null;
     const authGeneration=S.authGeneration,openGeneration=window.WorkspaceV2Conversation?.getOpenGeneration?.()??0;
-    return {id,managerId,authGeneration,openGeneration,key:[managerId,authGeneration,id,openGeneration,String(conversation.last_message_at||'')].join(':')};
+    const repair=conversation.repair_context,entryCode=typeof repair?.entry_code==='string'?repair.entry_code:'';
+    const lastMessageId=Array.isArray(S.detail?.messages)?S.detail.messages.reduce((last,message)=>Math.max(last,Number(message.id)||0),0):0;
+    return {id,managerId,authGeneration,openGeneration,key:[managerId,authGeneration,id,openGeneration,String(conversation.last_message_at||''),entryCode,lastMessageId].join(':')};
   }
   function canonicalReadFailed(){
     return ['conversationLoadStatus','conversationRefreshStatus'].some(id=>{
@@ -118,9 +120,15 @@
     // Refreshing the post must never move focus out of the answer/search field.
     if(ownedFocus&&!overlay.hidden)closeButton.focus?.({preventScroll:true});
   }
+  function labels(repair){
+    overlay.querySelector('.postContextOverlayTitle').textContent=repair?'Контекст ремонта':'Исходный пост';
+    host.setAttribute('aria-label',repair?'Контекст перехода клиента':'Исходная публикация клиента');
+    trigger.setAttribute('aria-label',repair?'Открыть контекст ремонта':'Открыть исходный пост обращения');
+    closeButton.setAttribute('aria-label',repair?'Закрыть контекст ремонта':'Закрыть пост клиента');
+  }
   function notice(text,kind){
     if(!host)return;
-    ensureFrame();
+    ensureFrame();labels(false);
     host.hidden=false;host.dataset.state=kind;host.setAttribute('aria-busy',kind==='loading'?'true':'false');
     const status=node('div','postContextNotice'+(kind==='error'?' isError':''),text);status.setAttribute('role','status');
     teaser.textContent=kind==='loading'?'Загрузка…':text;photoHint.hidden=true;
@@ -166,16 +174,43 @@
     if(!media&&Number(entry.media_count||0)>0)card.appendChild(node('div','postContextMediaHint','Фото и вложения — в оригинальном посте'));
     return card;
   }
+  function repairContext(value){
+    return value&&typeof value==='object'&&!Array.isArray(value)
+      &&Number.isSafeInteger(value.event_id)&&value.event_id>0
+      &&typeof value.model==='string'&&value.model.length<=160
+      &&typeof value.service==='string'&&value.service.length<=240
+      &&typeof value.reply?.text==='string'&&value.reply.text.length>0&&value.reply.text.length<=8192
+      &&['pending','attempted','delivered','unknown','suppressed'].includes(value.reply.state)?value:null;
+  }
+  function repairTitle(entry){return [entry.model,entry.service].filter(Boolean).join(' · ')||'Консультация по ремонту'}
+  function repairMarkup(entry,context){
+    const card=node('section','postContextCard postContextRepair');
+    card.appendChild(node('div','postContextEyebrow','Контекст перехода'));
+    const head=node('div','postContextHead'),identity=node('div','postContextIdentity');
+    identity.appendChild(node('div','postContextTitle',repairTitle(entry)));
+    identity.appendChild(node('div','postContextMeta','Выбрано при переходе. Уточнения клиента — в переписке.'));head.appendChild(identity);
+    const url=safePostUrl(entry.post_url,'max');
+    if(url){const link=node('a','postContextOriginal','Открыть пост');link.href=url;link.target='_blank';link.rel='noopener noreferrer';head.appendChild(link)}
+    card.appendChild(head);
+    if(!url)card.appendChild(node('div','postContextMeta','Ссылка на публикацию недоступна.'));
+    const state=entry.reply.state;
+    card.appendChild(node('div','postContextMeta',state==='delivered'?'Отправка подтверждена':state==='suppressed'?'Ответ не отправлен':'Отправка ответа не подтверждена'));
+    const detail=disclosure('repair-event-'+entry.event_id,'Сохранённый первый ответ бота',context);
+    const text=node('div','postContextText',entry.reply.text);text.dataset.postScrollTop=String(detail.top);
+    detail.el.appendChild(text);card.appendChild(detail.el);return card;
+  }
   function render(context,payload){
     if(!host||!current(context))return;
     rememberDisclosures();ensureFrame();host.hidden=false;host.dataset.state='ready';host.setAttribute('aria-busy','false');
-    const latest=payload?.current,history=Array.isArray(payload.history)?payload.history.slice(0,4):[];
-    if(!latest&&!history.length){
+    const latest=payload?.current,history=Array.isArray(payload.history)?payload.history.slice(0,4):[],repair=repairContext(payload?.repair);
+    labels(!!repair);
+    if(!latest&&!history.length&&!repair){
       // Ordinary/legacy dialogues have no publication entry. Keep the optional
       // panel absent without discarding the completed read/deduplication key.
       host.replaceChildren();host.hidden=true;host.dataset.state='empty';trigger=overlay=content=closeButton=teaser=photoHint=null;active.viewOpen=false;return;
     }
     const items=[];
+    if(repair)items.push(repairMarkup(repair,context));
     if(latest?.unavailable===true||latest?.available===false){const unavailable=node('div','postContextNotice isError','Исходный пост этого обращения недоступен.');unavailable.setAttribute('role','status');items.push(unavailable)}
     else if(latest)items.push(entryMarkup(latest,context));
     if(history.length){
@@ -186,7 +221,7 @@
     const available=latest&&latest.unavailable!==true&&latest.available!==false;
     const title=available?String(latest.title||'').trim():'';
     const snippet=available?String(latest.text||'').replace(/\s+/g,' ').trim():'';
-    teaser.textContent=available?(title&&title!=='Публикация'?title:snippet||'Открыть условия публикации'):'Последний пост недоступен';
+    teaser.textContent=repair?repairTitle(repair):available?(title&&title!=='Публикация'?title:snippet||'Открыть условия публикации'):'Последний пост недоступен';
     trigger.title=teaser.textContent;photoHint.hidden=!(available&&Number(latest.media_count||0)>0);
     replaceContent(...items);
     overlay.hidden=active.viewOpen!==true;trigger.setAttribute('aria-expanded',overlay.hidden?'false':'true');hydratePhotos();sizeOverlay();

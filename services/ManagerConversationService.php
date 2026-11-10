@@ -316,6 +316,72 @@ class ManagerConversationService
         }catch(Throwable $ignored){return null;}
     }
 
+    /** Read projection only. The caller must first use visibleConversation for the current manager. */
+    public static function repairEntryContext(array $conversation): ?array
+    {
+        if (($conversation['channel'] ?? '') !== 'max' || ProjectMaxConnection::isLegacyConversation($conversation)) return null;
+        $connection = ProjectMaxConnection::resolve((string)($conversation['project_key'] ?? ''));
+        if ($connection === null) return null;
+        require_once __DIR__.'/RepairProjectSettings.php';
+        $scope = RepairProjectSettings::webhook($connection);
+        if ($scope === null) return null;
+        $pdo = ConversationDb::connection();
+        $q = $pdo->prepare("SELECT c.id,c.customer_id,c.customer_channel_id,c.metadata_json,cc.external_user_id
+            FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id
+            AND cc.project_key=c.project_key AND cc.channel=c.channel AND cc.external_chat_id=c.external_chat_id
+            JOIN conversation_sources s ON s.id=c.source_id JOIN projects p ON p.id=s.project_id AND p.project_key=c.project_key
+            WHERE c.id=? AND c.project_key=? AND c.source_id=? AND c.channel='max' AND c.external_chat_id=? AND s.source_key=? LIMIT 1");
+        $q->execute([(int)$conversation['id'],$connection->projectKey(),(int)$conversation['source_id'],
+            (string)$conversation['external_chat_id'],$scope['source_key']]);
+        $owner = $q->fetch(PDO::FETCH_ASSOC);
+        if (!$owner) return null;
+        $metadata = json_decode((string)$owner['metadata_json'], true);
+        if (!is_array($metadata) || ($metadata['max_bot_key'] ?? null) !== $connection->botKey()) return null;
+
+        // Entry order is the event ID. Historical bare DATETIME values have mixed bases.
+        // A malformed latest entry never promotes an older entry to the current one.
+        $q = $pdo->prepare("SELECT id,payload_json FROM conversation_events WHERE conversation_id=?
+            AND event_type='bot_started' AND payload_json LIKE ? ORDER BY id DESC LIMIT 1");
+        $q->execute([(int)$conversation['id'],'%"repair_entry_reply"%']);
+        $event = $q->fetch(PDO::FETCH_ASSOC);
+        if (!$event || strlen((string)$event['payload_json']) > 65536) return null;
+        $payload = json_decode((string)$event['payload_json'], true, 16);
+        $intent = is_array($payload) ? ($payload['repair_entry_reply'] ?? null) : null;
+        $context = is_array($payload) ? ($payload['repair_context'] ?? null) : null;
+        if (!is_array($intent) || !is_array($context)
+            || ($payload['bot_key'] ?? null) !== $connection->botKey()
+            || ($payload['source_key'] ?? null) !== $scope['source_key']
+            || !is_string($payload['delivery_key'] ?? null) || $payload['delivery_key'] === ''
+            || ($intent['delivery_key'] ?? null) !== $payload['delivery_key']
+            || ($intent['project_key'] ?? null) !== $connection->projectKey()
+            || ($intent['bot_key'] ?? null) !== $connection->botKey()
+            || ($intent['conversation_id'] ?? null) !== (int)$owner['id']
+            || ($intent['customer_id'] ?? null) !== (int)$owner['customer_id']
+            || ($intent['customer_channel_id'] ?? null) !== (int)$owner['customer_channel_id']
+            || ($intent['external_user_id'] ?? null) !== (string)$owner['external_user_id']
+            || !is_string($intent['entry_code'] ?? null) || preg_match('/\A[A-Za-z0-9_-]{1,128}\z/D', $intent['entry_code']) !== 1
+            || ($context['entry_code'] ?? null) !== $intent['entry_code']
+            || !is_string($intent['post_id'] ?? null) || preg_match('/\A[A-Za-z0-9_-]{1,64}\z/D', $intent['post_id']) !== 1
+            || !in_array($intent['state'] ?? null, ['pending','attempted','delivered','unknown','suppressed'], true)
+            || !is_string($intent['text'] ?? null) || trim($intent['text']) === '' || strlen($intent['text']) > 8192) return null;
+        foreach (['model'=>160,'service'=>240] as $key=>$limit) {
+            if (!is_string($context[$key] ?? null) || mb_strlen($context[$key], 'UTF-8') > $limit
+                || preg_match('/[\x00-\x1f\x7f]/u', $context[$key]) !== 0) return null;
+        }
+        $url = null;
+        $appleEntry = $connection->projectKey() === AppleService39PilotCatalog::PROJECT
+            ? AppleService39PilotCatalog::resolve($connection->projectKey(), $connection->botKey(), $intent['entry_code']) : null;
+        if ($connection->projectKey() === AppleService39PilotCatalog::PROJECT
+            && ($appleEntry['post_id'] ?? null) === $intent['post_id']) {
+            require_once __DIR__.'/AppleService39PilotPublicationStore.php';
+            // A missing/unverified public receipt must not hide the captured entry.
+            try { $url = (new AppleService39PilotPublicationStore($pdo))->verifiedPostUrl($intent['post_id'], (int)$conversation['source_id']); }
+            catch (Throwable $ignored) { $url = null; }
+        }
+        return ['event_id'=>(int)$event['id'],'model'=>$context['model'],'service'=>$context['service'],
+            'post_url'=>$url ?? '', 'reply'=>['state'=>$intent['state'],'text'=>$intent['text']]];
+    }
+
     public static function detail(int $conversationId,int $managerId,int $beforeId=0,int $limit=200,bool $markRead=false,bool $openUnread=false): ?array
     {
         if($beforeId<0)throw new InvalidArgumentException('invalid_history_cursor');

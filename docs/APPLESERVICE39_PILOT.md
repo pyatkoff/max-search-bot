@@ -1,5 +1,30 @@
 # AppleService39 MAX pilot
 
+## Manager entry context
+
+The existing protected post-context endpoint also projects a repair entry from
+the last captured `bot_started.repair_entry_reply`. It first uses the current
+manager/project/source visibility policy, then checks the saved bot and exact
+conversation/customer/channel/entry identity. The response contains only model,
+service, event ID, safe public link and the captured reply with its recorded send
+state. It performs no provider request, write, acknowledgement or reply retry.
+
+The workspace calls this **Контекст ремонта**. The reply is labelled as the saved
+first bot answer, separate from publication prices; it is never regenerated from
+the current catalogue. Pending, attempted and unknown sends remain unconfirmed;
+suppressed sends remain unsent. Event IDs order these entries without assuming a
+time zone for historical bare DATETIME values. Existing general post snapshots
+and history retain their own registry and identifiers.
+
+For AppleService39, **Открыть пост** uses only a verified one-attempt original
+create receipt bound to the fixed campaign/project/bot/channel/source and the
+reviewed entry/post pair. Missing or unsafe receipts omit the link while keeping
+the captured context. A generic repair entry does not invent a publication.
+
+The old natural 9 November manager-case acceptance remains open until its exact
+reference and an authorized Apple-specific read are available. Synthetic endpoint
+and browser checks do not close it. Published catalogue-v1 records are unchanged.
+
 ## Current catalogue and warranty — 10 November 2026
 
 The owner confirmed a three-month warranty for all repairs and selected the front-glass service table as the current price authority. This supersedes the earlier absence of a fixed warranty. The normalized source in `resources/appleservice39/catalogue-v1/` contains33 exact models in9 navigation groups, recovered from19 live public source pages and17 tables. `source-audit.json` retains each selected original row, coordinate, document digest and observation time; website warranty/duration fields remain separate from the later owner policy. No conflicting repair duration becomes a fixed promise.

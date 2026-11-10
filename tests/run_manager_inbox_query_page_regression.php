@@ -319,8 +319,15 @@ if(is_string($baselineFile)&&$baselineFile!==''){
             &&$expectedRow['last_text']==='tour_like_synthetic'&&$expectedRow['last_preview_text']==='Нажата кнопка «Нравится»');
         $expectedRow['last_text']='Нажата кнопка «Нравится»';$redactedLikeRows++;
     }unset($expectedRow);
-    queryPageCheck('every preview field and candidate metadata match installed source except the explicit like token redaction',
-        $redactedLikeRows===1&&$expectedRows===$previewRows&&$baselinePage===$previewPage);
+    $compatibleRows=$previewRows;$waitFields=['reply_wait_started_unix','reply_wait_started_at','reply_wait_age_seconds','reply_wait_time_known'];$validWait=true;
+    foreach($compatibleRows as $index=>&$row){
+        $added=array_diff_key($row,$baselineRows[$index]);
+        $validWait=$validWait&&array_keys($added)===$waitFields&&$added===array_combine($waitFields,[null,null,null,false]);
+        foreach($waitFields as $field)unset($row[$field]);
+    }unset($row);
+    queryPageCheck('AI preview fixtures add exactly the four truthful unknown current-wait fields',$validWait);
+    queryPageCheck('every legacy preview field and candidate metadata match installed source except the explicit like token redaction',
+        $redactedLikeRows===1&&$expectedRows===$compatibleRows&&$baselinePage===$previewPage);
 }
 $plan=$pdo->prepare('EXPLAIN QUERY PLAN '.$previewSql);$plan->execute($previewSqlArgs);
 $lookups=count(array_filter($plan->fetchAll(),static fn(array $row):bool=>preg_match('/\b(?:SEARCH|SCAN) mm\b/',$row['detail'])===1));
