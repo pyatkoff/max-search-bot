@@ -3,6 +3,36 @@ declare(strict_types=1);
 require_once dirname(__DIR__).'/services/HotelWorkQueue.php';
 require_once __DIR__.'/fixtures/hotel_work_queue.php';
 
+// Existence is the parent's barrier: publish the pin only after its complete write.
+function hotelPublishRaceReady(string $out,string $stage,?callable $beforePublish=null): void
+{
+    $temporary=$out.'.ready.tmp';
+    if (file_put_contents($temporary,$stage)!==strlen($stage)) throw new RuntimeException('race_ready_write_failed');
+    if ($beforePublish!==null) $beforePublish();
+    if (!rename($temporary,$out.'.ready')) throw new RuntimeException('race_ready_publish_failed');
+}
+
+// A deterministic native-process probe exposes the old create-before-write window.
+if (($argv[1]??'')==='--ready-publication-probe') {
+    $out=$argv[2]??'';$variant=$argv[3]??'';
+    $stage='stage:'.str_repeat('s',32);$event='event:'.str_repeat('e',32);
+    file_put_contents($out.'.event',$event);
+    $pause=static function() use($out): void {
+        file_put_contents($out.'.prepared','prepared');$until=microtime(true)+10;
+        while (!is_file($out.'.publish')&&microtime(true)<$until) usleep(1000);
+        if (!is_file($out.'.publish')) throw new RuntimeException('ready_probe_publish_timeout');
+    };
+    if ($variant==='legacy') {
+        // Hold between the same file creation and payload write used by the old signal.
+        $handle=fopen($out.'.ready','wb');
+        if ($handle===false) throw new RuntimeException('ready_probe_open_failed');
+        $pause();
+        if (fwrite($handle,$stage)!==strlen($stage)||!fclose($handle)) throw new RuntimeException('ready_probe_write_failed');
+    } elseif ($variant==='atomic') hotelPublishRaceReady($out,$stage,$pause);
+    else exit(4);
+    exit(0);
+}
+
 // Both children retain the original received pending ID and the same preflight pins.
 if (($argv[1]??'')==='--delivery-repair-child') {
     [$unused,$mode,$file,$input,$action,$out]=array_pad($argv,6,'');
@@ -73,7 +103,7 @@ if (($argv[1]??'')==='--claim-authority-child') {
     $queue=new HotelWorkQueue($pdo,static function() use($armed,$hold): int {
         if ($armed->value) {$armed->value=false;$hold();}return 1793100000;
     });
-    $status=$queue->status(1,str_repeat('a',32),'RACE');file_put_contents($out.'.ready',$status['stage_id']);
+    $status=$queue->status(1,str_repeat('a',32),'RACE');hotelPublishRaceReady($out,$status['stage_id']);
     $until=microtime(true)+10;
     while (!is_file($barrier)&&microtime(true)<$until) usleep(1000);
     if (!is_file($barrier)) exit(3);
@@ -110,7 +140,7 @@ if (($argv[1]??'')==='--claim-recovery-child') {
         return 1793100420;
     });
     $status=$queue->status(1,str_repeat('a',32),'RACE');
-    file_put_contents($out.'.ready',$status['stage_id']);file_put_contents($out.'.event',$status['expected_pending_event_id']);
+    file_put_contents($out.'.event',$status['expected_pending_event_id']);hotelPublishRaceReady($out,$status['stage_id']);
     $until=microtime(true)+10;
     while (!is_file($barrier)&&microtime(true)<$until) usleep(1000);
     if (!is_file($barrier)) exit(3);
@@ -150,7 +180,7 @@ if (in_array($argv[1]??'',['--claim-handoff-child','--claim-resume-child'],true)
     });
     $status=$queue->status(1,str_repeat('a',32),'RACE');
     if ($mode==='--claim-resume-child') file_put_contents($out.'.event',$status['expected_pending_event_id']);
-    file_put_contents($out.'.ready',$status['stage_id']);
+    hotelPublishRaceReady($out,$status['stage_id']);
     $until=microtime(true)+10;
     while (!is_file($barrier)&&microtime(true)<$until) usleep(1000);
     if (!is_file($barrier)) exit(3);
@@ -204,6 +234,44 @@ function hotelReject(callable $work,string $class,string $name,?string $reason=n
     try { $work(); } catch (Throwable $e) { hotelAssert($e instanceof $class&&($reason===null||$e->getMessage()===$reason),$name);return; }
     hotelAssert(false,$name);
 }
+
+// Real PHP writers stop at a known barrier; no probabilistic repetition is needed.
+foreach (['legacy','atomic'] as $variant) {
+    $dir=sys_get_temp_dir().'/hotel-ready-probe-'.bin2hex(random_bytes(8));
+    if (!mkdir($dir,0700)) throw new RuntimeException('ready_probe_directory_unavailable');
+    $out=$dir.'/pin';$process=null;$pipes=[];
+    try {
+        $process=proc_open([PHP_BINARY,__FILE__,'--ready-publication-probe',$out,$variant],
+            [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+        if (!is_resource($process)) throw new RuntimeException('ready_probe_process_unavailable');
+        fclose($pipes[0]);$until=microtime(true)+10;
+        while (!is_file($out.'.prepared')&&microtime(true)<$until) usleep(1000);
+        hotelAssert(is_file($out.'.prepared'),'ready_probe_writer_stopped_before_publication');
+        hotelAssert(file_get_contents($out.'.event')==='event:'.str_repeat('e',32),'ready_probe_event_complete_before_publication');
+        if ($variant==='legacy') {
+            hotelAssert(is_file($out.'.ready')&&file_get_contents($out.'.ready')==='',
+                'legacy_ready_exists_before_its_payload_negative_control');
+        } else {
+            hotelAssert(!is_file($out.'.ready')&&file_get_contents($out.'.ready.tmp')==='stage:'.str_repeat('s',32),
+                'atomic_ready_stays_hidden_until_complete_pin_is_published');
+        }
+        file_put_contents($out.'.publish','publish');
+        $stdout=stream_get_contents($pipes[1]);$stderr=stream_get_contents($pipes[2]);
+        fclose($pipes[1]);fclose($pipes[2]);$exit=proc_close($process);$process=null;
+        hotelAssert($exit===0&&$stdout===''&&$stderr==='','ready_probe_child_clean');
+        hotelAssert(file_get_contents($out.'.ready')==='stage:'.str_repeat('s',32)
+            &&file_get_contents($out.'.event')==='event:'.str_repeat('e',32),'ready_probe_publishes_exact_complete_pins');
+        hotelAssert(!is_file($out.'.ready.tmp'),'ready_probe_leaves_no_temporary_pin');
+    } finally {
+        if (is_resource($process)) {
+            file_put_contents($out.'.publish','publish');
+            foreach ($pipes as $pipe) if (is_resource($pipe)) fclose($pipe);
+            proc_terminate($process);proc_close($process);
+        }
+        foreach (glob($dir.'/*')?:[] as $path) unlink($path);rmdir($dir);
+    }
+}
+
 function hotelFixture(?string $file=null): array
 {
     $pdo=new HotelWorkTestPdo($file);$clock=(object)['at'=>1793100000];$q=new HotelWorkQueue($pdo,static fn(): int=>$clock->at);
