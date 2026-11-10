@@ -1,0 +1,120 @@
+name: Read the active regional departure catalogue once
+
+on:
+  push:
+    branches:
+      - audit/regional-departure-catalog-20261110
+    paths:
+      - '.github/workflows/regional-departure-catalog-audit.yml'
+      - 'tools/export_active_departure_catalog.php'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: regional-departure-catalog-audit-20261110
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.event_name == 'push' && github.ref == 'refs/heads/audit/regional-departure-catalog-20261110'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      EXPECTED_APPLICATION_SHA: 77af57d7756d81240ae4973035e1de20a7aee5cb
+    steps:
+      - name: Check out the exact fixed reader
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /tools/export_active_departure_catalog.php
+
+      - name: Prepare the existing canonical connection
+        env:
+          STANDBY_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_file="$RUNNER_TEMP/catalog_key"
+          raw="$STANDBY_KEY"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            [[ "$decoded" == *"PRIVATE KEY"* ]] || { echo 'ACTIVE_DEPARTURES_ERROR=CANONICAL_KEY_UNAVAILABLE' >&2; exit 1; }
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null 2>/dev/null || { echo 'ACTIVE_DEPARTURES_ERROR=CANONICAL_KEY_UNAVAILABLE' >&2; exit 1; }
+
+      - name: Read only active public departure reference fields
+        env:
+          STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          output="$RUNNER_TEMP/active-departures.json"
+          diagnostics="$RUNNER_TEMP/active-departures.stderr"
+          # Keep the canonical connection options already used by the standby
+          # diagnostic/deployment; no legacy host or unrelated host pin is used.
+          if ! ssh -i "$RUNNER_TEMP/catalog_key" \
+            -o BatchMode=yes -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 \
+            "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" \
+            "set -eu; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_APPLICATION_SHA'; php -d display_errors=0 -d log_errors=0" \
+            < tools/export_active_departure_catalog.php > "$output" 2> "$diagnostics"; then
+            python3 - "$diagnostics" <<'PY'
+          import re, sys
+          text = open(sys.argv[1], encoding='utf-8', errors='replace').read(8192)
+          codes = re.findall(r'^ACTIVE_DEPARTURES_ERROR=([A-Z_]{1,80})$', text, re.M)
+          print('ACTIVE_DEPARTURES_ERROR=' + (codes[-1] if codes else 'CANONICAL_READ_UNAVAILABLE'), file=sys.stderr)
+          PY
+            exit 1
+          fi
+          python3 - "$output" <<'PY'
+          import datetime, hashlib, json, os, re, sys
+          def require(ok):
+              if not ok: raise ValueError('invalid_export')
+          try:
+              raw = open(sys.argv[1], 'rb').read(1048577)
+              require(0 < len(raw) <= 1048576 and raw.endswith(b'\n'))
+              p = json.loads(raw)
+              require(set(p) == {'kind','source_table','captured_at','active_filter','columns','available_column_metadata','row_count','rows','rows_sha256','complete','consistent_snapshot','read_only','database_changed'})
+              require(p['kind'] == 'anytour_active_departures_v1' and p['source_table'] == 'catalog_departures' and p['active_filter'] == 1)
+              require(p['complete'] is True and p['consistent_snapshot'] is True and p['read_only'] is True and p['database_changed'] is False)
+              datetime.datetime.strptime(p['captured_at'], '%Y-%m-%dT%H:%M:%SZ')
+              columns = p['columns']
+              require(isinstance(columns,list) and columns == [c for c in ('id','name','name_genitive','is_active') if c in columns] and all(c in columns for c in ('id','name','is_active')))
+              require(type(p['row_count']) is int and 0 < p['row_count'] <= 2000 and isinstance(p['rows'],list) and len(p['rows']) == p['row_count'])
+              schema = p['available_column_metadata']
+              require(isinstance(schema,list) and len(schema) == len(columns) and {c['COLUMN_NAME'] for c in schema} == set(columns))
+              require(all(set(c) == {'COLUMN_NAME','DATA_TYPE','IS_NULLABLE'} and all(isinstance(v,str) and len(v.encode()) <= 64 for v in c.values()) for c in schema))
+              last = 0
+              for row in p['rows']:
+                  require(list(row) == columns and isinstance(row['id'],str) and re.fullmatch(r'[1-9][0-9]{0,19}',row['id']) and int(row['id']) > last)
+                  last = int(row['id'])
+                  require(type(row['is_active']) is int and row['is_active'] == 1)
+                  for field in ('name','name_genitive'):
+                      if field not in row: continue
+                      value = row[field]
+                      require((field == 'name_genitive' and value is None) or (isinstance(value,str) and len(value.encode('utf-8')) <= 400 and not re.search(r'[\x00-\x1f\x7f]',value) and (field == 'name_genitive' or value.strip())))
+              encoded = json.dumps(p['rows'],ensure_ascii=False,separators=(',',':')).replace('\u2028','\\u2028').replace('\u2029','\\u2029').encode('utf-8')
+              require(hashlib.sha256(encoded).hexdigest() == p['rows_sha256'])
+              summary = {'row_count':p['row_count'],'captured_at':p['captured_at'],'rows_sha256':p['rows_sha256'],'raw_sha256':hashlib.sha256(raw).hexdigest(),'application_sha':os.environ['EXPECTED_APPLICATION_SHA'],'audit_source_sha':os.environ['GITHUB_SHA'],'database_changed':False}
+              print('ACTIVE_DEPARTURE_CATALOG_SUMMARY=' + json.dumps(summary,sort_keys=True))
+              print('ACTIVE_DEPARTURE_CATALOG_JSON=' + raw.decode('utf-8').strip())
+          except Exception:
+              print('ACTIVE_DEPARTURES_ERROR=VALIDATION_FAILED',file=sys.stderr)
+              sys.exit(1)
+          PY
+
+      - name: Remove ephemeral connection and reference files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/catalog_key" "$RUNNER_TEMP/active-departures.json" "$RUNNER_TEMP/active-departures.stderr"
