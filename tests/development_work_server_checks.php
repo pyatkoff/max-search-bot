@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/DevelopmentWorkServerRuntime.php';
+require_once __DIR__.'/development_work_server_amendment_checks.php';
 
 /** Synthetic provider bytes only. No key, live queue, network or worker is used. */
 function devServerFixture(?PDO $pdo=null,bool $arm=true): array
@@ -40,7 +41,7 @@ function devServerResponse(string $wire,int $ordinal=1,?callable $mutate=null): 
 {
     $request=json_decode($wire,true,32,JSON_THROW_ON_ERROR);
     $payload=json_decode($request['input'][1]['content'][0]['text'],true,32,JSON_THROW_ON_ERROR);
-    $role=$request['text']['format']['name']==='development_server_producer'?'producer':'reviewer';
+    $role=in_array($request['text']['format']['name'],['development_server_producer','development_server_producer_v2'],true)?'producer':'reviewer';
     $report=devServerReport($payload,$role);
     $raw=['id'=>'resp_SYNTHETIC_'.$ordinal,'status'=>'completed','model'=>$request['model'],
         'usage'=>['input_tokens'=>100,'output_tokens'=>200,'total_tokens'=>300],
@@ -231,6 +232,7 @@ function devServerChecks(): void
     $p->beforeExecute=null;$time->at+=60;
     devAssert($queue->serverTick($fake,devServerOrigin($time))['provider_calls']===0&&count($seen->sent)===1,
         'lost_result_commit_retains_original_unknown_reservation');
+    devServerAmendmentChecks();
     devServerHeldHealthChecks();
     devServerOverlayChecks();
     devServerSubscriptionRaceChecks();

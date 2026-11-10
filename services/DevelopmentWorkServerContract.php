@@ -168,13 +168,49 @@ final class DevelopmentWorkServerContract
         } elseif(($report['approved']??null)!==true||($report['candidate_sha256']??null)!==$candidate)
             throw new DomainException('development_server_review_lineage');
     }
+    /** Only remaining B calls under a separately reviewed amendment use v2. */
+    public static function futurePolicy(): array
+    {
+        $p=self::policy();$profile=$p['profile'];$profile['max_output_tokens']=4096;$profile['text_verbosity']='low';
+        $p['schema']='development-server-policy-v2-remaining-B';
+        $p['profile']=$profile;$p['profile_sha256']=self::hash($profile);$p['max_response_bytes']=16384;
+        $p['readback_contract']='full_structured_v2';
+        $p['producer_instructions_sha256']=hash('sha256',self::futureInstructions('producer'));
+        $p['reviewer_instructions_sha256']=hash('sha256',self::futureInstructions('reviewer'));
+        $p['producer_schema_sha256']=self::hash(self::futureSchema('producer'));
+        $p['reviewer_schema_template_sha256']=self::hash(self::futureSchema('reviewer',str_repeat('0',64)));
+        $p['reviewer_candidate_binding']='exact_canonical_original_candidate_sha256_enum';
+        return $p;
+    }
+    public static function futureInstructions(string $role): string
+    {return self::instructions($role).' Emit compact JSON without padding. Keep each English evidence note within 64 characters. The reviewer candidate hash is fixed by schema; do not calculate it. Do not produce explanatory prose outside the JSON.';}
+    public static function futureSchema(string $role,?string $candidateHash=null): array
+    {
+        $s=self::schema($role,'readiness');$s['properties']['checks']['items']['properties']['note']['maxLength']=64;
+        if($role==='reviewer'){
+            if(!is_string($candidateHash)||preg_match('/\\A[a-f0-9]{64}\\z/D',$candidateHash)!==1)throw new DomainException('development_server_candidate_schema');
+            $s['properties']['candidate_sha256']=['type'=>'string','enum'=>[$candidateHash]];
+        }
+        return $s;
+    }
+    public static function toolResult(array $data): array
+    {
+        $v2=($data['server_control']['readback_contract']??null)==='full_structured_v2';
+        $text=$v2?self::json(['schema'=>'development-full-structured-readback-v2','queue_id'=>$data['queue_id']??self::QUEUE,
+            'state'=>$data['state']??($data['server_control']['state']??'unknown'),'accepted_count'=>$data['accepted_count']??null,'complete_data'=>'structuredContent',
+            'data_sha256'=>self::hash($data)]):json_encode($data,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+        if($v2&&strlen($text)>1024)throw new DomainException('development_server_summary_budget');
+        return ['content'=>[['type'=>'text','text'=>$text]],'structuredContent'=>$data,
+            'isError'=>isset($data['ok'])&&$data['ok']!==true];
+    }
+
     /** Reserve room for the existing status metadata and an ordinary bounded RPC ID. */
     public static function assertReadback(array $data): void
     {
         $json=self::json($data);
-        if(strlen($json)>self::MAX_PROOF_JSON_BYTES)throw new DomainException('development_server_readback_budget');
-        $tool=['content'=>[['type'=>'text','text'=>json_encode($data,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]],
-            'structuredContent'=>$data,'isError'=>false];
+        $v2=($data['server_control']['readback_contract']??null)==='full_structured_v2';
+        if(strlen($json)>($v2?196608:self::MAX_PROOF_JSON_BYTES))throw new DomainException('development_server_readback_budget');
+        $tool=self::toolResult($data);
         $wire=['jsonrpc'=>'2.0','id'=>str_repeat("\x01",1024),'result'=>$tool,'reserved_status_metadata'=>str_repeat('x',16384)];
         if(strlen(json_encode($wire,JSON_THROW_ON_ERROR))>self::MAX_RPC_BYTES)
             throw new DomainException('development_server_rpc_budget');
