@@ -45,8 +45,8 @@ function devAmendmentFixture(): array
         $r=devAmendmentSizedResponse($wire,$n,$n===1?6162:16384,$n>=3);
         $capture($r['transport']);$log->results[]=$r;return $r['report'];
     });
-    $q->serverTick($provider,devServerOrigin($clock));$clock->at+=60;
-    $q->serverTick($provider,devServerOrigin($clock));$clock->at+=60;
+    devServerTestTick($q,$provider,devServerOrigin($clock));$clock->at+=60;
+    devServerTestTick($q,$provider,devServerOrigin($clock));$clock->at+=60;
     $s=devServerStatus($q);$proof=$s['server_control'];$old=json_decode(base64_decode($proof['binding_base64'],true),true,32,JSON_THROW_ON_ERROR);
     $producer=$proof['attempts'][0];$reviewer=$proof['attempts'][1];
     $o=['queue_id'=>$s['queue_id'],'task_id'=>DevelopmentWorkServerContract::A,'plan_sha256'=>$s['plan_sha256'],
@@ -164,13 +164,13 @@ function devServerAmendmentChecks(): void
     $written=ManagerDraftClient::captureDevelopmentChunk($b,$large,'é',8192);
     devAssert($written===0&&$large&&strlen($b)===8192,'actual_chunk_boundary_retains_exact_bytes_even_when_prefix_is_not_UTF8');
     $state=(object)['released'=>false,'pdo'=>$p];$gate=devAmendmentGate($m,$state);
-    $held=$q->serverTick($provider,devServerOrigin($clock),$gate);
+    $held=devServerTestTick($q,$provider,devServerOrigin($clock),$gate);
     devAssert($held['provider_calls']===0&&$held['work_accepted']===false&&$held['execution_status']==='held_existing_unknown'
         &&count($log->sent)===2&&devServerStatus($q)['accepted_count']===0,
         'pending_publication_uses_real_held_proof_without_work_credit_or_circular_deploy_gate');
-    $calls=$state->requests;$q->serverTick($provider,devServerOrigin($clock),$gate);
+    $calls=$state->requests;devServerTestTick($q,$provider,devServerOrigin($clock),$gate);
     devAssert($calls===$state->requests,'public_release_metadata_probe_is_once_per_minute');
-    $state->released=true;$clock->at+=60;$applied=$q->serverTick($provider,devServerOrigin($clock),$gate);$accepted=devServerStatus($q);
+    $state->released=true;$clock->at+=60;$applied=devServerTestTick($q,$provider,devServerOrigin($clock),$gate);$accepted=devServerStatus($q);
     devAssert($applied['provider_calls']===0&&$applied['acceptance_kind']==='supplementary_original_ROOT_review'
         &&$accepted['accepted_count']===1&&$accepted['task_count']===3&&$accepted['task_id']===DevelopmentWorkServerContract::B
         &&count($log->sent)===2,'one_real_original_review_amendment_accepts_A_and_materializes_B_without_model_send');
@@ -180,10 +180,10 @@ function devServerAmendmentChecks(): void
         &&$accepted['last_resolution']['outcome']==='accepted_readback'
         &&$accepted['server_control']['amendment']['supplementary_acceptance_count']===1,
         'old_UNKNOWN_original_bytes_binding_and_charged_budget_survive_distinct_amendment_resolution');
-    ++$clock->at;$q->serverTick($provider,devServerOrigin($clock),$gate);
+    ++$clock->at;devServerTestTick($q,$provider,devServerOrigin($clock),$gate);
     devAssert(count($log->sent)===2,'B_never_dispatches_in_A_acceptance_cron_or_minute_slot');
-    $clock->at+=60;$q->serverTick($provider,devServerOrigin($clock),$gate);
-    $clock->at+=60;$q->serverTick($provider,devServerOrigin($clock),$gate);$done=devServerStatus($q);
+    $clock->at+=60;devServerTestTick($q,$provider,devServerOrigin($clock),$gate);
+    $clock->at+=60;devServerTestTick($q,$provider,devServerOrigin($clock),$gate);$done=devServerStatus($q);
     $reviewWire=json_decode($log->sent[3],true,32,JSON_THROW_ON_ERROR);
     devAssert($reviewWire['text']['format']['schema']['properties']['candidate_sha256']['enum']===[$done['server_control']['attempts'][2]['report_sha256']],
         'reviewer_lineage_hash_is_fixed_from_original_candidate_not_recomputed_by_model');
@@ -191,7 +191,7 @@ function devServerAmendmentChecks(): void
         &&$done['state']==='blocked'&&$done['task_id']===null&&$done['server_control']['state']==='complete'
         &&$done['worker_receipt_count']===2&&$done['server_control']['reserved_calls']===4,
         'same_four_charged_slots_finish_B_by_two_distinct_later_completed_original_calls_and_stop');
-    $clock->at+=86400;$q->serverTick($provider,devServerOrigin($clock),$gate);
+    $clock->at+=86400;devServerTestTick($q,$provider,devServerOrigin($clock),$gate);
     devAssert(count($log->sent)===4,'no_future_retry_or_new_pair_after_amended_completion');
     DevelopmentWorkServerContract::assertReadback($done);devServerWrapperChecks($done);
     devAssert(strlen($done['server_control']['attempts'][2]['response_base64'])===21848
@@ -225,40 +225,40 @@ function devServerAmendmentChecks(): void
         if($armed&&str_starts_with($sql,'SELECT COUNT(*) AS n FROM development_work_receipts WHERE queue_id=?'))
             throw new DomainException('synthetic_complete_readback_failure');
     };
-    try{$q->serverTick($provider,devServerOrigin($clock),$gate);}catch(Throwable $error){}
+    try{devServerTestTick($q,$provider,devServerOrigin($clock),$gate);}catch(Throwable $error){}
     $p->beforeExecute=null;$status=devServerStatus($q);
     devAssert($status['state']==='unknown'&&$status['accepted_count']===0&&$status['task_count']===2
         &&$status['server_control']['attempts']===$old['server_control']['attempts']&&count($log->sent)===2
         &&$p->query('SELECT COUNT(*) FROM development_work_resolutions WHERE task_id="'.DevelopmentWorkServerContract::A.'"')->fetchColumn()==0,
         'complete_saved_readback_failure_rolls_back_A_credit_claim_release_resolution_and_B');
     [$p,$q,$clock,$provider,$log,$m]=devAmendmentFixture();$gate=devAmendmentGate($m,(object)['pdo'=>$p]);
-    $q->serverTick($provider,devServerOrigin($clock),$gate);$clock->at+=60;
-    $q->serverTick($provider,devServerOrigin($clock),$gate);$clock->at+=60;$armed=false;
+    devServerTestTick($q,$provider,devServerOrigin($clock),$gate);$clock->at+=60;
+    devServerTestTick($q,$provider,devServerOrigin($clock),$gate);$clock->at+=60;$armed=false;
     $p->beforeExecute=static function(string $sql,?array $params=null)use(&$armed):void{
         if(str_starts_with($sql,'UPDATE development_work_server_controls SET state=')&&($params[0]??null)==='complete')$armed=true;
         if($armed&&str_starts_with($sql,'SELECT COUNT(*) AS n FROM development_work_receipts WHERE queue_id=?'))
             throw new DomainException('synthetic_provider_post_credit_readback_failure');
     };
-    $q->serverTick($provider,devServerOrigin($clock),$gate);$p->beforeExecute=null;$failure=devServerStatus($q);
+    devServerTestTick($q,$provider,devServerOrigin($clock),$gate);$p->beforeExecute=null;$failure=devServerStatus($q);
     $saved=$failure['server_control']['attempts'][3];
     devAssert(count($log->sent)===4&&$failure['state']==='unknown'&&$failure['accepted_count']===1
         &&$saved['state']==='unknown'&&base64_decode($saved['response_base64'],true)===$log->results[3]['transport']['wire_response_bytes']
         &&$saved['report_sha256']!==null,
         'provider_post_credit_readback_failure_keeps_original_raw_report_but_rolls_back_B_credit');
-    $clock->at+=60;$q->serverTick($provider,devServerOrigin($clock),$gate);
+    $clock->at+=60;devServerTestTick($q,$provider,devServerOrigin($clock),$gate);
     devAssert(count($log->sent)===4,'saved_result_readback_failure_never_repeats_original_provider');
     foreach(['wrong_sha','attempt2','missing_gate','failed_gate','unchanged','publisher_busy','foreign_publisher','source_drift',
         'unproven_publication','wrong_digest','terminal_step_failed','install_not_performed','closer_wrong_origin','closer_not_original'] as $case){
         [$p,$q,$clock,$provider,$log,$m,$old]=devAmendmentFixture();
         $gate=devAmendmentGate($m,(object)['mode'=>$case,'pdo'=>$p]);
-        try{$q->serverTick($provider,devServerOrigin($clock),$gate);}catch(Throwable $error){}
+        try{devServerTestTick($q,$provider,devServerOrigin($clock),$gate);}catch(Throwable $error){}
         $status=devServerStatus($q);
         devAssert($status['state']==='unknown'&&$status['accepted_count']===0&&$status['task_count']===2
             &&$status['server_control']['attempts']===$old['server_control']['attempts']&&count($log->sent)===2,
             'public_release_gate_'.$case.'_cannot_amend_unknown_or_spend_provider_budget');
     }
     [$p,$q,$clock,$provider,$log,$m]=devAmendmentFixture();$state=(object)['released'=>false,'pdo'=>$p];$gate=devAmendmentGate($m,$state);
-    for($i=0;$i<31;++$i){$q->serverTick($provider,devServerOrigin($clock),$gate);$clock->at+=60;}
+    for($i=0;$i<31;++$i){devServerTestTick($q,$provider,devServerOrigin($clock),$gate);$clock->at+=60;}
     devAssert($state->requests===30&&count($log->sent)===2&&devServerStatus($q)['accepted_count']===0,
         'fixed_public_read_probe_budget_stops_without_work_retry_or_authority_reset');
     foreach(['root_not_terminal','root_error','other_task','changed_binding','changed_old_review','new_policy','expired','malformed_claim','claim_changed_during_read'] as $case){
@@ -276,7 +276,7 @@ function devServerAmendmentChecks(): void
             if($n===2){$s=$p->prepare('UPDATE development_work_items SET claim_sha256=? WHERE task_id=?');$s->execute([str_repeat('f',64),DevelopmentWorkServerContract::A]);}
         };
         $gate=devAmendmentGate($m,$gateState);$result=null;
-        try{$result=$q->serverTick($provider,devServerOrigin($clock),$gate);}catch(Throwable $error){}
+        try{$result=devServerTestTick($q,$provider,devServerOrigin($clock),$gate);}catch(Throwable $error){}
         $state=devServerStatus($q);
         devAssert($state['accepted_count']===0&&$state['task_count']===2&&count($log->sent)===2,
             'amendment_negative_'.$case.'_cannot_accept_replay_or_create_B');
@@ -291,7 +291,7 @@ function devServerRawBoundaryStorageChecks(): void
         if($limit===8192){[$p,$q,$clock]=devServerFixture();$previous=null;$beforeSends=0;$gate=null;}
         else{
             [$p,$q,$clock,$unused,$oldLog,$m,$previous]=devAmendmentFixture();
-            $gate=devAmendmentGate($m,(object)['pdo'=>$p]);$q->serverTick($unused,devServerOrigin($clock),$gate);
+            $gate=devAmendmentGate($m,(object)['pdo'=>$p]);devServerTestTick($q,$unused,devServerOrigin($clock),$gate);
             $clock->at+=60;$beforeSends=2;
         }
         $retained='';$oversized=false;
@@ -304,7 +304,7 @@ function devServerRawBoundaryStorageChecks(): void
                 'wire_complete'=>false,'response_capture_limit'=>$limit,'response_capture'=>'prefix_truncated_at_budget']);
             return ['_error'=>'provider_unavailable'];
         });
-        $q->serverTick($provider,devServerOrigin($clock),$gate);$s=devServerStatus($q);
+        devServerTestTick($q,$provider,devServerOrigin($clock),$gate);$s=devServerStatus($q);
         $attempt=$s['server_control']['attempts'][array_key_last($s['server_control']['attempts'])];
         devAssert($sent===1&&$s['state']==='unknown'&&$s['accepted_count']===($limit===8192?0:1)
             &&base64_decode($attempt['response_base64'],true)===$retained&&$attempt['response_sha256']===hash('sha256',$retained)
@@ -331,7 +331,7 @@ function devServerRawBoundaryStorageChecks(): void
         devAssert($rejected&&$unchanged['server_control']['attempts']===$s['server_control']['attempts']
             &&$unchanged['state']==='unknown'&&count($unchanged['server_control']['attempts'])===count($s['server_control']['attempts']),
             'changed_UNKNOWN_capture_cannot_replace_blob_with_TEXT_or_poison_getter_'.$limit);
-        $clock->at+=60;$q->serverTick($provider,devServerOrigin($clock),$gate);
+        $clock->at+=60;devServerTestTick($q,$provider,devServerOrigin($clock),$gate);
         devAssert($sent===1,'invalid_UTF8_failure_never_dispatches_again_'.$limit);
         devServerWrapperChecks($s);
     }
@@ -355,7 +355,7 @@ function devServerRawSchemaNegativeChecks(): void
         devAssert($s['server_amendment_preparation']['available']===false&&$s['state']==='unknown'
             &&count($s['server_control']['attempts'])===2,'actual_raw_storage_schema_'.$case.'_is_not_falsely_offered_as_ready');
         $state=(object)['pdo'=>$p];$gate=devAmendmentGate($m,$state);
-        try{$q->serverTick($provider,devServerOrigin($clock),$gate);}catch(Throwable $error){}
+        try{devServerTestTick($q,$provider,devServerOrigin($clock),$gate);}catch(Throwable $error){}
         $s=devServerStatus($q);
         devAssert($s['accepted_count']===0&&$s['task_count']===2&&count($log->sent)===2&&$state->requests===0,
             'wrong_native_raw_schema_holds_before_metadata_or_provider_'.$case);

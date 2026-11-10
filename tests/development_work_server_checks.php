@@ -3,6 +3,12 @@ declare(strict_types=1);
 require_once dirname(__DIR__).'/services/DevelopmentWorkServerRuntime.php';
 require_once __DIR__.'/development_work_server_amendment_checks.php';
 
+/** Synthetic fixtures never read the tracked operative configuration. */
+function devInactiveAmendmentGate(): DevelopmentWorkServerAmendmentGate
+{return new DevelopmentWorkServerAmendmentGate(['schema'=>'development-one-a02-amendment-v1','operative'=>false]);}
+function devServerTestTick(DevelopmentWorkQueue $queue,DevelopmentWorkServerProvider $provider,array $origin,?DevelopmentWorkServerAmendmentGate $gate=null): array
+{return $queue->serverTick($provider,$origin,$gate??devInactiveAmendmentGate());}
+
 /** Synthetic provider bytes only. No key, live queue, network or worker is used. */
 function devServerFixture(?PDO $pdo=null,bool $arm=true): array
 {
@@ -80,7 +86,7 @@ function devServerRaceChild(array $argv): void
     file_put_contents($out.'.ready','ready');$until=microtime(true)+10;
     while(!is_file($go)&&microtime(true)<$until)usleep(1000);
     if(!is_file($go))exit(3);
-    $r=$q->serverTick($provider,devServerOrigin($clock));
+    $r=devServerTestTick($q,$provider,devServerOrigin($clock));
     file_put_contents($out,json_encode(['result'=>$r,'sends'=>count($log->sent)],JSON_THROW_ON_ERROR));exit(0);
 }
 
@@ -122,13 +128,13 @@ function devServerChecks(): void
         devAssert($a['state']==='unknown'&&hash('sha256',$a['request_bytes'])===$a['request_sha256']
             &&(int)$c['reserved_calls']>=1&&$c['state']==='unknown','durable_unknown_wire_and_budget_committed_before_send');
     });
-    devAssert($q->serverTick($provider,['trigger'=>'manual'])['provider_calls']===0
+    devAssert(devServerTestTick($q,$provider,['trigger'=>'manual'])['provider_calls']===0
         &&$log->sent===[],'manual_tick_never_executes_server_control');
-    $r=$q->serverTick($provider,devServerOrigin($clock));devAssert($r['state']==='candidate','A_producer_is_not_acceptance');
+    $r=devServerTestTick($q,$provider,devServerOrigin($clock));devAssert($r['state']==='candidate','A_producer_is_not_acceptance');
     $origin=devServerOrigin($clock);
-    devAssert($q->serverTick($provider,$origin)['provider_calls']===0&&count($log->sent)===1,
+    devAssert(devServerTestTick($q,$provider,$origin)['provider_calls']===0&&count($log->sent)===1,
         'same_minute_cannot_send_reviewer');
-    $clock->at+=60;$r=$q->serverTick($provider,devServerOrigin($clock));
+    $clock->at+=60;$r=devServerTestTick($q,$provider,devServerOrigin($clock));
     $s=devServerStatus($q);$proof=$s['server_control'];
     devAssert($r['accepted_task']===DevelopmentWorkServerContract::A&&$s['accepted_count']===1
         &&$s['task_count']===3&&$s['task_id']===DevelopmentWorkServerContract::B
@@ -138,16 +144,16 @@ function devServerChecks(): void
     $review=$pdo->query("SELECT * FROM development_work_server_attempts WHERE task_id='".DevelopmentWorkServerContract::A."' AND role='reviewer'")->fetch(PDO::FETCH_ASSOC);
     devAssert($event['created_cron_id']===$review['cron_id']&&$event['state']==='pending'
         &&$b['claim_sha256']===null&&$b['current_run_id']===null,'B_outbox_commits_unclaimed_with_actual_A_reviewer_origin');
-    devAssert($q->serverTick($provider,devServerOrigin($clock))['provider_calls']===0&&count($log->sent)===2,
+    devAssert(devServerTestTick($q,$provider,devServerOrigin($clock))['provider_calls']===0&&count($log->sent)===2,
         'B_not_dispatched_from_A_acceptance_tail_or_same_slot');
-    $clock->at+=60;$r=$q->serverTick($provider,devServerOrigin($clock));
+    $clock->at+=60;$r=devServerTestTick($q,$provider,devServerOrigin($clock));
     $bp=json_decode(json_decode($log->sent[2],true,32,JSON_THROW_ON_ERROR)['input'][1]['content'][0]['text'],true,32,JSON_THROW_ON_ERROR);
     $receipt=json_decode($proof['receipts'][0]['receipt_json'],true,16,JSON_THROW_ON_ERROR);
     devAssert($r['state']==='candidate'&&$bp['input']['accepted_parent']['receipt_sha256']===$proof['receipts'][0]['receipt_sha256']
         &&$bp['input']['accepted_parent']['result_sha256']===$receipt['result_sha256']
         &&$bp['input']['accepted_parent']['reviewer_run_id']===$receipt['reviewer_run_id']
         &&$bp['evidence']['execution']['cron_id']!==$event['created_cron_id'],'later_B_consumes_actual_accepted_A_bytes_and_new_cron');
-    $clock->at+=60;$q->serverTick($provider,devServerOrigin($clock));$s=devServerStatus($q);
+    $clock->at+=60;devServerTestTick($q,$provider,devServerOrigin($clock));$s=devServerStatus($q);
     $largest=json_decode(json_decode($log->sent[3],true,32,JSON_THROW_ON_ERROR)['input'][1]['content'][0]['text'],true,32,JSON_THROW_ON_ERROR);
     foreach($largest['candidate']['checks'] as &$check)$check['note']=str_repeat('n',160);unset($check);
     devAssert(strlen($provider->prepare($largest+['execution_kind'=>'server_model','role'=>'reviewer','kind'=>'readiness']))<=8192,
@@ -160,7 +166,7 @@ function devServerChecks(): void
         &&$s['server_control']['reserved_calls']===4&&$legacy===$pdo->query('SELECT legacy_sha256 FROM development_work_server_controls')->fetchColumn(),
         'finish_releases_owned_WIP_retains_legacy_and_four_spent_reservations');
     $clock->at+=86400;$writes=$pdo->writes;
-    devAssert($q->serverTick($provider,devServerOrigin($clock))['provider_calls']===0&&count($log->sent)===4&&$writes===$pdo->writes,
+    devAssert(devServerTestTick($q,$provider,devServerOrigin($clock))['provider_calls']===0&&count($log->sent)===4&&$writes===$pdo->writes,
         'finished_pair_never_sends_fifth_call_or_changes_ledger');
     foreach($s['server_control']['attempts'] as $i=>$a) {
         foreach(['job','request','response','report'] as $part)
@@ -201,10 +207,10 @@ function devServerChecks(): void
             }
             if($case==='duplicate_id')$raw['id']='resp_DUPLICATE';
         });
-        $queue->serverTick($fake,devServerOrigin($time));
-        if(in_array($case,['reject_review','duplicate_id'],true)){$time->at+=60;$queue->serverTick($fake,devServerOrigin($time));}
+        devServerTestTick($queue,$fake,devServerOrigin($time));
+        if(in_array($case,['reject_review','duplicate_id'],true)){$time->at+=60;devServerTestTick($queue,$fake,devServerOrigin($time));}
         $calls=count($seen->sent);$time->at+=86400;
-        $r=$queue->serverTick($fake,devServerOrigin($time));
+        $r=devServerTestTick($queue,$fake,devServerOrigin($time));
         $row=$p->query('SELECT * FROM development_work_server_controls')->fetch(PDO::FETCH_ASSOC);
         devAssert($r['provider_calls']===0&&$row['state']==='unknown'&&(int)$row['reserved_calls']===$calls
             &&count($seen->sent)===$calls&&(int)$p->query("SELECT COUNT(*) FROM development_work_items WHERE state='accepted'")->fetchColumn()===0,
@@ -226,11 +232,11 @@ function devServerChecks(): void
     [$fake,$seen]=devServerSender();$p->beforeExecute=static function(string $sql):void {
         if(str_starts_with($sql,'UPDATE development_work_server_attempts SET response_id='))throw new PDOException('synthetic_storage_loss');
     };
-    try{$queue->serverTick($fake,devServerOrigin($time));devAssert(false,'storage_failure_must_throw');}
+    try{devServerTestTick($queue,$fake,devServerOrigin($time));devAssert(false,'storage_failure_must_throw');}
     catch(RuntimeException $error){devAssert($error->getMessage()==='development_work_storage_unavailable',
         'canonical_storage_boundary_wraps_original_failure_without_retry');}
     $p->beforeExecute=null;$time->at+=60;
-    devAssert($queue->serverTick($fake,devServerOrigin($time))['provider_calls']===0&&count($seen->sent)===1,
+    devAssert(devServerTestTick($queue,$fake,devServerOrigin($time))['provider_calls']===0&&count($seen->sent)===1,
         'lost_result_commit_retains_original_unknown_reservation');
     devServerAmendmentChecks();
     devServerHeldHealthChecks();
@@ -573,7 +579,7 @@ function devServerOverlayChecks(): void
                 $connection===$current['connection_id']&&$admin===1
                 &&(new ManagerPreparationOAuth($pdo,static fn():int=>$clock->at))->developmentConnectionAuthorizedAcrossProfiles($connection,$admin);
             for($i=0;$i<4;++$i) {
-                $r=DevelopmentWorkServerRuntime::tick($pdo,'cron',$authorize,$provider,static fn():int=>$clock->at);$clock->at+=60;
+                $r=DevelopmentWorkServerRuntime::tick($pdo,'cron',$authorize,$provider,static fn():int=>$clock->at,devInactiveAmendmentGate());$clock->at+=60;
             }
             $final=devServerOverlayCall($service,$current,'status',['queue_id'=>DevelopmentWorkServerContract::QUEUE])['result']['structuredContent']??[];
             devAssert(($final['accepted_count']??null)===2&&$final['server_control']['state']==='complete'
@@ -624,7 +630,7 @@ function devServerOverlayRevocationChecks(): void
             $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')
                 ->execute([$clock->at,$actor['connection_id']]);
         });
-        $queue->serverTick($provider,devServerOrigin($clock));
+        devServerTestTick($queue,$provider,devServerOrigin($clock));
         $control=$pdo->query('SELECT * FROM development_work_server_controls')->fetch(PDO::FETCH_ASSOC);
         $attempt=$pdo->query('SELECT * FROM development_work_server_attempts')->fetch(PDO::FETCH_ASSOC);
         $q=$pdo->query('SELECT * FROM development_work_queues')->fetch(PDO::FETCH_ASSOC);
@@ -634,7 +640,7 @@ function devServerOverlayRevocationChecks(): void
             &&(int)$pdo->query('SELECT COUNT(*) FROM development_work_items')->fetchColumn()===2,
             $mode.'_revoked_during_send_retains_original_bytes_and_no_acceptance_or_B');
         $clock->at+=60;
-        devAssert($queue->serverTick($provider,devServerOrigin($clock))['provider_calls']===0&&count($log->sent)===1,
+        devAssert(devServerTestTick($queue,$provider,devServerOrigin($clock))['provider_calls']===0&&count($log->sent)===1,
             $mode.'_revoked_result_never_refunds_or_resends_original_attempt');
         // Restore only synthetic fixture authority to prove the held result is readable, not executable.
         $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$actor['connection_id']]);
@@ -733,8 +739,8 @@ function devServerHeldHealthChecks(): void
         [$provider,$seen]=devServerSender(static function(array &$raw)use(&$ordinal):void{
             if(++$ordinal===2)$raw['status']='incomplete';
         });
-        $q->serverTick($provider,devServerOrigin($clock));$clock->at+=60;
-        $q->serverTick($provider,devServerOrigin($clock));$clock->at+=60;
+        devServerTestTick($q,$provider,devServerOrigin($clock));$clock->at+=60;
+        devServerTestTick($q,$provider,devServerOrigin($clock));$clock->at+=60;
         if($case==='missing_receipt')$p->exec('DELETE FROM development_work_receipts WHERE task_id="'.DevelopmentWorkServerContract::A.'"');
         if($case==='corrupt_receipt')$p->exec("UPDATE development_work_receipts SET receipt_json='{}' WHERE task_id='".DevelopmentWorkServerContract::A."'");
         if($case==='wrong_run')$p->exec("UPDATE development_work_items SET current_run_id='resp_DIFFERENT' WHERE task_id='".DevelopmentWorkServerContract::A."'");
@@ -752,13 +758,13 @@ function devServerHeldHealthChecks(): void
             $s->execute([$bytes,hash('sha256',$bytes),DevelopmentWorkServerContract::A]);
         }
         $before=$snapshot($p);$result=null;$thrown=false;
-        try{$result=$q->serverTick($provider,devServerOrigin($clock));}catch(Throwable $error){$thrown=true;}
+        try{$result=devServerTestTick($q,$provider,devServerOrigin($clock));}catch(Throwable $error){$thrown=true;}
         $proved=!$thrown&&($result['execution_status']??null)==='held_existing_unknown';
         devAssert($case==='valid'?$proved:!$proved,'canonical_held_health_'.$case.'_requires_real_retained_state');
         devAssert($before===$snapshot($p)&&count($seen->sent)===2,'held_observation_'.$case.'_never_mutates_or_replays');
         if($case==='valid'){
             $digest=$result['held_evidence_sha256'];$clock->at+=60;
-            $again=$q->serverTick($provider,devServerOrigin($clock));
+            $again=devServerTestTick($q,$provider,devServerOrigin($clock));
             devAssert($result['provider_calls']===0&&$result['work_accepted']===false
                 &&preg_match('/\\A[a-f0-9]{64}\\z/D',$digest)===1
                 &&$again['held_evidence_sha256']===$digest&&$snapshot($p)===$before,
