@@ -65,7 +65,7 @@ function modeledValueSave(PDO $p,array $w):void
 final class ModeledValueTestWire
 {
     public array $goals=[['id'=>'9','type'=>'action','name'=>'unchanged','conditions'=>[['type'=>'exact','url'=>'existing_goal']]]];
-    public array $csv=[];public array $receipts=[];public int $creates=0;public int $posts=0;public int $gets=0;
+    public array $csv=[];public array $receipts=[];public int $creates=0;public int $posts=0;public int $gets=0;public int $visitReads=0;
     public array $reportTotals=[2,1,2083];public bool $reportSampled=false;public int $reportHttp=200;
     public bool $reportWrongScope=false;public array $lastReportQuery=[];
     public ?int $visitAt=null;public string $visitSource='other_or_unknown';public bool $visitAvailable=true;public bool $visitEmpty=false;
@@ -77,7 +77,7 @@ final class ModeledValueTestWire
         if($path==='/stat/v1/data'){
             parse_str((string)parse_url($url,PHP_URL_QUERY),$query);$this->lastReportQuery=$query;
             if(isset($query['dimensions'])){
-                $dims=explode(',',$query['dimensions']);$source=count($dims)===4;
+                $this->visitReads++;$dims=explode(',',$query['dimensions']);$source=count($dims)===4;
                 if(!$this->visitAvailable)return ['http'=>503,'error'=>0,'body'=>'PRIVATE_VISIT_REPORT_BODY'];
                 preg_match("/clientID=='([0-9]+)'/",$query['filters'],$match);$cid=$match[1]??'0';
                 $visit=$this->visitAt??(strtotime($query['date1'].'T00:00:00Z')+21*86400);
@@ -737,9 +737,9 @@ function modeledValueCatchUpAssertions(PDO $p,callable $check):void
 
     [$wire,$lookup]=$setup(40);$lookup->missing=false;
     ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate,null,$steady);
-    $check('four local pages retain one lookup one report and the original three-upload limit',
+    $check('four local pages retain one lookup one aggregate report and bounded visit reads within the original three-upload limit',
         $cursor()===32&&$rows()===32&&$receipt()['collected']===32&&$receipt()['resolved']===5
-        &&$lookup->calls===1&&$wire->posts===3&&$wire->gets===2&&$receipt()['accepted']===3&&$receipt()['errors']===0);
+        &&$lookup->calls===1&&$wire->posts===3&&$wire->gets===6&&$wire->visitReads===3&&$receipt()['accepted']===3&&$receipt()['errors']===0);
 }
 
 function modeledValueFairProgressAssertions(PDO $p,callable $check):void
