@@ -75,6 +75,10 @@ final class ModeledConversionVisitProof
             if(is_array($v)&&isset($v['comment'])&&$v['comment']!==MetrikaOfflineClient::comment($r))$v=null;
             return $polls[$id]=$v;
         };
+        $admitWireRead=static function()use(&$requests,$started,$deadline):void{
+            if(++$requests>96||microtime(true)-$started>100||($deadline!==null&&microtime(true)>=$deadline))
+                throw new RuntimeException('verification_request_bound');
+        };
         $records=$retainedRecords;$clients=[];
         foreach($selected as$r){
             $v=$poll($r);$status=is_array($v)?($v['status']??null):null;
@@ -93,7 +97,7 @@ final class ModeledConversionVisitProof
                     $clientVisits=$api->modeledClientVisits($cid,(int)$r['event_unix'],$now);
                     $entry['reason']=self::failureReason($clientVisits,(int)$r['event_unix']);
                     if(++$requests>96||($deadline!==null&&microtime(true)>=$deadline))throw new RuntimeException('verification_request_bound');
-                    $entry['failure_audit']=self::failureAudit($r,$v,$clientVisits,(method_exists($api,'modeledValueVisits')?$api->modeledValueVisits($cid,$activation,$now):['status'=>'unavailable']),$ledger,$now,ModeledConversionWireValue::observe($r,$ledger,$api,$now));
+                    $entry['failure_audit']=self::failureAudit($r,$v,$clientVisits,(method_exists($api,'modeledValueVisits')?$api->modeledValueVisits($cid,$activation,$now):['status'=>'unavailable']),$ledger,$now,ModeledConversionWireValue::observe($r,$ledger,$api,$now,$admitWireRead));
                     if(($entry['failure_audit']['diagnosis']??null)==='wire_value_reported'&&$entry['failure_audit']['wire_correction_status']==='processed'){
                         $entry['linkage']='wire_value_reconciled';$entry['reason']='same_wire_total_provider_and_visit_report_reconciled';
                         $entry['visit_started_at']=$entry['failure_audit']['report_visit_at'];
@@ -122,12 +126,21 @@ final class ModeledConversionVisitProof
             $report=$api->modeledValueVisits($cid,$activation,$now);
             $valid=$complete&&($report['status']??null)==='ok';
             $visits=$report['visits']??[];$unique=$valid&&count($visits)===1&&($visits[0]['visits']??null)===1;
-            $reaches=count($expected);$value=array_sum(array_map(static fn(array $r):float=>(float)$r['value_rub'],$expected));
+            $wireValues=[];$wireTimes=[];
+            foreach($expected as$r){$key=ModeledConversionWireValue::key($r);$wireValues[$key]=($wireValues[$key]??0)+(float)$r['value_rub'];$wireTimes[$key]=(int)$r['event_unix'];}
+            foreach($ledger as$r)if((string)($r['client_id']??'')===$cid&&(string)($r['upload_id']??'')!==''){
+                $journal=ModeledConversionWireValue::read($r);
+                if($journal===null)continue;
+                if(ModeledConversionWireValue::observe($r,$ledger,$api,$now,$admitWireRead)==='processed'){
+                    $key=ModeledConversionWireValue::key($r);$wireValues[$key]=(float)$journal['total_rub'];$wireTimes[$key]=(int)$r['event_unix'];
+                }
+            }
+            $reaches=count($wireValues);$value=array_sum($wireValues);
             $matches=$unique&&($visits[0]['goal_reaches']??null)===$reaches&&abs((float)($visits[0]['revenue_rub']??-1)-$value)<0.005;
             $within=$matches;
             $visit=$unique?strtotime((string)$visits[0]['started_at']):false;
             if($visit===false)$within=false;
-            if($within)foreach($expected as$r){$age=(int)$r['event_unix']-$visit;if($age<0||$age>21*86400)$within=false;}
+            if($within)foreach($wireTimes as$eventTime){$age=$eventTime-$visit;if($age<0||$age>21*86400)$within=false;}
             foreach($eventIds as$id){
                 $records[$id]['expected_goal_reaches']=$reaches;$records[$id]['expected_goal_value_rub']=round($value,2);
                 if($unique){$records[$id]['visit_started_at']=$visits[0]['started_at'];$records[$id]['visit_goal_reaches']=$visits[0]['goal_reaches'];$records[$id]['visit_goal_value_rub']=$visits[0]['revenue_rub'];}
@@ -212,13 +225,28 @@ final class ModeledConversionVisitProof
     /** Newest half plus oldest unchecked half; stable terminal evidence is rechecked daily. */
     public static function dueIds(array $ledger,int $checkpoint,int $now,callable $prior,int $batch=26):array
     {
-        $due=[];$urgent=[];$cohort=0;
+        $due=[];$urgent=[];$repairs=[];$repairKeys=[];$cohort=0;
         foreach($ledger as$r){
             if(!ModeledConversionValueContract::isKey($r['target']??null)||empty($r['upload_id']))continue;
             $accepted=(int)($r['value_api_accepted_at_unix']??0);
             if(str_starts_with((string)$r['target'],'anytour_value_pred_')&&$accepted>0&&$accepted<=$checkpoint
                 &&($r['value_processed_at_unix']===null||(int)$r['value_processed_at_unix']>$checkpoint)){$cohort++;continue;}
             $old=$prior($r);$at=(int)($old['at']??0);$e=$old['event']??[];
+            $journal=ModeledConversionWireValue::read($r);
+            if($journal!==null&&isset($journal['members'][(string)$r['id']])
+                &&hash_equals($journal['members'][(string)$r['id']],self::fingerprint($r))
+                &&(!in_array($journal['state'],['processed','failed'],true)
+                    ||($journal['state']==='processed'&&($at<$journal['checked_at_unix']
+                        ||!in_array($e['linkage']??null,['unique_visit_reconciled','wire_value_reconciled'],true))))){
+                $key=$journal['wire_key'];
+                if($now-$at>=300){
+                    if(!isset($repairKeys[$key])){
+                        $repairKeys[$key]=count($repairs);$repairs[]=['id'=>(string)$r['id'],'at'=>$at];
+                    }elseif($at<$repairs[$repairKeys[$key]]['at'])$repairs[$repairKeys[$key]]=['id'=>(string)$r['id'],'at'=>$at];
+                }
+                continue;
+            }
+
             $db=$r['upload_status']??null;
             if(in_array($db,['PROCESSED','LINKAGE_FAILURE'],true)&&($e['upload_status']??null)!==$db
                 &&($at>0||(int)($r['value_processed_at_unix']??0)>=$now-900)){
@@ -229,7 +257,10 @@ final class ModeledConversionVisitProof
             if(($e['failure_audit']['diagnosis']??null)==='wire_collision')$terminal=false;
             if($at===0||$now-$at>=($terminal?86400:300))$due[]=['id'=>(string)$r['id'],'at'=>$at];
         }
-        $limit=max(0,min($batch,self::MAX_ROWS-$cohort));$ids=array_slice($urgent,0,$limit);
+        $limit=max(0,min($batch,self::MAX_ROWS-$cohort));
+        usort($repairs,static fn(array $a,array $b):int=>$a['at']<=>$b['at']);
+        $ids=$limit>0&&$repairs!==[]?[$repairs[0]['id']]:[];
+        foreach($urgent as$id)if(count($ids)<$limit&&!in_array($id,$ids,true))$ids[]=$id;
         $remaining=$limit-count($ids);
         foreach(array_slice($due,0,(int)ceil($remaining/2))as$d)$ids[]=$d['id'];
         usort($due,static fn(array $a,array $b):int=>$a['at']<=>$b['at']);
