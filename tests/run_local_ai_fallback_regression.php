@@ -55,6 +55,115 @@ localCheck('two adults recognized', $params['adults'] ?? null, 2);
 localCheck('no children recognized', $params['children'] ?? null, 0);
 localCheck('week recognized as seven nights', $params['nights'] ?? null, '7');
 
+// Compound replies must isolate the explicitly labelled duration before the
+// canonical nights resolver sees it. Date, budget and party numbers are not
+// contextual answers to the nights question on this free-text surface.
+$nightsContext = ['city'=>'Самара','country'=>'Турция','date'=>'12.12.2030','nights'=>'8','adults'=>2,'children'=>0];
+foreach ([
+    ['Самара с 12 декабря на 10 ночей', '10'],
+    ['Самара, 12.12.2030, на 10 ночей', '10'],
+    ['Из Самары с 12 декабря на 7–10 ночей', '7-10'],
+    ['На 7 — 10 ночей', '7-10'],
+    ['На 7-10 ночей', '7-10'],
+    ['Бюджет 250000, на 10 ночей', '10'],
+    ['Через 7 дней, на 10 ночей', '10'],
+    ['Через неделю, на 10 ночей', '10'],
+    ['На 1 ночь', '1'],
+    ['На 28 ночей', '28'],
+    ['На 1–28 ночей', '1-28'],
+    ['На неделю', '7'],
+    ['Неделю', '7'],
+    ['На недельку', '7'],
+] as [$text, $expectedNights]) {
+    $params = LocalAiFallbackService::parameters($text, $nightsContext);
+    localCheck('explicit duration changes only nights: '.$text, $params, ['nights'=>$expectedNights]);
+}
+
+foreach ([
+    'Самара с 12 декабря на 10 ночей, 2 взрослых и ребёнок 6 лет',
+    '2 взрослых и ребёнок 6 лет, Самара с 12 декабря на 10 ночей',
+] as $text) {
+    $params = LocalAiFallbackService::parameters($text, $nightsContext);
+    localCheck('duration and complete party stay independent: '.$text, $params,
+        ['adults'=>2,'children'=>1,'child_ages'=>[6],'nights'=>'10']);
+}
+$params = LocalAiFallbackService::parameters('2 взрослых, ребёнок 1 год 11 месяцев, на 10 ночей', $nightsContext);
+localCheck('infant age months are not a conflicting trip duration', $params['nights'] ?? null, '10');
+localCheck('infant age remains canonical beside explicit nights', $params['child_ages'] ?? null, [1]);
+foreach (['Детей нет, Самара с 12 декабря на 10 ночей', 'На 10 ночей, детей нет'] as $text) {
+    $params = LocalAiFallbackService::parameters($text, $nightsContext);
+    localCheck('negative child composition does not negate duration: '.$text, $params,
+        ['children'=>0,'nights'=>'10']);
+}
+$params = LocalAiFallbackService::parameters('Не Турция, а Египет, 2 взрослых без детей на 10 ночей', $nightsContext);
+localCheck('independent country correction keeps explicit numeric nights', $params,
+    ['country'=>'Египет','adults'=>2,'children'=>0,'nights'=>'10']);
+
+foreach ([
+    'Самара с 12 декабря',
+    'Самара 12.12.2030',
+    '2 взрослых и ребёнок 10 лет',
+    'Бюджет 250000',
+    '10',
+    'На 10 ночей?',
+    'На 10 ночей？',
+    'Можно на 10 ночей',
+    'Подскажите цену на 10 ночей',
+    'Какая стоимость тура на 10 ночей',
+    'Если на 10 ночей',
+    'Возможно, на 10 ночей',
+    'Например, на 10 ночей',
+    'Хотели бы на 10 ночей',
+    'Не на 10 ночей',
+    'Нам не нужен тур на 10 ночей',
+    'На 10 ночей не хочу',
+    'Не 7, а 10 ночей',
+    'Не Турция на 7 ночей, а Египет на 10 ночей',
+    '7 или 10 ночей',
+    'На неделю или 10 ночей',
+    'На 10 ночей, а 7',
+    'На 10 ночей и 7',
+    'На 7 ночей и на 10 ночей',
+    'На неделю, на 10 ночей',
+    'На 7 дней, на 10 ночей',
+    '7 дней, на 10 ночей',
+    'На 10 ночей и 7 дней',
+    'На 10 ночей, на месяц',
+    'На 0 ночей',
+    'На 29 ночей',
+    'На 100 ночей',
+    'На 10–7 ночей',
+    'На 7–29 ночей',
+    'От 10 ночей',
+    'До 10 ночей',
+    'От 7 до 10 ночей',
+    'Не менее 10 ночей',
+    '10 ночей и больше',
+    '10 ночей и дольше',
+    '10 ночей и короче',
+    '10 ночей+',
+    '10 ночей с плюсом',
+    'Примерно 10 ночей',
+    'Почти 10 ночей',
+    '1.10 ночей',
+    '3,4 ночей',
+    '3, 4 ночей',
+    'На 7..10 ночей',
+    '7/10 ночей',
+    '7 10 ночей',
+    '-10 ночей',
+    '- 10 ночей',
+    'На 10 ночей2',
+    'На 2 недели',
+    'На 10 дней',
+    'На месяц',
+] as $text) {
+    $params = LocalAiFallbackService::parameters($text, $nightsContext);
+    localCheck('unconfirmed duration is not partially accepted: '.$text, array_key_exists('nights', $params), false);
+}
+$params = LocalAiFallbackService::parameters('2 взрослых без детей, на 7 ночей или на 10 ночей', $nightsContext);
+localCheck('ambiguous nights do not discard independent party facts', $params, ['adults'=>2,'children'=>0]);
+
 $liveRich = 'Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет';
 $params = LocalAiFallbackService::parameters($liveRich, []);
 localCheck('live rich request deterministically keeps explicit country', $params['country'] ?? null, 'Турция');
@@ -148,7 +257,18 @@ localCheck(
 );
 
 $handler = (string)file_get_contents(__DIR__ . '/../handlers/AiMessageHandler.php');
-localCheck('rich request resolves explicit departure before external AI', strpos($handler, 'DepartureCityResolver::resolveAndStore($chat_id, $userText)') !== false, true);
+$sharedDeparturePattern = <<<'REGEX'
+/DepartureCityResolver::resolveAndStore\(\s*\$chat_id,\s*\$userText,\s*\(\$missingNow\[0\]\s*\?\?\s*''\)\s*===\s*'city'\s*\)/s
+REGEX;
+$sharedDepartureMatched = preg_match($sharedDeparturePattern, $handler, $sharedDepartureMatch, PREG_OFFSET_CAPTURE) === 1;
+localCheck('shared departure resolution retains the current-city question guard', $sharedDepartureMatched, true);
+$localDateOffset = strpos($handler, 'AiDateContextService::resolveLocal($chat_id, $userText)');
+$routeOffset = strpos($handler, 'LocalAiFallbackService::classify($userText)');
+localCheck('one shared departure resolver runs before date and rich/local routing',
+    $sharedDepartureMatched && substr_count($handler, 'DepartureCityResolver::resolveAndStore(') === 1
+        && $localDateOffset !== false && $routeOffset !== false
+        && $sharedDepartureMatch[0][1] < $localDateOffset && $localDateOffset < $routeOffset,
+    true);
 localCheck('rich request pre-applies deterministic local parameters before external AI', strpos($handler, 'NeedApplicationService::applyParameters($chat_id, $richLocalParams)') !== false, true);
 localCheck('rich preseed never applies legacy Moscow default unless departure was explicit', strpos($handler, "unset(\$richLocalParams['city'])") !== false, true);
 localCheck('rich AI receives refreshed deterministic context', strpos($handler, "AiInvocationService::invoke('RICH_AI', \$chat_id, \$userText, \$current)") !== false, true);
