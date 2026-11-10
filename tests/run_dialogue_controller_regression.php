@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 // Isolate real entry/controller/view behavior from the envelope-only checks below.
-// Only storage and transport are synthetic; every dialogue decision is production code.
-if (in_array('--start-parity-fixture', $argv ?? [], true)) {
+// Storage, catalog, model responses and transport are synthetic; dialogue decisions use production code.
+$jointHandoff = in_array('--compound-handoff-only', $argv ?? [], true);
+$jointOnly = $jointHandoff || in_array('--compound-joint-only', $argv ?? [], true);
+if ($jointOnly || in_array('--start-parity-fixture', $argv ?? [], true)) {
     $root = dirname(__DIR__);
     $tmp = sys_get_temp_dir() . '/dialogue-start-parity-' . bin2hex(random_bytes(8));
     mkdir($tmp, 0700);
@@ -27,11 +29,20 @@ if (in_array('--start-parity-fixture', $argv ?? [], true)) {
                 copy($file->getPathname(), $destination);
             }
         }
-        foreach (['project.php', 'DepartureRouteResolver.php', 'DepartureRouteAdvisor.php'] as $name) {
+        foreach (['project.php', 'maxsearchbaseclass.php', 'DepartureRouteResolver.php', 'DepartureRouteAdvisor.php'] as $name) {
             copy($root . '/' . $name, $tmp . '/' . $name);
         }
-        // Never connect to a configured host or persist diagnostics outside this fixture.
-        file_put_contents($tmp . '/services/ConversationDb.php', <<<'PHP'
+        if ($jointHandoff) {
+            foreach (['tests/fixtures/channel_post_entry_fixture.php','tests/fixtures/channel_post_registry_fixture.php',
+                'migrations/033_channel_post_context.sql','migrations/036_channel_post_member_delivery.sql',
+                'migrations/040_channel_post_reconciliation.sql'] as $path) {
+                if (!is_dir(dirname($tmp . '/' . $path))) mkdir(dirname($tmp . '/' . $path),0700,true);
+                copy($root . '/' . $path,$tmp . '/' . $path);
+            }
+        }
+        // Handoff mode injects SQLite through the existing DB fixture. Other
+        // modes reject DB access entirely; neither mode uses an external DB.
+        if (!$jointHandoff) file_put_contents($tmp . '/services/ConversationDb.php', <<<'PHP'
 <?php
 class ConversationDb {
     public static function isConfigured(): bool { return false; }
@@ -64,6 +75,7 @@ class TravelDirectoryRepository {
             ['id'=>1, 'name'=>'Казань', 'name_genitive'=>'Казани'],
             ['id'=>2, 'name'=>'Ростов-на-Дону', 'name_genitive'=>'Ростова-на-Дону'],
             ['id'=>3, 'name'=>'Минеральные Воды', 'name_genitive'=>'Минеральных Вод'],
+            ['id'=>4, 'name'=>'Самара', 'name_genitive'=>'Самары'],
             ['id'=>10, 'name'=>'Санкт Город', 'name_genitive'=>'Санкт Города'],
             ['id'=>11, 'name'=>'Санаторный Город', 'name_genitive'=>'Санаторного Города'],
         ];
@@ -77,13 +89,48 @@ class DestinationCatalogRepository {
     public static array $queries = [];
     public static function query(int $id, array $filter, array $select, int $limit=20): array {
         self::$queries[] = [$id, $filter, $select, $limit];
+        if (MaxSearchApi::$canonicalStorage) {
+            $rows = $id === 2 ? [
+                ['UF_CID'=>1,'UF_NAME'=>'Египет'],['UF_CID'=>4,'UF_NAME'=>'Турция'],['UF_CID'=>47,'UF_NAME'=>'Россия']
+            ] : ($id === 3 ? [['UF_TID'=>100,'UF_CID'=>47,'UF_NAME'=>'Самара','UF_PARENT_TID'=>0]] : []);
+            return array_values(array_filter($rows,static function(array $row) use($filter): bool {
+                foreach ($filter as $key=>$value) {
+                    if ($key[0] === '=' && ($row[substr($key,1)] ?? null) != $value) return false;
+                    if ($key[0] === '%' && mb_stripos((string)($row[substr($key,1)] ?? ''),(string)$value) === false) return false;
+                }
+                return true;
+            }));
+        }
+        // If the departure leaks into destination inference, reproduce its
+        // plausible Russian resort match instead of silently returning nothing.
+        if ($id === 3 && preg_match('/самар/ui', (string)($filter['%UF_NAME'] ?? ''))) {
+            return [['UF_TID'=>100, 'UF_CID'=>1, 'UF_NAME'=>'Самара', 'UF_PARENT_TID'=>0]];
+        }
+        if ($id === 2 && (int)($filter['=UF_CID'] ?? 0) === 1) {
+            return [['UF_CID'=>1, 'UF_NAME'=>'Россия']];
+        }
         return [];
     }
 }
 PHP
         );
+        file_put_contents($tmp . '/services/AiInvocationService.php', <<<'PHP'
+<?php
+class AiInvocationService {
+    public static array $calls = [];
+    public static ?array $answer = null;
+    public static function invoke($route, $chat, $text, $context): array {
+        self::$calls[] = [$route, $chat, $text, $context];
+        if (self::$answer !== null) return self::$answer;
+        throw new RuntimeException('Fixture forbids external model calls');
+    }
+}
+PHP
+        );
         class DialogueStartAiReached extends RuntimeException {}
-        class MaxSearchApi {
+        require_once $tmp . '/maxsearchbaseclass.php';
+        function put_log_out($data): void {}
+        class MaxSearchApi extends MaxSearchBase {
             public static $statusStart=64, $statusCityChoose=65, $statusContryChoose=66, $statusAdults=67,
                 $statusChild=68, $statusAge=69, $statusStars=70, $statusMeal=71, $statusNights=72,
                 $statusDate=73, $statusCheck=74, $statusPhone=75, $statusAi=76;
@@ -92,6 +139,24 @@ PHP
             public static string $testBaseDir='';
             public static ?int $resetFailureChat=null;
             public static bool $probeAi=false;
+            public static function getLastClaimForChat($chat): array { return ['CODE'=>'fixture-existing-claim']; }
+            public static function saveClaim(...$args): bool { throw new RuntimeException('Fixture forbids legacy claim writes'); }
+            public static function queueMetrikaGoal(...$args): bool { return true; }
+            public static function answerCallback(...$args): void {}
+
+            public static bool $canonicalStorage=false;
+            public static ?string $nextPartyFailure=null;
+            public static array $lastValues=[];
+            public static function statusMap(): array {
+                return ['city'=>65,'country'=>66,'adults'=>67,'children'=>68,'child_ages'=>69,
+                    'stars'=>70,'meal'=>71,'nights'=>72,'date'=>73];
+            }
+            public static function getCityByID($id) { return [1=>'Москва',4=>'Самара',10=>'Казань'][$id] ?? false; }
+            public static function getCountryByID($id) { return [1=>'Египет',4=>'Турция',47=>'Россия'][$id] ?? false; }
+            public static function getMealArr(): array { return ['7'=>'Всё включено']; }
+            public static function saveLastValue($chat,$status,$value): void { self::$lastValues[$chat][$status]=$value; }
+            public static function getLastValue($chat,$status) { return self::$lastValues[$chat][$status] ?? false; }
+
             public static bool $rejectParameters=false, $staleParameterReadback=false;
             public static function cancelToursFollowup($chat): void { unset(self::$followups[$chat]); }
             public static function deleteAllStatus($chat): void {
@@ -106,11 +171,34 @@ PHP
                 self::$writes[] = [$chat, $status]; self::$statuses[$chat] = $status;
             }
             public static function getTrafficMeta($chat): array { return TrafficAttributionService::get(self::$testBaseDir, $chat); }
-            public static function getAiSearchContext($chat): array { return self::$aiContexts[$chat] ?? []; }
-            public static function getAiMissingFields($chat): array { return self::$missingFields[$chat] ?? ['city']; }
+            public static function getAiSearchContext($chat): array {
+                if (self::$canonicalStorage) return AiSearchContextService::contextFromSaved(
+                    self::getSavedData($chat),self::statusMap(),[self::class,'getCityByID'],[self::class,'getCountryByID']);
+                return self::$aiContexts[$chat] ?? [];
+            }
+            public static function getCityByName($text) { return false; }
+            public static function getAiMissingFields($chat): array {
+                if (self::$canonicalStorage) return AiSearchContextService::missingForCurrentSearch(self::getSavedData($chat),self::statusMap());
+                return self::$missingFields[$chat] ?? ['city'];
+            }
             public static function applyAiParameters($chat, array $params): array {
                 self::$parameterWrites[] = [$chat, $params];
                 if (self::$rejectParameters) return [];
+                if (self::$canonicalStorage) {
+                    $normalized=AiSearchContextService::normalizeParameters($params,
+                        static fn($name)=>$name==='Самара'?4:null,static fn($name)=>$name==='Россия'?47:null,
+                        static fn($date)=>NativeDateService::isTodayOrFuture($date));
+                    $partyFailure = array_key_exists('adults',$normalized) ? self::$nextPartyFailure : null;
+                    if ($partyFailure !== null) self::$nextPartyFailure = null;
+                    $partyKeys = array_fill_keys(['adults','children','child_ages'],true);
+                    $writeValues = $partyFailure !== null ? array_diff_key($normalized,$partyKeys) : $normalized;
+                    if (!self::$staleParameterReadback) {
+                        foreach (AiSearchContextService::storageMap(self::statusMap()) as $field=>$status) {
+                            if (array_key_exists($field,$writeValues)) self::$needs[$chat][$status]=$writeValues[$field];
+                        }
+                    }
+                    return array_fill_keys(array_keys($partyFailure === 'reject' ? $writeValues : $normalized),true);
+                }
                 if (!self::$staleParameterReadback) {
                     self::$aiContexts[$chat] = array_merge(self::getAiSearchContext($chat), $params);
                     self::$missingFields[$chat] = array_values(array_diff(self::getAiMissingFields($chat), array_keys($params)));
@@ -173,6 +261,7 @@ PHP
                 'text'=>'/start' . ($payload !== '' ? ' ' . $payload : ''),
             ]], null, $telegramMessenger);
         };
+        if (!$jointOnly) {
         $welcomes = [];
         foreach (['max', 'telegram'] as $index=>$platform) {
             $external = $chatBase + $index;
@@ -215,20 +304,27 @@ PHP
         }
         $check('MAX and Telegram organic welcome text and buttons match', $welcomes[0], $welcomes[1]);
 
+        }
+
         // Exercise the real controller/resolver/application/progression route.
         // Stop unmatched turns at the existing AI log boundary before any model call.
-        $cityTurn = static function (int $chat, string $platform, string $text, array $context, array $missing, int $status)
+        $cityTurn = static function (int $chat, string $platform, string $text, array $context, array $missing, int $status, bool $probeAi = true)
             use (&$chats, &$sent, $maxMessenger, $telegramMessenger): array {
             $chats[] = $chat;
             MaxSearchApi::$statuses[$chat] = $status;
             MaxSearchApi::$aiContexts[$chat] = $context;
             MaxSearchApi::$missingFields[$chat] = $missing;
+            if (MaxSearchApi::$canonicalStorage) {
+                MaxSearchApi::$needs[$chat] = [MaxSearchApi::$statusStars=>null,MaxSearchApi::$statusMeal=>null];
+                MaxSearchApi::applyAiParameters($chat,$context);
+            }
             MaxSearchApi::$parameterWrites = [];
             DestinationCatalogRepository::$queries = [];
+            AiInvocationService::$calls = [];
             IntegrationRegistry::useMessenger($platform === 'max' ? $maxMessenger : $telegramMessenger);
             $before = count($sent); $eventsBefore = count(MaxSearchApi::$events);
             $reached = null; $handled = null;
-            MaxSearchApi::$probeAi = true;
+            MaxSearchApi::$probeAi = $probeAi;
             try {
                 $handled = (new DialogueController())->handleIncomingMessage(IncomingMessage::text(
                     $platform, abs($chat), $chat, 'fixture-city', $text
@@ -240,10 +336,212 @@ PHP
                 'messages'=>array_slice($sent, $before),
                 'events'=>array_column(array_slice(MaxSearchApi::$events, $eventsBefore), 1),
                 'context'=>MaxSearchApi::getAiSearchContext($chat),
+                'missing'=>MaxSearchApi::getAiMissingFields($chat),
                 'writes'=>MaxSearchApi::$parameterWrites,
                 'destination_queries'=>count(DestinationCatalogRepository::$queries),
+                'destination_filters'=>DestinationCatalogRepository::$queries,
+                'model_calls'=>AiInvocationService::$calls,
             ];
         };
+        if ($jointHandoff) {
+            require_once $tmp . '/tests/fixtures/channel_post_entry_fixture.php';
+            require_once $tmp . '/services/ManagerHandoffContextService.php';
+            require_once $tmp . '/services/ManagerHandoffEventContextService.php';
+            [$pdo,$registry,$publications] = createChannelPostEntryFixture();
+            MaxSearchApi::$canonicalStorage = true;
+            $year = (int)date('Y') + 1;
+            $phrase = "Из Самары с 12 декабря {$year} на 10 ночей, 2 взрослых и 1 ребёнок 5 лет";
+            $expected = ['city'=>'Самара','adults'=>2,'children'=>1,'child_ages'=>'5','nights'=>'10','date'=>"12.12.{$year}"];
+            $answers = [
+                'conflict'=>['intent'=>'search','parameters'=>['adults'=>3,'children'=>2,'child_ages'=>[7,9]]],
+                'timeout'=>['_error'=>'timeout'],
+            ];
+            $readConversation = static function(string $platform,int $chat) use($pdo): array {
+                $q=$pdo->prepare('SELECT * FROM conversations WHERE project_key=? AND channel=? AND external_chat_id=? ORDER BY id DESC LIMIT 1');
+                $q->execute(['anytour',$platform,(string)$chat]); return $q->fetch() ?: [];
+            };
+            $eventCount = static function(int $id,string $type) use($pdo): int {
+                $q=$pdo->prepare('SELECT COUNT(*) FROM conversation_events WHERE conversation_id=? AND event_type=?');
+                $q->execute([$id,$type]);return (int)$q->fetchColumn();
+            };
+            $nativeMessage = static function(string $platform,int $user,string $id,string $text) use($maxMessenger,$telegramMessenger): void {
+                IntegrationRegistry::useMessenger($platform==='max'?$maxMessenger:$telegramMessenger);
+                if($platform==='max') {
+                    (new IncomingUpdateDispatcher())->dispatch(MaxIncomingAdapter::fromUpdate([
+                        'update_type'=>'message_created','message'=>['sender'=>['user_id'=>$user,'first_name'=>'Fixture'],
+                        'body'=>['mid'=>$id,'text'=>$text]]
+                    ]));
+                } else {
+                    TelegramWebhookHandler::dispatchUpdate(['update_id'=>(int)$id,'message'=>['message_id'=>(int)$id,
+                        'from'=>['id'=>$user,'first_name'=>'Fixture'],'chat'=>['id'=>$user,'type'=>'private'],'text'=>$text]],null,$telegramMessenger);
+                }
+            };
+            $i=0;
+            foreach(['max','telegram'] as $platform) foreach($answers as $outcome=>$answer) {
+                $user=$chatBase+400+$i++;$chat=$platform==='max'?-$user:$user;$chats[]=$chat;
+                $name=$platform . ' DB handoff ' . $outcome;
+                MaxSearchApi::$needs[$chat]=[MaxSearchApi::$statusStars=>null,MaxSearchApi::$statusMeal=>null];
+                MaxSearchApi::applyAiParameters($chat,['country'=>'Египет']);
+                MaxSearchApi::$statuses[$chat]=MaxSearchApi::$statusAi;
+                IntegrationRegistry::useMessenger($platform==='max'?$maxMessenger:$telegramMessenger);
+                if($platform==='max') {
+                    MaxUpdateHandler::handleStarted(['update_type'=>'bot_started','timestamp'=>1791960000000+$i,
+                        'payload'=>$publications[$platform]['start_payload'],'user'=>['user_id'=>$user,'name'=>'Fixture Tourist']]);
+                } else {
+                    TelegramWebhookHandler::dispatchUpdate(['update_id'=>800000+$i,'message'=>['message_id'=>800000+$i,
+                        'from'=>['id'=>$user,'first_name'=>'Fixture'],'chat'=>['id'=>$user,'type'=>'private'],
+                        'text'=>'/start '.$publications[$platform]['start_payload']]],null,$telegramMessenger);
+                }
+                $before=$readConversation($platform,$chat);$id=(int)($before['id']??0);
+                $check($name . ' publication entry stays in needs collection',$before['status']??null,'ai');
+                $check($name . ' publication entry does not queue',$eventCount($id,'manager_request'),0);
+                $intent=SourceHotelIntentService::current($id);
+                (new IncomingUpdateDispatcher())->dispatch(['platform'=>$platform,'type'=>'callback',
+                    'callback_data'=>'hotel_intent_same:'.($intent['token']??''),'callback_id'=>'joint-hotel.'.$user,
+                    'user'=>['chat_id'=>$chat,'external_user_id'=>$user]]);
+                $check($name . ' hotel consent persists',SourceHotelIntentService::projection($id)['status']??null,'post_hotel');
+                $before=$readConversation($platform,$chat);
+                $check($name . ' consent alone cannot complete missing needs',$before['status']??null,'ai');
+                AiInvocationService::$answer=$answer;AiInvocationService::$calls=[];
+                MaxSearchApi::$parameterWrites=[];
+                $sentBefore=count($sent);
+                $nativeMessage($platform,$user,(string)(810000+$i),$phrase);
+                $after=$readConversation($platform,$chat);
+                $context=MaxSearchApi::getAiSearchContext($chat);
+                $check($name . ' native message reaches complete collector',count(AiInvocationService::$calls),1);
+                $check($name . ' queue state saved in database',$after['status']??null,'waiting_manager');
+                $check($name . ' queues exactly once',$eventCount($id,'waiting_manager'),1);
+                $check($name . ' records one manager request',$eventCount($id,'manager_request'),1);
+                $check($name . ' retains routing source',$after['source_id']??null,$before['source_id']??null);
+                foreach($expected as $field=>$value)$check($name . ' saved '.$field,$context[$field]??null,$value);
+                $check($name . ' does not lose direction',$context['country']??null,'Египет');
+                $q=$pdo->prepare('SELECT * FROM messages WHERE conversation_id=? ORDER BY id');$q->execute([$id]);$messages=$q->fetchAll();
+                $check($name . ' tourist text reaches manager transcript',count(array_filter($messages,
+                    static fn($m)=>$m['direction']==='inbound'&&$m['sender_type']==='customer'&&$m['text']===$phrase)),1);
+                $handoff=ManagerHandoffEventContextService::latestManagerRequest($id);
+                $summary=ManagerHandoffContextService::build($context,$messages,$handoff);
+                $check($name . ' manager reads persisted hotel intent',$handoff['hotel_request_intent']['status']??null,'post_hotel');
+                foreach(['Маршрут: Самара → Египет',"Вылет: 12.12.{$year}",'Ночей: 10','Туристы: 2 взр. + 1 реб. + возраст: 5'] as $line)
+                    $check($name . ' manager summary '.$line,str_contains($summary,$line),true);
+                $newMessages=array_slice($sent,$sentBefore);
+                $check($name . ' sends one handoff acknowledgement',count($newMessages),1);
+                $check($name . ' acknowledges actual handoff',str_contains($newMessages[0]['text']??'','Запрос передан менеджеру'),true);
+                $sentBefore=count($sent);$callsBefore=count(AiInvocationService::$calls);
+                $nativeMessage($platform,$user,(string)(820000+$i),'Спасибо');
+                $check($name . ' subsequent reply is quiet',[count($sent),count(AiInvocationService::$calls)],[$sentBefore,$callsBefore]);
+                $check($name . ' subsequent reply creates no duplicate queue',[$eventCount($id,'waiting_manager'),$eventCount($id,'manager_request')],[1,1]);
+                echo 'TRACE '.json_encode(['case'=>$name,'conversation'=>$after,'context'=>$context,
+                    'handoff'=>$handoff,'summary'=>$summary,'sent'=>$newMessages],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES).PHP_EOL;
+            }
+
+        } elseif ($jointOnly) {
+            require_once $tmp . '/services/ManagerHandoffContextService.php';
+            MaxSearchApi::$canonicalStorage = true;
+            $year = (int)date('Y') + 1;
+            $phrase = "Из Самары с 12 декабря {$year} на 10 ночей, 2 взрослых и 1 ребёнок 5 лет";
+            $expected = ['city'=>'Самара','adults'=>2,'children'=>1,'child_ages'=>'5','nights'=>'10','date'=>"12.12.{$year}"];
+            $answers = [
+                'success'=>['intent'=>'search','parameters'=>[]],
+                'conflict'=>['intent'=>'search','parameters'=>[
+                    'city'=>'Москва','adults'=>3,'children'=>2,'child_ages'=>[7,9],'nights'=>'7','date'=>"15.12.{$year}"]],
+                'timeout'=>['_error'=>true],
+            ];
+            $caseIndex = 0;
+            foreach (['max','telegram'] as $platform) foreach ($answers as $outcome=>$answer) {
+                $chat = ($platform === 'max' ? -1 : 1) * ($chatBase + 200 + $caseIndex++);
+                AiInvocationService::$answer = $answer;
+                $turn = $cityTurn($chat,$platform,$phrase,['country'=>'Египет'],[],MaxSearchApi::$statusAi,false);
+                $name = $platform . ' joint ' . $outcome;
+                $check($name . ' reaches whole-turn handler', in_array('ai_text',$turn['events'],true), true);
+                $check($name . ' short handler performs no partial completion', in_array('ai_short_answer',$turn['events'],true), false);
+                $check($name . ' invokes model once', count($turn['model_calls']), 1);
+                $check($name . ' uses rich route', $turn['model_calls'][0][0] ?? null, 'RICH_AI');
+                $beforeModel = $turn['model_calls'][0][3] ?? [];
+                foreach ($expected as $field=>$value) {
+                    $check($name . ' pre-model ' . $field, $beforeModel[$field] ?? null, $value);
+                    $check($name . ' final ' . $field, $turn['context'][$field] ?? null, $value);
+                }
+                $check($name . ' retains direction', $turn['context']['country'] ?? null, 'Египет');
+                $check($name . ' has no missing needs', $turn['missing'], []);
+                $check($name . ' completes once', count(array_filter($turn['events'],static fn($e)=>$e==='search_ready')), 1);
+                $messages = implode("\n",array_column($turn['messages'],'text'));
+                $check($name . ' shows confirmed summary once', substr_count($messages,'Готово! Проверьте параметры'), 1);
+                $check($name . ' never asks parameters again', preg_match('/Уточните, пожалуйста, параметры поездки|Сколько.*(?:взросл|дет|ноч)|возраст.*реб/iu',$messages), 0);
+                $manager = ManagerHandoffContextService::build(MaxSearchApi::getAiSearchContext($chat),[]);
+                foreach (['Маршрут: Самара → Египет',"Вылет: 12.12.{$year}",'Ночей: 10','Туристы: 2 взр. + 1 реб. + возраст: 5'] as $line) {
+                    $check($name . ' manager projection ' . $line, str_contains($manager,$line), true);
+                }
+                echo 'TRACE ' . json_encode(['case'=>$name,'writes'=>$turn['writes'],'final'=>$turn['context'],
+                    'events'=>$turn['events'],'messages'=>$turn['messages'],'manager'=>$manager],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) . PHP_EOL;
+            }
+
+            foreach (['max','telegram'] as $platform) {
+                $chat = ($platform === 'max' ? -1 : 1) * ($chatBase + 220 + $caseIndex++);
+                AiInvocationService::$answer = ['_error'=>true];
+                $turn = $cityTurn($chat,$platform,$phrase,[],[],MaxSearchApi::$statusAi,false);
+                $name = $platform . ' joint unknown destination';
+                $check($name . ' does not infer country from departure', $turn['context']['country'] ?? null, null);
+                $check($name . ' asks only destination', $turn['missing'], ['country']);
+                $check($name . ' cannot complete before destination is chosen', in_array('search_ready',$turn['events'],true), false);
+                echo 'TRACE ' . json_encode(['case'=>$name,'writes'=>$turn['writes'],'final'=>$turn['context'],
+                    'events'=>$turn['events'],'messages'=>$turn['messages']],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) . PHP_EOL;
+            }
+
+            // Controls for the candidate guards, not another broad regression run.
+            $chat = -($chatBase + 250);
+            AiInvocationService::$answer = ['intent'=>'search','parameters'=>['adults'=>3,'children'=>2,'child_ages'=>[7,9]]];
+            $turn = $cityTurn($chat,'max',"Из Самары с 12 декабря {$year} на 10 ночей, 2 взрослых без детей",
+                ['country'=>'Египет'] + $expected,[],MaxSearchApi::$statusAi,false);
+            $check('control tourist correction replaces prior party', array_intersect_key($turn['context'],array_flip(['adults','children','child_ages'])),
+                ['adults'=>2,'children'=>0]);
+            $check('control tourist correction completes once',count(array_filter($turn['events'],static fn($e)=>$e==='search_ready')),1);
+
+            AiInvocationService::$answer = ['intent'=>'correction','parameters'=>['adults'=>3]];
+            $turn = $cityTurn($chat - 1,'max',"Из Самары с 12 декабря {$year} на 10 ночей, подберите подходящий тур",
+                ['country'=>'Египет'] + $expected,[],MaxSearchApi::$statusAi,false);
+            $check('control party not explicit in this turn remains available to model interpretation',$turn['context']['adults'] ?? null,3);
+
+            foreach (['reject','stale'] as $index=>$failure) {
+                AiInvocationService::$answer = ['intent'=>'search','parameters'=>['adults'=>2,'children'=>1,'child_ages'=>[5]]];
+                MaxSearchApi::$nextPartyFailure = $failure;
+                $turn = $cityTurn($chat - 2 - $index,'max',$phrase,['country'=>'Египет'],[],MaxSearchApi::$statusAi,false);
+                $check('control ' . $failure . ' local write does not block valid model party',
+                    array_intersect_key($turn['context'],array_flip(['adults','children','child_ages'])),
+                    ['adults'=>2,'children'=>1,'child_ages'=>'5']);
+                $check('control ' . $failure . ' completes after model save',count(array_filter($turn['events'],static fn($e)=>$e==='search_ready')),1);
+            }
+
+            AiInvocationService::$answer = ['intent'=>'search','parameters'=>[]];
+            $turn = $cityTurn($chat - 4,'max',str_replace('Из Самары','Из Самары в Египет',$phrase),[],[],MaxSearchApi::$statusAi,false);
+            $check('control explicit destination remains readable',$turn['context']['country'] ?? null,'Египет');
+            $check('control explicit destination keeps departure',$turn['context']['city'] ?? null,'Самара');
+            $check('control explicit destination completes once',count(array_filter($turn['events'],static fn($e)=>$e==='search_ready')),1);
+
+            AiInvocationService::$answer = ['_error'=>true];
+            $turn = $cityTurn($chat - 7,'max',$phrase,
+                array_diff_key(['country'=>'Египет'] + $expected,['city'=>true]),[],MaxSearchApi::$statusAi,false);
+            $check('control timeout completes the last missing departure resolved by controller',
+                count(array_filter($turn['events'],static fn($e)=>$e==='search_ready')),1);
+            $check('control last departure completion retains all trip facts',array_intersect_key($turn['context'],$expected),$expected);
+
+            foreach (['max','telegram'] as $index=>$platform) {
+                AiInvocationService::$answer = ['_error'=>true];
+                $turn = $cityTurn(($platform === 'max' ? -1 : 1) * (abs($chat) + 5 + $index),$platform,
+                    'Есть ли в отеле детский клуб для ребёнка 5 лет?',
+                    ['country'=>'Египет'] + $expected,[],MaxSearchApi::$statusAi,false);
+                $name = $platform . ' FAQ timeout with recognized child age';
+                $check($name . ' reaches model',count($turn['model_calls']),1);
+                $check($name . ' exercises redundant local age write',count(array_filter($turn['writes'],
+                    static fn($write)=>array_key_exists('child_ages',$write[1]??[]))) > 0,true);
+                $check($name . ' does not complete a previously saved trip',in_array('search_ready',$turn['events'],true),false);
+                $check($name . ' preserves saved trip',array_intersect_key($turn['context'],$expected),$expected);
+                $check($name . ' does not ask trip parameters again',preg_match('/Уточните, пожалуйста, параметры поездки|Сколько.*(?:взросл|дет|ноч)|Сколько лет детям/iu',
+                    implode("\n",array_column($turn['messages'],'text'))),0);
+                echo 'TRACE '.json_encode(['case'=>$name,'context'=>$turn['context'],'events'=>$turn['events'],
+                    'messages'=>$turn['messages'],'writes'=>$turn['writes']],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES).PHP_EOL;
+            }
+
+        } else {
         foreach ([
             ['max', 'Казань', 'Казань', MaxSearchApi::$statusAi],
             ['telegram', 'Ростов-на-Дону', 'Ростов-на-Дону', MaxSearchApi::$statusStart],
@@ -280,6 +578,60 @@ PHP
         $check('explicit rich departure continues destination inference', $result['destination_queries'] > 0, true);
         $check('explicit rich departure reaches AI unchanged', $result['ai_text'], $text);
         $check('explicit rich departure is not consumed as a field answer', $result['messages'], []);
+
+        // Exercise the complete local collector with the real date/night
+        // parsers, application and progression, on both messenger paths.
+        $tripYear = (int)date('Y') + 1;
+        $compoundText = 'Самара с 12 декабря ' . $tripYear . ' на 10 ночей';
+        foreach (['max', 'telegram'] as $index=>$platform) {
+            $chat = $platform === 'max' ? -($chatBase + 140 + $index) : $chatBase + 140 + $index;
+            $result = $cityTurn($chat, $platform, $compoundText, ['country'=>'Египет'],
+                ['city', 'adults', 'children', 'nights', 'date'], MaxSearchApi::$statusAi, false);
+            $check($platform . ' compound answer retains all explicit trip facts', $result['context'],
+                ['country'=>'Египет', 'city'=>'Самара', 'nights'=>'10', 'date'=>'12.12.' . $tripYear, 'meal'=>'all_inclusive', 'stars'=>4]);
+            $check($platform . ' compound answer asks only the next missing fact', array_column($result['messages'], 'text'),
+                [MissingFieldQuestionService::question('adults')]);
+            $check($platform . ' compound answer is handled without model inference', [$result['handled'], $result['model_calls']], [true, []]);
+            $check($platform . ' departure name never reaches destination lookup',
+                strpos(json_encode($result['destination_filters'], JSON_UNESCAPED_UNICODE), 'Самар') === false
+                    && strpos(json_encode($result['destination_filters'], JSON_UNESCAPED_UNICODE), 'самар') === false, true);
+        }
+        $result = $cityTurn(-($chatBase + 145), 'max', $compoundText, [],
+            ['city', 'country', 'adults', 'children', 'nights', 'date'], MaxSearchApi::$statusAi, false);
+        $check('compound departure never invents a holiday country', $result['context'],
+            ['city'=>'Самара', 'nights'=>'10', 'date'=>'12.12.' . $tripYear]);
+        $check('unknown destination is clarified through the existing question', array_column($result['messages'], 'text'),
+            [MissingFieldQuestionService::question('country')]);
+        $check('unknown destination does not invoke inference on the departure name', $result['model_calls'], []);
+        $result = $cityTurn(-($chatBase + 146), 'max', $compoundText, ['country'=>'Египет'],
+            ['city', 'adults', 'children', 'nights', 'date'], MaxSearchApi::$statusCityChoose, false);
+        $check('wizard compound departure reaches the same complete local collector', $result['context'],
+            ['country'=>'Египет', 'city'=>'Самара', 'nights'=>'10', 'date'=>'12.12.' . $tripYear, 'meal'=>'all_inclusive', 'stars'=>4]);
+        $check('wizard compound departure asks the next missing field once', array_column($result['messages'], 'text'),
+            [MissingFieldQuestionService::question('adults')]);
+        $check('wizard compound departure performs no model call', $result['model_calls'], []);
+        $result = $cityTurn(-($chatBase + 147), 'max', $compoundText,
+            ['country'=>'Египет', 'adults'=>2, 'children'=>2],
+            ['city', 'child_ages', 'nights', 'date'], MaxSearchApi::$statusAi, false);
+        $check('date and duration numbers never become missing child ages',
+            array_key_exists('child_ages', $result['context']), false);
+        $check('known children retain the same compound trip facts', $result['context'],
+            ['country'=>'Египет', 'adults'=>2, 'children'=>2, 'city'=>'Самара',
+                'nights'=>'10', 'date'=>'12.12.' . $tripYear, 'meal'=>'all_inclusive', 'stars'=>4]);
+        $check('only the actual child ages remain to be clarified',
+            [$result['missing'], count($result['messages']), $result['model_calls']], [['child_ages'], 1, []]);
+        foreach (['max', 'telegram'] as $index=>$platform) {
+            $chat = $platform === 'max' ? -($chatBase + 150 + $index) : $chatBase + 150 + $index;
+            $text = 'Самара 2 взрослых и 1 ребёнок 5 лет с 12 декабря ' . $tripYear . ' на 10 ночей';
+            $result = $cityTurn($chat, $platform, $text, ['country'=>'Таиланд'],
+                ['city', 'adults', 'children', 'child_ages', 'nights', 'date', 'stars'], MaxSearchApi::$statusAi, false);
+            $check($platform . ' compound party bypasses scalar-answer consumption', $result['context'],
+                ['country'=>'Таиланд', 'city'=>'Самара', 'adults'=>2, 'children'=>1,
+                    'child_ages'=>[5], 'nights'=>'10', 'date'=>'12.12.' . $tripYear]);
+            $check($platform . ' compound party advances once after all facts', array_column($result['messages'], 'text'),
+                [MissingFieldQuestionService::question('stars')]);
+            $check($platform . ' compound party stays local despite rich classification', $result['model_calls'], []);
+        }
 
         foreach (['rejectParameters', 'staleParameterReadback'] as $index=>$failure) {
             MaxSearchApi::${$failure} = true;
@@ -323,6 +675,7 @@ PHP
         $check('Telegram reset failure remains observable', count(array_filter(DiagnosticLogger::$events,
             static fn(array $event): bool => ($event[1] ?? '') === 'reset_failed')), 1);
         MaxSearchApi::$resetFailureChat = null;
+        }
     } catch (Throwable $e) {
         $failed++;
         echo 'FAIL  start parity fixture: ' . get_class($e) . ': ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine() . PHP_EOL;
@@ -332,7 +685,7 @@ PHP
         foreach ($files as $file) { if ($file->isDir()) rmdir($file->getPathname()); else unlink($file->getPathname()); }
         rmdir($tmp);
     }
-    echo "DIALOGUE START PARITY: PASS {$passed} FAIL {$failed}\n";
+    echo ($jointHandoff ? "COMPOUND HANDOFF" : ($jointOnly ? "COMPOUND JOINT" : "DIALOGUE START PARITY")) . ": PASS {$passed} FAIL {$failed}\n";
     exit($failed > 0 ? 1 : 0);
 }
 
@@ -387,6 +740,16 @@ $fixtureStatus = 0;
 exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' --start-parity-fixture 2>&1', $fixtureOutput, $fixtureStatus);
 foreach ($fixtureOutput as $line) echo $line . PHP_EOL;
 dcCheck('real MAX/Telegram entry and start parity fixture', $fixtureStatus, 0);
+
+$fixtureOutput = [];
+exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' --compound-joint-only 2>&1', $fixtureOutput, $fixtureStatus);
+foreach ($fixtureOutput as $line) echo $line . PHP_EOL;
+dcCheck('joint compound MAX/Telegram fixture', $fixtureStatus, 0);
+
+$fixtureOutput = [];
+exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' --compound-handoff-only 2>&1', $fixtureOutput, $fixtureStatus);
+foreach ($fixtureOutput as $line) echo $line . PHP_EOL;
+dcCheck('joint compound DB handoff fixture', $fixtureStatus, 0);
 
 $total = $passed + $failed;
 echo "\n--------------------------\n";
