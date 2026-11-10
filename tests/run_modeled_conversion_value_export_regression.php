@@ -111,6 +111,28 @@ final class ModeledValueTestLookup
 function modeledValueMaxAttributionWindowAssertions(PDO $p,callable $check):void
 {
     $now=1793660000;$gate=static fn(string $chat):bool=>true;
+    foreach(['pending','ready']as$lane){
+        modeledValueSchema($p);$scope=modeledValueBinding($p,911);
+        $wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+        $control->configure('create-goal',$api,$now-20);$control->configure('enable',$api,$now-10);
+        modeledValueSave($p,modeledValueWrapper($scope,$now));
+        $lookup=new ModeledValueTestLookup();$lookup->observedAt=$now-21*86400+60;
+        if($lane==='ready'){
+            $control->collect(ModeledConversionValueExport::settings($p),$now,$gate);
+            $row=$p->query('SELECT * FROM max_channel_conversion_outbox LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+            $resolve=new ReflectionMethod(ModeledConversionValueExport::class,'resolve');
+            $resolve->invoke($control,$row,$lookup->lookup('98615635',[$row['external_user_id']]),$now,$gate);
+        }
+        $profiles=(string)$p->query('SELECT profile_json FROM modeled_conversion_profile_versions LIMIT 1')->fetchColumn();
+        ModeledConversionValueExport::tick($p,$lookup,$api,$now+301,$gate);
+        $row=$p->query('SELECT * FROM max_channel_conversion_outbox LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+        $check('MAX '.$lane.' source expires between the signal and dispatch without an upload or claim',
+            $wire->posts===0&&$row['state']==='pending'&&$row['last_error']==='identity_not_found'
+            &&(int)$row['attempts']===0&&empty($row['upload_id'])&&empty($row['claim_token']));
+        $check('dispatch hold retains the original value time and immutable profile: '.$lane,
+            (int)$row['event_unix']===$now&&(int)$row['value_rub']>0
+            &&(string)$p->query('SELECT profile_json FROM modeled_conversion_profile_versions LIMIT 1')->fetchColumn()===$profiles);
+    }
     foreach(['unknown'=>null,'future'=>$now+1,'expired'=>$now-21*86400-1,'boundary'=>$now-21*86400,'fresh'=>$now-60]as$case=>$observed){
         modeledValueSchema($p);$scope=modeledValueBinding($p,910);
         $wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);

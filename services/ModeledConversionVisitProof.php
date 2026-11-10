@@ -89,7 +89,10 @@ final class ModeledConversionVisitProof
                 $entry['linkage']='failed';$entry['reason']='provider_linkage_failure';
                 if(preg_match('/\\A[1-9][0-9]{0,39}\\z/D',$cid)===1){
                     if(++$requests>96||($deadline!==null&&microtime(true)>=$deadline))throw new RuntimeException('verification_request_bound');
-                    $entry['reason']=self::failureReason($api->modeledClientVisits($cid,(int)$r['event_unix'],$now),(int)$r['event_unix']);
+                    $clientVisits=$api->modeledClientVisits($cid,(int)$r['event_unix'],$now);
+                    $entry['reason']=self::failureReason($clientVisits,(int)$r['event_unix']);
+                    if(++$requests>96||($deadline!==null&&microtime(true)>=$deadline))throw new RuntimeException('verification_request_bound');
+                    $entry['failure_audit']=self::failureAudit($r,$v,$clientVisits,(method_exists($api,'modeledValueVisits')?$api->modeledValueVisits($cid,$activation,$now):['status'=>'unavailable']),$ledger,$now);
                 }
             }
             if($status==='PROCESSED'){
@@ -150,6 +153,48 @@ final class ModeledConversionVisitProof
             if($age<0)$later=true;
         }
         return $later?'only_later_or_expired_client_visits':'no_client_visit_in_attribution_window';
+    }
+    /** Evidence only. A provider failure never becomes delivery credit or permission to resend. */
+    public static function failureAudit(array $row,array $receipt,array $visits,array $goals,array $ledger,int $now):array
+    {
+        $event=(int)$row['event_unix'];$claim=(int)($row['claimed_at_unix']??0);
+        $created=is_string($receipt['create_time']??null)?strtotime($receipt['create_time']):false;
+        $uploaded=$created!==false&&$created>=946684800&&$created<=$now?$created:
+            ($claim>=946684800&&$claim<=$now?$claim:null);
+        $a=['signal_at'=>gmdate('Y-m-d\TH:i:s\Z',$event),'uploaded_at'=>$uploaded===null?null:gmdate('Y-m-d\TH:i:s\Z',$uploaded),
+            'upload_clock'=>$created!==false&&$created===$uploaded?'provider':'claim',
+            'latest_prior_visit_at'=>null,'eligible_at_signal'=>null,'eligible_at_upload'=>null,'wire_collision_rows'=>0,
+            'known_processed_events'=>0,'known_processed_rub'=>0,'known_failed_events'=>0,'known_failed_rub'=>0,
+            'other_unsettled_rows'=>0,'reported_goal_reaches'=>null,'reported_goal_rub'=>null,'report_comparison'=>'unavailable',
+            'diagnosis'=>'unavailable','checked_at'=>gmdate('Y-m-d\TH:i:s\Z',$now)];
+        foreach($ledger as$r){
+            if((string)($r['client_id']??'')!==(string)$row['client_id']||(string)($r['upload_id']??'')==='')continue;
+            if((int)$r['event_unix']===$event&&(string)$r['id']!==(string)$row['id'])$a['wire_collision_rows']++;
+            $status=$r['upload_status']??null;
+            if($status==='PROCESSED'||($r['state']??null)==='processed'){$a['known_processed_events']++;$a['known_processed_rub']+=(int)$r['value_rub'];}
+            elseif($status==='LINKAGE_FAILURE'||($r['state']??null)==='unmatched'){$a['known_failed_events']++;$a['known_failed_rub']+=(int)$r['value_rub'];}
+            else $a['other_unsettled_rows']++;
+        }
+        if(($goals['status']??null)==='ok'&&is_array($goals['visits']??null)){
+            $a['reported_goal_reaches']=0;$a['reported_goal_rub']=0;
+            foreach($goals['visits']as$v){$a['reported_goal_reaches']+=(int)$v['goal_reaches'];$a['reported_goal_rub']+=(float)$v['revenue_rub'];}
+            $a['reported_goal_rub']=round($a['reported_goal_rub'],2);
+            $same=static fn(int $count,int $value):bool=>$a['reported_goal_reaches']===$count&&abs($a['reported_goal_rub']-$value)<0.005;
+            $a['report_comparison']=$a['other_unsettled_rows']>0?'unsettled':
+                ($same($a['known_processed_events']+$a['known_failed_events'],$a['known_processed_rub']+$a['known_failed_rub'])?'all_uploads':
+                ($same($a['known_processed_events'],$a['known_processed_rub'])?'processed_only':'mismatch'));
+        }
+        if(($visits['status']??null)!=='ok'||!is_array($visits['visits']??null))return $a;
+        $prior=[];
+        foreach($visits['visits']as$v){$at=strtotime((string)($v['started_at']??''));if($at===false)return $a;if($at<=$event)$prior[]=$at;}
+        $latest=$prior===[]?null:max($prior);
+        $a['latest_prior_visit_at']=$latest===null?null:gmdate('Y-m-d\TH:i:s\Z',$latest);
+        $a['eligible_at_signal']=$latest!==null&&$event-$latest<=21*86400;
+        $a['eligible_at_upload']=$uploaded===null?null:($latest!==null&&$latest<=$uploaded&&$uploaded-$latest<=21*86400);
+        $a['diagnosis']=$visits['visits']===[]?'no_reported_visits':($latest===null?'only_later_visits':
+            (!$a['eligible_at_signal']?'outside_signal_window':($a['eligible_at_upload']===false?'outside_upload_window':
+            ($a['wire_collision_rows']>0?'wire_collision':($a['report_comparison']==='all_uploads'?'reported_despite_failure':'eligible_unexplained')))));
+        return $a;
     }
     /** Newest half plus oldest unchecked half; stable terminal evidence is rechecked daily. */
     public static function dueIds(array $ledger,int $checkpoint,int $now,callable $prior,int $batch=26):array
@@ -411,7 +456,7 @@ final class ModeledConversionVisitProof
         foreach(['max','telegram']as$p)$base[$p]=['sent'=>$a['by_platform'][$p]['sent'],
             'processed_at_checkpoint'=>$b['by_platform'][$p]['sent'],'processing_clock_unknown'=>$u['by_platform'][$p]['sent']];
         foreach($remaining as$r){
-            if(count($failures)>=3)break;
+            if(count($failures)>=16)break;
             $e=$current[(string)$r['id']]??null;if(!is_array($e))$e=$archive($r)['event']??null;
             if(!is_array($e)||!hash_equals((string)($e['fingerprint']??''),self::fingerprint($r))||($e['upload_status']??null)!=='LINKAGE_FAILURE')continue;
             $clock=(int)($r['tracker_observed_unix']??0);$age=(int)$r['event_unix']-$clock;
@@ -419,11 +464,38 @@ final class ModeledConversionVisitProof
             if(!in_array($reason,['provider_linkage_failure','no_reported_client_visits','only_later_or_expired_client_visits',
                 'no_client_visit_in_attribution_window','eligible_visit_but_provider_linkage_failed','client_visit_report_unavailable'],true))$reason='unavailable';
             $failures[]=['platform'=>$r['platform'],'increment_rub'=>(int)$r['value_rub'],'reason'=>$reason,
-                'source_clock'=>($r['platform']!=='max'||$clock<946684800)?'unknown':($age<0?'after_signal':($age>21*86400?'expired':'within_window'))];
+                'source_clock'=>($r['platform']!=='max'||$clock<946684800)?'unknown':($age<0?'after_signal':($age>21*86400?'expired':'within_window')),
+                'audit'=>self::validatedFailureAudit($e['failure_audit']??null,$now)];
         }
         return ['version'=>'modeled_followup_sent_cohort_v1','checkpoint_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$cut),
             'selection_basis'=>'claim_at_or_before_checkpoint_first_processing_observation_after_checkpoint_or_missing',
             'baseline_by_platform'=>$base,'failure_examples'=>$failures,'outcome'=>$out];
+    }
+    /** Fixed anonymous scalar projection; source identities and raw provider fields cannot cross MCP. */
+    private static function validatedFailureAudit(mixed $v,int $now):?array
+    {
+        if(!is_array($v))return null;
+        $keys=['signal_at','uploaded_at','upload_clock','latest_prior_visit_at','eligible_at_signal','eligible_at_upload','wire_collision_rows',
+            'known_processed_events','known_processed_rub','known_failed_events','known_failed_rub','other_unsettled_rows',
+            'reported_goal_reaches','reported_goal_rub','report_comparison','diagnosis','checked_at'];
+        if(array_keys($v)!==$keys)return null;
+        foreach(['signal_at','uploaded_at','latest_prior_visit_at','checked_at']as$k){
+            if($v[$k]===null&&in_array($k,['uploaded_at','latest_prior_visit_at'],true))continue;
+            if(!is_string($v[$k])||preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\z/D',$v[$k])!==1
+                ||($at=strtotime($v[$k]))===false||$at<946684800||$at>$now)return null;
+        }
+        foreach(['eligible_at_signal','eligible_at_upload']as$k)if($v[$k]!==null&&!is_bool($v[$k]))return null;
+        foreach(['wire_collision_rows','known_processed_events','known_failed_events','other_unsettled_rows']as$k)
+            if(!is_int($v[$k])||$v[$k]<0||$v[$k]>1000)return null;
+        foreach(['known_processed_rub','known_failed_rub','reported_goal_reaches','reported_goal_rub']as$k){
+            if($v[$k]===null&&str_starts_with($k,'reported_'))continue;
+            if((!is_int($v[$k])&&!is_float($v[$k]))||!is_finite((float)$v[$k])||$v[$k]<0||$v[$k]>1000000000)return null;
+        }
+        if(!in_array($v['upload_clock'],['provider','claim'],true)
+            ||!in_array($v['report_comparison'],['unavailable','unsettled','all_uploads','processed_only','mismatch'],true)
+            ||!in_array($v['diagnosis'],['unavailable','no_reported_visits','only_later_visits','outside_signal_window',
+                'outside_upload_window','wire_collision','reported_despite_failure','eligible_unexplained'],true))return null;
+        return $v;
     }
     private static function followupSummary(mixed $v,int $now):array
     {
@@ -446,13 +518,14 @@ final class ModeledConversionVisitProof
                 return ['available'=>false,'reason'=>'invalid_followup_cache'];
         }
         $failures=$v['failure_examples']??[];
-        if(!is_array($failures)||count($failures)>3)return ['available'=>false,'reason'=>'invalid_followup_cache'];
-        foreach($failures as$e)if(!is_array($e)||array_keys($e)!==['platform','increment_rub','reason','source_clock']
+        if(!is_array($failures)||count($failures)>16)return ['available'=>false,'reason'=>'invalid_followup_cache'];
+        foreach($failures as$e)if(!is_array($e)||!in_array(array_keys($e),[['platform','increment_rub','reason','source_clock'],['platform','increment_rub','reason','source_clock','audit']],true)
             ||!in_array($e['platform'],['max','telegram'],true)||!is_int($e['increment_rub'])||$e['increment_rub']<=0
             ||$e['increment_rub']>ModeledConversionValueContract::MAX_VALUE_RUB
             ||!in_array($e['reason'],['provider_linkage_failure','no_reported_client_visits','only_later_or_expired_client_visits',
                 'no_client_visit_in_attribution_window','eligible_visit_but_provider_linkage_failed','client_visit_report_unavailable','unavailable'],true)
-            ||!in_array($e['source_clock'],['unknown','after_signal','expired','within_window'],true))return ['available'=>false,'reason'=>'invalid_followup_cache'];
+            ||!in_array($e['source_clock'],['unknown','after_signal','expired','within_window'],true)
+            ||(isset($e['audit'])&&self::validatedFailureAudit($e['audit'],$now)!==$e['audit']))return ['available'=>false,'reason'=>'invalid_followup_cache'];
         return ['available'=>true,'fresh'=>$d['fresh'],'checkpoint_at'=>$v['checkpoint_at'],'as_of'=>$d['as_of'],
             'date'=>$d['date'],'timezone'=>$d['timezone'],'currency'=>'RUB','goal_id'=>'678187097',
             'selection_basis'=>'claim_at_or_before_checkpoint_first_processing_observation_after_checkpoint_or_missing',
