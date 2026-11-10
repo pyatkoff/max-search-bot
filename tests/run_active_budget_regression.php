@@ -4,11 +4,13 @@ declare(strict_types=1);
 require_once __DIR__.'/../services/NeedValueResolver.php';
 require_once __DIR__.'/../services/TripBudgetPolicy.php';
 $n=0;$failed=0;
+$clarificationOnly=in_array('--clarification-only',$argv,true);
 function abCheck(string $label,$actual,$expected):void {
     global $n,$failed;$n++;
     if ($actual===$expected) {echo "PASS $label\n";return;}
     $failed++;echo "FAIL $label\nexpected ".json_encode($expected,JSON_UNESCAPED_UNICODE)."\nactual ".json_encode($actual,JSON_UNESCAPED_UNICODE)."\n";
 }
+if (!$clarificationOnly) {
 $cases=[
     ['До 250 тысяч',250000,null,null,true],
     ['Бюджет 250 000 рублей на всех',250000,'RUB','total',true],
@@ -71,6 +73,7 @@ foreach ($reviewCases as [$text, $expected]) {
 }
 
 if (in_array('--parser-only',$argv,true)) {echo "TOTAL $n | PASS ".($n-$failed)." | FAIL $failed\n";exit($failed?1:0);}
+}
 $usePreparedMysql=in_array('--prepared-mysql',$argv,true);
 $useSocketMysql=in_array('--mysql',$argv,true);
 if ($usePreparedMysql && $useSocketMysql) throw new RuntimeException('ambiguous_mysql_fixture_mode');
@@ -139,6 +142,68 @@ function abApply(int $chat,string $text):array {
     $r=NeedValueResolver::resolve('budget',$text);
     return NeedApplicationService::applyParameters($chat,['budget_update'=>['snapshot'=>ConversationStateRepository::budgetSnapshot($chat),'changes'=>$r['value']]]);
 }
+
+// New optional-budget risk only: the real controller and application owner use
+// disposable state and catalogue rows. A unitless ceiling is never a money write.
+$catalogConnection=new ReflectionProperty(HotelDatabase::class,'pdo');
+$catalogConnection->setAccessible(true);
+$previousCatalog=$catalogConnection->getValue();
+$catalogConnection->setValue(null,$pdo);
+$pdo->exec("CREATE TABLE catalog_departures(id INTEGER PRIMARY KEY,name VARCHAR(100),name_genitive VARCHAR(100),is_active INTEGER);
+    CREATE TABLE catalog_countries(id INTEGER PRIMARY KEY,name VARCHAR(100),is_active INTEGER);
+    INSERT INTO catalog_departures VALUES(15,'Самара','Самары',1);
+    INSERT INTO catalog_countries VALUES(1,'Египет',1);");
+$controller=new DialogueController();
+$rows=static function(int $chat)use($pdo):array {
+    $q=$pdo->prepare('SELECT * FROM runtime_dialogue_state WHERE chat_id=? ORDER BY id');
+    $q->execute([(string)$chat]);return $q->fetchAll();
+};
+$clarification='Уточните, пожалуйста, единицу суммы и валюту, а также бюджет на всех или на человека. Напишите полную фразу, например: «до 120 тыс. рублей на всех». Пока бюджет не сохраняю; можно также перейти к турам или менеджеру кнопками в сообщении с параметрами.';
+foreach (['max','telegram'] as $index=>$platform) {
+    $clarificationChat=-45010-$index;
+    MaxSearchApi::setStatus($clarificationChat,MaxSearchApi::$statusStart);
+    NeedApplicationService::applyParameters($clarificationChat,['city'=>'Самара','country'=>'Египет','adults'=>2,'children'=>1,'child_ages'=>[6],'nights'=>'8','date'=>'05.04.'.((int)date('Y')+1)]);
+    MaxSearchApi::setStatus($clarificationChat,MaxSearchApi::$statusCheck);
+    MaxSearchApi::saveLastValue($clarificationChat,MaxSearchApi::$statusCheck,'1234abcd');
+    abCheck('new budget fixture has complete canonical needs: '.$platform,MaxSearchApi::getAiMissingFields($clarificationChat),[]);
+    abCheck('real optional prompt precedes clarification: '.$platform,OptionalBudgetPromptService::sendIfMissing($clarificationChat),true);
+    foreach ([''=>'До73','menu'=>'до 64'] as $mode=>$text) {
+        MaxSearchApi::setEditMode($clarificationChat,$mode);
+        $before=$rows($clarificationChat);$sentBefore=count($messenger->sent);
+        $controller->handleIncomingMessage(IncomingMessage::text($platform,abs($clarificationChat),$clarificationChat,'synthetic-unitless-'.$mode,$text));
+        abCheck('unitless ceiling asks one full clarification: '.$platform.'/'.$mode,array_column(array_slice($messenger->sent,$sentBefore),1),[$clarification]);
+        abCheck('unitless ceiling changes no stored row or edit mode: '.$platform.'/'.$mode,[$rows($clarificationChat),MaxSearchApi::getEditMode($clarificationChat)],[$before,$mode]);
+        abCheck('original budget parser still rejects unitless ceiling: '.$platform.'/'.$mode,NeedValueResolver::resolve('budget',$text)['recognized'],false);
+    }
+    MaxSearchApi::setEditMode($clarificationChat,'');
+    // These inputs must remain available to their existing owner, with no
+    // reply or write from AiBudgetHandler. Do not partially consume any clause.
+    if ($index===0) foreach (['73','до 14.08.2030','до 14 августа','до 2030','До73?','Хватит до 73?','Не хочу до 73','До73, 2 взрослых','Турция, до73','До73 на 8 ночей',"\xFF"] as $text) {
+        $before=$rows($clarificationChat);$sentBefore=count($messenger->sent);
+        abCheck('unitless boundary declines '.bin2hex($text),AiBudgetHandler::handleCheck($clarificationChat,$text),false);
+        abCheck('declined text has no reply or write '.bin2hex($text),[$rows($clarificationChat),count($messenger->sent)],[$before,$sentBefore]);
+    }
+    $before=$rows($clarificationChat);$sentBefore=count($messenger->sent);
+    $controller->handleIncomingMessage(IncomingMessage::text($platform,abs($clarificationChat),$clarificationChat,'synthetic-budget-skip','Не знаю'));
+    abCheck('optional refusal keeps its original acknowledgement: '.$platform,str_contains(end($messenger->sent)[1],'бюджет пока не фиксируем'),true);
+    abCheck('optional refusal keeps exact rows and sends once: '.$platform,[$rows($clarificationChat),count($messenger->sent)],[$before,$sentBefore+1]);
+    $controller->handleIncomingMessage(IncomingMessage::text($platform,abs($clarificationChat),$clarificationChat,'synthetic-budget-full','до 64 тыс. рублей на человека'));
+    abCheck('full answer still persists through the real canonical owner: '.$platform,MaxSearchApi::getAiSearchContext($clarificationChat)['budget']??null,['max'=>64000,'currency'=>'RUB','basis'=>'per_person','basis_source'=>'extracted']);
+    abCheck('full budget keeps completed check status: '.$platform,(int)MaxSearchApi::getCurentStatus($clarificationChat),MaxSearchApi::$statusCheck);
+    $before=$rows($clarificationChat);$sentBefore=count($messenger->sent);
+    abCheck('known budget is not reinterpreted by unitless help: '.$platform,AiBudgetHandler::handleCheck($clarificationChat,'До73'),false);
+    abCheck('known budget retains exact rows without a clarification: '.$platform,[$rows($clarificationChat),count($messenger->sent)],[$before,$sentBefore]);
+    MaxSearchApi::setStatus($clarificationChat,MaxSearchApi::$statusAi);
+    $before=$rows($clarificationChat);$sentBefore=count($messenger->sent);
+    abCheck('unitless answer outside optional check is not captured: '.$platform,AiBudgetHandler::handle($clarificationChat,'До73'),false);
+    abCheck('ordinary AI budget handler remains read-only for unitless answer: '.$platform,[$rows($clarificationChat),count($messenger->sent)],[$before,$sentBefore]);
+    MaxSearchApi::setEditMode($clarificationChat,'');
+    $pdo->prepare('DELETE FROM runtime_dialogue_state WHERE chat_id=?')->execute([(string)$clarificationChat]);
+}
+$pdo->exec('DROP TABLE catalog_departures; DROP TABLE catalog_countries;');
+$catalogConnection->setValue(null,$previousCatalog);
+if ($clarificationOnly) {echo "TOTAL $n | PASS ".($n-$failed)." | FAIL $failed\n";exit($failed?1:0);}
+
 $chat=-42001;MaxSearchApi::setStatus($chat,64);MaxSearchApi::setStatus($chat,76);
 $beforeRows=(int)$pdo->query('SELECT COUNT(*) FROM runtime_dialogue_state')->fetchColumn();
 abCheck('real application reports budget persisted',abApply($chat,'До 250 тысяч'),['budget'=>true]);
