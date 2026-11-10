@@ -177,10 +177,10 @@ for(const width of [390,1440])for(const owner of [false,true])test('Automatic pr
 // outage. Exercise the shipped shell/editor with native File and a real HTTP503.
 for(const width of [390,430,768,1440])test('Unsupported repair AI keeps native reply and ends polling '+width,async({page,browserName},testInfo)=>{
   await page.setViewportSize({width,height:900});await page.clock.install();
-  const state=await setup(page,{unsupportedProject:true}),reply=page.locator('#replyText'),text='Свой ответ о ремонте: уточним модель и проблему.';
+  const state=await setup(page,{unsupportedProject:true}),reply=page.locator('#replyText'),text='Свой ответ о ремонте: уточним модель и проблему.',fileBuffer=Buffer.from('Synthetic repair File');
   await expect(page.locator('#aiDraftOpen')).toHaveAttribute('data-ai-state','unavailable');
   expect(await page.evaluate(()=>WorkspaceV2.S.detail.conversation.project_key)).toBe('iphone_repair');
-  await reply.fill(text);await page.locator('#replyFile').setInputFiles({name:'repair-preserved.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic repair File')});
+  await reply.fill(text);await page.locator('#replyFile').setInputFiles({name:'repair-preserved.txt',mimeType:'text/plain',buffer:fileBuffer});
   await openAi(page);await expect(page.locator('#aiDraftStatus')).toHaveText('Для этого проекта AI-подсказки пока не подключены. Ваш текст и вложения сохранены.');
   await expect(page.locator('#aiDraftRetry')).toBeHidden();await expect(page.locator('#aiDraftInsert')).toBeHidden();await expect(page.locator('#sendReply')).toBeEnabled();
   expect(state.statusCalls()).toHaveLength(1);expect(state.previewCalls()).toEqual([]);expect(state.aiCalls()).toEqual([]);expect(state.ensureCalls()).toEqual([]);
@@ -191,7 +191,11 @@ for(const width of [390,430,768,1440])test('Unsupported repair AI keeps native r
   await page.locator('.aiDraftClose').click();await openAi(page);
   await expect(page.locator('#aiDraftRetry')).toBeHidden();expect(state.calls.filter(call=>call.path==='/manager/ai-draft.php')).toHaveLength(aiCount);
   await expect(reply).toHaveValue(text);await expect(page.locator('#mediaSelection')).toContainText('repair-preserved.txt');
-  expect(await page.locator('#replyFile').evaluate(node=>node.files[0]?.name)).toBe('repair-preserved.txt');await expect(page.locator('#sendReply')).toBeEnabled();
+  // Canonical media captures the File in its queue and clears the native input.
+  expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(true);
+  const attachment=page.locator('#mediaSelection .mediaSelectedItem');await expect(attachment).toHaveCount(1);await expect(attachment).toBeVisible();
+  await expect(attachment.locator('.mediaFileName')).toHaveText('repair-preserved.txt');await expect(attachment.locator('.mediaFileSize')).toHaveText(`${(fileBuffer.length/1024).toFixed(1)} КБ`);
+  await expect(page.locator('#sendReply')).toBeEnabled();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   await readAssistantSection(page,'#aiDraftStatus');await expect(page.locator('#aiDraftStatus')).toBeInViewport();
   const bounds=await page.locator('#aiDraftStatus').boundingBox();expect(bounds.x).toBeGreaterThanOrEqual(-1);expect(bounds.x+bounds.width).toBeLessThanOrEqual(width+1);
