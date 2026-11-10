@@ -249,6 +249,13 @@ class AiMessageHandler
 
                 AiRuntimeLogger::debug("ROUTE AFTER AI: APPLY_PARAMETERS\n");
                 $questionOptions=['country_explicit'=>true];
+                // If the named departure cannot be applied, explain that result
+                // instead of asking the same initial question. Progression still
+                // decides whether city remains missing after canonical application.
+                if (($missingBeforeTurn[0] ?? '') === 'city'
+                    && is_string($params['city'] ?? null) && trim($params['city']) !== '') {
+                    $questionOptions['unresolved_city'] = true;
+                }
                 if($sourceQualification){
                     $questionOptions['source_need_fields']=$sourceNeedFields;
                     $questionOptions['source_need_preapplied']=$sourceNeedPreapplied;

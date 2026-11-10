@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 // Isolate real entry/controller/view behavior from the envelope-only checks below.
 // Storage, catalog, model responses and transport are synthetic; dialogue decisions use production code.
+$departureRetryOnly = in_array('--departure-retry-only', $argv ?? [], true);
 $jointHandoff = in_array('--compound-handoff-only', $argv ?? [], true);
-$jointOnly = $jointHandoff || in_array('--compound-joint-only', $argv ?? [], true);
+$jointOnly = $departureRetryOnly || $jointHandoff || in_array('--compound-joint-only', $argv ?? [], true);
 if ($jointOnly || in_array('--start-parity-fixture', $argv ?? [], true)) {
     $root = dirname(__DIR__);
     $tmp = sys_get_temp_dir() . '/dialogue-start-parity-' . bin2hex(random_bytes(8));
@@ -34,7 +35,7 @@ if ($jointOnly || in_array('--start-parity-fixture', $argv ?? [], true)) {
         }
         mkdir($tmp . '/resources', 0700);
         copy($root . '/resources/yandex_regions.json', $tmp . '/resources/yandex_regions.json');
-        if ($jointHandoff) {
+        if ($jointHandoff || $departureRetryOnly) {
             foreach (['tests/fixtures/channel_post_entry_fixture.php','tests/fixtures/channel_post_registry_fixture.php',
                 'migrations/033_channel_post_context.sql','migrations/036_channel_post_member_delivery.sql',
                 'migrations/040_channel_post_reconciliation.sql'] as $path) {
@@ -44,7 +45,7 @@ if ($jointOnly || in_array('--start-parity-fixture', $argv ?? [], true)) {
         }
         // Handoff mode injects SQLite through the existing DB fixture. Other
         // modes reject DB access entirely; neither mode uses an external DB.
-        if (!$jointHandoff) file_put_contents($tmp . '/services/ConversationDb.php', <<<'PHP'
+        if (!$jointHandoff && !$departureRetryOnly) file_put_contents($tmp . '/services/ConversationDb.php', <<<'PHP'
 <?php
 class ConversationDb {
     public static function isConfigured(): bool { return false; }
@@ -72,8 +73,9 @@ PHP
         file_put_contents($tmp . '/services/TravelDirectoryRepository.php', <<<'PHP'
 <?php
 class TravelDirectoryRepository {
+    public static bool $includeMinsk = false;
     public static function activeDepartures(): array {
-        return [
+        return array_merge([
             ['id'=>1, 'name'=>'Казань', 'name_genitive'=>'Казани'],
             ['id'=>2, 'name'=>'Ростов-на-Дону', 'name_genitive'=>'Ростова-на-Дону'],
             ['id'=>3, 'name'=>'Минеральные Воды', 'name_genitive'=>'Минеральных Вод'],
@@ -81,7 +83,7 @@ class TravelDirectoryRepository {
             ['id'=>5, 'name'=>'Москва', 'name_genitive'=>'Москвы'],
             ['id'=>10, 'name'=>'Санкт Город', 'name_genitive'=>'Санкт Города'],
             ['id'=>11, 'name'=>'Санаторный Город', 'name_genitive'=>'Санаторного Города'],
-        ];
+        ], self::$includeMinsk ? [['id'=>100, 'name'=>'Минск', 'name_genitive'=>'Минска']] : []);
     }
 }
 PHP
@@ -154,7 +156,7 @@ PHP
                 return ['city'=>65,'country'=>66,'adults'=>67,'children'=>68,'child_ages'=>69,
                     'stars'=>70,'meal'=>71,'nights'=>72,'date'=>73];
             }
-            public static function getCityByID($id) { return [1=>'Москва',4=>'Самара',10=>'Казань'][$id] ?? false; }
+            public static function getCityByID($id) { return [1=>'Москва',4=>'Самара',10=>'Казань',100=>'Минск'][$id] ?? false; }
             public static function getCountryByID($id) { return [1=>'Египет',4=>'Турция',47=>'Россия'][$id] ?? false; }
             public static function getMealArr(): array { return ['7'=>'Всё включено']; }
             public static function saveLastValue($chat,$status,$value): void { self::$lastValues[$chat][$status]=$value; }
@@ -189,7 +191,7 @@ PHP
                 if (self::$rejectParameters) return [];
                 if (self::$canonicalStorage) {
                     $normalized=AiSearchContextService::normalizeParameters($params,
-                        static fn($name)=>$name==='Самара'?4:null,static fn($name)=>$name==='Россия'?47:null,
+                        static fn($name)=>$name==='Самара'?4:($name==='Минск' && TravelDirectoryRepository::$includeMinsk?100:null),static fn($name)=>$name==='Россия'?47:null,
                         static fn($date)=>NativeDateService::isTodayOrFuture($date));
                     $partyFailure = array_key_exists('adults',$normalized) ? self::$nextPartyFailure : null;
                     if ($partyFailure !== null) self::$nextPartyFailure = null;
@@ -346,7 +348,93 @@ PHP
                 'model_calls'=>AiInvocationService::$calls,
             ];
         };
-        if ($jointHandoff) {
+        if ($departureRetryOnly) {
+            require_once $tmp . '/tests/fixtures/channel_post_entry_fixture.php';
+            [$pdo, $registry, $publications] = createChannelPostEntryFixture();
+            MaxSearchApi::$canonicalStorage = true;
+            $year = (int)date('Y') + 1;
+            $recovery = 'Не получилось принять этот город для онлайн-подбора. Проверьте название. Если оно верное, напишите «Позвать менеджера» — он поможет проверить вылет из нужного вам города. Можно также указать другой удобный город вылета.';
+            $native = static function (string $platform, int $user, int $mid, string $text) use ($maxMessenger, $telegramMessenger): void {
+                IntegrationRegistry::useMessenger($platform === 'max' ? $maxMessenger : $telegramMessenger);
+                if ($platform === 'max') {
+                    (new IncomingUpdateDispatcher())->dispatch(MaxIncomingAdapter::fromUpdate([
+                        'update_type'=>'message_created', 'message'=>['sender'=>['user_id'=>$user],
+                            'body'=>['mid'=>(string)$mid, 'text'=>$text]],
+                    ]));
+                } else {
+                    TelegramWebhookHandler::dispatchUpdate(['update_id'=>$mid, 'message'=>[
+                        'message_id'=>$mid, 'from'=>['id'=>$user], 'chat'=>['id'=>$user, 'type'=>'private'],
+                        'text'=>$text,
+                    ]], null, $telegramMessenger);
+                }
+            };
+            foreach (['max', 'telegram'] as $index=>$platform) {
+                $user = $chatBase + 600 + $index;
+                $chat = $platform === 'max' ? -$user : $user;
+                $chats[] = $chat;
+                // Enter through the existing source and customer identity path;
+                // only the preceding accepted trip values are synthetic storage.
+                $enter($platform, $user, $publications[$platform]['start_payload']);
+                $q = $pdo->prepare('SELECT id FROM conversations WHERE project_key=? AND channel=? AND external_chat_id=? ORDER BY id DESC LIMIT 1');
+                $q->execute(['anytour', $platform, (string)$chat]);
+                $id = (int)$q->fetchColumn();
+                $intent = SourceHotelIntentService::current($id);
+                (new IncomingUpdateDispatcher())->dispatch(['platform'=>$platform, 'type'=>'callback',
+                    'callback_data'=>'hotel_intent_same:'.($intent['token'] ?? ''), 'callback_id'=>'departure-retry.'.$user,
+                    'user'=>['chat_id'=>$chat, 'external_user_id'=>$user]]);
+                MaxSearchApi::$needs[$chat] = [65=>null, 66=>'1', 67=>'2', 68=>'1', 69=>'5', 70=>'4', 71=>'7', 72=>'9-10', 73=>'05.04.'.$year];
+                MaxSearchApi::$statuses[$chat] = MaxSearchApi::$statusAi;
+                $before = MaxSearchApi::getAiSearchContext($chat);
+                unset(MaxSearchApi::$needs[$chat][73]);
+                AiInvocationService::$answer = ['intent'=>'search', 'parameters'=>[]];
+                $sentBefore = count($sent);
+                $native($platform, $user, 909900 + $index * 100, '05.04.'.$year);
+                $check($platform . ' first city question after a date answer stays ordinary',
+                    array_column(array_slice($sent, $sentBefore), 'text'), [MissingFieldQuestionService::question('city')]);
+                $check($platform . ' date answer preserves the accepted family and duration', MaxSearchApi::getAiSearchContext($chat), $before);
+                TravelDirectoryRepository::$includeMinsk = false;
+                AiInvocationService::$answer = ['intent'=>'search', 'parameters'=>['city'=>'Минск']];
+                for ($attempt = 1; $attempt <= 3; $attempt++) {
+                    if ($attempt === 3) {
+                        ConversationEntryRegionService::record($id, 'anytour', [
+                            'platform'=>$platform, 'entry_attribution'=>['region_id'=>'213', 'source'=>'incoming_attribution'],
+                            'message_id'=>'departure-retry-region.'.$user,
+                        ], $pdo, time());
+                        $check($platform . ' recovery has a real regional suggestion control',
+                            array_column(DepartureSuggestionService::forChat($chat, null, $platform)['candidates'] ?? [], 'name'), ['Москва']);
+                    }
+                    $sentBefore = count($sent);
+                    $native($platform, $user, 910000 + $index * 100 + $attempt, 'Минск');
+                    $label = $platform . ' unresolved departure attempt ' . $attempt;
+                    $check($label . ' exercises the source qualification route', SourceHandlingService::qualifyingTurn($chat), true);
+                    $check($label . ' explains recovery instead of repeating the question',
+                        array_column(array_slice($sent, $sentBefore), 'text'), [$recovery]);
+                    $check($label . ' retains all accepted trip facts', MaxSearchApi::getAiSearchContext($chat), $before);
+                    $check($label . ' never substitutes an unsupported city', MaxSearchApi::getAiMissingFields($chat), ['city']);
+                }
+                $check($platform . ' recovery does not queue a manager automatically',
+                    (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id={$id} AND event_type='manager_request'")->fetchColumn(), 0);
+                AiInvocationService::$answer = ['intent'=>'question', 'parameters'=>[], 'reply'=>'В публикации указан детский клуб.'];
+                $sentBefore = count($sent);
+                $native($platform, $user, 910010 + $index * 100, 'Есть ли в отеле детский клуб?');
+                $check($platform . ' hotel question keeps its answer while departure is unresolved',
+                    array_column(array_slice($sent, $sentBefore), 'text'), ['В публикации указан детский клуб.']);
+
+                // A supported catalogue entry must keep the successful scalar
+                // path: same text, no model call, no exception for a city name.
+                TravelDirectoryRepository::$includeMinsk = true;
+                $callsBefore = count(AiInvocationService::$calls);
+                $sentBefore = count($sent);
+                $native($platform, $user, 910020 + $index * 100, 'Минск');
+                $check($platform . ' active catalogue city is accepted', MaxSearchApi::getAiSearchContext($chat), ['city'=>'Минск'] + $before);
+                $check($platform . ' accepted city does not call the model', count(AiInvocationService::$calls), $callsBefore);
+                $check($platform . ' accepted last city completes through the existing handoff',
+                    (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id={$id} AND event_type='manager_request'")->fetchColumn(), 1);
+                $check($platform . ' accepted city does not send recovery guidance',
+                    in_array($recovery, array_column(array_slice($sent, $sentBefore), 'text'), true), false);
+                TravelDirectoryRepository::$includeMinsk = false;
+            }
+        } elseif ($jointHandoff) {
             require_once $tmp . '/tests/fixtures/channel_post_entry_fixture.php';
             require_once $tmp . '/services/ManagerHandoffContextService.php';
             require_once $tmp . '/services/ManagerHandoffEventContextService.php';
@@ -703,7 +791,7 @@ PHP
         foreach ($files as $file) { if ($file->isDir()) rmdir($file->getPathname()); else unlink($file->getPathname()); }
         rmdir($tmp);
     }
-    echo ($jointHandoff ? "COMPOUND HANDOFF" : ($jointOnly ? "COMPOUND JOINT" : "DIALOGUE START PARITY")) . ": PASS {$passed} FAIL {$failed}\n";
+    echo ($departureRetryOnly ? "DEPARTURE RETRY" : ($jointHandoff ? "COMPOUND HANDOFF" : ($jointOnly ? "COMPOUND JOINT" : "DIALOGUE START PARITY"))) . ": PASS {$passed} FAIL {$failed}\n";
     exit($failed > 0 ? 1 : 0);
 }
 
@@ -768,6 +856,11 @@ $fixtureOutput = [];
 exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' --compound-handoff-only 2>&1', $fixtureOutput, $fixtureStatus);
 foreach ($fixtureOutput as $line) echo $line . PHP_EOL;
 dcCheck('joint compound DB handoff fixture', $fixtureStatus, 0);
+
+$fixtureOutput = [];
+exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' --departure-retry-only 2>&1', $fixtureOutput, $fixtureStatus);
+foreach ($fixtureOutput as $line) echo $line . PHP_EOL;
+dcCheck('unresolved departure recovery MAX/Telegram fixture', $fixtureStatus, 0);
 
 $total = $passed + $failed;
 echo "\n--------------------------\n";
