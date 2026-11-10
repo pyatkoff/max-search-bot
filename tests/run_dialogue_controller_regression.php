@@ -6,8 +6,9 @@ declare(strict_types=1);
 // Storage, catalog, model responses and transport are synthetic; dialogue decisions use production code.
 $departureRetryOnly = in_array('--departure-retry-only', $argv ?? [], true);
 $clarificationOnly = in_array('--useful-clarifications-only', $argv ?? [], true);
+$overlapOnly = in_array('--overlapping-turn-only', $argv ?? [], true);
 $jointHandoff = in_array('--compound-handoff-only', $argv ?? [], true);
-$jointOnly = $clarificationOnly || $departureRetryOnly || $jointHandoff || in_array('--compound-joint-only', $argv ?? [], true);
+$jointOnly = $overlapOnly || $clarificationOnly || $departureRetryOnly || $jointHandoff || in_array('--compound-joint-only', $argv ?? [], true);
 if ($jointOnly || in_array('--start-parity-fixture', $argv ?? [], true)) {
     $root = dirname(__DIR__);
     $tmp = sys_get_temp_dir() . '/dialogue-start-parity-' . bin2hex(random_bytes(8));
@@ -36,7 +37,7 @@ if ($jointOnly || in_array('--start-parity-fixture', $argv ?? [], true)) {
         }
         mkdir($tmp . '/resources', 0700);
         copy($root . '/resources/yandex_regions.json', $tmp . '/resources/yandex_regions.json');
-        if ($jointHandoff || $departureRetryOnly || $clarificationOnly) {
+        if ($jointHandoff || $departureRetryOnly || $clarificationOnly || $overlapOnly) {
             foreach (['tests/fixtures/channel_post_entry_fixture.php','tests/fixtures/channel_post_registry_fixture.php',
                 'migrations/033_channel_post_context.sql','migrations/036_channel_post_member_delivery.sql',
                 'migrations/040_channel_post_reconciliation.sql'] as $path) {
@@ -46,7 +47,7 @@ if ($jointOnly || in_array('--start-parity-fixture', $argv ?? [], true)) {
         }
         // Handoff mode injects SQLite through the existing DB fixture. Other
         // modes reject DB access entirely; neither mode uses an external DB.
-        if (!$jointHandoff && !$departureRetryOnly && !$clarificationOnly) file_put_contents($tmp . '/services/ConversationDb.php', <<<'PHP'
+        if (!$jointHandoff && !$departureRetryOnly && !$clarificationOnly && !$overlapOnly) file_put_contents($tmp . '/services/ConversationDb.php', <<<'PHP'
 <?php
 class ConversationDb {
     public static function isConfigured(): bool { return false; }
@@ -125,8 +126,13 @@ PHP
 class AiInvocationService {
     public static array $calls = [];
     public static ?array $answer = null;
+    public static $duringInvoke = null;
     public static function invoke($route, $chat, $text, $context): array {
         self::$calls[] = [$route, $chat, $text, $context];
+        if (self::$duringInvoke !== null) {
+            $callback = self::$duringInvoke; self::$duringInvoke = null;
+            $callback();
+        }
         if (self::$answer !== null) return self::$answer;
         throw new RuntimeException('Fixture forbids external model calls');
     }
@@ -350,7 +356,66 @@ PHP
                 'model_calls'=>AiInvocationService::$calls,
             ];
         };
-        if ($clarificationOnly) {
+        if ($overlapOnly) {
+            require_once $tmp . '/tests/fixtures/channel_post_entry_fixture.php';
+            [$pdo, $registry, $publications] = createChannelPostEntryFixture();
+            MaxSearchApi::$canonicalStorage = true;
+            foreach (['max','telegram'] as $index=>$platform) {
+                $user=$chatBase+750+$index; $chat=$platform==='max'?-$user:$user; $chats[]=$chat;
+                $enter($platform,$user,$publications[$platform]['start_payload']);
+                $q=$pdo->prepare('SELECT id FROM conversations WHERE channel=? AND external_chat_id=? ORDER BY id DESC LIMIT 1');
+                $q->execute([$platform,(string)$chat]); $id=(int)$q->fetchColumn();
+                $intent=SourceHotelIntentService::current($id);
+                (new IncomingUpdateDispatcher())->dispatch(['platform'=>$platform,'type'=>'callback',
+                    'callback_data'=>'hotel_intent_same:'.($intent['token']??''),'callback_id'=>'overlap.'.$user,
+                    'user'=>['chat_id'=>$chat,'external_user_id'=>$user]]);
+                $seedNeeds=[65=>'4',66=>'1',70=>'4',71=>'7',72=>'8',73=>'05.04.'.((int)date('Y')+1)];
+                MaxSearchApi::$needs[$chat]=$seedNeeds; MaxSearchApi::$statuses[$chat]=MaxSearchApi::$statusAi;
+                $native=static function(int $mid,string $text)use($user,$platform,$maxMessenger,$telegramMessenger):void {
+                    IntegrationRegistry::useMessenger($platform==='max'?$maxMessenger:$telegramMessenger);
+                    if ($platform==='max') {
+                        (new IncomingUpdateDispatcher())->dispatch(MaxIncomingAdapter::fromUpdate([
+                            'update_type'=>'message_created','message'=>['sender'=>['user_id'=>$user],
+                                'body'=>['mid'=>(string)$mid,'text'=>$text]],
+                        ]));
+                    } else {
+                        TelegramWebhookHandler::dispatchUpdate(['update_id'=>$mid,'message'=>[
+                            'message_id'=>$mid,'from'=>['id'=>$user],'chat'=>['id'=>$user,'type'=>'private'],'text'=>$text,
+                        ]],null,$telegramMessenger);
+                    }
+                };
+                $mid=940000+$index*100;
+                $sentBefore=count($sent);AiInvocationService::$calls=[];
+                AiInvocationService::$answer=['intent'=>'search','parameters'=>[]];
+                AiInvocationService::$duringInvoke=static function()use($native,$mid):void { $native($mid+2,'3'); };
+                $native($mid+1,'8 дней');
+                $check($platform.' nested newer input reaches the canonical handler during the old model call',MaxSearchApi::getAiSearchContext($chat)['adults']??null,3);
+                $check($platform.' overlap invokes only the old synthetic model boundary',count(AiInvocationService::$calls),1);
+                $check($platform.' old no-fact result does not repeat the newer question',array_column(array_slice($sent,$sentBefore),'text'),[MissingFieldQuestionService::question('children')]);
+                $expected=$seedNeeds;$expected[67]=3;
+                $check($platform.' overlap preserves newer adults and all independent needs',MaxSearchApi::getSavedData($chat),$expected);
+                $q=$pdo->prepare("SELECT COUNT(*) FROM messages WHERE conversation_id=? AND direction='inbound' AND external_message_id IN (?,?)");
+                $q->execute([$id,(string)($mid+1),(string)($mid+2)]);
+                $check($platform.' both distinct native inputs were recorded',(int)$q->fetchColumn(),2);
+
+                // Negative controls keep this a no-fact completion guard, not a
+                // global cancellation of delayed interpretation or ordinary turns.
+                MaxSearchApi::$needs[$chat]=$seedNeeds; $sentBefore=count($sent);
+                $native($mid+3,'8 дней');
+                $check($platform.' unchanged context still asks the ordinary next question',array_column(array_slice($sent,$sentBefore),'text'),[MissingFieldQuestionService::question('adults')]);
+                MaxSearchApi::$needs[$chat]=$seedNeeds;
+                AiInvocationService::$answer=['intent'=>'correction','parameters'=>['stars'=>5]];
+                AiInvocationService::$duringInvoke=static function()use($native,$mid):void { $native($mid+5,'3'); };
+                $native($mid+4,'8 дней');
+                $expected[70]=5;
+                $check($platform.' nonempty delayed result retains its independent fact and newer adults',MaxSearchApi::getSavedData($chat),$expected);
+                MaxSearchApi::$needs[$chat]=$seedNeeds; $sentBefore=count($sent);
+                AiInvocationService::$answer=['intent'=>'question','parameters'=>[],'reply'=>'Описание бассейна можно уточнить у менеджера.'];
+                AiInvocationService::$duringInvoke=static function()use($native,$mid):void { $native($mid+7,'3'); };
+                $native($mid+6,'Есть ли бассейн?');
+                $check($platform.' delayed FAQ remains outside the no-fact search guard',array_column(array_slice($sent,$sentBefore),'text'),[MissingFieldQuestionService::question('children'),'Описание бассейна можно уточнить у менеджера.']);
+            }
+        } elseif ($clarificationOnly) {
             require_once $tmp . '/tests/fixtures/channel_post_entry_fixture.php';
             [$pdo, $registry, $publications] = createChannelPostEntryFixture();
             MaxSearchApi::$canonicalStorage = true;
@@ -917,7 +982,7 @@ PHP
         foreach ($files as $file) { if ($file->isDir()) rmdir($file->getPathname()); else unlink($file->getPathname()); }
         rmdir($tmp);
     }
-    echo ($clarificationOnly ? "USEFUL CLARIFICATIONS" : ($departureRetryOnly ? "DEPARTURE RETRY" : ($jointHandoff ? "COMPOUND HANDOFF" : ($jointOnly ? "COMPOUND JOINT" : "DIALOGUE START PARITY")))) . ": PASS {$passed} FAIL {$failed}\n";
+    echo ($overlapOnly ? "OVERLAPPING TURN" : ($clarificationOnly ? "USEFUL CLARIFICATIONS" : ($departureRetryOnly ? "DEPARTURE RETRY" : ($jointHandoff ? "COMPOUND HANDOFF" : ($jointOnly ? "COMPOUND JOINT" : "DIALOGUE START PARITY"))))) . ": PASS {$passed} FAIL {$failed}\n";
     exit($failed > 0 ? 1 : 0);
 }
 
@@ -992,6 +1057,11 @@ $fixtureOutput = [];
 exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' --useful-clarifications-only 2>&1', $fixtureOutput, $fixtureStatus);
 foreach ($fixtureOutput as $line) echo $line . PHP_EOL;
 dcCheck('useful clarification MAX/Telegram fixture', $fixtureStatus, 0);
+
+$fixtureOutput = [];
+exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' --overlapping-turn-only 2>&1', $fixtureOutput, $fixtureStatus);
+foreach ($fixtureOutput as $line) echo $line . PHP_EOL;
+dcCheck('overlapping native input fixture', $fixtureStatus, 0);
 
 $total = $passed + $failed;
 echo "\n--------------------------\n";

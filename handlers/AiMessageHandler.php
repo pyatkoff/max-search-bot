@@ -203,6 +203,17 @@ class AiMessageHandler
                 // $ai уже получен либо через RICH_AI, либо через SHORT_AI.
                 // Ни local fallback, ни второй AiRouter здесь повторно не запускаются.
 
+                // A newer scalar turn can finish while this inference is in flight.
+                // An empty search result adds no facts: do not repeat progression
+                // over that newer saved context. Results with facts and FAQ/error
+                // handling retain their existing path; this is not a turn lock.
+                if (is_array($ai) && empty($ai['_error'])
+                    && in_array((string)($ai['intent'] ?? ''), ['search', 'correction'], true)
+                    && ($ai['parameters'] ?? null) === []
+                    && MaxSearchApi::getAiSearchContext($chat_id) !== $current) {
+                    return;
+                }
+
                 $sourceNeedFields=[];
                 $sourceNeedPreapplied=false;
                 $sourceRawParams=is_array($ai['parameters']??null)?$ai['parameters']:[];
