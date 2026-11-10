@@ -33,12 +33,13 @@ final class ManagerDraftClient
     public static function developmentTransportAvailable(): bool
     {return self::hasConfiguredKey()&&function_exists('curl_init');}
 
-    public static function developmentRequestBody(string $role,string $instructions,array $payload,array $schema): array
+    public static function developmentRequestBody(string $role,string $instructions,array $payload,array $schema,bool $v2=false): array
     {
         if(!in_array($role,['producer','reviewer'],true)||($schema['type']??null)!=='object')
             throw new InvalidArgumentException('invalid_development_schema');
         $body=self::requestBody($instructions,$payload);
-        $body['text']['format']=['type'=>'json_schema','name'=>'development_server_'.$role,'strict'=>true,'schema'=>$schema];
+        $body['text']['format']=['type'=>'json_schema','name'=>'development_server_'.$role.($v2?'_v2':''),'strict'=>true,'schema'=>$schema];
+        if($v2){$body['max_output_tokens']=4096;$body['text']['verbosity']='low';}
         return $body;
     }
     /** Accept only the exact reproducible wire body. No headers or credentials are exported. */
@@ -48,15 +49,17 @@ final class ManagerDraftClient
             if(strlen($wire)>8192)throw new InvalidArgumentException('development_request_budget');
             $body=json_decode($wire,true,32,JSON_THROW_ON_ERROR);
             $name=$body['text']['format']['name']??'';
-            $role=match($name){'development_server_producer'=>'producer','development_server_reviewer'=>'reviewer',
+            $role=match($name){'development_server_producer','development_server_producer_v2'=>'producer',
+                'development_server_reviewer','development_server_reviewer_v2'=>'reviewer',
                 default=>throw new InvalidArgumentException('invalid_development_role')};
             $instructions=$body['input'][0]['content'][0]['text']??null;
             $payload=json_decode($body['input'][1]['content'][0]['text']??'',true,32,JSON_THROW_ON_ERROR);
             if(!is_string($instructions)||!is_array($payload))throw new InvalidArgumentException('invalid_development_body');
-            $expected=self::developmentRequestBody($role,$instructions,$payload,$body['text']['format']['schema']);
+            $v2=str_ends_with($name,'_v2');
+            $expected=self::developmentRequestBody($role,$instructions,$payload,$body['text']['format']['schema'],$v2);
             if(json_encode($expected,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)!==$wire)
                 throw new InvalidArgumentException('development_wire_mismatch');
-            return self::requestPreparedJson($body,8192,$observer,true,true);
+            return self::requestPreparedJson($body,8192,$observer,true,true,$v2?16384:8192);
         }catch(Throwable $ignored){return ['_error'=>'provider_unavailable'];}
     }
 
@@ -86,6 +89,17 @@ final class ManagerDraftClient
         return $body;
     }
 
+    /** The actual DEV curl callback, also exercised with chunked synthetic envelopes. */
+    public static function captureDevelopmentChunk(string &$bytes,bool &$oversized,string $chunk,int $limit): int
+    {
+        if(!in_array($limit,[8192,16384],true))throw new InvalidArgumentException('development_response_limit');
+        if($oversized)return 0;
+        if(strlen($bytes)+strlen($chunk)>$limit){
+            $bytes.=substr($chunk,0,max(0,$limit-strlen($bytes)));$oversized=true;return 0;
+        }
+        $bytes.=$chunk;return strlen($chunk);
+    }
+
     /** Completed response plus private invocation/usage evidence, never a body/log export. */
     public static function parseHotelResponse(string $bytes,int $httpStatus,?callable $observer=null): array
     {
@@ -108,7 +122,7 @@ final class ManagerDraftClient
         }catch(Throwable $ignored){return ['_error'=>'provider_metadata_unavailable'];}
     }
 
-    private static function requestPreparedJson(array $body,int $requestLimit,?callable $metadataObserver=null,bool $hotel=false,bool $development=false): array
+    private static function requestPreparedJson(array $body,int $requestLimit,?callable $metadataObserver=null,bool $hotel=false,bool $development=false,int $developmentResponseLimit=8192): array
     {
         if (!defined('OPENAI_API_KEY') || !is_string(OPENAI_API_KEY) || trim(OPENAI_API_KEY)===''
             || OPENAI_API_KEY==='PASTE_OPENAI_API_KEY_HERE' || strlen(OPENAI_API_KEY)>4096
@@ -126,8 +140,9 @@ final class ManagerDraftClient
                     CURLOPT_CONNECTTIMEOUT=>3,CURLOPT_TIMEOUT=>20,CURLOPT_FOLLOWLOCATION=>false,
                     CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,
                     CURLOPT_PROXY=>'',CURLOPT_RETURNTRANSFER=>false,
-                    CURLOPT_WRITEFUNCTION=>static function($ignored,string $chunk) use (&$bytes,&$oversized,$development): int {
-                        $limit=$development?8192:self::MAX_RESPONSE_BYTES;
+                    CURLOPT_WRITEFUNCTION=>static function($ignored,string $chunk) use (&$bytes,&$oversized,$development,$developmentResponseLimit): int {
+                        if($development)return self::captureDevelopmentChunk($bytes,$oversized,$chunk,$developmentResponseLimit);
+                        $limit=self::MAX_RESPONSE_BYTES;
                         if (strlen($bytes)+strlen($chunk)>$limit) {
                             if($development)$bytes.=substr($chunk,0,max(0,$limit-strlen($bytes)));
                             $oversized=true;return 0;
@@ -146,7 +161,7 @@ final class ManagerDraftClient
                 if($metadataObserver!==null)$metadataObserver(($meta??[])+[
                     'wire_request_bytes'=>$encoded,'wire_response_bytes'=>$bytes,
                     'wire_complete'=>!$oversized&&$success!==false&&$errno===0,'http_status'=>$status,
-                    'response_capture_limit'=>8192,'response_capture'=>$oversized?'prefix_truncated_at_budget':
+                    'response_capture_limit'=>$developmentResponseLimit,'response_capture'=>$oversized?'prefix_truncated_at_budget':
                         (($success!==false&&$errno===0)?'complete':'incomplete_transport')]);
                 return $parsed;
             }

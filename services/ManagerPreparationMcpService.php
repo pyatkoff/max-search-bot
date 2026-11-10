@@ -331,6 +331,8 @@ final class ManagerPreparationMcpService
         if (!is_array($data)) throw new RuntimeException();
         $images=$name==='get_reply_context'?($data['image_inputs']??[]):[];unset($data['image_inputs']);
         if (!is_array($images)||!array_is_list($images)||count($images)>4) throw new RuntimeException();
+        if($name==='development_work_status'&&($data['server_control']['readback_contract']??null)==='full_structured_v2')
+            return DevelopmentWorkServerContract::toolResult($data);
         $content=[['type'=>'text','text'=>json_encode($data,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]];
         $imageBytes=0;
         foreach ($images as $image) {
