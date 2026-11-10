@@ -11,7 +11,7 @@ final class ModeledConversionValueDeliveryReader
     public const ROW_LIMIT=201;
     private const STATES=['pending','ready','uploading','accepted','processed','unknown','failed','expired','unmatched'];
     private const UPLOADS=['PREPARED','UPLOADED','EXPORTED','MATCHED','PROCESSED','LINKAGE_FAILURE'];
-    private const ERRORS=['identity_not_found','identity_ambiguous','scope_unavailable','api_rejected','api_row_rejected',
+    private const ERRORS=['identity_not_found','identity_ambiguous','wire_key_collision','scope_unavailable','api_rejected','api_row_rejected',
         'upload_outcome_unknown','event_expired','transport_not_sent','rate_limited'];
     public function __construct(private PDO $pdo,private $authorize,private ModeledConversionStatusBudget $budget){}
     public function read(int $now):array

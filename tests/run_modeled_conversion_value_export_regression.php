@@ -133,6 +133,20 @@ function modeledValueMaxAttributionWindowAssertions(PDO $p,callable $check):void
             (int)$row['event_unix']===$now&&(int)$row['value_rub']>0
             &&(string)$p->query('SELECT profile_json FROM modeled_conversion_profile_versions LIMIT 1')->fetchColumn()===$profiles);
     }
+    modeledValueSchema($p);$scope=modeledValueBinding($p,912);
+    $wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    $control->configure('create-goal',$api,$now-20);$control->configure('enable',$api,$now-10);
+    modeledValueSave($p,modeledValueWrapper($scope,$now));$lookup=new ModeledValueTestLookup();$lookup->observedAt=$now-60;
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
+    $p->exec("INSERT INTO max_channel_conversion_outbox(project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,platform,identity_source_key,value_rub,value_profile_id,value_stage,value_contract,state,client_id,tracker_observed_unix)
+        SELECT project_key,conversation_id,external_user_id,counter_id,'anytour_value_2_v1',transport_target,event_unix,platform,identity_source_key,83,value_profile_id,'specific_request',value_contract,'ready',client_id,tracker_observed_unix FROM max_channel_conversion_outbox LIMIT 1");
+    $before=(string)$p->query("SELECT upload_id FROM max_channel_conversion_outbox WHERE target='anytour_value_1_v1'")->fetchColumn();
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+301,$gate);
+    $held=$p->query("SELECT * FROM max_channel_conversion_outbox WHERE target='anytour_value_2_v1'")->fetch(PDO::FETCH_ASSOC);
+    $check('a later positive delta cannot overwrite an existing provider key at the same second',
+        $wire->posts===1&&$held['state']==='ready'&&$held['last_error']==='wire_key_collision'
+        &&(int)$held['value_rub']===83&&(int)$held['attempts']===0&&empty($held['upload_id'])
+        &&(string)$p->query("SELECT upload_id FROM max_channel_conversion_outbox WHERE target='anytour_value_1_v1'")->fetchColumn()===$before);
     foreach(['unknown'=>null,'future'=>$now+1,'expired'=>$now-21*86400-1,'boundary'=>$now-21*86400,'fresh'=>$now-60]as$case=>$observed){
         modeledValueSchema($p);$scope=modeledValueBinding($p,910);
         $wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);

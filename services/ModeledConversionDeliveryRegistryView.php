@@ -152,7 +152,9 @@ final class ModeledConversionDeliveryRegistryView
     {
         $state=is_string($e['state']??null)?$e['state']:'';
         $stateText=self::STATES[$state]??'Статус неизвестен';
-        $class=in_array($state,['accepted','processed'],true)?'good':(in_array($state,['failed','unknown','expired','unmatched'],true)?'attention':'neutral');
+        $wireCorrected=($e['visit_check']['linkage']??null)==='wire_value_reconciled';
+        if($wireCorrected)$stateText='Ценность восстановлена по общему ключу';
+        $class=$wireCorrected||in_array($state,['accepted','processed'],true)?'good':(in_array($state,['failed','unknown','expired','unmatched'],true)?'attention':'neutral');
         $origin=in_array($e['origin']??null,['owner_day_review_v1','owner_fortnight_review_v1','historical_review'],true)?'Исторический разбор':'Новый поток';
         $html='<section class="event"><div class="event-heading"><div><h4>'.self::stage($e['stage']??null).'</h4><span class="muted">'.$origin.'</span></div><strong>+'.self::money($e['value_rub']??null).'</strong>'
             .'<span class="badge '.$class.'">'.$stateText.'</span></div>';
@@ -178,11 +180,12 @@ final class ModeledConversionDeliveryRegistryView
         }
         $p=is_array($e['visit_check']??null)?$e['visit_check']:[];
         if(($p['available']??false)===true){
-            $linked=($p['linkage']??null)==='unique_visit_reconciled';
+            $linked=in_array($p['linkage']??null,['unique_visit_reconciled','wire_value_reconciled'],true);
             $failed=($p['linkage']??null)==='failed';
             $html.='<div class="ground"><strong>'.($linked?'Однозначно сверено с целевым визитом':($failed?'Метрика не привязала начисление к визиту':'Привязка к визиту ещё не подтверждена')).'</strong>'
                 .'<p>Дополнительная проверка Метрики: '.self::moment($p['checked_at']??null).'. Статус загрузки: '.self::e($p['upload_status']??'не получен').'.</p>';
             $why=match($p['reason']??null){
+                'same_wire_total_provider_and_visit_report_reconciled'=>'Общая сумма обновлена по исходному ключу без новой цели. Новая загрузка обработана, сумма и визит сверены; статус прежней загрузки сохранён в истории.',
                 'no_reported_client_visits'=>'В счётчике не найдены визиты сохранённого ClientID за проверенный период.',
                 'only_later_or_expired_client_visits'=>'Найдены только визиты после сигнала или вне окна атрибуции.',
                 'no_client_visit_in_attribution_window'=>'Для этого сигнала нет визита в пределах 21 дня.',
@@ -214,6 +217,7 @@ final class ModeledConversionDeliveryRegistryView
     private static function reason(mixed $error):?string
     {
         return match($error){
+            'wire_key_collision'=>'Совпали посетитель, цель и секунда события. Прирост сохранён; отдельная отправка удержана, чтобы не перезаписать уже переданную сумму.',
             'identity_not_found'=>'Нет сохранённой рекламной связки для отправки.',
             'identity_ambiguous'=>'Найдено несколько рекламных связок. Однозначная связь пока не подтверждена.',
             'scope_unavailable'=>'Не удалось подтвердить доступ к основанию.',
