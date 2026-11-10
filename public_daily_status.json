@@ -1,40 +1,40 @@
 {
     "ok": true,
-    "generated_at": "2026-11-10T09:39:39+00:00",
+    "generated_at": "2026-11-10T10:05:45+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 45,
-        "raw_sessions": 45,
+        "sessions": 48,
+        "raw_sessions": 48,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 45,
+            "resolved": 48,
             "unresolved": 0
         },
-        "started": 39,
+        "started": 42,
         "needs_collected": 10,
         "tours_opened": 9,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 29,
-        "manager_replied": 19,
-        "customer_replied_after_manager": 8,
+        "manager_requested": 32,
+        "manager_replied": 22,
+        "customer_replied_after_manager": 11,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 19,
+            "answered_after_90s": 22,
             "still_unanswered": 0,
-            "measured_responses": 19,
-            "avg_seconds": 21834,
+            "measured_responses": 22,
+            "avg_seconds": 20917,
             "max_seconds": 47166
         },
         "drop_points": {
+            "customer_replied_after_manager": 11,
             "manager_replied": 11,
             "manager_requested": 10,
             "collecting_needs": 9,
-            "customer_replied_after_manager": 8,
             "started_only": 6,
             "tours_opened": 1
         },
@@ -51,11 +51,11 @@
             "post_tour_manager_cta_shown": 0,
             "manager_requested": 22,
             "manager_replied": 15,
-            "customer_replied_after_manager": 6
+            "customer_replied_after_manager": 7
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-10T09:39:39Z",
+        "sampled_at": "2026-11-10T10:05:45Z",
         "available": true,
         "error": null,
         "mode": "send",
