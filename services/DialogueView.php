@@ -131,6 +131,16 @@ class DialogueView
     public static function city($chatId): bool
     {
         MaxSearchApi::deletePrevMessage($chatId);
+        require_once __DIR__ . '/DepartureSuggestionService.php';
+        $suggestion = DepartureSuggestionService::forChat($chatId);
+        if ($suggestion !== []) {
+            $buttons = self::departureSuggestionButtons($suggestion, 'pick_city_');
+            $buttons[] = ButtonFactory::row(ButtonFactory::callback('🔎 Другой город','pick_city_other'));
+            $buttons[] = ButtonFactory::row(ButtonFactory::callback('🚗 Без перелёта','pick_city_99'));
+            return self::sendAndStatus($chatId,
+                "✈️ <b>Откуда вылетаете?</b>\n\nМожно выбрать один из этих городов или указать другой.",
+                $buttons, MaxSearchApi::$statusCityChoose, false);
+        }
         $buttons = ButtonFactory::rows(
             ButtonFactory::row(ButtonFactory::callback('Москва','pick_city_1'), ButtonFactory::callback('Санкт-Петербург','pick_city_5')),
             ButtonFactory::row(ButtonFactory::callback('Казань','pick_city_10'), ButtonFactory::callback('Красноярск','pick_city_12')),
@@ -138,6 +148,25 @@ class DialogueView
             ButtonFactory::row(ButtonFactory::callback('🚗 Без перелёта','pick_city_99'))
         );
         return self::sendAndStatus($chatId,"✈️ <b>Откуда вылетаете?</b>\n\nШаг 1 из 7 · Выберите город или введите его вручную.",$buttons,MaxSearchApi::$statusCityChoose,false);
+    }
+
+    /** The buttons confirm an actual departure; displaying them never fills the city. */
+    public static function departureSuggestion($chatId, array $suggestion): bool
+    {
+        $buttons = self::departureSuggestionButtons($suggestion, 'departure_suggest_');
+        $buttons[] = ButtonFactory::row(ButtonFactory::callback('🔎 Другой город','departure_suggest_other'));
+        return IntegrationRegistry::messenger()->sendWithButtons($chatId,
+            "Из какого города планируете вылет? Можно выбрать один из этих вариантов или написать другой город.",
+            $buttons);
+    }
+
+    private static function departureSuggestionButtons(array $suggestion, string $prefix): array
+    {
+        $buttons = [];
+        foreach ((array)($suggestion['candidates'] ?? []) as $candidate) {
+            $buttons[] = ButtonFactory::row(ButtonFactory::callback((string)$candidate['name'], $prefix . $candidate['id']));
+        }
+        return $buttons;
     }
 
     public static function cityOther($chatId): bool

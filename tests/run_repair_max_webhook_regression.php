@@ -383,6 +383,31 @@ repairCheck('competing replay can win one claim without duplicating send or hand
     && (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=".(int)$concurrent['id']." AND event_type='bot_started'")->fetchColumn() === 1
     && (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=".(int)$concurrent['id']." AND event_type='waiting_manager'")->fetchColumn() === 1);
 
+$firstRegionEntry = repairStart(7040,'123456789_region_00054_campaign_42',1800000000997);
+repairCheck('registered real service forwards first advertising entry through scoped recorder', $handle('appleservice39',$firstRegionEntry)['status'] === 200
+    && (ConversationEntryRegionService::forChat(-7040,'max','appleservice39',$pdo)['yandex_region_id'] ?? '') === '54');
+$firstRegionConversation = repairConversation($pdo,'appleservice39',7040);
+$pdo->exec("UPDATE conversations SET status='manager',manager_id=88 WHERE id=".(int)$firstRegionConversation['id']);
+$beforeRegionEntry = repairConversation($pdo,'appleservice39',7040);
+$protectedRegionEntry = array_intersect_key($beforeRegionEntry,array_flip(['source_id','manager_id','status']));
+$beforeRegionSends = count($sent);
+$regionEntry = repairStart(7040,'123456789_region_00039_campaign_42',1800000000998);
+$regionResult=$handle('appleservice39',$regionEntry);
+repairCheck('registered real service forwards advertising reentry through scoped recorder', $regionResult['status'] === 200
+    && (ConversationEntryRegionService::forChat(-7040,'max','appleservice39',$pdo)['yandex_region_id'] ?? '') === '39');
+$regionConversation = repairConversation($pdo,'appleservice39',7040);
+$regionMetadata = json_decode((string)$regionConversation['metadata_json'],true);
+repairCheck('registered region receipt preserves routing manager and repair context',
+    array_intersect_key($regionConversation,array_flip(array_keys($protectedRegionEntry))) === $protectedRegionEntry
+    && ($regionMetadata['repair_context'] ?? null) === (json_decode((string)$beforeRegionEntry['metadata_json'],true)['repair_context'] ?? null)
+    && $regionConversation['attribution_region'] === '39' && count($sent) === $beforeRegionSends
+    && ($regionMetadata['first_entry_region']['yandex_region_id'] ?? '') === '54');
+$regionReceiptCount = (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=".(int)$regionConversation['id']." AND event_type='entry_region_observed'")->fetchColumn();
+repairCheck('registered entry retry keeps exactly one geography receipt per genuine start', $handle('appleservice39',$regionEntry)['result'] === 'duplicate'
+    && $regionReceiptCount === 2
+    && (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=".(int)$regionConversation['id']." AND event_type='entry_region_observed'")->fetchColumn() === $regionReceiptCount);
+repairCheck('registered advertising geography never crosses into the AnyTour scope',ConversationEntryRegionService::forChat(-7040,'max','anytour',$pdo) === null);
+
 $pdo->exec("UPDATE conversations SET status='closed' WHERE id=".(int)$second['id']);
 $before = (int)$pdo->query('SELECT COUNT(*) FROM conversations')->fetchColumn();
 $handle('repair_two',$sharedMessage);

@@ -75,7 +75,7 @@ final class RepairMaxWebhookService
             $context = $entry !== null ? ['model'=>$entry['model'],'service'=>$entry['service'],'entry_code'=>$payload] : [];
             if ($type === 'bot_started') {
                 $name = preg_split('/\s+/', trim((string)($user['name'] ?? '')), 2) ?: [];
-                $incoming = ['platform'=>'max','type'=>'bot_started','user'=>[
+                $incoming = ['platform'=>'max','type'=>'bot_started','start_payload'=>$payload,'user'=>[
                     'external_user_id'=>$externalUser,'chat_id'=>$chatId,
                     'first_name'=>(string)($user['first_name'] ?? $name[0] ?? ''),
                     'last_name'=>(string)($user['last_name'] ?? $name[1] ?? ''),
