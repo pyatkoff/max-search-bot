@@ -6,6 +6,19 @@ class StarsParser
     {
         $lower = self::normalize($text);
 
+        // Explicit correction must prefer the positive replacement instead of
+        // either repeating the category question or persisting the rejected value.
+        // Keep this fail-closed: both sides must independently satisfy the existing
+        // category grammar before the replacement is accepted.
+        if (preg_match('/^не\s+(.+?)\s*[,;]?\s+а\s+(.+)$/ui', $lower, $m)) {
+            $rejected = self::parse(trim((string)$m[1]));
+            $replacement = self::parse(trim((string)$m[2]));
+            if ($rejected === null || $replacement === null) {
+                return null;
+            }
+            return $replacement;
+        }
+
         if (preg_match('/^(?:не важно|неважно|любая|любые|все|всё)$/ui', $lower)) {
             return 1;
         }
