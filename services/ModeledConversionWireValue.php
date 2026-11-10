@@ -91,7 +91,7 @@ final class ModeledConversionWireValue
         }finally{if(is_file($tmp))unlink($tmp);}
     }
     /** Existing proof reader only observes the private correction; it can never replay it. */
-    public static function observe(array $row,array $ledger,object $api,int $now):string
+    public static function observe(array $row,array $ledger,object $api,int $now,?callable $admitRead=null):string
     {
         static $seen=[];$key=self::key($row).'|'.$now;if(isset($seen[$key]))return $seen[$key];
         $r=self::read($row);if($r===null)return $seen[$key]='not_recorded';
@@ -100,6 +100,7 @@ final class ModeledConversionWireValue
         if($plan['wire_key']!==$r['wire_key']||$plan['members']!==$r['members']||$plan['total_rub']!==$r['total_rub']
             ||$plan['comment']!==$r['comment'])return $seen[$key]='invalid';
         if(in_array($r['state'],['processed','failed'],true)||$r['checked_at_unix']>$now-300)return $seen[$key]=$r['state'];
+        if($admitRead!==null)$admitRead();
         $poll=$r['upload_id']===null?$api->findModeledWireCorrection($members,$now):$api->poll($r['upload_id']);
         if(is_array($poll)&&($poll['comment']??null)===$plan['comment']
             &&(int)($poll['source_quantity']??0)===1&&(int)($poll['line_quantity']??0)===1){
