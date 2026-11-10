@@ -1,0 +1,96 @@
+name: Read encrypted regional manager setup metadata once
+
+on:
+  push:
+    branches:
+      - audit/regional-manager-preflight-20261111
+    paths:
+      - '.github/workflows/regional-manager-preflight.yml'
+      - 'tools/regional_manager_preflight.php'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: regional-manager-preflight-20261111
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.event_name == 'push' && github.ref == 'refs/heads/audit/regional-manager-preflight-20261111'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      EXPECTED_APPLICATION_SHA: 7847364fd3c6a1051898eb2dfff00bdc5d061aeb
+    steps:
+      - name: Check out the exact fixed reader
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /tools/regional_manager_preflight.php
+
+      - name: Prepare the existing canonical connection
+        env:
+          STANDBY_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_file="$RUNNER_TEMP/regional_key"
+          raw="$STANDBY_KEY"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            [[ "$decoded" == *"PRIVATE KEY"* ]] || { echo 'REGIONAL_MANAGER_PREFLIGHT_ERROR=CANONICAL_KEY_UNAVAILABLE' >&2; exit 1; }
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null 2>/dev/null || { echo 'REGIONAL_MANAGER_PREFLIGHT_ERROR=CANONICAL_KEY_UNAVAILABLE' >&2; exit 1; }
+
+      - name: Read only scoped manager metadata into an encrypted packet
+        env:
+          STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          output="$RUNNER_TEMP/regional-manager-preflight.json"
+          diagnostics="$RUNNER_TEMP/regional-manager-preflight.stderr"
+          # Keep the canonical connection options already used by the standby
+          # diagnostic/deployment; no legacy host or unrelated host pin is used.
+          if ! ssh -i "$RUNNER_TEMP/regional_key" \
+            -o BatchMode=yes -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 \
+            "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" \
+            "set -eu; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_APPLICATION_SHA'; php -d display_errors=0 -d log_errors=0" \
+            < tools/regional_manager_preflight.php > "$output" 2> "$diagnostics"; then
+            python3 - "$diagnostics" <<'PY'
+          import re, sys
+          text = open(sys.argv[1], encoding='utf-8', errors='replace').read(8192)
+          codes = re.findall(r'^REGIONAL_MANAGER_PREFLIGHT_ERROR=([A-Z_]{1,80})$', text, re.M)
+          print('REGIONAL_MANAGER_PREFLIGHT_ERROR=' + (codes[-1] if codes else 'CANONICAL_READ_UNAVAILABLE'), file=sys.stderr)
+          PY
+            exit 1
+          fi
+          python3 - "$output" <<'PY'
+          import base64,json,sys
+          raw=open(sys.argv[1],encoding='utf-8').read(524289)
+          prefix='REGIONAL_MANAGER_PREFLIGHT_PACKET='
+          assert len(raw)<=524288 and raw.startswith(prefix) and raw.endswith('\n') and raw.count('\n')==1
+          p=json.loads(raw[len(prefix):])
+          assert set(p)=={'version','algorithm','encrypted_key','nonce','tag','ciphertext'} and p['version']==1 and p['algorithm']=='RSA-OAEP-SHA1+A256GCM'
+          for k in ['encrypted_key','nonce','tag','ciphertext']:
+              assert isinstance(p[k],str) and base64.b64encode(base64.b64decode(p[k],validate=True)).decode()==p[k]
+          assert len(base64.b64decode(p['encrypted_key']))==384 and len(base64.b64decode(p['nonce']))==12 and len(base64.b64decode(p['tag']))==16
+          print(raw.strip())
+          PY
+
+      - name: Remove ephemeral connection and reference files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/regional_key" "$RUNNER_TEMP/regional-manager-preflight.json" "$RUNNER_TEMP/regional-manager-preflight.stderr"
