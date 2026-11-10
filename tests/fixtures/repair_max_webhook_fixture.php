@@ -26,13 +26,19 @@ function repairFixture(): PDO
     $property = new ReflectionProperty(ConversationDb::class, 'pdo');
     $property->setAccessible(true);
     $property->setValue(null, $pdo);
-    ProjectMaxConnection::resetForTests([
+    ProjectMaxConnection::resetForTests(repairFixtureRegistry());
+    return $pdo;
+}
+
+/** Original unconfigured connections, reusable by the isolated two-company cases. */
+function repairFixtureRegistry(): array
+{
+    return [
         'appleservice39'=>['project'=>['id'=>'appleservice39','business'=>['kind'=>'device_repair'],'brand'=>['name'=>'AppleService39'],'routing'=>['source_key'=>'max:appleservice39-main']],
             'max'=>['bot_key'=>'id390521129062_bot','token'=>'synthetic-apple-token','webhook_secret'=>str_repeat('a',32)]],
         'repair_two'=>['project'=>['id'=>'repair_two','business'=>['kind'=>'device_repair'],'brand'=>['name'=>'Repair Two'],'routing'=>['source_key'=>'max:repair_two-main']],
             'max'=>['bot_key'=>'id999999999002_bot','token'=>'synthetic-second-token','webhook_secret'=>str_repeat('b',32)]],
-    ]);
-    return $pdo;
+    ];
 }
 
 function repairStart(int $user, string $payload = 'as39_x_battery', int $timestamp = 1800000000000): array

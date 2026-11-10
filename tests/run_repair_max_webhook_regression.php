@@ -420,4 +420,166 @@ repairCheck('existing AnyTour conversation identity and history remain unchanged
     $pdo->query('SELECT * FROM messages WHERE conversation_id=100')->fetchAll(),
 ]);
 repairCheck('repair ingress never boots legacy MAX wizard class', !class_exists('MaxSearchApi',false));
+
+// A second company obtains its entry context from its own immutable server settings.
+// Keep the original Apple fixtures and all their delivery/race cases above intact.
+$configuredPdo = repairFixture();
+$configuredRegistry = repairFixtureRegistry();
+$configuredRegistry['repair_two']['project']['business'] = ['profile'=>'device_repair','repair'=>['entries'=>[
+    'rx_battery'=>['model'=>'Pixel 8','service'=>'Замена аккумулятора'],
+    'rx_display'=>['model'=>'Pixel 8 Pro','service'=>'Замена дисплея'],
+]]];
+$configuredRegistry['repair_two']['project']['messenger'] = ['max'=>[
+    'webhook_url'=>'https://app.anytoour.ru/project_max_webhook.php?project=repair_two',
+]];
+ProjectMaxConnection::resetForTests($configuredRegistry);
+$configuredSent = [];
+$configuredNotifications = [];
+$configuredFactory = static function (ProjectMaxConnection $connection) use ($configuredPdo,&$configuredSent): MaxMessengerAdapter {
+    return new MaxMessengerAdapter(static function ($chat, string $text) use ($connection,$configuredPdo,&$configuredSent): string {
+        repairCheck('configured company sends only after the shared transaction commits', !$configuredPdo->inTransaction());
+        $configuredSent[] = ['project'=>$connection->projectKey(),'bot'=>$connection->botKey(),'chat'=>$chat,'text'=>$text];
+        return 'configured_reply_'.count($configuredSent);
+    },null,'system',null,false);
+};
+$configuredNotify = static function (int $conversationId, string $body, string $mid) use (&$configuredNotifications): void {
+    $configuredNotifications[] = [$conversationId,$mid];
+};
+$configuredHandle = static function (string $project, array $update, ?callable $factory = null) use ($configuredFactory,$configuredNotify): array {
+    return RepairMaxWebhookService::handle($project,str_repeat($project === 'appleservice39' ? 'a' : 'b',32),$update,$factory ?? $configuredFactory,$configuredNotify);
+};
+
+$configuredStart = repairStart(9401,'rx_battery',1800000100000);
+repairCheck('configured profile alias accepts the registered second repair company', $configuredHandle('repair_two',$configuredStart)['status'] === 200);
+$configuredSecond = repairConversation($configuredPdo,'repair_two',9401);
+$configuredContext = json_decode((string)$configuredSecond['metadata_json'],true)['repair_context'] ?? null;
+repairCheck('configured model and service reach the canonical conversation metadata', $configuredContext === [
+    'model'=>'Pixel 8','service'=>'Замена аккумулятора','entry_code'=>'rx_battery',
+]);
+$configuredIntent = repairEntryIntent($configuredPdo,(int)$configuredSecond['id']);
+repairCheck('configured entry owns one captured delivered reply with its settings fingerprint',
+    ($configuredIntent['state'] ?? '') === 'delivered' && ($configuredIntent['entry_code'] ?? '') === 'rx_battery'
+    && preg_match('/\A[a-f0-9]{64}\z/D',(string)($configuredIntent['config_sha256'] ?? '')) === 1
+    && repairIntent($configuredPdo,(int)$configuredSecond['id']) === []);
+repairCheck('configured answer uses only its own brand model and service', count($configuredSent) === 1
+    && $configuredSent[0]['project'] === 'repair_two' && $configuredSent[0]['bot'] === 'id999999999002_bot'
+    && str_contains($configuredSent[0]['text'],'Repair Two') && str_contains($configuredSent[0]['text'],'Pixel 8')
+    && mb_stripos($configuredSent[0]['text'],'Замена аккумулятора',0,'UTF-8') !== false
+    && !str_contains($configuredSent[0]['text'],'AppleService39') && !str_contains($configuredSent[0]['text'],'iPhone')
+    && !str_contains($configuredSent[0]['text'],'3 500') && !str_contains($configuredSent[0]['text'],'3 месяца'));
+$configuredPushes = count($configuredNotifications);
+repairCheck('configured delivery replay reuses one event without another reply or push',
+    $configuredHandle('repair_two',$configuredStart)['result'] === 'duplicate' && count($configuredSent) === 1
+    && count($configuredNotifications) === $configuredPushes
+    && (int)$configuredPdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=".(int)$configuredSecond['id']." AND event_type='bot_started'")->fetchColumn() === 1);
+
+repairCheck('Apple keeps the exact reviewed entry for the same customer and timestamp',
+    $configuredHandle('appleservice39',repairStart(9401,'as39_x_battery',1800000100000))['status'] === 200
+    && end($configuredSent)['text'] === AppleService39PilotCatalog::responseText($battery,'AppleService39'));
+$configuredApple = repairConversation($configuredPdo,'appleservice39',9401);
+repairCheck('same MAX customer has independent project identity and repair context',
+    $configuredApple['id'] !== $configuredSecond['id']
+    && $configuredApple['customer_channel_id'] !== $configuredSecond['customer_channel_id']
+    && (json_decode((string)$configuredApple['metadata_json'],true)['repair_context'] ?? null) === [
+        'model'=>'iPhone X','service'=>'Замена аккумулятора','entry_code'=>'as39_x_battery',
+    ] && (json_decode((string)repairConversation($configuredPdo,'repair_two',9401)['metadata_json'],true)['repair_context'] ?? null) === $configuredContext);
+$configuredBefore = count($configuredSent);
+$configuredMid = repairMessage(9401,'same-configured-provider-mid');
+repairCheck('identical provider message IDs persist once in each configured project',
+    $configuredHandle('repair_two',$configuredMid)['status'] === 200
+    && $configuredHandle('appleservice39',$configuredMid)['status'] === 200
+    && (int)$configuredPdo->query("SELECT COUNT(*) FROM messages WHERE external_message_id='same-configured-provider-mid' AND direction='inbound'")->fetchColumn() === 2);
+repairCheck('ordinary messages to both waiting companies remain quiet', count($configuredSent) === $configuredBefore);
+repairCheck('foreign secret cannot use a configured company entry',
+    RepairMaxWebhookService::handle('repair_two',str_repeat('a',32),repairStart(9410,'rx_battery'),$configuredFactory,$configuredNotify)['status'] === 403
+    && repairConversation($configuredPdo,'repair_two',9410) === [] && count($configuredSent) === $configuredBefore);
+
+$configuredPdo->exec("UPDATE conversations SET status='manager',manager_id=88 WHERE id=".(int)$configuredSecond['id']);
+$configuredHandle('repair_two',repairStart(9401,'as39_x_battery',1800000100001));
+$configuredHandle('repair_two',repairStart(9401,'unregistered_context',1800000100002));
+repairCheck('Apple or unknown entry cannot overwrite a configured manager conversation',
+    count($configuredSent) === $configuredBefore
+    && (json_decode((string)repairConversation($configuredPdo,'repair_two',9401)['metadata_json'],true)['repair_context'] ?? null) === $configuredContext
+    && (int)repairConversation($configuredPdo,'repair_two',9401)['manager_id'] === 88);
+$configuredHandle('appleservice39',repairStart(9401,'rx_battery',1800000100003));
+repairCheck('configured repair payload cannot import another company context into Apple',
+    count($configuredSent) === $configuredBefore
+    && (json_decode((string)repairConversation($configuredPdo,'appleservice39',9401)['metadata_json'],true)['repair_context']['model'] ?? '') === 'iPhone X');
+
+$managerConnections = [];
+ProjectMaxMessengerFactory::resetForTests(static function (ProjectMaxConnection $connection, string $sender) use (&$managerConnections): MaxMessengerAdapter {
+    return new MaxMessengerAdapter(static function ($chat, string $text) use ($connection,$sender,&$managerConnections): string {
+        $managerConnections[] = [$connection->projectKey(),$connection->botKey(),$connection->token(),$sender,$chat,$text];
+        return 'configured_manager_'.count($managerConnections);
+    },null,$sender,null,false);
+});
+try {
+    $configuredOwnMessenger = ProjectMaxMessengerFactory::forConversation(repairConversation($configuredPdo,'repair_two',9401),'manager');
+    $configuredAppleMessenger = ProjectMaxMessengerFactory::forConversation($configuredApple,'manager');
+    repairCheck('both canonical conversations resolve their independent manager transports',
+        $configuredOwnMessenger instanceof MaxMessengerAdapter && $configuredAppleMessenger instanceof MaxMessengerAdapter
+        && $configuredOwnMessenger->send(-9401,'Synthetic second-company manager answer')
+        && $configuredAppleMessenger->send(-9401,'Synthetic Apple manager answer'));
+    repairCheck('manager sends retain exact company bot token and sender selection', $managerConnections === [
+        ['repair_two','id999999999002_bot','synthetic-second-token','manager',-9401,'Synthetic second-company manager answer'],
+        ['appleservice39','id390521129062_bot','synthetic-apple-token','manager',-9401,'Synthetic Apple manager answer'],
+    ]);
+    $configuredPdo->exec("UPDATE conversations SET metadata_json='{\"max_bot_key\":\"id390521129062_bot\"}' WHERE id=".(int)$configuredSecond['id']);
+    repairCheck('another saved bot binding cannot choose the other company transport',
+        ProjectMaxMessengerFactory::forConversation(repairConversation($configuredPdo,'repair_two',9401),'manager') === null
+        && count($managerConnections) === 2);
+} finally { ProjectMaxMessengerFactory::resetForTests(); }
+
+$pendingConfiguredStart = repairStart(9420,'rx_battery',1800000100020);
+repairCheck('configured pre-send failure retains its exact unsent entry',
+    $configuredHandle('repair_two',$pendingConfiguredStart,$constructionFailure)['status'] === 503);
+$configuredPending = repairConversation($configuredPdo,'repair_two',9420);
+$configuredSavedIntent = repairEntryIntent($configuredPdo,(int)$configuredPending['id']);
+$configuredBefore = count($configuredSent);
+$changedSettings = $configuredRegistry;
+$changedSettings['repair_two']['project']['business']['repair']['entries']['rx_battery']['model'] = 'Changed device';
+ProjectMaxConnection::resetForTests($changedSettings);
+$configuredHandle('repair_two',$pendingConfiguredStart);
+repairCheck('changed entry settings cannot dispatch a previously captured pending answer',
+    count($configuredSent) === $configuredBefore && repairEntryIntent($configuredPdo,(int)$configuredPending['id']) === $configuredSavedIntent);
+$removedSettings = $configuredRegistry;
+unset($removedSettings['repair_two']['project']['business']['repair']['entries']['rx_battery']);
+ProjectMaxConnection::resetForTests($removedSettings);
+$configuredHandle('repair_two',$pendingConfiguredStart);
+repairCheck('removed configured entry retains its pending intent without a provider attempt',
+    count($configuredSent) === $configuredBefore && repairEntryIntent($configuredPdo,(int)$configuredPending['id']) === $configuredSavedIntent);
+ProjectMaxConnection::resetForTests($configuredRegistry);
+repairCheck('restoring the exact configuration permits only the original unsent intent',
+    $configuredHandle('repair_two',$pendingConfiguredStart)['result'] === 'duplicate'
+    && count($configuredSent) === $configuredBefore+1
+    && repairEntryIntent($configuredPdo,(int)$configuredPending['id'])['state'] === 'delivered'
+    && end($configuredSent)['text'] === $configuredSavedIntent['text']);
+
+$configuredUnknownAttempts = 0;
+$configuredAmbiguous = static function () use (&$configuredUnknownAttempts): MaxMessengerAdapter {
+    return new MaxMessengerAdapter(static function () use (&$configuredUnknownAttempts): bool {
+        $configuredUnknownAttempts++; throw new RuntimeException('Synthetic configured delivery timeout');
+    },null,'system',null,false);
+};
+$configuredUnknownStart = repairStart(9421,'rx_battery',1800000100021);
+$configuredHandle('repair_two',$configuredUnknownStart,$configuredAmbiguous);
+$configuredUnknown = repairConversation($configuredPdo,'repair_two',9421);
+repairCheck('configured ambiguous provider outcome is explicitly unknown',
+    $configuredUnknownAttempts === 1 && repairEntryIntent($configuredPdo,(int)$configuredUnknown['id'])['state'] === 'unknown');
+ProjectMaxConnection::resetForTests($removedSettings);
+$configuredHandle('repair_two',$configuredUnknownStart,$configuredAmbiguous);
+ProjectMaxConnection::resetForTests($configuredRegistry);
+$configuredHandle('repair_two',$configuredUnknownStart,$configuredAmbiguous);
+repairCheck('removed and restored settings cannot replay an attempted configured send',
+    $configuredUnknownAttempts === 1 && repairEntryIntent($configuredPdo,(int)$configuredUnknown['id'])['state'] === 'unknown');
+
+$conflictingSettings = $configuredRegistry;
+$conflictingSettings['repair_two']['project']['business']['kind'] = 'tourism';
+ProjectMaxConnection::resetForTests($conflictingSettings);
+$configuredBefore = count($configuredSent);
+repairCheck('conflicting repair profile and kind fail before history or transport',
+    $configuredHandle('repair_two',repairStart(9430,'rx_battery'))['status'] === 403
+    && repairConversation($configuredPdo,'repair_two',9430) === [] && count($configuredSent) === $configuredBefore);
+ProjectMaxConnection::resetForTests($configuredRegistry);
+repairCheck('configured company tests leave the global AnyTour settings untouched', ProjectConfig::all() === $globalBefore);
 echo 'TOTAL '.$passed.' passed'.PHP_EOL;
