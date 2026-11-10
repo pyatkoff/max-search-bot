@@ -2,12 +2,13 @@
 declare(strict_types=1);
 
 require_once __DIR__.'/../services/ProjectMaxConnection.php';
+require_once __DIR__.'/../services/RepairProjectSettings.php';
 require_once __DIR__.'/../services/ConversationDb.php';
 require_once __DIR__.'/../services/MaxTransport.php';
 require_once __DIR__.'/MaxWebhookHealth.php';
 require_once __DIR__.'/MaxWebhookReconciler.php';
 
-/** Explicit commissioning for one registered repair bot; importing has no effects. */
+/** Explicit commissioning of a server-configured repair bot; importing has no effects. */
 final class ProjectMaxWebhookSetup
 {
     public const PROJECT = 'appleservice39';
@@ -18,6 +19,7 @@ final class ProjectMaxWebhookSetup
     public const UPDATE_TYPES = ['bot_started','message_created'];
     private const PROBE = ['update_type'=>'project_connection_probe'];
     private ProjectMaxConnection $connection;
+    private ?array $scope = null;
     private $provider;
     private $probe;
     private $directory;
@@ -42,7 +44,7 @@ final class ProjectMaxWebhookSetup
     }
 
     /**
-     * beforeMutation(operation, fixedUrl) must durably claim that exact operation
+     * beforeMutation(operation, configuredUrl) must durably claim that exact operation
      * under the existing setup lock and recheck config/provenance. Throw to deny.
      * The wrapper owns this claim across processes; this service never retries it.
      */
@@ -54,10 +56,8 @@ final class ProjectMaxWebhookSetup
     private function run(bool $activate): array
     {
         try {
-            self::check($this->connection->projectKey() === self::PROJECT && $this->connection->botKey() === self::BOT
-                && !ProjectMaxConnection::isLegacyProject(self::PROJECT)
-                && $this->connection->settings()->get('business.kind') === 'device_repair'
-                && $this->connection->settings()->get('routing.source_key') === self::SOURCE, 'connection_scope_mismatch');
+            $this->scope = RepairProjectSettings::webhook($this->connection);
+            self::check($this->scope !== null, 'connection_scope_mismatch');
             self::check(preg_match('/\A[A-Za-z0-9_-]{32,256}\z/D', $this->connection->webhookSecret()) === 1, 'webhook_secret_invalid');
             if ($activate) self::check($this->beforeMutation !== null, 'mutation_admission_required');
             if ($this->registrationConfirmed !== null) {
@@ -67,14 +67,14 @@ final class ProjectMaxWebhookSetup
 
             $me = $this->read('/me');
             $nativeId = $me['user_id'] ?? null;
-            self::check(($me['is_bot'] ?? null) === true && ($me['username'] ?? null) === self::BOT
+            self::check(($me['is_bot'] ?? null) === true && ($me['username'] ?? null) === $this->scope['bot_key']
                 && (is_int($nativeId) || is_string($nativeId)) && preg_match('/\A[1-9][0-9]{0,19}\z/D', (string)$nativeId) === 1, 'bot_identity_mismatch');
             $before = $this->subscriptions();
             $this->receipt['directory_checks']++;
             try { $directoryReady = ($this->directory)($this->connection) === true; } catch (Throwable $ignored) { $directoryReady = false; }
             self::check($directoryReady, 'project_source_unavailable');
             $this->receipt['probe_count']++;
-            try { $probe = ($this->probe)($this->connection,self::EXPECTED_URL,self::PROBE); } catch (Throwable $ignored) { $probe = []; }
+            try { $probe = ($this->probe)($this->connection,$this->scope['url'],self::PROBE); } catch (Throwable $ignored) { $probe = []; }
             self::check(is_array($probe) && empty($probe['transport_error']) && (int)($probe['http'] ?? 0) === 200
                 && is_array($probe['data'] ?? null) && ($probe['data']['ok'] ?? null) === true && ($probe['data']['result'] ?? null) === 'ignored', 'endpoint_probe_failed');
 
@@ -91,8 +91,8 @@ final class ProjectMaxWebhookSetup
             $unknownResponse = false;
             if ($needsRegistration) {
                 $this->receipt['registration_confirmed'] = false;
-                $written = $this->mutate('register',self::EXPECTED_URL,'POST',[],[
-                    'url'=>self::EXPECTED_URL,'update_types'=>self::UPDATE_TYPES,'secret'=>$this->connection->webhookSecret()]);
+                $written = $this->mutate('register',$this->scope['url'],'POST',[],[
+                    'url'=>$this->scope['url'],'update_types'=>self::UPDATE_TYPES,'secret'=>$this->connection->webhookSecret()]);
                 $unknownResponse = !self::accepted($written);
                 // Exactly one observation after a write, including timeout/unknown response.
                 try { $fresh = $this->subscriptions(); } catch (Throwable $ignored) { return $this->result('unknown','registration_readback_unavailable'); }
@@ -101,11 +101,12 @@ final class ProjectMaxWebhookSetup
                 $this->receipt['registration_confirmed'] = true;
             }
 
-            $plan = MaxWebhookReconciler::plan($fresh['health'], [self::LEGACY_URL]);
+            $plan = MaxWebhookReconciler::plan($fresh['health'], $this->scope['legacy_urls']);
             self::check(($plan['ok'] ?? false) === true, 'canonical_not_safely_reconcilable');
             if (($plan['action'] ?? '') === 'delete_legacy') {
-                self::check(($plan['delete_urls'] ?? null) === [self::LEGACY_URL], 'legacy_removal_not_allowed');
-                $removed = $this->mutate('remove_legacy',self::LEGACY_URL,'DELETE',['url'=>self::LEGACY_URL],null);
+                self::check(count($this->scope['legacy_urls']) === 1 && ($plan['delete_urls'] ?? null) === $this->scope['legacy_urls'], 'legacy_removal_not_allowed');
+                $legacyUrl = $this->scope['legacy_urls'][0];
+                $removed = $this->mutate('remove_legacy',$legacyUrl,'DELETE',['url'=>$legacyUrl],null);
                 $unknownResponse = $unknownResponse || !self::accepted($removed);
                 try { $fresh = $this->subscriptions(); } catch (Throwable $ignored) { return $this->result('unknown','removal_readback_unavailable'); }
             }
@@ -133,7 +134,7 @@ final class ProjectMaxWebhookSetup
         foreach ($data['subscriptions'] as $row) {
             self::check(is_array($row) && is_string($row['url'] ?? null), 'subscriptions_invalid');
             $url = $row['url'];
-            self::check(in_array($url,[self::EXPECTED_URL,self::LEGACY_URL],true), 'unknown_subscription_url');
+            self::check(in_array($url,array_merge([$this->scope['url']],$this->scope['legacy_urls']),true), 'unknown_subscription_url');
             self::check(!array_key_exists($url,$normalized), 'duplicate_subscription_url');
             $types = $row['update_types'] ?? null;
             if ($types !== null) {
@@ -144,11 +145,11 @@ final class ProjectMaxWebhookSetup
             $normalized[$url] = $types;
         }
         ksort($normalized);
-        $health = MaxWebhookHealth::evaluate(['http'=>200,'errno'=>0,'body'=>json_encode(['subscriptions'=>$data['subscriptions']],JSON_THROW_ON_ERROR)],self::EXPECTED_URL);
-        $expected = array_key_exists(self::EXPECTED_URL,$normalized);
+        $health = MaxWebhookHealth::evaluate(['http'=>200,'errno'=>0,'body'=>json_encode(['subscriptions'=>$data['subscriptions']],JSON_THROW_ON_ERROR)],$this->scope['url']);
+        $expected = array_key_exists($this->scope['url'],$normalized);
         $required = self::UPDATE_TYPES; sort($required);
-        $verified = $expected && $normalized[self::EXPECTED_URL] === $required;
-        $legacy = array_key_exists(self::LEGACY_URL,$normalized);
+        $verified = $expected && $normalized[$this->scope['url']] === $required;
+        $legacy = count(array_intersect(array_keys($normalized),$this->scope['legacy_urls'])) > 0;
         $this->receipt['subscription_count'] = count($normalized);
         $this->receipt['expected_present'] = $expected;
         $this->receipt['update_types_verified'] = $verified;
@@ -160,8 +161,8 @@ final class ProjectMaxWebhookSetup
     private function mutate(string $operation, string $url, string $method, array $query, ?array $body): array
     {
         self::check($this->beforeMutation !== null, 'mutation_admission_required');
-        self::check(($operation === 'register' && $url === self::EXPECTED_URL && $method === 'POST')
-            || ($operation === 'remove_legacy' && $url === self::LEGACY_URL && $method === 'DELETE'), 'operation_not_allowed');
+        self::check(($operation === 'register' && $url === $this->scope['url'] && $method === 'POST')
+            || ($operation === 'remove_legacy' && in_array($url,$this->scope['legacy_urls'],true) && $method === 'DELETE'), 'operation_not_allowed');
         $counter = $operation === 'register' ? 'register_attempts' : 'remove_legacy_attempts';
         self::check($this->receipt[$counter] === 0, 'mutation_budget_exhausted');
         try { $admitted = ($this->beforeMutation)($operation,$url); } catch (Throwable $ignored) { $admitted = false; }
@@ -189,7 +190,7 @@ final class ProjectMaxWebhookSetup
     private function result(string $state, string $reason): array
     {
         return ['ok'=>in_array($state,['ready','planned','active'],true),'state'=>$state,'reason'=>$reason,
-            'expected_url'=>self::EXPECTED_URL,'receipt'=>$this->receipt];
+            'expected_url'=>$this->scope['url'] ?? null,'receipt'=>$this->receipt];
     }
 
     private static function check(bool $ok, string $reason): void
@@ -200,20 +201,21 @@ final class ProjectMaxWebhookSetup
     /** Exact metadata read, no schema initialization or project/source creation. */
     public static function activeDirectory(ProjectMaxConnection $connection): bool
     {
-        if ($connection->projectKey() !== self::PROJECT || !ConversationDb::isConfigured()) return false;
+        $scope = RepairProjectSettings::webhook($connection);
+        if ($scope === null || !ConversationDb::isConfigured()) return false;
         $q = ConversationDb::connection()->prepare("SELECT p.project_key,s.source_key,s.channel,s.handling_mode FROM projects p JOIN conversation_sources s ON s.project_id=p.id WHERE p.project_key=? AND p.is_active=1 AND s.source_key=? AND s.channel='max' AND s.is_active=1 AND s.handling_mode IN ('manager','ask') LIMIT 2");
-        $q->execute([self::PROJECT,self::SOURCE]);
+        $q->execute([$scope['project_key'],$scope['source_key']]);
         $rows = $q->fetchAll(PDO::FETCH_ASSOC);
-        return count($rows) === 1 && $rows[0]['project_key'] === self::PROJECT && $rows[0]['source_key'] === self::SOURCE;
+        return count($rows) === 1 && $rows[0]['project_key'] === $scope['project_key'] && $rows[0]['source_key'] === $scope['source_key'];
     }
 
-    /** Only the fixed authenticated unsupported update, with no customer identity. */
+    /** Only the configured authenticated unsupported update, with no customer identity. */
     public static function probeEndpoint(ProjectMaxConnection $connection, string $url, array $update): array
     {
         $failure = ['http'=>0,'transport_error'=>true,'data'=>null];
-        if ($connection->projectKey() !== self::PROJECT || $connection->botKey() !== self::BOT
-            || $url !== self::EXPECTED_URL || $update !== self::PROBE || !extension_loaded('curl')) return $failure;
-        $raw = ''; $ch = curl_init(self::EXPECTED_URL);
+        $scope = RepairProjectSettings::webhook($connection);
+        if ($scope === null || $url !== $scope['url'] || $update !== self::PROBE || !extension_loaded('curl')) return $failure;
+        $raw = ''; $ch = curl_init($scope['url']);
         if ($ch === false) return $failure;
         curl_setopt_array($ch, MaxTlsConfig::strictCurlOptions() + [
             CURLOPT_RETURNTRANSFER=>false,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,

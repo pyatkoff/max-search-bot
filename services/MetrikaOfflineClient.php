@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/MaxTrackerLookupProtocol.php';
+require_once __DIR__.'/ModeledConversionAttributionWindow.php';
 require_once __DIR__.'/MaxTrackerLookupConfig.php';
 require_once __DIR__.'/MaxChannelConversionOutbox.php';
 
@@ -225,6 +226,11 @@ final class MetrikaOfflineClient
         $plan=ModeledConversionWireValue::plan($members,$now);
         if($this->counter!=='98615635')throw new RuntimeException('wrong_goal_counter');
         $csv=self::modeledValueCsv($plan['event'],$now);
+        $observed=$this->modeledAttributionVisits((string)$plan['event']['client_id'],(int)$plan['event']['event_unix'],$now);
+        $dispatchAt=$this->transport!==null?$now:time();
+        if(!ModeledConversionAttributionWindow::assess($observed,(int)$plan['event']['event_unix'],$dispatchAt)['allowed'])
+            return ['outcome'=>'rejected','reason'=>'metrika_visit_window'];
+
         $r=$this->request('POST','offline_conversions/upload?type=BASIC&comment='.rawurlencode($plan['comment']),$csv);
         $error=(int)($r['error']??0);$http=(int)($r['http']??0);
         if($error!==0)return ['outcome'=>'unknown','reason'=>'upload_outcome_unknown'];
@@ -286,7 +292,12 @@ final class MetrikaOfflineClient
     {
         return $this->visitReport($clientId,$activated,$now,false);
     }
-    private function visitReport(string $clientId,int $activated,int $now,bool $goal):array
+    /** Exact last-transition source, unaffected by historical attribution models. GET only. */
+    public function modeledAttributionVisits(string $clientId,int $activated,int $now):array
+    {
+        return $this->visitReport($clientId,$activated,$now,false,true);
+    }
+    private function visitReport(string $clientId,int $activated,int $now,bool $goal,bool $traffic=false):array
     {
         $fail=['status'=>'unavailable','visits'=>[]];
         if($this->counter!=='98615635'||!MaxTrackerLookupProtocol::id($clientId,40)||$activated<946684800||$activated>$now)return $fail;
@@ -300,7 +311,7 @@ final class MetrikaOfflineClient
         }
         $zone=$this->reportZone;
         $metrics=$goal?['ym:s:visits','ym:s:goal678187097reaches','ym:s:goal678187097convertedRUBRevenue']:['ym:s:visits'];
-        $dimensions=['ym:s:clientID','ym:s:dateTime'];$filter="ym:s:clientID=='".$clientId."'".($goal?' AND ym:s:goal==678187097':'');
+        $dimensions=['ym:s:clientID','ym:s:dateTime'];if($traffic)$dimensions=array_merge($dimensions,['ym:s:lastTrafficSource','ym:s:lastAdvEngine']);$filter="ym:s:clientID=='".$clientId."'".($goal?' AND ym:s:goal==678187097':'');
         $query=['ids'=>'98615635','metrics'=>implode(',',$metrics),'dimensions'=>implode(',',$dimensions),'filters'=>$filter,
             'date1'=>gmdate('Y-m-d',$activated-22*86400),'date2'=>'today','accuracy'=>'full','limit'=>101];
         $response=$this->request('GET','data?'.http_build_query($query,'','&',PHP_QUERY_RFC3986),null,null,true);
@@ -313,7 +324,7 @@ final class MetrikaOfflineClient
         $visits=[];
         foreach($rows as$row){
             $dims=$row['dimensions']??null;$m=$row['metrics']??null;
-            if(!is_array($dims)||count($dims)!==2||!is_array($m)||count($m)!==count($metrics)
+            if(!is_array($dims)||count($dims)!==($traffic?4:2)||!is_array($m)||count($m)!==count($metrics)
                 ||(string)($dims[0]['name']??$dims[0]['id']??'')!==$clientId)return $fail;
             foreach($m as$v)if((!is_int($v)&&!is_float($v))||!is_finite((float)$v)||$v<0||$v>1000000000000)return $fail;
             if((float)$m[0]!==floor((float)$m[0])||($goal&&(float)$m[1]!==floor((float)$m[1])))return $fail;
@@ -322,6 +333,10 @@ final class MetrikaOfflineClient
             if(($goal?$m[1]:$m[0])>0){
                 $v=['started_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$at->getTimestamp()),'visits'=>(int)$m[0]];
                 if($goal){$v['goal_reaches']=(int)$m[1];$v['revenue_rub']=round((float)$m[2],2);}
+                if($traffic){
+                    $trafficId=$dims[2]['id']??null;$engineId=$dims[3]['id']??null;
+                    $v['source_class']=$trafficId==='ad'&&$engineId==='ya_direct'?'yandex_direct':'other_or_unknown';
+                }
                 $visits[]=$v;
             }
         }

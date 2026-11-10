@@ -98,10 +98,11 @@ For normal changes:
 
 1. change one logical block at a time;
 2. add/update deterministic regression coverage;
-3. open a PR from a fresh current-main branch and pass its required current-head checks;
-4. repeat fresh release-priority admission, acquire the sole publisher and bind its existing record before the expected-head merge;
-5. verify the original installation, mandatory post-deploy results and automatic publisher release for the exact merged source;
-6. record the result and remaining uncertainty, keeping natural user confirmation separate from technical completion.
+3. read the existing ready-release priorities and publisher before publishing final source to a PR; keep a later package in preparation until its release window;
+4. integrate current main once for that window, open or update the PR and pass its required current-head checks; source CI may overlap the previous original installation;
+5. repeat fresh release-priority admission, acquire the sole publisher and bind its existing record before the expected-head merge;
+6. verify the original installation, mandatory post-deploy results and automatic publisher release for the exact merged source;
+7. record the result and remaining uncertainty, keeping natural user confirmation separate from technical completion.
 
 For larger refactors, split work into smaller commits and preserve behavior before moving business logic out of legacy classes.
 

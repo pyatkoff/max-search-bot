@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__.'/ProjectMaxConnection.php';
 require_once __DIR__.'/ProjectMaxMessengerFactory.php';
 require_once __DIR__.'/AppleService39PilotCatalog.php';
+require_once __DIR__.'/RepairProjectSettings.php';
 require_once __DIR__.'/ConversationRecorder.php';
 require_once __DIR__.'/ConversationControlService.php';
 require_once __DIR__.'/ChannelPostRegistryService.php';
@@ -18,7 +19,7 @@ final class RepairMaxWebhookService
     {
         $connection = ProjectMaxConnection::authenticate($projectSelector, $secret);
         if ($connection === null) return self::response(403, 'forbidden');
-        if ($connection->settings()->get('business.kind') !== 'device_repair') return self::response(403, 'forbidden');
+        if (RepairProjectSettings::businessKind($connection->settings()) !== 'device_repair') return self::response(403, 'forbidden');
 
         $type = (string)($update['update_type'] ?? '');
         if (!in_array($type, ['bot_started','message_created'], true)) return self::response(200, 'ignored');
@@ -71,7 +72,7 @@ final class RepairMaxWebhookService
             $source = $q->fetch(PDO::FETCH_ASSOC);
             if (!$source || !in_array((string)$source['handling_mode'], ['manager','ask'], true)) return self::response(503, 'source_unavailable');
 
-            $entry = $type === 'bot_started' ? AppleService39PilotCatalog::resolve($projectKey, $botKey, $payload) : null;
+            $entry = $type === 'bot_started' ? RepairProjectSettings::entry($connection, $payload) : null;
             $context = $entry !== null ? ['model'=>$entry['model'],'service'=>$entry['service'],'entry_code'=>$payload] : [];
             if ($type === 'bot_started') {
                 $name = preg_split('/\s+/', trim((string)($user['name'] ?? '')), 2) ?: [];
@@ -117,7 +118,7 @@ final class RepairMaxWebhookService
             if ($entry !== null) {
                 $brand = trim((string)$connection->settings()->get('brand.name', $projectKey));
                 self::captureEntryReply($pdo, $connection, $conversationId, $externalUser, $deliveryKey, $conversation,
-                    $entry, $context, AppleService39PilotCatalog::responseText($entry, $brand));
+                    $entry, $context, RepairProjectSettings::responseText($entry, $brand));
             }
             $created = false;
             $handoff = ['source'=>'repair_max','source_key'=>$sourceKey];
@@ -218,6 +219,7 @@ final class RepairMaxWebhookService
             'customer_id'=>(int)$conversation['customer_id'],'customer_channel_id'=>(int)$conversation['customer_channel_id'],
             'entry_code'=>$context['entry_code'],'post_id'=>$entry['post_id'],'state'=>'pending','text'=>$text,
         ];
+        if (isset($entry['config_sha256'])) $payload['repair_entry_reply']['config_sha256'] = $entry['config_sha256'];
         $next = json_encode($payload, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
         $q = $pdo->prepare('UPDATE conversation_events SET payload_json=? WHERE id=? AND payload_json=?');
         $q->execute([$next,(int)$event['id'],(string)$event['payload_json']]);
@@ -272,11 +274,11 @@ final class RepairMaxWebhookService
             $intent = $payload[$key];
             if (!is_array($intent) || ($intent['delivery_key'] ?? '') !== $deliveryKey || ($intent['bot_key'] ?? '') !== $connection->botKey()) return false;
             $entryReply = $key === 'repair_entry_reply';
-            if ($entryReply && ($connection->projectKey() !== AppleService39PilotCatalog::PROJECT || $connection->botKey() !== AppleService39PilotCatalog::BOT)) return false;
             if (!in_array($intent['state'] ?? '', ['pending','attempted','delivered','unknown','suppressed'], true)) return false;
             // Never fall through to a second greeting for this entry, even if a
             // provider write is unknown or the reply has already been delivered.
             if ($intent['state'] !== 'pending') return true;
+            if ($entryReply && !RepairProjectSettings::pendingEntryMatches($connection, $intent)) return false;
             return self::deliverIntent($pdo,$connection,$conversationId,$chatId,$deliveryKey,$factory,$event,$payload,$key,$entryReply);
         }
         return true;
