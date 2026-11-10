@@ -199,6 +199,9 @@ file_put_contents($sourceTmp.'/bootstrap.php',$sourceBootstrap);
 foreach(['ChildAgeValueContract','NeedValueResolver'] as $name){
     file_put_contents($sourceTmp.'/bootstrap.php',"\nrequire_once ".var_export(dirname(__DIR__).'/services/'.$name.'.php',true).";\n",FILE_APPEND);
 }
+// The new shared suggestion dependency also uses its complete canonical graph.
+// These cases have no configured entry store, so no catalogue/network read occurs.
+file_put_contents($sourceTmp.'/services/DepartureSuggestionService.php','<?php require_once '.var_export(dirname(__DIR__).'/services/DepartureSuggestionService.php',true).';');
 foreach(['MissingFieldQuestionService','DialogueView','NeedApplicationService','NeedProgressionService','AiBusinessDefaultsService','AiInvocationService','AiRuntimeLogger','AiDateContextService','DepartureCityResolver','SourceHandlingService'] as $name){
     file_put_contents($sourceTmp.'/services/'.$name.'.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
 }

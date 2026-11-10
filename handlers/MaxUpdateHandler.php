@@ -145,6 +145,7 @@ class MaxUpdateHandler
 
         $incoming = [
             'platform'=>'max','type'=>'bot_started','source_key'=>$entry,
+            'start_payload'=>$payload,'raw'=>['timestamp'=>$update['timestamp']??null],
             'user'=>[
                 'chat_id'=>$internalId,'external_user_id'=>$userId,
                 'first_name'=>(string)($user['first_name']??$user['name']??''),
@@ -157,6 +158,7 @@ class MaxUpdateHandler
             $incoming['entry_kind']='channel_post';
             $incoming['source_post_context']=SourceQualificationPrompt::publicationContext($post);
         }
+        ConversationRecorder::captureEntryRegion($incoming);
         if (MaxStartSourcePolicy::apply($incoming,$entry)) {
             if ($post) ChannelPostEntryService::record('max',$internalId,$post,ChannelPostEntryService::eventKey('max',$update));
             return;

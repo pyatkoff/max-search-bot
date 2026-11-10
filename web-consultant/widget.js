@@ -1,4 +1,20 @@
 (()=>{
+  // Advertising origin only: the search parameter "region" describes the destination.
+  function advertisingEntryRegion(href){
+    try {
+      const query=new URL(href).searchParams, ids=new Set();
+      const add=value=>{if(/^[0-9]{1,20}$/.test(value)){const id=value.replace(/^0+/, '');if(id)ids.add(id)}};
+      query.getAll('region_id').forEach(add);
+      for(const key of ['start','startapp','utm_term','utm_content']){
+        for(const value of query.getAll(key)){
+          if(value.length>512)continue;
+          const match=/^(?:yclid[=_-]?)?[0-9]{1,64}_region_([0-9]{1,20})(?:_campaign_[0-9]{1,30})?$/.exec(value);
+          if(match)add(match[1]);
+        }
+      }
+      return ids.size===1?{region_id:[...ids][0]}:{};
+    }catch(_){return {}}
+  }
   const script=document.currentScript;
   const apiUrl=new URL('api.php',script&&script.src?script.src:location.href).toString();
   const storageKey='anytour_consultant_token_v1';
@@ -66,7 +82,7 @@
   const add=m=>{if(seen.has(m.id))return;seen.add(m.id);after=Math.max(after,Number(m.id)||0);hideWelcome();const d=document.createElement('div');d.className='msg '+(m.direction==='inbound'?'me':'')+(m.sender_type==='manager'?' manager':'');const t=document.createElement('div');t.textContent=m.text||'';d.appendChild(t);const btns=flatten(m.buttons||[]);if(btns.length){const box=document.createElement('div');box.className='buttons';btns.forEach(b=>{const label=b.text||b.label||'Открыть',url=b.url||b.link||b.href||'';if(url){const a=document.createElement('a');a.textContent=label;a.href=url;a.target='_blank';a.rel='noopener';box.appendChild(a);return}const p=b.callback_data||b.payload||b.data||'';if(!p)return;const bt=document.createElement('button');bt.type='button';bt.textContent=label;bt.onclick=async()=>{bt.disabled=true;try{await sendAction({action:'callback',data:String(p)})}catch(e){bt.disabled=false}};box.appendChild(bt)});if(box.childNodes.length)d.appendChild(box)}const who=document.createElement('div');who.className='who';who.textContent=m.direction==='inbound'?'Вы':(m.sender_type==='manager'?'Менеджер':'AI AnyTour');d.appendChild(who);messages.appendChild(d);messages.scrollTop=messages.scrollHeight};
   const consume=j=>{const chat=j.chat||{};(chat.messages||[]).forEach(add);const c=chat.conversation||null;lastConversation=c;if(!c){setStatus('Онлайн');return}if(c.status==='waiting_manager'){if(c.manager_available===false){waitingSince=0;setStatus('Менеджеры сейчас офлайн','waiting');if(!contactFallbackShown){contactFallbackShown=true;showContact(true)}return}if(!waitingSince)waitingSince=Date.now();setStatus('Ищу свободного менеджера…','waiting');if(!contactFallbackShown&&Date.now()-waitingSince>=90000){contactFallbackShown=true;showContact(true)}return}if(c.status==='manager'){waitingSince=0;if(contactCard&&contactCard.isConnected){contactCard.remove();contactCard=null}setStatus((c.manager_name?c.manager_name:'Менеджер')+' подключён','manager');return}waitingSince=0;setStatus('AI-помощник онлайн')};
   const sendAction=async data=>{if(busy)return;busy=true;sendButton.disabled=true;setStatus(data.action==='profile'?'Сохраняю контакт…':'Готовлю ответ…','typing');try{const j=await post(data);consume(j);return j}catch(e){setStatus('Не удалось отправить. Повторите.','error');throw e}finally{busy=false;sendButton.disabled=false}};
-  const init=async()=>{if(initialized)return;initialized=true;setStatus('Подключаемся…','typing');try{const j=await post({action:'init'});consume(j);if(!(j.chat&&j.chat.conversation)&&!started){started=true;consume(await post({action:'start'}))}}catch(e){initialized=false;setStatus('Чат временно недоступен','error')}};
+  const init=async()=>{if(initialized)return;initialized=true;setStatus('Подключаемся…','typing');try{const j=await post({action:'init'});consume(j);if(!(j.chat&&j.chat.conversation)&&!started){started=true;consume(await post({action:'start',attribution:advertisingEntryRegion(location.href)}))}}catch(e){initialized=false;setStatus('Чат временно недоступен','error')}};
   const poll=async()=>{if(!initialized||busy||!panel.classList.contains('open'))return;try{consume(await post({action:'poll'}))}catch(e){}};
   const open=async()=>{if(!panel.classList.contains('open'))lastFocus=root.activeElement||document.activeElement;panel.classList.add('open');await init();input.focus();poll()};
   const close=()=>{panel.classList.remove('open');resetComposerHeight();if(lastFocus&&typeof lastFocus.focus==='function')lastFocus.focus();else launcher.focus()};
