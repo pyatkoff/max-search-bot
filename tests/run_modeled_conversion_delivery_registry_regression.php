@@ -493,12 +493,40 @@ $selection=ModeledConversionVisitProof::dueIds([$ordinary,...$rows],(int)$r['eve
 static fn(array $item):array=>['at'=>$now-400,'event'=>['upload_status'=>$item['id']==='999'?'UPLOADED':$item['upload_status'],
 'linkage'=>'failed','failure_audit'=>['diagnosis'=>'wire_collision']]],2);
 $repairPriority=count($selection)===2&&$selection[0]===(string)$rows[0]['id']&&in_array('999',$selection,true);
+$read['state']='failed';$read['upload_status']='LINKAGE_FAILURE';$read['checked_at_unix']=$now+301;
+ModeledConversionWireValue::save($r,$read);
+$failureRows=$rows;foreach($failureRows as&$member){$member['state']='unmatched';$member['upload_status']='LINKAGE_FAILURE';$member['value_processed_at_unix']=null;}unset($member);
+$readsBeforeTerminal=$api->reads;
+$failedTerminal=ModeledConversionWireValue::observe($r,$failureRows,$api,$now+602)==='failed'&&$api->reads===$readsBeforeTerminal;
+$completedId=(string)$rows[0]['id'];$staleId=(string)$rows[1]['id'];
+$priorFailure=static function(array $item)use($now,$completedId):array{
+    if((string)$item['id']==='999')return [];
+    $complete=(string)$item['id']===$completedId;
+    return ['at'=>$complete?$now+301:$now-400,'event'=>['upload_status'=>$item['upload_status'],
+        'linkage'=>'failed','reason'=>'no_client_visit_in_attribution_window',
+        'failure_audit'=>['diagnosis'=>'outside_signal_window','wire_correction_status'=>$complete?'failed':'accepted']]];
+};
+$failedSelection=ModeledConversionVisitProof::dueIds([$ordinary,...$failureRows],(int)$r['event_unix']+5,$now+602,$priorFailure,2);
+$failedPropagation=$failedSelection===[$staleId,'999'];
+// The saved failure status is the proof; a recent timestamp alone cannot hide a stale member.
+$recentStale=ModeledConversionVisitProof::dueIds($failureRows,(int)$r['event_unix']+5,$now+901,
+    static fn(array $item):array=>['at'=>$now+301,'event'=>['upload_status'=>$item['upload_status'],
+        'linkage'=>'failed','reason'=>'no_client_visit_in_attribution_window',
+        'failure_audit'=>['diagnosis'=>'outside_signal_window','wire_correction_status'=>'accepted']]],1);
+$failedPropagation=$failedPropagation&&$recentStale===[(string)$rows[0]['id']];
+$completeFailure=ModeledConversionVisitProof::dueIds($failureRows,(int)$r['event_unix']+5,$now+602,
+    static fn(array $item):array=>['at'=>$now+301,'event'=>['upload_status'=>$item['upload_status'],
+        'linkage'=>'failed','reason'=>'no_client_visit_in_attribution_window',
+        'failure_audit'=>['diagnosis'=>'outside_signal_window','wire_correction_status'=>'failed']]],2);
+$foreign=$failureRows[1];$foreign['value_rub']++;
+$foreignSelection=ModeledConversionVisitProof::dueIds([$foreign],(int)$r['event_unix']+5,$now+602,$priorFailure,2);
+$failedPropagation=$failedPropagation&&$completeFailure===[]&&$foreignSelection===[];
 $path=__FIXTURE_ROOT__.'/max-search-bot-modeled-visit-proof/wire-corrections/'.$plan['wire_key'].'.json';
 $private=(fileperms($path)&0777)===0600&&(fileperms(dirname($path))&0777)===0700;
 chmod($path,0644);clearstatcache(true,$path);$blocked=false;
 try{ModeledConversionWireValue::read($r);}catch(RuntimeException $e){$blocked=true;}
 echo json_encode(['ok'=>$first==='accepted'&&$again==='accepted'&&$last==='processed'
-&&$read['state']==='processed'&&$noReplay&&$api->writes===0&&$budgetRefused&&$expectedTotal&&$repairPriority&&$private&&$blocked],JSON_THROW_ON_ERROR);
+&&$read['state']==='processed'&&$noReplay&&$api->writes===0&&$budgetRefused&&$expectedTotal&&$repairPriority&&$failedTerminal&&$failedPropagation&&$private&&$blocked],JSON_THROW_ON_ERROR);
 PHP;
     $fixtureScript=str_replace(['__FIXTURE_ROOT__','__FIXTURE_ROWS__','__FIXTURE_NOW__'],
         [var_export($isolated,true),var_export(json_encode([$wireFirst,$wireSecond],JSON_THROW_ON_ERROR),true),(string)$auditNow],$fixtureScript);
@@ -507,7 +535,7 @@ PHP;
         if(!is_resource($process))throw new RuntimeException('wire_fixture_process');
         fwrite($pipes[0],$fixtureScript);fclose($pipes[0]);$result=stream_get_contents($pipes[1],2048);fclose($pipes[1]);
         $error=stream_get_contents($pipes[2],2048);fclose($pipes[2]);$code=proc_close($process);
-        $check('wire evidence keeps original allocations, one reported goal, bounded repair priority and lost-ack GET recovery',
+        $check('wire evidence keeps original allocations, one reported goal, bounded terminal-status propagation and lost-ack GET recovery',
             $code===0&&json_decode($result,true)===['ok'=>true]&&$error==='');
     }finally{
         $remove=function(string $dir)use(&$remove):void{foreach(new DirectoryIterator($dir)as$f){
