@@ -11,15 +11,15 @@ function harness() {
   const input = {get files(){return file ? [file] : []}, set value(value){if(value==='')file=null}, addEventListener(){}};
   const controls={};const box = {textContent:'',innerHTML:'',querySelector(key){return controls[key]||(controls[key]={textContent:'',onclick:null})}, classList:{add(){},remove(){}}};
   const W = {S:{authGeneration:1,manager:{id:7}}, showAuthRecovery(){recoveries++; W.S.authGeneration++;}};
-  const window = {WorkspaceV2:W};
+  const stored=new Map();const window = {WorkspaceV2:W,crypto:require('node:crypto').webcrypto,localStorage:{get length(){return stored.size},key:i=>[...stored.keys()][i],getItem:k=>stored.get(k)||null,setItem:(k,v)=>stored.set(k,v),removeItem:k=>stored.delete(k)}};
   class FormData {constructor(){this.values=new Map()} append(key,value){this.values.set(key,value)}}
-  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../manager/assets/workspace-v2-media.js'),'utf8'), {
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../manager/assets/workspace-v2-media-recovery.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'../manager/assets/workspace-v2-media.js'),'utf8'), {
     window, document:{getElementById:id=>id==='replyFile'?input:box}, FormData,
     fetch:(url,options)=>{requests.push({url,...options}); return response;}
   });
   const media=window.WorkspaceV2Media; media.configure('synthetic-csrf',101);
   return {media,W,requests,select(value){file=value},file:()=>file,recoveries:()=>recoveries,
-    finish(status=200,body={ok:true}){resolve({status,ok:status>=200&&status<300,json:async()=>body})}};
+    finish(status=200,body={ok:true}){resolve({status,ok:status>=200&&status<300,json:async()=>({...body,...(!body.attempt?{attempt:{kind:'media',state:body.ok?'confirmed':'unknown',caption_included:!!requests[0].body.values.get('caption'),media_type:'file'}}:{})})})}};
 }
 const cases=[];function test(name,run){cases.push({name,run})}
 

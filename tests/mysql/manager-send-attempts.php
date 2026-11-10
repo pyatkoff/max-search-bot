@@ -11,9 +11,14 @@ $pdo=new PDO($dsn,$user,$password,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO
 if($pdo->query('SELECT DATABASE()')->fetchColumn()!=='manager_send_attempt_test')throw new RuntimeException('Unexpected send schema');
 if(($argv[1]??'')==='--worker'){
     if((int)$pdo->query('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()')->fetchColumn()!==12||$pdo->query('SELECT login FROM managers WHERE id=7')->fetchColumn()!=='synthetic-owner')throw new RuntimeException('Refusing non-fixture worker');
-    $id=$argv[2]??'';$command=$argv[3]??'';if(!in_array($id,[str_repeat('a',32),str_repeat('b',32)],true)||!in_array($command,['send','cancel'],true))throw new RuntimeException('Invalid worker command');
+    $id=$argv[2]??'';$command=$argv[3]??'';if(!in_array($id,[str_repeat('a',32),str_repeat('b',32),str_repeat('c',32),str_repeat('d',32)],true)||!in_array($command,['send','cancel','media','cancel_media'],true))throw new RuntimeException('Invalid worker command');
     echo "READY\n";fflush(STDOUT);if(fgets(STDIN)!=="start\n")throw new RuntimeException('Missing barrier');
-    if($command==='cancel')$result=ManagerSendAttemptService::cancel(7,101,$id);
+    if($command==='cancel_media')$result=ManagerSendAttemptService::mediaCancel(7,101,$id);
+    elseif($command==='media'){
+        $file=tempnam(sys_get_temp_dir(),'native-media-');file_put_contents($file,'Synthetic native media bytes');
+        try{$result=ManagerSendAttemptService::executeMedia(7,101,$id,$file,'synthetic.txt','text/plain','Synthetic caption',static function(string $context)use($pdo,$id){if($pdo->inTransaction())throw new RuntimeException('Lock across media provider');$c=ManagerConversationService::visibleConversation(101,7);if(!$c||!ManagerSendAttemptService::dispatchAllowed($c,7,$context,'media'))return['ok'=>false,'failure'=>['category'=>'not_dispatched','reason'=>'context_changed','http_code'=>0]];$pdo->prepare('INSERT INTO provider_calls VALUES(?)')->execute([$id]);usleep(200000);return['ok'=>true];});}finally{unlink($file);}
+    }
+    elseif($command==='cancel')$result=ManagerSendAttemptService::cancel(7,101,$id);
     else $result=ManagerSendAttemptService::execute(7,101,$id,'Synthetic native text',null,static function()use($pdo,$id){if($pdo->inTransaction())throw new RuntimeException('Lock across provider');$pdo->prepare('INSERT INTO provider_calls VALUES(?)')->execute([$id]);usleep(200000);return['ok'=>true];});
     echo json_encode($result,JSON_THROW_ON_ERROR);exit;
 }
@@ -40,4 +45,29 @@ $late=ManagerSendAttemptService::execute(7,101,str_repeat('b',32),'Synthetic nat
 $rows=$pdo->query('SELECT * FROM manager_send_attempts ORDER BY operation_id')->fetchAll();ManagerSendAttemptService::receipt(7,101,str_repeat('a',32));nativeSendCheck('native receipt lookup is write free',$rows===$pdo->query('SELECT * FROM manager_send_attempts ORDER BY operation_id')->fetchAll());
 nativeSendCheck('native workflow leaves auth assignment read state transcript unchanged',sendAttemptProtected($pdo)===$protected);
 nativeSendCheck('actual forward migration is idempotent and creates indexed InnoDB receipt table',($pdo->exec((string)file_get_contents(dirname(__DIR__,2).'/migrations/059_manager_send_attempts.sql'))!==false)&&$pdo->query("SELECT engine FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='manager_send_attempts'")->fetchColumn()==='InnoDB'&&(int)$pdo->query("SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema=DATABASE() AND table_name='manager_send_attempts' AND index_name='PRIMARY'")->fetchColumn()===2);
+
+$race=nativeSendRace(str_repeat('c',32),['media','media']);$states=array_column(array_column($race,'attempt'),'state');
+nativeSendCheck('native media concurrent same key commits one provider call',in_array('confirmed',$states,true)&&(int)$pdo->query("SELECT COUNT(*) FROM provider_calls WHERE operation_id='".str_repeat('c',32)."'")->fetchColumn()===1);
+$receipt=ManagerSendAttemptService::mediaReceipt(7,101,str_repeat('c',32));nativeSendCheck('native media durable result restores its typed caption and media facts',$receipt===['ok'=>true,'attempt'=>['kind'=>'media','state'=>'confirmed','media_type'=>'file','caption_included'=>true]]);
+$race=nativeSendRace(str_repeat('d',32),['media','cancel_media']);$state=ManagerSendAttemptService::mediaReceipt(7,101,str_repeat('d',32))['attempt']['state'];$count=(int)$pdo->query("SELECT COUNT(*) FROM provider_calls WHERE operation_id='".str_repeat('d',32)."'")->fetchColumn();
+nativeSendCheck('native media cancellation race has one durable winner',($state==='confirmed'&&$count===1)||($state==='cancelled'&&$count===0));
+$file=tempnam(sys_get_temp_dir(),'native-media-');file_put_contents($file,'Synthetic native media bytes');
+try{
+    $late=ManagerSendAttemptService::executeMedia(7,101,str_repeat('d',32),$file,'synthetic.txt','text/plain','Synthetic caption',static function(){throw new RuntimeException('Late media provider must never run');});
+    nativeSendCheck('native delayed media request cannot replay after cancellation or confirmation',$late['attempt']['state']===$state);
+    $before=$pdo->query('SELECT * FROM manager_send_attempts ORDER BY operation_id')->fetchAll();ManagerSendAttemptService::mediaReceipt(7,101,str_repeat('c',32));nativeSendCheck('native media result lookup is strictly write-free',$before===$pdo->query('SELECT * FROM manager_send_attempts ORDER BY operation_id')->fetchAll());
+    $second=new PDO($dsn,$user,$password,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false]);$second->exec('SET SESSION innodb_lock_wait_timeout=1');
+    $calls=0;$rejected=ManagerSendAttemptService::executeMedia(7,101,str_repeat('e',32),$file,'synthetic.txt','text/plain','Synthetic caption',static function(string $context)use($pdo,$second,&$calls){
+        if($pdo->inTransaction())throw new RuntimeException('Media reservation still locks authorization');
+        $second->exec('DELETE FROM manager_projects WHERE manager_id=7');
+        $c=ManagerConversationService::visibleConversation(101,7);
+        if(!$c||!ManagerSendAttemptService::dispatchAllowed($c,7,$context,'media'))return['ok'=>false,'failure'=>['category'=>'not_dispatched','reason'=>'context_changed','http_code'=>0]];
+        $calls++;return['ok'=>true];
+    });
+    nativeSendCheck('native independent project revocation after reservation prevents provider dispatch',$rejected['attempt']['state']==='rejected'&&$calls===0&&ManagerSendAttemptService::mediaReceipt(7,101,str_repeat('c',32))['error']==='forbidden');
+    $second->exec('INSERT INTO manager_projects VALUES(7,1)');
+    $rows=$pdo->query('SELECT * FROM manager_send_attempts ORDER BY operation_id')->fetchAll();$pdo->exec((string)file_get_contents(dirname(__DIR__,2).'/migrations/100_manager_media_send_attempts.sql'));
+    nativeSendCheck('forward100 is idempotent and leaves installed text and media receipts unchanged',$rows===$pdo->query('SELECT * FROM manager_send_attempts ORDER BY operation_id')->fetchAll()&&$pdo->query("SELECT operation_kind FROM manager_send_attempts WHERE operation_id='".str_repeat('a',32)."'")->fetchColumn()==='text');
+    nativeSendCheck('native media workflow preserves transcript read assignment and operator state',sendAttemptProtected($pdo)===$protected);
+}finally{unlink($file);}
 echo 'TOTAL '.$passed.' | PASS '.$passed." | FAIL 0\n";

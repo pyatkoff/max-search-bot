@@ -22,8 +22,8 @@ function sendAttemptSchema(PDO $pdo,bool $mysql=false): void
         'provider_calls'=>'operation_id VARCHAR(32)',
     ];
     foreach($tables as $table=>$definition)$pdo->exec('CREATE TABLE '.$table.' ('.$definition.')'.($mysql?' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4':''));
-    if($mysql)$pdo->exec((string)file_get_contents(dirname(__DIR__,2).'/migrations/059_manager_send_attempts.sql'));
-    else $pdo->exec('CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id))');
+    if($mysql){$pdo->exec((string)file_get_contents(dirname(__DIR__,2).'/migrations/059_manager_send_attempts.sql'));$pdo->exec((string)file_get_contents(dirname(__DIR__,2).'/migrations/100_manager_media_send_attempts.sql'));}
+    else $pdo->exec('CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,operation_kind TEXT NOT NULL DEFAULT \'text\',state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id))');
     $pdo->exec("INSERT INTO projects VALUES(1,'anytour','Synthetic send fixture',1),(2,'other','Other',1);
 INSERT INTO managers VALUES(7,'synthetic-owner','Owner','manager','',1,1),(8,'synthetic-colleague','Colleague','manager','',1,1),(9,'synthetic-admin','Admin','admin','',1,1),(10,'synthetic-inactive','Inactive','manager','',0,1);
 INSERT INTO manager_projects VALUES(7,1),(8,1),(9,1),(10,1);

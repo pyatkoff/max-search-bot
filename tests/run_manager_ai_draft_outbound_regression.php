@@ -145,6 +145,10 @@ class ManagerDeliveryStateService
 {
     public static function maxRestartsAfter(array $events): array { return []; }
 }
+class RoutingAccessService
+{
+    public static function lockConversationVisibilityInputs(int $actor,array $conversation): bool { return true; }
+}
 class DiagnosticLogger
 {
     public static function log(...$args): void
@@ -207,7 +211,7 @@ try {
         file_put_contents($tmp.'/integrations/'.$adapter.'.php', "<?php\n// Synthetic adapter only.\n");
     }
     file_put_contents($tmp.'/config.php', "<?php\nthrow new LogicException('real_bootstrap_forbidden_in_outbound_fixture');\n");
-    foreach (['ConversationRecordClock','ManagerReplyQueueService','ManagerOutboundService','ConversationRecorder','ManagerSendAttemptService','ManagerAiSentTextService'] as $service) {
+    foreach (['ConversationRecordClock','ManagerReplyQueueService','ManagerOutboundService','ConversationRecorder','ManagerSendAttemptService','ManagerAiSentTextService','ManagerMediaCache'] as $service) {
         $source = $root.'/services/'.$service.'.php';
         $target = $tmp.'/services/'.$service.'.php';
         if (!copy($source,$target)) throw new RuntimeException('Cannot copy canonical service');
@@ -357,7 +361,7 @@ try {
             && $rows[0]['text'] === '&lt;caption&gt;');
     }
     $pdo=DraftOutboundFixture::reset();
-    $pdo->exec('CREATE TABLE managers(id INTEGER PRIMARY KEY,is_active INTEGER); INSERT INTO managers VALUES(7,1); CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id))');
+    $pdo->exec('CREATE TABLE managers(id INTEGER PRIMARY KEY,is_active INTEGER); INSERT INTO managers VALUES(7,1); CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,operation_kind TEXT NOT NULL DEFAULT \'text\',state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id))');
     $attemptId=str_repeat('b',32);$original=DraftOutboundFixture::$proposal;
     $sent=ManagerOutboundService::sendAttempt(42,7,$attemptId,$original,$draftId);
     $repeated=ManagerOutboundService::sendAttempt(42,7,$attemptId,$original,$draftId);
@@ -367,7 +371,7 @@ try {
     draftOutboundCheck('receipt wrapper retains actual owner and canonical AI provenance',($rows[0]['sender_id']??'')==='7'&&($meta['ai_draft']['draft_id']??'')===$draftId&&($meta['ai_draft']['sent_text_sha256']??'')===hash('sha256',$original)&&count(DraftOutboundFixture::events('feedback'))===1);
     foreach(['recipient','project','source','channel','assignment','active','visibility'] as $change){
         $pdo=DraftOutboundFixture::reset();
-        $pdo->exec('CREATE TABLE managers(id INTEGER PRIMARY KEY,is_active INTEGER); INSERT INTO managers VALUES(7,1); CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id))');
+        $pdo->exec('CREATE TABLE managers(id INTEGER PRIMARY KEY,is_active INTEGER); INSERT INTO managers VALUES(7,1); CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,operation_kind TEXT NOT NULL DEFAULT \'text\',state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id))');
         $pdo->afterCommit=static function(PDO $db)use($change): void {
             if($change==='recipient')DraftOutboundFixture::$recipient='changed-recipient';
             if($change==='project')DraftOutboundFixture::$project='changed-project';
@@ -385,12 +389,12 @@ try {
         draftOutboundCheck('post-reservation '.$change.' rejection remains reconcilable without replay',(ManagerSendAttemptService::receipt(7,42,str_repeat('c',32))['attempt']['state']??'')==='rejected'&&(ManagerOutboundService::sendAttempt(42,7,str_repeat('c',32),'Synthetic scoped attempt',$draftId)['attempt']['state']??'')==='rejected'&&count(DraftOutboundFixture::events('adapter_send'))===0);
     }
     foreach(['recipient','assignment','active'] as $change){
-        $pdo=DraftOutboundFixture::reset();$pdo->exec('CREATE TABLE managers(id INTEGER PRIMARY KEY,is_active INTEGER); INSERT INTO managers VALUES(7,1); CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id))');
+        $pdo=DraftOutboundFixture::reset();$pdo->exec('CREATE TABLE managers(id INTEGER PRIMARY KEY,is_active INTEGER); INSERT INTO managers VALUES(7,1); CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,operation_kind TEXT NOT NULL DEFAULT \'text\',state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id))');
         DraftOutboundFixture::$afterAcquire=static function()use($change,$pdo): void {if($change==='recipient')DraftOutboundFixture::$recipient='changed-after-lock';if($change==='assignment')DraftOutboundFixture::$assigned=8;if($change==='active')$pdo->exec('UPDATE managers SET is_active=0 WHERE id=7');};
         $result=ManagerOutboundService::sendAttempt(42,7,str_repeat('d',32),'Synthetic lock boundary',$draftId);
         draftOutboundCheck('after-advisory-lock '.$change.' is checked on the actual dispatch row',($result['attempt']['state']??'')==='rejected'&&count(DraftOutboundFixture::events('adapter_send'))===0&&DraftOutboundFixture::rows()===[]);
     }
-    $pdo=DraftOutboundFixture::reset('max');$pdo->exec('CREATE TABLE managers(id INTEGER PRIMARY KEY,is_active INTEGER); INSERT INTO managers VALUES(7,1); CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id)); ALTER TABLE messages ADD COLUMN created_at TEXT');
+    $pdo=DraftOutboundFixture::reset('max');$pdo->exec('CREATE TABLE managers(id INTEGER PRIMARY KEY,is_active INTEGER); INSERT INTO managers VALUES(7,1); CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,operation_kind TEXT NOT NULL DEFAULT \'text\',state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id)); ALTER TABLE messages ADD COLUMN created_at TEXT');
     $pdo->prepare('INSERT INTO conversation_events(id,conversation_id,event_type,created_at,payload_json) VALUES(1,42,?,?,?)')->execute(['manager_message_failed','2026-10-19 10:00:00',json_encode(['category'=>'suspended'])]);
     $pdo->afterCommit=static function(){DraftOutboundFixture::$recipient='changed-suspended-recipient';};
     $result=ManagerOutboundService::sendAttempt(42,7,str_repeat('e',32),'Synthetic suspended boundary',$draftId);
@@ -405,6 +409,23 @@ try {
         $ok=$kind==='text'?ManagerOutboundService::send(42,7,'Original answer'):ManagerOutboundService::sendMedia(42,7,$file,'synthetic.txt','text/plain');
         $rows=DraftOutboundFixture::rows();$last=$rows[count($rows)-1];$boundary=json_decode($last['metadata_json'],true)[ManagerReplyQueueService::SEND_BOUNDARY]??[];
         draftOutboundCheck($kind.' successful canonical sender cannot cover a question or handoff arriving during transport',$ok&&$last['id']>2&&$boundary===['version'=>1,'customer_message_id'=>1,'request_event_id'=>1]&&count(DraftOutboundFixture::events($kind==='text'?'adapter_send':'adapter_media'))===1);
+    }
+    foreach(['max','telegram'] as $channel){
+        $pdo=DraftOutboundFixture::reset($channel);
+        $pdo->exec("ALTER TABLE conversations ADD COLUMN project_key TEXT DEFAULT 'synthetic-project';ALTER TABLE conversations ADD COLUMN source_id INTEGER DEFAULT 0;CREATE TABLE managers(id INTEGER PRIMARY KEY,role TEXT,is_active INTEGER);INSERT INTO managers VALUES(7,'manager',1);CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,operation_kind TEXT NOT NULL DEFAULT 'text',state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id))");
+        $file=$tmp.'/journal-media.txt';file_put_contents($file,'Synthetic journal media bytes');
+        $beforeCache=count(glob($tmp.'/runtime/manager-media/*.json')?:[]);$id=str_repeat($channel==='max'?'8':'9',32);
+        $first=ManagerOutboundService::sendMediaAttempt(42,7,$id,$file,'safe.txt','text/plain','Synthetic caption');
+        $again=ManagerOutboundService::sendMediaAttempt(42,7,$id,$file,'safe.txt','text/plain','Synthetic caption');
+        draftOutboundCheck($channel.' media journal uses one canonical provider mirror and private cache',($first['attempt']['state']??'')==='confirmed'&&$again===$first&&count(DraftOutboundFixture::events('adapter_media'))===1&&count(DraftOutboundFixture::rows())===1&&count(glob($tmp.'/runtime/manager-media/*.json')?:[])===$beforeCache+1);
+        $meta=json_decode(DraftOutboundFixture::rows()[0]['metadata_json'],true);
+        draftOutboundCheck($channel.' media journal preserves exact captured reply frontier and confirmed caption',$meta[ManagerReplyQueueService::SEND_BOUNDARY]===['version'=>1,'customer_message_id'=>0,'request_event_id'=>0]&&($first['attempt']['caption_included']??false)===true);
+        $pdo->afterCommit=static function():void{DraftOutboundFixture::$recipient='changed-after-reservation';};$beforeCache=count(glob($tmp.'/runtime/manager-media/*.json')?:[]);
+        $rejected=ManagerOutboundService::sendMediaAttempt(42,7,str_repeat($channel==='max'?'6':'7',32),$file,'safe.txt','text/plain','Keep caption');
+        draftOutboundCheck($channel.' media context change has a durable zero-dispatch result and removes only its unused cache',($rejected['attempt']['state']??'')==='rejected'&&($rejected['failure']['category']??'')==='not_dispatched'&&count(DraftOutboundFixture::events('adapter_media'))===1&&count(glob($tmp.'/runtime/manager-media/*.json')?:[])===$beforeCache);
+        DraftOutboundFixture::$recipient='synthetic-chat-42';DraftOutboundFixture::$delivered=false;$beforeCache=count(glob($tmp.'/runtime/manager-media/*.json')?:[]);
+        $uncertain=ManagerOutboundService::sendMediaAttempt(42,7,str_repeat($channel==='max'?'4':'5',32),$file,'safe.txt','text/plain','Uncertain caption');
+        draftOutboundCheck($channel.' unknown media keeps its private cache and never resends the operation',($uncertain['attempt']['state']??'')==='unknown'&&count(glob($tmp.'/runtime/manager-media/*.json')?:[])===$beforeCache+1&&ManagerOutboundService::sendMediaAttempt(42,7,str_repeat($channel==='max'?'4':'5',32),$file,'safe.txt','text/plain','Uncertain caption')===$uncertain&&count(DraftOutboundFixture::events('adapter_media'))===2);
     }
     $pdo=DraftOutboundFixture::reset();
     $mirrored=ConversationRecorder::outboundForConversation(42,'telegram','Already delivered without a capture','manager','7');

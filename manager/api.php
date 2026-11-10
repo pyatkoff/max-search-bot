@@ -39,7 +39,7 @@ if($action==='login'){
 
 // These transcript reads need existing project metadata, never its legacy UPSERT.
 // Initialize before manager resolution can enter the shared bootstrap.
-if(in_array($action,['detail','message_target','reply_queue_resolve','reply_queue_undo','reply_queue_receipt'],true)&&ManagerHttp::managerId()>0){
+if(in_array($action,['detail','message_target','reply_queue_resolve','reply_queue_undo','reply_queue_receipt','media_receipt','media_cancel'],true)&&ManagerHttp::managerId()>0){
     try{ProjectAccessService::initializeReadOnly();}
     catch(Throwable $ignored){out(['ok'=>false,'error'=>'project_unavailable'],503);}
 }
@@ -219,6 +219,15 @@ if($action==='lifecycle_state'){
     $state=$valid?ManagerConversationService::lifecycleState((int)$id,(int)$m['id']):null;
     if(!$state)out(['ok'=>false,'error'=>'unavailable','error_message'=>'Диалог недоступен. Возможно, изменились права доступа. Обновите список диалогов.'],404);
     out(['ok'=>true,'conversation_state'=>$state]);
+}
+if($action==='media_receipt'||$action==='media_cancel'){
+    require_once $baseDir . '/services/ManagerSendAttemptService.php';
+    if(!is_int($data['expected_manager_id']??null)||$data['expected_manager_id']<=0||$data['expected_manager_id']!==(int)$m['id'])out(['ok'=>false,'error'=>'actor_changed'],409);
+    $id=$data['operation_id']??null;$conversationId=$data['conversation_id']??null;
+    if(!is_string($id)||!is_int($conversationId))out(['ok'=>false,'error'=>'invalid_send_attempt'],400);
+    if(session_status()===PHP_SESSION_ACTIVE)session_write_close();
+    $result=$action==='media_receipt'?ManagerSendAttemptService::mediaReceipt((int)$m['id'],$conversationId,$id):ManagerSendAttemptService::mediaCancel((int)$m['id'],$conversationId,$id);
+    out($result,isset($result['attempt'])?200:409);
 }
 if($action==='send_receipt'||$action==='cancel_send_attempt'){
     require_once $baseDir . '/services/ManagerSendAttemptService.php';
