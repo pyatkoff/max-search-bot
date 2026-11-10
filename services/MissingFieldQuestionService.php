@@ -14,14 +14,22 @@ class MissingFieldQuestionService
             : 'Куда хотите поехать?';
 
         $questions = [
-            'city' => 'Из какого города планируете вылет?',
-            'country' => $countryQuestion,
-            'adults' => 'Сколько будет взрослых туристов?',
+            'city' => !empty($options['unresolved_city'])
+                ? 'Не получилось принять этот город для онлайн-подбора. Проверьте название. Если оно верное, напишите «Позвать менеджера» — он поможет проверить вылет из нужного вам города. Можно также указать другой удобный город вылета.'
+                : 'Из какого города планируете вылет?',
+            'country' => !empty($options['country_help'])
+                ? 'Если пока не выбрали страну, можем обсудить варианты. Можно рассказать, какой отдых вам хочется, или написать «Позвать менеджера» — он поможет с выбором направления.'
+                : $countryQuestion,
+            'adults' => !empty($options['unsupported_format'])
+                ? 'Не получилось прочитать количество взрослых в таком формате. Подтвердите число взрослых цифрой, без сокращений.'
+                : 'Сколько будет взрослых туристов?',
             'children' => 'Будут дети? Если да — сколько?',
             'child_ages' => 'Сколько лет детям?',
             'stars' => 'Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?',
             'meal' => 'Какое питание предпочитаете?',
-            'nights' => 'На сколько ночей планируете поездку?',
+            'nights' => !empty($options['unsupported_format'])
+                ? 'Не получилось прочитать диапазон ночей: в нём есть буква. Подтвердите количество ночей цифрами, например «7» или «7-9».'
+                : 'На сколько ночей планируете поездку?',
             'date' => !empty($options['ambiguous_months'])
                 ? 'Вы указали период в разных месяцах. Какую конкретную дату вылета взять для поиска?'
                 : (!empty($options['ambiguous_range'])
@@ -41,7 +49,7 @@ class MissingFieldQuestionService
         if (class_exists('MaxSearchApi')) {
             MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusAi);
         }
-        if ($field === 'city' && empty($options['suppress_departure_suggestion'])) {
+        if ($field === 'city' && empty($options['suppress_departure_suggestion']) && empty($options['unresolved_city'])) {
             require_once __DIR__ . '/DepartureSuggestionService.php';
             require_once __DIR__ . '/DialogueView.php';
             $suggestion = DepartureSuggestionService::forChat($chatId);

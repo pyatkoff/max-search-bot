@@ -38,6 +38,21 @@ final class AiBudgetHandler
     {
         if (!RuntimeStorage::usesMysql()) return false;
 
+        // Only this completed-check surface owns the optional prompt. Do not
+        // guess a scale or reinterpret an already saved budget from a short reply.
+        if (OptionalBudgetPromptService::isUnitlessCeiling($text)) {
+            try {
+                $context=(array)MaxSearchApi::getAiSearchContext($chatId);
+            } catch (Throwable $e) {
+                return false;
+            }
+            if (OptionalBudgetPromptService::budgetLine($context) === null) {
+                OptionalBudgetPromptService::sendUnitClarification($chatId);
+                return true;
+            }
+            return false;
+        }
+
         // The one optional budget clarification may be declined explicitly.
         // Consume that reply only while the active budget is still unknown: a
         // later generic "не знаю" must never erase or contradict a known budget.

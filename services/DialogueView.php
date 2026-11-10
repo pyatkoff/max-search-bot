@@ -295,6 +295,14 @@ class DialogueView
         );
     }
 
+    public static function checkTourGuidance($chatId): bool
+    {
+        return (bool)IntegrationRegistry::messenger()->send(
+            $chatId,
+            'Посмотреть варианты по вашим условиям можно кнопкой «Показать туры» в сообщении с итогами. Если нужна помощь с выбором, нажмите «Подобрать с менеджером» там же.'
+        );
+    }
+
     public static function tourResults($chatId, array $model): bool
     {
         MaxSearchApi::deletePrevMessage($chatId);

@@ -101,6 +101,10 @@ class DialogueController
         if ($status == MaxSearchApi::$statusCheck && self::isCheckPriceQuestion($plainText)) {
             return DialogueView::checkPriceGuidance($chatId);
         }
+        if ($status == MaxSearchApi::$statusCheck
+            && preg_match('/\Aгор(?:ящие|ячие)\s+туры[.!?…]*\z/ui', $plainText) === 1) {
+            return DialogueView::checkTourGuidance($chatId);
+        }
         // An explicitly opened edit menu accepts an exact country name through
         // the existing wizard owner. Other check text keeps its previous route.
         if ($status == MaxSearchApi::$statusCheck && StateMessageHandler::handleMenuCountryEdit($message, $chatId)) {

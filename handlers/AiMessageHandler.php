@@ -29,6 +29,20 @@ class AiMessageHandler
                 $departureSuggestion = DepartureSuggestionService::forChat($chat_id, $current, (string)($message['_platform'] ?? ''));
                 $missingNow = MaxSearchApi::getAiMissingFields($chat_id);
                 $missingBeforeTurn = $missingBeforeTurn ?? $missingNow;
+                if (($missingNow[0] ?? '') === 'country'
+                    && preg_match('/\A(?:пока\s+)?не\s+знаю[.!…]*\z/ui', $userText) === 1) {
+                    MissingFieldQuestionService::send($chat_id, 'country', ['country_help'=>true]);
+                    return;
+                }
+                $firstMissing = (string)($missingNow[0] ?? '');
+                $unsupportedShortFormat = ($firstMissing === 'adults'
+                        && preg_match('/\A[1-6]\s*ч\.?\z/ui', $userText) === 1)
+                    || ($firstMissing === 'nights'
+                        && preg_match('/\A(?=[0-9о\s–—-]*о)[0-9о]{1,2}\s*[-–—]\s*[0-9о]{1,2}\z/ui', $userText) === 1);
+                if ($unsupportedShortFormat && empty(NeedValueResolver::resolve($firstMissing, $userText)['recognized'])) {
+                    MissingFieldQuestionService::send($chat_id, $firstMissing, ['unsupported_format'=>true]);
+                    return;
+                }
                 $sourceQualification=SourceHandlingService::qualifyingTurn($chat_id);
 
                 // The controller may already have confirmed this turn's
@@ -189,6 +203,17 @@ class AiMessageHandler
                 // $ai уже получен либо через RICH_AI, либо через SHORT_AI.
                 // Ни local fallback, ни второй AiRouter здесь повторно не запускаются.
 
+                // A newer scalar turn can finish while this inference is in flight.
+                // An empty search result adds no facts: do not repeat progression
+                // over that newer saved context. Results with facts and FAQ/error
+                // handling retain their existing path; this is not a turn lock.
+                if (is_array($ai) && empty($ai['_error'])
+                    && in_array((string)($ai['intent'] ?? ''), ['search', 'correction'], true)
+                    && ($ai['parameters'] ?? null) === []
+                    && MaxSearchApi::getAiSearchContext($chat_id) !== $current) {
+                    return;
+                }
+
                 $sourceNeedFields=[];
                 $sourceNeedPreapplied=false;
                 $sourceRawParams=is_array($ai['parameters']??null)?$ai['parameters']:[];
@@ -249,6 +274,13 @@ class AiMessageHandler
 
                 AiRuntimeLogger::debug("ROUTE AFTER AI: APPLY_PARAMETERS\n");
                 $questionOptions=['country_explicit'=>true];
+                // If the named departure cannot be applied, explain that result
+                // instead of asking the same initial question. Progression still
+                // decides whether city remains missing after canonical application.
+                if (($missingBeforeTurn[0] ?? '') === 'city'
+                    && is_string($params['city'] ?? null) && trim($params['city']) !== '') {
+                    $questionOptions['unresolved_city'] = true;
+                }
                 if($sourceQualification){
                     $questionOptions['source_need_fields']=$sourceNeedFields;
                     $questionOptions['source_need_preapplied']=$sourceNeedPreapplied;
