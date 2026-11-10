@@ -1,0 +1,53 @@
+{
+  "public_post_url": "https://max.ru/channel_appleservice39ru/AaG9bNuPPpk",
+  "canonical_channel_url": "https://max.ru/channel_appleservice39ru",
+  "public_channel_id": 80917954947727,
+  "public_html_sha256": "41a352f67af7fa11ed47110592a81440f8d19f0eba8d48166f078d90b345594a",
+  "object_offset": 15087,
+  "object_length": 1931,
+  "native_photo_id": "46903586129",
+  "photo_reference_id": 46903586129,
+  "width": 1072,
+  "height": 1467,
+  "native_payload_url_sha256": "4a06e8555545911c30272ec9f883ef0e715c186b971c6f52c26cd9632f4330fe",
+  "ssr_attachment_url_sha256": "13caaba76d7c3448c92633ea6c0577afbab4858d56d3524896cbfad1058fa8e1",
+  "exact_native_locator_match": false,
+  "source": "actual_public_post_Svelte_SSR_linkInfo.message.attachment[0]",
+  "fresh_native_payload_url_sha256": "4a06e8555545911c30272ec9f883ef0e715c186b971c6f52c26cd9632f4330fe",
+  "reviewed_at_utc": "2026-11-10T09:26:45.055651+00:00",
+  "reviewer": "originating Codex agent",
+  "source_png": {
+    "bytes": 1657603,
+    "sha256": "07ae38eb30c3bd380cd6c97b253a650297844493054b9e72ff22245774430bb5",
+    "dimensions": [
+      1072,
+      1467
+    ],
+    "format": "PNG"
+  },
+  "public_native_preview": {
+    "bytes": 64829,
+    "sha256": "659c8c7fe3d11b3754ab1426b8b2f8061bc5e17a39c9fab5d1cbc643eefddb56",
+    "dimensions": [
+      561,
+      768
+    ],
+    "format": "JPEG"
+  },
+  "native_readback_run_id": 42789765899,
+  "native_readback_job_id": 129740355281,
+  "readback_context": {
+    "repository_sha": "5becac92426aa07cd8ebbf075a28840d71fa4ff4",
+    "original_attempt": 1,
+    "job_conclusion": "failure",
+    "projection": "automatic_GET_only_landing_inspect",
+    "pending_image_reviews": 14
+  },
+  "visual_review": {
+    "source_asset_opened": true,
+    "native_preview_opened": true,
+    "exact_layout_model_service_price_qualifiers": true
+  },
+  "review_notes": "Individually opened actual JPEG and exact source PNG. Same iPhone15 Plus badge and cracked-display/replacement composition, price by request, part/price/availability qualifier and Leninsky18/office404 footer. No invented fixed price, question or drawn CTA. Exact public SSR PHOTO photoId/referenceId joins this downloaded preview to the actual provider GET identity. Original/fresh native and public locator digests are separately retained. No token or URL decoding, arbitrary image-ID acceptance or similarity score was used.",
+  "provider_receipt_accepted": false
+}

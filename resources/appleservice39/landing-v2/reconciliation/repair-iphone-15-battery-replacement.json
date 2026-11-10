@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_native_replacement",
+  "campaign_key": "appleservice39-pilot-v1",
+  "project_key": "appleservice39",
+  "bot_key": "id390521129062_bot",
+  "channel_id": "-80917954947727",
+  "post_id": "repair-iphone-15-battery-replacement",
+  "message_id": "mid.ffffb667d20a157101a1bd6cc3aa6396",
+  "public_url": "https://max.ru/channel_appleservice39ru/AaG9bMOqY5Y",
+  "revision_sha256": "f772e83df3532120cf20d99ff0476c9717d5f42d75b7f6f89b8e0fed8890f8bd",
+  "source_sha256": "59c699c8895f21624dd482dd69d69401c68e8637b728900e206ca0dbc406881b",
+  "upload_operation_id": 77,
+  "upload_request_sha256": "8a9f18eff2aa25d54bfe635a32a902a86b95fa3d2c7f052a70187fc8e95731b2",
+  "upload_token_sha256": "851007a58c429df30efc969b940a93d7033a37be4a2254c8e5346fef0b0e379b",
+  "edit_operation_id": 92,
+  "edit_request_sha256": "ea5721bf4f7f848954990975c4699a88259c764afb1bb19cc0b8cab014b9bd63",
+  "edit_started_ms": 1794302460404,
+  "native_photo_id": "46903570257",
+  "native_preview_sha256": "c369d6246b75d4ca36f085bbef2815041c62af20a3d8e730030be20d0e441f8d",
+  "native_preview_width": 561,
+  "native_preview_height": 768,
+  "native_payload_url_sha256": "090a4385c68f7cfc0a5a4f6e2e7b066c5dc78d5ca6bfd7caf1916e31a2158724",
+  "native_readback_run_id": 42789765899,
+  "native_readback_job_id": 129740355281,
+  "visual_review": {
+    "source_asset_opened": true,
+    "native_preview_opened": true,
+    "exact_layout_model_service_price_qualifiers": true
+  }
+}

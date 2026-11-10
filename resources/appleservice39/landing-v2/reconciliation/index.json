@@ -8,6 +8,76 @@
       "post_id": "repair-iphone-x-battery-replacement",
       "proof_sha256": "a531a7af1c8f19cb3b2e7e4a1fbf7161b53dc89ffef1e28e8a88934faadc39c8",
       "native_preview_sha256": "fc8d0b567f7857e167fc1fda8e78ecda543cb8e937a2a318f312c7837a36ab2f"
+    },
+    {
+      "post_id": "repair-iphone-x-front-glass-replacement",
+      "proof_sha256": "cc19133c8f2e9ef74b212e56822f06f8a8c89df374627380de3d8611a43d059f",
+      "native_preview_sha256": "76d0ce7aa569c7cb13427e9e6ca0669f537736bc0aa9228247cf72949961e69f"
+    },
+    {
+      "post_id": "repair-iphone-x-display",
+      "proof_sha256": "8022be17538de75c276d7bfc1b8771c35f8e114fc32351d3d2428fd4e5a8535b",
+      "native_preview_sha256": "ea239dfef4fb9ab78e977987a86b1c8d99583c207f60a69de5d581314fa1eead"
+    },
+    {
+      "post_id": "repair-iphone-15-battery-replacement",
+      "proof_sha256": "a228ae48fe03bce21eb11ab0884852e4384f5bc2abc404f8c9d0a187bb0ee946",
+      "native_preview_sha256": "c369d6246b75d4ca36f085bbef2815041c62af20a3d8e730030be20d0e441f8d"
+    },
+    {
+      "post_id": "repair-iphone-15-front-glass-replacement",
+      "proof_sha256": "4052affcb9339322729035d5ed6e2b863b954b6dbb6f59a83a5710cdeccf2360",
+      "native_preview_sha256": "3dc69bbc62cd02976810144fabc370aac02f1b13628a271a8331e34e8a89a75c"
+    },
+    {
+      "post_id": "repair-iphone-15-display",
+      "proof_sha256": "d1d43cf1ada4871783dfc4a51e752431a9ea36ff2ceccb47545aa26388e4efef",
+      "native_preview_sha256": "055cb5d4a5920e72b52ec971d8d4b0639306ebdc2442fc546850624075e2a3e1"
+    },
+    {
+      "post_id": "repair-iphone-15-plus-battery-replacement",
+      "proof_sha256": "3e9a536405e918dc99c6a3b31bfc7bedade49908d782666b9a83d7ad628897a0",
+      "native_preview_sha256": "b342a4bfa0559029b2c8f2a3072eb5237bdfecec7ce7275184514110fd277667"
+    },
+    {
+      "post_id": "repair-iphone-15-plus-front-glass-replacement",
+      "proof_sha256": "21029c57dfeaa388b586edb1451cc6c0da6653957ad4c32d922ff3f075d0680b",
+      "native_preview_sha256": "8bace78e2da6ad7bcb6866fa8192f632428454ddf474a3e149ba1a09428a71a9"
+    },
+    {
+      "post_id": "repair-iphone-15-plus-display",
+      "proof_sha256": "161e05fafb646ac94833c0d1cf5205bd2c6c904dbd158f9cd2502696470af628",
+      "native_preview_sha256": "659c8c7fe3d11b3754ab1426b8b2f8061bc5e17a39c9fab5d1cbc643eefddb56"
+    },
+    {
+      "post_id": "repair-iphone-15-pro-battery-replacement",
+      "proof_sha256": "a1fe0c6782cba535d8816cec3af24ccfbbaf1e2653b618d5a7f236ac415a65be",
+      "native_preview_sha256": "f6b8ef01e430b80908ab5db99fe49692db4a342df283193b3065c5267c54c23f"
+    },
+    {
+      "post_id": "repair-iphone-15-pro-front-glass-replacement",
+      "proof_sha256": "f136fcafc3e9593448fd7c4557987a8500c95114c328c4f7719f46664d49bd9e",
+      "native_preview_sha256": "f74bd71b2cfb65ae3843b5b99d3158614b633ea2718a9f4b04df692fdbb004a7"
+    },
+    {
+      "post_id": "repair-iphone-15-pro-display",
+      "proof_sha256": "2d740af2a277a68243258aa8bba742743b0c60f256258ecf12569826fee02c1a",
+      "native_preview_sha256": "5ee71cf3c82c8f53f2ebfdded78c89f64947acccf1547a316db3f1c3176a4984"
+    },
+    {
+      "post_id": "repair-iphone-15-pro-max-battery-replacement",
+      "proof_sha256": "b5eb0d9c6ae4bb9506029cda3665711209fe79eafc9d7e057fda0a33fabda73d",
+      "native_preview_sha256": "1e4ed76382c2025dbc27a62f2af9bb9aebdb1fc7e00df1e50e329026c982ff78"
+    },
+    {
+      "post_id": "repair-iphone-15-pro-max-front-glass-replacement",
+      "proof_sha256": "c8f4b6fc2799675ef2411ccc20c8de23804a924b6a7a42aeb5e50016fa0d302d",
+      "native_preview_sha256": "7c80ba476fb33f5edab04813c532b3167066f97d15a2a12e20f26d4c54672003"
+    },
+    {
+      "post_id": "repair-iphone-15-pro-max-display",
+      "proof_sha256": "b8875f50d56152cfcbc872798280dd7503196ab4c02c0e6928d4d41e5bc64df1",
+      "native_preview_sha256": "31ed15537e54ff3e7a57aa21ed1317576bb6d9b710b2abdd8bb3deb9d751cd32"
     }
   ]
 }
