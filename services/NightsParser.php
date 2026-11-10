@@ -21,6 +21,23 @@ class NightsParser
             return '7';
         }
 
+        // Word forms describe only the same complete short answer as digits.
+        // Keep a question about a duration with the ordinary dialogue collector.
+        $wordNumbers = self::normalizeWordNumbers($normalized);
+        if ($wordNumbers !== $normalized && preg_match('/[?？]/u', $text)) return '';
+        $normalized = $wordNumbers;
+
+        // Adjacent alternatives have exactly the same choices as this range.
+        // Do not widen a noncontiguous "seven or ten" into seven through ten.
+        if (preg_match('/^(?:на\s+)?(\d{1,2})\s+или\s+(\d{1,2})(?:\s+ноч(?:ь|и|ей)?)?$/ui', $normalized, $m)) {
+            $first = (int)$m[1];
+            $second = (int)$m[2];
+            if (preg_match('/[?？]/u', $text) || abs($first - $second) !== 1) return '';
+            $from = min($first, $second);
+            $to = max($first, $second);
+            return $from >= 1 && $to <= 28 ? $from.'-'.$to : '';
+        }
+
         // A short approximation is still a definite single duration in the
         // context of the explicit nights question. Keep minimum-only "от N"
         // separate because it does not provide an upper bound.
@@ -45,5 +62,28 @@ class NightsParser
         }
 
         return '';
+    }
+
+    /** Normalize a finite number vocabulary; the full-answer grammar still decides. */
+    private static function normalizeWordNumbers(string $text): string
+    {
+        $words = [
+            1=>'один|одна|одну', 2=>'два|две', 3=>'три', 4=>'четыре',
+            5=>'пять', 6=>'шесть', 7=>'семь', 8=>'восемь', 9=>'девять',
+            10=>'десять', 11=>'одиннадцать|одинадцать', 12=>'двенадцать',
+            13=>'тринадцать', 14=>'четырнадцать', 15=>'пятнадцать',
+            16=>'шестнадцать', 17=>'семнадцать', 18=>'восемнадцать',
+            19=>'девятнадцать', 20=>'двадцать',
+        ];
+        // Resolve twenty-one through twenty-eight before their individual words.
+        for ($unit = 1; $unit <= 8; $unit++) {
+            $text = preg_replace('/(?<![\p{L}\d])двадцать\s+(?:'.$words[$unit].')(?![\p{L}\d])/ui',
+                (string)(20 + $unit), $text);
+        }
+        foreach ($words as $value => $spellings) {
+            $text = preg_replace('/(?<![\p{L}\d])(?:'.$spellings.')(?![\p{L}\d])/ui',
+                (string)$value, $text);
+        }
+        return $text;
     }
 }

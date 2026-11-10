@@ -204,6 +204,10 @@ foreach ([
     ['На 6', '6'],
     ['7-10', '7-10'],
     ['3,4', '3-4'],
+    ['Десять или одинадцать', '10-11'],
+    ['Одинадцать', '11'],
+    ['На ДВАДЦАТЬ ВОСЕМЬ ночей', '28'],
+    ['тринадцать или двенадцать ночей', '12-13'],
 ] as $index => [$text, $expected]) {
     $chatId = 100 + $index;
     $messenger = freeTextNightsReset($chatId);
@@ -217,6 +221,22 @@ foreach ([
     freeTextNightsCheck("{$text} observer is allowed", $transitionEvents[0]['data']['allowed'] ?? null, true);
     freeTextNightsCheck("{$text} observer keeps free-text scope", $transitionEvents[0]['data']['scope'] ?? null, 'free_text_nights');
 }
+
+// Short word durations use the canonical value resolver; unrelated numbers stay rejected.
+foreach ([
+    'семь или десять', 'десять или двенадцать', 'десять?', 'десять или одиннадцать?',
+    'один или ноль', 'двадцать восемь или двадцать девять', 'на тридцать',
+    'до десяти', 'от десяти', 'ребёнку десять лет', 'бюджет десять тысяч',
+    '11.12', 'не десять, а двенадцать', 'через десять дней',
+] as $unsupported) {
+    $resolved = NeedValueResolver::resolve('nights', $unsupported);
+    freeTextNightsCheck('unsupported word duration remains unrecognized: '.$unsupported,
+        $resolved['recognized'], false);
+}
+$wordResolved = NeedValueResolver::resolve('nights', 'двенадцать или тринадцать');
+freeTextNightsCheck('word alternatives retain canonical resolver provenance',
+    [$wordResolved['recognized'], $wordResolved['value'], $wordResolved['source']],
+    [true, '12-13', 'deterministic:nights_parser']);
 
 // An implicit year rolls forward once this departure day has passed, not only after October.
 $combinedYear = mktime(0, 0, 0, 10, 3, (int)date('Y')) < strtotime('today') ? ((int)date('Y') + 1) : (int)date('Y');
