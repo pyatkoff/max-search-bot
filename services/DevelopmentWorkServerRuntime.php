@@ -5,7 +5,7 @@ require_once __DIR__.'/DevelopmentWorkQueue.php';
 /** Existing ordinary minute CLI only; no endpoint, timer, bootstrap or manual tick. */
 final class DevelopmentWorkServerRuntime
 {
-    public static function tick(PDO $pdo,string $trigger,callable $authorize,?DevelopmentWorkServerProvider $provider=null,$clock=null): array
+    public static function tick(PDO $pdo,string $trigger,callable $authorize,?DevelopmentWorkServerProvider $provider=null,$clock=null,?DevelopmentWorkServerAmendmentGate $gate=null): array
     {
         $s=$pdo->prepare('SELECT q.admin_id,c.execution_connection_id AS oauth_connection_id FROM development_work_server_controls c JOIN development_work_queues q ON q.queue_id=c.queue_id WHERE q.queue_id=?');
         $s->execute([DevelopmentWorkServerContract::QUEUE]);$owner=$s->fetch(PDO::FETCH_ASSOC);$s->closeCursor();
@@ -16,6 +16,6 @@ final class DevelopmentWorkServerRuntime
         $now=$clock===null?time():$clock();
         if(!is_int($now)||$now<1)throw new DomainException('development_server_clock');
         return (new DevelopmentWorkQueue($pdo,$clock))->serverTick($provider??new DevelopmentWorkServerProvider(),
-            ['trigger'=>'cron','cron_id'=>bin2hex(random_bytes(32)),'started_at'=>$now]);
+            ['trigger'=>'cron','cron_id'=>bin2hex(random_bytes(32)),'started_at'=>$now],$gate);
     }
 }
