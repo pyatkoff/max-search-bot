@@ -18,6 +18,15 @@ class AiShortAnswerHandler
             return false;
         }
 
+        // A compound party answer belongs to the existing whole-turn collector.
+        // Decline before any partial adults write can consume its child facts.
+        if ($field === 'adults' && preg_match(
+            '/(?:\bбез\s+детей\b|\bдет(?:и|ей)\b|\bреб[её]н(?:ок|ка|ку|ком|ки|ков)\b)/ui',
+            $text
+        ) === 1) {
+            return false;
+        }
+
         $lower = function_exists('mb_strtolower')
             ? mb_strtolower($text, 'UTF-8')
             : strtolower($text);

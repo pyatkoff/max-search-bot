@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 /** Only legacy/external side effects are captured; all entry/source/DB owners are real. */
+if (!class_exists('MaxSearchApi', false)) {
 final class MaxSearchApi
 {
     public static array $greetings = [], $resets = [], $cancelled = [], $editModes = [], $funnel = [], $goals = [], $deletedMessages = [], $statusWrites = [], $searchIntros = [];
@@ -32,6 +33,8 @@ final class MaxSearchApi
     public static function setStatus($chat, $status, $message = false): void { self::$statusWrites[] = [$chat, $status]; }
     public static function scheduleSearchIntroFollowup($chat, $delay = 60): bool { self::$searchIntros[] = [$chat, $delay]; return true; }
     public static function showStart($chat, $meta = []): bool { self::$greetings[] = compact('chat', 'meta'); return true; }
+}
+
 }
 
 function createChannelPostEntryFixture(): array
