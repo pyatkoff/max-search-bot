@@ -499,7 +499,7 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     $failedRows=[];$failedProofs=[];
     for($i=0;$i<16;$i++){
         $r=$a;$r['id']=(string)(100+$i);$r['conversation_id']=(string)(700+$i);$r['upload_id']=(string)(800+$i);
-        $r['event_unix']=$day+120+$i;$r['claimed_at_unix']=$day+200+$i;
+        $r['event_unix']=$day+3900+$i;$r['claimed_at_unix']=$day+4000+$i;
         $r['state']='unmatched';$r['upload_status']='LINKAGE_FAILURE';$r['value_processed_at_unix']=null;
         $e=$proof['events'][0];$e['fingerprint']=ModeledConversionVisitProof::fingerprint($r);
         $e['upload_status']='LINKAGE_FAILURE';$e['linkage']='failed';$e['reason']='eligible_visit_but_provider_linkage_failed';
