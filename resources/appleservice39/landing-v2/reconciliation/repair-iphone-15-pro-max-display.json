@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_native_replacement",
+  "campaign_key": "appleservice39-pilot-v1",
+  "project_key": "appleservice39",
+  "bot_key": "id390521129062_bot",
+  "channel_id": "-80917954947727",
+  "post_id": "repair-iphone-15-pro-max-display",
+  "message_id": "mid.ffffb667d20a157101a1bd6cf7de115a",
+  "public_url": "https://max.ru/channel_appleservice39ru/AaG9bPfeEVo",
+  "revision_sha256": "f772e83df3532120cf20d99ff0476c9717d5f42d75b7f6f89b8e0fed8890f8bd",
+  "source_sha256": "84c9c4ca1b0a1298f46e49e82b222f8703de1001a76a5514abb5bd03345828b6",
+  "upload_operation_id": 88,
+  "upload_request_sha256": "307169523e44e6533e3ebcdd41e59c4cddd5e5764177d708063ff9f3215cab1c",
+  "upload_token_sha256": "363b20f59c4af49053f009b1b1e6cf3716a86535ffcfb1af0dbf0a93b06ae1b0",
+  "edit_operation_id": 103,
+  "edit_request_sha256": "a0e48c37b496280c55cea636269324d68ac5dbf8e2228e20ecbed31e98816547",
+  "edit_started_ms": 1794302512901,
+  "native_photo_id": "46903608145",
+  "native_preview_sha256": "31ed15537e54ff3e7a57aa21ed1317576bb6d9b710b2abdd8bb3deb9d751cd32",
+  "native_preview_width": 561,
+  "native_preview_height": 768,
+  "native_payload_url_sha256": "991c18d96dea9f3a5dd1cd3ca916ac23d19bee00f4eaa99426ce6a3ff8a2199e",
+  "native_readback_run_id": 42789765899,
+  "native_readback_job_id": 129740355281,
+  "visual_review": {
+    "source_asset_opened": true,
+    "native_preview_opened": true,
+    "exact_layout_model_service_price_qualifiers": true
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_native_replacement",
+  "campaign_key": "appleservice39-pilot-v1",
+  "project_key": "appleservice39",
+  "bot_key": "id390521129062_bot",
+  "channel_id": "-80917954947727",
+  "post_id": "repair-iphone-x-front-glass-replacement",
+  "message_id": "mid.ffffb667d20a157101a1bd6cba0e137f",
+  "public_url": "https://max.ru/channel_appleservice39ru/AaG9bLoOE38",
+  "revision_sha256": "f772e83df3532120cf20d99ff0476c9717d5f42d75b7f6f89b8e0fed8890f8bd",
+  "source_sha256": "8dfe3d3012bfa448f5480136559d5e58737ec555de158f0a840e4ba1c8965518",
+  "upload_operation_id": 75,
+  "upload_request_sha256": "e318c28d7bf2cd249e41f83ba79f5258bb4874c63274ccc25ee46c431f69e8ed",
+  "upload_token_sha256": "96a35ff0df76364dcca2c10eb3c3f2616f168f06af67788e2d133bf2b804ff89",
+  "edit_operation_id": 90,
+  "edit_request_sha256": "51bebf2bdef39276a807a4d6b62a993bda80dde73babdaca36e0cf12689700ba",
+  "edit_started_ms": 1794302452793,
+  "native_photo_id": "46903566417",
+  "native_preview_sha256": "76d0ce7aa569c7cb13427e9e6ca0669f537736bc0aa9228247cf72949961e69f",
+  "native_preview_width": 561,
+  "native_preview_height": 768,
+  "native_payload_url_sha256": "9107704221f2d9d68956c44d58c5580937a9148d680346cf8827da14a0431af1",
+  "native_readback_run_id": 42789765899,
+  "native_readback_job_id": 129740355281,
+  "visual_review": {
+    "source_asset_opened": true,
+    "native_preview_opened": true,
+    "exact_layout_model_service_price_qualifiers": true
+  }
+}

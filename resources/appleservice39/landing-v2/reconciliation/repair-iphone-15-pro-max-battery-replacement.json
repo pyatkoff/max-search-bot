@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_native_replacement",
+  "campaign_key": "appleservice39-pilot-v1",
+  "project_key": "appleservice39",
+  "bot_key": "id390521129062_bot",
+  "channel_id": "-80917954947727",
+  "post_id": "repair-iphone-15-pro-max-battery-replacement",
+  "message_id": "mid.ffffb667d20a157101a1bd6cee7a7878",
+  "public_url": "https://max.ru/channel_appleservice39ru/AaG9bO56eHg",
+  "revision_sha256": "f772e83df3532120cf20d99ff0476c9717d5f42d75b7f6f89b8e0fed8890f8bd",
+  "source_sha256": "8a2b0d23d1909d9e8d0cef4aaf769225da83875f2fce7f2993f1c793136b1b84",
+  "upload_operation_id": 86,
+  "upload_request_sha256": "cf5cf7cfd8ffcabd1b63209c31eda32c9adaae5c6540cb22fdba6cadfa08b970",
+  "upload_token_sha256": "e5c56c964e6bc9bc9650688304ebf1d8b4ccfe5962ea4dd175ca5c3c081f6b48",
+  "edit_operation_id": 101,
+  "edit_request_sha256": "f1394c90859522514774d41e284d5907333ecb33235e39e883a492a1f7caed1f",
+  "edit_started_ms": 1794302502009,
+  "native_photo_id": "46903599185",
+  "native_preview_sha256": "1e4ed76382c2025dbc27a62f2af9bb9aebdb1fc7e00df1e50e329026c982ff78",
+  "native_preview_width": 561,
+  "native_preview_height": 768,
+  "native_payload_url_sha256": "fa3de1c583f19257c76b106cd65942d61582cebc97057bfde5541b05e8092bed",
+  "native_readback_run_id": 42789765899,
+  "native_readback_job_id": 129740355281,
+  "visual_review": {
+    "source_asset_opened": true,
+    "native_preview_opened": true,
+    "exact_layout_model_service_price_qualifiers": true
+  }
+}

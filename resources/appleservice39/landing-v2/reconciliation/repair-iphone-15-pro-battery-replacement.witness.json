@@ -1,0 +1,53 @@
+{
+  "public_post_url": "https://max.ru/channel_appleservice39ru/AaG9bOBIFbI",
+  "canonical_channel_url": "https://max.ru/channel_appleservice39ru",
+  "public_channel_id": 80917954947727,
+  "public_html_sha256": "dd54da6825ee928d023160f060e260ee039b24be397e75b36c99f72a1f7c591e",
+  "object_offset": 14900,
+  "object_length": 1842,
+  "native_photo_id": "46903588177",
+  "photo_reference_id": 46903588177,
+  "width": 1072,
+  "height": 1467,
+  "native_payload_url_sha256": "b38b6d962d4f238396b667a77539f43120a00475ea587cebc0056a95e8a78f9b",
+  "ssr_attachment_url_sha256": "97e2fcd5bb480b9635b9be1177cc632b33127924f82ba5595d94faaf091c9fbb",
+  "exact_native_locator_match": false,
+  "source": "actual_public_post_Svelte_SSR_linkInfo.message.attachment[0]",
+  "fresh_native_payload_url_sha256": "b38b6d962d4f238396b667a77539f43120a00475ea587cebc0056a95e8a78f9b",
+  "reviewed_at_utc": "2026-11-10T09:26:45.058146+00:00",
+  "reviewer": "originating Codex agent",
+  "source_png": {
+    "bytes": 1795827,
+    "sha256": "8968452ea8cb5499ebe170df5f622426ae302690572962423d2da26121df5f95",
+    "dimensions": [
+      1072,
+      1467
+    ],
+    "format": "PNG"
+  },
+  "public_native_preview": {
+    "bytes": 64179,
+    "sha256": "f6b8ef01e430b80908ab5db99fe49692db4a342df283193b3065c5267c54c23f",
+    "dimensions": [
+      561,
+      768
+    ],
+    "format": "JPEG"
+  },
+  "native_readback_run_id": 42789765899,
+  "native_readback_job_id": 129740355281,
+  "readback_context": {
+    "repository_sha": "5becac92426aa07cd8ebbf075a28840d71fa4ff4",
+    "original_attempt": 1,
+    "job_conclusion": "failure",
+    "projection": "automatic_GET_only_landing_inspect",
+    "pending_image_reviews": 14
+  },
+  "visual_review": {
+    "source_asset_opened": true,
+    "native_preview_opened": true,
+    "exact_layout_model_service_price_qualifiers": true
+  },
+  "review_notes": "Individually opened actual JPEG and exact source PNG. Same iPhone15 Pro badge, grey phone and battery illustration,7000 RUB, catalogue/availability qualifier and Leninsky18/office404 footer. No free-diagnosis promise, question or drawn CTA. Exact public SSR PHOTO photoId/referenceId joins this downloaded preview to the actual provider GET identity. Original/fresh native and public locator digests are separately retained. No token or URL decoding, arbitrary image-ID acceptance or similarity score was used.",
+  "provider_receipt_accepted": false
+}

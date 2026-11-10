@@ -1,0 +1,53 @@
+{
+  "public_post_url": "https://max.ru/channel_appleservice39ru/AaG9bOUSUYI",
+  "canonical_channel_url": "https://max.ru/channel_appleservice39ru",
+  "public_channel_id": 80917954947727,
+  "public_html_sha256": "448280f3a17efd0a030ff7a50cb2b31a434f00fb0cf5cb7b332643ee541023a7",
+  "object_offset": 15081,
+  "object_length": 1948,
+  "native_photo_id": "46903590225",
+  "photo_reference_id": 46903590225,
+  "width": 1072,
+  "height": 1467,
+  "native_payload_url_sha256": "3337b6e98eb02d4b89138ab24216b947e1b58962d14ed7519868550d28f0ad70",
+  "ssr_attachment_url_sha256": "9b3d635a94b0202373382e0316bd561ba06b9270aa9b82e5bd70e84a9ebdc5aa",
+  "exact_native_locator_match": false,
+  "source": "actual_public_post_Svelte_SSR_linkInfo.message.attachment[0]",
+  "fresh_native_payload_url_sha256": "3337b6e98eb02d4b89138ab24216b947e1b58962d14ed7519868550d28f0ad70",
+  "reviewed_at_utc": "2026-11-10T09:27:05.426620+00:00",
+  "reviewer": "originating Codex agent",
+  "source_png": {
+    "bytes": 1859722,
+    "sha256": "8b4cd83591ed607ad92a631f62da66bb731f5bf66c59a9e89c12ec1f3459228e",
+    "dimensions": [
+      1072,
+      1467
+    ],
+    "format": "PNG"
+  },
+  "public_native_preview": {
+    "bytes": 71032,
+    "sha256": "f74bd71b2cfb65ae3843b5b99d3158614b633ea2718a9f4b04df692fdbb004a7",
+    "dimensions": [
+      561,
+      768
+    ],
+    "format": "JPEG"
+  },
+  "native_readback_run_id": 42789765899,
+  "native_readback_job_id": 129740355281,
+  "readback_context": {
+    "repository_sha": "5becac92426aa07cd8ebbf075a28840d71fa4ff4",
+    "original_attempt": 1,
+    "job_conclusion": "failure",
+    "projection": "automatic_GET_only_landing_inspect",
+    "pending_image_reviews": 14
+  },
+  "visual_review": {
+    "source_asset_opened": true,
+    "native_preview_opened": true,
+    "exact_layout_model_service_price_qualifiers": true
+  },
+  "review_notes": "Individually opened actual JPEG and exact source PNG. Same iPhone15 Pro badge, separated cracked glass and grey-phone illustration,9000 RUB, working-image/touch and retained-display qualifier, price/availability wording and Leninsky18/office404 footer. No question or drawn CTA. Exact public SSR PHOTO photoId/referenceId joins this downloaded preview to the actual provider GET identity. Original/fresh native and public locator digests are separately retained. No token or URL decoding, arbitrary image-ID acceptance or similarity score was used.",
+  "provider_receipt_accepted": false
+}
