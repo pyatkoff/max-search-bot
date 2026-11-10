@@ -6,6 +6,7 @@ require_once(__DIR__ . '/../services/NeedApplicationService.php');
 require_once(__DIR__ . '/../services/NeedProgressionService.php');
 require_once(__DIR__ . '/../services/LocalAiFallbackService.php');
 require_once(__DIR__ . '/../services/AiBusinessDefaultsService.php');
+require_once(__DIR__ . '/../services/DepartureSuggestionService.php');
 require_once(__DIR__ . '/../services/AiInvocationService.php');
 require_once(__DIR__ . '/../services/AiRuntimeLogger.php');
 require_once(__DIR__ . '/../services/AiDateContextService.php');
@@ -25,6 +26,7 @@ class AiMessageHandler
                 }
 
                 $current = MaxSearchApi::getAiSearchContext($chat_id);
+                $departureSuggestion = DepartureSuggestionService::forChat($chat_id, $current, (string)($message['_platform'] ?? ''));
                 $missingNow = MaxSearchApi::getAiMissingFields($chat_id);
                 $sourceQualification=SourceHandlingService::qualifyingTurn($chat_id);
 
@@ -95,9 +97,10 @@ class AiMessageHandler
                     }
 
                     $richLocalParams = LocalAiFallbackService::parameters($userText, $current);
+                    $richLocalParams = DepartureSuggestionService::withoutDefaultCity($richLocalParams, $current, $departureSuggestion);
                     // The local helper historically defaults an absent departure to Moscow.
-                    // For rich pre-seeding only explicit departure is allowed; AI/business defaults
-                    // may still choose Moscow later under the existing policy.
+                    // For rich pre-seeding only explicit departure is allowed. Entries without
+                    // a regional suggestion retain the existing business defaults later.
                     if (empty($current['city']) && !$departure) {
                         unset($richLocalParams['city']);
                     }
@@ -114,6 +117,7 @@ class AiMessageHandler
                     $ai = AiInvocationService::invoke('RICH_AI', $chat_id, $userText, $current);
                 } else {
                     $localParams = LocalAiFallbackService::parameters($userText, $current);
+                    $localParams = DepartureSuggestionService::withoutDefaultCity($localParams, $current, $departureSuggestion);
                     // A post can name a different departure. Do not persist the
                     // local Moscow default before the existing router sees it.
                     // Explicit departures have already been applied by the controller.
@@ -177,6 +181,9 @@ class AiMessageHandler
                 }
                 if (is_array($ai)) {
                     $ai = AiBusinessDefaultsService::apply($ai, $userText, $current);
+                    if (is_array($ai['parameters'] ?? null)) {
+                        $ai['parameters'] = DepartureSuggestionService::withoutDefaultCity($ai['parameters'], $current, $departureSuggestion, $sourceRawParams);
+                    }
                     if($sourceQualification&&empty($sourceRawParams['city'])&&empty($current['city']))unset($ai['parameters']['city']);
                 }
 

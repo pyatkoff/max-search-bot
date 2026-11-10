@@ -2,6 +2,7 @@
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ProjectConfig.php';
 require_once __DIR__ . '/RoutingAccessService.php';
+require_once __DIR__ . '/YandexRegionCatalog.php';
 
 class ConversationAttributionService
 {
@@ -11,7 +12,7 @@ class ConversationAttributionService
         try {
             $meta=(array)MaxSearchApi::getTrafficMeta($chatId);
             $entry=trim((string)($meta['entry_channel']??''));
-            $region=trim((string)($meta['region_id']??''));
+            $region=YandexRegionCatalog::normalizeId($meta['region_id']??'');
             $campaign=trim((string)($meta['campaign_id']??''));
             if($entry===''&&$region===''&&$campaign==='')return;
             $project=ProjectConfig::projectId();

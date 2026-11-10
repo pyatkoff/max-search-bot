@@ -30,6 +30,8 @@ if (in_array('--start-parity-fixture', $argv ?? [], true)) {
         foreach (['project.php', 'DepartureRouteResolver.php', 'DepartureRouteAdvisor.php'] as $name) {
             copy($root . '/' . $name, $tmp . '/' . $name);
         }
+        mkdir($tmp . '/resources', 0700);
+        copy($root . '/resources/yandex_regions.json', $tmp . '/resources/yandex_regions.json');
         // Never connect to a configured host or persist diagnostics outside this fixture.
         file_put_contents($tmp . '/services/ConversationDb.php', <<<'PHP'
 <?php

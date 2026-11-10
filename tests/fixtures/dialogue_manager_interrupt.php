@@ -53,6 +53,9 @@ class AiBudgetHandler { public static function handle(...$args){return false;} p
 class AiShortAnswerHandler { public static function handle(...$args){return false;} }
 class AiMessageHandler { public static $calls=[]; public static function handle(...$args){self::$calls[]=$args;} }
 class DepartureCityResolver { public static function resolveAndStore(...$args){return [];} }
+// Entry-region suggestions are unrelated to this manager-interruption fixture.
+// Its synthetic conversations have no advertising-region receipts.
+class DepartureSuggestionService { public static function forChat(...$args){return [];} }
 class DestinationAreaResolver { public static function resolveAndStore(...$args){return [];} }
 class DestinationResolver { public static function resolveAndStore(...$args){return [];} }
 class DepartureRouteAdviceHandler { public static function handle(...$args){return false;} }
@@ -75,7 +78,7 @@ $stubs = [
     'services'=>['ConversationDb','ConversationStateRepository','ProjectConfig','DiagnosticLogger','ConversationRecorder','ConversationAttributionService',
         'MetrikaConversionGoalService','SourceHandlingService','ManagerPushService','ManagerAvailabilityService',
         'ManagerRequestService','IntegrationRegistry','CallbackController','PostTourService','EditFlowService',
-        'DepartureCityResolver','DestinationAreaResolver','DestinationResolver','TripStateService','ActionRouter',
+        'DepartureCityResolver','DepartureSuggestionService','DestinationAreaResolver','DestinationResolver','TripStateService','ActionRouter',
         'ButtonFactory','CallbackGeneration','CalendarViewModel','SearchDateSummary','ChannelOfferService','TripSummaryProjection',
         'WizardStepView','NeedValueResolver','NeedApplicationService','NeedProgressionService','ExistingWizardStepApplicationService',
         'ChildAgeValueContract','DialogueTransitionObserver','DepartureCityValueContract','CountryValueContract','DateParser'],
