@@ -70,6 +70,10 @@ class DateParser
         }, array_keys(self::MONTHS)));
         $text = preg_replace('/(?<![\p{L}\d])(\d{1,2})-?(?:ого|ое|го|е|й)(?=\s+(?:'.$monthStems.')[а-яё]*(?![а-яё]))/ui', '$1', $text);
 
+        // Accept an attached day only in a complete short date answer. Leave
+        // ranges, prose, questions and the calendar/year policy to their owners.
+        $text = preg_replace('/\A(\s*\d{1,2})(?=(?:'.$monthStems.')[а-яё]*(?:\s+20\d{2})?\s*[.!]?\s*\z)/ui', '$1 ', $text);
+
         // A standalone explicit date may contain spaces around its separators.
         // Normalize only that spelling; retain the existing calendar/year policy
         // and leave prose, ranges and incomplete dates to their current parsers.
