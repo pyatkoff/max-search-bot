@@ -70,6 +70,42 @@ publisher or status loop is needed. After admission, retain the fresh shared
 publisher lease, branch protection, head CAS and all release gates. Revalidate
 main if it changed before the operation; do not force a merge.
 
+### Continuing an already admitted publisher
+
+A reservation created after the existing publisher was acquired must not make
+that same publisher wait for a candidate which cannot yet acquire its busy slot.
+The same authorized owner may repeat final admission with the exact original
+head/base and the publisher ID, author ID and timestamp saved by the original
+acquisition readback:
+
+```sh
+GITHUB_REPOSITORY=pyatkoff/max-search-bot node tools/release_priority.js --admit PR_NUMBER ORIGINAL_HEAD_SHA ORIGINAL_MAIN_SHA --publisher COMMENT_ID OWNER_ID ACQUIRED_AT
+```
+
+This is a continuation of successful ordinary admission and acquisition, never a
+way to acquire, renew, transfer or release a publisher. Do not discover an old
+busy record and treat it as permission, substitute a new head/base, or copy
+another owner's binding. The expected tuple and source identity must come from
+that owner's original acquisition evidence. API-only callers pass the same
+`publisher: {comment_id, owner_id, updated_at}` in explicit admission context.
+This relies on the existing trusted sole-publisher operating contract: the
+current tuple authenticates the current bound record, not historical execution
+of the earlier priority decision. Required source checks and head CAS remain
+mandatory. Ordinary required CI has no publisher continuation exception.
+
+The guard validates every reservation, the target's existing
+`release-slot-close:v1` binding and the exact active issue #1122 comment. It reads
+that comment again after refreshing the target and main. Only reservations
+starting strictly after the recorded acquisition are excluded for this owner,
+including later incidents, which already cannot preempt an active publisher.
+Earlier or simultaneous reservations retain the ordinary priority decision. A changed source, main,
+binding, owner, version or record; malformed metadata; incomplete snapshot; or
+failed API read stops without fallback, mutation or retry. Thirty minutes is the
+reservation limit, not a publisher lifetime. Age never frees a busy publisher.
+
+The reads are bounded and perform no writes. This is not atomic GitHub exclusion;
+the existing owner must still avoid concurrent changes to its admitted record.
+
 This gate protects required CI and the documented merge path. It is not an atomic
 GitHub merge queue and cannot stop a privileged bypass or a new reservation made
 after its last snapshot. Existing publisher serialization remains necessary.

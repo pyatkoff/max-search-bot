@@ -145,6 +145,7 @@ async function verifyReleasePriority() {
   check(requests, 3, 'snapshot limit bounds API work');
   await rejects(() => readOpenPulls(repository, 'fixture-token', async () => response({})),
     'invalid_api_response', 'non-array PR list is not an empty list');
+  await require('./release_priority_admission_regression')(check);
 }
 
 
