@@ -183,6 +183,7 @@ class ManagerConversationService
         $replyProjection='CASE WHEN '.$replySql.' THEN 1 ELSE 0 END';
         $currentWaitSql=ManagerReplyQueueService::waitStartedSql('c',ConversationDb::connection()->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql');
         $currentWaitOrder=in_array($queue,['waiting','attention'],true)&&!$rawWaiting;
+        if(!$isAdmin)$where[]=RegionalRoutingScopeService::candidatePredicate($managerId,'c',$args,(array)($manager['projects']??[]));
         $whereSql=implode(' AND ',$where);
         $orderSql=$currentWaitOrder?'(reply_wait_started_unix IS NULL) ASC,reply_wait_started_unix ASC':(($queue==='attention'||$queue==='waiting')?'COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC':($queue==='requested'?'manager_request_at DESC':($queue==='mine'?'awaiting_manager_reply DESC,COALESCE(c.last_message_at,c.started_at) DESC':'COALESCE(c.last_message_at,c.started_at) DESC')));
         // A projection's row width may change a database sort plan. Resolve
@@ -285,11 +286,11 @@ class ManagerConversationService
     }
 
     /** Visible conversation metadata without read-state or transcript side effects. */
-    public static function visibleConversation(int $conversationId,int $managerId,bool $allowSupervisor=false): ?array
+    public static function visibleConversation(int $conversationId,int $managerId,bool $allowSupervisor=false,bool$currentRead=false): ?array
     {
         RoutingAccessService::ensureSchema();
         $q=ConversationDb::connection()->prepare('SELECT c.id,c.project_key,c.source_id,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,c.status,c.lead_stage_key,c.manager_id,c.started_at,c.last_message_at,c.closed_at,c.customer_id,c.external_chat_id,cu.display_name AS original_display_name,cn.working_name,COALESCE(cn.version,0) AS customer_name_version,COALESCE(cn.working_name,cu.display_name) AS display_name,cu.phone,cu.email,m.display_name AS manager_name,p.display_name AS project_name,s.display_name AS source_name FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN manager_customer_names cn ON cn.customer_id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE c.id=? LIMIT 1');
-        $q->execute([$conversationId]);$conversation=$q->fetch();if(!$conversation||!($allowSupervisor?ManagerConversationAccessPolicy::canRead($managerId,$conversation):ManagerConversationAccessPolicy::canView($managerId,$conversation)))return null;
+        $q->execute([$conversationId]);$conversation=$q->fetch();if(!$conversation||!($allowSupervisor?ManagerConversationAccessPolicy::canRead($managerId,$conversation):ManagerConversationAccessPolicy::canView($managerId,$conversation,$currentRead)))return null;
         return$conversation;
     }
 
@@ -489,7 +490,8 @@ class ManagerConversationService
     private static function accessibleConversation(int $conversationId,int $managerId,bool $forUpdate=false): ?array
     {
         RoutingAccessService::ensureSchema();$sql='SELECT id,project_key,source_id,status,manager_id,external_chat_id,started_at,last_message_at,channel FROM conversations WHERE id=? LIMIT 1'.($forUpdate?' FOR UPDATE':'');
-        $q=ConversationDb::connection()->prepare($sql);$q->execute([$conversationId]);$row=$q->fetch();if(!$row||!ManagerConversationAccessPolicy::canView($managerId,$row))return null;return$row;
+        $q=ConversationDb::connection()->prepare($sql);$q->execute([$conversationId]);$row=$q->fetch();
+        if(!$row||($forUpdate&&!RoutingAccessService::lockConversationVisibilityInputs($managerId,$row))||!ManagerConversationAccessPolicy::canView($managerId,$row,$forUpdate))return null;return$row;
     }
 
     public static function take(int $conversationId,int $managerId): bool
@@ -507,7 +509,8 @@ class ManagerConversationService
         $pdo=ConversationDb::connection();
         if(!$pdo->inTransaction())throw new LogicException('Selection referral requires the inquiry transaction');
         if($conversationId<=0||$originId<=0||$managerId<=0)return ['state'=>'unavailable','assigned'=>false];
-        $q=$pdo->prepare('SELECT id,project_key,source_id,status,manager_id FROM conversations WHERE id IN (?,?)');
+        $lock=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
+        $q=$pdo->prepare('SELECT id,project_key,source_id,status,manager_id FROM conversations WHERE id IN (?,?) ORDER BY id'.$lock);
         $q->execute([$originId,$conversationId]);$rows=[];
         foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row)$rows[(int)$row['id']]=$row;
         $target=$rows[$conversationId]??null;$origin=$rows[$originId]??null;
@@ -516,13 +519,14 @@ class ManagerConversationService
         if(!empty($origin['manager_id'])&&(int)$origin['manager_id']!==$managerId)return ['state'=>'state_changed','assigned'=>false];
         if(!empty($target['manager_id']))return ['state'=>(int)$target['manager_id']===$managerId&&$target['status']==='manager'?'same_manager':'existing_owner','assigned'=>false];
         if($conversationId===$originId)return ['state'=>'unavailable','assigned'=>false];
-        $manager=ManagerAuthService::byId($managerId);
+        if(!RoutingAccessService::lockConversationVisibilityInputs($managerId,$origin)||!RoutingAccessService::lockConversationVisibilityInputs($managerId,$target))return['state'=>'unavailable','assigned'=>false];
+        $manager=ManagerAuthService::byId($managerId,true);
         // A dedicated referral is independent of a shift. Evaluate the normal
         // source/project visibility of the resulting assigned conversation;
         // never enable a shift, bypass source access or widen a supervisor read.
         $assigned=$target;$assigned['status']='manager';$assigned['manager_id']=$managerId;
-        if(!$manager||!ManagerConversationAccessPolicy::canView($managerId,$origin)
-            ||!ManagerConversationAccessPolicy::canView($managerId,$assigned))return ['state'=>'unavailable','assigned'=>false];
+        if(!$manager||!ManagerConversationAccessPolicy::canView($managerId,$origin,true)
+            ||!RoutingAccessService::canReceiveConversation($managerId,$assigned,true))return ['state'=>'unavailable','assigned'=>false];
         $q=$pdo->prepare("UPDATE conversations SET status='manager',manager_id=? WHERE id=? AND manager_id IS NULL AND status IN ('ai','waiting_manager')");
         $q->execute([$managerId,$conversationId]);
         if($q->rowCount()!==1)return ['state'=>'state_changed','assigned'=>false];
@@ -580,7 +584,7 @@ class ManagerConversationService
         $pdo=ConversationDb::connection();$pdo->beginTransaction();
         try{
             $row=self::accessibleConversation($conversationId,$adminId,true);
-            if(!$row||(string)$row['status']==='closed'||!ManagerConversationAccessPolicy::canView($targetManagerId,$row)){$pdo->rollBack();return false;}
+            if(!$row||(string)$row['status']==='closed'||!RoutingAccessService::lockConversationVisibilityInputs($targetManagerId,$row)||!RoutingAccessService::canReceiveConversation($targetManagerId,$row,true)){$pdo->rollBack();return false;}
             $previous=(int)($row['manager_id']??0);
             if($previous===$targetManagerId&&(string)$row['status']==='manager'){$pdo->commit();return true;}
             $pdo->prepare('UPDATE manager_assignments SET released_at=NOW() WHERE conversation_id=? AND released_at IS NULL')->execute([$conversationId]);

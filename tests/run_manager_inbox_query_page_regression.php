@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
 
 require_once dirname(__DIR__).'/services/ManagerConversationService.php';
 
@@ -22,6 +23,7 @@ final class InboxQueryPdo extends PDO
         $this->database->sqliteCreateFunction('JSON_UNQUOTE',static fn($value)=>$value);
     }
     public function getAttribute(int $attribute):mixed{return $this->database->getAttribute($attribute);}
+    public function inTransaction():bool{return $this->database->inTransaction();}
     public function prepare(string $query,array $options=[]):PDOStatement|false
     {
         $isList=str_starts_with($query,'SELECT c.id,c.project_key');
@@ -53,7 +55,7 @@ final class InboxQueryStatement extends PDOStatement
     public function fetchColumn(int $column=0):mixed{return$this->statement->fetchColumn($column);}
 }
 
-$pdo=new InboxQueryPdo();$db=$pdo->database;
+$pdo=new InboxQueryPdo();$db=$pdo->database;regionalAccessFixtureSchema($db);
 (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
 foreach([ProjectAccessService::class,ManagerAuthService::class,RoutingAccessService::class] as $class)(new ReflectionProperty($class,'schemaReady'))->setValue(null,true);
 $db->exec("CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT COLLATE NOCASE UNIQUE,display_name TEXT,is_active INTEGER);

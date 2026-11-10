@@ -8,9 +8,9 @@ require_once __DIR__ . '/ManagerSupervisorAccessService.php';
 
 final class ManagerConversationAccessPolicy
 {
-    public static function canView(int $managerId, array $conversation): bool
+    public static function canView(int $managerId,array$conversation,bool$currentRead=false): bool
     {
-        return $managerId > 0 && RoutingAccessService::canSeeConversation($managerId, $conversation);
+        return $managerId > 0 && RoutingAccessService::canSeeConversation($managerId,$conversation,$currentRead);
     }
 
     public static function visibleRows(int $managerId,array $conversations): array

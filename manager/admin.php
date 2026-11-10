@@ -93,6 +93,7 @@ $manager2AdminCssVersion=(string)(@filemtime(dirname(__DIR__).'/manager2/assets/
           <label class="adminCheck" for="managerActive"><input id="managerActive" type="checkbox" checked><span>Доступ в кабинет включён</span></label>
           <p class="adminFieldHint">Доступ в кабинет и рабочая смена — разные настройки. Сотрудник управляет своей сменой в диалогах.</p>
           <fieldset class="adminFieldset"><legend>Доступ к проектам</legend><div id="managerProjects" class="checks"></div></fieldset>
+          <fieldset class="adminFieldset"><legend>Региональный доступ</legend><div id="managerRegionalProjects" class="checks"></div><p class="adminFieldHint">В отмеченных проектах сотрудник видит свободные обращения своих регионов и уже закреплённые за ним диалоги. Обращения других ответственных ему недоступны. Территории задаются в разделе «Маршрутизация». Без подходящей территории новые обращения сотруднику недоступны.</p></fieldset>
           <label for="managerPriority">Базовый приоритет заявок</label><input id="managerPriority" type="number" value="0" aria-describedby="managerPriorityHint"><p id="managerPriorityHint" class="adminFieldHint">Большее число даёт преимущество среди доступных менеджеров на смене.</p>
           <button id="saveManager" type="button" class="btn">Сохранить менеджера</button>
           <div id="managerFormStatus" class="formStatus" role="status" aria-live="polite"></div>

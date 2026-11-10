@@ -1,11 +1,13 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
+
 /** Real canonical transaction/receipts, disposable SQLite memory only. No HTTP. */
 require_once __DIR__.'/../services/ManagerTourSelectionService.php';
 require_once __DIR__.'/../services/ManagerTourSelectionPublicationDraft.php';
 require_once __DIR__.'/../services/ManagerTourSelectionOneTouchIntake.php';
 require_once __DIR__.'/fixtures/onetouch-public.php';
-$p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+$p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);regionalAccessFixtureSchema($p);
 (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$p);
 foreach([ProjectAccessService::class,ManagerAuthService::class,RoutingAccessService::class] as $class)(new ReflectionProperty($class,'schemaReady'))->setValue(null,true);
 $p->exec("CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER);

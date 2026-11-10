@@ -1,5 +1,7 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/../fixtures/regional_access_schema.php';
+
 if(PHP_SAPI!=='cli'&&!defined('MANAGER_REQUEST_PROFILE_FIXTURE')){http_response_code(404);exit;}
 require_once dirname(__DIR__,2).'/services/ManagerRequestProfileService.php';
 require_once dirname(__DIR__,2).'/services/ManagerAiDraftContextService.php';
@@ -7,7 +9,7 @@ require_once dirname(__DIR__,2).'/services/ManagerAiDraftContextService.php';
 function requestProfileFixture(?string $path=null,string $mode='default'): PDO
 {
     if(!in_array($mode,['default','hotel_focus'],true))throw new InvalidArgumentException('unknown_profile_fixture_mode');
-    $p=new PDO('sqlite:'.($path??':memory:'),null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    $p=new PDO('sqlite:'.($path??':memory:'),null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);regionalAccessFixtureSchema($p);
     (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$p);
     foreach([ProjectAccessService::class,ManagerAuthService::class,RoutingAccessService::class] as $c)(new ReflectionProperty($c,'schemaReady'))->setValue(null,false);
     ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'AnyTour']]);

@@ -1,7 +1,9 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
+
 require_once dirname(__DIR__).'/services/ManagerTourSelectionService.php';
-$pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+$pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);regionalAccessFixtureSchema($pdo);
 (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
 foreach ([ProjectAccessService::class,ManagerAuthService::class,RoutingAccessService::class] as $class) (new ReflectionProperty($class,'schemaReady'))->setValue(null,true);
 $pdo->exec("CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER);
@@ -178,7 +180,7 @@ try {
     $httpDb=new PDO('sqlite:'.$httpRoot.'/fixture.sqlite',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
     foreach ($pdo->query("SELECT sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")->fetchAll(PDO::FETCH_COLUMN) as $sql) $httpDb->exec($sql);
     collectorSchema($httpDb);
-    foreach (['projects','manager_projects','managers','customers','manager_customer_names','conversations','conversation_sources','manager_group_members','messages','manager_conversation_reads','conversation_events'] as $table) {
+    foreach (['manager_regional_access','manager_group_territories','manager_group_territory_regions','projects','manager_projects','managers','customers','manager_customer_names','conversations','conversation_sources','manager_group_members','messages','manager_conversation_reads','conversation_events'] as $table) {
         foreach ($pdo->query('SELECT * FROM '.$table)->fetchAll() as $row) {$q=$httpDb->prepare('INSERT INTO '.$table.' ('.implode(',',array_keys($row)).') VALUES ('.implode(',',array_fill(0,count($row),'?')).')');$q->execute(array_values($row));}
     }
     $sourceRoot=dirname(__DIR__);

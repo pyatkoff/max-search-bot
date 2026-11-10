@@ -1,5 +1,7 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
+
 require_once dirname(__DIR__).'/services/ManagerClientEventService.php';
 final class ClientEventFixturePdo extends PDO
 {
@@ -17,7 +19,7 @@ final class ClientEventFixtureStatement extends PDOStatement
         return $rows;
     }
 }
-$pdo=new ClientEventFixturePdo();
+$pdo=new ClientEventFixturePdo();regionalAccessFixtureSchema($pdo);
 (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
 foreach ([ProjectAccessService::class,ManagerAuthService::class,RoutingAccessService::class] as $class) (new ReflectionProperty($class,'schemaReady'))->setValue(null,true);
 $pdo->exec("CREATE TABLE manager_internal_notes(id INTEGER PRIMARY KEY AUTOINCREMENT,conversation_id INTEGER,author_manager_id INTEGER,body TEXT,version INTEGER,created_at TEXT,updated_at TEXT,deleted_at TEXT);

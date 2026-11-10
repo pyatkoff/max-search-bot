@@ -1,12 +1,14 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
+
 
 require_once __DIR__.'/../services/AdminDirectoryService.php';
 require_once __DIR__.'/../services/RoutingAccessService.php';
 
 foreach(['HOST','NAME','USER','PASS'] as $key)define('CONVERSATION_DB_'.$key,'isolated-sqlite-fixture');
 ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'AnyTour']]);
-$pdo=new PDO('sqlite::memory:');
+$pdo=new PDO('sqlite::memory:');regionalAccessFixtureSchema($pdo);
 $pdo->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
 $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);
 $pdo->exec('PRAGMA foreign_keys=ON');

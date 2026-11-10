@@ -152,6 +152,7 @@ return [
         'node tests/run_manager2_measurement_transport_regression.js',
         'php tests/run_manager_send_attempt_regression.php',
         'php tests/run_project_manager_isolation_regression.php',
+        'php tests/run_manager_regional_routing_regression.php',
         'node tests/run_manager_send_attempt_behavior_regression.js',
         'php tests/run_virtual_reply_client_regression.php',
         'php tests/run_virtual_reply_source_regression.php',

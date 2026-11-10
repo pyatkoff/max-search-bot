@@ -30,6 +30,7 @@ GROUPS = {
         'tests/mysql/development-work-queue.php',
         'tests/mysql/development-work-events.php',
     ],
+    'regional-access': ['tests/mysql/manager-regional-routing.php --required-native'],
 }
 CONNECTION = {
     'PREPARED_REPLY_MYSQL_DSN': 'mysql:host=127.0.0.1;port=3306;dbname=maxbot_prepared_test;charset=utf8mb4',
@@ -52,7 +53,7 @@ def verify(document):
     check(job['strategy'] == {
         'fail-fast': False, 'max-parallel': 3,
         'matrix': {'group': list(GROUPS)},
-    }, 'all three independent groups must execute; no exclusion or ignored matrix failure')
+    }, 'all four independent groups must execute; no exclusion or ignored matrix failure')
     check(job['runs-on'] == 'ubuntu-latest' and 'container' not in job,
           'each matrix job requires its own hosted runner and service')
     check(job['needs'] == 'change-scope' and job['if'] == (
@@ -87,8 +88,8 @@ def verify(document):
     expected.extend(['*) exit 2 ;;', 'esac'])
     script = step['run']
     check([line.strip() for line in script.splitlines() if line.strip()] == expected,
-          'all eleven commands must execute exactly once in their group order')
-    check(len({command for commands in GROUPS.values() for command in commands}) == 11,
+          'all twelve commands must execute exactly once in their group order')
+    check(len({command for commands in GROUPS.values() for command in commands}) == 12,
           'partition must not duplicate any command')
     aggregate = jobs['regression']
     check('prepared-mysql' in aggregate['needs'] and aggregate['if'] == 'always()'

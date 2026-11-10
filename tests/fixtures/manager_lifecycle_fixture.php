@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/regional_access_schema.php';
 
 // Synthetic data only. SQLite strips FOR UPDATE for sequential behavior tests;
 // real locking is exercised separately by the isolated native MySQL fixture.
@@ -42,11 +43,13 @@ function lifecycleFixtureBind(PDO $pdo): void
 
 function lifecycleFixtureSchema(PDO $pdo,bool $mysql=false): void
 {
+    regionalAccessFixtureSchema($pdo);
     $id=$mysql?'BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY':'INTEGER PRIMARY KEY AUTOINCREMENT';
     $suffix=$mysql?' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4':'';
     $tables=[
         'projects'=>'id INTEGER PRIMARY KEY,project_key VARCHAR(64),display_name VARCHAR(100),is_active INTEGER',
         'manager_projects'=>'manager_id INTEGER,project_id INTEGER',
+        'manager_groups'=>'id INTEGER PRIMARY KEY,project_id INTEGER,group_key VARCHAR(64),display_name VARCHAR(100),is_active INTEGER NOT NULL DEFAULT 1',
         'managers'=>'id INTEGER PRIMARY KEY,login VARCHAR(64),display_name VARCHAR(100),role VARCHAR(32),email VARCHAR(100),is_active INTEGER,is_working INTEGER,fixture_marker VARCHAR(64)',
         'conversation_sources'=>'id INTEGER PRIMARY KEY,primary_group_id INTEGER,fallback_mode VARCHAR(32),fallback_group_id INTEGER,fallback_after_minutes INTEGER,is_active INTEGER',
         'manager_group_members'=>'manager_id INTEGER,group_id INTEGER',

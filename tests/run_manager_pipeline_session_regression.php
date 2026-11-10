@@ -69,6 +69,7 @@ PHP);
 <?php
 class ConversationDb {static function connection(){return new CardSessionDb;}static function isConfigured():bool{return true;}}
 class CardSessionDb extends PDO {
+    function inTransaction():bool{return false;}
     function __construct(){}
     function getAttribute(int $attribute):mixed{if($attribute===PDO::ATTR_DRIVER_NAME)return 'mysql';throw new LogicException('Unsupported fixture attribute');}
     function prepare(string $sql,array $options=[]):PDOStatement|false{return new CardSessionStatement(preg_replace('/\s+/',' ',trim($sql)));}
@@ -99,7 +100,7 @@ class CardSessionStatement extends PDOStatement {
         if(str_starts_with($sql,'SELECT CASE WHEN ')&&str_contains($sql,' AS reply_wait_started_unix FROM conversations c WHERE c.id=?')){
             $this->rows=[['needed'=>in_array((int)$args[0],[46,47,48],true)?1:0,'reply_wait_started_unix'=>null]];return true;
         }
-        if(str_starts_with($sql,'SELECT p.id,p.project_key,p.display_name FROM projects p JOIN manager_projects ')){$this->rows=[['id'=>1,'project_key'=>'fixture','display_name'=>'Fixture']];return true;}
+        if(str_starts_with($sql,'SELECT p.id,p.project_key,p.display_name,COALESCE(ra.regional_scope_required,0) AS regional_scope_required FROM projects p JOIN manager_projects ')){$this->rows=[['id'=>1,'project_key'=>'fixture','display_name'=>'Fixture','regional_scope_required'=>0]];return true;}
         if(str_starts_with($sql,'SELECT 1 FROM manager_projects mp JOIN projects ')){$this->rows=in_array($args[1],['fixture','repair_fixture'],true)?[[1]]:[];return true;}
         if(str_contains($sql,' AS unread_count ')){cardFixtureGate(($GLOBALS['action']??'')==='counts'?'counts':'list');return true;}
         if(str_starts_with($sql,'SELECT id,direction,sender_type,text,created_at FROM messages ')){$customer=in_array((int)$args[0],[46,47,48],true);$this->rows=[['id'=>101,'direction'=>$customer?'inbound':'outbound','sender_type'=>$customer?'customer':'manager','text'=>'Synthetic transcript &amp; retained','created_at'=>'2026-10-25 10:00:00']];return true;}

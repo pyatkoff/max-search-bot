@@ -16,8 +16,8 @@ if($pdo->query('SELECT DATABASE()')->fetchColumn()!=='manager_lifecycle_test')th
 lifecycleFixtureBind($pdo);
 if(in_array($argv[1]??'',['--worker','--referral-worker'],true)){
     // Worker processes have no schema setup/DDL path and accept only fixture IDs.
-    if((int)$pdo->query('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()')->fetchColumn()!==10
-        ||(int)$pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND engine='InnoDB'")->fetchColumn()!==10
+    if((int)$pdo->query('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()')->fetchColumn()!==14
+        ||(int)$pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND engine='InnoDB'")->fetchColumn()!==14
         ||$pdo->query('SELECT fixture_marker FROM managers WHERE id=1')->fetchColumn()!=='manager-lifecycle-native-fixture')throw new RuntimeException('Refusing non-fixture worker');
     $actor=filter_var($argv[2]??'',FILTER_VALIDATE_INT);$target=filter_var($argv[3]??'',FILTER_VALIDATE_INT);
     $referral=($argv[1]??'')==='--referral-worker';

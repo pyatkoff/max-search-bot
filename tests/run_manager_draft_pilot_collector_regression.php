@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
+
 
 require_once dirname(__DIR__).'/services/ManagerDraftPilotCollector.php';
 
@@ -112,7 +114,7 @@ function draftPilotCheck(string $name, bool $ok): void
 
 function draftPilotFixture(bool $pending = true): DraftPilotCollectorPdo
 {
-    $pdo = new DraftPilotCollectorPdo();
+    $pdo = new DraftPilotCollectorPdo();regionalAccessFixtureSchema($pdo);
     (new ReflectionProperty(ConversationDb::class, 'pdo'))->setValue(null, $pdo);
     foreach ([ProjectAccessService::class, ManagerAuthService::class, RoutingAccessService::class] as $class) {
         (new ReflectionProperty($class, 'schemaReady'))->setValue(null, false);

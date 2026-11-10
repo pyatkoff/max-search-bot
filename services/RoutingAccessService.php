@@ -2,6 +2,7 @@
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ProjectAccessService.php';
 require_once __DIR__ . '/ManagerAuthService.php';
+require_once __DIR__ . '/RegionalRoutingScopeService.php';
 
 class RoutingAccessService
 {
@@ -15,20 +16,36 @@ class RoutingAccessService
         self::$schemaReady=true;
     }
 
-    public static function canSeeConversation(int $managerId, array $conversation): bool
+    public static function canSeeConversation(int $managerId,array$conversation,bool$currentRead=false): bool
+    {
+        try{return self::authorize($managerId,$conversation,$currentRead,false);}
+        catch(Throwable$e){return false;}
+    }
+
+    /** Recipient eligibility only; never used to expose another owner's dialogue. */
+    public static function canReceiveConversation(int$managerId,array$conversation,bool$currentRead=false): bool
+    {
+        try{return self::authorize($managerId,$conversation,$currentRead,true);}
+        catch(Throwable$e){return false;}
+    }
+
+    private static function authorize(int $managerId,array$conversation,bool$currentRead,bool$receiving): bool
     {
         self::ensureSchema();
         $projectKey=(string)($conversation['project_key']??'');
-        if(!ProjectAccessService::canAccess($managerId,$projectKey))return false;
+        if(!ProjectAccessService::canAccess($managerId,$projectKey,$currentRead))return false;
 
-        $manager=ManagerAuthService::byId($managerId);
+        $manager=ManagerAuthService::byId($managerId,$currentRead);
         $isAdmin=ManagerAuthService::isAdmin($manager);
         $isWorking=ManagerAuthService::isWorking($manager);
         $sourceIds=(!$isAdmin && ($isWorking || (string)($conversation['status']??'')!=='waiting_manager'))
             ? [(int)($conversation['source_id']??0)] : [];
-        $sources=self::visibilitySources($sourceIds);
-        $groups=self::visibilityGroups($managerId,$sources);
-        return self::visibleInRoutingSnapshot($conversation,$isAdmin,$isWorking,$sources,$groups,time());
+        $sources=self::visibilitySources($sourceIds,$currentRead);
+        $groups=self::visibilityGroups($managerId,$sources,$currentRead);
+        if(!self::visibleInRoutingSnapshot($conversation,$isAdmin,$isWorking,$sources,$groups,time()))return false;
+        if($isAdmin)return true;
+        try{return RegionalRoutingScopeService::visibleRows($managerId,[$conversation],RegionalRoutingScopeService::context($managerId,$manager!==null?(array)$manager['projects']:null,$currentRead),$currentRead,$receiving)!==[];}
+        catch(Throwable$e){return false;}
     }
 
     /** Pin only the inputs of the EXISTING visibility policy for a staff mutation.
@@ -40,9 +57,20 @@ class RoutingAccessService
     {
         $pdo=ConversationDb::connection();if(!$pdo->inTransaction())throw new LogicException('Visibility locks require a transaction');
         if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql')return true;
+        $q=$pdo->prepare('SELECT id,is_active FROM managers WHERE id=? FOR UPDATE');$q->execute([$managerId]);$actor=$q->fetch();if(!$actor||(int)$actor['is_active']!==1)return false;
+        // The project row is the common serialization fence even when a scope,
+        // membership or durable opt-in row does not exist yet (insert/revoke).
+        $q=$pdo->prepare('SELECT id FROM projects WHERE project_key=? FOR UPDATE');$q->execute([(string)($conversation['project_key']??'')]);$projectId=(int)$q->fetchColumn();if($projectId<=0)return false;
         $q=$pdo->prepare('SELECT p.id,p.is_active FROM projects p JOIN manager_projects mp ON mp.project_id=p.id WHERE mp.manager_id=? AND p.project_key=? ORDER BY p.id FOR UPDATE');
         $q->execute([$managerId,(string)($conversation['project_key']??'')]);$project=$q->fetch();
         if(!$project||(int)$project['is_active']!==1)return false;
+        $q=$pdo->prepare('SELECT project_id,regional_scope_required FROM manager_regional_access WHERE manager_id=? AND project_id=? FOR UPDATE');$q->execute([$managerId,$projectId]);$q->fetchAll();
+        $q=$pdo->prepare('SELECT id FROM manager_groups WHERE project_id=? ORDER BY id FOR UPDATE');$q->execute([$projectId]);$regionalGroups=array_map('intval',array_column($q->fetchAll(),'id'));
+        if($regionalGroups){
+            $placeholders=implode(',',array_fill(0,count($regionalGroups),'?'));
+            $q=$pdo->prepare('SELECT group_id FROM manager_group_members WHERE manager_id=? AND group_id IN ('.$placeholders.') ORDER BY group_id FOR UPDATE');$q->execute([$managerId,...$regionalGroups]);$q->fetchAll();
+            $q=$pdo->prepare('SELECT group_id,territory_region_id FROM manager_group_territories WHERE group_id IN ('.$placeholders.') ORDER BY group_id,territory_region_id FOR UPDATE');$q->execute($regionalGroups);$q->fetchAll();
+        }
         $source=(int)($conversation['source_id']??0);if($source<=0)return true;
         // Lock the actual row even when inactive: the normal policy decides how
         // missing/inactive sources behave. No new source/group eligibility rule.
@@ -82,26 +110,31 @@ class RoutingAccessService
         $sources=self::visibilitySources($sourceIds);
         $groups=self::visibilityGroups($managerId,$sources);
         $now=time();
-        return array_values(array_filter($rows,static fn(array $row):bool=>self::visibleInRoutingSnapshot($row,$isAdmin,$isWorking,$sources,$groups,$now)));
+        $rows=array_values(array_filter($rows,static fn(array $row):bool=>self::visibleInRoutingSnapshot($row,$isAdmin,$isWorking,$sources,$groups,$now)));
+        if($isAdmin)return$rows;
+        try{return RegionalRoutingScopeService::visibleRows($managerId,$rows,RegionalRoutingScopeService::context($managerId,$projects));}
+        catch(Throwable$e){return[];}
     }
 
-    private static function visibilitySources(array $sourceIds): array
+    private static function visibilitySources(array $sourceIds,bool$currentRead=false): array
     {
         $ids=array_values(array_unique(array_filter(array_map('intval',$sourceIds),static fn(int $id):bool=>$id>0)));
         if(!$ids)return[];
-        $q=ConversationDb::connection()->prepare('SELECT id,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes FROM conversation_sources WHERE id IN ('.implode(',',array_fill(0,count($ids),'?')).') AND is_active=1');
+        $pdo=ConversationDb::connection();$lock=$currentRead&&$pdo->inTransaction()&&$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
+        $q=$pdo->prepare('SELECT id,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes FROM conversation_sources WHERE id IN ('.implode(',',array_fill(0,count($ids),'?')).') AND is_active=1'.$lock);
         $q->execute($ids);$sources=[];
         foreach($q->fetchAll() as $source)$sources[(int)$source['id']]=$source;
         return$sources;
     }
 
-    private static function visibilityGroups(int $managerId,array $sources): array
+    private static function visibilityGroups(int $managerId,array $sources,bool$currentRead=false): array
     {
         $groupIds=[];
         foreach($sources as $source){foreach(['primary_group_id','fallback_group_id'] as $key){$id=(int)($source[$key]??0);if($id>0)$groupIds[$id]=$id;}}
         if(!$groupIds)return[];
         // Existing visibility depends on membership, without an extra group-active gate.
-        $q=ConversationDb::connection()->prepare('SELECT group_id FROM manager_group_members WHERE manager_id=? AND group_id IN ('.implode(',',array_fill(0,count($groupIds),'?')).')');
+        $pdo=ConversationDb::connection();$lock=$currentRead&&$pdo->inTransaction()&&$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
+        $q=$pdo->prepare('SELECT group_id FROM manager_group_members WHERE manager_id=? AND group_id IN ('.implode(',',array_fill(0,count($groupIds),'?')).')'.$lock);
         $q->execute(array_merge([$managerId],array_values($groupIds)));$groups=[];
         foreach($q->fetchAll() as $row)$groups[(int)$row['group_id']]=true;
         return$groups;

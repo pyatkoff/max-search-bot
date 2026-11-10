@@ -119,7 +119,7 @@ final class ManagerReplyQueueService
             $manager=self::actor($pdo,$actor,true);$suffix=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
             $q=$pdo->prepare('SELECT id,project_key,source_id,status,manager_id,channel,external_chat_id,started_at,last_message_at FROM conversations WHERE id=?'.$suffix);$q->execute([$conversationId]);$raw=$q->fetch(PDO::FETCH_ASSOC);
             $pinned=$manager&&$raw&&RoutingAccessService::lockConversationVisibilityInputs($actor,$raw);
-            $c=$pinned?ManagerConversationService::visibleConversation($conversationId,$actor):null;
+            $c=$pinned?ManagerConversationService::visibleConversation($conversationId,$actor,false,true):null;
             if(!$c){$pdo->rollBack();return self::error('forbidden');}
             $receipt=self::receipt($pdo,$actor,$op);
             if($receipt){if($receipt['conversation_id']!==$conversationId||!hash_equals($receipt['hash'],$hash)){$pdo->rollBack();return self::error('operation_mismatch');}$result=self::publicResult($receipt['result']);$result['reply_queue']=self::view($pdo,$manager,$c);$pdo->commit();return $result;}
@@ -142,7 +142,7 @@ final class ManagerReplyQueueService
             $q=$pdo->prepare('INSERT INTO manager_reply_queue_operations (manager_id,operation_id,conversation_id,request_hash,result_json,created_at) VALUES (?,?,?,?,?,?)');
             $q->execute([$actor,$op,$conversationId,$hash,json_encode($result,JSON_THROW_ON_ERROR),gmdate('Y-m-d H:i:s',$now)]);
             // Recheck after all source reads, before exposing the current projection.
-            $fresh=ManagerConversationService::visibleConversation($conversationId,$actor);$freshManager=self::actor($pdo,$actor);
+            $fresh=ManagerConversationService::visibleConversation($conversationId,$actor,false,true);$freshManager=self::actor($pdo,$actor);
             if(!$fresh||!self::canMutate($freshManager,$fresh)||!hash_equals(self::context($fresh,$freshManager),$context)){$pdo->rollBack();return self::error('forbidden');}
             $result=self::publicResult($result);$result['reply_queue']=self::view($pdo,$freshManager,$fresh);$pdo->commit();return $result;
         }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}

@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
+
 require_once dirname(__DIR__).'/services/ManagerPersonalWorkspaceService.php';
 
 /** Real SQL and services; only MySQL's SECOND scalar spelling is adapted. */
@@ -26,7 +28,7 @@ final class PersonalWorkspacePdo extends PDO
     }
 }
 
-$pdo=new PersonalWorkspacePdo();
+$pdo=new PersonalWorkspacePdo();regionalAccessFixtureSchema($pdo);
 (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
 foreach ([ProjectAccessService::class,ManagerAuthService::class,RoutingAccessService::class] as $class) (new ReflectionProperty($class,'schemaReady'))->setValue(null,true);
 $pdo->exec("CREATE TABLE manager_personal_workspace_states(manager_id INTEGER PRIMARY KEY,revision INTEGER NOT NULL,state_json TEXT NOT NULL,updated_at TEXT);

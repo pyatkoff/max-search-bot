@@ -263,3 +263,86 @@ for(const width of[390,430,768,1440])test.describe('Private modeled acquisition 
   expect(state.unexpected).toEqual([]);expect(state.errors).toEqual([]);
  });
 });
+
+
+for(const width of [390,430,768,1440])test('regional manager grant survives an ordinary edit at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});
+ const initial=snapshot();initial.admin.managers[0].regional_project_ids=[2];
+ const state=await setup(page,{snapshots:[initial,initial],writes:{save_manager:[{ok:true}]}});
+ await ready(page);await edit(page,'manager',12);
+ await expect(page.locator('#managerRegionalProjects input[value="2"]')).toBeChecked();
+ await expect(page.locator('#managerRegionalProjects input[value="1"]')).not.toBeChecked();
+ await page.locator('#managerName').fill('Обновлённое синтетическое имя');
+ await page.locator('#managerRegionalProjects').scrollIntoViewIfNeeded();await capture(page,browserName,width,'regional-access');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ await page.locator('#saveManager').click();await expect(page.locator('#managerEditor')).toBeHidden();
+ expect(state.calls.find(c=>c.action==='save_manager')).toMatchObject({manager_id:12,project_ids:[1,2],regional_project_ids:[2]});
+ await create(page,'manager');await page.locator('#managerProjects input[value="1"]').check();
+ await expect(page.locator('#managerRegionalProjects input[value="1"]')).not.toBeChecked();
+ clean(state);
+});
+
+test('a regional access edit made during save remains a newer unsent draft',async({page})=>{
+ const initial=snapshot();initial.admin.managers[0].regional_project_ids=[2];const pending=deferred();
+ const state=await setup(page,{snapshots:[initial,initial],writes:{save_manager:[pending]}});
+ await ready(page);await edit(page,'manager',12);await page.locator('#managerName').fill('Первое имя');await page.locator('#saveManager').click();
+ await expect.poll(()=>state.calls.filter(c=>c.action==='save_manager').length).toBe(1);
+ await page.locator('#managerRegionalProjects input[value="1"]').check();pending.resolve({ok:true});
+ await expect(page.locator('#managerFormStatus')).toContainText('Более новый черновик');
+ await expect(page.locator('#managerRegionalProjects input[value="1"]')).toBeChecked();
+ await expect(page.locator('#managerRegionalProjects input[value="2"]')).toBeChecked();
+ expect(state.calls.find(c=>c.action==='save_manager').regional_project_ids).toEqual([2]);
+ clean(state);
+});
+
+for(const width of [390,430,768,1440])test('routing territory search preserves hidden choices and existing member selection at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const state={calls:[],unexpected:[],errors:[]};
+ const territories=[
+  {region_id:'11131',name:'Самарская область',hierarchy:['Россия','Поволжье','Самарская область']},
+  {region_id:'62',name:'Красноярский край',hierarchy:['Россия','Сибирь','Красноярский край']}
+ ];
+ const routing={groups:[{id:601,group_key:'synthetic-regional-team',display_name:'Синтетическая команда',members:[{id:12,display_name:'Тестовый менеджер'}],territory_region_ids:['11131'],territories:[territories[0]]}],sources:[],managers:[{id:12,display_name:'Тестовый менеджер'}],territory_options:territories};
+ const shell=require('node:child_process').execFileSync('php',['manager/routing.php'],{cwd:root,encoding:'utf8'});
+ page.on('pageerror',error=>state.errors.push(error.message));
+ await page.route('**/*',async route=>{
+  const request=route.request(),url=new URL(request.url());
+  const refuse=()=>{state.unexpected.push(request.method()+' '+url.pathname);return route.abort()};
+  if(url.origin!==origin)return refuse();
+  if(request.method()==='GET'){
+   if(url.pathname==='/manager/routing.php')return route.fulfill({contentType:'text/html',body:shell});
+   if(url.pathname==='/favicon.ico')return route.fulfill({status:204,body:''});
+   const file=url.pathname.match(/^\/manager\/assets\/(routing\.js|routing\.css|manager-http-client\.js)$/)?.[1];
+   if(file)return route.fulfill({contentType:file.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(root,'manager/assets',file))});
+   return refuse();
+  }
+  if(request.method()!=='POST'||url.pathname!=='/manager/api.php')return refuse();
+  const data=request.postDataJSON();state.calls.push(data);
+  const body=data.action==='me'?{...identity(),projects:[projects[0]]}:data.action==='routing_snapshot'?{ok:true,routing}:data.action==='save_group'?{ok:true,group_id:601}:null;
+  if(!body)return refuse();return route.fulfill({contentType:'application/json',body:JSON.stringify(body)});
+ });
+ await page.goto(origin+'/manager/routing.php');await expect(page.locator('#groups')).toContainText('Самарская область');
+ await page.locator('#groups a').click();await expect(page.locator('#members input[value="12"]')).toBeChecked();
+ await expect(page.locator('#territories input[value="11131"]')).toBeChecked();
+ await page.locator('#territorySearch').fill('Красноярский');await page.locator('#territories input[value="62"]').check();
+ await expect(page.locator('#territories input[value="11131"]')).toHaveCount(0);
+ await page.locator('#territorySearch').fill('');await expect(page.locator('#territories input[value="11131"]')).toBeChecked();
+ await expect(page.locator('#territories input[value="62"]')).toBeChecked();
+ await page.locator('#territories').scrollIntoViewIfNeeded();await capture(page,browserName,width,'routing-territories');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ await page.locator('#saveGroup').click();await expect(page.locator('#groupStatus')).toContainText('Группа сохранена');
+ const saved=state.calls.find(c=>c.action==='save_group');expect(saved).toMatchObject({project_key:'synthetic-main',group_id:601,member_ids:[12]});expect(saved.territory_region_ids.sort()).toEqual(['11131','62']);
+ clean(state);
+});
+
+test('regranting a removed project restores its durable regional restriction',async({page})=>{
+ const initial=snapshot();initial.admin.managers[0].project_ids=[1];initial.admin.managers[0].regional_project_ids=[2];
+ const state=await setup(page,{snapshots:[initial,initial],writes:{save_manager:[{ok:true}]}});
+ await ready(page);await edit(page,'manager',12);
+ await expect(page.locator('#managerProjects input[value="2"]')).not.toBeChecked();
+ await expect(page.locator('#managerRegionalProjects input[value="2"]')).toHaveCount(0);
+ await page.locator('#managerProjects input[value="2"]').check();
+ await expect(page.locator('#managerRegionalProjects input[value="2"]')).toBeChecked();
+ await page.locator('#saveManager').click();await expect(page.locator('#managerEditor')).toBeHidden();
+ expect(state.calls.find(c=>c.action==='save_manager')).toMatchObject({project_ids:[1,2],regional_project_ids:[2]});
+ clean(state);
+});

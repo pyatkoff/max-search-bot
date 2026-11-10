@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
 
 require_once dirname(__DIR__).'/services/ManagerConversationService.php';
 
@@ -14,6 +15,7 @@ final class InboxAccessPdo extends PDO
     public array $groups=[];
     public array $rows=[];
     public function __construct(){}
+    public function inTransaction():bool{return false;}
     public function getAttribute(int $attribute):mixed{if($attribute===PDO::ATTR_DRIVER_NAME)return 'mysql';throw new LogicException('Unsupported fixture attribute');}
     public function allowsProject(string $key):bool{foreach($this->projects as $allowed){if(strcasecmp(rtrim($allowed),rtrim($key))===0)return true;}return false;}
     public function prepare(string $query,array $options=[]):PDOStatement|false{return new InboxAccessStatement($query,$this);}
@@ -29,7 +31,8 @@ final class InboxAccessStatement extends PDOStatement
         $params=$params??[];$db=$this->database;$db->executions++;
         if(!str_starts_with($this->sql,'SELECT'))throw new RuntimeException('unexpected_permission_write');
         if(str_contains($this->sql,'FROM managers WHERE id='))$this->result=(int)($params[0]??0)===$db->manager['id']?$db->manager:false;
-        elseif(str_contains($this->sql,'FROM projects p JOIN manager_projects'))$this->result=array_map(static fn(string $key):array=>['project_key'=>$key],$db->projects);
+        elseif(str_contains($this->sql,'FROM manager_regional_access ra JOIN projects'))$this->result=[];
+        elseif(str_contains($this->sql,'FROM projects p JOIN manager_projects'))$this->result=array_map(static fn(string $key):array=>['project_key'=>$key,'regional_scope_required'=>0],$db->projects);
         elseif(str_starts_with($this->sql,'SELECT ? AS project_key WHERE EXISTS')){$this->result=[];foreach(array_chunk($params,3) as [$key,$managerId,$lookup]){if((int)$managerId===$db->manager['id']&&$db->allowsProject($lookup))$this->result[]=['project_key'=>$key];}}
         elseif(str_contains($this->sql,'SELECT 1 FROM manager_projects'))$this->result=$db->allowsProject((string)($params[1]??''))?1:false;
         elseif(str_contains($this->sql,'FROM conversation_sources WHERE id IN'))$this->result=array_values(array_filter($db->sources,static fn(array $source):bool=>in_array((int)$source['id'],$params,true)&&!empty($source['is_active'])));
@@ -138,7 +141,7 @@ $pdo->manager['role']='manager';
 batchAccessCheck('next batch sees admin-role revocation',ManagerConversationAccessPolicy::visibleRows(7,[$memberRow])===[]);
 
 // Also execute the prepared unmatched-key fallback on a real SQL engine.
-$sqlPdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+$sqlPdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);regionalAccessFixtureSchema($sqlPdo);
 $sqlPdo->exec("CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT COLLATE NOCASE,display_name TEXT,is_active INTEGER);
 CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER);
 CREATE TABLE managers(id INTEGER PRIMARY KEY,login TEXT,display_name TEXT,role TEXT,email TEXT,is_active INTEGER,is_working INTEGER);

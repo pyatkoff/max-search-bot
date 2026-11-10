@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/../fixtures/regional_access_schema.php';
 
 // Actual native MySQL only, in an explicitly empty loopback fixture schema.
 // No application configuration, credentials, production connections or sends.
@@ -251,6 +252,7 @@ try {
         || (int)$pdo->query('SELECT COUNT(*) FROM information_schema.routines WHERE routine_schema=DATABASE()')->fetchColumn() !== 0
         || (int)$pdo->query('SELECT COUNT(*) FROM information_schema.events WHERE event_schema=DATABASE()')->fetchColumn() !== 0) throw new RuntimeException('nonempty_fixture_refused');
     // This exact-name/empty-schema guard precedes every DDL/data fixture write.
+    regionalAccessFixtureSchema($pdo);
     inboxNativeBaseline();
     $pdo->exec("SET time_zone='+00:00'");
     $pdo->exec("SET timestamp=UNIX_TIMESTAMP('2026-10-15 12:00:00')");

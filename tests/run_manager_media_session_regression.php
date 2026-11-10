@@ -70,6 +70,7 @@ class ConversationDb {
     static function connection() { return new MediaSessionDatabase; }
 }
 class MediaSessionDatabase {
+    function inTransaction():bool{return false;}
     function prepare(string $sql) { return new MediaSessionStatement(preg_replace('/\s+/',' ',trim($sql))); }
 }
 class MediaSessionStatement {
@@ -84,7 +85,7 @@ class MediaSessionStatement {
             if(in_array((int)$args[0],[7,8],true))$this->rows=[['id'=>(int)$args[0],'login'=>'fixture','display_name'=>'Fixture','role'=>'manager','is_active'=>(int)$args[0]===7?1:0,'is_working'=>1]];
             return true;
         }
-        if(str_starts_with($sql,'SELECT p.id,p.project_key,p.display_name FROM projects p JOIN manager_projects ')) {$this->rows=[['id'=>1,'project_key'=>'fixture','display_name'=>'Fixture']];return true;}
+        if(str_starts_with($sql,'SELECT p.id,p.project_key,p.display_name,COALESCE(ra.regional_scope_required,0) AS regional_scope_required FROM projects p JOIN manager_projects ')) {$this->rows=[['id'=>1,'project_key'=>'fixture','display_name'=>'Fixture','regional_scope_required'=>0]];return true;}
         if(str_starts_with($sql,'SELECT 1 FROM manager_projects mp JOIN projects ')) {$this->rows=(int)$args[0]===7&&$args[1]==='fixture'?[[1]]:[];return true;}
         if(str_starts_with($sql,'SELECT c.id,c.project_key,c.source_id,c.channel,')) {
             $id=(int)$args[0];

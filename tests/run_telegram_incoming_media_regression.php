@@ -1,5 +1,7 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
+
 require_once __DIR__.'/../integrations/TelegramIncomingAdapter.php';
 $update=['update_id'=>90001,'message'=>[
     'message_id'=>123,'from'=>['id'=>777,'first_name'=>'Test'],'chat'=>['id'=>777],
@@ -45,7 +47,7 @@ mediaEqual($text['attachments'],[],'plain text remains plain text');
 foreach(['HOST','NAME','USER','PASS'] as $key)define('CONVERSATION_DB_'.$key,'test-only');
 define('TELEGRAM_BOT_TOKEN','test-token');
 ProjectConfig::resetForTests(['id'=>'anytour']);
-$pdo=new PDO('sqlite::memory:');
+$pdo=new PDO('sqlite::memory:');regionalAccessFixtureSchema($pdo);
 $pdo->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
 $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);
 $pdo->sqliteCreateFunction('NOW',static fn()=>gmdate('Y-m-d H:i:s'));

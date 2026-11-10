@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
+
 
 require_once dirname(__DIR__).'/services/ManagerPreparedReplyService.php';
 require_once dirname(__DIR__).'/services/ManagerDraftPilotCollector.php';
@@ -128,7 +130,7 @@ function preparedReplyCheck(string $name, bool $ok): void
 
 function preparedReplyFixture(string $channel = 'telegram'): PreparedReplyPdo
 {
-    $pdo = new PreparedReplyPdo();
+    $pdo = new PreparedReplyPdo();regionalAccessFixtureSchema($pdo);
     (new ReflectionProperty(ConversationDb::class, 'pdo'))->setValue(null, $pdo);
     foreach ([ProjectAccessService::class, ManagerAuthService::class, RoutingAccessService::class] as $class) {
         (new ReflectionProperty($class, 'schemaReady'))->setValue(null, false);
