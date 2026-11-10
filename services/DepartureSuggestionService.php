@@ -40,6 +40,11 @@ final class DepartureSuggestionService
                 if (!array_key_exists($regionId, $overrides)) return [];
                 $region = ['id'=>$regionId, 'name'=>'', 'departure_names'=>[]];
             }
+            if (!array_key_exists($regionId, $overrides)) {
+                require_once __DIR__ . '/RegionalDeparturePolicy.php';
+                $names = RegionalDeparturePolicy::departureNames($region);
+                if ($names !== null) $region['departure_names'] = $names;
+            }
             return DepartureSuggestionResolver::resolve($region, TravelDirectoryRepository::activeDepartures(),
                 $overrides);
         } catch (Throwable $ignored) {

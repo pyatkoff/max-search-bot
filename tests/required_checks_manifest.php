@@ -58,6 +58,8 @@ return [
         'php tests/run_messenger_adapters_regression.php',
         'php tests/run_conversation_entry_region_regression.php',
         'php tests/run_departure_suggestion_regression.php',
+        'php tests/run_regional_departure_policy_regression.php',
+        'python3 tests/run_regional_departure_rules_regression.py',
         'php tests/run_yandex_region_catalog_regression.php',
         'python3 tests/run_yandex_region_import_regression.py',
         'node tests/run_website_entry_region_regression.js',

@@ -49,6 +49,7 @@ foreach(['ConversationDb','ProjectConfig','RoutingAccessService','DiagnosticLogg
 file_put_contents($tmp.'/integrations/MaxIncomingAdapter.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
 foreach(['services/ConversationRecordClock.php','services/ManagerRequestService.php','services/TrafficAttributionService.php','services/ConversationEntryRegionService.php','services/YandexRegionCatalog.php','services/ConversationRecorder.php','services/SourceHotelIntentService.php','services/SourceHandlingService.php','services/MaxStartSourcePolicy.php','handlers/MaxUpdateHandler.php'] as $path)copy($root.'/'.$path,$tmp.'/'.$path);
 mkdir($tmp.'/resources',0700);copy($root.'/resources/yandex_regions.json',$tmp.'/resources/yandex_regions.json');
+if(is_file($root.'/resources/regional_departure_rules.json'))copy($root.'/resources/regional_departure_rules.json',$tmp.'/resources/regional_departure_rules.json');
 if(is_dir($root.'/resources/yandex_regions')){
     mkdir($tmp.'/resources/yandex_regions',0700);
     foreach(glob($root.'/resources/yandex_regions/*.json')?:[]as$bucket)copy($bucket,$tmp.'/resources/yandex_regions/'.basename($bucket));

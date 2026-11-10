@@ -34,6 +34,9 @@ if ($jointOnly || in_array('--start-parity-fixture', $argv ?? [], true)) {
         }
         mkdir($tmp . '/resources', 0700);
         copy($root . '/resources/yandex_regions.json', $tmp . '/resources/yandex_regions.json');
+        if (is_file($root . '/resources/regional_departure_rules.json')) {
+            copy($root . '/resources/regional_departure_rules.json', $tmp . '/resources/regional_departure_rules.json');
+        }
         if (is_dir($root . '/resources/yandex_regions')) {
             mkdir($tmp . '/resources/yandex_regions', 0700);
             foreach (glob($root . '/resources/yandex_regions/*.json') ?: [] as $bucket) {
