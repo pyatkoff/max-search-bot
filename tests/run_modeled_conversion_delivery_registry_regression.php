@@ -334,6 +334,10 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     $audit=ModeledConversionVisitProof::failureAudit($failed,$uploadReceipt,$recent,$noGoals,[$failed,$collision],$auditNow);
     $check('same ClientID target and second across distinct accepted rows is exposed before any possible correction',
         $audit['wire_collision_rows']===1&&$audit['diagnosis']==='wire_collision');
+    $badRows=ModeledConversionVisitProof::failureAudit($failed,['source_quantity'=>1,'line_quantity'=>0]+$uploadReceipt,
+        $recent,$noGoals,[$failed],$auditNow);
+    $check('an original source row rejected during validation is separate from a missing visit',
+        $badRows['source_rows']===1&&$badRows['validated_rows']===0&&$badRows['diagnosis']==='invalid_receipt_rows');
     $validateAudit=new ReflectionMethod(ModeledConversionVisitProof::class,'validatedFailureAudit');
     $check('anonymous audit accepts only its exact scalar contract',$validateAudit->invoke(null,$audit,$auditNow)===$audit);
     $foreign=$audit;$foreign['client_id']='PRIVATE';

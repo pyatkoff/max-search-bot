@@ -163,6 +163,8 @@ final class ModeledConversionVisitProof
             ($claim>=946684800&&$claim<=$now?$claim:null);
         $a=['signal_at'=>gmdate('Y-m-d\TH:i:s\Z',$event),'uploaded_at'=>$uploaded===null?null:gmdate('Y-m-d\TH:i:s\Z',$uploaded),
             'upload_clock'=>$created!==false&&$created===$uploaded?'provider':'claim',
+            'source_rows'=>isset($receipt['source_quantity'])?(int)$receipt['source_quantity']:null,
+            'validated_rows'=>isset($receipt['line_quantity'])?(int)$receipt['line_quantity']:null,
             'latest_prior_visit_at'=>null,'eligible_at_signal'=>null,'eligible_at_upload'=>null,'wire_collision_rows'=>0,
             'known_processed_events'=>0,'known_processed_rub'=>0,'known_failed_events'=>0,'known_failed_rub'=>0,
             'other_unsettled_rows'=>0,'reported_goal_reaches'=>null,'reported_goal_rub'=>null,'report_comparison'=>'unavailable',
@@ -191,9 +193,9 @@ final class ModeledConversionVisitProof
         $a['latest_prior_visit_at']=$latest===null?null:gmdate('Y-m-d\TH:i:s\Z',$latest);
         $a['eligible_at_signal']=$latest!==null&&$event-$latest<=21*86400;
         $a['eligible_at_upload']=$uploaded===null?null:($latest!==null&&$latest<=$uploaded&&$uploaded-$latest<=21*86400);
-        $a['diagnosis']=$visits['visits']===[]?'no_reported_visits':($latest===null?'only_later_visits':
+        $a['diagnosis']=$a['source_rows']!==null&&$a['validated_rows']!==null&&($a['source_rows']!==1||$a['validated_rows']!==1)?'invalid_receipt_rows':($visits['visits']===[]?'no_reported_visits':($latest===null?'only_later_visits':
             (!$a['eligible_at_signal']?'outside_signal_window':($a['eligible_at_upload']===false?'outside_upload_window':
-            ($a['wire_collision_rows']>0?'wire_collision':($a['report_comparison']==='all_uploads'?'reported_despite_failure':'eligible_unexplained')))));
+            ($a['wire_collision_rows']>0?'wire_collision':($a['report_comparison']==='all_uploads'?'reported_despite_failure':'eligible_unexplained'))))));
         return $a;
     }
     /** Newest half plus oldest unchecked half; stable terminal evidence is rechecked daily. */
@@ -475,7 +477,7 @@ final class ModeledConversionVisitProof
     private static function validatedFailureAudit(mixed $v,int $now):?array
     {
         if(!is_array($v))return null;
-        $keys=['signal_at','uploaded_at','upload_clock','latest_prior_visit_at','eligible_at_signal','eligible_at_upload','wire_collision_rows',
+        $keys=['signal_at','uploaded_at','upload_clock','source_rows','validated_rows','latest_prior_visit_at','eligible_at_signal','eligible_at_upload','wire_collision_rows',
             'known_processed_events','known_processed_rub','known_failed_events','known_failed_rub','other_unsettled_rows',
             'reported_goal_reaches','reported_goal_rub','report_comparison','diagnosis','checked_at'];
         if(array_keys($v)!==$keys)return null;
@@ -487,14 +489,14 @@ final class ModeledConversionVisitProof
         foreach(['eligible_at_signal','eligible_at_upload']as$k)if($v[$k]!==null&&!is_bool($v[$k]))return null;
         foreach(['wire_collision_rows','known_processed_events','known_failed_events','other_unsettled_rows']as$k)
             if(!is_int($v[$k])||$v[$k]<0||$v[$k]>1000)return null;
-        foreach(['known_processed_rub','known_failed_rub','reported_goal_reaches','reported_goal_rub']as$k){
-            if($v[$k]===null&&str_starts_with($k,'reported_'))continue;
+        foreach(['source_rows','validated_rows','known_processed_rub','known_failed_rub','reported_goal_reaches','reported_goal_rub']as$k){
+            if($v[$k]===null&&(str_starts_with($k,'reported_')||in_array($k,['source_rows','validated_rows'],true)))continue;
             if((!is_int($v[$k])&&!is_float($v[$k]))||!is_finite((float)$v[$k])||$v[$k]<0||$v[$k]>1000000000)return null;
         }
         if(!in_array($v['upload_clock'],['provider','claim'],true)
             ||!in_array($v['report_comparison'],['unavailable','unsettled','all_uploads','processed_only','mismatch'],true)
             ||!in_array($v['diagnosis'],['unavailable','no_reported_visits','only_later_visits','outside_signal_window',
-                'outside_upload_window','wire_collision','reported_despite_failure','eligible_unexplained'],true))return null;
+                'outside_upload_window','wire_collision','reported_despite_failure','eligible_unexplained','invalid_receipt_rows'],true))return null;
         return $v;
     }
     private static function followupSummary(mixed $v,int $now):array
