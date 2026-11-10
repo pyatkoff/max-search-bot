@@ -1,45 +1,46 @@
 {
     "ok": true,
-    "generated_at": "2026-11-10T22:09:46+00:00",
+    "generated_at": "2026-11-10T23:12:48+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 13,
-        "raw_sessions": 13,
+        "sessions": 15,
+        "raw_sessions": 15,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 13,
+            "resolved": 15,
             "unresolved": 0
         },
-        "started": 11,
+        "started": 13,
         "needs_collected": 1,
         "tours_opened": 1,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 10,
-        "manager_replied": 0,
+        "manager_requested": 11,
+        "manager_replied": 1,
         "customer_replied_after_manager": 0,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 0,
+            "answered_after_90s": 1,
             "still_unanswered": 9,
-            "measured_responses": 0,
-            "avg_seconds": null,
-            "max_seconds": null
+            "measured_responses": 1,
+            "avg_seconds": 830,
+            "max_seconds": 830
         },
         "drop_points": {
             "manager_requested": 10,
+            "collecting_needs": 2,
             "started_only": 2,
-            "collecting_needs": 1
+            "manager_replied": 1
         },
         "flags": {
             "manager_requested_no_reply": 9
         },
         "calendar_day": {
-            "conversations_started": 13,
+            "conversations_started": 14,
             "needs_collected_from_started": 1,
             "tours_opened_from_started": 1,
             "site_opened": 0,
@@ -50,7 +51,7 @@
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-10T22:09:46Z",
+        "sampled_at": "2026-11-10T23:12:48Z",
         "available": true,
         "error": null,
         "mode": "send",
