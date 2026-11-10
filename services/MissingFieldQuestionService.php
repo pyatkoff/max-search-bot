@@ -41,6 +41,12 @@ class MissingFieldQuestionService
         if (class_exists('MaxSearchApi')) {
             MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusAi);
         }
+        if ($field === 'city' && empty($options['suppress_departure_suggestion'])) {
+            require_once __DIR__ . '/DepartureSuggestionService.php';
+            require_once __DIR__ . '/DialogueView.php';
+            $suggestion = DepartureSuggestionService::forChat($chatId);
+            if ($suggestion !== []) return DialogueView::departureSuggestion($chatId, $suggestion);
+        }
         return IntegrationRegistry::messenger()->send($chatId, self::question($field, $options));
     }
 

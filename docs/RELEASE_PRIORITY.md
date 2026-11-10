@@ -70,6 +70,42 @@ publisher or status loop is needed. After admission, retain the fresh shared
 publisher lease, branch protection, head CAS and all release gates. Revalidate
 main if it changed before the operation; do not force a merge.
 
+### Continuing an already admitted publisher
+
+A reservation created after the existing publisher was acquired must not make
+that same publisher wait for a candidate which cannot yet acquire its busy slot.
+The same authorized owner may repeat final admission with the exact original
+head/base and the publisher ID, author ID and timestamp saved by the original
+acquisition readback:
+
+```sh
+GITHUB_REPOSITORY=pyatkoff/max-search-bot node tools/release_priority.js --admit PR_NUMBER ORIGINAL_HEAD_SHA ORIGINAL_MAIN_SHA --publisher COMMENT_ID OWNER_ID ACQUIRED_AT
+```
+
+This is a continuation of successful ordinary admission and acquisition, never a
+way to acquire, renew, transfer or release a publisher. Do not discover an old
+busy record and treat it as permission, substitute a new head/base, or copy
+another owner's binding. The expected tuple and source identity must come from
+that owner's original acquisition evidence. API-only callers pass the same
+`publisher: {comment_id, owner_id, updated_at}` in explicit admission context.
+This relies on the existing trusted sole-publisher operating contract: the
+current tuple authenticates the current bound record, not historical execution
+of the earlier priority decision. Required source checks and head CAS remain
+mandatory. Ordinary required CI has no publisher continuation exception.
+
+The guard validates every reservation, the target's existing
+`release-slot-close:v1` binding and the exact active issue #1122 comment. It reads
+that comment again after refreshing the target and main. Only reservations
+starting strictly after the recorded acquisition are excluded for this owner,
+including later incidents, which already cannot preempt an active publisher.
+Earlier or simultaneous reservations retain the ordinary priority decision. A changed source, main,
+binding, owner, version or record; malformed metadata; incomplete snapshot; or
+failed API read stops without fallback, mutation or retry. Thirty minutes is the
+reservation limit, not a publisher lifetime. Age never frees a busy publisher.
+
+The reads are bounded and perform no writes. This is not atomic GitHub exclusion;
+the existing owner must still avoid concurrent changes to its admitted record.
+
 This gate protects required CI and the documented merge path. It is not an atomic
 GitHub merge queue and cannot stop a privileged bypass or a new reservation made
 after its last snapshot. Existing publisher serialization remains necessary.
@@ -147,13 +183,19 @@ and skipped the protected operations. No new live probe or acceptance is run.
 
 A same-source scheduled monitor may independently create a skipped activation
 while the original deployment tail is running. The closer classifies that child
-separately: the exact origin ID must identify a successful original scheduled
-monitor in this repository, on main and at the same source; the child must retain
-that exact origin. Only a completed child with one original `activate` job,
+separately: the exact origin ID must identify a completed original scheduled
+monitor with a `success` or `failure` conclusion in this repository, on main and
+at the same source; the child must retain that exact origin. Only a completed
+child with one original `activate` job,
 explicitly skipped and with zero steps, is excluded from release candidates.
 The original deployment monitor's activation remains mandatory and is the only
-activation written into the terminal proof. A pending independent child shares
-the existing finite metadata wait; it cannot silently permit closure. Duplicate
+activation written into the terminal proof. A failed independent scheduled
+monitor remains a failure in the observed metadata; neither it nor its skipped
+child becomes accepted release evidence. In particular, a scheduled consumer
+refusing a still-pending release cannot make its harmless child a new closure
+gate. Cancelled, pending and unknown parent outcomes still refuse. A pending
+independent child shares the existing finite metadata wait; it cannot silently
+permit closure. Duplicate
 origins, wrong repository/source/attempt, failed or executed jobs, incomplete
 metadata and API failures retain the publisher. This classification starts no
 monitor, activation, installation or retry and changes no workflow or schedule.
@@ -163,6 +205,14 @@ the existing server job. Completed gates are not rerun. Failed/cancelled/skipped
 mandatory gates, changed main, unavailable/ambiguous metadata, API refusal,
 rate limiting and timeouts stop without freeing the slot. There is no retry on
 429 or other API errors.
+
+On `gate_deadline`, `release_slot_pending` names the missing original workflow
+files and the exact IDs/statuses of still-pending runs. Independently scheduled
+children also retain their scheduled-parent ID. This bounded diagnostic contains
+only fixed workflow names, validated IDs and allowlisted states from the final
+snapshot; it includes no raw API response, log, customer data or credentials.
+It neither changes the finite wait nor permits a retry or terminal mutation.
+This forward correction does not retroactively close an already failed closer.
 
 An original consumer of an ordinary push installation may briefly await one narrowly pending
 Jobs API snapshot before any protected operation. The original Deploy and its
@@ -252,3 +302,4 @@ workflow, queue, publisher, customer message or failure experiment is introduced
 
 Recovery is effective only for releases containing this package. Do not repeat
 an accepted older installation to obtain the new workflow layout.
+

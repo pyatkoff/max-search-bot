@@ -228,9 +228,10 @@ class MaxSearchApi
     public static array $missing = ['children'];
     public static array $context = ['adults'=>2, 'country'=>'Турция', 'child_ages'=>'4, 9'];
     public static int $writes = 0;
+    public static array $attemptedParams = [];
     public static function getAiMissingFields($chatId): array { return self::$missing; }
     public static function getAiSearchContext($chatId): array { return self::$context; }
-    public static function applyAiParameters($chatId, array $params): array { self::$writes++; throw new RuntimeException('unexpected_need_write'); }
+    public static function applyAiParameters($chatId, array $params): array { self::$writes++; self::$attemptedParams[] = $params; throw new RuntimeException('unexpected_need_write'); }
     public static function setStatus(...$args): void { self::$writes++; throw new RuntimeException('unexpected_status_write'); }
     public static function funnelLog(...$args): void {}
 }
@@ -278,6 +279,53 @@ unsupportedCheck('unsupported diagnostic survives application but never becomes 
 $ages = NeedValueResolver::resolve('child_ages', '7', ['children'=>1]);
 unsupportedCheck('single seven remains a valid child age in its own field',
     $ages['recognized'] === true && $ages['value'] === [7] && !isset($ages['unsupported_count']));
+// The AI-status shortcut runs before the whole-turn collector. A recognized
+// adults fragment must not consume explicit child facts in that same answer.
+$partyBefore = MaxSearchApi::$context;
+foreach ([
+    '4 взрослых и ребёнок 11 лет',
+    'четверо взрослых и ребенок 11 лет',
+    '4 взрослых и 2 детей 6 и 11 лет',
+    '4 взрослых без детей',
+] as $text) {
+    $adultFragment = NeedValueResolver::resolve('adults', $text);
+    nvrCheck('compound party has a valid adults fragment: '.$text,
+        $adultFragment['recognized'] === true && $adultFragment['value'] === 4, true);
+    MaxSearchApi::$missing = ['adults', 'children', 'child_ages', 'nights'];
+    MaxSearchApi::$writes = 0;
+    MaxSearchApi::$attemptedParams = [];
+    $transport->sent = [];
+    $handled = AiShortAnswerHandler::handle(['text'=>$text], 123);
+    nvrCheck('compound party is left to the existing whole-turn collector: '.$text, $handled, false);
+    nvrCheck('no partial write, state change or question consumes the party: '.$text,
+        MaxSearchApi::$writes === 0 && MaxSearchApi::$attemptedParams === []
+        && MaxSearchApi::$context === $partyBefore && $transport->sent === [], true);
+}
+// A fake storage barrier captures the unchanged scalar write before mutation.
+// Child-related hotel adjectives are not an explicit child count.
+foreach (['4 взрослых', '4 взрослых и детский бассейн'] as $text) {
+    MaxSearchApi::$missing = ['adults', 'children'];
+    MaxSearchApi::$writes = 0;
+    MaxSearchApi::$attemptedParams = [];
+    $transport->sent = [];
+    $blockedAtStorage = false;
+    try {
+        AiShortAnswerHandler::handle(['text'=>$text], 123);
+    } catch (RuntimeException $e) {
+        if ($e->getMessage() !== 'unexpected_need_write') throw $e;
+        $blockedAtStorage = true;
+    }
+    nvrCheck('adult scalar retains its existing canonical application: '.$text,
+        $blockedAtStorage && MaxSearchApi::$writes === 1
+        && MaxSearchApi::$attemptedParams === [['adults'=>4]], true);
+    nvrCheck('scalar probe never reaches live state or transport: '.$text,
+        MaxSearchApi::$context === $partyBefore && $transport->sent === [], true);
+}
+MaxSearchApi::$missing = ['children'];
+MaxSearchApi::$writes = 0;
+MaxSearchApi::$attemptedParams = [];
+$transport->sent = [];
+
 IntegrationRegistry::resetForTests();
 
 

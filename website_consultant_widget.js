@@ -1,5 +1,21 @@
 (function(){
   if (window.AnyTourConsultantWidget) return;
+  // Advertising origin only: the search parameter "region" describes the destination.
+  function advertisingEntryRegion(href){
+    try {
+      const query=new URL(href).searchParams, ids=new Set();
+      const add=value=>{if(/^[0-9]{1,20}$/.test(value)){const id=value.replace(/^0+/, '');if(id)ids.add(id)}};
+      query.getAll('region_id').forEach(add);
+      for(const key of ['start','startapp','utm_term','utm_content']){
+        for(const value of query.getAll(key)){
+          if(value.length>512)continue;
+          const match=/^(?:yclid[=_-]?)?[0-9]{1,64}_region_([0-9]{1,20})(?:_campaign_[0-9]{1,30})?$/.exec(value);
+          if(match)add(match[1]);
+        }
+      }
+      return ids.size===1?{region_id:[...ids][0]}:{};
+    }catch(_){return {}}
+  }
   var script = document.currentScript;
   var api = (script && script.dataset && script.dataset.api) || '/max-search/website_consultant_api.php';
   var title = (script && script.dataset && script.dataset.title) || 'Подбор тура';
@@ -63,7 +79,7 @@
 
   launch.onclick=function(){
     panel.classList.toggle('open');
-    if(panel.classList.contains('open')&&!started){ started=true; request({action:'start'}); }
+    if(panel.classList.contains('open')&&!started){ started=true; request({action:'start',attribution:advertisingEntryRegion(location.href)}); }
     if(panel.classList.contains('open')) input.focus();
   };
   form.onsubmit=function(e){

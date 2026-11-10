@@ -1,0 +1,2853 @@
+{
+  "schema_version": 1,
+  "project_key": "appleservice39",
+  "bot_key": "id390521129062_bot",
+  "checked_date": "2026-11-10",
+  "model_count": 33,
+  "model_groups": [
+    {
+      "id": "iphone-8",
+      "label": "iPhone 8 / 8 Plus",
+      "model_ids": [
+        "iphone-8",
+        "iphone-8-plus"
+      ]
+    },
+    {
+      "id": "iphone-x-xs-xr",
+      "label": "iPhone X / XR / XS",
+      "model_ids": [
+        "iphone-x",
+        "iphone-xr",
+        "iphone-xs",
+        "iphone-xs-max"
+      ]
+    },
+    {
+      "id": "iphone-11",
+      "label": "iPhone 11",
+      "model_ids": [
+        "iphone-11",
+        "iphone-11-pro",
+        "iphone-11-pro-max"
+      ]
+    },
+    {
+      "id": "iphone-12",
+      "label": "iPhone 12",
+      "model_ids": [
+        "iphone-12",
+        "iphone-12-mini",
+        "iphone-12-pro",
+        "iphone-12-pro-max"
+      ]
+    },
+    {
+      "id": "iphone-13",
+      "label": "iPhone 13",
+      "model_ids": [
+        "iphone-13",
+        "iphone-13-mini",
+        "iphone-13-pro",
+        "iphone-13-pro-max"
+      ]
+    },
+    {
+      "id": "iphone-14",
+      "label": "iPhone 14",
+      "model_ids": [
+        "iphone-14",
+        "iphone-14-plus",
+        "iphone-14-pro",
+        "iphone-14-pro-max"
+      ]
+    },
+    {
+      "id": "iphone-15",
+      "label": "iPhone 15",
+      "model_ids": [
+        "iphone-15",
+        "iphone-15-plus",
+        "iphone-15-pro",
+        "iphone-15-pro-max"
+      ]
+    },
+    {
+      "id": "iphone-16",
+      "label": "iPhone 16",
+      "model_ids": [
+        "iphone-16",
+        "iphone-16-plus",
+        "iphone-16-pro",
+        "iphone-16-pro-max"
+      ]
+    },
+    {
+      "id": "iphone-17-air",
+      "label": "iPhone 17 / iPhone Air",
+      "model_ids": [
+        "iphone-17",
+        "iphone-17-pro",
+        "iphone-17-pro-max",
+        "iphone-air"
+      ]
+    }
+  ],
+  "models": [
+    {
+      "id": "iphone-8",
+      "label": "iPhone 8",
+      "short_label": "8",
+      "family_id": "iphone-8"
+    },
+    {
+      "id": "iphone-8-plus",
+      "label": "iPhone 8 Plus",
+      "short_label": "8 Plus",
+      "family_id": "iphone-8"
+    },
+    {
+      "id": "iphone-x",
+      "label": "iPhone X",
+      "short_label": "X",
+      "family_id": "iphone-x-xs-xr"
+    },
+    {
+      "id": "iphone-xr",
+      "label": "iPhone XR",
+      "short_label": "XR",
+      "family_id": "iphone-x-xs-xr"
+    },
+    {
+      "id": "iphone-xs",
+      "label": "iPhone XS",
+      "short_label": "XS",
+      "family_id": "iphone-x-xs-xr"
+    },
+    {
+      "id": "iphone-xs-max",
+      "label": "iPhone XS Max",
+      "short_label": "XS Max",
+      "family_id": "iphone-x-xs-xr"
+    },
+    {
+      "id": "iphone-11",
+      "label": "iPhone 11",
+      "short_label": "11",
+      "family_id": "iphone-11"
+    },
+    {
+      "id": "iphone-11-pro",
+      "label": "iPhone 11 Pro",
+      "short_label": "11 Pro",
+      "family_id": "iphone-11"
+    },
+    {
+      "id": "iphone-11-pro-max",
+      "label": "iPhone 11 Pro Max",
+      "short_label": "11 Pro Max",
+      "family_id": "iphone-11"
+    },
+    {
+      "id": "iphone-12",
+      "label": "iPhone 12",
+      "short_label": "12",
+      "family_id": "iphone-12"
+    },
+    {
+      "id": "iphone-12-mini",
+      "label": "iPhone 12 mini",
+      "short_label": "12 mini",
+      "family_id": "iphone-12"
+    },
+    {
+      "id": "iphone-12-pro",
+      "label": "iPhone 12 Pro",
+      "short_label": "12 Pro",
+      "family_id": "iphone-12"
+    },
+    {
+      "id": "iphone-12-pro-max",
+      "label": "iPhone 12 Pro Max",
+      "short_label": "12 Pro Max",
+      "family_id": "iphone-12"
+    },
+    {
+      "id": "iphone-13",
+      "label": "iPhone 13",
+      "short_label": "13",
+      "family_id": "iphone-13"
+    },
+    {
+      "id": "iphone-13-mini",
+      "label": "iPhone 13 mini",
+      "short_label": "13 mini",
+      "family_id": "iphone-13"
+    },
+    {
+      "id": "iphone-13-pro",
+      "label": "iPhone 13 Pro",
+      "short_label": "13 Pro",
+      "family_id": "iphone-13"
+    },
+    {
+      "id": "iphone-13-pro-max",
+      "label": "iPhone 13 Pro Max",
+      "short_label": "13 Pro Max",
+      "family_id": "iphone-13"
+    },
+    {
+      "id": "iphone-14",
+      "label": "iPhone 14",
+      "short_label": "14",
+      "family_id": "iphone-14"
+    },
+    {
+      "id": "iphone-14-plus",
+      "label": "iPhone 14 Plus",
+      "short_label": "14 Plus",
+      "family_id": "iphone-14"
+    },
+    {
+      "id": "iphone-14-pro",
+      "label": "iPhone 14 Pro",
+      "short_label": "14 Pro",
+      "family_id": "iphone-14"
+    },
+    {
+      "id": "iphone-14-pro-max",
+      "label": "iPhone 14 Pro Max",
+      "short_label": "14 Pro Max",
+      "family_id": "iphone-14"
+    },
+    {
+      "id": "iphone-15",
+      "label": "iPhone 15",
+      "short_label": "15",
+      "family_id": "iphone-15"
+    },
+    {
+      "id": "iphone-15-plus",
+      "label": "iPhone 15 Plus",
+      "short_label": "15 Plus",
+      "family_id": "iphone-15"
+    },
+    {
+      "id": "iphone-15-pro",
+      "label": "iPhone 15 Pro",
+      "short_label": "15 Pro",
+      "family_id": "iphone-15"
+    },
+    {
+      "id": "iphone-15-pro-max",
+      "label": "iPhone 15 Pro Max",
+      "short_label": "15 Pro Max",
+      "family_id": "iphone-15"
+    },
+    {
+      "id": "iphone-16",
+      "label": "iPhone 16",
+      "short_label": "16",
+      "family_id": "iphone-16"
+    },
+    {
+      "id": "iphone-16-plus",
+      "label": "iPhone 16 Plus",
+      "short_label": "16 Plus",
+      "family_id": "iphone-16"
+    },
+    {
+      "id": "iphone-16-pro",
+      "label": "iPhone 16 Pro",
+      "short_label": "16 Pro",
+      "family_id": "iphone-16"
+    },
+    {
+      "id": "iphone-16-pro-max",
+      "label": "iPhone 16 Pro Max",
+      "short_label": "16 Pro Max",
+      "family_id": "iphone-16"
+    },
+    {
+      "id": "iphone-17",
+      "label": "iPhone 17",
+      "short_label": "17",
+      "family_id": "iphone-17-air"
+    },
+    {
+      "id": "iphone-17-pro",
+      "label": "iPhone 17 Pro",
+      "short_label": "17 Pro",
+      "family_id": "iphone-17-air"
+    },
+    {
+      "id": "iphone-17-pro-max",
+      "label": "iPhone 17 Pro Max",
+      "short_label": "17 Pro Max",
+      "family_id": "iphone-17-air"
+    },
+    {
+      "id": "iphone-air",
+      "label": "iPhone Air",
+      "short_label": "Air",
+      "family_id": "iphone-17-air"
+    }
+  ],
+  "warranty_months": 3,
+  "warranty_policy_source": "owner_confirmation_2026-11-10",
+  "price_selection_policy": {
+    "battery_replacement": "exact_model_service_table_without_inherited_part_variant",
+    "front_glass_replacement": "owner_confirmed_service_table",
+    "display": "preserve_original_or_analogue_and_explicit_source_group"
+  },
+  "naming_evidence": [
+    {
+      "source_label": "IPhone 17 Air",
+      "model_id": "iphone-air",
+      "canonical_label": "iPhone Air",
+      "source_url": "https://support.apple.com/en-euro/125092"
+    }
+  ],
+  "display_inquiry_only_model_ids": [
+    "iphone-12-mini",
+    "iphone-13-mini"
+  ],
+  "offers": [
+    {
+      "service_key": "display",
+      "variant": "original",
+      "price": {
+        "kind": "listed",
+        "amount": 6500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_89ebbeff846a90731152",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 4,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-11"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "display",
+      "variant": "analogue",
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_4c346a3cdea00a16ef24",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 5,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": false,
+        "months": null,
+        "raw": "нет"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-11"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "display",
+      "variant": "original",
+      "price": {
+        "kind": "listed",
+        "amount": 12000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_89c0fe9a1faff484ed70",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-pro-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 4,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-11-pro"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "display",
+      "variant": "analogue",
+      "price": {
+        "kind": "listed",
+        "amount": 7000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_7276941ba6c36bc57719",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-pro-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 5,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": false,
+        "months": null,
+        "raw": "нет"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-11-pro"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "display",
+      "variant": "original",
+      "price": {
+        "kind": "listed",
+        "amount": 13000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_25b16f93fe97eda1e839",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-pro-max-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 4,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-11-pro-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "display",
+      "variant": "analogue",
+      "price": {
+        "kind": "listed",
+        "amount": 7500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_7d3959dcba08803d1485",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-pro-max-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 5,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": false,
+        "months": null,
+        "raw": "нет"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-11-pro-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "display",
+      "variant": "original",
+      "price": {
+        "kind": "on_request",
+        "amount": null,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_990fd046183e67c3e446",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-12-12pro-12pro-max-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 4,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-12",
+        "iphone-12-pro",
+        "iphone-12-pro-max"
+      ],
+      "price_scope": "model_group"
+    },
+    {
+      "service_key": "display",
+      "variant": "analogue",
+      "price": {
+        "kind": "on_request",
+        "amount": null,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_2103b81b4f8184f9339c",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-12-12pro-12pro-max-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 5,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": 1,
+        "raw": "1 мес."
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-12",
+        "iphone-12-pro",
+        "iphone-12-pro-max"
+      ],
+      "price_scope": "model_group"
+    },
+    {
+      "service_key": "display",
+      "variant": "original",
+      "price": {
+        "kind": "on_request",
+        "amount": null,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_c4b073f1b90b1d804709",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-13-v-kalingrade/",
+      "source_table": 1,
+      "source_row": 4,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-13",
+        "iphone-13-pro",
+        "iphone-13-pro-max"
+      ],
+      "price_scope": "model_group"
+    },
+    {
+      "service_key": "display",
+      "variant": "analogue",
+      "price": {
+        "kind": "on_request",
+        "amount": null,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_40d211129d19574e59be",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-13-v-kalingrade/",
+      "source_table": 1,
+      "source_row": 5,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": false,
+        "months": null,
+        "raw": "нет"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-13",
+        "iphone-13-pro",
+        "iphone-13-pro-max"
+      ],
+      "price_scope": "model_group"
+    },
+    {
+      "service_key": "display",
+      "variant": "original",
+      "price": {
+        "kind": "on_request",
+        "amount": null,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_04995781de660b01cd6e",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-14-14-plus-14pro-14-pro-max-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 4,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-14",
+        "iphone-14-plus",
+        "iphone-14-pro",
+        "iphone-14-pro-max"
+      ],
+      "price_scope": "model_group"
+    },
+    {
+      "service_key": "display",
+      "variant": "analogue",
+      "price": {
+        "kind": "on_request",
+        "amount": null,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_ac3994b8c965c3faf329",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-14-14-plus-14pro-14-pro-max-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 5,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": 1,
+        "raw": "1 мес."
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-14",
+        "iphone-14-plus",
+        "iphone-14-pro",
+        "iphone-14-pro-max"
+      ],
+      "price_scope": "model_group"
+    },
+    {
+      "service_key": "display",
+      "variant": "original",
+      "price": {
+        "kind": "on_request",
+        "amount": null,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_f78bd7165b50b293e4cd",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 4,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-15",
+        "iphone-15-plus",
+        "iphone-15-pro",
+        "iphone-15-pro-max"
+      ],
+      "price_scope": "model_group"
+    },
+    {
+      "service_key": "display",
+      "variant": "analogue",
+      "price": {
+        "kind": "on_request",
+        "amount": null,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_e3e0bea9960765d603ff",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 5,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": 1,
+        "raw": "1 мес."
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-15",
+        "iphone-15-plus",
+        "iphone-15-pro",
+        "iphone-15-pro-max"
+      ],
+      "price_scope": "model_group"
+    },
+    {
+      "service_key": "display",
+      "variant": "original",
+      "price": {
+        "kind": "on_request",
+        "amount": null,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_9cab52ae1f815b91f94a",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-16-16plus-16pro-16pro-max-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 4,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-16",
+        "iphone-16-plus",
+        "iphone-16-pro",
+        "iphone-16-pro-max"
+      ],
+      "price_scope": "model_group"
+    },
+    {
+      "service_key": "display",
+      "variant": "analogue",
+      "price": {
+        "kind": "on_request",
+        "amount": null,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_51bfe9b0f3002a34ef36",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-16-16plus-16pro-16pro-max-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 5,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": 1,
+        "raw": "1 мес."
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-16",
+        "iphone-16-plus",
+        "iphone-16-pro",
+        "iphone-16-pro-max"
+      ],
+      "price_scope": "model_group"
+    },
+    {
+      "service_key": "display",
+      "variant": "original",
+      "price": {
+        "kind": "on_request",
+        "amount": null,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_4ea1158de49813bfffa4",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-17-17-pro-17pro-max-17-air/",
+      "source_table": 1,
+      "source_row": 4,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-17",
+        "iphone-17-pro",
+        "iphone-17-pro-max",
+        "iphone-air"
+      ],
+      "price_scope": "model_group"
+    },
+    {
+      "service_key": "display",
+      "variant": "analogue",
+      "price": {
+        "kind": "on_request",
+        "amount": null,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_f88e262d91d5aea891e3",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-17-17-pro-17pro-max-17-air/",
+      "source_table": 1,
+      "source_row": 5,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": 1,
+        "raw": "1 мес."
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-17",
+        "iphone-17-pro",
+        "iphone-17-pro-max",
+        "iphone-air"
+      ],
+      "price_scope": "model_group"
+    },
+    {
+      "service_key": "display",
+      "variant": "original",
+      "price": {
+        "kind": "listed",
+        "amount": 4500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_3363d1025b415b39d723",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-8-plus-v-kalingrade/",
+      "source_table": 1,
+      "source_row": 4,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-8-plus"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "display",
+      "variant": "analogue",
+      "price": {
+        "kind": "listed",
+        "amount": 3000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_a0acdf145a69c7198b08",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-8-plus-v-kalingrade/",
+      "source_table": 1,
+      "source_row": 5,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": 1,
+        "raw": "1 мес."
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-8-plus"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "display",
+      "variant": "original",
+      "price": {
+        "kind": "listed",
+        "amount": 4000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_5672a0c498c015c2ca96",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-8-v-kalingrade/",
+      "source_table": 1,
+      "source_row": 4,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-8"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "display",
+      "variant": "analogue",
+      "price": {
+        "kind": "listed",
+        "amount": 2500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_2df8249af72e1b92b6d8",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-8-v-kalingrade/",
+      "source_table": 1,
+      "source_row": 5,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": 1,
+        "raw": "1 мес."
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-8"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "display",
+      "variant": "original",
+      "price": {
+        "kind": "listed",
+        "amount": 6500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_a85b893d8aa6c2457542",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-ayfon-xr/",
+      "source_table": 1,
+      "source_row": 4,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-xr"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "display",
+      "variant": "analogue",
+      "price": {
+        "kind": "listed",
+        "amount": 4500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_ff4dfa8b90f2a3f9c7a4",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-ayfon-xr/",
+      "source_table": 1,
+      "source_row": 5,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": false,
+        "months": null,
+        "raw": "нет"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-xr"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "display",
+      "variant": "original",
+      "price": {
+        "kind": "listed",
+        "amount": 12000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_cb1e3289668c5087198d",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+      "source_table": 1,
+      "source_row": 4,
+      "duration_raw": "120 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-x"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "display",
+      "variant": "analogue",
+      "price": {
+        "kind": "listed",
+        "amount": 6000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_f8706bb7a7fcaffc1924",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+      "source_table": 1,
+      "source_row": 5,
+      "duration_raw": "120 мин.",
+      "source_warranty": {
+        "offered": false,
+        "months": null,
+        "raw": "нет"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-x"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "display",
+      "variant": "original",
+      "price": {
+        "kind": "listed",
+        "amount": 12000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_d906a7023e1eeb4998eb",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-xs-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 4,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-xs"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "display",
+      "variant": "analogue",
+      "price": {
+        "kind": "listed",
+        "amount": 6000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_84d96f567c0f8d34a4be",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-xs-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 5,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": false,
+        "months": null,
+        "raw": "нет"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-xs"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "display",
+      "variant": "original",
+      "price": {
+        "kind": "listed",
+        "amount": 13000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_744467fad49e614c2622",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-xs-max-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 4,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-xs-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "display",
+      "variant": "analogue",
+      "price": {
+        "kind": "listed",
+        "amount": 7000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_c4af15fb2e204ba51307",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-xs-max-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 5,
+      "duration_raw": "40 мин.",
+      "source_warranty": {
+        "offered": false,
+        "months": null,
+        "raw": "нет"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-xs-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 3000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_206ef090a727ac99eff2",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 2,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-8"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 3500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_870005ca7c250de40c46",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 3,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-8-plus"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 3500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_8a0aee71513141db714a",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 4,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-x"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 3500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_9a467214e607156b3f73",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 5,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-xs"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 3500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_4e8b838160c5dbd6a23d",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 6,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-xr"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 4500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_bc5ec708be4f9e6e7258",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 7,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-xs-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 4000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_dd6e9d6d15c41e932d84",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 8,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-11"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 4500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_60adfb450acf523b2d77",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 9,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-11-pro"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 4500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_c6735ad80151a1bec3a8",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 10,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-11-pro-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_db705e0cd577499b73bc",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 11,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-12"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_db705e0cd577499b73bc",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 11,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-12-mini"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_74f2c226124b85a7db3f",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 12,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-12-pro"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_0761bdd6349dc861d9b3",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 13,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-12-pro-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_7bc6f6010413f67b31cb",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 14,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-13"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_7bc6f6010413f67b31cb",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 14,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-13-mini"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 6500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_aa6855deddefd287e73f",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 15,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-13-pro"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 6500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_c45b00711345e57f8887",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 16,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-13-pro-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 6500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_b3111fe6a829121c125e",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 17,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-14"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 6500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_fd98aece27f3e409ee0c",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 18,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-14-plus"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 6500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_d3eca6d983f993456ee7",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 19,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-14-pro"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 7000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_379a762b4d0712167a9d",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 20,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-14-pro-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 6000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_883a22822fa0e2d598b4",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 21,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-15"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 6000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_bf4f7b54705127920175",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 22,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-15-plus"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 7000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_8a73fbb806531a362694",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 23,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-15-pro"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 7000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_b8ff78bb2c1c43d7b578",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 24,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-15-pro-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 6500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_294f86d3a57d57c621aa",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 25,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-16"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 6500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_3137a8b79223f89934e3",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 26,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-16-plus"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 7000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_04b27100eaf56093025f",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 27,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-16-pro"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 8000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_efc3aa821293576d7611",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 28,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-16-pro-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 13000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_844759a722c3ef6aa987",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 29,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-17"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 15000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_73bf02561824547a7209",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 30,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-17-pro"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 16000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_15b8582424e5452f4e6b",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 31,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-17-pro-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "battery_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 15000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_f0ebe0d4cc0c3056b1d1",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 32,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-air"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 3000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_101f3f07cd086afd96c8",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 2,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-8"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 3000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_2dda2a37c57b2b4bac65",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 3,
+      "duration_raw": "60 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-8-plus"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_6352c98d6c2ab504258c",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 4,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-x"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_b8afa59072426251af01",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 5,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-xs"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 4000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_33db666ac56ebf475300",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 6,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-xr"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_17e48989ff89303a8df6",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 7,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-xs-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 4000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_f81f59230221e4e2ee67",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 8,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-11"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_1bd4528b96f49ca6703b",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 9,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-11-pro"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_87c2b73566425c100533",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 10,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-11-pro-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_c0bf8da2f7eb5baeaba8",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 11,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-12"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_c0bf8da2f7eb5baeaba8",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 11,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-12-mini"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_2b370cde9428b411c9fb",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 12,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-12-pro"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5500,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_3dcd0d72d0aff9443991",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 13,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-12-pro-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_c9d5fc3ba4ceae8c75df",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 14,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-13"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_c9d5fc3ba4ceae8c75df",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 14,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-13-mini"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 6000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_10d97ad907ece9f50784",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 15,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-13-pro"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 6000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_cd795f6496219cbd4dd6",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 16,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-13-pro-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_7bed99ebe7c5f0e7faee",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 17,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-14"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_a0ccfaa28a9af928588c",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 18,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-14-plus"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 7000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_bc6dcbe74592c9d580b4",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 19,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-14-pro"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "unconfirmed",
+        "amount": null,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_cd118d65f1d64de3aa82",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 20,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "owner_price_confirmation_required",
+      "model_ids": [
+        "iphone-14-pro-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 7000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_0ef7833733044dbae6d3",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 21,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-15"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 8000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_72009d7f292a98d64a1d",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 22,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-15-plus"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 9000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_01767c4e1bf6da08ea6c",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 23,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-15-pro"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 10000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_968d5637870a402157f3",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 24,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-15-pro-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 7000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_50b21abac57071d55c41",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 25,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-16"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 8000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_bfa139222d2338c0b9ea",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 26,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-16-plus"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 9000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_abbdc2a98aa6d32d4bcf",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 27,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-16-pro"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 10000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_4a942b6492b0561d4227",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 28,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-16-pro-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 8000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_3436219c3101b0ad8551",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 29,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-17"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 13000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_68456232d713c071d88c",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 30,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-17-pro"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 14000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_970d45b22d42207f94a2",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 31,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-17-pro-max"
+      ],
+      "price_scope": "exact_model"
+    },
+    {
+      "service_key": "front_glass_replacement",
+      "variant": "unspecified",
+      "price": {
+        "kind": "listed",
+        "amount": 11000,
+        "currency": "RUB"
+      },
+      "warranty_months": 3,
+      "warranty_policy_source": "owner_confirmation_2026-11-10",
+      "source_id": "as39_472ec4ebf48f4871a08e",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 32,
+      "duration_raw": "180 мин.",
+      "source_warranty": {
+        "offered": true,
+        "months": null,
+        "raw": "✔"
+      },
+      "review_status": "verified_source_row",
+      "model_ids": [
+        "iphone-air"
+      ],
+      "price_scope": "exact_model"
+    }
+  ],
+  "unconfirmed_prices": [
+    {
+      "model_id": "iphone-14-pro-max",
+      "service_key": "front_glass_replacement",
+      "raw_source_price": "800 руб.",
+      "source_id": "as39_cd118d65f1d64de3aa82"
+    }
+  ]
+}

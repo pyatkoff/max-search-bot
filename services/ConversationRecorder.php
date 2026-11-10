@@ -31,6 +31,25 @@ class ConversationRecorder
         return self::recordInbound($incoming, $projectKey, false, $conversationId, $duplicate);
     }
 
+    /** MAX starts can return before the common dispatcher; record geography without a second start event. */
+    public static function captureEntryRegion(array $incoming): bool
+    {
+        require_once __DIR__ . '/ConversationEntryRegionService.php';
+        if (ConversationEntryRegionService::candidate($incoming) === null) return true;
+        try {
+            if (!ConversationDb::isConfigured()) return false;
+            $user = (array)($incoming['user'] ?? []);
+            $platform = strtolower(trim((string)($incoming['platform'] ?? '')));
+            $externalUserId = trim((string)($user['external_user_id'] ?? ''));
+            $chatId = trim((string)($user['chat_id'] ?? ''));
+            if ($externalUserId === '' || $chatId === '') return false;
+            $project = ProjectConfig::projectId();
+            $sourceKey = trim((string)($incoming['source_key'] ?? ProjectConfig::get('routing.source_key',$platform.':default')));
+            $id = self::ensureConversation($platform,$externalUserId,$chatId,$user,$sourceKey,$project,true,true);
+            return $id > 0 && ConversationEntryRegionService::record($id,$project,$incoming,ConversationDb::connection());
+        } catch (Throwable $e) { self::logFailure('entry_region',$e); return false; }
+    }
+
     private static function recordInbound(array $incoming, string $projectKey, bool $legacy, ?int &$conversationId, ?bool &$duplicate): bool
     {
         $conversationId = null;
@@ -52,6 +71,7 @@ class ConversationRecorder
 
             $type = (string)($incoming['type'] ?? 'message');
             if ($platform === 'max' && $type === 'bot_started') {
+                self::recordEntryRegion($conversationId,$projectKey,$incoming);
                 $payload = ['source_key'=>$sourceKey];
                 if (!$legacy) {
                     foreach (['delivery_key','bot_key','repair_context'] as $key) {
@@ -78,6 +98,7 @@ class ConversationRecorder
                     return true;
                 }
             }
+            self::recordEntryRegion($conversationId,$projectKey,$incoming);
 
             $metadata = ['type'=>$type, 'username'=>(string)($user['username'] ?? ''), 'source_key'=>$sourceKey];
             if (!$legacy) {
@@ -239,11 +260,11 @@ class ConversationRecorder
         return $names ? '📎 ' . implode(', ', $names) : '📎 Вложение';
     }
 
-    private static function ensureConversation(string $platform, string $externalUserId, string $chatId, array $user, string $sourceKey, string $project, bool $legacy): int
+    private static function ensureConversation(string $platform, string $externalUserId, string $chatId, array $user, string $sourceKey, string $project, bool $legacy, bool $preserveSource = false): int
     {
         $pdo = ConversationDb::connection();
         if ($legacy) {
-            $sourceId=RoutingAccessService::sourceId($project,$sourceKey,$platform);
+            $sourceId=$preserveSource ? 0 : RoutingAccessService::sourceId($project,$sourceKey,$platform);
         } else {
             // Registered connections may only use an existing active source.
             // No global-project bootstrap or implicit source creation here.
@@ -289,7 +310,7 @@ class ConversationRecorder
         $existing=$q->fetch();
         if ($existing) {
             $id=(int)$existing['id'];
-            if(empty($existing['source_id'])&&$sourceId>0)$pdo->prepare('UPDATE conversations SET source_id=? WHERE id=?')->execute([$sourceId,$id]);
+            if(!$preserveSource&&empty($existing['source_id'])&&$sourceId>0)$pdo->prepare('UPDATE conversations SET source_id=? WHERE id=?')->execute([$sourceId,$id]);
             return $id;
         }
 
@@ -305,6 +326,14 @@ class ConversationRecorder
         $q = $pdo->prepare('SELECT id FROM conversations WHERE project_key=? AND channel=? AND external_chat_id=? AND status<>? ORDER BY id DESC LIMIT 1');
         $q->execute([ProjectConfig::projectId(),$platform,$chatId,'closed']);
         return (int)$q->fetchColumn();
+    }
+
+    private static function recordEntryRegion(int $conversationId, string $projectKey, array $incoming): void
+    {
+        require_once __DIR__ . '/ConversationEntryRegionService.php';
+        if (!ConversationEntryRegionService::record($conversationId,$projectKey,$incoming,ConversationDb::connection())) {
+            self::logFailure('entry_region',new RuntimeException('entry_region_not_recorded'));
+        }
     }
 
     private static function touch(int $conversationId): void

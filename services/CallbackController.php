@@ -3,6 +3,7 @@ require_once dirname(__DIR__) . '/actions/callbacks/WizardCallbackAction.php';
 require_once dirname(__DIR__) . '/actions/callbacks/EditCallbackAction.php';
 require_once dirname(__DIR__) . '/actions/callbacks/ManagerCallbackAction.php';
 require_once dirname(__DIR__) . '/actions/callbacks/ToursCallbackAction.php';
+require_once dirname(__DIR__) . '/actions/callbacks/DepartureSuggestionCallbackAction.php';
 require_once dirname(__DIR__) . '/handlers/AiDateHandler.php';
 require_once __DIR__ . '/InteractionGuard.php';
 require_once __DIR__ . '/CallbackGeneration.php';
@@ -65,6 +66,9 @@ class CallbackController
         if (EditCallbackAction::handles($q)) {
             return EditCallbackAction::handle($chatId, $q);
         }
+        if (DepartureSuggestionCallbackAction::handles($q)) {
+            return DepartureSuggestionCallbackAction::handle($chatId, $q, (string)($query['_platform'] ?? ''));
+        }
         if (WizardCallbackAction::handles($q)) {
             if (strpos($q, 'back_') === 0
                 && InteractionGuard::suppressDuplicateCallback($chatId, $q, 'wizard_back')) {
@@ -111,6 +115,7 @@ class CallbackController
         if (ManagerCallbackAction::handles($payload)) return 'manager';
         if (ToursCallbackAction::handles($payload)) return 'tours';
         if (EditCallbackAction::handles($payload)) return 'edit';
+        if (DepartureSuggestionCallbackAction::handles($payload)) return 'departure_suggestion';
         if ($payload === 'ai_start') return 'ai';
         if (WizardCallbackAction::handles($payload)) return 'wizard';
         return 'unknown';

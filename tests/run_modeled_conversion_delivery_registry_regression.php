@@ -291,6 +291,15 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
         fclose($pipes[0]);$output=stream_get_contents($pipes[1],1024);fclose($pipes[1]);$errors=stream_get_contents($pipes[2],1024);fclose($pipes[2]);$code=proc_close($process);
         $check('private cache remains owner-bound and readable when the web runtime has no POSIX function',
             $code===0&&json_decode((string)$output,true)===['ok'=>true]&&$errors==='');
+        $archive=$directory.'/event.json';$single=$proof;$single['events']=[$proof['events'][0]];
+        $writer=new ReflectionMethod(ModeledConversionVisitProof::class,'storeAt');$writer->invoke(null,$archive,$single);
+        $reader=new ReflectionMethod(ModeledConversionVisitProof::class,'readCacheAt');$saved=$reader->invoke(null,$archive,$now,null);
+        $check('rotated single-event evidence uses a private atomic hashed receipt with its original event time',
+            $saved['available']&&count($saved['receipt']['events'])===1&&(fileperms($archive)&0777)===0600
+            &&ModeledConversionVisitProof::forEvent($saved,$a,$now)['checked_at']===$single['events'][0]['checked_at']);
+        chmod($archive,0644);clearstatcache(true,$archive);
+        $check('a publicly readable archived receipt is never trusted',!$reader->invoke(null,$archive,$now,null)['available']);
+        unlink($archive);
     }finally{if(is_file($file))unlink($file);if(is_dir($directory))rmdir($directory);}
 
     $api->duplicate=true;$bad=ModeledConversionVisitProof::verify($ledger,$api,$day,$day+500,$now);
@@ -299,6 +308,143 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     $check('goal revenue mismatch prevents individual linkage confirmation',$bad['events'][0]['reason']==='goal_count_or_value_mismatch');
     $check('verification changes no profiles ledger rows or advertising state and uses reads only',
         serialize($ledger)===$before&&array_values(array_unique($api->calls))===['GET receipt','GET report']&&$proof['provider_write_requests']===0&&$proof['source_writes']===0);
+
+    // Failed uploads are diagnosed without changing terminal delivery state or authorizing a replay.
+    $auditNow=$day+23*86400;$failed=$a;$failed['state']='unmatched';$failed['upload_status']='LINKAGE_FAILURE';
+    $failed['event_unix']=$day+20*86400;$failed['claimed_at_unix']=$day+22*86400;
+    $snapshot=serialize($failed);$noGoals=['status'=>'ok','visits'=>[]];
+    $uploadReceipt=['create_time'=>gmdate('Y-m-d\TH:i:s\Z',$failed['claimed_at_unix'])];
+    $oldVisit=['status'=>'ok','visits'=>[['started_at'=>gmdate('Y-m-d\TH:i:s\Z',$day),'visits'=>1]]];
+    $audit=ModeledConversionVisitProof::failureAudit($failed,$uploadReceipt,$oldVisit,$noGoals,[$failed],$auditNow);
+    $check('a visit eligible at the signal can have expired by the original upload without implying a provider fault',
+        $audit['eligible_at_signal']===true&&$audit['eligible_at_upload']===false
+        &&$audit['diagnosis']==='outside_upload_window'&&$audit['upload_clock']==='provider');
+    $recent=['status'=>'ok','visits'=>[['started_at'=>gmdate('Y-m-d\TH:i:s\Z',$day+19*86400),'visits'=>1]]];
+    $audit=ModeledConversionVisitProof::failureAudit($failed,$uploadReceipt,$recent,$noGoals,[$failed],$auditNow);
+    $check('an eligible original visit with no reported goal remains unexplained rather than credited',
+        $audit['eligible_at_upload']===true&&$audit['diagnosis']==='eligible_unexplained'
+        &&$audit['reported_goal_reaches']===0&&$audit['report_comparison']==='processed_only');
+    $allGoals=['status'=>'ok','visits'=>[['started_at'=>gmdate('c',$day+19*86400),'visits'=>1,
+        'goal_reaches'=>1,'revenue_rub'=>(int)$failed['value_rub']]]];
+    $audit=ModeledConversionVisitProof::failureAudit($failed,$uploadReceipt,$recent,$allGoals,[$failed],$auditNow);
+    $check('reported count and revenue despite a failure receipt are an explicit contradiction and never a resend instruction',
+        $audit['diagnosis']==='reported_despite_failure'&&$audit['report_comparison']==='all_uploads'
+        &&serialize($failed)===$snapshot&&!array_key_exists('client_id',$audit)&&!array_key_exists('outbox_id',$audit));
+    $collision=$failed;$collision['id']='99';$collision['upload_id']='599';
+    $audit=ModeledConversionVisitProof::failureAudit($failed,$uploadReceipt,$recent,$noGoals,[$failed,$collision],$auditNow);
+    $check('same ClientID target and second across distinct accepted rows is exposed before any possible correction',
+        $audit['wire_collision_rows']===1&&$audit['diagnosis']==='wire_collision');
+    $badRows=ModeledConversionVisitProof::failureAudit($failed,['source_quantity'=>1,'line_quantity'=>0]+$uploadReceipt,
+        $recent,$noGoals,[$failed],$auditNow);
+    $check('an original source row rejected during validation is separate from a missing visit',
+        $badRows['source_rows']===1&&$badRows['validated_rows']===0&&$badRows['diagnosis']==='invalid_receipt_rows');
+    $wireFirst=$failed;$wireSecond=$collision;$wireSecond['state']='processed';$wireSecond['upload_status']='PROCESSED';$wireSecond['value_rub']=23;
+    $wireSnapshot=serialize([$wireFirst,$wireSecond]);
+    $plan=ModeledConversionWireValue::plan([$wireSecond,$wireFirst],$auditNow);
+    $check('wire correction preserves both original allocations but produces one stable total and provider key',
+        $plan['total_rub']===40&&$plan['event']['event_unix']===$wireFirst['event_unix']
+        &&$plan['event']['client_id']===$wireFirst['client_id']
+        &&serialize([$wireFirst,$wireSecond])===$wireSnapshot
+        &&$plan===ModeledConversionWireValue::plan([$wireFirst,$wireSecond],$auditNow));
+    $wireCalls=[];$wireTransport=static function(string $method,string $url,mixed $body)use(&$wireCalls):array{
+        $wireCalls[]=[$method,$url,$body];parse_str((string)parse_url($url,PHP_URL_QUERY),$q);
+        return ['http'=>200,'error'=>0,'body'=>json_encode(['uploading'=>['id'=>'5999','status'=>'UPLOADED',
+            'source_quantity'=>1,'line_quantity'=>1,'comment'=>$q['comment']]])];
+    };
+    $wireApi=new MetrikaOfflineClient('98615635','SYNTHETIC_TOKEN',$wireTransport);
+    $repair=$wireApi->uploadModeledWireCorrection([$wireFirst,$wireSecond],$auditNow);
+    $csvLines=explode("\n",trim($wireCalls[0][2]));$csvRow=str_getcsv($csvLines[1]);
+    $check('explicit correction sends one CSV row with the sum and identical ClientID target and second',
+        $repair['outcome']==='accepted'&&count($wireCalls)===1&&$wireCalls[0][0]==='POST'
+        &&count($csvLines)===2&&$csvRow[0]===$wireFirst['client_id']
+        &&$csvRow[1]===ModeledConversionValueContract::TARGET
+        &&(int)$csvRow[2]===$wireFirst['event_unix']&&(int)$csvRow[3]===40);
+    foreach(['duplicate','foreign_client','other_second','unknown']as$case){
+        $bad=$wireSecond;if($case==='duplicate')$bad=$wireFirst;
+        if($case==='foreign_client')$bad['client_id']='900000000000000009';
+        if($case==='other_second')$bad['event_unix']++;
+        if($case==='unknown')$bad['state']='unknown';
+        $blocked=false;try{ModeledConversionWireValue::plan([$wireFirst,$bad],$auditNow);}catch(InvalidArgumentException $e){$blocked=true;}
+        $check('a correction cannot mix or replay ambiguous members: '.$case,$blocked);
+    }
+    $blocked=false;try{$wireApi->uploadModeledWireCorrection([$wireFirst,$wireSecond],$wireFirst['event_unix']+22*86400);}
+    catch(InvalidArgumentException $e){$blocked=true;}
+    $check('historical correction evidence remains readable but an expired POST is refused before transport',
+        $blocked&&count($wireCalls)===1&&ModeledConversionWireValue::plan([$wireFirst,$wireSecond],$wireFirst['event_unix']+22*86400)['total_rub']===40);
+    $wireGoal=['status'=>'ok','visits'=>[['started_at'=>gmdate('Y-m-d\TH:i:s\Z',$day+19*86400),
+        'visits'=>1,'goal_reaches'=>1,'revenue_rub'=>40]]];
+    $wireAudit=ModeledConversionVisitProof::failureAudit($wireFirst,$uploadReceipt,$recent,$wireGoal,[$wireFirst,$wireSecond],$auditNow,'processed');
+    $check('one provider goal reconciles all original wire allocations by total without demanding duplicate goals',
+        $wireAudit['known_wire_reaches']===1&&$wireAudit['known_wire_rub']===40
+        &&$wireAudit['report_comparison']==='all_wire_value'&&$wireAudit['diagnosis']==='wire_value_reported'
+        &&$wireAudit['wire_correction_status']==='processed');
+    $isolated=sys_get_temp_dir().'/wire-journal-fixture-'.bin2hex(random_bytes(8));
+    mkdir($isolated,0700);mkdir($isolated.'/app',0700);mkdir($isolated.'/app/services',0700);
+    mkdir($isolated.'/max-search-bot-modeled-visit-proof',0700);
+    copy(__DIR__.'/../services/ModeledConversionWireValue.php',$isolated.'/app/services/ModeledConversionWireValue.php');
+    foreach(['MetrikaOfflineClient','ModeledConversionValueContract']as$name)
+        file_put_contents($isolated.'/app/services/'.$name.'.php','<?php require_once '.var_export(realpath(__DIR__.'/../services/'.$name.'.php'),true).';');
+    copy(__DIR__.'/../services/ModeledConversionVisitProof.php',$isolated.'/app/services/ModeledConversionVisitProof.php');
+    $fixtureScript= <<<'PHP'
+<?php
+require __FIXTURE_ROOT__.'/app/services/ModeledConversionWireValue.php';
+$rows=json_decode(__FIXTURE_ROWS__,true,32,JSON_THROW_ON_ERROR);$now=__FIXTURE_NOW__;
+foreach($rows as&$member){$member['value_api_accepted_at_unix']=(int)$member['event_unix']+10;$member['value_processed_at_unix']=$member['state']==='processed'?(int)$member['event_unix']+20:null;}unset($member);
+$plan=ModeledConversionWireValue::plan($rows,$now);$r=$rows[0];
+$j=['version'=>'modeled_wire_correction_v1','wire_key'=>$plan['wire_key'],'members'=>$plan['members'],
+'total_rub'=>$plan['total_rub'],'comment'=>$plan['comment'],'state'=>'sending','upload_id'=>null,'upload_status'=>null,
+'sent_at_unix'=>$now-301,'checked_at_unix'=>$now-301];
+ModeledConversionWireValue::save($r,$j);
+if(ModeledConversionWireValue::read($r)!==$j)throw new RuntimeException('intent_not_durable');
+$api=new class($plan,$rows){public int $reads=0;public int $writes=0;public function __construct(private array $plan,private array $rows){}
+public function findModeledWireCorrection($members,$now){$this->reads++;return ['id'=>'5999','status'=>'UPLOADED','source_quantity'=>1,'line_quantity'=>1,'comment'=>$this->plan['comment']];}
+public function poll($id){$this->reads++;if($id!=='5999')foreach($this->rows as$r)if($r['upload_id']===$id)return ['id'=>$id,'status'=>$r['upload_status'],'source_quantity'=>1,'line_quantity'=>1,'comment'=>MetrikaOfflineClient::comment($r)];return ['id'=>$id,'status'=>'PROCESSED','source_quantity'=>1,'line_quantity'=>1,'comment'=>$this->plan['comment']];}
+public function modeledValueVisits($cid,$activation,$now){return ['status'=>'ok','visits'=>[['started_at'=>gmdate('Y-m-d\\TH:i:s\\Z',(int)$this->rows[0]['event_unix']-60),'visits'=>1,'goal_reaches'=>1,'revenue_rub'=>40]]];}
+public function uploadModeledWireCorrection($members,$now){$this->writes++;throw new RuntimeException('forbidden');}};
+$budgetRefused=false;try{ModeledConversionWireValue::observe($r,$rows,$api,$now,static function():void{throw new RuntimeException('budget');});}catch(RuntimeException $e){$budgetRefused=true;}
+$first=ModeledConversionWireValue::observe($r,$rows,$api,$now);
+$again=ModeledConversionWireValue::observe($r,$rows,$api,$now);
+$last=ModeledConversionWireValue::observe($r,$rows,$api,$now+301);
+$read=ModeledConversionWireValue::read($r);
+$noReplay=$api->reads===2&&$api->writes===0;
+$proof=ModeledConversionVisitProof::verify($rows,$api,(int)$r['event_unix']-1,(int)$r['event_unix']+5,$now+301,[(string)$rows[1]['id']]);
+$expectedTotal=count($proof['events'])===1&&$proof['events'][0]['linkage']==='unique_visit_reconciled'
+&&$proof['events'][0]['expected_goal_reaches']===1&&$proof['events'][0]['expected_goal_value_rub']===40.0;
+$ordinary=$rows[1];$ordinary['id']='999';$ordinary['upload_id']='9999';$ordinary['client_id']='900000000000000009';
+$ordinary['target']=ModeledConversionValueContract::predictionKey('999');$ordinary['value_profile_id']='999';
+$selection=ModeledConversionVisitProof::dueIds([$ordinary,...$rows],(int)$r['event_unix']+5,$now+602,
+static fn(array $item):array=>['at'=>$now-400,'event'=>['upload_status'=>$item['id']==='999'?'UPLOADED':$item['upload_status'],
+'linkage'=>'failed','failure_audit'=>['diagnosis'=>'wire_collision']]],2);
+$repairPriority=count($selection)===2&&$selection[0]===(string)$rows[0]['id']&&in_array('999',$selection,true);
+$path=__FIXTURE_ROOT__.'/max-search-bot-modeled-visit-proof/wire-corrections/'.$plan['wire_key'].'.json';
+$private=(fileperms($path)&0777)===0600&&(fileperms(dirname($path))&0777)===0700;
+chmod($path,0644);clearstatcache(true,$path);$blocked=false;
+try{ModeledConversionWireValue::read($r);}catch(RuntimeException $e){$blocked=true;}
+echo json_encode(['ok'=>$first==='accepted'&&$again==='accepted'&&$last==='processed'
+&&$read['state']==='processed'&&$noReplay&&$api->writes===0&&$budgetRefused&&$expectedTotal&&$repairPriority&&$private&&$blocked],JSON_THROW_ON_ERROR);
+PHP;
+    $fixtureScript=str_replace(['__FIXTURE_ROOT__','__FIXTURE_ROWS__','__FIXTURE_NOW__'],
+        [var_export($isolated,true),var_export(json_encode([$wireFirst,$wireSecond],JSON_THROW_ON_ERROR),true),(string)$auditNow],$fixtureScript);
+    try{
+        $process=proc_open([PHP_BINARY,'-d','display_errors=stderr'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+        if(!is_resource($process))throw new RuntimeException('wire_fixture_process');
+        fwrite($pipes[0],$fixtureScript);fclose($pipes[0]);$result=stream_get_contents($pipes[1],2048);fclose($pipes[1]);
+        $error=stream_get_contents($pipes[2],2048);fclose($pipes[2]);$code=proc_close($process);
+        $check('wire evidence keeps original allocations, one reported goal, bounded repair priority and lost-ack GET recovery',
+            $code===0&&json_decode($result,true)===['ok'=>true]&&$error==='');
+    }finally{
+        $remove=function(string $dir)use(&$remove):void{foreach(new DirectoryIterator($dir)as$f){
+            if($f->isDot())continue;if($f->isDir()&&!$f->isLink())$remove($f->getPathname());else unlink($f->getPathname());
+        }rmdir($dir);};$remove($isolated);
+    }
+
+    $validateAudit=new ReflectionMethod(ModeledConversionVisitProof::class,'validatedFailureAudit');
+    $check('anonymous audit accepts only its exact scalar contract',$validateAudit->invoke(null,$audit,$auditNow)===$audit);
+    $foreign=$audit;$foreign['client_id']='PRIVATE';
+    $check('an injected provider or customer identifier cannot cross the private MCP projection',$validateAudit->invoke(null,$foreign,$auditNow)===null);
+    $unknown=ModeledConversionVisitProof::failureAudit($failed,$uploadReceipt,['status'=>'unavailable'],$noGoals,[$failed],$auditNow);
+    $check('unavailable visit evidence stays unknown instead of becoming absence or expiry',
+        $unknown['diagnosis']==='unavailable'&&$unknown['eligible_at_upload']===null);
 
     // Exact HTTP scope and counter timezone are exercised through the real client, without network.
     $wire=[];$transport=static function(string $method,string $url,mixed $body)use(&$wire,$day):array{
@@ -317,6 +463,171 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
         &&$wire[0][0]==='GET'&&$wire[1][0]==='GET'&&$q['ids']==='98615635'&&$q['accuracy']==='full'
         &&$q['filters']==="ym:s:clientID=='900000000000000001' AND ym:s:goal==678187097"
         &&!str_contains(json_encode($wire,JSON_THROW_ON_ERROR),'SYNTHETIC_TOKEN'));
+
+
+    $clientWire=[];$sampled=false;$truncated=false;
+    $clientTransport=static function(string $method,string $url,mixed $body)use(&$clientWire,&$sampled,&$truncated,$day):array{
+        $clientWire[]=[$method,$url,$body];
+        if(!str_contains($url,'stat/v1/'))return ['http'=>200,'error'=>0,'body'=>json_encode(['counter'=>['id'=>98615635,'time_zone_name'=>'Europe/Moscow']])];
+        parse_str((string)parse_url($url,PHP_URL_QUERY),$q);
+        return ['http'=>200,'error'=>0,'body'=>json_encode(['query'=>['ids'=>[98615635],'metrics'=>explode(',',$q['metrics']),
+            'dimensions'=>explode(',',$q['dimensions']),'filters'=>$q['filters']],'sampled'=>$sampled,'total_rows'=>$truncated?2:1,
+            'data'=>[['dimensions'=>[['name'=>'900000000000000001'],['name'=>(new DateTimeImmutable('@'.($day+60)))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('Y-m-d H:i:s')]],'metrics'=>[1]]]])];
+    };
+    $clientOnly=new MetrikaOfflineClient('98615635','SYNTHETIC_TOKEN',$clientTransport,microtime(true)+30);
+    $allVisits=$clientOnly->modeledClientVisits('900000000000000001',$day,$now);
+    parse_str((string)parse_url($clientWire[1][1],PHP_URL_QUERY),$clientQuery);
+    $check('rejected linkage diagnosis reads exact ClientID visits without requiring a goal achievement',
+        $allVisits['status']==='ok'&&$clientQuery['filters']==="ym:s:clientID=='900000000000000001'"
+        &&$clientQuery['metrics']==='ym:s:visits'&&$clientQuery['accuracy']==='full'
+        &&array_unique(array_column($clientWire,0))===['GET']);
+    $clientOnly->modeledClientVisits('900000000000000001',$day,$now);
+    $check('counter timezone is retained only within the same bounded verifier instance',count($clientWire)===3);
+    $sampled=true;$badClient=$clientOnly->modeledClientVisits('900000000000000001',$day,$now);
+    $sampled=false;$truncated=true;$truncatedClient=$clientOnly->modeledClientVisits('900000000000000001',$day,$now);
+    $check('sampled or incomplete visit reports cannot diagnose absent visits',$badClient['status']==='unavailable'&&$truncatedClient['status']==='unavailable');
+    $check('failure diagnosis distinguishes no visits later visits expired visits and an eligible but rejected visit',
+        ModeledConversionVisitProof::failureReason(['status'=>'ok','visits'=>[]],$day+200)==='no_reported_client_visits'
+        &&ModeledConversionVisitProof::failureReason(['status'=>'ok','visits'=>[['started_at'=>gmdate('c',$day+300)]]],$day+200)==='only_later_or_expired_client_visits'
+        &&ModeledConversionVisitProof::failureReason(['status'=>'ok','visits'=>[['started_at'=>gmdate('c',$day-22*86400)]]],$day+200)==='no_client_visit_in_attribution_window'
+        &&ModeledConversionVisitProof::failureReason($allVisits,$day+200)==='eligible_visit_but_provider_linkage_failed'
+        &&ModeledConversionVisitProof::failureReason(['status'=>'unavailable','visits'=>[]],$day+200)==='client_visit_report_unavailable');
+    $failureApi=new class($day){
+        public function __construct(public int $day){}
+        public function poll(string $id):array{return ['status'=>'LINKAGE_FAILURE','source_quantity'=>1,'line_quantity'=>1];}
+        public function modeledClientVisits(string $cid,int $activation,int $now):array{return ['status'=>'ok','visits'=>[['started_at'=>gmdate('c',$this->day+60),'visits'=>1]]];}
+    };
+    $rejected=ModeledConversionVisitProof::verify([$a],$failureApi,$day,$day+500,$now);
+    $check('an eligible candidate never turns a provider linkage failure into a credited conversion',
+        $rejected['events'][0]['linkage']==='failed'&&$rejected['events'][0]['reason']==='eligible_visit_but_provider_linkage_failed'
+        &&$rejected['events'][0]['visit_started_at']===null);
+    $queue=[];
+    for($i=40;$i>0;$i--){$r=$a;$r['id']=(string)$i;$r['value_api_accepted_at_unix']=$day+600;$r['upload_status']='UPLOADED';$queue[]=$r;}
+    $selection=ModeledConversionVisitProof::dueIds($queue,$day+500,$now,static function(array $r)use($now):array{
+        return $r['id']==='40'?['at'=>$now-400,'event'=>['linkage'=>'not_checked']]:[];
+    },2);
+    $check('a bounded scheduled batch includes the freshest row and an older never-checked row',$selection===['40','39']);
+    $checked=ModeledConversionVisitProof::dueIds($queue,$day+500,$now,static fn(array $r):array=>[
+        'at'=>$now-500,'event'=>['linkage'=>'unique_visit_reconciled','upload_status'=>'PROCESSED']],2);
+    $check('terminal visit evidence is not repeatedly queried every five minutes',$checked===[]);
+    $finished=$queue[35];$finished['upload_status']='PROCESSED';$finished['state']='processed';
+    $legacyFinished=$legacy;$legacyFinished['value_api_accepted_at_unix']=$day+600;
+    $priority=ModeledConversionVisitProof::dueIds([$queue[0],$finished,$legacyFinished],$day+500,$now,
+        static fn(array $r):array=>['at'=>$now-1,'event'=>['upload_status'=>'UPLOADED','linkage'=>'not_checked']],2);
+    $check('newly completed receipts precede repeated pending reads and include legacy goal rows',
+        $priority===[(string)$finished['id'],(string)$legacyFinished['id']]);
+    $historic=$queue[0];$historic['id']='41';$historic['upload_status']='PROCESSED';$historic['value_processed_at_unix']=$day+1;
+    $fresh=$queue[0];$fresh['id']='42';
+    $fair=ModeledConversionVisitProof::dueIds([$fresh,$historic,$finished],$day+500,$now,
+        static fn(array $r):array=>$r['id']===(string)$finished['id']
+            ?['at'=>$now-1,'event'=>['upload_status'=>'UPLOADED','linkage'=>'not_checked']]:[],2);
+    $check('old unchecked processing history cannot consume the new-upload slot',
+        $fair===[(string)$finished['id'],(string)$fresh['id']]);
+    $deadlineCalls=count($api->calls);$deadlineBlocked=false;
+    try{ModeledConversionVisitProof::verify([$a],$api,$day,$day+500,$now,null,microtime(true)-1);}catch(RuntimeException $ignored){$deadlineBlocked=true;}
+    $check('expired verifier time budget stops before a provider receipt read',$deadlineBlocked&&count($api->calls)===$deadlineCalls);
+    $retainedProof=ModeledConversionVisitProof::verify([$a],$api,$day,$day+500,$now,[],null,[(string)$a['id']=>$proof['events'][0]]);
+    $check('stable original-cohort evidence remains available without repeating its requests',
+        $retainedProof['events'][0]===$proof['events'][0]&&$retainedProof['selected_rows']===0&&count($api->calls)===$deadlineCalls);
+
+
+    $api->mismatch=false;$api->duplicate=false;
+    $explicitLegacy=ModeledConversionVisitProof::verify($ledger,$api,$day,$day+500,$now,[(string)$legacy['id']]);
+    $legacyResult=[];foreach($explicitLegacy['events']as$e)if($e['outbox_id']===(string)$legacy['id'])$legacyResult=$e;
+    $check('an explicit full-goal daily read can reconcile a legacy row without changing the frozen predictive cohort',
+        ($legacyResult['linkage']??null)==='unique_visit_reconciled'&&$legacyResult['cohort']===false
+        &&count(array_filter($explicitLegacy['events'],static fn(array $e):bool=>$e['cohort']))===2);
+
+    $todayA=$a;$todayA['claimed_at_unix']=$day+3600;$todayA['value_api_accepted_at_unix']=$day+3601;
+    $todayB=$b;$todayB['claimed_at_unix']=$day+4000;$todayB['value_api_accepted_at_unix']=$day+4001;
+    $todayB['upload_status']='UPLOADED';$todayB['state']='accepted';
+    $todayC=$a;$todayC['id']='4';$todayC['target']=ModeledConversionValueContract::predictionKey('4');$todayC['value_profile_id']='4';
+    $todayC['upload_id']='504';$todayC['value_rub']=20;$todayC['claimed_at_unix']=$day+4100;
+    $todayC['value_api_accepted_at_unix']=$day+4101;$todayC['upload_status']='LINKAGE_FAILURE';$todayC['state']='unmatched';
+    $yesterday=$todayA;$yesterday['id']='5';$yesterday['claimed_at_unix']=$day+3599;$yesterday['value_processed_at_unix']=$now-1;
+    $archived=static function(array $r)use($todayB,$todayC,$now):array{
+        $e=['fingerprint'=>ModeledConversionVisitProof::fingerprint($r),'upload_status'=>$r['id']===$todayC['id']?'LINKAGE_FAILURE':'UPLOADED',
+            'linkage'=>$r['id']===$todayC['id']?'failed':'not_checked'];
+        return ['at'=>$now-1,'event'=>$e];
+    };
+    $daily=ModeledConversionVisitProof::dailySentCohort([$todayA,$todayB,$todayC,$yesterday],
+        [(string)$todayA['id']=>$proof['events'][0]],$now,$archived);
+    $m=$daily['by_platform']['max'];$tg=$daily['by_platform']['telegram'];
+    $check('daily export report uses Kaliningrad midnight and excludes an earlier send processed today',
+        $daily['date']==='2026-11-02'&&$daily['timezone']==='Europe/Kaliningrad'
+        &&$daily['window']['from']===gmdate('Y-m-d\\TH:i:s\\Z',$day+3600)&&$m['sent']===['events'=>2,'conversations'=>1,'value_rub'=>37]);
+    $check('receipt processing and exact visit evidence stay separate within the same sent cohort',
+        $m['api_accepted']['value_rub']===37&&$m['processed']['value_rub']===17&&$m['visit_linked']['value_rub']===17
+        &&$m['linkage_failed']['value_rub']===20&&$m['proof_missing']['events']===0);
+    $check('Telegram has its own row and provider processing never becomes a confirmed visit',
+        $tg['sent']===['events'=>1,'conversations'=>1,'value_rub'=>100000]
+        &&$tg['api_accepted']['events']===1&&$tg['provider_processing']['events']===1&&$tg['visit_linked']['events']===0);
+    $processedB=$todayB;$processedB['upload_status']='PROCESSED';$processedB['state']='processed';$processedB['value_processed_at_unix']=$now;
+    $advanced=ModeledConversionVisitProof::dailySentCohort([$processedB],[],$now,$archived);
+    $check('a newly persisted processing receipt survives an older archived intermediate status without inventing a visit',
+        $advanced['by_platform']['telegram']['processed']['events']===1
+        &&$advanced['by_platform']['telegram']['visit_linked']['events']===0
+        &&$advanced['by_platform']['telegram']['unverified_visits']['events']===1);
+    $reader=new ReflectionMethod(ModeledConversionVisitProof::class,'dailySummary');
+    $summary=$reader->invoke(null,$daily,$now);$bad=$daily;$bad['by_platform']['max']['visit_linked']['value_rub']++;
+    $check('private daily summary validates arithmetic before publishing cached values',
+        $summary['available']&&$summary['fresh']&&!$reader->invoke(null,$bad,$now)['available']
+        &&!$reader->invoke(null,null,$now)['available']);
+    $check('daily cached summary becomes explicitly stale and contains no individual advertising identities',
+        !$reader->invoke(null,$daily,$now+901)['fresh']
+        &&!str_contains(json_encode($summary,JSON_THROW_ON_ERROR),'900000000000000001')
+        &&!str_contains(json_encode($summary,JSON_THROW_ON_ERROR),'conversation_id'));
+    $changedProof=$proof['events'][0];$changedProof['fingerprint']=str_repeat('a',64);
+    $unbound=ModeledConversionVisitProof::dailySentCohort([$todayA],[(string)$todayA['id']=>$changedProof],$now,$archived);
+    $check('a different event fingerprint cannot contribute to daily confirmed visit totals',
+        $unbound['by_platform']['max']['visit_linked']['events']===0&&$unbound['by_platform']['max']['proof_missing']['events']===1);
+
+
+    $cut=$day+5000;$beforeA=$todayA;$beforeA['value_processed_at_unix']=$day+4500;
+    $afterB=$todayB;$afterB['value_processed_at_unix']=$day+7000;$afterB['state']='processed';$afterB['upload_status']='PROCESSED';
+    $newer=$todayA;$newer['id']='6';$newer['claimed_at_unix']=$day+6000;$newer['value_rub']=19;
+    $currentB=$proof['events'][1];$currentB['checked_at']=gmdate('c',$now);
+    $follow=ModeledConversionVisitProof::followupReport([$beforeA,$afterB,$todayC,$newer],
+        [(string)$afterB['id']=>$currentB],$cut,$now,$archived);
+    $check('followup excludes later sends and receipts already processed at the original checkpoint',
+        $follow['baseline_by_platform']['max']['sent']['value_rub']===37
+        &&$follow['baseline_by_platform']['max']['processed_at_checkpoint']['value_rub']===17
+        &&$follow['outcome']['by_platform']['max']['sent']['value_rub']===20
+        &&$follow['outcome']['by_platform']['telegram']['visit_linked']['value_rub']===100000);
+    $followReader=new ReflectionMethod(ModeledConversionVisitProof::class,'followupSummary');
+    $followSafe=$followReader->invoke(null,$follow,$now);
+    $badFollow=$follow;$badFollow['baseline_by_platform']['max']['sent']['value_rub']++;
+    $check('followup arithmetic and original selection are validated before private disclosure',
+        $followSafe['available']&&!$followReader->invoke(null,$badFollow,$now)['available']
+        &&!str_contains(json_encode($followSafe,JSON_THROW_ON_ERROR),'conversation_id'));
+    $failedRows=[];$failedProofs=[];
+    for($i=0;$i<16;$i++){
+        $r=$a;$r['id']=(string)(100+$i);$r['conversation_id']=(string)(700+$i);$r['upload_id']=(string)(800+$i);
+        $r['event_unix']=$day+3900+$i;$r['claimed_at_unix']=$day+4000+$i;
+        $r['state']='unmatched';$r['upload_status']='LINKAGE_FAILURE';$r['value_processed_at_unix']=null;
+        $e=$proof['events'][0];$e['fingerprint']=ModeledConversionVisitProof::fingerprint($r);
+        $e['upload_status']='LINKAGE_FAILURE';$e['linkage']='failed';$e['reason']='eligible_visit_but_provider_linkage_failed';
+        $e['failure_audit']=ModeledConversionVisitProof::failureAudit($r,[],['status'=>'ok','visits'=>[]],
+            ['status'=>'unavailable'],[$r],$now);
+        $failedRows[]=$r;$failedProofs[$r['id']]=$e;
+    }
+    $failedFollow=ModeledConversionVisitProof::followupReport($failedRows,$failedProofs,$cut,$now,$archived);
+    $failedSafe=$followReader->invoke(null,$failedFollow,$now);
+    $check('the bounded private followup exposes every failed row up to sixteen without identifiers or changing delivery counts',
+        $failedSafe['available']&&count($failedSafe['failure_examples'])===16
+        &&$failedSafe['by_platform']['max']['linkage_failed']['events']===16
+        &&$failedSafe['by_platform']['max']['linkage_failed']['value_rub']===16*17
+        &&$failedSafe['failure_examples'][0]['audit']['diagnosis']==='no_reported_visits'
+        &&!str_contains(json_encode($failedSafe,JSON_THROW_ON_ERROR),'client_id')
+        &&!str_contains(json_encode($failedSafe,JSON_THROW_ON_ERROR),'upload_id'));
+
+    $nextDay=$day+100000;$nextProof=$currentB;$nextProof['checked_at']=gmdate('c',$nextDay);
+    $later=ModeledConversionVisitProof::followupReport([$beforeA,$afterB,$todayC,$newer],
+        [(string)$afterB['id']=>$nextProof],$cut,$nextDay,$archived);
+    $laterSafe=$followReader->invoke(null,$later,$nextDay);
+    $check('an explicit followup retains the original calendar after midnight while evidence stays current',
+        $laterSafe['available']&&$laterSafe['fresh']&&$laterSafe['date']==='2026-11-02'
+        &&$laterSafe['by_platform']['telegram']['sent']['events']===1);
 
     deliveryRegistrySchema($p);
     for($i=0;$i<35;$i++)deliveryRegistryFixtureEvent($p,610,1,$day+100+$i,['predictive'=>true,'value'=>10]);

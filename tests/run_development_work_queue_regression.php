@@ -2,6 +2,9 @@
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/DevelopmentWorkQueue.php';
 require_once __DIR__.'/fixtures/development_work_queue.php';
+require_once __DIR__.'/development_work_server_checks.php';
+if(($argv[1]??'')==='--development-server-race-child')devServerRaceChild($argv);
+if(($argv[1]??'')==='--development-arm-race-child')devServerArmRaceChild($argv);
 
 function devSpec(string $id,array $deps=[],int $priority=10): array
 {
@@ -1001,4 +1004,5 @@ foreach (['claim_first','block_first','old_ack_after_block'] as $scenario) {
 }
 
 
+devServerChecks();
 echo 'DEVELOPMENT WORK QUEUE: '.$checks." PASS\n";

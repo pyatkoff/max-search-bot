@@ -41,6 +41,14 @@ final class ModeledConversionDeliveryRegistryView
         if(!$ok){
             $html.='<div class="notice error" role="status"><h3>Реестр сейчас недоступен</h3><p>Не удалось получить актуальные начисления. Обновите страницу позже.</p></div>';
         }else{
+            $automatic=is_array($page['visit_verification']??null)?$page['visit_verification']:[];
+            if(($automatic['available']??false)===true){
+                $html.='<p class="scope-note">Сверка с визитами: автоматическая проверка раз в 5 минут. Последнее успешное обновление: '
+                    .self::moment(($automatic['success_unix']??0)>0?gmdate('c',$automatic['success_unix']):null)
+                    .'. Новые начисления и ранее не проверенные строки проходят по очереди; завершённые результаты проверяются повторно раз в сутки.'
+                    .(($automatic['fresh']??false)===true?'':' Обновление задерживается.')
+                    .' Время проверки каждой строки указано в её карточке.</p>';
+            }
             $summary=is_array($page['summary']??null)?$page['summary']:[];
             $html.='<div class="totals" aria-label="Итоги выбранного дня"><div class="total"><span>Начислено за день</span><strong>'.self::money($summary['value_rub']??null).'</strong>'
                 .'<small>Начислений: '.self::integer($summary['events']??null).' · диалогов: '.self::integer($summary['conversations']??null).'</small></div>';
@@ -144,7 +152,9 @@ final class ModeledConversionDeliveryRegistryView
     {
         $state=is_string($e['state']??null)?$e['state']:'';
         $stateText=self::STATES[$state]??'Статус неизвестен';
-        $class=in_array($state,['accepted','processed'],true)?'good':(in_array($state,['failed','unknown','expired','unmatched'],true)?'attention':'neutral');
+        $wireCorrected=($e['visit_check']['linkage']??null)==='wire_value_reconciled';
+        if($wireCorrected)$stateText='Ценность восстановлена по общему ключу';
+        $class=$wireCorrected||in_array($state,['accepted','processed'],true)?'good':(in_array($state,['failed','unknown','expired','unmatched'],true)?'attention':'neutral');
         $origin=in_array($e['origin']??null,['owner_day_review_v1','owner_fortnight_review_v1','historical_review'],true)?'Исторический разбор':'Новый поток';
         $html='<section class="event"><div class="event-heading"><div><h4>'.self::stage($e['stage']??null).'</h4><span class="muted">'.$origin.'</span></div><strong>+'.self::money($e['value_rub']??null).'</strong>'
             .'<span class="badge '.$class.'">'.$stateText.'</span></div>';
@@ -170,9 +180,20 @@ final class ModeledConversionDeliveryRegistryView
         }
         $p=is_array($e['visit_check']??null)?$e['visit_check']:[];
         if(($p['available']??false)===true){
-            $linked=($p['linkage']??null)==='unique_visit_reconciled';
-            $html.='<div class="ground"><strong>'.($linked?'Однозначно сверено с целевым визитом':'Привязка к визиту ещё не подтверждена').'</strong>'
+            $linked=in_array($p['linkage']??null,['unique_visit_reconciled','wire_value_reconciled'],true);
+            $failed=($p['linkage']??null)==='failed';
+            $html.='<div class="ground"><strong>'.($linked?'Однозначно сверено с целевым визитом':($failed?'Метрика не привязала начисление к визиту':'Привязка к визиту ещё не подтверждена')).'</strong>'
                 .'<p>Дополнительная проверка Метрики: '.self::moment($p['checked_at']??null).'. Статус загрузки: '.self::e($p['upload_status']??'не получен').'.</p>';
+            $why=match($p['reason']??null){
+                'same_wire_total_provider_and_visit_report_reconciled'=>'Общая сумма обновлена по исходному ключу без новой цели. Новая загрузка обработана, сумма и визит сверены; статус прежней загрузки сохранён в истории.',
+                'no_reported_client_visits'=>'В счётчике не найдены визиты сохранённого ClientID за проверенный период.',
+                'only_later_or_expired_client_visits'=>'Найдены только визиты после сигнала или вне окна атрибуции.',
+                'no_client_visit_in_attribution_window'=>'Для этого сигнала нет визита в пределах 21 дня.',
+                'eligible_visit_but_provider_linkage_failed'=>'Подходящий по времени визит найден, но Метрика вернула отказ привязки.',
+                'client_visit_report_unavailable'=>'Отказ привязки получен; отчёт визитов для уточнения причины недоступен.',
+                default=>null,
+            };
+            if($why!==null)$html.='<p>'.self::e($why).'</p>';
             if(($p['fresh']??false)!==true)$html.='<p class="hold-reason">Проверка устарела; это сохранённый результат.</p>';
             if($linked)$html.='<p>Начало визита: '.self::moment($p['visit_started_at']??null).'. Достижений этой цели в визите: '
                 .self::integer($p['visit_goal_reaches']??null).'; сумма: '.self::money($p['visit_goal_value_rub']??null).'. Учтены прежние начисления того же посетителя.</p>'
@@ -196,6 +217,7 @@ final class ModeledConversionDeliveryRegistryView
     private static function reason(mixed $error):?string
     {
         return match($error){
+            'wire_key_collision'=>'Совпали посетитель, цель и секунда события. Прирост сохранён; отдельная отправка удержана, чтобы не перезаписать уже переданную сумму.',
             'identity_not_found'=>'Нет сохранённой рекламной связки для отправки.',
             'identity_ambiguous'=>'Найдено несколько рекламных связок. Однозначная связь пока не подтверждена.',
             'scope_unavailable'=>'Не удалось подтвердить доступ к основанию.',

@@ -6,6 +6,8 @@ final class AppleService39PilotCatalog
 {
     public const PROJECT = 'appleservice39';
     public const BOT = 'id390521129062_bot';
+    public const WARRANTY_MONTHS = 3;
+    public const WARRANTY_TEXT = 'Гарантия — 3 месяца.';
     private const MODELS = [
         'iphone-x'=>'iPhone X',
         'iphone-15'=>'iPhone 15',
@@ -97,17 +99,48 @@ final class AppleService39PilotCatalog
         return $entry['start_payload'] ?? null;
     }
 
+
+    /** The nine navigation pages have bounded partial contexts, never a guessed repair price. */
+    public static function landingEntryForPost(string $postId): ?array
+    {
+        $repair = self::forPost($postId);
+        if ($repair !== null) return $repair;
+        $model = ''; $service = ''; $scope = '';
+        if ($postId === 'menu') $scope = 'menu';
+        elseif (str_starts_with($postId, 'model-') && isset(self::MODELS[substr($postId, 6)])) {
+            $scope = 'model'; $model = self::MODELS[substr($postId, 6)];
+        } else {
+            foreach (self::SERVICES as [$suffix,$name]) if ($postId === 'service-'.$suffix) {
+                $scope = 'service'; $service = $name; break;
+            }
+        }
+        if ($scope === '') return null;
+        return ['post_id'=>$postId,'model'=>$model,'service'=>$service,'scope'=>$scope,'start_payload'=>'as39_'.$postId];
+    }
+
+    public static function landingPayloadForPost(string $postId): ?string
+    {
+        return self::landingEntryForPost($postId)['start_payload'] ?? null;
+    }
+
     public static function resolve(string $projectKey, string $botKey, string $payload): ?array
     {
         if ($projectKey !== self::PROJECT || $botKey !== self::BOT) return null;
         if ($payload === 'as39_x_battery') return self::forPost('repair-iphone-x-battery-replacement');
-        return str_starts_with($payload, 'as39_') ? self::forPost(substr($payload, 5)) : null;
+        return str_starts_with($payload, 'as39_') ? self::landingEntryForPost(substr($payload, 5)) : null;
     }
 
     /** Capture this text once in the entry event before attempting delivery. */
     public static function responseText(array $entry, string $brand): string
     {
+        if (isset($entry['scope'])) {
+            $intro = 'Здравствуйте! Это '.$brand.".\n";
+            $warranty = "\n".self::WARRANTY_TEXT."\n";
+            if ($entry['scope'] === 'model') return $intro.'Ремонт '.$entry['model'].'.'.$warranty.'Расскажите, что случилось с телефоном. Менеджер поможет уточнить стоимость и возможность записи.';
+            if ($entry['scope'] === 'service') return $intro.$entry['service'].'.'.$warranty.'Какая у вас модель iPhone и что произошло? Уточним подходящий вариант, стоимость и наличие детали.';
+            return $intro.'Поможем с ремонтом iPhone в Калининграде.'.$warranty.'Что хотите уточнить? Если это новое устройство, укажите модель и проблему.';
+        }
         return 'Здравствуйте! Это '.$brand.".\n".$entry['service'].' — '.$entry['model'].".\n"
-            .$entry['price_text']."\n".$entry['question'];
+            .$entry['price_text']."\n".self::WARRANTY_TEXT."\n".$entry['question'];
     }
 }

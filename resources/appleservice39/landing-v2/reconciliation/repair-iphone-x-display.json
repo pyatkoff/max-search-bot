@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_native_replacement",
+  "campaign_key": "appleservice39-pilot-v1",
+  "project_key": "appleservice39",
+  "bot_key": "id390521129062_bot",
+  "channel_id": "-80917954947727",
+  "post_id": "repair-iphone-x-display",
+  "message_id": "mid.ffffb667d20a157101a1bd6cbee459fe",
+  "public_url": "https://max.ru/channel_appleservice39ru/AaG9bL7kWf4",
+  "revision_sha256": "f772e83df3532120cf20d99ff0476c9717d5f42d75b7f6f89b8e0fed8890f8bd",
+  "source_sha256": "d9782a061d8dffa31fb631ab935170a22bb239661e894e169b9209e2091ab752",
+  "upload_operation_id": 76,
+  "upload_request_sha256": "f39d33ddb7885281b4b346ff739bc7961c189e3fdf1c6b38ba967f75da001434",
+  "upload_token_sha256": "e07f786b93159b17837e88e62918c22499dbb15b81780db6945c48dd136dd3dd",
+  "edit_operation_id": 91,
+  "edit_request_sha256": "818850d05030a5789036864a011bf43286b7716039beac10bf8b52ef04833eb4",
+  "edit_started_ms": 1794302456491,
+  "native_photo_id": "46903567697",
+  "native_preview_sha256": "ea239dfef4fb9ab78e977987a86b1c8d99583c207f60a69de5d581314fa1eead",
+  "native_preview_width": 561,
+  "native_preview_height": 768,
+  "native_payload_url_sha256": "8a1966d4ba051f46d6ef29c8d44312f74bb80dbed9cdee39db62f26ba71c741c",
+  "native_readback_run_id": 42789765899,
+  "native_readback_job_id": 129740355281,
+  "visual_review": {
+    "source_asset_opened": true,
+    "native_preview_opened": true,
+    "exact_layout_model_service_price_qualifiers": true
+  }
+}

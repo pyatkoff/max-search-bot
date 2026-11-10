@@ -43,6 +43,9 @@ final class ManagerPreparationMcpService
         $forecastStatus=($rpc['method']??null)==='tools/call'&&is_array($rpc['params']??null)
             &&($rpc['params']['name']??null)===ModeledConversionStatusMcpAdapter::NAME;
         $this->forecastBudget=$forecastStatus?($forecastBudget??new ModeledConversionStatusBudget()):null;
+        $developmentStatus=($rpc['method']??null)==='tools/call'&&is_array($rpc['params']??null)
+            &&($rpc['params']['name']??null)==='development_work_status';
+        if($developmentStatus&&is_string($id)&&strlen($id)>1024)return self::error(null,-32600,'Invalid Request');
         $workStatus=($rpc['method']??null)==='tools/call' && is_array($rpc['params']??null)
             && in_array($rpc['params']['name']??null,['hotel_work_status','development_work_status'],true);
         if (($rpc['jsonrpc'] ?? '') !== '2.0' || !is_string($rpc['method'] ?? null)
@@ -95,6 +98,8 @@ final class ManagerPreparationMcpService
                 $this->requireCurrentContext($authorizedAdminId,$connectionId,$scopes);
             }
             $response=!array_key_exists('id',$rpc) ? [] : ['jsonrpc'=>'2.0','id'=>$id,'result'=>$result];
+            if($developmentStatus&&strlen(json_encode($response,JSON_THROW_ON_ERROR))>262144)
+                return self::error($id,-32603,'Development status exceeds byte limit');
             // Archive data appears in both text content and structuredContent.
             // Bound the complete wire response, including escaping and RPC ID.
             if ($rpc['method']==='tools/call' && in_array($params['name']??null,ArchiveResearchMcpAdapter::NAMES,true)
@@ -326,6 +331,8 @@ final class ManagerPreparationMcpService
         if (!is_array($data)) throw new RuntimeException();
         $images=$name==='get_reply_context'?($data['image_inputs']??[]):[];unset($data['image_inputs']);
         if (!is_array($images)||!array_is_list($images)||count($images)>4) throw new RuntimeException();
+        if($name==='development_work_status'&&($data['server_control']['readback_contract']??null)==='full_structured_v2')
+            return DevelopmentWorkServerContract::toolResult($data);
         $content=[['type'=>'text','text'=>json_encode($data,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]];
         $imageBytes=0;
         foreach ($images as $image) {

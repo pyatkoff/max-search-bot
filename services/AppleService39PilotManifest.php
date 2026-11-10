@@ -120,3 +120,407 @@ final class AppleService39PilotManifest
     }
     private static function check(bool $condition, string $reason): void { if (!$condition) throw new RuntimeException($reason); }
 }
+
+
+/** Fixed text/artwork revision; original campaign assets and receipts are immutable. */
+final class AppleService39LandingRevision
+{
+    public const KEY = 'landing-v2';
+    private array $data;
+    private string $sha256;
+    private AppleService39PilotManifest $original;
+    private array $artwork = [];
+    private string $artworkDirectory;
+    private string $reviewDirectory;
+
+    public function __construct(AppleService39PilotManifest $original, ?string $path = null)
+    {
+        $path ??= dirname(__DIR__).'/resources/appleservice39/landing-v2/manifest.json';
+        self::check(is_file($path) && !is_link($path) && filesize($path) <= 131072, 'landing_revision_unavailable');
+        $raw = file_get_contents($path);
+        self::check(is_string($raw), 'landing_revision_unavailable');
+        $data = json_decode($raw, true, 32, JSON_THROW_ON_ERROR);
+        self::check(is_array($data) && ($data['schema_version'] ?? null) === 1
+            && ($data['revision_key'] ?? null) === self::KEY
+            && ($data['campaign_key'] ?? null) === AppleService39PilotManifest::CAMPAIGN
+            && ($data['project_key'] ?? null) === AppleService39PilotManifest::PROJECT
+            && ($data['bot_key'] ?? null) === AppleService39PilotManifest::BOT
+            && ($data['source_key'] ?? null) === AppleService39PilotManifest::SOURCE
+            && ($data['channel_url'] ?? null) === AppleService39PilotManifest::CHANNEL
+            && ($data['base_manifest_sha256'] ?? null) === $original->sha256()
+            && ($data['asset_policy'] ?? null) === 'reviewed_repair_artwork'
+            && ($data['contact_source'] ?? null) === 'https://appleservice39.ru/kontakty/',
+            'landing_revision_identity_mismatch');
+        self::check(is_array($data['posts'] ?? null) && array_is_list($data['posts'])
+            && array_column($data['posts'], 'id') === array_column($original->posts(), 'id'), 'landing_exact_posts_required');
+        foreach ($data['posts'] as $post) {
+            self::check(is_array($post) && array_keys($post) === ['id','title','paragraphs','button_label','links'],
+                'landing_post_invalid');
+            self::plain($post['title'], 100);
+            self::plain($post['button_label'], 20);
+            self::check(is_array($post['paragraphs']) && array_is_list($post['paragraphs'])
+                && count($post['paragraphs']) >= 2 && count($post['paragraphs']) <= 6
+                && $post['links'] === $original->post($post['id'])['links'], 'landing_post_invalid');
+            foreach ($post['paragraphs'] as $paragraph) self::plain($paragraph, 1600);
+            self::check(AppleService39PilotCatalog::landingPayloadForPost($post['id']) !== null, 'landing_entry_invalid');
+            $entry = AppleService39PilotCatalog::forPost($post['id']);
+            if ($entry !== null) self::check(in_array($entry['price_text'], $post['paragraphs'], true)
+                && str_contains($post['title'], $entry['model']), 'landing_reviewed_price_required');
+        }
+        $this->original = $original; $this->data = $data; $this->sha256 = hash('sha256', $raw);
+        $this->artworkDirectory = dirname((string)realpath($path)).'/artwork';
+        $this->reviewDirectory = dirname((string)realpath($path)).'/reconciliation';
+        $assetPath = $this->artworkDirectory.'/asset-manifest.json';
+        self::check(is_file($assetPath) && !is_link($assetPath) && filesize($assetPath) <= 65536
+            && is_string($data['artwork_manifest_sha256'] ?? null)
+            && hash_file('sha256', $assetPath) === $data['artwork_manifest_sha256'], 'landing_artwork_manifest_changed');
+        $assets = json_decode((string)file_get_contents($assetPath), true, 32, JSON_THROW_ON_ERROR);
+        self::check(is_array($assets) && ($assets['schema_version'] ?? null) === 1
+            && ($assets['project_key'] ?? null) === AppleService39PilotManifest::PROJECT
+            && ($assets['media_kind'] ?? null) === 'AI_generated_illustration'
+            && is_array($assets['posts'] ?? null) && array_is_list($assets['posts']) && count($assets['posts']) === 15,
+            'landing_artwork_manifest_changed');
+        foreach ($assets['posts'] as $asset) {
+            $id = $asset['post_id'] ?? null;
+            self::check(is_string($id) && !isset($this->artwork[$id]), 'landing_artwork_manifest_changed');
+            $entry = AppleService39PilotCatalog::forPost($id);
+            self::check($entry !== null && ($asset['path'] ?? null) === 'covers/'.$id.'.png'
+                && ($asset['source_artwork_visually_reviewed'] ?? null) === true
+                && ($asset['width'] ?? null) === 1072 && ($asset['height'] ?? null) === 1467
+                && is_int($asset['bytes'] ?? null) && $asset['bytes'] > 0 && $asset['bytes'] < 1900000
+                && is_string($asset['sha256'] ?? null) && preg_match('/\A[a-f0-9]{64}\z/D', $asset['sha256']) === 1,
+                'landing_artwork_manifest_changed');
+            foreach (['model','service','service_key','price_kind','price_text','source_urls'] as $key) {
+                self::check(($asset[$key] ?? null) === $entry[$key], 'landing_artwork_catalog_changed');
+            }
+            $this->artwork[$id] = $asset;
+            $this->validateArtwork($id);
+        }
+    }
+
+    public function sha256(): string { return $this->sha256; }
+    public function posts(): array { return $this->data['posts']; }
+    public function artwork(string $postId): ?array { return $this->artwork[$postId] ?? null; }
+
+    /** Source-controlled approvals only. An unregistered JSON/JPEG is never evidence. */
+    public function reviewedNativeImage(string $postId): ?array
+    {
+        $indexPath = $this->reviewDirectory.'/index.json';
+        self::check(is_file($indexPath) && !is_link($indexPath) && filesize($indexPath) <= 16384,
+            'landing_review_index_unavailable');
+        $index = json_decode((string)file_get_contents($indexPath), true, 16, JSON_THROW_ON_ERROR);
+        self::check(is_array($index) && array_keys($index) === ['schema_version','revision_key','project_key','policy','approvals']
+            && $index['schema_version'] === 1 && $index['revision_key'] === self::KEY
+            && $index['project_key'] === AppleService39PilotManifest::PROJECT
+            && $index['policy'] === 'exact_source_and_native_visual_review'
+            && is_array($index['approvals']) && array_is_list($index['approvals']) && count($index['approvals']) <= 15,
+            'landing_review_index_unavailable');
+        $ids = []; $selected = null;
+        foreach ($index['approvals'] as $item) {
+            self::check(is_array($item) && array_keys($item) === ['post_id','proof_sha256','native_preview_sha256']
+                && is_string($item['post_id']) && $this->artwork($item['post_id']) !== null
+                && !isset($ids[$item['post_id']]), 'landing_review_index_unavailable');
+            foreach (['proof_sha256','native_preview_sha256'] as $key) self::check(is_string($item[$key])
+                && preg_match('/\A[a-f0-9]{64}\z/D', $item[$key]) === 1, 'landing_review_index_unavailable');
+            $ids[$item['post_id']] = true;
+            if ($item['post_id'] === $postId) $selected = $item;
+        }
+        if ($selected === null) return null;
+        $proofPath = $this->reviewDirectory.'/'.$postId.'.json';
+        $previewPath = $this->reviewDirectory.'/'.$postId.'.jpg';
+        foreach ([$proofPath,$previewPath] as $file) self::check(is_file($file) && !is_link($file)
+            && dirname((string)realpath($file)) === (string)realpath($this->reviewDirectory), 'landing_review_evidence_unavailable');
+        self::check(filesize($proofPath) > 0 && filesize($proofPath) <= 16384
+            && filesize($previewPath) > 0 && filesize($previewPath) <= 5242880
+            && hash_file('sha256', $proofPath) === $selected['proof_sha256']
+            && hash_file('sha256', $previewPath) === $selected['native_preview_sha256'], 'landing_review_evidence_changed');
+        $proof = json_decode((string)file_get_contents($proofPath), true, 16, JSON_THROW_ON_ERROR);
+        $image = @getimagesize($previewPath);
+        self::check(is_array($proof) && is_array($image) && $image[2] === IMAGETYPE_JPEG
+            && $image[0] > 0 && $image[0] <= 7680 && $image[1] > 0 && $image[1] <= 7680
+            && ($proof['native_preview_width'] ?? null) === $image[0]
+            && ($proof['native_preview_height'] ?? null) === $image[1]
+            && ($proof['native_preview_sha256'] ?? null) === $selected['native_preview_sha256'],
+            'landing_review_evidence_changed');
+        return ['proof'=>$proof,'evidence_sha256'=>$selected['proof_sha256'],
+            'native_preview_sha256'=>$selected['native_preview_sha256']];
+    }
+
+    public function validateArtwork(string $postId): string
+    {
+        $asset = $this->artwork[$postId] ?? null;
+        self::check(is_array($asset), 'landing_artwork_manifest_changed');
+        $path = $this->artworkDirectory.'/'.$asset['path'];
+        $resolved = realpath($path); $directory = realpath($this->artworkDirectory.'/covers');
+        self::check(is_string($resolved) && is_string($directory) && dirname($resolved) === $directory
+            && !is_link($path) && is_file($path) && filesize($path) === $asset['bytes']
+            && hash_file('sha256', $path) === $asset['sha256'], 'landing_artwork_changed');
+        $image = @getimagesize($path);
+        self::check(is_array($image) && ($image[2] ?? null) === IMAGETYPE_PNG
+            && $image[0] === 1072 && $image[1] === 1467, 'landing_artwork_changed');
+        return $path;
+    }
+
+    /** Build both the outgoing HTML and its exact native text/link projection. */
+    /** Shared canonical text projection; a text-only revision never supplies attachments. */
+    public static function textPlan(array $post, array $urls, ?string $navigationTitle = null): array
+    {
+        $escape = static fn(string $text): string => htmlspecialchars($text, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
+        $plain = $post['title']."\n\n".implode("\n\n", $post['paragraphs']);
+        $html = '<b>'.$escape($post['title']).'</b>'."\n\n".$escape(implode("\n\n", $post['paragraphs']));
+        $markup = [['type'=>'strong','from'=>0,'length'=>mb_strlen($post['title'], 'UTF-8')]];
+        $navigationTitle ??= $post['id'] === 'menu' ? 'Выберите модель или услугу'
+            : (str_starts_with($post['id'], 'model-') ? 'Выберите ремонт'
+                : (str_starts_with($post['id'], 'service-') ? 'Выберите модель' : 'Другие варианты'));
+        $plain .= "\n\n".$navigationTitle;
+        $html .= "\n\n".$escape($navigationTitle);
+        foreach ($post['links'] as $link) {
+            $url = $urls[$link['id']] ?? null;
+            self::check(is_string($url) && preg_match('~\Ahttps://max\.ru/channel_appleservice39ru/[A-Za-z0-9_-]{1,191}\z~D', $url) === 1,
+                'landing_verified_link_required');
+            $plain .= "\n";
+            $markup[] = ['type'=>'link','from'=>mb_strlen($plain, 'UTF-8'),
+                'length'=>mb_strlen($link['label'], 'UTF-8'),'url'=>$url];
+            $plain .= $link['label'];
+            $html .= "\n".'<a href="'.$escape($url).'">'.$escape($link['label']).'</a>';
+        }
+        self::check(mb_strlen($plain, 'UTF-8') <= 4000 && mb_strlen($html, 'UTF-8') <= 4000, 'landing_post_too_long');
+        return ['body'=>['text'=>$html,'format'=>'html'],'native_text'=>$plain,'native_markup'=>$markup];
+    }
+
+    public function plan(array $post, array $upload, array $urls): array
+    {
+        $text = self::textPlan($post, $urls);
+        $old = $this->original->post($post['id']);
+        $body = $this->original->body($old, $upload);
+        $images = array_values(array_filter($body['attachments'] ?? [], static fn(array $item): bool => $item['type'] === 'image'));
+        self::check(count($images) === 1, 'landing_original_image_required');
+        $payload = AppleService39PilotCatalog::landingPayloadForPost($post['id']);
+        $body = ['text'=>$text['body']['text'],'format'=>'html','attachments'=>[$images[0],
+            ['type'=>'inline_keyboard','payload'=>['buttons'=>[[['type'=>'link','text'=>$post['button_label'],
+                'url'=>'https://max.ru/'.AppleService39PilotManifest::BOT.'?start='.$payload]]]]]]];
+        return ['revision_sha256'=>$this->sha256,'body'=>$body,'native_text'=>$text['native_text'],'native_markup'=>$text['native_markup']];
+    }
+
+    public static function sameMarkup($actual, array $expected): bool
+    {
+        if (!is_array($actual) || !array_is_list($actual) || count($actual) !== count($expected)) return false;
+        foreach ($actual as $item) {
+            if (!is_array($item) || !is_string($item['type'] ?? null) || !is_int($item['from'] ?? null)
+                || !is_int($item['length'] ?? null)) return false;
+            $keys = $item['type'] === 'link' ? ['type','from','length','url'] : ['type','from','length'];
+            if (array_diff(array_keys($item), $keys) !== [] || count($item) !== count($keys)) return false;
+        }
+        $sort = static fn(array $a, array $b): int => ($a['from'] <=> $b['from']) ?: strcmp($a['type'], $b['type']);
+        usort($actual, $sort); usort($expected, $sort);
+        foreach ($expected as $i=>$item) foreach ($item as $key=>$value) {
+            if (!array_key_exists($key, $actual[$i]) || $actual[$i][$key] !== $value) return false;
+        }
+        return true;
+    }
+
+    private static function plain($value, int $limit): void
+    {
+        // Fixed BMP-only copy makes Unicode character and UTF-16 entity offsets identical.
+        self::check(is_string($value) && trim($value) !== '' && mb_strlen($value, 'UTF-8') <= $limit
+            && preg_match('/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f<>\x{10000}-\x{10ffff}]/u', $value) === 0,
+            'landing_plain_text_required');
+    }
+    private static function check(bool $ok, string $reason): void { if (!$ok) throw new RuntimeException($reason); }
+}
+
+/** An immutable successor text revision. The accepted v2 artwork and claims stay untouched. */
+final class AppleService39CatalogueRevision
+{
+    public const KEY = 'catalogue-v1';
+    public const OPERATION = 'catalogue_v1';
+    public const PARENT_SHA = 'f772e83df3532120cf20d99ff0476c9717d5f42d75b7f6f89b8e0fed8890f8bd';
+    private array $data;
+    private array $catalogue;
+    private string $sha256;
+
+    public function __construct(AppleService39PilotManifest $original, ?string $path = null)
+    {
+        $path ??= dirname(__DIR__).'/resources/appleservice39/catalogue-v1/manifest.json';
+        $raw = self::readFile($path, 131072);
+        $data = json_decode($raw, true, 32, JSON_THROW_ON_ERROR);
+        $parent = self::readFile(dirname(__DIR__).'/resources/appleservice39/landing-v2/manifest.json', 131072);
+        self::check(hash('sha256', $parent) === self::PARENT_SHA, 'catalogue_parent_changed');
+        $previous = json_decode($parent, true, 32, JSON_THROW_ON_ERROR);
+        self::check(is_array($data) && ($data['schema_version'] ?? null) === 1
+            && ($data['revision_key'] ?? null) === self::KEY
+            && ($data['campaign_key'] ?? null) === AppleService39PilotManifest::CAMPAIGN
+            && ($data['project_key'] ?? null) === AppleService39PilotManifest::PROJECT
+            && ($data['bot_key'] ?? null) === AppleService39PilotManifest::BOT
+            && ($data['source_key'] ?? null) === AppleService39PilotManifest::SOURCE
+            && ($data['channel_url'] ?? null) === AppleService39PilotManifest::CHANNEL
+            && ($data['base_manifest_sha256'] ?? null) === $original->sha256()
+            && ($data['parent_revision_sha256'] ?? null) === self::PARENT_SHA
+            && ($data['asset_policy'] ?? null) === 'preserve_native_attachments'
+            && ($data['warranty_months'] ?? null) === AppleService39PilotCatalog::WARRANTY_MONTHS
+            && ($data['model_count'] ?? null) === 33
+            && ($data['contact_source'] ?? null) === 'https://appleservice39.ru/kontakty/', 'catalogue_revision_invalid');
+        $catalogueRaw = self::readFile(dirname($path).'/catalog.json', 262144);
+        self::check(is_string($data['catalogue_sha256'] ?? null)
+            && hash('sha256', $catalogueRaw) === $data['catalogue_sha256'], 'catalogue_source_changed');
+        $this->catalogue = json_decode($catalogueRaw, true, 32, JSON_THROW_ON_ERROR);
+        $this->validateCatalogue();
+        self::check(is_array($data['posts'] ?? null) && array_is_list($data['posts'])
+            && array_column($data['posts'], 'id') === array_column($original->posts(), 'id'), 'catalogue_posts_changed');
+        $prior = array_column($previous['posts'], null, 'id');
+        foreach ($data['posts'] as $post) {
+            self::check(is_array($post) && array_keys($post) === ['id','title','paragraphs','button_label','links'], 'catalogue_post_invalid');
+            self::plain($post['title'], 100); self::plain($post['button_label'], 20);
+            self::check($post['button_label'] === $prior[$post['id']]['button_label']
+                && is_array($post['paragraphs']) && array_is_list($post['paragraphs'])
+                && count($post['paragraphs']) >= 2 && count($post['paragraphs']) <= 6
+                && count(array_keys($post['paragraphs'], AppleService39PilotCatalog::WARRANTY_TEXT, true)) === 1,
+                'catalogue_post_invalid');
+            foreach ($post['paragraphs'] as $paragraph) self::plain($paragraph, 1600);
+            $links = $post['links']; $oldLinks = $prior[$post['id']]['links'];
+            self::check(is_array($links) && array_is_list($links), 'catalogue_links_changed');
+            usort($links, static fn(array $a,array $b): int => strcmp($a['id'],$b['id']));
+            usort($oldLinks, static fn(array $a,array $b): int => strcmp($a['id'],$b['id']));
+            self::check($links === $oldLinks, 'catalogue_links_changed');
+            $entry = AppleService39PilotCatalog::forPost($post['id']);
+            if ($entry !== null) self::check(in_array($entry['price_text'], $post['paragraphs'], true)
+                && str_contains($post['title'], $entry['model']), 'catalogue_reviewed_price_changed');
+            $service = ['service-battery-replacement'=>'battery_replacement',
+                'service-front-glass-replacement'=>'front_glass_replacement','service-display'=>'display'][$post['id']] ?? null;
+            if ($service !== null) self::check($post['paragraphs'][1] === $this->priceParagraph($service), 'catalogue_price_projection_changed');
+        }
+        $this->data = $data; $this->sha256 = hash('sha256', $raw);
+    }
+
+    public function sha256(): string { return $this->sha256; }
+    public function posts(): array { return $this->data['posts']; }
+    public function catalogueSha256(): string { return $this->data['catalogue_sha256']; }
+    public function modelCount(): int { return $this->catalogue['model_count']; }
+
+    public function plan(array $post, array $urls): array
+    {
+        $title = $post['id'] === 'menu' ? 'Разделы и подробные карточки'
+            : (str_starts_with($post['id'], 'service-') ? 'Подробные карточки' : null);
+        return AppleService39LandingRevision::textPlan($post, $urls, $title);
+    }
+
+    private function validateCatalogue(): void
+    {
+        $c = $this->catalogue;
+        self::check(($c['schema_version'] ?? null) === 1 && ($c['project_key'] ?? null) === AppleService39PilotManifest::PROJECT
+            && ($c['bot_key'] ?? null) === AppleService39PilotManifest::BOT && ($c['model_count'] ?? null) === 33
+            && ($c['warranty_months'] ?? null) === AppleService39PilotCatalog::WARRANTY_MONTHS
+            && is_array($c['models'] ?? null) && array_is_list($c['models']) && count($c['models']) === 33
+            && is_array($c['model_groups'] ?? null) && array_is_list($c['model_groups']) && count($c['model_groups']) === 9
+            && is_array($c['offers'] ?? null) && array_is_list($c['offers']) && count($c['offers']) === 96,
+            'catalogue_source_invalid');
+        $models = []; $groups = []; $coverage = [];
+        foreach ($c['models'] as $model) {
+            self::check(is_array($model) && is_string($model['id'] ?? null)
+                && preg_match('/\Aiphone-[a-z0-9-]{1,40}\z/D', $model['id']) === 1 && !isset($models[$model['id']]), 'catalogue_source_invalid');
+            self::plain($model['short_label'] ?? null, 40);
+            self::check(($model['label'] ?? null) === 'iPhone '.$model['short_label'], 'catalogue_source_invalid');
+            $models[$model['id']] = $model;
+        }
+        foreach ($c['model_groups'] as $group) {
+            self::check(is_array($group) && is_string($group['id'] ?? null) && is_array($group['model_ids'] ?? null)
+                && array_is_list($group['model_ids']) && count($group['model_ids']) > 0 && !isset($groups[$group['id']]), 'catalogue_source_invalid');
+            $groups[$group['id']] = true;
+            foreach ($group['model_ids'] as $id) {
+                self::check(is_string($id) && isset($models[$id]) && !isset($coverage[$id])
+                    && $models[$id]['family_id'] === $group['id'], 'catalogue_source_invalid');
+                $coverage[$id] = true;
+            }
+        }
+        self::check(count($coverage) === 33, 'catalogue_source_invalid');
+        $seen = []; $display = [];
+        foreach ($c['offers'] as $offer) {
+            self::check(is_array($offer) && in_array($offer['service_key'] ?? '', ['battery_replacement','front_glass_replacement','display'], true)
+                && is_array($offer['model_ids'] ?? null) && array_is_list($offer['model_ids']) && count($offer['model_ids']) > 0
+                && ($offer['warranty_months'] ?? null) === AppleService39PilotCatalog::WARRANTY_MONTHS
+                && is_array($offer['price'] ?? null) && ($offer['price']['currency'] ?? null) === 'RUB'
+                && in_array($offer['price']['kind'] ?? '', ['listed','on_request','unconfirmed'], true)
+                && is_string($offer['source_id'] ?? null) && preg_match('/\Aas39_[a-f0-9]{20}\z/D', $offer['source_id']) === 1
+                && is_string($offer['source_url'] ?? null) && preg_match('~\Ahttps://appleservice39\.ru/[a-z0-9/_-]+/\z~D', $offer['source_url']) === 1,
+                'catalogue_source_invalid');
+            $price = $offer['price'];
+            self::check($price['kind'] === 'listed' ? is_int($price['amount'] ?? null) && $price['amount'] > 0
+                : array_key_exists('amount',$price) && $price['amount'] === null, 'catalogue_source_invalid');
+            if ($price['kind'] === 'unconfirmed') self::check(($offer['review_status'] ?? null) === 'owner_price_confirmation_required', 'catalogue_source_invalid');
+            else self::check(($offer['review_status'] ?? null) === 'verified_source_row', 'catalogue_source_invalid');
+            if ($offer['service_key'] === 'display') {
+                self::check(in_array($offer['variant'] ?? '', ['original','analogue'], true)
+                    && (count($offer['model_ids']) === 1 || $price['kind'] === 'on_request'), 'catalogue_source_invalid');
+            } else self::check(count($offer['model_ids']) === 1 && ($offer['variant'] ?? null) === 'unspecified'
+                && $offer['source_url'] === ($offer['service_key'] === 'battery_replacement'
+                    ? 'https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/'
+                    : 'https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/'), 'catalogue_source_invalid');
+            foreach ($offer['model_ids'] as $id) {
+                self::check(is_string($id) && isset($models[$id]), 'catalogue_source_invalid');
+                $key = $offer['service_key'].'|'.$offer['variant'].'|'.$id;
+                self::check(!isset($seen[$key]), 'catalogue_source_invalid'); $seen[$key] = true;
+                if ($offer['service_key'] === 'display') $display[$id][$offer['variant']] = true;
+            }
+        }
+        foreach ($models as $id=>$model) {
+            foreach (['battery_replacement','front_glass_replacement'] as $service) self::check(isset($seen[$service.'|unspecified|'.$id]), 'catalogue_source_invalid');
+            if (isset($display[$id])) self::check(count($display[$id]) === 2, 'catalogue_source_invalid');
+        }
+        $missing = array_values(array_diff(array_keys($models), array_keys($display))); sort($missing);
+        self::check($missing === ['iphone-12-mini','iphone-13-mini'] && ($c['display_inquiry_only_model_ids'] ?? null) === $missing,
+            'catalogue_source_invalid');
+    }
+
+    private function priceParagraph(string $service): string
+    {
+        $models = array_column($this->catalogue['models'], null, 'id');
+        $offers = array_values(array_filter($this->catalogue['offers'], static fn(array $o): bool => $o['service_key'] === $service));
+        if ($service === 'display') {
+            $lines = [];
+            foreach ($models as $id=>$model) {
+                $rows = array_values(array_filter($offers, static fn(array $o): bool => $o['model_ids'] === [$id]));
+                if ($rows === []) continue;
+                self::check(count($rows) === 2, 'catalogue_source_invalid'); $parts = [];
+                foreach (['original'=>'оригинал','analogue'=>'аналог'] as $variant=>$label) {
+                    $row = array_values(array_filter($rows, static fn(array $o): bool => $o['variant'] === $variant))[0];
+                    self::check($row['price']['kind'] === 'listed', 'catalogue_source_invalid');
+                    $parts[] = $label.' '.self::money($row['price']['amount']);
+                }
+                $lines[] = $model['label'].' — '.implode(', ', $parts);
+            }
+            self::check(count($lines) === 9, 'catalogue_source_invalid');
+            $lines[] = 'Серии iPhone 12–17 и iPhone Air — стоимость по запросу для точной модели и варианта дисплея.';
+            $lines[] = 'Для iPhone 12 mini и 13 mini отдельно уточним подходящий вариант и его наличие.';
+            return implode("\n", $lines);
+        }
+        $byModel = []; foreach ($offers as $offer) $byModel[$offer['model_ids'][0]] = $offer;
+        $lines = [];
+        foreach ($this->catalogue['model_groups'] as $family) {
+            $groups = [];
+            foreach ($family['model_ids'] as $id) {
+                $offer = $byModel[$id]; $key = json_encode([$offer['price']['kind'],$offer['price']['amount'],$offer['warranty_months']], JSON_THROW_ON_ERROR);
+                if (!isset($groups[$key])) $groups[$key] = ['price'=>$offer['price'],'labels'=>[]];
+                $groups[$key]['labels'][] = $models[$id]['short_label'];
+            }
+            $parts = [];
+            foreach ($groups as $group) $parts[] = implode(' / ', $group['labels']).' — '
+                .($group['price']['kind'] === 'listed' ? self::money($group['price']['amount']) : 'стоимость уточняется');
+            $lines[] = 'iPhone '.implode('; ', $parts);
+        }
+        return implode("\n", $lines);
+    }
+
+    private static function money(int $value): string { return number_format($value,0,'.',' ').' ₽'; }
+    private static function readFile(string $path, int $max): string
+    {
+        self::check(is_file($path) && !is_link($path) && filesize($path) <= $max, 'catalogue_revision_unavailable');
+        $raw = file_get_contents($path); self::check(is_string($raw), 'catalogue_revision_unavailable'); return $raw;
+    }
+    private static function plain($text, int $max): void
+    {
+        self::check(is_string($text) && trim($text) !== '' && mb_strlen($text,'UTF-8') <= $max
+            && !str_contains($text,'<') && !str_contains($text,'>')
+            && preg_match('/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u',$text) === 0, 'catalogue_post_invalid');
+    }
+    private static function check(bool $ok, string $reason): void { if (!$ok) throw new RuntimeException($reason); }
+}

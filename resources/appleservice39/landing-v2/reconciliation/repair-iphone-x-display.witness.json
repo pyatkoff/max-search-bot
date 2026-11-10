@@ -1,0 +1,53 @@
+{
+  "public_post_url": "https://max.ru/channel_appleservice39ru/AaG9bL7kWf4",
+  "canonical_channel_url": "https://max.ru/channel_appleservice39ru",
+  "public_channel_id": 80917954947727,
+  "public_html_sha256": "44503a782d613fe1ab34a20193e2292957e0764bed6d26d85dfa0b9d7258c867",
+  "object_offset": 15083,
+  "object_length": 1954,
+  "native_photo_id": "46903567697",
+  "photo_reference_id": 46903567697,
+  "width": 1072,
+  "height": 1467,
+  "native_payload_url_sha256": "8a1966d4ba051f46d6ef29c8d44312f74bb80dbed9cdee39db62f26ba71c741c",
+  "ssr_attachment_url_sha256": "b3d7d701dc6710bac2d033c2f5599cc4217941c24339c07e7650a9a9c6f9d90f",
+  "exact_native_locator_match": false,
+  "source": "actual_public_post_Svelte_SSR_linkInfo.message.attachment[0]",
+  "fresh_native_payload_url_sha256": "8a1966d4ba051f46d6ef29c8d44312f74bb80dbed9cdee39db62f26ba71c741c",
+  "reviewed_at_utc": "2026-11-10T09:25:51.062521+00:00",
+  "reviewer": "originating Codex agent",
+  "source_png": {
+    "bytes": 1675433,
+    "sha256": "d9782a061d8dffa31fb631ab935170a22bb239661e894e169b9209e2091ab752",
+    "dimensions": [
+      1072,
+      1467
+    ],
+    "format": "PNG"
+  },
+  "public_native_preview": {
+    "bytes": 61489,
+    "sha256": "ea239dfef4fb9ab78e977987a86b1c8d99583c207f60a69de5d581314fa1eead",
+    "dimensions": [
+      561,
+      768
+    ],
+    "format": "JPEG"
+  },
+  "native_readback_run_id": 42789765899,
+  "native_readback_job_id": 129740355281,
+  "readback_context": {
+    "repository_sha": "5becac92426aa07cd8ebbf075a28840d71fa4ff4",
+    "original_attempt": 1,
+    "job_conclusion": "failure",
+    "projection": "automatic_GET_only_landing_inspect",
+    "pending_image_reviews": 14
+  },
+  "visual_review": {
+    "source_asset_opened": true,
+    "native_preview_opened": true,
+    "exact_layout_model_service_price_qualifiers": true
+  },
+  "review_notes": "Individually opened actual JPEG and exact source PNG. Same iPhone X display illustration and model badge, both prices analog6000/original12000 RUB, catalogue/part/availability qualifier, and Leninsky18/office404 footer. No question headline or drawn call-to-action. Exact public SSR PHOTO photoId/referenceId joins this downloaded preview to the actual provider GET identity. Original/fresh native and public locator digests are separately retained. No token or URL decoding, arbitrary image-ID acceptance or similarity score was used.",
+  "provider_receipt_accepted": false
+}

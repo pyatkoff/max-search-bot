@@ -16,7 +16,10 @@ class WebsiteIncomingAdapter
         ];
 
         if ($action === 'start') {
-            return IncomingMessage::text('website', $sessionId, $chatId, $messageId, '/start', $user, $payload);
+            $incoming = IncomingMessage::text('website', $sessionId, $chatId, $messageId, '/start', $user, $payload);
+            $attribution = is_array($payload['attribution'] ?? null) ? $payload['attribution'] : [];
+            $incoming['entry_attribution'] = ['region_id'=>$attribution['region_id'] ?? $attribution['region'] ?? $payload['region_id'] ?? '', 'source'=>'website_entry'];
+            return $incoming;
         }
 
         if ($action === 'callback') {

@@ -1,0 +1,1845 @@
+{
+  "schema_version": 1,
+  "kind": "public_source_rows_and_explicit_owner_policy",
+  "captured_pages": 19,
+  "captured_tables": 17,
+  "captured_data_rows": 270,
+  "reviewed_scope": "battery_front_glass_display_only",
+  "selected_evidence_rows": 122,
+  "warranty_months": 3,
+  "warranty_policy_source": "owner_confirmation_2026-11-10",
+  "source_documents": [
+    {
+      "url": "https://appleservice39.ru/kontakty/",
+      "sha256": "7ba985706c6dd377b8fd121ad5be12c748dd2c1ceb5b1c94996cda0b2715d790",
+      "bytes": 35327,
+      "observed_at_utc": "2026-11-10T11:01:40.173875+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/",
+      "sha256": "f8b63f6aa233e3ac61f601ec7574dc1ca6a49f4ac57b81fa5ab8e07fa7540343",
+      "bytes": 59930,
+      "observed_at_utc": "2026-11-10T11:01:40.267519+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-ayfon-v-kaliningrade/",
+      "sha256": "ebee728215e18af74037cb3b4104b07f1b4943324ca28ba9e2d49161611a6de2",
+      "bytes": 39159,
+      "observed_at_utc": "2026-11-10T11:01:40.181018+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-pro-ayfon-v-kaliningrade/",
+      "sha256": "4e998d1d49599a6c393ba2f1a6b686bd677d177fc4271c2bbaef8060734fb22f",
+      "bytes": 39167,
+      "observed_at_utc": "2026-11-10T11:01:40.561555+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-pro-max-ayfon-v-kaliningrade/",
+      "sha256": "f519ddaa0dac06f5b9518b41247d14d995a6ea446680606da0f6956f5100ec59",
+      "bytes": 39299,
+      "observed_at_utc": "2026-11-10T11:01:40.561073+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/remont-iphone-12-12pro-12pro-max-ayfon-v-kaliningrade/",
+      "sha256": "15213433ea60be6815c32c93e61bae841058bbd10b7a1af312eec0e3a10f5bb6",
+      "bytes": 39273,
+      "observed_at_utc": "2026-11-10T11:01:40.662737+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/remont-iphone-13-v-kalingrade/",
+      "sha256": "67ae74496d5d315cb793327a7756ff18ba0904e5063e494a2c5cdddae42fe652",
+      "bytes": 39257,
+      "observed_at_utc": "2026-11-10T11:01:40.966464+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/remont-iphone-14-14-plus-14pro-14-pro-max-ayfon-v-kaliningrade/",
+      "sha256": "5e191c9467d20a13e93f0a75e47bb0a418092e94af61dfd250c458b694cd93a3",
+      "bytes": 39296,
+      "observed_at_utc": "2026-11-10T11:01:40.962883+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/",
+      "sha256": "956e8f74fc53b6d9409aad8a19b4293036a9786b421d26af09b2f7cf7107357c",
+      "bytes": 39299,
+      "observed_at_utc": "2026-11-10T11:01:40.973311+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/remont-iphone-16-16plus-16pro-16pro-max-ayfon-v-kaliningrade/",
+      "sha256": "e304a9935be07c0040e53a0136eaf0d88f7d6a7578b5fb5918d9390e66413dcd",
+      "bytes": 39297,
+      "observed_at_utc": "2026-11-10T11:01:41.311131+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/remont-iphone-17-17-pro-17pro-max-17-air/",
+      "sha256": "a1a6bdb6a3f6f3e2deb7ffd163650af68c5c517f07db04808a1a512c2de55b03",
+      "bytes": 39315,
+      "observed_at_utc": "2026-11-10T11:01:41.297837+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/remont-iphone-8-plus-v-kalingrade/",
+      "sha256": "30c4c0b10b328083c594f3ae3609bf1f43cd6353d6e8c11aeb8fe8d9e494ce07",
+      "bytes": 40523,
+      "observed_at_utc": "2026-11-10T11:01:41.310891+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/remont-iphone-8-v-kalingrade/",
+      "sha256": "6887cc2ea7cd9104ac0394db537ace0bb1c1116a2ea8786cda435b7cf92105b1",
+      "bytes": 40502,
+      "observed_at_utc": "2026-11-10T11:01:42.114121+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/remont-iphone-ayfon-xr/",
+      "sha256": "ba897216ad87b8288de36b2e0c96b962ba6a5b759b9abd311ec2c60e461fe33c",
+      "bytes": 40438,
+      "observed_at_utc": "2026-11-10T11:01:42.109302+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+      "sha256": "3c2a302728abd671bbc523c9ea46c8dd1015cacf6612fbadc5590e4b737c6041",
+      "bytes": 40264,
+      "observed_at_utc": "2026-11-10T11:01:42.110016+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/remont-iphone-xs-ayfon-v-kaliningrade/",
+      "sha256": "b181a0aca1d89196cf2d867cd6a453e929f5a6214914dc61cf3e0a9957bfaab0",
+      "bytes": 40286,
+      "observed_at_utc": "2026-11-10T11:01:42.770612+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/remont-iphone-xs-max-v-kaliningrade/",
+      "sha256": "4e99a6126043e17680453b019929937fa2fb2570d72447d53e56a6873013912c",
+      "bytes": 40640,
+      "observed_at_utc": "2026-11-10T11:01:42.765960+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "bytes": 42933,
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "bytes": 42685,
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    }
+  ],
+  "rows": [
+    {
+      "source_id": "as39_272221406b231cbf354f",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 2,
+      "cells": [
+        "Замена акумулятор оригинал",
+        "3500 руб.",
+        "✔",
+        "15 мин."
+      ],
+      "source_document_sha256": "ebee728215e18af74037cb3b4104b07f1b4943324ca28ba9e2d49161611a6de2",
+      "observed_at_utc": "2026-11-10T11:01:40.181018+00:00"
+    },
+    {
+      "source_id": "as39_9d75349f9e9b9021b61d",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 3,
+      "cells": [
+        "Замена стекла (Без дисплея)",
+        "4000 руб.",
+        "✔",
+        "360 мин."
+      ],
+      "source_document_sha256": "ebee728215e18af74037cb3b4104b07f1b4943324ca28ba9e2d49161611a6de2",
+      "observed_at_utc": "2026-11-10T11:01:40.181018+00:00"
+    },
+    {
+      "source_id": "as39_89ebbeff846a90731152",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 4,
+      "cells": [
+        "Замена дисплея оригинал",
+        "6500 руб.",
+        "✔",
+        "40 мин."
+      ],
+      "source_document_sha256": "ebee728215e18af74037cb3b4104b07f1b4943324ca28ba9e2d49161611a6de2",
+      "observed_at_utc": "2026-11-10T11:01:40.181018+00:00"
+    },
+    {
+      "source_id": "as39_4c346a3cdea00a16ef24",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 5,
+      "cells": [
+        "Замена дисплея копия (китай)",
+        "5000 руб.",
+        "нет",
+        "40 мин."
+      ],
+      "source_document_sha256": "ebee728215e18af74037cb3b4104b07f1b4943324ca28ba9e2d49161611a6de2",
+      "observed_at_utc": "2026-11-10T11:01:40.181018+00:00"
+    },
+    {
+      "source_id": "as39_52d93f74fbd7368290dc",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-pro-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 2,
+      "cells": [
+        "Замена акумулятор оригинал",
+        "4000 руб.",
+        "✔",
+        "15 мин."
+      ],
+      "source_document_sha256": "4e998d1d49599a6c393ba2f1a6b686bd677d177fc4271c2bbaef8060734fb22f",
+      "observed_at_utc": "2026-11-10T11:01:40.561555+00:00"
+    },
+    {
+      "source_id": "as39_613366a3c7e1f786f0a8",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-pro-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 3,
+      "cells": [
+        "Замена стекла (Без дисплея)",
+        "5000 руб.",
+        "✔",
+        "360 мин."
+      ],
+      "source_document_sha256": "4e998d1d49599a6c393ba2f1a6b686bd677d177fc4271c2bbaef8060734fb22f",
+      "observed_at_utc": "2026-11-10T11:01:40.561555+00:00"
+    },
+    {
+      "source_id": "as39_89c0fe9a1faff484ed70",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-pro-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 4,
+      "cells": [
+        "Замена дисплея оригинал",
+        "12000 руб.",
+        "✔",
+        "40 мин."
+      ],
+      "source_document_sha256": "4e998d1d49599a6c393ba2f1a6b686bd677d177fc4271c2bbaef8060734fb22f",
+      "observed_at_utc": "2026-11-10T11:01:40.561555+00:00"
+    },
+    {
+      "source_id": "as39_7276941ba6c36bc57719",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-pro-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 5,
+      "cells": [
+        "Замена дисплея копия (китай)",
+        "7000 руб.",
+        "нет",
+        "40 мин."
+      ],
+      "source_document_sha256": "4e998d1d49599a6c393ba2f1a6b686bd677d177fc4271c2bbaef8060734fb22f",
+      "observed_at_utc": "2026-11-10T11:01:40.561555+00:00"
+    },
+    {
+      "source_id": "as39_cdd48c15391625133ea2",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 2,
+      "cells": [
+        "Замена акумулятор оригинал",
+        "4500 руб.",
+        "✔",
+        "15 мин."
+      ],
+      "source_document_sha256": "f519ddaa0dac06f5b9518b41247d14d995a6ea446680606da0f6956f5100ec59",
+      "observed_at_utc": "2026-11-10T11:01:40.561073+00:00"
+    },
+    {
+      "source_id": "as39_9b133a7389890365062f",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 3,
+      "cells": [
+        "Замена стекла (Без дисплея)",
+        "6000 руб.",
+        "✔",
+        "360 мин."
+      ],
+      "source_document_sha256": "f519ddaa0dac06f5b9518b41247d14d995a6ea446680606da0f6956f5100ec59",
+      "observed_at_utc": "2026-11-10T11:01:40.561073+00:00"
+    },
+    {
+      "source_id": "as39_25b16f93fe97eda1e839",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 4,
+      "cells": [
+        "Замена дисплея оригинал",
+        "13000 руб.",
+        "✔",
+        "40 мин."
+      ],
+      "source_document_sha256": "f519ddaa0dac06f5b9518b41247d14d995a6ea446680606da0f6956f5100ec59",
+      "observed_at_utc": "2026-11-10T11:01:40.561073+00:00"
+    },
+    {
+      "source_id": "as39_7d3959dcba08803d1485",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-11-pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 5,
+      "cells": [
+        "Замена дисплея копия (китай)",
+        "7500 руб.",
+        "нет",
+        "40 мин."
+      ],
+      "source_document_sha256": "f519ddaa0dac06f5b9518b41247d14d995a6ea446680606da0f6956f5100ec59",
+      "observed_at_utc": "2026-11-10T11:01:40.561073+00:00"
+    },
+    {
+      "source_id": "as39_4965ea787dffb97e449e",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-12-12pro-12pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 2,
+      "cells": [
+        "Замена акумулятор оригинал",
+        "от 4500 руб",
+        "✔",
+        "15 мин."
+      ],
+      "source_document_sha256": "15213433ea60be6815c32c93e61bae841058bbd10b7a1af312eec0e3a10f5bb6",
+      "observed_at_utc": "2026-11-10T11:01:40.662737+00:00"
+    },
+    {
+      "source_id": "as39_4dd8fc33ba33815e7885",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-12-12pro-12pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 3,
+      "cells": [
+        "Замена стекла (Без дисплея)",
+        "от 6000 руб.",
+        "✔",
+        "360 мин."
+      ],
+      "source_document_sha256": "15213433ea60be6815c32c93e61bae841058bbd10b7a1af312eec0e3a10f5bb6",
+      "observed_at_utc": "2026-11-10T11:01:40.662737+00:00"
+    },
+    {
+      "source_id": "as39_990fd046183e67c3e446",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-12-12pro-12pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 4,
+      "cells": [
+        "Замена дисплея оригинал",
+        "Уточняйте",
+        "✔",
+        "40 мин."
+      ],
+      "source_document_sha256": "15213433ea60be6815c32c93e61bae841058bbd10b7a1af312eec0e3a10f5bb6",
+      "observed_at_utc": "2026-11-10T11:01:40.662737+00:00"
+    },
+    {
+      "source_id": "as39_2103b81b4f8184f9339c",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-12-12pro-12pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 5,
+      "cells": [
+        "Замена дисплея копия (китай)",
+        "Уточняйте",
+        "1 мес.",
+        "40 мин."
+      ],
+      "source_document_sha256": "15213433ea60be6815c32c93e61bae841058bbd10b7a1af312eec0e3a10f5bb6",
+      "observed_at_utc": "2026-11-10T11:01:40.662737+00:00"
+    },
+    {
+      "source_id": "as39_3674bcafdcc5e3053c50",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-13-v-kalingrade/",
+      "table_number": 1,
+      "row_number": 2,
+      "cells": [
+        "Замена акумулятор оригинал",
+        "от 5000 руб",
+        "✔",
+        "15 мин."
+      ],
+      "source_document_sha256": "67ae74496d5d315cb793327a7756ff18ba0904e5063e494a2c5cdddae42fe652",
+      "observed_at_utc": "2026-11-10T11:01:40.966464+00:00"
+    },
+    {
+      "source_id": "as39_9a46e0cf23735eada2fa",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-13-v-kalingrade/",
+      "table_number": 1,
+      "row_number": 3,
+      "cells": [
+        "Замена стекла (Без дисплея)",
+        "от 6000 руб.",
+        "✔",
+        "360 мин."
+      ],
+      "source_document_sha256": "67ae74496d5d315cb793327a7756ff18ba0904e5063e494a2c5cdddae42fe652",
+      "observed_at_utc": "2026-11-10T11:01:40.966464+00:00"
+    },
+    {
+      "source_id": "as39_c4b073f1b90b1d804709",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-13-v-kalingrade/",
+      "table_number": 1,
+      "row_number": 4,
+      "cells": [
+        "Замена дисплея оригинал",
+        "Уточняйте",
+        "✔",
+        "40 мин."
+      ],
+      "source_document_sha256": "67ae74496d5d315cb793327a7756ff18ba0904e5063e494a2c5cdddae42fe652",
+      "observed_at_utc": "2026-11-10T11:01:40.966464+00:00"
+    },
+    {
+      "source_id": "as39_40d211129d19574e59be",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-13-v-kalingrade/",
+      "table_number": 1,
+      "row_number": 5,
+      "cells": [
+        "Замена дисплея копия (китай)",
+        "Уточняйте",
+        "нет",
+        "40 мин."
+      ],
+      "source_document_sha256": "67ae74496d5d315cb793327a7756ff18ba0904e5063e494a2c5cdddae42fe652",
+      "observed_at_utc": "2026-11-10T11:01:40.966464+00:00"
+    },
+    {
+      "source_id": "as39_4adc5cdbf34dd645f034",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-14-14-plus-14pro-14-pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 2,
+      "cells": [
+        "Замена акумулятор оригинал",
+        "от 5000 руб",
+        "✔",
+        "15 мин."
+      ],
+      "source_document_sha256": "5e191c9467d20a13e93f0a75e47bb0a418092e94af61dfd250c458b694cd93a3",
+      "observed_at_utc": "2026-11-10T11:01:40.962883+00:00"
+    },
+    {
+      "source_id": "as39_eada1db4704c644ce697",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-14-14-plus-14pro-14-pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 3,
+      "cells": [
+        "Замена стекла (Без дисплея)",
+        "от 6000 руб.",
+        "✔",
+        "360 мин."
+      ],
+      "source_document_sha256": "5e191c9467d20a13e93f0a75e47bb0a418092e94af61dfd250c458b694cd93a3",
+      "observed_at_utc": "2026-11-10T11:01:40.962883+00:00"
+    },
+    {
+      "source_id": "as39_04995781de660b01cd6e",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-14-14-plus-14pro-14-pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 4,
+      "cells": [
+        "Замена дисплея оригинал",
+        "Уточняйте",
+        "✔",
+        "40 мин."
+      ],
+      "source_document_sha256": "5e191c9467d20a13e93f0a75e47bb0a418092e94af61dfd250c458b694cd93a3",
+      "observed_at_utc": "2026-11-10T11:01:40.962883+00:00"
+    },
+    {
+      "source_id": "as39_ac3994b8c965c3faf329",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-14-14-plus-14pro-14-pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 5,
+      "cells": [
+        "Замена дисплея копия (китай)",
+        "Уточняйте",
+        "1 мес.",
+        "40 мин."
+      ],
+      "source_document_sha256": "5e191c9467d20a13e93f0a75e47bb0a418092e94af61dfd250c458b694cd93a3",
+      "observed_at_utc": "2026-11-10T11:01:40.962883+00:00"
+    },
+    {
+      "source_id": "as39_f48fa4836bfd22085a9a",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 2,
+      "cells": [
+        "Замена акумулятор оригинал",
+        "от 5000 руб",
+        "✔",
+        "120 мин."
+      ],
+      "source_document_sha256": "956e8f74fc53b6d9409aad8a19b4293036a9786b421d26af09b2f7cf7107357c",
+      "observed_at_utc": "2026-11-10T11:01:40.973311+00:00"
+    },
+    {
+      "source_id": "as39_5b9a46709a7f8de5dcae",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 3,
+      "cells": [
+        "Замена стекла (Без дисплея)",
+        "от 6000 руб.",
+        "✔",
+        "360 мин."
+      ],
+      "source_document_sha256": "956e8f74fc53b6d9409aad8a19b4293036a9786b421d26af09b2f7cf7107357c",
+      "observed_at_utc": "2026-11-10T11:01:40.973311+00:00"
+    },
+    {
+      "source_id": "as39_f78bd7165b50b293e4cd",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 4,
+      "cells": [
+        "Замена дисплея оригинал",
+        "Уточняйте",
+        "✔",
+        "40 мин."
+      ],
+      "source_document_sha256": "956e8f74fc53b6d9409aad8a19b4293036a9786b421d26af09b2f7cf7107357c",
+      "observed_at_utc": "2026-11-10T11:01:40.973311+00:00"
+    },
+    {
+      "source_id": "as39_e3e0bea9960765d603ff",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 5,
+      "cells": [
+        "Замена дисплея копия (китай)",
+        "Уточняйте",
+        "1 мес.",
+        "40 мин."
+      ],
+      "source_document_sha256": "956e8f74fc53b6d9409aad8a19b4293036a9786b421d26af09b2f7cf7107357c",
+      "observed_at_utc": "2026-11-10T11:01:40.973311+00:00"
+    },
+    {
+      "source_id": "as39_1ecb85802c1f2f5223d4",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-16-16plus-16pro-16pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 2,
+      "cells": [
+        "Замена акумулятор оригинал",
+        "от 5000 руб",
+        "✔",
+        "80 мин."
+      ],
+      "source_document_sha256": "e304a9935be07c0040e53a0136eaf0d88f7d6a7578b5fb5918d9390e66413dcd",
+      "observed_at_utc": "2026-11-10T11:01:41.311131+00:00"
+    },
+    {
+      "source_id": "as39_d33542796457b4ed0be6",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-16-16plus-16pro-16pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 3,
+      "cells": [
+        "Замена стекла (Без дисплея)",
+        "от 6000 руб.",
+        "✔",
+        "360 мин."
+      ],
+      "source_document_sha256": "e304a9935be07c0040e53a0136eaf0d88f7d6a7578b5fb5918d9390e66413dcd",
+      "observed_at_utc": "2026-11-10T11:01:41.311131+00:00"
+    },
+    {
+      "source_id": "as39_9cab52ae1f815b91f94a",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-16-16plus-16pro-16pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 4,
+      "cells": [
+        "Замена дисплея оригинал",
+        "Уточняйте",
+        "✔",
+        "40 мин."
+      ],
+      "source_document_sha256": "e304a9935be07c0040e53a0136eaf0d88f7d6a7578b5fb5918d9390e66413dcd",
+      "observed_at_utc": "2026-11-10T11:01:41.311131+00:00"
+    },
+    {
+      "source_id": "as39_51bfe9b0f3002a34ef36",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-16-16plus-16pro-16pro-max-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 5,
+      "cells": [
+        "Замена дисплея копия (китай)",
+        "Уточняйте",
+        "1 мес.",
+        "40 мин."
+      ],
+      "source_document_sha256": "e304a9935be07c0040e53a0136eaf0d88f7d6a7578b5fb5918d9390e66413dcd",
+      "observed_at_utc": "2026-11-10T11:01:41.311131+00:00"
+    },
+    {
+      "source_id": "as39_fb58b8a1947036a027bf",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-17-17-pro-17pro-max-17-air/",
+      "table_number": 1,
+      "row_number": 2,
+      "cells": [
+        "Замена акумулятор оригинал",
+        "от 5000 руб",
+        "✔",
+        "80 мин."
+      ],
+      "source_document_sha256": "a1a6bdb6a3f6f3e2deb7ffd163650af68c5c517f07db04808a1a512c2de55b03",
+      "observed_at_utc": "2026-11-10T11:01:41.297837+00:00"
+    },
+    {
+      "source_id": "as39_8cada36b3b676ef853a6",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-17-17-pro-17pro-max-17-air/",
+      "table_number": 1,
+      "row_number": 3,
+      "cells": [
+        "Замена стекла (Без дисплея)",
+        "от 8000 руб.",
+        "✔",
+        "360 мин."
+      ],
+      "source_document_sha256": "a1a6bdb6a3f6f3e2deb7ffd163650af68c5c517f07db04808a1a512c2de55b03",
+      "observed_at_utc": "2026-11-10T11:01:41.297837+00:00"
+    },
+    {
+      "source_id": "as39_4ea1158de49813bfffa4",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-17-17-pro-17pro-max-17-air/",
+      "table_number": 1,
+      "row_number": 4,
+      "cells": [
+        "Замена дисплея оригинал",
+        "Уточняйте",
+        "✔",
+        "40 мин."
+      ],
+      "source_document_sha256": "a1a6bdb6a3f6f3e2deb7ffd163650af68c5c517f07db04808a1a512c2de55b03",
+      "observed_at_utc": "2026-11-10T11:01:41.297837+00:00"
+    },
+    {
+      "source_id": "as39_f88e262d91d5aea891e3",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-17-17-pro-17pro-max-17-air/",
+      "table_number": 1,
+      "row_number": 5,
+      "cells": [
+        "Замена дисплея копия (китай)",
+        "Уточняйте",
+        "1 мес.",
+        "40 мин."
+      ],
+      "source_document_sha256": "a1a6bdb6a3f6f3e2deb7ffd163650af68c5c517f07db04808a1a512c2de55b03",
+      "observed_at_utc": "2026-11-10T11:01:41.297837+00:00"
+    },
+    {
+      "source_id": "as39_2a1237a39fa774c23457",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-8-plus-v-kalingrade/",
+      "table_number": 1,
+      "row_number": 2,
+      "cells": [
+        "Замена акумулятор оригинал",
+        "3000 руб.",
+        "✔",
+        "15 мин."
+      ],
+      "source_document_sha256": "30c4c0b10b328083c594f3ae3609bf1f43cd6353d6e8c11aeb8fe8d9e494ce07",
+      "observed_at_utc": "2026-11-10T11:01:41.310891+00:00"
+    },
+    {
+      "source_id": "as39_80b9f761673f33814966",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-8-plus-v-kalingrade/",
+      "table_number": 1,
+      "row_number": 3,
+      "cells": [
+        "Замена стекла (Без дисплея)",
+        "3000 руб.",
+        "✔",
+        "40 мин."
+      ],
+      "source_document_sha256": "30c4c0b10b328083c594f3ae3609bf1f43cd6353d6e8c11aeb8fe8d9e494ce07",
+      "observed_at_utc": "2026-11-10T11:01:41.310891+00:00"
+    },
+    {
+      "source_id": "as39_3363d1025b415b39d723",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-8-plus-v-kalingrade/",
+      "table_number": 1,
+      "row_number": 4,
+      "cells": [
+        "Замена дисплея оригинал",
+        "4500 руб.",
+        "✔",
+        "40 мин."
+      ],
+      "source_document_sha256": "30c4c0b10b328083c594f3ae3609bf1f43cd6353d6e8c11aeb8fe8d9e494ce07",
+      "observed_at_utc": "2026-11-10T11:01:41.310891+00:00"
+    },
+    {
+      "source_id": "as39_a0acdf145a69c7198b08",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-8-plus-v-kalingrade/",
+      "table_number": 1,
+      "row_number": 5,
+      "cells": [
+        "Замена дисплея копия (китай)",
+        "3000 руб.",
+        "1 мес.",
+        "40 мин."
+      ],
+      "source_document_sha256": "30c4c0b10b328083c594f3ae3609bf1f43cd6353d6e8c11aeb8fe8d9e494ce07",
+      "observed_at_utc": "2026-11-10T11:01:41.310891+00:00"
+    },
+    {
+      "source_id": "as39_b685895e16c6267ff1f4",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-8-v-kalingrade/",
+      "table_number": 1,
+      "row_number": 2,
+      "cells": [
+        "Замена акумулятор оригинал",
+        "2500 руб.",
+        "✔",
+        "15 мин."
+      ],
+      "source_document_sha256": "6887cc2ea7cd9104ac0394db537ace0bb1c1116a2ea8786cda435b7cf92105b1",
+      "observed_at_utc": "2026-11-10T11:01:42.114121+00:00"
+    },
+    {
+      "source_id": "as39_493adf61adc5b50094ae",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-8-v-kalingrade/",
+      "table_number": 1,
+      "row_number": 3,
+      "cells": [
+        "Замена стекла (Без дисплея)",
+        "2500 руб.",
+        "✔",
+        "40 мин."
+      ],
+      "source_document_sha256": "6887cc2ea7cd9104ac0394db537ace0bb1c1116a2ea8786cda435b7cf92105b1",
+      "observed_at_utc": "2026-11-10T11:01:42.114121+00:00"
+    },
+    {
+      "source_id": "as39_5672a0c498c015c2ca96",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-8-v-kalingrade/",
+      "table_number": 1,
+      "row_number": 4,
+      "cells": [
+        "Замена дисплея оригинал",
+        "4000 руб.",
+        "✔",
+        "40 мин."
+      ],
+      "source_document_sha256": "6887cc2ea7cd9104ac0394db537ace0bb1c1116a2ea8786cda435b7cf92105b1",
+      "observed_at_utc": "2026-11-10T11:01:42.114121+00:00"
+    },
+    {
+      "source_id": "as39_2df8249af72e1b92b6d8",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-8-v-kalingrade/",
+      "table_number": 1,
+      "row_number": 5,
+      "cells": [
+        "Замена дисплея копия (китай)",
+        "2500 руб.",
+        "1 мес.",
+        "40 мин."
+      ],
+      "source_document_sha256": "6887cc2ea7cd9104ac0394db537ace0bb1c1116a2ea8786cda435b7cf92105b1",
+      "observed_at_utc": "2026-11-10T11:01:42.114121+00:00"
+    },
+    {
+      "source_id": "as39_eefa0dbd6302b9918b08",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-ayfon-xr/",
+      "table_number": 1,
+      "row_number": 2,
+      "cells": [
+        "Замена акумулятор оригинал",
+        "3100 руб.",
+        "✔",
+        "15 мин."
+      ],
+      "source_document_sha256": "ba897216ad87b8288de36b2e0c96b962ba6a5b759b9abd311ec2c60e461fe33c",
+      "observed_at_utc": "2026-11-10T11:01:42.109302+00:00"
+    },
+    {
+      "source_id": "as39_9949465de637477d862d",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-ayfon-xr/",
+      "table_number": 1,
+      "row_number": 3,
+      "cells": [
+        "Замена стекла (Без дисплея)",
+        "4000 руб.",
+        "✔",
+        "360 мин."
+      ],
+      "source_document_sha256": "ba897216ad87b8288de36b2e0c96b962ba6a5b759b9abd311ec2c60e461fe33c",
+      "observed_at_utc": "2026-11-10T11:01:42.109302+00:00"
+    },
+    {
+      "source_id": "as39_a85b893d8aa6c2457542",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-ayfon-xr/",
+      "table_number": 1,
+      "row_number": 4,
+      "cells": [
+        "Замена дисплея оригинал",
+        "6500 руб.",
+        "✔",
+        "40 мин."
+      ],
+      "source_document_sha256": "ba897216ad87b8288de36b2e0c96b962ba6a5b759b9abd311ec2c60e461fe33c",
+      "observed_at_utc": "2026-11-10T11:01:42.109302+00:00"
+    },
+    {
+      "source_id": "as39_ff4dfa8b90f2a3f9c7a4",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-ayfon-xr/",
+      "table_number": 1,
+      "row_number": 5,
+      "cells": [
+        "Замена дисплея копия (китай)",
+        "4500 руб.",
+        "нет",
+        "40 мин."
+      ],
+      "source_document_sha256": "ba897216ad87b8288de36b2e0c96b962ba6a5b759b9abd311ec2c60e461fe33c",
+      "observed_at_utc": "2026-11-10T11:01:42.109302+00:00"
+    },
+    {
+      "source_id": "as39_9cf2088520a567195e21",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+      "table_number": 1,
+      "row_number": 2,
+      "cells": [
+        "Замена акумулятор оригинал",
+        "3500 руб.",
+        "✔",
+        "25 мин."
+      ],
+      "source_document_sha256": "3c2a302728abd671bbc523c9ea46c8dd1015cacf6612fbadc5590e4b737c6041",
+      "observed_at_utc": "2026-11-10T11:01:42.110016+00:00"
+    },
+    {
+      "source_id": "as39_9dccf91379f446e17c57",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+      "table_number": 1,
+      "row_number": 3,
+      "cells": [
+        "Замена стекла (Без дисплея)",
+        "5000 руб.",
+        "✔",
+        "2-4 часа"
+      ],
+      "source_document_sha256": "3c2a302728abd671bbc523c9ea46c8dd1015cacf6612fbadc5590e4b737c6041",
+      "observed_at_utc": "2026-11-10T11:01:42.110016+00:00"
+    },
+    {
+      "source_id": "as39_cb1e3289668c5087198d",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+      "table_number": 1,
+      "row_number": 4,
+      "cells": [
+        "Замена дисплея оригинал",
+        "12000 руб.",
+        "✔",
+        "120 мин."
+      ],
+      "source_document_sha256": "3c2a302728abd671bbc523c9ea46c8dd1015cacf6612fbadc5590e4b737c6041",
+      "observed_at_utc": "2026-11-10T11:01:42.110016+00:00"
+    },
+    {
+      "source_id": "as39_f8706bb7a7fcaffc1924",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+      "table_number": 1,
+      "row_number": 5,
+      "cells": [
+        "Замена дисплея копия (китай)",
+        "6000 руб.",
+        "нет",
+        "120 мин."
+      ],
+      "source_document_sha256": "3c2a302728abd671bbc523c9ea46c8dd1015cacf6612fbadc5590e4b737c6041",
+      "observed_at_utc": "2026-11-10T11:01:42.110016+00:00"
+    },
+    {
+      "source_id": "as39_b27345de4510d8a1f3e4",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-xs-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 2,
+      "cells": [
+        "Замена акумулятор оригинал",
+        "3000 руб.",
+        "✔",
+        "15 мин."
+      ],
+      "source_document_sha256": "b181a0aca1d89196cf2d867cd6a453e929f5a6214914dc61cf3e0a9957bfaab0",
+      "observed_at_utc": "2026-11-10T11:01:42.770612+00:00"
+    },
+    {
+      "source_id": "as39_ca5a838f1a9d61bd3180",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-xs-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 3,
+      "cells": [
+        "Замена стекла (Без дисплея)",
+        "5000 руб.",
+        "✔",
+        "2-4 часа"
+      ],
+      "source_document_sha256": "b181a0aca1d89196cf2d867cd6a453e929f5a6214914dc61cf3e0a9957bfaab0",
+      "observed_at_utc": "2026-11-10T11:01:42.770612+00:00"
+    },
+    {
+      "source_id": "as39_d906a7023e1eeb4998eb",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-xs-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 4,
+      "cells": [
+        "Замена дисплея оригинал",
+        "12000 руб.",
+        "✔",
+        "40 мин."
+      ],
+      "source_document_sha256": "b181a0aca1d89196cf2d867cd6a453e929f5a6214914dc61cf3e0a9957bfaab0",
+      "observed_at_utc": "2026-11-10T11:01:42.770612+00:00"
+    },
+    {
+      "source_id": "as39_84d96f567c0f8d34a4be",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-xs-ayfon-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 5,
+      "cells": [
+        "Замена дисплея копия (китай)",
+        "6000 руб.",
+        "нет",
+        "40 мин."
+      ],
+      "source_document_sha256": "b181a0aca1d89196cf2d867cd6a453e929f5a6214914dc61cf3e0a9957bfaab0",
+      "observed_at_utc": "2026-11-10T11:01:42.770612+00:00"
+    },
+    {
+      "source_id": "as39_b4f9492583b2e0cf0c6f",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-xs-max-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 2,
+      "cells": [
+        "Замена акумулятор оригинал",
+        "4000 руб.",
+        "✔",
+        "15 мин."
+      ],
+      "source_document_sha256": "4e99a6126043e17680453b019929937fa2fb2570d72447d53e56a6873013912c",
+      "observed_at_utc": "2026-11-10T11:01:42.765960+00:00"
+    },
+    {
+      "source_id": "as39_28ec4cf40b2c09c5cbee",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-xs-max-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 3,
+      "cells": [
+        "Замена стекла (Без дисплея)",
+        "5000 руб.",
+        "✔",
+        "2-4 часа"
+      ],
+      "source_document_sha256": "4e99a6126043e17680453b019929937fa2fb2570d72447d53e56a6873013912c",
+      "observed_at_utc": "2026-11-10T11:01:42.765960+00:00"
+    },
+    {
+      "source_id": "as39_744467fad49e614c2622",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-xs-max-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 4,
+      "cells": [
+        "Замена дисплея оригинал",
+        "13000 руб.",
+        "✔",
+        "40 мин."
+      ],
+      "source_document_sha256": "4e99a6126043e17680453b019929937fa2fb2570d72447d53e56a6873013912c",
+      "observed_at_utc": "2026-11-10T11:01:42.765960+00:00"
+    },
+    {
+      "source_id": "as39_c4af15fb2e204ba51307",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-xs-max-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 5,
+      "cells": [
+        "Замена дисплея копия (китай)",
+        "7000 руб.",
+        "нет",
+        "40 мин."
+      ],
+      "source_document_sha256": "4e99a6126043e17680453b019929937fa2fb2570d72447d53e56a6873013912c",
+      "observed_at_utc": "2026-11-10T11:01:42.765960+00:00"
+    },
+    {
+      "source_id": "as39_206ef090a727ac99eff2",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 2,
+      "cells": [
+        "IPhone 8",
+        "3000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_870005ca7c250de40c46",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 3,
+      "cells": [
+        "IPhone 8 plus",
+        "3500 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_8a0aee71513141db714a",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 4,
+      "cells": [
+        "IPhone X",
+        "3500 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_9a467214e607156b3f73",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 5,
+      "cells": [
+        "IPhone XS",
+        "3500 руб",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_4e8b838160c5dbd6a23d",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 6,
+      "cells": [
+        "IPhone XR",
+        "3500 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_bc5ec708be4f9e6e7258",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 7,
+      "cells": [
+        "IPhone XS max",
+        "4500 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_dd6e9d6d15c41e932d84",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 8,
+      "cells": [
+        "IPhone 11",
+        "4000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_60adfb450acf523b2d77",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 9,
+      "cells": [
+        "IPhone 11 Pro",
+        "4500 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_c6735ad80151a1bec3a8",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 10,
+      "cells": [
+        "IPhone 11 Pro max",
+        "4500 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_db705e0cd577499b73bc",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 11,
+      "cells": [
+        "IPhone 12/12 mini",
+        "5000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_74f2c226124b85a7db3f",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 12,
+      "cells": [
+        "IPhone 12 Pro",
+        "5000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_0761bdd6349dc861d9b3",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 13,
+      "cells": [
+        "IPhone 12 Pro max",
+        "5500 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_7bc6f6010413f67b31cb",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 14,
+      "cells": [
+        "IPhone 13/13 mini",
+        "5500 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_aa6855deddefd287e73f",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 15,
+      "cells": [
+        "IPhone 13 pro",
+        "6500 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_c45b00711345e57f8887",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 16,
+      "cells": [
+        "IPhone 13 Pro max",
+        "6500 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_b3111fe6a829121c125e",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 17,
+      "cells": [
+        "IPhone 14",
+        "6500 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_fd98aece27f3e409ee0c",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 18,
+      "cells": [
+        "IPhone 14 plus",
+        "6500 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_d3eca6d983f993456ee7",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 19,
+      "cells": [
+        "IPhone 14 pro",
+        "6500 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_379a762b4d0712167a9d",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 20,
+      "cells": [
+        "IPhone 14 pro max",
+        "7000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_883a22822fa0e2d598b4",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 21,
+      "cells": [
+        "IPhone 15",
+        "6000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_bf4f7b54705127920175",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 22,
+      "cells": [
+        "IPhone 15 plus",
+        "6000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_8a73fbb806531a362694",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 23,
+      "cells": [
+        "IPhone 15 pro",
+        "7000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_b8ff78bb2c1c43d7b578",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 24,
+      "cells": [
+        "IPhone 15 pro max",
+        "7000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_294f86d3a57d57c621aa",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 25,
+      "cells": [
+        "IPhone 16",
+        "6500 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_3137a8b79223f89934e3",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 26,
+      "cells": [
+        "IPhone 16 plus",
+        "6500 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_04b27100eaf56093025f",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 27,
+      "cells": [
+        "IPhone 16 pro",
+        "7000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_efc3aa821293576d7611",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 28,
+      "cells": [
+        "IPhone 16 pro max",
+        "8000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_844759a722c3ef6aa987",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 29,
+      "cells": [
+        "IPhone 17",
+        "13000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_73bf02561824547a7209",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 30,
+      "cells": [
+        "IPhone 17 pro",
+        "15000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_15b8582424e5452f4e6b",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 31,
+      "cells": [
+        "IPhone 17 pro max",
+        "16000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_f0ebe0d4cc0c3056b1d1",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 32,
+      "cells": [
+        "IPhone 17 Air",
+        "15000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "750fc86ac51192311994617847944dc6cd89971cb5540e8d35d251d58feccaf6",
+      "observed_at_utc": "2026-11-10T11:01:42.770398+00:00"
+    },
+    {
+      "source_id": "as39_101f3f07cd086afd96c8",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 2,
+      "cells": [
+        "IPhone 8",
+        "3000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_2dda2a37c57b2b4bac65",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 3,
+      "cells": [
+        "IPhone 8 plus",
+        "3000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_6352c98d6c2ab504258c",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 4,
+      "cells": [
+        "IPhone X",
+        "5000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_b8afa59072426251af01",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 5,
+      "cells": [
+        "IPhone XS",
+        "5000 руб",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_33db666ac56ebf475300",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 6,
+      "cells": [
+        "IPhone XR",
+        "4000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_17e48989ff89303a8df6",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 7,
+      "cells": [
+        "IPhone XS max",
+        "5000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_f81f59230221e4e2ee67",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 8,
+      "cells": [
+        "IPhone 11",
+        "4000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_1bd4528b96f49ca6703b",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 9,
+      "cells": [
+        "IPhone 11 Pro",
+        "5000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_87c2b73566425c100533",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 10,
+      "cells": [
+        "IPhone 11 Pro max",
+        "5000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_c0bf8da2f7eb5baeaba8",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 11,
+      "cells": [
+        "IPhone 12/12 mini",
+        "5000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_2b370cde9428b411c9fb",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 12,
+      "cells": [
+        "IPhone 12 Pro",
+        "5000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_3dcd0d72d0aff9443991",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 13,
+      "cells": [
+        "IPhone 12 Pro max",
+        "5500 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_c9d5fc3ba4ceae8c75df",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 14,
+      "cells": [
+        "IPhone 13/13 mini",
+        "5000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_10d97ad907ece9f50784",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 15,
+      "cells": [
+        "IPhone 13 pro",
+        "6000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_cd795f6496219cbd4dd6",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 16,
+      "cells": [
+        "IPhone 13 Pro max",
+        "6000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_7bed99ebe7c5f0e7faee",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 17,
+      "cells": [
+        "IPhone 14",
+        "5000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_a0ccfaa28a9af928588c",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 18,
+      "cells": [
+        "IPhone 14 plus",
+        "5000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_bc6dcbe74592c9d580b4",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 19,
+      "cells": [
+        "IPhone 14 pro",
+        "7000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_cd118d65f1d64de3aa82",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 20,
+      "cells": [
+        "IPhone 14 pro max",
+        "800 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_0ef7833733044dbae6d3",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 21,
+      "cells": [
+        "IPhone 15",
+        "7000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_72009d7f292a98d64a1d",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 22,
+      "cells": [
+        "IPhone 15 plus",
+        "8000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_01767c4e1bf6da08ea6c",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 23,
+      "cells": [
+        "IPhone 15 pro",
+        "9000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_968d5637870a402157f3",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 24,
+      "cells": [
+        "IPhone 15 pro max",
+        "10000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_50b21abac57071d55c41",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 25,
+      "cells": [
+        "IPhone 16",
+        "7000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_bfa139222d2338c0b9ea",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 26,
+      "cells": [
+        "IPhone 16 plus",
+        "8000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_abbdc2a98aa6d32d4bcf",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 27,
+      "cells": [
+        "IPhone 16 pro",
+        "9000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_4a942b6492b0561d4227",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 28,
+      "cells": [
+        "IPhone 16 pro max",
+        "10000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_3436219c3101b0ad8551",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 29,
+      "cells": [
+        "IPhone 17",
+        "8000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_68456232d713c071d88c",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 30,
+      "cells": [
+        "IPhone 17 pro",
+        "13000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_970d45b22d42207f94a2",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 31,
+      "cells": [
+        "IPhone 17 pro max",
+        "14000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    },
+    {
+      "source_id": "as39_472ec4ebf48f4871a08e",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "table_number": 1,
+      "row_number": 32,
+      "cells": [
+        "IPhone 17 Air",
+        "11000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "source_document_sha256": "9cdcfe9c2e15b5730b2bd4721c5c9450655cd33dede61ca091b88a6edb088364",
+      "observed_at_utc": "2026-11-10T11:01:43.138070+00:00"
+    }
+  ],
+  "unconfirmed_prices": [
+    {
+      "model_id": "iphone-14-pro-max",
+      "service_key": "front_glass_replacement",
+      "raw_source_price": "800 руб.",
+      "source_id": "as39_cd118d65f1d64de3aa82"
+    }
+  ]
+}

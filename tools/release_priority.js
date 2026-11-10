@@ -112,6 +112,67 @@ async function readOpenPulls(repository, token, fetchImpl) {
   refusal('snapshot_limit');
 }
 
+function pinnedPublisher(value, now) {
+  if (!value || typeof value !== 'object' || Array.isArray(value) ||
+      Object.keys(value).sort().join(',') !== 'comment_id,owner_id,updated_at' ||
+      !Number.isSafeInteger(value.comment_id) || value.comment_id < 1 ||
+      !Number.isSafeInteger(value.owner_id) || value.owner_id < 1 ||
+      typeof value.updated_at !== 'string' || !ISO.test(value.updated_at)) refusal('invalid_publisher_context');
+  const acquired = Date.parse(value.updated_at);
+  if (!Number.isFinite(acquired) || acquired > now ||
+      new Date(acquired).toISOString() !== value.updated_at.replace('Z', '.000Z')) refusal('invalid_publisher_context');
+  return acquired;
+}
+
+function verifyPublisherBinding(pr, context, expected) {
+  if (!pr || pr.number !== context.prNumber || pr.state !== 'open' || pr.draft !== false || !TRUSTED.has(pr.author_association) ||
+      pr.base?.ref !== 'main' || pr.base?.sha !== context.baseSha || pr.head?.sha !== context.headSha ||
+      String(pr.head?.repo?.full_name).toLowerCase() !== context.repository.toLowerCase() ||
+      typeof pr.body !== 'string' || pr.body.length > 65536) refusal('invalid_publisher_binding');
+  const prefixes = pr.body.match(/<!--\s*release-slot-close:/g) || [];
+  const matches = Array.from(pr.body.matchAll(/<!--\s*release-slot-close:v1\s+([\s\S]*?)-->/g));
+  if (prefixes.length !== 1 || matches.length !== 1) refusal('invalid_publisher_binding');
+  let value;
+  try { value = JSON.parse(matches[0][1]); } catch { refusal('invalid_publisher_binding'); }
+  if (!value || typeof value !== 'object' || Array.isArray(value) ||
+      Object.keys(value).sort().join(',') !== 'comment_id,head_sha,owner_id,updated_at' ||
+      value.comment_id !== expected.comment_id || value.owner_id !== expected.owner_id ||
+      value.updated_at !== expected.updated_at || value.head_sha !== context.headSha) refusal('invalid_publisher_binding');
+}
+
+function verifyPublisherRecord(record, context, expected) {
+  if (record?.id !== expected.comment_id || record.user?.id !== expected.owner_id || !TRUSTED.has(record.author_association) ||
+      record.updated_at !== expected.updated_at ||
+      record.issue_url !== 'https://api.github.com/repos/' + context.repository + '/issues/1122' ||
+      record.body !== 'PR' + context.prNumber + ': выпуск занят') refusal('publisher_changed');
+}
+
+async function continuePublisher(pulls, context, expected, token, fetchImpl) {
+  const acquired = pinnedPublisher(expected, context.now);
+  // Validate the complete snapshot before excluding any later reservation.
+  decidePriority(pulls, context);
+  verifyPublisherBinding(pulls.find(pr => pr.number === context.prNumber), context, expected);
+  const resource = 'issues/comments/' + expected.comment_id;
+  verifyPublisherRecord(await readJson(context.repository, resource, token, fetchImpl), context, expected);
+  const freshTarget = await readJson(context.repository, 'pulls/' + context.prNumber, token, fetchImpl);
+  verifyPublisherBinding(freshTarget, context, expected);
+  const currentPulls = pulls.map(pr => pr.number === context.prNumber ? freshTarget : pr);
+  const original = decidePriority(currentPulls, context);
+  const main = await readJson(context.repository, 'git/ref/heads/main', token, fetchImpl);
+  if (main?.object?.sha !== context.baseSha) refusal('base_changed');
+  verifyPublisherRecord(await readJson(context.repository, resource, token, fetchImpl), context, expected);
+  let ignored = 0;
+  const eligible = currentPulls.filter(pr => {
+    const claim = claimFor(pr, context.repository, context.baseSha, context.now);
+    if (pr.number !== context.prNumber && claim && claim.start > acquired) { ignored++; return false; }
+    return true;
+  });
+  const decision = decidePriority(eligible, context);
+  return { ...decision, reason: decision.allowed ? 'active_publisher' : decision.reason,
+    active_reservations: original.active_reservations, ignored_later_reservations: ignored,
+    publisher_comment: expected.comment_id, publisher_acquired_at: expected.updated_at };
+}
+
 async function runGuard({ env, readEvent, fetchImpl, admission, now = Date.now() }) {
   // Manual validation remains full validation, but cannot grant a merge.
   if (!admission && env.GITHUB_EVENT_NAME === 'workflow_dispatch') {
@@ -133,9 +194,13 @@ async function runGuard({ env, readEvent, fetchImpl, admission, now = Date.now()
   if (!validRepository(context.repository) ||
       !Number.isSafeInteger(context.prNumber) || !SHA.test(context.headSha || '') ||
       !SHA.test(context.baseSha || '')) refusal('invalid_context');
+  const continuing = admission && Object.prototype.hasOwnProperty.call(admission, 'publisher');
+  if (continuing) pinnedPublisher(admission.publisher, now);
   const main = await readJson(context.repository, 'git/ref/heads/main', env.GITHUB_TOKEN, fetchImpl);
   if (main?.object?.sha !== context.baseSha) refusal('base_changed');
-  return decidePriority(await readOpenPulls(context.repository, env.GITHUB_TOKEN, fetchImpl), context);
+  const pulls = await readOpenPulls(context.repository, env.GITHUB_TOKEN, fetchImpl);
+  return continuing ? continuePublisher(pulls, context, admission.publisher, env.GITHUB_TOKEN, fetchImpl) :
+    decidePriority(pulls, context);
 }
 
 module.exports = { claimFor, decidePriority, readOpenPulls, runGuard, MAX_WINDOW_MS };
@@ -145,12 +210,16 @@ if (typeof require === 'function' && require.main === module) {
   const args = process.argv.slice(2);
   let admission;
   if (args.length) {
-    if (args.length !== 4 || args[0] !== '--admit' || !/^[1-9]\d*$/.test(args[1])) {
-      process.stderr.write('Usage: release_priority.js [--admit PR HEAD_SHA BASE_SHA]\n');
+    if (![4, 8].includes(args.length) || args[0] !== '--admit' || !/^[1-9]\d*$/.test(args[1]) ||
+        (args.length === 8 && (args[4] !== '--publisher' || !/^[1-9]\d*$/.test(args[5]) || !/^[1-9]\d*$/.test(args[6])))) {
+      process.stderr.write('Usage: release_priority.js [--admit PR HEAD_SHA BASE_SHA [--publisher COMMENT_ID OWNER_ID ACQUIRED_AT]]\n');
       process.exitCode = 1;
     } else {
       admission = { repository: process.env.GITHUB_REPOSITORY,
         prNumber: Number(args[1]), headSha: args[2], baseSha: args[3] };
+      if (args.length === 8) admission.publisher = {
+        comment_id: Number(args[5]), owner_id: Number(args[6]), updated_at: args[7]
+      };
     }
   }
   if (!process.exitCode) runGuard({ env: process.env, admission,

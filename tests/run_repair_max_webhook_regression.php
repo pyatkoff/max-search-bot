@@ -153,6 +153,31 @@ foreach ($catalog as $index=>$entry) {
         && repairIntent($pdo,(int)$row['id']) === []);
 }
 
+
+$navigationPosts = ['menu','model-iphone-x','model-iphone-15','model-iphone-15-plus','model-iphone-15-pro',
+    'model-iphone-15-pro-max','service-battery-replacement','service-front-glass-replacement','service-display'];
+foreach ($navigationPosts as $i=>$postId) {
+    $entry = AppleService39PilotCatalog::landingEntryForPost($postId);
+    $payload = AppleService39PilotCatalog::landingPayloadForPost($postId);
+    repairCheck('navigation entry is exact and allowlisted '.$postId, $entry !== null && $payload === 'as39_'.$postId
+        && AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot',$payload) === $entry);
+    $result = $handle('appleservice39',repairStart(7300+$i,$payload));
+    $conversation = repairConversation($pdo,'appleservice39',7300+$i);
+    repairCheck('navigation bot entry replies and mirrors in common history '.$postId, $result['status'] === 200
+        && $conversation['status'] === 'waiting_manager'
+        && end($sent)['text'] === AppleService39PilotCatalog::responseText($entry,'AppleService39')
+        && repairEntryIntent($pdo,(int)$conversation['id'])['state'] === 'delivered');
+    if ($entry['scope'] === 'model') repairCheck('model-only entry asks about the problem without guessing a service',
+        str_contains(end($sent)['text'],$entry['model']) && !preg_match('/[0-9] [0-9]{3} ₽/',end($sent)['text']));
+}
+$beforeMenu = json_decode((string)repairConversation($pdo,'appleservice39',7001)['metadata_json'],true)['repair_context'];
+$handle('appleservice39',repairStart(7001,'as39_menu',1800000099000));
+repairCheck('menu consultation preserves previously known device and repair',
+    (json_decode((string)repairConversation($pdo,'appleservice39',7001)['metadata_json'],true)['repair_context'] ?? null) === $beforeMenu);
+repairCheck('unapproved navigation remains closed',
+    AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot','as39_model-iphone-16') === null
+    && AppleService39PilotCatalog::resolve('repair_two','id390521129062_bot','as39_menu') === null);
+
 $before = (int)$pdo->query('SELECT COUNT(*) FROM conversations')->fetchColumn();
 $ignored = [
     ['update_type'=>'message_callback','callback'=>['user'=>['user_id'=>8001]]],
@@ -357,6 +382,31 @@ repairCheck('competing replay can win one claim without duplicating send or hand
     && repairEntryIntent($pdo,(int)$concurrent['id'])['state'] === 'delivered'
     && (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=".(int)$concurrent['id']." AND event_type='bot_started'")->fetchColumn() === 1
     && (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=".(int)$concurrent['id']." AND event_type='waiting_manager'")->fetchColumn() === 1);
+
+$firstRegionEntry = repairStart(7040,'123456789_region_00054_campaign_42',1800000000997);
+repairCheck('registered real service forwards first advertising entry through scoped recorder', $handle('appleservice39',$firstRegionEntry)['status'] === 200
+    && (ConversationEntryRegionService::forChat(-7040,'max','appleservice39',$pdo)['yandex_region_id'] ?? '') === '54');
+$firstRegionConversation = repairConversation($pdo,'appleservice39',7040);
+$pdo->exec("UPDATE conversations SET status='manager',manager_id=88 WHERE id=".(int)$firstRegionConversation['id']);
+$beforeRegionEntry = repairConversation($pdo,'appleservice39',7040);
+$protectedRegionEntry = array_intersect_key($beforeRegionEntry,array_flip(['source_id','manager_id','status']));
+$beforeRegionSends = count($sent);
+$regionEntry = repairStart(7040,'123456789_region_00039_campaign_42',1800000000998);
+$regionResult=$handle('appleservice39',$regionEntry);
+repairCheck('registered real service forwards advertising reentry through scoped recorder', $regionResult['status'] === 200
+    && (ConversationEntryRegionService::forChat(-7040,'max','appleservice39',$pdo)['yandex_region_id'] ?? '') === '39');
+$regionConversation = repairConversation($pdo,'appleservice39',7040);
+$regionMetadata = json_decode((string)$regionConversation['metadata_json'],true);
+repairCheck('registered region receipt preserves routing manager and repair context',
+    array_intersect_key($regionConversation,array_flip(array_keys($protectedRegionEntry))) === $protectedRegionEntry
+    && ($regionMetadata['repair_context'] ?? null) === (json_decode((string)$beforeRegionEntry['metadata_json'],true)['repair_context'] ?? null)
+    && $regionConversation['attribution_region'] === '39' && count($sent) === $beforeRegionSends
+    && ($regionMetadata['first_entry_region']['yandex_region_id'] ?? '') === '54');
+$regionReceiptCount = (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=".(int)$regionConversation['id']." AND event_type='entry_region_observed'")->fetchColumn();
+repairCheck('registered entry retry keeps exactly one geography receipt per genuine start', $handle('appleservice39',$regionEntry)['result'] === 'duplicate'
+    && $regionReceiptCount === 2
+    && (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=".(int)$regionConversation['id']." AND event_type='entry_region_observed'")->fetchColumn() === $regionReceiptCount);
+repairCheck('registered advertising geography never crosses into the AnyTour scope',ConversationEntryRegionService::forChat(-7040,'max','anytour',$pdo) === null);
 
 $pdo->exec("UPDATE conversations SET status='closed' WHERE id=".(int)$second['id']);
 $before = (int)$pdo->query('SELECT COUNT(*) FROM conversations')->fetchColumn();

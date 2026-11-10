@@ -75,7 +75,7 @@ final class RepairMaxWebhookService
             $context = $entry !== null ? ['model'=>$entry['model'],'service'=>$entry['service'],'entry_code'=>$payload] : [];
             if ($type === 'bot_started') {
                 $name = preg_split('/\s+/', trim((string)($user['name'] ?? '')), 2) ?: [];
-                $incoming = ['platform'=>'max','type'=>'bot_started','user'=>[
+                $incoming = ['platform'=>'max','type'=>'bot_started','start_payload'=>$payload,'user'=>[
                     'external_user_id'=>$externalUser,'chat_id'=>$chatId,
                     'first_name'=>(string)($user['first_name'] ?? $name[0] ?? ''),
                     'last_name'=>(string)($user['last_name'] ?? $name[1] ?? ''),
@@ -102,7 +102,7 @@ final class RepairMaxWebhookService
             $metadata['max_bot_key'] = $botKey;
             // A generic/reopened start cannot erase the customer's known device.
             // Only another recognized repair entry replaces the reviewed context.
-            if ($context) $metadata['repair_context'] = $context;
+            if ($context && ($entry['scope'] ?? 'repair') !== 'menu') $metadata['repair_context'] = $context;
             $q = $pdo->prepare('UPDATE conversations SET metadata_json=? WHERE id=? AND project_key=?');
             $q->execute([json_encode($metadata, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$conversationId,$projectKey]);
             if ($type === 'bot_started') {

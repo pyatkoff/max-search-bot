@@ -205,7 +205,7 @@ final class ModeledConversionForecastStatusReader
     private function boundedResponse(array $out):array
     {
         $bytes=static fn(array $v):int=>strlen(json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
-        foreach([['value_delivery','predictive_v1','examples'],['saved_input_diagnosis','examples']]as$path){
+        foreach([['value_delivery','predictive_v1','examples'],['saved_input_diagnosis','examples'],['visit_delivery_check','examples']]as$path){
             if(count($path)===3){
                 while($bytes($out)>28000&&!empty($out[$path[0]][$path[1]][$path[2]])){
                     array_pop($out[$path[0]][$path[1]][$path[2]]);
@@ -217,6 +217,10 @@ final class ModeledConversionForecastStatusReader
                     $out[$path[0]]['examples_omitted_due_to_response_budget']=true;
                 }
             }
+        }
+        while($bytes($out)>28000&&!empty($out['visit_delivery_check']['followup_sent_cohort']['failure_examples'])){
+            array_pop($out['visit_delivery_check']['followup_sent_cohort']['failure_examples']);
+            $out['visit_delivery_check']['followup_sent_cohort']['failure_examples_omitted_due_to_response_budget']=true;
         }
         return $out;
     }

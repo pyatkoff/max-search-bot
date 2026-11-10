@@ -7,11 +7,12 @@ require_once __DIR__.'/DiagnosticLogger.php';
 final class DevelopmentWorkHealth
 {
     private const STAGES = ['bootstrap','subscription','delivery','complete'];
-    private const COUNTS = ['subscriptions','accepted','retried','stopped','unchanged'];
+    private const COUNTS = ['subscriptions','accepted','retried','stopped','unchanged','held'];
 
-    public static function record(string $state, string $stage, array $counts = [], string $trigger = 'manual'): void
+    public static function record(string $state, string $stage, array $counts = [], string $trigger = 'manual', ?string $heldEvidence = null): void
     {
-        if (!in_array($state,['running','ok','awaiting_connection','failed'],true) || !in_array($stage,self::STAGES,true) || !in_array($trigger,['cron','manual'],true)) return;
+        if (!in_array($state,['running','ok','awaiting_connection','held_unknown','failed'],true) || !in_array($stage,self::STAGES,true) || !in_array($trigger,['cron','manual'],true)) return;
+        if($state==='held_unknown'&&(!is_string($heldEvidence)||preg_match('/\\A[a-f0-9]{64}\\z/D',$heldEvidence)!==1))return;
         try {
             $file=self::path();
             if ($file==='') return;
@@ -27,6 +28,7 @@ final class DevelopmentWorkHealth
                     'last_error_at'=>$state==='failed'?$now:($prior['last_error_at']??null),
                     'last_error_stage'=>$state==='failed'?$stage:($prior['last_error_stage']??null),
                     'counts'=>self::counts($counts)];
+                if($state==='held_unknown')$row['held_evidence_sha256']=$heldEvidence;
                 $json=json_encode($row,JSON_THROW_ON_ERROR);
                 rewind($handle);
                 if (@fwrite($handle,$json)!==strlen($json)) return;
@@ -58,7 +60,7 @@ final class DevelopmentWorkHealth
         rewind($handle);
         if ((int)(fstat($handle)['size']??0)>8192) return [];
         $raw=json_decode((string)stream_get_contents($handle,8192),true);
-        if (!is_array($raw) || !in_array($raw['state']??null,['running','ok','awaiting_connection','failed'],true)
+        if (!is_array($raw) || !in_array($raw['state']??null,['running','ok','awaiting_connection','held_unknown','failed'],true)
             || !in_array($raw['stage']??null,self::STAGES,true)) return [];
         $row=['state'=>$raw['state'],'stage'=>$raw['stage'],
             'trigger'=>in_array($raw['trigger']??null,['cron','manual'],true)?$raw['trigger']:'unknown'];
@@ -68,6 +70,11 @@ final class DevelopmentWorkHealth
         }
         $row['last_error_stage']=in_array($raw['last_error_stage']??null,self::STAGES,true)?$raw['last_error_stage']:null;
         $row['counts']=self::counts(is_array($raw['counts']??null)?$raw['counts']:[]);
+        if($row['state']==='held_unknown'){
+            $proof=$raw['held_evidence_sha256']??null;
+            if(!is_string($proof)||preg_match('/\\A[a-f0-9]{64}\\z/D',$proof)!==1)return [];
+            $row['held_evidence_sha256']=$proof;
+        }
         if ($row['last_started_at']===null || ($row['state']!=='running' && $row['last_finished_at']===null)) return [];
         return $row;
     }

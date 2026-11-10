@@ -22,12 +22,12 @@ if ($argv[1]==='verify-cron') {
         } while(time()<=$deadline);
         $reason='development_cron_two_future_ticks_missing';
     } catch (Throwable $error) {
-        $reason=in_array($error->getMessage(),['development_cron_worker_failed','development_cron_interval_out_of_bounds'],true)
+        $reason=in_array($error->getMessage(),['development_cron_worker_failed','development_cron_interval_out_of_bounds','development_cron_held_state_changed'],true)
             ?$error->getMessage():'development_cron_verification_unavailable';
     }
     fwrite(STDERR,json_encode(['ok'=>false,'state'=>'cron_verification_failed','reason'=>$reason,'provider_calls'=>0],JSON_THROW_ON_ERROR)."\n");exit(1);
 }
-$stage='bootstrap';$finished=false;$trigger=getenv('DEVELOPMENT_WORK_TRIGGER')==='cron'?'cron':'manual';
+$stage='bootstrap';$finished=false;$serverMode=false;$trigger=getenv('DEVELOPMENT_WORK_TRIGGER')==='cron'?'cron':'manual';
 DevelopmentWorkHealth::record('running',$stage,[],$trigger);
 register_shutdown_function(static function() use (&$finished,&$stage,$trigger): void {
     if (!$finished) DevelopmentWorkHealth::record('failed',$stage,[],$trigger);
@@ -39,9 +39,24 @@ try {
     ProjectAccessService::initializeReadOnly();
     $authorize=static fn(string $connection,int $admin,array $required):bool=>
         (new ManagerPreparationOAuth())->developmentConnectionAuthorizedAcrossProfiles($connection,$admin);
-    $events=new DevelopmentWorkEventService(null,null,null,$authorize);$stage='subscription';
-    // A real current development OAuth grant and verified subscription are prerequisites.
-    // The CLI never starts a hosted worker or invokes any model/provider itself.
+    require_once dirname(__DIR__).'/services/DevelopmentWorkServerRuntime.php';
+    $stage='delivery';$serverMode=true;
+    $server=DevelopmentWorkServerRuntime::tick(ConversationDb::connection(),$trigger,
+        static fn(string $connection,int $admin):bool=>$authorize($connection,$admin,[]));
+    if($server['handled']) {
+        $safe=array_intersect_key($server,array_flip(['state','reason','provider_calls','execution_status','work_accepted','held_evidence_sha256']));
+        // A verified no-dispatch observation of an already held UNKNOWN is not a new failure.
+        // The original failing send still has provider_calls=null and remains failed.
+        $held=($server['state']??null)==='unknown'&&($server['provider_calls']??null)===0
+            &&($server['execution_status']??null)==='held_existing_unknown'&&($server['work_accepted']??null)===false&&is_string($server['held_evidence_sha256']??null)
+            &&preg_match('/\\A[a-f0-9]{64}\\z/D',$server['held_evidence_sha256'])===1;
+        $healthy=$held||!in_array($server['state']??'unknown',['unknown','hold'],true);
+        DevelopmentWorkHealth::record($held?'held_unknown':($healthy?'ok':'failed'),$healthy?'complete':'delivery',
+            ['accepted'=>isset($server['accepted_task'])?1:0]+($held?['held'=>1]:[]),$trigger,$held?$server['held_evidence_sha256']:null);$finished=true;
+        echo json_encode(['ok'=>$healthy,'execution_kind'=>'server_model']+$safe,JSON_THROW_ON_ERROR)."\n";exit($healthy?0:1);
+    }
+    $serverMode=false;$events=new DevelopmentWorkEventService(null,null,null,$authorize);$stage='subscription';
+    // Native mode alone requires a real authorized verified callback subscription.
     if (!$events->hasActiveSubscriptions()) {
         DevelopmentWorkHealth::record('awaiting_connection',$stage,[],$trigger);$finished=true;
         echo "{\"ok\":true,\"state\":\"awaiting_connection\",\"provider_calls\":0}\n";exit;
@@ -56,5 +71,5 @@ try {
 } catch (Throwable $ignored) {
     DevelopmentWorkHealth::record('failed',$stage,[],$trigger);$finished=true;
     // Fixed stage only: no SQL, exception text, queue IDs, callback or credentials.
-    fwrite(STDERR,json_encode(['ok'=>false,'state'=>'unavailable','stage'=>$stage,'provider_calls'=>0],JSON_THROW_ON_ERROR)."\n");exit(1);
+    fwrite(STDERR,json_encode(['ok'=>false,'state'=>'unavailable','stage'=>$stage,'provider_calls'=>$serverMode?null:0],JSON_THROW_ON_ERROR)."\n");exit(1);
 }
