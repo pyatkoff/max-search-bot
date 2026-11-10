@@ -1,0 +1,43 @@
+{
+  "public_post_url": "https://max.ru/channel_appleservice39ru/AaG9HQbsXvk",
+  "canonical_channel_url": "https://max.ru/channel_appleservice39ru",
+  "public_channel_id": 80917954947727,
+  "public_html_sha256": "310d8a1eaa99dbfc5864dc06d6ea3737f3df1b29a25f04e83c8b61bde340052d",
+  "object_offset": 14938,
+  "object_length": 1866,
+  "native_photo_id": "46903564625",
+  "photo_reference_id": 46903564625,
+  "width": 1072,
+  "height": 1467,
+  "native_payload_url_sha256": "a48ed7464478f722699ed595890ef60f379b9da1a04f448c50db87a84f595742",
+  "ssr_attachment_url_sha256": "171b54dec595b95e71fd5bc45645b7094e07f356cab59079776f9321cfd21774",
+  "exact_native_locator_match": false,
+  "source": "actual_public_post_Svelte_SSR_linkInfo.message.attachment[0]",
+  "reviewed_at_utc": "2026-11-09T17:55:33.729840+00:00",
+  "source_png": {
+    "bytes": 1700964,
+    "sha256": "1ceddaceee5039703d400a904a44c905ded9e7fc69e22890e71544ca506c3ded",
+    "dimensions": [
+      1072,
+      1467
+    ],
+    "format": "PNG"
+  },
+  "public_native_preview": {
+    "bytes": 65050,
+    "sha256": "fc8d0b567f7857e167fc1fda8e78ecda543cb8e937a2a318f312c7837a36ab2f",
+    "dimensions": [
+      561,
+      768
+    ],
+    "format": "JPEG"
+  },
+  "native_readback_run_id": 42654058964,
+  "native_readback_job_id": 129288024235,
+  "visual_review": {
+    "source_asset_opened": true,
+    "native_preview_opened": true,
+    "exact_layout_model_service_price_qualifiers": true
+  },
+  "review_notes": "Opened both files individually. Same complete catalogue composition, iPhone X with wide notch, battery service,3500 rubles, free diagnosis, price/availability qualifier and full address. No question headline or drawn CTA. Public SSR PHOTO photoId/referenceId46903564625 binds its exact preview locator171b... to the provider GET photoID46903564625. Different native API/public locators and different PNG/JPEG bytes are disclosed; no URL/token decoding or similarity score is used."
+}

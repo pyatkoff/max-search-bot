@@ -3,5 +3,11 @@
   "revision_key": "landing-v2",
   "project_key": "appleservice39",
   "policy": "exact_source_and_native_visual_review",
-  "approvals": []
+  "approvals": [
+    {
+      "post_id": "repair-iphone-x-battery-replacement",
+      "proof_sha256": "a531a7af1c8f19cb3b2e7e4a1fbf7161b53dc89ffef1e28e8a88934faadc39c8",
+      "native_preview_sha256": "fc8d0b567f7857e167fc1fda8e78ecda543cb8e937a2a318f312c7837a36ab2f"
+    }
+  ]
 }
