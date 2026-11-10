@@ -7,6 +7,7 @@ require_once __DIR__.'/MetrikaOfflineClient.php';
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
 require_once __DIR__.'/ModeledConversionPriceContinuity.php';
 require_once __DIR__.'/ModeledConversionTickFailure.php';
+require_once __DIR__.'/ModeledConversionAttributionWindow.php';
 
 /** One bounded addition to the existing cron process and durable conversion outbox. */
 final class ModeledConversionValueExport
@@ -161,7 +162,7 @@ final class ModeledConversionValueExport
                     // Revalidate the retained MAX source at dispatch, not only at the earlier signal.
                     $sendAt=$injectedClock?$now:time();$sourceAt=(int)($r['tracker_observed_unix']??0);
                     if($r['platform']==='max'&&($sourceAt<946684800||$sourceAt>(int)$r['event_unix']
-                        ||$sourceAt>$sendAt||$sendAt-$sourceAt>21*86400)){
+                        ||$sourceAt>$sendAt||$sendAt-$sourceAt>ModeledConversionAttributionWindow::MAX_SECONDS)){
                         $hold=$p->prepare("UPDATE max_channel_conversion_outbox SET state='pending',next_attempt_unix=?,last_error='identity_not_found'"
                             ." WHERE id=? AND state='ready' AND (upload_id IS NULL OR upload_id='') AND (claim_token IS NULL OR claim_token='')");
                         $hold->execute([$sendAt+300,$r['id']]);continue;
@@ -174,6 +175,14 @@ final class ModeledConversionValueExport
                     if($hasCollision){
                         $hold=$p->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error='wire_key_collision' WHERE id=? AND state='ready'");
                         $hold->execute([$sendAt+3600,$r['id']]);continue;
+                    }
+                    // Confirm the actual preceding Metrika visit before claiming a financial send.
+                    try{$visitReport=method_exists($api,'modeledAttributionVisits')?$api->modeledAttributionVisits((string)$r['client_id'],(int)$r['event_unix'],$sendAt):['status'=>'unavailable','visits'=>[]];}catch(Throwable $ignoredWindow){$visitReport=['status'=>'unavailable','visits'=>[]];}
+                    $sendAt=$injectedClock?$now:time();
+                    $window=ModeledConversionAttributionWindow::assess($visitReport,(int)$r['event_unix'],$sendAt);
+                    if(!$window['allowed']){
+                        $hold=$p->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error=? WHERE id=? AND state='ready' AND (upload_id IS NULL OR upload_id='') AND (claim_token IS NULL OR claim_token='')");
+                        $hold->execute([$sendAt+300,$window['reason']==='outside_current_window'?'metrika_visit_window':'metrika_visit_unverified',$r['id']]);continue;
                     }
                     $token=bin2hex(random_bytes(16));
                     $q=$p->prepare("UPDATE max_channel_conversion_outbox SET state='uploading',claim_token=?,claimed_at_unix=?,attempts=attempts+1 WHERE id=? AND state='ready' AND target=? AND transport_target=? AND value_rub=?");
@@ -479,7 +488,7 @@ final class ModeledConversionValueExport
             $observed=is_array($record)?($record['observed_at_unix']??null):null;
             if(is_array($record)&&($record['external_user_id']??null)===$r['external_user_id']
                 &&is_int($observed)&&$observed>=946684800&&$observed<=(int)$r['event_unix']
-                &&(int)$r['event_unix']-$observed<=21*86400&&$now-$observed<=21*86400)$client=$record['client_id']??null;
+                &&(int)$r['event_unix']-$observed<=ModeledConversionAttributionWindow::MAX_SECONDS&&$now-$observed<=ModeledConversionAttributionWindow::MAX_SECONDS)$client=$record['client_id']??null;
         }else{
             $q=$this->pdo->prepare("SELECT client_id,MIN(id) AS observation_id FROM advertising_visit_observations WHERE project_key='anytour' AND source_key='tgmini' AND platform='telegram' AND counter_id='98615635' AND external_user_id=? AND identity_status='verified' AND client_id<>'' AND visit_at_unix<=? AND observed_at_unix<=? AND received_at_unix<=? GROUP BY client_id LIMIT 2");
             $q->execute([$r['external_user_id'],$r['event_unix'],$now,$now]);$ids=$q->fetchAll(PDO::FETCH_ASSOC);if(count($ids)>1)$identityReason='identity_ambiguous';if(count($ids)===1){$client=$ids[0]['client_id'];$observation=$ids[0]['observation_id'];}
