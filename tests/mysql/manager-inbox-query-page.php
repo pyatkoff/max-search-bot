@@ -437,19 +437,24 @@ try {
     $pdo->exec('DELETE FROM manager_group_members WHERE manager_id=7');
     inboxNativeCheck('native counters retain revoked-source post-cap visibility',ManagerQueueProjectionService::counts(7,'native-inbox')===inboxNativeReferenceCounts(7,'native-inbox'));
     $pdo->exec('INSERT INTO manager_group_members VALUES(7,101),(7,103)');
+    inboxNativeCheck('native benchmark Waiting retains its full 200-row cap outside the routing cohort',count(ManagerConversationService::queueCountRows(7,'waiting','native-inbox'))===200);
+    // The benchmark above deliberately fills the current unknown-time page.
+    // Give this separate routing/suspension contract its own granted project;
+    // IDs 801/802 must not depend on displacing older benchmark candidates.
+    $pdo->exec("INSERT INTO projects VALUES(4,'native-routing','Synthetic routing cohort',1);INSERT INTO manager_projects VALUES(7,4)");
     $pdo->exec("INSERT INTO conversation_sources VALUES(3,'Delayed',102,'delayed',103,30,1)");
     foreach([[801,'2000-01-01 00:00:00'],[802,'2099-01-01 00:00:00']] as [$id,$at]){
-        $conversation->execute([$id,1,'native-inbox',3,'max','waiting_manager','new',null,$at,$at,0]);$event->execute([$id,$at]);
+        $conversation->execute([$id,1,'native-routing',3,'max','waiting_manager','new',null,$at,$at,0]);$event->execute([$id,$at]);
         $message->execute([$id*100,$id,'inbound','customer','max','Delayed routing','{}',$at]);
     }
-    $waitingIds=array_map('intval',array_column(ManagerConversationService::queueCountRows(7,'waiting','native-inbox'),'id'));
-    inboxNativeCheck('native counter routing retains elapsed and future fallback timestamps',in_array(801,$waitingIds,true)&&!in_array(802,$waitingIds,true));
-    $beforeFailure=ManagerQueueProjectionService::counts(7,'native-inbox');
+    $waitingIds=array_map('intval',array_column(ManagerConversationService::queueCountRows(7,'waiting','native-routing'),'id'));
+    inboxNativeCheck('native counter routing retains elapsed and future fallback timestamps',$waitingIds===[801]);
+    $beforeFailure=ManagerQueueProjectionService::counts(7,'native-routing');
     $pdo->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at,payload_json) VALUES(801,'manager_message_failed','2026-10-17 00:00:00','{\"category\":\"suspended\"}')");
-    $suspended=ManagerQueueProjectionService::counts(7,'native-inbox');
-    inboxNativeCheck('native suspended Waiting changes actionable totals but retains raw notification unread',$suspended===inboxNativeReferenceCounts(7,'native-inbox')&&$suspended['waiting']['count']===$beforeFailure['waiting']['count']-1&&$suspended['waiting']['unread']===$beforeFailure['waiting']['unread']-1&&$suspended['notification_unread']===$beforeFailure['notification_unread']);
+    $suspended=ManagerQueueProjectionService::counts(7,'native-routing');
+    inboxNativeCheck('native suspended Waiting changes actionable totals but retains raw notification unread',$suspended===inboxNativeReferenceCounts(7,'native-routing')&&$suspended['waiting']['count']===$beforeFailure['waiting']['count']-1&&$suspended['waiting']['unread']===$beforeFailure['waiting']['unread']-1&&$suspended['notification_unread']===$beforeFailure['notification_unread']);
     $pdo->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at,actor_type) VALUES(801,'bot_started','2026-10-17 00:00:00','system')");
-    inboxNativeCheck('native same-second canonical restart restores the counter',ManagerQueueProjectionService::counts(7,'native-inbox')===$beforeFailure);
+    inboxNativeCheck('native same-second canonical restart restores the counter',ManagerQueueProjectionService::counts(7,'native-routing')===$beforeFailure);
     $pdo->beginTransaction();
     $pdo->exec("UPDATE conversations SET last_message_at='2026-10-15 12:00:00' WHERE status='manager'; UPDATE conversation_events SET created_at='2098-01-01 00:00:00' WHERE event_type='waiting_manager'");
     foreach(['waiting','requested','mine'] as $queue){

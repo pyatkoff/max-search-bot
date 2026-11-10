@@ -1,7 +1,15 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/fixtures/manager_reply_queue_fixture.php';
-$pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);replyQueueFixture($pdo);
+final class ReplyQueueTracePdo extends PDO
+{
+    public array $preparedSql=[];
+    public function prepare(string $query,array $options=[]): PDOStatement|false
+    {
+        $this->preparedSql[]=$query;return parent::prepare($query,$options);
+    }
+}
+$pdo=new ReplyQueueTracePdo('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);replyQueueFixture($pdo);
 $passed=0;$now=time();
 function rqCheck(string $name,bool $ok): void {global$passed;if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name."\n";}
 function rqView(int $actor=7,int $cid=101): array {$r=ManagerReplyQueueService::snapshot($actor,$cid);if(!$r['ok'])throw new RuntimeException('Unexpected snapshot refusal');return$r['reply_queue'];}
@@ -30,7 +38,9 @@ rqCheck('late incoming before decision stays pending above captured cutoff',$par
 $staleUndo=$undo;$staleUndo['operation_id']='undo-synthetic-stale';
 rqCheck('stale undo cannot replace a newer decision',ManagerReplyQueueService::mutate(7,101,'undo',$staleUndo)['error']==='conflict');
 
-$boundary=ManagerReplyQueueService::captureSendBoundary(101);replyQueueMessage($pdo,4,101,'inbound','customer',$now-30);
+$pdo->preparedSql=[];$boundary=ManagerReplyQueueService::captureSendBoundary(101);$sendSql=$pdo->preparedSql;
+rqCheck('send capture reads only its two required frontiers with one reference per table',count($sendSql)===1&&preg_match_all('/\bFROM\s+messages\b/i',$sendSql[0])===1&&preg_match_all('/\bFROM\s+conversation_events\b/i',$sendSql[0])===1&&$boundary===['version'=>1,'customer_message_id'=>3,'request_event_id'=>$request]);
+replyQueueMessage($pdo,4,101,'inbound','customer',$now-30);
 replyQueueMessage($pdo,5,101,'outbound','manager',$now-20,[ManagerReplyQueueService::SEND_BOUNDARY=>$boundary]);
 rqCheck('question arriving during successful send remains unanswered despite its lower INSERT ID',rqView()['needed']&&rqView()['waiting_since_unix']===$now-30);
 $boundary=ManagerReplyQueueService::captureSendBoundary(101);replyQueueMessage($pdo,6,101,'outbound','manager',$now-15,[ManagerReplyQueueService::SEND_BOUNDARY=>$boundary]);

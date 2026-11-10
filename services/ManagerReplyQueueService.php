@@ -72,14 +72,19 @@ final class ManagerReplyQueueService
     /** Capture before transport, not after a late inbound has acquired a lower INSERT ID than the reply. */
     public static function captureSendBoundary(int $conversationId): array
     {
-        $frontier=self::frontiers($conversationId);
+        $frontier=self::frontiers($conversationId,false);
         return ['version'=>1,'customer_message_id'=>$frontier['customer_message_id'],'request_event_id'=>$frontier['request_event_id']];
     }
-    private static function frontiers(int $conversationId): array
+    private static function frontiers(int $conversationId,bool $forSnapshot=true): array
     {
         $pdo=ConversationDb::connection();$human=self::humanSql('m',$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql');
-        $q=$pdo->prepare("SELECT (SELECT COALESCE(MAX(m.id),0) FROM messages m WHERE m.conversation_id=? AND $human) AS customer_message_id,(SELECT COALESCE(MAX(id),0) FROM conversation_events WHERE conversation_id=? AND event_type='waiting_manager') AS request_event_id,(SELECT COALESCE(MAX(id),0) FROM messages WHERE conversation_id=? AND direction='outbound' AND sender_type='manager') AS manager_message_id,(SELECT COALESCE(MAX(id),0) FROM conversation_events WHERE conversation_id=?) AS queue_event_id");
-        $q->execute([$conversationId,$conversationId,$conversationId,$conversationId]);return array_map('intval',$q->fetch(PDO::FETCH_ASSOC));
+        $sql="SELECT (SELECT COALESCE(MAX(m.id),0) FROM messages m WHERE m.conversation_id=? AND $human) AS customer_message_id,(SELECT COALESCE(MAX(id),0) FROM conversation_events WHERE conversation_id=? AND event_type='waiting_manager') AS request_event_id";
+        $args=[$conversationId,$conversationId];
+        if($forSnapshot){
+            $sql.=",(SELECT COALESCE(MAX(id),0) FROM messages WHERE conversation_id=? AND direction='outbound' AND sender_type='manager') AS manager_message_id,(SELECT COALESCE(MAX(id),0) FROM conversation_events WHERE conversation_id=?) AS queue_event_id";
+            array_push($args,$conversationId,$conversationId);
+        }
+        $q=$pdo->prepare($sql);$q->execute($args);return array_map('intval',$q->fetch(PDO::FETCH_ASSOC));
     }
     public static function snapshot(int $actor,int $conversationId): array
     {
