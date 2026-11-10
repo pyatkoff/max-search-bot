@@ -49,8 +49,8 @@ class LocalAiFallbackService
             'китай'=>'Китай',
             'хайнан'=>'Китай',
         ];
-        // Only country matching uses the positive replacement clause. Party
-        // and duration below still read the complete original tourist message.
+        // Country matching uses the positive replacement clause. Party below
+        // still reads the complete original tourist message.
         $countryText = $userText;
         $explicitReplacement = false;
         if (preg_match('/^\s*не\s+.+?\s*,?\s+а\s+(.+?)\s*$/ui', $countryText, $correction)) {
@@ -110,9 +110,20 @@ class LocalAiFallbackService
         $childAges = self::explicitChildAges($userText, $children);
         if ($childAges !== null) $params['child_ages'] = $childAges;
 
-        if (preg_match('/(?:на\s+)?недел(?:ю|ьку)/ui', $userText)) {
-            $params['nights'] = '7';
+        // A confirmed country-only replacement does not negate an independent
+        // duration. Reuse the existing country decision; never strip a numeric
+        // or duration correction from the text passed to the nights guard.
+        $nightsText = $userText;
+        if ($explicitReplacement && isset($params['country'])) {
+            foreach ($countries as $stem => $name) {
+                if (preg_match('/^\s*не\s+(?:(?:в|во|на)\s+)?'.preg_quote($stem, '/').'[а-яё-]*\s*,?\s+а\s+/ui', $userText)) {
+                    $nightsText = $countryText;
+                    break;
+                }
+            }
         }
+        $nights = self::explicitNights($nightsText);
+        if ($nights !== null) $params['nights'] = $nights;
 
         return $params;
     }
@@ -134,6 +145,46 @@ class LocalAiFallbackService
     {
         return in_array('country', $missingBefore, true)
             && in_array('country', $missingAfter, true);
+    }
+
+    private static function explicitNights(string $text): ?string
+    {
+        // Negative child composition is independent of the requested duration.
+        // Other negations, questions and alternatives remain for the ordinary
+        // interpretation path instead of becoming a partly accepted trip.
+        $guardText = preg_replace('/(?<!\p{L})детей\s+нет(?!\p{L})/ui', ' ', $text);
+        if ($guardText === null || preg_match('/[?？]|(?<!\p{L})(?:не|нет|или|либо|ли|если|бы|возможно|может|наверное|например|допустим|предположим|можно|сколько|почему|зачем|когда|как|какой|какая|какие|какую|узнать|спросить|расскажите|подскажите|вместо|лучше|больше|меньше|дольше|короче|более|менее|минимум|максимум|почти|около|примерно|приблизительно|плюс(?:ом)?|минус(?:ом)?|раньше|назад|были|ездили|летали)(?!\p{L})/ui', $guardText)) return null;
+
+        // Only a labelled duration is extracted from a compound request. A
+        // bare number/date/age/budget is not a nights answer on this surface.
+        // Contextual comma/space ranges and day abbreviations stay with the
+        // canonical scalar parser when its actual nights question owns input.
+        $number = '[0-9]{1,3}(?:\s*[-–—]\s*[0-9]{1,3})?';
+        $pattern = '/(?<![\p{L}0-9.,\/+\-–—])(?:(?:на\s+)?'.$number.'\s*ноч(?:ь|и|ей)(?![\p{L}0-9])'
+            .'|на\s+недел(?:ю|ьку)(?![\p{L}0-9])|\A\s*недел(?:я|ю|ьку)[.!]?\s*\z)/ui';
+        if (preg_match_all($pattern, $text, $matches, PREG_OFFSET_CAPTURE) !== 1) return null;
+
+        [$clause, $offset] = $matches[0][0];
+        $prefix = substr($text, 0, $offset);
+        $suffix = substr($text, $offset + strlen($clause));
+        $remaining = $prefix.' '.$suffix;
+        $otherUnit = '(?:день|дня|дней|недел(?:я|ю|и|ь|ьку)|месяц(?:а|ев)?)(?!\p{L})';
+        if (preg_match('/(?<!\p{L})(?:от|до|свыше|по|после|через|спустя|за|без|порядка)\s*$/ui', $prefix)
+            || preg_match('/(?<!\p{L})на\s+[0-9]{1,3}\s*[,;]\s*$/ui', $prefix)
+            || (!preg_match('/^на\s+/ui', $clause) && preg_match('/(?:[0-9]\s*[,\.\/]|[+\-–—]|[0-9]\s+(?:и\s+)?)\s*$/ui', $prefix))
+            || preg_match('/^\s*(?:\+|[-–—]\s*[0-9]|позже(?!\p{L}))/ui', $suffix)
+            || preg_match('/^\s*[,;]?\s*(?:(?:а|но|и)\s+)?[0-9]{1,3}\s*[.!]?\s*$/ui', $suffix)
+            || preg_match('/(?<!\p{L})ноч(?:ь|и|ей)(?!\p{L})/ui', $remaining)
+            || preg_match('/(?<!\p{L})на\s+(?:[0-9]{1,3}\s*)?'.$otherUnit.'/ui', $remaining)
+            || preg_match('/^\s*[,;]?\s*(?:(?:а|но|и)\s+)?(?:[0-9]{1,3}\s*)?'.$otherUnit.'/ui', $suffix)
+            || preg_match('/^\s*(?:[0-9]{1,3}\s*)?'.$otherUnit.'\s*[,;]?\s*(?:и\s*)?$/ui', $prefix)) return null;
+
+        // Bounds and canonical storage (including a week and dash ranges)
+        // belong to the same resolver used by the existing wizard owner.
+        $resolved = NeedValueResolver::resolve('nights', $clause);
+        return !empty($resolved['recognized']) && is_string($resolved['value'] ?? null)
+            ? $resolved['value']
+            : null;
     }
 
     private static function explicitChildAges(string $text, int $children): ?array

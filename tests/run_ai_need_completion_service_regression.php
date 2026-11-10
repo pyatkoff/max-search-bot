@@ -234,6 +234,8 @@ $cases=[
  ['shared_age_only','Детям по 7 лет',$base+['adults'=>2,'children'=>2,'nights'=>'7'],[],[],null],
  ['shared_age_tail','Детям по 7 лет. Вы уже спрашивали',$base+['adults'=>2,'children'=>2,'nights'=>'7'],['intent'=>'search','parameters'=>[],'reply'=>''],[],null],
  ['shared_age_correction_tail','Детям по 7 лет. Не 7, а 8',$base+['adults'=>2,'children'=>2,'nights'=>'7'],['intent'=>'question','parameters'=>[],'reply'=>'Уточните возраст детей.'],[],null],
+ ['explicit_facts_conflict','Хочу тур из Самары в Египет, на 10 ночей, нужен песчаный пляж',['country'=>'Египет'],['intent'=>'search','parameters'=>['city'=>'Москва','nights'=>'7'],'reply'=>''],['date'=>'12.12.2030'],['city'=>'Самара']],
+ ['explicit_facts_timeout','Хочу тур из Самары в Египет, на 10 ночей, нужен песчаный пляж',['country'=>'Египет'],['_error'=>'timeout'],['date'=>'12.12.2030'],['city'=>'Самара']],
 ];
 foreach($cases as [$key,$text,$context,$answer,$localDate,$departure]){
  MaxSearchApi::$context=MaxSearchApi::$before=$context;AiInvocationService::$answer=$answer;AiInvocationService::$calls=[];AiInvocationService::$contexts=[];NeedApplicationService::$resolutions=[];NeedProgressionService::$calls=[];MissingFieldQuestionService::$sent=[];AiDateContextService::$local=$localDate;DepartureCityResolver::$resolved=$departure;
@@ -304,6 +306,18 @@ try{
     aiCompletionCheck('a complete shared-age answer succeeds in the existing early branch',($sourceResults['shared_age_only']['resolutions'][0]??null)===['field'=>'child_ages','recognized'=>true,'applied'=>true]&&($sourceResults['shared_age_only']['context']['child_ages']??null)===[7,7]&&($sourceResults['shared_age_only']['router']??null)===[]&&count($sourceResults['shared_age_only']['progress']??[])===1);
     aiCompletionCheck('numeric correction tail never stores the contradicted shared age',!array_key_exists('child_ages',$sourceResults['shared_age_correction_tail']['context']??[])&&in_array('child_ages',$sourceResults['shared_age_correction_tail']['missing']??[],true));
     aiCompletionCheck('later exact date reuses the full saved party',($sourceResults['after_date']['missing']??null)===[]&&($sourceResults['after_date']['context']['child_ages']??null)===[6,12]&&($sourceResults['after_date']['context']['date']??null)==='24.07.2030'&&count($sourceResults['after_date']['progress']??[])===1);
+    foreach(['explicit_facts_conflict','explicit_facts_timeout'] as $case){
+        $seen=$sourceResults[$case]['seen_contexts'][0]??[];
+        $saved=$sourceResults[$case]['context']??[];
+        aiCompletionCheck($case.' sends confirmed city and duration to the existing rich router',
+            ($sourceResults[$case]['router']??null)===['RICH_AI']
+                &&($seen['city']??null)==='Самара'&&($seen['nights']??null)==='10');
+        aiCompletionCheck($case.' preserves explicit city duration and date after inference',
+            ($saved['city']??null)==='Самара'&&($saved['nights']??null)==='10'&&($saved['date']??null)==='12.12.2030');
+        aiCompletionCheck($case.' never asks again for the accepted city or duration',
+            !in_array('city',$sourceResults[$case]['missing']??[],true)
+                &&!in_array('nights',$sourceResults[$case]['missing']??[],true));
+    }
 }catch(Throwable $error){aiCompletionCheck('source handler fixture completed',false);echo $error->getMessage()."\n";}
 finally{
     foreach(['handlers','services'] as $dir){foreach(glob($sourceTmp.'/'.$dir.'/*')?:[] as $file)unlink($file);rmdir($sourceTmp.'/'.$dir);}
