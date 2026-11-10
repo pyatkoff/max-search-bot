@@ -1,24 +1,24 @@
 {
     "ok": true,
-    "generated_at": "2026-11-10T17:58:16+00:00",
+    "generated_at": "2026-11-10T18:25:56+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 120,
-        "raw_sessions": 120,
+        "sessions": 122,
+        "raw_sessions": 122,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 120,
+            "resolved": 122,
             "unresolved": 0
         },
-        "started": 97,
+        "started": 98,
         "needs_collected": 20,
         "tours_opened": 19,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 1,
-        "manager_requested": 76,
+        "manager_requested": 77,
         "manager_replied": 45,
         "customer_replied_after_manager": 20,
         "phone_received": 0,
@@ -31,9 +31,9 @@
             "max_seconds": 47166
         },
         "drop_points": {
-            "manager_requested": 31,
+            "manager_requested": 32,
             "manager_replied": 25,
-            "started_only": 23,
+            "started_only": 24,
             "collecting_needs": 20,
             "customer_replied_after_manager": 20,
             "tours_opened": 1
@@ -45,18 +45,18 @@
             "repeated_callback_input": 3
         },
         "calendar_day": {
-            "conversations_started": 101,
+            "conversations_started": 103,
             "needs_collected_from_started": 17,
             "tours_opened_from_started": 16,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 1,
-            "manager_requested": 60,
+            "manager_requested": 61,
             "manager_replied": 35,
             "customer_replied_after_manager": 14
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-10T17:58:16Z",
+        "sampled_at": "2026-11-10T18:25:56Z",
         "available": true,
         "error": null,
         "mode": "send",
