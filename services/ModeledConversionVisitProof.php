@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionValueContract.php';
 require_once __DIR__.'/ModeledConversionWireValue.php';
+require_once __DIR__.'/ModeledConversionAttributionWindow.php';
 
 /** Finite GET-only verification. Only its private receipt is written; outbox and profiles stay immutable. */
 final class ModeledConversionVisitProof
@@ -94,7 +95,7 @@ final class ModeledConversionVisitProof
                 $entry['linkage']='failed';$entry['reason']='provider_linkage_failure';
                 if(preg_match('/\\A[1-9][0-9]{0,39}\\z/D',$cid)===1){
                     if(++$requests>96||($deadline!==null&&microtime(true)>=$deadline))throw new RuntimeException('verification_request_bound');
-                    $clientVisits=$api->modeledClientVisits($cid,(int)$r['event_unix'],$now);
+                    $clientVisits=method_exists($api,'modeledAttributionVisits')?$api->modeledAttributionVisits($cid,(int)$r['event_unix'],$now):$api->modeledClientVisits($cid,(int)$r['event_unix'],$now);
                     $entry['reason']=self::failureReason($clientVisits,(int)$r['event_unix']);
                     if(++$requests>96||($deadline!==null&&microtime(true)>=$deadline))throw new RuntimeException('verification_request_bound');
                     $entry['failure_audit']=self::failureAudit($r,$v,$clientVisits,(method_exists($api,'modeledValueVisits')?$api->modeledValueVisits($cid,$activation,$now):['status'=>'unavailable']),$ledger,$now,ModeledConversionWireValue::observe($r,$ledger,$api,$now,$admitWireRead));
@@ -165,14 +166,10 @@ final class ModeledConversionVisitProof
     {
         if(($report['status']??null)!=='ok'||!is_array($report['visits']??null))return 'client_visit_report_unavailable';
         if($report['visits']===[])return 'no_reported_client_visits';
-        $later=false;
-        foreach($report['visits']as$v){
-            $at=strtotime((string)($v['started_at']??''));if($at===false)return 'client_visit_report_unavailable';
-            $age=$event-$at;
-            if($age>=0&&$age<=21*86400)return 'eligible_visit_but_provider_linkage_failed';
-            if($age<0)$later=true;
-        }
-        return $later?'only_later_or_expired_client_visits':'no_client_visit_in_attribution_window';
+        $prior=false;foreach($report['visits']as$v){$at=strtotime((string)($v['started_at']??''));if($at!==false&&$at<=$event)$prior=true;}
+        if(!$prior)return 'only_later_or_expired_client_visits';
+        $window=ModeledConversionAttributionWindow::assess($report,$event,$event);
+        return $window['allowed']?'eligible_visit_but_provider_linkage_failed':'no_client_visit_in_attribution_window';
     }
     /** Evidence only. A provider failure never becomes delivery credit or permission to resend. */
     public static function failureAudit(array $row,array $receipt,array $visits,array $goals,array $ledger,int $now,string $correctionStatus='not_recorded'):array
@@ -215,11 +212,18 @@ final class ModeledConversionVisitProof
         foreach($visits['visits']as$v){$at=strtotime((string)($v['started_at']??''));if($at===false)return $a;if($at<=$event)$prior[]=$at;}
         $latest=$prior===[]?null:max($prior);
         $a['latest_prior_visit_at']=$latest===null?null:gmdate('Y-m-d\TH:i:s\Z',$latest);
-        $a['eligible_at_signal']=$latest!==null&&$event-$latest<=21*86400;
-        $a['eligible_at_upload']=$uploaded===null?null:($latest!==null&&$latest<=$uploaded&&$uploaded-$latest<=21*86400);
+        $window=ModeledConversionAttributionWindow::assess($visits,$event,$now);
+        $a['eligible_at_signal']=$window['eligible_at_signal'];
+        $a['eligible_at_upload']=$uploaded===null?null:ModeledConversionAttributionWindow::assess($visits,$event,max($event,$uploaded))['allowed'];
         $a['diagnosis']=$a['source_rows']!==null&&$a['validated_rows']!==null&&($a['source_rows']!==1||$a['validated_rows']!==1)?'invalid_receipt_rows':($visits['visits']===[]?'no_reported_visits':($latest===null?'only_later_visits':
             (!$a['eligible_at_signal']?'outside_signal_window':($a['eligible_at_upload']===false?'outside_upload_window':
             ($a['report_comparison']==='all_wire_value'?'wire_value_reported':($a['wire_collision_rows']>0?'wire_collision':($a['report_comparison']==='all_uploads'?'reported_despite_failure':'eligible_unexplained')))))));
+        // Observed provider credit is a fact, even when it exceeds today's admission policy.
+        if($a['report_comparison']==='all_wire_value'&&$a['report_visit_at']!==null
+            &&($reportedAt=strtotime($a['report_visit_at']))!==false&&$reportedAt<=$event&&$event-$reportedAt<=21*86400
+            &&$a['source_rows']===1&&$a['validated_rows']===1)$a['diagnosis']='wire_value_reported';
+        $a['window_policy']=ModeledConversionAttributionWindow::VERSION;
+        $a['attribution_source']=$window['source_class'];$a['window_days']=$window['window_days'];
         return $a;
     }
     /** Newest half plus oldest unchecked half; stable terminal evidence is rechecked daily. */
@@ -510,7 +514,7 @@ final class ModeledConversionVisitProof
             if(!in_array($reason,['provider_linkage_failure','no_reported_client_visits','only_later_or_expired_client_visits',
                 'no_client_visit_in_attribution_window','eligible_visit_but_provider_linkage_failed','client_visit_report_unavailable','same_wire_total_provider_and_visit_report_reconciled'],true))$reason='unavailable';
             $failures[]=['platform'=>$r['platform'],'increment_rub'=>(int)$r['value_rub'],'reason'=>$reason,
-                'source_clock'=>($r['platform']!=='max'||$clock<946684800)?'unknown':($age<0?'after_signal':($age>21*86400?'expired':'within_window')),
+                'source_clock'=>($r['platform']!=='max'||$clock<946684800)?'unknown':($age<0?'after_signal':($age>ModeledConversionAttributionWindow::MAX_SECONDS?'expired':($age>ModeledConversionAttributionWindow::UNKNOWN_SECONDS?'unknown':'within_window'))),
                 'audit'=>self::validatedFailureAudit($e['failure_audit']??null,$now)];
         }
         return ['version'=>'modeled_followup_sent_cohort_v1','checkpoint_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$cut),
@@ -519,6 +523,18 @@ final class ModeledConversionVisitProof
     }
     /** Fixed anonymous scalar projection; source identities and raw provider fields cannot cross MCP. */
     private static function validatedFailureAudit(mixed $v,int $now):?array
+    {
+        if(!is_array($v)||!array_key_exists('window_policy',$v))return self::validatedPreviousFailureAudit($v,$now);
+        $extra=['window_policy','attribution_source','window_days'];
+        $legacy=array_diff_key($v,array_fill_keys($extra,true));
+        if(array_keys($v)!==array_merge(array_keys($legacy),$extra)
+            ||self::validatedPreviousFailureAudit($legacy,$now)!==$legacy
+            ||$v['window_policy']!==ModeledConversionAttributionWindow::VERSION
+            ||!in_array($v['attribution_source'],['yandex_direct','other_or_unknown'],true)
+            ||$v['window_days']!==($v['attribution_source']==='yandex_direct'?10:3))return null;
+        return $v;
+    }
+    private static function validatedPreviousFailureAudit(mixed $v,int $now):?array
     {
         if(!is_array($v))return null;
         if(!array_key_exists('wire_correction_status',$v))return self::validatedLegacyFailureAudit($v,$now);
@@ -609,7 +625,7 @@ final class ModeledConversionVisitProof
     {
         $c=self::readCache($now,$budget);if(($c['available']??false)!==true)return [...$c,'automatic'=>self::automatic($now)];
         $r=$c['receipt'];$out=['available'=>true,'fresh'=>$c['fresh'],'checked_at'=>$r['checked_at'],'checkpoint_at'=>$r['checkpoint_at'],
-            'goal_id'=>'678187097','currency'=>'RUB','basis'=>$r['basis'],'automatic'=>self::automatic($now),
+            'goal_id'=>'678187097','currency'=>'RUB','current_attribution_policy'=>ModeledConversionAttributionWindow::metadata(),'basis'=>$r['basis'],'automatic'=>self::automatic($now),
             'selected_rows'=>$r['selected_rows'],'other_rows_omitted'=>$r['other_rows_omitted'],
             'today_sent_cohort'=>self::dailySummary($r['today_sent_cohort']??null,$now),
             'followup_sent_cohort'=>self::followupSummary($r['followup_sent_cohort']??null,$now),'cohort_events'=>0,'cohort_value_rub'=>0,

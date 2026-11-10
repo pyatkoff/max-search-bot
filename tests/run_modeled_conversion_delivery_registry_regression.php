@@ -314,7 +314,7 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     $failed['event_unix']=$day+20*86400;$failed['claimed_at_unix']=$day+22*86400;
     $snapshot=serialize($failed);$noGoals=['status'=>'ok','visits'=>[]];
     $uploadReceipt=['create_time'=>gmdate('Y-m-d\TH:i:s\Z',$failed['claimed_at_unix'])];
-    $oldVisit=['status'=>'ok','visits'=>[['started_at'=>gmdate('Y-m-d\TH:i:s\Z',$day),'visits'=>1]]];
+    $oldVisit=['status'=>'ok','visits'=>[['started_at'=>gmdate('Y-m-d\TH:i:s\Z',$day+11*86400),'visits'=>1,'source_class'=>'yandex_direct']]];
     $audit=ModeledConversionVisitProof::failureAudit($failed,$uploadReceipt,$oldVisit,$noGoals,[$failed],$auditNow);
     $check('a visit eligible at the signal can have expired by the original upload without implying a provider fault',
         $audit['eligible_at_signal']===true&&$audit['eligible_at_upload']===false
@@ -346,16 +346,25 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
         &&$plan['event']['client_id']===$wireFirst['client_id']
         &&serialize([$wireFirst,$wireSecond])===$wireSnapshot
         &&$plan===ModeledConversionWireValue::plan([$wireFirst,$wireSecond],$auditNow));
-    $wireCalls=[];$wireTransport=static function(string $method,string $url,mixed $body)use(&$wireCalls):array{
+    $wireCalls=[];$wireSourceAt=$day+19*86400;
+    $wireTransport=static function(string $method,string $url,mixed $body)use(&$wireCalls,&$wireSourceAt):array{
         $wireCalls[]=[$method,$url,$body];parse_str((string)parse_url($url,PHP_URL_QUERY),$q);
+        $path=(string)parse_url($url,PHP_URL_PATH);
+        if($method==='GET'&&str_ends_with($path,'/98615635'))return ['http'=>200,'error'=>0,'body'=>json_encode(['counter'=>['id'=>'98615635','time_zone_name'=>'UTC']])];
+        if($method==='GET'&&$path==='/stat/v1/data'){
+            preg_match("/clientID=='([0-9]+)'/",$q['filters'],$match);
+            return ['http'=>200,'error'=>0,'body'=>json_encode(['query'=>['ids'=>[98615635],'metrics'=>['ym:s:visits'],
+                'dimensions'=>explode(',',$q['dimensions']),'filters'=>$q['filters']],'sampled'=>false,'total_rows'=>1,
+                'data'=>[['dimensions'=>[['name'=>$match[1]],['name'=>gmdate('Y-m-d H:i:s',$wireSourceAt)],['id'=>'ad'],['id'=>'ya_direct']],'metrics'=>[1]]]])];
+        }
         return ['http'=>200,'error'=>0,'body'=>json_encode(['uploading'=>['id'=>'5999','status'=>'UPLOADED',
             'source_quantity'=>1,'line_quantity'=>1,'comment'=>$q['comment']]])];
     };
     $wireApi=new MetrikaOfflineClient('98615635','SYNTHETIC_TOKEN',$wireTransport);
     $repair=$wireApi->uploadModeledWireCorrection([$wireFirst,$wireSecond],$auditNow);
-    $csvLines=explode("\n",trim($wireCalls[0][2]));$csvRow=str_getcsv($csvLines[1]);
+    $wirePosts=array_values(array_filter($wireCalls,static fn(array $c):bool=>$c[0]==='POST'));$csvLines=explode("\n",trim($wirePosts[0][2]));$csvRow=str_getcsv($csvLines[1]);
     $check('explicit correction sends one CSV row with the sum and identical ClientID target and second',
-        $repair['outcome']==='accepted'&&count($wireCalls)===1&&$wireCalls[0][0]==='POST'
+        $repair['outcome']==='accepted'&&count($wirePosts)===1&&$wirePosts[0][0]==='POST'
         &&count($csvLines)===2&&$csvRow[0]===$wireFirst['client_id']
         &&$csvRow[1]===ModeledConversionValueContract::TARGET
         &&(int)$csvRow[2]===$wireFirst['event_unix']&&(int)$csvRow[3]===40);
@@ -370,7 +379,12 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     $blocked=false;try{$wireApi->uploadModeledWireCorrection([$wireFirst,$wireSecond],$wireFirst['event_unix']+22*86400);}
     catch(InvalidArgumentException $e){$blocked=true;}
     $check('historical correction evidence remains readable but an expired POST is refused before transport',
-        $blocked&&count($wireCalls)===1&&ModeledConversionWireValue::plan([$wireFirst,$wireSecond],$wireFirst['event_unix']+22*86400)['total_rub']===40);
+        $blocked&&count(array_filter($wireCalls,static fn(array $c):bool=>$c[0]==='POST'))===1&&ModeledConversionWireValue::plan([$wireFirst,$wireSecond],$wireFirst['event_unix']+22*86400)['total_rub']===40);
+    $wireSourceAt=$auditNow-17*86400;
+    $refused=$wireApi->uploadModeledWireCorrection([$wireFirst,$wireSecond],$auditNow);
+    $check('a visit inside the obsolete twenty-one day window but outside both special-mode windows cannot cause another POST',
+        $refused===['outcome'=>'rejected','reason'=>'metrika_visit_window']
+        &&count(array_filter($wireCalls,static fn(array $c):bool=>$c[0]==='POST'))===1);
     $wireGoal=['status'=>'ok','visits'=>[['started_at'=>gmdate('Y-m-d\TH:i:s\Z',$day+19*86400),
         'visits'=>1,'goal_reaches'=>1,'revenue_rub'=>40]]];
     $wireAudit=ModeledConversionVisitProof::failureAudit($wireFirst,$uploadReceipt,$recent,$wireGoal,[$wireFirst,$wireSecond],$auditNow,'processed');
@@ -382,7 +396,7 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     mkdir($isolated,0700);mkdir($isolated.'/app',0700);mkdir($isolated.'/app/services',0700);
     mkdir($isolated.'/max-search-bot-modeled-visit-proof',0700);
     copy(__DIR__.'/../services/ModeledConversionWireValue.php',$isolated.'/app/services/ModeledConversionWireValue.php');
-    foreach(['MetrikaOfflineClient','ModeledConversionValueContract']as$name)
+    foreach(['MetrikaOfflineClient','ModeledConversionValueContract','ModeledConversionAttributionWindow']as$name)
         file_put_contents($isolated.'/app/services/'.$name.'.php','<?php require_once '.var_export(realpath(__DIR__.'/../services/'.$name.'.php'),true).';');
     copy(__DIR__.'/../services/ModeledConversionVisitProof.php',$isolated.'/app/services/ModeledConversionVisitProof.php');
     $fixtureScript= <<<'PHP'

@@ -68,6 +68,7 @@ final class ModeledValueTestWire
     public array $csv=[];public array $receipts=[];public int $creates=0;public int $posts=0;public int $gets=0;
     public array $reportTotals=[2,1,2083];public bool $reportSampled=false;public int $reportHttp=200;
     public bool $reportWrongScope=false;public array $lastReportQuery=[];
+    public ?int $visitAt=null;public string $visitSource='other_or_unknown';public bool $visitAvailable=true;public bool $visitEmpty=false;
     public string $postMode='accepted';public bool $createUnknown=false;public mixed $duringPost=null;
     public function request(string $method,string $url,mixed $body):array
     {
@@ -75,9 +76,22 @@ final class ModeledValueTestWire
         if($method==='GET')$this->gets++;
         if($path==='/stat/v1/data'){
             parse_str((string)parse_url($url,PHP_URL_QUERY),$query);$this->lastReportQuery=$query;
+            if(isset($query['dimensions'])){
+                $dims=explode(',',$query['dimensions']);$source=count($dims)===4;
+                if(!$this->visitAvailable)return ['http'=>503,'error'=>0,'body'=>'PRIVATE_VISIT_REPORT_BODY'];
+                preg_match("/clientID=='([0-9]+)'/",$query['filters'],$match);$cid=$match[1]??'0';
+                $visit=$this->visitAt??(strtotime($query['date1'].'T00:00:00Z')+21*86400);
+                $rowDims=[['name'=>$cid],['name'=>gmdate('Y-m-d H:i:s',$visit)]];
+                if($source){$rowDims[]=['id'=>$this->visitSource==='yandex_direct'?'ad':'direct'];$rowDims[]=['id'=>$this->visitSource==='yandex_direct'?'ya_direct':null];}
+                $data=['query'=>['ids'=>[98615635],'metrics'=>explode(',',$query['metrics']),'dimensions'=>$dims,'filters'=>$query['filters']],
+                    'data'=>$this->visitEmpty?[]:[['dimensions'=>$rowDims,'metrics'=>[1]]],'sampled'=>false,'total_rows'=>$this->visitEmpty?0:1];
+                return ['http'=>200,'error'=>0,'body'=>json_encode($data,JSON_THROW_ON_ERROR)];
+            }
             if($this->reportHttp!==200)return ['http'=>$this->reportHttp,'error'=>0,'body'=>'PRIVATE_REPORT_API_BODY'];
             $data=['query'=>['ids'=>[$this->reportWrongScope?999:98615635],'metrics'=>explode(',',$query['metrics']),
                 'date1'=>$query['date1'],'date2'=>'2026-11-03'],'totals'=>$this->reportTotals,'sampled'=>$this->reportSampled];
+        }elseif($method==='GET'&&preg_match('~/management/v1/counter/[0-9]+$~D',$path)){
+            $data=['counter'=>['id'=>98615635,'time_zone_name'=>'UTC']];
         }elseif(str_ends_with($path,'/goals')){
             if($method==='POST'){
                 $this->creates++;$g=json_decode($body,true,32,JSON_THROW_ON_ERROR)['goal'];$g['id']='678187097';$this->goals[]=$g;
@@ -99,7 +113,7 @@ final class ModeledValueTestWire
 }
 final class ModeledValueTestLookup
 {
-    public bool $missing=false;public int $calls=0;public ?int $observedAt=1792447200;
+    public bool $missing=false;public int $calls=0;public ?int $observedAt=1793500000;
     public function lookup(string $counter,array $users):array
     {
         $this->calls++;
@@ -116,7 +130,7 @@ function modeledValueMaxAttributionWindowAssertions(PDO $p,callable $check):void
         $wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
         $control->configure('create-goal',$api,$now-20);$control->configure('enable',$api,$now-10);
         modeledValueSave($p,modeledValueWrapper($scope,$now));
-        $lookup=new ModeledValueTestLookup();$lookup->observedAt=$now-21*86400+60;
+        $lookup=new ModeledValueTestLookup();$lookup->observedAt=$now-10*86400+60;
         if($lane==='ready'){
             $control->collect(ModeledConversionValueExport::settings($p),$now,$gate);
             $row=$p->query('SELECT * FROM max_channel_conversion_outbox LIMIT 1')->fetch(PDO::FETCH_ASSOC);
@@ -147,7 +161,7 @@ function modeledValueMaxAttributionWindowAssertions(PDO $p,callable $check):void
         $wire->posts===1&&$held['state']==='ready'&&$held['last_error']==='wire_key_collision'
         &&(int)$held['value_rub']===83&&(int)$held['attempts']===0&&empty($held['upload_id'])
         &&(string)$p->query("SELECT upload_id FROM max_channel_conversion_outbox WHERE target='anytour_value_1_v1'")->fetchColumn()===$before);
-    foreach(['unknown'=>null,'future'=>$now+1,'expired'=>$now-21*86400-1,'boundary'=>$now-21*86400,'fresh'=>$now-60]as$case=>$observed){
+    foreach(['unknown'=>null,'future'=>$now+1,'expired'=>$now-10*86400-1,'boundary'=>$now-10*86400,'fresh'=>$now-60]as$case=>$observed){
         modeledValueSchema($p);$scope=modeledValueBinding($p,910);
         $wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
         $control->configure('create-goal',$api,$now-20);$control->configure('enable',$api,$now-10);
@@ -175,6 +189,27 @@ function modeledValueMaxAttributionWindowAssertions(PDO $p,callable $check):void
 function modeledValueAssertions(PDO $p,callable $check):void
 {
     modeledValueMaxAttributionWindowAssertions($p,$check);
+    foreach([
+        ['direct',10*86400,'yandex_direct',true],['direct_expired',10*86400+1,'yandex_direct',false],
+        ['other',3*86400,'other_or_unknown',true],['other_expired',3*86400+1,'other_or_unknown',false],
+        ['unknown',4*86400,'unverified',false],['old_twenty_one_day_assumption',17*86400,'yandex_direct',false]
+    ]as[$label,$age,$source,$allow]){
+        $n=1793660000;$report=['status'=>'ok','visits'=>[['started_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$n-$age),'visits'=>1,'source_class'=>$source]]];
+        $w=ModeledConversionAttributionWindow::assess($report,$n,$n);
+        $check('temporary actual-visit window '.$label,$w['allowed']===$allow);
+    }
+    foreach([['yandex_direct',9*86400,true],['other_or_unknown',4*86400,false],['unverified',4*86400,false]]as[$source,$age,$allowed]){
+        $now=1793660000;$gate=static fn(string $chat):bool=>true;
+        modeledValueSchema($p);$scope=modeledValueBinding($p,913);$wire=new ModeledValueTestWire();$wire->visitSource=$source;$wire->visitAt=$now-$age;
+        $api=$wire->api();$control=new ModeledConversionValueExport($p);$control->configure('create-goal',$api,$now-20);$control->configure('enable',$api,$now-10);
+        modeledValueSave($p,modeledValueWrapper($scope,$now));$lookup=new ModeledValueTestLookup();$lookup->observedAt=$now-$age;
+        ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
+        $row=$p->query('SELECT * FROM max_channel_conversion_outbox LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+        $check('actual source gates financial dispatch '.$source.':'.$age,$allowed
+            ?$wire->posts===1&&$row['state']==='accepted'
+            :$wire->posts===0&&$row['state']==='ready'&&$row['last_error']==='metrika_visit_window'&&(int)$row['attempts']===0&&empty($row['claim_token'])&&empty($row['upload_id']));
+    }
+
     modeledValuePredictionAssertions($p,$check);
     modeledValuePolicyTransitionAssertions($p,$check);
     modeledPriceLossAssertions($p,$check);
@@ -422,6 +457,7 @@ function modeledValueFailureRetentionAssertions(PDO $p,callable $check):void
     $api=new class($wire->api()){
         public function __construct(private MetrikaOfflineClient $actual){}
         public function modeledValueGoalStatus():?array{return $this->actual->modeledValueGoalStatus();}
+        public function modeledAttributionVisits(string $cid,int $event,int $now):array{return $this->actual->modeledAttributionVisits($cid,$event,$now);}
         public function uploadModeledValue(array $row,int $at):array{return ['outcome'=>'rejected','reason'=>'PRIVATE_UPLOAD_REASON /private/file.php'];}
         public function modeledValueReport(int $activated,int $at):array{return $this->actual->modeledValueReport($activated,$at);}
     };
