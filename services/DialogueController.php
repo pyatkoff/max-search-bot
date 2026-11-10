@@ -118,14 +118,30 @@ class DialogueController
                 NeedProgressionService::advance($chatId);
                 return true;
             }
-            DestinationAreaResolver::resolveAndStore($chatId, $text);
-            DestinationResolver::resolveAndStore($chatId, $text);
+            // A confirmed compound field answer contains only departure and
+            // trip facts. None of it selects a holiday destination. Other
+            // collectors still receive the full date, duration and party text.
+            if (!isset($departure['remaining_text'])) {
+                $destinationText = $text;
+                if (!empty($departure['matched'])
+                    && (MaxSearchApi::getAiSearchContext($chatId)['city'] ?? null) === $departure['city']) {
+                    // Exclude only the confirmed departure clause. Keep an
+                    // explicit destination and all other request text intact.
+                    $destinationText = preg_replace(
+                        '/(?:^|\s)(?:с\s+вылетом\s+из|вылет(?:ом)?\s+из|из)\s+'
+                            . preg_quote($departure['matched'], '/') . '(?=$|[\s,.;!?])/ui',
+                        ' ', $text
+                    ) ?? $text;
+                }
+                DestinationAreaResolver::resolveAndStore($chatId, $destinationText);
+                DestinationResolver::resolveAndStore($chatId, $destinationText);
+            }
 
             $shadowV2 = AiShadowObserver::observe($chatId, $text);
             if (V2EarlyActionHandler::handle($chatId, $message, $shadowV2)) return true;
             if (DepartureRouteAdviceHandler::handle($chatId, $text)) return true;
-            if (!AiShortAnswerHandler::handle($message, $chatId)) {
-                AiMessageHandler::handle($message, $chatId);
+            if (isset($departure['remaining_text']) || !AiShortAnswerHandler::handle($message, $chatId)) {
+                AiMessageHandler::handle($message, $chatId, $departure, $missing);
             }
             return true;
         }
