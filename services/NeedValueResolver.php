@@ -33,7 +33,7 @@ class NeedValueResolver
         }
 
         if ($field === 'adults') {
-            $value = AdultsParser::parse($text);
+            $value = AdultsParser::parse($text, true);
             return self::result($value !== null, $value, 'deterministic:adults_parser');
         }
 

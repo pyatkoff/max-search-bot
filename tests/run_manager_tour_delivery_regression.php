@@ -14,10 +14,64 @@ function appearanceDeliveryChecks(): void {
     deliveryCheck('appearance changes retain existing optimistic version guard',deliverySave($draft,1)['error']==='conflict'&&ManagerTourSelectionService::get(7,1)['selection']['draft']['appearance']===$next['appearance']);
     deliveryCheck('appearance preview never creates a customer message',(int)$pdo->query('SELECT COUNT(*) FROM messages WHERE direction="outbound"')->fetchColumn()===0);
 }
+function replyBoundaryDeliveryChecks(): void
+{
+    $clock=time();
+    $setup=static function():PDO {$pdo=deliveryDb();$pdo->sqliteCreateFunction('JSON_UNQUOTE',static fn($value)=>$value,1);return $pdo;};
+    $incoming=static function(PDO $pdo,int $cid,int $at):int {
+        $q=$pdo->prepare("INSERT INTO messages(conversation_id,direction,sender_type,sender_id,channel,text,metadata_json) VALUES(?,'inbound','customer',?,?,'Synthetic unanswered question',?)");
+        $q->execute([$cid,$cid===1?'101':'202',$cid===1?'telegram':'max',json_encode(ConversationRecordClock::stamp([],$at))]);return (int)$pdo->lastInsertId();
+    };
+    $request=static function(PDO $pdo,int $cid,int $at):int {
+        $q=$pdo->prepare("INSERT INTO conversation_events(conversation_id,event_type,actor_type,payload_json) VALUES(?,'waiting_manager','customer',?)");
+        $q->execute([$cid,json_encode(ConversationRecordClock::stamp([],$at))]);return (int)$pdo->lastInsertId();
+    };
+    $queue=static fn(int $cid):array=>ManagerReplyQueueService::snapshot(7,$cid)['reply_queue'];
+    $pdo=$setup();$first=$incoming($pdo,1,$clock-90);$firstRequest=$request($pdo,1,$clock-80);
+    deliverySave(deliveryDraft());$publication=ManagerTourSelectionDeliveryService::prepare(7,1,1)['publication']['id'];
+    $durable=null;$late=0;$lateRequest=0;$creates=0;
+    $transport=new TourSelectionNativeTransport(static function($channel,$method,$path,$query,$body,$images)use($pdo,$incoming,$request,$clock,&$durable,&$late,&$lateRequest,&$creates):array {
+        if($path==='getMe')return ['data'=>['id'=>999,'is_bot'=>true]];
+        if($path==='getChat')return ['data'=>['id'=>101,'type'=>'private']];
+        if($path!=='sendRichMessage')throw new RuntimeException('Unexpected fake frontier exchange');
+        ++$creates;$durable=json_decode($pdo->query("SELECT receipt_json FROM manager_tour_selection_deliveries WHERE state='reserved'")->fetchColumn(),true);
+        $late=$incoming($pdo,1,$clock-20);$lateRequest=$request($pdo,1,$clock-10);
+        $message=['message_id'=>7001,'chat'=>['id'=>101,'type'=>'private'],'from'=>['id'=>999,'is_bot'=>true],'rich_message'=>$body['rich_message'],'reply_markup'=>$body['reply_markup']];
+        foreach($message['rich_message']['blocks'][0]['blocks'] as &$block)$block['photo']=[['file_id'=>'synthetic-photo','width'=>800,'height'=>600]];unset($block);
+        return ['data'=>$message];
+    });
+    $sent=ManagerTourSelectionDeliveryService::send(7,1,$publication,0,$transport,'deliveryImages');
+    $key=ManagerReplyQueueService::SEND_BOUNDARY;$expected=['version'=>1,'customer_message_id'=>$first,'request_event_id'=>$firstRequest];
+    $metadata=json_decode($pdo->query("SELECT metadata_json FROM messages WHERE conversation_id=1 AND direction='outbound'")->fetchColumn(),true);
+    deliveryCheck('native card commits both reply frontiers before provider creation',$durable[$key]===$expected&&$metadata[$key]===$expected);
+    deliveryCheck('in-flight card send leaves late customer message and new handoff pending',$sent['ok']&&$creates===1&&$sent['publication']['cards'][0]['state']==='delivered'&&$late>$first&&$lateRequest>$firstRequest&&$queue(1)['needed']);
+
+    // MAX verification is deliberately unavailable until after another inbound.
+    $pdo=$setup();$request($pdo,2,$clock-80);deliverySave(deliveryDraft(),0,2);
+    $publication=ManagerTourSelectionDeliveryService::prepare(7,2,1)['publication']['id'];
+    $callback=$pdo->query('SELECT callback_data FROM manager_tour_selection_cards')->fetchColumn();$offer=ManagerTourSelectionPublicationDraft::build(deliveryDraft())['offers'][0];
+    $card=TourOfferCardRenderer::render($offer['snapshot'],$offer['presentation'],$callback);$state=['calls'=>[],'creates'=>0,'readback'=>false,'card'=>$card];$transport=deliveryTransport($state);
+    $unknown=ManagerTourSelectionDeliveryService::send(7,2,$publication,0,$transport,'deliveryImages');
+    $receipt=json_decode($pdo->query('SELECT receipt_json FROM manager_tour_selection_deliveries')->fetchColumn(),true);$captured=$receipt[$key];
+    $incoming($pdo,2,$clock-10);$state['readback']=true;$verified=ManagerTourSelectionDeliveryService::send(7,2,$publication,0,$transport,'deliveryImages');
+    $metadata=json_decode($pdo->query("SELECT metadata_json FROM messages WHERE conversation_id=2 AND direction='outbound'")->fetchColumn(),true);$q=$queue(2);
+    deliveryCheck('late native verification preserves the original frontier and later waiting cycle',$unknown['error']==='delivery_unverified'&&$verified['ok']&&$state['creates']===1&&$metadata[$key]===$captured&&$q['needed']&&$q['waiting_since_unix']===$clock-10);
+
+    $pdo=$setup();deliverySave(deliveryDraft(),0,2);$publication=ManagerTourSelectionDeliveryService::prepare(7,2,1)['publication']['id'];
+    $callback=$pdo->query('SELECT callback_data FROM manager_tour_selection_cards')->fetchColumn();$card=TourOfferCardRenderer::render($offer['snapshot'],$offer['presentation'],$callback);
+    $state=['calls'=>[],'creates'=>0,'readback'=>false,'card'=>$card];$transport=deliveryTransport($state);ManagerTourSelectionDeliveryService::send(7,2,$publication,0,$transport,'deliveryImages');
+    $receipt=json_decode($pdo->query('SELECT receipt_json FROM manager_tour_selection_deliveries')->fetchColumn(),true);unset($receipt[$key]);
+    $pdo->prepare('UPDATE manager_tour_selection_deliveries SET receipt_json=?')->execute([json_encode($receipt)]);
+    $incoming($pdo,2,$clock-10);$state['readback']=true;$verified=ManagerTourSelectionDeliveryService::send(7,2,$publication,0,$transport,'deliveryImages');
+    $metadata=json_decode($pdo->query("SELECT metadata_json FROM messages WHERE conversation_id=2 AND direction='outbound'")->fetchColumn(),true);
+    deliveryCheck('legacy known receipt uses unknown frontier without recapturing after send',$verified['ok']&&$state['creates']===1&&$metadata[$key]===['version'=>0,'customer_message_id'=>0,'request_event_id'=>0]&&$queue(2)['needed']);
+}
+if(in_array('--reply-boundary-only',$argv,true)){replyBoundaryDeliveryChecks();echo "TOTAL {$checks} | PASS {$checks} | FAIL 0\n";exit;}
 appearanceDeliveryChecks();
 // Normal CI runs every existing case below. This explicit local selector runs
 // only the new in-memory contract where POSIX photo-mode tests are unavailable.
 if(in_array('--appearance-only',$argv,true)){echo "TOTAL {$checks} | PASS {$checks} | FAIL 0\n";exit;}
+replyBoundaryDeliveryChecks();
 $pdo=deliveryDb();$draft=deliveryDraft();deliverySave($draft);
 $preview=ManagerTourSelectionDeliveryService::prepare(7,1,1);$id=$preview['publication']['id'];
 deliveryCheck('preview is a complete frozen selection without customer creation',$preview['ok']&&$preview['publication']['cards'][0]['state']==='pending'&&(int)$pdo->query('SELECT COUNT(*) FROM messages WHERE direction="outbound"')->fetchColumn()===0);

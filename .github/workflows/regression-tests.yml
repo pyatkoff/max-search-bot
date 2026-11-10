@@ -126,6 +126,7 @@ jobs:
               ;;
             migrations)
               php tests/mysql/manager-preparation-migrations.php
+              php tests/mysql/manager-reply-queue.php
               php tests/mysql/virtual-reply-sampling.php
               php tests/mysql/virtual-reply-controls.php
               php tests/mysql/manager-tour-delivery.php

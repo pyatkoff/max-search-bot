@@ -332,7 +332,7 @@
       const openLead=el.onclick,avatar=el.querySelector('.leadAvatar'),open=document.createElement('button');open.type='button';open.className='m2RowOpen';
       avatar?.remove();
       open.setAttribute('aria-label','Открыть диалог '+(c.display_name||'Турист')+' · '+signal.label);
-      if(aiStatus)open.setAttribute('aria-describedby',aiStatus.id);
+      const descriptions=[aiStatus?.id,wait?.id].filter(Boolean);if(descriptions.length)open.setAttribute('aria-describedby',descriptions.join(' '));
       if(Number(c.id)===Number(S.current))open.setAttribute('aria-current','true');
       while(el.firstChild)open.appendChild(el.firstChild);
       el.onclick=null;el.onkeydown=null;el.removeAttribute('aria-label');el.removeAttribute('aria-describedby');el.setAttribute('role','listitem');el.removeAttribute('tabindex');

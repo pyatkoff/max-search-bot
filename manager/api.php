@@ -16,6 +16,7 @@ require_once $baseDir . '/services/ProjectAccessService.php';
 require_once $baseDir . '/services/RoutingAdminService.php';
 require_once $baseDir . '/services/AdminDirectoryService.php';
 require_once $baseDir . '/services/ManagerPriorityService.php';
+require_once $baseDir . '/services/ManagerReplyQueueService.php';
 ManagerHttp::startJson();
 
 function out(array $data, int $status=200): void { ManagerHttp::respond($data,$status); }
@@ -38,7 +39,7 @@ if($action==='login'){
 
 // These transcript reads need existing project metadata, never its legacy UPSERT.
 // Initialize before manager resolution can enter the shared bootstrap.
-if(in_array($action,['detail','message_target'],true)&&ManagerHttp::managerId()>0){
+if(in_array($action,['detail','message_target','reply_queue_resolve','reply_queue_undo','reply_queue_receipt'],true)&&ManagerHttp::managerId()>0){
     try{ProjectAccessService::initializeReadOnly();}
     catch(Throwable $ignored){out(['ok'=>false,'error'=>'project_unavailable'],503);}
 }
@@ -183,6 +184,21 @@ if($action==='ack_read'){
     try{$result=ManagerReadService::acknowledge((int)$m['id'],(int)($data['conversation_id']??0),$ids,$context);}
     catch(Throwable $e){out(['ok'=>false,'error'=>'read_ack_failed'],500);}
     out($result,!empty($result['ok'])?200:($result['error']==='invalid_read_ack'?422:409));
+}
+if(in_array($action,['reply_queue_resolve','reply_queue_undo','reply_queue_receipt'],true)){
+    $conversationId=$data['conversation_id']??null;
+    if(!is_int($conversationId)||$conversationId<=0)out(['ok'=>false,'error'=>'invalid_request'],422);
+    if($action==='reply_queue_receipt'&&!is_string($data['operation_id']??null))out(['ok'=>false,'error'=>'invalid_request'],422);
+    // The service owns fresh access, the conversation lock and the immutable
+    // operation receipt. This decision never sends, reads or closes a chat.
+    session_write_close();
+    try{
+        $result=$action==='reply_queue_receipt'
+            ?ManagerReplyQueueService::operation((int)$m['id'],$conversationId,$data['operation_id'])
+            :ManagerReplyQueueService::mutate((int)$m['id'],$conversationId,$action==='reply_queue_resolve'?'resolve':'undo',$data);
+    }catch(Throwable $e){out(['ok'=>false,'error'=>'reply_queue_unconfirmed'],500);}
+    $error=(string)($result['error']??'');
+    out($result,!empty($result['ok'])?200:($error==='forbidden'?403:(in_array($error,['invalid_request','operation_mismatch'],true)?422:409)));
 }
 if($action==='take'){
     if(!$isAdmin&&!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>false,'error'=>'not_working','error_message'=>'Смена выключена. Начните смену, чтобы взять диалог.'],409);

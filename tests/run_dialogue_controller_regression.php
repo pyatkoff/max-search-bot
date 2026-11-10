@@ -37,6 +37,9 @@ if ($jointOnly || in_array('--start-parity-fixture', $argv ?? [], true)) {
         }
         mkdir($tmp . '/resources', 0700);
         copy($root . '/resources/yandex_regions.json', $tmp . '/resources/yandex_regions.json');
+        if (is_file($root . '/resources/regional_departure_rules.json')) {
+            copy($root . '/resources/regional_departure_rules.json', $tmp . '/resources/regional_departure_rules.json');
+        }
         if (is_dir($root . '/resources/yandex_regions')) {
             mkdir($tmp . '/resources/yandex_regions', 0700);
             foreach (glob($root . '/resources/yandex_regions/*.json') ?: [] as $bucket) {
@@ -493,25 +496,37 @@ PHP
                      $pdo->query("SELECT manager_id FROM conversations WHERE id={$id}")->fetchColumn()], [0, null]);
 
                 foreach ([
-                    ['adults','4ч.','4',[65=>'4',66=>'1',70=>'4',71=>'7',72=>'8'],
-                     'Не получилось прочитать количество взрослых в таком формате. Подтвердите число взрослых цифрой, без сокращений.', ['children','date']],
-                    ['nights','2о-24','9',[65=>'4',66=>'1',67=>'3',68=>'1',69=>'6',70=>'4',71=>'7'],
-                     'Не получилось прочитать диапазон ночей: в нём есть буква. Подтвердите количество ночей цифрами, например «7» или «7-9».', ['date']],
-                ] as [$field,$unsupported,$confirmed,$saved,$formatHelp,$afterMissing]) {
+                    ['adults','4ч.',4,'4',[65=>'4',66=>'1',70=>'4',71=>'7',72=>'8'],['children','date']],
+                    ['nights','2о-24','20-24','9',[65=>'4',66=>'1',67=>'3',68=>'1',69=>'6',70=>'4',71=>'7'],['date']],
+                ] as [$field,$shortAnswer,$canonicalValue,$confirmed,$saved,$afterMissing]) {
                     MaxSearchApi::$needs[$chat]=$saved; MaxSearchApi::$statuses[$chat]=MaxSearchApi::$statusAi;
                     AiInvocationService::$answer=['intent'=>'search','parameters'=>[]];
-                    for ($attempt=0;$attempt<2;$attempt++) {
-                        $sentBefore=count($sent);MaxSearchApi::$parameterWrites=[];AiInvocationService::$calls=[];
-                        $native($platform,$user,++$mid,$unsupported);
-                        $check($platform.' unsupported '.$field.' explains numeric confirmation',array_column(array_slice($sent,$sentBefore),'text'),[$formatHelp]);
-                        $check($platform.' unsupported '.$field.' preserves exact independent needs',MaxSearchApi::getSavedData($chat),$saved);
-                        $check($platform.' unsupported '.$field.' never writes or asks model to guess',[MaxSearchApi::$parameterWrites,AiInvocationService::$calls],[[],[]]);
-                    }
+                    $sentBefore=count($sent);MaxSearchApi::$parameterWrites=[];AiInvocationService::$calls=[];
+                    $native($platform,$user,++$mid,$shortAnswer);
+                    $fieldStatus=$field==='adults'?67:72;
+                    $expectedSaved=$saved; $expectedSaved[$fieldStatus]=$canonicalValue;
+                    $check($platform.' canonical short '.$field.' asks only the next question',
+                        array_column(array_slice($sent,$sentBefore),'text'),[MissingFieldQuestionService::question($afterMissing[0])]);
+                    $check($platform.' canonical short '.$field.' preserves all independent needs',MaxSearchApi::getSavedData($chat),$expectedSaved);
+                    $check($platform.' canonical short '.$field.' writes once without model guessing',
+                        [MaxSearchApi::$parameterWrites,AiInvocationService::$calls],[[[$chat,[$field=>$canonicalValue]]],[]]);
+                    MaxSearchApi::$needs[$chat]=$saved; MaxSearchApi::$statuses[$chat]=MaxSearchApi::$statusAi;
                     $native($platform,$user,++$mid,$confirmed);
                     $check($platform.' confirmed numeric '.$field.' advances normally',MaxSearchApi::getAiMissingFields($chat),$afterMissing);
-                    $fieldStatus=$field==='adults'?67:72;
                     $expectedSaved=$saved; $expectedSaved[$fieldStatus]=$field==='adults'?(int)$confirmed:$confirmed;
                     $check($platform.' numeric '.$field.' changes only its canonical field',MaxSearchApi::getSavedData($chat),$expectedSaved);
+                }
+                // A leading Cyrillic letter is still not a digit-adjacent zero.
+                MaxSearchApi::$needs[$chat]=$saved; MaxSearchApi::$statuses[$chat]=MaxSearchApi::$statusAi;
+                for ($attempt=0;$attempt<2;$attempt++) {
+                    $sentBefore=count($sent);MaxSearchApi::$parameterWrites=[];AiInvocationService::$calls=[];
+                    $native($platform,$user,++$mid,'о2-24');
+                    $check($platform.' unresolved nights still explains numeric confirmation',
+                        array_column(array_slice($sent,$sentBefore),'text'),
+                        ['Не получилось прочитать диапазон ночей: в нём есть буква. Подтвердите количество ночей цифрами, например «7» или «7-9».']);
+                    $check($platform.' unresolved nights preserves exact independent needs',MaxSearchApi::getSavedData($chat),$saved);
+                    $check($platform.' unresolved nights never writes or asks model to guess',
+                        [MaxSearchApi::$parameterWrites,AiInvocationService::$calls],[[],[]]);
                 }
 
                 $tourUser = $chatBase + 710 + $index;

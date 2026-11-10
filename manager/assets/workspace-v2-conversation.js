@@ -184,7 +184,7 @@ function bindEmojiPicker(){
   window.addEventListener('popstate',()=>closeEmojiPicker());
   window.addEventListener('pagehide',()=>closeEmojiPicker());
 }
-function suspendForAuthRecovery(){window.WorkspaceV2RequestProfile?.reset();readView=null;window.WorkspaceV2ReplyEditor?.close(false);window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);clearHandoffContext();W.HandoffCancellation?.render($('handoffCancellation'),null);window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2ConversationSearch?.reset();closeEmojiPicker();closePhotoViewer(false);openSeq++;opening=0;refreshEpoch++;if(lifecycleFlight){lifecycleFlight=null;setBusy(false)}clearLifecycleIssue();setRefreshStatus();$('composer')?.classList.add('hidden')}
+function suspendForAuthRecovery(){window.WorkspaceV2RequestProfile?.reset();readView=null;window.WorkspaceV2ReplyEditor?.close(false);window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);window.WorkspaceV2ReplyQueue?.sync(null);clearHandoffContext();W.HandoffCancellation?.render($('handoffCancellation'),null);window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2ConversationSearch?.reset();closeEmojiPicker();closePhotoViewer(false);openSeq++;opening=0;refreshEpoch++;if(lifecycleFlight){lifecycleFlight=null;setBusy(false)}clearLifecycleIssue();setRefreshStatus();$('composer')?.classList.add('hidden')}
 function resetForIdentityChange(){
   suspendForAuthRecovery();accessLost=false;drafts.clear();savedSelection=0;replySessionOwner=0;removeReplySession();S.current=0;S.detail=null;
   const reply=$('replyText');if(reply)reply.value='';autoGrow();setReplyStatus();setLoadStatus();
@@ -388,9 +388,9 @@ function renderMessageContext(container,messages){
 }
 function historyContext(){return {...captureReplyContext(),refreshEpoch}}
 function isCurrentHistory(context){const current=historyContext();return !busy&&!opening&&!accessLost&&!S.authExpired&&Object.keys(current).every(key=>current[key]===context?.[key])&&Number(S.detail?.conversation?.id)===Number(S.current)}
-function loseHistoryAccess(){clearHandoffContext();W.HandoffCancellation?.render($('handoffCancellation'),null);closePhotoViewer(false);accessLost=true;window.WorkspaceV2RequestProfile?.reset();window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);window.WorkspaceV2CustomerAvatar?.invalidateConversation(Number(S.current));forgetSavedConversation(Number(S.current));clearCurrentReply(Number(S.current));window.WorkspaceV2ConversationSearch?.reset();window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);if(S.detail?.conversation)renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный диалог в списке.')}
+function loseHistoryAccess(){clearHandoffContext();W.HandoffCancellation?.render($('handoffCancellation'),null);closePhotoViewer(false);accessLost=true;window.WorkspaceV2RequestProfile?.reset();window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);window.WorkspaceV2ReplyQueue?.sync(null);window.WorkspaceV2CustomerAvatar?.invalidateConversation(Number(S.current));forgetSavedConversation(Number(S.current));clearCurrentReply(Number(S.current));window.WorkspaceV2ConversationSearch?.reset();window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);window.WorkspaceV2ReplyQueue?.sync(null);if(S.detail?.conversation)renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный диалог в списке.')}
 function loadOlder(){return window.WorkspaceV2History?.loadOlder()||Promise.resolve(false)}
-function renderHeader(c){renderHandoffContext();const name=c.display_name||'Турист';$('conversationTitle').textContent=name;if(window.WorkspaceV2CustomerAvatar)window.WorkspaceV2CustomerAvatar.setInitials($('conversationAvatar'),initials(name));else $('conversationAvatar').textContent=initials(name);const state=$('conversationState');state.textContent=statusText(c.status);state.className='conversationState '+String(c.status||'');const origin=[c.source_name,(c.channel||'').toUpperCase()].filter(Boolean).join(' · ');$('conversationMeta').textContent=[origin,c.manager_name?`Менеджер: ${c.manager_name}`:''].filter(Boolean).join(' · ');window.WorkspaceV2CustomerName?.enhanceHeader(c);window.WorkspaceV2CustomerAvatar?.enhanceHeader(c);W.HandoffCancellation?.render($('handoffCancellation'),!accessLost&&!S.authExpired&&c.status==='ai'&&Number(c.id)===Number(S.detail?.conversation?.id)?S.detail?.handoff_cancellation:null);window.WorkspaceV2AiDraft?.sync();window.WorkspaceV2Assistant?.sync(c);window.WorkspaceV2TourSelection?.sync(c);window.WorkspaceV2MessageNavigation?.sync(c);window.WorkspaceV2ClientEvents?.enhanceCard(c)}
+function renderHeader(c){renderHandoffContext();const name=c.display_name||'Турист';$('conversationTitle').textContent=name;if(window.WorkspaceV2CustomerAvatar)window.WorkspaceV2CustomerAvatar.setInitials($('conversationAvatar'),initials(name));else $('conversationAvatar').textContent=initials(name);const state=$('conversationState');state.textContent=statusText(c.status);state.className='conversationState '+String(c.status||'');const origin=[c.source_name,(c.channel||'').toUpperCase()].filter(Boolean).join(' · ');$('conversationMeta').textContent=[origin,c.manager_name?`Менеджер: ${c.manager_name}`:''].filter(Boolean).join(' · ');window.WorkspaceV2CustomerName?.enhanceHeader(c);window.WorkspaceV2CustomerAvatar?.enhanceHeader(c);W.HandoffCancellation?.render($('handoffCancellation'),!accessLost&&!S.authExpired&&c.status==='ai'&&Number(c.id)===Number(S.detail?.conversation?.id)?S.detail?.handoff_cancellation:null);window.WorkspaceV2AiDraft?.sync();window.WorkspaceV2Assistant?.sync(c);window.WorkspaceV2TourSelection?.sync(c);window.WorkspaceV2MessageNavigation?.sync(c);window.WorkspaceV2ClientEvents?.enhanceCard(c);window.WorkspaceV2ReplyQueue?.sync(c)}
 function clearCurrentReply(target){drafts.delete(target);persistReplySession();$('replyText').value='';autoGrow();window.WorkspaceV2Media?.clear()}
 function canRefreshVisible(){const mobile=window.WorkspaceV2Mobile;return !!S.current&&Number(S.detail?.conversation?.id)===Number(S.current)&&!!S.manager?.id&&!S.authExpired&&!busy&&!opening&&!lifecycleBlocked()&&document.visibilityState!=='hidden'&&(!mobile?.isMobile()||mobile.getScreen?.()==='conversation')}
 async function refreshVisible(){
@@ -405,7 +405,7 @@ async function refreshVisible(){
     const d=await api('detail',{conversation_id:target},{isCurrent:stillCurrent});
     if(!stillCurrent())return false;
     if(!d?.ok){
-      if([403,404].includes(d?.http_status)){clearHandoffContext();W.HandoffCancellation?.render($('handoffCancellation'),null);closePhotoViewer(false);accessLost=true;window.WorkspaceV2RequestProfile?.reset();window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);window.WorkspaceV2CustomerAvatar?.invalidateConversation(target);forgetSavedConversation(target);clearCurrentReply(target);window.WorkspaceV2ConversationSearch?.reset();renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный диалог в списке.')}
+      if([403,404].includes(d?.http_status)){clearHandoffContext();W.HandoffCancellation?.render($('handoffCancellation'),null);closePhotoViewer(false);accessLost=true;window.WorkspaceV2RequestProfile?.reset();window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);window.WorkspaceV2ReplyQueue?.sync(null);window.WorkspaceV2CustomerAvatar?.invalidateConversation(target);forgetSavedConversation(target);clearCurrentReply(target);window.WorkspaceV2ConversationSearch?.reset();renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный диалог в списке.')}
       else setRefreshStatus('Не удалось обновить переписку. Показаны последние загруженные сообщения.');
       return false;
     }
@@ -433,7 +433,7 @@ function renderLeadLoading(c){
 }
 function restoreRetainedOpen(previous){
   const retained=previous&&!accessLost&&Number(S.current)===previous&&Number(S.detail?.conversation?.id)===previous;
-  if(retained)renderHandoffContext();
+  if(retained){renderHandoffContext();window.WorkspaceV2ReplyQueue?.sync(S.detail.conversation)}
   if(retained&&!S.detail.lead)window.WorkspaceV2LeadCard?.renderUnavailable(S.detail.conversation);
   applyInteractionState();window.WorkspaceV2History?.render();window.WorkspaceV2ConversationSearch?.setState(retained?'ready':'error');
 }
@@ -453,7 +453,7 @@ async function open(id,options={}){
   if(switching){window.WorkspaceV2RequestProfile?.conversationChanging(target);closeEmojiPicker();closePhotoViewer(false);window.WorkspaceV2CustomerAvatar?.conversationChanging(target)}
   const seq=++openSeq,manager=Number(S.manager?.id||0),authGeneration=S.authGeneration;
   const validContext=()=>seq===openSeq&&!S.authExpired&&Number(S.manager?.id||0)===manager&&S.authGeneration===authGeneration;
-  opening=seq;refreshEpoch++;window.WorkspaceV2History?.invalidateReads();clearHandoffContext();W.HandoffCancellation?.render($('handoffCancellation'),null);setRefreshStatus();applyInteractionState();
+  opening=seq;window.WorkspaceV2ReplyQueue?.sync(null);refreshEpoch++;window.WorkspaceV2History?.invalidateReads();clearHandoffContext();W.HandoffCancellation?.render($('handoffCancellation'),null);setRefreshStatus();applyInteractionState();
   if(switching&&previous)saveDraft(previous);
   setLoadStatus(switching?'Открываем диалог…':'Обновляем диалог…','loading');
   window.WorkspaceV2ConversationSearch?.setState('loading');
@@ -467,7 +467,7 @@ async function open(id,options={}){
   if(!validContext()||(options.restoreSession&&savedSelection!==target))return false;
   if(!d?.ok||Number(d.conversation?.id)!==target){
     if(options.restoreSession&&([403,404].includes(d?.http_status)||d?.ok))forgetSavedConversation(target);
-    if(!switching&&[403,404].includes(d?.http_status)&&S.detail?.conversation){clearHandoffContext();W.HandoffCancellation?.render($('handoffCancellation'),null);accessLost=true;window.WorkspaceV2RequestProfile?.reset();window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);window.WorkspaceV2CustomerAvatar?.invalidateConversation(target);forgetSavedConversation(target);clearCurrentReply(target);renderActions(S.detail.conversation);window.WorkspaceV2ConversationSearch?.reset()}
+    if(!switching&&[403,404].includes(d?.http_status)&&S.detail?.conversation){clearHandoffContext();W.HandoffCancellation?.render($('handoffCancellation'),null);accessLost=true;window.WorkspaceV2RequestProfile?.reset();window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);window.WorkspaceV2ReplyQueue?.sync(null);window.WorkspaceV2CustomerAvatar?.invalidateConversation(target);forgetSavedConversation(target);clearCurrentReply(target);renderActions(S.detail.conversation);window.WorkspaceV2ConversationSearch?.reset()}
     restoreRetainedOpen(previous);
     setLoadStatus(switching?'Не удалось открыть диалог. Текущий диалог не изменён.':'Не удалось обновить диалог. На экране остаются предыдущие данные.','error');return false;
   }
@@ -513,7 +513,7 @@ async function nextWaiting(){
   if(selectionState!=='ready'){setLoadStatus(selectionState==='loading'?'Список обновляется. Дождитесь загрузки подборки.':'Не удалось получить текущую подборку. Обновите список диалогов.','error');return false}
   const rows=window.WorkspaceV2Inbox?.getLoadedSelection?.()||[],current=rows.findIndex(c=>Number(c.id)===Number(S.current));
   const ordered=[...rows.slice(current+1),...rows.slice(0,Math.max(0,current))];
-  const next=ordered.find(c=>Number(c.id)!==Number(S.current)&&(Number(c.awaiting_manager_reply)===1||Number(c.awaiting_first_reply)===1||c.status==='waiting_manager'));
+  const next=ordered.find(c=>Number(c.id)!==Number(S.current)&&(Object.prototype.hasOwnProperty.call(c,'awaiting_manager_reply')?Number(c.awaiting_manager_reply)===1:(Number(c.awaiting_first_reply)===1||c.status==='waiting_manager')));
   if(!next){setLoadStatus('В загруженной подборке больше нет клиентов, которые ждут ответа.','success');return false}
   return open(Number(next.id));
 }

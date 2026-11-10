@@ -21,6 +21,7 @@ final class InboxQueryPdo extends PDO
         $this->database->sqliteCreateFunction('GREATEST',function($value,$minimum){$this->annotations++;return max((int)$value,(int)$minimum);});
         $this->database->sqliteCreateFunction('JSON_UNQUOTE',static fn($value)=>$value);
     }
+    public function getAttribute(int $attribute):mixed{return $this->database->getAttribute($attribute);}
     public function prepare(string $query,array $options=[]):PDOStatement|false
     {
         $isList=str_starts_with($query,'SELECT c.id,c.project_key');
@@ -197,11 +198,11 @@ queryPageCheck('Mine ranking and list reads never advance read markers',$db->que
 $db->exec("UPDATE managers SET role='admin' WHERE id=7");
 
 // Compare both projections against the same real SQL, data and routing owner.
-// Full list is an unchanged reference; the smaller path must preserve its page.
+// The smaller path must preserve the full list's page and current-wait rank.
 $countFields=['id','project_key','source_id','manager_id','status','started_at','last_message_at','unread_count'];
 $projectCountRows=static function(array $rows,string $queue)use($countFields):array{
     $fields=[...$countFields,$queue==='mine'?'awaiting_manager_reply':'manager_request_at'];
-    if($queue==='waiting')$fields[]='delivery_failure_category';
+    if($queue==='waiting')array_push($fields,'reply_wait_started_unix','delivery_failure_category');
     return array_map(static fn(array $row):array=>array_intersect_key($row,array_flip($fields)),$rows);
 };
 $pdo->executions=0;$pdo->listWork=[];$pdo->annotations=0;$fullCountRows=[];
@@ -318,8 +319,15 @@ if(is_string($baselineFile)&&$baselineFile!==''){
             &&$expectedRow['last_text']==='tour_like_synthetic'&&$expectedRow['last_preview_text']==='Нажата кнопка «Нравится»');
         $expectedRow['last_text']='Нажата кнопка «Нравится»';$redactedLikeRows++;
     }unset($expectedRow);
-    queryPageCheck('every preview field and candidate metadata match installed source except the explicit like token redaction',
-        $redactedLikeRows===1&&$expectedRows===$previewRows&&$baselinePage===$previewPage);
+    $compatibleRows=$previewRows;$waitFields=['reply_wait_started_unix','reply_wait_started_at','reply_wait_age_seconds','reply_wait_time_known'];$validWait=true;
+    foreach($compatibleRows as $index=>&$row){
+        $added=array_diff_key($row,$baselineRows[$index]);
+        $validWait=$validWait&&array_keys($added)===$waitFields&&$added===array_combine($waitFields,[null,null,null,false]);
+        foreach($waitFields as $field)unset($row[$field]);
+    }unset($row);
+    queryPageCheck('AI preview fixtures add exactly the four truthful unknown current-wait fields',$validWait);
+    queryPageCheck('every legacy preview field and candidate metadata match installed source except the explicit like token redaction',
+        $redactedLikeRows===1&&$expectedRows===$compatibleRows&&$baselinePage===$previewPage);
 }
 $plan=$pdo->prepare('EXPLAIN QUERY PLAN '.$previewSql);$plan->execute($previewSqlArgs);
 $lookups=count(array_filter($plan->fetchAll(),static fn(array $row):bool=>preg_match('/\b(?:SEARCH|SCAN) mm\b/',$row['detail'])===1));

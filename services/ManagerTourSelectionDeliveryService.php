@@ -4,6 +4,7 @@ require_once __DIR__.'/ManagerTourSelectionService.php';
 require_once __DIR__.'/ManagerTourSelectionPublicationDraft.php';
 require_once __DIR__.'/TourSelectionPhotoStore.php';
 require_once __DIR__.'/ConversationRecorder.php';
+require_once __DIR__.'/ManagerReplyQueueService.php';
 require_once __DIR__.'/../integrations/TourSelectionNativeTransport.php';
 
 /** Manager intent -> frozen offers -> durable one-creation fences -> native proof. */
@@ -114,6 +115,9 @@ final class ManagerTourSelectionDeliveryService
             // Never create another card while any earlier creation is unresolved.
             $q=$pdo->prepare("SELECT state FROM manager_tour_selection_deliveries WHERE conversation_id=? AND state IN ('reserved','unknown','known') LIMIT 1".self::lock($pdo));$q->execute([$conversation]);
             if ($q->fetchColumn()) {$pdo->rollBack();return self::error('delivery_unknown');}
+            // Keep the pre-creation frontier in the durable receipt: native
+            // verification or transcript recovery can finish much later.
+            $receipt[ManagerReplyQueueService::SEND_BOUNDARY]=ManagerReplyQueueService::captureSendBoundary($conversation);
             $q=$pdo->prepare("UPDATE manager_tour_selection_deliveries SET state='reserved',receipt_json=?,updated_at=? WHERE offer_id=? AND state IN ('pending','rejected')");
             $q->execute([self::json($receipt),gmdate('Y-m-d H:i:s'),$row['offer_id']]);
             if ($q->rowCount()!==1) {$pdo->rollBack();return self::error('delivery_in_progress');}
@@ -145,6 +149,9 @@ final class ManagerTourSelectionDeliveryService
             $channel=$publication['binding']['channel'];$attachments=[];
             foreach ([0,1,2] as $i) $attachments[]=['type'=>'image','name'=>'Фото отеля','url'=>self::photoUrl((int)$publication['conversation_id'],$publication['publication_id'],(int)$cardRow['card_index'],$i)];
             $metadata=['project_key'=>$publication['binding']['project_key'],'tour_selection'=>$publication['publication_id'],'tour_offer_id'=>(int)$cardRow['offer_id'],'attachments'=>$attachments];
+            // Historical known receipts have no trustworthy send frontier.
+            // Never replace it with the current post-delivery message IDs.
+            $metadata[ManagerReplyQueueService::SEND_BOUNDARY]=$receipt[ManagerReplyQueueService::SEND_BOUNDARY]??['version'=>0,'customer_message_id'=>0,'request_event_id'=>0];
             if (!ConversationRecorder::outboundForConversation((int)$publication['conversation_id'],$channel,htmlspecialchars($card['plain_text'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'),'manager',(string)$receipt['actor'],$metadata,$receipt['native']['mid'])) throw new RuntimeException('Transcript storage unavailable');
             $q=$pdo->prepare("UPDATE manager_tour_selection_deliveries SET state='delivered',updated_at=? WHERE offer_id=? AND state='known'");$q->execute([gmdate('Y-m-d H:i:s'),$cardRow['offer_id']]);$pdo->commit();
         } catch (Throwable $e) {if ($pdo->inTransaction()) $pdo->rollBack();throw $e;}
