@@ -218,6 +218,10 @@ final class ModeledConversionForecastStatusReader
                 }
             }
         }
+        while($bytes($out)>28000&&!empty($out['visit_delivery_check']['followup_sent_cohort']['failure_examples'])){
+            array_pop($out['visit_delivery_check']['followup_sent_cohort']['failure_examples']);
+            $out['visit_delivery_check']['followup_sent_cohort']['failure_examples_omitted_due_to_response_budget']=true;
+        }
         return $out;
     }
 

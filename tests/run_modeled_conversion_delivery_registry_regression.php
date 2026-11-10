@@ -309,6 +309,43 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     $check('verification changes no profiles ledger rows or advertising state and uses reads only',
         serialize($ledger)===$before&&array_values(array_unique($api->calls))===['GET receipt','GET report']&&$proof['provider_write_requests']===0&&$proof['source_writes']===0);
 
+    // Failed uploads are diagnosed without changing terminal delivery state or authorizing a replay.
+    $auditNow=$day+23*86400;$failed=$a;$failed['state']='unmatched';$failed['upload_status']='LINKAGE_FAILURE';
+    $failed['event_unix']=$day+20*86400;$failed['claimed_at_unix']=$day+22*86400;
+    $snapshot=serialize($failed);$noGoals=['status'=>'ok','visits'=>[]];
+    $uploadReceipt=['create_time'=>gmdate('Y-m-d\TH:i:s\Z',$failed['claimed_at_unix'])];
+    $oldVisit=['status'=>'ok','visits'=>[['started_at'=>gmdate('Y-m-d\TH:i:s\Z',$day),'visits'=>1]]];
+    $audit=ModeledConversionVisitProof::failureAudit($failed,$uploadReceipt,$oldVisit,$noGoals,[$failed],$auditNow);
+    $check('a visit eligible at the signal can have expired by the original upload without implying a provider fault',
+        $audit['eligible_at_signal']===true&&$audit['eligible_at_upload']===false
+        &&$audit['diagnosis']==='outside_upload_window'&&$audit['upload_clock']==='provider');
+    $recent=['status'=>'ok','visits'=>[['started_at'=>gmdate('Y-m-d\TH:i:s\Z',$day+19*86400),'visits'=>1]]];
+    $audit=ModeledConversionVisitProof::failureAudit($failed,$uploadReceipt,$recent,$noGoals,[$failed],$auditNow);
+    $check('an eligible original visit with no reported goal remains unexplained rather than credited',
+        $audit['eligible_at_upload']===true&&$audit['diagnosis']==='eligible_unexplained'
+        &&$audit['reported_goal_reaches']===0&&$audit['report_comparison']==='processed_only');
+    $allGoals=['status'=>'ok','visits'=>[['started_at'=>gmdate('c',$day+19*86400),'visits'=>1,
+        'goal_reaches'=>1,'revenue_rub'=>(int)$failed['value_rub']]]];
+    $audit=ModeledConversionVisitProof::failureAudit($failed,$uploadReceipt,$recent,$allGoals,[$failed],$auditNow);
+    $check('reported count and revenue despite a failure receipt are an explicit contradiction and never a resend instruction',
+        $audit['diagnosis']==='reported_despite_failure'&&$audit['report_comparison']==='all_uploads'
+        &&serialize($failed)===$snapshot&&!array_key_exists('client_id',$audit)&&!array_key_exists('outbox_id',$audit));
+    $collision=$failed;$collision['id']='99';$collision['upload_id']='599';
+    $audit=ModeledConversionVisitProof::failureAudit($failed,$uploadReceipt,$recent,$noGoals,[$failed,$collision],$auditNow);
+    $check('same ClientID target and second across distinct accepted rows is exposed before any possible correction',
+        $audit['wire_collision_rows']===1&&$audit['diagnosis']==='wire_collision');
+    $badRows=ModeledConversionVisitProof::failureAudit($failed,['source_quantity'=>1,'line_quantity'=>0]+$uploadReceipt,
+        $recent,$noGoals,[$failed],$auditNow);
+    $check('an original source row rejected during validation is separate from a missing visit',
+        $badRows['source_rows']===1&&$badRows['validated_rows']===0&&$badRows['diagnosis']==='invalid_receipt_rows');
+    $validateAudit=new ReflectionMethod(ModeledConversionVisitProof::class,'validatedFailureAudit');
+    $check('anonymous audit accepts only its exact scalar contract',$validateAudit->invoke(null,$audit,$auditNow)===$audit);
+    $foreign=$audit;$foreign['client_id']='PRIVATE';
+    $check('an injected provider or customer identifier cannot cross the private MCP projection',$validateAudit->invoke(null,$foreign,$auditNow)===null);
+    $unknown=ModeledConversionVisitProof::failureAudit($failed,$uploadReceipt,['status'=>'unavailable'],$noGoals,[$failed],$auditNow);
+    $check('unavailable visit evidence stays unknown instead of becoming absence or expiry',
+        $unknown['diagnosis']==='unavailable'&&$unknown['eligible_at_upload']===null);
+
     // Exact HTTP scope and counter timezone are exercised through the real client, without network.
     $wire=[];$transport=static function(string $method,string $url,mixed $body)use(&$wire,$day):array{
         $wire[]=[$method,$url,$body];
@@ -463,6 +500,27 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     $check('followup arithmetic and original selection are validated before private disclosure',
         $followSafe['available']&&!$followReader->invoke(null,$badFollow,$now)['available']
         &&!str_contains(json_encode($followSafe,JSON_THROW_ON_ERROR),'conversation_id'));
+    $failedRows=[];$failedProofs=[];
+    for($i=0;$i<16;$i++){
+        $r=$a;$r['id']=(string)(100+$i);$r['conversation_id']=(string)(700+$i);$r['upload_id']=(string)(800+$i);
+        $r['event_unix']=$day+3900+$i;$r['claimed_at_unix']=$day+4000+$i;
+        $r['state']='unmatched';$r['upload_status']='LINKAGE_FAILURE';$r['value_processed_at_unix']=null;
+        $e=$proof['events'][0];$e['fingerprint']=ModeledConversionVisitProof::fingerprint($r);
+        $e['upload_status']='LINKAGE_FAILURE';$e['linkage']='failed';$e['reason']='eligible_visit_but_provider_linkage_failed';
+        $e['failure_audit']=ModeledConversionVisitProof::failureAudit($r,[],['status'=>'ok','visits'=>[]],
+            ['status'=>'unavailable'],[$r],$now);
+        $failedRows[]=$r;$failedProofs[$r['id']]=$e;
+    }
+    $failedFollow=ModeledConversionVisitProof::followupReport($failedRows,$failedProofs,$cut,$now,$archived);
+    $failedSafe=$followReader->invoke(null,$failedFollow,$now);
+    $check('the bounded private followup exposes every failed row up to sixteen without identifiers or changing delivery counts',
+        $failedSafe['available']&&count($failedSafe['failure_examples'])===16
+        &&$failedSafe['by_platform']['max']['linkage_failed']['events']===16
+        &&$failedSafe['by_platform']['max']['linkage_failed']['value_rub']===16*17
+        &&$failedSafe['failure_examples'][0]['audit']['diagnosis']==='no_reported_visits'
+        &&!str_contains(json_encode($failedSafe,JSON_THROW_ON_ERROR),'client_id')
+        &&!str_contains(json_encode($failedSafe,JSON_THROW_ON_ERROR),'upload_id'));
+
     $nextDay=$day+100000;$nextProof=$currentB;$nextProof['checked_at']=gmdate('c',$nextDay);
     $later=ModeledConversionVisitProof::followupReport([$beforeA,$afterB,$todayC,$newer],
         [(string)$afterB['id']=>$nextProof],$cut,$nextDay,$archived);
