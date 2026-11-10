@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/TripBudgetPolicy.php';
+require_once __DIR__ . '/TripContextMetadataPolicy.php';
 
 class TripStateMerger
 {
@@ -33,12 +34,28 @@ class TripStateMerger
         if ($budgetChanges !== []) {
             $state['budget'] = TripBudgetPolicy::apply(is_array($state['budget'] ?? null) ? $state['budget'] : [], $budgetChanges);
         }
-        foreach ($normalizedChanges as $path => $value) {
-            if (array_key_exists($path, $budgetChanges)) continue;
-            if (in_array($path, ['preferences','negative_preferences'], true)) {
-                $state[$path] = self::mergePreferenceList((array)($state[$path] ?? []), $value);
-                continue;
+
+        // Keep the pure shadow state on exactly the same wish/correction contract as
+        // the canonical metadata owner. This matters for the same-message decision
+        // and diagnostic snapshot: a neutral removal must not leave a stale wish in
+        // new_state until the later persistence/read-back step.
+        $preferenceKeys = ['preferences','negative_preferences','preferences_remove','negative_preferences_remove'];
+        $preferenceChanges = array_intersect_key($normalizedChanges, array_flip($preferenceKeys));
+        if ($preferenceChanges !== []) {
+            $preferenceContext = [
+                'budget'=>[],
+                'preferences'=>(array)($state['preferences'] ?? []),
+                'negative_preferences'=>(array)($state['negative_preferences'] ?? []),
+            ];
+            $nextPreferences = TripContextMetadataPolicy::applyPreferences($preferenceContext, $preferenceChanges);
+            if ($nextPreferences !== null) {
+                $state['preferences'] = $nextPreferences['preferences'];
+                $state['negative_preferences'] = $nextPreferences['negative_preferences'];
             }
+        }
+
+        foreach ($normalizedChanges as $path => $value) {
+            if (array_key_exists($path, $budgetChanges) || array_key_exists($path, $preferenceChanges)) continue;
             self::set($state, $path, $value);
         }
 
@@ -58,7 +75,7 @@ class TripStateMerger
             'tourists.adults', 'tourists.children', 'tourists.children_ages',
             'budget.max', 'budget.currency', 'budget.basis',
             'hotel.stars_min', 'hotel.meal', 'hotel.line',
-            'preferences', 'negative_preferences',
+            'preferences', 'negative_preferences', 'preferences_remove', 'negative_preferences_remove',
         ];
     }
 
@@ -92,12 +109,6 @@ class TripStateMerger
 
         if ($path === 'dates.from' && empty($state['dates']['to'])) $state['dates']['to'] = $value;
         if ($path === 'nights.min' && empty($state['nights']['max'])) $state['nights']['max'] = $value;
-    }
-
-    private static function mergePreferenceList(array $existing, $incoming): array
-    {
-        $incoming = is_array($incoming) ? $incoming : [$incoming];
-        return array_merge($existing, $incoming);
     }
 
     private static function normalizeTourists(array &$state): void
