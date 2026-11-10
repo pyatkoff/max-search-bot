@@ -70,7 +70,7 @@ A lost PUT response can be reconciled by GET only when an exact source-token wit
 
 ## Renewed-token recovery for the same fixed replacement
 
-The source-controlled `resources/appleservice39/landing-v2/reconciliation/index.json` starts with **zero approvals**. No actual new native image has been captured or approved by this preparation. The index is separate from the content revision hash: admitting a genuine review must not change landing-v2/manifest.json, artwork/asset-manifest.json, source PNGs, upload/edit request JSON, operation IDs or attempts. The existing clean-checkout/accepted-application provenance protects the tracked index. An unregistered JSON/JPEG, workflow input, successful PUT, changed native photoID or similar-looking image is insufficient.
+The source-controlled `resources/appleservice39/landing-v2/reconciliation/index.json` admits only individually reviewed evidence. It now contains the single actual X/battery proof described below; the other14 images are not approved. A registered source proof is distinct from successful live reconciliation. The index is separate from the content revision hash: admitting a genuine review must not change landing-v2/manifest.json, artwork/asset-manifest.json, source PNGs, upload/edit request JSON, operation IDs or attempts. The existing clean-checkout/accepted-application provenance protects the tracked index. An unregistered JSON/JPEG, workflow input, successful PUT, changed native photoID or similar-looking image is insufficient.
 
 If the first exact image token is renewed:
 
@@ -88,13 +88,142 @@ Required proof object fields (all IDs/times are their actual typed values, hashe
 - `native_photo_id`, `native_preview_sha256`, `native_preview_width`, `native_preview_height`, `native_payload_url_sha256`, `native_readback_run_id`, `native_readback_job_id`.
 - `visual_review:{source_asset_opened:true,native_preview_opened:true,exact_layout_model_service_price_qualifiers:true}` — an attestation made only after the actual review, not an automatic result of CI or JSON validation.
 
-This is a prepared recovery path, **not a completed live recovery**. It does not predict whether MAX will renew the next token. A first reviewed image does not approve the other14; each renewed image requires its own exact native file/evidence. Unknown uploads are outside this review path: a preview cannot manufacture a missing own upload receipt/token. Source evidence registration, verification and installation may still be necessary after the first real result. The same real customer button test remains accepted and is not repeated; manager-panel visibility remains separate.
+Source evidence admission is **not a completed live recovery**. It does not predict whether MAX will renew the next token. A first reviewed image does not approve the other14; each renewed image requires its own exact native file/evidence. Unknown uploads are outside this review path: a preview cannot manufacture a missing own upload receipt/token. Source evidence registration, verification and installation remain necessary for a new actual proof. The same real customer button test remains accepted and is not repeated; manager-panel visibility remains separate.
 
 
 ## Catalogue artwork replacement admission
 
-Only the762df3a48ebdad50fe2f102ea3fcca6336fe047e catalogue set is admitted by the current source: artwork manifest SHA-256 bfc0cf0812cd576dc7d778aeae60b518b900a6762533a60a80c83513c6508027, fifteen1072x1467 PNGs below1.9MB, each exact file hash/size/catalogue/source binding retained. The earlier question-heading artwork is retired and must not be uploaded or published. The separate native-review recovery remains unchanged and has no live approvals.
+Only the762df3a48ebdad50fe2f102ea3fcca6336fe047e catalogue set is admitted by the current source: artwork manifest SHA-256 bfc0cf0812cd576dc7d778aeae60b518b900a6762533a60a80c83513c6508027, fifteen1072x1467 PNGs below1.9MB, each exact file hash/size/catalogue/source binding retained. The earlier question-heading artwork is retired and must not be uploaded or published. The native-review mechanism is unchanged; its single source-reviewed X/battery entry still requires ordinary installation and exact GET-only reconciliation.
 
 Before any new provider mutation, run the existing fixed `inspect` through accepted current application provenance and retain its complete existing operation list. Require zero existing `landing_upload` and `landing_edit` rows from earlier revisions, including prepared/started/unknown/verified rows. Missing or unavailable registry access is not a zero. Existing rows, payloads, attempts and UNKNOWN outcomes are never deleted, rewritten, reset or transplanted to this new revision. A previous revision entry makes the existing immutable request comparison refuse before a provider write. If any entry exists, hold this upgrade for exact existing-operation reconciliation; do not manufacture another campaign/key or resume with the new PNG against an old request.
 
 Then use landing_inspect → landing_prepare → landing_apply only after ordinary source/release gates. The fresh full native preflight and per-write authority checks remain mandatory. This preparation and CI do not claim that the live registry has been inspected or that the15 new images are published.
+
+## Actual X/battery source and public-preview proof
+
+The original operation is still edit89/attempt1, not a new edit:
+`mid.ffffb667d20a157101a1bd1d06ec5ef9`,
+<https://max.ru/channel_appleservice39ru/AaG9HQbsXvk>.
+Installed application498f29b72d4259e70beca45aca6f4e350b606e44 performed
+landing_apply42653603066/job129286410496. Its own source upload74 was already
+verified once. GET-only reconcile42654058964/job129288024235 confirmed
+`landing_native_image_evidence_required`, nativephotoID46903564625 and the same
+source/request/revision/start bindings. The factual proof retains those exact
+typed values, including edit_started_ms1794241228288. None of the fifteen
+uploads, original claims or provider mutations is repeated by this source update.
+
+The approved PNG was actually downloaded and opened individually:
+1072x1467,1700964bytes,
+SHA2561ceddaceee5039703d400a904a44c905ded9e7fc69e22890e71544ca506c3ded.
+The actual public preview was separately downloaded with HTTP200/image/jpeg
+and opened individually:561x768,65050bytes,
+SHA256fc8d0b567f7857e167fc1fda8e78ecda543cb8e937a2a318f312c7837a36ab2f.
+Full composition, iPhoneX, battery replacement,3500rubles, free diagnostics,
+price/availability qualification, full address and absence of a question heading
+or drawn CTA match. PNG and JPEG bytes are explicitly different.
+
+The public-preview substitution has independent primary identity evidence:
+the exact post returned HTTP200 HTML19220bytes,
+SHA256310d8a1eaa99dbfc5864dc06d6ea3737f3df1b29a25f04e83c8b61bde340052d.
+A restricted data-literal parser read the last inline Svelte script's
+`kit.start(app, element, third_argument).data[1].data.linkInfo` without executing
+JavaScript or decoding a URL/token. `data[1]` starts at character14938 with
+length1866. Its PHOTO attachment explicitly contains referenceId/photoId46903564625,
+source dimensions1072x1467 and the same exact URL as the downloaded preview;
+the channel ID is80917954947727 and canonical channel URL is the expected one.
+This joins public preview to SSR PHOTO ID to original provider GET photoID.
+The image's appearance or the absence/presence of an ID inside a CDN URL is not
+the identity evidence. The author verified this chain and both files; the originating
+Codex agent separately opened both files and checked the original job logs. This does not
+relabel the author's review as independent review of the earlier runtime code.
+
+Both locator hashes remain disclosed and different:
+
+| Locator | Exact SHA256 |
+| --- | --- |
+| Original native GET | a48ed7464478f722699ed595890ef60f379b9da1a04f448c50db87a84f595742 |
+| Public SSR PHOTO / downloaded preview | 171b54dec595b95e71fd5bc45645b7094e07f356cab59079776f9321cfd21774 |
+
+`repair-iphone-x-battery-replacement.json` is the existing strict reviewed-proof
+schema. Its SHA256a531a7af1c8f19cb3b2e7e4a1fbf7161b53dc89ffef1e28e8a88934faadc39c8
+and the exact JPEG hash are registered in the existing finite index.
+`repair-iphone-x-battery-replacement.witness.json` records the separate
+SSR/provider join and file/review facts without signed URLs, tokens or raw HTML.
+These four exact evidence blobs are the reviewed inputad56dc29bc44c882540a3e6586d69b7676d9fd5c
+(parent762df3a4, treecca2c516a1f68aac5879f23ed480cad98b178093). The witness
+SHA256 is907fee423093a56bbdb3bb7a2d47d37ae26bff38adfdb48177d6779c6f502ffe;
+the existing author independently verified the same primary HTML/literal and
+individually opened both exact files before adopting this one input version.
+Only this first entry is registered. The finite preparation below changes only
+the existing publisher and its behavioral fixtures; the transport, CLI, workflow,
+approval inputs, database schema, campaign, image sources and body/CTA/link plans
+remain unchanged. The normal source/native verification guards are retained.
+
+After ordinary proof-source review/CI/installation, run `landing_reconcile` by
+the same fixed publisher with actual accepted application provenance. It may
+close only original edit89 after every current native body/markup/image/CTA/URL,
+source/attempt and menu-pin guard passes. Then `landing_apply` may edit only the
+remaining23unsent messages and reuse all fifteen verified uploads, with the
+individual review holds below when required. This source proof itself does not
+assert that reconciliation or24/24 publication succeeded.
+
+## Finite preparation of the remaining individual image reviews
+
+The existing `landing_apply` can collect the remaining fixed repair-image review
+holds only after the first repair edit is actually VERIFIED by GET reconciliation
+with its registered `reviewed_native_replacement` receipt. A source index entry,
+ACK, source CI or row state alone is not this anchor. Its complete current native
+body/image proof is reread before every new edit. There is no new operation,
+workflow input, publisher, table, queue, timer or arbitrary image approval.
+
+Every source upload must already be VERIFIED/attempt1. Before each new own PUT,
+the publisher checks current authority/channel, all24 current bodies and their
+exact MID/URL/markup/keyboard, every existing pending hold, the target's original
+source-bound image/body and the existing menu pin. It claims only a prepared,
+unattempted original MID with the identical immutable request/source/revision.
+
+The sole newly collectable outcome is `landing_native_image_evidence_required`
+after an acknowledged own PUT, with a fresh exact planned body/markup/oneCTA/
+navigation/URL and preserved pin. Native photoID must be valid/nonzero and differ
+from its original image and every known other-post image; the native locator and
+nonempty renewed token must be present. This establishes no source-image identity.
+The original attempt becomes UNKNOWN/attempt1 with an explicitly unverified
+`image_review_observation`, binding its actual imageID/locator hash to its own
+source/upload/edit/request/start. It has no image receipt and is not VERIFIED.
+Every other failure, including missing token/locator, an old/known-other image,
+invalid body/button/channel/MID/URL/pin/authority or unknown PUT acknowledgement,
+stops. Earlier unclassified UNKNOWNs are never retrospectively relabelled.
+
+Only these narrowly classified image holds may be freshly checked and skipped
+while claiming the other still-unattempted fixed repair MIDs. They are never
+replayed or rewritten. Signed locator renewal does not replace their original
+stored observation; the exact imageID and every other binding must persist.
+An intervening failed guard stops before the next claim. The9 navigation pages
+remain unattempted while any image review is pending.
+
+The result truthfully remains `ok:false`/held, with the independent image hold
+count and current/original per-image observations. The unchanged workflow may
+perform its one GET-only fallback inspection after that result; do not duplicate
+it merely for status. Such a provider job is not successful24/24 publication.
+The15 uploads are retained and `landing_prepare` is not repeated.
+
+Open each remaining actual image and its exact approved source individually;
+establish each public SSR PHOTO ID-to-original-provider-ID correspondence and
+retain both locator hashes. Admit all genuinely reviewed14 proof/JPEG/witness
+sets in one ordinary source update through review/CI/installation. A contact
+sheet, new photoID, ACK or a later coincidentally equal token cannot substitute
+for an individual registered proof once an image-review hold was collected.
+GET-only `landing_reconcile` still requires all native/source/attempt/pin guards
+and the original observed imageID, then closes only those same attempts. It
+preserves their original image observations. Finally apply edits only the9
+remaining navigation messages. Accept the real24 final readbacks/15 native image
+receipts/24 single botCTAs/86 text links and unchanged original URLs/pin separately
+from preparation, source tests and installation.
+
+The regression exercises a complete synthetic first-review →14holds →14individual
+source proofs →GET reconciliation →9remaining edits path. It also checks old and
+unreconciled UNKNOWNs, lost uploads, every failed native content/identity/pin/
+authority predicate, missing media fields, arbitrary/changed imageIDs, a lost PUT
+ACK, later token coincidence, intervening corruption and byte-for-byte immutable
+attempt/request/observation retention. Synthetic proofs are restored or removed
+in `finally` and are not live approvals.

@@ -329,28 +329,63 @@ final class AppleService39PilotPublisher
             // Uploads are a separate phase; no message edit is hidden in preparation.
             $targets = $this->landingTargets($revision);
         } elseif ($operation === 'landing_apply') {
-            // All 24 current bodies and the existing pin are verified before any edit.
-            $this->landingRead($targets, false);
+            // Only an already reconciled source-reviewed first image unlocks
+            // collection of further individual review holds. It approves none.
+            $reviewBatch = $this->firstReviewedLandingImage($targets);
+            if ($reviewBatch) $this->verifyImageReviewHolds($targets);
+            $this->landingRead($targets, $reviewBatch);
             foreach ($targets as $target) self::check($target['plan'] !== null, 'landing_images_not_prepared');
             foreach ($targets as $id=>$target) {
+                // Navigation remains original until all15 images are verified.
+                if ($target['asset'] === null && $this->hasImageReviewHolds()) break;
+                $existing = $this->store->operation($id, 'landing_edit');
+                if ($existing !== null && $existing['state'] === 'unknown') {
+                    self::check($reviewBatch, 'landing_edit_held');
+                    $this->verifyImageReviewHold($target, $existing);
+                    continue; // Never prepare, claim, PUT or rewrite an old UNKNOWN.
+                }
                 $row = $this->store->prepare($id, 'landing_edit', $target['request']);
                 if ($row['state'] === 'verified') continue;
                 self::check($row['state'] === 'prepared', 'landing_edit_held');
                 ($this->pause)();
-                $this->beforeWrite($row, function () use ($target): void {
+                $this->beforeWrite($row, function () use ($target,$targets,$reviewBatch): void {
+                    if ($reviewBatch) {
+                        self::check($this->firstReviewedLandingImage($targets), 'landing_edit_held');
+                        $this->verifyImageReviewHolds($targets);
+                        $this->landingRead($targets, true);
+                    }
                     $message = self::read($this->transport->message($target['mid']));
                     self::check($this->verifyMessage($message, $target['mid'], $target['prior'],
                         $target['post']) === $target['url'], 'post_url_changed');
                     self::check($this->pinnedMid() === $target['menu_mid'], 'landing_menu_pin_changed');
                 });
+                $editResponse = null;
                 try {
                     $this->store->rememberMessage($row, $target['mid'], $target['url']);
-                    $this->transport->edit($target['mid'], $target['plan']['body']);
+                    $editResponse = $this->transport->edit($target['mid'], $target['plan']['body']);
                     $this->verifyLandingTarget($target, true);
                     $this->store->rememberMessage($row, $target['mid'], $target['url']);
                     $this->store->finish($row, 'verified', ['readback'=>true,
                         'revision_sha256'=>$revision->sha256(),'button_object_key_order_normalized'=>$this->buttonsNormalized]);
                 } catch (Throwable $error) {
+                    if ($reviewBatch && $target['asset'] !== null
+                        && $error->getMessage() === 'landing_native_image_evidence_required'
+                        && is_array($editResponse) && AppleService39ChannelTransport::accepted($editResponse)
+                        && ($editResponse['data']['success'] ?? null) === true) {
+                        try {
+                            $current = $this->store->operation($id, 'landing_edit');
+                            self::check($current !== null && $current['state'] === 'write_started', 'landing_edit_held');
+                            $observation = $this->imageReviewObservation($target, $current);
+                            $this->store->assertBinding($this->preflight());
+                            self::check($this->firstReviewedLandingImage($targets), 'landing_edit_held');
+                            $this->verifyImageReviewHolds($targets, (int)$current['id']);
+                            $this->rejectKnownImageCollision($id, $observation['native_photo_id']);
+                            self::check($this->pinnedMid() === $target['menu_mid'], 'landing_menu_pin_changed');
+                            $this->store->finish($current, 'unknown', ['reason'=>'landing_image_review_required',
+                                'image_review_observation'=>$observation]);
+                            continue; // A disclosed hold, never an image receipt or verified edit.
+                        } catch (Throwable $ignored) { /* Every other ambiguity stops this pass. */ }
+                    }
                     $this->hold($row, 'landing_edit_outcome_unknown');
                     throw new RuntimeException('landing_edit_held');
                 }
@@ -363,8 +398,12 @@ final class AppleService39PilotPublisher
                 try {
                     $this->store->assertBinding($this->preflight());
                     $this->verifyLandingTarget($target, true);
-                    $this->store->finish($row, 'verified', ['readback'=>true,
-                        'revision_sha256'=>$revision->sha256(),'button_object_key_order_normalized'=>$this->buttonsNormalized]);
+                    $outcome = ['readback'=>true,'revision_sha256'=>$revision->sha256(),
+                        'button_object_key_order_normalized'=>$this->buttonsNormalized];
+                    if (isset($row['outcome']['image_review_observation'])) {
+                        $outcome['image_review_observation'] = $row['outcome']['image_review_observation'];
+                    }
+                    $this->store->finish($row, 'verified', $outcome);
                 } catch (Throwable $error) {
                     $safeReasons = ['provider_read_unknown','post_readback_mismatch','post_attachment_mismatch',
                         'post_button_mismatch','post_image_mismatch','post_url_changed','native_post_url_required',
@@ -390,7 +429,120 @@ final class AppleService39PilotPublisher
             static fn(array $row): bool => $row['state'] === 'verified'
                 && in_array($row['image_receipt_kind'], ['exact_upload_token','reviewed_native_replacement'], true)));
         $result['landing_menu_pin_preserved'] = true;
+        $result['landing_image_review_holds'] = count(array_filter($observation,
+            static fn(array $row): bool => $row['state'] === 'unknown' && $row['image_review_observation'] !== null));
         return $result;
+    }
+
+    /** A real GET-reconciled first review is the sole anchor for the finite pass. */
+    private function firstReviewedLandingImage(array $targets): bool
+    {
+        $first = $this->manifest->posts()[0]['id'];
+        $target = $targets[$first]; $row = $this->store->operation($first, 'landing_edit');
+        if ($row === null || $row['state'] !== 'verified' || $target['reviewed_image'] === null
+            || ($row['outcome']['image_receipt']['kind'] ?? null) !== 'reviewed_native_replacement') return false;
+        $this->verifyLandingTarget($target);
+        return true;
+    }
+
+    private function hasImageReviewHolds(): bool
+    {
+        foreach ($this->store->rows() as $row) if ($row['state'] === 'unknown'
+            && isset($row['outcome']['image_review_observation'])) return true;
+        return false;
+    }
+
+    /** Unclassified/old UNKNOWN, lost uploads and all non-image holds still stop. */
+    private function verifyImageReviewHolds(array $targets, ?int $currentWrite = null): void
+    {
+        foreach ($this->store->rows() as $row) {
+            if (!in_array($row['state'], ['write_started','unknown','rejected'], true)) continue;
+            if ((int)$row['id'] === $currentWrite) {
+                self::check($row['operation'] === 'landing_edit' && $row['state'] === 'write_started'
+                    && (int)$row['write_attempts'] === 1, 'landing_edit_held');
+                continue;
+            }
+            self::check($row['operation'] === 'landing_edit' && isset($targets[$row['post_key']]), 'landing_edit_held');
+            $this->verifyImageReviewHold($targets[$row['post_key']], $row);
+        }
+    }
+
+    /** This record describes a pending image; it never supplies image identity. */
+    private function imageReviewRecord(array $target, array $row): array
+    {
+        $saved = $row['outcome']['image_review_observation'] ?? null;
+        $keys = ['kind','source_identity_verified','message_id','public_url','native_photo_id','native_payload_url_sha256',
+            'native_text_sha256','revision_sha256','source_sha256','upload_operation_id','upload_request_sha256',
+            'upload_token_sha256','edit_operation_id','edit_request_sha256','edit_started_ms'];
+        self::check($target['asset'] !== null && is_array($saved) && array_keys($saved) === $keys
+            && $saved['kind'] === 'individual_image_review_required' && $saved['source_identity_verified'] === false
+            && $saved['message_id'] === $target['mid'] && $saved['public_url'] === $target['url']
+            && self::nativePhotoId($saved['native_photo_id']) !== ''
+            && is_string($saved['native_payload_url_sha256'])
+            && preg_match('/\A[a-f0-9]{64}\z/D', $saved['native_payload_url_sha256']) === 1
+            && $saved['native_text_sha256'] === hash('sha256', $target['plan']['native_text'])
+            && $saved['revision_sha256'] === $target['request']['revision_sha256']
+            && $saved['source_sha256'] === $target['asset']['sha256']
+            && $saved['upload_operation_id'] === (int)$target['upload_row']['id']
+            && $saved['upload_request_sha256'] === $target['upload_row']['payload_sha256']
+            && $saved['upload_token_sha256'] === $target['request']['upload_token_sha256']
+            && $saved['edit_operation_id'] === (int)$row['id'] && $saved['edit_request_sha256'] === $row['payload_sha256']
+            && $saved['edit_started_ms'] === (int)$row['started_ms'], 'landing_edit_held');
+        return $saved;
+    }
+
+    private function verifyImageReviewHold(array $target, array $row): void
+    {
+        self::check($row['state'] === 'unknown' && ($row['outcome']['reason'] ?? null) === 'landing_image_review_required'
+            && !isset($row['outcome']['image_receipt']), 'landing_edit_held');
+        $saved = $this->imageReviewRecord($target, $row);
+        $fresh = $this->imageReviewObservation($target, $row);
+        // Signed locators may expire/renew; never replace the original stored
+        // observation. The exact native imageID and all other bindings persist.
+        unset($saved['native_payload_url_sha256'], $fresh['native_payload_url_sha256']);
+        self::check($saved === $fresh, 'landing_edit_held');
+    }
+
+    private function imageReviewObservation(array $target, array $row): array
+    {
+        self::check($target['asset'] !== null && $target['upload_row'] !== null
+            && $target['upload_row']['state'] === 'verified' && (int)$target['upload_row']['write_attempts'] === 1
+            && in_array($row['state'], ['write_started','unknown'], true) && (int)$row['write_attempts'] === 1
+            && $row['request'] === $target['request'] && $row['external_message_id'] === $target['mid']
+            && $row['public_url'] === $target['url'] && !isset($row['outcome']['image_receipt']), 'landing_edit_held');
+        $native = self::read($this->transport->message($target['mid']));
+        self::check($this->verifyMessageContent($native, $target['mid'], $target['plan']['body'], $target['plan'])
+            === $target['url'], 'post_url_changed');
+        $image = $this->imagePayload($native); $photo = self::nativePhotoId($image['photo_id'] ?? null);
+        $token = $image['token'] ?? null; $url = $image['url'] ?? null;
+        $locator = is_string($url) ? parse_url($url) : false;
+        $prior = $this->store->operation($target['post']['id'], 'create')['outcome']['image_receipt']['photo_id'] ?? null;
+        self::check($photo !== '' && $photo !== '0' && is_string($prior) && $photo !== $prior
+            && is_string($token) && $token !== '' && strlen($token) <= 4096 && !preg_match('/[\x00-\x20\x7f]/', $token)
+            && !hash_equals($target['image_upload']['token'], $token)
+            && is_string($url) && strlen($url) <= 8192 && str_starts_with($url, 'https://')
+            && is_array($locator) && !empty($locator['host']) && !isset($locator['user']) && !isset($locator['pass'])
+            && !preg_match('/[\x00-\x20\x7f]/', $url), 'landing_edit_held');
+        return ['kind'=>'individual_image_review_required','source_identity_verified'=>false,
+            'message_id'=>$target['mid'],'public_url'=>$target['url'],'native_photo_id'=>$photo,
+            'native_payload_url_sha256'=>hash('sha256',$url),'native_text_sha256'=>hash('sha256',$target['plan']['native_text']),
+            'revision_sha256'=>$target['request']['revision_sha256'],'source_sha256'=>$target['asset']['sha256'],
+            'upload_operation_id'=>(int)$target['upload_row']['id'],'upload_request_sha256'=>$target['upload_row']['payload_sha256'],
+            'upload_token_sha256'=>$target['request']['upload_token_sha256'],'edit_operation_id'=>(int)$row['id'],
+            'edit_request_sha256'=>$row['payload_sha256'],'edit_started_ms'=>(int)$row['started_ms']];
+    }
+
+    /** Known old or other-post IDs are a refusal, never a new-image witness. */
+    private function rejectKnownImageCollision(string $postId, string $photo): void
+    {
+        foreach ($this->store->rows() as $row) {
+            $known = $row['outcome']['image_receipt']['photo_id'] ?? null;
+            if ($row['operation'] === 'create' || $row['post_key'] !== $postId) {
+                self::check($photo !== $known, 'landing_edit_held');
+            }
+            if ($row['post_key'] !== $postId) self::check($photo !==
+                ($row['outcome']['image_review_observation']['native_photo_id'] ?? null), 'landing_edit_held');
+        }
     }
 
     private function landingTargets(AppleService39LandingRevision $revision): array
@@ -465,13 +617,27 @@ final class AppleService39PilotPublisher
     {
         self::check($target['plan'] !== null, 'landing_images_not_prepared');
         $message = self::read($this->transport->message($target['mid']));
+        // Distinguish an image-only review gap only AFTER every content guard.
+        self::check($this->verifyMessageContent($message, $target['mid'], $target['plan']['body'], $target['plan'])
+            === $target['url'], 'post_url_changed');
         $replacement = null; $newReceipt = null;
         if ($target['asset'] !== null) {
             $row = $this->store->operation($target['post']['id'], 'landing_edit');
             self::check($row !== null && in_array($row['state'], ['write_started','unknown','verified'], true)
                 && (int)$row['write_attempts'] === 1 && $row['external_message_id'] === $target['mid']
                 && $row['public_url'] === $target['url'] && $row['request'] === $target['request'], 'landing_original_receipts_required');
+            if (isset($row['outcome']['image_review_observation'])) {
+                $originalObservation = $this->imageReviewRecord($target, $row);
+                self::check(self::nativePhotoId($this->imagePayload($message)['photo_id'] ?? null)
+                    === $originalObservation['native_photo_id'], 'landing_review_evidence_mismatch');
+            }
             $receipt = $row['outcome']['image_receipt'] ?? null;
+            if (isset($row['outcome']['image_review_observation'])) {
+                // Once collected for individual review, this hold requires its
+                // own registered proof even if a later token happens to match.
+                if ($receipt === null) $newReceipt = $receipt = $this->reviewedReplacementReceipt($target, $row, $message);
+                self::check(($receipt['kind'] ?? null) === 'reviewed_native_replacement', 'invalid_landing_image_receipt');
+            }
             if ($receipt === null) {
                 $payload = $this->imagePayload($message); $photoId = self::nativePhotoId($payload['photo_id'] ?? null);
                 // A PUT returns only success. Neither that ACK, a changed photoID,
@@ -578,7 +744,8 @@ final class AppleService39PilotPublisher
             }
             $observed[] = ['post_id'=>$id,'message_id'=>$target['mid'],'url'=>$target['url'],
                 'state'=>$state,'write_attempts'=>(int)($row['write_attempts'] ?? 0),
-                'image_receipt_kind'=>$row['outcome']['image_receipt']['kind'] ?? null,'held_image_observation'=>$observation];
+                'image_receipt_kind'=>$row['outcome']['image_receipt']['kind'] ?? null,'held_image_observation'=>$observation,
+                'image_review_observation'=>$row['outcome']['image_review_observation'] ?? null];
         }
         return $observed;
     }
@@ -595,15 +762,9 @@ final class AppleService39PilotPublisher
 
     private function verifyMessage(array $message, string $mid, array $body, array $post, ?array $candidate = null, ?array $native = null, ?array $replacement = null): string
     {
-        $this->buttonsNormalized = false;
-        self::check($this->messageIdentity($message) && $message['body']['mid'] === $mid
-            && ($message['body']['text'] ?? null) === ($native['native_text'] ?? $body['text'])
-            && ($native !== null ? AppleService39LandingRevision::sameMarkup($message['body']['markup'] ?? null, $native['native_markup'])
-                : in_array($message['body']['markup'] ?? null, [null,[]], true))
-            && ($message['link'] ?? null) === null, 'post_readback_mismatch');
+        $url = $this->verifyMessageContent($message, $mid, $body, $native);
         $actual = $message['body']['attachments'] ?? [];
         $expected = $body['attachments'] ?? [];
-        self::check(is_array($actual) && array_is_list($actual) && count($actual) === count($expected), 'post_attachment_mismatch');
         if ($replacement === null) {
             $upload = $this->upload($post);
             $created = $this->store->operation($post['id'], 'create');
@@ -615,13 +776,31 @@ final class AppleService39PilotPublisher
             self::check($native !== null && $candidate === null, 'invalid_landing_image_receipt');
             $upload = $replacement['upload']; $receipt = $replacement['receipt'];
         }
+        foreach ($expected as $index=>$attachment) if ($attachment['type'] === 'image') {
+            $observed = $actual[$index];
+            self::check(($receipt['kind'] ?? null) === 'reviewed_native_replacement'
+                ? self::nativePhotoId($observed['payload']['photo_id'] ?? null) === $receipt['photo_id']
+                : self::imageIdentity((array)($observed['payload'] ?? []), $upload, $receipt), 'post_image_mismatch');
+        }
+        return $url;
+    }
+
+    /** Exact content/keyboard observation; by itself it proves NO image identity. */
+    private function verifyMessageContent(array $message, string $mid, array $body, ?array $native = null): string
+    {
+        $this->buttonsNormalized = false;
+        self::check($this->messageIdentity($message) && $message['body']['mid'] === $mid
+            && ($message['body']['text'] ?? null) === ($native['native_text'] ?? $body['text'])
+            && ($native !== null ? AppleService39LandingRevision::sameMarkup($message['body']['markup'] ?? null, $native['native_markup'])
+                : in_array($message['body']['markup'] ?? null, [null,[]], true))
+            && ($message['link'] ?? null) === null, 'post_readback_mismatch');
+        $actual = $message['body']['attachments'] ?? [];
+        $expected = $body['attachments'] ?? [];
+        self::check(is_array($actual) && array_is_list($actual) && count($actual) === count($expected), 'post_attachment_mismatch');
         foreach ($expected as $index=>$attachment) {
             $observed = $actual[$index];
             self::check(is_array($observed) && ($observed['type'] ?? null) === $attachment['type'], 'post_attachment_mismatch');
-            if ($attachment['type'] === 'image') self::check(($receipt['kind'] ?? null) === 'reviewed_native_replacement'
-                ? self::nativePhotoId($observed['payload']['photo_id'] ?? null) === $receipt['photo_id']
-                : self::imageIdentity((array)($observed['payload'] ?? []), $upload, $receipt), 'post_image_mismatch');
-            else {
+            if ($attachment['type'] !== 'image') {
                 $buttons = $observed['payload']['buttons'] ?? null;
                 self::check(self::sameButtons($buttons, $attachment['payload']['buttons']), 'post_button_mismatch');
                 if ($buttons !== $attachment['payload']['buttons']) $this->buttonsNormalized = true;
@@ -754,7 +933,7 @@ final class AppleService39PilotPublisher
     {
         try {
             $current = $this->store->operation($row['post_key'], $row['operation']);
-            if ($current && in_array($current['state'], ['write_started','unknown'], true)) $this->store->finish($current, 'unknown', ['reason'=>$reason]);
+            if ($current && $current['state'] === 'write_started') $this->store->finish($current, 'unknown', ['reason'=>$reason]);
         } catch (Throwable $ignored) { /* The committed write_started claim still holds. */ }
     }
 
