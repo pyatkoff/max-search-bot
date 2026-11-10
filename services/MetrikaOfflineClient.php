@@ -335,7 +335,6 @@ final class MetrikaOfflineClient
                 if($goal){$v['goal_reaches']=(int)$m[1];$v['revenue_rub']=round((float)$m[2],2);}
                 if($traffic){
                     $trafficId=$dims[2]['id']??null;$engineId=$dims[3]['id']??null;
-                    if(($trafficId!==null&&!is_string($trafficId))||($engineId!==null&&!is_string($engineId)))return $fail;
                     $v['source_class']=$trafficId==='ad'&&$engineId==='ya_direct'?'yandex_direct':'other_or_unknown';
                 }
                 $visits[]=$v;

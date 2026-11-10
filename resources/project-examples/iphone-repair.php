@@ -7,12 +7,13 @@
 return [
     'id' => 'iphone_repair',
     'business' => [
-        'profile' => 'device_repair',
+        'kind' => 'device_repair',
+        'repair' => ['entries' => []],
     ],
     'brand' => [
         'name' => null,
     ],
     'routing' => [],
-    'messenger' => [],
+    'messenger' => ['max' => ['webhook_url' => null]],
     'analytics' => [],
 ];

@@ -198,3 +198,74 @@ cross-project customer and message collisions, transactional rollback, duplicate
 starts, quiet manager ownership, greeting delivery ambiguity, exact bot-bound
 manager sends/edits, protected media and analytics isolation. The original
 settings, publication, lifecycle and delivery regressions remain required.
+
+## Another repair business through server configuration
+
+The same `MAX_SEARCH_PROJECT_CONNECTIONS` registry can bind another repair
+company to its own existing active project, MAX source, bot and credentials.
+The canonical setting is `business.kind = device_repair`. The earlier
+`business.profile` spelling remains an alias when `kind` is absent or equal;
+conflicting, malformed or non-repair values are rejected by repair ingress.
+The legacy AnyTour configuration is never switched or implicitly inherited.
+
+An additional company explicitly enables the common entrypoint with its exact
+server-owned URL:
+
+```php
+'project' => [
+    'id' => 'iphone_repair',
+    'brand' => ['name' => $verifiedBusinessName],
+    'business' => [
+        'kind' => 'device_repair',
+        'repair' => ['entries' => [
+            'battery' => ['model' => $reviewedModel, 'service' => $reviewedService],
+        ]],
+    ],
+    'routing' => ['source_key' => 'max:iphone_repair-main'],
+    'messenger' => ['max' => [
+        'webhook_url' => 'https://app.anytoour.ru/project_max_webhook.php?project=iphone_repair',
+    ]],
+],
+```
+
+The private `max` section retains its own `bot_key`, `token` and
+`webhook_secret`. This example is a configuration shape, not a registered
+company or authorization to activate it. Existing project/source membership,
+connection uniqueness, explicit setup admission and immutable operation claims
+remain mandatory. The common endpoint authenticates the selected registry entry
+before reading an update; URL, credentials and catalog content never come from
+request parameters. A missing URL, another host/path/project, or an unconfigured
+connection fails closed. The AppleService39 endpoint and fixed encrypted
+bootstrap continue to use their original exact bot/source/URLs. Other companies
+have no implied legacy webhook to delete.
+
+`ProjectMaxWebhookSetup::verify()` and `activate()` use the resolved descriptor
+for the company, retaining identity/readback/TLS checks and the bounded request
+budget. Verification can perform provider reads and an authenticated inert
+probe; activation still requires the operator's durable `beforeMutation` claim
+and exact registration proof. These methods do not provision directories or
+import secrets. No generic mutation workflow or automatic activation is added.
+
+Each configured entry is a server-reviewed model/service pair with a payload of
+1–64 ASCII letters, digits, underscores or hyphens. At most128 entries are
+admitted. Reserved `p_`, `as39_`, `ts_` and `s3_` prefixes keep their existing
+owners. Labels are bounded plain text. This slice supplies a contextual greeting
+and manager handoff without inventing prices, warranty, post URLs or publication
+receipts. Actual publications can link the payload after their own acceptance.
+
+History, handoff, manager ownership, media and outbound transport remain owned
+by the existing project-scoped services. Ordinary messages in a manager-owned
+conversation remain quiet. A configured entry captures its text and a settings
+fingerprint before any send. A genuinely unattempted pending reply can recover
+only with the same project/bot/source/URL, entry and brand. Configuration drift
+holds it; restoring the exact configuration can recover only that original
+unsent intent. Attempted or unknown sends are never retried. Historical Apple
+intents and the original `as39_x_battery` alias retain their accepted contract.
+
+Required connection tests exercise the actual HTTP endpoint with inert local
+fixtures. Repair-ingress tests run two companies with identical user/message IDs,
+separate context and manager transports, and configuration-drift/no-replay cases.
+Setup tests verify a second bot's own identity, URL and registration claim.
+These synthetic checks and source installation do not prove a newly activated
+business or a natural customer conversation. Repair events remain excluded from
+the existing AnyTour monetary model and advertising goals.

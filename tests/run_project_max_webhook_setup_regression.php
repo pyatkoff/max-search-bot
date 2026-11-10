@@ -30,6 +30,8 @@ final class ProjectWebhookSetupFixture
     public array $rows = [];
     public string $mode = 'success';
     public string $bot = ProjectMaxWebhookSetup::BOT;
+    public string $project = ProjectMaxWebhookSetup::PROJECT;
+    public string $expectedUrl = ProjectMaxWebhookSetup::EXPECTED_URL;
     public bool $directoryReady = true;
     public bool $probeReady = true;
     public bool $denyClaim = false;
@@ -37,8 +39,9 @@ final class ProjectWebhookSetupFixture
     public int $directoryCalls = 0;
     public ?string $registrationFingerprint = null;
 
-    public function __construct(bool $legacy = true)
+    public function __construct(bool $legacy = true, string $project = ProjectMaxWebhookSetup::PROJECT, string $bot = ProjectMaxWebhookSetup::BOT, string $url = ProjectMaxWebhookSetup::EXPECTED_URL)
     {
+        $this->project = $project; $this->bot = $bot; $this->expectedUrl = $url;
         if ($legacy) $this->rows = [['url'=>ProjectMaxWebhookSetup::LEGACY_URL,'update_types'=>ProjectMaxWebhookSetup::UPDATE_TYPES,'secret'=>'PRIVATE_PROVIDER_SECRET']];
     }
 
@@ -57,7 +60,7 @@ final class ProjectWebhookSetupFixture
         }
         if ($method === 'POST') {
             if ($this->mode !== 'register_timeout_unobserved') {
-                $this->rows = array_values(array_filter($this->rows,static fn(array $row): bool => $row['url'] !== ProjectMaxWebhookSetup::EXPECTED_URL));
+                $this->rows = array_values(array_filter($this->rows,fn(array $row): bool => $row['url'] !== $this->expectedUrl));
                 $this->rows[] = ['url'=>$body['url'],'update_types'=>$this->mode === 'types_unconfirmed' ? null : $body['update_types'],'secret'=>'PRIVATE_PROVIDER_SECRET'];
             }
             if (str_starts_with($this->mode,'register_timeout')) return ['http'=>0,'transport_error'=>true,'data'=>['private'=>'PRIVATE_PROVIDER_SECRET']];
@@ -81,7 +84,7 @@ final class ProjectWebhookSetupFixture
     public function directory(ProjectMaxConnection $owner): bool
     {
         $this->directoryCalls++;
-        return $owner->projectKey() === ProjectMaxWebhookSetup::PROJECT && $this->directoryReady;
+        return $owner->projectKey() === $this->project && $this->directoryReady;
     }
 
     public function claim(string $operation, string $url): void
@@ -202,6 +205,78 @@ foreach (['readback_malformed','types_unconfirmed','unknown_after_write'] as $mo
     webhookSetupCheck('unverified registration never removes legacy webhook '.$mode, $result['state'] === 'unknown' && !$result['ok'] && count($f->writes()) === 1 && $f->writes()[0]['method'] === 'POST');
 }
 
+// A second explicitly configured repair connection consumes the same setup owner.
+// The original unconfigured repair_two fixture above deliberately remains refused.
+$secondUrl = 'https://app.anytoour.ru/project_max_webhook.php?project=repair_two';
+$configuredRegistry = $registry;
+$configuredRegistry['repair_two']['project']['messenger']['max']['webhook_url'] = $secondUrl;
+ProjectMaxConnection::resetForTests($configuredRegistry);
+$secondConnection = ProjectMaxConnection::resolve('repair_two');
+webhookSetupCheck('second setup obtains its own immutable server connection', $secondConnection instanceof ProjectMaxConnection);
+$secondFixture = static fn(): ProjectWebhookSetupFixture => new ProjectWebhookSetupFixture(false,'repair_two','another_repair_bot',$secondUrl);
+$f = $secondFixture();
+$secondVerify = $f->run($secondConnection,false);
+webhookSetupCheck('configured second project verifies only its own URL and provider identity', $secondVerify['ok'] && $secondVerify['state'] === 'planned'
+    && $secondVerify['expected_url'] === $secondUrl && $f->writes() === [] && $f->claims === []
+    && array_unique(array_column($f->calls,'project')) === ['repair_two']
+    && array_unique(array_column($f->calls,'token')) === ['SYNTHETIC_OTHER_TOKEN']
+    && $f->probes === [['project'=>'repair_two','url'=>$secondUrl,'update'=>['update_type'=>'project_connection_probe']]]);
+$secondActivated = $f->run($secondConnection,true);
+webhookSetupCheck('configured second project registers exactly one own subscription without legacy deletion', $secondActivated['state'] === 'active'
+    && $secondActivated['expected_url'] === $secondUrl && $secondActivated['receipt']['write_attempts'] === 1
+    && $secondActivated['receipt']['register_attempts'] === 1 && $secondActivated['receipt']['remove_legacy_attempts'] === 0
+    && $secondActivated['receipt']['request_count'] === 5 && count($f->writes()) === 1
+    && $f->writes()[0]['body'] === ['url'=>$secondUrl,'update_types'=>ProjectMaxWebhookSetup::UPDATE_TYPES,'secret'=>str_repeat('t',32)]
+    && array_keys($f->claims) === ['register|'.$secondUrl]);
+$secondAgain = $f->run($secondConnection,true);
+webhookSetupCheck('second project registration proof suppresses any second write', $secondAgain['state'] === 'active'
+    && $secondAgain['reason'] === 'already_active' && $secondAgain['receipt']['write_attempts'] === 0 && count($f->writes()) === 1);
+$f = $secondFixture(); $f->bot = ProjectMaxWebhookSetup::BOT;
+$wrongBot = $f->run($secondConnection,true);
+webhookSetupCheck('second project cannot commission the Apple provider identity', $wrongBot['reason'] === 'bot_identity_mismatch'
+    && count($f->calls) === 1 && $f->writes() === [] && $f->probes === []);
+$f = $secondFixture(); $f->denyClaim = true;
+$deniedSecond = $f->run($secondConnection,true);
+webhookSetupCheck('second project still requires an exact durable mutation admission', $deniedSecond['reason'] === 'mutation_admission_denied' && $f->writes() === []);
+$f = $secondFixture(); $f->rows = [['url'=>ProjectMaxWebhookSetup::LEGACY_URL,'update_types'=>ProjectMaxWebhookSetup::UPDATE_TYPES]];
+$foreignSubscription = $f->run($secondConnection,true);
+webhookSetupCheck('second project cannot remove the Apple legacy webhook', $foreignSubscription['reason'] === 'unknown_subscription_url'
+    && $f->claims === [] && $f->writes() === []);
+$f = $secondFixture(); $f->mode = 'register_timeout_observed';
+$secondUnknown = $f->run($secondConnection,true);
+$secondUnknownAgain = $f->run($secondConnection,true);
+webhookSetupCheck('second project lost acknowledgement retains unknown and never repeats POST', $secondUnknown['state'] === 'unknown'
+    && $secondUnknown['reason'] === 'registration_secret_unconfirmed' && !$secondUnknown['receipt']['registration_confirmed']
+    && $secondUnknownAgain['reason'] === 'mutation_admission_denied' && count($f->writes()) === 1);
+foreach ([
+    ['url','https://other.invalid/hook'],
+    ['url',ProjectMaxWebhookSetup::EXPECTED_URL],
+    ['url','http://app.anytoour.ru/project_max_webhook.php?project=repair_two'],
+    ['url','https://app.anytoour.ru/project_max_webhook.php?project=appleservice39'],
+    ['url',$secondUrl.'&url=https://other.invalid/'],
+    ['source',''],
+    ['profile','tourism'],
+] as [$field,$value]) {
+    $invalidRegistry = $configuredRegistry;
+    if ($field === 'url') $invalidRegistry['repair_two']['project']['messenger']['max']['webhook_url'] = $value;
+    elseif ($field === 'source') $invalidRegistry['repair_two']['project']['routing']['source_key'] = $value;
+    else $invalidRegistry['repair_two']['project']['business']['profile'] = $value;
+    ProjectMaxConnection::resetForTests($invalidRegistry);
+    $invalidConnection = ProjectMaxConnection::resolve('repair_two');
+    $f = $secondFixture();
+    $invalid = $f->run($invalidConnection,true);
+    webhookSetupCheck('untrusted or conflicting second descriptor stops before IO '.$field.'-'.($passed+1), $invalid['reason'] === 'connection_scope_mismatch'
+        && $invalid['expected_url'] === null && $f->calls === [] && $f->probes === [] && $f->directoryCalls === 0 && $f->claims === []);
+}
+$profileRegistry = $configuredRegistry;
+unset($profileRegistry['repair_two']['project']['business']['kind']);
+$profileRegistry['repair_two']['project']['business']['profile'] = 'device_repair';
+ProjectMaxConnection::resetForTests($profileRegistry);
+$f = $secondFixture();
+$profileResult = $f->run(ProjectMaxConnection::resolve('repair_two'),false);
+webhookSetupCheck('legacy business profile alias uses the same validated second descriptor', $profileResult['state'] === 'planned' && $profileResult['expected_url'] === $secondUrl && $f->writes() === []);
+ProjectMaxConnection::resetForTests($registry);
+
 // Exercise the shared bounded transport's allowlist and JSON/body handling without network.
 $wireCalls = [];
 $wire = static function (string $url, string $method, string $token, ?string $body) use (&$wireCalls): array {
@@ -252,6 +327,22 @@ $pdo->exec('UPDATE conversation_sources SET is_active=0');
 webhookSetupCheck('inactive source fails real metadata preflight', !ProjectMaxWebhookSetup::activeDirectory($connection));
 $pdo->exec('UPDATE conversation_sources SET is_active=1; UPDATE projects SET is_active=0');
 webhookSetupCheck('inactive project fails real metadata preflight', !ProjectMaxWebhookSetup::activeDirectory($connection));
+$pdo->exec("UPDATE projects SET is_active=1; INSERT INTO projects VALUES(2,'repair_two',1);
+    INSERT INTO conversation_sources VALUES(2,2,'max:repair_two-main','max',1,'manager');");
+ProjectMaxConnection::resetForTests($configuredRegistry);
+$secondConnection = ProjectMaxConnection::resolve('repair_two');
+webhookSetupCheck('real metadata directory resolves only the second project source', ProjectMaxWebhookSetup::activeDirectory($secondConnection));
+$f = $secondFixture();
+$secondReal = ProjectMaxWebhookSetup::verify($secondConnection,[$f,'provider'],$realProbe);
+webhookSetupCheck('real ignored second-project ingress probe is nonmutating', $secondReal['state'] === 'planned'
+    && $secondReal['expected_url'] === $secondUrl && $f->writes() === []
+    && (int)$pdo->query('SELECT COUNT(*) FROM customers')->fetchColumn() === 0
+    && (int)$pdo->query('SELECT COUNT(*) FROM conversations')->fetchColumn() === 0);
+$crossSource = $configuredRegistry;
+$crossSource['repair_two']['project']['routing']['source_key'] = ProjectMaxWebhookSetup::SOURCE;
+ProjectMaxConnection::resetForTests($crossSource);
+webhookSetupCheck('another project active source cannot satisfy second metadata scope', !ProjectMaxWebhookSetup::activeDirectory(ProjectMaxConnection::resolve('repair_two')));
+ProjectMaxConnection::resetForTests($registry);
 webhookSetupCheck('commissioning never switches global AnyTour settings', ProjectConfig::projectId() === 'anytour');
 
 $transport = (string)file_get_contents(dirname(__DIR__).'/services/MaxTransport.php');
