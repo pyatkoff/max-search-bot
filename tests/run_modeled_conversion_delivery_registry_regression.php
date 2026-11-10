@@ -355,11 +355,74 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
             preg_match("/clientID=='([0-9]+)'/",$q['filters'],$match);
             return ['http'=>200,'error'=>0,'body'=>json_encode(['query'=>['ids'=>[98615635],'metrics'=>['ym:s:visits'],
                 'dimensions'=>explode(',',$q['dimensions']),'filters'=>$q['filters']],'sampled'=>false,'total_rows'=>1,
-                'data'=>[['dimensions'=>[['name'=>$match[1]],['name'=>gmdate('Y-m-d H:i:s',$wireSourceAt)],['id'=>'ad'],['id'=>'ya_direct']],'metrics'=>[1]]]])];
+                'data'=>[['dimensions'=>array_merge([['name'=>$match[1]],['name'=>gmdate('Y-m-d H:i:s',$wireSourceAt)]],
+                    count(explode(',',$q['dimensions']))===4?[['id'=>'ad'],['id'=>'ya_direct']]:[]),'metrics'=>[1]]]])];
         }
         return ['http'=>200,'error'=>0,'body'=>json_encode(['uploading'=>['id'=>'5999','status'=>'UPLOADED',
             'source_quantity'=>1,'line_quantity'=>1,'comment'=>$q['comment']]])];
     };
+    // Source dimensions may omit undefined values. They must never own visit existence.
+    $sourceNow=$auditNow;$sourceBase=[];$sourceDetails=[];$sourceUnavailable=false;$sourceMethods=[];$sourceQueries=[];
+    $sourceTransport=static function(string $method,string $url,mixed $body)use(&$sourceBase,&$sourceDetails,&$sourceUnavailable,&$sourceMethods,&$sourceQueries):array{
+        $sourceMethods[]=$method;$path=(string)parse_url($url,PHP_URL_PATH);
+        if(str_ends_with($path,'/98615635'))return ['http'=>200,'error'=>0,'body'=>json_encode(['counter'=>['id'=>'98615635','time_zone_name'=>'UTC']])];
+        parse_str((string)parse_url($url,PHP_URL_QUERY),$q);$sourceQueries[]=$q;$isSource=count(explode(',',$q['dimensions']))===4;
+        if($isSource&&$sourceUnavailable)return ['http'=>503,'error'=>0,'body'=>'PRIVATE_SOURCE_ONLY_FAILURE'];
+        $rows=[];foreach($isSource?$sourceDetails:$sourceBase as$v){
+            $dims=[['name'=>'900000000000000001'],['name'=>gmdate('Y-m-d H:i:s',$v['at'])]];
+            if($isSource)$dims=array_merge($dims,[['id'=>($v['direct']??false)?'ad':'direct'],['id'=>($v['direct']??false)?'ya_direct':null]]);
+            $rows[]=['dimensions'=>$dims,'metrics'=>[$v['visits']??1]];
+        }
+        return ['http'=>200,'error'=>0,'body'=>json_encode(['query'=>['ids'=>[98615635],'metrics'=>['ym:s:visits'],
+            'dimensions'=>explode(',',$q['dimensions']),'filters'=>$q['filters']],'sampled'=>false,'total_rows'=>count($rows),'data'=>$rows])];
+    };
+    $sourceApi=new MetrikaOfflineClient('98615635','SYNTHETIC_TOKEN',$sourceTransport);
+    $sourceBase=[['at'=>$sourceNow-86400]];$sourceDetails=[];
+    $retainedVisits=$sourceApi->modeledAttributionVisits('900000000000000001',$sourceNow,$sourceNow);
+    $check('a real fresh visit remains eligible for the conservative three-day window when advertising labels are absent',
+        count($retainedVisits['visits'])===1&&$retainedVisits['visits'][0]['source_class']==='other_or_unknown'
+        &&ModeledConversionAttributionWindow::assess($retainedVisits,$sourceNow,$sourceNow)['allowed']&&count($sourceQueries)===1);
+    $sourceBase=[['at'=>$sourceNow-4*86400],['at'=>$sourceNow-8*86400]];
+    $sourceDetails=[['at'=>$sourceNow-8*86400,'direct'=>true]];
+    $retainedVisits=$sourceApi->modeledAttributionVisits('900000000000000001',$sourceNow,$sourceNow);
+    $check('an older visible Direct visit cannot displace the more recent visit omitted by source grouping',
+        count($retainedVisits['visits'])===2&&!ModeledConversionAttributionWindow::assess($retainedVisits,$sourceNow,$sourceNow)['allowed']
+        &&$retainedVisits['visits'][0]['source_class']==='other_or_unknown');
+    $sourceBase=[['at'=>$sourceNow-9*86400]];$sourceDetails=[['at'=>$sourceNow-9*86400,'direct'=>true]];
+    $retainedVisits=$sourceApi->modeledAttributionVisits('900000000000000001',$sourceNow,$sourceNow);
+    $check('exact date and visit-count matched Direct evidence grants the ten-day extension',
+        ModeledConversionAttributionWindow::assess($retainedVisits,$sourceNow,$sourceNow)['allowed']
+        &&$retainedVisits['visits'][0]['source_class']==='yandex_direct');
+    $sourceUnavailable=true;
+    $retainedVisits=$sourceApi->modeledAttributionVisits('900000000000000001',$sourceNow,$sourceNow);
+    $check('source-only failure retains real visits without promoting them to Direct',
+        count($retainedVisits['visits'])===1&&!ModeledConversionAttributionWindow::assess($retainedVisits,$sourceNow,$sourceNow)['allowed']
+        &&$retainedVisits['visits'][0]['source_class']==='other_or_unknown');
+    $sourceUnavailable=false;$sourceDetails=[['at'=>$sourceNow-9*86400,'direct'=>true],['at'=>$sourceNow-9*86400,'direct'=>false]];
+    $retainedVisits=$sourceApi->modeledAttributionVisits('900000000000000001',$sourceNow,$sourceNow);
+    $check('ambiguous source rows cannot grant an extended window and all enrichment requests are GET-only',
+        !ModeledConversionAttributionWindow::assess($retainedVisits,$sourceNow,$sourceNow)['allowed']
+        &&array_values(array_unique($sourceMethods))===['GET']);
+
+    $sourceBase=[['at'=>$sourceNow-9*86400,'visits'=>2]];$sourceDetails=[['at'=>$sourceNow-9*86400,'direct'=>true,'visits'=>1]];
+    $retainedVisits=$sourceApi->modeledAttributionVisits('900000000000000001',$sourceNow,$sourceNow);
+    $check('partial source coverage of a multi-visit second cannot grant ten days',
+        $retainedVisits['visits'][0]['visits']===2&&!ModeledConversionAttributionWindow::assess($retainedVisits,$sourceNow,$sourceNow)['allowed']);
+    $sourceBase=[['at'=>$sourceNow-9*86400]];$sourceDetails=[['at'=>$sourceNow-9*86400,'direct'=>true],['at'=>$sourceNow-4*86400,'direct'=>false]];
+    $retainedVisits=$sourceApi->modeledAttributionVisits('900000000000000001',$sourceNow,$sourceNow);
+    $check('incoherent source-only rows cannot create visits or promote an older base visit',
+        count($retainedVisits['visits'])===1&&!ModeledConversionAttributionWindow::assess($retainedVisits,$sourceNow,$sourceNow)['allowed']);
+    $sourceDetails=[['at'=>$sourceNow-9*86400,'direct'=>true]];
+    $readsBefore=count($sourceQueries);$budgetRefused=false;
+    try{$sourceApi->modeledAttributionVisits('900000000000000001',$sourceNow,$sourceNow,static function():void{throw new RuntimeException('fixture_read_budget');});}
+    catch(RuntimeException $e){$budgetRefused=$e->getMessage()==='fixture_read_budget';}
+    $check('the shared admission refuses the optional source request before it reaches transport',
+        $budgetRefused&&count($sourceQueries)===$readsBefore+1&&count(explode(',',$sourceQueries[count($sourceQueries)-1]['dimensions']))===2);
+    $sourceBase=[];$sourceDetails=[['at'=>$sourceNow-86400,'direct'=>true]];$readsBefore=count($sourceQueries);
+    $retainedVisits=$sourceApi->modeledAttributionVisits('900000000000000001',$sourceNow,$sourceNow);
+    $check('source evidence cannot invent a missing canonical visit or trigger an unneeded request',
+        $retainedVisits['status']==='ok'&&$retainedVisits['visits']===[]&&count($sourceQueries)===$readsBefore+1);
+
     $wireApi=new MetrikaOfflineClient('98615635','SYNTHETIC_TOKEN',$wireTransport);
     $repair=$wireApi->uploadModeledWireCorrection([$wireFirst,$wireSecond],$auditNow);
     $wirePosts=array_values(array_filter($wireCalls,static fn(array $c):bool=>$c[0]==='POST'));$csvLines=explode("\n",trim($wirePosts[0][2]));$csvRow=str_getcsv($csvLines[1]);
