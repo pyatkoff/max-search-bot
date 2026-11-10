@@ -20,9 +20,11 @@ final class AppleService39PilotPublisher
     private $pause;
     private array $readbackDiagnostics = [];
     private bool $buttonsNormalized = false;
+    private ?AppleService39CatalogueRevision $catalogueRevision;
 
     public function __construct(PDO $pdo, AppleService39PilotManifest $manifest, string $channelId,
-        callable $provenance, ?callable $wire = null, ?callable $pause = null)
+        callable $provenance, ?callable $wire = null, ?callable $pause = null,
+        ?AppleService39CatalogueRevision $catalogueRevision = null)
     {
         $connection = ProjectMaxConnection::resolve(AppleService39PilotManifest::PROJECT);
         self::check($connection !== null, 'pilot_connection_unavailable');
@@ -31,6 +33,7 @@ final class AppleService39PilotPublisher
         $this->transport = new AppleService39ChannelTransport($connection, $channelId, $wire);
         $this->provenance = $provenance;
         $this->pause = $pause ?? static function (): void { usleep(600000); };
+        $this->catalogueRevision = $catalogueRevision;
     }
 
     public function run(string $operation): array
@@ -39,7 +42,8 @@ final class AppleService39PilotPublisher
         $this->readbackDiagnostics = [];
         $binding = $this->preflight();
         $this->store->assertBinding($binding);
-        if (str_starts_with($operation, 'landing_')) return $this->landing($operation, $binding);
+        if (str_starts_with($operation, 'landing_')) return $this->catalogueRevision !== null
+            ? $this->catalogue($operation) : $this->landing($operation, $binding);
         if ($operation === 'inspect') return $this->report('inspected');
         if ($operation === 'reconcile') {
             if ($this->store->campaign() !== null) $this->reconcile();
@@ -434,6 +438,190 @@ final class AppleService39PilotPublisher
         return $result;
     }
 
+    /** A successor may start only after every old claim has a complete accepted outcome. */
+    private function catalogueTargets(): array
+    {
+        self::check($this->catalogueRevision !== null && $this->store->campaign() !== null, 'catalogue_parent_incomplete');
+        $priorCount = 0;
+        foreach ($this->store->rows() as $row) {
+            if ($row['operation'] === AppleService39CatalogueRevision::OPERATION) continue;
+            self::check(in_array($row['operation'], ['upload','create','links','pin','landing_upload','landing_edit'], true)
+                && $row['state'] === 'verified' && (int)$row['write_attempts'] === 1, 'catalogue_parent_incomplete');
+            $priorCount++;
+        }
+        self::check($priorCount === 112, 'catalogue_parent_incomplete');
+        $parent = new AppleService39LandingRevision($this->manifest);
+        self::check($parent->sha256() === AppleService39CatalogueRevision::PARENT_SHA, 'catalogue_parent_changed');
+        $legacy = $this->landingTargets($parent);
+        $urls = array_map(static fn(array $t): string => $t['url'], $legacy);
+        $posts = array_column($this->catalogueRevision->posts(), null, 'id');
+        $targets = []; $photos = [];
+        foreach ($legacy as $id=>$old) {
+            $parentEdit = $this->store->operation($id, 'landing_edit');
+            self::check($parentEdit !== null && $parentEdit['state'] === 'verified'
+                && (int)$parentEdit['write_attempts'] === 1 && $parentEdit['request'] === $old['request'], 'catalogue_parent_incomplete');
+            $imageRow = $old['asset'] !== null ? $parentEdit : $this->store->operation($id, 'create');
+            $imageReceipt = $imageRow['outcome']['image_receipt'] ?? null;
+            self::check(is_array($imageReceipt), 'catalogue_parent_incomplete');
+            $row = $this->store->operation($id, AppleService39CatalogueRevision::OPERATION);
+            if ($row === null) {
+                // This is the actual fully validated parent GET, not a manufactured receipt.
+                $message = $this->verifyLandingTarget($old);
+                $photo = self::nativePhotoId($this->imagePayload($message)['photo_id'] ?? null);
+            } else {
+                self::check(in_array($row['state'], ['prepared','write_started','unknown','verified'], true)
+                    && (int)$row['write_attempts'] === ($row['state'] === 'prepared' ? 0 : 1), 'catalogue_edit_held');
+                $photo = $row['request']['preserved_photo_id'] ?? null;
+            }
+            self::check(is_string($photo) && self::nativePhotoId($photo) === $photo && $photo !== ''
+                && !isset($photos[$photo]), 'catalogue_image_changed');
+            $photos[$photo] = true;
+            $plan = $this->catalogueRevision->plan($posts[$id], $urls);
+            self::check(array_keys($plan['body']) === ['text','format'], 'catalogue_post_invalid');
+            $request = ['revision'=>AppleService39CatalogueRevision::KEY,
+                'revision_sha256'=>$this->catalogueRevision->sha256(),
+                'catalogue_sha256'=>$this->catalogueRevision->catalogueSha256(),
+                'parent_revision_sha256'=>AppleService39CatalogueRevision::PARENT_SHA,
+                'mid'=>$old['mid'],'url'=>$old['url'],
+                'parent_edit_operation_id'=>(int)$parentEdit['id'],
+                'parent_edit_request_sha256'=>$parentEdit['payload_sha256'],
+                'source_image_sha256'=>$old['request']['source_sha256'],
+                'source_image_receipt_sha256'=>hash('sha256', json_encode($imageReceipt, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),
+                'preserved_photo_id'=>$photo,
+                'body'=>$plan['body'],'native_text'=>$plan['native_text'],'native_markup'=>$plan['native_markup']];
+            if ($row !== null) {
+                $json = json_encode($request, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+                self::check($row['request_json'] === $json && $row['payload_sha256'] === hash('sha256',$json)
+                    && in_array($row['external_message_id'], [null,$old['mid']], true)
+                    && in_array($row['public_url'], [null,'',$old['url']], true), 'catalogue_revision_changed');
+                if ($row['state'] === 'verified') self::check($row['external_message_id'] === $old['mid']
+                    && $row['public_url'] === $old['url'] && ($row['outcome']['text_only'] ?? null) === true
+                    && ($row['outcome']['revision_sha256'] ?? null) === $this->catalogueRevision->sha256()
+                    && ($row['outcome']['preserved_photo_id'] ?? null) === $photo, 'catalogue_revision_changed');
+            }
+            $expected = $old['plan']['body']; $expected['text'] = $plan['body']['text'];
+            $targets[$id] = ['legacy'=>$old,'plan'=>$plan,'expected_body'=>$expected,'request'=>$request,
+                'photo_id'=>$photo,'mid'=>$old['mid'],'url'=>$old['url'],'row'=>$row];
+        }
+        self::check(count($targets) === 24 && count($photos) === 24
+            && $this->pinnedMid() === $targets[$this->manifest->menuPostId()]['mid'], 'landing_menu_pin_changed');
+        return $targets;
+    }
+
+    /** The new request changes text only; the prior proven image and exact keyboard must survive. */
+    private function verifyCatalogueTarget(array $target, bool $newText): array
+    {
+        if (!$newText) $message = $this->verifyLandingTarget($target['legacy']);
+        else {
+            $message = self::read($this->transport->message($target['mid']));
+            self::check($this->verifyMessageContent($message, $target['mid'], $target['expected_body'], $target['plan'])
+                === $target['url'], 'post_url_changed');
+        }
+        self::check(self::nativePhotoId($this->imagePayload($message)['photo_id'] ?? null) === $target['photo_id'], 'catalogue_image_changed');
+        return $message;
+    }
+
+    private function catalogueOutcome(array $target): array
+    {
+        return ['readback'=>true,'text_only'=>true,'revision_sha256'=>$this->catalogueRevision->sha256(),
+            'preserved_photo_id'=>$target['photo_id'],
+            'parent_edit_request_sha256'=>$target['request']['parent_edit_request_sha256'],
+            'button_object_key_order_normalized'=>$this->buttonsNormalized];
+    }
+
+    private function catalogueRead(array $targets, bool $allowHeld): array
+    {
+        $result = [];
+        foreach ($targets as $id=>$target) {
+            $row = $this->store->operation($id, AppleService39CatalogueRevision::OPERATION);
+            $state = $row['state'] ?? 'not_started'; $observed = false;
+            try {
+                $this->verifyCatalogueTarget($target, $row !== null && $state !== 'prepared');
+                $observed = true;
+            } catch (Throwable $error) {
+                if (!$allowHeld) throw $error;
+                $safe = ['provider_read_unknown','post_readback_mismatch','post_attachment_mismatch','post_button_mismatch',
+                    'post_url_changed','native_post_url_required','catalogue_image_changed'];
+                $this->readbackDiagnostics[] = ['post_id'=>$id,'operation'=>AppleService39CatalogueRevision::OPERATION,
+                    'message_id'=>$target['mid'],'reason'=>in_array($error->getMessage(),$safe,true) ? $error->getMessage() : 'catalogue_readback_held'];
+            }
+            $result[] = ['post_id'=>$id,'message_id'=>$target['mid'],'url'=>$target['url'],'state'=>$state,
+                'write_attempts'=>$row === null ? 0 : (int)$row['write_attempts'],
+                'native_photo_id'=>$observed ? $target['photo_id'] : null,'native_image_preserved'=>$observed,
+                'text_only'=>$row['outcome']['text_only'] ?? false];
+        }
+        return $result;
+    }
+
+    /** Existing fixed modes and the same durable store; no upload, create, pin, or ambiguous replay. */
+    private function catalogue(string $operation): array
+    {
+        if ($operation === 'landing_apply') self::check($this->report('inspected')['held_operations'] === 0, 'catalogue_edit_held');
+        $targets = $this->catalogueTargets();
+        if ($operation === 'landing_apply') {
+            $this->catalogueRead($targets, false);
+            foreach ($targets as $id=>$target) {
+                $row = $this->store->prepare($id, AppleService39CatalogueRevision::OPERATION, $target['request']);
+                if ($row['state'] === 'verified') continue;
+                self::check($row['state'] === 'prepared', 'catalogue_edit_held');
+                ($this->pause)();
+                $this->beforeWrite($row, function () use ($target,$targets): void {
+                    self::check($this->report('inspected')['held_operations'] === 0, 'catalogue_edit_held');
+                    $this->verifyCatalogueTarget($target, false);
+                    self::check($this->pinnedMid() === $targets[$this->manifest->menuPostId()]['mid'], 'landing_menu_pin_changed');
+                });
+                try {
+                    $this->store->rememberMessage($row,$target['mid'],$target['url']);
+                    // MAX PUT /messages preserves attachments when the field is omitted.
+                    // https://dev.max.ru/docs-api/methods/PUT/messages
+                    self::check(array_keys($target['request']['body']) === ['text','format'], 'catalogue_post_invalid');
+                    $response = $this->transport->edit($target['mid'],$target['request']['body']);
+                    self::check(AppleService39ChannelTransport::accepted($response)
+                        && ($response['data']['success'] ?? null) === true, 'catalogue_edit_held');
+                    $this->verifyCatalogueTarget($target,true);
+                    $this->store->finish($row,'verified',$this->catalogueOutcome($target));
+                } catch (Throwable $error) {
+                    $this->hold($row,'catalogue_edit_outcome_unknown');
+                    throw new RuntimeException('catalogue_edit_held');
+                }
+            }
+        } elseif ($operation === 'landing_reconcile') {
+            foreach ($targets as $id=>$target) {
+                $row = $this->store->operation($id,AppleService39CatalogueRevision::OPERATION);
+                if ($row === null || !in_array($row['state'],['write_started','unknown'],true)) continue;
+                try {
+                    $this->store->assertBinding($this->preflight());
+                    $this->verifyCatalogueTarget($target,true);
+                    self::check($this->pinnedMid() === $targets[$this->manifest->menuPostId()]['mid'], 'landing_menu_pin_changed');
+                    $this->store->rememberMessage($row,$target['mid'],$target['url']);
+                    $this->store->finish($row,'verified',$this->catalogueOutcome($target));
+                } catch (Throwable $error) {
+                    $this->readbackDiagnostics[] = ['post_id'=>$id,'operation'=>AppleService39CatalogueRevision::OPERATION,
+                        'message_id'=>$target['mid'],'reason'=>'catalogue_readback_held'];
+                }
+            }
+        }
+        $observation = $this->catalogueRead($targets,true);
+        self::check($this->pinnedMid() === $targets[$this->manifest->menuPostId()]['mid'], 'landing_menu_pin_changed');
+        $result = $this->report(str_replace('landing_','catalogue_',$operation).'_complete');
+        $result['ok'] = $result['ok'] && $this->readbackDiagnostics === [];
+        $result['landing_revision'] = AppleService39CatalogueRevision::KEY;
+        $result['landing_revision_sha256'] = $this->catalogueRevision->sha256();
+        $result['parent_revision_sha256'] = AppleService39CatalogueRevision::PARENT_SHA;
+        $result['catalogue_sha256'] = $this->catalogueRevision->catalogueSha256();
+        $result['catalogue_model_count'] = $this->catalogueRevision->modelCount();
+        $result['catalogue_warranty_months'] = AppleService39PilotCatalog::WARRANTY_MONTHS;
+        $result['catalogue_readback'] = $observation;
+        $result['catalogue_verified_posts'] = count(array_filter($observation,static fn(array $r):bool=>$r['state']==='verified' && $r['native_image_preserved']));
+        $result['catalogue_preserved_images'] = count(array_filter($observation,static fn(array $r):bool=>$r['native_image_preserved']));
+        $result['catalogue_new_uploads'] = 0;
+        $result['catalogue_new_images'] = 0;
+        $result['catalogue_expected_navigation_links'] = 86;
+        $result['catalogue_expected_bot_buttons'] = 24;
+        $result['catalogue_menu_pin_preserved'] = true;
+        return $result;
+    }
+
     /** A real GET-reconciled first review is the sole anchor for the finite pass. */
     private function firstReviewedLandingImage(array $targets): bool
     {
@@ -613,7 +801,7 @@ final class AppleService39PilotPublisher
         return $targets;
     }
 
-    private function verifyLandingTarget(array $target, bool $remember = false): void
+    private function verifyLandingTarget(array $target, bool $remember = false): array
     {
         self::check($target['plan'] !== null, 'landing_images_not_prepared');
         $message = self::read($this->transport->message($target['mid']));
@@ -668,6 +856,7 @@ final class AppleService39PilotPublisher
         self::check($this->verifyMessage($message, $target['mid'], $target['plan']['body'],
             $target['post'], null, $target['plan'], $replacement) === $target['url'], 'post_url_changed');
         if ($newReceipt !== null) $this->store->rememberLandingImageReceipt($row, $newReceipt);
+        return $message;
     }
 
     /** A separately reviewed, source-pinned native file; never an assertion from a GET/ACK alone. */
