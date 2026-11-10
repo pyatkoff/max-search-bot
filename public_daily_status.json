@@ -1,70 +1,67 @@
 {
     "ok": true,
-    "generated_at": "2026-11-09T21:24:03+00:00",
+    "generated_at": "2026-11-10T08:39:43+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 178,
-        "raw_sessions": 178,
+        "sessions": 44,
+        "raw_sessions": 44,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 178,
+            "resolved": 44,
             "unresolved": 0
         },
-        "started": 150,
-        "needs_collected": 26,
-        "tours_opened": 21,
+        "started": 38,
+        "needs_collected": 9,
+        "tours_opened": 8,
         "site_opened": 0,
-        "post_tour_manager_cta_shown": 1,
-        "manager_requested": 112,
-        "manager_replied": 73,
-        "customer_replied_after_manager": 26,
+        "post_tour_manager_cta_shown": 0,
+        "manager_requested": 28,
+        "manager_replied": 19,
+        "customer_replied_after_manager": 8,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 73,
-            "still_unanswered": 10,
-            "measured_responses": 73,
-            "avg_seconds": 11741,
-            "max_seconds": 49242
+            "answered_after_90s": 19,
+            "still_unanswered": 0,
+            "measured_responses": 19,
+            "avg_seconds": 21834,
+            "max_seconds": 47166
         },
         "drop_points": {
-            "manager_replied": 47,
-            "manager_requested": 39,
-            "collecting_needs": 37,
-            "started_only": 28,
-            "customer_replied_after_manager": 26,
+            "manager_replied": 11,
+            "manager_requested": 9,
+            "collecting_needs": 9,
+            "customer_replied_after_manager": 8,
+            "started_only": 6,
             "tours_opened": 1
         },
         "flags": {
-            "manager_requested_no_reply": 10,
-            "repeated_same_input": 6,
-            "left_waiting_queue_without_manager_reply": 5,
-            "manager_taken_no_reply": 5,
-            "repeated_callback_input": 5,
-            "excessive_turns": 4
+            "repeated_callback_input": 2,
+            "excessive_turns": 2,
+            "repeated_same_input": 2
         },
         "calendar_day": {
-            "conversations_started": 160,
-            "needs_collected_from_started": 20,
-            "tours_opened_from_started": 16,
+            "conversations_started": 36,
+            "needs_collected_from_started": 9,
+            "tours_opened_from_started": 8,
             "site_opened": 0,
-            "post_tour_manager_cta_shown": 1,
-            "manager_requested": 98,
-            "manager_replied": 66,
-            "customer_replied_after_manager": 22
+            "post_tour_manager_cta_shown": 0,
+            "manager_requested": 21,
+            "manager_replied": 15,
+            "customer_replied_after_manager": 6
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-09T21:24:03Z",
+        "sampled_at": "2026-11-10T08:39:43Z",
         "available": true,
         "error": null,
         "mode": "send",
         "activated": true,
         "queue_counts": {
-            "pending": 28,
+            "pending": 29,
             "ready": 0,
             "uploading": 0,
             "accepted": 0,
@@ -75,12 +72,12 @@
             "expired": 0,
             "retired": 0
         },
-        "queue_total": 31
+        "queue_total": 32
     },
-    "local_date": "2026-11-09",
-    "local_day_started_at": "2026-11-09T00:00:00+02:00",
-    "local_day_ended_at": "2026-11-10T00:00:00+02:00",
-    "since_utc": "2026-11-08 22:00:00",
-    "until_utc": "2026-11-09 22:00:00",
+    "local_date": "2026-11-10",
+    "local_day_started_at": "2026-11-10T00:00:00+02:00",
+    "local_day_ended_at": "2026-11-11T00:00:00+02:00",
+    "since_utc": "2026-11-09 22:00:00",
+    "until_utc": "2026-11-10 22:00:00",
     "public_redacted": true
 }
