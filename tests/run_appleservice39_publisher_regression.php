@@ -140,8 +140,13 @@ final class ApplePilotTestProvider
         if ($method === 'PUT' && $path === '/messages') {
             $mid = $query['message_id'] ?? '';
             as39ProviderAssert(isset($this->messages[$mid]), 'edit targets an exact prior created MID');
-            $priorImage = $this->messages[$mid]['body']['attachments'][0];
-            if ($this->mode !== 'edit_unchanged_timeout') $this->messages[$mid] = $this->message($mid, $request['body']);
+            $priorAttachments = $this->messages[$mid]['body']['attachments'];
+            $priorImage = $priorAttachments[0];
+            if ($this->mode !== 'edit_unchanged_timeout') {
+                $this->messages[$mid] = $this->message($mid, $request['body']);
+                // MAX PUT leaves native attachments unchanged when the field is absent.
+                if (!array_key_exists('attachments', $request['body'])) $this->messages[$mid]['body']['attachments'] = $priorAttachments;
+            }
             if ($this->mode === 'landing_success_old_image') $this->messages[$mid]['body']['attachments'][0] = $priorImage;
             if ($this->editHook !== null) ($this->editHook)($mid);
             if (in_array($this->mode, ['edit_timeout','edit_unchanged_timeout'], true)) return ['http'=>0,'transport_error'=>true,'data'=>null];
@@ -195,6 +200,178 @@ final class ApplePilotTestProvider
 function as39Publisher(PDO $pdo, ApplePilotTestProvider $provider, ?AppleService39PilotManifest $manifest = null): AppleService39PilotPublisher
 {
     return new AppleService39PilotPublisher($pdo, $manifest ?? AppleService39PilotManifest::installed(), $provider->channelId, static fn(): bool=>true, $provider, static function (): void {});
+}
+
+function as39CataloguePublisher(PDO $pdo, ApplePilotTestProvider $provider, ?AppleService39CatalogueRevision $revision = null): AppleService39PilotPublisher
+{
+    $manifest = AppleService39PilotManifest::installed();
+    return new AppleService39PilotPublisher($pdo, $manifest, $provider->channelId, static fn(): bool=>true,
+        $provider, static function (): void {}, $revision ?? new AppleService39CatalogueRevision($manifest));
+}
+
+/** Build the accepted predecessor through real publisher transitions, never fabricated receipts. */
+function as39CatalogueFixture(): array
+{
+    ProjectMaxConnection::resetForTests(as39Registry());
+    $pdo = as39Sqlite(); $provider = new ApplePilotTestProvider; $publisher = as39Publisher($pdo, $provider);
+    foreach (['prepare','publish','finalize','pin','landing_prepare','landing_apply'] as $phase) $publisher->run($phase);
+    $store = new AppleService39PilotPublicationStore($pdo);
+    as39Expect(count($store->rows()) === 112 && $publisher->run('landing_inspect')['landing_verified_posts'] === 24,
+        'catalogue fixture has all112 original one-attempt verified operations');
+    return [$pdo,$provider,$store];
+}
+
+function as39GroupedCatalogueRegression(): void
+{
+    [$pdo,$provider,$store] = as39CatalogueFixture();
+    $before = $provider->messages; $priorRows = $store->rows(); $writes = $provider->writes();
+    $requestOffset = count($provider->requests); $pinned = $provider->pinned;
+    $publisher = as39CataloguePublisher($pdo,$provider);
+    $result = $publisher->run('landing_apply');
+    as39Expect($result['ok'] && $result['catalogue_verified_posts'] === 24 && $result['catalogue_preserved_images'] === 24
+        && $result['catalogue_model_count'] === 33 && $result['catalogue_warranty_months'] === 3
+        && $result['catalogue_new_uploads'] === 0 && $result['catalogue_new_images'] === 0
+        && $result['catalogue_menu_pin_preserved'] && $provider->pinned === $pinned,
+        '33-model catalogue updates all24 texts with3-month warranty and preserves24 native images and pin');
+    $newWrites = array_values(array_filter(array_slice($provider->requests,$requestOffset), static fn(array $r): bool=>$r['method'] !== 'GET'));
+    as39Expect(count($newWrites) === 24 && $provider->writes() === $writes+24, 'catalogue performs exactly24 edits with no uploads, creates or pin writes');
+    foreach ($newWrites as $request) as39Expect($request['method'] === 'PUT'
+        && parse_url($request['url'],PHP_URL_PATH) === '/messages' && array_keys($request['body']) === ['text','format']
+        && $request['body']['format'] === 'html', 'catalogue PUT omits attachments and every non-text write field');
+    $links = 0; $buttons = 0;
+    foreach ($provider->messages as $mid=>$message) {
+        as39Expect($message['body']['attachments'] === $before[$mid]['body']['attachments'] && $message['url'] === $before[$mid]['url'],
+            'native image payload, keyboard, MID and URL survive the text-only edit');
+        as39Expect(substr_count($message['body']['text'],AppleService39PilotCatalog::WARRANTY_TEXT) === 1,
+            'every published caption contains the exact owner-confirmed warranty once');
+        $links += count(array_filter($message['body']['markup'],static fn(array $m):bool=>$m['type']==='link'));
+        foreach ($message['body']['attachments'] as $a) if ($a['type'] === 'inline_keyboard') $buttons += count($a['payload']['buttons']);
+    }
+    $oldRows = array_values(array_filter($store->rows(),static fn(array $r):bool=>$r['operation']!=='catalogue_v1'));
+    $newRows = array_values(array_filter($store->rows(),static fn(array $r):bool=>$r['operation']==='catalogue_v1'));
+    as39Expect($links === 86 && $buttons === 24 && $oldRows === $priorRows && count($newRows) === 24,
+        'all86 text links,24 single bot buttons and112 immutable predecessor rows remain intact');
+    foreach ($newRows as $row) as39Expect($row['state'] === 'verified' && (int)$row['write_attempts'] === 1
+        && $row['outcome']['text_only'] === true, 'each catalogue edit has one immutable verified attempt');
+    foreach (['landing_apply','landing_prepare','landing_inspect','landing_reconcile'] as $phase) as39Expect($publisher->run($phase)['catalogue_verified_posts'] === 24,
+        'completed catalogue '.$phase.' validates current content');
+    as39Expect($provider->writes() === $writes+24, 'completed catalogue never repeats an external mutation');
+    foreach (AppleService39PilotManifest::installed()->posts() as $post) {
+        $entry = AppleService39PilotCatalog::landingEntryForPost($post['id']);
+        as39Expect($entry !== null && substr_count(AppleService39PilotCatalog::responseText($entry,'AppleService39'),AppleService39PilotCatalog::WARRANTY_TEXT) === 1,
+            'all24 future entry greetings use the same three-month warranty');
+    }
+
+    // A different caption under the same durable operation cannot reopen an accepted claim.
+    as39WithCatalogueMutation(static function(array &$manifest,array &$catalogue):void {
+        $manifest['posts'][0]['paragraphs'][0] .= ' Новая неподтвержденная редакция.';
+    }, static function(AppleService39CatalogueRevision $revision) use($pdo,$provider,$writes):void {
+        as39Refuses(static fn()=>as39CataloguePublisher($pdo,$provider,$revision)->run('landing_apply'),'catalogue_revision_changed');
+        as39Expect($provider->writes() === $writes+24,'changed catalogue hash cannot replay an accepted operation');
+    });
+
+    ProjectMaxConnection::resetForTests(as39Registry()); $empty = as39Sqlite(); $emptyProvider = new ApplePilotTestProvider;
+    as39Refuses(static fn()=>as39CataloguePublisher($empty,$emptyProvider)->run('landing_apply'),'catalogue_parent_incomplete');
+    as39Expect($emptyProvider->writes() === 0,'catalogue cannot bypass an incomplete predecessor');
+
+    foreach (['edit_timeout','edit_unchanged_timeout'] as $mode) {
+        [$heldPdo,$heldProvider,$heldStore] = as39CatalogueFixture(); $heldPublisher = as39CataloguePublisher($heldPdo,$heldProvider);
+        $heldWrites = $heldProvider->writes(); $heldProvider->mode = $mode;
+        as39Refuses(static fn()=>$heldPublisher->run('landing_apply'),'catalogue_edit_held');
+        $first = AppleService39PilotManifest::installed()->posts()[0]['id']; $claim = $heldStore->operation($first,'catalogue_v1');
+        as39Expect($claim['state'] === 'unknown' && (int)$claim['write_attempts'] === 1 && $heldProvider->writes() === $heldWrites+1,
+            'lost catalogue ACK retains the original single attempted write and stops the batch');
+        $heldProvider->mode = '';
+        as39Refuses(static fn()=>$heldPublisher->run('landing_apply'),'catalogue_edit_held');
+        $inspection = $heldPublisher->run('landing_inspect');
+        as39Expect(!$inspection['ok'] && $heldStore->operation($first,'catalogue_v1')['state'] === 'unknown',
+            'inspection never accepts or resets an ambiguous catalogue write');
+        $reconciled = $heldPublisher->run('landing_reconcile');
+        as39Expect($heldProvider->writes() === $heldWrites+1, 'catalogue reconciliation performs GET only');
+        if ($mode === 'edit_timeout') {
+            as39Expect($reconciled['ok'] && $reconciled['catalogue_verified_posts'] === 1
+                && (int)$heldStore->operation($first,'catalogue_v1')['write_attempts'] === 1,
+                'exact native readback reconciles the original lost ACK without a second attempt');
+            as39Expect($heldPublisher->run('landing_apply')['catalogue_verified_posts'] === 24 && $heldProvider->writes() === $heldWrites+24,
+                'after GET acceptance only the23 unattempted catalogue edits may continue');
+        } else {
+            as39Expect(!$reconciled['ok'] && $reconciled['held_operations'] === 1,'an unapplied timed-out caption stays held');
+            as39Refuses(static fn()=>$heldPublisher->run('landing_apply'),'catalogue_edit_held');
+            as39Expect($heldProvider->writes() === $heldWrites+1,'an unapplied caption is never sent a second time');
+        }
+    }
+
+    foreach (['image','button'] as $damage) {
+        [$badPdo,$badProvider,$badStore] = as39CatalogueFixture(); $badPublisher=as39CataloguePublisher($badPdo,$badProvider);
+        $originalAttachments = $badProvider->messages['mid_1']['body']['attachments']; $badWrites = $badProvider->writes();
+        $badProvider->editHook = static function(string $mid) use($badProvider,$damage):void {
+            if ($damage === 'image') $badProvider->messages[$mid]['body']['attachments'][0]['payload']['photo_id']='888888';
+            else $badProvider->messages[$mid]['body']['attachments'][1]['payload']['buttons'][0][0]['url']='https://max.ru/foreign_bot';
+        };
+        as39Refuses(static fn()=>$badPublisher->run('landing_apply'),'catalogue_edit_held');
+        as39Expect(!$badPublisher->run('landing_reconcile')['ok'] && $badProvider->writes() === $badWrites+1,
+            'changed native '.$damage.' blocks acceptance and all remaining edits');
+        $badProvider->editHook = null; $badProvider->messages['mid_1']['body']['attachments']=$originalAttachments;
+        as39Expect($badPublisher->run('landing_reconcile')['catalogue_verified_posts'] === 1 && $badProvider->writes() === $badWrites+1,
+            'only exact restored native '.$damage.' can reconcile the same original attempt');
+    }
+
+    [$pinPdo,$pinProvider,$pinStore] = as39CatalogueFixture(); $pinPublisher=as39CataloguePublisher($pinPdo,$pinProvider);
+    $originalPin=$pinProvider->pinned; $pinWrites=$pinProvider->writes();
+    $pinProvider->editHook=static function() use($pinProvider):void {$pinProvider->pinned='mid_2';};
+    as39Refuses(static fn()=>$pinPublisher->run('landing_apply'),'catalogue_edit_held');
+    $first=AppleService39PilotManifest::installed()->posts()[0]['id']; $pinClaim=$pinStore->operation($first,'catalogue_v1');
+    as39Expect($pinClaim['state']==='unknown' && (int)$pinClaim['write_attempts']===1
+        && !isset($pinClaim['outcome']['text_only']) && $pinProvider->writes()===$pinWrites+1,
+        'pin changed during PUT keeps that original attempt unknown before VERIFIED and stops every remaining edit');
+    as39Refuses(static fn()=>$pinPublisher->run('landing_apply'),'catalogue_edit_held');
+    as39Refuses(static fn()=>$pinPublisher->run('landing_reconcile'),'landing_menu_pin_changed');
+    as39Expect($pinProvider->writes()===$pinWrites+1 && $pinStore->operation($first,'catalogue_v1')['state']==='unknown',
+        'a changed menu pin cannot reconcile or repeat the held catalogue edit');
+    $pinProvider->editHook=null; $pinProvider->pinned=$originalPin;
+    as39Expect($pinPublisher->run('landing_reconcile')['catalogue_verified_posts']===1
+        && (int)$pinStore->operation($first,'catalogue_v1')['write_attempts']===1 && $pinProvider->writes()===$pinWrites+1,
+        'restoring the exact original menu pin permits GET-only reconciliation of the same attempt');
+}
+
+/** A temporary reviewed-data copy exercises trust boundaries without mutating installed resources. */
+function as39WithCatalogueMutation(callable $mutate, callable $check): void
+{
+    $source = dirname(__DIR__).'/resources/appleservice39/catalogue-v1';
+    $directory = sys_get_temp_dir().'/as39-grouped-'.bin2hex(random_bytes(8)); mkdir($directory,0700);
+    try {
+        $manifest=json_decode((string)file_get_contents($source.'/manifest.json'),true,32,JSON_THROW_ON_ERROR);
+        $catalogue=json_decode((string)file_get_contents($source.'/catalog.json'),true,32,JSON_THROW_ON_ERROR);
+        $mutate($manifest,$catalogue);
+        $json=json_encode($catalogue,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+        file_put_contents($directory.'/catalog.json',$json); $manifest['catalogue_sha256']=hash('sha256',$json);
+        file_put_contents($directory.'/manifest.json',json_encode($manifest,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        $check(new AppleService39CatalogueRevision(AppleService39PilotManifest::installed(),$directory.'/manifest.json'));
+    } finally {
+        foreach (['manifest.json','catalog.json'] as $file) if (is_file($directory.'/'.$file)) unlink($directory.'/'.$file);
+        rmdir($directory);
+    }
+}
+
+function as39CatalogueSourceRegression(): void
+{
+    $cases = [
+        'catalogue_source_invalid'=>static function(array &$m,array &$c):void {$c['offers'][0]['warranty_months']=1;},
+        'grouped_quote'=>static function(array &$m,array &$c):void {
+            foreach($c['offers'] as &$offer) if(count($offer['model_ids'])>1) {$offer['price']['kind']='listed';$offer['price']['amount']=7000;break;} unset($offer);
+        },
+        'pending_price'=>static function(array &$m,array &$c):void {
+            foreach($c['offers'] as &$offer) if($offer['price']['kind']==='unconfirmed') {$offer['price']['amount']=800;break;} unset($offer);
+        },
+        'catalogue_post_invalid'=>static function(array &$m,array &$c):void {$m['posts'][0]['button_label']='Другая кнопка';},
+        'catalogue_links_changed'=>static function(array &$m,array &$c):void {$m['posts'][0]['links'][0]['label']='Другой переход';},
+        'catalogue_reviewed_price_changed'=>static function(array &$m,array &$c):void {
+            $price=AppleService39PilotCatalog::forPost($m['posts'][0]['id'])['price_text'];
+            $m['posts'][0]['paragraphs']=array_map(static fn(string $p):string=>$p===$price?'Цена не согласована':$p,$m['posts'][0]['paragraphs']);
+        },
+    ];
+    foreach($cases as $key=>$mutate) as39Refuses(static fn()=>as39WithCatalogueMutation($mutate,static function():void {}),
+        in_array($key,['grouped_quote','pending_price'],true)?'catalogue_source_invalid':$key);
 }
 
 
@@ -758,6 +935,8 @@ if (!defined('APPLESERVICE39_PUBLISHER_FIXTURES_ONLY')) {
     as39CatalogueArtworkRegression();
     as39LandingImageSafetyRegression();
     as39ImageReviewBatchRegression();
+    as39CatalogueSourceRegression();
+    as39GroupedCatalogueRegression();
 
     // Provider did not apply a timed-out edit: reconciliation must keep the original hold.
     ProjectMaxConnection::resetForTests(as39Registry());

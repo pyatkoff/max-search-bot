@@ -6,6 +6,8 @@ final class AppleService39PilotCatalog
 {
     public const PROJECT = 'appleservice39';
     public const BOT = 'id390521129062_bot';
+    public const WARRANTY_MONTHS = 3;
+    public const WARRANTY_TEXT = 'Гарантия — 3 месяца.';
     private const MODELS = [
         'iphone-x'=>'iPhone X',
         'iphone-15'=>'iPhone 15',
@@ -133,11 +135,12 @@ final class AppleService39PilotCatalog
     {
         if (isset($entry['scope'])) {
             $intro = 'Здравствуйте! Это '.$brand.".\n";
-            if ($entry['scope'] === 'model') return $intro.'Ремонт '.$entry['model'].".\nРасскажите, что случилось с телефоном. Менеджер поможет уточнить стоимость и возможность записи.";
-            if ($entry['scope'] === 'service') return $intro.$entry['service'].".\nКакая у вас модель iPhone и что произошло? Уточним подходящий вариант, стоимость и наличие детали.";
-            return $intro."Поможем с ремонтом iPhone в Калининграде.\nЧто хотите уточнить? Если это новое устройство, укажите модель и проблему.";
+            $warranty = "\n".self::WARRANTY_TEXT."\n";
+            if ($entry['scope'] === 'model') return $intro.'Ремонт '.$entry['model'].'.'.$warranty.'Расскажите, что случилось с телефоном. Менеджер поможет уточнить стоимость и возможность записи.';
+            if ($entry['scope'] === 'service') return $intro.$entry['service'].'.'.$warranty.'Какая у вас модель iPhone и что произошло? Уточним подходящий вариант, стоимость и наличие детали.';
+            return $intro.'Поможем с ремонтом iPhone в Калининграде.'.$warranty.'Что хотите уточнить? Если это новое устройство, укажите модель и проблему.';
         }
         return 'Здравствуйте! Это '.$brand.".\n".$entry['service'].' — '.$entry['model'].".\n"
-            .$entry['price_text']."\n".$entry['question'];
+            .$entry['price_text']."\n".self::WARRANTY_TEXT."\n".$entry['question'];
     }
 }

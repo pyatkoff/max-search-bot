@@ -49,7 +49,8 @@ try {
         return is_file($private) && !is_link($private) && hash_file('sha256', $private) === $privateHash
             && applePilotCheckout($root, $expected);
     };
-    $publisher = new AppleService39PilotPublisher(ConversationDb::connection(), $manifest, $options['channel-id'], $provenance);
+    $publisher = new AppleService39PilotPublisher(ConversationDb::connection(), $manifest, $options['channel-id'],
+        $provenance, null, null, new AppleService39CatalogueRevision($manifest));
     $result = $publisher->run($mode);
     $result['application_sha'] = $expected;
     echo json_encode($result, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL;
@@ -71,7 +72,11 @@ try {
         'landing_upload_held','landing_upload_receipt_required','landing_images_not_prepared',
         'landing_native_image_evidence_required','invalid_landing_image_receipt','image_receipt_storage_unknown',
         'landing_review_index_unavailable','landing_review_evidence_unavailable','landing_review_evidence_changed','landing_review_evidence_mismatch',
-        'provider_read_unknown','approved_image_changed','approved_image_invalid','resolved_post_too_long'];
+        'provider_read_unknown','approved_image_changed','approved_image_invalid','resolved_post_too_long',
+        'catalogue_revision_unavailable','catalogue_revision_invalid','catalogue_parent_changed','catalogue_parent_incomplete',
+        'catalogue_source_changed','catalogue_source_invalid','catalogue_posts_changed','catalogue_post_invalid',
+        'catalogue_links_changed','catalogue_reviewed_price_changed','catalogue_price_projection_changed',
+        'catalogue_revision_changed','catalogue_image_changed','catalogue_edit_held'];
     $reason = in_array($error->getMessage(), $allowed, true) ? $error->getMessage() : 'pilot_operation_unavailable';
     echo json_encode(['ok'=>false,'state'=>'stopped','reason'=>$reason,'automatic_retry'=>false], JSON_UNESCAPED_SLASHES).PHP_EOL;
     exit(2);
