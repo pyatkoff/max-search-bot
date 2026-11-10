@@ -578,7 +578,7 @@ A confirmed defect permits only a narrow fix that preserves the values and polic
 - routing eligibility or bonus values;
 - neighbouring repositories, domains or projects; every exact neighbouring project always requires separate explicit authorization.
 
-The fixed handoff product policy remains owned by `AGENTS.md`: 10:00–20:00 Europe/Kaliningrad working window, live manager handoff without mandatory phone during working hours, one phone offer after five minutes without reply, and truthful self-service/optional-phone presentation outside hours.
+The current handoff product policy is owned by `AGENTS.md` and `docs/PRODUCT.md`: 11:00–21:00 Europe/Moscow working window, explicit manager requests at any hour without mandatory phone, truthful outside-hours response expectations, hotel-channel/feed needs first and quiet manager waiting with automatic five-minute phone offers disabled. The completed execution records below preserve historical acceptance criteria; they do not restore superseded policy.
 
 ## Risk and business priority
 
