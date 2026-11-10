@@ -1,0 +1,201 @@
+name: Inspect private rejected conversion evidence
+on:
+  push:
+    branches: [ops/value-linkage-inspection-20261110-5becac9]
+    paths: [.github/workflows/value-linkage-inspection-20261110-5becac9.yml]
+permissions:
+  contents: read
+concurrency:
+  group: anytour-private-archive-predictive-study
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.event_name == 'push' && github.ref == 'refs/heads/ops/value-linkage-inspection-20261110-5becac9' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate the one purpose source envelope
+        env:
+          API_TOKEN: ${{ github.token }}
+          ACCEPTED_MAIN_SHA: 5becac92426aa07cd8ebbf075a28840d71fa4ff4
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,stat,subprocess,urllib.request
+          def git(*args):
+              return subprocess.check_output(['git',*args],stderr=subprocess.DEVNULL)
+          try:
+              expected=os.environ['ACCEPTED_MAIN_SHA']
+              head=os.environ['GITHUB_SHA']
+              event=json.loads(pathlib.Path(os.environ['GITHUB_EVENT_PATH']).read_text())
+              assert len(expected)==40 and all(c in '0123456789abcdef' for c in expected)
+              assert event['repository']['full_name']=='pyatkoff/max-search-bot'
+              assert event['ref']=='refs/heads/ops/value-linkage-inspection-20261110-5becac9'
+              assert event['before']==expected and event['after']==head
+              assert not event.get('forced') and not event.get('deleted')
+              assert git('rev-parse','HEAD').decode().strip()==head
+              assert git('rev-list','--parents','-n','1',head).decode().split()==[head,expected]
+              changed=git('diff','--name-status',expected,head).decode()
+              assert changed=='A\t.github/workflows/value-linkage-inspection-20261110-5becac9.yml\n'
+              request=urllib.request.Request(
+                  'https://api.github.com/repos/pyatkoff/max-search-bot/git/ref/heads/main',
+                  headers={'Authorization':'Bearer '+os.environ['API_TOKEN'],
+                           'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'})
+              with urllib.request.urlopen(request,timeout=20) as response:
+                  assert json.load(response)['object']['sha']==expected
+              paths=["services/MetrikaOfflineClient.php","services/ModeledConversionValueContract.php","services/ProjectAccessService.php","services/ModeledConversionVisitProof.php","services/ModeledConversionDeliveryRegistry.php","services/ModeledConversionForecastStatusReader.php","services/ModeledConversionInputDiagnosisReader.php","tools/modeled_conversion_visit_proof.php"]
+              hashes={}
+              for name in paths:
+                  source=git('show',expected+':'+name)
+                  path=pathlib.Path(name)
+                  assert stat.S_ISREG(path.lstat().st_mode) and not path.is_symlink()
+                  assert path.read_bytes()==source
+                  hashes[name]=hashlib.sha256(source).hexdigest()
+              destination=pathlib.Path(os.environ['RUNNER_TEMP'])/'study-source.json'
+              destination.write_text(json.dumps({'source_commit':expected,'hashes':hashes},separators=(',',':')))
+              destination.chmod(0o600)
+          except Exception:
+              print('{"ok":false,"source_envelope_verified":false}')
+              raise SystemExit(1)
+          print('{"ok":true,"source_envelope_verified":true}')
+          PY
+      - name: Prepare the existing identity and strict canonical host pin
+        env:
+          K: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,re,socket,subprocess
+          try:
+              host=os.environ['TARGET']
+              assert re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.-]{0,252}',host)
+              assert {a[4][0] for a in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}=={'5.45.122.54'}
+              key=os.environ['K']
+              raw=key.replace('\\n','\n').replace('\r','').encode() if 'PRIVATE KEY' in key else base64.b64decode(key,validate=True)
+              keypath=pathlib.Path(os.environ['RUNNER_TEMP'])/'study-key'
+              keypath.write_bytes(raw.rstrip(b'\n')+b'\n')
+              keypath.chmod(0o600)
+              check=subprocess.run(['ssh-keygen','-y','-f',str(keypath)],capture_output=True,timeout=10)
+              assert check.returncode==0
+              approved=set()
+              for attempt in range(2):
+                  try:
+                      scan=subprocess.run(['ssh-keyscan','-t','ed25519','-T','10',host],capture_output=True,text=True,timeout=30)
+                      lines=scan.stdout.splitlines()
+                  except subprocess.TimeoutExpired as error:
+                      output=error.stdout or b''
+                      lines=(output.decode(errors='replace') if isinstance(output,bytes) else output).splitlines()
+                  for line in lines:
+                      fields=line.split()
+                      if len(fields)!=3 or fields[1]!='ssh-ed25519':continue
+                      try:
+                          material=base64.b64decode(fields[2],validate=True)
+                      except ValueError:continue
+                      fingerprint='SHA256:'+base64.b64encode(hashlib.sha256(material).digest()).decode().rstrip('=')
+                      if fingerprint=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':
+                          approved.add(host+' ssh-ed25519 '+fields[2])
+                  if approved:break
+              assert len(approved)==1
+              known=pathlib.Path(os.environ['RUNNER_TEMP'])/'study-hosts'
+              known.write_text('\n'.join(sorted(approved))+'\n')
+              known.chmod(0o600)
+          except Exception:
+              print('{"ok":false,"canonical_host_verified":false}')
+              raise SystemExit(1)
+          print('{"ok":true,"canonical_host_verified":true}')
+          PY
+      - name: Perform the finite build with a technical receipt
+        env:
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_ACCOUNT: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import json,os,pathlib,re,socket,subprocess
+          try:
+              host=os.environ['TARGET']
+              account=os.environ['SSH_ACCOUNT']
+              assert re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.-]{0,252}',host)
+              assert re.fullmatch(r'[a-z_][a-z0-9_-]{0,31}',account)
+              assert {a[4][0] for a in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}=={'5.45.122.54'}
+              temporary=pathlib.Path(os.environ['RUNNER_TEMP'])
+              contract=json.loads((temporary/'study-source.json').read_text())
+              remote_header='CONTRACT='+repr(contract)+'\nRUN_ID="readonly-value-linkage-inspection"\n'
+              remote_body=r"""
+          import hashlib,json,os,pathlib,stat,subprocess,sys
+          receipt={'ok':False,'operator_verified':False,'source_verified':False,'private_verification_saved':False,'owner_ledger_available':False,'private_status_available':False,'private_status_within_limit':False,'database_read_only':False,'provider_write_requests':False,'source_writes':False,'private_status_time_limit':False,'private_status_byte_limit':False,'reader_runtime_failure':False}
+          def verify_source(root):
+              environment=dict(os.environ)
+              environment['GIT_OPTIONAL_LOCKS']='0'
+              head=subprocess.check_output(['/usr/bin/git','-C',str(root),'rev-parse','HEAD'],stderr=subprocess.DEVNULL,timeout=10,env=environment).decode().strip()
+              assert head==CONTRACT['source_commit']
+              for arguments in (['diff','--quiet','HEAD'],['diff','--cached','--quiet']):
+                  subprocess.run(['/usr/bin/git','-C',str(root),*arguments],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=10,check=True,env=environment)
+              for name,digest in CONTRACT['hashes'].items():
+                  path=root/name
+                  assert path.resolve()==path and stat.S_ISREG(path.lstat().st_mode) and not path.is_symlink()
+                  assert hashlib.sha256(path.read_bytes()).hexdigest()==digest
+          try:
+              root=pathlib.Path('/var/www/anytoour/data/www/app.anytoour.ru')
+              assert root.resolve()==root and root.stat().st_uid==1012 and os.geteuid()==1012
+              receipt['operator_verified']=True
+              verify_source(root)
+              receipt['source_verified']=True
+              command=['/usr/bin/php','-d','auto_prepend_file=','-d','auto_append_file=','-d','opcache.enable_cli=0','-d','display_errors=0','-d','log_errors=0']
+              diagnostic_php="<?php\ndeclare(strict_types=1);ini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);\nfinal class FiniteValueLinkageAudit {\n    public static function failureAudit(array $row,array $receipt,array $visits,array $goals,array $ledger,int $now):array\n    {\n        $event=(int)$row['event_unix'];$claim=(int)($row['claimed_at_unix']??0);\n        $created=is_string($receipt['create_time']??null)?strtotime($receipt['create_time']):false;\n        $uploaded=$created!==false&&$created>=946684800&&$created<=$now?$created:\n            ($claim>=946684800&&$claim<=$now?$claim:null);\n        $a=['signal_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$event),'uploaded_at'=>$uploaded===null?null:gmdate('Y-m-d\\TH:i:s\\Z',$uploaded),\n            'upload_clock'=>$created!==false&&$created===$uploaded?'provider':'claim',\n            'source_rows'=>isset($receipt['source_quantity'])?(int)$receipt['source_quantity']:null,\n            'validated_rows'=>isset($receipt['line_quantity'])?(int)$receipt['line_quantity']:null,\n            'latest_prior_visit_at'=>null,'eligible_at_signal'=>null,'eligible_at_upload'=>null,'wire_collision_rows'=>0,\n            'known_processed_events'=>0,'known_processed_rub'=>0,'known_failed_events'=>0,'known_failed_rub'=>0,\n            'other_unsettled_rows'=>0,'reported_goal_reaches'=>null,'reported_goal_rub'=>null,'report_comparison'=>'unavailable',\n            'diagnosis'=>'unavailable','checked_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$now)];\n        foreach($ledger as$r){\n            if((string)($r['client_id']??'')!==(string)$row['client_id']||(string)($r['upload_id']??'')==='')continue;\n            if((int)$r['event_unix']===$event&&(string)$r['id']!==(string)$row['id'])$a['wire_collision_rows']++;\n            $status=$r['upload_status']??null;\n            if($status==='PROCESSED'||($r['state']??null)==='processed'){$a['known_processed_events']++;$a['known_processed_rub']+=(int)$r['value_rub'];}\n            elseif($status==='LINKAGE_FAILURE'||($r['state']??null)==='unmatched'){$a['known_failed_events']++;$a['known_failed_rub']+=(int)$r['value_rub'];}\n            else $a['other_unsettled_rows']++;\n        }\n        if(($goals['status']??null)==='ok'&&is_array($goals['visits']??null)){\n            $a['reported_goal_reaches']=0;$a['reported_goal_rub']=0;\n            foreach($goals['visits']as$v){$a['reported_goal_reaches']+=(int)$v['goal_reaches'];$a['reported_goal_rub']+=(float)$v['revenue_rub'];}\n            $a['reported_goal_rub']=round($a['reported_goal_rub'],2);\n            $same=static fn(int $count,int $value):bool=>$a['reported_goal_reaches']===$count&&abs($a['reported_goal_rub']-$value)<0.005;\n            $a['report_comparison']=$a['other_unsettled_rows']>0?'unsettled':\n                ($same($a['known_processed_events']+$a['known_failed_events'],$a['known_processed_rub']+$a['known_failed_rub'])?'all_uploads':\n                ($same($a['known_processed_events'],$a['known_processed_rub'])?'processed_only':'mismatch'));\n        }\n        if(($visits['status']??null)!=='ok'||!is_array($visits['visits']??null))return $a;\n        $prior=[];\n        foreach($visits['visits']as$v){$at=strtotime((string)($v['started_at']??''));if($at===false)return $a;if($at<=$event)$prior[]=$at;}\n        $latest=$prior===[]?null:max($prior);\n        $a['latest_prior_visit_at']=$latest===null?null:gmdate('Y-m-d\\TH:i:s\\Z',$latest);\n        $a['eligible_at_signal']=$latest!==null&&$event-$latest<=21*86400;\n        $a['eligible_at_upload']=$uploaded===null?null:($latest!==null&&$latest<=$uploaded&&$uploaded-$latest<=21*86400);\n        $a['diagnosis']=$a['source_rows']!==null&&$a['validated_rows']!==null&&($a['source_rows']!==1||$a['validated_rows']!==1)?'invalid_receipt_rows':($visits['visits']===[]?'no_reported_visits':($latest===null?'only_later_visits':\n            (!$a['eligible_at_signal']?'outside_signal_window':($a['eligible_at_upload']===false?'outside_upload_window':\n            ($a['wire_collision_rows']>0?'wire_collision':($a['report_comparison']==='all_uploads'?'reported_despite_failure':'eligible_unexplained'))))));\n        return $a;\n    }\n}\n$level=ob_get_level();ob_start(static fn(string $s):string=>'');$ok=false;$lock=null;\ntry{\n $root='/var/www/anytoour/data/www/app.anytoour.ru';$deadline=microtime(true)+150;\n require $root.'/config.php';require_once $root.'/services/ProjectAccessService.php';\n require_once $root.'/services/ModeledConversionVisitProof.php';require_once $root.'/services/MetrikaOfflineClient.php';\n if(ProjectConfig::projectId()!=='anytour'||(string)METRIKA_COUNTER_ID!=='98615635')throw new RuntimeException();\n ProjectAccessService::initializeReadOnly();$p=ConversationDb::connection();$p->exec('SET SESSION TRANSACTION READ ONLY');\n $q=$p->query(\"SELECT goal_id,goal_intent,contract_version,activated_at_unix FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1\");\n $settings=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();\n if(($settings['goal_id']??null)!=='678187097'||($settings['goal_intent']??null)!=='verified'\n   ||($settings['contract_version']??null)!==ModeledConversionValueContract::VERSION)throw new RuntimeException();\n $dir=dirname(ModeledConversionVisitProof::path());$path=$dir.'/refresh.lock';\n if(is_link($dir)||is_link($path)||!is_file($path)||(fileperms($dir)&0777)!==0700||(fileperms($path)&0777)!==0600\n   ||fileowner($dir)!==posix_geteuid()||fileowner($path)!==posix_geteuid())throw new RuntimeException();\n $lock=fopen($path,'r+');if($lock===false)throw new RuntimeException();\n $until=microtime(true)+25;$acquired=false;do{$acquired=flock($lock,LOCK_EX|LOCK_NB);if(!$acquired)usleep(100000);}while(!$acquired&&microtime(true)<$until);\n if(!$acquired)throw new RuntimeException();\n $now=time();$cache=ModeledConversionVisitProof::readCache($now);if(($cache['available']??false)!==true)throw new RuntimeException();\n $checkpoint=strtotime($cache['receipt']['checkpoint_at']);$cut=(new DateTimeImmutable('2026-11-09T17:53:11Z'))->getTimestamp();\n if($checkpoint===false||$cut>$now)throw new RuntimeException();\n $retained=[];foreach($cache['receipt']['events']as$e)if($e['cohort'])$retained[(string)$e['outbox_id']]=$e;\n $from=(new DateTimeImmutable('@'.$cut))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))->setTime(0,0)->getTimestamp();\n $api=new MetrikaOfflineClient('98615635',(string)METRIKA_OAUTH_TOKEN,null,$deadline);\n $ledger=ModeledConversionVisitProof::ledger($p);$ids=[];\n foreach($ledger as$r)if((int)($r['claimed_at_unix']??0)>=$from&&(int)$r['claimed_at_unix']<=$cut\n   &&((int)($r['value_processed_at_unix']??0)<=0||(int)$r['value_processed_at_unix']>$cut)\n   &&(string)($r['upload_id']??'')!==''&&($r['upload_status']??null)==='LINKAGE_FAILURE')$ids[]=(string)$r['id'];\n if(count($ids)>16)throw new RuntimeException();\n foreach(array_chunk($ids,8)as$batch){\n   if(microtime(true)>=$deadline)throw new RuntimeException();\n   $receipt=ModeledConversionVisitProof::verify($ledger,$api,(int)$settings['activated_at_unix'],$checkpoint,time(),$batch,$deadline,$retained,$cut);\n   $rows=[];foreach($ledger as$r)$rows[(string)$r['id']]=$r;\n   foreach($receipt['events']as&$entry){\n     $id=(string)$entry['outbox_id'];\n     if(!in_array($id,$batch,true)||($entry['upload_status']??null)!=='LINKAGE_FAILURE')continue;\n     $r=$rows[$id];$poll=$api->poll((string)$r['upload_id']);\n     if(!is_array($poll)||($poll['status']??null)!=='LINKAGE_FAILURE'||($poll['comment']??null)!==MetrikaOfflineClient::comment($r))throw new RuntimeException();\n     $entry['failure_audit']=FiniteValueLinkageAudit::failureAudit($r,$poll,\n       $api->modeledClientVisits((string)$r['client_id'],(int)$r['event_unix'],time()),\n       $api->modeledValueVisits((string)$r['client_id'],(int)$settings['activated_at_unix'],time()),$ledger,time());\n   }unset($entry);\n   ModeledConversionVisitProof::save($receipt);\n   foreach($receipt['events']as$entry)if(isset($entry['failure_audit'])){\n     $prior=ModeledConversionVisitProof::prior($rows[(string)$entry['outbox_id']],time());\n     if(($prior['event']['failure_audit']??null)!==$entry['failure_audit'])throw new RuntimeException();\n   }\n }\n $now=time();$ledger=ModeledConversionVisitProof::ledger($p);\n $receipt=ModeledConversionVisitProof::verify($ledger,$api,(int)$settings['activated_at_unix'],$checkpoint,$now,[],$deadline,$retained,$cut);\n ModeledConversionVisitProof::save($receipt);\n $check=ModeledConversionVisitProof::readCache(time());\n if(($check['available']??false)!==true||($check['receipt']['followup_checkpoint_at']??null)!=='2026-11-09T17:53:11Z'\n    ||!is_array($check['receipt']['followup_sent_cohort']??null))throw new RuntimeException();\n $ok=true;\n}catch(Throwable $ignored){}\nfinally{if(is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}}\nwhile(ob_get_level()>$level)ob_end_clean();\necho json_encode(['ok'=>$ok,'provider_write_requests'=>false,'source_writes'=>false],JSON_THROW_ON_ERROR).\"\\n\";exit($ok?0:1);\n"
+              diagnosed=subprocess.run(command,input=diagnostic_php.encode(),capture_output=True,timeout=175)
+              assert len(diagnosed.stdout)<=4096 and len(diagnosed.stderr)<=4096
+              diagnostic=json.loads(diagnosed.stdout)
+              assert set(diagnostic)=={'ok','provider_write_requests','source_writes'} and diagnostic['ok'] is True and diagnostic['provider_write_requests'] is False and diagnostic['source_writes'] is False and diagnosed.returncode==0
+              receipt['private_verification_saved']=True
+              php="<?php\ndeclare(strict_types=1);ini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);\n$level=ob_get_level();ob_start(static fn(string $s):string=>'');\n$out=['ok'=>false,'owner_ledger_available'=>false,'private_status_available'=>false,'private_status_within_limit'=>false,'database_read_only'=>false,'private_status_time_limit'=>false,'private_status_byte_limit'=>false,'reader_runtime_failure'=>false];\ntry{\n require '/var/www/anytoour/data/www/app.anytoour.ru/config.php';\n require_once '/var/www/anytoour/data/www/app.anytoour.ru/services/ProjectAccessService.php';\n require_once '/var/www/anytoour/data/www/app.anytoour.ru/services/ModeledConversionDeliveryRegistry.php';\n require_once '/var/www/anytoour/data/www/app.anytoour.ru/services/ModeledConversionForecastStatusReader.php';\n if(ProjectConfig::projectId()!=='anytour'||posix_geteuid()!==1012)throw new RuntimeException();\n ProjectAccessService::initializeReadOnly();$pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');$out['database_read_only']=true;\n $date=(new DateTimeImmutable('now',new DateTimeZone('Europe/Kaliningrad')))->format('Y-m-d');\n $r=(new ModeledConversionDeliveryRegistry($pdo,static function():void{},bin2hex(random_bytes(32))))->read(['date'=>$date],time());\n $out['owner_ledger_available']=($r['available']??false)===true;\n $v=(new ModeledConversionForecastStatusReader($pdo,static function():void{},new ModeledConversionStatusBudget()))->read();\n $out['private_status_available']=($v['available']??false)===true;\n $out['private_status_within_limit']=strlen(json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=30000;\n $out['ok']=$out['owner_ledger_available']&&$out['private_status_available']&&$out['private_status_within_limit'];\n}catch(ModeledConversionStatusLimit $e){$out['private_status_time_limit']=$e->reason==='time_limit';$out['private_status_byte_limit']=$e->reason==='byte_limit';}catch(Throwable $ignored){$out['reader_runtime_failure']=true;}\nwhile(ob_get_level()>$level)ob_end_clean();echo json_encode($out,JSON_THROW_ON_ERROR).\"\\n\";exit($out['ok']?0:1);\n"
+              check=subprocess.run(command,input=php.encode(),capture_output=True,timeout=25)
+              assert len(check.stdout)<=4096 and len(check.stderr)<=4096
+              proof=json.loads(check.stdout)
+              assert set(proof)=={'ok','owner_ledger_available','private_status_available','private_status_within_limit','database_read_only','private_status_time_limit','private_status_byte_limit','reader_runtime_failure'} and all(isinstance(v,bool) for v in proof.values())
+              receipt.update(proof)
+              assert check.returncode==0 and proof['ok']
+              verify_source(root)
+          except Exception:
+              receipt['ok']=False
+          print(json.dumps(receipt,separators=(',',':')))
+          sys.exit(0 if receipt['ok'] else 1)
+
+          """
+              command=['ssh','-i',str(temporary/'study-key'),
+                       '-o','BatchMode=yes','-o','IdentitiesOnly=yes',
+                       '-o','StrictHostKeyChecking=yes','-o','UserKnownHostsFile='+str(temporary/'study-hosts'),
+                       '-o','HostKeyAlgorithms=ssh-ed25519','-o','ConnectTimeout=10',
+                       '-o','ServerAliveInterval=15','-o','ServerAliveCountMax=3',
+                       account+'@'+host,'/usr/bin/python3 -I -B -']
+              result=subprocess.run(command,input=(remote_header+remote_body).encode(),
+                                    capture_output=True,timeout=210)
+              assert len(result.stdout)<=8192 and len(result.stderr)<=8192
+              proof=json.loads(result.stdout)
+              keys=set(["ok","operator_verified","source_verified","private_verification_saved","owner_ledger_available","private_status_available","private_status_within_limit","database_read_only","provider_write_requests","source_writes","private_status_time_limit","private_status_byte_limit","reader_runtime_failure"])
+              assert isinstance(proof,dict) and set(proof)==keys and all(isinstance(v,bool) for v in proof.values())
+              print(json.dumps(proof,separators=(',',':')))
+              raise SystemExit(0 if result.returncode==0 and proof['ok'] else 1)
+          except Exception:
+              print('{"ok":false,"technical_receipt_verified":false}')
+              raise SystemExit(1)
+          PY
+      - name: Remove runner credentials and temporary technical files
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import os,pathlib
+          temporary=pathlib.Path(os.environ['RUNNER_TEMP'])
+          for name in ('study-key','study-hosts','study-source.json'):
+              (temporary/name).unlink(missing_ok=True)
+          print('{"ok":true,"runner_credentials_removed":true}')
+          PY
