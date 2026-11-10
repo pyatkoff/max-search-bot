@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "2026-11-06.2",
+  "version": "2026-11-11.1",
   "project_key": "anytour",
   "bindings": [
     {
@@ -1101,6 +1101,64 @@
         "common_version": 63,
         "member": "hotel-anex-pair-20261106/side-star-resort/accepted-binding.json",
         "scope": "8 prior explicit-accepted official declarations and 2 sources, projected only by reviewed kind labels and omitted repetitive research fields. Original records/scopes/dates/pending flags and hashes preserved; Rox comparison remains a non-declaration limit. Conditional published information for the exact typed source/AnyTour chain; no new research credit, current trip/tariff, future operation, source CI, installation or natural model-use proof."
+      }
+    },
+    {
+      "status": "accepted",
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "country": "4",
+        "hotel": "1014"
+      },
+      "accepted_source_names": [
+        "SIDE STAR ELEGANCE (EX. ASTERIA SIDE)"
+      ],
+      "accepted_binding": {
+        "accepted_chain": [
+          {
+            "id": 1014,
+            "namespace": "legacy_catalog/catalog_hotels.id"
+          },
+          {
+            "catalog_revision": 1,
+            "id": 7425,
+            "namespace": "anytour"
+          },
+          {
+            "catalog_revision": 3,
+            "id": 1014,
+            "namespace": "local-tv"
+          }
+        ],
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 7425
+        },
+        "identity_anchor": {
+          "address": "Side, Celal Bayar Blv. No:3, 07330 Manavgat/Antalya, Турция",
+          "city": "Side",
+          "country": "Turkey",
+          "official_url": "https://www.sidestarhotels.com/elegance/en",
+          "research_source_id": "top500_b73b1521377bb3ea_run05audit_s03",
+          "research_source_record_sha256": "f748611e99a38d784a19b1286aa65684924bf101765aec717e4b1d62301a6070"
+        },
+        "project_key": "anytour",
+        "proofs": {
+          "anex-effective-pair.json": "a4e8a8f0a940ce1ceff445d80d0871bb181e7c23a88ec7e777e9eae08aea5040",
+          "canonical-five.raw": "c17eb7a692f290653c89a8a1bc3ada6a6747dd19442139596292ce0b9eca3af7",
+          "identity-anchor.json": "0ec4e89ccbb4ec4a87747c1bda7f8c636e1368844abf84d36913706539218aef",
+          "local-tv-five.raw": "e003130ce5a79e2e13db6fe98011ed86ca2b4be0d187888420ecf3121da26024"
+        },
+        "research_hotel_key": "top500_b73b1521377bb3ea"
+      },
+      "binding_revision": "de0192613b7682ed1bf310bebd76bf23163b5b72c5e5b691c68a0888f56380dc",
+      "bundle_file": "anytour-7425-side-star-elegance.json",
+      "bundle_sha256": "3be614a9daea046286a2e239194b52b95e993f8e6cf725cc0b56f07c9a3936f6",
+      "approval": {
+        "library_file_id": "libfile_5f87d9ae4bc08191a8c51e20ab6b20e1",
+        "common_version": 67,
+        "member": "hotel-side-star-elegance-20261111/accepted-binding.json",
+        "scope": "Seven inherited-baseline conditional declarations, five related sources and all three mandatory original caveats; independent ROOT content/delta acceptance of exact v1. Original10records/6sourceIDs/12variants, dates, kinds, scopes and authority retained privately. Zero new research or continuous acceptance credit. No current trip, room/tariff/meal equivalence, availability, future operation or natural model-use proof."
       }
     }
   ]
