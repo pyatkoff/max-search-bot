@@ -45,6 +45,20 @@ final class OptionalBudgetPromptService
         return (bool)IntegrationRegistry::messenger()->send($chatId, $text);
     }
 
+    /** A short ceiling without units is a clarification, never a money value. */
+    public static function isUnitlessCeiling(string $text): bool
+    {
+        return preg_match('/\Aдо\s*[1-9][0-9]{0,2}[.!]?\z/ui', trim($text)) === 1;
+    }
+
+    public static function sendUnitClarification($chatId): bool
+    {
+        return (bool)IntegrationRegistry::messenger()->send(
+            $chatId,
+            'Уточните, пожалуйста, единицу суммы и валюту, а также бюджет на всех или на человека. Напишите полную фразу, например: «до 120 тыс. рублей на всех». Пока бюджет не сохраняю; можно также перейти к турам или менеджеру кнопками в сообщении с параметрами.'
+        );
+    }
+
     /**
      * A tourist may explicitly decline this one optional clarification without
      * creating another dialogue field or silently changing the search contract.

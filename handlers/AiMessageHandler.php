@@ -29,6 +29,20 @@ class AiMessageHandler
                 $departureSuggestion = DepartureSuggestionService::forChat($chat_id, $current, (string)($message['_platform'] ?? ''));
                 $missingNow = MaxSearchApi::getAiMissingFields($chat_id);
                 $missingBeforeTurn = $missingBeforeTurn ?? $missingNow;
+                if (($missingNow[0] ?? '') === 'country'
+                    && preg_match('/\A(?:пока\s+)?не\s+знаю[.!…]*\z/ui', $userText) === 1) {
+                    MissingFieldQuestionService::send($chat_id, 'country', ['country_help'=>true]);
+                    return;
+                }
+                $firstMissing = (string)($missingNow[0] ?? '');
+                $unsupportedShortFormat = ($firstMissing === 'adults'
+                        && preg_match('/\A[1-6]\s*ч\.?\z/ui', $userText) === 1)
+                    || ($firstMissing === 'nights'
+                        && preg_match('/\A(?=[0-9о\s–—-]*о)[0-9о]{1,2}\s*[-–—]\s*[0-9о]{1,2}\z/ui', $userText) === 1);
+                if ($unsupportedShortFormat && empty(NeedValueResolver::resolve($firstMissing, $userText)['recognized'])) {
+                    MissingFieldQuestionService::send($chat_id, $firstMissing, ['unsupported_format'=>true]);
+                    return;
+                }
                 $sourceQualification=SourceHandlingService::qualifyingTurn($chat_id);
 
                 // The controller may already have confirmed this turn's

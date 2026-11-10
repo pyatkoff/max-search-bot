@@ -5,8 +5,9 @@ declare(strict_types=1);
 // Isolate real entry/controller/view behavior from the envelope-only checks below.
 // Storage, catalog, model responses and transport are synthetic; dialogue decisions use production code.
 $departureRetryOnly = in_array('--departure-retry-only', $argv ?? [], true);
+$clarificationOnly = in_array('--useful-clarifications-only', $argv ?? [], true);
 $jointHandoff = in_array('--compound-handoff-only', $argv ?? [], true);
-$jointOnly = $departureRetryOnly || $jointHandoff || in_array('--compound-joint-only', $argv ?? [], true);
+$jointOnly = $clarificationOnly || $departureRetryOnly || $jointHandoff || in_array('--compound-joint-only', $argv ?? [], true);
 if ($jointOnly || in_array('--start-parity-fixture', $argv ?? [], true)) {
     $root = dirname(__DIR__);
     $tmp = sys_get_temp_dir() . '/dialogue-start-parity-' . bin2hex(random_bytes(8));
@@ -35,7 +36,7 @@ if ($jointOnly || in_array('--start-parity-fixture', $argv ?? [], true)) {
         }
         mkdir($tmp . '/resources', 0700);
         copy($root . '/resources/yandex_regions.json', $tmp . '/resources/yandex_regions.json');
-        if ($jointHandoff || $departureRetryOnly) {
+        if ($jointHandoff || $departureRetryOnly || $clarificationOnly) {
             foreach (['tests/fixtures/channel_post_entry_fixture.php','tests/fixtures/channel_post_registry_fixture.php',
                 'migrations/033_channel_post_context.sql','migrations/036_channel_post_member_delivery.sql',
                 'migrations/040_channel_post_reconciliation.sql'] as $path) {
@@ -45,7 +46,7 @@ if ($jointOnly || in_array('--start-parity-fixture', $argv ?? [], true)) {
         }
         // Handoff mode injects SQLite through the existing DB fixture. Other
         // modes reject DB access entirely; neither mode uses an external DB.
-        if (!$jointHandoff && !$departureRetryOnly) file_put_contents($tmp . '/services/ConversationDb.php', <<<'PHP'
+        if (!$jointHandoff && !$departureRetryOnly && !$clarificationOnly) file_put_contents($tmp . '/services/ConversationDb.php', <<<'PHP'
 <?php
 class ConversationDb {
     public static function isConfigured(): bool { return false; }
@@ -158,6 +159,7 @@ PHP
             }
             public static function getCityByID($id) { return [1=>'Москва',4=>'Самара',10=>'Казань',100=>'Минск'][$id] ?? false; }
             public static function getCountryByID($id) { return [1=>'Египет',4=>'Турция',47=>'Россия'][$id] ?? false; }
+            public static function getCountryByName($name) { return $name === 'Турция' ? ['ID'=>4,'NAME'=>'Турция'] : false; }
             public static function getMealArr(): array { return ['7'=>'Всё включено']; }
             public static function saveLastValue($chat,$status,$value): void { self::$lastValues[$chat][$status]=$value; }
             public static function getLastValue($chat,$status) { return self::$lastValues[$chat][$status] ?? false; }
@@ -348,7 +350,131 @@ PHP
                 'model_calls'=>AiInvocationService::$calls,
             ];
         };
-        if ($departureRetryOnly) {
+        if ($clarificationOnly) {
+            require_once $tmp . '/tests/fixtures/channel_post_entry_fixture.php';
+            [$pdo, $registry, $publications] = createChannelPostEntryFixture();
+            MaxSearchApi::$canonicalStorage = true;
+            $countryHelp = 'Если пока не выбрали страну, можем обсудить варианты. Можно рассказать, какой отдых вам хочется, или написать «Позвать менеджера» — он поможет с выбором направления.';
+            $tourHelp = 'Посмотреть варианты по вашим условиям можно кнопкой «Показать туры» в сообщении с итогами. Если нужна помощь с выбором, нажмите «Подобрать с менеджером» там же.';
+            $native = static function (string $platform, int $user, int $mid, string $text) use ($maxMessenger, $telegramMessenger): void {
+                IntegrationRegistry::useMessenger($platform === 'max' ? $maxMessenger : $telegramMessenger);
+                if ($platform === 'max') {
+                    (new IncomingUpdateDispatcher())->dispatch(MaxIncomingAdapter::fromUpdate([
+                        'update_type'=>'message_created', 'message'=>['sender'=>['user_id'=>$user],
+                            'body'=>['mid'=>(string)$mid, 'text'=>$text]],
+                    ]));
+                } else {
+                    TelegramWebhookHandler::dispatchUpdate(['update_id'=>$mid, 'message'=>[
+                        'message_id'=>$mid, 'from'=>['id'=>$user], 'chat'=>['id'=>$user, 'type'=>'private'], 'text'=>$text,
+                    ]], null, $telegramMessenger);
+                }
+            };
+            $mid = 930000;
+            foreach (['max', 'telegram'] as $index=>$platform) {
+                $user = $chatBase + 700 + $index;
+                $chat = $platform === 'max' ? -$user : $user;
+                $chats[] = $chat;
+                $enter($platform, $user, $publications[$platform]['start_payload']);
+                $q = $pdo->prepare('SELECT id FROM conversations WHERE project_key=? AND channel=? AND external_chat_id=? ORDER BY id DESC LIMIT 1');
+                $q->execute(['anytour', $platform, (string)$chat]);
+                $id = (int)$q->fetchColumn();
+                $intent = SourceHotelIntentService::current($id);
+                (new IncomingUpdateDispatcher())->dispatch(['platform'=>$platform, 'type'=>'callback',
+                    'callback_data'=>'hotel_intent_same:'.($intent['token'] ?? ''), 'callback_id'=>'country-help.'.$user,
+                    'user'=>['chat_id'=>$chat, 'external_user_id'=>$user]]);
+                MaxSearchApi::$needs[$chat] = [65=>'4', 67=>'2', 68=>'1', 69=>'6', 70=>'4', 71=>'7', 72=>'8'];
+                MaxSearchApi::$statuses[$chat] = MaxSearchApi::$statusAi;
+                $before = MaxSearchApi::getAiSearchContext($chat);
+                AiInvocationService::$answer = ['intent'=>'search', 'parameters'=>[]];
+                foreach (['Не знаю', 'Пока не знаю.'] as $text) {
+                    $sentBefore = count($sent); AiInvocationService::$calls = []; MaxSearchApi::$parameterWrites = [];
+                    $native($platform, $user, ++$mid, $text);
+                    $check($platform.' undecided country gets choice help', array_column(array_slice($sent, $sentBefore), 'text'), [$countryHelp]);
+                    $check($platform.' choice help preserves all trip facts', MaxSearchApi::getAiSearchContext($chat), $before);
+                    $check($platform.' choice help leaves the same missing fields', MaxSearchApi::getAiMissingFields($chat), ['country','date']);
+                    $check($platform.' choice help neither writes needs nor invokes the model', [MaxSearchApi::$parameterWrites, AiInvocationService::$calls], [[], []]);
+                }
+                foreach ([
+                    ['Не знаю, есть ли в отеле бассейн?', 'question', 'В описании указан бассейн.'],
+                    ['Не хочу выбирать страну сейчас', 'stop', 'Хорошо, можно вернуться к подбору позже.'],
+                ] as [$text, $intentName, $reply]) {
+                    AiInvocationService::$answer = ['intent'=>$intentName, 'parameters'=>[], 'reply'=>$reply];
+                    AiInvocationService::$calls = []; $sentBefore = count($sent);
+                    $native($platform, $user, ++$mid, $text);
+                    $check($platform.' country help preserves '.$intentName.' route', array_column(array_slice($sent, $sentBefore), 'text'), [$reply]);
+                    $check($platform.' '.$intentName.' reaches existing model boundary', count(AiInvocationService::$calls), 1);
+                    $check($platform.' '.$intentName.' preserves saved needs', MaxSearchApi::getAiSearchContext($chat), $before);
+                }
+                AiInvocationService::$answer = ['intent'=>'search', 'parameters'=>['country'=>'Турция']];
+                $native($platform, $user, ++$mid, 'Турция');
+                $expectedCountry = ['city'=>$before['city'], 'country'=>'Турция'] + $before;
+                $check($platform.' valid country still uses canonical application', MaxSearchApi::getAiSearchContext($chat), $expectedCountry);
+                $check($platform.' valid country moves to the existing next field', MaxSearchApi::getAiMissingFields($chat), ['date']);
+                unset(MaxSearchApi::$needs[$chat][65], MaxSearchApi::$needs[$chat][66]);
+                AiInvocationService::$answer = ['_error'=>'synthetic model failure'];
+                AiInvocationService::$calls = []; $sentBefore = count($sent);
+                $native($platform, $user, ++$mid, 'Не знаю');
+                $check($platform.' later missing country does not intercept current city',
+                    array_column(array_slice($sent, $sentBefore), 'text'), [MissingFieldQuestionService::question('city')]);
+                $check($platform.' another first field keeps existing inference', count(AiInvocationService::$calls), 1);
+                $check($platform.' choice help never queues or assigns a manager',
+                    [(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id={$id} AND event_type='manager_request'")->fetchColumn(),
+                     $pdo->query("SELECT manager_id FROM conversations WHERE id={$id}")->fetchColumn()], [0, null]);
+
+                foreach ([
+                    ['adults','4ч.','4',[65=>'4',66=>'1',70=>'4',71=>'7',72=>'8'],
+                     'Не получилось прочитать количество взрослых в таком формате. Подтвердите число взрослых цифрой, без сокращений.', ['children','date']],
+                    ['nights','2о-24','9',[65=>'4',66=>'1',67=>'3',68=>'1',69=>'6',70=>'4',71=>'7'],
+                     'Не получилось прочитать диапазон ночей: в нём есть буква. Подтвердите количество ночей цифрами, например «7» или «7-9».', ['date']],
+                ] as [$field,$unsupported,$confirmed,$saved,$formatHelp,$afterMissing]) {
+                    MaxSearchApi::$needs[$chat]=$saved; MaxSearchApi::$statuses[$chat]=MaxSearchApi::$statusAi;
+                    AiInvocationService::$answer=['intent'=>'search','parameters'=>[]];
+                    for ($attempt=0;$attempt<2;$attempt++) {
+                        $sentBefore=count($sent);MaxSearchApi::$parameterWrites=[];AiInvocationService::$calls=[];
+                        $native($platform,$user,++$mid,$unsupported);
+                        $check($platform.' unsupported '.$field.' explains numeric confirmation',array_column(array_slice($sent,$sentBefore),'text'),[$formatHelp]);
+                        $check($platform.' unsupported '.$field.' preserves exact independent needs',MaxSearchApi::getSavedData($chat),$saved);
+                        $check($platform.' unsupported '.$field.' never writes or asks model to guess',[MaxSearchApi::$parameterWrites,AiInvocationService::$calls],[[],[]]);
+                    }
+                    $native($platform,$user,++$mid,$confirmed);
+                    $check($platform.' confirmed numeric '.$field.' advances normally',MaxSearchApi::getAiMissingFields($chat),$afterMissing);
+                    $fieldStatus=$field==='adults'?67:72;
+                    $expectedSaved=$saved; $expectedSaved[$fieldStatus]=$field==='adults'?(int)$confirmed:$confirmed;
+                    $check($platform.' numeric '.$field.' changes only its canonical field',MaxSearchApi::getSavedData($chat),$expectedSaved);
+                }
+
+                $tourUser = $chatBase + 710 + $index;
+                $tourChat = $platform === 'max' ? -$tourUser : $tourUser;
+                $chats[] = $tourChat;
+                $enter($platform, $tourUser);
+                MaxSearchApi::$needs[$tourChat] = [65=>'4', 66=>'1', 67=>'2', 68=>'1', 69=>'6', 70=>'4', 71=>'7', 72=>'8', 73=>'05.04.'.((int)date('Y')+1)];
+                MaxSearchApi::$statuses[$tourChat] = MaxSearchApi::$statusCheck;
+                MaxSearchApi::saveLastValue($tourChat, MaxSearchApi::$statusCheck, '1234abcd');
+                foreach (['', 'menu'] as $mode) {
+                    MaxSearchApi::setEditMode($tourChat, $mode);
+                    foreach (['горящие туры', 'Горячие туры!'] as $text) {
+                        $saved = MaxSearchApi::getSavedData($tourChat); $sentBefore = count($sent);
+                        $writesBefore = count(MaxSearchApi::$writes); $eventsBefore = count(MaxSearchApi::$events);
+                        MaxSearchApi::$parameterWrites = []; AiInvocationService::$calls = [];
+                        $native($platform, $tourUser, ++$mid, $text);
+                        $label = $platform.' tour help edit='.($mode ?: 'closed').' '.$text;
+                        $check($label.' points to existing customer actions', array_column(array_slice($sent, $sentBefore), 'text'), [$tourHelp]);
+                        $check($label.' preserves needs, status, edit mode and button generation',
+                            [MaxSearchApi::getSavedData($tourChat), MaxSearchApi::getCurentStatus($tourChat), MaxSearchApi::getEditMode($tourChat), MaxSearchApi::getLastValue($tourChat, 74)],
+                            [$saved, MaxSearchApi::$statusCheck, $mode, '1234abcd']);
+                        $check($label.' has no application, progression, search or model effects',
+                            [MaxSearchApi::$parameterWrites, array_slice(MaxSearchApi::$writes, $writesBefore), array_slice(MaxSearchApi::$events, $eventsBefore), AiInvocationService::$calls], [[], [], [], []]);
+                    }
+                    $saved = MaxSearchApi::getSavedData($tourChat); $sentBefore = count($sent);
+                    $native($platform, $tourUser, ++$mid, 'Горящие туры в Турцию на 8 ночей');
+                    $check($platform.' mixed tour correction is not partly consumed in '.$mode,
+                        str_contains($sent[$sentBefore]['text'] ?? '', 'Параметры пока не изменены'), true);
+                    $check($platform.' mixed tour correction preserves needs and edit mode in '.$mode,
+                        [MaxSearchApi::getSavedData($tourChat), MaxSearchApi::getEditMode($tourChat)], [$saved, $mode]);
+                }
+            }
+            $check('clarification turns never create manager requests', (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE event_type='manager_request'")->fetchColumn(), 0);
+        } elseif ($departureRetryOnly) {
             require_once $tmp . '/tests/fixtures/channel_post_entry_fixture.php';
             [$pdo, $registry, $publications] = createChannelPostEntryFixture();
             MaxSearchApi::$canonicalStorage = true;
@@ -791,7 +917,7 @@ PHP
         foreach ($files as $file) { if ($file->isDir()) rmdir($file->getPathname()); else unlink($file->getPathname()); }
         rmdir($tmp);
     }
-    echo ($departureRetryOnly ? "DEPARTURE RETRY" : ($jointHandoff ? "COMPOUND HANDOFF" : ($jointOnly ? "COMPOUND JOINT" : "DIALOGUE START PARITY"))) . ": PASS {$passed} FAIL {$failed}\n";
+    echo ($clarificationOnly ? "USEFUL CLARIFICATIONS" : ($departureRetryOnly ? "DEPARTURE RETRY" : ($jointHandoff ? "COMPOUND HANDOFF" : ($jointOnly ? "COMPOUND JOINT" : "DIALOGUE START PARITY")))) . ": PASS {$passed} FAIL {$failed}\n";
     exit($failed > 0 ? 1 : 0);
 }
 
@@ -861,6 +987,11 @@ $fixtureOutput = [];
 exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' --departure-retry-only 2>&1', $fixtureOutput, $fixtureStatus);
 foreach ($fixtureOutput as $line) echo $line . PHP_EOL;
 dcCheck('unresolved departure recovery MAX/Telegram fixture', $fixtureStatus, 0);
+
+$fixtureOutput = [];
+exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' --useful-clarifications-only 2>&1', $fixtureOutput, $fixtureStatus);
+foreach ($fixtureOutput as $line) echo $line . PHP_EOL;
+dcCheck('useful clarification MAX/Telegram fixture', $fixtureStatus, 0);
 
 $total = $passed + $failed;
 echo "\n--------------------------\n";
