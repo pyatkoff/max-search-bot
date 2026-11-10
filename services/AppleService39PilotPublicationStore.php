@@ -47,6 +47,23 @@ final class AppleService39PilotPublicationStore
         return $row ? $this->decode($row) : null;
     }
 
+    /** Read-only public permalink; no private request/outcome payload is selected. */
+    public function verifiedPostUrl(string $post, int $sourceId): ?string
+    {
+        if ($sourceId <= 0 || preg_match('/\A[a-z][a-z0-9_-]{0,55}\z/D', $post) !== 1) return null;
+        $query = $this->pdo->prepare("SELECT o.external_message_id,o.public_url FROM appleservice39_pilot_operations o
+            JOIN appleservice39_pilot_campaigns c ON c.campaign_key=o.campaign_key
+            WHERE c.campaign_key=? AND c.project_key=? AND c.bot_key=? AND c.channel_id=? AND c.source_id=?
+            AND o.post_key=? AND o.operation='create' AND o.state='verified' AND o.write_attempts=1 LIMIT 1");
+        $query->execute(['appleservice39-pilot-v1','appleservice39','id390521129062_bot','-80917954947727',$sourceId,$post]);
+        $row = $query->fetch(PDO::FETCH_ASSOC);
+        if (!$row || !is_string($row['external_message_id'])
+            || preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/D', $row['external_message_id']) !== 1
+            || !is_string($row['public_url'])
+            || preg_match('~\Ahttps://max\.ru/channel_appleservice39ru/[A-Za-z0-9_-]{1,191}\z~D', $row['public_url']) !== 1) return null;
+        return $row['public_url'];
+    }
+
     public function prepare(string $post, string $operation, array $request): array
     {
         if (!preg_match('/\A[a-z][a-z0-9_-]{0,55}\z/D', $post) || !in_array($operation, ['upload','create','links','pin','landing_upload','landing_edit','catalogue_v1'], true)) throw new RuntimeException('invalid_pilot_operation');
