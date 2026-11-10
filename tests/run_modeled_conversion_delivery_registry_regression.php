@@ -493,8 +493,8 @@ $selection=ModeledConversionVisitProof::dueIds([$ordinary,...$rows],(int)$r['eve
 static fn(array $item):array=>['at'=>$now-400,'event'=>['upload_status'=>$item['id']==='999'?'UPLOADED':$item['upload_status'],
 'linkage'=>'failed','failure_audit'=>['diagnosis'=>'wire_collision']]],2);
 $repairPriority=count($selection)===2&&$selection[0]===(string)$rows[0]['id']&&in_array('999',$selection,true);
-$read['state']='failed';$read['upload_status']='LINKAGE_FAILURE';$read['checked_at_unix']=$now+301;
-ModeledConversionWireValue::save($r,$read);
+$failedJournal=$read;$failedJournal['state']='failed';$failedJournal['upload_status']='LINKAGE_FAILURE';$failedJournal['checked_at_unix']=$now+301;
+ModeledConversionWireValue::save($r,$failedJournal);
 $failureRows=$rows;foreach($failureRows as&$member){$member['state']='unmatched';$member['upload_status']='LINKAGE_FAILURE';$member['value_processed_at_unix']=null;}unset($member);
 $readsBeforeTerminal=$api->reads;
 $failedTerminal=ModeledConversionWireValue::observe($r,$failureRows,$api,$now+602)==='failed'&&$api->reads===$readsBeforeTerminal;
