@@ -1,0 +1,216 @@
+name: Inspect wire correction receipt metadata without writes
+on:
+  push:
+    branches: [ops/value-wire-receipt-current-app-20261110-217fa78]
+    paths: [.github/workflows/value-wire-receipt-current-app-20261110-217fa78.yml]
+permissions:
+  contents: read
+concurrency:
+  group: anytour-private-archive-predictive-study
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.event_name == 'push' && github.ref == 'refs/heads/ops/value-wire-receipt-current-app-20261110-217fa78' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate the one purpose source envelope
+        env:
+          API_TOKEN: ${{ github.token }}
+          EXPECTED_REPOSITORY_SHA: 95b538c8b6782ef257afafd16a826c68911364e3
+          EXPECTED_APPLICATION_SHA: 217fa78f50d4c7163258f512e89f6fdf61a7073f
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,stat,subprocess,urllib.request
+          def git(*args):
+              return subprocess.check_output(['git',*args],stderr=subprocess.DEVNULL)
+          try:
+              expected=os.environ['EXPECTED_REPOSITORY_SHA']
+              application=os.environ['EXPECTED_APPLICATION_SHA']
+              head=os.environ['GITHUB_SHA']
+              event=json.loads(pathlib.Path(os.environ['GITHUB_EVENT_PATH']).read_text())
+              assert len(expected)==40 and all(c in '0123456789abcdef' for c in expected)
+              assert event['repository']['full_name']=='pyatkoff/max-search-bot'
+              assert event['ref']=='refs/heads/ops/value-wire-receipt-current-app-20261110-217fa78'
+              assert event['before']==expected and event['after']==head
+              assert not event.get('forced') and not event.get('deleted')
+              assert git('rev-parse','HEAD').decode().strip()==head
+              assert git('rev-list','--parents','-n','1',head).decode().split()==[head,expected]
+              changed=git('diff','--name-status',expected,head).decode()
+              assert changed=='A\t.github/workflows/value-wire-receipt-current-app-20261110-217fa78.yml\n'
+              request=urllib.request.Request(
+                  'https://api.github.com/repos/pyatkoff/max-search-bot/git/ref/heads/main',
+                  headers={'Authorization':'Bearer '+os.environ['API_TOKEN'],
+                           'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'})
+              with urllib.request.urlopen(request,timeout=20) as response:
+                  assert json.load(response)['object']['sha']==expected
+              for run in (42807037243,42807855086):
+                  request=urllib.request.Request('https://api.github.com/repos/pyatkoff/max-search-bot/actions/runs/'+str(run),headers={'Authorization':'Bearer '+os.environ['API_TOKEN'],'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'})
+                  with urllib.request.urlopen(request,timeout=20) as response:
+                      accepted=json.load(response)
+                  assert accepted['head_sha']==application and accepted['run_attempt']==1 and accepted['status']=='completed' and accepted['conclusion']=='success'
+              paths=["services/MetrikaOfflineClient.php","services/ModeledConversionValueContract.php","services/ProjectAccessService.php","services/ModeledConversionVisitProof.php","services/ModeledConversionWireValue.php","services/ModeledConversionDeliveryRegistry.php","services/ModeledConversionForecastStatusReader.php","services/ModeledConversionInputDiagnosisReader.php","tools/modeled_conversion_visit_proof.php"]
+              hashes={}
+              for name in paths:
+                  source=git('show',application+':'+name)
+                  assert git('show',expected+':'+name)==source
+                  path=pathlib.Path(name)
+                  assert stat.S_ISREG(path.lstat().st_mode) and not path.is_symlink()
+                  assert path.read_bytes()==source
+                  hashes[name]=hashlib.sha256(source).hexdigest()
+              destination=pathlib.Path(os.environ['RUNNER_TEMP'])/'study-source.json'
+              destination.write_text(json.dumps({'source_commit':application,'repository_commit':expected,'hashes':hashes},separators=(',',':')))
+              destination.chmod(0o600)
+          except Exception:
+              print('{"ok":false,"source_envelope_verified":false}')
+              raise SystemExit(1)
+          print('{"ok":true,"source_envelope_verified":true}')
+          PY
+      - name: Prepare the existing identity and strict canonical host pin
+        env:
+          K: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,re,socket,subprocess
+          try:
+              host=os.environ['TARGET']
+              assert re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.-]{0,252}',host)
+              assert {a[4][0] for a in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}=={'5.45.122.54'}
+              key=os.environ['K']
+              raw=key.replace('\\n','\n').replace('\r','').encode() if 'PRIVATE KEY' in key else base64.b64decode(key,validate=True)
+              keypath=pathlib.Path(os.environ['RUNNER_TEMP'])/'study-key'
+              keypath.write_bytes(raw.rstrip(b'\n')+b'\n')
+              keypath.chmod(0o600)
+              check=subprocess.run(['ssh-keygen','-y','-f',str(keypath)],capture_output=True,timeout=10)
+              assert check.returncode==0
+              approved=set()
+              for attempt in range(2):
+                  try:
+                      scan=subprocess.run(['ssh-keyscan','-t','ed25519','-T','10',host],capture_output=True,text=True,timeout=30)
+                      lines=scan.stdout.splitlines()
+                  except subprocess.TimeoutExpired as error:
+                      output=error.stdout or b''
+                      lines=(output.decode(errors='replace') if isinstance(output,bytes) else output).splitlines()
+                  for line in lines:
+                      fields=line.split()
+                      if len(fields)!=3 or fields[1]!='ssh-ed25519':continue
+                      try:
+                          material=base64.b64decode(fields[2],validate=True)
+                      except ValueError:continue
+                      fingerprint='SHA256:'+base64.b64encode(hashlib.sha256(material).digest()).decode().rstrip('=')
+                      if fingerprint=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':
+                          approved.add(host+' ssh-ed25519 '+fields[2])
+                  if approved:break
+              assert len(approved)==1
+              known=pathlib.Path(os.environ['RUNNER_TEMP'])/'study-hosts'
+              known.write_text('\n'.join(sorted(approved))+'\n')
+              known.chmod(0o600)
+          except Exception:
+              print('{"ok":false,"canonical_host_verified":false}')
+              raise SystemExit(1)
+          print('{"ok":true,"canonical_host_verified":true}')
+          PY
+      - name: Perform the finite build with a technical receipt
+        env:
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_ACCOUNT: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import json,os,pathlib,re,socket,subprocess
+          try:
+              host=os.environ['TARGET']
+              account=os.environ['SSH_ACCOUNT']
+              assert re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.-]{0,252}',host)
+              assert re.fullmatch(r'[a-z_][a-z0-9_-]{0,31}',account)
+              assert {a[4][0] for a in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}=={'5.45.122.54'}
+              temporary=pathlib.Path(os.environ['RUNNER_TEMP'])
+              contract=json.loads((temporary/'study-source.json').read_text())
+              remote_header='CONTRACT='+repr(contract)+'\nRUN_ID="readonly-wire-receipt-current-app"\n'
+              remote_body=r"""
+          import hashlib,json,os,pathlib,stat,subprocess,sys
+          receipt={'ok':False,'operator_verified':False,'source_verified':False,'private_receipts_inspected':False,'owner_ledger_available':False,'private_status_available':False,'private_status_within_limit':False,'database_read_only':False,'provider_write_requests':False,'source_writes':False,'private_status_time_limit':False,'private_status_byte_limit':False,'reader_runtime_failure':False,'receipt_identity_verified':False,'receipt_rows_valid':False,'private_journals_unchanged':False,'all_provider_terminal':False,'any_provider_processed':False,'any_provider_linkage_failed':False,'provider_statuses':[],'observed_application_sha':'','application_pin_matches':False,'worktree_clean':False,'index_clean':False,'source_files_match':False}
+          def verify_source(root):
+              environment=dict(os.environ)
+              environment['GIT_OPTIONAL_LOCKS']='0'
+              head=subprocess.check_output(['/usr/bin/git','-C',str(root),'rev-parse','HEAD'],stderr=subprocess.DEVNULL,timeout=10,env=environment).decode().strip()
+              receipt['observed_application_sha']=head
+              receipt['application_pin_matches']=head==CONTRACT['source_commit']
+              receipt['worktree_clean']=subprocess.run(['/usr/bin/git','-C',str(root),'diff','--quiet','HEAD'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=10,env=environment).returncode==0
+              receipt['index_clean']=subprocess.run(['/usr/bin/git','-C',str(root),'diff','--cached','--quiet'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=10,env=environment).returncode==0
+              assert receipt['application_pin_matches'] and receipt['worktree_clean'] and receipt['index_clean']
+              for name,digest in CONTRACT['hashes'].items():
+                  path=root/name
+                  assert path.resolve()==path and stat.S_ISREG(path.lstat().st_mode) and not path.is_symlink()
+                  assert hashlib.sha256(path.read_bytes()).hexdigest()==digest
+              receipt['source_files_match']=True
+          try:
+              root=pathlib.Path('/var/www/anytoour/data/www/app.anytoour.ru')
+              assert root.resolve()==root and root.stat().st_uid==1012 and os.geteuid()==1012
+              receipt['operator_verified']=True
+              verify_source(root)
+              receipt['source_verified']=True
+              command=['/usr/bin/php','-d','auto_prepend_file=','-d','auto_append_file=','-d','opcache.enable_cli=0','-d','display_errors=0','-d','log_errors=0']
+              diagnostic_php="<?php\ndeclare(strict_types=1);ini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);\n$level=ob_get_level();ob_start(static fn(string $s):string=>'');$lock=null;\n$out=['ok'=>false,'provider_write_requests'=>false,'source_writes'=>false,'receipt_identity_verified'=>false,'receipt_rows_valid'=>false,'private_journals_unchanged'=>false,'all_provider_terminal'=>false,'any_provider_processed'=>false,'any_provider_linkage_failed'=>false,'provider_statuses'=>[]];\ntry{\n $root='/var/www/anytoour/data/www/app.anytoour.ru';$deadline=microtime(true)+90;\n require $root.'/config.php';require_once $root.'/services/ProjectAccessService.php';ProjectAccessService::initializeReadOnly();\n $p=ConversationDb::connection();$p->exec('SET SESSION TRANSACTION READ ONLY');\n require_once $root.'/services/ModeledConversionVisitProof.php';require_once $root.'/services/ModeledConversionWireValue.php';\n if(ProjectConfig::projectId()!=='anytour'||(string)METRIKA_COUNTER_ID!=='98615635')throw new RuntimeException();\n $q=$p->query(\"SELECT goal_id,goal_intent FROM modeled_conversion_value_export_settings WHERE project_key='anytour' LIMIT 1\");$settings=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();\n if(($settings['goal_id']??null)!=='678187097'||($settings['goal_intent']??null)!=='verified')throw new RuntimeException();\n $path=dirname(ModeledConversionVisitProof::path()).'/refresh.lock';\n if(is_link($path)||!is_file($path)||(fileperms($path)&0777)!==0600||fileowner($path)!==posix_geteuid())throw new RuntimeException();\n $lock=fopen($path,'r+');if($lock===false||!flock($lock,LOCK_EX|LOCK_NB))throw new RuntimeException();\n $ledger=ModeledConversionVisitProof::ledger($p);$work=[];\n foreach($ledger as$r){if(empty($r['upload_id']))continue;$j=ModeledConversionWireValue::read($r);if($j===null||($j['source_sha']??null)!=='98a387d60093b7debfe6370990e86bb3878be759')continue;\n  if($j['sent_at_unix']<strtotime('2026-11-10T10:34:00Z')||$j['sent_at_unix']>strtotime('2026-11-10T10:35:00Z'))throw new RuntimeException();\n  $key=$j['wire_key'];if(isset($work[$key]))continue;\n  $members=[];foreach($ledger as$m)if(isset($j['members'][(string)$m['id']]))$members[]=$m;\n  $plan=ModeledConversionWireValue::plan($members,time());\n  if($plan['members']!==$j['members']||$plan['comment']!==$j['comment']||$plan['total_rub']!==$j['total_rub']||$plan['wire_key']!==$key||!is_string($j['upload_id']))throw new RuntimeException();\n  $work[$key]=['row'=>$r,'journal'=>$j,'hash'=>hash_file('sha256',ModeledConversionWireValue::path($r))];\n }\n if(!$work||count($work)>16)throw new RuntimeException();\n $api=new MetrikaOfflineClient('98615635',(string)METRIKA_OAUTH_TOKEN,null,$deadline);$identity=true;$rows=true;$terminal=true;$processed=false;$failed=false;$statuses=[];\n foreach($work as$w){$j=$w['journal'];$receipt=$api->poll($j['upload_id']);if(!is_array($receipt))throw new RuntimeException();\n  $status=$receipt['status']??null;if(!in_array($status,['PREPARED','UPLOADED','EXPORTED','MATCHED','PROCESSED','LINKAGE_FAILURE'],true))throw new RuntimeException();\n  $identity=$identity&&(string)($receipt['id']??'')===$j['upload_id']&&($receipt['comment']??null)===$j['comment'];\n  $rows=$rows&&(int)($receipt['source_quantity']??0)===1&&(int)($receipt['line_quantity']??0)===1;\n  $terminal=$terminal&&in_array($status,['PROCESSED','LINKAGE_FAILURE'],true);$processed=$processed||$status==='PROCESSED';$failed=$failed||$status==='LINKAGE_FAILURE';$statuses[$status]=true;\n  if(!hash_equals($w['hash'],hash_file('sha256',ModeledConversionWireValue::path($w['row']))))throw new RuntimeException();\n }\n $out['receipt_identity_verified']=$identity;$out['receipt_rows_valid']=$rows;$out['private_journals_unchanged']=true;\n $out['all_provider_terminal']=$terminal;$out['any_provider_processed']=$processed;$out['any_provider_linkage_failed']=$failed;$out['provider_statuses']=array_keys($statuses);sort($out['provider_statuses']);$out['ok']=$identity;\n}catch(Throwable $ignored){}finally{if(is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}}\nwhile(ob_get_level()>$level)ob_end_clean();echo json_encode($out,JSON_THROW_ON_ERROR).\"\\n\";exit($out['ok']?0:1);\n"
+              diagnosed=subprocess.run(command,input=diagnostic_php.encode(),capture_output=True,timeout=175)
+              assert len(diagnosed.stdout)<=4096 and len(diagnosed.stderr)<=4096
+              diagnostic=json.loads(diagnosed.stdout)
+              assert set(diagnostic)==set(["ok","provider_write_requests","source_writes","receipt_identity_verified","receipt_rows_valid","private_journals_unchanged","all_provider_terminal","any_provider_processed","any_provider_linkage_failed","provider_statuses"])
+              assert all(isinstance(v,bool) for k,v in diagnostic.items() if k!='provider_statuses')
+              assert isinstance(diagnostic['provider_statuses'],list) and set(diagnostic['provider_statuses']).issubset({'PREPARED','UPLOADED','EXPORTED','MATCHED','PROCESSED','LINKAGE_FAILURE'})
+              receipt.update({k:v for k,v in diagnostic.items() if k not in {'ok','provider_write_requests','source_writes'}})
+              assert diagnostic['ok'] is True and diagnostic['provider_write_requests'] is False and diagnostic['source_writes'] is False and diagnosed.returncode==0
+              receipt['private_receipts_inspected']=True
+              php="<?php\ndeclare(strict_types=1);ini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);\n$level=ob_get_level();ob_start(static fn(string $s):string=>'');\n$out=['ok'=>false,'owner_ledger_available'=>false,'private_status_available'=>false,'private_status_within_limit'=>false,'database_read_only'=>false,'private_status_time_limit'=>false,'private_status_byte_limit'=>false,'reader_runtime_failure'=>false];\ntry{\n require '/var/www/anytoour/data/www/app.anytoour.ru/config.php';\n require_once '/var/www/anytoour/data/www/app.anytoour.ru/services/ProjectAccessService.php';\n require_once '/var/www/anytoour/data/www/app.anytoour.ru/services/ModeledConversionDeliveryRegistry.php';\n require_once '/var/www/anytoour/data/www/app.anytoour.ru/services/ModeledConversionForecastStatusReader.php';\n if(ProjectConfig::projectId()!=='anytour'||posix_geteuid()!==1012)throw new RuntimeException();\n ProjectAccessService::initializeReadOnly();$pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');$out['database_read_only']=true;\n $date=(new DateTimeImmutable('now',new DateTimeZone('Europe/Kaliningrad')))->format('Y-m-d');\n $r=(new ModeledConversionDeliveryRegistry($pdo,static function():void{},bin2hex(random_bytes(32))))->read(['date'=>$date],time());\n $out['owner_ledger_available']=($r['available']??false)===true;\n $v=(new ModeledConversionForecastStatusReader($pdo,static function():void{},new ModeledConversionStatusBudget()))->read();\n $out['private_status_available']=($v['available']??false)===true;\n $out['private_status_within_limit']=strlen(json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=30000;\n $out['ok']=$out['owner_ledger_available']&&$out['private_status_available']&&$out['private_status_within_limit'];\n}catch(ModeledConversionStatusLimit $e){$out['private_status_time_limit']=$e->reason==='time_limit';$out['private_status_byte_limit']=$e->reason==='byte_limit';}catch(Throwable $ignored){$out['reader_runtime_failure']=true;}\nwhile(ob_get_level()>$level)ob_end_clean();echo json_encode($out,JSON_THROW_ON_ERROR).\"\\n\";exit($out['ok']?0:1);\n"
+              check=subprocess.run(command,input=php.encode(),capture_output=True,timeout=25)
+              assert len(check.stdout)<=4096 and len(check.stderr)<=4096
+              proof=json.loads(check.stdout)
+              assert set(proof)=={'ok','owner_ledger_available','private_status_available','private_status_within_limit','database_read_only','private_status_time_limit','private_status_byte_limit','reader_runtime_failure'} and all(isinstance(v,bool) for v in proof.values())
+              receipt.update(proof)
+              assert check.returncode==0 and proof['ok']
+              verify_source(root)
+          except Exception:
+              receipt['ok']=False
+          print(json.dumps(receipt,separators=(',',':')))
+          sys.exit(0 if receipt['ok'] else 1)
+
+          """
+              command=['ssh','-i',str(temporary/'study-key'),
+                       '-o','BatchMode=yes','-o','IdentitiesOnly=yes',
+                       '-o','StrictHostKeyChecking=yes','-o','UserKnownHostsFile='+str(temporary/'study-hosts'),
+                       '-o','HostKeyAlgorithms=ssh-ed25519','-o','ConnectTimeout=10',
+                       '-o','ServerAliveInterval=15','-o','ServerAliveCountMax=3',
+                       account+'@'+host,'/usr/bin/python3 -I -B -']
+              result=subprocess.run(command,input=(remote_header+remote_body).encode(),
+                                    capture_output=True,timeout=210)
+              assert len(result.stdout)<=8192 and len(result.stderr)<=8192
+              proof=json.loads(result.stdout)
+              keys=set(["observed_application_sha","application_pin_matches","worktree_clean","index_clean","source_files_match"])|set(["receipt_identity_verified","receipt_rows_valid","private_journals_unchanged","all_provider_terminal","any_provider_processed","any_provider_linkage_failed","provider_statuses"])|set(["ok","operator_verified","source_verified","private_receipts_inspected","owner_ledger_available","private_status_available","private_status_within_limit","database_read_only","provider_write_requests","source_writes","private_status_time_limit","private_status_byte_limit","reader_runtime_failure"])
+              assert isinstance(proof,dict) and set(proof)==keys and all(isinstance(v,bool) for k,v in proof.items() if k not in {'provider_statuses','observed_application_sha'}) and isinstance(proof['provider_statuses'],list) and isinstance(proof['observed_application_sha'],str) and (proof['observed_application_sha']=='' or re.fullmatch('[a-f0-9]{40}',proof['observed_application_sha']))
+              print(json.dumps(proof,separators=(',',':')))
+              raise SystemExit(0 if result.returncode==0 and proof['ok'] else 1)
+          except Exception:
+              print('{"ok":false,"technical_receipt_verified":false}')
+              raise SystemExit(1)
+          PY
+      - name: Remove runner credentials and temporary technical files
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import os,pathlib
+          temporary=pathlib.Path(os.environ['RUNNER_TEMP'])
+          for name in ('study-key','study-hosts','study-source.json'):
+              (temporary/name).unlink(missing_ok=True)
+          print('{"ok":true,"runner_credentials_removed":true}')
+          PY
