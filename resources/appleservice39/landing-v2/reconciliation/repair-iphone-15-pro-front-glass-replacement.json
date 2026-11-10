@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_native_replacement",
+  "campaign_key": "appleservice39-pilot-v1",
+  "project_key": "appleservice39",
+  "bot_key": "id390521129062_bot",
+  "channel_id": "-80917954947727",
+  "post_id": "repair-iphone-15-pro-front-glass-replacement",
+  "message_id": "mid.ffffb667d20a157101a1bd6ce5125182",
+  "public_url": "https://max.ru/channel_appleservice39ru/AaG9bOUSUYI",
+  "revision_sha256": "f772e83df3532120cf20d99ff0476c9717d5f42d75b7f6f89b8e0fed8890f8bd",
+  "source_sha256": "8b4cd83591ed607ad92a631f62da66bb731f5bf66c59a9e89c12ec1f3459228e",
+  "upload_operation_id": 84,
+  "upload_request_sha256": "906e360685631a8a3c5f36eb6fef4785b56bb00c6aa5b4b0b8e17024c4aec3b7",
+  "upload_token_sha256": "78fc921bd920ffa3a3ff976ad6a8583a9a2587826847d100ec6d4aa5d466064c",
+  "edit_operation_id": 99,
+  "edit_request_sha256": "a02ec48ce310139f51e1a56ddfe424194e86d07c607c636b4559a6234437bfa3",
+  "edit_started_ms": 1794302491752,
+  "native_photo_id": "46903590225",
+  "native_preview_sha256": "f74bd71b2cfb65ae3843b5b99d3158614b633ea2718a9f4b04df692fdbb004a7",
+  "native_preview_width": 561,
+  "native_preview_height": 768,
+  "native_payload_url_sha256": "3337b6e98eb02d4b89138ab24216b947e1b58962d14ed7519868550d28f0ad70",
+  "native_readback_run_id": 42789765899,
+  "native_readback_job_id": 129740355281,
+  "visual_review": {
+    "source_asset_opened": true,
+    "native_preview_opened": true,
+    "exact_layout_model_service_price_qualifiers": true
+  }
+}

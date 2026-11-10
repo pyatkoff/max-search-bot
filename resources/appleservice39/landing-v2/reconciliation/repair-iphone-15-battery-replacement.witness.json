@@ -1,0 +1,53 @@
+{
+  "public_post_url": "https://max.ru/channel_appleservice39ru/AaG9bMOqY5Y",
+  "canonical_channel_url": "https://max.ru/channel_appleservice39ru",
+  "public_channel_id": 80917954947727,
+  "public_html_sha256": "eae923b2cb03ecc6fd2b85dd3110b20b54f65b019e96b41173708be42b2acf52",
+  "object_offset": 14903,
+  "object_length": 1834,
+  "native_photo_id": "46903570257",
+  "photo_reference_id": 46903570257,
+  "width": 1072,
+  "height": 1467,
+  "native_payload_url_sha256": "090a4385c68f7cfc0a5a4f6e2e7b066c5dc78d5ca6bfd7caf1916e31a2158724",
+  "ssr_attachment_url_sha256": "b9debfdb2aa3976cb16dca9e974805de6cb9623effe23014a664a41905e4db7d",
+  "exact_native_locator_match": false,
+  "source": "actual_public_post_Svelte_SSR_linkInfo.message.attachment[0]",
+  "fresh_native_payload_url_sha256": "090a4385c68f7cfc0a5a4f6e2e7b066c5dc78d5ca6bfd7caf1916e31a2158724",
+  "reviewed_at_utc": "2026-11-10T09:25:51.064708+00:00",
+  "reviewer": "originating Codex agent",
+  "source_png": {
+    "bytes": 1669398,
+    "sha256": "59c699c8895f21624dd482dd69d69401c68e8637b728900e206ca0dbc406881b",
+    "dimensions": [
+      1072,
+      1467
+    ],
+    "format": "PNG"
+  },
+  "public_native_preview": {
+    "bytes": 63332,
+    "sha256": "c369d6246b75d4ca36f085bbef2815041c62af20a3d8e730030be20d0e441f8d",
+    "dimensions": [
+      561,
+      768
+    ],
+    "format": "JPEG"
+  },
+  "native_readback_run_id": 42789765899,
+  "native_readback_job_id": 129740355281,
+  "readback_context": {
+    "repository_sha": "5becac92426aa07cd8ebbf075a28840d71fa4ff4",
+    "original_attempt": 1,
+    "job_conclusion": "failure",
+    "projection": "automatic_GET_only_landing_inspect",
+    "pending_image_reviews": 14
+  },
+  "visual_review": {
+    "source_asset_opened": true,
+    "native_preview_opened": true,
+    "exact_layout_model_service_price_qualifiers": true
+  },
+  "review_notes": "Individually opened actual JPEG and exact source PNG. Same iPhone15 badge and battery-service illustration,6000 RUB, catalogue price/availability qualifier and Leninsky18/office404 footer. No free-diagnosis promise, question headline or drawn call-to-action. Exact public SSR PHOTO photoId/referenceId joins this downloaded preview to the actual provider GET identity. Original/fresh native and public locator digests are separately retained. No token or URL decoding, arbitrary image-ID acceptance or similarity score was used.",
+  "provider_receipt_accepted": false
+}
