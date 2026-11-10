@@ -40,7 +40,41 @@ try {
     $snapshot['text']='Изменённый позднее пост: 170 000 ₽ за двоих.';
     $insert->execute([2,1,2,json_encode($snapshot,JSON_UNESCAPED_UNICODE)]);
     $snapshot['text']='Секрет чужого проекта';$insert->execute([3,2,1,json_encode($snapshot,JSON_UNESCAPED_UNICODE)]);
+    $db->exec("ALTER TABLE conversations ADD COLUMN customer_channel_id INTEGER;
+        ALTER TABLE conversations ADD COLUMN metadata_json TEXT DEFAULT '{}';
+        CREATE TABLE customer_channels (id INTEGER PRIMARY KEY,customer_id INTEGER,project_key TEXT,channel TEXT,external_user_id TEXT,external_chat_id TEXT);
+        CREATE TABLE conversation_events (id INTEGER PRIMARY KEY,conversation_id INTEGER,event_type TEXT,payload_json TEXT);
+        CREATE TABLE appleservice39_pilot_campaigns (campaign_key TEXT PRIMARY KEY,project_key TEXT,bot_key TEXT,channel_id TEXT,source_id INTEGER);
+        CREATE TABLE appleservice39_pilot_operations (campaign_key TEXT,post_key TEXT,operation TEXT,state TEXT,write_attempts INTEGER,external_message_id TEXT,public_url TEXT,request_json TEXT,outcome_json TEXT);
+        INSERT INTO projects VALUES (3,'appleservice39','Apple fixture',1),(4,'repair_fixture','Other repair fixture',1);
+        INSERT INTO manager_projects VALUES (7,3),(7,4);
+        INSERT INTO conversation_sources VALUES (13,3,'max:appleservice39-main','Apple source','max',1,0,'none',0,0),(14,4,'max:repair-fixture','Other repair','max',1,0,'none',0,0);
+        INSERT INTO customer_channels VALUES (31,1,'appleservice39','max','7001','-7001'),(32,1,'repair_fixture','max','7002','-7002');
+        INSERT INTO conversations (id,project_key,source_id,channel,status,manager_id,external_chat_id,customer_id,customer_channel_id,metadata_json)
+        VALUES (201,'appleservice39',13,'max','manager',7,'-7001',1,31,'{\"max_bot_key\":\"id390521129062_bot\"}'),
+        (202,'repair_fixture',14,'max','manager',7,'-7002',1,32,'{\"max_bot_key\":\"fixture_repair_bot\"}');
+        INSERT INTO appleservice39_pilot_campaigns VALUES ('appleservice39-pilot-v1','appleservice39','id390521129062_bot','-80917954947727',13);
+        INSERT INTO appleservice39_pilot_operations VALUES ('appleservice39-pilot-v1','repair-iphone-x-battery-replacement','create','verified',1,'mid.fixture-real-receipt','https://max.ru/channel_appleservice39ru/AaRepairFixture','{\"token\":\"private-request\"}','{\"token\":\"private-outcome\"}');");
+    $repairPayload=['delivery_key'=>'private-delivery-key','bot_key'=>'id390521129062_bot','source_key'=>'max:appleservice39-main',
+        'repair_context'=>['model'=>'iPhone X','service'=>'Замена аккумулятора','entry_code'=>'as39_x_battery'],
+        'repair_entry_reply'=>['delivery_key'=>'private-delivery-key','project_key'=>'appleservice39','bot_key'=>'id390521129062_bot',
+            'conversation_id'=>201,'external_user_id'=>'7001','customer_id'=>1,'customer_channel_id'=>31,
+            'entry_code'=>'as39_x_battery','post_id'=>'repair-iphone-x-battery-replacement','state'=>'delivered',
+            'text'=>'Сохранённый ответ при переходе: 3 200 ₽. <b>Буквальный текст</b>','private_token'=>'must-not-project']];
+    $saveRepair=static function(int $eventId,array $payload,int $conversationId=201) use ($db):void {
+        $q=$db->prepare("INSERT OR REPLACE INTO conversation_events VALUES (?,?,'bot_started',?)");
+        $q->execute([$eventId,$conversationId,json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)]);
+    };
+    $saveRepair(51,$repairPayload);
+    $registry=['appleservice39'=>['project'=>['id'=>'appleservice39','brand'=>['name'=>'Apple fixture'],
+        'business'=>['kind'=>'device_repair'],'routing'=>['source_key'=>'max:appleservice39-main']],
+        'max'=>['bot_key'=>'id390521129062_bot','token'=>'synthetic-apple-token-only','webhook_secret'=>str_repeat('a',40)]],
+        'repair_fixture'=>['project'=>['id'=>'repair_fixture','brand'=>['name'=>'Other repair'],
+        'business'=>['kind'=>'device_repair','repair'=>['entries'=>[]]],'routing'=>['source_key'=>'max:repair-fixture'],
+        'messenger'=>['max'=>['webhook_url'=>'https://app.anytoour.ru/project_max_webhook.php?project=repair_fixture']]],
+        'max'=>['bot_key'=>'fixture_repair_bot','token'=>'synthetic-other-token-only','webhook_secret'=>str_repeat('b',40)]]];
     file_put_contents($tmp.'/config.php',"<?php\nrequire_once ".var_export($root.'/services/ManagerRequestContext.php',true).";\n".
+        'define("MAX_SEARCH_PROJECT_CONNECTIONS",'.var_export($registry,true).');'."\n".
         '$fixturePdo=new PDO('.var_export('sqlite:'.$tmp.'/fixture.sqlite',true).',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);' . "\n".
         '(new ReflectionProperty(ConversationDb::class,"pdo"))->setValue(null,$fixturePdo);' . "\n".
         'ProjectConfig::resetForTests(["id"=>"post-fixture","brand"=>["name"=>"Synthetic workspace"]]);' . "\n".
@@ -74,6 +108,51 @@ try {
     pcCheck('protected JSON never contains raw media URLs or metadata tokens',!str_contains($valid['body'],'private.test')&&!str_contains($valid['body'],'fixture-secret')&&$valid['json']['context']['current']['media_count']===1);
     pcCheck('response uses no-store JSON headers',count(array_filter($valid['headers'],static fn(string $h):bool=>str_starts_with(strtolower($h),'cache-control: no-store')))===1);
     $empty=$read(103,$cookie);pcCheck('legacy conversation returns honest empty context',$empty['status']===200&&$empty['json']['context']===['current'=>null,'history'=>[]]);
+    $repair=$read(201,$cookie);$repairView=$repair['json']['context']['repair']??null;
+    pcCheck('authorized Apple repair entry appears in the existing read-only endpoint',$repair['status']===200&&is_array($repairView)&&$repairView['event_id']===51&&$repairView['model']==='iPhone X'&&$repairView['service']==='Замена аккумулятора');
+    pcCheck('source link comes from the verified original campaign receipt',$repairView['post_url']==='https://max.ru/channel_appleservice39ru/AaRepairFixture');
+    pcCheck('captured reply is historical text rather than a regenerated current price',$repairView['reply']===['state'=>'delivered','text'=>$repairPayload['repair_entry_reply']['text']]);
+    pcCheck('repair does not fabricate general registry entries or leak identity and private payloads',$repair['json']['context']['current']===null&&$repair['json']['context']['history']===[]
+        &&array_keys($repairView)===['event_id','model','service','post_url','reply']&&!preg_match('/private-|must-not-project|7001|customer_id|bot_key|delivery_key/',$repair['body']));
+    $otherCookie=$request('/manager/fixture-session.php?id=8',[],'','GET')['cookie'];
+    pcCheck('repair context is unavailable to a manager outside its project',$read(201,$otherCookie)['status']===404);
+    foreach (['pending','attempted','unknown','suppressed'] as $state) {
+        $changed=$repairPayload;$changed['repair_entry_reply']['state']=$state;$saveRepair(51,$changed);$observed=$read(201,$cookie);
+        pcCheck('read preserves captured '.$state.' outcome without attempting another send',($observed['json']['context']['repair']['reply']['state']??null)===$state);
+    }
+    $saveRepair(51,$repairPayload);
+    foreach (['project_key'=>'foreign-project','bot_key'=>'other_bot','conversation_id'=>202,'customer_id'=>999,
+        'customer_channel_id'=>32,'external_user_id'=>'7002','entry_code'=>'as39_other','delivery_key'=>'other-key'] as $field=>$wrong) {
+        $changed=$repairPayload;$changed['repair_entry_reply'][$field]=$wrong;$saveRepair(52,$changed);$observed=$read(201,$cookie);
+        pcCheck('latest mismatched intent fails closed without promoting older repair: '.$field,$observed['status']===200&&!isset($observed['json']['context']['repair']));
+    }
+    $db->exec('DELETE FROM conversation_events WHERE id=52');
+    $changed=$repairPayload;$changed['source_key']='max:another-source';$saveRepair(52,$changed);
+    pcCheck('entry source is checked independently of its saved conversation owner',!isset($read(201,$cookie)['json']['context']['repair']));
+    $db->exec('DELETE FROM conversation_events WHERE id=52');
+    $db->exec("INSERT INTO conversation_events VALUES (52,201,'bot_started','{\"repair_entry_reply\":')");
+    pcCheck('malformed latest event never promotes older repair context',!isset($read(201,$cookie)['json']['context']['repair']));
+    $db->exec('DELETE FROM conversation_events WHERE id=52');
+    $db->exec("UPDATE conversations SET metadata_json='{\"max_bot_key\":\"different_bot\"}' WHERE id=201");
+    pcCheck('saved bot binding cannot be retargeted by current configuration',!isset($read(201,$cookie)['json']['context']['repair']));
+    $db->exec("UPDATE conversations SET metadata_json='{\"max_bot_key\":\"id390521129062_bot\"}' WHERE id=201");
+    foreach ([['state','unknown'],['write_attempts',2],['public_url','https://evil.test/private'],['public_url','https://max.ru/channel_appleservice39ru/AaRepairFixture?token=secret'],['external_message_id','']] as [$field,$wrong]) {
+        $q=$db->prepare('UPDATE appleservice39_pilot_operations SET '.$field.'=?');$q->execute([$wrong]);$observed=$read(201,$cookie);
+        pcCheck('unverified or unsafe source receipt omits only the link: '.$field,(($observed['json']['context']['repair']['post_url']??null)==='')&&$observed['json']['context']['repair']['reply']['text']===$repairPayload['repair_entry_reply']['text']);
+        $db->exec("UPDATE appleservice39_pilot_operations SET state='verified',write_attempts=1,public_url='https://max.ru/channel_appleservice39ru/AaRepairFixture',external_message_id='mid.fixture-real-receipt'");
+    }
+    $db->exec('UPDATE appleservice39_pilot_campaigns SET source_id=999');
+    pcCheck('campaign receipt from another source never grants a repair permalink',$read(201,$cookie)['json']['context']['repair']['post_url']==='');
+    $db->exec('UPDATE appleservice39_pilot_campaigns SET source_id=13');
+    $differentPost=$repairPayload;$differentPost['repair_entry_reply']['post_id']='repair-iphone-15-display';$saveRepair(52,$differentPost);
+    pcCheck('a different valid post cannot replace the permalink selected by this entry',$read(201,$cookie)['json']['context']['repair']['post_url']==='');
+    $db->exec('DELETE FROM conversation_events WHERE id=52');
+    $generic=$repairPayload;$generic['source_key']='max:repair-fixture';$generic['bot_key']='fixture_repair_bot';$generic['repair_entry_reply']=array_replace($generic['repair_entry_reply'],
+        ['project_key'=>'repair_fixture','bot_key'=>'fixture_repair_bot','conversation_id'=>202,'external_user_id'=>'7002','customer_channel_id'=>32,'entry_code'=>'old_entry','post_id'=>'old_entry','config_sha256'=>str_repeat('f',64)]);
+    $generic['repair_context']=['model'=>'Старая модель','service'=>'Первоначальная услуга','entry_code'=>'old_entry'];$saveRepair(53,$generic,202);
+    $otherRepair=$read(202,$cookie);
+    pcCheck('other configured repair company preserves its captured history after entry settings change',($otherRepair['json']['context']['repair']['model']??null)==='Старая модель'&&$otherRepair['json']['context']['repair']['post_url']==='');
+    pcCheck('read-only context never changes event outcomes or creates registry entries',(int)$db->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn()===2&&(int)$db->query('SELECT COUNT(*) FROM post_entries')->fetchColumn()===2);
     $foreign=$read(102,$cookie);pcCheck('known foreign conversation ID cannot cross project ACL',$foreign['status']===404&&$foreign['json']['error']==='not_found'&&!str_contains($foreign['body'],'Секрет'));
     $db->exec('DELETE FROM manager_projects WHERE manager_id=7');
     pcCheck('project permission revocation takes effect on the very next read',$read(101,$cookie)['status']===404);

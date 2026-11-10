@@ -57,6 +57,63 @@ function result(conversationId=101,text='Турция, 7 ночей. Цена 15
   return {ok:true,conversation_id:conversationId,context:{current:{entry_id:1,title:'Турция — октябрь',channel_name:'AnyTour Москва',platform:'max',post_url:'https://max.ru/c/-80095447388179/AaE53iyDMmw',text,entered_at:'2026-10-14 09:20:00',version_number:2,media_count:1,...extra},history:[]}};
 }
 const cases=[];const test=(name,run)=>cases.push({name,run});
+function repairResult(id=101,extra={}){
+  return {ok:true,conversation_id:id,context:{current:null,history:[],repair:{event_id:51,model:'iPhone 15 Pro Max',service:'Замена аккумулятора',post_url:'https://max.ru/channel_appleservice39ru/AaRepairFixture',reply:{state:'delivered',text:'Сохранённый ответ: 6 500 ₽. <b>Текст</b>'},...extra}}};
+}
+test('repair entry shows the real source link and captured reply without fabricating a publication snapshot or media',async()=>{
+  const h=harness();h.init();h.resolve(0,repairResult());await h.settle();
+  assert.equal(h.host.hidden,false);assert.match(h.host.querySelector('.postContextTeaser').textContent,/iPhone 15 Pro Max.*Замена аккумулятора/);
+  assert.equal(h.host.querySelector('.postContextOverlayTitle').textContent,'Контекст ремонта');
+  assert.equal(h.host.querySelector('.postContextOriginal').href,'https://max.ru/channel_appleservice39ru/AaRepairFixture');
+  assert.match(h.host.textContent,/Отправка подтверждена/);assert.match(h.host.textContent,/Сохранённый первый ответ бота/);
+  assert.equal(h.host.querySelector('.postContextText').textContent,'Сохранённый ответ: 6 500 ₽. <b>Текст</b>');
+  assert.equal(h.host.querySelector('b'),null);assert.equal(h.host.querySelector('img'),null);
+  assert.doesNotMatch(h.host.textContent,/Публикация №|версия|Условия и цены из публикации/);
+  assert.equal(h.host.querySelector('details').dataset.postDisclosure,'repair-event-51');
+  assert.equal(h.messages.scrollTop,240);assert.equal(h.draft.value,'Не потерять черновик');
+});
+test('repair reply states never turn unknown or suppressed sends into confirmed customer messages',async()=>{
+  for(const state of ['pending','attempted','unknown','suppressed']){
+    const h=harness();h.init();h.resolve(0,repairResult(101,{post_url:'https://evil.test/secret',reply:{state,text:'Сохранённый текст'}}));await h.settle();
+    assert.equal(h.host.querySelector('.postContextOriginal'),null);assert.match(h.host.textContent,/Ссылка на публикацию недоступна/);
+    assert.match(h.host.textContent,state==='suppressed'?/Ответ не отправлен/:/Отправка ответа не подтверждена/);
+    assert.doesNotMatch(h.host.textContent,/Отправка подтверждена|Условия и цены/);
+    assert.equal(h.requests.length,1);
+  }
+});
+test('repair labels, captured text and disclosure state cannot leak into another client publication',async()=>{
+  const h=harness();h.init();h.resolve(0,repairResult());await h.settle();h.host.querySelector('.postContextToggle').listeners.click();
+  h.select(102);const p=h.module.sync();h.resolve(1,result(102,'Другой исходный пост'));await p;
+  assert.equal(h.host.querySelector('.postContextOverlayTitle').textContent,'Исходный пост');
+  assert.equal(h.host.getAttribute('aria-label'),'Исходная публикация клиента');
+  assert.doesNotMatch(h.host.textContent,/iPhone|6 500|ответ бота/);assert.equal(h.host.querySelector('.postContextOverlay').hidden,true);
+});
+test('same-second repair reentry or a newly recorded reply refreshes context through the existing conversation poll',async()=>{
+  const h=harness();h.S.detail.conversation.repair_context={entry_code:'as39_old'};h.S.detail.messages=[{id:8}];h.init();h.resolve(0,repairResult());await h.settle();
+  h.S.detail.conversation.repair_context.entry_code='as39_new';const p=h.module.sync();
+  assert.equal(h.requests.length,2);h.resolve(1,repairResult(101,{event_id:52,model:'iPhone X'}));await p;assert.match(h.host.textContent,/iPhone X/);
+  h.S.detail.messages.push({id:9});const next=h.module.sync();assert.equal(h.requests.length,3);h.resolve(2,repairResult(101,{event_id:52,reply:{state:'unknown',text:'Ответ второй попытки'}}));await next;
+  assert.match(h.host.textContent,/Отправка ответа не подтверждена/);await h.module.sync();assert.equal(h.requests.length,3);
+});
+test('malformed repair data cannot hide a valid registered publication',async()=>{
+  const h=harness();h.init();const r=result();r.context.repair={event_id:1,model:{private:'x'},reply:{state:'delivered',text:'private'}};h.resolve(0,r);await h.settle();
+  assert.match(h.host.textContent,/Турция/);assert.doesNotMatch(h.host.textContent,/private|\[object Object\]/);
+});
+test('menu repair entry refreshes the recorded reply even before a model is known',async()=>{
+  const h=harness();h.S.detail.messages=[{id:8}];h.init();h.resolve(0,repairResult(101,{model:'',service:'',reply:{state:'pending',text:'Консультация'}}));await h.settle();
+  assert.equal(h.host.querySelector('.postContextTeaser').textContent,'Консультация по ремонту');
+  h.S.detail.messages.push({id:9});const p=h.module.sync();assert.equal(h.requests.length,2);
+  h.resolve(1,repairResult(101,{model:'',service:'',reply:{state:'delivered',text:'Консультация'}}));await p;
+  assert.match(h.host.textContent,/Отправка подтверждена/);
+});
+test('repair and registered publications keep their separate snapshots and disclosure identities',async()=>{
+  const h=harness();h.init();const r=result(101,'Оригинальная публикация',{entry_id:51});r.context.repair=repairResult().context.repair;
+  r.context.history=[{...r.context.current,entry_id:50,text:'Предыдущие условия'}];h.resolve(0,r);await h.settle();
+  const keys=h.host.querySelectorAll('details').map(el=>el.dataset.postDisclosure);
+  assert(keys.includes('entry-51'));assert(keys.includes('repair-event-51'));assert(keys.includes('history'));
+  assert.match(h.host.textContent,/Оригинальная публикация/);assert.match(h.host.textContent,/Предыдущие условия/);assert.match(h.host.textContent,/6 500/);
+  assert.equal(h.host.querySelectorAll('.postContextOriginal').length,3);
+});
 test('all six published MAX public permalinks remain actionable with their publication source',async()=>{
   const mids=['AaF5iNrwGdY','AaF5iOO-R8w','AaF5iOyMXHU','AaF5iPYSJTA','AaF5iP7mCB0','AaF5iQf-GJ4'];
   for(let i=0;i<mids.length;i++){
