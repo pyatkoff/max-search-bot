@@ -20,5 +20,28 @@ livePartyCheck('age-only phrase is not mistaken for adults',NeedValueResolver::r
 livePartyCheck('bare affirmative still does not invent children',NeedValueResolver::resolve('children','Да')['recognized'],false);
 livePartyCheck('four children stays outside supported range',NeedValueResolver::resolve('children','4 детей')['recognized'],false);
 
+// Complete short replies to the adult question retain the canonical resolver.
+foreach ([
+    ['2ч.',2], ['2ч',2], ['2 ч.',2], ['2 чел.',2], ['2чел',2], ['1Ч.',1], ['6ч.',6],
+] as [$phrase,$expected]) {
+    $resolved=NeedValueResolver::resolve('adults',$phrase);
+    livePartyCheck('short adult reply resolves canonically: '.$phrase,
+        [$resolved['recognized'],$resolved['value'],$resolved['source']],
+        [true,$expected,'deterministic:adults_parser']);
+}
+foreach ([
+    '0ч.','7ч.','12ч.','2 часа','2ч30мин','2ч. и ребенок','ребёнку 2ч.',
+    '2ч-3ч','не 2ч., а 3ч.','до 2ч.',
+] as $phrase) {
+    livePartyCheck('unsupported adult shorthand stays unrecognized: '.$phrase,
+        NeedValueResolver::resolve('adults',$phrase)['recognized'],false);
+}
+foreach (['2ч.','2 чел.'] as $phrase) {
+    livePartyCheck('context-free adult consumers do not infer shorthand: '.$phrase,
+        AdultsParser::parse($phrase),null);
+}
+livePartyCheck('adult shorthand is not a night duration',
+    NeedValueResolver::resolve('nights','2ч.')['recognized'],false);
+
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);

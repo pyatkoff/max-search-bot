@@ -14,14 +14,14 @@ This document keeps durable product decisions out of issue comments and chat his
 
 ## Primary outcome
 
-The bot should move a tourist from intent to a useful next step with as little friction as possible. During staffed working hours the preferred conversion is a successful manager handoff even when no phone has been collected. When live response is not available, preserve the lead through self-service tours/site and optional phone capture.
+The bot should move a tourist from intent to a useful next step with as little friction as possible. A manager request enters the existing queue at any hour without mandatory phone capture. Outside staffed hours, keep the handoff with a truthful response expectation; self-service is an optional continuation. Contact/manual-phone actions remain customer initiated.
 
 ## Priority outcomes
 
 For product decisions, optimize in this order when the context allows it:
 1. useful manager conversation / manager reply;
 2. tour results opened with correct parameters;
-3. phone captured when manager response is unavailable or delayed;
+3. optional phone captured through a customer-initiated contact/manual-phone action;
 4. site/channel continuation where appropriate;
 5. reduction of repeated questions and unnecessary turns.
 
@@ -31,17 +31,15 @@ Do not optimize a micro-conversion at the cost of a higher-value handoff.
 
 Working window: 11:00–21:00 Europe/Moscow.
 
-During this window:
-- a manager request is sent to the working queue without making phone mandatory;
-- if manager availability is positively known, the UX may say so;
-- if availability cannot be proven in advance, say truthfully that the request was passed to the working queue;
-- after 5 minutes without a manager reply, the existing fallback may offer phone capture once;
-- phone capture must remain optional rather than becoming a gate before routing.
+The current handoff contract applies at every hour:
+- every explicit manager request and non-hotel manager-first source enters `waiting_manager` at any hour, before customer confirmation; phone capture is optional and never gates handoff;
+- outside working hours, keep that handoff and give a truthful next-working-period response expectation; self-service remains an optional continuation;
+- hotel-channel and feed entries collect useful missing trip needs first; entry alone neither promises a manager nor enters `waiting_manager`, while an explicit manager request still uses immediate handoff; once enough conditions are available, the qualifying flow uses canonical manager handoff before confirming it;
+- send the initial manager-entry greeting only for a new handoff; waiting or assigned conversations keep their owner, quiet source reentry and no duplicate queue events or push;
+- after the initial manager-entry greeting, ordinary customer messages go to the existing manager/queue with notification and no bot reply, including legacy phone-step messages and typed numbers;
+- automatic five-minute phone offers are disabled; explicit contact/manual-phone actions remain customer initiated.
 
-Outside the working window:
-- prefer useful tour/site continuation;
-- phone may be offered as optional callback data;
-- promise only a truthful next-working-period response expectation.
+During staffed hours, the UX may assert manager availability only when it is positively known. Otherwise, confirm only that the request was passed to the existing queue. Presentation never changes operator shifts or routing eligibility.
 
 ## Dialogue quality
 

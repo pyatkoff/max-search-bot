@@ -2,11 +2,15 @@
 
 class AdultsParser
 {
-    public static function parse(string $text): ?int
+    public static function parse(string $text, bool $allowShortPersonLabel = false): ?int
     {
         $lower = self::normalize($text);
         $n = self::numberFromShortText($lower, 1, 6);
         if ($n === null && preg_match('/^(\d)\s*(?:взросл(?:ый|ых|ого)?|человек(?:а)?)$/ui', $lower, $m)) {
+            $n = (int)$m[1];
+        }
+        // Only an explicit adult-field resolver owns this ambiguous abbreviation.
+        if ($n === null && $allowShortPersonLabel && preg_match('/^([1-6])\s*ч(?:ел)?$/ui', $lower, $m)) {
             $n = (int)$m[1];
         }
         if ($n === null && preg_match('/(?:^|\s)(\d|один|одна|одного|два|двое|двух|три|трое|трех|трёх|четыре|четверо|пять|пятеро|шесть|шестеро)\s+взросл(?:ый|ая|ые|ых|ого)?(?:\s|$)/ui', $lower, $m)) {
