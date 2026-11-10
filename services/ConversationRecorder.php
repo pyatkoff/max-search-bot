@@ -199,6 +199,10 @@ class ConversationRecorder
             if (!ConversationDb::isConfigured() || $conversationId <= 0) return false;
             $platform = strtolower(trim($platform));
             if ($platform === '') return false;
+            // A newly mirrored manager send without its pre-transport snapshot
+            // must not masquerade as a historical reply covering every lower ID.
+            // Never capture here: a new inbound may already have arrived.
+            if($senderType==='manager'&&!array_key_exists('_manager_reply_boundary',$metadata))$metadata['_manager_reply_boundary']=['version'=>0,'customer_message_id'=>0,'request_event_id'=>0];
             $pdo = ConversationDb::connection();
             $stmt = $pdo->prepare('INSERT INTO messages (conversation_id,direction,sender_type,sender_id,channel,external_message_id,text,metadata_json) VALUES (?,?,?,?,?,?,?,?)');
             $stmt->execute([$conversationId,'outbound',$senderType,$senderId,$platform,$externalMessageId !== '' ? $externalMessageId : null,$text,self::json(ConversationRecordClock::stamp($metadata))]);

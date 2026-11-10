@@ -103,9 +103,29 @@ function inboxNativeRun(InboxPageNativePdo $pdo, string $class, array $arguments
 
 function inboxNativePair(InboxPageNativePdo $pdo, string $label, array $arguments, ?int $redactedLikeFixtureId = null): array
 {
+    global $fixtures;
     $before = inboxNativeRun($pdo, BaselineManagerConversationService::class, $arguments);
     $after = inboxNativeRun($pdo, ManagerConversationService::class, $arguments);
     $expectedRows=$before['rows'];
+    $queue=$arguments[1];
+    if(in_array($queue,['waiting','attention'],true)){
+        // These retained messages have no recording clocks. The independently
+        // seeded pending flags therefore rank by the explicit unknown-time ID
+        // tie-break, before the unchanged customer/project/ownership/ACL cap.
+        $pending=array_keys(array_filter($fixtures,static fn(array $row):bool=>$row['pending']));
+        $mid=(int)$arguments[0];$admin=$pdo->query('SELECT role FROM managers WHERE id='.$mid)->fetchColumn()==='admin';
+        $sql='SELECT c.id FROM conversations c JOIN customers cu ON cu.id=c.customer_id WHERE c.is_test=0 AND c.id IN ('.implode(',',array_map('intval',$pending)).') AND EXISTS(SELECT 1 FROM manager_projects mp JOIN projects p ON p.id=mp.project_id WHERE mp.manager_id=? AND p.project_key=c.project_key AND p.is_active=1)';$args=[$mid];
+        if($queue==='waiting'||!$admin){$sql.=' AND (c.manager_id IS NULL OR c.manager_id=?)';$args[]=$mid;}
+        if($arguments[3]!=='*'){$sql.=' AND c.project_key=?';$args[]=$arguments[3];}
+        if(array_slice($arguments,4)!==['','',0,[]])throw new RuntimeException('Unreviewed waiting-oracle filters');
+        $q=$pdo->prepare($sql.' ORDER BY c.id ASC LIMIT 200');$q->execute($args);$candidateIds=array_map('intval',$q->fetchAll(PDO::FETCH_COLUMN));
+        // Only the old owner supplies post-cap routing visibility and legacy
+        // display fields; it cannot supply the new pending population or rank.
+        $reference=inboxNativeRun($pdo,BaselineManagerConversationService::class,[$mid,'all',200,$arguments[3],'','',0,['ids'=>$candidateIds]]);
+        $byId=array_column($reference['rows'],null,'id');$expectedRows=[];
+        foreach($candidateIds as $id)if(isset($byId[$id]))$expectedRows[]=$byId[$id];
+        inboxNativeCheck($label.' uses independently seeded current waits and unknown-time rank before the ACL cap',array_column($after['rows'],'id')===array_column($expectedRows,'id')&&$after['metadata']===['candidate_count'=>count($candidateIds),'limit_reached'=>count($candidateIds)===200]);
+    }else inboxNativeCheck($label.' preserves the exact legacy candidate metadata',$before['metadata']===$after['metadata']);
     if ($redactedLikeFixtureId !== null) {
         $redactedLikeRows=0;
         foreach ($expectedRows as &$expectedRow) {
@@ -117,9 +137,49 @@ function inboxNativePair(InboxPageNativePdo $pdo, string $label, array $argument
         } unset($expectedRow);
         inboxNativeCheck($label . ' permits redaction of exactly the designated like fixture', $redactedLikeRows===1);
     }
-    inboxNativeCheck($label . ' preserves every returned field and candidate metadata except an explicitly designated like token', $expectedRows === $after['rows'] && $before['metadata'] === $after['metadata']);
+    $compatible=$after['rows'];$waitFields=['reply_wait_started_unix','reply_wait_started_at','reply_wait_age_seconds','reply_wait_time_known'];$validAdded=true;$validNeeded=true;$validLegacyPrefix=true;
+    $legacyMarker=new ReflectionMethod(BaselineManagerConversationService::class,'formatWaitAge');
+    foreach($compatible as $index=>&$row){
+        $id=(int)$row['id'];$expected=$expectedRows[$index]??null;
+        if(!$expected)throw new RuntimeException('FAIL missing paired legacy row');
+        $added=array_diff_key($row,$expected);
+        $validAdded=$validAdded&&array_keys($added)===$waitFields&&$added===array_combine($waitFields,[null,null,null,false]);
+        // Pending flags are fixture facts, not a duplicate of the production SQL.
+        // The isolated preview rows below are all explicitly in AI mode.
+        if(!isset($fixtures[$id])&&!in_array($id,range(701,709),true))throw new RuntimeException('Unreviewed current-wait fixture');
+        $needed=(int)($fixtures[$id]['pending']??false);
+        $validNeeded=$validNeeded&&(int)$row['awaiting_manager_reply']===$needed;
+        foreach(['last_text','last_preview_text'] as $field){
+            $body=$expected[$field];
+            if(!empty($expected['awaiting_first_reply'])){
+                $marker=$legacyMarker->invoke(null,(int)($expected['wait_age_seconds']??0));
+                if($body===$marker)$body='';
+                elseif(is_string($body)&&str_starts_with($body,$marker.' · '))$body=substr($body,strlen($marker.' · '));
+                else $validLegacyPrefix=false;
+            }
+            // Only a proven legacy first-reply marker is removed. In particular,
+            // customer text resembling a timer is never stripped by a regexp.
+            $expectedRows[$index][$field]=$needed?'⏱ Ждёт ответа · время неизвестно'.(trim((string)$body)!==''?' · '.trim((string)$body):''):$body;
+        }
+        foreach($waitFields as $field)unset($row[$field]);
+        unset($row['awaiting_manager_reply'],$expectedRows[$index]['awaiting_manager_reply']);
+    }unset($row);
+    inboxNativeCheck($label.' adds only truthful unknown current-wait fields',$validAdded);
+    inboxNativeCheck($label.' has the exact independently seeded reply flags',$validNeeded);
+    inboxNativeCheck($label.' replaces only the exact proven legacy timer prefix',$validLegacyPrefix);
+    inboxNativeCheck($label . ' preserves every legacy non-queue field except an explicitly designated like token', $expectedRows === $compatible);
     inboxNativeCheck($label . ' preserves the bounded number of SQL executions', $before['sql_count'] === $after['sql_count']);
     return [$before, $after];
+}
+
+/** Isolate the existing four-to-one preview optimization under ONE queue policy. */
+function inboxNativeFourPreviewSql(string $sql): string
+{
+    $current='last_message.text AS last_text,last_message.direction AS last_direction,last_message.sender_type AS last_sender_type,last_message.metadata_json AS last_metadata_json,';
+    $old='';foreach(['text'=>'last_text','direction'=>'last_direction','sender_type'=>'last_sender_type','metadata_json'=>'last_metadata_json'] as $field=>$alias)$old.='(SELECT mm.'.$field.' FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) AS '.$alias.',';
+    $join=' LEFT JOIN messages last_message ON last_message.id=(SELECT mm.id FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1)';
+    if(substr_count($sql,$current)!==1||substr_count($sql,$join)!==1)throw new RuntimeException('Unreviewed native preview SQL shape');
+    return str_replace([$current,$join],[$old,''],$sql);
 }
 
 function inboxNativeReadState(PDO $pdo): array
@@ -162,13 +222,14 @@ function inboxNativeMedian(array $values): float
     return $n % 2 ? $values[intdiv($n, 2)] : ($values[$n / 2 - 1] + $values[$n / 2]) / 2;
 }
 
-/** Unchanged full list is the independent data reference for counter reduction. */
+/** Full current lists plus the old raw notification population are the reference. */
 function inboxNativeReferenceCounts(int $manager,string $project): array
 {
-    $raw=ManagerConversationService::list($manager,'waiting',200,$project);
+    $raw=BaselineManagerConversationService::list($manager,'waiting',200,$project);
+    $operational=ManagerConversationService::list($manager,'waiting',200,$project);
     $requested=ManagerConversationService::list($manager,'requested',200,$project);
     $mine=ManagerConversationService::list($manager,'mine',200,$project);
-    $waiting=ManagerDeliveryStateService::withoutSuspendedRecipients($raw);
+    $waiting=ManagerDeliveryStateService::withoutSuspendedRecipients($operational);
     $unread=static fn(array $rows):int=>array_sum(array_map(static fn(array $r):int=>(int)$r['unread_count'],$rows));
     $unique=[];foreach([...$raw,...$mine] as $r)$unique[(int)$r['id']]=max($unique[(int)$r['id']]??0,(int)$r['unread_count']);
     return ['waiting'=>['count'=>count($waiting),'unread'=>$unread(array_filter($waiting,static fn(array $r):bool=>empty($r['manager_id'])))],
@@ -312,20 +373,24 @@ try {
     inboxNativeCheck('all read-only comparisons preserve read cursors and conversation business state', inboxNativeReadState($pdo) === $initialReads && $pdo->query('SELECT id,status,manager_id FROM conversations ORDER BY id')->fetchAll() === $businessBefore);
 
     // Both plans run outside all measured list intervals; no EXPLAIN ANALYZE.
-    $beforePlan=inboxNativePlan($pdo,$before['sql'],$before['args']);$afterPlan=inboxNativePlan($pdo,$after['sql'],$after['args']);
-    echo 'PLAN before ' . json_encode($beforePlan,JSON_THROW_ON_ERROR) . "\n";
-    echo 'PLAN after ' . json_encode($afterPlan,JSON_THROW_ON_ERROR) . "\n";
+    $fourPreviewSql=inboxNativeFourPreviewSql($after['sql']);
+    $beforePlan=inboxNativePlan($pdo,$fourPreviewSql,$after['args']);$afterPlan=inboxNativePlan($pdo,$after['sql'],$after['args']);
+    echo 'PLAN same_current_policy_four_previews ' . json_encode($beforePlan,JSON_THROW_ON_ERROR) . "\n";
+    echo 'PLAN same_current_policy_one_join ' . json_encode($afterPlan,JSON_THROW_ON_ERROR) . "\n";
     inboxNativeCheck('native plan resolves the latest message once and joins one exact row',$beforePlan['latest_message_lookups']===4&&$afterPlan['latest_message_lookups']===1&&$afterPlan['latest_row_joins']===1);
-    $beforeReads=inboxNativeKeyReads($pdo,$before['sql'],$before['args']);$afterReads=inboxNativeKeyReads($pdo,$after['sql'],$after['args']);
-    inboxNativeCheck('actual native logical key reads decrease with identical captured SQL rows',$beforeReads['rows']===$afterReads['rows']&&$afterReads['handler_read_key']<$beforeReads['handler_read_key']);
-    echo 'PREVIEW_READS '.json_encode(['driver'=>'mysql','candidate_rows'=>count($afterReads['rows']),'before'=>$beforeReads['handler_read_key'],'after'=>$afterReads['handler_read_key'],'production_latency'=>null],JSON_THROW_ON_ERROR)."\n";
+    $beforeReads=inboxNativeKeyReads($pdo,$fourPreviewSql,$after['args']);$afterReads=inboxNativeKeyReads($pdo,$after['sql'],$after['args']);
+    inboxNativeCheck('actual preview-only native key reads decrease under identical current queue policy',$beforeReads['rows']===$afterReads['rows']&&$afterReads['handler_read_key']<$beforeReads['handler_read_key']);
+    $pinnedReads=inboxNativeKeyReads($pdo,$before['sql'],$before['args']);
+    echo 'PREVIEW_READS '.json_encode(['driver'=>'mysql','policy'=>'same_current_queue','candidate_rows'=>count($afterReads['rows']),'four_projections'=>$beforeReads['handler_read_key'],'one_join'=>$afterReads['handler_read_key'],'production_latency'=>null],JSON_THROW_ON_ERROR)."\n";
+    echo 'TOTAL_POLICY_READS '.json_encode(['pinned_legacy_policy'=>$pinnedReads['handler_read_key'],'current_policy'=>$afterReads['handler_read_key'],'improvement_claimed'=>false],JSON_THROW_ON_ERROR)."\n";
     // Two warmups each, then alternating order against exactly the same rows.
     for ($warm = 0; $warm < 2; ++$warm) foreach ([BaselineManagerConversationService::class,ManagerConversationService::class] as $class) inboxNativeRun($pdo,$class,$arguments);
     $samples = ['before'=>[],'after'=>[]]; $execSamples = $samples; $counts = $samples;
     for ($sample = 0; $sample < 20; ++$sample) {
         foreach ($sample % 2 ? ['after','before'] : ['before','after'] as $variant) {
             $result = inboxNativeRun($pdo,$variant === 'before' ? BaselineManagerConversationService::class : ManagerConversationService::class,$arguments);
-            if ($result['rows'] !== $before['rows'] || $result['metadata'] !== $before['metadata']) throw new RuntimeException('FAIL timed sample preserves the exact immutable fixture result');
+            $expectedSample=$variant==='before'?$before:$after;
+            if ($result['rows'] !== $expectedSample['rows'] || $result['metadata'] !== $expectedSample['metadata']) throw new RuntimeException('FAIL timed sample preserves its exact immutable policy result');
             $samples[$variant][] = round($result['ms'],3); $execSamples[$variant][] = round($result['list_execute_ms'],3); $counts[$variant][] = $result['sql_count'];
         }
     }
@@ -372,19 +437,24 @@ try {
     $pdo->exec('DELETE FROM manager_group_members WHERE manager_id=7');
     inboxNativeCheck('native counters retain revoked-source post-cap visibility',ManagerQueueProjectionService::counts(7,'native-inbox')===inboxNativeReferenceCounts(7,'native-inbox'));
     $pdo->exec('INSERT INTO manager_group_members VALUES(7,101),(7,103)');
+    inboxNativeCheck('native benchmark Waiting retains its full 200-row cap outside the routing cohort',count(ManagerConversationService::queueCountRows(7,'waiting','native-inbox'))===200);
+    // The benchmark above deliberately fills the current unknown-time page.
+    // Give this separate routing/suspension contract its own granted project;
+    // IDs 801/802 must not depend on displacing older benchmark candidates.
+    $pdo->exec("INSERT INTO projects VALUES(4,'native-routing','Synthetic routing cohort',1);INSERT INTO manager_projects VALUES(7,4)");
     $pdo->exec("INSERT INTO conversation_sources VALUES(3,'Delayed',102,'delayed',103,30,1)");
     foreach([[801,'2000-01-01 00:00:00'],[802,'2099-01-01 00:00:00']] as [$id,$at]){
-        $conversation->execute([$id,1,'native-inbox',3,'max','waiting_manager','new',null,$at,$at,0]);$event->execute([$id,$at]);
+        $conversation->execute([$id,1,'native-routing',3,'max','waiting_manager','new',null,$at,$at,0]);$event->execute([$id,$at]);
         $message->execute([$id*100,$id,'inbound','customer','max','Delayed routing','{}',$at]);
     }
-    $waitingIds=array_map('intval',array_column(ManagerConversationService::queueCountRows(7,'waiting','native-inbox'),'id'));
-    inboxNativeCheck('native counter routing retains elapsed and future fallback timestamps',in_array(801,$waitingIds,true)&&!in_array(802,$waitingIds,true));
-    $beforeFailure=ManagerQueueProjectionService::counts(7,'native-inbox');
+    $waitingIds=array_map('intval',array_column(ManagerConversationService::queueCountRows(7,'waiting','native-routing'),'id'));
+    inboxNativeCheck('native counter routing retains elapsed and future fallback timestamps',$waitingIds===[801]);
+    $beforeFailure=ManagerQueueProjectionService::counts(7,'native-routing');
     $pdo->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at,payload_json) VALUES(801,'manager_message_failed','2026-10-17 00:00:00','{\"category\":\"suspended\"}')");
-    $suspended=ManagerQueueProjectionService::counts(7,'native-inbox');
-    inboxNativeCheck('native suspended Waiting changes actionable totals but retains raw notification unread',$suspended===inboxNativeReferenceCounts(7,'native-inbox')&&$suspended['waiting']['count']===$beforeFailure['waiting']['count']-1&&$suspended['waiting']['unread']===$beforeFailure['waiting']['unread']-1&&$suspended['notification_unread']===$beforeFailure['notification_unread']);
+    $suspended=ManagerQueueProjectionService::counts(7,'native-routing');
+    inboxNativeCheck('native suspended Waiting changes actionable totals but retains raw notification unread',$suspended===inboxNativeReferenceCounts(7,'native-routing')&&$suspended['waiting']['count']===$beforeFailure['waiting']['count']-1&&$suspended['waiting']['unread']===$beforeFailure['waiting']['unread']-1&&$suspended['notification_unread']===$beforeFailure['notification_unread']);
     $pdo->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at,actor_type) VALUES(801,'bot_started','2026-10-17 00:00:00','system')");
-    inboxNativeCheck('native same-second canonical restart restores the counter',ManagerQueueProjectionService::counts(7,'native-inbox')===$beforeFailure);
+    inboxNativeCheck('native same-second canonical restart restores the counter',ManagerQueueProjectionService::counts(7,'native-routing')===$beforeFailure);
     $pdo->beginTransaction();
     $pdo->exec("UPDATE conversations SET last_message_at='2026-10-15 12:00:00' WHERE status='manager'; UPDATE conversation_events SET created_at='2098-01-01 00:00:00' WHERE event_type='waiting_manager'");
     foreach(['waiting','requested','mine'] as $queue){

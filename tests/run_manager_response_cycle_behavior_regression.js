@@ -68,6 +68,10 @@ test('dirty task and revoked access stop next transition without marking the nex
  assert.equal(await h.C.nextWaiting(),false);assert.equal(h.calls.length,before);assert.equal(h.W.S.current,101);assert.deepEqual(reads,[]);
  h.window.WorkspaceV2Tasks.blockNavigationForDirtyDraft=()=>false;h.setHook((url,r)=>url==='api.php'&&r.action==='detail'?response({ok:false},403):null);assert.equal(await h.C.nextWaiting(),false);assert.equal(h.W.S.current,101);assert.deepEqual(reads,[]);assertNoMutations(h);
 });
+test('next waiting respects an explicit resolved reply flag ahead of historical first-wait and lifecycle fields',async()=>{
+ const h=await setup();h.window.WorkspaceV2Inbox.getLoadedSelection=()=>[{id:101,awaiting_manager_reply:1},{id:102,awaiting_manager_reply:0,awaiting_first_reply:1,status:'waiting_manager'},{id:103,awaiting_manager_reply:1,awaiting_first_reply:0}];
+ assert.equal(await h.C.nextWaiting(),true);assert.equal(h.W.S.current,103);assertNoMutations(h);
+});
 
 test('empty waiting selection reports the bounded scope and does not trigger background reads',async()=>{
  const h=await setup();h.window.WorkspaceV2Inbox.getLoadedSelection=()=>[{id:101,awaiting_manager_reply:1},{id:105,status:'ai',unread_count:5}];const before=h.calls.length;assert.equal(await h.C.nextWaiting(),false);assert.equal(h.calls.length,before);assert.match(h.ids.get('conversationLoadStatus').textContent,/В загруженной подборке больше нет/);assertNoMutations(h);

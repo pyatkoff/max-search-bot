@@ -38,6 +38,12 @@ $m = new MissingQuestionTestMessenger();
 IntegrationRegistry::resetForTests($m,null,null);
 
 mfqCheck('city question', MissingFieldQuestionService::question('city'), 'Из какого города планируете вылет?');
+$cityRecovery = MissingFieldQuestionService::question('city', ['unresolved_city'=>true]);
+mfqCheck('unresolved departure explains the failed selection', str_contains($cityRecovery, 'Не получилось принять этот город'), true);
+mfqCheck('unresolved departure offers existing manager request', str_contains($cityRecovery, '«Позвать менеджера»'), true);
+mfqCheck('unresolved departure does not claim flights are unavailable', str_contains($cityRecovery, 'нет вылетов'), false);
+mfqCheck('departure recovery never replaces another missing question',
+    MissingFieldQuestionService::question('country', ['unresolved_city'=>true]), 'Куда хотите поехать?');
 mfqCheck('country default question', MissingFieldQuestionService::question('country'), 'Куда хотите поехать?');
 mfqCheck('country explicit question', MissingFieldQuestionService::question('country',['country_explicit'=>true]), 'В какую страну хотите поехать?');
 mfqCheck('month-only date question', MissingFieldQuestionService::question('date',['month_only'=>true]), 'Подскажите ориентировочную дату вылета в этом месяце — например, в начале, середине или конце.');

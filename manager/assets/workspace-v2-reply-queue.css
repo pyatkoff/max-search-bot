@@ -1,0 +1,7 @@
+.replyQueueStatus{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;padding:8px 16px;border-bottom:1px solid var(--line,#e4e9e7);background:#f2f7f4;color:#315446;font-size:12px;line-height:1.5;flex:0 0 auto}
+.replyQueueStatus[hidden]{display:none}
+#replyQueueText{white-space:pre-line;overflow-wrap:anywhere;flex:1 1 240px;min-width:0}
+.replyQueueStatus .actionBtn{min-height:36px;white-space:normal;flex:0 0 auto}
+.replyQueueStatus.error{background:#fff8e9;color:#77591e}
+.replyQueueStatus.pending{border-left:3px solid #bc963d}
+@media(max-width:480px){.replyQueueStatus{padding:7px 12px;gap:5px 8px}.replyQueueStatus .actionBtn{min-height:40px}#replyQueueText{flex-basis:100%}}

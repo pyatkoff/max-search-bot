@@ -24,7 +24,7 @@ $passed=0;$failed=0;
 function mvCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
 mvCheck('ordinary all queue includes unassigned plus own',strpos($service,"(c.manager_id IS NULL OR c.manager_id=?)")!==false);
-mvCheck('own-only restriction is only for non-admin',strpos($service,"if(!\$isAdmin){\$sql.=' AND (c.manager_id IS NULL OR c.manager_id=?)'")!==false&&str_contains($service,'self::queuePredicate($queue,$managerId,$isAdmin,$args)'));
+mvCheck('own-only restriction is only for non-admin',strpos($service,"if(!\$isAdmin){\$sql.=' AND (c.manager_id IS NULL OR c.manager_id=?)'")!==false&&str_contains($service,'self::queuePredicate($queue,$managerId,$isAdmin,$args,$rawWaiting)'));
 mvCheck('admin manager filter is optional',strpos($service,"if(\$isAdmin && \$queue!=='mine')")!==false);
 mvCheck('admin unassigned filter exists',strpos($service,"\$managerFilter==='unassigned'")!==false);
 mvCheck('admin mine filter exists',strpos($service,"\$managerFilter==='mine'")!==false);

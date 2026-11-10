@@ -71,6 +71,26 @@ function renderHarness(overrides={}) {
   assert.doesNotMatch(card.className,/waitUrgent|waitWarn|needsReply/,'suspended recipients have no automatic reply/SLA visual urgency even with old contradictory flags');
   assert.doesNotMatch(card.innerHTML,/leadWaitCompact|Ждёт ответа|Срочно/);assert.match(card.innerHTML,/Клиент недоступен в MAX/);assert.match(card.innerHTML,/Позвонить по договорённости/);assert.match(card.innerHTML,/leadTaskCompact overdue/,'human task deadline stays visible');
   blocked.render([{...row,delivery_failure_category:null}]);const recoveredCard=blocked.list.children.find(node=>node.dataset.conversationId==='71');assert.match(recoveredCard.className,/waitUrgent/);assert.match(recoveredCard.innerHTML,/Ждёт ответа|Срочно/,'recovered recipients regain normal automatic urgency');
+  const recurring=renderHarness({queue:'mine'}),pending={id:72,display_name:'Synthetic recurring wait',status:'manager',manager_id:7,awaiting_first_reply:0,awaiting_manager_reply:1,wait_age_seconds:7200,reply_wait_started_unix:1770000000,reply_wait_started_at:'2026-02-02T02:40:00Z',reply_wait_age_seconds:181,reply_wait_time_known:true,unread_count:5};
+  const currentWaitRow=()=>recurring.list.children.find(node=>node.dataset.conversationId==='72');
+  recurring.render([pending]);const pendingRow=currentWaitRow();
+  assert.match(pendingRow.className,/waitWarn/);assert.doesNotMatch(pendingRow.className,/waitUrgent/,'a recurring wait uses its own age, not the old first-reply metric');
+  assert.match(pendingRow.innerHTML,/leadWaitCompact/);assert.match(pendingRow.innerHTML,/Ожидание ответа: 181 seconds/);assert.match(pendingRow.innerHTML,/unreadBadge/);
+  recurring.render([{...pending,wait_age_seconds:7215,reply_wait_age_seconds:195}]);assert.equal(currentWaitRow(),pendingRow,'elapsed seconds within one displayed minute retain the native row');
+  recurring.render([{...pending,reply_wait_age_seconds:240}]);assert.notEqual(currentWaitRow(),pendingRow,'the next displayed minute refreshes the wait badge');
+  recurring.render([{...pending,reply_wait_age_seconds:300}]);assert.match(currentWaitRow().className,/waitUrgent/,'the existing five-minute threshold applies to a recurring wait');
+  recurring.render([{...pending,awaiting_first_reply:1,reply_wait_age_seconds:null,reply_wait_time_known:false}]);const unknownRow=currentWaitRow();
+  assert.match(unknownRow.innerHTML,/Время неизвестно/);assert.match(unknownRow.innerHTML,/время начала неизвестно/);assert.doesNotMatch(unknownRow.innerHTML,/0 seconds|Срочно|Скоро/,'an explicit unknown age never falls back to a zero or the raw first-reply age');
+  assert.doesNotMatch(unknownRow.className,/waitWarn|waitUrgent/);
+  for(const invalid of [-1,1.5,true,'12']){
+    const meta=recurring.inbox.replyWaitMeta({...pending,reply_wait_age_seconds:invalid});assert.equal(meta.known,false);assert.equal(meta.seconds,null);assert.equal(meta.urgency,'');
+  }
+  recurring.render([{...pending,awaiting_first_reply:1,awaiting_manager_reply:0,reply_wait_age_seconds:null,reply_wait_time_known:false}]);
+  assert.doesNotMatch(currentWaitRow().innerHTML,/leadWaitCompact|Ждёт ответа/,'the current queue decision wins over an unchanged historical first-reply flag');
+  recurring.render([{...pending,reply_wait_age_seconds:0}]);assert.match(currentWaitRow().innerHTML,/Ожидание ответа: 0 seconds/,'a known new wait may legitimately start at zero');
+  const old=recurring.inbox.replyWaitMeta({awaiting_first_reply:1,wait_age_seconds:180});assert.equal(old.waiting,true);assert.equal(old.urgency,'warn','cached initial-reply rows retain their existing display');
+  assert.equal(recurring.inbox.replyWaitMeta({awaiting_first_reply:0,awaiting_manager_reply:1,wait_age_seconds:7200}).waiting,false,'a cached recurring wait without the new model does not invent its age');
+  assert.equal(recurring.inbox.replyWaitMeta({...pending,delivery_failure_category:'suspended'}).waiting,false,'delivery suspension still suppresses the automatic waiting badge');
   for (const filter of [
     {leadSearch: 'Анна'}, {leadTaskFilter: 'overdue'}, {leadOutcomeFilter: 'won'},
     {leadStageFilter: 'selection'}, {leadTagFilter: 7}, {leadSourceFilter: 5}, {leadSourceFilter: -1},

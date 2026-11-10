@@ -13,6 +13,7 @@ require_once __DIR__ . '/SalesPipelineService.php';
 require_once __DIR__ . '/ManagerCallbackPresentationService.php';
 require_once __DIR__ . '/ManagerHandoffCancellationViewService.php';
 require_once __DIR__ . '/TourChoiceService.php';
+require_once __DIR__ . '/ManagerReplyQueueService.php';
 
 class ManagerConversationService
 {
@@ -49,11 +50,7 @@ class ManagerConversationService
     /** Read state is independent of a recorded manager reply. Callbacks are not customer messages. */
     public static function awaitingManagerReplySql(string $conversationAlias='c'): string
     {
-        $conversationAlias=preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/D',$conversationAlias)?$conversationAlias:'c';
-        $first=self::awaitingFirstReplySql($conversationAlias);
-        $suspended=ManagerDeliveryStateService::activeSuspensionSql($conversationAlias);
-        $type="COALESCE(JSON_UNQUOTE(JSON_EXTRACT(CASE WHEN JSON_VALID(mc.metadata_json) THEN mc.metadata_json ELSE '{}' END,'$.type')),'message')";
-        return "({$conversationAlias}.status='manager' AND NOT ({$suspended}) AND ({$first} OR EXISTS (SELECT 1 FROM messages mc WHERE mc.conversation_id={$conversationAlias}.id AND mc.direction='inbound' AND mc.sender_type='customer' AND {$type} NOT IN ('callback','start','bot_started') AND mc.id>COALESCE((SELECT MAX(mo.id) FROM messages mo WHERE mo.conversation_id={$conversationAlias}.id AND mo.direction='outbound' AND mo.sender_type='manager'),0))))";
+        return ManagerReplyQueueService::neededSql($conversationAlias);
     }
 
     private static function formatWaitAge(int $seconds): string
@@ -67,10 +64,10 @@ class ManagerConversationService
     }
 
     /** One canonical lifecycle/ownership predicate, also used by saved unions. */
-    private static function queuePredicate(string $queue,int $managerId,bool $isAdmin,array &$args): string
+    private static function queuePredicate(string $queue,int $managerId,bool $isAdmin,array &$args,bool $rawWaiting=false): string
     {
         if($queue==='attention'||$queue==='waiting'){
-            $sql="((c.status='waiting_manager' AND c.manager_id IS NULL) OR ".self::awaitingFirstReplySql('c').')';
+            $sql=$rawWaiting?"((c.status='waiting_manager' AND c.manager_id IS NULL) OR ".self::awaitingFirstReplySql('c').')':self::awaitingManagerReplySql('c');
             if($queue==='waiting'||!$isAdmin){$sql.=' AND (c.manager_id IS NULL OR c.manager_id=?)';$args[]=$managerId;}
             return '('.$sql.')';
         }
@@ -99,7 +96,13 @@ class ManagerConversationService
         return self::listRows($managerId,$queue,200,$projectKey,'','',0,[],$pageMetadata,true);
     }
 
-    private static function listRows(int $managerId,string $queue,int $limit,string $projectKey,string $managerFilter,string $leadStageKey,int $leadTagId,array $personalFilters,?array &$pageMetadata,bool $countsOnly): array
+    /** Notification unread keeps its prior raw lifecycle population; a decision is not reading. */
+    public static function notificationWaitingRows(int $managerId,string $projectKey='*'): array
+    {
+        return self::listRows($managerId,'waiting',200,$projectKey,'','',0,[],$pageMetadata,true,true);
+    }
+
+    private static function listRows(int $managerId,string $queue,int $limit,string $projectKey,string $managerFilter,string $leadStageKey,int $leadTagId,array $personalFilters,?array &$pageMetadata,bool $countsOnly,bool $rawWaiting=false): array
     {
         RoutingAccessService::ensureSchema();ManagerReadService::ensureSchema();
         $manager=ManagerAuthService::byId($managerId);if(!$manager)return[];$isAdmin=ManagerAuthService::isAdmin($manager);
@@ -122,7 +125,7 @@ class ManagerConversationService
             $where[]='('.implode(' OR ',$parts).')';
             // A union has one newest-first bounded page, never one page per queue.
             $queue=count($queues)===1?$queues[0]:'personal';
-        }else $where[]=self::queuePredicate($queue,$managerId,$isAdmin,$args);
+        }else $where[]=self::queuePredicate($queue,$managerId,$isAdmin,$args,$rawWaiting);
 
         if($isAdmin && $queue!=='mine'){
             $managerFilter=trim($managerFilter);
@@ -163,7 +166,7 @@ class ManagerConversationService
             if($source>0){$where[]='c.source_id=?';$args[]=$source;}
             elseif($source===-1)$where[]='(c.source_id IS NULL OR c.source_id<=0)';
             if(isset($personalFilters['reply_needed'])&&!is_bool($personalFilters['reply_needed']))throw new InvalidArgumentException('Invalid personal reply filter');
-            if(!empty($personalFilters['reply_needed']))$where[]="(c.status='waiting_manager' OR ".self::awaitingManagerReplySql('c').')';
+            if(!empty($personalFilters['reply_needed']))$where[]=self::awaitingManagerReplySql('c');
             if(array_key_exists('ids',$personalFilters)){
                 $ids=$personalFilters['ids'];
                 if(!is_array($ids)||!array_is_list($ids)||count($ids)>2000)throw new InvalidArgumentException('Invalid personal IDs');
@@ -176,13 +179,15 @@ class ManagerConversationService
         $mid=(int)$managerId;
         $requestSql=self::latestManagerRequestSql('c');
         $awaitingSql=self::awaitingFirstReplySql('c');
-        $replySql=($queue==='mine'||($queue==='personal'&&in_array('mine',$queues,true)))?self::awaitingManagerReplySql('c'):'0';
+        $replySql=self::awaitingManagerReplySql('c');
         $replyProjection='CASE WHEN '.$replySql.' THEN 1 ELSE 0 END';
+        $currentWaitSql=ManagerReplyQueueService::waitStartedSql('c',ConversationDb::connection()->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql');
+        $currentWaitOrder=in_array($queue,['waiting','attention'],true)&&!$rawWaiting;
         $whereSql=implode(' AND ',$where);
-        $orderSql=($queue==='attention'||$queue==='waiting')?'COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC':($queue==='requested'?'manager_request_at DESC':($queue==='mine'?'awaiting_manager_reply DESC,COALESCE(c.last_message_at,c.started_at) DESC':'COALESCE(c.last_message_at,c.started_at) DESC'));
+        $orderSql=$currentWaitOrder?'(reply_wait_started_unix IS NULL) ASC,reply_wait_started_unix ASC':(($queue==='attention'||$queue==='waiting')?'COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC':($queue==='requested'?'manager_request_at DESC':($queue==='mine'?'awaiting_manager_reply DESC,COALESCE(c.last_message_at,c.started_at) DESC':'COALESCE(c.last_message_at,c.started_at) DESC')));
         // A projection's row width may change a database sort plan. Resolve
         // equal timestamps identically before the cap in list and counters.
-        if(in_array($queue,['waiting','requested','mine'],true))$orderSql.=',c.id '.($queue==='waiting'?'ASC':'DESC');
+        if(in_array($queue,['waiting','attention','requested','mine'],true))$orderSql.=',c.id '.(in_array($queue,['waiting','attention'],true)?'ASC':'DESC');
         $fromSql='FROM conversations c JOIN customers cu ON cu.id=c.customer_id';
         $predicateSql=' WHERE '.$whereSql;
         if($queue==='mine'){
@@ -202,12 +207,13 @@ class ManagerConversationService
         if($countsOnly){
             $rankProjection=$queue==='mine'?$replyProjection.' AS awaiting_manager_reply':$requestSql.' AS manager_request_at';
             $sql='SELECT c.id,c.project_key,c.source_id,c.status,c.manager_id,c.started_at,c.last_message_at,'
-                .$rankProjection.','.$unreadProjection.$fromSql.$predicateSql.' ORDER BY '.$orderSql.' LIMIT 200';
+                .$rankProjection.','.($currentWaitOrder?$currentWaitSql.' AS reply_wait_started_unix,':'').$unreadProjection.$fromSql.$predicateSql.' ORDER BY '.$orderSql.' LIMIT 200';
         }else $sql='SELECT c.id,c.project_key,c.source_id,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,c.status,c.lead_stage_key,c.manager_id,c.started_at,c.last_message_at,c.closed_at,c.customer_id,'
             .'cu.display_name AS original_display_name,cn.working_name,COALESCE(cn.version,0) AS customer_name_version,COALESCE(cn.working_name,cu.display_name) AS display_name,m.display_name AS manager_name,p.display_name AS project_name,s.display_name AS source_name,'
             .$requestSql.' AS manager_request_at,CASE WHEN '.$awaitingSql.' THEN 1 ELSE 0 END AS awaiting_first_reply,'
             .$replyProjection.' AS awaiting_manager_reply,'
             .'GREATEST(TIMESTAMPDIFF(SECOND,'.$requestSql.',NOW()),0) AS wait_age_seconds,'
+            .$currentWaitSql.' AS reply_wait_started_unix,'
             .'last_message.text AS last_text,last_message.direction AS last_direction,last_message.sender_type AS last_sender_type,last_message.metadata_json AS last_metadata_json,'
             .$unreadProjection
             .$fromSql.' LEFT JOIN messages last_message ON last_message.id=(SELECT mm.id FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) LEFT JOIN manager_customer_names cn ON cn.customer_id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id'.$predicateSql
@@ -229,6 +235,7 @@ class ManagerConversationService
         unset($row);
         $rows=SalesPipelineService::decorateConversationRows($rows);
         $failures=ManagerDeliveryStateService::activeFailures(array_map(static function($row){return(int)($row['id']??0);},$rows));
+        $rows=ManagerReplyQueueService::decorate($rows);
         $rows=self::decorateLastMessagePreviews($rows,$failures);
         return array_slice($rows,0,$limit);
     }
@@ -251,7 +258,8 @@ class ManagerConversationService
                 foreach(['last_text','last_preview_text'] as $field){$preview=trim((string)($row[$field]??''));$row[$field]='Клиент недоступен в MAX'.($preview!==''?' · '.$preview:'');}
                 continue;
             }
-            if(!empty($row['awaiting_first_reply'])){foreach(['last_text','last_preview_text'] as $field){$preview=trim((string)($row[$field]??''));$marker=self::formatWaitAge((int)($row['wait_age_seconds']??0));$row[$field]=$marker.($preview!==''?' · '.$preview:'');}}
+            $hasCurrent=array_key_exists('reply_wait_age_seconds',$row);
+            if($hasCurrent?!empty($row['awaiting_manager_reply']):!empty($row['awaiting_first_reply'])){foreach(['last_text','last_preview_text'] as $field){$preview=trim((string)($row[$field]??''));$age=$hasCurrent?$row['reply_wait_age_seconds']:($row['wait_age_seconds']??0);$marker=$age===null?'⏱ Ждёт ответа · время неизвестно':self::formatWaitAge((int)$age);$row[$field]=$marker.($preview!==''?' · '.$preview:'');}}
         }unset($row);
         return $rows;
     }
@@ -380,6 +388,9 @@ class ManagerConversationService
         $limit=max(1,min(200,$limit));
         ManagerReadService::ensureSchema();
         $conversation=self::visibleConversation($conversationId,$managerId,true);if(!$conversation)return null;
+        // Capture the displayed action's frontier BEFORE fetching the transcript:
+        // an inbound arriving between reads must never be silently resolved.
+        $replyQueue=$beforeId===0?ManagerReplyQueueService::snapshot($managerId,$conversationId):null;
         $supervisorRead=(int)($conversation['manager_id']??0)!==$managerId&&ManagerSupervisorAccessService::canRead($managerId,$conversation);
         $pdo=ConversationDb::connection();
         $sql='SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=?'.($beforeId>0?' AND id<?':'').' ORDER BY id DESC LIMIT '.($limit+1);
@@ -411,6 +422,7 @@ class ManagerConversationService
         $detail=['conversation'=>$conversation,'messages'=>$messages,'has_manager_reply'=>(bool)$q->fetchColumn(),
             'history'=>['has_more'=>$hasMore,'before_id'=>$messages?(int)$messages[0]['id']:0,'page_size'=>$limit,'mode'=>$beforeId>0?'older':'latest']+$opening,
             'handoff_cancellation'=>ManagerHandoffCancellationViewService::fromVisibleContext($conversation)];
+        if($beforeId===0)$detail['reply_queue']=!empty($replyQueue['ok'])?$replyQueue['reply_queue']:null;
         // Only after the existing visibility check; an optional panel failure
         // must not make the customer's conversation unavailable.
         if ($beforeId === 0) {

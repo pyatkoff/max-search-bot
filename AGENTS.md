@@ -66,9 +66,12 @@ See `docs/ARCHITECTURE.md` for the detailed dependency contract.
 
 Product policy is fixed unless explicitly changed by the user:
 - working window: 11:00–21:00 Europe/Moscow;
-- during working hours, manager handoff must not be blocked by mandatory phone capture;
-- after 5 minutes without a manager reply, offer phone capture once through the existing fallback;
-- outside working hours, prefer self-service tours/site plus optional phone with a truthful next-working-period expectation.
+- every explicit manager request and non-hotel manager-first source enters `waiting_manager` at any hour, before customer confirmation; phone capture is optional and never gates handoff;
+- outside working hours, keep that handoff and give a truthful next-working-period response expectation; self-service remains an optional continuation;
+- hotel-channel and feed entries collect useful missing trip needs first; entry alone neither promises a manager nor enters `waiting_manager`, while an explicit manager request still uses immediate handoff; once enough conditions are available, the qualifying flow uses canonical manager handoff before confirming it;
+- send the initial manager-entry greeting only for a new handoff; waiting or assigned conversations keep their owner, quiet source reentry and no duplicate queue events or push;
+- after the initial manager-entry greeting, ordinary customer messages go to the existing manager/queue with notification and no bot reply, including legacy phone-step messages and typed numbers;
+- automatic five-minute phone offers are disabled; explicit contact/manual-phone actions remain customer initiated.
 
 Presentation of SLA/urgency must not silently mutate routing or manager shift state.
 

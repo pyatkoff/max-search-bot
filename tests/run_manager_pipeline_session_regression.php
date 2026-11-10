@@ -68,10 +68,15 @@ PHP);
     file_put_contents($tmp.'/services/ConversationDb.php', <<<'PHP'
 <?php
 class ConversationDb {static function connection(){return new CardSessionDb;}static function isConfigured():bool{return true;}}
-class CardSessionDb {function prepare($sql){return new CardSessionStatement(preg_replace('/\s+/',' ',trim($sql)));}}
-class CardSessionStatement {
+class CardSessionDb extends PDO {
+    function __construct(){}
+    function getAttribute(int $attribute):mixed{if($attribute===PDO::ATTR_DRIVER_NAME)return 'mysql';throw new LogicException('Unsupported fixture attribute');}
+    function prepare(string $sql,array $options=[]):PDOStatement|false{return new CardSessionStatement(preg_replace('/\s+/',' ',trim($sql)));}
+}
+class CardSessionStatement extends PDOStatement {
     private array $rows=[];function __construct(private string $sql){}
-    function execute(array $args=[]):bool {
+    function execute(?array $args=null):bool {
+        $args??=[];
         $sql=$this->sql;$this->rows=[];
         file_put_contents(__DIR__.'/../queries.jsonl',json_encode(['sql'=>$sql,'active'=>session_status()===PHP_SESSION_ACTIVE,'action'=>$GLOBALS['action']??'','path'=>$_SERVER['SCRIPT_NAME']??''])."\n",FILE_APPEND);
         $projectFile=__DIR__.'/../project.json';$project=is_file($projectFile)?json_decode((string)file_get_contents($projectFile),true):['id'=>1,'project_key'=>'fixture','display_name'=>'Fixture','is_active'=>1];
@@ -83,6 +88,16 @@ class CardSessionStatement {
         }
         if(str_starts_with($sql,'SELECT id,login,display_name,role,email,is_active,is_working FROM managers ')){
             $id=(int)$args[0];if(in_array($id,[7,8,9],true))$this->rows=[['id'=>$id,'login'=>'fixture','display_name'=>'Fixture','role'=>$id===9?'admin':'manager','is_active'=>$id===8?0:1,'is_working'=>1]];return true;
+        }
+        if($sql==='SELECT id,role,is_active FROM managers WHERE id=?'){
+            $id=(int)$args[0];if(in_array($id,[7,8,9],true))$this->rows=[['id'=>$id,'role'=>$id===9?'admin':'manager','is_active'=>$id===8?0:1]];return true;
+        }
+        if($sql==='SELECT id,payload_json FROM conversation_events WHERE conversation_id=? AND event_type=? ORDER BY id DESC LIMIT 1')return true;
+        if(str_starts_with($sql,'SELECT (SELECT COALESCE(MAX(m.id),0) FROM messages m ')){
+            $customer=in_array((int)$args[0],[46,47,48],true);$this->rows=[['customer_message_id'=>$customer?101:0,'request_event_id'=>0,'manager_message_id'=>$customer?0:101,'queue_event_id'=>0]];return true;
+        }
+        if(str_starts_with($sql,'SELECT CASE WHEN ')&&str_contains($sql,' AS reply_wait_started_unix FROM conversations c WHERE c.id=?')){
+            $this->rows=[['needed'=>in_array((int)$args[0],[46,47,48],true)?1:0,'reply_wait_started_unix'=>null]];return true;
         }
         if(str_starts_with($sql,'SELECT p.id,p.project_key,p.display_name FROM projects p JOIN manager_projects ')){$this->rows=[['id'=>1,'project_key'=>'fixture','display_name'=>'Fixture']];return true;}
         if(str_starts_with($sql,'SELECT 1 FROM manager_projects mp JOIN projects ')){$this->rows=in_array($args[1],['fixture','repair_fixture'],true)?[[1]]:[];return true;}
@@ -106,8 +121,8 @@ class CardSessionStatement {
             ||str_starts_with($sql,'SELECT g.project_id,g.version,g.include_unsourced,p.project_key,p.display_name FROM manager_supervision '))return true;
         throw new RuntimeException('Unexpected synthetic query: '.$sql);
     }
-    function fetch(){return $this->rows[0]??false;}function fetchAll(...$args):array{return $this->rows;}
-    function fetchColumn(int $column=0){return array_values($this->rows[0]??[])[$column]??false;}
+    function fetch(int $mode=PDO::FETCH_DEFAULT,int $orientation=PDO::FETCH_ORI_NEXT,int $offset=0):mixed{return $this->rows[0]??false;}function fetchAll(...$args):array{return $this->rows;}
+    function fetchColumn(int $column=0):mixed{return array_values($this->rows[0]??[])[$column]??false;}
 }
 PHP);
     file_put_contents($tmp.'/services/SalesPipelineService.php', <<<'PHP'
@@ -235,7 +250,7 @@ PHP);
     $loads=array_map(static fn($line)=>json_decode($line,true),file($tmp.'/loads.jsonl',FILE_IGNORE_NEW_LINES));
     cardCheck('card reads release the session before secondary loaders',array_filter($loads,static fn($row)=>$row['action']==='detail'&&$row['kind']==='read'&&$row['active'])===[]&&count(array_filter($loads,static fn($row)=>$row['kind']==='write'&&$row['active']))===1);
     cardCheck('Inbox list releases the session before loading rows',count(array_filter($loads,static fn($row)=>$row['action']==='list'&&$row['kind']==='list'))===3&&array_filter($loads,static fn($row)=>$row['action']==='list'&&$row['active'])===[]);
-    cardCheck('queue counts release the session before all three canonical list reads',count(array_filter($loads,static fn($row)=>$row['action']==='counts'&&$row['kind']==='counts'))===9&&array_filter($loads,static fn($row)=>$row['action']==='counts'&&$row['active'])===[]);
+    cardCheck('queue counts release the session before all four bounded list reads',count(array_filter($loads,static fn($row)=>$row['action']==='counts'&&$row['kind']==='counts'))===12&&array_filter($loads,static fn($row)=>$row['action']==='counts'&&$row['active'])===[]);
     $queries=array_map(static fn($line)=>json_decode($line,true),file($tmp.'/queries.jsonl',FILE_IGNORE_NEW_LINES));
     cardCheck('card conversation visibility is checked while session is still locked',array_filter($queries,static fn($row)=>($row['path']??'')==='/manager/pipeline-api.php'&&str_starts_with($row['sql'],'SELECT c.id,c.project_key,c.source_id,c.channel,')&&str_ends_with($row['sql'],'WHERE c.id=? LIMIT 1')&&!$row['active'])===[]);
 
