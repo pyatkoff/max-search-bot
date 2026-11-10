@@ -48,14 +48,13 @@ The bot supports Yandex payloads containing `yclid`, region and campaign. Traffi
 
 ## Tests
 
-Two deterministic suites live under `tests/`:
+Run the canonical full local and deployment checks:
 
 ```bash
-php tests/run_regression.php
-php tests/run_conversation_regression.php
+bash tests/run_required_checks.sh
 ```
 
-GitHub Actions runs syntax checks and both regression suites with PHP 8.2. Production diagnostics also run the conversation regression using the newest compatible PHP binary discovered on the server.
+Required PR CI selects coverage from the complete base/head diff using [the CI scope contract](docs/CI_SCOPES.md). Shared, mixed and unknown changes retain full coverage. Production pre-install verification retains the canonical full suite on PHP 8.3; green PR checks do not replace it. The focused dialogue runners remain available as `php tests/run_regression.php` and `php tests/run_conversation_regression.php`.
 
 Every fixed conversational bug should ideally become a regression case so the same failure cannot silently return.
 
@@ -67,11 +66,11 @@ Production checkout:
 /var/www/anytoour/data/www/app.anytoour.ru
 ```
 
-`.github/workflows/deploy.yml` connects to production over a dedicated SSH key after pushes to `main`, updates the checkout, performs a syntax check, runs conversation regression and refreshes diagnostics.
+After a checked PR is merged into `main`, `.github/workflows/deploy.yml` verifies the exact current source before connecting to production over a dedicated SSH key. An ordinary installation updates the checkout, applies migrations, runs smoke checks and publishes diagnostics. The existing post-deploy tail validates the mandatory technical results and automatically releases the bound publisher. See [operations](docs/OPERATIONS.md) and [release priority and ownership](docs/RELEASE_PRIORITY.md) for the complete gates and the bounded accepted-application path.
 
 Normal source changes should therefore not require a manual `git pull` on the server.
 
-Important: the target architecture is **test first, deploy second**. Until the deploy workflow is fully gated by successful CI, keep changes small and rely on regression + diagnostics immediately after each push.
+The required `regression` and `guard` checks must pass before merge. Fresh priority admission and the sole publisher remain required; an old green run or a direct push is not the normal release procedure.
 
 ## Diagnostics
 
@@ -99,10 +98,10 @@ For normal changes:
 
 1. change one logical block at a time;
 2. add/update deterministic regression coverage;
-3. push to `main`;
-4. automated deploy updates production;
-5. inspect `diagnostics` for production commit, regression and runtime errors;
-6. only then continue with the next logical block.
+3. open a PR from a fresh current-main branch and pass its required current-head checks;
+4. repeat fresh release-priority admission, acquire the sole publisher and bind its existing record before the expected-head merge;
+5. verify the original installation, mandatory post-deploy results and automatic publisher release for the exact merged source;
+6. record the result and remaining uncertainty, keeping natural user confirmation separate from technical completion.
 
 For larger refactors, split work into smaller commits and preserve behavior before moving business logic out of legacy classes.
 
