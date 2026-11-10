@@ -117,10 +117,7 @@ class AiMessageHandler
                     if (!empty($richLocalParams)) {
                         $appliedRich = NeedApplicationService::applyParameters($chat_id, $richLocalParams);
                         $current = MaxSearchApi::getAiSearchContext($chat_id);
-                        if (!empty($appliedRich['nights']) && isset($richLocalParams['nights'])
-                            && (string)($current['nights'] ?? '') === (string)$richLocalParams['nights']) {
-                            $confirmedFacts['nights'] = true;
-                        }
+                        $confirmedFacts += self::confirmedLocalFacts($richLocalParams, $appliedRich, $current);
                     }
 
                     $ai = AiInvocationService::invoke('RICH_AI', $chat_id, $userText, $current);
@@ -144,10 +141,7 @@ class AiMessageHandler
                     if (!empty($localParams)) {
                         $appliedLocal = NeedApplicationService::applyParameters($chat_id, $localParams);
                         $current=MaxSearchApi::getAiSearchContext($chat_id);
-                        if (!empty($appliedLocal['nights']) && isset($localParams['nights'])
-                            && (string)($current['nights'] ?? '') === (string)$localParams['nights']) {
-                            $confirmedFacts['nights'] = true;
-                        }
+                        $confirmedFacts += self::confirmedLocalFacts($localParams, $appliedLocal, $current);
                     } else {
                         $appliedLocal = [];
                     }
@@ -209,6 +203,10 @@ class AiMessageHandler
                     put_log_out('AI ERROR: '.json_encode($ai, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
 
                     $missingAfterError=MaxSearchApi::getAiMissingFields($chat_id);
+                    if ($missingAfterError === [] && $confirmedFacts !== []) {
+                        NeedProgressionService::advance($chat_id);
+                        return;
+                    }
                     MissingFieldQuestionService::sendForMissing($chat_id, $missingAfterError);
                     return;
                 }
@@ -255,5 +253,26 @@ class AiMessageHandler
                     "AI MISSING: ".json_encode($missing,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n"
                 );
 
+    }
+
+    /** Protect only explicit facts applied and read back during this turn. */
+    private static function confirmedLocalFacts(array $params, array $applied, array $current): array
+    {
+        $confirmed = [];
+        foreach (['nights', 'adults', 'children'] as $field) {
+            if (!empty($applied[$field]) && array_key_exists($field, $params)
+                && (string)($current[$field] ?? '') === (string)$params[$field]) {
+                $confirmed[$field] = true;
+            }
+        }
+        if (!empty($applied['child_ages']) && isset($params['child_ages'])) {
+            $children = (int)($current['children'] ?? 0);
+            $expected = ChildAgeValueContract::fromStorage($params['child_ages'], $children);
+            $saved = ChildAgeValueContract::fromStorage($current['child_ages'] ?? null, $children);
+            if ($expected !== null && $expected !== [] && $saved === $expected) {
+                $confirmed['child_ages'] = true;
+            }
+        }
+        return $confirmed;
     }
 }

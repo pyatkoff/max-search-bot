@@ -122,8 +122,19 @@ class DialogueController
             // trip facts. None of it selects a holiday destination. Other
             // collectors still receive the full date, duration and party text.
             if (!isset($departure['remaining_text'])) {
-                DestinationAreaResolver::resolveAndStore($chatId, $text);
-                DestinationResolver::resolveAndStore($chatId, $text);
+                $destinationText = $text;
+                if (!empty($departure['matched'])
+                    && (MaxSearchApi::getAiSearchContext($chatId)['city'] ?? null) === $departure['city']) {
+                    // Exclude only the confirmed departure clause. Keep an
+                    // explicit destination and all other request text intact.
+                    $destinationText = preg_replace(
+                        '/(?:^|\s)(?:с\s+вылетом\s+из|вылет(?:ом)?\s+из|из)\s+'
+                            . preg_quote($departure['matched'], '/') . '(?=$|[\s,.;!?])/ui',
+                        ' ', $text
+                    ) ?? $text;
+                }
+                DestinationAreaResolver::resolveAndStore($chatId, $destinationText);
+                DestinationResolver::resolveAndStore($chatId, $destinationText);
             }
 
             $shadowV2 = AiShadowObserver::observe($chatId, $text);
