@@ -166,6 +166,15 @@ final class ModeledConversionValueExport
                             ." WHERE id=? AND state='ready' AND (upload_id IS NULL OR upload_id='') AND (claim_token IS NULL OR claim_token='')");
                         $hold->execute([$sendAt+300,$r['id']]);continue;
                     }
+                    $collision=$p->prepare("SELECT id FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635'"
+                        ." AND transport_target=? AND client_id=? AND event_unix=? AND id<>? AND value_rub>0"
+                        ." AND ((upload_id IS NOT NULL AND upload_id<>'') OR state IN ('uploading','unknown')) LIMIT 1");
+                    $collision->execute([ModeledConversionValueContract::TARGET,$r['client_id'],$r['event_unix'],$r['id']]);
+                    $hasCollision=$collision->fetchColumn()!==false;$collision->closeCursor();
+                    if($hasCollision){
+                        $hold=$p->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error='wire_key_collision' WHERE id=? AND state='ready'");
+                        $hold->execute([$sendAt+3600,$r['id']]);continue;
+                    }
                     $token=bin2hex(random_bytes(16));
                     $q=$p->prepare("UPDATE max_channel_conversion_outbox SET state='uploading',claim_token=?,claimed_at_unix=?,attempts=attempts+1 WHERE id=? AND state='ready' AND target=? AND transport_target=? AND value_rub=?");
                     $q->execute([$token,$now,$r['id'],$r['target'],ModeledConversionValueContract::TARGET,$r['value_rub']]);

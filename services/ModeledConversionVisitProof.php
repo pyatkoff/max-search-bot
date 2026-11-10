@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionValueContract.php';
+require_once __DIR__.'/ModeledConversionWireValue.php';
 
 /** Finite GET-only verification. Only its private receipt is written; outbox and profiles stay immutable. */
 final class ModeledConversionVisitProof
@@ -92,7 +93,13 @@ final class ModeledConversionVisitProof
                     $clientVisits=$api->modeledClientVisits($cid,(int)$r['event_unix'],$now);
                     $entry['reason']=self::failureReason($clientVisits,(int)$r['event_unix']);
                     if(++$requests>96||($deadline!==null&&microtime(true)>=$deadline))throw new RuntimeException('verification_request_bound');
-                    $entry['failure_audit']=self::failureAudit($r,$v,$clientVisits,(method_exists($api,'modeledValueVisits')?$api->modeledValueVisits($cid,$activation,$now):['status'=>'unavailable']),$ledger,$now);
+                    $entry['failure_audit']=self::failureAudit($r,$v,$clientVisits,(method_exists($api,'modeledValueVisits')?$api->modeledValueVisits($cid,$activation,$now):['status'=>'unavailable']),$ledger,$now,ModeledConversionWireValue::observe($r,$ledger,$api,$now));
+                    if(($entry['failure_audit']['diagnosis']??null)==='wire_value_reported'&&$entry['failure_audit']['wire_correction_status']==='processed'){
+                        $entry['linkage']='wire_value_reconciled';$entry['reason']='same_wire_total_provider_and_visit_report_reconciled';
+                        $entry['visit_started_at']=$entry['failure_audit']['report_visit_at'];
+                        $entry['visit_goal_reaches']=$entry['failure_audit']['reported_goal_reaches'];
+                        $entry['visit_goal_value_rub']=$entry['failure_audit']['reported_goal_rub'];
+                    }
                 }
             }
             if($status==='PROCESSED'){
@@ -155,7 +162,7 @@ final class ModeledConversionVisitProof
         return $later?'only_later_or_expired_client_visits':'no_client_visit_in_attribution_window';
     }
     /** Evidence only. A provider failure never becomes delivery credit or permission to resend. */
-    public static function failureAudit(array $row,array $receipt,array $visits,array $goals,array $ledger,int $now):array
+    public static function failureAudit(array $row,array $receipt,array $visits,array $goals,array $ledger,int $now,string $correctionStatus='not_recorded'):array
     {
         $event=(int)$row['event_unix'];$claim=(int)($row['claimed_at_unix']??0);
         $created=is_string($receipt['create_time']??null)?strtotime($receipt['create_time']):false;
@@ -167,24 +174,28 @@ final class ModeledConversionVisitProof
             'validated_rows'=>isset($receipt['line_quantity'])?(int)$receipt['line_quantity']:null,
             'latest_prior_visit_at'=>null,'eligible_at_signal'=>null,'eligible_at_upload'=>null,'wire_collision_rows'=>0,
             'known_processed_events'=>0,'known_processed_rub'=>0,'known_failed_events'=>0,'known_failed_rub'=>0,
-            'other_unsettled_rows'=>0,'reported_goal_reaches'=>null,'reported_goal_rub'=>null,'report_comparison'=>'unavailable',
+            'other_unsettled_rows'=>0,'known_wire_reaches'=>0,'known_wire_rub'=>0,'report_visit_at'=>null,'wire_correction_status'=>$correctionStatus,'reported_goal_reaches'=>null,'reported_goal_rub'=>null,'report_comparison'=>'unavailable',
             'diagnosis'=>'unavailable','checked_at'=>gmdate('Y-m-d\TH:i:s\Z',$now)];
+        $wireKeys=[];
         foreach($ledger as$r){
             if((string)($r['client_id']??'')!==(string)$row['client_id']||(string)($r['upload_id']??'')==='')continue;
             if((int)$r['event_unix']===$event&&(string)$r['id']!==(string)$row['id'])$a['wire_collision_rows']++;
             $status=$r['upload_status']??null;
+            if(in_array($status,['PROCESSED','LINKAGE_FAILURE'],true))$wireKeys[(string)(int)$r['event_unix']]=true;
             if($status==='PROCESSED'||($r['state']??null)==='processed'){$a['known_processed_events']++;$a['known_processed_rub']+=(int)$r['value_rub'];}
             elseif($status==='LINKAGE_FAILURE'||($r['state']??null)==='unmatched'){$a['known_failed_events']++;$a['known_failed_rub']+=(int)$r['value_rub'];}
             else $a['other_unsettled_rows']++;
         }
+        $a['known_wire_reaches']=count($wireKeys);$a['known_wire_rub']=$a['known_processed_rub']+$a['known_failed_rub'];
         if(($goals['status']??null)==='ok'&&is_array($goals['visits']??null)){
+            if(count($goals['visits'])===1&&($goals['visits'][0]['visits']??null)===1)$a['report_visit_at']=$goals['visits'][0]['started_at'];
             $a['reported_goal_reaches']=0;$a['reported_goal_rub']=0;
             foreach($goals['visits']as$v){$a['reported_goal_reaches']+=(int)$v['goal_reaches'];$a['reported_goal_rub']+=(float)$v['revenue_rub'];}
             $a['reported_goal_rub']=round($a['reported_goal_rub'],2);
             $same=static fn(int $count,int $value):bool=>$a['reported_goal_reaches']===$count&&abs($a['reported_goal_rub']-$value)<0.005;
             $a['report_comparison']=$a['other_unsettled_rows']>0?'unsettled':
-                ($same($a['known_processed_events']+$a['known_failed_events'],$a['known_processed_rub']+$a['known_failed_rub'])?'all_uploads':
-                ($same($a['known_processed_events'],$a['known_processed_rub'])?'processed_only':'mismatch'));
+                ($a['wire_collision_rows']>0&&$a['report_visit_at']!==null&&$same($a['known_wire_reaches'],$a['known_wire_rub'])?'all_wire_value':($same($a['known_processed_events']+$a['known_failed_events'],$a['known_processed_rub']+$a['known_failed_rub'])?'all_uploads':
+                ($same($a['known_processed_events'],$a['known_processed_rub'])?'processed_only':'mismatch')));
         }
         if(($visits['status']??null)!=='ok'||!is_array($visits['visits']??null))return $a;
         $prior=[];
@@ -195,7 +206,7 @@ final class ModeledConversionVisitProof
         $a['eligible_at_upload']=$uploaded===null?null:($latest!==null&&$latest<=$uploaded&&$uploaded-$latest<=21*86400);
         $a['diagnosis']=$a['source_rows']!==null&&$a['validated_rows']!==null&&($a['source_rows']!==1||$a['validated_rows']!==1)?'invalid_receipt_rows':($visits['visits']===[]?'no_reported_visits':($latest===null?'only_later_visits':
             (!$a['eligible_at_signal']?'outside_signal_window':($a['eligible_at_upload']===false?'outside_upload_window':
-            ($a['wire_collision_rows']>0?'wire_collision':($a['report_comparison']==='all_uploads'?'reported_despite_failure':'eligible_unexplained'))))));
+            ($a['report_comparison']==='all_wire_value'?'wire_value_reported':($a['wire_collision_rows']>0?'wire_collision':($a['report_comparison']==='all_uploads'?'reported_despite_failure':'eligible_unexplained')))))));
         return $a;
     }
     /** Newest half plus oldest unchecked half; stable terminal evidence is rechecked daily. */
@@ -214,7 +225,8 @@ final class ModeledConversionVisitProof
                 $urgent[]=(string)$r['id'];continue;
             }
             $terminal=($e['linkage']??null)==='unique_visit_reconciled'
-                ||(($e['upload_status']??null)==='LINKAGE_FAILURE'&&!in_array($e['reason']??null,['provider_linkage_failure','client_visit_report_unavailable'],true));
+                ||(($e['upload_status']??null)==='LINKAGE_FAILURE'&&!in_array($e['reason']??null,['provider_linkage_failure','client_visit_report_unavailable','same_wire_total_provider_and_visit_report_reconciled'],true));
+            if(($e['failure_audit']['diagnosis']??null)==='wire_collision')$terminal=false;
             if($at===0||$now-$at>=($terminal?86400:300))$due[]=['id'=>(string)$r['id'],'at'=>$at];
         }
         $limit=max(0,min($batch,self::MAX_ROWS-$cohort));$ids=array_slice($urgent,0,$limit);
@@ -331,7 +343,7 @@ final class ModeledConversionVisitProof
         foreach($r['events']as$e)if(!is_array($e)||preg_match('/\A[a-f0-9]{64}\z/D',(string)($e['fingerprint']??''))!==1
             ||!is_int($e['increment_rub']??null)||$e['increment_rub']<=0||$e['increment_rub']>ModeledConversionValueContract::MAX_VALUE_RUB||!is_bool($e['cohort']??null)
             ||!in_array($e['platform']??null,['max','telegram'],true)||!in_array($e['stage']??null,ModeledConversionValueContract::STAGES,true)
-            ||!in_array($e['linkage']??null,['not_checked','failed','unverified','unique_visit_reconciled'],true)
+            ||!in_array($e['linkage']??null,['not_checked','failed','unverified','unique_visit_reconciled','wire_value_reconciled'],true)
             ||(isset($e['checked_at'])&&(!is_string($e['checked_at'])||strtotime($e['checked_at'])===false||strtotime($e['checked_at'])>$now)))return ['available'=>false,'reason'=>'invalid_cache'];
         return ['available'=>true,'fresh'=>$now-$at<=900,'receipt'=>$r];
     }
@@ -351,7 +363,7 @@ final class ModeledConversionVisitProof
     }
 
     private const DAILY_GROUPS=['sent','api_accepted','processed','visit_linked','linkage_failed','provider_processing',
-        'unverified_visits','proof_missing','stale_proof','accepted_clock_unknown'];
+        'unverified_visits','proof_missing','stale_proof','accepted_clock_unknown','wire_report_reconciled'];
     /** One fixed calendar and one sent-row cohort; all amounts remain private aggregates. */
     public static function dailySentCohort(array $ledger,array $current,int $now,?callable $archive=null,?int $dayReference=null):array
     {
@@ -384,7 +396,8 @@ final class ModeledConversionVisitProof
             $flags=['sent'=>true,'api_accepted'=>$accepted,'processed'=>$processed,'visit_linked'=>$linked,
                 'linkage_failed'=>$failed,'provider_processing'=>$accepted&&!$processed&&!$failed,
                 'unverified_visits'=>$processed&&!$linked,'proof_missing'=>!$proof,
-                'stale_proof'=>$proof&&$now-$at>900,'accepted_clock_unknown'=>$accepted&&(int)($r['value_api_accepted_at_unix']??0)<=0];
+                'stale_proof'=>$proof&&$now-$at>900,'accepted_clock_unknown'=>$accepted&&(int)($r['value_api_accepted_at_unix']??0)<=0,
+                'wire_report_reconciled'=>$failed&&$proof&&($old['linkage']??null)==='wire_value_reconciled'];
             foreach($flags as$group=>$include)if($include){
                 $out[$platform][$group]['events']++;$out[$platform][$group]['value_rub']+=$value;
                 $people[$platform][$group][(string)$r['conversation_id']]=true;
@@ -413,7 +426,7 @@ final class ModeledConversionVisitProof
             ||($d['window']['until_exclusive']??null)!==gmdate('Y-m-d\\TH:i:s\\Z',$day->modify('+1 day')->getTimestamp()))return ['available'=>false,'reason'=>'invalid_daily_cache'];
         $safe=[];
         foreach(['max','telegram']as$p){
-            $groups=$d['by_platform'][$p];if(!is_array($groups)||array_keys($groups)!==self::DAILY_GROUPS)return ['available'=>false,'reason'=>'invalid_daily_cache'];
+            $groups=$d['by_platform'][$p];if(!is_array($groups)||(array_keys($groups)!==self::DAILY_GROUPS&&array_keys($groups)!==array_slice(self::DAILY_GROUPS,0,-1)))return ['available'=>false,'reason'=>'invalid_daily_cache'];
             foreach($groups as$k=>$v){
                 if(!is_array($v)||array_keys($v)!==['events','conversations','value_rub']
                     ||!is_int($v['events'])||!is_int($v['conversations'])||!is_int($v['value_rub'])||$v['events']<0||$v['events']>1000
@@ -464,7 +477,7 @@ final class ModeledConversionVisitProof
             $clock=(int)($r['tracker_observed_unix']??0);$age=(int)$r['event_unix']-$clock;
             $reason=$e['reason']??null;
             if(!in_array($reason,['provider_linkage_failure','no_reported_client_visits','only_later_or_expired_client_visits',
-                'no_client_visit_in_attribution_window','eligible_visit_but_provider_linkage_failed','client_visit_report_unavailable'],true))$reason='unavailable';
+                'no_client_visit_in_attribution_window','eligible_visit_but_provider_linkage_failed','client_visit_report_unavailable','same_wire_total_provider_and_visit_report_reconciled'],true))$reason='unavailable';
             $failures[]=['platform'=>$r['platform'],'increment_rub'=>(int)$r['value_rub'],'reason'=>$reason,
                 'source_clock'=>($r['platform']!=='max'||$clock<946684800)?'unknown':($age<0?'after_signal':($age>21*86400?'expired':'within_window')),
                 'audit'=>self::validatedFailureAudit($e['failure_audit']??null,$now)];
@@ -475,6 +488,33 @@ final class ModeledConversionVisitProof
     }
     /** Fixed anonymous scalar projection; source identities and raw provider fields cannot cross MCP. */
     private static function validatedFailureAudit(mixed $v,int $now):?array
+    {
+        if(!is_array($v))return null;
+        if(!array_key_exists('wire_correction_status',$v))return self::validatedLegacyFailureAudit($v,$now);
+        $keys=['signal_at','uploaded_at','upload_clock','source_rows','validated_rows','latest_prior_visit_at','eligible_at_signal','eligible_at_upload','wire_collision_rows',
+            'known_processed_events','known_processed_rub','known_failed_events','known_failed_rub','other_unsettled_rows','known_wire_reaches','known_wire_rub','report_visit_at','wire_correction_status',
+            'reported_goal_reaches','reported_goal_rub','report_comparison','diagnosis','checked_at'];
+        if(array_keys($v)!==$keys)return null;
+        foreach(['signal_at','uploaded_at','latest_prior_visit_at','report_visit_at','checked_at']as$k){
+            if($v[$k]===null&&in_array($k,['uploaded_at','latest_prior_visit_at','report_visit_at'],true))continue;
+            if(!is_string($v[$k])||preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\z/D',$v[$k])!==1
+                ||($at=strtotime($v[$k]))===false||$at<946684800||$at>$now)return null;
+        }
+        foreach(['eligible_at_signal','eligible_at_upload']as$k)if($v[$k]!==null&&!is_bool($v[$k]))return null;
+        foreach(['wire_collision_rows','known_processed_events','known_failed_events','other_unsettled_rows','known_wire_reaches']as$k)
+            if(!is_int($v[$k])||$v[$k]<0||$v[$k]>1000)return null;
+        foreach(['source_rows','validated_rows','known_processed_rub','known_failed_rub','known_wire_rub','reported_goal_reaches','reported_goal_rub']as$k){
+            if($v[$k]===null&&(str_starts_with($k,'reported_')||in_array($k,['source_rows','validated_rows'],true)))continue;
+            if((!is_int($v[$k])&&!is_float($v[$k]))||!is_finite((float)$v[$k])||$v[$k]<0||$v[$k]>1000000000)return null;
+        }
+        if(!in_array($v['upload_clock'],['provider','claim'],true)
+            ||!in_array($v['report_comparison'],['unavailable','unsettled','all_uploads','all_wire_value','processed_only','mismatch'],true)
+            ||!in_array($v['diagnosis'],['unavailable','no_reported_visits','only_later_visits','outside_signal_window',
+                'outside_upload_window','wire_collision','reported_despite_failure','eligible_unexplained','invalid_receipt_rows','wire_value_reported'],true)
+            ||!in_array($v['wire_correction_status'],['not_recorded','sending','accepted','unknown','processed','failed','invalid'],true))return null;
+        return $v;
+    }
+    private static function validatedLegacyFailureAudit(mixed $v,int $now):?array
     {
         if(!is_array($v))return null;
         $keys=['signal_at','uploaded_at','upload_clock','source_rows','validated_rows','latest_prior_visit_at','eligible_at_signal','eligible_at_upload','wire_collision_rows',
@@ -525,7 +565,7 @@ final class ModeledConversionVisitProof
             ||!in_array($e['platform'],['max','telegram'],true)||!is_int($e['increment_rub'])||$e['increment_rub']<=0
             ||$e['increment_rub']>ModeledConversionValueContract::MAX_VALUE_RUB
             ||!in_array($e['reason'],['provider_linkage_failure','no_reported_client_visits','only_later_or_expired_client_visits',
-                'no_client_visit_in_attribution_window','eligible_visit_but_provider_linkage_failed','client_visit_report_unavailable','unavailable'],true)
+                'no_client_visit_in_attribution_window','eligible_visit_but_provider_linkage_failed','client_visit_report_unavailable','same_wire_total_provider_and_visit_report_reconciled','unavailable'],true)
             ||!in_array($e['source_clock'],['unknown','after_signal','expired','within_window'],true)
             ||(isset($e['audit'])&&self::validatedFailureAudit($e['audit'],$now)!==$e['audit']))return ['available'=>false,'reason'=>'invalid_followup_cache'];
         return ['available'=>true,'fresh'=>$d['fresh'],'checkpoint_at'=>$v['checkpoint_at'],'as_of'=>$d['as_of'],

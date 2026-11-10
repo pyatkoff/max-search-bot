@@ -218,6 +218,37 @@ final class MetrikaOfflineClient
     }
 
 
+    /** Explicit terminal-collision correction only. Never called by the uploader cron or MCP. */
+    public function uploadModeledWireCorrection(array $members,int $now):array
+    {
+        require_once __DIR__.'/ModeledConversionWireValue.php';
+        $plan=ModeledConversionWireValue::plan($members,$now);
+        if($this->counter!=='98615635')throw new RuntimeException('wrong_goal_counter');
+        $csv=self::modeledValueCsv($plan['event'],$now);
+        $r=$this->request('POST','offline_conversions/upload?type=BASIC&comment='.rawurlencode($plan['comment']),$csv);
+        $error=(int)($r['error']??0);$http=(int)($r['http']??0);
+        if($error!==0)return ['outcome'=>'unknown','reason'=>'upload_outcome_unknown'];
+        if($http>=400&&$http<500)return ['outcome'=>'rejected','reason'=>'api_rejected'];
+        $u=$this->decode($r)['uploading']??null;
+        if($http>=200&&$http<300&&$this->validReceipt($u)&&($u['comment']??null)===$plan['comment']
+            &&(int)($u['source_quantity']??0)===1&&(int)($u['line_quantity']??0)===1)
+            return ['outcome'=>'accepted','upload_id'=>(string)$u['id'],'status'=>$u['status']];
+        return ['outcome'=>'unknown','reason'=>'upload_outcome_unknown'];
+    }
+    public function findModeledWireCorrection(array $members,int $now):?array
+    {
+        require_once __DIR__.'/ModeledConversionWireValue.php';
+        $comment=ModeledConversionWireValue::plan($members,$now)['comment'];$matches=[];
+        for($page=0;$page<3;$page++){
+            $r=$this->request('GET','offline_conversions/uploadings?limit=100&offset='.($page*100));
+            if((int)($r['error']??0)!==0||(int)($r['http']??0)!==200)return null;
+            $list=$this->decode($r)['uploadings']??null;if(!is_array($list))return null;
+            foreach($list as$u)if($this->validReceipt($u)&&($u['comment']??null)===$comment)$matches[(string)$u['id']]=$u;
+            if(count($list)<100)break;
+        }
+        return count($matches)===1?array_values($matches)[0]:null;
+    }
+
     /** Fixed aggregate session report for the explicitly authorized value goal. GET only, no dimensions/identities. */
     public function modeledValueReport(int $activated,int $now):array
     {

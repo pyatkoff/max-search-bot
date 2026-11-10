@@ -338,6 +338,93 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
         $recent,$noGoals,[$failed],$auditNow);
     $check('an original source row rejected during validation is separate from a missing visit',
         $badRows['source_rows']===1&&$badRows['validated_rows']===0&&$badRows['diagnosis']==='invalid_receipt_rows');
+    $wireFirst=$failed;$wireSecond=$collision;$wireSecond['state']='processed';$wireSecond['upload_status']='PROCESSED';$wireSecond['value_rub']=23;
+    $wireSnapshot=serialize([$wireFirst,$wireSecond]);
+    $plan=ModeledConversionWireValue::plan([$wireSecond,$wireFirst],$auditNow);
+    $check('wire correction preserves both original allocations but produces one stable total and provider key',
+        $plan['total_rub']===40&&$plan['event']['event_unix']===$wireFirst['event_unix']
+        &&$plan['event']['client_id']===$wireFirst['client_id']
+        &&serialize([$wireFirst,$wireSecond])===$wireSnapshot
+        &&$plan===ModeledConversionWireValue::plan([$wireFirst,$wireSecond],$auditNow));
+    $wireCalls=[];$wireTransport=static function(string $method,string $url,mixed $body)use(&$wireCalls):array{
+        $wireCalls[]=[$method,$url,$body];parse_str((string)parse_url($url,PHP_URL_QUERY),$q);
+        return ['http'=>200,'error'=>0,'body'=>json_encode(['uploading'=>['id'=>'5999','status'=>'UPLOADED',
+            'source_quantity'=>1,'line_quantity'=>1,'comment'=>$q['comment']]])];
+    };
+    $wireApi=new MetrikaOfflineClient('98615635','SYNTHETIC_TOKEN',$wireTransport);
+    $repair=$wireApi->uploadModeledWireCorrection([$wireFirst,$wireSecond],$auditNow);
+    $csvLines=explode("\n",trim($wireCalls[0][2]));$csvRow=str_getcsv($csvLines[1]);
+    $check('explicit correction sends one CSV row with the sum and identical ClientID target and second',
+        $repair['outcome']==='accepted'&&count($wireCalls)===1&&$wireCalls[0][0]==='POST'
+        &&count($csvLines)===2&&$csvRow[0]===$wireFirst['client_id']
+        &&$csvRow[1]===ModeledConversionValueContract::TARGET
+        &&(int)$csvRow[2]===$wireFirst['event_unix']&&(int)$csvRow[3]===40);
+    foreach(['duplicate','foreign_client','other_second','unknown']as$case){
+        $bad=$wireSecond;if($case==='duplicate')$bad=$wireFirst;
+        if($case==='foreign_client')$bad['client_id']='900000000000000009';
+        if($case==='other_second')$bad['event_unix']++;
+        if($case==='unknown')$bad['state']='unknown';
+        $blocked=false;try{ModeledConversionWireValue::plan([$wireFirst,$bad],$auditNow);}catch(InvalidArgumentException $e){$blocked=true;}
+        $check('a correction cannot mix or replay ambiguous members: '.$case,$blocked);
+    }
+    $blocked=false;try{$wireApi->uploadModeledWireCorrection([$wireFirst,$wireSecond],$wireFirst['event_unix']+22*86400);}
+    catch(InvalidArgumentException $e){$blocked=true;}
+    $check('historical correction evidence remains readable but an expired POST is refused before transport',
+        $blocked&&count($wireCalls)===1&&ModeledConversionWireValue::plan([$wireFirst,$wireSecond],$wireFirst['event_unix']+22*86400)['total_rub']===40);
+    $wireGoal=['status'=>'ok','visits'=>[['started_at'=>gmdate('Y-m-d\TH:i:s\Z',$day+19*86400),
+        'visits'=>1,'goal_reaches'=>1,'revenue_rub'=>40]]];
+    $wireAudit=ModeledConversionVisitProof::failureAudit($wireFirst,$uploadReceipt,$recent,$wireGoal,[$wireFirst,$wireSecond],$auditNow,'processed');
+    $check('one provider goal reconciles all original wire allocations by total without demanding duplicate goals',
+        $wireAudit['known_wire_reaches']===1&&$wireAudit['known_wire_rub']===40
+        &&$wireAudit['report_comparison']==='all_wire_value'&&$wireAudit['diagnosis']==='wire_value_reported'
+        &&$wireAudit['wire_correction_status']==='processed');
+    $isolated=sys_get_temp_dir().'/wire-journal-fixture-'.bin2hex(random_bytes(8));
+    mkdir($isolated,0700);mkdir($isolated.'/app',0700);mkdir($isolated.'/app/services',0700);
+    mkdir($isolated.'/max-search-bot-modeled-visit-proof',0700);
+    copy(__DIR__.'/../services/ModeledConversionWireValue.php',$isolated.'/app/services/ModeledConversionWireValue.php');
+    foreach(['MetrikaOfflineClient','ModeledConversionValueContract']as$name)
+        file_put_contents($isolated.'/app/services/'.$name.'.php','<?php require_once '.var_export(realpath(__DIR__.'/../services/'.$name.'.php'),true).';');
+    file_put_contents($isolated.'/app/services/ModeledConversionVisitProof.php', '<?php final class ModeledConversionVisitProof {public static function fingerprint(array $r):string{return hash("sha256",json_encode(array_map(static fn(string $k):string=>(string)($r[$k]??""),["id","conversation_id","platform","target","value_rub","event_unix","client_id","upload_id"]),JSON_THROW_ON_ERROR));}}');
+    $fixtureScript= <<<'PHP'
+<?php
+require __FIXTURE_ROOT__.'/app/services/ModeledConversionWireValue.php';
+$rows=json_decode(__FIXTURE_ROWS__,true,32,JSON_THROW_ON_ERROR);$now=__FIXTURE_NOW__;
+$plan=ModeledConversionWireValue::plan($rows,$now);$r=$rows[0];
+$j=['version'=>'modeled_wire_correction_v1','wire_key'=>$plan['wire_key'],'members'=>$plan['members'],
+'total_rub'=>$plan['total_rub'],'comment'=>$plan['comment'],'state'=>'sending','upload_id'=>null,'upload_status'=>null,
+'sent_at_unix'=>$now-301,'checked_at_unix'=>$now-301];
+ModeledConversionWireValue::save($r,$j);
+if(ModeledConversionWireValue::read($r)!==$j)throw new RuntimeException('intent_not_durable');
+$api=new class($plan){public int $reads=0;public int $writes=0;public function __construct(private array $plan){}
+public function findModeledWireCorrection($members,$now){$this->reads++;return ['id'=>'5999','status'=>'UPLOADED','source_quantity'=>1,'line_quantity'=>1,'comment'=>$this->plan['comment']];}
+public function poll($id){$this->reads++;return ['id'=>$id,'status'=>'PROCESSED','source_quantity'=>1,'line_quantity'=>1,'comment'=>$this->plan['comment']];}
+public function uploadModeledWireCorrection($members,$now){$this->writes++;throw new RuntimeException('forbidden');}};
+$first=ModeledConversionWireValue::observe($r,$rows,$api,$now);
+$again=ModeledConversionWireValue::observe($r,$rows,$api,$now);
+$last=ModeledConversionWireValue::observe($r,$rows,$api,$now+301);
+$read=ModeledConversionWireValue::read($r);
+$path=__FIXTURE_ROOT__.'/max-search-bot-modeled-visit-proof/wire-corrections/'.$plan['wire_key'].'.json';
+$private=(fileperms($path)&0777)===0600&&(fileperms(dirname($path))&0777)===0700;
+chmod($path,0644);clearstatcache(true,$path);$blocked=false;
+try{ModeledConversionWireValue::read($r);}catch(RuntimeException $e){$blocked=true;}
+echo json_encode(['ok'=>$first==='accepted'&&$again==='accepted'&&$last==='processed'
+&&$read['state']==='processed'&&$api->reads===2&&$api->writes===0&&$private&&$blocked],JSON_THROW_ON_ERROR);
+PHP;
+    $fixtureScript=str_replace(['__FIXTURE_ROOT__','__FIXTURE_ROWS__','__FIXTURE_NOW__'],
+        [var_export($isolated,true),var_export(json_encode([$wireFirst,$wireSecond],JSON_THROW_ON_ERROR),true),(string)$auditNow],$fixtureScript);
+    try{
+        $process=proc_open([PHP_BINARY,'-d','display_errors=stderr'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+        if(!is_resource($process))throw new RuntimeException('wire_fixture_process');
+        fwrite($pipes[0],$fixtureScript);fclose($pipes[0]);$result=stream_get_contents($pipes[1],2048);fclose($pipes[1]);
+        $error=stream_get_contents($pipes[2],2048);fclose($pipes[2]);$code=proc_close($process);
+        $check('private sending intent survives reload and lost acknowledgements reconcile by GET without any POST',
+            $code===0&&json_decode($result,true)===['ok'=>true]&&$error==='');
+    }finally{
+        $remove=function(string $dir)use(&$remove):void{foreach(new DirectoryIterator($dir)as$f){
+            if($f->isDot())continue;if($f->isDir()&&!$f->isLink())$remove($f->getPathname());else unlink($f->getPathname());
+        }rmdir($dir);};$remove($isolated);
+    }
+
     $validateAudit=new ReflectionMethod(ModeledConversionVisitProof::class,'validatedFailureAudit');
     $check('anonymous audit accepts only its exact scalar contract',$validateAudit->invoke(null,$audit,$auditNow)===$audit);
     $foreign=$audit;$foreign['client_id']='PRIVATE';
