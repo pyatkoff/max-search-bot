@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_native_replacement",
+  "campaign_key": "appleservice39-pilot-v1",
+  "project_key": "appleservice39",
+  "bot_key": "id390521129062_bot",
+  "channel_id": "-80917954947727",
+  "post_id": "repair-iphone-15-plus-display",
+  "message_id": "mid.ffffb667d20a157101a1bd6cdb8f3e99",
+  "public_url": "https://max.ru/channel_appleservice39ru/AaG9bNuPPpk",
+  "revision_sha256": "f772e83df3532120cf20d99ff0476c9717d5f42d75b7f6f89b8e0fed8890f8bd",
+  "source_sha256": "07ae38eb30c3bd380cd6c97b253a650297844493054b9e72ff22245774430bb5",
+  "upload_operation_id": 82,
+  "upload_request_sha256": "de064ffd7e7c4d2802b41e54a71e0999544ec61a08b65772f29debdbf91d1960",
+  "upload_token_sha256": "ecda344fb643f9ec8b1fd8cbbd65455d7af8cb6afb8b5ca40c4bc30f8e47df7b",
+  "edit_operation_id": 97,
+  "edit_request_sha256": "abe60ae2a1b24f29bcc6b4214507ac3cd45cabbea8bbbd19fbc8eb238090484f",
+  "edit_started_ms": 1794302482066,
+  "native_photo_id": "46903586129",
+  "native_preview_sha256": "659c8c7fe3d11b3754ab1426b8b2f8061bc5e17a39c9fab5d1cbc643eefddb56",
+  "native_preview_width": 561,
+  "native_preview_height": 768,
+  "native_payload_url_sha256": "4a06e8555545911c30272ec9f883ef0e715c186b971c6f52c26cd9632f4330fe",
+  "native_readback_run_id": 42789765899,
+  "native_readback_job_id": 129740355281,
+  "visual_review": {
+    "source_asset_opened": true,
+    "native_preview_opened": true,
+    "exact_layout_model_service_price_qualifiers": true
+  }
+}
