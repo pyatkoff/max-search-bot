@@ -14,12 +14,19 @@ final class DevelopmentWorkCronVerifier
         $at=strtotime($started);$end=strtotime($finished);
         if ($at===false||$end===false||$at<=$this->after||$at>$now||$end<$at||$end>$now) return null;
         if (($health['state']??null)==='failed') throw new RuntimeException('development_cron_worker_failed');
-        if (!in_array($health['state']??null,['ok','awaiting_connection'],true)) return null;
-        if ($this->first===null) {$this->first=['at'=>$at,'started_at'=>$started,'state'=>$health['state']];return null;}
+        $held=($health['state']??null)==='held_unknown';
+        if($held&&(($health['stage']??null)!=='complete'||($health['counts']['held']??null)!==1
+            ||($health['counts']['accepted']??null)!==0||!is_string($health['held_evidence_sha256']??null)
+            ||preg_match('/\\A[a-f0-9]{64}\\z/D',$health['held_evidence_sha256'])!==1))return null;
+        if (!in_array($health['state']??null,['ok','awaiting_connection','held_unknown'],true)) return null;
+        if ($this->first===null) {$this->first=['at'=>$at,'started_at'=>$started,'state'=>$health['state'],'held_evidence_sha256'=>$held?$health['held_evidence_sha256']:null];return null;}
         if ($at<=$this->first['at']) return null;
+        if($held&&$this->first['state']==='held_unknown'&&$this->first['held_evidence_sha256']!==$health['held_evidence_sha256'])
+            throw new RuntimeException('development_cron_held_state_changed');
         $interval=$at-$this->first['at'];
         if ($interval<45||$interval>90) throw new RuntimeException('development_cron_interval_out_of_bounds');
         return ['trigger'=>'cron','first_started_at'=>$this->first['started_at'],'second_started_at'=>$started,
-            'observed_interval_seconds'=>$interval,'first_state'=>$this->first['state'],'second_state'=>$health['state']];
+            'observed_interval_seconds'=>$interval,'first_state'=>$this->first['state'],'second_state'=>$health['state']]
+            +(($held&&$this->first['state']==='held_unknown')?['retained_work_state'=>'unknown','work_accepted'=>false]:[]);
     }
 }
