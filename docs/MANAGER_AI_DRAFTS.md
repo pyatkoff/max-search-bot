@@ -250,6 +250,32 @@ runtime delivery or model-use result. The focused verification command is:
 php tests/run_manager_ai_draft_context_regression.php --hotel-top500-accepted-pair
 ```
 
+**Side Star Elegance — bounded inherited evidence.**
+
+The separate Tourvisor1014/country4 → AnyTour7425/rev1 → local-tv1014/rev3
+chain names Side Star Elegance; ANEX8475 remains a different namespace. The
+bounded group contains seven conditional declarations and five related source
+records. Three original records remain mandatory limits, outside positive facts:
+conflicting drink-service hours, the Swim Up 16+ and mobility caution, and the
+historical unsuccessful PDF-link read. The latter retains its original
+`official_declared` kind without becoming a service declaration.
+
+Research authority remains `inherited-baseline`, with zero collector acceptance
+credit and no assigned continuous receipt. The private review preserves all ten
+original claims, six source IDs and twelve source variants, including the unused
+activity-page source. Only the separately reviewed metadata projection is used
+for this bounded consumer; source observations remain 19–20 October and unknown
+publication dates remain unknown. TUI room categories and AI, official UAI and
+seasonal restaurant conditions do not establish the selected operator tariff.
+
+Together with the existing nineteen groups, this adds up to twenty manifest
+groups, 87 declarations and 57 source records. Those are repository data counts.
+The existing focused TOP500 command above also covers this group, including the
+actual PHP request encoder and the unchanged 16KiB hotel increment. It keeps the
+whole group for an admissible room label, and omits it whole when JSON escaping
+would exceed the budget. These checks do not establish a natural inquiry,
+current service operation or an actual model response.
+
 The Pickalbatros Blu Spa group preserves four accepted B04 declarations: the hotel's
 minimum age and couples-only policy, beach length, winter heating of the named
 indoor pool, and the official Deluxe category's area and capacity. Each original
