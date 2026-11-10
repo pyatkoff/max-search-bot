@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
 if (PHP_SAPI !== 'cli') {http_response_code(404);exit;}
 
 // Exercise the real endpoint, ManagerHttp, fresh canonical visibility policy and
@@ -13,6 +14,7 @@ $process=null;$db=null;$passed=0;
 function pcCheck(string $name,bool $ok):void {global $passed;if (!$ok) throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name."\n";}
 try {
     $db=new PDO('sqlite:'.$tmp.'/fixture.sqlite',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    regionalAccessFixtureSchema($db);
     $db->exec("CREATE TABLE projects (id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER);
         CREATE TABLE managers (id INTEGER PRIMARY KEY,login TEXT,display_name TEXT,role TEXT,email TEXT,is_active INTEGER,is_working INTEGER);
         CREATE TABLE manager_projects (manager_id INTEGER,project_id INTEGER);

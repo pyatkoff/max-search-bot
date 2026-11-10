@@ -65,7 +65,7 @@ final class PreparedReplyPdo extends PDO
         if ($this->getAttribute(PDO::ATTR_DRIVER_NAME) !== 'mysql') return;
         $database = parent::query('SELECT DATABASE()')->fetchColumn();
         if (!is_string($database) || preg_match('/\Amaxbot_prepared_test(?:_[a-zA-Z0-9_]+)?\z/D', $database) !== 1) throw new RuntimeException('unsafe_mysql_fixture_database');
-        foreach (self::TABLES as $table) parent::exec('DROP TABLE IF EXISTS '.$table);
+        foreach (['manager_group_territory_regions','manager_group_territories','manager_regional_access',...self::TABLES] as $table) parent::exec('DROP TABLE IF EXISTS '.$table);
     }
 
     public function observe(string $sql): void

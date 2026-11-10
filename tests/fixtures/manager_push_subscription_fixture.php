@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/regional_access_schema.php';
 
 // Synthetic SQLite storage for the real push-health SQL. information_schema and
 // DATABASE() provide metadata only; no production SELECT is rewritten.
@@ -15,6 +16,7 @@ function managerPushSubscriptionFixture(PDO $pdo): void
 
 function managerPushSubscriptionFixtureSeed(PDO $pdo): void
 {
+    regionalAccessFixtureSchema($pdo);
     $pdo->exec("CREATE TABLE managers(id INTEGER PRIMARY KEY,login TEXT,display_name TEXT,role TEXT,email TEXT,is_active INTEGER,is_working INTEGER);
         CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER);
         CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER);

@@ -4,6 +4,7 @@ if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require_once dirname(__DIR__).'/run_modeled_conversion_delivery_registry_regression.php';
 require_once dirname(__DIR__,2).'/services/ConversationDb.php';
 require_once dirname(__DIR__,2).'/services/ProjectConfig.php';
+require_once __DIR__.'/regional_access_schema.php';
 
 final class ModeledDeliveryRouteFixturePDO extends PDO
 {
@@ -50,12 +51,13 @@ $pdo->exec("INSERT INTO managers VALUES(7,'synthetic-admin','Синтетиче�
     (8,'synthetic-manager','Синтетический менеджер','manager','',1,0),
     (9,'synthetic-inactive','Синтетический отключённый','admin','',0,0),
     (10,'synthetic-no-project','Синтетический без проекта','admin','',1,0)");
+regionalAccessFixtureSchema($pdo);
 $property=new ReflectionProperty(ConversationDb::class,'pdo');$property->setAccessible(true);$property->setValue(null,$pdo);
 ProjectConfig::resetForTests(['id'=>$case==='foreign'?'other':'anytour','brand'=>['name'=>$case==='foreign'?'Other':'AnyTour']]);
 $config="<?php\nrequire_once ".var_export($repo.'/services/ConversationDb.php',true).";\nrequire_once ".var_export($repo.'/services/ProjectConfig.php',true).";\n";
 if(file_put_contents($dir.'/config.php',$config)===false)exit(2);
 $before=deliveryRegistryDataDigest($pdo);
-foreach(['customers','customer_channels','conversations','modeled_conversion_profile_versions','max_channel_conversion_outbox','projects','manager_projects','managers']as$table)
+foreach(['customers','customer_channels','conversations','modeled_conversion_profile_versions','max_channel_conversion_outbox','projects','manager_projects','managers','manager_regional_access','manager_group_territories','manager_group_territory_regions']as$table)
     foreach(['INSERT','UPDATE','DELETE']as$verb)
         $pdo->exec('CREATE TRIGGER fixture_no_'.strtolower($verb).'_'.$table.' BEFORE '.$verb.' ON '.$table." BEGIN SELECT RAISE(ABORT,'fixture_write_forbidden'); END");
 $actor=match($case){'manager'=>8,'inactive'=>9,'no_project'=>10,'anonymous'=>0,default=>7};
