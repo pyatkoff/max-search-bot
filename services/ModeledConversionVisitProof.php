@@ -241,7 +241,9 @@ final class ModeledConversionVisitProof
                 &&hash_equals($journal['members'][(string)$r['id']],self::fingerprint($r))
                 &&(!in_array($journal['state'],['processed','failed'],true)
                     ||($journal['state']==='processed'&&($at<$journal['checked_at_unix']
-                        ||!in_array($e['linkage']??null,['unique_visit_reconciled','wire_value_reconciled'],true))))){
+                        ||!in_array($e['linkage']??null,['unique_visit_reconciled','wire_value_reconciled'],true)))
+                    ||($journal['state']==='failed'&&($at<$journal['checked_at_unix']
+                        ||($e['failure_audit']['wire_correction_status']??null)!=='failed')))){
                 $key=$journal['wire_key'];
                 if($now-$at>=300){
                     if(!isset($repairKeys[$key])){
