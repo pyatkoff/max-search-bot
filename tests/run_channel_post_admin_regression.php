@@ -1,11 +1,13 @@
 <?php
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/ChannelPostAdminService.php';
+require_once __DIR__.'/fixtures/regional_access_schema.php';
 
 $passed = 0;
 function cpaCheck(string $label, bool $ok): void { global $passed; if (!$ok) throw new RuntimeException('FAIL '.$label); $passed++; echo 'PASS '.$label."\n"; }
 function cpaSchema(PDO $db): void
 {
+    regionalAccessFixtureSchema($db);
     $db->exec("CREATE TABLE projects (id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER);
         CREATE TABLE managers (id INTEGER PRIMARY KEY,login TEXT,display_name TEXT,role TEXT,email TEXT,is_active INTEGER,is_working INTEGER);
         CREATE TABLE manager_projects (manager_id INTEGER,project_id INTEGER);

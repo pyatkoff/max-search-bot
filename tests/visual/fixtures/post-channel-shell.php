@@ -16,6 +16,8 @@ try {
         INSERT INTO manager_projects VALUES (7,1);");
     (new ReflectionProperty(ConversationDb::class, 'pdo'))->setValue(null, $fixture);
     ProjectConfig::resetForTests(['id'=>'post-fixture', 'brand'=>['name'=>'Synthetic AnyTour']]);
+    require_once $root.'/tests/fixtures/regional_access_schema.php';
+    regionalAccessFixtureSchema($fixture);
     $fixture->exec('PRAGMA query_only=ON');
     ini_set('session.save_path', $temporary.'/sessions');
     require_once $root.'/manager/lib/ManagerHttp.php';

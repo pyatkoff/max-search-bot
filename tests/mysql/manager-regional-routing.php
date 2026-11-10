@@ -23,6 +23,7 @@ if(($argv[1]??'')==='--worker-revoke'){
     }
     echo 'READY:'.$pdo->query('SELECT CONNECTION_ID()')->fetchColumn()."\n";fflush(STDOUT);
     if(fgets(STDIN)!=="start\n")exit(1);
+    echo "MUTATING\n";fflush(STDOUT);
     $result=RoutingAdminService::saveGroupResult(90,'anytour',10,'kras','Synthetic Krasnoyarsk group',[7],[]);
     echo json_encode($result,JSON_THROW_ON_ERROR);exit(empty($result['ok'])?1:0);
 }
@@ -84,11 +85,22 @@ try{
     stream_set_timeout($pipes[1],15);$ready=fgets($pipes[1]);
     if(!is_string($ready)||!preg_match('/\AREADY:([1-9][0-9]*)\n\z/D',$ready,$match))throw new RuntimeException('Native regional worker not ready');
     $connection=(int)$match[1];fwrite($pipes[0],"start\n");fclose($pipes[0]);
+    if(fgets($pipes[1])!=="MUTATING\n")throw new RuntimeException('Native regional worker did not enter the canonical mutation');
     $observer=new PDO($dsn,$user,$password,$options);$waiting=false;$deadline=microtime(true)+5;
     do{
         $q=$observer->prepare("SELECT COUNT(*) FROM information_schema.innodb_trx WHERE trx_mysql_thread_id=? AND trx_state='LOCK WAIT'");$q->execute([$connection]);
-        if((int)$q->fetchColumn()===1){$waiting=true;break;}usleep(10000);
+        if((int)$q->fetchColumn()===1){$waiting=true;break;}
+        // INNODB_TRX refresh requires >100ms without another cache read. A
+        // 10ms poll pins its initial snapshot and can never observe a new wait.
+        // MySQL 8.0 storage/innobase/trx/trx0i_s.cc: can_cache_be_updated().
+        usleep(200000);
     }while(microtime(true)<$deadline);
+    if(!$waiting){
+        stream_set_blocking($pipes[1],false);stream_set_blocking($pipes[2],false);
+        $q=$observer->prepare('SELECT STATE,INFO FROM information_schema.PROCESSLIST WHERE ID=?');$q->execute([$connection]);
+        fwrite(STDERR,json_encode(['regional_worker_wait_observation'=>'missing','process'=>$q->fetch(),
+            'worker_output'=>stream_get_contents($pipes[1],2000),'worker_error'=>stream_get_contents($pipes[2],2000)],JSON_THROW_ON_ERROR)."\n");
+    }
     regionalNativeCheck('Concurrent canonical scope revocation waits for the protected regional transaction',$waiting);
     $reader->exec('INSERT INTO regional_guarded_writes VALUES(1)');$reader->commit();
     $body=stream_get_contents($pipes[1]);$error=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);

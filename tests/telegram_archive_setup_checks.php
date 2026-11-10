@@ -4,9 +4,11 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require_once __DIR__.'/../services/TelegramArchiveBotRuntime.php';
 require_once __DIR__.'/../services/TelegramArchiveBotSetup.php';
 require_once __DIR__.'/fixtures/TelegramArchiveHttpFixture.php';
+require_once __DIR__.'/fixtures/regional_access_schema.php';
 
 function runTelegramArchiveSetupChecks(PDO $pdo, $dsn): void
 {
+    regionalAccessFixtureSchema($pdo);
     $directory = sys_get_temp_dir().'/telegram-archive-config-'.bin2hex(random_bytes(8));
     $store = new TelegramArchiveBotConfig($directory);
     $token = '55555:ABCDEFGHIJKLMNOPQRSTUVWX';
