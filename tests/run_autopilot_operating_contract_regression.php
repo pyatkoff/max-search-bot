@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 $root=dirname(__DIR__);
-$files=['START_HERE.md','AGENTS.md','docs/PRODUCT.md','docs/AUTOPILOT.md','docs/OPERATIONS.md','docs/REPO_MAP.md','docs/ARCHITECTURE.md','docs/REFACTOR_ROADMAP.md'];
+$files=['START_HERE.md','AGENTS.md','README.md','docs/PRODUCT.md','docs/AUTOPILOT.md','docs/OPERATIONS.md','docs/REPO_MAP.md','docs/ARCHITECTURE.md','docs/REFACTOR_ROADMAP.md'];
 $failed=0;$passed=0;
 function contractCheck(string $name,bool $ok):void{global$failed,$passed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
+function contractSection(string $document,string $heading):string{$start=strpos($document,$heading."\n");if($start===false)return '';$end=strpos($document,"\n## ",$start+strlen($heading));return $end===false?substr($document,$start):substr($document,$start,$end-$start);}
 foreach($files as $path)contractCheck("exists {$path}",is_file($root.'/'.$path)&&filesize($root.'/'.$path)>0);
 $start=(string)@file_get_contents($root.'/START_HERE.md');
 $agents=(string)@file_get_contents($root.'/AGENTS.md');
 $product=(string)@file_get_contents($root.'/docs/PRODUCT.md');
+$readme=(string)@file_get_contents($root.'/README.md');
 $autopilot=(string)@file_get_contents($root.'/docs/AUTOPILOT.md');
 $ops=(string)@file_get_contents($root.'/docs/OPERATIONS.md');
 $map=(string)@file_get_contents($root.'/docs/REPO_MAP.md');
@@ -35,7 +37,15 @@ contractCheck('scope forbids neighbouring project edits',strpos($agents,'Work on
 contractCheck('metrika and lead mechanism are protected',strpos($agents,'Yandex Metrica counters, goals')!==false&&strpos($agents,'existing lead-sending destination/mechanism')!==false);
 contractCheck('live conversations precede roadmap cleanup',strpos($agents,'fresh live conversations')!==false&&strpos($autopilot,'Inspect fresh live conversations first')!==false);
 contractCheck('priority keeps UX above roadmap refactor',strpos($agents,'dialogue, search, manager-workspace or responsive UX friction')!==false&&strpos($agents,'roadmap product work')!==false);
-contractCheck('handoff keeps timezone and five minute fallback',strpos($product,'11:00–21:00 Europe/Moscow')!==false&&strpos($agents,'11:00–21:00 Europe/Moscow')!==false&&strpos($product,'after 5 minutes without a manager reply')!==false);
+foreach(['AGENTS.md'=>contractSection($agents,'## Handoff policy'),'docs/PRODUCT.md'=>contractSection($product,'## Working-hours handoff')] as $path=>$policy){
+    contractCheck("{$path} current handoff keeps Moscow hours and optional phone",strpos($policy,'11:00–21:00 Europe/Moscow')!==false&&strpos($policy,'phone capture is optional and never gates handoff')!==false);
+    contractCheck("{$path} current handoff accepts explicit requests at any hour",strpos($policy,'every explicit manager request and non-hotel manager-first source enters `waiting_manager` at any hour')!==false&&strpos($policy,'outside working hours, keep that handoff')!==false);
+    contractCheck("{$path} current hotel entries collect needs before handoff",strpos($policy,'hotel-channel and feed entries collect useful missing trip needs first')!==false&&strpos($policy,'an explicit manager request still uses immediate handoff')!==false&&strpos($policy,'the qualifying flow uses canonical manager handoff before confirming it')!==false);
+    contractCheck("{$path} current waiting stays quiet without automatic phone offers",strpos($policy,'initial manager-entry greeting only for a new handoff')!==false&&strpos($policy,'no duplicate queue events or push')!==false&&strpos($policy,'after the initial manager-entry greeting, ordinary customer messages')!==false&&strpos($policy,'notification and no bot reply')!==false&&strpos($policy,'automatic five-minute phone offers are disabled')!==false&&strpos($policy,'contact/manual-phone actions remain customer initiated')!==false&&strpos($policy,'after 5 minutes without a manager reply')===false);
+}
+$protected=contractSection($start,'## Protected behavior');
+contractCheck('current handoff summary delegates to current policy rather than historical acceptance',strpos($protected,'`AGENTS.md` and `docs/PRODUCT.md`')!==false&&strpos($protected,'11:00–21:00 Europe/Moscow')!==false&&strpos($protected,'automatic five-minute phone offers disabled')!==false&&strpos($protected,'do not restore superseded policy')!==false&&strpos($protected,'10:00–20:00 Europe/Kaliningrad')===false&&strpos($protected,'one phone offer after five minutes')===false);
+contractCheck('readme requires checked PR and sole publisher release',strpos($readme,'required `regression` and `guard` checks must pass before merge')!==false&&strpos($readme,'repeat fresh release-priority admission, acquire the sole publisher')!==false&&strpos($readme,'automatic publisher release for the exact merged source')!==false&&strpos($readme,'push to `main`;')===false&&strpos($readme,'Until the deploy workflow is fully gated')===false);
 contractCheck('manager shift state cannot be auto-corrected',strpos($agents,'operator-controlled manager `is_working` state')!==false&&strpos($ops,'Never auto-enable a manager')!==false);
 contractCheck('required CI remains merge gate',strpos($agents,'merge only after required CI is green')!==false&&strpos($autopilot,'Required PR CI must be green')!==false);
 contractCheck('production completion requires diagnostics',strpos($ops,'production diagnostics transfer')!==false&&strpos($autopilot,'production diagnostics download')!==false);

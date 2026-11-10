@@ -95,7 +95,7 @@ final class ModeledConversionVisitProof
                 $entry['linkage']='failed';$entry['reason']='provider_linkage_failure';
                 if(preg_match('/\\A[1-9][0-9]{0,39}\\z/D',$cid)===1){
                     if(++$requests>96||($deadline!==null&&microtime(true)>=$deadline))throw new RuntimeException('verification_request_bound');
-                    $clientVisits=method_exists($api,'modeledAttributionVisits')?$api->modeledAttributionVisits($cid,(int)$r['event_unix'],$now):$api->modeledClientVisits($cid,(int)$r['event_unix'],$now);
+                    $clientVisits=method_exists($api,'modeledAttributionVisits')?$api->modeledAttributionVisits($cid,(int)$r['event_unix'],$now,$admitWireRead):$api->modeledClientVisits($cid,(int)$r['event_unix'],$now);
                     $entry['reason']=self::failureReason($clientVisits,(int)$r['event_unix']);
                     if(++$requests>96||($deadline!==null&&microtime(true)>=$deadline))throw new RuntimeException('verification_request_bound');
                     $entry['failure_audit']=self::failureAudit($r,$v,$clientVisits,(method_exists($api,'modeledValueVisits')?$api->modeledValueVisits($cid,$activation,$now):['status'=>'unavailable']),$ledger,$now,ModeledConversionWireValue::observe($r,$ledger,$api,$now,$admitWireRead));
