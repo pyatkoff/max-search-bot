@@ -183,8 +183,14 @@ pwCheck('large queue union is one newest200 page with canonical ownership',$pdo-
 $overlap=ManagerConversationService::list(7,'all',200,'*','','',0,['queues'=>['mine','all']]);
 pwCheck('overlapping mine and all selectors never duplicate rows',count($overlap)===count(array_unique(array_column($overlap,'id'),SORT_REGULAR)));
 $multiInput['queues']=['waiting','closed'];$multiInput['channels']=[];$multiInput['source_ids']=[];pwMut('tab_save',['id'=>$multiId,'tab'=>$multiInput]);
+// Keep the optional channel/source assertion inside an explicit four-client
+// collection: recurring reply work now legitimately includes the older 1001
+// unanswered fixtures, whose separate bounded-cap checks above remain intact.
+$queueLabel=pwMut('label_save',['name'=>'Queue union fixture']);foreach([2003,2004,2006,2008] as $id)pwMut('label_membership',['conversation_id'=>$id,'label_id'=>$queueLabel['id'],'enabled'=>true]);
+$multiInput['label_ids']=[$queueLabel['id']];pwMut('tab_save',['id'=>$multiId,'tab'=>$multiInput]);
 $waitingClosedIds=array_column(ManagerPersonalWorkspaceService::list(7,['selection'=>'tab:'.$multiId])['conversations'],'id');sort($waitingClosedIds);
-pwCheck('empty optional selectors mean any and waiting plus closed includes both canonical projections',$waitingClosedIds===[2003,2004,2006,2008]);
+pwCheck('empty channel/source selectors mean any within the explicit waiting and closed collection',$waitingClosedIds===[2003,2004,2006,2008]);
+$multiInput['label_ids']=[];pwMut('tab_save',['id'=>$multiId,'tab'=>$multiInput]);pwMut('label_delete',['id'=>$queueLabel['id']]);
 $aliases=pwMut('tab_save',['id'=>$multiId,'tab'=>array_merge($multiInput,['queue'=>'mine','channel'=>'website','source_id'=>3,'label_id'=>999])]);
 $aliasTab=array_values(array_filter($aliases['state']['tabs'],static fn(array $item):bool=>$item['id']===$multiId))[0];
 pwCheck('authoritative plural empty selectors clear stale legacy aliases without narrowing or broadening queues',$aliases['ok']&&$aliasTab['queues']===['waiting','closed']&&$aliasTab['queue']==='all'&&$aliasTab['channel']===''&&$aliasTab['source_id']===0&&$aliasTab['label_id']===0);
@@ -193,7 +199,7 @@ pwCheck('saved Mine intersects admin external manager filter while ordinary Mine
 $pdo->exec("INSERT INTO conversation_events VALUES(30001,1,'waiting_manager','2026-10-11 00:00:00','{}','system'),(30002,2007,'waiting_manager','2026-10-11 00:00:00','{}','system'),(30003,2004,'waiting_manager','2026-10-11 00:00:00','{}','system')");
 $requestedIds=array_column(ManagerConversationService::list(7,'requested',200,'*'),'id');sort($requestedIds);
 pwCheck('canonical requested queue keeps own and unassigned and excludes another manager after predicate extraction',$requestedIds===[1,2004]);
-$attentionIds=array_column(ManagerConversationService::list(7,'attention',200,'*'),'id');$adminAttentionIds=array_column(ManagerConversationService::list(90,'attention',200,'*'),'id');
+$attentionIds=array_column(ManagerConversationService::list(7,'attention',200,'*','','',0,['ids'=>[1,2007]]),'id');$adminAttentionIds=array_column(ManagerConversationService::list(90,'attention',200,'*','','',0,['ids'=>[1,2007]]),'id');
 pwCheck('canonical urgent queue preserves nonadmin ownership and admin oversight',in_array(1,$attentionIds,true)&&!in_array(2007,$attentionIds,true)&&in_array(2007,$adminAttentionIds,true));
 $pdo->exec('DELETE FROM conversation_events WHERE id IN (30001,30002,30003)');
 $badMulti=[['queues'=>[]],['queues'=>['mine','mine']],['queues'=>['mine',1]],['queues'=>['attention']],['channels'=>['max','max']],['channels'=>['max','']],['channels'=>'max'],['source_ids'=>['1']],['source_ids'=>[1,1]],['source_ids'=>[0]],['source_ids'=>range(1,101)],['label_ids'=>[$secondId,$secondId]],['label_ids'=>[true]],['label_ids'=>range(1,31)],['channels'=>['x'=>'max']]];

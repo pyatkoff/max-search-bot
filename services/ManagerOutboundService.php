@@ -7,6 +7,7 @@ require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ConversationRecorder.php';
 require_once __DIR__ . '/MetrikaConversionGoalService.php';
 require_once __DIR__ . '/ProjectMaxMessengerFactory.php';
+require_once __DIR__ . '/ManagerReplyQueueService.php';
 require_once __DIR__ . '/../integrations/TelegramMessengerAdapter.php';
 require_once __DIR__ . '/../integrations/WebsiteMessengerAdapter.php';
 
@@ -79,10 +80,11 @@ class ManagerOutboundService
             else return false;
             if (!$adapter) return self::connectionNotConfigured($channel,$projectKey);
 
+            $replyBoundary=ManagerReplyQueueService::captureSendBoundary($conversationId);
             $storedText = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             $ok = $adapter->send($chatId, $storedText);
             if ($ok) {
-                $metadata=['project_key'=>$projectKey];
+                $metadata=['project_key'=>$projectKey,ManagerReplyQueueService::SEND_BOUNDARY=>$replyBoundary];
                 if ($aiDraftId !== null) {
                     require_once __DIR__ . '/ManagerAiDraftFeedbackService.php';
                     $feedback=ManagerAiDraftFeedbackService::forMessage($conversationId,$managerId,$projectKey,$aiDraftId,$text);
@@ -121,12 +123,13 @@ class ManagerOutboundService
         $adapter=$channel==='max'?ProjectMaxMessengerFactory::forConversation($c,'manager'):new TelegramMessengerAdapter(null,'manager',false);
         if(!$adapter)return self::connectionNotConfigured($channel,$projectKey);
         $safeCaption=trim($caption)!==''?htmlspecialchars(trim($caption),ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'):'';
+        $replyBoundary=ManagerReplyQueueService::captureSendBoundary($conversationId);
         $ok=$adapter->sendMedia($c['external_chat_id'],$type,$filePath,$fileName,$mimeType,$safeCaption,$previewUrl);
         if($ok){
             $preview=$safeCaption!==''?$safeCaption:ConversationRecorder::attachmentPreview([['type'=>$type]]);
             $attachment=['type'=>$type,'name'=>$fileName,'mime_type'=>$mimeType];
             if(trim($previewUrl)!=='')$attachment['url']=trim($previewUrl);
-            ConversationRecorder::outboundForConversation($conversationId,$channel,$preview,'manager',(string)$managerId,['project_key'=>$projectKey,'attachments'=>[$attachment]],in_array($channel,['max','telegram'],true)?$adapter->lastExternalMessageId():'');
+            ConversationRecorder::outboundForConversation($conversationId,$channel,$preview,'manager',(string)$managerId,['project_key'=>$projectKey,'attachments'=>[$attachment],ManagerReplyQueueService::SEND_BOUNDARY=>$replyBoundary],in_array($channel,['max','telegram'],true)?$adapter->lastExternalMessageId():'');
             ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>$projectKey,'media_type'=>$type]);
             if($projectKey===ProjectConfig::projectId())MetrikaConversionGoalService::managerReply($conversationId);
             return true;

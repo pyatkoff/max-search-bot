@@ -50,7 +50,7 @@ PHP;
 file_put_contents($tmp.'/bootstrap.php',$bootstrap);
 foreach(['ConversationDb','ProjectConfig','DiagnosticLogger','SourceHandlingService','ConversationRecorder','ManagerConversationService','ManagerPushService','ManagerSendGuardService','MetrikaConversionGoalService','ProjectMaxMessengerFactory'] as $name)file_put_contents($tmp.'/services/'.$name.'.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
 foreach(['MaxMessengerAdapter','TelegramMessengerAdapter','WebsiteMessengerAdapter'] as $name)file_put_contents($tmp.'/integrations/'.$name.'.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
-foreach(['MaxStartSourcePolicy','ManagerDeliveryStateService','ManagerOutboundService'] as $name)copy($root.'/services/'.$name.'.php',$tmp.'/services/'.$name.'.php');
+foreach(['MaxStartSourcePolicy','ManagerDeliveryStateService','ManagerOutboundService','ManagerReplyQueueService','ConversationRecordClock'] as $name)copy($root.'/services/'.$name.'.php',$tmp.'/services/'.$name.'.php');
 $pass=0;$fail=0;
 function restartCheck(string $name,$actual,$expected):void{global $pass,$fail;if($actual===$expected){$pass++;echo 'PASS '.$name.PHP_EOL;}else{$fail++;echo 'FAIL '.$name.' expected='.json_encode($expected).' actual='.json_encode($actual).PHP_EOL;}}
 function restartEvent(int $id,string $type,array $payload=[],string $actor='system'):void{ConversationControlService::event($id,$type,$actor,7,$payload);}
@@ -67,7 +67,7 @@ try{
     CREATE TABLE conversation_sources(id INTEGER PRIMARY KEY,project_id INTEGER,source_key TEXT,channel TEXT,handling_mode TEXT,is_active INTEGER);
     INSERT INTO conversation_sources VALUES(1,1,'max:anytour-main','max','ai',1),(2,1,'max_anytour_msk1','max','manager',1),(3,1,'max_anytour_msk','max','manager',1);
     CREATE TABLE conversations(id INTEGER PRIMARY KEY,project_key TEXT,external_chat_id TEXT,channel TEXT,source_id INTEGER,entry_channel TEXT,status TEXT,manager_id INTEGER);
-    CREATE TABLE messages(id INTEGER PRIMARY KEY AUTOINCREMENT,conversation_id INTEGER,direction TEXT,sender_type TEXT,text TEXT,created_at TEXT DEFAULT '2026-09-29 08:00:00');
+    CREATE TABLE messages(id INTEGER PRIMARY KEY AUTOINCREMENT,conversation_id INTEGER,direction TEXT,sender_type TEXT,text TEXT,metadata_json TEXT,created_at TEXT DEFAULT '2026-09-29 08:00:00');
     CREATE TABLE conversation_events(id INTEGER PRIMARY KEY AUTOINCREMENT,conversation_id INTEGER,event_type TEXT,actor_type TEXT,payload_json TEXT,created_at TEXT DEFAULT '2026-09-29 08:00:00');");
     $media=$tmp.'/synthetic.txt';file_put_contents($media,'synthetic fixture');$id=100;
     foreach(['max_anytour_msk1','max_anytour_msk'] as $source){

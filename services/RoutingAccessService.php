@@ -31,6 +31,28 @@ class RoutingAccessService
         return self::visibleInRoutingSnapshot($conversation,$isAdmin,$isWorking,$sources,$groups,time());
     }
 
+    /** Pin only the inputs of the EXISTING visibility policy for a staff mutation.
+     * Call after actor/conversation locking and before the first consistent read.
+     * Current locking reads avoid a stale MySQL REPEATABLE READ grant snapshot;
+     * revocation/config changes then serialize with the mutation's commit.
+     */
+    public static function lockConversationVisibilityInputs(int $managerId,array $conversation): bool
+    {
+        $pdo=ConversationDb::connection();if(!$pdo->inTransaction())throw new LogicException('Visibility locks require a transaction');
+        if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql')return true;
+        $q=$pdo->prepare('SELECT p.id,p.is_active FROM projects p JOIN manager_projects mp ON mp.project_id=p.id WHERE mp.manager_id=? AND p.project_key=? ORDER BY p.id FOR UPDATE');
+        $q->execute([$managerId,(string)($conversation['project_key']??'')]);$project=$q->fetch();
+        if(!$project||(int)$project['is_active']!==1)return false;
+        $source=(int)($conversation['source_id']??0);if($source<=0)return true;
+        // Lock the actual row even when inactive: the normal policy decides how
+        // missing/inactive sources behave. No new source/group eligibility rule.
+        $q=$pdo->prepare('SELECT id,primary_group_id,fallback_group_id FROM conversation_sources WHERE id=? FOR UPDATE');$q->execute([$source]);$row=$q->fetch();
+        if(!$row)return true;
+        $groups=array_values(array_unique(array_filter([(int)$row['primary_group_id'],(int)$row['fallback_group_id']],static fn($id)=>$id>0)));sort($groups,SORT_NUMERIC);
+        if($groups){$q=$pdo->prepare('SELECT group_id FROM manager_group_members WHERE manager_id=? AND group_id IN ('.implode(',',array_fill(0,count($groups),'?')).') ORDER BY group_id FOR UPDATE');$q->execute([$managerId,...$groups]);$q->fetchAll();}
+        return true;
+    }
+
     /** One batch snapshot only; never retain permissions across requests or mutations. */
     public static function visibleConversations(int $managerId, array $conversations): array
     {

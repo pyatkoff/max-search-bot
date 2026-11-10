@@ -87,6 +87,27 @@ for(const width of [390,1440])test(`Inbox callback previews explain clicks and p
  await capture(page,browserName,{width,font:'normal',density:'comfortable',groups:0,captureSuffix:'-callback-preview'},900,testInfo);
  clean(s);
 });
+for(const width of [390,430,768,1440])test(`current reply wait keeps its own clock and truthful unknown state ${width}`,async({page,browserName},testInfo)=>{
+ await page.clock.install({time:new Date('2026-10-16T09:00:00Z')});await page.setViewportSize({width,height:420});
+ const data=rows().slice(0,3);Object.assign(data[0],{awaiting_first_reply:0,awaiting_manager_reply:1,wait_age_seconds:7200,reply_wait_started_unix:1792141019,reply_wait_started_at:'2026-10-16T08:56:59Z',reply_wait_age_seconds:181,reply_wait_time_known:true});
+ Object.assign(data[1],{awaiting_first_reply:1,awaiting_manager_reply:1,wait_age_seconds:7200,reply_wait_started_unix:null,reply_wait_started_at:null,reply_wait_age_seconds:null,reply_wait_time_known:false});
+ Object.assign(data[2],{awaiting_first_reply:1,awaiting_manager_reply:0,wait_age_seconds:7200,reply_wait_started_unix:null,reply_wait_started_at:null,reply_wait_age_seconds:null,reply_wait_time_known:false});
+ const s=await setup(page,{rows:data});await settled(page,s);
+ await expect(row(page).locator('.leadWaitCompact')).toContainText('3 мин');await expect(row(page).locator('.leadWaitCompact')).toHaveClass(/warn/);await expect(row(page)).not.toHaveClass(/waitUrgent/);
+ await expect(row(page).locator('.m2RowOpen')).toHaveAccessibleDescription('Ожидание ответа: 3 мин');
+ await expect(row(page,12).locator('.leadWaitCompact')).toHaveText('Время неизвестно');await expect(row(page,12).locator('.m2RowOpen')).toHaveAccessibleDescription('Ожидание ответа: время начала неизвестно');await expect(row(page,12)).not.toHaveClass(/waitWarn|waitUrgent/);
+ await expect(row(page,13).locator('.leadWaitCompact,.leadReplyStatus')).toHaveCount(0);
+ await row(page).evaluate(el=>{window.currentWaitProof={row:el,open:el.querySelector('.m2RowOpen'),badge:el.querySelector('.leadWaitCompact')};currentWaitProof.open.focus({preventScroll:true})});
+ // The existing 15-second refresh advances the same series, while its raw
+ // first-reply metric changes independently. Neither is a new inbound boundary.
+ data[0].reply_wait_age_seconds=195;data[0].wait_age_seconds=7215;const before=listCalls(s).length;
+ await page.clock.runFor(15000);await expect.poll(()=>listCalls(s).length).toBe(before+1);await settled(page,s);
+ expect(await row(page).evaluate(el=>el===currentWaitProof.row&&el.querySelector('.m2RowOpen')===currentWaitProof.open&&el.querySelector('.leadWaitCompact')===currentWaitProof.badge&&document.activeElement===currentWaitProof.open)).toBe(true);
+ data[0].reply_wait_age_seconds=240;await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await settled(page,s);await expect(row(page).locator('.leadWaitCompact')).toContainText('4 мин');
+ data[0].reply_wait_age_seconds=300;await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await settled(page,s);await expect(row(page).locator('.leadWaitCompact')).toHaveClass(/urgent/);
+ const g=await geometry(page);expect(g.overflow).toBeLessThanOrEqual(1);expect(g.contained).toBe(true);await expect(row(page).locator('.unreadBadge')).toHaveText('999');
+ await capture(page,browserName,{width,font:'normal',density:'comfortable',groups:0,captureSuffix:'current-wait'},420,testInfo);clean(s);
+});
 const profiles=[
  {width:390,font:'normal',density:'comfortable',groups:0},{width:390,font:'normal',density:'compact',groups:1},
  {width:390,font:'large',density:'comfortable',groups:6},{width:390,font:'large',density:'compact',groups:6},

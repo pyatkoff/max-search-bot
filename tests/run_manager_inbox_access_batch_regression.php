@@ -14,6 +14,7 @@ final class InboxAccessPdo extends PDO
     public array $groups=[];
     public array $rows=[];
     public function __construct(){}
+    public function getAttribute(int $attribute):mixed{if($attribute===PDO::ATTR_DRIVER_NAME)return 'mysql';throw new LogicException('Unsupported fixture attribute');}
     public function allowsProject(string $key):bool{foreach($this->projects as $allowed){if(strcasecmp(rtrim($allowed),rtrim($key))===0)return true;}return false;}
     public function prepare(string $query,array $options=[]):PDOStatement|false{return new InboxAccessStatement($query,$this);}
     public function query(string $query,?int $fetchMode=null,mixed ...$fetchModeArgs):PDOStatement|false{$statement=$this->prepare($query);$statement->execute();return$statement;}
