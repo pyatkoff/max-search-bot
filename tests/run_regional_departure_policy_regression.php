@@ -21,6 +21,42 @@ $check(DepartureSuggestionResolver::resolve($region,$directory,['969'=>[]])===[]
 $check(array_column(DepartureSuggestionResolver::resolve($region,$directory,['969'=>['Москва']])['candidates'],'id')===['1'],'Project override remains higher than a shared regional rule');
 $check(DepartureSuggestionResolver::resolve($region,[['id'=>1,'name'=>'Москва']])===[],'Inactive or absent departure records are not guessed from the region');
 
+// Use only names from the captured active directory; these fixture IDs are not
+// provider IDs and must never be persisted. A proposal alone changes no choice.
+$reviewedRules=json_decode(file_get_contents(__DIR__.'/../resources/regional_departure_rules.json'),true,16,JSON_THROW_ON_ERROR);
+$activeDirectory=[];
+foreach($reviewedRules['active_catalog']['departure_names'] as$index=>$name)$activeDirectory[]=['id'=>1000+$index,'name'=>$name];
+$newExamples=[
+    '7'=>['Ярославль','Москва'],'10'=>['Москва'],'11'=>['Москва'],'12'=>['Москва'],
+    '13'=>['Москва'],'14'=>['Москва'],'15'=>['Москва'],'192'=>['Москва'],
+    '24'=>['С.Петербург'],'41'=>['Казань','Чебоксары'],'53'=>['Тюмень','Екатеринбург'],
+    '1092'=>['Владикавказ','Грозный'],'1104'=>['Мин.Воды','Ставрополь'],
+    '20627'=>['Казань','Чебоксары'],'11157'=>['Тюмень','Екатеринбург'],
+    '11016'=>['Мин.Воды','Ставрополь'],'20179'=>['Владикавказ','Грозный'],
+    '11005'=>['Краснодар'],'20177'=>['Волгоград'],'11394'=>['Хабаровск'],'10243'=>['Хабаровск'],
+    '79'=>['Хабаровск'],'11404'=>['Хабаровск'],'11458'=>['Хабаровск','Владивосток'],
+    '10251'=>['Хабаровск','Владивосток'],'10903'=>['Архангельск'],'10176'=>['Архангельск'],
+    '11331'=>['Новосибирск'],'11320'=>['Новосибирск'],
+];
+foreach($newExamples as$id=>$expected){
+    $region=YandexRegionCatalog::findByYandexId((string)$id);$before=$region;
+    $names=RegionalDeparturePolicy::departureNames($region);
+    $proposal=DepartureSuggestionResolver::resolve(array_merge($region,['departure_names'=>$names]),$activeDirectory);
+    $check(array_column($proposal['candidates']??[],'name')===$expected,'Reviewed hub candidates: '.$id);
+    $check($region===$before,'Hub proposals do not mutate a region or save a departure: '.$id);
+}
+$check(RegionalDeparturePolicy::departureNames(YandexRegionCatalog::findByYandexId('10'))===['Орел','Орёл','Москва'],'Both retained Orel spellings remain ordered before the new hub');
+foreach(['3','17','26','40','52','59','73','300012','400003','207928','26990']as$id){
+    $check(RegionalDeparturePolicy::departureNames(YandexRegionCatalog::findByYandexId($id))===null,'Broad, agency, foreign and unreviewed locations keep the ordinary question: '.$id);
+}
+$check(RegionalDeparturePolicy::departureNames(YandexRegionCatalog::findByYandexId('166243'))===['Калуга'],'Sevastopol in a Kaluga village keeps its actual-source province policy');
+$region=YandexRegionCatalog::findByYandexId('11157');$region['departure_names']=RegionalDeparturePolicy::departureNames($region);
+$check(DepartureSuggestionResolver::resolve($region,$activeDirectory,['11157'=>[]])===[],'A project empty override also disables new cross-region hubs');
+$check(array_column(DepartureSuggestionResolver::resolve($region,$activeDirectory,['11157'=>['Москва']])['candidates'],'name')===['Москва'],'A project choice outranks new regional hubs');
+$check(DepartureSuggestionResolver::resolve($region,[['id'=>1,'name'=>'Москва']])===[],'Unavailable hubs never become a guessed unrelated active city');
+$check(DepartureSuggestionResolver::resolve($region,[['id'=>1,'name'=>'Тюмень'],['id'=>2,'name'=>'Тюмень']])===[],'Ambiguous active hub names do not choose a directory ID');
+$check(RegionalDeparturePolicy::departureNames(['id'=>'99999999999999999998','name'=>'Назрань','hierarchy'=>['Foreign province','Назрань']])===null,'A rootless retained seed policy never leaks to a same-name location');
+
 $directories=[];$counter=0;$source=file_get_contents(__DIR__.'/../services/RegionalDeparturePolicy.php');
 $fixture=static function(array $rules,string $manifest,string $padding='')use(&$directories,&$counter,$source):string{
     $dir=sys_get_temp_dir().'/departure-policy-'.bin2hex(random_bytes(8));mkdir($dir.'/services',0700,true);mkdir($dir.'/resources',0700);

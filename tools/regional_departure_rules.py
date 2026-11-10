@@ -45,6 +45,48 @@ PROVINCE_OPTIONS = {
     ('Юг', 'Краснодарский край'): ['Краснодар', 'Сочи'],
     ('Северный Кавказ', 'Ставропольский край'): ['Ставрополь', 'Мин.Воды'],
 }
+# Explicitly reviewed cross-region alternatives, separate from same-province
+# airports above. These are confirmation choices, never a nearest-airport claim
+# or a promise that a flight/tour is available. No distance or leaf-name inference.
+REGIONAL_HUB_OPTIONS = {
+    ('Центр', 'Владимирская область'): ['Москва'],
+    ('Центр', 'Костромская область'): ['Ярославль', 'Москва'],
+    ('Центр', 'Орловская область'): ['Москва'],
+    ('Центр', 'Рязанская область'): ['Москва'],
+    ('Центр', 'Смоленская область'): ['Москва'],
+    ('Центр', 'Тамбовская область'): ['Москва'],
+    ('Центр', 'Тверская область'): ['Москва'],
+    ('Центр', 'Тульская область'): ['Москва'],
+    ('Северо-Запад', 'Новгородская область'): ['С.Петербург'],
+    ('Поволжье', 'Республика Марий Эл'): ['Казань', 'Чебоксары'],
+    ('Урал', 'Курганская область'): ['Тюмень', 'Екатеринбург'],
+    ('Северный Кавказ', 'Карачаево-Черкесская Республика'): ['Мин.Воды', 'Ставрополь'],
+    ('Северный Кавказ', 'Республика Ингушетия'): ['Владикавказ', 'Грозный'],
+    ('Юг', 'Республика Адыгея'): ['Краснодар'],
+    # https://avtovokzal-volgograd.ru/raspisanie/vgg/volgograd/kl/elista
+    # Operator's Elista connection, not guaranteed outbound service on a date.
+    ('Юг', 'Республика Калмыкия'): ['Волгоград'],
+    # Regional-centre connections checked 2026-11-10; they do not establish
+    # access from every settlement. Runtime still filters the active directory.
+    # https://expresspk.ru/schedule-changes/2359/ (rail, effective 2026-10-20)
+    ('Дальний Восток', 'Еврейская автономная область'): ['Хабаровск'],
+    # https://khv.aero/passengers/schedule/ (winter 2026/27)
+    ('Дальний Восток', 'Магаданская область'): ['Хабаровск'],
+    # https://apchukotki.ru/68 (Anadyr winter 2026/27 connections)
+    ('Дальний Восток', 'Чукотский автономный округ'): ['Хабаровск', 'Владивосток'],
+    # https://cdn.flysmartavia.com/news/20260914/ (through 2027-03-27)
+    ('Северо-Запад', 'Ненецкий автономный округ'): ['Архангельск'],
+    # https://www.s7.ru/ru/flight/S7-7020/ (November/December 2026)
+    ('Сибирь', 'Республика Тыва'): ['Новосибирск'],
+    # https://rgk-aero.ru/online/schedule/ (winter 2026/27)
+    ('Сибирь', 'Республика Алтай'): ['Новосибирск'],
+}
+# These two original seed IDs have no HL7 hierarchy. Do not manufacture one or
+# apply their names to homonyms: both the retained ID and original name must fit.
+EXACT_HUB_OPTIONS = {
+    '1092': ('Назрань', ['Владикавказ', 'Грозный']),
+    '1104': ('Черкесск', ['Мин.Воды', 'Ставрополь']),
+}
 
 
 def city_key(name):
@@ -75,6 +117,16 @@ def baseline(regions):
     # Empty hints on new HL7 records are not global prohibitions. The retained
     # country policy is explicit; all other original policies are nonempty.
     return {key: row for key, row in regions.items() if row['departure_names'] or key == '225'}
+
+
+def exact_hub_names(region_id, row):
+    reviewed = EXACT_HUB_OPTIONS.get(region_id)
+    if reviewed is None:
+        return []
+    name, names = reviewed
+    if row['name'] != name or row['departure_names'] != [name] or row.get('hierarchy', []):
+        raise ValueError('Retained seed hub identity changed: ' + region_id)
+    return names
 
 
 def validate_rules(rules, catalog, manifest_sha256):
@@ -115,9 +167,11 @@ def validate_rules(rules, catalog, manifest_sha256):
         path = row.get('hierarchy', [])
         if len(path) >= 2 and path[0] in MACROS:
             approved += PROVINCE_OPTIONS.get((MACROS[path[0]], path[1]), [])
+            approved += REGIONAL_HUB_OPTIONS.get((MACROS[path[0]], path[1]), [])
+        approved += exact_hub_names(region_id, row)
         if extras and (not active_names or any(city_key(name) in active_keys for name in old)
                        or len(new) > 3 or any(name not in approved for name in extras)):
-            raise ValueError('Only existing fallbacks or reviewed same-province options may extend an inactive exact policy: ' + region_id)
+            raise ValueError('Only existing fallbacks or reviewed geographic options may extend an inactive exact policy: ' + region_id)
     retained = baseline(regions)
     for region_id, entry in exact.items():
         if region_id not in retained and any(city_key(name) not in active_keys for name in entry['departure_names']):
@@ -144,7 +198,7 @@ def validate_rules(rules, catalog, manifest_sha256):
     return rules
 
 
-def generate_draft(catalog, manifest_sha256, active_catalog=None):
+def generate_draft(catalog, manifest_sha256, active_catalog=None, *, include_regional_hubs=True):
     regions = catalog['regions']
     exact = {key: {'departure_names': row['departure_names'], 'anchor_hierarchy': row.get('hierarchy', [])}
              for key, row in baseline(regions).items()}
@@ -171,11 +225,19 @@ def generate_draft(catalog, manifest_sha256, active_catalog=None):
             if len(path) < 3 or path[0] not in set(MACROS.values()) or city_key(row['name']) != city_key(target) or city_key(target) not in active_keys:
                 raise ValueError('Curated exact city is not supported by its actual path and active catalog: ' + region_id)
             exact[region_id] = {'departure_names': [target], 'anchor_hierarchy': path}
-        for entry in exact.values():
+        for region_id, entry in exact.items():
             path, names = entry['anchor_hierarchy'], entry['departure_names']
-            if not names or any(city_key(name) in active_keys for name in names) or len(path) < 2 or path[0] not in MACROS:
+            if not names or any(city_key(name) in active_keys for name in names):
                 continue
-            for candidate in PROVINCE_OPTIONS.get((MACROS[path[0]], path[1]), []):
+            options = []
+            if len(path) >= 2 and path[0] in MACROS:
+                province = (MACROS[path[0]], path[1])
+                options += PROVINCE_OPTIONS.get(province, [])
+                if include_regional_hubs:
+                    options += REGIONAL_HUB_OPTIONS.get(province, [])
+            if include_regional_hubs:
+                options += exact_hub_names(region_id, regions[region_id])
+            for candidate in options:
                 if len(names) < 3 and city_key(candidate) in active_keys and city_key(candidate) not in {city_key(name) for name in names}:
                     names.append(candidate)
     provinces, cities = {}, {}
@@ -197,6 +259,17 @@ def generate_draft(catalog, manifest_sha256, active_catalog=None):
             if any(city_key(name) not in active_keys | retained_keys for name in targets):
                 raise ValueError('Curated province target is not active: ' + str(province))
             provinces[province] = targets
+        if include_regional_hubs:
+            for province, targets in REGIONAL_HUB_OPTIONS.items():
+                if any(city_key(name) not in active_keys for name in targets):
+                    raise ValueError('Reviewed regional hub is not active: ' + str(province))
+                # Retained active choices may not be removed by hub curation.
+                previous = provinces.get(province, [])
+                if any(city_key(name) in active_keys for name in previous) and any(
+                        city_key(name) not in {city_key(target) for target in targets} for name in previous
+                        if city_key(name) in active_keys):
+                    raise ValueError('Regional hubs would replace an active province policy: ' + str(province))
+                provinces[province] = targets
     scopes = {}
 
     def add(kind, prefix, names, region_id, path):
@@ -220,7 +293,8 @@ def generate_draft(catalog, manifest_sha256, active_catalog=None):
             if normalized[:length] in cities:
                 add('city', path[:length], cities[normalized[:length]], region_id, path)
     result = {'version': 1, 'catalog_manifest_sha256': manifest_sha256,
-              'source': 'Reviewed rules over the retained Tour-Max HL7 snapshot; not live airport availability',
+              'source': ('Reviewed rules over the retained Tour-Max HL7 snapshot; regional hubs are manually '
+                         'curated alternatives requiring tourist confirmation, not nearest airports or live flight availability'),
               'exact': exact, 'scopes': sorted(scopes.values(), key=lambda scope: (len(scope['prefix']), scope['prefix']))}
     if active_catalog is not None:
         result['active_catalog'] = {key: active_catalog[key] for key in ('captured_at', 'row_count', 'rows_sha256')}
