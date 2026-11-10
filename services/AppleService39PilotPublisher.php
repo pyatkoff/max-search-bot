@@ -579,6 +579,7 @@ final class AppleService39PilotPublisher
                     self::check(AppleService39ChannelTransport::accepted($response)
                         && ($response['data']['success'] ?? null) === true, 'catalogue_edit_held');
                     $this->verifyCatalogueTarget($target,true);
+                    self::check($this->pinnedMid() === $targets[$this->manifest->menuPostId()]['mid'], 'landing_menu_pin_changed');
                     $this->store->finish($row,'verified',$this->catalogueOutcome($target));
                 } catch (Throwable $error) {
                     $this->hold($row,'catalogue_edit_outcome_unknown');

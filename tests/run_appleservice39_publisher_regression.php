@@ -315,6 +315,23 @@ function as39GroupedCatalogueRegression(): void
         as39Expect($badPublisher->run('landing_reconcile')['catalogue_verified_posts'] === 1 && $badProvider->writes() === $badWrites+1,
             'only exact restored native '.$damage.' can reconcile the same original attempt');
     }
+
+    [$pinPdo,$pinProvider,$pinStore] = as39CatalogueFixture(); $pinPublisher=as39CataloguePublisher($pinPdo,$pinProvider);
+    $originalPin=$pinProvider->pinned; $pinWrites=$pinProvider->writes();
+    $pinProvider->editHook=static function() use($pinProvider):void {$pinProvider->pinned='mid_2';};
+    as39Refuses(static fn()=>$pinPublisher->run('landing_apply'),'catalogue_edit_held');
+    $first=AppleService39PilotManifest::installed()->posts()[0]['id']; $pinClaim=$pinStore->operation($first,'catalogue_v1');
+    as39Expect($pinClaim['state']==='unknown' && (int)$pinClaim['write_attempts']===1
+        && !isset($pinClaim['outcome']['text_only']) && $pinProvider->writes()===$pinWrites+1,
+        'pin changed during PUT keeps that original attempt unknown before VERIFIED and stops every remaining edit');
+    as39Refuses(static fn()=>$pinPublisher->run('landing_apply'),'catalogue_edit_held');
+    as39Refuses(static fn()=>$pinPublisher->run('landing_reconcile'),'landing_menu_pin_changed');
+    as39Expect($pinProvider->writes()===$pinWrites+1 && $pinStore->operation($first,'catalogue_v1')['state']==='unknown',
+        'a changed menu pin cannot reconcile or repeat the held catalogue edit');
+    $pinProvider->editHook=null; $pinProvider->pinned=$originalPin;
+    as39Expect($pinPublisher->run('landing_reconcile')['catalogue_verified_posts']===1
+        && (int)$pinStore->operation($first,'catalogue_v1')['write_attempts']===1 && $pinProvider->writes()===$pinWrites+1,
+        'restoring the exact original menu pin permits GET-only reconciliation of the same attempt');
 }
 
 /** A temporary reviewed-data copy exercises trust boundaries without mutating installed resources. */
