@@ -90,7 +90,8 @@ final class ManagerReplyQueueService
     {
         $pdo=ConversationDb::connection();$manager=self::actor($pdo,$actor);$c=$manager?ManagerConversationService::visibleConversation($conversationId,$actor):null;
         if(!$c)return self::error('forbidden');$view=self::view($pdo,$manager,$c);
-        $fresh=ManagerConversationService::visibleConversation($conversationId,$actor);if(!$fresh||self::context($fresh)!==self::context($c)||!self::actor($pdo,$actor))return self::error('forbidden');
+        $fresh=ManagerConversationService::visibleConversation($conversationId,$actor);$freshManager=self::actor($pdo,$actor);
+        if(!$fresh||!$freshManager||self::context($fresh,$freshManager)!==self::context($c,$manager))return self::error('forbidden');
         return ['ok'=>true,'reply_queue'=>$view];
     }
     public static function operation(int $actor,int $conversationId,string $operationId): array
@@ -123,7 +124,7 @@ final class ManagerReplyQueueService
             $receipt=self::receipt($pdo,$actor,$op);
             if($receipt){if($receipt['conversation_id']!==$conversationId||!hash_equals($receipt['hash'],$hash)){$pdo->rollBack();return self::error('operation_mismatch');}$result=self::publicResult($receipt['result']);$result['reply_queue']=self::view($pdo,$manager,$c);$pdo->commit();return $result;}
             if(!self::canMutate($manager,$c)){$pdo->rollBack();return self::error('forbidden');}
-            if(!hash_equals(self::context($c),$context)){$pdo->rollBack();return self::error('context_changed');}
+            if(!hash_equals(self::context($c,$manager),$context)){$pdo->rollBack();return self::error('context_changed');}
             $state=self::state($pdo,$conversationId);if($state['version']!==$version){$view=self::view($pdo,$manager,$c);$pdo->rollBack();return self::error('conflict')+['reply_queue'=>$view];}
             $previous=$state['current'];$now=time();
             if($action==='resolve'){
@@ -141,9 +142,9 @@ final class ManagerReplyQueueService
             $q=$pdo->prepare('INSERT INTO manager_reply_queue_operations (manager_id,operation_id,conversation_id,request_hash,result_json,created_at) VALUES (?,?,?,?,?,?)');
             $q->execute([$actor,$op,$conversationId,$hash,json_encode($result,JSON_THROW_ON_ERROR),gmdate('Y-m-d H:i:s',$now)]);
             // Recheck after all source reads, before exposing the current projection.
-            $fresh=ManagerConversationService::visibleConversation($conversationId,$actor);
-            if(!$fresh||!self::canMutate(self::actor($pdo,$actor),$fresh)||!hash_equals(self::context($fresh),$context)){$pdo->rollBack();return self::error('forbidden');}
-            $result=self::publicResult($result);$result['reply_queue']=self::view($pdo,$manager,$fresh);$pdo->commit();return $result;
+            $fresh=ManagerConversationService::visibleConversation($conversationId,$actor);$freshManager=self::actor($pdo,$actor);
+            if(!$fresh||!self::canMutate($freshManager,$fresh)||!hash_equals(self::context($fresh,$freshManager),$context)){$pdo->rollBack();return self::error('forbidden');}
+            $result=self::publicResult($result);$result['reply_queue']=self::view($pdo,$freshManager,$fresh);$pdo->commit();return $result;
         }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
     }
     private static function validFrontier(PDO $pdo,int $cid,int $message,int $request): bool
@@ -159,7 +160,7 @@ final class ManagerReplyQueueService
         $q=$pdo->prepare('SELECT CASE WHEN '.self::neededSql('c',$mysql).' THEN 1 ELSE 0 END AS needed,'.self::waitStartedSql('c',$mysql).' AS reply_wait_started_unix FROM conversations c WHERE c.id=?');$q->execute([$cid]);$row=self::decorate([$q->fetch(PDO::FETCH_ASSOC)])[0];
         $resolution=$state['current'];if($resolution){$q=$pdo->prepare('SELECT display_name,login FROM managers WHERE id=?');$q->execute([$resolution['actor_id']]);$name=$q->fetch(PDO::FETCH_ASSOC);$resolution['actor_name']=(string)(($name['display_name']??'')?:($name['login']??'Сотрудник'));}
         $can=self::canMutate($manager,$c);
-        return ['schema'=>1,'context'=>self::context($c),'version'=>$state['version'],'needed'=>(bool)$row['needed'],'customer_message_id'=>$frontier['customer_message_id'],'request_event_id'=>$frontier['request_event_id'],'manager_message_id'=>$frontier['manager_message_id'],'queue_event_id'=>$frontier['queue_event_id'],
+        return ['schema'=>1,'context'=>self::context($c,$manager),'version'=>$state['version'],'needed'=>(bool)$row['needed'],'customer_message_id'=>$frontier['customer_message_id'],'request_event_id'=>$frontier['request_event_id'],'manager_message_id'=>$frontier['manager_message_id'],'queue_event_id'=>$frontier['queue_event_id'],
             'waiting_since_unix'=>$row['reply_wait_started_unix'],'waiting_since'=>$row['reply_wait_started_at'],'wait_age_seconds'=>$row['reply_wait_age_seconds'],'wait_time_known'=>$row['reply_wait_time_known'],
             'can_resolve'=>$can&&(bool)$row['needed'],'can_undo'=>$can&&$resolution!==null,'resolution'=>$resolution];
     }
@@ -186,7 +187,7 @@ final class ManagerReplyQueueService
         $suffix=$lock&&$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';$q=$pdo->prepare('SELECT id,role,is_active FROM managers WHERE id=?'.$suffix);$q->execute([$id]);$r=$q->fetch(PDO::FETCH_ASSOC);return $r&&(int)$r['is_active']===1?$r:null;
     }
     private static function canMutate(?array $manager,array $c): bool {return $manager!==null&&in_array($c['status'],['manager','waiting_manager'],true)&&ManagerConversationAccessPolicy::canEditVisibleConversation($c,$manager);}
-    private static function context(array $c): string {return hash('sha256',json_encode(array_map(static fn($k)=>(string)($c[$k]??''),['id','manager_id','project_key','source_id','channel','status','external_chat_id']),JSON_THROW_ON_ERROR));}
+    private static function context(array $c,array $manager): string {return hash('sha256',json_encode(['actor_id'=>(string)$manager['id'],'actor_role'=>(string)$manager['role'],'conversation'=>array_map(static fn($k)=>(string)($c[$k]??''),['id','manager_id','project_key','source_id','channel','status','external_chat_id'])],JSON_THROW_ON_ERROR));}
     private static function validOperation(string $op): bool {return preg_match('/\A[A-Za-z0-9_-]{16,96}\z/D',$op)===1;}
     private static function publicResult(array $result): array {unset($result['before_resolution']);return $result;}
     private static function error(string $error): array {return ['ok'=>false,'error'=>$error];}

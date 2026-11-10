@@ -60,4 +60,12 @@ for(const key of ['customer_message_id','request_event_id','manager_message_id',
  late.resolve(response({ok:true,saved_version:90,reply_queue:{...olderState,needed:!fresh.needed}}));await marking;assert.equal(state(h)[key],fresh[key]);assert.equal(state(h).needed,fresh.needed);
  h.W.S.detail.reply_queue={...olderState,needed:!fresh.needed};h.Q.sync(h.W.S.detail.conversation);assert.equal(state(h)[key],fresh[key]);assert.equal(state(h).needed,fresh.needed);assertNoMutations(h);
 });
+for(const readonly of [false,true])test('late decision cannot restore an old '+(readonly?'readonly':'assignment')+' context',async()=>{
+ const h=await setup(),late=deferred();let input,fresh=null;if(!readonly)h.W.S.manager.role='admin';
+ h.setHook((url,r)=>{if(r.action==='reply_queue_resolve'){input=r;return late.promise}if(url==='api.php'&&r.action==='detail')return response({ok:true,conversation:{...h.conversation,manager_id:8},messages:[],reply_queue:fresh,supervisor_read:readonly});return null});
+ const before=h.C.captureReplyContext(),marking=h.Q.mutate('resolve');if(!readonly)fresh={...resolved(input,{needed:true,customer_message_id:36}),context:'b'.repeat(64),queue_event_id:91};assert.equal(await h.C.refreshVisible(),true);assert.deepEqual(h.C.captureReplyContext(),before);
+ late.resolve(response({ok:true,saved_version:90,reply_queue:resolved(input)}));assert.equal(await marking,true);
+ if(readonly){assert.equal(state(h),null);assert.equal(h.ids.get('replyQueueStatus').hidden,true)}else{assert.equal(state(h).context,'b'.repeat(64));assert.equal(state(h).customer_message_id,36);assert.equal(state(h).needed,true);assert.doesNotMatch(text(h),/Проверяем результат/)}
+ if(readonly)assert.ok(!h.ids.get('replyQueueUndo')||h.ids.get('replyQueueUndo').hidden);assert.equal(saved(h),null);assertNoMutations(h);
+});
 (async()=>{let failed=0;for(const t of cases){try{await t.run();console.log('PASS '+t.name)}catch(e){failed++;console.error('FAIL '+t.name+'\n'+e.stack)}}console.log(`TOTAL ${cases.length} | FAIL ${failed}`);process.exitCode=failed?1:0})();

@@ -19,6 +19,12 @@ function rqProtected(PDO $pdo): array {$out=[];foreach(['managers','manager_proj
 replyQueueMessage($pdo,1,101,'inbound','customer',$now-600);
 $request=replyQueueRequest($pdo,101,$now-300);$protected=rqProtected($pdo);$view=rqView();
 rqCheck('initial wait starts at actual handoff, not earlier bot collection',$view['needed']&&$view['waiting_since_unix']===$now-300&&$view['customer_message_id']===1&&$view['request_event_id']===$request);
+rqCheck('same conversation queue context is bound to the current actor',$view['context']!==rqView(9)['context']);
+$roleInput=replyQueueInput($view,'role-context-00000001');$roleEvents=(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn();
+$pdo->exec("UPDATE managers SET role='admin' WHERE id=7");$roleView=rqView();
+rqCheck('actor role change refreshes context without advancing the queue version or frontiers',$roleView['context']!==$view['context']&&$roleView['version']===$view['version']&&$roleView['customer_message_id']===$view['customer_message_id']&&$roleView['request_event_id']===$view['request_event_id']);
+rqCheck('old role context cannot authorize a fresh decision even when current access remains',ManagerReplyQueueService::mutate(7,101,'resolve',$roleInput)['error']==='context_changed'&&(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn()===$roleEvents&&(int)$pdo->query('SELECT COUNT(*) FROM manager_reply_queue_operations')->fetchColumn()===0);
+$pdo->exec("UPDATE managers SET role='manager' WHERE id=7");
 $firstInput=replyQueueInput($view,'resolve-synthetic-0001');$first=rqResolve('resolve-synthetic-0001',$firstInput);
 rqCheck('explicit decision clears only reply work and records actor plus two typed frontiers',!$first['reply_queue']['needed']&&$first['reply_queue']['resolution']['actor_id']===7&&$first['reply_queue']['resolution']['through_message_id']===1&&$first['reply_queue']['resolution']['through_request_event_id']===$request);
 rqCheck('read lifecycle assignment and shift remain unchanged',rqProtected($pdo)===$protected);

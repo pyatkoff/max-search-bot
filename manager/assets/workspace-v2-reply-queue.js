@@ -38,7 +38,7 @@ function render(){
 }
 function older(q,previous){return previous&&previous.context===q.context&&['version','customer_message_id','request_event_id','manager_message_id','queue_event_id'].some(key=>Number.isSafeInteger(q[key])&&Number.isSafeInteger(previous[key])&&q[key]<previous[key])}
 function sync(c){bind();visibleId=Number(c?.id||0);if(authenticated()&&visibleId===Number(S.current)&&validState(S.detail?.reply_queue)){const q=S.detail.reply_queue,previous=latest.get(visibleId);if(older(q,previous))S.detail.reply_queue=previous;else latest.set(visibleId,q)}render()}
-function accept(c,result){if(!current(c)||!validState(result.reply_queue))return false;const q=result.reply_queue;if(older(q,S.detail.reply_queue))return false;S.detail.reply_queue=q;latest.set(c.conversationId,q);render();return true}
+function accept(c,result){if(!current(c))return false;const q=result.reply_queue,previous=S.detail?.reply_queue;if(!validState(q)||!validState(previous)||q.context!==previous.context||older(q,previous)){render();return false}S.detail.reply_queue=q;latest.set(c.conversationId,q);render();return true}
 function refreshInbox(c){if(!sameSession(c))return;void Promise.resolve(window.WorkspaceV2Inbox?.load({preserveScroll:true})).catch(()=>{})}
 function operationId(){const bytes=new Uint8Array(16);window.crypto.getRandomValues(bytes);return [...bytes].map(b=>b.toString(16).padStart(2,'0')).join('')}
 async function mutate(kind){

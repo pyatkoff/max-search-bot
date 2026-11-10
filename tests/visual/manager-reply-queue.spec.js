@@ -43,6 +43,23 @@ async function fixture(page,{resolveMode='success'}={}){
 }
 async function open(page,id=11){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();await page.locator(`#inboxList [data-conversation-id="${id}"] .m2RowOpen`).click();await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#replyQueueStatus')).toBeVisible();}
 async function resolve(page){await page.locator('#m2ConversationMenuToggle').click();await expect(page.locator('#replyQueueResolve')).toBeVisible();await page.locator('#replyQueueResolve').click();}
+async function settleReadingPosition(page){
+ // mouse.wheel resolves before scrolling finishes. Capture the preservation
+ // baseline only after both the wheel and composer layout have settled.
+ await page.locator('#messages').evaluate(el=>new Promise((resolve,reject)=>{
+  const read=()=>({top:el.scrollTop,clientHeight:el.clientHeight});
+  let previous=read(),stableSince=performance.now(),frame;
+  const timer=setTimeout(()=>{cancelAnimationFrame(frame);reject(new Error('Reading position did not settle within 1000ms: '+JSON.stringify({previous,current:read()})))},1000);
+  const sample=now=>{
+   const current=read();
+   if(current.top!==previous.top||current.clientHeight!==previous.clientHeight)stableSince=now;
+   previous=current;
+   if(now-stableSince>=100){clearTimeout(timer);resolve();return;}
+   frame=requestAnimationFrame(sample);
+  };
+  frame=requestAnimationFrame(sample);
+ }));
+}
 function clean(f){expect(f.unexpected).toEqual([]);expect(f.errors).toEqual([]);expect(f.calls.filter(c=>['send','send_media','set_working','set_stage','set_outcome','create_task','update_task','close','release','reopen'].includes(c.action))).toEqual([]);}
 async function capture(page,testInfo,label){const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});const image=await page.screenshot({animations:'disabled',path:path.join(dir,label+'.png')});await testInfo.attach(label,{body:image,contentType:'image/png'});}
 
@@ -52,11 +69,12 @@ for(const width of [390,430,768,1440])test(`reply queue decision and undo preser
   {name:'first.txt',mimeType:'text/plain',buffer:Buffer.from('First synthetic attachment')},{name:'second.txt',mimeType:'text/plain',buffer:Buffer.from('Second synthetic attachment')}]);
  await expect(page.locator('.mediaFileName')).toHaveText(['first.txt','second.txt']);await page.locator('#messages').hover();await page.mouse.wheel(0,-900);
  await expect.poll(()=>page.locator('#messages').evaluate(el=>el.scrollHeight-el.clientHeight-el.scrollTop)).toBeGreaterThan(400);
- await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
- await page.locator('#messages').evaluate(el=>{window.replyQueueProof={messages:el,top:el.scrollTop,first:el.querySelector('.msg'),media:[...document.querySelectorAll('.mediaSelectedItem')]}});
+ await settleReadingPosition(page);
+ await page.locator('#messages').evaluate(el=>{window.replyQueueProof={messages:el,top:el.scrollTop,geometry:{top:el.scrollTop,clientHeight:el.clientHeight,scrollHeight:el.scrollHeight,viewportTop:el.getBoundingClientRect().top,firstTop:el.querySelector('.msg')?.getBoundingClientRect().top},first:el.querySelector('.msg'),media:[...document.querySelectorAll('.mediaSelectedItem')]}});
  await resolve(page);await expect(page.locator('#replyQueueText')).toContainText('Ответ не требуется · Мария');await expect(page.locator('#replyQueueText')).toContainText('МСК');await expect(page.locator('#replyQueueUndo')).toBeVisible();await expect(page.locator('#replyQueueUndo')).toBeFocused();
  await expect(page.locator('#replyText')).toHaveValue('Неотправленный ответ не менять');await expect(page.locator('#sendReply')).toBeEnabled();
- expect(await page.evaluate(()=>{const p=replyQueueProof,media=[...document.querySelectorAll('.mediaSelectedItem')];return {messages:document.getElementById('messages')===p.messages,first:p.messages.querySelector('.msg')===p.first,scroll:Math.abs(p.messages.scrollTop-p.top)<1,files:media.length,firstFile:media[0]===p.media[0],secondFile:media[1]===p.media[1],hasFile:WorkspaceV2Media.hasFile()}})).toEqual({messages:true,first:true,scroll:true,files:2,firstFile:true,secondFile:true,hasFile:true});
+ const preserved=await page.evaluate(()=>{const p=replyQueueProof,el=p.messages,media=[...document.querySelectorAll('.mediaSelectedItem')];return {state:{messages:document.getElementById('messages')===el,first:el.querySelector('.msg')===p.first,scroll:Math.abs(el.scrollTop-p.top)<1,files:media.length,firstFile:media[0]===p.media[0],secondFile:media[1]===p.media[1],hasFile:WorkspaceV2Media.hasFile()},geometry:{baseline:p.geometry,current:{top:el.scrollTop,clientHeight:el.clientHeight,scrollHeight:el.scrollHeight,viewportTop:el.getBoundingClientRect().top,firstTop:el.querySelector('.msg')?.getBoundingClientRect().top},scrollDelta:el.scrollTop-p.top}}});
+ expect(preserved.state,'Reading position geometry: '+JSON.stringify(preserved.geometry)).toEqual({messages:true,first:true,scroll:true,files:2,firstFile:true,secondFile:true,hasFile:true});
  await expect(page.locator('.mediaFileName')).toHaveText(['first.txt','second.txt']);
  expect(f.data[0].status).toBe('manager');expect(f.data[0].manager_id).toBe(7);expect(f.data[0].unread_count).toBe(3);expect(f.queueCalls.map(c=>c.action)).toEqual(['reply_queue_resolve']);
  await capture(page,testInfo,'reply-queue-resolved-'+width);
