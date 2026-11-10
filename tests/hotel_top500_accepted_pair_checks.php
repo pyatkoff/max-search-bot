@@ -4,9 +4,10 @@ declare(strict_types=1);
 require_once dirname(__DIR__).'/services/ManagerHotelKnowledge.php';
 require_once dirname(__DIR__).'/services/ManagerAiDraftService.php';
 
-/** Two accepted TOP500 projections only; no SQL, HTTP or approval creation. */
+/** Reviewed TOP500 consumer groups; no SQL, HTTP or approval creation. */
 function hotelTop500AcceptedPairChecks(): void
 {
+    hotelSideStarEleganceChecks();
     $directory = dirname(__DIR__).'/knowledge/hotels';
     $canonicalMethod = new ReflectionMethod(ManagerHotelKnowledge::class, 'canonical');
     $canonical = static fn($record): string => $canonicalMethod->invoke(null, $record);
@@ -226,5 +227,162 @@ function hotelTop500AcceptedPairChecks(): void
                 && !in_array($comparison['id'], array_column($reference['facts'], 'id'), true));
         }
     }
+}
+
+/** The inherited Elegance group uses the existing reader and a real manifest admission. */
+function hotelSideStarEleganceChecks(): void
+{
+    $directory = dirname(__DIR__).'/knowledge/hotels';
+    $file = 'anytour-7425-side-star-elegance.json';
+    $key = 'top500_b73b1521377bb3ea';
+    $canonicalMethod = new ReflectionMethod(ManagerHotelKnowledge::class, 'canonical');
+    $canonical = static fn($value): string => $canonicalMethod->invoke(null, $value);
+    $hash = static fn($value): string => hash('sha256', $canonical($value));
+    $select = new ReflectionMethod(ManagerHotelKnowledge::class, 'select');
+    $admit = new ReflectionMethod(ManagerAiDraftService::class, 'admitHotelReference');
+    $manifest = json_decode(file_get_contents($directory.'/manifest.json'), true, 32, JSON_THROW_ON_ERROR);
+    $matches = array_values(array_filter($manifest['bindings'] ?? [], static fn(array $entry): bool =>
+        ($entry['bundle_file'] ?? null) === $file));
+    $entry = $matches[0] ?? [];
+    $identity = ['adapter'=>'tourvisor-snapshot-v1', 'hotel'=>'1014', 'country'=>'4'];
+    $name = 'SIDE STAR ELEGANCE (EX. ASTERIA SIDE)';
+    draftContextCheck('Elegance has one admitted exact TV1014/country4 to AnyTour7425 and local-tv1014 binding',
+        count($matches) === 1 && ($entry['status'] ?? null) === 'accepted'
+        && $canonical($entry['source_identity'] ?? null) === $canonical($identity)
+        && ($entry['accepted_source_names'] ?? null) === [$name]
+        && $hash($entry['accepted_binding'] ?? null) === 'de0192613b7682ed1bf310bebd76bf23163b5b72c5e5b691c68a0888f56380dc'
+        && ($entry['binding_revision'] ?? null) === 'de0192613b7682ed1bf310bebd76bf23163b5b72c5e5b691c68a0888f56380dc');
+
+    $bytes = file_get_contents($directory.'/'.$file);
+    $bundle = json_decode($bytes, true, 32, JSON_THROW_ON_ERROR);
+    draftContextCheck('Elegance uses the exact bounded v1 data without promoting its authoring or price authority',
+        strlen($bytes) === 12885
+        && hash('sha256', $bytes) === '3be614a9daea046286a2e239194b52b95e993f8e6cf725cc0b56f07c9a3936f6'
+        && ($entry['bundle_sha256'] ?? null) === hash('sha256', $bytes)
+        && ($bundle['status'] ?? null) === 'SEALED_AUTHORING_DATA_ONLY'
+        && ($bundle['runtime_admission_verified'] ?? null) === false
+        && ($bundle['trusted_selector_required'] ?? null) === true
+        && ($bundle['price_authority'] ?? null) === 'none');
+
+    $claimKinds = [
+        $key.'_demand16_c01'=>'official_declared',
+        $key.'_run05_c01'=>'operator_declared', $key.'_run05_c02'=>'operator_declared',
+        $key.'_run05_c03'=>'operator_declared', $key.'_run05_c04'=>'operator_declared',
+        $key.'_run05audit_c02'=>'official_declared', $key.'_run05audit_c05'=>'official_declared',
+    ];
+    $validAtTravel = array_unique(array_column($bundle['facts'], 'valid_at_travel'));
+    draftContextCheck('Elegance keeps seven source-scoped declarations with travel applicability unverified',
+        array_column($bundle['facts'], 'kind', 'id') === $claimKinds
+        && array_values($validAtTravel) === ['unverified']
+        && ($bundle['coverage']['selected_claim_count'] ?? null) === 7
+        && ($bundle['coverage']['available_accepted_claim_count'] ?? null) === 0
+        && ($bundle['coverage']['complete'] ?? null) === false);
+
+    // Independent original-record pins: no private original JSON is copied into this test.
+    $expectedLimits = [
+        $key.'_demand16_c02'=>'9c1b82ee31ac5938541dcf2a37e4fbf64cabc9b25559c23a4a3518b29b6e433b',
+        $key.'_run05_c05'=>'05374ef0ad8d3100de933a4a59a7e85a4af66554db440d8c0ad3af11c11dca77',
+        $key.'_run05audit_c06'=>'a6e8b70c35714781daa1c3ea609ee7aebfd7691e3fde4ec196fad9f8bb1803b8',
+    ];
+    $limits = []; $rolesValid = true;
+    foreach ($bundle['material_limits']['retained_records'] ?? [] as $item) {
+        $record = $item['record'] ?? [];
+        $limits[$record['id'] ?? ''] = $hash($record);
+        $rolesValid = $rolesValid && ($item['role'] ?? null) === 'retained_limit_not_service_declaration';
+    }
+    draftContextCheck('Elegance preserves the exact drink-hours conflict, Swim Up/mobility caution and failed-link history outside facts',
+        $rolesValid && $limits === $expectedLimits
+        && array_intersect(array_keys($limits), array_keys($claimKinds)) === []);
+    $provenance = $bundle['material_limits']['research_provenance'] ?? [];
+    draftContextCheck('Elegance remains inherited baseline with no original ledger acceptance or fabricated continuous receipt',
+        ($provenance['classification'] ?? null) === 'inherited-baseline'
+        && ($provenance['new_acceptance_credit'] ?? null) === 0
+        && ($provenance['original_direct_or_ledger_acceptance_retained'] ?? null) === false
+        && array_key_exists('assigned_continuous_receipt', $provenance)
+        && $provenance['assigned_continuous_receipt'] === null);
+    $dates = []; $publicationUnknown = true;
+    foreach ($bundle['sources'] as $source) {
+        $dates[$source['id']] = $source['retrieved_on'] ?? null;
+        $publicationUnknown = $publicationUnknown && array_key_exists('publication_date', $source) && $source['publication_date'] === null;
+    }
+    draftContextCheck('Elegance retains all five related source observations and does not invent publication dates',
+        $publicationUnknown && $dates === [
+            $key.'_demand16_s02'=>'2026-10-20', $key.'_run05_s01'=>'2026-10-19',
+            $key.'_run05audit_s02'=>'2026-10-19', $key.'_run05audit_s03'=>'2026-10-19',
+            $key.'_run05audit_s04'=>'2026-10-19',
+        ]);
+
+    $selector = ['project_key'=>'anytour', 'source_identity'=>$identity,
+        'provenance'=>['kind'=>'publication', 'publication_id'=>str_repeat('a',32), 'card_index'=>0,
+            'draft_offer_id'=>str_repeat('b',32), 'publication_sha256'=>str_repeat('c',64), 'source_sha256'=>str_repeat('d',64)],
+        'selected_hotel'=>$name, 'selected_room'=>'Synthetic operator category'];
+    $now = strtotime('2026-11-10T14:30:00Z');
+    $reference = ManagerHotelKnowledge::capture($selector, $now);
+    $authorityUnchanged = ($reference['price_authority'] ?? null) === 'none'
+        && ($reference['applicability'] ?? null) === 'conditional_published_information';
+    foreach (['current_trip_binding', 'customer_agreement_verified', 'current_price_verified',
+        'availability_verified', 'room_tariff_equivalence_verified', 'meal_plan_equivalence_verified',
+        'future_operation_verified'] as $flag) $authorityUnchanged = $authorityUnchanged && ($reference[$flag] ?? null) === false;
+    draftContextCheck('The installed data path supplies the whole Elegance group without current-trip or tariff authority',
+        ($reference['status'] ?? null) === 'available' && $authorityUnchanged
+        && ($reference['hotel_ref'] ?? null) === ['catalog'=>'anytour', 'id'=>7425]
+        && ($reference['research_hotel_key'] ?? null) === $key
+        && ($reference['facts'] ?? null) === $bundle['facts']
+        && ($reference['sources'] ?? null) === $bundle['sources']
+        && ($reference['material_limits'] ?? null) === $bundle['material_limits']
+        && ($reference['coverage'] ?? null) === $bundle['coverage']);
+
+    $isolated = $manifest; $isolated['bindings'] = [$entry];
+    foreach ([
+        ['ANEX8475 is not TV1014', '8475', '4', $name, 'binding_unresolved'],
+        ['AnyTour7425 is not TV1014', '7425', '4', $name, 'binding_unresolved'],
+        ['TV1014 requires country4', '1014', '1', $name, 'binding_unresolved'],
+        ['Side Star Resort cannot borrow Elegance', '1014', '4', 'SIDE STAR RESORT (EX. VERA CLUB LINDITA)', 'source_name_mismatch'],
+    ] as [$description,$hotel,$country,$sourceName,$reason]) {
+        $changed = $selector;
+        $changed['source_identity']['hotel'] = $hotel; $changed['source_identity']['country'] = $country;
+        $changed['selected_hotel'] = $sourceName;
+        $held = $select->invoke(null, $isolated, $bytes, $changed, $now);
+        draftContextCheck('Elegance: '.$description,
+            ($held['status'] ?? null) === 'held' && ($held['reason'] ?? null) === $reason
+            && ($held['facts'] ?? null) === [] && ($held['sources'] ?? null) === []);
+    }
+    $pending = $isolated; $pending['bindings'][0]['status'] = 'pending';
+    $held = $select->invoke(null, $pending, $bytes, $selector, $now);
+    draftContextCheck('An Elegance candidate without completed manifest admission is rejected',
+        ($held['status'] ?? null) === 'held' && ($held['reason'] ?? null) === 'manifest_invalid'
+        && ($held['facts'] ?? null) === [] && ($held['sources'] ?? null) === []);
+
+    $baseline = ['conversation_id'=>1, 'as_of_message_id'=>1, 'history_incomplete'=>false,
+        'messages'=>[['id'=>1, 'sender_type'=>'customer', 'text'=>'Synthetic hotel budget probe']]];
+    $flags = JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR;
+    $encode = static fn(array $context): string => json_encode(
+        ManagerDraftClient::requestBody(ManagerAiDraftService::instructions($context), $context), $flags);
+    $plainBytes = strlen($encode($baseline));
+    foreach (['Synthetic operator category', str_repeat('R',300)] as $room) {
+        $withRoom = $selector; $withRoom['selected_room'] = $room;
+        $candidate = $select->invoke(null, $isolated, $bytes, $withRoom, $now);
+        [$context, $admission] = $admit->invoke(null, $baseline, $candidate);
+        $wireBytes = strlen($encode($context));
+        draftContextCheck('Elegance keeps all seven declarations and every caveat within the real budget for a '.strlen($room).'-byte room label',
+            ManagerHotelKnowledge::MAX_REFERENCE_BYTES === 16384
+            && ($admission['status'] ?? null) === 'available'
+            && $context === $baseline + ['hotel_reference'=>$candidate]
+            && ($candidate['facts'] ?? null) === $bundle['facts']
+            && ($candidate['material_limits'] ?? null) === $bundle['material_limits']
+            && ($admission['admitted_claim_ids'] ?? null) === array_keys($claimKinds)
+            && ($admission['wire_increment_bytes'] ?? null) === $wireBytes-$plainBytes
+            && $wireBytes-$plainBytes <= 16384 && $wireBytes <= ManagerDraftClient::MAX_REQUEST_BYTES);
+    }
+    $escaped = $selector; $escaped['selected_room'] = str_repeat('"',300);
+    $escapedReference = $select->invoke(null, $isolated, $bytes, $escaped, $now);
+    [$escapedContext, $escapedAdmission] = $admit->invoke(null, $baseline, $escapedReference);
+    $candidateIncrement = strlen($encode($baseline + ['hotel_reference'=>$escapedReference]))-$plainBytes;
+    $unchangedBaseline = $escapedContext; unset($unchangedBaseline['hotel_reference']);
+    draftContextCheck('Elegance is omitted whole when double-JSON escaping exceeds 16KiB, without shortening the baseline',
+        ($escapedReference['status'] ?? null) === 'available' && $candidateIncrement > 16384
+        && ($escapedAdmission['status'] ?? null) === 'omitted' && $unchangedBaseline === $baseline
+        && ($escapedContext['hotel_reference']['facts'] ?? null) === []
+        && ($escapedContext['hotel_reference']['sources'] ?? null) === []);
 }
 
