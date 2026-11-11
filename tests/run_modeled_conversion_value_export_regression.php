@@ -195,6 +195,7 @@ function modeledValueAssertions(PDO $p,callable $check):void
     modeledValueReportResponseEvidenceAssertions($check);
     modeledValueCurrentVisitLookbackAssertions($check);
     modeledValueReportTimeoutAssertions($check);
+    modeledValueAttributionFailureAssertions($check);
     foreach([
         ['direct',10*86400,'yandex_direct',true],['direct_expired',10*86400+1,'yandex_direct',false],
         ['other',3*86400,'other_or_unknown',true],['other_expired',3*86400+1,'other_or_unknown',false],
@@ -1641,8 +1642,9 @@ function modeledValueVisitGateDecisionAssertions(PDO $p,callable $check):void
         $receipt=$saved();$audit=$receipt['visit_gate_decisions']??null;
         $row=$p->query('SELECT state,last_error,attempts,claim_token,upload_id FROM max_channel_conversion_outbox LIMIT 1')->fetch(PDO::FETCH_ASSOC);
         $check('same actual preclaim assessment records its closed reason '.$reason,
-            is_array($audit)&&$audit['v']===1&&$audit['checked_at_unix']===$now&&$audit['attempts']===1
+            is_array($audit)&&$audit['v']===2&&$audit['checked_at_unix']===$now&&$audit['attempts']===1
             &&array_sum($audit['reason_counts'])===1&&$audit['reason_counts'][$reason]===1
+            &&array_sum(array_column($audit['failures'],4))===$audit['reason_counts']['visit_report_unavailable']
             &&strlen(json_encode(['visit_gate_decisions'=>$audit],JSON_THROW_ON_ERROR))<=512
             &&$lookup->calls===1&&array_keys($result)===['status','contract']);
         if(in_array($reason,['no_prior_visit','visit_report_unavailable'],true)){
@@ -1670,6 +1672,13 @@ function modeledValueVisitGateDecisionAssertions(PDO $p,callable $check):void
     $check('the existing three-ready budget bounds same-tick decision counters',
         $three['attempts']===3&&$three['reason_counts']['no_prior_visit']===3&&array_sum($three['reason_counts'])===3
         &&$wire->visitReads===3&&$wire->posts===0);
+
+    $wire->visitEmpty=false;$wire->visitAvailable=false;
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+302,$gate);
+    $unavailable=$saved()['visit_gate_decisions'];
+    $check('three same mandatory unavailable responses aggregate into one bounded sparse tuple',
+        $unavailable['attempts']===3&&$unavailable['reason_counts']['visit_report_unavailable']===3
+        &&$unavailable['failures']===[[5,503,0,0,3]]&&$wire->visitReads===6&&$wire->posts===0);
 
     $measure=static function(array $value)use($p):int{
         $json=json_encode($value,JSON_THROW_ON_ERROR);if($p->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql')return strlen($json);
@@ -1805,6 +1814,106 @@ function modeledValueReportTimeoutAssertions(callable $check):void
     $blocked=false;
     try{$expired->modeledValueReport(1793650000,1793660000);}catch(RuntimeException $e){$blocked=$e->getMessage()==='verification_deadline';}
     $check('expired existing deadlines forbid the ordinary report before any transport invocation',$blocked&&$calls===0);
+}
+
+/** Same HTTP responses, closed failure facts only; the existing validators still refuse every bad fixture. */
+function modeledValueAttributionFailureAssertions(callable $check):void
+{
+    $now=1794398400;$cid='88000000941';
+    $cases=[
+        'counter_transport'=>[1,null,28,0],'counter_http'=>[2,403,0,0],
+        'counter_shape'=>[3,200,0,1],'counter_id'=>[3,200,0,2],
+        'zone_missing'=>[3,200,0,4],'zone_invalid'=>[3,200,0,8],
+        'report_transport'=>[4,200,28,0],'report_http'=>[5,503,0,0],
+        'scope_query'=>[6,200,0,1],'scope_ids'=>[6,200,0,2],'scope_metrics'=>[6,200,0,4],
+        'scope_dimensions'=>[6,200,0,8],'scope_filter'=>[6,200,0,16],
+        'sampled'=>[7,200,0,1],'rows_type'=>[7,200,0,2],'row_overflow'=>[7,200,0,4],
+        'total_type'=>[7,200,0,8],'total_mismatch'=>[7,200,0,16],
+        'row_dimensions'=>[8,200,0,1],'row_metrics'=>[8,200,0,2],
+        'row_identity'=>[8,200,0,4],'row_identity_id_matches'=>[8,200,0,260],
+        'row_metric_value'=>[8,200,0,8],'row_metric_integer'=>[8,200,0,16],
+        'clock_iso'=>[8,200,0,148512],'clock_date'=>[8,200,0,165920],
+        'clock_invalid'=>[8,200,0,1057312],'clock_future'=>[8,200,0,1057344],
+        'numeric_strings'=>[5,null,null,0],'out_of_range_error'=>[4,200,null,0]
+    ];
+    foreach($cases as$case=>$expected){
+        foreach([false,true]as$historical){
+            $wire=(object)['gets'=>0,'reports'=>0,'posts'=>0];
+            $api=new MetrikaOfflineClient('98615635','fixture-private-token',static function(string $method,string $url,mixed $body)use($case,$now,$cid,$wire):array{
+                if($method!=='GET'){$wire->posts++;throw new RuntimeException('fixture_forbids_post');}$wire->gets++;
+                if((string)parse_url($url,PHP_URL_PATH)==='/management/v1/counter/98615635'){
+                    if($case==='counter_transport')return ['http'=>0,'error'=>28,'body'=>'PRIVATE_COUNTER_BODY'];
+                    if($case==='counter_http')return ['http'=>403,'error'=>0,'body'=>'PRIVATE_COUNTER_BODY'];
+                    $counter=['id'=>98615635,'time_zone_name'=>'UTC'];
+                    if($case==='counter_shape')$counter=null;
+                    if($case==='counter_id')$counter['id']=98615636;
+                    if($case==='zone_missing')unset($counter['time_zone_name']);
+                    if($case==='zone_invalid')$counter['time_zone_name']='PRIVATE_INVALID_ZONE';
+                    return ['http'=>200,'error'=>0,'body'=>json_encode(['counter'=>$counter],JSON_THROW_ON_ERROR)];
+                }
+                $wire->reports++;
+                if($case==='report_transport')return ['http'=>200,'error'=>28,'body'=>'PRIVATE_VISIT_BODY'];
+                if($case==='report_http')return ['http'=>503,'error'=>0,'body'=>'PRIVATE_VISIT_BODY'];
+                if($case==='numeric_strings')return ['http'=>'503','error'=>'0','body'=>'PRIVATE_VISIT_BODY'];
+                if($case==='out_of_range_error')return ['http'=>200,'error'=>101,'body'=>'PRIVATE_VISIT_BODY'];
+                parse_str((string)parse_url($url,PHP_URL_QUERY),$query);
+                $q=['ids'=>[98615635],'metrics'=>explode(',',$query['metrics']),'dimensions'=>explode(',',$query['dimensions']),'filters'=>$query['filters']];
+                $clock=gmdate('Y-m-d H:i:s',$now-60);
+                $dims=[['name'=>$cid],['name'=>$clock]];$values=[1];
+                if($case==='row_dimensions')$dims=[['name'=>$cid]];
+                if($case==='row_metrics')$values=[];
+                if($case==='row_identity')$dims[0]=['name'=>'PRIVATE_WRONG_CID'];
+                if($case==='row_identity_id_matches')$dims[0]=['name'=>'PRIVATE_DISPLAY_NAME','id'=>$cid];
+                if($case==='row_metric_value')$values=[-1];
+                if($case==='row_metric_integer')$values=[1.5];
+                if($case==='clock_iso')$dims[1]=['name'=>gmdate('Y-m-d\TH:i:s\Z',$now-60),'id'=>$clock];
+                if($case==='clock_date')$dims[1]=['name'=>gmdate('Y-m-d',$now-60),'id'=>$clock];
+                if($case==='clock_invalid')$dims[1]=['name'=>'2026-11-31 12:00:00'];
+                if($case==='clock_future')$dims[1]=['name'=>gmdate('Y-m-d H:i:s',$now+60)];
+                $data=['query'=>$q,'data'=>[['dimensions'=>$dims,'metrics'=>$values]],'sampled'=>false,'total_rows'=>1];
+                if($case==='scope_query')unset($data['query']);
+                if($case==='scope_ids')$data['query']['ids']=[98615636];
+                if($case==='scope_metrics')$data['query']['metrics']=['ym:s:users'];
+                if($case==='scope_dimensions')$data['query']['dimensions']=['ym:s:date'];
+                if($case==='scope_filter')$data['query']['filters']='PRIVATE_WRONG_FILTER';
+                if($case==='sampled')$data['sampled']=true;
+                if($case==='rows_type')$data['data']=null;
+                if($case==='row_overflow'){$data['data']=array_fill(0,101,$data['data'][0]);$data['total_rows']=101;}
+                if($case==='total_type')$data['total_rows']='PRIVATE_NOT_A_COUNT';
+                if($case==='total_mismatch')$data['total_rows']=2;
+                return ['http'=>200,'error'=>0,'body'=>json_encode($data,JSON_THROW_ON_ERROR)];
+            });
+            $report=$historical?$api->modeledClientVisits($cid,$now,$now):$api->modeledAttributionVisits($cid,$now,$now);
+            $check('same-response attribution failure '.$case.($historical?' historical DTO unchanged':' current closed tuple'),
+                $report['status']==='unavailable'&&$report['visits']===[]
+                &&($historical?$report===['status'=>'unavailable','visits'=>[]]:($report['attribution_failure']??null)===$expected)
+                &&$wire->gets===($expected[0]<=3?1:2)&&$wire->posts===0);
+            $json=json_encode($report,JSON_THROW_ON_ERROR);
+            $check('refused report discloses no provider or identity bytes '.$case.($historical?' history':' current'),
+                !str_contains($json,'PRIVATE_')&&!str_contains($json,$cid)&&!str_contains($json,'fixture-private-token')
+                &&!str_contains($json,'https:')&&!str_contains($json,'2026-'));
+        }
+    }
+    $normalize=new ReflectionMethod(ModeledConversionValueExport::class,'normalizeVisitFailure');
+    foreach([[5,'503',0,0],[8,200,0,128],[8,200,0,32],[8,200,0,32|512|8192|131072|1024],
+        [9,200,0,0],[7,200,0,0],null]as$invalid){
+        $check('malformed diagnostic becomes explicit unknown without carrying raw scalars',
+            $normalize->invoke(null,$invalid)===[9,null,null,0]);
+    }
+    $append=new ReflectionMethod(ModeledConversionValueExport::class,'withVisitGateDecisions');
+    $counts=['within_current_window'=>0,'outside_current_window'=>0,'no_prior_visit'=>0,'visit_report_unavailable'=>1,'unknown'=>0];
+    $v1=['v'=>1,'checked_at_unix'=>$now,'attempts'=>1,'reason_counts'=>$counts];
+    $v2=$v1;$v2['v']=2;$v2['failures']=[[5,503,0,0,1]];
+    $check('saved v1 counters stay backward compatible without inventing failure diagnostics',
+        $append->invoke(null,[],$v1,2,$now)===['visit_gate_decisions'=>$v1]);
+    $check('valid v2 sparse diagnostics stay below their fixed optional byte cap',
+        $append->invoke(null,[],$v2,2,$now)===['visit_gate_decisions'=>$v2]
+        &&strlen(json_encode(['visit_gate_decisions'=>$v2],JSON_THROW_ON_ERROR))<=512);
+    foreach([[[5,503,0,0,2]],[[5,503,0,0,1],[5,503,0,0,1]],[[8,200,0,32,1]]]as$invalid){
+        $bad=$v2;$bad['failures']=$invalid;
+        $check('invalid count duplicate or incomplete clock diagnostics cannot become a saved audit',
+            $append->invoke(null,[],$bad,2,$now)===[]);
+    }
 }
 
 if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){

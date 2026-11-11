@@ -132,8 +132,8 @@ final class ModeledConversionValueExport
             return MaxSearchApi::metrikaGoalAllowed($chat);
         };
         $stats=['collected'=>0,'resolved'=>0,'accepted'=>0,'processed'=>0,'unknown'=>0,'errors'=>0];
-        $stats['visit_gate_decisions']=['v'=>1,'checked_at_unix'=>$now,'attempts'=>0,'reason_counts'=>[
-            'within_current_window'=>0,'outside_current_window'=>0,'no_prior_visit'=>0,'visit_report_unavailable'=>0,'unknown'=>0]];
+        $stats['visit_gate_decisions']=['v'=>2,'checked_at_unix'=>$now,'attempts'=>0,'reason_counts'=>[
+            'within_current_window'=>0,'outside_current_window'=>0,'no_prior_visit'=>0,'visit_report_unavailable'=>0,'unknown'=>0],'failures'=>[]];
         $failure=null;$phase='recover';
         try{
             $repo=new MaxChannelConversionOutbox($p);$repo->recover($now);
@@ -220,6 +220,14 @@ final class ModeledConversionValueExport
                     $reason=array_key_exists($window['reason'],$stats['visit_gate_decisions']['reason_counts'])?$window['reason']:'unknown';
                     $stats['visit_gate_decisions']['attempts']++;
                     $stats['visit_gate_decisions']['reason_counts'][$reason]++;
+                    if($reason==='visit_report_unavailable'){
+                        $tuple=self::normalizeVisitFailure($visitReport['attribution_failure']??null);$found=false;
+                        foreach($stats['visit_gate_decisions']['failures']as&$savedFailure){
+                            if(array_slice($savedFailure,0,4)===$tuple){$savedFailure[4]++;$found=true;break;}
+                        }
+                        unset($savedFailure);
+                        if(!$found)$stats['visit_gate_decisions']['failures'][]=[...$tuple,1];
+                    }
                     if(!$window['allowed']){
                         $hold=$p->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error=? WHERE id=? AND state='ready' AND (upload_id IS NULL OR upload_id='') AND (claim_token IS NULL OR claim_token='')");
                         $hold->execute([$sendAt+300,$window['reason']==='outside_current_window'?'metrika_visit_window':'metrika_visit_unverified',$r['id']]);continue;
@@ -363,7 +371,8 @@ final class ModeledConversionValueExport
     /** Attach last, using the existing byte measurement; no new SQL or loss of prior evidence. */
     private static function withVisitGateDecisions(array $stats,mixed $audit,int $storedBytes,int $tick):array
     {
-        if(!is_array($audit)||($audit['v']??null)!==1||!is_int($audit['checked_at_unix']??null)
+        if(!is_array($audit)||!in_array($audit['v']??null,[1,2],true)
+            ||count($audit)!==(($audit['v']??null)===2?5:4)||!is_int($audit['checked_at_unix']??null)
             ||$audit['checked_at_unix']<946684800||$audit['checked_at_unix']>253402300799||$audit['checked_at_unix']!==$tick
             ||!is_int($audit['attempts']??null)||$audit['attempts']<0||$audit['attempts']>3
             ||!is_array($audit['reason_counts']??null))return $stats;
@@ -374,13 +383,54 @@ final class ModeledConversionValueExport
             $counts[$key]=$count;$total+=$count;
         }
         if(count($audit['reason_counts'])!==count($counts)||$total!==$audit['attempts'])return $stats;
-        $clean=['v'=>1,'checked_at_unix'=>$audit['checked_at_unix'],'attempts'=>$audit['attempts'],'reason_counts'=>$counts];
+        $clean=['v'=>$audit['v'],'checked_at_unix'=>$audit['checked_at_unix'],'attempts'=>$audit['attempts'],'reason_counts'=>$counts];
+        if($audit['v']===2){
+            $failures=$audit['failures']??null;$unavailable=0;$seen=[];
+            if(!is_array($failures)||!array_is_list($failures)||count($failures)>3)return $stats;
+            foreach($failures as$tuple){
+                if(!is_array($tuple)||!array_is_list($tuple)||count($tuple)!==5
+                    ||!is_int($tuple[4])||$tuple[4]<1||$tuple[4]>3
+                    ||self::normalizeVisitFailure(array_slice($tuple,0,4))!==array_slice($tuple,0,4))return $stats;
+                $key=json_encode(array_slice($tuple,0,4),JSON_THROW_ON_ERROR);
+                if(isset($seen[$key]))return $stats;$seen[$key]=true;
+                $unavailable+=$tuple[4];
+            }
+            if($unavailable!==$counts['visit_report_unavailable'])return $stats;
+            $clean['failures']=$failures;
+        }
         $wrapper=json_encode(['visit_gate_decisions'=>$clean],JSON_THROW_ON_ERROR);
         // This closed integer/string object has at most one native space per separator.
         // Twice its compact bytes plus framing safely bounds growth without another DB query.
         if(strlen($wrapper)>512||$storedBytes<0||$storedBytes+2*strlen($wrapper)+4>8192)return $stats;
         $stats['visit_gate_decisions']=$clean;
         return $stats;
+    }
+
+    /** Only closed same-response scalars; a missing or malformed diagnostic is honest unknown. */
+    private static function normalizeVisitFailure(mixed $value):array
+    {
+        $unknown=[9,null,null,0];
+        if(!is_array($value)||!array_is_list($value)||count($value)!==4
+            ||!is_int($value[0])||$value[0]<1||$value[0]>9
+            ||($value[1]!==null&&(!is_int($value[1])||$value[1]<100||$value[1]>599))
+            ||($value[2]!==null&&(!is_int($value[2])||$value[2]<0||$value[2]>100))
+            ||!is_int($value[3]))return $unknown;
+        [$stage,$http,$curl,$mask]=$value;
+        if($stage===9)return $http===null&&$curl===null&&$mask===0?$value:$unknown;
+        if(in_array($stage,[1,2,4,5],true))return $mask===0?$value:$unknown;
+        if($stage===3)return $mask>=1&&$mask<=15?$value:$unknown;
+        if(in_array($stage,[6,7],true))return $mask>=1&&$mask<=31?$value:$unknown;
+        if($mask<1||$mask>2097151||($mask&127)===0)return $unknown;
+        $clock=$mask&96;
+        if($clock!==0){
+            if(!in_array($mask&127,[32,64],true)||($mask&384)!==0)return $unknown;
+            foreach([9,13,17]as$shift){
+                $group=($mask>>$shift)&15;
+                if($group===0||($group&($group-1))!==0)return $unknown;
+            }
+        }elseif(($mask&~511)!==0)return $unknown;
+        if(($mask&384)!==0&&($mask&4)===0)return $unknown;
+        return $value;
     }
 
     private static function observedAt(callable $clock,int $notBefore):int
