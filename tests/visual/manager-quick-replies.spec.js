@@ -681,11 +681,20 @@ test('Composer slash picker stays lazy, closes on Escape/IME and ignores URLs',a
 for(const change of ['human-edit','caret','reopen','file','version'])test('Composer slash late preparation preserves draft on '+change,async({page})=>{
  const s=await setup(page,{holdPrepare:change!=='version'});s.replies[1].requires_review=false;await openLead(page);
  const input=page.locator('#replyText');await input.fill('Начало /под');await expect(page.locator('#qrComposerChoices [role="option"]')).toHaveCount(1);
+ const originalOpen=await page.evaluate(()=>WorkspaceV2Conversation.getOpenGeneration());
  if(change==='version')s.replies[1].version++;
  await input.press('Enter');await expect.poll(()=>s.calls.filter(c=>c.action==='prepare_insert').length).toBe(1);
  if(change==='human-edit')await input.fill('Изменённый человеком текст');
  if(change==='caret')await input.press('ArrowLeft');
- if(change==='reopen'){await openLead(page,12);await openLead(page,11)}
+ if(change==='reopen'){
+  await openLead(page,12);await openLead(page,11);
+  // Form visibility can still belong to the preceding conversation while its
+  // successor is loading. Assert the settled original draft, never snapshot a
+  // temporary empty textarea and mistake its correct restoration for a write.
+  await expect.poll(()=>page.evaluate(()=>[WorkspaceV2.S.current,WorkspaceV2.S.detail?.conversation?.id])).toEqual([11,11]);
+  await expect(input).toBeEnabled();await expect(input).toHaveValue('Начало /под');
+  expect(await page.evaluate(()=>WorkspaceV2Conversation.getOpenGeneration())).toBeGreaterThan(originalOpen);
+ }
  if(change==='file')await page.locator('#replyFile').setInputFiles({name:'new-human.txt',mimeType:'text/plain',buffer:Buffer.from('New human file')});
  const value=await input.inputValue();if(change!=='version')s.releasePrepare();if(['file','version'].includes(change)){await expect(page.locator('#qrComposerPicker')).toHaveAttribute('aria-busy','false');await expect(page.locator('.qrComposerMessage')).toContainText(change==='file'?'Вставка отменена':'Шаблон изменён');await input.press('Escape')}await expect(page.locator('#qrComposerPicker')).toBeHidden();await expect(input).toHaveValue(value);
  if(change==='file')await expect(page.locator('#mediaSelection')).toContainText('new-human.txt');
