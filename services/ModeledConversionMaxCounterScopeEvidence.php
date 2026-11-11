@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionValueContract.php';
+require_once __DIR__.'/MaxTrackerLookupClient.php';
 require_once __DIR__.'/ModeledConversionValueVisitEvidence.php';
 require_once __DIR__.'/ModeledConversionValueIdentityEvidence.php';
 
@@ -9,7 +10,8 @@ final class ModeledConversionMaxCounterScopeEvidence
 {
     public const VERSION='max_counter_scope_evidence_v1';
     public const MAX_BYTES=512;
-    private const REASONS=['unsupported','invalid_response','invalid_request','storage_unavailable','point_index_unavailable','row_limit','intent_not_persisted'];
+    public const RECEIPT_KEY='finite_counter_scope_evidence';
+    private const REASONS=['unsupported','invalid_response','invalid_request','storage_unavailable','point_index_unavailable','row_limit','intent_not_persisted','clock_outside_protocol_tolerance'];
 
     public static function intent(mixed $original,array $ledger,string $namespace,string $requestHash,int $now):?array
     {
@@ -23,21 +25,29 @@ final class ModeledConversionMaxCounterScopeEvidence
     {
         $saved=self::decode($journal,$original,$ledger,$namespace,$now);
         if($saved===null||$saved['s']!==1||!is_array($evidence)||($evidence['request_sha256']??null)!==$saved['h'])return null;
+        $received=$evidence['received_at_unix']??null;$remote=$evidence['checked_at_unix']??null;
+        if(!is_int($received)||$received<$saved['t']||$received>$now||($remote!==null&&(!is_int($remote)||$remote<946684800)))return null;
+        $tolerance=MaxTrackerLookupClient::COUNTER_SCOPE_CLOCK_TOLERANCE;
         if(($evidence['available']??null)===true){
-            $keys=['available','basis','request_sha256','checked_at_unix','complete_within_bound','local_scope_zero_is_not_global_tracker_absence',
-                'financial_permission','scoped_rows','empty_client_id_rows','noncanonical_client_id_rows','canonical_client_id_rows'];
+            $keys=['available','basis','request_sha256','checked_at_unix','received_at_unix','clock_within_protocol_tolerance',
+                'complete_within_bound','local_scope_zero_is_not_global_tracker_absence','financial_permission',
+                'scoped_rows','empty_client_id_rows','noncanonical_client_id_rows','canonical_client_id_rows'];
             $actual=array_keys($evidence);sort($actual);sort($keys);
             if($actual!==$keys||$evidence['basis']!=='exact_effective_counter_scope_only'||$evidence['complete_within_bound']!==true
                 ||$evidence['local_scope_zero_is_not_global_tracker_absence']!==true||$evidence['financial_permission']!==false
-                ||!is_int($evidence['checked_at_unix'])||$evidence['checked_at_unix']<$saved['t']||$evidence['checked_at_unix']>$now)return null;
+                ||$remote===null||abs($remote-$received)>$tolerance||$evidence['clock_within_protocol_tolerance']!==true)return null;
             $counts=[];foreach(['scoped_rows','empty_client_id_rows','noncanonical_client_id_rows','canonical_client_id_rows']as$key){
                 $v=$evidence[$key];if(!is_int($v)||$v<0||$v>64)return null;$counts[]=$v;
             }
             if($counts[1]+$counts[2]+$counts[3]!==$counts[0])return null;
-            $saved['o']=array_merge([1,$evidence['checked_at_unix']],$counts);
+            $saved['o']=array_merge([1,$remote,$received],$counts);
         }elseif(($evidence['available']??null)===false){
             $reason=array_search($evidence['reason']??null,self::REASONS,true);if($reason===false)return null;
-            $saved['o']=[0,$now,$reason];
+            $outside=$evidence['reason']==='clock_outside_protocol_tolerance';
+            if($outside?($remote===null||abs($remote-$received)<=$tolerance||($evidence['clock_within_protocol_tolerance']??null)!==false):
+                ($remote===null?($evidence['clock_within_protocol_tolerance']??null)!==null:
+                    (abs($remote-$received)>$tolerance||($evidence['clock_within_protocol_tolerance']??null)!==true)))return null;
+            $saved['o']=[0,$remote,$received,$reason];
         }else return null;
         $saved['s']=2;
         return self::decode($saved,$original,$ledger,$namespace,$now);
@@ -50,16 +60,17 @@ final class ModeledConversionMaxCounterScopeEvidence
         if($journal===null)return $fail('not_recorded');
         $saved=self::decode($journal,$original,$ledger,$namespace,$now);if($saved===null)return $fail('invalid_saved_journal');
         $out=['available'=>true,'basis'=>'finite_same_request_exact_counter_scope_evidence','event_ref'=>$saved['e'],
-            'original_frame_sha256'=>$saved['d'],'request_sha256'=>$saved['h'],'intent_at'=>gmdate('Y-m-d\TH:i:s\Z',$saved['t']),
-            'attempt_status'=>'consumed_unknown','checked_at'=>null,'complete_within_bound'=>false,
+            'original_frame_sha256'=>$saved['d'],'request_sha256'=>$saved['h'],'app_intent_at'=>gmdate('Y-m-d\TH:i:s\Z',$saved['t']),
+            'attempt_status'=>'consumed_unknown','server_checked_at'=>null,'app_received_at'=>null,'complete_within_bound'=>false,
             'scoped_rows'=>null,'empty_client_id_rows'=>null,'noncanonical_client_id_rows'=>null,'canonical_client_id_rows'=>null,
             'local_scope_zero_is_not_global_tracker_absence'=>true,'financial_permission'=>false,'provider_requests_in_reader'=>0];
         if($saved['s']===2){
-            $result=$saved['o'];$out['checked_at']=gmdate('Y-m-d\TH:i:s\Z',$result[1]);
+            $result=$saved['o'];$out['server_checked_at']=$result[1]===null?null:gmdate('Y-m-d\TH:i:s\Z',$result[1]);
+            $out['app_received_at']=gmdate('Y-m-d\TH:i:s\Z',$result[2]);
             if($result[0]===1){
                 $out['attempt_status']='observed';$out['complete_within_bound']=true;
-                foreach(['scoped_rows','empty_client_id_rows','noncanonical_client_id_rows','canonical_client_id_rows']as$i=>$key)$out[$key]=$result[$i+2];
-            }else{$out['attempt_status']='unavailable';$out['reason']=self::REASONS[$result[2]];}
+                foreach(['scoped_rows','empty_client_id_rows','noncanonical_client_id_rows','canonical_client_id_rows']as$i=>$key)$out[$key]=$result[$i+3];
+            }else{$out['attempt_status']='unavailable';$out['reason']=self::REASONS[$result[3]];}
         }
         return $out;
     }
@@ -75,11 +86,18 @@ final class ModeledConversionMaxCounterScopeEvidence
         if($binding===null||($saved['d']??null)!==$binding['digest']||($saved['e']??null)!==$binding['ref']||$saved['t']<$binding['checked'])return null;
         if($saved['s']===1)return $saved['o']===null?$saved:null;
         $result=$saved['o'];
-        if(!is_array($result)||!array_is_list($result)||!is_int($result[1]??null)||$result[1]<$saved['t']||$result[1]>$now)return null;
-        if(($result[0]??null)===0)return count($result)===3&&is_int($result[2])&&isset(self::REASONS[$result[2]])?$saved:null;
-        if(($result[0]??null)!==1||count($result)!==6)return null;
-        foreach(array_slice($result,2)as$count)if(!is_int($count)||$count<0||$count>64)return null;
-        return $result[3]+$result[4]+$result[5]===$result[2]?$saved:null;
+        if(!is_array($result)||!array_is_list($result)||!is_int($result[2]??null)||$result[2]<$saved['t']||$result[2]>$now
+            ||($result[1]!==null&&(!is_int($result[1])||$result[1]<946684800)))return null;
+        $tolerance=MaxTrackerLookupClient::COUNTER_SCOPE_CLOCK_TOLERANCE;
+        if(($result[0]??null)===0){
+            if(count($result)!==4||!is_int($result[3])||!isset(self::REASONS[$result[3]]))return null;
+            $outside=self::REASONS[$result[3]]==='clock_outside_protocol_tolerance';
+            return ($outside?($result[1]!==null&&abs($result[1]-$result[2])>$tolerance):
+                ($result[1]===null||abs($result[1]-$result[2])<=$tolerance))?$saved:null;
+        }
+        if(($result[0]??null)!==1||count($result)!==7||$result[1]===null||abs($result[1]-$result[2])>$tolerance)return null;
+        foreach(array_slice($result,3)as$count)if(!is_int($count)||$count<0||$count>64)return null;
+        return $result[4]+$result[5]+$result[6]===$result[3]?$saved:null;
     }
 
     private static function binding(mixed $original,array $ledger,string $namespace,int $now):?array

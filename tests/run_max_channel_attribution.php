@@ -279,7 +279,7 @@ foreach(['hash','counter','count_type','count_sum','extra','clock','unknown_stat
     elseif($kind==='count_type')$bad['scoped_rows']='6';
     elseif($kind==='count_sum')$bad['canonical_client_id_rows']=3;
     elseif($kind==='extra')$bad['private_client_id']='PRIVATE_SCOPE_CLIENT';
-    elseif($kind==='clock')$bad['checked_at_unix']=$now+1;
+    elseif($kind==='clock')$bad['checked_at_unix']=$now+91;
     else$bad['status']='found_raw_rows';
     $safe=MaxTrackerLookupClient::validateCounterScopeEvidence($bad,$scopeHash,$now);
     ok(!$safe['available']&&!str_contains(json_encode($safe,JSON_THROW_ON_ERROR),'PRIVATE_SCOPE_'),'invalid optional evidence stays unknown '.$kind);
@@ -304,19 +304,50 @@ $scopeIntent=ModeledConversionMaxCounterScopeEvidence::intent($scopeFrame,$scope
 ok(is_array($scopeIntent)&&strlen(json_encode($scopeIntent,JSON_THROW_ON_ERROR))<=512,'finite intent fits private receipt bound');
 $scopeUnknown=ModeledConversionMaxCounterScopeEvidence::projection($scopeIntent,$scopeFrame,$scopeLedgers[0],$scopeNamespace,$scopeNow);
 same($scopeUnknown['attempt_status'],'consumed_unknown','persisted intent without response never permits retry');
-$finalEvidence=$zeroScope;$finalEvidence['checked_at_unix']=$scopeNow+1;
+$finalEvidence=$zeroScope;$finalEvidence['checked_at_unix']=$scopeNow+1;$finalEvidence['received_at_unix']=$scopeNow+2;
 $scopeDone=ModeledConversionMaxCounterScopeEvidence::complete($scopeIntent,$scopeFrame,$scopeLedgers[0],$scopeNamespace,$finalEvidence,$scopeNow+2);
 $scopeView=ModeledConversionMaxCounterScopeEvidence::projection($scopeDone,$scopeFrame,$scopeLedgers[0],$scopeNamespace,$scopeNow+2);
 ok($scopeView['attempt_status']==='observed'&&$scopeView['scoped_rows']===0&&!$scopeView['financial_permission'],'finite scoped observation cannot assign an identity or authorize money');
 same(ModeledConversionMaxCounterScopeEvidence::complete($scopeDone,$scopeFrame,$scopeLedgers[0],$scopeNamespace,$finalEvidence,$scopeNow+3),null,'completed finite intent cannot be completed or retried again');
 $unsupported=ModeledConversionMaxCounterScopeEvidence::complete($scopeIntent,$scopeFrame,$scopeLedgers[0],$scopeNamespace,
-    ['available'=>false,'reason'=>'unsupported','request_sha256'=>$scopeHash],$scopeNow+1);
+    ['available'=>false,'reason'=>'unsupported','request_sha256'=>$scopeHash,'checked_at_unix'=>null,
+        'received_at_unix'=>$scopeNow+1,'clock_within_protocol_tolerance'=>null],$scopeNow+1);
 same(ModeledConversionMaxCounterScopeEvidence::projection($unsupported,$scopeFrame,$scopeLedgers[0],$scopeNamespace,$scopeNow+1)['attempt_status'],'unavailable','unsupported capability stays consumed and unavailable');
 $rebound=$scopeLedgers[0];$rebound['external_user_id']='9999';
 ok(!ModeledConversionMaxCounterScopeEvidence::projection($scopeIntent,$scopeFrame,$rebound,$scopeNamespace,$scopeNow)['available'],'native user rebinding invalidates saved intent');
 $staleFrame=$scopeFrame;$staleFrame['r'][1][15]--;
 ok(!ModeledConversionMaxCounterScopeEvidence::projection($scopeIntent,$staleFrame,$scopeLedgers[0],$scopeNamespace,$scopeNow)['available'],'original frame changes cannot reuse finite request evidence');
 ok(!str_contains(json_encode($scopeView,JSON_THROW_ON_ERROR),'"901"')&&json_encode($scopeFrame,JSON_THROW_ON_ERROR)===$scopeOriginal,'finite projection omits native IDs and preserves original source evidence');
+// Remote clock offsets use exactly the existing signed protocol tolerance and retain both hosts' clocks.
+same(MaxTrackerLookupClient::COUNTER_SCOPE_CLOCK_TOLERANCE,90,'counter evidence uses the existing ninety-second protocol tolerance');
+foreach([-90,-1,0,1,90]as$offset){
+    $signed=MaxTrackerLookupProtocol::signature($scopeBody,$private);
+    same(MaxTrackerLookupProtocol::authenticate($scopeBody,$signed,$public,$now+$offset,'98615635')['nonce'],str_repeat('b',32),'existing signed TTL accepts boundary offset '.$offset);
+    $wireClock=$zeroEvidence;$wireClock['checked_at_unix']=$scopeNow+$offset;
+    $clientClock=MaxTrackerLookupClient::validateCounterScopeEvidence($wireClock,$scopeHash,$scopeNow);
+    $intentClock=ModeledConversionMaxCounterScopeEvidence::intent($scopeFrame,$scopeLedgers[0],$scopeNamespace,$scopeHash,$scopeNow);
+    $doneClock=ModeledConversionMaxCounterScopeEvidence::complete($intentClock,$scopeFrame,$scopeLedgers[0],$scopeNamespace,$clientClock,$scopeNow+2);
+    $viewClock=ModeledConversionMaxCounterScopeEvidence::projection($doneClock,$scopeFrame,$scopeLedgers[0],$scopeNamespace,$scopeNow+2);
+    ok($clientClock['available']&&$clientClock['checked_at_unix']===$scopeNow+$offset&&$clientClock['received_at_unix']===$scopeNow
+        &&$viewClock['attempt_status']==='observed'&&$viewClock['app_intent_at']===gmdate('Y-m-d\TH:i:s\Z',$scopeNow)
+        &&$viewClock['server_checked_at']===gmdate('Y-m-d\TH:i:s\Z',$scopeNow+$offset)
+        &&$viewClock['app_received_at']===gmdate('Y-m-d\TH:i:s\Z',$scopeNow)
+        &&strlen(json_encode($doneClock,JSON_THROW_ON_ERROR))<=512,'valid remote clock is preserved without clamping or requiring it after app intent '.$offset);
+}
+foreach([-91,91]as$offset){
+    rejects(fn()=>MaxTrackerLookupProtocol::authenticate($scopeBody,MaxTrackerLookupProtocol::signature($scopeBody,$private),$public,$now+$offset,'98615635'),'existing signed protocol rejects beyond-boundary offset '.$offset);
+    $wireClock=$zeroEvidence;$wireClock['checked_at_unix']=$scopeNow+$offset;
+    $clientClock=MaxTrackerLookupClient::validateCounterScopeEvidence($wireClock,$scopeHash,$scopeNow);
+    $intentClock=ModeledConversionMaxCounterScopeEvidence::intent($scopeFrame,$scopeLedgers[0],$scopeNamespace,$scopeHash,$scopeNow);
+    $doneClock=ModeledConversionMaxCounterScopeEvidence::complete($intentClock,$scopeFrame,$scopeLedgers[0],$scopeNamespace,$clientClock,$scopeNow+2);
+    $viewClock=ModeledConversionMaxCounterScopeEvidence::projection($doneClock,$scopeFrame,$scopeLedgers[0],$scopeNamespace,$scopeNow+2);
+    ok(!$clientClock['available']&&$clientClock['reason']==='clock_outside_protocol_tolerance'
+        &&$viewClock['attempt_status']==='unavailable'&&$viewClock['scoped_rows']===null
+        &&$viewClock['server_checked_at']===gmdate('Y-m-d\TH:i:s\Z',$scopeNow+$offset)
+        &&$viewClock['app_received_at']===gmdate('Y-m-d\TH:i:s\Z',$scopeNow)
+        &&ModeledConversionMaxCounterScopeEvidence::complete($doneClock,$scopeFrame,$scopeLedgers[0],$scopeNamespace,$clientClock,$scopeNow+3)===null,
+        'out-of-window remote clock remains consumed unknown evidence with no retry or fabricated zero '.$offset);
+}
 // Worker transitions: one POST, then only GETs despite repeated ticks.
 $p->exec("UPDATE max_channel_attribution_settings SET mode='send'");
 $p->exec("UPDATE max_channel_conversion_outbox SET state='ready',next_attempt_unix=0 WHERE id=3");
