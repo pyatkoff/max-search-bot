@@ -227,3 +227,12 @@ The existing delivery ledger links to both views. Advertising goal, target, valu
 Current and previous completed delivery days use `Europe/Moscow`, matching the closed administrator ledger. A day is selected from the Moscow midnight interval; original event, upload and receipt instants remain unchanged. A cached live-day report using the former calendar is explicitly unavailable until the existing GET-only verifier refreshes it, rather than being relabelled.
 
 The frozen launch-history review and sent-before checkpoint audits retain their original recorded calendar and immutable time bounds. They are historical evidence, not the live today/yesterday totals. Their receipt members, monetary allocations and provider uploads are not rewritten or replayed by a report-calendar change.
+
+
+## Private per-dialogue saved trace
+
+The existing `get_dialogue_review_context` may include `saved_profile.conversion_trace` only when its current server-verified connection holds both `dialogues:read` and `forecasts:read`. No input flag, new scope or endpoint enables it. Both grants are rechecked before and after the read-only snapshot and at disclosure; ordinary dialogue-only and history reads retain their prior projection.
+
+The trace uses the cursor-pinned exact profile and subject. It shows bounded chosen factual scalars, their stored basis/references, admitted wizard bindings, collector cursor metadata and at most 32 exact conversation/platform/goal ledger rows, including prior-profile rows and saved price-audit scalars. The 16 KiB bound and incomplete coverage flags are explicit. Ledger totals cover returned rows only. Original admission metadata is not an independent replay of source authority; a cursor position does not prove eligibility or a current processor namespace.
+
+Receipt, processing and visit linkage remain distinct: this reader does not check visits, call a provider, recompute a candidate, collect, tick, reconcile or export. Missing or unusable profile/storage is unavailable, never zero value. Native scopes, read markers, customer messages, predictions and existing queues are unchanged.

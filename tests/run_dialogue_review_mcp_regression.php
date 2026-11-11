@@ -509,5 +509,117 @@ try{
     $nativeCall($native,$pairContext,'get_dialogue_review_context',['dialogue_ref'=>$sourceRef]);
     dialogueMcpCheck('canonical paired-scope source read changes no source draft event or read marker rows',
         (int)$pdo->query('SELECT total_changes()')->fetchColumn()===$nativeChanges);
+
+    // Private conversion trace uses a separate live dual grant and exact saved
+    // subject/profile. All values and identifiers below are synthetic.
+    $pdo->exec("CREATE TABLE modeled_conversion_profile_versions(id INTEGER PRIMARY KEY,project_key TEXT,platform TEXT,customer_key TEXT,conversation_id TEXT,observed_at_unix INTEGER,profile_json TEXT);
+        CREATE TABLE modeled_conversion_value_export_settings(project_key TEXT,counter_id TEXT,mode TEXT,goal_id TEXT,goal_intent TEXT,contract_version TEXT,activated_at_unix INTEGER,profile_cursor INTEGER);
+        CREATE TABLE max_channel_conversion_outbox(id INTEGER PRIMARY KEY,project_key TEXT,counter_id TEXT,platform TEXT,conversation_id TEXT,transport_target TEXT,value_contract TEXT,value_profile_id INTEGER,value_rub TEXT,value_stage TEXT,state TEXT,upload_status TEXT,last_error TEXT,event_unix INTEGER,claimed_at_unix INTEGER,value_api_accepted_at_unix INTEGER,value_processed_at_unix INTEGER,upload_id TEXT,client_id TEXT);
+        CREATE TABLE modeled_conversion_price_audit(outbox_id INTEGER PRIMARY KEY,action TEXT,original_value_rub TEXT,applied_value_rub TEXT,prior_reserved_rub TEXT);");
+    require_once dirname(__DIR__).'/services/ModeledConversionSemanticPrediction.php';
+    $traceProfile=static function(string $customer='1010')use($now):array{
+        $subject=['project_key'=>'anytour','platform'=>'max','customer_key'=>$customer,'conversation_id'=>'10'];
+        $at=gmdate('Y-m-d\\TH:i:s\\Z',$now-30);
+        $known=['status'=>'known','value'=>2,'basis'=>'canonical_wizard_application',
+            'references'=>[['id'=>'journal:2','source'=>'event'],['id'=>'journal:1','source'=>'message']]];
+        return ['subject'=>$subject,'access_status'=>'allowed','profile'=>['prediction_at'=>$at,'party'=>['adults'=>$known],'fields'=>[]],
+            'semantic_prediction'=>(new ModeledConversionSemanticPrediction($subject,$at,$at,$at,'10','10'))->finish([]),
+            'wizard_applications'=>['version'=>'admitted_wizard_applications_v1','receipts'=>[['receipt_ref'=>'journal:2','input_ref'=>'journal:1']]],
+            'contextual_signals'=>['engagement'=>['customer_turns'=>3,'manager_turns'=>0],'coverage'=>['context_barriers'=>4]],
+            'coverage'=>['applied_wizard_fields'=>1,'errors'=>['action_or_unknown_message_type'=>2]],'journal_cursor'=>'10','source_fence_journal_id'=>'10'];
+    };
+    $putTraceProfile=static function(int $id,string $customer='1010')use($pdo,$now,$traceProfile):void{
+        $pdo->prepare('INSERT INTO modeled_conversion_profile_versions VALUES(?,?,?,?,?,?,?)')
+            ->execute([$id,'anytour','max',$customer,'10',$now-30,json_encode($traceProfile($customer),JSON_THROW_ON_ERROR)]);
+    };
+    $putTraceProfile(9);$putTraceProfile(10);$putTraceProfile(99,'9999');
+    $pdo->prepare('INSERT INTO modeled_conversion_value_export_settings VALUES(?,?,?,?,?,?,?,?)')
+        ->execute(['anytour','98615635','send','678187097','verified','semantic_stage_value_25000_v1',$now-300,10]);
+    $putTraceRow=static function(int $id,int $profile=10,string $project='anytour',string $conversation='10',string $platform='max')use($pdo,$now):void{
+        $pdo->prepare('INSERT INTO max_channel_conversion_outbox VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+            ->execute([$id,$project,'98615635',$platform,$conversation,'anytour_modeled_value_v1','semantic_stage_value_25000_v1',$profile,'500.00','interest','processed','PROCESSED',null,$now-25,$now-20,$now-18,$now-5,'synthetic-receipt','synthetic-private-client']);
+    };
+    $putTraceRow(1,9);$putTraceRow(2,10);$putTraceRow(3,99);
+    $putTraceRow(4,10,'other');$putTraceRow(5,10,'anytour','11');$putTraceRow(6,10,'anytour','10','telegram');
+    $pdo->exec("INSERT INTO modeled_conversion_price_audit VALUES(2,'unchanged','500.00','500.00','500.00')");
+    $pdo->prepare('INSERT INTO messages VALUES(?,?,?,?,?,?,?,?)')
+        ->execute([502,10,'inbound','customer','max','2','{"type":"message"}','2026-11-04 09:01:00']);
+    $traceScope=$dialogueScope.' '.$forecastScope;
+    [, $traceContext]=dialogueMcpGrant($oauth,$client,$traceScope);
+    $traceStoredScope=implode(' ',$traceContext['scopes']);
+    $traceInventory=$nativeCall($native,$traceContext,'list_current_dialogues');
+    $traceRef=$traceInventory['result']['structuredContent']['dialogues'][0]['dialogue_ref'];
+    $beforeTraceChanges=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+    $tracePacket=$nativeCall($native,$traceContext,'get_dialogue_review_context',['dialogue_ref'=>$traceRef,'limit'=>1]);
+    $traceData=$tracePacket['result']['structuredContent']??[];
+    $trace=$traceData['saved_profile']['conversion_trace']??[];
+    dialogueMcpCheck('actual dual grant returns a pinned saved profile and source-bound scalar trace',
+        ($trace['available']??false)&&$trace['profile_id']==='10'
+        &&$trace['frozen_profile']['party']['adults']['facts'][0]['value']===2
+        &&$trace['wizard_applications']['receipts'][0]['input_ref']==='journal:1'
+        &&$trace['recorded_input_summary']['customer_turns']===3);
+    dialogueMcpCheck('ledger filters project conversation and platform and does not validate a foreign profile',
+        count($trace['ledger']['rows'])===3&&$trace['ledger']['exact_profile_rows']===1
+        &&(float)$trace['ledger']['value_rub']===1500.0
+        &&$trace['ledger']['rows'][0]['profile_subject_verified']===false);
+    dialogueMcpCheck('saved receipt and processing are distinct from visit verification and new evaluation',
+        $trace['ledger']['rows'][1]['api_receipt_present']&&$trace['ledger']['rows'][1]['state']==='processed'
+        &&$trace['visit_linkage']['status']==='not_checked'&&$trace['candidate_evaluation']==='not_recomputed'
+        &&$trace['collector']['cursor_at_or_after_selected_profile']===true
+        &&$trace['collector']['current_processor_namespace']==='not_checked'
+        &&!str_contains(json_encode($tracePacket),'synthetic-private-client'));
+    dialogueMcpCheck('trace makes no source credential read-marker event or ledger changes',
+        (int)$pdo->query('SELECT total_changes()')->fetchColumn()===$beforeTraceChanges&&!$pdo->inTransaction());
+    $withoutTrace=$nativeCall($native,$dialogueContext,'get_dialogue_review_context',['dialogue_ref'=>$ordinaryRef]);
+    dialogueMcpCheck('dialogue-only grant keeps saved prediction without exposing monetary trace',
+        ($withoutTrace['result']['structuredContent']['saved_profile']['availability']??null)==='available'
+        &&!isset($withoutTrace['result']['structuredContent']['saved_profile']['conversion_trace']));
+    $forgedTrace=$dialogueContext;$forgedTrace['scopes']=[$dialogueScope,$forecastScope];
+    $deniedTrace=$nativeCall($native,$forgedTrace,'get_dialogue_review_context',['dialogue_ref'=>$ordinaryRef]);
+    dialogueMcpCheck('forged forecast flags cannot substitute for stored consent',
+        ($deniedTrace['error']['code']??null)===-32001&&!isset($deniedTrace['result']));
+    $putTraceProfile(11);
+    $continuedTrace=$nativeCall($native,$traceContext,'get_dialogue_review_context',[
+        'dialogue_ref'=>$traceData['dialogue_ref'],'cursor'=>$traceData['next_cursor'],'limit'=>1]);
+    dialogueMcpCheck('continuation keeps the original selected profile after a later version arrives',
+        ($continuedTrace['result']['structuredContent']['saved_profile']['conversion_trace']['profile_id']??null)==='10');
+    DialogueSelectionGrantStatement::$payloadRead=false;$withdrawnTrace=false;
+    DialogueSelectionGrantStatement::$withdrawAfterSnapshot=static function()use($pdo,$traceContext,$dialogueScope,&$withdrawnTrace):void{
+        $pdo->prepare('UPDATE manager_preparation_oauth_grants SET scopes=? WHERE grant_id=?')
+            ->execute([$dialogueScope,$traceContext['connection_id']]);$withdrawnTrace=true;
+    };
+    $lateTrace=$nativeCall($native,$traceContext,'get_dialogue_review_context',['dialogue_ref'=>$traceRef]);
+    dialogueMcpCheck('forecast withdrawal after the read snapshot suppresses the entire private result',
+        $withdrawnTrace&&($lateTrace['error']['code']??null)===-32001&&!isset($lateTrace['result'])&&!$pdo->inTransaction());
+    DialogueSelectionGrantStatement::$withdrawAfterSnapshot=null;
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET scopes=? WHERE grant_id=?')->execute([$traceStoredScope,$traceContext['connection_id']]);
+    dialogueMcpCheck('restored forecast grant preserves canonical stored consent',
+        $oauth->connectionAuthorized($traceContext['connection_id'],1,[$dialogueScope,$forecastScope]));
+    $longReferenceProfile=$traceProfile();
+    $longReferenceProfile['profile']['party']['adults']['references']=array_map(
+        static fn(int $n):array=>['id'=>'journal:'.$n,'source'=>'message'],range(1,6));
+    $pdo->prepare('INSERT INTO modeled_conversion_profile_versions VALUES(?,?,?,?,?,?,?)')
+        ->execute([12,'anytour','max','1010','10',$now-30,json_encode($longReferenceProfile,JSON_THROW_ON_ERROR)]);
+    $longReferencePacket=$nativeCall($native,$traceContext,'get_dialogue_review_context',['dialogue_ref'=>$traceRef]);
+    $longReferenceTrace=$longReferencePacket['result']['structuredContent']['saved_profile']['conversion_trace']??[];
+    dialogueMcpCheck('bounded fact references propagate explicit incomplete trace coverage',
+        ($longReferenceTrace['profile_id']??null)==='12'
+        &&($longReferenceTrace['frozen_profile']['party']['adults']['complete']??null)===false
+        &&($longReferenceTrace['complete']??null)===false);
+    for($n=100;$n<133;$n++)$putTraceRow($n);
+    $boundedTrace=$nativeCall($native,$traceContext,'get_dialogue_review_context',['dialogue_ref'=>$traceRef]);
+    $boundedValue=$boundedTrace['result']['structuredContent']['saved_profile']['conversion_trace']??[];
+    dialogueMcpCheck('row and response bounds explicitly retain incomplete ledger coverage',
+        ($boundedValue['available']??false)&&$boundedValue['complete']===false
+        &&$boundedValue['ledger']['complete']===false&&count($boundedValue['ledger']['rows'])<=32
+        &&strlen(json_encode($boundedValue,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=16384);
+
+    $pdo->exec('DROP TABLE modeled_conversion_price_audit');
+    $missingTraceStorage=$nativeCall($native,$traceContext,'get_dialogue_review_context',['dialogue_ref'=>$traceRef]);
+    $missingTraceProfile=$missingTraceStorage['result']['structuredContent']['saved_profile']??[];
+    dialogueMcpCheck('optional trace storage failure preserves the valid saved prediction and exposes no SQL',
+        ($missingTraceProfile['availability']??null)==='available'
+        &&($missingTraceProfile['conversion_trace']['reason']??null)==='trace_storage_unavailable'
+        &&!str_contains(json_encode($missingTraceStorage),'no such table')&&!$pdo->inTransaction());
     echo 'Dialogue review MCP regression: '.$passed." checks passed\n";
 }catch(Throwable $error){fwrite(STDERR,$error->getMessage()."\n");exit(1);}
