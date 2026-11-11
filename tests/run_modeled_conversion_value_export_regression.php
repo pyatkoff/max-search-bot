@@ -226,6 +226,7 @@ function modeledValueAssertions(PDO $p,callable $check):void
     modeledValueFiniteVisitAssertions($p,$check);
     modeledValueVisitRecoveryAssertions($p,$check);
     modeledValueVisitGateDecisionAssertions($p,$check);
+    modeledValueFixedPairAssertions($p,$check);
     $now=1793650000;$gate=static fn(string $chat):bool=>true;
     modeledValueSchema($p);$wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $check('actual forward migration is default OFF',ModeledConversionValueExport::settings($p)['mode']==='off');
@@ -1913,6 +1914,144 @@ function modeledValueAttributionFailureAssertions(callable $check):void
         $bad=$v2;$bad['failures']=$invalid;
         $check('invalid count duplicate or incomplete clock diagnostics cannot become a saved audit',
             $append->invoke(null,[],$bad,2,$now)===[]);
+    }
+}
+
+/** Only the already consumed canonical pair may pass source age; actual current visits still decide first sends. */
+function modeledValueFixedPairAssertions(PDO $p,callable $check):void
+{
+    $event=ModeledConversionValueVisitEvidence::CHECKPOINT-100;$now=ModeledConversionValueVisitEvidence::CHECKPOINT+20000;
+    $ns=ModeledConversionProfiles::assessmentNamespace();$gate=static fn(string $chat):bool=>true;
+    $setup=static function()use($p,$event,$now,$ns,$gate):array{
+        modeledValueSchema($p);$p->exec("ALTER TABLE modeled_conversion_profile_versions ADD COLUMN assessment_namespace CHAR(64)");
+        $p->exec("ALTER TABLE modeled_conversion_profile_versions ADD COLUMN assessment_kind VARCHAR(8)");
+        $wire=new ModeledValueTestWire($event-60);$control=new ModeledConversionValueExport($p);
+        $control->configure('create-goal',$wire->api(),$now-40000);$control->configure('enable',$wire->api(),$now-40000);
+        for($i=1;$i<=3;$i++)modeledValueSave($p,modeledExpertWrapper(modeledValueBinding($p,6800+$i),$event,200000));
+        $p->prepare("UPDATE modeled_conversion_profile_versions SET observed_at_unix=?,assessment_namespace=?,assessment_kind='repair'")->execute([$event,$ns]);
+        while($control->collect(ModeledConversionValueExport::settings($p),$now,$gate)>0){}
+        $rows=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        $original=['v'=>ModeledConversionValueVisitEvidence::VERSION,'n'=>$ns,'b'=>ModeledConversionValueVisitEvidence::CHECKPOINT,'r'=>[]];$records=[];
+        foreach($rows as$i=>$row){
+            $ref=ModeledConversionValueIdentityEvidence::reference($row,$ns);$checked=ModeledConversionValueVisitEvidence::CHECKPOINT+600;
+            if($i<2){
+                $record=['external_user_id'=>$row['external_user_id'],'client_id'=>'880000'.$row['external_user_id'],
+                    'record_id'=>'90000000000000401','observed_at_unix'=>$event-($i===0?13:51)*86400];
+                $hash=ModeledConversionValueVisitEvidence::candidateReference($ref,$record['client_id'],$record['record_id'],$record['observed_at_unix'],'canonical_max_lookup');
+                $original['r'][]=[$ref,(string)$row['id'],2,$checked-1,$checked,1,$record['client_id'],$record['record_id'],$record['observed_at_unix'],$hash,2,false,4,null,0,$event];
+                $records[$row['external_user_id']]=$record;
+            }else{$original['r'][]=[$ref,(string)$row['id'],2,null,$checked,3,null,null,null,null,0,null,0,null,0,$event];$records[$row['external_user_id']]=null;}
+        }
+        $recovery=ModeledConversionValueVisitRecovery::create($original,$ns,$now);
+        foreach($recovery['r']as$i=>$entry){
+            $entry[2]=2;$entry[3]=ModeledConversionValueVisitEvidence::CHECKPOINT+1200;
+            $entry[4]=$entry[3]+1;$entry[5]=2;$entry[6]=false;$entry[7]=4;$entry[10]=1;$recovery['r'][$i]=$entry;
+        }
+        $receipt=['errors'=>0,'metrika_report'=>['status'=>'unavailable','http_status'=>503,'transport_error_code'=>0],
+            'finite_visit_evidence'=>$original,'finite_visit_recovery'=>$recovery];
+        $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=?,last_receipt_json=? WHERE project_key='anytour'")
+            ->execute([$now-300,json_encode($receipt,JSON_THROW_ON_ERROR)]);
+        $wire->reportHttp=503;
+        $source=new class($records){
+            public int $calls=0;public array $queried=[];
+            public function __construct(public array $records){}
+            public function lookup(string $counter,array $users):array{$this->calls++;$this->queried=$users;return array_intersect_key($this->records,array_fill_keys($users,true));}
+        };
+        return [$rows,$source,$wire];
+    };
+    $saved=static fn():array=>json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    [$rows,$source,$wire]=$setup();$before=$saved();$wire->visitAvailable=false;$api=$wire->api();
+    ModeledConversionValueExport::tick($p,$source,$api,$now,$gate);
+    $held=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $check('only the fixed pair resolves old canonical source clocks while unavailable actual visits retain an unclaimed ready hold',
+        $held[0]['state']==='ready'&&$held[1]['state']==='ready'&&$held[2]['state']==='pending'
+        &&(int)$held[0]['tracker_observed_unix']===$source->records[$rows[0]['external_user_id']]['observed_at_unix']
+        &&(int)$held[1]['tracker_observed_unix']===$source->records[$rows[1]['external_user_id']]['observed_at_unix']
+        &&$wire->posts===0&&$wire->visitReads===2&&$source->calls===1&&count($source->queried)<=25
+        &&(int)$held[0]['attempts']===0&&empty($held[0]['claim_token'])&&empty($held[0]['upload_id']));
+    $wire->visitAvailable=true;
+    ModeledConversionValueExport::tick($p,$source,$api,$now+301,$gate);
+    $sent=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $check('a later natural ready tick refreshes the same pair and sends once only after actual current prior visits despite unavailable aggregate health',
+        $sent[0]['state']==='accepted'&&$sent[1]['state']==='accepted'&&$wire->posts===2&&$wire->visitReads===4
+        &&$source->calls===2&&(int)$sent[0]['attempts']===1&&(int)$sent[1]['attempts']===1
+        &&(int)$sent[0]['event_unix']===$event&&(int)$sent[1]['event_unix']===$event
+        &&$sent[0]['value_rub']===$rows[0]['value_rub']&&$sent[1]['value_rub']===$rows[1]['value_rub']
+        &&modeledValueFailureJsonEqual($saved()['finite_visit_evidence'],$before['finite_visit_evidence'])
+        &&modeledValueFailureJsonEqual($saved()['finite_visit_recovery'],$before['finite_visit_recovery']));
+    ModeledConversionValueExport::tick($p,$source,$api,$now+602,$gate);
+    $check('accepted pair receipts use only normal receipt polling and never repeat a POST',$wire->posts===2);
+
+    foreach(['client','record','clock','fresh_different_source','fresh_clock','future_source','value','namespace','attempt','claimed','paid','unknown','future_due','unfinished_recovery']as$case){
+        [$rows,$source,$wire]=$setup();$id=$rows[0]['id'];$user=$rows[0]['external_user_id'];
+        if($case==='client')$source->records[$user]['client_id']='88000000000002';
+        if($case==='record')$source->records[$user]['record_id']='90000000000000402';
+        if($case==='clock')$source->records[$user]['observed_at_unix']--;
+        if($case==='fresh_different_source'){$source->records[$user]['client_id']='88000000000002';$source->records[$user]['observed_at_unix']=$event-60;}
+        if($case==='fresh_clock')$source->records[$user]['observed_at_unix']=$event-60;
+        if($case==='future_source')$source->records[$user]['observed_at_unix']=$event+1;
+        if($case==='value')$p->prepare('UPDATE max_channel_conversion_outbox SET value_rub=value_rub+1 WHERE id=?')->execute([$id]);
+        if($case==='namespace')$p->prepare('UPDATE modeled_conversion_profile_versions SET assessment_namespace=? WHERE id=?')->execute([str_repeat('f',64),$rows[0]['value_profile_id']]);
+        if($case==='attempt')$p->prepare('UPDATE max_channel_conversion_outbox SET attempts=1 WHERE id=?')->execute([$id]);
+        if($case==='claimed')$p->prepare("UPDATE max_channel_conversion_outbox SET claim_token='existing',claimed_at_unix=? WHERE id=?")->execute([$now-1,$id]);
+        if($case==='paid')$p->prepare("UPDATE max_channel_conversion_outbox SET state='accepted',attempts=1,upload_id='9999',value_api_accepted_at_unix=?,value_receipt_basis='post_response' WHERE id=?")->execute([$now-1,$id]);
+        if($case==='unknown')$p->prepare("UPDATE max_channel_conversion_outbox SET state='unknown' WHERE id=?")->execute([$id]);
+        if($case==='future_due')$p->prepare('UPDATE max_channel_conversion_outbox SET next_attempt_unix=? WHERE id=?')->execute([$now+900,$id]);
+        if($case==='unfinished_recovery'){
+            $r=$saved();$entry=$r['finite_visit_recovery']['r'][0];$entry[2]=1;$entry[4]=null;$entry[5]=0;$entry[6]=null;$entry[7]=0;$r['finite_visit_recovery']['r'][0]=$entry;
+            $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode($r,JSON_THROW_ON_ERROR)]);
+        }
+        ModeledConversionValueExport::tick($p,$source,$wire->api(),$now,$gate);
+        $q=$p->prepare('SELECT * FROM max_channel_conversion_outbox WHERE id=?');$q->execute([$id]);$row=$q->fetch(PDO::FETCH_ASSOC);
+        $check('fixed-pair admission refuses changed or previously claimed scope '.$case,
+            $row['value_ready_at_unix']===null&&($case==='paid'?$row['upload_id']==='9999':empty($row['upload_id']))
+            &&($case==='future_due'?!in_array($user,$source->queried,true):true)&&$source->calls<=1);
+    }
+
+    [$rows,$source,$wire]=$setup();$wire->visitAvailable=false;$api=$wire->api();
+    ModeledConversionValueExport::tick($p,$source,$api,$now,$gate);
+    $user=$rows[0]['external_user_id'];$source->records[$user]['record_id']='90000000000000402';$wire->visitAvailable=true;
+    ModeledConversionValueExport::tick($p,$source,$api,$now+301,$gate);
+    $held=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=1')->fetch(PDO::FETCH_ASSOC);
+    $source->records[$user]['record_id']='90000000000000401';
+    ModeledConversionValueExport::tick($p,$source,$api,$now+602,$gate);
+    $check('a ready pair waits for the exact canonical candidate and resumes after it returns without resetting first-send state',
+        $held['state']==='ready'&&(int)$held['attempts']===0&&empty($held['upload_id'])&&$wire->posts===2);
+
+    [$rows,$source,$wire]=$setup();$wire->visitAvailable=false;$control=new ModeledConversionValueExport($p);
+    for($i=1;$i<=24;$i++){
+        $scope=modeledValueBinding($p,6900+$i);modeledValueSave($p,modeledExpertWrapper($scope,$now-1,200000));
+        $source->records[(string)(70000+6900+$i)]=null;
+    }
+    while($control->collect(ModeledConversionValueExport::settings($p),$now,$gate)>0){}
+    ModeledConversionValueExport::tick($p,$source,$wire->api(),$now,$gate);
+    $fresh=(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE conversation_id>=6901 AND last_error='identity_not_found'")->fetchColumn();
+    $check('the fixed pair shares the single 25-user lookup and retains at least 22 fresh-source slots',
+        $source->calls===1&&count($source->queried)===25&&$fresh===22&&$wire->posts===0);
+
+    foreach(['event_unix','value_api_accepted_at_unix','claim_token']as$field){
+        [$rows,$source,$wire]=$setup();$changed=false;$cid=$source->records[$rows[0]['external_user_id']]['client_id'];
+        $api=new MetrikaOfflineClient('98615635','fixture-only',static function(string $method,string $url,mixed $body)use($wire,$p,$field,$event,$now,$cid,&$changed):array{
+            $response=$wire->request($method,$url,$body);parse_str((string)parse_url($url,PHP_URL_QUERY),$query);
+            if(!$changed&&$method==='GET'&&isset($query['dimensions'])&&str_contains($query['filters']??'',$cid)){
+                $changed=true;$p->prepare('UPDATE max_channel_conversion_outbox SET '.$field.'=? WHERE id=1')->execute([$field==='claim_token'?'other-owner':($field==='event_unix'?$event+1:$now)]);
+            }
+            return $response;
+        });
+        ModeledConversionValueExport::tick($p,$source,$api,$now,$gate);
+        $row=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=1')->fetch(PDO::FETCH_ASSOC);
+        $check('the same financial claim refuses an intervening immutable or receipt change '.$field,
+            $changed&&$row['state']==='ready'&&(int)$row['attempts']===0&&empty($row['upload_id'])&&$wire->posts===1);
+    }
+
+    // The pair must retain the existing exact current Direct/other windows.
+    foreach([['yandex_direct',9*86400,true],['other_or_unknown',4*86400,false],['other_or_unknown',3*86400,true],['other_or_unknown',$now-$event-1,false]]as[$kind,$age,$allow]){
+        [$rows,$source,$wire]=$setup();$wire->visitAt=$now-$age;$wire->visitSource=$kind;
+        ModeledConversionValueExport::tick($p,$source,$wire->api(),$now,$gate);
+        $q=$p->query('SELECT state,attempts FROM max_channel_conversion_outbox WHERE id IN (1,2) ORDER BY id');$states=$q->fetchAll(PDO::FETCH_ASSOC);
+        $check('source-age correction keeps actual current visit gate '.$kind.':'.$age,
+            $allow?$wire->posts===2&&array_column($states,'state')===['accepted','accepted']
+                :$wire->posts===0&&array_column($states,'state')===['ready','ready']&&(int)$states[0]['attempts']===0);
     }
 }
 

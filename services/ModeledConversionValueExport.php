@@ -30,6 +30,9 @@ final class ModeledConversionValueExport
     private bool $optionalVisitStopped=false;
     private ?array $recoveryJournal=null;
     private ?array $recoveryOriginal=null;
+    private ?array $fixedPairJournal=null;
+    private ?string $fixedPairDigest=null;
+    private array $fixedPairCases=[];
     public function __construct(private PDO $pdo){}
     public static function settings(?PDO $pdo=null):?array
     {
@@ -163,14 +166,15 @@ final class ModeledConversionValueExport
             $self->prepareIdentityEvidence();
             $finite=$self->prepareFiniteEvidence($now,$gate);
             $recovery=$self->prepareRecoveryEvidence($now);
-            $reserved=[];foreach(array_merge($finite,$recovery)as$row)$reserved[(string)$row['id']]=$row;
+            $pair=$self->prepareFixedPair($now);
+            $reserved=[];foreach(array_merge($finite,$recovery,$pair)as$row)$reserved[(string)$row['id']]=$row;
             $pending=$self->rows('pending',$now,MaxTrackerLookupProtocol::MAX_USERS-count($reserved),array_keys($reserved));
             foreach($reserved as$row)if($row['state']==='pending'
                 &&(is_int($row['next_attempt_unix'])||is_string($row['next_attempt_unix']))
                 &&preg_match('/\A(?:0|[1-9][0-9]*)\z/D',(string)$row['next_attempt_unix'])===1
                 &&(int)$row['next_attempt_unix']<=$now)$pending[]=$row;
             $users=[];foreach($pending as$r)if($r['platform']==='max'&&$self->eligible($r,$gate))$users[]=$r['external_user_id'];
-            foreach(array_merge($finite,$recovery)as$r)if($r['platform']==='max'&&$self->finiteEligible($r,$gate))$users[]=$r['external_user_id'];
+            foreach(array_merge($finite,$recovery,$pair)as$r)if($r['platform']==='max'&&$self->finiteEligible($r,$gate))$users[]=$r['external_user_id'];
             $identities=[];$lookupReturned=false;
             if($users){$lookup??=new MaxTrackerLookupClient();$self->finiteLookupAttempted=(bool)($finite||$recovery);
                 $identities=$lookup->lookup('98615635',array_values(array_unique($users)));$lookupReturned=true;
@@ -197,9 +201,12 @@ final class ModeledConversionValueExport
                     }
                     // Revalidate the retained MAX source at dispatch, not only at the earlier signal.
                     $sendAt=$injectedClock?$now:time();$sourceAt=(int)($r['tracker_observed_unix']??0);
+                    $pairSource=$self->fixedPairCandidate($r,$identities,$lookupReturned,$sendAt);
                     if($r['platform']==='max'&&($sourceAt<946684800||$sourceAt>(int)$r['event_unix']
-                        ||$sourceAt>$sendAt||$sendAt-$sourceAt>ModeledConversionAttributionWindow::MAX_SECONDS)){
-                        $hold=$p->prepare("UPDATE max_channel_conversion_outbox SET state='pending',next_attempt_unix=?,last_error='identity_not_found'"
+                        ||$sourceAt>$sendAt||($sendAt-$sourceAt>ModeledConversionAttributionWindow::MAX_SECONDS&&!$pairSource))){
+                        // This exact pair may wait ready for a successful canonical refresh; it is never claimed on missing/changed source.
+                        $pairHold=$self->fixedPairRow($r,$sendAt)!==null;
+                        $hold=$p->prepare("UPDATE max_channel_conversion_outbox SET ".($pairHold?'':"state='pending',")."next_attempt_unix=?,last_error='identity_not_found'"
                             ." WHERE id=? AND state='ready' AND (upload_id IS NULL OR upload_id='') AND (claim_token IS NULL OR claim_token='')");
                         $hold->execute([$sendAt+300,$r['id']]);continue;
                     }
@@ -233,8 +240,9 @@ final class ModeledConversionValueExport
                         $hold->execute([$sendAt+300,$window['reason']==='outside_current_window'?'metrika_visit_window':'metrika_visit_unverified',$r['id']]);continue;
                     }
                     $token=bin2hex(random_bytes(16));
-                    $q=$p->prepare("UPDATE max_channel_conversion_outbox SET state='uploading',claim_token=?,claimed_at_unix=?,attempts=attempts+1 WHERE id=? AND state='ready' AND target=? AND transport_target=? AND value_rub=?");
-                    $q->execute([$token,$now,$r['id'],$r['target'],ModeledConversionValueContract::TARGET,$r['value_rub']]);
+                    [$pairWhere,$pairParams]=$pairSource?$self->fixedPairSqlGuard($r,false):['',[]];
+                    $q=$p->prepare("UPDATE max_channel_conversion_outbox SET state='uploading',claim_token=?,claimed_at_unix=?,attempts=attempts+1 WHERE id=? AND state='ready' AND target=? AND transport_target=? AND value_rub=?".$pairWhere);
+                    $q->execute([$token,$now,$r['id'],$r['target'],ModeledConversionValueContract::TARGET,$r['value_rub'],...$pairParams]);
                     if($q->rowCount()!==1)continue;
                     try{$response=$api->uploadModeledValue($r,$now);}catch(Throwable $ignored){$response=['outcome'=>'unknown','reason'=>'upload_outcome_unknown'];}
                     $self->finishObserved($repo,(string)$r['id'],$token,$response,$now,self::observedAt($clock,$now));
@@ -644,15 +652,17 @@ final class ModeledConversionValueExport
     private function resolve(array $r,array $identities,int $now,callable $gate,bool $lookupReturned=false):bool
     {
         if(!$this->eligible($r,$gate)){self::failRow($this->pdo,$r,'scope_unavailable');return false;}
-        $client=null;$record=null;$observation=null;$identityReason='identity_not_found';
+        $client=null;$record=null;$observation=null;$identityReason='identity_not_found';$pairSource=false;
         if($r['platform']==='max'){
             $record=$identities[$r['external_user_id']]??null;
             // A retained MAX click can outlive the provider's attribution window.
             // Hold unresolved identities without rewriting any accepted receipt or forecast.
             $observed=is_array($record)?($record['observed_at_unix']??null):null;
+            $pairBound=$this->fixedPairRow($r,$now)!==null;
+            if($pairBound)$pairSource=$this->fixedPairCandidate($r,$identities,$lookupReturned,$now);
             if(is_array($record)&&($record['external_user_id']??null)===$r['external_user_id']
                 &&is_int($observed)&&$observed>=946684800&&$observed<=(int)$r['event_unix']
-                &&(int)$r['event_unix']-$observed<=ModeledConversionAttributionWindow::MAX_SECONDS&&$now-$observed<=ModeledConversionAttributionWindow::MAX_SECONDS)$client=$record['client_id']??null;
+                &&($pairBound?$pairSource:((int)$r['event_unix']-$observed<=ModeledConversionAttributionWindow::MAX_SECONDS&&$now-$observed<=ModeledConversionAttributionWindow::MAX_SECONDS)))$client=$record['client_id']??null;
         }else{
             $q=$this->pdo->prepare("SELECT client_id,MIN(id) AS observation_id FROM advertising_visit_observations WHERE project_key='anytour' AND source_key='tgmini' AND platform='telegram' AND counter_id='98615635' AND external_user_id=? AND identity_status='verified' AND client_id<>'' AND visit_at_unix<=? AND observed_at_unix<=? AND received_at_unix<=? GROUP BY client_id LIMIT 2");
             $q->execute([$r['external_user_id'],$r['event_unix'],$now,$now]);$ids=$q->fetchAll(PDO::FETCH_ASSOC);if(count($ids)>1)$identityReason='identity_ambiguous';if(count($ids)===1){$client=$ids[0]['client_id'];$observation=$ids[0]['observation_id'];}
@@ -662,8 +672,9 @@ final class ModeledConversionValueExport
             if($q->rowCount()===1)$this->observeIdentity($r,$identities,$lookupReturned,$now);
             return false;
         }
-        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET client_id=?,tracker_record_id=?,tracker_observed_unix=?,identity_observation_id=?,state='ready',value_ready_at_unix=COALESCE(value_ready_at_unix,?),next_attempt_unix=0,last_error='' WHERE id=? AND state='pending'");$q->execute([$client,$record['record_id']??null,$record['observed_at_unix']??null,$observation,$now,$r['id']]);
-        $changed=$q->rowCount()===1;if($changed)$this->observeIdentity($r,$identities,$lookupReturned,$now);return $changed;
+        [$pairWhere,$pairParams]=$pairSource?$this->fixedPairSqlGuard($r,true):['',[]];
+        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET client_id=?,tracker_record_id=?,tracker_observed_unix=?,identity_observation_id=?,state='ready',value_ready_at_unix=COALESCE(value_ready_at_unix,?),next_attempt_unix=0,last_error='' WHERE id=? AND state='pending'".$pairWhere);$q->execute([$client,$record['record_id']??null,$record['observed_at_unix']??null,$observation,$now,$r['id'],...$pairParams]);
+        $changed=$q->rowCount()===1;if($changed)$this->observeIdentity($r,$identities,$lookupReturned,$now,$pairSource);return $changed;
     }
 
     /** Fixed earliest repair increments only, without loading profile or native payloads. */
@@ -698,7 +709,7 @@ final class ModeledConversionValueExport
     }
 
     /** Evidence follows the existing successful state update; never changes its result. */
-    private function observeIdentity(array $row,array $identities,bool $lookupReturned,int $now):void
+    private function observeIdentity(array $row,array $identities,bool $lookupReturned,int $now,bool $fixedPairResolved=false):void
     {
         try{
             if(!$lookupReturned||($row['platform']??null)!=='max'||$this->identityNamespace===null)return;
@@ -706,7 +717,7 @@ final class ModeledConversionValueExport
             if($ref===null||!isset($this->identityRefs[$ref]))return;
             $present=array_key_exists($row['external_user_id'],$identities);
             [$reason,$observed]=ModeledConversionValueIdentityEvidence::classifyMax($row,$identities[$row['external_user_id']]??null,$present,$now);
-            $this->identityObservations[$ref]=[$ref,$now,$reason,$observed];
+            $this->identityObservations[$ref]=[$ref,$now,$fixedPairResolved?7:$reason,$observed];
         }catch(Throwable $ignored){$this->identityComplete=false;}
     }
 
@@ -760,7 +771,8 @@ final class ModeledConversionValueExport
         $key=$mysql?"CONCAT('anytour_value_pred_',p.id,'_v1')":"'anytour_value_pred_'||p.id||'_v1'";
         $fields=['id','value_profile_id','project_key','platform','conversation_id','external_user_id','counter_id',
             'target','transport_target','value_contract','event_unix','value_rub','state','upload_id','upload_status',
-            'identity_source_key','value_origin','next_attempt_unix','value_ready_at_unix','value_api_accepted_at_unix'];
+            'identity_source_key','value_origin','next_attempt_unix','value_ready_at_unix','value_api_accepted_at_unix',
+            'client_id','tracker_record_id','tracker_observed_unix','attempts','claim_token','claimed_at_unix','value_processed_at_unix','value_receipt_basis'];
         $sql='SELECT '.($mysql?'/*+ MAX_EXECUTION_TIME(250) */ ':'').implode(',',array_map(static fn(string $v):string=>'o.'.$v,$fields))
             .' FROM modeled_conversion_profile_versions p JOIN max_channel_conversion_outbox o ON o.value_profile_id=p.id'
             .' AND o.project_key=p.project_key AND o.conversation_id=p.conversation_id AND o.target='.$key
@@ -816,9 +828,85 @@ final class ModeledConversionValueExport
             $p->commit();if($frame===null)return [];
             foreach($frame['r']as$r)if(!isset($rows[$r[0]])||(string)$rows[$r[0]]['id']!==$r[1]||(int)$rows[$r[0]]['event_unix']!==$r[15])return [];
             $this->finiteFrame=$frame;$this->finiteRows=$rows;
+            $this->fixedPairJournal=ModeledConversionValueVisitRecovery::decode($receipt['finite_visit_recovery']??null,$frame,$namespace,$now);
             $pending=[];foreach($frame['r']as$r)if($r[2]===0)$pending[]=$rows[$r[0]];
             return $pending;
         }catch(Throwable $ignored){if($p->inTransaction())$p->rollBack();return [];}
+    }
+
+    /** The already consumed two canonical cases get no new diagnostic epoch or request. */
+    private function prepareFixedPair(int $now):array
+    {
+        $this->fixedPairCases=[];$this->fixedPairDigest=null;
+        if($this->finiteFrame===null||$this->fixedPairJournal===null)return [];
+        $ns=$this->finiteFrame['n'];$cases=ModeledConversionValueVisitRecovery::originals($this->finiteFrame,$ns,$now);
+        $digest=ModeledConversionValueVisitRecovery::originalDigest($this->finiteFrame,$ns,$now);
+        $journal=ModeledConversionValueVisitRecovery::decode($this->fixedPairJournal,$this->finiteFrame,$ns,$now);
+        if($cases===null||$digest===null||$journal===null||$journal['d']!==$digest)return [];
+        foreach($cases as$old)if($old[5]!==1)return [];
+        foreach($journal['r']as$entry)if($entry[2]!==2||$entry[5]!==2||$entry[10]!==1)return [];
+        $this->fixedPairCases=$cases;$this->fixedPairDigest=$digest;$due=[];
+        foreach($cases as$ref=>$old){
+            $row=$this->finiteRows[$ref]??null;
+            if(!is_array($row)||$this->fixedPairRow($row,$now)===null)continue;
+            $at=$row['next_attempt_unix']??null;
+            if((is_int($at)||is_string($at))&&preg_match('/\A(?:0|[1-9][0-9]*)\z/D',(string)$at)===1&&(int)$at<=$now)$due[]=$row;
+        }
+        return $due;
+    }
+
+    /** Immutable event/value/source binding plus never-claimed first-send states only. */
+    private function fixedPairRow(array $row,int $now):?array
+    {
+        if($this->finiteFrame===null||$this->fixedPairDigest===null
+            ||ModeledConversionValueVisitRecovery::originalDigest($this->finiteFrame,$this->finiteFrame['n'],$now)!==$this->fixedPairDigest)return null;
+        $ref=ModeledConversionValueIdentityEvidence::reference($row,$this->finiteFrame['n']);$old=$this->fixedPairCases[$ref??'']??null;
+        if($old===null||($row['platform']??null)!=='max'||($row['identity_source_key']??null)!=='max_tracker'
+            ||(string)($row['id']??'')!==$old[1]||(int)($row['event_unix']??0)!==$old[15]
+            ||(!is_int($row['attempts']??null)&&!is_string($row['attempts']??null))||(string)$row['attempts']!=='0')return null;
+        foreach(['claim_token','upload_id','upload_status','value_receipt_basis']as$key)if(!array_key_exists($key,$row)||!in_array($row[$key],[null,''],true))return null;
+        foreach(['claimed_at_unix','value_api_accepted_at_unix','value_processed_at_unix']as$key)if(!array_key_exists($key,$row)||$row[$key]!==null)return null;
+        if(($row['state']??null)==='pending'){
+            foreach(['value_ready_at_unix','client_id','tracker_record_id','tracker_observed_unix']as$key)if(!array_key_exists($key,$row)||$row[$key]!==null)return null;
+        }elseif(($row['state']??null)==='ready'){
+            $ready=$row['value_ready_at_unix']??null;
+            if((!is_int($ready)&&!is_string($ready))||preg_match('/\A[1-9][0-9]{0,11}\z/D',(string)$ready)!==1
+                ||(int)$ready<$old[15]||(int)$ready>$now||($row['client_id']??null)!==$old[6]
+                ||($row['tracker_record_id']??null)!==$old[7]
+                ||(!is_int($row['tracker_observed_unix']??null)&&!is_string($row['tracker_observed_unix']??null))
+                ||(string)$row['tracker_observed_unix']!==(string)$old[8])return null;
+        }else return null;
+        return $old;
+    }
+
+    /** Source age is not visit age. Only the exact current canonical record may use this exception. */
+    private function fixedPairCandidate(array $row,array $identities,bool $returned,int $now):bool
+    {
+        $old=$this->fixedPairRow($row,$now);if($old===null||!$returned)return false;
+        $record=$identities[$row['external_user_id']]??null;
+        return is_array($record)&&($record['external_user_id']??null)===$row['external_user_id']
+            &&($record['client_id']??null)===$old[6]&&($record['record_id']??null)===$old[7]
+            &&is_int($record['observed_at_unix']??null)&&$record['observed_at_unix']===$old[8]
+            &&$old[8]<=$old[15]&&$old[15]<=$now
+            &&ModeledConversionValueVisitEvidence::candidateReference($old[0],$record['client_id'],$record['record_id'],$record['observed_at_unix'],'canonical_max_lookup')===$old[9];
+    }
+
+    /** Reuse the existing UPDATE/claim, adding an exact first-send CAS for this pair only. */
+    private function fixedPairSqlGuard(array $row,bool $pending):array
+    {
+        $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';$where='';$values=[];
+        foreach(['project_key','platform','external_user_id','counter_id','target','transport_target','value_contract','identity_source_key']as$key){
+            $where.=$mysql?' AND BINARY '.$key.'=BINARY ?':' AND '.$key.' COLLATE BINARY=? COLLATE BINARY';$values[]=$row[$key];
+        }
+        foreach(['conversation_id','value_profile_id','event_unix','value_rub']as$key){$where.=' AND '.$key.'=?';$values[]=$row[$key];}
+        $where.=" AND attempts=0 AND (claim_token IS NULL OR claim_token='') AND claimed_at_unix IS NULL"
+            ." AND (upload_id IS NULL OR upload_id='') AND (upload_status IS NULL OR upload_status='')"
+            ." AND value_api_accepted_at_unix IS NULL AND value_processed_at_unix IS NULL AND (value_receipt_basis IS NULL OR value_receipt_basis='')";
+        if($pending)$where.=' AND value_ready_at_unix IS NULL AND client_id IS NULL AND tracker_record_id IS NULL AND tracker_observed_unix IS NULL';
+        else foreach(['value_ready_at_unix','client_id','tracker_record_id','tracker_observed_unix']as$key){
+            $where.=$mysql?' AND BINARY '.$key.'=BINARY ?':' AND '.$key.' COLLATE BINARY=? COLLATE BINARY';$values[]=$row[$key];
+        }
+        return [$where,$values];
     }
 
     /** One per-entry CAS within the existing JSON/settings lock. Never locks during network work. */
