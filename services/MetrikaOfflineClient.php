@@ -328,13 +328,26 @@ final class MetrikaOfflineClient
     private function visitReport(string $clientId,int $activated,int $now,bool $goal,bool $traffic=false,bool $currentWindow=false):array
     {
         $fail=['status'=>'unavailable','visits'=>[]];
-        if($this->counter!=='98615635'||!MaxTrackerLookupProtocol::id($clientId,40)||$activated<946684800||$activated>$now)return $fail;
+        $failed=static function(int $stage,?array $response=null,int $mask=0)use($fail,$currentWindow):array{
+            if(!$currentWindow)return $fail;
+            $http=$response['http']??null;$curl=$response['error']??null;
+            return $fail+['attribution_failure'=>[$stage,
+                is_int($http)&&$http>=100&&$http<=599?$http:null,
+                is_int($curl)&&$curl>=0&&$curl<=100?$curl:null,$mask]];
+        };
+        if($this->counter!=='98615635'||!MaxTrackerLookupProtocol::id($clientId,40)||$activated<946684800||$activated>$now)return $failed(9);
         if($this->reportZone===null){
             $counterResponse=$this->request('GET','');
             $counter=$this->decode($counterResponse)['counter']??null;
-            if((int)($counterResponse['error']??0)!==0||(int)($counterResponse['http']??0)!==200||!is_array($counter)
-                ||(string)($counter['id']??'')!==$this->counter||!is_string($counter['time_zone_name']??null)
-                ||!in_array($counter['time_zone_name'],DateTimeZone::listIdentifiers(DateTimeZone::ALL_WITH_BC),true))return $fail;
+            if((int)($counterResponse['error']??0)!==0)return $failed(1,$counterResponse);
+            if((int)($counterResponse['http']??0)!==200)return $failed(2,$counterResponse);
+            $mask=!is_array($counter)?1:0;
+            if(is_array($counter)){
+                if((string)($counter['id']??'')!==$this->counter)$mask|=2;
+                if(!is_string($counter['time_zone_name']??null))$mask|=4;
+                elseif(!in_array($counter['time_zone_name'],DateTimeZone::listIdentifiers(DateTimeZone::ALL_WITH_BC),true))$mask|=8;
+            }
+            if($mask)return $failed(3,$counterResponse,$mask);
             $this->reportZone=new DateTimeZone($counter['time_zone_name']);
         }
         $zone=$this->reportZone;
@@ -347,9 +360,25 @@ final class MetrikaOfflineClient
         $query=['ids'=>'98615635','metrics'=>implode(',',$metrics),'dimensions'=>implode(',',$dimensions),'filters'=>$filter,
             'date1'=>$date1,'date2'=>'today','accuracy'=>'full','limit'=>101];
         $response=$this->request('GET','data?'.http_build_query($query,'','&',PHP_QUERY_RFC3986),null,null,true);
-        if((int)($response['error']??0)!==0||(int)($response['http']??0)!==200)return $fail;
+        if((int)($response['error']??0)!==0)return $failed(4,$response);
+        if((int)($response['http']??0)!==200)return $failed(5,$response);
         $d=$this->decode($response);$q=$d['query']??null;$rows=$d['data']??null;
-        if(!is_array($q)||array_map('strval',$q['ids']??[])!==['98615635']||($q['metrics']??null)!==$metrics
+        if($currentWindow){
+            $mask=!is_array($q)?1:0;
+            if(is_array($q)){
+                if(!is_array($q['ids']??null)||array_map('strval',$q['ids'])!==['98615635'])$mask|=2;
+                if(($q['metrics']??null)!==$metrics)$mask|=4;
+                if(($q['dimensions']??null)!==$dimensions)$mask|=8;
+                if(($q['filters']??null)!==$filter)$mask|=16;
+            }
+            if($mask)return $failed(6,$response,$mask);
+            $mask=($d['sampled']??null)!==false?1:0;
+            if(!is_array($rows))$mask|=2;
+            elseif(count($rows)>=101)$mask|=4;
+            if(!is_numeric($d['total_rows']??null))$mask|=8;
+            elseif(is_array($rows)&&(int)$d['total_rows']!==count($rows))$mask|=16;
+            if($mask)return $failed(7,$response,$mask);
+        }elseif(!is_array($q)||array_map('strval',$q['ids']??[])!==['98615635']||($q['metrics']??null)!==$metrics
             ||($q['dimensions']??null)!==$dimensions||($q['filters']??null)!==$filter
             ||($d['sampled']??null)!==false||!is_array($rows)||count($rows)>=101
             ||!is_numeric($d['total_rows']??null)||(int)$d['total_rows']!==count($rows))return $fail;
@@ -357,11 +386,24 @@ final class MetrikaOfflineClient
         foreach($rows as$row){
             $dims=$row['dimensions']??null;$m=$row['metrics']??null;
             if(!is_array($dims)||count($dims)!==($traffic?4:2)||!is_array($m)||count($m)!==count($metrics)
-                ||(string)($dims[0]['name']??$dims[0]['id']??'')!==$clientId)return $fail;
-            foreach($m as$v)if((!is_int($v)&&!is_float($v))||!is_finite((float)$v)||$v<0||$v>1000000000000)return $fail;
-            if((float)$m[0]!==floor((float)$m[0])||($goal&&(float)$m[1]!==floor((float)$m[1])))return $fail;
-            $date=(string)($dims[1]['name']??$dims[1]['id']??'');$at=DateTimeImmutable::createFromFormat('!Y-m-d H:i:s',$date,$zone);
-            if(!$at||$at->format('Y-m-d H:i:s')!==$date||$at->getTimestamp()>$now)return $fail;
+                ||(string)($dims[0]['name']??$dims[0]['id']??'')!==$clientId){
+                $mask=(!is_array($dims)||count($dims)!==($traffic?4:2)?1:0)|(!is_array($m)||count($m)!==count($metrics)?2:0);
+                if($mask===0){
+                    $mask=4;$first=is_array($dims[0]??null)?$dims[0]:[];
+                    foreach(['name'=>128,'id'=>256]as$key=>$bit){
+                        $value=$first[$key]??null;
+                        if((is_string($value)||is_int($value))&&MaxTrackerLookupProtocol::id((string)$value,40)&&(string)$value===$clientId)$mask|=$bit;
+                    }
+                }
+                return $failed(8,$response,$mask);
+            }
+            foreach($m as$v)if((!is_int($v)&&!is_float($v))||!is_finite((float)$v)||$v<0||$v>1000000000000)return $failed(8,$response,8);
+            if((float)$m[0]!==floor((float)$m[0])||($goal&&(float)$m[1]!==floor((float)$m[1])))return $failed(8,$response,16);
+            $date=(string)($dims[1]['name']??$dims[1]['id']??'');
+            try{$at=DateTimeImmutable::createFromFormat('!Y-m-d H:i:s',$date,$zone);}
+            catch(Throwable $error){if(!$currentWindow)throw $error;return $failed(8,$response,32|self::visitClockFormatMask($date,$dims[1]??null));}
+            if(!$at||$at->format('Y-m-d H:i:s')!==$date)return $failed(8,$response,32|self::visitClockFormatMask($date,$dims[1]??null));
+            if($at->getTimestamp()>$now)return $failed(8,$response,64|self::visitClockFormatMask($date,$dims[1]??null));
             if(($goal?$m[1]:$m[0])>0){
                 $v=['started_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$at->getTimestamp()),'visits'=>(int)$m[0]];
                 if($goal){$v['goal_reaches']=(int)$m[1];$v['revenue_rub']=round((float)$m[2],2);}
@@ -373,6 +415,20 @@ final class MetrikaOfflineClient
             }
         }
         return ['status'=>'ok','visits'=>$visits];
+    }
+
+    /** Format classes only; no timestamp or identifier bytes leave this diagnostic. */
+    private static function visitClockFormatMask(string $chosen,mixed $dimension):int
+    {
+        $dimension=is_array($dimension)?$dimension:[];
+        $class=static function(mixed $value):int{
+            if(!is_string($value))return 3;
+            if(preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\z/D',$value)===1)return 0;
+            if(preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:Z|[+-][0-9]{2}:[0-9]{2})?\z/D',$value)===1)return 1;
+            if(preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}\z/D',$value)===1)return 2;
+            return 3;
+        };
+        return (1<<(9+$class($chosen)))|(1<<(13+$class($dimension['name']??null)))|(1<<(17+$class($dimension['id']??null)));
     }
 
     private function selectedGoals(array $goals): array
