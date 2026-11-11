@@ -29,20 +29,29 @@ class RoutingAccessService
         catch(Throwable$e){return false;}
     }
 
-    private static function authorize(int $managerId,array$conversation,bool$currentRead,bool$receiving): bool
+    /** Sales-task reminders retain visibility checks, independent of the shift. */
+    public static function canNotifyTaskOwner(int$managerId,array$conversation): bool
     {
+        try{return self::authorize($managerId,$conversation,false,false,true);}
+        catch(Throwable$e){return false;}
+    }
+
+    private static function authorize(int $managerId,array$conversation,bool$currentRead,bool$receiving,bool$ignoreShift=false): bool
+    {
+        if($managerId<=0)return false;
         self::ensureSchema();
         $projectKey=(string)($conversation['project_key']??'');
         if(!ProjectAccessService::canAccess($managerId,$projectKey,$currentRead))return false;
 
         $manager=ManagerAuthService::byId($managerId,$currentRead);
+        if($manager===null)return false;
         $isAdmin=ManagerAuthService::isAdmin($manager);
         $isWorking=ManagerAuthService::isWorking($manager);
-        $sourceIds=(!$isAdmin && ($isWorking || (string)($conversation['status']??'')!=='waiting_manager'))
+        $sourceIds=(!$isAdmin && ($isWorking || $ignoreShift || (string)($conversation['status']??'')!=='waiting_manager'))
             ? [(int)($conversation['source_id']??0)] : [];
         $sources=self::visibilitySources($sourceIds,$currentRead);
         $groups=self::visibilityGroups($managerId,$sources,$currentRead);
-        if(!self::visibleInRoutingSnapshot($conversation,$isAdmin,$isWorking,$sources,$groups,time()))return false;
+        if(!self::visibleInRoutingSnapshot($conversation,$isAdmin,$isWorking,$sources,$groups,time(),$ignoreShift))return false;
         if($isAdmin)return true;
         try{return RegionalRoutingScopeService::visibleRows($managerId,[$conversation],RegionalRoutingScopeService::context($managerId,$manager!==null?(array)$manager['projects']:null,$currentRead),$currentRead,$receiving)!==[];}
         catch(Throwable$e){return false;}
@@ -87,7 +96,8 @@ class RoutingAccessService
         if($managerId<=0 || !$conversations)return[];
         self::ensureSchema();
         $manager=ManagerAuthService::byId($managerId);
-        $projects=$manager!==null ? (array)($manager['projects']??[]) : ProjectAccessService::projectsForManager($managerId);
+        if($manager===null)return[];
+        $projects=(array)($manager['projects']??[]);
         $projectKeys=[];
         foreach($projects as $project){$key=(string)($project['project_key']??'');if($key!=='')$projectKeys[$key]=true;}
         // A historical conversation key may differ in case/spacing under the DB
@@ -141,10 +151,10 @@ class RoutingAccessService
     }
 
     /** Pure routing decision shared by singleton authorization and inbox batches. */
-    private static function visibleInRoutingSnapshot(array $conversation,bool $isAdmin,bool $isWorking,array $sources,array $groups,int $now): bool
+    private static function visibleInRoutingSnapshot(array $conversation,bool $isAdmin,bool $isWorking,array $sources,array $groups,int $now,bool$ignoreShift=false): bool
     {
         if($isAdmin)return true;
-        if((string)($conversation['status']??'')==='waiting_manager' && !$isWorking)return false;
+        if((string)($conversation['status']??'')==='waiting_manager' && !$isWorking && !$ignoreShift)return false;
 
         $sourceId=(int)($conversation['source_id']??0);
         if($sourceId<=0)return true;

@@ -40,13 +40,16 @@ class ManagerPushService
 
     public static function publicKey(): string { return (string)self::vapid()['public_key']; }
 
-    /** Targeted manager notification used by sales-workspace reminders, independent from dialogue routing/status. */
+    /** Sales reminders keep canonical access, independently of technical status/shift. */
     public static function notifyManager(int $managerId,int $conversationId,string $title,string $body): array
     {
         if($managerId<=0||$conversationId<=0)return['attempted'=>0,'delivered'=>0];
         $dispatchId=self::dispatchId();
         try{
             $pdo=ConversationDb::connection();
+            if(self::ambientTransaction($pdo,$conversationId,$dispatchId))return['attempted'=>0,'delivered'=>0];
+            $conversation=self::conversation($pdo,$conversationId);
+            if(!$conversation||!RoutingAccessService::canNotifyTaskOwner($managerId,$conversation))return['attempted'=>0,'delivered'=>0];
             $subs=ManagerPushConnectionService::activeSubscriptions($pdo,[$managerId]);
             if(!$subs){
                 if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','no_subscription',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>$managerId,'notification_kind'=>'lead_task_reminder'],null,'warning');}catch(Throwable $ignored){}}
@@ -55,7 +58,7 @@ class ManagerPushService
             $payload=json_encode(['title'=>trim($title)!==''?$title:'Напоминание AnyTour','body'=>$body,'conversationId'=>$conversationId,'url'=>'./'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
             $delivered=0;
             foreach($subs as $sub){
-                try{if(self::send($sub,(string)$payload,$conversationId,$dispatchId))$delivered++;}
+                try{if(self::send($sub,(string)$payload,$conversationId,$dispatchId,$conversation,true))$delivered++;}
                 catch(Throwable $e){if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','delivery_exception',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>$managerId,'subscription_id'=>(int)($sub['id']??0),'notification_kind'=>'lead_task_reminder','error'=>$e->getMessage()],null,'warning');}catch(Throwable $ignored){}}}
             }
             return['attempted'=>count($subs),'delivered'=>$delivered];
@@ -70,10 +73,12 @@ class ManagerPushService
         $dispatchId=self::dispatchId();
         try{
             $pdo=ConversationDb::connection();
-            $q=$pdo->prepare('SELECT c.id,c.project_key,c.source_id,c.status,c.manager_id,c.started_at,c.last_message_at,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,cu.display_name,p.display_name AS project_name,s.display_name AS source_name,s.source_key FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE c.id=? LIMIT 1');
-            $q->execute([$conversationId]); $c=$q->fetch(); if(!$c) return;
+            if(self::ambientTransaction($pdo,$conversationId,$dispatchId))return;
+            $c=self::conversation($pdo,$conversationId);if(!$c)return;
             $managers=[];
-            if((string)$c['status']==='manager' && !empty($c['manager_id'])) $managers=[(int)$c['manager_id']];
+            if((string)$c['status']==='manager' && !empty($c['manager_id'])){
+                $owner=(int)$c['manager_id'];if(RoutingAccessService::canSeeConversation($owner,$c))$managers=[$owner];
+            }
             elseif((string)$c['status']==='waiting_manager'){
                 $r=$pdo->query('SELECT id FROM managers WHERE is_active=1 AND is_working=1');
                 foreach($r->fetchAll() as $m){$id=(int)$m['id']; if(RoutingAccessService::canSeeConversation($id,$c))$managers[]=$id;}
@@ -110,14 +115,40 @@ class ManagerPushService
                         $notification['notificationKind']='customer_message';
                         $deliveryPayload=json_encode($notification,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
                     }
-                    self::send($sub,(string)$deliveryPayload,$conversationId,$dispatchId);
+                    self::send($sub,(string)$deliveryPayload,$conversationId,$dispatchId,$c);
                 }
                 catch(Throwable $e){if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','delivery_exception',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>(int)($sub['manager_id']??0),'subscription_id'=>(int)($sub['id']??0),'error'=>$e->getMessage()],null,'warning');}catch(Throwable $ignored){}}}
             }
         }catch(Throwable $e){ if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','notify_failed',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'error'=>$e->getMessage()],null,'warning');}catch(Throwable $ignored){}} }
     }
 
-    private static function send(array $sub,string $payload,int $conversationId,string $dispatchId): bool
+    /** Concrete callers notify after commit/autocommit; never use an outer snapshot. */
+    private static function ambientTransaction(PDO$pdo,int$conversationId,string$dispatchId): bool
+    {
+        if(!$pdo->inTransaction())return false;
+        if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','dispatch_blocked',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'reason'=>'ambient_transaction'],null,'warning');}catch(Throwable$ignored){}}
+        return true;
+    }
+
+    private static function conversation(PDO$pdo,int$id): ?array
+    {
+        $q=$pdo->prepare('SELECT c.id,c.customer_id,c.project_key,c.source_id,c.status,c.manager_id,c.started_at,c.last_message_at,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,cu.display_name,p.display_name AS project_name,s.display_name AS source_name,s.source_key FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE c.id=? LIMIT 1');
+        $q->execute([$id]);return$q->fetch()?:null;
+    }
+
+    private static function dispatchAllowed(array$sub,array$expected,int$conversationId,bool$taskReminder): bool
+    {
+        $pdo=ConversationDb::connection();if($pdo->inTransaction())return false;
+        $current=self::conversation($pdo,$conversationId);if(!$current)return false;
+        foreach(['id','customer_id','source_id','manager_id']as$field)if((int)($current[$field]??0)!==(int)($expected[$field]??0))return false;
+        foreach(['project_key','channel']as$field)if((string)($current[$field]??'')!==(string)($expected[$field]??''))return false;
+        if(!$taskReminder&&(string)$current['status']!==(string)$expected['status'])return false;
+        $managerId=(int)($sub['manager_id']??0);
+        if(!($taskReminder?RoutingAccessService::canNotifyTaskOwner($managerId,$current):RoutingAccessService::canSeeConversation($managerId,$current)))return false;
+        return ManagerPushConnectionService::isCurrent($pdo,$sub);
+    }
+
+    private static function send(array $sub,string $payload,int $conversationId,string $dispatchId,array$conversation,bool$taskReminder=false): bool
     {
         if(!ManagerPushConnectionService::isCurrent(ConversationDb::connection(),$sub))return false;
         $cfg=self::vapid(); $endpoint=(string)$sub['endpoint'];
@@ -137,6 +168,7 @@ class ManagerPushService
         $parts=parse_url($endpoint); $aud=($parts['scheme']??'https').'://'.($parts['host']??'');
         $jwt=self::vapidJwt($aud,(string)$cfg['subject'],(string)$cfg['private_pem']);
         $headers=['TTL: 60','Content-Encoding: aes128gcm','Content-Type: application/octet-stream','Authorization: vapid t='.$jwt.', k='.(string)$cfg['public_key'],'Content-Length: '.strlen($body)];
+        if(!self::dispatchAllowed($sub,$conversation,$conversationId,$taskReminder))return false;
         $ch=curl_init($endpoint); curl_setopt_array($ch,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$body,CURLOPT_HTTPHEADER=>$headers,CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>10,CURLOPT_HEADER=>false]); curl_exec($ch); $code=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE); $err=curl_error($ch); curl_close($ch);
         $pdo=ConversationDb::connection();$managerId=(int)($sub['manager_id']??0);$subscriptionId=(int)($sub['id']??0);
         ManagerPushConnectionService::deliveryResult($pdo,$sub,$code,$err);
