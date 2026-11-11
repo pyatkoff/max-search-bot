@@ -2356,8 +2356,8 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $ini
         &&$pipeline['limits']['max_selected_bytes']===65536&&$pipeline['limits']['max_execution_seconds']===5
         &&$snapshot()===$pipelineBefore&&$p->query('SELECT * FROM modeled_conversion_value_export_settings')->fetchAll(PDO::FETCH_ASSOC)===$settingsBefore);
     $outputPressure=$pipeline;
-    $outputPressure['visit_delivery_check']=['today_sent_cohort'=>['synthetic'=>str_repeat('d',1800)],
-        'yesterday_sent_cohort'=>['synthetic'=>str_repeat('e',1800)],
+    $outputPressure['visit_delivery_check']=['today_sent_cohort'=>['synthetic'=>''],
+        'yesterday_sent_cohort'=>['synthetic'=>''],
         'examples'=>array_fill(0,6,['synthetic'=>str_repeat('v',400)]),
         'followup_sent_cohort'=>['failure_examples'=>array_fill(0,10,['synthetic'=>str_repeat('f',1000)])]];
     $responseFlags=JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR;
@@ -2380,8 +2380,22 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $ini
             $cases['window']['complete_within_bound']=false;$cases['window']['omitted_due_to_response_budget']=true;
             $cases['identity_evidence']['observed_case_count']=0;unset($cases);
         }
+        // Match the existing optional-detail omissions before measuring feasible context.
+        // All four current finite proofs remain in this fixed prefix.
+        if(isset($value['value_delivery']['repair_assessments']['initial_api_receipts']))
+            $value['value_delivery']['repair_assessments']['initial_api_receipts']=[
+                'available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0];
+        if(isset($value['value_delivery']['repair_assessments']['retained_native_identity_evidence']))
+            $value['value_delivery']['repair_assessments']['retained_native_identity_evidence']=[
+                'available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0,'financial_permission'=>false];
         return $value;
     };
+    $summaryBaseBytes=$responseBytes($fixedPrefix($outputPressure));
+    $summaryHeadroom=28000-$summaryBaseBytes;
+    $check('cached visit-summary pressure has measured feasible space after existing optional omissions',$summaryHeadroom>=256);
+    $summaryPadding=intdiv($summaryHeadroom,4);
+    $outputPressure['visit_delivery_check']['today_sent_cohort']['synthetic']=str_repeat('d',$summaryPadding);
+    $outputPressure['visit_delivery_check']['yesterday_sent_cohort']['synthetic']=str_repeat('e',$summaryPadding);
     $oldPressure=$outputPressure;$oldPressure['synthetic_context']=str_repeat('c',12000);
     $oldFixedBytes=$responseBytes($fixedPrefix($oldPressure));
     $oldBounded=$bound->invoke($projection,$oldPressure);
@@ -2395,7 +2409,7 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $ini
         &&$bounded['value_delivery']['repair_assessments']['finite_counter_scope_evidence']===$priorityScope;
     $omitted=($bounded['visit_delivery_check']['followup_sent_cohort']['failure_examples_omitted_due_to_response_budget']??false)===true;
     $privateAbsent=!str_contains(json_encode($bounded,$responseFlags),'PRIVATE_NATIVE_');
-    $validPressure=$fixedBytes<=28000&&$beforeBytes>28000&&$afterBytes<=28000&&$sameProof&&$omitted&&$privateAbsent;
+    $validPressure=$summaryPadding>0&&$fixedBytes<=28000&&$beforeBytes>28000&&$afterBytes<=28000&&$sameProof&&$omitted&&$privateAbsent;
     if(!$validPressure)echo 'FINITE_OUTPUT_PRESSURE_SYNTHETIC '.json_encode([
         'old_fixed_bytes'=>$oldFixedBytes,'old_before_bytes'=>$responseBytes($oldPressure),'old_after_bytes'=>$responseBytes($oldBounded),
         'old_proof_same'=>$oldBounded['value_delivery']['repair_assessments']['finite_visit_evidence']===$priorityProof,
@@ -2445,8 +2459,10 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $ini
     if($initialApiCohort!==[]){
         $receiptPressure=$outputPressure;$receiptPressure['value_delivery']['repair_assessments']['initial_api_receipts']=$initialApiCohort;
         $receiptBounded=$bound->invoke($projection,$receiptPressure);
+        $receiptFixedPrefix=$fixedPrefix($receiptPressure);
+        $receiptFixedPrefix['value_delivery']['repair_assessments']['initial_api_receipts']=$initialApiCohort;
         $check('exact sixteen-receipt view yields explicitly before the original and forward journals under the unchanged response ceiling',
-            $initialApiCohort['available']&&count($initialApiCohort['rows'])===16&&$responseBytes($fixedPrefix($receiptPressure))>28000
+            $initialApiCohort['available']&&count($initialApiCohort['rows'])===16&&$responseBytes($receiptFixedPrefix)>28000
             &&$receiptBounded['value_delivery']['repair_assessments']['initial_api_receipts']['reason']==='response_budget'
             &&$receiptBounded['value_delivery']['repair_assessments']['finite_visit_evidence']===$priorityProof
             &&$receiptBounded['value_delivery']['repair_assessments']['finite_visit_recovery']===$priorityRecovery
