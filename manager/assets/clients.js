@@ -90,7 +90,7 @@
       forget();await load(generation);if(!current(generation))return;
       message(reasons[result.reason]||(result.state==='active'?'Подключение активно.':result.state==='unknown'?'Результат активации не подтверждён. Повторная активация заблокирована.':'Подключение не выполнено. Проверьте данные.'));return;
     }
-    if(['pending','not_found'].includes(result.state)){S.pendingKind=result.operation_kind||S.pendingKind;message(result.state==='not_found'?'Результат пока не найден. Не отправляйте создание повторно: проверьте позже или отмените этот запрос.':'Операция ещё не завершена. Повторная активация не отправлена.');sync();return;}
+    if(['pending','not_found'].includes(result.state)){S.pendingKind=result.operation_kind||S.pendingKind;message(result.state==='not_found'?'Результат пока не найден. Не отправляйте запрос повторно: проверьте позже или отмените его.':'Операция ещё не завершена. Повторный запрос не отправлен.');sync();return;}
     message(failure(result));
   }
   async function reconcile(cancel=false) {

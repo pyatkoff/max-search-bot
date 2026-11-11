@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "revision_key": "search-intent-v1",
+  "project_key": "appleservice39",
+  "policy": "exact_source_and_native_visual_review",
+  "approvals": []
+}
