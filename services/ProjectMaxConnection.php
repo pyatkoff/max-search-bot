@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/ProjectConfig.php';
 require_once __DIR__ . '/../integrations/MaxCredentialProvider.php';
+require_once __DIR__ . '/ProjectClientRegistry.php';
 
 /** Trusted server configuration. Request data may select a key, never credentials. */
 final class ProjectMaxConnection
@@ -32,6 +33,13 @@ final class ProjectMaxConnection
                 MaxCredentialProvider::token(), MaxCredentialProvider::webhookSecret());
         }
         $registry = self::$testRegistry ?? (defined('MAX_SEARCH_PROJECT_CONNECTIONS') && is_array(MAX_SEARCH_PROJECT_CONNECTIONS) ? MAX_SEARCH_PROJECT_CONNECTIONS : []);
+        if(self::$testRegistry===null||ProjectClientRegistry::hasTestStore()){
+            foreach(ProjectClientRegistry::runtimeEntries($projectKey,array_key_exists($projectKey,$registry)) as $key=>$entry){
+                // Server settings and a persisted client cannot shadow each other.
+                if(array_key_exists($key,$registry)){if($key===$projectKey)return null;continue;}
+                $registry[$key]=$entry;
+            }
+        }
         $entry = $registry[$projectKey] ?? null;
         if (!is_array($entry) || !is_array($entry['project'] ?? null) || !is_array($entry['max'] ?? null)) return null;
         $max = $entry['max'];
@@ -65,6 +73,17 @@ final class ProjectMaxConnection
         if (!$connection || $connection->webhookSecret === '' || $secret === ''
             || !hash_equals($connection->webhookSecret, $secret)) return null;
         return $connection;
+    }
+
+    /** Creation must not take a protected server binding or another bot. */
+    public static function availableForNewClient(string $project,string $bot,string $token): bool
+    {
+        $registry=self::$testRegistry??(defined('MAX_SEARCH_PROJECT_CONNECTIONS')&&is_array(MAX_SEARCH_PROJECT_CONNECTIONS)?MAX_SEARCH_PROJECT_CONNECTIONS:[]);
+        if(self::isLegacyProject($project)||array_key_exists($project,$registry))return false;
+        $candidate=['bot_key'=>$bot,'token'=>$token];
+        if(self::sameConnection($candidate,['bot_key'=>(string)ProjectConfig::get('channel_posts.max.bot_key',''),'token'=>MaxCredentialProvider::token(),'webhook_secret'=>MaxCredentialProvider::webhookSecret()]))return false;
+        foreach($registry as $entry)if(is_array($entry)&&is_array($entry['max']??null)&&self::sameConnection($candidate,$entry['max']))return false;
+        return true;
     }
 
     /** The saved bot binding prevents reconfiguration from retargeting history. */

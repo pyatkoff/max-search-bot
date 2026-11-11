@@ -24,6 +24,8 @@ return [
         'php tests/run_standalone_readiness_regression.php',
         'php tests/run_project_marker_boundary_regression.php',
         'php tests/run_project_max_connection_regression.php',
+        'php tests/run_manager_client_onboarding_regression.php',
+        'php tests/run_manager_client_onboarding_http_regression.php',
         'php tests/run_project_conversion_boundary_regression.php',
         'php tests/run_repair_max_webhook_regression.php',
         'php tests/run_appleservice39_setup_regression.php',
