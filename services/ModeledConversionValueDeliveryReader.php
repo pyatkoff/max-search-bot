@@ -6,6 +6,7 @@ require_once __DIR__.'/ModeledConversionTickFailure.php';
 require_once __DIR__.'/ModeledConversionProfiles.php';
 if(is_file(__DIR__.'/ModeledConversionValueIdentityEvidence.php'))require_once __DIR__.'/ModeledConversionValueIdentityEvidence.php';
 if(is_file(__DIR__.'/ModeledConversionValueVisitEvidence.php'))require_once __DIR__.'/ModeledConversionValueVisitEvidence.php';
+if(is_file(__DIR__.'/ModeledConversionValueVisitRecovery.php'))require_once __DIR__.'/ModeledConversionValueVisitRecovery.php';
 
 /** Fixed derived-value aggregates only. No source tables, network, processing or mutation. */
 final class ModeledConversionValueDeliveryReader
@@ -120,7 +121,7 @@ final class ModeledConversionValueDeliveryReader
                 'identity_counts_are_stored_resolution_not_a_new_scope_check'=>true,
                 'conversations_are_not_verified_people_or_trips'=>true,'per_upload_visit_match_verified'=>false,'reporting_can_lag'=>true,'no_ids_or_text_returned'=>true];
             $out['price_continuity_audit']=$this->priceAudit($receipt['price_continuity_audit']??null,$now);
-            $out['repair_assessments']=$this->repairAssessments($now,$receipt['identity_resolution_evidence']??null,$receipt['finite_visit_evidence']??null);
+            $out['repair_assessments']=$this->repairAssessments($now,$receipt['identity_resolution_evidence']??null,$receipt['finite_visit_evidence']??null,$receipt['finite_visit_recovery']??null);
             $out['predictive_v1']=$this->predictiveV1($now);
             return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}
@@ -131,7 +132,7 @@ final class ModeledConversionValueDeliveryReader
 
 
     /** All saved current-namespace repairs and their own new increments; no reclassification or provider call. */
-    public function repairAssessments(int $now,mixed $identityAudit=null,mixed $visitFrame=null):array
+    public function repairAssessments(int $now,mixed $identityAudit=null,mixed $visitFrame=null,mixed $recoveryJournal=null):array
     {
         $this->budget->check();
         if($this->budget->remainingBytes()<16384)return ['available'=>false,'reason'=>'budget_headroom'];
@@ -198,6 +199,7 @@ final class ModeledConversionValueDeliveryReader
                 'reassessed_profiles'=>$number($r[$platform.'_profiles'],false),
                 'events'=>$number($r[$platform.'_events'],false),'value_rub'=>$number($r[$platform.'_rub'],true)];
             $out['finite_visit_evidence']=$this->finiteVisitEvidence($visitFrame,$namespace,$now);
+            $out['finite_visit_recovery']=$this->finiteVisitRecovery($recoveryJournal,$visitFrame,$out['finite_visit_evidence'],$namespace,$now);
             $out['exact_cases']=$this->repairCases($namespace,$now,$identityAudit);
             $this->budget->check();($this->authorize)();$this->budget->check();return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}
@@ -206,6 +208,31 @@ final class ModeledConversionValueDeliveryReader
     }
 
 
+
+
+    /** A separate forward observation may only refer to the already bound original three-case proof. */
+    private function finiteVisitRecovery(mixed $journal,mixed $original,array $boundOriginal,string $namespace,int $now):array
+    {
+        $fail=static fn(string $reason):array=>['available'=>false,'reason'=>$reason,'provider_requests_in_reader'=>0];
+        if(($boundOriginal['available']??false)!==true)return $fail('original_current_binding_unavailable');
+        if(!class_exists(ModeledConversionValueVisitRecovery::class))return $fail('recovery_helper_unavailable');
+        try{
+            $out=ModeledConversionValueVisitRecovery::projection($journal,$original,$namespace,$now);
+            if(($out['available']??false)!==true)return $out;
+            $old=[];foreach($boundOriginal['rows']??[]as$row)$old[$row['event_ref']]=$row;
+            if(count($old)!==3||count($out['rows']??[])!==2)return $fail('original_or_recovery_binding_unavailable');
+            foreach($out['rows']as&$row){
+                $prior=$old[$row['event_ref']]??null;
+                if($prior===null||($row['candidate_sha256']??null)!==($prior['candidate_sha256']??null)
+                    ||($prior['report_status']??null)!=='unavailable')return $fail('original_or_recovery_binding_unavailable');
+                foreach(['event_at','source_provenance','source_observed_at','financial_state','first_ready_at',
+                    'api_accepted_at','processed_at','api_receipt_ref']as$key)$row[$key]=$prior[$key]??null;
+                $row['original_window_reason']=$prior['window_reason']??null;
+            }unset($row);
+            $out['eligible_original_cases']=2;$out['excluded_original_cases']=count($old)-2;
+            return $out;
+        }catch(UnexpectedValueException|JsonException $ignored){return $fail('original_or_recovery_binding_unavailable');}
+    }
 
     /** Saved finite GET proof, bound again to the exact three original ledger rows. Never calls a provider. */
     private function finiteVisitEvidence(mixed $frame,string $namespace,int $now):array

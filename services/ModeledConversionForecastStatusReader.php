@@ -235,8 +235,11 @@ final class ModeledConversionForecastStatusReader
             $window['complete_within_bound']=false;$window['omitted_due_to_response_budget']=true;unset($window);
         }
         // The three-case finite proof stays ahead of optional examples and the 16-row view.
-        if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments']['finite_visit_evidence']))
+        if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments']['finite_visit_evidence'])){
             $out['value_delivery']['repair_assessments']['finite_visit_evidence']=['available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0];
+            if(isset($out['value_delivery']['repair_assessments']['finite_visit_recovery']))
+                $out['value_delivery']['repair_assessments']['finite_visit_recovery']=['available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0];
+        }
         return $out;
     }
 

@@ -1657,8 +1657,8 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check):void
     $frame=['v'=>ModeledConversionValueVisitEvidence::VERSION,'n'=>$namespace,'b'=>$checkpoint,'r'=>[]];
     foreach($ledger as$row)$frame['r'][]=[ModeledConversionValueIdentityEvidence::reference($row,$namespace),(string)$row['id'],
         0,null,null,0,null,null,null,null,0,null,0,null,0,(int)$row['event_unix']];
-    $read=static fn(mixed $saved,?callable $auth=null,?ModeledConversionStatusBudget $budget=null):array=>
-        (new ModeledConversionValueDeliveryReader($p,$auth??static function():void{},$budget??new ModeledConversionStatusBudget()))->repairAssessments($now,null,$saved);
+    $read=static fn(mixed $saved,?callable $auth=null,?ModeledConversionStatusBudget $budget=null,mixed $recovery=null):array=>
+        (new ModeledConversionValueDeliveryReader($p,$auth??static function():void{},$budget??new ModeledConversionStatusBudget()))->repairAssessments($now,null,$saved,$recovery);
     $snapshot=static fn():string=>json_encode([
         $p->query('SELECT * FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),
         $p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)],JSON_THROW_ON_ERROR);
@@ -1696,6 +1696,68 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check):void
         &&$savedRow['event_at']===gmdate('Y-m-d\TH:i:s\Z',$event)
         &&$savedRow['candidate_sha256']===$candidate&&$saved['provider_requests_in_reader']===0
         &&!str_contains($public,'"'.$client.'"')&&!str_contains($public,'"'.$record.'"'));
+
+    // Keep the original failed observation intact while a separate two-case forward journal changes.
+    $unavailableOriginal=$frame;$oldChecked=$now-20;
+    $unavailableOriginal['r'][0][2]=2;$unavailableOriginal['r'][0][4]=$oldChecked;$unavailableOriginal['r'][0][5]=3;
+    foreach([1,2]as$i){
+        $ref=$unavailableOriginal['r'][$i][0];$id=$unavailableOriginal['r'][$i][1];$event=$unavailableOriginal['r'][$i][15];
+        $client='993456789012340'.$i;$record=(string)(84000+$i);$sourceAt=$checkpoint-(20+$i)*86400;
+        $candidate=ModeledConversionValueVisitEvidence::candidateReference($ref,$client,$record,$sourceAt,'canonical_max_lookup');
+        $unavailableOriginal['r'][$i]=[$ref,$id,2,$oldChecked-1,$oldChecked,1,$client,$record,$sourceAt,$candidate,2,false,4,null,0,$event];
+    }
+    $originalBytes=json_encode($unavailableOriginal,JSON_THROW_ON_ERROR);
+    $pendingRecovery=$read($unavailableOriginal)['finite_visit_recovery'];
+    $check('unrecorded forward recovery exposes two pending zero-consumption cases without inventing an absent visit',
+        $pendingRecovery['available']&&!$pendingRecovery['recorded']&&$pendingRecovery['checks_consumed']===0
+        &&count($pendingRecovery['rows'])===2&&$pendingRecovery['eligible_original_cases']===2&&$pendingRecovery['excluded_original_cases']===1
+        &&array_column($pendingRecovery['rows'],'attempt_status')===['pending','pending']
+        &&array_column($pendingRecovery['rows'],'window_allowed')===[null,null]
+        &&!in_array($frame['r'][0][0],array_column($pendingRecovery['rows'],'event_ref'),true));
+    $recovery=ModeledConversionValueVisitRecovery::create($unavailableOriginal,$namespace,$now);
+    $doneRecovery=$recovery;
+    foreach($doneRecovery['r']as$i=>&$forward){
+        $event=(int)$unavailableOriginal['r'][$i+1][15];
+        $forward[2]=2;$forward[3]=$now-2;$forward[4]=$now-1;$forward[5]=1;
+        $forward[6]=$i===0;$forward[7]=$i===0?1:3;$forward[8]=$i===0?$event-30:null;$forward[9]=$i===0?1:2;$forward[10]=1;
+    }unset($forward);
+    $oldOnly=$read($unavailableOriginal);$forwardView=$read($unavailableOriginal,null,null,$doneRecovery);
+    $newProof=$forwardView['finite_visit_recovery'];$oldProof=$forwardView['finite_visit_evidence'];
+    $check('new recovery results stay separate from original unavailable observations and do not grant financial readiness',
+        $newProof['available']&&$newProof['recorded']&&$newProof['complete']&&$newProof['checks_consumed']===2
+        &&$oldProof===$oldOnly['finite_visit_evidence']
+        &&$newProof['rows'][0]['original_report_status']==='unavailable'
+        &&$newProof['rows'][0]['original_window_reason']==='visit_report_unavailable'
+        &&$newProof['rows'][0]['original_checked_at']===gmdate('Y-m-d\TH:i:s\Z',$oldChecked)
+        &&$newProof['rows'][0]['checked_at']===gmdate('Y-m-d\TH:i:s\Z',$now-1)
+        &&$newProof['rows'][0]['window_allowed']===true&&$newProof['rows'][1]['window_reason']==='no_prior_visit'
+        &&array_column($newProof['rows'],'financial_state')===['pending','pending']
+        &&array_column($newProof['rows'],'api_accepted_at')===[null,null]
+        &&json_encode($unavailableOriginal,JSON_THROW_ON_ERROR)===$originalBytes);
+    foreach(['digest','candidate','excluded_case']as$kind){
+        $badRecovery=$doneRecovery;
+        if($kind==='digest')$badRecovery['d']=str_repeat('0',64);
+        elseif($kind==='candidate')$badRecovery['r'][0][1]=str_repeat('0',64);
+        else$badRecovery['r'][0][0]=$frame['r'][0][0];
+        $bad=$read($unavailableOriginal,null,null,$badRecovery)['finite_visit_recovery'];
+        $check('forward recovery rejects changed '.$kind.' binding without copying private original source data',
+            !$bad['available']&&$bad['provider_requests_in_reader']===0);
+    }
+    $changedOriginal=$unavailableOriginal;$changedOriginal['r'][1][4]++;
+    $staleRecovery=$read($changedOriginal,null,null,$doneRecovery)['finite_visit_recovery'];
+    $tombstone=$read($unavailableOriginal,null,null,false)['finite_visit_recovery'];
+    $unknownRecovery=$recovery;$unknownRecovery['r'][0][2]=1;$unknownRecovery['r'][0][3]=$now-2;$unknownRecovery['r'][0][10]=1;
+    $unknown=$read($unavailableOriginal,null,null,$unknownRecovery)['finite_visit_recovery'];
+    $check('changed original results stale the new journal while tombstone and consumed intent remain explicit unknown',
+        !$staleRecovery['available']&&!$tombstone['available']
+        &&$tombstone['reason']==='retained_recovery_tombstone_no_automatic_retry'
+        &&$unknown['available']&&$unknown['checks_consumed']===1
+        &&$unknown['rows'][0]['attempt_status']==='consumed_unknown'&&$unknown['rows'][0]['report_status']==='unknown');
+    $safeRecovery=json_encode($forwardView,JSON_THROW_ON_ERROR);
+    $check('separate forward projection contains no private ClientID record ID or extra provider request',
+        !str_contains($safeRecovery,'"9934567890123401"')&&!str_contains($safeRecovery,'"84001"')
+        &&!str_contains($safeRecovery,'client_id')&&!str_contains($safeRecovery,'record_id')
+        &&$newProof['provider_requests_in_reader']===0&&$snapshot()===$before);
     $foreign=$frame;$foreign['n']=str_repeat('0',64);$invalid=$read($foreign)['finite_visit_evidence'];
     $missing=$read(null)['finite_visit_evidence'];$consumed=$read(false)['finite_visit_evidence'];
     $check('missing foreign and retained tombstone frames are explicit unavailable without invented no-visit results',
@@ -1757,9 +1819,8 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check):void
     $p->exec("INSERT INTO modeled_conversion_profiles_state VALUES('anytour',1,'{}',NULL,NULL)");
     $p->exec('DROP TABLE IF EXISTS modeled_conversion_value_export_settings');
     $p->exec("CREATE TABLE modeled_conversion_value_export_settings(project_key VARCHAR(40) PRIMARY KEY,counter_id VARCHAR(20),mode VARCHAR(16),goal_id VARCHAR(20),goal_intent VARCHAR(20),activated_at_unix BIGINT,last_tick_unix BIGINT,contract_version VARCHAR(64),last_receipt_json TEXT,history_from_unix BIGINT,history_until_unix BIGINT,history_completed_at_unix BIGINT,history_scanned BIGINT,history_collected BIGINT,history_stats_json TEXT,history_cursor BIGINT,history_ceiling BIGINT,history_fortnight_requested_at_unix BIGINT,history_day_receipt_json TEXT,last_report_success_unix BIGINT,last_report_success_json TEXT,report_failure_since_unix BIGINT)");
-    $finished=$observed;
-    foreach([1,2]as$i){$finished['r'][$i][2]=2;$finished['r'][$i][4]=$now-3;$finished['r'][$i][5]=3;}
-    $receipt=['errors'=>0,'finite_visit_evidence'=>$finished,'private_padding'=>str_repeat('x',6000)];
+    $finished=$unavailableOriginal;
+    $receipt=['errors'=>0,'finite_visit_evidence'=>$finished,'finite_visit_recovery'=>$doneRecovery,'private_padding'=>str_repeat('x',6000)];
     $p->prepare("INSERT INTO modeled_conversion_value_export_settings(project_key,counter_id,mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,last_receipt_json) VALUES('anytour','98615635','send','678187097','verified',?,?,?,?)")
         ->execute([$checkpoint-86400,$now,ModeledConversionValueContract::VERSION,json_encode($receipt,JSON_THROW_ON_ERROR)]);
     $packet=forecastV1Packet('730010','930010',[['text'=>'Подберите тур в Турцию на 7 ночей, 2 взрослых.']],'max');
@@ -1774,7 +1835,7 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check):void
     $packet['prediction_followup']['private_padding']=str_repeat('x',max(0,9000-$baseSize));
     $p->prepare('UPDATE modeled_conversion_profile_versions SET profile_json=? WHERE id=10')->execute([json_encode($packet,JSON_THROW_ON_ERROR)]);
     $pipelineBefore=$snapshot();$settingsBefore=$p->query('SELECT * FROM modeled_conversion_value_export_settings')->fetchAll(PDO::FETCH_ASSOC);
-    $budget=new ModeledConversionStatusBudget();$budget->consumeBytes(32000);
+    $budget=new ModeledConversionStatusBudget();$budget->consumeBytes(28000);
     $oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
     ForecastV1ObservedStatement::$observePredictive=true;ForecastV1ObservedStatement::$predictiveStatements=[];
     try{$pipeline=forecastV1Read($p,null,$budget);}
@@ -1785,9 +1846,12 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check):void
         if(str_contains($statement['sql'],' AS prediction_json,'))$coreAt??=$i;
     }
     $priorityProof=$pipeline['value_delivery']['repair_assessments']['finite_visit_evidence']??[];
-    $check('complete status reserves all three saved finite results before expensive first-profile and optional context copies',
+    $priorityRecovery=$pipeline['value_delivery']['repair_assessments']['finite_visit_recovery']??[];
+    $check('complete status reserves both original three-case and forward two-case journals before expensive optional context copies',
         $pipeline['available']&&($priorityProof['available']??false)&&$priorityProof['complete']
         &&count($priorityProof['rows'])===3&&array_column($priorityProof['rows'],'event_ref')===array_column($finished['r'],0)
+        &&($priorityRecovery['available']??false)&&$priorityRecovery['complete']&&count($priorityRecovery['rows'])===2
+        &&array_column($priorityRecovery['rows'],'event_ref')===array_column($doneRecovery['r'],0)
         &&$frameAt!==null&&($coreAt===null?$pipeline['window']['byte_limit_omissions']>0:$frameAt<$coreAt)
         &&$budget->remainingBytes()>=8192&&strlen(json_encode($pipeline,JSON_THROW_ON_ERROR))<=28000
         &&$priorityProof['provider_requests_in_reader']===0&&$pipeline['model_calls']===0&&$pipeline['conversion_uploads']===0
@@ -1827,7 +1891,8 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check):void
     $outputPressure['synthetic_context']=str_repeat('c',max(0,25000-$responseBytes($prefix)));
     $fixedBytes=$responseBytes($fixedPrefix($outputPressure));$beforeBytes=$responseBytes($outputPressure);
     $bounded=$bound->invoke($projection,$outputPressure);$afterBytes=$responseBytes($bounded);
-    $sameProof=$bounded['value_delivery']['repair_assessments']['finite_visit_evidence']===$priorityProof;
+    $sameProof=$bounded['value_delivery']['repair_assessments']['finite_visit_evidence']===$priorityProof
+        &&$bounded['value_delivery']['repair_assessments']['finite_visit_recovery']===$priorityRecovery;
     $omitted=($bounded['visit_delivery_check']['followup_sent_cohort']['failure_examples_omitted_due_to_response_budget']??false)===true;
     $privateAbsent=!str_contains(json_encode($bounded,$responseFlags),'PRIVATE_NATIVE_');
     $validPressure=$fixedBytes<=28000&&$beforeBytes>28000&&$afterBytes<=28000&&$sameProof&&$omitted&&$privateAbsent;
