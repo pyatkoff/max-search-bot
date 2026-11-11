@@ -120,7 +120,7 @@ function advertisingVisitAssertions(PDO $pdo, callable $check): void
     $reject(static fn()=>$service->import($bad,$now),'advertising_visit_invalid_cursor_order','duplicate cursors within a page are rejected');
     $bad = advertisingVisitPage(array_fill(0,101,advertisingVisitRow('6')),'5');
     $reject(static fn()=>$service->import($bad,$now),'advertising_visit_invalid_page_bound','page size is bounded');
-    $bad = advertisingVisitPage([advertisingVisitRow('6')],'5'); $bad['schema_version'] = 2;
+    $bad = advertisingVisitPage([advertisingVisitRow('6')],'5'); $bad['schema_version'] = 3;
     $reject(static fn()=>$service->import($bad,$now),'advertising_visit_invalid_schema_version','unknown schema cannot silently enter storage');
     $web = new AdvertisingVisitImportService($repo, advertisingVisitScope(['platform'=>'website']));
     $bad = advertisingVisitPage([advertisingVisitRow('1')],'0',null,['platform'=>'website']);

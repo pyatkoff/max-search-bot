@@ -18,6 +18,7 @@ function funnelSchema(PDO $pdo):void{
     $ids=['menu'=>'AaG9bSM5Y9o','model-iphone-17'=>'AaHJ4f--XbI','service-display'=>'AaG9bRUxHcg','repair-iphone-16-display'=>'AaHJ4X2QW-k','service-rear-glass-replacement'=>'AaHJ4ZVPOYk','symptom-not-charging'=>'AaHJ4a4KCcU','service-rear-camera-replacement'=>'AaHJ4cflDo0','service-earpiece-replacement'=>'AaHJ4eNxXTg'];
     $q=$pdo->prepare('INSERT INTO appleservice39_pilot_operations VALUES(?,?,?,?,?,?,?)');foreach($ids as$key=>$mid)$q->execute([$key,'appleservice39-pilot-v1','create','verified',1,$mid,'https://max.ru/channel_appleservice39ru/'.$mid]);
 }
+if(realpath($_SERVER['SCRIPT_FILENAME']??'')!==__FILE__)return;
 $pdo=repairFixture();funnelSchema($pdo);$now=time();$connection=ProjectMaxConnection::resolve('appleservice39');$s=ProjectFunnelSettings::load($connection);$entry=new ProjectFunnelEntry($pdo,$connection,$s);
 funnelCheck('eight approved offers keep their established feed IDs',count($s['posts'])===8&&$s['posts']['menu']['offer_id']==='as39-search-v1-menu');
 funnelCheck('missing company analytics stays explicitly off',$s['metrika']===['counter_id'=>'','mode'=>'off','goals'=>[]]&&ProjectFunnelSettings::publicClient($s)['counter_id']==='');
