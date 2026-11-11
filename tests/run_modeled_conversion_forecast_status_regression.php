@@ -1798,13 +1798,46 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check):void
         'yesterday_sent_cohort'=>['synthetic'=>str_repeat('e',1800)],
         'examples'=>array_fill(0,6,['synthetic'=>str_repeat('v',400)]),
         'followup_sent_cohort'=>['failure_examples'=>array_fill(0,10,['synthetic'=>str_repeat('f',1000)])]];
-    $outputPressure['synthetic_context']=str_repeat('c',12000);
-    $bounded=$bound->invoke($projection,$outputPressure);
-    $check('real saved three-case proof survives realistic cached visit-summary output pressure without raising response limits',
-        strlen(json_encode($bounded,JSON_THROW_ON_ERROR))<=28000
-        &&$bounded['value_delivery']['repair_assessments']['finite_visit_evidence']===$priorityProof
-        &&($bounded['visit_delivery_check']['followup_sent_cohort']['failure_examples_omitted_due_to_response_budget']??false)
-        &&!str_contains(json_encode($bounded,JSON_THROW_ON_ERROR),'PRIVATE_NATIVE_'));
+    $responseFlags=JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR;
+    $responseBytes=static fn(array $value):int=>strlen(json_encode($value,$responseFlags));
+    // Measure the same fixed prefix that remains after every permitted detail omission.
+    // The three-case proof is deliberately retained in that prefix.
+    $fixedPrefix=static function(array $value):array{
+        foreach([['visit_delivery_check','followup_sent_cohort','failure_examples'],['value_delivery','predictive_v1','examples']]as$path){
+            if(isset($value[$path[0]][$path[1]][$path[2]])&&$value[$path[0]][$path[1]][$path[2]]!==[]){
+                $value[$path[0]][$path[1]][$path[2]]=[];
+                $value[$path[0]][$path[1]][$path[2]==='failure_examples'?'failure_examples_omitted_due_to_response_budget':'examples_omitted_due_to_response_budget']=true;
+            }
+        }
+        foreach(['saved_input_diagnosis','visit_delivery_check']as$key)if(!empty($value[$key]['examples'])){
+            $value[$key]['examples']=[];$value[$key]['examples_omitted_due_to_response_budget']=true;
+        }
+        if(!empty($value['value_delivery']['repair_assessments']['exact_cases']['rows'])){
+            $cases=&$value['value_delivery']['repair_assessments']['exact_cases'];
+            $cases['rows']=[];$cases['window']['returned_events']=0;
+            $cases['window']['complete_within_bound']=false;$cases['window']['omitted_due_to_response_budget']=true;
+            $cases['identity_evidence']['observed_case_count']=0;unset($cases);
+        }
+        return $value;
+    };
+    $oldPressure=$outputPressure;$oldPressure['synthetic_context']=str_repeat('c',12000);
+    $oldFixedBytes=$responseBytes($fixedPrefix($oldPressure));
+    $oldBounded=$bound->invoke($projection,$oldPressure);
+    $prefix=$fixedPrefix($outputPressure);$prefix['synthetic_context']='';
+    $outputPressure['synthetic_context']=str_repeat('c',max(0,25000-$responseBytes($prefix)));
+    $fixedBytes=$responseBytes($fixedPrefix($outputPressure));$beforeBytes=$responseBytes($outputPressure);
+    $bounded=$bound->invoke($projection,$outputPressure);$afterBytes=$responseBytes($bounded);
+    $sameProof=$bounded['value_delivery']['repair_assessments']['finite_visit_evidence']===$priorityProof;
+    $omitted=($bounded['visit_delivery_check']['followup_sent_cohort']['failure_examples_omitted_due_to_response_budget']??false)===true;
+    $privateAbsent=!str_contains(json_encode($bounded,$responseFlags),'PRIVATE_NATIVE_');
+    $validPressure=$fixedBytes<=28000&&$beforeBytes>28000&&$afterBytes<=28000&&$sameProof&&$omitted&&$privateAbsent;
+    if(!$validPressure)echo 'FINITE_OUTPUT_PRESSURE_SYNTHETIC '.json_encode([
+        'old_fixed_bytes'=>$oldFixedBytes,'old_before_bytes'=>$responseBytes($oldPressure),'old_after_bytes'=>$responseBytes($oldBounded),
+        'old_proof_same'=>$oldBounded['value_delivery']['repair_assessments']['finite_visit_evidence']===$priorityProof,
+        'new_fixed_bytes'=>$fixedBytes,'before_bytes'=>$beforeBytes,'after_bytes'=>$afterBytes,
+        'proof_same'=>$sameProof,'examples_omitted'=>$omitted,'private_absent'=>$privateAbsent],JSON_THROW_ON_ERROR).PHP_EOL;
+    $check('real saved three-case proof survives feasible cached visit-summary output pressure without raising response limits'
+        .' old_fixed_bytes='.$oldFixedBytes.' new_fixed_bytes='.$fixedBytes.' before='.$beforeBytes.' after='.$afterBytes,$validPressure);
 }
 
 
