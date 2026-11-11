@@ -24,3 +24,11 @@
 
 /* Keep a real hit-testable list when company controls exceed a short sidebar. */
 @media(min-width:621px){.qrLibrary{overflow:auto}.qrLibrary>.qrCompanyLabel,.qrLibrary>.qrSearchRow,.qrLibrary>.qrScopes,.qrLibrary>.qrCategoryLabel{flex-shrink:0}.qrLibrary>.qrList{flex:1 0 90px;min-height:90px}}
+.qrComposerPicker{position:fixed;z-index:60;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;border:1px solid #d8e2d4;border-radius:12px;background:#fff;color:#27362b;box-shadow:0 8px 30px #20332130;font-size:13px}
+.qrComposerPicker[hidden]{display:none}
+.qrComposerHeading{padding:10px 12px;font-weight:700;border-bottom:1px solid #e9eee5;flex:0 0 auto}
+.qrComposerChoices{min-height:0;overflow:auto;overscroll-behavior:contain}
+.qrComposerChoices button{display:flex;flex-direction:column;gap:3px;width:100%;min-height:48px;padding:9px 12px;border:0;background:#fff;color:inherit;text-align:left;font:inherit;cursor:pointer;overflow-wrap:anywhere}
+.qrComposerChoices button[aria-selected="true"]{background:#eaf2e4;box-shadow:inset 3px 0 #477351}
+.qrComposerChoices button span{font-size:11px;color:#61705e}
+.qrComposerMessage{padding:8px 12px;background:#f6f8f3;font-size:11px;line-height:1.35;flex:0 0 auto}

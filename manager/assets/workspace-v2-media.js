@@ -185,15 +185,18 @@ function captureSelection(){
  if(state.busy||restoring||account()<=0||state.conversationId<=0)return null;
  return {actor:account(),conversationId:state.conversationId,rows:(attachmentDrafts.get(draftKey(state.conversationId))||[]).map(row=>({row,fields:Object.entries(row)}))};
 }
+function matchesSelection(snapshot){
+ const rows=attachmentDrafts.get(draftKey(state.conversationId))||[];
+ return !!snapshot&&snapshot.actor===account()&&snapshot.conversationId===state.conversationId&&!state.busy&&!restoring&&rows.length===snapshot.rows.length&&!rows.some((row,i)=>row!==snapshot.rows[i].row||Object.entries(row).length!==snapshot.rows[i].fields.length||snapshot.rows[i].fields.some(([key,value])=>row[key]!==value));
+}
 function appendPrepared(files,snapshot,commitText){
  const rows=attachmentDrafts.get(draftKey(state.conversationId))||[];
- if(!snapshot||snapshot.actor!==account()||snapshot.conversationId!==state.conversationId||state.busy||restoring||typeof commitText!=='function'||!Array.isArray(files)||!files.length||rows.length+files.length>MAX_FILES||rows.length!==snapshot.rows.length)return false;
- if(rows.some((row,i)=>row!==snapshot.rows[i].row||Object.entries(row).length!==snapshot.rows[i].fields.length||snapshot.rows[i].fields.some(([key,value])=>row[key]!==value)))return false;
+ if(!matchesSelection(snapshot)||typeof commitText!=='function'||!Array.isArray(files)||!files.length||rows.length+files.length>MAX_FILES)return false;
  if(files.some(file=>!file||typeof file.name!=='string'||!Number.isSafeInteger(file.size)||file.size<=0))return false;
  // Both canonical owners commit synchronously, after all asynchronous reads.
  // The callback changes text only through Conversation.insertQuickReply.
  if(commitText()!==true)return false;
  save([...rows,...files.map(file=>({file,status:'ready',url:''}))]);state.notice='';render();return true;
 }
-window.WorkspaceV2Media={init,configure,hasFile,send,clear,preserveDraft,restoreDraft,resetDrafts,addFiles,settleRecovery,reconcileDraft,forgetDraft,captureSelection,appendPrepared,needsRestore:()=>!!window.WorkspaceV2MediaDrafts?.has?.(account(),state.conversationId)&&!attachmentDrafts.has(draftKey(state.conversationId)),isRestoring:()=>restoring};
+window.WorkspaceV2Media={init,configure,hasFile,send,clear,preserveDraft,restoreDraft,resetDrafts,addFiles,settleRecovery,reconcileDraft,forgetDraft,captureSelection,matchesSelection,appendPrepared,needsRestore:()=>!!window.WorkspaceV2MediaDrafts?.has?.(account(),state.conversationId)&&!attachmentDrafts.has(draftKey(state.conversationId)),isRestoring:()=>restoring};
 })();
