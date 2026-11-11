@@ -2002,6 +2002,36 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check):void
         'proof_same'=>$sameProof,'examples_omitted'=>$omitted,'private_absent'=>$privateAbsent],JSON_THROW_ON_ERROR).PHP_EOL;
     $check('real saved three-case proof survives feasible cached visit-summary output pressure without raising response limits'
         .' old_fixed_bytes='.$oldFixedBytes.' new_fixed_bytes='.$fixedBytes.' before='.$beforeBytes.' after='.$afterBytes,$validPressure);
+    $omittedProof=['available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0];
+    $originalPriority=['value_delivery'=>['repair_assessments'=>[
+        'finite_visit_evidence'=>$priorityProof,'finite_visit_recovery'=>$priorityRecovery]],'synthetic_context'=>''];
+    $originalOnly=$originalPriority;$originalOnly['value_delivery']['repair_assessments']['finite_visit_recovery']=$omittedProof;
+    $originalPriority['synthetic_context']=str_repeat('o',max(0,26700-$responseBytes($originalOnly)));
+    $originalOnly['synthetic_context']=$originalPriority['synthetic_context'];
+    $originalBounded=$bound->invoke($projection,$originalPriority);
+    $check('response limit omits the newer journal first and preserves the original proof byte for byte when it fits',
+        $responseBytes($originalPriority)>28000&&$responseBytes($originalOnly)<=28000&&$responseBytes($originalBounded)<=28000
+        &&$originalBounded['value_delivery']['repair_assessments']['finite_visit_evidence']===$priorityProof
+        &&$originalBounded['value_delivery']['repair_assessments']['finite_visit_recovery']===$omittedProof);
+    $bothPriority=$originalPriority;
+    $bothOmitted=$bothPriority;$bothOmitted['synthetic_context']='';
+    $bothOmitted['value_delivery']['repair_assessments']['finite_visit_evidence']=$omittedProof;
+    $bothOmitted['value_delivery']['repair_assessments']['finite_visit_recovery']=$omittedProof;
+    $bothPriority['synthetic_context']=str_repeat('b',max(0,26700-$responseBytes($bothOmitted)));
+    $onlyRecoveryOmitted=$bothPriority;$onlyRecoveryOmitted['value_delivery']['repair_assessments']['finite_visit_recovery']=$omittedProof;
+    $bothBounded=$bound->invoke($projection,$bothPriority);
+    $check('original proof is explicitly omitted only when the remaining fixed output still exceeds its unchanged response limit',
+        $responseBytes($onlyRecoveryOmitted)>28000&&$responseBytes($bothBounded)<=28000
+        &&$bothBounded['value_delivery']['repair_assessments']['finite_visit_evidence']===$omittedProof
+        &&$bothBounded['value_delivery']['repair_assessments']['finite_visit_recovery']===$omittedProof);
+    $orphan=['value_delivery'=>['repair_assessments'=>[
+        'finite_visit_evidence'=>['available'=>false,'reason'=>'original_scope_unavailable'],
+        'finite_visit_recovery'=>$priorityRecovery]]];
+    $orphanBounded=$bound->invoke($projection,$orphan);
+    $check('response projection never retains an available forward journal without its original bound proof',
+        !$orphanBounded['value_delivery']['repair_assessments']['finite_visit_recovery']['available']
+        &&$orphanBounded['value_delivery']['repair_assessments']['finite_visit_recovery']['reason']==='original_current_binding_unavailable');
+
 }
 
 
