@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__.'/ModeledConversionTextSignals.php';
 require_once __DIR__.'/ArchivePredictiveRelativeWeights.php';
+require_once __DIR__.'/ModeledConversionQuestionnaireContext.php';
 
 /**
  * Pure, bounded first useful prediction over already admitted and redacted messages.
@@ -45,6 +46,9 @@ final class ModeledConversionSemanticPrediction
     private array $criteria=[];
     private array $evidence=[];
     private array $messages=[];
+    private ?array $questionnaireQuestion=null;
+    private array $questionnaireAnswers=[];
+    private ?int $lastQuestionnaireAt=null;
     private array $outcomes=[];
     private bool $operationalOutcome=false;
     private bool $currentOutcome=false;
@@ -83,6 +87,8 @@ final class ModeledConversionSemanticPrediction
         int $available,int $sourceVersion,array $canonicalSemanticResult):void
     {
         $meta=$this->metadata($ref,$occurred,$available,$sourceVersion);
+        if($this->lastQuestionnaireAt!==null&&($occurred<$this->lastQuestionnaireAt
+            ||$occurred-$this->lastQuestionnaireAt>86400))$this->barrier();
         if(!in_array($role,['customer','manager'],true)||strlen($redactedText)>32768
             ||preg_match('//u',$redactedText)!==1)self::fail('message');
         $r=$canonicalSemanticResult;
@@ -102,6 +108,17 @@ final class ModeledConversionSemanticPrediction
         if(count($this->messages)>=50)self::fail('message_limit');
         $this->messages[$ref]=['role'=>$role,...$meta];
         if($role==='customer')$this->customerTurns++;
+        // Any admitted human turn consumes the pending question, including an
+        // unrecognised reply or an intervening manager message.
+        $question=$this->questionnaireQuestion;$this->questionnaireQuestion=null;
+        $questionnaireAnswer=$role==='customer'&&$sourceVersion===1&&$question!==null
+            &&self::moment($question['occurred_at'])<=$occurred
+            &&self::moment($question['available_at'])<=$available
+            &&$occurred-self::moment($question['occurred_at'])<=86400
+            &&($flags['quoted_or_relayed']??false)!==true&&($flags['past_trip']??false)!==true
+            &&($flags['conditional']??false)!==true
+            &&ModeledConversionQuestionnaireContext::accepts($question['field'],$redactedText);
+        if($questionnaireAnswer)$this->questionnaireAnswer($question['field'],$meta);
         $unsafe=false;
         foreach(['quoted_or_relayed','past_trip','conditional','negation']as$key)
             if(($flags[$key]??false)===true)$unsafe=true;
@@ -133,7 +150,7 @@ final class ModeledConversionSemanticPrediction
         $cheaper=$directCustomer&&$textSignals['price_alternative_continued_search'];
         $this->messages[$ref]['price_alternative']=$cheaper;
         // Bare logistics and greetings do not establish a trip or seller choice.
-        $meaningful=$role==='customer'&&($goals!==[]||($directCustomer&&(count($families)>=2
+        $meaningful=$role==='customer'&&!$questionnaireAnswer&&($goals!==[]||($directCustomer&&(count($families)>=2
             ||($this->anchor!==null&&($families!==[]||$comp||$modify||$cheaper)))));
         if($meaningful){
             if($this->anchor===null){
@@ -166,7 +183,7 @@ final class ModeledConversionSemanticPrediction
             }
         }
         // A direct refusal reduces the hypothesis; a price objection alone does not.
-        if($role==='customer'&&($flags['quoted_or_relayed']??false)!==true
+        if($role==='customer'&&!$questionnaireAnswer&&($flags['quoted_or_relayed']??false)!==true
             &&($flags['past_trip']??false)!==true&&($flags['conditional']??false)!==true
             &&($flags['question']??false)!==true&&$textSignals['explicit_decline']){
             $this->declined=true;$this->evidence('explicit_decline',$meta);
@@ -179,6 +196,7 @@ final class ModeledConversionSemanticPrediction
         $this->anchor=null;$this->anchorVersion=null;$this->anchorEvidence=null;
         $this->customerTurns=0;$this->meaningfulTurns=0;$this->lastMeaningfulAt=null;$this->positives=[];$this->criteria=[];
         $this->evidence=[];$this->messages=[];$this->currentOutcome=false;
+        $this->questionnaireQuestion=null;$this->questionnaireAnswers=[];$this->lastQuestionnaireAt=null;
         $this->urgency=false;$this->longRange=false;$this->deferred=false;$this->declined=false;
         $this->comparison=false;$this->modification=false;$this->priceAlternative=false;
         $this->officeQuestion=false;$this->paymentTermsQuestion=false;
@@ -189,9 +207,47 @@ final class ModeledConversionSemanticPrediction
     /** An applied-input receipt also needs its admitted customer input in this current context. */
     public function canPreserveCustomerContext(int $occurred,?string $inputRef=null):bool
     {
-        return $this->anchor!==null&&$this->lastMeaningfulAt!==null
+        $anchored=$this->anchor!==null&&$this->lastMeaningfulAt!==null
             &&$occurred>=$this->lastMeaningfulAt&&$occurred-$this->lastMeaningfulAt<=86400
             &&($inputRef===null||($this->messages[$inputRef]['role']??null)==='customer');
+        $answer=$this->lastQuestionnaireAt!==null&&$occurred>=$this->lastQuestionnaireAt
+            &&$occurred-$this->lastQuestionnaireAt<=86400
+            &&($inputRef===null||isset($this->questionnaireAnswers[$inputRef]));
+        $question=$inputRef===null&&$this->questionnaireQuestion!==null
+            &&$occurred>=self::moment($this->questionnaireQuestion['occurred_at'])
+            &&$occurred-self::moment($this->questionnaireQuestion['occurred_at'])<=86400;
+        return $anchored||$answer||$question;
+    }
+
+    /**
+     * Called only after the adapter validates an original native AI source and
+     * its recording receipt. AI supplies question context, never a criterion.
+     */
+    public function observeServiceQuestion(string $text,string $ref,int $occurred,int $available,int $sourceVersion):bool
+    {
+        $meta=$this->metadata($ref,$occurred,$available,$sourceVersion);
+        $this->questionnaireQuestion=null;
+        $field=ModeledConversionQuestionnaireContext::field($text);
+        if($sourceVersion!==1||$field===null)return false;
+        if($this->lastQuestionnaireAt!==null&&($occurred<$this->lastQuestionnaireAt
+            ||$occurred-$this->lastQuestionnaireAt>86400))$this->barrier();
+        $this->questionnaireQuestion=['field'=>$field,...$meta];
+        return true;
+    }
+
+    private function questionnaireAnswer(string $field,array $meta):void
+    {
+        $family=$field==='nights'?'dates':'party';
+        $this->questionnaireAnswers[$meta['source_ref']]=$meta;
+        $this->lastQuestionnaireAt=self::moment($meta['occurred_at']);
+        $this->criteria[$family]=true;$this->evidence('criteria_'.$family,$meta);
+        if($this->anchor===null&&count($this->criteria)>=2){
+            $first=array_values($this->questionnaireAnswers)[0];
+            $this->anchor=$first['source_ref'];$this->anchorVersion=$first['source_version_no'];
+            $this->anchorEvidence=['feature'=>'current_request_anchor',...$first];
+        }
+        if($this->anchor!==null)$this->lastMeaningfulAt=max($this->lastMeaningfulAt??0,self::moment($meta['occurred_at']));
+        // This inference adds no extra meaningful turn, outcome or multiplier.
     }
 
     public function knownOperationalOutcome(string $ref,int $occurred,int $available,int $sourceVersion):void
