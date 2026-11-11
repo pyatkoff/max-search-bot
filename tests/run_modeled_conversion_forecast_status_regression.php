@@ -285,7 +285,7 @@ function forecastCoreProjectionBudgetAssertions(PDO $p,callable $check,array $ex
         foreach($bindings as$parameter=>[$value,$type])$q->bindValue($parameter,$value,$type);
         $q->execute();$rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();return $rows;
     };
-    $checkpoints=['reader_entry','state','metadata','visit_receipt','first_profile','value_delivery','optional_views','remaining_profiles'];
+    $checkpoints=['reader_entry','state','metadata','value_delivery','visit_receipt','first_profile','optional_views','remaining_profiles'];
     $basis='shared_budget_v1';
     $budget=new ModeledConversionStatusBudget(0.0,static fn():float=>0.0);
     [$normal,$statements,$copies,$diagnosisQueries]=$capture($budget);
@@ -1719,6 +1719,66 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check):void
         &&$safe['value_delivery']['repair_assessments']['finite_visit_evidence']===$proof
         &&$safe['value_delivery']['predictive_v1']['examples']===[]);
     $check('finite read operations never mutate the saved financial rows or native profile payloads',$snapshot()===$before);
+
+    // Exercise the complete status call, including real SQL/copy accounting, with a large
+    // saved receipt and first profile. The prior order spent these bytes before the frame.
+    $p->exec('ALTER TABLE modeled_conversion_profile_versions ADD COLUMN journal_cursor BIGINT DEFAULT 0');
+    foreach(['value_origin VARCHAR(32)','value_reviewed_at_unix BIGINT','client_id VARCHAR(40)',
+        'claimed_at_unix BIGINT','value_receipt_basis VARCHAR(24)','next_attempt_unix BIGINT DEFAULT 0']as$column)
+        $p->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN '.$column);
+    $p->exec('DROP TABLE IF EXISTS modeled_conversion_profiles_state');
+    $p->exec('CREATE TABLE modeled_conversion_profiles_state(project_key VARCHAR(40) PRIMARY KEY,enabled INT,last_receipt_json TEXT,last_error_at_unix BIGINT,last_error_category VARCHAR(40))');
+    $p->exec("INSERT INTO modeled_conversion_profiles_state VALUES('anytour',1,'{}',NULL,NULL)");
+    $p->exec('DROP TABLE IF EXISTS modeled_conversion_value_export_settings');
+    $p->exec("CREATE TABLE modeled_conversion_value_export_settings(project_key VARCHAR(40) PRIMARY KEY,counter_id VARCHAR(20),mode VARCHAR(16),goal_id VARCHAR(20),goal_intent VARCHAR(20),activated_at_unix BIGINT,last_tick_unix BIGINT,contract_version VARCHAR(64),last_receipt_json TEXT,history_from_unix BIGINT,history_until_unix BIGINT,history_completed_at_unix BIGINT,history_scanned BIGINT,history_collected BIGINT,history_stats_json TEXT,history_cursor BIGINT,history_ceiling BIGINT,history_fortnight_requested_at_unix BIGINT,history_day_receipt_json TEXT,last_report_success_unix BIGINT,last_report_success_json TEXT,report_failure_since_unix BIGINT)");
+    $finished=$observed;
+    foreach([1,2]as$i){$finished['r'][$i][2]=2;$finished['r'][$i][4]=$now-3;$finished['r'][$i][5]=3;}
+    $receipt=['errors'=>0,'finite_visit_evidence'=>$finished,'private_padding'=>str_repeat('x',6000)];
+    $p->prepare("INSERT INTO modeled_conversion_value_export_settings(project_key,counter_id,mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,last_receipt_json) VALUES('anytour','98615635','send','678187097','verified',?,?,?,?)")
+        ->execute([$checkpoint-86400,$now,ModeledConversionValueContract::VERSION,json_encode($receipt,JSON_THROW_ON_ERROR)]);
+    $packet=forecastV1Packet('730010','930010',[['text'=>'Подберите тур в Турцию на 7 ночей, 2 взрослых.']],'max');
+    $packet['prediction_followup']=['private_padding'=>''];
+    $savePacket=$p->prepare("INSERT INTO modeled_conversion_profile_versions(id,project_key,platform,customer_key,conversation_id,observed_at_unix,assessment_namespace,assessment_kind,profile_json,journal_cursor) VALUES(10,'anytour','max','730010','930010',?,?,'live',?,?)");
+    $savePacket->execute([strtotime($packet['profile']['prediction_at']),$namespace,json_encode($packet,JSON_THROW_ON_ERROR),$packet['journal_cursor']]);
+    $coreReader=new ModeledConversionForecastStatusReader($p,static function():void{},new ModeledConversionStatusBudget());
+    $parts=(new ReflectionMethod(ModeledConversionForecastStatusReader::class,'parts'))->invoke($coreReader);
+    $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+    $sizes=array_map(static fn(string $part):string=>'COALESCE('.($mysql?'OCTET_LENGTH('.$part.')':'LENGTH(CAST('.$part.' AS BLOB))').',0)',$parts);
+    $baseSize=(int)$p->query('SELECT '.implode('+',$sizes).' FROM modeled_conversion_profile_versions WHERE id=10')->fetchColumn();
+    $packet['prediction_followup']['private_padding']=str_repeat('x',max(0,9000-$baseSize));
+    $p->prepare('UPDATE modeled_conversion_profile_versions SET profile_json=? WHERE id=10')->execute([json_encode($packet,JSON_THROW_ON_ERROR)]);
+    $pipelineBefore=$snapshot();$settingsBefore=$p->query('SELECT * FROM modeled_conversion_value_export_settings')->fetchAll(PDO::FETCH_ASSOC);
+    $budget=new ModeledConversionStatusBudget();$budget->consumeBytes(32000);
+    $oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+    ForecastV1ObservedStatement::$observePredictive=true;ForecastV1ObservedStatement::$predictiveStatements=[];
+    try{$pipeline=forecastV1Read($p,null,$budget);}
+    finally{ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $frameAt=null;$coreAt=null;
+    foreach(ForecastV1ObservedStatement::$predictiveStatements as$i=>$statement){
+        if(str_contains($statement['sql'],'finite_bound_packets'))$frameAt??=$i;
+        if(str_contains($statement['sql'],' AS prediction_json,'))$coreAt??=$i;
+    }
+    $priorityProof=$pipeline['value_delivery']['repair_assessments']['finite_visit_evidence']??[];
+    $check('complete status reserves all three saved finite results before expensive first-profile and optional context copies',
+        $pipeline['available']&&($priorityProof['available']??false)&&$priorityProof['complete']
+        &&count($priorityProof['rows'])===3&&array_column($priorityProof['rows'],'event_ref')===array_column($finished['r'],0)
+        &&$frameAt!==null&&($coreAt===null?$pipeline['window']['byte_limit_omissions']>0:$frameAt<$coreAt)
+        &&$budget->remainingBytes()>=8192&&strlen(json_encode($pipeline,JSON_THROW_ON_ERROR))<=28000
+        &&$priorityProof['provider_requests_in_reader']===0&&$pipeline['model_calls']===0&&$pipeline['conversion_uploads']===0
+        &&$pipeline['limits']['max_selected_bytes']===65536&&$pipeline['limits']['max_execution_seconds']===5
+        &&$snapshot()===$pipelineBefore&&$p->query('SELECT * FROM modeled_conversion_value_export_settings')->fetchAll(PDO::FETCH_ASSOC)===$settingsBefore);
+    $outputPressure=$pipeline;
+    $outputPressure['visit_delivery_check']=['today_sent_cohort'=>['synthetic'=>str_repeat('d',1800)],
+        'yesterday_sent_cohort'=>['synthetic'=>str_repeat('e',1800)],
+        'examples'=>array_fill(0,6,['synthetic'=>str_repeat('v',400)]),
+        'followup_sent_cohort'=>['failure_examples'=>array_fill(0,10,['synthetic'=>str_repeat('f',1000)])]];
+    $outputPressure['synthetic_context']=str_repeat('c',12000);
+    $bounded=$bound->invoke($projection,$outputPressure);
+    $check('real saved three-case proof survives realistic cached visit-summary output pressure without raising response limits',
+        strlen(json_encode($bounded,JSON_THROW_ON_ERROR))<=28000
+        &&$bounded['value_delivery']['repair_assessments']['finite_visit_evidence']===$priorityProof
+        &&($bounded['visit_delivery_check']['followup_sent_cohort']['failure_examples_omitted_due_to_response_budget']??false)
+        &&!str_contains(json_encode($bounded,JSON_THROW_ON_ERROR),'PRIVATE_NATIVE_'));
 }
 
 
