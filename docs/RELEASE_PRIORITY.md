@@ -236,7 +236,12 @@ retains the publisher. Later consumers require that original digest-bound step
 and the successful final terminal step; a record alone or an expired/downloaded
 artifact cannot manufacture acceptance. No fail-capable publication follows the
 terminal PATCH. Unknown writes are reconciled by reading the original state,
-never blindly repeated.
+never blindly repeated. After an uncertain transport/decoding result from the
+one diagnostics ref PATCH, the existing publisher may prove that exact write
+through read-only commit/blob/digest and ancestry checks. Explicit HTTP refusal,
+a contradictory returned SHA, unavailable evidence or a different lineage still
+hold the slot. This does not authorize another mutation, a new installation
+receipt or retroactive recovery of an earlier failed run.
 
 Immediately before the one update, the helper rereads main, original results,
 PR binding and the exact publisher comment/version. It updates **only that
