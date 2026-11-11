@@ -9,11 +9,15 @@ on:
       - 'integrations/AppleService39ChannelTransport.php'
       - 'resources/appleservice39/pilot/**'
       - 'resources/appleservice39/landing-v2/**'
+      - 'resources/appleservice39/catalogue-v1/**'
+      - 'resources/appleservice39/search-intent-v1/**'
       - 'resources/appleservice39-pilot-entries.json'
       - 'migrations/095_appleservice39_pilot_publications.sql'
       - 'tools/publish_appleservice39_pilot.php'
       - 'tools/deployment_release.js'
       - 'tests/run_appleservice39_publisher_regression.php'
+      - 'tests/run_appleservice39_search_plan_regression.php'
+      - 'tests/run_appleservice39_search_publisher_regression.php'
       - 'tests/mysql/appleservice39-publisher.php'
       - 'tests/required_checks_manifest.php'
       - '.github/workflows/publish-appleservice39-pilot.yml'
@@ -22,7 +26,7 @@ on:
       operation:
         description: Fixed reviewed pilot operation; unknown outcomes never repeat a write
         type: choice
-        options: [inspect, prepare, publish, finalize, pin, reconcile, landing_inspect, landing_prepare, landing_apply, landing_reconcile]
+        options: [inspect, prepare, publish, finalize, pin, reconcile, landing_inspect, landing_prepare, landing_apply, landing_reconcile, search_inspect, search_prepare, search_apply, search_reconcile]
         required: true
         default: inspect
       expected_application_sha:
@@ -56,6 +60,8 @@ jobs:
         run: |
           php -l tools/publish_appleservice39_pilot.php
           php tests/run_appleservice39_publisher_regression.php
+          php tests/run_appleservice39_search_plan_regression.php
+          php tests/run_appleservice39_search_publisher_regression.php
 
   publish:
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
@@ -104,7 +110,7 @@ jobs:
           set -euo pipefail
           [[ "$EXPECTED_APPLICATION_SHA" =~ ^[0-9a-f]{40}$ ]]
           [[ "$CHANNEL_ID" =~ ^-[1-9][0-9]{0,18}$ ]]
-          case "$OPERATION" in inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile) ;; *) exit 2 ;; esac
+          case "$OPERATION" in inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile|search_inspect|search_prepare|search_apply|search_reconcile) ;; *) exit 2 ;; esac
           test "$RELEASE_READY" = true
           test "$PERFORM_ACTIONS" = true
           test "$WORKFLOW_SHA" = "$REPOSITORY_SHA"
@@ -140,16 +146,17 @@ jobs:
           set -euo pipefail
           [[ "$EXPECTED_APPLICATION_SHA" =~ ^[0-9a-f]{40}$ ]]
           [[ "$CHANNEL_ID" =~ ^-[1-9][0-9]{0,18}$ ]]
-          case "$OPERATION" in inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile) ;; *) exit 2 ;; esac
+          case "$OPERATION" in inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile|search_inspect|search_prepare|search_apply|search_reconcile) ;; *) exit 2 ;; esac
           remote="$DEPLOY_USER@$DEPLOY_HOST"
           ssh_options=(-i "$RUNNER_TEMP/appleservice39_pilot_deploy_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o StrictHostKeyChecking=no)
           command="cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/publish_appleservice39_pilot.php $OPERATION --expected-sha=$EXPECTED_APPLICATION_SHA --channel-id=$CHANNEL_ID"
           result=0
           ssh "${ssh_options[@]}" "$remote" "$command" || result=$?
-          if [[ "$result" != 0 && "$OPERATION" != inspect && "$OPERATION" != landing_inspect ]]; then
+          if [[ "$result" != 0 && "$OPERATION" != inspect && "$OPERATION" != landing_inspect && "$OPERATION" != search_inspect ]]; then
             # A lost result permits one inspection, never a repeated mutation.
             inspection_mode=inspect
             if [[ "$OPERATION" == landing_* ]]; then inspection_mode=landing_inspect; fi
+            if [[ "$OPERATION" == search_* ]]; then inspection_mode=search_inspect; fi
             inspection="cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/publish_appleservice39_pilot.php $inspection_mode --expected-sha=$EXPECTED_APPLICATION_SHA --channel-id=$CHANNEL_ID"
             ssh "${ssh_options[@]}" "$remote" "$inspection" || true
           fi

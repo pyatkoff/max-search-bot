@@ -23,10 +23,11 @@ function applePilotCheckout(string $root, string $expected): bool
 try {
     $mode = $argv[1] ?? '';
     if ($mode === '--help' && $argc === 2) {
-        echo "php tools/publish_appleservice39_pilot.php inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile --expected-sha=<accepted application SHA> --channel-id=<exact negative numeric ID>\n";
+        echo "php tools/publish_appleservice39_pilot.php inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile|search_inspect|search_prepare|search_apply|search_reconcile --expected-sha=<accepted application SHA> --channel-id=<exact negative numeric ID>\n";
         exit(0);
     }
-    if (!in_array($mode, ['inspect','prepare','publish','finalize','pin','reconcile','landing_inspect','landing_prepare','landing_apply','landing_reconcile'], true) || $argc !== 4) throw new RuntimeException('fixed_operation_and_target_required');
+    if (!in_array($mode, ['inspect','prepare','publish','finalize','pin','reconcile','landing_inspect','landing_prepare','landing_apply','landing_reconcile',
+        'search_inspect','search_prepare','search_apply','search_reconcile'], true) || $argc !== 4) throw new RuntimeException('fixed_operation_and_target_required');
     $options = [];
     foreach (array_slice($argv, 2) as $argument) {
         if (!preg_match('/\A--(expected-sha|channel-id)=(.*)\z/D', $argument, $match) || isset($options[$match[1]])) throw new RuntimeException('fixed_operation_and_target_required');
@@ -50,7 +51,8 @@ try {
             && applePilotCheckout($root, $expected);
     };
     $publisher = new AppleService39PilotPublisher(ConversationDb::connection(), $manifest, $options['channel-id'],
-        $provenance, null, null, new AppleService39CatalogueRevision($manifest));
+        $provenance, null, null, new AppleService39CatalogueRevision($manifest),
+        str_starts_with($mode, 'search_') ? new AppleService39SearchIntentRevision($manifest) : null);
     $result = $publisher->run($mode);
     $result['application_sha'] = $expected;
     echo json_encode($result, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL;
@@ -76,7 +78,12 @@ try {
         'catalogue_revision_unavailable','catalogue_revision_invalid','catalogue_parent_changed','catalogue_parent_incomplete',
         'catalogue_source_changed','catalogue_source_invalid','catalogue_posts_changed','catalogue_post_invalid',
         'catalogue_links_changed','catalogue_reviewed_price_changed','catalogue_price_projection_changed',
-        'catalogue_revision_changed','catalogue_image_changed','catalogue_edit_held'];
+        'catalogue_revision_changed','catalogue_image_changed','catalogue_edit_held',
+        'search_parent_incomplete','search_parent_changed','search_revision_changed','search_operation_held',
+        'search_images_not_prepared','search_link_address_missing','search_source_image_changed','search_source_image_invalid',
+        'invalid_search_operation','invalid_search_upload_receipt','search_upload_token_collision',
+        'search_native_image_evidence_required','invalid_search_image_receipt','search_image_receipt_required','search_image_collision',
+        'search_review_evidence_invalid'];
     $reason = in_array($error->getMessage(), $allowed, true) ? $error->getMessage() : 'pilot_operation_unavailable';
     echo json_encode(['ok'=>false,'state'=>'stopped','reason'=>$reason,'automatic_retry'=>false], JSON_UNESCAPED_SLASHES).PHP_EOL;
     exit(2);

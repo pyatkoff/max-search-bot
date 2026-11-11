@@ -21,10 +21,14 @@ final class AppleService39PilotPublisher
     private array $readbackDiagnostics = [];
     private bool $buttonsNormalized = false;
     private ?AppleService39CatalogueRevision $catalogueRevision;
+    private ?AppleService39SearchIntentRevision $searchRevision;
+    private ?array $searchParents = null;
+    private ?array $searchParentRows = null;
 
     public function __construct(PDO $pdo, AppleService39PilotManifest $manifest, string $channelId,
         callable $provenance, ?callable $wire = null, ?callable $pause = null,
-        ?AppleService39CatalogueRevision $catalogueRevision = null)
+        ?AppleService39CatalogueRevision $catalogueRevision = null,
+        ?AppleService39SearchIntentRevision $searchRevision = null)
     {
         $connection = ProjectMaxConnection::resolve(AppleService39PilotManifest::PROJECT);
         self::check($connection !== null, 'pilot_connection_unavailable');
@@ -34,14 +38,17 @@ final class AppleService39PilotPublisher
         $this->provenance = $provenance;
         $this->pause = $pause ?? static function (): void { usleep(600000); };
         $this->catalogueRevision = $catalogueRevision;
+        $this->searchRevision = $searchRevision;
     }
 
     public function run(string $operation): array
     {
-        self::check(in_array($operation, ['inspect','prepare','publish','finalize','pin','reconcile','landing_inspect','landing_prepare','landing_apply','landing_reconcile'], true), 'unsupported_pilot_operation');
+        self::check(in_array($operation, ['inspect','prepare','publish','finalize','pin','reconcile','landing_inspect','landing_prepare','landing_apply','landing_reconcile',
+            'search_inspect','search_prepare','search_apply','search_reconcile'], true), 'unsupported_pilot_operation');
         $this->readbackDiagnostics = [];
         $binding = $this->preflight();
         $this->store->assertBinding($binding);
+        if (str_starts_with($operation, 'search_')) return $this->search($operation);
         if (str_starts_with($operation, 'landing_')) return $this->catalogueRevision !== null
             ? $this->catalogue($operation) : $this->landing($operation, $binding);
         if ($operation === 'inspect') return $this->report('inspected');
@@ -271,6 +278,8 @@ final class AppleService39PilotPublisher
     {
         foreach ($this->store->rows() as $row) {
             if (!in_array($row['state'], ['write_started','unknown'], true)) continue;
+            // The successor has its own exact source/image GET predicate in this publisher.
+            if (AppleService39PilotPublicationStore::isSearchOperation($row['post_key'], $row['operation'], $row['request'])) continue;
             if (in_array($row['operation'], ['create','links'], true) && is_string($row['external_message_id']) && $row['external_message_id'] !== '') {
                 $post = $this->manifest->post($row['post_key']);
                 $response = null; $readback = null;
@@ -439,11 +448,12 @@ final class AppleService39PilotPublisher
     }
 
     /** A successor may start only after every old claim has a complete accepted outcome. */
-    private function catalogueTargets(): array
+    private function catalogueTargets(bool $searchSuccessor = false): array
     {
         self::check($this->catalogueRevision !== null && $this->store->campaign() !== null, 'catalogue_parent_incomplete');
         $priorCount = 0;
         foreach ($this->store->rows() as $row) {
+            if ($searchSuccessor && AppleService39PilotPublicationStore::isSearchOperation($row['post_key'], $row['operation'], $row['request'])) continue;
             if ($row['operation'] === AppleService39CatalogueRevision::OPERATION) continue;
             self::check(in_array($row['operation'], ['upload','create','links','pin','landing_upload','landing_edit'], true)
                 && $row['state'] === 'verified' && (int)$row['write_attempts'] === 1, 'catalogue_parent_incomplete');
@@ -620,6 +630,308 @@ final class AppleService39PilotPublisher
         $result['catalogue_expected_navigation_links'] = 86;
         $result['catalogue_expected_bot_buttons'] = 24;
         $result['catalogue_menu_pin_preserved'] = true;
+        return $result;
+    }
+
+    private function searchUploadRequest(array $post): array
+    {
+        $binding = $this->searchRevision->historicalBinding($post['id']);
+        return ['revision'=>AppleService39SearchIntentRevision::KEY,'revision_sha256'=>$this->searchRevision->sha256(),
+            'post_id'=>$post['id'],'source_sha256'=>$post['image']['sha256'],
+            'mid'=>$binding['message_id'] ?? null,'url'=>$binding['url'] ?? null];
+    }
+
+    private function searchUpload(array $post): ?array
+    {
+        $row = $this->store->operation($post['id'], 'search_v1_upload');
+        if ($row === null) return null;
+        self::check($row['request'] === $this->searchUploadRequest($post)
+            && $row['payload_sha256'] === self::searchHash($row['request'])
+            && in_array($row['state'], ['prepared','write_started','unknown','verified'], true)
+            && (int)$row['write_attempts'] === ($row['state'] === 'prepared' ? 0 : 1), 'search_revision_changed');
+        if ($row['state'] !== 'verified') return null;
+        $value = $row['outcome'];
+        self::check(array_keys($value) === ['photo_id','token'] && is_string($value['photo_id'])
+            && preg_match('/\A[0-9]{1,19}\z/D', $value['photo_id']) === 1
+            && is_string($value['token']) && $value['token'] !== '' && strlen($value['token']) <= 4096
+            && preg_match('/[\x00-\x20\x7f]/', $value['token']) === 0, 'invalid_search_upload_receipt');
+        foreach ($this->store->rows() as $other) if ((int)$other['id'] !== (int)$row['id']
+            && in_array($other['operation'], ['upload','landing_upload','search_v1_upload'], true)) {
+            self::check(($other['outcome']['token'] ?? null) !== $value['token'], 'search_upload_token_collision');
+        }
+        return $value + ['source_sha256'=>$post['image']['sha256']];
+    }
+
+    private function searchRequest(array $post, array $upload, array $plan): array
+    {
+        $uploaded = $this->store->operation($post['id'], 'search_v1_upload');
+        $parent = $this->searchRevision->historicalBinding($post['id']) === null
+            ? null : $this->store->operation($post['id'], 'catalogue_v1');
+        return $this->searchUploadRequest($post) + ['upload_operation_id'=>(int)$uploaded['id'],
+            'upload_request_sha256'=>$uploaded['payload_sha256'],'upload_token_sha256'=>hash('sha256',$upload['token']),
+            'parent_request_sha256'=>$parent['payload_sha256'] ?? null,
+            'body'=>$plan['body'],'native_text'=>$plan['native_text'],'native_markup'=>$plan['native_markup']];
+    }
+
+    private static function searchHash(array $value): string
+    {
+        return hash('sha256', json_encode($value, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    }
+
+    private function searchReceipt(array $row, string $photo, string $kind): array
+    {
+        return ['kind'=>$kind,'message_id'=>$row['external_message_id'],'photo_id'=>$photo,
+            'source_sha256'=>$row['request']['source_sha256'],'upload_token_sha256'=>$row['request']['upload_token_sha256'],
+            'request_sha256'=>$row['payload_sha256'],'revision_sha256'=>$this->searchRevision->sha256()];
+    }
+
+    /** A source-token witness is required for PUT; a changed photo ID is insufficient. */
+    private function searchNative(array $row, array $plan, array $upload, array $usedPhotos): array
+    {
+        $mid = $row['external_message_id'];
+        self::check(is_string($mid) && preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/D', $mid) === 1, 'search_operation_held');
+        $message = self::read($this->transport->message($mid));
+        $url = $this->verifyMessageContent($message, $mid, $plan['body'], $plan);
+        self::check(preg_match('~\Ahttps://max\.ru/channel_appleservice39ru/[A-Za-z0-9_-]{1,191}\z~D', $url) === 1
+            && (in_array($row['public_url'], [null,''], true) || $row['public_url'] === $url)
+            && ($row['operation'] !== 'search_v1_edit' || $url === $row['request']['url']), 'post_url_changed');
+        $payload = $this->imagePayload($message);
+        $photo = self::nativePhotoId($payload['photo_id'] ?? null);
+        self::check($photo !== '' && preg_match('/\A[1-9][0-9]{0,18}\z/D', $photo) === 1
+            && !isset($usedPhotos[$photo]), 'search_image_collision');
+        $receipt = $row['outcome']['image_receipt'] ?? null;
+        if ($receipt === null) {
+            if (is_string($payload['token'] ?? null) && hash_equals($upload['token'], $payload['token'])) {
+                $receipt = $this->searchReceipt($row, $photo, 'exact_upload_token');
+            } else {
+                // A renewed PUT token needs its own separately admitted native-file review.
+                if ($row['operation'] !== 'search_v1_edit') throw new RuntimeException('search_native_image_evidence_required');
+                try { $receipt = $this->searchReviewedReceipt($row,$message,$photo); }
+                catch (Throwable $error) {
+                    $locator = $payload['url'] ?? null;
+                    $this->readbackDiagnostics[] = ['post_id'=>$row['post_key'],'reason'=>'search_native_image_evidence_required',
+                        'message_id'=>$mid,'native_photo_id'=>$photo,
+                        'native_payload_url_sha256'=>is_string($locator) && $locator !== '' ? hash('sha256',$locator) : null,
+                        'source_sha256'=>$row['request']['source_sha256'],'revision_sha256'=>$row['request']['revision_sha256'],
+                        'upload_operation_id'=>$row['request']['upload_operation_id'],
+                        'upload_request_sha256'=>$row['request']['upload_request_sha256'],
+                        'upload_token_sha256'=>$row['request']['upload_token_sha256'],
+                        'edit_operation_id'=>(int)$row['id'],'edit_request_sha256'=>$row['payload_sha256'],
+                        'edit_started_ms'=>(int)$row['started_ms'],'native_verified'=>false];
+                    throw $error;
+                }
+            }
+        }
+        $expectedReceipt = ($receipt['kind'] ?? null) === 'reviewed_native_replacement'
+            ? $this->searchReviewedReceipt($row,$message,$photo) : $this->searchReceipt($row,$photo,$receipt['kind'] ?? '');
+        self::check(is_array($receipt) && in_array($receipt['kind'] ?? null,
+            $row['operation'] === 'create' ? ['create_response','exact_upload_token'] : ['exact_upload_token','reviewed_native_replacement'], true)
+            && $receipt === $expectedReceipt, 'invalid_search_image_receipt');
+        return [$url,$receipt,$photo];
+    }
+
+    private function searchReviewedReceipt(array $row, array $message, string $photo): array
+    {
+        $review = $this->searchRevision->reviewedNativeImage($row['post_key']);
+        self::check($review !== null, 'search_native_image_evidence_required');
+        $p = $review['proof'];
+        $expected = ['schema_version'=>1,'kind'=>'reviewed_native_replacement',
+            'campaign_key'=>AppleService39PilotManifest::CAMPAIGN,'project_key'=>AppleService39PilotManifest::PROJECT,
+            'bot_key'=>AppleService39PilotManifest::BOT,'channel_id'=>$this->channelId,'post_id'=>$row['post_key'],
+            'message_id'=>$row['external_message_id'],'public_url'=>$message['url'],
+            'revision_sha256'=>$this->searchRevision->sha256(),'source_sha256'=>$row['request']['source_sha256'],
+            'upload_operation_id'=>$row['request']['upload_operation_id'],
+            'upload_request_sha256'=>$row['request']['upload_request_sha256'],
+            'upload_token_sha256'=>$row['request']['upload_token_sha256'],
+            'edit_operation_id'=>(int)$row['id'],'edit_request_sha256'=>$row['payload_sha256'],
+            'edit_started_ms'=>(int)$row['started_ms'],'native_photo_id'=>$photo,
+            'native_preview_sha256'=>$review['native_preview_sha256']];
+        $extra = ['native_preview_width','native_preview_height','native_payload_url_sha256',
+            'native_readback_run_id','native_readback_job_id','visual_review'];
+        self::check(count($p) === count($expected)+count($extra)
+            && array_diff(array_keys($p),array_merge(array_keys($expected),$extra)) === []
+            && (int)$row['started_ms'] > 0,
+            'search_review_evidence_invalid');
+        foreach ($expected as $key=>$value) self::check($p[$key] === $value, 'search_review_evidence_invalid');
+        self::check(is_string($p['native_payload_url_sha256'])
+            && preg_match('/\A[a-f0-9]{64}\z/D',$p['native_payload_url_sha256']) === 1
+            && is_int($p['native_readback_run_id']) && $p['native_readback_run_id'] > 0
+            && is_int($p['native_readback_job_id']) && $p['native_readback_job_id'] > 0
+            && $p['visual_review'] === ['source_asset_opened'=>true,'native_preview_opened'=>true,
+                'exact_layout_model_service_price_qualifiers'=>true], 'search_review_evidence_invalid');
+        return $this->searchReceipt($row,$photo,'reviewed_native_replacement')
+            + ['evidence_sha256'=>$review['evidence_sha256'],'native_preview_sha256'=>$review['native_preview_sha256']];
+    }
+
+    /** Fresh whole-campaign observation. Inspection never creates or accepts a claim. */
+    private function searchSnapshot(bool $reconcile = false): array
+    {
+        self::check($this->searchRevision !== null && $this->catalogueRevision !== null
+            && $this->channelId === '-80917954947727', 'search_parent_incomplete');
+        $parentRows = [];
+        $posts = array_column($this->searchRevision->posts(), null, 'id');
+        foreach ($this->store->rows() as $row) {
+            if (AppleService39PilotPublicationStore::isSearchOperation($row['post_key'], $row['operation'], $row['request'])) {
+                $post = $posts[$row['post_key']] ?? null;
+                self::check($post !== null && in_array($row['operation'], ['search_v1_upload',
+                    $post['action'] === 'create_new' ? 'create' : 'search_v1_edit'], true), 'search_revision_changed');
+                continue;
+            }
+            self::check($row['state'] === 'verified' && (int)$row['write_attempts'] === 1, 'search_parent_incomplete');
+            $parentRows[] = $row;
+        }
+        self::check(count($parentRows) === 136, 'search_parent_incomplete');
+        if ($this->searchParents === null) {
+            $this->searchParents = $this->catalogueTargets(true);
+            $this->searchParentRows = $parentRows;
+        }
+        // Reuse immutable plans only while every original row remains typed-equal.
+        // Every live message and pin below is still reread before each new claim.
+        self::check($parentRows === $this->searchParentRows, 'search_parent_changed');
+        $parents = $this->searchParents;
+        $addresses = []; $mids = []; $photos = []; $items = []; $observed = 0;
+        foreach ($parents as $id=>$parent) {
+            $binding = $this->searchRevision->historicalBinding($id);
+            self::check($binding !== null && $binding['message_id'] === $parent['mid'] && $binding['url'] === $parent['url']
+                && $binding['native_photo_id'] === $parent['photo_id'] && $parent['row']['state'] === 'verified', 'search_parent_changed');
+            $addresses[$id] = $parent['url']; $mids[$parent['mid']] = true; $photos[$parent['photo_id']] = true;
+            $edit = $this->store->operation($id, 'search_v1_edit');
+            if ($edit === null || $edit['state'] === 'prepared') $this->verifyCatalogueTarget($parent, true);
+        }
+        foreach ($this->searchRevision->actionOrder() as $id) {
+            $post = $posts[$id];
+            $operation = $post['action'] === 'create_new' ? 'create' : 'search_v1_edit';
+            $row = $this->store->operation($id, $operation); $upload = $this->searchUpload($post);
+            $plan = null; $request = null; $ready = $upload !== null;
+            foreach ($post['links'] as $link) $ready = $ready && isset($addresses[$link['id']]);
+            if ($ready) {
+                $plan = $this->searchRevision->plan($id, $upload, $addresses);
+                $request = $this->searchRequest($post, $upload, $plan);
+            } else $this->searchRevision->validateArtwork($id);
+            if ($row !== null) {
+                self::check($request !== null && $row['request'] === $request
+                    && $row['payload_sha256'] === self::searchHash($request)
+                    && in_array($row['state'], ['prepared','write_started','unknown','verified'], true)
+                    && (int)$row['write_attempts'] === ($row['state'] === 'prepared' ? 0 : 1), 'search_revision_changed');
+                if ($operation === 'search_v1_edit') self::check(in_array($row['external_message_id'], [null,$request['mid']], true)
+                    && in_array($row['public_url'], [null,'',$request['url']], true), 'search_parent_changed');
+                if ($row['state'] !== 'prepared') {
+                    try {
+                        if ($reconcile) $this->store->assertBinding($this->preflight());
+                        [$url,$receipt,$photo] = $this->searchNative($row,$plan,$upload,$photos);
+                        self::check($operation !== 'create' || (!isset($mids[$row['external_message_id']])
+                            && !in_array($url,$addresses,true)), 'pilot_provider_identity_collision');
+                        self::check($this->pinnedMid() === $this->searchRevision->expectedPinMid(), 'landing_menu_pin_changed');
+                        if ($reconcile && in_array($row['state'], ['write_started','unknown'], true)) {
+                            $this->store->assertBinding($this->preflight());
+                            $this->store->rememberMessage($row,$row['external_message_id'],$url);
+                            $this->store->rememberSearchImageReceipt($row,$receipt);
+                            $this->store->finish($row,'verified',['readback'=>true,'revision_sha256'=>$this->searchRevision->sha256()]);
+                            $row = $this->store->operation($id,$operation);
+                        }
+                        if ($row['state'] === 'verified') {
+                            self::check(($row['outcome']['image_receipt'] ?? null) === $receipt
+                                && $row['public_url'] === $url && ($row['outcome']['readback'] ?? null) === true,
+                                'invalid_search_image_receipt');
+                            $addresses[$id] = $url; $mids[$row['external_message_id']] = true; $photos[$photo] = true; $observed++;
+                        }
+                    } catch (Throwable $error) {
+                        $safe = ['provider_read_unknown','post_readback_mismatch','post_attachment_mismatch','post_button_mismatch',
+                            'post_url_changed','native_post_url_required','search_native_image_evidence_required',
+                            'invalid_search_image_receipt','search_image_collision','pilot_provider_identity_collision','landing_menu_pin_changed',
+                            'search_review_evidence_invalid'];
+                        $this->readbackDiagnostics[] = ['post_id'=>$id,'operation'=>$operation,
+                            'reason'=>in_array($error->getMessage(),$safe,true) ? $error->getMessage() : 'search_readback_held'];
+                    }
+                }
+            }
+            $items[$id] = ['post'=>$post,'operation'=>$operation,'upload'=>$upload,'plan'=>$plan,'request'=>$request,'row'=>$row];
+        }
+        self::check($this->pinnedMid() === $this->searchRevision->expectedPinMid(), 'landing_menu_pin_changed');
+        return ['items'=>$items,'addresses'=>$addresses,'mids'=>$mids,'photos'=>$photos,'verified'=>$observed];
+    }
+
+    /** Eight own uploads, then six real creates and two updates; no temporary post or pin write. */
+    private function search(string $mode): array
+    {
+        $snapshot = $this->searchSnapshot($mode === 'search_reconcile');
+        if (in_array($mode, ['search_prepare','search_apply'], true)) {
+            self::check($this->readbackDiagnostics === [] && $this->report('inspected')['held_operations'] === 0, 'search_operation_held');
+            if ($mode === 'search_apply') foreach ($snapshot['items'] as $item) {
+                self::check($item['upload'] !== null, 'search_images_not_prepared');
+            }
+            foreach ($this->searchRevision->actionOrder() as $id) {
+                $snapshot = $this->searchSnapshot();
+                self::check($this->readbackDiagnostics === [], 'search_operation_held');
+                $item = $snapshot['items'][$id]; $post = $item['post'];
+                $operation = $mode === 'search_prepare' ? 'search_v1_upload' : $item['operation'];
+                $request = $mode === 'search_prepare' ? $this->searchUploadRequest($post) : $item['request'];
+                self::check($request !== null, 'search_link_address_missing');
+                $row = $this->store->prepare($id,$operation,$request);
+                if ($row['state'] === 'verified') continue;
+                self::check($row['state'] === 'prepared', 'search_operation_held');
+                ($this->pause)();
+                $this->beforeWrite($row, function () use ($id,$request,$mode): void {
+                    self::check($this->report('inspected')['held_operations'] === 0, 'search_operation_held');
+                    $fresh = $this->searchSnapshot();
+                    self::check($this->readbackDiagnostics === []
+                        && ($mode === 'search_prepare' ? $this->searchUploadRequest($fresh['items'][$id]['post'])
+                            : $fresh['items'][$id]['request']) === $request, 'search_revision_changed');
+                });
+                try {
+                    if ($operation === 'search_v1_upload') {
+                        $response = $this->transport->upload($this->searchRevision->validateArtwork($id));
+                        $receipt = AppleService39ChannelTransport::uploadReceipt($response);
+                        self::check($receipt !== null, 'invalid_search_upload_receipt');
+                        $this->store->finish($row,'verified',$receipt);
+                        continue;
+                    }
+                    if ($operation === 'create') {
+                        $response = $this->transport->create($request['body']);
+                        $message = AppleService39ChannelTransport::accepted($response) ? ($response['data']['message'] ?? null) : null;
+                        self::check(is_array($message) && $this->messageIdentity($message), 'search_operation_held');
+                        $mid = $message['body']['mid'];
+                        self::check(!isset($snapshot['mids'][$mid]), 'pilot_provider_identity_collision');
+                        $this->store->rememberMessage($row,$mid,'');
+                        $this->verifyMessageContent($message,$mid,$request['body'],$item['plan']);
+                        $photo = self::nativePhotoId($this->imagePayload($message)['photo_id'] ?? null);
+                        self::check(preg_match('/\A[1-9][0-9]{0,18}\z/D',$photo) === 1
+                            && !isset($snapshot['photos'][$photo]), 'search_image_collision');
+                        $row = $this->store->operation($id,$operation);
+                        $this->store->rememberSearchImageReceipt($row,$this->searchReceipt($row,$photo,'create_response'));
+                    } else {
+                        $mid = $request['mid'];
+                        $this->store->rememberMessage($row,$mid,$request['url']);
+                        $response = $this->transport->edit($mid,$request['body']);
+                        self::check(AppleService39ChannelTransport::accepted($response)
+                            && ($response['data']['success'] ?? null) === true, 'search_operation_held');
+                    }
+                    $row = $this->store->operation($id,$operation);
+                    [$url,$receipt] = $this->searchNative($row,$item['plan'],$item['upload'],$snapshot['photos']);
+                    self::check($operation !== 'create' || !in_array($url,$snapshot['addresses'],true), 'pilot_provider_identity_collision');
+                    $this->store->assertBinding($this->preflight());
+                    self::check($this->pinnedMid() === $this->searchRevision->expectedPinMid(), 'landing_menu_pin_changed');
+                    $this->store->rememberMessage($row,$mid,$url);
+                    $this->store->rememberSearchImageReceipt($row,$receipt);
+                    $this->store->finish($row,'verified',['readback'=>true,'revision_sha256'=>$this->searchRevision->sha256()]);
+                } catch (Throwable $error) {
+                    $this->hold($row,'search_outcome_unknown');
+                    throw new RuntimeException('search_operation_held');
+                }
+            }
+            $snapshot = $this->searchSnapshot();
+        }
+        $result = $this->report($mode.'_complete');
+        $result['ok'] = $result['ok'] && $this->readbackDiagnostics === [];
+        $result['search_revision'] = AppleService39SearchIntentRevision::KEY;
+        $result['search_revision_sha256'] = $this->searchRevision->sha256();
+        $result['search_verified_posts'] = $snapshot['verified'];
+        $result['search_expected_posts'] = 8;
+        $result['post_count'] = count($snapshot['addresses']);
+        $result['search_expected_navigation_links'] = $this->searchRevision->totalLinks();
+        $result['search_menu_pin_preserved'] = true;
+        $result['search_publication_complete'] = $result['ok'] && $snapshot['verified'] === 8;
+        if (!$result['ok']) $result['state'] = 'held';
         return $result;
     }
 

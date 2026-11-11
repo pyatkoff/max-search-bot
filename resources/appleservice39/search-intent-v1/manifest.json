@@ -1,0 +1,535 @@
+{
+  "schema_version": 1,
+  "revision_key": "search-intent-v1",
+  "project_key": "appleservice39",
+  "bot_key": "id390521129062_bot",
+  "source_key": "max:appleservice39-main",
+  "campaign_key": "appleservice39-pilot-v1",
+  "channel_id": "-80917954947727",
+  "channel_url": "https://max.ru/channel_appleservice39ru",
+  "base_manifest_sha256": "93212e4cd8bc62f5bb1098ea690528106b4c520087c92bc49ea658b2c7a955f3",
+  "parent_revision_sha256": "b2585f77ef5e3d062da62f1f6bcb7ef9ea13ddbaa07486649c8ea7b552a21e2b",
+  "parent_catalogue_sha256": "f5eacf9afbb280f6c0bc58c926a4fd2b4bd0d07bbf36401848649b84fb27b9f2",
+  "warranty_months": 3,
+  "expected_pin_mid": "mid.ffffb667d20a157101a1bd6d233963da",
+  "action_order": [
+    "repair-iphone-16-display",
+    "service-rear-glass-replacement",
+    "symptom-not-charging",
+    "service-rear-camera-replacement",
+    "service-earpiece-replacement",
+    "model-iphone-17",
+    "service-display",
+    "menu"
+  ],
+  "historical_accepted_bindings": [
+    {
+      "post_key": "repair-iphone-x-battery-replacement",
+      "message_id": "mid.ffffb667d20a157101a1bd1d06ec5ef9",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9HQbsXvk",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46903564625",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "repair-iphone-x-front-glass-replacement",
+      "message_id": "mid.ffffb667d20a157101a1bd6cba0e137f",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bLoOE38",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46903566417",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "repair-iphone-x-display",
+      "message_id": "mid.ffffb667d20a157101a1bd6cbee459fe",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bL7kWf4",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46903567697",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "repair-iphone-15-battery-replacement",
+      "message_id": "mid.ffffb667d20a157101a1bd6cc3aa6396",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bMOqY5Y",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46903570257",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "repair-iphone-15-front-glass-replacement",
+      "message_id": "mid.ffffb667d20a157101a1bd6cc89c49a0",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bMicSaA",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46903573329",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "repair-iphone-15-display",
+      "message_id": "mid.ffffb667d20a157101a1bd6ccd6a2762",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bM1qJ2I",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46903575633",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "repair-iphone-15-plus-battery-replacement",
+      "message_id": "mid.ffffb667d20a157101a1bd6cd2187568",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bNIYdWg",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46903580753",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "repair-iphone-15-plus-front-glass-replacement",
+      "message_id": "mid.ffffb667d20a157101a1bd6cd6d33356",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bNbTM1Y",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46903584337",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "repair-iphone-15-plus-display",
+      "message_id": "mid.ffffb667d20a157101a1bd6cdb8f3e99",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bNuPPpk",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46903586129",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "repair-iphone-15-pro-battery-replacement",
+      "message_id": "mid.ffffb667d20a157101a1bd6ce04815b2",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bOBIFbI",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46903588177",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "repair-iphone-15-pro-front-glass-replacement",
+      "message_id": "mid.ffffb667d20a157101a1bd6ce5125182",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bOUSUYI",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46903590225",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "repair-iphone-15-pro-display",
+      "message_id": "mid.ffffb667d20a157101a1bd6ce9d8222a",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bOnYIio",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46903595089",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "repair-iphone-15-pro-max-battery-replacement",
+      "message_id": "mid.ffffb667d20a157101a1bd6cee7a7878",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bO56eHg",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46903599185",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "repair-iphone-15-pro-max-front-glass-replacement",
+      "message_id": "mid.ffffb667d20a157101a1bd6cf32a4b44",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bPMqS0Q",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46903605073",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "repair-iphone-15-pro-max-display",
+      "message_id": "mid.ffffb667d20a157101a1bd6cf7de115a",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bPfeEVo",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46903608145",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "model-iphone-x",
+      "message_id": "mid.ffffb667d20a157101a1bd6cfcb10a4a",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bPyxCko",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46750898257",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "model-iphone-15",
+      "message_id": "mid.ffffb667d20a157101a1bd6d017d3732",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bQF9NzI",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46750898513",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "model-iphone-15-plus",
+      "message_id": "mid.ffffb667d20a157101a1bd6d06682b69",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bQZoK2k",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46750898769",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "model-iphone-15-pro",
+      "message_id": "mid.ffffb667d20a157101a1bd6d0b894f9d",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bQuJT50",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46750899025",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "model-iphone-15-pro-max",
+      "message_id": "mid.ffffb667d20a157101a1bd6d10527157",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bRBScVc",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46750899281",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "service-display",
+      "message_id": "mid.ffffb667d20a157101a1bd6d15311dc8",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bRUxHcg",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46750900049",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "service-front-glass-replacement",
+      "message_id": "mid.ffffb667d20a157101a1bd6d19d25705",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bRnSVwU",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46750900561",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "service-battery-replacement",
+      "message_id": "mid.ffffb667d20a157101a1bd6d1e6f6eeb",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bR5vbus",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46750900817",
+      "native_image_preserved": true
+    },
+    {
+      "post_key": "menu",
+      "message_id": "mid.ffffb667d20a157101a1bd6d233963da",
+      "url": "https://max.ru/channel_appleservice39ru/AaG9bSM5Y9o",
+      "state": "verified",
+      "write_attempts": 1,
+      "native_photo_id": "46750901073",
+      "native_image_preserved": true
+    }
+  ],
+  "historical_binding_kind": "accepted_original_job42828040519_not_current_native_preflight",
+  "posts": [
+    {
+      "id": "menu",
+      "action": "update_existing",
+      "title": "Ремонт iPhone в Калининграде",
+      "paragraphs": [
+        "Разбит экран, быстро садится батарея, пропал звук или телефон не заряжается? Обратитесь в AppleService39 — проверим неисправность и предложим подходящий ремонт.",
+        "Меняем аккумуляторы, стекло и дисплеи, ремонтируем разъёмы, камеры и динамики. Возможность работы для вашей модели подтвердим до записи.",
+        "До начала работ согласуем стоимость и срок. Гарантия на ремонт — 3 месяца.",
+        "Калининград, Ленинский проспект, 18 · 4 этаж, офис 404",
+        "Напишите менеджеру — поможем подобрать ремонт и удобное время."
+      ],
+      "button_label": "Написать менеджеру",
+      "start_payload": "as39_menu",
+      "links": [
+        {
+          "id": "service-battery-replacement",
+          "label": "Замена аккумулятора"
+        },
+        {
+          "id": "service-front-glass-replacement",
+          "label": "Замена стекла"
+        },
+        {
+          "id": "service-display",
+          "label": "Замена дисплея"
+        },
+        {
+          "id": "model-iphone-x",
+          "label": "iPhone X"
+        },
+        {
+          "id": "model-iphone-15",
+          "label": "iPhone 15"
+        },
+        {
+          "id": "model-iphone-15-plus",
+          "label": "iPhone 15 Plus"
+        },
+        {
+          "id": "model-iphone-15-pro",
+          "label": "iPhone 15 Pro"
+        },
+        {
+          "id": "model-iphone-15-pro-max",
+          "label": "iPhone 15 Pro Max"
+        },
+        {
+          "id": "service-rear-glass-replacement",
+          "label": "Замена заднего стекла iPhone"
+        },
+        {
+          "id": "symptom-not-charging",
+          "label": "iPhone не заряжается — ремонт"
+        },
+        {
+          "id": "model-iphone-17",
+          "label": "Ремонт iPhone 17"
+        }
+      ],
+      "image": {
+        "path": "covers/menu.png",
+        "sha256": "2f580bbf4f0963f5a37be34db455527aa8f650597801b7d0b6e81dce790a8681",
+        "size_bytes": 1653706,
+        "width": 1254,
+        "height": 1254
+      }
+    },
+    {
+      "id": "model-iphone-17",
+      "action": "create_new",
+      "title": "Ремонт iPhone 17 в Калининграде",
+      "paragraphs": [
+        "Ремонт iPhone 17, 17 Pro и 17 Pro Max в AppleService39. Поможем с повреждённым экраном, аккумулятором, разъёмом зарядки и другими неисправностями, предусмотренными для вашей модели.",
+        "Уточним точную версию iPhone, проверим подходящий вариант ремонта и наличие детали. Стоимость и срок согласуем до начала работ.",
+        "Гарантия на ремонт — 3 месяца.",
+        "Калининград, Ленинский проспект, 18 · 4 этаж, офис 404",
+        "Напишите менеджеру — уточним вариант iPhone 17 и возможность записи."
+      ],
+      "button_label": "Написать менеджеру",
+      "start_payload": "as39_model-iphone-17",
+      "links": [
+        {
+          "id": "service-display",
+          "label": "Замена дисплея iPhone"
+        },
+        {
+          "id": "service-rear-glass-replacement",
+          "label": "Замена заднего стекла iPhone"
+        },
+        {
+          "id": "menu",
+          "label": "Ремонт iPhone"
+        }
+      ],
+      "image": {
+        "path": "covers/model-iphone-17.png",
+        "sha256": "9f23e4497765429b5a9b79086554bdda5d04b0100d734c278cebb240646c4843",
+        "size_bytes": 1694283,
+        "width": 1254,
+        "height": 1254
+      }
+    },
+    {
+      "id": "service-display",
+      "action": "update_existing",
+      "title": "Замена дисплея iPhone в Калининграде",
+      "paragraphs": [
+        "Полосы, пятна, пропавшее изображение или сбои касаний? Проверим экран и предложим подходящий дисплей для вашей модели iPhone.",
+        "Доступный вариант детали, стоимость и срок согласуем до ремонта. Если повреждено только стекло, мастер проверит возможность сохранить исправный дисплей.",
+        "Гарантия на ремонт — 3 месяца.",
+        "Калининград, Ленинский проспект, 18 · 4 этаж, офис 404",
+        "Напишите менеджеру — уточним стоимость и наличие дисплея для вашей модели."
+      ],
+      "button_label": "Написать менеджеру",
+      "start_payload": "as39_service-display",
+      "links": [
+        {
+          "id": "repair-iphone-15-display",
+          "label": "iPhone 15"
+        },
+        {
+          "id": "repair-iphone-15-plus-display",
+          "label": "iPhone 15 Plus"
+        },
+        {
+          "id": "repair-iphone-15-pro-display",
+          "label": "iPhone 15 Pro"
+        },
+        {
+          "id": "repair-iphone-15-pro-max-display",
+          "label": "iPhone 15 Pro Max"
+        },
+        {
+          "id": "repair-iphone-x-display",
+          "label": "iPhone X"
+        },
+        {
+          "id": "menu",
+          "label": "Меню ремонта"
+        },
+        {
+          "id": "repair-iphone-16-display",
+          "label": "Замена дисплея iPhone 16"
+        }
+      ],
+      "image": {
+        "path": "covers/service-display.png",
+        "sha256": "e310b03cf312d16ea9c85d7ace5ef064a0b66b51bac2dfb11854c078c076d02b",
+        "size_bytes": 1660917,
+        "width": 1254,
+        "height": 1254
+      }
+    },
+    {
+      "id": "repair-iphone-16-display",
+      "action": "create_new",
+      "title": "Замена дисплея iPhone 16 в Калининграде",
+      "paragraphs": [
+        "На iPhone 16 появились полосы, пятна или пропало изображение? Проверим экран и подберём подходящий вариант дисплея.",
+        "Стоимость зависит от выбранной детали. Менеджер уточнит вариант и наличие, а цену и срок согласуем до начала работ.",
+        "Если изображение и касания исправны, отдельно проверим возможность заменить только повреждённое стекло.",
+        "Гарантия на ремонт — 3 месяца.",
+        "Калининград, Ленинский проспект, 18 · 4 этаж, офис 404",
+        "Напишите менеджеру — уточним вариант и наличие дисплея для iPhone 16."
+      ],
+      "button_label": "Написать менеджеру",
+      "start_payload": "as39_repair-iphone-16-display",
+      "links": [
+        {
+          "id": "service-display",
+          "label": "Замена дисплея iPhone"
+        },
+        {
+          "id": "menu",
+          "label": "Ремонт iPhone"
+        }
+      ],
+      "image": {
+        "path": "covers/repair-iphone-16-display.png",
+        "sha256": "a519670c13f8f0eebe7b654edb62a20fb09c15e5385c8ce249379e5ffae6fb41",
+        "size_bytes": 1683437,
+        "width": 1254,
+        "height": 1254
+      }
+    },
+    {
+      "id": "service-rear-glass-replacement",
+      "action": "create_new",
+      "title": "Замена заднего стекла iPhone в Калининграде",
+      "paragraphs": [
+        "Треснуло или разбилось заднее стекло iPhone? Уточним модель и проверим возможность замены повреждённого стекла.",
+        "Подходящую деталь, стоимость и срок согласуем до начала работ. Гарантия на ремонт — 3 месяца.",
+        "Калининград, Ленинский проспект, 18 · 4 этаж, офис 404",
+        "Напишите менеджеру — узнаете стоимость замены для своей модели."
+      ],
+      "button_label": "Написать менеджеру",
+      "start_payload": "as39_service-rear-glass-replacement",
+      "links": [
+        {
+          "id": "menu",
+          "label": "Ремонт iPhone"
+        }
+      ],
+      "image": {
+        "path": "covers/service-rear-glass-replacement.png",
+        "sha256": "905cfb6decf9245ad80ead7e93c8e0bda55919754db19efda11c774a53d5ad26",
+        "size_bytes": 1680727,
+        "width": 1254,
+        "height": 1254
+      }
+    },
+    {
+      "id": "symptom-not-charging",
+      "action": "create_new",
+      "title": "iPhone не заряжается — ремонт в Калининграде",
+      "paragraphs": [
+        "Телефон не реагирует на кабель или зарядка постоянно прерывается? Проверим причину неисправности и предложим подходящий ремонт.",
+        "После проверки объясним, какие работы нужны, и согласуем стоимость и срок до начала ремонта. Гарантия на ремонт — 3 месяца.",
+        "Калининград, Ленинский проспект, 18 · 4 этаж, офис 404",
+        "Напишите менеджеру — уточним симптомы и поможем записаться на проверку."
+      ],
+      "button_label": "Написать менеджеру",
+      "start_payload": "as39_symptom-not-charging",
+      "links": [
+        {
+          "id": "menu",
+          "label": "Ремонт iPhone"
+        }
+      ],
+      "image": {
+        "path": "covers/symptom-not-charging.png",
+        "sha256": "b951fa8aedc259c1212b432994fd4f5077ff454e2d291eb1ccbce8312a177b98",
+        "size_bytes": 1743476,
+        "width": 1254,
+        "height": 1254
+      }
+    },
+    {
+      "id": "service-rear-camera-replacement",
+      "action": "create_new",
+      "title": "Замена основной камеры iPhone в Калининграде",
+      "paragraphs": [
+        "Основная камера не фокусируется, показывает пятна или перестала работать? Проверим причину и возможность замены камеры на вашей модели iPhone.",
+        "Подберём подходящую деталь и согласуем стоимость и срок до начала работ. Гарантия на ремонт — 3 месяца.",
+        "Калининград, Ленинский проспект, 18 · 4 этаж, офис 404",
+        "Напишите менеджеру — уточним стоимость и наличие подходящей камеры."
+      ],
+      "button_label": "Написать менеджеру",
+      "start_payload": "as39_service-rear-camera-replacement",
+      "links": [
+        {
+          "id": "menu",
+          "label": "Ремонт iPhone"
+        }
+      ],
+      "image": {
+        "path": "covers/service-rear-camera-replacement.png",
+        "sha256": "732271ff86ee22546f86973015ebc323fc4466fa052f8ae6b2f1b79c8ebfa175",
+        "size_bytes": 1735506,
+        "width": 1254,
+        "height": 1254
+      }
+    },
+    {
+      "id": "service-earpiece-replacement",
+      "action": "create_new",
+      "title": "Ремонт разговорного динамика iPhone в Калининграде",
+      "paragraphs": [
+        "Собеседника почти не слышно или звук во время звонка искажён? Проверим разговорный динамик и причину неисправности.",
+        "Если нужна замена, уточним совместимую деталь и согласуем стоимость и срок до начала работ. Гарантия на ремонт — 3 месяца.",
+        "Калининград, Ленинский проспект, 18 · 4 этаж, офис 404",
+        "Напишите менеджеру — уточним модель и возможность записи."
+      ],
+      "button_label": "Написать менеджеру",
+      "start_payload": "as39_service-earpiece-replacement",
+      "links": [
+        {
+          "id": "menu",
+          "label": "Ремонт iPhone"
+        }
+      ],
+      "image": {
+        "path": "covers/service-earpiece-replacement.png",
+        "sha256": "d69e1495f396fbc1a98ed1c8a3d012c2d0846ded47c9423ca7982f1ca89b9e05",
+        "size_bytes": 1707005,
+        "width": 1254,
+        "height": 1254
+      }
+    }
+  ]
+}

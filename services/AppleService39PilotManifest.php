@@ -524,3 +524,235 @@ final class AppleService39CatalogueRevision
     }
     private static function check(bool $ok, string $reason): void { if (!$ok) throw new RuntimeException($reason); }
 }
+
+
+/** Pure fixed-content compiler. It cannot authorize, claim or send a provider operation. */
+final class AppleService39SearchIntentRevision
+{
+    public const KEY = 'search-intent-v1';
+    private const SOURCE_SHA256 = 'f92835c769d4a6875b5e8eab846cf13a52ee51030f71f3f5b0ff89b783f00bd3';
+    private const PARENT_SHA256 = 'b2585f77ef5e3d062da62f1f6bcb7ef9ea13ddbaa07486649c8ea7b552a21e2b';
+    private const CATALOGUE_SHA256 = 'f5eacf9afbb280f6c0bc58c926a4fd2b4bd0d07bbf36401848649b84fb27b9f2';
+    private const ORDER = [
+        'repair-iphone-16-display','service-rear-glass-replacement','symptom-not-charging',
+        'service-rear-camera-replacement','service-earpiece-replacement','model-iphone-17',
+        'service-display','menu',
+    ];
+    private array $data;
+    private array $posts = [];
+    private array $bindings = [];
+    private string $directory;
+    private int $totalLinks = 0;
+
+    public function __construct(AppleService39PilotManifest $original, ?string $path = null)
+    {
+        $path ??= dirname(__DIR__).'/resources/appleservice39/search-intent-v1/manifest.json';
+        self::check(is_file($path) && !is_link($path) && filesize($path) <= 131072, 'search_manifest_unavailable');
+        $raw = file_get_contents($path);
+        self::check(is_string($raw) && hash('sha256', $raw) === self::SOURCE_SHA256, 'search_source_changed');
+        $data = json_decode($raw, true, 32, JSON_THROW_ON_ERROR);
+        self::check(is_array($data) && ($data['schema_version'] ?? null) === 1
+            && ($data['revision_key'] ?? null) === self::KEY
+            && ($data['project_key'] ?? null) === AppleService39PilotManifest::PROJECT
+            && ($data['bot_key'] ?? null) === AppleService39PilotManifest::BOT
+            && ($data['campaign_key'] ?? null) === AppleService39PilotManifest::CAMPAIGN
+            && ($data['source_key'] ?? null) === AppleService39PilotManifest::SOURCE
+            && ($data['channel_url'] ?? null) === AppleService39PilotManifest::CHANNEL
+            && ($data['channel_id'] ?? null) === '-80917954947727'
+            && ($data['base_manifest_sha256'] ?? null) === $original->sha256()
+            && ($data['parent_revision_sha256'] ?? null) === self::PARENT_SHA256
+            && ($data['parent_catalogue_sha256'] ?? null) === self::CATALOGUE_SHA256
+            && ($data['warranty_months'] ?? null) === 3 && ($data['action_order'] ?? null) === self::ORDER,
+            'search_identity_changed');
+        $parent = dirname(__DIR__).'/resources/appleservice39/catalogue-v1/';
+        self::check(hash_file('sha256', $parent.'manifest.json') === self::PARENT_SHA256
+            && hash_file('sha256', $parent.'catalog.json') === self::CATALOGUE_SHA256, 'search_parent_changed');
+        $this->directory = dirname((string)realpath($path));
+        $oldIds = array_column($original->posts(), 'id');
+        self::check(is_array($data['historical_accepted_bindings'] ?? null)
+            && array_is_list($data['historical_accepted_bindings'])
+            && array_column($data['historical_accepted_bindings'], 'post_key') === $oldIds, 'search_baseline_changed');
+        $mids = []; $urls = [];
+        foreach ($data['historical_accepted_bindings'] as $binding) {
+            self::check(is_string($binding['message_id'] ?? null)
+                && preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/D', $binding['message_id']) === 1
+                && ($binding['state'] ?? null) === 'verified' && ($binding['write_attempts'] ?? null) === 1
+                && is_string($binding['native_photo_id'] ?? null)
+                && preg_match('/\A[1-9][0-9]{0,18}\z/D', $binding['native_photo_id']) === 1
+                && self::publicAddress($binding['url'] ?? null)
+                && !isset($mids[$binding['message_id']]) && !isset($urls[$binding['url']]), 'search_baseline_changed');
+            $this->bindings[$binding['post_key']] = $binding;
+            $mids[$binding['message_id']] = true; $urls[$binding['url']] = true;
+        }
+        self::check(($data['expected_pin_mid'] ?? null) === $this->bindings['menu']['message_id'], 'search_pin_changed');
+        self::check(is_array($data['posts'] ?? null) && array_is_list($data['posts'])
+            && count($data['posts']) === 8, 'search_exact_posts_required');
+        foreach ($data['posts'] as $post) {
+            self::check(is_array($post) && is_string($post['id'] ?? null)
+                && in_array($post['id'], self::ORDER, true) && !isset($this->posts[$post['id']]), 'search_post_changed');
+            $id = $post['id'];
+            self::check(($post['action'] ?? null) === (isset($this->bindings[$id]) ? 'update_existing' : 'create_new')
+                && ($post['button_label'] ?? null) === 'Написать менеджеру'
+                && ($post['start_payload'] ?? null) === 'as39_'.$id
+                && AppleService39PilotCatalog::landingPayloadForPost($id) === $post['start_payload'], 'search_entry_changed');
+            self::plain($post['title'] ?? null, 120);
+            self::check(is_array($post['paragraphs'] ?? null) && array_is_list($post['paragraphs'])
+                && count($post['paragraphs']) >= 2 && count($post['paragraphs']) <= 6, 'search_text_invalid');
+            foreach ($post['paragraphs'] as $paragraph) self::plain($paragraph, 1600);
+            self::check(is_array($post['links'] ?? null) && array_is_list($post['links'])
+                && count($post['links']) >= 1 && count($post['links']) <= 16, 'search_links_invalid');
+            $linked = [];
+            foreach ($post['links'] as $link) {
+                self::check(is_array($link) && array_keys($link) === ['id','label'] && is_string($link['id'])
+                    && in_array($link['id'], array_merge($oldIds, self::ORDER), true)
+                    && $link['id'] !== $id && !isset($linked[$link['id']]), 'search_links_invalid');
+                self::plain($link['label'], 128); $linked[$link['id']] = $link['label'];
+            }
+            if (isset($this->bindings[$id])) {
+                foreach ($original->post($id)['links'] as $oldLink) {
+                    self::check(($linked[$oldLink['id']] ?? null) === $oldLink['label'], 'search_legacy_link_removed');
+                }
+            }
+            self::check(is_array($post['image'] ?? null)
+                && ($post['image']['path'] ?? null) === 'covers/'.$id.'.png'
+                && is_string($post['image']['sha256'] ?? null)
+                && preg_match('/\A[a-f0-9]{64}\z/D', $post['image']['sha256']) === 1
+                && is_int($post['image']['size_bytes'] ?? null) && $post['image']['size_bytes'] > 0
+                && $post['image']['size_bytes'] < 1900000
+                && ($post['image']['width'] ?? null) === 1254 && ($post['image']['height'] ?? null) === 1254,
+                'search_image_invalid');
+            $this->posts[$id] = $post;
+            $this->validateArtwork($id);
+        }
+        $available = array_fill_keys($oldIds, true);
+        foreach (self::ORDER as $id) {
+            foreach ($this->posts[$id]['links'] as $link) {
+                self::check(isset($available[$link['id']]), 'search_temporary_link_required');
+            }
+            $available[$id] = true;
+        }
+        foreach ($original->posts() as $old) {
+            $this->totalLinks += count(($this->posts[$old['id']] ?? $old)['links']);
+        }
+        foreach ($this->posts as $id=>$post) if (!isset($this->bindings[$id])) $this->totalLinks += count($post['links']);
+        self::check(count($available) === 30 && $this->totalLinks === 99, 'search_graph_changed');
+        $this->data = $data;
+    }
+
+    public function sha256(): string { return self::SOURCE_SHA256; }
+    public function posts(): array { return array_values($this->posts); }
+    public function actionOrder(): array { return self::ORDER; }
+    public function expectedPinMid(): string { return $this->data['expected_pin_mid']; }
+    public function totalLinks(): int { return $this->totalLinks; }
+    /** Historical approved binding only, never a fresh provider observation. */
+    public function historicalBinding(string $id): ?array { return $this->bindings[$id] ?? null; }
+
+    /** Individually admitted evidence for the two replacements, separate from the content hash. */
+    public function reviewedNativeImage(string $id): ?array
+    {
+        $directory = $this->directory.'/reconciliation'; $indexPath = $directory.'/index.json';
+        self::check(!is_link($directory) && is_file($indexPath) && !is_link($indexPath)
+            && filesize($indexPath) <= 16384, 'search_review_evidence_invalid');
+        $index = json_decode((string)file_get_contents($indexPath), true, 16, JSON_THROW_ON_ERROR);
+        self::check(is_array($index) && array_keys($index) === ['schema_version','revision_key','project_key','policy','approvals']
+            && $index['schema_version'] === 1 && $index['revision_key'] === self::KEY
+            && $index['project_key'] === AppleService39PilotManifest::PROJECT
+            && $index['policy'] === 'exact_source_and_native_visual_review'
+            && is_array($index['approvals']) && array_is_list($index['approvals']) && count($index['approvals']) <= 2,
+            'search_review_evidence_invalid');
+        $selected = null; $seen = [];
+        foreach ($index['approvals'] as $entry) {
+            self::check(is_array($entry) && array_keys($entry) === ['post_id','proof_sha256','native_preview_sha256']
+                && in_array($entry['post_id'], ['menu','service-display'], true) && !isset($seen[$entry['post_id']]),
+                'search_review_evidence_invalid');
+            foreach (['proof_sha256','native_preview_sha256'] as $key) self::check(is_string($entry[$key])
+                && preg_match('/\A[a-f0-9]{64}\z/D',$entry[$key]) === 1, 'search_review_evidence_invalid');
+            $seen[$entry['post_id']] = true;
+            if ($entry['post_id'] === $id) $selected = $entry;
+        }
+        if ($selected === null) return null;
+        $proofPath = $directory.'/'.$id.'.json'; $preview = $directory.'/'.$id.'.jpg';
+        foreach ([$proofPath,$preview] as $file) self::check(is_file($file) && !is_link($file)
+            && dirname((string)realpath($file)) === realpath($directory), 'search_review_evidence_invalid');
+        self::check(filesize($proofPath) > 0 && filesize($proofPath) <= 16384 && filesize($preview) > 0
+            && filesize($preview) <= 5242880 && hash_file('sha256',$proofPath) === $selected['proof_sha256']
+            && hash_file('sha256',$preview) === $selected['native_preview_sha256'], 'search_review_evidence_invalid');
+        $proof = json_decode((string)file_get_contents($proofPath),true,16,JSON_THROW_ON_ERROR); $image = @getimagesize($preview);
+        self::check(is_array($proof) && is_array($image) && $image[2] === IMAGETYPE_JPEG
+            && $image[0] > 0 && $image[0] <= 7680 && $image[1] > 0 && $image[1] <= 7680
+            && ($proof['native_preview_width'] ?? null) === $image[0] && ($proof['native_preview_height'] ?? null) === $image[1]
+            && ($proof['native_preview_sha256'] ?? null) === $selected['native_preview_sha256'], 'search_review_evidence_invalid');
+        return ['proof'=>$proof,'evidence_sha256'=>$selected['proof_sha256'],'native_preview_sha256'=>$selected['native_preview_sha256']];
+    }
+
+    public function validateArtwork(string $id): string
+    {
+        self::check(isset($this->posts[$id]), 'search_post_outside_revision');
+        $image = $this->posts[$id]['image'];
+        $path = $this->directory.'/'.$image['path']; $resolved = realpath($path);
+        self::check(is_string($resolved) && str_starts_with($resolved, $this->directory.'/covers/')
+            && !is_link($path) && !is_link($this->directory.'/covers') && is_file($path)
+            && filesize($path) === $image['size_bytes'] && hash_file('sha256', $path) === $image['sha256'],
+            'search_source_image_changed');
+        $size = @getimagesize($path);
+        self::check(is_array($size) && ($size[2] ?? null) === IMAGETYPE_PNG
+            && $size[0] === 1254 && $size[1] === 1254, 'search_source_image_invalid');
+        return $path;
+    }
+
+    /** Addresses and upload data are compiler inputs, not evidence of native verification. */
+    public function plan(string $id, array $upload, array $addresses): array
+    {
+        self::check(isset($this->posts[$id]), 'search_post_outside_revision');
+        $post = $this->posts[$id]; $this->validateArtwork($id);
+        $seen = [];
+        foreach ($addresses as $key=>$url) {
+            self::check(is_string($key) && (isset($this->bindings[$key]) || isset($this->posts[$key]))
+                && self::publicAddress($url) && !isset($seen[$url]), 'search_address_invalid');
+            if (isset($this->bindings[$key])) self::check($url === $this->bindings[$key]['url'], 'search_original_url_changed');
+            $seen[$url] = true;
+        }
+        foreach ($this->bindings as $key=>$binding) {
+            self::check(($addresses[$key] ?? null) === $binding['url'], 'search_original_url_missing');
+        }
+        foreach ($post['links'] as $link) self::check(isset($addresses[$link['id']]), 'search_link_address_missing');
+        $keys = array_keys($upload); sort($keys);
+        self::check($keys === ['photo_id','source_sha256','token']
+            && is_string($upload['token']) && $upload['token'] !== '' && strlen($upload['token']) <= 32768
+            && preg_match('/[\x00-\x1f\x7f]/', $upload['token']) === 0
+            // The photos-map key may be zero. It is an upload index, never native image evidence.
+            && is_string($upload['photo_id']) && preg_match('/\A(?:0|[1-9][0-9]{0,18})\z/D', $upload['photo_id']) === 1
+            && $upload['source_sha256'] === $post['image']['sha256'], 'search_own_upload_required');
+        $text = AppleService39LandingRevision::textPlan($post, $addresses, 'Услуги и варианты ремонта');
+        $body = $text['body'];
+        $body['attachments'] = [
+            ['type'=>'image','payload'=>['token'=>$upload['token']]],
+            ['type'=>'inline_keyboard','payload'=>['buttons'=>[[[
+                'type'=>'link','text'=>$post['button_label'],
+                'url'=>'https://max.ru/'.AppleService39PilotManifest::BOT.'?start='.$post['start_payload'],
+            ]]]]],
+        ];
+        return [
+            'state'=>'compiled_unpublished','post_id'=>$id,'action'=>$post['action'],
+            'revision_sha256'=>self::SOURCE_SHA256,
+            'source_image_sha256'=>$post['image']['sha256'],
+            'compiled_body_sha256'=>hash('sha256', json_encode($body, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),
+            'body'=>$body,'native_text'=>$text['native_text'],'native_markup'=>$text['native_markup'],
+            'historical_binding'=>$this->bindings[$id] ?? null,
+            'native_verified'=>false,'operation_claim_created'=>false,'pin_write_permitted'=>false,
+        ];
+    }
+
+    private static function publicAddress($value): bool
+    {
+        return is_string($value)
+            && preg_match('~\Ahttps://max\.ru/channel_appleservice39ru/[A-Za-z0-9_-]{1,191}\z~D', $value) === 1;
+    }
+    private static function plain($value, int $limit): void
+    {
+        self::check(is_string($value) && trim($value) !== '' && preg_match('//u', $value) === 1
+            && mb_strlen($value, 'UTF-8') <= $limit && preg_match('/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u', $value) === 0,
+            'search_text_invalid');
+    }
+    private static function check(bool $ok, string $reason): void { if (!$ok) throw new RuntimeException($reason); }
+}
