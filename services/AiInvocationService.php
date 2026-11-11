@@ -21,6 +21,8 @@ class AiInvocationService
 
         $sourcePost=SourceHandlingService::sourcePostContext($chatId);
         if($sourcePost)$aiCurrent['_source_post']=$sourcePost;
+        $recentDialogue=SourceHandlingService::recentDialogueContext($chatId);
+        if($recentDialogue)$aiCurrent['_recent_dialogue']=$recentDialogue;
 
         AiRuntimeLogger::debug(
             "\n" . date('d.m.Y H:i:s') . "--- chat=" . $chatId . " ---\n" .
