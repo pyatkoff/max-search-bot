@@ -546,6 +546,7 @@ try{
         ->execute([502,10,'inbound','customer','max','2','{"type":"message"}','2026-11-04 09:01:00']);
     $traceScope=$dialogueScope.' '.$forecastScope;
     [, $traceContext]=dialogueMcpGrant($oauth,$client,$traceScope);
+    $traceStoredScope=implode(' ',$traceContext['scopes']);
     $traceInventory=$nativeCall($native,$traceContext,'list_current_dialogues');
     $traceRef=$traceInventory['result']['structuredContent']['dialogues'][0]['dialogue_ref'];
     $beforeTraceChanges=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
@@ -591,7 +592,9 @@ try{
     dialogueMcpCheck('forecast withdrawal after the read snapshot suppresses the entire private result',
         $withdrawnTrace&&($lateTrace['error']['code']??null)===-32001&&!isset($lateTrace['result'])&&!$pdo->inTransaction());
     DialogueSelectionGrantStatement::$withdrawAfterSnapshot=null;
-    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET scopes=? WHERE grant_id=?')->execute([$traceScope,$traceContext['connection_id']]);
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET scopes=? WHERE grant_id=?')->execute([$traceStoredScope,$traceContext['connection_id']]);
+    dialogueMcpCheck('restored forecast grant preserves canonical stored consent',
+        $oauth->connectionAuthorized($traceContext['connection_id'],1,[$dialogueScope,$forecastScope]));
     $longReferenceProfile=$traceProfile();
     $longReferenceProfile['profile']['party']['adults']['references']=array_map(
         static fn(int $n):array=>['id'=>'journal:'.$n,'source'=>'message'],range(1,6));
@@ -600,7 +603,8 @@ try{
     $longReferencePacket=$nativeCall($native,$traceContext,'get_dialogue_review_context',['dialogue_ref'=>$traceRef]);
     $longReferenceTrace=$longReferencePacket['result']['structuredContent']['saved_profile']['conversion_trace']??[];
     dialogueMcpCheck('bounded fact references propagate explicit incomplete trace coverage',
-        ($longReferenceTrace['frozen_profile']['party']['adults']['complete']??null)===false
+        ($longReferenceTrace['profile_id']??null)==='12'
+        &&($longReferenceTrace['frozen_profile']['party']['adults']['complete']??null)===false
         &&($longReferenceTrace['complete']??null)===false);
     for($n=100;$n<133;$n++)$putTraceRow($n);
     $boundedTrace=$nativeCall($native,$traceContext,'get_dialogue_review_context',['dialogue_ref'=>$traceRef]);
