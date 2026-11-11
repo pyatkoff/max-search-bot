@@ -47,8 +47,8 @@ the own upload and edit IDs/request hashes/start, original MID/URL and actual
 native photo ID. A genuine proof requires ordinary source checks and installation;
 the content manifest, upload/edit requests and original attempts do not change.
 GET-only reconciliation may then close that attempt and apply may finish only
-the remaining unattempted work. The search index contains only the individually
-reviewed `service-display` evidence below; `menu` is not approved. Synthetic test
+the remaining unattempted work. The search index contains the individually
+reviewed `service-display` and `menu` evidence below. Synthetic test
 proofs are removed/restored in `finally` and confer no live authority.
 
 The original `search_apply`42992953202/job130430788405 on accepted application
@@ -69,11 +69,35 @@ e310b03cf312d16ea9c85d7ace5ef064a0b66b51bac2dfb11854c078c076d02b and
 The proof and its witness disclose the different native/API and public-preview
 locator hashes; no signed locator, token or raw HTML is committed.
 
-This finite source evidence requires its ordinary checks and installation before
-`search_reconcile` may close only that same original151 attempt. Then
-`search_apply` may update only the still-unattempted `menu`. No existing upload,
-create or edit is repeated, reset or relabelled, and this source admission alone
-does not assert that reconciliation or final8/8 publication has succeeded.
+The display proof was installed in PR1474 at
+f6ec29280559dee3cc0d4539f932a5f939fbb2a0. Original GET-only reconciliation
+42997155731/job130444803752 verified only that same151 attempt, reaching7/8
+verified with zero holds. The next original `search_apply`42997682518/
+job130446577469 skipped all verified operations and updated only the unsent
+menu. It retained original menu edit152/attempt1 as UNKNOWN for its renewed
+first image token; upload144 remains VERIFIED/attempt1. All136 predecessor
+operation reports and the original menu MID/URL/pin are preserved.
+
+The actual menu public SSR PHOTO photoId/referenceId47197448017 matches the
+original provider GET. The exact68854-byte768x768 JPEG was opened individually
+beside the approved1254x1254 PNG: full square composition, AppleService39,
+repair iPhone, Kaliningrad, blue phone and three-month warranty match. The
+menu proof binds that original152 request/upload/start/revision/source and
+native photo. Its witness discloses both different locator hashes, separate
+source/native hashes and dimensions, without signed URLs or raw HTML. The
+three already admitted display proof/JPEG/witness blobs remain byte-identical.
+
+This finite menu source evidence requires its ordinary checks and installation
+before GET-only `search_reconcile` may close only the original152 attempt. No
+existing upload, create or edit is repeated, reset or relabelled, and source
+admission alone does not assert final8/8 native publication acceptance.
+
+The public MAX browser preview was separately observed to render navigation
+labels as relative anchor href values while its SSR `markupUrl` retains the
+correct native-post addresses. The same observation occurs on the unchanged
+historical X/battery post. Native body/URL verification does not certify that
+external preview renderer or an authenticated native-app click. No new
+customer/bot test or MAX web-client login was performed for this verification.
 
 `search_publication_complete` requires eight verified fresh native observations.
 Expected graph counts or successful source tests do not establish publication,
