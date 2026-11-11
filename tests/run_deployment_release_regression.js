@@ -871,19 +871,21 @@ async function publishedStatusReadbackCases(){
       'diagnostics_compare_conflict','an expected-state conflict is checked before writing');
     equal(f.calls.some(x=>x.method!=='GET'),false,'compare conflict performs no mutation');
   }
-  {
+  for(const mode of ['transport','malformed_json']){
     const f=fixture(a),record=recordFor(f),base=f.api;
     const writer=C.makeApi('fixture',async(url,options)=>{
       const parsed=new URL(url),route=parsed.pathname+parsed.search;
       const body=options.body===undefined?undefined:JSON.parse(options.body);
       const result=await base(options.method,route,body);
-      if(options.method==='PATCH'&&route===ref)
-        throw Error('private transport detail after the committed ref update');
+      if(options.method==='PATCH'&&route===ref){
+        if(mode==='transport')throw Error('private transport detail after the committed ref update');
+        return {ok:true,status:200,arrayBuffer:async()=>Buffer.from('{')};
+      }
       return {ok:true,status:200,arrayBuffer:async()=>Buffer.from(JSON.stringify(result))};
     });
     const out=await C.publishDiagnostics(writer,record);
-    equal(out.record,record,'the real API adapter reconciles a committed transport failure');
-    equal(f.calls.filter(x=>x.method==='PATCH').length,1,'the real API adapter never resends');
+    equal(out.record,record,'the real API adapter reconciles a committed '+mode+' failure');
+    equal(f.calls.filter(x=>x.method==='PATCH').length,1,'the real API adapter never resends after '+mode);
   }
 }
 
