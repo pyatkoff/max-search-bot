@@ -723,6 +723,7 @@ function forecastV1Assertions(PDO $p,callable $check):void
         !$r['available']&&$r['reason']==='storage_unavailable'&&$r['saved']===null);
     forecastValueDeliveryAssertions($p,$check);
     forecastRepairAssessmentAssertions($p,$check);
+    forecastFiniteVisitEvidenceAssertions($p,$check);
     forecastInputDiagnosisAssertions($p,$check);
     forecastPredictiveValueAssertions($p,$check);
 }
@@ -1609,6 +1610,117 @@ function forecastRepairAssessmentAssertions(PDO $p,callable $check):void
     $missing=$read();$check('missing repair migration is explicit unavailable rather than no repaired deliveries',
         $missing===['available'=>false,'reason'=>'storage_unavailable']);
 }
+
+
+/** A saved GET-only finite proof is bound to three current immutable rows, with no provider work in this reader. */
+function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check):void
+{
+    foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
+    $p->exec("CREATE TABLE modeled_conversion_profile_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),customer_key VARCHAR(40),conversation_id BIGINT,observed_at_unix BIGINT,assessment_namespace CHAR(64),assessment_kind VARCHAR(8),profile_json TEXT)");
+    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),conversation_id BIGINT,counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),target VARCHAR(100),value_profile_id BIGINT,value_rub DECIMAL(12,2),state VARCHAR(24),upload_status VARCHAR(32),upload_id VARCHAR(40),external_user_id VARCHAR(20),event_unix BIGINT,value_stage VARCHAR(40),last_error TEXT,value_ready_at_unix BIGINT,value_api_accepted_at_unix BIGINT,value_processed_at_unix BIGINT)");
+    $checkpoint=ModeledConversionValueVisitEvidence::CHECKPOINT;$now=$checkpoint+600;$namespace=ModeledConversionProfiles::assessmentNamespace();
+    $insertProfile=$p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour','max',?,?,?,?,'repair','PRIVATE_NATIVE_PROFILE_MUST_NOT_BE_READ')");
+    $insertEvent=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,'anytour','max',?,'98615635',?,?,?,?,?,'pending',NULL,NULL,?,?,'specific_request','identity_not_found',NULL,NULL,NULL)");
+    for($id=1;$id<=4;$id++){
+        $born=$id===4?$checkpoint+1:$checkpoint-120;
+        $insertProfile->execute([$id,(string)(730000+$id),930000+$id,$born,$namespace]);
+        $insertEvent->execute([$id,930000+$id,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,
+            ModeledConversionValueContract::predictionKey((string)$id),$id,500,(string)(740000+$id),$born]);
+    }
+    $ledger=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id<=3 ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $frame=['v'=>ModeledConversionValueVisitEvidence::VERSION,'n'=>$namespace,'b'=>$checkpoint,'r'=>[]];
+    foreach($ledger as$row)$frame['r'][]=[ModeledConversionValueIdentityEvidence::reference($row,$namespace),(string)$row['id'],
+        0,null,null,0,null,null,null,null,0,null,0,null,0,(int)$row['event_unix']];
+    $read=static fn(mixed $saved,?callable $auth=null,?ModeledConversionStatusBudget $budget=null):array=>
+        (new ModeledConversionValueDeliveryReader($p,$auth??static function():void{},$budget??new ModeledConversionStatusBudget()))->repairAssessments($now,null,$saved);
+    $snapshot=static fn():string=>json_encode([
+        $p->query('SELECT * FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),
+        $p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)],JSON_THROW_ON_ERROR);
+    $before=$snapshot();$oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+    ForecastV1ObservedStatement::$observePredictive=true;ForecastV1ObservedStatement::$predictiveExecutions=0;
+    ForecastV1ObservedStatement::$predictiveCopies=[];ForecastV1ObservedStatement::$predictiveStatements=[];
+    try{$r=$read($frame);}finally{ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $proof=$r['finite_visit_evidence'];$statements=ForecastV1ObservedStatement::$predictiveStatements;
+    $scalarCopyBytes=strlen(json_encode(ForecastV1ObservedStatement::$predictiveCopies[0],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    $check('finite proof reads exactly three bound original rows before optional exact cases',
+        $proof['available']&&count($proof['rows'])===3&&!$proof['complete']
+        &&array_column($proof['rows'],'event_ref')===array_column($frame['r'],0)
+        &&array_column($proof['rows'],'financial_state')===['pending','pending','pending']
+        &&$proof['provider_requests_in_reader']===0&&ForecastV1ObservedStatement::$predictiveExecutions===3
+        &&str_contains($statements[1]['sql'],'LIMIT 4 OFFSET 0')&&str_contains($statements[2]['sql'],'LIMIT 17 OFFSET 0'));
+    $sql=implode(' ',array_column($statements,'sql'));$json=json_encode($r,JSON_THROW_ON_ERROR);
+    $check('finite proof projection returns no raw ledger customer tracker or source payload identifiers',
+        !str_contains($sql,'profile_json')&&!str_contains($sql,'snapshot_json')&&!str_contains($json,'PRIVATE_')
+        &&!str_contains($json,'"730001"')&&!str_contains($json,'"740001"')&&!str_contains($json,'"930001"')
+        &&!str_contains($json,'external_user_id')&&!str_contains($json,'conversation_id')&&!str_contains($json,'value_profile_id')
+        &&!str_contains($json,'client_id')&&!str_contains($json,'record_id')&&$snapshot()===$before);
+    $observed=$frame;$event=(int)$observed['r'][0][15];$sourceAt=$checkpoint-30*86400;
+    $client='9912345678912345';$record='82101';$candidate=ModeledConversionValueVisitEvidence::candidateReference(
+        $observed['r'][0][0],$client,$record,$sourceAt,'canonical_max_lookup');
+    $observed['r'][0]=[$observed['r'][0][0],$observed['r'][0][1],2,$now-4,$now-3,1,
+        $client,$record,$sourceAt,$candidate,1,true,1,$event-30,1,$event];
+    $saved=$read($observed)['finite_visit_evidence'];$savedRow=$saved['rows'][0];
+    $public=json_encode($saved,JSON_THROW_ON_ERROR);
+    $check('saved recent real-visit evidence stays distinct from old source identity age and financial readiness',
+        $saved['available']&&$savedRow['window_allowed']===true&&$savedRow['financial_state']==='pending'
+        &&$savedRow['first_ready_at']===null&&$savedRow['api_accepted_at']===null&&$savedRow['processed_at']===null
+        &&$savedRow['source_observed_at']===gmdate('Y-m-d\TH:i:s\Z',$sourceAt)
+        &&$savedRow['selected_prior_visit_at']===gmdate('Y-m-d\TH:i:s\Z',$event-30)
+        &&$savedRow['event_at']===gmdate('Y-m-d\TH:i:s\Z',$event)
+        &&$savedRow['candidate_sha256']===$candidate&&$saved['provider_requests_in_reader']===0
+        &&!str_contains($public,'"'.$client.'"')&&!str_contains($public,'"'.$record.'"'));
+    $foreign=$frame;$foreign['n']=str_repeat('0',64);$invalid=$read($foreign)['finite_visit_evidence'];
+    $missing=$read(null)['finite_visit_evidence'];$consumed=$read(false)['finite_visit_evidence'];
+    $check('missing foreign and retained tombstone frames are explicit unavailable without invented no-visit results',
+        !$invalid['available']&&!$missing['available']&&!$consumed['available']
+        &&$consumed['reason']==='retained_budget_tombstone_no_automatic_retry'
+        &&!array_key_exists('window_allowed',$missing));
+    foreach(['ledger','event']as$kind){
+        $rebound=$frame;if($kind==='ledger')$rebound['r'][0][1]='999';else$rebound['r'][0][15]--;
+        $bad=$read($rebound)['finite_visit_evidence'];
+        $check('finite saved '.$kind.' rebinding fails closed',
+            !$bad['available']&&$bad['reason']==='saved_frame_binding_mismatch');
+    }
+    $malformed=$frame;$malformed['raw_client_id']='PRIVATE_UNTRUSTED_CLIENT';
+    $bad=$read($malformed)['finite_visit_evidence'];
+    $oversize=$frame;$oversize['r'][0][9]=str_repeat('PRIVATE_OVERSIZED_FRAME_',200);
+    $large=$read($oversize)['finite_visit_evidence'];
+    $check('malformed and oversized finite frames never pass private fields to the result',
+        !$bad['available']&&!$large['available']
+        &&!str_contains(json_encode([$bad,$large],JSON_THROW_ON_ERROR),'PRIVATE_'));
+    $p->prepare('UPDATE modeled_conversion_profile_versions SET observed_at_unix=? WHERE id=4')->execute([$checkpoint-120]);
+    $p->prepare('UPDATE max_channel_conversion_outbox SET event_unix=? WHERE id=4')->execute([$checkpoint-120]);
+    $tooMany=$read($frame)['finite_visit_evidence'];
+    $check('fourth eligible original candidate makes finite selection unavailable rather than choosing three',
+        !$tooMany['available']&&$tooMany['reason']==='current_cohort_cardinality_unverified');
+    $p->prepare('UPDATE modeled_conversion_profile_versions SET observed_at_unix=? WHERE id=4')->execute([$checkpoint+1]);
+    $p->prepare('UPDATE max_channel_conversion_outbox SET event_unix=? WHERE id=4')->execute([$checkpoint+1]);
+    $budget=new ModeledConversionStatusBudget();$budget->consumeBytes(65536-(16384+$scalarCopyBytes+64));
+    $priority=$read($frame,null,$budget);
+    $check('small finite frame keeps priority when shared bytes cannot also copy the optional sixteen-case packet',
+        $priority['finite_visit_evidence']['available']&&count($priority['finite_visit_evidence']['rows'])===3
+        &&$priority['exact_cases']===['available'=>false,'reason'=>'budget_headroom']);
+    $oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+    ForecastV1ObservedStatement::$observePredictive=true;ForecastV1ObservedStatement::$predictiveExecutions=0;$revoked=false;
+    try{$read($frame,static function():void{if(ForecastV1ObservedStatement::$predictiveExecutions>=2)throw new DomainException('revoked');});}
+    catch(DomainException $ignored){$revoked=true;}
+    finally{ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $check('revocation after finite bound-case copy prevents release',
+        $revoked&&ForecastV1ObservedStatement::$predictiveExecutions===2);
+    $projection=(new ReflectionClass(ModeledConversionForecastStatusReader::class))->newInstanceWithoutConstructor();
+    $bound=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'boundedResponse');
+    $fixed=$r;unset($fixed['exact_cases']);$fixed=['value_delivery'=>['repair_assessments'=>$fixed,'predictive_v1'=>['examples'=>[]]]];
+    $padding=max(0,27000-strlen(json_encode($fixed,JSON_THROW_ON_ERROR)));
+    $body=['padding'=>str_repeat('x',$padding),'value_delivery'=>['repair_assessments'=>$r,'predictive_v1'=>['examples'=>[['private_padding'=>str_repeat('x',6000)]]]]];
+    $safe=$bound->invoke($projection,$body);
+    $check('finite three-case proof survives removal of optional examples and sixteen-case detail under the existing response cap',
+        strlen(json_encode($safe,JSON_THROW_ON_ERROR))<=28000
+        &&$safe['value_delivery']['repair_assessments']['finite_visit_evidence']===$proof
+        &&$safe['value_delivery']['predictive_v1']['examples']===[]);
+    $check('finite read operations never mutate the saved financial rows or native profile payloads',$snapshot()===$before);
+}
+
 
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);$passed=0;
