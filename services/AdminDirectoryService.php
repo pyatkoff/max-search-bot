@@ -84,6 +84,25 @@ class AdminDirectoryService
         return self::saveManager($data,$actorManagerId,$projectKey);
     }
 
+    /** Atomic new-client directory; callers never edit an existing tenant here. */
+    public static function createClientDirectory(PDO $pdo,int $actor,string $key,string $name,array $staff): array
+    {
+        if(!$pdo->inTransaction()||!ManagerAuthService::isAdmin(ManagerAuthService::byId($actor,true)))throw new RuntimeException('admin_required');
+        if(!preg_match('/\Aclient_[a-f0-9]{24}\z/D',$key)||$name===''||count($staff)<1||count($staff)>20)throw new InvalidArgumentException('invalid_client');
+        $q=$pdo->prepare('INSERT INTO projects (project_key,display_name,is_active) VALUES (?,?,1)');$q->execute([$key,$name]);$project=(int)$pdo->lastInsertId();
+        self::grantProjectToActiveAdmins($pdo,$project);
+        $q=$pdo->prepare("INSERT INTO conversation_sources (project_id,source_key,display_name,channel,handling_mode,fallback_mode,is_active) VALUES (?,?,?,'max','manager','none',1)");$q->execute([$project,'max:'.$key.'-main',$name]);
+        $ids=[];
+        foreach($staff as $employee){
+            // A customer employee is never a global administrator or put on shift.
+            $q=$pdo->prepare("INSERT INTO managers (login,password_hash,display_name,role,is_active,is_working,priority) VALUES (?,?,?,'manager',1,0,0)");$q->execute([$employee['login'],password_hash($employee['password'],PASSWORD_DEFAULT),$employee['name']]);$id=(int)$pdo->lastInsertId();
+            $pdo->prepare('INSERT INTO manager_projects (manager_id,project_id) VALUES (?,?)')->execute([$id,$project]);$ids[]=$id;
+            AuditLogService::record($actor,'manager_created','manager',(string)$id,$key,null,['login'=>$employee['login'],'display_name'=>$employee['name'],'role'=>'manager','project_ids'=>[$project]]);
+        }
+        AuditLogService::record($actor,'project_created','project',(string)$project,$key,null,['project_key'=>$key,'display_name'=>$name,'is_active'=>1]);
+        return ['project_id'=>$project,'manager_ids'=>$ids];
+    }
+
     public static function saveManager(array $data,int $actorManagerId,?string$requiredProjectKey=null): array
     {
         ProjectAccessService::ensureSchema();

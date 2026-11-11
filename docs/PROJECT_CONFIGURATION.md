@@ -1,5 +1,11 @@
 # Explicit project settings
 
+Platform administrators can create a new repair-company account in the
+[client onboarding cabinet](CLIENT_ONBOARDING.md). Its persisted connection
+extends the same trusted MAX registry; protected server bindings remain
+supported and cannot be shadowed. No source edit or per-customer deploy is
+needed. Creation, verification and explicit provider activation are separate.
+
 The existing AnyTour facade continues to load and cache project.php.
 Legacy search URLs, origin overrides, state paths, routing and analytics remain
 owned by their existing callers.

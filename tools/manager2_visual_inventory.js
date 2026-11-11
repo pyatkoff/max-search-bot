@@ -17,7 +17,7 @@ const MAIN = Object.freeze([
   'workspace-send-feedback', 'workspace-notification-diagnostics', 'manager-browser-push-state',
   'workspace-emoji-picker', 'workspace-timezone', 'workspace-conversation-scroll',
   'manager2-workspace', 'manager2-messenger-layout', 'manager2-inbox-compact',
-  'manager-admin-load', 'manager-admin-workspace', 'manager-quick-replies',
+  'manager-admin-load', 'manager-admin-workspace', 'manager-client-onboarding', 'manager-quick-replies',
   'manager-personal-workspace', 'manager-manual-groups', 'manager-internal-notes', 'manager-client-events', 'manager-reply-queue', 'manager-tour-selection', 'manager-assistant',
   'manager-request-profile', 'manager-customer-name', 'manager2-customer-avatar', 'manager-media-compose', 'manager-ai-draft',
   'manager-handoff-cancellation', 'manager-handoff-cancellation-shell', 'manager-transcript-history',
@@ -35,7 +35,7 @@ function allSpecs(browser) { return [CACHE_SPEC, ...mainSpecs(browser)]; }
 // Each part keeps workers=1 and its own runner, server and output namespace.
 const PART_SPECS = Object.freeze([
   ['workspace-v2-layout','manager-transcript-history','manager-customer-name',
-    'manager2-messenger-layout','workspace-conversation-scroll','manager-admin-load'],
+    'manager2-messenger-layout','workspace-conversation-scroll','manager-admin-load','manager-client-onboarding'],
   ['manager-quick-replies','manager-ai-draft','manager-assistant','manager-internal-notes',
     'manager2-inbox-compact','manager-manual-groups','manager-admin-workspace',
     'workspace-send-feedback','manager-handoff-cancellation-shell'],
