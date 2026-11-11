@@ -286,7 +286,16 @@ final class ManagerPreparationMcpService
                     $this->requireCurrentContext($admin,$connection,$sourceScopes);
                 };
             }
-            $data=(new DialogueReviewMcpAdapter($this->pdo,$this->dialogueStore,$this->clock,$selectionSourceAuthorize))->call($name,$args,$admin,$connection);
+            $conversionTraceAuthorize=null;
+            $traceScopes=[ManagerPreparationOAuth::DIALOGUE_SCOPE,ManagerPreparationOAuth::FORECAST_SCOPE];
+            if($name==='get_dialogue_review_context'&&!DialogueReviewMcpAdapter::isHistory($args)
+                &&ManagerPreparationOAuth::hasScopes($scopes,$traceScopes)){
+                $conversionTraceAuthorize=function(int $actor,string $family)use($admin,$connection,$traceScopes):void{
+                    if($actor!==$admin||$family!==$connection)throw new DomainException();
+                    $this->requireCurrentContext($admin,$connection,$traceScopes);
+                };
+            }
+            $data=(new DialogueReviewMcpAdapter($this->pdo,$this->dialogueStore,$this->clock,$selectionSourceAuthorize,$conversionTraceAuthorize))->call($name,$args,$admin,$connection);
         } elseif($forecast){
             if($this->forecastBudget===null)throw new RuntimeException();
             $authorize=function()use($admin,$connection,$required):void{$this->requireCurrentContext($admin,$connection,$required);};
