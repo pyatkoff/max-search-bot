@@ -466,18 +466,7 @@ class ManagerConversationService
             $q->execute([$conversationId,(string)$source['channel'],$mid]);$matches=$q->fetchAll();
             if(count($matches)===1&&hash_equals($mid,(string)$matches[0]['external_message_id'])&&(int)$matches[0]['id']!==$sourceMessageId){
                 $target=(int)$matches[0]['id'];
-                $q=$pdo->prepare('SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=? AND id<? ORDER BY id DESC LIMIT 21');
-                $q->execute([$conversationId,$target]);$prior=$q->fetchAll();
-                $q=$pdo->prepare('SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=? AND id>=? ORDER BY id ASC LIMIT 22');
-                $q->execute([$conversationId,$target]);$after=$q->fetchAll();
-                if($after&&(int)$after[0]['id']===$target){
-                    $beforeLimited=count($prior)>20;$afterLimited=count($after)>21;
-                    $messages=array_merge(array_reverse(array_slice($prior,0,20)),array_slice($after,0,21));
-                    foreach($messages as &$message)if(($message['sender_type']??'')==='manager')$message['text']=html_entity_decode((string)$message['text'],ENT_QUOTES|ENT_HTML5,'UTF-8');
-                    unset($message);
-                    $result+=['target_message_id'=>$target,'messages'=>$messages,'context'=>['has_before'=>$beforeLimited,'has_after'=>$afterLimited]];
-                    $result['available']=true;
-                }
+                    $result=array_replace($result,self::messageWindow($conversationId,$target));
             }
         }
         // Recheck every role after the reads; changed assignment/source/project
@@ -485,6 +474,64 @@ class ManagerConversationService
         $fresh=self::visibleConversation($conversationId,$managerId,true);if(!$fresh)return null;
         foreach(['manager_id','project_key','source_id','status','channel'] as $key)if($fresh[$key]!==$conversation[$key])return null;
         return$result;
+    }
+
+    /** Same bounded renderer projection for a quote or an explicit search hit. */
+    private static function messageWindow(int $conversationId,int $target): array
+    {
+        $pdo=ConversationDb::connection();
+        $q=$pdo->prepare('SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=? AND id<? ORDER BY id DESC LIMIT 21');
+        $q->execute([$conversationId,$target]);$prior=$q->fetchAll();
+        $q=$pdo->prepare('SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=? AND id>=? ORDER BY id ASC LIMIT 22');
+        $q->execute([$conversationId,$target]);$after=$q->fetchAll();
+        if(!$after||(int)$after[0]['id']!==$target)return ['available'=>false];
+        $messages=array_merge(array_reverse(array_slice($prior,0,20)),array_slice($after,0,21));
+        foreach($messages as &$message)if(($message['sender_type']??'')==='manager')$message['text']=html_entity_decode((string)$message['text'],ENT_QUOTES|ENT_HTML5,'UTF-8');
+        unset($message);
+        return ['available'=>true,'target_message_id'=>$target,'messages'=>$messages,'context'=>['has_before'=>count($prior)>20,'has_after'=>count($after)>21]];
+    }
+
+    public static function messageContext(int $conversationId,int $managerId,int $target): ?array
+    {
+        if($conversationId<=0||$managerId<=0||$target<=0)throw new InvalidArgumentException('invalid_message_search');
+        if(!ManagerAuthService::byId($managerId))return null;
+        $conversation=self::visibleConversation($conversationId,$managerId,true);if(!$conversation)return null;
+        $result=['conversation_id'=>$conversationId]+self::messageWindow($conversationId,$target);
+        $fresh=self::visibleConversation($conversationId,$managerId,true);if(!$fresh||!ManagerAuthService::byId($managerId))return null;
+        foreach(['manager_id','project_key','source_id','status','channel'] as $key)if($fresh[$key]!==$conversation[$key])return null;
+        return $result;
+    }
+
+    /**
+     * Literal Unicode search over the saved text, including old manager entity
+     * encodings. Indexed keyset reads bound each request to 1000 rows; only
+     * 25 short matching snippets leave the server. Empty partial pages retain
+     * a continuation, never an inaccurate global "no matches" result.
+     */
+    public static function searchMessages(int $conversationId,int $managerId,string $query,int $beforeId=0,int $snapshotId=0): ?array
+    {
+        if($conversationId<=0||$managerId<=0||!mb_check_encoding($query,'UTF-8')||trim($query)===''||mb_strlen($query,'UTF-8')>200||$beforeId<0||$snapshotId<0||($beforeId>0&&($snapshotId===0||$beforeId>$snapshotId)))throw new InvalidArgumentException('invalid_message_search');
+        if(!ManagerAuthService::byId($managerId))return null;
+        $conversation=self::visibleConversation($conversationId,$managerId,true);if(!$conversation)return null;
+        $pdo=ConversationDb::connection();
+        if($snapshotId===0){
+            $q=$pdo->prepare('SELECT COALESCE(MAX(id),0) FROM messages WHERE conversation_id=?');$q->execute([$conversationId]);$snapshotId=(int)$q->fetchColumn();
+        }
+        $sql='SELECT id,sender_type,text,created_at FROM messages WHERE conversation_id=? AND id<=?'.($beforeId>0?' AND id<?':'').' ORDER BY id DESC LIMIT 1001';
+        $q=$pdo->prepare($sql);$q->execute($beforeId>0?[$conversationId,$snapshotId,$beforeId]:[$conversationId,$snapshotId]);$rows=$q->fetchAll();
+        $matches=[];$scanned=0;$next=0;
+        foreach(array_slice($rows,0,1000) as $row){
+            $scanned++;$next=(int)$row['id'];$text=(string)($row['text']??'');
+            if(($row['sender_type']??'')==='manager')$text=html_entity_decode($text,ENT_QUOTES|ENT_HTML5,'UTF-8');
+            $position=mb_stripos($text,$query,0,'UTF-8');if($position===false)continue;
+            $start=max(0,$position-60);$length=mb_strlen($query,'UTF-8')+120;
+            $snippet=($start>0?'…':'').mb_substr($text,$start,$length,'UTF-8').($start+$length<mb_strlen($text,'UTF-8')?'…':'');
+            $matches[]=['message_id'=>$next,'sender_type'=>(string)$row['sender_type'],'created_at'=>(string)$row['created_at'],'snippet'=>$snippet];
+            if(count($matches)===25)break;
+        }
+        $fresh=self::visibleConversation($conversationId,$managerId,true);if(!$fresh||!ManagerAuthService::byId($managerId))return null;
+        foreach(['manager_id','project_key','source_id','status','channel'] as $key)if($fresh[$key]!==$conversation[$key])return null;
+        return ['conversation_id'=>$conversationId,'query'=>$query,'snapshot_id'=>$snapshotId,'matches'=>$matches,'scanned'=>$scanned,'before_id'=>$next,'has_more'=>$scanned<count($rows)];
     }
 
     private static function accessibleConversation(int $conversationId,int $managerId,bool $forUpdate=false): ?array

@@ -153,8 +153,11 @@ test('removing a saved file while a new blob transaction waits cannot resurrect 
 test('a confirmed operation removes only its exact row from a stale persisted draft',async({page})=>{
  const s=await setup(page,{holdFirst:true});await page.locator('#replyText').fill('Подпись подтверждённого файла');await page.locator('#replyFile').setInputFiles([files[0]]);await savedFiles(page,['Маршрут.txt']);await page.locator('#sendReply').click();await expect.poll(()=>s.uploads.length).toBe(1);
  const linked=await page.evaluate(()=>({manifest:sessionStorage.getItem('workspaceV2.mediaDrafts.v1.7'),operation:mediaUploadProof[0].operation_id}));expect(linked.manifest).toContain(linked.operation);
- s.release();await expect(page.locator('#replyStatus')).toContainText('Отправлено');await expect(page.locator('#sendReply')).toBeEnabled();await page.evaluate(value=>sessionStorage.setItem('workspaceV2.mediaDrafts.v1.7',value),linked.manifest);
- await page.reload();await expect(page.locator('#composer')).toBeVisible();await expect(page.locator('.mediaSelectedItem')).toHaveCount(0);await expect(page.locator('#replyText')).toHaveValue('');expect(s.uploads).toHaveLength(1);expect(s.errors).toEqual([]);
+ // Replay the stale manifest after the confirmed send's refresh has settled.
+ // Prove the old bytes and operation still exist before reloading.
+ s.release();await expect(page.locator('#replyStatus')).toContainText('Отправлено');await expect(page.locator('#sendReply')).toBeEnabled();await page.waitForLoadState('networkidle');expect(s.attempts.get(linked.operation)?.state).toBe('confirmed');await page.evaluate(value=>sessionStorage.setItem('workspaceV2.mediaDrafts.v1.7',value),linked.manifest);
+ expect(await page.evaluate(async()=>{const saved=await WorkspaceV2MediaDrafts.load(7,11);return{missing:saved.missing,rows:await Promise.all(saved.rows.map(async row=>({name:row.file.name,recoveryId:row.recoveryId,bytes:Array.from(new Uint8Array(await row.file.arrayBuffer()))})))}})).toEqual({missing:false,rows:[{name:files[0].name,recoveryId:linked.operation,bytes:Array.from(files[0].buffer)}]});
+ await page.reload();await expect(page.locator('#composer')).toBeVisible();await expect(page.locator('.mediaSelectedItem')).toHaveCount(0);await expect(page.locator('#replyText')).toHaveValue('');await page.waitForLoadState('networkidle');expect(s.uploads).toHaveLength(1);expect(s.errors).toEqual([]);
 });
 for(const width of [390,430,768,1440])test(`durable media recovery keeps each result after reload ${width}`,async({page,browserName},testInfo)=>{
  await page.setViewportSize({width,height:900});const s=await setup(page,{unknownAt:3});
