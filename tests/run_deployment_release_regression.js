@@ -802,6 +802,91 @@ async function scheduledActivationCases(){
     'late contradictory execution retains the same admitted publisher');
 }
 
+
+async function publishedStatusReadbackCases(){
+  const a='a'.repeat(40),ref=R.API_ROOT+'/git/refs/heads/diagnostics';
+  const recordFor=f=>({...copy(f.record),reported_at:'2026-11-06T06:00:01Z'});
+  for(const mode of ['transport','invalid_response','descendant']){
+    const f=fixture(a),record=recordFor(f),original=copy(record),base=f.api;
+    let patches=0;
+    const api=async(method,p,body,raw=false)=>{
+      const result=await base(method,p,body,raw);
+      if(method==='PATCH'&&p===ref){
+        patches++;
+        if(mode==='descendant')f.putRecord(record,f.head);
+        throw new R.Refusal(mode==='invalid_response'?'invalid_response':'transport_failed');
+      }
+      return result;
+    };
+    const out=await C.publishDiagnostics(api,record);
+    equal(out.record,original,'readback preserves the exact status after '+mode);
+    equal(R.installationReceipt(out.record),R.installationReceipt(original),
+      'readback never recreates an installation receipt after '+mode);
+    equal(patches,1,'one uncertain PATCH after '+mode);
+    equal(f.calls.filter(x=>x.method==='POST').length,2,'no replacement tree/commit after '+mode);
+    equal(f.calls.filter(x=>x.method==='PATCH').length,1,'no second mutation after '+mode);
+    equal(f.comment.body,'PR55: выпуск занят','readback does not release the publisher');
+  }
+  for(const [mode,reason] of [
+    ['not_applied','diagnostics_write_unknown'],
+    ['unrelated','unpublished_diagnostics_proof'],
+    ['overwritten','diagnostics_write_unknown'],
+    ['read_unavailable','transport_failed'],
+    ['ancestry_unavailable','transport_failed'],
+    ['wrong_success','diagnostics_write_unknown'],
+    ['programmer_refusal','diagnostics_write_unknown'],
+    ...[403,409,429].map(code=>['api_http_'+code,'diagnostics_write_unknown']),
+  ]){
+    const f=fixture(a),record=recordFor(f),base=f.api;
+    let patches=0,after=false,reads=0;
+    const api=async(method,p,body,raw=false)=>{
+      if(after&&method==='GET'){
+        reads++;
+        if(mode==='read_unavailable'||(mode==='ancestry_unavailable'&&p.includes('/compare/')))
+          throw new R.Refusal('transport_failed');
+      }
+      if(method!=='PATCH'||p!==ref)return base(method,p,body,raw);
+      patches++;after=true;
+      if(mode==='not_applied')throw new R.Refusal('transport_failed');
+      if(mode.startsWith('api_http_'))throw new R.Refusal(mode);
+      if(mode==='programmer_refusal')throw new R.Refusal('invalid_write_target');
+      const result=await base(method,p,body,raw);
+      if(mode==='wrong_success')return {object:{sha:'b'.repeat(40)}};
+      if(mode==='unrelated')f.putRecord(record);
+      if(mode==='overwritten')f.putRecord({...record,reported_at:'2026-11-06T06:00:02Z'},f.head);
+      if(mode==='ancestry_unavailable')f.putRecord(record,f.head);
+      throw new R.Refusal('transport_failed');
+    };
+    await refuses(()=>C.publishDiagnostics(api,record),reason,'uncertain status holds: '+mode);
+    equal(patches,1,'failed publication never retries PATCH: '+mode);
+    equal(f.calls.filter(x=>x.method==='POST').length,2,'failed publication never recreates status: '+mode);
+    equal(f.calls.some(x=>x.method==='PATCH'&&x.path.includes('/issues/comments/')),false,
+      'failed publication retains the publisher: '+mode);
+    if(mode.startsWith('api_http_')||['wrong_success','programmer_refusal'].includes(mode))
+      equal(reads,0,'explicit contradiction/refusal is final: '+mode);
+  }
+  {
+    const f=fixture(a),record=recordFor(f),before=await R.readRecord(f.api);
+    await refuses(()=>C.publishDiagnostics(f.api,record,{...before,blob:H('changed')}),
+      'diagnostics_compare_conflict','an expected-state conflict is checked before writing');
+    equal(f.calls.some(x=>x.method!=='GET'),false,'compare conflict performs no mutation');
+  }
+  {
+    const f=fixture(a),record=recordFor(f),base=f.api;
+    const writer=C.makeApi('fixture',async(url,options)=>{
+      const parsed=new URL(url),route=parsed.pathname+parsed.search;
+      const body=options.body===undefined?undefined:JSON.parse(options.body);
+      const result=await base(options.method,route,body);
+      if(options.method==='PATCH'&&route===ref)
+        throw Error('private transport detail after the committed ref update');
+      return {ok:true,status:200,arrayBuffer:async()=>Buffer.from(JSON.stringify(result))};
+    });
+    const out=await C.publishDiagnostics(writer,record);
+    equal(out.record,record,'the real API adapter reconciles a committed transport failure');
+    equal(f.calls.filter(x=>x.method==='PATCH').length,1,'the real API adapter never resends');
+  }
+}
+
 async function transportBoundaries(){
   const api=R.makeReadApi('fixture',async()=>{throw new Error('secret transport details');});
   await refuses(()=>api('PATCH',R.API_ROOT+'/issues/comments/900',{body:'x'}),'invalid_read_request');
@@ -812,7 +897,7 @@ async function transportBoundaries(){
   await refuses(()=>writer('PATCH',R.API_ROOT+'/git/refs/heads/diagnostics',{sha:'a'.repeat(40),force:true}),'invalid_write_target');
   await refuses(()=>writer('POST',R.API_ROOT+'/actions/workflows/deploy.yml/dispatches',{ref:'main'}),'invalid_write_target');
 }
-async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await transportBoundaries();
+async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();
   process.stdout.write('Deployment release regression: '+assertions+' assertions passed\n');}
 module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip};
 if(require.main===module)main().catch(e=>{process.stderr.write(String(e.stack||e)+'\n');process.exitCode=1;});
