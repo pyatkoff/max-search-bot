@@ -5,6 +5,8 @@ require_once __DIR__.'/run_modeled_conversion_early_forecast_regression.php';
 require_once dirname(__DIR__).'/services/ModeledConversionPredictionFollowup.php';
 require_once dirname(__DIR__).'/services/ModeledConversionForecastStatusReader.php';
 require_once dirname(__DIR__).'/services/MetrikaOfflineClient.php';
+require_once dirname(__DIR__).'/services/ModeledConversionFixedPairDecisionEvidence.php';
+require_once dirname(__DIR__).'/services/ModeledConversionMaxCounterScopeEvidence.php';
 require_once __DIR__.'/support/archive-predictive-model.php';
 
 final class ForecastV1ObservedStatement extends PDOStatement
@@ -1917,8 +1919,8 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $ini
     $frame=['v'=>ModeledConversionValueVisitEvidence::VERSION,'n'=>$namespace,'b'=>$checkpoint,'r'=>[]];
     foreach($ledger as$row)$frame['r'][]=[ModeledConversionValueIdentityEvidence::reference($row,$namespace),(string)$row['id'],
         0,null,null,0,null,null,null,null,0,null,0,null,0,(int)$row['event_unix']];
-    $read=static fn(mixed $saved,?callable $auth=null,?ModeledConversionStatusBudget $budget=null,mixed $recovery=null):array=>
-        (new ModeledConversionValueDeliveryReader($p,$auth??static function():void{},$budget??new ModeledConversionStatusBudget()))->repairAssessments($now,null,$saved,$recovery);
+    $read=static fn(mixed $saved,?callable $auth=null,?ModeledConversionStatusBudget $budget=null,mixed $recovery=null,mixed $pair=null,int $lastTick=0,mixed $scope=null):array=>
+        (new ModeledConversionValueDeliveryReader($p,$auth??static function():void{},$budget??new ModeledConversionStatusBudget()))->repairAssessments($now,null,$saved,$recovery,null,$pair,$lastTick,$scope);
     $snapshot=static fn():string=>json_encode([
         $p->query('SELECT * FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),
         $p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)],JSON_THROW_ON_ERROR);
@@ -2161,6 +2163,45 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $ini
         $none['available']&&$none['status']==='no_admissible_native_witness'&&$none['candidate_sha256']===null
         &&$none['local_absence_does_not_prove_tracker_or_visit_absence']&&$none['visit_linkage']==='not_checked');
 
+    $pairRefs=ModeledConversionValueVisitRecovery::originals($unavailableOriginal,$namespace,$now);
+    $pairRows=[];foreach($pairRefs as$ref=>$tuple)$pairRows[]=[$ref,$now-2,$now-1,count($pairRows)===0?5:7,
+        count($pairRows)===0?$tuple[15]-30:null,count($pairRows)===0?1:0];
+    $pairJournal=ModeledConversionFixedPairDecisionEvidence::merge(null,$unavailableOriginal,$namespace,$pairRows,$now);
+    $pairRead=$read($unavailableOriginal,null,null,$doneRecovery,$pairJournal,$now-2);
+    $pairView=$pairRead['fixed_pair_operational_decisions'];
+    $check('current paired decisions reuse the original three SQL bindings and keep positive gates separate from API acceptance',
+        $pairView['available']&&$pairView['current_tick_coverage_complete']&&$pairView['observed_in_latest_tick']===2
+        &&array_column($pairView['rows'],'current_decision')===['within_current_window','no_prior_visit']
+        &&array_column($pairView['rows'],'financial_state')===['pending','pending']
+        &&array_column($pairView['rows'],'api_receipt_ref')===[null,null]
+        &&$pairView['positive_gate_is_not_api_acceptance']&&!$pairView['financial_permission']&&$pairView['provider_requests_in_reader']===0
+        &&$pairRead['finite_visit_recovery']['rows'][0]['original_report_status']==='unavailable');
+    $stale=$read($unavailableOriginal,null,null,$doneRecovery,$pairJournal,$now)['fixed_pair_operational_decisions'];
+    $untouched=$read($unavailableOriginal,null,null,$doneRecovery,null,$now)['fixed_pair_operational_decisions'];
+    $check('untouched or older paired observations never masquerade as current decisions',
+        $stale['observed_in_latest_tick']===0&&array_column($stale['rows'],'current_decision')===['unknown','unknown']
+        &&array_column($stale['rows'],'saved_decision')===['within_current_window','no_prior_visit']
+        &&$untouched['journal_status']==='not_recorded'&&array_column($untouched['rows'],'observation_status')===['not_observed','not_observed']);
+    $badPair=$pairJournal;$badPair['r'][0][0]=$unavailableOriginal['r'][0][0];
+    $invalidPair=$read($unavailableOriginal,null,null,$doneRecovery,$badPair,$now-2)['fixed_pair_operational_decisions'];
+    $check('a foreign operational ref exposes no current decision or extra subject',
+        $invalidPair['journal_status']==='invalid_or_omitted'&&$invalidPair['observed_in_latest_tick']===0
+        &&array_column($invalidPair['rows'],'event_ref')===array_keys($pairRefs));
+    $scopeHash=str_repeat('c',64);
+    $scopeIntent=ModeledConversionMaxCounterScopeEvidence::intent($unavailableOriginal,$ledger[0],$namespace,$scopeHash,$now-10);
+    $scopeWire=['v'=>1,'counter_id'=>'98615635','request_sha256'=>$scopeHash,'checked_at_unix'=>$now-2,'status'=>'observed',
+        'complete_within_bound'=>true,'scoped_rows'=>0,'empty_client_id_rows'=>0,'noncanonical_client_id_rows'=>0,'canonical_client_id_rows'=>0];
+    $scopeClient=MaxTrackerLookupClient::validateCounterScopeEvidence($scopeWire,$scopeHash,$now-1);
+    $scopeDone=ModeledConversionMaxCounterScopeEvidence::complete($scopeIntent,$unavailableOriginal,$ledger[0],$namespace,$scopeClient,$now);
+    $scopeView=$read($unavailableOriginal,null,null,$doneRecovery,$pairJournal,$now-2,$scopeDone)['finite_counter_scope_evidence'];
+    $check('counter evidence uses the same already bound missing row with separate server and application clocks and no financial permission',
+        $scopeView['available']&&$scopeView['event_ref']===$unavailableOriginal['r'][0][0]&&$scopeView['attempt_status']==='observed'
+        &&$scopeView['scoped_rows']===0&&$scopeView['financial_state']==='pending'&&$scopeView['api_receipt_ref']===null
+        &&$scopeView['server_checked_at']===gmdate('Y-m-d\TH:i:s\Z',$now-2)
+        &&$scopeView['app_received_at']===gmdate('Y-m-d\TH:i:s\Z',$now-1)
+        &&$scopeView['local_scope_zero_is_not_global_tracker_absence']&&!$scopeView['financial_permission']);
+    $latestRows=$pairRows;foreach($latestRows as&$tuple){$tuple[1]=$now;$tuple[2]=$now;}unset($tuple);
+    $latestPair=ModeledConversionFixedPairDecisionEvidence::merge($pairJournal,$unavailableOriginal,$namespace,$latestRows,$now);
     $foreign=$frame;$foreign['n']=str_repeat('0',64);$invalid=$read($foreign)['finite_visit_evidence'];
     $missing=$read(null)['finite_visit_evidence'];$consumed=$read(false)['finite_visit_evidence'];
     $check('missing foreign and retained tombstone frames are explicit unavailable without invented no-visit results',
@@ -2222,7 +2263,9 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $ini
     $p->exec('DROP TABLE IF EXISTS modeled_conversion_value_export_settings');
     $p->exec("CREATE TABLE modeled_conversion_value_export_settings(project_key VARCHAR(40) PRIMARY KEY,counter_id VARCHAR(20),mode VARCHAR(16),goal_id VARCHAR(20),goal_intent VARCHAR(20),activated_at_unix BIGINT,last_tick_unix BIGINT,contract_version VARCHAR(64),last_receipt_json TEXT,history_from_unix BIGINT,history_until_unix BIGINT,history_completed_at_unix BIGINT,history_scanned BIGINT,history_collected BIGINT,history_stats_json TEXT,history_cursor BIGINT,history_ceiling BIGINT,history_fortnight_requested_at_unix BIGINT,history_day_receipt_json TEXT,last_report_success_unix BIGINT,last_report_success_json TEXT,report_failure_since_unix BIGINT)");
     $finished=$unavailableOriginal;
-    $receipt=['errors'=>0,'finite_visit_evidence'=>$finished,'finite_visit_recovery'=>$doneRecovery,'private_padding'=>str_repeat('x',6000)];
+    $receipt=['errors'=>0,'finite_visit_evidence'=>$finished,'finite_visit_recovery'=>$doneRecovery,
+        'fixed_pair_operational_decisions'=>$latestPair,'finite_counter_scope_evidence'=>$scopeDone,'private_padding'=>''];
+    $receipt['private_padding']=str_repeat('x',max(0,8000-strlen(json_encode($receipt,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))));
     $p->prepare("INSERT INTO modeled_conversion_value_export_settings(project_key,counter_id,mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,last_receipt_json) VALUES('anytour','98615635','send','678187097','verified',?,?,?,?)")
         ->execute([$checkpoint-86400,$now,ModeledConversionValueContract::VERSION,json_encode($receipt,JSON_THROW_ON_ERROR)]);
     $packet=forecastV1Packet('730010','930010',[['text'=>'Подберите тур в Турцию на 7 ночей, 2 взрослых.']],'max');
@@ -2237,7 +2280,7 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $ini
     $packet['prediction_followup']['private_padding']=str_repeat('x',max(0,9000-$baseSize));
     $p->prepare('UPDATE modeled_conversion_profile_versions SET profile_json=? WHERE id=10')->execute([json_encode($packet,JSON_THROW_ON_ERROR)]);
     $pipelineBefore=$snapshot();$settingsBefore=$p->query('SELECT * FROM modeled_conversion_value_export_settings')->fetchAll(PDO::FETCH_ASSOC);
-    $budget=new ModeledConversionStatusBudget();$budget->consumeBytes(28000);
+    $budget=new ModeledConversionStatusBudget();$budget->consumeBytes(26000);
     $oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
     ForecastV1ObservedStatement::$observePredictive=true;ForecastV1ObservedStatement::$predictiveStatements=[];
     try{$pipeline=forecastV1Read($p,null,$budget);}
@@ -2249,11 +2292,15 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $ini
     }
     $priorityProof=$pipeline['value_delivery']['repair_assessments']['finite_visit_evidence']??[];
     $priorityRecovery=$pipeline['value_delivery']['repair_assessments']['finite_visit_recovery']??[];
+    $priorityOperational=$pipeline['value_delivery']['repair_assessments']['fixed_pair_operational_decisions']??[];
+    $priorityScope=$pipeline['value_delivery']['repair_assessments']['finite_counter_scope_evidence']??[];
     $check('complete status reserves both original three-case and forward two-case journals before expensive optional context copies',
         $pipeline['available']&&($priorityProof['available']??false)&&$priorityProof['complete']
         &&count($priorityProof['rows'])===3&&array_column($priorityProof['rows'],'event_ref')===array_column($finished['r'],0)
         &&($priorityRecovery['available']??false)&&$priorityRecovery['complete']&&count($priorityRecovery['rows'])===2
         &&array_column($priorityRecovery['rows'],'event_ref')===array_column($doneRecovery['r'],0)
+        &&($priorityOperational['available']??false)&&$priorityOperational['current_tick_coverage_complete']
+        &&($priorityScope['available']??false)&&$priorityScope['attempt_status']==='observed'
         &&$frameAt!==null&&($coreAt===null?$pipeline['window']['byte_limit_omissions']>0:$frameAt<$coreAt)
         &&$budget->remainingBytes()>=8192&&strlen(json_encode($pipeline,JSON_THROW_ON_ERROR))<=28000
         &&$priorityProof['provider_requests_in_reader']===0&&$pipeline['model_calls']===0&&$pipeline['conversion_uploads']===0
@@ -2294,7 +2341,9 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $ini
     $fixedBytes=$responseBytes($fixedPrefix($outputPressure));$beforeBytes=$responseBytes($outputPressure);
     $bounded=$bound->invoke($projection,$outputPressure);$afterBytes=$responseBytes($bounded);
     $sameProof=$bounded['value_delivery']['repair_assessments']['finite_visit_evidence']===$priorityProof
-        &&$bounded['value_delivery']['repair_assessments']['finite_visit_recovery']===$priorityRecovery;
+        &&$bounded['value_delivery']['repair_assessments']['finite_visit_recovery']===$priorityRecovery
+        &&$bounded['value_delivery']['repair_assessments']['fixed_pair_operational_decisions']===$priorityOperational
+        &&$bounded['value_delivery']['repair_assessments']['finite_counter_scope_evidence']===$priorityScope;
     $omitted=($bounded['visit_delivery_check']['followup_sent_cohort']['failure_examples_omitted_due_to_response_budget']??false)===true;
     $privateAbsent=!str_contains(json_encode($bounded,$responseFlags),'PRIVATE_NATIVE_');
     $validPressure=$fixedBytes<=28000&&$beforeBytes>28000&&$afterBytes<=28000&&$sameProof&&$omitted&&$privateAbsent;
@@ -2335,10 +2384,14 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $ini
     $orphan=['value_delivery'=>['repair_assessments'=>[
         'finite_visit_evidence'=>['available'=>false,'reason'=>'original_scope_unavailable'],
         'finite_visit_recovery'=>$priorityRecovery]]];
+    $orphan['value_delivery']['repair_assessments']['fixed_pair_operational_decisions']=$priorityOperational;
+    $orphan['value_delivery']['repair_assessments']['finite_counter_scope_evidence']=$priorityScope;
     $orphanBounded=$bound->invoke($projection,$orphan);
     $check('response projection never retains an available forward journal without its original bound proof',
         !$orphanBounded['value_delivery']['repair_assessments']['finite_visit_recovery']['available']
-        &&$orphanBounded['value_delivery']['repair_assessments']['finite_visit_recovery']['reason']==='original_current_binding_unavailable');
+        &&$orphanBounded['value_delivery']['repair_assessments']['finite_visit_recovery']['reason']==='original_current_binding_unavailable'
+        &&!$orphanBounded['value_delivery']['repair_assessments']['fixed_pair_operational_decisions']['available']
+        &&!$orphanBounded['value_delivery']['repair_assessments']['finite_counter_scope_evidence']['available']);
 
     if($initialApiCohort!==[]){
         $receiptPressure=$outputPressure;$receiptPressure['value_delivery']['repair_assessments']['initial_api_receipts']=$initialApiCohort;
@@ -2348,6 +2401,8 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $ini
             &&$receiptBounded['value_delivery']['repair_assessments']['initial_api_receipts']['reason']==='response_budget'
             &&$receiptBounded['value_delivery']['repair_assessments']['finite_visit_evidence']===$priorityProof
             &&$receiptBounded['value_delivery']['repair_assessments']['finite_visit_recovery']===$priorityRecovery
+            &&$receiptBounded['value_delivery']['repair_assessments']['fixed_pair_operational_decisions']===$priorityOperational
+            &&$receiptBounded['value_delivery']['repair_assessments']['finite_counter_scope_evidence']===$priorityScope
             &&$responseBytes($receiptBounded)<=28000);
     }
 
