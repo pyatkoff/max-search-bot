@@ -72,6 +72,7 @@ final class ModeledValueTestWire
     public bool $reportWrongScope=false;public array $lastReportQuery=[];
     public ?int $visitAt=null;public string $visitSource='other_or_unknown';public bool $visitAvailable=true;public bool $visitEmpty=false;
     public string $postMode='accepted';public bool $createUnknown=false;public mixed $duringPost=null;
+    public function __construct(?int $visitAt=null){$this->visitAt=$visitAt;}
     public function request(string $method,string $url,mixed $body):array
     {
         $path=(string)parse_url($url,PHP_URL_PATH);$data=[];
@@ -129,7 +130,7 @@ function modeledValueMaxAttributionWindowAssertions(PDO $p,callable $check):void
     $now=1793660000;$gate=static fn(string $chat):bool=>true;
     foreach(['pending','ready']as$lane){
         modeledValueSchema($p);$scope=modeledValueBinding($p,911);
-        $wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+        $wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$control=new ModeledConversionValueExport($p);
         $control->configure('create-goal',$api,$now-20);$control->configure('enable',$api,$now-10);
         modeledValueSave($p,modeledValueWrapper($scope,$now));
         $lookup=new ModeledValueTestLookup();$lookup->observedAt=$now-10*86400+60;
@@ -150,7 +151,7 @@ function modeledValueMaxAttributionWindowAssertions(PDO $p,callable $check):void
             &&(string)$p->query('SELECT profile_json FROM modeled_conversion_profile_versions LIMIT 1')->fetchColumn()===$profiles);
     }
     modeledValueSchema($p);$scope=modeledValueBinding($p,912);
-    $wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    $wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $control->configure('create-goal',$api,$now-20);$control->configure('enable',$api,$now-10);
     modeledValueSave($p,modeledValueWrapper($scope,$now));$lookup=new ModeledValueTestLookup();$lookup->observedAt=$now-60;
     ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
@@ -165,7 +166,7 @@ function modeledValueMaxAttributionWindowAssertions(PDO $p,callable $check):void
         &&(string)$p->query("SELECT upload_id FROM max_channel_conversion_outbox WHERE target='anytour_value_1_v1'")->fetchColumn()===$before);
     foreach(['unknown'=>null,'future'=>$now+1,'expired'=>$now-10*86400-1,'boundary'=>$now-10*86400,'fresh'=>$now-60]as$case=>$observed){
         modeledValueSchema($p);$scope=modeledValueBinding($p,910);
-        $wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+        $wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$control=new ModeledConversionValueExport($p);
         $control->configure('create-goal',$api,$now-20);$control->configure('enable',$api,$now-10);
         modeledValueSave($p,modeledValueWrapper($scope,$now));$lookup=new ModeledValueTestLookup();$lookup->observedAt=$observed;
         $profiles=(string)$p->query('SELECT profile_json FROM modeled_conversion_profile_versions LIMIT 1')->fetchColumn();
@@ -192,6 +193,8 @@ function modeledValueAssertions(PDO $p,callable $check):void
 {
     modeledValueMaxAttributionWindowAssertions($p,$check);
     modeledValueReportResponseEvidenceAssertions($check);
+    modeledValueCurrentVisitLookbackAssertions($check);
+    modeledValueReportTimeoutAssertions($check);
     foreach([
         ['direct',10*86400,'yandex_direct',true],['direct_expired',10*86400+1,'yandex_direct',false],
         ['other',3*86400,'other_or_unknown',true],['other_expired',3*86400+1,'other_or_unknown',false],
@@ -203,7 +206,7 @@ function modeledValueAssertions(PDO $p,callable $check):void
     }
     foreach([['yandex_direct',9*86400,true],['other_or_unknown',4*86400,false],['unverified',4*86400,false]]as[$source,$age,$allowed]){
         $now=1793660000;$gate=static fn(string $chat):bool=>true;
-        modeledValueSchema($p);$scope=modeledValueBinding($p,913);$wire=new ModeledValueTestWire();$wire->visitSource=$source;$wire->visitAt=$now-$age;
+        modeledValueSchema($p);$scope=modeledValueBinding($p,913);$wire=new ModeledValueTestWire($now-86400);$wire->visitSource=$source;$wire->visitAt=$now-$age;
         $api=$wire->api();$control=new ModeledConversionValueExport($p);$control->configure('create-goal',$api,$now-20);$control->configure('enable',$api,$now-10);
         modeledValueSave($p,modeledValueWrapper($scope,$now));$lookup=new ModeledValueTestLookup();$lookup->observedAt=$now-$age;
         ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
@@ -223,7 +226,7 @@ function modeledValueAssertions(PDO $p,callable $check):void
     modeledValueVisitRecoveryAssertions($p,$check);
     modeledValueVisitGateDecisionAssertions($p,$check);
     $now=1793650000;$gate=static fn(string $chat):bool=>true;
-    modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    modeledValueSchema($p);$wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $check('actual forward migration is default OFF',ModeledConversionValueExport::settings($p)['mode']==='off');
     $scope=modeledValueBinding($p,101);modeledValueSave($p,modeledValueWrapper($scope,$now-20));
     $control->configure('create-goal',$api,$now-10);$control->configure('create-goal',$api,$now-9);
@@ -331,13 +334,13 @@ function modeledValueAssertions(PDO $p,callable $check):void
     $result=$control->configure('status',$api,$now+2504);$json=json_encode($result,JSON_THROW_ON_ERROR);
     $check('operational readback contains no people refs amounts or receipts',!str_contains($json,'70101')&&!str_contains($json,'source_ref')&&!str_contains($json,'value_rub')&&!str_contains($json,'upload_id'));
 
-    modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    modeledValueSchema($p);$wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $launch=$control->configure('launch-v1',$api,$now);
     $check('one-time accepted-release launch creates verifies and enables',$launch['mode']==='send'&&$wire->creates===1);
     $control->configure('disable',$api,$now+1);$gets=$wire->gets;$launch=$control->configure('launch-v1',$api,$now+2);
     $check('a repeated release cannot reenable a deliberately stopped launch',$launch['already_launched']===true&&$launch['mode']==='off'&&$wire->creates===1&&$wire->gets===$gets);
 
-    modeledValueSchema($p);$wire=new ModeledValueTestWire();$wire->createUnknown=true;$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    modeledValueSchema($p);$wire=new ModeledValueTestWire($now-86400);$wire->createUnknown=true;$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $failed=false;try{$control->configure('create-goal',$api,$now);}catch(Throwable $e){$failed=true;}
     $check('ambiguous goal creation is durably held',$failed&&ModeledConversionValueExport::settings($p)['goal_intent']==='unknown'&&$wire->creates===1);
     $created=$wire->goals[1];array_pop($wire->goals);$blocked=false;
@@ -352,7 +355,7 @@ function modeledValueAssertions(PDO $p,callable $check):void
     $blocked=false;try{$control->configure('arbitrary-operation',$api,$now);}catch(Throwable $e){$blocked=true;}
     $check('operational surface rejects arbitrary commands',$blocked);
 
-    $wire=new ModeledValueTestWire();$api=$wire->api();$report=$api->modeledValueReport($now-8,$now);
+    $wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$report=$api->modeledValueReport($now-8,$now);
     $check('fixed read-only report verifies reaches visits and explicit RUB revenue',$report['status']==='ok'&&$report['goal_reaches']===2&&$report['goal_visits']===1&&$report['revenue_rub']===2083.0&&$wire->posts===0);
     $check('session report includes the21day preactivation attribution window',$wire->lastReportQuery['date1']===gmdate('Y-m-d',$now-8-21*86400)
         &&$wire->lastReportQuery['metrics']==='ym:s:goal678187097reaches,ym:s:goal678187097visits,ym:s:goal678187097convertedRUBRevenue');
@@ -365,7 +368,7 @@ function modeledValueAssertions(PDO $p,callable $check):void
     $wire->reportSampled=false;$wire->reportTotals=[0,0,0];$report=$api->modeledValueReport($now-8,$now);
     $check('zero totals require a valid actual scoped report',$report['status']==='ok'&&$report['goal_visits']===0&&$report['revenue_rub']===0.0);
 
-    modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$wire->reportTotals=[0,0,0];
+    modeledValueSchema($p);$wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$wire->reportTotals=[0,0,0];
     $p->prepare("UPDATE modeled_conversion_value_export_settings SET mode='send',goal_id='678187097',goal_intent='verified',activated_at_unix=? WHERE project_key='anytour'")->execute([$now-10]);
     ModeledConversionValueExport::tick($p,new ModeledValueTestLookup(),$api,$now,$gate);
     $saved=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true);
@@ -392,7 +395,7 @@ function modeledValueFailureRetentionAssertions(PDO $p,callable $check):void
 {
     $now=1793660000;$gate=static fn(string $chat):bool=>true;$steady=static fn():float=>0.0;
     $setup=static function(int $count=1)use($p,$now):array{
-        modeledValueSchema($p);$wire=new ModeledValueTestWire();
+        modeledValueSchema($p);$wire=new ModeledValueTestWire($now-86400);
         $wire->goals[]=['id'=>'678187097','name'=>ModeledConversionValueContract::NAME,
             'type'=>'action','conditions'=>[['type'=>'exact','url'=>ModeledConversionValueContract::TARGET]]];
         $p->prepare("UPDATE modeled_conversion_value_export_settings SET mode='send',goal_id='678187097',goal_intent='verified',activated_at_unix=?")->execute([$now-10]);
@@ -476,7 +479,7 @@ function modeledValueFailureRetentionAssertions(PDO $p,callable $check):void
     foreach([false,true]as$pressure){
         [$wire,$lookup]=$setup();
         if(!$pressure)ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$processing,null,$steady);
-        $newWire=new ModeledValueTestWire();$newWire->goals=$wire->goals;$wire->reportHttp=403;
+        $newWire=new ModeledValueTestWire($now-86400);$newWire->goals=$wire->goals;$wire->reportHttp=403;
         $winning=null;$outsideTransaction=true;$entered=false;
         $api=new MetrikaOfflineClient('98615635','fixture-only',static function(string $method,string $url,mixed $body)use($p,$wire,$newWire,$lookup,$now,$gate,$steady,$pressure,&$winning,&$outsideTransaction,&$entered):array{
             $outsideTransaction=$outsideTransaction&&!$p->inTransaction();
@@ -517,7 +520,7 @@ function modeledValueFailureRetentionAssertions(PDO $p,callable $check):void
     }
 
     foreach([false,true]as$olderHealthy){
-        [$wire,$lookup]=$setup(0);$nestedWire=new ModeledValueTestWire();$nestedWire->goals=$wire->goals;$entered=false;$outsideTransaction=true;
+        [$wire,$lookup]=$setup(0);$nestedWire=new ModeledValueTestWire($now-86400);$nestedWire->goals=$wire->goals;$entered=false;$outsideTransaction=true;
         $failedAt=$now+($olderHealthy?200:100);$healthyAt=$now+($olderHealthy?100:200);
         $api=new MetrikaOfflineClient('98615635','fixture-only',static function(string $method,string $url,mixed $body)use($p,$wire,$nestedWire,$lookup,$now,$failedAt,$storage,$steady,&$entered,&$outsideTransaction):array{
             $outsideTransaction=$outsideTransaction&&!$p->inTransaction();
@@ -567,7 +570,7 @@ function modeledValueHistoryAssertions(PDO $p,callable $check):void
     $bad=$w;$bad['subject']['customer_key']='999';
     $check('historical review preserves exact subject and actual customer-role evidence',
         ModeledConversionValueContract::historicalCandidate($bad,$subject,$from,$until,$now)===null);
-    $wire=new ModeledValueTestWire();$wire->goals[]=['id'=>'678187097','name'=>ModeledConversionValueContract::NAME,
+    $wire=new ModeledValueTestWire($now-86400);$wire->goals[]=['id'=>'678187097','name'=>ModeledConversionValueContract::NAME,
         'type'=>'action','conditions'=>[['type'=>'exact','url'=>ModeledConversionValueContract::TARGET]]];
     $api=$wire->api();$control=new ModeledConversionValueExport($p);$gate=static fn(string $chat):bool=>true;
     $p->prepare("UPDATE modeled_conversion_value_export_settings SET mode='send',goal_id='678187097',goal_intent='verified',activated_at_unix=?,profile_cursor=2")->execute([$until-60]);
@@ -610,7 +613,7 @@ function modeledValueFortnightAssertions(PDO $p,callable $check):void
     $old=$save($a,$from+3600,'general_purchase_intent');$save($b,$from+7200,'substantive_interest');
     $save($c,$from+10800,'agency_purchase_intent');$save($a,$day+3600,'substantive_interest');
     $beforeProfiles=json_encode($p->query('SELECT * FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR);
-    $wire=new ModeledValueTestWire();$wire->goals[]=['id'=>'678187097','name'=>ModeledConversionValueContract::NAME,
+    $wire=new ModeledValueTestWire($now-86400);$wire->goals[]=['id'=>'678187097','name'=>ModeledConversionValueContract::NAME,
         'type'=>'action','conditions'=>[['type'=>'exact','url'=>ModeledConversionValueContract::TARGET]]];
     $api=$wire->api();$control=new ModeledConversionValueExport($p);$gate=static fn(string $chat):bool=>true;
     $p->prepare("UPDATE modeled_conversion_value_export_settings SET mode='send',goal_id='678187097',goal_intent='verified',activated_at_unix=?,profile_cursor=4")->execute([$until-60]);
@@ -658,7 +661,7 @@ function modeledValueCatchUpAssertions(PDO $p,callable $check):void
 {
     $now=1793658000;$gate=static fn(string $chat):bool=>true;$steady=static fn():float=>0.0;
     $setup=static function(int $count,int $empty=0)use($p,$now):array{
-        modeledValueSchema($p);$wire=new ModeledValueTestWire();
+        modeledValueSchema($p);$wire=new ModeledValueTestWire($now-86400);
         $wire->goals[]=['id'=>'678187097','name'=>ModeledConversionValueContract::NAME,
             'type'=>'action','conditions'=>[['type'=>'exact','url'=>ModeledConversionValueContract::TARGET]]];
         $lookup=new ModeledValueTestLookup();$lookup->missing=true;
@@ -752,7 +755,7 @@ function modeledValueCatchUpAssertions(PDO $p,callable $check):void
 function modeledValueFairProgressAssertions(PDO $p,callable $check):void
 {
     modeledValueSchema($p);$now=1793659000;$gate=static fn(string $chat):bool=>true;
-    $wire=new ModeledValueTestWire();$wire->goals[]=['id'=>'678187097','name'=>ModeledConversionValueContract::NAME,
+    $wire=new ModeledValueTestWire($now-86400);$wire->goals[]=['id'=>'678187097','name'=>ModeledConversionValueContract::NAME,
         'type'=>'action','conditions'=>[['type'=>'exact','url'=>ModeledConversionValueContract::TARGET]]];
     $api=$wire->api();$lookup=new ModeledValueTestLookup();
     $p->prepare("UPDATE modeled_conversion_value_export_settings SET mode='send',goal_id='678187097',goal_intent='verified',activated_at_unix=?")->execute([$now-10]);
@@ -772,7 +775,7 @@ function modeledValueFairProgressAssertions(PDO $p,callable $check):void
     // Synthetic legacy profiles can have an audit hold after a model/adapter
     // upgrade. Those rows retain their values but must not monopolize ready.
     modeledValueSchema($p);$now=1793670000;
-    $wire=new ModeledValueTestWire();$wire->visitAt=$now-60;$api=$wire->api();
+    $wire=new ModeledValueTestWire($now-86400);$wire->visitAt=$now-60;$api=$wire->api();
     $control=new ModeledConversionValueExport($p);
     $control->configure('create-goal',$api,$now-500);
     $control->configure('enable',$api,$now-500);
@@ -859,7 +862,7 @@ function modeledUnknownPriceWrapper(array $w,bool $fallback=false):array
 function modeledValuePredictionAssertions(PDO $p,callable $check):void
 {
     modeledValueSchema($p);$now=1793665000;$scope=modeledValueBinding($p,650);
-    $wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    $wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $control->configure('create-goal',$api,$now-500);$control->configure('enable',$api,$now-500);
     $lookup=new class{public function lookup(string $counter,array $users):array{$out=[];foreach($users as$u)$out[$u]=['external_user_id'=>$u,'client_id'=>'88000001','record_id'=>'1','observed_at_unix'=>1793665000];return$out;}};
     $gate=static fn(string $chat):bool=>true;
@@ -912,7 +915,7 @@ function modeledValuePredictionAssertions(PDO $p,callable $check):void
 function modeledValuePolicyTransitionAssertions(PDO $p,callable $check):void
 {
     modeledValueSchema($p);$now=1793669000;$gate=static fn(string $chat):bool=>true;
-    $scope=modeledValueBinding($p,850);$wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    $scope=modeledValueBinding($p,850);$wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $control->configure('create-goal',$api,$now-500);$control->configure('enable',$api,$now-500);
     $posts=$wire->posts;$gets=$wire->gets;
     $unknown=modeledUnknownPriceWrapper(modeledExpertWrapper($scope,$now,200000));modeledValueSave($p,$unknown);
@@ -941,7 +944,7 @@ function modeledValuePolicyTransitionAssertions(PDO $p,callable $check):void
         &&$rows===$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)
         &&$wire->posts===$posts&&$wire->gets===$gets);
 
-    modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    modeledValueSchema($p);$wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $control->configure('create-goal',$api,$now-500);$control->configure('enable',$api,$now-500);
     $posts=$wire->posts;$gets=$wire->gets;
     $states=['pending','ready','uploading','accepted','processed','unknown','failed','expired','unmatched'];$unknownScope=null;
@@ -990,7 +993,7 @@ function modeledValuePolicyTransitionAssertions(PDO $p,callable $check):void
 function modeledPriceLossAssertions(PDO $p,callable $check):void
 {
     modeledValueSchema($p);$now=1793675000;$scope=modeledValueBinding($p,751);
-    $wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    $wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $control->configure('create-goal',$api,$now-500);$control->configure('enable',$api,$now-500);
     $lookup=new class{public function lookup(string $counter,array $users):array{$r=[];foreach($users as$u)$r[$u]=['external_user_id'=>$u,'client_id'=>'88000001','record_id'=>'1','observed_at_unix'=>1793675000];return$r;}};
     $gate=static fn(string $chat):bool=>true;
@@ -1020,7 +1023,7 @@ function modeledPriceLossAssertions(PDO $p,callable $check):void
         $sum()===$priced['deal_value_prediction']['value_rub']&&$wire->posts===$posts+2);
 
     // Independent synthetic pre-fix pending row, lower-stage fallback after a known price.
-    modeledValueSchema($p);$scope=modeledValueBinding($p,752);$control=new ModeledConversionValueExport($p);$wire=new ModeledValueTestWire();$api=$wire->api();
+    modeledValueSchema($p);$scope=modeledValueBinding($p,752);$control=new ModeledConversionValueExport($p);$wire=new ModeledValueTestWire($now-86400);$api=$wire->api();
     $control->configure('create-goal',$api,$now-500);$control->configure('enable',$api,$now-500);
     $first=modeledExpertWrapper($scope,$now,70000);modeledValueSave($p,$first);
     ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
@@ -1063,7 +1066,7 @@ function modeledValueIdentityEvidenceAssertions(PDO $p,callable $check):void
     modeledValueSchema($p);$now=1793679000;$namespace=ModeledConversionProfiles::assessmentNamespace();
     $p->exec("ALTER TABLE modeled_conversion_profile_versions ADD COLUMN assessment_namespace CHAR(64)");
     $p->exec("ALTER TABLE modeled_conversion_profile_versions ADD COLUMN assessment_kind VARCHAR(8)");
-    $wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    $wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $control->configure('create-goal',$api,$now-500);$control->configure('enable',$api,$now-500);
     $gate=static fn(string $chat):bool=>true;
     for($i=1;$i<=11;$i++)modeledValueSave($p,modeledExpertWrapper(modeledValueBinding($p,4600+$i),$now-100,200000));
@@ -1223,7 +1226,7 @@ function modeledValueFiniteVisitAssertions(PDO $p,callable $check):void
         modeledValueSchema($p);
         $p->exec("ALTER TABLE modeled_conversion_profile_versions ADD COLUMN assessment_namespace CHAR(64)");
         $p->exec("ALTER TABLE modeled_conversion_profile_versions ADD COLUMN assessment_kind VARCHAR(8)");
-        $wire=new ModeledValueTestWire();$control=new ModeledConversionValueExport($p);
+        $wire=new ModeledValueTestWire($now-86400);$control=new ModeledConversionValueExport($p);
         $control->configure('create-goal',$wire->api(),$now-1000);$control->configure('enable',$wire->api(),$now-1000);
         for($i=1;$i<=$count;$i++)modeledValueSave($p,modeledExpertWrapper(modeledValueBinding($p,5600+$i),$event,200000));
         $p->prepare("UPDATE modeled_conversion_profile_versions SET observed_at_unix=?,assessment_namespace=?,assessment_kind='repair'")
@@ -1427,7 +1430,7 @@ function modeledValueVisitRecoveryAssertions(PDO $p,callable $check):void
     $setup=static function(bool $priorHealthy=true)use($p,$now,$event,$oldAt,$ns,$gate,$healthy):array{
         modeledValueSchema($p);$p->exec("ALTER TABLE modeled_conversion_profile_versions ADD COLUMN assessment_namespace CHAR(64)");
         $p->exec("ALTER TABLE modeled_conversion_profile_versions ADD COLUMN assessment_kind VARCHAR(8)");
-        $wire=new ModeledValueTestWire();$control=new ModeledConversionValueExport($p);
+        $wire=new ModeledValueTestWire($now-86400);$control=new ModeledConversionValueExport($p);
         $control->configure('create-goal',$wire->api(),$now-4000);$control->configure('enable',$wire->api(),$now-4000);
         for($i=1;$i<=3;$i++)modeledValueSave($p,modeledExpertWrapper(modeledValueBinding($p,6600+$i),$event,200000));
         $p->prepare("UPDATE modeled_conversion_profile_versions SET observed_at_unix=?,assessment_namespace=?,assessment_kind='repair'")->execute([$event,$ns]);
@@ -1628,7 +1631,7 @@ function modeledValueVisitGateDecisionAssertions(PDO $p,callable $check):void
     $now=1793660000;$gate=static fn(string $chat):bool=>true;$held=[];
     $saved=static fn():array=>json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
     foreach(['no_prior_visit','visit_report_unavailable','outside_current_window','within_current_window']as$reason){
-        modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+        modeledValueSchema($p);$wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$control=new ModeledConversionValueExport($p);
         $control->configure('create-goal',$api,$now-20);$control->configure('enable',$api,$now-10);
         $wire->visitEmpty=$reason==='no_prior_visit';$wire->visitAvailable=$reason!=='visit_report_unavailable';
         $wire->visitAt=$now-($reason==='outside_current_window'?4*86400:60);
@@ -1654,7 +1657,7 @@ function modeledValueVisitGateDecisionAssertions(PDO $p,callable $check):void
     $check('identical legacy hold errors now retain distinct actual no-prior and unavailable decision counts',
         $held['no_prior_visit']===$held['visit_report_unavailable']);
 
-    modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$owner=new ModeledConversionValueExport($p);
+    modeledValueSchema($p);$wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$owner=new ModeledConversionValueExport($p);
     $owner->configure('create-goal',$api,$now-20);$owner->configure('enable',$api,$now-10);
     ModeledConversionValueExport::tick($p,new ModeledValueTestLookup(),$api,$now,$gate);
     $empty=$saved()['visit_gate_decisions'];
@@ -1711,6 +1714,97 @@ function modeledValueVisitGateDecisionAssertions(PDO $p,callable $check):void
         &&modeledValueFailureJsonEqual($after['last_recorded_failure'],$newFailure)
         &&$after['accepted']===1&&$after['processed']===3&&$after['errors']===1
         &&ModeledConversionValueExport::settings($p)['last_tick_unix']===$before['last_tick_unix']);
+}
+
+/** URL-level counter-zone bounds retain every visit that the unchanged current gates can admit. */
+function modeledValueCurrentVisitLookbackAssertions(callable $check):void
+{
+    $fixture=static function(string $zoneName,int $now,int $visitAt,string $source):array{
+        $zone=new DateTimeZone($zoneName);$wire=(object)['gets'=>0,'posts'=>0,'queries'=>[]];
+        $transport=static function(string $method,string $url,mixed $body)use($zoneName,$zone,$now,$visitAt,$source,$wire):array{
+            if($method!=='GET'){$wire->posts++;throw new RuntimeException('fixture_forbids_post');}
+            $wire->gets++;$path=(string)parse_url($url,PHP_URL_PATH);
+            if($path==='/management/v1/counter/98615635')return ['http'=>200,'error'=>0,'body'=>json_encode([
+                'counter'=>['id'=>98615635,'time_zone_name'=>$zoneName]],JSON_THROW_ON_ERROR)];
+            if($path!=='/stat/v1/data')throw new RuntimeException('fixture_unexpected_get');
+            parse_str((string)parse_url($url,PHP_URL_QUERY),$q);$wire->queries[]=$q;
+            $dims=explode(',',$q['dimensions']);$metrics=explode(',',$q['metrics']);$traffic=count($dims)===4;
+            $local=(new DateTimeImmutable('@'.$visitAt))->setTimezone($zone);
+            $today=(new DateTimeImmutable('@'.$now))->setTimezone($zone)->format('Y-m-d');
+            $inRange=$local->format('Y-m-d')>=$q['date1']&&$local->format('Y-m-d')<=$today;
+            $row=[['name'=>'88000000901'],['name'=>$local->format('Y-m-d H:i:s')]];
+            if($traffic){$row[]=['id'=>$source==='yandex_direct'?'ad':'direct'];$row[]=['id'=>$source==='yandex_direct'?'ya_direct':null];}
+            $values=count($metrics)===3?[1,1,1250]:[1];
+            return ['http'=>200,'error'=>0,'body'=>json_encode([
+                'query'=>['ids'=>[98615635],'metrics'=>$metrics,'dimensions'=>$dims,'filters'=>$q['filters']],
+                'data'=>$inRange?[['dimensions'=>$row,'metrics'=>$values]]:[],
+                'sampled'=>false,'total_rows'=>$inRange?1:0],JSON_THROW_ON_ERROR)];
+        };
+        return [new MetrikaOfflineClient('98615635','fixture-only',$transport),$wire];
+    };
+    foreach(['Pacific/Kiritimati','America/Los_Angeles','Europe/Moscow']as$zoneName){
+        foreach(['2026-11-11T00:30:00Z','2026-11-11T23:30:00Z']as$clock){
+            $now=strtotime($clock);$zone=new DateTimeZone($zoneName);
+            $start=(new DateTimeImmutable('@'.($now-10*86400)))->setTimezone($zone)->format('Y-m-d');
+            foreach([10,9]as$days){
+                [$api,$wire]=$fixture($zoneName,$now,$now-$days*86400,'yandex_direct');$extra=0;
+                $report=$api->modeledAttributionVisits('88000000901',$now,$now,static function()use(&$extra):void{$extra++;});
+                $window=ModeledConversionAttributionWindow::assess($report,$now,$now);
+                $check('current URL calendar floor retains Direct '.$days.'-day visit in '.$zoneName.' '.$clock,
+                    $window['allowed']&&$window['visit_at']===$now-$days*86400&&$window['window_days']===10
+                    &&$wire->gets===3&&$extra===1&&$wire->posts===0&&count($wire->queries)===2
+                    &&$wire->queries[0]['date1']===$start&&$wire->queries[1]['date1']===$start
+                    &&$wire->queries[0]['date2']==='today'&&$wire->queries[1]['date2']==='today'
+                    &&$wire->queries[0]['limit']==='101'&&$wire->queries[1]['limit']==='101');
+            }
+        }
+    }
+    $now=strtotime('2026-11-11T00:30:00Z');
+    foreach([[3*86400,true],[3*86400+1,false],[10*86400+1,false],[12*86400,false]]as[$age,$allowed]){
+        [$api,$wire]=$fixture('Europe/Moscow',$now,$now-$age,'other_or_unknown');
+        $report=$api->modeledAttributionVisits('88000000901',$now,$now);
+        $window=ModeledConversionAttributionWindow::assess($report,$now,$now);
+        $check('current query never widens unknown three-day or expired ten-day eligibility '.$age,
+            $window['allowed']===$allowed&&$wire->gets<=3&&$wire->posts===0
+            &&$wire->queries[0]['date1']===(new DateTimeImmutable('@'.($now-10*86400)))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('Y-m-d'));
+    }
+    [$api,$wire]=$fixture('Pacific/Kiritimati',$now,$now-21*86400,'other_or_unknown');
+    $legacy1=$api->modeledValueVisits('88000000901',$now,$now);
+    $legacy2=$api->modeledClientVisits('88000000901',$now,$now);
+    $check('historical goal and client reports preserve their original 22-day ranges and request budget',
+        $legacy1['status']==='ok'&&count($legacy1['visits'])===1&&$legacy2['status']==='ok'&&count($legacy2['visits'])===1
+        &&$wire->gets===3&&$wire->posts===0&&count($wire->queries)===2
+        &&$wire->queries[0]['date1']===gmdate('Y-m-d',$now-22*86400)
+        &&$wire->queries[1]['date1']===gmdate('Y-m-d',$now-22*86400)
+        &&str_contains($wire->queries[0]['filters'],'goal==678187097')
+        &&!str_contains($wire->queries[1]['filters'],'goal=='));
+}
+
+/** No network: exercise the exact timeout options consumed by the existing transport. */
+function modeledValueReportTimeoutAssertions(callable $check):void
+{
+    $options=new ReflectionMethod(MetrikaOfflineClient::class,'requestTimeouts');
+    $plain=new MetrikaOfflineClient('98615635','fixture-only',static fn():array=>[]);
+    foreach([['GET',true,true,2,20],['GET',true,false,2,8],['GET',false,true,5,30],['POST',true,true,2,8],['POST',false,false,5,30]]as[$method,$statistics,$ordinary,$connect,$timeout]){
+        $actual=$options->invoke($plain,$method,$statistics,$ordinary,1000.0);
+        $check('isolated aggregate timeout leaves other request budgets unchanged '.implode(':',[$method,(int)$statistics,(int)$ordinary]),
+            $actual===['connect_seconds'=>$connect,'timeout_seconds'=>$timeout]);
+    }
+    foreach([[0.5,500],[20.0,20000],[30.0,20000]]as[$remaining,$expected]){
+        $bounded=new MetrikaOfflineClient('98615635','fixture-only',static fn():array=>[],1000.0+$remaining);
+        $actual=$options->invoke($bounded,'GET',true,true,1000.0);
+        $check('aggregate timeout always respects a smaller equal or larger existing read deadline '.$remaining,
+            $actual['timeout_ms']===$expected&&$actual['connect_ms']===min(2000,$expected));
+    }
+    $bounded=new MetrikaOfflineClient('98615635','fixture-only',static fn():array=>[],1030.0);
+    $other=$options->invoke($bounded,'GET',true,false,1000.0);
+    $management=$options->invoke($bounded,'GET',false,false,1000.0);
+    $check('other statistics and management GETs retain their existing deadline ceilings',
+        $other['timeout_ms']===8000&&$management['timeout_ms']===8000);
+    $calls=0;$expired=new MetrikaOfflineClient('98615635','fixture-only',static function()use(&$calls):array{$calls++;return[];},microtime(true)-1.0);
+    $blocked=false;
+    try{$expired->modeledValueReport(1793650000,1793660000);}catch(RuntimeException $e){$blocked=$e->getMessage()==='verification_deadline';}
+    $check('expired existing deadlines forbid the ordinary report before any transport invocation',$blocked&&$calls===0);
 }
 
 if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){
