@@ -1,0 +1,58 @@
+{
+  "state": "SOURCE_PREPARED_NOT_DISPATCHED",
+  "prepared_at_moscow": "2026-11-11T19:10:54+03:00",
+  "source_branch": "audit/content100-bot-publication-20261101",
+  "base_commit": "53c99034cd8774c4d90c3161b3c05f5f77fdf84d",
+  "reviewed_runtime_source": "5bec42ca0ab077102bc3d1df4cd6348a4e9078a9",
+  "purpose": "Use the lowest observed tour from the existing daily monitor in both existing channel posts and their retained feed offers, without a second supplier quote.",
+  "edited_existing_handlers": [
+    "update-commercial-price-20261104-remaining1.php",
+    "publish-commercial-channel-hotel-feeds-20261103-1.php"
+  ],
+  "monitor_mode": {
+    "price_basis": "scheduled_monitor_result",
+    "source": "https://anytoour.ru/data/hotel-monitor-prices-read-v1.php",
+    "supplier_requests": 0,
+    "observation_window_hours": 24,
+    "export_transport_seconds": 900,
+    "currency": "RUB",
+    "departure_id": 1,
+    "adults": 2,
+    "children": 0,
+    "nights": [
+      5,
+      14
+    ],
+    "minimum": "first sorted observation for the exact Tourvisor identity; no claim of full-market coverage",
+    "fuel_added_separately": false,
+    "full_package_price_verified": false,
+    "availability_verified": false
+  },
+  "verification": {
+    "runtime": "PHP WebAssembly CLI 3.1.64, local cloud environment; no production execution",
+    "syntax": "PASS",
+    "contract_fixture_assertions": 1078,
+    "legacy_feed_cas_cases": 10,
+    "recorded_hotel_plans": 6,
+    "recorded_feed_offers": 1018,
+    "changed_offers_in_local_copy": 12,
+    "untouched_offer_blocks_byte_identical": 1006,
+    "source_review": "Author review, not independent review",
+    "provider_calls": 0,
+    "production_post_edits": 0,
+    "production_feed_writes": 0
+  },
+  "execution_contract": [
+    "Use the existing publisher only. No new workflow, schedule, transport, executor or queue was created; the consumed update46 workflow is unchanged and must not be replayed.",
+    "Read a fresh Site export and price handoff with releaseEligible true. Preserve Site privacy and never send its bearer to another host.",
+    "Read canonical publication receipts and current registry versions for the exact pair. Keep publication native hotel_id separate from tourvisor_hotel_id; never infer identity from numeric equality.",
+    "The signed-off exact manifest binds a single original publication operation, cover hash, native identity, separate MAX/Telegram current and proposed texts, expected versions and retained destinations. Do not fabricate missing current context.",
+    "The editor requires APPROVED_UPDATE_TOURVISOR_ID in monitor mode. Its deterministic operation is commercial-monitor-price-h<TV>-<recordId>. Existing exact manifest, runtime, photo, button, token and journal checks remain active.",
+    "Place monitor-price-contract.php beside each existing handler, or bundle its unchanged declarations into the existing stdin wrapper. No credentials belong in a source file.",
+    "Schema3 feed input adds generated_at and price_updates after the existing schema_version, operation and files fields. Each update binds operation, canonical manifest_hash, tourvisor_hotel_id, posts, offer_ids and destinations.",
+    "The writer reads the actual private complete journal of both updated posts; supplied success claims do not substitute for it. It patches only their exact existing offer blocks and keeps tracking, media, IDs and all other offers unchanged.",
+    "After an ambiguous post or file write, reconcile the existing journal and exact bytes. Do not create a fresh operation to retry an unknown result. Existing old quote and unpriced-feed modes remain available unchanged."
+  ],
+  "next_required_input": "Fresh canonical current message contexts and unchanged live runtime proof, then wire these prepared inputs through the existing publisher invocation and confirm both post receipts before writing the three feeds. Source preparation is not an installed scheduled integration.",
+  "automatic_dispatch": false
+}

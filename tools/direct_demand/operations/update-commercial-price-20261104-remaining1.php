@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
-// Fixed, read-only preflight for the two directly authorized publication targets.
+// Existing-message editor for the two authorized channels; never creates posts.
+require_once __DIR__.'/monitor-price-contract.php';
 ini_set('display_errors','0');ini_set('log_errors','0');
 $out=['operation'=>APPROVED_UPDATE_OPERATION,'mode'=>'update_existing_hotel_price_block','ok'=>false,'post_write_attempts'=>0,'price_block_updates'=>0,'channels'=>[]];
 
@@ -13,11 +14,21 @@ function tg(string $method,array $body):array{
 function readMax(string $id):array{need(preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/',$id)===1,'message_id_invalid');$r=ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.$id,[],null);need(empty($r['transport_error'])&&(int)$r['http']===200&&is_array($r['data']),'max_read_failed');return $r['data'];}
 function photoSignature(array $snapshot):string{$media=$snapshot['attachments']??[];need(count($media)===1&&($media[0]['type']??'')==='image','expected_one_photo');$m=$media[0];$id=(string)($m['photo_id']??$m['file_unique_id']??'');need($id!==''&&preg_match('/\A[A-Za-z0-9_-]+\z/',$id)===1,'photo_stable_id_missing');return (string)($m['provider']??'').':'.$id;}
 function snapshotMatches(array $p,array $snap,array $plan):bool{return ($snap['text']??'')===$plan['text']&&photoSignature($snap)===$plan['photo_signature']&&($snap['post_url']??'')===$plan['post_url']&&ChannelPostIncomingAdapter::containsOnlyButton($snap,ChannelPostButtonTransport::buttonUrl($p),'✈️ Узнать стоимость тура');}
-function safeResult(array $p,array $plan):array{return ['logical_id'=>$plan['logical_id'],'platform'=>$p['platform'],'channel_id'=>$p['channel_id'],'post_url'=>$plan['post_url'],'message_id'=>$plan['message_id'],'publication_id'=>(int)$p['publication_id'],'version_id'=>(int)$p['version_id'],'previous_version_id'=>$plan['old_version_id'],'button_url'=>ChannelPostButtonTransport::buttonUrl($p),'button_text'=>'✈️ Узнать стоимость тура','text_sha256'=>hash('sha256',$plan['text']),'photo_signature'=>$plan['photo_signature'],'source_key'=>$p['source_key'],'content_updated'=>$plan['update_text'],'state'=>'sent','body_photo_button_verified'=>true,'existing_message_reused'=>true];}
+function safeResult(array $p,array $plan):array{$result=['logical_id'=>$plan['logical_id'],'platform'=>$p['platform'],'channel_id'=>$p['channel_id'],'post_url'=>$plan['post_url'],'message_id'=>$plan['message_id'],'publication_id'=>(int)$p['publication_id'],'version_id'=>(int)$p['version_id'],'previous_version_id'=>$plan['old_version_id'],'button_url'=>ChannelPostButtonTransport::buttonUrl($p),'button_text'=>'✈️ Узнать стоимость тура','text_sha256'=>hash('sha256',$plan['text']),'photo_signature'=>$plan['photo_signature'],'source_key'=>$p['source_key'],'content_updated'=>$plan['update_text'],'state'=>'sent','body_photo_button_verified'=>true,'existing_message_reused'=>true];if(isset($plan['monitor_price'])){$result['monitor_price']=$plan['monitor_price'];$result['text']=$plan['text'];}return $result;}
+
+function priceObservationMetadata(array $metadata,array $payload,?array $price):array{
+    if($price!==null){unset($metadata['price_quote_response_sha256'],$metadata['price_checked_epoch_utc']);$metadata['monitor_price_record_id']=$price['record_id'];$metadata['monitor_price_basis']=$price['price_basis'];$metadata['monitor_price_observed_at_relative']=$price['observed_at'];}
+    else{$metadata['price_quote_response_sha256']=$payload['quote_response_sha256'];$metadata['price_checked_epoch_utc']=(string)$payload['quote_epoch_utc'];}
+    return $metadata;
+}
 
 try {
     if(PHP_SAPI!=='cli'||trim((string)shell_exec('git rev-parse HEAD'))!==EXPECTED_INSTALLED_SHA)throw new RuntimeException('installed_source_changed');
-    // Inspect only the unchanged, previously accepted publishing surface.
+    $payload=json_decode(base64_decode(MANIFEST_BASE64,true),true,64,JSON_THROW_ON_ERROR);
+    need(defined('APPROVED_MANIFEST_SHA256')&&hash('sha256',base64_decode(MANIFEST_BASE64,true))===APPROVED_MANIFEST_SHA256,'approved_manifest_bytes_changed');
+    $monitorMode=($payload['price_basis']??null)==='scheduled_monitor_result';
+    // Legacy pins remain exact. Monitor mode uses the reviewed installed-source surface.
+
     $accepted=[
         "integrations/ChannelPostApiTransport.php"=>"300634d77cb9fddf51adf9869974f956cca6e3f9",
         "migrations/033_channel_post_context.sql"=>"0530458030a4bfe6b6cc55d1e5e441745c29b947",
@@ -41,6 +52,13 @@ try {
         "services/MaxTransport.php"=>"bfa583167347ff42ed632c52a552e5585bb97de9",
         "services/ProjectConfig.php"=>"538b596981f2c61fbf524e18756bf672578948f6",
     ];
+    if($monitorMode)$accepted=array_replace($accepted,[
+        'services/ChannelPostButtonTransport.php'=>'7b6711f1de63000346d8e5789f2dbb7f725535b8',
+        'services/ChannelPostRegistryService.php'=>'8335bf2fb0c1cd78f268d4e90fad1a4465fa6390',
+        'services/MaxTransport.php'=>'2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159',
+        'services/ProjectConfig.php'=>'63c17c8103412f8cff8cdcc4bbb062e744106af9',
+        'services/ProjectConfiguration.php'=>'07019d473c588e3386ace42977db93092e8112e3',
+    ]);
     foreach($accepted as $path=>$blob)if(trim((string)shell_exec('git hash-object -- '.escapeshellarg($path)))!==$blob)throw new RuntimeException('publishing_surface_changed');
     ob_start();try {
         require getcwd().'/config.php';
@@ -53,16 +71,31 @@ try {
     } finally {ob_end_clean();}
 
 
-    $payload=json_decode(base64_decode(MANIFEST_BASE64,true),true,64,JSON_THROW_ON_ERROR);need(($payload['operation']??'')===APPROVED_UPDATE_OPERATION&&count($payload['rows']??[])===1,'manifest_scope_changed');$rows=$payload['rows'];
-    foreach($rows as $r)need($r['key']===base64_decode(APPROVED_UPDATE_KEY_B64,true)&&(int)$r['hotel_id']===APPROVED_UPDATE_HOTEL_ID&&$r['logical_id']===base64_decode(APPROVED_UPDATE_LOGICAL_B64,true)&&hash('sha256',$r['old_text'])===$r['old_text_sha256']&&hash('sha256',$r['new_text'])===$r['new_text_sha256']&&preg_match('/[-\x{2010}-\x{2015}\x{2212}]/u',$r['new_text'])===0&&is_string($r['new_text'])&&strlen(mb_convert_encoding($r['new_text'],'UTF-16LE','UTF-8'))/2<=1024,'prepared_text_invalid');
-    need(defined('APPROVED_MANIFEST_SHA256')&&hash('sha256',base64_decode(MANIFEST_BASE64,true))===APPROVED_MANIFEST_SHA256,'approved_manifest_bytes_changed');
-    need(($payload['quote_response_sha256']??'')===VERIFIED_QUOTE_RESPONSE_SHA256&&(int)($payload['quote_epoch_utc']??0)===VERIFIED_QUOTE_EPOCH&&(int)$payload['quote_index']===VERIFIED_QUOTE_INDEX,'verified_quote_binding_changed');
-    need(time()>=VERIFIED_QUOTE_EPOCH&&time()-VERIFIED_QUOTE_EPOCH<=108000,'verified_quote_too_old_for_edit');
+    need(($payload['operation']??'')===APPROVED_UPDATE_OPERATION&&count($payload['rows']??[])===1,'manifest_scope_changed');$rows=$payload['rows'];
+    $monitorPrice=null;
+    if($monitorMode){
+        need(defined('APPROVED_UPDATE_TOURVISOR_ID')&&is_int(APPROVED_UPDATE_TOURVISOR_ID),'approved_monitor_identity_missing');
+        $monitorPrice=monitor_price_observation($payload['monitor_snapshot']??[],APPROVED_UPDATE_TOURVISOR_ID,time());
+        need($payload['operation']===monitor_price_operation($monitorPrice),'monitor_operation_changed');
+        need(is_array($payload['feed_binding']??null)&&($payload['feed_binding']['tourvisor_hotel_id']??null)===APPROVED_UPDATE_TOURVISOR_ID,'monitor_feed_binding_missing');
+        foreach($rows as $r){
+            need(($r['tourvisor_hotel_id']??null)===APPROVED_UPDATE_TOURVISOR_ID&&$r['key']===base64_decode(APPROVED_UPDATE_KEY_B64,true)&&(int)$r['hotel_id']===APPROVED_UPDATE_HOTEL_ID&&$r['logical_id']===base64_decode(APPROVED_UPDATE_LOGICAL_B64,true),'monitor_native_binding_changed');
+            foreach(['max','telegram'] as $platform){
+                $v=$r['channel_texts'][$platform]??[];
+                need(is_string($v['old_text']??null)&&is_string($v['new_text']??null)&&hash('sha256',$v['old_text'])===($v['old_text_sha256']??'')&&hash('sha256',$v['new_text'])===($v['new_text_sha256']??'')&&preg_match('/\A[a-f0-9]{64}\z/D',$v['original_text_sha256']??'')===1&&is_int($v['expected_version_id']??null)&&$v['expected_version_id']>0&&is_string($v['expected_post_url']??null),'monitor_channel_text_invalid');
+                monitor_price_validate_text($v['new_text'],$monitorPrice);
+                need(($payload['feed_binding']['posts'][$platform]??null)===$v['expected_post_url'],'monitor_post_binding_mismatch');
+            }
+        }
+    }else foreach($rows as $r)need($r['key']===base64_decode(APPROVED_UPDATE_KEY_B64,true)&&(int)$r['hotel_id']===APPROVED_UPDATE_HOTEL_ID&&$r['logical_id']===base64_decode(APPROVED_UPDATE_LOGICAL_B64,true)&&hash('sha256',$r['old_text'])===$r['old_text_sha256']&&hash('sha256',$r['new_text'])===$r['new_text_sha256']&&preg_match('/[-\x{2010}-\x{2015}\x{2212}]/u',$r['new_text'])===0&&is_string($r['new_text'])&&strlen(mb_convert_encoding($r['new_text'],'UTF-16LE','UTF-8'))/2<=1024,'prepared_text_invalid');
+
+    if(!$monitorMode){need(($payload['quote_response_sha256']??'')===VERIFIED_QUOTE_RESPONSE_SHA256&&(int)($payload['quote_epoch_utc']??0)===VERIFIED_QUOTE_EPOCH&&(int)$payload['quote_index']===VERIFIED_QUOTE_INDEX,'verified_quote_binding_changed');
+    need(time()>=VERIFIED_QUOTE_EPOCH&&time()-VERIFIED_QUOTE_EPOCH<=108000,'verified_quote_too_old_for_edit');}
     $pdo=ConversationDb::connection();
     foreach(['033_channel_post_context.sql','036_channel_post_member_delivery.sql','040_channel_post_reconciliation.sql'] as $m){$q=$pdo->prepare('SELECT checksum FROM schema_migrations WHERE version=?');$q->execute([$m]);need($q->fetchColumn()===hash_file('sha256',getcwd().'/migrations/'.$m),'publishing_schema_not_accepted');}
-    need(preg_match('/\Acommercial-price-update-20261104-remaining1-h[1-9][0-9]{0,6}-v1\z/D',APPROVED_UPDATE_OPERATION)===1,'invalid_exact_update_operation');$dir='/var/www/anytoour/data/channel-post-operations/'.APPROVED_UPDATE_OPERATION;need(!is_link(dirname($dir))&&!is_link($dir),'invalid_operation_directory');if(!is_dir($dir))need(mkdir($dir,0700,true),'invalid_operation_directory');need(realpath($dir)===$dir,'invalid_operation_directory');
+    need($monitorMode?APPROVED_UPDATE_OPERATION===monitor_price_operation($monitorPrice):preg_match('/\Acommercial-price-update-20261104-remaining1-h[1-9][0-9]{0,6}-v1\z/D',APPROVED_UPDATE_OPERATION)===1,'invalid_exact_update_operation');$dir='/var/www/anytoour/data/channel-post-operations/'.APPROVED_UPDATE_OPERATION;need(!is_link(dirname($dir))&&!is_link($dir),'invalid_operation_directory');if(!is_dir($dir))need(mkdir($dir,0700,true),'invalid_operation_directory');need(realpath($dir)===$dir,'invalid_operation_directory');
     $receiptPath=$dir.'/receipt.jsonl';need(!is_link($receiptPath),'invalid_receipt_path');$receiptExisted=is_file($receiptPath);$lock=fopen($receiptPath,'c+');need($lock!==false&&flock($lock,LOCK_EX|LOCK_NB),'operation_busy');$journal=stream_get_contents($lock);need(is_string($journal)&&(!$receiptExisted||$journal!==''),'empty_existing_receipt_unresolved');need($journal===''||str_ends_with($journal,"\n"),'partial_receipt_unresolved');$lines=$journal===''?[]:explode("\n",rtrim($journal,"\n"));$raw=$lines?end($lines):'';$manifestHash=hash('sha256',json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
-    $state=$raw===''?['operation'=>$payload['operation'],'manifest_hash'=>$manifestHash,'configs'=>[],'posts'=>[]]:json_decode($raw,true,64,JSON_THROW_ON_ERROR);need(($state['operation']??'')===$payload['operation']&&($state['manifest_hash']??'')===$manifestHash,'operation_scope_changed');durable($lock,$state);
+    $state=$raw===''?['operation'=>$payload['operation'],'manifest_hash'=>$manifestHash,'configs'=>[],'posts'=>[]]:json_decode($raw,true,64,JSON_THROW_ON_ERROR);need(($state['operation']??'')===$payload['operation']&&($state['manifest_hash']??'')===$manifestHash,'operation_scope_changed');if($monitorMode){need(!isset($state['monitor_snapshot'])||$state['monitor_snapshot']===$payload['monitor_snapshot'],'monitor_journal_source_changed');$state['monitor_snapshot']=$payload['monitor_snapshot'];$state['feed_binding']=$payload['feed_binding'];}durable($lock,$state);
     foreach($state['configs'] as $r)need(($r['state']??'')==='confirmed','prior_configuration_outcome_unresolved');foreach($state['posts'] as $r)need(($r['state']??'')==='confirmed','prior_edit_outcome_unresolved');
     $registry=new ChannelPostRegistryService($pdo);$automation=new ChannelPostAutomationService($registry);
     $targets=['max'=>['bot'=>'id9704048781_1_bot','channel'=>'-80492244209683','source'=>'max_anytour_msk1','id'=>9],'telegram'=>['bot'=>'anyru_bot','channel'=>'-1002262666616','source'=>'tg_anytour_msk','id'=>10]];$channels=[];$plans=[];
@@ -72,23 +105,27 @@ try {
         $channel=$registry->channel('anytour',$platform,$t['bot'],$t['channel']);need(is_array($channel)&&(int)$channel['id']===$t['id']&&$channel['source_key']===$t['source']&&$channel['button_text']===$payload['button_text']&&(int)$channel['config_version']===2,'channel_configuration_changed');
         need(((new ChannelPostButtonTransport())->verifyChannel($channel)['state']??'')==='ready','provider_channel_rights_changed');$channels[$platform]=$channel;
         foreach($rows as $r){
+            if($monitorMode){$r=array_replace($r,$r['channel_texts'][$platform]);$r['update_text']=$r['new_text']!==$r['old_text'];}
             $proofPath='/var/www/anytoour/data/channel-post-operations/'.$r['original_publication_operation'].'/'.$platform.'-'.$r['logical_id'].'-approved.json';
             need(!is_link($proofPath)&&is_file($proofPath),'canonical_original_receipt_missing');
             $prior=json_decode(file_get_contents($proofPath),true,64,JSON_THROW_ON_ERROR);$proof=$prior['receipt']??[];
-            need(($prior['state']??'')==='confirmed'&&($prior['text_sha256']??'')===$r['old_text_sha256']&&($prior['photo_sha256']??'')===$r['cover_sha256']&&($proof['logical_id']??'')===$r['logical_id']&&(int)($proof['hotel_id']??0)===APPROVED_UPDATE_HOTEL_ID&&($proof['platform']??'')===$platform&&!empty($proof['body_photo_button_verified']),'canonical_original_receipt_mismatch');
+            need(($prior['state']??'')==='confirmed'&&($prior['text_sha256']??'')===($monitorMode?$r['original_text_sha256']:$r['old_text_sha256'])&&($prior['photo_sha256']??'')===$r['cover_sha256']&&($proof['logical_id']??'')===$r['logical_id']&&(int)($proof['hotel_id']??0)===APPROVED_UPDATE_HOTEL_ID&&($proof['platform']??'')===$platform&&!empty($proof['body_photo_button_verified']),'canonical_original_receipt_mismatch');
             $id=(int)($proof['publication_id']??0);$mid=(string)($proof['message_id']??'');
             $p=$registry->publication($id);need(is_array($p)&&$p['project_key']==='anytour'&&$p['platform']===$platform&&$p['bot_key']===$t['bot']&&$p['channel_id']===$t['channel']&&$p['external_message_id']===$mid&&$p['source_key']===$t['source']&&$p['state']==='sent','existing_publication_identity_changed');
             $key=$platform.':'.$r['key'];$done=$state['posts'][$key]??null;
+            if($monitorMode){need(($p['snapshot']['post_url']??'')===$r['expected_post_url']&&($done||(int)$p['version_id']===$r['expected_version_id']),'monitor_publication_version_changed');}
             need(($p['snapshot']['text']??'')===($done?$r['new_text']:$r['old_text']),'existing_caption_changed');
             $snap=$p['snapshot'];
             if($platform==='max'){$actual=ChannelPostIncomingAdapter::maxSnapshot(readMax($mid));need(is_array($actual)&&($actual['text']??'')===$snap['text']&&photoSignature($actual)===photoSignature($snap)&&($actual['post_url']??'')===($snap['post_url']??''),'existing_max_readback_changed');}
             $plans[$key]=['platform'=>$platform,'key'=>$r['key'],'logical_id'=>$r['logical_id'],'message_id'=>$mid,'publication_id'=>$id,'old_version_id'=>(int)$p['version_id'],'token'=>$p['start_payload'],'post_url'=>$snap['post_url'],'photo_signature'=>photoSignature($snap),'text'=>$r['new_text'],'update_text'=>$r['update_text']];
+            if($monitorMode)$plans[$key]['monitor_price']=$monitorPrice;
         }
     }
     $out['preflight_existing_messages']=count($plans);$out['configuration_write_attempts']=0;$out['content_edit_attempts']=0;$out['button_only_edit_attempts']=0;$out['posts']=[];
     foreach($plans as $key=>$plan){
         $out['current']=['platform'=>$plan['platform'],'logical_id'=>$plan['logical_id']];if(isset($state['posts'][$key])){$out['posts'][]=$state['posts'][$key]['receipt'];continue;}
         $platform=$plan['platform'];$t=$targets[$platform];$p=$registry->publication($plan['publication_id']);$c=$channels[$platform];need(is_array($p)&&(int)$p['version_id']===$plan['old_version_id']&&$p['state']==='sent'&&(int)$p['channel']['config_version']===2&&$p['channel']['button_text']===$payload['button_text']&&hash_equals((string)$p['start_payload'],(string)$plan['token']),'target_changed_before_edit');
+        if($monitorMode)monitor_price_observation($payload['monitor_snapshot'],APPROVED_UPDATE_TOURVISOR_ID,time());
         $state['posts'][$key]=['state'=>'edit_started','plan'=>$plan,'edit_request_start_ms'=>(int)floor(microtime(true)*1000)];durable($lock,$state);$requestStart=$state['posts'][$key]['edit_request_start_ms'];
         if($platform==='telegram'){
             $body=['chat_id'=>$t['channel'],'message_id'=>$plan['message_id'],'reply_markup'=>json_encode(['inline_keyboard'=>[[['text'=>$payload['button_text'],'url'=>ChannelPostButtonTransport::buttonUrl($p)]]]],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)];
@@ -101,8 +138,7 @@ try {
             $snap['metadata']=array_replace($p['snapshot']['metadata']??[],$snap['metadata']??[]);
             $snap['metadata']['source_event_id']=$payload['operation'].':telegram:'.$plan['message_id'];
             $snap['metadata']['observation_kind']='authorized_admin_content_edit';
-            $snap['metadata']['price_quote_response_sha256']=$payload['quote_response_sha256'];
-            $snap['metadata']['price_checked_epoch_utc']=(string)$payload['quote_epoch_utc'];
+            $snap['metadata']=priceObservationMetadata($snap['metadata'],$payload,$monitorPrice);
             $p=$registry->registerPublication('anytour','telegram',$t['bot'],$t['channel'],$plan['message_id'],$snap);
             need(is_array($p)&&(int)$p['publication_id']===$plan['publication_id'],'telegram_registry_receive_failed');
             if($p['state']!=='sent'){$button=$automation->processPublication('anytour','telegram',$t['bot'],(int)$p['publication_id'],(int)$p['version_id']);$state['posts'][$key]['button_result']=$button;durable($lock,$state);need(($button['state']??'')==='sent','telegram_button_outcome_not_confirmed');}
@@ -114,7 +150,7 @@ try {
                 $response=MaxTransport::request('https://platform-api2.max.ru',MAX_SEARCH_TOKEN,'PUT','/messages',['message_id'=>$plan['message_id']],['text'=>$html,'format'=>'html'],null);
                 $state['posts'][$key]['provider_edit_returned']=is_array($response)||$response===true;$state['posts'][$key]['state']='text_edit_returned';durable($lock,$state);
                 $message=readMax($plan['message_id']);$snap=ChannelPostIncomingAdapter::maxSnapshot($message);need(is_array($snap)&&($snap['text']??'')===$plan['text']&&photoSignature($snap)===$plan['photo_signature']&&($snap['post_url']??'')===$plan['post_url'],'max_content_edit_readback_mismatch');
-                $snap['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($snap,'',(string)$c['bot_url']);$snap['metadata']=array_replace($p['snapshot']['metadata']??[],$snap['metadata']??[]);$snap['metadata']['price_quote_response_sha256']=$payload['quote_response_sha256'];$snap['metadata']['price_checked_epoch_utc']=(string)$payload['quote_epoch_utc'];$snap['metadata']['source_event_id']=$payload['operation'].':'.$key;$snap['metadata']['observation_kind']='authorized_admin_content_edit';$snap['metadata']['operation_observed_at_ms']=(string)(int)floor(microtime(true)*1000);$snap['metadata']['source_revision_ms']=(string)$requestStart;$snap['metadata']['revision_clock_origin']='authorized_edit_request_start';
+                $snap['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($snap,'',(string)$c['bot_url']);$snap['metadata']=array_replace($p['snapshot']['metadata']??[],$snap['metadata']??[]);$snap['metadata']=priceObservationMetadata($snap['metadata'],$payload,$monitorPrice);$snap['metadata']['source_event_id']=$payload['operation'].':'.$key;$snap['metadata']['observation_kind']='authorized_admin_content_edit';$snap['metadata']['operation_observed_at_ms']=(string)(int)floor(microtime(true)*1000);$snap['metadata']['source_revision_ms']=(string)$requestStart;$snap['metadata']['revision_clock_origin']='authorized_edit_request_start';
                 $p=$registry->registerPublication('anytour','max',$t['bot'],$t['channel'],$plan['message_id'],$snap);
             }else{
                 $message=readMax($plan['message_id']);$p=$registry->registerProviderObservation('anytour',$t['bot'],$c,$message,1);$out['button_only_edit_attempts']++;
