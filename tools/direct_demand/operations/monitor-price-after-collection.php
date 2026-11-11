@@ -83,7 +83,7 @@ function hook_finish_feed(array &$state,$lock,string $installed):void {
 }
 
 $inspect=getenv('ANYTOUR_MONITOR_HOOK_INSPECT')==='1'||($argv[1]??'')==='--inspect';
-$out=['ok'=>false,'mode'=>$inspect?'read_only_hook_inspection':'existing_monitor_post_feed_hook','new_posts'=>0,'supplier_calls'=>0,'site_writes'=>0,'updated_pairs'=>0,'unchanged_pairs'=>0,'eligible_pairs'=>0,'verified_ids'=>[],'eligible_ids'=>[],'unchanged_ids'=>[],'deferred'=>[]];
+$out=['ok'=>false,'mode'=>$inspect?'read_only_hook_inspection':'existing_monitor_post_feed_hook','new_posts'=>0,'supplier_calls'=>0,'site_writes'=>0,'updated_pairs'=>0,'unchanged_pairs'=>0,'eligible_pairs'=>0,'verified_ids'=>[],'eligible_ids'=>[],'unchanged_ids'=>[],'updates'=>[],'deferred'=>[]];
 try{
     hook_need(count($argv)===1||($inspect&&count($argv)===2),'hook_argument_invalid');
     hook_need(defined('HOOK_ROSTER_GZIP_B64')&&defined('HOOK_RUNTIME_PINS_B64'),'hook_bundle_required');
@@ -139,6 +139,9 @@ try{
         $state['pending']=['tourvisor_hotel_id'=>$tv,'operation'=>$op,'phase'=>'post_started','at'=>gmdate('c')];hook_append($lock,$state);
         hook_child(base64_decode(HOOK_EDITOR_B64,true),['EXPECTED_INSTALLED_SHA'=>$installed,'APPROVED_UPDATE_OPERATION'=>$op,'APPROVED_UPDATE_TOURVISOR_ID'=>$tv,'APPROVED_UPDATE_HOTEL_ID'=>$row['hotel_id'],'APPROVED_UPDATE_KEY_B64'=>base64_encode($row['key']),'APPROVED_UPDATE_LOGICAL_B64'=>base64_encode($row['logical_id']),'APPROVED_MANIFEST_SHA256'=>hash('sha256',$raw),'MANIFEST_BASE64'=>base64_encode($raw)]);
         hook_finish_feed($state,$lock,$installed);$out['updated_pairs']++;
+        $confirmed=hook_journal($op);$postReceipts=[];
+        foreach($confirmed['posts'] as $post)$postReceipts[]=$post['receipt'];
+        $out['updates'][]=['tourvisor_hotel_id'=>$tv,'operation'=>$op,'price'=>$price['price'],'record_id'=>$price['record_id'],'posts'=>$postReceipts,'feed_operation'=>$state['completed'][$tv]['feed_operation']];
     }
     $out['ok']=true;$out['installed_sha']=$installed;$out['roster_pairs']=count($roster);$out['completed_at']=gmdate('c');
     $out['existing_monitor_home_matches']=realpath((string)getenv('HOME').'/www/anytoour.ru/data')==='/var/www/anytoour/data/www/anytoour.ru/data';

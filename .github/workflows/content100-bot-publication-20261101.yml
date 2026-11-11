@@ -1,4 +1,4 @@
-name: Inspect expanded hotel price update bindings
+name: Apply bounded hotel monitor price updates
 'on':
   push:
     branches:
@@ -55,19 +55,29 @@ jobs:
         \  except Exception:continue\n  if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)\n\
         assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'\npathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\\\
         n'.join(matches)+'\\n')\nPY\n"
-    - name: Inspect callback with existing server connection and no writes
+    - name: Apply one bounded pass with existing publisher and exact readback
       env:
         DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
         DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        GH_TOKEN: ${{ github.token }}
       shell: bash
       run: 'set -euo pipefail
 
         umask 077
 
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/main-before-operation.json"
+
+        python3 - <<''PYCURRENT''
+
+        import json,os,pathlib
+
+        assert json.loads(pathlib.Path(os.environ[''RUNNER_TEMP''],''main-before-operation.json'').read_text())[''object''][''sha'']==os.environ[''EXPECTED_PRODUCTION_SHA'']
+
+        PYCURRENT
+
         ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes
         -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST"
-        ''cd /var/www/anytoour/data/www/app.anytoour.ru && ANYTOUR_MONITOR_HOOK_INSPECT=1 php'' < "$RUNNER_TEMP/monitor-price-hook.php"
-        | tee "$RUNNER_TEMP/monitor-price-hook-result.jsonl"
+        ''cd /var/www/anytoour/data/www/app.anytoour.ru && php'' < "$RUNNER_TEMP/monitor-price-hook.php" | tee "$RUNNER_TEMP/monitor-price-hook-result.jsonl"
 
         python3 - <<''PYRESULT''
 
@@ -77,18 +87,20 @@ jobs:
 
         assert line.startswith(''MONITOR_POST_FEED_RESULT='')
 
-        r=json.loads(line.split(''='',1)[1]);assert r[''ok''] and r[''mode'']==''read_only_hook_inspection'' and
-        r[''updated_pairs'']==r[''new_posts'']==r[''supplier_calls'']==r[''site_writes'']==0 and r[''roster_pairs'']==6
-        and r[''existing_monitor_home_matches''] and not r[''deferred'']
+        r=json.loads(line.split(''='',1)[1]);assert r[''ok''] and r[''mode'']==''existing_monitor_post_feed_hook''
+        and r[''new_posts'']==r[''supplier_calls'']==r[''site_writes'']==0 and 0 <= r[''updated_pairs''] <= 30 and
+        len(r[''updates''])==r[''updated_pairs''] and r[''roster_pairs'']==481 and r[''existing_monitor_home_matches'']
 
         PYRESULT'
     - uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: monitor-price-expanded-read-only-inspection
+        name: monitor-price-bounded-pass-receipt
         path: ${{ runner.temp }}/monitor-price-hook-result.jsonl
         retention-days: 14
     - name: Remove ephemeral connection and bundle
       if: always()
       shell: bash
       run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/monitor-price-hook.php"
+env:
+  EXPECTED_PRODUCTION_SHA: b41c4ea5dca3f4ad528c1e11d626275a479b0b8f
