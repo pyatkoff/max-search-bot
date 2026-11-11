@@ -55,7 +55,7 @@ final class ModeledConversionValueVisitRecovery
                 ||!is_int($row[5])||!in_array($row[5],[0,1,2],true)
                 ||!is_int($row[7])||$row[7]<0||$row[7]>4
                 ||!is_int($row[9])||!in_array($row[9],[0,1,2],true)
-                ||!is_int($row[10])||$row[10]<0||$row[10]>3)return null;
+                ||!is_int($row[10])||$row[10]<0||$row[10]>4)return null;
             $old=$cases[$row[0]];
             foreach([3,4,8]as$i)if($row[$i]!==null&&!$clock($row[$i]))return null;
             if(($row[3]!==null&&$row[3]<=$old[4])||($row[4]!==null&&$row[4]<=$old[4])
@@ -63,7 +63,7 @@ final class ModeledConversionValueVisitRecovery
                 ||($row[8]!==null&&$row[8]>$old[15]))return null;
             if($row[2]===0){if($row[3]!==null||$row[4]!==null||$row[5]!==0||$row[10]!==0)return null;}
             elseif($row[2]===1){if($row[3]===null||$row[4]!==null||$row[5]!==0||$row[10]!==1)return null;}
-            elseif($row[2]===3){if($row[3]!==null||$row[4]===null||$row[5]!==0||!in_array($row[10],[2,3],true))return null;}
+            elseif($row[2]===3){if($row[3]!==null||$row[4]===null||$row[5]!==0||!in_array($row[10],[2,3,4],true))return null;}
             elseif($row[3]===null||$row[4]===null||!in_array($row[5],[1,2],true)||$row[10]!==1)return null;
             if($row[5]===0){if($row[6]!==null||$row[7]!==0||$row[8]!==null||$row[9]!==0)return null;}
             elseif($row[5]===2){if($row[6]!==false||$row[7]!==4||$row[8]!==null||$row[9]!==0)return null;}
@@ -100,7 +100,7 @@ final class ModeledConversionValueVisitRecovery
             $out['rows'][]=['event_ref'=>$row[0],'candidate_sha256'=>$row[1],
                 'original_checked_at'=>$at($old[4]),'original_report_status'=>'unavailable',
                 'attempt_status'=>[0=>'pending',1=>'consumed_unknown',2=>'observed',3=>'source_binding_unavailable'][$row[2]],
-                'source_binding'=>[0=>'not_checked',1=>'canonical_lookup_matches_original_candidate',2=>'current_canonical_identity_unavailable',3=>'current_binding_changed'][$row[10]],
+                'source_binding'=>[0=>'not_checked',1=>'canonical_lookup_matches_original_candidate',2=>'current_canonical_identity_unavailable',3=>'current_binding_changed',4=>'existing_provider_receipt_not_rechecked'][$row[10]],
                 'checked_at'=>$at($row[4]??$row[3]),'report_status'=>$row[2]===1?'unknown':([0=>'not_requested',1=>'ok',2=>'unavailable'][$row[5]]),
                 'window_allowed'=>$row[6],'window_reason'=>[0=>null,1=>'within_current_window',2=>'outside_current_window',3=>'no_prior_visit',4=>'visit_report_unavailable'][$row[7]],
                 'selected_prior_visit_at'=>$at($row[8]),'source_class'=>$row[9]===1?'yandex_direct':($row[9]===2?'other_or_unknown':'unverified')];

@@ -11,6 +11,7 @@ require_once __DIR__.'/ModeledConversionAttributionWindow.php';
 require_once __DIR__.'/ModeledConversionValueIdentityEvidence.php';
 require_once __DIR__.'/ModeledConversionProfiles.php';
 require_once __DIR__.'/ModeledConversionValueVisitEvidence.php';
+require_once __DIR__.'/ModeledConversionValueVisitRecovery.php';
 
 /** One bounded addition to the existing cron process and durable conversion outbox. */
 final class ModeledConversionValueExport
@@ -25,6 +26,10 @@ final class ModeledConversionValueExport
     private array $finiteIdentities=[];
     private bool $finiteLookupReturned=false;
     private bool $finiteLookupAttempted=false;
+    private int $finiteChecksUsed=0;
+    private bool $optionalVisitStopped=false;
+    private ?array $recoveryJournal=null;
+    private ?array $recoveryOriginal=null;
     public function __construct(private PDO $pdo){}
     public static function settings(?PDO $pdo=null):?array
     {
@@ -155,11 +160,12 @@ final class ModeledConversionValueExport
             // Optional scalar metadata cannot block the existing financial lane.
             $self->prepareIdentityEvidence();
             $finite=$self->prepareFiniteEvidence($now,$gate);
-            $pending=$self->rows('pending',$now,MaxTrackerLookupProtocol::MAX_USERS-count($finite));
+            $recovery=$self->prepareRecoveryEvidence($now);
+            $pending=$self->rows('pending',$now,MaxTrackerLookupProtocol::MAX_USERS-count($finite)-count($recovery));
             $users=[];foreach($pending as$r)if($r['platform']==='max'&&$self->eligible($r,$gate))$users[]=$r['external_user_id'];
-            foreach($finite as$r)if($r['platform']==='max'&&$self->finiteEligible($r,$gate))$users[]=$r['external_user_id'];
+            foreach(array_merge($finite,$recovery)as$r)if($r['platform']==='max'&&$self->finiteEligible($r,$gate))$users[]=$r['external_user_id'];
             $identities=[];$lookupReturned=false;
-            if($users){$lookup??=new MaxTrackerLookupClient();$self->finiteLookupAttempted=(bool)$finite;
+            if($users){$lookup??=new MaxTrackerLookupClient();$self->finiteLookupAttempted=(bool)($finite||$recovery);
                 $identities=$lookup->lookup('98615635',array_values(array_unique($users)));$lookupReturned=true;
                 $self->finiteIdentities=$identities;$self->finiteLookupReturned=true;}
             foreach($pending as$r)if($self->resolve($r,$identities,$now,$gate,$lookupReturned))$stats['resolved']++;
@@ -238,6 +244,7 @@ final class ModeledConversionValueExport
         }catch(Throwable $ignoredReport){ /* Keep fixed unavailable, never a fabricated zero. */ }
         // Finite GET-only evidence follows ordinary financial work and cannot alter its decisions.
         $self->runFiniteEvidence($api,$now,$gate,$clock);
+        $self->runRecoveryEvidence($api,$now,$gate,$clock,$stats['metrika_report']);
         $self->persistTickReceipt($stats,$failure,$now);
         // Private counts stay in the DB; ordinary diagnostic logs get technical state only.
         return ['status'=>$stats['errors']?'degraded':'running','contract'=>ModeledConversionValueContract::VERSION];
@@ -272,6 +279,8 @@ final class ModeledConversionValueExport
                     $updated=$receipt;
                     if($retained!==null&&$retained!==$previous){
                         $updated['last_recorded_failure']=$retained;
+                        // The new forward journal yields before immutable original evidence or failure history.
+                        unset($updated['finite_visit_recovery']);
                         // Only the winning saved audit may yield space to a newly retained failure.
                         if(array_key_exists('identity_resolution_evidence',$receipt)){
                             $savedAudit=$receipt['identity_resolution_evidence'];$validAudit=false;
@@ -285,7 +294,11 @@ final class ModeledConversionValueExport
                             }
                         }
                     }
-                    if($retained!==null&&$retained!==$previous)$updated=$this->withFiniteEvidence($updated,$receipt,$mysql);
+                    if($retained!==null&&$retained!==$previous){
+                        $withoutRecovery=$receipt;unset($withoutRecovery['finite_visit_recovery']);
+                        $updated=$this->withFiniteEvidence($updated,$withoutRecovery,$mysql);
+                        $updated=$this->withRecoveryEvidence($updated,$receipt,$mysql);
+                    }
                     // A delayed cohort is not authoritative for the newer receipt's membership or completeness.
                     $encoded=json_encode($updated,JSON_THROW_ON_ERROR);
                     if($updated!==$receipt&&$this->receiptFits($encoded,$mysql)){
@@ -297,6 +310,7 @@ final class ModeledConversionValueExport
                 $stats['last_recorded_failure']=$retained;
                 $stats=$this->withIdentityEvidence($stats,$audit,$mysql);
                 $stats=$this->withFiniteEvidence($stats,$unreadableReceipt?['finite_visit_evidence'=>false]:(is_array($receipt)?$receipt:[]),$mysql);
+                $stats=$this->withRecoveryEvidence($stats,$unreadableReceipt?['finite_visit_recovery'=>false]:(is_array($receipt)?$receipt:[]),$mysql);
                 $encoded=json_encode($stats,JSON_THROW_ON_ERROR);
                 // Optional audit yields before the established historical failure fallback.
                 if(!$this->receiptFits($encoded,$mysql)){unset($stats['last_recorded_failure']);$encoded=json_encode($stats,JSON_THROW_ON_ERROR);}
@@ -799,7 +813,7 @@ final class ModeledConversionValueExport
                 $kind=$code===1?'canonical_max_lookup':'retained_accepted_processed_max_binding';
                 $intent[9]=ModeledConversionValueVisitEvidence::candidateReference($entry[0],$source[0],$source[1],$source[2],$kind);
                 if(!$this->finiteEligible($current,$gate)||!$this->finiteSave($intent,0,null,$now))continue;
-                $checks++;$report=['status'=>'unavailable','visits'=>[]];$extra=0;
+                $checks++;$this->finiteChecksUsed++;$report=['status'=>'unavailable','visits'=>[]];$extra=0;
                 try{$report=$api->modeledAttributionVisits($source[0],(int)$current['event_unix'],$now,
                     static function()use(&$extra):void{if(++$extra>1)throw new RuntimeException('finite_read_budget');});}
                 catch(Throwable $ignored){}
@@ -813,6 +827,7 @@ final class ModeledConversionValueExport
                     $done[13]=$window['visit_at'];$done[14]=$window['source_class']==='yandex_direct'?1:2;
                 }
                 $this->finiteSave($done,1,$intent[9],$checked);
+                if($done[10]===2){$this->optionalVisitStopped=true;break;}
             }catch(Throwable $ignored){ /* The consumed intent, if any, is never retried. */ }
         }
     }
@@ -832,6 +847,140 @@ final class ModeledConversionValueExport
             if(!$this->receiptFits(json_encode($out,JSON_THROW_ON_ERROR),$mysql))unset($out['price_continuity_audit']);
             return $this->withIdentityEvidence($out,is_array($audit)?$audit:null,$mysql);
         }catch(Throwable $ignored){$out['finite_visit_evidence']=false;return $out;}
+    }
+
+
+    /** Only a recent healthy ordinary response may reserve optional source slots; it never authorizes a GET. */
+    private function prepareRecoveryEvidence(int $now):array
+    {
+        if($this->finiteFrame===null)return [];$p=$this->pdo;
+        try{
+            $s=self::settings($p);$raw=$s['last_receipt_json']??null;
+            if(!is_string($raw)||strlen($raw)>8192||!str_starts_with(ltrim($raw),'{'))return [];
+            $prior=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
+            if(!is_array($prior)||!ModeledConversionValueVisitRecovery::healthyOrdinary($prior['metrika_report']??null,$now,600))return [];
+            $namespace=$this->finiteFrame['n'];$expected=ModeledConversionValueVisitRecovery::originalDigest($this->finiteFrame,$namespace,$now);
+            if($expected===null||ModeledConversionValueVisitRecovery::create($prior['finite_visit_evidence']??null,$namespace,$now)===null)return [];
+            if($p->inTransaction())return [];$p->beginTransaction();$mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+            $q=$p->query("SELECT counter_id,mode,goal_id,goal_intent,contract_version,last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'".($mysql?' FOR UPDATE':''));
+            $s=$q->fetch(PDO::FETCH_ASSOC);$raw=$s['last_receipt_json']??null;
+            if(!$s||$s['counter_id']!=='98615635'||$s['mode']!=='send'||$s['goal_id']!=='678187097'
+                ||$s['goal_intent']!=='verified'||$s['contract_version']!==ModeledConversionValueContract::VERSION
+                ||!is_string($raw)||strlen($raw)>8192||!str_starts_with(ltrim($raw),'{')){$p->rollBack();return [];}
+            $receipt=json_decode($raw,true,32,JSON_THROW_ON_ERROR);$original=$receipt['finite_visit_evidence']??null;
+            if(!ModeledConversionValueVisitRecovery::healthyOrdinary($receipt['metrika_report']??null,$now,600)
+                ||ModeledConversionValueVisitRecovery::originalDigest($original,$namespace,$now)!==$expected){$p->rollBack();return [];}
+            if(!array_key_exists('finite_visit_recovery',$receipt)){
+                $created=ModeledConversionValueVisitRecovery::create($original,$namespace,$now);
+                if($created===null){$p->rollBack();return [];}
+                $receipt['finite_visit_recovery']=$created;$encoded=json_encode($receipt,JSON_THROW_ON_ERROR);
+                if(!$this->receiptFits($encoded,$mysql)){$p->rollBack();return [];}
+                $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'");$q->execute([$encoded]);
+            }
+            $journal=ModeledConversionValueVisitRecovery::decode($receipt['finite_visit_recovery'],$original,$namespace,$now);
+            $p->commit();if($journal===null)return [];
+            $this->recoveryJournal=$journal;$this->recoveryOriginal=$original;$pending=[];
+            foreach($journal['r']as$row)if($row[2]===0&&isset($this->finiteRows[$row[0]]))$pending[]=$this->finiteRows[$row[0]];
+            return $pending;
+        }catch(Throwable $ignored){if($p->inTransaction())$p->rollBack();return [];}
+    }
+
+    /** One forward journal entry CAS. The original v1 frame is only read and must retain its exact digest. */
+    private function recoverySave(array $replacement,int $expectedState,int $now):bool
+    {
+        $p=$this->pdo;
+        try{
+            if($this->recoveryJournal===null||$p->inTransaction())return false;
+            $p->beginTransaction();$mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+            $q=$p->query("SELECT counter_id,mode,goal_id,goal_intent,contract_version,last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'".($mysql?' FOR UPDATE':''));
+            $s=$q->fetch(PDO::FETCH_ASSOC);$raw=$s['last_receipt_json']??null;
+            if(!$s||$s['counter_id']!=='98615635'||$s['mode']!=='send'||$s['goal_id']!=='678187097'
+                ||$s['goal_intent']!=='verified'||$s['contract_version']!==ModeledConversionValueContract::VERSION
+                ||!is_string($raw)||strlen($raw)>8192||!str_starts_with(ltrim($raw),'{')){$p->rollBack();return false;}
+            $receipt=json_decode($raw,true,32,JSON_THROW_ON_ERROR);$original=$receipt['finite_visit_evidence']??null;
+            $journal=ModeledConversionValueVisitRecovery::decode($receipt['finite_visit_recovery']??null,$original,$this->recoveryJournal['n'],$now);
+            if($journal===null||$journal['d']!==$this->recoveryJournal['d']){$p->rollBack();return false;}$changed=false;
+            foreach($journal['r']as$i=>$row)if($row[0]===$replacement[0]){
+                if($row[1]!==$replacement[1]||$row[2]!==$expectedState){$p->rollBack();return false;}
+                $journal['r'][$i]=$replacement;$changed=true;break;
+            }
+            if(!$changed||ModeledConversionValueVisitRecovery::decode($journal,$original,$journal['n'],$now)===null){$p->rollBack();return false;}
+            $receipt['finite_visit_recovery']=$journal;$encoded=json_encode($receipt,JSON_THROW_ON_ERROR);
+            if(!$this->receiptFits($encoded,$mysql)){$p->rollBack();return false;}
+            $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'");$q->execute([$encoded]);
+            $p->commit();$this->recoveryJournal=$journal;return true;
+        }catch(Throwable $ignored){if($p->inTransaction())$p->rollBack();return false;}
+    }
+
+    /** The actual ordinary response of this invocation is the sole provider-health authority. */
+    private function runRecoveryEvidence(mixed $api,int $tick,callable $gate,callable $clock,mixed $ordinary):void
+    {
+        if($this->recoveryJournal===null||$this->recoveryOriginal===null||$this->optionalVisitStopped
+            ||!ModeledConversionValueVisitRecovery::healthyOrdinary($ordinary,$tick)
+            ||!$this->finiteLookupReturned||!is_object($api)||!method_exists($api,'modeledAttributionVisits'))return;
+        $cases=ModeledConversionValueVisitRecovery::originals($this->recoveryOriginal,$this->recoveryJournal['n'],$tick);
+        if($cases===null)return;
+        foreach($this->recoveryJournal['r']as$entry){
+            if($entry[2]!==0||$this->finiteChecksUsed>=2||$this->optionalVisitStopped)continue;
+            try{
+                $now=self::observedAt($clock,$tick);$old=$cases[$entry[0]];
+                $q=$this->pdo->prepare('SELECT id,value_profile_id,project_key,platform,conversation_id,external_user_id,counter_id,target,transport_target,value_contract,event_unix,value_rub,state,upload_id,upload_status,identity_source_key,value_origin FROM max_channel_conversion_outbox WHERE id=? LIMIT 1');
+                $q->execute([$old[1]]);$current=$q->fetch(PDO::FETCH_ASSOC);if(!$current)continue;
+                if(ModeledConversionValueIdentityEvidence::reference($current,$this->recoveryJournal['n'])!==$entry[0]
+                    ||!$this->finiteEligible($current,$gate))continue;
+                if(!empty($current['upload_id'])||in_array($current['state'],['uploading','unknown','accepted','processed'],true)){
+                    $skip=$entry;$skip[2]=3;$skip[4]=$now;$skip[10]=4;$this->recoverySave($skip,0,$now);continue;
+                }
+                $user=$current['external_user_id'];
+                // An absent key is not a canonical not-found result and grants no source observation.
+                if(!array_key_exists($user,$this->finiteIdentities))continue;
+                $record=$this->finiteIdentities[$user];$changed=$entry;$changed[2]=3;$changed[4]=$now;
+                if($record===null){$changed[10]=2;$this->recoverySave($changed,0,$now);continue;}
+                if(!is_array($record)||($record['external_user_id']??null)!==$user
+                    ||!MaxTrackerLookupProtocol::id($record['client_id']??null,40)||!MaxTrackerLookupProtocol::id($record['record_id']??null)
+                    ||!is_int($record['observed_at_unix']??null)||$record['observed_at_unix']<946684800||$record['observed_at_unix']>$now)continue;
+                $kind=$old[5]===1?'canonical_max_lookup':'retained_accepted_processed_max_binding';
+                $same=$record['observed_at_unix']<=(int)$current['event_unix']
+                    &&ModeledConversionValueVisitEvidence::candidateReference($entry[0],$record['client_id'],$record['record_id'],$record['observed_at_unix'],$kind)===$entry[1];
+                if(!$same){$changed[10]=3;$this->recoverySave($changed,0,$now);continue;}
+                $intent=$entry;$intent[2]=1;$intent[3]=$now;$intent[10]=1;
+                if(!$this->finiteEligible($current,$gate)||!$this->recoverySave($intent,0,$now))continue;
+                $this->finiteChecksUsed++;$report=['status'=>'unavailable','visits'=>[]];$extra=0;
+                try{$report=$api->modeledAttributionVisits($old[6],(int)$current['event_unix'],$now,
+                    static function()use(&$extra):void{if(++$extra>1)throw new RuntimeException('finite_read_budget');});}
+                catch(Throwable $ignored){}
+                $checked=self::observedAt($clock,$tick);
+                $window=ModeledConversionAttributionWindow::assess(is_array($report)?$report:[],(int)$current['event_unix'],$checked);
+                $done=$intent;$done[2]=2;$done[4]=$checked;
+                if(($report['status']??null)!=='ok'||$window['reason']==='visit_report_unavailable'){
+                    $done[5]=2;$done[6]=false;$done[7]=4;$this->optionalVisitStopped=true;
+                }else{
+                    $done[5]=1;$done[6]=$window['allowed'];$done[7]=['within_current_window'=>1,'outside_current_window'=>2,'no_prior_visit'=>3][$window['reason']];
+                    $done[8]=$window['visit_at'];$done[9]=$window['source_class']==='yandex_direct'?1:2;
+                }
+                $this->recoverySave($done,1,$checked);
+                if($this->optionalVisitStopped)break;
+            }catch(Throwable $ignored){ /* A committed new intent is consumed UNKNOWN, never reset. */ }
+        }
+    }
+
+    /** Only the new journal may yield to financial metadata and the original v1 frame. */
+    private function withRecoveryEvidence(array $stats,array $previous,bool $mysql):array
+    {
+        if(!array_key_exists('finite_visit_recovery',$previous))return $stats;
+        $audit=$stats['identity_resolution_evidence']??null;
+        $out=$stats;unset($out['identity_resolution_evidence'],$out['identity_resolution_evidence_incomplete']);
+        $journal=$previous['finite_visit_recovery'];
+        try{
+            if(!is_array($journal)||strlen(json_encode($journal,JSON_THROW_ON_ERROR))>ModeledConversionValueVisitRecovery::MAX_BYTES)$journal=false;
+            $out['finite_visit_recovery']=$journal;
+            if(!$this->receiptFits(json_encode($out,JSON_THROW_ON_ERROR),$mysql))$out['finite_visit_recovery']=false;
+            if(!$this->receiptFits(json_encode($out,JSON_THROW_ON_ERROR),$mysql)&&isset($out['price_continuity_audit']['corrections'])){
+                $out['price_continuity_audit']['corrections']=[];$out['price_continuity_audit']['complete']=false;
+            }
+            if(!$this->receiptFits(json_encode($out,JSON_THROW_ON_ERROR),$mysql))unset($out['price_continuity_audit']);
+            return $this->withIdentityEvidence($out,is_array($audit)?$audit:null,$mysql);
+        }catch(Throwable $ignored){$out['finite_visit_recovery']=false;return $out;}
     }
 
     private static function failRow(PDO $p,array $r,string $reason):void
