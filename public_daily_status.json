@@ -1,46 +1,46 @@
 {
     "ok": true,
-    "generated_at": "2026-11-11T15:26:27+00:00",
+    "generated_at": "2026-11-11T15:36:49+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 85,
-        "raw_sessions": 85,
+        "sessions": 86,
+        "raw_sessions": 86,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 85,
+            "resolved": 86,
             "unresolved": 0
         },
-        "started": 73,
+        "started": 75,
         "needs_collected": 7,
         "tours_opened": 6,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 51,
-        "manager_replied": 41,
-        "customer_replied_after_manager": 16,
+        "manager_requested": 52,
+        "manager_replied": 42,
+        "customer_replied_after_manager": 17,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 41,
+            "answered_after_90s": 42,
             "still_unanswered": 5,
-            "measured_responses": 41,
-            "avg_seconds": 28442,
+            "measured_responses": 42,
+            "avg_seconds": 27776,
             "max_seconds": 70449
         },
         "drop_points": {
             "manager_replied": 25,
-            "collecting_needs": 21,
-            "customer_replied_after_manager": 16,
-            "started_only": 12,
+            "collecting_needs": 22,
+            "customer_replied_after_manager": 17,
+            "started_only": 11,
             "manager_requested": 10,
             "tours_opened": 1
         },
         "flags": {
             "manager_requested_no_reply": 5,
-            "repeated_same_input": 2,
+            "repeated_same_input": 3,
             "repeated_callback_input": 1,
             "excessive_turns": 1
         },
@@ -56,7 +56,7 @@
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-11T15:26:27Z",
+        "sampled_at": "2026-11-11T15:36:49Z",
         "available": true,
         "error": null,
         "mode": "send",
