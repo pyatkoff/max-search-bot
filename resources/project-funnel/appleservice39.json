@@ -10,9 +10,17 @@
   "channel_url": "https://max.ru/channel_appleservice39ru",
   "default_post": "menu",
   "metrika": {
-    "counter_id": "",
-    "mode": "off",
-    "goals": {}
+    "counter_id": "42611469",
+    "mode": "collect",
+    "goals": {
+      "customer_activity": "max_bot_activity_start",
+      "manager_request": "max_manager_request",
+      "customer_reply": "max_customer_reply_after_manager",
+      "working": "max_lead_working",
+      "offer_sent": "max_offer_sent",
+      "booking": "max_booking",
+      "won": "max_sale"
+    }
   },
   "posts": {
     "menu": {

@@ -113,10 +113,12 @@ train a new model from an unvalidated sample or replace the existing MODEL owner
 ## AppleService39 activation checkpoint
 
 The profile preserves the eight accepted public covers/offers and their existing
-IDs. Its own Metrika counter, OAuth binding, exact goals and calibrated model are
-not supplied in this package: analytics is explicitly off. Correct entry/manager
-history can operate without these values; live advertising/conversion acceptance
-must remain open until the real bindings and a natural case are verified.
+IDs. The owner supplied its own counter42611469. Its profile enables collection:
+real native visits can obtain this counter's ClientID and recorded stages can
+enter the existing local queue. The standard target map is prepared but existing
+exact goals, private OAuth binding and calibrated prediction are not yet
+verified. Sending stays off until those real bindings and a natural case pass
+acceptance. No existing goal is assumed to have been created or renamed.
 
 No existing native post is recreated, republished or reconciled by this change.
 No feed is imported into Direct and no ad spend is started by these endpoints.

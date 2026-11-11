@@ -19,7 +19,9 @@ function funnelSchema(PDO $pdo):void{
     $q=$pdo->prepare('INSERT INTO appleservice39_pilot_operations VALUES(?,?,?,?,?,?,?)');foreach($ids as$key=>$mid)$q->execute([$key,'appleservice39-pilot-v1','create','verified',1,$mid,'https://max.ru/channel_appleservice39ru/'.$mid]);
 }
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')!==__FILE__)return;
-$pdo=repairFixture();funnelSchema($pdo);$now=time();$connection=ProjectMaxConnection::resolve('appleservice39');$s=ProjectFunnelSettings::load($connection);$entry=new ProjectFunnelEntry($pdo,$connection,$s);
+$pdo=repairFixture();funnelSchema($pdo);$now=time();$connection=ProjectMaxConnection::resolve('appleservice39');$s=ProjectFunnelSettings::load($connection);
+funnelCheck('owner-supplied AppleService counter enables collection without exports',$s['metrika']['counter_id']==='42611469'&&$s['metrika']['mode']==='collect');
+$s['metrika']=['counter_id'=>'','mode'=>'off','goals'=>[]];$fixtureRegistry=repairFixtureRegistry();$fixtureRegistry['appleservice39']['project']['sales_funnel']=$s;ProjectMaxConnection::resetForTests($fixtureRegistry);$connection=ProjectMaxConnection::resolve('appleservice39');$entry=new ProjectFunnelEntry($pdo,$connection,$s);
 funnelCheck('eight approved offers keep their established feed IDs',count($s['posts'])===8&&$s['posts']['menu']['offer_id']==='as39-search-v1-menu');
 funnelCheck('missing company analytics stays explicitly off',$s['metrika']===['counter_id'=>'','mode'=>'off','goals'=>[]]&&ProjectFunnelSettings::publicClient($s)['counter_id']==='');
 $post='service-display';$offer=$s['posts'][$post]['offer_id'];$start='18446744073709551614_region_213_campaign_123_ctx1_'.ProjectFunnelLaunch::context($post,$offer);
