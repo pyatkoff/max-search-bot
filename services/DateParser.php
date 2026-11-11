@@ -79,6 +79,10 @@ class DateParser
         // and leave prose, ranges and incomplete dates to their current parsers.
         if (preg_match('/^\s*(\d{1,2})\s*([.\/])\s*(\d{1,2})\s*\2\s*(\d{2}|\d{4})\s*$/u', $text, $numeric)) {
             $text = $numeric[1] . $numeric[2] . $numeric[3] . $numeric[2] . $numeric[4];
+        } elseif (preg_match('/\A\s*(\d{1,2})[ \t\x{00A0}\x{202F}]+(\d{1,2})[ \t\x{00A0}\x{202F}]+([1-9]\d{3})\s*\z/u', $text, $numeric)) {
+            // A complete standalone day/month/year needs no inferred month or
+            // year. Reuse the same calendar and later future-date validation.
+            $text = $numeric[1] . '.' . $numeric[2] . '.' . $numeric[3];
         }
 
         if (preg_match('/\bзавтра\b/ui', $text)) return ['date'=>date('d.m.Y', strtotime('+1 day'))];

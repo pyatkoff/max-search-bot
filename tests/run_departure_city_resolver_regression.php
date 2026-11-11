@@ -134,6 +134,33 @@ rcheck('two positive cities without an alternative marker still need clarificati
 rcheck('hypothetical departure is not applied',
     DepartureCityResolver::bestMatch('если из москвы', $rows), false);
 
+// Clarification is read-only and uses exactly the same active directory forms.
+foreach (['Самара или Калининград', 'из Самары либо из Калининграда', 'САМАРА или Калининград.'] as $alternatives) {
+    rcheck('two distinct complete departures can be clarified: '.$alternatives,
+        array_column(DepartureCityResolver::bestFieldAlternatives($alternatives, $rows), 'city'),
+        ['Самара','Калининград']);
+    rcheck('clarification does not loosen scalar selection: '.$alternatives,
+        DepartureCityResolver::bestFieldMatch($alternatives, $rows), false);
+}
+foreach ([
+    'Самара', 'Самара или Самара', 'Самара или Самары',
+    'Самара или Неизвестный', 'Самара или Калининград или Москва',
+    'в Самару или Калининград', 'не Самара или Калининград',
+    'если Самара или Калининград', 'Самара или Калининград?',
+    'Самара или Калининград на 8 ночей', "Самара или\nКалининград",
+] as $notAnAlternativeAnswer) {
+    rcheck('clarification rejects non-confirmed whole departures: '.$notAnAlternativeAnswer,
+        DepartureCityResolver::bestFieldAlternatives($notAnAlternativeAnswer, $rows), []);
+}
+rcheck('clarification cannot admit an inactive second departure',
+    DepartureCityResolver::bestFieldAlternatives('Самара или Калининград',
+        array_values(array_filter($rows, static fn(array $row): bool => $row['id'] !== 3))), []);
+rcheck('ambiguous abbreviation cannot create a second departure',
+    DepartureCityResolver::bestFieldAlternatives('Самара или Сан. Город', array_merge($rows, [
+        ['id'=>10,'name'=>'Санкт Город','name_genitive'=>'Санкт Города'],
+        ['id'=>11,'name'=>'Санаторный Город','name_genitive'=>'Санаторного Города'],
+    ])), []);
+
 $source = (string) file_get_contents(__DIR__ . '/../services/DepartureCityResolver.php');
 rcheck('resolver has no Bitrix dependency', strpos($source, 'Bitrix') === false, true);
 rcheck('resolver owns no HL block lookup', strpos($source, 'HighloadBlock') === false, true);
