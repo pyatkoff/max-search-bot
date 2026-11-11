@@ -8,6 +8,46 @@ Primary language with the user: Russian.
 
 Read this file first. Then read `AGENTS.md` and only the durable documents relevant to the selected slice.
 
+## Owner-authorised recovery of the AppleService39 release — 2026-11-12
+
+The owner explicitly authorised restarting the stalled installation or creating a
+replacement installation. This checkpoint records that replacement intent for
+the existing AppleService39 package; it does not change the application or waive
+the normal release checks.
+
+- The approved application source is PR #1486, source
+  `6a31e40510227d0ec6466bd31a82a0130b7fee61`, merged as
+  `af6117fe8accc08424ad206e738853ebf366fd06`. Both commits have application tree
+  `c7c0234cce47051dbe1b8476a368494e72eefa3d`.
+- The original Deploy run [43095967891](https://github.com/pyatkoff/max-search-bot/actions/runs/43095967891),
+  attempt 1, remains unresolved. Its reported queued state and zero jobs are not
+  proof that no partial server changes occurred. Preserve that history.
+- GitHub Support [#4991100](https://help.github.com/ticket/personal/0/4991100)
+  exists. The last observed ticket was open with only the submitted request.
+  Recheck the actual ticket before reporting a later support outcome.
+- Use a newly checked PR and the existing push-triggered Deploy workflow for the
+  authorised replacement. A rerun of the old installer would fail its
+  first-attempt guard; a manual workflow origin would not satisfy the existing
+  automatic closer. Do not weaken either guard or invent an old-run receipt.
+- Keep the same owner and SOURCE6722718562. Before merge, complete fresh exact-head
+  CI and ordinary release admission, then bind the replacement in the same
+  existing publisher record 6650664504. Preserve the original binding as history;
+  it is not admission for a different head. There is no second publisher or
+  temporary free state.
+- Retain the existing `production-deploy` serialization and fresh-main provenance
+  check before credentials. A superseded source must not enter private access.
+  Actual installation, migrations, smoke, diagnostics, every mandatory gate and
+  automatic closure must succeed before claiming the replacement accepted.
+- Only after that acceptance, activate the already approved branded host package
+  from `pyatkoff/tour-max` merge
+  `23ce04836b28e2ea0fa44b7c443214b57b78ff83` through its existing guarded
+  `ops/appleservice39-funnel-20261111` route. Verify the shared script and
+  registry-derived feed, public page, all eight covers and all eight exact post
+  destinations.
+- Product scope is feed → MAX miniapp → existing native post. Manager and
+  conversion activation remain deferred. Preserve the accepted 30 posts and
+  152 publication operations; do not replay publication or send test inquiries.
+
 ## Authority and evidence ownership
 
 Do not trust a SHA, branch name or unfinished task copied from an old chat/export. Facts and authority have different owners:
