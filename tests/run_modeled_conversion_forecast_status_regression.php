@@ -1579,7 +1579,8 @@ function forecastRepairAssessmentAssertions(PDO $p,callable $check):void
         &&$truncatedCases['window']['returned_events']===count($truncatedCases['rows'])
         &&$truncatedCases['identity_evidence']['observed_case_count']===count(array_filter($truncatedCases['rows'],static fn(array $row):bool=>$row['identity_resolution']['status']==='observed'))
         &&$truncated['value_delivery']['repair_assessments']['new_increment_events']===23);
-    $p->prepare('UPDATE max_channel_conversion_outbox SET last_error=? WHERE id=1')->execute([str_repeat('PRIVATE_OVERSIZE_',5000)]);
+    // 59,500 ASCII bytes fit native TEXT but exceed the 64KiB copy budget minus its 8KiB release reserve.
+    $p->prepare('UPDATE max_channel_conversion_outbox SET last_error=? WHERE id=1')->execute([str_repeat('PRIVATE_OVERSIZE_',3500)]);
     $oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
     ForecastV1ObservedStatement::$observePredictive=true;ForecastV1ObservedStatement::$predictiveCopies=[];
     try{$oversize=$read($resolvedAudit);}finally{ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
