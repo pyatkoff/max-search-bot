@@ -649,7 +649,7 @@ PHP;
     $todayC=$a;$todayC['id']='4';$todayC['target']=ModeledConversionValueContract::predictionKey('4');$todayC['value_profile_id']='4';
     $todayC['upload_id']='504';$todayC['value_rub']=20;$todayC['claimed_at_unix']=$day+4100;
     $todayC['value_api_accepted_at_unix']=$day+4101;$todayC['upload_status']='LINKAGE_FAILURE';$todayC['state']='unmatched';
-    $yesterday=$todayA;$yesterday['id']='5';$yesterday['claimed_at_unix']=$day+3599;$yesterday['value_processed_at_unix']=$now-1;
+    $yesterday=$todayA;$yesterday['id']='5';$yesterday['claimed_at_unix']=$day-1;$yesterday['event_unix']=$day-600;$yesterday['value_processed_at_unix']=$now-1;
     $archived=static function(array $r)use($todayB,$todayC,$now):array{
         $e=['fingerprint'=>ModeledConversionVisitProof::fingerprint($r),'upload_status'=>$r['id']===$todayC['id']?'LINKAGE_FAILURE':'UPLOADED',
             'linkage'=>$r['id']===$todayC['id']?'failed':'not_checked'];
@@ -658,15 +658,26 @@ PHP;
     $daily=ModeledConversionVisitProof::dailySentCohort([$todayA,$todayB,$todayC,$yesterday],
         [(string)$todayA['id']=>$proof['events'][0]],$now,$archived);
     $m=$daily['by_platform']['max'];$tg=$daily['by_platform']['telegram'];
-    $check('daily export report uses Kaliningrad midnight and excludes an earlier send processed today',
-        $daily['date']==='2026-11-02'&&$daily['timezone']==='Europe/Kaliningrad'
-        &&$daily['window']['from']===gmdate('Y-m-d\\TH:i:s\\Z',$day+3600)&&$m['sent']===['events'=>2,'conversations'=>1,'value_rub'=>37]);
+    $check('daily export report uses Moscow midnight and excludes an earlier send processed today',
+        $daily['date']==='2026-11-02'&&$daily['timezone']==='Europe/Moscow'
+        &&$daily['window']['from']===gmdate('Y-m-d\\TH:i:s\\Z',$day)&&$m['sent']===['events'=>2,'conversations'=>1,'value_rub'=>37]);
     $check('receipt processing and exact visit evidence stay separate within the same sent cohort',
         $m['api_accepted']['value_rub']===37&&$m['processed']['value_rub']===17&&$m['visit_linked']['value_rub']===17
         &&$m['linkage_failed']['value_rub']===20&&$m['proof_missing']['events']===0);
     $check('Telegram has its own row and provider processing never becomes a confirmed visit',
         $tg['sent']===['events'=>1,'conversations'=>1,'value_rub'=>100000]
         &&$tg['api_accepted']['events']===1&&$tg['provider_processing']['events']===1&&$tg['visit_linked']['events']===0);
+    $boundaryRows=[];
+    foreach([-1,0,3599,86400]as$i=>$offset){
+        $edge=$todayA;$edge['id']=(string)(70+$i);$edge['event_unix']=$day-600;
+        $edge['claimed_at_unix']=$day+$offset;$boundaryRows[]=$edge;
+    }
+    $moscowBoundary=ModeledConversionVisitProof::dailySentCohort($boundaryRows,[],$now,static fn(array $row):array=>[]);
+    $check('Moscow day includes midnight and the formerly excluded first hour but not adjacent days',
+        $moscowBoundary['timezone']==='Europe/Moscow'&&$moscowBoundary['date']==='2026-11-02'
+        &&$moscowBoundary['window']['from']===gmdate('Y-m-d\\TH:i:s\\Z',$day)
+        &&$moscowBoundary['window']['until_exclusive']===gmdate('Y-m-d\\TH:i:s\\Z',$day+86400)
+        &&$moscowBoundary['by_platform']['max']['sent']===['events'=>2,'conversations'=>1,'value_rub'=>34]);
     $processedB=$todayB;$processedB['upload_status']='PROCESSED';$processedB['state']='processed';$processedB['value_processed_at_unix']=$now;
     $advanced=ModeledConversionVisitProof::dailySentCohort([$processedB],[],$now,$archived);
     $check('a newly persisted processing receipt survives an older archived intermediate status without inventing a visit',
@@ -674,6 +685,11 @@ PHP;
         &&$advanced['by_platform']['telegram']['visit_linked']['events']===0
         &&$advanced['by_platform']['telegram']['unverified_visits']['events']===1);
     $reader=new ReflectionMethod(ModeledConversionVisitProof::class,'dailySummary');
+    $legacyDaily=$daily;$legacyDaily['timezone']='Europe/Kaliningrad';
+    $legacyDaily['window']['from']=gmdate('Y-m-d\\TH:i:s\\Z',$day+3600);
+    $legacyDaily['window']['until_exclusive']=gmdate('Y-m-d\\TH:i:s\\Z',$day+90000);
+    $check('legacy live-day cache is explicitly unavailable instead of being relabelled as Moscow',
+        !$reader->invoke(null,$legacyDaily,$now)['available']);
     $summary=$reader->invoke(null,$daily,$now);$bad=$daily;$bad['by_platform']['max']['visit_linked']['value_rub']++;
     $check('private daily summary validates arithmetic before publishing cached values',
         $summary['available']&&$summary['fresh']&&!$reader->invoke(null,$bad,$now)['available']
@@ -707,12 +723,12 @@ PHP;
         &&!$reader->invoke(null,$previous,$now+86400,$reference+86400)['available']
         &&!str_contains(json_encode($previousSummary,JSON_THROW_ON_ERROR),'conversation_id')
         &&!str_contains(json_encode($previousSummary,JSON_THROW_ON_ERROR),'900000000000000001'));
-    foreach([['2027-01-01T00:05:00+02:00','2026-12-31'],['2026-12-01T00:05:00+02:00','2026-11-30']]as[$instant,$date]){
+    foreach([['2027-01-01T00:05:00+03:00','2026-12-31'],['2026-12-01T00:05:00+03:00','2026-11-30']]as[$instant,$date]){
         $clock=strtotime($instant);$ref=$previousDay->invoke(null,$clock);
         $closed=ModeledConversionVisitProof::dailySentCohort([],[],$clock,null,$ref);
         $check('previous-day calendar crosses month/year boundaries: '.$date,
             $closed['date']===$date&&$reader->invoke(null,$closed,$clock,$ref)['available']
-            &&$closed['window']['from']===gmdate('Y-m-d\\TH:i:s\\Z',strtotime($date.'T00:00:00+02:00')));
+            &&$closed['window']['from']===gmdate('Y-m-d\\TH:i:s\\Z',strtotime($date.'T00:00:00+03:00')));
     }
 
     $cut=$day+5000;$beforeA=$todayA;$beforeA['value_processed_at_unix']=$day+4500;
@@ -728,6 +744,11 @@ PHP;
         &&$follow['outcome']['by_platform']['telegram']['visit_linked']['value_rub']===100000);
     $followReader=new ReflectionMethod(ModeledConversionVisitProof::class,'followupSummary');
     $followSafe=$followReader->invoke(null,$follow,$now);
+    $check('frozen historical audit keeps its original boundary and exact checkpoint independently of fresh Moscow reports',
+        $follow['checkpoint_at']===gmdate('Y-m-d\\TH:i:s\\Z',$cut)
+        &&$follow['outcome']['timezone']==='Europe/Kaliningrad'
+        &&$follow['outcome']['window']['from']===gmdate('Y-m-d\\TH:i:s\\Z',$day+3600)
+        &&$followSafe['available']===true&&$followSafe['timezone']==='Europe/Kaliningrad');
     $badFollow=$follow;$badFollow['baseline_by_platform']['max']['sent']['value_rub']++;
     $check('followup arithmetic and original selection are validated before private disclosure',
         $followSafe['available']&&!$followReader->invoke(null,$badFollow,$now)['available']

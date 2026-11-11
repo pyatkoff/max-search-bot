@@ -10,6 +10,8 @@ final class ModeledConversionVisitProof
     public const VERSION='modeled_visit_reconciliation_v1';
     public const MAX_ROWS=32;
     private const MAX_BYTES=49152;
+    private const REPORT_ZONE='Europe/Moscow';
+    private const HISTORICAL_REVIEW_ZONE='Europe/Kaliningrad';
     public static function fingerprint(array $r):string
     {
         return hash('sha256',json_encode(array_map(static fn(string $k):string=>(string)($r[$k]??''),
@@ -406,9 +408,13 @@ final class ModeledConversionVisitProof
     /** One fixed calendar and one sent-row cohort; all amounts remain private aggregates. */
     public static function dailySentCohort(array $ledger,array $current,int $now,?callable $archive=null,?int $dayReference=null):array
     {
+        return self::sentCohortForCalendar($ledger,$current,$now,$archive,$dayReference,self::REPORT_ZONE);
+    }
+    private static function sentCohortForCalendar(array $ledger,array $current,int $now,?callable $archive,?int $dayReference,string $calendar):array
+    {
         if(count($ledger)>=1001||$now<946684800)throw new RuntimeException('verification_daily_scope');
         $dayReference??=$now;if($dayReference<946684800||$dayReference>$now)throw new RuntimeException('verification_daily_scope');
-        $zone=new DateTimeZone('Europe/Kaliningrad');$day=(new DateTimeImmutable('@'.$dayReference))->setTimezone($zone)->setTime(0,0);
+        $zone=new DateTimeZone($calendar);$day=(new DateTimeImmutable('@'.$dayReference))->setTimezone($zone)->setTime(0,0);
         $from=$day->getTimestamp();$until=$day->modify('+1 day')->getTimestamp();$out=[];$people=[];
         foreach(['max','telegram']as$platform)foreach(self::DAILY_GROUPS as$group){
             $out[$platform][$group]=['events'=>0,'conversations'=>0,'value_rub'=>0];$people[$platform][$group]=[];
@@ -445,27 +451,27 @@ final class ModeledConversionVisitProof
         foreach(['max','telegram']as$platform)foreach(self::DAILY_GROUPS as$group)
             $out[$platform][$group]['conversations']=count($people[$platform][$group]);
         return ['version'=>'modeled_today_sent_cohort_v1','available'=>true,'goal_id'=>'678187097','counter_id'=>'98615635','currency'=>'RUB',
-            'date'=>$day->format('Y-m-d'),'timezone'=>'Europe/Kaliningrad','as_of'=>gmdate('Y-m-d\\TH:i:s\\Z',$now),
+            'date'=>$day->format('Y-m-d'),'timezone'=>$calendar,'as_of'=>gmdate('Y-m-d\\TH:i:s\\Z',$now),
             'window'=>['from'=>gmdate('Y-m-d\\TH:i:s\\Z',$from),'until_exclusive'=>gmdate('Y-m-d\\TH:i:s\\Z',$until)],
             'basis'=>'last_persisted_upload_claim_same_cohort_receipt_and_visit_evidence_not_payment_or_session_day',
             'ledger_complete'=>true,'by_platform'=>$out];
     }
     private static function previousDayReference(int $now):int
     {
-        return (new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))
+        return (new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone(self::REPORT_ZONE))
             ->setTime(0,0)->modify('-1 day')->getTimestamp();
     }
-    private static function dailySummary(mixed $d,int $now,?int $dayReference=null):array
+    private static function dailySummary(mixed $d,int $now,?int $dayReference=null,string $calendar=self::REPORT_ZONE):array
     {
         $fail=['available'=>false,'reason'=>'not_recorded'];
         if(!is_array($d))return $fail;
         if(($d['version']??null)!=='modeled_today_sent_cohort_v1'||($d['available']??null)!==true||($d['goal_id']??null)!=='678187097'
-            ||($d['counter_id']??null)!=='98615635'||($d['currency']??null)!=='RUB'||($d['timezone']??null)!=='Europe/Kaliningrad'
+            ||($d['counter_id']??null)!=='98615635'||($d['currency']??null)!=='RUB'||($d['timezone']??null)!==$calendar
             ||($d['ledger_complete']??null)!==true||!is_string($d['as_of']??null)||!is_string($d['date']??null)
             ||!is_array($d['window']??null)||array_keys($d['window'])!==['from','until_exclusive']
             ||!is_array($d['by_platform']??null)||array_keys($d['by_platform'])!==['max','telegram'])return ['available'=>false,'reason'=>'invalid_daily_cache'];
         $at=strtotime($d['as_of']);if($at===false||$at>$now||$at<946684800)return ['available'=>false,'reason'=>'invalid_daily_cache'];
-        $zone=new DateTimeZone('Europe/Kaliningrad');$day=(new DateTimeImmutable('@'.($dayReference??$at)))->setTimezone($zone)->setTime(0,0);
+        $zone=new DateTimeZone($calendar);$day=(new DateTimeImmutable('@'.($dayReference??$at)))->setTimezone($zone)->setTime(0,0);
         if($d['date']!==$day->format('Y-m-d')||($d['window']['from']??null)!==gmdate('Y-m-d\\TH:i:s\\Z',$day->getTimestamp())
             ||($d['window']['until_exclusive']??null)!==gmdate('Y-m-d\\TH:i:s\\Z',$day->modify('+1 day')->getTimestamp()))return ['available'=>false,'reason'=>'invalid_daily_cache'];
         $safe=[];
@@ -494,11 +500,11 @@ final class ModeledConversionVisitProof
     }
 
 
-    /** Reconstruct a fixed sent-before snapshot from durable claim/first-processing clocks. */
+    /** Preserve the frozen historical calendar and checkpoint; fresh daily reports use REPORT_ZONE. */
     public static function followupReport(array $ledger,array $current,int $cut,int $now,?callable $archive=null):array
     {
         if($cut<946684800||$cut>$now)throw new RuntimeException('verification_followup_scope');
-        $zone=new DateTimeZone('Europe/Kaliningrad');$day=(new DateTimeImmutable('@'.$cut))->setTimezone($zone)->setTime(0,0);
+        $zone=new DateTimeZone(self::HISTORICAL_REVIEW_ZONE);$day=(new DateTimeImmutable('@'.$cut))->setTimezone($zone)->setTime(0,0);
         $from=$day->getTimestamp();$before=[];$processed=[];$remaining=[];$unknown=[];
         foreach($ledger as$r){
             $claim=(int)($r['claimed_at_unix']??0);if($claim<$from||$claim>$cut)continue;
@@ -507,10 +513,10 @@ final class ModeledConversionVisitProof
             if($at<=0&&(($r['state']??null)==='processed'||($r['upload_status']??null)==='PROCESSED'))$unknown[]=$r;
         }
         $empty=static fn(array $r):array=>[];
-        $a=self::dailySentCohort($before,[],$now,$empty,$cut);
-        $b=self::dailySentCohort($processed,[],$now,$empty,$cut);
-        $u=self::dailySentCohort($unknown,[],$now,$empty,$cut);
-        $out=self::dailySentCohort($remaining,$current,$now,$archive,$cut);$base=[];$failures=[];
+        $a=self::sentCohortForCalendar($before,[],$now,$empty,$cut,self::HISTORICAL_REVIEW_ZONE);
+        $b=self::sentCohortForCalendar($processed,[],$now,$empty,$cut,self::HISTORICAL_REVIEW_ZONE);
+        $u=self::sentCohortForCalendar($unknown,[],$now,$empty,$cut,self::HISTORICAL_REVIEW_ZONE);
+        $out=self::sentCohortForCalendar($remaining,$current,$now,$archive,$cut,self::HISTORICAL_REVIEW_ZONE);$base=[];$failures=[];
         $archive??=static fn(array $r):array=>self::prior($r,$now);
         foreach(['max','telegram']as$p)$base[$p]=['sent'=>$a['by_platform'][$p]['sent'],
             'processed_at_checkpoint'=>$b['by_platform'][$p]['sent'],'processing_clock_unknown'=>$u['by_platform'][$p]['sent']];
@@ -601,7 +607,7 @@ final class ModeledConversionVisitProof
         if(!is_array($v))return $fail;
         if(($v['version']??null)!=='modeled_followup_sent_cohort_v1'||!is_string($v['checkpoint_at']??null))return ['available'=>false,'reason'=>'invalid_followup_cache'];
         $cut=strtotime($v['checkpoint_at']);if($cut===false||$cut<946684800||$cut>$now)return ['available'=>false,'reason'=>'invalid_followup_cache'];
-        $d=self::dailySummary($v['outcome']??null,$now,$cut);if(($d['available']??false)!==true)return ['available'=>false,'reason'=>'invalid_followup_cache'];
+        $d=self::dailySummary($v['outcome']??null,$now,$cut,self::HISTORICAL_REVIEW_ZONE);if(($d['available']??false)!==true)return ['available'=>false,'reason'=>'invalid_followup_cache'];
         $base=$v['baseline_by_platform']??null;if(!is_array($base)||array_keys($base)!==['max','telegram'])return ['available'=>false,'reason'=>'invalid_followup_cache'];
         foreach($base as$p=>$groups){
             if(!is_array($groups)||array_keys($groups)!==['sent','processed_at_checkpoint','processing_clock_unknown'])return ['available'=>false,'reason'=>'invalid_followup_cache'];

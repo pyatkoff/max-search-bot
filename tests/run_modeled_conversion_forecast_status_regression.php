@@ -364,6 +364,32 @@ function forecastV1Assertions(PDO $p,callable $check):void
         &&$boundedOutput['value_delivery']['predictive_v1']['examples_omitted_due_to_response_budget']===true
         &&$boundedOutput['visit_delivery_check']===$large['visit_delivery_check']
         &&$boundedOutput['saved']===$large['saved']);
+    $currentCases=[
+        ['case'=>'synthetic_current_1','state'=>'accepted','increment_rub'=>17,'synthetic'=>str_repeat('p',1600)],
+        ['case'=>'synthetic_current_2','state'=>'ready','increment_rub'=>23,'synthetic'=>str_repeat('q',1600)],
+        ['case'=>'synthetic_current_3','state'=>'ready','increment_rub'=>31,'synthetic'=>str_repeat('r',1600)],
+    ];
+    $historyPressure=['synthetic_padding'=>str_repeat('s',18000),'model_calls'=>0,'conversion_uploads'=>0,
+        'value_delivery'=>['predictive_v1'=>['events'=>3,'value_rub'=>71,'examples'=>$currentCases]],
+        'visit_delivery_check'=>['cohort_events'=>2,'cohort_value_rub'=>106,
+            'today_sent_cohort'=>['date'=>'2026-11-02','synthetic_total'=>71],
+            'yesterday_sent_cohort'=>['date'=>'2026-11-01','synthetic_total'=>53],
+            'followup_sent_cohort'=>['synthetic_total'=>127,'failure_examples'=>array_fill(0,8,['synthetic'=>str_repeat('h',1600)])]]];
+    $currentOutput=$method->invoke($projection,$historyPressure);
+    $expectedCore=$historyPressure;$actualCore=$currentOutput;
+    unset($expectedCore['visit_delivery_check']['followup_sent_cohort']['failure_examples']);
+    unset($actualCore['visit_delivery_check']['followup_sent_cohort']['failure_examples'],
+        $actualCore['visit_delivery_check']['followup_sent_cohort']['failure_examples_omitted_due_to_response_budget']);
+    $check('historic failure detail cannot hide current delivery cases or change exact calendar and cohort totals',
+        strlen(json_encode($currentOutput,JSON_THROW_ON_ERROR))<=28000
+        &&$currentOutput['value_delivery']['predictive_v1']['examples']===$currentCases
+        &&count($currentOutput['visit_delivery_check']['followup_sent_cohort']['failure_examples'])<8
+        &&$currentOutput['visit_delivery_check']['followup_sent_cohort']['failure_examples_omitted_due_to_response_budget']===true
+        &&$actualCore===$expectedCore);
+    unset($historyPressure['synthetic_padding']);
+    $check('historic details and current cases remain unchanged when the complete response fits',
+        $method->invoke($projection,$historyPressure)===$historyPressure);
+
     $b=new ModeledConversionStatusBudget();$b->consumeBytes(49536);
     $limited=false;
     try{$b->withReservedBytes(8000,static function()use($b):void{
