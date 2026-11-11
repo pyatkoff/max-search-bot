@@ -60,6 +60,35 @@ class DepartureCityResolver
         }
     }
 
+    /** Read-only clarification candidates; alternatives never select a city. */
+    public static function resolveFieldAlternatives($text): array
+    {
+        $text = trim((string)$text);
+        if (!preg_match('/\s+(?:или|либо)\s+/ui', $text)
+            || preg_match('/[?？\r\n]/u', $text)) return [];
+        try {
+            return self::bestFieldAlternatives($text, TravelDirectoryRepository::activeDepartures());
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    /** Only two whole, distinct active-departure answers qualify. */
+    public static function bestFieldAlternatives(string $text, array $rows): array
+    {
+        if (preg_match('/[?？\r\n]/u', $text)) return [];
+        $parts = preg_split('/\s+(?:или|либо)\s+/ui', trim($text));
+        if (count($parts) !== 2) return [];
+        $matches = [];
+        foreach ($parts as $part) {
+            $part = preg_replace('/\A(?:с\s+вылетом\s+из|вылет(?:ом)?\s+из|из)\s+/ui', '', trim($part));
+            $match = self::bestFieldMatch($part, $rows);
+            if (!$match || isset($matches[$match['city_id']])) return [];
+            $matches[$match['city_id']] = $match;
+        }
+        return array_values($matches);
+    }
+
     public static function bestMatch(string $lowerText, array $rows)
     {
         // Availability questions and alternatives do not choose a departure.

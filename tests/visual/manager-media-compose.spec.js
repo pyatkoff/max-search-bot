@@ -153,7 +153,7 @@ test('removing a saved file while a new blob transaction waits cannot resurrect 
 test('a confirmed operation removes only its exact row from a stale persisted draft',async({page})=>{
  const s=await setup(page,{holdFirst:true});await page.locator('#replyText').fill('Подпись подтверждённого файла');await page.locator('#replyFile').setInputFiles([files[0]]);await savedFiles(page,['Маршрут.txt']);await page.locator('#sendReply').click();await expect.poll(()=>s.uploads.length).toBe(1);
  const linked=await page.evaluate(()=>({manifest:sessionStorage.getItem('workspaceV2.mediaDrafts.v1.7'),operation:mediaUploadProof[0].operation_id}));expect(linked.manifest).toContain(linked.operation);
- s.release();await expect(page.locator('#replyStatus')).toContainText('Отправлено');await page.evaluate(value=>sessionStorage.setItem('workspaceV2.mediaDrafts.v1.7',value),linked.manifest);
+ s.release();await expect(page.locator('#replyStatus')).toContainText('Отправлено');await expect(page.locator('#sendReply')).toBeEnabled();await page.evaluate(value=>sessionStorage.setItem('workspaceV2.mediaDrafts.v1.7',value),linked.manifest);
  await page.reload();await expect(page.locator('#composer')).toBeVisible();await expect(page.locator('.mediaSelectedItem')).toHaveCount(0);await expect(page.locator('#replyText')).toHaveValue('');expect(s.uploads).toHaveLength(1);expect(s.errors).toEqual([]);
 });
 for(const width of [390,430,768,1440])test(`durable media recovery keeps each result after reload ${width}`,async({page,browserName},testInfo)=>{
