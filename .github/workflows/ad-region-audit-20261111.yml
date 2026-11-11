@@ -1,0 +1,40 @@
+name: Read advertising links and first-entry region
+on:
+  push:
+    branches: [audit/ad-region-links-20261111-a8884be9]
+    paths:
+      - .github/workflows/ad-region-audit-20261111.yml
+      - audit/ad-region-20261111/**
+permissions:
+  contents: read
+concurrency:
+  group: advertising-region-owner-a8884be91cc0fa95219f2550a4ed19a8
+  cancel-in-progress: false
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor_id == '226193297'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Read existing APIs and project registry without changes
+        env:
+          SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          DIRECT_READER_SHA256: d50bb3adeae823af4198011f84d23bacc509de65c92c62434a6a4d9962266d14
+          APP_READER_SHA256: 9792146d3379da99b35b4aae016499e79b260c04b66d395178b4a086f48c4952
+          AUDIT_REQUEST_ID: a8884be91cc0fa95219f2550a4ed19a8
+          EXPECTED_APPLICATION_SHA: 8164359eba9a633f3f25d743e534386ecffe622f
+          REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUEzelJEVmdZaVVWV3d4UDcwMG1HMQpUR0xOdWhaeXVoWVhsS0UzZUlyNEF5eXZwNWZTK21BS0YwT3VzM0tlYWZrRUlGWm1paFlUNkZ5SUFwS3MzcHY2CjgyVVJoVjV5NEVUdXgwdTRXZXRrSmZTVHNzSEhvUWRhaEFaNm9MZEkvS25kTjJGTVJDYzZ4T1NsQW8wc1RNaDcKalE1ZXhIbTMyR0F3QXVuRXNqWDFiYldXK2o5Yjd5V3J3b1F0dE9NTnE1dWxTSGVaaGZuQTR5bnp6d1QxOWwvMQpOVXlFZ3VaNkdUa3BGUmVkN3VjNFl5TzlJbWdpd0oyelhDOWZ2TVM1Rm1XNW5QNGxqaitXTnVxWDBMTXBjbWtCCkljNmg4L3k2Wmk0YW1jYng4SDFWT3VtZFd3c05PZGRDWGZaVTlnVXBwaFlsdEpFRXI0Rm1ZRTlCYTRXeWdQaEUKZW1HNEl4OEhDSTZyeFcya2dRQXQvKzNoUWwrcE82OURCY1JZc2JYamdiK2xkekdjVHB3S2g2aUlZQ3BlYTdJQwpHVXpSeExlMlhLLzg5Kzc2MEJUQzV3bGJxbHd1Qm5oeWFpdlFUK1RCa0dkRUIwRHplamtjZXpXVUZrN05zNzhtCjd6NHA3Y1dLc21Td3RlY3NuR0VoN0x5VjhTOFFhYjB3UEFPb21JY2xJSzZaQWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+        run: python3 audit/ad-region-20261111/runner.py
+      - name: Retain ciphertext only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: advertising-region-a8884be91cc0fa95219f2550a4ed19a8-${{ github.sha }}
+          path: encrypted-ad-region/advertising-region.enc.json
+          retention-days: 3
+          if-no-files-found: error
