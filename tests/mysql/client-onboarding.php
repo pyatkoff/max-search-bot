@@ -70,5 +70,14 @@ try{
     $rows=$pdo->query('SELECT * FROM project_client_connections ORDER BY project_id')->fetchAll();$pdo->exec((string)file_get_contents(dirname(__DIR__,2).'/migrations/101_client_onboarding.sql'));
     nativeClientCheck('actual forward migration is idempotent and preserves ciphertext and receipts',$rows===$pdo->query('SELECT * FROM project_client_connections ORDER BY project_id')->fetchAll());
     nativeClientCheck('native new employee cannot access legacy company',!ProjectAccessService::canAccess((int)$pdo->query("SELECT id FROM managers WHERE login='staff_a'")->fetchColumn(),'anytour'));
+    // The next company feature exercises the real forward reply migration and
+    // identical file/ACL/receipt cases on this same isolated InnoDB fixture.
+    foreach (['006_admin_audit_log.sql','029_manager_quick_replies.sql','031_manager_quick_reply_toolbar.sql'] as $migration) $pdo->exec((string)file_get_contents(dirname(__DIR__,2).'/migrations/'.$migration));
+    $pdo->exec("INSERT INTO manager_quick_replies(owner_manager_id,scope,title,body,category,version,created_by_manager_id,updated_by_manager_id) VALUES(NULL,'shared','Legacy synthetic reply','Original conditions','Legacy',1,1,1)");
+    $legacy=$pdo->query('SELECT id,title,body,version FROM manager_quick_replies')->fetchAll();
+    $pdo->exec((string)file_get_contents(dirname(__DIR__,2).'/migrations/103_manager_reply_materials.sql'));
+    nativeClientCheck('actual reply migration preserves legacy text and leaves its original project binding explicit at read boundary',$legacy===$pdo->query('SELECT id,title,body,version FROM manager_quick_replies')->fetchAll()&&$pdo->query('SELECT project_id FROM manager_quick_replies LIMIT 1')->fetchColumn()===null);
+    require_once dirname(__DIR__).'/fixtures/quick_reply_material_cases.php';
+    quickReplyMaterialCases($pdo,static fn(string $label,bool $ok)=>nativeClientCheck('native materials: '.$label,$ok));
     echo 'TOTAL '.$passed.' | PASS '.$passed." | FAIL 0\n";
 }finally{if(is_file($private.'/master.key'))unlink($private.'/master.key');if(is_dir($private))rmdir($private);}

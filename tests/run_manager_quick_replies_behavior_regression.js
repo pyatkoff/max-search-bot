@@ -28,9 +28,19 @@ function harness(handler){
   }
   const trigger=element('quickRepliesOpen'),toolbar=element('quickReplies'),defaultReply=element('fixedDefault');defaultReply.dataset.reply='Стандартный ответ';trigger.parentElement=toolbar;toolbar.children=[trigger,defaultReply];
   nodes.set('quickRepliesOpen',trigger);nodes.set('quickReplies',toolbar);nodes.set('fixedDefault',defaultReply);nodes.set('replyText',element('replyText'));
-  const S={current:101,manager:{id:5,role:'manager',display_name:'Анна'},authExpired:false,authGeneration:1,openGeneration:1,detail:{conversation:{id:101,display_name:'Павел'}}};
+  const S={current:101,projects:[{id:1,project_key:'anytour',display_name:'Synthetic company'}],manager:{id:5,role:'manager',display_name:'Анна'},authExpired:false,authGeneration:1,openGeneration:1,detail:{conversation:{id:101,project_key:'anytour',display_name:'Павел'}}};
+  const scoped=(value,project)=>{
+    if(!value||typeof value!=='object')return value;
+    const result={...value};
+    if(Array.isArray(value.replies)){result.project_key=value.project_key||project;result.replies=value.replies.map(r=>({...r,project_key:r.project_key||project}))}
+    if(value.reply)result.reply={...value.reply,project_key:value.reply.project_key||project};
+    if(value.current)result.current={...value.current,project_key:value.current.project_key||project};
+    if(value.toolbar)result.toolbar=scoped(value.toolbar,project);
+    if(value.result)result.result=scoped(value.result,project);
+    return result;
+  };
   const W={S,$:id=>nodes.get(id)||null,esc:value=>String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'),
-    request:async(endpoint,action,data)=>{calls.push({endpoint,action,data});return handler(action,data,calls)}
+    request:async(endpoint,action,data)=>{calls.push({endpoint,action,data});return scoped(await handler(action,data,calls),data.project_key)}
   };
   const document={createElement:()=>element(),body:{appendChild(node){nodes.set(node.id,node)}},get activeElement(){return active}};
   const window={WorkspaceV2:W,crypto:require('node:crypto').webcrypto,confirm:()=>true,
@@ -38,7 +48,7 @@ function harness(handler){
   };
   const context=vm.createContext({window,document,sessionStorage:{getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)},Uint8Array,setTimeout,clearTimeout,console});
   vm.runInContext(source,context);
-  return {api:window.WorkspaceV2QuickReplies,S,nodes,values,calls,window};
+  return {api:window.WorkspaceV2QuickReplies,S,nodes,values,calls,window,context};
 }
 const reply={id:7,title:'Приветствие',body:'Здравствуйте, {client_name}! Я {manager_name}.',category:'Знакомство',scope:'personal',version:1,is_favorite:false,can_edit:true};
 const list={ok:true,replies:[reply],categories:['Знакомство'],has_more:false,next_offset:null};
@@ -89,10 +99,10 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
     throw Error(action);
   });
   await retained.api.open();enterEditor(retained);retained.nodes.get('qrEditor').emit('submit',{preventDefault(){}});await tick();
-  const draft=JSON.parse(retained.values.get('workspaceV2.quickReplyDraft.5'));
+  const draft=JSON.parse(retained.values.get('workspaceV2.quickReplyDraft.5.anytour'));
   assert.equal(draft.editor.body,'Текст, который важно сохранить');assert.ok(draft.pending.operation_id);assert.equal(retained.nodes.get('qrSave').disabled,true);
   await retained.nodes.get('qrResolve').onclick();await tick();
-  assert.equal(created,1,'receipt reconciliation must not resend a completed create');assert.equal(retained.values.has('workspaceV2.quickReplyDraft.5'),false);
+  assert.equal(created,1,'receipt reconciliation must not resend a completed create');assert.equal(retained.values.has('workspaceV2.quickReplyDraft.5.anytour'),false);
   assert.match(retained.nodes.get('qrStatus').textContent,/^Ответ создан\./,'failed follow-up read cannot replace confirmed success');
   assert.match(retained.nodes.get('qrList').innerHTML,/Не удалось загрузить ответы/);
   console.log('PASS lost response is reconciled without duplicate write and follow-up failure preserves success truth');
@@ -115,8 +125,8 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
   await account.api.open();enterEditor(account,'Личное имя','Личный текст Анны');account.nodes.get('qrEditor').emit('submit',{preventDefault(){}});await tick();
   account.S.authGeneration++;account.api.resetSession();account.S.manager={id:6,display_name:'Светлана',role:'manager'};
   await account.api.open();staleCreate.resolve({ok:true,reply:{...reply,body:'private A'}});await tick();
-  assert.doesNotMatch(account.nodes.get('qrDetail').innerHTML,/private A|Личный текст Анны/);assert.equal(account.values.has('workspaceV2.quickReplyDraft.6'),false);
-  assert.equal(JSON.parse(account.values.get('workspaceV2.quickReplyDraft.5')).pending.action,'create','stale success never discards previous account unknown receipt');
+  assert.doesNotMatch(account.nodes.get('qrDetail').innerHTML,/private A|Личный текст Анны/);assert.equal(account.values.has('workspaceV2.quickReplyDraft.6.anytour'),false);
+  assert.equal(JSON.parse(account.values.get('workspaceV2.quickReplyDraft.5.anytour')).pending.action,'create','stale success never discards previous account unknown receipt');
   console.log('PASS account switch hides old draft and discards late mutation response while retaining reconciliation');
 
   const toolbar=harness(action=>action==='toolbar'?state([second,{...reply,is_favorite:true}]):list);
@@ -146,18 +156,18 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
   lostOrder.api.configure();await tick();await lostOrder.api.open({panel:true});move(lostOrder,7,'down');await tick();
   const orderWrite=lostOrder.calls.find(call=>call.action==='reorder');assert.deepEqual([...orderWrite.data.ids],[8,7]);assert.equal(orderWrite.data.toolbar_version,'version-a');
   assert.ok(lostOrder.nodes.get('quickRepliesSelected').innerHTML.indexOf('Приветствие')<lostOrder.nodes.get('quickRepliesSelected').innerHTML.indexOf('Даты и состав'),'unconfirmed reordering keeps last confirmed composer order');
-  assert.equal(JSON.parse(lostOrder.values.get('workspaceV2.quickReplyDraft.5')).pending.action,'reorder');
+  assert.equal(JSON.parse(lostOrder.values.get('workspaceV2.quickReplyDraft.5.anytour')).pending.action,'reorder');
   const readsBeforeReceipt=lostOrder.calls.filter(call=>call.action==='toolbar').length;
   currentPanel=state([second],'another-device');await lostOrder.nodes.get('qrResolve').onclick();await tick();
   assert.equal(lostOrder.calls.filter(call=>call.action==='reorder').length,1,'receipt recovery never blindly repeats reordering');
   assert.equal(lostOrder.calls.filter(call=>call.action==='toolbar').length,readsBeforeReceipt+1,'recovered receipt refreshes canonical current state before displaying buttons');
   assert.doesNotMatch(lostOrder.nodes.get('quickRepliesSelected').innerHTML,/Приветствие/,'old receipt snapshot never restores a later removed choice');
-  assert.equal(lostOrder.values.has('workspaceV2.quickReplyDraft.5'),false);
+  assert.equal(lostOrder.values.has('workspaceV2.quickReplyDraft.5.anytour'),false);
   console.log('PASS unknown reorder preserves confirmed chips and reconciles current account state instead of an obsolete receipt');
 
   const conflict=harness(action=>action==='toolbar'?state([{...reply,is_favorite:true},second]):action==='reorder'?{ok:false,error:'conflict',toolbar:state([second,{...reply,is_favorite:true}],'newer')}:list);
   conflict.api.configure();await tick();await conflict.api.open({panel:true});move(conflict,7,'down');await tick();
-  assert.match(conflict.nodes.get('qrStatus').textContent,/другом устройстве/);assert.equal(conflict.values.has('workspaceV2.quickReplyDraft.5'),false);
+  assert.match(conflict.nodes.get('qrStatus').textContent,/другом устройстве/);assert.equal(conflict.values.has('workspaceV2.quickReplyDraft.5.anytour'),false);
   assert.ok(conflict.nodes.get('quickRepliesSelected').innerHTML.indexOf('Даты и состав')<conflict.nodes.get('quickRepliesSelected').innerHTML.indexOf('Приветствие'),'version conflict displays canonical server order');
   console.log('PASS explicit order conflict never claims a successful save');
 
@@ -197,7 +207,7 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
   console.log('PASS typed trip values preserve calendar, ranges, zero children and explicit budget units without inference');
 
   const tripPanel=harness(action=>action==='toolbar'?state([tripReply]):{...list,replies:[tripReply]});
-  tripPanel.S.detail={conversation:{id:101,display_name:'Внутренний псевдоним',original_display_name:'Павел'},lead:{ok:true,trip},trip_summary:'Старая Греция, 1990 год'};
+  tripPanel.S.detail={conversation:{id:101,project_key:'anytour',display_name:'Внутренний псевдоним',original_display_name:'Павел'},lead:{ok:true,trip},trip_summary:'Старая Греция, 1990 год'};
   let tripInserted=[];tripPanel.window.WorkspaceV2Conversation.insertQuickReply=(text,ctx)=>{tripInserted.push({text,ctx});return true};
   tripPanel.api.configure();await tick();toolbarClick(tripPanel,7);assert.equal(tripInserted[0].text,expected);
   const reads=tripPanel.calls.length;
@@ -212,7 +222,7 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
   assert.equal(tripPanel.nodes.get('qrInsert').onclick(),true);assert.equal(tripInserted.at(-1).text,previewNode.value);
   assert.equal(tripPanel.values.size,0,'resolved client values are never saved as template/editor drafts');
   await tripPanel.api.open();select(tripPanel);assert.equal(tripPanel.nodes.get('qrPreview').value,expected.replace('Турция','Кипр'),'fresh library selection uses the current-card projection');
-  const named={...tripReply,body:'{client_name} / {trip_country}'};const names=harness(()=>({...list,replies:[named]}));names.S.detail={conversation:{id:101,display_name:'Рабочий псевдоним',original_display_name:'Имя источника'},lead:{ok:true,trip}};await names.api.open();select(names);assert.equal(names.nodes.get('qrPreview').value,'Имя источника / Турция');
+  const named={...tripReply,body:'{client_name} / {trip_country}'};const names=harness(()=>({...list,replies:[named]}));names.S.detail={conversation:{id:101,project_key:'anytour',display_name:'Рабочий псевдоним',original_display_name:'Имя источника'},lead:{ok:true,trip}};await names.api.open();select(names);assert.equal(names.nodes.get('qrPreview').value,'Имя источника / Турция');
   console.log('PASS toolbar/library current-trip interpolation and explicit late-card fill preserve edited text and backward caret without requests');
 
   for(const change of [h=>{h.S.current=102},h=>{h.S.authGeneration++},h=>{h.S.openGeneration++},h=>{h.S.manager={id:6}},h=>{h.S.authExpired=true},h=>{h.S.detail.conversation.id=102}]){
@@ -232,7 +242,56 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
   assert.equal(body.value,'{trip_children}'+tripBody);assert.equal(body.selectionStart,'{trip_children}'.length);
   template.nodes.get('qrEditor').emit('submit',{preventDefault(){}});await tick();
   assert.equal(template.calls.find(call=>call.action==='create').data.body,'{trip_children}'+tripBody);
-  assert.equal(JSON.parse(template.values.get('workspaceV2.quickReplyDraft.5')).editor.body,'{trip_children}'+tripBody);
+  assert.equal(JSON.parse(template.values.get('workspaceV2.quickReplyDraft.5.anytour')).editor.body,'{trip_children}'+tripBody);
   assert.equal(template.nodes.get('qrFillKnown')?.disabled??true,true);assert.equal(template.nodes.get('qrSave').disabled,true);
   console.log('PASS compact trip-variable control saves only reusable tokens and retains exact unknown-save template draft');
+
+  const privateOld=deferred();let firstCompanyRead=true;
+  const companies=harness((action,data)=>action==='toolbar'?state([]):data.project_key==='anytour'&&firstCompanyRead?(firstCompanyRead=false,privateOld.promise):{...list,replies:[{...reply,title:'Only second company',project_key:'client-b'}]});
+  companies.S.projects.push({id:2,project_key:'client-b',display_name:'Second company'});
+  const oldCompanyOpening=companies.api.open();companies.S.current=102;companies.S.detail.conversation={id:102,project_key:'client-b',display_name:'Other client'};companies.api.syncContext();await tick();await companies.api.open();
+  privateOld.resolve({...list,replies:[{...reply,title:'Private first company',project_key:'anytour'}]});await oldCompanyOpening;
+  assert.match(companies.nodes.get('qrList').innerHTML,/Only second company/);assert.doesNotMatch(companies.nodes.get('qrList').innerHTML,/Private first company/);
+  assert.equal(companies.calls.at(-1).data.project_key,'client-b');assert.equal(companies.calls.at(-1).data.expected_manager_id,5);
+  const foreign=harness(()=>({...list,project_key:'client-b',replies:[{...reply,project_key:'client-b',title:'Foreign company material'}]}));await foreign.api.open();assert.doesNotMatch(foreign.nodes.get('qrList').innerHTML,/Foreign company material/);
+  const noCompany=harness(()=>{throw Error('no request is allowed without a company')});noCompany.S.projects=[];noCompany.S.detail.conversation.project_key='';await noCompany.api.open();assert.equal(noCompany.calls.length,0);assert.equal(noCompany.nodes.get('qrCreate').disabled,true);
+  console.log('PASS explicit company/account protocol, late first-company read fence and missing-company fail closed');
+
+  const materialSource=fs.readFileSync(path.join(__dirname,'../manager/assets/workspace-v2-quick-reply-materials.js'),'utf8');
+  const crypto=require('node:crypto');
+  function materialHarness(handler){const h=harness(handler);Object.assign(h.context,{Blob,File,Response});vm.runInContext(materialSource,h.context);return h;}
+  const content=Buffer.from('Synthetic ordered material bytes');
+  const material={id:'a'.repeat(32),name:'conditions.txt',size:content.length,mime:'text/plain',sha256:crypto.createHash('sha256').update(content).digest('hex')};
+  const policy={supported:true,max_files:10,max_file_bytes_by_type:{image:10000000,file:50000000,video:50000000,audio:50000000},image_formats:['image/png'],caption_warning_limit:1024};
+  const prepared={ok:true,reply:{...reply,project_key:'anytour',materials:[material]},constraints:policy};
+  const response=()=>new Response(content,{headers:{'Content-Length':String(content.length),'X-Material-SHA256':material.sha256}});
+  const success=materialHarness(()=>prepared);success.context.fetch=async()=>response();
+  success.nodes.get('replyText').value='Existing human draft';const existingFile=new File(['original'],'existing.txt');let appended=[],textWrites=0;
+  success.window.WorkspaceV2Media={captureSelection:()=>({actor:5,conversationId:101,rows:[{row:{file:existingFile}}]}),appendPrepared:(items,snapshot,commit)=>{assert.equal(snapshot.rows[0].row.file,existingFile);if(!commit())return false;appended=items;return true}};
+  success.window.WorkspaceV2Conversation.insertQuickReply=(text)=>{textWrites++;success.nodes.get('replyText').value+='\n'+text;return true};
+  assert.equal(await success.window.WorkspaceV2QuickReplyMaterials.insert({endpoint:'quick-replies-api.php',reply:prepared.reply,text:'Prepared text',context:success.window.WorkspaceV2Conversation.captureReplyContext(),project:'anytour',valid:()=>true,notice:()=>{}}),true);
+  assert.equal(success.nodes.get('replyText').value,'Existing human draft\nPrepared text');assert.equal(textWrites,1);assert.equal(appended[0].name,material.name);assert.equal(crypto.createHash('sha256').update(Buffer.from(await appended[0].arrayBuffer())).digest('hex'),material.sha256);
+  assert.equal(success.calls.filter(c=>c.action==='prepare_insert').length,2);assert.equal(success.calls.some(c=>/send|create|update/.test(c.action)),false);
+  console.log('PASS exact saved bytes are prepared, reauthorized and inserted through canonical text/media owners without sending');
+
+  const delayedFile=deferred(),lateMaterial=materialHarness(()=>prepared);lateMaterial.context.fetch=()=>delayedFile.promise;let lateInsertions=0,recoveries=0;
+  lateMaterial.window.WorkspaceV2.showAuthRecovery=()=>{recoveries++};lateMaterial.window.WorkspaceV2Media={captureSelection:()=>({actor:5,conversationId:101,rows:[]}),appendPrepared:()=>{lateInsertions++;return true}};
+  lateMaterial.nodes.get('replyText').value='Before';
+  const lateInsert=lateMaterial.window.WorkspaceV2QuickReplyMaterials.insert({endpoint:'quick-replies-api.php',reply:prepared.reply,text:'Prepared text',context:lateMaterial.window.WorkspaceV2Conversation.captureReplyContext(),project:'anytour',valid:()=>true,notice:()=>{}});
+  await tick();lateMaterial.nodes.get('replyText').value='New human edit';delayedFile.resolve(new Response('',{status:401}));await assert.rejects(lateInsert,/stale_context/);
+  assert.equal(lateInsertions,0);assert.equal(recoveries,0);assert.equal(lateMaterial.nodes.get('replyText').value,'New human edit');
+  const changed=materialHarness((action,data,calls)=>calls.length===1?prepared:{ok:false,error:'conflict'});changed.context.fetch=async()=>response();changed.window.WorkspaceV2Media={captureSelection:()=>({actor:5,conversationId:101,rows:[]}),appendPrepared:()=>{throw Error('no partial insertion')}};
+  await assert.rejects(changed.window.WorkspaceV2QuickReplyMaterials.insert({endpoint:'quick-replies-api.php',reply:prepared.reply,text:'Prepared text',context:changed.window.WorkspaceV2Conversation.captureReplyContext(),project:'anytour',valid:()=>true,notice:()=>{}}),/Материалы изменились/);
+  console.log('PASS human edit, late unauthorized file response and final version conflict never partially insert or disturb auth');
+
+  const editorHarness=materialHarness(()=>list),m=editorHarness.window.WorkspaceV2QuickReplyMaterials;
+  let materialDraft={editor_key:'synthetic-editor',materials:[],source_label:'Synthetic source',reviewed:false};const host=editorHarness.context.document.createElement('div');
+  m.editor(host,{get:()=>materialDraft,valid:()=>true,scope:'5:anytour',limits:{max_files:10,max_file_bytes:1000000,max_total_bytes:2000000},busy:()=>false,change:patch=>{materialDraft={...materialDraft,...patch}}});
+  const selectedFile=new File([content],material.name,{type:'text/plain'});
+  await editorHarness.nodes.get('qrMaterialFiles').onchange({target:{files:[selectedFile],value:'synthetic'}});
+  const packet=m.packet(materialDraft,'5:anytour');assert.notEqual(packet.uploads[0],selectedFile);assert.equal(crypto.createHash('sha256').update(Buffer.from(await packet.uploads[0].arrayBuffer())).digest('hex'),material.sha256);assert.equal(packet.upload_hashes[0],material.sha256);assert.equal(packet.materials[0].upload_index,0);
+  const pending={data:{materials:packet.materials},operation_id:'unknown-material-operation',uploads:[{name:selectedFile.name,size:selectedFile.size,sha256:material.sha256}]};m.remember(pending.operation_id,packet.uploads);assert.equal(m.pendingFiles(pending)[0],packet.uploads[0]);m.reset();assert.equal(m.pendingFiles(pending),null);assert.throws(()=>m.packet(materialDraft,'5:anytour'),/После перезагрузки/);
+  await assert.rejects(m.recover(pending,[new File(['different'],material.name)],()=>true),/отличаются/);assert.equal(m.pendingFiles(pending),null);assert.equal(await m.recover(pending,[selectedFile],()=>true,{editor:materialDraft,scope:'5:anytour'}),true);const recoveredFile=m.pendingFiles(pending)[0];assert.notEqual(recoveredFile,selectedFile);assert.equal(crypto.createHash('sha256').update(Buffer.from(await recoveredFile.arrayBuffer())).digest('hex'),material.sha256);assert.equal(m.packet(materialDraft,'5:anytour').uploads[0],recoveredFile,'verified recovered Files also remain available after a definitive rejection');assert.throws(()=>m.packet(materialDraft,'5:other-company'),/После перезагрузки/);
+  const oversized=m.problems([{...material,size:50000001}],policy,'short');assert.equal(oversized.errors.length,1);assert.equal(m.problems([material],{...policy,supported:false},'short').errors.length,1);assert.equal(m.problems([material],policy,'x'.repeat(1025)).errors.length,1);assert.equal(m.problems([material],{...policy,max_total_bytes:material.size-1},'short').errors.length,1);
+  console.log('PASS editor fingerprints, scope-bound file memory, exact same-file recovery and pre-send size/channel/caption checks');
 })().catch(error=>{console.error(error);process.exitCode=1});

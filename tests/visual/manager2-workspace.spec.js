@@ -61,10 +61,11 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
     }
     if(url.pathname==='/manager/quick-replies-api.php'&&data.action==='toolbar'){
       if(!authenticated)return reply({ok:false,error:'unauthorized'},401);
-      return reply({ok:true,replies:[],version:'0'.repeat(64),max_replies:100});
+      return reply({ok:true,project_key:data.project_key,replies:[],version:'0'.repeat(64),max_replies:100});
     }
     // These synthetic conversations have no publication entry. Keep the real
     // optional protected read inside the fixture without allowing other actions.
+    if(req.method()==='POST'&&url.pathname==='/manager/request-profile-api.php'&&data.action==='get'&&data.csrf==='synthetic-csrf'&&[11,12].includes(data.conversation_id))return reply({ok:true,viewer_id:manager.id,conversation_id:data.conversation_id,profile:{label:'',status:'needs_review',fields:{}}});
     if(req.method()==='POST'&&url.pathname==='/manager/post-context-api.php'&&data.action==='detail'&&data.csrf==='synthetic-csrf'&&[11,12].includes(data.conversation_id)){
       if(!authenticated)return reply({ok:false,error:'unauthorized'},401);
       return reply({ok:true,conversation_id:data.conversation_id,context:{current:null,history:[]}});
@@ -1159,7 +1160,7 @@ test('Manager2 reply editor follows canonical client and account recovery bounda
   expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
 test('Manager2 reply editor keeps canonical IME, unknown and newer-draft send semantics',async({page})=>{
-  await page.setViewportSize({width:1440,height:900});const s=await setup(page);await openLead(page);await editorReady(page);
+  await page.setViewportSize({width:1440,height:900});const s=await setup(page);s.setConversation(11,{project_key:'anytour'});await openLead(page);await editorReady(page);
   let mode='unknown',release;const sends=[],receipts=[];
   await page.route('**/manager/api.php',async route=>{
     const data=route.request().postDataJSON();if(!['send','send_receipt'].includes(data.action))return route.fallback();
@@ -1171,12 +1172,13 @@ test('Manager2 reply editor keeps canonical IME, unknown and newer-draft send se
   const reply=page.locator('#replyText'),dialog=page.locator('#m2ReplyEditor');
   await reply.fill('Редактируемый ответ');await page.locator('#m2ReplyExpand').click();
   await page.locator('#emojiToggle').click();await page.locator('#emojiPicker [data-emoji="😊"]').click();
-  const canned={id:4,title:'Дополнение',body:'Дополнение из быстрого ответа',category:'Подбор',scope:'shared',version:1,is_favorite:true,can_edit:false};
+  const canned={id:4,project_key:'anytour',title:'Дополнение',body:'Дополнение из быстрого ответа',category:'Подбор',scope:'shared',version:1,is_favorite:true,can_edit:false};
   await page.route('**/manager/quick-replies-api.php',route=>{
     const data=route.request().postDataJSON();
     if(!['toolbar','list'].includes(data.action))return route.fallback();
     expect(data.csrf).toBe('synthetic-csrf');
-    return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,replies:[canned],categories:['Подбор'],version:'1'.repeat(64),max_replies:100,has_more:false})});
+    expect(data.project_key).toBe('anytour');expect(data.expected_manager_id).toBe(7);
+    return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,project_key:'anytour',replies:[canned],categories:['Подбор'],version:'1'.repeat(64),max_replies:100,has_more:false})});
   });
   await page.locator('#quickRepliesOpen').click();await expect(page.locator('#quickRepliesDialog')).toBeVisible();
   await page.locator('#qrList [data-qr-select="4"]').click();await expect(page.locator('#qrPreview')).toHaveValue(canned.body);
