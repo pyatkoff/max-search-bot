@@ -218,7 +218,7 @@ function deliveryHealthPriceCorrectionAssertions(PDO $p,callable $check):void
 function deliveryClockWriterAssertions(PDO $p,callable $check):void
 {
     $tick=1793743198;$observed=$tick+3;$gate=static fn(string $chat):bool=>true;
-    modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    modeledValueSchema($p);$wire=new ModeledValueTestWire($tick-86400);$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $control->configure('create-goal',$api,$tick-10);$control->configure('enable',$api,$tick-9);
     $subject=modeledValueBinding($p,901);modeledValueSave($p,modeledValueWrapper($subject,$tick));
     ModeledConversionValueExport::tick($p,new ModeledValueTestLookup(),$api,$tick,$gate,static fn():int=>$observed);
