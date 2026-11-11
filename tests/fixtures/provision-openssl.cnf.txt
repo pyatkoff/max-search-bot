@@ -1,0 +1,7 @@
+[req]
+default_bits = 3072
+distinguished_name = synthetic_dn
+prompt = no
+
+[synthetic_dn]
+CN = synthetic.invalid
