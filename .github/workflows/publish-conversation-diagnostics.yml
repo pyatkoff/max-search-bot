@@ -123,6 +123,7 @@ jobs:
             printf '%s ' 'PHP_PATH'; command -v php 2>/dev/null || printf 'missing'; printf '\\n';
             printf '%s ' 'PHP_SAPI'; php -r 'echo PHP_SAPI;' 2>/dev/null || printf 'unavailable'; printf '\\n';
             printf '%s ' 'CONFIG_FLAGS'; php -r 'require __DIR__ . "/config.php"; echo "counter=".(defined("METRIKA_COUNTER_ID") && trim((string)METRIKA_COUNTER_ID) !== "" ? "set" : "missing")." token=".(defined("METRIKA_OAUTH_TOKEN") && trim((string)METRIKA_OAUTH_TOKEN) !== "" ? "set" : "missing");' 2>/dev/null || printf 'unavailable'; printf '\\n';
+            printf '%s ' 'APPLESERVICE39_GOAL_ADMISSION'; php tools/max_channel_attribution.php project-probe appleservice39 2>/dev/null || true; printf '\\n';
             printf '%s ' 'CRONTAB_FILE_LINES'; crontab -l 2>/dev/null | wc -l;
           }" > metrika_delivery_diagnostic.txt
 

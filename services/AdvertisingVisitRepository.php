@@ -9,9 +9,9 @@ final class AdvertisingVisitRepository
     public function __construct(PDO $pdo) { $this->pdo = $pdo; }
 
     /** Read-only resume token anchored to the last committed observation. */
-    public function checkpoint(array $scope): array
+    public function checkpoint(array $scope, bool $allowUnbound = false): array
     {
-        $scope = AdvertisingVisitContract::scope($scope);
+        $scope = AdvertisingVisitContract::scope($scope, $allowUnbound);
         $q = $this->pdo->prepare('SELECT c.last_cursor,o.payload_sha256 FROM advertising_visit_cursors c LEFT JOIN advertising_visit_observations o ON o.project_key=c.project_key AND o.source_key=c.source_key AND o.platform=c.platform AND o.counter_id=c.counter_id AND o.source_cursor=c.last_cursor WHERE c.project_key=? AND c.source_key=? AND c.platform=? AND c.counter_id=? LIMIT 1');
         $q->execute(array_values($scope));
         $row = $q->fetch(PDO::FETCH_ASSOC);
@@ -23,9 +23,10 @@ final class AdvertisingVisitRepository
     }
 
     /** A feed checkpoint and its complete observation page commit together. */
-    public function importPage(array $page, int $receivedAt): array
+    public function importPage(array $page, int $receivedAt, bool $nativeLaunch = false): array
     {
         if ($this->pdo->inTransaction()) throw new LogicException('advertising_visit_outer_transaction');
+        if($nativeLaunch&&(($page['schema_version']??null)!==2||count($page['observations'])!==1))throw new LogicException('invalid_native_page');
         $scope = array_intersect_key($page, array_flip(['project_key','source_key','platform','counter_id']));
         $params = array_values($scope);
         $where = 'project_key=? AND source_key=? AND platform=? AND counter_id=?';
@@ -38,6 +39,12 @@ final class AdvertisingVisitRepository
             $q = $this->pdo->prepare('SELECT last_cursor FROM advertising_visit_cursors WHERE '.$where.($mysql ? ' FOR UPDATE' : ''));
             $q->execute($params);
             $cursor = (string)$q->fetchColumn();
+            if($nativeLaunch){
+                // Recheck after the shared scope lock. A concurrent committed
+                // launch must not append a second observation with the next cursor.
+                $existing=$this->nativeExisting($scope,$page['observations'][0]);
+                if($existing!==null){$this->pdo->commit();return ['inserted'=>0,'replayed'=>1,'cursor'=>(string)$existing['source_cursor']];}
+            }
             $replay = $cursor !== $page['after_cursor'];
             if ($replay && AdvertisingVisitContract::compare($cursor, $page['next_cursor']) < 0) throw new RuntimeException('advertising_visit_cursor_conflict');
             $inserted = $replayed = 0;
@@ -63,6 +70,7 @@ final class AdvertisingVisitRepository
                 }
                 $values = $scope + $row + ['payload_sha256'=>$fingerprint,'received_at_unix'=>$receivedAt];
                 $columns = ['project_key','source_key','platform','counter_id','source_cursor','visit_id','visit_at_unix','observed_at_unix','external_user_id','identity_status','client_id','yclid','campaign_id','region_id','payload_sha256','received_at_unix'];
+                if (($page['schema_version'] ?? 1) === 2) $columns=[...$columns,'post_ref','offer_ref','context_json'];
                 $q = $this->pdo->prepare('INSERT INTO advertising_visit_observations ('.implode(',', $columns).') VALUES ('.implode(',', array_fill(0, count($columns), '?')).')');
                 $q->execute(array_map(static fn($column) => $values[$column], $columns));
                 $inserted++;
@@ -78,6 +86,42 @@ final class AdvertisingVisitRepository
             if ($this->pdo->inTransaction()) $this->pdo->rollBack();
             throw $e;
         }
+    }
+
+    /** Native signed launch through the same append-only observation owner and cursor CAS. */
+    public function recordLaunch(array $scope,array $observation,int $now): array
+    {
+        $scope=AdvertisingVisitContract::scope($scope,true);
+        if($scope['platform']!=='max'||($observation['identity_status']??null)!=='verified')throw new InvalidArgumentException('native_launch_identity_required');
+        AdvertisingVisitContract::page(['schema_version'=>2]+$scope+['after_cursor'=>'0','next_cursor'=>'1','observations'=>[['source_cursor'=>'1']+$observation]],$scope,$now);
+        $where='project_key=? AND source_key=? AND platform=? AND counter_id=?';$params=array_values($scope);
+        for($attempt=0;$attempt<3;$attempt++){
+            $old=$this->nativeExisting($scope,$observation);
+            if($old!==null)return ['cursor'=>(string)$old['source_cursor'],'visit_id'=>$old['visit_id'],'reused'=>true];
+            $checkpoint=$this->checkpoint($scope,true);$cursor=$checkpoint['cursor'];$next=$cursor;$carry=1;
+            for($i=strlen($next)-1;$i>=0&&$carry;$i--){$digit=(int)$next[$i]+1;$next[$i]=(string)($digit%10);$carry=$digit>9?1:0;}
+            if($carry)$next='1'.$next;if(strlen($next)>20)throw new RuntimeException('advertising_cursor_capacity');
+            $row=['source_cursor'=>$next]+$observation;
+            $page=AdvertisingVisitContract::page(['schema_version'=>2]+$scope+['after_cursor'=>$cursor,'next_cursor'=>$next,'observations'=>[$row]],$scope,$now);
+            try{
+                $saved=$this->importPage($page,$now,true);
+                return ['cursor'=>$saved['cursor'],'visit_id'=>$observation['visit_id'],'reused'=>$saved['inserted']===0];
+            }catch(RuntimeException $e){
+                if(!in_array($e->getMessage(),['advertising_visit_cursor_conflict','advertising_visit_observation_conflict','advertising_visit_incomplete_replay'],true))throw $e;
+                // importPage rolled back its entire local transaction. No external write is retried.
+            }
+        }
+        throw new RuntimeException('advertising_capture_busy');
+    }
+
+    private function nativeExisting(array $scope,array $observation): ?array
+    {
+        $q=$this->pdo->prepare('SELECT * FROM advertising_visit_observations WHERE project_key=? AND source_key=? AND platform=? AND counter_id=? AND visit_id=? ORDER BY id DESC LIMIT 1');
+        $q->execute([...array_values($scope),$observation['visit_id']]);$old=$q->fetch(PDO::FETCH_ASSOC);if(!$old)return null;
+        foreach(['external_user_id','visit_at_unix','yclid','campaign_id','region_id','post_ref','offer_ref','context_json']as$key)
+            if((string)$old[$key] !== (string)$observation[$key])throw new RuntimeException('advertising_launch_conflict');
+        if($old['client_id']!==''&&$observation['client_id']!==''&&$old['client_id']!==$observation['client_id'])throw new RuntimeException('advertising_launch_conflict');
+        return $old['client_id']!==''||$observation['client_id']===''?$old:null;
     }
 
     /** Candidate history only; callers must explicitly own attribution selection. */

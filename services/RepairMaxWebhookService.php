@@ -8,6 +8,7 @@ require_once __DIR__.'/RepairProjectSettings.php';
 require_once __DIR__.'/ConversationRecorder.php';
 require_once __DIR__.'/ConversationControlService.php';
 require_once __DIR__.'/ChannelPostRegistryService.php';
+require_once __DIR__.'/ProjectFunnelConversation.php';
 require_once __DIR__.'/MaxInboundMediaArchiveService.php';
 require_once __DIR__.'/../integrations/MaxIncomingAdapter.php';
 
@@ -19,7 +20,11 @@ final class RepairMaxWebhookService
     {
         $connection = ProjectMaxConnection::authenticate($projectSelector, $secret);
         if ($connection === null) return self::response(403, 'forbidden');
-        if (RepairProjectSettings::businessKind($connection->settings()) !== 'device_repair') return self::response(403, 'forbidden');
+        if (RepairProjectSettings::businessKind($connection->settings()) !== 'device_repair') {
+            if($projectSelector===AppleService39PilotCatalog::PROJECT)return self::response(403,'forbidden');
+            $funnel=ProjectFunnelSettings::load($connection);
+            if(!$funnel||($funnel['handoff_mode']??'')!=='manager_first'||RepairProjectSettings::webhook($connection)===null)return self::response(403, 'forbidden');
+        }
 
         $type = (string)($update['update_type'] ?? '');
         if (!in_array($type, ['bot_started','message_created'], true)) return self::response(200, 'ignored');
@@ -119,6 +124,15 @@ final class RepairMaxWebhookService
                 $q->execute([(int)$source['id'],$conversationId,$projectKey]);
                 if ($resolved !== null && $registry->recordEntry($conversationId, $resolved, $deliveryKey, true) === null) throw new RuntimeException('entry_not_persisted');
                 if ($resolved === null && str_starts_with($payload, 'p_') && $registry->recordUnavailableEntry($conversationId, $projectKey, 'max', $deliveryKey, true) === null) throw new RuntimeException('entry_not_persisted');
+                // Optional advertising context cannot obstruct the existing lead/manager path.
+                try {
+                    $funnelPost=(string)($entry['post_id']??'');
+                    if($resolved!==null){
+                        $funnelSettings=ProjectFunnelSettings::load($connection);
+                        foreach(($funnelSettings['posts']??[])as$key=>$item)if(($item['publication_id']??null)===$resolved['publication_id'])$funnelPost=(string)$key;
+                    }
+                    ProjectFunnelConversation::entry($pdo,$connection,$conversationId,$externalUser,$sourceKey,$funnelPost,$deliveryKey,time());
+                } catch(Throwable $ignoredFunnel) {}
             }
             if ($entry !== null) {
                 $brand = trim((string)$connection->settings()->get('brand.name', $projectKey));
@@ -202,6 +216,7 @@ final class RepairMaxWebhookService
     {
         $brand = trim((string)$connection->settings()->get('brand.name', $connection->projectKey()));
         $text = 'Здравствуйте! Это '.$brand.'.';
+        if(RepairProjectSettings::businessKind($connection->settings())!=='device_repair')return $text."\nРасскажите, что вас интересует. Менеджер увидит ваше сообщение и ответит здесь.";
         if ($context) $text .= "\n".$context['model'].' — '.mb_strtolower($context['service'], 'UTF-8').'.';
         return $text.($type === 'bot_started'
             ? ($context ? "\nРасскажите, что случилось с устройством. Можно приложить фото — менеджер увидит ваше сообщение здесь." : "\nКакая модель устройства и что с ним случилось? Можно приложить фото — менеджер увидит ваше сообщение здесь.")

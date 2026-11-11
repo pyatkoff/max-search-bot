@@ -203,13 +203,20 @@
     if(!host||!current(context))return;
     rememberDisclosures();ensureFrame();host.hidden=false;host.dataset.state='ready';host.setAttribute('aria-busy','false');
     const latest=payload?.current,history=Array.isArray(payload.history)?payload.history.slice(0,4):[],repair=repairContext(payload?.repair);
+    const funnel=payload?.funnel&&safePostUrl(payload.funnel.post_url,'max')?payload.funnel:null;
     labels(!!repair);
-    if(!latest&&!history.length&&!repair){
+    if(!latest&&!history.length&&!repair&&!funnel){
       // Ordinary/legacy dialogues have no publication entry. Keep the optional
       // panel absent without discarding the completed read/deduplication key.
       host.replaceChildren();host.hidden=true;host.dataset.state='empty';trigger=overlay=content=closeButton=teaser=photoHint=null;active.viewOpen=false;return;
     }
     const items=[];
+    if(funnel){
+      const card=node('section','postContextCard');card.appendChild(node('div','postContextTitle',String(funnel.title||'Публикация клиента')));
+      const link=node('a','postContextOriginal postContextLink','Открыть публикацию в MAX');link.href=safePostUrl(funnel.post_url,'max');link.target='_blank';link.rel='noopener noreferrer';card.appendChild(link);
+      const states={matched:'Найден связанный рекламный визит',ambiguous:'Найдено несколько визитов: источник конверсии требует уточнения',history_limit:'История визитов требует уточнения',unattributed:'Связанный рекламный визит не найден'};
+      card.appendChild(node('p','postContextNotice',states[funnel.attribution_state]||'Рекламный источник не определён'));items.push(card);
+    }
     if(repair)items.push(repairMarkup(repair,context));
     if(latest?.unavailable===true||latest?.available===false){const unavailable=node('div','postContextNotice isError','Исходный пост этого обращения недоступен.');unavailable.setAttribute('role','status');items.push(unavailable)}
     else if(latest)items.push(entryMarkup(latest,context));
@@ -221,7 +228,7 @@
     const available=latest&&latest.unavailable!==true&&latest.available!==false;
     const title=available?String(latest.title||'').trim():'';
     const snippet=available?String(latest.text||'').replace(/\s+/g,' ').trim():'';
-    teaser.textContent=repair?repairTitle(repair):available?(title&&title!=='Публикация'?title:snippet||'Открыть условия публикации'):'Последний пост недоступен';
+    teaser.textContent=repair?repairTitle(repair):funnel?String(funnel.title||'Публикация клиента'):available?(title&&title!=='Публикация'?title:snippet||'Открыть условия публикации'):'Последний пост недоступен';
     trigger.title=teaser.textContent;photoHint.hidden=!(available&&Number(latest.media_count||0)>0);
     replaceContent(...items);
     overlay.hidden=active.viewOpen!==true;trigger.setAttribute('aria-expanded',overlay.hidden?'false':'true');hydratePhotos();sizeOverlay();

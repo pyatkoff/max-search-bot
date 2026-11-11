@@ -7,6 +7,12 @@ require_once dirname(__DIR__).'/services/MaxChannelConversionWorker.php';
 
 try{
     $args=array_slice($argv,1);$action=$args[0]??'status';
+    if($action==='project-probe'){
+        if(count($args)!==2||!preg_match('/\A[a-z][a-z0-9_]{0,39}\z/D',$args[1]))throw new RuntimeException('invalid_operation');
+        $connection=ProjectMaxConnection::resolve($args[1]);$settings=$connection?ProjectFunnelSettings::load($connection):null;
+        $result=$settings?ProjectFunnelConversions::probe($settings):['ok'=>false,'status'=>'project_unavailable','conversion_requests'=>0];
+        echo json_encode($result,JSON_UNESCAPED_SLASHES)."\n";exit($result['ok']?0:1);
+    }
     if(count($args)>1||!in_array($action,['status','probe','collect','shared','send','off'],true))throw new RuntimeException('invalid_operation');
     $pdo=ConversationDb::connection();$s=MaxChannelConversionOutbox::settings($pdo);if(!$s)throw new RuntimeException('migration_required');
     if(in_array($action,['probe','collect','send'],true)){

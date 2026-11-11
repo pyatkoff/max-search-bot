@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__.'/ProjectMaxConnection.php';
 require_once __DIR__.'/AppleService39PilotCatalog.php';
+require_once __DIR__.'/ProjectFunnelSettings.php';
 
 /** Pure descriptors from the authenticated connection's immutable server settings. */
 final class RepairProjectSettings
@@ -24,7 +25,12 @@ final class RepairProjectSettings
     {
         $settings = $connection->settings();
         $project = $connection->projectKey();
-        if (ProjectMaxConnection::isLegacyProject($project) || self::businessKind($settings) !== 'device_repair') return null;
+        if (ProjectMaxConnection::isLegacyProject($project)) return null;
+        if(self::businessKind($settings)!=='device_repair'){
+            if($project===AppleService39PilotCatalog::PROJECT)return null;
+            $funnel=ProjectFunnelSettings::load($connection);
+            if(!$funnel||($funnel['handoff_mode']??'')!=='manager_first')return null;
+        }
         $source = $settings->get('routing.source_key');
         if (!is_string($source) || preg_match('/\Amax:[A-Za-z0-9_-]{1,150}\z/D', $source) !== 1) return null;
         if ($project === AppleService39PilotCatalog::PROJECT) {
@@ -42,6 +48,7 @@ final class RepairProjectSettings
     /** Finite reviewed entry data; publication IDs and provider URLs are not invented. */
     public static function entry(ProjectMaxConnection $connection, string $payload): ?array
     {
+        if(self::businessKind($connection->settings())!=='device_repair')return null;
         if ($connection->projectKey() === AppleService39PilotCatalog::PROJECT) {
             return AppleService39PilotCatalog::resolve($connection->projectKey(), $connection->botKey(), $payload);
         }

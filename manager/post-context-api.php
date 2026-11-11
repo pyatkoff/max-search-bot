@@ -6,6 +6,7 @@ require_once dirname(__DIR__).'/config.php';
 require_once __DIR__.'/lib/ManagerHttp.php';
 require_once dirname(__DIR__).'/services/ManagerConversationService.php';
 require_once dirname(__DIR__).'/services/ChannelPostRegistryService.php';
+require_once dirname(__DIR__).'/services/ProjectFunnelConversation.php';
 
 ManagerHttp::startJson();
 // Missing sessions never reach the registry or a provider.
@@ -31,6 +32,10 @@ try {
     $context = (new ChannelPostRegistryService())->managerContext($id, (string)$conversation['project_key'], 5);
     $repair = ManagerConversationService::repairEntryContext($conversation);
     if ($repair !== null) $context['repair'] = $repair;
+    try {
+        $funnel=ProjectFunnelConversation::managerContext(ConversationDb::connection(),$conversation);
+        if($funnel!==null)$context['funnel']=$funnel;
+    } catch(Throwable $ignoredFunnel) {}
     ManagerHttp::respond(['ok'=>true, 'conversation_id'=>$id, 'context'=>$context]);
 } catch (Throwable $e) {
     // Neither storage errors nor provider media/credentials are returned or logged.

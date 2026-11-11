@@ -96,6 +96,13 @@ function clean(s){expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 
 for(const width of [390,430,768,1440])test.describe('Source publication at '+width,()=>{
  test.use({viewport:{width,height:900}});
+ test('shared funnel keeps an ambiguous source visible without changing the reply area',async({page,browserName})=>{
+  const s=await setup(page,{repairEntry:true}),url='https://max.ru/channel_appleservice39ru/AaG9bRUxHcg';
+  s.contexts.set(11,{current:null,history:[],funnel:{title:'Замена дисплея iPhone',post_url:url,attribution_state:'ambiguous'}});
+  await openLead(page);await expect(page.locator('.postContextToggle')).toContainText('Замена дисплея iPhone');const before=await conversationCapacity(page);await openPostOverlay(page);
+  await expect(page.locator('.postContextOverlay')).toContainText('несколько визитов');await expect(page.locator('.postContextOriginal')).toHaveAttribute('href',url);
+  await unchangedCapacity(page,before);await bounded(page);await capture(page,browserName,width,'shared-funnel');clean(s);
+ });
  test('repair entry keeps captured reply, honest send status and source link usable beside the composer',async({page,browserName})=>{
   const s=await setup(page,{repairEntry:true}),url='https://max.ru/channel_appleservice39ru/AaRepairFixture';
   s.contexts.set(11,{current:null,history:[],repair:{event_id:51,model:'iPhone 15 Pro Max',service:'Замена аккумулятора',post_url:url,

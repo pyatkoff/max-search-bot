@@ -57,6 +57,10 @@ function result(conversationId=101,text='Турция, 7 ночей. Цена 15
   return {ok:true,conversation_id:conversationId,context:{current:{entry_id:1,title:'Турция — октябрь',channel_name:'AnyTour Москва',platform:'max',post_url:'https://max.ru/c/-80095447388179/AaE53iyDMmw',text,entered_at:'2026-10-14 09:20:00',version_number:2,media_count:1,...extra},history:[]}};
 }
 const cases=[];const test=(name,run)=>cases.push({name,run});
+test('shared funnel shows the exact source and ambiguous attribution without advertising identities',async()=>{
+  const h=harness();h.init();h.resolve(0,{ok:true,conversation_id:101,context:{current:null,history:[],funnel:{title:'Замена дисплея iPhone',post_url:'https://max.ru/channel_appleservice39ru/AaG9bRUxHcg',attribution_state:'ambiguous'}}});await h.settle();
+  assert.equal(h.host.hidden,false);h.host.querySelector('.postContextToggle').listeners.click();assert.match(h.host.textContent,/Замена дисплея iPhone/);assert.match(h.host.textContent,/несколько визитов/);assert.equal(h.host.querySelector('.postContextLink').href,'https://max.ru/channel_appleservice39ru/AaG9bRUxHcg');
+});
 function repairResult(id=101,extra={}){
   return {ok:true,conversation_id:id,context:{current:null,history:[],repair:{event_id:51,model:'iPhone 15 Pro Max',service:'Замена аккумулятора',post_url:'https://max.ru/channel_appleservice39ru/AaRepairFixture',reply:{state:'delivered',text:'Сохранённый ответ: 6 500 ₽. <b>Текст</b>'},...extra}}};
 }

@@ -5,17 +5,24 @@ require_once __DIR__.'/MaxTrackerLookupClient.php';
 require_once __DIR__.'/MetrikaOfflineClient.php';
 require_once __DIR__.'/TelegramDialogueConversions.php';
 require_once __DIR__.'/MaxMembershipReceiptJournal.php';
+require_once __DIR__.'/ProjectFunnelConversions.php';
 
 /** Bounded background work. All outputs are aggregate counts, never identities. */
 final class MaxChannelConversionWorker
 {
-    public static function tick(?PDO $pdo=null,$lookup=null,$api=null,?int $now=null,?callable $collector=null): array
+    public static function tick(?PDO $pdo=null,$lookup=null,$api=null,?int $now=null,?callable $collector=null,?callable $projectApiFactory=null): array
     {
         $s=MaxChannelConversionOutbox::settings($pdo);$result=['mode'=>$s['mode']??'off','collected'=>0,'resolved'=>0,'accepted'=>0,'processed'=>0,'unknown'=>0,'errors'=>0,
             'membership'=>['inserted'=>0,'unchanged'=>0,'conflicts'=>0,'errors'=>0]];
         $tg=TelegramDialogueConversions::settings($pdo);$tgActive=$tg&&$tg['telegram_mode']!=='off';
         $result['telegram']=['mode'=>$tg['telegram_mode']??'off','collected'=>0,'resolved'=>0,'accepted'=>0,'processed'=>0,'unknown'=>0,'errors'=>0];
         $maxActive=$s&&$s['mode']!=='off';
+        if($pdo||ConversationDb::isConfigured()){
+            try{
+                $projects=ProjectFunnelConversions::tick($pdo??ConversationDb::connection(),$now??time(),$projectApiFactory);
+                if($projects['projects']>0||$projects['held']>0)$result['projects']=$projects;
+            }catch(Throwable $ignoredProjects){$result['projects']=['errors'=>1];}
+        }
         if(!$maxActive&&!$tgActive)return $result;
         $injectedClock=$now!==null;
         $pdo=$pdo??ConversationDb::connection();$now=$now??time();$repo=new MaxChannelConversionOutbox($pdo);

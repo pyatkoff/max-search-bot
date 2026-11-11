@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "project_key": "appleservice39",
+  "bot_key": "id390521129062_bot",
+  "brand": "AppleService39",
+  "source_key": "max:appleservice39-main",
+  "advertising_source_key": "max-miniapp",
+  "channel_id": "-80917954947727",
+  "channel_url": "https://max.ru/channel_appleservice39ru",
+  "default_post": "menu",
+  "metrika": {
+    "counter_id": "42611469",
+    "mode": "collect",
+    "credential_source": "platform",
+    "goals": {
+      "predictive_value": "predict"
+    },
+    "goal_ids": {
+      "predictive_value": "680570232"
+    },
+    "goal_match": {
+      "predictive_value": "exact"
+    }
+  },
+  "posts": {
+    "menu": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-search-v1-menu",
+      "title": "Ремонт iPhone в Калининграде",
+      "description": "Разбит экран, быстро садится батарея, пропал звук или телефон не заряжается? Обратитесь в AppleService39 — проверим неисправность и предложим подходящий ремонт. Гарантия на ремонт — 3 месяца. Стоимость и срок согласуем до начала работ.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "menu",
+        "general",
+        "unspecified",
+        "Калининград",
+        "search-intent-v1"
+      ]
+    },
+    "model-iphone-17": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-search-v1-model-iphone-17",
+      "title": "Ремонт iPhone 17 в Калининграде",
+      "description": "Ремонт iPhone 17, 17 Pro и 17 Pro Max в AppleService39. Поможем с повреждённым экраном, аккумулятором, разъёмом зарядки и другими неисправностями, предусмотренными для вашей модели. Гарантия на ремонт — 3 месяца. Стоимость и срок согласуем до начала работ.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/model-iphone-17.png",
+      "labels": [
+        "model_family",
+        "general",
+        "iphone-17",
+        "Калининград",
+        "search-intent-v1"
+      ]
+    },
+    "service-display": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-search-v1-service-display",
+      "title": "Замена дисплея iPhone в Калининграде",
+      "description": "Полосы, пятна, пропавшее изображение или сбои касаний? Проверим экран и предложим подходящий дисплей для вашей модели iPhone. Гарантия на ремонт — 3 месяца. Стоимость и срок согласуем до начала работ.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/service-display.png",
+      "labels": [
+        "service",
+        "display",
+        "unspecified",
+        "Калининград",
+        "search-intent-v1"
+      ]
+    },
+    "repair-iphone-16-display": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-search-v1-repair-iphone-16-display",
+      "title": "Замена дисплея iPhone 16 в Калининграде",
+      "description": "На iPhone 16 появились полосы, пятна или пропало изображение? Проверим экран и подберём подходящий вариант дисплея. Гарантия на ремонт — 3 месяца. Стоимость и срок согласуем до начала работ.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/repair-iphone-16-display.png",
+      "labels": [
+        "repair",
+        "display",
+        "iphone-16",
+        "Калининград",
+        "search-intent-v1"
+      ]
+    },
+    "service-rear-glass-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-search-v1-service-rear-glass-replacement",
+      "title": "Замена заднего стекла iPhone в Калининграде",
+      "description": "Треснуло или разбилось заднее стекло iPhone? Уточним модель и проверим возможность замены повреждённого стекла. Гарантия на ремонт — 3 месяца. Стоимость и срок согласуем до начала работ.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/service-rear-glass-replacement.png",
+      "labels": [
+        "service",
+        "rear_glass_replacement",
+        "unspecified",
+        "Калининград",
+        "search-intent-v1"
+      ]
+    },
+    "symptom-not-charging": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-search-v1-symptom-not-charging",
+      "title": "iPhone не заряжается — ремонт в Калининграде",
+      "description": "Телефон не реагирует на кабель или зарядка постоянно прерывается? Проверим причину неисправности и предложим подходящий ремонт. Гарантия на ремонт — 3 месяца. Стоимость и срок согласуем до начала работ.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/symptom-not-charging.png",
+      "labels": [
+        "symptom",
+        "not_charging",
+        "unspecified",
+        "Калининград",
+        "search-intent-v1"
+      ]
+    },
+    "service-rear-camera-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-search-v1-service-rear-camera-replacement",
+      "title": "Замена основной камеры iPhone в Калининграде",
+      "description": "Основная камера не фокусируется, показывает пятна или перестала работать? Проверим причину и возможность замены камеры на вашей модели iPhone. Гарантия на ремонт — 3 месяца. Стоимость и срок согласуем до начала работ.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/service-rear-camera-replacement.png",
+      "labels": [
+        "service",
+        "rear_camera_replacement",
+        "unspecified",
+        "Калининград",
+        "search-intent-v1"
+      ]
+    },
+    "service-earpiece-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-search-v1-service-earpiece-replacement",
+      "title": "Ремонт разговорного динамика iPhone в Калининграде",
+      "description": "Собеседника почти не слышно или звук во время звонка искажён? Проверим разговорный динамик и причину неисправности. Гарантия на ремонт — 3 месяца. Стоимость и срок согласуем до начала работ.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/service-earpiece-replacement.png",
+      "labels": [
+        "service",
+        "earpiece_replacement",
+        "unspecified",
+        "Калининград",
+        "search-intent-v1"
+      ]
+    }
+  }
+}

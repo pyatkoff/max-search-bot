@@ -24,10 +24,19 @@ final class MetrikaOfflineClient
     private $transport;
     private ?float $readDeadline;
     private ?DateTimeZone $reportZone=null;
-    public function __construct(string $counter,string $token,?callable $transport=null,?float $readDeadline=null)
+    private ?array $projectPolicy=null;
+    public function __construct(string $counter,string $token,?callable $transport=null,?float $readDeadline=null,?array $projectPolicy=null)
     {
         if(!MaxTrackerLookupProtocol::id($counter)||$token==='')throw new RuntimeException('metrika_config_missing');
         $this->counter=$counter;$this->token=$token;$this->transport=$transport;$this->readDeadline=$readDeadline;
+        if($projectPolicy!==null){
+            if(($projectPolicy['counter_id']??null)!==$counter||$counter==='98615635'||($projectPolicy['project_key']??'anytour')==='anytour'
+                ||!preg_match('/\A[a-z][a-z0-9_]{0,39}\z/D',$projectPolicy['project_key'])||!is_array($projectPolicy['goals']??null)||!$projectPolicy['goals'])throw new InvalidArgumentException('invalid_project_conversion_policy');
+            foreach($projectPolicy['goals']as$event=>$target)if(!in_array($event,['customer_activity','manager_request','customer_reply','working','offer_sent','booking','won','predictive_value'],true)
+                ||!is_string($target)||!preg_match('/\A[A-Za-z0-9_-]{1,64}\z/D',$target))throw new InvalidArgumentException('invalid_project_conversion_policy');
+            if(count(array_unique($projectPolicy['goals']))!==count($projectPolicy['goals']))throw new InvalidArgumentException('invalid_project_conversion_policy');
+            $this->projectPolicy=$projectPolicy;
+        }
     }
 
     public static function comment(array $event): string
@@ -52,8 +61,12 @@ final class MetrikaOfflineClient
     public function upload(array $event,int $now): array
     {
         if(($event['counter_id']??null)!==$this->counter)throw new InvalidArgumentException('wrong_conversion_counter');
-        if(!isset(self::SHARED_GOALS[$event['target']??''])||($event['transport_target']??null)!==self::SHARED_GOALS[$event['target']]['target'])throw new InvalidArgumentException('retired_conversion_target');
-        $csv=self::csv($event,$now);$result=$this->request('POST','offline_conversions/upload?type=BASIC&comment='.rawurlencode(self::comment($event)),$csv);
+        if($this->projectPolicy!==null)$csv=$this->projectCsv($event,$now);
+        else{
+            if(!isset(self::SHARED_GOALS[$event['target']??''])||($event['transport_target']??null)!==self::SHARED_GOALS[$event['target']]['target'])throw new InvalidArgumentException('retired_conversion_target');
+            $csv=self::csv($event,$now);
+        }
+        $result=$this->request('POST','offline_conversions/upload?type=BASIC&comment='.rawurlencode(self::comment($event)),$csv);
         $error=(int)($result['error']??0);$http=(int)($result['http']??0);
         if($error!==0)return ['outcome'=>in_array($error,[5,6,7],true)?'retry':'unknown','reason'=>in_array($error,[5,6,7],true)?'transport_not_sent':'upload_outcome_unknown'];
         if(in_array($http,[420,429],true))return ['outcome'=>'retry','reason'=>'rate_limited'];
@@ -62,6 +75,58 @@ final class MetrikaOfflineClient
         if($http>=200&&$http<300&&$this->validReceipt($u)
             &&(!array_key_exists('comment',$u)||$u['comment']===self::comment($event)))return ['outcome'=>'accepted','upload_id'=>(string)$u['id'],'status'=>(string)($u['status']??'UPLOADED')];
         return ['outcome'=>'unknown','reason'=>'upload_outcome_unknown'];
+    }
+
+    private function projectCsv(array $event,int $now): string
+    {
+        $stage=str_starts_with($event['target']??'','funnel_')?substr($event['target'],7):'';
+        if(($this->projectPolicy['goal_match'][$stage]??'exact')!=='exact')throw new InvalidArgumentException('unsupported_offline_goal_condition');
+        if(($event['project_key']??null)!==$this->projectPolicy['project_key']||!isset($this->projectPolicy['goals'][$stage])
+            ||($event['transport_target']??null)!==$this->projectPolicy['goals'][$stage]
+            ||!MaxTrackerLookupProtocol::id($event['client_id']??null,40)||!is_numeric($event['event_unix']??null)
+            ||(int)$event['event_unix']>$now||(int)$event['event_unix']<$now-21*86400)throw new InvalidArgumentException('invalid_project_conversion_event');
+        $f=fopen('php://temp','w+');$header=['ClientId','Target','DateTime'];$row=[$event['client_id'],$event['transport_target'],(string)$event['event_unix']];
+        if($stage==='predictive_value'){
+            if(!is_string($event['value_rub']??null)||!preg_match('/\A(?:0|[1-9][0-9]{0,8})\.[0-9]{2}\z/D',$event['value_rub']))throw new InvalidArgumentException('invalid_project_prediction');
+            array_push($header,'Price','Currency');array_push($row,$event['value_rub'],'RUB');
+        }
+        fputcsv($f,$header);fputcsv($f,$row);rewind($f);$csv=stream_get_contents($f);fclose($f);return $csv;
+    }
+
+    /** Existing owner-selected goals only; no goal creation or condition changes. */
+    public function projectGoalsReady(): bool
+    {
+        return $this->projectGoalAdmission()==='ready';
+    }
+
+    /** Fixed public-safe result; offline uploads require an exact action condition. */
+    public function projectGoalAdmission(): string
+    {
+        if($this->projectPolicy===null)return 'goal_access_unavailable';
+        try{
+            $access=$this->request('GET','');$counter=$this->decode($access)['counter']??null;
+            if((int)($access['error']??0)!==0||(int)($access['http']??0)!==200||!is_array($counter)
+                ||(string)($counter['id']??'')!==$this->counter||!in_array($counter['permission']??null,['own','edit'],true))return 'goal_access_unavailable';
+            $goals=$this->readGoals();
+            foreach($this->projectPolicy['goals']as$event=>$target){
+                $id=$this->projectPolicy['goal_ids'][$event]??null;$match=$this->projectPolicy['goal_match'][$event]??'exact';
+                if($match!=='exact')return 'goal_condition_unsupported';
+                if($id===null){if(count($this->exactGoals($goals,$target))!==1)return 'goal_access_unavailable';continue;}
+                $selected=array_values(array_filter($goals,static fn($g)=>is_array($g)&&(string)($g['id']??'')===$id));
+                if(count($selected)!==1||($selected[0]['type']??'')!=='action'||count($selected[0]['conditions']??[])!==1
+                    ||($selected[0]['conditions'][0]['url']??'')!==$target)return 'goal_access_unavailable';
+                if(($selected[0]['conditions'][0]['type']??'')!=='exact')return 'goal_condition_unsupported';
+                foreach($goals as$other)if(($other['type']??'')==='action'&&(string)($other['id']??'')!==$id)foreach(($other['conditions']??[])as$condition){
+                    $value=$condition['url']??null;$type=$condition['type']??'';
+                    if(!is_string($value)||$value==='')return 'goal_access_unavailable';
+                    if(($type==='exact'||$type==='action')&&$value===$target)return 'goal_access_unavailable';
+                    if($type==='contain'&&str_contains($target,$value))return 'goal_access_unavailable';
+                    if($type==='start'&&str_starts_with($target,$value))return 'goal_access_unavailable';
+                    if($type==='regexp')return 'goal_access_unavailable'; // No guessed regexp semantics or goal mutation.
+                }
+            }
+            return 'ready';
+        }catch(Throwable $e){return 'goal_access_unavailable';}
     }
 
     public function poll(string $uploadId): ?array

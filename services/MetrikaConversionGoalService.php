@@ -102,6 +102,11 @@ class MetrikaConversionGoalService
         $goal = self::stageGoal($stageKey);
         if ($goal === null || $conversationId <= 0) return false;
         try {
+            if(!self::ownsLegacyConversation($conversationId)){
+                require_once __DIR__.'/ProjectFunnelConversions.php';
+                ProjectFunnelConversions::observeStage($conversationId,$stageKey);
+                return false;
+            }
             return self::emitOnce($conversationId, $goal, $queue);
         } catch (Throwable $e) {
             self::logFailure('sales_stage', $conversationId, $e, ['stage_key'=>$stageKey,'target'=>$goal]);
