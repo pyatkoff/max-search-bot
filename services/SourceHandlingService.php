@@ -4,7 +4,6 @@ require_once __DIR__ . '/ConversationRecorder.php';
 require_once __DIR__ . '/IntegrationRegistry.php';
 require_once __DIR__ . '/ManagerHandoffDispatchService.php';
 require_once __DIR__ . '/SourceHotelIntentService.php';
-require_once __DIR__ . '/ConversationRecordClock.php';
 
 /**
  * Applies the configured conversation start policy for a concrete source.
@@ -399,6 +398,7 @@ class SourceHandlingService
         if (($incoming['type'] ?? '') !== 'message' || $externalId === ''
             || !in_array($platform, ['max', 'telegram'], true)) return [];
         try {
+            require_once __DIR__ . '/ConversationRecordClock.php';
             $pdo = ConversationDb::connection();
             $conversationId = (int)$turn['conversation_id'];
             $q = $pdo->prepare("SELECT id,text,metadata_json,created_at FROM messages WHERE conversation_id=? AND channel=? AND direction='inbound' AND sender_type='customer' AND external_message_id=? ORDER BY id DESC LIMIT 2");
