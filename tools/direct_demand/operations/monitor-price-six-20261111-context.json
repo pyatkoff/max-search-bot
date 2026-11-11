@@ -1,0 +1,271 @@
+{
+  "operation": "monitor-price-six-context-20261111-v1",
+  "ok": true,
+  "db_writes": 0,
+  "message_writes": 0,
+  "supplier_calls": 0,
+  "bindings": [
+    {
+      "site_hotel_id": "00630c5b-14ee-4022-879d-e994687e7495",
+      "site_revision": 1,
+      "tourvisor_hotel_id": 1183,
+      "hotel_id": 1183,
+      "name": "FAME RESIDENCE KEMER & SPA",
+      "logical_id": "commercial-fame-kemer-1183-v1",
+      "key": "commercial-fame-kemer-1183-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261107-21-v1",
+      "original_text_sha256": "7518da763a13fd07c5cce772d3f28e224cff9b321446a4d891bd2ee3ce923a20",
+      "cover_sha256": "44bcdbf9953e9389ef7b037674494d07c83d69db4c0717b5452339b9bf2c9b23",
+      "posts": {
+        "max": "https://max.ru/channel_anytour/AaG2_E8DOuw",
+        "telegram": "https://t.me/any_toour/316"
+      },
+      "expected_text_sha256": {
+        "max": "1d90e9413eb0d22626c7d1700e54563b4ae72f8035077385dfc9a684586e0b85",
+        "telegram": "1d90e9413eb0d22626c7d1700e54563b4ae72f8035077385dfc9a684586e0b85"
+      },
+      "native_binding_basis": "Existing Site published pair and both canonical publisher receipts must agree; never numeric equality alone",
+      "channels": {
+        "max": {
+          "publication_id": 736,
+          "version_id": 2779,
+          "message_id": "mid.ffffb6caf0606fed01a1b6fc4f033aec",
+          "post_url": "https://max.ru/channel_anytour/AaG2_E8DOuw",
+          "current_text": "✈️ Туры в Fame Residence Kemer & Spa\n📍 Кемер, Турция.\n\nДля отдыха у моря с музыкой по вечерам.\n\n🛏 Двухместный номер около 22 м² с французским балконом.\n🏖 Собственный галечный пляж у отеля.\n🎶 Живая музыка и дискотека.\n\nФранцузский балкон без площадки для отдыха; вход в море галечный. Расписание вечерней программы уточним на даты поездки.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+          "current_text_sha256": "1d90e9413eb0d22626c7d1700e54563b4ae72f8035077385dfc9a684586e0b85",
+          "photo_signature": "max:49851390728",
+          "original_text_sha256": "7518da763a13fd07c5cce772d3f28e224cff9b321446a4d891bd2ee3ce923a20"
+        },
+        "telegram": {
+          "publication_id": 726,
+          "version_id": 2780,
+          "message_id": "316",
+          "post_url": "https://t.me/any_toour/316",
+          "current_text": "✈️ Туры в Fame Residence Kemer & Spa\n📍 Кемер, Турция.\n\nДля отдыха у моря с музыкой по вечерам.\n\n🛏 Двухместный номер около 22 м² с французским балконом.\n🏖 Собственный галечный пляж у отеля.\n🎶 Живая музыка и дискотека.\n\nФранцузский балкон без площадки для отдыха; вход в море галечный. Расписание вечерней программы уточним на даты поездки.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+          "current_text_sha256": "1d90e9413eb0d22626c7d1700e54563b4ae72f8035077385dfc9a684586e0b85",
+          "photo_signature": "telegram:AQADWTlrG-HPeUt9",
+          "original_text_sha256": "7518da763a13fd07c5cce772d3f28e224cff9b321446a4d891bd2ee3ce923a20"
+        }
+      }
+    },
+    {
+      "site_hotel_id": "00ea98e4-317f-423e-bb8a-334e20fc3b29",
+      "site_revision": 1,
+      "tourvisor_hotel_id": 117935,
+      "hotel_id": 117935,
+      "name": "AVARI HOTEL",
+      "logical_id": "commercial-avari-boutique-117935-v1",
+      "key": "commercial-avari-boutique-117935-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261107-39-v1",
+      "original_text_sha256": "769b93b19178adbabafcd988f701c23a563d5d0ef3e7fe75bb769d1e78db90a5",
+      "cover_sha256": "5e9769d6408bfbcc6c128df41c88962c84048fc42b67d332c0ae1442836dcb34",
+      "posts": {
+        "max": "https://max.ru/channel_anytour/AaG31RTEWJg",
+        "telegram": "https://t.me/any_toour/480"
+      },
+      "expected_text_sha256": {
+        "max": "769b93b19178adbabafcd988f701c23a563d5d0ef3e7fe75bb769d1e78db90a5",
+        "telegram": "769b93b19178adbabafcd988f701c23a563d5d0ef3e7fe75bb769d1e78db90a5"
+      },
+      "native_binding_basis": "Existing Site published pair and both canonical publisher receipts must agree; never numeric equality alone",
+      "channels": {
+        "max": {
+          "publication_id": 1064,
+          "version_id": 2106,
+          "message_id": "mid.ffffb6caf0606fed01a1b7d514c45898",
+          "post_url": "https://max.ru/channel_anytour/AaG31RTEWJg",
+          "current_text": "✈️ Туры в Avari Boutique Hotel\n📍 Нячанг, Вьетнам.\n\nДля городского отпуска с прогулками к морю.\n\n🛏 Superior Room City View 24 м² с видом на город.\n🍽 Подберём вариант тура с завтраками.\n🏖 До общественного пляжа около 350 м, путь через дорогу.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом под ваши даты.",
+          "current_text_sha256": "769b93b19178adbabafcd988f701c23a563d5d0ef3e7fe75bb769d1e78db90a5",
+          "photo_signature": "max:49873312008",
+          "original_text_sha256": "769b93b19178adbabafcd988f701c23a563d5d0ef3e7fe75bb769d1e78db90a5"
+        },
+        "telegram": {
+          "publication_id": 1054,
+          "version_id": 2096,
+          "message_id": "480",
+          "post_url": "https://t.me/any_toour/480",
+          "current_text": "✈️ Туры в Avari Boutique Hotel\n📍 Нячанг, Вьетнам.\n\nДля городского отпуска с прогулками к морю.\n\n🛏 Superior Room City View 24 м² с видом на город.\n🍽 Подберём вариант тура с завтраками.\n🏖 До общественного пляжа около 350 м, путь через дорогу.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом под ваши даты.",
+          "current_text_sha256": "769b93b19178adbabafcd988f701c23a563d5d0ef3e7fe75bb769d1e78db90a5",
+          "photo_signature": "telegram:AQADFjxrG-HPeUt9",
+          "original_text_sha256": "769b93b19178adbabafcd988f701c23a563d5d0ef3e7fe75bb769d1e78db90a5"
+        }
+      }
+    },
+    {
+      "site_hotel_id": "010b3157-aedb-4fad-bffa-06fe87e1cfde",
+      "site_revision": 1,
+      "tourvisor_hotel_id": 27426,
+      "hotel_id": 27426,
+      "name": "RUBI PLATINUM SPA RESORT & SUITES",
+      "logical_id": "commercial-rubi-platinum-27426-v1",
+      "key": "commercial-rubi-platinum-27426-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261107-1-v1",
+      "original_text_sha256": "0ce8e552046acc14b189034c3b7515003fabd579d04386d62c21659fc4248d9f",
+      "cover_sha256": "a009f3bd73128d4c2c8a82c675bf86e999723e6e50b7fe44902f3fdfb1372b00",
+      "posts": {
+        "max": "https://max.ru/channel_anytour/AaG1E2swIp4",
+        "telegram": "https://t.me/any_toour/176"
+      },
+      "expected_text_sha256": {
+        "max": "c11bda8d1dabb3f66fe356a9b54155ff6a59b374d51d98eea365ab8c79840824",
+        "telegram": "c11bda8d1dabb3f66fe356a9b54155ff6a59b374d51d98eea365ab8c79840824"
+      },
+      "native_binding_basis": "Existing Site published pair and both canonical publisher receipts must agree; never numeric equality alone",
+      "channels": {
+        "max": {
+          "publication_id": 456,
+          "version_id": 2499,
+          "message_id": "mid.ffffb6caf0606fed01a1b5136b30229e",
+          "post_url": "https://max.ru/channel_anytour/AaG1E2swIp4",
+          "current_text": "✈️ Туры в Rubi Platinum Spa Resort & Suites\n📍 Аланья, Турция.\n\nДля семей, которым хочется и развлечений, и спокойного отдыха у моря.\n\n💦 Аквапарк и детские бассейны.\n🎨 Семейный клуб с играми и творческими занятиями.\n☀️ Пляж с пирсом и отдельный Relax Pool.\n🍽 Platinum All Inclusive.\n\nНа пляже есть участки с песком и камнями. Учтём ваши пожелания к пляжу и номеру при подборе.\n\n✈️ Рассчитаем полную стоимость тура в Rubi Platinum с перелётом на ваши даты и ваш состав.",
+          "current_text_sha256": "c11bda8d1dabb3f66fe356a9b54155ff6a59b374d51d98eea365ab8c79840824",
+          "photo_signature": "max:49763035144",
+          "original_text_sha256": "0ce8e552046acc14b189034c3b7515003fabd579d04386d62c21659fc4248d9f"
+        },
+        "telegram": {
+          "publication_id": 453,
+          "version_id": 2500,
+          "message_id": "176",
+          "post_url": "https://t.me/any_toour/176",
+          "current_text": "✈️ Туры в Rubi Platinum Spa Resort & Suites\n📍 Аланья, Турция.\n\nДля семей, которым хочется и развлечений, и спокойного отдыха у моря.\n\n💦 Аквапарк и детские бассейны.\n🎨 Семейный клуб с играми и творческими занятиями.\n☀️ Пляж с пирсом и отдельный Relax Pool.\n🍽 Platinum All Inclusive.\n\nНа пляже есть участки с песком и камнями. Учтём ваши пожелания к пляжу и номеру при подборе.\n\n✈️ Рассчитаем полную стоимость тура в Rubi Platinum с перелётом на ваши даты и ваш состав.",
+          "current_text_sha256": "c11bda8d1dabb3f66fe356a9b54155ff6a59b374d51d98eea365ab8c79840824",
+          "photo_signature": "telegram:AQADWzRrG-HPeUt9",
+          "original_text_sha256": "0ce8e552046acc14b189034c3b7515003fabd579d04386d62c21659fc4248d9f"
+        }
+      }
+    },
+    {
+      "site_hotel_id": "01b24d6a-2048-456d-88ff-110b23a7c250",
+      "site_revision": 1,
+      "tourvisor_hotel_id": 13869,
+      "hotel_id": 13869,
+      "name": "JAZ Neo Saraya Palms",
+      "logical_id": "commercial-jaz-neo-saraya-palms-13869-v1",
+      "key": "commercial-jaz-neo-saraya-palms-13869-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261103-17-v1",
+      "original_text_sha256": "2f1d14a58e4938da9189bf12cad07168a3aeb71175a3fadbacf01a3d13ac406d",
+      "cover_sha256": "84410f5985a5e86e6afbb93b09634b341751ae412faace10ef2b9a32d9e34230",
+      "posts": {
+        "max": "https://max.ru/channel_anytour/AaGgXBBBOgA",
+        "telegram": "https://t.me/any_toour/108"
+      },
+      "expected_text_sha256": {
+        "max": "7dd08748d709c3d5d49864139812d25e09640b9ec2f453d2856b18356636c0d7",
+        "telegram": "7dd08748d709c3d5d49864139812d25e09640b9ec2f453d2856b18356636c0d7"
+      },
+      "native_binding_basis": "Existing Site published pair and both canonical publisher receipts must agree; never numeric equality alone",
+      "channels": {
+        "max": {
+          "publication_id": 300,
+          "version_id": 3307,
+          "message_id": "mid.ffffb6caf0606fed01a1a05c10413a00",
+          "post_url": "https://max.ru/channel_anytour/AaGgXBBBOgA",
+          "current_text": "✈️ Туры в JAZ Neo Saraya Palms\n📍 Хургада, Египет.\n\nОтель в Мадинат Макади рядом с полем для гольфа. Есть студии и апартаменты 🌴\n\n💦 Бассейны Animation и Relaxing, детская зона для купания.\n🧒 Мини клуб для детей от 4 до 12 лет, игровая площадка и мини диско.\n🍽️ Международная и восточная кухня в ресторане Shams, два бара.\n🎾 Теннис, волейбол и настольный теннис.\n\nℹ️ Отель расположен в стороне от моря. До пляжа около 800 м.\n\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты.",
+          "current_text_sha256": "7dd08748d709c3d5d49864139812d25e09640b9ec2f453d2856b18356636c0d7",
+          "photo_signature": "max:48977946888",
+          "original_text_sha256": "2f1d14a58e4938da9189bf12cad07168a3aeb71175a3fadbacf01a3d13ac406d"
+        },
+        "telegram": {
+          "publication_id": 292,
+          "version_id": 3308,
+          "message_id": "108",
+          "post_url": "https://t.me/any_toour/108",
+          "current_text": "✈️ Туры в JAZ Neo Saraya Palms\n📍 Хургада, Египет.\n\nОтель в Мадинат Макади рядом с полем для гольфа. Есть студии и апартаменты 🌴\n\n💦 Бассейны Animation и Relaxing, детская зона для купания.\n🧒 Мини клуб для детей от 4 до 12 лет, игровая площадка и мини диско.\n🍽️ Международная и восточная кухня в ресторане Shams, два бара.\n🎾 Теннис, волейбол и настольный теннис.\n\nℹ️ Отель расположен в стороне от моря. До пляжа около 800 м.\n\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты.",
+          "current_text_sha256": "7dd08748d709c3d5d49864139812d25e09640b9ec2f453d2856b18356636c0d7",
+          "photo_signature": "telegram:AQADjRtrGwpTUEt9",
+          "original_text_sha256": "2f1d14a58e4938da9189bf12cad07168a3aeb71175a3fadbacf01a3d13ac406d"
+        }
+      }
+    },
+    {
+      "site_hotel_id": "02706035-79b5-40f8-8ea0-58fd06e510d3",
+      "site_revision": 1,
+      "tourvisor_hotel_id": 1151,
+      "hotel_id": 1151,
+      "name": "Delphin Palace",
+      "logical_id": "commercial-delphin-palace-1151-v1",
+      "key": "commercial-delphin-palace-1151-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261103-32-v1",
+      "original_text_sha256": "2e626338a78038bf1b1d726f6226a8feee7b5ae91273f3fb8832bf9c35278270",
+      "cover_sha256": "186108979417d60c0a515322a3ef5ad35c028c625cfecc953c7819d09cf84814",
+      "posts": {
+        "max": "https://max.ru/channel_anytour/AaGjnkw2DwE",
+        "telegram": "https://t.me/any_toour/152"
+      },
+      "expected_text_sha256": {
+        "max": "c2f33c14b9252d1037cbaedf48dd5acc90c957d897bf502a981db80acd6c5757",
+        "telegram": "c2f33c14b9252d1037cbaedf48dd5acc90c957d897bf502a981db80acd6c5757"
+      },
+      "native_binding_basis": "Existing Site published pair and both canonical publisher receipts must agree; never numeric equality alone",
+      "channels": {
+        "max": {
+          "publication_id": 391,
+          "version_id": 3239,
+          "message_id": "mid.ffffb6caf0606fed01a1a39e4c360f01",
+          "post_url": "https://max.ru/channel_anytour/AaGjnkw2DwE",
+          "current_text": "✈️ Туры в Delphin Palace\n📍 Лара, Анталья, Турция.\n\n🏖 Пляж прямо у отеля.\n🏊 Бассейны, водные горки и отдельный детский бассейн.\n👧 Мини клуб для детей от 4 до 12 лет.\n🧖 Спа с хаммамом, сауной и парной.\n\n💡 Отель закрыт зимой. Этот вариант подходит для поездки в летний сезон.\n\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты.",
+          "current_text_sha256": "c2f33c14b9252d1037cbaedf48dd5acc90c957d897bf502a981db80acd6c5757",
+          "photo_signature": "max:49105288200",
+          "original_text_sha256": "2e626338a78038bf1b1d726f6226a8feee7b5ae91273f3fb8832bf9c35278270"
+        },
+        "telegram": {
+          "publication_id": 385,
+          "version_id": 3240,
+          "message_id": "152",
+          "post_url": "https://t.me/any_toour/152",
+          "current_text": "✈️ Туры в Delphin Palace\n📍 Лара, Анталья, Турция.\n\n🏖 Пляж прямо у отеля.\n🏊 Бассейны, водные горки и отдельный детский бассейн.\n👧 Мини клуб для детей от 4 до 12 лет.\n🧖 Спа с хаммамом, сауной и парной.\n\n💡 Отель закрыт зимой. Этот вариант подходит для поездки в летний сезон.\n\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты.",
+          "current_text_sha256": "c2f33c14b9252d1037cbaedf48dd5acc90c957d897bf502a981db80acd6c5757",
+          "photo_signature": "telegram:AQADNBxrG7t9WEt9",
+          "original_text_sha256": "2e626338a78038bf1b1d726f6226a8feee7b5ae91273f3fb8832bf9c35278270"
+        }
+      }
+    },
+    {
+      "site_hotel_id": "028bd1b1-7231-4bbb-946c-5a5df2dc3884",
+      "site_revision": 1,
+      "tourvisor_hotel_id": 1173,
+      "hotel_id": 1173,
+      "name": "THE SENSE DELUXE",
+      "logical_id": "commercial-sense-deluxe-1173-v1",
+      "key": "commercial-sense-deluxe-1173-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261107-30-v1",
+      "original_text_sha256": "7311e0fcc37e99f20fa59da445602eb92f07097876d9941203429d24a60e0a6d",
+      "cover_sha256": "bd0722fe0e127c0c2ee05c0cd6277cfbe7739f7c33353610408bea0a019852fb",
+      "posts": {
+        "max": "https://max.ru/channel_anytour/AaG3Xy3JP5c",
+        "telegram": "https://t.me/any_toour/399"
+      },
+      "expected_text_sha256": {
+        "max": "7456845c011173d0c1c890e83913bcdf76ab01753de55711962c89c519cf0b42",
+        "telegram": "7456845c011173d0c1c890e83913bcdf76ab01753de55711962c89c519cf0b42"
+      },
+      "native_binding_basis": "Existing Site published pair and both canonical publisher receipts must agree; never numeric equality alone",
+      "channels": {
+        "max": {
+          "publication_id": 903,
+          "version_id": 2945,
+          "message_id": "mid.ffffb6caf0606fed01a1b75f2dc93f97",
+          "post_url": "https://max.ru/channel_anytour/AaG3Xy3JP5c",
+          "current_text": "✈️ Туры в The Sense De Luxe\n📍 Кумкой, Турция.\n\nДля отдыха вдвоём с пляжными днями и вечерней музыкой.\n\n🛏 Standard с большой кроватью или двумя отдельными.\n🍽 Вариант питания Ultra All Inclusive.\n🏖 Собственный песчаный пляж примерно в 200 м, есть бесплатный трансфер.\n🎶 Вечерние шоу и живая музыка.\n\n✈️ Подберём номер и рассчитаем тур с перелётом на ваши даты.",
+          "current_text_sha256": "7456845c011173d0c1c890e83913bcdf76ab01753de55711962c89c519cf0b42",
+          "photo_signature": "max:49864647688",
+          "original_text_sha256": "7311e0fcc37e99f20fa59da445602eb92f07097876d9941203429d24a60e0a6d"
+        },
+        "telegram": {
+          "publication_id": 895,
+          "version_id": 2946,
+          "message_id": "399",
+          "post_url": "https://t.me/any_toour/399",
+          "current_text": "✈️ Туры в The Sense De Luxe\n📍 Кумкой, Турция.\n\nДля отдыха вдвоём с пляжными днями и вечерней музыкой.\n\n🛏 Standard с большой кроватью или двумя отдельными.\n🍽 Вариант питания Ultra All Inclusive.\n🏖 Собственный песчаный пляж примерно в 200 м, есть бесплатный трансфер.\n🎶 Вечерние шоу и живая музыка.\n\n✈️ Подберём номер и рассчитаем тур с перелётом на ваши даты.",
+          "current_text_sha256": "7456845c011173d0c1c890e83913bcdf76ab01753de55711962c89c519cf0b42",
+          "photo_signature": "telegram:AQADtDprG-HPeUt9",
+          "original_text_sha256": "7311e0fcc37e99f20fa59da445602eb92f07097876d9941203429d24a60e0a6d"
+        }
+      }
+    }
+  ],
+  "deferred": [],
+  "installed_sha": "8164359eba9a633f3f25d743e534386ecffe622f",
+  "captured_at": "2026-11-11T16:20:54+00:00",
+  "input_sha256": "52f8922fbf5e86909c53dcdbaa17d402bfaaf968344a55d129825500312467bf"
+}

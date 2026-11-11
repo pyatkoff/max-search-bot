@@ -1,4 +1,4 @@
-name: Read six existing post contexts for authorized monitor prices
+name: Apply six authorized monitor prices to existing posts and feeds
 'on':
   push:
     branches:
@@ -16,32 +16,41 @@ env:
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
     - uses: actions/checkout@v4
       with:
         ref: ${{ github.sha }}
         persist-credentials: false
-    - name: Bind exact six existing pairs and lint read-only capture
+    - name: Prepare six price edits and retain exact current feed bytes
       env:
         GH_TOKEN: ${{ github.token }}
       shell: bash
       run: |
         set -euo pipefail
+        umask 077
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/main-before-operation.json"
+        python3 - <<'PYCURRENT'
+        import os,json,pathlib
+        assert json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        PYCURRENT
         test "$GITHUB_RUN_ATTEMPT" = 1
-        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/current-main.json"
-        python3 - <<'PYBUILD'
-        import base64,hashlib,json,os,pathlib
-        p=pathlib.Path('tools/direct_demand/operations');t=pathlib.Path(os.environ['RUNNER_TEMP'])
-        assert json.loads((t/'current-main.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-        raw=(p/'monitor-price-six-context-20261111-input.json').read_bytes()
-        assert hashlib.sha256(raw).hexdigest()=='52f8922fbf5e86909c53dcdbaa17d402bfaaf968344a55d129825500312467bf'
-        values={'EXPECTED_INSTALLED_SHA':os.environ['EXPECTED_PRODUCTION_SHA'],'APPROVED_CONTEXT_INPUT_B64':base64.b64encode(raw).decode(),'APPROVED_CONTEXT_INPUT_SHA256':hashlib.sha256(raw).hexdigest(),'APPROVED_CONTEXT_PINS_B64':'eyJpbnRlZ3JhdGlvbnMvQ2hhbm5lbFBvc3RBcGlUcmFuc3BvcnQucGhwIjoiMzAwNjM0ZDc3Y2I5ZmRkZjUxYWRmOTg2OTk3NGY5NTZjY2E2ZTNmOSIsIm1pZ3JhdGlvbnMvMDMzX2NoYW5uZWxfcG9zdF9jb250ZXh0LnNxbCI6IjA1MzA0NTgwMzBhNGJmZTZiNmNjNTVkMWU1ZTQ0MTc0NWMyOWI5NDciLCJtaWdyYXRpb25zLzAzNl9jaGFubmVsX3Bvc3RfbWVtYmVyX2RlbGl2ZXJ5LnNxbCI6IjFiZGE0NjNlNTJiMzMxMzBhZDEyNzUyZGRlZjRlZTVjOTI2OTljMDUiLCJtaWdyYXRpb25zLzA0MF9jaGFubmVsX3Bvc3RfcmVjb25jaWxpYXRpb24uc3FsIjoiMGYyNGI4MzhlYWNkNDUzMzNjNWFkZTlhMjk5MWQwNjA0ODhjNjAzNSIsInNlcnZpY2VzL0NoYW5uZWxQb3N0QWRtaW5TZXJ2aWNlLnBocCI6ImI4MGVlZmM4MDEwNTRiZmU2ZmRiNThlYzM0NWVjZGY2ODdiMmU4OWEiLCJzZXJ2aWNlcy9DaGFubmVsUG9zdEF1dG9tYXRpb25TZXJ2aWNlLnBocCI6ImY1OTc1YWI5NWRlNWY0NWUwODdlYjdhMGY3NjhmNTY2YzViY2E2NDgiLCJzZXJ2aWNlcy9DaGFubmVsUG9zdEJ1dHRvblRyYW5zcG9ydC5waHAiOiI3YjY3MTFmMWRlNjMwMDAzNDZkOGU1Nzg5ZjJkYmI3ZjcyNTUzNWI4Iiwic2VydmljZXMvQ2hhbm5lbFBvc3RFbnRyeVNlcnZpY2UucGhwIjoiZjBlMDRlOWI0ZTBlZDY4NTljZWQ5NjI3OWNiZjA2MTk5MzE1OTZlNiIsInNlcnZpY2VzL0NoYW5uZWxQb3N0TWF4QWxidW1SZWNvdmVyeS5waHAiOiJkZTI2NmNkMDY4NTg3Y2MzYjJmZjgzZjMwOGE5NjZlYTY2ODg3YTA0Iiwic2VydmljZXMvQ2hhbm5lbFBvc3RNZWRpYVNlcnZpY2UucGhwIjoiZjc5NGVmZDBmNmYyNGRmOTE2ZTE4OTA5ZmY2MjgxYjBiYzkyODQzMyIsInNlcnZpY2VzL0NoYW5uZWxQb3N0TWVtYmVyRGVsaXZlcnlTZXJ2aWNlLnBocCI6IjIwYzFkNzk4NDg5OGIyYTU5OTZhNWY5ZTIwZTRkMmQ4YzIwYjQ3NzgiLCJzZXJ2aWNlcy9DaGFubmVsUG9zdFJlY29uY2lsaWF0aW9uU2VydmljZS5waHAiOiIyYjU1OWIwNjdhOTFhYmI5NDAyYTlkYzJmM2NlNzVkMWRkZWRjN2MzIiwic2VydmljZXMvQ2hhbm5lbFBvc3RSZWNvbmNpbGlhdGlvblN0YXRlLnBocCI6ImQ5NTgzY2VjYTgwZDE0MjRhNDRhZGUzNTYxYzIxMjgyYTIzYTUyZjAiLCJzZXJ2aWNlcy9DaGFubmVsUG9zdFJlZ2lzdHJ5U2VydmljZS5waHAiOiI4MzM1YmYyZmIwYzFjZDc4ZjI2OGQ0ZTkwZmFkMWE0NDY1ZmE2MzkwIiwic2VydmljZXMvQ2hhbm5lbFBvc3RSdW50aW1lLnBocCI6IjJmMWRkOWI3NzQ3NGZkYmFhOTJmMDQwMmYzYjBhYTE3MGM1OTU0NzQiLCJzZXJ2aWNlcy9DaGFubmVsUG9zdFRlbGVncmFtQWxidW0ucGhwIjoiZmFhMWExNGJjMjc5YTRhZjMzOTM2MjgyMTI2YmYwZDQ2ZTM0MzA0MCIsInNlcnZpY2VzL0NoYW5uZWxQb3N0V2ViaG9va0NvbmZpZ1NlcnZpY2UucGhwIjoiZDVmZGNiMDU2MDg4ZjFlM2E1NDFiNDA0NjMyNWQ5N2VlZjY0MTdkOSIsInNlcnZpY2VzL0NvbnZlcnNhdGlvbkRiLnBocCI6ImJiNjI4MWZhZjU1YWNhN2JlZWFlN2Y4YTU3Mzg5ZDE5NzUxOTM2ZjciLCJzZXJ2aWNlcy9NYXhUbHNDb25maWcucGhwIjoiMDMyYzAyMTFlZTNmMzljNmYwZDI3YzY2OWFiZDViNDY3ZTMyMWRlYSIsInNlcnZpY2VzL01heFRyYW5zcG9ydC5waHAiOiIyY2I0Zjg3ODZiNDcwNGE4ZTYyYTNhOWM0MGRjMmNjNzNkYWQ2MTU5Iiwic2VydmljZXMvUHJvamVjdENvbmZpZy5waHAiOiI2M2MxN2M4MTAzNDEyZjhjZmY4Y2RjYzRiYmIwNjJlNzQ0MTA2YWY5Iiwic2VydmljZXMvUHJvamVjdENvbmZpZ3VyYXRpb24ucGhwIjoiMDcwMTlkNDczYzU4OGUzMzg2YWNlNDI5NzdkYjkzMDkyZTgxMTJlMyJ9'}
-        s=(p/'read-monitor-price-post-context.php').read_text();prefix="<?php\ndeclare(strict_types=1);\n";assert s.startswith(prefix)
-        (t/'channel-preflight.php').write_text(prefix+''.join('const '+k+'='+json.dumps(v)+';\n' for k,v in values.items())+s[len(prefix):])
-        PYBUILD
-        php -l "$RUNNER_TEMP/channel-preflight.php"
+        python3 tools/direct_demand/operations/prepare-monitor-price-six-20261111.py
         php tools/direct_demand/operations/test-monitor-price-contract.php
+        for id in 1183 117935 27426 13869 1151 1173; do php -l "$RUNNER_TEMP/monitor-$id.php"; done
+        python3 - <<'PYFEEDS'
+        import concurrent.futures,hashlib,json,os,pathlib,urllib.request
+        class NoRedirect(urllib.request.HTTPRedirectHandler):
+         def redirect_request(self,*a,**kw):return None
+        def get(name):
+         with urllib.request.build_opener(NoRedirect).open(urllib.request.Request('https://app.anytoour.ru/feed/'+name,headers={'Cache-Control':'no-cache'}),timeout=30) as r:
+          assert r.status==200;raw=r.read(4000001)
+         assert len(raw)<4000000
+         pathlib.Path(os.environ['RUNNER_TEMP'],'before-'+name).write_bytes(raw)
+         return {'name':name,'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:rows=list(pool.map(get,['hotel-posts-telegram.xml','hotel-posts-max.xml','hotel-posts-all.xml']))
+        pathlib.Path(os.environ['RUNNER_TEMP'],'monitor-feed-before.json').write_text(json.dumps(rows));print(json.dumps(rows))
+        PYFEEDS
     - name: Prepare existing server connection
       env:
         DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -80,36 +89,76 @@ jobs:
         assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
         pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
         PY
-    - name: Read canonical receipts and current messages without edits
-      env:
+    - name: Update existing MAX and Telegram messages once per monitor record
+      env: &id001
+        GH_TOKEN: ${{ github.token }}
         DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
         DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        GH_TOKEN: ${{ github.token }}
       shell: bash
       run: |
         set -euo pipefail
         umask 077
-        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/main-before-context.json"
-        python3 - <<'PYCHECK'
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/main-before-operation.json"
+        python3 - <<'PYCURRENT'
         import os,json,pathlib
-        assert json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'main-before-context.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-        PYCHECK
+        assert json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        PYCURRENT
+        for id in 1183 117935 27426 13869 1151 1173; do
+          probe_status=0
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/monitor-$id.php" > "$RUNNER_TEMP/monitor-$id-result.json" || probe_status=$?
+          python3 - "$id" <<'PYPOST'
+        import os,json,pathlib,sys
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'monitor-'+sys.argv[1]+'-result.json');d=json.loads(p.read_text().splitlines()[-1]);print('MONITOR_PRICE_POST_RESULT='+json.dumps(d,ensure_ascii=False,separators=(',',':')))
+        assert d['ok'] and d['new_posts_created']==0 and len(d['posts'])==2 and all(x['body_photo_button_verified'] and x['existing_message_reused'] for x in d['posts'])
+        PYPOST
+          test "$probe_status" = 0
+        done
+    - name: Update existing feeds from both confirmed post journals
+      env: *id001
+      shell: bash
+      run: |
+        set -euo pipefail
+        umask 077
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/main-before-operation.json"
+        python3 - <<'PYCURRENT'
+        import os,json,pathlib
+        assert json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        PYCURRENT
+        php tools/direct_demand/operations/prepare-monitor-price-feeds-20261111.php
+        php -l "$RUNNER_TEMP/monitor-feed.php"
         probe_status=0
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/monitor-price-context.json" || probe_status=$?
-        python3 - <<'PYRESULT'
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/monitor-feed.php" > "$RUNNER_TEMP/monitor-feed-result.json" || probe_status=$?
+        python3 - <<'PYFEEDRESULT'
         import os,json,pathlib
-        raw=pathlib.Path(os.environ['RUNNER_TEMP'],'monitor-price-context.json').read_text();d=json.loads(raw.splitlines()[-1]);print('MONITOR_PRICE_CONTEXT='+json.dumps(d,ensure_ascii=False,separators=(',',':')))
-        assert d['ok'] and d['db_writes']==d['message_writes']==d['supplier_calls']==0
-        PYRESULT
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'monitor-feed-result.json');d=json.loads(p.read_text().splitlines()[-1]);print('MONITOR_PRICE_FEED_RESULT='+json.dumps(d,separators=(',',':')))
+        assert d['ok'] and len(d['files'])==3 and [x['rows'] for x in d['files']]==[509,509,1018] and d['db_writes']==d['provider_calls']==d['message_sends']==0
+        PYFEEDRESULT
         test "$probe_status" = 0
+    - name: Read back exact public feed bytes
+      shell: bash
+      run: |
+        python3 - <<'PYBACK'
+        import os,json,pathlib,hashlib,urllib.request,concurrent.futures,xml.etree.ElementTree as ET
+        p=pathlib.Path(os.environ['RUNNER_TEMP']);d=json.loads((p/'monitor-feed-result.json').read_text().splitlines()[-1]);assert d['ok']
+        class NoRedirect(urllib.request.HTTPRedirectHandler):
+         def redirect_request(self,*a,**kw):return None
+        def get(row):
+         with urllib.request.build_opener(NoRedirect).open(urllib.request.Request(row['public_url'],headers={'Cache-Control':'no-cache'}),timeout=30) as r:
+          assert r.status==200;raw=r.read(4000001)
+         assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['sha256']
+         offers=ET.fromstring(raw).findall('shop/offers/offer');assert len(offers)==row['rows']
+         return {'name':row['name'],'sha256':row['sha256'],'rows':row['rows'],'price_rows':len([x for x in offers if x.find('price') is not None]),'exact_public_readback':True}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:rows=list(pool.map(get,d['files']))
+        result={'ok':True,'files':rows,'new_posts':0,'supplier_calls':0};(p/'monitor-public-readback.json').write_text(json.dumps(result));print('MONITOR_PRICE_PUBLIC_READBACK='+json.dumps(result,separators=(',',':')))
+        PYBACK
     - uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: monitor-price-six-context-20261111-v1
-        path: ${{ runner.temp }}/monitor-price-context.json
+        name: monitor-price-six-20261111-results
+        path: ${{ runner.temp }}/monitor-*.json
         retention-days: 14
         if-no-files-found: warn
-    - name: Remove ephemeral connection and script files
+    - name: Remove ephemeral connection and scripts
       if: always()
       shell: bash
-      run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php"
+      run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP"/monitor-*.php
