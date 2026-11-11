@@ -118,7 +118,11 @@ final class MaxTrackerLookupClient
         $body=MaxTrackerLookupProtocol::body($counterId,$users,time(),null,$membership,$memberAfter,$historyAfter,$evidenceUser);
         $signature=MaxTrackerLookupProtocol::signature($body,MaxTrackerLookupConfig::privateKey());
         // The caller durably binds this exact body hash before an optional observation may run.
-        $evidenceIntent=$evidenceUser!==null&&$beforeRequest!==null&&$beforeRequest(hash('sha256',$body))===true;
+        $evidenceIntent=false;
+        if($evidenceUser!==null&&$beforeRequest!==null){
+            try{$evidenceIntent=$beforeRequest(hash('sha256',$body))===true;}
+            catch(Throwable $ignored){$evidenceIntent=false;}
+        }
         $headers=['Content-Type: application/json','Accept: application/json','X-Max-Attribution-Signature: '.$signature];
         if($evidenceIntent)$headers[]='X-Max-Attribution-Evidence: '.MaxTrackerLookupProtocol::COUNTER_SCOPE_HEADER;
         $response=''; $tooLarge=false;

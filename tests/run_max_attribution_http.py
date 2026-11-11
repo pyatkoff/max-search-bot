@@ -46,8 +46,11 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
         sock.bind(('127.0.0.1', 0))
         port = sock.getsockname()[1]
     command = json.loads(os.getenv('TEST_PHP_COMMAND_JSON', '["php"]'))
+    request_audit = private_root / 'request-audit.jsonl'
+    router = private_root / 'router.php'
+    router.write_text("<?php file_put_contents(" + json.dumps(str(request_audit)) + ", json_encode(['method'=>$_SERVER['REQUEST_METHOD']??'', 'evidence'=>$_SERVER['HTTP_X_MAX_ATTRIBUTION_EVIDENCE']??'']).PHP_EOL, FILE_APPEND|LOCK_EX); return false;\n")
     with (private_root / 'server.log').open('wb') as log:
-        server = subprocess.Popen(command + ['-S', f'127.0.0.1:{port}', '-t', str(site)], stdout=log, stderr=log)
+        server = subprocess.Popen(command + ['-S', f'127.0.0.1:{port}', '-t', str(site), str(router)], stdout=log, stderr=log)
         try:
             for attempt in range(100):
                 if server.poll() is not None:
@@ -112,6 +115,32 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
                 check(result['users'][1] == {'external_user_id': '404', 'found': False}, 'wire explicit miss')
                 check(result['tracker_timezone'] == 'Europe/London', 'wire timezone contract')
                 ordinary_users = result['users']
+                # The production client keeps its pinned HTTPS transport. Only this private
+                # synthetic copy uses the already running local HTTP fixture and its fixture key.
+                client_fixture = private_root / 'client'
+                client_fixture.mkdir()
+                client_source = (ROOT / 'services/MaxTrackerLookupClient.php').read_text()
+                check(client_source.count('CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS') == 1, 'one pinned client protocol substitution in the isolated fixture')
+                (client_fixture / 'MaxTrackerLookupClient.php').write_text(client_source.replace('CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS', 'CURLOPT_PROTOCOLS=>CURLPROTO_HTTP', 1))
+                (client_fixture / 'MaxTrackerLookupProtocol.php').write_text((ROOT / 'services/MaxTrackerLookupProtocol.php').read_text())
+                (client_fixture / 'MaxTrackerLookupConfig.php').write_text("<?php final class MaxTrackerLookupConfig { public static function endpoint():string{return " + json.dumps(url) + ";} public static function privateKey():string{return file_get_contents(" + json.dumps(str(private_key)) + ");}}\n")
+                intent_file = private_root / 'simulated-consumed-intent.json'
+                runner = private_root / 'client-callback.php'
+                runner.write_text("<?php declare(strict_types=1); require " + json.dumps(str(client_fixture / 'MaxTrackerLookupClient.php')) + "; "
+                    + "$users=['123'];for($i=1;$i<=24;$i++)$users[]=(string)(990000+$i);$calls=0;"
+                    + "$result=(new MaxTrackerLookupClient())->lookupWithCounterScopeEvidence('98615635',$users,'123',"
+                    + "static function(string $hash)use(&$calls):bool{$calls++;file_put_contents(" + json.dumps(str(intent_file))
+                    + ",json_encode(['state'=>'consumed_unknown','request_sha256'=>$hash],JSON_THROW_ON_ERROR));throw new RuntimeException('synthetic journal acknowledgement lost');});"
+                    + "echo json_encode(['users'=>count($result['identities']),'first_client'=>$result['identities']['123']['client_id'],'calls'=>$calls,'evidence'=>$result['counter_scope_evidence']],JSON_THROW_ON_ERROR);")
+                audit_before = request_audit.read_text().splitlines()
+                callback_run = subprocess.run(command + [str(runner)], capture_output=True, text=True, timeout=20)
+                check(callback_run.returncode == 0, 'optional callback failure preserves the actual ordinary client request')
+                callback_result = json.loads(callback_run.stdout)
+                audit_after = request_audit.read_text().splitlines()
+                check(callback_result['users'] == 25 and callback_result['first_client'] == '777' and callback_result['calls'] == 1, 'throwing optional journal callback does not lose any of the normal 25 lookup results')
+                check(len(audit_after) == len(audit_before) + 1 and json.loads(audit_after[-1]) == {'method': 'POST', 'evidence': ''}, 'callback failure makes exactly one ordinary POST with no evidence opt-in header')
+                consumed_intent = json.loads(intent_file.read_text())
+                check(consumed_intent['state'] == 'consumed_unknown' and consumed_intent['request_sha256'] == callback_result['evidence']['request_sha256'] and callback_result['evidence']['reason'] == 'intent_not_persisted', 'possibly persisted intent remains consumed unknown and is never retried')
                 scoped = encoded({**data, 'counter_scope_evidence': {'v': 1, 'user_id': '123'}})
                 status, plain_extended = request(scoped, signed=signature(scoped))
                 check(status == 200 and plain_extended['users'] == ordinary_users and 'counter_scope_evidence' not in plain_extended, 'signed option without opt-in header is still one ordinary lookup')
