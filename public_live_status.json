@@ -1,16 +1,16 @@
 {
     "ok": true,
-    "generated_at": "2026-11-11T15:24:03+00:00",
+    "generated_at": "2026-11-11T15:26:25+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 25,
-        "raw_sessions": 25,
+        "sessions": 26,
+        "raw_sessions": 26,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 25,
+            "resolved": 26,
             "unresolved": 0
         },
         "started": 22,
@@ -34,7 +34,7 @@
             "manager_replied": 9,
             "customer_replied_after_manager": 6,
             "collecting_needs": 4,
-            "started_only": 3,
+            "started_only": 4,
             "manager_requested": 3
         },
         "flags": {
@@ -45,7 +45,7 @@
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-11T15:24:03Z",
+        "sampled_at": "2026-11-11T15:26:25Z",
         "available": true,
         "error": null,
         "mode": "send",
@@ -64,6 +64,6 @@
         },
         "queue_total": 35
     },
-    "since_utc": "2026-11-11 14:24:03",
+    "since_utc": "2026-11-11 14:26:25",
     "public_redacted": true
 }
