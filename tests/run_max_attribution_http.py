@@ -3,6 +3,7 @@
 import base64
 import importlib.util
 import json
+import hashlib
 import os
 from pathlib import Path
 import socket
@@ -66,10 +67,12 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
             def signature(body, purpose=b'anytour-max-tracker-lookup-v1\n'):
                 signed = subprocess.run(['openssl', 'dgst', '-sha256', '-sign', str(private_key)], input=purpose + body, check=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout
                 return base64.b64encode(signed).decode()
-            def request(body=None, method='POST', content_type='application/json', signed=None):
+            def request(body=None, method='POST', content_type='application/json', signed=None, evidence=None):
                 headers = {'Content-Type': content_type}
                 if signed is not None:
                     headers['X-Max-Attribution-Signature'] = signed
+                if evidence is not None:
+                    headers['X-Max-Attribution-Evidence'] = evidence
                 req = urllib.request.Request(url, data=body, headers=headers, method=method)
                 try:
                     response = urllib.request.urlopen(req, timeout=5)
@@ -108,6 +111,24 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
                 check(result['users'][0]['record_id'] == '9007199254740998', 'wire large tracker ID remains exact after INT source matching')
                 check(result['users'][1] == {'external_user_id': '404', 'found': False}, 'wire explicit miss')
                 check(result['tracker_timezone'] == 'Europe/London', 'wire timezone contract')
+                ordinary_users = result['users']
+                scoped = encoded({**data, 'counter_scope_evidence': {'v': 1, 'user_id': '123'}})
+                status, plain_extended = request(scoped, signed=signature(scoped))
+                check(status == 200 and plain_extended['users'] == ordinary_users and 'counter_scope_evidence' not in plain_extended, 'signed option without opt-in header is still one ordinary lookup')
+                status, observed = request(scoped, signed=signature(scoped), evidence='counter-scope-v1')
+                check(status == 200 and observed['users'] == ordinary_users, 'optional evidence failure never changes ordinary identities')
+                extra = observed['counter_scope_evidence']
+                check(extra['v'] == 1 and extra['counter_id'] == '98615635' and extra['request_sha256'] == hashlib.sha256(scoped).hexdigest(), 'same signed request hash binds the optional counter evidence')
+                check('user_id' not in extra and 'client_id' not in extra and 'record_id' not in extra, 'counter evidence has no raw native or tracker identifiers')
+                if extra['status'] == 'observed':
+                    check(extra['complete_within_bound'] is True and 0 <= extra['scoped_rows'] <= 64 and extra['empty_client_id_rows'] + extra['noncanonical_client_id_rows'] + extra['canonical_client_id_rows'] == extra['scoped_rows'], 'native wire aggregate is complete within the fixed point bound')
+                else:
+                    check(extra['reason'] in {'point_index_unavailable', 'row_limit', 'storage_unavailable'} and extra['scoped_rows'] is None and extra['complete_within_bound'] is False, 'unavailable point evidence is unknown rather than zero')
+                invalid_subset = encoded({**data, 'counter_scope_evidence': {'v': 1, 'user_id': '789'}})
+                status, invalid_extra = request(invalid_subset, signed=signature(invalid_subset), evidence='counter-scope-v1')
+                check(status == 200 and invalid_extra['users'] == ordinary_users and invalid_extra['counter_scope_evidence']['reason'] == 'invalid_request', 'signed out-of-batch option cannot expand scope or poison ordinary lookup')
+                tampered_subset = encoded({**data, 'counter_scope_evidence': {'v': 1, 'user_id': '404'}})
+                check(request(tampered_subset, signed=signature(scoped), evidence='counter-scope-v1')[0] == 401, 'subset selection is covered by the existing body signature')
                 membership = encoded({**data, 'membership': {'not_before_unix': now - 3600, 'cutoff_unix': now}})
                 status, result = request(membership, signed=signature(membership))
                 check(status == 200, 'signed membership lookup reaches same endpoint')
@@ -122,6 +143,9 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
                 status, result = request(history, signed=signature(history))
                 check(status == 200, 'signed observed-history lookup reaches the canonical endpoint')
                 check(set(result) == {'ok', 'version', 'counter_id', 'tracker_timezone', 'history_member_page'}, 'history wire exposes a separate exact response without identity lookup or legacy members')
+                history_extra = encoded({**data, 'user_ids': [], 'history_member_page_after': '0', 'counter_scope_evidence': {'v': 1, 'user_id': '123'}})
+                extra_status, extra_history = request(history_extra, signed=signature(history_extra), evidence='counter-scope-v1')
+                check(extra_status == 200 and set(extra_history) == set(result) and 'counter_scope_evidence' not in extra_history, 'optional header never changes strict history response keys')
                 page = result['history_member_page']
                 page_keys = {'basis', 'rows', 'cutoff_unix', 'history_fence_id', 'next_cursor', 'has_more', 'scanned_event_count', 'omitted_unknown_count', 'coverage'}
                 row_keys = {'external_user_id', 'source_id', 'state', 'last_event_record_id', 'last_event_recorded_at_unix', 'episode_join_record_id', 'episode_join_recorded_at_unix', 'entry_basis'}

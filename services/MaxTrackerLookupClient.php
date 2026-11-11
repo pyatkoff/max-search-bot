@@ -10,6 +10,12 @@ final class MaxTrackerLookupClient
         return $this->request($counterId,$users,null)['identities'];
     }
 
+    /** One optional finite observation piggybacks on the already required ordinary signed batch. */
+    public function lookupWithCounterScopeEvidence(string $counterId,array $users,string $evidenceUser,?callable $beforeRequest=null):array
+    {
+        return $this->request($counterId,$users,null,null,null,$evidenceUser,$beforeRequest);
+    }
+
     public function lookupWithMembership(string $counterId,array $users,int $notBefore,int $cutoff): array
     {
         return $this->request($counterId,$users,['not_before_unix'=>$notBefore,'cutoff_unix'=>$cutoff]);
@@ -107,17 +113,21 @@ final class MaxTrackerLookupClient
         return $p;
     }
 
-    private function request(string $counterId,array $users,?array $membership,?string $memberAfter=null,?string $historyAfter=null): array
+    private function request(string $counterId,array $users,?array $membership,?string $memberAfter=null,?string $historyAfter=null,?string $evidenceUser=null,?callable $beforeRequest=null): array
     {
-        $body=MaxTrackerLookupProtocol::body($counterId,$users,time(),null,$membership,$memberAfter,$historyAfter);
+        $body=MaxTrackerLookupProtocol::body($counterId,$users,time(),null,$membership,$memberAfter,$historyAfter,$evidenceUser);
         $signature=MaxTrackerLookupProtocol::signature($body,MaxTrackerLookupConfig::privateKey());
+        // The caller durably binds this exact body hash before an optional observation may run.
+        $evidenceIntent=$evidenceUser!==null&&$beforeRequest!==null&&$beforeRequest(hash('sha256',$body))===true;
+        $headers=['Content-Type: application/json','Accept: application/json','X-Max-Attribution-Signature: '.$signature];
+        if($evidenceIntent)$headers[]='X-Max-Attribution-Evidence: '.MaxTrackerLookupProtocol::COUNTER_SCOPE_HEADER;
         $response=''; $tooLarge=false;
         $ch=curl_init(MaxTrackerLookupConfig::endpoint());
         if ($ch===false)throw new RuntimeException('tracker_transport_failed');
         curl_setopt_array($ch,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$body,CURLOPT_RETURNTRANSFER=>false,
             CURLOPT_FOLLOWLOCATION=>false,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>12,
             CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,
-            CURLOPT_HTTPHEADER=>['Content-Type: application/json','Accept: application/json','X-Max-Attribution-Signature: '.$signature],
+            CURLOPT_HTTPHEADER=>$headers,
             CURLOPT_WRITEFUNCTION=>static function($ch,string $chunk)use(&$response,&$tooLarge):int{
                 if(strlen($response)+strlen($chunk)>MaxTrackerLookupProtocol::MAX_RESPONSE){$tooLarge=true;return 0;}
                 $response.=$chunk;return strlen($chunk);
@@ -127,8 +137,42 @@ final class MaxTrackerLookupClient
         $d=json_decode($response,true,16,JSON_THROW_ON_ERROR|JSON_BIGINT_AS_STRING);
         if($historyAfter!==null)return self::validateHistoryMemberPage($d,$counterId,$historyAfter);
         if($memberAfter!==null)return self::validateMemberPage($d,$counterId,$memberAfter);
-        return ['identities'=>self::validateResponse($d,$counterId,$users),
+        $out=['identities'=>self::validateResponse($d,$counterId,$users),
             'membership'=>self::validateMembership($d,$users,$membership!==null)];
+        if($evidenceUser!==null)$out['counter_scope_evidence']=$evidenceIntent
+            ?self::validateCounterScopeEvidence($d['counter_scope_evidence']??null,hash('sha256',$body))
+            :['available'=>false,'reason'=>'intent_not_persisted','request_sha256'=>hash('sha256',$body)];
+        return $out;
+    }
+
+    /** Optional unsupported or malformed evidence never poisons the ordinary identity response. */
+    public static function validateCounterScopeEvidence(mixed $saved,string $requestHash,?int $now=null):array
+    {
+        $unknown=['available'=>false,'reason'=>$saved===null?'unsupported':'invalid_response','request_sha256'=>$requestHash];
+        $now=$now??time();
+        if(!is_array($saved)||preg_match('/\A[a-f0-9]{64}\z/D',$requestHash)!==1||($saved['v']??null)!==1
+            ||($saved['counter_id']??null)!=='98615635'||($saved['request_sha256']??null)!==$requestHash
+            ||!is_int($saved['checked_at_unix']??null)||$saved['checked_at_unix']<946684800||$saved['checked_at_unix']>$now
+            ||$now-$saved['checked_at_unix']>90||!in_array($saved['status']??null,['observed','unavailable'],true))return $unknown;
+        $keys=['v','counter_id','request_sha256','checked_at_unix','status','complete_within_bound',
+            'scoped_rows','empty_client_id_rows','noncanonical_client_id_rows','canonical_client_id_rows'];
+        if($saved['status']==='unavailable')$keys[]='reason';
+        $actual=array_keys($saved);sort($actual);sort($keys);if($actual!==$keys)return $unknown;
+        $counts=[];foreach(['scoped_rows','empty_client_id_rows','noncanonical_client_id_rows','canonical_client_id_rows']as$key){
+            $n=$saved[$key];if($saved['status']==='unavailable'){if($n!==null)return $unknown;}
+            elseif(!is_int($n)||$n<0||$n>64)return $unknown;$counts[$key]=$n;
+        }
+        if($saved['status']==='unavailable'){
+            if($saved['complete_within_bound']!==false||!in_array($saved['reason'],
+                ['invalid_request','storage_unavailable','point_index_unavailable','row_limit'],true))return $unknown;
+            return ['available'=>false,'reason'=>$saved['reason'],'request_sha256'=>$requestHash,
+                'checked_at_unix'=>$saved['checked_at_unix'],'complete_within_bound'=>false];
+        }
+        if($saved['complete_within_bound']!==true||$counts['empty_client_id_rows']+$counts['noncanonical_client_id_rows']
+            +$counts['canonical_client_id_rows']!==$counts['scoped_rows'])return $unknown;
+        return array_merge(['available'=>true,'basis'=>'exact_effective_counter_scope_only','request_sha256'=>$requestHash,
+            'checked_at_unix'=>$saved['checked_at_unix'],'complete_within_bound'=>true,
+            'local_scope_zero_is_not_global_tracker_absence'=>true,'financial_permission'=>false],$counts);
     }
 
     public static function validateResponse($d,string $counterId,array $users): array

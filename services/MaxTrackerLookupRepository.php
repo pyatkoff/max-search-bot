@@ -58,6 +58,56 @@ final class MaxTrackerLookupRepository
         } finally { if($this->pdo->inTransaction())$this->pdo->rollBack(); }
     }
 
+    /** One authenticated batch member, exact effective counter only; raw ClientIDs never leave SQL. */
+    public function counterScopeEvidence(string $counterId,string $userId,string $requestHash,int $now):array
+    {
+        $base=['v'=>1,'counter_id'=>'98615635','request_sha256'=>$requestHash,'checked_at_unix'=>$now,'status'=>'unavailable',
+            'complete_within_bound'=>false,'scoped_rows'=>null,'empty_client_id_rows'=>null,
+            'noncanonical_client_id_rows'=>null,'canonical_client_id_rows'=>null];
+        $fail=static fn(string $reason):array=>array_merge($base,['reason'=>$reason]);
+        if($counterId!=='98615635'||!MaxTrackerLookupProtocol::id($userId)||preg_match('/\A[a-f0-9]{64}\z/D',$requestHash)!==1
+            ||$now<946684800)return $fail('invalid_request');
+        if($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql'||$this->pdo->inTransaction())return $fail('storage_unavailable');
+        try{
+            $this->pdo->exec('SET TRANSACTION READ ONLY');$this->pdo->beginTransaction();
+            $q=$this->pdo->query("SELECT /*+ MAX_EXECUTION_TIME(250) */ INDEX_NAME,COLUMN_NAME,SUB_PART"
+                ." FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='max_sub_links'"
+                ." AND SEQ_IN_INDEX=1 AND COLUMN_NAME='UF_CHAT_ID' AND SUB_PART IS NULL ORDER BY INDEX_NAME LIMIT 9");
+            $indexes=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();$index=null;
+            if(count($indexes)>8)return $fail('point_index_unavailable');
+            foreach($indexes as$part)if(($part['COLUMN_NAME']??null)==='UF_CHAT_ID'&&($part['SUB_PART']??null)===null
+                &&is_string($part['INDEX_NAME']??null)&&preg_match('/\A[A-Za-z0-9_]{1,64}\z/D',$part['INDEX_NAME'])===1){$index=$part['INDEX_NAME'];break;}
+            if($index===null)return $fail('point_index_unavailable');
+            $effective="CASE WHEN COALESCE(OCTET_LENGTH(s.UF_METRIC_SOURCE),0)>0 THEN s.UF_METRIC_SOURCE ELSE s.UF_SOURCE END";
+            $valid="(OCTET_LENGTH(UF_CLIENT_ID)=CHAR_LENGTH(UF_CLIENT_ID) AND UF_CLIENT_ID REGEXP '^[1-9][0-9]{0,39}$' AND UF_CLIENT_ID NOT REGEXP '[^0-9]')";
+            $empty="(UF_CLIENT_ID IS NULL OR OCTET_LENGTH(UF_CLIENT_ID)=0)";
+            $sql="SELECT /*+ MAX_EXECUTION_TIME(250) */ COUNT(*) AS scoped_rows,"
+                ."COALESCE(SUM(CASE WHEN ".$empty." THEN 1 ELSE 0 END),0) AS empty_rows,"
+                ."COALESCE(SUM(CASE WHEN NOT ".$empty." AND NOT ".$valid." THEN 1 ELSE 0 END),0) AS invalid_rows,"
+                ."COALESCE(SUM(CASE WHEN ".$valid." THEN 1 ELSE 0 END),0) AS canonical_rows"
+                ." FROM (SELECT s.UF_CLIENT_ID FROM max_sub_links s FORCE INDEX (".chr(96).$index.chr(96).") WHERE s.UF_CHAT_ID=?"
+                ." AND HEX(s.UF_CHAT_ID)=HEX(?) AND EXISTS"
+                ." (SELECT 1 FROM b_iblock_element_property ep JOIN b_iblock_property p ON p.ID=ep.IBLOCK_PROPERTY_ID"
+                ." WHERE p.IBLOCK_ID=8 AND p.CODE='YA_METRIK_ID' AND HEX(p.CODE)=HEX('YA_METRIK_ID') AND ep.IBLOCK_ELEMENT_ID="
+                .$effective." AND HEX(CAST(ep.IBLOCK_ELEMENT_ID AS CHAR))=HEX(CAST(".$effective." AS CHAR))"
+                ." AND CAST(".$effective." AS CHAR) REGEXP '^[1-9][0-9]{0,19}$' AND CAST(".$effective." AS CHAR) NOT REGEXP '[^0-9]'"
+                ." AND ep.VALUE=? AND HEX(ep.VALUE)=HEX(?)) ORDER BY s.ID DESC LIMIT 65) exact_counter_rows";
+            $q=$this->pdo->prepare($sql);$q->execute([$userId,$userId,$counterId,$counterId]);$row=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+            $counts=[];
+            foreach(['scoped_rows','empty_rows','invalid_rows','canonical_rows']as$key){
+                $value=$row[$key]??null;
+                if(!is_int($value)&&!(is_string($value)&&preg_match('/\A(?:0|[1-9][0-9]?)\z/D',$value)===1))return $fail('storage_unavailable');
+                $value=(int)$value;if($value<0||$value>65)return $fail('storage_unavailable');$counts[$key]=$value;
+            }
+            if($counts['scoped_rows']>64)return $fail('row_limit');
+            if($counts['empty_rows']+$counts['invalid_rows']+$counts['canonical_rows']!==$counts['scoped_rows'])return $fail('storage_unavailable');
+            return array_merge($base,['status'=>'observed','complete_within_bound'=>true,'scoped_rows'=>$counts['scoped_rows'],
+                'empty_client_id_rows'=>$counts['empty_rows'],'noncanonical_client_id_rows'=>$counts['invalid_rows'],
+                'canonical_client_id_rows'=>$counts['canonical_rows']]);
+        }catch(PDOException $ignored){return $fail('storage_unavailable');}
+        finally{if($this->pdo->inTransaction())$this->pdo->rollBack();}
+    }
+
     /** Exact per-chat history after the caller's prospective fence; current state is never backdated. */
     private function membershipReceipts(string $counterId,array $userIds,array $window): array
     {
