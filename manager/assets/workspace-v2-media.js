@@ -15,7 +15,7 @@ function persist(rows,id=state.conversationId,actor=account()){
  const key=actor+':'+Number(id),sequence=++persistenceSequence;
  if(actor===account()&&Number(id)===state.conversationId)persistenceNotice=rows.length?'Сохраняем вложения в этой вкладке…':'';
  const result=store.save(actor,Number(id),rows,captionSent.get(key)||null);
- Promise.resolve(result).then(ok=>{if(sequence!==persistenceSequence||actor!==account()||Number(id)!==state.conversationId)return;persistenceNotice=ok?(rows.length?'Черновик с вложениями сохранён в этой вкладке на срок до 24 часов.':''):'Вложения не сохранены после перезагрузки. Оставьте вкладку открытой и проверьте свободное место в браузере.';render()});return result;
+ Promise.resolve(result).then(ok=>{if(sequence!==persistenceSequence||actor!==account()||Number(id)!==state.conversationId)return;persistenceNotice=ok?(rows.length?'Черновик с вложениями сохранён в этой вкладке на срок до 24 часов.':''):'Вложения не сохранены после перезагрузки. Оставьте вкладку открытой и проверьте свободное место в браузере.';renderPersistenceStatus()});return result;
 }
 function save(rows,id=state.conversationId){const wasRestoring=restoring;restoreSequence++;restoring=false;state.restored=rows;if(Number(id)>0){if(rows.length)attachmentDrafts.set(draftKey(id),rows);else{attachmentDrafts.delete(draftKey(id));captionSent.delete(draftKey(id))}persist(rows,id)}if(wasRestoring)window.WorkspaceV2Conversation?.syncComposer?.()}
 function preserveDraft(id=state.conversationId){
@@ -64,9 +64,16 @@ function restoreDraft(id=state.conversationId){
 }
 function resetDrafts(){restoreSequence++;restoring=false;const store=window.WorkspaceV2MediaDrafts;store?.resetActor(account());for(const key of attachmentDrafts.keys()){const actor=Number(key.split(':')[0]);if(actor!==account())store?.resetActor(actor)}attachmentDrafts.forEach(revoke);attachmentDrafts.clear();captionSent.clear();state.restored=[];if(input())input().value='';state.notice='';persistenceNotice='';render()}
 function clear(){revoke(files());save([]);if(input())input().value='';state.notice='';render()}
+function renderPersistenceStatus(box=selection()){
+ if(!document.createElement||!box?.parentNode)return;
+ let status=$('mediaDraftStatus');if(!status){status=document.createElement('div');status.id='mediaDraftStatus';status.className='mediaDraftStatus';status.setAttribute('role','status');box.insertAdjacentElement('afterend',status)}status.textContent=persistenceNotice;status.hidden=!persistenceNotice;
+}
 function render(noticeFirst=false){
  const rows=files(),box=selection();if(!box)return;box.setAttribute?.('data-sending',String(state.busy));
- if(!rows.length&&!state.notice&&!persistenceNotice){box.textContent='';box.classList.add('hidden');return}
+ // Storage progress is independent from the selected File list. Keep it outside
+ // that list so saving cannot change the list's content or scroll position.
+ renderPersistenceStatus(box);
+ if(!rows.length&&!state.notice){box.textContent='';box.classList.add('hidden');return}
  const hint='<div class="mediaSelectionHint" role="status"></div>';
  box.innerHTML=(noticeFirst?hint:'')+rows.map((row,index)=>`<div class="mediaSelectedItem"><span class="mediaPreview"></span><span class="mediaFileInfo"><span class="mediaFileName"></span><span class="mediaFileSize"></span></span><button class="mediaRemove" type="button" data-index="${index}" aria-label="Убрать вложение ${index+1}">×</button></div>`).join('')+(noticeFirst?'':hint);
  // querySelector fallback keeps the small non-browser context harness supported.
@@ -87,7 +94,7 @@ function render(noticeFirst=false){
  if(f.type?.startsWith('image/')&&typeof URL?.createObjectURL==='function'&&item!==box){if(!row.url)row.url=URL.createObjectURL(f);item.querySelector('.mediaPreview').textContent='';const img=document.createElement('img');img.src=row.url;img.alt='';item.querySelector('.mediaPreview').appendChild(img)}
  });
  box.setAttribute?.('aria-label',`Выбрано файлов: ${rows.length} из ${MAX_FILES}. Список можно прокручивать.`);
- box.querySelector('.mediaSelectionHint').textContent=state.notice||`Файлов: ${rows.length} из ${MAX_FILES}. Отправятся отдельно; подпись — к первому. `+(persistenceNotice||'Восстановление после перезагрузки недоступно.');box.classList.remove('hidden');if(noticeFirst)box.scrollTop=0;
+ box.querySelector('.mediaSelectionHint').textContent=state.notice||`Файлов: ${rows.length} из ${MAX_FILES}. Отправятся отдельно; подпись — к первому.`;box.classList.remove('hidden');if(noticeFirst)box.scrollTop=0;
 }
 function addFiles(incoming){
  const rows=files(),added=Array.from(incoming||[]);let rejected=0;
