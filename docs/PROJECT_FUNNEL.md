@@ -67,6 +67,9 @@ visit; a transaction rechecks it after locking the scope cursor. An empty CID
 can acquire one immutable enrichment; a conflicting CID cannot replace it.
 Only a persisted/reused receipt allows the client to redirect. An unknown network
 outcome exposes a manual retry. Neither launch nor retry sends a bot message.
+The confirmed link opens through [MAX Bridge openMaxLink](https://dev.max.ru/docs/webapps/bridge/)
+when available. A missing/throwing bridge retains ordinary navigation and the
+visible confirmed link; an unsuccessful save opens neither route.
 
 When the customer starts the business bot, the existing ingress writes a
 `project_funnel_entry` event in the same conversation transaction. It matches the

@@ -17,19 +17,23 @@ check('duplicate launch fields are rejected',()=>assert.throws(()=>P.context(hre
 for(const bad of['https://evil.test/post',cfg.channel_url+'/post?x=1',cfg.channel_url+'/post#x',cfg.channel_url+'/../evil',cfg.channel_url+'-other/post','https://max.ru@evil.test/post'])check('unsafe destination rejected '+bad,()=>assert.equal(P.safeLink(bad,cfg.channel_url),false));
 check('matching durable receipt allows redirect',()=>assert.equal(P.receipt(accepted,ctx,cfg),true));
 for(const change of[{saved:false},{mode:'demo'},{post_id:'menu'},{offer_id:'another'},{receipt:null},{receipt:{visit_id:'',cursor:'1'}},{redirect_url:'https://evil.test'}])check('incomplete or foreign receipt prevents redirect '+JSON.stringify(change),()=>assert.equal(P.receipt({...accepted,...change},ctx,cfg),false));
-function fixture({reply=accepted,http=200,networkError=false,counter='',clientId='12345678900012345678',timeout=false,bridgeData=init}={}){
-  const els=new Map(),scripts=[],requests=[],assigned=[],metrics=[],timers=new Map();let n=0;
+function fixture({reply=accepted,http=200,networkError=false,counter='',clientId='12345678900012345678',timeout=false,bridgeData=init,nativeBridge=false}={}){
+  const els=new Map(),scripts=[],requests=[],assigned=[],opened=[],metrics=[],timers=new Map();let n=0,decoded=false;
   const el=id=>{if(!els.has(id))els.set(id,{hidden:true,textContent:'',listeners:{},addEventListener(k,fn){this.listeners[k]=fn;},setAttribute(){}});return els.get(id);};
   el('funnel-config').textContent=JSON.stringify({...cfg,counter_id:counter});
   const win={document:{getElementById:el,querySelector:()=>el('main'),head:{appendChild:s=>scripts.push(s)},createElement:()=>({remove(){}})},
     WebApp:{initData:bridgeData,ready(){}},location:{href,hash:new URL(href).hash,assign:url=>assigned.push(url)},history:{replaceState(){}},
     setTimeout(fn,ms){const id=++n;timers.set(id,fn);if((timeout&&ms===10000)||(!clientId&&ms===3000))queueMicrotask(fn);return id;},clearTimeout:id=>timers.delete(id),
     ym(...args){metrics.push(args);if(args[1]==='getClientID'&&clientId)queueMicrotask(()=>args[2](clientId));},
-    async fetch(url,options){requests.push({url,body:JSON.parse(options.body)});if(networkError)throw Error('network');if(timeout)return new Promise((_,reject)=>options.signal.addEventListener('abort',()=>reject(Error('timeout'))));return{ok:http===200,json:async()=>reply};}};
-  return{win,els,requests,assigned,metrics,scripts};
+    async fetch(url,options){requests.push({url,body:JSON.parse(options.body)});if(networkError)throw Error('network');if(timeout)return new Promise((_,reject)=>options.signal.addEventListener('abort',()=>reject(Error('timeout'))));return{ok:http===200,json:async()=>{decoded=true;return reply;}};}};
+  if(nativeBridge)win.WebApp.openMaxLink=url=>{opened.push({url,decoded});if(nativeBridge==='throw')throw Error('bridge_unavailable');};
+  return{win,els,requests,assigned,opened,metrics,scripts};
 }
 (async()=>{
   let f=fixture();await P.start(f.win);check('success redirects only after one acknowledged save',()=>{assert.equal(f.requests.length,1);assert.deepEqual(f.assigned,[accepted.redirect_url]);assert.equal(f.requests[0].body.init_data,init);});
+  f=fixture({nativeBridge:true});await P.start(f.win);check('confirmed receipt opens the exact native MAX post once',()=>{assert.deepEqual(f.opened,[{url:accepted.redirect_url,decoded:true}]);assert.deepEqual(f.assigned,[]);assert.equal(f.requests.length,1);});
+  f=fixture({nativeBridge:true,reply:{...accepted,saved:false}});await P.start(f.win);check('failed save cannot open a native post or navigate',()=>{assert.deepEqual(f.opened,[]);assert.deepEqual(f.assigned,[]);assert.equal(f.els.get('retry').hidden,false);});
+  f=fixture({nativeBridge:'throw'});await P.start(f.win);check('unavailable native bridge retains the confirmed ordinary-link fallback',()=>{assert.deepEqual(f.opened,[{url:accepted.redirect_url,decoded:true}]);assert.deepEqual(f.assigned,[accepted.redirect_url]);assert.equal(f.els.get('continue').href,accepted.redirect_url);});
   f=fixture({reply:{...accepted,saved:false}});await P.start(f.win);check('save failure shows retry and never navigates',()=>{assert.deepEqual(f.assigned,[]);assert.equal(f.els.get('retry').hidden,false);});
   f=fixture({networkError:true});await P.start(f.win);check('network failure retains a manual retry',()=>{assert.equal(f.els.get('retry').hidden,false);assert.deepEqual(f.assigned,[]);});
   f=fixture({timeout:true});await P.start(f.win);check('unknown POST timeout never assumes saved or navigates',()=>assert.deepEqual(f.assigned,[]));

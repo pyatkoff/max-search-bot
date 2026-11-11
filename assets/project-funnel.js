@@ -56,7 +56,9 @@
         let data;try{const res=await win.fetch(ctx.clean,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({init_data:ctx.init_data,start_param:ctx.start_param,client_id}),signal:controller.signal});data=await res.json();if(!res.ok||!receipt(data,ctx,cfg))throw Error('save_failed');}finally{win.clearTimeout(timer);}
         el('continue').href=data.redirect_url;el('continue').hidden=false;status('Готово','Открываем выбранную публикацию…');
         if(metric)win.ym(cfg.counter_id,'notBounce');
-        try{win.location.assign(data.redirect_url);}catch(_){try{win.WebApp?.openMaxLink?.(data.redirect_url);}catch(_){}}
+        let opened=false;
+        if(typeof win.WebApp?.openMaxLink==='function'){try{win.WebApp.openMaxLink(data.redirect_url);opened=true;}catch(_){}}
+        if(!opened){try{win.location.assign(data.redirect_url);}catch(_){}}
       }catch(_){status('Переход не выполнен','Откройте исходную ссылку внутри MAX. Если вы уже в MAX, проверьте сеть и повторите переход.');el('retry').hidden=false;}
       finally{busy=false;}
     }
