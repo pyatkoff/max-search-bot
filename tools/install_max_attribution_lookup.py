@@ -16,11 +16,11 @@ FILES = (
     'services/MaxTrackerLookupRepository.php',
     'services/MaxSubscriptionAttributionPolicy.php',
 )
-# Forward public-code target for the display-only retained membership history.
-TARGET_MANIFEST = {'version':1,'files':{'lookup.php':'76e8e0e58fb5ed075548f9db4fb19e296e89a7e07e5cbeaca42570ba6eb899cf','services/MaxTrackerLookupProtocol.php':'68be5736917e6fe8a1bbe7b46628418cc99a1ce94250aeb40595cf9f509a4b24','services/MaxTrackerLookupRepository.php':'b38c08d462daddaeaa8151a6c6aaf1e7f985f672639629be4d9455de946c3ecb','services/MaxSubscriptionAttributionPolicy.php':'2e5b35659b1aa7159b4b2b772ba0fafd1440c98bc63786ba48e3b4f9b34ef53b'}}
-TARGET_RELEASE_SHA256 = 'fc8e0677ffc4c80bb052454a2cc38cf723fbc584699e90227d5c864a6242e94a'
-# Exact installed public predecessor; revalidated remotely before any write.
-CHECKED_PREIMAGE = {'version':1,'files':{'lookup.php':'0ba2187b77adffdcfb2d00a9a3024d9d0899b93005768ff86aa565b958553e8e','services/MaxTrackerLookupProtocol.php':'c8a21dc7c29fb5903ea6104db6b5b57f33f118cc3a1735039bc783272b5b3a1b','services/MaxTrackerLookupRepository.php':'9da66b1b56c729a643585002fb91e227a8260c5e47f3e9e50783d458aacb80cf','services/MaxSubscriptionAttributionPolicy.php':'2e5b35659b1aa7159b4b2b772ba0fafd1440c98bc63786ba48e3b4f9b34ef53b'},'release_json_sha256':'1725da282bdfb1b2c8cb229440509190ad096ae32421cde700829160db89d81d'}
+# Forward public-code target for one optional signed exact-counter evidence observation.
+TARGET_MANIFEST = {'version':1,'files':{'lookup.php':'2a03f6c72df61ea5a853df53dffb976c51d0fefa154e63bf26cd157912dfe4e9','services/MaxTrackerLookupProtocol.php':'d219e9f9e39f61c0fb8a932b9024c44832c81f83b34da133dd8cde70f52d24c3','services/MaxTrackerLookupRepository.php':'0e3e4ed0e1ca355a0b14f7f16083b3403bd3579df9175d08440056912e9b141c','services/MaxSubscriptionAttributionPolicy.php':'2e5b35659b1aa7159b4b2b772ba0fafd1440c98bc63786ba48e3b4f9b34ef53b'}}
+TARGET_RELEASE_SHA256 = '53a03b67c250cc0d0db7ca4a2bc6d278f426e122e50140a4f822bac5f26af71e'
+# Expected previous public target only; a fresh six-file remote preview must verify this preimage before any write.
+CHECKED_PREIMAGE = {'version':1,'files':{'lookup.php':'76e8e0e58fb5ed075548f9db4fb19e296e89a7e07e5cbeaca42570ba6eb899cf','services/MaxTrackerLookupProtocol.php':'68be5736917e6fe8a1bbe7b46628418cc99a1ce94250aeb40595cf9f509a4b24','services/MaxTrackerLookupRepository.php':'b38c08d462daddaeaa8151a6c6aaf1e7f985f672639629be4d9455de946c3ecb','services/MaxSubscriptionAttributionPolicy.php':'2e5b35659b1aa7159b4b2b772ba0fafd1440c98bc63786ba48e3b4f9b34ef53b'},'release_json_sha256':'fc8e0677ffc4c80bb052454a2cc38cf723fbc584699e90227d5c864a6242e94a'}
 
 
 def _json(raw):
