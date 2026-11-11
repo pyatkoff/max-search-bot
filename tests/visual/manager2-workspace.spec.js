@@ -177,6 +177,8 @@ for(const width of [390,430,768,1440])test('Manager2 first advertising region st
   const latest=page.locator('.leadDetailRow').filter({has:page.locator('.label',{hasText:'Последний рекламный вход'})});
   async function regionFits(){
     await expect(entry).toBeVisible();
+    // Mobile visibility changes before the existing drawer transition finishes.
+    await expect.poll(async()=>{const box=await entry.boundingBox();return box?box.x+box.width:Infinity}).toBeLessThanOrEqual(width+1);
     const box=await entry.boundingBox();expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(width+1);
     expect(await entry.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
     await readable(page,'.leadEntryRegionCaption');await readable(page,'.leadEntryRegionValue');await noOverflow(page);
