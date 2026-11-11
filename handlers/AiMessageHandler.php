@@ -204,13 +204,15 @@ class AiMessageHandler
                 // Ни local fallback, ни второй AiRouter здесь повторно не запускаются.
 
                 // A newer scalar turn can finish while this inference is in flight.
-                // An empty search result adds no facts: do not repeat progression
-                // over that newer saved context. Results with facts and FAQ/error
-                // handling retain their existing path; this is not a turn lock.
+                // Empty results and exact echoes of already saved facts add no
+                // information: do not repeat progression over the newer context.
+                // Compare both snapshots conservatively; new/changed values and
+                // FAQ/stop/error handling retain their path. This is not a turn lock.
                 if (is_array($ai) && empty($ai['_error'])
                     && in_array((string)($ai['intent'] ?? ''), ['search', 'correction'], true)
-                    && ($ai['parameters'] ?? null) === []
-                    && MaxSearchApi::getAiSearchContext($chat_id) !== $current) {
+                    && is_array($ai['parameters'] ?? null)
+                    && ($latest = MaxSearchApi::getAiSearchContext($chat_id)) !== $current
+                    && self::repeatsSavedFacts($ai['parameters'], $current, $latest)) {
                     return;
                 }
 
@@ -300,6 +302,18 @@ class AiMessageHandler
                     "AI MISSING: ".json_encode($missing,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n"
                 );
 
+    }
+
+    /** No normalization or writes: only exact facts present in both snapshots. */
+    private static function repeatsSavedFacts(array $params, array $before, array $after): bool
+    {
+        foreach ($params as $field=>$value) {
+            if (!array_key_exists($field, $before) || !array_key_exists($field, $after)
+                || $value !== $before[$field] || $value !== $after[$field]) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** Protect only explicit facts applied and read back during this turn. */

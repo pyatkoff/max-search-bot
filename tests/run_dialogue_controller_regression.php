@@ -7,8 +7,9 @@ declare(strict_types=1);
 $departureRetryOnly = in_array('--departure-retry-only', $argv ?? [], true);
 $clarificationOnly = in_array('--useful-clarifications-only', $argv ?? [], true);
 $overlapOnly = in_array('--overlapping-turn-only', $argv ?? [], true);
+$redundantOverlapOnly = in_array('--redundant-fact-overlap-only', $argv ?? [], true);
 $jointHandoff = in_array('--compound-handoff-only', $argv ?? [], true);
-$jointOnly = $overlapOnly || $clarificationOnly || $departureRetryOnly || $jointHandoff || in_array('--compound-joint-only', $argv ?? [], true);
+$jointOnly = $redundantOverlapOnly || $overlapOnly || $clarificationOnly || $departureRetryOnly || $jointHandoff || in_array('--compound-joint-only', $argv ?? [], true);
 if ($jointOnly || in_array('--start-parity-fixture', $argv ?? [], true)) {
     $root = dirname(__DIR__);
     $tmp = sys_get_temp_dir() . '/dialogue-start-parity-' . bin2hex(random_bytes(8));
@@ -46,7 +47,7 @@ if ($jointOnly || in_array('--start-parity-fixture', $argv ?? [], true)) {
                 copy($bucket, $tmp . '/resources/yandex_regions/' . basename($bucket));
             }
         }
-        if ($jointHandoff || $departureRetryOnly || $clarificationOnly || $overlapOnly) {
+        if ($jointHandoff || $departureRetryOnly || $clarificationOnly || $overlapOnly || $redundantOverlapOnly) {
             foreach (['tests/fixtures/channel_post_entry_fixture.php','tests/fixtures/channel_post_registry_fixture.php',
                 'migrations/033_channel_post_context.sql','migrations/036_channel_post_member_delivery.sql',
                 'migrations/040_channel_post_reconciliation.sql'] as $path) {
@@ -56,7 +57,7 @@ if ($jointOnly || in_array('--start-parity-fixture', $argv ?? [], true)) {
         }
         // Handoff mode injects SQLite through the existing DB fixture. Other
         // modes reject DB access entirely; neither mode uses an external DB.
-        if (!$jointHandoff && !$departureRetryOnly && !$clarificationOnly && !$overlapOnly) file_put_contents($tmp . '/services/ConversationDb.php', <<<'PHP'
+        if (!$jointHandoff && !$departureRetryOnly && !$clarificationOnly && !$overlapOnly && !$redundantOverlapOnly) file_put_contents($tmp . '/services/ConversationDb.php', <<<'PHP'
 <?php
 class ConversationDb {
     public static function isConfigured(): bool { return false; }
@@ -365,7 +366,120 @@ PHP
                 'model_calls'=>AiInvocationService::$calls,
             ];
         };
-        if ($overlapOnly) {
+        if ($redundantOverlapOnly) {
+            require_once $tmp . '/tests/fixtures/channel_post_entry_fixture.php';
+            [$pdo, $registry, $publications] = createChannelPostEntryFixture();
+            MaxSearchApi::$canonicalStorage = true;
+            foreach (['max', 'telegram'] as $index=>$platform) {
+                $user = $chatBase + 770 + $index;
+                $chat = $platform === 'max' ? -$user : $user;
+                $chats[] = $chat;
+                $enter($platform, $user, $publications[$platform]['start_payload']);
+                $q = $pdo->prepare('SELECT id FROM conversations WHERE channel=? AND external_chat_id=? ORDER BY id DESC LIMIT 1');
+                $q->execute([$platform, (string)$chat]);
+                $id = (int)$q->fetchColumn();
+                $intent = SourceHotelIntentService::current($id);
+                (new IncomingUpdateDispatcher())->dispatch(['platform'=>$platform, 'type'=>'callback',
+                    'callback_data'=>'hotel_intent_same:'.($intent['token'] ?? ''), 'callback_id'=>'redundant.'.$user,
+                    'user'=>['chat_id'=>$chat, 'external_user_id'=>$user]]);
+                // The date was already confirmed in an earlier turn. No party
+                // count is inferred from a generic number of people.
+                $date = '18.12.'.((int)date('Y') + 1);
+                $seedNeeds = [70=>'4', 71=>'7', 72=>'8', 73=>$date];
+                MaxSearchApi::$needs[$chat] = $seedNeeds;
+                MaxSearchApi::$statuses[$chat] = MaxSearchApi::$statusAi;
+                $native = static function (int $mid, string $text) use ($user, $platform, $maxMessenger, $telegramMessenger): void {
+                    IntegrationRegistry::useMessenger($platform === 'max' ? $maxMessenger : $telegramMessenger);
+                    if ($platform === 'max') {
+                        (new IncomingUpdateDispatcher())->dispatch(MaxIncomingAdapter::fromUpdate([
+                            'update_type'=>'message_created', 'message'=>['sender'=>['user_id'=>$user],
+                                'body'=>['mid'=>(string)$mid, 'text'=>$text]],
+                        ]));
+                    } else {
+                        TelegramWebhookHandler::dispatchUpdate(['update_id'=>$mid, 'message'=>[
+                            'message_id'=>$mid, 'from'=>['id'=>$user], 'chat'=>['id'=>$user, 'type'=>'private'], 'text'=>$text,
+                        ]], null, $telegramMessenger);
+                    }
+                };
+                $mid = 950000 + $index * 100;
+                $sentBefore = count($sent);
+                AiInvocationService::$calls = [];
+                MaxSearchApi::$parameterWrites = [];
+                // Deliberately synthetic payload: the real model payload is unknown.
+                AiInvocationService::$answer = ['intent'=>'search', 'parameters'=>['date'=>$date]];
+                AiInvocationService::$duringInvoke = static function () use ($native, $mid): void {
+                    $native($mid + 2, 'Самара');
+                };
+                $native($mid + 1, 'Декабря');
+                $check($platform.' delayed redundant date invokes only the old model boundary',
+                    array_map(static fn(array $call): array => [$call[2], $call[3]['date'] ?? null], AiInvocationService::$calls), [['Декабря', $date]]);
+                $check($platform.' delayed redundant date does not repeat the newer country question',
+                    array_column(array_slice($sent, $sentBefore), 'text'), [MissingFieldQuestionService::question('country')]);
+                $expected = $seedNeeds;
+                $expected[65] = 4;
+                $check($platform.' delayed redundant date preserves the new city and independent needs', MaxSearchApi::getSavedData($chat), $expected);
+                $check($platform.' overlap never invents adults or destination',
+                    [MaxSearchApi::getAiSearchContext($chat)['adults'] ?? null, MaxSearchApi::getAiSearchContext($chat)['country'] ?? null], [null, null]);
+                $check($platform.' redundant model echo performs no extra parameter write',
+                    MaxSearchApi::$parameterWrites, [[$chat, ['city'=>'Самара']]]);
+                $q = $pdo->prepare("SELECT COUNT(*) FROM messages WHERE conversation_id=? AND direction='inbound' AND external_message_id IN (?,?)");
+                $q->execute([$id, (string)($mid + 1), (string)($mid + 2)]);
+                $check($platform.' redundant-date overlap records both distinct native inputs', (int)$q->fetchColumn(), 2);
+
+                $mid += 10;
+                $run = static function (string $text, array $answer, bool $overlap = true)
+                    use ($chat, $seedNeeds, $native, &$mid, &$sent): array {
+                    MaxSearchApi::$needs[$chat] = $seedNeeds;
+                    MaxSearchApi::$statuses[$chat] = MaxSearchApi::$statusAi;
+                    PendingMonthStore::clear($chat);
+                    AiInvocationService::$calls = [];
+                    MaxSearchApi::$parameterWrites = [];
+                    AiInvocationService::$answer = $answer;
+                    $oldMid = ($mid += 2);
+                    AiInvocationService::$duringInvoke = $overlap
+                        ? static function () use ($native, $oldMid): void { $native($oldMid + 1, 'Самара'); }
+                        : null;
+                    $before = count($sent);
+                    $native($oldMid, $text);
+                    return array_column(array_slice($sent, $before), 'text');
+                };
+                $check($platform.' redundant correction has the same overlap guard',
+                    $run('Декабря', ['intent'=>'correction', 'parameters'=>['date'=>$date]]),
+                    [MissingFieldQuestionService::question('country')]);
+                $check($platform.' redundant correction also writes only the newer city',
+                    MaxSearchApi::$parameterWrites, [[$chat, ['city'=>'Самара']]]);
+
+                $check($platform.' without overlap a repeated date keeps ordinary progression',
+                    $run('Декабря', ['intent'=>'search', 'parameters'=>['date'=>$date]], false),
+                    [MissingFieldQuestionService::question('city')]);
+                $check($platform.' ordinary repeated date preserves all saved needs', MaxSearchApi::getSavedData($chat), $seedNeeds);
+
+                $run('Декабря', ['intent'=>'correction', 'parameters'=>['date'=>$date, 'stars'=>5]]);
+                $withStars = $expected;
+                $withStars[70] = 5;
+                $check($platform.' mixed redundant and new facts still apply the new fact', MaxSearchApi::getSavedData($chat), $withStars);
+                $newDate = '19.12.'.((int)date('Y') + 1);
+                $run('Перенесём поездку', ['intent'=>'correction', 'parameters'=>['date'=>$newDate]]);
+                $withDate = $expected;
+                $withDate[73] = $newDate;
+                $check($platform.' a genuinely changed delayed date is not discarded', MaxSearchApi::getSavedData($chat), $withDate);
+
+                foreach ([
+                    ['question', 'Есть ли бассейн?', 'Условия посещения бассейна можно уточнить у менеджера.'],
+                    ['stop', 'Пока не буду выбирать', 'Хорошо, можно вернуться к подбору позже.'],
+                ] as [$intentName, $text, $reply]) {
+                    $check($platform.' nonempty delayed '.$intentName.' retains its reply',
+                        $run($text, ['intent'=>$intentName, 'parameters'=>['date'=>$date], 'reply'=>$reply]),
+                        [MissingFieldQuestionService::question('country'), $reply]);
+                    $check($platform.' delayed '.$intentName.' preserves independent needs and newer city',
+                        MaxSearchApi::getSavedData($chat), $expected);
+                }
+                $check($platform.' delayed error remains on its existing error path',
+                    $run('Декабря', ['_error'=>'synthetic timeout', 'intent'=>'search', 'parameters'=>['date'=>$date]]),
+                    [MissingFieldQuestionService::question('country'), MissingFieldQuestionService::question('country')]);
+                $check($platform.' delayed error preserves all saved needs', MaxSearchApi::getSavedData($chat), $expected);
+            }
+        } elseif ($overlapOnly) {
             require_once $tmp . '/tests/fixtures/channel_post_entry_fixture.php';
             [$pdo, $registry, $publications] = createChannelPostEntryFixture();
             MaxSearchApi::$canonicalStorage = true;
@@ -1003,7 +1117,7 @@ PHP
         foreach ($files as $file) { if ($file->isDir()) rmdir($file->getPathname()); else unlink($file->getPathname()); }
         rmdir($tmp);
     }
-    echo ($overlapOnly ? "OVERLAPPING TURN" : ($clarificationOnly ? "USEFUL CLARIFICATIONS" : ($departureRetryOnly ? "DEPARTURE RETRY" : ($jointHandoff ? "COMPOUND HANDOFF" : ($jointOnly ? "COMPOUND JOINT" : "DIALOGUE START PARITY"))))) . ": PASS {$passed} FAIL {$failed}\n";
+    echo ($redundantOverlapOnly ? "REDUNDANT FACT OVERLAP" : ($overlapOnly ? "OVERLAPPING TURN" : ($clarificationOnly ? "USEFUL CLARIFICATIONS" : ($departureRetryOnly ? "DEPARTURE RETRY" : ($jointHandoff ? "COMPOUND HANDOFF" : ($jointOnly ? "COMPOUND JOINT" : "DIALOGUE START PARITY")))))) . ": PASS {$passed} FAIL {$failed}\n";
     exit($failed > 0 ? 1 : 0);
 }
 
@@ -1083,6 +1197,11 @@ $fixtureOutput = [];
 exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' --overlapping-turn-only 2>&1', $fixtureOutput, $fixtureStatus);
 foreach ($fixtureOutput as $line) echo $line . PHP_EOL;
 dcCheck('overlapping native input fixture', $fixtureStatus, 0);
+
+$fixtureOutput = [];
+exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' --redundant-fact-overlap-only 2>&1', $fixtureOutput, $fixtureStatus);
+foreach ($fixtureOutput as $line) echo $line . PHP_EOL;
+dcCheck('redundant fact overlapping native input fixture', $fixtureStatus, 0);
 
 $total = $passed + $failed;
 echo "\n--------------------------\n";
