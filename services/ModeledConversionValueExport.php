@@ -161,7 +161,12 @@ final class ModeledConversionValueExport
             $self->prepareIdentityEvidence();
             $finite=$self->prepareFiniteEvidence($now,$gate);
             $recovery=$self->prepareRecoveryEvidence($now);
-            $pending=$self->rows('pending',$now,MaxTrackerLookupProtocol::MAX_USERS-count($finite)-count($recovery));
+            $reserved=[];foreach(array_merge($finite,$recovery)as$row)$reserved[(string)$row['id']]=$row;
+            $pending=$self->rows('pending',$now,MaxTrackerLookupProtocol::MAX_USERS-count($reserved),array_keys($reserved));
+            foreach($reserved as$row)if($row['state']==='pending'
+                &&(is_int($row['next_attempt_unix'])||is_string($row['next_attempt_unix']))
+                &&preg_match('/\A(?:0|[1-9][0-9]*)\z/D',(string)$row['next_attempt_unix'])===1
+                &&(int)$row['next_attempt_unix']<=$now)$pending[]=$row;
             $users=[];foreach($pending as$r)if($r['platform']==='max'&&$self->eligible($r,$gate))$users[]=$r['external_user_id'];
             foreach(array_merge($finite,$recovery)as$r)if($r['platform']==='max'&&$self->finiteEligible($r,$gate))$users[]=$r['external_user_id'];
             $identities=[];$lookupReturned=false;
@@ -534,10 +539,14 @@ final class ModeledConversionValueExport
         $q=$this->pdo->prepare("SELECT ".$expr." FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND platform=? AND conversation_id=? ORDER BY id DESC LIMIT 1");
         $q->execute([$r['platform'],$r['conversation_id']]);return $q->fetchColumn()==='allowed';
     }
-    private function rows(string $state,int $now,int $limit):array
+    private function rows(string $state,int $now,int $limit,array $excluded=[]):array
     {
-        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state=? AND transport_target=? AND value_contract=? AND next_attempt_unix<=? ORDER BY next_attempt_unix,id LIMIT ".min($state==='pending'?MaxTrackerLookupProtocol::MAX_USERS:5,max(1,$limit)));
-        $q->execute([$state,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$now]);return$q->fetchAll(PDO::FETCH_ASSOC);
+        $excluded=$state==='pending'?array_values(array_unique(array_map('strval',$excluded))):[];
+        if(count($excluded)>3)throw new RuntimeException('finite_source_bound');
+        foreach($excluded as$id)if(preg_match('/\A[1-9][0-9]{0,19}\z/D',$id)!==1)throw new RuntimeException('finite_source_bound');
+        $skip=$excluded?' AND id NOT IN ('.implode(',',array_fill(0,count($excluded),'?')).')':'';
+        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state=? AND transport_target=? AND value_contract=? AND next_attempt_unix<=?".$skip." ORDER BY next_attempt_unix,id LIMIT ".min($state==='pending'?MaxTrackerLookupProtocol::MAX_USERS:5,max(1,$limit)));
+        $q->execute([$state,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$now,...$excluded]);return$q->fetchAll(PDO::FETCH_ASSOC);
     }
     private function resolve(array $r,array $identities,int $now,callable $gate,bool $lookupReturned=false):bool
     {
@@ -658,7 +667,7 @@ final class ModeledConversionValueExport
         $key=$mysql?"CONCAT('anytour_value_pred_',p.id,'_v1')":"'anytour_value_pred_'||p.id||'_v1'";
         $fields=['id','value_profile_id','project_key','platform','conversation_id','external_user_id','counter_id',
             'target','transport_target','value_contract','event_unix','value_rub','state','upload_id','upload_status',
-            'identity_source_key','value_origin','value_ready_at_unix','value_api_accepted_at_unix'];
+            'identity_source_key','value_origin','next_attempt_unix','value_ready_at_unix','value_api_accepted_at_unix'];
         $sql='SELECT '.($mysql?'/*+ MAX_EXECUTION_TIME(250) */ ':'').implode(',',array_map(static fn(string $v):string=>'o.'.$v,$fields))
             .' FROM modeled_conversion_profile_versions p JOIN max_channel_conversion_outbox o ON o.value_profile_id=p.id'
             .' AND o.project_key=p.project_key AND o.conversation_id=p.conversation_id AND o.target='.$key

@@ -220,6 +220,7 @@ function modeledValueAssertions(PDO $p,callable $check):void
     modeledValueFailureRetentionAssertions($p,$check);
     modeledValueIdentityEvidenceAssertions($p,$check);
     modeledValueFiniteVisitAssertions($p,$check);
+    modeledValueVisitRecoveryAssertions($p,$check);
     $now=1793650000;$gate=static fn(string $chat):bool=>true;
     modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $check('actual forward migration is default OFF',ModeledConversionValueExport::settings($p)['mode']==='off');
@@ -1411,6 +1412,213 @@ function modeledValueReportResponseEvidenceAssertions(callable $check):void
     $check('successful ordinary report keeps unchanged goal totals with no failure category or extra request',
         $calls===1&&$r['status']==='ok'&&$r['goal_reaches']===2&&$r['goal_visits']===1&&$r['revenue_rub']===833.0
         &&$r['http_status']===200&&$r['transport_error_code']===0&&$r['failure_category']===null);
+}
+
+
+/** A forward finite attempt is gated by this healthy ordinary response and never rewrites the original result. */
+function modeledValueVisitRecoveryAssertions(PDO $p,callable $check):void
+{
+    $now=ModeledConversionValueVisitEvidence::CHECKPOINT+2400;$event=ModeledConversionValueVisitEvidence::CHECKPOINT-100;
+    $oldAt=ModeledConversionValueVisitEvidence::CHECKPOINT+600;$ns=ModeledConversionProfiles::assessmentNamespace();$gate=static fn(string $chat):bool=>true;
+    $healthy=static fn(int $at):array=>['status'=>'ok','goal_id'=>'678187097','currency'=>'RUB','fetched_at'=>gmdate('Y-m-d\TH:i:s\Z',$at),
+        'date1'=>'2026-10-20','date2'=>'2026-11-11','goal_reaches'=>2,'goal_visits'=>1,'revenue_rub'=>833.0,'sampled'=>false,
+        'http_status'=>200,'transport_error_code'=>0,'failure_category'=>null];
+    $setup=static function(bool $priorHealthy=true)use($p,$now,$event,$oldAt,$ns,$gate,$healthy):array{
+        modeledValueSchema($p);$p->exec("ALTER TABLE modeled_conversion_profile_versions ADD COLUMN assessment_namespace CHAR(64)");
+        $p->exec("ALTER TABLE modeled_conversion_profile_versions ADD COLUMN assessment_kind VARCHAR(8)");
+        $wire=new ModeledValueTestWire();$control=new ModeledConversionValueExport($p);
+        $control->configure('create-goal',$wire->api(),$now-4000);$control->configure('enable',$wire->api(),$now-4000);
+        for($i=1;$i<=3;$i++)modeledValueSave($p,modeledExpertWrapper(modeledValueBinding($p,6600+$i),$event,200000));
+        $p->prepare("UPDATE modeled_conversion_profile_versions SET observed_at_unix=?,assessment_namespace=?,assessment_kind='repair'")->execute([$event,$ns]);
+        while($control->collect(ModeledConversionValueExport::settings($p),$now,$gate)>0){}
+        $rows=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        $original=['v'=>ModeledConversionValueVisitEvidence::VERSION,'n'=>$ns,'b'=>ModeledConversionValueVisitEvidence::CHECKPOINT,'r'=>[]];$records=[];
+        foreach($rows as$i=>$row){
+            $ref=ModeledConversionValueIdentityEvidence::reference($row,$ns);
+            if($i<2){
+                $record=['external_user_id'=>$row['external_user_id'],'client_id'=>'880000'.$row['external_user_id'],'record_id'=>'90000000000000301','observed_at_unix'=>$event-40*86400];
+                $hash=ModeledConversionValueVisitEvidence::candidateReference($ref,$record['client_id'],$record['record_id'],$record['observed_at_unix'],'canonical_max_lookup');
+                $original['r'][]=[$ref,(string)$row['id'],2,$oldAt-1,$oldAt,1,$record['client_id'],$record['record_id'],$record['observed_at_unix'],$hash,2,false,4,null,0,$event];
+                $records[$row['external_user_id']]=$record;
+            }else{$original['r'][]=[$ref,(string)$row['id'],2,null,$oldAt,3,null,null,null,null,0,null,0,null,0,$event];$records[$row['external_user_id']]=null;}
+        }
+        $receipt=['errors'=>0,'metrika_report'=>$priorHealthy?$healthy($now-300):['status'=>'unavailable','http_status'=>503,'transport_error_code'=>0,'failure_category'=>'provider_unavailable'],
+            'finite_visit_evidence'=>$original];
+        $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=?,last_receipt_json=? WHERE project_key='anytour'")->execute([$now-300,json_encode($receipt,JSON_THROW_ON_ERROR)]);
+        $stored=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+        return [$rows,$records,$stored['finite_visit_evidence'],$control];
+    };
+    $lookup=static fn(array $records):object=>new class($records){
+        public int $calls=0;public array $queried=[];
+        public function __construct(public array $records){}
+        public function lookup(string $counter,array $users):array{$this->calls++;$this->queried=$users;return array_intersect_key($this->records,array_fill_keys($users,true));}
+    };
+    $api=static fn():object=>new class($healthy,$event){
+        public int $checks=0;public int $reports=0;public bool $ok=true;public int $offset=0;public array $responses=[];public mixed $observe=null;
+        public function __construct(private $healthy,private int $event){}
+        public function modeledValueReport(int $since,int $now):array{
+            $this->reports++;return $this->ok?($this->healthy)($now+$this->offset):
+                ['status'=>'unavailable','goal_id'=>'678187097','currency'=>'RUB','fetched_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),'sampled'=>null,'http_status'=>503,'transport_error_code'=>0,'failure_category'=>'provider_unavailable'];
+        }
+        public function modeledAttributionVisits(string $client,int $event,int $now,?callable $admit=null):array{
+            $this->checks++;if(is_callable($this->observe))($this->observe)();
+            return $this->responses[$client]??['status'=>'ok','visits'=>[['started_at'=>gmdate('Y-m-d\TH:i:s\Z',$this->event-60),'visits'=>1,'source_class'=>'other_or_unknown']]];
+        }
+    };
+    $saved=static fn():array=>json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    $financial=static fn():array=>$p->query('SELECT id,conversation_id,external_user_id,event_unix,value_rub,value_profile_id,value_stage,state,client_id,tracker_record_id,tracker_observed_unix,next_attempt_unix,attempts,claim_token,upload_id,upload_status,last_error FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    [$rows,$records,$old]=$setup(false);$source=$lookup($records);$provider=$api();
+    ModeledConversionValueExport::tick($p,$source,$provider,$now,$gate);$baseline=$financial();
+    $check('a first healthy ordinary response after a failed prior report does not invent reserved recovery authority',$provider->checks===0);
+    [$rows,$records,$old]=$setup();$source=$lookup($records);$provider=$api();$provider->ok=false;
+    ModeledConversionValueExport::tick($p,$source,$provider,$now,$gate);
+    $pending=$saved()['finite_visit_recovery']??null;
+    $check('a cached healthy report cannot authorize recovery when this actual ordinary response is 503',
+        $provider->checks===0&&is_array($pending)&&array_column($pending['r'],2)===[0,0]
+        &&$saved()['finite_visit_evidence']===$old&&$saved()['errors']===0&&$financial()===$baseline);
+    $provider->ok=true;ModeledConversionValueExport::tick($p,$source,$provider,$now+301,$gate);
+    $check('a previous failed ordinary tick still prevents reservation on the first subsequent healthy tick',$provider->checks===0);
+    $intentSeen=true;$outside=true;
+    $provider->observe=static function()use($p,$saved,$ns,$now,$old,&$intentSeen,&$outside):void{
+        $r=$saved();$journal=ModeledConversionValueVisitRecovery::decode($r['finite_visit_recovery']??null,$old,$ns,$now+602);
+        $intentSeen=$intentSeen&&$journal!==null&&count(array_filter($journal['r'],static fn(array $row):bool=>$row[2]===1))===1;
+        $outside=$outside&&!$p->inTransaction();
+    };
+    ModeledConversionValueExport::tick($p,$source,$provider,$now+602,$gate);
+    $done=$saved()['finite_visit_recovery'];$projection=ModeledConversionValueVisitRecovery::projection($done,$old,$ns,$now+602);
+    $check('two known completed unavailable cases receive one forward attempt only after a fresh healthy ordinary response',
+        $provider->checks===2&&$intentSeen&&$outside&&$projection['complete']&&$projection['checks_consumed']===2
+        &&array_column($done['r'],2)===[2,2]&&$saved()['finite_visit_evidence']===$old);
+    ModeledConversionValueExport::tick($p,$source,$provider,$now+903,$gate);
+    $check('observed recovery outcomes are retained and never automatically replayed',$provider->checks===2&&$saved()['finite_visit_recovery']===$done);
+    $order=['r'=>$old['r'],'b'=>$old['b'],'n'=>$old['n'],'v'=>$old['v']];
+    $check('the original frame digest is independent of native JSON object key order',
+        ModeledConversionValueVisitRecovery::originalDigest($order,$ns,$now)===ModeledConversionValueVisitRecovery::originalDigest($old,$ns,$now));
+    $missing=ModeledConversionValueVisitRecovery::projection(null,$old,$ns,$now);
+    $check('unrecorded eligible recovery is explicit pending with zero consumed checks rather than a saved attempt',
+        $missing['available']&&!$missing['recorded']&&$missing['checks_consumed']===0&&count($missing['rows'])===2);
+    foreach(['http_status'=>503,'transport_error_code'=>28,'sampled'=>true]as$key=>$value){
+        $bad=$healthy($now);$bad[$key]=$value;$check('current ordinary health fails closed for '.$key,!ModeledConversionValueVisitRecovery::healthyOrdinary($bad,$now));
+    }
+    $check('stale health can be a reservation hint only within its bounded age and never this-tick authority',
+        ModeledConversionValueVisitRecovery::healthyOrdinary($healthy($now-300),$now,600)
+        &&!ModeledConversionValueVisitRecovery::healthyOrdinary($healthy($now-300),$now)
+        &&!ModeledConversionValueVisitRecovery::healthyOrdinary($healthy($now-601),$now,600));
+
+    [$rows,$records,$old]=$setup();$source=$lookup($records);$provider=$api();$first=$records[$rows[0]['external_user_id']]['client_id'];
+    $provider->responses[$first]=['status'=>'unavailable','visits'=>[]];
+    ModeledConversionValueExport::tick($p,$source,$provider,$now,$gate);
+    $failed=$saved()['finite_visit_recovery'];
+    $check('the first unavailable forward check consumes itself and leaves the second pending without another provider call',
+        $provider->checks===1&&$failed['r'][0][2]===2&&$failed['r'][0][5]===2&&$failed['r'][1][2]===0&&$saved()['finite_visit_evidence']===$old);
+    ModeledConversionValueExport::tick($p,$source,$provider,$now+301,$gate);
+    $check('the remaining pending case can cooperate with a later healthy natural tick without replaying the consumed failure',
+        $provider->checks===2&&array_column($saved()['finite_visit_recovery']['r'],2)===[2,2]&&$saved()['finite_visit_evidence']===$old);
+
+    [$rows,$records,$old]=$setup();unset($records[$rows[1]['external_user_id']]);$source=$lookup($records);$provider=$api();
+    ModeledConversionValueExport::tick($p,$source,$provider,$now,$gate);
+    $check('a missing canonical response key is not a not-found result or a changed binding',
+        $provider->checks===1&&$saved()['finite_visit_recovery']['r'][1][2]===0&&$saved()['finite_visit_recovery']['r'][1][10]===0);
+    [$rows,$records,$old]=$setup();$records[$rows[1]['external_user_id']]['record_id']='90000000000000302';$source=$lookup($records);$provider=$api();
+    ModeledConversionValueExport::tick($p,$source,$provider,$now,$gate);
+    $check('a genuinely different canonical candidate receives no recovery visit request and never rewrites the old candidate',
+        $provider->checks===1&&$saved()['finite_visit_recovery']['r'][1][2]===3&&$saved()['finite_visit_recovery']['r'][1][10]===3
+        &&$saved()['finite_visit_evidence']===$old);
+
+    [$rows,$records,$old]=$setup();$shared=new ModeledConversionValueExport($p);
+    (new ReflectionMethod($shared,'prepareFiniteEvidence'))->invoke($shared,$now,$gate);
+    (new ReflectionMethod($shared,'prepareRecoveryEvidence'))->invoke($shared,$now);
+    foreach(['finiteIdentities'=>$records,'finiteLookupReturned'=>true,'finiteChecksUsed'=>1]as$key=>$value)(new ReflectionProperty($shared,$key))->setValue($shared,$value);
+    $provider=$api();(new ReflectionMethod($shared,'runRecoveryEvidence'))->invoke($shared,$provider,$now,$gate,static fn():int=>$now,$healthy($now));
+    $check('one already consumed original logical check leaves at most one forward check within the same shared two-check budget',
+        $provider->checks===1&&array_column($saved()['finite_visit_recovery']['r'],2)===[2,0]&&$saved()['finite_visit_evidence']===$old);
+    $unknown=$old;$unknown['r'][0][2]=1;$unknown['r'][0][4]=null;$unknown['r'][0][10]=0;$unknown['r'][0][11]=null;$unknown['r'][0][12]=0;
+    $check('consumed UNKNOWN original events are never eligible for the forward protocol',
+        ModeledConversionValueVisitRecovery::create($unknown,$ns,$now)===null);
+
+    [$rows,$records,$old]=$setup();$owner=new ModeledConversionValueExport($p);
+    (new ReflectionMethod($owner,'prepareFiniteEvidence'))->invoke($owner,$now,$gate);
+    (new ReflectionMethod($owner,'prepareRecoveryEvidence'))->invoke($owner,$now);
+    $journal=$saved()['finite_visit_recovery'];$intent=$journal['r'][0];$intent[2]=1;$intent[3]=$now;$intent[10]=1;
+    $firstClaim=(new ReflectionMethod($owner,'recoverySave'))->invoke($owner,$intent,0,$now);
+    $duplicate=(new ReflectionMethod($owner,'recoverySave'))->invoke($owner,$intent,0,$now);
+    $other=new ModeledConversionValueExport($p);(new ReflectionMethod($other,'prepareFiniteEvidence'))->invoke($other,$now,$gate);
+    (new ReflectionMethod($other,'prepareRecoveryEvidence'))->invoke($other,$now);
+    foreach(['finiteIdentities'=>$records,'finiteLookupReturned'=>true]as$key=>$value)(new ReflectionProperty($other,$key))->setValue($other,$value);
+    $before=$financial();$provider=$api();
+    (new ReflectionMethod($other,'runRecoveryEvidence'))->invoke($other,$provider,$now,$gate,static fn():int=>$now,$healthy($now));
+    $held=$saved()['finite_visit_recovery'];
+    $check('an interrupted new intent is consumed UNKNOWN while another case may finish without financial mutation',
+        $firstClaim&&!$duplicate&&$held['r'][0][2]===1&&$provider->checks===1&&$held['r'][1][2]===2
+        &&$financial()===$before&&$saved()['finite_visit_evidence']===$old);
+    $private=json_encode(ModeledConversionValueVisitRecovery::projection($held,$old,$ns,$now),JSON_THROW_ON_ERROR);
+    $check('the forward journal and its projection expose no source identity or private record bytes',
+        strlen(json_encode($held))<=2048&&!str_contains($private,'880000'.$rows[0]['external_user_id'])
+        &&!str_contains($private,'90000000000000301')&&!str_contains($private,'client_id'));
+    $measure=static function(array $value)use($p):int{
+        $json=json_encode($value,JSON_THROW_ON_ERROR);if($p->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql')return strlen($json);
+        $q=$p->prepare('SELECT OCTET_LENGTH(CAST(? AS JSON))');$q->execute([$json]);return(int)$q->fetchColumn();
+    };
+    foreach([$journal,$held]as$capped){
+        $base=['errors'=>1,'accepted'=>2,'processed'=>3,'metrika_report'=>$healthy($now),
+            'last_recorded_failure'=>['tick_at_unix'=>$now-10,'phase'=>'upload','category'=>'api_rejected'],'finite_visit_evidence'=>$old,'padding'=>''];
+        $base['padding']=str_repeat('x',8000-$measure($base));
+        $packed=(new ReflectionMethod($owner,'withRecoveryEvidence'))->invoke($owner,$base,['finite_visit_recovery'=>$capped],$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql');
+        $check('pending or consumed recovery overflow yields only its own permanent tombstone and preserves valid original evidence and financial history',
+            $measure($packed)<=8192&&$packed['finite_visit_recovery']===false&&$packed['finite_visit_evidence']===$old
+            &&$packed['errors']===1&&$packed['accepted']===2&&$packed['processed']===3&&$packed['last_recorded_failure']===$base['last_recorded_failure']);
+    }
+
+    // A delayed writer must not replace a newer journal with its old in-memory pending membership.
+    $winner=$saved();$winner['last_recorded_failure']=['tick_at_unix'=>$now+10,'phase'=>'upload','category'=>'api_rejected'];
+    $newFailure=['tick_at_unix'=>$now+300,'phase'=>'collect_profiles','category'=>'processing_failed'];
+    $winner['padding']='';$expanded=$winner;$expanded['last_recorded_failure']=$newFailure;
+    $winner['padding']=str_repeat('x',8193-$measure($expanded));
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=?,last_receipt_json=? WHERE project_key='anytour'")
+        ->execute([$now+900,json_encode($winner,JSON_THROW_ON_ERROR)]);
+    $beforeSettings=ModeledConversionValueExport::settings($p);
+    (new ReflectionMethod($owner,'persistTickReceipt'))->invoke($owner,['errors'=>99,'metrika_report'=>['status'=>'unavailable']],null,$now+300);
+    $check('a delayed unchanged tick preserves the newer original and recovery journal byte-for-byte',
+        ModeledConversionValueExport::settings($p)===$beforeSettings);
+    (new ReflectionMethod($owner,'persistTickReceipt'))->invoke($owner,['errors'=>99,'metrika_report'=>['status'=>'unavailable']],$newFailure,$now+300);
+    $after=$saved();$beforeWithout=$winner;unset($beforeWithout['finite_visit_recovery']);$beforeWithout['last_recorded_failure']=$newFailure;
+    $afterWithout=$after;unset($afterWithout['finite_visit_recovery']);
+    $check('a delayed new failure yields only the winning new journal while retaining original proof counts and clocks',
+        $measure($after)<=8192&&$after['finite_visit_recovery']===false&&$after['finite_visit_evidence']===$old
+        &&modeledValueFailureJsonEqual($afterWithout,$beforeWithout)
+        &&ModeledConversionValueExport::settings($p)['last_tick_unix']===$beforeSettings['last_tick_unix']);
+
+    [$rows,$records,$old]=$setup();$source=$lookup($records);$provider=$api();
+    $oversized=['finite_visit_evidence'=>$old,'finite_visit_recovery'=>$held,'padding'=>str_repeat('x',8200)];
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode($oversized,JSON_THROW_ON_ERROR)]);
+    ModeledConversionValueExport::tick($p,$source,$provider,$now,$gate);
+    ModeledConversionValueExport::tick($p,$source,$provider,$now+301,$gate);
+    $check('an unreadable consumed receipt durably tombstones both scopes across ordinary financial overwrites without any replay',
+        $provider->checks===0&&$saved()['finite_visit_evidence']===false&&$saved()['finite_visit_recovery']===false&&$saved()['errors']===0);
+
+    // Fixed reserved identities must not consume the ordinary fresh-source portion twice.
+    foreach([2,3]as$reserve){
+        [$rows,$records,$old,$control]=$setup();
+        if($reserve===3){
+            foreach($old['r']as$i=>$row)$old['r'][$i]=[$row[0],$row[1],0,null,null,0,null,null,null,null,0,null,0,null,0,$row[15]];
+            $r=$saved();$r['finite_visit_evidence']=$old;
+            $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode($r,JSON_THROW_ON_ERROR)]);
+        }
+        for($i=1;$i<=24;$i++){
+            $scope=modeledValueBinding($p,6700+$i);modeledValueSave($p,modeledExpertWrapper($scope,$now-1,200000));
+            $records[(string)(70000+6700+$i)]=null;
+        }
+        while($control->collect(ModeledConversionValueExport::settings($p),$now,$gate)>0){}
+        $p->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=? WHERE id IN (?,?,?)")
+            ->execute([$now+900,...array_column($rows,'id')]);
+        $reservedBefore=$p->query('SELECT id,state,next_attempt_unix,last_error,attempts,client_id FROM max_channel_conversion_outbox WHERE id<='.($reserve).' ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        $source=$lookup($records);$provider=$api();$provider->responses[$records[$rows[0]['external_user_id']]['client_id']]=['status'=>'unavailable','visits'=>[]];
+        ModeledConversionValueExport::tick($p,$source,$provider,$now,$gate);
+        $freshDone=(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE conversation_id>=6701 AND last_error='identity_not_found'")->fetchColumn();
+        $reservedAfter=$p->query('SELECT id,state,next_attempt_unix,last_error,attempts,client_id FROM max_channel_conversion_outbox WHERE id<='.($reserve).' ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        $check('reserved '.$reserve.' exact identities preserve real fresh source capacity and never financially resolve a non-due reserved row',
+            $source->calls===1&&count($source->queried)===25&&$freshDone===25-$reserve&&$reservedBefore===$reservedAfter);
+    }
 }
 
 if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){
