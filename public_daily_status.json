@@ -1,19 +1,19 @@
 {
     "ok": true,
-    "generated_at": "2026-11-11T10:24:54+00:00",
+    "generated_at": "2026-11-11T10:35:36+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 59,
-        "raw_sessions": 59,
+        "sessions": 61,
+        "raw_sessions": 61,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 59,
+            "resolved": 61,
             "unresolved": 0
         },
-        "started": 53,
+        "started": 54,
         "needs_collected": 5,
         "tours_opened": 4,
         "site_opened": 0,
@@ -31,11 +31,11 @@
             "max_seconds": 67360
         },
         "drop_points": {
-            "collecting_needs": 17,
+            "collecting_needs": 18,
             "manager_replied": 15,
             "customer_replied_after_manager": 12,
             "manager_requested": 8,
-            "started_only": 6,
+            "started_only": 7,
             "tours_opened": 1
         },
         "flags": {
@@ -45,7 +45,7 @@
             "repeated_same_input": 1
         },
         "calendar_day": {
-            "conversations_started": 44,
+            "conversations_started": 46,
             "needs_collected_from_started": 4,
             "tours_opened_from_started": 3,
             "site_opened": 0,
@@ -56,13 +56,13 @@
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-11T10:24:54Z",
+        "sampled_at": "2026-11-11T10:35:36Z",
         "available": true,
         "error": null,
         "mode": "send",
         "activated": true,
         "queue_counts": {
-            "pending": 29,
+            "pending": 30,
             "ready": 0,
             "uploading": 0,
             "accepted": 0,
@@ -73,7 +73,7 @@
             "expired": 0,
             "retired": 0
         },
-        "queue_total": 33
+        "queue_total": 34
     },
     "local_date": "2026-11-11",
     "local_day_started_at": "2026-11-11T00:00:00+02:00",
