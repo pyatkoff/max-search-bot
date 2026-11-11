@@ -1,0 +1,42 @@
+{
+  "public_post_url": "https://max.ru/channel_appleservice39ru/AaG9bRUxHcg",
+  "canonical_channel_url": "https://max.ru/channel_appleservice39ru",
+  "public_channel_id": 80917954947727,
+  "public_html_sha256": "64444d79cb30e8055cafb0ea3dbedcd4d07de6c966672b48cfe406bb8394fd6f",
+  "public_html_bytes": 20752,
+  "literal_data_offset": 15967,
+  "literal_data_length": 2413,
+  "native_photo_id": "47197435985",
+  "photo_reference_id": 47197435985,
+  "native_payload_url_sha256": "ebc131dc1fd04d355d1e79d0be9df6e47c1ee834e8cbea44b012bd233cd2daa8",
+  "ssr_attachment_url_sha256": "b83ea74d6575e536ac39ff4d38a74d517a818354598db83ea162fb8405344ba6",
+  "exact_native_locator_match": false,
+  "source": "actual public post Svelte data[1].data.linkInfo.message PHOTO attachment",
+  "reviewed_at_utc": "2026-11-11T09:17:08.458475+00:00",
+  "source_png": {
+    "bytes": 1660917,
+    "sha256": "e310b03cf312d16ea9c85d7ace5ef064a0b66b51bac2dfb11854c078c076d02b",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "format": "PNG"
+  },
+  "public_native_preview": {
+    "bytes": 73438,
+    "sha256": "86d7a12e03af8b7ec10855b36af0e8e87e925617492ae4161f27a3ab4205a3f2",
+    "dimensions": [
+      768,
+      768
+    ],
+    "format": "JPEG"
+  },
+  "native_readback_run_id": 42992953202,
+  "native_readback_job_id": 130430788405,
+  "visual_review": {
+    "source_asset_opened": true,
+    "native_preview_opened": true,
+    "exact_layout_model_service_price_qualifiers": true
+  },
+  "review_notes": "Opened source PNG and actual public native JPEG individually. Same complete square composition, AppleService39, Замена дисплея, iPhone, Калининград and Гарантия 3 месяца, blue front-facing phone, text and spacing. No price or other qualifier is added or lost. Exact public SSR PHOTO photoId/referenceId47197435985 equals original provider GET photo_id47197435985 for the same MID/public URL. The two different locator hashes and different PNG/JPEG bytes/dimensions are explicit. No URL/token decoding, automatic similarity approval or new provider attempt."
+}

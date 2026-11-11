@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_native_replacement",
+  "campaign_key": "appleservice39-pilot-v1",
+  "project_key": "appleservice39",
+  "bot_key": "id390521129062_bot",
+  "channel_id": "-80917954947727",
+  "post_id": "service-display",
+  "message_id": "mid.ffffb667d20a157101a1bd6d15311dc8",
+  "public_url": "https://max.ru/channel_appleservice39ru/AaG9bRUxHcg",
+  "revision_sha256": "f92835c769d4a6875b5e8eab846cf13a52ee51030f71f3f5b0ff89b783f00bd3",
+  "source_sha256": "e310b03cf312d16ea9c85d7ace5ef064a0b66b51bac2dfb11854c078c076d02b",
+  "upload_operation_id": 143,
+  "upload_request_sha256": "63d98b07743942d33db9350821e476d1909b77eac8052aeef516f570dbb8b10f",
+  "upload_token_sha256": "0f0f9ac6eb20c558ead97b9e27e6a2eea8f30e76dcbde875cec05a50302f82d3",
+  "edit_operation_id": 151,
+  "edit_request_sha256": "56e89b45daa81bed2dc104b91d705b7b3a5521a6f2aad86dc0fff56b2a769f9c",
+  "edit_started_ms": 1794388401205,
+  "native_photo_id": "47197435985",
+  "native_preview_sha256": "86d7a12e03af8b7ec10855b36af0e8e87e925617492ae4161f27a3ab4205a3f2",
+  "native_preview_width": 768,
+  "native_preview_height": 768,
+  "native_payload_url_sha256": "ebc131dc1fd04d355d1e79d0be9df6e47c1ee834e8cbea44b012bd233cd2daa8",
+  "native_readback_run_id": 42992953202,
+  "native_readback_job_id": 130430788405,
+  "visual_review": {
+    "source_asset_opened": true,
+    "native_preview_opened": true,
+    "exact_layout_model_service_price_qualifiers": true
+  }
+}
