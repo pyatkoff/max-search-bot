@@ -1161,15 +1161,24 @@ test('Manager2 reply editor keeps canonical IME, unknown and newer-draft send se
 test('Manager2 reply editor preserves native File identity and partial unknown delivery',async({page})=>{
   await page.setViewportSize({width:390,height:420});const s=await setup(page);await openLead(page);await editorReady(page);
   await page.evaluate(()=>{
-    window.editorFiles=[];window.editorUploads=[];
+    window.editorFiles=[];window.editorUploads=[];window.editorUploadProof=[];
     document.querySelector('#replyFile').addEventListener('change',event=>{window.editorFiles=[...event.target.files]},true);
     const append=FormData.prototype.append;FormData.prototype.append=function(name,value,...rest){if(name==='file')window.editorUploads.push(value);return append.call(this,name,value,...rest)};
+    // Observe the real FormData without replacing native fetch. Host Chrome
+    // can omit binary multipart postData from Playwright interception.
+    const fetch=window.fetch;window.fetch=function(url,options){if(String(url).endsWith('media-upload.php')&&options?.body instanceof FormData){const fields={};for(const [name,value] of options.body)fields[name]=value instanceof File?{name:value.name,size:value.size,type:value.type}:value;editorUploadProof.push(fields)}return fetch.apply(this,arguments)};
   });
-  let uploads=0;
-  await page.route('**/manager/media-upload.php',route=>{
+  let uploads=0;const operations=[];
+  await page.route('**/manager/media-upload.php',async route=>{
+    const observed=await page.evaluate(index=>editorUploadProof[index],uploads),raw=route.request().postDataBuffer()?.toString();
+    const field=name=>raw?raw.match(new RegExp('name="'+name+'"\\r\\n\\r\\n([\\s\\S]*?)\\r\\n--'))?.[1]||'':observed[name]||'';
+    for(const name of ['csrf','conversation_id','expected_manager_id','operation_id','caption'])expect(field(name)).toBe(observed[name]);
+    expect(field('csrf')).toBe('synthetic-csrf');expect(field('conversation_id')).toBe('11');expect(field('expected_manager_id')).toBe('7');expect(field('operation_id')).toMatch(/^[a-f0-9]{32}$/);
+    expect(operations).not.toContain(field('operation_id'));operations.push(field('operation_id'));
+    expect(observed.file).toMatchObject({name:uploads===0?'first.txt':'second.txt',type:'text/plain'});expect(observed.file.size).toBeGreaterThan(0);
+    expect(field('caption')).toBe(uploads===0?'Подпись к первому файлу':'');
     uploads++;if(uploads===2)return route.abort('failed');
-    expect(route.request().postData()).toContain('Подпись к первому файлу');
-    return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true})});
+    return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,attempt:{kind:'media',state:'confirmed',media_type:'file',caption_included:true}})});
   });
   const reply=page.locator('#replyText'),dialog=page.locator('#m2ReplyEditor');
   await reply.fill('Подпись к первому файлу');

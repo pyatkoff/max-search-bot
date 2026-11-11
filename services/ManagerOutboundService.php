@@ -103,12 +103,30 @@ class ManagerOutboundService
         }
     }
 
-    public static function sendMedia(int $conversationId,int $managerId,string $filePath,string $fileName,string $mimeType,string $caption='',string $previewUrl=''): bool
+    public static function sendMediaAttempt(int $conversationId,int $managerId,string $operationId,string $filePath,string $fileName,string $mimeType,string $caption=''): array
+    {
+        require_once __DIR__.'/ManagerSendAttemptService.php';
+        require_once __DIR__.'/ManagerMediaCache.php';
+        $fileName=preg_replace('/[\x00-\x1F\x7F]+/u','',trim(basename($fileName)))?:'attachment';
+        if(is_file($filePath)&&class_exists('finfo')){$detected=(new finfo(FILEINFO_MIME_TYPE))->file($filePath);if(is_string($detected)&&$detected!=='')$mimeType=$detected;}
+        $result=ManagerSendAttemptService::executeMedia($managerId,$conversationId,$operationId,$filePath,$fileName,$mimeType,$caption,static function(string $expectedContext) use($conversationId,$managerId,$filePath,$fileName,$mimeType,$caption): array {
+            $preview=ManagerMediaCache::store($conversationId,$managerId,$filePath,$fileName,$mimeType);
+            $ok=self::sendMedia($conversationId,$managerId,$filePath,$fileName,$mimeType,$caption,(string)($preview['url']??''),$expectedContext);
+            $failure=self::lastFailure();
+            if(!$ok&&is_array($preview)&&ManagerSendAttemptService::isDefiniteMediaFailure($failure))ManagerMediaCache::remove((string)$preview['id']);
+            return ['ok'=>$ok,'failure'=>$failure];
+        });
+        if(isset($result['failure']))$result['error_message']=self::failureNotice($result['failure']);
+        return $result;
+    }
+
+    public static function sendMedia(int $conversationId,int $managerId,string $filePath,string $fileName,string $mimeType,string $caption='',string $previewUrl='',?string $attemptContext=null): bool
     {
         self::$lastFailure=null;
         if(!is_file($filePath))return self::mediaNotDispatched('file_unavailable');
         $c=ManagerConversationService::visibleConversation($conversationId,$managerId);if(!$c)return self::mediaNotDispatched('context_changed');
         if((string)$c['status']!=='manager'||(int)$c['manager_id']!==$managerId)return self::mediaNotDispatched('context_changed');
+        if($attemptContext!==null&&!ManagerSendAttemptService::dispatchAllowed($c,$managerId,$attemptContext,'media'))return self::mediaNotDispatched('context_changed');
         $channel=strtolower((string)$c['channel']);
         $projectKey=(string)$c['project_key'];
         if($channel!=='max'&&$channel!=='telegram'){

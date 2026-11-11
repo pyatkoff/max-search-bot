@@ -36,6 +36,7 @@ function showAuthRecovery(message=''){
 window.WorkspaceV2InternalNotes?.suspend();
   window.WorkspaceV2ClientEvents?.suspend();
   window.WorkspaceV2ReplyQueue?.suspend();
+  window.WorkspaceV2MediaRecovery?.suspend();
   window.WorkspaceV2MessageNavigation?.reset();
   window.WorkspaceV2Assistant?.suspend();
   window.WorkspaceV2TourSelection?.suspend();
@@ -118,6 +119,7 @@ window.WorkspaceV2InternalNotes?.activate(S.manager?.id);
   window.WorkspaceV2MessageNavigation?.reset();
   window.WorkspaceV2Assistant?.activate(S.manager?.id);
   window.WorkspaceV2TourSelection?.activate(S.manager?.id);
+  window.WorkspaceV2MediaRecovery?.activate(S.manager?.id);
   window.WorkspaceV2Media?.init();window.WorkspaceV2Media?.configure(S.csrf,S.current||0);
   if(S.manager){$('managerName').textContent=(S.manager.display_name||S.manager.login);const adminLink=$('adminLink');if(adminLink)adminLink.classList.toggle('hidden',S.manager.role!=='admin')}
 }
