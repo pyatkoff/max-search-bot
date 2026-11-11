@@ -124,6 +124,15 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
                     check(extra['complete_within_bound'] is True and 0 <= extra['scoped_rows'] <= 64 and extra['empty_client_id_rows'] + extra['noncanonical_client_id_rows'] + extra['canonical_client_id_rows'] == extra['scoped_rows'], 'native wire aggregate is complete within the fixed point bound')
                 else:
                     check(extra['reason'] in {'point_index_unavailable', 'row_limit', 'storage_unavailable'} and extra['scoped_rows'] is None and extra['complete_within_bound'] is False, 'unavailable point evidence is unknown rather than zero')
+                repository_path = endpoint / 'services/MaxTrackerLookupRepository.php'
+                repository_source = repository_path.read_text()
+                check(repository_source.count('public function counterScopeEvidence(') == 1, 'one optional receiver method')
+                try:
+                    repository_path.write_text(repository_source.replace('public function counterScopeEvidence(', 'public function unavailableCounterScopeEvidence(', 1))
+                    failed_status, failed_optional = request(scoped, signed=signature(scoped), evidence='counter-scope-v1')
+                    check(failed_status == 200 and failed_optional['users'] == ordinary_users and failed_optional['counter_scope_evidence']['reason'] == 'storage_unavailable', 'unexpected optional receiver failure preserves the ordinary identity response')
+                finally:
+                    repository_path.write_text(repository_source)
                 invalid_subset = encoded({**data, 'counter_scope_evidence': {'v': 1, 'user_id': '789'}})
                 status, invalid_extra = request(invalid_subset, signed=signature(invalid_subset), evidence='counter-scope-v1')
                 check(status == 200 and invalid_extra['users'] == ordinary_users and invalid_extra['counter_scope_evidence']['reason'] == 'invalid_request', 'signed out-of-batch option cannot expand scope or poison ordinary lookup')

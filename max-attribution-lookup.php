@@ -31,11 +31,14 @@ try{
     $users=$repository->lookup($counter,$data['user_ids'],$data['membership']??null);
     $reply=['ok'=>true,'version'=>1,'counter_id'=>$counter,'tracker_timezone'=>'Europe/London','users'=>$users];
     $evidenceHeader=(string)($_SERVER['HTTP_X_MAX_ATTRIBUTION_EVIDENCE']??'');
-    if($evidenceHeader===MaxTrackerLookupProtocol::COUNTER_SCOPE_HEADER){
-        $evidenceUser=MaxTrackerLookupProtocol::counterScopeRequest($data,$evidenceHeader);
-        if($evidenceUser!==null)$reply['counter_scope_evidence']=$repository->counterScopeEvidence($counter,$evidenceUser,hash('sha256',$raw),time());
-        else$reply['counter_scope_evidence']=['v'=>1,'counter_id'=>$counter,'request_sha256'=>hash('sha256',$raw),
-            'checked_at_unix'=>time(),'status'=>'unavailable','reason'=>'invalid_request','complete_within_bound'=>false,
+    if($evidenceHeader==='counter-scope-v1'){
+        $evidenceFailure='invalid_request';
+        try{
+            $evidenceUser=MaxTrackerLookupProtocol::counterScopeRequest($data,$evidenceHeader);
+            if($evidenceUser!==null)$reply['counter_scope_evidence']=$repository->counterScopeEvidence($counter,$evidenceUser,hash('sha256',$raw),time());
+        }catch(Throwable $ignored){$evidenceFailure='storage_unavailable';}
+        if(!isset($reply['counter_scope_evidence']))$reply['counter_scope_evidence']=['v'=>1,'counter_id'=>$counter,'request_sha256'=>hash('sha256',$raw),
+            'checked_at_unix'=>time(),'status'=>'unavailable','reason'=>$evidenceFailure,'complete_within_bound'=>false,
             'scoped_rows'=>null,'empty_client_id_rows'=>null,'noncanonical_client_id_rows'=>null,'canonical_client_id_rows'=>null];
     }
     max_attribution_reply($reply,200);
