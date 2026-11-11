@@ -487,7 +487,7 @@ function modeledValueFailureRetentionAssertions(PDO $p,callable $check):void
                 $entered=true;ModeledConversionValueExport::tick($p,$lookup,$newWire->api(),$now+200,$gate,null,$steady);
                 if($pressure){
                     $current=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
-                    unset($current['last_recorded_failure']);$current['padding']='';
+                    unset($current['last_recorded_failure'],$current['visit_gate_decisions']);$current['padding']='';
                     $expanded=$current;$expanded['last_recorded_failure']=['tick_at_unix'=>$now+100,'phase'=>'collect_profiles','category'=>'storage_failed'];
                     $limit=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?8190:8193;
                     $current['padding']=str_repeat('x',$limit-strlen(json_encode($expanded,JSON_THROW_ON_ERROR)));
@@ -1686,7 +1686,7 @@ function modeledValueVisitGateDecisionAssertions(PDO $p,callable $check):void
     $base['padding']=str_repeat('x',8050-$measure($base));
     $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=?,last_receipt_json=? WHERE project_key='anytour'")
         ->execute([$now-1,json_encode($base,JSON_THROW_ON_ERROR)]);
-    $incoming=$base;$incoming['visit_gate_decisions']=$three;
+    $incoming=$base;$incoming['visit_gate_decisions']=$three;$incoming['visit_gate_decisions']['checked_at_unix']=$now;
     $persist->invoke($owner,$incoming,null,$now);
     $capped=$saved();
     $check('new optional counters yield before existing proof counters failure and report clocks near the native receipt cap',
@@ -1696,7 +1696,7 @@ function modeledValueVisitGateDecisionAssertions(PDO $p,callable $check):void
         &&$capped['accepted']===1&&$capped['processed']===3&&$capped['errors']===1
         &&modeledValueFailureJsonEqual($capped['last_recorded_failure'],$failure));
 
-    $winner=$base;$winner['padding']='';$winner['visit_gate_decisions']=$three;
+    $winner=$base;$winner['padding']='';$winner['visit_gate_decisions']=$three;$winner['visit_gate_decisions']['checked_at_unix']=$now+900;
     $winner['padding']=str_repeat('x',8150-$measure($winner));
     $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=?,last_receipt_json=? WHERE project_key='anytour'")
         ->execute([$now+900,json_encode($winner,JSON_THROW_ON_ERROR)]);

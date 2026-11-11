@@ -316,7 +316,10 @@ final class ModeledConversionValueExport
                     }
                     // A delayed cohort is not authoritative for the newer receipt's membership or completeness.
                     $encoded=json_encode($updated,JSON_THROW_ON_ERROR);
-                    if($updated!==$receipt&&$this->receiptFits($encoded,$mysql)){
+                    $storedBytes=0;
+                    if($updated!==$receipt&&$this->receiptFits($encoded,$mysql,$storedBytes)){
+                        $updated=self::withVisitGateDecisions($updated,$receipt['visit_gate_decisions']??null,$storedBytes,$lastTick);
+                        $encoded=json_encode($updated,JSON_THROW_ON_ERROR);
                         $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'");
                         $q->execute([$encoded]);
                     }
@@ -331,7 +334,7 @@ final class ModeledConversionValueExport
                 $storedBytes=0;$fits=$this->receiptFits($encoded,$mysql,$storedBytes);
                 if(!$fits){unset($stats['last_recorded_failure']);$encoded=json_encode($stats,JSON_THROW_ON_ERROR);}
                 else{
-                    $stats=self::withVisitGateDecisions($stats,$decisions,$storedBytes);
+                    $stats=self::withVisitGateDecisions($stats,$decisions,$storedBytes,$now);
                     $encoded=json_encode($stats,JSON_THROW_ON_ERROR);
                 }
                 $report=$stats['metrika_report'];$reportOk=in_array($report['status']??null,['ok','sampled'],true);
@@ -358,10 +361,10 @@ final class ModeledConversionValueExport
     }
 
     /** Attach last, using the existing byte measurement; no new SQL or loss of prior evidence. */
-    private static function withVisitGateDecisions(array $stats,mixed $audit,int $storedBytes):array
+    private static function withVisitGateDecisions(array $stats,mixed $audit,int $storedBytes,int $tick):array
     {
         if(!is_array($audit)||($audit['v']??null)!==1||!is_int($audit['checked_at_unix']??null)
-            ||$audit['checked_at_unix']<946684800||$audit['checked_at_unix']>253402300799
+            ||$audit['checked_at_unix']<946684800||$audit['checked_at_unix']>253402300799||$audit['checked_at_unix']!==$tick
             ||!is_int($audit['attempts']??null)||$audit['attempts']<0||$audit['attempts']>3
             ||!is_array($audit['reason_counts']??null))return $stats;
         $counts=[];$total=0;
