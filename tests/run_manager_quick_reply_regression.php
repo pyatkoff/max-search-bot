@@ -7,12 +7,24 @@ $passed=0;
 function qrCheck(string $name,bool $ok):void {global $passed;if (!$ok) throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name."\n";}
 
 $pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
-$pdo->exec('CREATE TABLE manager_quick_replies (id INTEGER PRIMARY KEY AUTOINCREMENT,owner_manager_id INTEGER NULL,scope TEXT,title TEXT,body TEXT,category TEXT,version INTEGER,created_by_manager_id INTEGER,updated_by_manager_id INTEGER,created_at TEXT,updated_at TEXT)');
+$pdo->exec('CREATE TABLE manager_quick_replies (id INTEGER PRIMARY KEY AUTOINCREMENT,owner_manager_id INTEGER NULL,scope TEXT,title TEXT,body TEXT,category TEXT,version INTEGER,created_by_manager_id INTEGER,updated_by_manager_id INTEGER,created_at TEXT,updated_at TEXT,project_id INTEGER NULL,source_label TEXT NOT NULL DEFAULT "",reviewed_at TEXT NULL,materials_json TEXT NULL)');
 $pdo->exec('CREATE TABLE manager_quick_reply_favorites (manager_id INTEGER,reply_id INTEGER,sort_order INTEGER NOT NULL DEFAULT 0,created_at TEXT,PRIMARY KEY(manager_id,reply_id))');
 $pdo->exec('CREATE TABLE manager_quick_reply_toolbar_states (manager_id INTEGER PRIMARY KEY,revision INTEGER NOT NULL DEFAULT 0)');
-$pdo->exec('CREATE TABLE manager_quick_reply_operations (manager_id INTEGER,operation_id TEXT,request_hash TEXT,result_json TEXT,created_at TEXT,PRIMARY KEY(manager_id,operation_id))');
+$pdo->exec('CREATE TABLE manager_quick_reply_operations (manager_id INTEGER,operation_id TEXT,request_hash TEXT,result_json TEXT,created_at TEXT,project_id INTEGER NULL,PRIMARY KEY(manager_id,operation_id))');
 $pdo->exec('CREATE TABLE admin_audit_log (actor_manager_id INTEGER,action TEXT,entity_type TEXT,entity_id TEXT,project_key TEXT,before_json TEXT,after_json TEXT)');
 $property=new ReflectionProperty(ConversationDb::class,'pdo');$property->setAccessible(true);$property->setValue(null,$pdo);
+regionalAccessFixtureSchema($pdo);
+$pdo->exec("CREATE TABLE projects (id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER);
+    CREATE TABLE manager_projects (manager_id INTEGER,project_id INTEGER);
+    CREATE TABLE managers (id INTEGER PRIMARY KEY,login TEXT,display_name TEXT,role TEXT,email TEXT,is_active INTEGER,is_working INTEGER);
+    INSERT INTO projects VALUES (1,'quick-unit-fixture','Synthetic workspace',1),(2,'second-company','Second company',1);");
+foreach ([11,12,90,200,201,290,222,300] as $actor) {
+    $role=in_array($actor,[90,290],true)?'admin':'manager';
+    $pdo->prepare('INSERT INTO managers VALUES (?,?,?,?,?,1,0)')->execute([$actor,'fixture-'.$actor,'Synthetic manager',$role,'']);
+    $pdo->prepare('INSERT INTO manager_projects VALUES (?,1)')->execute([$actor]);
+}
+ProjectConfig::resetForTests(['id'=>'quick-unit-fixture','brand'=>['name'=>'Synthetic workspace']]);
+ProjectAccessService::initializeReadOnly();
 function qrMutate(int $actor,bool $admin,string $action,array $input):array {static $seq=0;$input+=['operation_id'=>'test-operation-'.str_pad((string)++$seq,8,'0',STR_PAD_LEFT)];return ManagerQuickReplyService::mutate($actor,$admin,$action,$input);}
 function qrList(int $actor,array $input=[]):array {return ManagerQuickReplyService::list($actor,false,$input);}
 
@@ -150,6 +162,9 @@ qrCheck('legacy overflow forbids incomplete reorder',qrMutate(300,false,'reorder
 $overflowRemoved=qrMutate(300,false,'favorite',['id'=>$overId,'is_favorite'=>false,'toolbar_version'=>$overflow['version']]);
 qrCheck('library unselection can recover legacy overflow without lost selections',$overflowRemoved['ok']&&$overflowRemoved['toolbar']['ok']&&array_column($overflowRemoved['toolbar']['replies'],'id')===$fullIds);
 
+require_once __DIR__.'/fixtures/quick_reply_material_cases.php';
+quickReplyMaterialCases($pdo,'qrCheck');
+
 // Count executed SQL at the real PDO boundary. Library size cannot create N+1.
 final class QuickReplyQueryCounter {public int $queries=0;}
 final class QuickReplyCountedStatement extends PDOStatement
@@ -161,17 +176,17 @@ $counter=new QuickReplyQueryCounter();
 $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[QuickReplyCountedStatement::class,[$counter]]);
 qrList(11,['limit'=>1]);$smallQueries=$counter->queries;$counter->queries=0;
 qrList(11,['limit'=>100]);
-qrCheck('list and categories use two bounded queries at every library size',$smallQueries===2&&$counter->queries===2);
+qrCheck('list and categories plus two fresh access checks use six queries at every library size',$smallQueries===6&&$counter->queries===6);
 $counter->queries=0;ManagerQuickReplyService::toolbar(200);$smallToolbarQueries=$counter->queries;$counter->queries=0;
 ManagerQuickReplyService::toolbar(300);
-qrCheck('small and maximum toolbars use exactly two SQL queries',$smallToolbarQueries===2&&$counter->queries===2);
+qrCheck('small and maximum toolbars plus fresh access use exactly six SQL queries',$smallToolbarQueries===6&&$counter->queries===6);
 qrMutate(200,false,'favorite',['id'=>$foreignId,'is_favorite'=>false]); // Fails closed, never adds foreign state.
 $extra=qrMutate(200,false,'create',['title'=>'Counter second','body'=>'Synthetic']);qrMutate(200,false,'favorite',['id'=>$extra['reply']['id'],'is_favorite'=>true]);
 $smallToolbar=ManagerQuickReplyService::toolbar(200);$counter->queries=0;
 qrMutate(200,false,'reorder',['ids'=>array_reverse(array_column($smallToolbar['replies'],'id')),'toolbar_version'=>$smallToolbar['version']]);$smallReorderQueries=$counter->queries;
 $largeToolbar=ManagerQuickReplyService::toolbar(300);$counter->queries=0;
 qrMutate(300,false,'reorder',['ids'=>array_reverse($fullIds),'toolbar_version'=>$largeToolbar['version']]);
-qrCheck('two and one hundred selected replies reorder in a fixed number of SQL queries',$smallReorderQueries===11&&$counter->queries===11);
+qrCheck('two and one hundred selected replies reorder with the same fifteen queries including current locked access',$smallReorderQueries===15&&$counter->queries===15);
 
 $api=(string)file_get_contents(dirname(__DIR__).'/manager/quick-replies-api.php');
 qrCheck('endpoint uses canonical auth and CSRF and accepts POST only',str_contains($api,'ManagerHttp::requireManager()')&&str_contains($api,'ManagerHttp::requireCsrf($data)')&&str_contains($api,"!=='POST'")&&str_contains($api,'ManagerHttp::isAdmin($manager)'));
@@ -184,7 +199,7 @@ $process=null;$httpDb=null;
 try {
     $httpDb=new PDO('sqlite:'.$httpRoot.'/fixture.sqlite',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
     regionalAccessFixtureSchema($httpDb);
-    foreach ($pdo->query("SELECT sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")->fetchAll(PDO::FETCH_COLUMN) as $schema) $httpDb->exec($schema);
+    foreach ($pdo->query("SELECT sql FROM sqlite_master WHERE type='table' AND (name LIKE 'manager_quick_repl%' OR name='admin_audit_log')")->fetchAll(PDO::FETCH_COLUMN) as $schema) $httpDb->exec($schema);
     $httpDb->exec("CREATE TABLE projects (id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER);
         CREATE TABLE manager_projects (manager_id INTEGER,project_id INTEGER);
         CREATE TABLE managers (id INTEGER PRIMARY KEY,login TEXT,display_name TEXT,role TEXT,email TEXT,is_active INTEGER,is_working INTEGER);
@@ -206,12 +221,15 @@ try {
     $ready=false;for ($wait=0;$wait<200;$wait++) {$probe=@stream_socket_client('tcp://'.$address,$errno,$errstr,0.05);if ($probe) {fclose($probe);$ready=true;break;}usleep(10000);}
     if (!$ready) throw new RuntimeException('Loopback PHP not ready');
     $request=static function(string $path,array $data=[],string $cookie='',string $method='POST') use ($address):array {
+        static $expectedActor=101;
+        if ($method==='GET'&&preg_match('/fixture-session\\.php\\?id=(\\d+)/',$path,$actorMatch)) $expectedActor=(int)$actorMatch[1];
+        if ($method==='POST') $data+=['expected_manager_id'=>$expectedActor,'project_key'=>'quick-http-fixture'];
         $headers=['Content-Type: application/json'];if ($cookie!=='') $headers[]='Cookie: '.$cookie;
         $context=stream_context_create(['http'=>['method'=>$method,'header'=>implode("\r\n",$headers),'content'=>$method==='POST'?json_encode($data,JSON_THROW_ON_ERROR):'','ignore_errors'=>true,'timeout'=>3]]);
         $body=file_get_contents('http://'.$address.$path,false,$context);$responseHeaders=$http_response_header??[];
         preg_match('/^HTTP\/[^ ]+ ([0-9]+)/',(string)($responseHeaders[0]??''),$status);$responseCookie='';
         foreach ($responseHeaders as $header) if (preg_match('/^Set-Cookie: (anytour_manager_panel=[^;]+)/i',$header,$match)) $responseCookie=$match[1];
-        return ['status'=>(int)($status[1]??0),'body'=>json_decode((string)$body,true),'cookie'=>$responseCookie,'headers'=>$responseHeaders];
+        return ['status'=>(int)($status[1]??0),'body'=>json_decode((string)$body,true),'raw'=>(string)$body,'cookie'=>$responseCookie,'headers'=>$responseHeaders];
     };
     $anonymous=$request('/manager/quick-replies-api.php',['action'=>'list']);
     qrCheck('real endpoint rejects anonymous request with 401', $anonymous['status']===401&&$anonymous['body']['error']==='unauthorized');
@@ -279,6 +297,8 @@ try {
     $denied=$request('/manager/quick-replies-api.php',['action'=>'list','csrf'=>'fixture-csrf-only'],$inactive['cookie']?:$cookie);
     qrCheck('real ManagerAuth rejects disabled fixture account',$denied['status']===401&&$denied['body']['error']==='unauthorized');
     $restored=$request('/manager/fixture-session.php?id=101',[],$cookie,'GET');$cookie=$restored['cookie']?:$cookie;
+    require_once __DIR__.'/fixtures/quick_reply_material_http_cases.php';
+    quickReplyMaterialHttpCases($httpDb,$request,$address,$cookie,$httpRoot,'qrCheck');
     $httpDb->exec('DROP TABLE manager_quick_replies');
     $unavailable=$request('/manager/quick-replies-api.php',['action'=>'list','csrf'=>'fixture-csrf-only'],$cookie);
     qrCheck('real endpoint reports storage failure as 503, never empty success',$unavailable['status']===503&&!$unavailable['body']['ok']&&$unavailable['body']['error']==='storage_unavailable');

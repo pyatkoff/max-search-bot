@@ -86,7 +86,7 @@ async function setup(page,options={}){
    if(d.action==='list'){const conversations=options.filterQueues?queuedRows(d.queue):rows();firstListLength??=conversations.length;return reply({ok:true,conversations})}
    if(d.action==='detail')return reply({ok:true,can_edit_pipeline:true,pipeline:{stage:null,tags:[],stage_history:[],outcome:{outcome:'open'}},tasks:[],trip:{city:'Москва',country:'Турция',adults:2},contact:{},source:{},handoff:{}});
   }
-  if(url.pathname==='/manager/quick-replies-api.php'&&d.action==='toolbar')return reply({ok:true,replies:[],version:'0'.repeat(64),max_replies:100});
+  if(url.pathname==='/manager/quick-replies-api.php'&&d.action==='toolbar')return reply({ok:true,project_key:d.project_key,replies:[],version:'0'.repeat(64),max_replies:100});
   if(url.pathname==='/manager/customer-name-api.php'&&d.action==='get'&&visibleIds.has(Number(d.conversation_id))){const c=conv(Number(d.conversation_id));return reply({ok:true,name:{customer_id:c.customer_id,display_name:c.display_name,original_display_name:c.original_display_name,working_name:null,version:0,updated_at:null,updated_by_manager_name:null,can_edit:true},history:[],history_has_more:false})}
   if(url.pathname==='/manager/post-context-api.php'&&d.action==='detail'&&visibleIds.has(Number(d.conversation_id)))return reply({ok:true,conversation_id:d.conversation_id,context:{current:null,history:[]}});
   if(url.pathname==='/manager/ai-draft.php'&&d.action==='prepared_status'&&visibleIds.has(Number(d.conversation_id)))return reply({ok:true,prepared:false});

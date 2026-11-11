@@ -10,6 +10,7 @@ let lastError='',listFailed=false;
 let toolbarRows=[],toolbarVersion='',toolbarLimit=100,toolbarReady=false,toolbarError='',toolbarLoading=null,toolbarTicket=0,toolbarNode=null;
 let toolbarFocus=null;
 let emojiState=null;
+let company='',observedProject='',uploadLimits=null,insertionBusy=false,materialSequence=0;
 const tripLabels={trip_city:'Город вылета',trip_country:'Направление',trip_date:'Дата вылета',trip_nights:'Ночи',trip_adults:'Взрослые',trip_children:'Дети',trip_budget:'Бюджет'};
 const variableKeys=['manager_name','client_name',...Object.keys(tripLabels)];
 
@@ -73,7 +74,7 @@ function fillKnown(){
   input.setSelectionRange?.(position(start),position(end),direction);
   setStatus(placeholders(next).length?'Неизвестные подсказки остались в тексте. Заполните их перед вставкой.':'Известные параметры подставлены. Проверьте текст.',placeholders(next).length?'warn':'');return true;
 }
-function draftKey(){return authenticated()?storagePrefix+owner:''}
+function draftKey(){return authenticated()&&company?storagePrefix+owner+'.'+company:''}
 function persist(){
   const key=draftKey();if(!key)return;
   try{if(editor||pending)sessionStorage.setItem(key,JSON.stringify({editor,pending}));else sessionStorage.removeItem(key)}catch(e){}
@@ -82,7 +83,7 @@ function restore(){
   const key=draftKey();if(!key)return;
   try{
     const saved=JSON.parse(sessionStorage.getItem(key)||'null');
-    if(saved?.editor&&typeof saved.editor.body==='string')editor=saved.editor;
+    if(saved?.editor&&typeof saved.editor.body==='string')editor={...saved.editor,editor_key:saved.editor.editor_key||operationId(),materials:Array.isArray(saved.editor.materials)?saved.editor.materials:[],preparing_files:false};
     if(saved?.pending&&typeof saved.pending.operation_id==='string'&&typeof saved.pending.action==='string')pending=saved.pending;
   }catch(e){}
 }
@@ -98,19 +99,35 @@ function errorText(result){
   const errors={forbidden:'Недостаточно прав. Общие ответы редактирует администратор.',not_found:'Ответ больше недоступен. Обновите список.',conflict:'Ответ изменён в другом окне. Ваш текст сохранён. Откройте актуальную версию перед сохранением.',invalid_title:'Добавьте название ответа.',invalid_body:'Добавьте текст ответа.',invalid_category:'Категория должна быть не длиннее 64 символов.',invalid_scope:'Выберите доступную область ответа.',network_error:'Нет связи с сервером.',invalid_response:'Не удалось прочитать ответ сервера.',operation_mismatch:'Результат операции требует проверки. Не повторяйте изменение.'};
   return errors[result?.error]||'Не удалось выполнить действие. Ваш текст сохранён.';
 }
-async function request(action,data={}){
+async function request(action,data={},files=[]){
   const capturedEpoch=epoch;
-  if(!authenticated())return {ok:false,error:'stale_session'};
+  if(!authenticated()||!company)return {ok:false,error:'stale_session'};
+  const project=company,payload={...data,project_key:project,expected_manager_id:owner};
+  const valid=()=>capturedEpoch===epoch&&authenticated()&&company===project;
   let result;
-  try{result=await W.request(endpoint,action,data)}catch(e){result={ok:false,error:S.authExpired?'stale_session':'network_error'}}
-  return capturedEpoch===epoch&&authenticated()?result:{ok:false,error:'stale_session'};
+  try{result=files.length?await window.WorkspaceV2QuickReplyMaterials.write(endpoint,action,payload,files,valid):await W.request(endpoint,action,payload,{isCurrent:valid})}catch(e){result={ok:false,error:S.authExpired?'stale_session':'network_error'}}
+  return valid()?result:{ok:false,error:'stale_session'};
+}
+function projectRows(){return Array.isArray(S.projects)?S.projects.filter(p=>typeof p.project_key==='string'):[]}
+function conversationProject(){return Number(S.current)>0&&Number(S.detail?.conversation?.id)===Number(S.current)?String(S.detail.conversation.project_key||''):''}
+function companyName(){return String(projectRows().find(p=>p.project_key===company)?.display_name||company||'Выберите компанию')}
+function switchCompany(key){
+  if(typeof key!=='string'||(key&&!/^[a-z][a-z0-9_-]{0,63}$/.test(key))||key===company)return false;
+  const actor=owner,generation=ownerGeneration,observed=observedProject;
+  resetSession({preserveFiles:true});owner=actor;ownerGeneration=generation;company=key;observedProject=observed;restore();return true;
 }
 function adoptSession(){
-  if(owner===identity()&&ownerGeneration===Number(S.authGeneration||0))return;
-  resetSession();owner=identity();ownerGeneration=Number(S.authGeneration||0);restore();
+  if(owner!==identity()||ownerGeneration!==Number(S.authGeneration||0)){
+    resetSession();owner=identity();ownerGeneration=Number(S.authGeneration||0);
+  }
+  const active=conversationProject();
+  if(active&&active!==observedProject){observedProject=active;switchCompany(active)}
+  if(!company&&projectRows().length===1)switchCompany(projectRows()[0].project_key);
 }
 function acceptToolbar(result){
-  if(!result||!Array.isArray(result.replies)||typeof result.version!=='string')return false;
+  if(!result||result.project_key!==company||!Array.isArray(result.replies)||typeof result.version!=='string'||result.replies.some(r=>r.project_key!==company))return false;
+  uploadLimits=result.upload_limits||uploadLimits;
+  adoptLegacyDraft(result);
   toolbarRows=result.replies;toolbarVersion=result.version;toolbarLimit=Number(result.max_replies)||100;
   toolbarReady=true;toolbarError=result.ok===false?'На панели больше '+toolbarLimit+' ответов. Уберите лишние в библиотеке; затем измените порядок.':'';
   if(selected){const current=toolbarRows.find(reply=>Number(reply.id)===Number(selected.id));if(current)selected={...selected,...current};else if(!toolbarError)selected={...selected,is_favorite:false}}
@@ -119,21 +136,25 @@ function acceptToolbar(result){
 function renderToolbar(){
   if(!toolbarNode)return;
   if(!authenticated()){toolbarNode.replaceChildren();return}
-  toolbarNode.innerHTML=toolbarRows.map(reply=>`<button type="button" class="qrToolbarReply" data-qr-toolbar-id="${Number(reply.id)}" title="${attr(reply.title)}">${esc(reply.title)}</button>`).join('')+
+  if(!company){toolbarNode.innerHTML='<span class="qrToolbarEmpty">Выберите компанию в быстрых ответах</span>';return}
+  toolbarNode.innerHTML=toolbarRows.map(reply=>`<button type="button" class="qrToolbarReply" data-qr-toolbar-id="${Number(reply.id)}" title="${attr(reply.title+(reply.materials?.length?' · Файлов: '+reply.materials.length:'')+(reply.requires_review?' · Условия требуют проверки':''))}">${esc(reply.title)}${reply.materials?.length?' · '+reply.materials.length+' 📎':''}</button>`).join('')+
     (!toolbarRows.length?`<span class="qrToolbarEmpty">${toolbarLoading?'Загружаем быстрые ответы…':toolbarReady?'Добавьте свои быстрые ответы':'Быстрые ответы недоступны'}</span>`:'')+
     (toolbarError?`<span class="qrToolbarError" role="status">${esc(toolbarError)}</span><button type="button" data-qr-toolbar-retry>Повторить</button>`:'')+
     (pending?'<span class="qrToolbarError" role="status">Уточните сохранение панели</span><button type="button" data-qr-toolbar-resolve>Уточнить результат</button>':'');
   toolbarNode.setAttribute('aria-busy',String(!!toolbarLoading));
 }
 async function loadToolbar(force=false){
-  if(!authenticated())return;
+  if(!authenticated()||!company){renderToolbar();return}
   if(toolbarLoading)return toolbarLoading.promise;
-  if(toolbarReady&&!force)return;
+  if((toolbarReady||toolbarError)&&!force)return;
   const capturedEpoch=epoch,ticket=++toolbarTicket,operation={promise:null};toolbarLoading=operation;renderToolbar();
   operation.promise=(async()=>{
     const result=await request('toolbar');
     if(capturedEpoch!==epoch||ticket!==toolbarTicket||!authenticated())return;
-    if(!acceptToolbar(result)){toolbarError='Не удалось загрузить панель ответов.';renderToolbar()}
+    if(!acceptToolbar(result)){
+      if(['not_found','actor_changed','forbidden'].includes(result?.error)||[401,403,404].includes(Number(result?.http_status))){switchCompany('');renderToolbar();return}
+      toolbarRows=[];toolbarReady=false;toolbarError='Не удалось загрузить панель ответов.';renderToolbar();
+    }
     else if(query.scope==='toolbar'){
       const target=editor?'qrBody':'qrPreview',priorInput=$(target),priorActive=document.activeElement;
       const focusedEmoji=emojiState?.target===target&&emojiState.input===priorInput&&$('qrEmojiPicker')?.contains?.(priorActive);
@@ -157,15 +178,16 @@ async function loadToolbar(force=false){
 }
 // Called once per authenticated lifecycle, independently of Inbox/conversation reads.
 function configure(){if(!identity())return;adoptSession();bind();void loadToolbar()}
+function syncContext(){if(!identity())return;adoptSession();if(company)void loadToolbar()}
 function clickToolbar(id){
   if(!authenticated())return false;
   const reply=toolbarRows.find(row=>Number(row.id)===id),ctx=window.WorkspaceV2Conversation?.captureReplyContext?.();
-  if(!reply||!contextValid(ctx))return false;
+  if(!reply||reply.project_key!==company||conversationProject()!==company||!contextValid(ctx))return false;
   const text=resolveText(reply.body,knownValues(ctx));
-  if(placeholders(text).length){
+  if(placeholders(text).length||reply.materials?.length){
     ensureDialog();returnFocus=$('replyText');selected=reply;replyContext=ctx;preview=text;lastError='';
     if(!dialog.open)dialog.showModal();renderCategories();renderList();renderDetail();updateBusy();
-    setStatus('Проверьте неизвестные параметры и замените подсказки перед вставкой.','warn');$('qrPreview')?.focus();return false;
+    setStatus(reply.materials?.length?'Проверьте текст, условия и порядок материалов перед вставкой.':'Проверьте неизвестные параметры и замените подсказки перед вставкой.','warn');$('qrPreview')?.focus();return false;
   }
   return window.WorkspaceV2Conversation?.insertQuickReply?.(text,ctx)||false;
 }
@@ -238,6 +260,7 @@ function ensureDialog(){
     <div id="qrStatus" class="qrStatus" role="status" aria-live="polite"></div>
     <div id="qrPending" class="qrPending" hidden></div>
     <div class="qrWorkspace"><section class="qrLibrary" aria-label="Библиотека ответов">
+      <label class="qrCompanyLabel" for="qrCompany">Компания<select id="qrCompany"></select></label>
       <div class="qrSearchRow"><label class="qrSearchLabel" for="qrSearch"><span class="qrVisuallyHidden">Поиск по названию и тексту</span><input id="qrSearch" type="search" placeholder="Найти ответ…" autocomplete="off"></label><button id="qrCreate" class="qrButton qrPrimary" type="button">+ Создать</button></div>
       <div id="qrScopes" class="qrScopes" role="group" aria-label="Видимость ответов"><button type="button" data-qr-scope="toolbar" aria-pressed="false">Моя панель</button><button type="button" data-qr-scope="all" aria-pressed="true">Все</button><button type="button" data-qr-scope="personal" aria-pressed="false">Мои</button><button type="button" data-qr-scope="shared" aria-pressed="false">Общие</button></div>
       <label class="qrCategoryLabel" for="qrCategory">Категория<select id="qrCategory"><option value="">Все категории</option></select></label>
@@ -246,6 +269,8 @@ function ensureDialog(){
     </section><section id="qrDetail" class="qrDetail" aria-label="Текст быстрого ответа"></section></div>
   </div>`;
   document.body.appendChild(dialog);
+  renderCompany();
+  $('qrCompany').onchange=()=>{if(mutationBusy||pending||editor)return;const key=$('qrCompany').value;if(switchCompany(key))void open()};
   $('qrClose').onclick=close;
   dialog.addEventListener('cancel',e=>{e.preventDefault();close()});
   // Workspace shortcuts belong to the conversation behind this modal.
@@ -275,6 +300,23 @@ function ensureDialog(){
   });
   return dialog;
 }
+function renderCompany(){
+  const node=$('qrCompany');if(!node)return;
+  const projects=projectRows(),known=projects.some(p=>p.project_key===company);
+  node.innerHTML='<option value="">Выберите компанию</option>'+projects.map(p=>`<option value="${attr(p.project_key)}">${esc(p.display_name||p.project_key)}</option>`).join('')+(company&&!known?`<option value="${attr(company)}">${esc(companyName())}</option>`:'');node.value=company;
+  node.disabled=mutationBusy||!!pending||!!editor;
+}
+function adoptLegacyDraft(result){
+  if(result.legacy_project!==true||result.project_key!==company||editor||pending||!draftKey())return;
+  try{
+    if(sessionStorage.getItem(draftKey())!==null)return;
+    const oldKey=storagePrefix+owner,saved=JSON.parse(sessionStorage.getItem(oldKey)||'null');
+    if(!saved||(!saved.editor&&!saved.pending))return;
+    sessionStorage.setItem(draftKey(),JSON.stringify(saved));restore();
+    if(sessionStorage.getItem(draftKey())!==null)sessionStorage.removeItem(oldKey);
+    if(dialog?.open){renderDetail();updateBusy()}
+  }catch(e){}
+}
 function updateScope(){
   $('qrScopes')?.querySelectorAll('[data-qr-scope]').forEach(node=>node.setAttribute('aria-pressed',String(node.dataset.qrScope===query.scope)));
   const panel=query.scope==='toolbar';if($('qrSearch'))$('qrSearch').disabled=panel;
@@ -285,8 +327,16 @@ function renderPending(){
   const node=$('qrPending');if(!node)return;
   node.hidden=!pending;
   if(!pending)return;
-  node.innerHTML='<span>Результат изменения уточняется. Новые изменения доступны после проверки.</span><button id="qrResolve" class="qrButton" type="button">Уточнить результат</button>';
+  const missing=pending.needs_files===true&&pending.uploads?.length&&!window.WorkspaceV2QuickReplyMaterials?.pendingFiles(pending);
+  node.innerHTML='<span>Результат изменения уточняется. Новые изменения доступны после проверки.</span>'+(missing?'<label class="qrRecoverLabel">Повторно выберите исходные файлы<input id="qrRecoverFiles" type="file" multiple></label>':'')+'<button id="qrResolve" class="qrButton" type="button">Уточнить результат</button>';
   $('qrResolve').disabled=mutationBusy;$('qrResolve').onclick=reconcile;
+  if($('qrRecoverFiles'))$('qrRecoverFiles').onchange=async event=>{
+    if(mutationBusy||!pending)return;const operation=pending,capturedEpoch=epoch,selectedFiles=Array.from(event.target.files||[]);mutationBusy=true;updateBusy();
+    const valid=()=>capturedEpoch===epoch&&authenticated()&&pending===operation;
+    try{const matched=await window.WorkspaceV2QuickReplyMaterials.recover(operation,selectedFiles,valid,{editor,scope:owner+':'+company});if(valid())setStatus(matched?'Файлы совпали. Уточните результат сохранения перед продолжением.':'Выберите исходные файлы.','warn')}
+    catch(error){if(valid())setStatus(error.message,'warn')}
+    finally{if(valid()){mutationBusy=false;updateBusy()}}
+  };
 }
 function renderCategories(){
   const node=$('qrCategory');if(!node)return;
@@ -318,7 +368,7 @@ function renderList(isLoading=false){
   $('qrMore').hidden=nextOffset===null;$('qrMore').disabled=isLoading;
 }
 async function load(append=false){
-  if(!authenticated())return;
+  if(!authenticated()||!company){renderList();return}
   if(query.scope==='toolbar'){renderList();return loadToolbar()}
   const params={...query,offset:append?nextOffset||0:0,limit:50},key=JSON.stringify(params),capturedEpoch=epoch;
   if(loading?.key===key&&loading.ticket===loadTicket)return loading.promise;
@@ -328,7 +378,11 @@ async function load(append=false){
   operation.promise=(async()=>{
     const result=await request('list',params);
     if(capturedEpoch!==epoch||ticket!==loadTicket||!authenticated())return;
-    if(!result?.ok){listFailed=true;renderList();return}
+    if(!result?.ok||result.project_key!==company||(result.replies||[]).some(r=>r.project_key!==company)){
+      listFailed=true;selected=null;preview='';replyContext=null;renderDetail();renderList();return;
+    }
+    uploadLimits=result.upload_limits||uploadLimits;
+    adoptLegacyDraft(result);
     const received=Array.isArray(result.replies)?result.replies:[];
     rows=append?Array.from(new Map([...rows,...received].map(reply=>[Number(reply.id),reply])).values()):received;
     categories=Array.isArray(result.categories)?result.categories:[];
@@ -339,6 +393,7 @@ async function load(append=false){
 }
 function selectReply(id){
   if(editor){setStatus('Сначала сохраните или отмените редактирование. Черновик шаблона сохранён.','warn');return}
+  materialSequence++;insertionBusy=false;
   selected=(query.scope==='toolbar'?toolbarRows:rows).find(reply=>Number(reply.id)===id)||null;
   replyContext=window.WorkspaceV2Conversation?.captureReplyContext?.()||null;
   preview=resolveText(selected?.body||'',knownValues());lastError='';setStatus();renderList();renderDetail();
@@ -349,7 +404,7 @@ function editorMarkup(){
     <label for="qrTitle">Название<input id="qrTitle" type="text" maxlength="120" required value="${attr(draft.title)}" placeholder="Например, приветствие"></label>
     <div class="qrEditorMeta"><label for="qrEditCategory">Категория<input id="qrEditCategory" maxlength="64" list="qrCategorySuggestions" value="${attr(draft.category)}" placeholder="Например, знакомство"></label><label for="qrEditScope">Видимость<select id="qrEditScope" ${draft.id?'disabled':''}><option value="personal">Только мне</option>${isAdmin?'<option value="shared">Всем менеджерам</option>':''}</select></label></div>
     <datalist id="qrCategorySuggestions">${categories.map(value=>`<option value="${attr(value)}"></option>`).join('')}</datalist>
-    <label class="qrBodyLabel" for="qrBody">Текст ответа<textarea id="qrBody" rows="8" maxlength="8000" required placeholder="Напишите готовый текст…">${esc(draft.body)}</textarea></label>${emojiMarkup()}
+    <label class="qrBodyLabel" for="qrBody">Текст ответа<textarea id="qrBody" rows="8" maxlength="8000" required placeholder="Напишите готовый текст…">${esc(draft.body)}</textarea></label>${emojiMarkup()}<div id="qrMaterialsEditor" class="qrMaterialsEditor"></div>
     <div class="qrVariables"><span>Подставить имя:</span><button type="button" data-qr-variable="manager_name">Менеджера</button><button type="button" data-qr-variable="client_name">Клиента</button></div>
     <div class="qrTripVariables"><label for="qrTripVariable">Параметр поездки<select id="qrTripVariable">${Object.entries(tripLabels).map(([key,label])=>`<option value="${key}">${label}</option>`).join('')}</select></label><button id="qrAddTripVariable" class="qrButton" type="button">Добавить подсказку</button></div>
     <p id="qrVisibilityNote" class="qrHint"></p><p class="qrHint">Имена и параметры подставятся при выборе ответа, только если они известны. Перед вставкой проверьте текст. Неизвестные подсказки потребуется заполнить.</p>
@@ -362,11 +417,11 @@ function renderDetail(){
   if(editor){
     node.innerHTML=editorMarkup();$('qrEditScope').value=editor.scope==='shared'&&S.manager?.role==='admin'?'shared':'personal';
     const persistFields=()=>{
-      editor={...editor,title:$('qrTitle').value,body:$('qrBody').value,category:$('qrEditCategory').value,scope:$('qrEditScope').value};persist();updateVisibility();
+      editor={...editor,title:$('qrTitle').value,body:$('qrBody').value,category:$('qrEditCategory').value,scope:$('qrEditScope').value,reviewed:false};if($('qrReviewed'))$('qrReviewed').checked=false;persist();updateVisibility();
     };
     ['qrTitle','qrBody','qrEditCategory'].forEach(id=>$(id).addEventListener('input',persistFields));$('qrEditScope').addEventListener('change',persistFields);
     $('qrEditor').addEventListener('submit',event=>{event.preventDefault();saveEditor()});
-    $('qrCancelEdit').onclick=()=>{if(mutationBusy||pending)return;editor=null;lastError='';persist();renderDetail();$('qrCreate')?.focus()};
+    $('qrCancelEdit').onclick=()=>{if(mutationBusy||pending)return;window.WorkspaceV2QuickReplyMaterials?.release(editor,owner+':'+company);editor=null;lastError='';persist();renderDetail();$('qrCreate')?.focus()};
     node.querySelectorAll('[data-qr-variable]').forEach(button=>button.onclick=()=>{
       const input=$('qrBody'),start=input.selectionStart,end=input.selectionEnd,token='{'+button.dataset.qrVariable+'}';
       input.setRangeText(token,start,end,'end');persistFields();input.focus();
@@ -381,16 +436,21 @@ function renderDetail(){
     if($('qrReloadConflict'))$('qrReloadConflict').onclick=()=>{
       const current=editor.conflict;if(!current)return;
       if(!window.confirm('Открыть актуальную версию? Несохранённый текст этого шаблона будет заменён.'))return;
-      editor={id:current.id,version:current.version,title:current.title,body:current.body,category:current.category,scope:current.scope};lastError='';persist();renderDetail();
+      window.WorkspaceV2QuickReplyMaterials?.release(editor,owner+':'+company);editor={id:current.id,version:current.version,title:current.title,body:current.body,category:current.category,scope:current.scope,editor_key:operationId(),source_label:current.source_label||'',reviewed:!current.requires_review,materials:current.materials||[]};lastError='';persist();renderDetail();
     };
+    const key=editor.editor_key,capturedEpoch=epoch;
+    window.WorkspaceV2QuickReplyMaterials?.editor($('qrMaterialsEditor'),{get:()=>editor,scope:owner+':'+company,limits:uploadLimits,
+      valid:()=>capturedEpoch===epoch&&authenticated()&&editor?.editor_key===key,
+      busy:()=>mutationBusy||!!pending||!!editor?.preparing_files,
+      change:patch=>{if(capturedEpoch!==epoch||!authenticated()||editor?.editor_key!==key)return;editor={...editor,...patch};persist();updateBusy()}});
     bindQuickReplyEmojis('qrBody');updateVisibility();updateBusy();return;
   }
   if(!selected){node.innerHTML='<div class="qrWelcome"><div class="qrWelcomeIcon" aria-hidden="true">↗</div><h3>Меньше повторного набора</h3><p>Выберите ответ слева или создайте свой. Текст появится здесь для проверки перед вставкой.</p><span>Отправка клиенту — отдельное действие.</span></div>';return}
   node.innerHTML=`<div class="qrDetailTop"><div><span class="qrBadge">${selected.scope==='shared'?'Общий ответ':'Мой ответ'}</span><h3>${esc(selected.title)}</h3>${selected.category?`<p>${esc(selected.category)}</p>`:''}</div><button id="qrFavorite" class="qrButton qrPanelToggle" type="button" aria-label="${selected.is_favorite?'Убрать с панели':'Добавить на панель'}" aria-pressed="${!!selected.is_favorite}">${selected.is_favorite?'Убрать с панели':'Добавить на панель'}</button></div>
     <div class="qrTools">${selected.can_edit?'<button id="qrEdit" class="qrButton" type="button">Изменить</button>':'<span class="qrHint">Общий ответ редактирует администратор</span>'}<button id="qrCopy" class="qrButton" type="button">Копировать в мои</button>${selected.can_edit?'<button id="qrDelete" class="qrButton qrDanger" type="button">Удалить ответ</button>':''}</div>
-    <label class="qrPreviewLabel" for="qrPreview">Текст для вставки<textarea id="qrPreview" rows="8">${esc(preview)}</textarea></label>${emojiMarkup()}<div class="qrKnownParameters"><button id="qrFillKnown" class="qrButton" type="button">Подставить известное</button><span class="qrHint">Только оставшиеся подсказки из текущей карточки. Ваши правки сохранятся.</span></div><div id="qrPlaceholderStatus" class="qrPlaceholderStatus" role="status"></div>
+    ${window.WorkspaceV2QuickReplyMaterials?.preview(selected)||''}<label class="qrPreviewLabel" for="qrPreview">Текст для вставки<textarea id="qrPreview" rows="8">${esc(preview)}</textarea></label>${emojiMarkup()}<div class="qrKnownParameters"><button id="qrFillKnown" class="qrButton" type="button">Подставить известное</button><span class="qrHint">Только оставшиеся подсказки из текущей карточки. Ваши правки сохранятся.</span></div><div id="qrPlaceholderStatus" class="qrPlaceholderStatus" role="status"></div>
     <div class="qrInsertFooter"><button id="qrInsert" class="qrButton qrPrimary" type="button">Вставить в ответ</button><p>Добавим текст в текущий черновик. Вложения сохранятся.</p></div>`;
-  $('qrPreview').addEventListener('input',()=>{preview=$('qrPreview').value;updateInsertion()});
+  $('qrPreview').addEventListener('input',()=>{materialSequence++;insertionBusy=false;preview=$('qrPreview').value;updateInsertion()});
   $('qrFillKnown').onclick=fillKnown;$('qrInsert').onclick=insert;$('qrFavorite').onclick=()=>mutate('favorite',{id:selected.id,is_favorite:!selected.is_favorite,...(toolbarReady?{toolbar_version:toolbarVersion}:{})});
   $('qrCopy').onclick=()=>mutate('copy',{id:selected.id});
   if($('qrEdit'))$('qrEdit').onclick=()=>beginEditor(selected);
@@ -400,13 +460,14 @@ function renderDetail(){
   bindQuickReplyEmojis('qrPreview');updateInsertion();updateBusy();
 }
 function updateVisibility(){
-  const note=$('qrVisibilityNote');if(note)note.textContent=editor?.scope==='shared'?'Этот ответ будет доступен всем менеджерам. Редактирование — у администраторов.':'Этот ответ будет доступен только вашему аккаунту, в том числе на другом устройстве.';
+  const note=$('qrVisibilityNote');if(note)note.textContent=editor?.scope==='shared'?'Этот ответ будет доступен команде компании «'+companyName()+'». Редактирование — у администраторов.':'Этот ответ будет доступен только вам в компании «'+companyName()+'», в том числе на другом устройстве.';
 }
 function updateInsertion(){
   const button=$('qrInsert'),note=$('qrPlaceholderStatus');if(!button||!note)return;
-  const unresolved=placeholders(preview),valid=authenticated()&&contextValid();
+  const unresolved=placeholders(preview),valid=authenticated()&&contextValid()&&selected?.project_key===company&&conversationProject()===company;
   const fill=$('qrFillKnown');if(fill)fill.disabled=mutationBusy||!!pending||!valid||!unresolved.some(key=>variableKeys.includes(key.trim()));
-  button.disabled=mutationBusy||!!pending||!valid||!preview.trim()||unresolved.length>0;
+  button.disabled=mutationBusy||!!pending||insertionBusy||!valid||!preview.trim()||unresolved.length>0;
+  button.textContent=insertionBusy?'Загружаем материалы…':'Вставить в ответ';
   note.className='qrPlaceholderStatus'+(unresolved.length||!valid?' warn':'');
   const nameLabels={manager_name:'Имя менеджера',client_name:'Имя клиента'};
   const label=key=>Object.hasOwn(tripLabels,key.trim())?tripLabels[key.trim()]:Object.hasOwn(nameLabels,key.trim())?nameLabels[key.trim()]:key;
@@ -418,20 +479,29 @@ function updateBusy(){
   $('qrEmojiPicker')?.querySelectorAll('[data-qr-emoji]').forEach(node=>{node.disabled=disabled});if(disabled)closeQuickReplyEmojis();
   if(editor&&$('qrEditor'))$('qrEditor').querySelectorAll('input,textarea,select,[data-qr-variable],#qrAddTripVariable').forEach(node=>{node.disabled=disabled||(node.id==='qrEditScope'&&!!editor.id)});
   if($('qrSave'))$('qrSave').textContent=mutationBusy?'Сохраняем…':'Сохранить ответ';
-  renderPending();updateInsertion();renderToolbar();if(query.scope==='toolbar')renderList();
+  if($('qrSave'))$('qrSave').disabled=disabled||!!editor?.preparing_files;
+  if($('qrCreate'))$('qrCreate').disabled=disabled||!company;
+  if($('qrMaterialFiles'))$('qrMaterialFiles').disabled=disabled||!!editor?.preparing_files;
+  if($('qrReviewed'))$('qrReviewed').disabled=disabled||!editor?.source_label?.trim();
+  if($('qrRecoverFiles'))$('qrRecoverFiles').disabled=mutationBusy;
+  $('qrMaterialEditorRows')?.querySelectorAll('[data-qr-material-action]').forEach(button=>{const i=Number(button.dataset.index);button.disabled=disabled||!!editor?.preparing_files||(button.dataset.qrMaterialAction==='up'&&i===0)||(button.dataset.qrMaterialAction==='down'&&i===(editor?.materials?.length||0)-1)});
+  renderCompany();renderPending();updateInsertion();renderToolbar();if(query.scope==='toolbar')renderList();
 }
 function beginEditor(reply=null){
-  if(mutationBusy||pending)return;
+  if(mutationBusy||pending||!company)return;
   if(editor){setStatus('Продолжайте сохранённый черновик или отмените редактирование.','warn');$('qrTitle')?.focus();return}
-  editor=reply?{id:reply.id,version:reply.version,title:reply.title,body:reply.body,category:reply.category||'',scope:reply.scope}:{id:0,title:'',body:'',category:query.category,scope:'personal'};
+  editor=reply?{id:reply.id,version:reply.version,title:reply.title,body:reply.body,category:reply.category||'',scope:reply.scope,source_label:reply.source_label||'',reviewed:!reply.requires_review,materials:reply.materials||[],editor_key:operationId()}:{id:0,title:'',body:'',category:query.category,scope:'personal',source_label:'',reviewed:false,materials:[],editor_key:operationId()};
   lastError='';persist();setStatus();renderDetail();$('qrTitle').focus();
 }
 function saveEditor(){
   if(!editor||mutationBusy||pending)return;
   if(!editor.title.trim()||!editor.body.trim()){setStatus('Добавьте название и текст ответа.','warn');return}
-  const data={title:editor.title,body:editor.body,category:editor.category,scope:editor.scope};
+  if(!window.WorkspaceV2QuickReplyMaterials&&editor.materials?.length){setStatus('Не удалось открыть материалы. Обновите страницу перед изменением шаблона.','warn');return}
+  let packet={materials:[],upload_hashes:[],uploads:[]};
+  try{if(window.WorkspaceV2QuickReplyMaterials)packet=window.WorkspaceV2QuickReplyMaterials.packet(editor,owner+':'+company)}catch(error){setStatus(error.message,'warn');return}
+  const data={title:editor.title,body:editor.body,category:editor.category,scope:editor.scope,source_label:editor.source_label||'',reviewed:!!editor.reviewed,materials:packet.materials,upload_hashes:packet.upload_hashes};
   if(editor.id){data.id=editor.id;data.version=editor.version;delete data.scope}
-  return mutate(editor.id?'update':'create',data);
+  return mutate(editor.id?'update':'create',data,{files:packet.uploads});
 }
 function unknownResult(result){return !result||['network_error','invalid_response','operation_mismatch','operation_pending'].includes(result.error)||Number(result.http_status||0)>=500}
 async function mutate(action,data,options={}){
@@ -439,14 +509,17 @@ async function mutate(action,data,options={}){
   const capturedEpoch=epoch;
   // Reads begun before this write cannot restore an obsolete order or body.
   toolbarTicket++;toolbarLoading=null;
-  pending={action,data,operation_id:operationId(),...(action==='reorder'?{focus:toolbarFocus}:{}),...(options.preserveSelection?{preserve_selection:true}:{})};mutationBusy=true;persist();updateBusy();setStatus('Сохраняем изменение…');
-  const result=await request(action,{...data,operation_id:pending.operation_id});
+  const files=options.files||[];
+  pending={action,data,operation_id:operationId(),...(files.length?{uploads:files.map((file,i)=>({name:file.name,size:file.size,sha256:data.upload_hashes[i]}))}:{}),...(action==='reorder'?{focus:toolbarFocus}:{}),...(options.preserveSelection?{preserve_selection:true}:{})};
+  window.WorkspaceV2QuickReplyMaterials?.remember(pending.operation_id,files);mutationBusy=true;persist();updateBusy();setStatus('Сохраняем изменение…');
+  const result=await request(action,{...data,operation_id:pending.operation_id},files);
   if(capturedEpoch!==epoch||!authenticated())return;
   mutationBusy=false;
   if(unknownResult(result)){setStatus('Не удалось подтвердить результат. Уточните его перед следующим изменением.','warn');updateBusy();return}
   finishMutation(result,action);updateBusy();restorePanelFocus();
 }
 function finishMutation(result,action){
+  window.WorkspaceV2QuickReplyMaterials?.forgetOperation(pending?.operation_id);
   if(action==='reorder'&&pending?.focus)toolbarFocus=pending.focus;
   const preserveSelection=action==='favorite'&&pending?.preserve_selection;
   pending=null;mutationBusy=false;
@@ -456,7 +529,7 @@ function finishMutation(result,action){
     if(result?.error==='conflict'&&result.current&&editor)editor.conflict=result.current;
     persist();setStatus(lastError,'error');renderDetail();if(!hasToolbar&&action==='reorder')void loadToolbar(true);return;
   }
-  if(['create','update'].includes(action)){editor=null;lastError=''}
+  if(['create','update'].includes(action)){window.WorkspaceV2QuickReplyMaterials?.release(editor,owner+':'+company);editor=null;lastError=''}
   if(result.reply&&!preserveSelection){
     const preservePreview=action==='favorite'&&Number(selected?.id)===Number(result.reply.id);
     selected=result.reply;
@@ -476,8 +549,10 @@ async function reconcile(){
   if(capturedEpoch!==epoch||!authenticated()||pending!==operation)return;
   if(receipt?.ok&&receipt.found){await finishRecovered(receipt.result,operation,capturedEpoch);return}
   if(receipt?.ok&&receipt.found===false){
+    const files=window.WorkspaceV2QuickReplyMaterials?.pendingFiles(operation)||(!operation.uploads?.length?[]:null);
+    if(files===null){operation.needs_files=true;persist();mutationBusy=false;setStatus('Сохранение не подтверждено. Повторно выберите исходные файлы; затем уточните результат.','warn');updateBusy();return}
     // A checked missing receipt can safely use the identical idempotency key.
-    const result=await request(operation.action,{...operation.data,operation_id:operation.operation_id});
+    const result=await request(operation.action,{...operation.data,operation_id:operation.operation_id},files);
     if(capturedEpoch!==epoch||!authenticated()||pending!==operation)return;
     mutationBusy=false;
     if(!unknownResult(result)){await finishRecovered(result,operation,capturedEpoch);return}
@@ -496,7 +571,17 @@ async function finishRecovered(result,operation,capturedEpoch){
   updateBusy();restorePanelFocus();
 }
 function insert(){
-  if(!authenticated()||mutationBusy||pending||placeholders(preview).length||!preview.trim()||!contextValid())return false;
+  if(!authenticated()||mutationBusy||pending||insertionBusy||placeholders(preview).length||!preview.trim()||!contextValid()||selected?.project_key!==company||conversationProject()!==company)return false;
+  if(selected.materials?.length){
+    if(!window.WorkspaceV2QuickReplyMaterials){setStatus('Не удалось открыть материалы. Обновите страницу перед вставкой.','warn');return false}
+    const capturedEpoch=epoch,reply=selected,text=preview,ctx=replyContext,project=company,ticket=++materialSequence;
+    const valid=()=>capturedEpoch===epoch&&ticket===materialSequence&&dialog?.open===true&&authenticated()&&selected===reply&&preview===text&&company===project&&contextValid(ctx)&&conversationProject()===project;
+    insertionBusy=true;updateInsertion();setStatus('Загружаем сохранённые материалы…');
+    return window.WorkspaceV2QuickReplyMaterials.insert({endpoint,reply,text,context:ctx,project,valid,notice:message=>{if(valid())setStatus(message,'warn')}})
+      .then(inserted=>{if(!valid())return false;if(inserted){returnFocus=$('replyText');close();return true}setStatus('Черновик или вложения изменились во время загрузки. Они сохранены; вставьте шаблон заново.','warn');return false})
+      .catch(error=>{if(valid())setStatus(/[А-Яа-я]/.test(error.message)?error.message:'Не удалось загрузить материалы. Текущий черновик сохранён.','warn');return false})
+      .finally(()=>{if(capturedEpoch===epoch&&ticket===materialSequence){insertionBusy=false;updateInsertion()}});
+  }
   const inserted=window.WorkspaceV2Conversation?.insertQuickReply?.(preview,replyContext);
   if(!inserted){setStatus('Не удалось вставить текст. Проверьте доступ к текущему диалогу.','warn');return false}
   returnFocus=$('replyText');close();return true;
@@ -504,7 +589,7 @@ function insert(){
 async function open(options={}){
   if(!identity())return false;
   adoptSession();
-  ensureDialog();returnFocus=document.activeElement;
+  ensureDialog();returnFocus=options.opener||document.activeElement;
   if(dialog.open){focusLibrary();return true}
   if(options.panel&&!editor)query.scope='toolbar';updateScope();
   // Explicit settings visits refresh changes from another device/admin. This
@@ -517,12 +602,14 @@ async function open(options={}){
 function focusLibrary(){
   const node=query.scope==='toolbar'?$('qrList')?.querySelector?.('[data-qr-select]')||$('qrCreate'):$('qrSearch');node?.focus();
 }
-function close(){closeQuickReplyEmojis();persist();if(dialog?.open)dialog.close()}
-function resetSession(){
+function close(){materialSequence++;insertionBusy=false;closeQuickReplyEmojis();persist();if(dialog?.open)dialog.close();const active=conversationProject();if(active&&active!==company){const focus=returnFocus;switchCompany(active);void loadToolbar();if(focus?.isConnected&&!focus.disabled)focus.focus({preventScroll:true})}}
+function resetSession(options={}){
   closeQuickReplyEmojis();
   persist();epoch++;loadTicket++;toolbarTicket++;clearTimeout(searchTimer);searchTimer=null;loading=null;toolbarLoading=null;
   owner=0;ownerGeneration=0;rows=[];categories=[];selected=null;preview='';replyContext=null;editor=null;pending=null;mutationBusy=false;nextOffset=null;listFailed=false;lastError='';query={scope:'all',search:'',category:'',favorites_only:false};
   toolbarRows=[];toolbarVersion='';toolbarReady=false;toolbarError='';toolbarFocus=null;renderToolbar();
+  company='';observedProject='';uploadLimits=null;insertionBusy=false;materialSequence++;
+  if(!options.preserveFiles)window.WorkspaceV2QuickReplyMaterials?.reset();
   returnFocus=null;if(dialog){if(dialog.open)dialog.close();dialog.remove();dialog=null}
 }
 function bind(){
@@ -538,7 +625,7 @@ function bind(){
     if(event.target.closest('[data-qr-toolbar-resolve]'))void reconcile();
   });
   trigger.textContent='Настроить ответы';trigger.title='Выбрать и расположить быстрые ответы · Ctrl+Alt+Q';
-  trigger.onclick=()=>open({panel:true});trigger.setAttribute('aria-haspopup','dialog');trigger.setAttribute('aria-controls','quickRepliesDialog');bound=true;renderToolbar();
+  trigger.onclick=()=>open({panel:true,opener:trigger});trigger.setAttribute('aria-haspopup','dialog');trigger.setAttribute('aria-controls','quickRepliesDialog');bound=true;renderToolbar();
 }
-window.WorkspaceV2QuickReplies={bind,configure,open,close,resetSession,resolveText,placeholders,tripValues};
+window.WorkspaceV2QuickReplies={bind,configure,syncContext,open,close,resetSession,resolveText,placeholders,tripValues};
 })();

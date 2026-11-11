@@ -19,6 +19,9 @@ $expected=[
     'manager/assets/workspace-v2-customer-avatar.js',
     'manager/assets/workspace-v2-media.js',
     'manager/assets/workspace-v2-notifications.js',
+    // Reply-template multipart writes and hash-verified private binary reads
+    // preserve captured account/company/draft context; ordinary JSON stays in W.
+    'manager/assets/workspace-v2-quick-reply-materials.js',
     'manager/assets/workspace-v2.js',
 ];
 sort($expected);
