@@ -10,7 +10,7 @@ require_once dirname(__DIR__).'/fixtures/manager_send_attempt_fixture.php';
 $pdo=new PDO($dsn,$user,$password,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false]);sendAttemptBind($pdo);
 if($pdo->query('SELECT DATABASE()')->fetchColumn()!=='manager_send_attempt_test')throw new RuntimeException('Unexpected send schema');
 if(($argv[1]??'')==='--worker'){
-    if((int)$pdo->query('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()')->fetchColumn()!==12||$pdo->query('SELECT login FROM managers WHERE id=7')->fetchColumn()!=='synthetic-owner')throw new RuntimeException('Refusing non-fixture worker');
+    if((int)$pdo->query('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()')->fetchColumn()!==16||$pdo->query('SELECT login FROM managers WHERE id=7')->fetchColumn()!=='synthetic-owner')throw new RuntimeException('Refusing non-fixture worker');
     $id=$argv[2]??'';$command=$argv[3]??'';if(!in_array($id,[str_repeat('a',32),str_repeat('b',32),str_repeat('c',32),str_repeat('d',32)],true)||!in_array($command,['send','cancel','media','cancel_media'],true))throw new RuntimeException('Invalid worker command');
     echo "READY\n";fflush(STDOUT);if(fgets(STDIN)!=="start\n")throw new RuntimeException('Missing barrier');
     if($command==='cancel_media')$result=ManagerSendAttemptService::mediaCancel(7,101,$id);

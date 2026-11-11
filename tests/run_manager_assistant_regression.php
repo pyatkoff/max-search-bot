@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
+
 
 require_once dirname(__DIR__).'/services/ManagerAssistantService.php';
 require_once __DIR__.'/support/preparation-policy-fixture.php';
@@ -69,7 +71,7 @@ function assistantCheck(string $name,bool $ok): void
 
 function assistantFixture(): AssistantFixturePdo
 {
-    $pdo=new AssistantFixturePdo();
+    $pdo=new AssistantFixturePdo();regionalAccessFixtureSchema($pdo);
     (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
     foreach ([ProjectAccessService::class,ManagerAuthService::class,RoutingAccessService::class] as $class) (new ReflectionProperty($class,'schemaReady'))->setValue(null,false);
     ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'Synthetic project']]);

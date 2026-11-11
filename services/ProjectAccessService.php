@@ -56,22 +56,25 @@ class ProjectAccessService
         return(int)$q->fetchColumn();
     }
 
-    public static function projectsForManager(int $managerId): array
+    public static function projectsForManager(int $managerId,bool$currentRead=false): array
     {
         self::ensureSchema();
-        $q = ConversationDb::connection()->prepare("SELECT p.id,p.project_key,p.display_name
+        $pdo=ConversationDb::connection();$lock=$currentRead&&$pdo->inTransaction()&&$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
+        $q = $pdo->prepare("SELECT p.id,p.project_key,p.display_name,COALESCE(ra.regional_scope_required,0) AS regional_scope_required
             FROM projects p JOIN manager_projects mp ON mp.project_id=p.id
-            WHERE mp.manager_id=? AND p.is_active=1 ORDER BY p.display_name,p.id");
+            LEFT JOIN manager_regional_access ra ON ra.manager_id=mp.manager_id AND ra.project_id=p.id
+            WHERE mp.manager_id=? AND p.is_active=1 ORDER BY p.display_name,p.id".$lock);
         $q->execute([$managerId]);
         return $q->fetchAll();
     }
 
-    public static function canAccess(int $managerId, string $projectKey): bool
+    public static function canAccess(int $managerId, string $projectKey,bool$currentRead=false): bool
     {
         if ($managerId <= 0 || $projectKey === '') return false;
         self::ensureSchema();
-        $q = ConversationDb::connection()->prepare("SELECT 1 FROM manager_projects mp JOIN projects p ON p.id=mp.project_id
-            WHERE mp.manager_id=? AND p.project_key=? AND p.is_active=1 LIMIT 1");
+        $pdo=ConversationDb::connection();$lock=$currentRead&&$pdo->inTransaction()&&$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
+        $q = $pdo->prepare("SELECT 1 FROM manager_projects mp JOIN projects p ON p.id=mp.project_id
+            WHERE mp.manager_id=? AND p.project_key=? AND p.is_active=1 LIMIT 1".$lock);
         $q->execute([$managerId,$projectKey]);
         return (bool)$q->fetchColumn();
     }

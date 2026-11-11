@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
 require_once dirname(__DIR__).'/services/ChannelPostMediaService.php';
 require_once __DIR__.'/fixtures/channel_post_registry_fixture.php';
 
@@ -18,6 +19,7 @@ define('TELEGRAM_BOT_TOKEN', '123456:FIXTURE_ONLY_NO_NETWORK');
 $images = array_map(static fn($value)=>base64_decode($value, true), require __DIR__.'/fixtures/channel_post_media_images.php');
 $dbPath = $temp.'/fixture.sqlite';
 $pdo = new PDO('sqlite:'.$dbPath, null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+regionalAccessFixtureSchema($pdo);
 // The protected endpoint executes the real manager authentication and routing ACL.
 $pdo->exec('CREATE TABLE conversations (id INTEGER PRIMARY KEY,project_key TEXT,channel TEXT,status TEXT,manager_id INTEGER,source_id INTEGER,entry_channel TEXT,external_chat_id TEXT,customer_id INTEGER,attribution_region TEXT,attribution_campaign TEXT,lead_stage_key TEXT,started_at TEXT,last_message_at TEXT,closed_at TEXT)');
 $pdo->exec('CREATE TABLE conversation_sources (id INTEGER PRIMARY KEY,project_id INTEGER,source_key TEXT,display_name TEXT,channel TEXT,is_active INTEGER DEFAULT 1,handling_mode TEXT DEFAULT "manager",primary_group_id INTEGER,fallback_mode TEXT,fallback_group_id INTEGER,fallback_after_minutes INTEGER)');

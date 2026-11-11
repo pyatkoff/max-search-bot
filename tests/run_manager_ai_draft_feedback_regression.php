@@ -1,10 +1,12 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
+
 
 require_once dirname(__DIR__).'/services/ManagerAiDraftFeedbackService.php';
 
-$pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+$pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);regionalAccessFixtureSchema($pdo);
 (new ReflectionProperty(ConversationDb::class, 'pdo'))->setValue(null, $pdo);
 foreach ([ProjectAccessService::class,ManagerAuthService::class,RoutingAccessService::class] as $class) {
     (new ReflectionProperty($class, 'schemaReady'))->setValue(null, false);

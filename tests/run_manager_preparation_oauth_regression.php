@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
+
 
 require_once dirname(__DIR__).'/services/ManagerPreparationOAuth.php';
 
@@ -24,7 +26,7 @@ function preparationOauthReject(string $name, callable $action, string $expected
 
 function preparationOauthFixture(?string $databasePath = null): array
 {
-    $pdo=new PDO('sqlite:'.($databasePath??':memory:'),null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    $pdo=new PDO('sqlite:'.($databasePath??':memory:'),null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);regionalAccessFixtureSchema($pdo);
     $pdo->exec("CREATE TABLE managers(id INTEGER PRIMARY KEY,role TEXT,is_active INTEGER,is_working INTEGER);
         CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER);
         CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER);

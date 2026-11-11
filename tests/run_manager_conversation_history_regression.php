@@ -1,5 +1,7 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
+
 
 // Execute the real detail, read-marker, media hydration and API detail branch on
 // isolated SQLite. MySQL's atomic UPSERT and candidate time-window expression
@@ -80,7 +82,7 @@ function apiDetail(array $data,int $managerId=1): array
 
 function fixture(int $count,bool $humanReply=true): HistoryFixturePdo
 {
-    $pdo=new HistoryFixturePdo();(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
+    $pdo=new HistoryFixturePdo();regionalAccessFixtureSchema($pdo);(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
     foreach([ProjectAccessService::class,ManagerAuthService::class,RoutingAccessService::class] as $class)(new ReflectionProperty($class,'schemaReady'))->setValue(null,true);
     $pdo->exec("CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER);
 CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER);

@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
 require_once dirname(__DIR__).'/services/ManagerQuickReplyService.php';
 $passed=0;
 function qrCheck(string $name,bool $ok):void {global $passed;if (!$ok) throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name."\n";}
@@ -182,6 +183,7 @@ mkdir($httpRoot,0700);mkdir($httpRoot.'/manager',0700);mkdir($httpRoot.'/session
 $process=null;$httpDb=null;
 try {
     $httpDb=new PDO('sqlite:'.$httpRoot.'/fixture.sqlite',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+    regionalAccessFixtureSchema($httpDb);
     foreach ($pdo->query("SELECT sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")->fetchAll(PDO::FETCH_COLUMN) as $schema) $httpDb->exec($schema);
     $httpDb->exec("CREATE TABLE projects (id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER);
         CREATE TABLE manager_projects (manager_id INTEGER,project_id INTEGER);

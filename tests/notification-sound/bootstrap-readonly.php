@@ -10,7 +10,7 @@ final class ReadonlyStatement extends PDOStatement {
         if (!preg_match('/^SELECT\\b/', $this->sql)) throw new RuntimeException('write_forbidden');
         if (str_contains($this->sql,'SELECT id,display_name,is_active FROM projects')) $this->fixture=$this->database->project;
         elseif(str_contains($this->sql,'FROM managers WHERE id')) $this->fixture=$this->database->manager;
-        elseif(str_contains($this->sql,'FROM projects p JOIN manager_projects')) $this->fixture=$this->database->projectAllowed ? [['id'=>1,'project_key'=>ProjectConfig::projectId(),'display_name'=>'fixture']] : [];
+        elseif(str_contains($this->sql,'FROM projects p JOIN manager_projects')) $this->fixture=$this->database->projectAllowed ? [['id'=>1,'project_key'=>ProjectConfig::projectId(),'display_name'=>'fixture','regional_scope_required'=>0]] : [];
         elseif(str_contains($this->sql,'SELECT 1 FROM manager_projects')) $this->fixture=$this->database->projectAllowed ? 1 : false;
         else throw new RuntimeException('unexpected_query');
         return true;
@@ -20,6 +20,7 @@ final class ReadonlyStatement extends PDOStatement {
     public function fetchColumn(int $column=0): mixed { return $this->fixture; }
 }
 final class ReadonlyPdo extends PDO {
+    public function inTransaction():bool{return false;}
     public array $executed=[];
     public mixed $project;
     public array $manager=['id'=>7,'role'=>'manager','is_active'=>1,'is_working'=>1];

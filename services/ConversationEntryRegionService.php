@@ -7,7 +7,7 @@ require_once __DIR__.'/ProjectConfig.php';
 require_once __DIR__.'/TrafficAttributionService.php';
 require_once __DIR__.'/YandexRegionCatalog.php';
 
-/** Advertising geography only. It cannot apply a travel need or change routing. */
+/** Immutable advertising geography receipt; never applies a travel need. */
 final class ConversationEntryRegionService
 {
     private const SOURCES = ['max_start_payload','telegram_start_payload','website_entry','incoming_attribution'];
@@ -125,6 +125,14 @@ final class ConversationEntryRegionService
     {
         if (strlen($payload) > 512 || preg_match('/[\x00-\x20\x7f]/', $payload)) return '';
         return (string)(TrafficAttributionService::parseStartPayload($payload)['region_id'] ?? '');
+    }
+
+    /** Routing reads only the first immutable receipt, never the latest attribution. */
+    public static function firstReceipt($metadataJson,string $actualPlatform): ?array
+    {
+        if(!in_array($actualPlatform,['max','telegram','website'],true))return null;
+        $metadata=self::metadata($metadataJson);
+        return self::receipt($metadata['first_entry_region']??null,$actualPlatform);
     }
 
     private static function metadata($json): ?array

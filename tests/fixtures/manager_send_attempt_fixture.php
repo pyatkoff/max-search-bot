@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/regional_access_schema.php';
 require_once dirname(__DIR__,2).'/services/ManagerSendAttemptService.php';
 function sendAttemptBind(PDO $pdo): void
 {
@@ -8,9 +9,11 @@ function sendAttemptBind(PDO $pdo): void
 }
 function sendAttemptSchema(PDO $pdo,bool $mysql=false): void
 {
+    regionalAccessFixtureSchema($pdo);
     $tables=[
         'projects'=>'id INTEGER PRIMARY KEY,project_key VARCHAR(64),display_name VARCHAR(100),is_active INTEGER',
         'manager_projects'=>'manager_id INTEGER,project_id INTEGER',
+        'manager_groups'=>'id INTEGER PRIMARY KEY,project_id INTEGER,group_key VARCHAR(64),display_name VARCHAR(100),is_active INTEGER NOT NULL DEFAULT 1',
         'managers'=>'id INTEGER PRIMARY KEY,login VARCHAR(64),display_name VARCHAR(100),role VARCHAR(32),email VARCHAR(100),is_active INTEGER,is_working INTEGER',
         'customers'=>'id INTEGER PRIMARY KEY,display_name VARCHAR(100),phone VARCHAR(50),email VARCHAR(100)',
         'manager_customer_names'=>'customer_id INTEGER PRIMARY KEY,working_name VARCHAR(100),version INTEGER',

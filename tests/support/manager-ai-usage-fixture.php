@@ -3,6 +3,7 @@ declare(strict_types=1);
 if(PHP_SAPI!=='cli'&&!defined('MANAGER_AI_USAGE_HTTP_FIXTURE')){http_response_code(404);exit;}
 require_once dirname(__DIR__,2).'/services/ManagerAiUsageService.php';
 require_once dirname(__DIR__,2).'/services/ManagerAiDraftService.php';
+require_once dirname(__DIR__).'/fixtures/regional_access_schema.php';
 
 final class ManagerAiUsageFixture
 {
@@ -12,6 +13,7 @@ $dsn=$sqlitePath===null?getenv('MANAGER_AI_USAGE_MYSQL_DSN'):false;$native=is_st
 if($native&&!preg_match('/\Amysql:host=(127\.0\.0\.1|localhost|mysql);(?:port=[0-9]{1,5};)?dbname=manager_ai_usage_test;charset=utf8mb4\z/D',$dsn))throw new RuntimeException('isolated_native_fixture_required');
 $pdo=new PDO($native?$dsn:'sqlite:'.($sqlitePath??':memory:'),$native?getenv('MANAGER_AI_USAGE_MYSQL_USER'):null,$native?getenv('MANAGER_AI_USAGE_MYSQL_PASSWORD'):null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
 if($native){if($pdo->query('SHOW TABLES')->fetchAll())throw new RuntimeException('empty_native_fixture_required');$pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES,false);$pdo->exec("SET time_zone='+00:00'");}
+regionalAccessFixtureSchema($pdo);
 (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'AnyTour']]);
 $idType=$native?'BIGINT UNSIGNED':'INTEGER';$draftType=$native?'CHAR(32) CHARACTER SET ascii COLLATE ascii_bin':'CHAR(32)';$projectType=$native?'VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci':'TEXT COLLATE NOCASE';
 $pdo->exec("CREATE TABLE projects(id {$idType} PRIMARY KEY,project_key VARCHAR(64),display_name VARCHAR(100),is_active INTEGER);

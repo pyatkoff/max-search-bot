@@ -4,6 +4,7 @@ require_once __DIR__ . '/ProjectAccessService.php';
 require_once __DIR__ . '/ManagerAuthService.php';
 require_once __DIR__ . '/AuditLogService.php';
 require_once __DIR__ . '/ManagerPushHealth.php';
+require_once __DIR__ . '/RegionalRoutingScopeService.php';
 
 class AdminDirectoryService
 {
@@ -18,8 +19,10 @@ class AdminDirectoryService
         $access=[];
         $q=$pdo->query("SELECT manager_id,project_id FROM manager_projects ORDER BY manager_id,project_id");
         foreach($q->fetchAll() as $row)$access[(int)$row['manager_id']][]=(int)$row['project_id'];
+        $regional=[];foreach($pdo->query('SELECT manager_id,project_id FROM manager_regional_access WHERE regional_scope_required<>0')->fetchAll()as$row)$regional[(int)$row['manager_id']][]=(int)$row['project_id'];
         foreach($managers as &$manager){
             $manager['project_ids']=$access[(int)$manager['id']]??[];
+            $manager['regional_project_ids']=$regional[(int)$manager['id']]??[];
             $manager=self::withOperationalSignals($manager,ManagerPushHealth::statusForManager($pdo,(int)$manager['id']));
         }
         unset($manager);
@@ -74,7 +77,14 @@ class AdminDirectoryService
         return ['ok'=>true,'project_id'=>$id];
     }
 
-    public static function saveManager(array $data,int $actorManagerId): array
+    public static function saveManagerForProject(array$data,int$actorManagerId,string$projectKey): array
+    {
+        $projectId=ProjectAccessService::projectIdByKey($projectKey);
+        if($projectId<=0||($data['role']??'manager')!=='manager'||($data['project_ids']??null)!==[$projectId]||($data['regional_project_ids']??null)!==[$projectId])return['ok'=>false,'error'=>'invalid_regional_project'];
+        return self::saveManager($data,$actorManagerId,$projectKey);
+    }
+
+    public static function saveManager(array $data,int $actorManagerId,?string$requiredProjectKey=null): array
     {
         ProjectAccessService::ensureSchema();
         ManagerAuthService::ensureSchema();
@@ -87,6 +97,12 @@ class AdminDirectoryService
         $priority=max(-100000,min(100000,(int)($data['priority']??0)));
         $password=(string)($data['password']??'');
         $projectIds=array_values(array_unique(array_filter(array_map('intval',(array)($data['project_ids']??[])),static function($v){return $v>0;})));
+        $regionalIds=null;
+        if(array_key_exists('regional_project_ids',$data)){
+            $regionalIds=$data['regional_project_ids'];
+            if(!is_array($regionalIds)||!array_is_list($regionalIds)||count($regionalIds)>100||count(array_unique($regionalIds,SORT_REGULAR))!==count($regionalIds))return['ok'=>false,'error'=>'invalid_regional_project'];
+            foreach($regionalIds as$pid)if(!is_int($pid)||$pid<=0||!in_array($pid,$projectIds,true))return['ok'=>false,'error'=>'invalid_regional_project'];
+        }
         if($login===''||!preg_match('/^[A-Za-z0-9._@+-]{3,191}$/',$login))return ['ok'=>false,'error'=>'invalid_login'];
         if($id===0 && strlen($password)<8)return ['ok'=>false,'error'=>'password_too_short'];
         if($password!=='' && strlen($password)<8)return ['ok'=>false,'error'=>'password_too_short'];
@@ -102,6 +118,16 @@ class AdminDirectoryService
         }
         $before=$id>0?self::managerRow($id):null;$pdo->beginTransaction();
         try{
+            $lock=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
+            $actorIds=array_values(array_unique(array_filter([$actorManagerId,$id],static fn(int$v):bool=>$v>0)));sort($actorIds,SORT_NUMERIC);
+            if(!$actorIds){$pdo->rollBack();return['ok'=>false,'error'=>'admin_required'];}
+            $q=$pdo->prepare('SELECT id FROM managers WHERE id IN ('.implode(',',array_fill(0,count($actorIds),'?')).') ORDER BY id'.$lock);$q->execute($actorIds);$q->fetchAll();
+            $actor=ManagerAuthService::byId($actorManagerId,true);
+            if(!ManagerAuthService::isAdmin($actor)){$pdo->rollBack();return['ok'=>false,'error'=>'admin_required'];}
+            $before=$id>0?self::managerRow($id):null;
+            $affected=array_values(array_unique([...$projectIds,...($before['project_ids']??[]),...RegionalRoutingScopeService::regionalProjectIds($id)]));sort($affected,SORT_NUMERIC);
+            if($affected){$q=$pdo->prepare('SELECT id FROM projects WHERE id IN ('.implode(',',array_fill(0,count($affected),'?')).') ORDER BY id'.$lock);$q->execute($affected);$q->fetchAll();}
+            if($requiredProjectKey!==null&&!ProjectAccessService::canAccess($actorManagerId,$requiredProjectKey,true)){$pdo->rollBack();return['ok'=>false,'error'=>'project_access_denied'];}
             if($id>0){
                 if(!self::managerExists($id)){ $pdo->rollBack(); return ['ok'=>false,'error'=>'not_found']; }
                 $sql='UPDATE managers SET login=?,display_name=?,email=?,role=?,is_active=?,priority=?';$args=[$login,$name!==''?$name:null,$email!==''?$email:null,$role,$active,$priority];
@@ -117,6 +143,15 @@ class AdminDirectoryService
             $ins=$pdo->prepare('INSERT IGNORE INTO manager_projects (manager_id,project_id) VALUES (?,?)');
             foreach($projectIds as $projectId)$ins->execute([$id,$projectId]);
             if($role==='admin')$pdo->prepare('INSERT IGNORE INTO manager_projects (manager_id,project_id) SELECT ?,id FROM projects WHERE is_active=1')->execute([$id]);
+            // Omitted mode preserves every durable row. Removing a grant also
+            // retains its restriction, so regranting cannot silently widen it.
+            if($regionalIds!==null){
+                foreach($projectIds as$projectId){
+                    $q=$pdo->prepare('SELECT regional_scope_required FROM manager_regional_access WHERE manager_id=? AND project_id=?'.$lock);$q->execute([$id,$projectId]);$existing=$q->fetchColumn();$required=in_array($projectId,$regionalIds,true)?1:0;
+                    if($existing===false)$pdo->prepare('INSERT INTO manager_regional_access(manager_id,project_id,regional_scope_required) VALUES(?,?,?)')->execute([$id,$projectId,$required]);
+                    else $pdo->prepare('UPDATE manager_regional_access SET regional_scope_required=? WHERE manager_id=? AND project_id=?')->execute([$required,$id,$projectId]);
+                }
+            }
             $pdo->commit();
             AuditLogService::record($actorManagerId,$before?'manager_updated':'manager_created','manager',(string)$id,'',$before,self::managerRow($id));
             return ['ok'=>true,'manager_id'=>$id];
@@ -144,7 +179,7 @@ class AdminDirectoryService
     private static function managerRow(int $id): ?array
     {
         $q=ConversationDb::connection()->prepare('SELECT id,login,display_name,role,email,is_active,is_working,priority FROM managers WHERE id=? LIMIT 1');$q->execute([$id]);$row=$q->fetch();if(!$row)return null;
-        $p=ConversationDb::connection()->prepare('SELECT project_id FROM manager_projects WHERE manager_id=? ORDER BY project_id');$p->execute([$id]);$row['project_ids']=array_map('intval',array_column($p->fetchAll(),'project_id'));return$row;
+        $p=ConversationDb::connection()->prepare('SELECT project_id FROM manager_projects WHERE manager_id=? ORDER BY project_id');$p->execute([$id]);$row['project_ids']=array_map('intval',array_column($p->fetchAll(),'project_id'));$row['regional_project_ids']=RegionalRoutingScopeService::regionalProjectIds($id);return$row;
     }
     private static function projectRow(int $id): ?array
     {

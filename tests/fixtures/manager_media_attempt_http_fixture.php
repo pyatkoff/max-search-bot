@@ -71,7 +71,7 @@ function mediaAttemptHttpApp(string $directory):array
 {
     $root=dirname(__DIR__,2);
     foreach(['manager/lib','services','integrations','sessions'] as $path)mkdir($directory.'/'.$path,0700,true);
-    $actual=['manager/api.php','manager/media-upload.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php','services/ManagerSendAttemptService.php','services/ManagerOutboundService.php','services/ManagerMediaCache.php','services/ConversationDb.php','services/ManagerConversationService.php','services/ManagerConversationAccessPolicy.php','services/ManagerAuthService.php','services/ProjectAccessService.php','services/RoutingAccessService.php','services/ManagerAvailabilityService.php'];
+    $actual=['manager/api.php','manager/media-upload.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php','services/ManagerSendAttemptService.php','services/ManagerOutboundService.php','services/ManagerMediaCache.php','services/ConversationDb.php','services/ManagerConversationService.php','services/ManagerConversationAccessPolicy.php','services/ManagerAuthService.php','services/ProjectAccessService.php','services/RoutingAccessService.php','services/ManagerAvailabilityService.php','services/RegionalRoutingScopeService.php','services/RegionalTerritoryCatalog.php','services/ConversationEntryRegionService.php','services/ConversationRecordClock.php','services/TrafficAttributionService.php','services/YandexRegionCatalog.php'];
     foreach($actual as $path)copy($root.'/'.$path,$directory.'/'.$path);
     // Unused modules required by the actual endpoint are inert, not alternative
     // API/ACL implementations. All selected production source stays byte-exact.

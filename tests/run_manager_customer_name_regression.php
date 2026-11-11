@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
+
 require_once dirname(__DIR__).'/services/ManagerCustomerNameService.php';
 require_once dirname(__DIR__).'/services/ManagerLeadInboxService.php';
 $passed=0;
@@ -13,7 +15,7 @@ final class NameFixturePdo extends PDO
     public function prepare(string $query,array $options=[]):PDOStatement|false {$this->queries++;if(str_starts_with($query,'SELECT c.id,c.project_key'))$this->lastListSql=$query;return parent::prepare(str_replace('TIMESTAMPDIFF(SECOND,',"TIMESTAMPDIFF('SECOND',",$query),$options);}
     public function query(string $query,?int $fetchMode=null,mixed ...$fetchModeArgs):PDOStatement|false {$this->queries++;return $fetchMode===null?parent::query($query):parent::query($query,$fetchMode,...$fetchModeArgs);}
 }
-$pdo=new NameFixturePdo();(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
+$pdo=new NameFixturePdo();regionalAccessFixtureSchema($pdo);(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
 foreach([ProjectAccessService::class,ManagerAuthService::class,RoutingAccessService::class] as $class)(new ReflectionProperty($class,'schemaReady'))->setValue(null,true);
 $pdo->exec("CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER);
 CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER);
@@ -111,7 +113,7 @@ $process=null;$httpDb=null;
 try {
     $httpDb=new PDO('sqlite:'.$httpRoot.'/fixture.sqlite',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
     foreach ($pdo->query("SELECT sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")->fetchAll(PDO::FETCH_COLUMN) as $schema) $httpDb->exec($schema);
-    foreach (['projects','manager_projects','managers','customers','conversations'] as $table) foreach ($pdo->query('SELECT * FROM '.$table)->fetchAll(PDO::FETCH_ASSOC) as $row) {
+    foreach (['manager_regional_access','manager_group_territories','manager_group_territory_regions','projects','manager_projects','managers','customers','conversations'] as $table) foreach ($pdo->query('SELECT * FROM '.$table)->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $q=$httpDb->prepare('INSERT INTO '.$table.' VALUES ('.implode(',',array_fill(0,count($row),'?')).')');$q->execute(array_values($row));
     }
     $sourceRoot=dirname(__DIR__);

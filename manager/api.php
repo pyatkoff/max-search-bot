@@ -73,7 +73,7 @@ if($action==='save_manager'){ ManagerHttp::requireAdmin($m); $r=AdminDirectorySe
 if($action==='save_priority_rule'){ ManagerHttp::requireAdmin($m); $r=ManagerPriorityService::saveRule($data,(int)$m['id']); out($r,$r['ok']?200:409); }
 if($action==='routing_snapshot') out(['ok'=>true,'routing'=>RoutingAdminService::snapshot((int)$m['id'],(string)($data['project_key']??''))]);
 if($action==='save_group'){
-    $r=RoutingAdminService::saveGroupResult((int)$m['id'],(string)($data['project_key']??''),(int)($data['group_id']??0),(string)($data['group_key']??''),(string)($data['display_name']??''),(array)($data['member_ids']??[]));
+    $r=RoutingAdminService::saveGroupResult((int)$m['id'],(string)($data['project_key']??''),(int)($data['group_id']??0),(string)($data['group_key']??''),(string)($data['display_name']??''),(array)($data['member_ids']??[]),array_key_exists('territory_region_ids',$data)?$data['territory_region_ids']:null);
     if(!empty($r['ok']))out($r);
     $error=(string)($r['error']??'save_failed');
     $status=in_array($error,['admin_required','project_access_denied'],true)?403:(in_array($error,['project_not_found','group_not_found'],true)?404:($error==='duplicate_group_key'?409:($error==='save_failed'?500:422)));

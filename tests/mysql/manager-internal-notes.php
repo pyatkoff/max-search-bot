@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/../fixtures/regional_access_schema.php';
 if (PHP_SAPI!=='cli') {http_response_code(404);exit;}
 $dsn=getenv('INTERNAL_NOTES_TEST_MYSQL_DSN');
 if (!is_string($dsn)||$dsn==='') {echo "SKIP native internal notes MySQL fixture is not configured\n";exit(0);}
@@ -13,7 +14,7 @@ if ($pdo->query('SELECT DATABASE()')->fetchColumn()!=='manager_internal_notes_te
 foreach ([ProjectAccessService::class,ManagerAuthService::class,RoutingAccessService::class] as $class) (new ReflectionProperty($class,'schemaReady'))->setValue(null,true);
 (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
 if (($argv[1]??'')==='--worker') {
-    if ((int)$pdo->query('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()')->fetchColumn()!==9||$pdo->query('SELECT login FROM managers WHERE id=1')->fetchColumn()!=='internal-native-author') {fwrite(STDERR,"Refusing nonfixture internal notes worker\n");exit(1);}
+    if ((int)$pdo->query('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()')->fetchColumn()!==12||$pdo->query('SELECT login FROM managers WHERE id=1')->fetchColumn()!=='internal-native-author') {fwrite(STDERR,"Refusing nonfixture internal notes worker\n");exit(1);}
     $command=json_decode((string)($argv[2]??''),true,32,JSON_THROW_ON_ERROR);
     if (!is_array($command)||!in_array($command['actor']??null,[1,90],true)||!in_array($command['action']??null,['create','update'],true)||!is_array($command['input']??null)) {fwrite(STDERR,"Refusing invalid native note worker\n");exit(1);}
     echo "READY\n";fflush(STDOUT);if (fgets(STDIN)!=="start\n") exit(1);
@@ -21,6 +22,7 @@ if (($argv[1]??'')==='--worker') {
 }
 // Refuse all existing objects BEFORE fixture/migration DDL.
 if ((int)$pdo->query('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()')->fetchColumn()!==0||(int)$pdo->query('SELECT COUNT(*) FROM information_schema.routines WHERE routine_schema=DATABASE()')->fetchColumn()!==0||(int)$pdo->query('SELECT COUNT(*) FROM information_schema.events WHERE event_schema=DATABASE()')->fetchColumn()!==0) {fwrite(STDERR,"Refusing nonempty native internal notes schema\n");exit(1);}
+regionalAccessFixtureSchema($pdo);
 $pdo->exec("CREATE TABLE managers(id BIGINT UNSIGNED PRIMARY KEY,login VARCHAR(64),display_name VARCHAR(191),role VARCHAR(16),email VARCHAR(191),is_active TINYINT,is_working TINYINT) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 $pdo->exec("CREATE TABLE projects(id BIGINT UNSIGNED PRIMARY KEY,project_key VARCHAR(64),display_name VARCHAR(191),is_active TINYINT) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 $pdo->exec("CREATE TABLE manager_projects(manager_id BIGINT UNSIGNED,project_id BIGINT UNSIGNED) ENGINE=InnoDB");

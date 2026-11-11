@@ -1,5 +1,7 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/regional_access_schema.php';
+
 // Run the real dispatcher and source policy. Application/store guards have
 // separate tests; this fixture must not hide a source policy that consumes TG.
 $root=dirname(__DIR__,2);
@@ -29,7 +31,7 @@ try {
     require $tmp.'/IncomingUpdateDispatcher.php';
     $app=new DialogueApplication();$dispatcher=new IncomingUpdateDispatcher($app);$checks=0;$missing=[];$ownershipFailures=[];
     foreach(['max','telegram'] as $channel)foreach(['manager','waiting_manager'] as $status)foreach([['ask',true],['manager',true],['ask',false]] as [$mode,$hasChoice]){
-        $pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+        $pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);regionalAccessFixtureSchema($pdo);
         // Match the canonical source/owner projection; a missing column must not
         // make SourceHandlingService silently fall through its exception guard.
         $pdo->exec('CREATE TABLE conversations(id INTEGER PRIMARY KEY,project_key TEXT,channel TEXT,external_chat_id TEXT,status TEXT,source_id INTEGER,manager_id INTEGER)');

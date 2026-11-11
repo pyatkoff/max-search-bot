@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__.'/fixtures/regional_access_schema.php';
+
 // Both thumbnail and full-photo cases acquire a real session lock. Retain this
 // small diagnostic output until both have finished, before HTTP headers are sent.
 ob_start();
@@ -8,7 +10,7 @@ require_once dirname(__DIR__).'/services/ManagerCustomerAvatarService.php';
 define('TELEGRAM_BOT_TOKEN','123456:synthetic_avatar_token');
 define('MAX_SEARCH_TOKEN','synthetic_max_avatar_token');
 ProjectConfig::resetForTests(['id'=>'anytour']);
-$pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+$pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);regionalAccessFixtureSchema($pdo);
 (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
 $pdo->sqliteCreateFunction('JSON_UNQUOTE',static fn($value)=>$value);
 foreach ([ProjectAccessService::class,ManagerAuthService::class,RoutingAccessService::class] as $class) (new ReflectionProperty($class,'schemaReady'))->setValue(null,true);
@@ -114,7 +116,7 @@ try {
     $httpRoot=$root.'/http';mkdir($httpRoot,0700);mkdir($httpRoot.'/manager',0700);mkdir($httpRoot.'/services',0700);mkdir($httpRoot.'/sessions',0700);
     $httpDb=new PDO('sqlite:'.$httpRoot.'/fixture.sqlite',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
     foreach ($pdo->query("SELECT sql FROM sqlite_master WHERE type='table'")->fetchAll(PDO::FETCH_COLUMN) as $schema) $httpDb->exec($schema);
-    foreach (['projects','manager_projects','managers','conversations','customer_channels'] as $table) foreach ($pdo->query('SELECT * FROM '.$table)->fetchAll(PDO::FETCH_ASSOC) as $row) {
+    foreach (['manager_regional_access','manager_group_territories','manager_group_territory_regions','projects','manager_projects','managers','conversations','customer_channels'] as $table) foreach ($pdo->query('SELECT * FROM '.$table)->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $q=$httpDb->prepare('INSERT INTO '.$table.' VALUES ('.implode(',',array_fill(0,count($row),'?')).')');$q->execute(array_values($row));
     }
     $httpDb->exec("UPDATE customer_channels SET external_user_id='123' WHERE id=10");

@@ -21,7 +21,7 @@ $pdo=new ReplyQueueNativePdo($dsn,$user,$pass,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_E
 if($pdo->query('SELECT DATABASE()')->fetchColumn()!==$match[1])throw new RuntimeException('Unexpected fixture database');
 $mode=$argv[1]??'';
 if(in_array($mode,['--resolve','--revoke'],true)){
-    if((int)$pdo->query('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()')->fetchColumn()!==14||$pdo->query('SELECT login FROM managers WHERE id=7')->fetchColumn()!=='synthetic-owner')throw new RuntimeException('Refusing non-fixture worker');
+    if((int)$pdo->query('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()')->fetchColumn()!==18||$pdo->query('SELECT login FROM managers WHERE id=7')->fetchColumn()!=='synthetic-owner')throw new RuntimeException('Refusing non-fixture worker');
     if($mode==='--resolve'){
         $actor=(int)($argv[2]??0);$op=(string)($argv[3]??'');if(!in_array($actor,[7,9],true)||!preg_match('/\Anative-race-[a-z0-9-]+\z/D',$op))throw new RuntimeException('Invalid synthetic worker');
         $view=ManagerReplyQueueService::snapshot($actor,101)['reply_queue'];$input=replyQueueInput($view,$op);
@@ -90,5 +90,5 @@ try{
     echo 'MEASURE synthetic current-wait page200 messages2200+ events2200+ latency_ms='.$elapsed.' plan='.json_encode($indexes,JSON_THROW_ON_ERROR)."; not production latency\n";
     echo 'TOTAL '.$passed.' | PASS '.$passed." | FAIL 0\n";
 }finally{
-    if($owned)foreach(['manager_reply_queue_operations','manager_send_attempts','provider_calls','manager_conversation_reads','conversation_events','messages','conversations','manager_customer_names','customers','manager_group_members','conversation_sources','manager_projects','managers','projects'] as $table)$pdo->exec('DROP TABLE IF EXISTS '.$table);
+    if($owned)foreach(['manager_group_territory_regions','manager_group_territories','manager_regional_access','manager_reply_queue_operations','manager_send_attempts','provider_calls','manager_conversation_reads','conversation_events','messages','conversations','manager_customer_names','customers','manager_groups','manager_group_members','conversation_sources','manager_projects','managers','projects'] as $table)$pdo->exec('DROP TABLE IF EXISTS '.$table);
 }

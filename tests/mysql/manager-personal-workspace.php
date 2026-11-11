@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__.'/../fixtures/regional_access_schema.php';
 
 // Optional locally; mandatory in CI's explicitly configured ephemeral MySQL8.
 // Never discover credentials or reuse an application database/configuration.
@@ -22,8 +23,8 @@ if ($pdo->query('SELECT DATABASE()')->fetchColumn()!=='manager_personal_workspac
 // Workers have no DDL path. Require the exact private fixture identity before
 // performing commands against the tables deliberately created by this test.
 if (($argv[1]??'')==='--worker') {
-    if ((int)$pdo->query('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()')->fetchColumn()!==3
-        ||(int)$pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name IN ('managers','manager_personal_workspace_states','manager_personal_workspace_operations') AND engine='InnoDB'")->fetchColumn()!==3
+    if ((int)$pdo->query('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()')->fetchColumn()!==6
+        ||(int)$pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name IN ('managers','manager_personal_workspace_states','manager_personal_workspace_operations','manager_regional_access','manager_group_territories','manager_group_territory_regions') AND engine='InnoDB'")->fetchColumn()!==6
         ||$pdo->query('SELECT fixture_marker FROM managers WHERE id=1')->fetchColumn()!=='personal-workspace-native-fixture') {
         fwrite(STDERR,"Refusing non-fixture native worker schema\n");exit(1);
     }
@@ -44,6 +45,7 @@ if ((int)$pdo->query('SELECT COUNT(*) FROM information_schema.tables WHERE table
     ||(int)$pdo->query('SELECT COUNT(*) FROM information_schema.events WHERE event_schema=DATABASE()')->fetchColumn()!==0) {
     fwrite(STDERR,"Refusing non-empty native personal workspace fixture schema\n");exit(1);
 }
+regionalAccessFixtureSchema($pdo);
 $pdo->exec("CREATE TABLE managers (id BIGINT UNSIGNED NOT NULL PRIMARY KEY,is_active TINYINT NOT NULL,fixture_marker VARCHAR(64) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 $pdo->exec("INSERT INTO managers VALUES (1,1,'personal-workspace-native-fixture'),(2,1,'personal-workspace-native-fixture'),(3,0,'personal-workspace-native-fixture')");
 $migration=(string)file_get_contents(dirname(__DIR__,2).'/migrations/034_manager_personal_workspace.sql');

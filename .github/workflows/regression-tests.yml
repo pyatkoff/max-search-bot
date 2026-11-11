@@ -87,7 +87,7 @@ jobs:
       fail-fast: false
       max-parallel: 3
       matrix:
-        group: [replies, migrations, queues]
+        group: [replies, migrations, queues, regional-access]
     name: prepared-mysql / ${{ matrix.group }}
     runs-on: ubuntu-latest
     services:
@@ -137,6 +137,9 @@ jobs:
               php tests/mysql/hotel-work-events.php
               php tests/mysql/development-work-queue.php
               php tests/mysql/development-work-events.php
+              ;;
+            regional-access)
+              php tests/mysql/manager-regional-routing.php --required-native
               ;;
             *) exit 2 ;;
           esac

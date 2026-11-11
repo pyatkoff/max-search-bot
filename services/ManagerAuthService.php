@@ -43,9 +43,9 @@ class ManagerAuthService
         if(!$row||!(int)$row['is_active']||empty($row['password_hash'])||!password_verify($password,(string)$row['password_hash']))return null;
         ConversationDb::connection()->prepare('UPDATE managers SET last_login_at=NOW() WHERE id=?')->execute([(int)$row['id']]);unset($row['password_hash']);$row['is_working']=(bool)$row['is_working'];$row['projects']=ProjectAccessService::projectsForManager((int)$row['id']);return $row;
     }
-    public static function byId(int $id):?array
+    public static function byId(int $id,bool$currentRead=false):?array
     {
-        self::ensureSchema();$q=ConversationDb::connection()->prepare('SELECT id,login,display_name,role,email,is_active,is_working FROM managers WHERE id=? LIMIT 1');$q->execute([$id]);$row=$q->fetch();
-        if(!$row||!(int)$row['is_active'])return null;$row['is_working']=(bool)$row['is_working'];$row['projects']=ProjectAccessService::projectsForManager($id);return $row;
+        self::ensureSchema();$pdo=ConversationDb::connection();$lock=$currentRead&&$pdo->inTransaction()&&$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';$q=$pdo->prepare('SELECT id,login,display_name,role,email,is_active,is_working FROM managers WHERE id=? LIMIT 1'.$lock);$q->execute([$id]);$row=$q->fetch();
+        if(!$row||!(int)$row['is_active'])return null;$row['is_working']=(bool)$row['is_working'];$row['projects']=ProjectAccessService::projectsForManager($id,$currentRead);return $row;
     }
 }

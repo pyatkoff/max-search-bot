@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+require_once __DIR__.'/regional_access_schema.php';
 
 final class TelegramArchiveHttpFixture
 {
@@ -34,6 +35,7 @@ final class TelegramArchiveHttpFixture
 
     public static function schema(PDO $pdo): void
     {
+        regionalAccessFixtureSchema($pdo);
         $pdo->exec('CREATE TABLE managers (id INTEGER PRIMARY KEY,login VARCHAR(64),display_name VARCHAR(255),role VARCHAR(32),email VARCHAR(255),is_active INTEGER,is_working INTEGER)');
         $pdo->exec('CREATE TABLE projects (id INTEGER PRIMARY KEY,project_key VARCHAR(64),display_name VARCHAR(255),is_active INTEGER)');
         $pdo->exec('CREATE TABLE manager_projects (manager_id INTEGER,project_id INTEGER)');

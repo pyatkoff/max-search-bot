@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__.'/../fixtures/regional_access_schema.php';
 require_once dirname(__DIR__,2).'/services/ManagerIncomingNotificationService.php';
 
 $count=0;
@@ -17,6 +18,7 @@ if($mysql){
     define('CONVERSATION_DB_USER','root');define('CONVERSATION_DB_PASS','sound-local-test-only');
     $pdo=ConversationDb::connection();
 }else{$pdo=new PDO('sqlite::memory:');$pdo->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);}
+regionalAccessFixtureSchema($pdo);
 $pdo->exec('CREATE TABLE conversations (id INTEGER PRIMARY KEY,project_key VARCHAR(80),source_id INTEGER,status VARCHAR(30),manager_id INTEGER,is_test INTEGER,started_at VARCHAR(30),last_message_at VARCHAR(30))');
 $pdo->exec('CREATE TABLE messages (id INTEGER PRIMARY KEY'.($mysql?' AUTO_INCREMENT':'').',conversation_id INTEGER,direction VARCHAR(20),sender_type VARCHAR(20),metadata_json TEXT,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)');
 $pdo->exec('CREATE TABLE manager_reads (conversation_id INTEGER PRIMARY KEY,last_read_message_id INTEGER)');
