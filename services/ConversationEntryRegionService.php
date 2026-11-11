@@ -135,6 +135,14 @@ final class ConversationEntryRegionService
         return self::receipt($metadata['first_entry_region']??null,$actualPlatform);
     }
 
+    /** Latest explicit advertising entry, kept separate from the immutable first receipt. */
+    public static function latestReceipt($metadataJson,string $actualPlatform): ?array
+    {
+        if(!in_array($actualPlatform,['max','telegram','website'],true))return null;
+        $metadata=self::metadata($metadataJson);
+        return self::receipt($metadata['entry_region']??null,$actualPlatform);
+    }
+
     private static function metadata($json): ?array
     {
         if ($json === null || $json === '') return [];
