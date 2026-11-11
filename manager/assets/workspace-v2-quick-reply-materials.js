@@ -124,25 +124,27 @@ function problems(rows,policy,text){
  if(rows.length&&policy.caption_warning_limit&&Array.from(text).length>policy.caption_warning_limit)errors.push('Сократите подпись до '+policy.caption_warning_limit+' символов для этого канала.');
  return {errors,warnings};
 }
-async function insert({endpoint,reply,text,context,project,valid,notice}){
+async function insert({endpoint,reply,text,context,project,valid,notice,replacement=null}){
  const media=window.WorkspaceV2Media,snapshot=media?.captureSelection?.(),input=$('replyText');
  if(!snapshot||!input||!valid())return false;
  const original={value:input.value,start:input.selectionStart,end:input.selectionEnd,direction:input.selectionDirection};
- const sameDraft=()=>valid()&&input.isConnected&&input.value===original.value&&input.selectionStart===original.start&&input.selectionEnd===original.end&&input.selectionDirection===original.direction;
+ const sameDraft=()=>valid()&&input.isConnected&&input.value===original.value&&input.selectionStart===original.start&&input.selectionEnd===original.end&&input.selectionDirection===original.direction&&(!replacement||window.WorkspaceV2Conversation?.canReplaceQuickReply?.(replacement)===true);
  const data={id:reply.id,version:reply.version,conversation_id:context.conversationId,project_key:project,expected_manager_id:context.managerId};
  const prepare=()=>W.request(endpoint,'prepare_insert',data,{isCurrent:sameDraft});
  const first=await prepare();if(!sameDraft())return false;
- if(!first?.ok||first.reply?.project_key!==project||first.reply?.version!==reply.version)throw Error('Шаблон изменён или больше недоступен. Обновите его перед вставкой.');
+ if(!first?.ok||first.reply?.id!==reply.id||first.reply?.project_key!==project||first.reply?.version!==reply.version)throw Error('Шаблон изменён или больше недоступен. Обновите его перед вставкой.');
  const rows=first.reply.materials||[],existing=snapshot.rows.map(x=>x.row.file).filter(Boolean);
- const combined=original.value+(original.value&&!original.value.endsWith('\n')?'\n':'')+text;
+ const combined=replacement?original.value.slice(0,replacement.start)+text+original.value.slice(replacement.end):original.value+(original.value&&!original.value.endsWith('\n')?'\n':'')+text;
  if(!first.constraints||!first.constraints.max_file_bytes_by_type)throw Error('Не удалось проверить параметры файлов для этого канала.');
  const inspection=problems([...existing,...rows],first.constraints,combined);
  if(inspection.errors.length)throw Error(inspection.errors.join(' '));
  if(inspection.warnings.length)notice(inspection.warnings.join(' '));
+ const commit=()=>sameDraft()&&window.WorkspaceV2Conversation?.insertQuickReply?.(text,context,undefined,replacement)===true;
+ if(!rows.length)return media.matchesSelection?.(snapshot)===true&&commit();
  const prepared=[];for(const item of rows){prepared.push(await download(endpoint,data,item,sameDraft));if(!sameDraft())return false}
  const final=await prepare();if(!sameDraft())return false;
- if(!final?.ok||final.reply?.version!==reply.version||JSON.stringify(final.reply.materials)!==JSON.stringify(rows))throw Error('Материалы изменились во время загрузки. Текущий черновик сохранён.');
- return media.appendPrepared(prepared,snapshot,()=>sameDraft()&&window.WorkspaceV2Conversation?.insertQuickReply?.(text,context)===true);
+ if(!final?.ok||final.reply?.id!==reply.id||final.reply?.project_key!==project||final.reply?.version!==reply.version||JSON.stringify(final.reply.materials)!==JSON.stringify(rows))throw Error('Материалы изменились во время загрузки. Текущий черновик сохранён.');
+ return media.appendPrepared(prepared,snapshot,commit);
 }
 window.WorkspaceV2QuickReplyMaterials={editor,preview,packet,remember,pendingFiles,recover,forgetOperation,release,reset,write,insert,problems,kind,bytes};
 })();

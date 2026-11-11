@@ -238,6 +238,7 @@ return [
         'php tests/run_manager_handoff_cancellation_view_regression.php',
         'node tests/run_manager_client_name_behavior_regression.js',
         'node tests/run_manager_quick_replies_behavior_regression.js',
+        'node tests/run_manager_quick_insert_behavior_regression.js',
         'node tests/run_manager_response_cycle_behavior_regression.js',
         'php tests/run_manager2_workspace_regression.php',
         'node tests/run_manager2_navigation_behavior_regression.js',
