@@ -47,8 +47,33 @@ the own upload and edit IDs/request hashes/start, original MID/URL and actual
 native photo ID. A genuine proof requires ordinary source checks and installation;
 the content manifest, upload/edit requests and original attempts do not change.
 GET-only reconciliation may then close that attempt and apply may finish only
-the remaining unattempted work. The shipped search index contains **no approvals**.
-Synthetic test proofs are removed/restored in `finally` and confer no live authority.
+the remaining unattempted work. The search index contains only the individually
+reviewed `service-display` evidence below; `menu` is not approved. Synthetic test
+proofs are removed/restored in `finally` and confer no live authority.
+
+The original `search_apply`42992953202/job130430788405 on accepted application
+57c98f54f1ed2ba6f460c8865ffeb5e88a5cf32e created and independently verified the
+six new posts, then retained original `service-display` edit151/attempt1 as
+UNKNOWN because its first native image token was renewed. Its automatic GET-only
+inspection observed the complete planned body, unchanged original MID/URL and
+menu pin, and native photoID47197435985. Upload143 remains VERIFIED/attempt1;
+the original136 predecessor rows are preserved and `menu` has not been edited.
+
+The exact public post's bounded Svelte data literal independently identifies
+PHOTO photoId/referenceId47197435985, matching that original provider GET. Its
+actual768x768 JPEG was downloaded and opened individually beside the approved
+1254x1254 source PNG. The complete composition, display service, iPhone,
+Kaliningrad and three-month warranty match. Source and JPEG hashes are distinct:
+e310b03cf312d16ea9c85d7ace5ef064a0b66b51bac2dfb11854c078c076d02b and
+86d7a12e03af8b7ec10855b36af0e8e87e925617492ae4161f27a3ab4205a3f2.
+The proof and its witness disclose the different native/API and public-preview
+locator hashes; no signed locator, token or raw HTML is committed.
+
+This finite source evidence requires its ordinary checks and installation before
+`search_reconcile` may close only that same original151 attempt. Then
+`search_apply` may update only the still-unattempted `menu`. No existing upload,
+create or edit is repeated, reset or relabelled, and this source admission alone
+does not assert that reconciliation or final8/8 publication has succeeded.
 
 `search_publication_complete` requires eight verified fresh native observations.
 Expected graph counts or successful source tests do not establish publication,

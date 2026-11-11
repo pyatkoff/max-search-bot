@@ -3,5 +3,11 @@
   "revision_key": "search-intent-v1",
   "project_key": "appleservice39",
   "policy": "exact_source_and_native_visual_review",
-  "approvals": []
+  "approvals": [
+    {
+      "post_id": "service-display",
+      "proof_sha256": "bbd87dc652ef6983c216c769eacfa338d7def52fb7ce8aafb13234dae253b0aa",
+      "native_preview_sha256": "86d7a12e03af8b7ec10855b36af0e8e87e925617492ae4161f27a3ab4205a3f2"
+    }
+  ]
 }
