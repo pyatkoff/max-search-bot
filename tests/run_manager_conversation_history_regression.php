@@ -31,7 +31,7 @@ final class HistoryFixtureStatement extends PDOStatement
     public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args): array
     {
         $rows=parent::fetchAll($mode,...$args);
-        if(str_starts_with($this->queryString,'SELECT id,direction,sender_type,text,created_at FROM messages')&&$this->owner->afterPage){$callback=$this->owner->afterPage;$this->owner->afterPage=null;$callback($this->owner);}
+        if((str_starts_with($this->queryString,'SELECT id,direction,sender_type,text,created_at FROM messages')||str_starts_with($this->queryString,'SELECT id,sender_type,text,created_at FROM messages'))&&$this->owner->afterPage){$callback=$this->owner->afterPage;$this->owner->afterPage=null;$callback($this->owner);}
         return$rows;
     }
 }
@@ -372,6 +372,47 @@ $pdo=targetFixture();$pdo->exec("UPDATE messages SET metadata_json='invalid' WHE
 $pdo=targetFixture();$pdo->afterPage=static fn($db)=>$db->exec('DELETE FROM manager_projects WHERE manager_id=1');$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);check('permission loss during context load rejects captured original',$r['status']===404&&$pdo->readWrites===0);
 $pdo=targetFixture();$pdo->failHydration=true;$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);check('quote hydration failure is recoverable without a read write',$r['status']===500&&$r['body']['error']==='message_target_failed'&&$pdo->readWrites===0);
 foreach([-1,0,'01','bad',true,1.2,'999999999999999999999'] as $invalid){$pdo=targetFixture();$r=apiTarget(['conversation_id'=>1,'source_message_id'=>$invalid]);check('invalid quote source rejected before lookup '.json_encode($invalid),$r['status']===422&&$pdo->executed===[]);}
+function apiSearch(array $data,int $managerId=1,string $action='message_search'): array
+{
+    global $apiDetail;$m=['id'=>$managerId];
+    try{eval($apiDetail);}catch(HistoryApiResponse $response){return ['status'=>$response->status,'body'=>$response->body];}
+    throw new RuntimeException('search_branch_did_not_respond');
+}
+$pdo=fixture(2050);$pdo->exec("UPDATE messages SET text='Старые условия у моря <img src=x> 100%_\\, & детали' WHERE id=50");
+$r=apiSearch(['conversation_id'=>1,'query'=>'У МОРЯ']);
+check('full search inspects a bounded indexed window without returning the transcript',$r['status']===200&&$r['body']['matches']===[]&&$r['body']['has_more']&&$r['body']['scanned']===1000&&$r['body']['before_id']===1051&&$r['body']['snapshot_id']===2050);
+$r=apiSearch(['conversation_id'=>1,'query'=>'У МОРЯ','before_id'=>1051,'snapshot_id'=>2050]);
+check('empty intermediate search retains its actual continuation',$r['body']['matches']===[]&&$r['body']['has_more']&&$r['body']['before_id']===51);
+$r=apiSearch(['conversation_id'=>1,'query'=>'У МОРЯ','before_id'=>51,'snapshot_id'=>2050]);
+check('continuation finds an old Unicode case-insensitive match beyond latest 200',array_column($r['body']['matches'],'message_id')===[50]);
+check('only exhausted continuation declares search complete',!$r['body']['has_more']&&$r['body']['scanned']===50);
+check('all search reads preserve the unread marker and do not hydrate media',$pdo->readWrites===0&&cursor($pdo)===0&&array_filter($pdo->executed,static fn($q)=>str_starts_with($q['sql'],'SELECT id,channel,direction,metadata_json'))===[]);
+$r=apiSearch(['conversation_id'=>1,'query'=>'100%_\\','before_id'=>100,'snapshot_id'=>2050]);
+check('search wildcards backslashes and HTML remain literal text',array_column($r['body']['matches'],'message_id')===[50]&&str_contains($r['body']['matches'][0]['snippet'],'<img src=x>'));
+$pdo=fixture(4);$pdo->prepare('UPDATE messages SET text=? WHERE id=1')->execute(['До &amp; море &#x1F30A; &quot;цитата&quot; после']);$r=apiSearch(['conversation_id'=>1,'query'=>'& море 🌊 "цитата"']);
+check('full search uses displayed manager text including numeric historic entities',array_column($r['body']['matches'],'message_id')===[1]&&str_contains($r['body']['matches'][0]['snippet'],'& море 🌊 "цитата"'));
+$pdo=fixture(61);$r=apiSearch(['conversation_id'=>1,'query'=>'сообщение']);$first=$r['body'];
+check('dense matches return at most 25 short projections',array_column($first['matches'],'message_id')===range(61,37)&&$first['scanned']===25&&$first['before_id']===37&&$first['has_more']&&!isset($first['messages'],$first['read_state']));
+$pdo->exec("INSERT INTO messages VALUES(99,1,'inbound','customer','Новое сообщение','2026-11-11 00:00:00','telegram',NULL)");
+$r=apiSearch(['conversation_id'=>1,'query'=>'сообщение','snapshot_id'=>$first['snapshot_id'],'before_id'=>$first['before_id']]);
+check('keyset continuation neither duplicates hits nor includes later arrivals',array_column($r['body']['matches'],'message_id')===range(36,12)&&$r['body']['snapshot_id']===61);
+$pdo=fixture(4);$pdo->exec("UPDATE messages SET conversation_id=2 WHERE id=2");$r=apiSearch(['conversation_id'=>1,'query'=>'Сообщение 2']);
+check('full search never returns another conversations matching text',$r['status']===200&&$r['body']['matches']===[]&&!$r['body']['has_more']);
+$pdo=fixture(4);$r=apiSearch(['conversation_id'=>1,'query'=>'сообщение'],2);
+check('denied full search reads no messages',$r['status']===404&&array_filter($pdo->executed,static fn($q)=>str_contains($q['sql'],'FROM messages'))===[]);
+$pdo=fixture(4);$pdo->afterPage=static fn($db)=>$db->exec('DELETE FROM manager_projects WHERE manager_id=1');$r=apiSearch(['conversation_id'=>1,'query'=>'сообщение']);
+check('permission loss during search discards all captured snippets',$r['status']===404&&$pdo->readWrites===0);
+$pdo=fixture(4);$pdo->afterPage=static fn($db)=>$db->exec('UPDATE conversations SET manager_id=2 WHERE id=1');$r=apiSearch(['conversation_id'=>1,'query'=>'сообщение']);
+check('assignment change during search refuses obsolete context even for admin',$r['status']===404);
+$pdo=fixture(4);$pdo->afterPage=static fn($db)=>$db->exec('UPDATE managers SET is_active=0 WHERE id=1');$r=apiSearch(['conversation_id'=>1,'query'=>'сообщение']);
+check('account deactivation during search exposes no captured snippets',$r['status']===404&&!isset($r['body']['matches']));
+foreach([['query'=>''],['query'=>'   '],['query'=>str_repeat('я',201)],['query'=>true],['query'=>"\xFF"],['query'=>'текст','before_id'=>-1],['query'=>'текст','snapshot_id'=>'01'],['query'=>'текст','before_id'=>10],['query'=>'текст','before_id'=>11,'snapshot_id'=>10],['conversation_id'=>true,'query'=>'текст']] as $invalid){$pdo=fixture(4);$r=apiSearch($invalid+['conversation_id'=>1]);check('invalid search request rejected before SQL '.json_encode($invalid,JSON_INVALID_UTF8_SUBSTITUTE),$r['status']===422&&$pdo->executed===[]);}
+$pdo=fixture(1001);$r=apiSearch(['conversation_id'=>1,'target_message_id'=>50],1,'message_context');
+check('search target shares the exact bounded quote context renderer projection',$r['status']===200&&$r['body']['target_message_id']===50&&ids($r['body'])===range(30,70)&&$pdo->readWrites===0&&cursor($pdo)===0);
+$pdo=fixture(4);$r=apiSearch(['conversation_id'=>1,'target_message_id'=>99],1,'message_context');
+check('deleted or foreign search target does not expose adjacent messages',!$r['body']['available']&&!isset($r['body']['messages']));
+$pdo=fixture(4);$pdo->failHydration=true;$r=apiSearch(['conversation_id'=>1,'target_message_id'=>2],1,'message_context');
+check('search context hydration failure remains recoverable and read-only',$r['status']===500&&$r['body']['error']==='message_search_failed'&&$pdo->readWrites===0);
 if(PHP_SAPI==='cli')foreach(['latest','older'] as $mode){
     $probe=historySessionProbe($mode);$response=$probe['response'];
     echo 'SESSION_PROBE '.json_encode(['mode'=>$mode,'lock_available_during_sql'=>$probe['lock_available'],'original_request_still_paused'=>$probe['sql_still_paused']],JSON_THROW_ON_ERROR)."\n";
