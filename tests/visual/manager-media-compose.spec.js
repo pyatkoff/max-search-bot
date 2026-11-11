@@ -3,10 +3,13 @@ const {execFileSync}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
-async function setup(page,{failSecond=false,unknown=false,unknownSecond=false,holdFirst=false,suspendedSecond=false,failedRefresh=false,allowTextSend=false}={}){
- const uploads=[],texts=[],errors=[],held=[];let lists=0,details=0;
+async function setup(page,{failSecond=false,unknown=false,unknownSecond=false,holdFirst=false,suspendedSecond=false,failedRefresh=false,allowTextSend=false,unknownAt=0,lostAckAt=0,notFoundAt=0,holdReceipt=false}={}){
+ const uploads=[],texts=[],errors=[],held=[],mediaReads=[],mediaCancels=[],attempts=new Map();let lists=0,details=0;
  const manager={id:7,display_name:'Мария',role:'manager',is_working:true};
  const conversation=id=>({id,customer_id:id,display_name:id===11?'Анна':'Алексей',manager_id:manager.id,status:'manager',channel:'telegram'});
+ // Current host Chrome can omit binary multipart postData from interception.
+ // Observe the actual FormData before native fetch, without replacing dispatch.
+ await page.addInitScript(()=>{window.mediaUploadProof=[];const fetch=window.fetch;window.fetch=function(url,options){if(String(url).endsWith('media-upload.php')&&options?.body instanceof FormData){const fields={};for(const [key,value] of options.body)fields[key]=value instanceof File?{name:value.name,size:value.size,type:value.type}:value;mediaUploadProof.push(fields)}return fetch.apply(this,arguments)}});
  page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',async route=>{
   const request=route.request(),url=new URL(request.url());
@@ -17,18 +20,30 @@ async function setup(page,{failSecond=false,unknown=false,unknownSecond=false,ho
   if(url.protocol==='blob:'&&url.origin===origin)return route.continue();
   if(request.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id','account','channel']);expect(url.searchParams.get('account')).toBe(String(manager.id));expect(url.searchParams.get('channel')).toBe(conversation(Number(url.searchParams.get('conversation_id'))).channel);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
   if(url.pathname==='/manager/media-upload.php'){
-   uploads.push(request.postDataBuffer().toString());
+   const observed=await page.evaluate(index=>mediaUploadProof[index],uploads.length),raw=request.postDataBuffer()?.toString();expect(observed.file.size).toBeGreaterThan(0);uploads.push(raw||JSON.stringify(observed));
+   const field=name=>raw?raw.match(new RegExp('name="'+name+'"\\r\\n\\r\\n([\\s\\S]*?)\\r\\n--'))?.[1]||'':observed[name]||'';
+   for(const name of ['operation_id','expected_manager_id','conversation_id','caption'])expect(field(name)).toBe(observed[name]);
+   const operation=field('operation_id');expect(field('expected_manager_id')).toBe('7');expect(operation).toMatch(/^[a-f0-9]{32}$/);
+   const confirmed={kind:'media',state:'confirmed',media_type:'file',caption_included:!!field('caption')};
+   const respond=(state,body={},status=200)=>{const attempt=state==='confirmed'?confirmed:{kind:'media',state};attempts.set(operation,attempt);return reply({ok:state==='confirmed',attempt,...body},status)};
    if(holdFirst&&uploads.length===1)await new Promise(resolve=>held.push(resolve));
-   if((unknown&&uploads.length===1)||(unknownSecond&&uploads.length===2))return route.abort();
-   if(suspendedSecond&&uploads.length===2)return reply({ok:false,error:'delivery_failed',failure:{category:'suspended',http_code:403,notice:'Диалог приостановлен'},error_message:'Диалог приостановлен'},409);
+   if(notFoundAt===uploads.length)return route.abort();
+   if(lostAckAt===uploads.length){attempts.set(operation,confirmed);return route.abort()}
+   if((unknown&&uploads.length===1)||(unknownSecond&&uploads.length===2)||unknownAt===uploads.length){attempts.set(operation,{kind:'media',state:'unknown'});return route.abort()}
+   if(suspendedSecond&&uploads.length===2)return respond('rejected',{error:'delivery_failed',failure:{category:'suspended',http_code:403,notice:'Диалог приостановлен'},error_message:'Диалог приостановлен'});
    if(failSecond&&uploads.length===2)return reply({ok:false,error:'file_too_large'},400);
-   return reply({ok:true});
+   return respond('confirmed');
   }
   const d=request.method()==='POST'?request.postDataJSON()||{}:{};
   if(request.method()==='POST'&&url.pathname==='/manager/personal-workspace-api.php'&&d.action==='snapshot'&&d.csrf==='fixture')return reply(require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot());
   if(request.method()==='POST'&&url.pathname==='/manager/post-context-api.php'&&d.action==='detail'&&d.csrf==='fixture'&&[11,12].includes(d.conversation_id))return reply({ok:true,conversation_id:d.conversation_id,context:{current:null,history:[]}});
   if(request.method()==='POST'&&url.pathname==='/manager/quick-replies-api.php'&&d.action==='toolbar'&&d.csrf==='fixture')return reply({ok:true,replies:[],version:'0'.repeat(64),max_replies:100});
   if(url.pathname==='/manager/api.php'){
+   if(['media_receipt','media_cancel'].includes(d.action)){
+    expect(d.csrf).toBe('fixture');expect(d.expected_manager_id).toBe(7);expect(d.operation_id).toMatch(/^[a-f0-9]{32}$/);expect([11,12]).toContain(d.conversation_id);
+    if(d.action==='media_receipt'){mediaReads.push(d);if(holdReceipt)await new Promise(resolve=>held.push(resolve));return reply({ok:true,attempt:attempts.get(d.operation_id)||{kind:'media',state:'not_found'}})}
+    mediaCancels.push(d);if(!attempts.has(d.operation_id))attempts.set(d.operation_id,{kind:'media',state:'cancelled'});return reply({ok:true,attempt:attempts.get(d.operation_id)});
+   }
    if(d.action==='me')return reply({ok:true,manager,csrf:'fixture',projects:[]});
    if(d.action==='counts')return reply({ok:true,counts:{mine:{count:2}}});
    if(d.action==='detail'){details++;if(failedRefresh&&details>1)return reply({ok:false,error:'temporary_failure'},503);return reply({ok:true,conversation:conversation(d.conversation_id),messages:[{id:1,sender_type:'customer',text:'Здравствуйте!',created_at:'2026-10-14 08:00:00'}]})}
@@ -50,9 +65,35 @@ async function setup(page,{failSecond=false,unknown=false,unknownSecond=false,ho
   throw new Error('Unexpected endpoint '+url.pathname);
  });
  await page.goto(origin+'/manager2/');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);await page.locator('[data-conversation-id="11"]').click();await expect(page.locator('#composer')).toBeVisible();
- return{uploads,texts,errors,switchManager:next=>Object.assign(manager,next),release:()=>held.shift()?.(),lists:()=>lists};
+ return{uploads,texts,errors,mediaReads,mediaCancels,attempts,setAttempt:(operation,attempt)=>attempts.set(operation,attempt),switchManager:next=>Object.assign(manager,next),release:()=>held.shift()?.(),lists:()=>lists};
 }
 const files=[{name:'Маршрут.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic')},{name:'Билеты.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF synthetic')}];
+for(const width of [390,430,768,1440])test(`durable media recovery keeps each result after reload ${width}`,async({page,browserName},testInfo)=>{
+ await page.setViewportSize({width,height:900});const s=await setup(page,{unknownAt:3});
+ const three=[...files,{name:'Третий.txt',mimeType:'text/plain',buffer:Buffer.from('Third synthetic file')}];
+ await page.locator('#replyText').fill('Подпись только один раз');await page.locator('#replyFile').setInputFiles(three);await page.locator('#sendReply').click();
+ await expect(page.locator('#replyStatus')).toContainText('Отправлено файлов: 2');await expect(page.locator('#replyText')).toHaveValue('');expect(s.uploads).toHaveLength(3);
+ await page.reload();await expect(page.locator('#composer')).toBeVisible();await expect(page.locator('.mediaSelectedItem')).toHaveCount(0);await expect(page.locator('#mediaRecovery summary')).toContainText('подтверждено 2, проверить 1');expect(s.uploads).toHaveLength(3);
+ await page.locator('#replyText').fill('Новый черновик после обновления');await page.locator('#replyFile').setInputFiles([three[2]]);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('повтор заблокирован');expect(s.uploads).toHaveLength(3);
+ await page.locator('#mediaRecovery summary').click();const row=page.locator('.mediaRecoveryRow').filter({hasText:'Третий.txt'});await expect(row).toContainText('Результат неизвестен');await row.getByRole('button',{name:'Проверить отправку',exact:true}).click();await expect(row).toContainText('Результат неизвестен');expect(s.uploads).toHaveLength(3);
+ fs.mkdirSync('manager-media-artifacts',{recursive:true});const capture=async suffix=>{const image=await page.screenshot({path:`manager-media-artifacts/media-recovery-${browserName}-${width}-${suffix}.png`});await testInfo.attach('media-recovery-'+suffix,{body:image,contentType:'image/png'})};await capture('unknown');
+ const operation=s.mediaReads.at(-1).operation_id;s.setAttempt(operation,{kind:'media',state:'confirmed',media_type:'file',caption_included:false});await row.getByRole('button',{name:'Проверить отправку',exact:true}).click();await expect(page.locator('#mediaRecovery summary')).toContainText('подтверждено 3');await expect(page.locator('#replyStatus')).toContainText('Отправка файла подтверждена');await expect(page.locator('#replyStatus')).not.toContainText('повтор заблокирован');await expect(page.locator('#replyText')).toHaveValue('Новый черновик после обновления');await expect(page.locator('.mediaFileName')).toHaveText('Третий.txt');expect(s.uploads).toHaveLength(3);
+ await page.locator('.mediaRemove').click();await expect(page.locator('.mediaSelectedItem')).toHaveCount(0);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);await capture('confirmed');expect(s.errors).toEqual([]);
+});
+test('lost media acknowledgement is checked after reload without consuming a newer caption',async({page})=>{
+ const s=await setup(page,{lostAckAt:1});await page.locator('#replyText').fill('Исходная подпись');await page.locator('#replyFile').setInputFiles([files[0]]);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('неизвестен');await page.reload();await expect(page.locator('#composer')).toBeVisible();await page.locator('#replyText').fill('Новый текст');await page.locator('#mediaRecovery summary').click();await page.getByRole('button',{name:'Проверить отправку',exact:true}).click();await expect(page.locator('#mediaRecovery')).toContainText('подпись отправлена');await expect(page.locator('#replyText')).toHaveValue('Новый текст');expect(s.uploads).toHaveLength(1);expect(s.mediaReads).toHaveLength(1);
+});
+test('missing media result requires explicit cancellation before a fresh send',async({page})=>{
+ const s=await setup(page,{notFoundAt:1});await page.locator('#replyText').fill('Сохранить подпись');await page.locator('#replyFile').setInputFiles([files[0]]);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('неизвестен');await page.locator('#mediaRecovery summary').click();await page.getByRole('button',{name:'Проверить отправку',exact:true}).click();await expect(page.locator('#mediaRecovery')).toContainText('Подтверждение пока не найдено');await page.getByRole('button',{name:'Отменить неначатую отправку',exact:true}).click();await expect(page.locator('#mediaRecovery')).toContainText('Отправка не начиналась');await expect(page.locator('.mediaFileName')).toHaveText('Маршрут.txt');expect(s.uploads).toHaveLength(1);expect(s.mediaReads).toHaveLength(1);expect(s.mediaCancels).toHaveLength(1);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('Отправлено');expect(s.uploads).toHaveLength(2);
+});
+test('media storage failure retains text and files without an upload',async({page})=>{
+ await page.addInitScript(()=>{const set=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(String(k).startsWith('workspaceV2.mediaResults.'))throw new DOMException('Synthetic quota','QuotaExceededError');return set.call(this,k,v)}});
+ const s=await setup(page);await page.locator('#replyText').fill('Не терять текст');await page.locator('#replyFile').setInputFiles([files[0]]);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('не начата');await expect(page.locator('#replyText')).toHaveValue('Не терять текст');await expect(page.locator('.mediaFileName')).toHaveText('Маршрут.txt');expect(s.uploads).toHaveLength(0);
+});
+test('a late media lookup for A cannot clear the new reply and files in B',async({page})=>{
+ const s=await setup(page,{unknown:true,holdReceipt:true});await page.locator('#replyFile').setInputFiles([files[0]]);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('неизвестен');await page.locator('#mediaRecovery summary').click();await page.getByRole('button',{name:'Проверить отправку',exact:true}).click();await expect.poll(()=>s.mediaReads.length).toBe(1);
+ await page.locator('[data-conversation-id="12"]').click();await expect(page.locator('#conversationTitle')).toHaveText('Алексей');await page.locator('#replyText').fill('Ответ Алексею');await page.locator('#replyFile').setInputFiles([{name:'Новый.txt',mimeType:'text/plain',buffer:Buffer.from('new reply file')}]);s.setAttempt(s.mediaReads[0].operation_id,{kind:'media',state:'confirmed',media_type:'file',caption_included:false});s.release();await expect(page.locator('#replyText')).toHaveValue('Ответ Алексею');await expect(page.locator('.mediaFileName')).toHaveText('Новый.txt');await expect(page.locator('#mediaRecovery')).toBeHidden();expect(s.uploads).toHaveLength(1);
+});
 for(const width of [390,430,768,1440])for(const height of [900,420])test(`selection ${width}x${height}`,async({page,browserName})=>{
  await page.setViewportSize({width,height});const s=await setup(page);await page.locator('#replyText').fill('Подпись к первому файлу');if(height===420){await page.locator('#m2ConversationMenuToggle').click();await page.locator('#conversationSearchOpen').click();await page.locator('#conversationSearchInput').fill('Здравствуйте');await page.locator('#replyText').focus()}
  fs.mkdirSync('manager-media-artifacts',{recursive:true});await page.screenshot({path:`manager-media-artifacts/${browserName}-${width}-${height}-before.png`});
@@ -93,7 +134,7 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
  expect(await page.evaluate(()=>mediaFocusProof.keys)).toEqual(['Tab','Tab','Enter','Enter','Enter'].map(key=>({key,trusted:true})));
 });
 test('partial receipt clears confirmed caption and retries remaining file without repeating it',async({page})=>{
- const s=await setup(page,{failSecond:true});await page.locator('#replyText').fill('Подпись');await page.locator('#replyFile').setInputFiles(files);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('Отправлено файлов: 1');await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('Отправлено');expect(s.uploads).toHaveLength(3);expect(s.uploads[0]).toContain('Маршрут.txt');expect(s.uploads[2]).toContain('Билеты.pdf');expect(s.uploads[2]).not.toContain('Подпись');expect(s.errors).toEqual([]);
+ const s=await setup(page,{failSecond:true});await page.locator('#replyText').fill('Подпись');await page.locator('#replyFile').setInputFiles(files);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('Отправлено файлов: 1');await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);await page.locator('#mediaRecovery summary').click();await page.getByRole('button',{name:'Проверить отправку',exact:true}).click();await page.getByRole('button',{name:'Отменить неначатую отправку',exact:true}).click();await expect(page.locator('#mediaRecovery')).toContainText('Отправка не начиналась');await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('Отправлено');expect(s.uploads).toHaveLength(3);expect(s.uploads[0]).toContain('Маршрут.txt');expect(s.uploads[2]).toContain('Билеты.pdf');expect(s.uploads[2]).not.toContain('Подпись');expect(s.errors).toEqual([]);
 });
 test('unknown transport outcome cannot be repeated and explicitly pasted screenshot stays local',async({page})=>{
  const s=await setup(page,{unknown:true});await page.evaluate(async()=>{const canvas=document.createElement('canvas');canvas.width=64;canvas.height=32;canvas.getContext('2d').fillRect(0,0,64,32);const blob=await new Promise(resolve=>canvas.toBlob(resolve));const dt=new DataTransfer();dt.items.add(new File([blob],'Screenshot.png',{type:'image/png'}));document.getElementById('replyText').dispatchEvent(new ClipboardEvent('paste',{clipboardData:dt,bubbles:true,cancelable:true}))});await expect.poll(()=>page.locator('.mediaPreview img').evaluate(img=>img.naturalWidth)).toBe(64);await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);expect(s.uploads).toHaveLength(0);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('неизвестен');await expect(page.locator('.mediaRemove')).toBeEnabled();await page.locator('#sendReply').click();expect(s.uploads).toHaveLength(1);expect(s.errors).toEqual([]);

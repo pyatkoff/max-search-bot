@@ -1,6 +1,6 @@
 (function(){
 const W=window.WorkspaceV2,{S,$,api,pipe,statusText}=W;let bound=false,busy=false,openSeq=0,opening=0,refreshEpoch=0,refreshPending=null,accessLost=false;const drafts=new Map();
-let lifecycleFlight=null,lifecycleIssue=null;
+let lifecycleFlight=null,lifecycleIssue=null,mediaFeedback=null;
 let readView=null,readTimer=0;
 function acceptReadPage(detail){
   const state=detail?.read_state,key=JSON.stringify(captureReplyContext());
@@ -84,7 +84,16 @@ function rememberSelection(id){savedSelection=validId(Number(id))?Number(id):0;p
 function forgetSavedConversation(id){drafts.delete(id);if(savedSelection===id)savedSelection=0;persistReplySession()}
 function initials(name){const parts=String(name||'Турист').trim().split(/\s+/).filter(Boolean);return parts.slice(0,2).map(x=>x.charAt(0).toUpperCase()).join('')||'Т'}
 function messageTime(value){return window.ManagerTime.format(value,{separator:' · '})}
-function setReplyStatus(text='',kind=''){const el=$('replyStatus');if(!el)return;el.textContent=text;el.className='replyStatus'+(kind?' '+kind:'')}
+function setReplyStatus(text='',kind=''){mediaFeedback=null;const el=$('replyStatus');if(!el)return;el.textContent=text;el.className='replyStatus'+(kind?' '+kind:'')}
+function setMediaReplyStatus(text,kind,operationId){
+ setReplyStatus(text,kind);if(typeof operationId==='string'&&/^[a-f0-9]{32}$/.test(operationId))mediaFeedback={...captureReplyContext(),operationId};
+}
+function settleMediaFeedback(record){
+ const f=mediaFeedback,c=captureReplyContext();
+ if(!f||accessLost||opening||S.authExpired||record.actor!==f.managerId||record.conversation_id!==f.conversationId||record.operation_id!==f.operationId||Object.keys(c).some(k=>c[k]!==f[k]))return false;
+ const messages={confirmed:'Отправка файла подтверждена. Текущий черновик сохранён.',rejected:'Файл не отправлен. Текущий черновик сохранён.',cancelled:'Отправка файла не начиналась. Текущий черновик сохранён.'};
+ if(!messages[record.state])return false;setReplyStatus(messages[record.state],record.state==='confirmed'?'success':'');return true;
+}
 function ensureLoadStatus(){let el=$('conversationLoadStatus');if(el)return el;el=document.createElement('div');el.id='conversationLoadStatus';el.className='conversationLoadStatus hidden';el.setAttribute('aria-live','polite');const zone=$('conversationZone'),head=zone?.querySelector('.conversationHead');if(zone&&head)head.insertAdjacentElement('afterend',el);return el}
 function setLoadStatus(text='',kind=''){const el=ensureLoadStatus();if(!el)return;el.textContent=text;el.className='conversationLoadStatus'+(kind?' '+kind:'')+(text?'':' hidden')}
 function setRefreshStatus(text=''){let el=$('conversationRefreshStatus');if(!el&&text){el=document.createElement('div');el.id='conversationRefreshStatus';el.setAttribute('aria-live','polite');const head=$('conversationZone')?.querySelector('.conversationHead');head?.insertAdjacentElement('afterend',el)}if(!el)return;el.textContent=text;el.className='conversationLoadStatus error'+(text?'':' hidden')}
@@ -670,7 +679,7 @@ async function sendReply(reconcileAction='send_receipt'){
         if(consumeCaption&&$('replyText').value===draftText){$('replyText').value='';autoGrow()}
         let refreshGeneration=openSeq;
         try{const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true,preserveHistory:true});refreshGeneration=openSeq;await refreshing}catch(e){}
-        if(sameTarget()&&openSeq===refreshGeneration)setReplyStatus(j.error_message||'Часть файлов отправлена. Проверьте оставшиеся вложения.','error');
+        if(sameTarget()&&openSeq===refreshGeneration)setMediaReplyStatus(j.error_message||'Часть файлов отправлена. Проверьте оставшиеся вложения.','error',j.media_operation_id);
       }
       if(sameSession())try{await window.WorkspaceV2Inbox?.load({preserveScroll:true})}catch(e){}
       return;
@@ -678,7 +687,7 @@ async function sendReply(reconcileAction='send_receipt'){
     if(j?.ok!==true){
       const failure=j?.failure||null;
       if(currentAttempt()&&failure&&S.detail?.conversation){S.detail.delivery_failure=failure;renderDeliveryFailure(failure,j?.error_message);renderActions(S.detail.conversation)}
-      if(currentAttempt())setReplyStatus(hasFile&&!failure&&j?.error_message?j.error_message:sendFailureNotice(failure,j?.error_message),'error');
+      if(currentAttempt()){const message=hasFile&&!failure&&j?.error_message?j.error_message:sendFailureNotice(failure,j?.error_message);if(hasFile)setMediaReplyStatus(message,'error',j.media_operation_id);else setReplyStatus(message,'error')}
       return;
     }
     const consumeDraft=sameSession()&&owner===replySessionOwner&&owner===Number(S.manager?.id)&&matchingDraft();
@@ -722,5 +731,5 @@ function bind(){
   reply.addEventListener('keydown',e=>{if(!e.isComposing&&e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
   document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))
 }
-window.WorkspaceV2Conversation={hasReadAccess:()=>!accessLost&&!S.authExpired,renderHandoffContext,invalidateMessageAccess:loseHistoryAccess,renderMessageContext,canNavigateMessages:()=>isCurrentHistory(historyContext()),acceptReadPage,bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,insertAiDraft,previewAiDraft,discardAiPreview,aiDraftPreview,openSearch,nextWaiting};
+window.WorkspaceV2Conversation={hasReadAccess:()=>!accessLost&&!S.authExpired,renderHandoffContext,invalidateMessageAccess:loseHistoryAccess,renderMessageContext,canNavigateMessages:()=>isCurrentHistory(historyContext()),acceptReadPage,bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,settleMediaFeedback,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,insertAiDraft,previewAiDraft,discardAiPreview,aiDraftPreview,openSearch,nextWaiting};
 })();

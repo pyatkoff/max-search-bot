@@ -54,44 +54,69 @@ function init(){
    if(!pasted.length)return;event.preventDefault();addFiles(pasted);
  });
 }
-function configure(csrf,conversationId){state.csrf=csrf||'';state.conversationId=Number(conversationId||0)}
+function configure(csrf,conversationId){state.csrf=csrf||'';state.conversationId=Number(conversationId||0);window.WorkspaceV2MediaRecovery?.configure(state.conversationId)}
 function hasFile(){return files().length>0}
 function notDispatched(response,j){return response.status===409&&j.error==='delivery_failed'&&j.failure?.category==='not_dispatched'&&j.failure?.http_code===0&&['file_unavailable','context_changed'].includes(j.failure?.reason)}
+function settleRecovery(record){
+ window.WorkspaceV2Conversation?.settleMediaFeedback?.(record);
+ const sourceKey=record.actor+':'+record.conversation_id,rows=attachmentDrafts.get(sourceKey);
+ if(!rows||record.actor!==account())return;
+ const row=rows.find(r=>r.recoveryId===record.operation_id&&r.batchId===record.batch_id);if(!row)return;
+ if(record.state==='confirmed'){
+  uncertainFiles.delete(fileKey(row.file,sourceKey));
+  if(record.caption_included)captionSent.set(sourceKey,{batch:record.batch_id,caption:record.caption});
+  rows.splice(rows.indexOf(row),1);revoke([row]);
+ }else if(['rejected','cancelled'].includes(record.state)){
+  row.status='ready';delete row.recoveryId;uncertainFiles.delete(fileKey(row.file,sourceKey));
+ }
+ if(state.conversationId===record.conversation_id&&state.restored===rows)render();
+}
 async function send(caption=''){
  if(state.busy||!hasFile()||!state.conversationId)return{ok:false,error:'media_not_ready'};
+ const recovery=window.WorkspaceV2MediaRecovery;
+ if(!recovery)return{ok:false,error:'media_recovery_unavailable',error_message:'Не удалось подготовить безопасную отправку файлов. Текст и файлы сохранены.'};
  const generation=window.WorkspaceV2?.S?.authGeneration,manager=account(),target=state.conversationId,sourceKey=draftKey(target),rows=files(),csrf=state.csrf;
  const channel=window.WorkspaceV2?.S?.detail?.conversation?.channel;
  if(channel&&!['max','telegram'].includes(String(channel).toLowerCase()))return{ok:false,error:'unsupported',conversation_id:target,error_message:'Вложения для этого канала пока не поддерживаются. Файлы и текст сохранены.'};
- if(rows.some(row=>row.status==='unknown'))return{ok:false,error:'media_unknown',conversation_id:target,error_message:'Исход отправки файла неизвестен. Проверьте переписку перед повторной отправкой; автоматический повтор заблокирован.'};
- save(rows);state.busy=true;render();let sent=0,captionConfirmed=captionSent.has(sourceKey)&&captionSent.get(sourceKey)===(caption||'');
- const result=(j)=>({...j,conversation_id:target,sent_count:sent,confirmed_count:sent,caption_sent:captionConfirmed,unknown:rows.some(row=>row.status==='unknown'),remaining_count:rows.length});
- const sameSession=()=>generation===window.WorkspaceV2?.S?.authGeneration&&manager===account();
+ const blockedRow=rows.find(row=>row.status==='unknown'||recovery.blocked(row.file,target));
+ if(blockedRow){const prior=recovery.blocking(blockedRow.file,target);return{ok:false,error:'media_unknown',conversation_id:target,media_operation_id:prior?.operation_id,error_message:'Исход отправки файла пока неизвестен. Проверьте сохранённый результат; повтор заблокирован.'};}
+ const snapshot=rows.slice();let batch;
+ try{batch=recovery.newBatch();for(const row of snapshot)if(!row.batchId)row.batchId=batch}catch(e){return{ok:false,error:'media_recovery_unavailable',error_message:'Безопасная отправка файлов недоступна. Текст и файлы сохранены.'}}
+ save(rows);state.busy=true;render();let lastOperationId='',sent=0,captionConfirmed=captionSent.get(sourceKey)?.batch===snapshot[0]?.batchId&&captionSent.get(sourceKey)?.caption===(caption||'');
+ const result=j=>({...j,conversation_id:target,sent_count:sent,confirmed_count:sent,media_operation_id:lastOperationId,caption_sent:captionConfirmed,unknown:rows.some(row=>row.status==='unknown'),remaining_count:rows.length});
+ const sameSession=()=>generation===window.WorkspaceV2?.S?.authGeneration&&manager===account()&&!window.WorkspaceV2?.S?.authExpired;
  try{
-  for(const row of rows.slice()){
+  for(const row of snapshot){
    if(!sameSession())return result({ok:false,error:'stale_session'});
    if(state.conversationId!==target||attachmentDrafts.get(sourceKey)!==rows)return result({ok:false,error:'context_changed',error_message:`Отправлено файлов: ${sent}. Остальные сохранены в исходном диалоге.`});
+   const actualCaption=captionConfirmed?'':caption||'';
+   const record=recovery.begin(row.file,actualCaption,row.batchId);
+   if(!record)return result({ok:false,error:'media_recovery_unavailable',error_message:'Отправка файла не начата. Проверьте сохранённые результаты и свободное место в браузере. Текст и файлы сохранены.'});
+   row.recoveryId=record.operation_id;lastOperationId=record.operation_id;
    state.progress=`${sent+1}/${rows.length+sent}`;state.sendingRow=row;state.notice=`Отправляем файл ${sent+1} из ${rows.length+sent}…`;render();
-   const data=new FormData();data.append('csrf',csrf);data.append('conversation_id',String(target));data.append('file',row.file);data.append('caption',captionConfirmed?'':caption||'');
+   const data=new FormData();data.append('csrf',csrf);data.append('conversation_id',String(target));data.append('operation_id',record.operation_id);data.append('expected_manager_id',String(manager));data.append('file',row.file);data.append('caption',actualCaption);
    let response,j;
    try{response=await fetch('media-upload.php',{method:'POST',body:data,credentials:'same-origin'});j=await response.json();if(!j||typeof j!=='object'||Array.isArray(j))throw new Error('invalid_media_response')}
-   catch(e){row.status='unknown';uncertainFiles.add(fileKey(row.file,sourceKey));return result({ok:false,error:'media_unknown',error_message:`Отправлено файлов: ${sent}. Исход следующего неизвестен — проверьте переписку. Повтор заблокирован.`})}
+   catch(e){recovery.result(record,null);row.status='unknown';uncertainFiles.add(fileKey(row.file,sourceKey));return result({ok:false,error:'media_unknown',error_message:`Отправлено файлов: ${sent}. Результат следующего файла неизвестен. Проверьте отправку; повтор заблокирован.`})}
+   const saved=recovery.result(record,response.status===200?j:null),status=saved?.state||'unknown';
    if(!sameSession()){
-    // Retain the outcome in the captured source queue without touching the new account UI.
-    if(j.ok===true){sent++;captionConfirmed=true;if(attachmentDrafts.get(sourceKey)===rows)captionSent.set(sourceKey,caption||'');const index=rows.indexOf(row);if(index>=0)rows.splice(index,1);revoke([row]);if(attachmentDrafts.get(sourceKey)===rows&&!rows.length){attachmentDrafts.delete(sourceKey);captionSent.delete(sourceKey)}}
-    else if(response.status!==401&&!notDispatched(response,j)){row.status='unknown';uncertainFiles.add(fileKey(row.file,sourceKey))}
+    if(status==='confirmed'&&attachmentDrafts.get(sourceKey)===rows){sent++;if(saved.caption_included){captionConfirmed=true;captionSent.set(sourceKey,{batch:row.batchId,caption:actualCaption})}const index=rows.indexOf(row);if(index>=0)rows.splice(index,1);revoke([row])}
     return result({ok:false,error:'stale_session'});
    }
    if(response.status===401){window.WorkspaceV2?.showAuthRecovery?.();return result({...j,ok:false,error:'unauthorized',http_status:401})}
-   if(j.ok===true){sent++;captionConfirmed=true;if(attachmentDrafts.get(sourceKey)===rows)captionSent.set(sourceKey,caption||'');const index=rows.indexOf(row);if(index>=0)rows.splice(index,1);revoke([row]);if(attachmentDrafts.get(sourceKey)===rows&&!rows.length){attachmentDrafts.delete(sourceKey);captionSent.delete(sourceKey)}
-    if(state.conversationId===target&&state.restored===rows){if(input())input().value='';render()}continue;}
-   // Validation/auth and explicit provider rejection are safe failures. A transport/5xx response is not a receipt.
-   const known=notDispatched(response,j)||['file_required','file_too_large','upload_failed','invalid_upload','invalid_conversation','csrf_invalid','unsupported'].includes(j.error)||j.failure?.category==='unsupported'||response.status===403||Number(j.failure?.http_code)>=400&&Number(j.failure?.http_code)<500;
-   if(!known){row.status='unknown';uncertainFiles.add(fileKey(row.file,sourceKey))}
-   return result({...j,ok:false,error:known?j.error:'media_unknown',error_message:(sent?`Отправлено файлов: ${sent}. `:'')+(known?(j.error_message||'Файл не отправлен. Исправьте причину и повторите.'):'Исход следующего файла неизвестен. Проверьте переписку; повтор заблокирован.')});
+   if(status==='confirmed'){
+    sent++;captionConfirmed=captionConfirmed||saved.caption_included||!caption;
+    if(attachmentDrafts.get(sourceKey)===rows){if(saved.caption_included)captionSent.set(sourceKey,{batch:row.batchId,caption:actualCaption});const index=rows.indexOf(row);if(index>=0)rows.splice(index,1);revoke([row]);if(!rows.length){attachmentDrafts.delete(sourceKey);captionSent.delete(sourceKey)}}
+    if(state.conversationId===target&&state.restored===rows){if(input())input().value='';render()}continue;
+   }
+   const known=['rejected','cancelled'].includes(status);
+   if(known){row.status='ready';delete row.recoveryId}else{row.status='unknown';uncertainFiles.add(fileKey(row.file,sourceKey))}
+   return result({...j,ok:false,error:known?(j.error||'delivery_failed'):'media_unknown',error_message:(sent?`Отправлено файлов: ${sent}. `:'')+(known?(j.error_message||'Файл не отправлен. Исправьте причину и повторите явно.'):'Результат следующего файла неизвестен. Проверьте отправку; повтор заблокирован.')});
   }
   if(rows.length)return result({ok:false,error:'additional_files_pending',error_message:`Отправлено файлов: ${sent}. Добавленные во время отправки вложения сохранены; отправьте их отдельно.`});
   return result({ok:true});
  }finally{state.busy=false;state.sendingRow=null;state.progress='';if(sameSession()&&state.conversationId===target){state.notice='';render()}}
 }
-window.WorkspaceV2Media={init,configure,hasFile,send,clear,preserveDraft,restoreDraft,resetDrafts,addFiles};
+
+window.WorkspaceV2Media={init,configure,hasFile,send,clear,preserveDraft,restoreDraft,resetDrafts,addFiles,settleRecovery};
 })();
