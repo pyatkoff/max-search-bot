@@ -2005,7 +2005,7 @@ function modeledValueFixedPairAssertions(PDO $p,callable $check):void
             $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode($r,JSON_THROW_ON_ERROR)]);
         }
         ModeledConversionValueExport::tick($p,$source,$wire->api(),$now,$gate);
-        $q=$p->prepare('SELECT * FROM max_channel_conversion_outbox WHERE id=?');$q->execute([$id]);$row=$q->fetch(PDO::FETCH_ASSOC);
+        $q=$p->prepare('SELECT * FROM max_channel_conversion_outbox WHERE id=?');$q->execute([$id]);$row=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
         $check('fixed-pair admission refuses changed or previously claimed scope '.$case,
             $row['value_ready_at_unix']===null&&($case==='paid'?$row['upload_id']==='9999':empty($row['upload_id']))
             &&($case==='future_due'?!in_array($user,$source->queried,true):true)&&$source->calls<=1);
@@ -2102,7 +2102,7 @@ function modeledValueFixedPairAssertions(PDO $p,callable $check):void
     foreach([['yandex_direct',9*86400,true],['other_or_unknown',4*86400,false],['other_or_unknown',3*86400,true],['other_or_unknown',$now-$event-1,false]]as[$kind,$age,$allow]){
         [$rows,$source,$wire]=$setup();$wire->visitAt=$now-$age;$wire->visitSource=$kind;
         ModeledConversionValueExport::tick($p,$source,$wire->api(),$now,$gate);
-        $q=$p->query('SELECT state,attempts FROM max_channel_conversion_outbox WHERE id IN (1,2) ORDER BY id');$states=$q->fetchAll(PDO::FETCH_ASSOC);
+        $q=$p->query('SELECT state,attempts FROM max_channel_conversion_outbox WHERE id IN (1,2) ORDER BY id');$states=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
         $check('source-age correction keeps actual current visit gate '.$kind.':'.$age,
             $allow?$wire->posts===2&&array_column($states,'state')===['accepted','accepted']
                 :$wire->posts===0&&array_column($states,'state')===['ready','ready']&&(int)$states[0]['attempts']===0);
