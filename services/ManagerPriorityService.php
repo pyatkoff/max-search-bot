@@ -64,7 +64,10 @@ class ManagerPriorityService
     {
         $q=ConversationDb::connection()->prepare('SELECT c.id,c.project_key,c.source_id,c.status,c.manager_id,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,s.source_key FROM conversations c LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE c.id=? LIMIT 1');
         $q->execute([$conversationId]);$conversation=$q->fetch();if(!$conversation)return['conversation'=>null,'eligible_manager_ids'=>[],'selected_manager_ids'=>[],'scores'=>[],'score_breakdown'=>[]];
-        if((string)$conversation['status']==='manager'&&!empty($conversation['manager_id']))return['conversation'=>$conversation,'eligible_manager_ids'=>[(int)$conversation['manager_id']],'selected_manager_ids'=>[(int)$conversation['manager_id']],'scores'=>[],'score_breakdown'=>[]];
+        if((string)$conversation['status']==='manager'&&!empty($conversation['manager_id'])){
+            $owner=(int)$conversation['manager_id'];$eligible=RoutingAccessService::canSeeConversation($owner,$conversation)?[$owner]:[];
+            return['conversation'=>$conversation,'eligible_manager_ids'=>$eligible,'selected_manager_ids'=>$eligible,'scores'=>[],'score_breakdown'=>[]];
+        }
         if((string)$conversation['status']!=='waiting_manager')return['conversation'=>$conversation,'eligible_manager_ids'=>[],'selected_manager_ids'=>[],'scores'=>[],'score_breakdown'=>[]];
         return['conversation'=>$conversation]+self::notificationSelection($conversation);
     }
