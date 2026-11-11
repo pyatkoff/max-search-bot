@@ -6,7 +6,11 @@ const TARGETS=new Map([
     'AI rejects a same-ID edit while the cached reply is pending',
     'AI rejects a arrival while the cached reply is pending'
   ])],
-  ['manager-assistant.spec.js',new Set(['Manager assistant unifies list and current-client advice without touching reply 390'])],
+  ['manager-assistant.spec.js',new Set([
+    'Manager assistant unifies list and current-client advice without touching reply 390',
+    'Manager assistant unifies list and current-client advice without touching reply 768',
+    'Manager assistant unifies list and current-client advice without touching reply 1440'
+  ])],
   ['manager-manual-groups.spec.js',new Set([
     'manual group 390: one name creates a tab; two pointer/keyboard actions add or remove without replacing the conversation',
     'manual group 430: one name creates a tab; two pointer/keyboard actions add or remove without replacing the conversation'
