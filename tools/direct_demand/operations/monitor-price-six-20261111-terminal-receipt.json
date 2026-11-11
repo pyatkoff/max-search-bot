@@ -1,0 +1,271 @@
+{
+  "state": "COMPLETE_EXISTING_POSTS_AND_PUBLIC_FEEDS",
+  "verified_at_moscow": "2026-11-11T19:35:02+03:00",
+  "source_commit": "32e216b83e0ef8ca5a57b2325de3ab78436e759c",
+  "original_run": 43058715014,
+  "original_job": 130655132466,
+  "installed_runtime_sha": "8164359eba9a633f3f25d743e534386ecffe622f",
+  "authorization": "Owner explicitly approved applying this publisher change to existing MAX/Telegram posts and hotel feeds on 11 November 2026 after prior source-write rejection.",
+  "updates": [
+    {
+      "tourvisor_hotel_id": 1183,
+      "operation": "commercial-monitor-price-h1183-79005fe43f4e80f6e0908acf678548a9847a4af68fc218f8a5046a96cef49e66",
+      "record_id": "79005fe43f4e80f6e0908acf678548a9847a4af68fc218f8a5046a96cef49e66",
+      "price": 148090,
+      "currency": "RUB",
+      "tour_id": "12305877949449",
+      "posts": [
+        {
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaG2_E8DOuw",
+          "message_id": "mid.ffffb6caf0606fed01a1b6fc4f033aec",
+          "publication_id": 736,
+          "version_id": 3446,
+          "previous_version_id": 2779,
+          "text_sha256": "2ff1f3aa332cb518da18abf3eb1c9df408a8549301f6daf95e77cb9cf9f66a79",
+          "photo_signature": "max:49851390728",
+          "body_photo_button_verified": true,
+          "existing_message_reused": true
+        },
+        {
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/316",
+          "message_id": "316",
+          "publication_id": 726,
+          "version_id": 3447,
+          "previous_version_id": 2780,
+          "text_sha256": "4b935c30200523397a66db228a089b92719020efea13c0f218363c40c1ef1723",
+          "photo_signature": "telegram:AQADWTlrG-HPeUt9",
+          "body_photo_button_verified": true,
+          "existing_message_reused": true
+        }
+      ]
+    },
+    {
+      "tourvisor_hotel_id": 117935,
+      "operation": "commercial-monitor-price-h117935-007a0455facf1361ba3a62d19183d4166d615c3a931fc93d67373106fe094a29",
+      "record_id": "007a0455facf1361ba3a62d19183d4166d615c3a931fc93d67373106fe094a29",
+      "price": 175424,
+      "currency": "RUB",
+      "tour_id": "18304795592377",
+      "posts": [
+        {
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaG31RTEWJg",
+          "message_id": "mid.ffffb6caf0606fed01a1b7d514c45898",
+          "publication_id": 1064,
+          "version_id": 3448,
+          "previous_version_id": 2106,
+          "text_sha256": "202f3778f6029e0b30d36fa08d921c046ca242374d0a6ef2079e557ca4b423dc",
+          "photo_signature": "max:49873312008",
+          "body_photo_button_verified": true,
+          "existing_message_reused": true
+        },
+        {
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/480",
+          "message_id": "480",
+          "publication_id": 1054,
+          "version_id": 3449,
+          "previous_version_id": 2096,
+          "text_sha256": "0629f7919bb14a48bf1356ef5c4e9ba6339f956e1261569f90a48e68dd00aa8f",
+          "photo_signature": "telegram:AQADFjxrG-HPeUt9",
+          "body_photo_button_verified": true,
+          "existing_message_reused": true
+        }
+      ]
+    },
+    {
+      "tourvisor_hotel_id": 27426,
+      "operation": "commercial-monitor-price-h27426-c8335f11258768523734ab07f2bc26649e21d61f4842e57e7f7005145d04d47a",
+      "record_id": "c8335f11258768523734ab07f2bc26649e21d61f4842e57e7f7005145d04d47a",
+      "price": 180564,
+      "currency": "RUB",
+      "tour_id": "13305872493569",
+      "posts": [
+        {
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaG1E2swIp4",
+          "message_id": "mid.ffffb6caf0606fed01a1b5136b30229e",
+          "publication_id": 456,
+          "version_id": 3450,
+          "previous_version_id": 2499,
+          "text_sha256": "e492fc23b6f33cd3c4a4f85a28a2eb8426330fab0633d9c391171e1951d67479",
+          "photo_signature": "max:49763035144",
+          "body_photo_button_verified": true,
+          "existing_message_reused": true
+        },
+        {
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/176",
+          "message_id": "176",
+          "publication_id": 453,
+          "version_id": 3451,
+          "previous_version_id": 2500,
+          "text_sha256": "58b66acd97c2f9322e2e312218e2bab0f7e747a577073a4b2205039ea8c11ab7",
+          "photo_signature": "telegram:AQADWzRrG-HPeUt9",
+          "body_photo_button_verified": true,
+          "existing_message_reused": true
+        }
+      ]
+    },
+    {
+      "tourvisor_hotel_id": 13869,
+      "operation": "commercial-monitor-price-h13869-40a251867ce842dc4c1433e7842a27a0a763c142d714b185b3b2bd74f2c9b715",
+      "record_id": "40a251867ce842dc4c1433e7842a27a0a763c142d714b185b3b2bd74f2c9b715",
+      "price": 109461,
+      "currency": "RUB",
+      "tour_id": "16305258806498",
+      "posts": [
+        {
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaGgXBBBOgA",
+          "message_id": "mid.ffffb6caf0606fed01a1a05c10413a00",
+          "publication_id": 300,
+          "version_id": 3452,
+          "previous_version_id": 3307,
+          "text_sha256": "a96b3eb08e9ababe1b371e0ac035a653bdb98b777f79b9767bdf75889f28fa23",
+          "photo_signature": "max:48977946888",
+          "body_photo_button_verified": true,
+          "existing_message_reused": true
+        },
+        {
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/108",
+          "message_id": "108",
+          "publication_id": 292,
+          "version_id": 3453,
+          "previous_version_id": 3308,
+          "text_sha256": "1c4eb78b98634fd3cbbcb58bd9f9eb3c66d68cf9c62a01213b726d1276e747ff",
+          "photo_signature": "telegram:AQADjRtrGwpTUEt9",
+          "body_photo_button_verified": true,
+          "existing_message_reused": true
+        }
+      ]
+    },
+    {
+      "tourvisor_hotel_id": 1151,
+      "operation": "commercial-monitor-price-h1151-2ddca1902e6e01183130f87e4cc7032e147ecc263306ab572ea46e85a27060a0",
+      "record_id": "2ddca1902e6e01183130f87e4cc7032e147ecc263306ab572ea46e85a27060a0",
+      "price": 172833,
+      "currency": "RUB",
+      "tour_id": "16306188679005",
+      "posts": [
+        {
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaGjnkw2DwE",
+          "message_id": "mid.ffffb6caf0606fed01a1a39e4c360f01",
+          "publication_id": 391,
+          "version_id": 3454,
+          "previous_version_id": 3239,
+          "text_sha256": "10d21973732704de8bc5a44f6eda96e00e693cf6fcd52feb77cad381883330e2",
+          "photo_signature": "max:49105288200",
+          "body_photo_button_verified": true,
+          "existing_message_reused": true
+        },
+        {
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/152",
+          "message_id": "152",
+          "publication_id": 385,
+          "version_id": 3455,
+          "previous_version_id": 3240,
+          "text_sha256": "d06dba373c1bb61d425a9e143ce1390b2367a803b875b0dbf6a3a43fb484959d",
+          "photo_signature": "telegram:AQADNBxrG7t9WEt9",
+          "body_photo_button_verified": true,
+          "existing_message_reused": true
+        }
+      ]
+    },
+    {
+      "tourvisor_hotel_id": 1173,
+      "operation": "commercial-monitor-price-h1173-ea8829db96877c27aeb38105b6496299f2577f33b70c474aa048b99a0482c19d",
+      "record_id": "ea8829db96877c27aeb38105b6496299f2577f33b70c474aa048b99a0482c19d",
+      "price": 118478,
+      "currency": "RUB",
+      "tour_id": "43305779593372",
+      "posts": [
+        {
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaG3Xy3JP5c",
+          "message_id": "mid.ffffb6caf0606fed01a1b75f2dc93f97",
+          "publication_id": 903,
+          "version_id": 3456,
+          "previous_version_id": 2945,
+          "text_sha256": "e933b152d4d6964c518ab661813c47f2a7d315fb5c08c847c0c34211cae66e12",
+          "photo_signature": "max:49864647688",
+          "body_photo_button_verified": true,
+          "existing_message_reused": true
+        },
+        {
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/399",
+          "message_id": "399",
+          "publication_id": 895,
+          "version_id": 3457,
+          "previous_version_id": 2946,
+          "text_sha256": "c98bc8a5741736ea4077cf9f2b5a73a8e120e4a479035c6048cdc3a0f3029891",
+          "photo_signature": "telegram:AQADtDprG-HPeUt9",
+          "body_photo_button_verified": true,
+          "existing_message_reused": true
+        }
+      ]
+    }
+  ],
+  "public_verification": {
+    "ok": true,
+    "pairs_updated": 6,
+    "posts_updated": 12,
+    "new_posts": 0,
+    "feed_files": [
+      {
+        "name": "hotel-posts-telegram.xml",
+        "url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
+        "sha256": "09d8598015abb0f726bd008d619959dd3485f763e6a8deac43574cdb515e0937",
+        "rows": 509,
+        "verified_price_rows": 6,
+        "price_conditions_and_destinations_match": true
+      },
+      {
+        "name": "hotel-posts-max.xml",
+        "url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+        "sha256": "8c84d4e2390588572d53818971eb9fb26945448a409ca15079b668bfa0d1f19d",
+        "rows": 509,
+        "verified_price_rows": 6,
+        "price_conditions_and_destinations_match": true
+      },
+      {
+        "name": "hotel-posts-all.xml",
+        "url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+        "sha256": "9fd9e4b9b95db2db9af0b86aa36d0677d98cd66cf2c1d5b673770e2a6ef26eb3",
+        "rows": 1018,
+        "verified_price_rows": 12,
+        "price_conditions_and_destinations_match": true
+      }
+    ],
+    "changed_combined_offers": 12,
+    "untouched_combined_offer_blocks": 1006,
+    "total_pairs": 509,
+    "supplier_calls": 0,
+    "second_quote_calls": 0,
+    "source": "existing scheduled monitor, DB-only GET",
+    "source_generated_at": "2026-11-11T16:27:27Z"
+  },
+  "site_verification": {
+    "registry_version": 219,
+    "hotels": 666,
+    "registry_whole_unchanged": true,
+    "queue_unchanged": true,
+    "demand_unchanged": true,
+    "queued": 96,
+    "published": 509,
+    "rejected_site_operation_present": false,
+    "new_pairs": 0,
+    "category_growth": 0
+  },
+  "daily_hook_installed": false,
+  "automatic_dispatch_schedule_enabled": false,
+  "do_not_replay": "The six post operations and feed update47 are complete. Do not replay the original workflow or retry their record IDs with a new operation.",
+  "next_step": "Connect the existing nightly monitor completion to the existing publisher using fresh minimum records and canonical current post versions. Preserve accepted base copy; verify a current version from the actual prior monitor journal before replacing its price. Site publication snapshots remain unchanged and are not the current price-edited versions.",
+  "site_write_rejection": "An additional sync_monitor_prices POST was rejected by automatic approval review; readback proves registry219 and its journal unchanged. Publication used fresh DB-only monitor GET without any Site mutation."
+}
