@@ -56,6 +56,87 @@ $application = new DialogueApplication(static function ($message, $incoming) use
 $dispatcher = new CpeDispatcher($application);
 
 try {
+    // Synthetic reference resolution: a follow-up comparison must receive the
+    // immediately preceding choice, without importing another source entry.
+    foreach (['max', 'telegram'] as $index=>$platform) {
+        $user = 98779500 + $index; $chat = $platform === 'max' ? -$user : $user;
+        MaxSearchApi::$needContexts[$chat]=['country'=>'Турция','date'=>'15.06.2027','adults'=>2,'children'=>0,'nights'=>'7'];
+        MaxSearchApi::$missingNeeds[$chat]=['city'];
+        if ($platform === 'max') cpeStartMax($user, $publications[$platform]['start_payload'], 850+$index);
+        else cpeStartTelegram($user, $publications[$platform]['start_payload'], $dispatcher, $messenger, 850+$index);
+        $conversation = cpeConversation($platform, $user); $id = (int)$conversation['id'];
+        foreach (cpeMessages($id) as $oldMessage) {
+            $meta=json_decode((string)$oldMessage['metadata_json'],true);
+            $meta=ConversationRecordClock::stamp(is_array($meta)?$meta:[],1767225600);
+            $pdo->prepare('UPDATE messages SET metadata_json=? WHERE id=?')->execute([json_encode($meta),$oldMessage['id']]);
+        }
+        $pdo->prepare("UPDATE post_entries SET created_at='2026-01-02 00:00:00' WHERE conversation_id=?")->execute([$id]);
+        $input = ['platform'=>$platform, 'type'=>'message', 'text'=>'Казань или Самара',
+            'message_id'=>'reference.cities.'.$user, 'user'=>['chat_id'=>$chat, 'external_user_id'=>$user]];
+        ConversationRecorder::inbound($input);
+        ConversationRecorder::outbound($platform, $chat, 'Вы указали два города вылета. Какой из них взять для первого подбора?');
+        $input['message_id']='reference.followup.'.$user; $input['text']='Какой будет дешевле?';
+        ConversationRecorder::inbound($input); SourceHandlingService::handle($input);
+        $expected = ['messages'=>[
+            ['role'=>'customer', 'text'=>'Казань или Самара'],
+            ['role'=>'assistant', 'text'=>'Вы указали два города вылета. Какой из них взять для первого подбора?'],
+        ], 'complete_history'=>false];
+        $beforeRead=[count(cpeMessages($id)),cpeEventCount($id,'manager_request'),cpeConversation($platform,$user)['status']];
+        cpeCheck('follow-up keeps the two departures and exact prior question: '.$platform,
+            SourceHandlingService::recentDialogueContext($chat), $expected);
+        cpeCheck('reference read does not write transcript or handoff: '.$platform,
+            [count(cpeMessages($id)),cpeEventCount($id,'manager_request'),cpeConversation($platform,$user)['status']],$beforeRead);
+        cpeCheck('reference context cannot cross chat: '.$platform,
+            SourceHandlingService::recentDialogueContext($chat-5000), []);
+        $oldConfig = ProjectConfig::all(); $foreignConfig = $oldConfig; $foreignConfig['id']='other';
+        ProjectConfig::resetForTests($foreignConfig);
+        cpeCheck('reference context cannot cross project: '.$platform, SourceHandlingService::recentDialogueContext($chat), []);
+        ProjectConfig::resetForTests($oldConfig);
+        $pdo->prepare("UPDATE conversations SET status='manager',manager_id=9 WHERE id=?")->execute([$id]);
+        cpeCheck('manager ownership suppresses reference reads: '.$platform, SourceHandlingService::recentDialogueContext($chat), []);
+        $pdo->prepare("UPDATE conversations SET status='ai',manager_id=NULL WHERE id=?")->execute([$id]);
+        $newer = $input; $newer['message_id'].='.newer'; $newer['text']='Из Самары';
+        ConversationRecorder::inbound($newer);
+        cpeCheck('late inference cannot read across a newer input: '.$platform,
+            SourceHandlingService::recentDialogueContext($chat), []);
+        // Start a new exact current turn; a manager, contact, callback, forward,
+        // attachment or oversized message is a boundary, never a skipped record.
+        foreach ([
+            ['outbound','manager','Служебный ответ','{}'],
+            ['inbound','customer','70000000000','{"type":"contact"}'],
+            ['inbound','customer','old_callback','{"type":"callback"}'],
+            ['inbound','customer','Чужой текст','{"type":"message","linked_message":{"type":"forward"}}'],
+            ['inbound','customer','Фото','{"type":"message","attachments":[{"type":"image"}]}'],
+            ['inbound','customer','/start old','{"type":"message"}'],
+            ['inbound','customer',str_repeat('x',2001),'{"type":"message"}'],
+        ] as $barrierIndex=>$barrier) {
+            $pdo->prepare('INSERT INTO messages (conversation_id,channel,direction,sender_type,text,metadata_json) VALUES (?,?,?,?,?,?)')
+                ->execute([$id,$platform,$barrier[0],$barrier[1],$barrier[2],$barrier[3]]);
+            $next = $input; $next['message_id'].='.barrier.'.$barrierIndex;
+            ConversationRecorder::inbound($next); SourceHandlingService::handle($next);
+            cpeCheck('reference boundary '.$barrierIndex.' does not recover an old subject: '.$platform,
+                SourceHandlingService::recentDialogueContext($chat), []);
+        }
+        // Ordinary adjacent turns are bounded at four records, in transcript order.
+        for ($i=0;$i<6;$i++) ConversationRecorder::outbound($platform,$chat,'Короткая реплика '.$i);
+        $bounded = $input; $bounded['message_id'].='.bounded';
+        ConversationRecorder::inbound($bounded); SourceHandlingService::handle($bounded);
+        cpeCheck('recent context retains only four complete nearest records: '.$platform,
+            array_column(SourceHandlingService::recentDialogueContext($chat)['messages']??[], 'text'),
+            ['Короткая реплика 2','Короткая реплика 3','Короткая реплика 4','Короткая реплика 5']);
+        $entry=$pdo->query('SELECT * FROM post_entries WHERE conversation_id='.$id.' ORDER BY id DESC LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+        $currentMessage=$pdo->query("SELECT metadata_json FROM messages WHERE conversation_id=".$id." AND direction='inbound' ORDER BY id DESC LIMIT 1")->fetchColumn();
+        $sameSecond=gmdate('Y-m-d H:i:s',ConversationRecordClock::read((string)$currentMessage));
+        $pdo->prepare('UPDATE post_entries SET created_at=? WHERE conversation_id=?')->execute([$sameSecond,$id]);
+        cpeCheck('same-second source entry cannot prove the preceding subject: '.$platform,
+            SourceHandlingService::recentDialogueContext($chat), []);
+        $pdo->prepare('UPDATE post_entries SET created_at=? WHERE conversation_id=?')->execute([$entry['created_at'],$id]);
+        $pdo->prepare('INSERT INTO post_entries (conversation_id,publication_id,version_id,entry_key,created_at) VALUES (?,?,?,?,?)')
+            ->execute([$id,$entry['publication_id'],$entry['version_id'],'reference.reentry.'.$user,'2026-01-03 00:00:00']);
+        cpeCheck('cached publication cannot cross a later source entry: '.$platform,
+            SourceHandlingService::recentDialogueContext($chat), []);
+    }
+
     foreach (['max', 'telegram'] as $platform) {
         $payload = $publications[$platform]['start_payload'];
         cpeCheck($platform . ' token resolves exact canonical bot/project/platform', ChannelPostEntryService::resolve($platform, $payload)['publication_id'] ?? null, $publications[$platform]['publication_id']);

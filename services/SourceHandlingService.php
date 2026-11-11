@@ -4,6 +4,7 @@ require_once __DIR__ . '/ConversationRecorder.php';
 require_once __DIR__ . '/IntegrationRegistry.php';
 require_once __DIR__ . '/ManagerHandoffDispatchService.php';
 require_once __DIR__ . '/SourceHotelIntentService.php';
+require_once __DIR__ . '/ConversationRecordClock.php';
 
 /**
  * Applies the configured conversation start policy for a concrete source.
@@ -357,6 +358,7 @@ class SourceHandlingService
             if(!$post||!empty($post['unavailable'])||($post['source_key']??'')!==$row['source_key'])return [];
             $version=$registry->versionForEntry((int)$row['id'],ProjectConfig::projectId(),(int)$post['entry_id']);
             if(!$version||$version['platform']!==$platform||$version['bot_key']!==$identity['bot_key'])return [];
+            self::$postContextTurn['post_entry_id']=(int)$post['entry_id'];
             $out=[];
             foreach(['entry_id','publication_id','version_id'] as $key)$out[$key]=(int)$post[$key];
             foreach(['platform'=>20,'source_key'=>96,'title'=>500,'text'=>12000,'published_at'=>40,'post_url'=>2048] as $key=>$limit){
@@ -380,6 +382,82 @@ class SourceHandlingService
             }
             return self::$postContextTurn['post_context']=$out;
         }catch(Throwable $ignored){return [];}
+    }
+
+    /**
+     * Read-only reference context for a follow-up question, not another trip state.
+     * Only the exact newest recorded input can read a short tail of its current
+     * source entry. Older deliveries, reentry and manager ownership fail closed.
+     */
+    public static function recentDialogueContext($chatId): array
+    {
+        if (self::sourcePostContext($chatId) === []) return [];
+        $turn = self::$postContextTurn;
+        $incoming = (array)($turn['incoming'] ?? []);
+        $platform = (string)($incoming['platform'] ?? '');
+        $externalId = (string)($incoming['message_id'] ?? '');
+        if (($incoming['type'] ?? '') !== 'message' || $externalId === ''
+            || !in_array($platform, ['max', 'telegram'], true)) return [];
+        try {
+            $pdo = ConversationDb::connection();
+            $conversationId = (int)$turn['conversation_id'];
+            $q = $pdo->prepare("SELECT id,text,metadata_json,created_at FROM messages WHERE conversation_id=? AND channel=? AND direction='inbound' AND sender_type='customer' AND external_message_id=? ORDER BY id DESC LIMIT 2");
+            $q->execute([$conversationId, $platform, $externalId]);
+            $inputs = $q->fetchAll(PDO::FETCH_ASSOC);
+            if (count($inputs) !== 1 || (string)$inputs[0]['text'] !== (string)($incoming['text'] ?? '')
+                || self::recentDialogueMessage($inputs[0] + ['direction'=>'inbound', 'sender_type'=>'customer']) === null) return [];
+            $input = $inputs[0];
+            $q = $pdo->prepare("SELECT MAX(id) FROM messages WHERE conversation_id=? AND direction='inbound' AND sender_type='customer'");
+            $q->execute([$conversationId]);
+            if ((int)$q->fetchColumn() !== (int)$input['id']) return [];
+            $q = $pdo->prepare('SELECT id,created_at FROM post_entries WHERE conversation_id=? ORDER BY id DESC LIMIT 1');
+            $q->execute([$conversationId]);
+            $entry = $q->fetch(PDO::FETCH_ASSOC);
+            // post_entries is written in UTC by ChannelPostRegistryService::now().
+            // Message DATETIMEs are mixed historically: use only their validated
+            // server-recording receipts. Equal seconds cannot prove post-entry.
+            $entryAt = $entry ? DateTimeImmutable::createFromFormat('!Y-m-d H:i:s',
+                (string)$entry['created_at'], new DateTimeZone('UTC')) : false;
+            $inputAt = ConversationRecordClock::read((string)$input['metadata_json']);
+            if (!$entryAt || $entryAt->format('Y-m-d H:i:s') !== (string)$entry['created_at']
+                || (int)$entry['id'] !== (int)(self::$postContextTurn['post_entry_id'] ?? 0)
+                || $inputAt === null || $inputAt <= $entryAt->getTimestamp()) return [];
+            $q = $pdo->prepare('SELECT direction,sender_type,text,metadata_json,created_at FROM messages WHERE conversation_id=? AND channel=? AND id<? ORDER BY id DESC LIMIT 4');
+            $q->execute([$conversationId, $platform, (int)$input['id']]);
+            $messages = [];
+            foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                $recordedAt = ConversationRecordClock::read((string)$row['metadata_json']);
+                if ($recordedAt === null || $recordedAt <= $entryAt->getTimestamp()
+                    || $recordedAt > $inputAt || $inputAt - $recordedAt > 1800) break;
+                $message = self::recentDialogueMessage($row);
+                if ($message === null) break;
+                $messages[] = $message;
+            }
+            if ($messages === [] || self::sourcePostContext($chatId) === []) return [];
+            $q = $pdo->prepare("SELECT MAX(id) FROM messages WHERE conversation_id=? AND direction='inbound' AND sender_type='customer'");
+            $q->execute([$conversationId]);
+            if ((int)$q->fetchColumn() !== (int)$input['id']) return [];
+            $q = $pdo->prepare('SELECT id FROM post_entries WHERE conversation_id=? ORDER BY id DESC LIMIT 1');
+            $q->execute([$conversationId]);
+            if ((int)$q->fetchColumn() !== (int)$entry['id']) return [];
+            return ['messages'=>array_reverse($messages), 'complete_history'=>false];
+        } catch (Throwable $ignored) {
+            return [];
+        }
+    }
+
+    /** A barrier is never skipped to recover an older, different subject. */
+    private static function recentDialogueMessage(array $row): ?array
+    {
+        $role = ($row['direction'] ?? '') === 'inbound' && ($row['sender_type'] ?? '') === 'customer'
+            ? 'customer' : ((($row['direction'] ?? '') === 'outbound' && ($row['sender_type'] ?? '') === 'ai') ? 'assistant' : '');
+        $text = trim((string)($row['text'] ?? ''));
+        $meta = json_decode((string)($row['metadata_json'] ?? ''), true);
+        if ($role === '' || !is_array($meta) || $text === '' || strlen($text) > 2000
+            || !empty($meta['attachments']) || !empty($meta['linked_message'])
+            || ($role === 'customer' && ($meta['type'] ?? '') !== 'message')
+            || preg_match('~\A/~u', $text) === 1) return null;
+        return ['role'=>$role, 'text'=>$text];
     }
 
     /** Request-only data attached by the authenticated token-resolution owners. */
