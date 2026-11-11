@@ -1168,7 +1168,7 @@ function modeledValueIdentityEvidenceAssertions(PDO $p,callable $check):void
         &&$settingsBefore['last_tick_unix']===$settingsAfter['last_tick_unix']
         &&$settingsBefore['last_report_success_unix']===$settingsAfter['last_report_success_unix']
         &&modeledValueFailureJsonEqual($settingsBefore['last_report_success_json'],$settingsAfter['last_report_success_json']));
-    $near=$receiptAfter;
+    $near=$receiptAfter;unset($near['visit_gate_decisions']);
     $near['last_recorded_failure']=['tick_at_unix'=>$now+100,'phase'=>'upload','category'=>'api_rejected'];
     $newFailure=['tick_at_unix'=>$now+500,'phase'=>'collect_profiles','category'=>'processing_failed'];
     $measure=static function(array $value)use($p):int{
