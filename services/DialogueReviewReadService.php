@@ -311,10 +311,15 @@ final class DialogueReviewReadService
             if(($projection['semantic_prediction']['availability']??null)!=='available')return$unavailable;
             $result=['availability'=>'available','profile_id'=>$id,'observed_at'=>gmdate('Y-m-d\TH:i:s\Z',(int)$saved['observed_at_unix']),
                 'projection'=>$projection,'meaning'=>'saved_untrained_prediction_not_current_trip_truth_or_reply_quality'];
-            if(is_callable($this->conversionTraceAuthorize)){
+            if(!$this->historyAudit&&is_callable($this->conversionTraceAuthorize)){
                 require_once __DIR__.'/ModeledConversionDialogueTraceReader.php';
-                $result['conversion_trace']=(new ModeledConversionDialogueTraceReader(fn(string $sql,array $bind):PDOStatement=>$this->q($sql,$bind)))
-                    ->read($wrapper,$subject,$id,$this->now());
+                try{
+                    $result['conversion_trace']=(new ModeledConversionDialogueTraceReader(fn(string $sql,array $bind):PDOStatement=>$this->q($sql,$bind)))
+                        ->read($wrapper,$subject,$id,$this->now());
+                }catch(PDOException $error){
+                    if(in_array((int)($error->errorInfo[1]??0),[3024,1969],true))throw self::databaseError($error);
+                    $result['conversion_trace']=['available'=>false,'reason'=>'trace_storage_unavailable'];
+                }
             }
             return$result;
         }catch(PDOException $e){

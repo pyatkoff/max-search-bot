@@ -59,7 +59,7 @@ final class ModeledConversionDialogueTraceReader
         if($settings){
             $cursor=self::id($settings['profile_cursor']??null,true);
             $out['collector']=['available'=>true,'mode'=>in_array($settings['mode'],['off','send'],true)?$settings['mode']:'unknown',
-                'goal_matches'=>($settings['goal_id']??null)==='678187097',
+                'goal_matches'=>self::id($settings['goal_id']??null)==='678187097',
                 'intent_verified'=>($settings['goal_intent']??null)==='verified',
                 'contract_matches'=>($settings['contract_version']??null)===ModeledConversionValueContract::VERSION,
                 'activated_at'=>self::instant($settings['activated_at_unix']??null,$cutoff),

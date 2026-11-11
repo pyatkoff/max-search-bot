@@ -610,5 +610,12 @@ try{
         &&$boundedValue['ledger']['complete']===false&&count($boundedValue['ledger']['rows'])<=32
         &&strlen(json_encode($boundedValue,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=16384);
 
+    $pdo->exec('DROP TABLE modeled_conversion_price_audit');
+    $missingTraceStorage=$nativeCall($native,$traceContext,'get_dialogue_review_context',['dialogue_ref'=>$traceRef]);
+    $missingTraceProfile=$missingTraceStorage['result']['structuredContent']['saved_profile']??[];
+    dialogueMcpCheck('optional trace storage failure preserves the valid saved prediction and exposes no SQL',
+        ($missingTraceProfile['availability']??null)==='available'
+        &&($missingTraceProfile['conversion_trace']['reason']??null)==='trace_storage_unavailable'
+        &&!str_contains(json_encode($missingTraceStorage),'no such table')&&!$pdo->inTransaction());
     echo 'Dialogue review MCP regression: '.$passed." checks passed\n";
 }catch(Throwable $error){fwrite(STDERR,$error->getMessage()."\n");exit(1);}
