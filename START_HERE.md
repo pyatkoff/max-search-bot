@@ -8,6 +8,44 @@ Primary language with the user: Russian.
 
 Read this file first. Then read `AGENTS.md` and only the durable documents relevant to the selected slice.
 
+## Current blocker and forward migration repair — 2026-11-12
+
+The authorised replacement PR #1494 merged as
+`ad9b93796cb397472bb578146c538d70d9103226`. Its original push Deploy
+[43119991323](https://github.com/pyatkoff/max-search-bot/actions/runs/43119991323),
+attempt 1, transferred that actual production HEAD and then **failed** at
+migration 104. It is not an accepted installation. Existing publisher
+6650664504 remains busy for that failed release until the checked correction is
+admitted and explicitly bound by the same owner. No installer attempt 2,
+verification-only recovery, manual free or branded-host activation is permitted.
+
+Migration 086 already owns `max_channel_conversion_outbox.value_rub` as
+`DECIMAL(12,2) NULL`. The immutable 104 erroneously tries to add it again as
+`DECIMAL(11,2)`, after its first statement may have committed three observation
+context columns. Do not drop/narrow that legacy column, edit the old SQL or
+invent a successful 104 execution.
+
+The bounded correction is `105_adopt_project_funnel_context.sql` and the
+canonical MigrationRunner's exact-source repair. Before DDL, it authenticates
+the original 086 receipt and pinned 086/104/105 bytes, checks the actual legacy
+value definition and every existing context definition. It adds only missing
+compatible context columns and proves the complete result. It then records
+105 as an actual execution (`baseline=0`) and 104 as explicit adoption
+(`baseline=1, execution_ms=0`) in the existing transactional migration journal.
+Those receipts distinguish repair/adoption from execution of the faulty SQL.
+Already accepted receipts/checksums and every business row remain unchanged.
+Contradictory definitions, modified source/receipts, missing 086 proof or
+untracked legacy baselining refuse without treating a duplicate as success.
+
+The existing isolated native MySQL migrations job now reproduces the raw
+086/104 collision and checks fresh/partial repair, large legacy monetary values,
+retained context, explicit receipts, stable resume and pre-mutation refusals.
+No workflow, secret, goal, manager policy, publication or conversion activation
+is added. The correction still requires exact-head CI, fresh admission, the
+same owned publisher and a new ordinary push/attempt-1 installation with all
+mandatory technical gates and automatic closure. Only then may the approved
+branded host be installed under the ordinary shared-slot protocol.
+
 ## Owner-authorised recovery of the AppleService39 release — 2026-11-12
 
 The owner explicitly authorised restarting the stalled installation or creating a
