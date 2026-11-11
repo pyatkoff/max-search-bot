@@ -8,7 +8,7 @@ const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 // Render the actual PHP shell; no copied HTML or production traffic.
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
 const stages=[['new','Новый лид'],['working','В работе'],['selection','Подбираем'],['proposal','Предложение отправлено'],['sold','Продано']].map(([stage_key,display_name],i)=>({id:i+1,stage_key,display_name,sort_order:i,is_terminal:stage_key==='sold'?1:0,is_won:stage_key==='sold'?1:0}));
-async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null,replyAudio=false,tourChoices=null,selectionEditorEntry=null,selectionAssetPackage=null}={}){
+async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null,replyAudio=false,tourChoices=null,selectionEditorEntry=null,selectionAssetPackage=null,leadSource={}}={}){
   const pushProtocol=lifecycle(7);
   // Model the existing server admission field, retaining the real shell/assets.
   // This fixture does not claim an installed or authenticated production editor.
@@ -26,7 +26,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   const messages=Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?7:null,text:i===34?'Посмотрите, пожалуйста, варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Подбираем семейный отдых в Турции, обсуждаем отели и даты.',created_at:'2026-10-13 12:00:00'}));
   if(replyAudio)messages[0].attachments=[{type:'audio',name:'Тестовое аудио',url:replyEditorAudio()}];
   if(serviceEvents)messages.push({id:36,direction:'inbound',sender_type:'customer',text:'manager_after_tours',service_action:{type:'callback',label:'Клиент запросил менеджера после подбора туров',raw_payload:'manager_after_tours'},created_at:'2026-10-13 12:01:00'},{id:37,direction:'inbound',sender_type:'customer',text:'manager_after_tours',created_at:'2026-10-13 12:02:00'});
-  const lead=id=>({ok:true,can_edit_pipeline:!otherOwner,pipeline:{stage:stages[1],stage_history:[],tags:[],outcome:{outcome:'open'},...pipelineOverrides.get(id)},tasks:tasks.map(t=>({...t})),trip:{city:'Москва',country:'Турция',date:'24 октября',nights:'7–9',adults:2,children:1,child_ages:'8',meal:'all_inclusive',stars:'4,5',budget:{max:250000,currency:'RUB',basis:'total'}},contact:{phone:'+7 999 123-45-67'},source:{project_label:'AnyTour',origin_label:'TG · реклама',channel:'telegram'},handoff:{technical_status:'manager',manager_name:conversation(id).manager_name}});
+  const lead=id=>({ok:true,can_edit_pipeline:!otherOwner,pipeline:{stage:stages[1],stage_history:[],tags:[],outcome:{outcome:'open'},...pipelineOverrides.get(id)},tasks:tasks.map(t=>({...t})),trip:{city:'Москва',country:'Турция',date:'24 октября',nights:'7–9',adults:2,children:1,child_ages:'8',meal:'all_inclusive',stars:'4,5',budget:{max:250000,currency:'RUB',basis:'total'}},contact:{phone:'+7 999 123-45-67'},source:{project_label:'AnyTour',origin_label:'TG · реклама',channel:'telegram',...leadSource},handoff:{technical_status:'manager',manager_name:conversation(id).manager_name}});
   const rows=()=>[11,12].map((id,i)=>({...conversation(id),can_edit_pipeline:!otherOwner,project_label:'AnyTour',origin_label:'TG · реклама',trip_summary:'Москва → Турция · 2 взрослых и ребёнок · 7–9 ночей',lead_stage:stages[1],lead_outcome:'open',unread_count:i?0:2,last_text:'Ждём варианты у моря',last_sender_type:'customer',last_message_at:'2026-10-13 12:00:00',next_task_id:21,next_task_title:tasks.find(t=>t.status==='open')?.title||'',next_task_due_state:'today',operational_task_due_state:'overdue',next_task_due_at_utc:'2026-10-14 07:00:00',next_task_pinned:1,contact_phone:'+7 999 123-45-67',...inboxOverrides.get(id)}));
   await page.addInitScript(savedFilters=>{
     if(!sessionStorage.getItem('manager2-fixture-initialized')){sessionStorage.clear();sessionStorage.setItem('manager2-fixture-initialized','1')}
@@ -166,6 +166,42 @@ async function readable(page,selector){
   if(/msgMeta|messageSender/.test(selector))expect(await page.locator(selector).first().evaluate(el=>Number(getComputedStyle(el).opacity))).toBe(1);
 }
 async function capture(page,browser,width,state){fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({animations:'disabled',path:`manager2-artifacts/${browser}-${width}-${state}.png`})}
+
+for(const width of [390,430,768,1440])test('Manager2 first advertising region stays readable and separate from departure at '+width,async({page,browserName})=>{
+  const receipt=(id,name,label)=>({yandex_region_id:id,name,label,hierarchy:[name,'Россия'],known:true});
+  const source={first_entry_region:receipt('62','Красноярск','Красноярск · Красноярский край'),latest_entry_region:receipt('51','Самара','Самара · Самарская область'),attribution_region:'51'};
+  await page.setViewportSize({width,height:900});const s=await setup(page,{leadSource:source});await openLead(page);await showCard(page);
+  const entry=page.locator('#leadCard .leadEntryRegion'),value=entry.locator('.leadEntryRegionValue');
+  const service=page.locator('.leadDetails').filter({has:page.locator('summary',{hasText:'Источник и служебная информация'})});
+  const first=page.locator('.leadDetailRow').filter({has:page.locator('.label',{hasText:'Первый рекламный вход'})});
+  const latest=page.locator('.leadDetailRow').filter({has:page.locator('.label',{hasText:'Последний рекламный вход'})});
+  async function regionFits(){
+    await expect(entry).toBeVisible();
+    const box=await entry.boundingBox();expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(width+1);
+    expect(await entry.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+    await readable(page,'.leadEntryRegionCaption');await readable(page,'.leadEntryRegionValue');await noOverflow(page);
+  }
+  async function refreshSource(patch){
+    for(const key of Object.keys(source))delete source[key];Object.assign(source,patch);
+    expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshLeadData({conversationId:11}))).toBe(true);
+    await page.locator('#leadZone').evaluate(el=>{el.scrollTop=0});
+  }
+  await expect(entry.locator('.leadEntryRegionCaption')).toHaveText('Первый рекламный вход');await expect(value).toHaveText('Красноярск · Красноярский край');
+  await expect(page.locator('.leadRouteMain')).toHaveText('Москва → Турция');await expect(entry).not.toContainText('Самара');
+  await regionFits();await capture(page,browserName,width,'first-entry-region');
+  await service.locator('summary').click();await expect(first.locator('.value')).toHaveText('Красноярск · Красноярский край');await expect(latest.locator('.value')).toHaveText('Самара · Самарская область');await expect(service).not.toContainText('Регион атрибуции');
+  await refreshSource({first_entry_region:null,latest_entry_region:receipt('51','Самара','Самара · Самарская область'),attribution_region:'51'});
+  await expect(entry).toHaveCount(0);await expect(page.locator('.leadRouteMain')).toHaveText('Москва → Турция');await expect(first).toHaveCount(0);await noOverflow(page);
+  await refreshSource({project_label:'Другой туристический проект',first_entry_region:{yandex_region_id:'99999999999999999999',name:'',label:'Регион не определён',hierarchy:[],known:false}});
+  await expect(value).toHaveText('Регион не определён');await expect(entry).not.toContainText('99999999999999999999');await regionFits();await capture(page,browserName,width,'first-entry-region-unknown');
+  const longLabel='ОченьДлинноеНазваниеРекламногоРегиона'.repeat(5)+' · Область <img src=x onerror="window.entryRegionExecuted=true">';
+  await refreshSource({first_entry_region:{yandex_region_id:'999999',name:longLabel,label:longLabel,hierarchy:[],known:false},latest_entry_region:{label:{unexpected:'Самара'}},attribution_region:'51'});
+  await expect(value).toHaveText(longLabel);await expect(entry.locator('img,script,a,button,input')).toHaveCount(0);expect(await page.evaluate(()=>window.entryRegionExecuted)).toBeUndefined();
+  await regionFits();await capture(page,browserName,width,'first-entry-region-long');
+  await service.locator('summary').click();await expect(service).toContainText('Регион атрибуции');await expect(latest).toHaveCount(0);await noOverflow(page);
+  await refreshSource({first_entry_region:{label:[]},latest_entry_region:receipt('51','Самара','Самара · Самарская область')});await expect(entry).toHaveCount(0);
+  expect(s.sends).toEqual([]);expect(s.calls.filter(call=>/^set_|^create_|^save_|^reassign/.test(call.action||''))).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
 
 function selectionAssetRequests(page){
   const requests=[];

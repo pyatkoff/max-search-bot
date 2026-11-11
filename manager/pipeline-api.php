@@ -4,6 +4,7 @@ require_once $baseDir.'/config.php';
 require_once $baseDir.'/maxsearchclass.php';
 require_once __DIR__.'/lib/ManagerHttp.php';
 require_once $baseDir.'/services/ManagerConversationService.php';
+require_once $baseDir.'/services/ManagerEntryRegionViewService.php';
 require_once $baseDir.'/services/ManagerDeliveryStateService.php';
 require_once $baseDir.'/services/ManagerLeadInboxService.php';
 require_once $baseDir.'/services/ManagerQueueProjectionService.php';
@@ -84,8 +85,9 @@ if($action==='detail'){
     $pipeline=pipelineDetailPart('pipeline',$id,static fn()=>SalesPipelineService::conversationSnapshot($id),['stage'=>null,'stage_history'=>[],'tags'=>[],'outcome'=>['outcome'=>'open']],$degraded);
     $tasks=pipelineDetailPart('tasks',$id,static fn()=>LeadTaskService::listForConversation($id),[],$degraded);
     $deliveryFailure=pipelineDetailPart('delivery_failure',$id,static fn()=>ManagerDeliveryStateService::activeFailure($id),null,$degraded);
+    $entryRegions=ManagerEntryRegionViewService::fromVisibleConversation($c);
     $salesDataComplete=!in_array('pipeline',$degraded,true)&&!in_array('tasks',$degraded,true);
-    ManagerHttp::respond(['ok'=>true,'can_edit_pipeline'=>$can&&$salesDataComplete,'pipeline'=>$pipeline,'tasks'=>$tasks,'trip'=>pipelineTrip($c),'contact'=>['phone'=>$c['phone']??null,'email'=>$c['email']??null],'source'=>['origin_label'=>ManagerLeadInboxService::originLabel($c),'project_label'=>ManagerLeadInboxService::projectLabel($c),'project'=>$c['project_name']??$c['project_key']??null,'source'=>$c['source_name']??null,'channel'=>$c['channel']??null,'entry_channel'=>$c['entry_channel']??null,'attribution_region'=>$c['attribution_region']??null,'attribution_campaign'=>$c['attribution_campaign']??null],'handoff'=>['technical_status'=>$c['status']??null,'manager_name'=>$c['manager_name']??null,'delivery_failure'=>$deliveryFailure],'degraded_components'=>$degraded]);
+    ManagerHttp::respond(['ok'=>true,'can_edit_pipeline'=>$can&&$salesDataComplete,'pipeline'=>$pipeline,'tasks'=>$tasks,'trip'=>pipelineTrip($c),'contact'=>['phone'=>$c['phone']??null,'email'=>$c['email']??null],'source'=>['origin_label'=>ManagerLeadInboxService::originLabel($c),'project_label'=>ManagerLeadInboxService::projectLabel($c),'project'=>$c['project_name']??$c['project_key']??null,'source'=>$c['source_name']??null,'channel'=>$c['channel']??null,'entry_channel'=>$c['entry_channel']??null,'attribution_region'=>$c['attribution_region']??null,'attribution_campaign'=>$c['attribution_campaign']??null]+$entryRegions,'handoff'=>['technical_status'=>$c['status']??null,'manager_name'=>$c['manager_name']??null,'delivery_failure'=>$deliveryFailure],'degraded_components'=>$degraded]);
 }
 if(in_array($action,['booking_read','booking_save'],true)){
     require_once $baseDir.'/services/TourBookingService.php';
