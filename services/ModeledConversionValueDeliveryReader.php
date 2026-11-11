@@ -582,11 +582,18 @@ final class ModeledConversionValueDeliveryReader
     private function report(mixed $r,int $activation,int $now):array
     {
         $unknown=['status'=>'not_recorded','fresh'=>false,'goal_reaches'=>null,'goal_visits'=>null,'revenue_rub'=>null,
-            'visit_linkage'=>'unknown'];
+            'visit_linkage'=>'unknown','http_status'=>null,'transport_error_code'=>null,'failure_category'=>null];
         if(!is_array($r)||($r['goal_id']??null)!==self::GOAL||($r['currency']??null)!=='RUB')return $unknown;
         $at=ModeledConversionValueContract::moment($r['fetched_at']??null);
         if($at===null||$at<$activation||$at>$now||!in_array($r['status']??null,['ok','sampled','forbidden','unavailable'],true))return $unknown;
         $out=$unknown;$out['status']=$r['status'];$out['fetched_at']=$r['fetched_at'];$out['fresh']=$now-$at<=900;
+        foreach(['http_status'=>[100,599],'transport_error_code'=>[0,100]]as$key=>[$min,$max]){
+            $v=$r[$key]??null;$out[$key]=is_int($v)&&$v>=$min&&$v<=$max?$v:null;
+        }
+        $category=$r['failure_category']??null;
+        if(!in_array($r['status'],['ok','sampled'],true)&&is_string($category)
+            &&in_array($category,['rate_limited','provider_unavailable','invalid_request','access_denied','transport_error',
+                'unexpected_http_status','invalid_response','unknown'],true))$out['failure_category']=$category;
         if(in_array($r['reason']??null,['invalid_scope','transport_unavailable','report_scope_or_counter_access','report_api_unavailable',
             'invalid_report','invalid_totals','invalid_counts','report_unavailable'],true))$out['reason']=$r['reason'];
         if(!in_array($r['status'],['ok','sampled'],true))return $out;
