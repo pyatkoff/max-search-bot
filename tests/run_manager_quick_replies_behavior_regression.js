@@ -145,6 +145,16 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
   assert.equal(toolbar.calls.filter(call=>!['toolbar','list'].includes(call.action)).length,0,'toolbar insertion never sends or writes a template');
   console.log('PASS persisted own order, nonblocking one-time loading and direct guarded insertion with unresolved-name preview');
 
+  let panelUnavailable=true;
+  const failedPanel=harness(action=>action==='toolbar'?(panelUnavailable?{ok:false,error:'snapshot_failed'}:state([])):list);
+  failedPanel.api.configure();await tick();failedPanel.api.syncContext();await tick();failedPanel.api.configure();await tick();
+  assert.equal(failedPanel.calls.filter(call=>call.action==='toolbar').length,1,'composer refresh cannot automatically retry a failed optional panel read');
+  assert.match(failedPanel.nodes.get('quickRepliesSelected').innerHTML,/Не удалось загрузить/);
+  panelUnavailable=false;failedPanel.nodes.get('quickRepliesSelected').emit('click',{target:{closest:selector=>selector==='[data-qr-toolbar-retry]'?{}:null}});await tick();
+  assert.equal(failedPanel.calls.filter(call=>call.action==='toolbar').length,2,'the visible explicit retry performs one new read');
+  assert.doesNotMatch(failedPanel.nodes.get('quickRepliesSelected').innerHTML,/Не удалось загрузить/);
+  console.log('PASS failed optional panel read stays quiet until explicit retry and then accepts a current snapshot');
+
   let currentPanel=state([{...reply,is_favorite:true},second]);
   const lostOrder=harness(action=>{
     if(action==='toolbar')return currentPanel;

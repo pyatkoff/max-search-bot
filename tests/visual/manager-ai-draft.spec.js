@@ -62,7 +62,7 @@ async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hi
       if(data.action==='list')return reply({ok:true,conversations:[11,12].map(id=>({...conversation(id),last_text:'Пожелания к поездке',last_sender_type:'customer',awaiting_manager_reply:1,lead_outcome:'open',...(blocked&&id===11?{awaiting_first_reply:1,wait_age_seconds:7200,last_preview_text:deliveryBlocked?'Клиент недоступен в MAX':null,...(manualTask?{next_task_title:'Проверить вручную сохранённый документ',next_task_due_state:'overdue',next_task_overdue:1,next_task_due_at_utc:'2026-10-17 13:00:00'}:{})}:{})}))});
       if(data.action==='detail')return reply({ok:true,can_edit_pipeline:true,pipeline:{stage:null,tags:[],stage_history:[],outcome:{outcome:'open'}},tasks:[],trip:{},contact:{},source:{},handoff:{}});
     }
-    if(url.pathname==='/manager/quick-replies-api.php'&&data.action==='toolbar')return reply({ok:true,replies:[],version:'1'.repeat(64),max_replies:100});
+    if(url.pathname==='/manager/quick-replies-api.php'&&data.action==='toolbar')return reply({ok:true,project_key:data.project_key,replies:[],version:'1'.repeat(64),max_replies:100});
     if(url.pathname==='/manager/personal-workspace-api.php'){
       if(data.action==='snapshot'){const snapshot=preparationControls?personal:require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot();snapshot.state.settings.ai_ready_notice=hideNotice?'hide':'show';return reply(snapshot);}
       if(preparationControls&&preparationHandler){const result=await preparationHandler(data);if(result?.abort)return route.abort('failed');if(result)return reply(result.body,result.status||200);}

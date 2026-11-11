@@ -146,7 +146,7 @@ function renderToolbar(){
 async function loadToolbar(force=false){
   if(!authenticated()||!company){renderToolbar();return}
   if(toolbarLoading)return toolbarLoading.promise;
-  if(toolbarReady&&!force)return;
+  if((toolbarReady||toolbarError)&&!force)return;
   const capturedEpoch=epoch,ticket=++toolbarTicket,operation={promise:null};toolbarLoading=operation;renderToolbar();
   operation.promise=(async()=>{
     const result=await request('toolbar');
