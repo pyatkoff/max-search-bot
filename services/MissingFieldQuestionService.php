@@ -14,9 +14,11 @@ class MissingFieldQuestionService
             : 'Куда хотите поехать?';
 
         $questions = [
-            'city' => !empty($options['unresolved_city'])
+            'city' => !empty($options['departure_alternatives'])
+                ? 'Вы указали два города вылета. Какой из них взять для первого подбора?'
+                : (!empty($options['unresolved_city'])
                 ? 'Не получилось принять этот город для онлайн-подбора. Проверьте название. Если оно верное, напишите «Позвать менеджера» — он поможет проверить вылет из нужного вам города. Можно также указать другой удобный город вылета.'
-                : 'Из какого города планируете вылет?',
+                : 'Из какого города планируете вылет?'),
             'country' => !empty($options['country_help'])
                 ? 'Если пока не выбрали страну, можем обсудить варианты. Можно рассказать, какой отдых вам хочется, или написать «Позвать менеджера» — он поможет с выбором направления.'
                 : $countryQuestion,
@@ -49,7 +51,7 @@ class MissingFieldQuestionService
         if (class_exists('MaxSearchApi')) {
             MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusAi);
         }
-        if ($field === 'city' && empty($options['suppress_departure_suggestion']) && empty($options['unresolved_city'])) {
+        if ($field === 'city' && empty($options['suppress_departure_suggestion']) && empty($options['unresolved_city']) && empty($options['departure_alternatives'])) {
             require_once __DIR__ . '/DepartureSuggestionService.php';
             require_once __DIR__ . '/DialogueView.php';
             $suggestion = DepartureSuggestionService::forChat($chatId);

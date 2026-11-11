@@ -320,6 +320,26 @@ async function openGlobalAssistant(page){
   await page.locator('[data-m2-nav="tasks"]').focus();
   await page.evaluate(()=>WorkspaceV2Assistant.open());
 }
+async function openConversationForAssistantTest(page,id){
+  // Invoke once; keep the live promise in its document, as the history fixture does.
+  await page.evaluate(conversationId=>{
+    const state={document,settled:false,rejected:false,error:null};
+    window.__qaAssistantConversationOpen=state;
+    state.promise=WorkspaceV2Conversation.open(conversationId);
+    state.promise.then(()=>{state.settled=true},error=>{state.rejected=true;state.error=error;state.settled=true});
+  },id);
+  await expect.poll(()=>page.evaluate(()=>{
+    const state=window.__qaAssistantConversationOpen;
+    return !state||state.document!==document||state.settled;
+  })).toBe(true);
+  const result=await page.evaluate(()=>{
+    const state=window.__qaAssistantConversationOpen;
+    delete window.__qaAssistantConversationOpen;
+    if(state?.rejected)throw state.error;
+    return{sameDocument:state?.document===document,current:Number(WorkspaceV2.S.current),detail:Number(WorkspaceV2.S.detail?.conversation?.id)};
+  });
+  expect(result).toEqual({sameDocument:true,current:id,detail:id});
+}
 
 for(const width of [390,430,768,1440])test('Manager assistant unifies list and current-client advice without touching reply '+width,withTransitionDiagnostics(async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const s=await setupAssistant(page);expect(s.calls).toEqual([]);
@@ -329,7 +349,7 @@ await page.locator('[data-assistant-client="11"]').click();await expect(page.loc
   await page.locator('[data-assistant-decision="done"]').click();await expect(page.locator('#assistantDetail')).toContainText('Отмечено выполненным');expect(s.calls.filter(c=>c.action==='decision')).toHaveLength(1);
   if(width<768)await page.locator('#assistantBack').click();await page.locator('[data-assistant-client="12"]').click();await expect(page.locator('#assistantDetail')).toContainText('Дождаться клиента');await expect(page.locator('#assistantPlan')).toHaveCount(0);await expect(page.locator('[data-assistant-decision]')).toHaveCount(0);
 await page.setViewportSize({width,height:420});await bounded(page);await capture(page,browserName,width,'short');await page.locator('#assistantClose').click();if(width>=768)expect(await page.evaluate(()=>document.documentElement.scrollHeight)).toBeLessThanOrEqual(421);
-  await page.setViewportSize({width,height:900});await page.evaluate(()=>WorkspaceV2Conversation.open(11));await expect(page.locator('#replyText')).toBeEnabled();
+  await page.setViewportSize({width,height:900});await openConversationForAssistantTest(page,11);await expect(page.locator('#replyText')).toBeEnabled();
   await page.locator('#replyText').fill('Мой незаконченный ответ');await page.locator('#replyFile').setInputFiles({name:'assistant-keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained attachment')});
   const draft=await page.locator('#replyText').inputValue(),selection=await page.locator('#mediaSelection').textContent();
 await expect(page.locator('.conversationIdentityText #assistantClientOpen')).toHaveCount(0);await page.evaluate(()=>WorkspaceV2Assistant.open(11));await expect(page.locator('#assistantDetail')).toContainText('Отмечено выполненным');expect(s.calls.filter(c=>c.action==='decision')).toHaveLength(1);await page.locator('#assistantClose').click();
