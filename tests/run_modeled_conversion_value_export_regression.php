@@ -102,7 +102,10 @@ final class ModeledValueTestWire
             }
             $data=['goals'=>$this->goals];
         }elseif($method==='POST'){
-            $this->posts++;$this->csv[]=$body;parse_str((string)parse_url($url,PHP_URL_QUERY),$query);
+            $this->posts++;$this->csv[]=$body;
+            if($this->postMode==='rate_limited')return ['http'=>429,'error'=>0,'body'=>'{}'];
+            if($this->postMode==='transport_not_sent')return ['http'=>0,'error'=>6,'body'=>''];
+            parse_str((string)parse_url($url,PHP_URL_QUERY),$query);
             $id=(string)(5000+$this->posts);$u=['id'=>$id,'status'=>'PROCESSED','source_quantity'=>1,'line_quantity'=>1,'comment'=>$query['comment']];
             $this->receipts[$id]=$u;if(is_callable($this->duringPost)){$hook=$this->duringPost;$this->duringPost=null;$hook();}
             if($this->postMode==='unknown')return ['error'=>28,'http'=>0,'body'=>''];
@@ -2042,6 +2045,57 @@ function modeledValueFixedPairAssertions(PDO $p,callable $check):void
         $row=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=1')->fetch(PDO::FETCH_ASSOC);
         $check('the same financial claim refuses an intervening immutable or receipt change '.$field,
             $changed&&$row['state']==='ready'&&(int)$row['attempts']===0&&empty($row['upload_id'])&&$wire->posts===1);
+    }
+
+    [$rows,$source,$wire]=$setup();$young=$event-60;$id=$rows[0]['id'];$user=$rows[0]['external_user_id'];
+    $source->records[$user]=['external_user_id'=>$user,'client_id'=>'88000000000002','record_id'=>'90000000000000402','observed_at_unix'=>$young];
+    $p->prepare("UPDATE max_channel_conversion_outbox SET state='ready',value_ready_at_unix=?,client_id=?,tracker_record_id=?,tracker_observed_unix=? WHERE id=?")
+        ->execute([$now-1,$source->records[$user]['client_id'],$source->records[$user]['record_id'],$young,$id]);
+    $p->prepare('UPDATE max_channel_conversion_outbox SET next_attempt_unix=? WHERE id=2')->execute([$now+10000]);
+    ModeledConversionValueExport::tick($p,$source,$wire->api(),$now,$gate);
+    $row=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=1')->fetch(PDO::FETCH_ASSOC);
+    $check('immutable pair membership refuses an already ready young changed stored source without falling back to ordinary dispatch',
+        $row['state']==='ready'&&(int)$row['attempts']===0&&empty($row['upload_id'])
+        &&$row['client_id']===$source->records[$user]['client_id']&&(int)$row['tracker_observed_unix']===$young
+        &&$wire->posts===0&&$wire->visitReads===0);
+
+    foreach(['rate_limited','transport_not_sent']as$failureKind){
+        [$rows,$source,$wire]=$setup();$p->prepare('UPDATE max_channel_conversion_outbox SET next_attempt_unix=? WHERE id=2')->execute([$now+10000]);
+        $wire->postMode=$failureKind;$api=$wire->api();
+        ModeledConversionValueExport::tick($p,$source,$api,$now,$gate);
+        $retry=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=1')->fetch(PDO::FETCH_ASSOC);
+        $wire->postMode='accepted';$wire->visitAvailable=false;
+        ModeledConversionValueExport::tick($p,$source,$api,$now+1801,$gate);
+        $visitHeld=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=1')->fetch(PDO::FETCH_ASSOC);
+        $wire->visitAvailable=true;
+        ModeledConversionValueExport::tick($p,$source,$api,$now+2102,$gate);
+        $accepted=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=1')->fetch(PDO::FETCH_ASSOC);
+        ModeledConversionValueExport::tick($p,$source,$api,$now+2403,$gate);
+        $check('known nonacceptance retries survive a later visit hold without resetting attempt or claim history '.$failureKind,
+            $retry['state']==='ready'&&(int)$retry['attempts']===1&&(int)$retry['claimed_at_unix']===$now&&$retry['last_error']===$failureKind
+            &&$visitHeld['state']==='ready'&&(int)$visitHeld['attempts']===1&&(int)$visitHeld['claimed_at_unix']===$now
+            &&$visitHeld['last_error']==='metrika_visit_unverified'&&$accepted['state']==='accepted'&&(int)$accepted['attempts']===2
+            &&(int)$accepted['claimed_at_unix']===$now+2102&&$wire->posts===2&&count($wire->receipts)===1);
+    }
+
+    [$rows,$source,$wire]=$setup();$p->prepare('UPDATE max_channel_conversion_outbox SET next_attempt_unix=? WHERE id=2')->execute([$now+10000]);
+    $wire->postMode='unknown';$api=$wire->api();
+    ModeledConversionValueExport::tick($p,$source,$api,$now,$gate);$wire->receipts=[];$wire->postMode='accepted';
+    ModeledConversionValueExport::tick($p,$source,$api,$now+1801,$gate);
+    $unknown=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=1')->fetch(PDO::FETCH_ASSOC);
+    $check('an UNKNOWN attempted pair remains GET-only and never reuses the known-nonacceptance ready path',
+        $unknown['state']==='unknown'&&(int)$unknown['attempts']===1&&$wire->posts===1);
+
+    foreach(['','upload_outcome_unknown']as$ambiguousReason){
+        [$rows,$source,$wire]=$setup();$user=$rows[0]['external_user_id'];$record=$source->records[$user];
+        $p->prepare("UPDATE max_channel_conversion_outbox SET state='ready',value_ready_at_unix=?,attempts=1,claimed_at_unix=?,client_id=?,tracker_record_id=?,tracker_observed_unix=?,last_error=? WHERE id=1")
+            ->execute([$now-2,$now-1,$record['client_id'],$record['record_id'],$record['observed_at_unix'],$ambiguousReason]);
+        $p->prepare('UPDATE max_channel_conversion_outbox SET next_attempt_unix=? WHERE id=2')->execute([$now+10000]);
+        $api=$wire->api();ModeledConversionValueExport::tick($p,$source,$api,$now,$gate);
+        ModeledConversionValueExport::tick($p,$source,$api,$now+301,$gate);
+        $held=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=1')->fetch(PDO::FETCH_ASSOC);
+        $check('a claimed ready row with no known nonacceptance proof cannot be laundered through a new source hold',
+            $held['state']==='ready'&&(int)$held['attempts']===1&&$held['last_error']===$ambiguousReason&&$wire->posts===0&&$wire->visitReads===0);
     }
 
     // The pair must retain the existing exact current Direct/other windows.
