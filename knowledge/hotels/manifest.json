@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "2026-11-11.1",
+  "version": "2026-11-11.2",
   "project_key": "anytour",
   "bindings": [
     {
@@ -1159,6 +1159,122 @@
         "common_version": 67,
         "member": "hotel-side-star-elegance-20261111/accepted-binding.json",
         "scope": "Seven inherited-baseline conditional declarations, five related sources and all three mandatory original caveats; independent ROOT content/delta acceptance of exact v1. Original10records/6sourceIDs/12variants, dates, kinds, scopes and authority retained privately. Zero new research or continuous acceptance credit. No current trip, room/tariff/meal equivalence, availability, future operation or natural model-use proof."
+      }
+    },
+    {
+      "status": "accepted",
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "1963",
+        "country": "1"
+      },
+      "accepted_source_names": [
+        "BARON RESORT"
+      ],
+      "accepted_binding": {
+        "accepted_chain": [
+          {
+            "id": 1963,
+            "namespace": "legacy_catalog/catalog_hotels.id"
+          },
+          {
+            "catalog_revision": 1,
+            "id": 868,
+            "namespace": "anytour"
+          },
+          {
+            "catalog_revision": 3,
+            "id": 1963,
+            "namespace": "local-tv"
+          }
+        ],
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 868
+        },
+        "identity_anchor": {
+          "address": "Ras Nasrany, Sharm El-Sheikh, South Sinai, South Sinai Governorate 11432, Египет",
+          "city": "Шарм-эль-Шейх",
+          "country": "Egypt",
+          "official_url": "https://baronhotels.com/baron-resort-sharm-el-sheikh/",
+          "research_source_id": "top500_4a932ca9ee9e4703_enrich04_20261019_s01",
+          "research_source_record_sha256": "349266c81eef38e5b9fe7615c5b3c1da52bab97d09c34db4bd28face87f24378"
+        },
+        "project_key": "anytour",
+        "proofs": {
+          "accepted-property-review-receipt.json": "4e3719e49dbbb60ce8648ac717325813a4521638d8f3c39840541c432c7c6e21",
+          "anytour-local-tv-867-868.raw": "84a1bf909119ba2a1a436c823f5b50dc62890c2c76e2ba1c7a3b90883d0b6d2e",
+          "baron-resort-research-source.json": "349266c81eef38e5b9fe7615c5b3c1da52bab97d09c34db4bd28face87f24378",
+          "legacy-anytour-1962-1963.raw": "0ff043a6e833d68ab9a853f6e6d9401e3d8fb4f1018a10544bc08ca5aafb2ac3"
+        },
+        "research_hotel_key": "top500_4a932ca9ee9e4703"
+      },
+      "binding_revision": "ed6024194c1240c4cb797a1714e78e1d4a357e53d3900fef45b880f5cb49a4b8",
+      "bundle_file": "anytour-868-baron-resort.json",
+      "bundle_sha256": "a3ee178b9a385356eb33b32c148737f36282b4d17f37445a038b483a202f9bfd",
+      "approval": {
+        "library_file_id": "libfile_4b24e1cb1b9881918dfd6802b259134d",
+        "common_version": 4,
+        "member": "baron-publication-20261111/baron-resort/accepted-binding.json",
+        "scope": "Pavel authorized these exact bounded Baron declarations for the existing public consumer on 2026-11-11. Original content/property/private-candidate reviews are retained. Dates, source scopes, context-only interpretations and unknown room/tariff/future applicability remain unchanged; no new research or actual model-use credit."
+      }
+    },
+    {
+      "status": "accepted",
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "1962",
+        "country": "1"
+      },
+      "accepted_source_names": [
+        "BARON PALMS RESORT ADULTS ONLY 16+"
+      ],
+      "accepted_binding": {
+        "accepted_chain": [
+          {
+            "id": 1962,
+            "namespace": "legacy_catalog/catalog_hotels.id"
+          },
+          {
+            "catalog_revision": 1,
+            "id": 867,
+            "namespace": "anytour"
+          },
+          {
+            "catalog_revision": 3,
+            "id": 1962,
+            "namespace": "local-tv"
+          }
+        ],
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 867
+        },
+        "identity_anchor": {
+          "address": "Ras Nasrany Bay, South Sinai Governorate",
+          "city": "Шарм-эль-Шейх",
+          "country": "Egypt",
+          "official_url": "https://baronhotels.com/baron-palms-sharm-el-sheikh/",
+          "research_source_id": "top500_6f323c1d8a3cc6fe_enrich04_20261019_s01",
+          "research_source_record_sha256": "036a6d227fad8f75a42807a3eeaeb0726ca6c7cddfe3f5f512f3b92cd4f621a1"
+        },
+        "project_key": "anytour",
+        "proofs": {
+          "accepted-property-review-receipt.json": "4e3719e49dbbb60ce8648ac717325813a4521638d8f3c39840541c432c7c6e21",
+          "anytour-local-tv-867-868.raw": "84a1bf909119ba2a1a436c823f5b50dc62890c2c76e2ba1c7a3b90883d0b6d2e",
+          "baron-palms-research-source.json": "036a6d227fad8f75a42807a3eeaeb0726ca6c7cddfe3f5f512f3b92cd4f621a1",
+          "legacy-anytour-1962-1963.raw": "0ff043a6e833d68ab9a853f6e6d9401e3d8fb4f1018a10544bc08ca5aafb2ac3"
+        },
+        "research_hotel_key": "top500_6f323c1d8a3cc6fe"
+      },
+      "binding_revision": "afbe126f11d4320daa02510aad05fe4e507c8c6381138d2406691e12bd9657e4",
+      "bundle_file": "anytour-867-baron-palms.json",
+      "bundle_sha256": "8073bf552b4d1d0907b3a960d09d42dbc155df0ada4f6e0a1e123eb8712d5dd2",
+      "approval": {
+        "library_file_id": "libfile_4b24e1cb1b9881918dfd6802b259134d",
+        "common_version": 4,
+        "member": "baron-publication-20261111/baron-palms/accepted-binding.json",
+        "scope": "Pavel authorized these exact bounded Baron declarations for the existing public consumer on 2026-11-11. Original content/property/private-candidate reviews are retained. Dates, source scopes, context-only interpretations and unknown room/tariff/future applicability remain unchanged; no new research or actual model-use credit."
       }
     }
   ]

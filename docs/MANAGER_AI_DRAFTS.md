@@ -329,6 +329,45 @@ canonical JSON hash, not the enclosing archive member bytes. Text, scope, dates
 and source IDs remain exact; the marker does not establish independent or future
 service verification. The runtime loader and its strict gates are unchanged.
 
+**Baron Resort and Baron Palms — explicitly admitted official declarations.**
+
+The separate Tourvisor1963/country1 → AnyTour868/rev1 → local-tv1963/rev3 and
+Tourvisor1962/country1 → AnyTour867/rev1 → local-tv1962/rev3 property chains keep
+Resort and Palms distinct. The exact bounded files add four Resort declarations
+and five Palms declarations, four source records and two mandatory context-only
+interpretations. They extend the twenty-group snapshot above to 22 groups,
+96 declarations and 61 source records, without claiming complete hotel profiles
+or natural model use.
+
+The nine records from HOTEL-EG-MANUAL-20261025-BARON-01 receive an explicit,
+individually reviewed declaration attestation: c01/c03/c04/c05 for Resort and
+c06/c07/c09/c10/c11 for Palms. Each original official source and central content
+acceptance is retained, with original/projected canonical hashes. Only the
+missing technical declared:true marker is added; original kind, pending flag,
+text, scope, dates, source IDs and every other original field are unchanged.
+This narrow approved addendum does not broaden the operator-only automatic
+projection rule, replace false/null, or promote unknown kinds. Interpretations
+c02/c08 remain complete material limits and never become positive facts.
+
+The previously reviewed private candidate remains historical evidence. The
+owner's 11 November permission authorizes these two exact public runtime files
+and the narrow manifest/documentation/test integration. Actual release-admission
+members are saved in the same private approval artifact at version4; the
+manifest references those members rather than substituting the private-only
+version2 approval. Raw catalogue responses and the full private archive stay
+outside the public repository. No research, catalogue lookup or acceptance is
+replayed.
+
+Original 19/25 October source observations and the separate 25 October
+section-read updates are preserved. Resort Lagoon Wing and Palms whole-hotel
+16+ scopes stay separate; category-list conflicts do not prove withdrawal or
+equivalence with older suite names, size or occupancy. Dining, spa and requested
+airport transfer do not establish hours, free use, current tariff rights or
+future operation. Exact source names and country1 are required. Existing
+whole-group, encoded-request, stale-selector and privacy boundaries are unchanged.
+The existing focused TOP500 command also checks this pair, while the normal
+context suite exercises both exact native inquiries and later-intent withdrawal.
+
 The Turkey groups retain, among other limits, Avia's supplier/season-specific UAI,
 Club Aqua Plaza and Hane's distinct room categories, Dream Fun World's midnight
 charges and weather-dependent aquapark periods, J'adore's room/restaurant rights,
