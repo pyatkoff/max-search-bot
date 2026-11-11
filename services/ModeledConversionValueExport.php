@@ -429,7 +429,7 @@ final class ModeledConversionValueExport
                 if($group===0||($group&($group-1))!==0)return $unknown;
             }
         }elseif(($mask&~511)!==0)return $unknown;
-        if(($mask&384)!==0&&($mask&4)===0)return $unknown;
+        if(($mask&384)!==0&&($mask&127)!==4)return $unknown;
         return $value;
     }
 

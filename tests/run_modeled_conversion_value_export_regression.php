@@ -1895,7 +1895,7 @@ function modeledValueAttributionFailureAssertions(callable $check):void
         }
     }
     $normalize=new ReflectionMethod(ModeledConversionValueExport::class,'normalizeVisitFailure');
-    foreach([[5,'503',0,0],[8,200,0,128],[8,200,0,32],[8,200,0,32|512|8192|131072|1024],
+    foreach([[5,'503',0,0],[8,200,0,128],[8,200,0,1|4|128],[8,200,0,32],[8,200,0,32|512|8192|131072|1024],
         [9,200,0,0],[7,200,0,0],null]as$invalid){
         $check('malformed diagnostic becomes explicit unknown without carrying raw scalars',
             $normalize->invoke(null,$invalid)===[9,null,null,0]);
