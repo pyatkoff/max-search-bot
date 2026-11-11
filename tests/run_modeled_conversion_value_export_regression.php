@@ -23,7 +23,9 @@ function modeledValueSchema(PDO $p):void
         $p->exec("INSERT INTO modeled_conversion_value_export_settings(project_key,counter_id) VALUES('anytour','98615635')");
         $p->exec("CREATE TABLE modeled_conversion_price_audit(outbox_id BIGINT PRIMARY KEY,action VARCHAR(24),original_value_rub INTEGER,applied_value_rub INTEGER,prior_reserved_rub INTEGER,assessed_at_unix BIGINT,basis_json TEXT,basis_sha256 VARCHAR(64))");
     }
-    $p->exec("CREATE TABLE modeled_conversion_profile_versions(id $auto,project_key VARCHAR(64),platform VARCHAR(16),customer_key VARCHAR(20),conversation_id BIGINT,observed_at_unix BIGINT,profile_json ".($mysql?'JSON':'TEXT').")");
+    // Match migration066: the native profile project is ASCII, while outbox037 is utf8mb4_unicode_ci.
+    $profileProject=$mysql?'project_key VARCHAR(40) CHARACTER SET ascii COLLATE ascii_bin':'project_key VARCHAR(64)';
+    $p->exec("CREATE TABLE modeled_conversion_profile_versions(id $auto,$profileProject,platform VARCHAR(16),customer_key VARCHAR(20),conversation_id BIGINT,observed_at_unix BIGINT,profile_json ".($mysql?'JSON':'TEXT').")");
     $p->exec("CREATE TABLE customer_channels(id BIGINT PRIMARY KEY,customer_id BIGINT,project_key VARCHAR(64),channel VARCHAR(16),external_user_id VARCHAR(20),external_chat_id VARCHAR(32))");
     $p->exec("CREATE TABLE conversations(id BIGINT PRIMARY KEY,customer_id BIGINT,customer_channel_id BIGINT,project_key VARCHAR(64),channel VARCHAR(16),is_test INT,external_chat_id VARCHAR(32))");
     $p->exec("CREATE TABLE advertising_visit_observations(id $auto,project_key VARCHAR(64),source_key VARCHAR(80),platform VARCHAR(16),counter_id VARCHAR(20),external_user_id VARCHAR(20),identity_status VARCHAR(20),client_id VARCHAR(40),visit_at_unix BIGINT,observed_at_unix BIGINT,received_at_unix BIGINT)");
@@ -1096,9 +1098,14 @@ function modeledValueIdentityEvidenceAssertions(PDO $p,callable $check):void
         $lookup->calls===1&&$lookup->count===11&&$lookup->count<=MaxTrackerLookupProtocol::MAX_USERS
         &&$wire->posts===3&&$saved['resolved']===4
         &&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE state='ready'")->fetchColumn()===1);
-    $check('actual successful resolver updates retain distinct absent missing future expired and resolved reasons',
-        $audit!==null&&$audit['complete']&&array_column($audit['rows'],'reason_code')===$expected
-        &&count($audit['rows'])===11&&strlen(json_encode($saved['identity_resolution_evidence']))<=2048);
+    $check('actual successful resolver updates save a private identity evidence receipt',$audit!==null);
+    $check('the private identity receipt covers all eleven bounded synthetic resolver updates',
+        $audit['complete']&&count($audit['rows'])===11);
+    $codes=array_column($audit['rows'],'reason_code');
+    $check('resolver receipt reasons preserve absent missing future expired and resolved order '.json_encode(['actual'=>$codes,'expected'=>$expected],JSON_THROW_ON_ERROR),
+        $codes===$expected);
+    $check('the compact saved identity receipt stays within its fixed two KiB cap',
+        strlen(json_encode($saved['identity_resolution_evidence']))<=2048);
     $check('the private evidence never changes public diagnostic output or immutable forecasts',
         $result===['status'=>'running','contract'=>ModeledConversionValueContract::VERSION]
         &&$frozen===$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)
