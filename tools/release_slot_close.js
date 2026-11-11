@@ -633,10 +633,15 @@ async function publishDiagnostics(api,record,expected=null) {
   requireValue(sha(written?.sha),'diagnostics_commit_write_unknown');
   // One non-force ref update. A concurrent publisher holds the slot; no retry,
   // rebase or user-content overwrite is silently performed.
-  let updated;
+  let updated,uncertain=false;
   try{updated=await api('PATCH',endpoint+'/git/refs/heads/diagnostics',{sha:written.sha,force:false});}
-  catch{throw new Refusal('diagnostics_write_unknown');}
-  requireValue(updated?.object?.sha===written.sha,'diagnostics_write_unknown');
+  catch(error){
+    // An explicit API refusal is final. A lost/undecodable response is resolved
+    // only by the exact existing readback below, never by a second mutation.
+    requireValue(['transport_failed','invalid_response'].includes(error?.code),'diagnostics_write_unknown');
+    uncertain=true;
+  }
+  requireValue(uncertain||updated?.object?.sha===written.sha,'diagnostics_write_unknown');
   const exact=await release.readRecord(api,written.sha);
   requireValue(release.same(exact.record,record),'diagnostics_write_unknown');
   const fresh=await release.readRecord(api);

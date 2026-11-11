@@ -101,9 +101,14 @@ final class RepairMaxWebhookService
             $metadata = is_array($metadata) ? $metadata : [];
             if (isset($metadata['max_bot_key']) && $metadata['max_bot_key'] !== $botKey) throw new RuntimeException('conversation_bot_mismatch');
             $metadata['max_bot_key'] = $botKey;
+            $replyContext = $context;
+            if ($entry !== null && $projectKey === AppleService39PilotCatalog::PROJECT) {
+                $known = is_array($metadata['repair_context'] ?? null) ? $metadata['repair_context'] : [];
+                $replyContext = AppleService39PilotCatalog::entryContext($entry, $known, $payload);
+            }
             // A generic/reopened start cannot erase the customer's known device.
             // Only another recognized repair entry replaces the reviewed context.
-            if ($context && ($entry['scope'] ?? 'repair') !== 'menu') $metadata['repair_context'] = $context;
+            if ($context && ($entry['scope'] ?? 'repair') !== 'menu') $metadata['repair_context'] = $replyContext;
             $q = $pdo->prepare('UPDATE conversations SET metadata_json=? WHERE id=? AND project_key=?');
             $q->execute([json_encode($metadata, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$conversationId,$projectKey]);
             if ($type === 'bot_started') {
@@ -117,8 +122,11 @@ final class RepairMaxWebhookService
             }
             if ($entry !== null) {
                 $brand = trim((string)$connection->settings()->get('brand.name', $projectKey));
+                $text = $projectKey === AppleService39PilotCatalog::PROJECT
+                    ? AppleService39PilotCatalog::contextResponseText($entry, $brand, $replyContext)
+                    : RepairProjectSettings::responseText($entry, $brand);
                 self::captureEntryReply($pdo, $connection, $conversationId, $externalUser, $deliveryKey, $conversation,
-                    $entry, $context, RepairProjectSettings::responseText($entry, $brand));
+                    $entry, $context, $text, $replyContext);
             }
             $created = false;
             $handoff = ['source'=>'repair_max','source_key'=>$sourceKey];
@@ -201,7 +209,7 @@ final class RepairMaxWebhookService
     }
 
     /** Add the immutable answer to the native entry event in the core transaction. */
-    private static function captureEntryReply(PDO $pdo, ProjectMaxConnection $connection, int $conversationId, string $externalUser, string $deliveryKey, array $conversation, array $entry, array $context, string $text): void
+    private static function captureEntryReply(PDO $pdo, ProjectMaxConnection $connection, int $conversationId, string $externalUser, string $deliveryKey, array $conversation, array $entry, array $context, string $text, array $replyContext): void
     {
         if (!$pdo->inTransaction() || $text === '' || strlen($text) > 8192) throw new RuntimeException('entry_reply_not_persisted');
         $q = $pdo->prepare("SELECT id,payload_json FROM conversation_events WHERE conversation_id=? AND event_type='bot_started' AND payload_json LIKE ? ORDER BY id DESC LIMIT 2");
@@ -213,6 +221,10 @@ final class RepairMaxWebhookService
         if (!is_array($payload) || ($payload['delivery_key'] ?? '') !== $deliveryKey
             || ($payload['bot_key'] ?? '') !== $connection->botKey() || ($payload['repair_context'] ?? null) !== $context
             || array_key_exists('repair_entry_reply', $payload)) throw new RuntimeException('entry_reply_not_persisted');
+        // The recorder's original event must match before enriching that same new event.
+        // Its captured reply and effective context are committed by one existing CAS.
+        if (($replyContext['entry_code'] ?? null) !== $context['entry_code']) throw new RuntimeException('entry_reply_not_persisted');
+        $payload['repair_context'] = $replyContext;
         $payload['repair_entry_reply'] = [
             'delivery_key'=>$deliveryKey,'project_key'=>$connection->projectKey(),'bot_key'=>$connection->botKey(),
             'conversation_id'=>$conversationId,'external_user_id'=>$externalUser,

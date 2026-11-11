@@ -39,7 +39,7 @@ function renderFull(){
  toggle.textContent=all?'Загруженные':'Вся история';toggle.setAttribute('aria-pressed',String(all));toggle.setAttribute('aria-label',all?'Искать в загруженных сообщениях':'Искать во всей сохранённой истории');toggle.title=toggle.getAttribute('aria-label');toggle.disabled=state!=='ready';
  $('conversationSearchScope').hidden=all;scope.hidden=!all;preview.hidden=!all||remote.active<0;
  scope.textContent='Вся сохранённая история · от новых к старым. Без текста цитат и файлов.'+(query.trim()&&remote.scanned?' Проверено: '+remote.scanned+'. '+(remote.hasMore?'Есть продолжение.':'Проверена вся история на момент поиска.'):'');
- const hit=remote.hits[remote.active];if(hit){preview.textContent=(hit.sender_type==='manager'?'Менеджер: ':hit.sender_type==='customer'?'Клиент: ':'Сообщение: ')+hit.snippet;preview.title='Открыть сообщение и соседнюю переписку';preview.disabled=remote.busy||state!=='ready'}
+ const hit=remote.hits[remote.active];if(hit){preview.textContent=(hit.sender_type==='manager'?'Менеджер: ':hit.sender_type==='customer'?'Клиент: ':'Сообщение: ')+hit.snippet;preview.title='Открыть сообщение и соседнюю переписку';preview.disabled=remote.busy||state!=='ready'}else{preview.textContent='';preview.removeAttribute('title');preview.disabled=true}
  more.hidden=!all||!query.trim()||remote.busy||(!remote.hasMore&&!remote.error);more.textContent=remote.error?'Повторить поиск':'Продолжить поиск';more.title=more.textContent;more.disabled=state!=='ready';
 }
 function clearMarks(){const box=$('messages');if(!box)return;box.querySelectorAll('mark.conversationSearchHit').forEach(mark=>{const parent=mark.parentNode;mark.replaceWith(document.createTextNode(mark.textContent));parent?.normalize()})}

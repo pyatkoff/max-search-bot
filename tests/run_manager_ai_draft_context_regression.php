@@ -1006,6 +1006,8 @@ INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(9
             ManagerTourSelectionImportDraft::normalize($cohortBadSource)===null);
     }
     $hotelCohort=[
+        '1963'=>[868,'top500_4a932ca9ee9e4703','BARON RESORT',4,'1'],
+        '1962'=>[867,'top500_6f323c1d8a3cc6fe','BARON PALMS RESORT ADULTS ONLY 16+',5,'1'],
         '241'=>[81,'albatros_makadi','ALBATROS MAKADI RESORT',4,'1'],
         '240'=>[80,'happy_life_village','HAPPY LIFE VILLAGE',3,'1'],
         '268'=>[99,'jaz_makadi_saraya','JAZ MAKADI SARAYA RESORT (EX. IBEROTEL MAKADI SARAYA RESORT)',6,'1'],

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "revision_key": "search-intent-v1",
+  "project_key": "appleservice39",
+  "policy": "exact_source_and_native_visual_review",
+  "approvals": [
+    {
+      "post_id": "service-display",
+      "proof_sha256": "bbd87dc652ef6983c216c769eacfa338d7def52fb7ce8aafb13234dae253b0aa",
+      "native_preview_sha256": "86d7a12e03af8b7ec10855b36af0e8e87e925617492ae4161f27a3ab4205a3f2"
+    },
+    {
+      "post_id": "menu",
+      "proof_sha256": "dc00dd50fdcc19bd1a45aec75ee3b22bac317c53b6d6fd380a5acf6c58ce67dc",
+      "native_preview_sha256": "79ddbfea77ea5fdd49d5d930b2d6186535d2ab5b282fd8b20b239ae29462c713"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "public_post_url": "https://max.ru/channel_appleservice39ru/AaG9bSM5Y9o",
+  "canonical_channel_url": "https://max.ru/channel_appleservice39ru",
+  "public_channel_id": 80917954947727,
+  "public_html_sha256": "f0cc8578e0419d69efdd25a16dfe58113a845bd2abbc1de9c15b4d6f84dded20",
+  "public_html_bytes": 22496,
+  "literal_data_offset": 16934,
+  "literal_data_length": 2959,
+  "native_photo_id": "47197448017",
+  "photo_reference_id": 47197448017,
+  "native_payload_url_sha256": "a4ecbab3bc78ca6d6afe77a8702c72b94b65a7475d9ed3fed541ac8a83f1a8c1",
+  "ssr_attachment_url_sha256": "6b28a66d2999941a375d53ddbcada9fecbf00e0dd8f9de59660f2f453588b4cc",
+  "exact_native_locator_match": false,
+  "source": "actual public post Svelte data[1].data.linkInfo.message PHOTO attachment",
+  "reviewed_at_utc": "2026-11-11T09:49:56.565778+00:00",
+  "source_png": {
+    "bytes": 1653706,
+    "sha256": "2f580bbf4f0963f5a37be34db455527aa8f650597801b7d0b6e81dce790a8681",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "format": "PNG"
+  },
+  "public_native_preview": {
+    "bytes": 68854,
+    "sha256": "79ddbfea77ea5fdd49d5d930b2d6186535d2ab5b282fd8b20b239ae29462c713",
+    "dimensions": [
+      768,
+      768
+    ],
+    "format": "JPEG"
+  },
+  "native_readback_run_id": 42997682518,
+  "native_readback_job_id": 130446577469,
+  "visual_review": {
+    "source_asset_opened": true,
+    "native_preview_opened": true,
+    "exact_layout_model_service_price_qualifiers": true
+  },
+  "review_notes": "Opened exact source PNG and actual native public JPEG individually. Same complete square composition, AppleService39, Ремонт iPhone, Калининград, Гарантия 3 месяца, blue front-facing phone, all text and spacing. No extra price or qualifier. Exact SSR PHOTO photoId/referenceId47197448017 equals original provider GET photo_id47197448017 on the same original MID/public URL. Distinct native/public locator hashes and PNG/JPEG bytes/dimensions are disclosed. No token/URL decoding, automatic similarity approval or repeated provider attempt."
+}

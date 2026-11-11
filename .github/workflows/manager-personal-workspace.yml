@@ -21,6 +21,14 @@ on:
       - 'migrations/100_manager_media_send_attempts.sql'
       - 'tests/fixtures/manager_send_attempt_fixture.php'
       - 'tests/mysql/manager-send-attempts.php'
+      - 'services/ManagerClientOnboardingService.php'
+      - 'services/ProjectClient*.php'
+      - 'services/ProjectMaxConnection.php'
+      - 'services/AdminDirectoryService.php'
+      - 'manager/clients-api.php'
+      - 'migrations/101_client_onboarding.sql'
+      - 'tests/fixtures/client_onboarding_fixture.php'
+      - 'tests/mysql/client-onboarding.php'
       - '.github/workflows/manager-personal-workspace.yml'
   workflow_dispatch:
 
@@ -71,3 +79,11 @@ jobs:
         run: |
           php -r '$pdo=new PDO("mysql:host=127.0.0.1;port=3306;charset=utf8mb4",getenv("MANAGER_SEND_TEST_MYSQL_USER"),getenv("MANAGER_SEND_TEST_MYSQL_PASSWORD"),[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);$pdo->exec("CREATE DATABASE manager_send_attempt_test CHARACTER SET utf8mb4");'
           php tests/mysql/manager-send-attempts.php
+      - name: Native isolated client creation and commissioning receipts
+        env:
+          CLIENT_ONBOARDING_TEST_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=client_onboarding_test;charset=utf8mb4
+          CLIENT_ONBOARDING_TEST_MYSQL_USER: root
+          CLIENT_ONBOARDING_TEST_MYSQL_PASSWORD: personal-workspace-test-only
+        run: |
+          php -r '$pdo=new PDO("mysql:host=127.0.0.1;port=3306;charset=utf8mb4",getenv("CLIENT_ONBOARDING_TEST_MYSQL_USER"),getenv("CLIENT_ONBOARDING_TEST_MYSQL_PASSWORD"),[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);$pdo->exec("CREATE DATABASE client_onboarding_test CHARACTER SET utf8mb4");'
+          php tests/mysql/client-onboarding.php

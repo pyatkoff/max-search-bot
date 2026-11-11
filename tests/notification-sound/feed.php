@@ -19,11 +19,11 @@ if($mysql){
     $pdo=ConversationDb::connection();
 }else{$pdo=new PDO('sqlite::memory:');$pdo->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);}
 regionalAccessFixtureSchema($pdo);
-$pdo->exec('CREATE TABLE conversations (id INTEGER PRIMARY KEY,project_key VARCHAR(80),source_id INTEGER,status VARCHAR(30),manager_id INTEGER,is_test INTEGER,started_at VARCHAR(30),last_message_at VARCHAR(30))');
+$pdo->exec('CREATE TABLE conversations (id INTEGER PRIMARY KEY,project_key VARCHAR(80),source_id INTEGER,status VARCHAR(30),manager_id INTEGER,is_test INTEGER,started_at VARCHAR(30),last_message_at VARCHAR(30),channel VARCHAR(20),metadata_json TEXT)');
 $pdo->exec('CREATE TABLE messages (id INTEGER PRIMARY KEY'.($mysql?' AUTO_INCREMENT':'').',conversation_id INTEGER,direction VARCHAR(20),sender_type VARCHAR(20),metadata_json TEXT,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)');
 $pdo->exec('CREATE TABLE manager_reads (conversation_id INTEGER PRIMARY KEY,last_read_message_id INTEGER)');
 $pdo->exec('INSERT INTO manager_reads VALUES (1,0)');
-$q=$pdo->prepare('INSERT INTO conversations VALUES (?,?,?,?,?,?,?,?)');
+$q=$pdo->prepare('INSERT INTO conversations(id,project_key,source_id,status,manager_id,is_test,started_at,last_message_at) VALUES (?,?,?,?,?,?,?,?)');
 foreach([[1,'allowed',10,'manager',7,0],[2,'allowed',99,'manager',7,0],[3,'other-project',10,'manager',7,0],[4,'allowed',10,'manager',8,0],[5,'allowed',10,'waiting_manager',null,0],[6,'allowed',10,'manager',7,1],[7,'allowed',10,'closed',7,0]] as $row)$q->execute(array_merge($row,['2026-09-21 10:00:00','2026-09-21 10:00:00']));
 $q=$pdo->prepare('INSERT INTO messages (id,conversation_id,direction,sender_type,metadata_json) VALUES (?,?,?,?,?)');
 foreach([
@@ -59,6 +59,16 @@ try{$poll(0);}catch(RuntimeException $e){$overflow=$e->getMessage()==='notificat
 check('overflow is an explicit error not a lost tail',$overflow,true);
 $pdo->exec('DELETE FROM messages');
 foreach([-1,9007199254740992] as $bad){$rejected=false;try{$poll($bad);}catch(InvalidArgumentException $e){$rejected=true;}check('invalid cursor rejected '.$bad,$rejected,true);}
+$pdo->exec('CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key VARCHAR(80),display_name VARCHAR(80),is_active INTEGER)');
+$pdo->exec("INSERT INTO projects VALUES(1,'allowed','fixture',1)");
+$pdo->exec('CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER)');$pdo->exec('INSERT INTO manager_projects VALUES(7,1)');
+$pdo->exec('CREATE TABLE managers(id INTEGER PRIMARY KEY,login VARCHAR(80),display_name VARCHAR(80),role VARCHAR(30),email VARCHAR(80),is_active INTEGER,is_working INTEGER)');
+$pdo->exec("INSERT INTO managers VALUES(7,'fixture','fixture','manager',NULL,1,1)");
+$pdo->exec('CREATE TABLE conversation_sources(id INTEGER PRIMARY KEY,primary_group_id INTEGER,fallback_mode VARCHAR(30),fallback_group_id INTEGER,fallback_after_minutes INTEGER,is_active INTEGER)');
+$pdo->exec('CREATE TABLE manager_groups(id INTEGER PRIMARY KEY,project_id INTEGER,is_active INTEGER)');
+$pdo->exec('CREATE TABLE manager_group_members(manager_id INTEGER,group_id INTEGER)');
+ProjectConfig::resetForTests(['id'=>'allowed','brand'=>['name'=>'fixture']]);
+(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
 if($mysql){
     $other=new PDO('mysql:host=127.0.0.1;dbname=sound_test;charset=utf8mb4','root','sound-local-test-only',[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
     $other->beginTransaction();
@@ -67,13 +77,6 @@ if($mysql){
     check('real allocation order differs from visibility',$lower<$higher,true);
     $first=$poll(0);check('uncommitted lower ID is initially invisible',array_column($first['events'],'message_id'),[$higher]);
     $other->commit();check('late lower-ID commit remains in the next window',array_column($poll($higher)['events'],'message_id'),[$lower,$higher]);
-    $pdo->exec('CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key VARCHAR(80),display_name VARCHAR(80),is_active INTEGER)');
-    $pdo->exec("INSERT INTO projects VALUES(1,'allowed','fixture',1)");
-    $pdo->exec('CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER)');$pdo->exec('INSERT INTO manager_projects VALUES(7,1)');
-    $pdo->exec('CREATE TABLE managers(id INTEGER PRIMARY KEY,login VARCHAR(80),display_name VARCHAR(80),role VARCHAR(30),email VARCHAR(80),is_active INTEGER,is_working INTEGER)');
-    $pdo->exec("INSERT INTO managers VALUES(7,'fixture','fixture','manager',NULL,1,1)");
-    $pdo->exec('CREATE TABLE conversation_sources(id INTEGER PRIMARY KEY,primary_group_id INTEGER,fallback_mode VARCHAR(30),fallback_group_id INTEGER,fallback_after_minutes INTEGER,is_active INTEGER)');
-    ProjectConfig::resetForTests(['id'=>'allowed','brand'=>['name'=>'fixture']]);
     $pdo->exec('SET TRANSACTION READ ONLY');$pdo->beginTransaction();ProjectAccessService::initializeReadOnly();
     check('actual active-manager auth works inside native READ ONLY',ManagerAuthService::byId(7)['id'],7);
     check('actual authorized feed works inside native READ ONLY',count(ManagerIncomingNotificationService::poll(7,0)['events']),2);
@@ -84,6 +87,8 @@ if($mysql){
     $pdo->exec('INSERT INTO manager_projects VALUES(7,1)');$pdo->exec('UPDATE managers SET is_active=0 WHERE id=7');
     check('disabled manager fails canonical authentication',ManagerAuthService::byId(7),null);$pdo->exec('UPDATE managers SET is_active=1 WHERE id=7');
 }
+require_once __DIR__.'/regional-feed.php';
+regionalNotificationFeedChecks($pdo);
 $endpoint=file_get_contents(dirname(__DIR__,2).'/manager/notification-events.php');
 check('endpoint enforces auth and CSRF',str_contains($endpoint,'ManagerHttp::requireManager()')&&str_contains($endpoint,'ManagerHttp::requireCsrf($data)'),true);
 check('no detail or mark-read side effect',!str_contains($endpoint,'::detail(')&&!str_contains(file_get_contents(dirname(__DIR__,2).'/services/ManagerIncomingNotificationService.php'),'markRead'),true);

@@ -128,10 +128,18 @@
       // including when account recovery hides the form before its next resize.
       measure.textContent='';
     }
-    const head=zone.querySelector('.conversationHead').getBoundingClientRect().height;
+    // Search, history errors and other in-flow panels consume the same viewport
+    // as the header. Reserve their actual height before growing the draft.
+    const panels=[...zone.children].reduce((sum,el)=>{
+      if(el===form||el.id==='messages')return sum;
+      const css=getComputedStyle(el);
+      if(css.position==='absolute'||css.position==='fixed')return sum;
+      const rect=el.getBoundingClientRect();
+      return rect.height?sum+rect.height+px(css.marginTop)+px(css.marginBottom):sum;
+    },0);
     const extras=details.reduce((sum,el)=>{const rect=el.getBoundingClientRect();if(!rect.height)return sum;const css=getComputedStyle(el);return sum+rect.height+px(css.marginTop)+px(css.marginBottom)},0);
     const chrome=form.getBoundingClientRect().height-surface.getBoundingClientRect().height+top+bottom+surfaceBorder+extras+(multiline?actionHeight+gap:Math.max(0,actionHeight-minimum));
-    const reserve=Math.min(160,height*.3),room=height-head-chrome-reserve;
+    const reserve=Math.min(160,height*.3),room=height-panels-chrome-reserve;
     const proportion=Math.max(minimum+line*(height<=540?2:4),height*.38-chrome);
     const rows=Math.max(1,Math.min(12,Math.floor((Math.min(room,proportion)-padding-border)/line)));
     const maximum=rows*line+padding+border;
@@ -189,6 +197,9 @@
   window.addEventListener('pagehide',()=>close(false));
   if(typeof ResizeObserver==='function'){
     const observer=new ResizeObserver(schedule);observer.observe(zone);observer.observe(form);
+    // Opening a panel can change only the transcript, leaving zone/form sizes
+    // unchanged until the draft is resized against the new available space.
+    if($('messages'))observer.observe($('messages'));
   }
   window.WorkspaceV2ReplyEditor={resize,sync,close};
   sync();

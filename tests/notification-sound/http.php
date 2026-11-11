@@ -41,7 +41,7 @@ try{
     $pdo->exec('DELETE FROM manager_projects WHERE manager_id=7');$revoked=requestFixture($data);
     httpCheck('project revocation is effective on the next HTTP poll',$revoked['status']===200&&$revoked['json']['events']===[]);
     $pdo->exec('INSERT INTO manager_projects VALUES(7,1)');
-    $pdo->exec('CREATE TABLE manager_group_members(manager_id INTEGER,group_id INTEGER)');
+    $pdo->exec('CREATE TABLE IF NOT EXISTS manager_group_members(manager_id INTEGER,group_id INTEGER)');
     $pdo->exec("INSERT INTO conversation_sources VALUES(10,44,'none',0,0,1)");$source=requestFixture($data);
     httpCheck('source-group access is enforced by the actual policy',$source['status']===200&&$source['json']['events']===[]);
     $pdo->exec('INSERT INTO manager_group_members VALUES(7,44)');

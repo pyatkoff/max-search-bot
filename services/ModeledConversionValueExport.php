@@ -158,7 +158,11 @@ final class ModeledConversionValueExport
                 foreach($ready as$r){
                     if((self::settings($p)['mode']??'off')!=='send')break;
                     if(!$self->eligible($r,$gate)){self::failRow($p,$r,'scope_unavailable');continue;}
-                    if(!$priceGuard->maySend($r))continue;
+                    if(!$priceGuard->maySend($r)){
+                        // Preserve the price hold while letting later eligible rows advance.
+                        $repo->defer((string)$r['id'],'ready',($injectedClock?$now:time())+300);
+                        continue;
+                    }
                     // Revalidate the retained MAX source at dispatch, not only at the earlier signal.
                     $sendAt=$injectedClock?$now:time();$sourceAt=(int)($r['tracker_observed_unix']??0);
                     if($r['platform']==='max'&&($sourceAt<946684800||$sourceAt>(int)$r['event_unix']

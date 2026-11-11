@@ -38,7 +38,7 @@ repairCheck('original pilot alias remains compatible', AppleService39PilotCatalo
 repairCheck('catalog fails closed for other projects bots and unreviewed post keys',
     AppleService39PilotCatalog::resolve('repair_two','id390521129062_bot','as39_x_battery') === null
     && AppleService39PilotCatalog::resolve('appleservice39','id999999999002_bot','as39_x_battery') === null
-    && AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot','as39_repair-iphone-16-display') === null
+    && AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot','as39_repair-iphone-17-ultra-display') === null
     && AppleService39PilotCatalog::payloadForPost('service-menu') === null);
 $displayX = AppleService39PilotCatalog::forPost('repair-iphone-x-display');
 $display15 = AppleService39PilotCatalog::forPost('repair-iphone-15-pro-max-display');
@@ -134,7 +134,7 @@ repairCheck('upgraded conversation projects the requested repair context', (json
 repairCheck('entry retry does not repeat its reply or handoff', $handle('appleservice39',$entry)['result'] === 'duplicate' && count($sent) === $count+1 && count($notifications) === $pushCount);
 $count = count($sent);
 $handle('appleservice39',repairStart(7004,'',1800000000101));
-$handle('appleservice39',repairStart(7004,'as39_repair-iphone-16-display',1800000000102));
+$handle('appleservice39',repairStart(7004,'as39_repair-iphone-17-ultra-display',1800000000102));
 repairCheck('empty or unknown reentry remains quiet in an existing conversation', count($sent) === $count && count($notifications) === $pushCount);
 $newEntry = repairStart(7004,'as39_repair-iphone-15-pro-max-display',1800000000103);
 $handle('appleservice39',$newEntry);
@@ -582,4 +582,113 @@ repairCheck('conflicting repair profile and kind fail before history or transpor
     && repairConversation($configuredPdo,'repair_two',9430) === [] && count($configuredSent) === $configuredBefore);
 ProjectMaxConnection::resetForTests($configuredRegistry);
 repairCheck('configured company tests leave the global AnyTour settings untouched', ProjectConfig::all() === $globalBefore);
+// Search-intent successor: isolated fixtures only; no real customer/provider actions.
+$searchPosts = [
+    'model-iphone-17','repair-iphone-16-display','service-rear-glass-replacement',
+    'symptom-not-charging','service-rear-camera-replacement','service-earpiece-replacement',
+];
+foreach ($searchPosts as $post) {
+    $entry = AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot','as39_'.$post);
+    repairCheck('finite successor resolves its exact post '.$post, $entry !== null && $entry['post_id'] === $post
+        && strlen($entry['start_payload']) <= 64
+        && AppleService39PilotCatalog::resolve('repair_two','id390521129062_bot','as39_'.$post) === null
+        && AppleService39PilotCatalog::resolve('appleservice39','id999999999002_bot','as39_'.$post) === null);
+}
+repairCheck('original strict repair catalog remains fifteen entries', AppleService39PilotCatalog::entries() === $catalog);
+$family17 = AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot','as39_model-iphone-17');
+$familyKnown = AppleService39PilotCatalog::entryContext($family17,
+    ['model'=>'iPhone 17 Pro Max','service'=>'Замена дисплея','price'=>3500],'as39_model-iphone-17');
+repairCheck('family entry preserves the compatible exact variant without a price', $familyKnown['model'] === 'iPhone 17 Pro Max'
+    && $familyKnown['service'] === 'Замена дисплея' && !isset($familyKnown['price'])
+    && !str_contains(AppleService39PilotCatalog::contextResponseText($family17,'AppleService39',$familyKnown),'Какая у вас версия'));
+$familyUnknown = AppleService39PilotCatalog::entryContext($family17,
+    ['model'=>'iPhone X','service'=>'Замена аккумулятора'],'as39_model-iphone-17');
+repairCheck('incompatible prior model cannot turn a family into an exact variant or inherit its repair',
+    $familyUnknown['model'] === 'Серия iPhone 17' && $familyUnknown['service'] === ''
+    && $familyUnknown['model_family'] === 'iphone-17');
+$searchPdo = repairFixture();
+$searchSent = [];
+$searchFactory = static function () use ($searchPdo,&$searchSent): MaxMessengerAdapter {
+    return new MaxMessengerAdapter(static function ($chat, string $text) use ($searchPdo,&$searchSent): string {
+        repairCheck('new contextual reply still follows the canonical commit', !$searchPdo->inTransaction());
+        $searchSent[] = ['chat'=>$chat,'text'=>$text];
+        return 'synthetic_search_reply_'.count($searchSent);
+    },null,'system',null,false);
+};
+$searchHandle = static function (array $update, ?callable $transport = null) use ($searchFactory): array {
+    return RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),$update,
+        $transport ?? $searchFactory,static function (): void {});
+};
+$searchHandle(repairStart(9501,'as39_x_battery',1800000200001));
+$searchConversation = repairConversation($searchPdo,'appleservice39',9501);
+$searchId = (int)$searchConversation['id'];
+$searchSavedEvent = repairEntryPayload($searchPdo,$searchId);
+$searchSavedEventJson = $searchPdo->query("SELECT payload_json FROM conversation_events WHERE conversation_id=$searchId AND event_type='bot_started' ORDER BY id DESC LIMIT 1")->fetchColumn();
+$searchPdo->exec("UPDATE conversations SET status='manager',manager_id=88 WHERE id=$searchId");
+$searchHandle(repairStart(9501,'as39_service-display',1800000200002));
+$searchConversation = repairConversation($searchPdo,'appleservice39',9501);
+$searchContext = json_decode($searchConversation['metadata_json'],true)['repair_context'];
+$searchEvent = repairEntryPayload($searchPdo,$searchId);
+repairCheck('service entry retains model source and assigned manager in the same dialogue',
+    (int)$searchConversation['id'] === $searchId && $searchConversation['status'] === 'manager'
+    && (int)$searchConversation['manager_id'] === 88 && (int)$searchConversation['source_id'] === 21
+    && $searchContext['model'] === 'iPhone X' && $searchContext['service'] === 'Замена дисплея');
+repairCheck('captured event and reply use the same merged context without repeating the model question',
+    $searchEvent['repair_context'] === $searchContext && str_contains(end($searchSent)['text'],'iPhone X')
+    && !str_contains(end($searchSent)['text'],'Какая у вас модель')
+    && !str_contains(end($searchSent)['text'],'3 500'));
+$searchOldEvent = $searchPdo->query("SELECT payload_json FROM conversation_events WHERE conversation_id=$searchId AND event_type='bot_started' ORDER BY id ASC LIMIT 1")->fetchColumn();
+repairCheck('new source entry never regenerates a historical captured answer', $searchOldEvent === $searchSavedEventJson);
+$searchExactStart = repairStart(9501,'as39_repair-iphone-16-display',1800000200003);
+$searchHandle($searchExactStart);
+$searchContext = json_decode(repairConversation($searchPdo,'appleservice39',9501)['metadata_json'],true)['repair_context'];
+repairCheck('explicit model16 replaces the old device without price or free diagnosis inheritance',
+    $searchContext === ['model'=>'iPhone 16','service'=>'Замена дисплея','entry_code'=>'as39_repair-iphone-16-display']
+    && !str_contains(end($searchSent)['text'],'Какая у вас модель')
+    && !str_contains(end($searchSent)['text'],'3 500')
+    && !str_contains(end($searchSent)['text'],'бесплат'));
+$searchSentBefore = count($searchSent);
+$searchHandle($searchExactStart);
+repairCheck('same new native start never repeats the outgoing reply', count($searchSent) === $searchSentBefore);
+$searchHandle(repairStart(9501,'as39_menu',1800000200004));
+$searchAfterMenu = json_decode(repairConversation($searchPdo,'appleservice39',9501)['metadata_json'],true)['repair_context'];
+repairCheck('menu preserves current repair and captures the correct model without asking it again',
+    $searchAfterMenu === $searchContext && repairEntryPayload($searchPdo,$searchId)['repair_context']['model'] === 'iPhone 16'
+    && str_contains(end($searchSent)['text'],'iPhone 16') && !str_contains(end($searchSent)['text'],'Какая у вас модель'));
+$searchHandle(repairStart(9501,'as39_symptom-not-charging',1800000200005));
+$searchSymptom = repairEntryPayload($searchPdo,$searchId)['repair_context'];
+repairCheck('symptom retains the device but neither battery nor connector is diagnosed',
+    $searchSymptom['model'] === 'iPhone 16' && $searchSymptom['service'] === 'iPhone не заряжается'
+    && $searchSymptom['symptom'] === 'not_charging'
+    && !str_contains(end($searchSent)['text'],'Замена аккумулятора')
+    && !str_contains(end($searchSent)['text'],'замена разъёма')
+    && !str_contains(end($searchSent)['text'],'Какая у вас модель'));
+repairCheck('new entries create no second waiting transition or manager assignment',
+    (int)$searchPdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=$searchId AND event_type='waiting_manager'")->fetchColumn() === 1
+    && (int)repairConversation($searchPdo,'appleservice39',9501)['manager_id'] === 88);
+foreach (['model-iphone-17'=>9502,'service-rear-glass-replacement'=>9503,
+    'service-rear-camera-replacement'=>9504,'service-earpiece-replacement'=>9505] as $post=>$user) {
+    $searchHandle(repairStart($user,'as39_'.$post,1800000200100+$user));
+    $conversation = repairConversation($searchPdo,'appleservice39',$user);
+    $event = repairEntryPayload($searchPdo,(int)$conversation['id']);
+    repairCheck('new broad entry captures nonempty labels for the existing Manager card '.$post,
+        ($event['repair_context']['model'] !== '' || $event['repair_context']['service'] !== '')
+        && $event['repair_entry_reply']['post_id'] === $post
+        && $event['repair_entry_reply']['state'] === 'delivered');
+}
+$searchUnknownAttempts = 0;
+$searchAmbiguous = static function () use (&$searchUnknownAttempts): MaxMessengerAdapter {
+    return new MaxMessengerAdapter(static function () use (&$searchUnknownAttempts): bool {
+        $searchUnknownAttempts++; throw new RuntimeException('Synthetic new-entry timeout');
+    },null,'system',null,false);
+};
+$searchUnknownStart = repairStart(9510,'as39_service-rear-camera-replacement',1800000201000);
+$searchHandle($searchUnknownStart,$searchAmbiguous);
+$searchUnknownConversation = repairConversation($searchPdo,'appleservice39',9510);
+$searchUnknownIntent = repairEntryIntent($searchPdo,(int)$searchUnknownConversation['id']);
+$searchHandle($searchUnknownStart,$searchAmbiguous);
+repairCheck('unknown new-entry reply stays on its original attempted intent without replay',
+    $searchUnknownAttempts === 1 && $searchUnknownIntent['state'] === 'unknown'
+    && repairEntryIntent($searchPdo,(int)$searchUnknownConversation['id']) === $searchUnknownIntent);
+repairCheck('search-intent fixtures never change the global project configuration', ProjectConfig::all() === $globalBefore);
 echo 'TOTAL '.$passed.' passed'.PHP_EOL;

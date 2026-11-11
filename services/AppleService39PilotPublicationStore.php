@@ -5,6 +5,8 @@ declare(strict_types=1);
 final class AppleService39PilotPublicationStore
 {
     private PDO $pdo;
+    private ?AppleService39SearchIntentRevision $searchRevision = null;
+    private ?string $searchBaseSha256 = null;
     public function __construct(PDO $pdo) { $this->pdo = $pdo; }
 
     public function campaign(): ?array
@@ -66,7 +68,8 @@ final class AppleService39PilotPublicationStore
 
     public function prepare(string $post, string $operation, array $request): array
     {
-        if (!preg_match('/\A[a-z][a-z0-9_-]{0,55}\z/D', $post) || !in_array($operation, ['upload','create','links','pin','landing_upload','landing_edit','catalogue_v1'], true)) throw new RuntimeException('invalid_pilot_operation');
+        if (!preg_match('/\A[a-z][a-z0-9_-]{0,55}\z/D', $post) || !in_array($operation, ['upload','create','links','pin','landing_upload','landing_edit','catalogue_v1','search_v1_upload','search_v1_edit'], true)) throw new RuntimeException('invalid_pilot_operation');
+        if (self::isSearchOperation($post, $operation, $request)) $this->validateSearchRequest($post, $operation, $request);
         $json = self::json($request); $hash = hash('sha256', $json);
         $row = $this->operation($post, $operation);
         if ($row === null) {
@@ -87,6 +90,12 @@ final class AppleService39PilotPublicationStore
     public function claim(array $row): bool
     {
         if ($this->pdo->inTransaction()) throw new RuntimeException('pilot_requires_autocommit');
+        if (self::isSearchOperation($row['post_key'], $row['operation'], $row['request'])) {
+            $this->validateSearchRequest($row['post_key'], $row['operation'], $row['request']);
+            $current = $this->operation($row['post_key'], $row['operation']);
+            if (!$current || (int)$current['id'] !== (int)$row['id'] || $current['request'] !== $row['request']
+                || $current['payload_sha256'] !== $row['payload_sha256']) throw new RuntimeException('pilot_operation_changed');
+        }
         $query = $this->pdo->prepare("UPDATE appleservice39_pilot_operations SET state='write_started',write_attempts=1,started_ms=?,updated_at=? WHERE id=? AND payload_sha256=? AND state='prepared' AND write_attempts=0");
         $query->execute([(int)floor(microtime(true)*1000),gmdate('Y-m-d H:i:s'),(int)$row['id'],$row['payload_sha256']]);
         return $query->rowCount() === 1;
@@ -108,6 +117,7 @@ final class AppleService39PilotPublicationStore
         if ($this->pdo->inTransaction()) throw new RuntimeException('pilot_requires_autocommit');
         $keys = ['kind','message_id','photo_id','source_sha256','upload_token_sha256','request_sha256','evidence_sha256'];
         $current = $this->operation((string)$row['post_key'], 'create');
+        if ($current && self::isSearchOperation($current['post_key'], $current['operation'], $current['request'])) throw new RuntimeException('invalid_image_receipt');
         if (($row['operation'] ?? '') !== 'create' || !$current || (int)$current['id'] !== (int)$row['id']
             || $current['payload_sha256'] !== $row['payload_sha256']
             || !in_array($current['state'], ['write_started','unknown'], true) || (int)$current['write_attempts'] !== 1
@@ -181,6 +191,23 @@ final class AppleService39PilotPublicationStore
         $current = $this->operation((string)$row['post_key'], (string)$row['operation']);
         if (!$current || (int)$current['id'] !== (int)$row['id'] || $current['payload_sha256'] !== $row['payload_sha256']) throw new RuntimeException('pilot_outcome_storage_unknown');
         $receipt = $current['outcome']['image_receipt'] ?? null;
+        if ($state === 'verified' && self::isSearchOperation($current['post_key'], $current['operation'], $current['request'])) {
+            $this->validateSearchRequest($current['post_key'], $current['operation'], $current['request']);
+            if ($current['operation'] === 'search_v1_upload') {
+                if (array_keys($outcome) !== ['photo_id','token'] || !is_string($outcome['photo_id'])
+                    || preg_match('/\A[0-9]{1,19}\z/D', $outcome['photo_id']) !== 1
+                    || !is_string($outcome['token']) || $outcome['token'] === '' || strlen($outcome['token']) > 4096
+                    || preg_match('/[\x00-\x20\x7f]/', $outcome['token'])) throw new RuntimeException('invalid_search_upload_receipt');
+                foreach ($this->rows() as $other) if ((int)$other['id'] !== (int)$current['id']
+                    && in_array($other['operation'], ['upload','landing_upload','search_v1_upload'], true)
+                    && ($other['outcome']['token'] ?? null) === $outcome['token']) throw new RuntimeException('search_upload_token_collision');
+            } elseif (!is_array($receipt) || ($outcome['readback'] ?? null) !== true
+                || $receipt['message_id'] !== $current['external_message_id']
+                || !is_string($current['public_url'])
+                || preg_match('~\Ahttps://max\.ru/channel_appleservice39ru/[A-Za-z0-9_-]{1,191}\z~D', $current['public_url']) !== 1) {
+                throw new RuntimeException('search_image_receipt_required');
+            }
+        }
         if (array_key_exists('image_receipt', $outcome) && $outcome['image_receipt'] !== $receipt) throw new RuntimeException('image_receipt_changed');
         if ($receipt !== null) $outcome['image_receipt'] = $receipt;
         $json = self::json($outcome);
@@ -205,6 +232,108 @@ final class AppleService39PilotPublicationStore
         $query = $this->pdo->prepare('SELECT * FROM appleservice39_pilot_operations WHERE campaign_key=? ORDER BY id');
         $query->execute(['appleservice39-pilot-v1']);
         return array_map([$this,'decode'], $query->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    /** Six new creates retain the existing create/permalink convention. */
+    public static function isSearchOperation(string $post, string $operation, array $request): bool
+    {
+        return str_starts_with($operation, 'search_v1_') || ($request['revision'] ?? null) === 'search-intent-v1'
+            || in_array($post, ['repair-iphone-16-display','service-rear-glass-replacement','symptom-not-charging',
+                'service-rear-camera-replacement','service-earpiece-replacement','model-iphone-17'], true);
+    }
+
+    /** Finite source binding, not a generic successor/override input. */
+    private function validateSearchRequest(string $post, string $operation, array $request): void
+    {
+        require_once __DIR__.'/AppleService39PilotManifest.php';
+        if ($this->searchRevision === null) {
+            $manifest = AppleService39PilotManifest::installed();
+            $this->searchBaseSha256 = $manifest->sha256();
+            $this->searchRevision = new AppleService39SearchIntentRevision($manifest);
+        }
+        $revision = $this->searchRevision;
+        $posts = array_column($revision->posts(), null, 'id');
+        $binding = $revision->historicalBinding($post);
+        $keys = ['revision','revision_sha256','post_id','source_sha256','mid','url'];
+        if ($operation !== 'search_v1_upload') $keys = array_merge($keys,
+            ['upload_operation_id','upload_request_sha256','upload_token_sha256','parent_request_sha256','body','native_text','native_markup']);
+        if (!isset($posts[$post]) || array_keys($request) !== $keys
+            || !in_array($operation, ['search_v1_upload', $binding === null ? 'create' : 'search_v1_edit'], true)
+            || $request['revision'] !== AppleService39SearchIntentRevision::KEY
+            || $request['revision_sha256'] !== $revision->sha256() || $request['post_id'] !== $post
+            || $request['source_sha256'] !== $posts[$post]['image']['sha256']
+            || $request['mid'] !== ($binding['message_id'] ?? null) || $request['url'] !== ($binding['url'] ?? null)) {
+            throw new RuntimeException('invalid_search_operation');
+        }
+        $revision->validateArtwork($post);
+        $campaign = $this->campaign();
+        if (!$campaign || $campaign['project_key'] !== AppleService39PilotManifest::PROJECT || $campaign['bot_key'] !== AppleService39PilotManifest::BOT
+            || $campaign['channel_id'] !== '-80917954947727'
+            || $campaign['manifest_sha256'] !== $this->searchBaseSha256) {
+            throw new RuntimeException('search_parent_incomplete');
+        }
+        if ($operation === 'search_v1_upload') return;
+        $upload = $this->operation($post, 'search_v1_upload');
+        if (!$upload || $upload['state'] !== 'verified' || (int)$upload['write_attempts'] !== 1
+            || $request['upload_operation_id'] !== (int)$upload['id']
+            || $request['upload_request_sha256'] !== $upload['payload_sha256']
+            || $request['upload_token_sha256'] !== hash('sha256', $upload['outcome']['token'] ?? '')
+            || $upload['request'] !== array_intersect_key($request, array_flip(array_slice($keys, 0, 6)))
+            || !is_array($request['body']) || !is_string($request['native_text']) || !is_array($request['native_markup'])) {
+            throw new RuntimeException('invalid_search_operation');
+        }
+        $parent = $binding === null ? null : $this->operation($post, 'catalogue_v1');
+        if ($request['parent_request_sha256'] !== ($parent['payload_sha256'] ?? null)
+            || ($binding !== null && (!$parent || $parent['state'] !== 'verified' || (int)$parent['write_attempts'] !== 1))) {
+            throw new RuntimeException('search_parent_incomplete');
+        }
+    }
+
+    /** Only the claimed response or an exact own upload-token witness can bind a new image. */
+    public function rememberSearchImageReceipt(array $row, array $receipt): void
+    {
+        if ($this->pdo->inTransaction()) throw new RuntimeException('pilot_requires_autocommit');
+        $current = $this->operation($row['post_key'], $row['operation']);
+        $keys = ['kind','message_id','photo_id','source_sha256','upload_token_sha256','request_sha256','revision_sha256'];
+        if (($receipt['kind'] ?? null) === 'reviewed_native_replacement') $keys = array_merge($keys,['evidence_sha256','native_preview_sha256']);
+        if (!$current || !in_array($current['operation'], ['create','search_v1_edit'], true)
+            || !self::isSearchOperation($current['post_key'], $current['operation'], $current['request'])
+            || (int)$current['id'] !== (int)$row['id'] || $current['payload_sha256'] !== $row['payload_sha256']
+            || !in_array($current['state'], ['write_started','unknown'], true) || (int)$current['write_attempts'] !== 1
+            || array_keys($receipt) !== $keys || !in_array($receipt['kind'] ?? null,
+                $current['operation'] === 'create' ? ['create_response','exact_upload_token'] : ['exact_upload_token','reviewed_native_replacement'], true)
+            || $receipt['message_id'] !== $current['external_message_id']
+            || !is_string($receipt['photo_id']) || preg_match('/\A[1-9][0-9]{0,18}\z/D', $receipt['photo_id']) !== 1
+            || $receipt['source_sha256'] !== $current['request']['source_sha256']
+            || $receipt['upload_token_sha256'] !== $current['request']['upload_token_sha256']
+            || $receipt['request_sha256'] !== $current['payload_sha256']
+            || $receipt['revision_sha256'] !== $current['request']['revision_sha256']) throw new RuntimeException('invalid_search_image_receipt');
+        $this->validateSearchRequest($current['post_key'], $current['operation'], $current['request']);
+        if ($receipt['kind'] === 'reviewed_native_replacement') {
+            $review = $this->searchRevision->reviewedNativeImage($current['post_key']);
+            if (!$review || $receipt['evidence_sha256'] !== $review['evidence_sha256']
+                || $receipt['native_preview_sha256'] !== $review['native_preview_sha256']) throw new RuntimeException('invalid_search_image_receipt');
+            $expected = ['campaign_key'=>'appleservice39-pilot-v1','project_key'=>'appleservice39',
+                'bot_key'=>'id390521129062_bot','channel_id'=>'-80917954947727','post_id'=>$current['post_key'],
+                'message_id'=>$current['external_message_id'],'public_url'=>$current['public_url'],
+                'revision_sha256'=>$receipt['revision_sha256'],'source_sha256'=>$receipt['source_sha256'],
+                'upload_operation_id'=>$current['request']['upload_operation_id'],
+                'upload_request_sha256'=>$current['request']['upload_request_sha256'],
+                'upload_token_sha256'=>$receipt['upload_token_sha256'],'edit_operation_id'=>(int)$current['id'],
+                'edit_request_sha256'=>$current['payload_sha256'],'edit_started_ms'=>(int)$current['started_ms'],
+                'native_photo_id'=>$receipt['photo_id']];
+            foreach ($expected as $key=>$value) if (($review['proof'][$key] ?? null) !== $value) throw new RuntimeException('invalid_search_image_receipt');
+        }
+        $old = $current['outcome']['image_receipt'] ?? null;
+        if ($old !== null) {
+            if ($old !== $receipt) throw new RuntimeException('image_receipt_changed');
+            return;
+        }
+        $outcome = $current['outcome']; $outcome['image_receipt'] = $receipt;
+        $query = $this->pdo->prepare("UPDATE appleservice39_pilot_operations SET outcome_json=?,updated_at=? WHERE id=? AND payload_sha256=? AND state IN ('write_started','unknown') AND write_attempts=1 AND external_message_id=? AND outcome_json=?");
+        $query->execute([self::json($outcome),gmdate('Y-m-d H:i:s'),(int)$row['id'],$row['payload_sha256'],$receipt['message_id'],$current['outcome_json']]);
+        $saved = $this->operation($row['post_key'], $row['operation']);
+        if (!$saved || ($saved['outcome']['image_receipt'] ?? null) !== $receipt) throw new RuntimeException('image_receipt_storage_unknown');
     }
 
     private function decode(array $row): array
