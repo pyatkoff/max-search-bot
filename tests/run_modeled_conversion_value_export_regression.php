@@ -191,6 +191,7 @@ function modeledValueMaxAttributionWindowAssertions(PDO $p,callable $check):void
 function modeledValueAssertions(PDO $p,callable $check):void
 {
     modeledValueMaxAttributionWindowAssertions($p,$check);
+    modeledValueReportResponseEvidenceAssertions($check);
     foreach([
         ['direct',10*86400,'yandex_direct',true],['direct_expired',10*86400+1,'yandex_direct',false],
         ['other',3*86400,'other_or_unknown',true],['other_expired',3*86400+1,'other_or_unknown',false],
@@ -1368,6 +1369,48 @@ function modeledValueFiniteVisitAssertions(PDO $p,callable $check):void
         strlen(json_encode($packed))<=8192&&array_key_exists('finite_visit_evidence',$packed)&&$packed['finite_visit_evidence']===false
         &&$packed['errors']===1&&$packed['accepted']===2&&$packed['processed']===3&&$packed['last_recorded_failure']===$base['last_recorded_failure']
         &&ModeledConversionValueVisitEvidence::projection(false,$namespace,$now)['reason']==='retained_budget_tombstone_no_automatic_retry');
+}
+
+
+/** The ordinary already-required report response retains only bounded technical scalars. */
+function modeledValueReportResponseEvidenceAssertions(callable $check):void
+{
+    $now=ModeledConversionValueVisitEvidence::CHECKPOINT+600;$secret='PRIVATE_RESPONSE_BODY Bearer SYNTHETIC_REPORT_TOKEN clientID=999999999999999999';
+    $valid=['query'=>['ids'=>[98615635],'metrics'=>['ym:s:goal678187097reaches','ym:s:goal678187097visits','ym:s:goal678187097convertedRUBRevenue'],'date2'=>'2026-11-11'],
+        'totals'=>[2,1,833.0],'sampled'=>false];
+    foreach([
+        [429,0,'rate_limited','unavailable','report_api_unavailable',429,0],
+        [503,0,'provider_unavailable','unavailable','report_api_unavailable',503,0],
+        [400,0,'invalid_request','unavailable','report_api_unavailable',400,0],
+        [403,0,'access_denied','forbidden','report_scope_or_counter_access',403,0],
+        [302,0,'unexpected_http_status','unavailable','report_api_unavailable',302,0],
+        [0,28,'transport_error','unavailable','transport_unavailable',null,28],
+        [600,101,'unknown','unavailable','transport_unavailable',null,null],
+        ['429 PRIVATE_RESPONSE_BODY',0,'unknown','unavailable','report_api_unavailable',null,0],
+        [429.0,0,'unknown','unavailable','report_api_unavailable',null,0],
+        [503,'28 SYNTHETIC_REPORT_TOKEN','unknown','unavailable','transport_unavailable',503,null],
+        [200,0,'invalid_response','unavailable','invalid_report',200,0],
+    ]as$i=>[$http,$error,$category,$status,$reason,$safeHttp,$safeError]){
+        $calls=0;$api=new MetrikaOfflineClient('98615635','SYNTHETIC_REPORT_TOKEN',static function(string $method,string $url,mixed $body)use(&$calls,$http,$error,$secret):array{
+            $calls++;if($method!=='GET'||!str_starts_with($url,'https://api-metrika.yandex.net/stat/v1/data?'))throw new RuntimeException('unexpected_request');
+            return ['http'=>$http,'error'=>$error,'body'=>$secret];
+        });
+        $r=$api->modeledValueReport($now-600,$now);$json=json_encode($r,JSON_THROW_ON_ERROR);
+        $check('ordinary report response stores strict bounded HTTP and transport evidence '.$i,
+            $calls===1&&$r['status']===$status&&$r['reason']===$reason&&$r['failure_category']===$category
+            &&$r['http_status']===$safeHttp&&$r['transport_error_code']===$safeError
+            &&$r['goal_reaches']===null&&$r['goal_visits']===null&&$r['revenue_rub']===null);
+        $check('ordinary failure evidence never returns a provider body URL token or customer identifier '.$i,
+            !str_contains($json,'PRIVATE_RESPONSE_BODY')&&!str_contains($json,'SYNTHETIC_REPORT_TOKEN')
+            &&!str_contains($json,'999999999999999999')&&!str_contains($json,'api-metrika.yandex.net'));
+    }
+    $calls=0;$api=new MetrikaOfflineClient('98615635','SYNTHETIC_REPORT_TOKEN',static function(string $method,string $url,mixed $body)use(&$calls,$valid):array{
+        $calls++;return ['http'=>200,'error'=>0,'body'=>json_encode($valid,JSON_THROW_ON_ERROR)];
+    });
+    $r=$api->modeledValueReport($now-600,$now);
+    $check('successful ordinary report keeps unchanged goal totals with no failure category or extra request',
+        $calls===1&&$r['status']==='ok'&&$r['goal_reaches']===2&&$r['goal_visits']===1&&$r['revenue_rub']===833.0
+        &&$r['http_status']===200&&$r['transport_error_code']===0&&$r['failure_category']===null);
 }
 
 if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){
