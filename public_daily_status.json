@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-11-11T08:22:50+00:00",
+    "generated_at": "2026-11-11T08:51:32+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -19,27 +19,27 @@
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
         "manager_requested": 30,
-        "manager_replied": 16,
-        "customer_replied_after_manager": 6,
+        "manager_replied": 21,
+        "customer_replied_after_manager": 7,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 16,
-            "still_unanswered": 11,
-            "measured_responses": 16,
-            "avg_seconds": 39686,
+            "answered_after_90s": 21,
+            "still_unanswered": 6,
+            "measured_responses": 21,
+            "avg_seconds": 39479,
             "max_seconds": 67360
         },
         "drop_points": {
-            "manager_requested": 14,
+            "manager_replied": 14,
             "collecting_needs": 12,
-            "manager_replied": 10,
-            "customer_replied_after_manager": 6,
+            "manager_requested": 9,
+            "customer_replied_after_manager": 7,
             "started_only": 5,
             "tours_opened": 1
         },
         "flags": {
-            "manager_requested_no_reply": 11,
+            "manager_requested_no_reply": 6,
             "left_waiting_queue_without_manager_reply": 2,
             "manager_taken_no_reply": 2,
             "repeated_same_input": 1
@@ -51,12 +51,12 @@
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
             "manager_requested": 18,
-            "manager_replied": 10,
-            "customer_replied_after_manager": 2
+            "manager_replied": 15,
+            "customer_replied_after_manager": 3
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-11T08:22:50Z",
+        "sampled_at": "2026-11-11T08:51:32Z",
         "available": true,
         "error": null,
         "mode": "send",
