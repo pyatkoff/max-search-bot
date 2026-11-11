@@ -1910,8 +1910,7 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check):void
     // Exercise the complete status call, including real SQL/copy accounting, with a large
     // saved receipt and first profile. The prior order spent these bytes before the frame.
     $p->exec('ALTER TABLE modeled_conversion_profile_versions ADD COLUMN journal_cursor BIGINT DEFAULT 0');
-    foreach(['value_origin VARCHAR(32)','value_reviewed_at_unix BIGINT','client_id VARCHAR(40)',
-        'claimed_at_unix BIGINT','value_receipt_basis VARCHAR(24)','next_attempt_unix BIGINT DEFAULT 0']as$column)
+    foreach(['value_origin VARCHAR(32)','value_reviewed_at_unix BIGINT','next_attempt_unix BIGINT DEFAULT 0']as$column)
         $p->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN '.$column);
     $p->exec('DROP TABLE IF EXISTS modeled_conversion_profiles_state');
     $p->exec('CREATE TABLE modeled_conversion_profiles_state(project_key VARCHAR(40) PRIMARY KEY,enabled INT,last_receipt_json TEXT,last_error_at_unix BIGINT,last_error_category VARCHAR(40))');
@@ -2006,7 +2005,9 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check):void
     $originalPriority=['value_delivery'=>['repair_assessments'=>[
         'finite_visit_evidence'=>$priorityProof,'finite_visit_recovery'=>$priorityRecovery]],'synthetic_context'=>''];
     $originalOnly=$originalPriority;$originalOnly['value_delivery']['repair_assessments']['finite_visit_recovery']=$omittedProof;
-    $originalPriority['synthetic_context']=str_repeat('o',max(0,26700-$responseBytes($originalOnly)));
+    $recoveryDelta=$responseBytes($originalPriority)-$responseBytes($originalOnly);
+    $originalTarget=28000-max(1,intdiv($recoveryDelta,2));
+    $originalPriority['synthetic_context']=str_repeat('o',max(0,$originalTarget-$responseBytes($originalOnly)));
     $originalOnly['synthetic_context']=$originalPriority['synthetic_context'];
     $originalBounded=$bound->invoke($projection,$originalPriority);
     $check('response limit omits the newer journal first and preserves the original proof byte for byte when it fits',
@@ -2017,7 +2018,10 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check):void
     $bothOmitted=$bothPriority;$bothOmitted['synthetic_context']='';
     $bothOmitted['value_delivery']['repair_assessments']['finite_visit_evidence']=$omittedProof;
     $bothOmitted['value_delivery']['repair_assessments']['finite_visit_recovery']=$omittedProof;
-    $bothPriority['synthetic_context']=str_repeat('b',max(0,26700-$responseBytes($bothOmitted)));
+    $originalBase=$bothOmitted;$originalBase['value_delivery']['repair_assessments']['finite_visit_evidence']=$priorityProof;
+    $originalDelta=$responseBytes($originalBase)-$responseBytes($bothOmitted);
+    $bothTarget=28000-max(1,intdiv($originalDelta,2));
+    $bothPriority['synthetic_context']=str_repeat('b',max(0,$bothTarget-$responseBytes($bothOmitted)));
     $onlyRecoveryOmitted=$bothPriority;$onlyRecoveryOmitted['value_delivery']['repair_assessments']['finite_visit_recovery']=$omittedProof;
     $bothBounded=$bound->invoke($projection,$bothPriority);
     $check('original proof is explicitly omitted only when the remaining fixed output still exceeds its unchanged response limit',
