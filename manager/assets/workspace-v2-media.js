@@ -70,6 +70,7 @@ function renderPersistenceStatus(box=selection()){
 }
 function render(noticeFirst=false){
  const rows=files(),box=selection();if(!box)return;box.setAttribute?.('data-sending',String(state.busy));
+ window.WorkspaceV2MediaPreflight?.render([],box);
  // Storage progress is independent from the selected File list. Keep it outside
  // that list so saving cannot change the list's content or scroll position.
  renderPersistenceStatus(box);
@@ -95,6 +96,7 @@ function render(noticeFirst=false){
  });
  box.setAttribute?.('aria-label',`Выбрано файлов: ${rows.length} из ${MAX_FILES}. Список можно прокручивать.`);
  box.querySelector('.mediaSelectionHint').textContent=state.notice||`Файлов: ${rows.length} из ${MAX_FILES}. Отправятся отдельно; подпись — к первому.`;box.classList.remove('hidden');if(noticeFirst)box.scrollTop=0;
+ window.WorkspaceV2MediaPreflight?.render(rows,box);
 }
 function addFiles(incoming){
  const rows=files(),added=Array.from(incoming||[]);let rejected=0;

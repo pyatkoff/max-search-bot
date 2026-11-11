@@ -202,9 +202,39 @@ async function openLibrary(page){await page.locator('#quickRepliesOpen').click()
 async function capture(page,browser,width,state){const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(dir,`reply-${browser}-${width}-${state}.png`)})}
 async function bounded(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1)}
 function clean(s){if(s.errors.length)console.log('QUICK_REPLY_PAGEERROR_DIAGNOSTICS '+JSON.stringify({errors:s.errorDiagnostics,recentRequests:s.requestTrace}));expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);expect(s.calls.filter(c=>c.action==='send')).toEqual([])}
+async function settledAttachmentText(page){await expect.poll(()=>page.locator('.mediaFileCheck').allTextContents().then(values=>values.filter(text=>text.startsWith('Проверяем файл')).length)).toBe(0);return page.locator('#mediaSelection').textContent()}
 async function panelIds(page){return page.locator('[data-qr-toolbar-id]').evaluateAll(nodes=>nodes.map(node=>Number(node.dataset.qrToolbarId)))}
 async function expectPanel(page,ids){await expect.poll(()=>panelIds(page)).toEqual(ids)}
 const knownTrip={city:'Москва',country:'Турция',date:'29.02.2028',nights:'7-9',adults:2,children:0,budget:{max:250000,currency:'RUB',basis:'total'}};
+function preflightPng(width,height){
+ const zlib=require('node:zlib'),signature=Buffer.from([137,80,78,71,13,10,26,10]);
+ const chunk=(type,data)=>{const t=Buffer.from(type),body=Buffer.concat([t,data]);let crc=0xffffffff;for(const byte of body){crc^=byte;for(let i=0;i<8;i++)crc=(crc>>>1)^(crc&1?0xedb88320:0)}const out=Buffer.alloc(data.length+12);out.writeUInt32BE(data.length);body.copy(out,4);out.writeUInt32BE((crc^0xffffffff)>>>0,out.length-4);return out};
+ const ihdr=Buffer.alloc(13);ihdr.writeUInt32BE(width);ihdr.writeUInt32BE(height,4);ihdr[8]=8;ihdr[9]=2;
+ return Buffer.concat([signature,chunk('IHDR',ihdr),chunk('IDAT',zlib.deflateSync(Buffer.alloc((width*3+1)*height,0))),chunk('IEND',Buffer.alloc(0))]);
+}
+for(const width of [390,430,768,1440])for(const height of [900,420])test(`Ordinary file preflight keeps native files and composer visible ${width}x${height}`,async({page,browserName})=>{
+ await page.setViewportSize({width,height});const s=await setup(page);await openLead(page);await page.locator('#replyText').fill('Точный черновик с вложениями');
+ await page.locator('#replyFile').setInputFiles([{name:'Панорама.png',mimeType:'image/png',buffer:preflightPng(11000,2)},{name:'План.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.7\nfixture only')},{name:'Неизвестный.bin',mimeType:'application/octet-stream',buffer:Buffer.from([0,255,4,9])}]);
+ await page.evaluate(()=>{window.preflightSelection=WorkspaceV2Media.captureSelection();window.preflightScroll=document.querySelector('#mediaSelection').scrollTop});
+ await expect(page.locator('.mediaFileCheck').nth(0)).toContainText('Сумма ширины');await expect(page.locator('.mediaFileCheck').nth(0)).toContainText('11000×2');await expect(page.locator('.mediaFileCheck').nth(1)).toContainText('получателя: файл');await expect(page.locator('.mediaFileCheck').nth(2)).toContainText('не определён');
+ expect(await page.evaluate(()=>WorkspaceV2Media.matchesSelection(window.preflightSelection))).toBe(true);expect(await page.evaluate(()=>document.querySelector('#mediaSelection').scrollTop)).toBe(await page.evaluate(()=>window.preflightScroll));
+ await expect(page.locator('.mediaFileName')).toHaveText(['Панорама.png','План.pdf','Неизвестный.bin']);await expect(page.locator('#replyText')).toHaveValue('Точный черновик с вложениями');
+ await bounded(page);await expect(page.locator('#replyText')).toBeInViewport();await expect(page.locator('#sendReply')).toBeInViewport();
+ await page.locator('#mediaSelection').evaluate(node=>node.scrollTop=0);await capture(page,browserName,width,`ordinary-preflight-${height}`);clean(s);
+});
+test('Ordinary file preflight late native header cannot touch another client or replace current File',async({page})=>{
+ const s=await setup(page);await openLead(page);await page.evaluate(()=>{
+  const file=new File([new Uint8Array(24)],'Отложенный.png',{type:'image/png'}),slice=file.slice.bind(file);
+  file.slice=(...args)=>{const blob=slice(...args);return {arrayBuffer:()=>new Promise(resolve=>{window.releasePreflightHeader=()=>blob.arrayBuffer().then(resolve)})}};
+  WorkspaceV2Media.addFiles([file]);window.preflightOriginalFile=file;
+ });await expect.poll(()=>page.evaluate(()=>typeof window.releasePreflightHeader)).toBe('function');
+ await chooseAnotherInboxClient(page);await expect.poll(()=>page.evaluate(()=>Number(WorkspaceV2.S.detail?.conversation?.id))).toBe(12);await page.locator('#replyText').fill('Новый клиент');await page.locator('#replyFile').setInputFiles({name:'Новый.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.7')});await expect(page.locator('.mediaFileCheck')).toContainText('получателя: файл');
+ const before=await page.locator('#mediaSelection').textContent();await page.evaluate(()=>window.releasePreflightHeader());await expect(page.locator('#mediaSelection')).toHaveText(before);await expect(page.locator('.mediaFileName')).toHaveText('Новый.pdf');await expect(page.locator('#replyText')).toHaveValue('Новый клиент');clean(s);
+});
+test('Ordinary file preflight policy loss is explicit and never blocks ordinary draft or slash insertion',async({page})=>{
+ const s=await setup(page);await openLead(page);await page.locator('#replyFile').evaluate(node=>node.dataset.mediaPolicy='invalid');await page.locator('#replyFile').setInputFiles({name:'Исходный.txt',mimeType:'text/plain',buffer:Buffer.from('unchanged')});await expect(page.locator('.mediaFileCheck')).toContainText('недоступны');
+ await page.locator('#replyText').fill('/под');await expect(page.locator('#qrComposerChoices [role="option"]')).toHaveCount(1);await page.locator('#replyText').press('Enter');await expect(page.locator('#qrPreview')).toBeVisible();await page.locator('#qrInsert').click();await expect(page.locator('#replyText')).toHaveValue('Проверяем отели у моря.');await expect(page.locator('.mediaFileName')).toHaveText('Исходный.txt');clean(s);
+});
 const tripKeys=['trip_city','trip_country','trip_date','trip_nights','trip_adults','trip_children','trip_budget'];
 const tripTemplate=tripKeys.map(key=>'{'+key+'}').join(' | ');
 const tripExpected='Москва | Турция | 29.02.2028 | 7-9 | 2 | 0 | до '+new Intl.NumberFormat('ru-RU').format(250000)+' RUB за всех';
@@ -230,7 +260,7 @@ for(const width of [390,430,768,1440])test.describe('Manager-selected reply pane
  test.use({viewport:{width,height:900}});
  test('selected replies replace defaults, direct insert keeps draft/file, ordered choices persist after reload',async({page,browserName})=>{
   const s=await setup(page);await openLead(page);await expectPanel(page,[2]);await assertToolbarLayout(page);
-  await page.locator('#replyText').fill('Существующий ответ');await page.locator('#replyFile').setInputFiles({name:'panel-file.txt',mimeType:'text/plain',buffer:Buffer.from('Keep this file')});const attachment=await page.locator('#mediaSelection').textContent();
+  await page.locator('#replyText').fill('Существующий ответ');await page.locator('#replyFile').setInputFiles({name:'panel-file.txt',mimeType:'text/plain',buffer:Buffer.from('Keep this file')});const attachment=await settledAttachmentText(page);
   // Composer focus hides this optional strip on mobile; leave the text field
   // through an ordinary visible click before using an explicitly selected chip.
   await page.locator('#replyText').blur();await page.locator('[data-qr-toolbar-id="2"]').click();await expect(page.locator('#replyText')).toHaveValue('Существующий ответ\nПроверяем отели у моря.');await expect(page.locator('#quickRepliesDialog')).toHaveCount(0);await expect(page.locator('#mediaSelection')).toHaveText(attachment);
@@ -322,7 +352,7 @@ for(const target of ['preview','editor'])test('held toolbar refresh preserves '+
 for(const width of [390,430,768,1440])test.describe('Quick reply controls '+width,()=>{
  test.use({viewport:{width,height:900}});
  test('emoji replacement preserves Unicode, caret, saved text and composer draft/file',async({page,browserName})=>{
-  const s=await setup(page);await openLead(page);await page.locator('#replyText').fill('Черновик клиента 🌍');await page.locator('#replyFile').setInputFiles({name:'emoji-draft.txt',mimeType:'text/plain',buffer:Buffer.from('Preserve draft attachment')});const attachment=await page.locator('#mediaSelection').textContent();
+  const s=await setup(page);await openLead(page);await page.locator('#replyText').fill('Черновик клиента 🌍');await page.locator('#replyFile').setInputFiles({name:'emoji-draft.txt',mimeType:'text/plain',buffer:Buffer.from('Preserve draft attachment')});const attachment=await settledAttachmentText(page);
   await openLibrary(page);await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Приветствие со смайликом');const body=page.locator('#qrBody');await body.fill('Начало убрать конец');await body.evaluate(node=>node.setSelectionRange(7,13));
   await page.locator('#qrEmojiToggle').click();await expect(page.locator('#qrEmojiPicker')).toBeVisible();await expect(page.locator('#qrEmojiPicker [data-qr-emoji="😊"]')).toHaveAccessibleName('Улыбка');
   const canonical=await page.locator('#emojiPicker [data-emoji]').evaluateAll(nodes=>nodes.map(node=>node.dataset.emoji));expect(await page.locator('#qrEmojiPicker [data-qr-emoji]').evaluateAll(nodes=>nodes.map(node=>node.dataset.qrEmoji))).toEqual(canonical);
@@ -335,7 +365,7 @@ for(const width of [390,430,768,1440])test.describe('Quick reply controls '+widt
   await reloadFixture(page,s);await openLead(page);await openLibrary(page);await page.locator('[data-qr-select="'+created.id+'"]').click();await page.locator('#qrEdit').click();await expect(body).toHaveValue('Начало 😊 конец');expect(s.calls.filter(c=>c.action==='create')).toHaveLength(1);clean(s);
  });
  test('row removal changes only personal panel membership, keeps library and reload order',async({page,browserName})=>{
-  const s=await setup(page,{selectedIds:[1,2,3]});await openLead(page);await page.locator('#replyText').fill('Текст до настройки панели');await page.locator('#replyFile').setInputFiles({name:'remove-draft.txt',mimeType:'text/plain',buffer:Buffer.from('Keep selected file')});const attachment=await page.locator('#mediaSelection').textContent();await page.locator('#quickRepliesOpen').click();
+  const s=await setup(page,{selectedIds:[1,2,3]});await openLead(page);await page.locator('#replyText').fill('Текст до настройки панели');await page.locator('#replyFile').setInputFiles({name:'remove-draft.txt',mimeType:'text/plain',buffer:Buffer.from('Keep selected file')});const attachment=await settledAttachmentText(page);await page.locator('#quickRepliesOpen').click();
   // Opening settings renders cached rows while refreshing the account panel.
   // Wait for that read before the short-viewport scroll targets its final row.
   await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','false');
@@ -381,7 +411,7 @@ for(const width of [390,430,768,1440])test.describe('Quick reply full cycle '+wi
   await page.clock.install({time:new Date('2026-11-11T12:00:00Z')});await page.clock.pauseAt(new Date('2026-11-11T12:00:01Z'));
   const s=await setup(page);await openLead(page);await page.locator('#replyText').fill('Существующий черновик ответа');await page.locator('#replyText').blur();await capture(page,browserName,width,'after-shell');
   await page.locator('#replyFile').setInputFiles({name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from('Isolated file')});
-  const attachment=await page.locator('#mediaSelection').textContent();
+  const attachment=await settledAttachmentText(page);
   await openLibrary(page);await expect(page.locator('#quickRepliesDialog')).toBeVisible();
   await expect(page.locator('[data-qr-select]')).toHaveCount(3);await bounded(page);await capture(page,browserName,width,'library');
   await page.locator('[data-qr-scope="shared"]').click();await expect(page.locator('[data-qr-select]')).toHaveCount(1);
@@ -410,7 +440,7 @@ for(const width of [390,430,768,1440])test.describe('Response cycle '+width,()=>
   const s=await setup(page,{holdCard:true});const before=Date.now();await openLead(page);const elapsed=Date.now()-before;
   await expect(page.locator('#messages .msg')).toHaveCount(35);await expect(page.locator('#leadCard')).toContainText('Загружаем');
   await page.locator('#replyText').fill('Черновик Анны');await page.locator('#replyFile').setInputFiles({name:'Anna.txt',mimeType:'text/plain',buffer:Buffer.from('File for Anna')});
-  const attachment=await page.locator('#mediaSelection').textContent();
+  const attachment=await settledAttachmentText(page);
   await useConversationTool(page,'conversationSearchOpen');await expect(page.locator('#conversationSearchInput')).toBeFocused();await page.locator('#conversationSearchInput').fill('у моря');await expect(page.locator('#conversationSearchCount')).toHaveText('1 из 35');await expect(page.locator('#conversationSearchScope')).toContainText('Только загруженные');
   const original=await page.locator('#messages .msgBody').allTextContents();await page.locator('#conversationSearchInput').press('Enter');await expect(page.locator('#conversationSearchCount')).toHaveText('2 из 35');await page.locator('#conversationSearchInput').press('Shift+Enter');await expect(page.locator('#conversationSearchCount')).toHaveText('1 из 35');
   const position=await page.locator('#messages').evaluate(el=>el.scrollTop);s.releaseCard();await expect(page.locator('#leadCard')).not.toContainText('Загружаем');expect(await page.locator('#messages .msgBody').allTextContents()).toEqual(original);expect(Math.abs(await page.locator('#messages').evaluate(el=>el.scrollTop)-position)).toBeLessThanOrEqual(3);
@@ -428,7 +458,7 @@ for(const width of [390,430,768,1440])test('trip template create, current-card p
  await openLead(page);await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.detail?.lead?.ok)).toBe(true);
  await page.locator('#replyText').fill('Исходный черновик');await page.locator('#replyFile').setInputFiles({name:'trip-notes.txt',mimeType:'text/plain',buffer:Buffer.from('Keep selected trip file')});
  await expect(page.locator('#mediaSelection .mediaSelectedItem')).toHaveCount(1);await expect(page.locator('#mediaSelection')).toContainText('trip-notes.txt');
- const attachment=await page.locator('#mediaSelection').textContent();
+ const attachment=await settledAttachmentText(page);
  await page.evaluate(()=>{window.tripMessage=document.querySelector('#messages .msg');window.tripMedia=document.querySelector('.mediaSelectedItem')});
  expect(await page.evaluate(()=>({message:!!window.tripMessage,media:!!window.tripMedia}))).toEqual({message:true,media:true});
  await page.locator('#replyText').blur();await openLibrary(page);await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Мои параметры поездки');
@@ -466,7 +496,7 @@ for(const width of [390,430,768,1440])test('trip template create, current-card p
 test('late or changed card fills only unresolved trip tokens explicitly, without changing preview edits or sending',async({page,browserName})=>{
  await page.setViewportSize({width:390,height:420});const s=await setup(page,{holdCard:true,tripData:{11:knownTrip}});s.replies[2].body='План: '+tripTemplate;
  await openLead(page);await expect(page.locator('#replyText')).toBeEnabled();await page.locator('#replyText').fill('Текст до подстановки');
- await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('keep')});await expect(page.locator('#mediaSelection .mediaSelectedItem')).toHaveCount(1);await expect(page.locator('#mediaSelection')).toContainText('keep.txt');const attachment=await page.locator('#mediaSelection').textContent();
+ await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('keep')});await expect(page.locator('#mediaSelection .mediaSelectedItem')).toHaveCount(1);await expect(page.locator('#mediaSelection')).toContainText('keep.txt');const attachment=await settledAttachmentText(page);
  await page.locator('#replyText').blur();await openLibrary(page);await page.locator('[data-qr-select="3"]').click();
  const preview=page.locator('#qrPreview');await expect(preview).toHaveValue('План: '+tripTemplate);await expect(page.locator('#qrInsert')).toBeDisabled();
  await preview.fill('Моя правка: '+tripTemplate+' | конец');s.releaseCard();s.setHoldCard(false);await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.detail?.lead?.ok)).toBe(true);
@@ -559,7 +589,7 @@ for(const width of [390,430,768,1440])test.describe('Search actual text visibili
   const text=lines.join('\n'),messages=[{id:401,sender_type:'customer',text,created_at:'2026-10-13 12:00:00'},...Array.from({length:8},(_,i)=>({id:402+i,sender_type:'manager',text:'Последующий контекст '+i,created_at:'2026-10-13 12:01:00'}))];
   const s=await setup(page,{messages});await openLead(page);await page.locator('#replyText').fill('Черновик без отправки');
   await page.locator('#replyFile').setInputFiles({name:'search-context.txt',mimeType:'text/plain',buffer:Buffer.from('Isolated attachment')});
-  const attachment=await page.locator('#mediaSelection').textContent();
+  const attachment=await settledAttachmentText(page);
   await useConversationTool(page,'conversationSearchOpen');await page.locator('#conversationSearchInput').fill('ориентир');
   await expect(page.locator('#conversationSearchCount')).toHaveText('1 из 2');await activeSearchTextVisible(page);
   const firstTop=await page.locator('#messages').evaluate(el=>el.scrollTop);
