@@ -11,6 +11,8 @@ try{
     foreach($tables as $table)$pdo->exec('DROP TABLE IF EXISTS '.$table);
     $pdo->exec('CREATE TABLE managers(id BIGINT UNSIGNED PRIMARY KEY) ENGINE=InnoDB');
     $pdo->exec('CREATE TABLE conversations(id BIGINT UNSIGNED PRIMARY KEY) ENGINE=InnoDB');
+    require __DIR__.'/project-funnel-migrations.php';
+    nativeProjectFunnelMigrationChecks($pdo);
     foreach(['043_manager_ai_draft_feedback.sql','044_manager_prepared_replies.sql','045_manager_preparation_oauth.sql','046_manager_preparation_events.sql','047_prepared_reply_feedback.sql','048_manager_assistant_decisions.sql','049_virtual_reply_learning.sql','050_manager_preparation_cursors.sql','062_prepared_reply_customer_input.sql']as $name){
         $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/'.$name));
         echo 'PASS native MySQL forward migration '.$name."\n";
