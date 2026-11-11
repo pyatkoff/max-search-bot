@@ -28,7 +28,7 @@ jobs:
       # first push. This placeholder deliberately cannot pass the source gate.
       EXPECTED_APPLICATION_SHA: 28a87f74f52b848d95131fd13754e3182af500aa
       # Reviewed literal; reprepare/apply/status are separate explicit updates.
-      PROVISION_OPERATION: reprepare
+      PROVISION_OPERATION: apply
       # Used only by explicit reprepare of an expired, unwritten receipt.
       PROVISION_PRIOR_REQUEST_ID: da7c944dc2fc4d69d137ae4d10c51405
       PROVISION_PRIOR_APPLICATION_SHA: 7aaaba7b1e2d86aaeac66b06eeb1466523e3628f
