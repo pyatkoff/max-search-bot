@@ -229,6 +229,32 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
     $receipt['metrika_report']=$report;$receipt['metrika_report']['status']='sampled';$receipt['metrika_report']['sampled']=true;
     $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?")->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
     $r=forecastV1Read($p);$check('sampled totals stay explicit and do not prove exact linkage',$r['value_delivery']['metrika_goal_report']['status']==='sampled'&&$r['value_delivery']['metrika_goal_report']['visit_linkage']==='unknown');
+    $receipt['metrika_report']=['status'=>'unavailable','goal_id'=>'678187097','currency'=>'RUB','fetched_at'=>$report['fetched_at'],
+        'reason'=>'report_api_unavailable','http_status'=>429,'transport_error_code'=>0,'failure_category'=>'rate_limited',
+        'private_response'=>'PRIVATE_PROVIDER_BODY_MUST_NOT_LEAVE'];
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?")->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
+    $observedReport=forecastV1Read($p)['value_delivery']['metrika_goal_report'];
+    $check('cached ordinary report exposes only bounded HTTP and transport codes with a closed failure category',
+        $observedReport['status']==='unavailable'&&$observedReport['http_status']===429&&$observedReport['transport_error_code']===0
+        &&$observedReport['failure_category']==='rate_limited'&&$observedReport['goal_visits']===null
+        &&!str_contains(json_encode($observedReport,JSON_THROW_ON_ERROR),'PRIVATE_'));
+    foreach([['429',0,'rate_limited'],[99,-1,'private_provider_error'],[600,101,'unknown'],[null,null,null]]as[$http,$transport,$category]){
+        $receipt['metrika_report']['http_status']=$http;$receipt['metrika_report']['transport_error_code']=$transport;
+        $receipt['metrika_report']['failure_category']=$category;
+        $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?")->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
+        $safeReport=forecastV1Read($p)['value_delivery']['metrika_goal_report'];
+        $check('invalid or missing report diagnostics never coerce strings or private response text',
+            $safeReport['http_status']===null
+            &&$safeReport['transport_error_code']===(is_int($transport)&&$transport>=0&&$transport<=100?$transport:null)
+            &&$safeReport['failure_category']===(in_array($category,['rate_limited','unknown'],true)?$category:null)
+            &&!str_contains(json_encode($safeReport,JSON_THROW_ON_ERROR),'PRIVATE_'));
+    }
+    $successReport=$report+['http_status'=>200,'transport_error_code'=>0,'failure_category'=>'rate_limited'];
+    $receipt['metrika_report']=$successReport;
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?")->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
+    $successRead=forecastV1Read($p)['value_delivery']['metrika_goal_report'];
+    $check('a successful saved report never inherits a failure label',
+        $successRead['status']==='ok'&&$successRead['http_status']===200&&$successRead['failure_category']===null);
     $receipt['metrika_report']=['status'=>'forbidden','goal_id'=>'678187097','currency'=>'RUB','fetched_at'=>$report['fetched_at'],'reason'=>'report_scope_or_counter_access'];
     $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?")->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
     $r=forecastV1Read($p);$check('missing reporting permission remains unknown rather than zero',$r['value_delivery']['metrika_goal_report']['status']==='forbidden'&&$r['value_delivery']['metrika_goal_report']['goal_visits']===null);
