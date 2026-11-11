@@ -85,7 +85,7 @@ function render(){
    if(r.state==='not_found'){const cancel=document.createElement('button');cancel.type='button';cancel.className='actionBtn';cancel.textContent='Отменить неначатую отправку';cancel.disabled=checking.has(r.operation_id);cancel.onclick=()=>check(r.operation_id,true);row.appendChild(cancel)}}
   list.appendChild(row);
  }
- const hint=document.createElement('div');hint.className='mediaRecoveryHint';hint.setAttribute('role','status');hint.textContent=notice||'Проверка не отправляет файлы повторно. После обновления страницы сами файлы нужно выбрать заново.';list.appendChild(hint);box.appendChild(list);box.open=opened||!!notice;
+ const hint=document.createElement('div');hint.className='mediaRecoveryHint';hint.setAttribute('role','status');hint.textContent=notice||'Проверка не отправляет файлы повторно. Черновик с вложениями восстанавливается отдельно в этой вкладке.';list.appendChild(hint);box.appendChild(list);box.open=opened||!!notice;
 }
 window.addEventListener?.('storage',event=>{if(!event.key?.startsWith(prefix+owner+'.')||!authenticated())return;try{const r=JSON.parse(event.newValue||'null');if(r?.actor===owner&&terminalStates.includes(r.state)){const saved=readRecord(owner,r.operation_id);if(saved&&terminalStates.includes(saved.state))window.WorkspaceV2Media?.settleRecovery?.(saved)}}catch(e){}render()});
 window.WorkspaceV2MediaRecovery={activate,suspend,configure,begin,result,blocked,blocking,check,entries,render,newBatch:id};
