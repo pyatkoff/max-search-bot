@@ -220,3 +220,10 @@ The existing admin-only `manager/assigned-value.php` has two additional read-onl
 - `?view=forecast-payments`: saved early V1 predictions and later conversation payment evidence for the same scoped request anchor. The original frozen value is preserved. The existing canonical follow-up comparator checks timing, source fences and contradictory evidence. Customer payment reports and manager acknowledgements remain distinct from bank settlement. An absent outcome is unknown; it is never assigned an unpaid label. Filters and pagination explicitly describe their saved-history coverage, which is not the full archive or an independent accuracy evaluation.
 
 The existing delivery ledger links to both views. Advertising goal, target, value scale and incremental export behavior are unchanged. Forecast hypotheses remain uncalibrated. Real-data acceptance may publish only fixed technical booleans and source/time provenance; customer identifiers, rows, financial totals and rendered private HTML stay in server memory or the authenticated owner view.
+
+
+## Live delivery report calendar
+
+Current and previous completed delivery days use `Europe/Moscow`, matching the closed administrator ledger. A day is selected from the Moscow midnight interval; original event, upload and receipt instants remain unchanged. A cached live-day report using the former calendar is explicitly unavailable until the existing GET-only verifier refreshes it, rather than being relabelled.
+
+The frozen launch-history review and sent-before checkpoint audits retain their original recorded calendar and immutable time bounds. They are historical evidence, not the live today/yesterday totals. Their receipt members, monetary allocations and provider uploads are not rewritten or replayed by a report-calendar change.
