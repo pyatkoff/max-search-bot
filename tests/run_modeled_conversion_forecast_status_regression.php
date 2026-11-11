@@ -242,6 +242,36 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
         $observedReport['status']==='unavailable'&&$observedReport['http_status']===429&&$observedReport['transport_error_code']===0
         &&$observedReport['failure_category']==='rate_limited'&&$observedReport['goal_visits']===null
         &&!str_contains(json_encode($observedReport,JSON_THROW_ON_ERROR),'PRIVATE_'));
+    $decisionCounts=['within_current_window'=>1,'outside_current_window'=>0,'no_prior_visit'=>1,'visit_report_unavailable'=>1,'unknown'=>0];
+    $receipt['visit_gate_decisions']=['v'=>1,'checked_at_unix'=>$now-10,'attempts'=>3,'reason_counts'=>$decisionCounts];
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?")->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
+    $gateRead=forecastV1Read($p)['value_delivery']['visit_gate_decisions'];
+    $check('private status returns only saved ordinary preclaim decision counts without a new assessment or provider request',
+        $gateRead['available']&&$gateRead['attempts']===3&&$gateRead['reason_counts']===$decisionCounts
+        &&$gateRead['checked_at']===gmdate('Y-m-d\TH:i:s\Z',$now-10)&&$gateRead['provider_requests_in_reader']===0
+        &&$gateRead['zero_attempts_does_not_prove_no_visits']);
+    $validGate=$receipt['visit_gate_decisions'];
+    foreach(['missing','extra','strings','sum','future','oversize']as$kind){
+        $bad=$validGate;
+        if($kind==='missing')unset($bad['reason_counts']['unknown']);
+        elseif($kind==='extra')$bad['private_client_id']='PRIVATE_GATE_ID';
+        elseif($kind==='strings')$bad['attempts']='3';
+        elseif($kind==='sum')$bad['attempts']=2;
+        elseif($kind==='future')$bad['checked_at_unix']=$now+600;
+        else$bad['reason_counts']['private']=str_repeat('PRIVATE_GATE_',100);
+        $receipt['visit_gate_decisions']=$bad;
+        $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?")->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
+        $badRead=forecastV1Read($p)['value_delivery']['visit_gate_decisions'];
+        $check('malformed saved visit-gate '.$kind.' stays unavailable without leaking private fields',
+            !$badRead['available']&&!str_contains(json_encode($badRead,JSON_THROW_ON_ERROR),'PRIVATE_'));
+    }
+    $receipt['visit_gate_decisions']=['v'=>1,'checked_at_unix'=>$now-10,'attempts'=>0,
+        'reason_counts'=>array_fill_keys(array_keys($decisionCounts),0)];
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?")->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
+    $zeroRead=forecastV1Read($p)['value_delivery']['visit_gate_decisions'];
+    $check('zero saved preclaim decisions never imply that visits are absent',
+        $zeroRead['available']&&$zeroRead['attempts']===0&&$zeroRead['zero_attempts_does_not_prove_no_visits']);
+    unset($receipt['visit_gate_decisions']);
     foreach([['429',0,'rate_limited'],[99,-1,'private_provider_error'],[600,101,'unknown'],[null,null,null]]as[$http,$transport,$category]){
         $receipt['metrika_report']['http_status']=$http;$receipt['metrika_report']['transport_error_code']=$transport;
         $receipt['metrika_report']['failure_category']=$category;
@@ -1822,6 +1852,36 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check):void
     $check('native identity audit rejects wrong user counter aliases goal aliases legacy missing clocks and incomplete typed receipts',
         $guarded['status']==='candidate_observed'&&$guarded['admitted_native_witnesses']===1
         &&$guarded['candidate_sha256']===$native['candidate_sha256']);
+    $check('native first rejection reasons account for every inspected row while independent facets retain source field evidence',
+        $guarded['inspected_rows']===12&&array_sum($guarded['first_rejection_reason_counts'])+$guarded['admitted_native_witnesses']===12
+        &&$guarded['first_rejection_reason_counts']===['unsupported_goal_pair'=>3,'mixed_family_metadata'=>2,'not_processed_pair'=>1,
+            'saved_error_present'=>0,'invalid_upload_receipt_id'=>0,'invalid_attempt_or_claim_clock'=>2,'invalid_client_or_tracker_record'=>1,
+            'missing_or_invalid_source_clock'=>1,'source_after_signal_or_claim'=>1]
+        &&$guarded['facets']['family']===['native'=>7,'modeled_value'=>0,'other'=>5]
+        &&$guarded['facets']['state']['pending']===1&&$guarded['facets']['state']['processed']===11
+        &&$guarded['facets']['identity_fields']===['canonical_client_id'=>10,'canonical_tracker_record_id'=>11,
+            'valid_source_clock'=>10,'source_clock_at_or_before_event'=>9]);
+    $nativeRow(119,['target'=>ModeledConversionValueContract::predictionKey('719'),'transport'=>ModeledConversionValueContract::TARGET]);
+    $p->prepare("UPDATE max_channel_conversion_outbox SET identity_source_key='max_tracker',value_profile_id=719,value_rub=12,"
+        ."value_stage='specific_request',value_contract=?,state='failed',upload_status='LINKAGE_FAILURE',client_id=NULL,"
+        ."tracker_record_id='invalid_record',tracker_observed_unix=NULL WHERE id=119")->execute([ModeledConversionValueContract::VERSION]);
+    $nativeRow(120,['client'=>'09912345678901234']);$p->exec("UPDATE max_channel_conversion_outbox SET state='unknown',upload_status='PREPARED',tracker_observed_unix=0 WHERE id=120");
+    $mixed=$auditRead();
+    $check('exact modeled family and failed or unknown native states remain visible without masking invalid or missing identity fields',
+        $mixed['facets']['family']===['native'=>8,'modeled_value'=>1,'other'=>5]
+        &&$mixed['facets']['state']['failed']===1&&$mixed['facets']['state']['unknown']===1
+        &&$mixed['facets']['identity_fields']['canonical_client_id']===$guarded['facets']['identity_fields']['canonical_client_id']
+        &&$mixed['facets']['identity_fields']['canonical_tracker_record_id']===$guarded['facets']['identity_fields']['canonical_tracker_record_id']+1
+        &&$mixed['facets']['identity_fields']['valid_source_clock']===$guarded['facets']['identity_fields']['valid_source_clock']
+        &&array_sum($mixed['first_rejection_reason_counts'])+$mixed['admitted_native_witnesses']===$mixed['inspected_rows']
+        &&array_sum($mixed['facets']['family'])===$mixed['inspected_rows']&&array_sum($mixed['facets']['state'])===$mixed['inspected_rows']
+        &&$mixed['admitted_native_witnesses']===1&&$mixed['candidate_sha256']===$native['candidate_sha256']
+        &&!str_contains(json_encode($mixed,JSON_THROW_ON_ERROR),'09912345678901234')&&!str_contains(json_encode($mixed,JSON_THROW_ON_ERROR),'invalid_record'));
+    $p->prepare("UPDATE max_channel_conversion_outbox SET value_contract=? WHERE id=119")->execute([ModeledConversionValueContract::VERSION.' ']);
+    $aliasFamily=$auditRead();
+    $check('modeled family classification requires the exact current contract rather than a padded alias',
+        $aliasFamily['facets']['family']['modeled_value']===0&&$aliasFamily['facets']['family']['other']===6
+        &&$aliasFamily['candidate_sha256']===$native['candidate_sha256']);
     $p->exec('DELETE FROM max_channel_conversion_outbox WHERE id>=101');
     $nativeRow(117);$sameClient=$auditRead();
     $check('two independently processed witnesses for the same ClientID are not mistaken for two candidate identities',
