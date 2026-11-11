@@ -260,15 +260,27 @@ final class MetrikaOfflineClient
     {
         $base=['status'=>'unavailable','goal_id'=>'678187097','currency'=>'RUB',
             'fetched_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$now),'date1'=>gmdate('Y-m-d',max(946684800,$activated-21*86400)),'date2'=>'today',
-            'goal_reaches'=>null,'goal_visits'=>null,'revenue_rub'=>null,'sampled'=>null];
-        if($this->counter!=='98615635'||$activated<946684800||$activated>$now)return $base+['reason'=>'invalid_scope'];
+            'goal_reaches'=>null,'goal_visits'=>null,'revenue_rub'=>null,'sampled'=>null,
+            'http_status'=>null,'transport_error_code'=>null,'failure_category'=>null];
+        if($this->counter!=='98615635'||$activated<946684800||$activated>$now){$base['failure_category']='invalid_request';return $base+['reason'=>'invalid_scope'];}
         $metrics=['ym:s:goal678187097reaches','ym:s:goal678187097visits','ym:s:goal678187097convertedRUBRevenue'];
         $query=['ids'=>'98615635','metrics'=>implode(',',$metrics),'date1'=>$base['date1'],'date2'=>'today','accuracy'=>'full','limit'=>1];
         $r=$this->request('GET','data?'.http_build_query($query,'','&',PHP_QUERY_RFC3986),null,null,true);
-        if((int)($r['error']??0)!==0)return $base+['reason'=>'transport_unavailable'];
+        // Observe only this response. No raw body, message, URL or credential is retained.
+        $httpScalar=$r['http']??null;$transportScalar=$r['error']??null;
+        $base['http_status']=is_int($httpScalar)&&$httpScalar>=100&&$httpScalar<=599?$httpScalar:null;
+        $base['transport_error_code']=is_int($transportScalar)&&$transportScalar>=0&&$transportScalar<=100?$transportScalar:null;
+        if((int)($r['error']??0)!==0){
+            $base['failure_category']=$base['transport_error_code']!==null?'transport_error':'unknown';
+            return $base+['reason'=>'transport_unavailable'];
+        }
         $http=(int)($r['http']??0);
+        $base['failure_category']=$base['http_status']===null?'unknown':
+            ($http===429?'rate_limited':($http>=500?'provider_unavailable':
+            (in_array($http,[401,403],true)?'access_denied':($http>=400?'invalid_request':'unexpected_http_status'))));
         if($http===403||$http===401){$base['status']='forbidden';return $base+['reason'=>'report_scope_or_counter_access'];}
         if($http!==200)return $base+['reason'=>'report_api_unavailable'];
+        $base['failure_category']='invalid_response';
         $d=$this->decode($r);$q=$d['query']??[];$totals=$d['totals']??null;
         $ids=is_array($q['ids']??null)?array_map('strval',$q['ids']):[];
         if($ids!==['98615635']||($q['metrics']??null)!==$metrics||!is_array($totals)||count($totals)!==3
@@ -276,7 +288,7 @@ final class MetrikaOfflineClient
         foreach($totals as$v)if((!is_int($v)&&!is_float($v))||!is_finite((float)$v)||$v<0||$v>1000000000000)return $base+['reason'=>'invalid_totals'];
         if(((float)$totals[0])!==floor((float)$totals[0]))return $base+['reason'=>'invalid_counts'];
         if(((float)$totals[1])!==floor((float)$totals[1])||$totals[1]>$totals[0])return $base+['reason'=>'invalid_counts'];
-        $base['status']=$d['sampled']?'sampled':'ok';$base['sampled']=$d['sampled'];
+        $base['status']=$d['sampled']?'sampled':'ok';$base['sampled']=$d['sampled'];$base['failure_category']=null;
         $base['goal_reaches']=(int)$totals[0];$base['goal_visits']=(int)$totals[1];$base['revenue_rub']=round((float)$totals[2],2);
         $base['date2']=is_string($q['date2']??null)?$q['date2']:'today';
         return $base;

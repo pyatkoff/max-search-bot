@@ -61,7 +61,7 @@ final class ModeledConversionForecastStatusReader
             $next=0;
             $readProfiles=function(int $limit)use(&$out,&$scopes,&$next,$meta,$parts,$bodyBytes,$fence,$model,$processor):void{
                 for(;$next<count($meta);$next++){
-                    // Validate one core packet before diagnostics; inspect remaining candidates only with spare budget.
+                    // Inspect one core packet after priority delivery evidence; use spare budget for the remaining candidates.
                     if($limit<self::PROFILE_LIMIT&&$out['window']['profile_rows_read']>=$limit)break;
                     $row=$meta[$next];
                     $this->budget->check();
@@ -173,12 +173,13 @@ final class ModeledConversionForecastStatusReader
                     }else $out['window']['invalid_followup_blocks']++;
                 }
             };
+            // Saved financial and three-case visit evidence has priority over optional cached context and profile bodies.
+            $out['value_delivery']=$this->optionalRead(fn():array=>(new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time()));
+            $out['read_budget']['remaining_ms']['value_delivery']=$this->budget->remainingMilliseconds();
             $out['visit_delivery_check']=$this->optionalRead(fn():array=>ModeledConversionVisitProof::privateSummary(time(),$this->budget));
             $out['read_budget']['remaining_ms']['visit_receipt']=$this->budget->remainingMilliseconds();
             $readProfiles(1);
             $out['read_budget']['remaining_ms']['first_profile']=$this->budget->remainingMilliseconds();
-            $out['value_delivery']=$this->optionalRead(fn():array=>(new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time()));
-            $out['read_budget']['remaining_ms']['value_delivery']=$this->budget->remainingMilliseconds();
             $activation=$out['value_delivery']['activated_at']??null;
             $activation=is_string($activation)?strtotime($activation):false;
             $out['saved_input_diagnosis']=$this->optionalRead(fn():array=>(new ModeledConversionInputDiagnosisReader($this->pdo,$this->authorize,$this->budget))->read($activation===false?null:$activation),4000);
