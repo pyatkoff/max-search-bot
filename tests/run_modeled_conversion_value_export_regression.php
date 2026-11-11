@@ -1574,7 +1574,7 @@ function modeledValueVisitRecoveryAssertions(PDO $p,callable $check):void
     }
 
     // A delayed writer must not replace a newer journal with its old in-memory pending membership.
-    $winner=$saved();$winner['last_recorded_failure']=['tick_at_unix'=>$now+10,'phase'=>'upload','category'=>'api_rejected'];
+    $winner=$saved();unset($winner['visit_gate_decisions']);$winner['last_recorded_failure']=['tick_at_unix'=>$now+10,'phase'=>'upload','category'=>'api_rejected'];
     $newFailure=['tick_at_unix'=>$now+300,'phase'=>'collect_profiles','category'=>'processing_failed'];
     $winner['padding']='';$expanded=$winner;$expanded['last_recorded_failure']=$newFailure;
     $winner['padding']=str_repeat('x',8193-$measure($expanded));
