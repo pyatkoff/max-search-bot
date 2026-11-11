@@ -92,11 +92,32 @@ final class MetrikaOfflineClient
         fputcsv($f,$header);fputcsv($f,$row);rewind($f);$csv=stream_get_contents($f);fclose($f);return $csv;
     }
 
-    /** Existing exact goals only. A new company never creates or edits another counter's goals. */
+    /** Existing owner-selected goals only; no goal creation or condition changes. */
     public function projectGoalsReady(): bool
     {
         if($this->projectPolicy===null)return false;
-        try{$goals=$this->readGoals();foreach($this->projectPolicy['goals']as$target)if(count($this->exactGoals($goals,$target))!==1)return false;return true;}catch(Throwable $e){return false;}
+        try{
+            $access=$this->request('GET','');$counter=$this->decode($access)['counter']??null;
+            if((int)($access['error']??0)!==0||(int)($access['http']??0)!==200||!is_array($counter)
+                ||(string)($counter['id']??'')!==$this->counter||!in_array($counter['permission']??null,['own','edit'],true))return false;
+            $goals=$this->readGoals();
+            foreach($this->projectPolicy['goals']as$event=>$target){
+                $id=$this->projectPolicy['goal_ids'][$event]??null;$match=$this->projectPolicy['goal_match'][$event]??'exact';
+                if($id===null){if($match!=='exact'||count($this->exactGoals($goals,$target))!==1)return false;continue;}
+                $selected=array_values(array_filter($goals,static fn($g)=>is_array($g)&&(string)($g['id']??'')===$id));
+                if(count($selected)!==1||($selected[0]['type']??'')!=='action'||count($selected[0]['conditions']??[])!==1
+                    ||($selected[0]['conditions'][0]['type']??'')!==$match||($selected[0]['conditions'][0]['url']??'')!==$target)return false;
+                foreach($goals as$other)if(($other['type']??'')==='action'&&(string)($other['id']??'')!==$id)foreach(($other['conditions']??[])as$condition){
+                    $value=$condition['url']??null;$type=$condition['type']??'';
+                    if(!is_string($value)||$value==='')return false;
+                    if(($type==='exact'||$type==='action')&&$value===$target)return false;
+                    if($type==='contain'&&str_contains($target,$value))return false;
+                    if($type==='start'&&str_starts_with($target,$value))return false;
+                    if($type==='regexp')return false; // No guessed regexp semantics or goal mutation.
+                }
+            }
+            return true;
+        }catch(Throwable $e){return false;}
     }
 
     public function poll(string $uploadId): ?array

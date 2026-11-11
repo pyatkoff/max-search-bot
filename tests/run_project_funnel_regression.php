@@ -21,6 +21,7 @@ function funnelSchema(PDO $pdo):void{
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')!==__FILE__)return;
 $pdo=repairFixture();funnelSchema($pdo);$now=time();$connection=ProjectMaxConnection::resolve('appleservice39');$s=ProjectFunnelSettings::load($connection);
 funnelCheck('owner-supplied AppleService counter enables collection without exports',$s['metrika']['counter_id']==='42611469'&&$s['metrika']['mode']==='collect');
+funnelCheck('owner-selected predict goal keeps its exact ID and contains condition',$s['metrika']['goals']===['predictive_value'=>'predict']&&$s['metrika']['goal_ids']===['predictive_value'=>'680570232']&&$s['metrika']['goal_match']===['predictive_value'=>'contain']&&$s['metrika']['credential_source']==='platform');
 $s['metrika']=['counter_id'=>'','mode'=>'off','goals'=>[]];$fixtureRegistry=repairFixtureRegistry();$fixtureRegistry['appleservice39']['project']['sales_funnel']=$s;ProjectMaxConnection::resetForTests($fixtureRegistry);$connection=ProjectMaxConnection::resolve('appleservice39');$entry=new ProjectFunnelEntry($pdo,$connection,$s);
 funnelCheck('eight approved offers keep their established feed IDs',count($s['posts'])===8&&$s['posts']['menu']['offer_id']==='as39-search-v1-menu');
 funnelCheck('missing company analytics stays explicitly off',$s['metrika']===['counter_id'=>'','mode'=>'off','goals'=>[]]&&ProjectFunnelSettings::publicClient($s)['counter_id']==='');

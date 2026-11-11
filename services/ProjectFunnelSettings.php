@@ -45,6 +45,10 @@ final class ProjectFunnelSettings
         if(!is_array($metric['goals']??null))$fail();
         foreach($metric['goals']as$event=>$goal)if(!in_array($event,['customer_activity','manager_request','customer_reply','working','offer_sent','booking','won','predictive_value'],true)||!is_string($goal)||!preg_match('/\A[A-Za-z0-9_-]{1,64}\z/D',$goal))$fail();
         if(count(array_unique($metric['goals']))!==count($metric['goals']))$fail();
+        if(!in_array($metric['credential_source']??'project',['project','platform'],true))$fail();
+        foreach(['goal_ids','goal_match']as$field)if(isset($metric[$field])&&(!is_array($metric[$field])||array_diff(array_keys($metric[$field]),array_keys($metric['goals']))))$fail();
+        foreach(($metric['goal_ids']??[])as$id)if(!is_string($id)||!preg_match('/\A[1-9][0-9]{0,19}\z/D',$id))$fail();
+        foreach(($metric['goal_match']??[])as$event=>$match)if(!in_array($match,['exact','contain'],true)||($match==='contain'&&!isset($metric['goal_ids'][$event])))$fail();
         if(isset($data['prediction'])){
             $model=$data['prediction'];
             if(!is_array($model)||!is_int($model['version']??null)||$model['version']<1||$model['version']>1000000

@@ -12,8 +12,40 @@ final class ProjectFunnelConversions
         $metric=$settings['metrika'];
         if($settings['project_key']==='anytour'||$metric['counter_id']==='98615635'||$metric['mode']==='off'||!$metric['goals'])return null;
         $policy=['project_key'=>$settings['project_key'],'bot_key'=>$settings['bot_key'],'counter_id'=>$metric['counter_id'],
-            'mode'=>$metric['mode'],'goals'=>$metric['goals'],'prediction'=>$settings['prediction']??null];
+            'mode'=>$metric['mode'],'goals'=>$metric['goals'],'goal_ids'=>$metric['goal_ids']??[],'goal_match'=>$metric['goal_match']??[],
+            'credential_source'=>$metric['credential_source']??'project','prediction'=>$settings['prediction']??null];
         $hash=$policy;unset($hash['mode']);$policy['sha256']=hash('sha256',json_encode($hash,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));return $policy;
+    }
+
+    public static function hasActiveProjects(?PDO $pdo=null): bool
+    {
+        try{
+            $pdo=$pdo??ConversationDb::connection();$q=$pdo->prepare('SELECT project_key FROM projects WHERE is_active=1 AND project_key<>? ORDER BY id LIMIT 101');$q->execute([ProjectConfig::projectId()]);$projects=$q->fetchAll(PDO::FETCH_COLUMN);
+            if(count($projects)>=101)return false;
+            foreach($projects as$project){$c=ProjectMaxConnection::resolve($project);$s=$c?ProjectFunnelSettings::load($c):null;if($s&&self::policy($s)!==null)return true;}
+        }catch(Throwable $e){}
+        return false;
+    }
+
+    /** Explicit credential source, used only inside the normal server runtime. */
+    private static function api(array $policy): ?MetrikaOfflineClient
+    {
+        if(($policy['credential_source']??'project')==='platform'){
+            if(!defined('METRIKA_OAUTH_TOKEN')||!is_string(METRIKA_OAUTH_TOKEN)||trim(METRIKA_OAUTH_TOKEN)==='')return null;
+            return new MetrikaOfflineClient($policy['counter_id'],METRIKA_OAUTH_TOKEN,null,null,$policy);
+        }
+        $bindings=defined('MAX_SEARCH_PROJECT_METRIKA')&&is_array(MAX_SEARCH_PROJECT_METRIKA)?MAX_SEARCH_PROJECT_METRIKA:[];$binding=$bindings[$policy['project_key']]??null;
+        if(!is_array($binding)||($binding['counter_id']??null)!==$policy['counter_id']||($binding['bot_key']??null)!==$policy['bot_key']||!is_string($binding['oauth_token']??null)||$binding['oauth_token']==='')return null;
+        return new MetrikaOfflineClient($policy['counter_id'],$binding['oauth_token'],null,null,$policy);
+    }
+
+    /** Read-only API admission for an existing configured company. Never returns a credential. */
+    public static function probe(array $settings,?callable $apiFactory=null): array
+    {
+        $policy=self::policy($settings);$result=['ok'=>false,'status'=>'off','conversion_requests'=>0];if(!$policy)return $result;
+        try{$api=$apiFactory?$apiFactory($policy):self::api($policy);if(!$api)return array_replace($result,['status'=>'credential_unavailable']);
+            return $api->projectGoalsReady()?array_replace($result,['ok'=>true,'status'=>'ready']):array_replace($result,['status'=>'goal_access_unavailable']);
+        }catch(Throwable $e){return array_replace($result,['status'=>'goal_access_unavailable']);}
     }
 
     /** A successful CRM assertion is an observed stage, never a payment receipt. */
@@ -128,11 +160,7 @@ final class ProjectFunnelConversions
                 foreach($repo->projectRows($policy,'pending',$now,25)as$row){$identity=self::identity($pdo,$row,$settings,$now);$repo->resolveProject($row,$identity,$now);if($identity)$summary['resolved']++;}
                 if($policy['mode']!=='send')continue;
                 if($apiFactory)$api=$apiFactory($policy);
-                else{
-                    $bindings=defined('MAX_SEARCH_PROJECT_METRIKA')&&is_array(MAX_SEARCH_PROJECT_METRIKA)?MAX_SEARCH_PROJECT_METRIKA:[];$binding=$bindings[$project]??null;
-                    if(!is_array($binding)||($binding['counter_id']??null)!==$policy['counter_id']||($binding['bot_key']??null)!==$connection->botKey()||!is_string($binding['oauth_token']??null)||$binding['oauth_token']===''){$summary['held']++;continue;}
-                    $api=new MetrikaOfflineClient($policy['counter_id'],$binding['oauth_token'],null,null,$policy);
-                }
+                else $api=self::api($policy);
                 if(!$api){$summary['held']++;continue;}
                 $goalsReady=$api->projectGoalsReady();if(!$goalsReady)$summary['held']++;
                 foreach($goalsReady?$repo->projectRows($policy,'ready',$now):[]as$row){

@@ -95,11 +95,16 @@ events rather than retargeting them. Upload claim, accepted, unknown, processed,
 failed and expiry states are the existing outbox states. A crash/unknown POST is
 reconciled through reads; it is never blindly sent again.
 
-`send` additionally needs a private server binding:
+`send` needs an explicit credential source. The default is a private server binding:
 `MAX_SEARCH_PROJECT_METRIKA[project_key]` with exact `counter_id`, `bot_key` and
-`oauth_token`. The token stays in private server configuration. Only already
-existing unique exact goals pass the read-only admission. No goal is created,
-renamed or changed by this flow. New businesses cannot borrow AnyTour's counter.
+`oauth_token`. An explicitly selected `credential_source: platform` instead uses
+the existing private platform OAuth account, without exporting or copying its
+token. Counter access is checked for own/edit permission. Existing unique exact
+goals or owner-pinned `goal_ids`/`goal_match` conditions pass read-only admission.
+An owner-specified contains condition is retained; it is never converted to exact.
+No goal is created, renamed or changed. New businesses cannot borrow AnyTour's
+counter. `tools/max_channel_attribution.php project-probe <project_key>` is a
+GET-only admission check and returns only fixed result enums, never a credential.
 
 An optional `prediction` provides a model ID/version, evidence SHA-256,
 validation/expiry instants (maximum 90 days), base value and conditional
@@ -114,11 +119,14 @@ train a new model from an unvalidated sample or replace the existing MODEL owner
 
 The profile preserves the eight accepted public covers/offers and their existing
 IDs. The owner supplied its own counter42611469. Its profile enables collection:
-real native visits can obtain this counter's ClientID and recorded stages can
-enter the existing local queue. The standard target map is prepared but existing
-exact goals, private OAuth binding and calibrated prediction are not yet
-verified. Sending stays off until those real bindings and a natural case pass
-acceptance. No existing goal is assumed to have been created or renamed.
+real native visits can obtain this counter's ClientID. The owner-created goal is
+680570232, whose identifier contains `predict`. This exact ID/condition is pinned
+for `predictive_value`; the selected private credential source is the platform
+account. Its access is not assumed: the normal installation diagnostics run the
+GET-only API admission. Recorded activity/manager/CRM stages remain in the core
+history. A calibrated repair model has not been supplied, so no synthetic/default
+forecast is exported and collection remains selected. First real conversion
+delivery and natural acceptance are separate from access admission.
 
 No existing native post is recreated, republished or reconciled by this change.
 No feed is imported into Direct and no ad spend is started by these endpoints.

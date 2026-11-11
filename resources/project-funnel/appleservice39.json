@@ -12,14 +12,15 @@
   "metrika": {
     "counter_id": "42611469",
     "mode": "collect",
+    "credential_source": "platform",
     "goals": {
-      "customer_activity": "max_bot_activity_start",
-      "manager_request": "max_manager_request",
-      "customer_reply": "max_customer_reply_after_manager",
-      "working": "max_lead_working",
-      "offer_sent": "max_offer_sent",
-      "booking": "max_booking",
-      "won": "max_sale"
+      "predictive_value": "predict"
+    },
+    "goal_ids": {
+      "predictive_value": "680570232"
+    },
+    "goal_match": {
+      "predictive_value": "contain"
     }
   },
   "posts": {

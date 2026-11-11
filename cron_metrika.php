@@ -92,7 +92,7 @@ try {
     require_once __DIR__.'/services/MaxChannelConversionWorker.php';
     $channelSettings=MaxChannelConversionOutbox::settings();
     $telegramSettings=TelegramDialogueConversions::settings();
-    if(($channelSettings&&$channelSettings['mode']!=='off')||($telegramSettings&&$telegramSettings['telegram_mode']!=='off')){
+    if(($channelSettings&&$channelSettings['mode']!=='off')||($telegramSettings&&$telegramSettings['telegram_mode']!=='off')||ProjectFunnelConversions::hasActiveProjects()){
         require_once __DIR__.'/maxsearchclass.php';
         require_once __DIR__.'/services/MetrikaConversionGoalService.php';
         $channelResult=MaxChannelConversionWorker::tick(null,null,null,null,[MetrikaConversionGoalService::class,'reconcileChannelConversation']);

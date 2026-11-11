@@ -18,7 +18,8 @@ $post='service-display';$offer=$s['posts'][$post]['offer_id'];$start='123456789_
 $factory=static fn(ProjectMaxConnection $c)=>new MaxMessengerAdapter(static fn($chat,$text)=>'synthetic-conversion-reply',null,'system',null,false);
 $r=RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),repairStart(7001,'as39_service-display'),$factory,static function(){});$c=repairConversation($pdo,'appleservice39',7001);
 $never=static function(){throw new RuntimeException('network_must_not_run');};
-$stats=ProjectFunnelConversions::tick($pdo,$now+1,$never);
+$worker=MaxChannelConversionWorker::tick($pdo,$never,$never,$now+1,null,$never);$stats=$worker['projects'];
+funnelCheck('configured project runs when legacy MAX and Telegram are off',$worker['mode']==='off'&&$worker['telegram']['mode']==='off'&&ProjectFunnelConversions::hasActiveProjects($pdo));
 funnelCheck('collect mode uses the existing outbox without provider calls',$stats['errors']===0&&$stats['collected']===2&&$stats['accepted']===0);
 $rows=$pdo->query("SELECT * FROM max_channel_conversion_outbox ORDER BY id")->fetchAll();
 funnelCheck('real handoff and separate configured prediction remain pending for CID',count($rows)===2&&array_column($rows,'state')===['pending','pending']&&$rows[0]['target']==='funnel_manager_request'&&$rows[1]['value_rub']==='400.00');
@@ -34,7 +35,7 @@ $stats=ProjectFunnelConversions::tick($pdo,$now+902,$never);
 funnelCheck('customer activity reply and CRM progress use the same queue',$stats['collected']===3&&(int)$pdo->query('SELECT COUNT(*) FROM max_channel_conversion_outbox')->fetchColumn()===5);
 $s['metrika']['mode']='send';$set($s);$posts=[];$reads=[];
 $transport=static function(string $method,string $url,$body)use(&$posts,&$reads,$s):array{
-    if($method==='GET'){$reads[]=$url;if(str_ends_with($url,'/goals')){$goals=[];foreach($s['metrika']['goals']as$i=>$target)$goals[]=['id'=>(string)(count($goals)+1),'type'=>'action','conditions'=>[['type'=>'exact','url'=>$target]]];return ['http'=>200,'error'=>0,'body'=>json_encode(['goals'=>$goals])];}return ['http'=>200,'error'=>0,'body'=>json_encode(['uploading'=>['id'=>basename(parse_url($url,PHP_URL_PATH)),'status'=>'PROCESSED','source_quantity'=>1,'line_quantity'=>1]])];}
+    if($method==='GET'){$reads[]=$url;if(str_ends_with($url,'/counter/99900011'))return ['http'=>200,'error'=>0,'body'=>json_encode(['counter'=>['id'=>'99900011','permission'=>'edit']])];if(str_ends_with($url,'/goals')){$goals=[];foreach($s['metrika']['goals']as$i=>$target)$goals[]=['id'=>(string)(count($goals)+1),'type'=>'action','conditions'=>[['type'=>'exact','url'=>$target]]];return ['http'=>200,'error'=>0,'body'=>json_encode(['goals'=>$goals])];}return ['http'=>200,'error'=>0,'body'=>json_encode(['uploading'=>['id'=>basename(parse_url($url,PHP_URL_PATH)),'status'=>'PROCESSED','source_quantity'=>1,'line_quantity'=>1]])];}
     $posts[]=[$url,$body];return ['http'=>200,'error'=>0,'body'=>json_encode(['uploading'=>['id'=>(string)(1000+count($posts)),'status'=>'UPLOADED']])];
 };
 $apiFactory=static fn(array $p)=>new MetrikaOfflineClient($p['counter_id'],'synthetic-project-oauth',$transport,null,$p);
@@ -56,6 +57,17 @@ $bad=$s;$bad['prediction']['stage_probability']['working']=1.2;funnelCheck('unca
 funnelCheck('missing expired or sold-case model produces no prediction',ProjectFunnelConversions::estimate(array_replace($policy,['prediction'=>null]),['working'=>$now],$now)===null&&ProjectFunnelConversions::estimate($policy,['working'=>$now,'won'=>$now],$now)===null&&ProjectFunnelConversions::estimate($policy,['working'=>$now],$now+86401)===null);
 $s['metrika']['mode']='off';$set($s);$before=$pdo->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll();$stats=ProjectFunnelConversions::tick($pdo,$now+10,$never);
 funnelCheck('off mode changes no queued history or provider state',$before===$pdo->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll()&&$stats['projects']===0);
+funnelCheck('scheduler fallback is inactive for an explicitly disabled company',!ProjectFunnelConversions::hasActiveProjects($pdo));
+$selectedPolicy=['project_key'=>'appleservice39','bot_key'=>'id390521129062_bot','counter_id'=>'42611469','mode'=>'collect','goals'=>['predictive_value'=>'predict'],'goal_ids'=>['predictive_value'=>'680570232'],'goal_match'=>['predictive_value'=>'contain'],'credential_source'=>'platform'];
+$goalResponse=['id'=>'680570232','type'=>'action','conditions'=>[['type'=>'contain','url'=>'predict']]];$goalCalls=[];$goalPermission='edit';
+$goalFactory=static function(array $policy)use(&$goalResponse,&$goalCalls,&$goalPermission){return new MetrikaOfflineClient($policy['counter_id'],'synthetic-private-oauth',static function($method,$url,$body)use(&$goalResponse,&$goalCalls,&$goalPermission){$goalCalls[]=[$method,$url];return ['http'=>200,'error'=>0,'body'=>json_encode(str_ends_with($url,'/goals')?['goals'=>[$goalResponse]]:['counter'=>['id'=>'42611469','permission'=>$goalPermission]])];},null,$policy);};
+$selectedSettings=$base;$selectedSettings['metrika']=$selectedPolicy;
+$probe=ProjectFunnelConversions::probe($selectedSettings,$goalFactory);
+funnelCheck('pinned owner goal supports contains without rewriting it',$probe===['ok'=>true,'status'=>'ready','conversion_requests'=>0]&&$goalCalls===[['GET','https://api-metrika.yandex.net/management/v1/counter/42611469'],['GET','https://api-metrika.yandex.net/management/v1/counter/42611469/goals']]);
+$goalPermission='view';funnelCheck('view-only counter access cannot pass upload admission',!ProjectFunnelConversions::probe($selectedSettings,$goalFactory)['ok']);$goalPermission='edit';
+$goalResponse['id']='680570233';funnelCheck('same identifier on another goal cannot satisfy pinned admission',!ProjectFunnelConversions::probe($selectedSettings,$goalFactory)['ok']);
+$goalResponse['id']='680570232';$goalResponse['conditions'][0]['type']='exact';funnelCheck('changed owner condition remains a visible admission failure',!ProjectFunnelConversions::probe($selectedSettings,$goalFactory)['ok']);
+$bad=$base;$bad['metrika']['goal_ids']=[];funnelCheck('contains requires an explicit pinned owner goal ID',funnelReject(fn()=>ProjectFunnelSettings::validate($bad,'appleservice39','id390521129062_bot')));
 require_once __DIR__.'/fixtures/project_funnel_advertising_assertions.php';
 projectFunnelNativeAssertions($pdo,'funnelCheck');
 echo 'PROJECT FUNNEL CONVERSIONS REGRESSION PASSED '.$passed.PHP_EOL;
