@@ -103,17 +103,27 @@ final class ModeledConversionEarlyForecast
                 $predictive->knownOperationalOutcome($ref,(int)$item['at'],(int)$row['observed_at_unix'],(int)$row['source_version_no']);
             if($permit===null||$clockUnresolved){
                 $longGap=ArchiveResearchSemanticExtractor::hasLongObservationGap($state['last'],$item['at']);
-                $serviceKind=null;$observationalBridge=false;$applicationBridge=false;
-                if(!$denied&&!$clockUnresolved&&!$longGap){
-                    if(self::knownServiceReply($row,$subject,$requested))$serviceKind='preserved_ai_replies';
-                    elseif(self::knownServiceEvent($row,$subject,$requested))$serviceKind='preserved_handoff_receipts';
-                    $observationalBridge=self::knownObservationalEvent($row,$subject,$requested)
-                        &&$predictive->canPreserveCustomerContext((int)$item['at']);
-                    $inputRef=$wizardApplications[$ref]??null;
-                    $applicationBridge=$inputRef!==null
-                        &&$predictive->canPreserveCustomerContext((int)$item['at'],$inputRef);
+                $serviceKind=null;$observationalBridge=false;$applicationBridge=false;$questionBridge=false;
+                if(!$denied&&!$clockUnresolved){
+                    if(self::knownServiceReply($row,$subject,$requested)){
+                        $serviceKind='preserved_ai_replies';
+                        // A new exact question can begin a clean context after a
+                        // gap; it cannot carry the previous trip's criteria.
+                        if($longGap&&ModeledConversionQuestionnaireContext::field($snap['payload']['text'])!==null)
+                            $predictive->barrier();
+                        $questionBridge=$predictive->observeServiceQuestion($snap['payload']['text'],$ref,
+                            (int)$item['at'],(int)$row['observed_at_unix'],(int)$row['source_version_no']);
+                    }elseif(!$longGap&&self::knownServiceEvent($row,$subject,$requested))$serviceKind='preserved_handoff_receipts';
+                    if(!$longGap){
+                        $observationalBridge=self::knownObservationalEvent($row,$subject,$requested)
+                            &&$predictive->canPreserveCustomerContext((int)$item['at']);
+                        $inputRef=$wizardApplications[$ref]??null;
+                        $applicationBridge=$inputRef!==null
+                            &&$predictive->canPreserveCustomerContext((int)$item['at'],$inputRef);
+                    }
                 }
-                $serviceBridge=$serviceKind!==null&&$predictive->canPreserveCustomerContext((int)$item['at']);
+                $serviceBridge=$serviceKind!==null&&($questionBridge
+                    ||(!$longGap&&$predictive->canPreserveCustomerContext((int)$item['at'])));
                 if($clockUnresolved||(!$operationalKnown&&!$serviceBridge&&!$observationalBridge&&!$applicationBridge&&!$offerReaction->bridgesUnavailable($ref,$longGap))){
                     $predictive->barrier();
                     $reason=$clockUnresolved?'unresolved_clock_barriers':($longGap?'long_gap_barriers':

@@ -3,6 +3,7 @@ declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionStatusBudget.php';
 require_once __DIR__.'/ModeledConversionValueContract.php';
 require_once __DIR__.'/ModeledConversionTickFailure.php';
+require_once __DIR__.'/ModeledConversionProfiles.php';
 
 /** Fixed derived-value aggregates only. No source tables, network, processing or mutation. */
 final class ModeledConversionValueDeliveryReader
@@ -117,6 +118,7 @@ final class ModeledConversionValueDeliveryReader
                 'identity_counts_are_stored_resolution_not_a_new_scope_check'=>true,
                 'conversations_are_not_verified_people_or_trips'=>true,'per_upload_visit_match_verified'=>false,'reporting_can_lag'=>true,'no_ids_or_text_returned'=>true];
             $out['price_continuity_audit']=$this->priceAudit($receipt['price_continuity_audit']??null,$now);
+            $out['repair_assessments']=$this->repairAssessments($now);
             $out['predictive_v1']=$this->predictiveV1($now);
             return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}
@@ -124,6 +126,80 @@ final class ModeledConversionValueDeliveryReader
         catch(UnexpectedValueException $ignored){return $this->unavailable('invalid_ledger');}
     }
 
+
+
+    /** All saved current-namespace repairs and their own new increments; no reclassification or provider call. */
+    public function repairAssessments(int $now):array
+    {
+        $this->budget->check();
+        if($this->budget->remainingBytes()<16384)return ['available'=>false,'reason'=>'budget_headroom'];
+        if(!is_callable([ModeledConversionProfiles::class,'assessmentNamespace']))return ['available'=>false,'reason'=>'namespace_unavailable'];
+        try{$namespace=ModeledConversionProfiles::assessmentNamespace();}
+        catch(RuntimeException $ignored){return ['available'=>false,'reason'=>'namespace_unavailable'];}
+        if(preg_match('/\A[a-f0-9]{64}\z/D',$namespace)!==1)return ['available'=>false,'reason'=>'namespace_unavailable'];
+        try{
+            $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+            $equal=static fn(string $a,string $b):string=>$mysql?'BINARY '.$a.'=BINARY '.$b:'('.$a.') COLLATE BINARY=('.$b.') COLLATE BINARY';
+            $columns=['COUNT(DISTINCT p.id) AS profiles',
+                'COUNT(DISTINCT CASE WHEN o.id IS NOT NULL THEN p.id ELSE NULL END) AS increment_profiles',
+                'COUNT(o.id) AS increment_events','COALESCE(SUM(o.value_rub),0) AS increment_rub',
+                "COALESCE(SUM(CASE WHEN o.upload_id IS NOT NULL AND o.upload_id<>'' THEN 1 ELSE 0 END),0) AS api_events",
+                "COALESCE(SUM(CASE WHEN o.upload_id IS NOT NULL AND o.upload_id<>'' THEN o.value_rub ELSE 0 END),0) AS api_rub",
+                "COALESCE(SUM(CASE WHEN o.state='processed' AND o.upload_status='PROCESSED' THEN 1 ELSE 0 END),0) AS processed_events",
+                "COALESCE(SUM(CASE WHEN o.state='processed' AND o.upload_status='PROCESSED' THEN o.value_rub ELSE 0 END),0) AS processed_rub",
+                'MIN(p.observed_at_unix) AS first_at','MAX(p.observed_at_unix) AS last_at'];
+            foreach(self::STATES as$i=>$state){
+                $columns[]="COALESCE(SUM(CASE WHEN o.state='".$state."' THEN 1 ELSE 0 END),0) AS state_n".$i;
+                $columns[]="COALESCE(SUM(CASE WHEN o.state='".$state."' THEN o.value_rub ELSE 0 END),0) AS state_v".$i;
+            }
+            foreach(['max','telegram']as$platform){
+                $columns[]="COUNT(DISTINCT CASE WHEN p.platform='".$platform."' THEN p.id ELSE NULL END) AS ".$platform."_profiles";
+                $columns[]="COALESCE(SUM(CASE WHEN o.platform='".$platform."' THEN 1 ELSE 0 END),0) AS ".$platform."_events";
+                $columns[]="COALESCE(SUM(CASE WHEN o.platform='".$platform."' THEN o.value_rub ELSE 0 END),0) AS ".$platform."_rub";
+            }
+            $key=$mysql?"CONCAT('anytour_value_pred_',p.id,'_v1')":"'anytour_value_pred_'||p.id||'_v1'";
+            $sql='SELECT '.implode(',',$columns)." FROM modeled_conversion_profile_versions p"
+                ." LEFT JOIN max_channel_conversion_outbox o ON o.value_profile_id=p.id"
+                ." AND o.project_key=p.project_key AND o.conversation_id=p.conversation_id AND o.target=".$key
+                .' AND '.$equal('o.project_key','p.project_key').' AND '.$equal('o.platform','p.platform')
+                .' AND '.$equal('o.conversation_id','p.conversation_id')." AND o.counter_id='98615635'"
+                .' AND '.$equal('o.transport_target','?').' AND '.$equal('o.value_contract','?')
+                .' AND '.$equal('o.target',$key).' AND o.value_rub>0 AND o.value_rub<='.ModeledConversionValueContract::MAX_VALUE_RUB
+                ." WHERE p.project_key='anytour' AND p.assessment_namespace=? AND p.assessment_kind='repair'"
+                ." AND p.platform IN ('max','telegram')";
+            $r=$this->query($sql,[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$namespace])[0];
+            // Whole-cohort scalar bounds are independent of the older 201-row delivery suffix.
+            $number=static function(mixed $v,bool $money):int|float{
+                if(!is_int($v)&&!is_float($v)&&!(is_string($v)&&preg_match('/\A[0-9]+(?:\.[0-9]{1,2})?\z/D',$v)===1))throw new UnexpectedValueException();
+                $n=(float)$v;if(!is_finite($n)||$n<0||$n>($money?1000000000000:1000000000)||(!$money&&$n!==floor($n)))throw new UnexpectedValueException();
+                return $money?round($n,2):(int)$n;
+            };
+            $profiles=$number($r['profiles'],false);$withIncrement=$number($r['increment_profiles'],false);$events=$number($r['increment_events'],false);
+            if($withIncrement>$profiles||$events!==$withIncrement)throw new UnexpectedValueException();
+            $at=static fn(mixed $v):?string=>is_numeric($v)&&(int)$v>=946684800&&(int)$v<=$now?gmdate('Y-m-d\TH:i:s\Z',(int)$v):null;
+            $out=['available'=>true,'basis'=>'saved_current_namespace_repair_metadata_and_own_new_increment_rows',
+                'assessment_namespace'=>$namespace,
+                'coverage'=>['whole_current_namespace_repair_cohort'=>true,'snapshot_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),
+                    'first_assessed_at'=>$at($r['first_at']),'last_assessed_at'=>$at($r['last_at'])],
+                'reassessed_profiles'=>$profiles,'profiles_without_new_increment'=>$profiles-$withIncrement,
+                'new_increment_events'=>$events,'new_increment_value_rub'=>$number($r['increment_rub'],true),
+                'api_receipts'=>['events'=>$number($r['api_events'],false),'value_rub'=>$number($r['api_rub'],true)],
+                'processed_upload_rows'=>['events'=>$number($r['processed_events'],false),'value_rub'=>$number($r['processed_rub'],true)],
+                'by_state'=>[],'by_platform'=>[],
+                'interpretation'=>['no_new_increment_is_not_evidence_of_loss'=>true,'api_receipts_include_later_rejected_rows'=>true,
+                    'processed_rows_do_not_prove_visit_linkage'=>true,'saved_metadata_not_new_model_validation'=>true],
+                'per_event_visit_linkage'=>'not_checked','provider_requests'=>0];
+            foreach(self::STATES as$i=>$state)$out['by_state'][$state]=[
+                'events'=>$number($r['state_n'.$i],false),'value_rub'=>$number($r['state_v'.$i],true)];
+            if(array_sum(array_column($out['by_state'],'events'))!==$events)throw new UnexpectedValueException();
+            foreach(['max','telegram']as$platform)$out['by_platform'][$platform]=[
+                'reassessed_profiles'=>$number($r[$platform.'_profiles'],false),
+                'events'=>$number($r[$platform.'_events'],false),'value_rub'=>$number($r[$platform.'_rub'],true)];
+            $this->budget->check();($this->authorize)();$this->budget->check();return $out;
+        }catch(ModeledConversionStatusLimit $e){throw $e;}
+        catch(PDOException $ignored){return ['available'=>false,'reason'=>'storage_unavailable'];}
+        catch(UnexpectedValueException $ignored){return ['available'=>false,'reason'=>'invalid_saved_projection'];}
+    }
 
     private function priceAudit(mixed $a,int $now):array
     {
