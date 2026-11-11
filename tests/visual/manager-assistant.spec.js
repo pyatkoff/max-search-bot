@@ -1,3 +1,4 @@
+const {settledMediaSelectionText}=require('./fixtures/media-selection');
 const {withTransitionDiagnostics}=require('./fixtures/transition-diagnostics');
 const {test,expect}=require('@playwright/test');
 const fs=require('node:fs'),path=require('node:path');
@@ -351,7 +352,7 @@ await page.locator('[data-assistant-client="11"]').click();await expect(page.loc
 await page.setViewportSize({width,height:420});await bounded(page);await capture(page,browserName,width,'short');await page.locator('#assistantClose').click();if(width>=768)expect(await page.evaluate(()=>document.documentElement.scrollHeight)).toBeLessThanOrEqual(421);
   await page.setViewportSize({width,height:900});await openConversationForAssistantTest(page,11);await expect(page.locator('#replyText')).toBeEnabled();
   await page.locator('#replyText').fill('Мой незаконченный ответ');await page.locator('#replyFile').setInputFiles({name:'assistant-keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained attachment')});
-  const draft=await page.locator('#replyText').inputValue(),selection=await page.locator('#mediaSelection').textContent();
+  const draft=await page.locator('#replyText').inputValue(),selection=await settledMediaSelectionText(page);
 await expect(page.locator('.conversationIdentityText #assistantClientOpen')).toHaveCount(0);await page.evaluate(()=>WorkspaceV2Assistant.open(11));await expect(page.locator('#assistantDetail')).toContainText('Отмечено выполненным');expect(s.calls.filter(c=>c.action==='decision')).toHaveLength(1);await page.locator('#assistantClose').click();
   await expect(page.locator('#replyText')).toHaveValue(draft);await expect(page.locator('#mediaSelection')).toHaveText(selection);
   clean(s);
@@ -477,7 +478,7 @@ for(const viewport of [{width:390,height:844},{width:430,height:844},{width:768,
     return route.fulfill({status,contentType:'application/json',body:JSON.stringify(result)});
   });
   await page.evaluate(()=>WorkspaceV2Conversation.open(11));await page.locator('#replyText').fill('Мой ответ остаётся в черновике');await page.locator('#replyFile').setInputFiles({name:'retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained file')});
-  const selection=await page.locator('#mediaSelection').textContent();
+  const selection=await settledMediaSelectionText(page);
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   await page.locator('#messages').hover();const beforeWheel=await page.locator('#messages').evaluate(box=>box.scrollTop);
   await page.mouse.wheel(0,-250);
@@ -506,7 +507,7 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
 
 for(const width of [390,430,768,1440])test('primary My Plan combines actions with advice and retains reply and attachment '+width,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const s=await setupAssistant(page);await page.evaluate(()=>WorkspaceV2Conversation.open(11));await page.locator('#replyText').fill('Мой ответ остаётся моим');await page.locator('#replyFile').setInputFiles({name:'keep-plan.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
-  const media=await page.locator('#mediaSelection').textContent();if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();
+  const media=await settledMediaSelectionText(page);if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();
   await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('#assistantDialog')).toHaveClass(/assistantPlanView/);await expect(page.locator('#assistantTitle')).toHaveText('Мой план');await expect(page.locator('[data-assistant-client]')).toHaveCount(1);expect(s.calls.filter(c=>c.action==='list').at(-1).scope).toBe('mine');await expect(page.locator('[data-assistant-client="11"]')).toContainText(s.items.get(11).recommendation.reason);
   await page.locator('[data-assistant-client="11"]').click();await page.locator('#assistantReply').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Мой ответ остаётся моим');await expect(page.locator('#mediaSelection')).toHaveText(media);
   if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();await expect(page.locator('#assistantDetail h3')).toHaveText(s.items.get(11).display_name);await page.locator('#assistantBack').click();await page.locator('[data-assistant-filter=waiting]').click();await page.locator('[data-assistant-client="12"]').click();await expect(page.locator('#assistantDetail')).toContainText('Дождаться клиента');await expect(page.locator('#assistantReply,#assistantPlan')).toHaveCount(0);await bounded(page);await capture(page,browserName,width,'primary-plan');clean(s);

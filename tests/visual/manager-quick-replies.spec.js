@@ -1,3 +1,4 @@
+const {settledMediaSelectionText}=require('./fixtures/media-selection');
 const {test,expect}=require('@playwright/test');
 const {execFileSync}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path');
@@ -202,7 +203,7 @@ async function openLibrary(page){await page.locator('#quickRepliesOpen').click()
 async function capture(page,browser,width,state){const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(dir,`reply-${browser}-${width}-${state}.png`)})}
 async function bounded(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1)}
 function clean(s){if(s.errors.length)console.log('QUICK_REPLY_PAGEERROR_DIAGNOSTICS '+JSON.stringify({errors:s.errorDiagnostics,recentRequests:s.requestTrace}));expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);expect(s.calls.filter(c=>c.action==='send')).toEqual([])}
-async function settledAttachmentText(page){await expect.poll(()=>page.locator('.mediaFileCheck').allTextContents().then(values=>values.filter(text=>text.startsWith('Проверяем файл')).length)).toBe(0);return page.locator('#mediaSelection').textContent()}
+const settledAttachmentText=settledMediaSelectionText;
 async function panelIds(page){return page.locator('[data-qr-toolbar-id]').evaluateAll(nodes=>nodes.map(node=>Number(node.dataset.qrToolbarId)))}
 async function expectPanel(page,ids){await expect.poll(()=>panelIds(page)).toEqual(ids)}
 const knownTrip={city:'Москва',country:'Турция',date:'29.02.2028',nights:'7-9',adults:2,children:0,budget:{max:250000,currency:'RUB',basis:'total'}};
@@ -229,7 +230,7 @@ test('Ordinary file preflight late native header cannot touch another client or 
   WorkspaceV2Media.addFiles([file]);window.preflightOriginalFile=file;
  });await expect.poll(()=>page.evaluate(()=>typeof window.releasePreflightHeader)).toBe('function');
  await chooseAnotherInboxClient(page);await expect.poll(()=>page.evaluate(()=>Number(WorkspaceV2.S.detail?.conversation?.id))).toBe(12);await page.locator('#replyText').fill('Новый клиент');await page.locator('#replyFile').setInputFiles({name:'Новый.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.7')});await expect(page.locator('.mediaFileCheck')).toContainText('получателя: файл');
- const before=await page.locator('#mediaSelection').textContent();await page.evaluate(()=>window.releasePreflightHeader());await expect(page.locator('#mediaSelection')).toHaveText(before);await expect(page.locator('.mediaFileName')).toHaveText('Новый.pdf');await expect(page.locator('#replyText')).toHaveValue('Новый клиент');clean(s);
+ const before=await settledMediaSelectionText(page);await page.evaluate(()=>window.releasePreflightHeader());await expect(page.locator('#mediaSelection')).toHaveText(before);await expect(page.locator('.mediaFileName')).toHaveText('Новый.pdf');await expect(page.locator('#replyText')).toHaveValue('Новый клиент');clean(s);
 });
 test('Ordinary file preflight policy loss is explicit and never blocks ordinary draft or slash insertion',async({page})=>{
  const s=await setup(page);await openLead(page);await page.locator('#replyFile').evaluate(node=>node.dataset.mediaPolicy='invalid');await page.locator('#replyFile').setInputFiles({name:'Исходный.txt',mimeType:'text/plain',buffer:Buffer.from('unchanged')});await expect(page.locator('.mediaFileCheck')).toContainText('недоступны');

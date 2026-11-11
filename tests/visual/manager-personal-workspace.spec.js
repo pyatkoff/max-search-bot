@@ -1,3 +1,4 @@
+const {settledMediaSelectionText}=require('./fixtures/media-selection');
 const {test,expect}=require('@playwright/test');
 const fs=require('node:fs'),path=require('node:path');
 const {setup,root,emptyState}=require('./fixtures/personal-workspace');
@@ -48,7 +49,7 @@ async function expectSelectedConditions(page){
 
 for(const width of [390,430,768,1440])test('multi-choice tab '+width+': ordinary pointer/keyboard, strict OR/AND results and cross-device saved conditions',async({page,browser,browserName})=>{
  await page.setViewportSize({width,height:900});const data=multiChoiceFixture(),s=await setup(page,data);await settled(page,s);await openLead(page);
- await page.locator('#replyText').fill('Черновик до изменения условий');await page.locator('#replyFile').setInputFiles({name:'conditions.txt',mimeType:'text/plain',buffer:Buffer.from('Keep this attachment')});const file=await page.locator('#mediaSelection').textContent();
+ await page.locator('#replyText').fill('Черновик до изменения условий');await page.locator('#replyFile').setInputFiles({name:'conditions.txt',mimeType:'text/plain',buffer:Buffer.from('Keep this attachment')});const file=await settledMediaSelectionText(page);
  await openPersonal(page);await page.locator('#pwNewTab').click();await page.locator('#pwTabName').fill('MAX и Telegram — ждут ответа');
  await expect(page.locator('.pwConditionHint')).toContainText('В одном условии подходит любое выбранное значение');
  await chooseCondition(page,'pwTabQueue','waiting',{keyboard:true});
@@ -97,7 +98,7 @@ for(const width of [390,430,768,1440])test.describe('Personal workspace '+width,
  test.use({viewport:{width,height:900}});
  test('whole private workspace: tab and label lifecycle, memberships, pins, settings and draft/file stay intact',async({page,browserName})=>{
   const s=await setup(page);await settled(page,s);expect(lists(s)).toHaveLength(1);await capture(page,browserName,width,'before-inbox');
-  await openLead(page);await page.locator('#replyText').fill('Сохранить этот ответ');await page.locator('#replyFile').setInputFiles({name:'private.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic file')});const file=await page.locator('#mediaSelection').textContent();
+  await openLead(page);await page.locator('#replyText').fill('Сохранить этот ответ');await page.locator('#replyFile').setInputFiles({name:'private.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic file')});const file=await settledMediaSelectionText(page);
   await openPersonal(page);await createLabel(page,'Семейный отдых');await createLabel(page,'Осень');
   const [first,second]=s.account(7).state.labels;await page.locator(`[data-pw-membership="${first.id}"]`).check();await page.locator(`[data-pw-membership="${second.id}"]`).check();expect(Object.values(s.account(7).state.members)).toEqual([[11],[11]]);
   await page.locator('#pwPin').click();expect(s.account(7).state.pins).toEqual([11]);await createTab(page,'Семьи',String(first.id));await createTab(page,'Осенние',String(second.id));

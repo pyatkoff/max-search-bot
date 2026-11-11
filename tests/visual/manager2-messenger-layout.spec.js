@@ -1,3 +1,4 @@
+const {settledMediaSelectionText}=require('./fixtures/media-selection');
 const {test,expect}=require('@playwright/test');
 const {execFileSync}=require('node:child_process');
 const fs=require('node:fs');
@@ -196,7 +197,7 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
     await expect(workspace).not.toHaveClass(/m2ClientCardOpen/);
     await page.locator('#replyText').fill('Черновик остаётся при открытии карточки');
     await page.locator('#replyFile').setInputFiles({name:'messenger-fixture.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment, never sent')});
-    const attachment=await page.locator('#mediaSelection').textContent();
+    const attachment=await settledMediaSelectionText(page);
     // Message editing performs one canonical debounced read after transcript rendering.
     // Drain that initial request before measuring the disclosure's zero extra reads.
     await expect.poll(()=>fixture.calls.filter(call=>call.action==='edit_candidates').length).toBe(1);await settle(fixture);

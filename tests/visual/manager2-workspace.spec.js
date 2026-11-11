@@ -1,3 +1,4 @@
+const {settledMediaSelectionText}=require('./fixtures/media-selection');
 const {withTransitionDiagnostics}=require('./fixtures/transition-diagnostics');
 const {test,expect}=require('@playwright/test');
 const {execFileSync}=require('node:child_process');
@@ -464,7 +465,7 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
     const draft='Черновик до загрузки справочника';await page.locator('#replyText').fill(draft);
     await page.locator('#replyFile').setInputFiles({name:'held-metadata.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment, never uploaded or sent')});
     await expect(page.locator('#mediaSelection')).toContainText('held-metadata.txt');
-    const attachment=await page.locator('#mediaSelection').textContent();
+    const attachment=await settledMediaSelectionText(page);
     await page.locator('#replyText').focus();await expect(page.locator('#replyText')).toBeFocused();
     const before={lists:s.calls.filter(call=>call.action==='list').length,details:s.calls.filter(call=>call.path==='/manager/api.php'&&call.action==='detail').length};
     expect(before.lists).toBe(1);expect(s.metadataPending()).toBe(1);
@@ -491,7 +492,7 @@ for(const action of ['catalog','filter_options'])for(const status of [500,401])t
   const draft='Точный черновик при ошибке справочника';await page.locator('#replyText').fill(draft);
   await page.locator('#replyFile').setInputFiles({name:'metadata-failure.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment, never uploaded or sent')});
   await expect(page.locator('#mediaSelection')).toContainText('metadata-failure.txt');
-  const attachment=await page.locator('#mediaSelection').textContent();await page.locator('#replyText').focus();
+  const attachment=await settledMediaSelectionText(page);await page.locator('#replyText').focus();
   const lists=s.calls.filter(call=>call.action==='list').length;await s.releaseMetadata(status);
   if(status===401){
     await expect(page.locator('#managerAuthRecovery')).toBeVisible();await expect(page.locator('#composer')).not.toBeVisible();
@@ -518,7 +519,7 @@ for(const stale of [false,true])test(`Manager2 startup metadata reconciles ${sta
   const draft='Ответ остаётся при сверке сохранённых условий';await page.locator('#replyText').fill(draft);
   await page.locator('#replyFile').setInputFiles({name:'saved-criteria.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic file, never uploaded or sent')});
   await expect(page.locator('#mediaSelection')).toContainText('saved-criteria.txt');
-  const attachment=await page.locator('#mediaSelection').textContent();await page.locator('#replyText').focus();
+  const attachment=await settledMediaSelectionText(page);await page.locator('#replyText').focus();
   expect(s.calls.filter(call=>call.action==='list')).toHaveLength(1);expect(s.metadataPending()).toBe(1);
   await s.releaseMetadata();
   await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.pipeline.stages.length)).toBe(stages.length);
@@ -595,7 +596,7 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     await page.evaluate(()=>{window.fixtureNativeConversationTools=['conversationSearchOpen'].map(id=>document.getElementById(id))});
     await page.locator('#replyText').fill('Черновик Анны для проверки компактного кабинета');
     await page.locator('#replyFile').setInputFiles({name:'compact-Anna.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic file, never sent')});
-    const file=await page.locator('#mediaSelection').textContent();
+    const file=await settledMediaSelectionText(page);
     await menu.locator('summary').press('Enter');await expect(search).toBeVisible();await expect(next).toHaveCount(0);
     await search.click();await expect(menu).not.toHaveAttribute('open');await expect(page.locator('#conversationSearchInput')).toBeFocused();
     await page.locator('#conversationSearchInput').fill('у моря');await page.locator('#conversationSearchInput').press('Escape');
