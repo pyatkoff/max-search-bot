@@ -330,5 +330,46 @@ final class MaxChannelConversionOutbox
         }
         return $count;
     }
+
+    /** Explicit company policy; legacy AnyTour selectors above remain unchanged. */
+    public function captureProject(array $policy,array $conversation,string $stage,int $eventUnix,array $context,?string $value=null): bool
+    {
+        if($policy['project_key']==='anytour'||$policy['counter_id']==='98615635'||!isset($policy['goals'][$stage])
+            ||$conversation['project_key']!==$policy['project_key']||$conversation['channel']!=='max'
+            ||!preg_match('/\A[1-9][0-9]{0,18}\z/D',(string)$conversation['external_user_id']))throw new InvalidArgumentException('invalid_project_capture');
+        $insert=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite'?'INSERT OR IGNORE':'INSERT IGNORE';
+        $q=$this->pdo->prepare($insert.' INTO max_channel_conversion_outbox (project_key,platform,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,funnel_context_json,funnel_policy_sha256,value_rub) VALUES (?,?,?,?,?,?,?,?,?,?,?)');
+        $q->execute([$policy['project_key'],'max',$conversation['id'],(string)$conversation['external_user_id'],$policy['counter_id'],'funnel_'.$stage,$policy['goals'][$stage],$eventUnix,
+            json_encode($context,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$policy['sha256'],$value]);
+        return $q->rowCount()===1;
+    }
+
+    public function projectRows(array $policy,string $state,int $now,int $limit=5): array
+    {
+        if($policy['project_key']==='anytour'||$policy['counter_id']==='98615635'||!in_array($state,['pending','ready','accepted','unknown'],true))throw new InvalidArgumentException('invalid_project_rows');
+        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key=? AND counter_id=? AND platform='max' AND target LIKE 'funnel_%' AND state=? AND next_attempt_unix<=? ORDER BY id LIMIT ".max(1,min(25,$limit)));
+        $q->execute([$policy['project_key'],$policy['counter_id'],$state,$now]);return $q->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function resolveProject(array $row,?array $observation,int $now): void
+    {
+        if(!$observation){$this->defer((string)$row['id'],'pending',$now+900);return;}
+        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET client_id=?,tracker_observed_unix=?,state='ready',next_attempt_unix=0 WHERE id=? AND project_key=? AND counter_id=? AND platform='max' AND state='pending' AND funnel_policy_sha256=?");
+        $q->execute([$observation['client_id'],$observation['observed_at_unix'],$row['id'],$row['project_key'],$row['counter_id'],$row['funnel_policy_sha256']]);
+    }
+
+    public function claimProject(array $row,int $now): ?string
+    {
+        $token=bin2hex(random_bytes(16));
+        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET state='uploading',claim_token=?,claimed_at_unix=?,attempts=attempts+1 WHERE id=? AND project_key=? AND counter_id=? AND platform='max' AND state='ready' AND funnel_policy_sha256=? AND transport_target=? AND next_attempt_unix<=?");
+        $q->execute([$token,$now,$row['id'],$row['project_key'],$row['counter_id'],$row['funnel_policy_sha256'],$row['transport_target'],$now]);return $q->rowCount()===1?$token:null;
+    }
+
+    public function recoverProject(array $policy,int $now): void
+    {
+        if($policy['project_key']==='anytour')throw new InvalidArgumentException('invalid_project_recovery');
+        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET state='unknown',last_error='upload_outcome_unknown',next_attempt_unix=? WHERE project_key=? AND counter_id=? AND platform='max' AND state='uploading' AND claimed_at_unix<?");$q->execute([$now,$policy['project_key'],$policy['counter_id'],$now-300]);
+        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET state='expired',last_error='event_expired' WHERE project_key=? AND counter_id=? AND platform='max' AND state IN ('pending','ready') AND event_unix<?");$q->execute([$policy['project_key'],$policy['counter_id'],$now-21*86400]);
+    }
 }
 

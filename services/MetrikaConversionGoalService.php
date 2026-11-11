@@ -3,6 +3,7 @@ require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ProjectConfig.php';
 require_once __DIR__ . '/MaxChannelConversionOutbox.php';
 require_once __DIR__ . '/AdvertisingSignalService.php';
+require_once __DIR__ . '/ProjectFunnelConversions.php';
 
 /**
  * Conversation-aware owner for higher-funnel Yandex Metrika conversion goals.
@@ -102,6 +103,7 @@ class MetrikaConversionGoalService
         $goal = self::stageGoal($stageKey);
         if ($goal === null || $conversationId <= 0) return false;
         try {
+            ProjectFunnelConversions::observeStage($conversationId,$stageKey);
             return self::emitOnce($conversationId, $goal, $queue);
         } catch (Throwable $e) {
             self::logFailure('sales_stage', $conversationId, $e, ['stage_key'=>$stageKey,'target'=>$goal]);

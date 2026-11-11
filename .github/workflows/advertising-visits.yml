@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - services/AdvertisingVisit*.php
+      - services/ProjectFunnel*.php
+      - migrations/103_project_funnel_context.sql
+      - tests/fixtures/project_funnel_advertising_assertions.php
+      - tests/run_project_funnel*.php
       - modules/tgmini-identity/**
       - tools/build_tgmini_feed.py
       - tools/advertising_visit_transport.php
@@ -50,6 +54,7 @@ jobs:
       - run: php tests/run_advertising_visits_regression.php
       - run: php tests/run_advertising_visit_transport_regression.php
       - run: php tests/run_advertising_signals_regression.php
+      - run: php tests/run_project_funnel_conversions_regression.php
       - name: Verify the actual forward migration and imports on native MySQL
         env:
           ADVERTISING_VISITS_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=maxbot_advertising_test;charset=utf8mb4
