@@ -28,6 +28,8 @@ return [
         'php tests/run_repair_max_webhook_regression.php',
         'php tests/run_appleservice39_setup_regression.php',
         'php tests/run_appleservice39_publisher_regression.php',
+        'php tests/run_appleservice39_search_plan_regression.php',
+        'php tests/run_appleservice39_search_publisher_regression.php',
         'php tests/run_project_max_webhook_setup_regression.php',
         'php tests/run_standby_deploy_contract_regression.php',
         'php tests/run_cutover_data_snapshot_regression.php',
