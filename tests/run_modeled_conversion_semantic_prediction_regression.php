@@ -852,6 +852,92 @@ $tests['publication estimate distinguishes total party nightly foreign and unkno
     semanticPredictionAssert($v['low']===150000&&$v['high']===null&&$v['point']===150000,'advertised floor precision');
 };
 
+
+$tests['canonical recorded questions are strict context and never factual writes']=static function():void{
+    $source=file_get_contents(dirname(__DIR__).'/services/MissingFieldQuestionService.php');
+    foreach(ModeledConversionQuestionnaireContext::QUESTIONS as$field=>$text)
+        semanticPredictionAssert(ModeledConversionQuestionnaireContext::field($text)===$field
+            &&str_contains($source,$text),'canonical recorded question mapping drifted');
+    foreach(['Сколько взрослых?','Оплачено. На сколько ночей планируете поездку?',
+        'Цитата: Будут дети? Если да — сколько?']as$text)
+        semanticPredictionAssert(ModeledConversionQuestionnaireContext::field($text)===null,'broad AI text became a pending question');
+    foreach([['adults','2'],['children','Нет!'],['children','без детей'],['nights','7-9']]as[$field,$text])
+        semanticPredictionAssert(ModeledConversionQuestionnaireContext::accepts($field,$text),'strict literal was rejected');
+    foreach([['adults','2 взрослых'],['children','Да'],['children','4'],['nights','29'],
+        ['nights','9-7'],['nights','7?'],['nights','7 или 9']]as[$field,$text])
+        semanticPredictionAssert(!ModeledConversionQuestionnaireContext::accepts($field,$text),'ambiguous literal became a criterion');
+};
+
+$tests['AI question context collects human criteria without receipts or engagement inflation']=static function():void{
+    $p=semanticPredictionNew();$state=ArchiveResearchSemanticExtractor::initialState();
+    $at=strtotime('2026-11-01T00:00:00Z');
+    $answer=static function(string $text,string $ref,int $time)use($p,&$state):void{
+        $r=semanticPredictionResult($text,'customer',$ref,$time,$state);
+        $p->observeMessage('customer',$text,$ref,$time,$time+1,1,$r);
+    };
+    $p->observeServiceQuestion('Сколько будет взрослых туристов?','journal:1',$at,$at+1,1);
+    semanticPredictionAssert($p->finish(semanticPredictionLegacy())['status']==='insufficient_context','AI question supplied a customer criterion');
+    $answer('2','journal:2',$at+10);
+    $p->observeServiceQuestion('Будут дети? Если да — сколько?','journal:3',$at+20,$at+21,1);
+    $answer('Нет','journal:4',$at+30);
+    semanticPredictionAssert($p->finish(semanticPredictionLegacy())['status']==='insufficient_context','party fields became two independent families');
+    $p->observeServiceQuestion('Сколько лет детям?','journal:5',$at+40,$at+41,1);
+    semanticPredictionAssert($p->canPreserveCustomerContext($at+45),'unsupported known AI question erased an answered party criterion');
+    $answer('5','journal:6',$at+50);
+    $p->observeServiceQuestion('На сколько ночей планируете поездку?','journal:7',$at+60,$at+61,1);
+    $answer('7','journal:8',$at+70);
+    $v=$p->finish(semanticPredictionLegacy());
+    semanticPredictionAssert($v['status']==='predicted'&&$v['stage']==='concrete_request'
+        &&$v['current_request_anchor']==='journal:2'&&$v['base_probability']===0.083333
+        &&$v['estimated_probability']===0.083333&&$v['hypothesis_odds_multiplier']===1.0
+        &&$v['features']['meaningful_customer_turns']===0&&$v['features']['criteria_families']===['dates','party']
+        &&$v['features']['explicit_decline']===false&&$v['outcome_observations']===[],
+        'question-conditioned answers changed intent, weights or failed the concrete stage');
+    require_once dirname(__DIR__).'/services/ModeledConversionValueRegistry.php';
+    $wrapper=['subject'=>semanticPredictionSubject(),'access_status'=>'allowed',
+        'profile'=>['prediction_at'=>$v['profile_prediction_at']],'semantic_prediction'=>$v];
+    semanticPredictionAssert(ModeledConversionValueRegistry::predictionFields($wrapper)['semantic_prediction']['availability']==='available',
+        'new inference is rejected by the existing saved-profile read contract');
+};
+
+$tests['pending question is consumed and cannot cross intervening human service or unknown context']=static function():void{
+    $at=strtotime('2026-11-01T00:00:00Z');
+    foreach(['manager','unrecognized_ai','barrier','second_answer','revised_question']as$kind){
+        $p=semanticPredictionNew();$state=ArchiveResearchSemanticExtractor::initialState();
+        $observe=static function(string $role,string $text,string $ref,int $time)use($p,&$state):void{
+            $r=semanticPredictionResult($text,$role,$ref,$time,$state);
+            $p->observeMessage($role,$text,$ref,$time,$time+1,1,$r);
+        };
+        $p->observeServiceQuestion('Сколько будет взрослых туристов?','journal:1',$at,$at+1,1);
+        $observe('customer','2','journal:2',$at+10);
+        $p->observeServiceQuestion('На сколько ночей планируете поездку?','journal:3',$at+20,$at+21,$kind==='revised_question'?2:1);
+        if($kind==='manager')$observe('manager','Уточняю предложение','journal:4',$at+25);
+        elseif($kind==='unrecognized_ai')$p->observeServiceQuestion('Уточняю параметры.','journal:4',$at+25,$at+26,1);
+        elseif($kind==='barrier')$p->barrier();
+        elseif($kind==='second_answer')$observe('customer','Не знаю','journal:4',$at+25);
+        $observe('customer','7','journal:5',$at+30);
+        semanticPredictionAssert($p->finish(semanticPredictionLegacy())['status']==='insufficient_context',
+            'pending question survived an invalid boundary: '.$kind);
+    }
+};
+
+$tests['bot questions cannot renew old customer criteria across a day']=static function():void{
+    $p=new ModeledConversionSemanticPrediction(semanticPredictionSubject(),'2026-11-04T00:00:00Z',
+        '2026-11-03T00:00:00Z','2026-11-04T00:00:00Z','100','100');
+    $at=strtotime('2026-11-01T00:00:00Z');$state=ArchiveResearchSemanticExtractor::initialState();
+    $p->observeServiceQuestion('Сколько будет взрослых туристов?','journal:1',$at,$at+1,1);
+    $r=semanticPredictionResult('2','customer','journal:2',$at+10,$state);
+    $p->observeMessage('customer','2','journal:2',$at+10,$at+11,1,$r);
+    $p->observeServiceQuestion('На сколько ночей планируете поездку?','journal:3',$at+23*3600,$at+23*3600+1,1);
+    // The source reader may see service traffic meanwhile; the human criterion remains old.
+    $state=ArchiveResearchSemanticExtractor::initialState();
+    $r=semanticPredictionResult('7','customer','journal:4',$at+25*3600,$state);
+    $p->observeMessage('customer','7','journal:4',$at+25*3600,$at+25*3600+1,1,$r);
+    semanticPredictionAssert($p->finish(semanticPredictionLegacy())['status']==='insufficient_context',
+        'a fresh AI question prolonged an old party criterion past 24 hours');
+};
+
+
 $failures=0;
 set_error_handler(static function(int $severity,string $message,string $file,int $line):never{
     throw new ErrorException($message,0,$severity,$file,$line);
