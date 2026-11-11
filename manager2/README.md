@@ -79,7 +79,7 @@ Internal notes are a separate employee-only list/editor marked “Видно т�
 
 The canonical reply library supports personal/shared answers, categories, search, favorites and explicit editable insertion. Shared editing is role-gated on the server; uncertain library saves reconcile their original operation receipt. Library loading is lazy and cannot delay the Inbox or transcript.
 
-Transcript display and composer authorization complete independently of the secondary client card. Search explicitly covers loaded messages; the next-waiting control covers the current successfully loaded selection, with unchanged filters and access checks. Message drafts retain their existing account-scoped storage; selected files are preserved in memory between authorized conversations and cannot be restored after a page reload.
+Transcript display and composer authorization complete independently of the secondary client card. Search starts with immediate highlighting in loaded messages. “Вся история” searches all saved text in the same authorized conversation, including messages before the latest 200; it excludes quoted text and file contents. Results run from newest to oldest, count matching messages and open the exact message with its neighbours without replacing the main transcript or draft. Long empty scans show “Совпадений пока нет” and an explicit continuation; only an exhausted search declares no matches throughout history. A new query restarts the search with a new snapshot. The next-waiting control covers the current successfully loaded selection, with unchanged filters and access checks. Text and selected-file drafts remain owned by the existing account/conversation-scoped Conversation and Media recovery boundaries.
 
 ## Recognizable clients
 

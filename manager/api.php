@@ -39,7 +39,7 @@ if($action==='login'){
 
 // These transcript reads need existing project metadata, never its legacy UPSERT.
 // Initialize before manager resolution can enter the shared bootstrap.
-if(in_array($action,['detail','message_target','reply_queue_resolve','reply_queue_undo','reply_queue_receipt','media_receipt','media_cancel'],true)&&ManagerHttp::managerId()>0){
+if(in_array($action,['detail','message_target','message_search','message_context','reply_queue_resolve','reply_queue_undo','reply_queue_receipt','media_receipt','media_cancel'],true)&&ManagerHttp::managerId()>0){
     try{ProjectAccessService::initializeReadOnly();}
     catch(Throwable $ignored){out(['ok'=>false,'error'=>'project_unavailable'],503);}
 }
@@ -177,6 +177,27 @@ if($action==='message_target'){
     }catch(Throwable $e){out(['ok'=>false,'error'=>'message_target_failed'],500);}
     if(!$target)out(['ok'=>false,'error'=>'not_found'],404);
     out(['ok'=>true]+$target);
+}
+if($action==='message_search'||$action==='message_context'){
+    $fields=$action==='message_search'?['conversation_id'=>1,'before_id'=>0,'snapshot_id'=>0]:['conversation_id'=>1,'target_message_id'=>1];
+    foreach($fields as $field=>$minimum){
+        $id=$data[$field]??($minimum===0?0:null);
+        if((!is_int($id)&&!(is_string($id)&&preg_match('/^(?:0|[1-9][0-9]*)$/D',$id)))
+            ||filter_var($id,FILTER_VALIDATE_INT,['options'=>['min_range'=>$minimum]])===false)out(['ok'=>false,'error'=>'invalid_message_search'],422);
+    }
+    $query=$data['query']??null;
+    if($action==='message_search'&&(!is_string($query)||!mb_check_encoding($query,'UTF-8')||trim($query)===''||mb_strlen($query,'UTF-8')>200
+        ||((int)($data['before_id']??0)>0&&((int)($data['snapshot_id']??0)===0||(int)$data['before_id']>(int)$data['snapshot_id']))))out(['ok'=>false,'error'=>'invalid_message_search'],422);
+    session_write_close();
+    try{
+        $result=$action==='message_search'
+            ?ManagerConversationService::searchMessages((int)$data['conversation_id'],(int)$m['id'],$query,(int)($data['before_id']??0),(int)($data['snapshot_id']??0))
+            :ManagerConversationService::messageContext((int)$data['conversation_id'],(int)$m['id'],(int)$data['target_message_id']);
+        if($result&&$action==='message_context'&&!empty($result['available']))$result['messages']=ManagerMessageMediaService::hydrate($result['messages']);
+        if($result&&(!ManagerAuthService::byId((int)$m['id'])||!ManagerConversationService::visibleConversation((int)$data['conversation_id'],(int)$m['id'],true)))$result=null;
+    }catch(Throwable $e){out(['ok'=>false,'error'=>'message_search_failed'],500);}
+    if(!$result)out(['ok'=>false,'error'=>'not_found'],404);
+    out(['ok'=>true]+$result);
 }
 if($action==='ack_read'){
     $ids=$data['message_ids']??null;$context=$data['read_context']??null;

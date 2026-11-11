@@ -465,6 +465,26 @@ try {
     }
     $pdo->rollBack();
     inboxNativeCheck('native counter reads leave read cursors unchanged',inboxNativeReadState($pdo)===$initialReads);
+    // Full-history search uses the same production core index and real native
+    // prepared statements. This isolated conversation is added after the
+    // immutable list/queue comparisons, never to their measured population.
+    $conversation->execute([9900,1,'native-inbox',1,'max','manager','new',7,'2026-10-15 10:00:00','2026-10-15 10:01:00',0]);
+    $pdo->beginTransaction();
+    for($n=1;$n<=10051;$n++)$message->execute([900000+$n,9900,$n===7?'outbound':'inbound',$n===7?'manager':'customer','max',$n===7?'Архив &amp; море &#x1F30A; 100%_\\ <img>':'Проверка '.$n,null,'2026-10-15 10:00:00']);
+    $pdo->commit();
+    $page=ManagerConversationService::searchMessages(9900,90,'& МОРЕ 🌊 100%_\\');
+    inboxNativeCheck('native full search bounds each request and retains an empty continuation',$page['matches']===[]&&$page['scanned']===1000&&$page['has_more']&&$page['snapshot_id']===910051);
+    $calls=1;$found=[];$bounded=true;
+    while($page['has_more']&&$calls<12){$page=ManagerConversationService::searchMessages(9900,90,'& МОРЕ 🌊 100%_\\',$page['before_id'],$page['snapshot_id']);$found=array_merge($found,$page['matches']);$bounded=$bounded&&$page['scanned']<=1000&&count($page['matches'])<=25;$calls++;}
+    inboxNativeCheck('native Unicode literal search reaches the original beyond ten thousand rows',$calls===11&&$bounded&&!$page['has_more']&&array_column($found,'message_id')===[900007]&&str_contains($found[0]['snippet'],'& море 🌊 100%_\\ <img>'));
+    $page=ManagerConversationService::searchMessages(9900,90,'ПРОВЕРКА');
+    $next=ManagerConversationService::searchMessages(9900,90,'ПРОВЕРКА',$page['before_id'],$page['snapshot_id']);
+    inboxNativeCheck('native dense search uses keyset pages without duplicates',array_column($page['matches'],'message_id')===range(910051,910027)&&array_column($next['matches'],'message_id')===range(910026,910002));
+    $context=ManagerConversationService::messageContext(9900,90,900007);
+    inboxNativeCheck('native search target shares the bounded original context',count($context['messages'])===27&&$context['target_message_id']===900007&&$context['messages'][6]['text']==='Архив & море 🌊 100%_\\ <img>');
+    inboxNativeCheck('native foreign target remains unavailable',ManagerConversationService::messageContext(9900,90,1)['available']===false);
+    inboxNativeCheck('native search and context leave all original read markers unchanged',inboxNativeReadState($pdo)===$initialReads);
+    echo 'FULL_HISTORY_SEARCH '.json_encode(['rows'=>10051,'requests_to_old_hit'=>$calls,'max_scanned_per_request'=>1000,'max_hits_per_page'=>25,'read_only'=>true],JSON_THROW_ON_ERROR)."\n";
     echo 'EVIDENCE ' . json_encode(['scope'=>'synthetic_native_service_list','base_sha'=>'bc9d104b1f9619d5d6cbb0a7ee05dced06376abf',
         'owned_fixture_rows'=>count(array_filter($fixtures,static fn(array $f):bool=>$f['project']==='native-inbox'&&$f['owner']===7&&$f['status']==='manager'&&!$f['isTest'])),
         'sample_count_each'=>20,'order'=>'alternating','cache_state'=>'two_warmups_each_uncontrolled_server_cache','result_sha256'=>hash('sha256',json_encode([$before['rows'],$before['metadata']],JSON_THROW_ON_ERROR)),

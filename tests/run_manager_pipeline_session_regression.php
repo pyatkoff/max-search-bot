@@ -105,6 +105,8 @@ class CardSessionStatement extends PDOStatement {
         if(str_contains($sql,' AS unread_count ')){cardFixtureGate(($GLOBALS['action']??'')==='counts'?'counts':'list');return true;}
         if(str_starts_with($sql,'SELECT id,direction,sender_type,text,created_at FROM messages ')){$customer=in_array((int)$args[0],[46,47,48],true);$this->rows=[['id'=>101,'direction'=>$customer?'inbound':'outbound','sender_type'=>$customer?'customer':'manager','text'=>'Synthetic transcript &amp; retained','created_at'=>'2026-10-25 10:00:00']];return true;}
         if(str_starts_with($sql,'SELECT EXISTS(SELECT 1 FROM messages ')){$this->rows=[[in_array((int)$args[0],[46,47,48],true)?0:1]];return true;}
+        if($sql==='SELECT COALESCE(MAX(id),0) FROM messages WHERE conversation_id=?'){$this->rows=[[999]];return true;}
+        if(str_starts_with($sql,'SELECT id,sender_type,text,created_at FROM messages ')){$this->rows=[['id'=>999,'sender_type'=>'manager','text'=>'Synthetic transcript &amp; retained','created_at'=>'2026-10-25 10:00:00']];return true;}
         if(str_starts_with($sql,'SELECT payload_json,created_at FROM conversation_events '))return true;
         if(str_starts_with($sql,'SELECT id,channel,direction,metadata_json FROM messages ')
             ||str_starts_with($sql,'SELECT id,channel,metadata_json FROM messages '))return true;
@@ -264,6 +266,8 @@ PHP);
         ['older','/manager/api.php',['action'=>'detail','conversation_id'=>42,'before_id'=>200]],
         ['quote','/manager/api.php',['action'=>'message_target','conversation_id'=>42,'source_message_id'=>999]],
         ['card','/manager/pipeline-api.php',['action'=>'detail','conversation_id'=>42]],
+        ['search','/manager/api.php',['action'=>'message_search','conversation_id'=>42,'query'=>'transcript & retained']],
+        ['search-context','/manager/api.php',['action'=>'message_context','conversation_id'=>42,'target_message_id'=>101]],
     ];$profiles=[];$sessionFile=$tmp.'/sessions/sess_'.substr($cookies['own'],strlen('anytour_manager_panel='));$sessionBefore=hash_file('sha256',$sessionFile);
     foreach($readCases as[$label,$path,$input]){
         file_put_contents($projectFile,json_encode($readyProject));$before=file_get_contents($projectFile);
@@ -271,15 +275,18 @@ PHP);
         $valid=$result['status']===200&&!empty($body['ok']);
         if(in_array($label,['latest','older'],true))$valid=$valid&&$body['conversation']['id']===42&&$body['messages'][0]['text']==='Synthetic transcript & retained'&&$body['messages'][0]['attachments']===[]&&$body['history']['mode']===($label==='older'?'older':'latest')&&$body['read_state']['last_read_message_id']===0;
         elseif($label==='quote')$valid=$valid&&$body['available']===false&&$body['conversation_id']===42;
+        elseif($label==='search')$valid=$valid&&array_column($body['matches'],'message_id')===[999]&&!$body['has_more'];
+        elseif($label==='search-context')$valid=$valid&&$body['available']===true&&$body['target_message_id']===101;
         else $valid=$valid&&$body['can_edit_pipeline']===true&&$body['degraded_components']===[];
         cardCheck($label.' actual HTTP read retains its payload',$valid);
         cardCheck($label.' uses one project lookup and zero project writes',$observed['project_writes']===0&&$observed['bootstrap_queries']===1&&file_get_contents($projectFile)===$before);
+        if(in_array($label,['search','search-context'],true))cardCheck($label.' releases the real HTTP session before message reads',array_filter($observed['queries'],static fn($row)=>str_contains($row['sql'],'FROM messages')&&$row['active'])===[]);
         $profiles[]=['read'=>$label,'project_writes'=>$observed['project_writes'],'project_bootstrap_queries'=>$observed['bootstrap_queries']];
     }
     echo 'SYNTHETIC_READ_BOOTSTRAP '.json_encode($profiles,JSON_THROW_ON_ERROR)."\n";
     cardCheck('read initialization preserves stored session identity and CSRF bytes',hash_file('sha256',$sessionFile)===$sessionBefore);
-    foreach([0,2,3]as$index){[$label,$path,$input]=$readCases[$index];$observed=cardObservedRequest($second,$path,$input+['csrf'=>'fixture-csrf'],$cookies['admin']);$result=$observed['response'];$body=$result['body'];
-        $access=$label==='latest'?(!empty($body['owner_read'])&&!empty($body['supervisor_read'])&&$body['read_state']===['acknowledge'=>false]):($label==='quote'?($body['available']===false):($body['can_edit_pipeline']===true));
+    foreach([0,2,3,4,5]as$index){[$label,$path,$input]=$readCases[$index];$observed=cardObservedRequest($second,$path,$input+['csrf'=>'fixture-csrf'],$cookies['admin']);$result=$observed['response'];$body=$result['body'];
+        $access=match($label){'latest'=>(!empty($body['owner_read'])&&!empty($body['supervisor_read'])&&$body['read_state']===['acknowledge'=>false]),'quote'=>$body['available']===false,'search'=>array_column($body['matches'],'message_id')===[999],'search-context'=>$body['available']===true,default=>$body['can_edit_pipeline']===true};
         cardCheck('owner '.$label.' retains existing access without project writes',$result['status']===200&&!empty($body['ok'])&&$access&&$observed['project_writes']===0&&$observed['bootstrap_queries']===1);
     }
     foreach([['anonymous','',42,'fixture-csrf',401],['inactive',$cookies['inactive'],42,'fixture-csrf',401],['bad CSRF',$cookies['own'],42,'wrong',403],['denied project',$cookies['own'],43,'fixture-csrf',404],['denied group',$cookies['own'],44,'fixture-csrf',404],['missing',$cookies['own'],999,'fixture-csrf',404]]as[$label,$cookie,$id,$csrf,$status]){
@@ -288,7 +295,7 @@ PHP);
     }
     foreach(['wrong_name','inactive','missing','lookup_failure']as$state){
         $project=$state==='missing'?null:$readyProject;if($state==='wrong_name')$project['display_name']='Operator-owned name';if($state==='inactive')$project['is_active']=0;if($state==='lookup_failure')$project['read_error']=true;
-        foreach([0,2,3]as$index){[$label,$path,$input]=$readCases[$index];file_put_contents($projectFile,json_encode($project));$before=file_get_contents($projectFile);
+        foreach([0,2,3,4,5]as$index){[$label,$path,$input]=$readCases[$index];file_put_contents($projectFile,json_encode($project));$before=file_get_contents($projectFile);
             $observed=cardObservedRequest($second,$path,$input+['csrf'=>'fixture-csrf'],$cookies['own']);$result=$observed['response'];
             cardCheck($state.' '.$label.' fails closed without repair',$result['status']===503&&$result['body']===['ok'=>false,'error'=>'project_unavailable']&&$observed['project_writes']===0&&file_get_contents($projectFile)===$before);
         }

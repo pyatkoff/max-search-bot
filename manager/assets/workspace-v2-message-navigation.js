@@ -20,7 +20,7 @@ function ensureBar(){
  bar=document.createElement('div');bar.id='messageNavigationBar';bar.className='messageNavigationBar';bar.hidden=true;
  const back=document.createElement('button');back.id='messageNavigationBack';back.type='button';back.className='actionBtn';back.textContent='Вернуться к цитате';back.onclick=returnToQuote;
  const status=document.createElement('span');status.id='messageNavigationStatus';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
- const retry=document.createElement('button');retry.id='messageNavigationRetry';retry.type='button';retry.className='actionBtn';retry.textContent='Повторить';retry.onclick=()=>active&&void openQuote(active.sourceId,null,{retry:true});
+ const retry=document.createElement('button');retry.id='messageNavigationRetry';retry.type='button';retry.className='actionBtn';retry.textContent='Повторить';retry.onclick=()=>active&&(active.search?void openSearchTarget(active.sourceId,active.returnFocus,{isCurrent:active.isCurrent}):void openQuote(active.sourceId,null,{retry:true}));
  bar.append(back,status,retry);messages.before(bar);return bar;
 }
 function renderBar(){
@@ -38,11 +38,11 @@ function ensureDialog(){
  const description=document.createElement('p');description.className='messageContextDescription';description.textContent='Оригинал и соседние сообщения. Это ограниченный фрагмент переписки.';
  const messages=document.createElement('div');messages.id='messageContextMessages';messages.className='messages messageContextMessages';
  dialog.append(head,description,messages);document.body.appendChild(dialog);
- dialog.addEventListener('close',()=>{clearPreview();if(active?.peek){const saved=active.anchor;active=null;renderBar();if(scope===key())restore(saved)}});
+ dialog.addEventListener('close',()=>{clearPreview();if(active?.peek){const saved=active.anchor,focus=active.returnFocus;active=null;renderBar();if(scope===key()){if(focus?.isConnected)focus.focus({preventScroll:true});else restore(saved)}}});
  return dialog;
 }
 function validResponse(result,sourceId,conversationId){
- if(result?.ok!==true||Number(result.conversation_id)!==conversationId||Number(result.source_message_id)!==sourceId||typeof result.available!=='boolean')return false;
+ if(result?.ok!==true||Number(result.conversation_id)!==conversationId||(sourceId!==null&&Number(result.source_message_id)!==sourceId)||typeof result.available!=='boolean')return false;
  if(!result.available)return true;
  const rows=result.messages,target=Number(result.target_message_id);return Number.isSafeInteger(target)&&target>0&&Array.isArray(rows)&&rows.length>0&&rows.length<=41&&rows.some(m=>Number(m.id)===target)&&rows.every((m,i)=>Number.isSafeInteger(Number(m?.id))&&Number(m.id)>0&&(i===0||Number(m.id)>Number(rows[i-1].id)));
 }
@@ -64,6 +64,25 @@ async function openQuote(sourceId,button=null,{retry=false}={}){
   window.setTimeout(()=>row.classList.remove('messageNavigationTarget'),1800);return true;
  }
  const peek=ensureDialog();active={sourceId,anchor:saved,status:'',retry:false,peek:true};renderBar();
+ $('messageContextTitle').textContent='Исходное сообщение';$('messageContextBack').textContent='Вернуться к цитате';
+ window.WorkspaceV2Conversation?.renderMessageContext?.($('messageContextMessages'),result.messages);
+ const original=[...$('messageContextMessages').children].find(node=>Number(node.dataset.scrollMessageKey)===target);original?.classList.add('messageNavigationTarget');
+ peek.showModal();const box=$('messageContextMessages');if(original)box.scrollTop=Math.max(0,original.offsetTop-box.offsetTop-48);return true;
+}
+async function openSearchTarget(target,button,{isCurrent=()=>true}={}){
+ target=Number(target);const captured=context();if(!Number.isSafeInteger(target)||target<=0||!current(captured)||!isCurrent())return false;
+ sync();const ticket=++revision;
+ active={sourceId:target,search:true,returnFocus:button,isCurrent,status:'Открываем найденное сообщение…',retry:false};renderBar();
+ const valid=()=>ticket===revision&&current(captured)&&isCurrent();let result;
+ try{result=await api('message_context',{conversation_id:captured.conversationId,target_message_id:target},{isCurrent:valid})}catch(e){result=null}
+ if(!valid()){if(ticket===revision){active=null;renderBar()}return false}
+ if(!validResponse(result,null,captured.conversationId)||(result.available&&Number(result.target_message_id)!==target)){
+  if([403,404].includes(result?.http_status)){window.WorkspaceV2Conversation?.invalidateMessageAccess?.();return false}
+  active.status='Не удалось открыть найденное сообщение. Можно повторить.';active.retry=true;renderBar();return false;
+ }
+ if(!result.available){active.status='Сообщение больше не доступно в сохранённой переписке.';renderBar();return false}
+ const peek=ensureDialog();active.peek=true;active.status='';renderBar();
+ $('messageContextTitle').textContent='Найденное сообщение';$('messageContextBack').textContent='Вернуться к поиску';
  window.WorkspaceV2Conversation?.renderMessageContext?.($('messageContextMessages'),result.messages);
  const original=[...$('messageContextMessages').children].find(node=>Number(node.dataset.scrollMessageKey)===target);original?.classList.add('messageNavigationTarget');
  peek.showModal();const box=$('messageContextMessages');if(original)box.scrollTop=Math.max(0,original.offsetTop-box.offsetTop-48);return true;
@@ -72,5 +91,5 @@ function returnToQuote(){
  revision++;active=null;const saved=stack.pop();renderBar();if(scope===key())return restore(saved);return false;
 }
 function bind(){if(bound)return;bound=true;ensureBar()}
-window.WorkspaceV2MessageNavigation={bind,sync,reset,openQuote,returnToQuote};
+window.WorkspaceV2MessageNavigation={bind,sync,reset,openQuote,openSearchTarget,returnToQuote};
 })();
