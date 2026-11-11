@@ -313,6 +313,64 @@ same((string)$p->query('SELECT COUNT(*) FROM max_sub_links')->fetchColumn(),$his
 same((string)$p->query('SELECT COUNT(*) FROM max_membership_events')->fetchColumn(),$historyOriginalEvents,'history pages preserve the existing native receipt fixture');
 same($p->query('SELECT IBLOCK_PROPERTY_ID,IBLOCK_ELEMENT_ID,VALUE FROM b_iblock_element_property ORDER BY IBLOCK_PROPERTY_ID,IBLOCK_ELEMENT_ID,VALUE')->fetchAll(PDO::FETCH_ASSOC),$historyOriginalSources,'history reads and cursor refusals leave source mappings unchanged');
 
+// Optional exact-counter evidence returns scalar buckets only and never falls back without a point index.
+$scopeSources=$p->query('SELECT IBLOCK_PROPERTY_ID,IBLOCK_ELEMENT_ID,VALUE FROM b_iblock_element_property ORDER BY IBLOCK_PROPERTY_ID,IBLOCK_ELEMENT_ID,VALUE')->fetchAll(PDO::FETCH_ASSOC);
+$p->exec('RENAME TABLE max_sub_links TO max_scope_saved_links');
+try{
+    $p->exec('CREATE TABLE max_sub_links (ID BIGINT PRIMARY KEY,UF_CHAT_ID VARCHAR(20),UF_CLIENT_ID VARCHAR(60),UF_DATE DATETIME NULL,UF_METRIC_SOURCE VARCHAR(32),UF_SOURCE VARCHAR(32),UF_PLATFORM VARCHAR(20),UF_SUB_DATE DATETIME NULL,UF_SUBDED INT NULL)');
+    $p->exec("INSERT INTO b_iblock_element_property VALUES(1,910000,'98615635'),(1,910001,'999'),(1,910002,'98615635 '),(1,910003,'098615635'),(1,910004,'９８６１５６３５')");
+    $scopeInsert=$p->prepare('INSERT INTO max_sub_links VALUES(?,?,?,?,?,?,?,?,?)');
+    foreach([
+        [1,'881001',null,'2026-11-11 11:00:00',null,'910000','ios',null,null],
+        [2,'881001','','2026-11-11 11:00:00','','910000','ios',null,null],
+        [3,'881001','0123','2026-11-11 11:00:00','910000','910001','ios',null,null],
+        [4,'881001',"123\n",'2026-11-11 11:00:00','910000','910001','ios',null,null],
+        [5,'881001','123456789012345678901234567890','2026-11-11 11:00:00','910000','910001','ios',null,null],
+        [6,'881001','999','2026-11-11 11:00:00','910001','910000','ios',null,null],
+        [7,'881001','888','2026-11-11 11:00:00','UNKNOWN','910000','ios',null,null],
+        [8,'881001','777','2026-11-11 11:00:00',' ','910000','ios',null,null],
+        [9,'881001','666','2026-11-11 11:00:00','０','910000','ios',null,null],
+        [10,'881001','555','2026-11-11 11:00:00','0910000','910000','ios',null,null],
+        [11,'881001','444','2026-11-11 11:00:00','910002','910000','ios',null,null],
+        [12,'881001','333','2026-11-11 11:00:00','910003','910000','ios',null,null],
+        [13,'881001','222','2026-11-11 11:00:00','910004','910000','ios',null,null],
+        [14,'881001 ','111','2026-11-11 11:00:00','910000','910001','ios',null,null],
+        [15,'881001','999','2026-11-11 11:00:00','0','910000','ios',null,null],
+        [16,'881002','123','2026-11-11 11:00:00','910001','910000','ios',null,null],
+        [17,'881001','１２３','2026-11-11 11:00:00','910000','910001','ios',null,null],
+    ]as$fixture)$scopeInsert->execute($fixture);
+    $scopeRepo=new MaxTrackerLookupRepository($p);$scopeAt=strtotime('2026-11-11 12:00:00 UTC');$scopeHash=str_repeat('a',64);
+    $noIndex=$scopeRepo->counterScopeEvidence('98615635','881001',$scopeHash,$scopeAt);
+    same([$noIndex['status'],$noIndex['reason'],$noIndex['scoped_rows']],['unavailable','point_index_unavailable',null],'missing point index is unknown without a scan');
+    $p->exec('CREATE INDEX scope_prefix_only ON max_sub_links(UF_CHAT_ID(4))');
+    same($scopeRepo->counterScopeEvidence('98615635','881001',$scopeHash,$scopeAt)['reason'],'point_index_unavailable','prefix index is not sufficient evidence of an exact user point bound');
+    $p->exec('DROP INDEX scope_prefix_only ON max_sub_links');$p->exec('CREATE INDEX scope_user_point ON max_sub_links(UF_CHAT_ID,ID)');
+    $normalBefore=$scopeRepo->lookup('98615635',['881001']);
+    $point=$scopeRepo->counterScopeEvidence('98615635','881001',$scopeHash,$scopeAt);
+    same([$point['status'],$point['complete_within_bound'],$point['scoped_rows'],$point['empty_client_id_rows'],
+        $point['noncanonical_client_id_rows'],$point['canonical_client_id_rows']],['observed',true,6,2,3,1],
+        'byte-empty fallback only and strict effective source/counter exclude whitespace nonascii leading-zero and other-counter aliases');
+    same($scopeRepo->lookup('98615635',['881001']),$normalBefore,'optional counter evidence does not change ordinary legacy lookup semantics');
+    same($p->inTransaction(),false,'optional evidence closes its read-only transaction');
+    same($scopeRepo->counterScopeEvidence('98615635','881002',$scopeHash,$scopeAt)['scoped_rows'],0,'rows from another effective counter are not read as scoped presence');
+    same($scopeRepo->counterScopeEvidence('98615635','881999',$scopeHash,$scopeAt)['scoped_rows'],0,'zero only concerns exact effective-counter scope');
+    same($scopeRepo->counterScopeEvidence('999','881001',$scopeHash,$scopeAt)['reason'],'invalid_request','optional repository remains fixed to the authorized counter');
+    for($i=0;$i<65;$i++)$scopeInsert->execute([100+$i,'881003','','2026-11-11 11:00:00','910000','910001','ios',null,null]);
+    $overflow=$scopeRepo->counterScopeEvidence('98615635','881003',$scopeHash,$scopeAt);
+    same([$overflow['status'],$overflow['reason'],$overflow['scoped_rows'],$overflow['empty_client_id_rows']],
+        ['unavailable','row_limit',null,null],'65 sentinel never turns a partial scoped prefix into counts or zero');
+    $p->beginTransaction();$busy=$scopeRepo->counterScopeEvidence('98615635','881001',$scopeHash,$scopeAt);
+    same($busy['reason'],'storage_unavailable','caller transaction is not borrowed');same($p->inTransaction(),true,'caller transaction is preserved');$p->rollBack();
+    same(str_contains(json_encode($point,JSON_THROW_ON_ERROR),'123456789012345678901234567890'),false,'raw ClientIDs never leave the scalar aggregate');
+    same(array_keys($point),['v','counter_id','request_sha256','checked_at_unix','status','complete_within_bound',
+        'scoped_rows','empty_client_id_rows','noncanonical_client_id_rows','canonical_client_id_rows'],'wire evidence has no row or native user identifiers');
+}finally{
+    if($p->inTransaction())$p->rollBack();
+    $p->exec('DROP TABLE max_sub_links');$p->exec('RENAME TABLE max_scope_saved_links TO max_sub_links');
+    $p->exec('DELETE FROM b_iblock_element_property WHERE IBLOCK_PROPERTY_ID=1 AND IBLOCK_ELEMENT_ID BETWEEN 910000 AND 910004');
+}
+same($p->query('SELECT IBLOCK_PROPERTY_ID,IBLOCK_ELEMENT_ID,VALUE FROM b_iblock_element_property ORDER BY IBLOCK_PROPERTY_ID,IBLOCK_ELEMENT_ID,VALUE')->fetchAll(PDO::FETCH_ASSOC),$scopeSources,'optional evidence restores only its isolated synthetic source mappings');
+
 echo 'PASS '.$checks." native MySQL tracker/queue checks\n";
 
 

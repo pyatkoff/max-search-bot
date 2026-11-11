@@ -234,17 +234,26 @@ final class ModeledConversionForecastStatusReader
             $window['returned_events']=count($out['value_delivery']['repair_assessments']['exact_cases']['rows']);
             $window['complete_within_bound']=false;$window['omitted_due_to_response_budget']=true;unset($window);
         }
+        if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments']['initial_api_receipts']))
+            $out['value_delivery']['repair_assessments']['initial_api_receipts']=['available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0];
         if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments']['retained_native_identity_evidence']))
             $out['value_delivery']['repair_assessments']['retained_native_identity_evidence']=[
                 'available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0,'financial_permission'=>false];
         // Preserve the original three-case proof when omitting the newer forward journal is sufficient.
         if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments']['finite_visit_recovery']))
             $out['value_delivery']['repair_assessments']['finite_visit_recovery']=['available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0];
+        foreach(['finite_counter_scope_evidence','fixed_pair_operational_decisions']as$key)
+            if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments'][$key]))
+                $out['value_delivery']['repair_assessments'][$key]=['available'=>false,'reason'=>'response_budget','financial_permission'=>false,'provider_requests_in_reader'=>0];
         if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments']['finite_visit_evidence']))
             $out['value_delivery']['repair_assessments']['finite_visit_evidence']=['available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0];
         if(($out['value_delivery']['repair_assessments']['finite_visit_recovery']['available']??false)===true
             &&($out['value_delivery']['repair_assessments']['finite_visit_evidence']['available']??false)!==true)
             $out['value_delivery']['repair_assessments']['finite_visit_recovery']=['available'=>false,'reason'=>'original_current_binding_unavailable','provider_requests_in_reader'=>0];
+        foreach(['fixed_pair_operational_decisions','finite_counter_scope_evidence']as$key)
+            if(($out['value_delivery']['repair_assessments'][$key]['available']??false)===true
+                &&($out['value_delivery']['repair_assessments']['finite_visit_evidence']['available']??false)!==true)
+                $out['value_delivery']['repair_assessments'][$key]=['available'=>false,'reason'=>'original_current_binding_unavailable','financial_permission'=>false,'provider_requests_in_reader'=>0];
         return $out;
     }
 
