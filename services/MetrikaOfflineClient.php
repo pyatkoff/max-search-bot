@@ -33,7 +33,7 @@ final class MetrikaOfflineClient
             if(($projectPolicy['counter_id']??null)!==$counter||$counter==='98615635'||($projectPolicy['project_key']??'anytour')==='anytour'
                 ||!preg_match('/\A[a-z][a-z0-9_]{0,39}\z/D',$projectPolicy['project_key'])||!is_array($projectPolicy['goals']??null)||!$projectPolicy['goals'])throw new InvalidArgumentException('invalid_project_conversion_policy');
             foreach($projectPolicy['goals']as$event=>$target)if(!in_array($event,['customer_activity','manager_request','customer_reply','working','offer_sent','booking','won','predictive_value'],true)
-                ||!is_string($target)||!preg_match('/\A[A-Za-z0-9_-]{1,100}\z/D',$target))throw new InvalidArgumentException('invalid_project_conversion_policy');
+                ||!is_string($target)||!preg_match('/\A[A-Za-z0-9_-]{1,64}\z/D',$target))throw new InvalidArgumentException('invalid_project_conversion_policy');
             if(count(array_unique($projectPolicy['goals']))!==count($projectPolicy['goals']))throw new InvalidArgumentException('invalid_project_conversion_policy');
             $this->projectPolicy=$projectPolicy;
         }

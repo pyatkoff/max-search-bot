@@ -43,8 +43,10 @@ final class ProjectFunnelEntry
         $result=['ok'=>true,'mode'=>'publication','saved'=>false,'post_id'=>$destination['post_id'],'offer_id'=>$destination['offer_id'],'redirect_url'=>$destination['url']];
         if($payload['kind']!=='advertising')return $result;
         $scope=self::scope($this->settings);
+        $publicationProfile=[$this->settings['project_key'],$this->settings['bot_key'],$this->settings['source_key'],$this->settings['channel_id'],
+            $destination['post_id'],$this->settings['posts'][$destination['post_id']]];
         $context=json_encode(['post_url'=>$destination['url'],'post_title'=>$destination['title'],
-            'profile_sha256'=>hash('sha256',json_encode($this->settings,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+            'profile_sha256'=>hash('sha256',json_encode($publicationProfile,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
         $receipt=(new AdvertisingVisitRepository($this->pdo))->recordLaunch($scope,[
             'visit_id'=>$launch['visit_id'],'visit_at_unix'=>$launch['auth_date'],'observed_at_unix'=>$now,
             'external_user_id'=>$launch['external_user_id'],'identity_status'=>'verified','client_id'=>$input['client_id'],

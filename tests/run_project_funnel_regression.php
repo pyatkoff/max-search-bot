@@ -31,6 +31,8 @@ foreach(['{yclid}_region_213_campaign_123_ctx1_abc','0_region_213_campaign_123_c
 $input=['init_data'=>$raw,'start_param'=>$start,'client_id'=>''];$capture=$entry->capture($input,$now);
 funnelCheck('redirect acknowledges a durable exact post observation',$capture['saved']===true&&$capture['mode']==='advertising'&&$capture['redirect_url']==='https://max.ru/channel_appleservice39ru/AaG9bRUxHcg'&&!$capture['analytics_bound']&&(int)$pdo->query('SELECT COUNT(*) FROM advertising_visit_observations')->fetchColumn()===1);
 $again=$entry->capture($input,$now+1);funnelCheck('retry and missing CID reuse committed observation',$again['receipt']['reused']===true&&$again['receipt']['cursor']===$capture['receipt']['cursor']);
+$changedSettings=$s;$changedSettings['metrika']['goals']=['working'=>'future_company_goal'];
+funnelCheck('unrelated conversion settings cannot break a saved redirect retry',(new ProjectFunnelEntry($pdo,$connection,$changedSettings))->capture($input,$now+1)['receipt']['reused']===true);
 $enriched=$entry->capture(array_replace($input,['client_id'=>'17929400001234567890']),$now+2);
 funnelCheck('late CID appends one immutable enrichment',$enriched['receipt']['cursor']==='2'&&(int)$pdo->query('SELECT COUNT(*) FROM advertising_visit_observations')->fetchColumn()===2&&$pdo->query('SELECT client_id FROM advertising_visit_observations ORDER BY id LIMIT 1')->fetchColumn()==='');
 funnelCheck('late missing CID never erases enrichment',$entry->capture($input,$now+3)['receipt']['cursor']==='2');
