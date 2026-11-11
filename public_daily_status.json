@@ -1,24 +1,24 @@
 {
     "ok": true,
-    "generated_at": "2026-11-10T23:42:35+00:00",
+    "generated_at": "2026-11-11T00:10:40+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 15,
-        "raw_sessions": 15,
+        "sessions": 16,
+        "raw_sessions": 16,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 15,
+            "resolved": 16,
             "unresolved": 0
         },
-        "started": 13,
-        "needs_collected": 1,
-        "tours_opened": 1,
+        "started": 14,
+        "needs_collected": 2,
+        "tours_opened": 2,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 11,
+        "manager_requested": 12,
         "manager_replied": 1,
         "customer_replied_after_manager": 0,
         "phone_received": 0,
@@ -31,7 +31,7 @@
             "max_seconds": 830
         },
         "drop_points": {
-            "manager_requested": 10,
+            "manager_requested": 11,
             "collecting_needs": 2,
             "started_only": 2,
             "manager_replied": 1
@@ -40,18 +40,18 @@
             "manager_requested_no_reply": 9
         },
         "calendar_day": {
-            "conversations_started": 14,
-            "needs_collected_from_started": 1,
-            "tours_opened_from_started": 1,
+            "conversations_started": 15,
+            "needs_collected_from_started": 2,
+            "tours_opened_from_started": 2,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
-            "manager_requested": 10,
+            "manager_requested": 11,
             "manager_replied": 0,
             "customer_replied_after_manager": 0
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-10T23:42:35Z",
+        "sampled_at": "2026-11-11T00:10:40Z",
         "available": true,
         "error": null,
         "mode": "send",
