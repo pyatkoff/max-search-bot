@@ -1,0 +1,235 @@
+{
+  "schema_version": 1,
+  "registry_version": 219,
+  "scope": "six_already_verified_published_pairs",
+  "rows": [
+    {
+      "site_hotel_id": "00630c5b-14ee-4022-879d-e994687e7495",
+      "site_revision": 1,
+      "tourvisor_hotel_id": 1183,
+      "hotel_id": 1183,
+      "logical_id": "commercial-fame-kemer-1183-v1",
+      "key": "commercial-fame-kemer-1183-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261107-21-v1",
+      "original_text_sha256": "7518da763a13fd07c5cce772d3f28e224cff9b321446a4d891bd2ee3ce923a20",
+      "cover_sha256": "44bcdbf9953e9389ef7b037674494d07c83d69db4c0717b5452339b9bf2c9b23",
+      "posts": {
+        "max": "https://max.ru/channel_anytour/AaG2_E8DOuw",
+        "telegram": "https://t.me/any_toour/316"
+      },
+      "expected_text_sha256": {
+        "max": "1d90e9413eb0d22626c7d1700e54563b4ae72f8035077385dfc9a684586e0b85",
+        "telegram": "1d90e9413eb0d22626c7d1700e54563b4ae72f8035077385dfc9a684586e0b85"
+      },
+      "templates": {
+        "max": "✈️ Туры в FAME RESIDENCE KEMER & SPA\n📍 Турция · Кемер\n\n💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\n• Собственный галечный пляж у отеля.\n• Живая музыка и дискотека.\n\nУзнать стоимость тура",
+        "telegram": "✈️ Туры в FAME RESIDENCE KEMER & SPA\n📍 Турция · Кемер\n\nСобственный галечный пляж у отеля.\n\n• Живая музыка и дискотека.\n\n💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\nУзнать стоимость тура"
+      },
+      "feed_binding": {
+        "tourvisor_hotel_id": 1183,
+        "posts": {
+          "max": "https://max.ru/channel_anytour/AaG2_E8DOuw",
+          "telegram": "https://t.me/any_toour/316"
+        },
+        "offer_ids": {
+          "max": "max_1183",
+          "telegram": "tg_1183"
+        },
+        "destinations": {
+          "max": "https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfN2YwZThmZDg3MGZmNTY2MGE4YmY1YTVlODI1ODgxOGUiLCJvZmZlcl9pZCI6Im1heF8xMTgzIn0",
+          "telegram": "https://t.me/any_toour/316"
+        }
+      }
+    },
+    {
+      "site_hotel_id": "00ea98e4-317f-423e-bb8a-334e20fc3b29",
+      "site_revision": 1,
+      "tourvisor_hotel_id": 117935,
+      "hotel_id": 117935,
+      "logical_id": "commercial-avari-boutique-117935-v1",
+      "key": "commercial-avari-boutique-117935-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261107-39-v1",
+      "original_text_sha256": "769b93b19178adbabafcd988f701c23a563d5d0ef3e7fe75bb769d1e78db90a5",
+      "cover_sha256": "5e9769d6408bfbcc6c128df41c88962c84048fc42b67d332c0ae1442836dcb34",
+      "posts": {
+        "max": "https://max.ru/channel_anytour/AaG31RTEWJg",
+        "telegram": "https://t.me/any_toour/480"
+      },
+      "expected_text_sha256": {
+        "max": "769b93b19178adbabafcd988f701c23a563d5d0ef3e7fe75bb769d1e78db90a5",
+        "telegram": "769b93b19178adbabafcd988f701c23a563d5d0ef3e7fe75bb769d1e78db90a5"
+      },
+      "templates": {
+        "max": "✈️ Туры в AVARI HOTEL\n📍 Вьетнам · Нячанг\n\n💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\n• До общественного пляжа около 350 м, путь через дорогу.\n• Для городского отпуска с прогулками к морю.\n\nУзнать стоимость тура",
+        "telegram": "✈️ Туры в AVARI HOTEL\n📍 Вьетнам · Нячанг\n\nДо общественного пляжа около 350 м, путь через дорогу.\n\n• Для городского отпуска с прогулками к морю.\n\n💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\nУзнать стоимость тура"
+      },
+      "feed_binding": {
+        "tourvisor_hotel_id": 117935,
+        "posts": {
+          "max": "https://max.ru/channel_anytour/AaG31RTEWJg",
+          "telegram": "https://t.me/any_toour/480"
+        },
+        "offer_ids": {
+          "max": "max_117935",
+          "telegram": "tg_117935"
+        },
+        "destinations": {
+          "max": "https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMmMzOGIxMzVmMGUwYzBiNjkxMmIyOTFhNGMyZmQ5MTAiLCJvZmZlcl9pZCI6Im1heF8xMTc5MzUifQ",
+          "telegram": "https://t.me/any_toour/480"
+        }
+      }
+    },
+    {
+      "site_hotel_id": "010b3157-aedb-4fad-bffa-06fe87e1cfde",
+      "site_revision": 1,
+      "tourvisor_hotel_id": 27426,
+      "hotel_id": 27426,
+      "logical_id": "commercial-rubi-platinum-27426-v1",
+      "key": "commercial-rubi-platinum-27426-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261107-1-v1",
+      "original_text_sha256": "0ce8e552046acc14b189034c3b7515003fabd579d04386d62c21659fc4248d9f",
+      "cover_sha256": "a009f3bd73128d4c2c8a82c675bf86e999723e6e50b7fe44902f3fdfb1372b00",
+      "posts": {
+        "max": "https://max.ru/channel_anytour/AaG1E2swIp4",
+        "telegram": "https://t.me/any_toour/176"
+      },
+      "expected_text_sha256": {
+        "max": "c11bda8d1dabb3f66fe356a9b54155ff6a59b374d51d98eea365ab8c79840824",
+        "telegram": "c11bda8d1dabb3f66fe356a9b54155ff6a59b374d51d98eea365ab8c79840824"
+      },
+      "templates": {
+        "max": "✈️ Туры в RUBI PLATINUM SPA RESORT & SUITES\n📍 Турция · Аланья\n\n💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\n• Опубликован план питания: Platinum AI.\n• ANEX:100м, песок/галька; песчаная и каменистая части, пирс.\n• Platinum AI24h включает выбранные местные/импортные напитки. À la carte и room service платные. Размеры кроватей не доказывают состав гостей.\n\nУзнать стоимость тура",
+        "telegram": "✈️ Туры в RUBI PLATINUM SPA RESORT & SUITES\n📍 Турция · Аланья\n\nОпубликован план питания: Platinum AI.\n\n• ANEX:100м, песок/галька; песчаная и каменистая части, пирс.\n• Platinum AI24h включает выбранные местные/импортные напитки. À la carte и room service платные. Размеры кроватей не доказывают состав гостей.\n\n💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\nУзнать стоимость тура"
+      },
+      "feed_binding": {
+        "tourvisor_hotel_id": 27426,
+        "posts": {
+          "max": "https://max.ru/channel_anytour/AaG1E2swIp4",
+          "telegram": "https://t.me/any_toour/176"
+        },
+        "offer_ids": {
+          "max": "max_27426",
+          "telegram": "tg_27426"
+        },
+        "destinations": {
+          "max": "https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMjI1ODUzMGE5NTkyNzdhZGZjM2Y5ZWNhNTUyZjFhYWIiLCJvZmZlcl9pZCI6Im1heF8yNzQyNiJ9",
+          "telegram": "https://t.me/any_toour/176"
+        }
+      }
+    },
+    {
+      "site_hotel_id": "01b24d6a-2048-456d-88ff-110b23a7c250",
+      "site_revision": 1,
+      "tourvisor_hotel_id": 13869,
+      "hotel_id": 13869,
+      "logical_id": "commercial-jaz-neo-saraya-palms-13869-v1",
+      "key": "commercial-jaz-neo-saraya-palms-13869-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261103-17-v1",
+      "original_text_sha256": "2f1d14a58e4938da9189bf12cad07168a3aeb71175a3fadbacf01a3d13ac406d",
+      "cover_sha256": "84410f5985a5e86e6afbb93b09634b341751ae412faace10ef2b9a32d9e34230",
+      "posts": {
+        "max": "https://max.ru/channel_anytour/AaGgXBBBOgA",
+        "telegram": "https://t.me/any_toour/108"
+      },
+      "expected_text_sha256": {
+        "max": "7dd08748d709c3d5d49864139812d25e09640b9ec2f453d2856b18356636c0d7",
+        "telegram": "7dd08748d709c3d5d49864139812d25e09640b9ec2f453d2856b18356636c0d7"
+      },
+      "templates": {
+        "max": "✈️ Туры в JAZ Neo Saraya Palms\n📍 Египет · Хургада\n\n💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\n• Бассейны Animation и Relaxing, детская зона для купания.\n• Мини клуб для детей от 4 до 12 лет, игровая площадка и мини диско.\n• Международная и восточная кухня в ресторане Shams, два бара.\n\nУзнать стоимость тура",
+        "telegram": "✈️ Туры в JAZ Neo Saraya Palms\n📍 Египет · Хургада\n\nБассейны Animation и Relaxing, детская зона для купания.\n\n• Мини клуб для детей от 4 до 12 лет, игровая площадка и мини диско.\n• Международная и восточная кухня в ресторане Shams, два бара.\n\n💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\nУзнать стоимость тура"
+      },
+      "feed_binding": {
+        "tourvisor_hotel_id": 13869,
+        "posts": {
+          "max": "https://max.ru/channel_anytour/AaGgXBBBOgA",
+          "telegram": "https://t.me/any_toour/108"
+        },
+        "offer_ids": {
+          "max": "max_13869",
+          "telegram": "tg_13869"
+        },
+        "destinations": {
+          "max": "https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMDMxZDYwNDlhZWEzYzIxZDVkM2EyNTYzZTc2M2M3OWUiLCJvZmZlcl9pZCI6Im1heF8xMzg2OSJ9",
+          "telegram": "https://t.me/any_toour/108"
+        }
+      }
+    },
+    {
+      "site_hotel_id": "02706035-79b5-40f8-8ea0-58fd06e510d3",
+      "site_revision": 1,
+      "tourvisor_hotel_id": 1151,
+      "hotel_id": 1151,
+      "logical_id": "commercial-delphin-palace-1151-v1",
+      "key": "commercial-delphin-palace-1151-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261103-32-v1",
+      "original_text_sha256": "2e626338a78038bf1b1d726f6226a8feee7b5ae91273f3fb8832bf9c35278270",
+      "cover_sha256": "186108979417d60c0a515322a3ef5ad35c028c625cfecc953c7819d09cf84814",
+      "posts": {
+        "max": "https://max.ru/channel_anytour/AaGjnkw2DwE",
+        "telegram": "https://t.me/any_toour/152"
+      },
+      "expected_text_sha256": {
+        "max": "c2f33c14b9252d1037cbaedf48dd5acc90c957d897bf502a981db80acd6c5757",
+        "telegram": "c2f33c14b9252d1037cbaedf48dd5acc90c957d897bf502a981db80acd6c5757"
+      },
+      "templates": {
+        "max": "✈️ Туры в Delphin Palace\n📍 Турция · Анталья\n\n💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\n• Пляж прямо у отеля.\n• Бассейны, водные горки и отдельный детский бассейн.\n• Мини клуб для детей от 4 до 12 лет.\n\nУзнать стоимость тура",
+        "telegram": "✈️ Туры в Delphin Palace\n📍 Турция · Анталья\n\nПляж прямо у отеля.\n\n• Бассейны, водные горки и отдельный детский бассейн.\n• Мини клуб для детей от 4 до 12 лет.\n\n💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\nУзнать стоимость тура"
+      },
+      "feed_binding": {
+        "tourvisor_hotel_id": 1151,
+        "posts": {
+          "max": "https://max.ru/channel_anytour/AaGjnkw2DwE",
+          "telegram": "https://t.me/any_toour/152"
+        },
+        "offer_ids": {
+          "max": "max_1151",
+          "telegram": "tg_1151"
+        },
+        "destinations": {
+          "max": "https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZTEzOGZmMGY5ZGY2NWZhZDhhMWYzYThhOTcyZjI3NGIiLCJvZmZlcl9pZCI6Im1heF8xMTUxIn0",
+          "telegram": "https://t.me/any_toour/152"
+        }
+      }
+    },
+    {
+      "site_hotel_id": "028bd1b1-7231-4bbb-946c-5a5df2dc3884",
+      "site_revision": 1,
+      "tourvisor_hotel_id": 1173,
+      "hotel_id": 1173,
+      "logical_id": "commercial-sense-deluxe-1173-v1",
+      "key": "commercial-sense-deluxe-1173-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261107-30-v1",
+      "original_text_sha256": "7311e0fcc37e99f20fa59da445602eb92f07097876d9941203429d24a60e0a6d",
+      "cover_sha256": "bd0722fe0e127c0c2ee05c0cd6277cfbe7739f7c33353610408bea0a019852fb",
+      "posts": {
+        "max": "https://max.ru/channel_anytour/AaG3Xy3JP5c",
+        "telegram": "https://t.me/any_toour/399"
+      },
+      "expected_text_sha256": {
+        "max": "7456845c011173d0c1c890e83913bcdf76ab01753de55711962c89c519cf0b42",
+        "telegram": "7456845c011173d0c1c890e83913bcdf76ab01753de55711962c89c519cf0b42"
+      },
+      "templates": {
+        "max": "✈️ Туры в THE SENSE DELUXE\n📍 Турция · Кумкой\n\n💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\n• Вариант питания Ultra All Inclusive.\n• Собственный песчаный пляж примерно в 200 м, есть бесплатный трансфер.\n• Вечерние шоу и живая музыка.\n\nУзнать стоимость тура",
+        "telegram": "✈️ Туры в THE SENSE DELUXE\n📍 Турция · Кумкой\n\nВариант питания Ultra All Inclusive.\n\n• Собственный песчаный пляж примерно в 200 м, есть бесплатный трансфер.\n• Вечерние шоу и живая музыка.\n\n💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\nУзнать стоимость тура"
+      },
+      "feed_binding": {
+        "tourvisor_hotel_id": 1173,
+        "posts": {
+          "max": "https://max.ru/channel_anytour/AaG3Xy3JP5c",
+          "telegram": "https://t.me/any_toour/399"
+        },
+        "offer_ids": {
+          "max": "max_1173",
+          "telegram": "tg_1173"
+        },
+        "destinations": {
+          "max": "https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNjAzYjAwN2I4ZDRjYmYyM2VjNGRkNDUyM2Q4OWVlNGEiLCJvZmZlcl9pZCI6Im1heF8xMTczIn0",
+          "telegram": "https://t.me/any_toour/399"
+        }
+      }
+    }
+  ]
+}
