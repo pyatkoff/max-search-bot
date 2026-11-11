@@ -8,6 +8,7 @@ require_once dirname(__DIR__).'/services/ManagerAiDraftService.php';
 function hotelTop500AcceptedPairChecks(): void
 {
     hotelSideStarEleganceChecks();
+    hotelBaronAcceptedChecks();
     $directory = dirname(__DIR__).'/knowledge/hotels';
     $canonicalMethod = new ReflectionMethod(ManagerHotelKnowledge::class, 'canonical');
     $canonical = static fn($record): string => $canonicalMethod->invoke(null, $record);
@@ -386,3 +387,163 @@ function hotelSideStarEleganceChecks(): void
         && ($escapedContext['hotel_reference']['sources'] ?? null) === []);
 }
 
+/** Exact Baron files with saved release admission; no network or approval creation. */
+function hotelBaronAcceptedChecks(): void
+{
+    $directory = dirname(__DIR__).'/knowledge/hotels';
+    $manifest = json_decode(file_get_contents($directory.'/manifest.json'), true, 32, JSON_THROW_ON_ERROR);
+    $canonicalMethod = new ReflectionMethod(ManagerHotelKnowledge::class, 'canonical');
+    $canonical = static fn($value): string => $canonicalMethod->invoke(null, $value);
+    $hash = static fn($value): string => hash('sha256', $canonical($value));
+    $select = new ReflectionMethod(ManagerHotelKnowledge::class, 'select');
+    $admit = new ReflectionMethod(ManagerAiDraftService::class, 'admitHotelReference');
+    $prefix = 'HOTEL-EG-MANUAL-20261025-BARON-01_';
+    $cases = [
+        [
+            'id'=>868, 'tv'=>'1963', 'slug'=>'baron-resort', 'name'=>'BARON RESORT',
+            'other_name'=>'BARON PALMS RESORT ADULTS ONLY 16+',
+            'key'=>'top500_4a932ca9ee9e4703', 'bytes'=>11980,
+            'bundle_sha'=>'a3ee178b9a385356eb33b32c148737f36282b4d17f37445a038b483a202f9bfd',
+            'core_sha'=>'ed6024194c1240c4cb797a1714e78e1d4a357e53d3900fef45b880f5cb49a4b8',
+            'raw_claims'=>[
+                'c01'=>'c9a21866cdf0173f0c24757406ab34c560097297d5dfe44b447faf7245bb0474',
+                'c03'=>'5f50497c2b6727f036b6946e8713620317fc526563283f0ce8f0521020e158cc',
+                'c04'=>'dc1563c26b5d9ed0b04970aad042be0e652830aa5f59e134981c9b04062e65b2',
+                'c05'=>'9213253096894370e30e042588283bf7d26be428774572819ecc6c43188d2135',
+            ],
+            'context_id'=>'c02', 'context_sha'=>'7ae52ac7a2602db014cea3e98e7c36052c8cc151db8a78d6f2a983b14ed78ee9',
+            'source_hashes'=>[
+                'HOTEL-EG-MANUAL-20261025-BARON-01_s01'=>'12ff301fcabcb7ab5ac607f3874e76c83e5dfe96543c5fb5a2df03c9b2fbe465',
+                'top500_4a932ca9ee9e4703_enrich04_20261019_s01'=>'349266c81eef38e5b9fe7615c5b3c1da52bab97d09c34db4bd28face87f24378',
+            ],
+        ],
+        [
+            'id'=>867, 'tv'=>'1962', 'slug'=>'baron-palms', 'name'=>'BARON PALMS RESORT ADULTS ONLY 16+',
+            'other_name'=>'BARON RESORT',
+            'key'=>'top500_6f323c1d8a3cc6fe', 'bytes'=>13349,
+            'bundle_sha'=>'8073bf552b4d1d0907b3a960d09d42dbc155df0ada4f6e0a1e123eb8712d5dd2',
+            'core_sha'=>'afbe126f11d4320daa02510aad05fe4e507c8c6381138d2406691e12bd9657e4',
+            'raw_claims'=>[
+                'c06'=>'23603ca75c93c3cedbd65f0bbda5071577ab3ebe6c110c5f06fcab183649316d',
+                'c07'=>'3a571fef051b50f02143ab1306b888ebd908d3cd959518f53f0925c638db5c88',
+                'c09'=>'e9013405c079331cbdc3b3e5962645186a66263128fa62362d9d9303e1aade4c',
+                'c10'=>'782d0464f340a6393bfc75c7aab4aaa073b6713ad69af8c585083af4fa511cca',
+                'c11'=>'13427fe9718df46dd703cb49b7ad83a24ff265f5f446fe778df5ec90a4da67cd',
+            ],
+            'context_id'=>'c08', 'context_sha'=>'755732d5106de79a0a6615c2ed9ebec886f06aa89b01f205624a3934bc65ed5e',
+            'source_hashes'=>[
+                'HOTEL-EG-MANUAL-20261025-BARON-01_s02'=>'c771462049203df6ef251d03c195abe0238b98088a31d6065814847851485b18',
+                'top500_6f323c1d8a3cc6fe_enrich04_20261019_s01'=>'036a6d227fad8f75a42807a3eeaeb0726ca6c7cddfe3f5f512f3b92cd4f621a1',
+            ],
+        ],
+    ];
+    foreach ($cases as $case) {
+        $file = 'anytour-'.$case['id'].'-'.$case['slug'].'.json';
+        $matches = array_values(array_filter($manifest['bindings'], static fn(array $entry): bool =>
+            ($entry['bundle_file'] ?? null) === $file));
+        $entry = $matches[0] ?? [];
+        draftContextCheck($case['name'].' uses its own accepted identity and actual release-admission version',
+            count($matches) === 1 && ($entry['status'] ?? null) === 'accepted'
+            && $canonical($entry['source_identity'] ?? null) === $canonical(['adapter'=>'tourvisor-snapshot-v1', 'hotel'=>$case['tv'], 'country'=>'1'])
+            && ($entry['accepted_source_names'] ?? null) === [$case['name']]
+            && $hash($entry['accepted_binding'] ?? null) === $case['core_sha']
+            && ($entry['binding_revision'] ?? null) === $case['core_sha']
+            && ($entry['approval']['library_file_id'] ?? null) === 'libfile_4b24e1cb1b9881918dfd6802b259134d'
+            && ($entry['approval']['common_version'] ?? null) === 4
+            && ($entry['approval']['member'] ?? null) === 'baron-publication-20261111/'.$case['slug'].'/accepted-binding.json');
+        $bytes = file_get_contents($directory.'/'.$file);
+        $bundle = json_decode($bytes, true, 32, JSON_THROW_ON_ERROR);
+        draftContextCheck($case['name'].' keeps the exact reviewed bounded bundle and unchanged authoring authority',
+            strlen($bytes) === $case['bytes'] && hash('sha256', $bytes) === $case['bundle_sha']
+            && ($entry['bundle_sha256'] ?? null) === $case['bundle_sha']
+            && ($bundle['status'] ?? null) === 'SEALED_AUTHORING_DATA_ONLY'
+            && ($bundle['runtime_admission_verified'] ?? null) === false
+            && ($bundle['price_authority'] ?? null) === 'none'
+            && ($bundle['coverage']['complete'] ?? null) === false
+            && ($bundle['coverage']['selected_claim_count'] ?? null) === count($case['raw_claims']));
+        $restored = []; $markers = true;
+        foreach ($bundle['facts'] as $fact) {
+            $id = $fact['id']; $projection = $bundle['material_limits']['consumer_projection'][$id] ?? [];
+            $markers = $markers && ($fact['declared'] ?? null) === true
+                && ($fact['kind'] ?? null) === 'official_declared'
+                && ($fact['valid_at_travel'] ?? null) === 'unverified'
+                && ($fact['pending_not_canonical'] ?? null) === true
+                && ($fact['retrieved_on'] ?? null) === '2026-10-25'
+                && ($projection['added_metadata'] ?? null) === ['declared'=>true]
+                && ($projection['projected_record_sha256'] ?? null) === $hash($fact);
+            unset($fact['declared']);
+            $restored[substr($id, strlen($prefix))] = $hash($fact);
+            $markers = $markers && ($projection['raw_record_sha256'] ?? null) === $hash($fact);
+        }
+        draftContextCheck($case['name'].' restores every original field by removing only the approved declaration marker',
+            $markers && $restored === $case['raw_claims']);
+        $sourceHashes = [];
+        foreach ($bundle['sources'] as $source) $sourceHashes[$source['id']] = $hash($source);
+        ksort($sourceHashes); $expectedSourceHashes = $case['source_hashes']; ksort($expectedSourceHashes);
+        $limits = $bundle['material_limits'];
+        $interpretation = $limits['context_records'][0] ?? [];
+        draftContextCheck($case['name'].' retains original sources, full category conflict and all source-specific limitations',
+            $sourceHashes === $expectedSourceHashes
+            && count($limits['context_records'] ?? []) === 1
+            && ($interpretation['id'] ?? null) === $prefix.$case['context_id']
+            && ($interpretation['kind'] ?? null) === 'research_interpretation'
+            && $hash($interpretation) === $case['context_sha']
+            && !in_array($interpretation['id'], array_column($bundle['facts'], 'id'), true)
+            && count($limits['source_read_updates'] ?? []) === 1
+            && ($limits['source_read_updates'][0]['read_on'] ?? null) === '2026-10-25'
+            && count($limits['prior_context_limits'] ?? []) === 4 && count($limits['unknowns'] ?? []) === 5);
+        // Explicit synthetic selector for the original native-inquiry variant.
+        $selector = ['project_key'=>'anytour',
+            'source_identity'=>['adapter'=>'tourvisor-snapshot-v1','hotel'=>$case['tv'],'country'=>'1'],
+            'provenance'=>['message_id'=>1,'event_id'=>1,'publication_sha256'=>str_repeat('a',64),'source_sha256'=>str_repeat('b',64)],
+            'selected_hotel'=>$case['name'],'selected_room'=>'Standard'];
+        $now = strtotime('2026-11-11T07:30:00Z');
+        $reference = ManagerHotelKnowledge::capture($selector, $now);
+        draftContextCheck($case['name'].' is available through the unchanged reader with its whole source group',
+            ($reference['status'] ?? null) === 'available'
+            && ($reference['hotel_ref'] ?? null) === ['catalog'=>'anytour','id'=>$case['id']]
+            && ($reference['facts'] ?? null) === $bundle['facts']
+            && ($reference['sources'] ?? null) === $bundle['sources']
+            && ($reference['material_limits'] ?? null) === $limits
+            && ($reference['room_tariff_equivalence_verified'] ?? null) === false
+            && ($reference['future_operation_verified'] ?? null) === false);
+        $baseline = ['conversation_id'=>1,'as_of_message_id'=>1,'history_incomplete'=>false,
+            'messages'=>[['id'=>1,'sender_type'=>'customer','text'=>'Synthetic Baron knowledge budget probe']]];
+        $flags = JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR;
+        $encode = static fn(array $context): string => json_encode(
+            ManagerDraftClient::requestBody(ManagerAiDraftService::instructions($context),$context),$flags);
+        [$context,$admission] = $admit->invoke(null,$baseline,$reference);
+        $increment = strlen($encode($context))-strlen($encode($baseline));
+        draftContextCheck($case['name'].' reaches the actual encoded AI request with all declarations and caveats',
+            ($admission['status'] ?? null) === 'available'
+            && $context === $baseline + ['hotel_reference'=>$reference]
+            && ($admission['admitted_claim_ids'] ?? null) === array_column($bundle['facts'],'id')
+            && ($admission['wire_increment_bytes'] ?? null) === $increment
+            && $increment <= 16384 && strlen($encode($context)) <= ManagerDraftClient::MAX_REQUEST_BYTES);
+        $isolated = $manifest; $isolated['bindings'] = [$entry];
+        foreach ([
+            ['other country',$case['tv'],'4',$case['name'],'binding_unresolved'],
+            ['AnyTour id used as TV',(string)$case['id'],'1',$case['name'],'binding_unresolved'],
+            ['other Baron name',$case['tv'],'1',$case['other_name'],'source_name_mismatch'],
+        ] as [$label,$tv,$country,$name,$reason]) {
+            $bad = $selector; $bad['source_identity']['hotel']=$tv;
+            $bad['source_identity']['country']=$country; $bad['selected_hotel']=$name;
+            $held = $select->invoke(null,$isolated,$bytes,$bad,$now);
+            draftContextCheck($case['name'].' rejects '.$label.' without borrowing hotel facts',
+                ($held['status'] ?? null) === 'held' && ($held['reason'] ?? null) === $reason
+                && ($held['facts'] ?? null) === [] && ($held['sources'] ?? null) === []);
+        }
+        $long = $selector; $long['selected_room'] = str_repeat('"',300);
+        $longReference = $select->invoke(null,$isolated,$bytes,$long,$now);
+        [$longContext,$longAdmission] = $admit->invoke(null,$baseline,$longReference);
+        $candidateIncrement = strlen($encode($baseline + ['hotel_reference'=>$longReference]))-strlen($encode($baseline));
+        $unchanged = $longContext; unset($unchanged['hotel_reference']);
+        draftContextCheck($case['name'].' enforces the real request budget without shortening baseline evidence or caveats',
+            ($longReference['status'] ?? null) === 'available' && $unchanged === $baseline
+            && ($candidateIncrement <= 16384
+                ? (($longAdmission['status'] ?? null) === 'available' && ($longContext['hotel_reference'] ?? null) === $longReference)
+                : (($longAdmission['status'] ?? null) === 'omitted'
+                    && ($longContext['hotel_reference']['facts'] ?? null) === []
+                    && ($longContext['hotel_reference']['sources'] ?? null) === [])));
+    }
+}
