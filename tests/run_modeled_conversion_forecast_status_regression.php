@@ -117,7 +117,7 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
     forecastV1Schema($p);forecastV1Append($p,forecastV1Packet());$now=time();$act=$now-3600;
     foreach(['modeled_conversion_value_export_settings','max_channel_conversion_outbox']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
     $p->exec("CREATE TABLE modeled_conversion_value_export_settings(project_key VARCHAR(40) PRIMARY KEY,counter_id VARCHAR(20),mode VARCHAR(16),goal_id VARCHAR(20),goal_intent VARCHAR(20),activated_at_unix BIGINT,last_tick_unix BIGINT,contract_version VARCHAR(64),last_receipt_json TEXT,history_from_unix BIGINT,history_until_unix BIGINT,history_completed_at_unix BIGINT,history_scanned BIGINT,history_collected BIGINT,history_stats_json TEXT,history_cursor BIGINT,history_ceiling BIGINT,history_fortnight_requested_at_unix BIGINT,history_day_receipt_json TEXT,last_report_success_unix BIGINT,last_report_success_json TEXT,report_failure_since_unix BIGINT)");
-    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),event_unix BIGINT,state VARCHAR(24),value_stage VARCHAR(40),value_rub DECIMAL(12,2),upload_id VARCHAR(20),upload_status VARCHAR(32),last_error VARCHAR(64),private_marker TEXT,value_origin VARCHAR(32),value_reviewed_at_unix BIGINT,platform VARCHAR(16),conversation_id BIGINT,client_id VARCHAR(40),claimed_at_unix BIGINT,value_ready_at_unix BIGINT,value_api_accepted_at_unix BIGINT,value_processed_at_unix BIGINT,value_receipt_basis VARCHAR(24),value_profile_id BIGINT,target VARCHAR(100))");
+    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),event_unix BIGINT,state VARCHAR(24),value_stage VARCHAR(40),value_rub DECIMAL(12,2),upload_id VARCHAR(20),upload_status VARCHAR(32),last_error VARCHAR(64),private_marker TEXT,value_origin VARCHAR(32),value_reviewed_at_unix BIGINT,platform VARCHAR(16),conversation_id BIGINT,client_id VARCHAR(40),claimed_at_unix BIGINT,value_ready_at_unix BIGINT,value_api_accepted_at_unix BIGINT,value_processed_at_unix BIGINT,value_receipt_basis VARCHAR(24),value_profile_id BIGINT,target VARCHAR(100),external_user_id VARCHAR(20))");
     $report=['status'=>'ok','goal_id'=>'678187097','currency'=>'RUB','fetched_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$now),
         'date1'=>gmdate('Y-m-d',$act-21*86400),'date2'=>gmdate('Y-m-d',$now),'goal_reaches'=>2,'goal_visits'=>1,'revenue_rub'=>2083.0,'sampled'=>false,
         'private_marker'=>'PRIVATE_REPORT_MUST_NOT_LEAVE'];
@@ -1453,23 +1453,26 @@ function forecastRepairAssessmentAssertions(PDO $p,callable $check):void
 {
     foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
     $p->exec("CREATE TABLE modeled_conversion_profile_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),customer_key VARCHAR(40),conversation_id BIGINT,observed_at_unix BIGINT,assessment_namespace CHAR(64),assessment_kind VARCHAR(8),profile_json TEXT)");
-    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),conversation_id BIGINT,counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),target VARCHAR(100),value_profile_id BIGINT,value_rub DECIMAL(12,2),state VARCHAR(24),upload_status VARCHAR(32),upload_id VARCHAR(40))");
+    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),conversation_id BIGINT,counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),target VARCHAR(100),value_profile_id BIGINT,value_rub DECIMAL(12,2),state VARCHAR(24),upload_status VARCHAR(32),upload_id VARCHAR(40),external_user_id VARCHAR(20),event_unix BIGINT,value_stage VARCHAR(40),last_error TEXT,value_ready_at_unix BIGINT,value_api_accepted_at_unix BIGINT,value_processed_at_unix BIGINT)");
     $now=time();$namespace=ModeledConversionProfiles::assessmentNamespace();
     $profile=$p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour',?,?,?,?,?,?,'PRIVATE_PROFILE_BODY_MUST_NOT_BE_READ')");
     $append=static function(int $id,string $kind='repair',?string $generation=null,string $platform='telegram')use($profile,$namespace,$now):void{
-        $profile->execute([$id,$platform,(string)(700000+$id),900000+$id,$now-10,$generation??$namespace,$kind]);
+        $profile->execute([$id,$platform,(string)(700000+$id),900000+$id,$now-40,$generation??$namespace,$kind]);
     };
-    $insert=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)");
-    $enqueue=static function(int $id,array $change=[])use($insert):void{
+    $insert=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+    $enqueue=static function(int $id,array $change=[])use($insert,$now):void{
         $v=array_replace(['id'=>$id,'project_key'=>'anytour','platform'=>'telegram','conversation_id'=>900000+$id,'counter_id'=>'98615635',
             'transport_target'=>ModeledConversionValueContract::TARGET,'value_contract'=>ModeledConversionValueContract::VERSION,
             'target'=>ModeledConversionValueContract::predictionKey((string)$id),'value_profile_id'=>$id,'value_rub'=>500,
-            'state'=>'ready','upload_status'=>null,'upload_id'=>null],$change);
+            'state'=>'ready','upload_status'=>null,'upload_id'=>null,'external_user_id'=>(string)(710000+$id),'event_unix'=>$now-30,
+            'value_stage'=>'specific_request','last_error'=>'','value_ready_at_unix'=>$now-20,
+            'value_api_accepted_at_unix'=>null,'value_processed_at_unix'=>null],$change);
         $insert->execute(array_values($v));
     };
-    $append(1,'repair',null,'max');$enqueue(1,['platform'=>'max','value_rub'=>1250,'state'=>'processed','upload_status'=>'PROCESSED','upload_id'=>'receipt_a']);
-    $append(2);$enqueue(2);
-    $append(3);$enqueue(3,['value_rub'=>350,'state'=>'unknown','upload_status'=>'LINKAGE_FAILURE','upload_id'=>'receipt_b']);
+    $append(1,'repair',null,'max');$enqueue(1,['platform'=>'max','value_rub'=>1250,'state'=>'processed','upload_status'=>'PROCESSED','upload_id'=>'81001',
+        'value_api_accepted_at_unix'=>$now-15,'value_processed_at_unix'=>$now-10]);
+    $append(2);$enqueue(2,['state'=>'pending','last_error'=>'identity_not_found','value_ready_at_unix'=>null]);
+    $append(3);$enqueue(3,['value_rub'=>350,'state'=>'unknown','upload_status'=>'LINKAGE_FAILURE','upload_id'=>'81003']);
     $append(4); // No new delta is possible when earlier reserved value already covers the estimate.
     $append(5,'live');$enqueue(5,['value_rub'=>9000,'state'=>'processed','upload_status'=>'PROCESSED','upload_id'=>'ordinary_live']);
     $append(6,'legacy');$enqueue(6,['value_rub'=>777,'state'=>'unknown','upload_id'=>'old_unknown']);
@@ -1483,16 +1486,19 @@ function forecastRepairAssessmentAssertions(PDO $p,callable $check):void
     $snapshot=static fn():string=>json_encode([
         $p->query('SELECT * FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),
         $p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)],JSON_THROW_ON_ERROR);
+    $pending=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=2')->fetch(PDO::FETCH_ASSOC);
+    $ref=ModeledConversionValueIdentityEvidence::reference($pending,$namespace);
+    $audit=['v'=>ModeledConversionValueIdentityEvidence::VERSION,'n'=>$namespace,'c'=>true,'r'=>[[$ref,$now-5,1,null]]];
     $before=$snapshot();
     $oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
     ForecastV1ObservedStatement::$observePredictive=true;ForecastV1ObservedStatement::$predictiveExecutions=0;
     ForecastV1ObservedStatement::$predictiveCopies=[];ForecastV1ObservedStatement::$predictiveStatements=[];
-    try{$r=(new ModeledConversionValueDeliveryReader($p,static function():void{},new ModeledConversionStatusBudget()))->repairAssessments($now);}
+    try{$r=(new ModeledConversionValueDeliveryReader($p,static function():void{},new ModeledConversionStatusBudget()))->repairAssessments($now,$audit);}
     finally{ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
     $check('repair delivery counts only new increments of current finite repair profiles',
         $r['available']&&$r['reassessed_profiles']===12&&$r['profiles_without_new_increment']===9
         &&$r['new_increment_events']===3&&$r['new_increment_value_rub']===2100.0
-        &&$r['by_state']['ready']===['events'=>1,'value_rub'=>500.0]
+        &&$r['by_state']['pending']===['events'=>1,'value_rub'=>500.0]
         &&$r['by_state']['unknown']===['events'=>1,'value_rub'=>350.0]
         &&$r['by_platform']['max']===['reassessed_profiles'=>1,'events'=>1,'value_rub'=>1250.0]);
     $check('repair API receipts and processed rows remain distinct from visit proof',
@@ -1501,38 +1507,106 @@ function forecastRepairAssessmentAssertions(PDO $p,callable $check):void
         &&$r['per_event_visit_linkage']==='not_checked'&&$r['provider_requests']===0
         &&$r['interpretation']['no_new_increment_is_not_evidence_of_loss']
         &&$r['interpretation']['api_receipts_include_later_rejected_rows']);
+    $cases=$r['exact_cases'];$second=$cases['rows'][1];
+    $check('exact repair cases bind the saved identity probe without guessing a missing lookup',
+        $cases['available']&&$cases['window']['complete_within_bound']&&count($cases['rows'])===3
+        &&$cases['identity_evidence']['cohort_complete_within_bound']===true&&$cases['identity_evidence']['observed_case_count']===1
+        &&$second['event_ref']===$ref&&$second['state']==='pending'&&$second['last_error']==='identity_not_found'
+        &&$second['first_ready_at']===null&&$second['identity_resolution']['status']==='observed'
+        &&$second['identity_resolution']['reason']===ModeledConversionValueIdentityEvidence::reason(1)
+        &&$second['identity_resolution']['checked_at']===gmdate('Y-m-d\TH:i:s\Z',$now-5)
+        &&$cases['rows'][0]['identity_resolution']['status']==='not_observed'
+        &&$cases['rows'][0]['api_receipt_ref']===hash('sha256','modeled_value_upload_receipt_v1|81001'));
     $sql=ForecastV1ObservedStatement::$predictiveStatements[0]['sql']??'';
-    $copy=json_encode(ForecastV1ObservedStatement::$predictiveCopies,JSON_THROW_ON_ERROR);
-    $json=json_encode($r,JSON_THROW_ON_ERROR);
-    $check('repair delivery uses one scalar SELECT with no payload IDs source reads or mutations',
-        ForecastV1ObservedStatement::$predictiveExecutions===1&&count(ForecastV1ObservedStatement::$predictiveCopies)===1
-        &&count(ForecastV1ObservedStatement::$predictiveCopies[0])===1&&!str_contains($sql,'profile_json')
-        &&!str_contains($sql,'snapshot_json')&&!str_contains($sql,'LIMIT')
-        &&!str_contains($copy,'PRIVATE_')&&!str_contains($json,'700001')&&!str_contains($json,'900001')
+    $caseSql=ForecastV1ObservedStatement::$predictiveStatements[1]['sql']??'';
+    $copy=json_encode(ForecastV1ObservedStatement::$predictiveCopies,JSON_THROW_ON_ERROR);$json=json_encode($r,JSON_THROW_ON_ERROR);
+    $check('repair delivery retains one whole-cohort scalar SELECT and one bounded exact packet SELECT without source reads',
+        ForecastV1ObservedStatement::$predictiveExecutions===2&&count(ForecastV1ObservedStatement::$predictiveCopies)===2
+        &&count(ForecastV1ObservedStatement::$predictiveCopies[0])===1&&!str_contains($sql,'LIMIT')
+        &&str_contains($caseSql,'LIMIT 17 OFFSET 0')&&!str_contains($sql.$caseSql,'profile_json')
+        &&!str_contains($sql.$caseSql,'snapshot_json')&&!str_contains($copy,'PRIVATE_')
+        &&!str_contains($json,'"700001"')&&!str_contains($json,'"710001"')&&!str_contains($json,'"900001"')&&!str_contains($json,'"81001"')
         &&!str_contains($json,'conversation_id')&&!str_contains($json,'value_profile_id')&&$before===$snapshot());
-    // More than the old delivery suffix must not hide the first actual new increments.
+    $read=static fn(mixed $saved=null):array=>(new ModeledConversionValueDeliveryReader($p,static function():void{},new ModeledConversionStatusBudget()))->repairAssessments($now,$saved);
+    $unknown=$read();
+    $legacy=$audit;$legacy['n']=str_repeat('0',64);$legacy=$read($legacy);
+    $check('legacy or absent identity audit is unknown rather than confirmed missing',
+        !$unknown['exact_cases']['identity_evidence']['available']
+        &&$unknown['exact_cases']['rows'][1]['identity_resolution']['status']==='audit_unavailable'
+        &&$unknown['exact_cases']['rows'][1]['identity_resolution']['reason']===null
+        &&!$legacy['exact_cases']['identity_evidence']['available']);
+    $p->prepare("UPDATE max_channel_conversion_outbox SET state='processed',last_error='',value_ready_at_unix=?,value_api_accepted_at_unix=?,value_processed_at_unix=?,upload_status='PROCESSED',upload_id='81002' WHERE id=2")
+        ->execute([$now-4,$now-3,$now-2]);
+    $resolvedAudit=$audit;$resolvedAudit['r']=[[$ref,$now-4,7,$now-60]];$resolved=$read($resolvedAudit);
+    $old=$resolved['exact_cases']['rows'][1];
+    $check('the same original exact event remains visible through resolution receipt and processing',
+        $old['event_ref']===$ref&&$old['state']==='processed'&&$old['increment_rub']===500.0
+        &&$old['event_at']===$second['event_at']&&$old['first_ready_at']===gmdate('Y-m-d\TH:i:s\Z',$now-4)
+        &&$old['api_accepted_at']===gmdate('Y-m-d\TH:i:s\Z',$now-3)&&$old['processed_at']===gmdate('Y-m-d\TH:i:s\Z',$now-2)
+        &&$old['api_receipt_ref']===hash('sha256','modeled_value_upload_receipt_v1|81002')
+        &&$old['identity_resolution']['reason']===ModeledConversionValueIdentityEvidence::reason(7));
+    $p->exec("UPDATE max_channel_conversion_outbox SET last_error='PRIVATE_UNRECOGNIZED_ERROR' WHERE id=3");$safe=$read($resolvedAudit);
+    $check('unrecognized private row error never leaves the exact repair view',
+        $safe['exact_cases']['rows'][2]['last_error']===null&&$safe['exact_cases']['rows'][2]['last_error_status']==='unrecognized'
+        &&!str_contains(json_encode($safe,JSON_THROW_ON_ERROR),'PRIVATE_'));
+    $p->exec("UPDATE max_channel_conversion_outbox SET last_error='' WHERE id=3");
+    // More than both the old delivery suffix and exact-case cap never hides the oldest original events.
     for($id=100;$id<350;$id++)$append($id);
-    $read=static fn():array=>(new ModeledConversionValueDeliveryReader($p,static function():void{},new ModeledConversionStatusBudget()))->repairAssessments($now);
-    $r=$read();
-    $check('repair delivery covers its entire saved current namespace beyond 201 latest profiles',
-        $r['reassessed_profiles']===262&&$r['profiles_without_new_increment']===259
-        &&$r['new_increment_events']===3&&$r['new_increment_value_rub']===2100.0
-        &&$r['coverage']['whole_current_namespace_repair_cohort']);
+    for($id=100;$id<120;$id++)$enqueue($id);
+    $r=$read($resolvedAudit);$details=$r['exact_cases'];
+    $check('whole repair cohort stays independent of the earliest sixteen exact events',
+        $r['reassessed_profiles']===262&&$r['profiles_without_new_increment']===239
+        &&$r['new_increment_events']===23&&$r['new_increment_value_rub']===12100.0
+        &&$r['coverage']['whole_current_namespace_repair_cohort']&&count($details['rows'])===16
+        &&$details['window']['inspected_events']===17&&!$details['window']['complete_within_bound']
+        &&$details['window']['omitted_due_to_row_limit']&&$details['rows'][1]['event_ref']===$ref);
+    $projection=(new ReflectionClass(ModeledConversionForecastStatusReader::class))->newInstanceWithoutConstructor();
+    $bounded=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'boundedResponse');
+    $small=['value_delivery'=>['repair_assessments'=>$r,'predictive_v1'=>['examples'=>[]]]];
+    $padding=max(0,27000-strlen(json_encode($small,JSON_THROW_ON_ERROR)));$small['padding']=str_repeat('x',$padding);
+    $small['value_delivery']['predictive_v1']['examples']=[['padding'=>str_repeat('y',4000)]];
+    $kept=$bounded->invoke($projection,$small);
+    $check('response budget drops optional examples before exact repair evidence',
+        strlen(json_encode($kept,JSON_THROW_ON_ERROR))<=28000
+        &&$kept['value_delivery']['repair_assessments']['exact_cases']['rows']===$details['rows']
+        &&$kept['value_delivery']['predictive_v1']['examples']===[]);
+    $small['padding']=str_repeat('x',25000);$truncated=$bounded->invoke($projection,$small);
+    $truncatedCases=$truncated['value_delivery']['repair_assessments']['exact_cases'];
+    $check('exact-case response truncation is explicit while whole-cohort totals remain intact',
+        strlen(json_encode($truncated,JSON_THROW_ON_ERROR))<=28000
+        &&count($truncatedCases['rows'])<16&&!$truncatedCases['window']['complete_within_bound']
+        &&$truncatedCases['window']['omitted_due_to_response_budget']
+        &&$truncatedCases['window']['returned_events']===count($truncatedCases['rows'])
+        &&$truncatedCases['identity_evidence']['observed_case_count']===count(array_filter($truncatedCases['rows'],static fn(array $row):bool=>$row['identity_resolution']['status']==='observed'))
+        &&$truncated['value_delivery']['repair_assessments']['new_increment_events']===23);
+    $p->prepare('UPDATE max_channel_conversion_outbox SET last_error=? WHERE id=1')->execute([str_repeat('PRIVATE_OVERSIZE_',5000)]);
+    $oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+    ForecastV1ObservedStatement::$observePredictive=true;ForecastV1ObservedStatement::$predictiveCopies=[];
+    try{$oversize=$read($resolvedAudit);}finally{ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $onlyNull=true;foreach(ForecastV1ObservedStatement::$predictiveCopies[1]as$packet)if($packet!==['packet'=>null])$onlyNull=false;
+    $check('oversized exact packet is SQL-gated before copying and does not erase the whole-cohort aggregate',
+        $oversize['available']&&$oversize['new_increment_events']===23
+        &&$oversize['exact_cases']===['available'=>false,'reason'=>'budget_headroom']&&$onlyNull);
+    $p->exec("UPDATE max_channel_conversion_outbox SET last_error='' WHERE id=1");
     $p->exec("UPDATE max_channel_conversion_outbox SET state='untrusted_state' WHERE id=2");
-    $r=$read();$check('invalid repair state is unavailable instead of a partial zero',
-        $r===['available'=>false,'reason'=>'invalid_saved_projection']);
-    $p->exec("UPDATE max_channel_conversion_outbox SET state='ready' WHERE id=2");
-    $calls=0;$revoked=false;
-    try{(new ModeledConversionValueDeliveryReader($p,static function()use(&$calls):void{if(++$calls===2)throw new DomainException('revoked');},new ModeledConversionStatusBudget()))->repairAssessments($now);}
+    $bad=$read();$check('invalid repair state is unavailable instead of a partial zero',
+        $bad===['available'=>false,'reason'=>'invalid_saved_projection']);
+    $p->exec("UPDATE max_channel_conversion_outbox SET state='processed' WHERE id=2");
+    $oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+    ForecastV1ObservedStatement::$observePredictive=true;ForecastV1ObservedStatement::$predictiveExecutions=0;
+    $revoked=false;
+    try{(new ModeledConversionValueDeliveryReader($p,static function():void{if(ForecastV1ObservedStatement::$predictiveExecutions>=2)throw new DomainException('revoked');},new ModeledConversionStatusBudget()))->repairAssessments($now,$resolvedAudit);}
     catch(DomainException $ignored){$revoked=true;}
-    $check('repair aggregate rechecks authorization after copying its scalars',$revoked&&$calls===2);
+    finally{ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $check('revocation after exact packet copy prevents release of the private repair view',
+        $revoked&&ForecastV1ObservedStatement::$predictiveExecutions===2);
     $budget=new ModeledConversionStatusBudget();$budget->consumeBytes(58000);
-    $r=(new ModeledConversionValueDeliveryReader($p,static function():void{},$budget))->repairAssessments($now);
-    $check('repair aggregate preserves shared authorization byte headroom',$r===['available'=>false,'reason'=>'budget_headroom']);
+    $limited=(new ModeledConversionValueDeliveryReader($p,static function():void{},$budget))->repairAssessments($now);
+    $check('repair aggregate preserves shared authorization byte headroom',$limited===['available'=>false,'reason'=>'budget_headroom']);
     $p->exec('DROP TABLE modeled_conversion_profile_versions');
     $p->exec('CREATE TABLE modeled_conversion_profile_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40))');
-    $r=$read();$check('missing repair migration is explicit unavailable rather than no repaired deliveries',
-        $r===['available'=>false,'reason'=>'storage_unavailable']);
+    $missing=$read();$check('missing repair migration is explicit unavailable rather than no repaired deliveries',
+        $missing===['available'=>false,'reason'=>'storage_unavailable']);
 }
 
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){

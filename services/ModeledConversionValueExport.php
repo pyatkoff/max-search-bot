@@ -8,10 +8,17 @@ require_once __DIR__.'/InternalOwnerDialogueScope.php';
 require_once __DIR__.'/ModeledConversionPriceContinuity.php';
 require_once __DIR__.'/ModeledConversionTickFailure.php';
 require_once __DIR__.'/ModeledConversionAttributionWindow.php';
+require_once __DIR__.'/ModeledConversionValueIdentityEvidence.php';
+require_once __DIR__.'/ModeledConversionProfiles.php';
 
 /** One bounded addition to the existing cron process and durable conversion outbox. */
 final class ModeledConversionValueExport
 {
+    private ?string $identityNamespace=null;
+    private array $identityRefs=[];
+    private array $identityObservations=[];
+    private bool $identityCohortAvailable=false;
+    private bool $identityComplete=false;
     public function __construct(private PDO $pdo){}
     public static function settings(?PDO $pdo=null):?array
     {
@@ -139,11 +146,13 @@ final class ModeledConversionValueExport
             $phase='collect_history';
             $stats['historical_collected']=$self->collectHistory($now,$gate);
             $phase='resolve_identity';
-            $pending=$self->rows('pending',$now,5);
+            // Optional scalar metadata cannot block the existing financial lane.
+            $self->prepareIdentityEvidence();
+            $pending=$self->rows('pending',$now,MaxTrackerLookupProtocol::MAX_USERS);
             $users=[];foreach($pending as$r)if($r['platform']==='max'&&$self->eligible($r,$gate))$users[]=$r['external_user_id'];
-            $identities=[];
-            if($users){$lookup??=new MaxTrackerLookupClient();$identities=$lookup->lookup('98615635',array_values(array_unique($users)));}
-            foreach($pending as$r)if($self->resolve($r,$identities,$now,$gate))$stats['resolved']++;
+            $identities=[];$lookupReturned=false;
+            if($users){$lookup??=new MaxTrackerLookupClient();$identities=$lookup->lookup('98615635',array_values(array_unique($users)));$lookupReturned=true;}
+            foreach($pending as$r)if($self->resolve($r,$identities,$now,$gate,$lookupReturned))$stats['resolved']++;
             $ready=$self->rows('ready',$now,3);
             $receipts=array_merge($self->rows('accepted',$now,2),$self->rows('unknown',$now,2));
             if($ready||$receipts){
@@ -241,20 +250,40 @@ final class ModeledConversionValueExport
             $incoming=ModeledConversionTickFailure::normalize($failure,(int)$s['activated_at_unix'],$now);
             // Equal-second failures retain the first saved record; a healthy tick never clears it.
             $retained=$incoming!==null&&($previous===null||$incoming['tick_at_unix']>$previous['tick_at_unix'])?$incoming:$previous;
+            $audit=null;
+            try{$audit=$this->identityEvidence(is_array($receipt)?($receipt['identity_resolution_evidence']??null):null,max($now,$lastTick));}
+            catch(Throwable $ignored){ /* Optional metadata cannot stop delivery receipts. */ }
             if($lastTick>$now){
-                // A delayed failed tick may enrich a newer receipt, never replace its counts or report clocks.
-                if(is_array($receipt)&&$retained!==null&&$retained!==$previous){
-                    $receipt['last_recorded_failure']=$retained;
-                    $encoded=json_encode($receipt,JSON_THROW_ON_ERROR);
-                    if($this->receiptFits($encoded,$mysql)){
+                // A delayed tick may enrich metadata, never replace newer counts or report clocks.
+                if(is_array($receipt)){
+                    $updated=$receipt;
+                    if($retained!==null&&$retained!==$previous){
+                        $updated['last_recorded_failure']=$retained;
+                        // Only the winning saved audit may yield space to a newly retained failure.
+                        if(array_key_exists('identity_resolution_evidence',$receipt)){
+                            $savedAudit=$receipt['identity_resolution_evidence'];$validAudit=false;
+                            try{$validAudit=is_array($savedAudit)&&is_string($savedAudit['n']??null)
+                                &&ModeledConversionValueIdentityEvidence::normalize($savedAudit,$savedAudit['n'],$lastTick)!==null;}
+                            catch(Throwable $ignored){}
+                            if($validAudit)$updated=$this->withIdentityEvidence($updated,$savedAudit,$mysql);
+                            else{
+                                unset($updated['identity_resolution_evidence']);
+                                $updated['identity_resolution_evidence_incomplete']=true;
+                            }
+                        }
+                    }
+                    // A delayed cohort is not authoritative for the newer receipt's membership or completeness.
+                    $encoded=json_encode($updated,JSON_THROW_ON_ERROR);
+                    if($updated!==$receipt&&$this->receiptFits($encoded,$mysql)){
                         $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'");
                         $q->execute([$encoded]);
                     }
                 }
             }else{
                 $stats['last_recorded_failure']=$retained;
+                $stats=$this->withIdentityEvidence($stats,$audit,$mysql);
                 $encoded=json_encode($stats,JSON_THROW_ON_ERROR);
-                // Historical detail must not make otherwise readable current stats exceed the reader's cap.
+                // Optional audit yields before the established historical failure fallback.
                 if(!$this->receiptFits($encoded,$mysql)){unset($stats['last_recorded_failure']);$encoded=json_encode($stats,JSON_THROW_ON_ERROR);}
                 $report=$stats['metrika_report'];$reportOk=in_array($report['status']??null,['ok','sampled'],true);
                 $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=?,last_receipt_json=?,"
@@ -478,10 +507,10 @@ final class ModeledConversionValueExport
     }
     private function rows(string $state,int $now,int $limit):array
     {
-        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state=? AND transport_target=? AND value_contract=? AND next_attempt_unix<=? ORDER BY next_attempt_unix,id LIMIT ".min(5,max(1,$limit)));
+        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state=? AND transport_target=? AND value_contract=? AND next_attempt_unix<=? ORDER BY next_attempt_unix,id LIMIT ".min($state==='pending'?MaxTrackerLookupProtocol::MAX_USERS:5,max(1,$limit)));
         $q->execute([$state,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$now]);return$q->fetchAll(PDO::FETCH_ASSOC);
     }
-    private function resolve(array $r,array $identities,int $now,callable $gate):bool
+    private function resolve(array $r,array $identities,int $now,callable $gate,bool $lookupReturned=false):bool
     {
         if(!$this->eligible($r,$gate)){self::failRow($this->pdo,$r,'scope_unavailable');return false;}
         $client=null;$record=null;$observation=null;$identityReason='identity_not_found';
@@ -498,10 +527,96 @@ final class ModeledConversionValueExport
             $q->execute([$r['external_user_id'],$r['event_unix'],$now,$now]);$ids=$q->fetchAll(PDO::FETCH_ASSOC);if(count($ids)>1)$identityReason='identity_ambiguous';if(count($ids)===1){$client=$ids[0]['client_id'];$observation=$ids[0]['observation_id'];}
         }
         if(!MaxTrackerLookupProtocol::id($client,40)){
-            $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error=? WHERE id=? AND state='pending'");$q->execute([$now+300,$identityReason,$r['id']]);return false;
+            $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error=? WHERE id=? AND state='pending'");$q->execute([$now+300,$identityReason,$r['id']]);
+            if($q->rowCount()===1)$this->observeIdentity($r,$identities,$lookupReturned,$now);
+            return false;
         }
-        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET client_id=?,tracker_record_id=?,tracker_observed_unix=?,identity_observation_id=?,state='ready',value_ready_at_unix=COALESCE(value_ready_at_unix,?),next_attempt_unix=0,last_error='' WHERE id=? AND state='pending'");$q->execute([$client,$record['record_id']??null,$record['observed_at_unix']??null,$observation,$now,$r['id']]);return $q->rowCount()===1;
+        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET client_id=?,tracker_record_id=?,tracker_observed_unix=?,identity_observation_id=?,state='ready',value_ready_at_unix=COALESCE(value_ready_at_unix,?),next_attempt_unix=0,last_error='' WHERE id=? AND state='pending'");$q->execute([$client,$record['record_id']??null,$record['observed_at_unix']??null,$observation,$now,$r['id']]);
+        $changed=$q->rowCount()===1;if($changed)$this->observeIdentity($r,$identities,$lookupReturned,$now);return $changed;
     }
+
+    /** Fixed earliest repair increments only, without loading profile or native payloads. */
+    private function prepareIdentityEvidence():void
+    {
+        try{
+            $this->identityNamespace=ModeledConversionProfiles::assessmentNamespace();
+            $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+            $eq=static fn(string $a,string $b):string=>$mysql?'BINARY '.$a.'=BINARY '.$b:'('.$a.') COLLATE BINARY=('.$b.') COLLATE BINARY';
+            $key=$mysql?"CONCAT('anytour_value_pred_',p.id,'_v1')":"'anytour_value_pred_'||p.id||'_v1'";
+            $fields=['id','value_profile_id','project_key','platform','conversation_id','external_user_id','counter_id',
+                'target','transport_target','value_contract','event_unix','value_rub'];
+            $sql='SELECT '.($mysql?'/*+ MAX_EXECUTION_TIME(250) */ ':'').implode(',',array_map(static fn(string $v):string=>'o.'.$v,$fields))
+                .' FROM modeled_conversion_profile_versions p JOIN max_channel_conversion_outbox o ON o.value_profile_id=p.id'
+                .' AND o.project_key=p.project_key AND o.conversation_id=p.conversation_id AND o.target='.$key
+                .' AND '.$eq('o.project_key','p.project_key').' AND '.$eq('o.platform','p.platform')
+                .' AND '.$eq('o.conversation_id','p.conversation_id').' AND '.$eq('o.target',$key)
+                ." WHERE p.project_key='anytour' AND p.assessment_namespace=? AND p.assessment_kind='repair'"
+                ." AND p.platform IN ('max','telegram') AND o.counter_id='98615635'"
+                .' AND '.$eq('o.transport_target','?').' AND '.$eq('o.value_contract','?')
+                .' AND o.value_rub>0 AND o.value_rub<='.ModeledConversionValueContract::MAX_VALUE_RUB.' ORDER BY o.id LIMIT 17';
+            $q=$this->pdo->prepare($sql);$q->execute([$this->identityNamespace,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);
+            $rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
+            $this->identityComplete=count($rows)<=ModeledConversionValueIdentityEvidence::MAX_ROWS;
+            foreach(array_slice($rows,0,ModeledConversionValueIdentityEvidence::MAX_ROWS)as$row){
+                $ref=ModeledConversionValueIdentityEvidence::reference($row,$this->identityNamespace);
+                if($ref===null){$this->identityComplete=false;continue;}
+                $this->identityRefs[$ref]=true;
+            }
+            $this->identityCohortAvailable=true;
+        }catch(Throwable $ignored){$this->identityComplete=false;}
+    }
+
+    /** Evidence follows the existing successful state update; never changes its result. */
+    private function observeIdentity(array $row,array $identities,bool $lookupReturned,int $now):void
+    {
+        try{
+            if(!$lookupReturned||($row['platform']??null)!=='max'||$this->identityNamespace===null)return;
+            $ref=ModeledConversionValueIdentityEvidence::reference($row,$this->identityNamespace);
+            if($ref===null||!isset($this->identityRefs[$ref]))return;
+            $present=array_key_exists($row['external_user_id'],$identities);
+            [$reason,$observed]=ModeledConversionValueIdentityEvidence::classifyMax($row,$identities[$row['external_user_id']]??null,$present,$now);
+            $this->identityObservations[$ref]=[$ref,$now,$reason,$observed];
+        }catch(Throwable $ignored){$this->identityComplete=false;}
+    }
+
+    /** Retain prior observations by immutable ref; delayed ticks cannot replace later checks. */
+    private function identityEvidence(mixed $previous,int $now):?array
+    {
+        if($this->identityNamespace===null)return null;
+        $prior=ModeledConversionValueIdentityEvidence::normalize($previous,$this->identityNamespace,$now);
+        if(!$this->identityCohortAvailable&&$prior===null&&!$this->identityObservations)return null;
+        $values=[];
+        foreach($prior['rows']??[]as$row)$values[$row['event_ref']]=[$row['event_ref'],$row['checked_at_unix'],$row['reason_code'],$row['source_observed_unix']];
+        foreach($this->identityObservations as$ref=>$row)if(!isset($values[$ref])||$row[1]>$values[$ref][1])$values[$ref]=$row;
+        $refs=$this->identityCohortAvailable?array_keys($this->identityRefs):array_keys($values);
+        $rows=[];foreach(array_slice($refs,0,ModeledConversionValueIdentityEvidence::MAX_ROWS)as$ref)if(isset($values[$ref]))$rows[]=$values[$ref];
+        $audit=['v'=>ModeledConversionValueIdentityEvidence::VERSION,'n'=>$this->identityNamespace,
+            'c'=>$this->identityCohortAvailable&&$this->identityComplete,'r'=>$rows];
+        while(strlen(json_encode($audit,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>ModeledConversionValueIdentityEvidence::MAX_BYTES&&$audit['r']){
+            array_pop($audit['r']);$audit['c']=false;
+        }
+        return $audit;
+    }
+
+    /** Optional evidence yields first; original counts, clocks and failure retention keep priority. */
+    private function withIdentityEvidence(array $receipt,?array $audit,bool $mysql):array
+    {
+        if($audit===null)return $receipt;
+        $base=$receipt;unset($base['identity_resolution_evidence'],$base['identity_resolution_evidence_incomplete']);
+        $receipt=$base;$receipt['identity_resolution_evidence']=$audit;
+        try{while(!$this->receiptFits(json_encode($receipt,JSON_THROW_ON_ERROR),$mysql)){
+            if($receipt['identity_resolution_evidence']['r']){
+                array_pop($receipt['identity_resolution_evidence']['r']);
+                $receipt['identity_resolution_evidence']['c']=false;
+            }else{
+                $base['identity_resolution_evidence_incomplete']=true;
+                if($this->receiptFits(json_encode($base,JSON_THROW_ON_ERROR),$mysql))return $base;
+                unset($base['identity_resolution_evidence_incomplete']);return $base;
+            }
+        }
+        return $receipt;}catch(Throwable $ignored){return $base;}
+    }
+
     private static function failRow(PDO $p,array $r,string $reason):void
     {
         $q=$p->prepare("UPDATE max_channel_conversion_outbox SET state='failed',last_error=? WHERE id=? AND state IN ('pending','ready')");$q->execute([$reason,$r['id']]);

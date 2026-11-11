@@ -223,6 +223,16 @@ final class ModeledConversionForecastStatusReader
                 }
             }
         }
+        // Exact repair evidence wins over optional examples above. If fixed output
+        // still cannot fit, omit only the last cases and report the loss explicitly.
+        while($bytes($out)>28000&&!empty($out['value_delivery']['repair_assessments']['exact_cases']['rows'])){
+            $removed=array_pop($out['value_delivery']['repair_assessments']['exact_cases']['rows']);
+            if(($removed['identity_resolution']['status']??null)==='observed')
+                $out['value_delivery']['repair_assessments']['exact_cases']['identity_evidence']['observed_case_count']--;
+            $window=&$out['value_delivery']['repair_assessments']['exact_cases']['window'];
+            $window['returned_events']=count($out['value_delivery']['repair_assessments']['exact_cases']['rows']);
+            $window['complete_within_bound']=false;$window['omitted_due_to_response_budget']=true;unset($window);
+        }
         return $out;
     }
 

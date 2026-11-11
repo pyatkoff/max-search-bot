@@ -215,6 +215,7 @@ function modeledValueAssertions(PDO $p,callable $check):void
     modeledPriceLossAssertions($p,$check);
     modeledValueCatchUpAssertions($p,$check);
     modeledValueFailureRetentionAssertions($p,$check);
+    modeledValueIdentityEvidenceAssertions($p,$check);
     $now=1793650000;$gate=static fn(string $chat):bool=>true;
     modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $check('actual forward migration is default OFF',ModeledConversionValueExport::settings($p)['mode']==='off');
@@ -738,7 +739,7 @@ function modeledValueCatchUpAssertions(PDO $p,callable $check):void
     [$wire,$lookup]=$setup(40);$lookup->missing=false;
     ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate,null,$steady);
     $check('four local pages retain one lookup one aggregate report and bounded visit reads within the original three-upload limit',
-        $cursor()===32&&$rows()===32&&$receipt()['collected']===32&&$receipt()['resolved']===5
+        $cursor()===32&&$rows()===32&&$receipt()['collected']===32&&$receipt()['resolved']===MaxTrackerLookupProtocol::MAX_USERS
         &&$lookup->calls===1&&$wire->posts===3&&$wire->gets===6&&$wire->visitReads===3&&$receipt()['accepted']===3&&$receipt()['errors']===0);
 }
 
@@ -751,11 +752,11 @@ function modeledValueFairProgressAssertions(PDO $p,callable $check):void
     $p->prepare("UPDATE modeled_conversion_value_export_settings SET mode='send',goal_id='678187097',goal_intent='verified',activated_at_unix=?")->execute([$now-10]);
     for($i=501;$i<=506;$i++)modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,$i,$i===506?'max':'telegram'),$now));
     ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
-    $check('one full missing-identity batch preserves all values without premature sends',
-        $wire->posts===0&&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE last_error='identity_not_found'")->fetchColumn()===5);
+    $check('a fresh valid identity behind five held rows resolves and sends within the same bounded tick',
+        $wire->posts===1&&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE last_error='identity_not_found'")->fetchColumn()===5);
     ModeledConversionValueExport::tick($p,$lookup,$api,$now+300,$gate);
-    $check('later unattempted eligible row advances ahead of a repeatedly due missing batch',
-        $wire->posts===1&&$p->query("SELECT state FROM max_channel_conversion_outbox WHERE conversation_id=506")->fetchColumn()==='accepted'
+    $check('the next tick polls the accepted fresh row while preserving all five missing identities',
+        $wire->posts===1&&$p->query("SELECT state FROM max_channel_conversion_outbox WHERE conversation_id=506")->fetchColumn()==='processed'
         &&(int)$p->query("SELECT SUM(value_rub) FROM max_channel_conversion_outbox WHERE state='pending'")->fetchColumn()===6250);
     ModeledConversionValueExport::tick($p,$lookup,$api,$now+600,$gate);
     $check('fair progress keeps missing rows and polls the accepted receipt without resending',
@@ -1047,6 +1048,158 @@ function modeledPriceLossAssertions(PDO $p,callable $check):void
     $check('a claimed or API accepted amount is flagged for review without changing or resending its provider record',
         $row['state']==='accepted'&&(int)$row['value_rub']===$falseDelta&&$row['upload_id']==='901234'
         &&($report['actions']['review_required']['events']??0)===1&&$report['complete']&&!$guard->maySend($row));
+}
+
+
+/** The existing natural tick records only its own bounded identity decisions, without becoming a new resolver. */
+function modeledValueIdentityEvidenceAssertions(PDO $p,callable $check):void
+{
+    modeledValueSchema($p);$now=1793679000;$namespace=ModeledConversionProfiles::assessmentNamespace();
+    $p->exec("ALTER TABLE modeled_conversion_profile_versions ADD COLUMN assessment_namespace CHAR(64)");
+    $p->exec("ALTER TABLE modeled_conversion_profile_versions ADD COLUMN assessment_kind VARCHAR(8)");
+    $wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    $control->configure('create-goal',$api,$now-500);$control->configure('enable',$api,$now-500);
+    $gate=static fn(string $chat):bool=>true;
+    for($i=1;$i<=11;$i++)modeledValueSave($p,modeledExpertWrapper(modeledValueBinding($p,4600+$i),$now-100,200000));
+    $p->prepare("UPDATE modeled_conversion_profile_versions SET assessment_namespace=?,assessment_kind='repair'")->execute([$namespace]);
+    while($control->collect(ModeledConversionValueExport::settings($p),$now,$gate)>0){}
+    $rows=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $check('identity fixture preserves more than five genuine increments whose frozen signal precedes lookup',
+        count($rows)===11&&count(array_filter($rows,static fn(array $row):bool=>(int)$row['event_unix']===$now-100))===11);
+    $records=[];$expected=[1,2,6,3,4,5,7,7,7,7,6];
+    foreach($rows as$i=>$row){
+        $records[$row['external_user_id']]=['external_user_id'=>$row['external_user_id'],
+            'client_id'=>'880000'.$row['external_user_id'],'record_id'=>'17','observed_at_unix'=>(int)$row['event_unix']];
+        if($i===0)$records[$row['external_user_id']]=null;
+        if($i===1)$records[$row['external_user_id']]['observed_at_unix']=null;
+        if($i===2)$records[$row['external_user_id']]['observed_at_unix']=$now+1;
+        if($i===3)$records[$row['external_user_id']]['observed_at_unix']=(int)$row['event_unix']+1;
+        if($i===4)$records[$row['external_user_id']]['observed_at_unix']=(int)$row['event_unix']-ModeledConversionAttributionWindow::MAX_SECONDS-1;
+        if($i===5)$records[$row['external_user_id']]['observed_at_unix']=$now-ModeledConversionAttributionWindow::MAX_SECONDS-1;
+        if($i===10)unset($records[$row['external_user_id']]); // Missing map entry is invalid, never confirmed absence.
+    }
+    $lookup=new class($records){
+        public int $calls=0;public int $count=0;public bool $throw=false;
+        public function __construct(public array $records){}
+        public function lookup(string $counter,array $users):array{
+            $this->calls++;$this->count=count($users);
+            if($this->throw)throw new RuntimeException('tracker_transport_failed');
+            return array_intersect_key($this->records,array_fill_keys($users,true));
+        }
+    };
+    $wire->visitAt=(int)$rows[0]['event_unix']-1;
+    $frozen=$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $result=ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
+    $receipt=static fn():array=>json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    $saved=$receipt();$audit=ModeledConversionValueIdentityEvidence::normalize($saved['identity_resolution_evidence']??null,$namespace,$now);
+    $check('one bounded canonical lookup resolves more than five pending rows while uploads remain capped at three',
+        $lookup->calls===1&&$lookup->count===11&&$lookup->count<=MaxTrackerLookupProtocol::MAX_USERS
+        &&$wire->posts===3&&$saved['resolved']===4
+        &&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE state='ready'")->fetchColumn()===1);
+    $check('actual successful resolver updates retain distinct absent missing future expired and resolved reasons',
+        $audit!==null&&$audit['complete']&&array_column($audit['rows'],'reason_code')===$expected
+        &&count($audit['rows'])===11&&strlen(json_encode($saved['identity_resolution_evidence']))<=2048);
+    $check('the private evidence never changes public diagnostic output or immutable forecasts',
+        $result===['status'=>'running','contract'=>ModeledConversionValueContract::VERSION]
+        &&$frozen===$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)
+        &&!str_contains(json_encode($saved['identity_resolution_evidence']),'external_user_id')
+        &&!str_contains(json_encode($saved['identity_resolution_evidence']),'880000'));
+    $first=$rows[0];$ref=ModeledConversionValueIdentityEvidence::reference($first,$namespace);
+    $native=$first;foreach(['id','value_profile_id','conversation_id','event_unix','counter_id']as$key)$native[$key]=(int)$native[$key];
+    $native['value_rub']=(float)$native['value_rub'];
+    $check('opaque evidence refs are canonical across PDO strings and native MySQL JSON scalar types',
+        $ref!==null&&$ref===ModeledConversionValueIdentityEvidence::reference($native,$namespace));
+    $bound=true;
+    foreach(['id','value_profile_id','conversation_id','external_user_id','event_unix','value_rub']as$key){
+        $changed=$first;$changed[$key]=(string)((int)$changed[$key]+1);
+        $bound=$bound&&ModeledConversionValueIdentityEvidence::reference($changed,$namespace)!==$ref;
+    }
+    foreach(['project_key','platform','counter_id','target','transport_target','value_contract']as$key){
+        $changed=$first;$changed[$key]='foreign';
+        $bound=$bound&&ModeledConversionValueIdentityEvidence::reference($changed,$namespace)===null;
+    }
+    $changed=$first;$changed['value_rub']=ModeledConversionValueContract::MAX_VALUE_RUB+1;
+    $check('refs bind the complete immutable ledger scope and reject foreign keys and values above the existing cap',
+        $bound&&ModeledConversionValueIdentityEvidence::reference($changed,$namespace)===null
+        &&ModeledConversionValueIdentityEvidence::reference($first,str_repeat('b',64))!==$ref);
+    $before=$saved['identity_resolution_evidence'];$posts=$wire->posts;$lookup->throw=true;
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+301,$gate);
+    $after=$receipt();
+    $check('transport failure never manufactures a fresh not-found observation or a duplicate upload',
+        modeledValueFailureJsonEqual($after['identity_resolution_evidence']??null,$before)
+        &&($after['last_recorded_failure']['phase']??null)==='resolve_identity'
+        &&$after['errors']===1&&$wire->posts===$posts);
+    $lookup->throw=false;
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+602,$gate);
+    $later=$receipt();
+    $check('the same natural lane resumes its remaining upload and retains earlier accepted reservations without duplicates',
+        $wire->posts===$posts+1&&$later['errors']===0
+        &&count($p->query('SELECT id FROM max_channel_conversion_outbox')->fetchAll(PDO::FETCH_ASSOC))===11
+        &&$frozen===$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC));
+
+    $private=new ModeledConversionValueExport($p);
+    $set=static function(object $o,string $name,mixed $value):void{(new ReflectionProperty($o,$name))->setValue($o,$value);};
+    $set($private,'identityNamespace',$namespace);$refs=[];
+    foreach($rows as$row)$refs[ModeledConversionValueIdentityEvidence::reference($row,$namespace)]=true;
+    $set($private,'identityRefs',[$ref=>true]);$set($private,'identityCohortAvailable',true);$set($private,'identityComplete',true);
+    $set($private,'identityObservations',[$ref=>[$ref,$now,1,null]]);
+    $winning=$receipt();$winning['identity_resolution_evidence']['c']=false;
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")
+        ->execute([json_encode($winning,JSON_THROW_ON_ERROR)]);
+    $settingsBefore=ModeledConversionValueExport::settings($p);$receiptBefore=$receipt();
+    (new ReflectionMethod($private,'persistTickReceipt'))->invoke($private,['errors'=>99,'metrika_report'=>['status'=>'unavailable']],null,$now);
+    $settingsAfter=ModeledConversionValueExport::settings($p);$receiptAfter=$receipt();
+    $check('a delayed smaller complete cohort cannot erase newer refs or upgrade incomplete evidence or overwrite counts and clocks',
+        modeledValueFailureJsonEqual($receiptBefore,$receiptAfter)
+        &&$settingsBefore['last_tick_unix']===$settingsAfter['last_tick_unix']
+        &&$settingsBefore['last_report_success_unix']===$settingsAfter['last_report_success_unix']
+        &&modeledValueFailureJsonEqual($settingsBefore['last_report_success_json'],$settingsAfter['last_report_success_json']));
+    $near=$receiptAfter;
+    $near['last_recorded_failure']=['tick_at_unix'=>$now+100,'phase'=>'upload','category'=>'api_rejected'];
+    $newFailure=['tick_at_unix'=>$now+500,'phase'=>'collect_profiles','category'=>'processing_failed'];
+    $measure=static function(array $value)use($p):int{
+        $json=json_encode($value,JSON_THROW_ON_ERROR);
+        if($p->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql')return strlen($json);
+        $q=$p->prepare('SELECT OCTET_LENGTH(CAST(? AS JSON))');$q->execute([$json]);return(int)$q->fetchColumn();
+    };
+    $near['padding']='';
+    $expanded=$near;$expanded['last_recorded_failure']=$newFailure;
+    // Measure the real stored JSON boundary rather than assuming native JSON whitespace.
+    $near['padding']=str_repeat('x',8193-$measure($expanded));
+    $expanded=$near;$expanded['last_recorded_failure']=$newFailure;
+    $check('winning audit pressure fixture admits the old receipt but needs audit space for a newer delayed failure',
+        $measure($near)<=8192&&$measure($expanded)===8193);
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")
+        ->execute([json_encode($near,JSON_THROW_ON_ERROR)]);
+    $clocksBefore=ModeledConversionValueExport::settings($p);
+    (new ReflectionMethod($private,'persistTickReceipt'))->invoke($private,['errors'=>99,'metrika_report'=>['status'=>'unavailable']],$newFailure,$now+500);
+    $held=$receipt();$heldAudit=$held['identity_resolution_evidence']??null;
+    $nearWithoutAudit=$near;unset($nearWithoutAudit['identity_resolution_evidence']);
+    $nearWithoutAudit['last_recorded_failure']=$newFailure;
+    $heldWithoutAudit=$held;unset($heldWithoutAudit['identity_resolution_evidence']);
+    $clocksAfter=ModeledConversionValueExport::settings($p);
+    $check('a delayed real failure trims only the validated winning audit and keeps its membership prefix counts and clocks',
+        $measure($held)<=8192&&modeledValueFailureJsonEqual($heldWithoutAudit,$nearWithoutAudit)
+        &&is_array($heldAudit)&&$heldAudit['c']===false&&count($heldAudit['r'])<count($near['identity_resolution_evidence']['r'])
+        &&$heldAudit['r']===array_slice($near['identity_resolution_evidence']['r'],0,count($heldAudit['r']))
+        &&$clocksBefore['last_tick_unix']===$clocksAfter['last_tick_unix']
+        &&$clocksBefore['last_report_success_unix']===$clocksAfter['last_report_success_unix']
+        &&$clocksBefore['last_report_success_json']===$clocksAfter['last_report_success_json']);
+    $base=['errors'=>2,'accepted'=>3,'processed'=>1,'metrika_report'=>['status'=>'unavailable'],
+        'last_recorded_failure'=>$receiptAfter['last_recorded_failure'],'padding'=>str_repeat('x',7200)];
+    $packed=(new ReflectionMethod($private,'withIdentityEvidence'))->invoke($private,$base,$later['identity_resolution_evidence'], $p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql');
+    $check('audit overflow yields before original counts report and historical failure and keeps the whole receipt bounded',
+        strlen(json_encode($packed))<=8192&&$packed['errors']===2&&$packed['accepted']===3&&$packed['processed']===1
+        &&$packed['metrika_report']===$base['metrika_report']
+        &&$packed['last_recorded_failure']===$base['last_recorded_failure']
+        &&(($packed['identity_resolution_evidence']['c']??null)===false||($packed['identity_resolution_evidence_incomplete']??false)));
+
+    $p->exec('ALTER TABLE modeled_conversion_profile_versions RENAME COLUMN assessment_namespace TO unavailable_namespace');
+    $beforePosts=$wire->posts;
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+903,$gate);
+    $check('optional audit metadata SQL failure is fail-soft for the normal financial tick',
+        $receipt()['errors']===0&&$wire->posts===$beforePosts
+        &&($receipt()['identity_resolution_evidence']['c']??null)===false);
 }
 
 if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){
