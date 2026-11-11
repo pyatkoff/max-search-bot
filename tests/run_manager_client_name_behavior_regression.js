@@ -92,10 +92,10 @@ function get(name=baseName,history=[]){return {ok:true,name,history,history_has_
   assert.equal(isolated.projected.length,0);assert.equal(isolated.nodes.get('customerNameDialog').open,false);
   console.log('PASS late account response is discarded and cannot paint another account');
 
-  const salutation=harness(()=>get());salutation.S.detail.conversation.display_name='Анна — семейная поездка';
+  const salutation=harness(()=>get());salutation.S.detail.conversation.display_name='Анна — семейная поездка';salutation.S.detail.conversation.project_key='anytour';
   vm.runInContext(quickSource,salutation.context);
   const qr=salutation.window.WorkspaceV2QuickReplies;
-  salutation.window.WorkspaceV2.request=async()=>({ok:true,replies:[{id:1,title:'Приветствие',body:'Здравствуйте, {client_name}!',scope:'personal',version:1,can_edit:true}],categories:[],has_more:false});
+  salutation.window.WorkspaceV2.request=async(endpoint,action,data)=>{assert.equal(data.project_key,'anytour');assert.equal(data.expected_manager_id,5);return {ok:true,project_key:'anytour',replies:[{id:1,project_key:'anytour',title:'Приветствие',body:'Здравствуйте, {client_name}!',scope:'personal',version:1,can_edit:true}],categories:[],has_more:false}};
   await qr.open();salutation.nodes.get('qrList').emit('click',{target:{closest:selector=>selector==='[data-qr-select]'?{dataset:{qrSelect:'1'}}:null}});
   assert.match(salutation.nodes.get('qrDetail').innerHTML,/Здравствуйте, Анна!/);assert.doesNotMatch(salutation.nodes.get('qrDetail').innerHTML,/Здравствуйте, Анна — семейная поездка!/);
   qr.resetSession();salutation.S.detail.conversation.original_display_name='';await qr.open();salutation.nodes.get('qrList').emit('click',{target:{closest:selector=>selector==='[data-qr-select]'?{dataset:{qrSelect:'1'}}:null}});

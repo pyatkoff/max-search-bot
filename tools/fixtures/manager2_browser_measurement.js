@@ -74,8 +74,11 @@ async function setup(page,{sourceRoot,beforeNavigate,journey='workspace'}={}){
     assert.ok(attempts.has(body.operation_id));return reply({ok:true,attempt:{state:'confirmed'}});
    }
    if(url.pathname==='/manager/quick-replies-api.php'){
-    assert.equal(body.csrf,'fixture-csrf');const replies=[{id:1,title:'Вставить ответ',body:quickText,category:'Измерение',scope:'personal',manager_id:7,version:1,can_edit:true,is_favorite:false},{id:2,title:'Проверить бюджет',body:'Синтетический ответ, бюджет: {trip_budget}',category:'Измерение',scope:'personal',manager_id:7,version:1,can_edit:true,is_favorite:false}];
-    return reply(body.action==='toolbar'?{ok:true,replies,version:'0'.repeat(64),max_replies:100}:{ok:true,replies,total:2,has_more:false,categories:['Измерение'],can_manage_shared:false});
+    assert.equal(body.csrf,'fixture-csrf');let replies=[{id:1,title:'Вставить ответ',body:quickText,category:'Измерение',scope:'personal',manager_id:7,version:1,can_edit:true,is_favorite:false},{id:2,title:'Проверить бюджет',body:'Синтетический ответ, бюджет: {trip_budget}',category:'Измерение',scope:'personal',manager_id:7,version:1,can_edit:true,is_favorite:false}];
+    // The same measurement can load an older installed baseline or the new
+    // company-scoped product. Preserve the legacy response bytes for old calls.
+    const scope={};if(body.project_key!==undefined){assert.equal(body.project_key,'synthetic-main');assert.equal(body.expected_manager_id,7);scope.project_key=body.project_key;replies=replies.map(row=>({...row,project_key:body.project_key}))}
+    return reply(body.action==='toolbar'?{ok:true,...scope,replies,version:'0'.repeat(64),max_replies:100}:{ok:true,...scope,replies,total:2,has_more:false,categories:['Измерение'],can_manage_shared:false});
    }
    return route.fallback();
   });

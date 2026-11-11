@@ -58,6 +58,14 @@ The template editor offers seven reusable trip placeholders: `{trip_city}`, `{tr
 
 Saved-reply editing and insertion preview reuse the composer's emoji choices and preserve the current text selection. Each “Моя панель” row has “Убрать с панели”, which removes only that account's shortcut and keeps the library reply and edited preview. “Удалить ответ” uses the existing role-gated library deletion with confirmation; deleting a shared reply remains administrator-only.
 
+Each company has its own personal/shared library and toolbar projection. The company selector uses existing account access; a conversation selects its own company. Original unscoped replies appear only in the installation's default company, preserving their content. Editor drafts and pending command receipts are separated by account and company; late responses cannot cross either boundary.
+
+A reply can contain up to ten ordered materials, a source label and an explicit “Условия и материалы проверены” mark. Changing its content/materials requires renewed review. Without a source and explicit review it remains visibly in need of checking. Saved review instants display in Moscow time. Private material bytes are outside the public checkout and are disclosed only through the authenticated, assigned-conversation/version check. There is no public download link.
+
+Selecting a material reply opens its text, source, review date and ordered file preview. “Вставить” checks the channel/PHP limits, downloads and verifies all bytes, then adds the text and files to the existing draft together. Any intervening draft, attachment, account, company, conversation or template change cancels that insertion and preserves newer work. Sending remains the separate existing action. Reloaded pending uploads first resolve the original command receipt; only a confirmed missing receipt offers exact original-file reselection, followed by another receipt check before the same command is retried.
+
+Template insertion uses conservative file limits from [MAX's attachment documentation](https://dev.max.ru/docs-api/use-cases/sending-messages/attachment-types) and [Telegram's sending-files documentation](https://core.telegram.org/bots/api#sending-files), capped by the server's current upload limits. This preflight covers material-template insertion; manually selected-file checks and slash quick insertion retain their existing behavior. It does not promise provider acceptance or change the outbound sender.
+
 ## Verification
 
 - The real loopback HTTP/cookie regression verifies existing login survives Manager2 navigation/reload, the alternate HTML never replaces the scoped Manager cookie, and anonymous API access stays unauthorized.

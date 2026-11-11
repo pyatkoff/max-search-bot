@@ -7,7 +7,7 @@ const readSource=relative=>fs.readFileSync(path.join(sourceRoot,relative));
 const shell=execFileSync('php',['manager2/index.php'],{cwd:sourceRoot,encoding:'utf8'});
 // Actual PHP and source assets. All data and mutations below are isolated fixture
 // responses. No production traffic or customer messages are permitted.
-async function setup(page,{role='manager',holdList=false,listError=false,holdCard=false,cardDelay=0,unknownSave=false,conflictSave=false,nameError=false,otherOwner=false,holdGet=false,denySave=false,historySize=0}={}){
+async function setup(page,{role='manager',holdList=false,listError=false,holdCard=false,cardDelay=0,unknownSave=false,conflictSave=false,nameError=false,otherOwner=false,holdGet=false,denySave=false,historySize=0,company=''}={}){
  const calls=[],unexpected=[],errors=[],heldLists=[],heldCards=[],receipts=new Map();
  const lifecycle=[],activeReads=new Set(),requestInfo=new WeakMap();let phase='setup',readSequence=0;
  const trace=(event,details={})=>lifecycle.push({at:Date.now(),phase,event,...details});
@@ -20,7 +20,7 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
  let version=0,workingName=null;
  const names=()=>({customer_id:101,display_name:workingName||'Анна Морозова',original_display_name:'Анна Морозова',working_name:workingName,version,updated_at:version?'2026-10-14 02:00:00':null,updated_by_manager_name:version?'Мария':null,can_edit:role==='admin'||!otherOwner});
  const history=[];for(let i=historySize;i>0;i--)history.push({version:i,before_name:i>1?'Историческое имя '+(i-1):null,after_name:'Историческое имя '+i,actor_name:'Мария',created_at:'2026-10-14 02:00:00'});
- const conv=id=>({id,customer_id:id===11?101:102,manager_id:otherOwner?8:manager.id,manager_name:otherOwner?'Ольга':manager.display_name,status:'manager',channel:'telegram',display_name:id===11?names().display_name:'Алексей Иванов',original_display_name:id===11?'Анна Морозова':'Алексей Иванов',working_name:id===11?workingName:null,name_version:id===11?version:0,customer_name_version:id===11?version:0});
+ const conv=id=>({id,...(company?{project_key:company}:{}),customer_id:id===11?101:102,manager_id:otherOwner?8:manager.id,manager_name:otherOwner?'Ольга':manager.display_name,status:'manager',channel:'telegram',display_name:id===11?names().display_name:'Алексей Иванов',original_display_name:id===11?'Анна Морозова':'Алексей Иванов',working_name:id===11?workingName:null,name_version:id===11?version:0,customer_name_version:id===11?version:0});
  const msgs=()=>Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?manager.id:null,text:i===34?'Посмотрите варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Обсуждаем отели у моря и даты.',created_at:'2026-10-13 12:00:00'}));
  page.on('pageerror',e=>{errors.push(e.message);trace('pageerror',{name:e.name,message:e.message,stack:e.stack||''})});
  await page.route('**/*',async route=>{
@@ -60,10 +60,12 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
    }
   }
   if(method==='POST'&&url.pathname==='/manager/quick-replies-api.php'&&d.csrf==='fixture-csrf'){
+   expect(d.project_key).toBe(company);expect(d.expected_manager_id).toBe(manager.id);
    // An empty saved personal panel, distinct from the lazily loaded library.
-   if(d.action==='toolbar')return reply({ok:true,replies:[],version:'0'.repeat(64),max_replies:100});
-   if(d.action==='list')return reply({ok:true,replies:[{id:1,title:'Приветствие',body:'Здравствуйте, {client_name}!',category:'',scope:'personal',version:1,can_edit:true,is_favorite:false}],categories:[],has_more:false});
+   if(d.action==='toolbar')return reply({ok:true,project_key:company,replies:[],version:'0'.repeat(64),max_replies:100});
+   if(d.action==='list')return reply({ok:true,project_key:company,replies:[{id:1,project_key:company,title:'Приветствие',body:'Здравствуйте, {client_name}!',category:'',scope:'personal',version:1,can_edit:true,is_favorite:false}],categories:[],has_more:false});
   }
+  if(company==='anytour'&&method==='POST'&&url.pathname==='/manager/request-profile-api.php'&&d.action==='get'&&d.csrf==='fixture-csrf'&&[11,12].includes(d.conversation_id))return reply({ok:true,viewer_id:manager.id,conversation_id:d.conversation_id,profile:{label:'',status:'needs_review',fields:{}}});
   if(url.pathname==='/manager/customer-name-api.php'){
    if(d.csrf!=='fixture-csrf')throw new Error('Working name must use canonical CSRF');
    if(d.action==='get'){
@@ -165,7 +167,7 @@ test('history loads a bounded page then older changes explicitly',async({page})=
 });
 
 test('working name remains literal text and quick reply uses original messenger name',async({page})=>{
- const s=await setup(page);await openLead(page);await openNameDialog(page);await expect(page.locator('#cnInput')).toBeEnabled();const label='Анна " onclick="alert(1) <семья>';
+ const s=await setup(page,{company:'anytour'});await openLead(page);await openNameDialog(page);await expect(page.locator('#cnInput')).toBeEnabled();const label='Анна " onclick="alert(1) <семья>';
  await page.locator('#cnInput').fill(label);await page.locator('#cnSave').click();await expect(page.locator('#conversationTitle')).toHaveText(label);await page.locator('#cnClose').click();expect(await page.locator('#conversationTitle').getAttribute('onclick')).toBeNull();await expect(page.locator('#conversationTitle img')).toHaveCount(0);await closeCard(page);await page.locator('.conversationHead').click({position:{x:1,y:1}});await page.locator('#quickRepliesOpen').click();await page.locator('[data-qr-scope="all"]').click();await page.locator('[data-qr-select="1"]').click();await expect(page.locator('#qrPreview')).toHaveValue('Здравствуйте, Анна Морозова!');await page.locator('#qrClose').click();await openNameDialog(page);await expect(page.locator('#cnInput')).toHaveValue(label);expect(await page.locator('#cnInput').getAttribute('onclick')).toBeNull();clean(s);
 });
 

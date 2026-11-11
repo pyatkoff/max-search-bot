@@ -60,7 +60,7 @@ async function setup(page,{role='manager',savedTabs=false,longPreview=false}={})
       if(data.action==='list')return reply({ok:true,conversations:rows()});
       if(data.action==='detail')return reply({ok:true,can_edit_pipeline:true,pipeline:{stage:stages[0],stage_history:[],tags:[],outcome:{outcome:'open'}},tasks:[],trip:{city:'Москва',country:'Турция',adults:2},contact:{phone:'+7 999 123-45-67'},source:{project_label:'AnyTour',origin_label:'Реклама · тестовый источник'},handoff:{technical_status:'manager',manager_name:'Мария'}});
     }
-    if(url.pathname==='/manager/quick-replies-api.php'&&data.action==='toolbar')return reply({ok:true,replies:[],version:'0'.repeat(64),max_replies:100});
+    if(url.pathname==='/manager/quick-replies-api.php'&&data.action==='toolbar')return reply({ok:true,project_key:data.project_key,replies:[],version:'0'.repeat(64),max_replies:100});
     if(url.pathname==='/manager/post-context-api.php'&&data.action==='detail')return reply({ok:true,conversation_id:data.conversation_id,context:{current:null,history:[]}});
     if(url.pathname==='/manager/personal-workspace-api.php'){
       if(data.action==='snapshot')return reply(snapshot());

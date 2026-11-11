@@ -27,6 +27,13 @@ const operation='a'.repeat(32),csrf='fixture-csrf';
 const send=f=>({action:'send',csrf,conversation_id:11,operation_id:operation,text:f.editedAiText});
 const receipt=()=>({action:'send_receipt',csrf,conversation_id:11,operation_id:operation});
 async function main(){
+ await check('reply-library measurement retains legacy baseline and explicit current company/account contract',async()=>{
+  const f=await fixture('workspace');
+  const legacy=await f.request('quick-replies-api.php',{action:'toolbar',csrf});assert.equal(legacy.ok,true);assert.equal(legacy.replies.length,2);
+  const current=await f.request('quick-replies-api.php',{action:'toolbar',csrf,project_key:'synthetic-main',expected_manager_id:7});assert.equal(current.project_key,'synthetic-main');assert.ok(current.replies.every(row=>row.project_key==='synthetic-main'));
+  for(const change of [{project_key:'other-company'},{expected_manager_id:8}])await assert.rejects(f.request('quick-replies-api.php',{action:'toolbar',csrf,project_key:'synthetic-main',expected_manager_id:7,...change}));
+  assert.equal(f.state.attempts.size,0);
+ });
  await check('workspace still refuses send and model generation',async()=>{const f=await fixture('workspace');assert.equal((await f.request('api.php',send(f))).aborted,true);assert.equal((await f.request('ai-draft.php',{action:'generate',csrf,conversation_id:11,latest_message_id:600})).aborted,true);assert.equal(f.state.attempts.size,0)});
  await check('external send aborts before synthetic state changes',async()=>{const f=await fixture();assert.equal((await f.request('api.php',send(f),'https://app.anytoour.ru')).aborted,true);assert.equal(f.state.documents.size,0);assert.equal(f.state.attempts.size,0)});
  await check('unplanned mutations abort',async()=>{const f=await fixture();assert.equal((await f.request('api.php',{action:'assign',csrf,conversation_id:11})).aborted,true);assert.equal(f.state.attempts.size,0)});

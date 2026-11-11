@@ -4,7 +4,7 @@ on:
     paths:
       - services/AdvertisingVisit*.php
       - services/ProjectFunnel*.php
-      - migrations/103_project_funnel_context.sql
+      - migrations/104_project_funnel_context.sql
       - tests/fixtures/project_funnel_advertising_assertions.php
       - tests/run_project_funnel*.php
       - modules/tgmini-identity/**

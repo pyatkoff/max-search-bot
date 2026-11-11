@@ -1,15 +1,36 @@
 const {test,expect}=require('@playwright/test');
 const {execFileSync}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path');
-const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
+const {createHash}=require('node:crypto');
+const http=require('node:http');
+const sha256=value=>createHash('sha256').update(value).digest('hex');
+function multipart(request){
+ const boundary=/boundary=(?:"([^"]+)"|([^;]+))/.exec(request.headers()['content-type']||'');
+ if(!boundary)throw Error('Expected a multipart boundary');
+ const pieces=request.postDataBuffer().toString('latin1').split('--'+(boundary[1]||boundary[2]));
+ const uploads=[];let command=null;
+ for(const part of pieces.slice(1,-1)){
+  const offset=part.indexOf('\r\n\r\n');expect(offset).toBeGreaterThan(0);
+  const headers=part.slice(0,offset),body=Buffer.from(part.slice(offset+4,-2),'latin1');
+  const name=/name="([^"]+)"/.exec(headers)?.[1];
+  if(name==='command'){expect(command).toBeNull();command=JSON.parse(body.toString('utf8'));continue}
+  expect(name).toBe('materials[]');const filename=/filename="([^"]+)"/.exec(headers)?.[1];expect(filename).toBeTruthy();
+  uploads.push({name:Buffer.from(filename,'latin1').toString('utf8'),body});
+ }
+ expect(command).not.toBeNull();return {command,uploads};
+}
+const root=path.resolve(__dirname,'../..');
 const sourceRoot=process.env.M2_QA_SOURCE_ROOT||root;
 const readSource=relative=>fs.readFileSync(path.join(sourceRoot,relative));
 const shell=execFileSync('php',['manager2/index.php'],{cwd:sourceRoot,encoding:'utf8'});
 // Actual PHP and source assets. All data and mutations below are isolated fixture
 // responses. No production traffic or customer messages are permitted.
-async function setup(page,{role='manager',holdList=false,listError=false,holdCard=false,cardDelay=0,cardError=false,tripData=null,unknownCreate=false,conflictUpdate=false,unknownReorder=false,rejectedReorder=false,conflictReorder=false,holdToolbar=false,toolbarError=false,holdFavorite=false,unknownFavorite=false,conflictFavorite=false,unknownDelete=false,selectedIds=[2],messages=null}={}){
+async function setup(page,{role='manager',holdList=false,listError=false,holdCard=false,cardDelay=0,cardError=false,tripData=null,unknownCreate=false,unknownCreateBeforeCommit=false,holdMaterial=false,conflictUpdate=false,unknownReorder=false,rejectedReorder=false,conflictReorder=false,holdToolbar=false,toolbarError=false,holdFavorite=false,unknownFavorite=false,conflictFavorite=false,unknownDelete=false,selectedIds=[2],messages=null}={}){
  const calls=[],unexpected=[],errors=[],heldLists=[],heldCards=[],heldToolbars=[],heldFavorites=[],receipts=new Map(),panels=new Map([[7,[...selectedIds]],[8,[]]]),panelVersions=new Map([[7,1],[8,1]]);
  const requestIds=new WeakMap(),requestTrace=[],errorDiagnostics=[];let requestSequence=0,documentGeneration=0;
+ const materialBytes=new Map(),heldMaterials=[];
+ let fixtureOrigin='';
+ const constraints={supported:true,max_files:10,max_file_bytes_by_type:{image:5000000,video:5000000,audio:5000000,file:5000000},max_total_bytes:10000000,caption_warning_limit:1024,image_formats:['image/png','image/jpeg'],max_photo_dimension_sum:10000,max_photo_ratio:20};
  const trace=(kind,data={})=>{requestTrace.push({kind,at:Date.now(),documentGeneration,...data});if(requestTrace.length>120)requestTrace.shift()};
  const describeRequest=request=>{const path=new URL(request.url()).pathname;if(!path.startsWith('/manager/'))return null;let action='';try{action=String(request.postDataJSON()?.action||'')}catch{}if(!requestIds.has(request))requestIds.set(request,++requestSequence);return{id:requestIds.get(request),path,method:request.method(),type:request.resourceType(),action}};
  page.on('request',request=>{const data=describeRequest(request);if(data)trace('request',data)});
@@ -25,19 +46,23 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
  ];
  const available=(r,id=manager.id)=>r&&(r.scope==='shared'||r.manager_id===id);
  const selected=(id=manager.id)=>panels.get(id)||[];
- const view=(r,id=manager.id)=>({...r,is_favorite:selected(id).includes(r.id),can_edit:r.scope==='personal'||manager.role==='admin'});
- const toolbar=(id=manager.id)=>({ok:true,replies:selected(id).map(key=>replies.find(r=>r.id===key)).filter(r=>available(r,id)).map(r=>view(r,id)),version:String(panelVersions.get(id)||1).padStart(64,'0'),max_replies:100});
+ const view=(r,id=manager.id)=>({...r,project_key:'anytour',materials:r.materials||[],source_label:r.source_label||'',requires_review:r.requires_review??true,is_favorite:selected(id).includes(r.id),can_edit:r.scope==='personal'||manager.role==='admin'});
+ const toolbar=(id=manager.id)=>({ok:true,project_key:'anytour',legacy_project:true,upload_limits:{max_files:10,max_file_bytes:5000000,max_total_bytes:10000000},replies:selected(id).map(key=>replies.find(r=>r.id===key)).filter(r=>available(r,id)).map(r=>view(r,id)),version:String(panelVersions.get(id)||1).padStart(64,'0'),max_replies:100});
  const bump=id=>panelVersions.set(id,(panelVersions.get(id)||1)+1);
  const snapshot=result=>JSON.parse(JSON.stringify(result));
  const trips=new Map([11,12].map(id=>[id,snapshot(tripData?.[id]??{city:'Москва',country:'Турция',adults:2,budget:{max:250000,currency:'RUB',basis:'total'}})]));
- const conv=id=>({id,manager_id:manager.id,manager_name:manager.display_name,status:'manager',channel:'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов'});
+ const conv=id=>({id,project_key:'anytour',manager_id:manager.id,manager_name:manager.display_name,status:'manager',channel:'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов'});
  const msgs=()=>messages||Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?manager.id:null,text:i===34?'Посмотрите варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Обсуждаем отели у моря и даты.',created_at:'2026-10-13 12:00:00'}));
  page.on('pageerror',e=>{errors.push(e.message);errorDiagnostics.push({message:e.message,stack:e.stack||'',at:Date.now(),documentGeneration,recentRequests:requestTrace.slice(-40)});if(errorDiagnostics.length>8)errorDiagnostics.shift()});
- await page.route('**/*',async route=>{
+ const handleRoute=async(route)=>{
   const req=route.request(),url=new URL(req.url()),method=req.method();
   const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
+  // Undecodable response models an unknown result without a transport-level
+  // browser retry. Application reconciliation retains its exact assertions.
+  const unknownResponse=()=>route.fulfill({status:200,contentType:'application/json',body:'{"unconfirmed":'});
   const block=()=>{unexpected.push(method+' '+url.pathname);return route.abort()};
-  if(url.origin!==origin)return block();
+  if(url.origin!==fixtureOrigin)return block();
+  if(method==='GET'&&url.protocol==='blob:'&&req.resourceType()==='image')return route.continue();
   if(method==='GET'&&['/manager2/','/manager2/index.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:shell});
   // Optional portraits are absent for these synthetic clients; the dedicated avatar suite covers images/ACL.
   if(req.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id','account','channel']);expect(url.searchParams.get('account')).toBe(String(manager.id));expect(url.searchParams.get('channel')).toBe(conv(Number(url.searchParams.get('conversation_id'))).channel);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
@@ -48,13 +73,15 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
   if(method==='GET'&&url.pathname==='/manager/sw.js')return route.fulfill({contentType:'application/javascript',body:''});
   if(method==='GET'&&/^\/manager2?\/assets\/[\w.-]+$/.test(url.pathname))return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'application/javascript',body:readSource(url.pathname.slice(1))});
   if(!url.pathname.startsWith('/manager/'))return block();
-  let d={};if(method==='POST'){try{d=req.postDataJSON()||{}}catch(e){return block()}}
+  let d={},uploads=[];if(method==='POST'){if((req.headers()['content-type']||'').startsWith('multipart/form-data')){const parsed=multipart(req);d=parsed.command;uploads=parsed.uploads}else{try{d=req.postDataJSON()||{}}catch(e){return block()}}}
   calls.push({path:url.pathname,...d});
   // Reply-library fixtures are legacy entries without a publication. Accept
   // only the canonical CSRF-protected read for their two scoped conversations.
   if(method==='POST'&&url.pathname==='/manager/post-context-api.php'&&d.action==='detail'&&d.csrf==='fixture-csrf'&&[11,12].includes(d.conversation_id))return reply({ok:true,conversation_id:d.conversation_id,context:{current:null,history:[]}});
+  // The company-scoped conversation also loads its existing request summary.
+  if(method==='POST'&&url.pathname==='/manager/request-profile-api.php'&&d.action==='get'&&d.csrf==='fixture-csrf'&&[11,12].includes(d.conversation_id))return reply({ok:true,viewer_id:manager.id,conversation_id:d.conversation_id,profile:{label:'',status:'needs_review',fields:{}}});
   if(url.pathname==='/manager/api.php'){
-   if(d.action==='me')return reply({ok:true,manager,csrf:'fixture-csrf',projects:[]});
+   if(d.action==='me')return reply({ok:true,manager,csrf:'fixture-csrf',projects:[{id:1,project_key:'anytour',display_name:'AnyTour'}]});
    if(d.action==='detail')return reply({ok:true,conversation:conv(d.conversation_id),messages:msgs(),delivery_failure:null});
    if(d.action==='counts')return reply({ok:true,counts:{waiting:{count:2,unread:2},mine:{count:2}}});
    if(d.action==='edit_candidates')return reply({ok:true,messages:[],candidates:[]});
@@ -73,7 +100,18 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
   }
   if(url.pathname==='/manager/quick-replies-api.php'){
    if(d.csrf!=='fixture-csrf')throw new Error('Quick replies must use canonical CSRF');
+   expect(d.project_key).toBe('anytour');expect(d.expected_manager_id).toBe(manager.id);
    const requestOwner=manager.id,requestRole=manager.role;
+   if(d.action==='prepare_insert'||d.action==='material'){
+    const r=replies.find(r=>r.id===Number(d.id));
+    if(!available(r,requestOwner)||![11,12].includes(d.conversation_id))return reply({ok:false,error:'not_found'},404);
+    if(d.version!==r.version)return reply({ok:false,error:'conflict'},409);
+    if(d.action==='prepare_insert')return reply({ok:true,reply:view(r,requestOwner),constraints:snapshot(constraints)});
+    const item=r.materials?.find(item=>item.id===d.material_id);if(!item)return reply({ok:false,error:'not_found'},404);
+    const body=materialBytes.get(item.id);expect(body).toBeTruthy();expect(sha256(body)).toBe(item.sha256);
+    if(holdMaterial)await new Promise(resolve=>heldMaterials.push(resolve));
+    return route.fulfill({contentType:'application/octet-stream',headers:{'Content-Length':String(item.size),'X-Material-SHA256':item.sha256,'Cache-Control':'no-store, private','X-Content-Type-Options':'nosniff'},body});
+   }
    if(d.action==='toolbar'){
     const captured=snapshot(toolbar());
     if(holdToolbar)await new Promise(resolve=>heldToolbars.push(resolve));
@@ -84,39 +122,62 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
     if(holdList)await new Promise(resolve=>heldLists.push(resolve));
     if(listError)return reply({ok:false,error:'snapshot_failed'},500);
     const items=replies.filter(r=>available(r,requestOwner)&&(d.scope!=='personal'||r.scope==='personal')&&(d.scope!=='shared'||r.scope==='shared')&&(!d.favorites_only||selected(requestOwner).includes(r.id))&&(!d.category||r.category===d.category)&&(!d.search||(r.title+' '+r.body).toLowerCase().includes(d.search.toLowerCase()))).map(r=>view(r,requestOwner));
-    return reply({ok:true,replies:items,total:items.length,has_more:false,categories:['Приветствие','Подбор'],can_manage_shared:manager.role==='admin'});
+    return reply({ok:true,project_key:'anytour',legacy_project:true,upload_limits:{max_files:10,max_file_bytes:5000000,max_total_bytes:10000000},replies:items,total:items.length,has_more:false,categories:['Приветствие','Подбор'],can_manage_shared:manager.role==='admin'});
    }
    if(d.action==='operation')return reply({ok:true,found:receipts.has(d.operation_id),result:receipts.get(d.operation_id)||null});
    if(d.action==='reorder'){
     if(rejectedReorder)return reply({ok:false,error:'invalid_ids'},400);
     if(conflictReorder||d.toolbar_version!==toolbar().version){conflictReorder=false;return reply({ok:false,error:'conflict',toolbar:toolbar()},409)}
     if(!Array.isArray(d.ids)||new Set(d.ids).size!==d.ids.length||[...d.ids].sort().join(',')!==[...selected()].sort().join(','))return reply({ok:false,error:'invalid_ids'},400);
-    panels.set(requestOwner,[...d.ids]);bump(requestOwner);const result={ok:true,toolbar:toolbar()};receipts.set(d.operation_id,snapshot(result));if(unknownReorder)return route.abort('failed');return reply(result);
+    panels.set(requestOwner,[...d.ids]);bump(requestOwner);const result={ok:true,toolbar:toolbar()};receipts.set(d.operation_id,snapshot(result));if(unknownReorder)return unknownResponse();return reply(result);
    }
    if(['create','update','copy'].includes(d.action)){
+    if(receipts.has(d.operation_id))return reply(receipts.get(d.operation_id));
+    if(d.action==='create'&&unknownCreateBeforeCommit){unknownCreateBeforeCommit=false;return unknownResponse()}
     if(d.action==='update'&&conflictUpdate)return reply({ok:false,error:'conflict',current:{...replies.find(r=>r.id===Number(d.id)),version:2,body:'Актуальная версия коллеги'}},409);
     let r=d.action==='create'?null:replies.find(r=>r.id===Number(d.id));if(d.action==='copy'){r={...r,id:100+replies.length,manager_id:requestOwner,scope:'personal',is_favorite:false,can_edit:true};replies.push(r);const result={ok:true,reply:view(r),toolbar:toolbar()};receipts.set(d.operation_id,snapshot(result));return reply(result)}if(r&&d.version!==r.version)return reply({ok:false,error:'conflict',current:r},409);
-    if(!r){r={id:100+replies.length,manager_id:requestOwner,is_favorite:false,version:0};replies.push(r)}Object.assign(r,{title:d.title,body:d.body,category:d.category,scope:d.scope||r.scope,can_edit:true,version:r.version+1});const result={ok:true,reply:view(r),toolbar:toolbar()};receipts.set(d.operation_id,snapshot(result));if(d.action==='create'&&unknownCreate)return route.abort('failed');return reply(result);
+    expect(uploads.map(file=>sha256(file.body))).toEqual(d.upload_hashes||[]);
+    const materials=(d.materials||[]).map(item=>{
+     if(item.id){const old=r?.materials?.find(row=>row.id===item.id);expect(old).toBeTruthy();return snapshot(old)}
+     const file=uploads[item.upload_index];expect(file).toBeTruthy();const id='fixture-material-'+(materialBytes.size+1),image=file.body.subarray(0,8).equals(Buffer.from('89504e470d0a1a0a','hex'));
+     materialBytes.set(id,file.body);return {id,name:file.name,size:file.body.length,mime:image?'image/png':'application/pdf',sha256:sha256(file.body),...(image?{width:1,height:1}:{})};
+    });
+    if(!r){r={id:100+replies.length,manager_id:requestOwner,is_favorite:false,version:0};replies.push(r)}Object.assign(r,{title:d.title,body:d.body,category:d.category,scope:d.scope||r.scope,can_edit:true,version:r.version+1,materials,source_label:d.source_label||'',requires_review:!d.reviewed,reviewed_at:d.reviewed?'2026-11-11T12:00:00Z':null});const result={ok:true,reply:view(r),toolbar:toolbar()};receipts.set(d.operation_id,snapshot(result));if(d.action==='create'&&unknownCreate)return unknownResponse();return reply(result);
    }
    if(d.action==='favorite'){
     if(conflictFavorite||(d.toolbar_version&&d.toolbar_version!==toolbar(requestOwner).version)){conflictFavorite=false;return reply({ok:false,error:'conflict',toolbar:toolbar(requestOwner)},409)}
     const r=replies.find(r=>r.id===Number(d.id));if(!available(r,requestOwner))return reply({ok:false,error:'not_found'},404);
     r.is_favorite=!!d.is_favorite;const ids=selected(requestOwner);panels.set(requestOwner,d.is_favorite?(ids.includes(r.id)?ids:[...ids,r.id]):ids.filter(id=>id!==r.id));bump(requestOwner);
     const result={ok:true,reply:view(r,requestOwner),toolbar:toolbar(requestOwner)};receipts.set(d.operation_id,snapshot(result));
-    if(holdFavorite)await new Promise(resolve=>heldFavorites.push(resolve));if(unknownFavorite)return route.abort('failed');return reply(result);
+    if(holdFavorite)await new Promise(resolve=>heldFavorites.push(resolve));if(unknownFavorite)return unknownResponse();return reply(result);
    }
    if(d.action==='delete'){
     const i=replies.findIndex(r=>r.id===Number(d.id)),r=replies[i];if(!available(r,requestOwner))return reply({ok:false,error:'not_found'},404);
     if(r.scope==='shared'&&requestRole!=='admin')return reply({ok:false,error:'forbidden'},403);if(d.version!==r.version)return reply({ok:false,error:'conflict',current:view(r,requestOwner)},409);
-    const id=r.id;replies.splice(i,1);for(const [owner,ids]of panels){if(ids.includes(id)){panels.set(owner,ids.filter(key=>key!==id));bump(owner)}}const result={ok:true,toolbar:toolbar(requestOwner)};receipts.set(d.operation_id,snapshot(result));if(unknownDelete)return route.abort('failed');return reply(result);
+    const id=r.id;replies.splice(i,1);for(const [owner,ids]of panels){if(ids.includes(id)){panels.set(owner,ids.filter(key=>key!==id));bump(owner)}}const result={ok:true,toolbar:toolbar(requestOwner)};receipts.set(d.operation_id,snapshot(result));if(unknownDelete)return unknownResponse();return reply(result);
    }
   }
   if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:true,notification_path_usable:false,healthy_subscription_count:0,notification_path_reason:'no_subscription'}});
   if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
   unexpected.push(method+' '+url.pathname+' '+d.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
+ };
+ const uploadServer=http.createServer((request,response)=>{
+  if(!['GET','POST'].includes(request.method)||!request.url.startsWith('/')||request.url.startsWith('//')){unexpected.push('Unexpected loopback route');response.writeHead(400).end();return}
+  const chunks=[];let size=0;
+  request.on('data',chunk=>{size+=chunk.length;if(size>1048576){unexpected.push('Oversized synthetic upload');request.destroy()}else chunks.push(chunk)});
+  request.on('end',()=>{
+   const buffer=Buffer.concat(chunks),fakeRequest={url:()=>fixtureOrigin+request.url,method:()=>request.method,headers:()=>request.headers,postDataBuffer:()=>buffer,postDataJSON:()=>JSON.parse(buffer.toString('utf8'))};
+   const route={request:()=>fakeRequest,abort:async()=>response.destroy(),fulfill:async({body='',status=200,contentType,headers={}})=>{response.writeHead(status,{...(contentType?{'Content-Type':contentType}:{}),...(contentType==='text/html'?{'Content-Security-Policy':"default-src 'self'; connect-src 'self'; img-src 'self' blob: data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; frame-src 'self'"}:{}),...headers});response.end(body)}};
+   void handleRoute(route).catch(error=>{console.error('SYNTHETIC_REPLY_FAILURE',error.stack);errors.push(error.message);errorDiagnostics.push({message:error.message,stack:error.stack,at:Date.now(),documentGeneration});response.writeHead(500,{'Content-Type':'application/json'}).end(JSON.stringify({ok:false,error:'synthetic_reply_failure'}))});
+  });
  });
- await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
- return {calls,unexpected,errors,errorDiagnostics,requestTrace,trace,replies,toolbar,setTrip:(id,trip)=>trips.set(id,snapshot(trip)),setHoldCard:v=>{holdCard=v},setCardError:v=>{cardError=v},setPanel:(ids,id=manager.id)=>{panels.set(id,[...ids]);bump(id)},releaseList:()=>heldLists.shift()?.(),releaseCard:()=>heldCards.shift()?.(),releaseToolbar:()=>heldToolbars.shift()?.(),releaseFavorite:()=>heldFavorites.shift()?.(),switchManager:m=>{manager=m},setListError:v=>{listError=v},setHoldList:v=>{holdList=v},setHoldToolbar:v=>{holdToolbar=v},setToolbarError:v=>{toolbarError=v}};
+ await new Promise(resolve=>uploadServer.listen(0,'127.0.0.1',resolve));uploadServer.unref();fixtureOrigin='http://127.0.0.1:'+uploadServer.address().port;
+ page.once('close',()=>{uploadServer.closeAllConnections();uploadServer.close()});
+ // Native HTTP avoids WebKit's global interception of multipart File bodies.
+ // The shell CSP prevents external traffic; this strict per-page server owns
+ // every synthetic response and verifies the original uploaded bytes.
+ await page.goto(fixtureOrigin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
+ return {calls,unexpected,errors,errorDiagnostics,requestTrace,trace,replies,toolbar,materialBytes,constraints,releaseMaterial:()=>heldMaterials.shift()?.(),setHoldMaterial:v=>{holdMaterial=v},setTrip:(id,trip)=>trips.set(id,snapshot(trip)),setHoldCard:v=>{holdCard=v},setCardError:v=>{cardError=v},setPanel:(ids,id=manager.id)=>{panels.set(id,[...ids]);bump(id)},releaseList:()=>heldLists.shift()?.(),releaseCard:()=>heldCards.shift()?.(),releaseToolbar:()=>heldToolbars.shift()?.(),releaseFavorite:()=>heldFavorites.shift()?.(),switchManager:m=>{manager=m},setListError:v=>{listError=v},setHoldList:v=>{holdList=v},setHoldToolbar:v=>{holdToolbar=v},setToolbarError:v=>{toolbarError=v}};
 }
 async function reloadFixture(page,s){s.trace('before_reload');await page.reload();s.trace('after_reload')}
 async function openLead(page,id=11){
@@ -172,14 +233,14 @@ for(const width of [390,430,768,1440])test.describe('Manager-selected reply pane
   await page.locator('#replyText').fill('Существующий ответ');await page.locator('#replyFile').setInputFiles({name:'panel-file.txt',mimeType:'text/plain',buffer:Buffer.from('Keep this file')});const attachment=await page.locator('#mediaSelection').textContent();
   // Composer focus hides this optional strip on mobile; leave the text field
   // through an ordinary visible click before using an explicitly selected chip.
-  await page.locator('.conversationHead').click({position:{x:1,y:1}});await page.locator('[data-qr-toolbar-id="2"]').click();await expect(page.locator('#replyText')).toHaveValue('Существующий ответ\nПроверяем отели у моря.');await expect(page.locator('#quickRepliesDialog')).toHaveCount(0);await expect(page.locator('#mediaSelection')).toHaveText(attachment);
-  await page.locator('.conversationHead').click({position:{x:1,y:1}});await page.locator('#quickRepliesOpen').click();await expect(page.locator('[data-qr-scope="toolbar"]')).toHaveAttribute('aria-pressed','true');await expect(page.locator('[data-qr-panel-id]')).toHaveCount(1);
+  await page.locator('#replyText').blur();await page.locator('[data-qr-toolbar-id="2"]').click();await expect(page.locator('#replyText')).toHaveValue('Существующий ответ\nПроверяем отели у моря.');await expect(page.locator('#quickRepliesDialog')).toHaveCount(0);await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+  await page.locator('#replyText').blur();await page.locator('#quickRepliesOpen').click();await expect(page.locator('[data-qr-scope="toolbar"]')).toHaveAttribute('aria-pressed','true');await expect(page.locator('[data-qr-panel-id]')).toHaveCount(1);
   await chooseForPanel(page,1);await expectPanel(page,[2,1]);await chooseForPanel(page,3);await expectPanel(page,[2,1,3]);
   await page.locator('[data-qr-scope="toolbar"]').click();await expect(page.locator('[data-qr-panel-id]')).toHaveCount(3);await expect(page.locator('[data-qr-move="up"][data-qr-move-id="2"]')).toBeDisabled();await expect(page.locator('[data-qr-move="down"][data-qr-move-id="3"]')).toBeDisabled();
   const move=page.locator('[data-qr-move="up"][data-qr-move-id="1"]');await expect(move).toHaveAccessibleName(/Личное приветствие/);await move.focus();await page.keyboard.press('Enter');await expectPanel(page,[1,2,3]);await capture(page,browserName,width,'ordered-panel');await page.setViewportSize({width,height:420});await bounded(page);await page.locator('[data-qr-move="up"][data-qr-move-id="3"]').scrollIntoViewIfNeeded();await expect(page.locator('[data-qr-move="up"][data-qr-move-id="3"]')).toBeInViewport();await page.locator('[data-qr-move="up"][data-qr-move-id="3"]').click();await expectPanel(page,[1,3,2]);await page.locator('[data-qr-move="down"][data-qr-move-id="3"]').click();await expectPanel(page,[1,2,3]);await capture(page,browserName,width,'ordered-panel-short');await page.setViewportSize({width,height:900});await page.locator('#qrClose').click();
   await page.locator('[data-qr-toolbar-id="1"]').click();await expect(page.locator('#replyText')).toHaveValue('Существующий ответ\nПроверяем отели у моря.\nЗдравствуйте, Анна Морозова! Меня зовут Мария.');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
-  await page.locator('.conversationHead').click({position:{x:1,y:1}});await page.locator('[data-qr-toolbar-id="3"]').click();await expect(page.locator('#quickRepliesDialog')).toBeVisible();await expect(page.locator('#qrPreview')).toHaveValue('Какие пожелания к {unknown}?');await expect(page.locator('#qrInsert')).toBeDisabled();await expect(page.locator('#replyText')).not.toHaveValue(/unknown/);await page.locator('#qrClose').click();
-  await page.locator('.conversationHead').click({position:{x:1,y:1}});await page.setViewportSize({width,height:420});await assertToolbarLayout(page);await page.locator('[data-qr-toolbar-id="1"]').scrollIntoViewIfNeeded();await expect(page.locator('[data-qr-toolbar-id="1"]')).toBeInViewport();await capture(page,browserName,width,'selected-composer-short');await page.setViewportSize({width,height:900});
+  await page.locator('#replyText').blur();await page.locator('[data-qr-toolbar-id="3"]').click();await expect(page.locator('#quickRepliesDialog')).toBeVisible();await expect(page.locator('#qrPreview')).toHaveValue('Какие пожелания к {unknown}?');await expect(page.locator('#qrInsert')).toBeDisabled();await expect(page.locator('#replyText')).not.toHaveValue(/unknown/);await page.locator('#qrClose').click();
+  await page.locator('#replyText').blur();await page.setViewportSize({width,height:420});await assertToolbarLayout(page);await page.locator('[data-qr-toolbar-id="1"]').scrollIntoViewIfNeeded();await expect(page.locator('[data-qr-toolbar-id="1"]')).toBeInViewport();await capture(page,browserName,width,'selected-composer-short');await page.setViewportSize({width,height:900});
   // Let the newly opened transcript's deferred read finish before the intentional
   // persistence reload; WebKit can reject a fetch started during page teardown.
   const editRead=page.waitForResponse(response=>{if(new URL(response.url()).pathname!=='/manager/api.php')return false;const data=response.request().postDataJSON();return data?.action==='edit_candidates'&&Number(data.conversation_id)===12});
@@ -194,7 +255,7 @@ test('created answer selection is explicit and panel reflects edited title/body,
  const s=await setup(page);await openLead(page);await openLibrary(page);await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Моё приветствие');await page.locator('#qrBody').fill('Я {manager_name}, здравствуйте, {client_name}!');await page.locator('#qrSave').click();await expect.poll(()=>s.replies.length).toBe(4);const created=s.replies.find(r=>r.title==='Моё приветствие');
  await expectPanel(page,[2]);await page.locator('#qrFavorite').click();await expectPanel(page,[2,created.id]);await page.locator('#qrEdit').click();await page.locator('#qrTitle').fill('Моё короткое приветствие');await page.locator('#qrBody').fill('Здравствуйте, {client_name}! На связи {manager_name}.');await page.locator('#qrSave').click();await page.locator('#qrClose').click();
  await expect(page.locator('[data-qr-toolbar-id="'+created.id+'"]')).toHaveText('Моё короткое приветствие');await page.locator('[data-qr-toolbar-id="'+created.id+'"]').click();await expect(page.locator('#replyText')).toHaveValue('Здравствуйте, Анна Морозова! На связи Мария.');
- await page.locator('.conversationHead').click({position:{x:1,y:1}});await openLibrary(page);await page.locator('[data-qr-select="2"]').click();await expect(page.locator('#qrEdit')).toHaveCount(0);await page.locator('#qrCopy').click();await expect.poll(()=>s.replies.length).toBe(5);const copied=s.replies.at(-1);expect(copied.scope).toBe('personal');await expectPanel(page,[2,created.id]);
+ await page.locator('#replyText').blur();await openLibrary(page);await page.locator('[data-qr-select="2"]').click();await expect(page.locator('#qrEdit')).toHaveCount(0);await page.locator('#qrCopy').click();await expect.poll(()=>s.replies.length).toBe(5);const copied=s.replies.at(-1);expect(copied.scope).toBe('personal');await expectPanel(page,[2,created.id]);
  await page.locator('#qrFavorite').click();await expectPanel(page,[2,created.id,copied.id]);await page.locator('#qrEdit').click();await page.locator('#qrTitle').fill('Моя подборка');await page.locator('#qrBody').fill('Проверю мой вариант.');await page.locator('#qrSave').click();await expect(page.locator('[data-qr-toolbar-id="'+copied.id+'"]')).toHaveText('Моя подборка');
  page.once('dialog',dialog=>dialog.accept());await page.locator('#qrDelete').click();await expectPanel(page,[2,created.id]);expect(s.replies.find(r=>r.id===2).body).toBe('Проверяем отели у моря.');clean(s);
 });
@@ -255,7 +316,7 @@ for(const target of ['preview','editor'])test('held toolbar refresh preserves '+
  await page.setViewportSize({width:768,height:900});const s=await setup(page,{selectedIds:[1,2]});await openLead(page);await expectPanel(page,[1,2]);await page.locator('#replyText').fill('Клиентский черновик');
  s.setHoldToolbar(true);await page.locator('#quickRepliesOpen').click();await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','true');if(target==='editor'){await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Черновик со смайликом')}else await page.locator('[data-qr-select="2"]').click();const input=page.locator(target==='editor'?'#qrBody':'#qrPreview');await input.fill('До заменить после');await input.evaluate(node=>node.setSelectionRange(3,11));await page.locator('#qrEmojiToggle').click();await expect(page.locator('#qrEmojiPicker')).toBeVisible();await expect(page.locator('#qrEmojiPicker [data-qr-emoji="😊"]')).toBeFocused();
  s.releaseToolbar();await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','false');await expect(page.locator('#qrEmojiPicker')).toBeHidden();await expect(page.locator('#qrEmojiToggle')).toBeFocused();expect(await input.evaluate(node=>[node.selectionStart,node.selectionEnd])).toEqual([3,11]);
- await page.locator('#qrEmojiToggle').click();await page.locator('#qrEmojiPicker [data-qr-emoji="😊"]').click();await expect(input).toHaveValue('До 😊 после');expect(await input.evaluate(node=>[node.selectionStart,node.selectionEnd])).toEqual([5,5]);await expect(page.locator('#replyText')).toHaveValue('Клиентский черновик');if(target==='editor'){expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.quickReplyDraft.7')).editor.body)).toBe('До 😊 после');s.setHoldToolbar(false);await page.locator('#qrClose').click();await openLibrary(page);await expect(input).toHaveValue('До 😊 после')}expect(s.calls.filter(c=>['create','update','copy','delete','favorite','reorder','send'].includes(c.action))).toHaveLength(0);clean(s);
+ await page.locator('#qrEmojiToggle').click();await page.locator('#qrEmojiPicker [data-qr-emoji="😊"]').click();await expect(input).toHaveValue('До 😊 после');expect(await input.evaluate(node=>[node.selectionStart,node.selectionEnd])).toEqual([5,5]);await expect(page.locator('#replyText')).toHaveValue('Клиентский черновик');if(target==='editor'){expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.quickReplyDraft.7.anytour')).editor.body)).toBe('До 😊 после');s.setHoldToolbar(false);await page.locator('#qrClose').click();await openLibrary(page);await expect(input).toHaveValue('До 😊 после')}expect(s.calls.filter(c=>['create','update','copy','delete','favorite','reorder','send'].includes(c.action))).toHaveLength(0);clean(s);
 });
 
 for(const width of [390,430,768,1440])test.describe('Quick reply controls '+width,()=>{
@@ -266,7 +327,7 @@ for(const width of [390,430,768,1440])test.describe('Quick reply controls '+widt
   await page.locator('#qrEmojiToggle').click();await expect(page.locator('#qrEmojiPicker')).toBeVisible();await expect(page.locator('#qrEmojiPicker [data-qr-emoji="😊"]')).toHaveAccessibleName('Улыбка');
   const canonical=await page.locator('#emojiPicker [data-emoji]').evaluateAll(nodes=>nodes.map(node=>node.dataset.emoji));expect(await page.locator('#qrEmojiPicker [data-qr-emoji]').evaluateAll(nodes=>nodes.map(node=>node.dataset.qrEmoji))).toEqual(canonical);
   await page.locator('#qrEmojiPicker [data-qr-emoji="😊"]').click();await expect(body).toHaveValue('Начало 😊 конец');await expect(body).toBeFocused();expect(await body.evaluate(node=>[node.selectionStart,node.selectionEnd])).toEqual([9,9]);
-  expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.quickReplyDraft.7')).editor.body)).toBe('Начало 😊 конец');await page.locator('#qrClose').click();await openLibrary(page);await expect(body).toHaveValue('Начало 😊 конец');
+  expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.quickReplyDraft.7.anytour')).editor.body)).toBe('Начало 😊 конец');await page.locator('#qrClose').click();await openLibrary(page);await expect(body).toHaveValue('Начало 😊 конец');
   await page.setViewportSize({width,height:420});await page.locator('#qrEmojiToggle').scrollIntoViewIfNeeded();await page.locator('#qrEmojiToggle').click();const last=page.locator('#qrEmojiPicker [data-qr-emoji]').last();await last.scrollIntoViewIfNeeded();await expect(last).toBeInViewport();await bounded(page);expect(await page.locator('#qrEmojiPicker').evaluate(node=>node.scrollWidth-node.clientWidth)).toBeLessThanOrEqual(1);await capture(page,browserName,width,'emoji-editor-short');
   await page.keyboard.press('Escape');await expect(page.locator('#qrEmojiPicker')).toBeHidden();await expect(page.locator('#quickRepliesDialog')).toBeVisible();await expect(page.locator('#qrEmojiToggle')).toBeFocused();await page.setViewportSize({width,height:900});await page.locator('#qrSave').click();await expect.poll(()=>s.replies.find(r=>r.title==='Приветствие со смайликом')?.body).toBe('Начало 😊 конец');const created=s.replies.find(r=>r.title==='Приветствие со смайликом');
   const preview=page.locator('#qrPreview');await preview.fill('До заменить после');await preview.evaluate(node=>node.setSelectionRange(3,11));await page.locator('#qrEmojiToggle').click();await page.locator('#qrEmojiPicker [data-qr-emoji="😎"]').focus();await page.keyboard.press('Enter');await expect(preview).toHaveValue('До 😎 после');await expect(preview).toBeFocused();expect(await preview.evaluate(node=>[node.selectionStart,node.selectionEnd])).toEqual([5,5]);
@@ -305,7 +366,7 @@ test('late row-removal result cannot restore private buttons after account chang
 });
 
 test('unknown emoji template save disables palette and preserves exact draft for receipt recovery',async({page})=>{
- const s=await setup(page,{unknownCreate:true});await openLead(page);await openLibrary(page);await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Сохранение 😊');await page.locator('#qrBody').fill('Спасибо ');await page.locator('#qrEmojiToggle').click();await page.locator('#qrEmojiPicker [data-qr-emoji="🙏"]').click();await page.locator('#qrSave').click();await expect(page.locator('#qrPending')).toBeVisible();await expect(page.locator('#qrEmojiToggle')).toBeDisabled();await expect(page.locator('#qrBody')).toHaveValue('Спасибо 🙏');expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.quickReplyDraft.7')).editor.body)).toBe('Спасибо 🙏');await page.locator('#qrResolve').click();await expect(page.locator('#qrPending')).toBeHidden();expect(s.replies.find(r=>r.title==='Сохранение 😊')?.body).toBe('Спасибо 🙏');expect(s.calls.filter(c=>c.action==='create')).toHaveLength(1);clean(s);
+ const s=await setup(page,{unknownCreate:true});await openLead(page);await openLibrary(page);await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Сохранение 😊');await page.locator('#qrBody').fill('Спасибо ');await page.locator('#qrEmojiToggle').click();await page.locator('#qrEmojiPicker [data-qr-emoji="🙏"]').click();await page.locator('#qrSave').click();await expect(page.locator('#qrPending')).toBeVisible();await expect(page.locator('#qrEmojiToggle')).toBeDisabled();await expect(page.locator('#qrBody')).toHaveValue('Спасибо 🙏');expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.quickReplyDraft.7.anytour')).editor.body)).toBe('Спасибо 🙏');await page.locator('#qrResolve').click();await expect(page.locator('#qrPending')).toBeHidden();expect(s.replies.find(r=>r.title==='Сохранение 😊')?.body).toBe('Спасибо 🙏');expect(s.calls.filter(c=>c.action==='create')).toHaveLength(1);clean(s);
 });
 
 test('unknown full delete disables emoji editing and reconciles without another delete',async({page})=>{
@@ -315,7 +376,10 @@ test('unknown full delete disables emoji editing and reconciles without another 
 for(const width of [390,430,768,1440])test.describe('Quick reply full cycle '+width,()=>{
  test.use({viewport:{width,height:900}});
  test('library filtering, CRUD and explicit insertion preserve draft and attachment',async({page,browserName})=>{
-  const s=await setup(page);await openLead(page);await page.locator('#replyText').fill('Существующий черновик ответа');await page.locator('.conversationHead').click({position:{x:1,y:1}});await capture(page,browserName,width,'after-shell');
+  // Keep the independently tested 15s Inbox poll outside this CRUD scenario.
+  // Advance only the two intentional search debounces below.
+  await page.clock.install({time:new Date('2026-11-11T12:00:00Z')});await page.clock.pauseAt(new Date('2026-11-11T12:00:01Z'));
+  const s=await setup(page);await openLead(page);await page.locator('#replyText').fill('Существующий черновик ответа');await page.locator('#replyText').blur();await capture(page,browserName,width,'after-shell');
   await page.locator('#replyFile').setInputFiles({name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from('Isolated file')});
   const attachment=await page.locator('#mediaSelection').textContent();
   await openLibrary(page);await expect(page.locator('#quickRepliesDialog')).toBeVisible();
@@ -324,9 +388,9 @@ for(const width of [390,430,768,1440])test.describe('Quick reply full cycle '+wi
   await page.locator('[data-qr-select="2"]').click();await expect(page.locator('#qrEdit')).toHaveCount(0);await expect(page.locator('#qrDelete')).toHaveCount(0);
   await page.locator('[data-qr-scope="toolbar"]').click();await expect(page.locator('[data-qr-select]')).toHaveCount(1);
   await page.locator('[data-qr-scope="all"]').click();await page.locator('#qrCategory').selectOption('Приветствие');await expect(page.locator('[data-qr-select]')).toHaveCount(1);
-  await page.locator('#qrCategory').selectOption('');await page.locator('#qrSearch').fill('пожелания');await expect(page.locator('[data-qr-select]')).toHaveCount(1);
+  await page.locator('#qrCategory').selectOption('');await page.locator('#qrSearch').fill('пожелания');await page.clock.runFor(250);await expect(page.locator('[data-qr-select]')).toHaveCount(1);
   await page.locator('[data-qr-select="3"]').click();await expect(page.locator('#qrInsert')).toBeDisabled();await page.locator('#qrPreview').fill('Какие пожелания к отелю?');await expect(page.locator('#qrInsert')).toBeEnabled();
-  await page.locator('#qrSearch').fill('');await expect(page.locator('[data-qr-select]')).toHaveCount(3);await page.locator('[data-qr-select="1"]').click();
+  await page.locator('#qrSearch').fill('');await page.clock.runFor(250);await expect(page.locator('[data-qr-select]')).toHaveCount(3);await page.locator('[data-qr-select="1"]').click();
   await expect(page.locator('#qrPreview')).toHaveValue('Здравствуйте, Анна Морозова! Меня зовут Мария.');await page.locator('#qrFavorite').click();await expect.poll(()=>s.replies[0].is_favorite).toBe(true);
   await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Проверить даты');await page.locator('#qrBody').fill('Какие даты вы рассматриваете?');await page.locator('#qrEditCategory').fill('Уточнение');await page.locator('#qrSave').click();
   await expect.poll(()=>s.replies.some(r=>r.title==='Проверить даты')).toBe(true);const created=s.replies.find(r=>r.title==='Проверить даты');
@@ -335,7 +399,7 @@ for(const width of [390,430,768,1440])test.describe('Quick reply full cycle '+wi
   page.once('dialog',d=>d.accept());await page.locator('#qrDelete').click();await expect.poll(()=>s.replies.length).toBe(4);
   await page.locator('[data-qr-select="1"]').click();await page.locator('#qrPreview').fill('Здравствуйте, Анна! Меня зовут Мария.');await capture(page,browserName,width,'preview');
   await page.locator('#qrInsert').click();await expect(page.locator('#quickRepliesDialog')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Существующий черновик ответа\nЗдравствуйте, Анна! Меня зовут Мария.');await expect(page.locator('#replyText')).toBeFocused();await expect(page.locator('#mediaSelection')).toHaveText(attachment);
-  await capture(page,browserName,width,'after');await page.setViewportSize({width,height:420});await bounded(page);expect((await page.locator('#sendReply').boundingBox()).y+(await page.locator('#sendReply').boundingBox()).height).toBeLessThanOrEqual(421);await capture(page,browserName,width,'after-short');await page.locator('.conversationHead').click({position:{x:1,y:1}});await openLibrary(page);await expect(page.locator('#quickRepliesDialog')).toBeVisible();await page.locator('[data-qr-select=\"1\"]').click();await page.locator('#qrInsert').scrollIntoViewIfNeeded();await expect(page.locator('#qrInsert')).toBeInViewport();await capture(page,browserName,width,'library-short');await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Черновик на коротком экране');await page.locator('#qrBody').fill('Текст на коротком экране');await page.locator('#qrSave').scrollIntoViewIfNeeded();await expect(page.locator('#qrSave')).toBeInViewport();await capture(page,browserName,width,'editor-short');await page.keyboard.press('Escape');await expect(page.locator('#quickRepliesOpen')).toBeFocused();await openLibrary(page);await expect(page.locator('#qrTitle')).toHaveValue('Черновик на коротком экране');await page.locator('#qrCancelEdit').click();await page.locator('#qrClose').click();
+  await capture(page,browserName,width,'after');await page.setViewportSize({width,height:420});await bounded(page);expect((await page.locator('#sendReply').boundingBox()).y+(await page.locator('#sendReply').boundingBox()).height).toBeLessThanOrEqual(421);await capture(page,browserName,width,'after-short');await page.locator('#replyText').blur();await openLibrary(page);await expect(page.locator('#quickRepliesDialog')).toBeVisible();await page.locator('[data-qr-select=\"1\"]').click();await page.locator('#qrInsert').scrollIntoViewIfNeeded();await expect(page.locator('#qrInsert')).toBeInViewport();await capture(page,browserName,width,'library-short');await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Черновик на коротком экране');await page.locator('#qrBody').fill('Текст на коротком экране');await page.locator('#qrSave').scrollIntoViewIfNeeded();await expect(page.locator('#qrSave')).toBeInViewport();await capture(page,browserName,width,'editor-short');await page.keyboard.press('Escape');await expect(page.locator('#quickRepliesOpen')).toBeFocused();await openLibrary(page);await expect(page.locator('#qrTitle')).toHaveValue('Черновик на коротком экране');await page.locator('#qrCancelEdit').click();await page.locator('#qrClose').click();
   expect(s.calls.filter(c=>c.path==='/manager/quick-replies-api.php'&&c.action==='create')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='list'&&c.path==='/manager/pipeline-api.php')).toHaveLength(1);clean(s);
  });
 });
@@ -367,7 +431,7 @@ for(const width of [390,430,768,1440])test('trip template create, current-card p
  const attachment=await page.locator('#mediaSelection').textContent();
  await page.evaluate(()=>{window.tripMessage=document.querySelector('#messages .msg');window.tripMedia=document.querySelector('.mediaSelectedItem')});
  expect(await page.evaluate(()=>({message:!!window.tripMessage,media:!!window.tripMedia}))).toEqual({message:true,media:true});
- await page.locator('.conversationHead').click({position:{x:1,y:1}});await openLibrary(page);await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Мои параметры поездки');
+ await page.locator('#replyText').blur();await openLibrary(page);await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Мои параметры поездки');
  const body=page.locator('#qrBody');await body.fill('');
  await page.setViewportSize({width,height:420});await body.scrollIntoViewIfNeeded();await capture(page,browserName,width,'trip-editor-empty');
  for(let index=0;index<tripKeys.length;index++){
@@ -390,10 +454,10 @@ for(const width of [390,430,768,1440])test('trip template create, current-card p
  await page.locator('#qrInsert').click();await expect(page.locator('#replyText')).toHaveValue('Исходный черновик\nПроверено: '+tripExpected);await expect(page.locator('#mediaSelection')).toHaveText(attachment);
  expect(await page.evaluate(()=>({message:document.querySelector('#messages .msg')===window.tripMessage,media:document.querySelector('.mediaSelectedItem')===window.tripMedia}))).toEqual({message:true,media:true});
  expect(s.calls.length).toBe(before);expect(s.replies.find(r=>r.id===created.id).body).toBe(tripTemplate);
- await page.locator('.conversationHead').click({position:{x:1,y:1}});const beforeDirect=s.calls.length;await page.locator('[data-qr-toolbar-id="'+created.id+'"]').click();
+ await page.locator('#replyText').blur();const beforeDirect=s.calls.length;await page.locator('[data-qr-toolbar-id="'+created.id+'"]').click();
  await expect(page.locator('#replyText')).toHaveValue('Исходный черновик\nПроверено: '+tripExpected+'\n'+tripExpected);expect(s.calls.length).toBe(beforeDirect);
  await page.setViewportSize({width,height:900});await openLead(page,12);await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.detail?.lead?.ok)).toBe(true);
- await page.locator('.conversationHead').click({position:{x:1,y:1}});await page.locator('[data-qr-toolbar-id="'+created.id+'"]').click();
+ await page.locator('#replyText').blur();await page.locator('[data-qr-toolbar-id="'+created.id+'"]').click();
  await expect(page.locator('#qrPreview')).toHaveValue('Казань | Египет | {trip_date} | {trip_nights} | {trip_adults} | 1 | {trip_budget}');await expect(page.locator('#qrInsert')).toBeDisabled();
  await page.locator('#qrClose').click();await openLead(page,11);await expect(page.locator('#replyText')).toHaveValue('Исходный черновик\nПроверено: '+tripExpected+'\n'+tripExpected);await expect(page.locator('#mediaSelection')).toHaveText(attachment);
  expect(s.calls.filter(c=>c.path==='/manager/quick-replies-api.php'&&c.action==='create')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='send')).toHaveLength(0);clean(s);
@@ -403,7 +467,7 @@ test('late or changed card fills only unresolved trip tokens explicitly, without
  await page.setViewportSize({width:390,height:420});const s=await setup(page,{holdCard:true,tripData:{11:knownTrip}});s.replies[2].body='План: '+tripTemplate;
  await openLead(page);await expect(page.locator('#replyText')).toBeEnabled();await page.locator('#replyText').fill('Текст до подстановки');
  await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('keep')});await expect(page.locator('#mediaSelection .mediaSelectedItem')).toHaveCount(1);await expect(page.locator('#mediaSelection')).toContainText('keep.txt');const attachment=await page.locator('#mediaSelection').textContent();
- await page.locator('.conversationHead').click({position:{x:1,y:1}});await openLibrary(page);await page.locator('[data-qr-select="3"]').click();
+ await page.locator('#replyText').blur();await openLibrary(page);await page.locator('[data-qr-select="3"]').click();
  const preview=page.locator('#qrPreview');await expect(preview).toHaveValue('План: '+tripTemplate);await expect(page.locator('#qrInsert')).toBeDisabled();
  await preview.fill('Моя правка: '+tripTemplate+' | конец');s.releaseCard();s.setHoldCard(false);await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.detail?.lead?.ok)).toBe(true);
  await expect(preview).toHaveValue('Моя правка: '+tripTemplate+' | конец');await preview.evaluate(node=>node.setSelectionRange(node.value.length-5,node.value.length,'backward'));
@@ -412,7 +476,7 @@ test('late or changed card fills only unresolved trip tokens explicitly, without
  await preview.fill('Свой город / {trip_country} / {trip_budget}');s.setTrip(11,{...knownTrip,country:'Кипр',budget:{max:100,currency:'USD',basis:'per_person'}});await page.evaluate(()=>WorkspaceV2Conversation.refreshLeadData());
  await expect(preview).toHaveValue('Свой город / {trip_country} / {trip_budget}');const afterRead=s.calls.length;await page.locator('#qrFillKnown').click();await expect(preview).toHaveValue('Свой город / Кипр / до 100 USD на человека');expect(s.calls.length).toBe(afterRead);
  await page.locator('#qrInsert').scrollIntoViewIfNeeded();await bounded(page);await assertTripPreviewFlow(page);await capture(page,browserName,390,'trip-explicit-fill-short');await page.locator('#qrInsert').click();await expect(page.locator('#replyText')).toHaveValue('Текст до подстановки\nСвой город / Кипр / до 100 USD на человека');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
- await page.locator('.conversationHead').click({position:{x:1,y:1}});await openLibrary(page);await page.locator('[data-qr-select="2"]').click();await expect(page.locator('#qrEdit')).toHaveCount(0);await expect(page.locator('#qrCreate')).toBeEnabled();
+ await page.locator('#replyText').blur();await openLibrary(page);await page.locator('[data-qr-select="2"]').click();await expect(page.locator('#qrEdit')).toHaveCount(0);await expect(page.locator('#qrCreate')).toBeEnabled();
  s.replies[2].body='{trip_date} / {trip_children} / {trip_budget}';s.setTrip(11,{date:'31.02.2026',children:0,budget:{max:100,currency:'USD'}});await page.locator('#qrClose').click();await page.evaluate(()=>WorkspaceV2Conversation.refreshLeadData());await openLibrary(page);await page.locator('[data-qr-select="3"]').click();
  await expect(preview).toHaveValue('{trip_date} / 0 / {trip_budget}');await expect(page.locator('#qrInsert')).toBeDisabled();const invalidBefore=s.calls.length;await page.locator('#qrFillKnown').click();await expect(preview).toHaveValue('{trip_date} / 0 / {trip_budget}');expect(s.calls.length).toBe(invalidBefore);
  await preview.fill('Проверенные вручную данные');await expect(page.locator('#qrInsert')).toBeEnabled();
@@ -439,7 +503,7 @@ test('quick replies failure/loading/empty states, persistent editor and account 
  await page.locator('#qrSearch').fill('отсутствующий ответ');await expect(page.locator('#qrList')).toContainText('Подходящих ответов нет');await page.locator('#qrSearch').fill('');await expect(page.locator('[data-qr-select]')).toHaveCount(3);
  await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Мой незавершённый ответ');await page.locator('#qrBody').fill('Личный черновик шаблона');await page.locator('#qrClose').click();await expect(page.locator('#quickRepliesOpen')).toBeFocused();await openLibrary(page);await expect(page.locator('#qrTitle')).toHaveValue('Мой незавершённый ответ');await page.locator('#qrClose').click();
  s.switchManager({id:8,role:'manager',display_name:'Ольга',is_working:true});await page.evaluate(()=>{WorkspaceV2.S.authGeneration++;WorkspaceV2QuickReplies.resetSession();WorkspaceV2Conversation.resetForIdentityChange();WorkspaceV2.S.manager={id:8,role:'manager',display_name:'Ольга',is_working:true};WorkspaceV2Conversation.activateReplySession(8)});
- await page.evaluate(()=>WorkspaceV2QuickReplies.open());await expect(page.locator('#qrTitle')).toHaveCount(0);await expect(page.locator('#qrDetail')).not.toContainText('Личный черновик');expect(await page.evaluate(()=>sessionStorage.getItem('workspaceV2.quickReplyDraft.7'))).toContain('Личный черновик шаблона');clean(s);
+ await page.evaluate(()=>WorkspaceV2QuickReplies.open());await expect(page.locator('#qrTitle')).toHaveCount(0);await expect(page.locator('#qrDetail')).not.toContainText('Личный черновик');expect(await page.evaluate(()=>sessionStorage.getItem('workspaceV2.quickReplyDraft.7.anytour'))).toContain('Личный черновик шаблона');clean(s);
 });
 
 test('shared templates admin CRUD scope and stale insertion cannot target another client',async({page})=>{
@@ -508,4 +572,83 @@ for(const width of [390,430,768,1440])test.describe('Search actual text visibili
   await page.locator('#conversationSearchPrevious').click();await expect(page.locator('#conversationSearchCount')).toHaveText('1 из 2');await activeSearchTextVisible(page);
   clean(s);
  });
+});
+
+const bundleFiles=[
+ {name:'conditions.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.4\nSynthetic conditions only\n%%EOF')},
+ {name:'photo.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/lWsAAAAASUVORK5CYII=','base64')}
+];
+async function createMaterialBundle(page,s,{review=true,expectPending=false}={}){
+ await openLibrary(page);await page.locator('#qrCreate').click();
+ await page.locator('#qrTitle').fill('Документы перед поездкой');await page.locator('#qrBody').fill('Проверьте условия и фотографию.');
+ await page.locator('#qrMaterialFiles').setInputFiles(bundleFiles);await expect(page.locator('.qrMaterialRow')).toHaveCount(2);
+ await page.locator('[data-qr-material-action="up"][data-index="1"]').click();
+ await expect(page.locator('.qrMaterialRow strong')).toHaveText(['photo.png','conditions.pdf']);
+ await page.locator('#qrSource').fill('Прайс компании от 11 ноября');if(review)await page.locator('#qrReviewed').check();
+ await page.locator('#qrSave').click();
+ if(expectPending){await expect(page.locator('#qrPending')).toBeVisible();return s.replies.find(r=>r.title==='Документы перед поездкой')||null}
+ try{await expect.poll(()=>s.replies.some(r=>r.title==='Документы перед поездкой')).toBe(true)}catch(error){console.log('MATERIAL_CREATE_DIAGNOSTICS '+JSON.stringify({calls:s.calls.slice(-5),errors:s.errors,unexpected:s.unexpected,trace:s.requestTrace.slice(-12)}));throw error}
+ return s.replies.find(r=>r.title==='Документы перед поездкой');
+}
+async function selectedFileProof(page){return page.evaluate(async()=>{
+ const rows=WorkspaceV2Media.captureSelection()?.rows||[];
+ return Promise.all(rows.map(async({row})=>({name:row.file.name,size:row.file.size,sha256:Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await row.file.arrayBuffer())),x=>x.toString(16).padStart(2,'0')).join('')})));
+})}
+for(const width of [390,430,768,1440])test('Material bundle editor, review, insertion and reload '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const s=await setup(page);await openLead(page);
+ await page.locator('#replyText').fill('Существующий черновик');await page.locator('#replyText').blur();
+ await page.locator('#replyFile').setInputFiles({name:'existing.txt',mimeType:'text/plain',buffer:Buffer.from('Original retained bytes')});
+ await page.evaluate(()=>{window.originalSelectedFile=WorkspaceV2Media.captureSelection().rows[0].row.file});
+ const r=await createMaterialBundle(page,s);expect(r.materials.map(x=>x.name)).toEqual(['photo.png','conditions.pdf']);
+ await expect(page.locator('.qrReviewed')).toContainText('Проверено');await expect(page.locator('.qrSourceSummary')).toContainText('Прайс компании от 11 ноября');
+ await expect(page.locator('.qrMaterialPreview li strong')).toHaveText(['photo.png','conditions.pdf']);
+ await page.setViewportSize({width,height:420});await page.locator('#qrInsert').scrollIntoViewIfNeeded();await expect(page.locator('#qrInsert')).toBeInViewport();await bounded(page);await capture(page,browserName,width,'material-preview-short');
+ await page.locator('#qrEdit').click();await page.locator('#qrMaterialFiles').scrollIntoViewIfNeeded();await capture(page,browserName,width,'material-editor-short');
+ await page.locator('#qrBody').fill('Обновлённые условия.');await expect(page.locator('#qrReviewed')).not.toBeChecked();await page.locator('#qrSave').click();
+ await expect(page.locator('.qrNeedsReview')).toContainText('Нужна проверка');await page.locator('#qrInsert').click();
+ await expect(page.locator('#quickRepliesDialog')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Существующий черновик\nОбновлённые условия.');
+ await expect.poll(()=>selectedFileProof(page)).toEqual([{name:'existing.txt',size:23,sha256:sha256('Original retained bytes')},...r.materials.map(({name,size,sha256})=>({name,size,sha256}))]);
+ expect(await page.evaluate(()=>WorkspaceV2Media.captureSelection().rows[0].row.file===window.originalSelectedFile)).toBe(true);
+ expect(s.calls.filter(c=>c.action==='prepare_insert')).toHaveLength(2);expect(s.calls.filter(c=>c.action==='material')).toHaveLength(2);
+ await bounded(page);const send=await page.locator('#sendReply').boundingBox();expect(send.y+send.height).toBeLessThanOrEqual(421);await capture(page,browserName,width,'material-draft-short');
+ await reloadFixture(page,s);await openLead(page);await expect(page.locator('#replyText')).toHaveValue('Существующий черновик\nОбновлённые условия.');
+ await expect.poll(()=>selectedFileProof(page)).toEqual([{name:'existing.txt',size:23,sha256:sha256('Original retained bytes')},...r.materials.map(({name,size,sha256})=>({name,size,sha256}))]);
+ await page.locator('#replyText').blur();await openLibrary(page);await page.locator('[data-qr-select="'+r.id+'"]').click();await expect(page.locator('.qrNeedsReview')).toContainText('Нужна проверка');await expect(page.locator('.qrMaterialPreview li strong')).toHaveText(['photo.png','conditions.pdf']);clean(s);
+});
+
+for(const beforeCommit of [false,true])test('Material bundle unknown upload reload resolves before any retry '+beforeCommit,async({page})=>{
+ const s=await setup(page,{unknownCreate:!beforeCommit,unknownCreateBeforeCommit:beforeCommit});await openLead(page);
+ await createMaterialBundle(page,s,{expectPending:true});await expect(page.locator('#qrPending')).toBeVisible();expect(s.calls.filter(c=>c.action==='create')).toHaveLength(1);
+ const command=s.calls.find(c=>c.action==='create');await reloadFixture(page,s);await openLead(page);await openLibrary(page);
+ await expect(page.locator('#qrPending')).toBeVisible();await expect(page.locator('#qrRecoverFiles')).toHaveCount(0);
+ await page.locator('#qrResolve').click();
+ if(beforeCommit){
+  await expect(page.locator('#qrRecoverFiles')).toBeVisible();expect(s.calls.filter(c=>c.action==='create')).toHaveLength(1);
+  // Upload order follows the editor's explicitly reordered materials.
+  await page.locator('#qrRecoverFiles').setInputFiles([bundleFiles[1],{...bundleFiles[0],buffer:Buffer.from('different')}]);await expect(page.locator('#qrStatus')).toContainText('отличаются');expect(s.calls.filter(c=>c.action==='create')).toHaveLength(1);
+  await page.locator('#qrRecoverFiles').setInputFiles([bundleFiles[1],bundleFiles[0]]);await expect(page.locator('#qrStatus')).toContainText('Файлы совпали');await page.locator('#qrResolve').click();
+  await expect.poll(()=>s.calls.filter(c=>c.action==='create').length).toBe(2);
+  const writes=s.calls.filter(c=>c.action==='create');expect(writes).toHaveLength(2);expect(writes[1]).toEqual(command);expect(s.calls.filter(c=>c.action==='operation')).toHaveLength(2);
+ }else{await expect(page.locator('#qrPending')).toBeHidden();expect(s.calls.filter(c=>c.action==='create')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='operation')).toHaveLength(1)}
+ await expect(page.locator('#qrPending')).toBeHidden();expect(s.replies.filter(r=>r.title==='Документы перед поездкой')).toHaveLength(1);expect(s.materialBytes.size).toBe(2);clean(s);
+});
+
+for(const change of ['human-edit','close-reopen','version'])test('Material bundle late download preserves draft on '+change,async({page})=>{
+ const s=await setup(page,{holdMaterial:true});await openLead(page);await page.locator('#replyText').fill('Исходный черновик');await page.locator('#replyText').blur();const r=await createMaterialBundle(page,s);
+ await page.locator('#qrInsert').click();await expect.poll(()=>s.calls.filter(c=>c.action==='material').length).toBe(1);
+ if(change==='human-edit')await page.locator('#replyText').evaluate(el=>{el.value='Новая правка менеджера';el.dispatchEvent(new Event('input',{bubbles:true}))});
+ if(change==='close-reopen'){await page.locator('#qrClose').click();await openLibrary(page);await page.locator('[data-qr-select="'+r.id+'"]').click()}
+ if(change==='version')r.version++;
+ const response=page.waitForResponse(response=>response.url().endsWith('/manager/quick-replies-api.php')&&response.request().postDataJSON()?.action==='material');s.setHoldMaterial(false);s.releaseMaterial();await response;await expect(page.locator('#qrInsert')).toBeEnabled();
+ await expect(page.locator('#replyText')).toHaveValue(change==='human-edit'?'Новая правка менеджера':'Исходный черновик');expect(await selectedFileProof(page)).toEqual([]);
+ if(change==='version'){await expect(page.locator('#qrStatus')).toContainText('Материал больше недоступен');expect(s.calls.filter(c=>c.action==='material')).toHaveLength(2)}clean(s);
+});
+
+test('Material bundle preflight rejects channel, caption and size before downloading',async({page})=>{
+ const s=await setup(page);await openLead(page);await page.locator('#replyText').fill('Черновик сохранён');await page.locator('#replyText').blur();await createMaterialBundle(page,s);
+ for(const [property,value,message]of [['supported',false,'В этом канале'],['max_total_bytes',1,'Общий размер']]){
+  const prior=s.constraints[property];s.constraints[property]=value;await page.locator('#qrInsert').click();await expect(page.locator('#qrStatus')).toContainText(message);s.constraints[property]=prior;
+ }
+ await page.locator('#qrPreview').fill('я'.repeat(1025));await page.locator('#qrInsert').click();await expect(page.locator('#qrStatus')).toContainText('1024');
+ expect(s.calls.filter(c=>c.action==='material')).toHaveLength(0);await expect(page.locator('#replyText')).toHaveValue('Черновик сохранён');expect(await selectedFileProof(page)).toEqual([]);clean(s);
 });
