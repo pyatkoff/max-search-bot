@@ -11,6 +11,7 @@ let toolbarRows=[],toolbarVersion='',toolbarLimit=100,toolbarReady=false,toolbar
 let toolbarFocus=null;
 let emojiState=null;
 let company='',observedProject='',uploadLimits=null,insertionBusy=false,materialSequence=0;
+let replyReplacement=null;
 const tripLabels={trip_city:'Город вылета',trip_country:'Направление',trip_date:'Дата вылета',trip_nights:'Ночи',trip_adults:'Взрослые',trip_children:'Дети',trip_budget:'Бюджет'};
 const variableKeys=['manager_name','client_name',...Object.keys(tripLabels)];
 
@@ -99,11 +100,11 @@ function errorText(result){
   const errors={forbidden:'Недостаточно прав. Общие ответы редактирует администратор.',not_found:'Ответ больше недоступен. Обновите список.',conflict:'Ответ изменён в другом окне. Ваш текст сохранён. Откройте актуальную версию перед сохранением.',invalid_title:'Добавьте название ответа.',invalid_body:'Добавьте текст ответа.',invalid_category:'Категория должна быть не длиннее 64 символов.',invalid_scope:'Выберите доступную область ответа.',network_error:'Нет связи с сервером.',invalid_response:'Не удалось прочитать ответ сервера.',operation_mismatch:'Результат операции требует проверки. Не повторяйте изменение.'};
   return errors[result?.error]||'Не удалось выполнить действие. Ваш текст сохранён.';
 }
-async function request(action,data={},files=[]){
+async function request(action,data={},files=[],isCurrent=()=>true){
   const capturedEpoch=epoch;
   if(!authenticated()||!company)return {ok:false,error:'stale_session'};
   const project=company,payload={...data,project_key:project,expected_manager_id:owner};
-  const valid=()=>capturedEpoch===epoch&&authenticated()&&company===project;
+  const valid=()=>capturedEpoch===epoch&&authenticated()&&company===project&&isCurrent();
   let result;
   try{result=files.length?await window.WorkspaceV2QuickReplyMaterials.write(endpoint,action,payload,files,valid):await W.request(endpoint,action,payload,{isCurrent:valid})}catch(e){result={ok:false,error:S.authExpired?'stale_session':'network_error'}}
   return valid()?result:{ok:false,error:'stale_session'};
@@ -177,12 +178,31 @@ async function loadToolbar(force=false){
   return operation.promise;
 }
 // Called once per authenticated lifecycle, independently of Inbox/conversation reads.
-function configure(){if(!identity())return;adoptSession();bind();void loadToolbar()}
-function syncContext(){if(!identity())return;adoptSession();if(company)void loadToolbar()}
+function configure(){if(!identity())return;adoptSession();bind();window.WorkspaceV2QuickInsert?.bind({search:searchComposer,choose:chooseComposer});void loadToolbar()}
+function syncContext(){if(!identity())return;adoptSession();window.WorkspaceV2QuickInsert?.sync();if(replyReplacement)updateInsertion();if(company)void loadToolbar()}
+async function searchComposer(term,range,valid){
+  adoptSession();
+  if(!authenticated()||!company||conversationProject()!==company||!contextValid(range?.context)||!valid())return {ok:false,error:'stale_context'};
+  return request('list',{scope:'all',search:term,limit:8,offset:0},[],valid);
+}
+function chooseComposer(reply,range,valid,notice){
+  if(!authenticated()||mutationBusy||pending||insertionBusy||!contextValid(range?.context)||reply.project_key!==company||conversationProject()!==company||!valid())return false;
+  const text=resolveText(reply.body,knownValues(range.context));
+  if(placeholders(text).length||reply.materials?.length||reply.requires_review){
+    ensureDialog();returnFocus=$('replyText');selected=reply;replyContext=range.context;replyReplacement=range;preview=text;lastError='';
+    if(!dialog.open)dialog.showModal();renderCategories();renderList();renderDetail();updateBusy();
+    setStatus('Проверьте текст, условия и материалы. При вставке заменится только команда через /.','warn');$('qrPreview')?.focus();return 'preview';
+  }
+  const capturedEpoch=epoch,project=company,ticket=++materialSequence;
+  const current=()=>capturedEpoch===epoch&&ticket===materialSequence&&authenticated()&&company===project&&contextValid(range.context)&&conversationProject()===project&&valid();
+  if(!window.WorkspaceV2QuickReplyMaterials)return false;
+  return window.WorkspaceV2QuickReplyMaterials.insert({endpoint,reply,text,context:range.context,project,valid:current,notice,replacement:range});
+}
 function clickToolbar(id){
   if(!authenticated())return false;
   const reply=toolbarRows.find(row=>Number(row.id)===id),ctx=window.WorkspaceV2Conversation?.captureReplyContext?.();
   if(!reply||reply.project_key!==company||conversationProject()!==company||!contextValid(ctx))return false;
+  replyReplacement=null;
   const text=resolveText(reply.body,knownValues(ctx));
   if(placeholders(text).length||reply.materials?.length){
     ensureDialog();returnFocus=$('replyText');selected=reply;replyContext=ctx;preview=text;lastError='';
@@ -276,7 +296,6 @@ function ensureDialog(){
   // Workspace shortcuts belong to the conversation behind this modal.
   dialog.addEventListener('keydown',event=>{event.stopPropagation();if(event.key==='Escape'&&emojiState){event.preventDefault();closeQuickReplyEmojis(true)}});
   dialog.addEventListener('click',event=>{if(!event.target.closest?.('.qrEmojiTools'))closeQuickReplyEmojis()});
-  dialog.addEventListener('close',()=>{if(returnFocus?.isConnected&&!returnFocus.disabled)returnFocus.focus({preventScroll:true})});
   $('qrSearch').addEventListener('input',()=>{
     query.search=$('qrSearch').value;clearTimeout(searchTimer);
     // Invalidate the previous read immediately, before the debounce fires.
@@ -464,7 +483,7 @@ function updateVisibility(){
 }
 function updateInsertion(){
   const button=$('qrInsert'),note=$('qrPlaceholderStatus');if(!button||!note)return;
-  const unresolved=placeholders(preview),valid=authenticated()&&contextValid()&&selected?.project_key===company&&conversationProject()===company;
+  const unresolved=placeholders(preview),valid=authenticated()&&contextValid()&&selected?.project_key===company&&conversationProject()===company&&(!replyReplacement||window.WorkspaceV2Conversation?.canReplaceQuickReply?.(replyReplacement)===true);
   const fill=$('qrFillKnown');if(fill)fill.disabled=mutationBusy||!!pending||!valid||!unresolved.some(key=>variableKeys.includes(key.trim()));
   button.disabled=mutationBusy||!!pending||insertionBusy||!valid||!preview.trim()||unresolved.length>0;
   button.textContent=insertionBusy?'Загружаем материалы…':'Вставить в ответ';
@@ -571,13 +590,13 @@ async function finishRecovered(result,operation,capturedEpoch){
   updateBusy();restorePanelFocus();
 }
 function insert(){
-  if(!authenticated()||mutationBusy||pending||insertionBusy||placeholders(preview).length||!preview.trim()||!contextValid()||selected?.project_key!==company||conversationProject()!==company)return false;
-  if(selected.materials?.length){
+  if(!authenticated()||mutationBusy||pending||insertionBusy||placeholders(preview).length||!preview.trim()||!contextValid()||selected?.project_key!==company||conversationProject()!==company||(replyReplacement&&!window.WorkspaceV2Conversation?.canReplaceQuickReply?.(replyReplacement)))return false;
+  if(selected.materials?.length||replyReplacement){
     if(!window.WorkspaceV2QuickReplyMaterials){setStatus('Не удалось открыть материалы. Обновите страницу перед вставкой.','warn');return false}
     const capturedEpoch=epoch,reply=selected,text=preview,ctx=replyContext,project=company,ticket=++materialSequence;
     const valid=()=>capturedEpoch===epoch&&ticket===materialSequence&&dialog?.open===true&&authenticated()&&selected===reply&&preview===text&&company===project&&contextValid(ctx)&&conversationProject()===project;
     insertionBusy=true;updateInsertion();setStatus('Загружаем сохранённые материалы…');
-    return window.WorkspaceV2QuickReplyMaterials.insert({endpoint,reply,text,context:ctx,project,valid,notice:message=>{if(valid())setStatus(message,'warn')}})
+    return window.WorkspaceV2QuickReplyMaterials.insert({endpoint,reply,text,context:ctx,project,valid,notice:message=>{if(valid())setStatus(message,'warn')},replacement:replyReplacement})
       .then(inserted=>{if(!valid())return false;if(inserted){returnFocus=$('replyText');close();return true}setStatus('Черновик или вложения изменились во время загрузки. Они сохранены; вставьте шаблон заново.','warn');return false})
       .catch(error=>{if(valid())setStatus(/[А-Яа-я]/.test(error.message)?error.message:'Не удалось загрузить материалы. Текущий черновик сохранён.','warn');return false})
       .finally(()=>{if(capturedEpoch===epoch&&ticket===materialSequence){insertionBusy=false;updateInsertion()}});
@@ -588,6 +607,7 @@ function insert(){
 }
 async function open(options={}){
   if(!identity())return false;
+  window.WorkspaceV2QuickInsert?.close();replyReplacement=null;
   adoptSession();
   ensureDialog();returnFocus=options.opener||document.activeElement;
   if(dialog.open){focusLibrary();return true}
@@ -602,8 +622,16 @@ async function open(options={}){
 function focusLibrary(){
   const node=query.scope==='toolbar'?$('qrList')?.querySelector?.('[data-qr-select]')||$('qrCreate'):$('qrSearch');node?.focus();
 }
-function close(){materialSequence++;insertionBusy=false;closeQuickReplyEmojis();persist();if(dialog?.open)dialog.close();const active=conversationProject();if(active&&active!==company){const focus=returnFocus;switchCompany(active);void loadToolbar();if(focus?.isConnected&&!focus.disabled)focus.focus({preventScroll:true})}}
+function close(){
+  materialSequence++;insertionBusy=false;replyReplacement=null;closeQuickReplyEmojis();persist();
+  const focus=returnFocus;if(dialog?.open)dialog.close();
+  const active=conversationProject();if(active&&active!==company){switchCompany(active);void loadToolbar()}
+  // Native close events are deferred. A later event must never steal focus
+  // from text the manager has already started typing after this close.
+  if(focus?.isConnected&&!focus.disabled)focus.focus({preventScroll:true});
+}
 function resetSession(options={}){
+  window.WorkspaceV2QuickInsert?.close();replyReplacement=null;
   closeQuickReplyEmojis();
   persist();epoch++;loadTicket++;toolbarTicket++;clearTimeout(searchTimer);searchTimer=null;loading=null;toolbarLoading=null;
   owner=0;ownerGeneration=0;rows=[];categories=[];selected=null;preview='';replyContext=null;editor=null;pending=null;mutationBusy=false;nextOffset=null;listFailed=false;lastError='';query={scope:'all',search:'',category:'',favorites_only:false};

@@ -131,11 +131,24 @@ function restoreDraft(id=S.current){const reply=$('replyText'),key=Number(id||0)
   if(drafts.get(key)?.aiPreview&&!pendingAttempt(key))drafts.delete(key);
   reply.value=key?(drafts.get(key)?.text||''):'';reply.classList.remove('aiDraftPreview');autoGrow();if(pendingAttempt(key))showPendingAttempt();applyComposerState()}
 function captureReplyContext(){return {conversationId:Number(S.current||0),managerId:Number(S.manager?.id||0),authGeneration:S.authGeneration,openGeneration:openSeq}}
-function insertQuickReply(text,context=captureReplyContext(),aiDraftId=undefined){
+function captureQuickReplyReplacement(start,end){
+  const reply=$('replyText');
+  if(!canInsertEmoji()||!reply||!Number.isSafeInteger(start)||!Number.isSafeInteger(end)||start<0||end<start||end>reply.value.length)return null;
+  return Object.freeze({text:reply.value,start,end,caretStart:reply.selectionStart,caretEnd:reply.selectionEnd,direction:reply.selectionDirection,draftVersion:drafts.get(Number(S.current))?.version||0,context:captureReplyContext()});
+}
+function canReplaceQuickReply(range){
+  const reply=$('replyText'),now=captureReplyContext();
+  return !!range&&canInsertEmoji()&&!!reply&&Object.keys(now).every(key=>now[key]===range.context?.[key])&&range.text===reply.value&&range.draftVersion===(drafts.get(Number(S.current))?.version||0)&&Number.isSafeInteger(range.start)&&Number.isSafeInteger(range.end)&&range.start>=0&&range.end>=range.start&&range.end<=reply.value.length&&reply.selectionStart===range.caretStart&&reply.selectionEnd===range.caretEnd&&reply.selectionDirection===range.direction;
+}
+function insertQuickReply(text,context=captureReplyContext(),aiDraftId=undefined,replacement=null){
   const current=captureReplyContext(),addition=String(text||'');
   if(!canInsertEmoji()||!context||Object.keys(current).some(key=>current[key]!==context[key])||!addition||/\{\{?[^{}\r\n]+\}\}?/.test(addition))return false;
   const reply=$('replyText'),draft=reply.value;
-  reply.value=draft+(draft&&!draft.endsWith('\n')?'\n':'')+addition;
+  if(replacement){
+    if(!canReplaceQuickReply(replacement))return false;
+    reply.value=draft.slice(0,replacement.start)+addition+draft.slice(replacement.end);
+    const caret=replacement.start+addition.length;reply.setSelectionRange(caret,caret);
+  }else reply.value=draft+(draft&&!draft.endsWith('\n')?'\n':'')+addition;
   saveDraft(S.current,aiDraftId);autoGrow();reply.focus();return true;
 }
 // This records a local source association, not acceptance or delivery. A new
@@ -732,5 +745,5 @@ function bind(){
   reply.addEventListener('keydown',e=>{if(!e.isComposing&&e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
   document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))
 }
-window.WorkspaceV2Conversation={syncComposer:applyInteractionState,hasReadAccess:()=>!accessLost&&!S.authExpired,renderHandoffContext,invalidateMessageAccess:loseHistoryAccess,renderMessageContext,canNavigateMessages:()=>isCurrentHistory(historyContext()),acceptReadPage,bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,settleMediaFeedback,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,insertAiDraft,previewAiDraft,discardAiPreview,aiDraftPreview,openSearch,nextWaiting};
+window.WorkspaceV2Conversation={syncComposer:applyInteractionState,hasReadAccess:()=>!accessLost&&!S.authExpired,renderHandoffContext,invalidateMessageAccess:loseHistoryAccess,renderMessageContext,canNavigateMessages:()=>isCurrentHistory(historyContext()),acceptReadPage,bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,settleMediaFeedback,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,captureQuickReplyReplacement,canReplaceQuickReply,insertQuickReply,insertAiDraft,previewAiDraft,discardAiPreview,aiDraftPreview,openSearch,nextWaiting};
 })();

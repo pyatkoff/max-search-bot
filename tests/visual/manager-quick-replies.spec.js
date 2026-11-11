@@ -25,10 +25,10 @@ const readSource=relative=>fs.readFileSync(path.join(sourceRoot,relative));
 const shell=execFileSync('php',['manager2/index.php'],{cwd:sourceRoot,encoding:'utf8'});
 // Actual PHP and source assets. All data and mutations below are isolated fixture
 // responses. No production traffic or customer messages are permitted.
-async function setup(page,{role='manager',holdList=false,listError=false,holdCard=false,cardDelay=0,cardError=false,tripData=null,unknownCreate=false,unknownCreateBeforeCommit=false,holdMaterial=false,conflictUpdate=false,unknownReorder=false,rejectedReorder=false,conflictReorder=false,holdToolbar=false,toolbarError=false,holdFavorite=false,unknownFavorite=false,conflictFavorite=false,unknownDelete=false,selectedIds=[2],messages=null}={}){
+async function setup(page,{role='manager',holdList=false,listError=false,holdCard=false,cardDelay=0,cardError=false,tripData=null,unknownCreate=false,unknownCreateBeforeCommit=false,holdMaterial=false,holdPrepare=false,conflictUpdate=false,unknownReorder=false,rejectedReorder=false,conflictReorder=false,holdToolbar=false,toolbarError=false,holdFavorite=false,unknownFavorite=false,conflictFavorite=false,unknownDelete=false,selectedIds=[2],messages=null}={}){
  const calls=[],unexpected=[],errors=[],heldLists=[],heldCards=[],heldToolbars=[],heldFavorites=[],receipts=new Map(),panels=new Map([[7,[...selectedIds]],[8,[]]]),panelVersions=new Map([[7,1],[8,1]]);
  const requestIds=new WeakMap(),requestTrace=[],errorDiagnostics=[];let requestSequence=0,documentGeneration=0;
- const materialBytes=new Map(),heldMaterials=[];
+ const materialBytes=new Map(),heldMaterials=[],heldPrepares=[];
  let fixtureOrigin='';
  const constraints={supported:true,max_files:10,max_file_bytes_by_type:{image:5000000,video:5000000,audio:5000000,file:5000000},max_total_bytes:10000000,caption_warning_limit:1024,image_formats:['image/png','image/jpeg'],max_photo_dimension_sum:10000,max_photo_ratio:20};
  const trace=(kind,data={})=>{requestTrace.push({kind,at:Date.now(),documentGeneration,...data});if(requestTrace.length>120)requestTrace.shift()};
@@ -106,7 +106,7 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
     const r=replies.find(r=>r.id===Number(d.id));
     if(!available(r,requestOwner)||![11,12].includes(d.conversation_id))return reply({ok:false,error:'not_found'},404);
     if(d.version!==r.version)return reply({ok:false,error:'conflict'},409);
-    if(d.action==='prepare_insert')return reply({ok:true,reply:view(r,requestOwner),constraints:snapshot(constraints)});
+    if(d.action==='prepare_insert'){const prepared=snapshot({ok:true,reply:view(r,requestOwner),constraints});if(holdPrepare)await new Promise(resolve=>heldPrepares.push(resolve));return reply(prepared);}
     const item=r.materials?.find(item=>item.id===d.material_id);if(!item)return reply({ok:false,error:'not_found'},404);
     const body=materialBytes.get(item.id);expect(body).toBeTruthy();expect(sha256(body)).toBe(item.sha256);
     if(holdMaterial)await new Promise(resolve=>heldMaterials.push(resolve));
@@ -177,7 +177,7 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
  // The shell CSP prevents external traffic; this strict per-page server owns
  // every synthetic response and verifies the original uploaded bytes.
  await page.goto(fixtureOrigin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
- return {calls,unexpected,errors,errorDiagnostics,requestTrace,trace,replies,toolbar,materialBytes,constraints,releaseMaterial:()=>heldMaterials.shift()?.(),setHoldMaterial:v=>{holdMaterial=v},setTrip:(id,trip)=>trips.set(id,snapshot(trip)),setHoldCard:v=>{holdCard=v},setCardError:v=>{cardError=v},setPanel:(ids,id=manager.id)=>{panels.set(id,[...ids]);bump(id)},releaseList:()=>heldLists.shift()?.(),releaseCard:()=>heldCards.shift()?.(),releaseToolbar:()=>heldToolbars.shift()?.(),releaseFavorite:()=>heldFavorites.shift()?.(),switchManager:m=>{manager=m},setListError:v=>{listError=v},setHoldList:v=>{holdList=v},setHoldToolbar:v=>{holdToolbar=v},setToolbarError:v=>{toolbarError=v}};
+ return {calls,unexpected,errors,errorDiagnostics,requestTrace,trace,replies,toolbar,materialBytes,constraints,releasePrepare:()=>heldPrepares.shift()?.(),setHoldPrepare:v=>{holdPrepare=v},releaseMaterial:()=>heldMaterials.shift()?.(),setHoldMaterial:v=>{holdMaterial=v},setTrip:(id,trip)=>trips.set(id,snapshot(trip)),setHoldCard:v=>{holdCard=v},setCardError:v=>{cardError=v},setPanel:(ids,id=manager.id)=>{panels.set(id,[...ids]);bump(id)},releaseList:()=>heldLists.shift()?.(),releaseCard:()=>heldCards.shift()?.(),releaseToolbar:()=>heldToolbars.shift()?.(),releaseFavorite:()=>heldFavorites.shift()?.(),switchManager:m=>{manager=m},setListError:v=>{listError=v},setHoldList:v=>{holdList=v},setHoldToolbar:v=>{holdToolbar=v},setToolbarError:v=>{toolbarError=v}};
 }
 async function reloadFixture(page,s){s.trace('before_reload');await page.reload();s.trace('after_reload')}
 async function openLead(page,id=11){
@@ -651,4 +651,99 @@ test('Material bundle preflight rejects channel, caption and size before downloa
  }
  await page.locator('#qrPreview').fill('я'.repeat(1025));await page.locator('#qrInsert').click();await expect(page.locator('#qrStatus')).toContainText('1024');
  expect(s.calls.filter(c=>c.action==='material')).toHaveLength(0);await expect(page.locator('#replyText')).toHaveValue('Черновик сохранён');expect(await selectedFileProof(page)).toEqual([]);clean(s);
+});
+for(const width of [390,430,768,1440])test('Composer slash picker replaces token with keyboard and keeps exact file '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const s=await setup(page);s.replies[1].requires_review=false;await openLead(page);
+ const input=page.locator('#replyText');await input.fill('До / после');await input.evaluate(node=>node.setSelectionRange(3,3));await input.press('ArrowRight');
+ await expect(page.locator('#qrComposerChoices [role="option"]')).toHaveCount(3);await expect(input).toBeFocused();
+ await capture(page,browserName,width,'slash-picker');await page.setViewportSize({width,height:420});
+ await expect.poll(async()=>{const box=await page.locator('#qrComposerPicker').boundingBox();return !!box&&box.x>=0&&box.y>=0&&box.x+box.width<=width+1&&box.y+box.height<=421}).toBe(true);await bounded(page);await capture(page,browserName,width,'slash-picker-short');
+ await input.press('Escape');await expect(page.locator('#qrComposerPicker')).toBeHidden();
+ await page.locator('#replyFile').setInputFiles({name:'slash-preserved.txt',mimeType:'text/plain',buffer:Buffer.from('Exact original attachment')});
+ await input.focus();await input.evaluate(node=>node.setSelectionRange(3,3));await input.press('ArrowRight');
+ await expect(page.locator('#qrComposerChoices [role="option"]')).toHaveCount(3);
+ await page.evaluate(()=>{window.slashFile=WorkspaceV2Media.captureSelection().rows[0].row.file});
+ await input.press('ArrowDown');await expect(page.locator('#qrComposerChoices [aria-selected="true"]')).toContainText('Общий ответ о подборе');await input.press('Enter');
+ await expect(input).toHaveValue('До Проверяем отели у моря. после');await expect(input).toBeFocused();await expect(page.locator('#qrComposerPicker')).toBeHidden();
+ expect(await page.evaluate(()=>WorkspaceV2Media.captureSelection().rows[0].row.file===window.slashFile)).toBe(true);
+ expect(s.calls.filter(c=>c.action==='prepare_insert')).toHaveLength(1);expect(s.calls.filter(c=>c.path==='/manager/media-upload.php')).toHaveLength(0);clean(s);
+});
+
+test('Composer slash picker stays lazy, closes on Escape/IME and ignores URLs',async({page})=>{
+ const s=await setup(page);await openLead(page);const input=page.locator('#replyText'),lists=()=>s.calls.filter(c=>c.path==='/manager/quick-replies-api.php'&&c.action==='list').length;
+ await input.fill('Обычный текст https://example.invalid/док');await page.waitForTimeout(220);expect(lists()).toBe(0);
+ await input.fill('/под');await expect(page.locator('#qrComposerChoices [role="option"]')).toHaveCount(1);const count=lists();await input.press('Escape');
+ await page.evaluate(()=>WorkspaceV2Conversation.syncComposer());await expect(page.locator('#qrComposerPicker')).toBeHidden();expect(lists()).toBe(count);
+ await input.dispatchEvent('compositionstart');await input.fill('/док');await page.waitForTimeout(220);expect(lists()).toBe(count);await input.dispatchEvent('compositionend');
+ await expect(page.locator('.qrComposerMessage')).toContainText('Ничего');await input.press('Escape');clean(s);
+});
+
+for(const change of ['human-edit','caret','reopen','file','version'])test('Composer slash late preparation preserves draft on '+change,async({page})=>{
+ const s=await setup(page,{holdPrepare:change!=='version'});s.replies[1].requires_review=false;await openLead(page);
+ const input=page.locator('#replyText');await input.fill('Начало /под');await expect(page.locator('#qrComposerChoices [role="option"]')).toHaveCount(1);
+ if(change==='version')s.replies[1].version++;
+ await input.press('Enter');await expect.poll(()=>s.calls.filter(c=>c.action==='prepare_insert').length).toBe(1);
+ if(change==='human-edit')await input.fill('Изменённый человеком текст');
+ if(change==='caret')await input.press('ArrowLeft');
+ if(change==='reopen'){await openLead(page,12);await openLead(page,11)}
+ if(change==='file')await page.locator('#replyFile').setInputFiles({name:'new-human.txt',mimeType:'text/plain',buffer:Buffer.from('New human file')});
+ const value=await input.inputValue();if(change!=='version')s.releasePrepare();if(['file','version'].includes(change)){await expect(page.locator('#qrComposerPicker')).toHaveAttribute('aria-busy','false');await expect(page.locator('.qrComposerMessage')).toContainText(change==='file'?'Вставка отменена':'Шаблон изменён');await input.press('Escape')}await expect(page.locator('#qrComposerPicker')).toBeHidden();await expect(input).toHaveValue(value);
+ if(change==='file')await expect(page.locator('#mediaSelection')).toContainText('new-human.txt');
+ clean(s);
+});
+
+test('Composer slash review resolves unknown fields and retains surrounding text',async({page})=>{
+ const s=await setup(page);await openLead(page);const input=page.locator('#replyText');await input.fill('До /пожелания после');await input.evaluate(node=>node.setSelectionRange(12,12));await input.press('ArrowRight');
+ await expect(page.locator('#qrComposerChoices [role="option"]')).toHaveCount(1);await input.press('Enter');await expect(page.locator('#quickRepliesDialog')).toBeVisible();await expect(page.locator('#qrInsert')).toBeDisabled();
+ await page.locator('#qrPreview').fill('Какие пожелания к отелю?');await page.locator('#qrInsert').click();await expect(input).toHaveValue('До Какие пожелания к отелю? после');expect(s.calls.filter(c=>c.action==='prepare_insert')).toHaveLength(1);clean(s);
+});
+
+test('Composer slash material review inserts the ordered bundle beside the original file',async({page})=>{
+ const s=await setup(page);await openLead(page);const r=await createMaterialBundle(page,s);await page.locator('#qrClose').click();
+ await page.locator('#replyFile').setInputFiles({name:'before-bundle.txt',mimeType:'text/plain',buffer:Buffer.from('Original bytes')});
+ const input=page.locator('#replyText');await input.fill('До /Документы после');await input.evaluate(node=>node.setSelectionRange(12,12));await input.press('ArrowRight');
+ await expect(page.locator('#qrComposerChoices [role="option"]')).toHaveCount(1);await input.press('Enter');await expect(page.locator('#quickRepliesDialog')).toBeVisible();
+ await expect(page.locator('.qrMaterialPreview li strong')).toHaveText(['photo.png','conditions.pdf']);await page.locator('#qrInsert').click();
+ await expect(input).toHaveValue('До Проверьте условия и фотографию. после');await expect(page.locator('.mediaFileName')).toHaveText(['before-bundle.txt','photo.png','conditions.pdf']);
+ expect(await selectedFileProof(page)).toEqual([{name:'before-bundle.txt',size:14,sha256:sha256(Buffer.from('Original bytes'))},...r.materials.map(row=>({name:row.name,size:row.size,sha256:row.sha256}))]);clean(s);
+});
+
+test('Composer slash picker works in the same expanded reply editor at short height',async({page})=>{
+ await page.setViewportSize({width:390,height:420});const s=await setup(page);s.replies[1].requires_review=false;await openLead(page);await page.locator('#m2ReplyExpand').click();
+ const input=page.locator('#replyText');await input.fill('/под');await expect(page.locator('#qrComposerChoices [role="option"]')).toHaveCount(1);
+ await expect.poll(async()=>{const box=await page.locator('#qrComposerPicker').boundingBox();return !!box&&box.y>=0&&box.y+box.height<=421}).toBe(true);
+ await input.press('Enter');await expect(input).toHaveValue('Проверяем отели у моря.');await expect(page.locator('#m2ReplyEditor')).toBeVisible();await expect(input).toBeFocused();clean(s);
+});
+
+test('Composer slash delayed search cannot disclose an obsolete query or previous account',async({page})=>{
+ const s=await setup(page,{holdList:true});await openLead(page);const input=page.locator('#replyText');await input.fill('/под');
+ await expect.poll(()=>s.calls.filter(c=>c.path==='/manager/quick-replies-api.php'&&c.action==='list').length).toBe(1);
+ await input.fill('Новое сообщение человека');s.releaseList();await expect(page.locator('#qrComposerPicker')).toBeHidden();await expect(input).toHaveValue('Новое сообщение человека');
+ await input.fill('/привет');await expect.poll(()=>s.calls.filter(c=>c.path==='/manager/quick-replies-api.php'&&c.action==='list').length).toBe(2);
+ s.switchManager({id:8,role:'manager',display_name:'Ольга',is_working:true});s.setHoldList(false);
+ await page.evaluate(()=>{WorkspaceV2.S.authGeneration++;WorkspaceV2Conversation.resetForIdentityChange();WorkspaceV2.S.manager={id:8,role:'manager',display_name:'Ольга',is_working:true};WorkspaceV2Conversation.activateReplySession(8);WorkspaceV2QuickReplies.configure()});s.releaseList();
+ await expect(page.locator('#qrComposerPicker')).toBeHidden();await expect(page.locator('#qrComposerChoices')).toHaveCount(0);await expect(input).toHaveValue('');clean(s);
+});
+
+test('Composer slash close event cannot steal focus from a newer human draft',async({page})=>{
+ const s=await setup(page);await openLead(page);await openLibrary(page);await page.locator('#qrClose').click();
+ const input=page.locator('#replyText');await input.fill('/под');await page.evaluate(()=>document.getElementById('quickRepliesDialog').dispatchEvent(new Event('close')));
+ await expect(input).toBeFocused();await expect(page.locator('#qrComposerChoices [role="option"]')).toHaveCount(1);await input.press('Escape');await expect(input).toHaveValue('/под');clean(s);
+});
+
+test('Composer slash paste keeps menu above the reflowed textarea and preserves the image',async({page})=>{
+ await page.setViewportSize({width:390,height:900});const s=await setup(page);await openLead(page);const input=page.locator('#replyText');await input.fill('/под');await expect(page.locator('#qrComposerChoices [role="option"]')).toHaveCount(1);
+ await input.evaluate(node=>{const transfer=new DataTransfer();transfer.items.add(new File([new Uint8Array([137,80,78,71])],'pasted.png',{type:'image/png'}));node.dispatchEvent(new ClipboardEvent('paste',{bubbles:true,cancelable:true,clipboardData:transfer}))});
+ await expect(page.locator('#mediaSelection')).toContainText('pasted.png');
+ await expect.poll(async()=>{const menu=await page.locator('#qrComposerPicker').boundingBox(),reply=await input.boundingBox();return !!menu&&menu.y+menu.height<=reply.y+1}).toBe(true);
+ await input.press('Escape');await expect(input).toHaveValue('/под');clean(s);
+});
+
+test.describe('Composer slash touch',()=>{
+ test.use({hasTouch:true,viewport:{width:390,height:420}});
+ test('native tap selects without sending or losing textarea focus',async({page})=>{
+  const s=await setup(page);s.replies[1].requires_review=false;await openLead(page);const input=page.locator('#replyText');await input.fill('/под');
+  await expect(page.locator('#qrComposerChoices [role="option"]')).toHaveCount(1);await page.locator('#qrComposerChoices [role="option"]').tap();
+  await expect(input).toHaveValue('Проверяем отели у моря.');await expect(input).toBeFocused();clean(s);
+ });
 });
