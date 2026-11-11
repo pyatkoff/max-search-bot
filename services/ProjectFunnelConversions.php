@@ -44,7 +44,7 @@ final class ProjectFunnelConversions
     {
         $policy=self::policy($settings);$result=['ok'=>false,'status'=>'off','conversion_requests'=>0];if(!$policy)return $result;
         try{$api=$apiFactory?$apiFactory($policy):self::api($policy);if(!$api)return array_replace($result,['status'=>'credential_unavailable']);
-            return $api->projectGoalsReady()?array_replace($result,['ok'=>true,'status'=>'ready']):array_replace($result,['status'=>'goal_access_unavailable']);
+            $status=$api->projectGoalAdmission();return array_replace($result,['ok'=>$status==='ready','status'=>$status]);
         }catch(Throwable $e){return array_replace($result,['status'=>'goal_access_unavailable']);}
     }
 

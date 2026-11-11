@@ -80,6 +80,7 @@ final class MetrikaOfflineClient
     private function projectCsv(array $event,int $now): string
     {
         $stage=str_starts_with($event['target']??'','funnel_')?substr($event['target'],7):'';
+        if(($this->projectPolicy['goal_match'][$stage]??'exact')!=='exact')throw new InvalidArgumentException('unsupported_offline_goal_condition');
         if(($event['project_key']??null)!==$this->projectPolicy['project_key']||!isset($this->projectPolicy['goals'][$stage])
             ||($event['transport_target']??null)!==$this->projectPolicy['goals'][$stage]
             ||!MaxTrackerLookupProtocol::id($event['client_id']??null,40)||!is_numeric($event['event_unix']??null)
@@ -95,29 +96,37 @@ final class MetrikaOfflineClient
     /** Existing owner-selected goals only; no goal creation or condition changes. */
     public function projectGoalsReady(): bool
     {
-        if($this->projectPolicy===null)return false;
+        return $this->projectGoalAdmission()==='ready';
+    }
+
+    /** Fixed public-safe result; offline uploads require an exact action condition. */
+    public function projectGoalAdmission(): string
+    {
+        if($this->projectPolicy===null)return 'goal_access_unavailable';
         try{
             $access=$this->request('GET','');$counter=$this->decode($access)['counter']??null;
             if((int)($access['error']??0)!==0||(int)($access['http']??0)!==200||!is_array($counter)
-                ||(string)($counter['id']??'')!==$this->counter||!in_array($counter['permission']??null,['own','edit'],true))return false;
+                ||(string)($counter['id']??'')!==$this->counter||!in_array($counter['permission']??null,['own','edit'],true))return 'goal_access_unavailable';
             $goals=$this->readGoals();
             foreach($this->projectPolicy['goals']as$event=>$target){
                 $id=$this->projectPolicy['goal_ids'][$event]??null;$match=$this->projectPolicy['goal_match'][$event]??'exact';
-                if($id===null){if($match!=='exact'||count($this->exactGoals($goals,$target))!==1)return false;continue;}
+                if($match!=='exact')return 'goal_condition_unsupported';
+                if($id===null){if(count($this->exactGoals($goals,$target))!==1)return 'goal_access_unavailable';continue;}
                 $selected=array_values(array_filter($goals,static fn($g)=>is_array($g)&&(string)($g['id']??'')===$id));
                 if(count($selected)!==1||($selected[0]['type']??'')!=='action'||count($selected[0]['conditions']??[])!==1
-                    ||($selected[0]['conditions'][0]['type']??'')!==$match||($selected[0]['conditions'][0]['url']??'')!==$target)return false;
+                    ||($selected[0]['conditions'][0]['url']??'')!==$target)return 'goal_access_unavailable';
+                if(($selected[0]['conditions'][0]['type']??'')!=='exact')return 'goal_condition_unsupported';
                 foreach($goals as$other)if(($other['type']??'')==='action'&&(string)($other['id']??'')!==$id)foreach(($other['conditions']??[])as$condition){
                     $value=$condition['url']??null;$type=$condition['type']??'';
-                    if(!is_string($value)||$value==='')return false;
-                    if(($type==='exact'||$type==='action')&&$value===$target)return false;
-                    if($type==='contain'&&str_contains($target,$value))return false;
-                    if($type==='start'&&str_starts_with($target,$value))return false;
-                    if($type==='regexp')return false; // No guessed regexp semantics or goal mutation.
+                    if(!is_string($value)||$value==='')return 'goal_access_unavailable';
+                    if(($type==='exact'||$type==='action')&&$value===$target)return 'goal_access_unavailable';
+                    if($type==='contain'&&str_contains($target,$value))return 'goal_access_unavailable';
+                    if($type==='start'&&str_starts_with($target,$value))return 'goal_access_unavailable';
+                    if($type==='regexp')return 'goal_access_unavailable'; // No guessed regexp semantics or goal mutation.
                 }
             }
-            return true;
-        }catch(Throwable $e){return false;}
+            return 'ready';
+        }catch(Throwable $e){return 'goal_access_unavailable';}
     }
 
     public function poll(string $uploadId): ?array

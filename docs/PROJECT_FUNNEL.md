@@ -101,7 +101,7 @@ reconciled through reads; it is never blindly sent again.
 the existing private platform OAuth account, without exporting or copying its
 token. Counter access is checked for own/edit permission. Existing unique exact
 goals or owner-pinned `goal_ids`/`goal_match` conditions pass read-only admission.
-An owner-specified contains condition is retained; it is never converted to exact.
+An existing contains condition is never rewritten by admission; it blocks offline sending.
 No goal is created, renamed or changed. New businesses cannot borrow AnyTour's
 counter. `tools/max_channel_attribution.php project-probe <project_key>` is a
 GET-only admission check and returns only fixed result enums, never a credential.
@@ -120,10 +120,14 @@ train a new model from an unvalidated sample or replace the existing MODEL owner
 The profile preserves the eight accepted public covers/offers and their existing
 IDs. The owner supplied its own counter42611469. Its profile enables collection:
 real native visits can obtain this counter's ClientID. The owner-created goal is
-680570232, whose identifier contains `predict`. This exact ID/condition is pinned
-for `predictive_value`; the selected private credential source is the platform
-account. Its access is not assumed: the normal installation diagnostics run the
-GET-only API admission. Recorded activity/manager/CRM stages remain in the core
+680570232, reported with the identifier condition contains `predict`. This ID and
+target are pinned for `predictive_value`, with the required offline condition
+`exact`. [Yandex requires an exact action condition for offline uploads](https://yandex.ru/dev/metrika/ru/management/offline-conv).
+A live contains condition returns `goal_condition_unsupported`, never a ready
+status; no goal is rewritten by this code. Changing that existing goal requires
+the owner's separate authorization. The selected private credential source is
+the platform account. Its access is not assumed: the normal installation
+diagnostics run the GET-only API admission. Recorded activity/manager/CRM stages remain in the core
 history. A calibrated repair model has not been supplied, so no synthetic/default
 forecast is exported and collection remains selected. First real conversion
 delivery and natural acceptance are separate from access admission.

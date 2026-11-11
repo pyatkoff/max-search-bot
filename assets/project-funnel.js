@@ -42,7 +42,7 @@
     function status(title,text,loading=false){el('status-title').textContent=title;el('status-copy').textContent=text;doc.querySelector('main').setAttribute('aria-busy',String(loading));}
     async function cid(){
       if(!cfg.counter_id||ctx.payload.kind!=='advertising')return'';
-      if(!metric){metric=true;win.ym=win.ym||function(){(win.ym.a=win.ym.a||[]).push(arguments);};win.ym.l=Date.now();win.ym(cfg.counter_id,'init',{url:ctx.metric,referrer:'',clickmap:false,trackLinks:false,webvisor:false});load('https://mc.yandex.ru/metrika/tag.js');}
+      if(!metric){metric=true;win.ym=win.ym||function(){(win.ym.a=win.ym.a||[]).push(arguments);};win.ym.l=Date.now();win.ym(cfg.counter_id,'init',{defer:true,clickmap:false,trackLinks:false,webvisor:false});win.ym(cfg.counter_id,'hit',ctx.metric,{referrer:''});load('https://mc.yandex.ru/metrika/tag.js');}
       return await new Promise(resolve=>{let done=false;const end=v=>{if(!done){done=true;resolve(typeof v==='string'&&/^[1-9][0-9]{0,39}$/.test(v)?v:'');}};win.setTimeout(()=>end(''),3000);win.ym(cfg.counter_id,'getClientID',end);});
     }
     async function run(){

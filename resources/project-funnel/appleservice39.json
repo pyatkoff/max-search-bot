@@ -20,7 +20,7 @@
       "predictive_value": "680570232"
     },
     "goal_match": {
-      "predictive_value": "contain"
+      "predictive_value": "exact"
     }
   },
   "posts": {
