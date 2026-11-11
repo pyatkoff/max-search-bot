@@ -86,6 +86,7 @@ final class ModeledConversionValueDeliveryReader
                 if($failure!==null)$out['last_recorded_failure']=['tick_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$failure['tick_at_unix']),
                     'phase'=>$failure['phase'],'category'=>$failure['category']];
             }
+            $out['visit_gate_decisions']=$this->visitGateDecisions($receipt['visit_gate_decisions']??null,$activation,$now);
             $out['metrika_goal_report']=$this->report($receipt['metrika_report']??null,$activation,$now);
             if(!in_array($out['metrika_goal_report']['status']??null,['ok','sampled'],true)){
                 $lastGood=is_string($s['last_success_json']??null)?json_decode($s['last_success_json'],true):null;
@@ -300,24 +301,51 @@ final class ModeledConversionValueDeliveryReader
                 'max_manager_request'=>['max_manager_request'],
                 'max_customer_reply_after_manager'=>['max_channel_customer_reply_after_manager','max_customer_reply_after_manager']];
             $candidates=[];$admitted=0;
+            $rejections=array_fill_keys(['unsupported_goal_pair','mixed_family_metadata','not_processed_pair','saved_error_present',
+                'invalid_upload_receipt_id','invalid_attempt_or_claim_clock','invalid_client_or_tracker_record',
+                'missing_or_invalid_source_clock','source_after_signal_or_claim'],0);
+            $facets=['family'=>array_fill_keys(['native','modeled_value','other'],0),
+                'state'=>array_fill_keys(array_merge(self::STATES,['other']),0),
+                'identity_fields'=>array_fill_keys(['canonical_client_id','canonical_tracker_record_id','valid_source_clock','source_clock_at_or_before_event'],0)];
             foreach($packets as$packet){
                 $values=json_decode($packet['packet'],true,8,JSON_THROW_ON_ERROR|JSON_BIGINT_AS_STRING);
                 if(!is_array($values)||count($values)!==count($names))throw new UnexpectedValueException();
                 $row=array_combine($names,$values);
                 if($row['project_key']!=='anytour'||$row['platform']!=='max'||(string)$row['external_user_id']!==$user
                     ||(string)$row['counter_id']!=='98615635')throw new UnexpectedValueException();
-                if(!is_string($row['target'])||!in_array($row['transport_target'],$pairs[$row['target']]??[],true)
-                    ||$row['identity_source_key']!==''||$row['state']!=='processed'||$row['upload_status']!=='PROCESSED'||$row['last_error']!=='')continue;
-                $native=true;
+                $pair=is_string($row['target'])&&in_array($row['transport_target'],$pairs[$row['target']]??[],true);
+                $native=$row['identity_source_key']==='';
                 foreach(['source_signal_id','identity_observation_id','value_profile_id','value_rub','value_stage','value_contract',
                     'value_receipt_basis','value_ready_at_unix','value_api_accepted_at_unix','value_processed_at_unix']as$name)
                     if($row[$name]!==null)$native=false;
                 $id=$digits($row['id'],20);$conversation=$digits($row['conversation_id'],20);$upload=$digits($row['upload_id'],20);
                 $client=$digits($row['client_id'],40);$record=$digits($row['tracker_record_id'],20);
                 $attempts=$digits($row['attempts'],10);$claim=$digits($row['claimed_at_unix'],10);$source=$digits($row['tracker_observed_unix'],10);
-                if(!$native||$id===null||$conversation===null||$upload===null||$client===null||$record===null||$attempts===null
-                    ||$claim===null||(int)$claim<946684800||(int)$claim>$now||$source===null||(int)$source<946684800
-                    ||(int)$source>(int)$bound['event_unix']||(int)$source>(int)$claim)continue;
+                $sourceValid=$source!==null&&(int)$source>=946684800&&(int)$source<=$now;
+                if($client!==null)$facets['identity_fields']['canonical_client_id']++;
+                if($record!==null)$facets['identity_fields']['canonical_tracker_record_id']++;
+                if($sourceValid)$facets['identity_fields']['valid_source_clock']++;
+                if($sourceValid&&(int)$source<=(int)$bound['event_unix'])$facets['identity_fields']['source_clock_at_or_before_event']++;
+                $state=is_string($row['state'])&&in_array($row['state'],self::STATES,true)?$row['state']:'other';$facets['state'][$state]++;
+                $profile=$digits($row['value_profile_id'],20);$rank=array_search($row['value_stage'],ModeledConversionValueContract::STAGES,true);
+                $money=$row['value_rub'];
+                $moneyValid=(is_int($money)||is_float($money)||(is_string($money)&&preg_match('/\A(?:0|[1-9][0-9]*)(?:\.[0-9]{1,2})?\z/D',$money)===1))
+                    &&is_finite((float)$money)&&(float)$money>0&&(float)$money<=ModeledConversionValueContract::MAX_VALUE_RUB;
+                $modeled=$row['identity_source_key']==='max_tracker'&&$profile!==null&&$moneyValid
+                    &&$row['value_contract']===ModeledConversionValueContract::VERSION&&$row['transport_target']===ModeledConversionValueContract::TARGET
+                    &&$rank!==false&&($row['target']===ModeledConversionValueContract::predictionKey($profile)||$row['target']===ModeledConversionValueContract::key($rank));
+                $facets['family'][$pair&&$native?'native':($modeled?'modeled_value':'other')]++;
+                $reason=null;
+                if(!$pair)$reason='unsupported_goal_pair';
+                elseif(!$native)$reason='mixed_family_metadata';
+                elseif($row['state']!=='processed'||$row['upload_status']!=='PROCESSED')$reason='not_processed_pair';
+                elseif($row['last_error']!=='')$reason='saved_error_present';
+                elseif($id===null||$conversation===null||$upload===null)$reason='invalid_upload_receipt_id';
+                elseif($attempts===null||$claim===null||(int)$claim<946684800||(int)$claim>$now)$reason='invalid_attempt_or_claim_clock';
+                elseif($client===null||$record===null)$reason='invalid_client_or_tracker_record';
+                elseif(!$sourceValid)$reason='missing_or_invalid_source_clock';
+                elseif((int)$source>(int)$bound['event_unix']||(int)$source>(int)$claim)$reason='source_after_signal_or_claim';
+                if($reason!==null){$rejections[$reason]++;continue;}
                 $candidate=hash('sha256',json_encode(['retained_native_processed_tracker_source_v1',$namespace,$ref,$id,
                     $row['target'],$row['transport_target'],$upload,$client,$record,(int)$source,'anytour','max',$user,'98615635'],
                     JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
@@ -325,8 +353,12 @@ final class ModeledConversionValueDeliveryReader
                 // Rows are in canonical id order; duplicate witnesses for the same ClientID do not imply ambiguity.
                 $candidates[$client]??=['candidate_sha256'=>$candidate,'source_observed_at'=>gmdate('Y-m-d\TH:i:s\Z',(int)$source)];
             }
+            if(array_sum($rejections)+$admitted!==count($packets)||array_sum($facets['family'])!==count($packets)
+                ||array_sum($facets['state'])!==count($packets))throw new UnexpectedValueException();
             $out=array_merge($base,['available'=>true,'event_ref'=>$ref,'snapshot_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),
                 'complete_within_bound'=>true,'inspected_rows'=>count($packets),'admitted_native_witnesses'=>$admitted,
+                'first_rejection_reason_counts'=>$rejections,'facets'=>$facets,
+                'classification_basis'=>'independent_field_facets_and_first_failed_native_witness_guard_not_identity_permission',
                 'unique_candidate_count'=>count($candidates),'candidate_sha256'=>null,'source_observed_at'=>null,
                 'source_provenance'=>null,'local_absence_does_not_prove_tracker_or_visit_absence'=>true]);
             if(count($candidates)===1)$out=array_merge($out,reset($candidates),['status'=>'candidate_observed',
@@ -711,6 +743,24 @@ final class ModeledConversionValueDeliveryReader
             'reviewed_conversations'=>$this->number($r[$platform.'_reviewed_conversations'],false)];
         return $out;
     }
+    /** Same ordinary preclaim decisions, already saved by the worker; this getter performs no assessment. */
+    private function visitGateDecisions(mixed $saved,int $activation,int $now):array
+    {
+        $unknown=['available'=>false,'reason'=>'not_recorded_or_invalid','provider_requests_in_reader'=>0];
+        if(!is_array($saved)||count($saved)!==4||!isset($saved['v'],$saved['checked_at_unix'],$saved['attempts'],$saved['reason_counts'])
+            ||$saved['v']!==1||!is_int($saved['checked_at_unix'])||$saved['checked_at_unix']<$activation||$saved['checked_at_unix']>$now
+            ||!is_int($saved['attempts'])||$saved['attempts']<0||$saved['attempts']>3||!is_array($saved['reason_counts']))return $unknown;
+        try{if(strlen(json_encode($saved,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>512)return $unknown;}
+        catch(JsonException $ignored){return $unknown;}
+        $counts=[];foreach(['within_current_window','outside_current_window','no_prior_visit','visit_report_unavailable','unknown']as$reason){
+            $n=$saved['reason_counts'][$reason]??null;if(!is_int($n)||$n<0||$n>3)return $unknown;$counts[$reason]=$n;
+        }
+        if(count($saved['reason_counts'])!==count($counts)||array_sum($counts)!==$saved['attempts'])return $unknown;
+        return ['available'=>true,'basis'=>'saved_ordinary_preclaim_visit_window_decisions',
+            'checked_at'=>gmdate('Y-m-d\TH:i:s\Z',$saved['checked_at_unix']),'attempts'=>$saved['attempts'],'reason_counts'=>$counts,
+            'zero_attempts_does_not_prove_no_visits'=>true,'provider_requests_in_reader'=>0];
+    }
+
     private function report(mixed $r,int $activation,int $now):array
     {
         $unknown=['status'=>'not_recorded','fresh'=>false,'goal_reaches'=>null,'goal_visits'=>null,'revenue_rub'=>null,

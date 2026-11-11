@@ -321,7 +321,7 @@ final class MetrikaOfflineClient
         if($this->counter!=='98615635'||$activated<946684800||$activated>$now){$base['failure_category']='invalid_request';return $base+['reason'=>'invalid_scope'];}
         $metrics=['ym:s:goal678187097reaches','ym:s:goal678187097visits','ym:s:goal678187097convertedRUBRevenue'];
         $query=['ids'=>'98615635','metrics'=>implode(',',$metrics),'date1'=>$base['date1'],'date2'=>'today','accuracy'=>'full','limit'=>1];
-        $r=$this->request('GET','data?'.http_build_query($query,'','&',PHP_QUERY_RFC3986),null,null,true);
+        $r=$this->request('GET','data?'.http_build_query($query,'','&',PHP_QUERY_RFC3986),null,null,true,true);
         // Observe only this response. No raw body, message, URL or credential is retained.
         $httpScalar=$r['http']??null;$transportScalar=$r['error']??null;
         $base['http_status']=is_int($httpScalar)&&$httpScalar>=100&&$httpScalar<=599?$httpScalar:null;
@@ -365,13 +365,13 @@ final class MetrikaOfflineClient
     {
         // Optional advertising dimensions can omit visits with undefined source labels.
         // Keep the complete unfiltered visit list; source evidence may only enrich it.
-        $base=$this->visitReport($clientId,$activated,$now,false);
+        $base=$this->visitReport($clientId,$activated,$now,false,false,true);
         if(($base['status']??null)!=='ok'||($base['visits']??[])===[])return $base;
         foreach($base['visits']as&$visit)$visit['source_class']='other_or_unknown';unset($visit);
         $window=ModeledConversionAttributionWindow::assess($base,$activated,$now);
         if($window['visit_at']===null||$window['allowed']||$now-$window['visit_at']>ModeledConversionAttributionWindow::MAX_SECONDS)return $base;
         if($admitExtraRead!==null)$admitExtraRead();
-        $sources=$this->visitReport($clientId,$activated,$now,false,true);
+        $sources=$this->visitReport($clientId,$activated,$now,false,true,true);
         if(($sources['status']??null)!=='ok')return $base;
         $baseTimes=array_fill_keys(array_column($base['visits'],'started_at'),true);
         foreach($sources['visits']as$source)if(!isset($baseTimes[$source['started_at']]))return $base;
@@ -381,7 +381,7 @@ final class MetrikaOfflineClient
         }
         unset($visit);return $base;
     }
-    private function visitReport(string $clientId,int $activated,int $now,bool $goal,bool $traffic=false):array
+    private function visitReport(string $clientId,int $activated,int $now,bool $goal,bool $traffic=false,bool $currentWindow=false):array
     {
         $fail=['status'=>'unavailable','visits'=>[]];
         if($this->counter!=='98615635'||!MaxTrackerLookupProtocol::id($clientId,40)||$activated<946684800||$activated>$now)return $fail;
@@ -394,10 +394,14 @@ final class MetrikaOfflineClient
             $this->reportZone=new DateTimeZone($counter['time_zone_name']);
         }
         $zone=$this->reportZone;
+        // Any currently allowed visit is at most MAX_SECONDS old at dispatch.
+        // Counter-local calendar flooring includes the exact boundary without scanning obsolete weeks.
+        $date1=$currentWindow?(new DateTimeImmutable('@'.($now-ModeledConversionAttributionWindow::MAX_SECONDS)))
+            ->setTimezone($zone)->format('Y-m-d'):gmdate('Y-m-d',$activated-22*86400);
         $metrics=$goal?['ym:s:visits','ym:s:goal678187097reaches','ym:s:goal678187097convertedRUBRevenue']:['ym:s:visits'];
         $dimensions=['ym:s:clientID','ym:s:dateTime'];if($traffic)$dimensions=array_merge($dimensions,['ym:s:lastTrafficSource','ym:s:lastAdvEngine']);$filter="ym:s:clientID=='".$clientId."'".($goal?' AND ym:s:goal==678187097':'');
         $query=['ids'=>'98615635','metrics'=>implode(',',$metrics),'dimensions'=>implode(',',$dimensions),'filters'=>$filter,
-            'date1'=>gmdate('Y-m-d',$activated-22*86400),'date2'=>'today','accuracy'=>'full','limit'=>101];
+            'date1'=>$date1,'date2'=>'today','accuracy'=>'full','limit'=>101];
         $response=$this->request('GET','data?'.http_build_query($query,'','&',PHP_QUERY_RFC3986),null,null,true);
         if((int)($response['error']??0)!==0||(int)($response['http']??0)!==200)return $fail;
         $d=$this->decode($response);$q=$d['query']??null;$rows=$d['data']??null;
@@ -474,7 +478,21 @@ final class MetrikaOfflineClient
         $data=json_decode((string)($response['body']??''),true,32,JSON_BIGINT_AS_STRING);return is_array($data)?$data:[];
     }
 
-    private function request(string $method,string $path,?string $csv=null,?array $json=null,bool $statistics=false): array
+    /** Fixed aggregate GET has a larger per-request ceiling; existing caller deadlines remain authoritative. */
+    private function requestTimeouts(string $method,bool $statistics,bool $ordinaryValueReport,float $at):array
+    {
+        $seconds=$statistics?($method==='GET'&&$ordinaryValueReport?20:8):30;
+        $out=['connect_seconds'=>$statistics?2:5,'timeout_seconds'=>$seconds];
+        if($method==='GET'&&$this->readDeadline!==null){
+            $remaining=(int)floor(($this->readDeadline-$at)*1000);
+            if($remaining<1)throw new RuntimeException('verification_deadline');
+            $out['connect_ms']=min(2000,$remaining);
+            $out['timeout_ms']=min(($statistics?$seconds:8)*1000,$remaining);
+        }
+        return $out;
+    }
+
+    private function request(string $method,string $path,?string $csv=null,?array $json=null,bool $statistics=false,bool $ordinaryValueReport=false): array
     {
         if($method==='GET'&&$this->readDeadline!==null&&microtime(true)>=$this->readDeadline)throw new RuntimeException('verification_deadline');
         $url='https://api-metrika.yandex.net/'.($statistics?'stat/v1/':'management/v1/counter/'.$this->counter.($path===''?'':'/')).$path;
@@ -482,16 +500,15 @@ final class MetrikaOfflineClient
         $temp=null;$ch=null;
         try{
             $body='';$tooLarge=false;$maxResponseBytes=$statistics?65536:1048576;$ch=curl_init($url);if($ch===false)throw new RuntimeException('metrika_transport_failed');
+            $timeouts=$this->requestTimeouts($method,$statistics,$ordinaryValueReport,microtime(true));
             $options=[CURLOPT_RETURNTRANSFER=>false,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,
-                CURLOPT_CONNECTTIMEOUT=>$statistics?2:5,CURLOPT_TIMEOUT=>$statistics?8:30,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,
+                CURLOPT_CONNECTTIMEOUT=>$timeouts['connect_seconds'],CURLOPT_TIMEOUT=>$timeouts['timeout_seconds'],CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,
                 CURLOPT_HTTPHEADER=>['Authorization: OAuth '.$this->token,'Accept: application/json'],
                 CURLOPT_WRITEFUNCTION=>static function($ch,string $chunk)use(&$body,&$tooLarge,$maxResponseBytes):int{
                     if(strlen($body)+strlen($chunk)>$maxResponseBytes){$tooLarge=true;return 0;}$body.=$chunk;return strlen($chunk);
                 }];
-            if($method==='GET'&&$this->readDeadline!==null){
-                $remaining=(int)floor(($this->readDeadline-microtime(true))*1000);
-                if($remaining<1)throw new RuntimeException('verification_deadline');
-                $options[CURLOPT_CONNECTTIMEOUT_MS]=min(2000,$remaining);$options[CURLOPT_TIMEOUT_MS]=min(8000,$remaining);
+            if(isset($timeouts['connect_ms'])){
+                $options[CURLOPT_CONNECTTIMEOUT_MS]=$timeouts['connect_ms'];$options[CURLOPT_TIMEOUT_MS]=$timeouts['timeout_ms'];
             }
             if(in_array($method,['POST','PUT'],true)&&$json!==null){
                 $options[CURLOPT_CUSTOMREQUEST]=$method;$options[CURLOPT_POSTFIELDS]=json_encode($json,JSON_THROW_ON_ERROR);
