@@ -1696,10 +1696,29 @@ function forecastRepairAssessmentAssertions(PDO $p,callable $check):void
         strlen(json_encode($kept,JSON_THROW_ON_ERROR))<=28000
         &&$kept['value_delivery']['repair_assessments']['exact_cases']['rows']===$details['rows']
         &&$kept['value_delivery']['predictive_v1']['examples']===[]);
-    $small['padding']=str_repeat('x',25000);$truncated=$bounded->invoke($projection,$small);
+    // Size the fixed prefix using the runtime serializer: new scalar coverage fields
+    // may grow, while exact rows remain the part this fixture intentionally removes.
+    $responseBytes=static fn(array $v):int=>strlen(json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    $withoutRows=$small;$withoutRows['padding']='';
+    $withoutRows['value_delivery']['predictive_v1']['examples']=[];
+    $withoutRows['value_delivery']['predictive_v1']['examples_omitted_due_to_response_budget']=true;
+    $fullRows=$withoutRows;$withoutRows['value_delivery']['repair_assessments']['exact_cases']['rows']=[];
+    $withoutRows['value_delivery']['repair_assessments']['exact_cases']['window']['returned_events']=0;
+    $withoutRows['value_delivery']['repair_assessments']['exact_cases']['window']['complete_within_bound']=false;
+    $withoutRows['value_delivery']['repair_assessments']['exact_cases']['window']['omitted_due_to_response_budget']=true;
+    $withoutRows['value_delivery']['repair_assessments']['exact_cases']['identity_evidence']['observed_case_count']=0;
+    $oldFixed=$withoutRows;$oldFixed['padding']=str_repeat('x',25000);
+    $oldFixedBytes=$responseBytes($oldFixed);
+    $rowBytes=$responseBytes($fullRows)-$responseBytes($withoutRows);
+    $fixedTarget=28000-max(1,intdiv($rowBytes,2));
+    $small['padding']=str_repeat('x',max(0,$fixedTarget-$responseBytes($withoutRows)));
+    $withoutRows['padding']=$small['padding'];$fixedBytes=$responseBytes($withoutRows);
+    $beforeBytes=$responseBytes($small);$truncated=$bounded->invoke($projection,$small);
+    $afterBytes=$responseBytes($truncated);
     $truncatedCases=$truncated['value_delivery']['repair_assessments']['exact_cases'];
-    $check('exact-case response truncation is explicit while whole-cohort totals remain intact',
-        strlen(json_encode($truncated,JSON_THROW_ON_ERROR))<=28000
+    $check('exact-case response truncation is explicit while whole-cohort totals remain intact'
+        .' old_fixed='.$oldFixedBytes.' fixed='.$fixedBytes.' before='.$beforeBytes.' after='.$afterBytes,
+        $rowBytes>0&&$fixedBytes<=28000&&$beforeBytes>28000&&$afterBytes<=28000
         &&count($truncatedCases['rows'])<16&&!$truncatedCases['window']['complete_within_bound']
         &&$truncatedCases['window']['omitted_due_to_response_budget']
         &&$truncatedCases['window']['returned_events']===count($truncatedCases['rows'])
