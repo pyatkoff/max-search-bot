@@ -27,6 +27,7 @@ function clientFixtureSchema(PDO $pdo): void
     $pdo->exec("CREATE TABLE managers(id $id,login VARCHAR(191) NOT NULL UNIQUE,password_hash VARCHAR(255),display_name VARCHAR(191),role VARCHAR(24) NOT NULL,email VARCHAR(191),is_active INTEGER NOT NULL DEFAULT 1,is_working INTEGER NOT NULL DEFAULT 0,priority INTEGER DEFAULT 0)".$suffix);
     $pdo->exec("CREATE TABLE manager_projects(manager_id $fk NOT NULL,project_id $fk NOT NULL,PRIMARY KEY(manager_id,project_id))".$suffix);
     $pdo->exec("CREATE TABLE conversation_sources(id $id,project_id $fk NOT NULL,source_key VARCHAR(191) NOT NULL UNIQUE,display_name VARCHAR(191),channel VARCHAR(24),handling_mode VARCHAR(24) DEFAULT 'ai',fallback_mode VARCHAR(24),is_active INTEGER DEFAULT 1)".$suffix);
+    $pdo->exec("CREATE TABLE conversations(id $id,project_key VARCHAR(64) NOT NULL)".$suffix);
     regionalAccessFixtureSchema($pdo);
     if($mysql)$pdo->exec((string)file_get_contents(dirname(__DIR__,2).'/migrations/101_client_onboarding.sql'));
     else{

@@ -126,12 +126,49 @@ final class ManagerClientOnboardingService
         $fresh=ManagerAuthService::byId($actor);
         if(!$fresh||$fresh['role']!==$manager['role']||$fresh['projects']!==$manager['projects'])return ['ok'=>false,'error'=>'forbidden'];return ['ok'=>true,'is_admin'=>$admin,'clients'=>$clients];
     }
+    private function canConfigure(array $row): bool
+    {
+        if(!(int)$row['is_active']||$row['registration_fingerprint']!==null||$row['activation_operation_id']!==null)return false;
+        $q=$this->pdo->prepare('SELECT id FROM conversations WHERE project_key=? LIMIT 1');$q->execute([$row['project_key']]);return !$q->fetchColumn();
+    }
+    /** Correct an uncommissioned account; never retarget a used connection. */
+    public function configure(int $actor,int $id,array $data): array
+    {
+        if(!$this->admin($actor))return ['ok'=>false,'error'=>'forbidden'];
+        if(array_diff(array_keys($data),['operation_id','bot_key','token','materials']))throw new InvalidArgumentException('invalid_client');
+        $operation=self::operation($data['operation_id']??null);$bot=self::text($data,'bot_key',1,191);if(!preg_match('/\A[A-Za-z0-9_]{1,191}\z/D',$bot))throw new InvalidArgumentException('invalid_bot_key');
+        $token=self::text($data+['token'=>''],'token',0,4096,false);if($token!==''&&(strlen($token)<8||preg_match('/[\x00-\x20\x7f]/',$token)))throw new InvalidArgumentException('invalid_token');
+        $materials=self::text($data,'materials',0,100000,false);$this->registry->assertCredentialKey();
+        $hash=$this->registry->credentials->fingerprint(json_encode([$id,$bot,$token,$materials],JSON_THROW_ON_ERROR));$existing=$this->storedOperation($actor,$operation);
+        if($existing)return $existing['operation_kind']==='configure'&&(int)$existing['project_id']===$id&&hash_equals($existing['payload_hash'],$hash)?self::savedResult($existing):['ok'=>false,'error'=>'operation_conflict'];
+        $committing=false;$this->pdo->beginTransaction();
+        try{
+            $this->pdo->query("SELECT id FROM managers WHERE role='admin' AND is_active=1 ORDER BY id".$this->lock())->fetchAll();
+            if(!$this->admin($actor))throw new RuntimeException('forbidden');$row=$this->project($id,true);
+            if(!$row||!$this->canConfigure($row))throw new RuntimeException('configuration_locked');
+            $secret=$this->registry->credentials->open($row['project_key'],$row['bot_key'],$row['credentials_json']);$actualToken=$token!==''?$token:$secret['token'];
+            if(!ProjectMaxConnection::availableForNewClient($row['project_key'],$bot,$actualToken))throw new RuntimeException('connection_in_use');
+            if($bot!==$row['bot_key']||$actualToken!==$secret['token'])$secret=['token'=>$actualToken,'webhook_secret'=>bin2hex(random_bytes(32))];
+            $sealed=$this->registry->credentials->seal($row['project_key'],$bot,$secret);$result=['ok'=>true,'state'=>'configured','operation_id'=>$operation,'project_id'=>$id];
+            $encoded=json_encode($result,JSON_THROW_ON_ERROR);
+            $this->pdo->prepare("INSERT INTO project_client_operations(actor_id,operation_id,project_id,operation_kind,payload_hash,state,result_json) VALUES(?,?,?,'configure',?,'complete',?)")->execute([$actor,$operation,$id,$hash,$encoded]);
+            $this->pdo->prepare('UPDATE project_client_connections SET bot_key=?,token_fingerprint=?,credentials_json=?,materials_text=?,last_check_json=NULL WHERE project_id=?')->execute([$bot,$this->registry->credentials->fingerprint($actualToken),$sealed,$materials,$id]);
+            AuditLogService::record($actor,'project_updated','project',(string)$id,$row['project_key'],null,['connection_corrected'=>true]);
+            $committing=true;$this->pdo->commit();return $result;
+        }catch(Throwable $e){
+            $rolledBack=false;if($this->pdo->inTransaction())$rolledBack=$this->pdo->rollBack();
+            if($committing||!$rolledBack)return ['ok'=>false,'error'=>'save_outcome_unknown','operation_id'=>$operation];
+            $existing=$this->storedOperation($actor,$operation);if($existing)return $existing['operation_kind']==='configure'&&hash_equals($existing['payload_hash'],$hash)?self::savedResult($existing):['ok'=>false,'error'=>'operation_conflict'];
+            if($e instanceof PDOException&&in_array((string)$e->getCode(),['23000','23505'],true))return ['ok'=>false,'error'=>'duplicate_client'];
+            return ['ok'=>false,'error'=>in_array($e->getMessage(),['forbidden','configuration_locked','connection_in_use'],true)?$e->getMessage():'client_save_failed'];
+        }
+    }
     public function detail(int $actor,int $id): array
     {
         $row=$this->project($id);if(!$row||!ManagerAuthService::byId($actor)||!ProjectAccessService::canAccess($actor,(string)$row['project_key']))return ['ok'=>false,'error'=>'not_found'];
         $q=$this->pdo->prepare('SELECT m.id,m.login,m.display_name FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id WHERE mp.project_id=? AND m.role=? ORDER BY m.id LIMIT 101');$q->execute([$id,'manager']);$staff=$q->fetchAll(PDO::FETCH_ASSOC);
         if(!ManagerAuthService::byId($actor)||!ProjectAccessService::canAccess($actor,(string)$row['project_key']))return ['ok'=>false,'error'=>'not_found'];
-        return ['ok'=>true,'client'=>['id'=>$id,'display_name'=>$row['display_name'],'bot_key'=>$row['bot_key'],'materials'=>$row['materials_text'],'staff'=>$staff]];
+        return ['ok'=>true,'client'=>['id'=>$id,'display_name'=>$row['display_name'],'bot_key'=>$row['bot_key'],'materials'=>$row['materials_text'],'staff'=>$staff,'can_configure'=>$this->admin($actor)&&$this->canConfigure($row)]];
     }
     private function fingerprint(ProjectMaxConnection $connection): string {return hash('sha256',serialize([$connection->projectKey(),$connection->botKey(),$connection->token(),$connection->webhookSecret(),$connection->settings()->all()]));}
     public function verify(int $actor,int $id): array

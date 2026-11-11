@@ -26,7 +26,17 @@ $asset=static fn(string $name): string=>htmlspecialchars((string)(filemtime(__DI
       </fieldset></form>
     </section>
     <div class="columns"><section class="card" aria-labelledby="listTitle"><h2 id="listTitle">Доступные компании</h2><p id="empty" hidden>Компаний пока нет.</p><div id="clients"></div></section>
-      <section id="detail" class="card" aria-labelledby="detailTitle" hidden><p class="eyebrow">Карточка компании</p><h2 id="detailTitle" tabindex="-1"></h2><p id="detailBot" class="muted"></p><div id="connectionActions" hidden><p id="connectionState"></p><div class="actions"><button id="verifyClient" type="button" class="secondary">Проверить подключение</button><button id="activateClient" type="button" hidden>Активировать подключение</button></div></div><h3>Сотрудники</h3><ul id="staff"></ul><h3>Материалы</h3><pre id="detailMaterials"></pre></section>
+      <section id="detail" class="card" aria-labelledby="detailTitle" hidden><p class="eyebrow">Карточка компании</p><h2 id="detailTitle" tabindex="-1"></h2><p id="detailBot" class="muted"></p><div id="connectionActions" hidden><p id="connectionState"></p><div class="actions"><button id="verifyClient" type="button" class="secondary">Проверить подключение</button><button id="activateClient" type="button" hidden>Активировать подключение</button></div></div>
+        <details id="connectionEditor" hidden><summary>Исправить данные до активации</summary>
+          <p class="hint">После сохранения подключение нужно проверить заново. Данные сотрудников сохранятся.</p>
+          <form id="connectionForm" autocomplete="off"><fieldset id="connectionFields">
+            <label>Имя бота MAX<input id="editBotKey" required maxlength="191" pattern="[A-Za-z0-9_]+" spellcheck="false" autocomplete="off"></label>
+            <label>Новый токен бота<input id="editToken" type="password" minlength="8" maxlength="4096" autocomplete="new-password"><span class="hint">Оставьте пустым, чтобы сохранить текущий токен.</span></label>
+            <label>Материалы компании<textarea id="editMaterials" rows="6"></textarea></label>
+            <button id="saveConnection" type="submit">Сохранить исправления</button>
+          </fieldset></form>
+        </details>
+        <h3>Сотрудники</h3><ul id="staff"></ul><h3>Материалы</h3><pre id="detailMaterials"></pre></section>
     </div>
   </div>
 </main>

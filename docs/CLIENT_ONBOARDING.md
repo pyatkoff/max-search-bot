@@ -27,6 +27,13 @@ provider URL blocks activation and is never removed. New companies use the
 existing generic repair webhook, recorder, access policy and outbound adapter;
 there is no parallel channel/history/sender owner.
 
+Before commissioning, **Исправить данные до активации** can correct the bot,
+replace its token and edit the reference materials. An empty replacement token
+keeps the current one. Saving resets the prior check; unsaved edits disable
+checking and activation. Existing staff and their access remain unchanged.
+Any attempted activation, confirmed registration or recorded conversation locks
+this correction path so it cannot retarget an account with history.
+
 ## Isolation and credentials
 
 `project_id` / `project_key` remain the company boundary. Generated
@@ -52,7 +59,7 @@ replacement to bypass the failure.
 
 ## Lost response and activation recovery
 
-Creation and activation have actor-scoped immutable operation IDs. The browser
+Creation, correction and activation have actor-scoped immutable operation IDs. The browser
 stores only that ID per account. A lost response/reload reads its receipt and
 does not replay the mutation. Form data remains in memory until a known creation
 result; late responses cannot restore another account or card.
