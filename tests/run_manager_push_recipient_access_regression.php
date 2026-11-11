@@ -57,8 +57,18 @@ try{
     $pdo->exec('CREATE TABLE manager_priority_rules(id INTEGER PRIMARY KEY,manager_id INTEGER,rule_type TEXT,rule_value TEXT,bonus INTEGER,is_active INTEGER,comment TEXT);
         CREATE TABLE manager_push_installations(id INTEGER PRIMARY KEY,manager_id INTEGER,revision INTEGER,enabled INTEGER);
         CREATE TABLE manager_push_subscriptions(id INTEGER PRIMARY KEY,manager_id INTEGER,installation_id INTEGER,revision INTEGER,intent_revision INTEGER,is_active INTEGER,endpoint TEXT,p256dh TEXT,auth_secret TEXT,last_success_at TEXT,last_error_at TEXT,last_error TEXT)');
-    $client=openssl_pkey_new(['private_key_type'=>OPENSSL_KEYTYPE_EC,'curve_name'=>'prime256v1','config'=>$config]);
-    $details=openssl_pkey_get_details($client);$public="\x04".$details['ec']['x'].$details['ec']['y'];
+    // A public-only synthetic P-256 point whose X starts with zero. OpenSSL
+    // exposes that coordinate as 31 bytes; Web Push still requires all 32.
+    $client=openssl_pkey_get_public(<<<'PUBLIC_KEY'
+-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEAB/HGJkkYMDJVccBDvmq6edwSsVM
+3WWvn7iBGAJBx30EhmZEIZPMrWmDYce/LeHB2q32MDCq3zVynFaAAmS1YQ==
+-----END PUBLIC KEY-----
+PUBLIC_KEY);
+    $details=openssl_pkey_get_details($client);
+    $public="\x04".str_pad($details['ec']['x'],32,"\0",STR_PAD_LEFT).str_pad($details['ec']['y'],32,"\0",STR_PAD_LEFT);
+    pushAccessCheck('Synthetic subscription retains the leading zero of its valid P-256 point',
+        strlen($details['ec']['x'])===31&&bin2hex($public)==='04001fc718992460c0c955c7010ef9aae9e7704ac54cdd65af9fb881180241c77d048666442193ccad698361c7bf2de1c1daadf63030aadf35729c56800264b561');
     $encode=static fn(string$v):string=>rtrim(strtr(base64_encode($v),'+/','-_'),'=');
     $insert=$pdo->prepare('INSERT INTO manager_push_subscriptions(id,manager_id,installation_id,revision,intent_revision,is_active,endpoint,p256dh,auth_secret) VALUES(?,?,?,1,1,1,?,?,?)');
     foreach([7,8,9]as$id){$pdo->exec('INSERT INTO manager_push_installations VALUES('.$id.','.$id.',1,1)');$insert->execute([$id,$id,$id,'https://synthetic-push.invalid/'.$id,$encode($public),$encode(str_repeat('a',16))]);}
