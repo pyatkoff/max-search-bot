@@ -644,7 +644,7 @@ final class ModeledConversionValueExport
         $key=$mysql?"CONCAT('anytour_value_pred_',p.id,'_v1')":"'anytour_value_pred_'||p.id||'_v1'";
         $fields=['id','value_profile_id','project_key','platform','conversation_id','external_user_id','counter_id',
             'target','transport_target','value_contract','event_unix','value_rub','state','upload_id','upload_status',
-            'value_ready_at_unix','value_api_accepted_at_unix'];
+            'identity_source_key','value_origin','value_ready_at_unix','value_api_accepted_at_unix'];
         $sql='SELECT '.($mysql?'/*+ MAX_EXECUTION_TIME(250) */ ':'').implode(',',array_map(static fn(string $v):string=>'o.'.$v,$fields))
             .' FROM modeled_conversion_profile_versions p JOIN max_channel_conversion_outbox o ON o.value_profile_id=p.id'
             .' AND o.project_key=p.project_key AND o.conversation_id=p.conversation_id AND o.target='.$key
@@ -769,7 +769,7 @@ final class ModeledConversionValueExport
             try{
                 $now=self::observedAt($clock,$tick);$row=$this->finiteRows[$entry[0]]??null;if(!$row)continue;
                 // Re-read only this exact immutable ledger binding and its current dispatch state.
-                $q=$this->pdo->prepare('SELECT id,value_profile_id,project_key,platform,conversation_id,external_user_id,counter_id,target,transport_target,value_contract,event_unix,value_rub,state,upload_id,upload_status FROM max_channel_conversion_outbox WHERE id=? LIMIT 1');$q->execute([$entry[1]]);$current=$q->fetch(PDO::FETCH_ASSOC);
+                $q=$this->pdo->prepare('SELECT id,value_profile_id,project_key,platform,conversation_id,external_user_id,counter_id,target,transport_target,value_contract,event_unix,value_rub,state,upload_id,upload_status,identity_source_key,value_origin FROM max_channel_conversion_outbox WHERE id=? LIMIT 1');$q->execute([$entry[1]]);$current=$q->fetch(PDO::FETCH_ASSOC);
                 if(!$current||ModeledConversionValueIdentityEvidence::reference($current,$this->finiteFrame['n'])!==$entry[0])continue;
                 $end=$entry;$end[2]=2;$end[4]=$now;
                 if(!empty($current['upload_id'])||in_array($current['state'],['uploading','unknown','accepted','processed'],true)){
