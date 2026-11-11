@@ -76,4 +76,10 @@ $binding = $fresh->campaign(); $binding['manifest_sha256']=str_repeat('f',64); u
 as39Refuses(static fn()=>$fresh->bind($binding), 'campaign_binding_changed');
 as39Expect((int)$pdo->query("SELECT write_attempts FROM appleservice39_pilot_operations WHERE post_key='concurrent'")->fetchColumn()===1, 'source/manifest drift never grants another native attempt');
 ProjectMaxConnection::resetForTests();
+foreach (['appleservice39_pilot_operations','appleservice39_pilot_campaigns','manager_projects','conversation_sources','managers','projects'] as $table) $pdo->exec('DROP TABLE IF EXISTS '.$table);
+as39Schema($pdo);
+define('APPLESERVICE39_SEARCH_FIXTURES_ONLY', true);
+require_once dirname(__DIR__).'/run_appleservice39_search_publisher_regression.php';
+as39SearchRegression($pdo);
+ProjectMaxConnection::resetForTests();
 echo "AppleService39 native MySQL publisher regression complete\n";

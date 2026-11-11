@@ -42,7 +42,7 @@ mpCheck(
 mpCheck(
     'push fanout sends once for every selected subscription row with same dispatch id',
     strpos($pushSource, 'foreach($subs as $sub)') !== false
-        && strpos($pushSource, 'self::send($sub,(string)$payload,$conversationId,$dispatchId)') !== false
+        && strpos($pushSource, 'self::send($sub,(string)$payload,$conversationId,$dispatchId,$conversation,true)') !== false
 );
 mpCheck(
     'push success and missing subscription logs carry dispatch id',

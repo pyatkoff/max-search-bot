@@ -1,5 +1,84 @@
 # AppleService39 MAX pilot
 
+## Search-intent successor
+
+The fixed `search-intent-v1` source contains eight reviewed1254×1254 covers and
+their captions. It preserves the accepted catalogue's24 original MIDs/URLs and
+136 operation rows. Six new posts are created in dependency order, then only
+`service-display` and `menu` are replaced on their original MIDs. The final graph
+has30 posts,99 text links and one bot CTA per post. No temporary post or new pin
+operation is used. The six new bot entries retain known compatible model/service
+context through the existing event transaction, handoff and captured-reply owner.
+
+The same workflow, CLI, campaign, transport and durable Store expose:
+
+- `search_inspect`: fresh observation only; no operation preparation or acceptance.
+- `search_prepare`: eight immutable `search_v1_upload` claims, bound to each exact
+  source PNG/revision and the historical MID/URL for the two replacements.
+- `search_apply`: require all eight verified uploads and the complete accepted
+  predecessor, then six ordinary `create` claims carrying their immutable search
+  revision and two `search_v1_edit` claims. Only real verified provider URLs feed
+  later captions. All old bodies, native images, URLs, authority and the existing
+  menu pin are checked before each new claim. Every original row remains exactly
+  unchanged, including its request, outcome, identity and attempt metadata.
+- `search_reconcile`: provider GET only, accepting only the same recorded attempt
+  after complete native/source/image/pin verification. No reset or resend exists.
+
+The ordinary accepted-application SHA and clean-checkout/private-configuration
+guards remain required. All16 new operations retain one attempt. A lost upload
+or create response without a saved own MID remains held. Native upload-map keys,
+including zero, are indexes; they are never canonical image identities. A create
+image receipt comes from its own original POST response, or from the exact own
+upload token on its recorded MID. An acknowledged PUT or a changed photo ID alone
+cannot prove a replacement image. Complete native text/markup/keyboard/URL
+validation is independent of image proof.
+
+If an update's first token is renewed, keep that original attempt UNKNOWN. The
+read-only inspection reports bounded original request/upload/start/source and
+native photo/locator hashes, without the raw token or media URL. Use the existing
+authorized server/API route to obtain the exact native file referenced by that
+observation. Individually open it and its exact approved source PNG; verify the
+complete layout, service/model, text, qualifiers and three-month warranty. Verify
+the original workflow run/job and native-file correspondence independently. Then
+admit only that same `menu` or `service-display` proof/JPEG in the source-controlled
+`search-intent-v1/reconciliation/index.json`, following the existing landing-v2
+individual-proof structure. Its proof additionally binds the search revision,
+the own upload and edit IDs/request hashes/start, original MID/URL and actual
+native photo ID. A genuine proof requires ordinary source checks and installation;
+the content manifest, upload/edit requests and original attempts do not change.
+GET-only reconciliation may then close that attempt and apply may finish only
+the remaining unattempted work. The search index contains only the individually
+reviewed `service-display` evidence below; `menu` is not approved. Synthetic test
+proofs are removed/restored in `finally` and confer no live authority.
+
+The original `search_apply`42992953202/job130430788405 on accepted application
+57c98f54f1ed2ba6f460c8865ffeb5e88a5cf32e created and independently verified the
+six new posts, then retained original `service-display` edit151/attempt1 as
+UNKNOWN because its first native image token was renewed. Its automatic GET-only
+inspection observed the complete planned body, unchanged original MID/URL and
+menu pin, and native photoID47197435985. Upload143 remains VERIFIED/attempt1;
+the original136 predecessor rows are preserved and `menu` has not been edited.
+
+The exact public post's bounded Svelte data literal independently identifies
+PHOTO photoId/referenceId47197435985, matching that original provider GET. Its
+actual768x768 JPEG was downloaded and opened individually beside the approved
+1254x1254 source PNG. The complete composition, display service, iPhone,
+Kaliningrad and three-month warranty match. Source and JPEG hashes are distinct:
+e310b03cf312d16ea9c85d7ace5ef064a0b66b51bac2dfb11854c078c076d02b and
+86d7a12e03af8b7ec10855b36af0e8e87e925617492ae4161f27a3ab4205a3f2.
+The proof and its witness disclose the different native/API and public-preview
+locator hashes; no signed locator, token or raw HTML is committed.
+
+This finite source evidence requires its ordinary checks and installation before
+`search_reconcile` may close only that same original151 attempt. Then
+`search_apply` may update only the still-unattempted `menu`. No existing upload,
+create or edit is repeated, reset or relabelled, and this source admission alone
+does not assert that reconciliation or final8/8 publication has succeeded.
+
+`search_publication_complete` requires eight verified fresh native observations.
+Expected graph counts or successful source tests do not establish publication,
+customer delivery or acceptance of the separate real9November manager case.
+
 ## Manager entry context
 
 The existing protected post-context endpoint also projects a repair entry from

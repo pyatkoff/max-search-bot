@@ -761,6 +761,48 @@ function modeledValueFairProgressAssertions(PDO $p,callable $check):void
     $check('fair progress keeps missing rows and polls the accepted receipt without resending',
         $wire->posts===1&&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE state='pending'")->fetchColumn()===5
         &&$p->query("SELECT state FROM max_channel_conversion_outbox WHERE conversation_id=506")->fetchColumn()==='processed');
+
+    // Synthetic legacy profiles can have an audit hold after a model/adapter
+    // upgrade. Those rows retain their values but must not monopolize ready.
+    modeledValueSchema($p);$now=1793670000;
+    $wire=new ModeledValueTestWire();$wire->visitAt=$now-60;$api=$wire->api();
+    $control=new ModeledConversionValueExport($p);
+    $control->configure('create-goal',$api,$now-500);
+    $control->configure('enable',$api,$now-500);
+    $lookup=new ModeledValueTestLookup();$lookup->observedAt=$now-120;
+    for($id=9011;$id<=9013;$id++){
+        $scope=modeledValueBinding($p,$id);
+        $legacy=modeledExpertWrapper($scope,$now-100,200000);
+        $value=$legacy['deal_value_prediction']['value_rub'];
+        // A former adapter hash represents the original immutable version.
+        $legacy['contextual_signals']['adapter_sha256']=str_repeat('0',64);
+        modeledValueSave($p,$legacy);$profile=(string)$p->lastInsertId();
+        $p->prepare("INSERT INTO max_channel_conversion_outbox(project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,platform,identity_source_key,value_rub,value_profile_id,value_stage,value_contract,state,client_id,tracker_observed_unix)"
+            ." VALUES('anytour',?,?,'98615635',?,?,?,'max','max_tracker',?,?,?,?,'ready',?,?)")
+            ->execute([$id,(string)(70000+$id),ModeledConversionValueContract::predictionKey($profile),
+                ModeledConversionValueContract::TARGET,$now-100,$value,$profile,'specific_request',
+                ModeledConversionValueContract::VERSION,'880000'.(70000+$id),$now-120]);
+    }
+    $heldSnapshot=static fn():array=>$p->query("SELECT id,target,event_unix,value_rub,value_profile_id,state,attempts,claim_token,claimed_at_unix,upload_id,upload_status FROM max_channel_conversion_outbox WHERE conversation_id BETWEEN 9011 AND 9013 ORDER BY id")->fetchAll(PDO::FETCH_ASSOC);
+    $heldBefore=$heldSnapshot();
+    $fresh=modeledExpertWrapper(modeledValueBinding($p,9014),$now,200000);
+    $expected=$fresh['deal_value_prediction']['value_rub'];modeledValueSave($p,$fresh);
+    $frozen=$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
+    $check('legacy adapter rows receive genuine price-audit holds without sending or changing their reservations',
+        $wire->posts===0&&$heldSnapshot()===$heldBefore
+        &&(int)$p->query("SELECT COUNT(*) FROM modeled_conversion_price_audit WHERE action='unverified'")->fetchColumn()===3
+        &&$p->query("SELECT state FROM max_channel_conversion_outbox WHERE conversation_id=9014")->fetchColumn()==='ready');
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+300,$gate);
+    $check('three price-held ready rows cannot indefinitely block a later eligible conversion',
+        $wire->posts===1&&$heldSnapshot()===$heldBefore
+        &&$p->query("SELECT state FROM max_channel_conversion_outbox WHERE conversation_id=9014")->fetchColumn()==='accepted'
+        &&str_contains($wire->csv[0],'88000079014')&&str_contains($wire->csv[0],','.$expected.',RUB'));
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+600,$gate);
+    $check('price-hold fairness preserves source snapshots and reconciles the one accepted receipt without resending',
+        $wire->posts===1&&$heldSnapshot()===$heldBefore
+        &&$p->query("SELECT state FROM max_channel_conversion_outbox WHERE conversation_id=9014")->fetchColumn()==='processed'
+        &&$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)===$frozen);
 }
 
 

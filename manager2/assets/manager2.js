@@ -630,7 +630,8 @@
     if(admin){admin.title='Настройки и менеджеры';admin.setAttribute('aria-label','Настройки и менеджеры')}
     const publications=document.createElement('a');publications.id='m2PublicationsLink';publications.href='/manager/publications.php';publications.textContent='Публикации';publications.style.textDecoration='none';publications.hidden=true;
     const syncPublications=()=>{publications.hidden=!!S.authExpired||S.manager?.role!=='admin'||!!admin?.classList.contains('hidden');};
-    const placeAdmin=()=>{const slot=$('m2AdminSlot');if(admin)slot.appendChild(admin);publications.className='actionBtn';slot.appendChild(publications);syncPublications()};
+    const clients=document.createElement('a');clients.href='/manager2/clients.php';clients.textContent='Компании';clients.className='actionBtn';clients.style.textDecoration='none';
+    const placeAdmin=()=>{const slot=$('m2AdminSlot');if(admin)slot.appendChild(admin);slot.appendChild(clients);publications.className='actionBtn';slot.appendChild(publications);syncPublications()};
     if(admin)new MutationObserver(syncPublications).observe(admin,{attributes:true,attributeFilter:['class']});
     if(manager)new MutationObserver(syncPublications).observe(manager,{childList:true,subtree:true});
     new MutationObserver(syncPublications).observe(document.body,{attributes:true,attributeFilter:['class']});
