@@ -132,6 +132,8 @@ final class ModeledConversionValueExport
             return MaxSearchApi::metrikaGoalAllowed($chat);
         };
         $stats=['collected'=>0,'resolved'=>0,'accepted'=>0,'processed'=>0,'unknown'=>0,'errors'=>0];
+        $stats['visit_gate_decisions']=['v'=>1,'checked_at_unix'=>$now,'attempts'=>0,'reason_counts'=>[
+            'within_current_window'=>0,'outside_current_window'=>0,'no_prior_visit'=>0,'visit_report_unavailable'=>0,'unknown'=>0]];
         $failure=null;$phase='recover';
         try{
             $repo=new MaxChannelConversionOutbox($p);$repo->recover($now);
@@ -214,6 +216,10 @@ final class ModeledConversionValueExport
                     try{$visitReport=method_exists($api,'modeledAttributionVisits')?$api->modeledAttributionVisits((string)$r['client_id'],(int)$r['event_unix'],$sendAt):['status'=>'unavailable','visits'=>[]];}catch(Throwable $ignoredWindow){$visitReport=['status'=>'unavailable','visits'=>[]];}
                     $sendAt=$injectedClock?$now:time();
                     $window=ModeledConversionAttributionWindow::assess($visitReport,(int)$r['event_unix'],$sendAt);
+                    // Aggregate only this already executed financial preclaim decision; no extra visitor read.
+                    $reason=array_key_exists($window['reason'],$stats['visit_gate_decisions']['reason_counts'])?$window['reason']:'unknown';
+                    $stats['visit_gate_decisions']['attempts']++;
+                    $stats['visit_gate_decisions']['reason_counts'][$reason]++;
                     if(!$window['allowed']){
                         $hold=$p->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error=? WHERE id=? AND state='ready' AND (upload_id IS NULL OR upload_id='') AND (claim_token IS NULL OR claim_token='')");
                         $hold->execute([$sendAt+300,$window['reason']==='outside_current_window'?'metrika_visit_window':'metrika_visit_unverified',$r['id']]);continue;
@@ -258,6 +264,9 @@ final class ModeledConversionValueExport
     /** Merge after all network work, so overlapping healthy ticks cannot erase failure evidence. */
     private function persistTickReceipt(array $stats,?array $failure,int $now):void
     {
+        $decisions=$stats['visit_gate_decisions']??null;
+        // New optional counters must never consume space reserved for existing proof or failures.
+        unset($stats['visit_gate_decisions']);
         $p=$this->pdo;
         if($p->inTransaction())throw new RuntimeException('value_tick_receipt_outer_transaction');
         $p->beginTransaction();
@@ -284,6 +293,7 @@ final class ModeledConversionValueExport
                     $updated=$receipt;
                     if($retained!==null&&$retained!==$previous){
                         $updated['last_recorded_failure']=$retained;
+                        unset($updated['visit_gate_decisions']);
                         // The new forward journal yields before immutable original evidence or failure history.
                         unset($updated['finite_visit_recovery']);
                         // Only the winning saved audit may yield space to a newly retained failure.
@@ -318,7 +328,12 @@ final class ModeledConversionValueExport
                 $stats=$this->withRecoveryEvidence($stats,$unreadableReceipt?['finite_visit_recovery'=>false]:(is_array($receipt)?$receipt:[]),$mysql);
                 $encoded=json_encode($stats,JSON_THROW_ON_ERROR);
                 // Optional audit yields before the established historical failure fallback.
-                if(!$this->receiptFits($encoded,$mysql)){unset($stats['last_recorded_failure']);$encoded=json_encode($stats,JSON_THROW_ON_ERROR);}
+                $storedBytes=0;$fits=$this->receiptFits($encoded,$mysql,$storedBytes);
+                if(!$fits){unset($stats['last_recorded_failure']);$encoded=json_encode($stats,JSON_THROW_ON_ERROR);}
+                else{
+                    $stats=self::withVisitGateDecisions($stats,$decisions,$storedBytes);
+                    $encoded=json_encode($stats,JSON_THROW_ON_ERROR);
+                }
                 $report=$stats['metrika_report'];$reportOk=in_array($report['status']??null,['ok','sampled'],true);
                 $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=?,last_receipt_json=?,"
                     ."last_report_success_unix=CASE WHEN ?=1 THEN ? ELSE last_report_success_unix END,"
@@ -331,13 +346,38 @@ final class ModeledConversionValueExport
         }catch(Throwable $error){if($p->inTransaction())$p->rollBack();throw $error;}
     }
 
-    private function receiptFits(string $encoded,bool $mysql):bool
+    private function receiptFits(string $encoded,bool $mysql,?int &$storedBytes=null):bool
     {
-        if(strlen($encoded)>8192)return false;
+        $storedBytes=strlen($encoded);
+        if($storedBytes>8192)return false;
         if(!$mysql)return true;
         // Native JSON adds structural whitespace; use the same byte measure as the reader.
         $q=$this->pdo->prepare('SELECT OCTET_LENGTH(CAST(? AS JSON))');$q->execute([$encoded]);
-        return (int)$q->fetchColumn()<=8192;
+        $storedBytes=(int)$q->fetchColumn();
+        return $storedBytes<=8192;
+    }
+
+    /** Attach last, using the existing byte measurement; no new SQL or loss of prior evidence. */
+    private static function withVisitGateDecisions(array $stats,mixed $audit,int $storedBytes):array
+    {
+        if(!is_array($audit)||($audit['v']??null)!==1||!is_int($audit['checked_at_unix']??null)
+            ||$audit['checked_at_unix']<946684800||$audit['checked_at_unix']>253402300799
+            ||!is_int($audit['attempts']??null)||$audit['attempts']<0||$audit['attempts']>3
+            ||!is_array($audit['reason_counts']??null))return $stats;
+        $counts=[];$total=0;
+        foreach(['within_current_window','outside_current_window','no_prior_visit','visit_report_unavailable','unknown']as$key){
+            $count=$audit['reason_counts'][$key]??null;
+            if(!is_int($count)||$count<0||$count>3)return $stats;
+            $counts[$key]=$count;$total+=$count;
+        }
+        if(count($audit['reason_counts'])!==count($counts)||$total!==$audit['attempts'])return $stats;
+        $clean=['v'=>1,'checked_at_unix'=>$audit['checked_at_unix'],'attempts'=>$audit['attempts'],'reason_counts'=>$counts];
+        $wrapper=json_encode(['visit_gate_decisions'=>$clean],JSON_THROW_ON_ERROR);
+        // This closed integer/string object has at most one native space per separator.
+        // Twice its compact bytes plus framing safely bounds growth without another DB query.
+        if(strlen($wrapper)>512||$storedBytes<0||$storedBytes+2*strlen($wrapper)+4>8192)return $stats;
+        $stats['visit_gate_decisions']=$clean;
+        return $stats;
     }
 
     private static function observedAt(callable $clock,int $notBefore):int

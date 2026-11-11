@@ -221,6 +221,7 @@ function modeledValueAssertions(PDO $p,callable $check):void
     modeledValueIdentityEvidenceAssertions($p,$check);
     modeledValueFiniteVisitAssertions($p,$check);
     modeledValueVisitRecoveryAssertions($p,$check);
+    modeledValueVisitGateDecisionAssertions($p,$check);
     $now=1793650000;$gate=static fn(string $chat):bool=>true;
     modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $check('actual forward migration is default OFF',ModeledConversionValueExport::settings($p)['mode']==='off');
@@ -1619,6 +1620,97 @@ function modeledValueVisitRecoveryAssertions(PDO $p,callable $check):void
         $check('reserved '.$reserve.' exact identities preserve real fresh source capacity and never financially resolve a non-due reserved row',
             $source->calls===1&&count($source->queried)===25&&$freshDone===25-$reserve&&$reservedBefore===$reservedAfter);
     }
+}
+
+/** Same preclaim assessments explain a hold without changing delivery or provider traffic. */
+function modeledValueVisitGateDecisionAssertions(PDO $p,callable $check):void
+{
+    $now=1793660000;$gate=static fn(string $chat):bool=>true;$held=[];
+    $saved=static fn():array=>json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    foreach(['no_prior_visit','visit_report_unavailable','outside_current_window','within_current_window']as$reason){
+        modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+        $control->configure('create-goal',$api,$now-20);$control->configure('enable',$api,$now-10);
+        $wire->visitEmpty=$reason==='no_prior_visit';$wire->visitAvailable=$reason!=='visit_report_unavailable';
+        $wire->visitAt=$now-($reason==='outside_current_window'?4*86400:60);
+        modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,891),$now));
+        $lookup=new ModeledValueTestLookup();$lookup->observedAt=$now-60;
+        $result=ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
+        $receipt=$saved();$audit=$receipt['visit_gate_decisions']??null;
+        $row=$p->query('SELECT state,last_error,attempts,claim_token,upload_id FROM max_channel_conversion_outbox LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+        $check('same actual preclaim assessment records its closed reason '.$reason,
+            is_array($audit)&&$audit['v']===1&&$audit['checked_at_unix']===$now&&$audit['attempts']===1
+            &&array_sum($audit['reason_counts'])===1&&$audit['reason_counts'][$reason]===1
+            &&strlen(json_encode(['visit_gate_decisions'=>$audit],JSON_THROW_ON_ERROR))<=512
+            &&$lookup->calls===1&&array_keys($result)===['status','contract']);
+        if(in_array($reason,['no_prior_visit','visit_report_unavailable'],true)){
+            $held[$reason]=$row['last_error'];
+            $check('unverified '.$reason.' keeps the financial hold unclaimed without a POST',
+                $row['state']==='ready'&&$row['last_error']==='metrika_visit_unverified'&&(int)$row['attempts']===0
+                &&empty($row['claim_token'])&&empty($row['upload_id'])&&$wire->posts===0);
+        }elseif($reason==='within_current_window'){
+            $check('one accepted send retains exactly one allowed preclaim decision',$wire->posts===1&&$row['state']==='accepted');
+        }else $check('outside-window evidence preserves the existing hold',$wire->posts===0&&$row['last_error']==='metrika_visit_window');
+    }
+    $check('identical legacy hold errors now retain distinct actual no-prior and unavailable decision counts',
+        $held['no_prior_visit']===$held['visit_report_unavailable']);
+
+    modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$owner=new ModeledConversionValueExport($p);
+    $owner->configure('create-goal',$api,$now-20);$owner->configure('enable',$api,$now-10);
+    ModeledConversionValueExport::tick($p,new ModeledValueTestLookup(),$api,$now,$gate);
+    $empty=$saved()['visit_gate_decisions'];
+    $check('zero attempts records no assessment rather than an absent visit',
+        $empty['attempts']===0&&array_sum($empty['reason_counts'])===0&&$wire->visitReads===0&&$wire->posts===0);
+    for($i=1;$i<=4;$i++)modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,891+$i),$now+1));
+    $wire->visitEmpty=true;$lookup=new ModeledValueTestLookup();$lookup->observedAt=$now;
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+1,$gate);
+    $three=$saved()['visit_gate_decisions'];
+    $check('the existing three-ready budget bounds same-tick decision counters',
+        $three['attempts']===3&&$three['reason_counts']['no_prior_visit']===3&&array_sum($three['reason_counts'])===3
+        &&$wire->visitReads===3&&$wire->posts===0);
+
+    $measure=static function(array $value)use($p):int{
+        $json=json_encode($value,JSON_THROW_ON_ERROR);if($p->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql')return strlen($json);
+        $q=$p->prepare('SELECT OCTET_LENGTH(CAST(? AS JSON))');$q->execute([$json]);return(int)$q->fetchColumn();
+    };
+    $persist=new ReflectionMethod($owner,'persistTickReceipt');
+    $old=['v'=>'immutable_saved_fixture','r'=>[['original','preserved']]];
+    $recovery=['v'=>'independent_saved_fixture','r'=>[['forward','preserved']]];
+    $failure=['tick_at_unix'=>$now-2,'phase'=>'upload','category'=>'api_rejected'];
+    $base=['collected'=>4,'resolved'=>2,'accepted'=>1,'processed'=>3,'unknown'=>0,'errors'=>1,
+        'metrika_report'=>['status'=>'unavailable','fetched_at'=>gmdate('Y-m-d\TH:i:s\Z',$now)],
+        'last_recorded_failure'=>$failure,'identity_resolution_evidence_incomplete'=>true,
+        'finite_visit_evidence'=>$old,'finite_visit_recovery'=>$recovery,'padding'=>''];
+    $base['padding']=str_repeat('x',8050-$measure($base));
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=?,last_receipt_json=? WHERE project_key='anytour'")
+        ->execute([$now-1,json_encode($base,JSON_THROW_ON_ERROR)]);
+    $incoming=$base;$incoming['visit_gate_decisions']=$three;
+    $persist->invoke($owner,$incoming,null,$now);
+    $capped=$saved();
+    $check('new optional counters yield before existing proof counters failure and report clocks near the native receipt cap',
+        $measure($capped)<=8192&&!array_key_exists('visit_gate_decisions',$capped)
+        &&modeledValueFailureJsonEqual($capped['finite_visit_evidence'],$old)
+        &&modeledValueFailureJsonEqual($capped['finite_visit_recovery'],$recovery)
+        &&$capped['accepted']===1&&$capped['processed']===3&&$capped['errors']===1
+        &&modeledValueFailureJsonEqual($capped['last_recorded_failure'],$failure));
+
+    $winner=$base;$winner['padding']='';$winner['visit_gate_decisions']=$three;
+    $winner['padding']=str_repeat('x',8150-$measure($winner));
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=?,last_receipt_json=? WHERE project_key='anytour'")
+        ->execute([$now+900,json_encode($winner,JSON_THROW_ON_ERROR)]);
+    $before=ModeledConversionValueExport::settings($p);
+    $persist->invoke($owner,['errors'=>99,'visit_gate_decisions'=>$empty],null,$now+300);
+    $check('a delayed unchanged tick preserves the newer decision audit and receipt bytes',
+        ModeledConversionValueExport::settings($p)===$before);
+    $newFailure=['tick_at_unix'=>$now+300,'phase'=>'collect_profiles','category'=>'processing_failed'];
+    $persist->invoke($owner,['errors'=>99,'visit_gate_decisions'=>$empty],$newFailure,$now+300);
+    $after=$saved();
+    $check('a delayed actual failure removes only new optional counters before existing evidence can yield',
+        !array_key_exists('visit_gate_decisions',$after)&&$measure($after)<=8192
+        &&modeledValueFailureJsonEqual($after['finite_visit_evidence'],$old)
+        &&modeledValueFailureJsonEqual($after['finite_visit_recovery'],$recovery)
+        &&modeledValueFailureJsonEqual($after['last_recorded_failure'],$newFailure)
+        &&$after['accepted']===1&&$after['processed']===3&&$after['errors']===1
+        &&ModeledConversionValueExport::settings($p)['last_tick_unix']===$before['last_tick_unix']);
 }
 
 if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){
