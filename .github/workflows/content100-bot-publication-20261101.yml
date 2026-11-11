@@ -1,4 +1,4 @@
-name: Verify existing monitor to post and feed hook
+name: Inspect expanded hotel price update bindings
 'on':
   push:
     branches:
@@ -85,7 +85,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: monitor-price-hook-read-only-inspection
+        name: monitor-price-expanded-read-only-inspection
         path: ${{ runner.temp }}/monitor-price-hook-result.jsonl
         retention-days: 14
     - name: Remove ephemeral connection and bundle

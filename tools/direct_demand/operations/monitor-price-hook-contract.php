@@ -47,3 +47,18 @@ function monitor_hook_source(array $payload,int $tv,string $url):array {
     monitor_price_require(count($matches)===1,'hook_monitor_identity_missing');
     unset($payload['ok'],$payload['items']);$payload['item']=$matches[0];$payload['sourceUrl']=$url;return $payload;
 }
+
+/** Oldest successful edit last; unprocessed hotels cannot starve behind the pilot. */
+function monitor_hook_order(array $rows,array $completed):array {
+    usort($rows,static function(array $a,array $b)use($completed):int{
+        $aAt=strtotime($completed[$a['tourvisor_hotel_id']]['at']??'1970-01-01T00:00:00Z');
+        $bAt=strtotime($completed[$b['tourvisor_hotel_id']]['at']??'1970-01-01T00:00:00Z');
+        return ($aAt<=>$bAt)?:($a['tourvisor_hotel_id']<=>$b['tourvisor_hotel_id']);
+    });return $rows;
+}
+
+function monitor_hook_known_failure(array $row,array $price):?string {
+    foreach($row['known_failures']??[] as $failure){
+        if($failure['tour_id']===$price['tour_id']&&strtotime($failure['at'])>=strtotime($price['observed_at']))return $failure['reason'];
+    }return null;
+}

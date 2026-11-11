@@ -83,10 +83,10 @@ function hook_finish_feed(array &$state,$lock,string $installed):void {
 }
 
 $inspect=getenv('ANYTOUR_MONITOR_HOOK_INSPECT')==='1'||($argv[1]??'')==='--inspect';
-$out=['ok'=>false,'mode'=>$inspect?'read_only_hook_inspection':'existing_monitor_post_feed_hook','new_posts'=>0,'supplier_calls'=>0,'site_writes'=>0,'updated_pairs'=>0,'unchanged_pairs'=>0,'eligible_pairs'=>0,'deferred'=>[]];
+$out=['ok'=>false,'mode'=>$inspect?'read_only_hook_inspection':'existing_monitor_post_feed_hook','new_posts'=>0,'supplier_calls'=>0,'site_writes'=>0,'updated_pairs'=>0,'unchanged_pairs'=>0,'eligible_pairs'=>0,'verified_ids'=>[],'eligible_ids'=>[],'unchanged_ids'=>[],'deferred'=>[]];
 try{
     hook_need(count($argv)===1||($inspect&&count($argv)===2),'hook_argument_invalid');
-    hook_need(defined('HOOK_ROSTER_B64')&&defined('HOOK_RUNTIME_PINS_B64'),'hook_bundle_required');
+    hook_need(defined('HOOK_ROSTER_GZIP_B64')&&defined('HOOK_RUNTIME_PINS_B64'),'hook_bundle_required');
     $root='/var/www/anytoour/data/www/app.anytoour.ru';hook_need(realpath($root)===$root&&chdir($root),'hook_bot_root_unavailable');
     $installed=trim((string)shell_exec('git rev-parse HEAD'));hook_need(preg_match('/\A[a-f0-9]{40}\z/D',$installed)===1&&trim((string)shell_exec('git status --porcelain --untracked-files=no'))==='','hook_runtime_changed');
     exec('git merge-base --is-ancestor '.escapeshellarg(HOOK_ACCEPTED_BASE).' HEAD',$unused,$ancestor);hook_need($ancestor===0,'hook_runtime_not_accepted_descendant');
@@ -99,22 +99,32 @@ try{
     $state=['schema'=>1,'pending'=>null,'completed'=>[]];if($raw!==''){$lines=explode("\n",rtrim($raw,"\n"));$state=json_decode(end($lines),true,64,JSON_THROW_ON_ERROR);}elseif(!$inspect)hook_append($lock,$state);
     if($state['pending']!==null){hook_need(!$inspect,'hook_pending_operation_inspect_journal');hook_finish_feed($state,$lock,$installed);$out['reconciled_prior_feed']=true;}
     ob_start();try{require $root.'/config.php';require_once $root.'/services/ChannelPostRuntime.php';require_once $root.'/services/ChannelPostAdminService.php';}finally{ob_end_clean();}
-    $registry=new ChannelPostRegistryService(ConversationDb::connection());$roster=json_decode(base64_decode(HOOK_ROSTER_B64,true),true,64,JSON_THROW_ON_ERROR)['rows'];
-    hook_need(count($roster)===6&&array_column($roster,'tourvisor_hotel_id')===[1183,117935,27426,13869,1151,1173],'hook_pilot_scope_changed');
+    $registry=new ChannelPostRegistryService(ConversationDb::connection());$roster=json_decode(gzdecode(base64_decode(HOOK_ROSTER_GZIP_B64,true)),true,64,JSON_THROW_ON_ERROR)['rows'];
+    hook_need(count($roster)===HOOK_ROSTER_COUNT&&count(array_unique(array_column($roster,'tourvisor_hotel_id')))===HOOK_ROSTER_COUNT,'hook_roster_scope_changed');
+    $roster=monitor_hook_order($roster,$state['completed']);$deadline=time()+480;$passLimit=30;
     $today=new DateTimeImmutable('today',new DateTimeZone('Europe/Moscow'));
-    $query=['tourvisorHotelIds'=>array_column($roster,'tourvisor_hotel_id'),'departureId'=>1,'dateFrom'=>$today->modify('+1 day')->format('Y-m-d'),'dateTo'=>$today->modify('first day of this month')->modify('+12 months')->modify('-1 day')->format('Y-m-d')];
-    $url='https://anytoour.ru/data/hotel-monitor-prices-read-v1.php?'.http_build_query($query,'','&',PHP_QUERY_RFC3986);
-    $payload=json_decode(hook_get($url),true,64,JSON_THROW_ON_ERROR);
+    $snapshots=[];
+    foreach(array_chunk(array_column($roster,'tourvisor_hotel_id'),100) as $ids){
+        $query=['tourvisorHotelIds'=>$ids,'departureId'=>1,'dateFrom'=>$today->modify('+1 day')->format('Y-m-d'),'dateTo'=>$today->modify('first day of this month')->modify('+12 months')->modify('-1 day')->format('Y-m-d')];
+        $url='https://anytoour.ru/data/hotel-monitor-prices-read-v1.php?'.http_build_query($query,'','&',PHP_QUERY_RFC3986);
+        $payload=json_decode(hook_get($url),true,64,JSON_THROW_ON_ERROR);
+        foreach($ids as $tv)$snapshots[$tv]=monitor_hook_source($payload,$tv,$url);
+    }
     foreach($roster as $row){
+        if(!$inspect&&($out['updated_pairs']>=$passLimit||time()>=$deadline)){$out['bounded_pass_stopped']=true;break;}
         $tv=$row['tourvisor_hotel_id'];
         try{
-            $snapshot=monitor_hook_source($payload,$tv,$url);
+            $context=$inspect?hook_context($row,$registry):null;
+            if($inspect)$out['verified_ids'][]=$tv;
+            $snapshot=$snapshots[$tv];
             if(($snapshot['item']['state']??'')==='no_fresh_observation'){$out['deferred'][]=['tourvisor_hotel_id'=>$tv,'reason'=>'no_fresh_observation'];continue;}
-            $price=monitor_price_observation($snapshot,$tv,time());$op=monitor_price_operation($price);$context=hook_context($row,$registry);$prior=hook_journal($op);
+            $price=monitor_price_observation($snapshot,$tv,time());$op=monitor_price_operation($price);$context=$context??hook_context($row,$registry);$prior=hook_journal($op);
+            if(!$inspect)$out['verified_ids'][]=$tv;
+            $knownFailure=monitor_hook_known_failure($row,$price);hook_need($knownFailure===null,$knownFailure??'hook_known_failure');
             if($prior!==null){
                 hook_need(($prior['complete']??false)===true,'hook_post_outcome_unresolved_stop');
                 foreach($context as $p)hook_need(($p['snapshot']['metadata']['monitor_price_record_id']??null)===$price['record_id'],'hook_completed_record_no_longer_current');
-                $out['unchanged_pairs']++;continue;
+                $out['unchanged_pairs']++;$out['unchanged_ids'][]=$tv;continue;
             }
             $r=array_intersect_key($row,array_flip(['key','hotel_id','tourvisor_hotel_id','logical_id','original_publication_operation','cover_sha256']));$r['channel_texts']=[];
             foreach($context as $channel=>$p){$text=monitor_hook_draft($row['templates'][$channel],$price);$old=$p['snapshot']['text'];
@@ -125,7 +135,7 @@ try{
             if(str_contains($e->getMessage(),'unresolved')||str_contains($e->getMessage(),'incomplete'))throw $e;
             $out['deferred'][]=['tourvisor_hotel_id'=>$tv,'reason'=>preg_match('/\A[a-z0-9_]+\z/D',$e->getMessage())?$e->getMessage():'hook_candidate_invalid'];continue;
         }
-        $out['eligible_pairs']++;if($inspect)continue;
+        $out['eligible_pairs']++;$out['eligible_ids'][]=$tv;if($inspect)continue;
         $state['pending']=['tourvisor_hotel_id'=>$tv,'operation'=>$op,'phase'=>'post_started','at'=>gmdate('c')];hook_append($lock,$state);
         hook_child(base64_decode(HOOK_EDITOR_B64,true),['EXPECTED_INSTALLED_SHA'=>$installed,'APPROVED_UPDATE_OPERATION'=>$op,'APPROVED_UPDATE_TOURVISOR_ID'=>$tv,'APPROVED_UPDATE_HOTEL_ID'=>$row['hotel_id'],'APPROVED_UPDATE_KEY_B64'=>base64_encode($row['key']),'APPROVED_UPDATE_LOGICAL_B64'=>base64_encode($row['logical_id']),'APPROVED_MANIFEST_SHA256'=>hash('sha256',$raw),'MANIFEST_BASE64'=>base64_encode($raw)]);
         hook_finish_feed($state,$lock,$installed);$out['updated_pairs']++;
