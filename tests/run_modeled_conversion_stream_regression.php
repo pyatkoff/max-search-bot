@@ -169,16 +169,17 @@ function modeledStreamSchedulerAssertions(callable $check): void
 
 require_once dirname(__DIR__).'/services/ModeledConversionProfiles.php';
 
-function modeledProfileSchema(PDO $p): void
+function modeledProfileSchema(PDO $p,bool $upgrade=true): void
 {
     foreach(['modeled_conversion_profile_versions','modeled_conversion_profile_sources','modeled_conversion_profiles_state']as$t)$p->exec('DROP TABLE IF EXISTS '.$t);
     if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
         $sql=file_get_contents(dirname(__DIR__).'/migrations/066_modeled_conversion_profiles.sql');
         for($i=0;$i<2;$i++)foreach(explode(';',$sql)as$s)if(trim($s)!=='')$p->exec($s);
+        if($upgrade)foreach(explode(';',file_get_contents(dirname(__DIR__).'/migrations/101_modeled_profile_assessment_namespace.sql'))as$s)if(trim($s)!=='')$p->exec($s);
     }else{
         $p->exec('CREATE TABLE modeled_conversion_profiles_state(project_key TEXT PRIMARY KEY,enabled INT,journal_cursor BIGINT DEFAULT 0,ticks INT DEFAULT 0,last_receipt_json TEXT,last_error_at_unix BIGINT,last_error_category TEXT)');
         $p->exec('CREATE TABLE modeled_conversion_profile_sources(project_key TEXT,source_kind TEXT,source_id BIGINT,platform TEXT,customer_key TEXT,conversation_id TEXT,journal_id BIGINT,source_status TEXT,PRIMARY KEY(project_key,source_kind,source_id))');
-        $p->exec('CREATE TABLE modeled_conversion_profile_versions(id INTEGER PRIMARY KEY AUTOINCREMENT,project_key TEXT,platform TEXT,customer_key TEXT,conversation_id TEXT,journal_cursor BIGINT,observed_at_unix BIGINT,input_sha256 TEXT,profile_json TEXT,UNIQUE(project_key,platform,customer_key,conversation_id,journal_cursor))');
+        $p->exec('CREATE TABLE modeled_conversion_profile_versions(id INTEGER PRIMARY KEY AUTOINCREMENT,project_key TEXT,platform TEXT,customer_key TEXT,conversation_id TEXT,journal_cursor BIGINT,observed_at_unix BIGINT,input_sha256 TEXT,profile_json TEXT,assessment_namespace TEXT NOT NULL DEFAULT "0000000000000000000000000000000000000000000000000000000000000000",assessment_kind TEXT NOT NULL DEFAULT "legacy",UNIQUE(project_key,platform,customer_key,conversation_id,journal_cursor,assessment_namespace))');
     }
 }
 function modeledProfileLatest(PDO $p,string $conversation='11'): array
@@ -512,6 +513,137 @@ function modeledDenseProfileAssertions(PDO $p,callable $check):void
     modeledProfileCatchUpAssertions($p,$check);
 }
 
+/** Ordinary ticks finitely upgrade saved old-model scopes without rewriting their early packets. */
+function modeledProfileReassessmentAssertions(PDO $p,callable $check):void
+{
+    if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
+        modeledProfileSchema($p,false);$legacyJson='{"fixture":"immutable legacy forecast"}';
+        $p->prepare('INSERT INTO modeled_conversion_profile_versions(id,project_key,platform,customer_key,conversation_id,journal_cursor,observed_at_unix,input_sha256,profile_json) VALUES(97,?,?,?,?,?,?,?,?)')
+            ->execute(['anytour','max','7000','7000',123,1793002000,str_repeat('c',64),$legacyJson]);
+        foreach(explode(';',file_get_contents(dirname(__DIR__).'/migrations/101_modeled_profile_assessment_namespace.sql'))as$sql)if(trim($sql)!=='')$p->exec($sql);
+        $legacy=$p->query('SELECT * FROM modeled_conversion_profile_versions WHERE id=97')->fetch(PDO::FETCH_ASSOC);
+        $check('forward migration preserves legacy id JSON and clocks with an honest zero namespace',
+            (int)$legacy['id']===97&&$legacy['profile_json']===$legacyJson
+            &&(int)$legacy['observed_at_unix']===1793002000&&(int)$legacy['journal_cursor']===123
+            &&$legacy['assessment_namespace']===str_repeat('0',64)&&$legacy['assessment_kind']==='legacy');
+    }
+    modeledStreamSchema($p);modeledProfileSchema($p);$now=time()-120;
+    $source=new ModeledConversionStream($p);$profiles=new ModeledConversionProfiles($p);
+    modeledStreamMessage($p,10,11);$source->start($now);
+    modeledStreamMessage($p,11,11,'Подберите тур в Турцию на 7 ночей, 2 взрослых. Бюджет до 200 тыс на всех');
+    $source->tick($now+1);$profiles->start();
+    $snap=json_decode($p->query("SELECT snapshot_json FROM modeled_conversion_stream_versions WHERE source_kind='message' AND source_id=11 ORDER BY id DESC LIMIT 1")->fetchColumn(),true,64,JSON_THROW_ON_ERROR);
+    for($i=0;$i<9;$i++){
+        $x=$snap;$x['source_id']=(string)(30000+$i);$x['customer_key']=$x['conversation_id']=(string)(7000+$i);
+        modeledProfileAppend($p,$x,$now+2);
+    }
+    do{$r=$profiles->tick($now+3);}while($r['pending_revisions']>0);
+    $namespace=ModeledConversionProfiles::assessmentNamespace();
+    $check('ordinary profiles always carry the exact current source namespace and live kind',
+        preg_match('/\\A[a-f0-9]{64}\\z/D',$namespace)===1
+        &&(int)$p->query("SELECT COUNT(*) FROM modeled_conversion_profile_versions WHERE assessment_kind='live'")->fetchColumn()===10);
+    // Fixture-only historical generation: preserve the completed old JSON after this setup.
+    $old=$p->query('SELECT id,conversation_id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    foreach($old as$row){
+        $v=json_decode($row['profile_json'],true,128,JSON_THROW_ON_ERROR);
+        if($row['conversation_id']!=='11'){
+            $v['semantic_prediction']['model_sha256']=str_repeat('a',64);
+            $v['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($v['semantic_prediction']);
+        }
+        $p->prepare('UPDATE modeled_conversion_profile_versions SET profile_json=?,assessment_namespace=?,assessment_kind=?,observed_at_unix=? WHERE id=?')
+            ->execute([json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),str_repeat('0',64),'legacy',$now+3,$row['id']]);
+    }
+    $old=$p->query('SELECT id,observed_at_unix,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $cursor=(string)$p->query("SELECT journal_cursor FROM modeled_conversion_profiles_state WHERE project_key='anytour'")->fetchColumn();
+    $journal=$p->query('SELECT id,revision_hash,snapshot_json FROM modeled_conversion_stream_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    try{$profiles->tick($now+4,static function(){throw new RuntimeException('fixture_reassessment_rollback');});$rolled=false;}catch(Throwable $e){$rolled=$e->getMessage()==='fixture_reassessment_rollback';}
+    $check('repair failure rolls back the whole current generation and preserves the ordinary cursor',
+        $rolled&&(int)$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn()===10
+        &&(string)$p->query("SELECT journal_cursor FROM modeled_conversion_profiles_state WHERE project_key='anytour'")->fetchColumn()===$cursor);
+    $repair=$profiles->tick($now+5);
+    $check('idle ordinary tick reassesses eight old scopes with no new capture or cursor reset',
+        $repair['processed_revisions']===0&&$repair['profiles_written']===8&&$repair['reassessment']['written']===8
+        &&$repair['journal_rows_read']<=500&&$repair['payload_bytes']<=1048576
+        &&(string)$p->query("SELECT journal_cursor FROM modeled_conversion_profiles_state WHERE project_key='anytour'")->fetchColumn()===$cursor);
+    $same=(int)$p->query('SELECT COUNT(*) FROM (SELECT conversation_id,journal_cursor FROM modeled_conversion_profile_versions GROUP BY conversation_id,journal_cursor HAVING COUNT(*)=2) same_cursor')->fetchColumn();
+    $check('new namespace admits a distinct immutable version at the same source cursor',$same>0);
+    // A fresh backlog has priority over the remaining repair, and its original cursor advances normally.
+    for($i=0;$i<9;$i++){
+        $x=$snap;$x['source_id']=(string)(31000+$i);$x['customer_key']=$x['conversation_id']=(string)(8000+$i);
+        modeledProfileAppend($p,$x,$now+6);
+    }
+    $fresh=$profiles->tick($now+7);$last=$profiles->tick($now+8);
+    $check('fresh scopes keep the eight-scope priority and repair fills only caught-up spare capacity',
+        $fresh['profiles_written']===8&&$fresh['pending_revisions']===1&&$fresh['reassessment']['written']===0
+        &&$fresh['reassessment']['awaiting_fresh_cursor']===true
+        &&$last['profiles_written']===2&&$last['reassessment']['written']===1&&$last['pending_revisions']===0);
+    $check('finite cohort larger than one batch is fully checkpointed and repeated ticks add no versions',
+        (int)$p->query("SELECT COUNT(*) FROM modeled_conversion_profile_versions WHERE assessment_kind='repair'")->fetchColumn()===9
+        &&$profiles->tick($now+9)['profiles_written']===0
+        &&(int)$p->query("SELECT COUNT(*) FROM modeled_conversion_profile_versions WHERE conversation_id='11'")->fetchColumn()===1);
+    $unchanged=$p->query('SELECT id,observed_at_unix,profile_json FROM modeled_conversion_profile_versions ORDER BY id LIMIT 10')->fetchAll(PDO::FETCH_ASSOC);
+    $check('repair preserves every old forecast JSON, id, timestamp and captured source revision',
+        $old===$unchanged&&$journal===array_slice($p->query('SELECT id,revision_hash,snapshot_json FROM modeled_conversion_stream_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),0,count($journal)));
+    $new=$p->query("SELECT profile_json FROM modeled_conversion_profile_versions WHERE assessment_kind='repair' ORDER BY id LIMIT 1")->fetchColumn();
+    $new=json_decode($new,true,128,JSON_THROW_ON_ERROR);
+    $check('repair is an honest new assessment with current hashes and a present freeze',
+        ($new['processing']['assessment_kind']??null)==='repair'
+        &&($new['processing']['assessment_namespace']??null)===$namespace
+        &&($new['semantic_prediction']['model_sha256']??null)===hash_file('sha256',dirname(__DIR__).'/services/ModeledConversionSemanticPrediction.php')
+        &&strtotime($new['semantic_prediction']['prediction_at'])>=$now+5);
+    // Current late facts remain in the same captured prefix; an old positive packet is never replayed.
+    $paid=$snap;$paid['source_id']='32000';$paid['customer_key']=$paid['conversation_id']='7000';
+    $paid['payload']['text']='Я оплатил тур';modeledProfileAppend($p,$paid,$now+10);
+    $profiles->tick($now+11);$paidProfile=modeledProfileLatest($p,'7000');
+    $paidId=(int)$p->query("SELECT MAX(id) FROM modeled_conversion_profile_versions WHERE conversation_id='7000'")->fetchColumn();
+    $paidProfile['semantic_prediction']['model_sha256']=str_repeat('b',64);
+    $paidProfile['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($paidProfile['semantic_prediction']);
+    $p->prepare('UPDATE modeled_conversion_profile_versions SET profile_json=?,assessment_namespace=?,observed_at_unix=? WHERE id=?')
+        ->execute([json_encode($paidProfile,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),str_repeat('0',64),$now+11,$paidId]);
+    $p->prepare("UPDATE modeled_conversion_profile_versions SET profile_json=? WHERE conversation_id='11'")
+        ->execute(['{"profile":{"fields":{}}}']);
+    $known=$profiles->tick($now+12);$paidNow=modeledProfileLatest($p,'7000');
+    $check('latest captured outcome and nonsemantic fixtures cannot become a restored positive forecast',
+        $known['reassessment']['written']===1&&$paidNow['semantic_prediction']['status']==='known_outcome'
+        &&$paidNow['semantic_prediction']['estimated_probability']===null
+        &&(int)$p->query("SELECT COUNT(*) FROM modeled_conversion_profile_versions WHERE conversation_id='11'")->fetchColumn()===1);
+    // A long dialogue keeps the ordinary canonical latest-50 window and its warning.
+    // Total historical length is not an additional monetary admission rule.
+    require_once dirname(__DIR__).'/services/ModeledConversionValueContract.php';
+    for($i=0;$i<51;$i++){
+        $x=$snap;$x['source_id']=(string)(40000+$i);$x['customer_key']=$x['conversation_id']='9000';
+        modeledProfileAppend($p,$x,$now+13);
+    }
+    do{$profiles->tick($now+14);$state=$profiles->status()['last_receipt'];}while($state['pending_revisions']>0);
+    $windowOld=modeledProfileLatest($p,'9000');
+    $windowId=(int)$p->query("SELECT MAX(id) FROM modeled_conversion_profile_versions WHERE conversation_id='9000'")->fetchColumn();
+    $windowOld['semantic_prediction']['model_sha256']=str_repeat('d',64);
+    $windowOld['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($windowOld['semantic_prediction']);
+    $p->prepare('UPDATE modeled_conversion_profile_versions SET profile_json=?,assessment_namespace=?,observed_at_unix=? WHERE id=?')
+        ->execute([json_encode($windowOld,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),str_repeat('0',64),$now+14,$windowId]);
+    $windowReceipt=$profiles->tick($now+15);$windowNow=modeledProfileLatest($p,'9000');
+    $since=(int)$snap['source_created_at_unix']-1;
+    $windowCandidate=ModeledConversionValueContract::candidate($windowNow,$windowNow['subject'],$since,time());
+    $check('repair preserves the ordinary fifty-message window of a longer valid dialogue and its monetary candidate',
+        $windowReceipt['reassessment']['written']===1&&$windowNow['coverage']['window_limited']===true
+        &&count($windowNow['source_references'])===50&&$windowNow['semantic_prediction']['status']==='predicted'
+        &&is_array($windowCandidate)&&$windowCandidate['value']>0);
+    // Fixture an old exclusion mapping beyond the bounded restored window. The shared
+    // builder must not infer that the unchecked fifty-first exclusion was restored.
+    modeledProfileAppend($p,$x,$now+16);$profiles->tick($now+17);$windowNow=modeledProfileLatest($p,'9000');
+    $p->exec("UPDATE modeled_conversion_profile_sources SET source_status='scope_excluded' WHERE conversation_id='9000'");
+    $windowId=(int)$p->query("SELECT MAX(id) FROM modeled_conversion_profile_versions WHERE conversation_id='9000'")->fetchColumn();
+    $windowNow['semantic_prediction']['model_sha256']=str_repeat('e',64);
+    $windowNow['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($windowNow['semantic_prediction']);
+    $p->prepare('UPDATE modeled_conversion_profile_versions SET profile_json=?,assessment_namespace=?,observed_at_unix=? WHERE id=?')
+        ->execute([json_encode($windowNow,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),str_repeat('0',64),$now+17,$windowId]);
+    $deniedReceipt=$profiles->tick($now+18);$deniedNow=modeledProfileLatest($p,'9000');
+    $check('an unchecked older exclusion still blocks a long-window repair and monetary admission',
+        $deniedReceipt['reassessment']['written']===1&&$deniedNow['access_status']==='denied'
+        &&$deniedNow['semantic_prediction']['status']==='access_denied'
+        &&ModeledConversionValueContract::candidate($deniedNow,$deniedNow['subject'],$since,time())===null);
+}
+
 /** The actual admitted PHP/Python writer must retain a genuine request across canonical AI output. */
 function modeledServiceProfileAssertions(PDO $p,callable $check):void
 {
@@ -821,7 +953,7 @@ if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
     modeledStreamSchema($p);$passed=0;
     $check=static function(string $name,bool $ok)use(&$passed){if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
-    modeledStreamAssertions($p,$check);modeledStreamSchedulerAssertions($check);modeledProfileAssertions($p,$check);modeledDenseProfileAssertions($p,$check);modeledServiceProfileAssertions($p,$check);modeledHandoffProfileAssertions($p,$check);
+    modeledStreamAssertions($p,$check);modeledStreamSchedulerAssertions($check);modeledProfileAssertions($p,$check);modeledDenseProfileAssertions($p,$check);modeledProfileReassessmentAssertions($p,$check);modeledServiceProfileAssertions($p,$check);modeledHandoffProfileAssertions($p,$check);
     echo 'MODELED CONVERSION STREAM PASSED '.$passed.PHP_EOL;
 }
 

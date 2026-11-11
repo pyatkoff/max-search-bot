@@ -133,6 +133,114 @@ function modeledWizardAssertions(callable $check):void
     $check('wizard continuity does not bridge a customer anchor older than 24 hours',
         $p['semantic_prediction']['status']==='insufficient_context'&&$p['semantic_prediction']['current_request_anchor']===null);
 }
+
+/** Synthetic stored AI questions and literal human answers; no producer receipts. */
+function modeledQuestionContextFixture():array
+{
+    $parts=modeledEarlyFixture([
+        ['role'=>'manager','text'=>'Сколько будет взрослых туристов?','admitted'=>false],
+        ['text'=>'2'],
+        ['role'=>'manager','text'=>'Будут дети? Если да — сколько?','admitted'=>false],
+        ['text'=>'1'],
+        ['role'=>'manager','text'=>'Сколько лет детям?','admitted'=>false],
+        ['text'=>'5'],
+        ['role'=>'manager','text'=>'На сколько ночей планируете поездку?','admitted'=>false],
+        ['text'=>'7'],
+        ['text'=>'handoff','admitted'=>false],
+    ]);
+    foreach($parts[0]['rows']as&$row){
+        $at=$row['snapshot']['source_created_at_unix'];
+        $row['snapshot']['source_timestamp_basis']='canonical_recording_unix_v1';
+        if(in_array($row['journal_id'],['1','3','5','7'],true)){
+            $row['snapshot']['payload']=['direction'=>'outbound','sender_type'=>'ai',
+                'text'=>$row['snapshot']['payload']['text'],
+                'metadata_json'=>json_encode(ConversationRecordClock::stamp(['type'=>'message'],$at),JSON_THROW_ON_ERROR)];
+        }elseif($row['journal_id']==='9'){
+            $row['source_kind']=$row['snapshot']['source_kind']='event';
+            $row['snapshot']['payload']=['event_type'=>'source_handling_choice','actor_type'=>'system',
+                'payload_json'=>json_encode(ConversationRecordClock::stamp(
+                    ['choice'=>'manager','reason'=>'source_needs_complete'],$at),JSON_THROW_ON_ERROR)];
+        }else{
+            $row['snapshot']['payload']+=['direction'=>'inbound','sender_type'=>'customer'];
+            $row['snapshot']['payload']['metadata_json']=json_encode(ConversationRecordClock::stamp(['type'=>'message'],$at),JSON_THROW_ON_ERROR);
+        }
+    }unset($row);
+    return$parts;
+}
+
+function modeledQuestionContextAssertions(callable $check):void
+{
+    $parts=modeledQuestionContextFixture();$before=json_encode($parts,JSON_THROW_ON_ERROR);
+    $p=ModeledConversionEarlyForecast::freeze(...$parts);$v=$p['semantic_prediction'];
+    $check('recorded canonical AI questions disambiguate the literal customer questionnaire without new receipts',
+        $v['status']==='predicted'&&$v['stage']==='concrete_request'
+        &&$v['current_request_anchor']==='journal:2'&&$v['base_probability']===0.083333
+        &&$v['estimated_probability']===0.083333&&$v['features']['meaningful_customer_turns']===0
+        &&$v['features']['criteria_families']===['dates','party']&&$v['current_customer_turn_count']===4);
+    $check('unsupported age question preserves already answered party criteria but adds no age inference',
+        $p['contextual_signals']['coverage']['prediction_source_continuity']['preserved_ai_replies']===4
+        &&$v['outcome_observations']===[]&&json_encode($parts,JSON_THROW_ON_ERROR)===$before);
+    $check('question context does not supply agency choice payment or extra model calls',
+        $p['contextual_signals']['goal_counts']['agency_purchase_intent']===0
+        &&$p['contextual_signals']['goal_counts']['payment_self_report']===0
+        &&$v['model_calls']===0&&$v['provider_calls']===0&&$v['conversion_uploads']===0);
+
+    $parts=modeledQuestionContextFixture();
+    foreach($parts[0]['rows']as&$row)if($row['journal_id']==='4')$row['snapshot']['payload']['text']='Нет';
+    unset($row);
+    $check('a literal no-children answer remains party context instead of declining the trip',
+        ModeledConversionEarlyForecast::freeze(...$parts)['semantic_prediction']['stage']==='concrete_request');
+
+    $parts=modeledQuestionContextFixture();
+    $parts[0]['rows']=array_values(array_filter($parts[0]['rows'],static fn(array $r):bool=>(int)$r['journal_id']<=4));
+    $parts[1]['profile']['observation_input']['evidence']=array_values(array_filter(
+        $parts[1]['profile']['observation_input']['evidence'],static fn(array $e):bool=>in_array($e['references'][0]['id'],['journal:2','journal:4'],true)));
+    $v=ModeledConversionEarlyForecast::freeze(...$parts)['semantic_prediction'];
+    $check('adults and children are one family and cannot create a concrete forecast alone',
+        $v['status']==='insufficient_context'&&$v['current_request_anchor']===null);
+
+    foreach(['sender','revision','recording_basis','clock','wording','claimed_payment','reply_forward','no_question','unknown_source','callback']as$kind){
+        $parts=modeledQuestionContextFixture();
+        foreach($parts[0]['rows']as&$row){
+            if($row['journal_id']==='7'){
+                if($kind==='sender')$row['snapshot']['payload']['sender_type']='manager';
+                elseif($kind==='revision')$row['source_version_no']=2;
+                elseif($kind==='recording_basis')$row['snapshot']['source_timestamp_basis']='database_session_timezone_to_unix';
+                elseif($kind==='clock')$row['snapshot']['payload']['metadata_json']=json_encode(
+                    ConversationRecordClock::stamp(['type'=>'message'],$row['snapshot']['source_created_at_unix']+1),JSON_THROW_ON_ERROR);
+                elseif($kind==='wording')$row['snapshot']['payload']['text']='Сколько комнат нужно?';
+                elseif($kind==='claimed_payment')$row['snapshot']['payload']['text']='Тур оплачен. На сколько ночей планируете поездку?';
+                elseif($kind==='reply_forward')$row['snapshot']['payload']['metadata_json']=json_encode(
+                    ConversationRecordClock::stamp(['type'=>'message','linked_message'=>['type'=>'forward']],$row['snapshot']['source_created_at_unix']),JSON_THROW_ON_ERROR);
+                elseif($kind==='unknown_source')$row['snapshot']['payload']['sender_type']='unknown';
+            }
+            if($row['journal_id']==='8'&&$kind==='callback'){
+                $row['snapshot']['payload']['metadata_json']=json_encode(
+                    ConversationRecordClock::stamp(['type'=>'callback'],$row['snapshot']['source_created_at_unix']),JSON_THROW_ON_ERROR);
+            }
+        }unset($row);
+        if($kind==='no_question')$parts[0]['rows']=array_values(array_filter($parts[0]['rows'],static fn(array $r):bool=>$r['journal_id']!=='7'));
+        if($kind==='callback')$parts[1]['profile']['observation_input']['evidence']=array_values(array_filter(
+            $parts[1]['profile']['observation_input']['evidence'],static fn(array $e):bool=>$e['references'][0]['id']!=='journal:8'));
+        $v=ModeledConversionEarlyForecast::freeze(...$parts)['semantic_prediction'];
+        $check('question context fails closed for '.$kind,$v['status']==='insufficient_context'&&$v['current_request_anchor']===null);
+    }
+
+    $parts=modeledQuestionContextFixture();
+    $new=$parts[0]['rows'][2]; // A copied native question shape, replaced below.
+    $new['journal_id']=$new['source_id']=$new['snapshot']['source_id']='10';
+    $new['snapshot']['source_kind']=$new['source_kind']='message';
+    $at=1793002065;$new['snapshot']['source_created_at_unix']=$at;$new['observed_at_unix']=$at+1;
+    $new['snapshot']['payload']=['direction'=>'outbound','sender_type'=>'ai','text'=>'Подождите, уточняю параметры.',
+        'metadata_json'=>json_encode(ConversationRecordClock::stamp(['type'=>'message'],$at),JSON_THROW_ON_ERROR)];
+    $parts[0]['rows'][]=$new;
+    foreach([1,2]as$i)$parts[$i]['journal_cursor']=$parts[$i]['source_fence_journal_id']='10';
+    $v=ModeledConversionEarlyForecast::freeze(...$parts)['semantic_prediction'];
+    $check('an intervening unrecognised AI reply consumes the previous pending question',
+        $v['status']==='insufficient_context'&&$v['current_request_anchor']===null);
+}
+
+
 /** Full synthetic admitted request + canonical producer receipts + later text. */
 function modeledOfferFixture(string $reaction,array $between=[],string $query='Подберите тур в Турцию',array $after=[]):array
 {
@@ -846,6 +954,7 @@ function modeledAssignedValueAssertions(callable $check):void
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $passed=0;$check=static function(string $name,bool $ok)use(&$passed){if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
     modeledEarlyAssertions($check);
+    modeledQuestionContextAssertions($check);
     modeledAssignedValueAssertions($check);echo 'MODELED EARLY FORECAST PASSED '.$passed.PHP_EOL;
 }
 

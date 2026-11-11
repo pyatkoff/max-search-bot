@@ -11,6 +11,25 @@ final class ModeledConversionProfiles
 {
     public const VERSION='admitted_journal_profiles_v1_2';
     public const MAX_SCOPES=8;
+    private const REASSESSMENT_SECONDS=864000;
+    private const REASSESSMENT_CANDIDATES=64;
+    /** Exact source generation, shared with private delivery acceptance. No database/native reads. */
+    public static function assessmentNamespace():string
+    {
+        $paths=['services/ModeledConversionProfiles.php','services/ModeledConversionEarlyForecast.php',
+            'services/ModeledConversionSemanticPrediction.php','services/ModeledConversionQuestionnaireContext.php',
+            'services/ArchiveResearchSemanticExtractor.php','services/ModeledConversionTextSignals.php',
+            'services/ModeledConversionOfferReaction.php','services/ManagerAiTextRedactor.php',
+            'services/ModeledConversionAssignedValue.php','services/ModeledConversionDealValue.php',
+            'tools/profile_conversion_journal.py','tools/extract_conversion_profiles.py'];
+        $sources=[];
+        foreach($paths as$path){
+            $file=dirname(__DIR__).'/'.$path;
+            if(!is_file($file)||!is_string($hash=hash_file('sha256',$file)))self::fail('assessment_source');
+            $sources[$path]=$hash;
+        }
+        return hash('sha256',self::json(['version'=>'profile_assessment_sources_v1','sources'=>$sources]));
+    }
     private PDO $pdo;
     private bool $mysql;
     private array $cache=[];
@@ -46,6 +65,7 @@ final class ModeledConversionProfiles
             if(!$r||!(bool)$r['enabled'])return ['status'=>'off','model_calls'=>0,'conversion_uploads'=>0];
             $last=$r['last_receipt_json']!==null?json_decode($r['last_receipt_json'],true,32,JSON_THROW_ON_ERROR):null;
             if($last&&$now<(int)$last['observed_at_unix'])self::fail('clock_regressed');
+            $namespace=self::assessmentNamespace();
             $cursor=(string)$r['journal_cursor'];
             $fence=(string)$this->q('SELECT COALESCE(MAX(id),0) FROM modeled_conversion_stream_versions WHERE project_key=?',['anytour'])->fetchColumn();
             $affected=[];$processed=0;$unbound=0;$limited=false;
@@ -73,26 +93,24 @@ final class ModeledConversionProfiles
                 }
                 $cursor=(string)$meta['id'];$processed++;
             }
-            $cases=[];
+            $cases=[];$assessmentKinds=[];
             foreach($affected as$scope){
-                $bind=array_values($scope);
-                $stats=$this->q("SELECT COUNT(*) AS n,SUM(CASE WHEN source_status='scope_excluded' THEN 1 ELSE 0 END) AS denied FROM modeled_conversion_profile_sources WHERE project_key=? AND platform=? AND customer_key=? AND conversation_id=?",$bind)->fetch(PDO::FETCH_ASSOC);
-                $denied=false;$restored=0;$rows=[];$window=(int)$stats['n']>50;
-                $refs=$this->q("SELECT source_kind,source_id,journal_id,source_status FROM modeled_conversion_profile_sources WHERE project_key=? AND platform=? AND customer_key=? AND conversation_id=? ORDER BY (source_status='scope_excluded') DESC,journal_id DESC LIMIT 50",$bind)->fetchAll(PDO::FETCH_ASSOC);
-                foreach($refs as$ref){
-                    if($this->rowsRead>=499){$window=true;break;}
-                    // Progress enumerates dirty scopes; the information fence defines available revisions.
-                    $entry=$this->readLatest($ref,$fence);
-                    if($entry===null){$window=true;continue;}
-                    $entry['progress_journal_id']=(string)$ref['journal_id'];
-                    $snap=$entry['snapshot'];$status=$snap['source_status']??'';
-                    if($status==='scope_excluded')$denied=true;
-                    if($ref['source_status']==='scope_excluded'&&$status==='present'&&$this->scope($snap)===$scope)$restored++;
-                    $rows[]=$entry;
+                $cases[]=$this->buildCase($scope,$fence);
+                $assessmentKinds[$this->scopeKey($scope)]='live';
+            }
+            $reassessment=['selected'=>0,'written'=>0,'deferred_budget'=>0,'awaiting_fresh_cursor'=>$cursor!==$fence];
+            // Sources above the ordinary cursor have not all been indexed yet. Never rebuild
+            // an apparently early prefix while captured later outcomes are still pending.
+            if($cursor===$fence&&count($cases)<self::MAX_SCOPES){
+                foreach($this->reassessmentScopes($now,$namespace,$fence)as$scope){
+                    if(count($cases)>=self::MAX_SCOPES)break;
+                    $key=$this->scopeKey($scope);
+                    if(isset($assessmentKinds[$key]))continue;
+                    $reassessment['selected']++;
+                    // Temporary spare-budget exhaustion must not become a durable "done" profile.
+                    if(!$this->reassessmentFits($scope,$fence)){$reassessment['deferred_budget']++;continue;}
+                    $cases[]=$this->buildCase($scope,$fence);$assessmentKinds[$key]='repair';
                 }
-                // A bounded window cannot assume that an unchecked older exclusion was restored.
-                if((int)$stats['denied']>$restored)$denied=true;
-                $cases[]=['subject'=>$scope,'rows'=>$rows,'window_limited'=>$window,'access_denied'=>$denied];
             }
             $document=['schema_version'=>1,'requested_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),'journal_cursor'=>$cursor,'source_fence_journal_id'=>$fence,'cases'=>$cases];
             $errors=[];$written=0;$forecastReceipt=ModeledConversionEarlyForecast::emptyReceipt();
@@ -114,19 +132,20 @@ final class ModeledConversionProfiles
                     $priorPrediction=$this->priorSemanticPrediction($scope,$profile['semantic_prediction']);
                     $profile['prediction_followup']=ModeledConversionPredictionFollowup::compare($profile['semantic_prediction'],$priorPrediction);
                     $forecastReceipt=ModeledConversionEarlyForecast::accumulate($forecastReceipt,$packet);
-                    $profile['processing']=['version'=>self::VERSION,'source_sha256'=>hash_file('sha256',__FILE__),'journal_cursor'=>$cursor,'source_fence_journal_id'=>$fence];
+                    $profile['processing']=['version'=>self::VERSION,'source_sha256'=>hash_file('sha256',__FILE__),'journal_cursor'=>$cursor,'source_fence_journal_id'=>$fence,'assessment_namespace'=>$namespace,'assessment_kind'=>$assessmentKinds[$this->scopeKey($scope)]];
                     $json=self::json($profile);
-                    $this->q('INSERT INTO modeled_conversion_profile_versions(project_key,platform,customer_key,conversation_id,journal_cursor,observed_at_unix,input_sha256,profile_json) VALUES (?,?,?,?,?,?,?,?)',
-                        [...array_values($scope),$cursor,strtotime($result['extracted_at']),hash('sha256',self::json($document)),$json]);$written++;
+                    $this->q('INSERT INTO modeled_conversion_profile_versions(project_key,platform,customer_key,conversation_id,journal_cursor,observed_at_unix,input_sha256,profile_json,assessment_namespace,assessment_kind) VALUES (?,?,?,?,?,?,?,?,?,?)',
+                        [...array_values($scope),$cursor,strtotime($result['extracted_at']),hash('sha256',self::json($document)),$json,$namespace,$assessmentKinds[$this->scopeKey($scope)]]);$written++;
+                    if($assessmentKinds[$this->scopeKey($scope)]==='repair')$reassessment['written']++;
                     foreach($profile['coverage']['errors']as$key=>$count)$errors[$key]=($errors[$key]??0)+$count;
                 }
             }
             $pending=(int)$this->q('SELECT COUNT(*) FROM modeled_conversion_stream_versions WHERE project_key=? AND id>?',['anytour',$cursor])->fetchColumn();
-            $receipt=['status'=>$processed?'profiled':'idle','version'=>self::VERSION,'observed_at_unix'=>$now,
+            $receipt=['status'=>$processed||$written?'profiled':'idle','version'=>self::VERSION,'observed_at_unix'=>$now,
                 'processed_revisions'=>$processed,'profiles_written'=>$written,'unbound_entry_revisions'=>$unbound,
                 'journal_rows_read'=>$this->rowsRead,'payload_bytes'=>$this->bytesRead,'pending_revisions'=>$pending,
                 'limit_reached'=>$limited||$pending>0,'coverage_errors'=>$errors,'trip_status'=>'unknown','model_calls'=>0,'conversion_uploads'=>0,
-                'early_forecast'=>$forecastReceipt,
+                'early_forecast'=>$forecastReceipt,'reassessment'=>$reassessment,
                 'duration_ms'=>(int)round((microtime(true)-$began)*1000)];
             if($this->rowsRead>500||$this->bytesRead>1048576)self::fail('budget');
             if($beforeCommit)$beforeCommit($receipt);
@@ -138,6 +157,81 @@ final class ModeledConversionProfiles
             if(!$this->pdo->inTransaction()){try{$this->q('UPDATE modeled_conversion_profiles_state SET last_error_at_unix=?,last_error_category=? WHERE project_key=?',[$now,'processing_failed','anytour']);}catch(Throwable $ignored){}}
             throw $e;
         }
+    }
+
+    /** Shared current-fence source authorization/window projection for live and repair work. */
+    private function buildCase(array $scope,string $fence):array
+    {
+        $bind=array_values($scope);
+        $stats=$this->q("SELECT COUNT(*) AS n,SUM(CASE WHEN source_status='scope_excluded' THEN 1 ELSE 0 END) AS denied FROM modeled_conversion_profile_sources WHERE project_key=? AND platform=? AND customer_key=? AND conversation_id=?",$bind)->fetch(PDO::FETCH_ASSOC);
+        $denied=false;$restored=0;$rows=[];$window=(int)$stats['n']>50;
+        $refs=$this->q("SELECT source_kind,source_id,journal_id,source_status FROM modeled_conversion_profile_sources WHERE project_key=? AND platform=? AND customer_key=? AND conversation_id=? ORDER BY (source_status='scope_excluded') DESC,journal_id DESC LIMIT 50",$bind)->fetchAll(PDO::FETCH_ASSOC);
+        foreach($refs as$ref){
+            if($this->rowsRead>=499){$window=true;break;}
+            // Progress enumerates dirty scopes; the information fence defines available revisions.
+            $entry=$this->readLatest($ref,$fence);
+            if($entry===null){$window=true;continue;}
+            $entry['progress_journal_id']=(string)$ref['journal_id'];
+            $snap=$entry['snapshot'];$status=$snap['source_status']??'';
+            if($status==='scope_excluded')$denied=true;
+            if($ref['source_status']==='scope_excluded'&&$status==='present'&&$this->scope($snap)===$scope)$restored++;
+            $rows[]=$entry;
+        }
+        // A bounded window cannot assume that an unchecked older exclusion was restored.
+        if((int)$stats['denied']>$restored)$denied=true;
+        return ['subject'=>$scope,'rows'=>$rows,'window_limited'=>$window,'access_denied'=>$denied];
+    }
+
+    /** Latest immutable old-model profiles only; no customer text or historical rewrite. */
+    private function reassessmentScopes(int $now,string $namespace,string $fence):array
+    {
+        $safe="CASE WHEN JSON_VALID(p.profile_json) THEN p.profile_json ELSE '{}' END";
+        $extract=function(string $path)use($safe):string{
+            $v="JSON_EXTRACT(".$safe.",'$.semantic_prediction.".$path."')";
+            return $this->mysql?'JSON_UNQUOTE('.$v.')':$v;
+        };
+        $model=$extract('model_sha256');
+        $validModel=$this->mysql?$model." REGEXP '^[a-f0-9]{64}$'":'LENGTH('.$model.")=64 AND ".$model." NOT GLOB '*[^a-f0-9]*'";
+        $same='s.project_key=p.project_key AND s.platform=p.platform AND s.customer_key=p.customer_key AND s.conversation_id=p.conversation_id';
+        $latestBytes='(SELECT '.$this->length().' FROM modeled_conversion_stream_versions v WHERE v.project_key=s.project_key AND v.source_kind=s.source_kind AND v.source_id=s.source_id AND v.id<='.$fence.' ORDER BY v.id DESC LIMIT 1)';
+        // Resource admission uses the same latest-50 window as buildCase, never
+        // a new whole-history eligibility rule. Older exclusions remain checked there.
+        $boundary=' FROM modeled_conversion_profile_sources b WHERE b.project_key=p.project_key AND b.platform=p.platform'
+            .' AND b.customer_key=p.customer_key AND b.conversation_id=p.conversation_id'
+            ." ORDER BY (b.source_status='scope_excluded') DESC,b.journal_id DESC LIMIT 1 OFFSET 49";
+        $priority="(SELECT (b.source_status='scope_excluded')".$boundary.')';
+        $journal='(SELECT b.journal_id'.$boundary.')';
+        $selected=$same." AND ((s.source_status='scope_excluded'),s.journal_id)>=(COALESCE(".$priority.',0),COALESCE('.$journal.',0))';
+        $sourceCount='(SELECT COUNT(*) FROM modeled_conversion_profile_sources s WHERE '.$selected.')';
+        $sourceBytes='(SELECT COALESCE(SUM('.$latestBytes.'),0) FROM modeled_conversion_profile_sources s WHERE '.$selected.')';
+        $sql='SELECT p.project_key,p.platform,p.customer_key,p.conversation_id,'.$extract('model_sha256').' AS model_sha256'
+            .' FROM modeled_conversion_profile_versions p WHERE p.project_key=? AND p.platform IN (\'max\',\'telegram\')'
+            .' AND p.observed_at_unix>=? AND p.observed_at_unix<=? AND p.assessment_namespace<>?'
+            .' AND '.$extract('version').'=? AND '.$validModel.' AND '.$model.'<>?'
+            .' AND NOT EXISTS(SELECT 1 FROM modeled_conversion_profile_versions newer WHERE newer.project_key=p.project_key'
+            .' AND newer.platform=p.platform AND newer.customer_key=p.customer_key AND newer.conversation_id=p.conversation_id AND newer.id>p.id)'
+            .' AND '.$sourceCount.' BETWEEN 1 AND '.min(50,max(0,498-$this->rowsRead)).' AND '.$sourceBytes.'<='.max(0,1048576-$this->bytesRead)
+            .' ORDER BY p.id DESC LIMIT '.self::REASSESSMENT_CANDIDATES;
+        $rows=$this->q($sql,['anytour',$now-self::REASSESSMENT_SECONDS,$now,$namespace,
+            ModeledConversionSemanticPrediction::VERSION,hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php')])->fetchAll(PDO::FETCH_ASSOC);
+        $scopes=[];
+        foreach($rows as$row){
+            if(!is_string($row['model_sha256'])||preg_match('/\\A[a-f0-9]{64}\\z/D',$row['model_sha256'])!==1)continue;
+            $scopes[]=$this->scope($row);
+        }
+        return $scopes;
+    }
+
+    /** Bounded scalar size preflight; deferred work remains eligible on a later natural tick. */
+    private function reassessmentFits(array $scope,string $fence):bool
+    {
+        $rows=$this->q('SELECT (SELECT '.$this->length().' FROM modeled_conversion_stream_versions v'
+            .' WHERE v.project_key=s.project_key AND v.source_kind=s.source_kind AND v.source_id=s.source_id AND v.id<=? ORDER BY v.id DESC LIMIT 1) AS bytes'
+            .' FROM modeled_conversion_profile_sources s WHERE project_key=? AND platform=? AND customer_key=? AND conversation_id=? ORDER BY (source_status=\'scope_excluded\') DESC,journal_id DESC LIMIT 50',
+            [$fence,...array_values($scope)])->fetchAll(PDO::FETCH_ASSOC);
+        if(!$rows||count($rows)>50||$this->rowsRead+count($rows)>=499)return false;
+        $bytes=0;foreach($rows as$row){if($row['bytes']===null)return false;$bytes+=(int)$row['bytes'];}
+        return $this->bytesRead+$bytes<=1048576;
     }
 
     /** Copy only one bounded immutable derived block; no old source/text read. */
@@ -266,4 +360,3 @@ final class ModeledConversionProfiles
     private static function json(array $v): string{return json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);}
     private static function fail(string $r): void{throw new RuntimeException('modeled_profiles_'.$r);}
 }
-
