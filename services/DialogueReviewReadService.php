@@ -24,7 +24,7 @@ final class DialogueReviewReadService
     private int $sourceBytes=0;
     private int $selectionReferenceCount=0;
 
-    public function __construct(private PDO $pdo,private $clock=null,private $keyProvider=null,private $selectionSourceAuthorize=null,private bool $historyAudit=false)
+    public function __construct(private PDO $pdo,private $clock=null,private $keyProvider=null,private $selectionSourceAuthorize=null,private bool $historyAudit=false,private $conversionTraceAuthorize=null)
     {
         $driver=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
         if(!in_array($driver,['mysql','sqlite'],true))throw new InvalidArgumentException('dialogue_review_driver');
@@ -96,6 +96,7 @@ final class DialogueReviewReadService
         if(!isset($args['dialogue_ref']))self::fail('invalid_arguments');
         // This is a server-supplied, live dual-grant verifier, never a tool input.
         $selectionSources=is_callable($this->selectionSourceAuthorize);
+        $conversionTrace=!$this->historyAudit&&is_callable($this->conversionTraceAuthorize);
         return $this->read($admin,$connection,function(string $key)use($admin,$connection,$args,$selectionSources):array{
             $now=$this->now();$limit=$args['limit']??50;
             $ref=$this->decode($args['dialogue_ref'],'dialogue',$key,$admin,$connection);
@@ -182,10 +183,10 @@ final class DialogueReviewReadService
                 $result=$make($returned,$more,$profile);
             }
             return$result;
-        },$selectionSources);
+        },$selectionSources,$conversionTrace);
     }
 
-    private function read(int $admin,string $connection,callable $operation,bool $selectionSources=false):array
+    private function read(int $admin,string $connection,callable $operation,bool $selectionSources=false,bool $conversionTrace=false):array
     {
         if($this->pdo->inTransaction())self::fail('transaction_active');
         if($admin<1||preg_match('/\A[a-f0-9]{32}\z/D',$connection)!==1||!is_callable($this->keyProvider))self::fail('forbidden');
@@ -193,6 +194,7 @@ final class DialogueReviewReadService
         $owned=false;$queryOnly=null;$post=false;
         try{
             if($selectionSources)($this->selectionSourceAuthorize)($admin,$connection);
+            if($conversionTrace)($this->conversionTraceAuthorize)($admin,$connection);
             $key=$this->key($admin,$connection);
             if($this->mysql){
                 $this->pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
@@ -208,6 +210,7 @@ final class DialogueReviewReadService
             // All release checks run outside the old source snapshot, including native subject ownership.
             $post=true;
             if($selectionSources)($this->selectionSourceAuthorize)($admin,$connection);
+            if($conversionTrace)($this->conversionTraceAuthorize)($admin,$connection);
             $freshKey=$this->key($admin,$connection);
             if(!hash_equals($key,$freshKey))self::fail('stale_cursor');
             if($permission!==$this->permission($admin))self::fail('permission_changed');
@@ -306,8 +309,14 @@ final class DialogueReviewReadService
             require_once __DIR__.'/ModeledConversionValueRegistry.php';
             $projection=ModeledConversionValueRegistry::predictionFields($wrapper);
             if(($projection['semantic_prediction']['availability']??null)!=='available')return$unavailable;
-            return['availability'=>'available','profile_id'=>$id,'observed_at'=>gmdate('Y-m-d\TH:i:s\Z',(int)$saved['observed_at_unix']),
+            $result=['availability'=>'available','profile_id'=>$id,'observed_at'=>gmdate('Y-m-d\TH:i:s\Z',(int)$saved['observed_at_unix']),
                 'projection'=>$projection,'meaning'=>'saved_untrained_prediction_not_current_trip_truth_or_reply_quality'];
+            if(is_callable($this->conversionTraceAuthorize)){
+                require_once __DIR__.'/ModeledConversionDialogueTraceReader.php';
+                $result['conversion_trace']=(new ModeledConversionDialogueTraceReader(fn(string $sql,array $bind):PDOStatement=>$this->q($sql,$bind)))
+                    ->read($wrapper,$subject,$id,$this->now());
+            }
+            return$result;
         }catch(PDOException $e){
             if(in_array((int)($e->errorInfo[1]??0),[3024,1969],true))throw self::databaseError($e);
             return['availability'=>'unavailable','reason'=>'profile_storage_unavailable','profile_id'=>null];
