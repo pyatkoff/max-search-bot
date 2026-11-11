@@ -271,6 +271,62 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
     $zeroRead=forecastV1Read($p)['value_delivery']['visit_gate_decisions'];
     $check('zero saved preclaim decisions never imply that visits are absent',
         $zeroRead['available']&&$zeroRead['attempts']===0&&$zeroRead['zero_attempts_does_not_prove_no_visits']);
+    $check('legacy saved visit decisions retain their counts while failure stages remain explicitly unrecorded',
+        $gateRead['failure_diagnostics']===['available'=>false,'reason'=>'not_recorded_v1']);
+    $v2Counts=array_fill_keys(array_keys($decisionCounts),0);$v2Counts['visit_report_unavailable']=3;
+    $clockMask=32|1024|8192|1048576;
+    $v2=['v'=>2,'checked_at_unix'=>$now-10,'attempts'=>3,'reason_counts'=>$v2Counts,
+        'failures'=>[[4,null,28,0,1],[6,400,0,17,1],[8,200,0,$clockMask,1]]];
+    $readV2=static function(array $audit)use($p,&$receipt):array{
+        $receipt['visit_gate_decisions']=$audit;
+        $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?")->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
+        return forecastV1Read($p)['value_delivery']['visit_gate_decisions'];
+    };
+    $diagnosed=$readV2($v2);$details=$diagnosed['failure_diagnostics'];
+    $check('saved failure stages distinguish transport scope and structural clock failures without revealing identity or dates',
+        $diagnosed['available']&&$details['available']
+        &&array_column($details['rows'],'stage')===['report_transport','report_scope','report_row']
+        &&$details['rows'][0]['http_status']===null&&$details['rows'][0]['transport_error_code']===28
+        &&$details['rows'][1]['detail_flags']===['query_invalid','filter_mismatch']
+        &&$details['rows'][2]['detail_flags']===['clock_invalid','selected_clock_format_iso_datetime',
+            'name_clock_format_space_datetime','id_clock_format_other_or_missing']
+        &&array_sum(array_column($details['rows'],'count'))===3&&$diagnosed['provider_requests_in_reader']===0);
+    foreach([[1,null,28,0],[2,403,0,0],[3,200,0,5],[5,503,0,0],[7,200,0,17],
+        [8,200,0,4|128],[8,200,0,64|4096|65536|524288],[9,null,null,0]]as$tuple){
+        $one=$v2;$one['attempts']=1;$one['reason_counts']['visit_report_unavailable']=1;$one['failures']=[array_merge($tuple,[1])];
+        $seen=$readV2($one);
+        $check('strict closed attribution failure stage '.$tuple[0].' projects only saved bounded scalar evidence',
+            $seen['available']&&$seen['failure_diagnostics']['available']&&count($seen['failure_diagnostics']['rows'])===1);
+    }
+    foreach(['tuple_shape','stage_string','http_string','curl_range','forbidden_mask','zero_mask','sum','duplicate',
+        'cid_flag_without_cause','clock_group_missing','clock_groups_multiple','clock_with_other_cause','clock_flags_without_cause',
+        'both_clock_causes','internal_http','private_extra']as$kind){
+        $bad=$v2;
+        if($kind==='tuple_shape')array_pop($bad['failures'][0]);
+        elseif($kind==='stage_string')$bad['failures'][0][0]='4';
+        elseif($kind==='http_string')$bad['failures'][0][1]='200';
+        elseif($kind==='curl_range')$bad['failures'][0][2]=101;
+        elseif($kind==='forbidden_mask')$bad['failures'][1]=[6,400,0,32,1];
+        elseif($kind==='zero_mask')$bad['failures'][1]=[6,400,0,0,1];
+        elseif($kind==='sum')$bad['failures'][0][4]=2;
+        elseif($kind==='duplicate')$bad['failures'][1]=$bad['failures'][0];
+        elseif($kind==='cid_flag_without_cause')$bad['failures'][2]=[8,200,0,1|128,1];
+        elseif($kind==='clock_group_missing')$bad['failures'][2]=[8,200,0,32|1024|8192,1];
+        elseif($kind==='clock_groups_multiple')$bad['failures'][2]=[8,200,0,$clockMask|2048,1];
+        elseif($kind==='clock_with_other_cause')$bad['failures'][2]=[8,200,0,$clockMask|1,1];
+        elseif($kind==='clock_flags_without_cause')$bad['failures'][2]=[8,200,0,1|1024,1];
+        elseif($kind==='both_clock_causes')$bad['failures'][2]=[8,200,0,$clockMask|64,1];
+        elseif($kind==='internal_http')$bad['failures'][0]=[9,200,null,0,1];
+        else$bad['private_client_id']='PRIVATE_V2_CLIENT';
+        $seen=$readV2($bad);
+        $check('malformed failure diagnostic '.$kind.' never becomes a guessed provider result',
+            !$seen['available']&&!str_contains(json_encode($seen,JSON_THROW_ON_ERROR),'PRIVATE_'));
+    }
+    $emptyV2=$v2;$emptyV2['attempts']=0;$emptyV2['reason_counts']['visit_report_unavailable']=0;$emptyV2['failures']=[];
+    $emptySeen=$readV2($emptyV2);
+    $check('empty v2 failure diagnostics retain zero-attempt uncertainty',
+        $emptySeen['available']&&$emptySeen['failure_diagnostics']['available']
+        &&$emptySeen['failure_diagnostics']['rows']===[]&&$emptySeen['zero_attempts_does_not_prove_no_visits']);
     unset($receipt['visit_gate_decisions']);
     foreach([['429',0,'rate_limited'],[99,-1,'private_provider_error'],[600,101,'unknown'],[null,null,null]]as[$http,$transport,$category]){
         $receipt['metrika_report']['http_status']=$http;$receipt['metrika_report']['transport_error_code']=$transport;

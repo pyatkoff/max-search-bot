@@ -747,8 +747,9 @@ final class ModeledConversionValueDeliveryReader
     private function visitGateDecisions(mixed $saved,int $activation,int $now):array
     {
         $unknown=['available'=>false,'reason'=>'not_recorded_or_invalid','provider_requests_in_reader'=>0];
-        if(!is_array($saved)||count($saved)!==4||!isset($saved['v'],$saved['checked_at_unix'],$saved['attempts'],$saved['reason_counts'])
-            ||$saved['v']!==1||!is_int($saved['checked_at_unix'])||$saved['checked_at_unix']<$activation||$saved['checked_at_unix']>$now
+        if(!is_array($saved)||!in_array($saved['v']??null,[1,2],true)||count($saved)!==($saved['v']===2?5:4)
+            ||!isset($saved['checked_at_unix'],$saved['attempts'],$saved['reason_counts'])
+            ||!is_int($saved['checked_at_unix'])||$saved['checked_at_unix']<$activation||$saved['checked_at_unix']>$now
             ||!is_int($saved['attempts'])||$saved['attempts']<0||$saved['attempts']>3||!is_array($saved['reason_counts']))return $unknown;
         try{if(strlen(json_encode($saved,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>512)return $unknown;}
         catch(JsonException $ignored){return $unknown;}
@@ -756,9 +757,44 @@ final class ModeledConversionValueDeliveryReader
             $n=$saved['reason_counts'][$reason]??null;if(!is_int($n)||$n<0||$n>3)return $unknown;$counts[$reason]=$n;
         }
         if(count($saved['reason_counts'])!==count($counts)||array_sum($counts)!==$saved['attempts'])return $unknown;
+        $diagnostics=['available'=>false,'reason'=>'not_recorded_v1'];
+        if($saved['v']===2){
+            if(!is_array($saved['failures']??null)||!array_is_list($saved['failures'])||count($saved['failures'])>3)return $unknown;
+            $stages=[1=>'counter_transport',2=>'counter_http',3=>'counter_metadata',4=>'report_transport',5=>'report_http',
+                6=>'report_scope',7=>'report_shape',8=>'report_row',9=>'internal_unavailable'];
+            $flags=[3=>[1=>'counter_object_invalid',2=>'counter_id_invalid',4=>'counter_timezone_type_invalid',8=>'counter_timezone_invalid'],
+                6=>[1=>'query_invalid',2=>'counter_ids_mismatch',4=>'metrics_mismatch',8=>'dimensions_mismatch',16=>'filter_mismatch'],
+                7=>[1=>'sampled_or_sampling_invalid',2=>'rows_type_invalid',4=>'row_limit',8=>'total_non_numeric',16=>'total_mismatch'],
+                8=>[1=>'dimensions_invalid',2=>'metrics_shape_invalid',4=>'client_id_mismatch',8=>'metric_value_invalid',16=>'metric_not_integer',
+                    32=>'clock_invalid',64=>'clock_future',128=>'dimension_name_matches_expected_client',256=>'dimension_id_matches_expected_client',
+                    512=>'selected_clock_format_space_datetime',1024=>'selected_clock_format_iso_datetime',2048=>'selected_clock_format_date_only',4096=>'selected_clock_format_other_or_missing',
+                    8192=>'name_clock_format_space_datetime',16384=>'name_clock_format_iso_datetime',32768=>'name_clock_format_date_only',65536=>'name_clock_format_other_or_missing',
+                    131072=>'id_clock_format_space_datetime',262144=>'id_clock_format_iso_datetime',524288=>'id_clock_format_date_only',1048576=>'id_clock_format_other_or_missing']];
+            $limits=[1=>0,2=>0,3=>15,4=>0,5=>0,6=>31,7=>31,8=>2097151,9=>0];$rows=[];$total=0;$seen=[];
+            foreach($saved['failures']as$tuple){
+                if(!is_array($tuple)||!array_is_list($tuple)||count($tuple)!==5)return $unknown;
+                [$stage,$http,$curl,$mask,$n]=$tuple;
+                if(!is_int($stage)||!isset($stages[$stage])||($http!==null&&(!is_int($http)||$http<100||$http>599))
+                    ||($curl!==null&&(!is_int($curl)||$curl<0||$curl>100))||!is_int($mask)||$mask<0||$mask>$limits[$stage]
+                    ||!is_int($n)||$n<1||$n>3||(in_array($stage,[3,6,7],true)&&$mask===0)||($stage===9&&($http!==null||$curl!==null)))return $unknown;
+                if($stage===8){
+                    $base=$mask&127;$clock=$base&96;
+                    if($base===0||(($mask&384)!==0&&$base!==4))return $unknown;
+                    if($clock!==0){
+                        if(!in_array($base,[32,64],true))return $unknown;
+                        foreach([7680,122880,1966080]as$group){$one=$mask&$group;if($one===0||($one&($one-1))!==0)return $unknown;}
+                    }elseif(($mask&2096640)!==0)return $unknown;
+                }
+                $key=json_encode([$stage,$http,$curl,$mask],JSON_THROW_ON_ERROR);if(isset($seen[$key]))return $unknown;$seen[$key]=true;
+                $detail=[];foreach($flags[$stage]??[]as$bit=>$name)if(($mask&$bit)!==0)$detail[]=$name;
+                $rows[]=['stage'=>$stages[$stage],'http_status'=>$http,'transport_error_code'=>$curl,'detail_flags'=>$detail,'count'=>$n];$total+=$n;
+            }
+            if($total!==$counts['visit_report_unavailable'])return $unknown;
+            $diagnostics=['available'=>true,'basis'=>'saved_failure_predicates_from_existing_attribution_reads','rows'=>$rows];
+        }
         return ['available'=>true,'basis'=>'saved_ordinary_preclaim_visit_window_decisions',
             'checked_at'=>gmdate('Y-m-d\TH:i:s\Z',$saved['checked_at_unix']),'attempts'=>$saved['attempts'],'reason_counts'=>$counts,
-            'zero_attempts_does_not_prove_no_visits'=>true,'provider_requests_in_reader'=>0];
+            'failure_diagnostics'=>$diagnostics,'zero_attempts_does_not_prove_no_visits'=>true,'provider_requests_in_reader'=>0];
     }
 
     private function report(mixed $r,int $activation,int $now):array
