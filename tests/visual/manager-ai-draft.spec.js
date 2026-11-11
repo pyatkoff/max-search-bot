@@ -121,7 +121,17 @@ async function openPreparationSettings(page){await page.locator('#m2Conversation
 async function openConversationMenu(page){const menu=page.locator('.m2ConversationMenu');if(!await menu.evaluate(el=>el.open))await page.locator('#m2ConversationMenuToggle').click();await expect(menu).toHaveAttribute('open','')}
 async function openRequestProfile(page){const button=page.locator('#m2RequestProfileOpen');if(!await button.isVisible())await page.locator('#m2ConversationMenuToggle').click();await button.click()}
 async function openAi(page,{owner=false}={}){await (owner?page.getByRole('button',{name:'AI · Просмотр',exact:true}):page.locator('#aiDraftOpen')).click();await expect(page.locator('#aiDraftPanel')).toBeVisible()}
-async function settled(page){await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0)}
+async function settled(page){
+  await page.locator('#conversationZone').evaluate(async node=>{
+    const frames=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    const finiteActive=()=>node.getAnimations({subtree:true}).filter(animation=>Number.isFinite(animation.effect?.getTiming().iterations)&&(animation.playState==='running'||animation.pending));
+    await frames();
+    for(let animations=finiteActive();animations.length;animations=finiteActive()){
+      await Promise.all(animations.map(animation=>animation.finished.catch(()=>{})));
+      await frames();
+    }
+  });
+}
 const aiViewports=[{width:390,height:420},{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900}];
 // Current native UI contract replaces the removed overlay/Insert-first presentation.
 // Existing auth, stale, retry, File and manual-send boundaries remain exercised below.

@@ -2,6 +2,19 @@
 declare(strict_types=1);
 require_once __DIR__.'/fixtures/hotel_server_cycle.php';
 
+/** A visible child result must already contain the complete JSON document. */
+function hsPublishChildResult(string $out,array $result): void
+{
+    $bytes=HotelServerInputs::json($result);
+    $temporary=$out.'.'.bin2hex(random_bytes(8)).'.tmp';
+    try {
+        if(file_put_contents($temporary,$bytes)!==strlen($bytes))throw new RuntimeException('race_result_write');
+        if(!rename($temporary,$out))throw new RuntimeException('race_result_publish');
+    } finally {
+        if(is_file($temporary))@unlink($temporary);
+    }
+}
+
 if(($argv[1]??null)==='--correction-race'){
     [$unused,$mode,$dsn,$go,$out,$payload]=array_pad($argv,6,'');$p=hsConnect($dsn);
     $cycle=new HotelServerCycle($p,new HotelServerLane($p));
@@ -10,7 +23,7 @@ if(($argv[1]??null)==='--correction-race'){
     while(!is_file($go)&&microtime(true)<$until)usleep(1000);
     if(!is_file($go))exit(3);
     $r=$cycle->correctRejectedFinalStage('NEW',$correction,static fn():bool=>true);
-    file_put_contents($out,HotelServerInputs::json(['state'=>$r['state']]));exit(0);
+    hsPublishChildResult($out,['state'=>$r['state']]);exit(0);
 }
 
 // Real processes contend on the shared HOTEL row before the campaign/attempt row.
@@ -25,7 +38,7 @@ if(($argv[1]??null)==='--race') {
     file_put_contents($out.'.ready','1');$until=microtime(true)+12;
     while(!is_file($go)&&microtime(true)<$until)usleep(1000);
     if(!is_file($go))exit(3);
-    $r=$cycle->tick('NEW');file_put_contents($out,HotelServerInputs::json(['state'=>$r['state'],'calls'=>count($provider->requests)]));exit(0);
+    $r=$cycle->tick('NEW');hsPublishChildResult($out,['state'=>$r['state'],'calls'=>count($provider->requests)]);exit(0);
 }
 $hsChecks=0;
 function hsCheck(bool $ok,string $label): void { global $hsChecks; ++$hsChecks; if(!$ok)throw new RuntimeException('HOTEL SERVER FAIL:'.$label); }
