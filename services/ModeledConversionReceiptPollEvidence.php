@@ -59,6 +59,9 @@ final class ModeledConversionReceiptPollEvidence
                 ||($row[3]!==null&&(!is_int($row[3])||$row[3]<100||$row[3]>599))
                 ||($row[4]!==null&&(!is_int($row[4])||$row[4]<0||$row[4]>100))
                 ||!is_int($row[5])||$row[5]<0||$row[5]>6||($row[2]===7?($row[5]===0):($row[5]!==0)))return null;
+            if($row[2]>=3&&($row[3]!==200||$row[4]!==0))return null;
+            if($row[2]===2&&($row[3]===200||($row[4]!==null&&$row[4]!==0)))return null;
+            if($row[2]===1&&$row[4]===0)return null;
             $seen[$row[0]]=true;
         }
         return $audit;

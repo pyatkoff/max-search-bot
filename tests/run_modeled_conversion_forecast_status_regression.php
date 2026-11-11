@@ -1791,6 +1791,35 @@ function forecastReceiptPollEvidenceAssertions(callable $check):void
         !ModeledConversionReceiptPollEvidence::projection($duplicate,time())['complete_within_capture_bound']
         &&!ModeledConversionReceiptPollEvidence::projection($overflow,time())['complete_within_capture_bound']
         &&count($overflow['r'])===2&&$calls===2);
+    $transportAudit=ModeledConversionReceiptPollEvidence::append(ModeledConversionReceiptPollEvidence::begin($at),$throwing->pollEvidence($id),time());
+    $transportView=ModeledConversionReceiptPollEvidence::projection($transportAudit,time());
+    $check('a real thrown poll transport failure retains null response codes without becoming a valid provider receipt',
+        $transportView['available']&&$transportView['complete_within_capture_bound']
+        &&$transportView['rows'][0]['stage']==='transport_failure'&&$transportView['rows'][0]['http_status']===null
+        &&$transportView['rows'][0]['transport_error_code']===null&&$transportView['rows'][0]['provider_status']===null);
+    $nullableFailureClient=new MetrikaOfflineClient('98615635','fixture-only',static fn()=>['http'=>0,'body'=>'']);
+    $nullableFailureClient->poll($id);
+    $nullableFailureAudit=ModeledConversionReceiptPollEvidence::append(ModeledConversionReceiptPollEvidence::begin($at),$nullableFailureClient->pollEvidence($id),time());
+    $nullableFailure=ModeledConversionReceiptPollEvidence::projection($nullableFailureAudit,time());
+    $check('legacy missing transport diagnostics can retain a failure observation without guessing HTTP or a provider status',
+        $nullableFailure['available']&&$nullableFailure['rows'][0]['stage']==='http_failure'
+        &&$nullableFailure['rows'][0]['http_status']===null&&$nullableFailure['rows'][0]['transport_error_code']===null
+        &&$nullableFailure['rows'][0]['provider_status']===null);
+    foreach([[7,503,28,5],[7,200,null,2],[3,503,0,0],[4,200,28,0],[5,null,0,0],[6,200,null,0],
+        [1,200,0,0],[2,200,0,0],[2,503,28,0]]as[$stage,$http,$curl,$status]){
+        $contradiction=$audit;$contradiction['r'][0][2]=$stage;$contradiction['r'][0][3]=$http;
+        $contradiction['r'][0][4]=$curl;$contradiction['r'][0][5]=$status;
+        $unknown=ModeledConversionReceiptPollEvidence::projection($contradiction,time());
+        $check('contradictory saved poll stage and response codes remain unknown '.$stage.':'.($http??'null').':'.($curl??'null'),
+            !$unknown['available']&&!array_key_exists('rows',$unknown)&&$unknown['provider_requests_in_reader']===0
+            &&!str_contains(json_encode($unknown,JSON_THROW_ON_ERROR),'PROCESSED'));
+    }
+    $contradictoryProof=$proofs[0];$contradictoryProof['stage']=7;$contradictoryProof['http_status']=503;
+    $contradictoryProof['transport_error_code']=28;$contradictoryProof['provider_status']='PROCESSED';
+    $notCaptured=ModeledConversionReceiptPollEvidence::append(ModeledConversionReceiptPollEvidence::begin($at),$contradictoryProof,time());
+    $unknownCapture=ModeledConversionReceiptPollEvidence::projection($notCaptured,time());
+    $check('a contradictory incoming poll DTO cannot create a saved processed receipt observation',
+        $unknownCapture['available']&&!$unknownCapture['complete_within_capture_bound']&&$unknownCapture['rows']===[]);
     $bad=$proofs[0];$bad['http_status']='200';$invalid=ModeledConversionReceiptPollEvidence::append(ModeledConversionReceiptPollEvidence::begin($at),$bad,time());
     $malformed=$audit;$malformed['r'][0][0]='PRIVATE_RAW_UPLOAD_ID';
     $check('malformed poll scalars and raw identifiers remain unknown instead of becoming valid pending receipts',
@@ -1886,7 +1915,8 @@ function forecastInitialApiReceiptAssertions(PDO $p,callable $check):array
     $p->exec("UPDATE max_channel_conversion_outbox SET upload_id='811002' WHERE id=2");
     $check('one receipt cannot be counted twice in the pinned original cohort',!$duplicate['available']&&$duplicate['reason']==='receipt_binding_ambiguous');
     $p->prepare('UPDATE max_channel_conversion_outbox SET upload_id=? WHERE id=1')->execute([str_repeat('PRIVATE_OVERSIZE_',3000)]);
-    $bounded=$read()['initial_api_receipts'];$p->exec("UPDATE max_channel_conversion_outbox SET upload_id='811001' WHERE id=1");
+    $packetBudget=new ModeledConversionStatusBudget();$packetBudget->consumeBytes(18000);
+    $bounded=$read(null,$packetBudget)['initial_api_receipts'];$p->exec("UPDATE max_channel_conversion_outbox SET upload_id='811001' WHERE id=1");
     $check('the escaped packet bound omits oversized receipt metadata before copying it',!$bounded['available']&&$bounded['reason']==='budget_headroom');
     $revoked=false;$denied=false;$old=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
     ForecastV1ObservedStatement::$afterInitialApi=static function()use(&$revoked):void{$revoked=true;};
