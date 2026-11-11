@@ -1,7 +1,7 @@
 (()=>{
 const state={csrf:'',conversationId:0,busy:false,restored:null,notice:'',sendingRow:null,progress:''};
 const attachmentDrafts=new Map(),captionSent=new Map(),uncertainFiles=new Set();
-let bound=false;
+let bound=false,restoreSequence=0,persistenceSequence=0,persistenceNotice='',restoring=false;
 const MAX_FILES=10; // A bounded selection, sent as individual canonical messages, never an album.
 const account=()=>Number(window.WorkspaceV2?.S?.manager?.id||0);
 const draftKey=id=>account()+':'+Number(id||0);
@@ -10,13 +10,69 @@ const input=()=>$('replyFile'),selection=()=>$('mediaSelection');
 const fileKey=(file,key=draftKey(state.conversationId))=>key+':'+file.name+':'+file.size+':'+(file.lastModified||0);
 function files(){return state.restored||Array.from(input()?.files||[]).map(file=>({file,status:uncertainFiles.has(fileKey(file))?'unknown':'ready',url:''}))}
 function revoke(rows){rows.forEach(row=>{if(row.url)URL.revokeObjectURL(row.url)})}
-function save(rows,id=state.conversationId){state.restored=rows;if(Number(id)>0){if(rows.length)attachmentDrafts.set(draftKey(id),rows);else{attachmentDrafts.delete(draftKey(id));captionSent.delete(draftKey(id))}}}
-function preserveDraft(id=state.conversationId){save(files(),id)}
-function restoreDraft(id=state.conversationId){if(input())input().value='';state.restored=attachmentDrafts.get(draftKey(id))||[];state.notice='';render()}
-function resetDrafts(){attachmentDrafts.forEach(revoke);attachmentDrafts.clear();captionSent.clear();state.restored=[];if(input())input().value='';state.notice='';render()}
+function persist(rows,id=state.conversationId,actor=account()){
+ const store=window.WorkspaceV2MediaDrafts;if(!store||!actor||!Number(id))return null;
+ const key=actor+':'+Number(id),sequence=++persistenceSequence;
+ if(actor===account()&&Number(id)===state.conversationId)persistenceNotice=rows.length?'Сохраняем вложения в этой вкладке…':'';
+ const result=store.save(actor,Number(id),rows,captionSent.get(key)||null);
+ Promise.resolve(result).then(ok=>{if(sequence!==persistenceSequence||actor!==account()||Number(id)!==state.conversationId)return;persistenceNotice=ok?(rows.length?'Черновик с вложениями сохранён в этой вкладке на срок до 24 часов.':''):'Вложения не сохранены после перезагрузки. Оставьте вкладку открытой и проверьте свободное место в браузере.';renderPersistenceStatus()});return result;
+}
+function save(rows,id=state.conversationId){const wasRestoring=restoring;restoreSequence++;restoring=false;state.restored=rows;if(Number(id)>0){if(rows.length)attachmentDrafts.set(draftKey(id),rows);else{attachmentDrafts.delete(draftKey(id));captionSent.delete(draftKey(id))}persist(rows,id)}if(wasRestoring)window.WorkspaceV2Conversation?.syncComposer?.()}
+function preserveDraft(id=state.conversationId){
+ // A loading placeholder is not an empty user selection. Leaving the chat
+ // revokes hydration without deleting the saved source draft.
+ if(restoring&&Number(id)===state.conversationId){restoreSequence++;restoring=false;return}
+ save(files(),id);
+}
+function overlayRecovery(rows,key){
+ const all=window.WorkspaceV2MediaRecovery?.entries?.();
+ for(const row of rows.slice()){
+  if(!row.recoveryId)continue;
+  const receipt=all?.find(r=>r.actor===account()&&r.conversation_id===state.conversationId&&r.operation_id===row.recoveryId&&r.batch_id===row.batchId);
+  if(receipt?.state==='confirmed'){if(receipt.caption_included)captionSent.set(key,{batch:receipt.batch_id,caption:receipt.caption});rows.splice(rows.indexOf(row),1);revoke([row])}
+  else if(['rejected','cancelled'].includes(receipt?.state)){row.status='ready';delete row.recoveryId}
+  else row.status='unknown';
+ }
+ return rows;
+}
+function reconcileDraft(id=state.conversationId){
+ const S=window.WorkspaceV2?.S,c=S?.detail?.conversation,actor=account(),key=draftKey(id),rows=attachmentDrafts.get(key);
+ if(!rows||S?.authExpired||Number(c?.id)!==Number(id)||Number(c?.manager_id)!==actor||c.status!=='manager')return false;
+ const signature=()=>JSON.stringify([rows.map(r=>[r.blobId,r.recoveryId,r.status]),captionSent.get(key)]),before=signature();
+ overlayRecovery(rows,key);
+ if(signature()!==before){persist(rows,id,actor);if(Number(id)===state.conversationId&&state.restored===rows)render()}
+ return true;
+}
+function restoreDraft(id=state.conversationId){
+ const actor=account(),key=draftKey(id),ticket=++restoreSequence,generation=window.WorkspaceV2?.S?.authGeneration;
+ if(input())input().value='';state.restored=attachmentDrafts.get(key)||[];state.notice='';persistenceNotice='';restoring=false;
+ const store=window.WorkspaceV2MediaDrafts;
+ if(attachmentDrafts.has(key)||!store){reconcileDraft(id);render();return}
+ const placeholder=state.restored;restoring=true;persistenceNotice='Восстанавливаем вложения…';render();
+ return store.load(actor,Number(id)).then(saved=>{
+  if(ticket!==restoreSequence||actor!==account()||generation!==window.WorkspaceV2?.S?.authGeneration||window.WorkspaceV2?.S?.authExpired||Number(id)!==state.conversationId||state.restored!==placeholder)return;
+  const c=window.WorkspaceV2?.S?.detail?.conversation;
+  if(Number(c?.id)!==Number(id)||Number(c?.manager_id)!==actor||c.status!=='manager')return;
+  if(saved===null){persistenceNotice='Не удалось восстановить вложения. Оставьте вкладку открытой и проверьте хранилище браузера.';return}
+  if(saved?.captionSent)captionSent.set(key,saved.captionSent);
+  const rows=overlayRecovery(saved?.rows||[],key);state.restored=rows;if(rows.length)attachmentDrafts.set(key,rows);
+  if(saved.missing)state.notice='Не все вложения восстановлены. Выберите отсутствующие файлы заново.';
+  persistenceNotice=rows.length?'Черновик с вложениями восстановлен. Отправьте его явно.':'';
+  // Persist the reconciled manifest; a confirmed operation never revives as ready.
+  if(saved)persist(rows,id,actor);
+ }).catch(()=>{if(ticket===restoreSequence)persistenceNotice='Не удалось восстановить вложения. Выберите файлы заново.'}).finally(()=>{if(ticket===restoreSequence){restoring=false;render();window.WorkspaceV2Conversation?.syncComposer?.()}});
+}
+function resetDrafts(){restoreSequence++;restoring=false;const store=window.WorkspaceV2MediaDrafts;store?.resetActor(account());for(const key of attachmentDrafts.keys()){const actor=Number(key.split(':')[0]);if(actor!==account())store?.resetActor(actor)}attachmentDrafts.forEach(revoke);attachmentDrafts.clear();captionSent.clear();state.restored=[];if(input())input().value='';state.notice='';persistenceNotice='';render()}
 function clear(){revoke(files());save([]);if(input())input().value='';state.notice='';render()}
+function renderPersistenceStatus(box=selection()){
+ if(!document.createElement||!box?.parentNode)return;
+ let status=$('mediaDraftStatus');if(!status){status=document.createElement('div');status.id='mediaDraftStatus';status.className='mediaDraftStatus';status.setAttribute('role','status');box.insertAdjacentElement('afterend',status)}status.textContent=persistenceNotice;status.hidden=!persistenceNotice;
+}
 function render(noticeFirst=false){
  const rows=files(),box=selection();if(!box)return;box.setAttribute?.('data-sending',String(state.busy));
+ // Storage progress is independent from the selected File list. Keep it outside
+ // that list so saving cannot change the list's content or scroll position.
+ renderPersistenceStatus(box);
  if(!rows.length&&!state.notice){box.textContent='';box.classList.add('hidden');return}
  const hint='<div class="mediaSelectionHint" role="status"></div>';
  box.innerHTML=(noticeFirst?hint:'')+rows.map((row,index)=>`<div class="mediaSelectedItem"><span class="mediaPreview"></span><span class="mediaFileInfo"><span class="mediaFileName"></span><span class="mediaFileSize"></span></span><button class="mediaRemove" type="button" data-index="${index}" aria-label="Убрать вложение ${index+1}">×</button></div>`).join('')+(noticeFirst?'':hint);
@@ -38,7 +94,7 @@ function render(noticeFirst=false){
  if(f.type?.startsWith('image/')&&typeof URL?.createObjectURL==='function'&&item!==box){if(!row.url)row.url=URL.createObjectURL(f);item.querySelector('.mediaPreview').textContent='';const img=document.createElement('img');img.src=row.url;img.alt='';item.querySelector('.mediaPreview').appendChild(img)}
  });
  box.setAttribute?.('aria-label',`Выбрано файлов: ${rows.length} из ${MAX_FILES}. Список можно прокручивать.`);
- box.querySelector('.mediaSelectionHint').textContent=state.notice||`Файлов: ${rows.length} из ${MAX_FILES}. Отправятся отдельно; подпись — к первому. Выбранные файлы сохраняются до обновления страницы.`;box.classList.remove('hidden');if(noticeFirst)box.scrollTop=0;
+ box.querySelector('.mediaSelectionHint').textContent=state.notice||`Файлов: ${rows.length} из ${MAX_FILES}. Отправятся отдельно; подпись — к первому.`;box.classList.remove('hidden');if(noticeFirst)box.scrollTop=0;
 }
 function addFiles(incoming){
  const rows=files(),added=Array.from(incoming||[]);let rejected=0;
@@ -54,7 +110,7 @@ function init(){
    if(!pasted.length)return;event.preventDefault();addFiles(pasted);
  });
 }
-function configure(csrf,conversationId){state.csrf=csrf||'';state.conversationId=Number(conversationId||0);window.WorkspaceV2MediaRecovery?.configure(state.conversationId)}
+function configure(csrf,conversationId){if(state.conversationId!==Number(conversationId||0)){restoreSequence++;restoring=false}state.csrf=csrf||'';state.conversationId=Number(conversationId||0);window.WorkspaceV2MediaRecovery?.configure(state.conversationId)}
 function hasFile(){return files().length>0}
 function notDispatched(response,j){return response.status===409&&j.error==='delivery_failed'&&j.failure?.category==='not_dispatched'&&j.failure?.http_code===0&&['file_unavailable','context_changed'].includes(j.failure?.reason)}
 function settleRecovery(record){
@@ -69,10 +125,11 @@ function settleRecovery(record){
  }else if(['rejected','cancelled'].includes(record.state)){
   row.status='ready';delete row.recoveryId;uncertainFiles.delete(fileKey(row.file,sourceKey));
  }
+ persist(rows,record.conversation_id,record.actor);
  if(state.conversationId===record.conversation_id&&state.restored===rows)render();
 }
 async function send(caption=''){
- if(state.busy||!hasFile()||!state.conversationId)return{ok:false,error:'media_not_ready'};
+ if(state.busy||restoring||!hasFile()||!state.conversationId)return{ok:false,error:'media_not_ready'};
  const recovery=window.WorkspaceV2MediaRecovery;
  if(!recovery)return{ok:false,error:'media_recovery_unavailable',error_message:'Не удалось подготовить безопасную отправку файлов. Текст и файлы сохранены.'};
  const generation=window.WorkspaceV2?.S?.authGeneration,manager=account(),target=state.conversationId,sourceKey=draftKey(target),rows=files(),csrf=state.csrf;
@@ -86,6 +143,8 @@ async function send(caption=''){
  const result=j=>({...j,conversation_id:target,sent_count:sent,confirmed_count:sent,media_operation_id:lastOperationId,caption_sent:captionConfirmed,unknown:rows.some(row=>row.status==='unknown'),remaining_count:rows.length});
  const sameSession=()=>generation===window.WorkspaceV2?.S?.authGeneration&&manager===account()&&!window.WorkspaceV2?.S?.authExpired;
  try{
+  const store=window.WorkspaceV2MediaDrafts;
+  if(store&&!(await persist(rows,target,manager)))return result({ok:false,error:'media_draft_not_saved',error_message:'Отправка не начата: не удалось сохранить вложения. Файлы остаются в открытой вкладке; проверьте свободное место в браузере.'});
   for(const row of snapshot){
    if(!sameSession())return result({ok:false,error:'stale_session'});
    if(state.conversationId!==target||attachmentDrafts.get(sourceKey)!==rows)return result({ok:false,error:'context_changed',error_message:`Отправлено файлов: ${sent}. Остальные сохранены в исходном диалоге.`});
@@ -93,6 +152,9 @@ async function send(caption=''){
    const record=recovery.begin(row.file,actualCaption,row.batchId);
    if(!record)return result({ok:false,error:'media_recovery_unavailable',error_message:'Отправка файла не начата. Проверьте сохранённые результаты и свободное место в браузере. Текст и файлы сохранены.'});
    row.recoveryId=record.operation_id;lastOperationId=record.operation_id;
+   // The reloadable row must name its exact attempt before any bytes leave.
+   // A crash after provider acceptance cannot turn an old blob into a new send.
+   if(store&&!store.checkpoint(manager,target,rows,captionSent.get(sourceKey)||null))return result({ok:false,error:'media_draft_not_saved',error_message:'Отправка файла не начата. Не удалось сохранить связь с попыткой; проверьте сохранённый результат.'});
    state.progress=`${sent+1}/${rows.length+sent}`;state.sendingRow=row;state.notice=`Отправляем файл ${sent+1} из ${rows.length+sent}…`;render();
    const data=new FormData();data.append('csrf',csrf);data.append('conversation_id',String(target));data.append('operation_id',record.operation_id);data.append('expected_manager_id',String(manager));data.append('file',row.file);data.append('caption',actualCaption);
    let response,j;
@@ -115,8 +177,9 @@ async function send(caption=''){
   }
   if(rows.length)return result({ok:false,error:'additional_files_pending',error_message:`Отправлено файлов: ${sent}. Добавленные во время отправки вложения сохранены; отправьте их отдельно.`});
   return result({ok:true});
- }finally{state.busy=false;state.sendingRow=null;state.progress='';if(sameSession()&&state.conversationId===target){state.notice='';render()}}
+ }finally{if(sameSession()&&attachmentDrafts.get(sourceKey)===rows)persist(rows,target,manager);else if(sameSession()&&!rows.length&&!attachmentDrafts.has(sourceKey))persist([],target,manager);state.busy=false;state.sendingRow=null;state.progress='';if(sameSession()&&state.conversationId===target){state.notice='';render()}}
 }
 
-window.WorkspaceV2Media={init,configure,hasFile,send,clear,preserveDraft,restoreDraft,resetDrafts,addFiles,settleRecovery};
+function forgetDraft(id){const key=draftKey(id),rows=attachmentDrafts.get(key);if(rows)revoke(rows);attachmentDrafts.delete(key);captionSent.delete(key);window.WorkspaceV2MediaDrafts?.forget(account(),Number(id));if(Number(id)===state.conversationId){restoreSequence++;restoring=false;state.restored=[];persistenceNotice='';state.notice='';if(input())input().value='';render()}}
+window.WorkspaceV2Media={init,configure,hasFile,send,clear,preserveDraft,restoreDraft,resetDrafts,addFiles,settleRecovery,reconcileDraft,forgetDraft,needsRestore:()=>!!window.WorkspaceV2MediaDrafts?.has?.(account(),state.conversationId)&&!attachmentDrafts.has(draftKey(state.conversationId)),isRestoring:()=>restoring};
 })();

@@ -75,4 +75,11 @@ test('an older media result cannot replace a newer media warning or a newer text
 test('an old media result cannot paint another open conversation',async()=>{
  const {createHarness}=require('./run_manager_reauth_composer_behavior_regression'),h=createHarness();await h.start();await h.draft('A');h.setFile(file('selected'));const operation='c'.repeat(32);h.window.WorkspaceV2Media.send=async()=>({ok:false,error:'media_unknown',media_operation_id:operation});await h.C.sendReply();await h.C.open(102);await h.draft('B');const before=h.ids.get('replyStatus').textContent;assert.equal(h.C.settleMediaFeedback({actor:7,conversation_id:101,operation_id:operation,state:'confirmed'}),false);assert.equal(h.ids.get('replyText').value,'B');assert.equal(h.ids.get('replyStatus').textContent,before);
 });
+test('same-account authorized recovery settles a cached unknown row confirmed while authentication was expired',async()=>{
+ const h=harness();Object.assign(h.S.detail.conversation,{manager_id:7,status:'manager'});h.media.addFiles([file('original')]);const flight=h.media.send('caption');await h.fail();await flight;
+ const record=h.recovery.entries()[0];h.S.authExpired=true;
+ const other=harness(h.store),confirmed=other.recovery.result(record,{ok:true,attempt:{kind:'media',state:'confirmed',media_type:'file',caption_included:true}});h.storageEvent(confirmed);assert.equal(h.media.hasFile(),true);
+ h.S.authExpired=false;h.S.authGeneration++;h.media.configure('recovered',11);assert.equal(h.media.reconcileDraft(11),true);assert.equal(h.media.hasFile(),false);assert.equal(h.requests.length,1);
+ h.media.addFiles([file('new')]);h.media.reconcileDraft(11);assert.equal(h.media.hasFile(),true);assert.equal(h.requests.length,1);
+});
 (async()=>{let failed=0;for(const c of cases)try{await c.run();console.log('PASS '+c.name)}catch(e){failed++;console.error('FAIL '+c.name,e)}console.log('TOTAL '+cases.length+' | FAIL '+failed);if(failed)process.exitCode=1})()

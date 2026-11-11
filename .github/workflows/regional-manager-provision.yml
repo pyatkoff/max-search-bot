@@ -26,9 +26,12 @@ jobs:
     env:
       # The release owner pins the accepted installed feature SHA before the
       # first push. This placeholder deliberately cannot pass the source gate.
-      EXPECTED_APPLICATION_SHA: 7aaaba7b1e2d86aaeac66b06eeb1466523e3628f
-      # Reviewed literal; apply/status are separate explicit branch updates.
-      PROVISION_OPERATION: prepare
+      EXPECTED_APPLICATION_SHA: 28a87f74f52b848d95131fd13754e3182af500aa
+      # Reviewed literal; reprepare/apply/status are separate explicit updates.
+      PROVISION_OPERATION: reprepare
+      # Used only by explicit reprepare of an expired, unwritten receipt.
+      PROVISION_PRIOR_REQUEST_ID: da7c944dc2fc4d69d137ae4d10c51405
+      PROVISION_PRIOR_APPLICATION_SHA: 7aaaba7b1e2d86aaeac66b06eeb1466523e3628f
     steps:
       - name: Check out the exact standalone operator
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -77,7 +80,7 @@ jobs:
           set -euo pipefail
           umask 077
           [[ "$EXPECTED_APPLICATION_SHA" =~ ^[0-9a-f]{40}$ ]]
-          case "$PROVISION_OPERATION" in prepare|apply|status) ;; *) exit 1 ;; esac
+          case "$PROVISION_OPERATION" in prepare|reprepare|apply|status) ;; *) exit 1 ;; esac
           runner="$RUNNER_TEMP/regional-provision-run.php"
           output="$RUNNER_TEMP/regional-provision-output.json"
           diagnostics="$RUNNER_TEMP/regional-provision.stderr"
@@ -88,7 +91,7 @@ jobs:
           def require(ok):
               if not ok: raise ValueError('fixed_operator_input_invalid')
           mode=os.environ['PROVISION_OPERATION']; sha=os.environ['EXPECTED_APPLICATION_SHA']
-          require(mode in ('prepare','apply','status') and re.fullmatch(r'[a-f0-9]{40}',sha))
+          require(mode in ('prepare','reprepare','apply','status') and re.fullmatch(r'[a-f0-9]{40}',sha))
           source=pathlib.Path('tools/provision_regional_managers.php').read_text()
           prefix='<?php\ndeclare(strict_types=1);\n'
           require(source.startswith(prefix))
@@ -102,6 +105,10 @@ jobs:
                   require(isinstance(p[key],str) and base64.b64encode(base64.b64decode(p[key],validate=True)).decode()==p[key])
               require(len(base64.b64decode(p['encrypted_key']))==384 and len(base64.b64decode(p['nonce']))==12 and len(base64.b64decode(p['tag']))==16)
           values={'REGIONAL_PROVISION_MODE':mode,'REGIONAL_PROVISION_EXPECTED_SHA':sha,'REGIONAL_PROVISION_ENVELOPE':envelope}
+          if mode=='reprepare':
+              prior_request=os.environ['PROVISION_PRIOR_REQUEST_ID']; prior_sha=os.environ['PROVISION_PRIOR_APPLICATION_SHA']
+              require(re.fullmatch(r'[a-f0-9]{32}',prior_request) and re.fullmatch(r'[a-f0-9]{40}',prior_sha))
+              values.update(REGIONAL_PROVISION_PRIOR_REQUEST_ID=prior_request,REGIONAL_PROVISION_PRIOR_APPLICATION_SHA=prior_sha)
           prelude=''.join("define('"+key+"',base64_decode('"+base64.b64encode(value.encode()).decode()+"'));\n" for key,value in values.items())
           pathlib.Path(sys.argv[1]).write_text(prefix+prelude+source[len(prefix):])
           PY

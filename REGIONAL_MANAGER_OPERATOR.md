@@ -14,7 +14,7 @@ Before publishing the branch, pin `EXPECTED_APPLICATION_SHA` in
 feature SHA. The initial non-hex placeholder cannot reach SSH. Only the exact
 `audit/regional-manager-provision-20261111` push can execute this workflow.
 `PROVISION_OPERATION` is a reviewed literal changed separately to `prepare`,
-`apply`, or `status`; there is no dispatch, schedule, main or post-deploy trigger.
+`reprepare`, `apply`, or `status`; there is no dispatch, schedule, main or post-deploy trigger.
 
 ## Prepare and encrypted input
 
@@ -49,6 +49,36 @@ contains exactly `version=1`, `algorithm=RSA-OAEP-SHA1+A256GCM`, `encrypted_key`
 Response AAD is `anytour-regional-manager-provision-v1`. Apply-plan AAD is
 `anytour-regional-manager-provision-v1:apply:<request_id>`. Plan expiry, source,
 actor, project and preview values are checked again after authenticated decryption.
+
+## Explicit restart of an expired preparation
+
+`reprepare CURRENT_APPLICATION_SHA PRIOR_REQUEST_ID PRIOR_APPLICATION_SHA`
+replaces only the exactly identified **expired, still-prepared** request. Embedded
+callers use `REGIONAL_PROVISION_PRIOR_REQUEST_ID` and
+`REGIONAL_PROVISION_PRIOR_APPLICATION_SHA` alongside the current expected SHA.
+The original recipient must match. The private state must have exactly the
+preparation fields (and at most one validated previous-preparation commitment);
+any applying field, credentials, result, refs, admission or completed steps,
+including an empty field, blocks replacement. Applying, configured, malformed,
+missing and unexpired requests cannot restart.
+
+Restart checks current installed source, actor and preview again. It retains the
+intact owner-only RSA key after validating its 3072-bit private-key format, and
+generates a fresh request ID, encrypted preview and maximum 30-minute lifetime.
+The fresh request changes apply-plan AAD, so the old encrypted plan cannot apply.
+The new preparation still requires a newly encrypted plan with its exact source,
+request, preview and expiry; restart creates no accounts or passwords.
+
+Before the single atomic active-state replacement, the exact original state is
+durably archived as an owner-only `0600` regular file beside the configuration:
+`max-search.php.regional-managers-v1-prepared-<request>-<old-sha>.json`.
+The archive is never overwritten. An existing archive is accepted only when its
+private-file checks and raw bytes exactly match the still-active original state.
+This permits an explicitly checked retry after interruption before state commit;
+it cannot replace a committed new request. An uncertain command result must first
+be reconciled, without an automatic retry. After commit, `status` on the current
+source recovers the exact new packet; it never extends its expiry. The active key
+has no deletion/replacement window, and original evidence stays private.
 
 ## Apply and recovery
 

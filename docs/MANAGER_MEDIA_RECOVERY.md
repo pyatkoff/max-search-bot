@@ -1,7 +1,8 @@
 # Manager media delivery recovery
 
 Wazzup plan item 4 extends the existing manager send-attempt owner to individual
-files. It does not introduce another sender or restore file bytes after reload.
+files. Item5 adds reloadable attachment drafts to the existing browser Media owner,
+without introducing another sender.
 It tracks new media attempts; historical untracked sends and their unknown
 outcomes are not reconstructed or replayed.
 
@@ -48,7 +49,7 @@ remain uncertain rather than becoming a claimed rejection.
 ## Browser contract
 
 Before each upload, the browser durably saves an account-scoped descriptor for
-that exact file attempt. It stores metadata and caption intent, not file bytes.
+that exact file attempt. It stores metadata and caption intent, not file bytes. The separate draft store below owns selected local blobs.
 The immutable intent and terminal outcome have separate keys for the same
 operation. A delayed pending result from another window cannot overwrite a
 confirmed outcome. Pruned terminal history cannot resurrect an old intent.
@@ -64,8 +65,40 @@ A batch remains a sequence of individual canonical sends. Confirmed attempts
 never dispatch again; the confirmed caption is not repeated on remaining files from
 the same batch. Late results belong to their original account, conversation,
 batch and draft context, and must not erase or consume a newer draft or file
-selection. Recovery does not turn a saved descriptor back into a selected File.
-Restoring the draft with its actual attachments is separate plan item5.
+selection. The delivery journal remains separate from selected local file bytes.
+
+## Reloadable draft attachments
+
+The existing Conversation module remains the only text-draft owner: account-bound
+sessionStorage, including text version and unresolved text-send fences. Untouched
+AI previews are still excluded. Media remains the only selected-File owner.
+
+`workspace-v2-media-drafts.js` stores immutable binary file bytes in IndexedDB
+and a bounded selection manifest in this tab's sessionStorage, scoped by manager and
+conversation. Native ArrayBuffer payloads avoid relying on persistable File/Blob
+handles; loading reconstructs the original File metadata and bytes. A duplicated
+tab inherits an independent manifest; there is no
+shared mutable selection record. New selection writes fork through immutable blob
+identities. Removing a selection does not delete bytes another tab may reference.
+Blobs expire after24hours and storage is bounded to100MiB, with at most10files per
+conversation and20saved conversation selections per tab. Browser eviction, private
+mode or quota errors can prevent restoration; the UI reports failure and retains
+current RAM files rather than claiming they were saved.
+
+Only a freshly authorized, manager-owned editable conversation can hydrate its
+selected files. Loading never replaces text. Late loads cannot overwrite newer
+files, another conversation, an expired session or another account. Explicit logout
+and identity changes clear selection manifests and revoke pending commits; access
+loss or loss of assignment clears the affected selection. The delivery journal's
+unresolved operations remain fenced independently.
+
+Before each upload, file bytes must be committed and the exact row's operation and
+batch IDs must be recorded in its reloadable manifest. After reload, the existing
+delivery journal is overlaid by these exact IDs: confirmed rows are removed,
+rejected/cancelled rows become ready and unresolved/missing receipts remain
+blocked. Matching by filename does not consume a new selection. Confirmed batch
+captions stay associated with remaining files so an explicit continuation does not
+repeat them. Restoring, receipt checks and storage writes never send a file.
 
 ## Verification and installation
 

@@ -81,7 +81,7 @@ function activateReplySession(managerId){
   persistReplySession();return savedSelection;
 }
 function rememberSelection(id){savedSelection=validId(Number(id))?Number(id):0;persistReplySession()}
-function forgetSavedConversation(id){drafts.delete(id);if(savedSelection===id)savedSelection=0;persistReplySession()}
+function forgetSavedConversation(id){window.WorkspaceV2Media?.forgetDraft?.(id);drafts.delete(id);if(savedSelection===id)savedSelection=0;persistReplySession()}
 function initials(name){const parts=String(name||'Турист').trim().split(/\s+/).filter(Boolean);return parts.slice(0,2).map(x=>x.charAt(0).toUpperCase()).join('')||'Т'}
 function messageTime(value){return window.ManagerTime.format(value,{separator:' · '})}
 function setReplyStatus(text='',kind=''){mediaFeedback=null;const el=$('replyStatus');if(!el)return;el.textContent=text;el.className='replyStatus'+(kind?' '+kind:'')}
@@ -100,7 +100,7 @@ function setRefreshStatus(text=''){let el=$('conversationRefreshStatus');if(!el&
 function setBusy(value){busy=!!value;if(busy)refreshEpoch++;applyInteractionState();window.WorkspaceV2History?.render();if(!busy)void window.WorkspaceV2History?.recoverGap?.()}
 function lifecycleBlocked(){return !!lifecycleIssue&&!S.authExpired&&lifecycleIssue.target===Number(S.current)&&lifecycleIssue.manager===Number(S.manager?.id)&&lifecycleIssue.auth===S.authGeneration}
 function deliverySuspended(){return String(S.detail?.delivery_failure?.category||'')==='suspended'}
-function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||(suspended&&!pendingAttempt())||!!opening||accessLost||lifecycleBlocked();send.textContent=busy?(lifecycleFlight||pendingAttempt()?'Подождите…':'Отправляем…'):pendingAttempt()?'Проверить отправку':'Отправить';send.dataset.sendPending=pendingAttempt()?'true':'false';send.setAttribute('aria-label',send.textContent);send.title=send.textContent}if(reply){reply.disabled=busy||suspended||!!opening||accessLost;reply.classList.toggle('aiDraftPreview',!!aiDraftPreview())}if(file)file.disabled=busy||suspended||!!opening||accessLost;document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||!!opening||accessLost});const emoji=$('emojiToggle');if(emoji)emoji.disabled=!canInsertEmoji();if(!canInsertEmoji())closeEmojiPicker();window.WorkspaceV2ReplyEditor?.sync()}
+function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||(suspended&&!pendingAttempt())||!!window.WorkspaceV2Media?.isRestoring?.()||!!opening||accessLost||lifecycleBlocked();send.textContent=busy?(lifecycleFlight||pendingAttempt()?'Подождите…':'Отправляем…'):pendingAttempt()?'Проверить отправку':'Отправить';send.dataset.sendPending=pendingAttempt()?'true':'false';send.setAttribute('aria-label',send.textContent);send.title=send.textContent}if(reply){reply.disabled=busy||suspended||!!opening||accessLost;reply.classList.toggle('aiDraftPreview',!!aiDraftPreview())}if(file)file.disabled=busy||suspended||!!opening||accessLost||!!window.WorkspaceV2Media?.isRestoring?.();document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||!!opening||accessLost});const emoji=$('emojiToggle');if(emoji)emoji.disabled=!canInsertEmoji();if(!canInsertEmoji())closeEmojiPicker();window.WorkspaceV2ReplyEditor?.sync()}
 function applyActionState(){document.querySelectorAll('[data-conversation-lifecycle]').forEach(b=>{b.disabled=busy||!!opening||accessLost||lifecycleBlocked()})}
 function applyInteractionState(){applyComposerState();applyActionState();renderLifecycleIssue()}
 // A failed request is not proof that the recipient did not receive the message.
@@ -483,10 +483,10 @@ async function open(id,options={}){
   if(switching){window.WorkspaceV2ConversationSearch?.reset();window.WorkspaceV2Media?.preserveDraft?.(previous)}
   clearLifecycleIssue();accessLost=false;S.current=target;S.detail={...d,lead:null};S.detail.messages=window.WorkspaceV2History?.applyLatest(S.detail,{reset:!retainLoaded,retainLoaded})||d.messages||[];rememberSelection(target);setReplyStatus();setLoadStatus();
   window.WorkspaceV2Media?.configure(S.csrf,target);
-  if(switching){if(window.WorkspaceV2Media?.restoreDraft)window.WorkspaceV2Media.restoreDraft(target);else window.WorkspaceV2Media?.clear()}
+  if((switching||window.WorkspaceV2Media?.needsRestore?.())&&Number(d.conversation.manager_id)===manager&&d.conversation.status==='manager'){if(window.WorkspaceV2Media?.restoreDraft)window.WorkspaceV2Media.restoreDraft(target);else window.WorkspaceV2Media?.clear()}
   else if(!options.preserveAttachment)window.WorkspaceV2Media?.clear();
   const c=d.conversation;renderHeader(c);renderDeliveryFailure(d.delivery_failure||null);renderActions(c);
-  if(Number(c.manager_id)!==manager||c.status!=='manager'){drafts.delete(target);persistReplySession();$('replyText').value='';autoGrow();window.WorkspaceV2Media?.clear()}else if(switching)restoreDraft(S.current);
+  if(Number(c.manager_id)!==manager||c.status!=='manager'){drafts.delete(target);persistReplySession();$('replyText').value='';autoGrow();window.WorkspaceV2Media?.clear()}else{if(switching)restoreDraft(S.current);window.WorkspaceV2Media?.reconcileDraft?.(target)}
   renderMessages(S.detail.messages||[],{stickToBottom:options.stickToBottom===true||switching,preserveScroll:options.preserveMessageScroll===true&&!switching,resetRows:switching});
   window.WorkspaceV2ConversationSearch?.setState('ready');renderLeadLoading(c);
   window.WorkspaceV2Inbox?.markActive(target);
@@ -610,6 +610,7 @@ async function change(a){
 }
 async function sendReply(reconcileAction='send_receipt'){
   if(busy||(deliverySuspended()&&!pendingAttempt()))return;
+  if(window.WorkspaceV2Media?.isRestoring?.())return;
   if(opening)return;
   if(accessLost||S.authExpired||lifecycleBlocked())return;
   const owner=replySessionOwner;let draftText=$('replyText').value;
@@ -731,5 +732,5 @@ function bind(){
   reply.addEventListener('keydown',e=>{if(!e.isComposing&&e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
   document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))
 }
-window.WorkspaceV2Conversation={hasReadAccess:()=>!accessLost&&!S.authExpired,renderHandoffContext,invalidateMessageAccess:loseHistoryAccess,renderMessageContext,canNavigateMessages:()=>isCurrentHistory(historyContext()),acceptReadPage,bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,settleMediaFeedback,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,insertAiDraft,previewAiDraft,discardAiPreview,aiDraftPreview,openSearch,nextWaiting};
+window.WorkspaceV2Conversation={syncComposer:applyInteractionState,hasReadAccess:()=>!accessLost&&!S.authExpired,renderHandoffContext,invalidateMessageAccess:loseHistoryAccess,renderMessageContext,canNavigateMessages:()=>isCurrentHistory(historyContext()),acceptReadPage,bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,settleMediaFeedback,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,insertAiDraft,previewAiDraft,discardAiPreview,aiDraftPreview,openSearch,nextWaiting};
 })();

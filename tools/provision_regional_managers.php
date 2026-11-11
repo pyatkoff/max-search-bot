@@ -171,6 +171,63 @@ final class RegionalManagerProvision
             return$state['prepare_packet'];
         });
     }
+    /** Explicit replacement of one expired, provably unwritten preparation only. */
+    public function reprepare(string$sha,string$priorRequestId,string$priorApplicationSha):array
+    {
+        self::check(preg_match('/\A[a-f0-9]{32}\z/D',$priorRequestId)===1
+            &&preg_match('/\A[a-f0-9]{40}\z/D',$priorApplicationSha)===1,'REQUEST_BINDING_MISMATCH');
+        return$this->locked($sha,'reprepare',function(?array$state)use($sha,$priorRequestId,$priorApplicationSha):array{
+            self::check($state!==null&&$state['request_id']===$priorRequestId
+                &&$state['application_sha']===$priorApplicationSha,'REQUEST_BINDING_MISMATCH');
+            self::check($state['phase']==='prepared','UNKNOWN_WRITE_HELD');
+            // Any apply/recovery evidence, even an empty field, forbids replacement.
+            $keys=array_keys($state);sort($keys);$expected=['actor_id','application_sha','contract','created_at','expires_at','phase','prepare_packet','preview_digest','project_id','recipient_sha256','request_id'];
+            if(array_key_exists('reprepared_from',$state)){
+                $receipt=$state['reprepared_from'];$receiptKeys=is_array($receipt)?array_keys($receipt):[];sort($receiptKeys);
+                self::check($receiptKeys===['application_sha','request_id','state_sha256']
+                    &&is_string($receipt['request_id'])&&preg_match('/\A[a-f0-9]{32}\z/D',$receipt['request_id'])===1
+                    &&is_string($receipt['application_sha'])&&preg_match('/\A[a-f0-9]{40}\z/D',$receipt['application_sha'])===1
+                    &&is_string($receipt['state_sha256'])&&preg_match('/\A[a-f0-9]{64}\z/D',$receipt['state_sha256'])===1,'PREPARATION_NOT_PRISTINE');
+                $expected[]='reprepared_from';sort($expected);
+            }
+            self::check($keys===$expected&&$state['actor_id']===self::ACTOR&&$state['project_id']===self::PROJECT_ID
+                &&is_int($state['created_at'])&&$state['created_at']>0&&$state['expires_at']-$state['created_at']===self::TTL
+                &&is_string($state['preview_digest'])&&preg_match('/\A[a-f0-9]{64}\z/D',$state['preview_digest'])===1
+                &&is_array($state['prepare_packet']),'PREPARATION_NOT_PRISTINE');
+            $packetKeys=array_keys($state['prepare_packet']);sort($packetKeys);
+            self::check($packetKeys===['algorithm','ciphertext','encrypted_key','nonce','tag','version']
+                &&$state['prepare_packet']['version']===1&&$state['prepare_packet']['algorithm']==='RSA-OAEP-SHA1+A256GCM','PREPARATION_NOT_PRISTINE');
+            foreach(['encrypted_key'=>384,'nonce'=>12,'tag'=>16,'ciphertext'=>null]as$field=>$length){
+                $encoded=$state['prepare_packet'][$field];$decoded=is_string($encoded)?base64_decode($encoded,true):false;
+                self::check(is_string($decoded)&&base64_encode($decoded)===$encoded
+                    &&($length===null?(strlen($decoded)>0&&strlen($decoded)<=262144):strlen($decoded)===$length),'PREPARATION_NOT_PRISTINE');
+            }
+            self::check($state['expires_at']<($this->clock)(),'REQUEST_NOT_EXPIRED');
+            $original=$this->readPrivate($this->path('state.json'),1048576);
+            self::check(json_decode($original,true,32,JSON_THROW_ON_ERROR)===$state,'PRIVATE_STATE_CHANGED');
+            $private=$this->readPrivate($this->path('private.pem'),8192);
+            try{
+                $key=openssl_pkey_get_private($private);$details=$key?openssl_pkey_get_details($key):false;
+                self::check(is_array($details)&&$details['type']===OPENSSL_KEYTYPE_RSA&&$details['bits']===3072,'PRIVATE_STATE_INVALID');
+                $preview=$this->current($sha,true);$digest=hash('sha256',self::json($preview));$now=($this->clock)();
+                $next=['contract'=>self::CONTRACT,'phase'=>'prepared','application_sha'=>$sha,'actor_id'=>self::ACTOR,'project_id'=>self::PROJECT_ID,
+                    'request_id'=>bin2hex(random_bytes(16)),'created_at'=>$now,'expires_at'=>$now+self::TTL,
+                    'recipient_sha256'=>hash('sha256',$this->recipient),'preview_digest'=>$digest,
+                    'reprepared_from'=>['request_id'=>$priorRequestId,'application_sha'=>$priorApplicationSha,'state_sha256'=>hash('sha256',$original)]];
+                // Retain the intact ephemeral key; fresh request AAD invalidates every old plan.
+                $next['prepare_packet']=$this->packet($next+['server_public_key_pem'=>$details['key'],'preview'=>$preview,'database_changed'=>false,'key_reused'=>true]);
+                $archive=$this->path('prepared-'.$priorRequestId.'-'.$priorApplicationSha.'.json');
+                if(file_exists($archive)||is_link($archive))self::check(hash_equals($original,$this->readPrivate($archive,1048576)),'PREPARATION_ARCHIVE_MISMATCH');
+                else$this->writeNew($archive,$original);
+                $fresh=$this->current($sha,true);
+                self::check(hash_equals($digest,hash('sha256',self::json($fresh))),'PREVIEW_CHANGED');
+                self::check(($this->provenance)($sha)===true,'APPLICATION_SHA_MISMATCH');($this->authority)(true);
+                self::check($next['expires_at']>=($this->clock)(),'REQUEST_EXPIRED');
+                // The sole active-state replacement is atomic; no absent-state/key window.
+                $this->save($next);return$next['prepare_packet'];
+            }finally{if(function_exists('sodium_memzero'))sodium_memzero($private);}
+        });
+    }
     private static function label($value):bool{return is_string($value)&&$value!==''&&trim($value)===$value&&strlen($value)<=191&&preg_match('//u',$value)===1&&!preg_match('/[\x00-\x1f\x7f]/',$value);}
     private static function plan(array$plan,array$state):array
     {
@@ -410,7 +467,7 @@ if(!defined('REGIONAL_MANAGER_PROVISION_LIBRARY_ONLY')){
     try{
         $mode=defined('REGIONAL_PROVISION_MODE')?REGIONAL_PROVISION_MODE:($argv[1]??'');
         $sha=defined('REGIONAL_PROVISION_EXPECTED_SHA')?REGIONAL_PROVISION_EXPECTED_SHA:($argv[2]??'');
-        RegionalManagerProvision::check(in_array($mode,['prepare','apply','status'],true),'INVALID_OPERATION');
+        RegionalManagerProvision::check(in_array($mode,['prepare','reprepare','apply','status'],true),'INVALID_OPERATION');
         RegionalManagerProvision::check(function_exists('posix_geteuid')&&function_exists('fsync'),'PRIVATE_IO_CAPABILITY_REQUIRED');
         RegionalManagerProvision::check($mode==='status'||getenv('ALLOW_REGIONAL_MANAGER_PROVISION_WRITE')==='1','EXPLICIT_WRITE_GUARD_REQUIRED');
         $recipient=<<<'PUBLIC_KEY'
@@ -437,6 +494,12 @@ PUBLIC_KEY;
             [RegionalManagerProvisionDirectory::class,'authority'],[RegionalManagerProvisionDirectory::class,'run']);
         set_time_limit(180);
         if($mode==='prepare')$packet=$operator->prepare($sha);
+        elseif($mode==='reprepare'){
+            $priorRequest=defined('REGIONAL_PROVISION_PRIOR_REQUEST_ID')?REGIONAL_PROVISION_PRIOR_REQUEST_ID:($argv[3]??'');
+            $priorSha=defined('REGIONAL_PROVISION_PRIOR_APPLICATION_SHA')?REGIONAL_PROVISION_PRIOR_APPLICATION_SHA:($argv[4]??'');
+            RegionalManagerProvision::check(is_string($priorRequest)&&is_string($priorSha),'REQUEST_BINDING_MISMATCH');
+            $packet=$operator->reprepare($sha,$priorRequest,$priorSha);
+        }
         elseif($mode==='status')$packet=$operator->status($sha);
         else{
             $input=defined('REGIONAL_PROVISION_ENVELOPE')?REGIONAL_PROVISION_ENVELOPE:stream_get_contents(STDIN,524289);
