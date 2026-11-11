@@ -103,6 +103,8 @@ final class ModeledConversionDialogueTraceReader
         }
         $out['ledger']['value_rub']=$cents/100;
         $out['complete']=$out['ledger']['complete']&&($out['wizard_applications']['complete']??false);
+        foreach(['fields','party']as$group)foreach($out['frozen_profile'][$group]as$f)
+            if(($f['complete']??true)!==true)$out['complete']=false;
         while(strlen(self::json($out))>self::MAX_BYTES&&$out['ledger']['rows']){
             array_pop($out['ledger']['rows']);$out['ledger']['complete']=false;$out['complete']=false;
             $out['ledger']['rows_omitted_due_to_response_budget']=true;
@@ -127,9 +129,11 @@ final class ModeledConversionDialogueTraceReader
         $out['recorded_count']=count($facts);$out['complete']=count($facts)<=4;
         foreach(array_slice($facts,0,4)as$f){
             if(!is_array($f)){$out['complete']=false;continue;}
-            $refs=[];
-            foreach(array_slice(is_array($f['references']??null)?$f['references']:[],0,4)as$r)
+            $rawRefs=is_array($f['references']??null)?$f['references']:[];$refs=[];
+            if(count($rawRefs)>4)$out['complete']=false;
+            foreach(array_slice($rawRefs,0,4)as$r)
                 if(is_array($r)&&self::ref($r['id']??null))$refs[]=['id'=>$r['id'],'source'=>self::label($r['source']??null)];
+            if(count($refs)!==min(4,count($rawRefs)))$out['complete']=false;
             $out['facts'][]=['value'=>self::value($f['value']??null),'basis'=>self::label($f['basis']??null),'references'=>$refs];
         }
         return$out;

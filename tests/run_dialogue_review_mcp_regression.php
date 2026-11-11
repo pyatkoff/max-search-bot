@@ -592,6 +592,16 @@ try{
         $withdrawnTrace&&($lateTrace['error']['code']??null)===-32001&&!isset($lateTrace['result'])&&!$pdo->inTransaction());
     DialogueSelectionGrantStatement::$withdrawAfterSnapshot=null;
     $pdo->prepare('UPDATE manager_preparation_oauth_grants SET scopes=? WHERE grant_id=?')->execute([$traceScope,$traceContext['connection_id']]);
+    $longReferenceProfile=$traceProfile();
+    $longReferenceProfile['profile']['party']['adults']['references']=array_map(
+        static fn(int $n):array=>['id'=>'journal:'.$n,'source'=>'message'],range(1,6));
+    $pdo->prepare('INSERT INTO modeled_conversion_profile_versions VALUES(?,?,?,?,?,?,?)')
+        ->execute([12,'anytour','max','1010','10',$now-30,json_encode($longReferenceProfile,JSON_THROW_ON_ERROR)]);
+    $longReferencePacket=$nativeCall($native,$traceContext,'get_dialogue_review_context',['dialogue_ref'=>$traceRef]);
+    $longReferenceTrace=$longReferencePacket['result']['structuredContent']['saved_profile']['conversion_trace']??[];
+    dialogueMcpCheck('bounded fact references propagate explicit incomplete trace coverage',
+        ($longReferenceTrace['frozen_profile']['party']['adults']['complete']??null)===false
+        &&($longReferenceTrace['complete']??null)===false);
     for($n=100;$n<133;$n++)$putTraceRow($n);
     $boundedTrace=$nativeCall($native,$traceContext,'get_dialogue_review_context',['dialogue_ref'=>$traceRef]);
     $boundedValue=$boundedTrace['result']['structuredContent']['saved_profile']['conversion_trace']??[];
