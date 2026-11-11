@@ -74,6 +74,46 @@ dcrCheck('spaced explicit date clears obsolete month context', PendingMonthStore
 $spacedGuard = AiDateContextService::applyAiGuard($chatId, '18 . 11.2030', ['date'=>'20.12.2030']);
 dcrCheck('spaced explicit user date wins over AI guess', ($spacedGuard['date'] ?? '') === '18.11.2030');
 
+// A complete whitespace-delimited date confirms its own month and year.
+// Synthetic values are independent of the private dialogue that exposed this.
+$explicitYear = (int)date('Y') + 2;
+foreach ([
+    '17 12 '.$explicitYear,
+    ' 17  12  '.$explicitYear.' ',
+    "17\t12\t".$explicitYear,
+    "17\u{00A0}12\u{00A0}".$explicitYear,
+    "17\u{202F}12\u{202F}".$explicitYear,
+] as $completeDate) {
+    dcrCheck('whole spaced date retains the exact explicit calendar value',
+        DateParser::resolveDate($completeDate) === DateParser::resolveDate('17.12.'.$explicitYear));
+}
+foreach ([
+    '31 04 '.$explicitYear, '29 02 2030', '17 13 '.$explicitYear,
+    '17 12', '17 12 30', '17 12 0000', '17 12 0030',
+    '17 12 '.$explicitYear.'?', 'не 17 12 '.$explicitYear,
+    'вылет 17 12 '.$explicitYear, '17 12 '.$explicitYear.' на 8 ночей',
+    '17-18 12 '.$explicitYear, '17 12 '.$explicitYear.' или 18 12 '.$explicitYear,
+    "17\n12\n".$explicitYear, '2 взрослых 12 лет 2030',
+] as $notAConfirmedDate) {
+    dcrCheck('unsupported spaced numeric text cannot invent a departure',
+        empty(DateParser::resolveDate($notAConfirmedDate)['date']));
+}
+dcrCheck('whole explicit correction retains only the positive replacement',
+    (DateParser::resolveDate('не 17 12 '.$explicitYear.', а 18 12 '.$explicitYear)['date'] ?? '') === '18.12.'.$explicitYear);
+PendingMonthStore::set($chatId, 7, $explicitYear, true);
+$completeLocal = AiDateContextService::resolveLocal($chatId, '17 12 '.$explicitYear);
+dcrCheck('complete spaced date clears another months pending range',
+    $completeLocal['date'] === '17.12.'.$explicitYear && PendingMonthStore::get($chatId) === []);
+$completeGuard = AiDateContextService::applyAiGuard($chatId, '17 12 '.$explicitYear,
+    ['date'=>'18.07.'.$explicitYear, 'nights'=>'8']);
+dcrCheck('complete literal date wins over model guess without changing duration',
+    $completeGuard['date'] === '17.12.'.$explicitYear && $completeGuard['nights'] === '8');
+PendingMonthStore::set($chatId, 7, $explicitYear, true);
+$pastComplete = AiDateContextService::resolveLocal($chatId, '17 12 2001');
+dcrCheck('explicit past year is not advanced or allowed to clear clarification',
+    $pastComplete['date'] === '17.12.2001' && PendingMonthStore::requiresClarification($chatId));
+DateContextResolver::clear($chatId);
+
 // A missing space in a complete short date retains the ordinary date contract.
 foreach ([
     ['9апреля 2030', '9 апреля 2030'],
