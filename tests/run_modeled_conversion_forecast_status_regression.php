@@ -11,6 +11,7 @@ final class ForecastV1ObservedStatement extends PDOStatement
     public static bool $copied=false;
     public static bool $valueCopied=false;
     public static mixed $afterMetadata=null;
+    public static mixed $afterNativePoint=null;
     public static bool $observePredictive=false;
     public static int $predictiveExecutions=0;
     public static array $predictiveCopies=[];
@@ -47,6 +48,9 @@ final class ForecastV1ObservedStatement extends PDOStatement
         if(self::$observeCore&&str_contains($this->queryString,' AS prediction_json,'))self::$coreCopies[]=$rows;
         if(str_contains($this->queryString,' AS reserved_rub'))self::$valueCopied=true;
         if(str_contains($this->queryString,' AS prediction_json,'))self::$copied=true;
+        if(str_contains($this->queryString,'native_identity_point_packets')&&is_callable(self::$afterNativePoint)){
+            $hook=self::$afterNativePoint;self::$afterNativePoint=null;$hook();
+        }
         if(str_contains($this->queryString,' AS namespace_matches')&&is_callable(self::$afterMetadata)){
             $hook=self::$afterMetadata;self::$afterMetadata=null;$hook();
         }
@@ -1643,10 +1647,10 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check):void
 {
     foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
     $p->exec("CREATE TABLE modeled_conversion_profile_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),customer_key VARCHAR(40),conversation_id BIGINT,observed_at_unix BIGINT,assessment_namespace CHAR(64),assessment_kind VARCHAR(8),profile_json TEXT)");
-    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),conversation_id BIGINT,counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),target VARCHAR(100),value_profile_id BIGINT,value_rub DECIMAL(12,2),state VARCHAR(24),upload_status VARCHAR(32),upload_id VARCHAR(40),external_user_id VARCHAR(20),event_unix BIGINT,value_stage VARCHAR(40),last_error TEXT,value_ready_at_unix BIGINT,value_api_accepted_at_unix BIGINT,value_processed_at_unix BIGINT)");
+    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),conversation_id BIGINT,counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),target VARCHAR(100),value_profile_id BIGINT,value_rub DECIMAL(12,2),state VARCHAR(24),upload_status VARCHAR(32),upload_id VARCHAR(40),external_user_id VARCHAR(20),event_unix BIGINT,value_stage VARCHAR(40),last_error TEXT,value_ready_at_unix BIGINT,value_api_accepted_at_unix BIGINT,value_processed_at_unix BIGINT,identity_source_key VARCHAR(80) DEFAULT '',source_signal_id BIGINT,identity_observation_id BIGINT,attempts INT DEFAULT 0,claimed_at_unix BIGINT,client_id VARCHAR(40),tracker_record_id VARCHAR(20),tracker_observed_unix BIGINT,value_receipt_basis VARCHAR(24))");
     $checkpoint=ModeledConversionValueVisitEvidence::CHECKPOINT;$now=$checkpoint+600;$namespace=ModeledConversionProfiles::assessmentNamespace();
     $insertProfile=$p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour','max',?,?,?,?,'repair','PRIVATE_NATIVE_PROFILE_MUST_NOT_BE_READ')");
-    $insertEvent=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,'anytour','max',?,'98615635',?,?,?,?,?,'pending',NULL,NULL,?,?,'specific_request','identity_not_found',NULL,NULL,NULL)");
+    $insertEvent=$p->prepare("INSERT INTO max_channel_conversion_outbox(id,project_key,platform,conversation_id,counter_id,transport_target,value_contract,target,value_profile_id,value_rub,state,upload_status,upload_id,external_user_id,event_unix,value_stage,last_error,value_ready_at_unix,value_api_accepted_at_unix,value_processed_at_unix) VALUES(?,'anytour','max',?,'98615635',?,?,?,?,?,'pending',NULL,NULL,?,?,'specific_request','identity_not_found',NULL,NULL,NULL)");
     for($id=1;$id<=4;$id++){
         $born=$id===4?$checkpoint+1:$checkpoint-120;
         $insertProfile->execute([$id,(string)(730000+$id),930000+$id,$born,$namespace]);
@@ -1758,6 +1762,101 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check):void
         !str_contains($safeRecovery,'"9934567890123401"')&&!str_contains($safeRecovery,'"84001"')
         &&!str_contains($safeRecovery,'client_id')&&!str_contains($safeRecovery,'record_id')
         &&$newProof['provider_requests_in_reader']===0&&$snapshot()===$before);
+    // A distinct native conversation can hold a processed tracker binding for the same actual MAX user.
+    $auditRead=static fn(?callable $auth=null,?ModeledConversionStatusBudget $budget=null):array=>
+        $read($unavailableOriginal,$auth,$budget,$doneRecovery)['retained_native_identity_evidence'];
+    $withoutIndex=$auditRead();
+    $check('retained native identity audit never falls back to a scan when its exact point index is absent',
+        !$withoutIndex['available']&&$withoutIndex['reason']==='point_index_unavailable');
+    $p->exec('CREATE INDEX ix_max_identity_point ON max_channel_conversion_outbox(project_key,platform,counter_id,external_user_id,id)');
+    $wrongIndex=$auditRead();$p->exec('DROP INDEX ix_max_identity_point'.($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' ON max_channel_conversion_outbox':''));
+    $check('retained native audit rejects a same-named index with the wrong column order',
+        !$wrongIndex['available']&&$wrongIndex['reason']==='point_index_unavailable');
+    $p->exec('CREATE INDEX ix_max_identity_point ON max_channel_conversion_outbox(project_key,platform,external_user_id,counter_id,id)');
+    $nativeInsert=$p->prepare("INSERT INTO max_channel_conversion_outbox(id,project_key,platform,conversation_id,counter_id,target,transport_target,"
+        ."state,upload_status,upload_id,external_user_id,event_unix,last_error,identity_source_key,attempts,claimed_at_unix,client_id,tracker_record_id,tracker_observed_unix)"
+        ." VALUES(?,?,?,?,?,?,?,'processed','PROCESSED',?,?,?,'','',1,?,?,?,?)");
+    $nativeRow=static function(int $id,array $override=[])use($nativeInsert,$now,$checkpoint):void{
+        $values=array_replace(['id'=>$id,'project'=>'anytour','platform'=>'max','conversation'=>990000+$id,'counter'=>'98615635',
+            'target'=>'max_manager_reply','transport'=>'max_channel_manager_reply','upload'=>(string)(880000+$id),'user'=>'740001',
+            'event'=>$checkpoint-300,'claim'=>$now-10,'client'=>'9912345678901234','record'=>(string)(890000+$id),'source'=>$checkpoint-600],$override);
+        $nativeInsert->execute(array_values($values));
+    };
+    $nativeRow(100);$nativeBefore=$snapshot();
+    $oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+    ForecastV1ObservedStatement::$observePredictive=true;ForecastV1ObservedStatement::$predictiveStatements=[];
+    try{$native=$auditRead();}finally{ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $nativeSql=implode(' ',array_column(ForecastV1ObservedStatement::$predictiveStatements,'sql'));
+    $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+    $check('different native conversation supplies one strictly scoped processed candidate without granting a visit or financial permission',
+        $native['available']&&$native['status']==='candidate_observed'&&$native['event_ref']===$frame['r'][0][0]
+        &&$native['admitted_native_witnesses']===1&&$native['unique_candidate_count']===1
+        &&$native['source_observed_at']===gmdate('Y-m-d\TH:i:s\Z',$checkpoint-600)
+        &&$native['source_provenance']==='retained_native_processed_tracker_source'
+        &&preg_match('/\A[a-f0-9]{64}\z/D',$native['candidate_sha256'])===1
+        &&$native['visit_linkage']==='not_checked'&&!$native['financial_permission']&&$native['acknowledgement_time']==='not_persisted'
+        &&$native['provider_requests_in_reader']===0&&$native['complete_within_bound']
+        &&str_contains($nativeSql,'native_identity_point_packets')&&str_contains($nativeSql,'LIMIT 65 OFFSET 0')
+        &&str_contains($nativeSql,'HEX(external_user_id)=HEX(?)')
+        &&str_contains($nativeSql,$mysql?'FORCE INDEX (ix_max_identity_point)':'INDEXED BY ix_max_identity_point')
+        &&(!$mysql||str_contains($nativeSql,'MAX_EXECUTION_TIME(250)'))
+        &&$snapshot()===$nativeBefore);
+    $stable=$auditRead();
+    $check('native candidate reference stays stable and its projection omits all raw native identity and receipt identifiers',
+        $stable['candidate_sha256']===$native['candidate_sha256']
+        &&!str_contains(json_encode($stable,JSON_THROW_ON_ERROR),'9912345678901234')
+        &&!str_contains(json_encode($stable,JSON_THROW_ON_ERROR),'880100')
+        &&!str_contains(json_encode($stable,JSON_THROW_ON_ERROR),'890100')
+        &&!str_contains(json_encode($stable,JSON_THROW_ON_ERROR),'740001'));
+    $nativeRow(101,['user'=>'740099']);$nativeRow(102,['counter'=>'98615636']);$nativeRow(103,['project'=>'ANYTOUR']);
+    $nativeRow(104,['platform'=>'max ']);$nativeRow(105,['counter'=>'98615635 ']);$nativeRow(106,['user'=>'740001 ']);
+    $nativeRow(107,['target'=>'max_manager_reply ']);$nativeRow(108,['transport'=>'max_channel_manager_reply ']);
+    $nativeRow(109,['client'=>"9912345678901234\n"]);$nativeRow(110);
+    $p->exec("UPDATE max_channel_conversion_outbox SET tracker_observed_unix=NULL WHERE id=110");
+    $nativeRow(111);$p->exec("UPDATE max_channel_conversion_outbox SET value_receipt_basis='legacy' WHERE id=111");
+    $nativeRow(112,['source'=>$checkpoint+1]);$nativeRow(113,['claim'=>$now+1]);
+    $nativeRow(114);$p->exec("UPDATE max_channel_conversion_outbox SET upload_status='UPLOADED' WHERE id=114");
+    $nativeRow(115);$p->exec("UPDATE max_channel_conversion_outbox SET attempts=0 WHERE id=115");
+    $nativeRow(116);$p->exec("UPDATE max_channel_conversion_outbox SET identity_source_key=' ' WHERE id=116");
+    $guarded=$auditRead();
+    $check('native identity audit rejects wrong user counter aliases goal aliases legacy missing clocks and incomplete typed receipts',
+        $guarded['status']==='candidate_observed'&&$guarded['admitted_native_witnesses']===1
+        &&$guarded['candidate_sha256']===$native['candidate_sha256']);
+    $p->exec('DELETE FROM max_channel_conversion_outbox WHERE id>=101');
+    $nativeRow(117);$sameClient=$auditRead();
+    $check('two independently processed witnesses for the same ClientID are not mistaken for two candidate identities',
+        $sameClient['status']==='candidate_observed'&&$sameClient['admitted_native_witnesses']===2&&$sameClient['unique_candidate_count']===1);
+    $nativeRow(118,['client'=>'9912345678901235']);$ambiguous=$auditRead();
+    $check('different admitted native ClientIDs are explicit ambiguity and never selected by latest receipt',
+        $ambiguous['available']&&$ambiguous['status']==='ambiguous_native_candidates'
+        &&$ambiguous['unique_candidate_count']===2&&$ambiguous['candidate_sha256']===null);
+    $p->exec('DELETE FROM max_channel_conversion_outbox WHERE id>=117');
+    for($id=200;$id<264;$id++)$nativeRow($id,['target'=>'unrelated_native_stage']);
+    $rowBound=$auditRead();$p->exec('DELETE FROM max_channel_conversion_outbox WHERE id>=200');
+    $check('65th exact-user metadata row makes native candidate completeness unknown even when an earlier valid candidate exists',
+        !$rowBound['available']&&$rowBound['reason']==='row_limit'&&!$rowBound['complete_within_bound']);
+    $nativeRow(140);$p->prepare('UPDATE max_channel_conversion_outbox SET last_error=? WHERE id=140')->execute([str_repeat('PRIVATE_OVERSIZE_',3000)]);
+    $small=new ModeledConversionStatusBudget();$small->consumeBytes(18000);
+    $copyBound=$read($unavailableOriginal,null,$small,$doneRecovery);
+    $check('native SQL packet budget protects the already bound old and forward evidence from oversized private metadata',
+        !$copyBound['retained_native_identity_evidence']['available']
+        &&$copyBound['retained_native_identity_evidence']['reason']==='budget_headroom'
+        &&$copyBound['finite_visit_evidence']['available']&&$copyBound['finite_visit_recovery']['available']
+        &&!str_contains(json_encode($copyBound,JSON_THROW_ON_ERROR),'PRIVATE_OVERSIZE_'));
+    $p->exec('DELETE FROM max_channel_conversion_outbox WHERE id=140');
+    $denied=false;$revoked=false;$oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+    ForecastV1ObservedStatement::$afterNativePoint=static function()use(&$revoked):void{$revoked=true;};
+    try{$auditRead(static function()use(&$revoked):void{if($revoked)throw new DomainException('synthetic_native_revoked');});}
+    catch(DomainException $error){$denied=$error->getMessage()==='synthetic_native_revoked';}
+    finally{ForecastV1ObservedStatement::$afterNativePoint=null;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $check('native point evidence remains protected by final authorization after copied metadata',$denied);
+    $p->exec('DELETE FROM max_channel_conversion_outbox WHERE id>=100');
+    $none=$auditRead();
+    $check('no admissible local native witness is explicitly limited evidence rather than a claim that tracker rows or visits are absent',
+        $none['available']&&$none['status']==='no_admissible_native_witness'&&$none['candidate_sha256']===null
+        &&$none['local_absence_does_not_prove_tracker_or_visit_absence']&&$none['visit_linkage']==='not_checked');
+
     $foreign=$frame;$foreign['n']=str_repeat('0',64);$invalid=$read($foreign)['finite_visit_evidence'];
     $missing=$read(null)['finite_visit_evidence'];$consumed=$read(false)['finite_visit_evidence'];
     $check('missing foreign and retained tombstone frames are explicit unavailable without invented no-visit results',

@@ -17,6 +17,7 @@ final class ModeledConversionValueDeliveryReader
     private const UPLOADS=['PREPARED','UPLOADED','EXPORTED','MATCHED','PROCESSED','LINKAGE_FAILURE'];
     private const ERRORS=['identity_not_found','identity_ambiguous','metrika_visit_window','metrika_visit_unverified','wire_key_collision','scope_unavailable','api_rejected','api_row_rejected',
         'upload_outcome_unknown','event_expired','transport_not_sent','rate_limited'];
+    private array $boundFiniteRows=[];
     public function __construct(private PDO $pdo,private $authorize,private ModeledConversionStatusBudget $budget){}
     public function read(int $now):array
     {
@@ -200,6 +201,7 @@ final class ModeledConversionValueDeliveryReader
                 'events'=>$number($r[$platform.'_events'],false),'value_rub'=>$number($r[$platform.'_rub'],true)];
             $out['finite_visit_evidence']=$this->finiteVisitEvidence($visitFrame,$namespace,$now);
             $out['finite_visit_recovery']=$this->finiteVisitRecovery($recoveryJournal,$visitFrame,$out['finite_visit_evidence'],$namespace,$now);
+            $out['retained_native_identity_evidence']=$this->retainedNativeIdentity($out['finite_visit_evidence'],$namespace,$now);
             $out['exact_cases']=$this->repairCases($namespace,$now,$identityAudit);
             $this->budget->check();($this->authorize)();$this->budget->check();return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}
@@ -234,9 +236,112 @@ final class ModeledConversionValueDeliveryReader
         }catch(UnexpectedValueException|JsonException $ignored){return $fail('original_or_recovery_binding_unavailable');}
     }
 
+    /** Existing local native receipts are candidate evidence only; no provider call or identity assignment. */
+    private function retainedNativeIdentity(array $original,string $namespace,int $now):array
+    {
+        $base=['available'=>false,'basis'=>'bounded_local_native_processed_receipt_metadata',
+            'scope'=>'same_project_platform_external_user_and_counter_across_conversations',
+            'provider_requests_in_reader'=>0,'financial_permission'=>false,'visit_linkage'=>'not_checked',
+            'acknowledgement_time'=>'not_persisted','max_rows'=>64,'complete_within_bound'=>false];
+        $fail=static fn(string $reason):array=>array_merge($base,['reason'=>$reason]);
+        if(($original['available']??false)!==true)return $fail('original_current_binding_unavailable');
+        $missing=[];
+        foreach($original['rows']??[]as$public)if(($public['source_status']??null)==='no_valid_canonical_identity_and_no_admissible_retained_identity'
+            &&($public['candidate_sha256']??null)===null&&($public['report_status']??null)==='not_requested')$missing[]=$public['event_ref'];
+        if(count($missing)!==1)return $fail('single_missing_original_identity_not_verified');
+        $ref=$missing[0];$bound=$this->boundFiniteRows[$ref]??null;
+        if(!is_array($bound)||($bound['project_key']??null)!=='anytour'||($bound['platform']??null)!=='max'
+            ||(string)($bound['counter_id']??'')!=='98615635')return $fail('original_scope_unavailable');
+        $digits=static function(mixed $value,int $length):?string{
+            if(is_int($value)&&$value>0)$value=(string)$value;
+            return is_string($value)&&preg_match('/\A[1-9][0-9]{0,'.($length-1).'}\z/D',$value)===1?$value:null;
+        };
+        $user=$digits($bound['external_user_id']??null,20);
+        if($user===null)return $fail('original_scope_unavailable');
+        $this->budget->check();
+        if($this->budget->remainingBytes()<16384)return $fail('budget_headroom');
+        try{
+            $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+            if($mysql){
+                $index=$this->query("SELECT COLUMN_NAME AS column_name,SEQ_IN_INDEX AS column_position,SUB_PART AS prefix_length"
+                    ." FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='max_channel_conversion_outbox'"
+                    ." AND INDEX_NAME='ix_max_identity_point' ORDER BY SEQ_IN_INDEX LIMIT 6",[],null,250);
+            }else{
+                $index=$this->query("SELECT name AS column_name,seqno+1 AS column_position,NULL AS prefix_length"
+                    ." FROM pragma_index_info('ix_max_identity_point') ORDER BY seqno LIMIT 6",[],null,250);
+                $definition=$this->query("SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name='max_channel_conversion_outbox'"
+                    ." AND name='ix_max_identity_point' LIMIT 1",[],null,250);
+                if(count($definition)!==1||!is_string($definition[0]['sql']??null)
+                    ||preg_match('/\bWHERE\b/i',$definition[0]['sql'])===1)return $fail('point_index_unavailable');
+            }
+            $expected=['project_key','platform','external_user_id','counter_id','id'];
+            if(count($index)!==count($expected))return $fail('point_index_unavailable');
+            foreach($index as$i=>$part)if(($part['column_name']??null)!==$expected[$i]
+                ||(string)($part['column_position']??'')!==(string)($i+1)||($part['prefix_length']??null)!==null)
+                return $fail('point_index_unavailable');
+            $names=['id','project_key','platform','external_user_id','counter_id','conversation_id','target','transport_target',
+                'identity_source_key','source_signal_id','identity_observation_id','value_profile_id','value_rub','value_stage','value_contract',
+                'state','upload_status','upload_id','last_error','attempts','claimed_at_unix','client_id','tracker_record_id','tracker_observed_unix',
+                'value_receipt_basis','value_ready_at_unix','value_api_accepted_at_unix','value_processed_at_unix'];
+            $point='SELECT id AS point_order,JSON_ARRAY('.implode(',',$names).') AS packet FROM max_channel_conversion_outbox '
+                .($mysql?'FORCE INDEX (ix_max_identity_point)':'INDEXED BY ix_max_identity_point')
+                .' WHERE project_key=? AND platform=? AND external_user_id=? AND counter_id=?'
+                .' AND HEX(project_key)=HEX(?) AND HEX(platform)=HEX(?) AND HEX(external_user_id)=HEX(?) AND HEX(counter_id)=HEX(?)'
+                .' ORDER BY id LIMIT 65 OFFSET 0';
+            $packetBytes=$mysql?'OCTET_LENGTH(JSON_QUOTE(CAST(packet AS CHAR)))':'LENGTH(CAST(JSON_QUOTE(CAST(packet AS TEXT)) AS BLOB))';
+            $scope=['anytour','max',$user,'98615635'];
+            $packets=$this->query('SELECT CASE WHEN SUM('.$packetBytes.'+24) OVER ()+2<=? THEN packet ELSE NULL END AS packet'
+                .' FROM ('.$point.') native_identity_point_packets ORDER BY point_order',array_merge($scope,$scope),8192,250);
+            if($packets&&$packets[0]['packet']===null)return $fail('budget_headroom');
+            if(count($packets)>64)return $fail('row_limit');
+            $pairs=[
+                'max_bot_activity_start'=>['max_channel_activity_start','max_bot_activity_start'],
+                'max_manager_reply'=>['max_channel_manager_reply'],
+                'max_manager_request'=>['max_manager_request'],
+                'max_customer_reply_after_manager'=>['max_channel_customer_reply_after_manager','max_customer_reply_after_manager']];
+            $candidates=[];$admitted=0;
+            foreach($packets as$packet){
+                $values=json_decode($packet['packet'],true,8,JSON_THROW_ON_ERROR|JSON_BIGINT_AS_STRING);
+                if(!is_array($values)||count($values)!==count($names))throw new UnexpectedValueException();
+                $row=array_combine($names,$values);
+                if($row['project_key']!=='anytour'||$row['platform']!=='max'||(string)$row['external_user_id']!==$user
+                    ||(string)$row['counter_id']!=='98615635')throw new UnexpectedValueException();
+                if(!is_string($row['target'])||!in_array($row['transport_target'],$pairs[$row['target']]??[],true)
+                    ||$row['identity_source_key']!==''||$row['state']!=='processed'||$row['upload_status']!=='PROCESSED'||$row['last_error']!=='')continue;
+                $native=true;
+                foreach(['source_signal_id','identity_observation_id','value_profile_id','value_rub','value_stage','value_contract',
+                    'value_receipt_basis','value_ready_at_unix','value_api_accepted_at_unix','value_processed_at_unix']as$name)
+                    if($row[$name]!==null)$native=false;
+                $id=$digits($row['id'],20);$conversation=$digits($row['conversation_id'],20);$upload=$digits($row['upload_id'],20);
+                $client=$digits($row['client_id'],40);$record=$digits($row['tracker_record_id'],20);
+                $attempts=$digits($row['attempts'],10);$claim=$digits($row['claimed_at_unix'],10);$source=$digits($row['tracker_observed_unix'],10);
+                if(!$native||$id===null||$conversation===null||$upload===null||$client===null||$record===null||$attempts===null
+                    ||$claim===null||(int)$claim<946684800||(int)$claim>$now||$source===null||(int)$source<946684800
+                    ||(int)$source>(int)$bound['event_unix']||(int)$source>(int)$claim)continue;
+                $candidate=hash('sha256',json_encode(['retained_native_processed_tracker_source_v1',$namespace,$ref,$id,
+                    $row['target'],$row['transport_target'],$upload,$client,$record,(int)$source,'anytour','max',$user,'98615635'],
+                    JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+                $admitted++;
+                // Rows are in canonical id order; duplicate witnesses for the same ClientID do not imply ambiguity.
+                $candidates[$client]??=['candidate_sha256'=>$candidate,'source_observed_at'=>gmdate('Y-m-d\TH:i:s\Z',(int)$source)];
+            }
+            $out=array_merge($base,['available'=>true,'event_ref'=>$ref,'snapshot_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),
+                'complete_within_bound'=>true,'inspected_rows'=>count($packets),'admitted_native_witnesses'=>$admitted,
+                'unique_candidate_count'=>count($candidates),'candidate_sha256'=>null,'source_observed_at'=>null,
+                'source_provenance'=>null,'local_absence_does_not_prove_tracker_or_visit_absence'=>true]);
+            if(count($candidates)===1)$out=array_merge($out,reset($candidates),['status'=>'candidate_observed',
+                'source_provenance'=>'retained_native_processed_tracker_source']);
+            else$out['status']=$candidates?'ambiguous_native_candidates':'no_admissible_native_witness';
+            $this->budget->check();($this->authorize)();$this->budget->check();return $out;
+        }catch(ModeledConversionStatusLimit $error){throw $error;}
+        catch(PDOException $ignored){return $fail('point_storage_unavailable');}
+        catch(UnexpectedValueException|JsonException $ignored){return $fail('invalid_point_projection');}
+    }
+
     /** Saved finite GET proof, bound again to the exact three original ledger rows. Never calls a provider. */
     private function finiteVisitEvidence(mixed $frame,string $namespace,int $now):array
     {
+        $this->boundFiniteRows=[];
         if(!class_exists(ModeledConversionValueVisitEvidence::class))return ['available'=>false,'reason'=>'evidence_helper_unavailable','provider_requests_in_reader'=>0];
         try{$projection=ModeledConversionValueVisitEvidence::projection($frame,$namespace,$now);}
         catch(UnexpectedValueException|JsonException $ignored){return ['available'=>false,'reason'=>'invalid_saved_frame','provider_requests_in_reader'=>0];}
@@ -296,7 +401,7 @@ final class ModeledConversionValueDeliveryReader
                 $public['api_receipt_ref']=$receipt?hash('sha256','modeled_value_upload_receipt_v1|'.$upload):null;
             }unset($public);
             $projection['binding_basis']='three_current_immutable_repair_rows_born_before_checkpoint_with_no_prior_ready_or_api_receipt';
-            $this->budget->check();($this->authorize)();$this->budget->check();return $projection;
+            $this->budget->check();($this->authorize)();$this->budget->check();$this->boundFiniteRows=$bound;return $projection;
         }catch(ModeledConversionStatusLimit $e){throw $e;}
         catch(PDOException $ignored){return ['available'=>false,'reason'=>'storage_unavailable','provider_requests_in_reader'=>0];}
         catch(UnexpectedValueException|JsonException $ignored){return ['available'=>false,'reason'=>'invalid_saved_projection','provider_requests_in_reader'=>0];}
@@ -645,12 +750,18 @@ final class ModeledConversionValueDeliveryReader
         return $money?round($n,2):(int)$n;
     }
     private function unavailable(string $reason):array{return ['available'=>false,'goal_id'=>self::GOAL,'reason'=>$reason];}
-    private function query(string $sql,array $args,?int $packetReserve=null):array
+    private function query(string $sql,array $args,?int $packetReserve=null,?int $maxMilliseconds=null):array
     {
         $this->budget->check();($this->authorize)();$this->budget->check();
         // Authorization consumes the same shared budget before the predictive copy limit is bound.
         if($packetReserve!==null)array_unshift($args,$this->budget->remainingBytes()-$packetReserve);
-        $q=$this->budget->prepare($this->pdo,$sql);
+        if($maxMilliseconds===null)$q=$this->budget->prepare($this->pdo,$sql);
+        else{
+            if($maxMilliseconds<1||preg_match('/\ASELECT\s/i',$sql)!==1)throw new InvalidArgumentException('forecast_status_select_only');
+            if($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql')
+                $sql=preg_replace('/\ASELECT\s/i','SELECT /*+ MAX_EXECUTION_TIME('.min($maxMilliseconds,$this->budget->remainingMilliseconds()).') */ ',$sql,1);
+            $q=$this->pdo->prepare($sql);$this->budget->check();
+        }
         foreach($args as$i=>$v)$q->bindValue($i+1,$v,is_int($v)?PDO::PARAM_INT:PDO::PARAM_STR);
         $q->execute();$rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();$this->budget->check();
         $this->budget->consumeBytes(strlen(json_encode($rows,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)));
