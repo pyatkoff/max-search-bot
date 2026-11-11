@@ -94,6 +94,18 @@ final class ProjectFunnelContextMigrationRepair
 
     private function schema(bool $complete): void
     {
+        // COLUMN_DEFAULT is quoted SQL metadata on modern MariaDB, but an
+        // unquoted value on MySQL. Never combine both interpretations.
+        $server = (string)$this->pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
+        if (preg_match('/\A(?:5\.5\.5-)?(\d+\.\d+\.\d+)-MariaDB(?:[-+].*)?\z/iD', $server, $match)
+            && version_compare($match[1], '10.2.7', '>=')) {
+            $maria = true;
+        } elseif (!str_contains(strtolower($server), 'mariadb')
+            && preg_match('/\A(?:5\.7|8\.[0-9]+|9\.[0-9]+)\.[0-9]+(?:[-+].*)?\z/D', $server)) {
+            $maria = false;
+        } else {
+            throw new RuntimeException('Funnel repair metadata family is unsupported');
+        }
         $collations = [];
         $table = $this->pdo->prepare('SELECT ENGINE AS engine,TABLE_COLLATION AS collation_name FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=?');
         foreach (['schema_migrations', 'advertising_visit_observations', 'max_channel_conversion_outbox'] as $name) {
@@ -117,10 +129,12 @@ final class ProjectFunnelContextMigrationRepair
             $column->execute([$name, $field]);
             $row = $column->fetch(PDO::FETCH_ASSOC);
             if (!$row && !$required) continue;
-            // MySQL returns the literal empty default as ""; MariaDB quotes it.
-            // An unquoted NULL metadata literal is distinct from the string 'NULL'.
+            // MariaDB: SQL NULL -> "NULL", empty literal -> "''".
+            // MySQL: SQL NULL -> null, empty literal -> "". Literal "NULL"
+            // and two actual quote characters must never pass as those defaults.
             $default = $row['column_default'] ?? null;
-            $defaultOk = $nullable ? ($default === null || $default === 'NULL') : ($default === '' || $default === "''");
+            $expectedDefault = $nullable ? ($maria ? 'NULL' : null) : ($maria ? "''" : '');
+            $defaultOk = $default === $expectedDefault;
             if (!$row || strtolower((string)$row['column_type']) !== $type
                 || $row['is_nullable'] !== ($nullable ? 'YES' : 'NO') || !$defaultOk
                 || $row['charset_name'] !== $charset || $row['collation_name'] !== $collation

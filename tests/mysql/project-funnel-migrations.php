@@ -43,7 +43,7 @@ function nativeProjectFunnelMigrationChecks(PDO $pdo): void
         throw new RuntimeException('funnel_native_missing_refusal_' . $contains);
     };
 
-    foreach (['fresh', 'partial', 'wrong_context', 'missing_086', 'changed_086', 'changed_104', 'changed_105', 'legacy_baseline'] as $mode) {
+    foreach (['fresh', 'partial', 'wrong_context', 'literal_null_default', 'quoted_empty_default', 'missing_086', 'changed_086', 'changed_104', 'changed_105', 'legacy_baseline'] as $mode) {
         // Refuse an occupied fixture before acquiring any table ownership.
         foreach ($tables as $table) {
             $q = $pdo->prepare('SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=?');
@@ -83,6 +83,10 @@ function nativeProjectFunnelMigrationChecks(PDO $pdo): void
                 $pdo->exec("UPDATE max_channel_conversion_outbox SET funnel_context_json='retained context'");
             } elseif ($mode === 'wrong_context') {
                 $pdo->exec("ALTER TABLE advertising_visit_observations ADD COLUMN post_ref VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT ''");
+            } elseif ($mode === 'literal_null_default') {
+                $pdo->exec("ALTER TABLE max_channel_conversion_outbox ADD COLUMN funnel_policy_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL DEFAULT 'NULL'");
+            } elseif ($mode === 'quoted_empty_default') {
+                $pdo->exec("ALTER TABLE advertising_visit_observations ADD COLUMN post_ref VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT ''''''");
             } elseif ($mode === 'missing_086' || $mode === 'legacy_baseline') {
                 $pdo->exec('DELETE FROM schema_migrations');
                 if ($mode === 'missing_086') {
@@ -99,7 +103,7 @@ function nativeProjectFunnelMigrationChecks(PDO $pdo): void
             $journalBefore = $journal();
             if (!in_array($mode, ['fresh', 'partial'], true)) {
                 $reason = match ($mode) {
-                    'wrong_context' => 'column mismatch',
+                    'wrong_context', 'literal_null_default', 'quoted_empty_default' => 'column mismatch',
                     'missing_086' => 'accepted 086 receipt',
                     'changed_086' => 'Applied migration was modified',
                     'legacy_baseline' => 'accepted migration history',
