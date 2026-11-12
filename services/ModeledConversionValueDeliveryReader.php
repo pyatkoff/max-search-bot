@@ -12,6 +12,7 @@ if(is_file(__DIR__.'/ModeledConversionFixedPairDecisionEvidence.php'))require_on
 if(is_file(__DIR__.'/ModeledConversionMaxCounterScopeEvidence.php'))require_once __DIR__.'/ModeledConversionMaxCounterScopeEvidence.php';
 if(is_file(__DIR__.'/ModeledConversionRetainedAppIdentityEvidence.php'))require_once __DIR__.'/ModeledConversionRetainedAppIdentityEvidence.php';
 if(is_file(__DIR__.'/ModeledConversionRetainedTrackerIdentityEvidence.php'))require_once __DIR__.'/ModeledConversionRetainedTrackerIdentityEvidence.php';
+if(is_file(__DIR__.'/ModeledConversionKnownYclidRelation.php'))require_once __DIR__.'/ModeledConversionKnownYclidRelation.php';
 
 /** Fixed derived-value aggregates only. No source tables, network, processing or mutation. */
 final class ModeledConversionValueDeliveryReader
@@ -306,6 +307,7 @@ final class ModeledConversionValueDeliveryReader
             if(array_sum(array_column($prefixOut['by_state'],'events'))!==$prefixN)throw new UnexpectedValueException();
             $out['accepted_prefix']=$prefixOut;
             $out['finite_visit_evidence']=$this->finiteVisitEvidence($visitFrame,$namespace,$now);
+            $out['retained_relation_outcomes']=$this->retainedRelationOutcomes($visitFrame,$out['finite_visit_evidence'],$namespace,$now);
             $out['finite_visit_recovery']=$this->finiteVisitRecovery($recoveryJournal,$visitFrame,$out['finite_visit_evidence'],$namespace,$now);
             $out['fixed_pair_operational_decisions']=$this->fixedPairDecisions($pairAudit,$visitFrame,$out['finite_visit_evidence'],$namespace,$now,$lastTick);
             $out['finite_counter_scope_evidence']=$this->counterScopeObservation($counterScopeAudit,$visitFrame,$out['finite_visit_evidence'],$namespace,$now);
@@ -411,6 +413,166 @@ final class ModeledConversionValueDeliveryReader
         return ModeledConversionRetainedTrackerIdentityEvidence::projection($audit,$original,$this->boundFiniteRows[$missing[0]],$namespace,$now);
     }
 
+
+
+    /** Two saved derived outcomes only. No source/provider read, identity promotion or financial authority. */
+    private function retainedRelationOutcomes(mixed $frame,array $boundOriginal,string $namespace,int $now):array
+    {
+        $fail=static fn(string $reason):array=>['available'=>false,'reason'=>$reason,
+            'provider_requests_in_reader'=>0,'financial_permission'=>false,'current_eligibility'=>'not_assessed'];
+        if(($boundOriginal['available']??false)!==true)return $fail('original_current_binding_unavailable');
+        if(!class_exists(ModeledConversionKnownYclidRelation::class)
+            ||!method_exists(ModeledConversionKnownYclidRelation::class,'projectionBasisSql'))
+            return $fail('outcome_helper_unavailable');
+        $bindings=[];
+        foreach($this->boundFiniteRows as$row){
+            $b=ModeledConversionRetainedTrackerIdentityEvidence::knownBinding($frame,$row,$namespace,$now);
+            if($b===null)continue;
+            if(!in_array($b['index']??null,[1,2],true)||isset($bindings[$b['index']]))return $fail('original_known_bindings_unavailable');
+            $bindings[$b['index']]=['id'=>(string)$row['id'],'ref'=>$b['ref'],'digest'=>$b['digest']];
+        }
+        if(count($bindings)!==2)return $fail('original_known_bindings_unavailable');
+        ksort($bindings);
+        // The cache is compact; raw source and report capsules never cross the shared 64 KiB read boundary.
+        $this->budget->check();
+        if($this->budget->remainingBytes()<12288||$this->budget->remainingMilliseconds()<250)return $fail('read_budget_headroom');
+        try{
+            $driver=(string)$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);$mysql=$driver==='mysql';
+            $basis=ModeledConversionKnownYclidRelation::projectionBasisSql($driver,'r');
+            if($basis===null)return $fail('outcome_storage_unavailable');
+            $eq=static fn(string $a,string $b):string=>$mysql?'BINARY '.$a.'=BINARY '.$b:'('.$a.') COLLATE BINARY=('.$b.') COLLATE BINARY';
+            $bytes=$mysql?'OCTET_LENGTH(r.outcome_json)':'LENGTH(CAST(r.outcome_json AS BLOB))';
+            $scope=$eq('r.namespace','?').' AND '.$eq('r.frame_digest','?')
+                .' AND ((r.case_index=1 AND '.$eq('r.event_ref','?').') OR (r.case_index=2 AND '.$eq('r.event_ref','?').'))';
+            $sql='SELECT CASE WHEN r.outbox_id=? THEN 1 WHEN r.outbox_id=? THEN 2 ELSE 0 END AS binding_case,'
+                .'r.case_index,r.state,r.intent_at_unix,r.completed_at_unix,r.r1_requested_at_unix,r.r2_requested_at_unix,r.enrichment_requested_at_unix,'
+                .'CASE WHEN '.$scope.' THEN 1 ELSE 0 END AS scope_match,'
+                .'r.source_request_sha256,r.r1_request_sha256,r.r2_request_sha256,r.enrichment_request_sha256,'
+                .'CASE WHEN r.outcome_basis_sha256 IS NOT NULL AND '.$eq('r.outcome_basis_sha256',$basis).' THEN 1 ELSE 0 END AS cache_current,'
+                .'CASE WHEN '.$bytes.'<=2048 AND r.outcome_basis_sha256 IS NOT NULL AND '.$eq('r.outcome_basis_sha256',$basis)
+                .' THEN r.outcome_json ELSE NULL END AS outcome_json'
+                .' FROM '.ModeledConversionKnownYclidRelation::TABLE.' r WHERE '.$eq('r.purpose','?')
+                .' AND r.outbox_id IN (?,?) ORDER BY r.case_index LIMIT 3';
+            $saved=$this->query($sql,[$bindings[1]['id'],$bindings[2]['id'],$namespace,$bindings[1]['digest'],
+                $bindings[1]['ref'],$bindings[2]['ref'],ModeledConversionKnownYclidRelation::PURPOSE,
+                $bindings[1]['id'],$bindings[2]['id']],null,250);
+            if(count($saved)>2)return $fail('saved_outcome_scope_unavailable');
+            $at=static function(mixed $v)use($now):?string{
+                if((!is_string($v)&&!is_int($v))||preg_match('/\A[1-9][0-9]{8,10}\z/D',(string)$v)!==1)return null;
+                $unix=(int)$v;return $unix>=946684800&&$unix<=$now?gmdate('Y-m-d\TH:i:s\Z',$unix):null;
+            };
+            $rows=[];$seen=[];
+            foreach($saved as$r){
+                $case=$this->number($r['binding_case']??null,false);
+                if(!isset($bindings[$case])||isset($seen[$case]))return $fail('saved_outcome_scope_unavailable');
+                $seen[$case]=true;$b=$bindings[$case];
+                $base=['case_index'=>$case,'event_ref'=>$b['ref'],'historical'=>true,
+                    'as_of_checked'=>false,'current_eligibility'=>'not_assessed','financial_permission'=>false];
+                if($this->number($r['scope_match']??null,false)!==1
+                    ||$this->number($r['case_index']??null,false)!==$case
+                    ||!in_array($r['state']??null,['intent','complete'],true)){
+                    $rows[$case]=$base+['available'=>false,'status'=>'saved_outcome_unavailable','reason'=>'saved_outcome_binding_mismatch'];continue;
+                }
+                $phaseFields=['source'=>'source_request_sha256','recorded_day_relation'=>'r1_request_sha256',
+                    'visit_base'=>'r2_request_sha256','visit_sources'=>'enrichment_request_sha256'];
+                $metadata=['operation_state'=>$r['state'],'intent_at_utc'=>$at($r['intent_at_unix']),
+                    'completed_at_utc'=>$at($r['completed_at_unix']),'phases_admitted'=>[],
+                    'phase_requested_at_utc'=>['recorded_day_relation'=>$at($r['r1_requested_at_unix']),
+                        'visit_base'=>$at($r['r2_requested_at_unix']),'visit_sources'=>$at($r['enrichment_requested_at_unix'])]];
+                foreach($phaseFields as$phase=>$key){
+                    $hash=$r[$key]??null;$metadata['phases_admitted'][$phase]=$hash===null?false:
+                        (is_string($hash)&&preg_match('/\A[a-f0-9]{64}\z/D',$hash)===1?true:null);
+                }
+                $base+=$metadata;
+                $fallback=$r['state']==='intent'?'consumed_unknown':'saved_outcome_unavailable';
+                if($this->number($r['cache_current']??null,false)!==1){
+                    $rows[$case]=$base+['available'=>false,'status'=>$fallback,'reason'=>'cache_missing_or_invalidated'];continue;
+                }
+                $raw=$r['outcome_json']??null;
+                if(!is_string($raw)||strlen($raw)>2048){
+                    $rows[$case]=$base+['available'=>false,'status'=>$fallback,'reason'=>'saved_outcome_cache_unavailable'];continue;
+                }
+                try{$cache=json_decode($raw,true,8,JSON_THROW_ON_ERROR|JSON_BIGINT_AS_STRING);}
+                catch(JsonException $ignored){$cache=null;}
+                $public=$this->retainedRelationCache($cache,$r,$b,$case,$now);
+                $rows[$case]=$public===null?$base+['available'=>false,'status'=>$fallback,'reason'=>'invalid_saved_outcome_cache']:
+                    $public+$metadata;
+            }
+            foreach($bindings as$case=>$b)if(!isset($rows[$case]))$rows[$case]=['available'=>true,'case_index'=>$case,'event_ref'=>$b['ref'],
+                'status'=>'not_recorded','historical'=>true,'as_of_checked'=>false,'current_eligibility'=>'not_assessed','financial_permission'=>false];
+            ksort($rows);
+            $this->budget->check();($this->authorize)();$this->budget->check();
+            return ['available'=>true,'basis'=>'saved_bounded_once_outcome_cache','max_cases'=>2,'rows'=>array_values($rows),
+                'provider_requests_in_reader'=>0,'financial_permission'=>false,'current_eligibility'=>'not_assessed'];
+        }catch(ModeledConversionStatusLimit $e){throw $e;}
+        catch(PDOException $ignored){return $fail('outcome_storage_unavailable');}
+        catch(UnexpectedValueException $ignored){return $fail('invalid_saved_outcome_projection');}
+    }
+
+    /** Whitelist the compact historical cache; never echo arbitrary saved JSON or a provider identity. */
+    private function retainedRelationCache(mixed $v,array $stored,array $binding,int $case,int $now):?array
+    {
+        if(!is_array($v)||($v['financial_permission']??null)!==false||($v['current_eligibility']??null)!=='not_assessed')return null;
+        if(($v['available']??null)===false){
+            if(count($v)!==4||array_diff(array_keys($v),['available','reason','financial_permission','current_eligibility'])
+                ||!in_array($v['reason']??null,['invalid_saved_binding','invalid_completed_proof','invalid_saved_capsule'],true))return null;
+            return ['available'=>false,'case_index'=>$case,'event_ref'=>$binding['ref'],'status'=>'saved_outcome_unavailable',
+                'reason'=>$v['reason'],'historical'=>true,'as_of_checked'=>false,'current_eligibility'=>'not_assessed','financial_permission'=>false];
+        }
+        $required=['available','case_index','event_ref','status','historical','as_of_checked','current_eligibility','financial_permission',
+            'source_request_sha256','r1_request_sha256','r2_request_sha256','enrichment_request_sha256'];
+        $optional=['observed_at_utc','source_checked_at_utc','identity_origin','r1_coverage_scope','r1_day_utc','reason','relation_reason',
+            'enrichment_status','eligible_as_of_check','window_days','source_class','visit_at_utc','coverage_scope'];
+        if(array_diff($required,array_keys($v))||array_diff(array_keys($v),array_merge($required,$optional))
+            ||$v['available']!==true||$v['case_index']!==$case||$v['event_ref']!==$binding['ref']
+            ||$v['historical']!==true||!is_bool($v['as_of_checked']))return null;
+        $states=['consumed_unknown','source_unavailable','relation_reconfirms_previously_checked_held_cid','invalid_source_client_id',
+            'needs_yclid_r1','r1_identity_unavailable','identity_observed_no_visit_report','complete_base_window_assessed','unavailable'];
+        if(!in_array($v['status'],$states,true)||($stored['state']==='intent'&&($v['status']!=='consumed_unknown'||$v['as_of_checked']))
+            ||($stored['state']==='complete'&&!$v['as_of_checked']))return null;
+        foreach(['source_request_sha256','r1_request_sha256','r2_request_sha256','enrichment_request_sha256']as$k){
+            $hash=$v[$k];if($hash!==null&&(!is_string($hash)||preg_match('/\A[a-f0-9]{64}\z/D',$hash)!==1))return null;
+            if($hash!==($stored[$k]??null))return null;
+        }
+        $clock=static function(mixed $value,int $future=0)use($now):?int{
+            if(!is_string($value)||preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\z/D',$value)!==1)return null;
+            $at=DateTimeImmutable::createFromFormat('!Y-m-d\TH:i:s\Z',$value,new DateTimeZone('UTC'));$errors=DateTimeImmutable::getLastErrors();
+            if(!$at||($errors!==false&&($errors['warning_count']||$errors['error_count']))||$at->format('Y-m-d\TH:i:s\Z')!==$value)return null;
+            $unix=$at->getTimestamp();return $unix>=946684800&&$unix<=$now+$future?$unix:null;
+        };
+        if($v['as_of_checked']){
+            $observed=$clock($v['observed_at_utc']??null);$source=$clock($v['source_checked_at_utc']??null,90);
+            $intent=$stored['intent_at_unix']??null;$done=$stored['completed_at_unix']??null;
+            if((!is_string($intent)&&!is_int($intent))||(!is_string($done)&&!is_int($done))
+                ||preg_match('/\A[1-9][0-9]{8,10}\z/D',(string)$intent)!==1||preg_match('/\A[1-9][0-9]{8,10}\z/D',(string)$done)!==1
+                ||$observed===null||$source===null||$observed<(int)$intent||$source<(int)$intent-90||$source>$observed+90||$observed>(int)$done
+                ||(int)$done>(int)$intent+ModeledConversionKnownYclidRelation::TTL||(int)$done>$now)return null;
+        }elseif(array_diff(array_keys($v),$required))return null;
+        if(isset($v['identity_origin'])&&!in_array($v['identity_origin'],['exact_frozen_record_client_id','yclid_recorded_click_day'],true))return null;
+        if(isset($v['r1_coverage_scope'])&&$v['r1_coverage_scope']!=='recorded_click_utc_day_only')return null;
+        if(isset($v['r1_day_utc'])){
+            $day=$v['r1_day_utc'];if(!is_string($day)||preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}\z/D',$day)!==1
+                ||$clock($day.'T00:00:00Z')===null)return null;
+        }
+        $reasons=['visit_report_unavailable','no_prior_visit','within_current_window','outside_current_window','invalid_capsule',
+            'r1_relation_or_window_unavailable','provider_unavailable','query_echo_unavailable','incomplete_provider_data','scoped_row_limit',
+            'invalid_visit_row','invalid_visit_clock','outside_query_window','duplicate_base_group'];
+        if(array_key_exists('reason',$v)&&$v['reason']!==null&&!in_array($v['reason'],$reasons,true))return null;
+        if(array_key_exists('relation_reason',$v)&&!in_array($v['relation_reason'],
+            ['source_client_id_matches_held','recorded_day_cid_matches_held','r1_not_observed',
+                'no_match_in_recorded_click_utc_day','ambiguous_recorded_day_relation','provider_unavailable','query_echo_unavailable',
+                'incomplete_provider_data','scoped_row_limit','invalid_relation_row','invalid_r1_binding','invalid_capsule','unavailable'],true))return null;
+        if(array_key_exists('enrichment_status',$v)&&$v['enrichment_status']!==null
+            &&!in_array($v['enrichment_status'],['not_attempted','consumed_unknown_base_preserved','unavailable_base_preserved','checked_subset'],true))return null;
+        if($v['status']==='complete_base_window_assessed'){
+            if(!is_bool($v['eligible_as_of_check']??null)||!in_array($v['window_days']??null,[3,10],true)
+                ||!in_array($v['source_class']??null,['yandex_direct','other_or_unknown'],true)
+                ||!array_key_exists('visit_at_utc',$v)||($v['visit_at_utc']!==null&&$clock($v['visit_at_utc'])===null)
+                ||($v['coverage_scope']??null)!=='complete_unfiltered_base_query_rows'
+                ||($v['source_class']==='yandex_direct'?10:3)!==$v['window_days'])return null;
+        }elseif(array_intersect(array_keys($v),['eligible_as_of_check','window_days','source_class','visit_at_utc','coverage_scope']))return null;
+        return $v;
+    }
 
     private function knownTrackerObservation(mixed $audits,mixed $frame,string $ns,int $now):array
     {

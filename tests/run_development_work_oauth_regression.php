@@ -799,6 +799,87 @@ try {
 
     devOauthCheck('all trace cases including technical getter failures preserve exact canonical table rows',
         $traceInitialRows===$traceTablesSnapshot());
+
+    // Real wrapper and canonical grant diagnostics; no task, event or financial operation.
+    $catalogClient=$oauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI]],'synthetic-roadmap-catalog')['client_id'];
+    $catalogFamilies=[];$catalogProfiles=['dev'=>[$devScope],'forecast'=>[ManagerPreparationOAuth::FORECAST_SCOPE],
+        'pair'=>[$devScope,ManagerPreparationOAuth::FORECAST_SCOPE]];
+    foreach($catalogProfiles as$label=>$rights){
+        $issued=$oauth->exchange(devOauthCode($oauth,$catalogClient,implode(' ',$rights)));
+        $catalogFamilies[$label]=$oauth->connectionForBearer('Bearer '.$issued['access_token']);
+    }
+    $catalogCalls=0;
+    $catalogStore=static function(string $operation,array $arguments)use(&$catalogCalls):array {
+        ++$catalogCalls;
+        if($operation!=='status')throw new RuntimeException('unexpected_catalog_operation');
+        return ['ok'=>true,'execution_kind'=>'roadmap_archive_preparation','state'=>'blocked',
+            'roadmap_preparation'=>['available'=>true,'scope'=>'closed_archive_metadata_only_not_admission']];
+    };
+    $catalogService=new ManagerPreparationMcpService($pdo,null,null,$clock,null,null,null,null,null,null,$catalogStore);
+    $catalogCall=static fn(string $family,array $rights,array $extra=[]):array=>$catalogService->handle(
+        devOauthRpc('tools/call',['name'=>'development_work_status','arguments'=>['queue_id'=>'SYNTHETIC_CATALOG']+$extra]),1,$family,$rights);
+    $catalogChanges=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+    $catalogPair=$catalogCall($catalogFamilies['pair'],$catalogProfiles['pair'])['result']['structuredContent']['roadmap_preparation']['tool_catalog']??[];
+    devOauthCheck('same-caller catalogue proves generic published schema and actual paired rights without admission',
+        ($catalogPair['surface']??null)==='generic'&&($catalogPair['resource']??null)===ManagerPreparationOAuth::RESOURCE
+        &&($catalogPair['admission_method_published']??null)===true
+        &&preg_match('/\\A[a-f0-9]{64}\\z/D',$catalogPair['admission_schema_sha256']??'')===1
+        &&($catalogPair['same_connection_required_scope_pair']??null)===true
+        &&($catalogPair['current_wrapper_authorization_sufficient']??null)===true
+        &&($catalogPair['diagnostic_only']??null)===true&&($catalogPair['dispatch_permission']??null)===false);
+    $catalogDev=$catalogCall($catalogFamilies['dev'],$catalogProfiles['dev'])['result']['structuredContent']['roadmap_preparation']['tool_catalog']??[];
+    devOauthCheck('separate active financial grant is never borrowed for a DEV-only caller',
+        $oauth->connectionAuthorized($catalogFamilies['forecast'],1,[ManagerPreparationOAuth::FORECAST_SCOPE])
+        &&($catalogDev['admission_method_published']??null)===true
+        &&($catalogDev['same_connection_development_scope']??null)===true
+        &&($catalogDev['same_connection_forecast_scope']??null)===false
+        &&($catalogDev['same_connection_required_scope_pair']??null)===false
+        &&($catalogDev['current_wrapper_authorization_sufficient']??null)===false);
+    $catalogNarrow=$catalogCall($catalogFamilies['pair'],[$devScope])['result']['structuredContent']['roadmap_preparation']['tool_catalog']??[];
+    devOauthCheck('presented scope subset is kept distinct from the canonical family scope pair',
+        ($catalogNarrow['same_connection_required_scope_pair']??null)===true
+        &&($catalogNarrow['presented_development_scope']??null)===true
+        &&($catalogNarrow['presented_forecast_scope']??null)===false
+        &&($catalogNarrow['current_wrapper_authorization_sufficient']??null)===false);
+    $catalogIsolated=new DevelopmentWorkMcpService($pdo,$catalogStore,$clock);
+    $catalogIsolatedReply=$catalogIsolated->handle(devOauthRpc('tools/call',[
+        'name'=>'development_work_status','arguments'=>['queue_id'=>'SYNTHETIC_CATALOG']]),1,$isolatedConnection,[$devScope]);
+    $catalogDedicated=$catalogIsolatedReply['result']['structuredContent']['roadmap_preparation']['tool_catalog']??[];
+    devOauthCheck('dedicated DEV catalogue remains ten tools and explicitly cannot publish the financial admission',
+        ($catalogDedicated['surface']??null)==='development'
+        &&($catalogDedicated['resource']??null)===ManagerPreparationOAuth::DEVELOPMENT_RESOURCE
+        &&($catalogDedicated['published_tool_count']??null)===10
+        &&($catalogDedicated['admission_method_published']??null)===false
+        &&array_key_exists('admission_schema_sha256',$catalogDedicated)&&$catalogDedicated['admission_schema_sha256']===null
+        &&($catalogDedicated['same_connection_forecast_scope']??null)===false
+        &&($catalogDedicated['current_wrapper_authorization_sufficient']??null)===false);
+    $catalogBeforeDenied=$catalogCalls;
+    $catalogNoScope=$catalogCall($catalogFamilies['forecast'],$catalogProfiles['forecast']);
+    devOauthCheck('financial-only caller cannot obtain DEV catalogue status',
+        ($catalogNoScope['error']['code']??null)===-32001
+        &&($catalogNoScope['error']['data']['reason']??null)==='AUTH_SCOPE_UNAVAILABLE'
+        &&!isset($catalogNoScope['result'])&&$catalogCalls===$catalogBeforeDenied);
+    $catalogBeforeSpoof=$catalogCalls;
+    $catalogSpoof=$catalogCall($catalogFamilies['pair'],$catalogProfiles['pair'],['surface'=>'generic']);
+    devOauthCheck('surface cannot be supplied or spoofed through existing status arguments',
+        ($catalogSpoof['error']['code']??null)===-32602&&$catalogCalls===$catalogBeforeSpoof);
+    $catalogSerial=json_encode([$catalogPair,$catalogDev,$catalogNarrow,$catalogDedicated],JSON_THROW_ON_ERROR);
+    devOauthCheck('catalogue diagnosis is read-only and excludes all caller, client and credential identities',
+        (int)$pdo->query('SELECT total_changes()')->fetchColumn()===$catalogChanges
+        &&!str_contains($catalogSerial,$catalogFamilies['pair'])&&!str_contains($catalogSerial,$catalogClient)
+        &&!str_contains($catalogSerial,'link_context')&&!str_contains($catalogSerial,'grant_id'));
+    $catalogRevoking=static function(string $operation,array $arguments)use($pdo,$catalogFamilies,$now):array {
+        $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$catalogFamilies['pair']]);
+        return ['ok'=>true,'execution_kind'=>'roadmap_archive_preparation','roadmap_preparation'=>['available'=>true]];
+    };
+    try {
+        $catalogRaceService=new ManagerPreparationMcpService($pdo,null,null,$clock,null,null,null,null,null,null,$catalogRevoking);
+        $catalogRace=$catalogRaceService->handle(devOauthRpc('tools/call',[
+            'name'=>'development_work_status','arguments'=>['queue_id'=>'SYNTHETIC_CATALOG']]),1,$catalogFamilies['pair'],$catalogProfiles['pair']);
+        devOauthCheck('revocation during the status read prevents disclosure of stale positive scope facts',
+            ($catalogRace['error']['code']??null)===-32001&&!isset($catalogRace['result']));
+    } finally {$pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$catalogFamilies['pair']]);}
+
     require_once __DIR__.'/mysql/development-work-connection-authority.php';
     developmentHandoffAuthorityChecks($pdo,$now,static fn(bool $ok,string $label)=>devOauthCheck($label,$ok));
     echo 'DEVELOPMENT WORK OAUTH: '.$passed." PASS\n";

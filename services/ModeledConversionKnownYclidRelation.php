@@ -11,6 +11,31 @@ final class ModeledConversionKnownYclidRelation
     public const TTL=600;
     private const PLAN_KEYS=['v','case_index','namespace','frame_digest','event_ref','outbox_id','value_rub','event_unix',
         'held_client_id','held_record_id','held_source_at','old_saved_sha256','selection'];
+    // Cache freshness is over the database's retrieved textual bytes, not re-encoded JSON objects.
+    private const BASIS_COLUMNS=['purpose','outbox_id','case_index','namespace','frame_digest','event_ref','intent_at_unix','intent_sha256','state',
+        'source_request_sha256','r1_request_sha256','r2_request_sha256','r1_requested_at_unix','r2_requested_at_unix',
+        'enrichment_request_sha256','enrichment_requested_at_unix','plan_json','source_json','r1_json','r2_json','enrichment_json','completed_at_unix'];
+    public static function projectionBasisHash(array $row):?string
+    {
+        $bytes='retained-known-outcome-v1|';
+        foreach(self::BASIS_COLUMNS as$key){
+            if(!array_key_exists($key,$row))return null;$v=$row[$key];
+            if($v===null){$bytes.='N;';continue;}
+            if(!is_int($v)&&!is_string($v))return null;$v=(string)$v;$bytes.='S'.strlen($v).':'.$v.';';
+        }return hash('sha256',$bytes);
+    }
+    /** SQLite's identically named fixture UDF hashes the same byte string; no raw capsule is selected by the reader. */
+    public static function projectionBasisSql(string $driver,string $alias=''):?string
+    {
+        if(!in_array($driver,['mysql','sqlite'],true)||($alias!==''&&preg_match('/\A[A-Za-z_][A-Za-z0-9_]{0,30}\z/D',$alias)!==1))return null;
+        $parts=["'retained-known-outcome-v1|'"];$prefix=$alias===''?'':$alias.'.';
+        foreach(self::BASIS_COLUMNS as$key){$c=$prefix.$key;
+            $parts[]=$driver==='mysql'
+                ?"CASE WHEN ".$c." IS NULL THEN 'N;' ELSE CONCAT('S',OCTET_LENGTH(CAST(".$c." AS CHAR CHARACTER SET utf8mb4)),':',CAST(".$c." AS CHAR CHARACTER SET utf8mb4),';') END"
+                :"CASE WHEN ".$c." IS NULL THEN 'N;' ELSE 'S'||LENGTH(CAST(".$c." AS BLOB))||':'||CAST(".$c." AS TEXT)||';' END";
+        }
+        return $driver==='mysql'?'LOWER(SHA2(CONCAT('.implode(',',$parts).'),256))':'known_relation_sha256('.implode('||',$parts).')';
+    }
     public function __construct(private PDO $pdo){}
 
     private static function canonical(mixed $v):string
@@ -142,14 +167,14 @@ final class ModeledConversionKnownYclidRelation
         $cid=$s['result'][2][2];
         if($cid!==''){
             if(!self::uint64($cid))return ['status'=>'invalid_source_client_id'];
-            if($cid===$p['held_client_id'])return ['status'=>'reconfirms_previously_checked_held_cid'];
+            if($cid===$p['held_client_id'])return ['status'=>'reconfirms_previously_checked_held_cid','reason'=>'source_client_id_matches_held'];
             if($r1!==null)return ['status'=>'unexpected_r1_for_source_cid'];
             return ['status'=>'ready','client_id'=>$cid,'identity_origin'=>'exact_frozen_record_client_id'];
         }
-        if($r1===null)return ['status'=>'needs_yclid_r1'];
+        if($r1===null)return ['status'=>'needs_yclid_r1','reason'=>'r1_not_observed'];
         $link=self::validateR1($p,$s['result'][2][3],$intent,$r1);
-        if(($link['status']??null)!=='unique_cid_in_recorded_day')return ['status'=>'r1_identity_unavailable','reason'=>$link['status']??'unavailable'];
-        if($link['held_value_match'])return ['status'=>'reconfirms_previously_checked_held_cid'];
+        if(($link['status']??null)!=='unique_cid_in_recorded_day')return ['status'=>'r1_identity_unavailable','reason'=>$link['reason']??$link['status']??'unavailable'];
+        if($link['held_value_match'])return ['status'=>'reconfirms_previously_checked_held_cid','reason'=>'recorded_day_cid_matches_held'];
         return ['status'=>'ready','client_id'=>$link['client_id'],'identity_origin'=>'yclid_recorded_click_day'];
     }
     public static function sourceIdentityRoute(array $p,array $source,int $intent,int $now):array
@@ -472,6 +497,25 @@ final class ModeledConversionKnownYclidRelation
                 fn(string $h,int $requested):bool=>$allowCurrent()===true&&$this->admitEnrichment($intent,$base,$h,$requested,$at()),$at));
             if($enrichment===null)$this->completeR2($intent,$base,$at());else $this->completeEnrichment($intent,$enrichment,$at());
         }catch(Throwable $ignored){/* Every admitted IO remains consumed, including an unknown response or clock. */}
+        finally{
+            $observed=$now;try{$v=$clock();if(is_int($v)&&$v>=$now)$observed=$v;}catch(Throwable $ignored){}
+            $this->cacheOutcome($saved,$frame,$row,$ns,$observed);
+        }
+    }
+    /** Worker-only saved outcome. Failure/staleness has no effect on once, identity, or financial admission. */
+    private function cacheOutcome(mixed $saved,mixed $frame,array $row,string $ns,int $now):void
+    {
+        try{
+            $id=$row['id']??null;
+            if($this->pdo->inTransaction()||(!is_int($id)&&!is_string($id))||!MaxTrackerLookupProtocol::id((string)$id))return;
+            $stored=$this->read((string)$id);if($stored===null||self::boundPlan($stored,$saved,$frame,$row,$ns,$now)===null)return;
+            $basis=self::projectionBasisHash($stored);$sql=self::projectionBasisSql((string)$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME));
+            if($basis===null||$sql===null)return;
+            $out=self::projection($stored,$saved,$frame,$row,$ns,$now);$out['financial_permission']=false;$out['current_eligibility']='not_assessed';
+            $json=self::canonical($out);if(strlen($json)>2048)return;
+            $q=$this->pdo->prepare('UPDATE '.self::TABLE.' SET outcome_json=?,outcome_basis_sha256=? WHERE purpose=? AND outbox_id=? AND '.$sql.'=?');
+            $q->execute([$json,$basis,self::PURPOSE,$stored['outbox_id'],$basis]);
+        }catch(Throwable $ignored){/* A missing cache is explicit UNKNOWN; never repeat any source or Reports phase. */}
     }
 
     private static function boundPlan(mixed $stored,mixed $saved,mixed $frame,array $row,string $ns,int $now):?array
@@ -494,8 +538,8 @@ final class ModeledConversionKnownYclidRelation
         if($s['result'][0]!==1)return ['status'=>'source_unavailable','source'=>$s,'observed'=>$s['received_at_unix']];
         $r1=self::decode($stored['r1_json']??null,16384);$route=self::identity($p,$source,$r1,$intent,$now);
         if($r1!==null&&self::r1($stored,$r1,$now)===null)return null;
-        if($route['status']==='reconfirms_previously_checked_held_cid')return ['status'=>'relation_reconfirms_previously_checked_held_cid','source'=>$s,'observed'=>$r1['checked_at_unix']??$s['received_at_unix']];
-        if($route['status']!=='ready')return ['status'=>$route['status'],'source'=>$s,'observed'=>$r1['checked_at_unix']??$s['received_at_unix']];
+        if($route['status']==='reconfirms_previously_checked_held_cid')return ['status'=>'relation_reconfirms_previously_checked_held_cid','relation_reason'=>$route['reason'],'source'=>$s,'r1'=>$r1,'observed'=>$r1['checked_at_unix']??$s['received_at_unix']];
+        if($route['status']!=='ready')return ['status'=>$route['status'],'relation_reason'=>$route['reason']??null,'source'=>$s,'r1'=>$r1,'observed'=>$r1['checked_at_unix']??$s['received_at_unix']];
         $base=self::decode($stored['r2_json']??null,65536);
         if($base===null)return ['status'=>'identity_observed_no_visit_report','source'=>$s,'observed'=>$r1['checked_at_unix']??$s['received_at_unix']];
         $b=self::r2($stored,$base,$now);if($b===null||$base['checked_at_unix']>$done)return null;$result=$b['proof'];
@@ -523,6 +567,7 @@ final class ModeledConversionKnownYclidRelation
             $proof=self::completedProof($stored,$p,$now);if($proof===null)return $fail('invalid_completed_proof');
             $out['status']=$proof['status'];$out['as_of_checked']=true;$out['observed_at_utc']=gmdate('Y-m-d\TH:i:s\Z',$proof['observed']);
             $out['source_checked_at_utc']=gmdate('Y-m-d\TH:i:s\Z',$proof['source']['result'][1]);
+            if(isset($proof['relation_reason']))$out['relation_reason']=$proof['relation_reason'];
             if(isset($proof['identity']))$out['identity_origin']=$proof['identity']['identity_origin'];
             if(isset($proof['r1'])&&$proof['r1']!==null){$out['r1_coverage_scope']='recorded_click_utc_day_only';$out['r1_day_utc']=gmdate('Y-m-d',$p['selection']['selected_recorded_at_unix']);}
             $r=$proof['result']??null;if(is_array($r)){

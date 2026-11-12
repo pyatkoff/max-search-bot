@@ -24,6 +24,10 @@ final class ForecastV1ObservedStatement extends PDOStatement
     public static mixed $onRetainedSource=null;
     public static mixed $afterRetainedSourceFetch=null;
     public static mixed $beforeRelationClaim=null;
+    public static mixed $beforeRelationCache=null;
+    public static array $relationOutcomeQueries=[];
+    public static array $relationOutcomeCopies=[];
+    public static ?array $lastRelationOutcomePacket=null;
     public static bool $observePredictive=false;
     public static int $predictiveExecutions=0;
     public static array $predictiveCopies=[];
@@ -37,7 +41,7 @@ final class ForecastV1ObservedStatement extends PDOStatement
     public function bindValue(string|int $param,mixed $value,int $type=PDO::PARAM_STR):bool
     {
         $ok=parent::bindValue($param,$value,$type);
-        if(self::$observePredictive||self::$observeCore)$this->predictiveBindings[$param]=[$value,$type];
+        if(self::$observePredictive||self::$observeCore||str_contains($this->queryString,' AS binding_case,'))$this->predictiveBindings[$param]=[$value,$type];
         return $ok;
     }
     public function execute(?array $params=null):bool
@@ -49,6 +53,10 @@ final class ForecastV1ObservedStatement extends PDOStatement
         if(is_callable(self::$beforeRelationClaim)&&str_contains($this->queryString,"SET client_id=?,state='uploading'")){
             $hook=self::$beforeRelationClaim;self::$beforeRelationClaim=null;$hook();
         }
+        if(is_callable(self::$beforeRelationCache)&&str_contains($this->queryString,'SET outcome_json=?,outcome_basis_sha256=?')){
+            $hook=self::$beforeRelationCache;self::$beforeRelationCache=null;$hook();
+        }
+        if(str_contains($this->queryString,' AS binding_case,'))self::$relationOutcomeQueries[]=['sql'=>$this->queryString,'bindings'=>$this->predictiveBindings];
         $ok=parent::execute($params);
         if(self::$observePredictive){
             self::$predictiveExecutions++;
@@ -61,6 +69,7 @@ final class ForecastV1ObservedStatement extends PDOStatement
     public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args):array
     {
         $rows=parent::fetchAll($mode,...$args);
+        if(str_contains($this->queryString,' AS binding_case,'))self::$relationOutcomeCopies[]=$rows;
         if(is_callable(self::$afterRetainedSourceFetch)&&(str_contains($this->queryString,'retained_app_scopes')||str_contains($this->queryString,'retained_app_identity')||str_contains($this->queryString,'retained_click_metadata')||str_contains($this->queryString,'retained_click_point')||str_contains($this->queryString,'retained_click_record')))
             (self::$afterRetainedSourceFetch)($this->queryString);
         if(self::$observePredictive)self::$predictiveCopies[]=$rows;
@@ -2617,14 +2626,105 @@ function forecastKnownRelationDispatchAssertions(PDO $p,callable $check,array $f
     }finally{ForecastV1ObservedStatement::$beforeRelationClaim=null;$fault->failure='commit_throw';$fault->commits=0;$fault->failCommit=1;$restore();$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$statementClass);}
 }
 
+
+/** The saved-only owner reader copies two opaque caches, never the full private source/report capsules. */
+function forecastKnownRelationOutcomeReaderAssertions(PDO $p,callable $check,array $frame,array $rows,array $plans,array $positive,int $now):void
+{
+    $ns=ModeledConversionProfiles::assessmentNamespace();$snapshot=$p->query('SELECT * FROM modeled_conversion_known_yclid_relations')->fetchAll(PDO::FETCH_ASSOC);
+    $statementClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $insert=static function(array $r)use($p):void{
+        $p->prepare('INSERT INTO modeled_conversion_known_yclid_relations('.implode(',',array_keys($r)).') VALUES('.implode(',',array_fill(0,count($r),'?')).')')->execute(array_values($r));
+    };
+    $reset=static function()use($p,$insert,$positive):void{$p->exec('DELETE FROM modeled_conversion_known_yclid_relations');$insert($positive);};
+    $method=new ReflectionMethod(ModeledConversionValueDeliveryReader::class,'retainedRelationOutcomes');$bound=[];
+    foreach($rows as$r)$bound[ModeledConversionValueIdentityEvidence::reference($r,$ns)]=$r;
+    $read=static function(?callable $auth=null,?ModeledConversionStatusBudget $budget=null)use($p,$bound,$method,$frame,$ns,$now):array{
+        $reader=new ModeledConversionValueDeliveryReader($p,$auth??static function():void{},$budget??new ModeledConversionStatusBudget());
+        (new ReflectionProperty($reader,'boundFiniteRows'))->setValue($reader,$bound);
+        return $method->invoke($reader,$frame,['available'=>true],$ns,$now);
+    };
+    $saveCache=static function(array $v)use($p,$positive):void{$p->prepare('UPDATE modeled_conversion_known_yclid_relations SET outcome_json=? WHERE outbox_id=?')->execute([json_encode($v,JSON_THROW_ON_ERROR),$positive['outbox_id']]);};
+    try{
+        $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);$reset();
+        $foreign=$positive;$foreign['outbox_id']='999999';$foreign['frame_digest']=str_repeat('e',64);$foreign['event_ref']=str_repeat('f',64);
+        $foreign['outcome_json']='{"client_id":"PRIVATE_UNRELATED_CACHE_MUST_NOT_LEAK"}';$insert($foreign);
+        ForecastV1ObservedStatement::$relationOutcomeQueries=[];ForecastV1ObservedStatement::$relationOutcomeCopies=[];$auth=0;
+        $before=$p->query('SELECT * FROM modeled_conversion_known_yclid_relations ORDER BY outbox_id')->fetchAll(PDO::FETCH_ASSOC);
+        $got=$read(static function()use(&$auth):void{$auth++;});$json=json_encode($got,JSON_THROW_ON_ERROR);
+        ForecastV1ObservedStatement::$lastRelationOutcomePacket=$got;
+        $queries=ForecastV1ObservedStatement::$relationOutcomeQueries;$copies=ForecastV1ObservedStatement::$relationOutcomeCopies;
+        $bindings=array_map(static fn(array $v):mixed=>$v[0],$queries[0]['bindings']??[]);
+        $noRaw=true;foreach($copies as$copy)foreach($copy as$r)if(array_intersect(array_keys($r),['plan_json','source_json','r1_json','r2_json','enrichment_json']))$noRaw=false;
+        $check('saved-only relation reader authorizes before and after one exact two-PK bounded query',
+            $got['available']&&count($got['rows'])===2&&$got['rows'][0]['status']==='complete_base_window_assessed'
+            &&$got['rows'][1]['status']==='not_recorded'&&$auth===2&&count($queries)===1
+            &&str_contains($queries[0]['sql'],'r.outbox_id IN (?,?)')&&str_contains($queries[0]['sql'],'LIMIT 3')
+            &&array_slice(array_values($bindings),-2)===[(string)$rows[1]['id'],(string)$rows[2]['id']]
+            &&($p->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql'||str_contains($queries[0]['sql'],'MAX_EXECUTION_TIME(250)')));
+        $check('reader output hides raw capsules identifiers money and unrelated cached rows without changing saved data',
+            $noRaw&&!str_contains($json,'PRIVATE_UNRELATED_CACHE_MUST_NOT_LEAK')&&!str_contains($json,'119988776655443322')&&!str_contains($json,'991122334455667788')
+            &&!isset($got['rows'][0]['client_id'],$got['rows'][0]['outbox_id'],$got['rows'][0]['value_rub'])
+            &&$got['rows'][0]['phases_admitted']===['source'=>true,'recorded_day_relation'=>true,'visit_base'=>true,'visit_sources'=>true]
+            &&$got['rows'][0]['intent_at_utc']!==null&&$got['rows'][0]['phase_requested_at_utc']['visit_base']!==null
+            &&$before===$p->query('SELECT * FROM modeled_conversion_known_yclid_relations ORDER BY outbox_id')->fetchAll(PDO::FETCH_ASSOC));
+        $reset();$cache=json_decode($positive['outcome_json'],true,16,JSON_THROW_ON_ERROR);
+        foreach(['raw_identity','financial_permission','wrong_case','wrong_clock']as$case){
+            $bad=$cache;
+            if($case==='raw_identity')$bad['client_id']='PRIVATE_DERIVED_CID_MUST_NOT_LEAK';
+            if($case==='financial_permission')$bad['financial_permission']=true;
+            if($case==='wrong_case')$bad['case_index']=2;
+            if($case==='wrong_clock')$bad['observed_at_utc']=gmdate('Y-m-d\TH:i:s\Z',(int)$positive['intent_at_unix']-1);
+            $saveCache($bad);$denied=$read();
+            $check('tampered compact outcome is rejected rather than echoed '.$case,
+                $denied['rows'][0]['available']===false&&$denied['rows'][0]['reason']==='invalid_saved_outcome_cache'
+                &&!str_contains(json_encode($denied,JSON_THROW_ON_ERROR),'PRIVATE_DERIVED_CID_MUST_NOT_LEAK'));
+        }
+        foreach([-30,30]as$skew){
+            $valid=$cache;$valid['source_checked_at_utc']=gmdate('Y-m-d\TH:i:s\Z',(int)$positive['intent_at_unix']+$skew);
+            $saveCache($valid);$v=$read();
+            $check('cached historical source clock keeps the signed protocol tolerance without changing the visit window '.$skew,
+                $v['rows'][0]['available']===true&&$v['rows'][0]['source_checked_at_utc']===$valid['source_checked_at_utc']
+                &&$v['rows'][0]['window_days']===10&&$v['rows'][0]['financial_permission']===false);
+        }
+        $reset();$p->prepare('UPDATE modeled_conversion_known_yclid_relations SET completed_at_unix=completed_at_unix+1 WHERE outbox_id=?')->execute([$positive['outbox_id']]);
+        $stale=$read();$check('raw phase mutation invalidates the cached projection in the actual reader',
+            $stale['rows'][0]['status']==='saved_outcome_unavailable'&&$stale['rows'][0]['reason']==='cache_missing_or_invalidated');
+        $reset();$crash=$positive;$crash['outbox_id']=$plans[2]['outbox_id'];$crash['case_index']=2;$crash['event_ref']=$plans[2]['event_ref'];
+        $crash['plan_json']=json_encode($plans[2],JSON_THROW_ON_ERROR);$crash['state']='intent';$crash['intent_sha256']=str_repeat('b',64);
+        foreach(['r1_request_sha256','r2_request_sha256','enrichment_request_sha256','r1_requested_at_unix','r2_requested_at_unix','enrichment_requested_at_unix','source_json','r1_json','r2_json','enrichment_json','completed_at_unix','outcome_json','outcome_basis_sha256']as$k)$crash[$k]=null;
+        $insert($crash);$unknown=$read();
+        $check('crash with a consumed source intent remains distinct from absent evidence and exposes only saved phase flags',
+            $unknown['rows'][1]['status']==='consumed_unknown'&&$unknown['rows'][1]['reason']==='cache_missing_or_invalidated'
+            &&$unknown['rows'][1]['phases_admitted']===['source'=>true,'recorded_day_relation'=>false,'visit_base'=>false,'visit_sources'=>false]
+            &&$unknown['rows'][1]['intent_at_utc']!==null&&$unknown['rows'][1]['completed_at_utc']===null&&!$unknown['financial_permission']);
+        ForecastV1ObservedStatement::$relationOutcomeQueries=[];
+        $low=new ModeledConversionStatusBudget();$low->consumeBytes(ModeledConversionStatusBudget::MAX_BYTES-12000);
+        $tooSmall=$read(null,$low);$slow=new ModeledConversionStatusBudget(0.0,static fn():float=>4.8);$tooLate=$read(null,$slow);
+        $check('low shared byte or time headroom omits outcomes before any optional SQL',
+            $tooSmall['reason']==='read_budget_headroom'&&$tooLate['reason']==='read_budget_headroom'&&ForecastV1ObservedStatement::$relationOutcomeQueries===[]);
+        $revoked=false;$calls=0;
+        try{$read(static function()use(&$calls):void{if(++$calls===2)throw new RuntimeException('synthetic_outcome_access_revoked');});}
+        catch(RuntimeException $e){$revoked=$e->getMessage()==='synthetic_outcome_access_revoked';}
+        $check('authorization revocation after the saved-only read is never downgraded to a successful cache result',$revoked&&$calls===2);
+        $p->exec('ALTER TABLE modeled_conversion_known_yclid_relations RENAME TO modeled_conversion_known_yclid_relations_missing_fixture');
+        try{$missing=$read();$check('missing unapplied outcome schema is explicit unavailable without any fallback source read',$missing['reason']==='outcome_storage_unavailable');}
+        finally{$p->exec('ALTER TABLE modeled_conversion_known_yclid_relations_missing_fixture RENAME TO modeled_conversion_known_yclid_relations');}
+    }finally{
+        $p->exec('DELETE FROM modeled_conversion_known_yclid_relations');foreach($snapshot as$r)$insert($r);
+        $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$statementClass);
+        ForecastV1ObservedStatement::$relationOutcomeQueries=[];ForecastV1ObservedStatement::$relationOutcomeCopies=[];
+    }
+}
+
 function forecastKnownYclidRelationAssertions(PDO $p,callable $check,array $frame,int $now):void
 {
+    if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite')$p->sqliteCreateFunction('known_relation_sha256',static fn(string $bytes):string=>hash('sha256',$bytes),1);
     $ns=ModeledConversionProfiles::assessmentNamespace();$when=$now+40;$raw='119988776655443322';$oldHash=str_repeat('d',64);
     $before=$p->query("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetch(PDO::FETCH_ASSOC);
     $restore=[];$plans=[];$saved=[];$rows=[];$tuples=[];
     $p->exec('DROP TABLE IF EXISTS modeled_conversion_known_yclid_relations');
     if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql')$p->exec(file_get_contents(dirname(__DIR__).'/migrations/107_retained_known_yclid_relations.sql'));
-    else $p->exec("CREATE TABLE modeled_conversion_known_yclid_relations(purpose TEXT NOT NULL CHECK(purpose='retained_known_yclid_two_stage_v1'),outbox_id INTEGER NOT NULL,case_index INTEGER NOT NULL CHECK(case_index IN(1,2)),namespace TEXT,frame_digest TEXT,event_ref TEXT,intent_at_unix INTEGER,intent_sha256 TEXT,state TEXT CHECK(state IN('intent','complete')),source_request_sha256 TEXT,r1_request_sha256 TEXT,r2_request_sha256 TEXT,r1_requested_at_unix INTEGER,r2_requested_at_unix INTEGER,enrichment_request_sha256 TEXT,enrichment_requested_at_unix INTEGER,plan_json TEXT NOT NULL,source_json TEXT,r1_json TEXT,r2_json TEXT,enrichment_json TEXT,completed_at_unix INTEGER,PRIMARY KEY(purpose,outbox_id),UNIQUE(purpose,frame_digest,case_index))");
+    else $p->exec("CREATE TABLE modeled_conversion_known_yclid_relations(purpose TEXT NOT NULL CHECK(purpose='retained_known_yclid_two_stage_v1'),outbox_id INTEGER NOT NULL,case_index INTEGER NOT NULL CHECK(case_index IN(1,2)),namespace TEXT,frame_digest TEXT,event_ref TEXT,intent_at_unix INTEGER,intent_sha256 TEXT,state TEXT CHECK(state IN('intent','complete')),source_request_sha256 TEXT,r1_request_sha256 TEXT,r2_request_sha256 TEXT,r1_requested_at_unix INTEGER,r2_requested_at_unix INTEGER,enrichment_request_sha256 TEXT,enrichment_requested_at_unix INTEGER,plan_json TEXT NOT NULL,source_json TEXT,r1_json TEXT,r2_json TEXT,enrichment_json TEXT,completed_at_unix INTEGER,outcome_json TEXT,outcome_basis_sha256 TEXT,PRIMARY KEY(purpose,outbox_id),UNIQUE(purpose,frame_digest,case_index))");
     try{
         $observations=[];foreach(ModeledConversionValueVisitRecovery::originals($frame,$ns,$when)as$ref=>$old)$observations[]=[$ref,$when-10,$when-10,7,null,0];
         $pair=ModeledConversionFixedPairDecisionEvidence::merge(null,$frame,$ns,$observations,$when-5);
@@ -2690,14 +2790,19 @@ function forecastKnownYclidRelationAssertions(PDO $p,callable $check,array $fram
             $check('R1 regex rejects path fragment suffix and mismatched parameter pairs',preg_match($regex,$url)===0);
 
         $calls=[];$committed=[];$currentIntent=null;$derived='991122334455667788';$visits=[[$when+5-9*86400,1]];
-        $sourceMode='direct';$counterZone='+03:00';
-        $api=new MetrikaOfflineClient('98615635','fixture-only',static function(string $method,string $url,mixed $body)use(&$calls,&$committed,&$currentIntent,&$derived,&$visits,&$sourceMode,$counterZone,$ledger):array{
+        $sourceMode='direct';$relationMode='one';$counterZone='+03:00';
+        $api=new MetrikaOfflineClient('98615635','fixture-only',static function(string $method,string $url,mixed $body)use(&$calls,&$committed,&$currentIntent,&$derived,&$visits,&$sourceMode,&$relationMode,$counterZone,$ledger):array{
             if($method!=='GET'||parse_url($url,PHP_URL_PATH)!=='/stat/v1/data'||$body!==null)throw new RuntimeException('unexpected_metadata_or_write');
             parse_str((string)parse_url($url,PHP_URL_QUERY),$q);$dims=explode(',',$q['dimensions']);$stage=count($dims)===1?'r1':(count($dims)===2?'base':'enrichment');$calls[]=$stage;
             $r=$ledger->read($currentIntent['outbox_id']);$committed[]=is_string($r['source_json'])
                 &&($stage==='r1'?is_string($r['r1_request_sha256']):($stage==='base'?is_string($r['r2_request_sha256']):is_string($r['enrichment_request_sha256'])&&is_string($r['r2_json'])));
             $zone=new DateTimeZone($q['timezone']??$counterZone);
-            if($stage==='r1')$data=[['dimensions'=>[['name'=>$derived]],'metrics'=>[3]]];
+            if($stage==='r1'){
+                if($relationMode==='unavailable')return ['http'=>503,'error'=>0,'body'=>'{}'];
+                $data=[['dimensions'=>[['name'=>$derived]],'metrics'=>[3]]];
+                if($relationMode==='zero')$data=[];
+                if($relationMode==='ambiguous')$data[]=['dimensions'=>[['name'=>'771122334455667788']],'metrics'=>[1]];
+            }
             else{
                 preg_match("/clientID=='([0-9]+)'/",$q['filters'],$m);$data=[];
                 foreach($visits as[$at,$n]){
@@ -2744,6 +2849,8 @@ function forecastKnownYclidRelationAssertions(PDO $p,callable $check,array $fram
             &&!str_contains($json,$raw)&&!str_contains($json,$derived)&&!str_contains($json,$plans[1]['held_client_id'])&&!isset($view['value_rub'],$view['filters']));
         $restoreLive();$settings=$p->query("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetch(PDO::FETCH_ASSOC);
         $candidate=ModeledConversionKnownYclidRelation::dispatchCandidate($stored,$saved[1],$frame,$rows[1],$settings,$ns,$when+9);
+        $check('optional outcome cache absence never removes the independently reconstructible complete private proof',
+            $stored['outcome_json']===null&&$stored['outcome_basis_sha256']===null&&$candidate!==null);
         $check('private pure candidate returns only exact CID full base proof and original binding',
             $candidate!==null&&$candidate['client_id']===$derived&&$candidate['outbox_id']===(string)$rows[1]['id']
             &&$candidate['event_ref']===$plans[1]['event_ref']&&count($candidate)===5
@@ -2841,6 +2948,16 @@ function forecastKnownYclidRelationAssertions(PDO $p,callable $check,array $fram
                 public function retainedClickRehydrate(array $selection,callable $before):?array{return ($this->reply)($selection,$before,$this);}
             };
         };
+        $readCache=static function(string $id)use($p):array{
+            $expr=ModeledConversionKnownYclidRelation::projectionBasisSql((string)$p->getAttribute(PDO::ATTR_DRIVER_NAME),'r');
+            $bytes=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'OCTET_LENGTH(r.outcome_json)':'LENGTH(CAST(r.outcome_json AS BLOB))';
+            $q=$p->prepare('SELECT r.state,r.outcome_basis_sha256,'.$expr.' AS actual_basis,'
+                .'CASE WHEN r.outcome_basis_sha256='.$expr.' AND '.$bytes.'<=2048 THEN r.outcome_json ELSE NULL END AS outcome_json,'
+                .'CASE WHEN r.source_request_sha256 IS NULL THEN 0 ELSE 1 END AS source_admitted'
+                .' FROM modeled_conversion_known_yclid_relations r WHERE r.purpose=? AND r.outbox_id=? LIMIT 1');
+            $q->execute([ModeledConversionKnownYclidRelation::PURPOSE,$id]);$r=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();return $r;
+        };
+
         $reset();$calls=[];$committed=[];$sourceMode='direct';$visits=[[$when+10-9*86400,1]];
         $lookup=$makeLookup($tuples[1],$plans[1]);$allowCalls=0;
         $ledger->captureOnce($saved[1],$frame,$rows[1],$ns,$lookup,$api,$when,static fn():int=>$when+10,
@@ -2850,9 +2967,56 @@ function forecastKnownYclidRelationAssertions(PDO $p,callable $check,array $fram
         $check('actual capture entry commits source R1 fullbase and optional Direct proof before each IO',
             $lookup->calls===1&&$lookup->committed&&$allowCalls===4&&$calls===['r1','base','enrichment']
             &&!in_array(false,$committed,true)&&$captured['state']==='complete'&&$candidate!==null&&$candidate['client_id']===$derived);
+        forecastKnownRelationOutcomeReaderAssertions($p,$check,$frame,$rows,$plans,$captured,$when+10);
+        $cached=$readCache($plans[1]['outbox_id']);$cachedOutcome=json_decode($cached['outcome_json'],true,32,JSON_THROW_ON_ERROR);
+        $check('actual capture finally persists a bounded opaque outcome with SQL/PHP raw-byte basis equality on native JSON',
+            $cached['outcome_basis_sha256']===$cached['actual_basis']
+            &&$cached['actual_basis']===ModeledConversionKnownYclidRelation::projectionBasisHash($captured)
+            &&strlen($cached['outcome_json'])<=2048&&$cachedOutcome['eligible_as_of_check']===true
+            &&$cachedOutcome['financial_permission']===false&&$cachedOutcome['current_eligibility']==='not_assessed');
+        $check('saved outcome readback selects no raw capsule identity native key or monetary field',
+            array_keys($cached)===['state','outcome_basis_sha256','actual_basis','outcome_json','source_admitted']
+            &&!str_contains($cached['outcome_json'],$raw)&&!str_contains($cached['outcome_json'],$derived)
+            &&!isset($cachedOutcome['client_id'],$cachedOutcome['external_user_id'],$cachedOutcome['yclid'],$cachedOutcome['outbox_id'],$cachedOutcome['value_rub'],$cachedOutcome['filters']));
+        $nullCopy=$captured;$emptyCopy=$captured;$nullCopy['r1_json']=null;$emptyCopy['r1_json']='';
+        $cacheOnly=$captured;$cacheOnly['outcome_json']='{"ignored":true}';$cacheOnly['outcome_basis_sha256']=str_repeat('0',64);
+        $check('basis distinguishes NULL from empty bytes and excludes only the derived cache fields',
+            ModeledConversionKnownYclidRelation::projectionBasisHash($nullCopy)!==ModeledConversionKnownYclidRelation::projectionBasisHash($emptyCopy)
+            &&ModeledConversionKnownYclidRelation::projectionBasisHash($cacheOnly)===ModeledConversionKnownYclidRelation::projectionBasisHash($captured)
+            &&ModeledConversionKnownYclidRelation::projectionBasisSql('mysql','r; DROP TABLE x')===null);
+
         $ledger->captureOnce($saved[1],$frame,$rows[1],$ns,$lookup,$api,$when+300,static fn():int=>$when+300,static fn():bool=>true);
         $check('a later natural cadence cannot repeat any completed original-case IO',
             $lookup->calls===1&&$calls===['r1','base','enrichment']);
+
+        // Native JSON reorders object keys; the freshness hash must use the actual retrieved database text.
+        $mutated=json_decode($captured['r2_json'],true,32,JSON_THROW_ON_ERROR);
+        $mutated['response']['native_utf8_probe']=['Ж'=>'a/b','nested'=>['z'=>1,'a'=>2]];
+        $p->prepare('UPDATE modeled_conversion_known_yclid_relations SET r2_json=? WHERE outbox_id=?')->execute([json_encode($mutated,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$plans[1]['outbox_id']]);
+        $stale=$readCache($plans[1]['outbox_id']);$rawMutated=$ledger->read($plans[1]['outbox_id']);
+        $check('any full-capsule byte change invalidates the old cached outcome without copying the capsule in the getter',
+            $stale['outcome_json']===null&&$stale['actual_basis']!==$stale['outcome_basis_sha256']
+            &&$stale['actual_basis']===ModeledConversionKnownYclidRelation::projectionBasisHash($rawMutated));
+        // Re-entering a consumed row only refreshes its saved projection; it can never redo any IO.
+        $ledger->captureOnce($saved[1],$frame,$rows[1],$ns,$lookup,$api,$when+300,static fn():int=>$when+300,static fn():bool=>true);
+        $refreshed=$readCache($plans[1]['outbox_id']);
+        $check('production finally refreshes the same saved proof after native JSON normalization with no source/provider replay',
+            $refreshed['outcome_json']!==null&&$refreshed['outcome_basis_sha256']===$refreshed['actual_basis']
+            &&$lookup->calls===1&&$calls===['r1','base','enrichment']);
+        $oldStatement=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+        $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);$cacheRace=false;
+        ForecastV1ObservedStatement::$beforeRelationCache=static function()use($p,$plans,&$cacheRace):void{
+            $cacheRace=true;$p->prepare('UPDATE modeled_conversion_known_yclid_relations SET completed_at_unix=completed_at_unix+1 WHERE outbox_id=?')->execute([$plans[1]['outbox_id']]);
+        };
+        try{$ledger->captureOnce($saved[1],$frame,$rows[1],$ns,$lookup,$api,$when+301,static fn():int=>$when+301,static fn():bool=>true);}
+        finally{ForecastV1ObservedStatement::$beforeRelationCache=null;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldStatement);}
+        $raced=$readCache($plans[1]['outbox_id']);
+        $check('a phase change between cache read and UPDATE defeats the single basis CAS and leaves explicit cache unavailability',
+            $cacheRace&&$raced['outcome_json']===null&&$raced['actual_basis']!==$raced['outcome_basis_sha256']&&$lookup->calls===1&&$calls===['r1','base','enrichment']);
+        $reset();$calls=[];$crash=$ledger->begin($saved[1],$frame,$rows[1],$ns,$when);$ledger->admitSource($crash,$sourceHash,$when+1);
+        $crashed=$readCache($plans[1]['outbox_id']);
+        $check('a crash before finally exposes consumed scalar intent without a fake saved outcome or another source call',
+            $crashed['state']==='intent'&&(int)$crashed['source_admitted']===1&&$crashed['outcome_json']===null&&$calls===[]);
 
         $reset();$calls=[];$lookup=$makeLookup($tuples[1],$plans[1]);$allowCalls=0;
         $ledger->captureOnce($saved[1],$frame,$rows[1],$ns,$lookup,$api,$when,static fn():int=>$when+10,
@@ -2870,7 +3034,19 @@ function forecastKnownYclidRelationAssertions(PDO $p,callable $check,array $fram
         $view=ModeledConversionKnownYclidRelation::projection($reconfirmed,$saved[1],$frame,$rows[1],$ns,$when+10);
         $check('R1 that only reconfirms the previously checked held CID is terminal with zero repeated CID reports',
             $lookup->calls===1&&$calls===['r1']&&$reconfirmed['state']==='complete'&&$reconfirmed['r2_request_sha256']===null
-            &&$view['status']==='relation_reconfirms_previously_checked_held_cid'&&!$view['financial_permission']);
+            &&$view['status']==='relation_reconfirms_previously_checked_held_cid'&&$view['relation_reason']==='recorded_day_cid_matches_held'
+            &&$view['r1_coverage_scope']==='recorded_click_utc_day_only'&&$view['r1_day_utc']===$q1['date1']&&!$view['financial_permission']);
+        foreach(['zero'=>'no_match_in_recorded_click_utc_day','ambiguous'=>'ambiguous_recorded_day_relation','unavailable'=>'provider_unavailable']as$mode=>$expected){
+            $reset();$calls=[];$lookup=$makeLookup($tuples[1],$plans[1]);$relationMode=$mode;
+            $ledger->captureOnce($saved[1],$frame,$rows[1],$ns,$lookup,$api,$when,static fn():int=>$when+10,static fn():bool=>true);
+            $observed=$readCache($plans[1]['outbox_id']);$view=json_decode($observed['outcome_json'],true,32,JSON_THROW_ON_ERROR);
+            $check('saved-only cache distinguishes scoped R1 no-match ambiguity and providerUNKNOWN '.$mode,
+                $lookup->calls===1&&$calls===['r1']&&$observed['state']==='complete'
+                &&$view['status']==='r1_identity_unavailable'&&$view['relation_reason']===$expected
+                &&$view['r1_coverage_scope']==='recorded_click_utc_day_only'&&$view['r1_day_utc']===$q1['date1']
+                &&$view['financial_permission']===false&&$view['current_eligibility']==='not_assessed');
+        }
+        $relationMode='one';
         $reset();$calls=[];$lookup=$makeLookup($tuples[1],$plans[1]);$visits=[[$plans[1]['event_unix']-1,1]];$sourceMode='direct';
         $ledger->captureOnce($saved[1],$frame,$rows[1],$ns,$lookup,$api,$when,static fn():int=>$when+10,static fn():bool=>true);
         $early=$ledger->read($plans[1]['outbox_id']);
@@ -2894,6 +3070,10 @@ function forecastKnownYclidRelationAssertions(PDO $p,callable $check,array $fram
             $check('capture consumes an unknown source phase without any Reports or automatic retry '.$loss,
                 $consumed['state']==='intent'&&$calls===[]&&$lookup->calls===($loss==='after_callback'?1:0)
                 &&($loss==='after_callback'?is_string($consumed['source_request_sha256']):$consumed['source_request_sha256']===null));
+            $cacheUnknown=$readCache($plans[1]['outbox_id']);$opaqueUnknown=json_decode($cacheUnknown['outcome_json'],true,32,JSON_THROW_ON_ERROR);
+            $check('capture finally stores only an explicit consumed-unknown outcome after a lost source response '.$loss,
+                $cacheUnknown['outcome_basis_sha256']===$cacheUnknown['actual_basis']&&$opaqueUnknown['status']==='consumed_unknown'
+                &&$opaqueUnknown['financial_permission']===false&&$opaqueUnknown['current_eligibility']==='not_assessed');
         }
         foreach(['begin_false'=>1,'commit_false'=>1,'source_commit_false'=>2]as$failure=>$failCommit){
             $reset();$calls=[];$lookup=$makeLookup($tuples[1],$plans[1]);
@@ -2945,6 +3125,13 @@ function forecastKnownYclidRelationAssertions(PDO $p,callable $check,array $fram
                 $check('held or invalid nonempty sourceCID forbids all Reports without a Yclid fallback '.$kind,
                     ModeledConversionKnownYclidRelation::r2Query($plan,$sc,null,$when,$when+5)===null&&$calls===[]&&$ledger->completeSource($intent,$sc,$when+4)
                     &&$route['status']===($kind==='held'?'reconfirms_previously_checked_held_cid':'invalid_source_client_id'));
+                $reset();$calls=[];$lookup=$makeLookup($tuple,$plan);
+                $ledger->captureOnce($sv,$frame,$rows[1],$ns,$lookup,$api,$when,static fn():int=>$when+10,static fn():bool=>true);
+                $cached=$readCache($plan['outbox_id']);$out=json_decode($cached['outcome_json'],true,32,JSON_THROW_ON_ERROR);
+                $check('source-only terminal cache explains zero Reports without identity rewriting '.$kind,
+                    $lookup->calls===1&&$calls===[]&&$out['financial_permission']===false
+                    &&($kind==='held'?$out['relation_reason']==='source_client_id_matches_held':$out['status']==='invalid_source_client_id'));
+
             }
         }
     }finally{
@@ -3593,6 +3780,28 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $reta
         &&$contextSafe['today_latency']['reason']==='response_budget'
         &&$contextSafe['value_delivery']['predictive_v1']['reason']==='response_budget'
         &&$contextSafe['value_delivery']['historical_review']['reason']==='response_budget');
+
+    $outcomePacket=ForecastV1ObservedStatement::$lastRelationOutcomePacket;
+    if($outcomePacket===null)throw new RuntimeException('saved_outcome_fixture_not_exercised');
+    $small=['value_delivery'=>['repair_assessments'=>['finite_visit_evidence'=>['available'=>true,'fixture'=>'old_binding'],
+        'retained_relation_outcomes'=>$outcomePacket],'by_state'=>['ready'=>['events'=>1,'value_rub'=>100]]]];
+    $smallSafe=$bound->invoke($projection,$small);
+    $check('a feasible response retains the actual two-case saved outcome and old monetary aggregates unchanged',
+        $smallSafe===$small&&$smallSafe['value_delivery']['repair_assessments']['retained_relation_outcomes']['provider_requests_in_reader']===0
+        &&strlen(json_encode($smallSafe,JSON_THROW_ON_ERROR))<=28000);
+    $withOutcome=$contextual;$withOutcome['value_delivery']['repair_assessments']['retained_relation_outcomes']=$outcomePacket;
+    $withOutcomeSafe=$bound->invoke($projection,$withOutcome);$allOld=true;
+    foreach($proofs as$key=>$size)if($withOutcomeSafe['value_delivery']['repair_assessments'][$key]!==$withOutcome['value_delivery']['repair_assessments'][$key])$allOld=false;
+    $check('a new optional outcome yields before the fixed18500 financial envelope full59/23 roster or any old proof',
+        $financialBytes===18500&&$withOutcomeSafe['value_delivery']['repair_assessments']['retained_relation_outcomes']['reason']==='response_budget'
+        &&$withOutcomeSafe['value_delivery']['repair_assessments']['processing_frontier']===$r&&$allOld
+        &&$withOutcomeSafe['value_delivery']['by_state']===$withOutcome['value_delivery']['by_state']
+        &&strlen(json_encode($withOutcomeSafe,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=28000);
+    $withoutBinding=$small;$withoutBinding['value_delivery']['repair_assessments']['finite_visit_evidence']=['available'=>false,'reason'=>'unbound_fixture'];
+    $dependent=$bound->invoke($projection,$withoutBinding);
+    $check('outcome display never survives loss of the current original-frame binding',
+        $dependent['value_delivery']['repair_assessments']['retained_relation_outcomes']['reason']==='original_current_binding_unavailable'
+        &&$dependent['value_delivery']['by_state']===$small['value_delivery']['by_state']);
 
     $trackerPositive=['available'=>true,'case_index'=>0,'status'=>'candidate','financial_permission'=>false,'kind'=>'yclid',
         'candidate_ref'=>str_repeat('d',64),'recorded_click_at_unix'=>$now-100,'first_saved_at_unix'=>null,'first_enriched_at_unix'=>null];

@@ -305,6 +305,10 @@ final class ManagerPreparationMcpService
         } elseif ($development) {
             try { $data=(new DevelopmentWorkMcpAdapter($this->pdo,$this->developmentStore,$this->clock))->call($name,$args,$admin,$connection); }
             catch (DomainException $error) { $data=$this->unavailableWorkQueue($name,$error,$admin,$connection,$required); }
+            if($name==='development_work_status'&&($data['execution_kind']??null)==='roadmap_archive_preparation'){
+                $data['roadmap_preparation']['tool_catalog']=DevelopmentWorkMcpAdapter::roadmapCatalogStatus(
+                    $this->pdo,$this->clock,'generic',$admin,$connection,$scopes,$this->tools($scopes));
+            }
         } elseif ($name===ManagerHotelKnowledgeMcpAdapter::NAME) {
             if ($connection===null||!$this->activeConnection($connection,$admin)) throw new DomainException();
             $data=(new ManagerHotelKnowledgeMcpAdapter($this->pdo,$this->clock))->call($name,$args);

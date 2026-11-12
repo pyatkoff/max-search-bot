@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS modeled_conversion_known_yclid_relations (
     r2_json JSON NULL,
     enrichment_json JSON NULL,
     completed_at_unix BIGINT UNSIGNED NULL,
+    outcome_json JSON NULL,
+    outcome_basis_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
     PRIMARY KEY (purpose,outbox_id),
     UNIQUE KEY uq_known_relation_frame_case (purpose,frame_digest,case_index),
     CONSTRAINT ck_known_relation_purpose CHECK (purpose='retained_known_yclid_two_stage_v1'),
@@ -31,5 +33,6 @@ CREATE TABLE IF NOT EXISTS modeled_conversion_known_yclid_relations (
     CONSTRAINT ck_known_relation_source CHECK (source_json IS NULL OR OCTET_LENGTH(source_json)<=4096),
     CONSTRAINT ck_known_relation_r1 CHECK (r1_json IS NULL OR OCTET_LENGTH(r1_json)<=16384),
     CONSTRAINT ck_known_relation_r2 CHECK (r2_json IS NULL OR OCTET_LENGTH(r2_json)<=65536),
-    CONSTRAINT ck_known_relation_enrichment CHECK (enrichment_json IS NULL OR OCTET_LENGTH(enrichment_json)<=65536)
+    CONSTRAINT ck_known_relation_enrichment CHECK (enrichment_json IS NULL OR OCTET_LENGTH(enrichment_json)<=65536),
+    CONSTRAINT ck_known_relation_outcome CHECK (outcome_json IS NULL OR OCTET_LENGTH(outcome_json)<=2048)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
