@@ -42,3 +42,9 @@ before credit. Equal prepared and actual request bytes have an explicit
 `actual_request_equals_prepared` alias in the private full readback; the original
 bytes remain independently stored. A worst-case complete readback budget is
 checked before each review reservation and network call.
+
+The new phase's complete JSON proof is limited to 229376 bytes, independently
+of the old control's unchanged limit. The existing complete RPC envelope limit
+remains 262144, tested with the worst supported request ID and reserved metadata.
+Pre-send headroom reserves both a maximum differing actual request and the full
+response/report, even for UNKNOWN outcomes. Equal-byte aliasing is lossless.

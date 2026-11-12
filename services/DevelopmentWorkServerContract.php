@@ -211,7 +211,8 @@ final class DevelopmentWorkServerContract
         $json=self::json($data);
         $v2=($data['server_control']['readback_contract']??null)==='full_structured_v2'
             ||(($data['execution_kind']??null)==='server_saved_finance'&&($data['server_roadmap']['readback_contract']??null)==='full_structured_v2');
-        if(strlen($json)>($v2?196608:self::MAX_PROOF_JSON_BYTES))throw new DomainException('development_server_readback_budget');
+        $roadmap=($data['execution_kind']??null)==='server_saved_finance'&&($data['server_roadmap']['readback_contract']??null)==='full_structured_v2';
+        if(strlen($json)>($roadmap?229376:($v2?196608:self::MAX_PROOF_JSON_BYTES)))throw new DomainException('development_server_readback_budget');
         $tool=self::toolResult($data);
         $wire=['jsonrpc'=>'2.0','id'=>str_repeat("\x01",1024),'result'=>$tool,'reserved_status_metadata'=>str_repeat('x',16384)];
         if(strlen(json_encode($wire,JSON_THROW_ON_ERROR))>self::MAX_RPC_BYTES)

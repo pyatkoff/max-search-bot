@@ -7,7 +7,7 @@ require_once dirname(__DIR__).'/ai/ManagerDraftClient.php';
 final class DevelopmentRoadmapReview
 {
     public const VERSION='development-roadmap-saved-review-v1';
-    public const MAX_REQUEST=32768,MAX_RESPONSE=16384,MAX_REPORT=4096,MAX_PROOF=180000;
+    public const MAX_REQUEST=32768,MAX_RESPONSE=16384,MAX_REPORT=4096,MAX_PROOF=229376;
     public const CHECKS=['scope','frozen_cohort','old_receipts','excluded_originals','new_saved_result','honest_limits'];
     public const OWNER='server_ModeledConversionValueDeliveryReader';
     public const REVIEWER='server_independent_saved_finance_review';

@@ -251,7 +251,7 @@ trait DevelopmentRoadmapPhase
     {
         $size=strlen(self::canonical($this->roadmapProof($q,$p)));
         $b64=static fn(int $n):int=>4*intdiv($n+2,3);
-        $extra=$b64(strlen($wire))+$b64(DevelopmentRoadmapReview::MAX_RESPONSE)+$b64(DevelopmentRoadmapReview::MAX_REPORT)+8192;
+        $extra=$b64(strlen($wire))+$b64(DevelopmentRoadmapReview::MAX_REQUEST)+$b64(DevelopmentRoadmapReview::MAX_RESPONSE)+$b64(DevelopmentRoadmapReview::MAX_REPORT)+8192;
         if((int)$step['ordinal']===1){
             $input=$this->roadmapInput($p,$step);
             // Exact future B input has the same capsule and fixed-length parent identifiers/digests.
@@ -357,7 +357,11 @@ trait DevelopmentRoadmapPhase
             $read=$this->one('SELECT * FROM development_work_roadmap_reads WHERE read_id=?'.$this->lock(),[$job['read_id']]);
             if(!$read||$read['state']!=='unknown'||$q['current_task_id']!==$step['task_id']||$this->current($q)['current_run_id']!==$job['run_id'])
                 return $this->roadmapHold($q,'original_read_state_changed',true);
-            $bytes=self::canonical($snapshot);$result=$this->roadmapResult($q,$p,$step,$snapshot,$job['at']);$rb=self::canonical($result);
+            $bytes=self::canonical($snapshot);
+            $this->roadmapBlob('UPDATE development_work_roadmap_reads SET snapshot_bytes=? WHERE read_id=?',[$bytes,$job['read_id']],[0]);
+            try{$result=$this->roadmapResult($q,$p,$step,$snapshot,$job['at']);}
+            catch(Throwable $error){return $this->roadmapHold($q,'original_saved_evidence_unverifiable',true);}
+            $rb=self::canonical($result);
             $this->roadmapBlob('UPDATE development_work_roadmap_reads SET state=?,result_sha256=?,result_bytes=?,snapshot_bytes=? WHERE read_id=?',
                 ['completed',hash('sha256',$rb),$rb,$bytes,$job['read_id']],[2,3]);
             if($step['state']!=='reading'||$p['state']!=='reading')return $this->roadmapHold($q,'original_read_state_changed',true);
