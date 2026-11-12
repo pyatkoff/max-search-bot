@@ -1,0 +1,204 @@
+{
+  "state": "PREPARED_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261112-5-v1",
+  "registry_version": 223,
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 542,
+  "expected_new_full_pairs": 9,
+  "rows": [
+    {
+      "hotel_id": 1551,
+      "logical_id": "commercial-movenpick-tekirova-1551-v1",
+      "aliases": [
+        "Mövenpick Resort Antalya Tekirova",
+        "MOVENPICK HOTEL ANTALYA TEKIROVA (EX.ROYAL DIWA TEKIROVA RESORT)"
+      ],
+      "text": "✈️ Туры в Mövenpick Resort Antalya Tekirova\n📍 Текирова, Кемер, Турция.\n\nЗелёная Текирова у моря: частный пляж, бассейны, горки для детей и взрослых и мини клуб. Для особой поездки рассмотрим улучшенные номера или Swim Up.\n\nНа пляже песок и мелкая галька, а Swim Up выходит к общему бассейну. Проверим сезонную работу горок и включения питания.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "66b64e0b2dff5583254b52326107f096698fdd086316a68ec579f507594a21d4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/af33e0fbcc36e4e7dd28cbd044051b0593d1bdfc/.github/traffic-publish/commercial-20261112-batch5/1551.png",
+      "photo_sha256": "bc30552acea23c0e4dd4deea6eb568daa7a2245894d4c977a74eb3ab3efb25c9",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://movenpicktekirova.hotelagent.com/en",
+        "https://images.hotelagent.com/htlibe_definitions//521355/movenpick-tekirova3-large-178162151846_20260616175157.jpeg",
+        "https://images.hotelagent.com/htlibe_definitions//521355/dji0972-1-copy-17823753498_20260625111549.jpeg",
+        "https://images.hotelagent.com/htlibe_definitions//521355/mg4430-hdr-pano-1-178237220665_20260625102326.jpeg"
+      ]
+    },
+    {
+      "hotel_id": 1368,
+      "logical_id": "commercial-melas-holiday-1368-v1",
+      "aliases": [
+        "Club Melas Privé",
+        "MELAS HOLIDAY VILLAGE"
+      ],
+      "text": "✈️ Туры в Club Melas Privé\n📍 Сиде, Турция.\n\nClub Melas Privé, бывший Melas Holiday Village: пляж через променад и выбор улучшенных номеров. Рассмотрим Superior Swim Up с выходом к общему бассейну или Deluxe Grand Penthouse.\n\nГорки относятся к летней программе, детские клубы зимой закрыты. Подберём категорию и проверим сезонные условия.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "205f98e9dae15281a7c1aa8b11df52458aaf465e67024ac9fdf3d8fd142cf641",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/af33e0fbcc36e4e7dd28cbd044051b0593d1bdfc/.github/traffic-publish/commercial-20261112-batch5/1368.png",
+      "photo_sha256": "0ce640dca6f8ddda3c1246d67d65faee10eee6b9b1e1b8fb1317f85a9fc8a6e4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.melashotels.com/en/club-melas-prive",
+        "https://www.corendon.nl/turkije/turkse-riviera/side/side-centrum/d/melas-holiday-village",
+        "https://images.ctfassets.net/g8yn6gjj7q12/0e913ac4-edba-41cd-9ae5-fe7f382cdd87/c943d07de90ce7dcdadca02c0f94ac43/001.jpg?w=1600&fm=webp&q=80",
+        "https://static.melashotels.com/networks/1/properties/4/multimedia/20260919123953819_org.webp",
+        "https://static.melashotels.com/networks/1/properties/4/multimedia/20261102115945925_org.webp"
+      ]
+    },
+    {
+      "hotel_id": 1370,
+      "logical_id": "commercial-melas-resort-1370-v1",
+      "aliases": [
+        "Melas Resort Hotel",
+        "MELAS RESORT HOTEL"
+      ],
+      "text": "✈️ Туры в Melas Resort Hotel\n📍 Сиде, Турция.\n\nПесчаный пляж через променад, семейные номера и люксы   вариант для отдыха в Сиде. Зимой можно пользоваться крытым бассейном с подогревом.\n\nАквапарк находится в Club Melas Privé и работает с мая по октябрь. Открытые бассейны Resort   с апреля по октябрь; сезонные условия проверим на даты.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "2535879575dccd9030dc5dfce253ec7ada94f25dca6bf319ca4e366c2250b826",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/af33e0fbcc36e4e7dd28cbd044051b0593d1bdfc/.github/traffic-publish/commercial-20261112-batch5/1370.png",
+      "photo_sha256": "88ef68efb0cad337018d02a70bf0ea27a39563a65ab9fb1a7915487bebb0afc4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.melashotels.com/en/melas-resort-hotel",
+        "https://www.melashotels.com/en/melas-resort-hotel/beach-pool",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260331085209945_org.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260403071228387_org.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260331090748415_org.webp"
+      ]
+    },
+    {
+      "hotel_id": 129406,
+      "logical_id": "commercial-srnty-sahl-hasheesh-129406-v1",
+      "aliases": [
+        "SRNTY Sahl Hasheesh",
+        "SRNTY SAHL HASHEESH (EX. SERENITY SKY ARC SAHL HASHEESH)"
+      ],
+      "text": "✈️ Туры в SRNTY Sahl Hasheesh\n📍 Сахль-Хашиш, Египет.\n\nСахль Хашиш для пляжного отдыха: песчаный берег через променад, детский клуб и спа. Для более комфортной поездки рассмотрим улучшенный номер или люкс.\n\nSwim Up Adults Only   отдельная взрослая категория с доступом к общему бассейну. Весь отель принимает семьи; вид и включения проверим по тарифу.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "d63959fa3215456bdcdb957dfdfe6981b00835364c03c8eb983fd927101e95ad",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/af33e0fbcc36e4e7dd28cbd044051b0593d1bdfc/.github/traffic-publish/commercial-20261112-batch5/129406.png",
+      "photo_sha256": "c7659d36b5d8b47398ce99c23c76fb01651e5f0a3c08cebb6dc2a7174c2b8576",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://srntyhotels.com/srnty-sahl-hasheesh/",
+        "https://www.corendon.nl/egypte/rode-zee/hurghada/sahl-hasheesh/srnty-sahl-hasheesh-ex-sky-arc",
+        "https://srntyhotels.com/wp-content/uploads/2026/02/Serenity-SH103-1024x683.webp",
+        "https://srntyhotels.com/wp-content/uploads/2026/04/SSH_BEACH1-1440x960.webp",
+        "https://srntyhotels.com/wp-content/uploads/2026/07/ff6b3c4d-7a7f-41e1-8f1d-07ce18d29975-1200x625.jpg"
+      ]
+    },
+    {
+      "hotel_id": 62505,
+      "logical_id": "commercial-robinson-soma-bay-62505-v1",
+      "aliases": [
+        "ROBINSON Soma Bay",
+        "ROBINSON SOMA BAY"
+      ],
+      "text": "✈️ Туры в ROBINSON Soma Bay\n📍 Сома-Бей, Египет.\n\nСома Бей для активного отдыха: песчаный пляж, спортивная программа и три подогреваемых бассейна. Клуб принимает семьи, хотя делает акцент на отдыхе взрослых.\n\nПитание   полный пансион, выбранные напитки включены во время основных приёмов пищи. Уточним детскую программу, условия водного спорта и подходящий номер.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "2101632b6e56cc86260a78c519cb8a3f1a6dddd81e163acff2e29f8153a6be1b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/af33e0fbcc36e4e7dd28cbd044051b0593d1bdfc/.github/traffic-publish/commercial-20261112-batch5/62505.png",
+      "photo_sha256": "56b0c19e4756341028161ceba1e0d6cc381e356af5d7f2ce18ce04ef9cad1a1e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.robinson.com/en/en/resort-holiday/egypt/soma-bay/club-details/",
+        "https://mice.robinson.com/en/clubs/soma-bay/",
+        "https://www.tuigroup.com/en/newsroom/news/expansion-in-egypt-robinson-plans-new-resort-and-extensive-modernisation-in-soma-bay",
+        "https://mice.robinson.com/fileadmin/user_upload/RCso16_Club_Soma_Bay_sm96_7320_1_RGB.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9840_WOL.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9990_DZX1_DSX1_DZE1_WOL.jpg"
+      ]
+    },
+    {
+      "hotel_id": 73343,
+      "logical_id": "commercial-grand-palace-73343-v1",
+      "aliases": [
+        "The Grand Palace",
+        "THE GRAND PALACE ADULTS ONLY 18+"
+      ],
+      "text": "✈️ Туры в The Grand Palace\n📍 Хургада, Египет.\n\nПоездка вдвоём в формате 18+: песчаный пляж, бассейны и просторные Junior Suite. Можно рассмотреть категорию с выходом прямо в общий бассейн.\n\nВо всех номерах king size, раздельных кроватей нет. Уточним категорию, ресторанные включения и дополнительные услуги.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "73ea6828c3d8aca3ccaf4442696e59db34c286bd411a2e8342d97a952b3dee0c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/af33e0fbcc36e4e7dd28cbd044051b0593d1bdfc/.github/traffic-publish/commercial-20261112-batch5/73343.png",
+      "photo_sha256": "0f901dcf0c22d5a09aa9281fbf6c83dda48f70b654f2f84cdc7be38b2d260c3c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://redseahotels.com/resorts/hurghada/the-grand-palace-hurghada/",
+        "https://www.redseaholidays.co.uk/en/destinations/egypt/hurghada/hurghada-city/the-grand-palace",
+        "https://redseahotels.com/wp-content/uploads/2023/01/Swimming-Pools-in-the-Grand-Palace-in-Hurghada-Hotel.jpg",
+        "https://redseahotels.com/wp-content/uploads/2023/03/The-Grand-Palace-in-Hurghada-has-direct-beach-access-at-the-red-sea.jpg",
+        "https://redseahotels.com/wp-content/uploads/2021/10/The-Grand-Palace-03.jpg"
+      ]
+    },
+    {
+      "hotel_id": 46770,
+      "logical_id": "commercial-rosaka-46770-v1",
+      "aliases": [
+        "Rosaka Nha Trang",
+        "ROSAKA"
+      ],
+      "text": "✈️ Туры в Rosaka Nha Trang\n📍 Нячанг, Вьетнам.\n\nДля семейной поездки в Нячанг рассмотрим Family Suite 50 м² в Rosaka. Есть также Rosaka Suite 50 м² и Executive Suite 45 м²   такие параметры указаны в каталоге оператора.\n\nОтдохнуть можно у бассейна на 22 м этаже. До пляжа нужно идти; проверим вместимость выбранного номера, кровати и включения тарифа.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "f63f2ff3cfad09436db60a14ae5e8bdb9e37a9ceec540c6c44dd2ed8d4f6e4c5",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/af33e0fbcc36e4e7dd28cbd044051b0593d1bdfc/.github/traffic-publish/commercial-20261112-batch5/46770.png",
+      "photo_sha256": "908ecd952e556082710d090735622d2f15f6a73b1af4d90bbdb59423752ac824",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://hotel.crystalbay.com/en/rosaka-nha-trang-hotel-h50093.html",
+        "https://i2.ex-cdn.com/hotel.crystalbay.com//files/cry/2024/09/19/74483358112556558.jpg",
+        "https://i2.ex-cdn.com/hotel.crystalbay.com//files/cry/2024/09/19/fa120335701.jpg",
+        "https://i2.ex-cdn.com/hotel.crystalbay.com//files/cry/2024/09/19/es120335833.jpg"
+      ]
+    },
+    {
+      "hotel_id": 63673,
+      "logical_id": "commercial-nagar-63673-v1",
+      "aliases": [
+        "Nagar Hotel Nha Trang",
+        "NAGAR"
+      ],
+      "text": "✈️ Туры в Nagar Hotel Nha Trang\n📍 Нячанг, Вьетнам.\n\nБольше пространства для отдыха в Нячанге: Junior Suite Ocean View 67 м² со спальней и отдельной гостиной с диваном кроватью. Для семьи также рассмотрим Family Ocean View.\n\nНа 22 м этаже   панорамный бассейн и фитнес зал. Уточним вместимость номера, вид и включения тарифа; подогрев бассейна и прямой выход к пляжу не обещаем.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "ff07ea74edc7905aa019aec0e72e6905575ebe4e77cc60d3b6dcac06bc3650d6",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/af33e0fbcc36e4e7dd28cbd044051b0593d1bdfc/.github/traffic-publish/commercial-20261112-batch5/63673.png",
+      "photo_sha256": "fc97ec20e8a0e59a41f1a553ab2ce1e112dfbad4ceed4b39da841fcc2130846d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://nagarhotel.com/rooms-suites/",
+        "https://nagarhotel.com/facilities/",
+        "https://www.nagarhotel.com",
+        "https://hotel.crystalbay.com/en/nagar-hotel-nha-trang-h49907.html",
+        "https://nagarhotel.com/wp-content/uploads/2018/07/POOL6.jpg",
+        "https://nagarhotel.com/wp-content/uploads/2018/07/FAMILY1.jpg",
+        "https://nagarhotel.com/wp-content/uploads/2018/06/Junior-thay-4-1-645x430.jpg"
+      ]
+    },
+    {
+      "hotel_id": 973,
+      "logical_id": "commercial-dobedan-beach-973-v1",
+      "aliases": [
+        "Dobedan Beach Resort Comfort",
+        "DOBEDAN BEACH RESORT COMFORT (EX. ALVA DONNA BEACH RESORT COMFORT)"
+      ],
+      "text": "✈️ Туры в Dobedan Beach Resort Comfort\n📍 Сиде, Турция.\n\nСемейный Сиде у песчаного пляжа: пирс, бассейны и водные горки. Для более просторного отдыха есть семейные номера и Royal Suite.\n\nУ Activity Pool и Relax Pool заявлен подогрев. Это не обещание подогрева всех бассейнов: проверим режим на даты, работу горок и подходящий номер.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "27df08fc4f2835b626ba34b53cb0db05324fb2f647646e73561881f8d210039c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/af33e0fbcc36e4e7dd28cbd044051b0593d1bdfc/.github/traffic-publish/commercial-20261112-batch5/973.png",
+      "photo_sha256": "d6c3b3127c86ff100bac87b7350722170ba7229922942258fe4e5517ce2e0e14",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://www.dobedanhotels.com/en/hotels/dobedan-beach-resort-comfort-side/",
+        "https://www.dobedanhotels.com/en/hotels/dobedan-beach-resort-comfort-side/beach-pools/",
+        "https://www.dobedanhotels.com/media/mhwjq5yb/dobedan-beach-resort-anasayfa-plaj-havuz-slider.jpg",
+        "https://www.dobedanhotels.com/media/1cxfnzxb/dobedan-beach-resort-standart-oda-swaper-slider.jpg",
+        "https://www.dobedanhotels.com/media/kf2kqwv0/dobedan-hotel-beach-resort-card.jpg"
+      ]
+    }
+  ]
+}

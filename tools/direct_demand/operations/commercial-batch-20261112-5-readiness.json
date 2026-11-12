@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "state": "PREPARED_NOT_SENT_AWAITING_CURRENT_TLS",
+  "operation": "commercial-hotel-batch-20261112-5-v1",
+  "at": "2026-11-12T16:21:57.273342+00:00",
+  "asset_commit": "af33e0fbcc36e4e7dd28cbd044051b0593d1bdfc",
+  "registry_version": 223,
+  "baseline_full_pairs": 542,
+  "baseline_queue": 63,
+  "prepared_pairs": 9,
+  "new_posts": 0,
+  "new_full_pairs": 0,
+  "site_writes": 0,
+  "workflow_changes": 0,
+  "dispatches": 0,
+  "source_main": "0cb62969d0a8fa59b1872df465b3810bf5b569d4",
+  "deploy": {
+    "run_id": 43250756234,
+    "attempt": 2,
+    "conclusion": "success"
+  },
+  "strict_tls": {
+    "run_id": 43254816916,
+    "attempt": 1,
+    "job_id": 131310062683,
+    "conclusion": "failure",
+    "failed_step": "Resolve accepted repository and application",
+    "failure": "api_http_502",
+    "ssh_preparation": "skipped",
+    "actual_tls": "skipped",
+    "source_admission": false
+  },
+  "publishing_blobs_unchanged": 22,
+  "photo_count": 27,
+  "visual_covers_accepted": 9,
+  "manifest_sha256": "25c465137750ff9f6f1650102426cab7b760cc916fb940607fb17dde27fb4a46",
+  "hotel_ids": [
+    1551,
+    1368,
+    1370,
+    129406,
+    62505,
+    73343,
+    46770,
+    63673,
+    973
+  ],
+  "duplicate_check": "Local Site export native IDs and accepted aliases only; canonical publisher duplicate protection remains mandatory before send.",
+  "excluded": [
+    {
+      "hotel_id": 254,
+      "reason": "Three retained photo URLs returned HTTP200 but not decodable images; no retry or alternate URL attempted."
+    }
+  ],
+  "next_input": "Fresh main/installed/source and ownership; successful current-SHA strict TLS proof admitted by unchanged verifier; canonical current publications check; only then existing content100 carrier. Do not replay completed/UNKNOWN; no manual prices.",
+  "automation": "Existing hourly task remains enabled: transient GitHub502 with recovery already owned by original HOTEL owner; no persistent write failure established."
+}
