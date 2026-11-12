@@ -51,7 +51,8 @@ final class DevelopmentRoadmapReview
     public static function send(string $wire,?callable $sender=null): array
     {
         $capture=null;$observer=static function(array $value)use(&$capture):void{$capture=$value;};
-        $report=$sender!==null?$sender($wire,$observer):ManagerDraftClient::requestRoadmapPreparedJson($wire,$observer);
+        try{$report=$sender!==null?$sender($wire,$observer):ManagerDraftClient::requestRoadmapPreparedJson($wire,$observer);}
+        catch(Throwable $error){$report=['_error'=>'transport_exception'];}
         return ['report'=>$report,'transport'=>$capture];
     }
     public static function verify(string $wire,array $value,array $candidate): array

@@ -243,4 +243,177 @@ trait DevelopmentRoadmapPhase
             [$q['queue_id'],$plan,$q['plan_sha256'],self::hash([$spec]),1,$this->now()]);
         $this->execute('UPDATE development_work_queues SET plan_sha256=?,task_count=task_count+1,updated_at=? WHERE queue_id=?',[$plan,$this->now(),$q['queue_id']]);
     }
+
+    private function roadmapOut(string $state,string $reason,int $calls=0): array
+    {return ['handled'=>true,'execution_kind'=>'server_saved_finance','state'=>$state,'reason'=>$reason,'provider_calls'=>$calls];}
+    private function roadmapHold(array $q,string $reason,bool $unknown): array
+    {
+        if($unknown&&$q['current_task_id']!==null){
+            $item=$this->current($q);
+            if(!$this->one('SELECT task_id FROM development_work_receipts WHERE queue_id=? AND task_id=?',[$q['queue_id'],$item['task_id']])){
+                $r=['run_id'=>$item['current_run_id'],'outcome'=>'unknown','result_sha256'=>null,'readback_sha256'=>null,
+                    'acceptance_sha256'=>null,'reviewer_run_id'=>null,'owned_claims_released'=>false];$bytes=self::canonical($r);
+                $this->execute('INSERT INTO development_work_receipts(queue_id,task_id,spec_sha256,receipt_sha256,receipt_json,created_at) VALUES(?,?,?,?,?,?)',
+                    [$q['queue_id'],$item['task_id'],$item['spec_sha256'],hash('sha256',$bytes),$bytes,$this->now()]);
+                $this->execute('UPDATE development_work_queues SET last_receipt_task_id=?,state=? WHERE queue_id=?',[$item['task_id'],'unknown',$q['queue_id']]);
+                $this->execute('UPDATE development_work_items SET state=? WHERE queue_id=? AND task_id=?',['unknown',$q['queue_id'],$item['task_id']]);
+            }
+        }
+        $this->execute('UPDATE development_work_roadmap_phases SET state=?,last_reason=? WHERE queue_id=?',[$unknown?'unknown':'hold',$reason,$q['queue_id']]);
+        return $this->roadmapOut($unknown?'unknown':'hold',$reason);
+    }
+    /** Only the installed ordinary CLI supplies origin; durable reservation precedes I/O. */
+    public function roadmapTick(array $origin,?callable $sender=null): array
+    {
+        if(!$this->roadmapTablesReady())return ['handled'=>false,'provider_calls'=>0];
+        $job=$this->transaction(function()use($origin,$sender):array{
+            $lane=$this->lane();$id=DevelopmentWorkServerContract::QUEUE;$p=$this->roadmapPhase($id);
+            if(!$p)return ['handled'=>false,'provider_calls'=>0];
+            $q=$this->one('SELECT * FROM development_work_queues WHERE queue_id=?'.$this->lock(),[$id]);
+            if(($origin['trigger']??null)!=='cron'||preg_match('/\\A[a-f0-9]{64}\\z/D',$origin['cron_id']??'')!==1
+                ||!is_int($origin['started_at']??null))return $this->roadmapOut('hold','ordinary_cron_required');
+            if(in_array($p['state'],['complete','unknown','hold','blocked'],true))return $this->roadmapOut($p['state'],$p['last_reason']??$p['state']);
+            try{$this->roadmapBinding($q,$p);}catch(Throwable $error){return $this->roadmapHold($q,'authority_or_policy_changed',false);}
+            $now=$this->timestamp();$slot=intdiv($now,60);
+            if($origin['started_at']>$now||$now-$origin['started_at']>30)return $this->roadmapOut('hold','stale_cron');
+            if($p['last_slot']!==null&&$slot<=(int)$p['last_slot'])return $this->roadmapOut($p['state'],'same_or_older_minute');
+            $this->ownsLane($q,$lane);$item=$this->current($q);
+            $step=$this->one('SELECT * FROM development_work_roadmap_steps WHERE queue_id=? AND task_id=?'.$this->lock(),[$id,$item['task_id']]);
+            if(!$step)return $this->roadmapHold($q,'unsupported_current_task',false);
+            if(in_array($step['state'],['reading','reviewing'],true))return $this->roadmapHold($q,'original_operation_unknown_no_replay',true);
+            if($now>=(int)$p['deadline_at'])return $this->roadmapHold($q,'finite_deadline_reached',false);
+            $this->roadmapInput($p,$step);
+            if($step['created_cron_id']===$origin['cron_id'])return $this->roadmapOut('ready','later_cron_required');
+            if($step['state']==='candidate'){
+                if($step['producer_cron_id']===$origin['cron_id']||$now<=(int)$step['producer_at'])return $this->roadmapOut('candidate','distinct_cron_required');
+                if((int)$p['review_calls']>=2)return $this->roadmapHold($q,'review_budget_exhausted',false);
+                if($sender===null&&!ManagerDraftClient::developmentTransportAvailable())return $this->roadmapHold($q,'review_transport_unavailable',false);
+                $snapshot=json_decode($step['snapshot_bytes'],true,32,JSON_THROW_ON_ERROR);
+                $candidate=$this->roadmapResult($q,$p,$step,$snapshot,(int)$step['snapshot_at']);
+                if($candidate['state']!=='candidate'||self::hash($candidate)!==$step['candidate_sha256']
+                    ||hash('sha256',$step['candidate_bytes'])!==$step['candidate_sha256'])return $this->roadmapHold($q,'saved_candidate_changed',true);
+                $wire=DevelopmentRoadmapReview::prepare($this->roadmapPayload($q,$p,$step,$snapshot,$candidate));$attempt=bin2hex(random_bytes(32));
+                $this->roadmapBlob('INSERT INTO development_work_roadmap_reviews(attempt_id,queue_id,task_id,cron_id,cron_slot,started_at,state,request_sha256,request_bytes) VALUES(?,?,?,?,?,?,?,?,?)',
+                    [$attempt,$id,$step['task_id'],$origin['cron_id'],$slot,$now,'unknown',hash('sha256',$wire),$wire],[8]);
+                $this->execute('UPDATE development_work_roadmap_steps SET state=? WHERE queue_id=? AND task_id=?',['reviewing',$id,$step['task_id']]);
+                $this->execute('UPDATE development_work_roadmap_phases SET state=?,last_slot=?,review_calls=review_calls+1,reserved_tokens=reserved_tokens+16384,reserved_micros=reserved_micros+1000000 WHERE queue_id=?',['reviewing',$slot,$id]);
+                return ['operation'=>'review','attempt_id'=>$attempt,'queue'=>$q,'phase'=>$p,'step'=>$step,'wire'=>$wire];
+            }
+            if($step['state']!=='ready'||$q['state']!=='ready'||$item['claim_sha256']!==null||$item['current_run_id']!==null)
+                return $this->roadmapHold($q,'unresolved_claim_no_replay',true);
+            if((int)$p['read_count']>=60)return $this->roadmapHold($q,'read_budget_exhausted',false);
+            $read=bin2hex(random_bytes(32));$run='roadmap_read_'.$read;
+            $this->execute('INSERT INTO development_work_roadmap_reads(read_id,queue_id,task_id,cron_id,cron_slot,run_id,started_at,state) VALUES(?,?,?,?,?,?,?,?)',
+                [$read,$id,$step['task_id'],$origin['cron_id'],$slot,$run,$now,'unknown']);
+            $this->execute('UPDATE development_work_items SET state=?,claim_sha256=?,current_run_id=?,updated_at=? WHERE queue_id=? AND task_id=?',
+                ['claimed',hash('sha256',random_bytes(32)),$run,$this->now(),$id,$step['task_id']]);
+            $this->execute('UPDATE development_work_queues SET state=? WHERE queue_id=?',['claimed',$id]);
+            $this->execute('UPDATE development_work_roadmap_steps SET state=? WHERE queue_id=? AND task_id=?',['reading',$id,$step['task_id']]);
+            $this->execute('UPDATE development_work_roadmap_phases SET state=?,last_slot=?,read_count=read_count+1 WHERE queue_id=?',['reading',$slot,$id]);
+            return ['operation'=>'read','read_id'=>$read,'run_id'=>$run,'queue'=>$q,'phase'=>$p,'step'=>$step,'at'=>$now,'cron_id'=>$origin['cron_id']];
+        });
+        if(!isset($job['operation']))return $job;
+        if($job['operation']==='read'){
+            try{$snapshot=DevelopmentRoadmapSavedResult::read($this->pdo,function()use($job):void{$this->roadmapAuthority($job['queue'],$job['phase']['execution_connection_id']);},$job['at']);}
+            catch(Throwable $error){return $this->transaction(function():array{$this->lane();return $this->roadmapHold($this->one('SELECT * FROM development_work_queues WHERE queue_id=?'.$this->lock(),[DevelopmentWorkServerContract::QUEUE]),'original_read_unknown',true);});}
+            return $this->roadmapSaveRead($job,$snapshot);
+        }
+        return $this->roadmapSaveReview($job,DevelopmentRoadmapReview::send($job['wire'],$sender));
+    }
+    private function roadmapFinish(array $q,array $receipt,array $lane): array
+    {
+        $item=$this->current($q);self::receipt($receipt);$bytes=self::canonical($receipt);
+        $this->execute('INSERT INTO development_work_receipts(queue_id,task_id,spec_sha256,receipt_sha256,receipt_json,created_at) VALUES(?,?,?,?,?,?)',
+            [$q['queue_id'],$item['task_id'],$item['spec_sha256'],hash('sha256',$bytes),$bytes,$this->now()]);
+        $this->execute('UPDATE development_work_queues SET last_receipt_task_id=? WHERE queue_id=?',[$item['task_id'],$q['queue_id']]);
+        return $this->finish($q,$item,$receipt,$lane,$this->now());
+    }
+    private function roadmapSaveRead(array $job,array $snapshot): array
+    {
+        return $this->transaction(function()use($job,$snapshot):array{
+            $lane=$this->lane();$q=$this->one('SELECT * FROM development_work_queues WHERE queue_id=?'.$this->lock(),[$job['queue']['queue_id']]);$p=$this->roadmapPhase($q['queue_id']);
+            $step=$this->one('SELECT * FROM development_work_roadmap_steps WHERE queue_id=? AND task_id=?'.$this->lock(),[$q['queue_id'],$job['step']['task_id']]);
+            $read=$this->one('SELECT * FROM development_work_roadmap_reads WHERE read_id=?'.$this->lock(),[$job['read_id']]);
+            if(!$read||$read['state']!=='unknown'||$q['current_task_id']!==$step['task_id']||$this->current($q)['current_run_id']!==$job['run_id'])
+                return $this->roadmapHold($q,'original_read_state_changed',true);
+            $bytes=self::canonical($snapshot);$result=$this->roadmapResult($q,$p,$step,$snapshot,$job['at']);$rb=self::canonical($result);
+            $this->roadmapBlob('UPDATE development_work_roadmap_reads SET state=?,result_sha256=?,result_bytes=?,snapshot_bytes=? WHERE read_id=?',
+                ['completed',hash('sha256',$rb),$rb,$bytes,$job['read_id']],[2,3]);
+            if($step['state']!=='reading'||$p['state']!=='reading')return $this->roadmapHold($q,'original_read_state_changed',true);
+            try{$this->roadmapBinding($q,$p);}catch(Throwable $error){return $this->roadmapHold($q,'authority_or_policy_changed_after_read',true);}
+            if($this->timestamp()>=(int)$p['deadline_at'])return $this->roadmapHold($q,'finite_deadline_after_read',true);
+            if($result['state']==='waiting_evidence'){
+                $this->execute('UPDATE development_work_items SET state=?,claim_sha256=NULL,current_run_id=NULL,updated_at=? WHERE queue_id=? AND task_id=?',['ready',$this->now(),$q['queue_id'],$step['task_id']]);
+                $this->execute('UPDATE development_work_queues SET state=? WHERE queue_id=?',['ready',$q['queue_id']]);
+                $this->execute('UPDATE development_work_roadmap_steps SET state=? WHERE queue_id=? AND task_id=?',['ready',$q['queue_id'],$step['task_id']]);
+                $this->execute('UPDATE development_work_roadmap_phases SET state=?,last_reason=? WHERE queue_id=?',['ready',$result['reason'],$q['queue_id']]);
+                return $this->roadmapOut('waiting_evidence',$result['reason']);
+            }
+            $this->roadmapBlob('UPDATE development_work_roadmap_steps SET state=?,producer_run_id=?,producer_cron_id=?,producer_at=?,candidate_sha256=?,candidate_bytes=?,snapshot_sha256=?,snapshot_bytes=?,snapshot_at=? WHERE queue_id=? AND task_id=?',
+                [$result['state']==='candidate'?'candidate':'blocked',$job['run_id'],$job['cron_id'],$job['at'],hash('sha256',$rb),$rb,hash('sha256',$bytes),$bytes,$job['at'],$q['queue_id'],$step['task_id']],[5,7]);
+            if($result['state']==='blocked'){
+                $this->roadmapFinish($q,['run_id'=>$job['run_id'],'outcome'=>'terminal_blocked','result_sha256'=>hash('sha256',$rb),
+                    'readback_sha256'=>hash('sha256',$bytes),'acceptance_sha256'=>null,'reviewer_run_id'=>null,'owned_claims_released'=>true],$lane);
+                $this->execute('UPDATE development_work_roadmap_phases SET state=?,last_reason=? WHERE queue_id=?',['blocked',$result['reason'],$q['queue_id']]);return $this->roadmapOut('blocked',$result['reason']);
+            }
+            $this->execute('UPDATE development_work_roadmap_phases SET state=?,last_reason=NULL WHERE queue_id=?',['candidate',$q['queue_id']]);return $this->roadmapOut('candidate','distinct_later_review_required');
+        });
+    }
+    private function roadmapMaterializeSecond(array $q,array $p,array $first,string $receiptHash,string $cron): void
+    {
+        if((int)$first['ordinal']!==1||$this->one('SELECT task_id FROM development_work_roadmap_steps WHERE queue_id=? AND ordinal=2',[$q['queue_id']]))
+            throw new DomainException('development_roadmap_second_exists');
+        $input=$this->roadmapInput($p,$first);$next=['kind'=>'saved_finance_processing','manifest_sha256'=>$p['manifest_sha256'],
+            'binding_sha256'=>$p['binding_sha256'],'capsule'=>$input['capsule'],'parent_task_id'=>$first['task_id'],
+            'parent_receipt_sha256'=>$receiptHash,'parent_result_sha256'=>$first['candidate_sha256']];
+        $task='DEV-ROADMAP-'.substr($p['manifest_sha256'],0,24).'-PROCESS';$spec=$this->roadmapSpec($task,$next['kind'],$next,[$first['task_id']]);
+        $plan=self::hash(['schema'=>'development-roadmap-append-v1','previous_plan'=>$q['plan_sha256'],'manifest'=>$p['manifest_sha256'],'tasks'=>[$spec]]);
+        $this->roadmapAppend($q,$plan,$spec);
+        $this->roadmapBlob('INSERT INTO development_work_roadmap_steps(queue_id,task_id,ordinal,kind,input_sha256,input_bytes,created_cron_id,state) VALUES(?,?,?,?,?,?,?,?)',
+            [$q['queue_id'],$task,2,$next['kind'],self::hash($next),self::canonical($next),$cron,'ready'],[5]);
+    }
+    private function roadmapSaveReview(array $job,array $value): array
+    {
+        return $this->transaction(function()use($job,$value):array{
+            $lane=$this->lane();$id=$job['queue']['queue_id'];$q=$this->one('SELECT * FROM development_work_queues WHERE queue_id=?'.$this->lock(),[$id]);$p=$this->roadmapPhase($id);
+            $step=$this->one('SELECT * FROM development_work_roadmap_steps WHERE queue_id=? AND task_id=?'.$this->lock(),[$id,$job['step']['task_id']]);
+            $review=$this->one('SELECT * FROM development_work_roadmap_reviews WHERE attempt_id=?'.$this->lock(),[$job['attempt_id']]);
+            if(!$review||$review['state']!=='unknown'||$review['response_bytes']!==null||$q['current_task_id']!==$step['task_id'])
+                return $this->roadmapHold($q,'original_review_state_changed',true);
+            $t=is_array($value['transport']??null)?$value['transport']:[];$raw=$t['wire_response_bytes']??null;$actual=$t['wire_request_bytes']??null;
+            if(!is_string($raw))$raw=null;if(!is_string($actual))$actual=null;
+            $complete=($t['wire_complete']??null)===true&&($raw===null||strlen($raw)<=16384)&&($actual===null||strlen($actual)<=32768);
+            if($raw!==null)$raw=substr($raw,0,16384);if($actual!==null)$actual=substr($actual,0,32768);
+            $this->roadmapBlob('UPDATE development_work_roadmap_reviews SET response_sha256=?,response_bytes=?,actual_request_bytes=?,metadata_json=? WHERE attempt_id=?',
+                [$raw===null?null:hash('sha256',$raw),$raw,$actual,self::canonical(['capture_complete'=>$complete,'capture_semantics'=>$complete?'original_complete':'bounded_prefix_or_unavailable']),$review['attempt_id']],[1,2]);
+            if($step['state']!=='reviewing'||$p['state']!=='reviewing')return $this->roadmapHold($q,'original_review_state_changed',true);
+            $this->pdo->exec('SAVEPOINT development_roadmap_credit');
+            try{
+                $this->roadmapBinding($q,$p);if($this->timestamp()>=(int)$p['deadline_at'])throw new DomainException('deadline');
+                $snapshot=json_decode($step['snapshot_bytes'],true,32,JSON_THROW_ON_ERROR);$candidate=$this->roadmapResult($q,$p,$step,$snapshot,(int)$step['snapshot_at']);
+                if(self::hash($candidate)!==$step['candidate_sha256']||$this->current($q)['current_run_id']!==$step['producer_run_id']
+                    ||$review['request_bytes']!==$job['wire']||$review['cron_id']===$step['producer_cron_id']
+                    ||(int)$review['cron_slot']<=intdiv((int)$step['producer_at'],60))throw new DomainException('candidate');
+                $v=DevelopmentRoadmapReview::verify($review['request_bytes'],$value,$candidate);
+                if($this->one('SELECT attempt_id FROM development_work_roadmap_reviews WHERE response_id=?',[$v['response_id']]))throw new DomainException('duplicate_response');
+                $this->roadmapBlob('UPDATE development_work_roadmap_reviews SET state=?,response_id=?,report_sha256=?,report_bytes=?,metadata_json=? WHERE attempt_id=?',
+                    ['succeeded',$v['response_id'],$v['report_sha256'],self::canonical($v['report']),self::canonical($v['metadata']),$review['attempt_id']],[3]);
+                $readback=$this->roadmapReadback($step,$p,$v);
+                $receipt=['run_id'=>$step['producer_run_id'],'outcome'=>'accepted_readback','result_sha256'=>$step['candidate_sha256'],
+                    'readback_sha256'=>$readback,'acceptance_sha256'=>self::hash([$p['manifest_sha256'],$step['task_id'],$readback]),
+                    'reviewer_run_id'=>$v['response_id'],'owned_claims_released'=>true];
+                if((int)$step['ordinal']===1){
+                    $this->roadmapMaterializeSecond($q,$p,$step,self::hash($receipt),$review['cron_id']);$q=$this->one('SELECT * FROM development_work_queues WHERE queue_id=?',[$id]);
+                }
+                $this->execute('UPDATE development_work_roadmap_steps SET state=? WHERE queue_id=? AND task_id=?',['accepted',$id,$step['task_id']]);
+                $fresh=$this->roadmapFinish($q,$receipt,$lane);
+                $this->execute('UPDATE development_work_roadmap_phases SET state=?,last_reason=? WHERE queue_id=?',[(int)$step['ordinal']===2?'complete':'ready','accepted_original_saved_result',$id]);
+                $this->roadmapProof($fresh,$this->roadmapPhase($id));$this->pdo->exec('RELEASE SAVEPOINT development_roadmap_credit');
+                return $this->roadmapOut((int)$step['ordinal']===2?'complete':'ready','accepted_original_saved_result',1);
+            }catch(Throwable $error){
+                $this->pdo->exec('ROLLBACK TO SAVEPOINT development_roadmap_credit');$this->pdo->exec('RELEASE SAVEPOINT development_roadmap_credit');
+                return $this->roadmapHold($q,'original_review_not_accepted_no_replay',true);
+            }
+        });
+    }
 }
