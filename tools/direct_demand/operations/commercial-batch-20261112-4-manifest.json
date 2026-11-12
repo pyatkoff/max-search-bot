@@ -1,0 +1,237 @@
+{
+  "state": "PREPARED_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261112-4-v1",
+  "registry_version": 222,
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 532,
+  "expected_new_full_pairs": 10,
+  "rows": [
+    {
+      "hotel_id": 22660,
+      "logical_id": "commercial-sunsuri-phuket-22660-v1",
+      "aliases": [
+        "SUNSURI Phuket",
+        "SUNSURI PHUKET RESORT"
+      ],
+      "text": "✈️ Туры в SUNSURI Phuket\n📍 Най-Харн, Пхукет, Таиланд.\n\nБассейны, семейные номера и детский клуб на зелёном склоне у Най Харна. Для уединения можно выбрать виллу с собственным бассейном.\n\nДо пляжа примерно от 5 до 10 минут пешком или на шаттле. Учтём перепад высот, категорию номера и депозит при заселении.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "7940ec1690a452f241c0769140870d1e3ab5d5af296b3b30a98cd9212f0d22da",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a988b4089259d492c45f392a74217e0e6928bf00/.github/traffic-publish/commercial-20261112-batch4/22660.png",
+      "photo_sha256": "f1fb3ad8e98ee2f0dad6a28bb357dfa0cf6386a3fcdd330161685aa3f52f561b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://www.sunsuri-phuket.com/",
+        "https://www.sunsuri-phuket.com/faq/",
+        "https://www.sunsuri-phuket.com/accommodation/",
+        "https://www.sunsuri-phuket.com/wp-content/uploads/2021/08/SUNSURI-Hero-Shot-0031.jpg",
+        "https://www.sunsuri-phuket.com/wp-content/uploads/2019/08/01_pic-swimming-pool-01.jpg",
+        "https://www.sunsuri-phuket.com/wp-content/uploads/2025/08/superior-family-triple-1.jpg"
+      ]
+    },
+    {
+      "hotel_id": 1260,
+      "logical_id": "commercial-ic-santai-1260-v1",
+      "aliases": [
+        "IC Hotels Santai Family Resort",
+        "IC HOTELS SANTAI FAMILY RESORT"
+      ],
+      "text": "✈️ Туры в IC Hotels Santai Family Resort\n📍 Белек, Турция.\n\nПесчаный пляж, детские клубы и водные горки для семейного отпуска в Белеке. У крытого бассейна заявлен круглогодичный контроль температуры.\n\nРаботу открытых водных зон проверим по сезону. Swim Up   доступ к общему бассейну зоны, а не собственный бассейн каждого номера.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "363853b9dc9eb89270e7757a9947fe56addc149f534b0f453d1be5926557a9ee",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a988b4089259d492c45f392a74217e0e6928bf00/.github/traffic-publish/commercial-20261112-batch4/1260.png",
+      "photo_sha256": "f42f0a7c2069dced017bad0481c1b228839dc7e014ecc65ae099e48c03d06393",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.ichotels.com.tr/en/our-hotels/santai-family-resort/",
+        "https://www.ichotels.com.tr/en/our-hotels/santai-family-resort/beaches-pools/",
+        "https://www.ichotels.com.tr/en/our-hotels/santai-family-resort/mini-club/",
+        "https://www.ichotels.com.tr/MesFiles/files/2026/IC-Hotels-Santai-Family-Resort-yaz-2026-EN.pdf",
+        "https://www.ichotels.com.tr/media/y1cpwe2p/ic-hotels-santai-family-resort-plaj-ve-havuzlar-plaj-card.jpg",
+        "https://www.ichotels.com.tr/media/mirohe45/ic-hotels-santai-family-resort-konaklama-sun-swim-up-villa-card.jpg",
+        "https://www.ichotels.com.tr/media/qernjapl/ic-hotels-santai-family-resort-konaklama-standart-deniz-manzarali-card.jpg"
+      ]
+    },
+    {
+      "hotel_id": 67897,
+      "logical_id": "commercial-jaz-maraya-67897-v1",
+      "aliases": [
+        "JAZ Elite Maraya",
+        "JAZ MARAYA"
+      ],
+      "text": "✈️ Туры в JAZ Elite Maraya\n📍 Мадинат-Корайя, Марса-Алам, Египет.\n\nСемейный отдых у моря: бассейны, номера для семьи и доступ в Aqua Coraya. Для двух бассейнов официально заявлен зимний подогрев.\n\nУточним температуру, маршрут к месту купания и условия посещения отдельного аквапарка. Песчаный вход прямо от корпуса не обещаем.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "181512b2c748e7b41041cf59386c3f06b5869c6693b66adc49eeff467df7533b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a988b4089259d492c45f392a74217e0e6928bf00/.github/traffic-publish/commercial-20261112-batch4/67897.png",
+      "photo_sha256": "05f098dc25378f9da48b593a8253257f7ba58d85d7b50f29dfc6ac9e0f69376e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.jazhotels.com/hoteldetail/55-egypt-marsa-alam-jaz-elite-maraya/overview",
+        "https://partner.jazhotels.com/hotel/64",
+        "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/new/050346Jaz%20Maraya%20Fact%20Sheet%202024.pdf",
+        "https://storage.googleapis.com/jaz-prod/strapi/1428_Jaz_Maraya_Maraya_Overview_04a58f2fe9/1428_Jaz_Maraya_Maraya_Overview_04a58f2fe9.jpg",
+        "https://storage.googleapis.com/jaz-prod/strapi/Overview_2_20199412_1b23547e4c/Overview_2_20199412_1b23547e4c.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/JazMaraya/Deluxe-Family-Room-Garden-View-20199412.jpg"
+      ]
+    },
+    {
+      "hotel_id": 132016,
+      "logical_id": "commercial-voyage-kundu-132016-v1",
+      "aliases": [
+        "Voyage Kundu",
+        "VOYAGE KUNDU HOTEL"
+      ],
+      "text": "✈️ Туры в Voyage Kundu\n📍 Кунду, Анталья, Турция.\n\nПесчаный пляж Кунду, аквапарк и семейная инфраструктура Voyage. Для особой поездки рассмотрим Lagoon Swim Up с выходом прямо к общему бассейну.\n\nЕсть Tugi Kids World и услуги для малышей. Сезонную концепцию, работу бассейнов и включения ресторанов проверим на ваши даты.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "8a1e665bcfd9eee9a6b8935959aa451b524c3820c8eb630aef11ed44b1ca0e8b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a988b4089259d492c45f392a74217e0e6928bf00/.github/traffic-publish/commercial-20261112-batch4/132016.png",
+      "photo_sha256": "6a7b3d9a6e287f8c3231ff90c7382a2ed072c00ede750b13d7d7f91c822aa358",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://www.voyagehotel.com/en/voyage-kundu/rooms",
+        "https://www.voyagehotel.com/en/voyage-kundu/pool-beach",
+        "https://www.voyagehotel.com/en/voyage-kundu/kids",
+        "https://www.aquatour.bg/img/OBEKTI/9540Voyage_Kundu_2026_Summer_Factsheet_EN.pdf",
+        "https://voyagecdn.blob.core.windows.net/mediafiles/uploads/639179901319118386.jpeg",
+        "https://voyagecdn.blob.core.windows.net/mediafiles/uploads/639179914392664065.jpeg",
+        "https://voyagecdn.blob.core.windows.net/mediafiles/uploads/639179938976474074.jpeg"
+      ]
+    },
+    {
+      "hotel_id": 83563,
+      "logical_id": "commercial-serry-beach-83563-v1",
+      "aliases": [
+        "Serry Beach Resort",
+        "SERRY BEACH RESORT"
+      ],
+      "text": "✈️ Туры в Serry Beach Resort\n📍 Хургада, Египет.\n\nПесчаный пляж, открытые бассейны с подогревом и детский клуб в Хургаде. Для водных развлечений предусмотрен доступ в соседний Sindbad Aqua Park.\n\nПодбираем семейный Serry Beach Resort. Режим подогрева и аквапарка уточним на даты; Manara Lounge доступен определённым категориям люксов.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "4cc682b007e5f9acb37574d63a16cf41162f64702c686e4abd6f75358bd12762",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a988b4089259d492c45f392a74217e0e6928bf00/.github/traffic-publish/commercial-20261112-batch4/83563.png",
+      "photo_sha256": "e72e79cd8fb3bdbf8d02278ba6a9ef95dc1b06736c30f2fe6d8a9cb558f95427",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.theserry.com/beach-resort",
+        "https://theserry.com/en/",
+        "https://www.theserry.com/Images/47%20Hotel%20Heroes/Beach%20Resort.jpg",
+        "https://www.theserry.com/Images/01%20Homepage/Design%20(6).jpg",
+        "https://www.theserry.com/Images/01%20Homepage/Beach%20Lifestyle%20%283%29.jpg"
+      ]
+    },
+    {
+      "hotel_id": 1421,
+      "logical_id": "commercial-papillon-belvil-1421-v1",
+      "aliases": [
+        "Papillon Belvil",
+        "PAPILLON BELVIL"
+      ],
+      "text": "✈️ Туры в Papillon Belvil\n📍 Белек, Турция.\n\nСемейный Белек у песчаного пляжа: бассейны, горки, детская Aquatower и Papy Kids. Можно выбрать номер в основном корпусе или клубной части.\n\nУчтём расположение номера, сезонную работу водных развлечений и возрастные правила. Подогрев бассейнов заранее не обещаем.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "f53b2da64a5da58d581429b859e1052dd8d8d2d815326b30d476023c7ecf7f3b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a988b4089259d492c45f392a74217e0e6928bf00/.github/traffic-publish/commercial-20261112-batch4/1421.png",
+      "photo_sha256": "6dee5bd140e360dece69090c9b40caa5b9cb0c2119c569233408e5006449b4dc",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://papillon.com.tr/en/papillon-belvil/",
+        "https://papillon.com.tr/en/papillon-belvil/beach-pool/",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-06-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-03-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/02/Superior_Family_03.jpg"
+      ]
+    },
+    {
+      "hotel_id": 1416,
+      "logical_id": "commercial-paloma-oceana-1416-v1",
+      "aliases": [
+        "Paloma Oceana",
+        "PALOMA OCEANA RESORT"
+      ],
+      "text": "✈️ Туры в Paloma Oceana\n📍 Кумкёй, Сиде, Турция.\n\nСемейный отдых в Сиде: песчаный пляж, бассейны, собственные водные горки и детские программы. Можно выбрать семейный люкс или Lake Villa.\n\nДо отдельного Palomaqua гостей возит шаттл. Режим горок и бассейнов сезонный; условия Lake Villas подбираются отдельно.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "a9a6435ab4853e688fa17138c09338966ab1e043c06229ccaaf97f275e991621",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a988b4089259d492c45f392a74217e0e6928bf00/.github/traffic-publish/commercial-20261112-batch4/1416.png",
+      "photo_sha256": "390d5fa9e9ef2265dd738d745e79f7f82b6791064f7b98003fd2b1b1e4e30d30",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.palomahotels.com/en/paloma-oceana",
+        "https://www.palomahotels.com/en/paloma-oceana/beach-and-pool",
+        "https://www.palomahotels.com/en/paloma-oceana/stay",
+        "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-36-00oceana%20%281%29.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-1-2020-3-54-44-PMoceana-familysuite.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-1-2020-4-15-25-PMoceana-lakevilla.jpg"
+      ]
+    },
+    {
+      "hotel_id": 1491,
+      "logical_id": "commercial-paloma-perissia-1491-v1",
+      "aliases": [
+        "Paloma Perissia",
+        "PALOMA PERISSIA"
+      ],
+      "text": "✈️ Туры в Paloma Perissia\n📍 Кумкёй, Сиде, Турция.\n\nСемейный отдых у песчаного пляжа в Сиде: бассейны, детский клуб и выбор номеров и люксов. До исторического центра можно выбраться на прогулку.\n\nВ Palomaqua предусмотрен бесплатный шаттл   аквапарк расположен отдельно. Проверим его сезонную работу, условия посещения и подходящий номер.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "2f0f7d0d302a494fd173a302b5c33c54a6e41c027b35a0f5df3d9c14fea4628c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a988b4089259d492c45f392a74217e0e6928bf00/.github/traffic-publish/commercial-20261112-batch4/1491.png",
+      "photo_sha256": "ddddd5ae02a46f648704c2a99fdebc7239b1f49fd70da9a022c24a316b940931",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.palomahotels.com/en/paloma-perissia",
+        "https://www.palomahotels.com/en/paloma-perissia/stay",
+        "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-34-21perissia%20%281%29.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-7-12-55-PM10-9-2020-10-51-06-amperissiaindexlobby.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-1-2020-2-27-15-PMperissia-suite.jpg"
+      ]
+    },
+    {
+      "hotel_id": 4181,
+      "logical_id": "commercial-hilton-marsa-alam-4181-v1",
+      "aliases": [
+        "Hilton Marsa Alam Nubian Resort",
+        "HILTON MARSA ALAM NUBIAN RESORT"
+      ],
+      "text": "✈️ Туры в Hilton Marsa Alam Nubian Resort\n📍 Абу-Даббаб, Марса-Алам, Египет.\n\nАбу Даббаб для пляжного отдыха и снорклинга: песчаный берег, коралловый риф, бассейны и детские занятия. Можно выбрать номер или люкс с балконом либо террасой.\n\nМорских животных не обещаем по расписанию. Уточним погоду, удобный маршрут к воде, вид из номера и включённые услуги.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "212fe9b3e89e7386c192aa74152c9393bc375d10ee623910ff0b3d7cd1fc3cba",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a988b4089259d492c45f392a74217e0e6928bf00/.github/traffic-publish/commercial-20261112-batch4/4181.png",
+      "photo_sha256": "70916ff4b18d8e2472574f9886b8de9de84087b28d2dbf1e62c024a5aa9b6a35",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.hilton.com/en/hotels/rmfhihi-hilton-marsa-alam-nubian-resort/",
+        "https://www.hilton.com/en/hotels/rmfhihi-hilton-marsa-alam-nubian-resort/things-to-do/",
+        "https://www.hilton.com/en/hotels/rmfhihi-hilton-marsa-alam-nubian-resort/rooms/",
+        "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_1920,h_1080,q_70,f_auto,g_center/g_auto/Imagery/Property%20Photography/Hilton%20International/R/RMFHIHI/RMFHI_Hotel_Main_Building.jpg",
+        "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_647,h_455,q_80,f_auto,g_auto/Imagery/Property%20Photography/Hilton%20International/R/RMFHIHI/RMFHI__One_Bedroom_Suite_Living_Room_with_Pool_View.jpg",
+        "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_2560,h_1146,q_80,f_auto,g_auto/Imagery/Property%20Photography/Hilton%20Hotels%20and%20Resorts/R/RMFHIHI/6G6A1271.jpg"
+      ]
+    },
+    {
+      "hotel_id": 12107,
+      "logical_id": "commercial-jaz-fanara-12107-v1",
+      "aliases": [
+        "JAZ Fanara Resort & Residence",
+        "JAZ FANARA RESORT & RESIDENCE (EX. IBEROTEL CLUB)"
+      ],
+      "text": "✈️ Туры в JAZ Fanara Resort & Residence\n📍 Рас-Ум-эль-Сид, Шарм-эль-Шейх, Египет.\n\nРас Ум эль Сид для любителей моря: песчаный пляж, коралловый риф и бассейны. Есть детский клуб и зимний подогрев отдельного взрослого и детского бассейна.\n\nК пляжу ведут ступени или наклонная дорожка. Подберём размещение в Resort или Residence с учётом маршрута к морю.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "ab595105983559ba0bd409917f6f17358c53af0e8ed18a932b0adff5dcf87b79",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a988b4089259d492c45f392a74217e0e6928bf00/.github/traffic-publish/commercial-20261112-batch4/12107.png",
+      "photo_sha256": "4f00e315865a3b1b40c003ba8d25f397c6a6a6c8fe282eb448415d1c0a96b33a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.jazhotels.com/hoteldetail/4-egypt-sharm-el-sheikh-jaz-fanara-resort/overview",
+        "https://www.tui.nl/jaz-fanara-resort-en-residence-50927568/",
+        "https://www.coral.ge/en/hotels/egypt/jaz-fanara-resort-residence-sharm-el-sheikh/",
+        "https://storage.googleapis.com/jaz-prod/strapi/IMG_3042_JPG_38e0ffddd7/IMG_3042_JPG_38e0ffddd7.jpeg",
+        "https://storage.googleapis.com/jaz-prod/strapi/IMG_8966_JPG_2531e57f16/IMG_8966_JPG_2531e57f16.jpeg",
+        "https://storage.googleapis.com/jaz-prod/strapi/Beach_1438c76c09/Beach_1438c76c09.jpg"
+      ]
+    }
+  ]
+}
