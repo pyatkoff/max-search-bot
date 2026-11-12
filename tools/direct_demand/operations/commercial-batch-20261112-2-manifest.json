@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261112-2-v1",
+  "state": "PREPARED_NOT_SENT",
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 35313,
+      "logical_id": "commercial-mandarin-oriental-bodrum-35313-v1",
+      "aliases": [
+        "Mandarin Oriental, Bodrum",
+        "MANDARIN ORIENTAL BODRUM"
+      ],
+      "text": "✈️ Туры в Mandarin Oriental, Bodrum\n📍 Бодрум, Турция.\n\nОтдых в Paradise Bay: два песчаных пляжа и выбор размещения от номера до виллы. Для детей   клуб и отдельный бассейн.\n\nСобственный бассейн и вид на море зависят от категории номера. Подберём размещение под вашу поездку.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "41c553e2664d5a6245a58a1dc703b3b7f28d32bf957022015e4bf72647c4a823",
+      "photo_sha256": "effe16f527ca26e7e6b7226d26d45548e7e7ecde552cdb4f39013a8f4590a5b4",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/family",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/stay",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/gallery",
+        "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+        "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/1sBzZr7hvksq974bhKhv.jpg",
+        "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/rj5e5LrLFrmV6TGTJMzg.jpg",
+        "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/ezkdifhpnTn89LAiDc24.jpg"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f35b99453aa8d8a228cf0b6215de4c85397e6017/.github/traffic-publish/commercial-20261112-batch2/35313.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 66564,
+      "logical_id": "commercial-erica-nha-trang-66564-v1",
+      "aliases": [
+        "Erica Nha Trang",
+        "ERICA NHA TRANG"
+      ],
+      "text": "✈️ Туры в Erica Nha Trang\n📍 Нячанг, Вьетнам.\n\nДля отдыха в центре Нячанга рассмотрим Erica Suite Ocean View или семейную категорию Family Connecting Room. В отеле есть открытый бассейн, до общественного пляжа   около 200 метров.\n\nЭто вторая линия. Проверим планировку, вместимость и доступность выбранного номера; пляжные зонтики и шезлонги отель не предоставляет.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "dce6e0423b915f8179a4a1f45d053c92d5aa06d0432eb08caea296dee889f194",
+      "photo_sha256": "2697f41c3ef6ef46a33138cc4a30480afccc76ff3755037aac80bdea4425d2fe",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://ericanhatranghotel.com/category/rooms-suites.html",
+        "https://anextour.ru/tours/vietnam/erica-hotel",
+        "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+        "https://ericanhatranghotel.com/master_images/erica-suite-ocean-view/03.jpg",
+        "https://ericanhatranghotel.com/master_images/signature/Si01.jpg",
+        "https://ericanhatranghotel.com/master_images/Family-Connecting/01.jpg"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f35b99453aa8d8a228cf0b6215de4c85397e6017/.github/traffic-publish/commercial-20261112-batch2/66564.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 319,
+      "logical_id": "commercial-sunrise-remal-beach-319-v1",
+      "aliases": [
+        "SUNRISE Remal Beach",
+        "SUNRISE REMAL BEACH RESORT"
+      ],
+      "text": "✈️ Туры в SUNRISE Remal Beach\n📍 Рас-Насрани, Шарм-эль-Шейх, Египет.\n\nЛюксы у моря, собственный пляж и рифы Рас Насрани. Для семьи   Family Suite и детский клуб, для особого отдыха   отдельные Pool и Jacuzzi Suite.\n\nSwim Up не всегда частный бассейн; Posh Club зависит от категории. Подбираем именно Remal Beach и проверяем удобный вход в воду.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "4e423085f5365e350f9a3b0cbc47fe0cf563f824628dae4be8605b001708fd46",
+      "photo_sha256": "64ccad572260f3a214b627a5e053880f3eb9ff8143d14be73f5258a191d6eb7b",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://www.sunrise-resorts.com/sunrise-remal-beach-resort",
+        "https://www.sunrise-resorts.com/sunrise-remal-beach-resort/stay/executive-pool-suite",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/25_rb_factsheet_july_2025.pdf",
+        "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a2fecdc8be5b.jpg/1920x1080/fit/80/1cee548f2316399e0055d0c6d04e31e9.jpg",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a2fea596d750.jpg/1920x1080/fit/80/1912587d9d641d7e47cbe63c5eabc7cf.jpg",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a0eec34bc4a1.jpg/1920x1080/fit/80/afeb13506e0837ce4e9c5d385871a6f4.jpg"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f35b99453aa8d8a228cf0b6215de4c85397e6017/.github/traffic-publish/commercial-20261112-batch2/319.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 68907,
+      "logical_id": "commercial-amarina-abu-soma-68907-v1",
+      "aliases": [
+        "Amarina Abu Soma Resort & Aquapark",
+        "AMARINA ABU SOMA RESORT & AQUAPARK"
+      ],
+      "text": "✈️ Туры в Amarina Abu Soma Resort & Aquapark\n📍 Абу-Сома, Сафага, Египет.\n\nПесчаный пляж, аквапарк и семейные номера в Абу Сома. Для особой поездки рассмотрим Royal Suite 65 90 м² с видом на море и джакузи в ванной.\n\nУточним вместимость выбранной категории, сезонную работу горок и подогрев на ваши даты. Спа и отдельные рестораны могут оплачиваться дополнительно.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "82ba51bceba1bc5795f1e177cb95fcc3390e83cbf0b651f2e8e3762623cdcbb1",
+      "photo_sha256": "79190ce1c33434cb6be49b95f240cecb9adc7e9aec9d3e915d6a493e3bfdf83d",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.amarinagroup.com/amarina-hotels-resorts/amarina-abu-soma-resort",
+        "https://www.amarinagroup.com/rooms/amarina-abu-soma-resort/royal-suite",
+        "https://www.tui.com/hotels/amarina-abu-soma-resort-and-aqua-park-85/hotelinformation/",
+        "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+        "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS85Lzk3ZTM5NTk5LWE3ZDgtNDM1Mi1hMDc4LWI0YTdhNDk3YTI1MC5qcGc=",
+        "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8xLzFkMGU4M2ZjLTMwNjItNDkzNi05MTBlLTE2NmE2MDk3MWYyMC5qcGc=",
+        "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9kL2RkZDY1ZGEzLWZkMzktNGVjMC05NTI1LTNjZWYzNDQwM2JiMi5qcGc="
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f35b99453aa8d8a228cf0b6215de4c85397e6017/.github/traffic-publish/commercial-20261112-batch2/68907.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ]
+}
