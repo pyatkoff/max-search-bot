@@ -1,0 +1,31 @@
+{
+  "mode": "commit",
+  "operationId": "site-new8-complete-20261113-b8-r226",
+  "payload_sha256": "107f079e68bd6cdf315e87bc8be34aa614932c12f2f9014fdbe5d2a2a7b58a8f",
+  "expected_version": 226,
+  "expected_hotel_ids": [
+    948,
+    213,
+    7938,
+    1530,
+    818,
+    2569,
+    68661,
+    1112
+  ],
+  "approval_sha256": "ba00b2ac16023ccc9505c29d70106ad7562abf4e301228ab9c52cdebc3ff791b",
+  "ok": true,
+  "automatic_retries": 0,
+  "request_at": "2026-11-12T22:24:24.327951+00:00",
+  "http_status": 200,
+  "response": {
+    "version": 227,
+    "event": {
+      "id": "site-new8-complete-20261113-b8-r226",
+      "title": "Выпуск 8 отелей завершён · MAX, Telegram и три фида",
+      "type": "success"
+    }
+  },
+  "outcome": "confirmed",
+  "response_at": "2026-11-12T22:24:32.272216+00:00"
+}
