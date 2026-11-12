@@ -18,6 +18,11 @@ final class ModeledConversionValueDeliveryReader
     public const ROW_LIMIT=201;
     public const INITIAL_API_RECEIPT_CUTOFF=1794404149;
     public const ACCEPTED_PREFIX_CUTOFF=1794419944;
+    private const FRONTIER_PROFILE_CUTOFF=1794446184;
+    private const FRONTIER_API_CUTOFF=1794437904;
+    private const FRONTIER_LIMIT=64;
+    private const FRONTIER_PACKET_BYTES=8192;
+    private string $frontierUnavailable='projection_unavailable';
     private const STATES=['pending','ready','uploading','accepted','processed','unknown','failed','expired','unmatched'];
     private const UPLOADS=['PREPARED','UPLOADED','EXPORTED','MATCHED','PROCESSED','LINKAGE_FAILURE'];
     private const ERRORS=['identity_not_found','identity_ambiguous','metrika_visit_window','metrika_visit_unverified','wire_key_collision','scope_unavailable','api_rejected','api_row_rejected',
@@ -185,7 +190,7 @@ final class ModeledConversionValueDeliveryReader
                 $columns[]="COALESCE(SUM(CASE WHEN o.platform='".$platform."' THEN o.value_rub ELSE 0 END),0) AS ".$platform."_rub";
             }
             $key=$mysql?"CONCAT('anytour_value_pred_',p.id,'_v1')":"'anytour_value_pred_'||p.id||'_v1'";
-            $sql='SELECT '.implode(',',$columns)." FROM modeled_conversion_profile_versions p"
+            $from=" FROM modeled_conversion_profile_versions p"
                 ." LEFT JOIN max_channel_conversion_outbox o ON o.value_profile_id=p.id"
                 ." AND o.project_key=p.project_key AND o.conversation_id=p.conversation_id AND o.target=".$key
                 .' AND '.$equal('o.project_key','p.project_key').' AND '.$equal('o.platform','p.platform')
@@ -194,7 +199,10 @@ final class ModeledConversionValueDeliveryReader
                 .' AND '.$equal('o.target',$key).' AND o.value_rub>0 AND o.value_rub<='.ModeledConversionValueContract::MAX_VALUE_RUB
                 ." WHERE p.project_key='anytour' AND HEX(p.project_key)=HEX('anytour') AND p.assessment_namespace=? AND p.assessment_kind='repair' AND HEX(p.assessment_kind)=HEX('repair')"
                 ." AND p.platform IN ('max','telegram') AND HEX(p.platform) IN (HEX('max'),HEX('telegram'))";
-            $r=$this->query($sql,[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$namespace])[0];
+            $sql='SELECT '.implode(',',$columns).$from;
+            $frontier=$this->frontierQuery($columns,$from,$mysql,$now);
+            if($frontier!==null)$sql=$frontier;
+            $r=$this->query($sql,[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$namespace],$frontier===null?null:24576)[0];
             // Whole-cohort scalar bounds are independent of the older 201-row delivery suffix.
             $number=static function(mixed $v,bool $money):int|float{
                 if(!is_int($v)&&!is_float($v)&&!(is_string($v)&&preg_match('/\A[0-9]+(?:\.[0-9]{1,2})?\z/D',$v)===1))throw new UnexpectedValueException();
@@ -248,6 +256,7 @@ final class ModeledConversionValueDeliveryReader
             $out['retained_native_identity_evidence']=$this->retainedNativeIdentity($out['finite_visit_evidence'],$namespace,$now);
             $out['receipt_poll_evidence']=class_exists(ModeledConversionReceiptPollEvidence::class)
                 ?ModeledConversionReceiptPollEvidence::projection($pollAudit,$now):['available'=>false,'reason'=>'poll_helper_unavailable','provider_requests_in_reader'=>0];
+            $out['processing_frontier']=$this->processingFrontier($r,$namespace,$now,$out['receipt_poll_evidence']);
             $out['initial_api_receipts']=$this->initialApiReceipts($namespace,$now,$out['receipt_poll_evidence']);
             $out['exact_cases']=$this->repairCases($namespace,$now,$identityAudit);
             $this->budget->check();($this->authorize)();$this->budget->check();return $out;
@@ -321,6 +330,141 @@ final class ModeledConversionValueDeliveryReader
     }
 
     /** Original accepted repair cohort, saved ledger metadata only; never a provider poll. */
+
+    /** Same strict joined source and one query; no provider or capability queries. */
+    private function frontierQuery(array $columns,string $from,bool $mysql,int $now):?string
+    {
+        $this->frontierUnavailable='checkpoint_not_reached';
+        if($now<self::FRONTIER_PROFILE_CUTOFF)return null;
+        $this->frontierUnavailable='budget_headroom';
+        if($this->budget->remainingBytes()<32768)return null;
+        $aliases=['p.id'=>'j.pid','p.platform'=>'j.pplatform','p.observed_at_unix'=>'j.pobserved',
+            'o.id'=>'j.oid','o.platform'=>'j.oplatform','o.value_rub'=>'j.money','o.upload_id'=>'j.uploadid','o.state'=>'j.state',
+            'o.upload_status'=>'j.uploadstatus','o.value_api_accepted_at_unix'=>'j.apiat',
+            'o.event_unix'=>'j.eventat','o.value_processed_at_unix'=>'j.processedat'];
+        $fields=['p.id AS pid','p.platform AS pplatform','p.observed_at_unix AS pobserved','o.id AS oid','o.platform AS oplatform',
+            'o.value_rub AS money','o.upload_id AS uploadid','o.state AS state','o.upload_status AS uploadstatus',
+            'o.value_api_accepted_at_unix AS apiat','o.event_unix AS eventat','o.value_processed_at_unix AS processedat',
+            'o.conversation_id AS conversation','o.external_user_id AS externaluser','o.last_error AS holdreason'];
+        $cut='(o.id IS NOT NULL AND p.observed_at_unix<='.self::FRONTIER_PROFILE_CUTOFF.')';
+        $source='SELECT '.implode(',',$fields).',CASE WHEN '.$cut.' THEN 1 ELSE 0 END AS cut_member,'
+            .'ROW_NUMBER() OVER (PARTITION BY CASE WHEN '.$cut.' THEN 1 ELSE 0 END ORDER BY o.id) AS cut_order'.$from;
+        $enum=static function(string $field,array $values,bool $none=false)use($mysql):string{
+            $sql='CASE ';if($none)$sql.='WHEN '.($field.' IS NULL OR ').($mysql?'BINARY '.$field:"(".$field.") COLLATE BINARY")."='' THEN 1 ";
+            foreach($values as$i=>$value)$sql.='WHEN '.($mysql?'BINARY '.$field:"(".$field.") COLLATE BINARY")."='".$value."' THEN ".($i+($none?2:1)).' ';
+            return $sql.'ELSE 0 END';
+        };
+        $cast=static fn(string $field):string=>'CAST('.$field.' AS '.($mysql?'CHAR':'TEXT').')';
+        $parts=[$cast('j.oid'),$cast('j.pid'),$cast('j.conversation'),$cast('j.externaluser'),'j.eventat',
+            $enum('j.pplatform',['max','telegram']),'j.money',$enum('j.state',self::STATES),
+            $enum('j.holdreason',self::ERRORS,true),$enum('j.uploadstatus',self::UPLOADS,true),
+            "NULLIF(j.uploadid,'')",'j.apiat','j.processedat'];
+        $member='j.cut_member=1 AND j.cut_order<=65';
+        $array='JSON_ARRAY('.implode(',',$parts).')';
+        $packet=$mysql?'JSON_OBJECTAGG(CASE WHEN '.$member.' THEN '.$cast('j.oid')." ELSE '_' END,CASE WHEN ".$member.' THEN '.$array.' ELSE NULL END)':
+            'json_group_object('.$cast('j.oid').',json('.$array.')) FILTER (WHERE '.$member.')';
+        $aggregate=array_map(static fn(string $c):string=>strtr($c,$aliases),$columns);
+        $aggregate[]='COALESCE(SUM(j.cut_member),0) AS frontier_n';
+        $aggregate[]='COALESCE(SUM(CASE WHEN j.cut_member=1 THEN j.money ELSE 0 END),0) AS frontier_rub';
+        $aggregate[]='COALESCE(SUM(CASE WHEN j.cut_member=1 AND (j.pobserved<946684800 OR j.pobserved IS NULL OR j.pobserved>'.$now.') THEN 1 ELSE 0 END),0) AS frontier_clock_bad';
+        $aggregate[]=$packet.' AS frontier_raw';
+        $names=[];foreach($columns as$column){
+            if(preg_match('/ AS ([a-z0-9_]+)\z/',$column,$match)!==1)return null;
+            $names[]=$match[1];
+        }
+        $quoted=$mysql?'OCTET_LENGTH(JSON_QUOTE(CAST(a.frontier_raw AS CHAR)))':'LENGTH(CAST(JSON_QUOTE(CAST(a.frontier_raw AS TEXT)) AS BLOB))';
+        $this->frontierUnavailable='packet_budget';
+        return 'SELECT '.implode(',',$names).',frontier_n,frontier_rub,frontier_clock_bad,'
+            .'CASE WHEN frontier_n<=64 AND '.$quoted.'<=8192 AND '.$quoted.'<=? THEN frontier_raw ELSE NULL END AS frontier_packet'
+            .' FROM (SELECT '.implode(',',$aggregate).' FROM ('.$source.') j) a';
+    }
+
+    /** Current observed roster only. Its first actual result must be pinned privately, not inferred from counts. */
+    private function processingFrontier(array $aggregate,string $namespace,int $now,array $poll):array
+    {
+        $base=['available'=>false,'basis'=>'saved_repair_profile_cut_roster_observed_now',
+            'profile_cutoff_unix'=>self::FRONTIER_PROFILE_CUTOFF,'api_cutoff_unix'=>self::FRONTIER_API_CUTOFF,
+            'observed_at_unix'=>$now,'max_events'=>self::FRONTIER_LIMIT,'historical_membership_authenticated'=>false,
+            'late_increment_for_old_profile_can_change_membership'=>true,'provider_requests_in_reader'=>0];
+        $fail=static fn(string $reason):array=>['available'=>false,'reason'=>$reason,'provider_requests_in_reader'=>0];
+        if(!class_exists(ModeledConversionValueIdentityEvidence::class))return $fail('identity_helper_unavailable');
+        if(!array_key_exists('frontier_n',$aggregate))return $fail($this->frontierUnavailable);
+        $count=$aggregate['frontier_n'];$rub=$aggregate['frontier_rub'];
+        if(!is_numeric($count)||(int)$count<0||(float)$count!==(float)(int)$count||!is_numeric($rub)||!is_finite((float)$rub))return $fail('invalid_saved_projection');
+        $count=(int)$count;
+        if($count>self::FRONTIER_LIMIT)return $fail('row_limit')+['observed_events'=>$count,'observed_value_rub'=>round((float)$rub,2)];
+        if((int)($aggregate['frontier_clock_bad']??1)!==0)return $fail('invalid_profile_clock');
+        if(!is_string($aggregate['frontier_packet']??null))return $fail('packet_budget');
+        try{
+            if(strlen(json_encode($aggregate['frontier_packet'],JSON_THROW_ON_ERROR))>self::FRONTIER_PACKET_BYTES)return $fail('packet_budget');
+            $packets=json_decode($aggregate['frontier_packet'],true,16,JSON_THROW_ON_ERROR|JSON_BIGINT_AS_STRING);
+            if(!is_array($packets))return $fail('invalid_saved_projection');unset($packets['_']);
+            if(count($packets)!==$count)return $fail('cohort_cardinality_unverified');
+            $clock=static function(mixed $v)use($now):?int{
+                if(is_string($v)&&preg_match('/\A[1-9][0-9]{8,9}\z/D',$v)===1)$v=(int)$v;
+                return is_int($v)&&$v>=946684800&&$v<=$now?$v:null;
+            };
+            $rows=[];$members=[];$receipts=[];$apiMembers=[];$latestPoll=[];$sum=0;$apiSum=0;$laterApi=0;$laterApiSum=0;$maxId='';$maxRef=null;
+            foreach(($poll['available']??false)===true?($poll['rows']??[]):[]as$seen){
+                if(($seen['stage']??null)==='valid_provider_receipt'&&in_array($seen['provider_status']??null,['PROCESSED','LINKAGE_FAILURE'],true))
+                    $latestPoll[$seen['receipt_ref']??'']=$seen;
+            }
+            foreach($packets as$packetId=>$values){
+                if(!is_array($values)||!array_is_list($values)||count($values)!==13)return $fail('invalid_saved_projection');
+                [$id,$profile,$conversation,$user,$event,$platform,$value,$state,$error,$upload,$receipt,$apiAt,$processed]=$values;
+                if((string)$packetId!==(string)$id)return $fail('invalid_saved_binding');
+                foreach([$id,$profile,$conversation,$user]as$identifier)if(!is_string($identifier)||!MaxTrackerLookupProtocol::id($identifier))return $fail('invalid_saved_binding');
+                if(!is_int($platform)||!in_array($platform,[1,2],true)||!is_int($state)||$state<0||$state>count(self::STATES)
+                    ||!is_int($error)||$error<0||$error>count(self::ERRORS)+1||!is_int($upload)||$upload<0||$upload>count(self::UPLOADS)+1)return $fail('invalid_saved_projection');
+                $eventAt=$clock($event);if($eventAt===null)return $fail('invalid_event_clock');
+                $row=['id'=>$id,'value_profile_id'=>$profile,'project_key'=>'anytour','platform'=>$platform===1?'max':'telegram',
+                    'conversation_id'=>$conversation,'external_user_id'=>$user,'counter_id'=>'98615635',
+                    'target'=>ModeledConversionValueContract::predictionKey($profile),'transport_target'=>ModeledConversionValueContract::TARGET,
+                    'value_contract'=>ModeledConversionValueContract::VERSION,'event_unix'=>$eventAt,'value_rub'=>$value];
+                $ref=ModeledConversionValueIdentityEvidence::reference($row,$namespace);
+                if($ref===null||isset($members[$ref]))return $fail('invalid_saved_binding');
+                $api=$apiAt===null?null:$clock($apiAt);$done=$processed===null?null:$clock($processed);
+                if(($apiAt!==null&&($api===null||$api<$eventAt))||($processed!==null&&($done===null||$api===null||$done<$api)))return $fail('invalid_receipt_clock');
+                $receiptRef=null;
+                if($receipt!==null){
+                    if(!is_string($receipt)||!MaxTrackerLookupProtocol::id($receipt)||$api===null)return $fail('invalid_receipt_binding');
+                    $receiptRef=hash('sha256','modeled_value_upload_receipt_v1|'.$receipt);
+                    if(isset($receipts[$receiptRef]))return $fail('receipt_binding_ambiguous');$receipts[$receiptRef]=true;
+                }elseif($api!==null||$done!==null)return $fail('invalid_receipt_binding');
+                if($state===5&&$upload===6&&$done===null)return $fail('processed_clock_unavailable');
+                $money=(int)$value;$sum+=$money;$members[$ref]=[$ref,$platform,$money];
+                if($api!==null){if($api<=self::FRONTIER_API_CUTOFF){$apiMembers[$ref]=[$ref,$receiptRef,$api];$apiSum+=$money;}
+                    else{$laterApi++;$laterApiSum+=$money;}}
+                if(strlen($id)>strlen($maxId)||(strlen($id)===strlen($maxId)&&strcmp($id,$maxId)>0)){$maxId=$id;$maxRef=$ref;}
+                $rows[$ref]=[$ref,$platform,$money,$state,$error,$upload,$receiptRef,$api,$done];
+            }
+            if($sum!== (int)$rub||(float)$rub!==(float)$sum)return $fail('cohort_value_unverified');
+            ksort($rows,SORT_STRING);ksort($members,SORT_STRING);ksort($apiMembers,SORT_STRING);
+            $terminal=[];foreach($rows as$row)if($row[6]!==null&&isset($latestPoll[$row[6]])
+                &&$row[5]>1&&(self::UPLOADS[$row[5]-2]??null)===$latestPoll[$row[6]]['provider_status'])
+                $terminal[]=['event_ref'=>$row[0],'receipt_ref'=>$row[6],'observed_at'=>$latestPoll[$row[6]]['checked_at']??null,
+                    'upload_status'=>$latestPoll[$row[6]]['provider_status'],'basis'=>'latest_saved_poll_not_first_terminal_clock'];
+            $out=$base;unset($out['available']);$out=['available'=>true]+$out+[
+                'complete_within_bound'=>true,'observed_events'=>$count,'observed_value_rub'=>$sum,
+                'later_profile_events'=>(int)$aggregate['increment_events']-$count,
+                'later_profile_value_rub'=>round((float)$aggregate['increment_rub']-$sum,2),
+                'membership_sha256'=>hash('sha256',json_encode(['repair_processing_frontier_v1',$namespace,self::FRONTIER_PROFILE_CUTOFF,array_values($members)],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),
+                'max_outbox_event_ref'=>$maxRef,
+                'initial_api_subset'=>['events'=>count($apiMembers),'value_rub'=>$apiSum,
+                    'membership_sha256'=>hash('sha256',json_encode(array_values($apiMembers),JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))],
+                'later_api_observations'=>['events'=>$laterApi,'value_rub'=>$laterApiSum],
+                'without_saved_api_receipt'=>['events'=>$count-count($receipts),'value_rub'=>$sum-$apiSum-$laterApiSum],
+                'columns'=>['event_ref','platform','value_rub','state','hold_reason','upload_status','receipt_ref','api_first_unix','processed_unix'],
+                'legend'=>['platform'=>['unknown','max','telegram'],'state'=>array_merge(['unknown'],self::STATES),
+                    'hold_reason'=>array_merge(['unknown','none_recorded'],self::ERRORS),'upload_status'=>array_merge(['unknown','not_recorded'],self::UPLOADS)],
+                'rows'=>array_values($rows),'last_saved_terminal_polls'=>$terminal,
+                'linkage_failure_first_terminal_clock'=>'not_persisted','per_receipt_visit_linkage'=>'not_checked'];
+            if($out['later_profile_events']<0||$out['later_profile_value_rub']<0)return $fail('cohort_reconciliation_unverified');
+            if(strlen(json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>16384)return $fail('projection_budget');
+            return $out;
+        }catch(UnexpectedValueException|JsonException $ignored){return $fail('invalid_saved_projection');}
+    }
+
     private function initialApiReceipts(string $namespace,int $now,array $pollEvidence):array
     {
         $base=['available'=>false,'checkpoint'=>gmdate('Y-m-d\TH:i:s\Z',self::INITIAL_API_RECEIPT_CUTOFF),

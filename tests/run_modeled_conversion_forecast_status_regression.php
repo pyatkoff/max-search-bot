@@ -849,6 +849,7 @@ function forecastV1Assertions(PDO $p,callable $check):void
     forecastRepairAssessmentAssertions($p,$check);
     $initialApiCohort=forecastInitialApiReceiptAssertions($p,$check);
     forecastFiniteVisitEvidenceAssertions($p,$check,$initialApiCohort);
+    forecastProcessingFrontierAssertions($p,$check);
     forecastInputDiagnosisAssertions($p,$check);
     forecastPredictiveValueAssertions($p,$check);
 }
@@ -2471,6 +2472,161 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $ini
             &&$responseBytes($receiptBounded)<=28000);
     }
 
+}
+
+
+/** One finite roster uses the existing aggregate; all native identifiers stay inside the read. */
+function forecastProcessingFrontierAssertions(PDO $p,callable $check):void
+{
+    foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
+    $p->exec("CREATE TABLE modeled_conversion_profile_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),customer_key VARCHAR(40),conversation_id BIGINT,observed_at_unix BIGINT,assessment_namespace CHAR(64),assessment_kind VARCHAR(8),profile_json TEXT)");
+    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),conversation_id BIGINT,counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),target VARCHAR(100),value_profile_id BIGINT,value_rub DECIMAL(12,2),state VARCHAR(24),upload_status VARCHAR(32),upload_id VARCHAR(40),external_user_id VARCHAR(20),event_unix BIGINT,value_stage VARCHAR(40),last_error TEXT,value_ready_at_unix BIGINT,value_api_accepted_at_unix BIGINT,value_processed_at_unix BIGINT)");
+    $p->exec('CREATE INDEX idx_value_delivery_receipt ON max_channel_conversion_outbox(project_key,counter_id,transport_target,value_contract,value_api_accepted_at_unix)');
+    $profileCut=1794446184;$apiCut=1794437904;$now=max(time(),$profileCut+600);$ns=ModeledConversionProfiles::assessmentNamespace();
+    $profile=$p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour',?,?,?,?,?,'repair','PRIVATE_FRONTIER_PROFILE')");
+    $event=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,'anytour',?,?,'98615635',?,?,?,?,?,?,?,?,?,?,'specific_request',?,?,?,?)");
+    $add=static function(int $id,bool $later=false)use($profile,$event,$profileCut,$apiCut,$ns):void{
+        $platform=$id%2?'max':'telegram';$born=$later?$profileCut+1:$apiCut-120;$at=$later?$profileCut:$apiCut-180;
+        $api=$id<=20?$apiCut-60+$id:($id<=23?$apiCut+60:null);
+        $state=$id<=8?'processed':($id===17?'unmatched':($api!==null?'accepted':($id%2?'ready':'pending')));
+        $status=$id<=8?'PROCESSED':($id===17?'LINKAGE_FAILURE':($api!==null?'UPLOADED':null));
+        $profile->execute([$id,$platform,(string)(100+$id),200+$id,$born,$ns]);
+        $event->execute([$id,$platform,200+$id,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,
+            ModeledConversionValueContract::predictionKey((string)$id),$id,10+$id,$state,$status,$api===null?null:(string)(400+$id),
+            (string)(300+$id),$at,$state==='pending'?'identity_not_found':'',$state==='pending'?null:$at+1,$api,$id<=8?$api+1:null]);
+    };
+    for($id=1;$id<=59;$id++)$add($id);$add(80,true);
+    $profile->execute([90,'max','190',290,$apiCut-120,$ns]);
+    $poll=ModeledConversionReceiptPollEvidence::begin($now-3);
+    $poll=ModeledConversionReceiptPollEvidence::append($poll,['v'=>1,'counter_id'=>'98615635',
+        'receipt_ref'=>hash('sha256','modeled_value_upload_receipt_v1|417'),'checked_at_unix'=>$now-1,'stage'=>7,
+        'http_status'=>200,'transport_error_code'=>0,'provider_status'=>'LINKAGE_FAILURE'],$now);
+    $read=static fn(?ModeledConversionStatusBudget $budget=null):array=>
+        (new ModeledConversionValueDeliveryReader($p,static function():void{},$budget??new ModeledConversionStatusBudget()))->repairAssessments($now,null,null,null,$poll);
+    $snapshot=static fn():string=>json_encode([$p->query('SELECT * FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),
+        $p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)],JSON_THROW_ON_ERROR);
+    $before=$snapshot();$oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+    ForecastV1ObservedStatement::$observePredictive=true;ForecastV1ObservedStatement::$predictiveStatements=[];ForecastV1ObservedStatement::$predictiveCopies=[];
+    try{$full=$read();$fullSql=ForecastV1ObservedStatement::$predictiveStatements;$fullCopies=ForecastV1ObservedStatement::$predictiveCopies;}
+    finally{ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $r=$full['processing_frontier'];$sum=array_sum(range(11,69));
+    $check('the finite primary roster includes every synthetic59 row and its nested savedAPI subset without adding original cases',
+        $r['available']&&$r['complete_within_bound']&&count($r['rows'])===59&&$r['observed_events']===59
+        &&$r['observed_value_rub']===$sum&&$r['initial_api_subset']['events']===20
+        &&$r['later_api_observations']['events']===3&&$r['without_saved_api_receipt']['events']===36
+        &&$r['later_profile_events']===1&&$r['later_profile_value_rub']==90
+        &&!$r['historical_membership_authenticated']&&$r['late_increment_for_old_profile_can_change_membership']);
+    $budget=new ModeledConversionStatusBudget();$budget->consumeBytes(35000);
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);ForecastV1ObservedStatement::$observePredictive=true;ForecastV1ObservedStatement::$predictiveStatements=[];
+    try{$legacy=$read($budget);$oldSql=ForecastV1ObservedStatement::$predictiveStatements;}
+    finally{ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $same=true;foreach(['reassessed_profiles','profiles_without_new_increment','new_increment_events','new_increment_value_rub',
+        'api_receipts','processed_upload_rows','by_state','by_platform','accepted_prefix']as$key)if($full[$key]!==$legacy[$key])$same=false;
+    $check('the same strict source is read once with identical original aggregate values and no added SQL operation',
+        $same&&$full['profiles_without_new_increment']===1&&count($fullSql)===count($oldSql)&&count($fullSql)<=30
+        &&substr_count($fullSql[0]['sql'],' FROM modeled_conversion_profile_versions p')===1
+        &&str_contains($fullSql[0]['sql'],'ROW_NUMBER()')&&str_contains($fullSql[0]['sql'],'cut_order<=65')
+        &&$legacy['processing_frontier']['reason']==='budget_headroom'
+        &&!str_contains($fullSql[0]['sql'],'profile_json')
+        &&strlen(json_encode($fullCopies[0][0]['frontier_packet'],JSON_THROW_ON_ERROR))<=8192&&$snapshot()===$before);
+    $json=json_encode($r,JSON_THROW_ON_ERROR);
+    $check('the roster contains hashed references and typed legends but no native identity or private profile payload',
+        !str_contains($json,'"301"')&&!str_contains($json,'"417"')&&!str_contains($json,'PRIVATE_')
+        &&$r['provider_requests_in_reader']===0&&strlen($r['membership_sha256'])===64
+        &&$r['last_saved_terminal_polls'][0]['basis']==='latest_saved_poll_not_first_terminal_clock'
+        &&$r['linkage_failure_first_terminal_clock']==='not_persisted');
+    $p->prepare('UPDATE max_channel_conversion_outbox SET event_unix=? WHERE id=80')->execute([$now+1]);
+    $laterChanged=$read()['processing_frontier'];
+    $check('a future event on a later profile cannot invalidate the earlier observed roster',
+        $laterChanged['available']&&$laterChanged['membership_sha256']===$r['membership_sha256']
+        &&$laterChanged['observed_events']===$r['observed_events']);
+    $p->prepare('UPDATE max_channel_conversion_outbox SET event_unix=? WHERE id=80')->execute([$profileCut]);
+    $p->prepare('UPDATE max_channel_conversion_outbox SET event_unix=?,last_error=NULL WHERE id=22')->execute([$apiCut-119]);
+    $afterProfile=$read()['processing_frontier'];
+    $nullHold=array_values(array_filter($afterProfile['rows']??[],static fn(array $v):bool=>$v[2]===32));
+    $check('a legitimate event one second after its profile remains valid and NULL hold means none recorded',
+        $afterProfile['available']&&count($nullHold)===1&&$nullHold[0][4]===1);
+    foreach([$now+1,946684799]as$invalidEvent){
+        $p->prepare('UPDATE max_channel_conversion_outbox SET event_unix=? WHERE id=22')->execute([$invalidEvent]);
+        $badEvent=$read()['processing_frontier'];
+        $check('future and invalid in-cut event clocks omit the entire roster',
+            !$badEvent['available']&&$badEvent['reason']==='invalid_event_clock');
+    }
+    $p->prepare('UPDATE max_channel_conversion_outbox SET event_unix=? WHERE id=22')->execute([$apiCut-180]);
+    $p->prepare('UPDATE modeled_conversion_profile_versions SET observed_at_unix=? WHERE id=22')->execute([946684799]);
+    $badProfileClock=$read()['processing_frontier'];
+    $check('an invalid profile clock inside the cut still omits the entire roster',
+        !$badProfileClock['available']&&$badProfileClock['reason']==='invalid_profile_clock');
+    $p->prepare('UPDATE modeled_conversion_profile_versions SET observed_at_unix=? WHERE id=22')->execute([$apiCut-120]);
+    $p->exec("UPDATE max_channel_conversion_outbox SET state='accepted',upload_status='UPLOADED' WHERE id=17");
+    $changed=$read()['processing_frontier'];
+    $check('status changes do not silently replace the frozen membership or initial receipt membership',
+        $changed['membership_sha256']===$r['membership_sha256']
+        &&$changed['initial_api_subset']['membership_sha256']===$r['initial_api_subset']['membership_sha256']);
+    $p->exec("UPDATE max_channel_conversion_outbox SET last_error='PRIVATE_HOLD',upload_status='PRIVATE_STATUS' WHERE id=22");
+    $unknown=$read()['processing_frontier'];
+    $unknownRows=array_filter($unknown['rows']??[],static fn(array $v):bool=>$v[4]===0&&$v[5]===0);
+    $check('unrecognised hold and upload enums remain explicit unknown rather than none or private text',
+        $unknown['available']&&count($unknownRows)===1&&!str_contains(json_encode($unknown,JSON_THROW_ON_ERROR),'PRIVATE_'));
+    $p->exec("UPDATE max_channel_conversion_outbox SET external_user_id='PRIVATE_BINDING' WHERE id=23");
+    $bad=$read()['processing_frontier'];$p->exec("UPDATE max_channel_conversion_outbox SET external_user_id='323' WHERE id=23");
+    $check('invalid native binding omits the whole roster instead of releasing a partial list',!$bad['available']&&$bad['reason']==='invalid_saved_binding'&&!isset($bad['rows']));
+    $p->prepare('UPDATE max_channel_conversion_outbox SET value_api_accepted_at_unix=? WHERE id=1')->execute([$apiCut-181]);
+    $badClock=$read()['processing_frontier'];$p->prepare('UPDATE max_channel_conversion_outbox SET value_api_accepted_at_unix=? WHERE id=1')->execute([$apiCut-59]);
+    $check('invalid firstAPI clocks produce explicit unavailable without inventing accepted membership',!$badClock['available']&&$badClock['reason']==='invalid_receipt_clock');
+    for($id=60;$id<=65;$id++)$add($id);$overflow=$read()['processing_frontier'];
+    $check('the65th member is a hard sentinel and never an arbitrary first64 complete roster',!$overflow['available']&&$overflow['reason']==='row_limit'&&$overflow['observed_events']===65&&!isset($overflow['rows']));
+    $p->exec('DELETE FROM max_channel_conversion_outbox WHERE id BETWEEN 60 AND 65');$p->exec('DELETE FROM modeled_conversion_profile_versions WHERE id BETWEEN 60 AND 65');
+    $projection=(new ReflectionClass(ModeledConversionForecastStatusReader::class))->newInstanceWithoutConstructor();
+    $bound=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'boundedResponse');
+    $body=['value_delivery'=>['repair_assessments'=>['processing_frontier'=>$r,
+        'finite_visit_evidence'=>['available'=>true,'immutable'=>'original'],'finite_visit_recovery'=>['available'=>true,'immutable'=>'forward'],
+        'finite_counter_scope_evidence'=>['available'=>true,'immutable'=>'once']]],'padding'=>str_repeat('x',23000)];
+    $safe=$bound->invoke($projection,$body);
+    $check('response pressure omits the whole new roster before original forward or once-only proof without raising28000',
+        strlen(json_encode($safe,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=28000
+        &&$safe['value_delivery']['repair_assessments']['processing_frontier']['reason']==='response_budget'
+        &&$safe['value_delivery']['repair_assessments']['finite_visit_evidence']===$body['value_delivery']['repair_assessments']['finite_visit_evidence']
+        &&$safe['value_delivery']['repair_assessments']['finite_visit_recovery']===$body['value_delivery']['repair_assessments']['finite_visit_recovery']
+        &&$safe['value_delivery']['repair_assessments']['finite_counter_scope_evidence']===$body['value_delivery']['repair_assessments']['finite_counter_scope_evidence']);
+    $sized=static function(int $bytes,string $char):array{
+        $fixture=['fixture'=>''];$fixture['fixture']=str_repeat($char,$bytes-strlen(json_encode($fixture,JSON_THROW_ON_ERROR)));return $fixture;
+    };
+    $contextual=['value_delivery'=>['repair_assessments'=>$full,'by_state'=>$full['by_state'],
+        'predictive_v1'=>$sized(1348,'p'),'historical_review'=>$sized(962,'h')]];
+    $proofs=['finite_visit_evidence'=>3238,'finite_visit_recovery'=>2220,
+        'fixed_pair_operational_decisions'=>2003,'finite_counter_scope_evidence'=>895];
+    foreach($proofs as$key=>$size)$contextual['value_delivery']['repair_assessments'][$key]=['available'=>true]+$sized($size-17,'s');
+    foreach(['processing_frontier','exact_cases','initial_api_receipts','retained_native_identity_evidence']as$key)
+        unset($contextual['value_delivery']['repair_assessments'][$key]);
+    $contextual['value_delivery']['fixed_output_fixture']='';
+    $financialBytes=strlen(json_encode($contextual['value_delivery'],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    $contextual['value_delivery']['fixed_output_fixture']=str_repeat('f',max(0,18500-$financialBytes));
+    $financialBytes=strlen(json_encode($contextual['value_delivery'],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    $contextual['remaining_context_fixture']=$sized(1800,'c');
+    foreach(['today_latency'=>5500,'telegram_linkage'=>1100,'saved_input_diagnosis'=>400,
+        'input_coverage'=>1450,'saved'=>950,'window'=>600]as$key=>$size)$contextual[$key]=$sized($size,'x');
+    $contextual['value_delivery']['repair_assessments']['processing_frontier']=$r;
+    $contextSafe=$bound->invoke($projection,$contextual);
+    $preserved=true;foreach($proofs as$key=>$size)
+        if($contextSafe['value_delivery']['repair_assessments'][$key]!==$contextual['value_delivery']['repair_assessments'][$key])$preserved=false;
+    $check('a full synthetic financial envelope retains its59-event23-receipt roster all four proofs and totals by explicitly yielding only optional context and duplicate projections',
+        $financialBytes===18500&&count(array_filter($r['rows'],static fn(array $v):bool=>$v[6]!==null))===23
+        &&strlen(json_encode($contextual,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>28000
+        &&strlen(json_encode($contextSafe,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=28000
+        &&$contextSafe['value_delivery']['repair_assessments']['processing_frontier']===$r&&$preserved
+        &&$contextSafe['value_delivery']['by_state']===$contextual['value_delivery']['by_state']
+        &&$contextSafe['value_delivery']['repair_assessments']['by_state']===$full['by_state']
+        &&$contextSafe['today_latency']['reason']==='response_budget'
+        &&$contextSafe['value_delivery']['predictive_v1']['reason']==='response_budget'
+        &&$contextSafe['value_delivery']['historical_review']['reason']==='response_budget');
+    $p->exec('UPDATE max_channel_conversion_outbox SET id=id+100000000000000000,value_profile_id=value_profile_id+100000000000000000,external_user_id=\'99999999999999999999\'');
+    $p->exec('UPDATE modeled_conversion_profile_versions SET id=id+100000000000000000');
+    $target=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?"CONCAT('anytour_value_pred_',value_profile_id,'_v1')":"'anytour_value_pred_'||value_profile_id||'_v1'";
+    $p->exec('UPDATE max_channel_conversion_outbox SET target='.$target);
+    $oversize=$read()['processing_frontier'];
+    $check('oversized quoted metadata packets are omitted before native copy without reducing cohort membership',
+        !$oversize['available']&&$oversize['reason']==='packet_budget'&&!isset($oversize['rows']));
 }
 
 
