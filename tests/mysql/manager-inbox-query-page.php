@@ -138,7 +138,7 @@ function inboxNativePair(InboxPageNativePdo $pdo, string $label, array $argument
         } unset($expectedRow);
         inboxNativeCheck($label . ' permits redaction of exactly the designated like fixture', $redactedLikeRows===1);
     }
-    $compatible=$after['rows'];$waitFields=['reply_wait_started_unix','reply_wait_started_at','reply_wait_age_seconds','reply_wait_time_known'];$validAdded=true;$validNeeded=true;$validLegacyPrefix=true;
+    $compatible=$after['rows'];$waitFields=['reply_wait_started_unix','reply_wait_started_at','reply_wait_age_seconds','reply_wait_time_known'];$validAdded=true;$validNeeded=true;$validLegacyPrefix=true;$validUnreadPopulation=true;
     $legacyMarker=new ReflectionMethod(BaselineManagerConversationService::class,'formatWaitAge');
     foreach($compatible as $index=>&$row){
         $id=(int)$row['id'];$expected=$expectedRows[$index]??null;
@@ -148,6 +148,10 @@ function inboxNativePair(InboxPageNativePdo $pdo, string $label, array $argument
         // Pending flags are fixture facts, not a duplicate of the production SQL.
         // The isolated preview rows below are all explicitly in AI mode.
         if(!isset($fixtures[$id])&&!in_array($id,range(701,709),true))throw new RuntimeException('Unreviewed current-wait fixture');
+        if(isset($fixtures[$id])){
+            $validUnreadPopulation=$validUnreadPopulation&&(int)$expected['unread_count']===$fixtures[$id]['rawUnread']&&(int)$row['unread_count']===$fixtures[$id]['humanUnread'];
+            $expectedRows[$index]['unread_count']=$fixtures[$id]['humanUnread'];
+        }
         if(in_array($id,[702,703],true)){
             inboxNativeCheck($label.' excludes only the designated recorded callback '.$id,(int)$expected['unread_count']===1&&(int)$row['unread_count']===0);
             $expectedRows[$index]['unread_count']=0;
@@ -171,8 +175,9 @@ function inboxNativePair(InboxPageNativePdo $pdo, string $label, array $argument
     }unset($row);
     inboxNativeCheck($label.' adds only truthful unknown current-wait fields',$validAdded);
     inboxNativeCheck($label.' has the exact independently seeded reply flags',$validNeeded);
+    inboxNativeCheck($label.' changes unread only from the independently seeded raw rows to human rows',$validUnreadPopulation);
     inboxNativeCheck($label.' replaces only the exact proven legacy timer prefix',$validLegacyPrefix);
-    inboxNativeCheck($label . ' preserves every legacy non-queue field except designated callback counts and like token', $expectedRows === $compatible);
+    inboxNativeCheck($label . ' preserves every legacy non-queue field except independently seeded human unread and like token', $expectedRows === $compatible);
     inboxNativeCheck($label . ' preserves the bounded number of SQL executions', $before['sql_count'] === $after['sql_count']);
     return [$before, $after];
 }
@@ -309,7 +314,12 @@ try {
         $conversation->execute([$id,1,$project,$source,$channel,$status,$stage,$owner,$at,$last,$isTest]);
         $mode = $id <= 360 ? $id % 10 : 2;
         $pending = $status === 'manager' && in_array($mode, [0,1,3,4,5,7], true);
-        $fixtures[$id] = compact('id','project','owner','status','isTest','source','channel','stage','at','last','pending');
+        // Part1 is human; part29 is human only in these explicitly seeded
+        // modes. Part30 is a bot start (or an outgoing manager attachment).
+        // Every fifth reader's initial cursor already covers through part29.
+        $humanUnread=$id%5===0?0:1+(int)in_array($mode,[0,3,4,5,7],true);
+        $rawUnread=$id%5===0?(int)($mode!==6):1+(int)($mode!==8)+(int)($mode!==6);
+        $fixtures[$id] = compact('id','project','owner','status','isTest','source','channel','stage','at','last','pending','humanUnread','rawUnread');
         for ($part = 1; $part <= 30; ++$part) {
             $direction = 'outbound'; $sender = 'ai'; $meta = '{}'; $created = gmdate('Y-m-d H:i:s', $base + $id * 60 + $part); $text = 'Synthetic message ' . $part;
             if ($part === 1) { $direction = 'inbound'; $sender = 'customer'; $meta = '{"type":"message"}'; }
