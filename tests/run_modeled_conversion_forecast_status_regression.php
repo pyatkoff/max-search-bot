@@ -860,7 +860,8 @@ function forecastV1Assertions(PDO $p,callable $check):void
     forecastRepairAssessmentAssertions($p,$check);
     $initialApiCohort=forecastInitialApiReceiptAssertions($p,$check);
     $retainedPositive=forecastFiniteVisitEvidenceAssertions($p,$check,$initialApiCohort);
-    forecastProcessingFrontierAssertions($p,$check,$retainedPositive);
+    $knownPositive=forecastKnownTrackerAssertions($p,$check);
+    forecastProcessingFrontierAssertions($p,$check,$retainedPositive,$knownPositive);
     forecastInputDiagnosisAssertions($p,$check);
     forecastPredictiveValueAssertions($p,$check);
     forecastRetainedTrackerTickAssertions($p,$check);
@@ -2543,6 +2544,23 @@ function forecastRetainedTrackerAssertions(PDO $p,callable $check,array $origina
         $positive[0]===1&&$positive[4]===2&&count($sql)===2
         &&str_contains($sql[1]['sql'],'UF_CHAT_ID LIKE ? LIMIT 65) s')&&!str_contains($sql[1]['sql'],'ORDER BY')
         &&strlen(json_encode($copies,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=8192);
+    $knownId=$original['r'][1][1];$q=$p->prepare('SELECT * FROM max_channel_conversion_outbox WHERE id=? LIMIT 1');$q->execute([$knownId]);$knownRow=$q->fetch(PDO::FETCH_ASSOC);
+    $boundary=$now+20;$knownBinding=ModeledConversionRetainedTrackerIdentityEvidence::knownBinding($original,$knownRow,$ns,$boundary);
+    $knownContext=ModeledConversionRetainedTrackerIdentityEvidence::knownContext($original,$knownRow,$ns,$boundary);
+    $savedNoPrior=[];foreach(ModeledConversionValueVisitRecovery::originals($original,$ns,$boundary)as$ref=>$old)$savedNoPrior[]=[$ref,$boundary,$boundary,7,null,0];
+    $knownPair=ModeledConversionFixedPairDecisionEvidence::merge(null,$original,$ns,$savedNoPrior,$boundary);
+    $knownIntent=ModeledConversionRetainedTrackerIdentityEvidence::knownIntent($original,$knownRow,$ns,$hash,$boundary,$knownPair);
+    $p->exec('DELETE FROM max_sub_links');$selectedYclid='119988776655443322';
+    $click=(new DateTimeImmutable('@'.($knownContext['event_at_unix']-1)))->setTimezone(new DateTimeZone('Europe/London'))->format('Y-m-d H:i:s');
+    $add(1,['uid'=>$knownRow['external_user_id'],'cid'=>$knownBinding['held_client_id'],'yclid'=>$selectedYclid,'at'=>$click]);
+    $mixedWire=$repo->retainedClickCandidate($knownContext,$hash,$boundary+1);
+    $mixedDone=ModeledConversionRetainedTrackerIdentityEvidence::knownComplete($knownIntent,$original,$knownRow,$ns,
+        ['request_sha256'=>$hash,'result'=>$mixedWire['result'],'received_at_unix'=>$boundary+1],$boundary+1);
+    $mixedView=ModeledConversionRetainedTrackerIdentityEvidence::knownProjection($mixedDone,$original,$knownRow,$ns,$boundary+1);
+    $check('native CID-heldA plus different YCLID-B returns selectedYCLID mismatch without claiming CID absence invalidity or financial permission',
+        $knownBinding['held_client_id']!==$selectedYclid&&$mixedView['kind']==='yclid'&&$mixedView['held_value_match']===false
+        &&$p->query('SELECT UF_CLIENT_ID FROM max_sub_links WHERE ID=1')->fetchColumn()===$knownBinding['held_client_id']
+        &&!isset($mixedView['cid_absent'])&&!isset($mixedView['invalid_cid'])&&!$mixedView['financial_permission']);
     $p->exec('DELETE FROM max_sub_links');
     $p->exec('ALTER TABLE max_sub_links MODIFY UF_CLIENT_ID BIGINT NULL,MODIFY UF_YCLID BIGINT NULL,MODIFY UF_METRIC_SOURCE BIGINT NULL DEFAULT 0');
     $add(1,['cid'=>'9988776655443322','metric'=>0]);
@@ -2885,7 +2903,7 @@ function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $ori
 }
 
 /** One finite roster uses the existing aggregate; all native identifiers stay inside the read. */
-function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $retainedPositive):void
+function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $retainedPositive,?array $knownPositive=null):void
 {
     foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
     $p->exec("CREATE TABLE modeled_conversion_profile_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),customer_key VARCHAR(40),conversation_id BIGINT,observed_at_unix BIGINT,assessment_namespace CHAR(64),assessment_kind VARCHAR(8),profile_json TEXT)");
@@ -3006,7 +3024,7 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $reta
     $proofs=['finite_visit_evidence'=>3238,'finite_visit_recovery'=>2220,
         'fixed_pair_operational_decisions'=>2003,'finite_counter_scope_evidence'=>895];
     foreach($proofs as$key=>$size)$contextual['value_delivery']['repair_assessments'][$key]=['available'=>true]+$sized($size-17,'s');
-    foreach(['processing_frontier','exact_cases','initial_api_receipts','retained_native_identity_evidence','retained_identity','retained_tracker_candidate']as$key)
+    foreach(['processing_frontier','exact_cases','initial_api_receipts','retained_native_identity_evidence','retained_identity','retained_tracker_candidate','retained_known_identities']as$key)
         unset($contextual['value_delivery']['repair_assessments'][$key]);
     $contextual['value_delivery']['fixed_output_fixture']='';
     $financialBytes=strlen(json_encode($contextual['value_delivery'],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
@@ -3050,6 +3068,21 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $reta
         &&$normalSafe['value_delivery']['repair_assessments']['retained_identity']===$retainedPositive
         &&$normalSafe['value_delivery']['repair_assessments']['processing_frontier']===$r
         &&strlen(json_encode($normalSafe,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=28000);
+
+    $withKnown=$contextual;$withKnown['value_delivery']['repair_assessments']['retained_known_identities']=$knownPositive;
+    $knownSafe=$bound->invoke($projection,$withKnown);
+    $check('new pair metadata yields explicitly before the unchanged18500 financial envelope roster or any original proof',
+        $knownPositive!==null&&$financialBytes===18500
+        &&($knownSafe['value_delivery']['repair_assessments']['retained_known_identities']['reason']??null)==='response_budget'
+        &&$knownSafe['value_delivery']['repair_assessments']['processing_frontier']===$r
+        &&$knownSafe['value_delivery']['repair_assessments']['finite_visit_evidence']===$contextual['value_delivery']['repair_assessments']['finite_visit_evidence']
+        &&strlen(json_encode($knownSafe,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=28000);
+    $knownNormal=$withKnown;$knownNormal['remaining_context_fixture']=$sized(900,'c');$knownNormalSafe=$bound->invoke($projection,$knownNormal);
+    $knownProofs=true;foreach($proofs as$key=>$size)if($knownNormalSafe['value_delivery']['repair_assessments'][$key]!==$knownNormal['value_delivery']['repair_assessments'][$key])$knownProofs=false;
+    $check('a feasible optional-context envelope preserves the compact two-case results full59/23 roster and all four core proofs',
+        $knownProofs&&$financialBytes===18500&&$knownNormalSafe['value_delivery']['repair_assessments']['retained_known_identities']===$knownPositive
+        &&$knownNormalSafe['value_delivery']['repair_assessments']['processing_frontier']===$r
+        &&strlen(json_encode($knownNormalSafe,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=28000);
 
     $p->exec('UPDATE max_channel_conversion_outbox SET id=id+100000000000000000,value_profile_id=value_profile_id+100000000000000000,external_user_id=\'99999999999999999999\'');
     $p->exec('UPDATE modeled_conversion_profile_versions SET id=id+100000000000000000');
@@ -3158,6 +3191,183 @@ function forecastRetainedTrackerTickAssertions(PDO $p,callable $check):void
     $check('real300-second ticks keep one call per subject and never repeat the consumed candidate '.$case,
         $once&&$lookup->candidateCalls===1&&($lookup->perTick[$now+600][$uid]??[])===['ordinary']&&$api->posts===0);
     }
+}
+
+
+/** Two original known CIDs, an unchanged installed receiver DTO, and the normal full25-user carrier. */
+function forecastKnownTrackerAssertions(PDO $p,callable $check):array
+{
+    $knownPacket=null;
+    foreach(['pair_once','ready_refill']as$scenario){
+        modeledValueSchema($p);
+        foreach(['assessment_namespace CHAR(64)','assessment_kind VARCHAR(8)','journal_cursor BIGINT DEFAULT 0']as$c)$p->exec('ALTER TABLE modeled_conversion_profile_versions ADD COLUMN '.$c);
+        $ns=ModeledConversionProfiles::assessmentNamespace();$born=ModeledConversionValueVisitEvidence::CHECKPOINT-120;$now=time()-2000;
+        $last=$scenario==='ready_refill'?29:26;
+        for($id=1;$id<=$last;$id++){
+            $binding=1900+$id;modeledValueBinding($p,$binding);$at=$id<=3?$born:$now-100;$kind=$id<=3?'repair':'live';
+            $p->prepare("INSERT INTO modeled_conversion_profile_versions(id,project_key,platform,customer_key,conversation_id,observed_at_unix,profile_json,assessment_namespace,assessment_kind) VALUES(?,'anytour','max',?,?,?,'{\"access_status\":\"allowed\"}',?,?)")
+                ->execute([$id,(string)$binding,$binding,$at,$ns,$kind]);
+            $ready=$id===2||$id===3||$id>=27;$cid=$id<=3?'88190'.$id:'99000'.(70000+$binding);$record='44000'.$id;
+            $source=$id<=3?$born-10:$now-300;$readyAt=$id<=3?$born+100:$now-80;
+            $p->prepare("INSERT INTO max_channel_conversion_outbox(id,project_key,platform,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,value_rub,value_profile_id,value_stage,value_contract,identity_source_key,state,next_attempt_unix,client_id,tracker_record_id,tracker_observed_unix,value_ready_at_unix) VALUES(?,'anytour','max',?,?,'98615635',?,?,?,?,?,'specific_request',?,'max_tracker',?,?,?,?,?,?)")
+                ->execute([$id,$binding,(string)(70000+$binding),ModeledConversionValueContract::predictionKey((string)$id),ModeledConversionValueContract::TARGET,$at,500,$id,ModeledConversionValueContract::VERSION,
+                    $ready?'ready':'pending',$id===1?$now+10000:0,$ready?$cid:null,$ready?$record:null,$ready?$source:null,$ready?$readyAt:null]);
+            // This fixture starts from an already verified continuity audit; the price model is not changed here.
+            $basis='{"fixture":"existing_verified_continuity"}';
+            $p->prepare("INSERT INTO modeled_conversion_price_audit(outbox_id,action,original_value_rub,applied_value_rub,prior_reserved_rub,assessed_at_unix,basis_json,basis_sha256) VALUES(?,'unchanged',500,500,0,?,?,?)")
+                ->execute([$id,$now-10,$basis,hash('sha256',$basis)]);
+        }
+        $rows=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id<=3 ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        $frame=['v'=>ModeledConversionValueVisitEvidence::VERSION,'n'=>$ns,'b'=>ModeledConversionValueVisitEvidence::CHECKPOINT,'r'=>[]];
+        foreach($rows as$i=>$r){
+            $ref=ModeledConversionValueIdentityEvidence::reference($r,$ns);
+            if($i===0)$frame['r'][]=[$ref,(string)$r['id'],2,null,$born+20,3,null,null,null,null,0,null,0,null,0,$born];
+            else{$candidate=ModeledConversionValueVisitEvidence::candidateReference($ref,$r['client_id'],$r['tracker_record_id'],(int)$r['tracker_observed_unix'],'canonical_max_lookup');
+                $frame['r'][]=[$ref,(string)$r['id'],2,$born+10,$born+20,1,$r['client_id'],$r['tracker_record_id'],(int)$r['tracker_observed_unix'],$candidate,2,false,4,null,0,$born];}
+        }
+        $recovery=ModeledConversionValueVisitRecovery::create($frame,$ns,$now);
+        foreach($recovery['r']as&$r){$r[2]=2;$r[3]=$born+30;$r[4]=$born+40;$r[5]=2;$r[6]=false;$r[7]=4;$r[10]=1;}unset($r);
+        $observations=[];foreach(array_slice($frame['r'],1)as$r)$observations[]=[$r[0],$now-600,$now-590,7,null,0];
+        $pair=ModeledConversionFixedPairDecisionEvidence::merge(null,$frame,$ns,$observations,$now);
+        $oldIntent=ModeledConversionRetainedTrackerIdentityEvidence::intent($frame,$rows[0],$ns,str_repeat('a',64),$now-100);
+        $oldCase=ModeledConversionRetainedTrackerIdentityEvidence::complete($oldIntent,$frame,$rows[0],$ns,
+            ['request_sha256'=>str_repeat('a',64),'result'=>[0,$now-100,4,1,0,null,null,null,null],'received_at_unix'=>$now-100],$now);
+        $base=['errors'=>0,'finite_visit_evidence'=>$frame,'finite_visit_recovery'=>$recovery,'fixed_pair_operational_decisions'=>$pair,
+            'finite_counter_scope_evidence'=>false,ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY=>false,
+            ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY=>$oldCase,'metrika_report'=>['status'=>'unavailable']];
+        $p->prepare("UPDATE modeled_conversion_value_export_settings SET mode='send',goal_id='678187097',goal_intent='verified',activated_at_unix=?,profile_cursor=?,contract_version=?,last_tick_unix=?,last_receipt_json=? WHERE project_key='anytour'")
+            ->execute([$born-60,$last,ModeledConversionValueContract::VERSION,$now-5,json_encode($base,JSON_THROW_ON_ERROR)]);
+        $a=ModeledConversionRetainedTrackerIdentityEvidence::knownBinding($frame,$rows[1],$ns,$now);
+        $b=ModeledConversionRetainedTrackerIdentityEvidence::knownBinding($frame,$rows[2],$ns,$now);
+        $check('known source scope is exactly the two original canonical candidates and excludes the missing case',
+            $a!==null&&$b!==null&&$a['key']!==$b['key']&&$a['key']!==ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY
+            &&ModeledConversionRetainedTrackerIdentityEvidence::knownBinding($frame,$rows[0],$ns,$now)===null);
+        $readyGuard=new ReflectionMethod(ModeledConversionValueExport::class,'knownTrackerReady');$guardWorker=new ModeledConversionValueExport($p);
+        $changed=$rows[1];$changed['state']='unknown';$changed['upload_id']='12345';
+        $check('known source reservation cannot use an uploading unknown or provider-accepted row',
+            !$readyGuard->invoke($guardWorker,$changed,$now));
+        $hash=str_repeat('e',64);$intent=ModeledConversionRetainedTrackerIdentityEvidence::knownIntent($frame,$rows[1],$ns,$hash,$now,$pair);
+        $context=ModeledConversionRetainedTrackerIdentityEvidence::knownContext($frame,$rows[1],$ns,$now);
+        $wire=static function(int $kind,string $value)use($hash,$context,$now):array{
+            $record='101';$fingerprint=str_repeat('c',64);$at=$context['event_at_unix']-1;
+            $ref=hash('sha256',json_encode([MaxTrackerLookupProtocol::RETAINED_CLICK_HEADER,$hash,$context,$kind,$value,$record,$fingerprint,$at],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+            return ['request_sha256'=>$hash,'result'=>[1,$now,1,0,$kind,$ref,$record,$fingerprint,$at],'received_at_unix'=>$now];
+        };
+        $views=[];foreach([[1,$a['held_client_id']],[1,'99123456789012345'],[2,'119988776655443322'],[2,$a['held_client_id']]]as[$kind,$value]){
+            $done=ModeledConversionRetainedTrackerIdentityEvidence::knownComplete($intent,$frame,$rows[1],$ns,$wire($kind,$value),$now);
+            $views[]=ModeledConversionRetainedTrackerIdentityEvidence::knownProjection($done,$frame,$rows[1],$ns,$now);
+        }
+        $check('one held raw value is compared under the returned CID or YCLID type without guessing any alternate identity',
+            array_column($views,'held_value_match')===[true,false,false,true]&&$views[2]['kind']==='yclid'
+            &&!str_contains(json_encode($views,JSON_THROW_ON_ERROR),'119988776655443322')&&!$views[0]['financial_permission']
+            &&strlen(json_encode($intent,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))===768);
+        $wrong=$rows[1];$wrong['external_user_id']='999999';
+        $check('known CID intent rejects missing no-prior proof cross-subject and cross-case reuse',
+            ModeledConversionRetainedTrackerIdentityEvidence::knownIntent($frame,$rows[1],$ns,$hash,$now,null)===null
+            &&ModeledConversionRetainedTrackerIdentityEvidence::knownBinding($frame,$wrong,$ns,$now)===null
+            &&ModeledConversionRetainedTrackerIdentityEvidence::knownComplete($intent,$frame,$rows[2],$ns,$wire(1,$a['held_client_id']),$now)===null);
+        $pool=ModeledConversionRetainedTrackerIdentityEvidence::projection($oldCase,$frame,$rows[0],$ns,$now);
+        $check('the already saved missing-case result exposes only its prefix pool and saved clocks without another source request',
+            $pool['status']==='observed_no_candidate'&&$pool['prefix_rows']===4&&$pool['postevent_rows']===1
+            &&$pool['source_checked_at_unix']===$now-100&&$pool['app_received_at_unix']===$now-100&&!$pool['financial_permission']);
+        $held=[];foreach([$rows[1],$rows[2]]as$r)$held[$r['external_user_id']]=$r;
+        $lookup=new class($p,$held,$oldCase) {
+            public int $tick=0;public array $calls=[];public int $sourceCalls=0;public bool $durable=true;
+            public function __construct(private PDO $p,private array $held,private array $oldCase){}
+            public function lookup(string $counter,array $users):array{
+                $out=[];foreach($users as$uid){$this->calls[$this->tick][$uid][]='ordinary';
+                    if(isset($this->held[$uid])){$r=$this->held[$uid];$out[$uid]=['external_user_id'=>$uid,'client_id'=>$r['client_id'],'record_id'=>$r['tracker_record_id'],'observed_at_unix'=>(int)$r['tracker_observed_unix']];}}
+                return $out;
+            }
+            public function retainedClickCandidate(array $context,callable $beforeRequest):?array{
+                $hash=str_repeat('e',64);if(!$beforeRequest($hash))return null;
+                $this->calls[$this->tick][$context['user_id']][]='candidate';$this->sourceCalls++;
+                $s=$this->p->query("SELECT last_tick_unix,last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetch(PDO::FETCH_ASSOC);
+                $j=json_decode($s['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);$bound=0;
+                foreach(ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS as$key)if(is_array($j[$key]??null)&&$j[$key]['h']===$hash&&$j[$key]['s']===1)$bound++;
+                $this->durable=$this->durable&&(int)$s['last_tick_unix']===$this->tick&&$bound===1
+                    &&modeledValueFailureJsonEqual($j[ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY],$this->oldCase);
+                $r=$this->held[$context['user_id']];$kind=$r['id']==2?1:2;$value=$kind===1?$r['client_id']:'119988776655443322';
+                $record='101';$fingerprint=str_repeat('c',64);$at=$context['event_at_unix']-1;
+                $ref=hash('sha256',json_encode([MaxTrackerLookupProtocol::RETAINED_CLICK_HEADER,$hash,$context,$kind,$value,$record,$fingerprint,$at],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+                return ['request_sha256'=>$hash,'result'=>[1,$this->tick,1,0,$kind,$ref,$record,$fingerprint,$at],'received_at_unix'=>$this->tick];
+            }
+        };
+        $wire=new ModeledValueTestWire($now-150);
+        $wire->goals[]=['id'=>'678187097','type'=>'action','name'=>ModeledConversionValueContract::NAME,'conditions'=>[['type'=>'exact','url'=>ModeledConversionValueContract::TARGET]]];
+        $request=static function(string $method,string $url,mixed $body)use($wire):array{
+            parse_str((string)parse_url($url,PHP_URL_QUERY),$q);
+            if(isset($q['dimensions'])){preg_match("/clientID=='([0-9]+)'/",$q['filters']??'',$m);$wire->visitEmpty=str_starts_with($m[1]??'','88190');}
+            return $wire->request($method,$url,$body);
+        };
+        $api=new MetrikaOfflineClient('98615635','fixture-only',$request);$gate=static fn(string $chat):bool=>true;
+        $pairRow=static function(array $audit,string $ref):?array{foreach($audit['r']as$r)if($r[0]===$ref)return $r;return null;};
+        $before=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=2')->fetch(PDO::FETCH_ASSOC);
+        $lookup->tick=$now;$result=ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
+        $saved=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+        $first=ModeledConversionRetainedTrackerIdentityEvidence::knownProjection($saved[$a['key']]??null,$frame,$rows[1],$ns,time());
+        $once=true;foreach($lookup->calls[$now]??[]as$calls)if(count($calls)!==1)$once=false;
+        $check('full25 logical users keep24 ordinary users and one separately committed known-CID source pass without promotion',
+            $result['status']==='running'&&count($lookup->calls[$now]??[])===25&&$once&&$lookup->sourceCalls===1&&$lookup->durable
+            &&$first['held_value_match']===true
+            &&$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=2')->fetch(PDO::FETCH_ASSOC)===$before
+            &&modeledValueFailureJsonEqual($saved[ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY],$oldCase)
+            &&modeledValueFailureJsonEqual($saved['finite_visit_evidence'],$frame)&&modeledValueFailureJsonEqual($saved['finite_visit_recovery'],$recovery)
+            &&$pairRow($saved['fixed_pair_operational_decisions'],$a['ref'])===$pairRow($pair,$a['ref']));
+        if($scenario==='ready_refill'){
+            $check('the reserved READY row is excluded before LIMIT3 so all three other admission slots remain available',
+                $wire->visitReads===3&&$wire->posts===2
+                &&$p->query("SELECT state FROM max_channel_conversion_outbox WHERE id=29")->fetchColumn()==='ready');
+            continue;
+        }
+        $secondPairBefore=$pairRow($saved['fixed_pair_operational_decisions'],$b['ref']);
+        $secondBefore=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=3')->fetch(PDO::FETCH_ASSOC);
+        $lookup->tick=$now+300;$second=ModeledConversionValueExport::tick($p,$lookup,$api,$now+300,$gate);
+        $saved=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+        $secondView=ModeledConversionRetainedTrackerIdentityEvidence::knownProjection($saved[$b['key']]??null,$frame,$rows[2],$ns,time());
+        $check('the second known case has its own once and reports YCLID presence without replacing its CID or changing the ready row',
+            $second['status']==='running'&&$lookup->sourceCalls===2&&$secondView['kind']==='yclid'&&$secondView['held_value_match']===false
+            &&$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=3')->fetch(PDO::FETCH_ASSOC)===$secondBefore
+            &&$pairRow($saved['fixed_pair_operational_decisions'],$b['ref'])===$secondPairBefore
+            &&$pairRow($saved['fixed_pair_operational_decisions'],$a['ref'])[1]===$now+300);
+        $lookup->tick=$now+600;ModeledConversionValueExport::tick($p,$lookup,$api,$now+600,$gate);
+        $allOnce=true;foreach($lookup->calls as$users)foreach($users as$calls)if(count($calls)>1)$allOnce=false;
+        $check('two consumed known questions never repeat or reset the old case0 or original2+2 epochs',
+            $allOnce&&$lookup->sourceCalls===2&&$wire->posts===0);
+        $unknownReceipt=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+        $unknownReceipt[$a['key']]=$intent;
+        $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode($unknownReceipt,JSON_THROW_ON_ERROR)]);
+        $lookup->tick=$now+900;ModeledConversionValueExport::tick($p,$lookup,$api,$now+900,$gate);
+        $afterUnknown=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+        $check('a distinct consumed UNKNOWN known-case intent stays consumed without another source call or a reset of the old epochs',
+            $lookup->sourceCalls===2&&ModeledConversionRetainedTrackerIdentityEvidence::knownProjection($afterUnknown[$a['key']],$frame,$rows[1],$ns,time())['status']==='consumed_unknown'
+            &&modeledValueFailureJsonEqual($afterUnknown['finite_visit_evidence'],$frame)&&modeledValueFailureJsonEqual($afterUnknown['finite_visit_recovery'],$recovery)
+            &&modeledValueFailureJsonEqual($afterUnknown[ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY],$oldCase));
+        $projection=new ModeledConversionValueDeliveryReader($p,static function():void{},new ModeledConversionStatusBudget());
+        $bound=[];foreach($rows as$r)$bound[ModeledConversionValueIdentityEvidence::reference($r,$ns)]=$r;
+        (new ReflectionProperty($projection,'boundFiniteRows'))->setValue($projection,$bound);
+        $knownPacket=(new ReflectionMethod($projection,'knownTrackerObservation'))->invoke($projection,$saved,$frame,$ns,time());
+        $check('private reader compactly reports only returned type and the single held-value hash comparison',
+            $knownPacket['available']&&count($knownPacket['rows'])===2&&$knownPacket['rows'][0][3]===true&&$knownPacket['rows'][1][3]===false
+            &&strlen(json_encode($knownPacket,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=400
+            &&!str_contains(json_encode($knownPacket,JSON_THROW_ON_ERROR),'881902')&&!$knownPacket['financial_permission']);
+        $merge=new ReflectionMethod(ModeledConversionValueExport::class,'withKnownTrackerEvidence');$worker=new ModeledConversionValueExport($p);
+        $protected=['finite_visit_evidence'=>$frame,'finite_visit_recovery'=>$recovery,'fixed_pair_operational_decisions'=>$pair,
+            'finite_counter_scope_evidence'=>false,ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY=>$oldCase,'last_recorded_failure'=>['kept'=>true],'padding'=>''];
+        $measure=static function(array $v)use($p):int{
+            $json=json_encode($v,JSON_THROW_ON_ERROR);if($p->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql')return strlen($json);
+            $q=$p->prepare('SELECT OCTET_LENGTH(CAST(? AS JSON))');$q->execute([$json]);return (int)$q->fetchColumn();
+        };
+        $markers=$protected;foreach(ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS as$key)$markers[$key]=false;
+        $protected['padding']=str_repeat('p',max(0,8150-$measure($markers)));
+        $kept=$merge->invoke($worker,$protected,[$a['key']=>$saved[$a['key']],$b['key']=>$saved[$b['key']]],$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql');
+        $check('private pressure keeps both new no-replay markers and all old proof including the completed missing-case result',
+            $kept!==null&&$kept[$a['key']]===false&&$kept[$b['key']]===false
+            &&modeledValueFailureJsonEqual($kept[ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY],$oldCase)
+            &&modeledValueFailureJsonEqual($kept['finite_visit_evidence'],$frame)&&modeledValueFailureJsonEqual($kept['finite_visit_recovery'],$recovery)
+            &&$kept['last_recorded_failure']===$protected['last_recorded_failure']);
+    }
+    if($knownPacket===null)throw new RuntimeException('known_fixture_projection_unavailable');return $knownPacket;
 }
 
 
