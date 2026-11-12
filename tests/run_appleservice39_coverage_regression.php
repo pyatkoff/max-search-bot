@@ -28,6 +28,7 @@ function as39CoverageSuccess(array $fixture): void
     $report = $publisher->run('coverage_apply');
     as39Expect($report['ok'] && $report['coverage_publication_complete'] && $report['coverage_verified_posts'] === 39
         && $report['post_count'] === 69 && $report['expected_feed_offers'] === 67
+        && $report['feed_verified_offers'] === 67 && count($report['feed_verified_routes']) === 67
         && $report['menu_verified'] && $report['menu_pin_preserved'], 'all39 new posts and original-menu text complete the69-post graph');
     as39Expect($provider->count('POST','/messages') === $creates+39 && $provider->count('PUT','/messages') === $edits+1
         && $provider->count('PUT','/chats/'.$provider->channelId.'/pin') === $pins && $provider->pinned === $pin,

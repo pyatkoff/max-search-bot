@@ -90,7 +90,7 @@ try {
         'coverage_text_invalid','coverage_parent_incomplete','coverage_publication_identity_changed','invalid_coverage_operation',
         'coverage_images_not_prepared','invalid_coverage_upload','coverage_upload_collision','invalid_coverage_image_receipt',
         'coverage_image_receipt_required','coverage_operation_held','coverage_revision_changed','coverage_native_image_evidence_required',
-        'search_superseded'];
+        'search_superseded','coverage_feed_incomplete','coverage_feed_destination_changed'];
     $reason = in_array($error->getMessage(), $allowed, true) ? $error->getMessage() : 'pilot_operation_unavailable';
     echo json_encode(['ok'=>false,'state'=>'stopped','reason'=>$reason,'automatic_retry'=>false], JSON_UNESCAPED_SLASHES).PHP_EOL;
     exit(2);

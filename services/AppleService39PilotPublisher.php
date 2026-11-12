@@ -49,6 +49,7 @@ final class AppleService39PilotPublisher
             'search_inspect','search_prepare','search_apply','search_reconcile',
             'coverage_inspect','coverage_prepare','coverage_apply','coverage_reconcile'], true), 'unsupported_pilot_operation');
         $this->readbackDiagnostics = [];
+        $this->coverageActive = str_starts_with($operation, 'coverage_');
         $binding = $this->preflight();
         $this->store->assertBinding($binding);
         if (str_starts_with($operation, 'coverage_')) {
@@ -70,6 +71,21 @@ final class AppleService39PilotPublisher
                 'photo'=>fn(array $message): string => self::nativePhotoId($this->imagePayload($message)['photo_id'] ?? null),
                 'token'=>fn(array $message) => $this->imagePayload($message)['token'] ?? null,
                 'pin'=>fn(): ?string => $this->pinnedMid(),
+                'feed'=>function (array $addresses): array {
+                    require_once __DIR__.'/ProjectFunnelEntry.php';
+                    $settings = ProjectFunnelSettings::load($this->connection);
+                    self::check(is_array($settings) && count($settings['posts']) === 67, 'coverage_feed_incomplete');
+                    $entry = new ProjectFunnelEntry($this->pdo, $this->connection, $settings);
+                    $routes = [];
+                    foreach ($settings['posts'] as $id=>$item) {
+                        $destination = $entry->destination($id, $item['offer_id']);
+                        self::check(($addresses[$id] ?? null) === $destination['url'], 'coverage_feed_destination_changed');
+                        $routes[] = ['post_id'=>$id,'offer_id'=>$item['offer_id'],'url'=>$destination['url']];
+                    }
+                    $csv = $entry->feed();
+                    self::check(count(explode("\n", trim($csv))) === 68, 'coverage_feed_incomplete');
+                    return ['routes'=>$routes,'sha256'=>hash('sha256',$csv)];
+                },
                 'expected_pin'=>$this->searchRevision->expectedPinMid(),
                 'pause'=>$this->pause,
             ]))->run($operation);

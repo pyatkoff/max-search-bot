@@ -201,16 +201,19 @@ final class AppleService39CoveragePublisher
             $this->execute('menu', AppleService39CoverageRevision::MENU);
         }
         $snapshot = $this->snapshot();
+        $complete = $snapshot['held'] === 0 && $snapshot['verified'] === 39
+            && $snapshot['menu_verified'] && count($snapshot['addresses']) === 69;
+        $feed = $complete ? $this->call('feed', $snapshot['addresses']) : ['routes'=>[],'sha256'=>null];
         $rows = array_map(static fn(array $row): array => ['post_id'=>$row['post_key'], 'operation'=>$row['operation'],
             'state'=>$row['state'], 'write_attempts'=>(int)$row['write_attempts'],
             'message_id'=>$row['external_message_id'], 'url'=>$row['public_url'] ?: null], $this->store->rows());
         return ['ok'=>$snapshot['held'] === 0, 'state'=>$snapshot['held'] === 0 ? $mode.'_complete' : 'held',
+            'feed_verified_offers'=>count($feed['routes']), 'feed_verified_routes'=>$feed['routes'], 'feed_sha256'=>$feed['sha256'],
             'revision'=>AppleService39CoverageRevision::KEY, 'revision_sha256'=>$this->revision->sha256(),
             'post_count'=>count($snapshot['addresses']), 'coverage_verified_posts'=>$snapshot['verified'],
             'coverage_expected_new_posts'=>39, 'expected_total_posts'=>69, 'expected_feed_offers'=>67,
             'menu_verified'=>$snapshot['menu_verified'], 'menu_pin_preserved'=>true, 'parent_operations_preserved'=>152,
             'held_operations'=>$snapshot['held'], 'operations'=>$rows,
-            'coverage_publication_complete'=>$snapshot['held'] === 0 && $snapshot['verified'] === 39
-                && $snapshot['menu_verified'] && count($snapshot['addresses']) === 69];
+            'coverage_publication_complete'=>$complete && count($feed['routes']) === 67];
     }
 }
