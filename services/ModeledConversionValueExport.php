@@ -188,15 +188,18 @@ final class ModeledConversionValueExport
             $recovery=$self->prepareRecoveryEvidence($now);
             $pair=$self->prepareFixedPair($now);
             $reserved=[];foreach(array_merge($finite,$recovery,$pair)as$row)$reserved[(string)$row['id']]=$row;
-            $pending=$self->rows('pending',$now,MaxTrackerLookupProtocol::MAX_USERS-count($reserved),array_keys($reserved));
+            // Ready rows carried over by the three-send cap need the same current lookup as pending rows.
+            $carried=$self->ordinaryReadyLookupRows($now,$gate,$reserved);
+            $pending=$self->rows('pending',$now,MaxTrackerLookupProtocol::MAX_USERS-count($reserved)-count($carried),array_keys($reserved));
             foreach($reserved as$row)if($row['state']==='pending'
                 &&(is_int($row['next_attempt_unix'])||is_string($row['next_attempt_unix']))
                 &&preg_match('/\A(?:0|[1-9][0-9]*)\z/D',(string)$row['next_attempt_unix'])===1
                 &&(int)$row['next_attempt_unix']<=$now)$pending[]=$row;
             $users=[];foreach($pending as$r)if($r['platform']==='max'&&$self->eligible($r,$gate))$users[]=$r['external_user_id'];
+            foreach($carried as$r)$users[]=$r['external_user_id'];
             foreach(array_merge($finite,$recovery,$pair)as$r)if($r['platform']==='max'&&$self->finiteEligible($r,$gate))$users[]=$r['external_user_id'];
-            if($users){$lookup??=new MaxTrackerLookupClient();$users=$self->reserveRetainedTracker($lookup,$users,array_merge($pending,$finite,$recovery,$pair),$now);
-                $users=$self->reserveKnownTracker($lookup,$users,array_merge($pending,$finite,$recovery,$pair),$now);}
+            if($users){$lookup??=new MaxTrackerLookupClient();$users=$self->reserveRetainedTracker($lookup,$users,array_merge($pending,$carried,$finite,$recovery,$pair),$now);
+                $users=$self->reserveKnownTracker($lookup,$users,array_merge($pending,$carried,$finite,$recovery,$pair),$now);}
             $identities=[];$lookupReturned=false;
             if($users){$lookup??=new MaxTrackerLookupClient();$self->finiteLookupAttempted=(bool)($finite||$recovery);
                 $batch=array_values(array_unique($users));$self->ordinaryLookupUsers=$batch;$missing=$self->counterScopeCandidate($batch,$now);
@@ -979,6 +982,24 @@ final class ModeledConversionValueExport
         $q=$this->pdo->prepare("SELECT ".$expr." FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND platform=? AND conversation_id=? ORDER BY id DESC LIMIT 1");
         $q->execute([$r['platform'],$r['conversation_id']]);return $q->fetchColumn()==='allowed';
     }
+    /** Reserve ordinary old-source READY users inside the existing single lookup and 25-user ceiling. */
+    private function ordinaryReadyLookupRows(int $now,callable $gate,array $reserved):array
+    {
+        if($this->ordinaryProtectedIds===null)return [];
+        $excluded=$reserved;
+        foreach($this->ordinaryProtectedIds as$id=>$unused)$excluded[(string)$id]=true;
+        foreach($this->finiteFrame['r']??[]as$original)$excluded[(string)$original[1]]=true;
+        $carried=[];
+        // One extra row covers the single known-READY reservation excluded at dispatch below.
+        foreach($this->rows('ready',$now,4)as$row){
+            $source=(int)($row['tracker_observed_unix']??0);
+            if($row['platform']==='max'&&!isset($excluded[(string)$row['id']])&&$source>=946684800
+                &&$source<=(int)$row['event_unix']&&$now-$source>ModeledConversionAttributionWindow::MAX_SECONDS
+                &&$this->eligible($row,$gate))$carried[]=$row;
+        }
+        return $carried;
+    }
+
     private function rows(string $state,int $now,int $limit,array $excluded=[]):array
     {
         $excluded=in_array($state,['pending','ready'],true)?array_values(array_unique(array_map('strval',$excluded))):[];
