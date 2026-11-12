@@ -7,6 +7,8 @@ final class ManagerHotelKnowledge
 {
     public const MAX_REFERENCE_BYTES = 16384;
     private const MAX_MANIFEST_BYTES = 65536;
+    private const MAX_CATALOGUE_BYTES = 16384;
+    private const MAX_MANIFEST_SHARDS = 32;
     private const SOURCE_COUNTRIES = ['1'=>'Egypt', '4'=>'Turkey'];
 
     /** Shared by generation and the captured per-hotel policy revision. */
@@ -22,15 +24,17 @@ HOTEL;
     {
         if (!self::validSelector($selector) || $now <= 0) return self::held('selector_unavailable');
         $directory = dirname(__DIR__).'/knowledge/hotels';
-        $rawManifest = self::read($directory, 'manifest.json', self::MAX_MANIFEST_BYTES);
-        if ($rawManifest === null) return self::held('knowledge_unavailable');
-        try { $manifest = json_decode($rawManifest, true, 24, JSON_THROW_ON_ERROR); }
+        $rawCatalogue = self::read($directory, 'catalogue.json', self::MAX_CATALOGUE_BYTES);
+        if ($rawCatalogue === null) return self::held('knowledge_unavailable');
+        try { $catalogue = json_decode($rawCatalogue, true, 16, JSON_THROW_ON_ERROR); }
         catch (Throwable $ignored) { return self::held('manifest_invalid'); }
-        [$entry, $reason] = self::binding($manifest, $selector);
+        [$entry, $reason] = self::catalogueBinding($catalogue, $selector,
+            static fn(string $file): ?string => self::read($directory, $file, self::MAX_MANIFEST_BYTES));
         if ($entry === null) return self::held($reason);
-        // File paths are repository-owned, bounded basenames, never HTTP fields.
+        // The complete catalogue was validated once. Only this hotel's bundle
+        // enters the unchanged 16KiB reference and downstream request budget.
         $bytes = self::read($directory, $entry['bundle_file'], self::MAX_REFERENCE_BYTES);
-        return self::select($manifest, $bytes, $selector, $now);
+        return self::selectEntry($entry, $bytes, $selector, $now);
     }
 
     /** Pure approval/integrity boundary, also usable by controlled offline tests. */
@@ -39,6 +43,12 @@ HOTEL;
         if (!self::validSelector($selector) || $now <= 0) return self::held('selector_unavailable');
         [$entry, $reason] = self::binding($manifest, $selector);
         if ($entry === null) return self::held($reason);
+        return self::selectEntry($entry, $bytes, $selector, $now);
+    }
+
+    /** Called only after complete typed catalogue/manifest validation. */
+    private static function selectEntry(array $entry, ?string $bytes, array $selector, int $now): array
+    {
         $version = ['schema'=>1, 'usage_policy'=>hash('sha256', self::instructions()), 'binding'=>$entry, 'selector'=>$selector,
             'observed_bundle_sha256'=>$bytes === null ? null : hash('sha256', $bytes)];
         if ($bytes === null) return self::held('knowledge_unavailable', $version);
@@ -83,6 +93,54 @@ HOTEL;
             if (strlen(self::canonical($result)) > self::MAX_REFERENCE_BYTES) return self::held('projection_too_large', $version);
             return $result;
         } catch (Throwable $ignored) { return self::held('bundle_invalid', $version); }
+    }
+
+    /** Storage index only: every shard still passes the original approval rules. */
+    private static function catalogueBinding($catalogue, array $selector, callable $readShard): array
+    {
+        if (!is_array($catalogue) || !self::keys($catalogue, ['schema_version','project_key','shards'])
+            || ($catalogue['schema_version'] ?? null) !== 'hotel_catalogue_v1'
+            || ($catalogue['project_key'] ?? null) !== 'anytour'
+            || !is_array($catalogue['shards'] ?? null) || !array_is_list($catalogue['shards'])
+            || !$catalogue['shards'] || count($catalogue['shards']) > self::MAX_MANIFEST_SHARDS) {
+            return [null, 'manifest_invalid'];
+        }
+        $files = [];
+        foreach ($catalogue['shards'] as $index=>$shard) {
+            if (!is_array($shard) || !self::keys($shard, ['file','git_blob_sha'])
+                || !is_string($shard['file'] ?? null) || !is_string($shard['git_blob_sha'] ?? null)
+                || !preg_match('/\A[a-f0-9]{40}\z/D', $shard['git_blob_sha'])
+                || ($index === 0 ? $shard['file'] !== 'manifest.json'
+                    : !preg_match('/\Amanifest-[0-9]{4}\.json\z/D', $shard['file']))
+                || isset($files[$shard['file']])) return [null, 'manifest_invalid'];
+            $files[$shard['file']] = true;
+        }
+        $found = null; $identities = []; $hotels = [];
+        foreach ($catalogue['shards'] as $shard) {
+            try { $bytes = $readShard($shard['file']); }
+            catch (Throwable $ignored) { return [null, 'knowledge_unavailable']; }
+            if (!is_string($bytes)) return [null, 'knowledge_unavailable'];
+            // Git's blob ID pins the exact repository-owned manifest bytes.
+            // Existing core, bundle and record SHA-256 checks remain unchanged.
+            if (strlen($bytes) > self::MAX_MANIFEST_BYTES
+                || !hash_equals($shard['git_blob_sha'], hash('sha1', 'blob '.strlen($bytes)."\0".$bytes))) {
+                return [null, 'manifest_invalid'];
+            }
+            try { $manifest = json_decode($bytes, true, 24, JSON_THROW_ON_ERROR); }
+            catch (Throwable $ignored) { return [null, 'manifest_invalid']; }
+            [$entry, $reason] = self::binding($manifest, $selector);
+            if ($reason !== 'available' && $reason !== 'binding_unresolved') return [null, $reason];
+            // Validate global uniqueness, not just uniqueness inside one file.
+            // Never return early on a match: a later shard can invalidate it.
+            foreach ($manifest['bindings'] as $candidate) {
+                $sourceKey = self::canonical($candidate['source_identity']);
+                $hotelKey = self::canonical($candidate['accepted_binding']['hotel_ref']);
+                if (isset($identities[$sourceKey]) || isset($hotels[$hotelKey])) return [null, 'manifest_ambiguous'];
+                $identities[$sourceKey] = true; $hotels[$hotelKey] = true;
+            }
+            if ($entry !== null) $found = $entry;
+        }
+        return [$found, $found === null ? 'binding_unresolved' : 'available'];
     }
 
     private static function binding($manifest, array $selector): array
@@ -158,7 +216,7 @@ HOTEL;
     {
         return is_array($approval) && self::keys($approval, ['library_file_id','common_version','member','scope'])
             && is_string($approval['library_file_id'] ?? null)
-            && preg_match('/\Alibfile_[a-f0-9]{32}\z/D', $approval['library_file_id']) === 1
+            && preg_match('/\Alibfile_(?:[a-f0-9]{32}|fde3_f-[a-f0-9]{32}_[a-f0-9]{32})\z/D', $approval['library_file_id']) === 1
             && self::id($approval['common_version'] ?? null) && self::text($approval['scope'] ?? null, 1000)
             && is_string($approval['member'] ?? null)
             && preg_match('~\A[a-z0-9]+(?:[-_][a-z0-9]+)*(?:/[a-z0-9]+(?:[-_][a-z0-9]+)*)*/accepted-binding\.json\z~D', $approval['member']) === 1;
