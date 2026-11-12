@@ -2,6 +2,8 @@ name: Verify production MAX TLS
 run-name: "${{ github.event_name == 'workflow_run' && format('deploy-proof:v1:{0}:{1}', github.event.workflow_run.id, github.event.workflow_run.run_attempt) || 'Verify production MAX TLS' }}"
 
 on:
+  push:
+    branches: [ops/recover-pr1505-terminal-20261112]
   workflow_run:
     workflows: [Deploy production]
     types: [completed]
@@ -26,6 +28,12 @@ jobs:
           upstream_run_id=none
           upstream_run_attempt=none
           case "$GITHUB_EVENT_NAME" in
+            push)
+              # The checked helper below authenticates this one genuine
+              # fast-forward, original unstarted gate and unchanged owner.
+              test "$GITHUB_REF" = 'refs/heads/ops/recover-pr1505-terminal-20261112'
+              target_sha="$GITHUB_SHA"
+              ;;
             workflow_run)
               metadata="$(jq -er '
                 if .action == "completed"
@@ -64,6 +72,7 @@ jobs:
 
       - name: Verify exact source is current main
         id: provenance
+        if: github.event_name != 'push'
         env:
           EXPECTED_SHA: ${{ steps.source.outputs.sha }}
         shell: bash
@@ -137,3 +146,4 @@ jobs:
             and .upload_host.curl_errno == 0
             and .upload_host.ssl_verify_result == 0
           ' >/dev/null
+

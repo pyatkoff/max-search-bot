@@ -407,7 +407,7 @@ trait DevelopmentRoadmapPhase
                 return $this->roadmapHold($q,'original_review_state_changed',true);
             $t=is_array($value['transport']??null)?$value['transport']:[];$raw=$t['wire_response_bytes']??null;$actual=$t['wire_request_bytes']??null;
             if(!is_string($raw))$raw=null;if(!is_string($actual))$actual=null;
-            $complete=($t['wire_complete']??null)===true&&($raw===null||strlen($raw)<=16384)&&($actual===null||strlen($actual)<=32768);
+            $complete=($t['wire_complete']??null)===true&&is_string($raw)&&is_string($actual)&&strlen($raw)<=16384&&strlen($actual)<=32768;
             if($raw!==null)$raw=substr($raw,0,16384);if($actual!==null)$actual=substr($actual,0,32768);
             $error=$value['report']['_error']??null;
             $safe=['http_status'=>is_int($t['http_status']??null)&&$t['http_status']>=0&&$t['http_status']<=599?$t['http_status']:null,
@@ -418,7 +418,9 @@ trait DevelopmentRoadmapPhase
                     'provider_response_invalid','provider_response_too_large','transport_exception'],true)?$error:($error===null?null:'unclassified_provider_error')];
             $this->roadmapBlob('UPDATE development_work_roadmap_reviews SET response_sha256=?,response_bytes=?,actual_request_bytes=?,metadata_json=? WHERE attempt_id=?',
                 [$raw===null?null:hash('sha256',$raw),$raw,$actual,self::canonical($safe),$review['attempt_id']],[1,2]);
-            if($step['state']!=='reviewing'||$p['state']!=='reviewing')return $this->roadmapHold($q,'original_review_state_changed',true);
+            if($step['state']!=='reviewing'||$p['state']!=='reviewing'){
+                $out=$this->roadmapHold($q,'original_review_state_changed',true);$out['provider_calls']=($safe['http_status']??0)>0?1:null;return $out;
+            }
             $this->pdo->exec('SAVEPOINT development_roadmap_credit');
             try{
                 $this->roadmapBinding($q,$p);if($this->timestamp()>=(int)$p['deadline_at'])throw new DomainException('deadline');
@@ -452,7 +454,7 @@ trait DevelopmentRoadmapPhase
                 return $this->roadmapOut((int)$step['ordinal']===2?'complete':'ready','accepted_original_saved_result',1);
             }catch(Throwable $error){
                 $this->pdo->exec('ROLLBACK TO SAVEPOINT development_roadmap_credit');$this->pdo->exec('RELEASE SAVEPOINT development_roadmap_credit');
-                return $this->roadmapHold($q,'original_review_not_accepted_no_replay',true);
+                $out=$this->roadmapHold($q,'original_review_not_accepted_no_replay',true);$out['provider_calls']=($safe['http_status']??0)>0?1:null;return $out;
             }
         });
     }

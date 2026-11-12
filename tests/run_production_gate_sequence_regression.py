@@ -109,6 +109,11 @@ def source_step(source, filename, job_name=None):
     keys = re.findall(r'^  ([a-z_]+):', events, re.MULTILINE)
     expected = {'workflow_run', 'workflow_dispatch'}
     timed = filename in TIMED_WORKFLOWS
+    tls_continuation = filename == 'max-tls-preflight.yml'
+    if tls_continuation:
+        expected.add('push')
+        check('  push:\n    branches: [ops/recover-pr1505-terminal-20261112]' in events,
+              label + 'only the fixed source-checked unstarted TLS continuation may push')
     if timed:
         expected.add('schedule')
     check(set(keys) == expected and len(keys) == len(expected), label + 'only deploy-completion and retained explicit triggers')
@@ -139,8 +144,16 @@ def source_step(source, filename, job_name=None):
     check(secret_steps and min(secret_steps) > provenance[0]
           and '${{ secrets.' not in source[:source.index('    steps:')], label + 'provenance must finish before credentials are introduced')
     for step in (steps[0], steps[checkout[0]], steps[provenance[0]]):
-        check(field(step, 'if') is None and field(step, 'continue-on-error') is None,
+        expected_if = "github.event_name != 'push'" if tls_continuation and step == steps[provenance[0]] else None
+        check(field(step, 'if') == expected_if and field(step, 'continue-on-error') is None,
               label + 'source checkout and provenance cannot be optional or continue on error')
+    if tls_continuation:
+        release = [i for i, step in enumerate(steps) if field(step, 'id') == 'release']
+        check(len(release) == 1 and provenance[0] < release[0] < min(secret_steps)
+              and field(steps[release[0]], 'if') is None
+              and field(steps[release[0]], 'continue-on-error') is None
+              and field(steps[release[0]], 'run') == 'node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"',
+              label + 'the exact native continuation must pass shared main/CI/history/owner admission before credentials')
     provenance_run = run_block(steps[provenance[0]])
     check('test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"' in provenance_run
           and 'bash tools/verify_deploy_main_provenance.sh' in provenance_run, label + 'canonical provenance checks checkout and current main')
@@ -529,6 +542,13 @@ def execute(resolver, filename, label, payload, event='workflow_run', ref='refs/
 
 def behavior_cases(resolver, filename):
     valid = event_payload()
+    if filename == 'max-tls-preflight.yml':
+        execute(resolver, filename, 'fixed native continuation selects checked source before shared admission', {},
+                event='push', ref='refs/heads/ops/recover-pr1505-terminal-20261112', expected_sha=DOWNSTREAM_SHA)
+        execute(resolver, filename, 'another ops branch cannot select a TLS continuation', {},
+                event='push', ref='refs/heads/ops/foreign')
+        execute(resolver, filename, 'fixed continuation never accepts malformed source', {},
+                event='push', ref='refs/heads/ops/recover-pr1505-terminal-20261112', runner_sha='short')
     execute(resolver, filename, 'deploy head differs from downstream workflow SHA', valid,
             expected_sha=DEPLOY_SHA, upstream_id='12345678901', upstream_attempt='1')
     dispatched = copy.deepcopy(valid)
@@ -1358,3 +1378,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

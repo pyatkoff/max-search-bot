@@ -211,20 +211,22 @@ function devRoadmapReviewOutcomeChecks(): void
         $clock->at+=60;$q->roadmapTick(devServerOrigin($clock),$sender);
         devAssert(count($log->sent)===1,'roadmap_completed_negative_is_not_retried_'.$mode);
     }
-    foreach(['http503','non_json','partial']as$mode){
+    foreach(['http503','non_json','partial','missing_request','missing_response']as$mode){
         [$pdo,$q,$clock,$fresh,$args]=devRoadmapFixture();$q->roadmap_admit(1,$fresh,$args);$log=(object)['sent'=>0];
-        $raw=$mode==='non_json'?"invalid JSON \\xFF":($mode==='partial'?'{"id":"resp_PARTIAL':'{"error":"synthetic_unavailable"}');
+        $raw=$mode==='missing_response'?null:($mode==='non_json'?"invalid JSON \xFF":($mode==='partial'?'{"id":"resp_PARTIAL':'{"error":"synthetic_unavailable"}'));
         $sender=static function(string $wire,callable $capture)use($mode,$raw,$log):array{
-            ++$log->sent;$capture(['wire_request_bytes'=>$wire,'wire_response_bytes'=>$raw,
+            ++$log->sent;$capture(['wire_request_bytes'=>$mode==='missing_request'?null:$wire,'wire_response_bytes'=>$raw,
                 'wire_complete'=>$mode!=='partial','http_status'=>$mode==='http503'?503:200,
                 'response_capture'=>$mode==='partial'?'incomplete_transport':'complete']);
             return ['_error'=>$mode==='partial'?'provider_timeout':'provider_unavailable'];
         };
-        $q->roadmapTick(devServerOrigin($clock),$sender);$clock->at+=60;$q->roadmapTick(devServerOrigin($clock),$sender);
+        $q->roadmapTick(devServerOrigin($clock),$sender);$clock->at+=60;$failed=$q->roadmapTick(devServerOrigin($clock),$sender);
         $saved=$pdo->query('SELECT * FROM development_work_roadmap_reviews')->fetch(PDO::FETCH_ASSOC);
         $meta=json_decode($saved['metadata_json'],true,16,JSON_THROW_ON_ERROR);
         devAssert($saved['response_bytes']===$raw&&$meta['http_status']===($mode==='http503'?503:200)
             &&$meta['wire_complete']===($mode!=='partial')
+            &&$meta['capture_complete']===!in_array($mode,['partial','missing_request','missing_response'],true)
+            &&$failed['state']==='unknown'&&$failed['provider_calls']===1
             &&$meta['error_category']===($mode==='partial'?'provider_timeout':'provider_unavailable'),
             'roadmap_original_failed_transport_status_category_and_exact_bytes_preserved_'.$mode);
         $clock->at+=60;$q->roadmapTick(devServerOrigin($clock),$sender);

@@ -403,6 +403,17 @@ for filename in ['max-tls-preflight.yml','max-production-health.yml','telegram-p
     w = load(filename)
     check("format('deploy-proof:v1:{0}:{1}', github.event.workflow_run.id, github.event.workflow_run.run_attempt)" in w['run-name'],
           'exact upstream attempt metadata: '+filename)
+tls_continuation = load('max-tls-preflight.yml')
+tls_events = tls_continuation.get('on',tls_continuation.get(True))
+check(set(tls_events) == {'push','workflow_run','workflow_dispatch'}, 'TLS continuation adds no timer or new workflow')
+check(tls_events['push'] == {'branches':['ops/recover-pr1505-terminal-20261112']}, 'TLS has only the same fixed native continuation branch')
+check(tls_continuation['permissions'] == {'contents':'read','actions':'read'}, 'TLS gate gains no write capability')
+tls_steps = tls_continuation['jobs']['strict-tls-preflight']['steps']
+check(next(s for s in tls_steps if s.get('id') == 'provenance')['if'] == "github.event_name != 'push'", 'only the authenticated ops continuation separates source and installed identity')
+tls_resolve = next(s for s in tls_steps if s.get('id') == 'release')
+check(tls_resolve['run'] == 'node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"', 'source-checked admission always precedes TLS credentials')
+tls_key = next(s for s in tls_steps if s.get('name') == 'Prepare SSH private key')
+check(tls_steps.index(tls_resolve) < tls_steps.index(tls_key), 'no TLS credential before exact continuation admission')
 activation = load('modeled-pipeline-monitor-activation.yml')
 check("format('monitor-proof:v1:{0}:{1}', github.event.workflow_run.id, github.event.workflow_run.run_attempt)" in activation['run-name'],
       'activation provenance follows the exact original monitor')

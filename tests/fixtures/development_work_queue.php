@@ -54,7 +54,7 @@ final class DevelopmentWorkTestStatement extends PDOStatement
     }
 }
 
-final class DevelopmentWorkTestPdo extends PDO
+class DevelopmentWorkTestPdo extends PDO
 {
     public array $writes=[];
     public $beforeExecute=null;
