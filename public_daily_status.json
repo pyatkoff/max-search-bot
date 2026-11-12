@@ -1,16 +1,16 @@
 {
     "ok": true,
-    "generated_at": "2026-11-12T10:32:44+00:00",
+    "generated_at": "2026-11-12T10:52:46+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 45,
-        "raw_sessions": 45,
+        "sessions": 46,
+        "raw_sessions": 46,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 45,
+            "resolved": 46,
             "unresolved": 0
         },
         "started": 40,
@@ -20,7 +20,7 @@
         "post_tour_manager_cta_shown": 0,
         "manager_requested": 27,
         "manager_replied": 20,
-        "customer_replied_after_manager": 10,
+        "customer_replied_after_manager": 11,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
@@ -31,11 +31,11 @@
             "max_seconds": 49105
         },
         "drop_points": {
+            "customer_replied_after_manager": 11,
             "collecting_needs": 10,
-            "customer_replied_after_manager": 10,
-            "manager_replied": 10,
+            "manager_replied": 9,
             "manager_requested": 7,
-            "started_only": 5,
+            "started_only": 6,
             "tours_opened": 2,
             "needs_collected": 1
         },
@@ -48,18 +48,18 @@
             "repeated_callback_input": 1
         },
         "calendar_day": {
-            "conversations_started": 30,
+            "conversations_started": 31,
             "needs_collected_from_started": 5,
             "tours_opened_from_started": 3,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
             "manager_requested": 15,
             "manager_replied": 14,
-            "customer_replied_after_manager": 5
+            "customer_replied_after_manager": 6
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-12T10:32:44Z",
+        "sampled_at": "2026-11-12T10:52:46Z",
         "available": true,
         "error": null,
         "mode": "send",
