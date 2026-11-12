@@ -317,9 +317,43 @@ function forecastReceiptArgumentAssertions():void
     forecastMcpCheck('receipt selection cannot bypass a revoked administrator',($r['error']['code']??null)===-32001&&$calls===$before);
 }
 
+
+function forecastRetainedOutcomeViewArguments():void
+{
+    [$pdo,$oauth,$client]=forecastMcpFixture();
+    [, $family]=forecastMcpGrant($oauth,$client,ManagerPreparationOAuth::FORECAST_SCOPE);
+    $calls=0;$seen=null;
+    $store=static function(int $admin,string $connection,ModeledConversionStatusBudget $budget,array $args)use(&$calls,&$seen):array{
+        ++$calls;$seen=$args;return ['available'=>true,'view'=>$args['view'],'provider_requests'=>0,'conversion_uploads'=>0,'financial_permission'=>false];
+    };
+    $service=forecastMcpService($pdo,$store);$args=['view'=>'retained_relation_outcomes'];
+    $rpc=forecastMcpRpc('tools/call',['name'=>ModeledConversionStatusMcpAdapter::NAME,'arguments'=>$args]);
+    $result=$service->handle($rpc,1,$family,[ManagerPreparationOAuth::FORECAST_SCOPE]);
+    forecastMcpCheck('one fixed saved-outcome view reaches the same authorized reader without a new capability',
+        ($result['result']['structuredContent']['view']??null)==='retained_relation_outcomes'&&$calls===1&&$seen===$args);
+    foreach([['view'=>null],['view'=>'all'],['view'=>[]],['view'=>'retained_relation_outcomes','receipt_ref'=>str_repeat('a',64)],
+        ['view'=>'retained_relation_outcomes','limit'=>2]]as$invalid){
+        $before=$calls;$bad=forecastMcpRpc('tools/call',['name'=>ModeledConversionStatusMcpAdapter::NAME,'arguments'=>$invalid]);
+        $got=$service->handle($bad,1,$family,[ManagerPreparationOAuth::FORECAST_SCOPE]);
+        forecastMcpCheck('saved-outcome selection rejects mixed arbitrary or malformed arguments '.json_encode($invalid),
+            ($got['error']['code']??null)===-32602&&$calls===$before);
+    }
+    [, $legacy]=forecastMcpGrant($oauth,$client,'queue:read prepared:write archive:read');$before=$calls;
+    $old=$service->handle($rpc,1,$legacy,[ManagerPreparationOAuth::FORECAST_SCOPE]);
+    forecastMcpCheck('saved-outcome view cannot elevate the original archive grant',($old['error']['code']??null)===-32001&&$calls===$before);
+    $revoked=forecastMcpService($pdo,static function()use($pdo):array{
+        $pdo->exec('UPDATE managers SET is_active=0 WHERE id=1');
+        return ['available'=>true,'private'=>'PRIVATE_OUTCOME_MUST_NOT_ESCAPE'];
+    });
+    $denied=$revoked->handle($rpc,1,$family,[ManagerPreparationOAuth::FORECAST_SCOPE]);
+    forecastMcpCheck('revocation during the selected saved-outcome read suppresses its complete result',
+        ($denied['error']['code']??null)===-32001&&!str_contains(json_encode($denied),'PRIVATE_OUTCOME_MUST_NOT_ESCAPE'));
+}
+
 require_once __DIR__.'/modeled_conversion_saved_receipt_fixture.php';
 forecastMcpAssertions();
 forecastMcpHttpAssertions();
 forecastReceiptArgumentAssertions();
+forecastRetainedOutcomeViewArguments();
 forecastSavedReceiptAssertions(new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]),'forecastMcpCheck');
 echo 'FORECAST STATUS MCP PASSED '.$passed.PHP_EOL;
