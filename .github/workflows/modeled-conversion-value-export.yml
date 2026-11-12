@@ -1,22 +1,7 @@
-name: Configure AnyTour modeled value goal
-run-name: "${{ github.event_name == 'workflow_run' && format('deploy-proof:v1:{0}:{1}', github.event.workflow_run.id, github.event.workflow_run.run_attempt) || 'Configure AnyTour modeled value goal' }}"
+name: Inspect original PR1505 metadata reads without writes
 on:
   push:
-    branches: [ops/recover-pr1505-terminal-20261112]
-  workflow_run:
-    workflows: [Deploy production]
-    types: [completed]
-  workflow_dispatch:
-    inputs:
-      operation:
-        type: choice
-        required: true
-        default: status
-        options: [status, create-goal, enable, disable, launch-v1, launch-history-20261102, launch-history-fortnight-v1]
-      expected_sha:
-        description: Exact installed application SHA verified against the accepted current repository release
-        type: string
-        required: true
+    branches: [audit/hotel503-reads-20261112]
 permissions:
   contents: read
   actions: read
@@ -25,183 +10,47 @@ concurrency:
   cancel-in-progress: false
 jobs:
   release-slot-recovery:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/ops/recover-pr1505-terminal-20261112'
-    permissions:
-      contents: write
-      actions: read
-      pull-requests: read
-      issues: write
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 5
     steps:
-      - name: Checkout source-checked terminal continuation without persisted credentials
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Prepare continuation of the original pre-write read refusal
-        id: prepared
+      - name: Read original evidence through the actual native read capability
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node tools/release_slot_close.js --prepare-terminal-continuation --proof "$RUNNER_TEMP/deployment-release-publication.json" >> "$GITHUB_OUTPUT"
-      - name: Bind the terminal candidate to the original closer run — ${{ steps.prepared.outputs.record_digest }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.prepared.outputs.publication_artifact }}
-          path: ${{ runner.temp }}/deployment-release-publication.json
-          if-no-files-found: error
-          retention-days: 90
-      - name: Release only the admitted publisher after all original mandatory gates
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          PREPARED_RECORD_DIGEST: ${{ steps.prepared.outputs.record_digest }}
-        run: node tools/release_slot_close.js --finish-terminal-continuation
-  configure:
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && (contains(github.event.workflow_run.head_commit.message, '[anytour-value-launch-1288]') || contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-1293]') || contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-fortnight-v1]'))))
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout current repository tools without persisted credentials
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-      - name: Resolve accepted repository and application
-        id: release
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
-      - name: Validate finite operation and current authoritative main
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
-        env:
-          VALUE_OPERATION: ${{ github.event_name == 'workflow_run' && (contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-fortnight-v1]') && 'launch-history-fortnight-v1' || contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-1293]') && 'launch-history-20261102' || 'launch-v1') || inputs.operation }}
-          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
-          REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}
-          REQUESTED_SHA: ${{ inputs.expected_sha }}
-          GH_TOKEN: ${{ github.token }}
-          REPO_NAME: ${{ github.repository }}
-          WORKFLOW_SHA: ${{ github.sha }}
-        shell: bash
         run: |
-          set -euo pipefail
-          [[ "$EXPECTED_SHA" =~ ^[a-f0-9]{40}$ ]]
-          case "$VALUE_OPERATION" in status|create-goal|enable|disable|launch-v1|launch-history-20261102|launch-history-fortnight-v1) ;; *) exit 1;; esac
-          actual="$(curl --fail --silent --show-error -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$REPO_NAME/git/ref/heads/main" | python3 -c 'import json,sys; print(json.load(sys.stdin)["object"]["sha"])')"
-          test "$actual" = "$REPOSITORY_SHA"
-          test "$WORKFLOW_SHA" = "$REPOSITORY_SHA"
-          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then test "$REQUESTED_SHA" = "$EXPECTED_SHA"; fi
-      - name: Wait for successful mandatory checks of this exact installed release
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          EXPECTED_SHA: ${{ steps.release.outputs.repository_sha }}
-          REPO_NAME: ${{ github.repository }}
-          VALUE_OPERATION: ${{ github.event_name == 'workflow_run' && (contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-fortnight-v1]') && 'launch-history-fortnight-v1' || contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-1293]') && 'launch-history-20261102' || 'launch-v1') || inputs.operation }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ "$VALUE_OPERATION" == "status" || "$VALUE_OPERATION" == "disable" ]]; then exit 0; fi
-          python3 - <<'VALUE_GATES'
-          import json, os, time, urllib.request
-          required = {'.github/workflows/deploy.yml', '.github/workflows/max-production-health.yml',
-                      '.github/workflows/max-tls-preflight.yml', '.github/workflows/telegram-production-health.yml',
-                      '.github/workflows/live-session-diagnostics.yml', '.github/workflows/publish-conversation-diagnostics.yml',
-                      '.github/workflows/tour-selection-host.yml'}
-          base = 'https://api.github.com/repos/' + os.environ['REPO_NAME']
-          headers = {'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json'}
-          for attempt in range(41):
-              with urllib.request.urlopen(urllib.request.Request(base + '/git/ref/heads/main', headers=headers), timeout=20) as r:
-                  actual = json.load(r)['object']['sha']
-              if actual != os.environ['EXPECTED_SHA']:
-                  raise SystemExit('authoritative main changed; no configuration operation')
-              with urllib.request.urlopen(urllib.request.Request(base + '/actions/runs?head_sha=' + actual + '&per_page=100', headers=headers), timeout=20) as r:
-                  runs = json.load(r)['workflow_runs']
-              latest = {}
-              for run in sorted(runs, key=lambda r: r['id'], reverse=True):
-                  latest.setdefault(run['path'], run)
-              if all(p in latest and latest[p]['status'] == 'completed' and latest[p]['conclusion'] == 'success' for p in required):
-                  print('mandatory_current_release_gates=accepted')
-                  break
-              if attempt == 40:
-                  raise SystemExit('mandatory current gates unavailable; no configuration operation')
-              print('mandatory_current_release_gates=waiting', flush=True)
-              time.sleep(20)
-          VALUE_GATES
-      - name: Prepare existing canonical server credential
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
-        env:
-          VALUE_SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          value_key_path="$RUNNER_TEMP/value_goal_key"
-          raw="$VALUE_SSH_KEY"
-          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$value_key_path"; else printf '%s\n' "$raw" | tr -d '\r' > "$value_key_path"; fi
-          else printf '%s' "$raw" | base64 --decode | tr -d '\r' > "$value_key_path"; fi
-          chmod 600 "$value_key_path"
-          ssh-keygen -y -f "$value_key_path" >/dev/null
-      - name: Execute exact bounded installed operation
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
-        env:
-          VALUE_OPERATION: ${{ github.event_name == 'workflow_run' && (contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-fortnight-v1]') && 'launch-history-fortnight-v1' || contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-1293]') && 'launch-history-20261102' || 'launch-v1') || inputs.operation }}
-          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
-          VALUE_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          VALUE_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          ssh -i "$RUNNER_TEMP/value_goal_key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$VALUE_USER@$VALUE_HOST" bash -s -- "$EXPECTED_SHA" "$VALUE_OPERATION" <<'VALUE_REMOTE'
-          set -eu
-          cd /var/www/anytoour/data/www/app.anytoour.ru
-          test "$(git rev-parse HEAD)" = "$1"
-          php tools/modeled_conversion_value_export.php "$2"
-          VALUE_REMOTE
-      - name: Remove ephemeral credential
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/value_goal_key"
-
-
-  release-slot:
-    needs: configure
-    # This is the existing post-deploy tail, not another schedule or dispatcher.
-    # Manual value operations never release a publisher.
-    if: always() && github.event_name == 'workflow_run' && github.ref == 'refs/heads/main' && github.repository == 'pyatkoff/max-search-bot' && github.event.workflow_run.name == 'Deploy production' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.run_attempt == 1 || github.event.workflow_run.run_attempt == 2) && (needs.configure.result == 'success' || needs.configure.result == 'skipped')
-    permissions:
-      # Only diagnostics/deploy_status.json and its existing privacy cleanup;
-      # no production credential, main update or server operation is added.
-      contents: write
-      actions: read
-      pull-requests: read
-      issues: write
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout exact installed release tools without persisted credentials
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-          persist-credentials: false
-      - name: Prepare the exact release proof before terminal publication
-        id: prepared
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          CONFIGURE_RESULT: ${{ needs.configure.result }}
-        run: node tools/release_slot_close.js --prepare-closure --proof "$RUNNER_TEMP/deployment-release-publication.json" >> "$GITHUB_OUTPUT"
-      - name: Bind the terminal candidate to the original closer run — ${{ steps.prepared.outputs.record_digest }}
-        if: steps.prepared.outputs.publication_artifact != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.prepared.outputs.publication_artifact }}
-          path: ${{ runner.temp }}/deployment-release-publication.json
-          if-no-files-found: error
-          retention-days: 90
-      - name: Release only the admitted publisher after all original mandatory gates
-        if: steps.prepared.outputs.record_digest != ''
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          CONFIGURE_RESULT: ${{ needs.configure.result }}
-          PREPARED_RECORD_DIGEST: ${{ steps.prepared.outputs.record_digest }}
-        run: node tools/release_slot_close.js
-
+          node <<'JS'
+          const fs=require('node:fs'),path=require('node:path'),{createRequire}=require('node:module');
+          const file=path.resolve('tools/release_slot_close.js'),text=fs.readFileSync(file,'utf8').replace(/^#![^\n]*\n/,''),m={exports:{}};
+          new Function('require','module','exports',text+'\nmodule.exports.inspectPredecessors=continuationPredecessors;')(createRequire(file),m,m.exports);
+          const C=m.exports,R=require('./tools/deployment_release'),p=R.TERMINAL_RECOVERY,raw=R.makeReadApi(process.env.GITHUB_TOKEN);
+          const trace=async(action,label)=>{try{const v=await action();process.stdout.write('AUDIT_READ_OK '+label+'\n');return v;}catch(e){process.stdout.write('AUDIT_READ_REFUSED '+label+' '+e.code+'\n');throw e;}};
+          const api=async(method,url,body,rawMode)=>{if(method!=='GET')throw Error('writes_forbidden');return trace(()=>raw(method,url,body,rawMode),url.replace(R.API_ROOT+'/',''));};
+          api.artifact=meta=>trace(()=>raw.artifact(meta),'artifact:'+meta.id);
+          api.jobLog=id=>trace(()=>raw.jobLog(id),'job_log:'+id);
+          const read=C.terminalReads(api),get=url=>read('GET',R.API_ROOT+url);
+          (async()=>{
+           await C.inspectPredecessors(read);
+           const original=await R.readRecord(read,p.commit);
+           R.requireValue(original.blob===p.blob&&original.record_digest===p.record_digest,'original_terminal_changed');R.validateRelease(original.record);
+           const run=await get('/actions/runs/'+p.run_id);
+           R.runIdentity(run,{id:p.run_id,attempt:1,head:p.sha,workflow:R.CLOSER,event:'workflow_run',conclusion:'failure'});
+           C.recoveryLog(await read.jobLog(p.job_id));
+           const meta=await R.findArtifact(read,run,R.publicationName('pending_terminal',p.run_id,1));
+           const proof=await R.artifactJson(read,meta,R.PUBLICATION_FILE,run,meta.name);R.validatePublication(proof,original.record);
+           await R.requireAncestry(read,proof.commit,p.commit);
+           const c={sha:p.sha,deploy:Number(original.record.run_id),run:Number(p.run_id),configure:'skipped',activation:false,terminalRecovery:true};
+           const selected=await C.selectReleaseRuns(await get('/actions/runs?head_sha='+p.sha+'&per_page=100'),c,get);
+           R.requireValue(C.gateState(selected.runs,c)==='ready'&&!selected.waiting,'gates_changed');
+           R.requireValue(R.same(C.gateReferences(selected.runs),original.record.repository_release.closure.gates),'gates_changed');
+           C.verifyConfigure(await get('/actions/runs/'+p.run_id+'/attempts/1/jobs?per_page=100'),c);
+           await R.deploymentProof(read,R.installationReceipt(original.record));await R.requireOps(read,p.sha);
+           const current=await R.readRecord(read);R.requireValue(current.blob===p.blob&&current.record_digest===p.record_digest,'prepared_result_changed');
+           const b=C.binding(await get('/pulls/'+p.pr),p.sha);R.requireValue(C.recordState(await get('/issues/comments/'+p.comment_id),b)==='active','publisher_changed');
+           R.requireValue((await get('/git/ref/heads/main')).object.sha===p.sha,'main_changed');
+           process.stdout.write('AUDIT_OBSERVATION_ONLY '+JSON.stringify({original_proof_read:true,all_original_gates_read:true,publisher_unchanged:true,record_write_attempts:0})+'\n');
+          })().catch(e=>{process.stderr.write('AUDIT_REFUSED '+(e.code||e.message)+'\n');process.exitCode=1;});
+          
+          JS
