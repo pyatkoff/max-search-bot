@@ -14,6 +14,7 @@ require_once __DIR__ . '/ManagerCallbackPresentationService.php';
 require_once __DIR__ . '/ManagerHandoffCancellationViewService.php';
 require_once __DIR__ . '/TourChoiceService.php';
 require_once __DIR__ . '/ManagerReplyQueueService.php';
+require_once __DIR__ . '/ManagerMessageMaterials.php';
 
 class ManagerConversationService
 {
@@ -532,6 +533,32 @@ class ManagerConversationService
         $fresh=self::visibleConversation($conversationId,$managerId,true);if(!$fresh||!ManagerAuthService::byId($managerId))return null;
         foreach(['manager_id','project_key','source_id','status','channel'] as $key)if($fresh[$key]!==$conversation[$key])return null;
         return ['conversation_id'=>$conversationId,'query'=>$query,'snapshot_id'=>$snapshotId,'matches'=>$matches,'scanned'=>$scanned,'before_id'=>$next,'has_more'=>$scanned<count($rows)];
+    }
+
+    /** Bounded, read-only overview; continuation also covers empty partial pages. */
+    public static function messageMaterials(int $conversationId,int $managerId,string $kind='all',int $beforeId=0,int $snapshotId=0): ?array
+    {
+        if($conversationId<=0||$managerId<=0||!in_array($kind,ManagerMessageMaterials::KINDS,true)||$beforeId<0||$snapshotId<0
+            ||($beforeId>0&&($snapshotId===0||$beforeId>$snapshotId)))throw new InvalidArgumentException('invalid_message_materials');
+        if(!ManagerAuthService::byId($managerId))return null;
+        $conversation=self::visibleConversation($conversationId,$managerId,true);if(!$conversation)return null;
+        $pdo=ConversationDb::connection();
+        if($snapshotId===0){
+            $q=$pdo->prepare('SELECT COALESCE(MAX(id),0) FROM messages WHERE conversation_id=?');$q->execute([$conversationId]);$snapshotId=(int)$q->fetchColumn();
+        }
+        $sql='SELECT id,direction,sender_type,text,created_at,metadata_json FROM messages WHERE conversation_id=? AND id<=?'
+            .($beforeId>0?' AND id<?':'').' ORDER BY id DESC LIMIT 251';
+        $q=$pdo->prepare($sql);$q->execute($beforeId>0?[$conversationId,$snapshotId,$beforeId]:[$conversationId,$snapshotId]);$rows=$q->fetchAll();
+        $items=[];$scanned=0;$next=0;
+        foreach(array_slice($rows,0,250) as $row){
+            $scanned++;$next=(int)$row['id'];$item=ManagerMessageMaterials::project($row,$kind);
+            if($item!==null)$items[]=$item;
+            if(count($items)===25)break;
+        }
+        $fresh=self::visibleConversation($conversationId,$managerId,true);if(!$fresh||!ManagerAuthService::byId($managerId))return null;
+        foreach(['manager_id','project_key','source_id','status','channel'] as $key)if($fresh[$key]!==$conversation[$key])return null;
+        return ['conversation_id'=>$conversationId,'kind'=>$kind,'snapshot_id'=>$snapshotId,'items'=>$items,
+            'scanned'=>$scanned,'before_id'=>$next,'has_more'=>$scanned<count($rows)];
     }
 
     private static function accessibleConversation(int $conversationId,int $managerId,bool $forUpdate=false): ?array

@@ -530,6 +530,21 @@ try {
     inboxNativeCheck('native search target shares the bounded original context',count($context['messages'])===27&&$context['target_message_id']===900007&&$context['messages'][6]['text']==='Архив & море 🌊 100%_\\ <img>');
     inboxNativeCheck('native foreign target remains unavailable',ManagerConversationService::messageContext(9900,90,1)['available']===false);
     inboxNativeCheck('native search and context leave all original read markers unchanged',inboxNativeReadState($pdo)===$searchReadBaseline);
+    // Materials use native keyset statements on that same isolated history.
+    // Seed only after every accepted search and measured list comparison.
+    $materialMeta=json_encode(['tour_selection'=>str_repeat('c',32),'tour_offer_id'=>99,'attachments'=>[['type'=>'file','name'=>'Synthetic contract.pdf','provider'=>'telegram','file_id'=>'private-material-secret','url'=>'https://api.telegram.org/private-material-secret']]],JSON_THROW_ON_ERROR);
+    $pdo->prepare("UPDATE messages SET metadata_json=?,direction='outbound',sender_type='manager' WHERE id=909700")->execute([$materialMeta]);
+    $pdo->prepare('UPDATE messages SET text=? WHERE id=910051')->execute(['Saved link https://example.org/material']);
+    $materials=ManagerConversationService::messageMaterials(9900,90,'files');
+    inboxNativeCheck('native materials preserve an empty bounded continuation',$materials['items']===[]&&$materials['scanned']===250&&$materials['has_more']&&$materials['before_id']===909802&&$materials['snapshot_id']===910051);
+    $message->execute([950000,9900,'inbound','customer','max','New material after snapshot',$materialMeta,'2026-10-15 10:02:00']);
+    $older=ManagerConversationService::messageMaterials(9900,90,'files',$materials['before_id'],$materials['snapshot_id']);
+    inboxNativeCheck('native materials reach a saved file outside the latest transcript without later arrivals',array_column($older['items'],'message_id')===[909700]&&$older['snapshot_id']===910051&&$older['has_more']);
+    inboxNativeCheck('native material projection never exposes provider identifiers or metadata URLs',$older['items'][0]['files']===[['type'=>'file','name'=>'Synthetic contract.pdf']]&&!str_contains(json_encode($older['items']),'private-material-secret'));
+    $offers=ManagerConversationService::messageMaterials(9900,90,'offers',$materials['before_id'],$materials['snapshot_id']);
+    inboxNativeCheck('native materials recognize only the recorded manager offer',array_column($offers['items'],'message_id')===[909700]&&$offers['items'][0]['kinds']===['files','offers']);
+    inboxNativeCheck('native explicit materials refresh includes the newer saved file',ManagerConversationService::messageMaterials(9900,90,'files')['items'][0]['message_id']===950000);
+    inboxNativeCheck('native overview preserves every previously accepted read cursor',inboxNativeReadState($pdo)===$searchReadBaseline);
     echo 'FULL_HISTORY_SEARCH '.json_encode(['rows'=>10051,'requests_to_old_hit'=>$calls,'max_scanned_per_request'=>1000,'max_hits_per_page'=>25,'read_only'=>true],JSON_THROW_ON_ERROR)."\n";
     echo 'EVIDENCE ' . json_encode(['scope'=>'synthetic_native_service_list','base_sha'=>'bc9d104b1f9619d5d6cbb0a7ee05dced06376abf',
         'owned_fixture_rows'=>count(array_filter($fixtures,static fn(array $f):bool=>$f['project']==='native-inbox'&&$f['owner']===7&&$f['status']==='manager'&&!$f['isTest'])),

@@ -39,7 +39,7 @@ if($action==='login'){
 
 // These transcript reads need existing project metadata, never its legacy UPSERT.
 // Initialize before manager resolution can enter the shared bootstrap.
-if(in_array($action,['detail','message_target','message_search','message_context','reply_queue_resolve','reply_queue_undo','reply_queue_receipt','media_receipt','media_cancel'],true)&&ManagerHttp::managerId()>0){
+if(in_array($action,['detail','message_target','message_search','message_context','message_materials','reply_queue_resolve','reply_queue_undo','reply_queue_receipt','media_receipt','media_cancel'],true)&&ManagerHttp::managerId()>0){
     try{ProjectAccessService::initializeReadOnly();}
     catch(Throwable $ignored){out(['ok'=>false,'error'=>'project_unavailable'],503);}
 }
@@ -196,6 +196,23 @@ if($action==='message_search'||$action==='message_context'){
         if($result&&$action==='message_context'&&!empty($result['available']))$result['messages']=ManagerMessageMediaService::hydrate($result['messages']);
         if($result&&(!ManagerAuthService::byId((int)$m['id'])||!ManagerConversationService::visibleConversation((int)$data['conversation_id'],(int)$m['id'],true)))$result=null;
     }catch(Throwable $e){out(['ok'=>false,'error'=>'message_search_failed'],500);}
+    if(!$result)out(['ok'=>false,'error'=>'not_found'],404);
+    out(['ok'=>true]+$result);
+}
+if($action==='message_materials'){
+    foreach(['conversation_id'=>1,'before_id'=>0,'snapshot_id'=>0] as $field=>$minimum){
+        $id=$data[$field]??($minimum===0?0:null);
+        if((!is_int($id)&&!(is_string($id)&&preg_match('/^(?:0|[1-9][0-9]*)$/D',$id)))
+            ||filter_var($id,FILTER_VALIDATE_INT,['options'=>['min_range'=>$minimum]])===false)out(['ok'=>false,'error'=>'invalid_message_materials'],422);
+    }
+    $kind=$data['kind']??'all';
+    if(!is_string($kind)||!in_array($kind,ManagerMessageMaterials::KINDS,true)
+        ||((int)($data['before_id']??0)>0&&((int)($data['snapshot_id']??0)===0||(int)$data['before_id']>(int)$data['snapshot_id'])))out(['ok'=>false,'error'=>'invalid_message_materials'],422);
+    session_write_close();
+    try{
+        $result=ManagerConversationService::messageMaterials((int)$data['conversation_id'],(int)$m['id'],$kind,(int)($data['before_id']??0),(int)($data['snapshot_id']??0));
+        if($result&&(!ManagerAuthService::byId((int)$m['id'])||!ManagerConversationService::visibleConversation((int)$data['conversation_id'],(int)$m['id'],true)))$result=null;
+    }catch(Throwable $e){out(['ok'=>false,'error'=>'message_materials_failed'],500);}
     if(!$result)out(['ok'=>false,'error'=>'not_found'],404);
     out(['ok'=>true]+$result);
 }

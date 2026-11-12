@@ -7,12 +7,14 @@ const syntheticAudio=wav();
 // Generated silent 20s VP8 color fixture (96x64, 5fps); no provider/customer media.
 const syntheticVideo=Buffer.from('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loEAyADRAQABEBAAGAAYWC/0AAiFKACjloEBkADRAQABEBAAGAAYWC/0AAiFKACjloECWADRAQABEBAAGAAYWC/0AAiFKACjloEDIADRAQABEBAAGAAYWC/0AAiFKACjloED6ADRAQABEBAAGAAYWC/0AAiFKACjloEEsADRAQABEBAAGAAYWC/0AAiFKACjloEFeADRAQABEBAAGAAYWC/0AAiFKACjloEGQADRAQABEBAAGAAYWC/0AAiFKACjloEHCADRAQABEBAAGAAYWC/0AAiFKACjloEH0ADRAQABEBAUYABhYL/QACIUoACjloEImADRAQABEBAAGAAYWC/0AAiFKACjloEJYADRAQABEBAAGAAYWC/0AAiFKACjloEKKADRAQABEBAAGAAYWC/0AAiFKACjloEK8ADRAQABEBAAGAAYWC/0AAiFKACjloELuADRAQABEBAAGAAYWC/0AAiFKACjloEMgADRAQABEBAAGAAYWC/0AAiFKACjloENSADRAQABEBAAGAAYWC/0AAiFKACjloEOEADRAQABEBAAGAAYWC/0AAiFKACjloEO2ADRAQABEBAAGAAYWC/0AAiFKACjloEPoADRAQABEBAAGAAYWC/0AAiFKACjloEQaADRAQABEBAUYABhYL/QACIUoACjloERMADRAQABEBAAGAAYWC/0AAiFKACjloER+ADRAQABEBAAGAAYWC/0AAiFKACjloESwADRAQABEBAAGAAYWC/0AAiFKACjloETiADRAQABEBAAGAAYWC/0AAiFKAAfQ7Z1QhTngjzwo5aBAAAA0QEAARAQABgAGFgv9AAIhSgAo5aBAMgA0QEAARAQABgAGFgv9AAIhSgAo5aBAZAA0QEAARAQABgAGFgv9AAIhSgAo5aBAlgA0QEAARAQABgAGFgv9AAIhSgAo5aBAyAA0QEAARAQABgAGFgv9AAIhSgAo5aBA+gA0QEAARAQABgAGFgv9AAIhSgAo5aBBLAA0QEAARAQFGAAYWC/0AAiFKAAo5aBBXgA0QEAARAQABgAGFgv9AAIhSgAo5aBBkAA0QEAARAQABgAGFgv9AAIhSgAo5aBBwgA0QEAARAQABgAGFgv9AAIhSgAo5aBB9AA0QEAARAQABgAGFgv9AAIhSgAo5aBCJgA0QEAARAQABgAGFgv9AAIhSgAo5aBCWAA0QEAARAQABgAGFgv9AAIhSgAo5aBCigA0QEAARAQABgAGFgv9AAIhSgAo5aBCvAA0QEAARAQABgAGFgv9AAIhSgAo5aBC7gA0QEAARAQABgAGFgv9AAIhSgAo5aBDIAA0QEAARAQABgAGFgv9AAIhSgAo5aBDUgA0QEAARAQFGAAYWC/0AAiFKAAo5aBDhAA0QEAARAQABgAGFgv9AAIhSgAo5aBDtgA0QEAARAQABgAGFgv9AAIhSgAo5aBD6AA0QEAARAQABgAGFgv9AAIhSgAo5aBEGgA0QEAARAQABgAGFgv9AAIhSgAHFO7a5G7j7OBALeK94EB8YIBn/CBAw==','base64');
 const stage={id:1,stage_key:'working',display_name:'В работе',sort_order:1};
+const materialRow=(id,changes={})=>({message_id:id,sender_type:'customer',created_at:'2026-11-12T09:00:00Z',snippet:'Сохранённый материал '+id,kinds:['links'],files:[],file_count:0,links:['https://example.org/material/'+id],link_count:1,...changes});
+const materialPage=(items,changes={})=>({body:{ok:true,conversation_id:11,kind:'all',snapshot_id:500,before_id:1,scanned:250,has_more:false,items,...changes}});
 const messages=(total,media=false)=>Array.from({length:total},(_,i)=>({id:i+1,sender_type:i===0?'manager':'customer',manager_id:i===0?7:null,text:'Синтетическое сообщение '+(i+1)+'. Обсуждаем отели, даты и состав туристов.',created_at:'2026-10-14 08:00:00',...(media&&i===total-2?{attachments:[{type:'audio',name:'Синтетическое аудио',url:origin+'/synthetic-history.wav'}]}:{})}));
 function deferred(){let resolve;const promise=new Promise(r=>resolve=r);return{promise,resolve}}
-async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=false,pageSize=200,summaryAudio=false,httpMedia=false,waiting=false,notificationState='',initialHash='',initialAnonymous=false,initialListFailures=0,holdInitialList=false,readAcknowledgements=false,initialUnread=false,quoteTargets=false,fullSearch=false}={}){
+async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=false,pageSize=200,summaryAudio=false,httpMedia=false,waiting=false,notificationState='',initialHash='',initialAnonymous=false,initialListFailures=0,holdInitialList=false,readAcknowledgements=false,initialUnread=false,quoteTargets=false,fullSearch=false,materials=false}={}){
  const state={readMarkers:{},ackGate:null,supervisor:false,ackCalls:[],calls:[],unexpected:[],errors:[],sends:[],payloadBytes:[],older:[],latest:[],leadGate:holdLead?deferred():null,documents:{11:messages(total,media),12:messages(3)},accountId:7,deny:false,unauthorized:false,summary:summaryAudio?{id:0,sender_type:'ai',text:'Синтетическая сводка первого обращения',created_at:'2026-10-14 08:00:00',attachments:[{type:'audio',name:'Синтетическое аудио в сводке',url:origin+'/synthetic-history.wav'}]}:null};if(summaryAudio)state.documents[11].forEach(m=>m.sender_type='customer');
  state.targets=[];state.targetCalls=[];
- state.searches=[];state.searchCalls=[];state.contexts=[];state.contextCalls=[];
+ state.searches=[];state.searchCalls=[];state.contexts=[];state.contextCalls=[];state.materialPages=[];state.materialCalls=[];
  if(quoteTargets){for(const [source,target] of [[total-1,total-150],[total,50]]){const row=state.documents[11].find(m=>m.id===source);row.linked_message={type:'reply',mid:'synthetic-'+target,text:'Цитата сообщения '+target};}state.documents[11].find(m=>m.id===50).text='Оригинальные условия: Турция, 2 взрослых. <img src=x onerror=alert(1)>'}
  state.mediaRequests=[];state.mediaFailure='';
  state.logins=[];state.counts=[];state.lists=Array.from({length:initialListFailures},()=>({body:{ok:false,error:'unauthorized'},status:401}));
@@ -69,6 +71,11 @@ async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=fa
   if(data.action==='me')return reply({ok:true,csrf:'synthetic-history-csrf',manager:manager(),projects:[{project_key:'synthetic-main',display_name:'Синтетический проект'}]});
   if(data.action==='counts'){const item=state.counts.shift();if(item?.body)return reply(item.body,item.status||200);return reply({ok:true,counts:{waiting:{count:2,unread:0},mine:{count:2}}});}
   if(data.action==='edit_candidates')return reply({ok:true,messages:[],candidates:[]});
+  if(data.action==='message_materials'&&materials){
+   state.materialCalls.push(data);let item=state.materialPages.shift();if(item?.promise)item=await item.promise;if(item?.body)return reply(item.body,item.status||200);if(state.deny)return reply({ok:false,error:'not_found'},404);
+   if(data.csrf!=='synthetic-history-csrf'||Object.keys(data).some(k=>!['action','csrf','conversation_id','kind','before_id','snapshot_id'].includes(k))||![11,12].includes(data.conversation_id))return block('invalid-materials');
+   return reply({ok:true,conversation_id:data.conversation_id,kind:data.kind,snapshot_id:(state.documents[data.conversation_id]||[]).at(-1)?.id||0,before_id:0,scanned:0,has_more:false,items:[]});
+  }
   if(data.action==='message_search'&&fullSearch){
    state.searchCalls.push(data);let item=state.searches.shift();if(item?.promise)item=await item.promise;if(item?.body)return reply(item.body,item.status||200);if(state.deny)return reply({ok:false,error:'not_found'},404);
    if(data.csrf!=='synthetic-history-csrf'||Object.keys(data).some(k=>!['action','csrf','conversation_id','query','before_id','snapshot_id'].includes(k)))return block('invalid-full-search');
@@ -918,4 +925,76 @@ test('full-history search fences IME and late context then clears current denied
  const state=await setup(page,{fullSearch:true});await open(page);await useConversationTool(page,'conversationSearchOpen');await page.locator('#conversationSearchAll').click();await page.locator('#conversationSearchInput').evaluate(input=>{input.dispatchEvent(new CompositionEvent('compositionstart'));input.value='сообщение';input.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true}));});await settled(page);expect(state.searchCalls).toHaveLength(0);await page.locator('#conversationSearchInput').evaluate(input=>input.dispatchEvent(new CompositionEvent('compositionend')));await expect(page.locator('#conversationSearchCount')).toHaveText('1 из 25+ сообщений');
  const held=deferred();state.contexts.push(held);await page.locator('#conversationSearchResult').click();await expect.poll(()=>state.contextCalls.length).toBe(1);await page.locator('#conversationSearchInput').fill('новый запрос');held.resolve({body:{ok:false,error:'unauthorized'},status:401});await settled(page);expect(await page.evaluate(()=>WorkspaceV2.S.authExpired)).toBe(false);await expect(page.locator('#messageContextDialog')).toHaveCount(0);
  await page.locator('#conversationSearchInput').fill('сообщение');await expect(page.locator('#conversationSearchCount')).toHaveText('1 из 25+ сообщений');state.deny=true;await page.locator('#conversationSearchResult').click();await expect(page.locator('#conversationSearchPanel')).toBeHidden();await expect(page.locator('#conversationSearchResult')).toHaveText('');await expect(page.locator('#conversationRefreshStatus')).toContainText('Доступ');clean(state);
+});
+
+for(const width of [390,430,768,1440])test('conversation materials preserve draft files and source position '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:844});const state=await setup(page,{materials:true,fullSearch:true});await open(page);await readTop(page);
+ state.documents[11].find(m=>m.id===50).text='Исходный договор <img src=x onerror=alert(1)> и сохранённые условия';
+ state.materialPages.push(materialPage([materialRow(500),materialRow(480,{sender_type:'manager',kinds:['offers'],files:[],file_count:0,links:[],link_count:0,snippet:'Отправленные варианты поездки'})],{before_id:251,has_more:true}));
+ state.materialPages.push(materialPage([materialRow(50,{sender_type:'manager',kinds:['files'],files:[{type:'file',name:'Договор <img src=x>.pdf'}],file_count:1,links:[],link_count:0,snippet:'Сохранённый договор'})]));
+ await page.locator('#replyText').fill('Подготовленный ответ, который нельзя потерять');
+ await page.locator('#replyFile').setInputFiles({name:'draft.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.4\nsynthetic saved draft\n%%EOF')});
+ await expect.poll(()=>page.evaluate(()=>WorkspaceV2Media.captureSelection()?.rows.length||0)).toBe(1);
+ await page.evaluate(()=>{const reply=document.getElementById('replyText');reply.focus({preventScroll:true});reply.setSelectionRange(5,14);window.__materialDraft={text:reply.value,start:reply.selectionStart,end:reply.selectionEnd,file:WorkspaceV2Media.captureSelection().rows[0].row.file}});
+ const position=await anchor(page);await useConversationTool(page,'conversationMaterialsOpen');await expect(page.locator('#conversationMaterialsList>li')).toHaveCount(2);
+ await page.locator('#conversationMaterialsMore').click();await expect(page.locator('#conversationMaterialsList>li')).toHaveCount(3);
+ expect(state.materialCalls.map(c=>[c.before_id,c.snapshot_id])).toEqual([[0,0],[251,500]]);
+ await expect(page.locator('#conversationMaterialsList')).toContainText('Договор <img src=x>.pdf');
+ await expect(page.locator('#conversationMaterialsStatus')).toContainText('Сохранённая история просмотрена');
+ await expect(page.locator('#conversationMaterialsDialog img,#conversationMaterialsDialog video,#conversationMaterialsDialog audio')).toHaveCount(0);
+ await screenshot(page,browserName,width,'materials-overview');
+ const source=page.locator('[data-material-message-id="50"] button');await source.evaluate(el=>{window.__materialSource=el});await source.click();
+ await expect(page.locator('#messageContextDialog')).toBeVisible();await expect(page.locator('#messageContextMessages')).toContainText('Исходный договор <img src=x onerror=alert(1)>');
+ await expect(page.locator('#messageContextBack')).toHaveText('Вернуться к материалам');await page.locator('#messageContextBack').click();
+ await expect(page.locator('#conversationMaterialsDialog')).toBeVisible();expect(await page.evaluate(()=>document.activeElement===window.__materialSource)).toBe(true);
+ await refresh(page);expect(await page.evaluate(()=>document.querySelector('[data-material-message-id="50"] button')===window.__materialSource)).toBe(true);
+ await page.locator('#conversationMaterialsClose').click();await sameAnchor(page,position);
+ expect(await page.evaluate(()=>{const r=document.getElementById('replyText'),saved=window.__materialDraft,files=WorkspaceV2Media.captureSelection();return{text:r.value===saved.text,caret:r.selectionStart===saved.start&&r.selectionEnd===saved.end,file:files.rows.length===1&&files.rows[0].row.file===saved.file,focus:document.activeElement?.id==='conversationMaterialsOpen'}})).toEqual({text:true,caret:true,file:true,focus:true});
+ await expect(page.locator('#conversationMaterialsList>li')).toHaveCount(0);clean(state);
+});
+
+test('conversation materials keep an empty partial page and retry a failed continuation',async({page})=>{
+ const state=await setup(page,{materials:true});await open(page);
+ state.materialPages.push(materialPage([],{before_id:251,has_more:true}));
+ state.materialPages.push({body:{ok:false,error:'synthetic_unavailable'},status:500});
+ state.materialPages.push(materialPage([materialRow(50)]));
+ await useConversationTool(page,'conversationMaterialsOpen');await expect(page.locator('#conversationMaterialsStatus')).toContainText('В просмотренной части истории');
+ await page.locator('#conversationMaterialsMore').click();await expect(page.locator('#conversationMaterialsStatus')).toContainText('Не удалось');await expect(page.locator('#conversationMaterialsMore')).toHaveText('Повторить');
+ await page.locator('#conversationMaterialsMore').click();await expect(page.locator('#conversationMaterialsList>li')).toHaveCount(1);
+ expect(state.materialCalls.map(c=>[c.before_id,c.snapshot_id])).toEqual([[0,0],[251,500],[251,500]]);clean(state);
+});
+
+test('conversation materials discard a late filter response',async({page})=>{
+ const state=await setup(page,{materials:true});await open(page);const held=deferred();state.materialPages.push(held);
+ await useConversationTool(page,'conversationMaterialsOpen');await expect.poll(()=>state.materialCalls.length).toBe(1);
+ state.materialPages.push(materialPage([materialRow(500,{snippet:'Только новая выбранная ссылка'})],{kind:'links'}));await page.locator('#conversationMaterialsKind').selectOption('links');
+ await expect(page.locator('#conversationMaterialsList')).toContainText('Только новая выбранная ссылка');held.resolve(materialPage([materialRow(480,{snippet:'Устаревший материал старого фильтра'})]));
+ await settled(page);await expect(page.locator('#conversationMaterialsList>li')).toHaveCount(1);await expect(page.locator('#conversationMaterialsList')).not.toContainText('Устаревший');clean(state);
+});
+
+test('conversation materials reject malformed rows and allow a truthful retry',async({page})=>{
+ const state=await setup(page,{materials:true});await open(page);
+ state.materialPages.push(materialPage([null]));state.materialPages.push(materialPage([materialRow(500)]));
+ await useConversationTool(page,'conversationMaterialsOpen');await expect(page.locator('#conversationMaterialsStatus')).toContainText('Не удалось');await expect(page.locator('#conversationMaterialsList>li')).toHaveCount(0);
+ await page.locator('#conversationMaterialsMore').click();await expect(page.locator('#conversationMaterialsList>li')).toHaveCount(1);expect(state.materialCalls.map(c=>[c.before_id,c.snapshot_id])).toEqual([[0,0],[0,0]]);clean(state);
+});
+
+test('conversation materials discard A after B opens and close on revoked access',async({page})=>{
+ const state=await setup(page,{materials:true});await open(page);const held=deferred();state.materialPages.push(held);
+ await useConversationTool(page,'conversationMaterialsOpen');await expect.poll(()=>state.materialCalls.length).toBe(1);
+ await page.evaluate(()=>{void WorkspaceV2Conversation.open(12)});await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент Б');await expect(page.locator('#conversationMaterialsDialog')).not.toBeVisible();
+ state.materialPages.push(materialPage([materialRow(3,{snippet:'Материал диалога Б'})],{conversation_id:12,snapshot_id:3,scanned:3}));await useConversationTool(page,'conversationMaterialsOpen');await expect(page.locator('#conversationMaterialsList')).toContainText('Материал диалога Б');
+ held.resolve(materialPage([materialRow(500,{snippet:'Секрет старого диалога А'})]));await settled(page);await expect(page.locator('#conversationMaterialsList')).not.toContainText('Секрет');
+ state.materialPages.push({body:{ok:false,error:'not_found'},status:404});await page.locator('#conversationMaterialsRefresh').click();await expect(page.locator('#conversationMaterialsDialog')).not.toBeVisible();await expect(page.locator('#conversationMaterialsList>li')).toHaveCount(0);await expect(page.locator('#sendReply')).toBeDisabled();clean(state);
+});
+
+test('conversation materials cover no unseen messages while modal is open and fit a short phone',async({page,browserName})=>{
+ await page.setViewportSize({width:390,height:420});const state=await setup(page,{materials:true,readAcknowledgements:true});await open(page);await useConversationTool(page,'conversationMaterialsOpen');
+ await expect(page.locator('#conversationMaterialsStatus')).toContainText('Подходящих материалов');
+ state.documents[11].push({id:501,sender_type:'customer',text:'Новое непрочитанное под обзором',created_at:'2026-11-12T09:10:00Z'});await refresh(page);
+ // Cross the canonical120ms display-ack timer, after the new row was rendered
+ // under the actual native modal. The backdrop must fail its visibility hit test.
+ await page.waitForTimeout(250);expect(state.ackCalls.some(c=>c.message_ids.includes(501))).toBe(false);
+ const geometry=await page.locator('#conversationMaterialsDialog').evaluate(el=>{const r=el.getBoundingClientRect(),close=document.getElementById('conversationMaterialsClose').getBoundingClientRect();return{fits:r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight+1&&r.width>=innerWidth-1,close:close.top>=0&&close.bottom<=innerHeight,list:document.getElementById('conversationMaterialsList').clientHeight>0}});expect(geometry).toEqual({fits:true,close:true,list:true});
+ await screenshot(page,browserName,390,'materials-short-phone');clean(state);
 });

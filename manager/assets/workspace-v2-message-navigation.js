@@ -20,7 +20,7 @@ function ensureBar(){
  bar=document.createElement('div');bar.id='messageNavigationBar';bar.className='messageNavigationBar';bar.hidden=true;
  const back=document.createElement('button');back.id='messageNavigationBack';back.type='button';back.className='actionBtn';back.textContent='Вернуться к цитате';back.onclick=returnToQuote;
  const status=document.createElement('span');status.id='messageNavigationStatus';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
- const retry=document.createElement('button');retry.id='messageNavigationRetry';retry.type='button';retry.className='actionBtn';retry.textContent='Повторить';retry.onclick=()=>active&&(active.search?void openSearchTarget(active.sourceId,active.returnFocus,{isCurrent:active.isCurrent}):void openQuote(active.sourceId,null,{retry:true}));
+ const retry=document.createElement('button');retry.id='messageNavigationRetry';retry.type='button';retry.className='actionBtn';retry.textContent='Повторить';retry.onclick=()=>active&&(active.search?void openSearchTarget(active.sourceId,active.returnFocus,{isCurrent:active.isCurrent,returnLabel:active.returnLabel}):void openQuote(active.sourceId,null,{retry:true}));
  bar.append(back,status,retry);messages.before(bar);return bar;
 }
 function renderBar(){
@@ -69,10 +69,10 @@ async function openQuote(sourceId,button=null,{retry=false}={}){
  const original=[...$('messageContextMessages').children].find(node=>Number(node.dataset.scrollMessageKey)===target);original?.classList.add('messageNavigationTarget');
  peek.showModal();const box=$('messageContextMessages');if(original)box.scrollTop=Math.max(0,original.offsetTop-box.offsetTop-48);return true;
 }
-async function openSearchTarget(target,button,{isCurrent=()=>true}={}){
+async function openSearchTarget(target,button,{isCurrent=()=>true,returnLabel='Вернуться к поиску'}={}){
  target=Number(target);const captured=context();if(!Number.isSafeInteger(target)||target<=0||!current(captured)||!isCurrent())return false;
  sync();const ticket=++revision;
- active={sourceId:target,search:true,returnFocus:button,isCurrent,status:'Открываем найденное сообщение…',retry:false};renderBar();
+ active={sourceId:target,search:true,returnFocus:button,isCurrent,returnLabel,status:'Открываем найденное сообщение…',retry:false};renderBar();
  const valid=()=>ticket===revision&&current(captured)&&isCurrent();let result;
  try{result=await api('message_context',{conversation_id:captured.conversationId,target_message_id:target},{isCurrent:valid})}catch(e){result=null}
  if(!valid()){if(ticket===revision){active=null;renderBar()}return false}
@@ -82,7 +82,7 @@ async function openSearchTarget(target,button,{isCurrent=()=>true}={}){
  }
  if(!result.available){active.status='Сообщение больше не доступно в сохранённой переписке.';renderBar();return false}
  const peek=ensureDialog();active.peek=true;active.status='';renderBar();
- $('messageContextTitle').textContent='Найденное сообщение';$('messageContextBack').textContent='Вернуться к поиску';
+ $('messageContextTitle').textContent='Найденное сообщение';$('messageContextBack').textContent=returnLabel;
  window.WorkspaceV2Conversation?.renderMessageContext?.($('messageContextMessages'),result.messages);
  const original=[...$('messageContextMessages').children].find(node=>Number(node.dataset.scrollMessageKey)===target);original?.classList.add('messageNavigationTarget');
  peek.showModal();const box=$('messageContextMessages');if(original)box.scrollTop=Math.max(0,original.offsetTop-box.offsetTop-48);return true;
