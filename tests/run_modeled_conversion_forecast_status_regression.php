@@ -2542,7 +2542,8 @@ function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $ori
     $done=ModeledConversionRetainedAppIdentityEvidence::complete($intent,$original,$row,$ns,$single,$now);
     $projection=ModeledConversionRetainedAppIdentityEvidence::projection($done,$original,$row,$ns,$now);
     $check('an immutable pre-event YCLID-only witness is a compact candidate without identity or financial promotion',
-        $single[0]===1&&$single[5]===2&&$projection['status']==='candidate'&&$projection['kind']==='yclid'&&!$projection['financial_permission']
+        strlen(json_encode($intent,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))===768
+        &&$single[0]===1&&$single[5]===2&&$projection['status']==='candidate'&&$projection['kind']==='yclid'&&!$projection['financial_permission']
         &&strlen(json_encode($done,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=768
         &&strlen(json_encode($projection,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=225
         &&!str_contains(json_encode($projection,JSON_THROW_ON_ERROR),'119988776655443322')&&!isset($projection['observation_id']));
@@ -2555,10 +2556,13 @@ function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $ori
         !$malformedView['available']&&$malformedView['reason']==='invalid_saved_journal'
         &&ModeledConversionRetainedAppIdentityEvidence::intent($original,$changed,$ns,$now)===null);
     $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
-    ForecastV1ObservedStatement::$afterRetainedSourceFetch=static function():void{usleep(510000);};
+    $delayedCandidateReads=0;
+    ForecastV1ObservedStatement::$afterRetainedSourceFetch=static function(string $sql)use(&$delayedCandidateReads):void{
+        if(str_contains($sql,'retained_app_identity')){$delayedCandidateReads++;usleep(510000);}
+    };
     try{$lateRead=$read();}
     finally{ForecastV1ObservedStatement::$afterRetainedSourceFetch=null;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
-    $check('native delayed fetch cannot publish a late candidate after rollback',$lateRead[0]===10&&!$p->inTransaction());
+    $check('native delayed fetch cannot publish a late candidate after rollback',$delayedCandidateReads===1&&$lateRead[0]===10&&!$p->inTransaction());
     $copyBytes=array_sum(array_map(static fn(array $r):int=>strlen(json_encode($r,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),$copies));
     $check('the source read has two bounded indexed SELECTs and one shared guarded8KiB copy budget',
         count($sql)===2&&$copyBytes<=8192&&str_contains($sql[0]['sql'],'LIMIT 33')&&str_contains($sql[1]['sql'],'LIMIT 65')
@@ -2586,6 +2590,7 @@ function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $ori
     $clear();$scope();$visit(1);
 
     // Drive the real optional worker method; all tables and identities here are synthetic.
+    $p->exec('ALTER TABLE modeled_conversion_value_export_settings MODIFY last_receipt_json JSON');
     $settings=$p->query("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetch(PDO::FETCH_ASSOC);
     $receipt=['finite_visit_evidence'=>$original,'finite_counter_scope_evidence'=>false,'errors'=>0];
     $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?,last_tick_unix=? WHERE project_key='anytour'")
@@ -2638,6 +2643,25 @@ function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $ori
     try{$phase->invoke($blockedWorker,$now+1,static fn(string $chat):bool=>true);}
     finally{ForecastV1ObservedStatement::$onRetainedSource=null;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
     $check('an intent that cannot fit private receipt budget prevents either source read',$sourceCount===0);
+    $measure=static function(array $v)use($p):int{
+        $q=$p->prepare('SELECT OCTET_LENGTH(CAST(? AS JSON))');$q->execute([json_encode($v,JSON_THROW_ON_ERROR)]);return (int)$q->fetchColumn();
+    };
+    $compact=$intent;$compact['o']=null;
+    $capacity=['finite_visit_evidence'=>$original,$key=>$compact,'padding'=>''];
+    $capacity['padding']=str_repeat('r',max(0,8150-$measure($capacity)));
+    $larger=$capacity;$larger[$key]=$done;
+    $check('the reservation fixture has room for the former compact intent but not its larger completed result',
+        $measure($capacity)<=8192&&$measure($larger)>8192);
+    unset($capacity[$key]);
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode($capacity,JSON_THROW_ON_ERROR)]);
+    $reservedWorker=new ModeledConversionValueExport($p);foreach(['finiteFrame'=>$original,'finiteRows'=>[$original['r'][0][0]=>$row]]as$property=>$value)(new ReflectionProperty($reservedWorker,$property))->setValue($reservedWorker,$value);
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);$sourceCount=0;
+    ForecastV1ObservedStatement::$onRetainedSource=static function()use(&$sourceCount):void{$sourceCount++;};
+    try{$phase->invoke($reservedWorker,$now+1,static fn(string $chat):bool=>true);}
+    finally{ForecastV1ObservedStatement::$onRetainedSource=null;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $reservationHeld=json_decode($p->query("SELECT last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetchColumn(),true,32,JSON_THROW_ON_ERROR);
+    $check('a full result slot is reserved before source reads rather than losing a completed observation',
+        $sourceCount===0&&!array_key_exists($key,$reservationHeld));
     $merge=new ReflectionMethod($worker,'withRetainedAppEvidence');
     $base=['finite_visit_evidence'=>$original,'finite_visit_recovery'=>['immutable'=>'forward'],'fixed_pair_operational_decisions'=>['immutable'=>'pair'],
         'finite_counter_scope_evidence'=>false,'last_recorded_failure'=>['immutable'=>'failure'],'padding'=>''];

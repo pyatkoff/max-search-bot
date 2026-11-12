@@ -17,7 +17,10 @@ final class ModeledConversionRetainedAppIdentityEvidence
         $b=self::binding($original,$row,$namespace,$now);if($b===null||$now<$b['checked'])return null;
         $hash=hash('sha256',json_encode([self::VERSION,$namespace,$b['digest'],$b['ref'],'anytour','max','98615635',
             (string)$row['external_user_id'],(int)$row['event_unix'],32,8,64,8192,250,500,$now],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
-        return ['v'=>self::VERSION,'n'=>$namespace,'d'=>$b['digest'],'e'=>$b['ref'],'h'=>$hash,'t'=>$now,'s'=>1,'o'=>null];
+        $intent=['v'=>self::VERSION,'n'=>$namespace,'d'=>$b['digest'],'e'=>$b['ref'],'h'=>$hash,'t'=>$now,'s'=>1,'o'=>''];
+        // Reserve the whole existing private slot before source reads; pending merges retain this padding.
+        $intent['o']=str_repeat('p',self::MAX_BYTES-strlen(json_encode($intent,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)));
+        return $intent;
     }
     public static function binding(mixed $original,array $row,string $namespace,int $now):?array
     {
@@ -172,7 +175,7 @@ final class ModeledConversionRetainedAppIdentityEvidence
         $expected=self::intent($original,$row,$namespace,$saved['t']);
         if($expected===null||$saved['d']!==$expected['d']||$saved['e']!==$expected['e']||$saved['h']!==$expected['h']
             ||strlen(json_encode($saved,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>self::MAX_BYTES)return null;
-        if($saved['s']===1)return $saved['o']===null?$saved:null;
+        if($saved['s']===1)return $saved['o']===$expected['o']?$saved:null;
         $r=$saved['o'];if(!is_array($r)||!array_is_list($r)||count($r)!==12||!is_int($r[0])||!isset(self::REASONS[$r[0]])
             ||self::clock($r[1],$now)===null||$r[1]<$saved['t'])return null;
         foreach([2=>8,3=>64,4=>64]as$i=>$max)if($r[$i]!==null&&(!is_int($r[$i])||$r[$i]<0||$r[$i]>$max))return null;

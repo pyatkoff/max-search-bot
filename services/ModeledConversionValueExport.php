@@ -480,7 +480,9 @@ final class ModeledConversionValueExport
             $raw=$s['last_receipt_json']??null;
             if(!is_string($raw)||strlen($raw)>8192||!str_starts_with(ltrim($raw),'{')){$p->rollBack();return;}
             $receipt=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
-            if(!is_array($receipt)||($receipt[$key]??null)!==$intent){$p->rollBack();return;}
+            if(!is_array($receipt)||!is_array($receipt[$key]??null)){$p->rollBack();return;}
+            $current=$receipt[$key];$expected=$intent;ksort($current,SORT_STRING);ksort($expected,SORT_STRING);
+            if($current!==$expected){$p->rollBack();return;}
             $done=ModeledConversionRetainedAppIdentityEvidence::complete($intent,$receipt['finite_visit_evidence']??null,$row,$ns,$result,$now);
             if($done===null){$p->rollBack();return;}
             $receipt[$key]=$done;$encoded=json_encode($receipt,JSON_THROW_ON_ERROR);
