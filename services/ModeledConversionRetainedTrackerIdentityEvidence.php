@@ -113,6 +113,25 @@ final class ModeledConversionRetainedTrackerIdentityEvidence
             $out['first_saved_at_unix']=null;$out['first_enriched_at_unix']=null;
         }return $out;
     }
+    /** Private inert plan for exactly the two already consumed original YCLID selections. */
+    public static function knownRehydratePlan(mixed $saved,mixed $frame,array $row,string $ns,int $now):?array
+    {
+        $b=self::knownBinding($frame,$row,$ns,$now);$s=self::knownDecode($saved,$frame,$row,$ns,$now);
+        if($b===null||$s===null||!in_array($b['index'],[1,2],true)||$s['s']!==2||$s['o'][0]!==1||$s['o'][4]!==2
+            ||($row['client_id']??null)!==$b['held_client_id']||($row['tracker_record_id']??null)!==$b['held_record_id']
+            ||(string)($row['tracker_observed_unix']??'')!==(string)$b['held_source_at'])return null;
+        $r=$s['o'];$selection=['v'=>1,'selection_context'=>self::knownContext($frame,$row,$ns,$now),'selection_request_sha256'=>$s['h'],
+            'selected_record_id'=>$r[6],'selected_kind'=>2,'selected_candidate_sha256'=>$r[5],
+            'selected_record_sha256'=>$r[7],'selected_recorded_at_unix'=>$r[8]];
+        try{MaxTrackerLookupProtocol::retainedClickRehydrateBody($selection,$now,str_repeat('0',32));}
+        catch(Throwable $ignored){return null;}
+        $ordered=[];foreach(['v','n','d','e','h','t','p','s','o']as$k)$ordered[$k]=$s[$k];
+        return ['v'=>1,'case_index'=>$b['index'],'namespace'=>$ns,'frame_digest'=>$b['digest'],'event_ref'=>$b['ref'],
+            'outbox_id'=>(string)$row['id'],'value_rub'=>(int)$row['value_rub'],'event_unix'=>(int)$row['event_unix'],
+            'held_client_id'=>$b['held_client_id'],'held_record_id'=>$b['held_record_id'],'held_source_at'=>$b['held_source_at'],
+            'old_saved_sha256'=>hash('sha256',json_encode($ordered,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),'selection'=>$selection];
+    }
+
     private static function knownDecode(mixed $s,mixed $frame,array $row,string $ns,int $now):?array
     {
         if(!is_array($s)||count($s)!==9||array_diff(array_keys($s),['v','n','d','e','h','t','p','s','o'])||($s['v']??null)!==self::KNOWN_VERSION

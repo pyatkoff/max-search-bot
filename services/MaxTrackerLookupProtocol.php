@@ -92,6 +92,75 @@ final class MaxTrackerLookupProtocol
         return $r;
     }
 
+    public const RETAINED_REHYDRATE_HEADER='retained-click-rehydrate-v1';
+
+    /** Exact saved selection only; never another preferred-source selection or delivery permission. */
+    public static function retainedClickRehydrateContext(array $data,string $header,int $now):?array
+    {
+        $present=array_key_exists('retained_click_rehydrate',$data);
+        if($header!==self::RETAINED_REHYDRATE_HEADER){
+            if($present)throw new InvalidArgumentException('lookup_invalid_retained_rehydrate_request');
+            return null;
+        }
+        $c=$data['retained_click_rehydrate']??null;
+        $outer=['version','counter_id','user_ids','issued_at','nonce','retained_click_rehydrate'];
+        $keys=['v','selection_context','selection_request_sha256','selected_record_id','selected_kind',
+            'selected_candidate_sha256','selected_record_sha256','selected_recorded_at_unix'];
+        if(count($data)!==count($outer)||array_diff(array_keys($data),$outer)||!is_array($c)||count($c)!==count($keys)
+            ||array_diff(array_keys($c),$keys)||($c['v']??null)!==1||($c['selected_kind']??null)!==2
+            ||!is_array($c['selection_context']??null)||array_keys($c['selection_context'])!==['v','user_id','event_ref','frame_sha256','event_at_unix']
+            ||!self::id($c['selected_record_id']??null)||!is_int($c['selected_recorded_at_unix']??null))
+            throw new InvalidArgumentException('lookup_invalid_retained_rehydrate_request');
+        $ctx=self::retainedClickContext(['counter_id'=>$data['counter_id']??null,'user_ids'=>$data['user_ids']??null,
+            'retained_click_candidate'=>$c['selection_context']],self::RETAINED_CLICK_HEADER,$now);
+        if($c['selected_recorded_at_unix']<946684800||$c['selected_recorded_at_unix']>$ctx['event_at_unix'])
+            throw new InvalidArgumentException('lookup_invalid_retained_rehydrate_request');
+        foreach(['selection_request_sha256','selected_candidate_sha256','selected_record_sha256']as$k)
+            if(!is_string($c[$k]??null)||preg_match('/\A[a-f0-9]{64}\z/D',$c[$k])!==1)
+                throw new InvalidArgumentException('lookup_invalid_retained_rehydrate_request');
+        return $c;
+    }
+
+    public static function retainedClickRehydrateBody(array $selection,int $now,?string $nonce=null):string
+    {
+        $data=['version'=>1,'counter_id'=>'98615635','user_ids'=>[$selection['selection_context']['user_id']??null],
+            'issued_at'=>$now,'nonce'=>$nonce??bin2hex(random_bytes(16)),'retained_click_rehydrate'=>$selection];
+        self::validate($data,$now,'98615635');
+        return json_encode($data,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+    }
+
+    /** Recompute both OLD hashes over the same normalized seven-field source tuple and London clock. */
+    public static function retainedClickRehydrateMatches(array $selection,mixed $tuple,int $now):bool
+    {
+        try{
+            self::retainedClickRehydrateBody($selection,$now,str_repeat('0',32));
+            if(!is_array($tuple)||!array_is_list($tuple)||count($tuple)!==7
+                ||($tuple[0]??null)!==$selection['selected_record_id']||($tuple[1]??null)!==$selection['selection_context']['user_id']
+                ||(!self::id($tuple[2]??null,40)&&($tuple[2]??null)!=='')
+                ||!self::id($tuple[3]??null,40)||!self::id($tuple[5]??null)||($tuple[6]??null)!==1)return false;
+            require_once __DIR__.'/MaxSubscriptionAttributionPolicy.php';
+            $at=MaxSubscriptionAttributionPolicy::eventTimeUnix($tuple[4],new DateTimeZone('Europe/London'));
+            if($at!==$selection['selected_recorded_at_unix']||$at>$now)return false;
+            $fingerprint=hash('sha256',json_encode($tuple,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+            $candidate=hash('sha256',json_encode([self::RETAINED_CLICK_HEADER,$selection['selection_request_sha256'],
+                $selection['selection_context'],2,$tuple[3],$tuple[0],$fingerprint,$at],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+            return hash_equals($selection['selected_record_sha256'],$fingerprint)&&hash_equals($selection['selected_candidate_sha256'],$candidate);
+        }catch(Throwable $ignored){return false;}
+    }
+
+    /** The raw tuple is private server-to-app material; callers must never project or log it. */
+    public static function retainedClickRehydrateResult(mixed $wire,array $selection,string $requestHash,int $received):?array
+    {
+        if(!is_array($wire)||count($wire)!==4||array_diff(array_keys($wire),['v','request_sha256','result','financial_permission'])
+            ||($wire['v']??null)!==1||preg_match('/\A[a-f0-9]{64}\z/D',$requestHash)!==1
+            ||($wire['request_sha256']??null)!==$requestHash||($wire['financial_permission']??null)!==false)return null;
+        $r=$wire['result']??null;
+        if(!is_array($r)||!array_is_list($r)||count($r)!==3||!is_int($r[0])||$r[0]<0||$r[0]>7
+            ||!is_int($r[1])||$r[1]<946684800||abs($r[1]-$received)>90)return null;
+        if($r[0]!==1)return $r[2]===null?$r:null;
+        return $r[1]>=($selection['selected_recorded_at_unix']??PHP_INT_MAX)&&self::retainedClickRehydrateMatches($selection,$r[2],$received)?$r:null;
+    }
+
     private static function validate(array $data, int $now, string $counterId): void
     {
         if (($data['version']??null)!==1 || ($data['counter_id']??null)!==$counterId
@@ -106,6 +175,8 @@ final class MaxTrackerLookupProtocol
             if (!self::id($id) || isset($seen[$id])) throw new InvalidArgumentException('lookup_invalid_users');
             $seen[$id]=true;
         }
+        if(array_key_exists('retained_click_rehydrate',$data))
+            self::retainedClickRehydrateContext($data,self::RETAINED_REHYDRATE_HEADER,$now);
         if (array_key_exists('member_page_after',$data) && (!is_string($data['member_page_after'])
             || preg_match('/\A(?:0|[1-9][0-9]{0,19})\z/D',$data['member_page_after'])!==1
             || $data['user_ids']!==[] || array_key_exists('membership',$data)))
