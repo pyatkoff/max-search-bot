@@ -18,6 +18,22 @@ Saving creates the company, manager-first MAX source, employee and connection
 without registering a provider subscription. Existing companies, employees,
 shifts, lead destinations and routing settings are not edited.
 
+The form presents five local steps: company/profile, employee, optional
+materials, existing MAX bot and a final non-secret review. Next/Back retain the
+same fields in memory; only explicit final saving sends the one creation
+operation. Enter and step navigation never create a partial account. Native
+validation reveals the relevant step, including the server's UTF-8 byte limits.
+The review contains neither token nor password. Closing/reloading an unsaved
+form does not persist its credentials; a saved operation still recovers by its
+existing receipt. The operator then separately verifies and activates the bot;
+the employee separately signs in and enables their own shift.
+
+Material import has one current file/form/actor generation. A newer file,
+manual text edit, cancellation or form/account reset invalidates an earlier
+read. A pending read blocks advancing that step and final saving, with an
+explicit cancellation that preserves current text. Late results cannot overwrite
+a newer draft, review or another account.
+
 The employee has role `manager`, membership only in that company and starts off
 shift. Platform administrators retain their platform-wide authority. Employees
 can read their own company's materials here. Materials are reference text; this
@@ -93,3 +109,14 @@ Manager2's canonical Chromium/WebKit inventory includes the shipped page at
 390/430/768/1440 and short 390×420, lost responses, identity/selection races,
 explicit activation and employee-only materials. Full shared-source CI and the
 ordinary sole-publisher installation/tails remain required.
+
+`run_manager_client_scale_regression.php` repeats the actual creation,
+authenticated inbound recorder/handoff, authorized employee conversation read
+and own quick-reply preparation for50 isolated SQLite companies (25 per supported
+profile). It checks identical provider identities, replay, bot conflicts,
+materials, keys, revoked membership and one company's unknown activation while
+another remains usable. All provider writes/greetings are intercepted locally;
+no live database, customer messages or real company activation is used. Reported
+times measure the synthetic server path, excluding human entry and provider
+network latency. Native tests cover final review, two tabs, reload, lost outcomes,
+short screens and material-import races; these do not represent50 live clients.
