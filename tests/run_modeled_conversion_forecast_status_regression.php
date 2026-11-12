@@ -7,6 +7,8 @@ require_once dirname(__DIR__).'/services/ModeledConversionForecastStatusReader.p
 require_once dirname(__DIR__).'/services/MetrikaOfflineClient.php';
 require_once dirname(__DIR__).'/services/ModeledConversionFixedPairDecisionEvidence.php';
 require_once dirname(__DIR__).'/services/ModeledConversionMaxCounterScopeEvidence.php';
+require_once dirname(__DIR__).'/services/ModeledConversionRetainedAppIdentityEvidence.php';
+require_once dirname(__DIR__).'/services/ModeledConversionValueExport.php';
 require_once __DIR__.'/support/archive-predictive-model.php';
 
 final class ForecastV1ObservedStatement extends PDOStatement
@@ -16,6 +18,8 @@ final class ForecastV1ObservedStatement extends PDOStatement
     public static mixed $afterMetadata=null;
     public static mixed $afterNativePoint=null;
     public static mixed $afterInitialApi=null;
+    public static mixed $onRetainedSource=null;
+    public static mixed $afterRetainedSourceFetch=null;
     public static bool $observePredictive=false;
     public static int $predictiveExecutions=0;
     public static array $predictiveCopies=[];
@@ -36,6 +40,8 @@ final class ForecastV1ObservedStatement extends PDOStatement
     {
         if(self::$observeCore)foreach(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,12)as$frame)
             if(($frame['class']??null)===ModeledConversionInputDiagnosisReader::class){self::$diagnosisExecutions++;break;}
+        if(is_callable(self::$onRetainedSource)&&(str_contains($this->queryString,'retained_app_scopes')||str_contains($this->queryString,'retained_app_identity')))
+            (self::$onRetainedSource)($this->queryString);
         $ok=parent::execute($params);
         if(self::$observePredictive){
             self::$predictiveExecutions++;
@@ -48,6 +54,8 @@ final class ForecastV1ObservedStatement extends PDOStatement
     public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args):array
     {
         $rows=parent::fetchAll($mode,...$args);
+        if(is_callable(self::$afterRetainedSourceFetch)&&(str_contains($this->queryString,'retained_app_scopes')||str_contains($this->queryString,'retained_app_identity')))
+            (self::$afterRetainedSourceFetch)($this->queryString);
         if(self::$observePredictive)self::$predictiveCopies[]=$rows;
         if(self::$observeCore&&str_contains($this->queryString,' AS prediction_json,'))self::$coreCopies[]=$rows;
         if(str_contains($this->queryString,' AS reserved_rub'))self::$valueCopied=true;
@@ -848,8 +856,8 @@ function forecastV1Assertions(PDO $p,callable $check):void
     forecastValueDeliveryAssertions($p,$check);
     forecastRepairAssessmentAssertions($p,$check);
     $initialApiCohort=forecastInitialApiReceiptAssertions($p,$check);
-    forecastFiniteVisitEvidenceAssertions($p,$check,$initialApiCohort);
-    forecastProcessingFrontierAssertions($p,$check);
+    $retainedPositive=forecastFiniteVisitEvidenceAssertions($p,$check,$initialApiCohort);
+    forecastProcessingFrontierAssertions($p,$check,$retainedPositive);
     forecastInputDiagnosisAssertions($p,$check);
     forecastPredictiveValueAssertions($p,$check);
 }
@@ -1951,11 +1959,11 @@ function forecastInitialApiReceiptAssertions(PDO $p,callable $check):array
 }
 
 /** A saved GET-only finite proof is bound to three current immutable rows, with no provider work in this reader. */
-function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $initialApiCohort=[]):void
+function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $initialApiCohort=[]):array
 {
     foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
     $p->exec("CREATE TABLE modeled_conversion_profile_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),customer_key VARCHAR(40),conversation_id BIGINT,observed_at_unix BIGINT,assessment_namespace CHAR(64),assessment_kind VARCHAR(8),profile_json TEXT)");
-    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),conversation_id BIGINT,counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),target VARCHAR(100),value_profile_id BIGINT,value_rub DECIMAL(12,2),state VARCHAR(24),upload_status VARCHAR(32),upload_id VARCHAR(40),external_user_id VARCHAR(20),event_unix BIGINT,value_stage VARCHAR(40),last_error TEXT,value_ready_at_unix BIGINT,value_api_accepted_at_unix BIGINT,value_processed_at_unix BIGINT,identity_source_key VARCHAR(80) DEFAULT '',source_signal_id BIGINT,identity_observation_id BIGINT,attempts INT DEFAULT 0,claimed_at_unix BIGINT,client_id VARCHAR(40),tracker_record_id VARCHAR(20),tracker_observed_unix BIGINT,value_receipt_basis VARCHAR(24),next_attempt_unix BIGINT DEFAULT 0)");
+    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),conversation_id BIGINT,counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),target VARCHAR(100),value_profile_id BIGINT,value_rub DECIMAL(12,2),state VARCHAR(24),upload_status VARCHAR(32),upload_id VARCHAR(40),external_user_id VARCHAR(20),event_unix BIGINT,value_stage VARCHAR(40),last_error TEXT,value_ready_at_unix BIGINT,value_api_accepted_at_unix BIGINT,value_processed_at_unix BIGINT,identity_source_key VARCHAR(80) DEFAULT '',source_signal_id BIGINT,identity_observation_id BIGINT,attempts INT DEFAULT 0,claimed_at_unix BIGINT,client_id VARCHAR(40),tracker_record_id VARCHAR(20),tracker_observed_unix BIGINT,value_receipt_basis VARCHAR(24),next_attempt_unix BIGINT DEFAULT 0,claim_token VARCHAR(32))");
     $checkpoint=ModeledConversionValueVisitEvidence::CHECKPOINT;$now=$checkpoint+600;$namespace=ModeledConversionProfiles::assessmentNamespace();
     $insertProfile=$p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour','max',?,?,?,?,'repair','PRIVATE_NATIVE_PROFILE_MUST_NOT_BE_READ')");
     $insertEvent=$p->prepare("INSERT INTO max_channel_conversion_outbox(id,project_key,platform,conversation_id,counter_id,transport_target,value_contract,target,value_profile_id,value_rub,state,upload_status,upload_id,external_user_id,event_unix,value_stage,last_error,value_ready_at_unix,value_api_accepted_at_unix,value_processed_at_unix) VALUES(?,'anytour','max',?,'98615635',?,?,?,?,?,'pending',NULL,NULL,?,?,'specific_request','identity_not_found',NULL,NULL,NULL)");
@@ -2472,11 +2480,235 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $ini
             &&$responseBytes($receiptBounded)<=28000);
     }
 
+    return forecastRetainedAppIdentityAssertions($p,$check,$unavailableOriginal,$ledger[0],$now);
 }
 
 
+
+/** One original case, local immutable witnesses, no actual provider/worker invocation. */
+function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $original,array $row,int $now):array
+{
+    $ns=ModeledConversionProfiles::assessmentNamespace();$key=ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY;
+    $intent=ModeledConversionRetainedAppIdentityEvidence::intent($original,$row,$ns,$now);
+    $check('retained app intent binds the existing missing case without embedding a raw identity',$intent!==null&&!str_contains(json_encode($intent,JSON_THROW_ON_ERROR),'"'.$row['external_user_id'].'"'));
+    foreach(['5.7.44','10.11.7-MariaDB','8.0.33-MariaDB','unknown']as$version){
+        $unsupported=new class($version) extends PDO {
+            public function __construct(private string $version){}
+            public function getAttribute(int $attribute):mixed{return $attribute===PDO::ATTR_DRIVER_NAME?'mysql':$this->version;}
+        };
+        $refused=ModeledConversionRetainedAppIdentityEvidence::observe($unsupported,$intent,$row,$now);
+        $check('an unsupported server cannot execute source SQL under an ignored timeout hint',$refused[0]===11);
+    }
+    $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+    if(!$mysql){
+        $refused=ModeledConversionRetainedAppIdentityEvidence::observe($p,$intent,$row,$now);
+        $check('SQLite runtime refuses source reads without a supported execution deadline',$refused[0]===11);
+        $synthetic=[1,$now,1,1,0,2,str_repeat('d',64),'1',str_repeat('c',64),(int)$row['event_unix']-30,(int)$row['event_unix']-20,(int)$row['event_unix']-10];
+        $done=ModeledConversionRetainedAppIdentityEvidence::complete($intent,$original,$row,$ns,$synthetic,$now);
+        $projection=ModeledConversionRetainedAppIdentityEvidence::projection($done,$original,$row,$ns,$now);
+        $malformed=$done;unset($malformed['h']);$malformed['PRIVATE_UNKNOWN_KEY']='PRIVATE_VALUE';
+        set_error_handler(static function(int $severity,string $message):never{throw new ErrorException($message,0,$severity);});
+        try{$bad=ModeledConversionRetainedAppIdentityEvidence::projection($malformed,$original,$row,$ns,$now);}
+        finally{restore_error_handler();}
+        $check('pure saved candidate projection binds the case stays compact and rejects malformed keys without source SQL',
+            $projection['status']==='candidate'&&$projection['kind']==='yclid'&&!$projection['financial_permission']
+            &&strlen(json_encode($projection,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=225&&!$bad['available']);
+        return $projection;
+    }
+    foreach(['advertising_visit_observations','advertising_visit_cursors']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
+    $nativeExists=json_decode($p->query('SELECT JSON_ARRAY(EXISTS(SELECT 1 WHERE 1=0),EXISTS(SELECT 1),CASE WHEN EXISTS(SELECT 1 WHERE 1=0) THEN 1 ELSE 0 END,CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END)')->fetchColumn(),true,8,JSON_THROW_ON_ERROR);
+    $nativeTypes=array_map(static fn(mixed $v):string=>get_debug_type($v),$nativeExists);
+    $check('native owner-conflict JSON types raw_false='.$nativeTypes[0].' raw_true='.$nativeTypes[1].' with canonical CASE zero and one',
+        $nativeExists[2]===0&&$nativeExists[3]===1);
+    $collation=$mysql?' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci':' COLLATE RTRIM';
+    $p->exec('CREATE TABLE advertising_visit_cursors(project_key VARCHAR(40)'.$collation.',source_key VARCHAR(80)'.$collation.',platform VARCHAR(16)'.$collation.',counter_id VARCHAR(20)'.$collation.',last_cursor VARCHAR(20),PRIMARY KEY(project_key,source_key,platform,counter_id))');
+    $p->exec('CREATE TABLE advertising_visit_observations(id BIGINT PRIMARY KEY,project_key VARCHAR(40)'.$collation.',source_key VARCHAR(80)'.$collation.',platform VARCHAR(16)'.$collation.',counter_id VARCHAR(20)'.$collation.',external_user_id VARCHAR(32)'.$collation.',identity_status VARCHAR(16)'.$collation.',source_cursor VARCHAR(20),visit_id VARCHAR(128)'.$collation.',client_id VARCHAR(40),yclid VARCHAR(40),visit_at_unix BIGINT,observed_at_unix BIGINT,received_at_unix BIGINT,payload_sha256 CHAR(64))');
+    $p->exec('CREATE INDEX idx_advertising_identity ON advertising_visit_observations(project_key,source_key,platform,counter_id,external_user_id,identity_status,observed_at_unix)');
+    $p->exec('CREATE INDEX idx_advertising_visit ON advertising_visit_observations(project_key,source_key,platform,counter_id,visit_id)');
+    $scope=static function(string $source='fixture_committed_max',string $project='anytour',string $counter='98615635')use($p):void{
+        $p->prepare("INSERT INTO advertising_visit_cursors VALUES(?,?,'max',?,'1')")->execute([$project,$source,$counter]);
+    };
+    $visit=static function(int $id,array $changes=[])use($p,$row):void{
+        $v=array_replace(['id'=>$id,'project_key'=>'anytour','source_key'=>'fixture_committed_max','platform'=>'max','counter_id'=>'98615635',
+            'external_user_id'=>$row['external_user_id'],'identity_status'=>'verified','source_cursor'=>(string)$id,'visit_id'=>'fixture_visit_'.$id,
+            'client_id'=>'','yclid'=>'119988776655443322','visit_at_unix'=>(int)$row['event_unix']-30,
+            'observed_at_unix'=>(int)$row['event_unix']-20,'received_at_unix'=>(int)$row['event_unix']-10,'payload_sha256'=>str_repeat('c',64)],$changes);
+        $p->prepare('INSERT INTO advertising_visit_observations VALUES('.implode(',',array_fill(0,count($v),'?')).')')->execute(array_values($v));
+    };
+    $read=static fn():array=>ModeledConversionRetainedAppIdentityEvidence::observe($p,$intent,$row,$now);
+    $clear=static function()use($p):void{$p->exec('DELETE FROM advertising_visit_observations');$p->exec('DELETE FROM advertising_visit_cursors');};
+    $none=$read();$check('no committed local MAX scope is unsupported rather than a guessed Bitrix source',$none[0]===3);
+    $scope();$visit(1);$oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+    ForecastV1ObservedStatement::$observePredictive=true;ForecastV1ObservedStatement::$predictiveStatements=[];ForecastV1ObservedStatement::$predictiveCopies=[];
+    try{$single=$read();$sql=ForecastV1ObservedStatement::$predictiveStatements;$copies=ForecastV1ObservedStatement::$predictiveCopies;}
+    finally{ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $done=ModeledConversionRetainedAppIdentityEvidence::complete($intent,$original,$row,$ns,$single,$now);
+    $projection=ModeledConversionRetainedAppIdentityEvidence::projection($done,$original,$row,$ns,$now);
+    $candidateValid=strlen(json_encode($intent,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))===768
+        &&$single[0]===1&&$single[5]===2&&$projection['status']==='candidate'&&$projection['kind']==='yclid'&&!$projection['financial_permission']
+        &&strlen(json_encode($done,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=768
+        &&strlen(json_encode($projection,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=225
+        &&!str_contains(json_encode($projection,JSON_THROW_ON_ERROR),'119988776655443322')&&!isset($projection['observation_id']);
+    if(!$candidateValid)echo 'RETAINED_APP_SYNTHETIC '.json_encode([
+        'result_code'=>$single[0]??null,'kind_code'=>$single[5]??null,'saved_frame'=>is_array($done),'native_types'=>$nativeTypes,
+        'private_bytes'=>strlen(json_encode($done,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),
+        'projection_bytes'=>strlen(json_encode($projection,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))],JSON_THROW_ON_ERROR).PHP_EOL;
+    $check('an immutable pre-event YCLID-only witness is a compact candidate without identity or financial promotion',$candidateValid);
+    $malformed=$done;unset($malformed['h']);$malformed['PRIVATE_UNKNOWN_KEY']='PRIVATE_VALUE';
+    set_error_handler(static function(int $severity,string $message):never{throw new ErrorException($message,0,$severity);});
+    try{$malformedView=ModeledConversionRetainedAppIdentityEvidence::projection($malformed,$original,$row,$ns,$now);}
+    finally{restore_error_handler();}
+    $changed=$row;$changed['external_user_id'].='1';
+    $check('malformed receipt keys produce no PHP warning and a changed subject cannot reuse the original intent',
+        !$malformedView['available']&&$malformedView['reason']==='invalid_saved_journal'
+        &&ModeledConversionRetainedAppIdentityEvidence::intent($original,$changed,$ns,$now)===null);
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+    $delayedCandidateReads=0;
+    ForecastV1ObservedStatement::$afterRetainedSourceFetch=static function(string $sql)use(&$delayedCandidateReads):void{
+        if(str_contains($sql,'retained_app_identity')){$delayedCandidateReads++;usleep(510000);}
+    };
+    try{$lateRead=$read();}
+    finally{ForecastV1ObservedStatement::$afterRetainedSourceFetch=null;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $check('native delayed fetch cannot publish a late candidate after rollback',$delayedCandidateReads===1&&$lateRead[0]===10&&!$p->inTransaction());
+    $copyBytes=array_sum(array_map(static fn(array $r):int=>strlen(json_encode($r,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),$copies));
+    $check('the source read has two bounded indexed SELECTs and one shared guarded8KiB copy budget',
+        count($sql)===2&&$copyBytes<=8192&&str_contains($sql[0]['sql'],'LIMIT 33')&&str_contains($sql[1]['sql'],'LIMIT 65')
+        &&!str_contains($sql[1]['sql'],"client_id<>")&&!str_contains($sql[1]['sql'],'ORDER BY')
+        &&str_contains($sql[1]['sql'],'idx_advertising_identity')&&str_contains($sql[1]['sql'],'idx_advertising_visit'));
+    $visit(2,['yclid'=>'228877665544332211','observed_at_unix'=>(int)$row['event_unix']+1,'received_at_unix'=>(int)$row['event_unix']+2]);
+    $late=$read();$check('valid late enrichment cannot replace or poison an already saved pre-event witness',$late[0]===1&&$late[4]===1&&$late[6]===$single[6]);
+    $p->exec('DELETE FROM advertising_visit_observations WHERE id=2');$visit(2,['yclid'=>'228877665544332211']);
+    $check('different pre-event YCLIDs remain ambiguous without choosing the first unordered row',$read()[0]===2);
+    $p->exec('DELETE FROM advertising_visit_observations WHERE id=2');$visit(2,['external_user_id'=>'999999','visit_id'=>'fixture_visit_1']);
+    $check('a scoped visit owned by another verified user invalidates the local witness',$read()[0]===8);
+    $p->exec('DELETE FROM advertising_visit_observations WHERE id=2');
+    $p->prepare('UPDATE advertising_visit_observations SET external_user_id=? WHERE id=1')->execute([$row['external_user_id'].' ']);
+    $check('padded subject equality cannot pass the exact returned binding check',$read()[0]===7);
+    $clear();$scope('fixture_committed_max','anytour ');$check('padded cursor scope cannot grant source authority',$read()[0]===7);
+    $clear();$scope('fixture_other','anytour','98615636');$check('a foreign counter never becomes a local source for this case',$read()[0]===3);
+    $clear();$scope();for($id=1;$id<=65;$id++)$visit($id);
+    $check('the65th retained row is a sentinel rather than a truncated complete witness pool',$read()[0]===5);
+    $clear();
+    for($i=0;$i<32;$i++)$scope('fixture_'.str_pad((string)$i,70,'a'));
+    $check('more than eight target source scopes are unavailable without an observation wildcard',$read()[0]===4);
+    $clear();$scope();for($i=0;$i<31;$i++)$scope('fixture_'.str_pad((string)$i,70,'b'),'anytour','98615636');
+    for($i=1;$i<=20;$i++)$visit($i,['visit_id'=>'fixture_'.str_repeat('z',110).$i]);
+    $check('scope bytes reduce the second packet allowance and oversized packets remain unavailable',$read()[0]===6);
+    $clear();$scope();$visit(1);
+
+    // Drive the real optional worker method; all tables and identities here are synthetic.
+    $p->exec('ALTER TABLE modeled_conversion_value_export_settings MODIFY last_receipt_json JSON');
+    $settings=$p->query("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetch(PDO::FETCH_ASSOC);
+    $receipt=['finite_visit_evidence'=>$original,'finite_counter_scope_evidence'=>false,'errors'=>0];
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?,last_tick_unix=? WHERE project_key='anytour'")
+        ->execute([json_encode($receipt,JSON_THROW_ON_ERROR),$now]);
+    $created=[];
+    foreach(['conversations'=>"id BIGINT PRIMARY KEY,customer_id BIGINT,customer_channel_id BIGINT,project_key VARCHAR(40),channel VARCHAR(16),is_test INT,external_chat_id VARCHAR(40)",
+        'customer_channels'=>"id BIGINT PRIMARY KEY,customer_id BIGINT,project_key VARCHAR(40),channel VARCHAR(16),external_user_id VARCHAR(32),external_chat_id VARCHAR(40)"]as$table=>$ddl){
+        try{$p->query('SELECT 1 FROM '.$table.' LIMIT 1');}catch(PDOException $missing){$p->exec('CREATE TABLE '.$table.'('.$ddl.')');$created[]=$table;}
+    }
+    $chat='-'.$row['external_user_id'];$insert=$mysql?'INSERT IGNORE':'INSERT OR IGNORE';
+    $p->prepare($insert." INTO customer_channels(id,customer_id,project_key,channel,external_user_id,external_chat_id) VALUES(970001,960001,'anytour','max',?,?)")->execute([$row['external_user_id'],$chat]);
+    $p->prepare($insert." INTO conversations(id,customer_id,customer_channel_id,project_key,channel,is_test,external_chat_id) VALUES(?,960001,970001,'anytour','max',0,?)")->execute([$row['conversation_id'],$chat]);
+    $p->prepare("UPDATE modeled_conversion_profile_versions SET profile_json=? WHERE id=?")->execute(['{"access_status":"allowed"}',$row['value_profile_id']]);
+    $p->prepare("UPDATE max_channel_conversion_outbox SET state='pending',attempts=0,identity_source_key='max_tracker',client_id=NULL,tracker_record_id=NULL,tracker_observed_unix=NULL,claim_token=NULL,claimed_at_unix=NULL,upload_id=NULL,upload_status=NULL,value_receipt_basis=NULL,value_ready_at_unix=NULL,value_api_accepted_at_unix=NULL,value_processed_at_unix=NULL WHERE id=?")->execute([$row['id']]);
+    $nativeBefore=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $worker=new ModeledConversionValueExport($p);
+    foreach(['finiteFrame'=>$original,'finiteRows'=>[$original['r'][0][0]=>$row]]as$property=>$value)(new ReflectionProperty($worker,$property))->setValue($worker,$value);
+    $persistCurrent=new ReflectionMethod($worker,'persistTickReceipt');
+    $currentStats=['collected'=>2,'resolved'=>1,'accepted'=>4,'processed'=>1,'unknown'=>0,'errors'=>0,'metrika_report'=>['status'=>'unavailable']];
+    $currentCommitted=$persistCurrent->invoke($worker,$currentStats,null,$now);
+    $phase=new ReflectionMethod($worker,'runRetainedAppEvidence');$sourceCount=0;$durable=true;
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+    ForecastV1ObservedStatement::$onRetainedSource=static function()use($p,$key,&$sourceCount,&$durable):void{
+        $sourceCount++;$r=json_decode($p->query("SELECT last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetchColumn(),true,32,JSON_THROW_ON_ERROR);
+        $durable=$durable&&array_key_exists($key,$r)&&$r[$key]['s']===1&&$r['accepted']===4&&$r['processed']===1&&$r['collected']===2;
+    };
+    try{
+        $p->prepare("UPDATE max_channel_conversion_outbox SET state='ready' WHERE id=?")->execute([$row['id']]);
+        $phase->invoke($worker,$now,static fn(string $chat):bool=>true);
+        $check('post-financial revalidation prevents source reads after the original row advances',$sourceCount===0);
+        $p->prepare("UPDATE max_channel_conversion_outbox SET state='pending' WHERE id=?")->execute([$row['id']]);
+        $phase->invoke($worker,$now,static fn(string $chat):bool=>true);
+    }
+    finally{ForecastV1ObservedStatement::$onRetainedSource=null;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $saved=json_decode($p->query("SELECT last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetchColumn(),true,32,JSON_THROW_ON_ERROR);
+    $check('the real optional phase reads only after current financial counts and its distinct intent are committed without changing financial rows',
+        $currentCommitted===true&&$sourceCount===2&&$durable&&($saved[$key]['s']??null)===2&&$saved['finite_counter_scope_evidence']===false
+        &&$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)===$nativeBefore);
+    $unknown=$saved;$unknown[$key]=$intent;
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode($unknown,JSON_THROW_ON_ERROR)]);
+    $again=new ModeledConversionValueExport($p);foreach(['finiteFrame'=>$original,'finiteRows'=>[$original['r'][0][0]=>$row]]as$property=>$value)(new ReflectionProperty($again,$property))->setValue($again,$value);
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);$sourceCount=0;
+    ForecastV1ObservedStatement::$onRetainedSource=static function()use(&$sourceCount):void{$sourceCount++;};
+    try{$phase->invoke($again,$now+1,static fn(string $chat):bool=>true);}
+    finally{ForecastV1ObservedStatement::$onRetainedSource=null;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $check('an already consumed UNKNOWN intent never retries its source read',$sourceCount===0);
+    $blocked=['finite_visit_evidence'=>$original,'padding'=>''];
+    $blocked['padding']=str_repeat('b',max(0,8100-strlen(json_encode($blocked,JSON_THROW_ON_ERROR))));
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode($blocked,JSON_THROW_ON_ERROR)]);
+    $blockedWorker=new ModeledConversionValueExport($p);foreach(['finiteFrame'=>$original,'finiteRows'=>[$original['r'][0][0]=>$row]]as$property=>$value)(new ReflectionProperty($blockedWorker,$property))->setValue($blockedWorker,$value);
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);$sourceCount=0;
+    ForecastV1ObservedStatement::$onRetainedSource=static function()use(&$sourceCount):void{$sourceCount++;};
+    try{$phase->invoke($blockedWorker,$now+1,static fn(string $chat):bool=>true);}
+    finally{ForecastV1ObservedStatement::$onRetainedSource=null;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $check('an intent that cannot fit private receipt budget prevents either source read',$sourceCount===0);
+    $measure=static function(array $v)use($p):int{
+        $q=$p->prepare('SELECT OCTET_LENGTH(CAST(? AS JSON))');$q->execute([json_encode($v,JSON_THROW_ON_ERROR)]);return (int)$q->fetchColumn();
+    };
+    $compact=$intent;$compact['o']=null;
+    $capacity=['finite_visit_evidence'=>$original,$key=>$compact,'padding'=>''];
+    $capacity['padding']=str_repeat('r',max(0,8150-$measure($capacity)));
+    $larger=$capacity;$larger[$key]=$done;
+    $check('the reservation fixture has room for the former compact intent but not its larger completed result',
+        $measure($capacity)<=8192&&$measure($larger)>8192);
+    unset($capacity[$key]);
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode($capacity,JSON_THROW_ON_ERROR)]);
+    $reservedWorker=new ModeledConversionValueExport($p);foreach(['finiteFrame'=>$original,'finiteRows'=>[$original['r'][0][0]=>$row]]as$property=>$value)(new ReflectionProperty($reservedWorker,$property))->setValue($reservedWorker,$value);
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);$sourceCount=0;
+    ForecastV1ObservedStatement::$onRetainedSource=static function()use(&$sourceCount):void{$sourceCount++;};
+    try{$phase->invoke($reservedWorker,$now+1,static fn(string $chat):bool=>true);}
+    finally{ForecastV1ObservedStatement::$onRetainedSource=null;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $reservationHeld=json_decode($p->query("SELECT last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetchColumn(),true,32,JSON_THROW_ON_ERROR);
+    $check('a full result slot is reserved before source reads rather than losing a completed observation',
+        $sourceCount===0&&!array_key_exists($key,$reservationHeld));
+    $merge=new ReflectionMethod($worker,'withRetainedAppEvidence');
+    $base=['finite_visit_evidence'=>$original,'finite_visit_recovery'=>['immutable'=>'forward'],'fixed_pair_operational_decisions'=>['immutable'=>'pair'],
+        'finite_counter_scope_evidence'=>false,'last_recorded_failure'=>['immutable'=>'failure'],'padding'=>''];
+    $base['padding']=str_repeat('p',max(0,8150-$measure($base+[$key=>false])));
+    $check('native pressure fixture fits its complete protected frame and tombstone but not the full optional result',
+        $measure($base+[$key=>false])<=8192&&$measure($base+[$key=>$done])>8192);
+    $pressure=$merge->invoke($worker,$base,[$key=>$done],$mysql);
+    $check('private receipt pressure keeps a consumed tombstone without erasing old proof or failure',
+        $pressure!==null&&$pressure[$key]===false&&$pressure['finite_visit_evidence']===$original
+        &&$pressure['finite_visit_recovery']===$base['finite_visit_recovery']&&$pressure['fixed_pair_operational_decisions']===$base['fixed_pair_operational_decisions']
+        &&$pressure['finite_counter_scope_evidence']===$base['finite_counter_scope_evidence']&&$pressure['last_recorded_failure']===$base['last_recorded_failure']);
+    $lateMerged=$merge->invoke($worker,['errors'=>0],[$key=>$intent],$mysql);
+    $check('a delayed healthy writer preserves the previously consumed UNKNOWN token',$lateMerged[$key]===$intent);
+    $p->exec('DROP INDEX idx_advertising_identity'.($mysql?' ON advertising_visit_observations':''));
+    $failed=$read();$check('source storage failure is explicit metadata and does not throw into the financial sender',$failed[0]===9);
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
+    $failedWorker=new ModeledConversionValueExport($p);foreach(['finiteFrame'=>$original,'finiteRows'=>[$original['r'][0][0]=>$row]]as$property=>$value)(new ReflectionProperty($failedWorker,$property))->setValue($failedWorker,$value);
+    $phase->invoke($failedWorker,$now+2,static fn(string $chat):bool=>true);
+    $persist=new ReflectionMethod($failedWorker,'persistTickReceipt');
+    $financial=['collected'=>2,'resolved'=>1,'accepted'=>3,'processed'=>0,'unknown'=>0,'errors'=>0,'metrika_report'=>['status'=>'unavailable']];
+    $persist->invoke($failedWorker,$financial,null,$now+2);
+    $afterFailure=json_decode($p->query("SELECT last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetchColumn(),true,32,JSON_THROW_ON_ERROR);
+    $lateCommitted=$persist->invoke($failedWorker,['accepted'=>0,'errors'=>0,'metrika_report'=>['status'=>'unavailable']],null,$now+1);
+    $afterLate=json_decode($p->query("SELECT last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetchColumn(),true,32,JSON_THROW_ON_ERROR);
+    $check('optional source failure and a late healthy tick preserve successful financial counts and the consumed local token',
+        $lateCommitted===false&&$afterFailure['accepted']===3&&$afterFailure['errors']===0&&array_key_exists($key,$afterFailure)
+        &&$afterLate[$key]===$afterFailure[$key]&&$afterLate['accepted']===3);
+
+    $fields=array_keys($settings);$p->prepare('UPDATE modeled_conversion_value_export_settings SET '.implode(',',array_map(static fn(string $c):string=>$c.'=?',$fields))." WHERE project_key='anytour'")->execute(array_values($settings));
+    $p->prepare('DELETE FROM conversations WHERE id=?')->execute([$row['conversation_id']]);$p->exec('DELETE FROM customer_channels WHERE id=970001');
+    foreach($created as$table)$p->exec('DROP TABLE '.$table);
+    return $projection;
+}
+
 /** One finite roster uses the existing aggregate; all native identifiers stay inside the read. */
-function forecastProcessingFrontierAssertions(PDO $p,callable $check):void
+function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $retainedPositive):void
 {
     foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
     $p->exec("CREATE TABLE modeled_conversion_profile_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),customer_key VARCHAR(40),conversation_id BIGINT,observed_at_unix BIGINT,assessment_namespace CHAR(64),assessment_kind VARCHAR(8),profile_json TEXT)");
@@ -2597,7 +2829,7 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check):void
     $proofs=['finite_visit_evidence'=>3238,'finite_visit_recovery'=>2220,
         'fixed_pair_operational_decisions'=>2003,'finite_counter_scope_evidence'=>895];
     foreach($proofs as$key=>$size)$contextual['value_delivery']['repair_assessments'][$key]=['available'=>true]+$sized($size-17,'s');
-    foreach(['processing_frontier','exact_cases','initial_api_receipts','retained_native_identity_evidence']as$key)
+    foreach(['processing_frontier','exact_cases','initial_api_receipts','retained_native_identity_evidence','retained_identity']as$key)
         unset($contextual['value_delivery']['repair_assessments'][$key]);
     $contextual['value_delivery']['fixed_output_fixture']='';
     $financialBytes=strlen(json_encode($contextual['value_delivery'],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
@@ -2607,11 +2839,14 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check):void
     foreach(['today_latency'=>5500,'telegram_linkage'=>1100,'saved_input_diagnosis'=>400,
         'input_coverage'=>1450,'saved'=>950,'window'=>600]as$key=>$size)$contextual[$key]=$sized($size,'x');
     $contextual['value_delivery']['repair_assessments']['processing_frontier']=$r;
+    $contextual['value_delivery']['repair_assessments']['retained_identity']=$retainedPositive;
     $contextSafe=$bound->invoke($projection,$contextual);
     $preserved=true;foreach($proofs as$key=>$size)
         if($contextSafe['value_delivery']['repair_assessments'][$key]!==$contextual['value_delivery']['repair_assessments'][$key])$preserved=false;
     $check('a full synthetic financial envelope retains its59-event23-receipt roster all four proofs and totals by explicitly yielding only optional context and duplicate projections',
-        $financialBytes===18500&&count(array_filter($r['rows'],static fn(array $v):bool=>$v[6]!==null))===23
+        $financialBytes===18500&&($retainedPositive['status']??null)==='candidate'
+        &&$contextSafe['value_delivery']['repair_assessments']['retained_identity']===$retainedPositive
+        &&count(array_filter($r['rows'],static fn(array $v):bool=>$v[6]!==null))===23
         &&strlen(json_encode($contextual,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>28000
         &&strlen(json_encode($contextSafe,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=28000
         &&$contextSafe['value_delivery']['repair_assessments']['processing_frontier']===$r&&$preserved
