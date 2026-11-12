@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261112-5-v1",
+  "state": "POSTS_CONFIRMED_NATIVE_FEED_SITE_ROSTER_PENDING",
+  "at": "2026-11-12T18:25:00.662535+00:00",
+  "new_posts": 18,
+  "new_unique_post_pairs": 9,
+  "new_full_pairs": 0,
+  "baseline_full_pairs": 542,
+  "publisher": {
+    "run_id": 43278603117,
+    "run_attempt": 1,
+    "head_sha": "c918ca3d6ad82e211c1a748fb070083821682c8d",
+    "conclusion": "success",
+    "artifact_id": 13970873318,
+    "artifact_zip_sha256": "2162635931f1d8e4c62a448fb56e5f02e282c9733c8351146f71101b512ae710",
+    "summary_sha256": "720f587f58bab8a7c92fd7cb962cef2c736e9af8565b98c9d4eb8a31f73e9615",
+    "bound_read_sha256": "d8f2943067d47a6a00729d327c1e65d52167ebf1b57cf8a5430638adbee93bd2"
+  },
+  "posts": [
+    {
+      "hotel_id": 1551,
+      "platform": "telegram",
+      "logical_id": "commercial-movenpick-tekirova-1551-v1",
+      "post_url": "https://t.me/any_toour/557",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    },
+    {
+      "hotel_id": 1368,
+      "platform": "telegram",
+      "logical_id": "commercial-melas-holiday-1368-v1",
+      "post_url": "https://t.me/any_toour/558",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    },
+    {
+      "hotel_id": 1370,
+      "platform": "telegram",
+      "logical_id": "commercial-melas-resort-1370-v1",
+      "post_url": "https://t.me/any_toour/559",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    },
+    {
+      "hotel_id": 129406,
+      "platform": "telegram",
+      "logical_id": "commercial-srnty-sahl-hasheesh-129406-v1",
+      "post_url": "https://t.me/any_toour/560",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    },
+    {
+      "hotel_id": 62505,
+      "platform": "telegram",
+      "logical_id": "commercial-robinson-soma-bay-62505-v1",
+      "post_url": "https://t.me/any_toour/561",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    },
+    {
+      "hotel_id": 73343,
+      "platform": "telegram",
+      "logical_id": "commercial-grand-palace-73343-v1",
+      "post_url": "https://t.me/any_toour/562",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    },
+    {
+      "hotel_id": 46770,
+      "platform": "telegram",
+      "logical_id": "commercial-rosaka-46770-v1",
+      "post_url": "https://t.me/any_toour/563",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    },
+    {
+      "hotel_id": 63673,
+      "platform": "telegram",
+      "logical_id": "commercial-nagar-63673-v1",
+      "post_url": "https://t.me/any_toour/564",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    },
+    {
+      "hotel_id": 973,
+      "platform": "telegram",
+      "logical_id": "commercial-dobedan-beach-973-v1",
+      "post_url": "https://t.me/any_toour/565",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    },
+    {
+      "hotel_id": 1551,
+      "platform": "max",
+      "logical_id": "commercial-movenpick-tekirova-1551-v1",
+      "post_url": "https://max.ru/channel_anytour/AaHQ_Wy3PTM",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    },
+    {
+      "hotel_id": 1368,
+      "platform": "max",
+      "logical_id": "commercial-melas-holiday-1368-v1",
+      "post_url": "https://max.ru/channel_anytour/AaHQ_XVpbfI",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    },
+    {
+      "hotel_id": 1370,
+      "platform": "max",
+      "logical_id": "commercial-melas-resort-1370-v1",
+      "post_url": "https://max.ru/channel_anytour/AaHQ_X5WP0s",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    },
+    {
+      "hotel_id": 129406,
+      "platform": "max",
+      "logical_id": "commercial-srnty-sahl-hasheesh-129406-v1",
+      "post_url": "https://max.ru/channel_anytour/AaHQ_YcmDok",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    },
+    {
+      "hotel_id": 62505,
+      "platform": "max",
+      "logical_id": "commercial-robinson-soma-bay-62505-v1",
+      "post_url": "https://max.ru/channel_anytour/AaHQ_ZADERU",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    },
+    {
+      "hotel_id": 73343,
+      "platform": "max",
+      "logical_id": "commercial-grand-palace-73343-v1",
+      "post_url": "https://max.ru/channel_anytour/AaHQ_ZjzcEA",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    },
+    {
+      "hotel_id": 46770,
+      "platform": "max",
+      "logical_id": "commercial-rosaka-46770-v1",
+      "post_url": "https://max.ru/channel_anytour/AaHQ_aGMBAY",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    },
+    {
+      "hotel_id": 63673,
+      "platform": "max",
+      "logical_id": "commercial-nagar-63673-v1",
+      "post_url": "https://max.ru/channel_anytour/AaHQ_apUKj4",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    },
+    {
+      "hotel_id": 973,
+      "platform": "max",
+      "logical_id": "commercial-dobedan-beach-973-v1",
+      "post_url": "https://max.ru/channel_anytour/AaHQ_bN3VAY",
+      "body_photo_button_verified": true,
+      "button_text": "✈️ Узнать стоимость тура"
+    }
+  ],
+  "native": {
+    "original_run_id": 43279197034,
+    "run_attempt": 1,
+    "head_sha": "ffadb10656b0c04ef71e54010637b5b0833b76f3",
+    "job_id": 131395636825,
+    "conclusion": "failure",
+    "failure": "current_bot_main_changed_before_credentials",
+    "failed_step": "Authenticate original publication, read5 and accepted542 artifact provenance",
+    "protected_install_step": "skipped",
+    "credential_setup": "skipped",
+    "server_write_attempts": 0,
+    "result_artifact_missing": true,
+    "source_evidence_artifact_id": 13971243375,
+    "source_evidence_zip_sha256": "aff5574e3713ebfb065a23c785ea9ac61b3f77d7b60499b4d11c7bc6379c4454"
+  },
+  "current_main": "8f056b96eee90bd9a08323b1b31d46991bfd8148",
+  "current_deploy_run": 43279226313,
+  "current_deploy_state": "in_progress",
+  "site": {
+    "version": 223,
+    "published_pairs": 542,
+    "queue": 63,
+    "writes_this_pass": 0
+  },
+  "nightly_roster_pairs": 514,
+  "prices_invoked": false,
+  "next": "Do not resend completed publisher. Authenticate current stable main/installed/TLS; resume only the unexecuted native/feed/Site/roster tail with original publication receipts preserved. Original failed native source mismatch remains failed; never fabricate or relabel success."
+}
