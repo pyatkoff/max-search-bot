@@ -1,4 +1,4 @@
-name: Apply bounded hotel monitor price updates
+name: Read original pending hotel price operation
 'on':
   push:
     branches:
@@ -14,56 +14,21 @@ concurrency:
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     steps:
     - uses: actions/checkout@v4
       with:
         ref: ${{ github.sha }}
         persist-credentials: false
-    - name: Test and bundle the existing publisher callback
+    - name: Check exact current main and read-only script before credentials
+      env:
+        GH_TOKEN: ${{ github.token }}
       shell: bash
       run: 'set -euo pipefail
 
         test "$GITHUB_RUN_ATTEMPT" = 1
 
-        php tools/direct_demand/operations/test-monitor-price-contract.php
-
-        php tools/direct_demand/operations/test-monitor-price-hook.php
-
-        python3 tools/direct_demand/operations/build-monitor-price-hook.py "$RUNNER_TEMP/monitor-price-hook.php"
-
-        php -l "$RUNNER_TEMP/monitor-price-hook.php"'
-    - name: Prepare existing server connection
-      env:
-        DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-      shell: bash
-      run: "set -euo pipefail\numask 077\nraw=\"$DEPLOY_SSH_KEY_VALUE\"\nif [[ \"$raw\" == *\"PRIVATE KEY\"* ]];\
-        \ then\n  if [[ \"$raw\" == *'\\n'* ]]; then printf '%b\\n' \"$raw\" | tr -d '\\r' > \"$RUNNER_TEMP/channel_key\"\
-        ; else printf '%s\\n' \"$raw\" | tr -d '\\r' > \"$RUNNER_TEMP/channel_key\"; fi\nelse\n  printf '%s' \"\
-        $raw\" | base64 --decode > \"$RUNNER_TEMP/channel_key\"\nfi\nssh-keygen -y -f \"$RUNNER_TEMP/channel_key\"\
-        \ >/dev/null\n"
-    - name: Pin existing server host-key continuity
-      env:
-        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-      shell: bash
-      run: "set -euo pipefail\numask 077\npython3 - <<'PY'\nimport os,re,subprocess,base64,hashlib,pathlib\nhost=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']\n\
-        assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')\nassert re.fullmatch(r'[A-Za-z0-9_-]+',user)\n\
-        scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)\n\
-        matches=[]\nfor line in scan.stdout.splitlines():\n  fields=line.split()\n  if len(fields)<3 or fields[0].startswith('#'):continue\n\
-        \  try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')\n\
-        \  except Exception:continue\n  if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)\n\
-        assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'\npathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\\\
-        n'.join(matches)+'\\n')\nPY\n"
-    - name: Apply one bounded pass with existing publisher and exact readback
-      env:
-        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        GH_TOKEN: ${{ github.token }}
-      shell: bash
-      run: 'set -euo pipefail
-
-        umask 077
+        php -l tools/direct_demand/operations/read-pending-monitor-operation-20261112.php
 
         gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/main-before-operation.json"
 
@@ -71,36 +36,80 @@ jobs:
 
         import json,os,pathlib
 
-        assert json.loads(pathlib.Path(os.environ[''RUNNER_TEMP''],''main-before-operation.json'').read_text())[''object''][''sha'']==os.environ[''EXPECTED_PRODUCTION_SHA'']
+        actual=json.loads(pathlib.Path(os.environ[''RUNNER_TEMP''],''main-before-operation.json'').read_text())[''object''][''sha'']
+
+        assert actual==os.environ[''EXPECTED_PRODUCTION_SHA''],''CURRENT_MAIN_CHANGED_BEFORE_CREDENTIALS''
 
         PYCURRENT
 
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes
-        -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST"
-        ''cd /var/www/anytoour/data/www/app.anytoour.ru && php'' < "$RUNNER_TEMP/monitor-price-hook.php" | tee "$RUNNER_TEMP/monitor-price-hook-result.jsonl"
+        python3 - <<''PYROSTER''
 
-        python3 - <<''PYRESULT''
+        import gzip,json,pathlib
 
-        import json,os,pathlib
+        p=pathlib.Path(''tools/direct_demand/operations/monitor-price-expanded-roster-20261111.json.gz'')
 
-        line=pathlib.Path(os.environ[''RUNNER_TEMP''],''monitor-price-hook-result.jsonl'').read_text().splitlines()[-1]
+        rows=json.loads(gzip.decompress(p.read_bytes()))[''rows'']
 
-        assert line.startswith(''MONITOR_POST_FEED_RESULT='')
+        match=[r for r in rows if r[''tourvisor_hotel_id'']==1142]
 
-        r=json.loads(line.split(''='',1)[1]);assert r[''ok''] and r[''mode'']==''existing_monitor_post_feed_hook''
-        and r[''new_posts'']==r[''supplier_calls'']==r[''site_writes'']==0 and 0 <= r[''updated_pairs''] <= 30 and
-        len(r[''updates''])==r[''updated_pairs''] and r[''roster_pairs'']==481 and r[''existing_monitor_home_matches'']
+        assert len(match)==1
 
-        PYRESULT'
+        r=match[0]
+
+        print(''MONITOR_PENDING_SOURCE_ROSTER=''+json.dumps(r,ensure_ascii=False,separators=('','','':'')))
+
+        PYROSTER
+
+        '
+    - name: Prepare existing server connection
+      env:
+        DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+      shell: bash
+      run: "set -euo pipefail\numask 077\nraw=\"$DEPLOY_SSH_KEY_VALUE\"\nif [[ \"\
+        $raw\" == *\"PRIVATE KEY\"* ]]; then\n  if [[ \"$raw\" == *'\\n'* ]]; then\
+        \ printf '%b\\n' \"$raw\" | tr -d '\\r' > \"$RUNNER_TEMP/channel_key\"; else\
+        \ printf '%s\\n' \"$raw\" | tr -d '\\r' > \"$RUNNER_TEMP/channel_key\"; fi\n\
+        else\n  printf '%s' \"$raw\" | base64 --decode > \"$RUNNER_TEMP/channel_key\"\
+        \nfi\nssh-keygen -y -f \"$RUNNER_TEMP/channel_key\" >/dev/null\n"
+    - name: Pin existing server host-key continuity
+      env:
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      shell: bash
+      run: "set -euo pipefail\numask 077\npython3 - <<'PY'\nimport os,re,subprocess,base64,hashlib,pathlib\n\
+        host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']\nassert re.fullmatch(r'[A-Za-z0-9_.:-]+',host)\
+        \ and not host.startswith('-')\nassert re.fullmatch(r'[A-Za-z0-9_-]+',user)\n\
+        scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)\n\
+        matches=[]\nfor line in scan.stdout.splitlines():\n  fields=line.split()\n\
+        \  if len(fields)<3 or fields[0].startswith('#'):continue\n  try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')\n\
+        \  except Exception:continue\n  if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)\n\
+        assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'\npathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\\\
+        n'.join(matches)+'\\n')\nPY\n"
+    - name: Read exact original pending journals without mutations
+      env:
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      shell: bash
+      run: 'set -euo pipefail
+
+        umask 077
+
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o
+        IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+        -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST"
+        ''cd /var/www/anytoour/data/www/app.anytoour.ru && php'' < tools/direct_demand/operations/read-pending-monitor-operation-20261112.php
+        | tee "$RUNNER_TEMP/monitor-price-original-journal-read.jsonl"
+
+        '
     - uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: monitor-price-bounded-pass-receipt
-        path: ${{ runner.temp }}/monitor-price-hook-result.jsonl
+        name: monitor-price-original-journal-read
+        path: ${{ runner.temp }}/monitor-price-original-journal-read.jsonl
         retention-days: 14
     - name: Remove ephemeral connection and bundle
       if: always()
       shell: bash
       run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/monitor-price-hook.php"
 env:
-  EXPECTED_PRODUCTION_SHA: b41c4ea5dca3f4ad528c1e11d626275a479b0b8f
+  EXPECTED_PRODUCTION_SHA: d1c79f5753d7d254d17921072f5ce59520082f4d
