@@ -1,4 +1,4 @@
-name: Read original pending hotel price operation
+name: Read current posts for original pending hotel price operation
 'on':
   push:
     branches:
@@ -28,7 +28,7 @@ jobs:
 
         test "$GITHUB_RUN_ATTEMPT" = 1
 
-        php -l tools/direct_demand/operations/read-pending-monitor-operation-20261112.php
+        php -l tools/direct_demand/operations/read-monitor-pending-current-context-20261112.php
 
         gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/main-before-operation.json"
 
@@ -85,7 +85,7 @@ jobs:
         \  except Exception:continue\n  if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)\n\
         assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'\npathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\\\
         n'.join(matches)+'\\n')\nPY\n"
-    - name: Read exact original pending journals without mutations
+    - name: Read current versions and provider state for original TV1142 only
       env:
         DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
         DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -97,15 +97,15 @@ jobs:
         ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o
         IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
         -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST"
-        ''cd /var/www/anytoour/data/www/app.anytoour.ru && php'' < tools/direct_demand/operations/read-pending-monitor-operation-20261112.php
-        | tee "$RUNNER_TEMP/monitor-price-original-journal-read.jsonl"
+        ''cd /var/www/anytoour/data/www/app.anytoour.ru && php'' < tools/direct_demand/operations/read-monitor-pending-current-context-20261112.php
+        | tee "$RUNNER_TEMP/monitor-price-current-context-read.jsonl"
 
         '
     - uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: monitor-price-original-journal-read
-        path: ${{ runner.temp }}/monitor-price-original-journal-read.jsonl
+        name: monitor-price-current-context-read
+        path: ${{ runner.temp }}/monitor-price-current-context-read.jsonl
         retention-days: 14
     - name: Remove ephemeral connection and bundle
       if: always()
