@@ -534,15 +534,16 @@ function makeReadApi(token,fetchImpl=globalThis.fetch,{sleep=waitForRetry}={}) {
     try{
       for(let attempt=0;attempt<3;attempt++){
         const response=await fetchImpl(url,{method:'GET',redirect,signal:controller.signal,headers});
-        if(response.status===503&&attempt<2){
+        if([502,503].includes(response.status)&&attempt<2){
+          const refusal='api_http_'+response.status;
           let retryMs=attempt===0?250:750;
           const retryAfter=response.headers?.get('retry-after');
           if(retryAfter!==null&&retryAfter!==undefined){
             const requested=/^[0-9]+$/.test(retryAfter)?Number(retryAfter)*1000:Date.parse(retryAfter)-Date.now();
-            requireValue(Number.isFinite(requested),'api_http_503');
+            requireValue(Number.isFinite(requested),refusal);
             retryMs=Math.max(retryMs,requested);
           }
-          requireValue(performance.now()+retryMs<deadline,'api_http_503');
+          requireValue(performance.now()+retryMs<deadline,refusal);
           try{await response.body?.cancel();}catch{} // Release only the discarded error response.
           await sleep(retryMs,undefined,{signal:controller.signal});
           continue;
@@ -1099,4 +1100,5 @@ if(require.main===module){
     saveJson(args.output,await wrapInstalled({...common,installation:readJson(args.installation)}));
   })().catch(e=>{process.stderr.write('deployment_release=refused reason='+(e instanceof Refusal?e.code:'internal_failure')+'\n');process.exitCode=1;});
 }
+
 
