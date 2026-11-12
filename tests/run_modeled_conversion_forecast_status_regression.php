@@ -2589,6 +2589,26 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check):void
         &&$safe['value_delivery']['repair_assessments']['finite_visit_evidence']===$body['value_delivery']['repair_assessments']['finite_visit_evidence']
         &&$safe['value_delivery']['repair_assessments']['finite_visit_recovery']===$body['value_delivery']['repair_assessments']['finite_visit_recovery']
         &&$safe['value_delivery']['repair_assessments']['finite_counter_scope_evidence']===$body['value_delivery']['repair_assessments']['finite_counter_scope_evidence']);
+    $contextual=['value_delivery'=>['repair_assessments'=>$full]];
+    foreach(['finite_visit_evidence','finite_visit_recovery','finite_counter_scope_evidence']as$key)
+        $contextual['value_delivery']['repair_assessments'][$key]=$body['value_delivery']['repair_assessments'][$key];
+    foreach(['processing_frontier','exact_cases','initial_api_receipts','retained_native_identity_evidence']as$key)
+        unset($contextual['value_delivery']['repair_assessments'][$key]);
+    foreach(['today_latency'=>5500,'telegram_linkage'=>1100,'saved_input_diagnosis'=>400,
+        'input_coverage'=>1450,'saved'=>950,'window'=>600]as$key=>$size)
+        $contextual[$key]=['fixture'=>str_repeat('x',$size)];
+    $fixedBytes=strlen(json_encode($contextual,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    $contextual['fixed_output_fixture']=str_repeat('f',max(0,27000-$fixedBytes-32));
+    $contextual['value_delivery']['repair_assessments']['processing_frontier']=$r;
+    $contextSafe=$bound->invoke($projection,$contextual);
+    $preserved=true;foreach(['finite_visit_evidence','finite_visit_recovery','finite_counter_scope_evidence']as$key)
+        if($contextSafe['value_delivery']['repair_assessments'][$key]!==$contextual['value_delivery']['repair_assessments'][$key])$preserved=false;
+    $check('near-cap fixed output preserves the complete saved frontier and original proofs by explicitly yielding optional context',
+        strlen(json_encode($contextual,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>28000
+        &&strlen(json_encode($contextSafe,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=28000
+        &&$contextSafe['value_delivery']['repair_assessments']['processing_frontier']===$r&&$preserved
+        &&$contextSafe['today_latency']['reason']==='response_budget'
+        &&$contextSafe['today_latency']['priority']==='saved_processing_frontier');
     $p->exec('UPDATE max_channel_conversion_outbox SET id=id+100000000000000000,value_profile_id=value_profile_id+100000000000000000,external_user_id=\'99999999999999999999\'');
     $p->exec('UPDATE modeled_conversion_profile_versions SET id=id+100000000000000000');
     $target=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?"CONCAT('anytour_value_pred_',value_profile_id,'_v1')":"'anytour_value_pred_'||value_profile_id||'_v1'";
