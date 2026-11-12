@@ -6,6 +6,33 @@ Roadmap/checkpoint thread: GitHub issue [#55](https://github.com/pyatkoff/max-se
 
 Primary language with the user: Russian.
 
+## PR1505 terminal metadata continuation — 2026-11-12
+
+PR1505 is installed as6e1c61915d0afc35ec8198d59021fe5a6bddadb6:48hotels/351declarations.
+Original Deploy43229715899/a1 and every mandatory original tail succeeded.
+The original closer43231780686/a1 published its exact pending_terminal proposal,
+then failed api_http_503 before its only publisher PATCH. Publisher6789986080
+retains the genuine13:41:14Z acquisition tuple. Do not repeat installation,
+fake the old execution context, manually free it or rerun a failed workflow.
+
+The same HOTEL owner implements the narrow source-checked continuation in the
+existing tail. Run required exact-head CI first; only then one exact non-force
+fast-forward of ops/recover-pr1505-terminal-20261112 from the checked stopped
+source d6f732dffd4976c663153771d9bb4b122456e3e6 to its exact checked descendant
+source may authenticate the original failed proof and all original gates,
+publish a separately identified continuation proof and close that exact owned
+record. The initial43239070014 context refusal and observation43240168728 remain
+independently authenticated predecessors, never relabelled or replayed.
+Continuation43243320862 stopped on503 before publication; original diagnostics
+and publisher versions read back exact. This source adds only two bounded
+additional GETs for503 in the explicit continuation; no write/429/unknown retry.
+Changed source/owner/evidence or UNKNOWN write stops. Preserve failed
+history and optional runtime UNKNOWN. No content/model/customer/provider action.
+After genuine continuation success, use normal fresh admission and the same
+publisher for checked installation of this protocol correction. Other owners
+retain their tasks; the previous already accepted source/install checks are
+reused only in their exact scope.
+
 Read this file first. Then read `AGENTS.md` and only the durable documents relevant to the selected slice.
 
 ## AppleService39 publication control recovery — 2026-11-12
@@ -928,3 +955,4 @@ Stop the current slice and investigate before another merge when any of these oc
 - rollback would require destructive data or migration reversal.
 
 After each material, production-verified change, update issue #55 with the PR, CI runs, merge SHA, deploy/diagnostic/TLS/webhook evidence, remaining uncertainty and the next safe item.
+

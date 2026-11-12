@@ -2,6 +2,20 @@
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/DevelopmentRoadmapSavedResult.php';
 
+
+/** Explicit synthetic setup is the only permitted financial write path in this fixture. */
+final class DevelopmentRoadmapTestPdo extends DevelopmentWorkTestPdo
+{
+    private bool $financialSetup=false;
+    public function financial(callable $work): mixed
+    {$this->financialSetup=true;try{return $work($this);}finally{$this->financialSetup=false;}}
+    public function observe(string $sql): void
+    {
+        if($this->financialSetup&&preg_match('/\\A\\s*(?:INSERT\\s+INTO|UPDATE|DELETE\\s+FROM)\\s+(modeled_conversion_profile_versions|max_channel_conversion_outbox)\\b/i',$sql))return;
+        parent::observe($sql);
+    }
+}
+
 function devRoadmapSavedFixture(): array
 {
     $now=1800000100;$ns=hash('sha256','synthetic-roadmap-namespace');
@@ -104,6 +118,8 @@ function devRoadmapSavedChecks(): void
     $wrong=$candidate;$wrong['new_receipts'][0]['event_ref']=$capsule['excluded_original_refs'][0];
     devAssert(DevelopmentRoadmapSavedResult::evaluate('saved_finance_processing',$capsule,$done,$now+60,$wrong,DevelopmentRoadmapSavedResult::hash($wrong))['state']==='blocked',
         'roadmap_hash_alone_does_not_authorize_excluded_parent_target');
+    $omitted=$capsule;$omitted['old_receipts']=[];
+    devAssert(DevelopmentRoadmapSavedResult::evaluate('saved_finance_new_receipts',$omitted,$snapshot,$now)['state']==='blocked','roadmap_preinstall_receipts_cannot_be_omitted');
     $changed=$capsule;$changed['old_receipts'][]=$changed['old_receipts'][0];
     devAssert(DevelopmentRoadmapSavedResult::evaluate('saved_finance_new_receipts',$changed,$snapshot,$now)['state']==='blocked',
         'roadmap_duplicate_frozen_terminal_rejected');
@@ -228,12 +244,12 @@ function devRoadmapAllTargetsChecks(): void
 function devRoadmapCanonicalReadChecks(): void
 {
     require_once __DIR__.'/fixtures/modeled_conversion_frontier.php';
-    $p=new DevelopmentWorkTestPdo();
-    [$profileCut,$apiCut,$now,$ns]=forecastProcessingFrontierFixture($p);
+    $p=new DevelopmentRoadmapTestPdo();
+    [$profileCut,$apiCut,$now,$ns]=$p->financial(static fn(PDO $db):array=>forecastProcessingFrontierFixture($db));
     $p->exec("UPDATE max_channel_conversion_outbox SET state='processed',upload_status='PROCESSED',
         value_processed_at_unix=value_api_accepted_at_unix+1 WHERE upload_id IS NOT NULL AND id<>17");
-    $p->prepare("UPDATE max_channel_conversion_outbox SET state='accepted',upload_status='UPLOADED',upload_id='900024',
-        value_api_accepted_at_unix=?,last_error='' WHERE id=24")->execute([$now-2]);
+    $p->financial(static fn(PDO $db)=>$db->prepare("UPDATE max_channel_conversion_outbox SET state='accepted',upload_status='UPLOADED',upload_id='900024',
+        value_api_accepted_at_unix=?,last_error='' WHERE id=24")->execute([$now-2]));
     $digest=static fn():string=>hash('sha256',json_encode([
         $p->query('SELECT * FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),
         $p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)],JSON_THROW_ON_ERROR));
@@ -263,8 +279,8 @@ function devRoadmapCanonicalReadChecks(): void
         'roadmap_populated_canonical_read_is_select_only_private_and_closes_only_owned_snapshot');
     devAssert($candidate['captured_at']>$now-2&&$capsule['verification_not_before_unix']>$now-2,
         'roadmap_saved_receipt_after_install_cutoff_survives_later_adapter_activation');
-    $p->prepare("UPDATE max_channel_conversion_outbox SET state='processed',upload_status='PROCESSED',
-        value_processed_at_unix=? WHERE id=24")->execute([$now+50]);
+    $p->financial(static fn(PDO $db)=>$db->prepare("UPDATE max_channel_conversion_outbox SET state='processed',upload_status='PROCESSED',
+        value_processed_at_unix=? WHERE id=24")->execute([$now+50]));
     $secondBefore=$digest();$second=DevelopmentRoadmapSavedResult::read($p,static function():void{},$now+60);
     $final=DevelopmentRoadmapSavedResult::evaluate('saved_finance_processing',$capsule,$second,$now+60,
         $candidate,DevelopmentRoadmapSavedResult::hash($candidate));

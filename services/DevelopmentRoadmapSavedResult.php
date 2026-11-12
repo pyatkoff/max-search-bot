@@ -37,10 +37,21 @@ final class DevelopmentRoadmapSavedResult
             if(!is_array($repair)||($repair['available']??null)!==true)
                 return ['available'=>false,'reason'=>'canonical_saved_projection_unavailable','provider_requests'=>0];
             return ['available'=>true,'schema'=>self::VERSION,'captured_at'=>$now,'provider_requests'=>0,
-                'repair_assessments'=>$repair];
+                'repair_assessments'=>self::projection($repair)];
         } finally {if($owned&&$pdo->inTransaction())$pdo->rollBack();}
     }
 
+    /** Complete contract input; unrelated source/audit histories are excluded before storage. */
+    public static function projection(array $repair): array
+    {
+        $r=array_intersect_key($repair,array_flip(['available','assessment_namespace','provider_requests','coverage',
+            'new_increment_events','new_increment_value_rub','processing_frontier']));
+        if(is_array($r['processing_frontier']??null))$r['processing_frontier']=array_intersect_key($r['processing_frontier'],array_flip([
+            'available','complete_within_bound','provider_requests_in_reader','profile_cutoff_unix','later_profile_events',
+            'later_profile_value_rub','observed_events','observed_value_rub','membership_sha256','columns','legend','rows']));
+        if(strlen(json_encode($r,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))>20000)throw new DomainException('roadmap_snapshot_budget');
+        return $r;
+    }
     /**
      * Validates exact private, owner-reviewed input. No defaults select a cohort.
      * Receipt and event references are opaque hashes; no customer/credential data.
@@ -65,6 +76,7 @@ final class DevelopmentRoadmapSavedResult
             self::need(!isset($events[$r[0]])&&!isset($receipts[$r[6]]),'capsule_old_duplicate');
             $events[$r[0]]=true;$receipts[$r[6]]=true;
         }
+        foreach($v['old_receipts']as$row)self::need($row[7]<$v['api_observed_not_before_unix'],'capsule_old_cutoff');
         self::need(count($events)<=$v['events'],'capsule_old_count');
         self::need(is_array($v['excluded_original_refs'])&&array_is_list($v['excluded_original_refs'])
             &&count($v['excluded_original_refs'])<=3,'capsule_exclusions');
@@ -127,6 +139,8 @@ final class DevelopmentRoadmapSavedResult
                 self::need(isset($rows[$row[0]])&&$rows[$row[0]]===$row,'old_terminal_changed');$old[$row[6]]=true;
             }
             $excluded=array_fill_keys($c['excluded_original_refs'],true);
+            foreach($rows as$row)if($row[6]!==null&&$row[7]<$c['api_observed_not_before_unix']&&!isset($excluded[$row[0]]))
+                self::need(isset($old[$row[6]]),'preinstall_receipt_omitted_from_baseline');
             foreach($excluded as$ref=>$unused)self::need(isset($rows[$ref]),'excluded_original_missing');
             $cHash=self::hash($c);$sHash=self::hash($snapshot);$new=[];
             if($kind==='saved_finance_new_receipts'){

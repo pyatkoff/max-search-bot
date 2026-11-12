@@ -1,6 +1,8 @@
 name: Configure AnyTour modeled value goal
 run-name: "${{ github.event_name == 'workflow_run' && format('deploy-proof:v1:{0}:{1}', github.event.workflow_run.id, github.event.workflow_run.run_attempt) || 'Configure AnyTour modeled value goal' }}"
 on:
+  push:
+    branches: [ops/recover-pr1505-terminal-20261112]
   workflow_run:
     workflows: [Deploy production]
     types: [completed]
@@ -22,6 +24,38 @@ concurrency:
   group: anytour-modeled-value-configuration
   cancel-in-progress: false
 jobs:
+  release-slot-recovery:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/ops/recover-pr1505-terminal-20261112'
+    permissions:
+      contents: write
+      actions: read
+      pull-requests: read
+      issues: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout source-checked terminal continuation without persisted credentials
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Prepare continuation of the original pre-write read refusal
+        id: prepared
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/release_slot_close.js --prepare-terminal-continuation --proof "$RUNNER_TEMP/deployment-release-publication.json" >> "$GITHUB_OUTPUT"
+      - name: Bind the terminal candidate to the original closer run — ${{ steps.prepared.outputs.record_digest }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.prepared.outputs.publication_artifact }}
+          path: ${{ runner.temp }}/deployment-release-publication.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Release only the admitted publisher after all original mandatory gates
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PREPARED_RECORD_DIGEST: ${{ steps.prepared.outputs.record_digest }}
+        run: node tools/release_slot_close.js --finish-terminal-continuation
   configure:
     if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && (contains(github.event.workflow_run.head_commit.message, '[anytour-value-launch-1288]') || contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-1293]') || contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-fortnight-v1]'))))
     runs-on: ubuntu-latest
@@ -170,3 +204,4 @@ jobs:
           CONFIGURE_RESULT: ${{ needs.configure.result }}
           PREPARED_RECORD_DIGEST: ${{ steps.prepared.outputs.record_digest }}
         run: node tools/release_slot_close.js
+

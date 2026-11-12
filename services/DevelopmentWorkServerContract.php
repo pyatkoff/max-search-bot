@@ -195,7 +195,8 @@ final class DevelopmentWorkServerContract
     }
     public static function toolResult(array $data): array
     {
-        $v2=($data['server_control']['readback_contract']??null)==='full_structured_v2';
+        $v2=($data['server_control']['readback_contract']??null)==='full_structured_v2'
+            ||(($data['execution_kind']??null)==='server_saved_finance'&&($data['server_roadmap']['readback_contract']??null)==='full_structured_v2');
         $text=$v2?self::json(['schema'=>'development-full-structured-readback-v2','queue_id'=>$data['queue_id']??self::QUEUE,
             'state'=>$data['state']??($data['server_control']['state']??'unknown'),'accepted_count'=>$data['accepted_count']??null,'complete_data'=>'structuredContent',
             'data_sha256'=>self::hash($data)]):json_encode($data,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
@@ -208,7 +209,8 @@ final class DevelopmentWorkServerContract
     public static function assertReadback(array $data): void
     {
         $json=self::json($data);
-        $v2=($data['server_control']['readback_contract']??null)==='full_structured_v2';
+        $v2=($data['server_control']['readback_contract']??null)==='full_structured_v2'
+            ||(($data['execution_kind']??null)==='server_saved_finance'&&($data['server_roadmap']['readback_contract']??null)==='full_structured_v2');
         if(strlen($json)>($v2?196608:self::MAX_PROOF_JSON_BYTES))throw new DomainException('development_server_readback_budget');
         $tool=self::toolResult($data);
         $wire=['jsonrpc'=>'2.0','id'=>str_repeat("\x01",1024),'result'=>$tool,'reserved_status_metadata'=>str_repeat('x',16384)];

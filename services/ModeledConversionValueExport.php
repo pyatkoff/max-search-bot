@@ -39,6 +39,7 @@ final class ModeledConversionValueExport
     private ?string $fixedPairDigest=null;
     private array $fixedPairCases=[];
     private array $ordinaryLookupUsers=[];
+    private ?array $ordinaryProtectedIds=[];
     private bool $retainedTrackerConsumed=false;
     private bool $retainedTrackerSourceUnsupported=false;
     private ?array $retainedTrackerReservation=null;
@@ -182,6 +183,7 @@ final class ModeledConversionValueExport
             $phase='resolve_identity';
             // Optional scalar metadata cannot block the existing financial lane.
             $self->prepareIdentityEvidence();
+            $self->ordinaryProtectedIds=$self->protectedOriginalSourceIds($s['last_receipt_json']??null,$now);
             $finite=$self->prepareFiniteEvidence($now,$gate);
             $recovery=$self->prepareRecoveryEvidence($now);
             $pair=$self->prepareFixedPair($now);
@@ -237,8 +239,10 @@ final class ModeledConversionValueExport
                     $sendAt=$injectedClock?$now:time();$sourceAt=(int)($r['tracker_observed_unix']??0);
                     $pairMember=$self->fixedPairMember($r,$sendAt)!==null;
                     $pairSource=$self->fixedPairCandidate($r,$identities,$lookupReturned,$sendAt);
+                    $ordinarySource=!$pairMember&&$sendAt-$sourceAt>ModeledConversionAttributionWindow::MAX_SECONDS
+                        &&$self->currentMaxSource($r,$identities,$lookupReturned,$sendAt,true);
                     if($r['platform']==='max'&&($sourceAt<946684800||$sourceAt>(int)$r['event_unix']
-                        ||$sourceAt>$sendAt||($pairMember&&!$pairSource)||($sendAt-$sourceAt>ModeledConversionAttributionWindow::MAX_SECONDS&&!$pairSource))){
+                        ||$sourceAt>$sendAt||($pairMember&&!$pairSource)||($sendAt-$sourceAt>ModeledConversionAttributionWindow::MAX_SECONDS&&!$pairSource&&!$ordinarySource))){
                         // This exact pair may wait ready for a successful canonical refresh; it is never claimed on missing/changed source.
                         $self->observeFixedPairDecision($r,$now,$sendAt,3);
                         $pairHold=$pairMember;
@@ -279,7 +283,7 @@ final class ModeledConversionValueExport
                         $hold->execute([$sendAt+300,$window['reason']==='outside_current_window'?'metrika_visit_window':'metrika_visit_unverified',$r['id']]);continue;
                     }
                     $token=bin2hex(random_bytes(16));
-                    [$pairWhere,$pairParams]=$pairSource?$self->fixedPairSqlGuard($r,false):['',[]];
+                    [$pairWhere,$pairParams]=($pairSource||$ordinarySource)?$self->fixedPairSqlGuard($r,false):['',[]];
                     $q=$p->prepare("UPDATE max_channel_conversion_outbox SET state='uploading',claim_token=?,claimed_at_unix=?,attempts=attempts+1 WHERE id=? AND state='ready' AND target=? AND transport_target=? AND value_rub=?".$pairWhere);
                     $q->execute([$token,$now,$r['id'],$r['target'],ModeledConversionValueContract::TARGET,$r['value_rub'],...$pairParams]);
                     if($q->rowCount()!==1)continue;
@@ -987,17 +991,18 @@ final class ModeledConversionValueExport
     private function resolve(array $r,array $identities,int $now,callable $gate,bool $lookupReturned=false):bool
     {
         if(!$this->eligible($r,$gate)){self::failRow($this->pdo,$r,'scope_unavailable');return false;}
-        $client=null;$record=null;$observation=null;$identityReason='identity_not_found';$pairSource=false;
+        $client=null;$record=null;$observation=null;$identityReason='identity_not_found';$pairSource=false;$ordinarySource=false;
         if($r['platform']==='max'){
             $record=$identities[$r['external_user_id']]??null;
-            // A retained MAX click can outlive the provider's attribution window.
-            // Hold unresolved identities without rewriting any accepted receipt or forecast.
+            // A current canonical identity may outlive its first recorded click; only actual visits establish the attribution window.
             $observed=is_array($record)?($record['observed_at_unix']??null):null;
             $pairMember=$this->fixedPairMember($r,$now)!==null;
             if($pairMember)$pairSource=$this->fixedPairCandidate($r,$identities,$lookupReturned,$now);
+            else $ordinarySource=is_int($observed)&&((int)$r['event_unix']-$observed>ModeledConversionAttributionWindow::MAX_SECONDS||$now-$observed>ModeledConversionAttributionWindow::MAX_SECONDS)
+                &&$this->currentMaxSource($r,$identities,$lookupReturned,$now,false);
             if(is_array($record)&&($record['external_user_id']??null)===$r['external_user_id']
                 &&is_int($observed)&&$observed>=946684800&&$observed<=(int)$r['event_unix']
-                &&($pairMember?$pairSource:((int)$r['event_unix']-$observed<=ModeledConversionAttributionWindow::MAX_SECONDS&&$now-$observed<=ModeledConversionAttributionWindow::MAX_SECONDS)))$client=$record['client_id']??null;
+                &&($pairMember?$pairSource:($ordinarySource||((int)$r['event_unix']-$observed<=ModeledConversionAttributionWindow::MAX_SECONDS&&$now-$observed<=ModeledConversionAttributionWindow::MAX_SECONDS))))$client=$record['client_id']??null;
         }else{
             $q=$this->pdo->prepare("SELECT client_id,MIN(id) AS observation_id FROM advertising_visit_observations WHERE project_key='anytour' AND source_key='tgmini' AND platform='telegram' AND counter_id='98615635' AND external_user_id=? AND identity_status='verified' AND client_id<>'' AND visit_at_unix<=? AND observed_at_unix<=? AND received_at_unix<=? GROUP BY client_id LIMIT 2");
             $q->execute([$r['external_user_id'],$r['event_unix'],$now,$now]);$ids=$q->fetchAll(PDO::FETCH_ASSOC);if(count($ids)>1)$identityReason='identity_ambiguous';if(count($ids)===1){$client=$ids[0]['client_id'];$observation=$ids[0]['observation_id'];}
@@ -1007,9 +1012,59 @@ final class ModeledConversionValueExport
             if($q->rowCount()===1)$this->observeIdentity($r,$identities,$lookupReturned,$now);
             return false;
         }
-        [$pairWhere,$pairParams]=$pairSource?$this->fixedPairSqlGuard($r,true):['',[]];
+        [$pairWhere,$pairParams]=$pairSource?$this->fixedPairSqlGuard($r,true):($ordinarySource?$this->pendingMaxSourceSqlGuard($r):['',[]]);
         $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET client_id=?,tracker_record_id=?,tracker_observed_unix=?,identity_observation_id=?,state='ready',value_ready_at_unix=COALESCE(value_ready_at_unix,?),next_attempt_unix=0,last_error='' WHERE id=? AND state='pending'".$pairWhere);$q->execute([$client,$record['record_id']??null,$record['observed_at_unix']??null,$observation,$now,$r['id'],...$pairParams]);
-        $changed=$q->rowCount()===1;if($changed)$this->observeIdentity($r,$identities,$lookupReturned,$now,$pairSource);return $changed;
+        $changed=$q->rowCount()===1;if($changed)$this->observeIdentity($r,$identities,$lookupReturned,$now,$pairSource||$ordinarySource);return $changed;
+    }
+
+    /** Exclusion only: a frozen native row never falls through when its current pair admission is unavailable. */
+    private function protectedOriginalSourceIds(mixed $raw,int $now):?array
+    {
+        if($raw===null)return $now<ModeledConversionValueVisitEvidence::CHECKPOINT?[]:null;
+        try{
+            if(!is_string($raw)||strlen($raw)>8192||!str_starts_with(ltrim($raw),'{'))return null;
+            $saved=json_decode($raw,true,32,JSON_THROW_ON_ERROR);if(!is_array($saved))return null;
+            if(!array_key_exists('finite_visit_evidence',$saved))return $now<ModeledConversionValueVisitEvidence::CHECKPOINT?[]:null;
+            $frame=ModeledConversionValueVisitEvidence::decode($saved['finite_visit_evidence'],$this->identityNamespace??ModeledConversionProfiles::assessmentNamespace(),$now);
+            if($frame===null)return null;$ids=[];foreach($frame['r']as$row)$ids[(string)$row[1]]=true;return $ids;
+        }catch(Throwable $ignored){return null;}
+    }
+
+    /** Snapshot CAS only for the new old ordinary source path; preserves legitimate prior nonacceptance fields. */
+    private function pendingMaxSourceSqlGuard(array $row):array
+    {
+        $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';$where='';$values=[];
+        foreach(['project_key','platform','conversation_id','external_user_id','counter_id','target','transport_target','value_contract',
+            'identity_source_key','value_profile_id','event_unix','value_rub','value_origin','value_reviewed_at_unix',
+            'client_id','tracker_record_id','tracker_observed_unix','identity_observation_id','value_ready_at_unix',
+            'attempts','claim_token','claimed_at_unix','upload_id','upload_status','value_receipt_basis',
+            'value_api_accepted_at_unix','value_processed_at_unix','last_error']as$key){
+            if(!array_key_exists($key,$row))return [' AND 1=0',[]];
+            if($row[$key]===null)$where.=' AND '.$key.' IS NULL';
+            else{$where.=$mysql?' AND BINARY '.$key.'=BINARY ?':' AND '.$key.' COLLATE BINARY=? COLLATE BINARY';$values[]=$row[$key];}
+        }
+        return [$where,$values];
+    }
+
+    /** This-tick ordinary lookup only; the recorded click is an identity witness, never a visit witness. */
+    private function currentMaxSource(array $row,array $identities,bool $returned,int $now,bool $held):bool
+    {
+        $event=$row['event_unix']??null;
+        if($this->ordinaryProtectedIds===null||isset($this->ordinaryProtectedIds[(string)($row['id']??'')])
+            ||!$returned||($row['project_key']??null)!=='anytour'||($row['counter_id']??null)!=='98615635'
+            ||($row['platform']??null)!=='max'||($row['identity_source_key']??null)!=='max_tracker'
+            ||($row['transport_target']??null)!==ModeledConversionValueContract::TARGET||($row['value_contract']??null)!==ModeledConversionValueContract::VERSION
+            ||!ModeledConversionValueContract::isKey($row['target']??null)||!MaxTrackerLookupProtocol::id($row['external_user_id']??null,20)
+            ||(!is_int($event)&&!is_string($event))||preg_match('/\A[1-9][0-9]{8,11}\z/D',(string)$event)!==1
+            ||(int)$event<946684800||(int)$event>$now||!in_array($row['external_user_id'],$this->ordinaryLookupUsers,true))return false;
+        foreach($this->finiteFrame['r']??[]as$original)if((string)$original[1]===(string)($row['id']??''))return false;
+        $record=$identities[$row['external_user_id']]??null;
+        if(!is_array($record)||($record['external_user_id']??null)!==$row['external_user_id']
+            ||!MaxTrackerLookupProtocol::id($record['client_id']??null,40)||!MaxTrackerLookupProtocol::id($record['record_id']??null,20)
+            ||!is_int($record['observed_at_unix']??null)||$record['observed_at_unix']<946684800
+            ||$record['observed_at_unix']>(int)$row['event_unix']||(int)$row['event_unix']>$now)return false;
+        return !$held||(($row['client_id']??null)===$record['client_id']&&($row['tracker_record_id']??null)===$record['record_id']
+            &&(string)($row['tracker_observed_unix']??'')===(string)$record['observed_at_unix']);
     }
 
     /** Fixed earliest repair increments only, without loading profile or native payloads. */
@@ -1044,7 +1099,7 @@ final class ModeledConversionValueExport
     }
 
     /** Evidence follows the existing successful state update; never changes its result. */
-    private function observeIdentity(array $row,array $identities,bool $lookupReturned,int $now,bool $fixedPairResolved=false):void
+    private function observeIdentity(array $row,array $identities,bool $lookupReturned,int $now,bool $canonicalResolved=false):void
     {
         try{
             if(!$lookupReturned||($row['platform']??null)!=='max'||$this->identityNamespace===null)return;
@@ -1052,7 +1107,7 @@ final class ModeledConversionValueExport
             if($ref===null||!isset($this->identityRefs[$ref]))return;
             $present=array_key_exists($row['external_user_id'],$identities);
             [$reason,$observed]=ModeledConversionValueIdentityEvidence::classifyMax($row,$identities[$row['external_user_id']]??null,$present,$now);
-            $this->identityObservations[$ref]=[$ref,$now,$fixedPairResolved?7:$reason,$observed];
+            $this->identityObservations[$ref]=[$ref,$now,$canonicalResolved?7:$reason,$observed];
         }catch(Throwable $ignored){$this->identityComplete=false;}
     }
 
@@ -1357,7 +1412,7 @@ final class ModeledConversionValueExport
             &&ModeledConversionValueVisitEvidence::candidateReference($old[0],$record['client_id'],$record['record_id'],$record['observed_at_unix'],'canonical_max_lookup')===$old[9];
     }
 
-    /** Reuse the existing UPDATE/claim with an exact first-send or known-nonacceptance CAS for this pair only. */
+    /** Exact first-send/known-nonacceptance CAS for the frozen pair or a current old ordinary source. */
     private function fixedPairSqlGuard(array $row,bool $pending):array
     {
         $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';$where='';$values=[];

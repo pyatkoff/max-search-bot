@@ -231,6 +231,7 @@ final class ManagerPreparationMcpService
         $development=in_array($name,DevelopmentWorkMcpAdapter::NAMES,true);
         $legacy=ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES);
         $required=$dialogue?[ManagerPreparationOAuth::DIALOGUE_SCOPE]:($forecast?[ManagerPreparationOAuth::FORECAST_SCOPE]:($development?[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]:($hotel?[ManagerPreparationOAuth::HOTEL_SCOPE]:($archive?[ManagerPreparationOAuth::ARCHIVE_SCOPE]:ManagerPreparationOAuth::SCOPES))));
+        if($name==='development_work_roadmap_admit')$required=[ManagerPreparationOAuth::DEVELOPMENT_SCOPE,ManagerPreparationOAuth::FORECAST_SCOPE];
         if($selection)$required=[ManagerTourSelectionMcpAdapter::scopeFor($name)];
         if($dialogue&&DialogueReviewMcpAdapter::isHistory($args))$required=[ManagerPreparationOAuth::QUALITY_SCOPE];
         $stepUp=$selection||$dialogue||$forecast||$archive||($hotel&&($legacy||in_array(ManagerPreparationOAuth::ARCHIVE_SCOPE,$scopes,true)))
@@ -331,7 +332,9 @@ final class ManagerPreparationMcpService
         if (!is_array($data)) throw new RuntimeException();
         $images=$name==='get_reply_context'?($data['image_inputs']??[]):[];unset($data['image_inputs']);
         if (!is_array($images)||!array_is_list($images)||count($images)>4) throw new RuntimeException();
-        if($name==='development_work_status'&&($data['server_control']['readback_contract']??null)==='full_structured_v2')
+        if(in_array($name,['development_work_status','development_work_roadmap_admit'],true)
+            &&(($data['server_control']['readback_contract']??null)==='full_structured_v2'
+            ||(($data['execution_kind']??null)==='server_saved_finance'&&($data['server_roadmap']['readback_contract']??null)==='full_structured_v2')))
             return DevelopmentWorkServerContract::toolResult($data);
         $content=[['type'=>'text','text'=>json_encode($data,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]];
         $imageBytes=0;

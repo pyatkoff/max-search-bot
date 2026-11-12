@@ -5,7 +5,7 @@ require_once __DIR__.'/DevelopmentRoadmapSavedResult.php';
 /** Read-only inspection of a completed archive for a fresh same-admin DEV grant. */
 trait DevelopmentRoadmapArchive
 {
-    private function roadmapArchiveCandidate(string $id,int $admin,string $connection): ?array
+    private function roadmapArchiveCandidate(string $id,int $admin,string $connection,bool $admission=false): ?array
     {
         if($id!==DevelopmentWorkServerContract::QUEUE)return null;
         self::actor($admin,$connection);
@@ -13,8 +13,8 @@ trait DevelopmentRoadmapArchive
         if(!$q||$q['project_key']!==self::PROJECT||(int)$q['admin_id']!==$admin)return null;
         $c=$this->serverControl($q);
         // The historical native owner and exact server authorizer retain their old route.
-        if(!$c||hash_equals($q['oauth_connection_id'],$connection)
-            ||hash_equals((string)$c['execution_connection_id'],$connection))return null;
+        if(!$c||(!$admission&&(hash_equals($q['oauth_connection_id'],$connection)
+            ||hash_equals((string)$c['execution_connection_id'],$connection))))return null;
         if($c['state']!=='complete'||$q['current_task_id']!==null||$q['state']!=='blocked'
             ||(int)$q['task_count']!==3||(int)$q['accepted_count']!==2
             ||(int)$q['blocked_count']!==1||(int)$q['retirement_count']!==1
@@ -52,6 +52,13 @@ trait DevelopmentRoadmapArchive
                 'supported_saved_result_kinds'=>array_map(
                     static fn(string $kind):array=>DevelopmentRoadmapSavedResult::capability($kind),
                     DevelopmentRoadmapSavedResult::KINDS)]];
+        if($this->roadmapTablesReady()){
+            $implementation=$this->roadmapImplementation();
+            $result['roadmap_preparation']['implementation']=$implementation;
+            $result['roadmap_preparation']['implementation_sha256']=self::hash($implementation);
+            $result['roadmap_preparation']['policy']=DevelopmentRoadmapReview::policy();
+            $result['roadmap_preparation']['admission_method']='development_work_roadmap_admit';
+        }
         $authority->assertCurrent($admin,$connection);
         return $result;
     }
