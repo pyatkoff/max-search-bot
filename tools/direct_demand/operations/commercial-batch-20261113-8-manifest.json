@@ -1,0 +1,188 @@
+{
+  "state": "PREPARED_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261113-8-v1",
+  "registry_version": 226,
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 567,
+  "expected_new_full_pairs": 8,
+  "rows": [
+    {
+      "hotel_id": 948,
+      "logical_id": "commercial-hotel-948-v1",
+      "aliases": [
+        "Adalya Bliss",
+        "ADALYA BLISS (EX. ADALYA RESORT & SPA) ADULTS ONLY"
+      ],
+      "text": "✈️ Туры в Adalya Bliss\n📍 Эвренсеки, Сиде, Турция.\n\nОтдых вдвоём в Сиде: формат 16+, спа и выбор номеров от Deluxe до Bliss Suite. В отдельных категориях есть джакузи.\n\nДля зимней поездки учтём сезонное закрытие пляжа: у крытого бассейна заявлен подогрев. Подберём номер и проверим включённые услуги на ваши даты.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "7f9ba0e9498e39545648d57048b4db25bbbef867ef3d14d3239d6f1e51efdd81",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5ec25b4e6f400778ec9766fda3e1baa9a72dc877/.github/traffic-publish/commercial-batch-20261113-8/948.png",
+      "photo_sha256": "a0f119d1ed47c9e28f548380b7dfe4c9ee6c21a97a6a70f48e8bfea057ab469e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.adalyahotels.com/en/our-hotels/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-bliss/accommodation/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-bliss/beach-pools/",
+        "https://www.corendon.nl/turkije/turkse-riviera/side/evrenseki/b/adalya-resort-spa",
+        "https://www.adalyahotels.com/media/424liw1f/adalyabliss_havuzplaj_banner_desktop-3-1.jpg",
+        "https://www.adalyahotels.com/media/ixqhc25s/adalya-bliss-konaklama-bliss-suite-banner-6.jpg",
+        "https://www.adalyahotels.com/media/nzfmkcpg/adalya-bliss-konaklama-deluxe-sea-view-card-d.jpg"
+      ]
+    },
+    {
+      "hotel_id": 213,
+      "logical_id": "commercial-hotel-213-v1",
+      "aliases": [
+        "SUNRISE Serano Aqua Park Resort",
+        "SUNRISE SERANO AQUA PARK RESORT (EX. SUNRISE RIVIERA AQUA PARK)"
+      ],
+      "text": "✈️ Туры в SUNRISE Serano Aqua Park Resort\n📍 Хургада, Египет.\n\nПляж, семейный аквапарк и детские бассейны в Хургаде. Для просторного отдыха рассмотрим Executive Suite 90 м² с мини кухней и террасой с садовой зоной.\n\nДля основных горок в фактшите указан рост от 120 см. Проверим работу аквапарка, подогрев конкретных чаш и планировку люкса. Номера Serano Club второй линии сюда не включаем.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "d2aa40528dafb7b06c973123afffe968f9f9a2bceea544a5f2dd313913ef1bfd",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5ec25b4e6f400778ec9766fda3e1baa9a72dc877/.github/traffic-publish/commercial-batch-20261113-8/213.png",
+      "photo_sha256": "4d46ff146c1cacb95d4b4b5eb77694cf948e11d8ecfb05be8a30f209f7ab5ae4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://www.sunrise-resorts.com/serano-aqua-park-resort",
+        "https://www.sunrise-resorts.com/serano-aqua-park-resort/stay/executive-suite",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/113_se_factsheet_may_2026.pdf",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/68404a69275cb.jpeg/1920x1080/fit/80/abc59edf9f77eb2d8a4d7903ccb51912.jpg",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6852f71569f3e.jpg/1920x1080/fit/80/70a21123faeb69ad89463230f5a1400e.jpg",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/684079789447d.jpeg/1920x1080/fit/80/2b4bda3bf690f56eafac12dcbea3f6ee.jpg"
+      ]
+    },
+    {
+      "hotel_id": 7938,
+      "logical_id": "commercial-hotel-7938-v1",
+      "aliases": [
+        "Khaolak Emerald Beach Resort & Spa",
+        "KHAOLAK EMERALD BEACH RESORT & SPA"
+      ],
+      "text": "✈️ Туры в Khaolak Emerald Beach Resort & Spa\n📍 Као Лак, Таиланд.\n\nПесчаный пляж, бассейны и детский клуб в Као Лаке. Можно выбрать семейный номер или виллу у моря.\n\nРаботу детской водной зоны проверим перед бронированием: ранее был объявлен ремонт. Частный бассейн доступен только в соответствующей категории виллы.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "00d447f07e90fe66d29f0f9b58348992062b03a9abc26683cc5346188e3ffb0c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5ec25b4e6f400778ec9766fda3e1baa9a72dc877/.github/traffic-publish/commercial-batch-20261113-8/7938.png",
+      "photo_sha256": "4e3c7f43c90467953e2698a4fecd344b4ab5dba4b58c7725cc23a9d94eb474d2",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://whitesandbluesea.com/khaolakemeraldbeachresortandspa/",
+        "https://whitesandbluesea.com/khaolakemeraldbeachresortandspa/service-activity/",
+        "https://whitesandbluesea.com/wp-content/uploads/2026/02/02.Beachfront-1024x576.jpg",
+        "https://whitesandbluesea.com/wp-content/uploads/2026/02/075A1243-1024x683.jpg",
+        "https://whitesandbluesea.com/wp-content/uploads/2026/07/01.-Beachfront-Villa.webp"
+      ]
+    },
+    {
+      "hotel_id": 1530,
+      "logical_id": "commercial-hotel-1530-v1",
+      "aliases": [
+        "Sunis Evren Beach Resort & Spa",
+        "SUNIS EVREN BEACH RESORT & SPA"
+      ],
+      "text": "✈️ Туры в Sunis Evren Beach Resort & Spa\n📍 Эвренсеки, Сиде, Турция.\n\nДля семейной поездки в Сиде есть номера с отдельными спальнями, а для отдыха вдвоём   Superior с видом на море и джакузи.\n\nПесчаный пляж находится через променад. Зимой оператор указывает закрытие пляжа и открытых бассейнов; для купания предусмотрен крытый бассейн с подогревом.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "2a034147950935d4eddd98769edbdec78148ce693d248c41025c8e2e7cd9730f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5ec25b4e6f400778ec9766fda3e1baa9a72dc877/.github/traffic-publish/commercial-batch-20261113-8/1530.png",
+      "photo_sha256": "3d27d3f61cb610109e6f5fe1e09a755cfe3d6200054bca6ceb91f01a2b4a2623",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://evrenbeachresort.com/index.php/odalar-suitler/",
+        "https://evrenbeachresort.com/",
+        "https://www.corendon.nl/turkije/turkse-riviera/side/kumkoy/sunis-evren-beach-resort",
+        "https://www.dertour.de/hotel/sunis-hotel-evren-beach-resort-spa-117VKV",
+        "https://evrenbeachresort.com/wp-content/uploads/2019/08/GENEL-2-1-scaled.jpg",
+        "https://evrenbeachresort.com/wp-content/uploads/2025/01/FAMILY-1-1536x1021.jpg",
+        "https://evrenbeachresort.com/wp-content/uploads/2025/01/DELUX-SV-1-1536x1010.jpg"
+      ]
+    },
+    {
+      "hotel_id": 818,
+      "logical_id": "commercial-hotel-818-v1",
+      "aliases": [
+        "Thavorn Palm Beach Resort",
+        "THAVORN PALM BEACH RESORT"
+      ],
+      "text": "✈️ Туры в Thavorn Palm Beach Resort\n📍 Карон, Пхукет, Таиланд.\n\nТропический сад, бассейны и водные горки рядом с Кароном. Для семей есть номера с отдельной детской спальной зоной.\n\nДо моря   через дорогу. Palm Shade Pool на реновации по объявленному плану до 15.02.2027; возможен шум. Подберём размещение с учётом дат и работ.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "f6043fafd391ed36f505c23550801f6b256a30b022324421f0a98903ea35029e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5ec25b4e6f400778ec9766fda3e1baa9a72dc877/.github/traffic-publish/commercial-batch-20261113-8/818.png",
+      "photo_sha256": "b23e33d88f588b662717e2db70312a566a21301ce00908eee60593c3fbb5098c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://www.thavornpalmbeach.com/",
+        "https://www.thavornpalmbeach.com/renovation-notice",
+        "https://www.thavornpalmbeach.com/phuket-karon-giant-4-storey-slider",
+        "https://www.thavornpalmbeach.com/upload/resort-files/1657797118.396.jpg",
+        "https://www.thavornpalmbeach.com/upload/resort-files/1739173384.0862.jpg",
+        "https://www.thavornpalmbeach.com/upload/feature-files/1668657217.2959.jpg"
+      ]
+    },
+    {
+      "hotel_id": 2569,
+      "logical_id": "commercial-hotel-2569-v1",
+      "aliases": [
+        "Al Habtoor Grand Resort, Autograph Collection",
+        "AL HABTOOR GRAND RESORT AUTOGRAPH COLLECTION"
+      ],
+      "text": "✈️ Туры в Al Habtoor Grand Resort, Autograph Collection\n📍 Jumeirah Beach, Дубай, ОАЭ.\n\nСвой пляж и семейные развлечения рядом с Dubai Marina: бассейны, водные горки и детский клуб. Удобный вариант, если хочется и моря, и городских прогулок.\n\nРядом ведётся строительство; возможен шум. Доступ в Grand Club зависит от категории номера.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "141163e914c31b5dbcd5d5f14db9326e8e641d121269fa9011e2d38a3d9da59f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5ec25b4e6f400778ec9766fda3e1baa9a72dc877/.github/traffic-publish/commercial-batch-20261113-8/2569.png",
+      "photo_sha256": "7b4f2a0bf7a748556d5cf556e101089b3d5a2cc9b9731c6bfc7dd3c8b79cab7c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://www.marriott.com/en-us/hotels/dxbhg-al-habtoor-grand-resort-autograph-collection/overview/",
+        "https://kompastour.com/kz/rus/country/uae/dubai/habtoor_grand_beach_resort/",
+        "https://cache.marriott.com/is/image/marriotts7prod/ak-dxbhg-resort-birds-eye-view-42055:Classic-Hor?wid=1200&fit=constrain",
+        "https://cache.marriott.com/is/image/marriotts7prod/ak-dxbhg-water-slides-35256:Classic-Hor?wid=1200&fit=constrain",
+        "https://cache.marriott.com/is/image/marriotts7prod/ak-dxbhg-kids-club-outdoor-21521-47351:Classic-Hor?wid=1200&fit=constrain"
+      ]
+    },
+    {
+      "hotel_id": 68661,
+      "logical_id": "commercial-hotel-68661-v1",
+      "aliases": [
+        "Mövenpick Resort Cam Ranh",
+        "MOVENPICK RESORT CAM RANH"
+      ],
+      "text": "✈️ Туры в Mövenpick Resort Cam Ranh\n📍 Камрань, Вьетнам.\n\nПесчаный пляж Бай Дай, Little Birds Club и водные горки для семейного отпуска. Выбирайте гостиничный номер, Residence Studio или виллу с бассейном   это разные варианты размещения.\n\nЕсть предупреждение о строительстве рядом без указания сроков. Текущие работы и доступность бассейнов проверим на ваши даты.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "540b7bdde83a6c2ba1ce03ad5070fe886c3997cafa7f4de057448e3928bd30a4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5ec25b4e6f400778ec9766fda3e1baa9a72dc877/.github/traffic-publish/commercial-batch-20261113-8/68661.png",
+      "photo_sha256": "6a010c0e8dfc5eb0172020e9d26bc89d1bbcedace178056350540ba35deb734b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://movenpick.accor.com/en/hotels/cam-ranh/B4G8.html",
+        "https://all.accor.com/hotel/B4G8/index.en.shtml",
+        "https://www.onlinetours.ru/oteli/vietnam/cam-ranh/movenpick-resort-cam-ranh",
+        "https://m.ahstatic.com/is/image/accorhotels/HCM_P_4713256:4by3?fmt=jpg&op_usm=1.75,0.3,2,0&resMode=sharp2&iccEmbed=true&icc=sRGB&dpr=on,1&wid=1440&hei=1080&qlt=80",
+        "https://m.ahstatic.com/is/image/accorhotels/HCM_P_4930843:4by3?fmt=jpg&op_usm=1.75,0.3,2,0&resMode=sharp2&iccEmbed=true&icc=sRGB&dpr=on,1&wid=1440&hei=1080&qlt=80",
+        "https://m.ahstatic.com/is/image/accorhotels/HCM_P_3596796:4by3?fmt=jpg&op_usm=1.75,0.3,2,0&resMode=sharp2&iccEmbed=true&icc=sRGB&dpr=on,1&wid=1440&hei=1080&qlt=80"
+      ]
+    },
+    {
+      "hotel_id": 1112,
+      "logical_id": "commercial-hotel-1112-v1",
+      "aliases": [
+        "Megasaray Club Belek",
+        "MEGASARAY CLUB BELEK"
+      ],
+      "text": "✈️ Туры в Megasaray Club Belek\n📍 Белек, Турция.\n\nСемейный Белек: ultra all inclusive, бассейны и летние аквапарки Mega и Misi.\n\nАквапарки работают летом, зимой пляжные услуги зависят от погоды. Оператор сообщает о ремонте отдельных блоков без срока окончания   уточним текущие работы. Вход в море может включать гальку.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "eca244ae4200c4ced2ade7e8fca15ab758a98a489ce7543a741d813dbfdeb990",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5ec25b4e6f400778ec9766fda3e1baa9a72dc877/.github/traffic-publish/commercial-batch-20261113-8/1112.png",
+      "photo_sha256": "5a22fa26c69af8bde073d7918648b86d4437762a6f2377bfae34809b1fa605a9",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://www.megasarayhotels.com/megasaray-club-belek",
+        "https://www.megasarayhotels.com/megasaray-club-belek/beach-pools",
+        "https://kompastour.com/uz/rus/country/turkey/belek/club_mega_saray/",
+        "https://irp.cdn-website.com/7d6c3314/dms3rep/multi/opt/MSCB-General-View-16+%281%29-1920w.jpg",
+        "https://irp.cdn-website.com/7d6c3314/dms3rep/multi/opt/MSCB-Aqua-14-1920w.jpg",
+        "https://irp.cdn-website.com/7d6c3314/dms3rep/multi/opt/MSCB-Beach-1-1920w.jpg"
+      ]
+    }
+  ]
+}
