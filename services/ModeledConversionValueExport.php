@@ -576,9 +576,11 @@ final class ModeledConversionValueExport
                     $intent=ModeledConversionRetainedTrackerIdentityEvidence::intent($original,$row,$ns,$hash,$now);
                     if($intent===null){$p->rollBack();return false;}
                     $receipt[$key]=$intent;$encoded=json_encode($receipt,JSON_THROW_ON_ERROR);
-                    if(!$this->receiptFits($encoded,$mysql)){$p->rollBack();return false;}
+                    $admitted=$this->receiptFits($encoded,$mysql);
+                    if(!$admitted){$receipt[$key]=false;$encoded=json_encode($receipt,JSON_THROW_ON_ERROR);
+                        if(!$this->receiptFits($encoded,$mysql)){$p->rollBack();return false;}}
                     $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'");$q->execute([$encoded]);$p->commit();
-                    $this->retainedTrackerConsumed=true;return true;
+                    $this->retainedTrackerConsumed=true;return $admitted;
                 }catch(Throwable $ignored){if($p->inTransaction())$p->rollBack();return false;}
             });
             if($intent===null||$row===null||$response===null)return;
@@ -1101,7 +1103,7 @@ final class ModeledConversionValueExport
             $this->counterScopeLedger=$this->counterScopeBindingRow($now);
             if($this->counterScopeConsumed&&!$this->retainedTrackerConsumed&&$this->counterScopeLedger!==null){
                 $app=ModeledConversionRetainedAppIdentityEvidence::projection($receipt[ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY]??null,$frame,$this->counterScopeLedger,$namespace,$now);
-                $this->retainedTrackerSourceUnsupported=($app['available']??false)===true&&($app['status']??null)==='unsupported_source';
+                $this->retainedTrackerSourceUnsupported=($app['available']??false)===true&&($app['status']??null)==='unsupported_source'&&strlen($raw)<=8192-1024;
             }
             $this->fixedPairJournal=ModeledConversionValueVisitRecovery::decode($receipt['finite_visit_recovery']??null,$frame,$namespace,$now);
             $pending=[];foreach($frame['r']as$r)if($r[2]===0)$pending[]=$rows[$r[0]];

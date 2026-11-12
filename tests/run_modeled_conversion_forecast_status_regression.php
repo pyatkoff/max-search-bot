@@ -3065,8 +3065,8 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $reta
 /** A real sender tick with counted transports; source candidates never duplicate a subject lookup in that tick. */
 function forecastRetainedTrackerTickAssertions(PDO $p,callable $check):void
 {
-    foreach([false,true]as$otherDue){
-    $case=$otherDue?'with_other_financial_user':'sole_subject';
+    foreach(['sole_subject','with_other_financial_user','late_private_pressure','initial_private_pressure']as$case){
+    $otherDue=$case==='with_other_financial_user';
     modeledValueSchema($p);
     foreach(['assessment_namespace CHAR(64)','assessment_kind VARCHAR(8)','journal_cursor BIGINT DEFAULT 0']as$column)
         $p->exec('ALTER TABLE modeled_conversion_profile_versions ADD COLUMN '.$column);
@@ -3085,14 +3085,29 @@ function forecastRetainedTrackerTickAssertions(PDO $p,callable $check):void
     $app=ModeledConversionRetainedAppIdentityEvidence::complete($appIntent,$frame,$row,$ns,[3,$now-10,0,null,null,0,null,null,null,null,null,null],$now);
     $base=['errors'=>0,'finite_visit_evidence'=>$frame,'finite_visit_recovery'=>false,'finite_counter_scope_evidence'=>false,
         ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY=>$app,'metrika_report'=>['status'=>'unavailable']];
+    $sizedReceipt=static function(array $r)use($p):array{
+        $r['test_financial_padding']='';$mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+        $measure=static function(array $v)use($p,$mysql):int{
+            $json=json_encode($v,JSON_THROW_ON_ERROR);if(!$mysql)return strlen($json);
+            $q=$p->prepare('SELECT OCTET_LENGTH(CAST(? AS JSON))');$q->execute([$json]);return (int)$q->fetchColumn();
+        };
+        $r['test_financial_padding']=str_repeat('b',max(0,7800-$measure($r)));
+        if($measure($r)!==7800)throw new RuntimeException('tracker_fixture_pressure_size');return $r;
+    };
+    if($case==='initial_private_pressure')$base=$sizedReceipt($base);
     $p->prepare("UPDATE modeled_conversion_value_export_settings SET mode='send',goal_id='678187097',goal_intent='verified',activated_at_unix=?,profile_cursor=3,contract_version=?,last_tick_unix=?,last_receipt_json=? WHERE project_key='anytour'")
         ->execute([$born-60,ModeledConversionValueContract::VERSION,$now-5,json_encode($base,JSON_THROW_ON_ERROR)]);
-    $lookup=new class($p) {
-        public int $tick=0;public array $perTick=[];public int $candidateCalls=0;public int $ordinaryBatches=0;public bool $durable=true;
-        public function __construct(private PDO $p){}
+    $lookup=new class($p,$sizedReceipt) {
+        public int $tick=0;public array $perTick=[];public int $candidateCalls=0;public int $ordinaryBatches=0;public bool $durable=true;public bool $pressureBeforeIntent=false;public ?array $pressuredReceipt=null;
+        public function __construct(private PDO $p,private Closure $sizedReceipt){}
         private function counted(string $uid,string $kind):void{$this->perTick[$this->tick][$uid][]=$kind;}
         public function lookup(string $counter,array $users):array{$this->ordinaryBatches++;foreach($users as$uid)$this->counted($uid,'ordinary');return [];}
         public function retainedClickCandidate(array $context,callable $beforeRequest):?array{
+            if($this->pressureBeforeIntent){
+                $raw=$this->p->query("SELECT last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetchColumn();
+                $r=($this->sizedReceipt)(json_decode($raw,true,32,JSON_THROW_ON_ERROR));$this->pressuredReceipt=$r;
+                $this->p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode($r,JSON_THROW_ON_ERROR)]);
+            }
             $hash=str_repeat('a',64);if(!$beforeRequest($hash))return null;
             $this->counted($context['user_id'],'candidate');$this->candidateCalls++;
             $s=$this->p->query("SELECT last_tick_unix,last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetch(PDO::FETCH_ASSOC);
@@ -3107,9 +3122,27 @@ function forecastRetainedTrackerTickAssertions(PDO $p,callable $check):void
         public function modeledValueGoalStatus():array{throw new RuntimeException('unexpected_financial_goal_call');}
     };
     $gate=static fn(string $chat):bool=>true;$key=ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY;$uid=$row['external_user_id'];
+    $lookup->pressureBeforeIntent=$case==='late_private_pressure';
     $beforeCandidate=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=1')->fetch(PDO::FETCH_ASSOC);
     $lookup->tick=$now;$first=ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
     $firstSaved=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    if($case==='initial_private_pressure'){
+        $check('a low-headroom loaded receipt keeps the normal lookup without reserving or consuming a candidate',
+            $first['status']==='running'&&($lookup->perTick[$now][$uid]??[])===['ordinary']
+            &&$lookup->candidateCalls===0&&!array_key_exists($key,$firstSaved));
+        continue;
+    }
+    if($case==='late_private_pressure'){
+        $withoutMarker=$firstSaved;unset($withoutMarker[$key]);
+        $check('late full-intent pressure consumes only a no-replay marker with zero source transport and preserves the committed financial receipt',
+            $first['status']==='running'&&($firstSaved[$key]??null)===false&&$lookup->candidateCalls===0&&empty($lookup->perTick[$now][$uid])
+            &&$lookup->pressuredReceipt!==null&&modeledValueFailureJsonEqual($withoutMarker,$lookup->pressuredReceipt)
+            &&$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=1')->fetch(PDO::FETCH_ASSOC)===$beforeCandidate);
+        $lookup->tick=$now+300;$next=ModeledConversionValueExport::tick($p,$lookup,$api,$now+300,$gate);
+        $check('after pressure consumes the point marker the next actual300-second tick resumes ordinary lookup without retry',
+            $next['status']==='running'&&($lookup->perTick[$now+300][$uid]??[])===['ordinary']&&$lookup->candidateCalls===0);
+        continue;
+    }
     $view=ModeledConversionRetainedTrackerIdentityEvidence::projection($firstSaved[$key]??null,$frame,$row,$ns,time());
     $check('the first eligible real tick substitutes one candidate for its ordinary lookup without changing the frozen row '.$case,
         $first['status']==='running'&&($firstSaved['errors']??null)===0&&($lookup->perTick[$now][$uid]??[])===['candidate']
