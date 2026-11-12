@@ -475,6 +475,7 @@ async function open(id,options={}){
   if(switching){window.WorkspaceV2RequestProfile?.conversationChanging(target);closeEmojiPicker();closePhotoViewer(false);window.WorkspaceV2CustomerAvatar?.conversationChanging(target)}
   const seq=++openSeq,manager=Number(S.manager?.id||0),authGeneration=S.authGeneration;
   const validContext=()=>seq===openSeq&&!S.authExpired&&Number(S.manager?.id||0)===manager&&S.authGeneration===authGeneration;
+  const taskDraftBlocks=()=>options.protectTaskDraft===true&&!!window.WorkspaceV2Tasks?.blockNavigationForDirtyDraft?.();
   opening=seq;window.WorkspaceV2ReplyQueue?.sync(null);refreshEpoch++;window.WorkspaceV2History?.invalidateReads();clearHandoffContext();W.HandoffCancellation?.render($('handoffCancellation'),null);setRefreshStatus();applyInteractionState();
   if(switching&&previous)saveDraft(previous);
   setLoadStatus(switching?'Открываем диалог…':'Обновляем диалог…','loading');
@@ -493,6 +494,8 @@ async function open(id,options={}){
     restoreRetainedOpen(previous);
     setLoadStatus(switching?'Не удалось открыть диалог. Текущий диалог не изменён.':'Не удалось обновить диалог. На экране остаются предыдущие данные.','error');return false;
   }
+  // Explicit planning must not erase a task edit started while these reads waited.
+  if(taskDraftBlocks()){restoreRetainedOpen(previous);setLoadStatus();return false}
   if(switching){window.WorkspaceV2ConversationSearch?.reset();window.WorkspaceV2ConversationMaterials?.reset();window.WorkspaceV2Media?.preserveDraft?.(previous)}
   clearLifecycleIssue();accessLost=false;S.current=target;S.detail={...d,lead:null};S.detail.messages=window.WorkspaceV2History?.applyLatest(S.detail,{reset:!retainLoaded,retainLoaded})||d.messages||[];rememberSelection(target);setReplyStatus();setLoadStatus();
   window.WorkspaceV2Media?.configure(S.csrf,target);
@@ -510,11 +513,12 @@ async function open(id,options={}){
   void window.WorkspaceV2History?.recoverGap?.();
   void leadRequest.then(p=>{
     if(!validContext()||Number(S.current)!==target||Number(S.detail?.conversation?.id)!==target)return;
+    if(taskDraftBlocks())return;
     if(p?.ok){S.detail.lead=p;window.WorkspaceV2LeadCard?.render(p,S.detail.conversation)}else window.WorkspaceV2LeadCard?.renderUnavailable(S.detail.conversation);
-  }).catch(()=>{if(validContext()&&Number(S.current)===target)try{window.WorkspaceV2LeadCard?.renderUnavailable(S.detail.conversation)}catch(e){}});
+  }).catch(()=>{if(validContext()&&Number(S.current)===target&&!taskDraftBlocks())try{window.WorkspaceV2LeadCard?.renderUnavailable(S.detail.conversation)}catch(e){}});
   return true;
 }
-async function refreshLeadData({refreshInbox=false,conversationId=S.current}={}){
+async function refreshLeadData({refreshInbox=false,conversationId=S.current,protectTaskDraft=false}={}){
   const target=Number(conversationId||0),manager=Number(S.manager?.id||0),authGeneration=S.authGeneration,generation=openSeq;
   if(!target||S.authExpired)return false;
   const sameSession=()=>!S.authExpired&&Number(S.manager?.id||0)===manager&&S.authGeneration===authGeneration;
@@ -524,6 +528,7 @@ async function refreshLeadData({refreshInbox=false,conversationId=S.current}={})
   let p;try{p=await pipe('detail',{conversation_id:target},{isCurrent:response=>current()||(refreshInbox&&sameSession()&&response.ok)})}catch(e){p=null}
   if(!sameSession())return false;
   const stillCurrent=current();
+  if(stillCurrent&&protectTaskDraft===true&&window.WorkspaceV2Tasks?.blockNavigationForDirtyDraft?.())return false;
   if(!p?.ok){if(stillCurrent&&!S.detail?.lead)window.WorkspaceV2LeadCard?.renderUnavailable(S.detail.conversation);return false}
   if(stillCurrent){S.detail.lead=p;window.WorkspaceV2LeadCard?.render(p,S.detail.conversation)}
   if(refreshInbox)await window.WorkspaceV2Inbox?.load({preserveScroll:true});return stillCurrent;

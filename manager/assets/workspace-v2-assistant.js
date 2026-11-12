@@ -4,7 +4,7 @@
   if(!W||!document.body.classList.contains('manager2'))return;
   const {S,$,esc}=W;
   const labels={clarify:'Уточнить запрос',answer_question:'Ответить на вопрос',check_offer:'Проверить предложение',prepare_selection:'Подготовить подборку',no_contact:'Сейчас не писать'};
-  let owner=0,epoch=0,modal=0,dialog=null,opener=null,selected=0,cursor=null,hasMore=false,busy=false,detailTicket=0,listTicket=0,filter='all',checkedAt='',timer=null,signature='';
+  let owner=0,epoch=0,modal=0,dialog=null,opener=null,selected=0,selectionVersion=0,cursor=null,hasMore=false,busy=false,detailTicket=0,listTicket=0,filter='all',checkedAt='',timer=null,signature='';
   let rows=new Map(),pending=new Set(),statusText='',statusError=false;
   let planMode=false,workScope='mine';
   const rendered=new WeakMap();
@@ -88,11 +88,12 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
     for(const item of result.items)rows.set(Number(item.conversation_id),item);
     if(newerSelected)rows.set(Number(newerSelected.conversation_id),newerSelected);
     cursor=result.next_cursor;hasMore=!!result.has_more;checkedAt=new Date().toISOString();
-    if(selected&&!rows.has(selected))selected=0;
+    if(selected&&!rows.has(selected)){selected=0;selectionVersion++}
     status('');render();return true;
   }
   async function loadDetail(id){
     if(!authenticated())return false;
+    if(selected!==id)selectionVersion++;
     const scope=epoch,ticket=++detailTicket;selected=id;render();
     const result=await request('detail',{conversation_id:id},scope);
     if(!valid(scope)||ticket!==detailTicket||selected!==id||!dialog?.open)return false;
@@ -102,7 +103,16 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
   function reviewNeeded(item){return !item?.delivery_suspended&&!!item?.operational?.awaiting_manager_reply&&!(fresh(item)&&item.recommendation.next_action==='no_contact')}
   function arrived(item){return !!item?.operational?.due_task||(item.tasks||[]).some(t=>t.status==='open'&&(t.overdue||t.due_state==='overdue'||(t.due_at_utc&&Date.parse(String(t.due_at_utc).replace(' ','T')+(/(?:Z|[+-]\d{2}:?\d{2})$/.test(t.due_at_utc)?'':'Z'))<=Date.now())))}
   function rank(item){if(reviewNeeded(item))return 0;if(arrived(item))return 1;if(fresh(item)&&active(item.recommendation))return 2;if((item.tasks||[]).some(t=>t.status==='open'))return 3;return 4}
-  function title(item){if(reviewNeeded(item))return 'Разобрать сообщение клиента';if(fresh(item)&&item.recommendation.next_action==='no_contact')return 'Сейчас не писать';const task=(item.tasks||[]).find(t=>t.status==='open');if(task)return task.title;if(item?.delivery_suspended)return 'Клиент недоступен в MAX';return fresh(item)?labels[item.recommendation.next_action]||'Рекомендация':'Нет свежего разбора'}
+  function title(item){if(reviewNeeded(item))return 'Разобрать сообщение клиента';const task=(item.tasks||[]).find(t=>t.status==='open');if(task)return task.title;if(fresh(item)&&item.recommendation.next_action==='no_contact')return 'Сейчас не писать';if(item?.delivery_suspended)return 'Клиент недоступен в MAX';return fresh(item)?labels[item.recommendation.next_action]||'Рекомендация':'Нет свежего разбора'}
+  function workStatus(item,r){
+    if(reviewNeeded(item))return 'Есть обращение без записанного ответа';
+    if(arrived(item))return 'Наступил срок задачи';
+    if((item.tasks||[]).some(task=>task.status==='open'))return 'Есть открытая задача';
+    if(r&&['done','irrelevant'].includes(r.decision))return r.decision==='done'?'Выполнено':'Неактуально';
+    if(item.delivery_suspended)return 'Ожидание новой активности клиента';
+    if(r?.next_action==='no_contact')return 'Исходящее сообщение сейчас не нужно';
+    return r?'Свежая рекомендация':'Задачи доступны · разбора пока нет';
+  }
   function cardContext(item){const task=(item.tasks||[]).filter(t=>t.status==='open'&&t.due_at_utc).sort((a,b)=>String(a.due_at_utc).localeCompare(String(b.due_at_utc)))[0];const reason=fresh(item)?String(item.recommendation.reason||''):reviewNeeded(item)?'Есть обращение без записанного ответа':item.delivery_suspended?'Ответ станет доступен после новой активности клиента':'';return {reason,deadline:task?'Срок: '+time(task.due_at_utc)+' МСК':'Срок не назначен'};}
   function matches(item){if(filter==='tasks')return(item.tasks||[]).some(t=>t.status==='open');if(filter==='actions')return rank(item)<4;if(filter==='waiting')return fresh(item)&&item.recommendation.next_action==='no_contact';if(filter==='done')return fresh(item)&&['done','irrelevant'].includes(item.recommendation.decision);return true}
   function renderBusy(){if(!dialog)return;$('assistantRefresh').disabled=busy;$('assistantMore').disabled=busy;if($('assistantScope'))$('assistantScope').disabled=busy||pending.size>0;dialog.setAttribute('aria-busy',busy?'true':'false')}
@@ -111,7 +121,7 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
     const team=S.manager?.role==='admin'&&(!planMode||workScope==='team');$('assistantTitle').textContent=planMode?'Мой план':team?'Обзор работы владельца':'Обзор работы менеджера';$('assistantSubtitle').textContent=planMode?(team?'Действия по клиентам команды в доступных проектах':'Обращения, обещания и следующие шаги по моим клиентам'):(team?'Клиенты всей команды во всех доступных проектах':'Следующие шаги и существующие задачи по моим активным клиентам');$('assistantClose').textContent=planMode?'К диалогам':'Закрыть';$('assistantScope').parentElement.hidden=!planMode||S.manager?.role!=='admin';$('assistantScope').value=workScope;
     const items=[...rows.values()].filter(matches).sort((a,b)=>rank(a)-rank(b)||Number(b.conversation_id)-Number(a.conversation_id));
     const list=$('assistantList'),focus=document.activeElement,focusedClient=list.contains(focus)?Number(focus.dataset?.assistantClient||0):0;
-    const listChanged=renderMarkup(list,items.length?items.map(item=>{const id=Number(item.conversation_id),r=fresh(item)?item.recommendation:null,context=cardContext(item);return`<button class="assistantClient${id===selected?' isSelected':''}" type="button" data-assistant-client="${id}" aria-pressed="${id===selected}"><strong>${esc(item.display_name||'Клиент')}</strong>${team?`<small>${esc(item.project_name||item.project_key||'')} · ${esc(item.manager_name||'Без назначения')}</small>`:''}<span>${esc(title(item))}</span>${planMode?`<small class="assistantCardReason">${esc(context.reason)}</small><small>${esc(context.deadline)}</small>`:""}<small${planMode&&reviewNeeded(item)&&!r?' hidden':''}>${esc(r&&['done','irrelevant'].includes(r.decision)?r.decision==='done'?'Выполнено':'Неактуально':reviewNeeded(item)?'Есть обращение без записанного ответа':arrived(item)?'Наступил срок задачи':item.delivery_suspended?'Ожидание новой активности клиента':r?.next_action==='no_contact'?'Ожидание клиента':r?'Свежая рекомендация':'Задачи доступны · разбора пока нет')}</small></button>`}).join(''):'<p class="assistantEmpty">В загруженной части списка таких клиентов нет.</p>');
+    const listChanged=renderMarkup(list,items.length?items.map(item=>{const id=Number(item.conversation_id),r=fresh(item)?item.recommendation:null,context=cardContext(item);return`<button class="assistantClient${id===selected?' isSelected':''}" type="button" data-assistant-client="${id}" aria-pressed="${id===selected}"><strong>${esc(item.display_name||'Клиент')}</strong>${team?`<small>${esc(item.project_name||item.project_key||'')} · ${esc(item.manager_name||'Без назначения')}</small>`:''}<span>${esc(title(item))}</span>${planMode?`<small class="assistantCardReason">${esc(context.reason)}</small><small>${esc(context.deadline)}</small>`:""}<small${planMode&&reviewNeeded(item)&&!r?' hidden':''}>${esc(workStatus(item,r))}</small></button>`}).join(''):'<p class="assistantEmpty">В загруженной части списка таких клиентов нет.</p>');
     $('assistantList').querySelectorAll('[data-assistant-client]').forEach(button=>button.onclick=async()=>{const id=Number(button.dataset.assistantClient),loaded=await loadDetail(id);if(loaded&&dialog?.open&&selected===id)$(window.matchMedia?.('(max-width:767px)')?.matches?'assistantBack':'assistantConversation')?.focus()});
     if(listChanged&&focusedClient&&!focus.isConnected)(list.querySelector(`[data-assistant-client="${focusedClient}"]`)||$('assistantRefresh'))?.focus({preventScroll:true});
     $('assistantCoverage').textContent=`Показано клиентов: ${rows.size}${hasMore?' · есть ещё':''}.${checkedAt?' Обновлено '+time(checkedAt)+' МСК.':''}`;
@@ -122,8 +132,9 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
     const root=$('assistantDetail'),item=rows.get(selected),focus=document.activeElement,hadFocus=!!focus&&root.contains(focus),previousKey=rendered.get(root)?.key;
     if(!item){const changed=renderMarkup(root,'<p class="assistantEmpty">Выберите клиента, чтобы увидеть основание рекомендации и задачи.</p>',0);if(changed&&hadFocus)$('assistantClose')?.focus({preventScroll:true});return}
     const r=fresh(item)?item.recommendation:null,id=Number(item.conversation_id),suspended=!!item.delivery_suspended,tasks=(item.tasks||[]).filter(t=>t.status==='open'),blocked=pending.has(id);
-    const changed=renderMarkup(root,`<button id="assistantBack" class="assistantBack" type="button">← К списку</button><div class="assistantClientHead"><div><h3>${esc(item.display_name||'Клиент')}</h3><span>${esc(item.channel||'')} · ${esc(time(item.last_message_at))}</span>${S.manager?.role==='admin'?`<p>${esc(item.project_name||item.project_key||'')} · ${esc(item.manager_name||'Без назначения')}</p>`:''}</div><button id="assistantConversation" type="button">Открыть диалог</button></div>${suspended?`<article class="assistantUnavailable"><strong>Клиент недоступен в MAX</strong><p>${esc(item.delivery_notice||'Ответ станет доступен после новой активности клиента.')}</p></article>`:''}${reviewNeeded(item)||arrived(item)?`<article class="assistantOperational"><h4>${reviewNeeded(item)?'Обращение без записанного ответа':'Наступил срок задачи'}</h4><p>${reviewNeeded(item)?'Откройте переписку и проверьте, нужен ли ответ.':'Проверьте существующую задачу и её срок ниже.'}</p></article>`:''}${r?`<article class="assistantRecommendation"><div class="assistantKicker">Рекомендация · ${esc(labels[r.next_action]||'Следующий шаг')}</div><h4>${r.decision==='done'?'Отмечено выполненным':r.decision==='irrelevant'?'Отмечено неактуальным':r.next_action==='no_contact'?'Дождаться клиента':esc(labels[r.next_action]||'Следующий шаг')}</h4><p>${esc(r.reason)}</p>${r.checks?.length?`<ul>${r.checks.map(text=>`<li>${esc(text)}</li>`).join('')}</ul>`:''}${r.history_incomplete?'<p class="assistantWarning">В доступной истории есть пропуски. Перед действием проверьте переписку.</p>':''}<details class="assistantSource"><summary>Основание и актуальность</summary><p>По переписке до сообщения ${Number(r.latest_message_id)||'—'}. Подготовлено ${esc(time(r.prepared_at))} МСК. Действительно до ${esc(time(r.expires_at))} МСК.</p><p>Сообщений в основании: ${(r.evidence_message_ids||[]).length}. Полную переписку можно открыть в диалоге.</p></details><div class="assistantActions">${r.next_action!=='no_contact'?'<button id="assistantReply" type="button">Совет и ответ в переписке</button>':''}${item.can_decide===false?'': ['done','irrelevant'].includes(r.decision)?'<button type="button" data-assistant-decision="open">Вернуть в работу</button>':r.next_action==='no_contact'?'':`<button type="button" data-assistant-decision="done">Выполнено</button><button type="button" id="assistantPlan">Запланировать</button><button type="button" data-assistant-decision="irrelevant">Неактуально</button>`}</div></article>`:suspended?'':'<div class="assistantEmpty"><strong>Нет свежего разбора</strong><p>Это не означает, что по клиенту всё сделано. Проверьте переписку и существующие задачи.</p></div>'}<section class="assistantTasks"><h4>Задачи и напоминания</h4>${tasks.length?tasks.map(task=>`<article class="assistantTask"><strong>${esc(task.title)}</strong><span>${esc({overdue:'Просрочено',today:'Сегодня',upcoming:'Запланировано',unscheduled:'Без срока'}[task.due_state]||'Без срока')}${task.due_at_utc?' · '+esc(time(task.due_at_utc))+' МСК':''}</span><div><button type="button" data-assistant-task="${Number(task.id)}">Выполнено</button><button type="button" data-assistant-snooze="${Number(task.id)}">Перенести</button></div></article>`).join(''):'<p>Открытых задач нет.</p>'}${item.tasks_truncated?'<p>Показаны первые 50 задач. Все задачи можно открыть в карточке клиента.</p>':''}</section><div id="assistantTaskEditor"></div>`,id);
-    $('assistantBack').onclick=()=>{const old=selected;selected=0;detailTicket++;render();dialog.querySelector(`[data-assistant-client="${old}"]`)?.focus()};
+    const planAction='<button type="button" id="assistantPlan">'+(tasks.length?'Открыть задачи':'Запланировать')+'</button>';
+    const changed=renderMarkup(root,`<button id="assistantBack" class="assistantBack" type="button">← К списку</button><div class="assistantClientHead"><div><h3>${esc(item.display_name||'Клиент')}</h3><span>${esc(item.channel||'')} · ${esc(time(item.last_message_at))}</span>${S.manager?.role==='admin'?`<p>${esc(item.project_name||item.project_key||'')} · ${esc(item.manager_name||'Без назначения')}</p>`:''}</div><button id="assistantConversation" type="button">Открыть диалог</button></div>${suspended?`<article class="assistantUnavailable"><strong>Клиент недоступен в MAX</strong><p>${esc(item.delivery_notice||'Ответ станет доступен после новой активности клиента.')}</p></article>`:''}${reviewNeeded(item)||arrived(item)?`<article class="assistantOperational"><h4>${reviewNeeded(item)?'Обращение без записанного ответа':'Наступил срок задачи'}</h4><p>${reviewNeeded(item)?'Откройте переписку и проверьте, нужен ли ответ.':'Проверьте существующую задачу и её срок ниже.'}</p></article>`:''}${r?`<article class="assistantRecommendation"><div class="assistantKicker">Рекомендация · ${esc(labels[r.next_action]||'Следующий шаг')}</div><h4>${r.decision==='done'?'Отмечено выполненным':r.decision==='irrelevant'?'Отмечено неактуальным':r.next_action==='no_contact'?'Сейчас не писать':esc(labels[r.next_action]||'Следующий шаг')}</h4><p>${esc(r.reason)}</p>${r.checks?.length?`<ul>${r.checks.map(text=>`<li>${esc(text)}</li>`).join('')}</ul>`:''}${r.history_incomplete?'<p class="assistantWarning">В доступной истории есть пропуски. Перед действием проверьте переписку.</p>':''}<details class="assistantSource"><summary>Основание и актуальность</summary><p>По переписке до сообщения ${Number(r.latest_message_id)||'—'}. Подготовлено ${esc(time(r.prepared_at))} МСК. Действительно до ${esc(time(r.expires_at))} МСК.</p><p>Сообщений в основании: ${(r.evidence_message_ids||[]).length}. Полную переписку можно открыть в диалоге.</p></details><div class="assistantActions">${r.next_action!=='no_contact'?'<button id="assistantReply" type="button">Совет и ответ в переписке</button>':''}${item.can_decide===false?'': ['done','irrelevant'].includes(r.decision)?'<button type="button" data-assistant-decision="open">Вернуть в работу</button>':r.next_action==='no_contact'?planAction:`<button type="button" data-assistant-decision="done">Выполнено</button>${planAction}<button type="button" data-assistant-decision="irrelevant">Неактуально</button>`}</div></article>`:suspended?'':'<div class="assistantEmpty"><strong>Нет свежего разбора</strong><p>Это не означает, что по клиенту всё сделано. Проверьте переписку и существующие задачи.</p></div>'}<section class="assistantTasks"><h4>Задачи и напоминания</h4>${tasks.length?tasks.map(task=>`<article class="assistantTask"><strong>${esc(task.title)}</strong><span>${esc({overdue:'Просрочено',today:'Сегодня',upcoming:'Запланировано',unscheduled:'Без срока'}[task.due_state]||'Без срока')}${task.due_at_utc?' · '+esc(time(task.due_at_utc))+' МСК':''}</span><div><button type="button" data-assistant-task="${Number(task.id)}">Выполнено</button><button type="button" data-assistant-snooze="${Number(task.id)}">Перенести</button></div></article>`).join(''):'<p>Открытых задач нет.</p>'}${item.tasks_truncated?'<p>Показаны первые 50 задач. Все задачи можно открыть в карточке клиента.</p>':''}</section><div id="assistantTaskEditor"></div>`,id);
+    $('assistantBack').onclick=()=>{const old=selected;selected=0;selectionVersion++;detailTicket++;render();dialog.querySelector(`[data-assistant-client="${old}"]`)?.focus()};
     $('assistantConversation').onclick=()=>openConversation(id);
     if($('assistantReply'))$('assistantReply').onclick=()=>openAdvice(id);
     root.querySelectorAll('[data-assistant-decision]').forEach(button=>{button.disabled=blocked;button.onclick=()=>decide(item,button.dataset.assistantDecision)});
@@ -149,7 +160,7 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
     if(!authenticated())return false;
     if(protectTaskDraft())return false;
     const mobileHistory=Number(S.current)===Number(id)&&window.WorkspaceV2Mobile?.getScreen?.()==='conversation'?'none':'push';
-    if(!planMode)close({restoreFocus:false});return window.WorkspaceV2Conversation?.open(id,{preserveAttachment:true,preserveMessageScroll:true,preserveHistory:true,mobileHistory});
+    if(!planMode)close({restoreFocus:false});return window.WorkspaceV2Conversation?.open(id,{preserveAttachment:true,preserveMessageScroll:true,preserveHistory:true,protectTaskDraft:true,mobileHistory});
   }
   async function openAdvice(id){
     const scope=epoch;
@@ -162,17 +173,39 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
     if(!planMode){close();window.WorkspaceV2Tasks.blockNavigationForDirtyDraft();}return true;
   }
   async function planTask(item){
-    const id=Number(item.conversation_id),scope=epoch;
-    // Planning uses the existing task editor. No second create endpoint or hidden reminder.
-    if(!await openConversation(id)||!valid(scope)||Number(S.current)!==id)return false;
-    await window.WorkspaceV2Conversation?.refreshLeadData({conversationId:id});
-    if(!valid(scope)||Number(S.current)!==id)return false;
-    const root=$('leadTasksBody');if(!root)return false;
-    if((item.tasks||[]).some(task=>task.status==='open')){window.Manager2Presentation?.openClientCard($('conversationTitle'));root.scrollIntoView({block:'nearest'});return true}
-    const form=root.querySelector('.taskCreate'),title=root.querySelector('#leadTaskTitle');
-    if(!form||!title)return false;
-    if(!title.value&&!root.querySelector('#leadTaskDue')?.value){title.value=String(item.recommendation?.checks?.[0]||labels[item.recommendation?.next_action]||'Проверить запрос клиента').slice(0,255);title.dispatchEvent(new Event('input',{bubbles:true}))}
-    window.Manager2Presentation?.revealTaskDraft(form);title.focus();return true;
+    const id=Number(item.conversation_id),scope=epoch,revision=item.recommendation?.revision;
+    if(pending.has(id)||!fresh(item)||item.can_decide===false||['done','irrelevant'].includes(item.recommendation?.decision))return false;
+    pending.add(id);renderDetail();
+    try{
+      // Planning opens the existing editor. These reads never create a task or call a model.
+      const opening=openConversation(id),opened=modal,selection=selectionVersion;
+      if(!await opening||!valid(scope)||modal!==opened||selectionVersion!==selection||selected!==id||Number(S.current)!==id)return false;
+      const C=window.WorkspaceV2Conversation,captured=C?.captureReplyContext?.(),ticket=detailTicket,detail=S.detail;
+      if(!captured||captured.conversationId!==id)return false;
+      const current=()=>{const now=C.captureReplyContext();return valid(scope)&&modal===opened&&selectionVersion===selection&&detailTicket===ticket&&selected===id&&S.detail===detail&&Number(S.detail?.conversation?.id)===id&&['conversationId','managerId','authGeneration','openGeneration'].every(key=>now[key]===captured[key])};
+      if(!current()||protectTaskDraft())return false;
+      const refreshed=await C.refreshLeadData({conversationId:id,protectTaskDraft:true});
+      if(!current()||protectTaskDraft())return false;
+      const lead=S.detail?.lead,root=$('leadTasksBody');
+      if(refreshed!==true||!lead?.ok||!Array.isArray(lead.tasks)||(lead.degraded_components||[]).some(part=>['tasks','pipeline'].includes(part))){C.setLoadStatus?.('Не удалось получить текущие задачи. Обновите карточку перед планированием.','error');return false}
+      if(!root)return false;
+      if(lead.tasks.some(task=>task.status==='open')){window.Manager2Presentation?.openClientCard($('conversationTitle'));root.scrollIntoView({block:'nearest'});return true}
+      if(lead.can_edit_pipeline!==true||lead.pipeline?.outcome?.outcome!=='open'){C.setLoadStatus?.('Создание задачи сейчас недоступно. Проверьте состояние карточки и права.','error');return false}
+      const review=await request('detail',{conversation_id:id},scope);
+      if(!current()||S.detail.lead!==lead||protectTaskDraft())return false;
+      if(!review.ok||Number(review.item?.conversation_id)!==id||review.item.can_decide===false){C.setLoadStatus?.('Не удалось проверить актуальный доступ к планированию. Обновите диалог.','error');return false}
+      const form=root.querySelector('.taskCreate'),title=root.querySelector('#leadTaskTitle');
+      if(!form||!title)return false;
+      const recommendation=review.item.recommendation,same=fresh(review.item)&&recommendation.revision===revision&&!['done','irrelevant'].includes(recommendation.decision);
+      if(!title.value&&!root.querySelector('#leadTaskDue')?.value&&same){
+        const firstCheck=typeof recommendation.checks?.[0]==='string'?recommendation.checks[0].trim():'';
+        const proposed=firstCheck||(recommendation.next_action==='no_contact'?'':labels[recommendation.next_action]||'Проверить запрос клиента');
+        if(proposed){title.value=proposed.slice(0,255);title.dispatchEvent(new Event('input',{bubbles:true}))}
+      }
+      window.Manager2Presentation?.revealTaskDraft(form);title.focus();
+      if(!same)C.setLoadStatus?.('Рекомендация изменилась. Старый текст не перенесён в задачу.');
+      return true;
+    }finally{if(valid(scope)){pending.delete(id);if(dialog?.open&&selected===id&&!$('assistantTaskEditor')?.querySelector('form'))renderDetail()}}
   }
   function editTask(item,task){
     if(!task)return;

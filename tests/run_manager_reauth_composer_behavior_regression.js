@@ -5,7 +5,7 @@ const vm = require('node:vm');
 
 // DOM behavior only: no layout, production session, transport, or credentials.
 // App logic comes directly from the canonical production asset files.
-function createHarness({storage, managerId=7, mobile=false, sessionHistory, inbox=false,replyQueue=false} = {}) {
+function createHarness({storage, managerId=7, mobile=false, sessionHistory, inbox=false,replyQueue=false,tasks=false} = {}) {
 if(!storage){const values=new Map();storage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)}}
 const ids = new Map();
 class Element {
@@ -59,6 +59,7 @@ class Element {
   remove() { this._harnessRoot=false;if(this.parentNode){const siblings=this.parentNode.children;siblings.splice(siblings.indexOf(this),1);this.parentElement=null;} }
   replaceChildren(...children) { for(const node of [...this.children])node.remove();this._text='';for(const node of children)this.appendChild(node); }
   matches(selector) {
+    const excluded=[...selector.matchAll(/:not\(([^)]+)\)/g)];if(excluded.some(([,part])=>this.matches(part)))return false;selector=selector.replace(/:not\([^)]+\)/g,'');
     const tag=selector.match(/^[a-z]+/i)?.[0],id=selector.match(/#([\w-]+)/)?.[1];
     if(tag && this.tagName!==tag.toUpperCase() || id && this.id!==id)return false;
     if([...selector.matchAll(/\.([\w-]+)/g)].some(m=>!this.classList.contains(m[1])))return false;
@@ -135,7 +136,7 @@ const history=sessionHistory||{entries:[null],index:0,get state(){return this.en
 history.listener=async state=>{const handler=events.get('popstate');if(handler)await handler({state})};
 const reloads=[];
 const context = vm.createContext({window,document,fetch,location:{pathname:'/manager/',search:'',hash:'',href:'https://example.invalid/manager/',reload:()=>reloads.push(history.state)},history,setTimeout:()=>0,setInterval:(fn,ms)=>{timers.push({fn,ms});return timers.length},console,sessionStorage:storage,localStorage:storage});
-for (const file of ['manager-time.js','workspace-v2.js','workspace-v2-conversation.js',...(inbox?['workspace-v2-inbox.js']:[]),...(mobile?['workspace-v2-mobile.js']:[]),...(replyQueue?['workspace-v2-reply-queue.js']:[])]) vm.runInContext(fs.readFileSync(path.join(__dirname,'../manager/assets',file),'utf8'),context,{filename:file});
+for (const file of ['manager-time.js','workspace-v2.js','workspace-v2-conversation.js',...(inbox?['workspace-v2-inbox.js']:[]),...(mobile?['workspace-v2-mobile.js']:[]),...(replyQueue?['workspace-v2-reply-queue.js']:[]),...(tasks?['workspace-v2-tasks.js']:[])]) vm.runInContext(fs.readFileSync(path.join(__dirname,'../manager/assets',file),'utf8'),context,{filename:file});
 
 const W=window.WorkspaceV2,C=window.WorkspaceV2Conversation;
 async function start({open=true}={}){await W.boot();if(open)await C.open(101);}
@@ -151,6 +152,60 @@ const cases=[];
 function test(name,run){cases.push({name,run});}
 function hidden(h){return h.ids.get('composer').classList.contains('hidden');}
 function assertNoMutations(h){assert.equal(h.calls.some(r=>['send','take','release','close','reopen'].includes(r.action)),false);}
+
+// Use the real Conversation and Tasks owners. The card renderer deliberately
+// replaces its children, so a post-render check cannot pass as draft protection.
+function mountTaskDraft(h,kind){
+  let root=h.ids.get('leadCard');if(!root){root=h.document.createElement('section');root.id='leadCard';h.document.body.appendChild(root)}
+  const form=h.document.createElement('div'),title=h.document.createElement('input'),due=h.document.createElement('input');form.className=kind==='edit'?'taskEditForm':'taskCreate';
+  if(kind==='edit'){title.dataset.taskEditTitle='';due.dataset.taskEditDue='';title.value='Исходная задача';due.value='2026-12-01T10:00';form._taskEditIsDirty=()=>title.value!=='Исходная задача'||due.value!=='2026-12-01T10:00';form._taskEditWarn=()=>{};}
+  else{title.id='leadTaskTitle';due.id='leadTaskDue';}
+  form.appendChild(title);form.appendChild(due);root.replaceChildren(form);
+  return{root,form,title,due,dirty(){title.value='Ручная правка во время чтения';due.value='2026-12-02T11:45'}};
+}
+async function taskDraftHarness(kind){
+  const h=createHarness({tasks:true});await h.start();await new Promise(setImmediate);
+  h.document.querySelector=selector=>h.document.querySelectorAll(selector)[0]||null;
+  const draft=mountTaskDraft(h,kind),effects={checks:0,renders:0,unavailable:0};
+  const canonicalGuard=h.window.WorkspaceV2Tasks.blockNavigationForDirtyDraft;h.window.WorkspaceV2Tasks.blockNavigationForDirtyDraft=()=>{effects.checks++;return canonicalGuard()};
+  h.window.WorkspaceV2LeadCard={render(){effects.renders++;draft.root.innerHTML='<p id="appliedTaskRead">Обновлённая карточка</p>'},renderUnavailable(){effects.unavailable++;draft.root.innerHTML='<p id="unavailableTaskRead">Карточка недоступна</p>'}};
+  const file={name:'keep-task-edit.txt'};h.setFile(file);await h.draft('Незаконченный ответ туристу');
+  return{...h,taskDraft:draft,effects,file};
+}
+function taskReadsOnly(h,offset){assert.ok(h.calls.slice(offset).every(call=>call.action==='detail'&&['api.php','pipeline-api.php'].includes(call.url)),'Only existing canonical reads; no task or message write');}
+function assertTaskDraftRetained(h,draft,detail,lead){
+  assert.equal(draft.form.isConnected,true);assert.equal(draft.root.firstChild,draft.form);assert.equal(draft.title.value,'Ручная правка во время чтения');assert.equal(draft.due.value,'2026-12-02T11:45');
+  assert.equal(h.W.S.detail,detail);assert.equal(h.W.S.detail.lead,lead);assert.equal(h.ids.get('replyText').value,'Незаконченный ответ туристу');assert.equal(h.getFile(),h.file);
+}
+for(const kind of ['edit','create'])for(const target of [101,102])test('task draft protected open retains '+kind+' form while opening '+(target===101?'the same':'another')+' conversation',async()=>{
+  const h=await taskDraftHarness(kind),primary=deferred(),secondary=deferred(),entered=deferred(),offset=h.calls.length,detail=h.W.S.detail,lead=detail.lead;
+  h.setHook((url,r)=>{if(r.action!=='detail')return null;if(url==='api.php'){entered.resolve();return primary.promise}if(url==='pipeline-api.php')return secondary.promise;});
+  const opening=h.C.open(target,{protectTaskDraft:true,preserveAttachment:true});await entered.promise;h.taskDraft.dirty();const checks=h.effects.checks;
+  primary.resolve(response({ok:true,conversation:{...h.conversation,id:target},messages:[]}));const result=await opening;
+  secondary.resolve(response({ok:true,tasks:[]}));await new Promise(setImmediate);
+  assert.equal(result,false);assert.equal(h.W.S.current,101);assert.ok(h.effects.checks>checks,'The canonical guard runs after the primary read');assert.equal(h.effects.renders,0);assert.equal(h.effects.unavailable,0);assertTaskDraftRetained(h,h.taskDraft,detail,lead);assert.equal(h.ids.get('conversationLoadStatus').textContent,'');taskReadsOnly(h,offset);
+});
+for(const kind of ['edit','create'])test('task draft protected refresh retains '+kind+' form before changing snapshot or DOM',async()=>{
+  const h=await taskDraftHarness(kind),gate=deferred(),entered=deferred(),offset=h.calls.length,detail=h.W.S.detail,lead=detail.lead;
+  h.setHook((url,r)=>{if(url==='pipeline-api.php'&&r.action==='detail'){entered.resolve();return gate.promise}return null});
+  const refreshing=h.C.refreshLeadData({conversationId:101,protectTaskDraft:true});await entered.promise;h.taskDraft.dirty();const checks=h.effects.checks;gate.resolve(response({ok:true,tasks:[{id:42,status:'open',title:'Новая серверная задача'}]}));
+  assert.equal(await refreshing,false);assert.ok(h.effects.checks>checks,'The canonical guard runs after the task read');assert.equal(h.effects.renders,0);assert.equal(h.effects.unavailable,0);assertTaskDraftRetained(h,h.taskDraft,detail,lead);taskReadsOnly(h,offset);
+});
+for(const ok of [true,false])test('task draft protected late initial lead '+(ok?'success':'failure')+' cannot erase a new edit after another refresh',async()=>{
+  const h=await taskDraftHarness('edit'),late=deferred(),entered=deferred(),offset=h.calls.length;let leadReads=0;
+  h.setHook((url,r)=>{if(url==='pipeline-api.php'&&r.action==='detail'&&++leadReads===1){entered.resolve();return late.promise}return null});
+  assert.equal(await h.C.open(101,{protectTaskDraft:true,preserveAttachment:true}),true);await entered.promise;
+  assert.equal(await h.C.refreshLeadData({conversationId:101,protectTaskDraft:true}),true);
+  const draft=mountTaskDraft(h,'edit');draft.dirty();const detail=h.W.S.detail,lead=detail.lead,renders=h.effects.renders,checks=h.effects.checks;
+  late.resolve(response(ok?{ok:true,tasks:[{id:7,status:'open'}]}:{ok:false,error:'unavailable'}));await new Promise(setImmediate);
+  assert.ok(h.effects.checks>checks);assert.equal(h.effects.renders,renders);assert.equal(h.effects.unavailable,0);assertTaskDraftRetained(h,draft,detail,lead);taskReadsOnly(h,offset);
+});
+for(const operation of ['open','refresh'])for(const protectedRead of [true,false])test('task draft '+operation+' preserves '+(protectedRead?'the clean opt-in flow':'the default mutation-refresh behavior'),async()=>{
+  const h=await taskDraftHarness('edit'),offset=h.calls.length;if(!protectedRead)h.taskDraft.dirty();
+  const result=operation==='open'?await h.C.open(101,{preserveAttachment:true,...(protectedRead?{protectTaskDraft:true}:{})}):await h.C.refreshLeadData(protectedRead?{protectTaskDraft:true}:{});await new Promise(setImmediate);
+  assert.equal(result,true);assert.equal(h.effects.renders,1);assert.equal(h.effects.unavailable,0);assert.equal(h.W.S.current,101);assert.equal(h.ids.get('replyText').value,'Незаконченный ответ туристу');assert.equal(h.getFile(),h.file);
+  if(protectedRead)assert.ok(h.effects.checks>0);else assert.equal(h.effects.checks,0,'The new barrier is opt-in');taskReadsOnly(h,offset);
+});
 
 test('explicit logout sends canonical CSRF once, revokes pending work and clears reply continuity before navigation',async()=>{
   const h=createHarness();await h.start();await h.draft('Private unsent reply');h.setFile({name:'private.pdf'});
@@ -458,5 +513,6 @@ for(const mode of ['navigation','new-session'])test('late rejected send cannot p
   assert.notEqual(h.W.S.detail.delivery_failure?.message,'Stale refusal');
 });
 
-module.exports={createHarness,response,deferred,hidden,assertNoMutations};
-if(require.main===module)(async()=>{let failed=0;for(const item of cases){try{await item.run();console.log('PASS '+item.name)}catch(e){failed++;console.error('FAIL '+item.name+'\n'+e.stack)}}console.log(`TOTAL ${cases.length} | FAIL ${failed}`);process.exitCode=failed?1:0})()
+async function run({taskDraftOnly=false}={}){const selected=taskDraftOnly?cases.filter(item=>item.name.startsWith('task draft ')):cases;let failed=0;for(const item of selected){try{await item.run();console.log('PASS '+item.name)}catch(e){failed++;console.error('FAIL '+item.name+'\n'+e.stack)}}console.log(`TOTAL ${selected.length} | FAIL ${failed}`);return failed}
+module.exports={createHarness,response,deferred,hidden,assertNoMutations,run};
+if(require.main===module)run({taskDraftOnly:process.argv.includes('--task-draft-only')}).then(failed=>{process.exitCode=failed?1:0}).catch(error=>{console.error(error.stack);process.exitCode=1});

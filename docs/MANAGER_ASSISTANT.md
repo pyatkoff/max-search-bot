@@ -2,7 +2,7 @@
 
 The Manager2 rail opens one assistant. Ordinary employees see their active assigned clients; the existing active administrator role opens the workspace owner's team view across all currently accessible projects, including unassigned waiting clients. The conversation toolbar opens the same client recommendation. Both paths read the same prepared proposal; opening the assistant never generates a reply, reads media/selection links, changes unread state, or sends a customer message.
 
-The feed prioritizes the full freshly authorized own-active scope before paging (20 per page), independent of the Inbox's capped candidate set. Canonical unanswered-manager-response facts come first, then arrived existing open tasks assigned to the actual owner (or unassigned), then other clients; conversation ID is the stable tie-breaker. Callback/start-only entries are not new human questions. Future/completed/foreign tasks do not become arrived work. Sorting and filters describe the loaded part of the feed. An absent or expired proposal means **no fresh analysis**, not that all work is complete. The existing preparation collector is not an analysis of every client. A `no_contact` result is displayed as waiting, with no automatic due date or new reminder.
+The feed prioritizes the full freshly authorized own-active scope before paging (20 per page), independent of the Inbox's capped candidate set. Canonical unanswered-manager-response facts come first, then arrived existing open tasks assigned to the actual owner (or unassigned), then other clients; conversation ID is the stable tie-breaker. Callback/start-only entries are not new human questions. Future/completed/foreign tasks do not become arrived work. Sorting and filters describe the loaded part of the feed. An absent or expired proposal means **no fresh analysis**, not that all work is complete. The existing preparation collector is not an analysis of every client. A `no_contact` result says that no new outgoing message is needed; it does not establish that the next action belongs to the customer. It assigns no automatic due date or reminder.
 
 An active MAX delivery suspension removes automatic reply/SLA urgency from the
 Inbox and Assistant. The client remains available to its authorized viewers with
@@ -29,6 +29,36 @@ Prepared proposals retain the canonical one-hour TTL and all content, instructio
 `Выполнено`, `Неактуально` and `Вернуть в работу` change only private assistant decision metadata in migration048. Decisions are bound to the precise proposal and context, so a new analysis does not inherit an old dismissal. Compare-and-set state protects conflicting actions; an unknown response is reconciled by a read, never by automatically repeating a write.
 
 Task completion and deadline changes delegate to the existing Pipeline/LeadTask service. Scheduling a recommendation opens the current client's canonical task editor. Existing open tasks are shown first; no second reminder delivery system or automatic task creation exists. An unfinished task/reply/file remains under its existing draft owner.
+
+The assigned manager may explicitly plan internal work from a current
+`no_contact` recommendation, including an already promised calculation. This
+does not expose a reply/send action or mark the recommendation completed. An
+existing open task keeps its own title and open/due status even when the AI says
+not to send, or its separate recommendation decision is marked done. The action
+filter and ranking stay unchanged: `no_contact` alone is not evidence of work.
+
+Planning reopens the canonical conversation and reads its full current task
+card, instead of relying on the older, filtered assistant task list. A failed or
+degraded task/pipeline read never proves that there are no tasks. An existing
+open task opens that card; a new editor requires current edit rights and an open
+sales outcome. Before copying a recommendation check into an empty editor, the
+existing assistant detail is read again and must have the same unexpired
+revision. A changed or missing recommendation opens an empty editor without
+copying old advice; existing manual title/deadline values remain untouched.
+For `no_contact` with no check, the title stays empty rather than becoming
+"Сейчас не писать". The manager chooses any deadline and explicitly saves.
+
+Account, conversation/open generation, current transcript/detail and assistant
+navigation fences reject late planning reads. The Assistant enables the canonical
+Conversation `protectTaskDraft` option: after each open/card read, a dirty create
+or existing-task edit blocks replacement of the detail or card DOM before it
+can erase the draft. This also guards a late initial card response after a newer
+card is already visible. Other callers keep their existing refresh behavior.
+A task draft typed while a read was pending stays with the canonical draft owner.
+Planning never saves, sends
+or automatically repeats a write. Showing current existing tasks is a UI guard,
+not server-side deduplication of promises. Automatic promise identity, trip
+binding and fulfillment evidence remain a separate future contract.
 
 The read endpoint is `manager/assistant-api.php`, using ManagerHttp authentication and CSRF. UI lives in `workspace-v2-assistant.js` and its stylesheet, loaded only by Manager2. The legacy workspace retains its existing assets. The service exposes at most50 open tasks per client and reports truncation; the full task card remains canonical.
 
