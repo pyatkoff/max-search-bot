@@ -135,7 +135,7 @@ final class ModeledConversionValueDeliveryReader
                 'identity_counts_are_stored_resolution_not_a_new_scope_check'=>true,
                 'conversations_are_not_verified_people_or_trips'=>true,'per_upload_visit_match_verified'=>false,'reporting_can_lag'=>true,'no_ids_or_text_returned'=>true];
             $out['price_continuity_audit']=$this->priceAudit($receipt['price_continuity_audit']??null,$now);
-            $out['repair_assessments']=$this->repairAssessments($now,$receipt['identity_resolution_evidence']??null,$receipt['finite_visit_evidence']??null,$receipt['finite_visit_recovery']??null,$receipt['receipt_poll_evidence']??null,$receipt['fixed_pair_operational_decisions']??null,$out['last_tick_at']===null?0:$tick,$receipt['finite_counter_scope_evidence']??null,$receipt['finite_retained_app_identity']??null,$receipt['finite_retained_tracker_candidate']??null);
+            $out['repair_assessments']=$this->repairAssessments($now,$receipt['identity_resolution_evidence']??null,$receipt['finite_visit_evidence']??null,$receipt['finite_visit_recovery']??null,$receipt['receipt_poll_evidence']??null,$receipt['fixed_pair_operational_decisions']??null,$out['last_tick_at']===null?0:$tick,$receipt['finite_counter_scope_evidence']??null,$receipt['finite_retained_app_identity']??null,$receipt['finite_retained_tracker_candidate']??null,(class_exists(ModeledConversionRetainedTrackerIdentityEvidence::class)&&is_array($receipt)?array_intersect_key($receipt,array_flip(ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS)):[]));
             $out['predictive_v1']=$this->predictiveV1($now);
             return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}
@@ -146,7 +146,7 @@ final class ModeledConversionValueDeliveryReader
 
 
     /** All saved current-namespace repairs and their own new increments; no reclassification or provider call. */
-    public function repairAssessments(int $now,mixed $identityAudit=null,mixed $visitFrame=null,mixed $recoveryJournal=null,mixed $pollAudit=null,mixed $pairAudit=null,int $lastTick=0,mixed $counterScopeAudit=null,mixed $retainedAppAudit=null,mixed $retainedTrackerAudit=null):array
+    public function repairAssessments(int $now,mixed $identityAudit=null,mixed $visitFrame=null,mixed $recoveryJournal=null,mixed $pollAudit=null,mixed $pairAudit=null,int $lastTick=0,mixed $counterScopeAudit=null,mixed $retainedAppAudit=null,mixed $retainedTrackerAudit=null,mixed $knownTrackerAudits=null):array
     {
         $this->budget->check();
         if($this->budget->remainingBytes()<16384)return ['available'=>false,'reason'=>'budget_headroom'];
@@ -257,6 +257,7 @@ final class ModeledConversionValueDeliveryReader
             $out['finite_counter_scope_evidence']=$this->counterScopeObservation($counterScopeAudit,$visitFrame,$out['finite_visit_evidence'],$namespace,$now);
             $out['retained_identity']=$this->retainedAppObservation($retainedAppAudit,$visitFrame,$out['finite_visit_evidence'],$namespace,$now);
             $out['retained_tracker_candidate']=$this->retainedTrackerObservation($retainedTrackerAudit,$visitFrame,$out['finite_visit_evidence'],$namespace,$now);
+            $out['retained_known_identities']=$this->knownTrackerObservation($knownTrackerAudits,$visitFrame,$namespace,$now);
             $out['retained_native_identity_evidence']=$this->retainedNativeIdentity($out['finite_visit_evidence'],$namespace,$now);
             $out['receipt_poll_evidence']=class_exists(ModeledConversionReceiptPollEvidence::class)
                 ?ModeledConversionReceiptPollEvidence::projection($pollAudit,$now):['available'=>false,'reason'=>'poll_helper_unavailable','provider_requests_in_reader'=>0];
@@ -354,6 +355,22 @@ final class ModeledConversionValueDeliveryReader
             &&($row['candidate_sha256']??null)===null)$missing[]=$row['event_ref'];
         if(count($missing)!==1||!isset($this->boundFiniteRows[$missing[0]]))return $fail('original_binding_unavailable');
         return ModeledConversionRetainedTrackerIdentityEvidence::projection($audit,$original,$this->boundFiniteRows[$missing[0]],$namespace,$now);
+    }
+
+
+    private function knownTrackerObservation(mixed $audits,mixed $frame,string $ns,int $now):array
+    {
+        if(!class_exists(ModeledConversionRetainedTrackerIdentityEvidence::class))return ['available'=>false,'reason'=>'helper_unavailable','financial_permission'=>false];
+        $rows=[];
+        foreach($this->boundFiniteRows as$row){
+            $b=ModeledConversionRetainedTrackerIdentityEvidence::knownBinding($frame,$row,$ns,$now);if($b===null)continue;
+            $v=ModeledConversionRetainedTrackerIdentityEvidence::knownProjection(is_array($audits)?($audits[$b['key']]??null):null,$frame,$row,$ns,$now);
+            $rows[]=[$b['index'],$v['status']??$v['reason']??'unavailable',$v['kind']??null,$v['held_value_match']??null,
+                $v['source_checked_at_unix']??null,$v['recorded_click_at_unix']??null,$v['prefix_rows']??null,$v['postevent_rows']??null];
+        }
+        return count($rows)===2?['available'=>true,'columns'=>['case','status','kind','held_value_match','checked','recorded_click','prefix_rows','postevent_rows'],
+            'rows'=>$rows,'financial_permission'=>false]:
+            ['available'=>false,'reason'=>'original_known_bindings_unavailable','financial_permission'=>false];
     }
 
     /** Original accepted repair cohort, saved ledger metadata only; never a provider poll. */

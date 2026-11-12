@@ -247,8 +247,8 @@ final class ModeledConversionForecastStatusReader
                 if($bytes($out)>28000&&isset($out['value_delivery'][$key]))
                     $out['value_delivery'][$key]=['available'=>false,'reason'=>'response_budget'];
         }
-        if(isset($out['value_delivery']['repair_assessments']['retained_tracker_candidate']))
-            foreach(['retained_tracker_candidate','retained_identity']as$key)
+        if(isset($out['value_delivery']['repair_assessments']['retained_tracker_candidate'])||isset($out['value_delivery']['repair_assessments']['retained_known_identities']))
+            foreach(['retained_known_identities','retained_tracker_candidate','retained_identity']as$key)
                 if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments'][$key]))
                     $out['value_delivery']['repair_assessments'][$key]=['available'=>false,'reason'=>'response_budget','financial_permission'=>false];
         if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments']['processing_frontier']))
