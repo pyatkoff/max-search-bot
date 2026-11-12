@@ -1,0 +1,82 @@
+[
+  {
+    "hotel_id": 948,
+    "aliases": [
+      "Adalya Bliss",
+      "ADALYA BLISS (EX. ADALYA RESORT & SPA) ADULTS ONLY"
+    ],
+    "logical_id": "commercial-hotel-948-v1",
+    "expected_text_sha256": "1dc3cb85edbb2dd3a7dcfb690fd55c9799b43bf2591b1423721c42a6a7b928ad",
+    "scope": "same_original_batch8_candidate_preflight"
+  },
+  {
+    "hotel_id": 213,
+    "aliases": [
+      "SUNRISE Serano Aqua Park Resort",
+      "SUNRISE SERANO AQUA PARK RESORT (EX. SUNRISE RIVIERA AQUA PARK)"
+    ],
+    "logical_id": "commercial-hotel-213-v1",
+    "expected_text_sha256": "505a8a3ef88ff6709e93d1bd7f5f175e702052463f4cf73c4845fc4aa9b0e351",
+    "scope": "same_original_batch8_candidate_preflight"
+  },
+  {
+    "hotel_id": 7938,
+    "aliases": [
+      "Khaolak Emerald Beach Resort & Spa",
+      "KHAOLAK EMERALD BEACH RESORT & SPA"
+    ],
+    "logical_id": "commercial-hotel-7938-v1",
+    "expected_text_sha256": "2cd1eaea94b532e3a469cfd7c3e4846bd3b124c9e537186ac198da7d3de67342",
+    "scope": "same_original_batch8_candidate_preflight"
+  },
+  {
+    "hotel_id": 1530,
+    "aliases": [
+      "Sunis Evren Beach Resort & Spa",
+      "SUNIS EVREN BEACH RESORT & SPA"
+    ],
+    "logical_id": "commercial-hotel-1530-v1",
+    "expected_text_sha256": "f2e3d3f3bf5d637bef52b4d66cb4877fa693c69006646f84691e543b5fcabac8",
+    "scope": "same_original_batch8_candidate_preflight"
+  },
+  {
+    "hotel_id": 818,
+    "aliases": [
+      "Thavorn Palm Beach Resort",
+      "THAVORN PALM BEACH RESORT"
+    ],
+    "logical_id": "commercial-hotel-818-v1",
+    "expected_text_sha256": "9eb6a934ebf3e30528ddf98ca7d23ea51db67c1ed0e9203418a55c1d9c665071",
+    "scope": "same_original_batch8_candidate_preflight"
+  },
+  {
+    "hotel_id": 2569,
+    "aliases": [
+      "Al Habtoor Grand Resort, Autograph Collection",
+      "AL HABTOOR GRAND RESORT AUTOGRAPH COLLECTION"
+    ],
+    "logical_id": "commercial-hotel-2569-v1",
+    "expected_text_sha256": "e08c939df60d20f55d75c1cb04059a78a81201d8822a8b3a14502fa751e88045",
+    "scope": "same_original_batch8_candidate_preflight"
+  },
+  {
+    "hotel_id": 68661,
+    "aliases": [
+      "Mövenpick Resort Cam Ranh",
+      "MOVENPICK RESORT CAM RANH"
+    ],
+    "logical_id": "commercial-hotel-68661-v1",
+    "expected_text_sha256": "90746c56b833d38e6b51c51afe469719e2437dc3af3d5f88f00fc6463280345a",
+    "scope": "same_original_batch8_candidate_preflight"
+  },
+  {
+    "hotel_id": 1112,
+    "aliases": [
+      "Megasaray Club Belek",
+      "MEGASARAY CLUB BELEK"
+    ],
+    "logical_id": "commercial-hotel-1112-v1",
+    "expected_text_sha256": "bcaa05b5a306ecc15bf2b7ec5e59dd3e2535cf243ecf7e98fd4f6810170a7551",
+    "scope": "same_original_batch8_candidate_preflight"
+  }
+]
