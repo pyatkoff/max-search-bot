@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require_once __DIR__.'/run_modeled_conversion_early_forecast_regression.php';
+require_once __DIR__.'/run_modeled_conversion_value_export_regression.php';
 require_once dirname(__DIR__).'/services/ModeledConversionPredictionFollowup.php';
 require_once dirname(__DIR__).'/services/ModeledConversionForecastStatusReader.php';
 require_once dirname(__DIR__).'/services/MetrikaOfflineClient.php';
@@ -862,6 +863,7 @@ function forecastV1Assertions(PDO $p,callable $check):void
     forecastProcessingFrontierAssertions($p,$check,$retainedPositive);
     forecastInputDiagnosisAssertions($p,$check);
     forecastPredictiveValueAssertions($p,$check);
+    forecastRetainedTrackerTickAssertions($p,$check);
 }
 
 function forecastInputDiagnosisAssertions(PDO $p,callable $check):void
@@ -2823,14 +2825,14 @@ function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $ori
     };
     $trackerWorker=new ModeledConversionValueExport($p);
     foreach(['finiteFrame'=>$original,'finiteRows'=>[$original['r'][0][0]=>$row],
-        'ordinaryLookupUsers'=>array_merge([$row['external_user_id']],array_map(static fn(int $n):string=>(string)(850000+$n),range(1,23)))]as$prop=>$value)
+        'ordinaryLookupUsers'=>array_map(static fn(int $n):string=>(string)(850000+$n),range(1,24))]as$prop=>$value)
         (new ReflectionProperty($trackerWorker,$prop))->setValue($trackerWorker,$value);
     $trackerPhase=new ReflectionMethod($trackerWorker,'runRetainedTrackerEvidence');
     $outboxBefore=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
     $trackerPhase->invoke($trackerWorker,$transport,$now,static fn(string $chat):bool=>true);
     $shared=json_decode($p->query("SELECT last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetchColumn(),true,32,JSON_THROW_ON_ERROR);
     $check('no optional tracker transport or intent may exceed the shared25 lookup budget',$transport->reads===0&&!array_key_exists($trackerKey,$shared));
-    (new ReflectionProperty($trackerWorker,'ordinaryLookupUsers'))->setValue($trackerWorker,[$row['external_user_id']]);
+    (new ReflectionProperty($trackerWorker,'ordinaryLookupUsers'))->setValue($trackerWorker,[]);
     $p->prepare("UPDATE max_channel_conversion_outbox SET state='ready' WHERE id=?")->execute([$row['id']]);
     $trackerPhase->invoke($trackerWorker,$transport,$now,static fn(string $chat):bool=>true);
     $check('post-financial advancement prevents a tracker observation without changing the original delivery row',$transport->reads===0);
@@ -2845,7 +2847,7 @@ function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $ori
     $unknownTracker=$trackerSaved;$unknownTracker[$trackerKey]=ModeledConversionRetainedTrackerIdentityEvidence::intent($original,$row,$ns,str_repeat('a',64),$now);
     $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode($unknownTracker,JSON_THROW_ON_ERROR)]);
     $againTracker=new ModeledConversionValueExport($p);
-    foreach(['finiteFrame'=>$original,'finiteRows'=>[$original['r'][0][0]=>$row],'ordinaryLookupUsers'=>[$row['external_user_id']]]as$prop=>$value)
+    foreach(['finiteFrame'=>$original,'finiteRows'=>[$original['r'][0][0]=>$row],'ordinaryLookupUsers'=>[]]as$prop=>$value)
         (new ReflectionProperty($againTracker,$prop))->setValue($againTracker,$value);
     $trackerPhase->invoke($againTracker,$transport,$now+1,static fn(string $chat):bool=>true);
     $check('a consumed tracker UNKNOWN cannot repackage the old count or app request as a retry',$transport->reads===2);
@@ -3058,6 +3060,69 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $reta
         !$oversize['available']&&$oversize['reason']==='packet_budget'&&!isset($oversize['rows']));
 }
 
+
+
+/** A real sender tick with counted transports; source candidates never duplicate a subject lookup in that tick. */
+function forecastRetainedTrackerTickAssertions(PDO $p,callable $check):void
+{
+    modeledValueSchema($p);
+    foreach(['assessment_namespace CHAR(64)','assessment_kind VARCHAR(8)','journal_cursor BIGINT DEFAULT 0']as$column)
+        $p->exec('ALTER TABLE modeled_conversion_profile_versions ADD COLUMN '.$column);
+    $ns=ModeledConversionProfiles::assessmentNamespace();$born=ModeledConversionValueVisitEvidence::CHECKPOINT-120;$now=time()-10;
+    for($id=1;$id<=3;$id++){
+        modeledValueBinding($p,$id);
+        $p->prepare("INSERT INTO modeled_conversion_profile_versions(id,project_key,platform,customer_key,conversation_id,observed_at_unix,profile_json,assessment_namespace,assessment_kind) VALUES(?,'anytour','max',?,?,?,'{\"access_status\":\"allowed\"}',?,'repair')")
+            ->execute([$id,(string)$id,$id,$born,$ns]);
+        $p->prepare("INSERT INTO max_channel_conversion_outbox(id,project_key,platform,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,value_rub,value_profile_id,value_stage,value_contract,identity_source_key,state,next_attempt_unix) VALUES(?,'anytour','max',?,?,'98615635',?,?,?,?,?,'specific_request',?,'max_tracker','pending',?)")
+            ->execute([$id,$id,(string)(70000+$id),ModeledConversionValueContract::predictionKey((string)$id),ModeledConversionValueContract::TARGET,$born,500,$id,ModeledConversionValueContract::VERSION,$id===1?0:$now+10000]);
+    }
+    $rows=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);$row=$rows[0];
+    $frame=['v'=>ModeledConversionValueVisitEvidence::VERSION,'n'=>$ns,'b'=>ModeledConversionValueVisitEvidence::CHECKPOINT,'r'=>[]];
+    foreach($rows as$i=>$r)$frame['r'][]=[ModeledConversionValueIdentityEvidence::reference($r,$ns),(string)$r['id'],2,null,$now-20,$i===0?3:8,null,null,null,null,0,null,0,null,0,$born];
+    $appIntent=ModeledConversionRetainedAppIdentityEvidence::intent($frame,$row,$ns,$now-10);
+    $app=ModeledConversionRetainedAppIdentityEvidence::complete($appIntent,$frame,$row,$ns,[3,$now-10,0,null,null,0,null,null,null,null,null,null],$now);
+    $base=['errors'=>0,'finite_visit_evidence'=>$frame,'finite_visit_recovery'=>false,'finite_counter_scope_evidence'=>false,
+        ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY=>$app,'metrika_report'=>['status'=>'unavailable']];
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET mode='send',goal_id='678187097',goal_intent='verified',activated_at_unix=?,profile_cursor=3,contract_version=?,last_tick_unix=?,last_receipt_json=? WHERE project_key='anytour'")
+        ->execute([$born-60,ModeledConversionValueContract::VERSION,$now-5,json_encode($base,JSON_THROW_ON_ERROR)]);
+    $lookup=new class($p) {
+        public int $tick=0;public array $perTick=[];public int $candidateCalls=0;public bool $durable=true;
+        public function __construct(private PDO $p){}
+        private function counted(string $uid,string $kind):void{$this->perTick[$this->tick][$uid][]=$kind;}
+        public function lookup(string $counter,array $users):array{foreach($users as$uid)$this->counted($uid,'ordinary');return [];}
+        public function retainedClickCandidate(array $context,callable $beforeRequest):?array{
+            $hash=str_repeat('a',64);if(!$beforeRequest($hash))return null;
+            $this->counted($context['user_id'],'candidate');$this->candidateCalls++;
+            $s=$this->p->query("SELECT last_tick_unix,last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetch(PDO::FETCH_ASSOC);
+            $r=json_decode($s['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);$key=ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY;
+            $this->durable=$this->durable&&(int)$s['last_tick_unix']===$this->tick&&($r['errors']??null)===0&&($r[$key]['s']??null)===1;
+            return ['request_sha256'=>$hash,'result'=>[1,$this->tick,1,0,2,str_repeat('d',64),'1',str_repeat('c',64),$context['event_at_unix']-10],'received_at_unix'=>$this->tick];
+        }
+    };
+    $api=new class {
+        public int $posts=0;
+        public function modeledValueReport(int $activated,int $at):array{return ['status'=>'unavailable'];}
+        public function modeledValueGoalStatus():array{throw new RuntimeException('unexpected_financial_goal_call');}
+    };
+    $gate=static fn(string $chat):bool=>true;$key=ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY;$uid=$row['external_user_id'];
+    $lookup->tick=$now;$first=ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
+    $firstSaved=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    $check('a real due tick performs one ordinary subject lookup and consumes no optional tracker intent',
+        $first['status']==='running'&&($firstSaved['errors']??null)===0&&($lookup->perTick[$now][$uid]??[])===['ordinary']
+        &&$lookup->candidateCalls===0&&!array_key_exists($key,$firstSaved));
+    $afterDue=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=1')->fetch(PDO::FETCH_ASSOC);
+    $lookup->tick=$now+1;$second=ModeledConversionValueExport::tick($p,$lookup,$api,$now+1,$gate);
+    $secondSaved=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    $view=ModeledConversionRetainedTrackerIdentityEvidence::projection($secondSaved[$key]??null,$frame,$row,$ns,time());
+    $check('a real offcycle tick uses only the candidate transport after committed financial receipt and leaves the pending row untouched',
+        $second['status']==='running'&&($secondSaved['errors']??null)===0&&($lookup->perTick[$now+1][$uid]??[])===['candidate']
+        &&$lookup->candidateCalls===1&&$lookup->durable&&$view['status']==='candidate'&&!$view['financial_permission']
+        &&$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=1')->fetch(PDO::FETCH_ASSOC)===$afterDue);
+    $lookup->tick=$now+2;ModeledConversionValueExport::tick($p,$lookup,$api,$now+2,$gate);
+    $once=true;foreach($lookup->perTick as$subjects)foreach($subjects as$calls)if(count($calls)>1)$once=false;
+    $check('real tick transport counts never exceed one call per subject and the consumed candidate cannot recur',
+        $once&&$lookup->candidateCalls===1&&empty($lookup->perTick[$now+2])&&$api->posts===0);
+}
 
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);$passed=0;

@@ -513,13 +513,13 @@ final class ModeledConversionValueExport
         return $this->receiptFits(json_encode($stats,JSON_THROW_ON_ERROR),$mysql)?$stats:null;
     }
 
-    /** After committed financial work only. Two extra SELECTs share the original 25-lookup budget. */
+    /** After committed financial work only, once per subject per tick. Two SELECTs share the original 25 budget. */
     private function runRetainedTrackerEvidence(?object $lookup,int $now,callable $gate):void
     {
         if($this->retainedTrackerConsumed||$this->finiteFrame===null||$this->pdo->inTransaction()
             ||count($this->ordinaryLookupUsers)+($this->counterScopeIntent!==null?2:0)+($this->retainedAppAttempted?2:0)>MaxTrackerLookupProtocol::MAX_USERS-2)return;
         $selected=$this->counterScopeBindingRow($now);
-        if($selected===null||!in_array($selected['external_user_id'],$this->ordinaryLookupUsers,true))return;
+        if($selected===null||in_array($selected['external_user_id'],$this->ordinaryLookupUsers,true))return;
         $lookup??=new MaxTrackerLookupClient();if(!method_exists($lookup,'retainedClickCandidate'))return;
         $context=ModeledConversionRetainedTrackerIdentityEvidence::context($this->finiteFrame,$selected,$this->finiteFrame['n'],$now);
         if($context===null)return;$intent=null;$row=null;$p=$this->pdo;$key=ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY;
