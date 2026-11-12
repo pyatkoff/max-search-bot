@@ -1,49 +1,49 @@
 {
     "ok": true,
-    "generated_at": "2026-11-12T19:11:48+00:00",
+    "generated_at": "2026-11-12T19:54:38+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 32,
-        "raw_sessions": 32,
+        "sessions": 34,
+        "raw_sessions": 34,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 32,
+            "resolved": 34,
             "unresolved": 0
         },
-        "started": 30,
+        "started": 32,
         "needs_collected": 4,
         "tours_opened": 4,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 23,
-        "manager_replied": 19,
-        "customer_replied_after_manager": 8,
-        "phone_received": 3,
+        "manager_requested": 26,
+        "manager_replied": 16,
+        "customer_replied_after_manager": 6,
+        "phone_received": 4,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 16,
-            "still_unanswered": 1,
-            "measured_responses": 16,
-            "avg_seconds": 9477,
+            "answered_after_90s": 13,
+            "still_unanswered": 7,
+            "measured_responses": 13,
+            "avg_seconds": 10440,
             "max_seconds": 107707
         },
         "drop_points": {
-            "manager_replied": 11,
-            "customer_replied_after_manager": 8,
-            "collecting_needs": 7,
-            "manager_requested": 4,
+            "manager_replied": 10,
+            "manager_requested": 10,
+            "collecting_needs": 6,
+            "customer_replied_after_manager": 6,
             "started_only": 2
         },
         "flags": {
-            "repeated_same_input": 1,
-            "manager_requested_no_reply": 1
+            "manager_requested_no_reply": 7,
+            "repeated_same_input": 1
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-12T19:11:48Z",
+        "sampled_at": "2026-11-12T19:54:38Z",
         "available": true,
         "error": null,
         "mode": "send",
@@ -62,6 +62,6 @@
         },
         "queue_total": 39
     },
-    "since_utc": "2026-11-12 18:11:48",
+    "since_utc": "2026-11-12 18:54:38",
     "public_redacted": true
 }
