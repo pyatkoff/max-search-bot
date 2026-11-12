@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "scope": "10 new hotel covers only",
+  "visual_review": "Root inspected the actual final contact sheet and accepted all exact PNG digests. Reuses accepted Nov8 layout and genuine source photographs. No new factual research or channel sends.",
+  "checks": "finite input consistency, caption limits, actual photo decoding, output metadata",
+  "rows": [
+    {
+      "hotel_id": 132002,
+      "caption_utf16_units": 613,
+      "caption_sha256": "5c133c76dbeb861436c7dde2af93b136b9bf8b299610f3c4331585d633844b82",
+      "cover_sha256": "1ab2cb4dbc50d6c46bd803ee2c63600f9f59397ddf6a924583ff30bd19c9e426",
+      "cover_bytes": 622394,
+      "banner": {
+        "font_size": 28,
+        "text_width": 166.953125,
+        "title": "AKRA DIDIM"
+      }
+    },
+    {
+      "hotel_id": 1137,
+      "caption_utf16_units": 585,
+      "caption_sha256": "7ddb35f50d842c6704d4ebbc4ed66e3f0bb36b7aa54803a6bfc0582d7e0eeec3",
+      "cover_sha256": "6d195044c5fe2074378968d6edd10f02630afaf6a9ef36c63a806ec199dd06bc",
+      "cover_bytes": 598756,
+      "banner": {
+        "font_size": 26,
+        "text_width": 545.984375,
+        "title": "CORNELIA DIAMOND GOLF RESORT & SPA"
+      }
+    },
+    {
+      "hotel_id": 2144,
+      "caption_utf16_units": 509,
+      "caption_sha256": "ae9e5228d9d6ca35922fb0ec3c5c041841bc6b22e5bbf878ba5465d0e31a3555",
+      "cover_sha256": "f77972eafdc1d0c4151ae079493bfdd5a8fbf9f27f10c79d75c9b183e31e9436",
+      "cover_bytes": 619235,
+      "banner": {
+        "font_size": 28,
+        "text_width": 182.546875,
+        "title": "D MARIS BAY"
+      }
+    },
+    {
+      "hotel_id": 3469,
+      "caption_utf16_units": 493,
+      "caption_sha256": "d40fd8eb4a8fb871fa53aafcce74c8b3d17f66ad59e5c0fccfa97f6f88cbf66a",
+      "cover_sha256": "c206a032551abce3382283d1f94625b519eb8de25694d7e5f7adc34e054a99a8",
+      "cover_bytes": 607060,
+      "banner": {
+        "font_size": 28,
+        "text_width": 256.671875,
+        "title": "D-RESORT GÖCEK"
+      }
+    },
+    {
+      "hotel_id": 1031,
+      "caption_utf16_units": 557,
+      "caption_sha256": "cfc68832dd166ec0e4df7315dab50aff6465b24d6184924ebbd809b5a7f18d70",
+      "cover_sha256": "62e3fbc34cd1c71048283b32aea2879fb549f7c8b8b2c23abe11b9cf4a68c161",
+      "cover_bytes": 598687,
+      "banner": {
+        "font_size": 28,
+        "text_width": 379.53125,
+        "title": "ARUM BARUT COLLECTION"
+      }
+    },
+    {
+      "hotel_id": 74258,
+      "caption_utf16_units": 527,
+      "caption_sha256": "2ba272b0ba8627d4cd071c5928c925449a4044b0490935925730df69940df2bc",
+      "cover_sha256": "4a71a46ca1e0883b4aa366bf22f94f1ecc69bd0f3c76ab7f454304c62e75f9f2",
+      "cover_bytes": 389250,
+      "banner": {
+        "font_size": 28,
+        "text_width": 325.140625,
+        "title": "CASA COOK EL GOUNA"
+      }
+    },
+    {
+      "hotel_id": 9321,
+      "caption_utf16_units": 569,
+      "caption_sha256": "86103a250ef0de28e39089feed8a8248e73eec86010a0935908b6cf977da511a",
+      "cover_sha256": "947792e09d958c59a855eb55d89a2b583979d6431ae60dfed0fd873b5d103f04",
+      "cover_bytes": 452365,
+      "banner": {
+        "font_size": 28,
+        "text_width": 186.15625,
+        "title": "CLUB MARVY"
+      }
+    },
+    {
+      "hotel_id": 15913,
+      "caption_utf16_units": 593,
+      "caption_sha256": "b172883b13c1d14c5cf3518bf3f7ea1dc9420bd7b2b95da211afe1af80822c2a",
+      "cover_sha256": "f6030cbd571c37b5565316bb71411d96bd25f4226bf69f02c0273daf48337cf9",
+      "cover_bytes": 580970,
+      "banner": {
+        "font_size": 28,
+        "text_width": 522.171875,
+        "title": "TITANIC LUXURY COLLECTION BELEK"
+      }
+    },
+    {
+      "hotel_id": 15693,
+      "caption_utf16_units": 529,
+      "caption_sha256": "3bb401078313686a7203172a8a70178bb6ee95699784162147d08520168c6e8c",
+      "cover_sha256": "bb9f2c50bb91e85ccb79b66705bd5cb70b57416ba187498e9d172e49064102f5",
+      "cover_bytes": 510577,
+      "banner": {
+        "font_size": 28,
+        "text_width": 239.03125,
+        "title": "THE MAKADI SPA"
+      }
+    },
+    {
+      "hotel_id": 1217,
+      "caption_utf16_units": 588,
+      "caption_sha256": "af961c664a5b56199f8ab42adb10c08bb8cf9b5c90290a7222504e61e94f8eee",
+      "cover_sha256": "ad6ca2175e525899cf1bd0f67b08020d82366e584f0002d2f776715fb1a5d564",
+      "cover_bytes": 653256,
+      "banner": {
+        "font_size": 28,
+        "text_width": 247.921875,
+        "title": "ADALYA ART SIDE"
+      }
+    }
+  ],
+  "template_reference": "../cover-reference-70030.png; same Nov8 layout geometry 600x600 hero354 lower190 blue52, canonical retained AnyTour vector",
+  "logo_sha256": "760b7c011800ba784f2d4500838cb1529bcc9ded011f2a0e441e6feb3fa99506",
+  "reference_sha256": "6455ae602b38d9933d87431f5343828d75c4c09b8cba08cade427ba1bc0866aa",
+  "no_photographic_generation": true,
+  "remote_writes": 0,
+  "stars_not_advertised_because_registry_stars_zero": true
+}
