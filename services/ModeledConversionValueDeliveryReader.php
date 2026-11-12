@@ -350,7 +350,7 @@ final class ModeledConversionValueDeliveryReader
         $source='SELECT '.implode(',',$fields).',CASE WHEN '.$cut.' THEN 1 ELSE 0 END AS cut_member,'
             .'ROW_NUMBER() OVER (PARTITION BY CASE WHEN '.$cut.' THEN 1 ELSE 0 END ORDER BY o.id) AS cut_order'.$from;
         $enum=static function(string $field,array $values,bool $none=false)use($mysql):string{
-            $sql='CASE ';if($none)$sql.='WHEN '.($field==='j.uploadstatus'?$field.' IS NULL OR ':'').($mysql?'BINARY '.$field:"(".$field.") COLLATE BINARY")."='' THEN 1 ";
+            $sql='CASE ';if($none)$sql.='WHEN '.($field.' IS NULL OR ').($mysql?'BINARY '.$field:"(".$field.") COLLATE BINARY")."='' THEN 1 ";
             foreach($values as$i=>$value)$sql.='WHEN '.($mysql?'BINARY '.$field:"(".$field.") COLLATE BINARY")."='".$value."' THEN ".($i+($none?2:1)).' ';
             return $sql.'ELSE 0 END';
         };
@@ -366,7 +366,7 @@ final class ModeledConversionValueDeliveryReader
         $aggregate=array_map(static fn(string $c):string=>strtr($c,$aliases),$columns);
         $aggregate[]='COALESCE(SUM(j.cut_member),0) AS frontier_n';
         $aggregate[]='COALESCE(SUM(CASE WHEN j.cut_member=1 THEN j.money ELSE 0 END),0) AS frontier_rub';
-        $aggregate[]='COALESCE(SUM(CASE WHEN j.cut_member=1 AND (j.pobserved<946684800 OR j.pobserved IS NULL OR j.pobserved>'.$now.' OR j.eventat>j.pobserved) THEN 1 ELSE 0 END),0) AS frontier_clock_bad';
+        $aggregate[]='COALESCE(SUM(CASE WHEN j.cut_member=1 AND (j.pobserved<946684800 OR j.pobserved IS NULL OR j.pobserved>'.$now.') THEN 1 ELSE 0 END),0) AS frontier_clock_bad';
         $aggregate[]=$packet.' AS frontier_raw';
         $names=[];foreach($columns as$column){
             if(preg_match('/ AS ([a-z0-9_]+)\z/',$column,$match)!==1)return null;
