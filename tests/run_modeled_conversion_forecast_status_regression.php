@@ -3208,7 +3208,7 @@ function forecastKnownTrackerAssertions(PDO $p,callable $check):array
             $p->prepare("INSERT INTO modeled_conversion_profile_versions(id,project_key,platform,customer_key,conversation_id,observed_at_unix,profile_json,assessment_namespace,assessment_kind) VALUES(?,'anytour','max',?,?,?,'{\"access_status\":\"allowed\"}',?,?)")
                 ->execute([$id,(string)$binding,$binding,$at,$ns,$kind]);
             $ready=$id===2||$id===3||$id>=27;$cid=$id<=3?'88190'.$id:'99000'.(70000+$binding);$record='44000'.$id;
-            $source=$id<=3?$born-10:$now-300;$readyAt=$id<=3?$born+100:$now-80;
+            $source=$id<=3?$born-10:$now-300;$readyAt=$id<=3?$born+240:$now-80;
             $p->prepare("INSERT INTO max_channel_conversion_outbox(id,project_key,platform,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,value_rub,value_profile_id,value_stage,value_contract,identity_source_key,state,next_attempt_unix,client_id,tracker_record_id,tracker_observed_unix,value_ready_at_unix) VALUES(?,'anytour','max',?,?,'98615635',?,?,?,?,?,'specific_request',?,'max_tracker',?,?,?,?,?,?)")
                 ->execute([$id,$binding,(string)(70000+$binding),ModeledConversionValueContract::predictionKey((string)$id),ModeledConversionValueContract::TARGET,$at,500,$id,ModeledConversionValueContract::VERSION,
                     $ready?'ready':'pending',$id===1?$now+10000:0,$ready?$cid:null,$ready?$record:null,$ready?$source:null,$ready?$readyAt:null]);
@@ -3218,6 +3218,10 @@ function forecastKnownTrackerAssertions(PDO $p,callable $check):array
                 ->execute([$id,$now-10,$basis,hash('sha256',$basis)]);
         }
         $rows=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id<=3 ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        $selection=(new ReflectionMethod(ModeledConversionValueExport::class,'finiteSelection'))->invoke(new ModeledConversionValueExport($p),$ns);
+        $check('known source fixture preserves three original events before the cutoff with READY recorded after the cutoff',
+            count($selection)===3&&(int)$rows[1]['value_ready_at_unix']>ModeledConversionValueVisitEvidence::CHECKPOINT
+            &&(int)$rows[2]['value_ready_at_unix']>ModeledConversionValueVisitEvidence::CHECKPOINT);
         $frame=['v'=>ModeledConversionValueVisitEvidence::VERSION,'n'=>$ns,'b'=>ModeledConversionValueVisitEvidence::CHECKPOINT,'r'=>[]];
         foreach($rows as$i=>$r){
             $ref=ModeledConversionValueIdentityEvidence::reference($r,$ns);
