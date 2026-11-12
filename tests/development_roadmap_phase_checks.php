@@ -70,10 +70,15 @@ function devRoadmapSender(?callable $before=null,?callable $mutate=null): array
 function devRoadmapRpc(PDO $pdo,DevelopmentWorkQueue $q,object $clock,string $fresh,string $name,array $args): array
 {
     require_once dirname(__DIR__).'/services/ManagerPreparationMcpService.php';
-    $service=new ManagerPreparationMcpService($pdo,null,null,static fn():int=>$clock->at,null,null,null,null,null,null,$q);
-    return $service->handle(['jsonrpc'=>'2.0','id'=>'roadmap-synthetic','method'=>'tools/call',
-        'params'=>['name'=>$name,'arguments'=>$args]],1,$fresh,
-        [ManagerPreparationOAuth::DEVELOPMENT_SCOPE,ManagerPreparationOAuth::FORECAST_SCOPE]);
+    $connection=new ReflectionProperty(ConversationDb::class,'pdo');$ready=new ReflectionProperty(ProjectAccessService::class,'schemaReady');
+    $previousConnection=$connection->getValue();$previousReady=$ready->getValue();
+    $connection->setValue(null,$pdo);$ready->setValue(null,false);
+    try{
+        $service=new ManagerPreparationMcpService($pdo,null,null,static fn():int=>$clock->at,null,null,null,null,null,null,$q);
+        return $service->handle(['jsonrpc'=>'2.0','id'=>'roadmap-synthetic','method'=>'tools/call',
+            'params'=>['name'=>$name,'arguments'=>$args]],1,$fresh,
+            [ManagerPreparationOAuth::DEVELOPMENT_SCOPE,ManagerPreparationOAuth::FORECAST_SCOPE]);
+    }finally{$connection->setValue(null,$previousConnection);$ready->setValue(null,$previousReady);}
 }
 
 function devRoadmapStatus(DevelopmentWorkQueue $q,string $fresh): array
