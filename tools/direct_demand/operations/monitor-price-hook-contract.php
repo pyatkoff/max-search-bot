@@ -19,20 +19,50 @@ function monitor_hook_draft(string $template,array $price):string {
     $text=preg_replace('/\n{3,}/',"\n\n",$text);monitor_price_validate_text($text,$price);return $text;
 }
 
-/** A later automated edit is admissible only through its completed original journal. */
+/** An explicit two-channel editorial baseline is exact, never a blanket manual-edit waiver. */
+function monitor_hook_caption_correction_allowed(array $publication,array $row,string $platform):bool {
+    $baselines=$row['caption_correction_baseline']??null;
+    if(!is_array($baselines)||count($baselines)!==2||!isset($baselines['max'],$baselines['telegram'])
+        ||!in_array($platform,['max','telegram'],true))return false;
+    foreach($baselines as $baseline){
+        if(!is_array($baseline)||count($baseline)!==4
+            ||!is_int($baseline['publication_id']??null)||$baseline['publication_id']<=0
+            ||!is_int($baseline['version_id']??null)||$baseline['version_id']<=0
+            ||!is_string($baseline['text_sha256']??null)||preg_match('/\A[a-f0-9]{64}\z/D',$baseline['text_sha256'])!==1
+            ||!is_string($baseline['operation']??null)||preg_match('/\Acommercial-[a-z0-9-]+-v[1-9][0-9]*\z/D',$baseline['operation'])!==1)return false;
+    }
+    if($baselines['max']['operation']!==$baselines['telegram']['operation']
+        ||$baselines['max']['publication_id']===$baselines['telegram']['publication_id'])return false;
+    $baseline=$baselines[$platform];$s=$publication['snapshot']??[];
+    return $baseline['publication_id']===(int)($publication['publication_id']??0)
+        &&$baseline['version_id']===(int)($publication['version_id']??0)
+        &&is_string($s['text']??null)&&hash_equals($baseline['text_sha256'],hash('sha256',$s['text']))
+        &&($s['metadata']['caption_correction_operation']??null)===$baseline['operation'];
+}
+
+/** A later automated edit still needs its completed original monitor journal. */
 function monitor_hook_caption_allowed(array $publication,array $row,string $platform,?array $prior):bool {
     $s=$publication['snapshot']??[];$hash=hash('sha256',$s['text']??'');
     $record=$s['metadata']['monitor_price_record_id']??null;
-    if($record===null)return hash_equals($row['expected_text_sha256'][$platform],$hash);
+    if($record===null)return !array_key_exists('caption_correction_baseline',$row)
+        &&hash_equals($row['expected_text_sha256'][$platform],$hash);
     if(!is_string($record)||!preg_match('/\A[a-f0-9]{64}\z/D',$record)||!$prior||($prior['complete']??false)!==true
         ||($prior['operation']??'')!=='commercial-monitor-price-h'.$row['tourvisor_hotel_id'].'-'.$record
         ||($prior['feed_binding']??null)!==$row['feed_binding'])return false;
     foreach($prior['posts']??[] as $post){$r=$post['receipt']??[];
-        if(($post['state']??'')==='confirmed'&&($r['platform']??'')===$platform)
-            return ($r['version_id']??null)===(int)($publication['version_id']??0)&&($r['publication_id']??null)===(int)($publication['publication_id']??0)
-                &&($r['message_id']??null)===($publication['external_message_id']??null)&&($r['post_url']??null)===($s['post_url']??null)
-                &&($r['text_sha256']??null)===$hash&&($r['text']??null)===($s['text']??null)
-                &&($r['existing_message_reused']??false)===true&&($r['body_photo_button_verified']??false)===true;
+        if(($post['state']??'')==='confirmed'&&($r['platform']??'')===$platform){
+            if(($r['publication_id']??null)!==(int)($publication['publication_id']??0)
+                ||($r['message_id']??null)!==($publication['external_message_id']??null)||($r['post_url']??null)!==($s['post_url']??null)
+                ||($r['existing_message_reused']??false)!==true||($r['body_photo_button_verified']??false)!==true)return false;
+            if(($r['version_id']??null)===(int)($publication['version_id']??0)
+                &&($r['text_sha256']??null)===$hash&&($r['text']??null)===($s['text']??null))return true;
+            // Preserve the old price proof; never admit an absent, UNKNOWN or corrupt journal.
+            return ($r['state']??null)==='sent'&&is_int($r['version_id']??null)&&$r['version_id']>0
+                &&is_string($r['text']??null)&&is_string($r['text_sha256']??null)
+                &&hash_equals(hash('sha256',$r['text']),$r['text_sha256'])
+                &&($r['monitor_price']['record_id']??null)===$record
+                &&monitor_hook_caption_correction_allowed($publication,$row,$platform);
+        }
     }return false;
 }
 
@@ -200,3 +230,4 @@ function monitor_hook_can_start_pair(array $policy,int $now,int $updatedPairs):b
 function monitor_hook_snapshot_refresh_due(int $fetchedAt,int $now):bool {
     return $now-$fetchedAt>=600;
 }
+

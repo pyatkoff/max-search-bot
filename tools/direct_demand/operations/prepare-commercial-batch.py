@@ -17,6 +17,8 @@ OPERATION=re.compile(r'commercial-hotel-batch-([0-9]{8})-([1-9][0-9]*)-v[1-9][0-
 # Already-approved operations retain their exact input and validation policy.
 CAPTION_FORMAT_CUTOVER=(20261107,24)
 SHORT_HEADING_CUTOVER=(20261107,39)
+# Owner-approved repair: preserve normal Russian punctuation in new captions.
+NATURAL_PUNCTUATION_CUTOVER=(20261113,9)
 CAPTION_TITLE=re.compile(r'✈️ Туры в \S(?:.*\S)? с перелётом')
 CAPTION_SHORT_TITLE=re.compile(r'✈️ Туры в \S(?:.*\S)?')
 FLIGHT_SUFFIX=re.compile(r' с перел[её]том\Z')
@@ -34,10 +36,18 @@ function commercialCaptionPunctuationIsValid(string $text):bool
 }
 """
 
+PHP_NATURAL_PUNCTUATION=r"""
+function commercialCaptionPunctuationIsValid(string $text):bool
+{
+    return mb_check_encoding($text,'UTF-8')
+        && preg_match('/[\x00-\x08\x0B-\x1F]/u',$text)===0;
+}
+"""
+
 def require(ok,reason):
  if not ok:raise ValueError(reason)
 
-def validate_caption(text,standard_headings,short_headings=False):
+def validate_caption(text,standard_headings,short_headings=False,natural_punctuation=False):
  require(isinstance(text,str) and 0<len(text.encode('utf-16-le'))//2<=1024,'caption_invalid')
  if not standard_headings:
   require(CAPTION_DASH.search(text) is None,'caption_invalid')
@@ -49,7 +59,10 @@ def validate_caption(text,standard_headings,short_headings=False):
   require(FLIGHT_SUFFIX.search(lines[0]) is None,'caption_title_must_omit_flight_suffix')
  heading=HEADING_WORD_HYPHEN.sub('','\n'.join(lines[:2]))
  body=lines[2] if len(lines)==3 else ''
- require(CAPTION_DASH.search(heading+'\n'+body) is None,'caption_invalid')
+ if natural_punctuation:
+  require(re.search(r'[\x00-\x08\x0b-\x1f]',text) is None,'caption_invalid')
+ else:
+  require(CAPTION_DASH.search(heading+'\n'+body) is None,'caption_invalid')
 
 def prepare(template,raw,spec):
  require(hashlib.sha256(template.encode()).hexdigest()==TEMPLATE_SHA,'publisher_template_changed')
@@ -62,6 +75,7 @@ def prepare(template,raw,spec):
  batch=tuple(map(int,match.groups()))
  standard_headings=batch>=CAPTION_FORMAT_CUTOVER
  short_headings=batch>=SHORT_HEADING_CUTOVER
+ natural_punctuation=batch>=NATURAL_PUNCTUATION_CUTOVER
  require(isinstance(sha,str) and re.fullmatch(r'[a-f0-9]{40}',sha),'installed_sha_invalid')
  require(isinstance(ids,list) and 1<=len(ids)<=MAX_BATCH and all(type(i) is int and 0<i<1000000000 for i in ids) and len(set(ids))==len(ids),'hotel_scope_invalid')
  require(spec['manifest_sha256']==hashlib.sha256(raw).hexdigest(),'approved_manifest_changed')
@@ -74,7 +88,7 @@ def prepare(template,raw,spec):
  for r in rows:
   lid=r.get('logical_id');text=r.get('text');th=r.get('text_sha256');ph=r.get('photo_sha256');url=r.get('photo_url')
   require(isinstance(lid,str) and re.fullmatch(r'[a-z0-9-]{1,100}',lid) and lid not in logical,'logical_id_invalid_or_duplicate');logical.add(lid)
-  validate_caption(text,standard_headings,short_headings)
+  validate_caption(text,standard_headings,short_headings,natural_punctuation)
   require(isinstance(th,str) and HEX64.fullmatch(th) and th==hashlib.sha256(text.encode()).hexdigest() and th not in texts,'text_hash_invalid_or_duplicate');texts.add(th)
   require(isinstance(ph,str) and HEX64.fullmatch(ph) and ph not in photos,'photo_hash_invalid_or_duplicate');photos.add(ph)
   require(isinstance(url,str) and re.fullmatch(r'https://raw\.githubusercontent\.com/pyatkoff/max-search-bot/[a-f0-9]{40}/\.github/traffic-publish/[a-zA-Z0-9/_\.-]+\.png',url),'photo_url_not_immutable_public_cover')
@@ -92,7 +106,7 @@ def prepare(template,raw,spec):
  if standard_headings:
   require(body.count(PHP_DASH_ANCHOR)==1,'publisher_caption_anchor_changed')
   body=body.replace(PHP_DASH_ANCHOR,"commercialCaptionPunctuationIsValid($row['text'])")
-  header+=PHP_HEADING_HYPHENS
+  header+=PHP_NATURAL_PUNCTUATION if natural_punctuation else PHP_HEADING_HYPHENS
  return header+body[len(PREFIX):],{'operation':op,'mode':'prepare_existing_publisher_only','rows':len(ids),'expected_confirmed_posts':2*len(ids),'provider_calls':0,'db_writes':0,'post_write_attempts':0}
 
 def main():
@@ -105,3 +119,4 @@ def main():
  out.write_text(script);out.chmod(0o600);print(json.dumps(report,ensure_ascii=False,sort_keys=True))
 
 if __name__=='__main__':main()
+
