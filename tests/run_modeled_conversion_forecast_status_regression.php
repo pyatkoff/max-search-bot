@@ -2513,6 +2513,48 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $ini
 /** Real tick/claim path over isolated synthetic rows. Provider/source IO is replaced by bounded doubles. */
 function forecastKnownRelationDispatchAssertions(PDO $p,callable $check,array $frame,array $row,array $known,array $proof,int $now,PDO $fault):void
 {
+    // This caller owns a deliberately minimal read-only status schema. Use the existing
+    // canonical worker fixture in an isolated set of tables, then restore schema and bytes.
+    if($p->inTransaction())throw new RuntimeException('relation_fixture_outer_transaction');
+    if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'&&$p->query('SELECT DATABASE()')->fetchColumn()!=='maxbot_modeled_stream_test')
+        throw new RuntimeException('unsafe_fixture_database');
+    $sourceSettings=$p->query("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetch(PDO::FETCH_ASSOC);
+    $sourceEvents=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $sourceProfiles=$p->query('SELECT * FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $core=['modeled_conversion_price_audit','modeled_conversion_value_export_settings','max_channel_conversion_outbox',
+        'max_channel_attribution_settings','modeled_conversion_profile_versions','advertising_visit_observations','conversations','customer_channels'];
+    $renamed=[];$ownsSchema=false;
+    try{
+        foreach($core as$table){
+            try{$q=$p->query('SELECT 1 FROM '.$table.' LIMIT 0');$q->closeCursor();}catch(PDOException $missing){continue;}
+            $p->exec('ALTER TABLE '.$table.' RENAME TO krd_'.$table);$renamed[]=$table;
+        }
+        $ownsSchema=true;modeledValueSchema($p);
+        foreach(['assessment_namespace CHAR(64)','assessment_kind VARCHAR(8)','journal_cursor BIGINT DEFAULT 0']as$column)
+            $p->exec('ALTER TABLE modeled_conversion_profile_versions ADD COLUMN '.$column);
+        $copy=static function(string $table,array $value)use($p):void{
+            $q=$p->query('SELECT * FROM '.$table.' LIMIT 0');$names=[];
+            for($i=0;$i<$q->columnCount();$i++)$names[]=$q->getColumnMeta($i)['name'];$q->closeCursor();
+            $value=array_intersect_key($value,array_fill_keys($names,true));
+            $p->prepare('INSERT INTO '.$table.'('.implode(',',array_keys($value)).') VALUES('.implode(',',array_fill(0,count($value),'?')).')')->execute(array_values($value));
+        };
+        $p->exec("DELETE FROM modeled_conversion_value_export_settings WHERE project_key='anytour'");
+        $copy('modeled_conversion_value_export_settings',$sourceSettings);
+        foreach($sourceProfiles as$profile){$profile['profile_json']='{"access_status":"allowed"}';$copy('modeled_conversion_profile_versions',$profile);}
+        $channels=[];
+        foreach($sourceEvents as$event){
+            $copy('max_channel_conversion_outbox',$event);$conversation=(int)$event['conversation_id'];
+            if(!isset($channels[$conversation])){
+                modeledValueBinding($p,$conversation,$event['platform']);$uid=(string)$event['external_user_id'];$chat=$event['platform']==='max'?'-'.$uid:$uid;
+                $p->prepare('UPDATE customer_channels SET external_user_id=?,external_chat_id=? WHERE id=?')->execute([$uid,$chat,$conversation]);
+                $p->prepare('UPDATE conversations SET external_chat_id=? WHERE id=?')->execute([$chat,$conversation]);$channels[$conversation]=true;
+            }
+            // Price calculation is a separate fixture: all carried values start with an owned unchanged audit.
+            $basis='{"fixture":"unchanged_carried_native_value"}';$money=(int)$event['value_rub'];
+            $p->prepare("INSERT INTO modeled_conversion_price_audit(outbox_id,action,original_value_rub,applied_value_rub,prior_reserved_rub,assessed_at_unix,basis_json,basis_sha256) VALUES(?,'unchanged',?,?,0,?,?,?)")
+                ->execute([$event['id'],$money,$money,$now-1,$basis,hash('sha256',$basis)]);
+        }
+
     $settings=$p->query("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetch(PDO::FETCH_ASSOC);
     $outbox=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
     $audits=$p->query('SELECT * FROM modeled_conversion_price_audit')->fetchAll(PDO::FETCH_ASSOC);
@@ -2624,8 +2666,12 @@ function forecastKnownRelationDispatchAssertions(PDO $p,callable $check,array $f
             }
         }
     }finally{ForecastV1ObservedStatement::$beforeRelationClaim=null;$fault->failure='commit_throw';$fault->commits=0;$fault->failCommit=1;$restore();$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$statementClass);}
+    }finally{
+        if($p->inTransaction())$p->rollBack();
+        if($ownsSchema)foreach($core as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
+        foreach(array_reverse($renamed)as$table)$p->exec('ALTER TABLE krd_'.$table.' RENAME TO '.$table);
+    }
 }
-
 
 /** The saved-only owner reader copies two opaque caches, never the full private source/report capsules. */
 function forecastKnownRelationOutcomeReaderAssertions(PDO $p,callable $check,array $frame,array $rows,array $plans,array $positive,int $now):void
