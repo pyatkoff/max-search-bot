@@ -1015,4 +1015,7 @@ devRoadmapSnapshotAuthorityChecks();
 devRoadmapPhaseChecks();
 devRoadmapFailureChecks();
 devRoadmapReviewOutcomeChecks();
+require_once __DIR__.'/development_roadmap_exact_checks.php';
+devRoadmapExactEvaluateChecks();
+devRoadmapExactPhaseChecks();
 echo 'DEVELOPMENT WORK QUEUE: '.$checks." PASS\n";
