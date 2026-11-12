@@ -40,6 +40,8 @@ final class ModeledConversionValueExport
     private array $fixedPairCases=[];
     private array $ordinaryLookupUsers=[];
     private bool $retainedTrackerConsumed=false;
+    private bool $retainedTrackerSourceUnsupported=false;
+    private ?array $retainedTrackerReservation=null;
     private bool $retainedAppAttempted=false;
     private bool $counterScopeConsumed=false;
     private ?array $counterScopeLedger=null;
@@ -189,6 +191,7 @@ final class ModeledConversionValueExport
                 &&(int)$row['next_attempt_unix']<=$now)$pending[]=$row;
             $users=[];foreach($pending as$r)if($r['platform']==='max'&&$self->eligible($r,$gate))$users[]=$r['external_user_id'];
             foreach(array_merge($finite,$recovery,$pair)as$r)if($r['platform']==='max'&&$self->finiteEligible($r,$gate))$users[]=$r['external_user_id'];
+            if($users){$lookup??=new MaxTrackerLookupClient();$users=$self->reserveRetainedTracker($lookup,$users,array_merge($pending,$finite,$recovery,$pair),$now);}
             $identities=[];$lookupReturned=false;
             if($users){$lookup??=new MaxTrackerLookupClient();$self->finiteLookupAttempted=(bool)($finite||$recovery);
                 $batch=array_values(array_unique($users));$self->ordinaryLookupUsers=$batch;$missing=$self->counterScopeCandidate($batch,$now);
@@ -203,7 +206,10 @@ final class ModeledConversionValueExport
                     }
                 }else $identities=$lookup->lookup('98615635',$batch);
                 $lookupReturned=true;$self->finiteIdentities=$identities;$self->finiteLookupReturned=true;}
-            foreach($pending as$r)if($self->resolve($r,$identities,$now,$gate,$lookupReturned))$stats['resolved']++;
+            foreach($pending as$r){
+                if($self->retainedTrackerReservation!==null&&(string)$r['id']===(string)$self->retainedTrackerReservation['id'])continue;
+                if($self->resolve($r,$identities,$now,$gate,$lookupReturned))$stats['resolved']++;
+            }
             $ready=$self->rows('ready',$now,3);
             $receipts=array_merge($self->rows('accepted',$now,2),$self->rows('unknown',$now,2));
             if($ready||$receipts){
@@ -513,13 +519,32 @@ final class ModeledConversionValueExport
         return $this->receiptFits(json_encode($stats,JSON_THROW_ON_ERROR),$mysql)?$stats:null;
     }
 
+
+    /** A single in-memory replacement for this exact pending subject, never another financial user's slot. */
+    private function reserveRetainedTracker(object $lookup,array $users,array $rows,int $now):array
+    {
+        $selected=$this->counterScopeLedger;$unique=array_values(array_unique($users));
+        if($this->retainedTrackerConsumed||!$this->retainedTrackerSourceUnsupported||$selected===null
+            ||!method_exists($lookup,'retainedClickCandidate')||count($unique)>MaxTrackerLookupProtocol::MAX_USERS-1
+            ||!in_array($selected['external_user_id'],$unique,true)||!$this->counterScopeAdmissible($selected,$now))return $users;
+        $seen=false;
+        foreach($rows as$r)if($r['platform']==='max'&&$r['external_user_id']===$selected['external_user_id']){
+            if((string)$r['id']!==(string)$selected['id']||!$this->counterScopeAdmissible($r,$now)
+                ||ModeledConversionValueIdentityEvidence::reference($r,$this->finiteFrame['n'])!==ModeledConversionValueIdentityEvidence::reference($selected,$this->finiteFrame['n']))return $users;
+            $seen=true;
+        }
+        if(!$seen)return $users;$this->retainedTrackerReservation=$selected;
+        return array_values(array_filter($users,static fn(string $user):bool=>$user!==$selected['external_user_id']));
+    }
+
     /** After committed financial work only, once per subject per tick. Two SELECTs share the original 25 budget. */
     private function runRetainedTrackerEvidence(?object $lookup,int $now,callable $gate):void
     {
-        if($this->retainedTrackerConsumed||$this->finiteFrame===null||$this->pdo->inTransaction()
+        if($this->retainedTrackerConsumed||$this->finiteFrame===null||$this->retainedTrackerReservation===null||$this->pdo->inTransaction()
             ||count($this->ordinaryLookupUsers)+($this->counterScopeIntent!==null?2:0)+($this->retainedAppAttempted?2:0)>MaxTrackerLookupProtocol::MAX_USERS-2)return;
         $selected=$this->counterScopeBindingRow($now);
-        if($selected===null||in_array($selected['external_user_id'],$this->ordinaryLookupUsers,true))return;
+        if($selected===null||in_array($selected['external_user_id'],$this->ordinaryLookupUsers,true)
+            ||ModeledConversionValueIdentityEvidence::reference($selected,$this->finiteFrame['n'])!==ModeledConversionValueIdentityEvidence::reference($this->retainedTrackerReservation,$this->finiteFrame['n']))return;
         $lookup??=new MaxTrackerLookupClient();if(!method_exists($lookup,'retainedClickCandidate'))return;
         $context=ModeledConversionRetainedTrackerIdentityEvidence::context($this->finiteFrame,$selected,$this->finiteFrame['n'],$now);
         if($context===null)return;$intent=null;$row=null;$p=$this->pdo;$key=ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY;
@@ -1074,6 +1099,10 @@ final class ModeledConversionValueExport
             $this->retainedAppConsumed=array_key_exists(ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY,$receipt);
             $this->retainedTrackerConsumed=array_key_exists(ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY,$receipt);
             $this->counterScopeLedger=$this->counterScopeBindingRow($now);
+            if($this->counterScopeConsumed&&!$this->retainedTrackerConsumed&&$this->counterScopeLedger!==null){
+                $app=ModeledConversionRetainedAppIdentityEvidence::projection($receipt[ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY]??null,$frame,$this->counterScopeLedger,$namespace,$now);
+                $this->retainedTrackerSourceUnsupported=($app['available']??false)===true&&($app['status']??null)==='unsupported_source';
+            }
             $this->fixedPairJournal=ModeledConversionValueVisitRecovery::decode($receipt['finite_visit_recovery']??null,$frame,$namespace,$now);
             $pending=[];foreach($frame['r']as$r)if($r[2]===0)$pending[]=$rows[$r[0]];
             return $pending;
