@@ -27,6 +27,10 @@ function devRoadmapExactEvaluateChecks(): void
     $pending=DevelopmentRoadmapSavedResult::evaluate('saved_finance_processing',$c,$s,$now,$a,$hash);
     devAssert($pending['state']==='waiting_evidence'&&$pending['reason']==='exact_saved_processing_pending',
         'roadmap_exact_API_observation_never_proves_final_processing');
+    $persisted=$a;ksort($persisted['new_receipts'][0],SORT_STRING);
+    devAssert(DevelopmentRoadmapSavedResult::hash($persisted)===$hash
+        &&DevelopmentRoadmapSavedResult::evaluate('saved_finance_processing',$c,$s,$now,$persisted,$hash)['state']==='waiting_evidence',
+        'roadmap_exact_canonical_JSON_parent_key_order_is_not_a_different_receipt');
     $done=$s;$done['captured_at']=$now+60;$done['exact_receipt']['checked_at']=gmdate('Y-m-d\TH:i:s\Z',$now+60);
     $done['exact_receipt']['state']='processed';$done['exact_receipt']['upload_status']='PROCESSED';
     $done['exact_receipt']['processed_at']=gmdate('Y-m-d\TH:i:s\Z',$now+50);

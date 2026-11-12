@@ -60,7 +60,8 @@ final class DevelopmentRoadmapExactReceipt
                     &&($parent['schema']??null)===self::VERSION&&($parent['capsule_sha256']??null)===$ch
                     &&($parent['scope']??null)==='ordinary_saved_receipt_outside_repair_frontier'
                     &&($parent['automatic_acceptance_allowed']??null)===false
-                    &&($parent['new_receipts']??null)===[$target],'exact_parent_binding');
+                    &&is_array($parent['new_receipts']??null)
+                    &&DevelopmentRoadmapSavedResult::hash($parent['new_receipts'])===DevelopmentRoadmapSavedResult::hash([$target]),'exact_parent_binding');
             }
             if(self::failed($r))return self::result('blocked','exact_saved_terminal_failure')
                 +['capsule_sha256'=>$ch,'snapshot_sha256'=>$sh,'parent_result_sha256'=>$parentHash];
