@@ -73,7 +73,7 @@ jobs:
       run: |
         set -euo pipefail
         umask 077
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && test "$(git rev-parse --verify HEAD)" = 7a96af3e9d0e262a2ff5a257295dc9e9764e9d53 && php' < "$GITHUB_WORKSPACE/tools/direct_demand/operations/read-pending-2651-20261112.php" | tee "$RUNNER_TEMP/monitor-pending-2651-read.jsonl"
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && test "$(git rev-parse --verify HEAD)" = 53382c760a5cf07a2075751670a46c35ee77feb9 && php' < "$GITHUB_WORKSPACE/tools/direct_demand/operations/read-pending-2651-20261112.php" | tee "$RUNNER_TEMP/monitor-pending-2651-read.jsonl"
     - uses: actions/upload-artifact@v4
       if: always()
       with:
@@ -85,4 +85,4 @@ jobs:
       shell: bash
       run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
 env:
-  EXPECTED_READER_SHA256: 7f5f928e5cd7a8667c4410979b0878a2c3f218c7509c5e15ff97599a41bf4bbb
+  EXPECTED_READER_SHA256: 27b3227c53a9f4724493b9d292438d6feaa305cc876a7699addf2a400b92016a
