@@ -3885,16 +3885,99 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $reta
     $withOutcome=$contextual;$withOutcome['value_delivery']['repair_assessments']['retained_relation_outcomes']=$outcomePacket;
     $withOutcomeSafe=$bound->invoke($projection,$withOutcome);$allOld=true;
     foreach($proofs as$key=>$size)if($withOutcomeSafe['value_delivery']['repair_assessments'][$key]!==$withOutcome['value_delivery']['repair_assessments'][$key])$allOld=false;
-    $check('a new optional outcome yields before the fixed18500 financial envelope full59/23 roster or any old proof',
-        $financialBytes===18500&&$withOutcomeSafe['value_delivery']['repair_assessments']['retained_relation_outcomes']['reason']==='response_budget'
+    $compactOutcome=$withOutcomeSafe['value_delivery']['repair_assessments']['retained_relation_outcomes'];
+    $check('a new outcome compacts or explicitly yields before the fixed18500 financial envelope full59/23 roster or any old proof',
+        $financialBytes===18500&&(($compactOutcome['projection']??null)==='compact_v1'||($compactOutcome['reason']??null)==='response_budget')
         &&$withOutcomeSafe['value_delivery']['repair_assessments']['processing_frontier']===$r&&$allOld
         &&$withOutcomeSafe['value_delivery']['by_state']===$withOutcome['value_delivery']['by_state']
         &&strlen(json_encode($withOutcomeSafe,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=28000);
+
+    $compactMethod=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'compactRetainedRelationOutcomes');
+    $compact=$compactMethod->invoke($projection,$outcomePacket);
+    $check('compact historical outcomes retain distinct checked and absent cases with admitted phase intent and no authority',
+        $compact['available']&&$compact['projection']==='compact_v1'&&$compact['historical']===true
+        &&$compact['columns']===['case_index','status','reason','phase_admission_mask']
+        &&$compact['rows'][0]===[1,'complete_base_window_assessed',$outcomePacket['rows'][0]['reason'],15]
+        &&$compact['rows'][1]===[2,'not_recorded',null,null]
+        &&$compact['provider_requests_in_reader']===0&&$compact['financial_permission']===false
+        &&$compact['current_eligibility']==='not_assessed'
+        &&!str_contains(json_encode($compact,JSON_THROW_ON_ERROR),$outcomePacket['rows'][0]['event_ref']));
+
+    $jsonFlags=JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR;
+    $size=static fn(array $v):int=>strlen(json_encode($v,$jsonFlags));
+    // Synthetic analogue of the live envelope: only423 bytes remain for this saved-only result.
+    $pressure=$contextSafe;unset($pressure['value_delivery']['repair_assessments']['retained_identity']);
+    $pressure['response_pressure_fixture']='';$pressurePadding=28000-423-$size($pressure);
+    if($pressurePadding<0)throw new RuntimeException('invalid_compact_pressure_fixture');
+    $pressure['response_pressure_fixture']=str_repeat('x',$pressurePadding);
+    $pressure['value_delivery']['repair_assessments']['retained_relation_outcomes']=$outcomePacket;
+    $pressureSafe=$bound->invoke($projection,$pressure);$pressureOld=true;
+    foreach($proofs as$key=>$ignored)
+        if($pressureSafe['value_delivery']['repair_assessments'][$key]!==$contextSafe['value_delivery']['repair_assessments'][$key])$pressureOld=false;
+    $check('423 byte outcome headroom preserves actual saved outcomes complete59 event23 receipt roster all four proofs and money',
+        $size($compact)<=423&&$size($pressure)>28000&&$size($pressureSafe)<=28000
+        &&$pressureSafe['value_delivery']['repair_assessments']['retained_relation_outcomes']===$compact
+        &&$pressureSafe['value_delivery']['repair_assessments']['processing_frontier']===$r&&$pressureOld
+        &&$pressureSafe['value_delivery']['by_state']===$pressure['value_delivery']['by_state']
+        &&$pressureSafe['value_delivery']['repair_assessments']['by_state']===$pressure['value_delivery']['repair_assessments']['by_state']);
+
+    $unknownPacket=$outcomePacket;
+    $unknownPacket['rows'][0]['status']='consumed_unknown';$unknownPacket['rows'][0]['reason']='cache_missing_or_invalidated';
+    $unknownPacket['rows'][0]['phases_admitted']=['source'=>true,'recorded_day_relation'=>false,'visit_base'=>false,'visit_sources'=>false];
+    $unknownCompact=$compactMethod->invoke($projection,$unknownPacket);
+    $check('compact unknown preserves consumed intent rather than reporting an absent or completed provider operation',
+        $unknownCompact['rows'][0]===[1,'consumed_unknown','cache_missing_or_invalidated',1]
+        &&$unknownCompact['rows'][1]===[2,'not_recorded',null,null]&&!$unknownCompact['financial_permission']);
+    foreach(['source','recorded_day_relation','visit_base','visit_sources']as$phase){
+        $uncertain=$unknownPacket;$uncertain['rows'][0]['phases_admitted'][$phase]=null;
+        $missing=$unknownPacket;unset($missing['rows'][0]['phases_admitted'][$phase]);
+        $check('unknown or missing admission metadata never becomes zero or a completed call '.$phase,
+            $compactMethod->invoke($projection,$uncertain)['rows'][0][3]===null
+            &&$compactMethod->invoke($projection,$missing)['rows'][0][3]===null);
+    }
+    $noAdmission=$unknownPacket;$noAdmission['rows'][0]['phases_admitted']=array_fill_keys(['source','recorded_day_relation','visit_base','visit_sources'],false);
+    $bothReasons=$outcomePacket;$bothReasons['rows'][0]['reason']='outside_current_window';$bothReasons['rows'][0]['relation_reason']='source_client_id_matches_held';
+    $check('zero saved admissions stay zero and a visit barrier is not masked by a relation reason',
+        $compactMethod->invoke($projection,$noAdmission)['rows'][0][3]===0
+        &&$compactMethod->invoke($projection,$bothReasons)['rows'][0][2]==='outside_current_window');
+    $reconfirmed=$outcomePacket;
+    foreach($reconfirmed['rows']as&$row){
+        $row['status']='relation_reconfirms_previously_checked_held_cid';$row['reason']=null;
+        $row['relation_reason']='recorded_day_cid_matches_held';
+        $row['phases_admitted']=['source'=>true,'recorded_day_relation'=>true,'visit_base'=>false,'visit_sources'=>false];
+    }unset($row);
+    $reconfirmedCompact=$compactMethod->invoke($projection,$reconfirmed);
+    $check('the longest re-confirmation states retain relation reasons inside423 bytes without implying visit queries',
+        $size($reconfirmedCompact)<=423&&$reconfirmedCompact['rows'][0]===[1,'relation_reconfirms_previously_checked_held_cid','recorded_day_cid_matches_held',3]
+        &&$reconfirmedCompact['rows'][1]===[2,'relation_reconfirms_previously_checked_held_cid','recorded_day_cid_matches_held',3]);
+
+    $noHeadroom=$pressure;$noHeadroom['response_pressure_fixture'].=str_repeat('x',423-$size($compact)+1);
+    $omittedOutcome=$bound->invoke($projection,$noHeadroom);
+    $check('insufficient room explicitly omits the compact result before any original financial proof or roster',
+        $size($omittedOutcome)<=28000
+        &&$omittedOutcome['value_delivery']['repair_assessments']['retained_relation_outcomes']['reason']==='response_budget'
+        &&$omittedOutcome['value_delivery']['repair_assessments']['processing_frontier']===$r
+        &&$omittedOutcome['value_delivery']['repair_assessments']['finite_visit_evidence']===$contextSafe['value_delivery']['repair_assessments']['finite_visit_evidence']
+        &&$omittedOutcome['value_delivery']['by_state']===$noHeadroom['value_delivery']['by_state']);
+    foreach(['authority','duplicate_case','unknown_status','unknown_reason']as$case){
+        $invalid=$outcomePacket;
+        if($case==='authority')$invalid['financial_permission']=true;
+        if($case==='duplicate_case')$invalid['rows'][1]['case_index']=1;
+        if($case==='unknown_status')$invalid['rows'][0]['status']='PRIVATE UNVALIDATED STATUS';
+        if($case==='unknown_reason')$invalid['rows'][0]['reason']='PRIVATE UNVALIDATED REASON';
+        $check('compact formatter refuses malformed projection metadata '.$case,$compactMethod->invoke($projection,$invalid)===null);
+    }
     $withoutBinding=$small;$withoutBinding['value_delivery']['repair_assessments']['finite_visit_evidence']=['available'=>false,'reason'=>'unbound_fixture'];
     $dependent=$bound->invoke($projection,$withoutBinding);
     $check('outcome display never survives loss of the current original-frame binding',
         $dependent['value_delivery']['repair_assessments']['retained_relation_outcomes']['reason']==='original_current_binding_unavailable'
         &&$dependent['value_delivery']['by_state']===$small['value_delivery']['by_state']);
+    $compactWithoutBinding=$pressure;$compactWithoutBinding['value_delivery']['repair_assessments']['retained_relation_outcomes']=$compact;
+    $compactWithoutBinding['value_delivery']['repair_assessments']['finite_visit_evidence']=['available'=>false,'reason'=>'unbound_fixture'];
+    $compactUnbound=$bound->invoke($projection,$compactWithoutBinding);
+    $check('compact output cannot survive an unavailable current original-frame binding',
+        $compactUnbound['value_delivery']['repair_assessments']['retained_relation_outcomes']['reason']==='original_current_binding_unavailable'
+        &&$compactUnbound['value_delivery']['by_state']===$pressure['value_delivery']['by_state']);
 
     $trackerPositive=['available'=>true,'case_index'=>0,'status'=>'candidate','financial_permission'=>false,'kind'=>'yclid',
         'candidate_ref'=>str_repeat('d',64),'recorded_click_at_unix'=>$now-100,'first_saved_at_unix'=>null,'first_enriched_at_unix'=>null];
