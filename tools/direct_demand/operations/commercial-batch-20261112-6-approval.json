@@ -4,7 +4,6 @@
   "expected_installed_sha": "1f00068a34de996ada54d6ff51824553c5806b48",
   "hotel_ids": [
     418,
-    364,
     1335,
     1212,
     13844,
@@ -13,5 +12,5 @@
     65779,
     1369
   ],
-  "manifest_sha256": "efd10671af215d58e8e21da31ffae9fb713730950b108ef3a00386d77110373c"
+  "manifest_sha256": "7229be8dfe8a185cdb4a17c2115b96008b4467f21abffa7877fe952b57471a50"
 }

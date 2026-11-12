@@ -4,7 +4,7 @@
   "registry_version": 224,
   "button_text": "✈️ Узнать стоимость тура",
   "baseline_accepted_full_pairs": 551,
-  "expected_new_full_pairs": 9,
+  "expected_new_full_pairs": 8,
   "rows": [
     {
       "hotel_id": 418,
@@ -27,28 +27,6 @@
         "https://srntyhotels.com/wp-content/uploads/2026/06/R08-1024x683.webp",
         "https://srntyhotels.com/wp-content/uploads/2026/06/0L9A2303-683x1024.webp",
         "https://srntyhotels.com/wp-content/uploads/2026/07/48ab01c6-86e6-49b8-ac0f-b659af349ee5-1200x625.png"
-      ]
-    },
-    {
-      "hotel_id": 364,
-      "logical_id": "commercial-hotel-364-364-v1",
-      "aliases": [
-        "V Hotel Sharm El Sheikh",
-        "V HOTEL SHARM EL SHEIKH (EX. PYRAMISA BEACH RESORT SHARM EL SHEIKH)"
-      ],
-      "text": "✈️ Туры в V Hotel Sharm El Sheikh\n📍 Шаркс-Бей, Шарм-эль-Шейх, Египет.\n\nШаркс Бей для комфортного семейного отдыха: пляж, детский аквапарк и выбор семейных категорий, Executive и Royal Suite.\n\nТерритория спускается к морю, работает пляжный шаттл. Уточним расположение номера, удобный вход в воду и условия выбранного тарифа.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
-      "text_sha256": "04dbf68baf1de8162b4ce7aaca2d3f3a0379c6c146f769211b2eb283fc8f589a",
-      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7154f63f959bcfd1ba3d382ebb327f9c0af15c2f/.github/traffic-publish/commercial-20261112-batch6/364.png",
-      "photo_sha256": "8647816c7052c9764dfdf8b82a94faf4e2ac0c6d1c24671e8640338d073d92eb",
-      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
-      "sources": [
-        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
-        "https://thevhotelsegypt.com/v-hotel-sharm-el-sheikh/",
-        "https://thevhotelsegypt.com/wp-content/uploads/2025/09/FACT-SHEET-SSH-July-2025.pdf",
-        "https://kompastour.com/az/rus/country/egypt/sharm/pyramisa_beach_resort_sharm_el_sheikh/",
-        "https://thevhotelsegypt.com/wp-content/uploads/2025/08/V-SSH_-Swimming-Pool-12-1.webp",
-        "https://thevhotelsegypt.com/wp-content/uploads/2025/08/THE-V-SHARM-EL-SHEKH-MARCH-2025-PHOTO-SHOOT-BY-MUSTAFA-ELMASRY-PART-B00003.webp",
-        "https://thevhotelsegypt.com/wp-content/uploads/2025/08/Copy-of-Kids-Aqua-Park-4.webp"
       ]
     },
     {
