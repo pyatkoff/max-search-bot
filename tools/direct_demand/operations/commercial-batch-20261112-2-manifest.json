@@ -55,31 +55,6 @@
       "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     },
     {
-      "hotel_id": 319,
-      "logical_id": "commercial-sunrise-remal-beach-319-v1",
-      "aliases": [
-        "SUNRISE Remal Beach",
-        "SUNRISE REMAL BEACH RESORT"
-      ],
-      "text": "✈️ Туры в SUNRISE Remal Beach\n📍 Рас-Насрани, Шарм-эль-Шейх, Египет.\n\nЛюксы у моря, собственный пляж и рифы Рас Насрани. Для семьи   Family Suite и детский клуб, для особого отдыха   отдельные Pool и Jacuzzi Suite.\n\nSwim Up не всегда частный бассейн; Posh Club зависит от категории. Подбираем именно Remal Beach и проверяем удобный вход в воду.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
-      "text_sha256": "4e423085f5365e350f9a3b0cbc47fe0cf563f824628dae4be8605b001708fd46",
-      "photo_sha256": "64ccad572260f3a214b627a5e053880f3eb9ff8143d14be73f5258a191d6eb7b",
-      "sources": [
-        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
-        "https://www.sunrise-resorts.com/sunrise-remal-beach-resort",
-        "https://www.sunrise-resorts.com/sunrise-remal-beach-resort/stay/executive-pool-suite",
-        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/25_rb_factsheet_july_2025.pdf",
-        "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
-        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a2fecdc8be5b.jpg/1920x1080/fit/80/1cee548f2316399e0055d0c6d04e31e9.jpg",
-        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a2fea596d750.jpg/1920x1080/fit/80/1912587d9d641d7e47cbe63c5eabc7cf.jpg",
-        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a0eec34bc4a1.jpg/1920x1080/fit/80/afeb13506e0837ce4e9c5d385871a6f4.jpg"
-      ],
-      "category": null,
-      "display_category": false,
-      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f35b99453aa8d8a228cf0b6215de4c85397e6017/.github/traffic-publish/commercial-20261112-batch2/319.png",
-      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
-    },
-    {
       "hotel_id": 68907,
       "logical_id": "commercial-amarina-abu-soma-68907-v1",
       "aliases": [
