@@ -301,14 +301,14 @@ final class ModeledConversionValueExport
         // Finite GET-only evidence follows ordinary financial work and cannot alter its decisions.
         $self->runFiniteEvidence($api,$now,$gate,$clock);
         $self->runRecoveryEvidence($api,$now,$gate,$clock,$stats['metrika_report']);
-        $self->runRetainedAppEvidence(self::observedAt($clock,$now),$gate);
-        $self->persistTickReceipt($stats,$failure,$now);
+        if($self->persistTickReceipt($stats,$failure,$now))
+            $self->runRetainedAppEvidence(self::observedAt($clock,$now),$gate);
         // Private counts stay in the DB; ordinary diagnostic logs get technical state only.
         return ['status'=>$stats['errors']?'degraded':'running','contract'=>ModeledConversionValueContract::VERSION];
     }
 
     /** Merge after all network work, so overlapping healthy ticks cannot erase failure evidence. */
-    private function persistTickReceipt(array $stats,?array $failure,int $now):void
+    private function persistTickReceipt(array $stats,?array $failure,int $now):bool
     {
         $decisions=$stats['visit_gate_decisions']??null;
         // New optional counters must never consume space reserved for existing proof or failures.
@@ -319,7 +319,7 @@ final class ModeledConversionValueExport
         try{
             $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
             $s=$p->query("SELECT activated_at_unix,last_tick_unix,last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'".($mysql?' FOR UPDATE':''))->fetch(PDO::FETCH_ASSOC);
-            if(!$s){$p->commit();return;}
+            if(!$s){$p->commit();return false;}
             $receipt=null;$unreadableReceipt=$s['last_receipt_json']!==null;
             if(is_string($s['last_receipt_json'])&&strlen($s['last_receipt_json'])<=8192&&str_starts_with(ltrim($s['last_receipt_json']),'{')){
                 try{$receipt=json_decode($s['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);$unreadableReceipt=!is_array($receipt);}
@@ -360,7 +360,7 @@ final class ModeledConversionValueExport
                         $updated=$this->withFiniteEvidence($updated,$withoutRecovery,$mysql);
                         $updated=$this->withRecoveryEvidence($updated,$receipt,$mysql);
                         $updated=$this->withCounterScopeEvidence($updated,$receipt,$mysql,max($now,$lastTick));
-                        if($updated===null){$p->commit();return;}
+                        if($updated===null){$p->commit();return false;}
                     }
                     // A delayed cohort is not authoritative for the newer receipt's membership or completeness.
                     $encoded=json_encode($updated,JSON_THROW_ON_ERROR);
@@ -380,7 +380,7 @@ final class ModeledConversionValueExport
                 $stats=$this->withFiniteEvidence($stats,$unreadableReceipt?['finite_visit_evidence'=>false]:(is_array($receipt)?$receipt:[]),$mysql);
                 $stats=$this->withRecoveryEvidence($stats,$unreadableReceipt?['finite_visit_recovery'=>false]:(is_array($receipt)?$receipt:[]),$mysql);
                 $stats=$this->withCounterScopeEvidence($stats,$unreadableReceipt?[ModeledConversionMaxCounterScopeEvidence::RECEIPT_KEY=>false,ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY=>false]:(is_array($receipt)?$receipt:[]),$mysql,$now);
-                if($stats===null){$p->commit();return;}
+                if($stats===null){$p->commit();return false;}
                 $encoded=json_encode($stats,JSON_THROW_ON_ERROR);
                 // Optional audit yields before the established historical failure fallback.
                 $storedBytes=0;$fits=$this->receiptFits($encoded,$mysql,$storedBytes);
@@ -400,6 +400,7 @@ final class ModeledConversionValueExport
                     $reportOk?json_encode($report,JSON_THROW_ON_ERROR):null,$reportOk?1:0,$now,$now]);
             }
             $p->commit();
+            return $lastTick<=$now;
         }catch(Throwable $error){if($p->inTransaction())$p->rollBack();throw $error;}
     }
 

@@ -2608,11 +2608,14 @@ function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $ori
     $nativeBefore=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
     $worker=new ModeledConversionValueExport($p);
     foreach(['finiteFrame'=>$original,'finiteRows'=>[$original['r'][0][0]=>$row]]as$property=>$value)(new ReflectionProperty($worker,$property))->setValue($worker,$value);
+    $persistCurrent=new ReflectionMethod($worker,'persistTickReceipt');
+    $currentStats=['collected'=>2,'resolved'=>1,'accepted'=>4,'processed'=>1,'unknown'=>0,'errors'=>0,'metrika_report'=>['status'=>'unavailable']];
+    $currentCommitted=$persistCurrent->invoke($worker,$currentStats,null,$now);
     $phase=new ReflectionMethod($worker,'runRetainedAppEvidence');$sourceCount=0;$durable=true;
     $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
     ForecastV1ObservedStatement::$onRetainedSource=static function()use($p,$key,&$sourceCount,&$durable):void{
         $sourceCount++;$r=json_decode($p->query("SELECT last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetchColumn(),true,32,JSON_THROW_ON_ERROR);
-        $durable=$durable&&array_key_exists($key,$r)&&$r[$key]['s']===1;
+        $durable=$durable&&array_key_exists($key,$r)&&$r[$key]['s']===1&&$r['accepted']===4&&$r['processed']===1&&$r['collected']===2;
     };
     try{
         $p->prepare("UPDATE max_channel_conversion_outbox SET state='ready' WHERE id=?")->execute([$row['id']]);
@@ -2623,8 +2626,8 @@ function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $ori
     }
     finally{ForecastV1ObservedStatement::$onRetainedSource=null;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
     $saved=json_decode($p->query("SELECT last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetchColumn(),true,32,JSON_THROW_ON_ERROR);
-    $check('the real optional phase commits its distinct intent before both source SELECTs and never changes financial rows',
-        $sourceCount===2&&$durable&&($saved[$key]['s']??null)===2&&$saved['finite_counter_scope_evidence']===false
+    $check('the real optional phase reads only after current financial counts and its distinct intent are committed without changing financial rows',
+        $currentCommitted===true&&$sourceCount===2&&$durable&&($saved[$key]['s']??null)===2&&$saved['finite_counter_scope_evidence']===false
         &&$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)===$nativeBefore);
     $unknown=$saved;$unknown[$key]=$intent;
     $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode($unknown,JSON_THROW_ON_ERROR)]);
@@ -2681,10 +2684,10 @@ function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $ori
     $financial=['collected'=>2,'resolved'=>1,'accepted'=>3,'processed'=>0,'unknown'=>0,'errors'=>0,'metrika_report'=>['status'=>'unavailable']];
     $persist->invoke($failedWorker,$financial,null,$now+2);
     $afterFailure=json_decode($p->query("SELECT last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetchColumn(),true,32,JSON_THROW_ON_ERROR);
-    $persist->invoke($failedWorker,['accepted'=>0,'errors'=>0,'metrika_report'=>['status'=>'unavailable']],null,$now+1);
+    $lateCommitted=$persist->invoke($failedWorker,['accepted'=>0,'errors'=>0,'metrika_report'=>['status'=>'unavailable']],null,$now+1);
     $afterLate=json_decode($p->query("SELECT last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetchColumn(),true,32,JSON_THROW_ON_ERROR);
     $check('optional source failure and a late healthy tick preserve successful financial counts and the consumed local token',
-        $afterFailure['accepted']===3&&$afterFailure['errors']===0&&array_key_exists($key,$afterFailure)
+        $lateCommitted===false&&$afterFailure['accepted']===3&&$afterFailure['errors']===0&&array_key_exists($key,$afterFailure)
         &&$afterLate[$key]===$afterFailure[$key]&&$afterLate['accepted']===3);
 
     $fields=array_keys($settings);$p->prepare('UPDATE modeled_conversion_value_export_settings SET '.implode(',',array_map(static fn(string $c):string=>$c.'=?',$fields))." WHERE project_key='anytour'")->execute(array_values($settings));
