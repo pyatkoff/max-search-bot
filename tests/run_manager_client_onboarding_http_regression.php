@@ -45,6 +45,13 @@ try{
     $r=$request(['expected_actor'=>$employee,'csrf'=>'synthetic-client-csrf','action'=>'detail','project_id'=>$id],$employee);clientHttpCheck('correction updates own materials without exposing credentials',$r['json']['client']['materials']===$correction['materials']&&$r['json']['client']['can_configure']===false&&!str_contains($r['body'],$correction['token']));unlink($directory.'/read-only');
     $pdo->exec('DELETE FROM manager_projects WHERE manager_id='.$employee);touch($directory.'/read-only');$r=$request(['expected_actor'=>$employee,'csrf'=>'synthetic-client-csrf','action'=>'detail','project_id'=>$id],$employee);clientHttpCheck('fresh membership revocation removes materials access',$r['status']===404);unlink($directory.'/read-only');
     $pdo->exec('UPDATE managers SET is_active=0 WHERE id='.$employee);clientHttpCheck('deactivated account loses actual session access',$request(['action'=>'me'],$employee)['status']===401);
+    $neutral=clientFixtureInput('c');$neutral['business_kind']='manager_inbox';$neutral['display_name']='Студия Север';$neutral['materials']='Услуги только этой студии';
+    $r=$request($base+['action'=>'create','client'=>$neutral]);$neutralCreated=$r['json'];clientHttpCheck('actual endpoint accepts neutral company without special industry data',$r['status']===200&&$neutralCreated['state']==='created');
+    $neutralId=$neutralCreated['project_id'];$neutralStaff=$neutralCreated['manager_ids'][0];$sid=bin2hex(random_bytes(16));session_id($sid);session_start();$_SESSION=['manager_id'=>$neutralStaff,'csrf'=>'synthetic-client-csrf'];session_write_close();$sessions[$neutralStaff]=$sid;
+    touch($directory.'/read-only');$r=$request(['expected_actor'=>$neutralStaff,'csrf'=>'synthetic-client-csrf','action'=>'detail','project_id'=>$neutralId],$neutralStaff);
+    clientHttpCheck('neutral employee reads only its own safe profile and materials',$r['status']===200&&$r['json']['client']['business_profile']['kind']==='manager_inbox'&&$r['json']['client']['materials']===$neutral['materials']&&!str_contains($r['body'],$neutral['token']));
+    clientHttpCheck('neutral company cannot open another company card',$request(['expected_actor'=>$neutralStaff,'csrf'=>'synthetic-client-csrf','action'=>'detail','project_id'=>$id],$neutralStaff)['status']===404);
+    clientHttpCheck('neutral lost result restores query-only receipt without new company',$request($base+['action'=>'receipt','operation_id'=>$neutral['operation_id']])['json']===$neutralCreated&&(int)$pdo->query('SELECT COUNT(*) FROM project_client_connections')->fetchColumn()===2);unlink($directory.'/read-only');
     echo 'TOTAL '.$passed.' | PASS '.$passed." | FAIL 0\n";
 }finally{
     if(is_resource($server)){proc_terminate($server);proc_close($server);}

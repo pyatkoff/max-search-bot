@@ -2,13 +2,17 @@
 
 Owner decision: AppleService39 is one customer of the shared platform. New
 customers are isolated project accounts with reusable industry behavior, rather
-than repository forks. The first cabinet template is `device_repair`.
-Other industries are not presented as ready templates.
+than repository forks. `ClientBusinessProfile` owns the finite choices:
+`device_repair` asks about the device, while `manager_inbox` supports a company
+of any industry through a neutral question and its employee's reply. Both use
+the same canonical manager handoff. The neutral profile includes no industry
+questionnaire, automatic pricing, AI configuration or publication catalogue;
+specialized profiles for other industries are not presented as ready.
 
 ## Operator path
 
 Open **Компании** from Manager2's account menu or administration, then **Добавить
-клиента**. A platform administrator enters the company name, MAX bot username and
+клиента**. A platform administrator chooses the profile and enters the company name, MAX bot username and
 token, first employee credentials and optional UTF-8 TXT/CSV materials (100 KB).
 Saving creates the company, manager-first MAX source, employee and connection
 without registering a provider subscription. Existing companies, employees,
@@ -24,8 +28,14 @@ GETs, the actual active project/source directory and an authenticated ignored
 endpoint probe. It sends no customer message. **Активировать подключение** is a
 separate explicit action through that same service. A conflicting existing
 provider URL blocks activation and is never removed. New companies use the
-existing generic repair webhook, recorder, access policy and outbound adapter;
+existing generic project webhook, recorder, access policy and outbound adapter;
 there is no parallel channel/history/sender owner.
+
+Profile settings are built from the selected kind and this company's name/key,
+without copying another company's settings. Materials remain its own reference
+text. The selected profile and its limits are visible in the company card;
+an unknown profile is not silently labelled as a supported one. The existing
+reviewed travel and repair configurations retain their own behavior.
 
 Before commissioning, **Исправить данные до активации** can correct the bot,
 replace its token and edit the reference materials. An empty replacement token
