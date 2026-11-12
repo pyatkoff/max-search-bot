@@ -1168,7 +1168,235 @@ async function terminalReadCases(){
   let failures=0;const outage=C.terminalReads(async()=>{failures++;throw new R.Refusal('api_http_503');},{sleep:async()=>{}});
   await refuses(()=>outage('GET',R.API_ROOT+'/actions/runs/100'),'api_http_503');equal(failures,3,'a sustained outage stops after two additional GETs');
 }
-async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await terminalContinuationCases();await terminalReadCases();
+async function transientReadCases(){
+  const before=assertions,endpoint=R.API_ROOT+'/git/ref/heads/main';
+  {
+    let calls=0;const read=R.makeReadApi('test-read-token',async()=>{calls++;
+      return calls===1?new Response('temporary',{status:502}):new Response('{"ok":true}',{status:200});},
+      {sleep:async()=>{}});
+    equal((await read('GET',endpoint)).ok,true);equal(calls,2,'502: repeat only the idempotent failed read');
+  }
+  for(const status of [502,503])for(const method of ['POST','PATCH']){
+    let calls=0;const write=C.makeApi('test-write-token',async()=>{calls++;return new Response('temporary',{status});});
+    await refuses(()=>write(method,method==='PATCH'?R.API_ROOT+'/issues/comments/1':R.API_ROOT+'/git/trees',
+      method==='PATCH'?{body:'terminal'}:{base_tree:H('tree'),tree:[]}),'api_http_'+status);
+    equal(calls,1,'gateway responses never retry writes');
+  }
+  {
+    let calls=0;const api=C.makeApi('test-read-token',async()=>{calls++;return new Response('temporary',{status:503});});
+    const limited=C.terminalReads(api,{sleep:async()=>{}});
+    await refuses(()=>limited('GET',endpoint),'api_http_503');equal(calls,3,'legacy phase ceiling cannot multiply common retries');
+  }
+  {
+    const calls=[],delays=[],current=H('current after temporary refusal');
+    const read=R.makeReadApi('test-read-token',async(url,options)=>{
+      calls.push({url,method:options.method,authorization:options.headers.Authorization});
+      return calls.length===1?new Response('temporary',{status:503}):
+        new Response(JSON.stringify({object:{sha:current}}),{status:200});
+    },{sleep:async(ms)=>{delays.push(ms);}});
+    equal((await read('GET',endpoint)).object.sha,current,'503: use the actual later read, never cached source');
+    equal(calls.map(x=>x.method),['GET','GET'],'503: only repeat the failed read');
+    equal(calls[0],calls[1],'503: same endpoint and authority');
+    equal(delays,[250],'503: one bounded backoff');
+  }
+  {
+    let calls=0;const delays=[];
+    const read=R.makeReadApi('test-read-token',async()=>{calls++;return new Response('temporary',{status:503});},
+      {sleep:async(ms)=>{delays.push(ms);}});
+    await refuses(()=>read('GET',endpoint),'api_http_503');
+    equal(calls,3,'503: finite ceiling of three reads');
+    equal(delays,[250,750],'503: two finite delays');
+  }
+  for(const status of [400,401,403,404,429,500,504]){
+    let calls=0;const read=R.makeReadApi('test-read-token',async()=>{calls++;return new Response('refused',{status});},
+      {sleep:async()=>{throw Error('unexpected delay');}});
+    await refuses(()=>read('GET',endpoint),'api_http_'+status);
+    equal(calls,1,'non-temporary refusal is not retried');
+  }
+  {
+    let calls=0;const delays=[];
+    const read=R.makeReadApi('test-read-token',async()=>{calls++;return calls===1?
+      new Response('temporary',{status:503,headers:{'retry-after':'1'}}):
+      new Response('{"available":true}',{status:200});},{sleep:async(ms)=>{delays.push(ms);}});
+    equal((await read('GET',endpoint)).available,true);
+    equal(delays,[1000],'503: respect the server delay');
+  }
+  {
+    let calls=0;const read=R.makeReadApi('test-read-token',async()=>{calls++;return new Response('temporary',
+      {status:503,headers:{'retry-after':'120'}});},{sleep:async()=>{throw Error('outside the read deadline');}});
+    await refuses(()=>read('GET',endpoint),'api_http_503');
+    equal(calls,1,'503: no wait or retry beyond the existing total deadline');
+  }
+  {
+    let calls=0;const external=new AbortController();
+    const read=R.makeReadApi('test-read-token',async()=>{calls++;return new Response('temporary',{status:503});},
+      {sleep:async(ms,value,options)=>{external.abort();equal(options.signal.aborted,true);throw Error('aborted');}});
+    await refuses(()=>read('GET',endpoint,undefined,false,external.signal),'transport_failed');
+    equal(calls,1,'503: abort stops the retry before another read');
+  }
+  for(const [method,path,body]of [
+    ['PATCH',R.API_ROOT+'/issues/comments/1',{body:'same terminal'}],
+    ['POST',R.API_ROOT+'/git/commits',{message:'test',tree:H('tree'),parents:[H('parent')]}]]){
+    let calls=0;const write=C.makeApi('test-write-token',async()=>{calls++;return new Response('temporary',{status:503});});
+    await refuses(()=>write(method,path,body),'api_http_503');
+    equal(calls,1,'503: never retry a metadata mutation');
+  }
+  return assertions-before;
+}
+
+
+function gateContinuationFixture(){
+  const p=R.GATE_RECOVERY,record={"bundle":"success","diagnostics":"success","diagnostics_attempt":1,"install_attempt":1,"install_checks":"success","key":"success","max_webhook":"success","metrika_cron":"success","migration":"success","provenance":"success","reported_at":"2026-11-12T16:04:56Z","repository_release":{"application_sha":"0cb62969d0a8fa59b1872df465b3810bf5b569d4","baseline":null,"baseline_eligible":false,"closure":null,"content":{"candidate_sha":"0cb62969d0a8fa59b1872df465b3810bf5b569d4","classification":"unconfirmed","installed_sha":"0cb62969d0a8fa59b1872df465b3810bf5b569d4","policy":"anytour-development-content-v1","release_path":"full_required","runtime_fingerprint":null},"intent_scan":{"status":"unknown"},"kind":"installed","observation":null,"observation_producer":null,"phase":"pending_closure","release":{"event":"push","run_attempt":2,"run_id":"43250756234"},"repository_sha":"0cb62969d0a8fa59b1872df465b3810bf5b569d4","schema":1,"stages":{"bundle":{"execution":"performed","result":"success"},"diagnostics":{"execution":"performed","result":"success"},"install_checks":{"execution":"performed","result":"success"},"key":{"execution":"performed","result":"success"},"max_webhook":{"execution":"performed","result":"success"},"metrika_cron":{"execution":"performed","result":"success"},"migration":{"execution":"performed","result":"success"},"provenance":{"execution":"performed","result":"success"},"smoke":{"execution":"performed","result":"success"},"sync":{"execution":"performed","result":"success"}}},"run_id":"43250756234","schema":2,"sha":"0cb62969d0a8fa59b1872df465b3810bf5b569d4","smoke":"success","smoke_attempt":1,"sync":"success"};
+  const f=fixture(p.sha,record);f.runs.clear();f.jobs.clear();
+  const w=f.start(p.sha,Number(p.deploy),Number(p.run_id),p.pr);
+  const b={comment_id:p.comment_id,head_sha:p.head_sha,owner_id:p.owner_id,updated_at:p.updated_at};
+  f.pr={...f.pr,body:'<!-- release-slot-close:v1 '+JSON.stringify(b)+' -->',head:{...f.pr.head,sha:p.head_sha}};
+  f.comment={...f.comment,id:p.comment_id,user:{id:p.owner_id},updated_at:p.updated_at,body:'PR1506: выпуск занят'};
+  f.records.set(p.commit,{...f.records.get(f.head),bytes:Buffer.from(f.records.get(f.head).bytes)});
+  f.commits.set(p.commit,{...copy(f.commits.get(f.head)),sha:p.commit});
+  f.commits.get(f.head).parents=[{sha:p.commit}];
+  const later='2026-11-06T07:00:00Z',first={...copy(w.parent),status:'completed',conclusion:'failure'};
+  const current={...copy(w.parent),run_attempt:2,run_started_at:later,updated_at:later};
+  f.runs.set(current.id,current);
+  for(const r of w.wave.filter(r=>r.event==='workflow_run'))r.display_title=r.path.endsWith(C.ACTIVATION.file)
+    ?'monitor-proof:v1:'+w.wave.find(r=>r.path.endsWith('modeled-conversion-monitor.yml')).id+':1'
+    :'deploy-proof:v1:'+p.deploy+':2';
+  const execution=j=>({...j,runner_id:123,runner_name:'synthetic',labels:['synthetic'],started_at:T,completed_at:T});
+  const old=C.INSTALL_JOBS.map(name=>execution(job(name,first,[step('Required original check')])));
+  old.push(execution(job('verify',first,[step(C.VERIFY_STEPS.check),step(C.VERIFY_STEPS.download),
+    step(C.VERIFY_STEPS.status,'failure'),step(R.PENDING_BINDING_STEP,'skipped'),step(C.VERIFY_STEPS.cleanup,'skipped')],'failure')));
+  const latest=old.filter(j=>j.name!=='verify').map(j=>({...copy(j),id:jobSerial++,run_attempt:2}));
+  latest.push(execution(job('verify',current,[step(C.VERIFY_STEPS.check,'skipped'),step(C.VERIFY_STEPS.download,'skipped'),
+    step(C.VERIFY_STEPS.status),step(R.PENDING_BINDING_STEP+R.digest(record)),step(C.VERIFY_STEPS.cleanup)])));
+  const oldTls=w.wave.find(r=>r.path===p.tls_workflow);f.runs.delete(oldTls.id);oldTls.id=Number(p.tls_run_id);
+  oldTls.status='completed';oldTls.conclusion='failure';f.runs.set(oldTls.id,oldTls);
+  const tlsFailure=job('strict-tls-preflight',oldTls,[step(R.RESOLVER_STEP,'failure'),
+    step('Prepare SSH private key','skipped'),step(p.tls_step,'skipped')],'failure');tlsFailure.id=p.tls_job_id;f.jobs.set(oldTls.id,[tlsFailure]);
+  w.own.status='completed';w.own.conclusion='failure';w.own.display_title='deploy-proof:v1:'+p.deploy+':2';
+  const closeFailure=job('release-slot',w.own,[step('Prepare the exact release proof before terminal publication','failure'),
+    step(R.TERMINAL_BINDING_STEP,'skipped'),step(R.TERMINAL_STEP,'skipped')],'failure');closeFailure.id=p.job_id;
+  f.jobs.set(w.own.id,[job('configure',w.own,[],'skipped'),closeFailure]);
+  const source=H('checked unstarted gate continuation'),native={...copy(w.own),id:7100,path:R.CLOSER,event:'push',head_sha:source,
+    head_branch:p.branch,status:'in_progress',conclusion:null,actor:{id:p.owner_id}};
+  const tlsNative={...copy(native),id:7101,path:p.tls_workflow,status:'completed',conclusion:'success'};
+  f.runs.set(native.id,native);f.runs.set(tlsNative.id,tlsNative);
+  const own=job('release-slot-recovery',native,[],null);own.status='in_progress';own.runner_id=124;f.jobs.set(native.id,[own]);
+  f.jobs.set(tlsNative.id,[job('strict-tls-preflight',tlsNative,[step(R.RESOLVER_STEP),step('Prepare SSH private key'),step(p.tls_step)])]);
+  for(const [i,name,file]of [[0,'Regression tests','regression-tests.yml'],[1,'Retired domain guard','retired-domain-guard.yml']]){
+    f.runs.set(7200+i,{...copy(tlsNative),id:7200+i,path:R.PREFIX+file,event:'pull_request',name});
+  }
+  f.commits.set(source,{sha:source,parents:[{sha:p.before}]});
+  const originalHook=async({method,path,body})=>{
+    if(path===R.API_ROOT+'/actions/runs/'+p.deploy+'/attempts/1')return copy(first);
+    if(path===R.API_ROOT+'/actions/runs/'+p.deploy+'/attempts/2')return copy(current);
+    if(path===R.API_ROOT+'/actions/runs/'+p.deploy+'/jobs?filter=all&per_page=100')return {total_count:old.length+latest.length,jobs:copy([...old,...latest])};
+    if(path===R.API_ROOT+'/actions/runs/'+p.deploy+'/attempts/2/jobs?per_page=100')return {total_count:latest.length,jobs:copy(latest)};
+    if(path===R.API_ROOT+'/issues/comments/'+p.comment_id){
+      if(method==='PATCH')f.comment={...f.comment,body:body.body};return copy(f.comment);
+    }
+  };
+  f.hook=originalHook;f.api.jobLog=async id=>{assert.equal(id,p.tls_job_id);return Buffer.from(T+' deployment_release=refused reason=api_http_502\n');};
+  const env={GITHUB_REPOSITORY:R.REPOSITORY,GITHUB_EVENT_NAME:'push',GITHUB_REF:'refs/heads/'+p.branch,
+    GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.CLOSER+'@refs/heads/'+p.branch,GITHUB_JOB:'release-slot-recovery',
+    GITHUB_RUN_ATTEMPT:'1',GITHUB_RUN_ID:String(native.id),GITHUB_SHA:source};
+  const event={repository:{full_name:R.REPOSITORY},ref:env.GITHUB_REF,before:p.before,after:source,
+    created:false,deleted:false,forced:false};
+  return {f,source,native,tlsNative,own,tlsFailure,closeFailure,old,latest,env,event,originalHook,
+    options:()=>({env,event,api:f.api,sleep:async()=>{throw Error('unexpected gate wait');}})};
+}
+async function gateContinuationCases(){
+  for(const [mutate,reason]of [
+    [x=>{x.f.main=H('new main');},'main_changed'],
+    [x=>{x.f.comment={...x.f.comment,updated_at:T};},'record_changed'],
+    [x=>{x.f.comment={...x.f.comment,user:{id:1}};},'foreign_record'],
+    [x=>{x.f.runs.get(7200).conclusion='failure';},'recovery_ci_unconfirmed'],
+    [x=>{x.f.runs.get(Number(R.GATE_RECOVERY.tls_run_id)).conclusion='success';},'producer_not_successful'],
+    [x=>{x.f.runs.get(Number(R.GATE_RECOVERY.run_id)).conclusion='success';},'producer_not_successful']
+  ]){
+    const x=gateContinuationFixture();mutate(x);
+    await refuses(()=>C.resumeGateTerminal({...x.options(),prepare:true}),reason);
+    equal(x.f.calls.filter(c=>c.method!=='GET').length,0,'changed authority or original history cannot mutate');
+  }
+  {
+    const x=gateContinuationFixture(),p=R.GATE_RECOVERY;
+    const tlsEnv={...x.env,GITHUB_RUN_ID:String(x.tlsNative.id),GITHUB_JOB:'strict-tls-preflight',
+      GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+p.tls_workflow+'@refs/heads/'+p.branch};
+    x.tlsNative.status='in_progress';x.tlsNative.conclusion=null;
+    const j=x.f.jobs.get(x.tlsNative.id)[0];j.status='in_progress';j.conclusion=null;j.runner_id=125;
+    equal((await R.resolveConsumer({env:tlsEnv,event:x.event,api:x.f.api})).application_sha,p.sha,
+      'only the exact native source can enter the previously unstarted TLS gate');
+    equal(x.f.calls.filter(c=>c.method!=='GET').length,0,'TLS admission is read only before credentials');
+  }
+  {
+    const x=gateContinuationFixture(),p=R.GATE_RECOVERY;
+    const proof=await C.resumeGateTerminal({...x.options(),prepare:true});
+    equal(x.f.comment.body,'PR1506: выпуск занят','preparation cannot release publisher');
+    equal(R.validateRelease(x.f.record).release.closure.recovery.kind,'unstarted_tls_v1');
+    equal(x.f.record.install_attempt,1);equal(x.f.record.smoke_attempt,1);equal(x.f.record.diagnostics_attempt,1);
+    const gate=x.f.record.repository_release.closure.gates.find(g=>g.path===p.tls_workflow);
+    equal(gate.run_id,String(x.tlsNative.id),'terminal cites actual new TLS run, never the failed original');
+    equal(x.tlsFailure.conclusion,'failure');equal(x.closeFailure.conclusion,'failure');
+    x.own.steps.push(step(R.TERMINAL_BINDING_STEP+proof.record_digest));x.env.PREPARED_RECORD_DIGEST=proof.record_digest;
+    equal(await C.resumeGateTerminal(x.options()),'released');
+    equal(x.f.calls.filter(c=>c.method==='PATCH'&&c.path.endsWith('/issues/comments/'+p.comment_id)).length,1);
+    x.own.steps.push(step(R.TERMINAL_STEP));x.own.status='completed';x.own.conclusion='success';
+    x.native.status='completed';x.native.conclusion='success';
+    await R.authenticatePublication(x.f.api,await R.readRecord(x.f.api),{closed:true});
+    equal(x.f.comment.body,'PR1506: установлено, выпуск свободен','consumer authenticates actual native terminal lineage');
+  }
+  for(const mutate of [
+    x=>{x.env.GITHUB_RUN_ATTEMPT='2';},x=>{x.event.forced=true;},x=>{x.event.created=true;},
+    x=>{x.event.before=H('foreign predecessor');},x=>{x.env.GITHUB_JOB='configure';},
+    x=>{x.env.GITHUB_WORKFLOW_REF='foreign';},x=>{x.event.after=H('other source');}
+  ]){
+    const x=gateContinuationFixture();mutate(x);await refuses(()=>C.resumeGateTerminal({...x.options(),prepare:true}),'untrusted_gate_continuation');
+    equal(x.f.calls.length,0,'invalid context cannot reach any credential, proof or mutation');
+  }
+  for(const mutate of [
+    x=>{x.tlsFailure.steps[1].conclusion='success';},x=>{x.tlsFailure.steps[2].conclusion='success';},
+    x=>{x.tlsFailure.steps[0].conclusion='success';},x=>{x.tlsFailure.steps.pop();},
+    x=>{x.tlsFailure.steps.push(copy(x.tlsFailure.steps[1]));}
+  ]){
+    const x=gateContinuationFixture();mutate(x);
+    await refuses(()=>C.resumeGateTerminal({...x.options(),prepare:true}),'failed_gate_executed');
+    equal(x.f.calls.filter(c=>c.method!=='GET').length,0,'executed or ambiguous original gate cannot be repeated');
+  }
+  for(const mutate of [
+    x=>{x.closeFailure.steps[1].conclusion='success';},x=>{x.closeFailure.steps[2].conclusion='success';}
+  ]){
+    const x=gateContinuationFixture();mutate(x);
+    await refuses(()=>C.resumeGateTerminal({...x.options(),prepare:true}),mutate.toString().includes('steps[2]')?'failed_gate_executed':'failed_terminal_executed');
+    equal(x.f.calls.filter(c=>c.method!=='GET').length,0,'old prepared or terminal work is never repeated');
+  }
+  {
+    const x=gateContinuationFixture();x.f.jobs.get(x.tlsNative.id)[0].steps[2].conclusion='skipped';
+    await refuses(()=>C.resumeGateTerminal({...x.options(),prepare:true}),'tls_continuation_unconfirmed');
+    equal(x.f.calls.filter(c=>c.method!=='GET').length,0,'no accepted terminal without actual successful TLS');
+  }
+  {
+    const x=gateContinuationFixture();x.f.api.jobLog=async()=>Buffer.from(T+' deployment_release=refused reason=api_http_429\n');
+    await refuses(()=>C.resumeGateTerminal({...x.options(),prepare:true}),'failed_gate_reason_changed');
+    equal(x.f.calls.filter(c=>c.method!=='GET').length,0,'unknown or other original refusal cannot use this recipe');
+  }
+  {
+    const x=gateContinuationFixture(),p=R.GATE_RECOVERY;
+    x.f.runs.get(Number(p.deploy)+3).conclusion='failure';
+    await refuses(()=>C.resumeGateTerminal({...x.options(),prepare:true}),'required_gate_failed');
+    equal(x.f.calls.filter(c=>c.method!=='GET').length,0,'every other original gate remains mandatory');
+  }
+  {
+    const x=gateContinuationFixture(),p=R.GATE_RECOVERY;
+    const proof=await C.resumeGateTerminal({...x.options(),prepare:true});
+    x.own.steps.push(step(R.TERMINAL_BINDING_STEP+proof.record_digest));x.env.PREPARED_RECORD_DIGEST=proof.record_digest;
+    x.f.hook=async call=>{if(call.method==='PATCH'&&call.path.endsWith('/issues/comments/'+p.comment_id))throw new C.Refusal('api_http_503');
+      return x.originalHook(call);};
+    await refuses(()=>C.resumeGateTerminal(x.options()),'write_unknown');
+    equal(x.f.calls.filter(c=>c.method==='PATCH'&&c.path.endsWith('/issues/comments/'+p.comment_id)).length,1,'UNKNOWN terminal never resends');
+    equal(x.f.comment.body,'PR1506: выпуск занят');
+  }
+}
+
+async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();
   process.stdout.write('Deployment release regression: '+assertions+' assertions passed\n');}
 module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases};
 if(require.main===module)main().catch(e=>{process.stderr.write(String(e.stack||e)+'\n');process.exitCode=1;});
