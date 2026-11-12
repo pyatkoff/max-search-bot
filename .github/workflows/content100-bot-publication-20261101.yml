@@ -1,4 +1,4 @@
-name: Continue the existing hotel price callback once
+name: Continue hotel prices from the 115-hotel checkpoint
 'on':
   push:
     branches:
@@ -29,7 +29,7 @@ jobs:
         set -euo pipefail
         test "$GITHUB_RUN_ATTEMPT" = 1
         gh api repos/pyatkoff/max-search-bot/actions/runs/43181493179 > "$RUNNER_TEMP/accepted-source-validation.json"
-        gh api repos/pyatkoff/max-search-bot/actions/runs/43184020384 > "$RUNNER_TEMP/original-deployment-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/actions/runs/43188552867 > "$RUNNER_TEMP/original-deployment-before-operation.json"
         gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/main-before-operation.json"
         gh api repos/pyatkoff/poisk-turov-test/git/ref/heads/main > "$RUNNER_TEMP/collector-main-before-operation.json"
         gh api 'repos/pyatkoff/poisk-turov-test/contents/.github/workflows/collect-anytour-tours.yml?ref=main' > "$RUNNER_TEMP/collector-source-before-operation.json"
@@ -42,7 +42,7 @@ jobs:
         validation=read('accepted-source-validation.json')
         assert validation['id']==43181493179 and validation['head_sha']==os.environ['EXPECTED_SOURCE_SHA'] and validation['run_attempt']==1 and validation['status']=='completed' and validation['conclusion']=='success','ORIGINAL_NATIVE_SOURCE_PROOF_NOT_ACCEPTED'
         deployment=read('original-deployment-before-operation.json')
-        assert deployment['id']==43184020384 and deployment['head_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and deployment['run_attempt']==1 and deployment['status']=='completed' and deployment['conclusion']=='success','ORIGINAL_DEPLOYMENT_NOT_ACCEPTED'
+        assert deployment['id']==43188552867 and deployment['head_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and deployment['run_attempt']==1 and deployment['status']=='completed' and deployment['conclusion']=='success','ORIGINAL_DEPLOYMENT_NOT_ACCEPTED'
         assert read('main-before-operation.json')['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA'],'CURRENT_MAIN_CHANGED_BEFORE_CREDENTIALS'
         assert read('collector-main-before-operation.json')['object']['sha']==os.environ['EXPECTED_COLLECTOR_MAIN_SHA'],'COLLECTOR_MAIN_CHANGED_BEFORE_CREDENTIALS'
         code=base64.b64decode(read('collector-source-before-operation.json')['content'],validate=False)
@@ -107,7 +107,7 @@ jobs:
       run: |
         set -euo pipefail
         umask 077
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && test "$(git rev-parse --verify HEAD)" = c5c0276d94337eee130467716c9794176b2ab25a && php' < "$RUNNER_TEMP/monitor-price-hook.php" | tee "$RUNNER_TEMP/monitor-price-next-pass.jsonl"
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && test "$(git rev-parse --verify HEAD)" = 7a96af3e9d0e262a2ff5a257295dc9e9764e9d53 && php' < "$RUNNER_TEMP/monitor-price-hook.php" | tee "$RUNNER_TEMP/monitor-price-next-pass.jsonl"
     - name: Inspect the current 481-hotel roster without writes
       env:
         DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -116,7 +116,7 @@ jobs:
       run: |
         set -euo pipefail
         umask 077
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && test "$(git rev-parse --verify HEAD)" = c5c0276d94337eee130467716c9794176b2ab25a && ANYTOUR_MONITOR_HOOK_INSPECT=1 php' < "$RUNNER_TEMP/monitor-price-hook.php" | tee "$RUNNER_TEMP/monitor-price-next-inspection.jsonl"
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && test "$(git rev-parse --verify HEAD)" = 7a96af3e9d0e262a2ff5a257295dc9e9764e9d53 && ANYTOUR_MONITOR_HOOK_INSPECT=1 php' < "$RUNNER_TEMP/monitor-price-hook.php" | tee "$RUNNER_TEMP/monitor-price-next-inspection.jsonl"
     - uses: actions/upload-artifact@v4
       if: always()
       with:
@@ -130,7 +130,7 @@ jobs:
       shell: bash
       run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/monitor-price-hook.php"
 env:
-  EXPECTED_PRODUCTION_SHA: c5c0276d94337eee130467716c9794176b2ab25a
+  EXPECTED_PRODUCTION_SHA: 7a96af3e9d0e262a2ff5a257295dc9e9764e9d53
   EXPECTED_SOURCE_SHA: 8f7faaeea18e2d5e1d6d07d660c761c51ccf7a6c
   EXPECTED_COLLECTOR_MAIN_SHA: 17449ef5eb74edf1c60197ef3b9f00e40feaf485
   EXPECTED_COLLECTOR_FILE_SHA256: e186d3dbc534d37d956a863a468ea81c1a120e514dc412bc73d0fbb5645b0cd0
