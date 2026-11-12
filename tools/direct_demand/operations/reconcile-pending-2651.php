@@ -4,7 +4,7 @@ declare(strict_types=1);
 // Inspect is the default. The explicit apply gate completes only this original operation.
 const RECONCILE_ROOT = '/var/www/anytoour/data/channel-post-operations';
 const RECONCILE_RUNTIME = '/var/www/anytoour/data/www/app.anytoour.ru';
-const RECONCILE_RUNTIME_SHA = '53382c760a5cf07a2075751670a46c35ee77feb9';
+const RECONCILE_RUNTIME_SHA = '53652e9230f2778d900ca4423557a484cdbd0ea4';
 const RECONCILE_TV = 2651;
 const RECONCILE_OPERATION = 'commercial-monitor-price-h2651-3c6637d73d3424159b7d01b9ffcf2e2051fc3fbae084bb645c7b259c33413d11';
 const RECONCILE_RECORD = '3c6637d73d3424159b7d01b9ffcf2e2051fc3fbae084bb645c7b259c33413d11';
