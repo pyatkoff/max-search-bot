@@ -1,0 +1,100 @@
+[
+  {
+    "hotel_id": 968,
+    "aliases": [
+      "Ali Bey Park Manavgat",
+      "ALI BEY PARK MANAVGAT"
+    ],
+    "logical_id": "commercial-hotel-968-v1",
+    "expected_text_sha256": "12c2cbd2479113b0e086982277b33e6faf2686381f225098b787f6837fc2cffa",
+    "scope": "same_original_batch7_candidate_preflight"
+  },
+  {
+    "hotel_id": 967,
+    "aliases": [
+      "Ali Bey Club Manavgat",
+      "ALI BEY CLUB (EX. ALI BEY CLUB MANAVGAT)"
+    ],
+    "logical_id": "commercial-hotel-967-v1",
+    "expected_text_sha256": "cffd3b1ae38eb91d230f71c240d3bcde2a5042e637cb4a08f6be4e795219c6e2",
+    "scope": "same_original_batch7_candidate_preflight"
+  },
+  {
+    "hotel_id": 932,
+    "aliases": [
+      "Titanic Palace",
+      "TITANIC PALACE RESORT & SPA"
+    ],
+    "logical_id": "commercial-hotel-932-v1",
+    "expected_text_sha256": "1db1b04c9ddbb6037d6adeeae8ccc07217e78206de1c2be15bd10f9d30124079",
+    "scope": "same_original_batch7_candidate_preflight"
+  },
+  {
+    "hotel_id": 483,
+    "aliases": [
+      "SUNRISE Royal Makadi Resort",
+      "SUNRISE ROYAL MAKADI RESORT"
+    ],
+    "logical_id": "commercial-hotel-483-v1",
+    "expected_text_sha256": "ce5a6e22cd28b19968e687775f78fc78f5eef284e18d8efe2980b77d23f577b8",
+    "scope": "same_original_batch7_candidate_preflight"
+  },
+  {
+    "hotel_id": 212,
+    "aliases": [
+      "SUNRISE Azalea Aqua Park Resort",
+      "SUNRISE AZALEA AQUA PARK RESORT (EX. SUNRISE ASTER AQUA PARK RESORT)"
+    ],
+    "logical_id": "commercial-hotel-212-v1",
+    "expected_text_sha256": "ae2c76c2a1a1dce13f9aed84f3cb2673fa8794c867c9dadcb557b101402812d2",
+    "scope": "same_original_batch7_candidate_preflight"
+  },
+  {
+    "hotel_id": 62504,
+    "aliases": [
+      "Sindbad Club",
+      "SINDBAD CLUB"
+    ],
+    "logical_id": "commercial-hotel-62504-v1",
+    "expected_text_sha256": "d96d01a5e02b07a6ba45289588e4305d0de91ead2ee71bcbe090a849ba5d0e62",
+    "scope": "same_original_batch7_candidate_preflight"
+  },
+  {
+    "hotel_id": 1255,
+    "aliases": [
+      "Timo Deluxe Resort",
+      "TIMO DELUXE RESORT"
+    ],
+    "logical_id": "commercial-hotel-1255-v1",
+    "expected_text_sha256": "d6cec2971f23fcc791209fcb26cac20675f966f99f4c6637904a592482143ddf",
+    "scope": "same_original_batch7_candidate_preflight"
+  },
+  {
+    "hotel_id": 55511,
+    "aliases": [
+      "Trendy Verbena Beach",
+      "SENTIDO TRENDY VERBENA BEACH HOTEL"
+    ],
+    "logical_id": "commercial-hotel-55511-v1",
+    "expected_text_sha256": "fcc1b4a7064db916d6da447d912a69cc6bf0874d5cc302b190b26f5d7c3bea13",
+    "scope": "same_original_batch7_candidate_preflight"
+  },
+  {
+    "hotel_id": 9434,
+    "aliases": [
+      "FANTASIA DE LUXE"
+    ],
+    "logical_id": "commercial-hotel-9434-v1",
+    "expected_text_sha256": "8ef291bfab9806bbc899c392db635d19720241d0284f74ec4f300ff504a81f24",
+    "scope": "same_original_batch7_candidate_preflight"
+  },
+  {
+    "hotel_id": 30158,
+    "aliases": [
+      "БОГАТЫРЬ"
+    ],
+    "logical_id": "commercial-hotel-30158-v1",
+    "expected_text_sha256": "6055fe003e61eb043e4fb8764270b80d7691a72a5252378aa32f535514938345",
+    "scope": "same_original_batch7_candidate_preflight"
+  }
+]
