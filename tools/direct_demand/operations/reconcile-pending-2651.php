@@ -82,6 +82,43 @@ function reconcile_prefix_guard(string $raw, string $expected, int $bytes, int $
     }
     return $last;
 }
+/** Safe diagnostics from the pinned verifyChannel result; never include provider data. */
+function reconcile_capability_evidence(array $rights): array {
+    $states = ['ready','unknown','requires_attention'];
+    $reasons = ['capability_verified','unsupported_platform','invalid_channel_id','canonical_bot_url_mismatch',
+        'invalid_expected_public_channel_url','canonical_bot_identity_mismatch','membership_identity_mismatch',
+        'channel_admin_required','channel_read_permission_required','channel_edit_permission_required',
+        'channel_type_mismatch','public_channel_identity_mismatch','provider_read_failed','verification_failure','request_budget_exhausted'];
+    $receipt = is_array($rights['receipt'] ?? null) ? $rights['receipt'] : [];
+    $results = [];
+    foreach (array_slice(is_array($receipt['http_results'] ?? null) ? $receipt['http_results'] : [], 0, 5) as $result) {
+        if (!is_array($result)) continue;
+        $results[] = ['operation' => in_array($result['operation'] ?? null, ['bot_identity','channel_rights','channel_type'], true) ? $result['operation'] : 'invalid_operation',
+            'http' => is_int($result['http'] ?? null) && $result['http'] >= 0 && $result['http'] <= 599 ? $result['http'] : null,
+            'transport_error' => is_bool($result['transport_error'] ?? null) ? $result['transport_error'] : null];
+    }
+    return ['checked' => true, 'state' => in_array($rights['state'] ?? null, $states, true) ? $rights['state'] : 'invalid_state',
+        'reason' => in_array($rights['reason'] ?? null, $reasons, true) ? $rights['reason'] : 'invalid_reason',
+        'receipt' => ['request_count' => is_int($receipt['request_count'] ?? null) && $receipt['request_count'] >= 0 && $receipt['request_count'] <= 5 ? $receipt['request_count'] : null,
+            'write_attempts' => is_int($receipt['write_attempts'] ?? null) && $receipt['write_attempts'] >= 0 && $receipt['write_attempts'] <= 1 ? $receipt['write_attempts'] : null,
+            'http_results' => $results], 'transport' => 'HTTP POST'];
+}
+/** The pinned transport nests both counters and read receipts under receipt. */
+function reconcile_capability_admission(array $rights): void {
+    $receipt = $rights['receipt'] ?? null;
+    reconcile_need(is_array($receipt) && ($receipt['write_attempts'] ?? null) === 0
+        && ($receipt['request_count'] ?? null) === 3 && is_array($receipt['http_results'] ?? null)
+        && array_is_list($receipt['http_results']) && count($receipt['http_results']) === 3,
+        'reconcile_telegram_capability_receipt_invalid');
+    foreach (['bot_identity','channel_rights','channel_type'] as $index => $purpose) {
+        $result = $receipt['http_results'][$index];
+        reconcile_need(is_array($result) && ($result['operation'] ?? null) === $purpose && is_int($result['http'] ?? null)
+            && $result['http'] >= 200 && $result['http'] < 300 && ($result['transport_error'] ?? null) === false,
+            'reconcile_telegram_capability_receipt_invalid');
+    }
+    reconcile_need(($rights['state'] ?? null) === 'ready' && ($rights['reason'] ?? null) === 'capability_verified',
+        'reconcile_telegram_channel_rights_changed');
+}
 function reconcile_open(string $path, int $cap, bool $apply, array &$locks): array {
     reconcile_need(!is_link(dirname($path)) && realpath(dirname($path)) === dirname($path)
         && !is_link($path) && is_file($path) && realpath($path) === $path, 'reconcile_journal_path_invalid');
@@ -314,6 +351,35 @@ function reconcile_self_test(): void {
     $check(reconcile_prefix_guard($raw,hash('sha256',$raw),strlen($raw),1)===$state, 'prefix_exact');
     $reject(static fn() => reconcile_prefix_guard($raw."\n",hash('sha256',$raw),strlen($raw),1), 'prefix_changed');
     $check(!isset($state['posts']['telegram:'.RECONCILE_KEY]), 'fixtures_unchanged');
+    // The real 7b671 transport result has no top-level write_attempts field.
+    $capability = ['state'=>'ready','reason'=>'capability_verified','receipt'=>['request_count'=>3,'write_attempts'=>0,
+        'http_results'=>array_map(static fn(string $purpose): array => ['operation'=>$purpose,'http'=>200,'transport_error'=>false],
+            ['bot_identity','channel_rights','channel_type'])]];
+    reconcile_capability_admission($capability);
+    $check(!array_key_exists('write_attempts',$capability), 'capability_actual_nested_ready_accepted');
+    $bad = $capability; $bad['write_attempts'] = 0; $bad['receipt']['write_attempts'] = 1;
+    $reject(static fn() => reconcile_capability_admission($bad), 'capability_top_level_zero_cannot_hide_nested_write');
+    $bad = $capability; unset($bad['receipt']); $bad['write_attempts'] = 0;
+    $reject(static fn() => reconcile_capability_admission($bad), 'capability_top_level_only_rejected');
+    $bad = $capability; unset($bad['receipt']);
+    $reject(static fn() => reconcile_capability_admission($bad), 'capability_missing_receipt_rejected');
+    $bad = $capability; $bad['state'] = 'requires_attention'; $bad['reason'] = 'channel_edit_permission_required';
+    $reject(static fn() => reconcile_capability_admission($bad), 'capability_nonready_rejected');
+    $bad = $capability; $bad['receipt']['write_attempts'] = '0';
+    $reject(static fn() => reconcile_capability_admission($bad), 'capability_noninteger_counter_rejected');
+    $bad = $capability; $bad['receipt']['request_count'] = 2;
+    $reject(static fn() => reconcile_capability_admission($bad), 'capability_read_count_mismatch_rejected');
+    $bad = $capability; $bad['receipt']['http_results'][1]['transport_error'] = true;
+    $reject(static fn() => reconcile_capability_admission($bad), 'capability_transport_failure_rejected');
+    $bad = $capability; $bad['receipt']['http_results'][2]['operation'] = 'append_button';
+    $reject(static fn() => reconcile_capability_admission($bad), 'capability_unexpected_operation_rejected');
+    $bad = $capability; $bad['state'] = 'unknown'; $bad['reason'] = 'provider_read_failed';
+    $bad['raw_provider_body'] = 'fixture-secret'; $bad['receipt']['http_results'][1]['data'] = 'fixture-secret';
+    $evidence = reconcile_capability_evidence($bad);
+    $check($evidence['state']==='unknown' && $evidence['reason']==='provider_read_failed'
+        && $evidence['receipt']['request_count']===3 && $evidence['receipt']['write_attempts']===0
+        && $evidence['receipt']['http_results']===$capability['receipt']['http_results']
+        && !str_contains(reconcile_json($evidence),'fixture-secret'), 'capability_safe_evidence_available_before_reject');
     echo 'MONITOR_PENDING_2651_SELFTEST_OK cases='.$cases." no_network=1 no_writes=1\n";
 }
 
@@ -382,9 +448,8 @@ try {
         // verifyChannel performs bounded read-only capability RPCs, even though Telegram uses HTTP POST.
         $out['telegram_capability_checks']++;
         $rights=(new ChannelPostButtonTransport())->verifyChannel($context['publications']['telegram']['channel']);
-        reconcile_need(is_array($rights)&&($rights['state']??null)==='ready'&&($rights['write_attempts']??null)===0,'reconcile_telegram_channel_rights_changed');
-        $out['telegram_capability_read']=['checked'=>true,'state'=>'ready','write_attempts'=>0,
-            'read_methods'=>['getMe','getChatMember','getChat'],'transport'=>'HTTP POST'];
+        $out['telegram_capability_read']=reconcile_capability_evidence($rights);
+        reconcile_capability_admission($rights);
         reconcile_runtime();
         $maxBefore=$registry->publication(RECONCILE_MAX_ID);
         reconcile_need(is_array($maxBefore)&&(int)$maxBefore['version_id']===RECONCILE_MAX_OLD_VERSION&&$maxBefore['state']==='sent'
