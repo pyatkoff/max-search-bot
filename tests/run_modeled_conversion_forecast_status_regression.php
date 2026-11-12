@@ -5,6 +5,7 @@ require_once __DIR__.'/run_modeled_conversion_early_forecast_regression.php';
 require_once __DIR__.'/run_modeled_conversion_value_export_regression.php';
 require_once dirname(__DIR__).'/services/ModeledConversionPredictionFollowup.php';
 require_once dirname(__DIR__).'/services/ModeledConversionForecastStatusReader.php';
+require_once dirname(__DIR__).'/services/ModeledConversionStatusMcpAdapter.php';
 require_once dirname(__DIR__).'/services/MetrikaOfflineClient.php';
 require_once dirname(__DIR__).'/services/ModeledConversionFixedPairDecisionEvidence.php';
 require_once dirname(__DIR__).'/services/ModeledConversionMaxCounterScopeEvidence.php';
@@ -2760,6 +2761,25 @@ function forecastKnownRelationOutcomeReaderAssertions(PDO $p,callable $check,arr
             &&$got['rows'][0]['phases_admitted']===['source'=>true,'recorded_day_relation'=>true,'visit_base'=>true,'visit_sources'=>true]
             &&$got['rows'][0]['intent_at_utc']!==null&&$got['rows'][0]['phase_requested_at_utc']['visit_base']!==null
             &&$before===$p->query('SELECT * FROM modeled_conversion_known_yclid_relations ORDER BY outbox_id')->fetchAll(PDO::FETCH_ASSOC));
+        $oldSettings=$p->query("SELECT last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetchColumn();
+        try{
+            $receipt=json_decode($oldSettings,true,32,JSON_THROW_ON_ERROR);$receipt['finite_visit_evidence']=$frame;
+            $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")
+                ->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
+            $settingsBefore=$p->query("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetch(PDO::FETCH_ASSOC);
+            $outboxBefore=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+            $selected=(new ModeledConversionStatusMcpAdapter($p))->call(ModeledConversionStatusMcpAdapter::NAME,
+                ['view'=>'retained_relation_outcomes'],1,str_repeat('a',32),static function():void{},new ModeledConversionStatusBudget());
+            $check('the real selected saved-reader preserves the two-PK outcomes and current binding without changing ledger or settings',
+                $selected['available']&&$selected['original_cases']['available']
+                &&$selected['retained_relation_outcomes']===$got
+                &&$selected['view']==='retained_relation_outcomes'&&$selected['provider_requests']===0&&$selected['conversion_uploads']===0
+                &&!$selected['financial_permission']&&strlen(json_encode($selected,JSON_THROW_ON_ERROR))<12288
+                &&$settingsBefore===$p->query("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetch(PDO::FETCH_ASSOC)
+                &&$outboxBefore===$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC));
+        }finally{
+            $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([$oldSettings]);
+        }
         $reset();$cache=json_decode($positive['outcome_json'],true,16,JSON_THROW_ON_ERROR);
         foreach(['raw_identity','financial_permission','wrong_case','wrong_clock']as$case){
             $bad=$cache;
@@ -3890,6 +3910,20 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $reta
         &&$withOutcomeSafe['value_delivery']['repair_assessments']['processing_frontier']===$r&&$allOld
         &&$withOutcomeSafe['value_delivery']['by_state']===$withOutcome['value_delivery']['by_state']
         &&strlen(json_encode($withOutcomeSafe,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=28000);
+    $adapter=new ModeledConversionStatusMcpAdapter($p);
+    $select=new ReflectionMethod(ModeledConversionStatusMcpAdapter::class,'retainedOutcomeView');
+    $selected=$select->invoke($adapter,['available'=>true]+$withOutcome['value_delivery'],time());
+    $check('explicit compact view preserves the actual outcomes under pressure without replacing the default financial envelope',
+        $selected['available']&&$selected['retained_relation_outcomes']===$outcomePacket
+        &&$selected['original_cases']===$withOutcome['value_delivery']['repair_assessments']['finite_visit_evidence']
+        &&!isset($selected['processing_frontier'],$selected['reserved_value_rub'],$selected['by_state'],$selected['fixed_output_fixture'])
+        &&$selected['provider_requests']===0&&$selected['conversion_uploads']===0&&!$selected['financial_permission']
+        &&strlen(json_encode($selected,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<12288);
+    $missingOriginal=$withOutcome['value_delivery'];
+    $missingOriginal['available']=true;$missingOriginal['repair_assessments']['finite_visit_evidence']=['available'=>false,'reason'=>'unbound_fixture'];
+    $unbound=$select->invoke($adapter,$missingOriginal,time());
+    $check('selected outcomes cannot escape without their current original binding',
+        !$unbound['available']&&$unbound['reason']==='original_current_binding_unavailable'&&!isset($unbound['retained_relation_outcomes']));
     $withoutBinding=$small;$withoutBinding['value_delivery']['repair_assessments']['finite_visit_evidence']=['available'=>false,'reason'=>'unbound_fixture'];
     $dependent=$bound->invoke($projection,$withoutBinding);
     $check('outcome display never survives loss of the current original-frame binding',
