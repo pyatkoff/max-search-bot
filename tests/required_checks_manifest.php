@@ -26,6 +26,7 @@ return [
         'php tests/run_project_max_connection_regression.php',
         'php tests/run_manager_client_onboarding_regression.php',
         'php tests/run_manager_client_onboarding_http_regression.php',
+        'php tests/run_manager_client_scale_regression.php',
         'php tests/run_project_conversion_boundary_regression.php',
         'php tests/run_project_funnel_regression.php',
         'php tests/run_project_funnel_conversions_regression.php',

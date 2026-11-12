@@ -2,12 +2,44 @@
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
-  const S = {actor:0,csrf:'',admin:false,generation:0,detailSequence:0,selectionIntent:0,clients:[],selected:0,canConfigure:false,editBaseline:'',busy:false,pending:'',pendingKind:'',ready:false};
+  const S = {actor:0,csrf:'',admin:false,generation:0,detailSequence:0,selectionIntent:0,clients:[],selected:0,canConfigure:false,editBaseline:'',busy:false,pending:'',pendingKind:'',ready:false,wizardStep:0,formRevision:0,importSequence:0,materialsRevision:0,importing:false};
+  const wizardFields=[['clientName','businessKind'],['staffName','staffLogin','staffPassword'],['materials'],['botKey','botToken'],[]];
+  const wizardNames=['Компания','Сотрудник','Материалы','Бот','Обзор'];
   const states = {created:'Сохранена · подключение не активировано',verified:'Проверена · можно активировать',active:'Подключение активно',activation_pending:'Результат активации требует проверки',check_failed:'Проверка подключения не пройдена'};
   const errors = {duplicate_client:'Имя бота, токен или логин сотрудника уже используются. Проверьте данные.',connection_in_use:'Этот бот уже подключён к системе.',client_save_failed:'Не удалось сохранить компанию. Данные не записаны.',client_capacity:'Достигнут предел числа компаний.',verification_required:'Сначала проверьте подключение.',activation_pending:'У этой компании уже есть незавершённая активация. Повторный запрос не отправлен.',connection_unavailable:'Подключение недоступно. Проверьте настройки и доступ компании.',operation_conflict:'Этот запрос уже завершён с другими данными. Уточните его результат.',context_stale:'Настройки или доступ изменились. Обновите страницу перед продолжением.',storage_unavailable:'Хранилище временно недоступно. Попробуйте узнать результат позже.',forbidden:'Доступ изменился. Обновите страницу.',not_found:'Компания недоступна.',network_error:'Не удалось получить ответ. Проверьте соединение.',invalid_response:'Сервер вернул неполный ответ.',receipt_storage_unavailable:'Браузер не сохранил номер операции. Разрешите хранение данных для этой вкладки и повторите.'};
   const reasons = {registration_required:'Проверка пройдена. Бот готов к отдельной активации.',already_active:'Подключение активно и подтверждено.',activated:'Подключение активировано.',bot_identity_mismatch:'Токен не соответствует указанному боту.',unknown_subscription_url:'У бота уже есть другое подключение. Оно сохранено; активация остановлена.',provider_read_failed:'Не удалось прочитать настройки MAX.',endpoint_probe_failed:'Не удалось проверить приём событий.',project_source_unavailable:'Компания или её источник обращений недоступны.',registration_secret_unconfirmed:'MAX не подтвердил результат активации. Повторная активация заблокирована.',registration_unconfirmed:'Не удалось подтвердить активацию. Повторная активация заблокирована.',mutation_admission_changed:'Настройки изменились до активации. Подключение не выполнено.'};
   function message(text) {$('notice').textContent=text;}
   function profileHint() {$('profileHint').textContent=$('businessKind').selectedOptions[0]?.dataset.description||'';}
+  function renderWizard(focus=false) {
+    document.querySelectorAll('[data-client-step]').forEach((step,index)=>{step.hidden=index!==S.wizardStep;});
+    [...$('clientProgress').children].forEach((step,index)=>{if(index===S.wizardStep)step.setAttribute('aria-current','step');else step.removeAttribute('aria-current');step.classList.toggle('complete',index<S.wizardStep);});
+    const status='Шаг '+(S.wizardStep+1)+' из 5: '+wizardNames[S.wizardStep];if($('wizardStatus').textContent!==status)$('wizardStatus').textContent=status;
+    $('wizardPrevious').hidden=S.wizardStep===0;$('wizardNext').hidden=S.wizardStep===4;$('saveClient').hidden=S.wizardStep!==4;
+    $('wizardNext').disabled=S.importing&&S.wizardStep===2;$('wizardNext').textContent=S.importing&&S.wizardStep===2?'Читаем файл…':'Далее';$('saveClient').disabled=S.importing;
+    $('cancelImport').hidden=!S.importing;
+    $('reviewName').textContent=$('clientName').value;$('reviewProfile').textContent=$('businessKind').selectedOptions[0]?.textContent||'';
+    $('reviewStaff').textContent=[$('staffName').value,$('staffLogin').value].filter(Boolean).join(' · ');$('reviewBot').textContent=$('botKey').value?'@'+$('botKey').value:'';
+    $('reviewMaterialsLabel').textContent=$('materials').value.trim()?'Материалы добавлены':'Материалы пока не добавлены';$('reviewMaterials').textContent=$('materials').value||'Этот шаг можно пропустить.';
+    if(focus){const title=document.querySelector('[data-client-step="'+S.wizardStep+'"] h3');title.focus({preventScroll:true});title.scrollIntoView({block:'start'});}
+  }
+  function validateWizardStep(index) {
+    for(const id of wizardFields[index]){
+      const control=$(id);control.setCustomValidity('');
+      if(control.maxLength>0&&new TextEncoder().encode(control.value).length>control.maxLength)control.setCustomValidity('Текст слишком длинный. Сократите его перед продолжением.');
+      if(!control.checkValidity()){S.wizardStep=index;renderWizard(true);control.reportValidity();return false;}
+    }
+    return true;
+  }
+  function advanceWizard() {
+    if(S.busy||S.pending||!S.admin||!S.ready||S.wizardStep>=4||(S.importing&&S.wizardStep===2))return;
+    if(validateWizardStep(S.wizardStep)){S.wizardStep++;renderWizard(true);}
+  }
+  function cancelMaterialImport() {S.importSequence++;S.importing=false;$('materialsFile').value='';}
+  function resetClientForm() {
+    S.formRevision++;S.materialsRevision++;cancelMaterialImport();$('clientForm').reset();
+    for(const fields of wizardFields)for(const id of fields)$(id).setCustomValidity('');
+    S.wizardStep=0;renderWizard();
+  }
   function failure(result) {return result?.error==='configuration_locked'?'У компании уже началось подключение или появились обращения. Исправление данных подключения закрыто.':errors[result?.error] || (String(result?.error||'').startsWith('invalid_')?'Проверьте формат и длину заполненных полей.':'Не удалось выполнить действие. Проверьте результат перед повтором.');}
   function current(generation) {return generation===S.generation&&S.ready;}
   function storageKey() {return 'client-onboarding-operation:'+S.actor;}
@@ -22,7 +54,7 @@
     clearConnectionEditor();$('detail').hidden=true;$('detailTitle').textContent='';$('detailMaterials').textContent='';$('detailBot').textContent='';$('staff').replaceChildren();$('clients').replaceChildren();$('empty').hidden=true;S.clients=[];S.selected=0;S.detailSequence++;
   }
   function clearPrivate() {
-    $('clientForm').reset();$('editor').hidden=true;clearProjection();
+    resetClientForm();$('editor').hidden=true;clearProjection();
   }
   function denied(text) {
     S.generation++;S.ready=false;S.csrf='';S.busy=false;clearPrivate();$('workspace').hidden=true;$('access').hidden=false;message(text);
@@ -39,7 +71,7 @@
   function selected() {return S.clients.find(row=>row.id===S.selected);}
   function connectionDirty() {return S.canConfigure&&($('editToken').value!==''||S.editBaseline!==JSON.stringify([$('editBotKey').value,$('editMaterials').value]));}
   function sync() {
-    profileHint();
+    profileHint();renderWizard();
     $('addClient').hidden=!S.admin;$('addClient').disabled=S.busy||!!S.pending;
     $('clientFields').disabled=S.busy||!!S.pending||!S.ready;
     $('connectionFields').disabled=S.busy||!!S.pending||!S.ready||!S.admin||!S.canConfigure;
@@ -65,7 +97,7 @@
     if(!result.ok){message(failure(result));return false;}
     S.admin=result.is_admin===true;S.clients=result.clients||[];
     if(!selected()){S.selected=0;S.detailSequence++;clearConnectionEditor();$('detail').hidden=true;$('detailMaterials').textContent='';$('staff').replaceChildren();}
-    if(!S.admin){$('editor').hidden=true;S.pending='';S.pendingKind='';$('clientForm').reset();clearConnectionEditor();}
+    if(!S.admin){$('editor').hidden=true;S.pending='';S.pendingKind='';resetClientForm();clearConnectionEditor();}
     render();return true;
   }
   async function open(id,focus=true,userSelection=true) {
@@ -83,7 +115,7 @@
   async function outcome(result,generation,intent=S.selectionIntent) {
     if(!result||!current(generation))return;
     if(result.state==='created'){
-      forget();$('clientForm').reset();$('editor').hidden=true;message('Компания сохранена. Проверьте подключение перед активацией.');await load(generation);if(current(generation)&&intent===S.selectionIntent)await open(result.project_id,true,false);return;
+      forget();resetClientForm();$('editor').hidden=true;message('Компания сохранена. Проверьте подключение перед активацией.');await load(generation);if(current(generation)&&intent===S.selectionIntent)await open(result.project_id,true,false);return;
     }
     if(result.state==='configured'){
       forget();$('editToken').value='';await load(generation);if(current(generation)&&S.selected===result.project_id&&intent===S.selectionIntent)await open(result.project_id,false,false);if(current(generation))message('Исправления сохранены. Проверьте подключение заново.');return;
@@ -109,14 +141,20 @@
     if(S.admin)try{const op=sessionStorage.getItem(storageKey());if(/^[a-f0-9]{32}$/.test(op||''))S.pending=op;}catch(e){}
     $('workspace').hidden=false;message('');sync();await load(generation);if(current(generation)&&S.pending)await reconcile();
   }
-  $('addClient').onclick=()=>{$('editor').hidden=false;$('editorTitle').focus();};
+  $('addClient').onclick=()=>{$('editor').hidden=false;renderWizard(true);};
   $('closeEditor').onclick=()=>{$('editor').hidden=true;$('addClient').focus();};
   $('refresh').onclick=()=>{if(!S.busy)boot();};$('retry').onclick=boot;
   $('receipt').onclick=()=>reconcile();$('cancelOperation').onclick=()=>reconcile(true);
   $('connectionForm').oninput=sync;
   $('businessKind').onchange=profileHint;
+  $('wizardNext').onclick=advanceWizard;
+  $('wizardPrevious').onclick=()=>{if(!S.busy&&!S.pending&&S.ready&&S.admin&&S.wizardStep>0){S.wizardStep--;renderWizard(true);}};
+  $('cancelImport').onclick=()=>{cancelMaterialImport();sync();message('Чтение файла отменено. Текст в поле сохранён.');};
+  $('clientForm').addEventListener('input',event=>{event.target.setCustomValidity?.('');if(event.target===$('materials')){S.materialsRevision++;if(S.importing)cancelMaterialImport();}renderWizard();});
   $('clientForm').onsubmit=async event=>{
-    event.preventDefault();if(S.busy||S.pending||!S.admin||!S.ready||!$('clientForm').reportValidity())return;
+    event.preventDefault();if(S.busy||S.pending||!S.admin||!S.ready||S.importing)return;
+    if(S.wizardStep<4){advanceWizard();return;}
+    for(let index=0;index<4;index++)if(!validateWizardStep(index))return;
     const generation=S.generation,intent=S.selectionIntent,operation=crypto.randomUUID().replaceAll('-','');
     const client={operation_id:operation,display_name:$('clientName').value,business_kind:$('businessKind').value,bot_key:$('botKey').value,token:$('botToken').value,materials:$('materials').value,staff:[{name:$('staffName').value,login:$('staffLogin').value,password:$('staffPassword').value}]};
     if(!remember(operation,'create'))return;S.busy=true;sync();message('Сохраняем компанию…');
@@ -139,10 +177,12 @@
     }finally{client.token='';if(current(generation)){S.busy=false;sync();}}
   };
   $('materialsFile').onchange=async()=>{
-    const file=$('materialsFile').files?.[0],revision=$('materials').value,generation=S.generation;if(!file)return;
-    if(file.size>100000||!(/\.(txt|csv)$/i).test(file.name)){message('Выберите TXT или CSV размером до 100 КБ.');$('materialsFile').value='';return;}
-    try{const text=new TextDecoder('utf-8',{fatal:true}).decode(await file.arrayBuffer());if(!current(generation)||!S.admin||S.busy||S.pending||$('materials').value!==revision)return;if(text.includes('\0'))throw new Error();$('materials').value=text;message('Материалы загружены в поле. Они сохранятся вместе с компанией.');}
-    catch(e){message('Файл должен содержать текст UTF-8.');}finally{$('materialsFile').value='';}
+    const file=$('materialsFile').files?.[0],revision=S.materialsRevision,form=S.formRevision,generation=S.generation,sequence=++S.importSequence;if(!file){S.importing=false;sync();return;}
+    if(file.size>100000||!(/\.(txt|csv)$/i).test(file.name)){S.importing=false;message('Выберите TXT или CSV размером до 100 КБ.');$('materialsFile').value='';sync();return;}
+    S.importing=true;sync();
+    const accepted=()=>sequence===S.importSequence&&form===S.formRevision&&revision===S.materialsRevision&&current(generation)&&S.admin&&!S.busy&&!S.pending;
+    try{const text=new TextDecoder('utf-8',{fatal:true}).decode(await file.arrayBuffer());if(!accepted())return;if(text.includes('\0'))throw new Error();$('materials').value=text;S.materialsRevision++;message('Материалы загружены в поле. Они сохранятся вместе с компанией.');}
+    catch(e){if(accepted())message('Файл должен содержать текст UTF-8.');}finally{if(sequence===S.importSequence){S.importing=false;$('materialsFile').value='';sync();}}
   };
   $('verifyClient').onclick=async()=>{
     const id=S.selected,generation=S.generation;if(S.busy||connectionDirty()||!S.admin||!id)return;S.busy=true;sync();message('Проверяем подключение…');
@@ -158,7 +198,7 @@
       else{forget();message(failure(result));await load(generation);}
     }finally{if(current(generation)){S.busy=false;sync();}}
   };
-  window.addEventListener('beforeunload',event=>{const dirty=['clientName','botKey','botToken','staffName','staffLogin','staffPassword','materials'].some(id=>$(id).value)||$('editToken').value||(S.canConfigure&&S.editBaseline!==JSON.stringify([$('editBotKey').value,$('editMaterials').value]));if(dirty||S.pending){event.preventDefault();event.returnValue='';}});
+  window.addEventListener('beforeunload',event=>{const dirty=['clientName','botKey','botToken','staffName','staffLogin','staffPassword','materials'].some(id=>$(id).value)||$('editToken').value||(S.canConfigure&&S.editBaseline!==JSON.stringify([$('editBotKey').value,$('editMaterials').value]));if(dirty||S.pending||S.importing){event.preventDefault();event.returnValue='';}});
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')boot();});
   boot();
 })();

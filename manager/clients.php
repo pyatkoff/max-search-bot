@@ -18,13 +18,36 @@ $escape=static fn(string $text): string=>htmlspecialchars($text,ENT_QUOTES,'UTF-
     <div class="toolbar"><p id="intro">Каждая компания видит только свои обращения и материалы.</p><div class="actions"><button id="refresh" class="secondary" type="button">Обновить</button><button id="addClient" type="button" hidden>Добавить клиента</button></div></div>
     <section id="editor" class="card" aria-labelledby="editorTitle" hidden>
       <div class="sectionHead"><div><p class="eyebrow">Новая компания</p><h2 id="editorTitle" tabindex="-1">Подключение клиента</h2></div><button id="closeEditor" type="button" class="secondary">Свернуть</button></div>
-      <p class="muted">Сначала сохраним компанию и сотрудника. Затем вы сможете проверить бота и отдельно активировать подключение.</p>
-      <form id="clientForm" autocomplete="off"><fieldset id="clientFields">
-        <div class="formGrid"><label>Название компании<input id="clientName" required maxlength="191" autocomplete="organization"></label><label>Профиль работы<select id="businessKind" aria-describedby="profileHint"><?php foreach(ClientBusinessProfile::choices() as $profile): ?><option value="<?=$escape($profile['kind'])?>" data-description="<?=$escape($profile['description'])?>"><?=$escape($profile['label'])?></option><?php endforeach ?></select><span id="profileHint" class="hint"></span></label></div>
-        <h3>Бот MAX</h3><div class="formGrid"><label>Имя бота<input id="botKey" required maxlength="191" pattern="[A-Za-z0-9_]+" spellcheck="false" placeholder="company_bot"><span class="hint">Имя без @, указанное в настройках бота.</span></label><label>Токен бота<input id="botToken" type="password" required minlength="8" maxlength="4096" autocomplete="off"><span class="hint">Хранится зашифрованно. После сохранения не показывается.</span></label></div>
-        <h3>Первый сотрудник</h3><p class="hint">Получит доступ только к этой компании. Рабочую смену включает самостоятельно.</p><div class="formGrid"><label>Имя сотрудника<input id="staffName" required maxlength="191" autocomplete="off"></label><label>Логин<input id="staffLogin" required minlength="3" maxlength="191" pattern="[A-Za-z0-9._@+\-]+" autocomplete="off" spellcheck="false"></label><label>Начальный пароль<input id="staffPassword" type="password" required minlength="8" maxlength="72" autocomplete="new-password"><span class="hint">От 8 до 72 байт. Передайте сотруднику лично.</span></label></div>
-        <h3>Материалы компании</h3><label>Услуги, цены и правила<textarea id="materials" rows="7" maxlength="100000" placeholder="Например: услуги, стоимость диагностики, адрес и часы работы."></textarea></label><label class="fileLabel">Загрузить текстовый файл<input id="materialsFile" type="file" accept=".txt,.csv,text/plain,text/csv"><span class="hint">TXT или CSV, до 100 КБ. Текст появится в поле выше; сотрудники увидят его в карточке компании.</span></label>
-        <p class="hint">Токен и пароль остаются только на этой странице до сохранения. Они не восстанавливаются после её закрытия.</p><button type="submit" id="saveClient">Сохранить клиента</button>
+      <p class="muted">Заполните данные по шагам. Сохранение создаст компанию; подключение бота вы проверите и включите отдельно.</p>
+      <form id="clientForm" autocomplete="off" novalidate><fieldset id="clientFields">
+        <ol id="clientProgress" class="wizardProgress" aria-label="Этапы подключения"><li>Компания</li><li>Сотрудник</li><li>Материалы</li><li>Бот</li><li>Обзор</li></ol>
+        <p id="wizardStatus" class="hint" role="status" aria-live="polite"></p>
+        <div class="wizardStep" data-client-step="0">
+          <h3 tabindex="-1">Компания и профиль работы</h3>
+          <div class="formGrid"><label>Название компании<input id="clientName" required maxlength="191" autocomplete="organization"></label><label>Профиль работы<select id="businessKind" aria-describedby="profileHint"><?php foreach(ClientBusinessProfile::choices() as $profile): ?><option value="<?=$escape($profile['kind'])?>" data-description="<?=$escape($profile['description'])?>"><?=$escape($profile['label'])?></option><?php endforeach ?></select><span id="profileHint" class="hint"></span></label></div>
+        </div>
+        <div class="wizardStep" data-client-step="1" hidden>
+          <h3 tabindex="-1">Первый сотрудник</h3><p class="hint">Получит доступ только к этой компании. Рабочую смену включает самостоятельно.</p>
+          <div class="formGrid"><label>Имя сотрудника<input id="staffName" required maxlength="191" autocomplete="off"></label><label>Логин<input id="staffLogin" required minlength="3" maxlength="191" pattern="[A-Za-z0-9._@+\-]+" autocomplete="off" spellcheck="false"><span class="hint">Уникальный логин для входа в систему.</span></label><label>Начальный пароль<input id="staffPassword" type="password" required minlength="8" maxlength="72" autocomplete="new-password"><span class="hint">От 8 до 72 байт. Передайте сотруднику лично.</span></label></div>
+        </div>
+        <div class="wizardStep" data-client-step="2" hidden>
+          <h3 tabindex="-1">Материалы компании</h3><p class="hint">Необязательный шаг. Текст будет справочником для сотрудников; его можно добавить до активации.</p>
+          <label>Услуги, цены и правила<textarea id="materials" rows="7" maxlength="100000" placeholder="Например: услуги, цены, адрес и часы работы."></textarea></label>
+          <label class="fileLabel">Загрузить текстовый файл<input id="materialsFile" type="file" accept=".txt,.csv,text/plain,text/csv"><span class="hint">TXT или CSV, до 100 КБ. Текст появится в поле выше.</span></label>
+          <button id="cancelImport" class="secondary" type="button" hidden>Отменить чтение файла</button>
+        </div>
+        <div class="wizardStep" data-client-step="3" hidden>
+          <h3 tabindex="-1">Существующий бот MAX</h3>
+          <div class="formGrid"><label>Имя бота<input id="botKey" required maxlength="191" pattern="[A-Za-z0-9_]+" spellcheck="false" placeholder="company_bot"><span class="hint">Имя без @, указанное в настройках бота.</span></label><label>Токен бота<input id="botToken" type="password" required minlength="8" maxlength="4096" autocomplete="off"><span class="hint">Хранится зашифрованно. После сохранения не показывается.</span></label></div>
+          <p class="hint">Токен и пароль остаются только на этой странице до сохранения. После закрытия страницы их нужно ввести заново.</p>
+        </div>
+        <div class="wizardStep" data-client-step="4" hidden>
+          <h3 tabindex="-1">Проверьте перед сохранением</h3>
+          <dl id="clientReview" class="wizardReview"><div><dt>Компания</dt><dd id="reviewName"></dd></div><div><dt>Профиль</dt><dd id="reviewProfile"></dd></div><div><dt>Сотрудник</dt><dd id="reviewStaff"></dd></div><div><dt>Бот MAX</dt><dd id="reviewBot"></dd></div></dl>
+          <details><summary id="reviewMaterialsLabel">Материалы</summary><pre id="reviewMaterials"></pre></details>
+          <p class="hint">Компания и доступ сотрудника будут сохранены. Бот останется неактивным до отдельной проверки и включения. Рабочую смену сотрудник включает сам.</p>
+        </div>
+        <div class="wizardActions"><button type="button" id="wizardPrevious" class="secondary" hidden>Назад</button><button type="button" id="wizardNext">Далее</button><button type="submit" id="saveClient" hidden>Сохранить клиента</button></div>
       </fieldset></form>
     </section>
     <div class="columns"><section class="card" aria-labelledby="listTitle"><h2 id="listTitle">Доступные компании</h2><p id="empty" hidden>Компаний пока нет.</p><div id="clients"></div></section>
