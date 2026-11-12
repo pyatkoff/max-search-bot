@@ -71,12 +71,18 @@ function as39CoverageSuccess(array $fixture): void
     as39Refuses(static fn()=>$store->prepare($revision->order()[0],'create',$bad),'invalid_coverage_operation');
     $badRow = $store->operation($revision->order()[0],'create'); $badRow['request'] = $bad;
     as39Refuses(static fn()=>$store->claim($badRow),'invalid_coverage_operation');
-    as39Refuses(static fn()=>$store->prepare('unowned','coverage_v1_menu',[]),'invalid_coverage_operation');
+    as39Refuses(static fn()=>$store->prepare('unowned','coverage_menu',[]),'invalid_coverage_operation');
     as39Expect($provider->writes() === $writes,'forged or legacy successor execution cannot bypass the exact Store request');
 }
 
 function as39CoverageRegression(?PDO $native = null): void
 {
+    $bodyGuard = new ReflectionMethod(AppleService39ChannelTransport::class,'body');
+    foreach ([true,1,'false',null] as $invalidNotify) {
+        as39Refuses(static fn()=>$bodyGuard->invoke(null,['text'=>'Reviewed','notify'=>$invalidNotify]),'invalid_channel_body');
+    }
+    as39Expect($bodyGuard->invoke(null,['text'=>'Reviewed','notify'=>false])['notify'] === false,
+        'transport accepts only explicit false notification override');
     $seed = as39CoverageSeed($native);
     as39CoverageSuccess($native === null ? as39SearchClone($seed) : $seed);
     if ($native !== null) return;

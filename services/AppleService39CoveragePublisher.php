@@ -187,7 +187,7 @@ final class AppleService39CoveragePublisher
             $this->store->finish($row, 'verified', ['readback'=>true, 'revision_sha256'=>$this->revision->sha256()]);
         } catch (Throwable $error) {
             $this->hold($row);
-            throw new RuntimeException('coverage_operation_held');
+            throw new RuntimeException('coverage_operation_held', 0, $error);
         }
     }
 

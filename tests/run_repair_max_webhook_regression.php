@@ -154,8 +154,8 @@ foreach ($catalog as $index=>$entry) {
 }
 
 
-$navigationPosts = ['menu','model-iphone-x','model-iphone-15','model-iphone-15-plus','model-iphone-15-pro',
-    'model-iphone-15-pro-max','service-battery-replacement','service-front-glass-replacement','service-display'];
+$navigationPosts = array_merge((new AppleService39CoverageRevision())->order(), ['menu','model-iphone-x','model-iphone-15','model-iphone-15-plus','model-iphone-15-pro',
+    'model-iphone-15-pro-max','service-battery-replacement','service-front-glass-replacement','service-display']);
 foreach ($navigationPosts as $i=>$postId) {
     $entry = AppleService39PilotCatalog::landingEntryForPost($postId);
     $payload = AppleService39PilotCatalog::landingPayloadForPost($postId);
@@ -175,7 +175,7 @@ $handle('appleservice39',repairStart(7001,'as39_menu',1800000099000));
 repairCheck('menu consultation preserves previously known device and repair',
     (json_decode((string)repairConversation($pdo,'appleservice39',7001)['metadata_json'],true)['repair_context'] ?? null) === $beforeMenu);
 repairCheck('unapproved navigation remains closed',
-    AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot','as39_model-iphone-16') === null
+    AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot','as39_model-iphone-999') === null
     && AppleService39PilotCatalog::resolve('repair_two','id390521129062_bot','as39_menu') === null);
 
 $before = (int)$pdo->query('SELECT COUNT(*) FROM conversations')->fetchColumn();

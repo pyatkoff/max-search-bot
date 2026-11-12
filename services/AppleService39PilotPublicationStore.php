@@ -73,7 +73,7 @@ final class AppleService39PilotPublicationStore
 
     public function prepare(string $post, string $operation, array $request): array
     {
-        if (!preg_match('/\A[a-z][a-z0-9_-]{0,55}\z/D', $post) || !in_array($operation, ['upload','create','links','pin','landing_upload','landing_edit','catalogue_v1','search_v1_upload','search_v1_edit','coverage_v1_upload','coverage_v1_menu'], true)) throw new RuntimeException('invalid_pilot_operation');
+        if (!preg_match('/\A[a-z][a-z0-9_-]{0,55}\z/D', $post) || !in_array($operation, ['upload','create','links','pin','landing_upload','landing_edit','catalogue_v1','search_v1_upload','search_v1_edit','coverage_upload','coverage_menu'], true)) throw new RuntimeException('invalid_pilot_operation');
         if (AppleService39CoverageRevision::isOperation($post, $operation, $request)) $this->validateCoverageRequest($post, $operation, $request);
         if (self::isSearchOperation($post, $operation, $request)) $this->validateSearchRequest($post, $operation, $request);
         $json = self::json($request); $hash = hash('sha256', $json);

@@ -5,8 +5,8 @@ declare(strict_types=1);
 final class AppleService39CoverageRevision
 {
     public const KEY = 'coverage-v1';
-    public const UPLOAD = 'coverage_v1_upload';
-    public const MENU = 'coverage_v1_menu';
+    public const UPLOAD = 'coverage_upload';
+    public const MENU = 'coverage_menu';
     public const COVER = 'coverage-v1-cover';
     private const POSTS = ['model-iphone-8','model-iphone-8-plus','model-iphone-xr','model-iphone-xs','model-iphone-xs-max','model-iphone-11','model-iphone-11-pro','model-iphone-11-pro-max','model-iphone-12','model-iphone-12-mini','model-iphone-12-pro','model-iphone-12-pro-max','model-iphone-13','model-iphone-13-mini','model-iphone-13-pro','model-iphone-13-pro-max','model-iphone-14','model-iphone-14-plus','model-iphone-14-pro','model-iphone-14-pro-max','model-iphone-16','model-iphone-16-plus','model-iphone-16-pro','model-iphone-16-pro-max','model-iphone-17-pro','model-iphone-17-pro-max','model-iphone-air','models-index','service-charging-port-replacement','service-microphone-replacement','service-loudspeaker-replacement','service-front-camera-replacement','service-home-button-repair','service-power-button-repair','service-antenna-repair','service-software-recovery','service-diagnostics','service-housing-repair','services-index'];
     private const SHA = 'e4dfe5234befdc85cdbd19606af9588bb74af37021334d4a639ad6e4e23e7dc1';
@@ -110,7 +110,7 @@ final class AppleService39CoverageRevision
     }
     public static function isOperation(string $post, string $operation, array $request): bool
     {
-        return str_starts_with($operation, 'coverage_v1_') || ($request['revision'] ?? null) === self::KEY
+        return str_starts_with($operation, 'coverage_') || ($request['revision'] ?? null) === self::KEY
             || $post === self::COVER || in_array($post, self::POSTS, true);
     }
     private static function plain($text): void
