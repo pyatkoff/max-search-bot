@@ -11,7 +11,7 @@ const materialRow=(id,changes={})=>({message_id:id,sender_type:'customer',create
 const materialPage=(items,changes={})=>({body:{ok:true,conversation_id:11,kind:'all',snapshot_id:500,before_id:1,scanned:250,has_more:false,items,...changes}});
 const messages=(total,media=false)=>Array.from({length:total},(_,i)=>({id:i+1,sender_type:i===0?'manager':'customer',manager_id:i===0?7:null,text:'Синтетическое сообщение '+(i+1)+'. Обсуждаем отели, даты и состав туристов.',created_at:'2026-10-14 08:00:00',...(media&&i===total-2?{attachments:[{type:'audio',name:'Синтетическое аудио',url:origin+'/synthetic-history.wav'}]}:{})}));
 function deferred(){let resolve;const promise=new Promise(r=>resolve=r);return{promise,resolve}}
-async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=false,pageSize=200,summaryAudio=false,httpMedia=false,waiting=false,notificationState='',initialHash='',initialAnonymous=false,initialListFailures=0,holdInitialList=false,readAcknowledgements=false,initialUnread=false,quoteTargets=false,fullSearch=false,materials=false}={}){
+async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=false,pageSize=200,summaryAudio=false,httpMedia=false,waiting=false,notificationState='',initialHash='',initialAnonymous=false,initialListFailures=0,holdInitialList=false,readAcknowledgements=false,initialUnread=false,quoteTargets=false,quoteComparison=false,fullSearch=false,materials=false}={}){
  const state={readMarkers:{},ackGate:null,supervisor:false,ackCalls:[],calls:[],unexpected:[],errors:[],sends:[],payloadBytes:[],older:[],latest:[],leadGate:holdLead?deferred():null,documents:{11:messages(total,media),12:messages(3)},accountId:7,deny:false,unauthorized:false,summary:summaryAudio?{id:0,sender_type:'ai',text:'Синтетическая сводка первого обращения',created_at:'2026-10-14 08:00:00',attachments:[{type:'audio',name:'Синтетическое аудио в сводке',url:origin+'/synthetic-history.wav'}]}:null};if(summaryAudio)state.documents[11].forEach(m=>m.sender_type='customer');
  state.targets=[];state.targetCalls=[];
  state.searches=[];state.searchCalls=[];state.contexts=[];state.contextCalls=[];state.materialPages=[];state.materialCalls=[];
@@ -91,7 +91,9 @@ async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=fa
   if(data.action==='message_target'&&quoteTargets){
    state.targetCalls.push(data);let item=state.targets.shift();if(item?.promise)item=await item.promise;if(item?.body)return reply(item.body,item.status||200);if(state.deny)return reply({ok:false,error:'not_found'},404);
    const target=data.source_message_id===total?50:total-150,all=state.documents[11],rows=all.filter(m=>m.id>=target-20&&m.id<=target+20).map(m=>({direction:m.sender_type==='customer'?'inbound':'outbound',...m}));
-   return reply({ok:true,conversation_id:Number(data.conversation_id),source_message_id:Number(data.source_message_id),available:true,target_message_id:target,messages:rows,context:{has_before:true,has_after:true}});
+   const quotedText=state.documents[11].find(m=>m.id===data.source_message_id).linked_message.text;
+   const comparison=quoteComparison?{quote_comparison:{state:'text_differs',snapshot:{type:'reply',text:quotedText,sender_name:'Синтетический турист',may_be_truncated:[...quotedText].length>=500}}}:{};
+   return reply({ok:true,conversation_id:Number(data.conversation_id),source_message_id:Number(data.source_message_id),available:true,target_message_id:target,messages:rows,context:{has_before:true,has_after:true},...comparison});
   }
 
   if(data.action==='ack_read'&&readAcknowledgements){if(data.csrf!=='synthetic-history-csrf')return block('invalid-read-csrf');state.ackCalls.push(data);const id=Number(data.conversation_id),seen=new Set(data.message_ids);for(const m of state.documents[id].filter(m=>m.sender_type==='customer'&&m.id>(state.readMarkers[id]||0))){if(!seen.has(m.id))break;state.readMarkers[id]=m.id;}const body={ok:true,read_state:readState(id)};if(state.ackGate){const gate=state.ackGate;state.ackGate=null;const result=await gate.promise;if(result?.body)return reply(result.body,result.status||200);}return reply(body)}
@@ -878,6 +880,54 @@ for(const width of [390,1440])test('quote original and exact return preserve his
   try{console.error('QUOTE_RETURN_GEOMETRY '+JSON.stringify(quoteDiagnostics))}catch{}
   throw error;
  }
+});
+
+for(const width of [390,430,768,1440])test('saved quotation comparison preserves original draft and exact return '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:844});const state=await setup(page,{quoteTargets:true,quoteComparison:true,media:true});await open(page);
+ await page.locator('#replyText').fill('Ответ с сохранённым черновиком');await page.locator('#replyFile').setInputFiles({name:'quote-proof.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic quote proof')});
+ await page.locator('#replyText').evaluate(el=>el.setSelectionRange(5,10));expect(await page.evaluate(()=>{window.quoteProofSelection=WorkspaceV2Media.captureSelection();window.quoteProofFile=window.quoteProofSelection?.rows[0]?.row.file;return window.quoteProofFile instanceof File&&window.quoteProofFile.name==='quote-proof.txt'})).toBe(true);
+ const quote=page.locator('#messages [data-quote-source-id="500"]');await quote.scrollIntoViewIfNeeded();await settled(page);const before=await anchor(page);
+ await quote.click();await expect(page.locator('#messageContextDialog')).toBeVisible();await expect(page.locator('#messageContextTitle')).toHaveText('Цитата и сохранённый оригинал');
+ await expect(page.locator('.quoteComparisonStatus')).toContainText('отличается');await expect(page.locator('.quoteComparisonText')).toHaveText('Цитата сообщения 50');await expect(page.locator('#messageContextMessages [data-scroll-message-key="50"]')).toContainText('Оригинальные условия: Турция, 2 взрослых. <img');
+ expect(await page.locator('#messageContextMessages img').count()).toBe(0);expect(await page.locator('#messageContextMessages').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);expect(await page.locator('.quoteComparison').evaluate(el=>Math.abs(el.getBoundingClientRect().top-document.getElementById('messageContextMessages').getBoundingClientRect().top-12))).toBeLessThanOrEqual(2);
+ await screenshot(page,browserName,width,'quote-comparison');await page.locator('#messageContextBack').click();await expect(quote).toBeFocused();await sameAnchor(page,before);
+ await expect(page.locator('#replyText')).toHaveValue('Ответ с сохранённым черновиком');expect(await page.locator('#replyText').evaluate(el=>[el.selectionStart,el.selectionEnd])).toEqual([5,10]);expect(await page.evaluate(()=>WorkspaceV2Media.matchesSelection(window.quoteProofSelection)&&WorkspaceV2Media.captureSelection().rows[0].row.file===window.quoteProofFile)).toBe(true);
+ // A loaded original is read from the server too; don't jump to a stale row.
+ await page.locator('#messages [data-quote-source-id="499"]').click();await expect(page.locator('#messageContextDialog')).toBeVisible();await expect(page.locator('#messageContextMessages [data-scroll-message-key="350"]')).toContainText('Синтетическое сообщение 350');await page.locator('#messageContextBack').click();
+ expect(olderDetails(state)).toHaveLength(0);await expect(page.locator('#messages .msg')).toHaveCount(200);clean(state);
+});
+test('saved quotation comparison distinguishes matches excerpts no text and unavailable originals',async({page})=>{
+ const state=await setup(page,{quoteTargets:true,quoteComparison:true});await open(page);const snapshot={type:'reply',text:'Сохранённая цитата <img src=x>',sender_name:'<script>Имя</script>',may_be_truncated:false};
+ for(const [kind,label,available] of [['text_matches','совпадает',true],['excerpt_matches','Полный текст этим не проверен',true],['not_comparable','нет текста для сравнения',true],['unavailable','не подтверждает его удаление',false]]){
+  state.targets.push({body:{ok:true,conversation_id:11,source_message_id:500,available,...(available?{target_message_id:50,messages:[{id:50,direction:'inbound',sender_type:'customer',text:'Сохранённая цитата <img src=x>',created_at:'2026-11-12T09:00:00Z'}],context:{has_before:true,has_after:true}}:{}),quote_comparison:{state:kind,snapshot:{...snapshot,text:kind==='not_comparable'?'':kind==='excerpt_matches'?'Я'.repeat(500):snapshot.text,may_be_truncated:kind==='excerpt_matches'}}}});
+  await page.locator('#messages [data-quote-source-id="500"]').click();await expect(page.locator('.quoteComparisonStatus')).toContainText(label);expect(await page.locator('.quoteComparison img,.quoteComparison script').count()).toBe(0);await page.locator('#messageContextBack').click();
+ }
+ clean(state);
+});
+test('saved quotation comparison scrolls a long snapshot on a short phone',async({page,browserName})=>{
+ await page.setViewportSize({width:390,height:420});const state=await setup(page,{quoteTargets:true,quoteComparison:true});state.documents[11].find(m=>m.id===500).linked_message.text='🌊'.repeat(500);await open(page);
+ await page.locator('#messages [data-quote-source-id="500"]').click();await expect(page.locator('#messageContextDialog')).toBeVisible();await expect(page.locator('#messageContextBack')).toBeInViewport();
+ expect(await page.locator('#messageContextDialog').evaluate(el=>Math.abs(el.getBoundingClientRect().width-innerWidth)<=1)).toBe(true);expect(await page.locator('#messageContextMessages').evaluate(el=>el.clientHeight>100&&el.scrollHeight>el.clientHeight&&el.scrollWidth<=el.clientWidth+1)).toBe(true);
+ await screenshot(page,browserName,390,'quote-comparison-short-phone');await page.locator('#messageContextBack').click();clean(state);
+});
+test('saved quotation changed while opening discards the late comparison',async({page})=>{
+ const state=await setup(page,{quoteTargets:true,quoteComparison:true});await open(page);const hold=deferred();state.targets.push(hold);await page.locator('#messages [data-quote-source-id="500"]').click();await expect.poll(()=>state.targetCalls.length).toBe(1);
+ state.documents[11].find(m=>m.id===500).linked_message.text='Новая сохранённая цитата';await refresh(page);
+ hold.resolve({body:{ok:true,conversation_id:11,source_message_id:500,available:false,quote_comparison:{state:'unavailable',snapshot:{type:'reply',text:'Старая цитата',sender_name:'',may_be_truncated:false}}}});await settled(page);await expect(page.locator('#messageContextDialog')).not.toBeVisible();await expect(page.locator('#messages')).toContainText('Новая сохранённая цитата');clean(state);
+});
+test('saved quotation modal never acknowledges unseen arrivals and clears on access loss',async({page})=>{
+ const state=await setup(page,{quoteTargets:true,quoteComparison:true,readAcknowledgements:true}),gate=deferred();state.ackGate=gate;
+ await open(page);await expect.poll(()=>state.ackCalls.length).toBeGreaterThan(0);await page.locator('#messages [data-quote-source-id="500"]').click();await expect(page.locator('#messageContextDialog')).toBeVisible();
+ state.documents[11].push({id:501,sender_type:'customer',text:'Не просмотрено за сравнением',created_at:'2026-11-12T09:00:00Z'});await refresh(page);
+ // Finish an actual pre-modal acknowledgement. Previously displayed rows may
+ // still be acknowledged; the newly hidden row must never enter any batch.
+ const completed=page.waitForResponse(r=>r.url().endsWith('/manager/api.php')&&r.request().method()==='POST'&&r.request().postDataJSON().action==='ack_read');gate.resolve({});await completed;await settled(page);
+ expect(state.ackCalls.every(call=>!call.message_ids.includes(501))).toBe(true);expect(state.readMarkers[11]||0).toBeLessThan(501);
+ state.deny=true;await refresh(page);await expect(page.locator('#messageContextDialog')).not.toBeVisible();await expect(page.locator('#messageContextMessages')).toBeEmpty();expect(state.ackCalls.every(call=>!call.message_ids.includes(501))).toBe(true);clean(state);
+});
+test('saved quotation malformed comparison is retryable without replacing the draft',async({page})=>{
+ const state=await setup(page,{quoteTargets:true,quoteComparison:true});await open(page);await page.locator('#replyText').fill('Черновик при неверном ответе');
+ state.targets.push({body:{ok:true,conversation_id:11,source_message_id:500,available:false,quote_comparison:{state:'text_matches',snapshot:null}}});await page.locator('#messages [data-quote-source-id="500"]').click();await expect(page.locator('#messageNavigationRetry')).toBeVisible();await expect(page.locator('#messageContextDialog')).not.toBeVisible();await page.locator('#messageNavigationRetry').click();await expect(page.locator('#messageContextDialog')).toBeVisible();await page.locator('#messageContextBack').click();await expect(page.locator('#replyText')).toHaveValue('Черновик при неверном ответе');clean(state);
 });
 
 test('quote failure retries explicitly and late previous-conversation response is discarded',async({page})=>{

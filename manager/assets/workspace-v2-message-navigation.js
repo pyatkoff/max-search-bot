@@ -6,6 +6,7 @@ function context(){return window.WorkspaceV2Conversation?.captureReplyContext?.(
 function key(){const c=context();return c?JSON.stringify(c):''}
 function current(c){return !S.authExpired&&key()===JSON.stringify(c)&&window.WorkspaceV2Conversation?.canNavigateMessages?.()===true}
 function sourceRow(id){return [...($('messages')?.children||[])].find(row=>Number(row.dataset.scrollMessageKey)===Number(id))||null}
+function quoteStamp(id){const node=sourceRow(id)?.querySelector('[data-quote-source-id]');return node?JSON.stringify([node.dataset.linkedMid,node.textContent]):null}
 function anchor(id){const row=sourceRow(id),box=$('messages');return row&&box?{id:Number(id),offset:row.getBoundingClientRect().top-box.getBoundingClientRect().top,top:box.scrollTop}:null}
 function focusQuote(id){sourceRow(id)?.querySelector('[data-quote-source-id]')?.focus({preventScroll:true})}
 function restore(saved){
@@ -43,19 +44,42 @@ function ensureDialog(){
 }
 function validResponse(result,sourceId,conversationId){
  if(result?.ok!==true||Number(result.conversation_id)!==conversationId||(sourceId!==null&&Number(result.source_message_id)!==sourceId)||typeof result.available!=='boolean')return false;
+ if(Object.hasOwn(result,'quote_comparison')&&!validComparison(result.quote_comparison,result.available))return false;
  if(!result.available)return true;
  const rows=result.messages,target=Number(result.target_message_id);return Number.isSafeInteger(target)&&target>0&&Array.isArray(rows)&&rows.length>0&&rows.length<=41&&rows.some(m=>Number(m.id)===target)&&rows.every((m,i)=>Number.isSafeInteger(Number(m?.id))&&Number(m.id)>0&&(i===0||Number(m.id)>Number(rows[i-1].id)));
+}
+function validComparison(value,available){
+ if(!value||!['unavailable','not_comparable','text_matches','excerpt_matches','text_differs'].includes(value.state))return false;
+ if(!available&&value.state!=='unavailable'||available&&value.state==='unavailable')return false;
+ const s=value.snapshot;if(s===null)return !available;
+ return !!s&&['reply','forward'].includes(s.type)&&typeof s.text==='string'&&[...s.text].length<=500&&typeof s.sender_name==='string'&&[...s.sender_name].length<=160&&typeof s.may_be_truncated==='boolean';
+}
+function renderComparison(result){
+ const value=result.quote_comparison,box=$('messageContextMessages'),section=document.createElement('section');section.className='quoteComparison';section.dataset.comparisonState=value.state;
+ const add=(tag,text,className)=>{const node=document.createElement(tag);node.textContent=text;if(className)node.className=className;section.appendChild(node);return node};
+ const states={text_matches:'Текст цитаты совпадает с сохранённым оригиналом.',excerpt_matches:'Сохранённый фрагмент цитаты совпадает. Полный текст этим не проверен.',text_differs:'Текст цитаты отличается от сохранённого оригинала.',not_comparable:'В сохранённой цитате нет текста для сравнения.',unavailable:'Оригинал недоступен в сохранённой переписке. Это не подтверждает его удаление.'};
+ add('p',states[value.state],'quoteComparisonStatus');
+ const snapshot=value.snapshot;if(snapshot){add('h3',snapshot.type==='forward'?'Сохранённый фрагмент пересылки':'Цитата в выбранном сообщении');if(snapshot.sender_name)add('p',snapshot.sender_name,'quoteComparisonSender');add('blockquote',snapshot.text||'Текст цитаты не сохранён.','quoteComparisonText');if(snapshot.may_be_truncated)add('p','Цитата может быть сокращена.','quoteComparisonHint')}
+ add('p','Показаны сохранённые данные. Последние изменения в мессенджере могут отсутствовать.','quoteComparisonHint');
+ if(result.available)add('h3','Сохранённый оригинал');
+ const original=[...box.children].find(node=>Number(node.dataset.scrollMessageKey)===Number(result.target_message_id));box.insertBefore(section,original||box.firstChild);return section;
 }
 async function openQuote(sourceId,button=null,{retry=false}={}){
  sourceId=Number(sourceId);const captured=context();if(!Number.isSafeInteger(sourceId)||sourceId<=0||!current(captured)||!sourceRow(sourceId))return false;
  sync();const saved=retry&&active?.sourceId===sourceId?active.anchor:anchor(sourceId);if(!saved)return false;
- const ticket=++revision,priorStack=stack;active={sourceId,anchor:saved,status:'Открываем исходное сообщение…',retry:false};renderBar();
- const valid=()=>ticket===revision&&current(captured)&&!!sourceRow(sourceId);
+ const ticket=++revision,priorStack=stack,stamp=quoteStamp(sourceId);active={sourceId,anchor:saved,status:'Открываем исходное сообщение…',retry:false};renderBar();
+ const valid=()=>ticket===revision&&current(captured)&&!!sourceRow(sourceId)&&quoteStamp(sourceId)===stamp;
  let result;try{result=await api('message_target',{conversation_id:captured.conversationId,source_message_id:sourceId},{isCurrent:valid})}catch(e){result=null}
  if(!valid()){if(ticket===revision){active=null;renderBar()}return false}
  if(!validResponse(result,sourceId,captured.conversationId)){
   if([403,404].includes(result?.http_status)){window.WorkspaceV2Conversation?.invalidateMessageAccess?.();return false}
   active.status=[403,404].includes(result?.http_status)?'Диалог больше недоступен. Обновите список диалогов.':'Не удалось открыть исходное сообщение. Можно повторить.';active.retry=![403,404].includes(result?.http_status);renderBar();return false;
+ }
+ if(result.quote_comparison){
+  const peek=ensureDialog();active={sourceId,anchor:saved,returnFocus:button,status:'',retry:false,peek:true};renderBar();
+  $('messageContextTitle').textContent='Цитата и сохранённый оригинал';$('messageContextBack').textContent='Вернуться к цитате';
+  window.WorkspaceV2Conversation?.renderMessageContext?.($('messageContextMessages'),result.messages||[]);
+  const section=renderComparison(result);peek.showModal();const box=$('messageContextMessages');box.scrollTop=Math.max(0,box.scrollTop+section.getBoundingClientRect().top-box.getBoundingClientRect().top-12);return true;
  }
  if(!result.available){active.status='Оригинал не найден в сохранённой переписке этого диалога.';active.retry=false;renderBar();focusQuote(sourceId);return false}
  const target=Number(result.target_message_id),row=sourceRow(target);

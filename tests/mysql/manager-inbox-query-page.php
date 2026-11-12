@@ -545,6 +545,26 @@ try {
     inboxNativeCheck('native materials recognize only the recorded manager offer',array_column($offers['items'],'message_id')===[909700]&&$offers['items'][0]['kinds']===['files','offers']);
     inboxNativeCheck('native explicit materials refresh includes the newer saved file',ManagerConversationService::messageMaterials(9900,90,'files')['items'][0]['message_id']===950000);
     inboxNativeCheck('native overview preserves every previously accepted read cursor',inboxNativeReadState($pdo)===$searchReadBaseline);
+    // Quotation comparison uses the same isolated native history after every
+    // pre-existing population/measurement and materials assertion.
+    $pdo->exec("UPDATE messages SET external_message_id='mid.native-quote' WHERE id=900007");
+    $quoteText='Архив & море 🌊 100%_\\ <img>';
+    $quoteMeta=json_encode(['linked_message'=>['type'=>'reply','mid'=>'mid.native-quote','text'=>$quoteText,'private'=>'private-native-quote']],JSON_THROW_ON_ERROR);
+    $pdo->prepare('UPDATE messages SET metadata_json=? WHERE id=950000')->execute([$quoteMeta]);
+    $quote=ManagerConversationService::linkedMessageTarget(9900,90,950000);
+    inboxNativeCheck('native quote compares against the canonical decoded saved original',$quote['available']&&$quote['target_message_id']===900007&&$quote['quote_comparison']['state']==='text_matches'&&count($quote['messages'])===27);
+    $pdo->prepare('UPDATE messages SET text=? WHERE id=900007')->execute(['Новые условия']);
+    $quote=ManagerConversationService::linkedMessageTarget(9900,90,950000);
+    inboxNativeCheck('native changed text retains distinct historical quotation and original',$quote['quote_comparison']['state']==='text_differs'&&$quote['quote_comparison']['snapshot']['text']===$quoteText&&$quote['messages'][6]['text']==='Новые условия');
+    inboxNativeCheck('native comparison never exposes provider IDs or arbitrary metadata',!str_contains(json_encode($quote['quote_comparison']),'mid.native-quote')&&!str_contains(json_encode($quote['quote_comparison']),'private-native-quote'));
+    $pdo->prepare('UPDATE messages SET metadata_json=? WHERE id=950000')->execute([json_encode(['linked_message'=>['type'=>'forward','mid'=>'mid.native-quote','text'=>str_repeat('Я',500)]],JSON_THROW_ON_ERROR)]);
+    $pdo->prepare('UPDATE messages SET text=? WHERE id=900007')->execute([str_repeat('Я',501)]);
+    $quote=ManagerConversationService::linkedMessageTarget(9900,90,950000);
+    inboxNativeCheck('native matching truncated forward never certifies the whole original',$quote['quote_comparison']['state']==='excerpt_matches'&&$quote['quote_comparison']['snapshot']['may_be_truncated']);
+    $pdo->exec('UPDATE messages SET external_message_id=NULL WHERE id=900007');
+    $quote=ManagerConversationService::linkedMessageTarget(9900,90,950000);
+    inboxNativeCheck('native unavailable original retains historical quote without a deletion claim',!$quote['available']&&$quote['quote_comparison']['state']==='unavailable'&&$quote['quote_comparison']['snapshot']['text']===str_repeat('Я',500));
+    inboxNativeCheck('native comparison retains every original read cursor and source metadata',inboxNativeReadState($pdo)===$searchReadBaseline&&$pdo->query('SELECT metadata_json FROM messages WHERE id=950000')->fetchColumn()!==null);
     echo 'FULL_HISTORY_SEARCH '.json_encode(['rows'=>10051,'requests_to_old_hit'=>$calls,'max_scanned_per_request'=>1000,'max_hits_per_page'=>25,'read_only'=>true],JSON_THROW_ON_ERROR)."\n";
     echo 'EVIDENCE ' . json_encode(['scope'=>'synthetic_native_service_list','base_sha'=>'bc9d104b1f9619d5d6cbb0a7ee05dced06376abf',
         'owned_fixture_rows'=>count(array_filter($fixtures,static fn(array $f):bool=>$f['project']==='native-inbox'&&$f['owner']===7&&$f['status']==='manager'&&!$f['isTest'])),

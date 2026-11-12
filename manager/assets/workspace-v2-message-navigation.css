@@ -15,4 +15,8 @@ button.linkedMessage:disabled{cursor:default;opacity:1}
 .messageContextDescription{margin:0;padding:10px 16px;color:#596b7a;font-size:12px;flex:0 0 auto}
 .messageContextMessages{display:flex;flex-direction:column;position:relative;margin:0;padding:14px 18px;overflow-y:auto;overflow-x:hidden;min-height:0;flex:1 1 auto}
 .messageContextMessages .msg{max-width:88%}
+.quoteComparison{flex:0 0 auto;min-width:0;padding:12px;border:1px solid #c5d7e5;border-radius:10px;background:#fff;overflow-wrap:anywhere;margin:4px 0 12px}
+.quoteComparison h3{font-size:13px;margin:10px 0 6px}.quoteComparison p{margin:4px 0}.quoteComparisonStatus{font-size:13px;font-weight:600;line-height:1.4}
+.quoteComparison[data-comparison-state="text_differs"],.quoteComparison[data-comparison-state="unavailable"]{border-color:#c59845;background:#fffaf0}
+.quoteComparisonText{white-space:pre-wrap;font-size:13px;line-height:1.45;border-left:3px solid #9aafbf;margin:8px 0;padding:4px 10px}.quoteComparisonSender{font-size:12px;font-weight:600}.quoteComparisonHint{font-size:12px;color:#596b7a;line-height:1.4}
 @media(max-width:520px){.messageNavigationBar{padding:6px 9px}.messageContextDialog{width:100%;height:100vh;height:100dvh;margin:0;border:0;border-radius:0}.messageContextHead{padding:max(8px,env(safe-area-inset-top)) 10px 8px}.messageContextHead strong{font-size:13px}.messageContextHead .actionBtn{font-size:11px}.messageContextDescription{padding:8px 10px}.messageContextMessages{padding:12px 9px max(12px,env(safe-area-inset-bottom))}}

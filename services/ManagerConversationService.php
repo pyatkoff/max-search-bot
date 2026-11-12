@@ -470,6 +470,10 @@ class ManagerConversationService
                     $result=array_replace($result,self::messageWindow($conversationId,$target));
             }
         }
+        require_once __DIR__.'/ManagerQuotedMessage.php';
+        $original=null;
+        foreach($result['messages']??[] as $message)if((int)$message['id']===($result['target_message_id']??0))$original=(string)$message['text'];
+        $result['quote_comparison']=ManagerQuotedMessage::compare($link,$original);
         // Recheck every role after the reads; changed assignment/source/project
         // cannot authorize exposing a captured context under obsolete access.
         $fresh=self::visibleConversation($conversationId,$managerId,true);if(!$fresh)return null;

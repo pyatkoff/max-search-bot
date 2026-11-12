@@ -72,6 +72,14 @@ Important Inbox signals include:
 - next task/reminder;
 - current owner/technical handoff state.
 
+Quoted replies and forwards retain their captured text separately from the saved
+original. The existing bounded, authorized original-message reader compares text
+only: equal text, a matching potentially truncated excerpt, different text, no
+comparable text, or unavailable original. Differences do not prove who edited
+which version; an unavailable row never proves provider deletion. The comparison
+does not fetch a provider, replace historical quotations, acknowledge messages,
+or alter the reply draft. A refreshed quote/context invalidates a late read.
+
 The conversation materials overview reads saved messages across the available
 conversation history. It separates files, literal web links and explicitly
 recorded sent offers, with sender, recorded date and a link to the original
