@@ -24,6 +24,7 @@ final class MetrikaOfflineClient
     private $transport;
     private ?float $readDeadline;
     private ?DateTimeZone $reportZone=null;
+    private ?array $lastPollEvidence=null;
     private ?array $projectPolicy=null;
     public function __construct(string $counter,string $token,?callable $transport=null,?float $readDeadline=null,?array $projectPolicy=null)
     {
@@ -131,11 +132,33 @@ final class MetrikaOfflineClient
 
     public function poll(string $uploadId): ?array
     {
+        $this->lastPollEvidence=null;
         if(!MaxTrackerLookupProtocol::id($uploadId))return null;
-        $r=$this->request('GET','offline_conversions/uploading/'.$uploadId);
-        if((int)($r['error']??0)!==0||(int)($r['http']??0)!==200)return null;
-        $d=$this->decode($r);$u=$d['uploading']??null;
-        return $this->validReceipt($u)&&(string)$u['id']===$uploadId?$u:null;
+        try{$r=$this->request('GET','offline_conversions/uploading/'.$uploadId);}
+        catch(Throwable $error){$this->recordPollEvidence($uploadId,1,null,null);throw $error;}
+        $http=is_int($r['http']??null)&&$r['http']>=100&&$r['http']<=599?$r['http']:null;
+        $curl=is_int($r['error']??null)&&$r['error']>=0&&$r['error']<=100?$r['error']:null;
+        if((int)($r['error']??0)!==0){$this->recordPollEvidence($uploadId,1,$http,$curl);return null;}
+        if((int)($r['http']??0)!==200){$this->recordPollEvidence($uploadId,2,$http,$curl);return null;}
+        $d=$this->decode($r);$jsonError=json_last_error();$u=$d['uploading']??null;
+        if($jsonError!==JSON_ERROR_NONE){$this->recordPollEvidence($uploadId,3,$http,$curl);return null;}
+        if(!is_array($u)){$this->recordPollEvidence($uploadId,4,$http,$curl);return null;}
+        if(!$this->validReceipt($u)){$this->recordPollEvidence($uploadId,5,$http,$curl);return null;}
+        if((string)$u['id']!==$uploadId){$this->recordPollEvidence($uploadId,6,$http,$curl);return null;}
+        $this->recordPollEvidence($uploadId,7,$http,$curl,$u['status']);return $u;
+    }
+
+    /** Closed evidence from the most recent poll only, bound to the requested upload without exposing its ID. */
+    public function pollEvidence(string $uploadId):?array
+    {
+        if(!MaxTrackerLookupProtocol::id($uploadId)||$this->lastPollEvidence===null
+            ||!hash_equals($this->lastPollEvidence['receipt_ref'],hash('sha256','modeled_value_upload_receipt_v1|'.$uploadId)))return null;
+        return $this->lastPollEvidence;
+    }
+    private function recordPollEvidence(string $uploadId,int $stage,?int $http,?int $curl,?string $status=null):void
+    {
+        $this->lastPollEvidence=['v'=>1,'counter_id'=>$this->counter,'receipt_ref'=>hash('sha256','modeled_value_upload_receipt_v1|'.$uploadId),
+            'checked_at_unix'=>time(),'stage'=>$stage,'http_status'=>$http,'transport_error_code'=>$curl,'provider_status'=>$status];
     }
 
     /** Read-only recovery of a lost POST acknowledgement; no automatic resend. */

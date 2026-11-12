@@ -3,6 +3,7 @@
 import base64
 import importlib.util
 import json
+import hashlib
 import os
 from pathlib import Path
 import socket
@@ -45,8 +46,11 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
         sock.bind(('127.0.0.1', 0))
         port = sock.getsockname()[1]
     command = json.loads(os.getenv('TEST_PHP_COMMAND_JSON', '["php"]'))
+    request_audit = private_root / 'request-audit.jsonl'
+    router = private_root / 'router.php'
+    router.write_text("<?php file_put_contents(" + json.dumps(str(request_audit)) + ", json_encode(['method'=>$_SERVER['REQUEST_METHOD']??'', 'evidence'=>$_SERVER['HTTP_X_MAX_ATTRIBUTION_EVIDENCE']??'']).PHP_EOL, FILE_APPEND|LOCK_EX); return false;\n")
     with (private_root / 'server.log').open('wb') as log:
-        server = subprocess.Popen(command + ['-S', f'127.0.0.1:{port}', '-t', str(site)], stdout=log, stderr=log)
+        server = subprocess.Popen(command + ['-S', f'127.0.0.1:{port}', '-t', str(site), str(router)], stdout=log, stderr=log)
         try:
             for attempt in range(100):
                 if server.poll() is not None:
@@ -66,10 +70,12 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
             def signature(body, purpose=b'anytour-max-tracker-lookup-v1\n'):
                 signed = subprocess.run(['openssl', 'dgst', '-sha256', '-sign', str(private_key)], input=purpose + body, check=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout
                 return base64.b64encode(signed).decode()
-            def request(body=None, method='POST', content_type='application/json', signed=None):
+            def request(body=None, method='POST', content_type='application/json', signed=None, evidence=None):
                 headers = {'Content-Type': content_type}
                 if signed is not None:
                     headers['X-Max-Attribution-Signature'] = signed
+                if evidence is not None:
+                    headers['X-Max-Attribution-Evidence'] = evidence
                 req = urllib.request.Request(url, data=body, headers=headers, method=method)
                 try:
                     response = urllib.request.urlopen(req, timeout=5)
@@ -108,6 +114,59 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
                 check(result['users'][0]['record_id'] == '9007199254740998', 'wire large tracker ID remains exact after INT source matching')
                 check(result['users'][1] == {'external_user_id': '404', 'found': False}, 'wire explicit miss')
                 check(result['tracker_timezone'] == 'Europe/London', 'wire timezone contract')
+                ordinary_users = result['users']
+                # The production client keeps its pinned HTTPS transport. Only this private
+                # synthetic copy uses the already running local HTTP fixture and its fixture key.
+                client_fixture = private_root / 'client'
+                client_fixture.mkdir()
+                client_source = (ROOT / 'services/MaxTrackerLookupClient.php').read_text()
+                check(client_source.count('CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS') == 1, 'one pinned client protocol substitution in the isolated fixture')
+                (client_fixture / 'MaxTrackerLookupClient.php').write_text(client_source.replace('CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS', 'CURLOPT_PROTOCOLS=>CURLPROTO_HTTP', 1))
+                (client_fixture / 'MaxTrackerLookupProtocol.php').write_text((ROOT / 'services/MaxTrackerLookupProtocol.php').read_text())
+                (client_fixture / 'MaxTrackerLookupConfig.php').write_text("<?php final class MaxTrackerLookupConfig { public static function endpoint():string{return " + json.dumps(url) + ";} public static function privateKey():string{return file_get_contents(" + json.dumps(str(private_key)) + ");}}\n")
+                intent_file = private_root / 'simulated-consumed-intent.json'
+                runner = private_root / 'client-callback.php'
+                runner.write_text("<?php declare(strict_types=1); require " + json.dumps(str(client_fixture / 'MaxTrackerLookupClient.php')) + "; "
+                    + "$users=['123'];for($i=1;$i<=24;$i++)$users[]=(string)(990000+$i);$calls=0;"
+                    + "$result=(new MaxTrackerLookupClient())->lookupWithCounterScopeEvidence('98615635',$users,'123',"
+                    + "static function(string $hash)use(&$calls):bool{$calls++;file_put_contents(" + json.dumps(str(intent_file))
+                    + ",json_encode(['state'=>'consumed_unknown','request_sha256'=>$hash],JSON_THROW_ON_ERROR));throw new RuntimeException('synthetic journal acknowledgement lost');});"
+                    + "echo json_encode(['users'=>count($result['identities']),'first_client'=>$result['identities']['123']['client_id'],'calls'=>$calls,'evidence'=>$result['counter_scope_evidence']],JSON_THROW_ON_ERROR);")
+                audit_before = request_audit.read_text().splitlines()
+                callback_run = subprocess.run(command + [str(runner)], capture_output=True, text=True, timeout=20)
+                check(callback_run.returncode == 0, 'optional callback failure preserves the actual ordinary client request')
+                callback_result = json.loads(callback_run.stdout)
+                audit_after = request_audit.read_text().splitlines()
+                check(callback_result['users'] == 25 and callback_result['first_client'] == '777' and callback_result['calls'] == 1, 'throwing optional journal callback does not lose any of the normal 25 lookup results')
+                check(len(audit_after) == len(audit_before) + 1 and json.loads(audit_after[-1]) == {'method': 'POST', 'evidence': ''}, 'callback failure makes exactly one ordinary POST with no evidence opt-in header')
+                consumed_intent = json.loads(intent_file.read_text())
+                check(consumed_intent['state'] == 'consumed_unknown' and consumed_intent['request_sha256'] == callback_result['evidence']['request_sha256'] and callback_result['evidence']['reason'] == 'intent_not_persisted', 'possibly persisted intent remains consumed unknown and is never retried')
+                scoped = encoded({**data, 'counter_scope_evidence': {'v': 1, 'user_id': '123'}})
+                status, plain_extended = request(scoped, signed=signature(scoped))
+                check(status == 200 and plain_extended['users'] == ordinary_users and 'counter_scope_evidence' not in plain_extended, 'signed option without opt-in header is still one ordinary lookup')
+                status, observed = request(scoped, signed=signature(scoped), evidence='counter-scope-v1')
+                check(status == 200 and observed['users'] == ordinary_users, 'optional evidence failure never changes ordinary identities')
+                extra = observed['counter_scope_evidence']
+                check(extra['v'] == 1 and extra['counter_id'] == '98615635' and extra['request_sha256'] == hashlib.sha256(scoped).hexdigest(), 'same signed request hash binds the optional counter evidence')
+                check('user_id' not in extra and 'client_id' not in extra and 'record_id' not in extra, 'counter evidence has no raw native or tracker identifiers')
+                if extra['status'] == 'observed':
+                    check(extra['complete_within_bound'] is True and 0 <= extra['scoped_rows'] <= 64 and extra['empty_client_id_rows'] + extra['noncanonical_client_id_rows'] + extra['canonical_client_id_rows'] == extra['scoped_rows'], 'native wire aggregate is complete within the fixed point bound')
+                else:
+                    check(extra['reason'] in {'point_index_unavailable', 'row_limit', 'storage_unavailable'} and extra['scoped_rows'] is None and extra['complete_within_bound'] is False, 'unavailable point evidence is unknown rather than zero')
+                repository_path = endpoint / 'services/MaxTrackerLookupRepository.php'
+                repository_source = repository_path.read_text()
+                check(repository_source.count('public function counterScopeEvidence(') == 1, 'one optional receiver method')
+                try:
+                    repository_path.write_text(repository_source.replace('public function counterScopeEvidence(', 'public function unavailableCounterScopeEvidence(', 1))
+                    failed_status, failed_optional = request(scoped, signed=signature(scoped), evidence='counter-scope-v1')
+                    check(failed_status == 200 and failed_optional['users'] == ordinary_users and failed_optional['counter_scope_evidence']['reason'] == 'storage_unavailable', 'unexpected optional receiver failure preserves the ordinary identity response')
+                finally:
+                    repository_path.write_text(repository_source)
+                invalid_subset = encoded({**data, 'counter_scope_evidence': {'v': 1, 'user_id': '789'}})
+                status, invalid_extra = request(invalid_subset, signed=signature(invalid_subset), evidence='counter-scope-v1')
+                check(status == 200 and invalid_extra['users'] == ordinary_users and invalid_extra['counter_scope_evidence']['reason'] == 'invalid_request', 'signed out-of-batch option cannot expand scope or poison ordinary lookup')
+                tampered_subset = encoded({**data, 'counter_scope_evidence': {'v': 1, 'user_id': '404'}})
+                check(request(tampered_subset, signed=signature(scoped), evidence='counter-scope-v1')[0] == 401, 'subset selection is covered by the existing body signature')
                 membership = encoded({**data, 'membership': {'not_before_unix': now - 3600, 'cutoff_unix': now}})
                 status, result = request(membership, signed=signature(membership))
                 check(status == 200, 'signed membership lookup reaches same endpoint')
@@ -122,6 +181,9 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
                 status, result = request(history, signed=signature(history))
                 check(status == 200, 'signed observed-history lookup reaches the canonical endpoint')
                 check(set(result) == {'ok', 'version', 'counter_id', 'tracker_timezone', 'history_member_page'}, 'history wire exposes a separate exact response without identity lookup or legacy members')
+                history_extra = encoded({**data, 'user_ids': [], 'history_member_page_after': '0', 'counter_scope_evidence': {'v': 1, 'user_id': '123'}})
+                extra_status, extra_history = request(history_extra, signed=signature(history_extra), evidence='counter-scope-v1')
+                check(extra_status == 200 and set(extra_history) == set(result) and 'counter_scope_evidence' not in extra_history, 'optional header never changes strict history response keys')
                 page = result['history_member_page']
                 page_keys = {'basis', 'rows', 'cutoff_unix', 'history_fence_id', 'next_cursor', 'has_more', 'scanned_event_count', 'omitted_unknown_count', 'coverage'}
                 row_keys = {'external_user_id', 'source_id', 'state', 'last_event_record_id', 'last_event_recorded_at_unix', 'episode_join_record_id', 'episode_join_recorded_at_unix', 'entry_basis'}
