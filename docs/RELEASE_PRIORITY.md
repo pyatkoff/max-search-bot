@@ -1,5 +1,32 @@
 # Ready release priority
 
+## Explicit continuation of the PR1505 pre-write read refusal
+
+The original PR1505 installation and every original required gate succeeded.
+Closer43231780686/attempt1 prepared and published its digest-bound terminal
+proposal, then refused with `api_http_503` before the publisher PATCH. Its
+failure remains immutable history. Pavel's subsequent continuation is handled
+by one real create-push of `ops/recover-pr1505-terminal-20261112` in the same
+existing serialized tail, only after exact-source required PR CI succeeds.
+This is neither a rerun nor a replacement installation or publisher.
+
+The fixed recipe pins the original SHA, proposal commit/blob/digest, failed
+run/job and original publisher tuple. Before any write it authenticates that
+immutable proposal and its original native artifact, failed job/step and
+allowlisted 503 log outcome. It rechecks every original gate, installation,
+ops receipt, PR binding, current main and unchanged owner/version. Unknown
+writes, other errors, changed source/evidence and unavailable data refuse.
+
+The actual continuation has its own native push/source/job identity in the
+same versioned `deploy_status.json` closure. Its digest-bound artifact and final
+successful step are required by consumers; the failed original step is never
+reported as success. Only the continuation's single original attempt may
+perform the one not-previously-attempted publisher PATCH and readback. Refusal
+or an UNKNOWN write retains the record; no automatic retry, branch recreation,
+secret, SSH access, live probe, schedule or new workflow/queue is introduced.
+The fixed branch cannot update main. Normal releases retain their original
+attempt1 validation and all existing verification rules below.
+
 A small cleanup must not repeatedly advance main while a complete product package
 is finishing its required checks. Priority is recorded in that product's existing
 PR description. There is no new queue, scheduler, controller or deployment owner.
@@ -307,4 +334,5 @@ workflow, queue, publisher, customer message or failure experiment is introduced
 
 Recovery is effective only for releases containing this package. Do not repeat
 an accepted older installation to obtain the new workflow layout.
+
 
