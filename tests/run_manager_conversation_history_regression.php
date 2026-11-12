@@ -386,6 +386,36 @@ $pdo=targetFixture();$pdo->exec("UPDATE messages SET metadata_json='invalid' WHE
 $pdo=targetFixture();$pdo->afterPage=static fn($db)=>$db->exec('DELETE FROM manager_projects WHERE manager_id=1');$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);check('permission loss during context load rejects captured original',$r['status']===404&&$pdo->readWrites===0);
 $pdo=targetFixture();$pdo->failHydration=true;$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);check('quote hydration failure is recoverable without a read write',$r['status']===500&&$r['body']['error']==='message_target_failed'&&$pdo->readWrites===0);
 foreach([-1,0,'01','bad',true,1.2,'999999999999999999999'] as $invalid){$pdo=targetFixture();$r=apiTarget(['conversation_id'=>1,'source_message_id'=>$invalid]);check('invalid quote source rejected before lookup '.json_encode($invalid),$r['status']===422&&$pdo->executed===[]);}
+// Item18 compares captured text with that same bounded saved original. It
+// never upgrades a difference/missing row into a provider edit/delete event.
+function quoteFixture(array $link,string $original='Сохранённые условия'): HistoryFixturePdo
+{
+    $pdo=targetFixture();$pdo->prepare('UPDATE messages SET text=? WHERE id=50')->execute([$original]);
+    $pdo->prepare('UPDATE messages SET metadata_json=? WHERE id=1001')->execute([json_encode(['linked_message'=>array_replace(['type'=>'reply','mid'=>'mid.synthetic-original'],$link)],JSON_THROW_ON_ERROR)]);
+    $pdo->executed=[];return$pdo;
+}
+foreach(['reply','forward'] as $type){
+    $pdo=quoteFixture(['type'=>$type,'text'=>'Сохранённые условия','sender_name'=>'<img src=x>']);$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);
+    check('captured '.$type.' matches only the saved text',$r['body']['quote_comparison']===['state'=>'text_matches','snapshot'=>['type'=>$type,'text'=>'Сохранённые условия','sender_name'=>'<img src=x>','may_be_truncated'=>false]]);
+    check('comparison remains bounded and read-only '.$type,count($r['body']['messages'])===41&&$pdo->readWrites===0&&cursor($pdo)===0&&count(transcriptPageQueries($pdo))===2);
+}
+$pdo=quoteFixture(['text'=>'Прежние даты','mid'=>'mid.synthetic-original','secret'=>'private-quote-token'],'Новые даты');$before=$pdo->query('SELECT id,text,metadata_json FROM messages ORDER BY id')->fetchAll();$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);
+check('different quoted text and original are both retained',$r['body']['quote_comparison']['state']==='text_differs'&&$r['body']['quote_comparison']['snapshot']['text']==='Прежние даты'&&$r['body']['messages'][20]['text']==='Новые даты');
+check('comparison changes no stored quotation message or unread state',$pdo->query('SELECT id,text,metadata_json FROM messages ORDER BY id')->fetchAll()===$before&&$pdo->readWrites===0);
+check('comparison exports no raw metadata or provider identity',!str_contains(json_encode($r['body']['quote_comparison']),'private-quote-token')&&!str_contains(json_encode($r['body']['quote_comparison']),'mid.synthetic-original'));
+$pdo=quoteFixture(['text'=>'Оригинал & детали'],'Оригинал &amp; детали');$pdo->exec("UPDATE messages SET sender_type='manager' WHERE id=50");$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);
+check('comparison uses the canonical decoded manager original',$r['body']['quote_comparison']['state']==='text_matches');
+foreach([499,500,501] as $length){
+    $quote=str_repeat('🌊',$length);$pdo=quoteFixture(['text'=>$quote,'sender_name'=>str_repeat('Я',200)],$quote.'дальше');$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);$comparison=$r['body']['quote_comparison'];
+    check('Unicode quotation cap is honest at '.$length,$comparison['state']===($length>=500?'excerpt_matches':'text_differs')&&mb_strlen($comparison['snapshot']['text'])===min($length,500)&&mb_strlen($comparison['snapshot']['sender_name'])===160&&$comparison['snapshot']['may_be_truncated']===($length>=500));
+}
+$pdo=quoteFixture(['text'=>'Прежний текст']);$pdo->exec('DELETE FROM messages WHERE id=50');$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);
+check('missing original preserves captured quote without claiming deletion',!$r['body']['available']&&$r['body']['quote_comparison']['state']==='unavailable'&&$r['body']['quote_comparison']['snapshot']['text']==='Прежний текст'&&!isset($r['body']['messages']));
+$pdo=quoteFixture(['text'=>'Короткая цитата']);$pdo->exec("UPDATE messages SET external_message_id='mid.synthetic-original' WHERE id=51");$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);
+check('ambiguous provider original remains unavailable with a historical quotation',!$r['body']['available']&&$r['body']['quote_comparison']['state']==='unavailable');
+foreach([[],['text'=>''],['text'=>['private-invalid']]] as $link){$pdo=quoteFixture($link);$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);check('missing textual quote cannot certify equal or edited text '.json_encode($link),$r['body']['quote_comparison']['state']==='not_comparable'&&$r['body']['quote_comparison']['snapshot']['text']==='');}
+$pdo=quoteFixture(['text'=>'Историческая цитата']);$pdo->afterPage=static fn($db)=>$db->exec('DELETE FROM manager_projects WHERE manager_id=1');$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);
+check('comparison cannot escape post-read access revocation',$r['status']===404&&!isset($r['body']['quote_comparison'])&&$pdo->readWrites===0);
 function apiSearch(array $data,int $managerId=1,string $action='message_search'): array
 {
     global $apiDetail;$m=['id'=>$managerId];
