@@ -7,6 +7,36 @@ final class MaxTrackerLookupClient
 {
     // Match the existing signed request issued_at tolerance; never widen it for evidence.
     public const COUNTER_SCOPE_CLOCK_TOLERANCE=90;
+
+    /** Candidate-only transport on the installed receiver. The worker accounts its two source SELECTs in the existing 25 budget. */
+    public function retainedClickCandidate(array $context,callable $beforeRequest):?array
+    {
+        $now=time();$data=['version'=>1,'counter_id'=>'98615635','user_ids'=>[$context['user_id']??null],
+            'issued_at'=>$now,'nonce'=>bin2hex(random_bytes(16)),'retained_click_candidate'=>$context];
+        MaxTrackerLookupProtocol::retainedClickContext($data,MaxTrackerLookupProtocol::RETAINED_CLICK_HEADER,$now);
+        $body=json_encode($data,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);$hash=hash('sha256',$body);
+        if(strlen($body)>MaxTrackerLookupProtocol::MAX_BODY)return null;
+        $signature=MaxTrackerLookupProtocol::signature($body,MaxTrackerLookupConfig::privateKey());
+        if($beforeRequest($hash)!==true)return null;
+        $response='';$tooLarge=false;$ch=curl_init(MaxTrackerLookupConfig::endpoint());
+        if($ch===false)return null;
+        curl_setopt_array($ch,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$body,CURLOPT_RETURNTRANSFER=>false,
+            CURLOPT_FOLLOWLOCATION=>false,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>12,
+            CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,
+            CURLOPT_HTTPHEADER=>['Content-Type: application/json','Accept: application/json','X-Max-Attribution-Signature: '.$signature,
+                'X-Max-Attribution-Evidence: '.MaxTrackerLookupProtocol::RETAINED_CLICK_HEADER],
+            CURLOPT_WRITEFUNCTION=>static function($ch,string $chunk)use(&$response,&$tooLarge):int{
+                if(strlen($response)+strlen($chunk)>MaxTrackerLookupProtocol::MAX_RESPONSE){$tooLarge=true;return 0;}$response.=$chunk;return strlen($chunk);
+            }]);
+        $ok=curl_exec($ch);$errno=curl_errno($ch);$status=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);curl_close($ch);$received=time();
+        if($ok===false||$errno!==0||$status!==200||$tooLarge)return null;
+        $d=json_decode($response,true,16,JSON_THROW_ON_ERROR|JSON_BIGINT_AS_STRING);
+        if(!is_array($d)||count($d)!==5||array_diff(array_keys($d),['ok','version','counter_id','tracker_timezone','retained_click_candidate'])
+            ||($d['ok']??null)!==true||($d['version']??null)!==1||($d['counter_id']??null)!=='98615635'||($d['tracker_timezone']??null)!=='Europe/London')return null;
+        $r=MaxTrackerLookupProtocol::retainedClickResult($d['retained_click_candidate']??null,$hash,$received,$context['event_at_unix']);
+        return $r===null?null:['request_sha256'=>$hash,'result'=>$r,'received_at_unix'=>$received];
+    }
+
     public function lookup(string $counterId,array $users): array
     {
         return $this->request($counterId,$users,null)['identities'];

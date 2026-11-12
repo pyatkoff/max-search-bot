@@ -247,6 +247,10 @@ final class ModeledConversionForecastStatusReader
                 if($bytes($out)>28000&&isset($out['value_delivery'][$key]))
                     $out['value_delivery'][$key]=['available'=>false,'reason'=>'response_budget'];
         }
+        if(isset($out['value_delivery']['repair_assessments']['retained_tracker_candidate']))
+            foreach(['retained_tracker_candidate','retained_identity']as$key)
+                if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments'][$key]))
+                    $out['value_delivery']['repair_assessments'][$key]=['available'=>false,'reason'=>'response_budget','financial_permission'=>false];
         if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments']['processing_frontier']))
             $out['value_delivery']['repair_assessments']['processing_frontier']=['available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0];
         // Preserve the original three-case proof when omitting the newer forward journal is sufficient.

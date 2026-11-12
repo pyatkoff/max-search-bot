@@ -60,6 +60,38 @@ final class MaxTrackerLookupProtocol
         return $option['user_id'];
     }
 
+
+    public const RETAINED_CLICK_HEADER='retained-click-candidate-v1';
+    public static function retainedClickContext(array $data,string $header,int $now):?array
+    {
+        if($header!==self::RETAINED_CLICK_HEADER)return null;
+        $c=$data['retained_click_candidate']??null;
+        $keys=['v','user_id','event_ref','frame_sha256','event_at_unix'];
+        if(!is_array($c)||count($c)!==count($keys)||array_diff(array_keys($c),$keys)||($c['v']??null)!==1
+            ||($data['counter_id']??null)!=='98615635'||($data['user_ids']??null)!==[$c['user_id']??null]
+            ||!self::id($c['user_id']??null)||!is_int($c['event_at_unix']??null)||$c['event_at_unix']<946684800||$c['event_at_unix']>$now
+            ||array_key_exists('membership',$data)||array_key_exists('member_page_after',$data)||array_key_exists('history_member_page_after',$data)
+            ||array_key_exists('counter_scope_evidence',$data))throw new InvalidArgumentException('lookup_invalid_retained_click_request');
+        foreach(['event_ref','frame_sha256']as$k)if(!is_string($c[$k]??null)||preg_match('/\A[a-f0-9]{64}\z/D',$c[$k])!==1)
+            throw new InvalidArgumentException('lookup_invalid_retained_click_request');
+        return $c;
+    }
+    /** A recorded tracker click is not proof of its original save/enrichment or a Metrika visit. */
+    public static function retainedClickResult(mixed $wire,string $requestHash,int $received,int $event):?array
+    {
+        if(!is_array($wire)||count($wire)!==3||array_diff(array_keys($wire),['v','request_sha256','result'])
+            ||($wire['v']??null)!==1||($wire['request_sha256']??null)!==$requestHash)return null;
+        $r=$wire['result']??null;
+        if(!is_array($r)||!array_is_list($r)||count($r)!==9||!is_int($r[0])||$r[0]<0||$r[0]>10
+            ||!is_int($r[1])||$r[1]<946684800||abs($r[1]-$received)>90)return null;
+        foreach([2,3]as$i)if($r[$i]!==null&&(!is_int($r[$i])||$r[$i]<0||$r[$i]>64))return null;
+        if($r[0]<=2&&($r[2]===null||$r[3]===null||$r[3]>$r[2]))return null;
+        if($r[0]!==1)return $r[4]===0&&array_slice($r,5)===[null,null,null,null]?$r:null;
+        if(!in_array($r[4],[1,2],true)||!self::id($r[6])||!is_int($r[8])||$r[8]<946684800||$r[8]>$event||$r[8]>$r[1])return null;
+        foreach([5,7]as$i)if(!is_string($r[$i])||preg_match('/\A[a-f0-9]{64}\z/D',$r[$i])!==1)return null;
+        return $r;
+    }
+
     private static function validate(array $data, int $now, string $counterId): void
     {
         if (($data['version']??null)!==1 || ($data['counter_id']??null)!==$counterId

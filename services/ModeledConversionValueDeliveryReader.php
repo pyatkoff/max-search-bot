@@ -11,6 +11,7 @@ if(is_file(__DIR__.'/ModeledConversionReceiptPollEvidence.php'))require_once __D
 if(is_file(__DIR__.'/ModeledConversionFixedPairDecisionEvidence.php'))require_once __DIR__.'/ModeledConversionFixedPairDecisionEvidence.php';
 if(is_file(__DIR__.'/ModeledConversionMaxCounterScopeEvidence.php'))require_once __DIR__.'/ModeledConversionMaxCounterScopeEvidence.php';
 if(is_file(__DIR__.'/ModeledConversionRetainedAppIdentityEvidence.php'))require_once __DIR__.'/ModeledConversionRetainedAppIdentityEvidence.php';
+if(is_file(__DIR__.'/ModeledConversionRetainedTrackerIdentityEvidence.php'))require_once __DIR__.'/ModeledConversionRetainedTrackerIdentityEvidence.php';
 
 /** Fixed derived-value aggregates only. No source tables, network, processing or mutation. */
 final class ModeledConversionValueDeliveryReader
@@ -134,7 +135,7 @@ final class ModeledConversionValueDeliveryReader
                 'identity_counts_are_stored_resolution_not_a_new_scope_check'=>true,
                 'conversations_are_not_verified_people_or_trips'=>true,'per_upload_visit_match_verified'=>false,'reporting_can_lag'=>true,'no_ids_or_text_returned'=>true];
             $out['price_continuity_audit']=$this->priceAudit($receipt['price_continuity_audit']??null,$now);
-            $out['repair_assessments']=$this->repairAssessments($now,$receipt['identity_resolution_evidence']??null,$receipt['finite_visit_evidence']??null,$receipt['finite_visit_recovery']??null,$receipt['receipt_poll_evidence']??null,$receipt['fixed_pair_operational_decisions']??null,$out['last_tick_at']===null?0:$tick,$receipt['finite_counter_scope_evidence']??null,$receipt['finite_retained_app_identity']??null);
+            $out['repair_assessments']=$this->repairAssessments($now,$receipt['identity_resolution_evidence']??null,$receipt['finite_visit_evidence']??null,$receipt['finite_visit_recovery']??null,$receipt['receipt_poll_evidence']??null,$receipt['fixed_pair_operational_decisions']??null,$out['last_tick_at']===null?0:$tick,$receipt['finite_counter_scope_evidence']??null,$receipt['finite_retained_app_identity']??null,$receipt['finite_retained_tracker_candidate']??null);
             $out['predictive_v1']=$this->predictiveV1($now);
             return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}
@@ -145,7 +146,7 @@ final class ModeledConversionValueDeliveryReader
 
 
     /** All saved current-namespace repairs and their own new increments; no reclassification or provider call. */
-    public function repairAssessments(int $now,mixed $identityAudit=null,mixed $visitFrame=null,mixed $recoveryJournal=null,mixed $pollAudit=null,mixed $pairAudit=null,int $lastTick=0,mixed $counterScopeAudit=null,mixed $retainedAppAudit=null):array
+    public function repairAssessments(int $now,mixed $identityAudit=null,mixed $visitFrame=null,mixed $recoveryJournal=null,mixed $pollAudit=null,mixed $pairAudit=null,int $lastTick=0,mixed $counterScopeAudit=null,mixed $retainedAppAudit=null,mixed $retainedTrackerAudit=null):array
     {
         $this->budget->check();
         if($this->budget->remainingBytes()<16384)return ['available'=>false,'reason'=>'budget_headroom'];
@@ -255,6 +256,7 @@ final class ModeledConversionValueDeliveryReader
             $out['fixed_pair_operational_decisions']=$this->fixedPairDecisions($pairAudit,$visitFrame,$out['finite_visit_evidence'],$namespace,$now,$lastTick);
             $out['finite_counter_scope_evidence']=$this->counterScopeObservation($counterScopeAudit,$visitFrame,$out['finite_visit_evidence'],$namespace,$now);
             $out['retained_identity']=$this->retainedAppObservation($retainedAppAudit,$visitFrame,$out['finite_visit_evidence'],$namespace,$now);
+            $out['retained_tracker_candidate']=$this->retainedTrackerObservation($retainedTrackerAudit,$visitFrame,$out['finite_visit_evidence'],$namespace,$now);
             $out['retained_native_identity_evidence']=$this->retainedNativeIdentity($out['finite_visit_evidence'],$namespace,$now);
             $out['receipt_poll_evidence']=class_exists(ModeledConversionReceiptPollEvidence::class)
                 ?ModeledConversionReceiptPollEvidence::projection($pollAudit,$now):['available'=>false,'reason'=>'poll_helper_unavailable','provider_requests_in_reader'=>0];
@@ -341,6 +343,17 @@ final class ModeledConversionValueDeliveryReader
             &&($row['candidate_sha256']??null)===null)$missing[]=$row['event_ref'];
         if(count($missing)!==1||!isset($this->boundFiniteRows[$missing[0]]))return $fail('original_binding_unavailable');
         return ModeledConversionRetainedAppIdentityEvidence::projection($audit,$original,$this->boundFiniteRows[$missing[0]],$namespace,$now);
+    }
+
+    private function retainedTrackerObservation(mixed $audit,mixed $original,array $bound,string $namespace,int $now):array
+    {
+        $fail=static fn(string $reason):array=>['available'=>false,'reason'=>$reason,'financial_permission'=>false];
+        if(($bound['available']??false)!==true)return $fail('original_binding_unavailable');
+        if(!class_exists(ModeledConversionRetainedTrackerIdentityEvidence::class))return $fail('helper_unavailable');
+        $missing=[];foreach($bound['rows']??[]as$row)if(($row['source_status']??null)==='no_valid_canonical_identity_and_no_admissible_retained_identity'
+            &&($row['candidate_sha256']??null)===null)$missing[]=$row['event_ref'];
+        if(count($missing)!==1||!isset($this->boundFiniteRows[$missing[0]]))return $fail('original_binding_unavailable');
+        return ModeledConversionRetainedTrackerIdentityEvidence::projection($audit,$original,$this->boundFiniteRows[$missing[0]],$namespace,$now);
     }
 
     /** Original accepted repair cohort, saved ledger metadata only; never a provider poll. */

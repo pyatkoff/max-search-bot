@@ -17,6 +17,7 @@ try{
     $data=MaxTrackerLookupProtocol::authenticate($raw,trim((string)($_SERVER['HTTP_X_MAX_ATTRIBUTION_SIGNATURE']??'')),(string)file_get_contents(__DIR__.'/verification.pem'),time(),$counter);
 }catch(Throwable $ignored){max_attribution_reply(['ok'=>false,'error'=>'unauthorized'],401);}
 try{
+    $click=MaxTrackerLookupProtocol::retainedClickContext($data,(string)($_SERVER['HTTP_X_MAX_ATTRIBUTION_EVIDENCE']??''),time());
     require_once __DIR__.'/services/MaxTrackerLookupRepository.php';
     // Authentication and request bounds precede every database connection/query.
     $repository=MaxTrackerLookupRepository::fromSettings(dirname(__DIR__,2).'/bitrix/.settings.php');
@@ -28,6 +29,8 @@ try{
         $page=$repository->currentMemberPage($counter,$data['member_page_after'],time());
         max_attribution_reply(['ok'=>true,'version'=>1,'counter_id'=>$counter,'tracker_timezone'=>'Europe/London','member_page'=>$page],200);
     }
+    if($click!==null)max_attribution_reply(['ok'=>true,'version'=>1,'counter_id'=>$counter,'tracker_timezone'=>'Europe/London',
+        'retained_click_candidate'=>$repository->retainedClickCandidate($click,hash('sha256',$raw),time())],200);
     $users=$repository->lookup($counter,$data['user_ids'],$data['membership']??null);
     $reply=['ok'=>true,'version'=>1,'counter_id'=>$counter,'tracker_timezone'=>'Europe/London','users'=>$users];
     $evidenceHeader=(string)($_SERVER['HTTP_X_MAX_ATTRIBUTION_EVIDENCE']??'');
