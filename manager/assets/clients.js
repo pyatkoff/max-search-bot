@@ -7,6 +7,7 @@
   const errors = {duplicate_client:'Имя бота, токен или логин сотрудника уже используются. Проверьте данные.',connection_in_use:'Этот бот уже подключён к системе.',client_save_failed:'Не удалось сохранить компанию. Данные не записаны.',client_capacity:'Достигнут предел числа компаний.',verification_required:'Сначала проверьте подключение.',activation_pending:'У этой компании уже есть незавершённая активация. Повторный запрос не отправлен.',connection_unavailable:'Подключение недоступно. Проверьте настройки и доступ компании.',operation_conflict:'Этот запрос уже завершён с другими данными. Уточните его результат.',context_stale:'Настройки или доступ изменились. Обновите страницу перед продолжением.',storage_unavailable:'Хранилище временно недоступно. Попробуйте узнать результат позже.',forbidden:'Доступ изменился. Обновите страницу.',not_found:'Компания недоступна.',network_error:'Не удалось получить ответ. Проверьте соединение.',invalid_response:'Сервер вернул неполный ответ.',receipt_storage_unavailable:'Браузер не сохранил номер операции. Разрешите хранение данных для этой вкладки и повторите.'};
   const reasons = {registration_required:'Проверка пройдена. Бот готов к отдельной активации.',already_active:'Подключение активно и подтверждено.',activated:'Подключение активировано.',bot_identity_mismatch:'Токен не соответствует указанному боту.',unknown_subscription_url:'У бота уже есть другое подключение. Оно сохранено; активация остановлена.',provider_read_failed:'Не удалось прочитать настройки MAX.',endpoint_probe_failed:'Не удалось проверить приём событий.',project_source_unavailable:'Компания или её источник обращений недоступны.',registration_secret_unconfirmed:'MAX не подтвердил результат активации. Повторная активация заблокирована.',registration_unconfirmed:'Не удалось подтвердить активацию. Повторная активация заблокирована.',mutation_admission_changed:'Настройки изменились до активации. Подключение не выполнено.'};
   function message(text) {$('notice').textContent=text;}
+  function profileHint() {$('profileHint').textContent=$('businessKind').selectedOptions[0]?.dataset.description||'';}
   function failure(result) {return result?.error==='configuration_locked'?'У компании уже началось подключение или появились обращения. Исправление данных подключения закрыто.':errors[result?.error] || (String(result?.error||'').startsWith('invalid_')?'Проверьте формат и длину заполненных полей.':'Не удалось выполнить действие. Проверьте результат перед повтором.');}
   function current(generation) {return generation===S.generation&&S.ready;}
   function storageKey() {return 'client-onboarding-operation:'+S.actor;}
@@ -38,6 +39,7 @@
   function selected() {return S.clients.find(row=>row.id===S.selected);}
   function connectionDirty() {return S.canConfigure&&($('editToken').value!==''||S.editBaseline!==JSON.stringify([$('editBotKey').value,$('editMaterials').value]));}
   function sync() {
+    profileHint();
     $('addClient').hidden=!S.admin;$('addClient').disabled=S.busy||!!S.pending;
     $('clientFields').disabled=S.busy||!!S.pending||!S.ready;
     $('connectionFields').disabled=S.busy||!!S.pending||!S.ready||!S.admin||!S.canConfigure;
@@ -73,6 +75,7 @@
     if(!result||!current(generation)||sequence!==S.detailSequence||S.selected!==id)return;
     if(!result.ok){message(failure(result));return;}
     const client=result.client;$('detailTitle').textContent=client.display_name;$('detailBot').textContent='Бот MAX: @'+client.bot_key;$('detailMaterials').textContent=client.materials||'Материалы пока не добавлены.';
+    $('detailProfile').textContent=client.business_profile?client.business_profile.label+'. '+client.business_profile.description:'';$('detailProfile').hidden=!client.business_profile;
     S.canConfigure=S.admin&&client.can_configure===true;$('editBotKey').value=client.bot_key||'';$('editMaterials').value=client.materials||'';S.editBaseline=JSON.stringify([$('editBotKey').value,$('editMaterials').value]);
     for(const employee of client.staff||[]){const item=document.createElement('li');item.textContent=employee.display_name+' · '+employee.login;$('staff').append(item);}
     $('detail').hidden=false;sync();message('');if(focus)$('detailTitle').focus({preventScroll:true});
@@ -111,6 +114,7 @@
   $('refresh').onclick=()=>{if(!S.busy)boot();};$('retry').onclick=boot;
   $('receipt').onclick=()=>reconcile();$('cancelOperation').onclick=()=>reconcile(true);
   $('connectionForm').oninput=sync;
+  $('businessKind').onchange=profileHint;
   $('clientForm').onsubmit=async event=>{
     event.preventDefault();if(S.busy||S.pending||!S.admin||!S.ready||!$('clientForm').reportValidity())return;
     const generation=S.generation,intent=S.selectionIntent,operation=crypto.randomUUID().replaceAll('-','');

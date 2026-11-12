@@ -28,8 +28,10 @@ final class RepairProjectSettings
         if (ProjectMaxConnection::isLegacyProject($project)) return null;
         if(self::businessKind($settings)!=='device_repair'){
             if($project===AppleService39PilotCatalog::PROJECT)return null;
-            $funnel=ProjectFunnelSettings::load($connection);
-            if(!$funnel||($funnel['handoff_mode']??'')!=='manager_first')return null;
+            if(self::businessKind($settings)!=='manager_inbox'){
+                $funnel=ProjectFunnelSettings::load($connection);
+                if(!$funnel||($funnel['handoff_mode']??'')!=='manager_first')return null;
+            }
         }
         $source = $settings->get('routing.source_key');
         if (!is_string($source) || preg_match('/\Amax:[A-Za-z0-9_-]{1,150}\z/D', $source) !== 1) return null;

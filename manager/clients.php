@@ -1,8 +1,10 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/lib/ManagerHttp.php';
+require_once __DIR__.'/../services/ClientBusinessProfile.php';
 if(($managerClientPresentation??'')!=='manager2')ManagerHttp::start();
 $asset=static fn(string $name): string=>htmlspecialchars((string)(filemtime(__DIR__.'/assets/'.$name)?:1),ENT_QUOTES,'UTF-8');
+$escape=static fn(string $text): string=>htmlspecialchars($text,ENT_QUOTES,'UTF-8');
 ?>
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#17483d"><base href="/manager/"><title>Компании — кабинет</title><link rel="stylesheet" href="assets/clients.css?v=<?=$asset('clients.css')?>"></head>
@@ -18,7 +20,7 @@ $asset=static fn(string $name): string=>htmlspecialchars((string)(filemtime(__DI
       <div class="sectionHead"><div><p class="eyebrow">Новая компания</p><h2 id="editorTitle" tabindex="-1">Подключение клиента</h2></div><button id="closeEditor" type="button" class="secondary">Свернуть</button></div>
       <p class="muted">Сначала сохраним компанию и сотрудника. Затем вы сможете проверить бота и отдельно активировать подключение.</p>
       <form id="clientForm" autocomplete="off"><fieldset id="clientFields">
-        <div class="formGrid"><label>Название компании<input id="clientName" required maxlength="191" autocomplete="organization"></label><label>Направление<select id="businessKind"><option value="device_repair">Ремонт техники</option></select><span class="hint">Первый готовый шаблон. Другие направления добавим отдельно.</span></label></div>
+        <div class="formGrid"><label>Название компании<input id="clientName" required maxlength="191" autocomplete="organization"></label><label>Профиль работы<select id="businessKind" aria-describedby="profileHint"><?php foreach(ClientBusinessProfile::choices() as $profile): ?><option value="<?=$escape($profile['kind'])?>" data-description="<?=$escape($profile['description'])?>"><?=$escape($profile['label'])?></option><?php endforeach ?></select><span id="profileHint" class="hint"></span></label></div>
         <h3>Бот MAX</h3><div class="formGrid"><label>Имя бота<input id="botKey" required maxlength="191" pattern="[A-Za-z0-9_]+" spellcheck="false" placeholder="company_bot"><span class="hint">Имя без @, указанное в настройках бота.</span></label><label>Токен бота<input id="botToken" type="password" required minlength="8" maxlength="4096" autocomplete="off"><span class="hint">Хранится зашифрованно. После сохранения не показывается.</span></label></div>
         <h3>Первый сотрудник</h3><p class="hint">Получит доступ только к этой компании. Рабочую смену включает самостоятельно.</p><div class="formGrid"><label>Имя сотрудника<input id="staffName" required maxlength="191" autocomplete="off"></label><label>Логин<input id="staffLogin" required minlength="3" maxlength="191" pattern="[A-Za-z0-9._@+\-]+" autocomplete="off" spellcheck="false"></label><label>Начальный пароль<input id="staffPassword" type="password" required minlength="8" maxlength="72" autocomplete="new-password"><span class="hint">От 8 до 72 байт. Передайте сотруднику лично.</span></label></div>
         <h3>Материалы компании</h3><label>Услуги, цены и правила<textarea id="materials" rows="7" maxlength="100000" placeholder="Например: услуги, стоимость диагностики, адрес и часы работы."></textarea></label><label class="fileLabel">Загрузить текстовый файл<input id="materialsFile" type="file" accept=".txt,.csv,text/plain,text/csv"><span class="hint">TXT или CSV, до 100 КБ. Текст появится в поле выше; сотрудники увидят его в карточке компании.</span></label>
@@ -36,7 +38,7 @@ $asset=static fn(string $name): string=>htmlspecialchars((string)(filemtime(__DI
             <button id="saveConnection" type="submit">Сохранить исправления</button>
           </fieldset></form>
         </details>
-        <h3>Сотрудники</h3><ul id="staff"></ul><h3>Материалы</h3><pre id="detailMaterials"></pre></section>
+        <p id="detailProfile" class="hint" hidden></p><h3>Сотрудники</h3><ul id="staff"></ul><h3>Материалы</h3><pre id="detailMaterials"></pre></section>
     </div>
   </div>
 </main>
