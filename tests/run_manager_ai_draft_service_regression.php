@@ -527,20 +527,20 @@ foreach (['missing','null','wrong-type','whitespace','control','oversize'] as $b
         $loadKnowledge($badLimitManifest,$badLimitBytes,$now)['status']==='held');
 }
 $cohort=[
-    '241'=>[81,'albatros_makadi','ALBATROS MAKADI RESORT',4,'1'],
-    '240'=>[80,'happy_life_village','HAPPY LIFE VILLAGE',3,'1'],
+    '241'=>[81,'albatros_makadi','ALBATROS MAKADI RESORT',10,'1'],
+    '240'=>[80,'happy_life_village','HAPPY LIFE VILLAGE',9,'1'],
     '268'=>[99,'jaz_makadi_saraya','JAZ MAKADI SARAYA RESORT (EX. IBEROTEL MAKADI SARAYA RESORT)',6,'1'],
-    '1981'=>[877,'jaz_neo_naama','JAZ NEO NAAMA BAY (EX. SOLYMAR NAAMA BAY)',4,'1'],
-    '12111'=>[1654,'movenpick_sharm','MOVENPICK RESORT SHARM EL SHEIKH NAAMA BAY',3,'1'],
+    '1981'=>[877,'jaz_neo_naama','JAZ NEO NAAMA BAY (EX. SOLYMAR NAAMA BAY)',7,'1'],
+    '12111'=>[1654,'movenpick_sharm','MOVENPICK RESORT SHARM EL SHEIKH NAAMA BAY',6,'1'],
     '498'=>[228,'titanic_beach','TITANIC BEACH SPA & AQUA PARK',4,'1'],
     '78898'=>[3417,'official_pickalbatros_blu_spa_hurghada','PICKALBATROS BLU SPA RESORT HURGHADA ADULTS ONLY 16+',4,'1'],
-    '157359'=>[4101,'avia_resort','AVIA RESORT & SPA',3,'4'],
-    '1077'=>[477,'club_aqua_plaza','CLUB AQUA PLAZA (EX. SUNEOCLUB AQUA PLAZA)',3,'4'],
-    '109900'=>[3726,'dream_fun_world','DREAM FUN WORLD',3,'4'],
-    '28666'=>[2077,'hane_family','PRIMASOL HANE FAMILY RESORT (EX. FAMILY HANE RESORT)',4,'4'],
-    '46672'=>[2432,'jadore_deluxe','JADORE DELUXE HOTEL & SPA',4,'4'],
-    '111129'=>[3742,'side_moon_palace','SIDE MOON PALACE HOTEL',3,'4'],
-    '111045'=>[3737,'vox_maris','VOX MARIS RESORT ADULTS ONLY 16+',4,'4'],
+    '157359'=>[4101,'avia_resort','AVIA RESORT & SPA',5,'4'],
+    '1077'=>[477,'club_aqua_plaza','CLUB AQUA PLAZA (EX. SUNEOCLUB AQUA PLAZA)',5,'4'],
+    '109900'=>[3726,'dream_fun_world','DREAM FUN WORLD',9,'4'],
+    '28666'=>[2077,'hane_family','PRIMASOL HANE FAMILY RESORT (EX. FAMILY HANE RESORT)',8,'4'],
+    '46672'=>[2432,'jadore_deluxe','JADORE DELUXE HOTEL & SPA',9,'4'],
+    '111129'=>[3742,'side_moon_palace','SIDE MOON PALACE HOTEL',9,'4'],
+    '111045'=>[3737,'vox_maris','VOX MARIS RESORT ADULTS ONLY 16+',6,'4'],
     '1146'=>[516,'akra_antalya','AKRA ANTALYA',4,'4'],
 ];
 foreach ($cohort as $sourceId=>[$anytourId,$researchKey,$sourceName,$factCount,$sourceCountry]) {
