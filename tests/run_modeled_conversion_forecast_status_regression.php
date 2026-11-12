@@ -2562,7 +2562,8 @@ function forecastKnownYclidRelationAssertions(PDO $p,callable $check,array $fram
         preg_match("/ym:s:startURL=~'([^']+)'/",$q1['filters'],$match);$regex='~'.$match[1].'~D';
         foreach(['https://example.test/?yclid='.$raw,'https://example.test/?x=1&yclid='.$raw.'&y=2','https://example.test/?x=1&yclid='.$raw]as$url)
             $check('R1 exact URL regex accepts first middle and last query positions',preg_match($regex,$url)===1);
-        foreach(['https://example.test/path&yclid='.$raw,'https://example.test/#?yclid='.$raw,'https://example.test/?yclid='.$raw.'0']as$url)
+        foreach(['https://example.test/path&yclid='.$raw,'https://example.test/#?yclid='.$raw,'https://example.test/?yclid='.$raw.'0',
+            'https://example.test/?yclid=991122&other='.$raw,'https://example.test/?other=yclid&value='.$raw]as$url)
             $check('R1 exact URL regex excludes path fragments and different values',preg_match($regex,$url)===0);
 
         // Independent synthetic scenarios reset only this disposable new derived table.
