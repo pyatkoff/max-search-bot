@@ -400,12 +400,19 @@ final class MetrikaOfflineClient
         if(!is_int($requested))return null;$query=ModeledConversionKnownYclidRelation::r1Query($plan,$rawYclid,$intentAt);
         return $query===null?null:$this->retainedRelationRequest('click_day_cid',$query,$intentAt,$requested,$beforeRequest,$clock);
     }
-    /** R2: its CID must come from the full positive R1 proof and differ from the already checked held CID. */
-    public function retainedYclidPriorVisits(array $plan,string $rawYclid,array $r1,int $intentAt,callable $beforeRequest,?callable $observationClock=null):?array
+    /** Complete CID/time base, from exact sourceCID or the full positive R1 proof; never a held-CID fallback. */
+    public function retainedIdentityVisitBase(array $plan,array $source,?array $r1,int $intentAt,callable $beforeRequest,?callable $observationClock=null):?array
     {
         $clock=$observationClock??static fn():int=>time();try{$requested=$clock();}catch(Throwable $ignored){return null;}
-        if(!is_int($requested))return null;$query=ModeledConversionKnownYclidRelation::r2Query($plan,$rawYclid,$intentAt,$r1,$requested);
+        if(!is_int($requested))return null;$query=ModeledConversionKnownYclidRelation::r2Query($plan,$source,$r1,$intentAt,$requested);
         return $query===null?null:$this->retainedRelationRequest('derived_cid_visits',$query,$intentAt,$requested,$beforeRequest,$clock);
+    }
+    /** At most one optional source enrichment, with exactly the same CID/time window as the saved full base. */
+    public function retainedIdentityVisitSources(array $plan,array $source,?array $r1,array $base,int $intentAt,callable $beforeRequest,?callable $observationClock=null):?array
+    {
+        $clock=$observationClock??static fn():int=>time();try{$requested=$clock();}catch(Throwable $ignored){return null;}
+        if(!is_int($requested))return null;$query=ModeledConversionKnownYclidRelation::enrichmentQuery($plan,$source,$r1,$intentAt,$base,$requested);
+        return $query===null?null:$this->retainedRelationRequest('derived_cid_sources',$query,$intentAt,$requested,$beforeRequest,$clock);
     }
     private function retainedRelationRequest(string $stage,array $query,int $intent,int $requested,callable $beforeRequest,callable $clock):?array
     {

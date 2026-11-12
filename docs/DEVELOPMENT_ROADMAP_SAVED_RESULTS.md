@@ -53,3 +53,14 @@ The financial reader owns a real read-only consistent snapshot. Its internal
 DEV and forecast checks use the same canonical grant/admin policy without row
 locks. The original locking authority guards still run before and after the
 snapshot and during credit, so revocation at that boundary prevents acceptance.
+
+An explicitly reviewed `exact_receipt` input can instead select one ordinary
+saved receipt outside the unchanged repair frontier. Its complete original saved
+result, known API clock after the installation cutoff, goal/counter and immutable
+receipt/event/API binding are pinned. Every live read uses the same real read-only
+snapshot for the canonical repair frontier and the exact primary-ledger reader.
+The original cohort, all old terminal rows and original-case exclusions must still
+verify; any target found inside that frontier is rejected. This separate scope
+credits no repair cohort, monetary amount, visit linkage or financial operation.
+Processing consumes exactly the independently accepted ordinary receipt parent.
+Unknown historical API clocks cannot establish a new receipt.

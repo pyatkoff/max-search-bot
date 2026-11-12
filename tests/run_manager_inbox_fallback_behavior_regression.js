@@ -45,11 +45,12 @@ function renderHarness(overrides={}) {
   }
   const list=new Element(),S={queue:'all',manager:{id:7,role:'manager'},authGeneration:1,...overrides};
   const document={activeElement:null,getElementById:id=>id==='inboxList'?list:null,querySelector:()=>null,createElement:()=>new Element()};
-  const window={ManagerTime:{format:()=>''},WorkspaceV2:{S,$:document.getElementById,esc:String,statusText:String,formatWait:seconds=>seconds+' seconds'}};
+  const window={ManagerTime:{format:()=>''},WorkspaceV2:{S,$:document.getElementById,esc:String,statusText:String,outcomeText:String,formatWait:seconds=>seconds+' seconds'}};
   const context={window,document,Intl,Number,Map,Set,JSON};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../manager/assets/manager-time.js'),'utf8'),context);
   vm.runInNewContext(source,context);
-  return {list,scrollWrites,S,inbox:window.WorkspaceV2Inbox,render:window.WorkspaceV2Inbox.renderList};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../manager/assets/workspace-v2-kanban.js'),'utf8'),context);
+  return {list,scrollWrites,S,board:window.WorkspaceV2Kanban,inbox:window.WorkspaceV2Inbox,render:window.WorkspaceV2Inbox.renderList};
 }
 
 (async () => {
@@ -91,6 +92,21 @@ function renderHarness(overrides={}) {
   const old=recurring.inbox.replyWaitMeta({awaiting_first_reply:1,wait_age_seconds:180});assert.equal(old.waiting,true);assert.equal(old.urgency,'warn','cached initial-reply rows retain their existing display');
   assert.equal(recurring.inbox.replyWaitMeta({awaiting_first_reply:0,awaiting_manager_reply:1,wait_age_seconds:7200}).waiting,false,'a cached recurring wait without the new model does not invent its age');
   assert.equal(recurring.inbox.replyWaitMeta({...pending,delivery_failure_category:'suspended'}).waiting,false,'delivery suspension still suppresses the automatic waiting badge');
+  const board=recurring.board;
+  assert.equal(board.actionReason(pending),'Без ответа');assert.equal(board.actionPriority(pending),400);
+  assert.match(board.renderCardSections([pending]),/Ждёт ответа/);assert.match(board.columnSummary([pending]),/1 без ответа/);
+  const resolved={...pending,awaiting_first_reply:1,awaiting_manager_reply:0,reply_wait_age_seconds:null,reply_wait_time_known:false};
+  assert.doesNotMatch(board.renderCardSections([resolved]),/kanbanWait|Без ответа|Ждёт ответа/);
+  assert.doesNotMatch(board.columnSummary([resolved]),/без ответа/);
+  for(const unread of [0,1,20])assert.equal(board.actionPriority({...pending,unread_count:unread}),400,'reading or message volume cannot demote a pending reply');
+  assert.equal(board.actionReason({...pending,delivery_failure_category:'suspended'}),'Без задачи');
+  const rankedRow=(id,rank,needed=0,due='')=>({...pending,id,awaiting_manager_reply:needed,reply_wait_age_seconds:needed?600:null,reply_wait_time_known:!!needed,operational_task_rank:rank,operational_task_state:['overdue','today','soon','none'][rank],operational_task_due_at_utc:due,next_task_title:rank<3?'Own task':'',unread_count:id});
+  const ordered=[rankedRow(1,3,1),rankedRow(2,0,0,'2026-11-10 10:00:00'),rankedRow(3,2,0,'2026-11-14 10:00:00'),rankedRow(4,3),rankedRow(5,1,1),rankedRow(6,0,1,'2026-11-11 10:00:00')];
+  assert.deepEqual(Array.from(board.prioritizeRows(ordered),r=>r.id),[6,5,1,2,3,4],'the board consumes Mine reply/task ranks, including planned before missing tasks');
+  assert.deepEqual(Array.from(board.prioritizeRows(ordered.map(r=>({...r,unread_count:0}))),r=>r.id),[6,5,1,2,3,4]);
+  const unknown={...pending,reply_wait_age_seconds:null,reply_wait_time_known:false};
+  assert.match(board.renderCardSections([unknown]),/Время неизвестно/);assert.doesNotMatch(board.renderCardSections([unknown]),/kanbanWait urgent/);
+  assert.doesNotMatch(board.renderCardSections([{...pending,delivery_failure_category:'suspended'}]),/kanbanWait|Без ответа/);
   for (const filter of [
     {leadSearch: 'Анна'}, {leadTaskFilter: 'overdue'}, {leadOutcomeFilter: 'won'},
     {leadStageFilter: 'selection'}, {leadTagFilter: 7}, {leadSourceFilter: 5}, {leadSourceFilter: -1},

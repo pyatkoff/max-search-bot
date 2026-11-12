@@ -108,6 +108,11 @@ $rows=[
     ['id'=>4,'awaiting_manager_reply'=>0,'unread_count'=>5,'operational_task_rank'=>1],
 ];
 replyCheck('unanswered first, preserving task urgency within groups',array_column(ManagerLeadInboxService::sortMine($rows),'id')===[3,2,1,4]);
+$rankedRow=static fn(int $id,int $rank,int $needed=0,string $due=''):array=>['id'=>$id,'awaiting_manager_reply'=>$needed,'operational_task_rank'=>$rank,'operational_task_due_at_utc'=>$due,'unread_count'=>$id];
+$pairedRows=[$rankedRow(1,3,1),$rankedRow(2,0,0,'2026-11-10 10:00:00'),$rankedRow(3,2,0,'2026-11-14 10:00:00'),$rankedRow(4,3),$rankedRow(5,1,1),$rankedRow(6,0,1,'2026-11-11 10:00:00')];
+replyCheck('Mine shares the board current-reply and canonical task order',array_column(ManagerLeadInboxService::sortMine($pairedRows),'id')===[6,5,1,2,3,4]);
+foreach($pairedRows as &$row)$row['unread_count']=0;unset($row);
+replyCheck('reading every message leaves Mine reply/task ranking unchanged',array_column(ManagerLeadInboxService::sortMine($pairedRows),'id')===[6,5,1,2,3,4]);
 replyCheck('task owner ordering remains unchanged',array_column(ManagerLeadInboxService::sortOperational($rows),'id')===[1,3,4,2]);
 $source=file_get_contents(dirname(__DIR__).'/services/ManagerConversationService.php');
 replyCheck('mine reply priority applies before database limit',strpos($source,"awaiting_manager_reply DESC,COALESCE(c.last_message_at,c.started_at) DESC")!==false);
