@@ -32,7 +32,7 @@ trait DevelopmentRoadmapPhase
     {
         if(!$this->roadmapTablesReady())throw new DomainException('development_roadmap_schema');
         $files=[];
-        foreach(['DevelopmentRoadmapSavedResult.php','DevelopmentRoadmapArchive.php','DevelopmentRoadmapReview.php','DevelopmentRoadmapPhase.php',
+        foreach(['DevelopmentRoadmapSavedResult.php','DevelopmentRoadmapExactReceipt.php','DevelopmentRoadmapArchive.php','DevelopmentRoadmapReview.php','DevelopmentRoadmapPhase.php',
             'DevelopmentWorkQueue.php','DevelopmentWorkServerControl.php','DevelopmentWorkServerRuntime.php','DevelopmentWorkServerContract.php',
             'DevelopmentWorkMcpAdapter.php','ManagerPreparationMcpService.php','DevelopmentWorkConnectionAuthority.php','ManagerPreparationOAuth.php',
             'ModeledConversionValueDeliveryReader.php','ModeledConversionStatusBudget.php','ModeledConversionValueContract.php',
@@ -337,7 +337,7 @@ trait DevelopmentRoadmapPhase
         if($job['operation']==='read'){
             try{$snapshot=DevelopmentRoadmapSavedResult::read($this->pdo,function()use($job):void{$this->roadmapAuthority($job['queue'],$job['phase']['execution_connection_id']);},$job['at'],
                 function()use($job):void{(new DevelopmentWorkConnectionAuthority($this->pdo,$this->clock))->assertCurrentSnapshot(
-                    (int)$job['queue']['admin_id'],$job['phase']['execution_connection_id']);});}
+                    (int)$job['queue']['admin_id'],$job['phase']['execution_connection_id']);},$this->roadmapInput($job['phase'],$job['step'])['capsule']);}
             catch(Throwable $error){return $this->transaction(function():array{$this->lane();return $this->roadmapHold($this->one('SELECT * FROM development_work_queues WHERE queue_id=?'.$this->lock(),[DevelopmentWorkServerContract::QUEUE]),'original_read_unknown',true);});}
             return $this->roadmapSaveRead($job,$snapshot);
         }

@@ -21,12 +21,14 @@ final class DevelopmentRoadmapSavedResult
     }
 
     /** Calls the canonical SELECT-only reader under one real read-only snapshot. */
-    public static function read(PDO $pdo,callable $authorize,int $now,callable $snapshotAuthorize): array
+    public static function read(PDO $pdo,callable $authorize,int $now,callable $snapshotAuthorize,?array $capsule=null): array
     {
         if($now<946684800||$pdo->inTransaction())throw new InvalidArgumentException('roadmap_read_context');
         require_once __DIR__.'/ModeledConversionValueDeliveryReader.php';
         $auth=static function()use($authorize):void {if($authorize()===false)throw new DomainException('roadmap_authority_unavailable');};
         $snapshotAuth=static function()use($snapshotAuthorize):void {if($snapshotAuthorize()===false)throw new DomainException('roadmap_authority_unavailable');};
+        $selection=null;
+        if($capsule!==null&&array_key_exists('exact_receipt',$capsule))$selection=self::capsule($capsule)['exact_receipt'];
         $auth();$owned=false;
         try {
             $mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
@@ -34,11 +36,14 @@ final class DevelopmentRoadmapSavedResult
             $pdo->beginTransaction();$owned=true;
             $reader=new ModeledConversionValueDeliveryReader($pdo,$snapshotAuth,new ModeledConversionStatusBudget());
             $repair=$reader->repairAssessments($now);
+            $exact=$selection===null?null:$reader->savedReceiptStatus($selection['receipt_ref'],$now);
             $pdo->rollBack();$owned=false;$auth();
             if(!is_array($repair)||($repair['available']??null)!==true)
                 return ['available'=>false,'reason'=>'canonical_saved_projection_unavailable','provider_requests'=>0];
-            return ['available'=>true,'schema'=>self::VERSION,'captured_at'=>$now,'provider_requests'=>0,
+            $snapshot=['available'=>true,'schema'=>self::VERSION,'captured_at'=>$now,'provider_requests'=>0,
                 'repair_assessments'=>self::projection($repair)];
+            if($selection!==null){$snapshot['schema']=DevelopmentRoadmapExactReceipt::VERSION;$snapshot['exact_receipt']=$exact;}
+            return $snapshot;
         } finally {if($owned&&$pdo->inTransaction())$pdo->rollBack();}
     }
 
@@ -59,6 +64,12 @@ final class DevelopmentRoadmapSavedResult
      */
     public static function capsule(array $v): array
     {
+        if(array_key_exists('exact_receipt',$v)){
+            $selection=$v['exact_receipt'];unset($v['exact_receipt']);$base=self::capsule($v);
+            self::need(is_array($selection),'exact_selection');require_once __DIR__.'/DevelopmentRoadmapExactReceipt.php';
+            DevelopmentRoadmapExactReceipt::selection($selection,$base['api_observed_not_before_unix'],$base['verification_not_before_unix']);
+            return $base+['exact_receipt'=>$selection];
+        }
         self::keys($v,['schema','namespace_sha256','membership_sha256','profile_cutoff_unix','events','value_rub',
             'old_receipts','excluded_original_refs','api_observed_not_before_unix','verification_not_before_unix','max_snapshot_age_seconds']);
         self::need(($v['schema']??null)===self::VERSION,'capsule_schema');
@@ -94,6 +105,10 @@ final class DevelopmentRoadmapSavedResult
     public static function evaluate(string $kind,array $capsule,array $snapshot,int $now,?array $parent=null,?string $parentHash=null): array
     {
         if(!in_array($kind,self::KINDS,true))return self::result('blocked','unsupported_genuine_execution_route');
+        if(array_key_exists('exact_receipt',$capsule)){
+            require_once __DIR__.'/DevelopmentRoadmapExactReceipt.php';
+            return DevelopmentRoadmapExactReceipt::evaluate($kind,$capsule,$snapshot,$now,$parent,$parentHash);
+        }
         try {
             $c=self::capsule($capsule);
             self::need(self::instant($now),'now');
