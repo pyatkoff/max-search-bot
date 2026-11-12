@@ -1,0 +1,1355 @@
+{
+  "schema_version": 1,
+  "state": "VISUALLY_ACCEPTED_PREPARED_NOT_SENT",
+  "input_sha256": "6b6492186595cb0fa62243b658de19eae59ec60a463f49a634b64621818e7249",
+  "logo_asset": ".github/traffic-publish/brand/anytour-logo-white.png",
+  "logo_sha256": "b27cda894047b1ecb4125eea2ecf0db9d1e1674472cad62f70edf1ef1a6c968f",
+  "rows": [
+    {
+      "hotel_id": 418,
+      "title": "SRNTY Sea Reef",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://srntyhotels.com/wp-content/uploads/2026/06/R08-1024x683.webp",
+          "sha256": "b4960283c4c3a25226057da00c338d853dea5cc3d52e1d2ad00b0f4a70e5d412",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://srntyhotels.com/wp-content/uploads/2026/06/0L9A2303-683x1024.webp",
+          "sha256": "430ad0474c3258cb89bde3d583168d12b25548da391b62b4a6bf6ec82594561d",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://srntyhotels.com/wp-content/uploads/2026/07/48ab01c6-86e6-49b8-ac0f-b659af349ee5-1200x625.png",
+          "sha256": "cb5e675af62d8f7a1a251c2d9074a111c6ba44b7f4dfc796fe8b656deeed4334",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 224,
+      "sourceRefs": [
+        {
+          "kind": "catalog",
+          "label": "Расширение каталога · 05.11.2026",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Сохранённый каталог от 05.11.2026. catalog_hotels.id; пространство native/Tourvisor каталога, не ANEX ID. Старый признак «не опубликован» не является текущей проверкой. Материалы требуют подготовки и приёмки. Состояние исходной записи: CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+        },
+        {
+          "kind": "catalog",
+          "label": "Сохранённая проверка каталога",
+          "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Источник каталожной записи. Статус в реестре не означает приёмку контента."
+        },
+        {
+          "kind": "official",
+          "label": "SRNTY Sea Reef · новая официальная страница и фото",
+          "url": "https://srntyhotels.com/srnty-sea-reef/",
+          "at": "2026-11-10T16:12:13.681978Z",
+          "note": "Пляжный курорт в Макади-Бей, номера и отдельные привилегии Diamond Package. Сохранены существующие идентификаторы каталога."
+        },
+        {
+          "kind": "official",
+          "label": "SRNTY · риф, бассейны и Grand Club",
+          "url": "https://srntyhotels.com/experiences/",
+          "at": "2026-11-10T16:12:13.681978Z",
+          "note": "В разделе Sea Reef подтверждены риф с доступом по пирсу, два солёных бассейна и одна взрослая зона. Аквапарк Sun Ray относится к другому объекту."
+        },
+        {
+          "kind": "catalog",
+          "label": "easyJet holidays · переименование и ограничения",
+          "url": "https://www.easyjet.com/en/holidays/egypt/hurghada/makadi-bay/srnty-sea-reef-ex-serenity-alpha-beach",
+          "at": "2026-11-10T16:12:13.681978Z",
+          "note": "Serenity Alpha Beach переименован в SRNTY Sea Reef с 01.11.2026. Холмистая территория может не подходить гостям с ограниченной подвижностью."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T16:12:13.681978Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Для снорклинга предусмотрен пирс. Не обещаем свободный песчаный вход в море; доступ зависит от погоды и правил безопасности.",
+        "Территория местами холмистая: маршрут и удобство для гостей с ограниченной подвижностью надо проверить. Только один бассейн заявлен взрослой зоной; весь отель не Adults Only.",
+        "Grand Club, Diamond Package и отдельные рестораны имеют собственные условия. Аквапарк соседнего Sun Ray не входит автоматически в услуги Sea Reef."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://srntyhotels.com/wp-content/uploads/2026/06/R08-1024x683.webp",
+          "sha256": "b4960283c4c3a25226057da00c338d853dea5cc3d52e1d2ad00b0f4a70e5d412",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 120928,
+          "source_dimensions": [
+            1024,
+            683
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "b4960283c4c3a25226057da00c338d853dea5cc3d52e1d2ad00b0f4a70e5d412",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://srntyhotels.com/wp-content/uploads/2026/06/0L9A2303-683x1024.webp",
+          "sha256": "430ad0474c3258cb89bde3d583168d12b25548da391b62b4a6bf6ec82594561d",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 190148,
+          "source_dimensions": [
+            683,
+            1024
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "430ad0474c3258cb89bde3d583168d12b25548da391b62b4a6bf6ec82594561d",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://srntyhotels.com/wp-content/uploads/2026/07/48ab01c6-86e6-49b8-ac0f-b659af349ee5-1200x625.png",
+          "sha256": "cb5e675af62d8f7a1a251c2d9074a111c6ba44b7f4dfc796fe8b656deeed4334",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 786364,
+          "source_dimensions": [
+            1200,
+            625
+          ],
+          "source_format": "PNG",
+          "actual_sha256": "cb5e675af62d8f7a1a251c2d9074a111c6ba44b7f4dfc796fe8b656deeed4334",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "418.png",
+      "sha256": "155114d792e42819f42af641b2d15b97ba45f492a7f7337c6512b554bd892d81",
+      "bytes": 554145,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "SRNTY SEA REEF",
+        "font_size": 28,
+        "text_width": 241.15625,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 364,
+      "title": "V Hotel Sharm El Sheikh",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://thevhotelsegypt.com/wp-content/uploads/2025/08/V-SSH_-Swimming-Pool-12-1.webp",
+          "sha256": "76e3f91d78ecc97e54c9dcd48dd7258895f75d354db919ea43bf017693df8dcf",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://thevhotelsegypt.com/wp-content/uploads/2025/08/THE-V-SHARM-EL-SHEKH-MARCH-2025-PHOTO-SHOOT-BY-MUSTAFA-ELMASRY-PART-B00003.webp",
+          "sha256": "7a647c8129cf5d646834134c7bbd613d2bba3a5cc117357a939c6f6dee45f2c6",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://thevhotelsegypt.com/wp-content/uploads/2025/08/Copy-of-Kids-Aqua-Park-4.webp",
+          "sha256": "f4f28adf8475680bb38d24501eea568e630f832cb6bd85810becdac8cc857b28",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 224,
+      "sourceRefs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 311",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "ai",
+          "label": "Сохранённое исследование ИИ · кандидат к использованию",
+          "url": "https://chatgpt.com/library?file_id=libfile_e554d6c3171c8191926e5a7ae8bcd1e4&account_id=personal",
+          "at": "2026-11-10T14:07:48.520799+00:00",
+          "note": "Архив v134, 7 сведений с исходными датами чтения. Сходство не является принятой связью идентификаторов; условия и применимость требуют проверки."
+        },
+        {
+          "kind": "official",
+          "label": "V Hotels · текущий курорт и фотографии",
+          "url": "https://thevhotelsegypt.com/v-hotel-sharm-el-sheikh/",
+          "at": "2026-11-10T23:18:49.004538Z",
+          "note": "Подтверждены семейные категории, Executive/Royal Suite, пляжный шаттл и детские водные развлечения. Не смешивается с V Grand Sahl Hasheesh."
+        },
+        {
+          "kind": "official",
+          "label": "V Hotels · фактшит 2025",
+          "url": "https://thevhotelsegypt.com/wp-content/uploads/2025/09/FACT-SHEET-SSH-July-2025.pdf",
+          "at": "2026-11-10T23:18:49.004538Z",
+          "note": "Документ обновлён в августе 2025: семейная инфраструктура, частный песчаный пляж, аквапарк и один подогреваемый зимой бассейн. Подогрев сезона 2026/27 отдельно не подтверждён."
+        },
+        {
+          "kind": "catalog",
+          "label": "KOMPAS · повторная проверка исходного исследования",
+          "url": "https://kompastour.com/az/rus/country/egypt/sharm/pyramisa_beach_resort_sharm_el_sheikh/",
+          "at": "2026-11-10T23:18:49.004538Z",
+          "note": "Проверены маршрут к морю, пляжные зоны и категории. Число номеров и ряд названий в операторском тексте расходятся с текущим сайтом. Posh Club не перенесён как подтверждённая привилегия."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T23:18:49.004538Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Территория спускается к морю; есть шаттл по расписанию. В пляжных зонах различаются вход в воду и понтоны, рекомендуется специальная обувь.",
+        "Сохранённые сведения о Comfort/Select Adults Only относятся к отдельным категориям, не ко всему курорту. Актуальные названия, вместимость и возрастные правила проверяются при подборе.",
+        "Привилегии Posh Club из старого операторского текста не подтверждены текущим сайтом V Hotels и не включены в обещания. Зимний подогрев конкретного бассейна и услуги тарифа уточняются."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://thevhotelsegypt.com/wp-content/uploads/2025/08/V-SSH_-Swimming-Pool-12-1.webp",
+          "sha256": "76e3f91d78ecc97e54c9dcd48dd7258895f75d354db919ea43bf017693df8dcf",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 211040,
+          "source_dimensions": [
+            1920,
+            1280
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "76e3f91d78ecc97e54c9dcd48dd7258895f75d354db919ea43bf017693df8dcf",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://thevhotelsegypt.com/wp-content/uploads/2025/08/THE-V-SHARM-EL-SHEKH-MARCH-2025-PHOTO-SHOOT-BY-MUSTAFA-ELMASRY-PART-B00003.webp",
+          "sha256": "7a647c8129cf5d646834134c7bbd613d2bba3a5cc117357a939c6f6dee45f2c6",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 126844,
+          "source_dimensions": [
+            1920,
+            1283
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "7a647c8129cf5d646834134c7bbd613d2bba3a5cc117357a939c6f6dee45f2c6",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://thevhotelsegypt.com/wp-content/uploads/2025/08/Copy-of-Kids-Aqua-Park-4.webp",
+          "sha256": "f4f28adf8475680bb38d24501eea568e630f832cb6bd85810becdac8cc857b28",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 316044,
+          "source_dimensions": [
+            1500,
+            1001
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "f4f28adf8475680bb38d24501eea568e630f832cb6bd85810becdac8cc857b28",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "364.png",
+      "sha256": "8647816c7052c9764dfdf8b82a94faf4e2ac0c6d1c24671e8640338d073d92eb",
+      "bytes": 509447,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "V HOTEL SHARM EL SHEIKH",
+        "font_size": 28,
+        "text_width": 387.90625,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 1335,
+      "title": "Selectum Family Resort Belek",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://content.anexapps.com/v1/selectum-family-resort-belek/256727c717a245af86022cd15da28e8c.jpg",
+          "sha256": "3d7d462c64a10889b37856232c2befba750d469881902e0ad9247ae7512ca67c",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://content.anexapps.com/v1/selectum-family-resort-belek/f678983928444ea6a0bd208fe4c4f2e1.jpg",
+          "sha256": "82b3b385335ea01f0d71db254ec4d39b0fb2610dda4ce719d8d09e02ced8e206",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://content.anexapps.com/v1/selectum-family-resort-belek/4d2cef4c54f248fbb25440e1b7a7c326.jpg",
+          "sha256": "10afa70dbe08ab54daf297b02ce05ae02201160bc963011a06ad209eade281f8",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 224,
+      "sourceRefs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 13",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "official",
+          "label": "Selectum Belek · курорт и фото",
+          "url": "https://familyresortbelek.selectumhotels.com/en",
+          "at": "2026-11-10T16:12:13.681978Z",
+          "note": "Существующий семейный отель, не смешивается с другими Selectum. Фотографии номера и бассейна с главной страницы."
+        },
+        {
+          "kind": "official",
+          "label": "Selectum Belek · бассейны и горки",
+          "url": "https://familyresortbelek.selectumhotels.com/en/pool-and-beach/pools",
+          "at": "2026-11-10T16:12:13.681978Z",
+          "note": "Relax Pool 18+ — отдельная зона. Подогрев крытого бассейна только апрель/октябрь. Горки с возрастными, ростовыми и погодными ограничениями."
+        },
+        {
+          "kind": "official",
+          "label": "Selectum Belek · пляж и кабаны",
+          "url": "https://familyresortbelek.selectumhotels.com/en/pool-and-beach/beach",
+          "at": "2026-11-10T16:12:13.681978Z",
+          "note": "Песчаный пляж у территории; кабаны с отдельной арендой и бронированием. Фото пляжа просмотрено."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T16:12:13.681978Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Только Relax Pool рассчитан на гостей от 18 лет; сам отель семейный.",
+        "Подогрев крытого бассейна заявлен только в апреле и октябре. Зимний подогрев не подтверждён.",
+        "У горок есть ограничения по возрасту и росту, часы зависят от погоды. Пляжные кабаны арендуются отдельно и требуют бронирования."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://content.anexapps.com/v1/selectum-family-resort-belek/256727c717a245af86022cd15da28e8c.jpg",
+          "sha256": "3d7d462c64a10889b37856232c2befba750d469881902e0ad9247ae7512ca67c",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 205385,
+          "source_dimensions": [
+            746,
+            498
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "3d7d462c64a10889b37856232c2befba750d469881902e0ad9247ae7512ca67c",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://content.anexapps.com/v1/selectum-family-resort-belek/f678983928444ea6a0bd208fe4c4f2e1.jpg",
+          "sha256": "82b3b385335ea01f0d71db254ec4d39b0fb2610dda4ce719d8d09e02ced8e206",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 304355,
+          "source_dimensions": [
+            894,
+            407
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "82b3b385335ea01f0d71db254ec4d39b0fb2610dda4ce719d8d09e02ced8e206",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://content.anexapps.com/v1/selectum-family-resort-belek/4d2cef4c54f248fbb25440e1b7a7c326.jpg",
+          "sha256": "10afa70dbe08ab54daf297b02ce05ae02201160bc963011a06ad209eade281f8",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 161317,
+          "source_dimensions": [
+            746,
+            498
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "10afa70dbe08ab54daf297b02ce05ae02201160bc963011a06ad209eade281f8",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "1335.png",
+      "sha256": "2de81769255b0bc6c0a32825ee0a1717ed639515c65eab3b817597b2630331f3",
+      "bytes": 552109,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "SELECTUM FAMILY RESORT BELEK",
+        "font_size": 28,
+        "text_width": 488.515625,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 1212,
+      "title": "Granada Luxury Okurcalar",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://www.granada.com.tr/media/uh3julci/granada-okurcalar-anasayfa-banner-m.jpg?width=780&format=webp&quality=70",
+          "sha256": "95c1e2a003591f1b493dcdd7ae57a72b637f9fc4b49cb739eec37cf85e4a7725",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://www.granada.com.tr/media/0q1nnvt0/granada-okurcalar-anasayfa-oda-card2.jpg",
+          "sha256": "b60bfef93dd6b04e5c7aa70c65b4518ec6cc4af5d49f674ed29f7fd6dff47070",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://www.granada.com.tr/media/sornpxdg/granada-okurcalar-plaj-card.jpg",
+          "sha256": "3245519002d966779f6533db1ee4c7a93f985e99ad8e72384e30ee6125aa1c15",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 224,
+      "sourceRefs": [
+        {
+          "kind": "catalog",
+          "label": "Расширение каталога · 05.11.2026",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Сохранённый каталог от 05.11.2026. catalog_hotels.id; пространство native/Tourvisor каталога, не ANEX ID. Старый признак «не опубликован» не является текущей проверкой. Материалы требуют подготовки и приёмки. Состояние исходной записи: NATIVE_IDENTITY_PROVEN_NOT_READY_OWNER_PREPARATION_RETAINED"
+        },
+        {
+          "kind": "catalog",
+          "label": "Сохранённая проверка каталога",
+          "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Источник каталожной записи. Статус в реестре не означает приёмку контента."
+        },
+        {
+          "kind": "official",
+          "label": "Granada Okurcalar · курорт и фотографии",
+          "url": "https://www.granada.com.tr/en/our-hotels/granada-luxury-okurcalar/",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Две пляжные зоны, семейные номера и люксы. Изображения Granada Belek из общей навигации исключены."
+        },
+        {
+          "kind": "official",
+          "label": "Granada Okurcalar · бронирование и услуги",
+          "url": "https://onlinereservationokurcalar.granada.com.tr/en/",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Песчаный пляж, детский клуб, бассейны. Часть спа, ресторанных и персональных услуг платная."
+        },
+        {
+          "kind": "official",
+          "label": "Granada · летняя концепция 2026",
+          "url": "https://granada.com.tr/media/bnrijo2j/2026-okurcalar-factsheet-en.pdf",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Документ действовал с 20.04 по 31.10.2026; не используется как подтверждение программы зимы или лета 2027."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Последний опубликованный летний фактшит действует до 31.10.2026. Его программу и включения нельзя автоматически обещать на зиму или лето 2027.",
+        "Пирс и открытые зоны зависят от сезона и погоды. Подогрев бассейнов на текущий зимний сезон не подтверждён.",
+        "Массаж, отдельные спа-процедуры, à la carte и обслуживание в номере могут оплачиваться отдельно; условия зависят от тарифа."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://www.granada.com.tr/media/uh3julci/granada-okurcalar-anasayfa-banner-m.jpg?width=780&format=webp&quality=70",
+          "sha256": "95c1e2a003591f1b493dcdd7ae57a72b637f9fc4b49cb739eec37cf85e4a7725",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 87074,
+          "source_dimensions": [
+            780,
+            1290
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "95c1e2a003591f1b493dcdd7ae57a72b637f9fc4b49cb739eec37cf85e4a7725",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://www.granada.com.tr/media/0q1nnvt0/granada-okurcalar-anasayfa-oda-card2.jpg",
+          "sha256": "b60bfef93dd6b04e5c7aa70c65b4518ec6cc4af5d49f674ed29f7fd6dff47070",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 195222,
+          "source_dimensions": [
+            915,
+            660
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "b60bfef93dd6b04e5c7aa70c65b4518ec6cc4af5d49f674ed29f7fd6dff47070",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://www.granada.com.tr/media/sornpxdg/granada-okurcalar-plaj-card.jpg",
+          "sha256": "3245519002d966779f6533db1ee4c7a93f985e99ad8e72384e30ee6125aa1c15",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 365524,
+          "source_dimensions": [
+            840,
+            1005
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "3245519002d966779f6533db1ee4c7a93f985e99ad8e72384e30ee6125aa1c15",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "1212.png",
+      "sha256": "41a579cb0a89cd4afd7f949f79e80ebb257c75a1826bb9c22a34f03beade0260",
+      "bytes": 629152,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "GRANADA LUXURY OKURCALAR",
+        "font_size": 28,
+        "text_width": 451.625,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 13844,
+      "title": "JA Ocean View Hotel",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://jaweb2019cdn.azureedge.net/assets/images/default-source/jarh-images/site-redesign/accommodations/landing-small/a-seaview-room-jpg75a6e2aa-0a2f-4783-b761-e61868b72163.jpg?sfvrsn=98cc8255_0",
+          "sha256": "4c82d6722a34756727ef63119003943e0e3e6653fcbc474bab06f397c5b19615",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://jaweb2019cdn.azureedge.net/assets/images/default-source/jarh-images/site-redesign/-masonry-grid-image/swimming-pool---1-jpg2241402a-b998-46b3-aedb-7f127ee8b7ff.jpg?sfvrsn=a56b5884_2",
+          "sha256": "2393927aafc98b964878ec41ee335fef369c0fbe603c43c55781b047477ecbd7",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://jaweb2019cdn.azureedge.net/assets/images/default-source/jarh-images/site-redesign/-masonry-grid-image/aqua-restaurant-bar-4-jpg0ef901fe-63aa-47ee-a73f-5b3f3ead8671.jpg?sfvrsn=aeb58127_2",
+          "sha256": "33da513a12a36b6f5c8cf28874b3e58b0e5242ca0b2c918feb59083bdd360216",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 224,
+      "sourceRefs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 446",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-09-12T14:57:45+00:00",
+          "note": "Срез 06.11.2026. accepted_mapping_row_in_sep12_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "ai",
+          "label": "Сохранённое исследование ИИ · кандидат к использованию",
+          "url": "https://chatgpt.com/library?file_id=libfile_e554d6c3171c8191926e5a7ae8bcd1e4&account_id=personal",
+          "at": "2026-11-10T14:07:48.520799+00:00",
+          "note": "Архив v134, 6 сведений с исходными датами чтения. Сходство не является принятой связью идентификаторов; условия и применимость требуют проверки."
+        },
+        {
+          "kind": "official",
+          "label": "JA · отель и категории",
+          "url": "https://www.jaresortshotels.com/dubai/ja-ocean-view-hotel",
+          "at": "2026-11-10T14:56:41.041731Z",
+          "note": "Расположение JBR, морские виды, бассейн; условия Coral Lounge зависят от категории."
+        },
+        {
+          "kind": "official",
+          "label": "JA · детская зона",
+          "url": "https://www.jaresortshotels.com/leisure-detail/kids-play-area",
+          "at": "2026-11-10T14:56:41.041731Z",
+          "note": "Coolzone 4–12 лет; открытая площадка с родителями."
+        },
+        {
+          "kind": "official",
+          "label": "JA · официальная галерея",
+          "url": "https://www.jaresortshotels.com/dubai/ja-ocean-view-hotel/gallery",
+          "at": "2026-11-10T14:56:41.041731Z",
+          "note": "Проверены фотографии номера, бассейна и ресторана. Общие рекламные фото с игроками и иконки исключены."
+        },
+        {
+          "kind": "ai",
+          "label": "Повторно использовано исследование ИИ",
+          "url": "https://chatgpt.com/library?file_id=libfile_e554d6c3171c8191926e5a7ae8bcd1e4&account_id=personal",
+          "at": "2026-11-10T14:56:41.041731Z",
+          "note": "6 исходных сведений. Архив v134 SHA256 05aac018c4205eeb1f3e6a22239f785a67c137327576646e35b12ac1f8b48735. Сохранены исходные даты и применимость."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T14:56:41.041731Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "JBR — общественный пляж. В сохранённых условиях лежаки и зонты на пляже платные; собственный пляж отелю не приписывается.",
+        "Coral Lounge доступен соответствующим клубным номерам и люксам. Питание зависит от выбранного тарифа.",
+        "Coolzone: крытая зона для 4–12 лет; на открытой площадке дети находятся с родителями. Возраст и режим уточняются на даты поездки."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://jaweb2019cdn.azureedge.net/assets/images/default-source/jarh-images/site-redesign/accommodations/landing-small/a-seaview-room-jpg75a6e2aa-0a2f-4783-b761-e61868b72163.jpg?sfvrsn=98cc8255_0",
+          "sha256": "4c82d6722a34756727ef63119003943e0e3e6653fcbc474bab06f397c5b19615",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 63068,
+          "source_dimensions": [
+            1058,
+            642
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "4c82d6722a34756727ef63119003943e0e3e6653fcbc474bab06f397c5b19615",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://jaweb2019cdn.azureedge.net/assets/images/default-source/jarh-images/site-redesign/-masonry-grid-image/swimming-pool---1-jpg2241402a-b998-46b3-aedb-7f127ee8b7ff.jpg?sfvrsn=a56b5884_2",
+          "sha256": "2393927aafc98b964878ec41ee335fef369c0fbe603c43c55781b047477ecbd7",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 91999,
+          "source_dimensions": [
+            833,
+            522
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "2393927aafc98b964878ec41ee335fef369c0fbe603c43c55781b047477ecbd7",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://jaweb2019cdn.azureedge.net/assets/images/default-source/jarh-images/site-redesign/-masonry-grid-image/aqua-restaurant-bar-4-jpg0ef901fe-63aa-47ee-a73f-5b3f3ead8671.jpg?sfvrsn=aeb58127_2",
+          "sha256": "33da513a12a36b6f5c8cf28874b3e58b0e5242ca0b2c918feb59083bdd360216",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 93278,
+          "source_dimensions": [
+            833,
+            522
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "33da513a12a36b6f5c8cf28874b3e58b0e5242ca0b2c918feb59083bdd360216",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "13844.png",
+      "sha256": "9743b34d0af306dcff9f0a08e2484d69b317a755605f63af324a2398bf64fbd5",
+      "bytes": 367290,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "JA OCEAN VIEW HOTEL",
+        "font_size": 28,
+        "text_width": 325.65625,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 21476,
+      "title": "Cleopatra Luxury Resort Makadi Bay",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2026/11/photo-05.jpg",
+          "sha256": "186a9dd0b259d6ffacf5f5e4f3afbcffcd4fb6a441588c4faee0e16a5bb7cd3b",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2026/11/experience-makadi-beach.jpg",
+          "sha256": "53a04a961631e1d3182acbad6373785ebd4fd2689732113e179fe997067d385d",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2026/11/557277400.jpg",
+          "sha256": "fdc9416f61d308257f7ddaeadc4eb14a6cccb22050bf3216585e1f83ea4632b2",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 224,
+      "sourceRefs": [
+        {
+          "kind": "catalog",
+          "label": "Расширение каталога · 05.11.2026",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Сохранённый каталог от 05.11.2026. catalog_hotels.id; пространство native/Tourvisor каталога, не ANEX ID. Старый признак «не опубликован» не является текущей проверкой. Материалы требуют подготовки и приёмки. Состояние исходной записи: CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+        },
+        {
+          "kind": "catalog",
+          "label": "Сохранённая проверка каталога",
+          "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Источник каталожной записи. Статус в реестре не означает приёмку контента."
+        },
+        {
+          "kind": "official",
+          "label": "Cleopatra Makadi · семейный курорт и фото",
+          "url": "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-makadi-bay/",
+          "at": "2026-11-10T16:12:13.681978Z",
+          "note": "Официальная карточка семейного курорта: берег моря, Family Rooms, Kids Club, бассейны и люксы. Отдельный Adults Only не переносится на этот native ID."
+        },
+        {
+          "kind": "official",
+          "label": "Cleopatra Makadi · бассейны и зимний режим",
+          "url": "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-makadi-bay/activities/swimming-pools/",
+          "at": "2026-11-10T16:12:13.681978Z",
+          "note": "Официальная страница указывает зимний подогрев и необходимость уточнить, какие бассейны подогреваются на конкретные даты. Услуги и питание зависят от тарифа."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T16:12:13.681978Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Это семейная карточка Cleopatra Makadi Bay. Отдельный продукт Adults Only не означает запрет на детей во всём курорте.",
+        "Зимой предусмотрен подогрев бассейнов, но какие именно бассейны работают и подогреваются на даты поездки, нужно уточнить.",
+        "Питание, напитки и развлечения зависят от тарифа. Спа, дайвинг, экскурсии и отдельные варианты питания могут оплачиваться дополнительно."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2026/11/photo-05.jpg",
+          "sha256": "186a9dd0b259d6ffacf5f5e4f3afbcffcd4fb6a441588c4faee0e16a5bb7cd3b",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 578734,
+          "source_dimensions": [
+            1800,
+            982
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "186a9dd0b259d6ffacf5f5e4f3afbcffcd4fb6a441588c4faee0e16a5bb7cd3b",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2026/11/experience-makadi-beach.jpg",
+          "sha256": "53a04a961631e1d3182acbad6373785ebd4fd2689732113e179fe997067d385d",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 722107,
+          "source_dimensions": [
+            2000,
+            1000
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "53a04a961631e1d3182acbad6373785ebd4fd2689732113e179fe997067d385d",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2026/11/557277400.jpg",
+          "sha256": "fdc9416f61d308257f7ddaeadc4eb14a6cccb22050bf3216585e1f83ea4632b2",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 154752,
+          "source_dimensions": [
+            1024,
+            683
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "fdc9416f61d308257f7ddaeadc4eb14a6cccb22050bf3216585e1f83ea4632b2",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "21476.png",
+      "sha256": "ece99b9da49a4b0ddd284a8ab5e27bd4fa0d5dd9e8e334508a4932bd0de6f152",
+      "bytes": 497715,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "CLEOPATRA LUXURY RESORT MAKADI BAY",
+        "font_size": 26,
+        "text_width": 556.171875,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 1569,
+      "title": "Utopia World",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://cdn.utopiahotels.com/assets/images/pages/090220221955-lg.jpg",
+          "sha256": "4a784a79264b20c3023f4e3d0c96480bcb2909fdd9bbbb11aa278d51af497ff4",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://cdn.utopiahotels.com/assets/images/pages/02konaklamaanasayfa-lg.jpg",
+          "sha256": "b6a2c75cd549d5a03316c6b6c4081459028321a0474ad9f2a4067d7a4feda1f6",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://cdn.utopiahotels.com/assets/images/pages/03havuzlaranasayfa-lg.jpg",
+          "sha256": "bd8a53d276cc7eb044825e5b8c9c844050da3a0ba8a0fa9123c4fb2a25e67fec",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 224,
+      "sourceRefs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 94",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "ai",
+          "label": "Сохранённое исследование ИИ · кандидат к использованию",
+          "url": "https://chatgpt.com/library?file_id=libfile_e554d6c3171c8191926e5a7ae8bcd1e4&account_id=personal",
+          "at": "2026-11-10T14:07:48.520799+00:00",
+          "note": "Архив v134, 10 сведений с исходными датами чтения. Сходство не является принятой связью идентификаторов; условия и применимость требуют проверки."
+        },
+        {
+          "kind": "official",
+          "label": "Utopia World · курорт и фотографии",
+          "url": "https://www.utopiaworld.com/en/hotel/world",
+          "at": "2026-11-10T15:17:16.700285Z",
+          "note": "Использован именно World; изображения соседних достопримечательностей исключены."
+        },
+        {
+          "kind": "official",
+          "label": "Utopia World · аквапарк",
+          "url": "https://www.utopiahotels.com/en/hotel/world/aquapark",
+          "at": "2026-11-10T15:17:16.700285Z",
+          "note": "Детские и взрослые горки, водные развлечения в сосновой зоне."
+        },
+        {
+          "kind": "catalog",
+          "label": "Corendon · маршрут к пляжу",
+          "url": "https://www.corendon.de/turkei/turkische-riviera/alanya/kargicak/utopia-world",
+          "at": "2026-11-10T15:17:16.700285Z",
+          "note": "Предупреждение о недоступности моста и лифта, замене шаттлом. Даты завершения не указаны."
+        },
+        {
+          "kind": "ai",
+          "label": "Повторно использовано исследование ИИ",
+          "url": "https://chatgpt.com/library?file_id=libfile_e554d6c3171c8191926e5a7ae8bcd1e4&account_id=personal",
+          "at": "2026-11-10T15:17:16.700285Z",
+          "note": "10 исходных сведений. Архив v134 SHA256 05aac018c4205eeb1f3e6a22239f785a67c137327576646e35b12ac1f8b48735. Сохранены исходные даты и применимость."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T15:17:16.700285Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Corendon предупреждает о недоступности моста и лифта к пляжу из-за работ и заявляет замену бесплатным шаттлом. Дат завершения нет; маршрут и транспорт надо подтвердить.",
+        "Пляж отделён дорогой и перепадом высоты. Бесступенчатый маршрут не подтверждён; первая линия у корпусов не обещается.",
+        "Villa — категория номера, а не доказательство личного бассейна. Работа аквапарка и ограничения горок проверяются по сезону."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://cdn.utopiahotels.com/assets/images/pages/090220221955-lg.jpg",
+          "sha256": "4a784a79264b20c3023f4e3d0c96480bcb2909fdd9bbbb11aa278d51af497ff4",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 1199875,
+          "source_dimensions": [
+            2475,
+            1339
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "4a784a79264b20c3023f4e3d0c96480bcb2909fdd9bbbb11aa278d51af497ff4",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://cdn.utopiahotels.com/assets/images/pages/02konaklamaanasayfa-lg.jpg",
+          "sha256": "b6a2c75cd549d5a03316c6b6c4081459028321a0474ad9f2a4067d7a4feda1f6",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 247754,
+          "source_dimensions": [
+            531,
+            531
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "b6a2c75cd549d5a03316c6b6c4081459028321a0474ad9f2a4067d7a4feda1f6",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://cdn.utopiahotels.com/assets/images/pages/03havuzlaranasayfa-lg.jpg",
+          "sha256": "bd8a53d276cc7eb044825e5b8c9c844050da3a0ba8a0fa9123c4fb2a25e67fec",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 425902,
+          "source_dimensions": [
+            531,
+            531
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "bd8a53d276cc7eb044825e5b8c9c844050da3a0ba8a0fa9123c4fb2a25e67fec",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "1569.png",
+      "sha256": "7f22bc168697be6b410a826e9a8dfd139d0a5f2163efb05b55d9f5a05a82e03a",
+      "bytes": 561995,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "UTOPIA WORLD",
+        "font_size": 28,
+        "text_width": 217.78125,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 65779,
+      "title": "Titanic Royal",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://storage.googleapis.com/hwaidak-hotels.appspot.com/hotels%2Fimages%2F1738087613523-DJI_20240925234422_0065_D%20-%20Copy.jpg",
+          "sha256": "593398f44446d03680aa50d7a4be23b5ea346ccc76c5b4d7efa939ed996baf76",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://firebasestorage.googleapis.com/v0/b/hwaidak-hotels.appspot.com/o/rooms%2Fimages%2Foptimized-1738003606746-SSP-TITANIC-D447-min.webp?alt=media&token=167bb514-9352-4175-ad93-92bb6c9f29e7",
+          "sha256": "e3d0a5c6be2c3b9c3971b62a8d54682198c64ed03497b186b27fe7281a90d7a2",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://firebasestorage.googleapis.com/v0/b/hwaidak-hotels.appspot.com/o/restaurants%2Fimages%2F1744782221577-AJ3A7673%20%28Large%29.webp?alt=media&token=4559e43b-5227-40a0-a8d6-082f0f4b4959",
+          "sha256": "51863ec78f427a7d4b3e5de577cb37387004c2709f0f05acab9a75a0b629557f",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 224,
+      "sourceRefs": [
+        {
+          "kind": "catalog",
+          "label": "Расширение каталога · 05.11.2026",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Сохранённый каталог от 05.11.2026. catalog_hotels.id; пространство native/Tourvisor каталога, не ANEX ID. Старый признак «не опубликован» не является текущей проверкой. Материалы требуют подготовки и приёмки. Состояние исходной записи: CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+        },
+        {
+          "kind": "catalog",
+          "label": "Сохранённая проверка каталога",
+          "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Источник каталожной записи. Статус в реестре не означает приёмку контента."
+        },
+        {
+          "kind": "official",
+          "label": "Hwaidak · Titanic Royal и фотографии",
+          "url": "https://www.hwaidak-hotels.com/hotels/titanic-royal",
+          "at": "2026-11-10T23:18:49.004538Z",
+          "note": "Пляжный курорт, семейные категории, Junior Suite, Family Swimup и Swim up King; спа. Демонстрационные цены не перенесены."
+        },
+        {
+          "kind": "catalog",
+          "label": "Pegas · Titanic Royal",
+          "url": "https://pegast.ru/hotel/egypt/hurghada/hurghada/titanic-royal-hotel-350011260",
+          "at": "2026-11-10T23:18:49.004538Z",
+          "note": "Подтверждены семейный пляжный формат и водные развлечения. Не используются универсальные поля доступности как гарантия тарифа."
+        },
+        {
+          "kind": "catalog",
+          "label": "TUI · водные развлечения",
+          "url": "https://www.tui.nl/titanic-royal-509933001/",
+          "at": "2026-11-10T23:18:49.004538Z",
+          "note": "Разделяем собственные детские развлечения и большой аквапарк Titanic Resort. Режим подогрева конкретных Swim Up не подтверждён."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T23:18:49.004538Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Swim Up означает выход к общему бассейну. Подогрев этих бассейнов на зимние даты отдельно не подтверждён.",
+        "Большой аквапарк Titanic Resort находится в другом отеле. Его посещение, трансфер и включение в тариф проверяются отдельно; число соседних горок не приписывается Royal.",
+        "Возрастные условия горок, фактический режим подогрева, спа и ресторанные включения уточняются. Вид на море зависит от категории."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://storage.googleapis.com/hwaidak-hotels.appspot.com/hotels%2Fimages%2F1738087613523-DJI_20240925234422_0065_D%20-%20Copy.jpg",
+          "sha256": "593398f44446d03680aa50d7a4be23b5ea346ccc76c5b4d7efa939ed996baf76",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 1016756,
+          "source_dimensions": [
+            2048,
+            1152
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "593398f44446d03680aa50d7a4be23b5ea346ccc76c5b4d7efa939ed996baf76",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://firebasestorage.googleapis.com/v0/b/hwaidak-hotels.appspot.com/o/rooms%2Fimages%2Foptimized-1738003606746-SSP-TITANIC-D447-min.webp?alt=media&token=167bb514-9352-4175-ad93-92bb6c9f29e7",
+          "sha256": "e3d0a5c6be2c3b9c3971b62a8d54682198c64ed03497b186b27fe7281a90d7a2",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 1614446,
+          "source_dimensions": [
+            2206,
+            1472
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "e3d0a5c6be2c3b9c3971b62a8d54682198c64ed03497b186b27fe7281a90d7a2",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://firebasestorage.googleapis.com/v0/b/hwaidak-hotels.appspot.com/o/restaurants%2Fimages%2F1744782221577-AJ3A7673%20%28Large%29.webp?alt=media&token=4559e43b-5227-40a0-a8d6-082f0f4b4959",
+          "sha256": "51863ec78f427a7d4b3e5de577cb37387004c2709f0f05acab9a75a0b629557f",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 383572,
+          "source_dimensions": [
+            1620,
+            1080
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "51863ec78f427a7d4b3e5de577cb37387004c2709f0f05acab9a75a0b629557f",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "65779.png",
+      "sha256": "511d7d455f25dfcf7c046d41eb0d579dc47b6242f4495195f9700c3c0800d456",
+      "bytes": 475464,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "TITANIC ROYAL",
+        "font_size": 28,
+        "text_width": 211.578125,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 1369,
+      "title": "Melas Lara Hotel",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://static.melashotels.com/networks/1/properties/3/multimedia/20260508083610494_org.webp",
+          "sha256": "433f890042a022aecde869390e3982e482d4197c6d606905d3e42817925d4930",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://static.melashotels.com/networks/1/properties/3/multimedia/20260624064827077_org.webp",
+          "sha256": "d55dfac42ed3c80d6ae9b876853b94c3c476972e4149b822c587527093c118ca",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://static.melashotels.com/networks/1/properties/3/multimedia/20260508085437547_org.webp",
+          "sha256": "489c05ff296a28b014e62716b6a24d6f3601bc06b40672c7d43b0dc82e879ce4",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 224,
+      "sourceRefs": [
+        {
+          "kind": "catalog",
+          "label": "Расширение каталога · 05.11.2026",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Сохранённый каталог от 05.11.2026. catalog_hotels.id; пространство native/Tourvisor каталога, не ANEX ID. Старый признак «не опубликован» не является текущей проверкой. Материалы требуют подготовки и приёмки. Состояние исходной записи: EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY"
+        },
+        {
+          "kind": "catalog",
+          "label": "Сохранённая проверка каталога",
+          "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Источник каталожной записи. Статус в реестре не означает приёмку контента."
+        },
+        {
+          "kind": "official",
+          "label": "Melas Lara · курорт и семейные номера",
+          "url": "https://www.melashotels.com/en/melas-lara-hotel",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Пляжный курорт в Ларе, семейные номера с отдельными спальнями, детский клуб."
+        },
+        {
+          "kind": "official",
+          "label": "Melas Lara · точный режим бассейнов",
+          "url": "https://www.melashotels.com/en/melas-lara-hotel/beach-pool",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Крытые основной и детский: 01.11–31.03. Открытые детский и с горками: март, апрель, октябрь, ноябрь. Не переносим подогрев на основной открытый бассейн."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Крытые основной и детский бассейны открыты и подогреваются с 1 ноября по 31 марта.",
+        "Открытые детский бассейн и бассейн с горками подогреваются только в марте, апреле, октябре и ноябре. Подогрев основного открытого бассейна не заявляется.",
+        "Работу горок и пляжного сервиса, температуру воды и включения спа нужно уточнить на даты. Планировка и вид зависят от категории."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://static.melashotels.com/networks/1/properties/3/multimedia/20260508083610494_org.webp",
+          "sha256": "433f890042a022aecde869390e3982e482d4197c6d606905d3e42817925d4930",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 239160,
+          "source_dimensions": [
+            1440,
+            1220
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "433f890042a022aecde869390e3982e482d4197c6d606905d3e42817925d4930",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://static.melashotels.com/networks/1/properties/3/multimedia/20260624064827077_org.webp",
+          "sha256": "d55dfac42ed3c80d6ae9b876853b94c3c476972e4149b822c587527093c118ca",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 98254,
+          "source_dimensions": [
+            1440,
+            958
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "d55dfac42ed3c80d6ae9b876853b94c3c476972e4149b822c587527093c118ca",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://static.melashotels.com/networks/1/properties/3/multimedia/20260508085437547_org.webp",
+          "sha256": "489c05ff296a28b014e62716b6a24d6f3601bc06b40672c7d43b0dc82e879ce4",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 271850,
+          "source_dimensions": [
+            1440,
+            1220
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "489c05ff296a28b014e62716b6a24d6f3601bc06b40672c7d43b0dc82e879ce4",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "1369.png",
+      "sha256": "37af30e39a7032181ec1010e8acf5d7d07eb4a6b1a99205123348e9eb8239d8a",
+      "bytes": 492959,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "MELAS LARA HOTEL",
+        "font_size": 28,
+        "text_width": 285.1875,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    }
+  ],
+  "provider_calls": 0,
+  "remote_writes": 0,
+  "visual_review": "All nine branded covers visually inspected: readable title and original logo, three retained real hotel photographs each, no generated imagery."
+}
