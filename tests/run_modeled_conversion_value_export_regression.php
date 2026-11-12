@@ -254,6 +254,37 @@ function modeledValueOldCurrentSourceAssertions(PDO $p,callable $check):void
     $protected->setValue($owner,[]);$ordinary->setValue($owner,[]);
     $check('a returned tuple outside the ordinary user batch grants no old-source exception',
         !$method->invoke($owner,$r,$records,true,$now,true));
+    $membership=new ReflectionMethod($owner,'protectedOriginalSourceIds');$after=ModeledConversionValueVisitEvidence::CHECKPOINT+600;
+    $check('missing or lost frozen storage after the checkpoint denies the new ordinary exception',
+        $membership->invoke($owner,null,$after)===null&&$membership->invoke($owner,'{}',$after)===null
+        &&$membership->invoke($owner,'{"finite_visit_evidence":false}',$after)===null
+        &&$membership->invoke($owner,null,ModeledConversionValueVisitEvidence::CHECKPOINT-1)===[]);
+    foreach(['project_key'=>'foreign','external_user_id'=>'999999','event_unix'=>$now-1,'client_id'=>'991111',
+        'tracker_record_id'=>'991112','tracker_observed_unix'=>$now-30*86400-1,'attempts'=>1,'value_api_accepted_at_unix'=>$now-1]as$field=>$value){
+        [$wire,$oldLookup,$before]=$setup();
+        $lookup=new class($p,$field,$value,$oldLookup->observedAt){
+            public int $calls=0;
+            public function __construct(private PDO $p,private string $field,private mixed $value,private int $at){}
+            public function lookup(string $counter,array $users):array{
+                $this->calls++;$records=[];foreach($users as$uid)$records[$uid]=['external_user_id'=>$uid,'client_id'=>'880000'.$uid,'record_id'=>'77','observed_at_unix'=>$this->at];
+                $this->p->prepare('UPDATE max_channel_conversion_outbox SET '.$this->field.'=? WHERE id=1')->execute([$this->value]);return $records;
+            }
+        };
+        ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);
+        $r=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=1')->fetch(PDO::FETCH_ASSOC);
+        $stats=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+        $check('pending snapshot CAS rejects a concurrent lookup-time change '.$field,
+            $lookup->calls===1&&$stats['resolved']===0&&$wire->visitReads===0&&$wire->posts===0&&$r['state']==='pending'
+            &&(string)$r[$field]===(string)$value&&empty($r['claim_token'])&&empty($r['upload_id']));
+    }
+    [$wire,$lookup,$before]=$setup();
+    $p->prepare("UPDATE max_channel_conversion_outbox SET client_id=?,tracker_record_id='77',tracker_observed_unix=?,value_ready_at_unix=?,attempts=1,claimed_at_unix=?,last_error='transport_not_sent' WHERE id=1")
+        ->execute(['880000'.$before['external_user_id'],$lookup->observedAt,$now-900,$now-600]);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);
+    $retried=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=1')->fetch(PDO::FETCH_ASSOC);
+    $check('the pending snapshot preserves legitimate known nonacceptance metadata and admits its normal current-source retry',
+        $lookup->calls===1&&$wire->visitReads===1&&$wire->posts===1&&$retried['state']==='accepted'
+        &&(int)$retried['attempts']===2&&(int)$retried['value_ready_at_unix']===$now-900);
     foreach(['client_id'=>'991111','tracker_record_id'=>'991112','tracker_observed_unix'=>$now-30*86400-1]as$field=>$value){
         [$wire,$lookup,$before]=$setup();$changed=false;
         $api=new MetrikaOfflineClient('98615635','fixture-only',static function(string $method,string $url,mixed $body)use($p,$wire,$field,$value,&$changed):array{
@@ -267,8 +298,25 @@ function modeledValueOldCurrentSourceAssertions(PDO $p,callable $check):void
             $changed&&$lookup->calls===1&&$wire->visitReads===1&&$wire->posts===0&&$r['state']==='ready'
             &&(int)$r['attempts']===0&&empty($r['claim_token'])&&empty($r['upload_id'])&&$r['value_api_accepted_at_unix']===null);
     }
+    $event=ModeledConversionValueVisitEvidence::CHECKPOINT-100;$current=ModeledConversionValueVisitEvidence::CHECKPOINT+20000;
+    $ns=ModeledConversionProfiles::assessmentNamespace();[$originals,$unused,$wire]=modeledValueFiniteCaseFixture($p,$event,$current,$ns,$gate);
+    $p->prepare('UPDATE max_channel_conversion_outbox SET next_attempt_unix=?')->execute([$current+10000]);
+    $receipt=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    foreach([ModeledConversionMaxCounterScopeEvidence::RECEIPT_KEY,ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY,
+        ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY,...ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS]as$key)$receipt[$key]=false;
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
+    modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,915),$current));
+    $lookup=new ModeledValueTestLookup();$lookup->observedAt=$current-30*86400;$wire->visitAt=$current-60;
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$current,$gate);
+    $r=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE conversation_id=915')->fetch(PDO::FETCH_ASSOC);
+    $saved=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    $check('after the checkpoint an ordinary non-original old source can send beside a valid unchanged frozen frame',
+        $lookup->calls===1&&$wire->visitReads===1&&$wire->posts===1&&$r['state']==='accepted'
+        &&modeledValueFailureJsonEqual($saved['finite_visit_evidence'],$receipt['finite_visit_evidence'])
+        &&modeledValueFailureJsonEqual($saved['finite_visit_recovery'],$receipt['finite_visit_recovery'])
+        &&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE id<=3 AND state='pending' AND attempts=0")->fetchColumn()===3);
 }
-
+ 
 function modeledValueAssertions(PDO $p,callable $check):void
 {
     modeledValueOldCurrentSourceAssertions($p,$check);

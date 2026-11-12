@@ -998,7 +998,8 @@ final class ModeledConversionValueExport
             $observed=is_array($record)?($record['observed_at_unix']??null):null;
             $pairMember=$this->fixedPairMember($r,$now)!==null;
             if($pairMember)$pairSource=$this->fixedPairCandidate($r,$identities,$lookupReturned,$now);
-            else $ordinarySource=$this->currentMaxSource($r,$identities,$lookupReturned,$now,false);
+            else $ordinarySource=is_int($observed)&&((int)$r['event_unix']-$observed>ModeledConversionAttributionWindow::MAX_SECONDS||$now-$observed>ModeledConversionAttributionWindow::MAX_SECONDS)
+                &&$this->currentMaxSource($r,$identities,$lookupReturned,$now,false);
             if(is_array($record)&&($record['external_user_id']??null)===$r['external_user_id']
                 &&is_int($observed)&&$observed>=946684800&&$observed<=(int)$r['event_unix']
                 &&($pairMember?$pairSource:($ordinarySource||((int)$r['event_unix']-$observed<=ModeledConversionAttributionWindow::MAX_SECONDS&&$now-$observed<=ModeledConversionAttributionWindow::MAX_SECONDS))))$client=$record['client_id']??null;
@@ -1011,7 +1012,7 @@ final class ModeledConversionValueExport
             if($q->rowCount()===1)$this->observeIdentity($r,$identities,$lookupReturned,$now);
             return false;
         }
-        [$pairWhere,$pairParams]=$pairSource?$this->fixedPairSqlGuard($r,true):['',[]];
+        [$pairWhere,$pairParams]=$pairSource?$this->fixedPairSqlGuard($r,true):($ordinarySource?$this->pendingMaxSourceSqlGuard($r):['',[]]);
         $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET client_id=?,tracker_record_id=?,tracker_observed_unix=?,identity_observation_id=?,state='ready',value_ready_at_unix=COALESCE(value_ready_at_unix,?),next_attempt_unix=0,last_error='' WHERE id=? AND state='pending'".$pairWhere);$q->execute([$client,$record['record_id']??null,$record['observed_at_unix']??null,$observation,$now,$r['id'],...$pairParams]);
         $changed=$q->rowCount()===1;if($changed)$this->observeIdentity($r,$identities,$lookupReturned,$now,$pairSource||$ordinarySource);return $changed;
     }
@@ -1019,14 +1020,30 @@ final class ModeledConversionValueExport
     /** Exclusion only: a frozen native row never falls through when its current pair admission is unavailable. */
     private function protectedOriginalSourceIds(mixed $raw,int $now):?array
     {
-        if($raw===null)return [];
+        if($raw===null)return $now<ModeledConversionValueVisitEvidence::CHECKPOINT?[]:null;
         try{
             if(!is_string($raw)||strlen($raw)>8192||!str_starts_with(ltrim($raw),'{'))return null;
             $saved=json_decode($raw,true,32,JSON_THROW_ON_ERROR);if(!is_array($saved))return null;
-            if(!array_key_exists('finite_visit_evidence',$saved))return [];
+            if(!array_key_exists('finite_visit_evidence',$saved))return $now<ModeledConversionValueVisitEvidence::CHECKPOINT?[]:null;
             $frame=ModeledConversionValueVisitEvidence::decode($saved['finite_visit_evidence'],$this->identityNamespace??ModeledConversionProfiles::assessmentNamespace(),$now);
             if($frame===null)return null;$ids=[];foreach($frame['r']as$row)$ids[(string)$row[1]]=true;return $ids;
         }catch(Throwable $ignored){return null;}
+    }
+
+    /** Snapshot CAS only for the new old ordinary source path; preserves legitimate prior nonacceptance fields. */
+    private function pendingMaxSourceSqlGuard(array $row):array
+    {
+        $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';$where='';$values=[];
+        foreach(['project_key','platform','conversation_id','external_user_id','counter_id','target','transport_target','value_contract',
+            'identity_source_key','value_profile_id','event_unix','value_rub','value_origin','value_reviewed_at_unix',
+            'client_id','tracker_record_id','tracker_observed_unix','identity_observation_id','value_ready_at_unix',
+            'attempts','claim_token','claimed_at_unix','upload_id','upload_status','value_receipt_basis',
+            'value_api_accepted_at_unix','value_processed_at_unix','last_error']as$key){
+            if(!array_key_exists($key,$row))return [' AND 1=0',[]];
+            if($row[$key]===null)$where.=' AND '.$key.' IS NULL';
+            else{$where.=$mysql?' AND BINARY '.$key.'=BINARY ?':' AND '.$key.' COLLATE BINARY=? COLLATE BINARY';$values[]=$row[$key];}
+        }
+        return [$where,$values];
     }
 
     /** This-tick ordinary lookup only; the recorded click is an identity witness, never a visit witness. */
