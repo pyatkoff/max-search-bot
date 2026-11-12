@@ -1,108 +1,181 @@
-name: Prepare fresh TV2651 feeds from confirmed posts and inspect all 481 hotels
-'on':
+name: Publish ten approved AnyTour hotels in both channels
+on:
   push:
-    branches:
-    - audit/content100-bot-publication-20261101
-    paths:
-    - .github/workflows/content100-bot-publication-20261101.yml
+    branches: [audit/content100-bot-publication-20261101]
+    paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
   actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
+env:
+  EXPECTED_DEPLOY_RUN_ID: '43229715899'
+  EXPECTED_TLS_RUN_ID: '43231780721'
+  EXPECTED_PRODUCTION_SHA: 6e1c61915d0afc35ec8198d59021fe5a6bddadb6
 jobs:
   inspect:
+    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: ${{ github.sha }}
-        persist-credentials: false
-        fetch-depth: 1
-    - name: Verify original source, installed runtime and exact recovery before credentials
-      env:
-        GH_TOKEN: ${{ github.token }}
-      shell: bash
-      run: "set -euo pipefail\ntest \"$GITHUB_RUN_ATTEMPT\" = 1\ngh api repos/pyatkoff/max-search-bot/actions/runs/43181493179 > \"$RUNNER_TEMP/accepted-source-validation.json\"\ngh api repos/pyatkoff/max-search-bot/actions/runs/43199125349 > \"$RUNNER_TEMP/original-deployment-before-operation.json\"\ngh api repos/pyatkoff/max-search-bot/git/ref/heads/main > \"$RUNNER_TEMP/main-before-operation.json\"\ngh api repos/pyatkoff/poisk-turov-test/git/ref/heads/main > \"$RUNNER_TEMP/collector-main-before-operation.json\"\ngh api 'repos/pyatkoff/poisk-turov-test/contents/.github/workflows/collect-anytour-tours.yml?ref=main' > \"$RUNNER_TEMP/collector-source-before-operation.json\"\ngh api 'repos/pyatkoff/poisk-turov-test/actions/workflows/collect-anytour-tours.yml/runs?event=schedule&status=in_progress&per_page=100' > \"$RUNNER_TEMP/collector-active-before-operation.json\"\ngh api 'repos/pyatkoff/poisk-turov-test/actions/workflows/collect-anytour-tours.yml/runs?event=schedule&status=queued&per_page=100' > \"$RUNNER_TEMP/collector-queued-before-operation.json\"\npython3 - <<'PYCURRENT'\nimport base64,hashlib,json,os,pathlib\nroot=pathlib.Path(os.environ['RUNNER_TEMP'])\nread=lambda name:json.loads((root/name).read_text())\nvalidation=read('accepted-source-validation.json')\nassert validation['id']==43181493179 and validation['head_sha']==os.environ['EXPECTED_SOURCE_SHA'] and validation['run_attempt']==1 and validation['status']=='completed' and validation['conclusion']=='success','ORIGINAL_NATIVE_SOURCE_PROOF_NOT_ACCEPTED'\ndeployment=read('original-deployment-before-operation.json')\nassert deployment['id']==43199125349 and deployment['head_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and deployment['run_attempt']==1 and deployment['status']=='completed' and deployment['conclusion']=='success','ORIGINAL_DEPLOYMENT_NOT_ACCEPTED'\nassert read('main-before-operation.json')['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA'],'CURRENT_MAIN_CHANGED_BEFORE_CREDENTIALS'\nassert read('collector-main-before-operation.json')['object']['sha']==os.environ['EXPECTED_COLLECTOR_MAIN_SHA'],'COLLECTOR_MAIN_CHANGED_BEFORE_CREDENTIALS'\ncode=base64.b64decode(read('collector-source-before-operation.json')['content'],validate=False)\nassert hashlib.sha256(code).hexdigest()==os.environ['EXPECTED_COLLECTOR_FILE_SHA256'],'COLLECTOR_CALLBACK_SOURCE_CHANGED'\nfor name in ('collector-active-before-operation.json','collector-queued-before-operation.json'):\n    runs=read(name)\n    assert runs['total_count']<100 and len(runs['workflow_runs'])==runs['total_count'],'ACTIVE_RUN_INVENTORY_TRUNCATED'\n    for active in runs['workflow_runs']:\n        assert active['head_sha']==os.environ['EXPECTED_COLLECTOR_MAIN_SHA'],'OLD_COLLECTOR_CALLBACK_STILL_ACTIVE'\nprint('ORIGINAL_SOURCE_DEPLOYMENT_AND_COLLECTOR_ADMISSION_OK')\nPYCURRENT\npython3 tools/direct_demand/operations/build-monitor-price-hook.py \"$RUNNER_TEMP/monitor-price-hook.php\"\npython3 - <<'PYHOOK'\nimport hashlib,os,pathlib\nbundle=pathlib.Path(os.environ['RUNNER_TEMP'])/'monitor-price-hook.php'\nassert hashlib.sha256(bundle.read_bytes()).hexdigest()==os.environ['EXPECTED_HOOK_SHA256'],'NATIVE_TESTED_HOOK_BYTES_CHANGED'\nprint('EXACT_NATIVE_TESTED_HOOK_OK')\nPYHOOK\nprintf '%s  %s\\n' \"$EXPECTED_RECOVERY_DRIVER_SHA256\" \"tools/direct_demand/operations/refresh-pending-2651-feeds.php\" | sha256sum --check\nprintf '%s  %s\\n' \"$EXPECTED_RECOVERY_BUILDER_SHA256\" \"tools/direct_demand/operations/build-refresh-pending-2651-feeds.py\" | sha256sum --check\npython3 tools/direct_demand/operations/build-refresh-pending-2651-feeds.py \"$RUNNER_TEMP/monitor-price-hook.php\" \"$RUNNER_TEMP/refresh-pending-2651-feeds.php\"\nphp -l \"$RUNNER_TEMP/refresh-pending-2651-feeds.php\"\nphp \"$RUNNER_TEMP/refresh-pending-2651-feeds.php\" --self-test | tee \"$RUNNER_TEMP/monitor-pending-2651-fresh-self-test.jsonl\"\nsha256sum \"$RUNNER_TEMP/refresh-pending-2651-feeds.php\" | tee \"$RUNNER_TEMP/accepted-fresh-feed-bundle.sha256\"\npython3 - <<'PYPLAN'\nimport datetime,os\nplan=datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')\nwith open(os.environ['GITHUB_ENV'],'a') as f:\n    f.write('FEED_PLAN_AT='+plan+'\\n')\nprint('FRESH_FEED_PLAN_AT='+plan)\nPYPLAN\n"
-    - name: Prepare existing server connection
-      env:
-        DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-      shell: bash
-      run: "set -euo pipefail\numask 077\nraw=\"$DEPLOY_SSH_KEY_VALUE\"\nif [[ \"$raw\" == *\"PRIVATE KEY\"* ]]; then\n  if [[ \"$raw\" == *'\\n'* ]]; then printf '%b\\n' \"$raw\" | tr -d '\\r' > \"$RUNNER_TEMP/channel_key\"; else printf '%s\\n' \"$raw\" | tr -d '\\r' > \"$RUNNER_TEMP/channel_key\"; fi\nelse\n  printf '%s' \"$raw\" | base64 --decode > \"$RUNNER_TEMP/channel_key\"\nfi\nssh-keygen -y -f \"$RUNNER_TEMP/channel_key\" >/dev/null\n"
-    - name: Pin existing server host-key continuity
-      env:
-        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-      shell: bash
-      run: "set -euo pipefail\numask 077\npython3 - <<'PY'\nimport os,re,subprocess,base64,hashlib,pathlib\nhost=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']\nassert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')\nassert re.fullmatch(r'[A-Za-z0-9_-]+',user)\nscan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)\nmatches=[]\nfor line in scan.stdout.splitlines():\n  fields=line.split()\n  if len(fields)<3 or fields[0].startswith('#'):continue\n  try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')\n  except Exception:continue\n  if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)\nassert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'\npathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\\n'.join(matches)+'\\n')\nPY\n"
-    - name: Inspect fresh feed preparation from the exact confirmed original posts without writes
-      env:
-        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-      shell: bash
-      run: 'set -euo pipefail
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          evidence="$RUNNER_TEMP/commercial-source-evidence"
+          mkdir -p "$evidence"
+          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/$EXPECTED_DEPLOY_RUN_ID" > "$evidence/verify_run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/${EXPECTED_DEPLOY_RUN_ID}/jobs?per_page=20" > "$evidence/verify_jobs.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/$EXPECTED_TLS_RUN_ID" > "$evidence/tls_run.json"
+          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
+          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
+          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
+          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
+      - name: Prepare and validate the exact sender, bounded read and append-only feed tail
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          umask 077
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib
+          base=pathlib.Path('tools/direct_demand/operations')
+          assert hashlib.sha256((base/'prepare-commercial-batch.py').read_bytes()).hexdigest()=='ccda43ff0360de931ee7c04f9f151c1232e531820335a9cc21a2591634f2157f'
+          pins={'prepare-publication-tail.py': 'c167bfce0683daacf3b9ac84266c8b458259c78020307078c1b22f5e6383fd44', 'publish-commercial-channel-hotel-feeds-20261103-1.php': 'e5f21316166dce66a982ddcca1b9e2bcf172221f4e96bf75ae4be5e85b8cb8ab', 'test-publication-feed-extension.php': '69989508d2698ab4d44912b5900b80f3975740309004270a42b66495943a0242'}
+          for name,sha in pins.items():assert hashlib.sha256((base/name).read_bytes()).hexdigest()==sha,name
+          approval=json.loads((base/'commercial-batch-20261112-1-approval.json').read_text())
+          assert approval['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+          assert approval['operation']=='commercial-hotel-batch-20261112-1-v1' and len(approval['hotel_ids'])==10
+          PY
+          python3 tools/direct_demand/operations/prepare-commercial-batch.py --manifest tools/direct_demand/operations/commercial-batch-20261112-1-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261112-1-approval.json --output "$RUNNER_TEMP/channel-preflight.php"
+          php -l "$RUNNER_TEMP/channel-preflight.php"
+          python3 tools/direct_demand/operations/prepare-publication-tail.py reader --manifest tools/direct_demand/operations/commercial-batch-20261112-1-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261112-1-approval.json --reader-template tools/direct_demand/operations/read-commercial-channel-hotel-feeds-20261108-48.php --reader-operation commercial-channel-hotel-feeds-20261112-read1 --output "$RUNNER_TEMP/channel-feed-read.php"
+          php -l "$RUNNER_TEMP/channel-feed-read.php"
+          ANYTOUR_CHANNEL_BATCH51_SCOPE_FIXTURE=1 php "$RUNNER_TEMP/channel-feed-read.php"
+          php -l tools/direct_demand/operations/publish-commercial-channel-hotel-feeds-20261103-1.php
+          php tools/direct_demand/operations/test-publication-feed-extension.php tools/direct_demand/operations/publish-commercial-channel-hotel-feeds-20261103-1.php
+          php -l tools/direct_demand/operations/monitor-price-after-collection.php
+          php -l tools/direct_demand/operations/monitor-price-hook-contract.php
+          php tools/direct_demand/operations/test-monitor-price-nightly-policy.php
+          python3 tools/direct_demand/operations/build-monitor-price-hook.py "$RUNNER_TEMP/monitor-price-hook.php"
+          php -l "$RUNNER_TEMP/monitor-price-hook.php"
+      - name: Retain exact approved inputs before any channel write
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-batch-20261112-1-inputs
+          path: |
+            tools/direct_demand/operations/commercial-batch-20261112-1-manifest.json
+            tools/direct_demand/operations/commercial-batch-20261112-1-approval.json
+          retention-days: 14
+          if-no-files-found: error
+      - name: Prepare existing server connection
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+      - name: Pin existing server host-key continuity
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          matches=[]
+          for line in scan.stdout.splitlines():
+            fields=line.split()
+            if len(fields)<3 or fields[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+            except Exception:continue
+            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          PY
+      - name: Publish the exact ten approved hotel posts with canonical buttons and no duplicates
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
+          python3 - <<'PY'
+          import pathlib,json,os
+          lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
+          d=json.loads(lines[-1])
+          print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
+          print(json.dumps({'new_post_urls':[{'platform':p['platform'],'logical_id':p['logical_id'],'post_url':p['post_url'],'verified':p['body_photo_button_verified']} for p in d.get('posts',[])]},ensure_ascii=False))
+          assert d['operation']=='commercial-hotel-batch-20261112-1-v1' and d['mode']=='publish_approved_commercial_batch'
+          assert d['ok'] is True and len(d['posts'])==20
+          assert d['post_write_attempts']<=20 and d['new_posts']<=20
+          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==20
+          assert all(p['body_photo_button_verified'] and p['button_text']=='✈️ Узнать стоимость тура' for p in d['posts'])
+          PY
+          test "${probe_status:-0}" = 0
+      - name: Read only the ten confirmed canonical pairs and native MAX bindings
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php" < "$RUNNER_TEMP/channel-feed-read.php" > "$RUNNER_TEMP/channel-feed-read.json" || read_status=$?
+          python3 - <<'PYREAD'
+          import json,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])
+          receipt=json.loads((p/'channel-preflight.json').read_text().splitlines()[-1])
+          d=json.loads((p/'channel-feed-read.json').read_text().splitlines()[-1])
+          ids=[132002,1137,2144,3469,1031,74258,9321,15913,15693,1217]
+          assert d['ok'] is True and d['operation']=='commercial-channel-hotel-feeds-20261112-read1'
+          assert d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+          assert d['scope_hotels']==d['feed_rows']==d['private_binding_count']==10 and d['deferred_count']==0
+          assert [r['hotel_id'] for r in d['rows']]==[r['hotel_id'] for r in d['private_max_bindings']]==ids
+          assert all(d[k]==0 for k in ('db_writes','provider_calls','message_sends'))
+          by_pair={(r['hotel_id'],r['platform']):r for r in receipt['posts']}
+          for r,b in zip(d['rows'],d['private_max_bindings']):
+            for platform in ('telegram','max'):assert r[platform+'_post_url']==by_pair[(r['hotel_id'],platform)]['post_url']
+            assert str(b['publication_id'])==str(by_pair[(r['hotel_id'],'max')]['publication_id'])
+          print(json.dumps({k:d[k] for k in ('operation','ok','scope_hotels','feed_rows','private_binding_count','deferred_count','provider_calls','db_writes','message_sends')}))
+          PYREAD
+          test "${read_status:-0}" = 0
+      - name: Retain bounded route evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-batch-20261112-1-publication-and-read
+          path: |
+            ${{ runner.temp }}/channel-preflight.json
+            ${{ runner.temp }}/channel-feed-read.json
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Remove ephemeral connection and script files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json" "$RUNNER_TEMP/channel-feed-read.php" "$RUNNER_TEMP/channel-feed-read.json"
 
-        umask 077
-
-        [[ "$FEED_PLAN_AT" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
-
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" ''cd /var/www/anytoour/data/www/app.anytoour.ru && test "$(git rev-parse --verify HEAD)" = c734f6632cdb492c0a5a82736023d5c485e0cea5 && ANYTOUR_MONITOR_PENDING_FEED_PLAN_AT=''"$FEED_PLAN_AT"'' ANYTOUR_MONITOR_PENDING_FEED_APPLY= php'' < "$RUNNER_TEMP/refresh-pending-2651-feeds.php" | tee "$RUNNER_TEMP/monitor-pending-2651-fresh-feed-inspection.jsonl"
-
-        '
-    - name: Accept the actual fresh plan and pin its input SHA before one first file write
-      shell: bash
-      run: "set -euo pipefail\nsha256sum --check \"$RUNNER_TEMP/accepted-fresh-feed-bundle.sha256\"\npython3 - <<'PYPROOF'\nimport json,os,pathlib,time,datetime,re\np=pathlib.Path(os.environ['RUNNER_TEMP'])/'monitor-pending-2651-fresh-feed-inspection.jsonl'\nrows=[json.loads(l.split('=',1)[1]) for l in p.read_text().splitlines() if l.startswith('MONITOR_PENDING_2651_FRESH_FEEDS=')]\nassert len(rows)==1,'AMBIGUOUS_FRESH_FEED_INSPECTION'\nr=rows[0]\nassert r['ok'] is True and r['mode']=='inspect_fresh_original_feed_preparation' and r['ready_for_explicit_feed_apply'] is True,'FRESH_FEED_INSPECTION_NOT_ACCEPTED'\nassert r['driver_sha256']=='68f848878c6801e26a1206dfb31df19b6294389d16d26614c7418f41c881f6a7' and r['runtime_sha']=='c734f6632cdb492c0a5a82736023d5c485e0cea5','FRESH_FEED_SOURCE_CHANGED'\nfor k in ('max_puts','telegram_edit_attempts','database_write_calls','post_journal_appends','supplier_calls','new_posts','provider_requests','saved_monitor_gets','feed_writer_attempts','global_journal_appends_by_continuation','original_completed_pairs_replayed'):\n    assert r[k]==0,'INSPECTION_MUTATED_'+k\nassert r['original_global_journal_sha256']=='1b8177e3c307c901244b9c9836b8d569f2f8d835e0b1c5a35f6428e8d9ee8693' and r['original_post_journal_sha256']=='cf35ed5eacaccd8939262e1231f43cc00752938b72c1260d8d4751afb50f832d','ORIGINAL_CAS_CHANGED'\nassert r['original_journal_complete'] is True and [x['version_id'] for x in r['completed_post_receipts']]==[3724,3725],'POST_RECEIPTS_CHANGED'\no=r['old_preparation'];n=r['fresh_preparation']\nassert o['state']=='supersession_planned' and o['published'] is False and o['expired'] is True and o['exact_old_intended_xml_hashes_verified'] is True and o['original_raw_input_sha256_available'] is False,'OLD_UNPUBLISHED_PLAN_NOT_PROVEN'\nassert o['expires_at']=='2026-11-12T10:32:03Z' and [x['sha256'] for x in o['original_pending_files']]==['2cc3a222b494dce2e814859f5b9875f9a8d1f6b2c57fe2dedf2493df1199cf67','95986c1774335130c973706ce1ce50376ba7bd4b35da66a0b146a38cfb2a148e','ba6836f8d0929be5c7c4d4e2b1dcf70b016b60722223bfaf1b22192215ab61e2'],'OLD_PLAN_CHANGED'\nassert n['schema_version']==3 and n['plan_at']==n['generated_at']==os.environ['FEED_PLAN_AT'] and n['published'] is False,'FRESH_PLAN_TIME_CHANGED'\nfor k in ('old_pending_files_preserved','same_confirmed_post_receipts','same_feed_operation'):\n    assert n[k] is True,'FRESH_PLAN_BINDING_CHANGED_'+k\nassert n['price_record_id']=='3c6637d73d3424159b7d01b9ffcf2e2051fc3fbae084bb645c7b259c33413d11' and n['price_observed_at_preserved']=='2026-11-11T19:00:04Z' and n['fresh_price_observation_created'] is False,'PRICE_OBSERVATION_CHANGED'\nassert re.fullmatch(r'[a-f0-9]{64}',n['input_sha256']) and len(n['files'])==3,'FRESH_INPUT_HASH_INVALID'\nfor old,new in zip(o['original_pending_files'],n['files'],strict=True):\n    assert list(new)==['name','sha256','bytes','rows','expected_previous_sha256'] and all(new[k]==old[k] for k in ('name','bytes','rows','expected_previous_sha256')),'FRESH_FILE_SCOPE_CHANGED'\n    assert re.fullmatch(r'[a-f0-9]{64}',new['sha256']) and new['sha256'] not in (old['sha256'],old['expected_previous_sha256']),'FRESH_FILE_HASH_INVALID'\nstamp=lambda v:datetime.datetime.fromisoformat(v.replace('Z','+00:00')).timestamp()\nassert stamp(n['generated_at'])>stamp(o['expires_at']) and time.time()>stamp(o['expires_at']),'OLD_WINDOW_NOT_EXPIRED'\nassert stamp(n['expires_at'])==stamp(n['generated_at'])+900 and -60<=time.time()-stamp(n['generated_at'])<=900,'FRESH_PLAN_WINDOW_INVALID'\nwith open(os.environ['GITHUB_ENV'],'a') as f:\n    f.write('FEED_EXPECTED_INPUT_SHA256='+n['input_sha256']+'\\n')\nprint('ACTUAL_FRESH_ZERO_WRITE_FEED_INSPECTION_ACCEPTED')\nPYPROOF\n"
-    - name: Publish the inspected fresh feed input once without changing posts
-      env:
-        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-      shell: bash
-      run: 'set -euo pipefail
-
-        umask 077
-
-        [[ "$FEED_PLAN_AT" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
-
-        [[ "$FEED_EXPECTED_INPUT_SHA256" =~ ^[a-f0-9]{64}$ ]]
-
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" ''cd /var/www/anytoour/data/www/app.anytoour.ru && test "$(git rev-parse --verify HEAD)" = c734f6632cdb492c0a5a82736023d5c485e0cea5 && ANYTOUR_MONITOR_PENDING_FEED_PLAN_AT=''"$FEED_PLAN_AT"'' ANYTOUR_MONITOR_PENDING_FEED_EXPECTED_INPUT_SHA256=''"$FEED_EXPECTED_INPUT_SHA256"'' ANYTOUR_MONITOR_PENDING_FEED_APPLY=1 php'' < "$RUNNER_TEMP/refresh-pending-2651-feeds.php" | tee "$RUNNER_TEMP/monitor-pending-2651-fresh-feeds.jsonl"
-
-        '
-    - name: Inspect the current 481-hotel roster without writes
-      env:
-        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-      shell: bash
-      run: 'set -euo pipefail
-
-        umask 077
-
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" ''cd /var/www/anytoour/data/www/app.anytoour.ru && test "$(git rev-parse --verify HEAD)" = c734f6632cdb492c0a5a82736023d5c485e0cea5 && ANYTOUR_MONITOR_HOOK_INSPECT=1 php'' < "$RUNNER_TEMP/monitor-price-hook.php" | tee "$RUNNER_TEMP/monitor-price-post-recovery-inspection.jsonl"
-
-        '
-    - uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: monitor-pending-2651-fresh-feed-completion
-        path: '${{ runner.temp }}/monitor-pending-2651-fresh-feed-inspection.jsonl
-
-          ${{ runner.temp }}/monitor-pending-2651-fresh-self-test.jsonl
-
-          ${{ runner.temp }}/monitor-pending-2651-fresh-feeds.jsonl
-
-          ${{ runner.temp }}/monitor-price-post-recovery-inspection.jsonl'
-        retention-days: 14
-    - name: Remove ephemeral connection and bundle
-      if: always()
-      shell: bash
-      run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/monitor-price-hook.php" "$RUNNER_TEMP/refresh-pending-2651-feeds.php"
-env:
-  EXPECTED_PRODUCTION_SHA: c734f6632cdb492c0a5a82736023d5c485e0cea5
-  EXPECTED_SOURCE_SHA: 8f7faaeea18e2d5e1d6d07d660c761c51ccf7a6c
-  EXPECTED_COLLECTOR_MAIN_SHA: 17449ef5eb74edf1c60197ef3b9f00e40feaf485
-  EXPECTED_COLLECTOR_FILE_SHA256: e186d3dbc534d37d956a863a468ea81c1a120e514dc412bc73d0fbb5645b0cd0
-  EXPECTED_HOOK_SHA256: c165dc1a01e46e5e74da119a205caf8cde32b04b03fead67ae530d64efb15727
-  EXPECTED_RECOVERY_DRIVER_SHA256: 68f848878c6801e26a1206dfb31df19b6294389d16d26614c7418f41c881f6a7
-  EXPECTED_RECOVERY_BUILDER_SHA256: 2a0424095a41c6763799f8f3488cae494ac33610a693127a38448d07b9821589

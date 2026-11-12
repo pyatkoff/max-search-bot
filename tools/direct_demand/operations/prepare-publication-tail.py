@@ -120,7 +120,7 @@ def feed(args):
    "photo_url":source["photo_url"],"name":r["name"].replace("-"," "),"destination":r["destination"].replace("-"," "),
    "telegram_post_url":r["telegram_post_url"],"max_post_url":r["max_post_url"],"public_route_alias":binding["public_route_alias"]})
  previous=[]
- require(list(ad.get("previous_feed_sha256",{}))==list(NAMES),"previous_feed_hash_scope")
+ require(set(ad.get("previous_feed_sha256",{}))==set(NAMES),"previous_feed_hash_scope")
  for name in NAMES:
   old=(Path(args.previous_feed_dir)/name).read_bytes();require(digest(old)==ad["previous_feed_sha256"][name],"previous_feed_changed")
   previous.append({"name":name,"sha256":digest(old),"content_base64":encode(old)})
