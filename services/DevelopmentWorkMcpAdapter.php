@@ -104,6 +104,37 @@ final class DevelopmentWorkMcpAdapter
         }unset($tool);
         return $out;
     }
+
+    /** Bounded read-only facts from this exact wrapper and its canonical current grant. */
+    public static function roadmapCatalogStatus(PDO $pdo,?callable $clock,string $surface,int $admin,string $connection,?array $presentedScopes,array $publishedTools): array
+    {
+        if(!in_array($surface,['generic','development'],true)||$pdo->inTransaction())throw new InvalidArgumentException('development_catalog_context');
+        $profile=$surface==='development'?ManagerPreparationOAuth::PROFILE_DEVELOPMENT:ManagerPreparationOAuth::PROFILE_LEGACY;
+        $oauth=new ManagerPreparationOAuth($pdo,$clock,$profile);
+        $current=$oauth->currentAuthorizationMetadata($connection,$admin,[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]);
+        if($current===null)throw new DomainException('development_work_access_denied');
+        $required=[ManagerPreparationOAuth::DEVELOPMENT_SCOPE,ManagerPreparationOAuth::FORECAST_SCOPE];
+        $granted=$current['granted_scopes'];$known=$presentedScopes!==null;
+        $pair=ManagerPreparationOAuth::hasScopes($granted,$required);
+        $presentedPair=$known&&ManagerPreparationOAuth::hasScopes($presentedScopes,$required);
+        $entry=null;foreach($publishedTools as$tool)if(($tool['name']??null)==='development_work_roadmap_admit'){$entry=$tool;break;}
+        $published=$entry!==null;
+        return ['schema'=>'development-roadmap-tool-catalog-v1','surface'=>$surface,
+            'resource'=>$surface==='development'?ManagerPreparationOAuth::DEVELOPMENT_RESOURCE:ManagerPreparationOAuth::RESOURCE,
+            'published_tool_count'=>count($publishedTools),'admission_method'=>'development_work_roadmap_admit',
+            'admission_method_published'=>$published,
+            'admission_schema_sha256'=>$entry===null?null:hash('sha256',json_encode($entry,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),
+            'required_scopes'=>$required,'presented_scopes_known'=>$known,
+            'presented_development_scope'=>$known?ManagerPreparationOAuth::hasScopes($presentedScopes,[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]):null,
+            'presented_forecast_scope'=>$known?ManagerPreparationOAuth::hasScopes($presentedScopes,[ManagerPreparationOAuth::FORECAST_SCOPE]):null,
+            'same_connection_development_scope'=>ManagerPreparationOAuth::hasScopes($granted,[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]),
+            'same_connection_forecast_scope'=>ManagerPreparationOAuth::hasScopes($granted,[ManagerPreparationOAuth::FORECAST_SCOPE]),
+            'same_connection_required_scope_pair'=>$pair,
+            'current_wrapper_authorization_sufficient'=>$surface==='generic'&&$published&&$pair&&$presentedPair,
+            'diagnostic_only'=>true,'dispatch_permission'=>false,
+            'meaning'=>'current_wrapper_and_same_grant_facts_not_host_catalog_or_admission_proof'];
+    }
+
     public function call(string $name,array $args,int $admin,string $connection): array
     {
         if (!in_array($name,self::NAMES,true)||$admin<1||preg_match('/\A[a-f0-9]{32}\z/D',$connection)!==1) throw new InvalidArgumentException('invalid_development_work_call');

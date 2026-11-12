@@ -64,3 +64,15 @@ verify; any target found inside that frontier is rejected. This separate scope
 credits no repair cohort, monetary amount, visit linkage or financial operation.
 Processing consumes exactly the independently accepted ordinary receipt parent.
 Unknown historical API clocks cannot establish a new receipt.
+
+Before admission, the existing closed-archive status can report bounded
+`roadmap_preparation.tool_catalog` facts from the actual serving wrapper.
+It distinguishes the generic resource from the dedicated DEV resource and
+compares its real published catalogue with the presented scopes and the canonical
+current grant of that same caller. It returns only public resource/schema data
+and capability booleans; it does not return credentials, other connections,
+financial rows, or permission to admit/dispatch. Dedicated DEV keeps its existing
+ten methods. A successful financial read through another grant never supplies
+this grant's missing scope pair. A host's available callables must still be
+observed independently. No alternate RPC, scope merge or resource change follows
+from these diagnostics.

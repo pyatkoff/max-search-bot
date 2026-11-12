@@ -46,7 +46,7 @@ final class DevelopmentWorkMcpService
                     'serverInfo'=>['name'=>'anytour-development-work','version'=>'1.0.0']],
                 'initialize'=>$this->initialize($params),'ping'=>(object)[],'notifications/initialized'=>null,
                 'tools/list'=>['tools'=>$this->tools()],
-                'tools/call'=>$this->callTool($params,$admin,$connection),
+                'tools/call'=>$this->callTool($params,$admin,$connection,$scopes),
                 'events/list'=>['events'=>$this->eventDefinitions()],
                 'events/subscribe'=>$this->subscription($params,$admin,$connection,false),
                 'events/unsubscribe'=>$this->subscription($params,$admin,$connection,true),
@@ -98,7 +98,7 @@ final class DevelopmentWorkMcpService
         return $out;
     }
 
-    private function callTool(array $params,int $admin,string $connection): array
+    private function callTool(array $params,int $admin,string $connection,?array $scopes): array
     {
         self::keys($params,['name','arguments']);
         $name=$params['name']??null;$args=$params['arguments']??[];
@@ -111,6 +111,10 @@ final class DevelopmentWorkMcpService
             $self=$this->oauth()->currentConnectionMetadata($connection,$admin,[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]);
             if ($self===null) throw new DevelopmentWorkMcpAccessError('AUTH_CONTEXT_UNAVAILABLE');
             $data=['ok'=>false,'reason'=>'OWNED_QUEUE_UNAVAILABLE','queue_available'=>false,'caller_self'=>$self];
+        }
+        if($name==='development_work_status'&&($data['execution_kind']??null)==='roadmap_archive_preparation'){
+            $data['roadmap_preparation']['tool_catalog']=DevelopmentWorkMcpAdapter::roadmapCatalogStatus(
+                $this->pdo,$this->clock,'development',$admin,$connection,$scopes,$this->tools());
         }
         return DevelopmentWorkServerContract::toolResult($data);
     }
