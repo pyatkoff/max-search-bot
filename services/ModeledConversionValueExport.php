@@ -508,6 +508,8 @@ final class ModeledConversionValueExport
         $saved=$previous[$key];$stats[$key]=is_array($saved)&&strlen(json_encode($saved,JSON_THROW_ON_ERROR))<=768?$saved:false;
         if($this->receiptFits(json_encode($stats,JSON_THROW_ON_ERROR),$mysql))return $stats;
         $stats[$key]=false;
+        $appKey=ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY;
+        if(!$this->receiptFits(json_encode($stats,JSON_THROW_ON_ERROR),$mysql)&&is_array($stats[$appKey]??null))$stats[$appKey]=false;
         return $this->receiptFits(json_encode($stats,JSON_THROW_ON_ERROR),$mysql)?$stats:null;
     }
 

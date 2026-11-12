@@ -2846,6 +2846,22 @@ function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $ori
         $tombstone!==null&&$tombstone[$trackerKey]===false&&$tombstone['finite_visit_evidence']===$base['finite_visit_evidence']
         &&$tombstone['finite_visit_recovery']===$base['finite_visit_recovery']&&$tombstone['finite_counter_scope_evidence']===$base['finite_counter_scope_evidence']
         &&$tombstone['fixed_pair_operational_decisions']===$base['fixed_pair_operational_decisions']&&$tombstone['last_recorded_failure']===$base['last_recorded_failure']);
+    $coupled=array_replace($base,['padding'=>'','accepted'=>3,'errors'=>0],[$key=>$appIntent]);
+    $coupled['padding']=str_repeat('z',max(0,8180-$measure($coupled)));
+    $withMarker=$coupled;$withMarker[$trackerKey]=false;
+    $bothMarkers=$withMarker;$bothMarkers[$key]=false;
+    $check('the native coupled pressure fixture admits the old full payload alone but only both markers fit after tracker consumption',
+        $measure($coupled)<=8192&&$measure($withMarker)>8192&&$measure($bothMarkers)<=8192);
+    $incoming=$coupled;unset($incoming[$key]);
+    $coupledSaved=$merge->invoke($trackerWorker,$incoming,[$key=>$appIntent,$trackerKey=>$trackerSaved[$trackerKey]],$mysql);
+    $check('both optional payloads yield to fresh financial counts while old proofs failure and consumed markers remain',
+        $coupledSaved!==null&&$coupledSaved[$key]===false&&$coupledSaved[$trackerKey]===false
+        &&$coupledSaved['accepted']===3&&$coupledSaved['errors']===0
+        &&$coupledSaved['finite_visit_evidence']===$base['finite_visit_evidence']
+        &&$coupledSaved['finite_visit_recovery']===$base['finite_visit_recovery']
+        &&$coupledSaved['fixed_pair_operational_decisions']===$base['fixed_pair_operational_decisions']
+        &&$coupledSaved['finite_counter_scope_evidence']===$base['finite_counter_scope_evidence']
+        &&$coupledSaved['last_recorded_failure']===$base['last_recorded_failure']);
     $lateTracker=$trackerMerge->invoke($trackerWorker,['accepted'=>3],[$trackerKey=>$unknownTracker[$trackerKey]],$mysql);
     $check('a late writer preserves the separate consumed tracker token',$lateTracker[$trackerKey]===$unknownTracker[$trackerKey]);
 
