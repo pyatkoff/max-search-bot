@@ -96,9 +96,12 @@ final class DevelopmentRoadmapSavedResult
                 &&($r['assessment_namespace']??null)===$c['namespace_sha256']
                 &&($r['coverage']['whole_current_namespace_repair_cohort']??null)===true
                 &&($r['provider_requests']??null)===0,'cohort_scope');
-            self::need(($r['new_increment_events']??null)===$c['events']
-                &&self::wholeRub($r['new_increment_value_rub']??null)===$c['value_rub'],'cohort_totals');
             $f=$r['processing_frontier']??null;
+            self::need(is_array($f)&&is_int($f['later_profile_events']??null)&&$f['later_profile_events']>=0
+                &&self::wholeRub($f['later_profile_value_rub']??null)!==null
+                &&($r['new_increment_events']??null)===$c['events']+$f['later_profile_events']
+                &&self::wholeRub($r['new_increment_value_rub']??null)===$c['value_rub']+self::wholeRub($f['later_profile_value_rub']),
+                'cohort_totals');
             self::need(is_array($f)&&($f['available']??null)===true&&($f['complete_within_bound']??null)===true
                 &&($f['provider_requests_in_reader']??null)===0
                 &&($f['profile_cutoff_unix']??null)===$c['profile_cutoff_unix']
@@ -191,7 +194,7 @@ final class DevelopmentRoadmapSavedResult
     private static function wholeRub(mixed $v): ?int
     {
         if(is_int($v))return $v;
-        if(is_float($v)&&is_finite($v)&&$v>=0&&$v<=1600000&&$v===floor($v))return (int)$v;
+        if(is_float($v)&&is_finite($v)&&$v>=0&&$v<=1000000000000&&$v===floor($v))return (int)$v;
         return null;
     }
     private static function instant(mixed $v): bool{return is_int($v)&&$v>=946684800;}

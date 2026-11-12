@@ -20,7 +20,7 @@ function devRoadmapSavedFixture(): array
         'repair_assessments'=>['available'=>true,'assessment_namespace'=>$ns,'provider_requests'=>0,
             'coverage'=>['whole_current_namespace_repair_cohort'=>true],'new_increment_events'=>3,'new_increment_value_rub'=>600.0,
             'processing_frontier'=>['available'=>true,'complete_within_bound'=>true,'provider_requests_in_reader'=>0,
-                'profile_cutoff_unix'=>1800000000,'observed_events'=>3,'observed_value_rub'=>600,'membership_sha256'=>$membership,
+                'profile_cutoff_unix'=>1800000000,'later_profile_events'=>0,'later_profile_value_rub'=>0.0,'observed_events'=>3,'observed_value_rub'=>600,'membership_sha256'=>$membership,
                 'columns'=>['event_ref','platform','value_rub','state','hold_reason','upload_status','receipt_ref','api_first_unix','processed_unix'],
                 'legend'=>['state'=>['unknown','pending','ready','uploading','accepted','processed','unknown','failed','expired','unmatched'],
                     'upload_status'=>['unknown','not_recorded','PREPARED','UPLOADED','EXPORTED','MATCHED','PROCESSED','LINKAGE_FAILURE']],
@@ -38,6 +38,15 @@ function devRoadmapSavedChecks(): void
         &&$candidate['provider_requests']===0&&$candidate['mutation_performed']===false
         &&$candidate['coding_or_deployment_proof']===false&&$candidate['per_receipt_visit_linkage']==='not_checked',
         'roadmap_saved_candidate_never_impersonates_owner_acceptance_coding_deploy_or_visit');
+    $later=$snapshot;$later['repair_assessments']['new_increment_events']=4;
+    $later['repair_assessments']['new_increment_value_rub']=700.0;
+    $later['repair_assessments']['processing_frontier']['later_profile_events']=1;
+    $later['repair_assessments']['processing_frontier']['later_profile_value_rub']=100.0;
+    devAssert(DevelopmentRoadmapSavedResult::evaluate('saved_finance_new_receipts',$capsule,$later,$now)['state']==='candidate',
+        'roadmap_later_profiles_reconcile_but_never_join_frozen_cohort');
+    $later['repair_assessments']['new_increment_value_rub']=701.0;
+    devAssert(DevelopmentRoadmapSavedResult::evaluate('saved_finance_new_receipts',$capsule,$later,$now)['state']==='blocked',
+        'roadmap_later_profile_value_mismatch_not_hidden');
     $hash=DevelopmentRoadmapSavedResult::hash($candidate);
     $done=$snapshot;$done['captured_at']=$now+60;
     $done['repair_assessments']['processing_frontier']['rows'][2][3]=5;
