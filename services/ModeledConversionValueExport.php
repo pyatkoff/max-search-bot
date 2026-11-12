@@ -586,7 +586,8 @@ final class ModeledConversionValueExport
         return array_values(array_filter($users,static fn(string $user):bool=>$user!==$selected['external_user_id']));
     }
 
-    /** After committed financial work only, once per subject per tick. Two SELECTs share the original 25 budget. */
+    /** Known branch:24 ordinary users+1 source user<=25, one lookup/user/tick; receiver SELECTs are not user slots.
+     * The old missing-case0 branch retains its existing conservative guard. */
     private function runRetainedTrackerEvidence(?object $lookup,int $now,callable $gate,bool $known=false):void
     {
         $reservation=$known?$this->retainedKnownReservation:$this->retainedTrackerReservation;
