@@ -1,0 +1,300 @@
+{
+  "state": "PREPARED_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261112-3-v1",
+  "registry_version": 221,
+  "registry_sha256": "6ddf22bd0c778f994b28234b47a83a4c99840f5d5f9be314800658d50d205a15",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 522,
+  "expected_new_full_pairs": 10,
+  "rows": [
+    {
+      "hotel_id": 65782,
+      "logical_id": "commercial-paloma-finesse-65782-v1",
+      "aliases": [
+        "Paloma Finesse Side",
+        "PALOMA FINESSE SIDE"
+      ],
+      "text": "✈️ Туры в Paloma Finesse Side\n📍 Сиде, Турция.\n\nПесчаный пляж 350 м и гастрономическая концепция «всё включено». Для семей есть детский буфет, бассейн и клуб, а для водных развлечений доступен Palomaqua.\n\nАквапарк расположен между Finesse и Orenda, в нескольких минутах ходьбы. Сезонную работу и ограничения горок уточним на ваши даты.\n\nПляжные кабаны оплачиваются отдельно. Выход к бассейну предусмотрен только у определённых категорий номеров; подберём подходящую.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "2744fdeca01c9bb962d9a058bc05434ca396f711d271eba3d67043c7041e579e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4aecd9a1ed3835cfbed73f563e4e24e64d64db38/.github/traffic-publish/commercial-20261112-batch3/65782.png",
+      "photo_sha256": "d15363fd51a6ba26b5095966dbb3aedab8fd31dc072dffb73f565cc2c4ea2244",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.palomahotels.com/en/finesse-side/beach-and-pool",
+        "https://www.palomahotels.com/en/finesse-side/fine-kitchen",
+        "https://www.palomahotels.com/en/finesse-side",
+        "https://www.palomahotels.com/en/finesse-side/stay",
+        "https://www.palomahotels.com/Content/imgUpload/11-27-2020-10-33-16-AMfinesse-cabana.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-16-2020-2-45-10-PMfinesseroomslider.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/image-1-6-2021-10-52-38-AMfinessepool.jpg"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_dimensions": [
+        600,
+        600
+      ]
+    },
+    {
+      "hotel_id": 65895,
+      "logical_id": "commercial-paloma-orenda-65895-v1",
+      "aliases": [
+        "Paloma Orenda",
+        "PALOMA ORENDA RESORT"
+      ],
+      "text": "✈️ Туры в Paloma Orenda\n📍 Титреенгёль, Сиде, Турция.\n\nОтдых у моря среди садов и невысоких корпусов: собственный песчаный пляж, бассейны и детские программы.\n\nГостям доступен Palomaqua в нескольких минутах ходьбы. Это общая соседняя водная зона между Orenda и Finesse. Работу аквапарка, возрастные правила горок и сезон детских программ уточним на ваши даты.\n\nПляжные кабаны оплачиваются отдельно. Питание и включённые услуги зависят от тарифа; водные развлечения работают с учётом сезона.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "c19e23fb5100f53396c6fc099bfb4c0a331cb44e32c6a94bd0fa4efd7951d8e1",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4aecd9a1ed3835cfbed73f563e4e24e64d64db38/.github/traffic-publish/commercial-20261112-batch3/65895.png",
+      "photo_sha256": "f3a572166b0ddf1d99264a834123f7910baf225fe695d56d7a5e536813a057b1",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.palomahotels.com/en/paloma-orenda",
+        "https://www.palomahotels.com/en/paloma-orenda/beach-and-pool",
+        "https://www.palomahotels.com/Content/imgUpload/16-10-2026-15-07-45orenda-videokapak-1920x1080.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-14-PM10-8-2020-7-22-34-pmbeach.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmjunior-sutes.jpg"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_dimensions": [
+        600,
+        600
+      ]
+    },
+    {
+      "hotel_id": 2175,
+      "logical_id": "commercial-hillside-beach-2175-v1",
+      "aliases": [
+        "Hillside Beach Club",
+        "HILLSIDE BEACH CLUB"
+      ],
+      "text": "✈️ Туры в Hillside Beach Club\n📍 Фетхие, Турция.\n\nОтдых в бухте: семейный Main Beach, бассейн, водные активности и Sanda Nature Spa. Silent и Serenity предназначены только для взрослых; сам курорт принимает семьи.\n\nBaby Park для детей от 0 до 3 лет посещают с родителями, без обещания присмотра. Kidside принимает детей от 4 до 10 лет, Activity Center от 8 до 15 лет.\n\nК Serenity ведёт дорожка через сосновый лес, также предусмотрена лодка. Проверим доступность маршрута, расписание и сезон работы. Питание, спорт и спа уточним по тарифу.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "29884332beb10a90e5631b065c9ff911ebe6e156b070e22635dd9cc3f55df207",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4aecd9a1ed3835cfbed73f563e4e24e64d64db38/.github/traffic-publish/commercial-20261112-batch3/2175.png",
+      "photo_sha256": "7ec953edf59b94aed518e806fbbba36d3a20d6c33c7c428281b829ee792ffbe8",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/beaches",
+        "https://www.hillsidebeachclub.com/en/experiences/children-youth",
+        "https://www.hillsidebeachclub.com/en/gallery",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image/1920x635/main-beach.jpg?=98b3950808f50882f0ad90fac7001209",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery/image/original/hillside-beach-club-room.jpg?=009ec996892707209c4f0b241fae9807",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery/image/original/hillside-beach-club-pool.jpg?=0a6247fb2e6f55ab94afb6d9434c8e99"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_dimensions": [
+        600,
+        600
+      ]
+    },
+    {
+      "hotel_id": 1420,
+      "logical_id": "commercial-papillon-ayscha-1420-v1",
+      "aliases": [
+        "Papillon Ayscha",
+        "PAPILLON AYSCHA"
+      ],
+      "text": "✈️ Туры в Papillon Ayscha\n📍 Белек, Турция.\n\nСемейный отпуск с собственным песчаным пляжем, бассейнами, водными горками и детскими программами. Для просторного размещения можно выбрать семейную категорию, люкс или виллу.\n\nПодогрев отдельных бассейнов зависит от сезона и погоды. Летняя концепция не подтверждает работу всех зон зимой. Возрастные правила клубов и горок уточним; присмотр за младенцами отдельно проверяется.\n\nСобственный бассейн есть только у определённых вилл. Категорию, вместимость и включённые услуги подберём под вашу поездку.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "6da50df44a45953f5368b119c2e9ebad5dccca2361cafcb8283df9af4a0f566f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4aecd9a1ed3835cfbed73f563e4e24e64d64db38/.github/traffic-publish/commercial-20261112-batch3/1420.png",
+      "photo_sha256": "603d030e446e67a86fa566d373440a6bfd1f2fd3d7b81e5ecb4e1f2d242141c2",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://papillon.com.tr/en/papillon-ayscha/",
+        "https://papillon.com.tr/en/papillon-ayscha/beach-pool/",
+        "https://papillon.com.tr/en/papillon-ayscha/rooms-and-suites/",
+        "https://papillon.com.tr/en/papillon-ayscha/papy-kids-world/papy-kids-club/",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/ayscha.pdf",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-10-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Ayscha-Oda-Standart-426-01.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/08/PA_GrandFamilyVilla-2-scaled.jpg"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_dimensions": [
+        600,
+        600
+      ]
+    },
+    {
+      "hotel_id": 1338,
+      "logical_id": "commercial-limak-lara-1338-v1",
+      "aliases": [
+        "Limak Lara Deluxe Hotel & Resort",
+        "LIMAK LARA DE LUXE HOTEL & RESORT"
+      ],
+      "text": "✈️ Туры в Limak Lara Deluxe Hotel & Resort\n📍 Лара, Анталья, Турция.\n\nПесчаный пляж, водные горки, детские бассейны и клуб для детей от 4 до 12 лет. Для просторного семейного отдыха есть семейные номера и люксы.\n\nЗимой подогревается крытый бассейн. Открытые бассейны без подогрева; бассейн у семейных номеров общий для этих категорий, а не частный.\n\nРаботу горок, пляжных развлечений и возрастные правила уточним на ваши даты. Моторные водные развлечения оплачиваются дополнительно.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "b23a2085a45d15cbcbdc9aaebedaefb3e7af39c7e1c976aa190f13c0a38a8732",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4aecd9a1ed3835cfbed73f563e4e24e64d64db38/.github/traffic-publish/commercial-20261112-batch3/1338.png",
+      "photo_sha256": "44bfd236c7995488fe08b6a1964fee5e925acbb4a2729bde9569760d6864c40b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.limakhotels.com/lara",
+        "https://www.limakhotels.com/limak-lara-activities",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GENEL+ALAN+%285%29-1920w.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL+ALAN+%282%29-1920w.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/JAKUZI+SUI%CC%87T+ROOM3-1920w.jpg"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_dimensions": [
+        600,
+        600
+      ]
+    },
+    {
+      "hotel_id": 49345,
+      "logical_id": "commercial-hilton-salalah-49345-v1",
+      "aliases": [
+        "Hilton Salalah Resort",
+        "HILTON SALALAH RESORT"
+      ],
+      "text": "✈️ Туры в Hilton Salalah Resort\n📍 Салала, Оман.\n\nБольше пространства для семьи на побережье Индийского океана: King Deluxe Family Room with French Balcony занимает 64 м². Внутри большая двуспальная кровать, раскладной диван и обеденный стол.\n\nВ отеле есть открытый бассейн с одной горкой, детский клуб и игровая площадка. Одна горка не означает полноценный аквапарк.\n\nУ Family 64 м² вид на горы и французский балкон. Морской вид и обычный балкон выбираются отдельно. Вместимость, возраст детей, дополнительные места и соединённые номера подтвердим под состав семьи.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "e9f7a2574a989ad60b9852b86d34895523f3b25b2510d354d36efc173ab5f99e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4aecd9a1ed3835cfbed73f563e4e24e64d64db38/.github/traffic-publish/commercial-20261112-batch3/49345.png",
+      "photo_sha256": "b669d643da8c89bc3712bac6857b1979665a5abe0a3eb0f437aeeb64ed764dde",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://anytoour.ru/_preview/search3-next-candidate/data/local-tv-catalog-read-v1.php?tourvisorHotelIds%5B%5D=49345&tourvisorHotelIds%5B%5D=49365&tourvisorHotelIds%5B%5D=68810&tourvisorHotelIds%5B%5D=49342&tourvisorHotelIds%5B%5D=62515&tourvisorHotelIds%5B%5D=30158",
+        "https://www.hilton.com/en/hotels/sllhihi-hilton-salalah-resort/",
+        "https://www.hilton.com/en/hotels/sllhihi-hilton-salalah-resort/rooms/",
+        "https://www.hilton.com/im/en/SLLHIHI/22836448/0-exterior-main-entrance.jpg?impolicy=crop&cw=4500&ch=2519&gravity=NorthWest&xposition=0&yposition=240&rw=768&rh=430",
+        "https://www.hilton.com/im/en/SLLHIHI/22836303/26-king-deluxe-family-room-with-french-balcony.jpg?impolicy=crop&cw=5000&ch=2812&gravity=NorthWest&xposition=0&yposition=0&rw=1200&rh=675",
+        "https://www.hilton.com/im/en/SLLHIHI/22835985/0-signature-1-pool-sea-view-1.jpg?impolicy=crop&cw=4500&ch=2519&gravity=NorthWest&xposition=0&yposition=240&rw=768&rh=430"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_dimensions": [
+        600,
+        600
+      ]
+    },
+    {
+      "hotel_id": 49365,
+      "logical_id": "commercial-salalah-rotana-49365-v1",
+      "aliases": [
+        "Salalah Rotana Resort",
+        "SALALAH ROTANA RESORT"
+      ],
+      "text": "✈️ Туры в Salalah Rotana Resort\n📍 Hawana Salalah, Оман.\n\nДля семьи, которой нужны две спальни: Two Bedrooms Suite 143 м² с террасой. Курорт расположен у белого песчаного пляжа; есть бассейны, детский клуб, теннис и спа.\n\nFamily Garden и Family Ocean по 50 м², Suite 143 м² и Club Rotana отличаются категориями и привилегиями. Вместимость подтвердим под ваш состав.\n\nAqua Park Access означает отдельные условия доступа, а не аквапарк на территории отеля. Включение аквапарка, питание, режим услуг и процедуры спа проверим по тарифу на выбранные даты.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "8b7023ad7a9e4197711443bb98402be51da28c890bd6feb07905694c93f4c786",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4aecd9a1ed3835cfbed73f563e4e24e64d64db38/.github/traffic-publish/commercial-20261112-batch3/49365.png",
+      "photo_sha256": "7428ebe8f1dbbdcd1453d6995cf8ff4b4b000d9feea66f02193f8f710389daa8",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://anytoour.ru/_preview/search3-next-candidate/data/local-tv-catalog-read-v1.php?tourvisorHotelIds%5B%5D=49345&tourvisorHotelIds%5B%5D=49365&tourvisorHotelIds%5B%5D=68810&tourvisorHotelIds%5B%5D=49342&tourvisorHotelIds%5B%5D=62515&tourvisorHotelIds%5B%5D=30158",
+        "https://www.rotana.com/rotanahotelandresorts/oman/salalah/salalahrotanaresort",
+        "https://mobile.rotana.com/rotanahotelandresorts/oman/salalah/salalahrotanaresort/accommodation",
+        "https://www.tui.com/hotels/salalah-rotana-resort-354455/hotelinformation/",
+        "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9kL2RiNjQwNWI4LTY0ZDMtNDkzZC1hMWNmLWMyMmVhZjBhMzExYS5qcGc=",
+        "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS83LzcxMTU0M2FkLWFkZmItNDZjMS1hZDg4LTBiMzgxYzhlZjQ2Zi5qcGc=",
+        "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9hL2EwMDc1MWVhLTI3NzMtNGM2ZC04YzUxLTE0Y2Q4NjFjYmI4Yy5qcGc="
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_dimensions": [
+        600,
+        600
+      ]
+    },
+    {
+      "hotel_id": 49342,
+      "logical_id": "commercial-crowne-plaza-salalah-49342-v1",
+      "aliases": [
+        "Crowne Plaza Resort Salalah",
+        "CROWNE PLAZA RESORT SALALAH"
+      ],
+      "text": "✈️ Туры в Crowne Plaza Resort Salalah\n📍 Салала, Оман.\n\nТри отдельные спальни для большой поездки: Three Bedroom Suite 160 м². В категории указаны одна большая двуспальная и четыре односпальные кровати; допустимый состав гостей подтвердим по тарифу.\n\nЗа пределами номера тропический сад у моря, бассейн, детские занятия и The Villa Wellness & Spa.\n\nКухня относится к отдельным Private Villas и не обещана в Suite 160 м². Название Private Villa также не означает собственный бассейн. Вид из номера, дополнительные места и процедуры спа проверяются отдельно.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "2b45256d7418f31a639fdfd47e24249f830ab3fcdf79957c43a57047b84fd611",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4aecd9a1ed3835cfbed73f563e4e24e64d64db38/.github/traffic-publish/commercial-20261112-batch3/49342.png",
+      "photo_sha256": "6c316ae3a7e91b6fd09468b2eac738c4d54dbaec911d1bad88a4c163b3a1f70b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://anytoour.ru/_preview/search3-next-candidate/data/local-tv-catalog-read-v1.php?tourvisorHotelIds%5B%5D=49345&tourvisorHotelIds%5B%5D=49365&tourvisorHotelIds%5B%5D=68810&tourvisorHotelIds%5B%5D=49342&tourvisorHotelIds%5B%5D=62515&tourvisorHotelIds%5B%5D=30158",
+        "https://www.ihg.com/crowneplaza/hotels/us/en/salalah/sllss/hoteldetail",
+        "https://www.ihg.com/crowneplaza/hotels/us/en/salalah/sllss/hoteldetail/rooms",
+        "https://www.ihg.com/crowneplaza/hotels/us/en/salalah/sllss/hoteldetail/amenities",
+        "https://www.ihg.com/crowneplaza/hotels/us/en/salalah/sllss/hoteldetail/photos-tours",
+        "https://digital.ihg.com/is/image/ihg/crowne-plaza-resort-salalah-6267533408-4x3?wid=733",
+        "https://digital.ihg.com/is/image/ihg/crowne-plaza-resort-salalah-5055630229-4x3?wid=733",
+        "https://digital.ihg.com/is/image/ihg/crowne-plaza-resort-salalah-6583630596-4x3?wid=733"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_dimensions": [
+        600,
+        600
+      ]
+    },
+    {
+      "hotel_id": 102031,
+      "logical_id": "commercial-steigenberger-nile-palace-102031-v1",
+      "aliases": [
+        "Steigenberger Nile Palace",
+        "STEIGENBERGER NILE PALACE LUXOR"
+      ],
+      "text": "✈️ Туры в Steigenberger Nile Palace\n📍 Луксор, Египет.\n\nОтель на берегу Нила для знакомства с историческим Луксором: семейные номера, категории Executive и люксы, подогреваемый открытый бассейн и спа.\n\nЭто городской отдых у реки, без морского пляжа и кораллового рифа. Вид на Нил есть только у выбранных категорий; другие номера могут смотреть на город или внутренний двор.\n\nПитание выбирается по тарифу, «всё включено» не предполагается автоматически. Экскурсии, трансферы, лодочные прогулки и процедуры спа согласуем отдельно.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "4f4356782c6428e57397b0f4ddd12dac5e8a362132e1b17a07e1cd37c4bc58b9",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4aecd9a1ed3835cfbed73f563e4e24e64d64db38/.github/traffic-publish/commercial-20261112-batch3/102031.png",
+      "photo_sha256": "7de7e0a233a16952b30ab050959553bb067e92b807ab2ffbcdcd1812914d773c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://hrewards.com/en/steigenberger-nile-palace-luxor",
+        "https://hrewards.com/en/steigenberger-nile-palace-luxor/wellness-spa",
+        "https://assets.hrewards.com/assets/jpg.xxlarge_562_SHR_Luxor_Nile_Palace_spa_poolview_01_5e6d125c91.jpg?optimize",
+        "https://assets.hrewards.com/assets/jpg.xxlarge_562_SHR_Luxor_Nile_Palace_rooms_Executive_Suite_Panoramic_Nile_View_ec0586a976.jpg?optimize",
+        "https://assets.hrewards.com/assets/jpg.xxlarge_SHR_Luxor_Nile_Palace_restaurant_Nile_Lounge_Bar_2_fe0cac8db9.jpg?optimize"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_dimensions": [
+        600,
+        600
+      ]
+    },
+    {
+      "hotel_id": 102774,
+      "logical_id": "commercial-hilton-luxor-102774-v1",
+      "aliases": [
+        "Hilton Luxor Resort & Spa",
+        "HILTON LUXOR RESORT & SPA"
+      ],
+      "text": "✈️ Туры в Hilton Luxor Resort & Spa\n📍 Луксор, Египет.\n\nПанорамные бассейны, террасы на берегу Нила и спа для отдыха между прогулками по Луксору. В отеле предусмотрены семейные услуги.\n\nРасположение речное, морского пляжа здесь нет. Экскурсии и поездки согласуются и оплачиваются отдельно.\n\nСпа и его отдельный бассейн доступны с 16 лет; сам отель принимает семьи. Вид из номера, питание и семейные включения зависят от категории, возраста детей и тарифа. Процедуры спа не включены автоматически.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "173d3f298a427c4fcef33b69ca8c7409a648e70e157de6f9f372460e677c201e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4aecd9a1ed3835cfbed73f563e4e24e64d64db38/.github/traffic-publish/commercial-20261112-batch3/102774.png",
+      "photo_sha256": "f8443769988f93dba2d19c4869a0c53c40948cd102c84ebc33b3e6c9182ef8d2",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.hilton.com/en/hotels/luxhitw-hilton-luxor-resort-and-spa/",
+        "https://www.hilton.com/en/hotels/luxhitw-hilton-luxor-resort-and-spa/spa/",
+        "https://www.hilton.com/im/en/LUXHITW/21308512/print-hiltonluxor-susanblick-3.jpg?impolicy=crop&cw=5000&ch=2799&gravity=NorthWest&xposition=0&yposition=266&rw=768&rh=430",
+        "https://www.hilton.com/im/en/LUXHITW/15907967/deluxe-guest-room-king-bed-image-1.jpg?impolicy=crop&cw=5000&ch=2799&gravity=NorthWest&xposition=0&yposition=270&rw=768&rh=430",
+        "https://www.hilton.com/im/en/LUXHITW/3048242/luxhitw-14-sunset-terrace.jpg?impolicy=crop&cw=5616&ch=3144&gravity=NorthWest&xposition=0&yposition=515&rw=768&rh=430"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_dimensions": [
+        600,
+        600
+      ]
+    }
+  ]
+}

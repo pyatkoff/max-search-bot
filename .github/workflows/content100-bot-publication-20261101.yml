@@ -1,4 +1,4 @@
-name: Complete only the confirmed ten hotel feed additions
+name: Publish the approved AnyTour hotel batch in both channels
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -10,10 +10,9 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: 6e1c61915d0afc35ec8198d59021fe5a6bddadb6
   EXPECTED_DEPLOY_RUN_ID: '43229715899'
   EXPECTED_TLS_RUN_ID: '43231780721'
-  FEED_OPERATION: commercial-channel-hotel-feeds-20261112-update2
+  EXPECTED_PRODUCTION_SHA: 6e1c61915d0afc35ec8198d59021fe5a6bddadb6
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
@@ -24,210 +23,55 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Authenticate original publication and root-admitted private route proof before connection credentials
+      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          test "$GITHUB_RUN_ATTEMPT" = 1
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          umask 077
-          python3 - <<'PY'
-          import hashlib,json,os,pathlib,re,subprocess,zipfile
-          base=pathlib.Path('tools/direct_demand/operations')
-          work=pathlib.Path(os.environ['RUNNER_TEMP'])/'feed-tail'
-          evidence=work/'source-evidence';evidence.mkdir(parents=True,mode=0o700)
-          source_raw=(base/'commercial-channel-hotel-feeds-20261112-update2-source.json').read_bytes()
-          plan=json.loads(source_raw)
-          assert plan['schema_version']==1 and plan['operation']==os.environ['FEED_OPERATION']
-          assert plan['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and plan['previous_count']==519
-          def sha(b):return hashlib.sha256(b).hexdigest()
-          def hex64(v):assert isinstance(v,str) and re.fullmatch(r'[a-f0-9]{64}',v), 'EXACT_REAL_HASH_REQUIRED'
-          def positive(v):assert type(v) is int and v>0, 'EXACT_ORIGINAL_RUN_OR_ARTIFACT_ID_REQUIRED'
-          pins={'prepare-publication-tail.py':'0de4315c4480274d66dcc560cf7cef4280422ede369ee7c7d858b9f5a73d1f38',
-                'publish-commercial-channel-hotel-feeds-20261103-1.php':'e5f21316166dce66a982ddcca1b9e2bcf172221f4e96bf75ae4be5e85b8cb8ab',
-                'monitor-price-contract.php':'62e8ab1ab0c08eea9dd42ac6dbb362f0015e397e90e2617d7f44aa6be0c7f690'}
-          for name,h in pins.items():assert sha((base/name).read_bytes())==h, 'FROZEN_TAIL_CODE_CHANGED'
-          for name,key in [('commercial-batch-20261112-2-manifest.json','manifest_sha256'),('commercial-batch-20261112-2-approval.json','approval_sha256')]:
-            hex64(plan[key]);assert sha((base/name).read_bytes())==plan[key], 'ORIGINAL_APPROVED_INPUT_CHANGED'
-          publisher=plan['publisher']
-          assert publisher['repository']=='pyatkoff/max-search-bot'
-          assert publisher['head_branch']=='audit/content100-bot-publication-20261101'
-          assert publisher['workflow_path']=='.github/workflows/content100-bot-publication-20261101.yml'
-          positive(publisher['run_id']);assert publisher['run_attempt']==1
-          assert publisher['head_sha']=='14ba1d90fbb42bb5368e3fdc7e4fb89ec5aa6ce7'
-          for key in ('publication_summary_sha256','bound_read_sha256'):hex64(publisher[key])
-          artifact=publisher['artifact'];positive(artifact['id']);hex64(artifact['zip_sha256'])
-          assert artifact['name']=='commercial-batch-20261112-2-publication-and-read'
-          route=plan['route']
-          assert route['source_method']=='root_authenticated_private_artifacts'
-          assert route['repository']=='pyatkoff/tour-max' and route['run_attempt']==1
-          assert route['operation']=='commercial-max522-private-route-extension-20261112-2-install1'
-          assert route['run_id']==43238423875 and route['head_sha']=='08bccf8196d592f744c8fb740bd7dfffb241f85d'
-          for key in ('original_manifest_sha256','manifest_projection_sha256','map_sha256','module_sha256','receipt_sha256','route_proof_sha256'):hex64(route[key])
-          # These three safe files were derived by root from authenticated private originals.
-          # No tour-max API request and no private route map is supplied to this workflow.
-          route_dir=work/'accepted/route';route_dir.mkdir(parents=True,mode=0o700)
-          safe_files=[('commercial-max522-20261112-2-route-proof.json','route_proof_sha256'),
-                      ('commercial-max522-20261112-2-route-manifest-projection.json','manifest_projection_sha256'),
-                      ('commercial-max522-20261112-2-route-result.json','receipt_sha256')]
-          for name,key in safe_files:
-            raw=(base/name).read_bytes();assert sha(raw)==route[key], 'ROOT_AUTHENTICATED_ROUTE_PROJECTION_CHANGED'
-            (route_dir/name).write_bytes(raw)
-          proof=json.loads((route_dir/safe_files[0][0]).read_bytes())
-          assert proof['kind']=='root_authenticated_private_route_extension'
-          assert proof['original_route_manifest_sha256']==route['original_manifest_sha256']
-          assert proof['original_route_map_sha256']==route['map_sha256'] and proof['original_route_module_sha256']==route['module_sha256']
-          assert proof['route_manifest_projection_sha256']==route['manifest_projection_sha256'] and proof['route_receipt_sha256']==route['receipt_sha256']
-          assert proof['publication_summary_sha256']==publisher['publication_summary_sha256'] and proof['bound_read_sha256']==publisher['bound_read_sha256']
-          for key in ('repository','run_id','run_attempt','head_sha','head_branch','workflow_path','candidate_artifact','result_artifact'):
-            assert proof['source'][key]==route[key], 'ROOT_ROUTE_PROOF_PROVENANCE_CHANGED'
-          def api(path,out,raw=False):
-            assert path.startswith('repos/pyatkoff/max-search-bot/'), 'PUBLICATION_REPOSITORY_ONLY'
-            command=['gh','api']
-            if raw:command+=['-H','Accept: application/vnd.github.raw+json']
-            command+=[path]
-            with out.open('wb') as f:subprocess.run(command,stdout=f,check=True,timeout=60)
-            return out.read_bytes()
-          run=json.loads(api('repos/pyatkoff/max-search-bot/actions/runs/'+str(publisher['run_id']),evidence/'publication-run.json'))
-          assert run['id']==publisher['run_id'] and run['run_attempt']==1
-          assert run['head_sha']==publisher['head_sha'] and run['head_branch']==publisher['head_branch'] and run['path']==publisher['workflow_path']
-          assert run['event']=='push' and run['status']=='completed' and run['conclusion']=='success', 'ORIGINAL_PUBLICATION_RUN_NOT_SUCCESSFUL'
-          meta=json.loads(api('repos/pyatkoff/max-search-bot/actions/artifacts/'+str(artifact['id']),evidence/'publication-artifact.json'))
-          assert meta['id']==artifact['id'] and meta['name']==artifact['name'] and meta['expired'] is False
-          assert meta['digest']=='sha256:'+artifact['zip_sha256']
-          assert meta['workflow_run']['id']==publisher['run_id'] and meta['workflow_run']['head_sha']==publisher['head_sha']
-          archive=work/'publication.zip'
-          api('repos/pyatkoff/max-search-bot/actions/artifacts/'+str(artifact['id'])+'/zip',archive)
-          assert sha(archive.read_bytes())==artifact['zip_sha256'], 'ORIGINAL_PUBLICATION_ZIP_CHANGED'
-          destination=work/'accepted/publication';destination.mkdir(parents=True,mode=0o700)
-          with zipfile.ZipFile(archive) as z:
-            assert sum(i.file_size for i in z.infolist())<8000000, 'ARTIFACT_SIZE_BOUND'
-            for name in ['channel-preflight.json','channel-feed-read.json']:
-              matches=[i for i in z.infolist() if not i.is_dir() and pathlib.PurePosixPath(i.filename).name==name]
-              assert len(matches)==1 and 0<matches[0].file_size<4000000, 'ARTIFACT_FILE_NOT_UNIQUE'
-              member=pathlib.PurePosixPath(matches[0].filename)
-              assert not member.is_absolute() and '..' not in member.parts, 'UNSAFE_ARTIFACT_MEMBER'
-              (destination/name).write_bytes(z.read(matches[0]))
-          manifest_name='commercial-batch-20261112-2-manifest.json'
-          original=api('repos/pyatkoff/max-search-bot/contents/tools/direct_demand/operations/'+manifest_name+'?ref='+publisher['head_sha'],evidence/'original-published-manifest.json',True)
-          assert sha(original)==plan['manifest_sha256'], 'PUBLISHED_SOURCE_MANIFEST_CHANGED'
-          pub=(destination/'channel-preflight.json').read_bytes().splitlines()[-1]
-          read=(destination/'channel-feed-read.json').read_bytes()
-          assert sha(pub)==publisher['publication_summary_sha256'] and sha(read)==publisher['bound_read_sha256'], 'ORIGINAL_PUBLICATION_RECEIPT_CHANGED'
-          p=json.loads(pub);r=json.loads(read.splitlines()[-1]);installed=json.loads((route_dir/safe_files[2][0]).read_bytes())
-          assert p['ok'] is True and p['operation']=='commercial-hotel-batch-20261112-2-v1' and len(p['posts'])==6
-          assert r['ok'] is True and r['operation']=='commercial-channel-hotel-feeds-20261112-read2'
-          assert installed['ok'] is True and installed['operation']==route['operation'] and installed['state']=='INSTALLED_AND_NATIVE_VERIFIED'
-          (work/'source.json').write_bytes(source_raw)
-          print(json.dumps({'operation':plan['operation'],'original_publication_run_authenticated':True,'exact_publication_archive':1,
-                            'route_admission':'root_authenticated_private_artifacts','private_map_downloads':0,
-                            'publication_posts':6,'native_route_state':installed['state'],'post_write_attempts':0,'provider_calls':0}))
-          PY
-      - name: Verify current approved runtime against original Deploy and strict TLS evidence
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          evidence="$RUNNER_TEMP/feed-tail/source-evidence/runtime"
+          evidence="$RUNNER_TEMP/commercial-source-evidence"
           mkdir -p "$evidence"
           gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
           gh api "repos/pyatkoff/max-search-bot/actions/runs/$EXPECTED_DEPLOY_RUN_ID" > "$evidence/verify_run.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/$EXPECTED_DEPLOY_RUN_ID/jobs?per_page=20" > "$evidence/verify_jobs.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/${EXPECTED_DEPLOY_RUN_ID}/jobs?per_page=20" > "$evidence/verify_jobs.json"
           gh api "repos/pyatkoff/max-search-bot/actions/runs/$EXPECTED_TLS_RUN_ID" > "$evidence/tls_run.json"
           gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
+          python3 - <<'PYPIN'
+          import hashlib,pathlib
+          assert hashlib.sha256(pathlib.Path('tools/direct_demand/operations/verify-commercial-source.py').read_bytes()).hexdigest()=='51270e4ce241914001ddc307e581ffdac69234c3880e77bd99a7be6b4e5d4a7a'
+          PYPIN
           python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - name: Freshly read the three served preimages and prepare the exact feed-only write
+      - name: Prepare and validate the exact sender and bounded read
         shell: bash
         run: |
           set -euo pipefail
+          test "$GITHUB_RUN_ATTEMPT" = 1
           umask 077
           python3 - <<'PY'
-          import datetime,hashlib,json,os,pathlib,urllib.request
-          base=pathlib.Path('tools/direct_demand/operations')
-          work=pathlib.Path(os.environ['RUNNER_TEMP'])/'feed-tail';plan=json.loads((work/'source.json').read_bytes())
-          previous=work/'preimages';previous.mkdir(mode=0o700)
-          names=['hotel-posts-telegram.xml','hotel-posts-max.xml','hotel-posts-all.xml']
-          class NoRedirect(urllib.request.HTTPRedirectHandler):
-            def redirect_request(self,*args,**kwargs):return None
-          opener=urllib.request.build_opener(NoRedirect)
-          observed=[];hashes={}
-          for name in names:
-            url='https://app.anytoour.ru/feed/'+name
-            request=urllib.request.Request(url,headers={'User-Agent':'AnyTour confirmed publication feed tail','Cache-Control':'no-cache','Pragma':'no-cache'})
-            with opener.open(request,timeout=20) as response:
-              assert response.status==200 and response.geturl()==url
-              raw=response.read(4000001)
-              assert 1000<len(raw)<4000000 and raw.startswith(b'<?xml version="1.0" encoding="UTF-8"?>'), 'CURRENT_FEED_NOT_ACCEPTED'
-              observed.append({'name':name,'http_status':response.status,'bytes':len(raw),'etag':response.headers.get('ETag'),
-                               'last_modified':response.headers.get('Last-Modified'),'read_at_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()})
-            hashes[name]=hashlib.sha256(raw).hexdigest();(previous/name).write_bytes(raw)
-          admission={'schema_version':1,'operation':plan['operation'],'expected_installed_sha':plan['expected_installed_sha'],
-                     'previous_count':519,'manifest_sha256':plan['manifest_sha256'],
-                     'publication_summary_sha256':plan['publisher']['publication_summary_sha256'],
-                     'bound_read_sha256':plan['publisher']['bound_read_sha256'],'route_receipt_sha256':plan['route']['receipt_sha256'],
-                     'route_manifest_sha256':plan['route']['manifest_projection_sha256'],
-                     'original_route_manifest_sha256':plan['route']['original_manifest_sha256'],
-                     'route_proof_sha256':plan['route']['route_proof_sha256'],'previous_feed_sha256':hashes,
-                     'writer_sha256':'e5f21316166dce66a982ddcca1b9e2bcf172221f4e96bf75ae4be5e85b8cb8ab',
-                     'monitor_contract_sha256':'62e8ab1ab0c08eea9dd42ac6dbb362f0015e397e90e2617d7f44aa6be0c7f690'}
-          (work/'admission.json').write_text(json.dumps(admission,ensure_ascii=False,indent=2)+'\n')
-          (previous/'read-evidence.json').write_text(json.dumps({'files':observed,'sha256':hashes},ensure_ascii=False,indent=2)+'\n')
-          print(json.dumps({'operation':plan['operation'],'fresh_preimages':3,'previous_feed_sha256':hashes,'server_writes':0}))
-          PY
-          python3 tools/direct_demand/operations/prepare-publication-tail.py feed \
-            --manifest tools/direct_demand/operations/commercial-batch-20261112-2-manifest.json \
-            --approval tools/direct_demand/operations/commercial-batch-20261112-2-approval.json \
-            --admission "$RUNNER_TEMP/feed-tail/admission.json" \
-            --publication "$RUNNER_TEMP/feed-tail/accepted/publication/channel-preflight.json" \
-            --bound-read "$RUNNER_TEMP/feed-tail/accepted/publication/channel-feed-read.json" \
-            --route-receipt "$RUNNER_TEMP/feed-tail/accepted/route/commercial-max522-20261112-2-route-result.json" \
-            --route-manifest "$RUNNER_TEMP/feed-tail/accepted/route/commercial-max522-20261112-2-route-manifest-projection.json" \
-            --route-proof "$RUNNER_TEMP/feed-tail/accepted/route/commercial-max522-20261112-2-route-proof.json" \
-            --previous-feed-dir "$RUNNER_TEMP/feed-tail/preimages" \
-            --writer tools/direct_demand/operations/publish-commercial-channel-hotel-feeds-20261103-1.php \
-            --monitor-contract tools/direct_demand/operations/monitor-price-contract.php \
-            --output "$RUNNER_TEMP/feed-tail/write.php"
-          php -l "$RUNNER_TEMP/feed-tail/write.php"
-          python3 - <<'ROSTER'
-          import gzip,hashlib,json,pathlib
-          p=pathlib.Path('tools/direct_demand/operations/monitor-price-expanded-roster-20261111.json.gz')
-          raw=p.read_bytes();assert hashlib.sha256(raw).hexdigest()=='bf8cd4871d7fe812de93be07af720145efe887784d0efe11494d0bc831d8d69d'
-          rows=json.loads(gzip.decompress(raw))['rows']
-          assert len(rows)==494 and [r['tourvisor_hotel_id'] for r in rows[-3:]]==[35313,66564,68907]
-          print('EXISTING_MONITOR_ROSTER_494_READY activation_requires_original_feed_success=1 supplier_calls=0')
-          ROSTER
-          python3 tools/direct_demand/operations/build-monitor-price-hook.py "$RUNNER_TEMP/feed-tail/monitor-price-hook-494.php"
-          php -l "$RUNNER_TEMP/feed-tail/monitor-price-hook-494.php"
-          python3 - <<'PY'
           import hashlib,json,os,pathlib
-          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'feed-tail';d=json.loads((p/'write.php.input.json').read_bytes())
-          assert d['schema_version']==4 and d['operation']==os.environ['FEED_OPERATION']
-          assert [x['rows'] for x in d['files']]==[522,522,1044]
-          intent={'operation':d['operation'],'state':'PREPARED_NOT_WRITTEN','expected_installed_sha':os.environ['EXPECTED_PRODUCTION_SHA'],
-                  'input_sha256':hashlib.sha256((p/'write.php.input.json').read_bytes()).hexdigest(),
-                  'writer_sha256':hashlib.sha256((p/'write.php').read_bytes()).hexdigest(),
-                  'files':[{k:r[k] for k in ('name','sha256','bytes','rows','expected_previous_sha256')} for r in d['files']],
-                  'previous519_offer_blocks':'byte_exact','provider_calls':0,'post_write_attempts':0}
-          (p/'write-intent.json').write_text(json.dumps(intent,ensure_ascii=False,indent=2)+'\n')
-          print(json.dumps(intent,ensure_ascii=False))
+          base=pathlib.Path('tools/direct_demand/operations')
+          assert hashlib.sha256((base/'prepare-commercial-batch.py').read_bytes()).hexdigest()=='ccda43ff0360de931ee7c04f9f151c1232e531820335a9cc21a2591634f2157f'
+          pins={'prepare-publication-tail.py': '0de4315c4480274d66dcc560cf7cef4280422ede369ee7c7d858b9f5a73d1f38'}
+          for name,sha in pins.items():assert hashlib.sha256((base/name).read_bytes()).hexdigest()==sha,name
+          approval=json.loads((base/'commercial-batch-20261112-3-approval.json').read_text())
+          assert approval['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+          assert approval['operation']=='commercial-hotel-batch-20261112-3-v1' and approval['hotel_ids']==[65782,65895,2175,1420,1338,49345,49365,49342,102031,102774]
           PY
-      - name: Retain original source evidence, current preimages and exact write intent before any write
+          python3 tools/direct_demand/operations/prepare-commercial-batch.py --manifest tools/direct_demand/operations/commercial-batch-20261112-3-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261112-3-approval.json --output "$RUNNER_TEMP/channel-preflight.php"
+          php -l "$RUNNER_TEMP/channel-preflight.php"
+          python3 tools/direct_demand/operations/prepare-publication-tail.py reader --manifest tools/direct_demand/operations/commercial-batch-20261112-3-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261112-3-approval.json --reader-template tools/direct_demand/operations/read-commercial-channel-hotel-feeds-20261108-48.php --reader-operation commercial-channel-hotel-feeds-20261112-read3 --output "$RUNNER_TEMP/channel-feed-read.php"
+          php -l "$RUNNER_TEMP/channel-feed-read.php"
+          ANYTOUR_CHANNEL_BATCH51_SCOPE_FIXTURE=1 php "$RUNNER_TEMP/channel-feed-read.php"
+      - name: Retain exact approved inputs before any channel write
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-channel-hotel-feeds-20261112-update2-intent
+          name: commercial-batch-20261112-3-inputs
           path: |
-            ${{ runner.temp }}/feed-tail/source.json
-            ${{ runner.temp }}/feed-tail/source-evidence
-            ${{ runner.temp }}/feed-tail/accepted
-            ${{ runner.temp }}/feed-tail/preimages
-            ${{ runner.temp }}/feed-tail/admission.json
-            ${{ runner.temp }}/feed-tail/write-intent.json
-            ${{ runner.temp }}/feed-tail/write.php.input.json
+            tools/direct_demand/operations/commercial-batch-20261112-3-manifest.json
+            tools/direct_demand/operations/commercial-batch-20261112-3-approval.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -268,64 +112,67 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Invoke the existing three-feed writer once without any post publication
+      - name: Publish the exact approved hotel posts with canonical buttons and no duplicates
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
-          test "$GITHUB_RUN_ATTEMPT" = 1
           umask 077
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/feed-tail/write.php" > "$RUNNER_TEMP/feed-tail/write-result.json" || feed_status=$?
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
           python3 - <<'PY'
-          import json,os,pathlib
-          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'feed-tail'
-          d=json.loads((p/'write-result.json').read_text().splitlines()[-1]);intent=json.loads((p/'write-intent.json').read_bytes())
-          print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-          assert d['operation']==os.environ['FEED_OPERATION'] and d['mode']=='publish_three_static_public_direct_yml_feeds'
-          assert d['ok'] is True and all(d[k]==0 for k in ('db_writes','provider_calls','message_sends'))
-          assert len(d['files'])==3
-          for actual,expected in zip(d['files'],intent['files']):
-            assert all(actual[k]==expected[k] for k in ('name','sha256','bytes','rows'))
-            assert actual['write_action'] in ('replace','reuse')
+          import pathlib,json,os
+          lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
+          d=json.loads(lines[-1])
+          print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
+          print(json.dumps({'new_post_urls':[{'platform':p['platform'],'logical_id':p['logical_id'],'post_url':p['post_url'],'verified':p['body_photo_button_verified']} for p in d.get('posts',[])]},ensure_ascii=False))
+          assert d['operation']=='commercial-hotel-batch-20261112-3-v1' and d['mode']=='publish_approved_commercial_batch'
+          assert d['ok'] is True and len(d['posts'])==20
+          assert d['post_write_attempts']<=20 and d['new_posts']<=20
+          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==20
+          assert all(p['body_photo_button_verified'] and p['button_text']=='✈️ Узнать стоимость тура' for p in d['posts'])
           PY
-          test "${feed_status:-0}" = 0
-      - name: Verify the exact three served results without repeating the write
+          test "${probe_status:-0}" = 0
+      - name: Read only the confirmed canonical pairs and native MAX bindings
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          import datetime,hashlib,json,os,pathlib,urllib.request
-          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'feed-tail';intent=json.loads((p/'write-intent.json').read_bytes())
-          class NoRedirect(urllib.request.HTTPRedirectHandler):
-            def redirect_request(self,*args,**kwargs):return None
-          opener=urllib.request.build_opener(NoRedirect);verified=[]
-          for expected in intent['files']:
-            url='https://app.anytoour.ru/feed/'+expected['name']
-            with opener.open(urllib.request.Request(url,headers={'Cache-Control':'no-cache','Pragma':'no-cache'}),timeout=20) as response:
-              assert response.status==200 and response.geturl()==url;raw=response.read(4000001)
-            assert len(raw)==expected['bytes'] and hashlib.sha256(raw).hexdigest()==expected['sha256'], 'PUBLIC_FEED_READBACK_CHANGED'
-            verified.append({k:expected[k] for k in ('name','sha256','bytes','rows')})
-          result={'operation':os.environ['FEED_OPERATION'],'ok':True,'files':verified,
-                  'verified_at_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                  'post_write_attempts':0,'provider_calls':0,'db_writes':0}
-          (p/'public-readback.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
-          print(json.dumps(result,ensure_ascii=False))
-          PY
-      - name: Retain original feed-only result and readback evidence
+          umask 077
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php" < "$RUNNER_TEMP/channel-feed-read.php" > "$RUNNER_TEMP/channel-feed-read.json" || read_status=$?
+          python3 - <<'PYREAD'
+          import json,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])
+          receipt=json.loads((p/'channel-preflight.json').read_text().splitlines()[-1])
+          d=json.loads((p/'channel-feed-read.json').read_text().splitlines()[-1])
+          ids=[65782,65895,2175,1420,1338,49345,49365,49342,102031,102774]
+          assert d['ok'] is True and d['operation']=='commercial-channel-hotel-feeds-20261112-read3'
+          assert d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+          assert d['scope_hotels']==d['feed_rows']==d['private_binding_count']==10 and d['deferred_count']==0
+          assert [r['hotel_id'] for r in d['rows']]==[r['hotel_id'] for r in d['private_max_bindings']]==ids
+          assert all(d[k]==0 for k in ('db_writes','provider_calls','message_sends'))
+          by_pair={(r['hotel_id'],r['platform']):r for r in receipt['posts']}
+          for r,b in zip(d['rows'],d['private_max_bindings']):
+            for platform in ('telegram','max'):assert r[platform+'_post_url']==by_pair[(r['hotel_id'],platform)]['post_url']
+            assert str(b['publication_id'])==str(by_pair[(r['hotel_id'],'max')]['publication_id'])
+          print(json.dumps({k:d[k] for k in ('operation','ok','scope_hotels','feed_rows','private_binding_count','deferred_count','provider_calls','db_writes','message_sends')}))
+          PYREAD
+          test "${read_status:-0}" = 0
+      - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-channel-hotel-feeds-20261112-update2-result
+          name: commercial-batch-20261112-3-publication-and-read
           path: |
-            ${{ runner.temp }}/feed-tail/write-result.json
-            ${{ runner.temp }}/feed-tail/public-readback.json
-            ${{ runner.temp }}/feed-tail/write-intent.json
+            ${{ runner.temp }}/channel-preflight.json
+            ${{ runner.temp }}/channel-feed-read.json
           retention-days: 14
           if-no-files-found: warn
-      - name: Remove ephemeral connection files and compiled writer
+      - name: Remove ephemeral connection and script files
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/feed-tail/write.php"
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json" "$RUNNER_TEMP/channel-feed-read.php" "$RUNNER_TEMP/channel-feed-read.json"
 
