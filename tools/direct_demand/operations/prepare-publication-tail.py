@@ -16,6 +16,22 @@ def write(path,raw):
  path=Path(path);path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(raw);path.chmod(0o600)
 def terminal(path):
  raw=Path(path).read_bytes();line=raw.splitlines()[-1];return raw,line,json.loads(line)
+def verify_route_proof(raw,ad,expected_new,route,manifest,receipt_raw,manifest_raw):
+ require(digest(raw)==ad.get("route_proof_sha256"),"root_route_proof_changed")
+ p=json.loads(raw)
+ require(p.get("schema_version")==1 and p.get("kind")=="root_authenticated_private_route_extension","root_route_proof_schema")
+ require(p.get("operation")==route["operation"] and p.get("previous_count")==manifest["previous_count"]
+  and p.get("logical_hotels")==manifest["logical_hotels"] and p.get("new_hotel_ids")==manifest["new_hotel_ids"],"root_route_proof_scope_changed")
+ for key in ("publication_summary_sha256","bound_read_sha256"):
+  require(p.get(key)==ad[key],"root_route_proof_source_changed")
+ tuple_bytes=json.dumps(expected_new,ensure_ascii=False,separators=(",",":"),sort_keys=True).encode()
+ require(p.get("new_binding_tuples_sha256")==digest(tuple_bytes),"root_route_proof_identity_changed")
+ require(p.get("route_receipt_sha256")==digest(receipt_raw) and p.get("route_manifest_projection_sha256")==digest(manifest_raw),"root_route_proof_projection_changed")
+ require(p.get("original_route_manifest_sha256")==ad.get("original_route_manifest_sha256")
+  and p.get("original_route_map_sha256")==manifest["files"][0]["sha256"]
+  and p.get("original_route_module_sha256")==manifest["files"][1]["sha256"],"root_route_proof_original_changed")
+ require(p.get("verification")=={"full_map_checked":True,"previous_rows_preserved":True,"new_tuples_checked":True},"root_route_proof_checks_missing")
+ require(p.get("source",{}).get("repository")=="pyatkoff/tour-max" and p["source"].get("run_attempt")==1,"root_route_proof_owner_changed")
 def accepted(manifest_path,approval_path):
  raw=Path(manifest_path).read_bytes();m=json.loads(raw);a=json.loads(Path(approval_path).read_bytes())
  require(a.get("schema_version")==1 and a.get("manifest_sha256")==digest(raw),"approved_manifest_changed")
@@ -98,13 +114,16 @@ def feed(args):
  require(route.get("operation")==rm["operation"]+"-install1" and route.get("previous_module_sha256")==rm["previous_module_sha256"],"route_manifest_install_changed")
  files=rm["files"];require([x["name"] for x in files]==[rm["new_map_filename"],"anytour-hotel-feed-context.php"],"route_manifest_files")
  require(route.get("candidate_module_sha256")==files[1]["sha256"] and route.get("changed_files")==[x["name"] for x in files],"installed_route_files_changed")
- route_map_raw=Path(args.route_map).read_bytes();require(digest(route_map_raw)==files[0]["sha256"],"installed_route_map_changed")
- encoded=re.search(rb"base64_decode\('([A-Za-z0-9+/=]+)',true\)",route_map_raw);require(encoded is not None,"route_map_payload_missing")
- route_map=json.loads(base64.b64decode(encoded.group(1),validate=True))
- require(len(route_map["bindings"])==rm["logical_hotels"],"installed_route_map_count")
  expected_new=[{"hotel_id":b["hotel_id"],"alias":b["public_route_alias"],"offer_id":b["public_offer_id"],
   "post_id":b["publication_id"],"post_url":b["post_url"]} for b in read["private_max_bindings"]]
- require(route_map["bindings"][-len(ids):]==expected_new,"installed_route_map_identity_changed")
+ if args.route_map:
+  route_map_raw=Path(args.route_map).read_bytes();require(digest(route_map_raw)==files[0]["sha256"],"installed_route_map_changed")
+  encoded=re.search(rb"base64_decode\('([A-Za-z0-9+/=]+)',true\)",route_map_raw);require(encoded is not None,"route_map_payload_missing")
+  route_map=json.loads(base64.b64decode(encoded.group(1),validate=True))
+  require(len(route_map["bindings"])==rm["logical_hotels"],"installed_route_map_count")
+  require(route_map["bindings"][-len(ids):]==expected_new,"installed_route_map_identity_changed")
+ else:
+  verify_route_proof(Path(args.route_proof).read_bytes(),ad,expected_new,route,rm,routeraw,route_manifest_raw)
  rows=[]
  for source,r,binding in zip(m["rows"],read["rows"],read["private_max_bindings"]):
   hid=r["hotel_id"];matches={p["platform"]:p for p in pub["posts"] if p["hotel_id"]==hid}
@@ -154,8 +173,9 @@ def main():
  for q in (r,f):
   q.add_argument("--manifest",required=True);q.add_argument("--approval",required=True);q.add_argument("--output",required=True)
  r.add_argument("--reader-template",required=True);r.add_argument("--reader-operation",required=True);r.set_defaults(run=reader)
- for name in ("admission","publication","bound-read","route-receipt","route-manifest","route-map","previous-feed-dir","writer","monitor-contract"):
+ for name in ("admission","publication","bound-read","route-receipt","route-manifest","previous-feed-dir","writer","monitor-contract"):
   f.add_argument("--"+name,required=True)
+ route=f.add_mutually_exclusive_group(required=True);route.add_argument("--route-map");route.add_argument("--route-proof")
  f.set_defaults(run=feed);args=p.parse_args();args.run(args)
 if __name__=="__main__":main()
 
