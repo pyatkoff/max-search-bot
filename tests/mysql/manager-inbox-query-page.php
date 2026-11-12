@@ -235,7 +235,19 @@ function inboxNativeMedian(array $values): float
 /** Full current lists plus the old raw notification population are the reference. */
 function inboxNativeReferenceCounts(int $manager,string $project): array
 {
+    global $fixtures;
     $raw=BaselineManagerConversationService::list($manager,'waiting',200,$project);
+    // Keep the exact legacy notification population and full-list SQL cost,
+    // but compare its unread field with independently seeded human messages.
+    foreach($raw as &$row){
+        $id=(int)$row['id'];
+        if(isset($fixtures[$id])){
+            if((int)$row['unread_count']!==$fixtures[$id]['rawUnread'])throw new RuntimeException('raw_notification_fixture_changed');
+            $row['unread_count']=$fixtures[$id]['humanUnread'];
+        }elseif(in_array($id,[801,802],true)){
+            if((int)$row['unread_count']!==1)throw new RuntimeException('routing_notification_fixture_changed');
+        }else throw new RuntimeException('unreviewed_raw_notification_fixture');
+    }unset($row);
     $operational=ManagerConversationService::list($manager,'waiting',200,$project);
     $requested=ManagerConversationService::list($manager,'requested',200,$project);
     $mine=ManagerConversationService::list($manager,'mine',200,$project);
