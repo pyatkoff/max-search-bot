@@ -2541,6 +2541,15 @@ function forecastRetainedTrackerAssertions(PDO $p,callable $check,array $origina
         $positive[0]===1&&$positive[4]===2&&count($sql)===2
         &&str_contains($sql[1]['sql'],'UF_CHAT_ID LIKE ? LIMIT 65) s')&&!str_contains($sql[1]['sql'],'ORDER BY')
         &&strlen(json_encode($copies,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=8192);
+    $p->exec('DELETE FROM max_sub_links');
+    $p->exec('ALTER TABLE max_sub_links MODIFY UF_CLIENT_ID BIGINT NULL,MODIFY UF_YCLID BIGINT NULL,MODIFY UF_METRIC_SOURCE BIGINT NULL DEFAULT 0');
+    $add(1,['cid'=>'9988776655443322','metric'=>0]);
+    $numeric=$read();$ordinary=$repo->lookup('98615635',[$row['external_user_id']]);
+    $check('native integer identity fields stay canonical strings and integer0 metric source uses the exact ordinary fallback',
+        $numeric[0]===1&&$numeric[4]===2&&$ordinary[0]['found']===true&&$ordinary[0]['client_id']==='9988776655443322');
+    $p->exec('DELETE FROM max_sub_links');
+    $p->exec('ALTER TABLE max_sub_links MODIFY UF_CLIENT_ID TEXT NULL,MODIFY UF_YCLID TEXT NULL,MODIFY UF_METRIC_SOURCE VARCHAR(20) NULL');
+    $add(1);
     $add(2,['at'=>(new DateTimeImmutable('@'.((int)$row['event_unix']+1)))->setTimezone(new DateTimeZone('Europe/London'))->format('Y-m-d H:i:s'),'yclid'=>'229988776655443322']);
     $late=$read();$check('valid post-event tracker clicks are excluded without poisoning an earlier recorded click',$late[0]===1&&$late[3]===1);
     $p->exec('DELETE FROM max_sub_links WHERE ID=2');$add(2,['yclid'=>'229988776655443322']);

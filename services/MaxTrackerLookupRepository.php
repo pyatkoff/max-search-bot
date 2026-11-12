@@ -98,11 +98,11 @@ final class MaxTrackerLookupRepository
                 arsort($indexes,SORT_NUMERIC);$index=(string)array_key_first($indexes);
                 $prefix=substr($context['user_id'],0,$indexes[$index]);
                 // LIMIT applies to the whole index prefix before exact subject/counter/clock filters.
-                $effective="CASE WHEN COALESCE(OCTET_LENGTH(s.UF_METRIC_SOURCE),0)>0 THEN s.UF_METRIC_SOURCE ELSE s.UF_SOURCE END";
+                $effective="CASE WHEN s.UF_METRIC_SOURCE IS NOT NULL AND s.UF_METRIC_SOURCE<>'' THEN s.UF_METRIC_SOURCE ELSE s.UF_SOURCE END";
                 $scope="CASE WHEN EXISTS (SELECT 1 FROM b_iblock_element_property ep JOIN b_iblock_property p ON p.ID=ep.IBLOCK_PROPERTY_ID"
                     ." WHERE p.IBLOCK_ID=8 AND p.CODE='YA_METRIK_ID' AND HEX(p.CODE)=HEX('YA_METRIK_ID')"
                     ." AND ep.IBLOCK_ELEMENT_ID=".$effective." AND ep.VALUE='98615635' AND HEX(ep.VALUE)=HEX('98615635')) THEN 1 ELSE 0 END";
-                $point="SELECT CAST(s.ID AS CHAR) AS rid,CAST(s.UF_CHAT_ID AS CHAR) AS uid,s.UF_CLIENT_ID AS cid,s.UF_YCLID AS yclid,"
+                $point="SELECT CAST(s.ID AS CHAR) AS rid,CAST(s.UF_CHAT_ID AS CHAR) AS uid,CAST(s.UF_CLIENT_ID AS CHAR) AS cid,CAST(s.UF_YCLID AS CHAR) AS yclid,"
                     ."CAST(s.UF_DATE AS CHAR) AS at,".$effective." AS source,".$scope." AS scoped"
                     ." FROM (SELECT ID,UF_CHAT_ID,UF_CLIENT_ID,UF_YCLID,UF_DATE,UF_SOURCE,UF_METRIC_SOURCE FROM max_sub_links"
                     ." FORCE INDEX (".chr(96).$index.chr(96).") WHERE UF_CHAT_ID LIKE ? LIMIT 65) s";
