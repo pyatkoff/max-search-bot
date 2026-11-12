@@ -1,0 +1,961 @@
+{
+  "schema_version": 1,
+  "state": "PREPARED_AWAITING_VISUAL_ACCEPTANCE",
+  "input_sha256": "c021929f2f3440274afebf36b6dd585f935143d969cb0a98e5b1548e399efe6b",
+  "logo_asset": ".github/traffic-publish/brand/anytour-logo-white.png",
+  "logo_sha256": "b27cda894047b1ecb4125eea2ecf0db9d1e1674472cad62f70edf1ef1a6c968f",
+  "rows": [
+    {
+      "hotel_id": 343,
+      "title": "Old Palace Resort Sahl Hasheesh",
+      "photos": [
+        {
+          "role": "hero",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/343-0.image",
+          "source_url": "https://oldpalaceresort.com/images/uploads/20211421103973.jpg",
+          "sha256": "3f5542250977b3ef9f3baa19a37e329ed2d874dac9c2845e599c5c6709b29768",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/343-1.image",
+          "source_url": "https://oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-old-palace-resort-grand-suite-20222011740520.jpg",
+          "sha256": "faac2a533ac789facb17edd7b20d3c733a47b81270e2ac88952f52f9416cbcd9",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/343-2.image",
+          "source_url": "https://oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-beach-202115184273.jpg",
+          "sha256": "61e9c0a861967910e8e7c067dc1be0463cb0c570a4072a53684381231121552c",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 227,
+      "sourceRefs": [
+        {
+          "kind": "catalog",
+          "label": "Расширение каталога · 05.11.2026",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Сохранённый каталог от 05.11.2026. catalog_hotels.id; пространство native/Tourvisor каталога, не ANEX ID. Старый признак «не опубликован» не является текущей проверкой. Материалы требуют подготовки и приёмки. Состояние исходной записи: CATALOG_CONFIRMED_PRIMARY_PREPARATION_REQUIRED"
+        },
+        {
+          "kind": "catalog",
+          "label": "Сохранённая проверка каталога",
+          "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Источник каталожной записи. Статус в реестре не означает приёмку контента."
+        },
+        {
+          "kind": "official",
+          "label": "Old Palace · пляж и семейный отдых",
+          "url": "https://oldpalaceresort.com/en/",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Собственный песчаный пляж, детский клуб и спа. Историческое объявление о фасадных работах 2025 года не принято за текущую стройку или подтверждение завершения."
+        },
+        {
+          "kind": "official",
+          "label": "Old Palace · Grand Suite",
+          "url": "https://oldpalaceresort.com/en/accommodation/suites/grand-suite",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Grand Suite 68 м² с гостиной, видом на сад и гидромассажной ванной; не личный бассейн."
+        },
+        {
+          "kind": "official",
+          "label": "Old Palace · зимний подогрев",
+          "url": "https://oldpalaceresort.com/en/activities/swimming-pools",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Прямо указаны один подогреваемый бассейн и джакузи зимой. Даты и температура требуют уточнения."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        },
+        {
+          "kind": "receipt",
+          "label": "Ценовой диагностический срез · исходные ответы и проверка",
+          "url": "https://chatgpt.com/library?file_id=libfile_fde3_f-500987befa7c81918ae7ab49fdf68038_839482358a3c8191a38d8cf811d28df4&account_id=personal",
+          "at": "2026-11-11T10:21:13.303070Z",
+          "note": "{\"hotelId\": \"343\", \"searchId\": 14140484288, \"scope\": \"Минимум среди проверенных полных вариантов; Москва, 2 взрослых, вылет12.11–03.12.2026,5–14ночей. Не полный охват рынка или всех будущих месяцев.\", \"quotedTourCount\": 3, \"listingCount\": 148, \"tourId\": \"16304990809476\", \"selectedOption\": 0, \"total\": 136398, \"currency\": \"RUB\", \"fuelAddedSeparately\": false, \"checkedAt\": \"2026-11-11T10:05:00.786777+00:00\", \"quoteResponseSha256\": \"d1558545df173ad2e7aae2da961a93653667edfd2ec8df1e03a12dff7758643a\", \"automaticPublishing\": false, \"origin\": \"one_off_diagnostic_before_monitor_unification\"}"
+        },
+        {
+          "kind": "catalog",
+          "label": "Действующий расчёт конкретного тура",
+          "url": "https://anytoour.ru/api-v2.php?action=flights&tourId=16304990809476&currency=RUB",
+          "at": "2026-11-11T10:05:00.786777+00:00",
+          "note": "Использована полная price.value выбранного реального перелёта; fuelCharge повторно не прибавлен. error=null, surcharges отсутствуют, noFlight/noMeal/noTransfer/noInsurance=false, noPlaces/onDemand=false. Снимок не является ежедневным минимумом всех месяцев."
+        },
+        {
+          "kind": "catalog",
+          "label": "Галерея Tourvisor · точный native hotel ID",
+          "url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=343",
+          "at": "2026-11-11T10:21:13.303070Z",
+          "note": "Получена карточка с тем же native ID и названием. Новый общий вид выбран из images; дата съёмки неизвестна. Две прежние общие фотографии переиспользованы. В новом варианте нет фотографии люкса под ценой базового номера."
+        }
+      ],
+      "retained_limitations": [
+        "68 м² и гидромассажная ванна относятся к Grand Suite. Это не личный бассейн; вид из номера, планировку и размещение детей проверяем по категории.",
+        "Зимой заявлен подогрев одного бассейна и джакузи. Температура и фактический режим на даты поездки уточняются; подогрев всех чаш не обещается.",
+        "На сайте осталось объявление о покраске фасада с ноября 2025 года на ориентировочно 60 дней. Оно не подтверждает ни текущие работы, ни их завершение; актуальное состояние уточняется."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/343-0.image",
+          "source_url": "https://oldpalaceresort.com/images/uploads/20211421103973.jpg",
+          "sha256": "3f5542250977b3ef9f3baa19a37e329ed2d874dac9c2845e599c5c6709b29768",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 100354,
+          "source_dimensions": [
+            1200,
+            800
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "3f5542250977b3ef9f3baa19a37e329ed2d874dac9c2845e599c5c6709b29768",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/343-1.image",
+          "source_url": "https://oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-old-palace-resort-grand-suite-20222011740520.jpg",
+          "sha256": "faac2a533ac789facb17edd7b20d3c733a47b81270e2ac88952f52f9416cbcd9",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 45732,
+          "source_dimensions": [
+            900,
+            600
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "faac2a533ac789facb17edd7b20d3c733a47b81270e2ac88952f52f9416cbcd9",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/343-2.image",
+          "source_url": "https://oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-beach-202115184273.jpg",
+          "sha256": "61e9c0a861967910e8e7c067dc1be0463cb0c570a4072a53684381231121552c",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 87142,
+          "source_dimensions": [
+            900,
+            600
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "61e9c0a861967910e8e7c067dc1be0463cb0c570a4072a53684381231121552c",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "343.png",
+      "sha256": "0502ddf8d62c6df40e52c48a36d14c034bb823a61f572012e47282f322dc2da2",
+      "bytes": 440884,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "OLD PALACE RESORT SAHL HASHEESH",
+        "font_size": 28,
+        "text_width": 551.21875,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 9287,
+      "title": "Green Max Hotel",
+      "photos": [
+        {
+          "role": "hero",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/9287-0.image",
+          "source_url": "https://www.greenmaxhotel.com.tr/wp-content/uploads/2022/02/greenmax-havuz-8.jpg",
+          "sha256": "3f79a38ef0d71a5134e9167dd48326ca7b2ad1a0ddf45f4e67d338f896e85130",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/9287-1.image",
+          "source_url": "https://www.greenmaxhotel.com.tr/wp-content/uploads/2022/02/Zeus-Suit-2.jpg",
+          "sha256": "683241eb4cadeda15e35d1dc6c96ec810bff51f797e49505954e7a4d9096e274",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/9287-2.image",
+          "source_url": "https://www.greenmaxhotel.com.tr/wp-content/uploads/2022/02/aqua-havadan-2.jpg",
+          "sha256": "f062ba6ebe44b2cfbadd12609ac0f276e13fe4239cc685e71cfc2f6ca98dd3c1",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 227,
+      "sourceRefs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 18",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "official",
+          "label": "Green Max · расположение и пляж",
+          "url": "https://www.greenmaxhotel.com.tr/en/about-us/",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Официально: Distance to Sea 0, Fine Sand Beach; собственная пляжная зона."
+        },
+        {
+          "kind": "official",
+          "label": "Green Max · Superior Zeus Suite",
+          "url": "https://greenmaxhotel.com.tr/en/rooms/superior-zeus-suite/",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "76 м², две спальни; точная вместимость проверяется по тарифу."
+        },
+        {
+          "kind": "official",
+          "label": "Green Max · бассейны и горки",
+          "url": "https://www.greenmaxhotel.com.tr/en/pools/",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Четыре водные горки и крытый подогреваемый бассейн. Подогрев открытых чаш не заявляется."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "76 м² и две спальни относятся к Superior Zeus Suite. Вместимость и размещение детей проверяются по конкретному тарифу; стандартные номера имеют другие параметры.",
+        "Подогрев подтверждён для крытого бассейна. Открытые бассейны и аквапарк не считаются подогреваемыми; сезон, часы и ограничения горок уточняются.",
+        "Песчаный пляж не гарантирует отсутствие отдельных камней у воды. Включения спа, ресторанов и других услуг зависят от пакета и сезона."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/9287-0.image",
+          "source_url": "https://www.greenmaxhotel.com.tr/wp-content/uploads/2022/02/greenmax-havuz-8.jpg",
+          "sha256": "3f79a38ef0d71a5134e9167dd48326ca7b2ad1a0ddf45f4e67d338f896e85130",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 271591,
+          "source_dimensions": [
+            1600,
+            1067
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "3f79a38ef0d71a5134e9167dd48326ca7b2ad1a0ddf45f4e67d338f896e85130",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/9287-1.image",
+          "source_url": "https://www.greenmaxhotel.com.tr/wp-content/uploads/2022/02/Zeus-Suit-2.jpg",
+          "sha256": "683241eb4cadeda15e35d1dc6c96ec810bff51f797e49505954e7a4d9096e274",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 265536,
+          "source_dimensions": [
+            1600,
+            1067
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "683241eb4cadeda15e35d1dc6c96ec810bff51f797e49505954e7a4d9096e274",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/9287-2.image",
+          "source_url": "https://www.greenmaxhotel.com.tr/wp-content/uploads/2022/02/aqua-havadan-2.jpg",
+          "sha256": "f062ba6ebe44b2cfbadd12609ac0f276e13fe4239cc685e71cfc2f6ca98dd3c1",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 436741,
+          "source_dimensions": [
+            1600,
+            1200
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "f062ba6ebe44b2cfbadd12609ac0f276e13fe4239cc685e71cfc2f6ca98dd3c1",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "9287.png",
+      "sha256": "0cc46eac3691920465644fbac609908cd2f8dee5fef2d38ddc57ef1d10f5acdf",
+      "bytes": 526629,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "GREEN MAX HOTEL",
+        "font_size": 28,
+        "text_width": 272.234375,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 1013,
+      "title": "Sunis Elita Beach Resort & Spa",
+      "photos": [
+        {
+          "role": "hero",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/1013-0.image",
+          "source_url": "https://www.elitabeachresort.com/wp-content/uploads/2019/08/DJI_0923-scaled.jpg",
+          "sha256": "f9b1b0b2dfcd0f88d7831c2d672439657d2662b77f934f6b77494a13c7261582",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/1013-1.image",
+          "source_url": "https://www.elitabeachresort.com/wp-content/uploads/2019/08/Club-Aile-Odasi-1-600x390.png",
+          "sha256": "a14b563925f614f507ce00a5fe5de81c885553a87b9e31c4e7dbc6d46c995fc0",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/1013-2.image",
+          "source_url": "https://www.elitabeachresort.com/wp-content/uploads/2019/08/DJI_0916-1-scaled.jpg",
+          "sha256": "4ecae230f01a3c8480d4072f35d6a5dcbb9c92a737e4b5f9185a9455e0784029",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 227,
+      "sourceRefs": [
+        {
+          "kind": "catalog",
+          "label": "Расширение каталога · 05.11.2026",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Сохранённый каталог от 05.11.2026. catalog_hotels.id; пространство native/Tourvisor каталога, не ANEX ID. Старый признак «не опубликован» не является текущей проверкой. Материалы требуют подготовки и приёмки. Состояние исходной записи: EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY"
+        },
+        {
+          "kind": "catalog",
+          "label": "Сохранённая проверка каталога",
+          "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Источник каталожной записи. Статус в реестре не означает приёмку контента."
+        },
+        {
+          "kind": "official",
+          "label": "Sunis Elita · номера",
+          "url": "https://www.elitabeachresort.com/index.php/odalarimiz/",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "Семейные номера, Club и основной корпус; варианты с балконом и без, отдельная категория с видом на море."
+        },
+        {
+          "kind": "official",
+          "label": "Sunis Elita · территория и фотографии",
+          "url": "https://www.elitabeachresort.com/",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "Бассейны, детские развлечения и спа."
+        },
+        {
+          "kind": "catalog",
+          "label": "DERTOUR · пляж",
+          "url": "https://www.dertour.de/hotel/sunis-elita-beach-resort-hotel-spa-112Lwb",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "Собственный галечный пляж у территории; пляжный сервис описан на летний сезон."
+        },
+        {
+          "kind": "catalog",
+          "label": "Corendon · сезонная программа",
+          "url": "https://www.corendon.nl/turkije/turkse-riviera/side/kizilagac/sunis-elita-beach-resort",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "Горки, семейная программа; описание периода 10.04–31.10.2026 не подтверждает работу зимой."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "DERTOUR описывает пляж как галечный; его нельзя обещать как полностью песчаный. Покрытие входа и подходящую обувь уточняем при подборе.",
+        "Основной корпус и Club различаются размещением и планировками. В официальном описании есть номера с балконом и без него; вид на море нужно подтвердить категорией.",
+        "Операторская программа горок и развлечений относится к летнему сезону 2026. Зимний режим, подогрев, включения à la carte и спа подтверждаются отдельно."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/1013-0.image",
+          "source_url": "https://www.elitabeachresort.com/wp-content/uploads/2019/08/DJI_0923-scaled.jpg",
+          "sha256": "f9b1b0b2dfcd0f88d7831c2d672439657d2662b77f934f6b77494a13c7261582",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 999151,
+          "source_dimensions": [
+            2560,
+            1920
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "f9b1b0b2dfcd0f88d7831c2d672439657d2662b77f934f6b77494a13c7261582",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/1013-1.image",
+          "source_url": "https://www.elitabeachresort.com/wp-content/uploads/2019/08/Club-Aile-Odasi-1-600x390.png",
+          "sha256": "a14b563925f614f507ce00a5fe5de81c885553a87b9e31c4e7dbc6d46c995fc0",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 326851,
+          "source_dimensions": [
+            600,
+            390
+          ],
+          "source_format": "PNG",
+          "actual_sha256": "a14b563925f614f507ce00a5fe5de81c885553a87b9e31c4e7dbc6d46c995fc0",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/1013-2.image",
+          "source_url": "https://www.elitabeachresort.com/wp-content/uploads/2019/08/DJI_0916-1-scaled.jpg",
+          "sha256": "4ecae230f01a3c8480d4072f35d6a5dcbb9c92a737e4b5f9185a9455e0784029",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 1046633,
+          "source_dimensions": [
+            2560,
+            1920
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "4ecae230f01a3c8480d4072f35d6a5dcbb9c92a737e4b5f9185a9455e0784029",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "1013.png",
+      "sha256": "aadeea26d28389fa95c3527a5798503c009ff5991b5a931aa81a338bae303375",
+      "bytes": 542349,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "SUNIS ELITA BEACH RESORT & SPA",
+        "font_size": 28,
+        "text_width": 494.171875,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 4185,
+      "title": "Royal Brayka Resort",
+      "photos": [
+        {
+          "role": "hero",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/4185-0.image",
+          "source_url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-royal-brayka-resort-swimming-pools-75583.webp",
+          "sha256": "f1923938a8477f5d537e60e86bbac384640974d87a830691412f1ad7d1314be3",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/4185-1.image",
+          "source_url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-royal-brayka-resort-standard-room-89f7f.webp",
+          "sha256": "a99d4c376323107363741945ac509f61f771e60bd29da7417f82c6ffcdf20f07",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/4185-2.image",
+          "source_url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-royal-brayka-resort-beach-06fe3c26-cb14-4b77-a936-9e29c1ebe99b-6deea.webp",
+          "sha256": "5e5a461ceed22595f0d8adcf70b7dbb43b67e743bf3924954174c058a983b04d",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 227,
+      "sourceRefs": [
+        {
+          "kind": "catalog",
+          "label": "Расширение каталога · 05.11.2026",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Сохранённый каталог от 05.11.2026. catalog_hotels.id; пространство native/Tourvisor каталога, не ANEX ID. Старый признак «не опубликован» не является текущей проверкой. Материалы требуют подготовки и приёмки. Состояние исходной записи: CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+        },
+        {
+          "kind": "catalog",
+          "label": "Сохранённая проверка каталога",
+          "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Источник каталожной записи. Статус в реестре не означает приёмку контента."
+        },
+        {
+          "kind": "official",
+          "label": "Royal Brayka · официальный обзор",
+          "url": "https://braykaresorts.com/royal-brayka-resort/overview",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Самостоятельный Royal Brayka Resort; не соседний Brayka Bay. Семейный отдых и детские развлечения."
+        },
+        {
+          "kind": "official",
+          "label": "Royal Brayka · бассейны",
+          "url": "https://braykaresorts.com/royal-brayka-resort/experiences/swimming-pools",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Бассейн с горками, детская зона и отдельный Heated Pool на прохладный сезон."
+        },
+        {
+          "kind": "official",
+          "label": "Royal Brayka · пляж",
+          "url": "https://braykaresorts.com/royal-brayka-resort/experiences/beach",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Собственный песчаный пляж и пирс 106 м; конкретный безопасный вход и условия купания уточняются."
+        },
+        {
+          "kind": "official",
+          "label": "Royal Brayka · Deluxe Family",
+          "url": "https://braykaresorts.com/royal-brayka-resort/accommodation/deluxe-family-room",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Категория Deluxe Family 38–43 м². Не распространяется на все номера."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Deluxe Family 38–43 м² и Deluxe Beach Front — разные категории. Вид, вместимость и расположение номера подтверждаются при подборе.",
+        "Подогрев заявлен для отдельного Heated Pool. Он не означает подогрев всех бассейнов или горок; сезон и фактическая работа уточняются.",
+        "Песчаная пляжная зона не гарантирует одинаковый вход в воду по всей длине. Доступ к пирсу и морское купание зависят от условий; услуги соседнего Brayka Bay не включены автоматически."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/4185-0.image",
+          "source_url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-royal-brayka-resort-swimming-pools-75583.webp",
+          "sha256": "f1923938a8477f5d537e60e86bbac384640974d87a830691412f1ad7d1314be3",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 147728,
+          "source_dimensions": [
+            1200,
+            800
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "f1923938a8477f5d537e60e86bbac384640974d87a830691412f1ad7d1314be3",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/4185-1.image",
+          "source_url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-royal-brayka-resort-standard-room-89f7f.webp",
+          "sha256": "a99d4c376323107363741945ac509f61f771e60bd29da7417f82c6ffcdf20f07",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 123712,
+          "source_dimensions": [
+            1200,
+            800
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "a99d4c376323107363741945ac509f61f771e60bd29da7417f82c6ffcdf20f07",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/4185-2.image",
+          "source_url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-royal-brayka-resort-beach-06fe3c26-cb14-4b77-a936-9e29c1ebe99b-6deea.webp",
+          "sha256": "5e5a461ceed22595f0d8adcf70b7dbb43b67e743bf3924954174c058a983b04d",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 279868,
+          "source_dimensions": [
+            1200,
+            800
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "5e5a461ceed22595f0d8adcf70b7dbb43b67e743bf3924954174c058a983b04d",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "4185.png",
+      "sha256": "a89b9b0cda6197e67b5630362a8a94d81369772ed7a8209848686920a16f3393",
+      "bytes": 566841,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "ROYAL BRAYKA RESORT",
+        "font_size": 28,
+        "text_width": 343.34375,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 14140,
+      "title": "Stella Makadi Gardens Resort & Spa",
+      "photos": [
+        {
+          "role": "hero",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/14140-0.image",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/8e6eb8e7-f0e5-488a-8761-4e7ea25e4efd/243ebe741d45e5479f58828ab022722c/002.jpg?w=1024&fm=webp&q=80",
+          "sha256": "a2cf05e34e163f5e6ffcc5a1864816261ac4554909ea22129fa7f22da46d4bdc",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/14140-1.image",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/6db351c8-4746-4568-bfb9-fabbcfa1a5e6/0e0e17efc30915436aa1ad28fe865057/003.jpg?w=1024&fm=webp&q=80",
+          "sha256": "86f617780865cd773a889fafa397d4a49dfbf6e6a815c44774ead208b6b3c6bf",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/14140-2.image",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/7c51fccb-adb7-426b-9a6e-b7d4c9e49c8b/cd8923753d4c3bec0876f0756476b28d/004.jpg?w=1024&fm=webp&q=80",
+          "sha256": "8b5d4371cc935c2a96a9683799d31c4bf383c37552e31a61231b6638f4b0c11e",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 227,
+      "sourceRefs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 284",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "catalog",
+          "label": "Corendon · Stella Gardens и пляжный шаттл",
+          "url": "https://www.corendon.nl/egypte/rode-zee/hurghada/makadi-bay/stella-gardens-resort-spa-makadi-bay",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Текущие сезоны 2026/2027, Standard около 41 м², семейная инфраструктура, пляж около 1 км. Nunia вне отеля; бесплатное посещение с 01.05.2026 — условие Corendon, не всех тарифов."
+        },
+        {
+          "kind": "catalog",
+          "label": "Coral · Stella Gardens, горки и подогрев",
+          "url": "https://www.coral.ge/en/hotels/egypt/stella-makadi-gardens-resort-spa-hurghada/",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Карточка оператора: две взрослые горки, два взрослых и один детский подогреваемый бассейн. Уведомления о Nunia имеют разные даты; старое условие доплаты не распространено на все новые заезды."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Пляж находится у соседнего Stella Beach примерно в 1 км; предусмотрен шаттл. Gardens не относится к первой линии. Вход в воду, пирс и расписание трансфера проверяются.",
+        "Nunia Aquarena расположен отдельно. Corendon включает его для заездов с 1 мая 2026 года, но это условие конкретного продавца; для выбранного тура вход нужно подтвердить.",
+        "Coral указывает подогрев двух взрослых и одного детского бассейна. Сезон, температура, работа горок и условия размещения детей уточняются по тарифу."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/14140-0.image",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/8e6eb8e7-f0e5-488a-8761-4e7ea25e4efd/243ebe741d45e5479f58828ab022722c/002.jpg?w=1024&fm=webp&q=80",
+          "sha256": "a2cf05e34e163f5e6ffcc5a1864816261ac4554909ea22129fa7f22da46d4bdc",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 152528,
+          "source_dimensions": [
+            1024,
+            619
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "a2cf05e34e163f5e6ffcc5a1864816261ac4554909ea22129fa7f22da46d4bdc",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/14140-1.image",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/6db351c8-4746-4568-bfb9-fabbcfa1a5e6/0e0e17efc30915436aa1ad28fe865057/003.jpg?w=1024&fm=webp&q=80",
+          "sha256": "86f617780865cd773a889fafa397d4a49dfbf6e6a815c44774ead208b6b3c6bf",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 37938,
+          "source_dimensions": [
+            1024,
+            576
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "86f617780865cd773a889fafa397d4a49dfbf6e6a815c44774ead208b6b3c6bf",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/14140-2.image",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/7c51fccb-adb7-426b-9a6e-b7d4c9e49c8b/cd8923753d4c3bec0876f0756476b28d/004.jpg?w=1024&fm=webp&q=80",
+          "sha256": "8b5d4371cc935c2a96a9683799d31c4bf383c37552e31a61231b6638f4b0c11e",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 119326,
+          "source_dimensions": [
+            1024,
+            585
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "8b5d4371cc935c2a96a9683799d31c4bf383c37552e31a61231b6638f4b0c11e",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "14140.png",
+      "sha256": "cbcf9f0ae955269a0b0f6e2c6bc8b70134fbfcb7a8e04f2db371601825d17984",
+      "bytes": 539151,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "STELLA MAKADI GARDENS RESORT & SPA",
+        "font_size": 26,
+        "text_width": 548.921875,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 468,
+      "title": "Sultan Bey Hotel",
+      "photos": [
+        {
+          "role": "hero",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/468-0.image",
+          "source_url": "https://www.elgouna.com/_next/image?url=https%3A%2F%2Fcms.elgouna.com%2Fapi%2Fmedia%2Ffile%2FSultan_Bey_El_Gouna_Red_Sea_Egypt_pool-scaled-6a6bd7c2.webp&w=3840&q=75",
+          "sha256": "6a9458e3b31b1f02d6e08fd44d5245cf207d7fac52151ffd774ffe662d011567",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/468-1.image",
+          "source_url": "https://www.elgouna.com/_next/image?url=https%3A%2F%2Fcms.elgouna.com%2Fapi%2Fmedia%2Ffile%2FSultan_Bey_El_Gouna_Red_Sea_Egypt_King_bed-1-0d0e5ee4.webp&w=3840&q=75",
+          "sha256": "02cb4f864068491c941aef9ae506c9a200f5d40dcd0fcf5118eae36572017c46",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/468-2.image",
+          "source_url": "https://www.elgouna.com/_next/image?url=https%3A%2F%2Fcms.elgouna.com%2Fapi%2Fmedia%2Ffile%2FNew-Project-49-4f32b105.webp&w=3840&q=75",
+          "sha256": "2f1bcefc185346e433ec181d85d1fbbc74a6c89c70ab896c32ff01b5f11d8877",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 227,
+      "sourceRefs": [
+        {
+          "kind": "catalog",
+          "label": "Расширение каталога · 05.11.2026",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Сохранённый каталог от 05.11.2026. catalog_hotels.id; пространство native/Tourvisor каталога, не ANEX ID. Старый признак «не опубликован» не является текущей проверкой. Материалы требуют подготовки и приёмки. Состояние исходной записи: CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+        },
+        {
+          "kind": "catalog",
+          "label": "Сохранённая проверка каталога",
+          "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Источник каталожной записи. Статус в реестре не означает приёмку контента."
+        },
+        {
+          "kind": "official",
+          "label": "El Gouna · Sultan Bey",
+          "url": "https://www.elgouna.com/hotels/sultan-bey-hotel",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Отель у лагуны рядом с Downtown; морской пляж Зейтуна доступен отдельно на лодке."
+        },
+        {
+          "kind": "official",
+          "label": "Sultan Bey · бассейны и пляж",
+          "url": "https://www.elgouna.com/hotels/sultan-bey-hotel/facilities",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Два бассейна — взрослый и детский — подогреваются зимой. Лагунная пляжная зона не приравнена к открытой морской первой линии."
+        },
+        {
+          "kind": "official",
+          "label": "Sultan Bey · соседние номера",
+          "url": "https://www.elgouna.com/hotels/sultan-bey-hotel/rooms",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Номера могут объединяться общим входным коридором; наличие внутренней межкомнатной двери не заявлено."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Собственная пляжная зона находится у лагуны. Открытый морской пляж Зейтуна — отдельная поездка на лодке; расписание и включения проверяются.",
+        "Семейный вариант состоит из соседних номеров с общим коридором. Это не гарантированная внутренняя дверь между спальнями; наличие и состав брони подтверждаются.",
+        "Оба бассейна заявлены с зимним подогревом, но режим и температура уточняются на даты. План питания выбирается по тарифу; «всё включено» автоматически не обещается."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/468-0.image",
+          "source_url": "https://www.elgouna.com/_next/image?url=https%3A%2F%2Fcms.elgouna.com%2Fapi%2Fmedia%2Ffile%2FSultan_Bey_El_Gouna_Red_Sea_Egypt_pool-scaled-6a6bd7c2.webp&w=3840&q=75",
+          "sha256": "6a9458e3b31b1f02d6e08fd44d5245cf207d7fac52151ffd774ffe662d011567",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 463526,
+          "source_dimensions": [
+            2560,
+            1708
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "6a9458e3b31b1f02d6e08fd44d5245cf207d7fac52151ffd774ffe662d011567",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/468-1.image",
+          "source_url": "https://www.elgouna.com/_next/image?url=https%3A%2F%2Fcms.elgouna.com%2Fapi%2Fmedia%2Ffile%2FSultan_Bey_El_Gouna_Red_Sea_Egypt_King_bed-1-0d0e5ee4.webp&w=3840&q=75",
+          "sha256": "02cb4f864068491c941aef9ae506c9a200f5d40dcd0fcf5118eae36572017c46",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 40468,
+          "source_dimensions": [
+            640,
+            640
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "02cb4f864068491c941aef9ae506c9a200f5d40dcd0fcf5118eae36572017c46",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "path": "/workspace/scratch/715224df0ce7/batch9/photos/468-2.image",
+          "source_url": "https://www.elgouna.com/_next/image?url=https%3A%2F%2Fcms.elgouna.com%2Fapi%2Fmedia%2Ffile%2FNew-Project-49-4f32b105.webp&w=3840&q=75",
+          "sha256": "2f1bcefc185346e433ec181d85d1fbbc74a6c89c70ab896c32ff01b5f11d8877",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 300856,
+          "source_dimensions": [
+            1680,
+            810
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "2f1bcefc185346e433ec181d85d1fbbc74a6c89c70ab896c32ff01b5f11d8877",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "468.png",
+      "sha256": "3278a8066325bd05e94f7226bc797903ea5aab7bc4b42bc80daef68816b6581b",
+      "bytes": 510100,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "SULTAN BEY HOTEL",
+        "font_size": 28,
+        "text_width": 276.90625,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    }
+  ],
+  "provider_calls": 0,
+  "remote_writes": 0
+}
