@@ -528,6 +528,8 @@ final class ModeledConversionValueExport
 
     private function withKnownTrackerEvidence(array $stats,array $previous,bool $mysql):?array
     {
+        if(!array_key_exists(ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS[0],$previous)
+            &&!array_key_exists(ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS[1],$previous))return $stats;
         foreach(ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS as$key)if(array_key_exists($key,$previous)){
             $saved=$previous[$key];$stats[$key]=is_array($saved)&&strlen(json_encode($saved,JSON_THROW_ON_ERROR))<=768?$saved:false;
         }

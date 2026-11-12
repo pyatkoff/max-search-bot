@@ -869,6 +869,10 @@ function forecastV1Assertions(PDO $p,callable $check):void
 
 function forecastInputDiagnosisAssertions(PDO $p,callable $check):void
 {
+    // This missing-checkpoint fixture must not inherit a cursor from earlier sender ticks.
+    $p->exec('DROP TABLE IF EXISTS modeled_conversion_value_export_settings');
+    $p->exec('CREATE TABLE modeled_conversion_value_export_settings(project_key VARCHAR(40) PRIMARY KEY,counter_id VARCHAR(20),goal_id VARCHAR(20))');
+    $p->exec("INSERT INTO modeled_conversion_value_export_settings VALUES('anytour','98615635','678187097')");
     forecastV1Schema($p);
     $human=forecastV1Packet('701','801',[['text'=>'Подберите тур в Турцию на 7 ночей.']],'max');
     $human['coverage']['errors']=[];
@@ -3369,6 +3373,9 @@ function forecastKnownTrackerAssertions(PDO $p,callable $check):array
             $json=json_encode($v,JSON_THROW_ON_ERROR);if($p->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql')return strlen($json);
             $q=$p->prepare('SELECT OCTET_LENGTH(CAST(? AS JSON))');$q->execute([$json]);return (int)$q->fetchColumn();
         };
+        $unrelated=$protected;$unrelated['padding']=str_repeat('p',8192);
+        $check('absent known-source keys leave an unrelated oversized receipt unchanged for its existing caller to handle',
+            $merge->invoke($worker,$unrelated,[],$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql')===$unrelated);
         $markers=$protected;foreach(ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS as$key)$markers[$key]=false;
         $protected['padding']=str_repeat('p',max(0,8150-$measure($markers)));
         $kept=$merge->invoke($worker,$protected,[$a['key']=>$saved[$a['key']],$b['key']=>$saved[$b['key']]],$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql');
