@@ -2522,6 +2522,11 @@ function forecastKnownRelationDispatchAssertions(PDO $p,callable $check,array $f
     $sourceSettings=$fetchRows("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")[0];
     $sourceEvents=$fetchRows('SELECT * FROM max_channel_conversion_outbox ORDER BY id');
     $sourceProfiles=$fetchRows('SELECT * FROM modeled_conversion_profile_versions ORDER BY id');
+    $cohortIds=array_fill_keys(array_map(static fn(array $r):string=>(string)$r[1],$frame['r']),true);
+    $sourceEvents=array_values(array_filter($sourceEvents,static fn(array $r):bool=>isset($cohortIds[(string)$r['id']])));
+    if(count($sourceEvents)!==3)throw new RuntimeException('relation_fixture_original_cohort_unavailable');
+    $profileIds=array_fill_keys(array_map(static fn(array $r):string=>(string)$r['value_profile_id'],$sourceEvents),true);
+    $sourceProfiles=array_values(array_filter($sourceProfiles,static fn(array $r):bool=>isset($profileIds[(string)$r['id']])));
     $core=['modeled_conversion_price_audit','modeled_conversion_value_export_settings','max_channel_conversion_outbox',
         'max_channel_attribution_settings','modeled_conversion_profile_versions','advertising_visit_observations','conversations','customer_channels'];
     $renamed=[];$ownsSchema=false;$primary=null;$stage='backup';
@@ -2548,11 +2553,16 @@ function forecastKnownRelationDispatchAssertions(PDO $p,callable $check,array $f
             $value=array_intersect_key($value,array_fill_keys($names,true));
             $p->prepare('INSERT INTO '.$table.'('.implode(',',array_keys($value)).') VALUES('.implode(',',array_fill(0,count($value),'?')).')')->execute(array_values($value));
         };
-        $stage='copy_fixture';
+        $stage='copy_fixture_settings';
+        // The status-reader schema permits NULL cursors; canonical worker-owned defaults are zero.
+        // These local cursors/counters are not part of the original financial event or its proof.
+        foreach(['history_cursor','history_scanned','history_collected','profile_cursor','base_value_rub']as$key)
+            if(array_key_exists($key,$sourceSettings)&&$sourceSettings[$key]===null)unset($sourceSettings[$key]);
         $p->exec("DELETE FROM modeled_conversion_value_export_settings WHERE project_key='anytour'");
         $copy('modeled_conversion_value_export_settings',$sourceSettings);
+        $stage='copy_fixture_profiles';
         foreach($sourceProfiles as$profile){$profile['profile_json']='{"access_status":"allowed"}';$copy('modeled_conversion_profile_versions',$profile);}
-        $channels=[];
+        $channels=[];$stage='copy_fixture_events';
         foreach($sourceEvents as$event){
             $copy('max_channel_conversion_outbox',$event);$conversation=(int)$event['conversation_id'];
             if(!isset($channels[$conversation])){
@@ -2650,7 +2660,8 @@ function forecastKnownRelationDispatchAssertions(PDO $p,callable $check,array $f
                     &&(int)$wire['value_rub']===(int)$row['value_rub']&&$wire['target']===$row['target']
                     &&$wire['transport_target']===$row['transport_target']&&(string)$wire['value_profile_id']===(string)$row['value_profile_id']
                     &&$wire['tracker_record_id']===$row['tracker_record_id']&&(string)$wire['tracker_observed_unix']===(string)$row['tracker_observed_unix'];
-                $pass=$result['status']==='running'&&count($api->uploads)===1&&$same&&$api->ordinaryVisits===0&&$lookup->sourceCalls===0
+                $pass=$result['status']===($case==='known_retry'?'degraded':'running')
+                    &&($case!=='known_retry'||($after['last_error']==='transport_not_sent'&&(int)$after['attempts']===1))&&count($api->uploads)===1&&$same&&$api->ordinaryVisits===0&&$lookup->sourceCalls===0
                     &&$after['client_id']===($internal['client_id']??null)&&($case==='known_retry'?$after['state']==='ready':$after['state']==='accepted');
                 if(!$pass){
                     $dq=$p->query("SELECT mode,goal_intent,last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'");
