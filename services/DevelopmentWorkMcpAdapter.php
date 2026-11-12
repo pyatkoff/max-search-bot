@@ -33,6 +33,22 @@ final class DevelopmentWorkMcpAdapter
             'excluded_original_refs'=>['type'=>'array','maxItems'=>3,'items'=>$sha,'uniqueItems'=>true],
             'api_observed_not_before_unix'=>['type'=>'integer','minimum'=>946684800],
             'max_snapshot_age_seconds'=>['type'=>'integer','minimum'=>1,'maximum'=>60]];
+        $financeRequired=array_keys($finance);
+        $stamp=['type'=>'string','pattern'=>'^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$'];
+        $saved=['available'=>['type'=>'boolean','const'=>true],'goal_id'=>['type'=>'string','const'=>'678187097'],
+            'counter_id'=>['type'=>'string','const'=>'98615635'],'receipt_ref'=>$sha,
+            'basis'=>['type'=>'string','const'=>'current_primary_saved_outbox_receipt_status'],
+            'provider_requests'=>['type'=>'integer','const'=>0],'conversion_uploads'=>['type'=>'integer','const'=>0],
+            'per_receipt_visit_linkage'=>['type'=>'string','const'=>'not_checked'],'checked_at'=>$stamp,
+            'coverage_complete'=>['type'=>'boolean','const'=>true],'inspected_rows'=>['type'=>'integer','minimum'=>1,'maximum'=>1000],
+            'state'=>['type'=>'string','enum'=>['accepted','processed']],
+            'upload_status'=>['type'=>'string','enum'=>['UPLOADED','EXPORTED','MATCHED','PROCESSED']],
+            'event_at'=>$stamp,'first_api_observed_at'=>$stamp,'processed_at'=>['type'=>['string','null'],'pattern'=>$stamp['pattern']],
+            'first_api_clock_known'=>['type'=>'boolean','const'=>true],'terminal_processing'=>['type'=>'boolean'],
+            'processed_upload_row'=>['type'=>'boolean']];
+        $finance['exact_receipt']=['type'=>'object','properties'=>['receipt_ref'=>$sha,
+            'baseline_saved_receipt'=>['type'=>'object','properties'=>$saved,'required'=>array_keys($saved),'additionalProperties'=>false]],
+            'required'=>['receipt_ref','baseline_saved_receipt'],'additionalProperties'=>false];
         $install=['application_sha'=>['type'=>'string','pattern'=>'^[a-f0-9]{40}$'],'original_deploy_run_id'=>['type'=>'integer','minimum'=>1],
             'verified_at_unix'=>['type'=>'integer','minimum'=>946684800],'technical_terminal_at_unix'=>['type'=>'integer','minimum'=>946684800],'receipt_sha256'=>$sha];
         $review=['manifest_sha256'=>$sha,'decision_sha256'=>$sha,'readback_sha256'=>$sha];
@@ -69,11 +85,11 @@ final class DevelopmentWorkMcpAdapter
                     'decision'=>['type'=>'object','properties'=>['decision_sha256'=>$sha,'readback_sha256'=>$sha,'reviewer_run_id'=>$run],
                         'required'=>['decision_sha256','readback_sha256','reviewer_run_id'],'additionalProperties'=>false]],
                 ['queue_id','task_id','spec_sha256','expected_plan_sha256','expected_pending_event_id','old_connection_id','expected_caller_connection_id','decision'],false],
-            ['development_work_roadmap_admit','Admit one reviewed finite saved-finance phase: two saved-result tasks and at most two independent reviews on future ordinary cron. Pin archive, current caller, implementation and owner-verified financial installation. Preserve old calls and UNKNOWN. No inline send, upload, native owner, coding or deployment.',
+            ['development_work_roadmap_admit','Admit one reviewed finite saved-finance phase: two saved-result tasks and at most two independent reviews on future ordinary cron. Explicit exact_receipt input selects one ordinary receipt outside the unchanged repair frontier with its known saved API clock; otherwise the original frozen-cohort input is unchanged. Pin archive, current caller, implementation and owner-verified financial installation. Preserve old calls and UNKNOWN. No inline send, upload, native owner, coding or deployment.',
                 ['queue_id'=>$id,'expected_archive_sha256'=>$sha,'expected_plan_sha256'=>$sha,
                     'expected_caller_connection_id'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$'],'implementation_sha256'=>$sha,
                     'financial_installation'=>['type'=>'object','properties'=>$install,'required'=>array_keys($install),'additionalProperties'=>false],
-                    'financial_input'=>['type'=>'object','properties'=>$finance,'required'=>array_keys($finance),'additionalProperties'=>false],
+                    'financial_input'=>['type'=>'object','properties'=>$finance,'required'=>$financeRequired,'additionalProperties'=>false],
                     'review'=>['type'=>'object','properties'=>$review,'required'=>array_keys($review),'additionalProperties'=>false]],
                 ['queue_id','expected_archive_sha256','expected_plan_sha256','expected_caller_connection_id','implementation_sha256','financial_installation','financial_input','review'],false],
         ];
