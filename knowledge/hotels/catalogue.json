@@ -1,0 +1,10 @@
+{
+  "schema_version": "hotel_catalogue_v1",
+  "project_key": "anytour",
+  "shards": [
+    {
+      "file": "manifest.json",
+      "git_blob_sha": "01718ecadda4521a541f07eb5dbacb7b421f7e13"
+    }
+  ]
+}
