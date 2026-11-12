@@ -853,10 +853,12 @@ try {
         &&array_key_exists('admission_schema_sha256',$catalogDedicated)&&$catalogDedicated['admission_schema_sha256']===null
         &&($catalogDedicated['same_connection_forecast_scope']??null)===false
         &&($catalogDedicated['current_wrapper_authorization_sufficient']??null)===false);
+    $catalogBeforeDenied=$catalogCalls;
     $catalogNoScope=$catalogCall($catalogFamilies['forecast'],$catalogProfiles['forecast']);
     devOauthCheck('financial-only caller cannot obtain DEV catalogue status',
-        !isset($catalogNoScope['result']['structuredContent']['roadmap_preparation'])
-        &&devOauthChallengeScopes($catalogNoScope)===[$devScope]);
+        ($catalogNoScope['error']['code']??null)===-32001
+        &&($catalogNoScope['error']['data']['reason']??null)==='AUTH_SCOPE_UNAVAILABLE'
+        &&!isset($catalogNoScope['result'])&&$catalogCalls===$catalogBeforeDenied);
     $catalogBeforeSpoof=$catalogCalls;
     $catalogSpoof=$catalogCall($catalogFamilies['pair'],$catalogProfiles['pair'],['surface'=>'generic']);
     devOauthCheck('surface cannot be supplied or spoofed through existing status arguments',
