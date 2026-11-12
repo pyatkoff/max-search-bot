@@ -3906,7 +3906,8 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $reta
     $jsonFlags=JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR;
     $size=static fn(array $v):int=>strlen(json_encode($v,$jsonFlags));
     // Synthetic analogue of the live envelope: only423 bytes remain for this saved-only result.
-    $pressure=$contextSafe;unset($pressure['value_delivery']['repair_assessments']['retained_identity']);
+    $pressure=$contextSafe;unset($pressure['value_delivery']['repair_assessments']['retained_identity'],
+        $pressure['value_delivery']['repair_assessments']['retained_relation_outcomes']);
     $pressure['response_pressure_fixture']='';$pressurePadding=28000-423-$size($pressure);
     if($pressurePadding<0)throw new RuntimeException('invalid_compact_pressure_fixture');
     $pressure['response_pressure_fixture']=str_repeat('x',$pressurePadding);
