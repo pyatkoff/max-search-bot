@@ -807,9 +807,14 @@ async function resumeTerminal({env,event,api,prepare=false,proofFile=null,readOp
   await main();
   const native=await get('/actions/runs/'+runId);
   release.runIdentity(native,{id:runId,attempt:1,head:source,workflow:CLOSER,event:'push',branch:p.branch,completed:false});
-  requireValue(native.status==='in_progress'&&native.actor?.id===p.owner_id,'untrusted_terminal_continuation');
-  const commit=await get('/git/commits/'+source);
-  requireValue(commit?.sha===source&&commit.parents?.length===1&&commit.parents[0].sha===p.read_failure_sha,'recovery_source_changed');
+  requireValue(['queued','in_progress'].includes(native.status)&&native.actor?.id===p.owner_id,'untrusted_terminal_continuation');
+  const nativeJobs=release.boundedList(await get('/actions/runs/'+runId+'/attempts/1/jobs?per_page=100'),'jobs','incomplete_continuation_jobs');
+  const executing=nativeJobs.filter(j=>j.name==='release-slot-recovery');
+  requireValue(executing.length===1&&executing[0].run_id===Number(runId)&&executing[0].run_attempt===1
+    &&executing[0].head_sha===source&&executing[0].status==='in_progress'&&executing[0].conclusion===null
+    &&id(executing[0].runner_id),'continuation_job_not_active');
+  const relation=await get('/compare/'+p.read_failure_sha+'...'+source+'?per_page=1');
+  requireValue(relation?.status==='ahead'&&relation.merge_base_commit?.sha===p.read_failure_sha,'recovery_source_changed');
   await continuationPredecessors(api);
   const ci=release.boundedList(await get('/actions/runs?head_sha='+source+'&per_page=100'),'workflow_runs','incomplete_recovery_ci');
   for(const [name,path]of [['Regression tests',PREFIX+'regression-tests.yml'],['Retired domain guard',PREFIX+'retired-domain-guard.yml']]){

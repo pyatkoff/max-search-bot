@@ -18,7 +18,7 @@ fake the old execution context, manually free it or rerun a failed workflow.
 The same HOTEL owner implements the narrow source-checked continuation in the
 existing tail. Run required exact-head CI first; only then one exact non-force
 fast-forward of ops/recover-pr1505-terminal-20261112 from the checked stopped
-source d6f732dffd4976c663153771d9bb4b122456e3e6 to its checked direct child
+source d6f732dffd4976c663153771d9bb4b122456e3e6 to its exact checked descendant
 source may authenticate the original failed proof and all original gates,
 publish a separately identified continuation proof and close that exact owned
 record. The initial43239070014 context refusal and observation43240168728 remain

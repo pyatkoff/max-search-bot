@@ -17,7 +17,11 @@ the observed native update semantics and independently verifies the actual
 predecessor jobs/logs before any write. The checked d6f732 continuation43243320862
 also stopped during preparation on another503; upload/terminal were skipped,
 and original diagnostics commit34f4a2c/publisher version remained exact.
-Only its exact checked direct successor is admitted next.
+Only the exact checked descendant in the same original branch update is admitted next.
+GitHub run summaries can remain queued while their real Jobs are already running.
+The continuation therefore requires its exact original source/run/attempt job to
+be in_progress on an assigned positive runner, rather than using that summary
+alone. A genuinely queued job, missing metadata or a different source refuses.
 
 Inside this explicit continuation only, idempotent metadata GETs may perform
 at most two additional reads after HTTP503 across each preparation/final phase,
