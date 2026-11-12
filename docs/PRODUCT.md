@@ -66,7 +66,7 @@ Important Inbox signals include:
   unread volume does not rank conversations. Waiting retains its current-wait
   chronological queue. Delivery suspension continues to suppress automatic reply
   urgency without changing human tasks or operator shifts.
-- first-reply waiting time and 5-minute risk;
+- current-reply waiting time and 5-minute risk;
 - trip summary;
 - sales stage/tags/outcome;
 - next task/reminder;
