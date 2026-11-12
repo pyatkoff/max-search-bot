@@ -3906,9 +3906,17 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $reta
     $jsonFlags=JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR;
     $size=static fn(array $v):int=>strlen(json_encode($v,$jsonFlags));
     // Synthetic analogue of the live envelope: only423 bytes remain for this saved-only result.
-    $pressure=$contextSafe;unset($pressure['value_delivery']['repair_assessments']['retained_identity'],
-        $pressure['value_delivery']['repair_assessments']['retained_relation_outcomes']);
-    $pressure['response_pressure_fixture']='';$pressurePadding=28000-423-$size($pressure);
+    $pressure=$contextSafe;unset($pressure['value_delivery']['repair_assessments']['retained_identity']);
+    // Keep the property overhead in the measurement while excluding its previous value.
+    $pressure['value_delivery']['repair_assessments']['retained_relation_outcomes']=null;
+    $pressure['response_pressure_fixture']='';$pressureTarget=28000-423;
+    $pressureDeficit=$size($pressure)-4-$pressureTarget;
+    if($pressureDeficit>0){
+        $padding=&$pressure['remaining_context_fixture']['fixture'];
+        if(!is_string($padding)||$pressureDeficit>strlen($padding))throw new RuntimeException('invalid_compact_pressure_fixture');
+        $padding=substr($padding,0,strlen($padding)-$pressureDeficit);unset($padding);
+    }
+    $pressurePadding=$pressureTarget-($size($pressure)-4);
     if($pressurePadding<0)throw new RuntimeException('invalid_compact_pressure_fixture');
     $pressure['response_pressure_fixture']=str_repeat('x',$pressurePadding);
     $pressure['value_delivery']['repair_assessments']['retained_relation_outcomes']=$outcomePacket;
@@ -3916,7 +3924,8 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $reta
     foreach($proofs as$key=>$ignored)
         if($pressureSafe['value_delivery']['repair_assessments'][$key]!==$contextSafe['value_delivery']['repair_assessments'][$key])$pressureOld=false;
     $check('423 byte outcome headroom preserves actual saved outcomes complete59 event23 receipt roster all four proofs and money',
-        $size($compact)<=423&&$size($pressure)>28000&&$size($pressureSafe)<=28000
+        $size($pressure)-$size($outcomePacket)===28000-423
+        &&$size($compact)<=423&&$size($pressure)>28000&&$size($pressureSafe)<=28000
         &&$pressureSafe['value_delivery']['repair_assessments']['retained_relation_outcomes']===$compact
         &&$pressureSafe['value_delivery']['repair_assessments']['processing_frontier']===$r&&$pressureOld
         &&$pressureSafe['value_delivery']['by_state']===$pressure['value_delivery']['by_state']
@@ -3955,7 +3964,7 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $reta
     $noHeadroom=$pressure;$noHeadroom['response_pressure_fixture'].=str_repeat('x',423-$size($compact)+1);
     $omittedOutcome=$bound->invoke($projection,$noHeadroom);
     $check('insufficient room explicitly omits the compact result before any original financial proof or roster',
-        $size($omittedOutcome)<=28000
+        $size($noHeadroom)-$size($outcomePacket)+$size($compact)===28001&&$size($omittedOutcome)<=28000
         &&$omittedOutcome['value_delivery']['repair_assessments']['retained_relation_outcomes']['reason']==='response_budget'
         &&$omittedOutcome['value_delivery']['repair_assessments']['processing_frontier']===$r
         &&$omittedOutcome['value_delivery']['repair_assessments']['finite_visit_evidence']===$contextSafe['value_delivery']['repair_assessments']['finite_visit_evidence']
