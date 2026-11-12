@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-channel-hotel-feeds-20261112-update2",
+  "expected_installed_sha": "6e1c61915d0afc35ec8198d59021fe5a6bddadb6",
+  "previous_count": 519,
+  "manifest_sha256": "ba1c280b5886251f3a5591a27737482d2f83460d8aaf9576c792ca776c1f1470",
+  "approval_sha256": "2e349ebc3beb0d3cf4e66674386f526b3827f84e1253c4d5a3c6695b557b899f",
+  "publisher": {
+    "repository": "pyatkoff/max-search-bot",
+    "run_id": 43237785734,
+    "run_attempt": 1,
+    "head_sha": "14ba1d90fbb42bb5368e3fdc7e4fb89ec5aa6ce7",
+    "head_branch": "audit/content100-bot-publication-20261101",
+    "workflow_path": ".github/workflows/content100-bot-publication-20261101.yml",
+    "artifact": {
+      "id": 13953432069,
+      "name": "commercial-batch-20261112-2-publication-and-read",
+      "zip_sha256": "3f1d70e90ed68dcc9febc263e17b6f1cd025aae8512c6f12d70a324a9359f554"
+    },
+    "publication_summary_sha256": "4ab24de7132c8cc8b77bf2d164367d52267b8d94b449b3a2494699d4ade770de",
+    "bound_read_sha256": "c5e82eb5c550d19083451f8ac9ac2b2fb6ccd3e0107d6798587276fc47d346fb"
+  },
+  "route": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 43238423875,
+    "run_attempt": 1,
+    "head_sha": "08bccf8196d592f744c8fb740bd7dfffb241f85d",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "workflow_path": ".github/workflows/tgmini-identity-readonly.yml",
+    "candidate_artifact": {
+      "id": 13953497608,
+      "name": "commercial-max522-route-extension-candidate",
+      "zip_sha256": "980ef0d6a0adf5e2a5f6ea3106ddef1352373b71a102d6bfe59edd5f7c121ea5"
+    },
+    "result_artifact": {
+      "id": 13953447900,
+      "name": "commercial-max522-route-extension-readback-correction",
+      "zip_sha256": "b500628ea4f159294bb56252b4cf82d6e6933ebff8931dcc9f30e48848dc407a"
+    },
+    "correction_run_id": 43238945335,
+    "correction_head_sha": "6c86ff80e210af9bce97208e292204cf366beebf",
+    "original_result_artifact": {
+      "id": 13952903551,
+      "name": "commercial-max522-route-extension-install-result",
+      "zip_sha256": "5820766b5190a6ffc98b5b83a3e65cde88bd5058f23ca86c4718925995cd5c68"
+    },
+    "operation": "commercial-max522-private-route-extension-20261112-2-install1",
+    "map_sha256": "2fb7bfd06dd133b640c047ff3029e47a996b7abd0d483aa7ecaf23e6fbeb748a",
+    "module_sha256": "a4d725a5b21ce77957f8ce078abe15b8506e495bb4dece3e72a56657de09f58f",
+    "receipt_sha256": "0f569fc4bb7e9ea5d11b77cf056aa9bc9354d6c4cd8b2d51ed203d3a21ccfd9f",
+    "original_manifest_sha256": "a0bb32f04997105abebb3814b3f6f0a96019a9a34ceee15201c3519ae39629ef",
+    "manifest_projection_sha256": "2d3530f7d92083ca6dd902fcfc09e1877762deaf84219a7791f675745e67d43a",
+    "route_proof_sha256": "39f8ecf6c315c2a1f8ba4fcfce0034f9489dffe1abfc629f0260ce0ba0aa00a2",
+    "source_method": "root_authenticated_private_artifacts"
+  }
+}

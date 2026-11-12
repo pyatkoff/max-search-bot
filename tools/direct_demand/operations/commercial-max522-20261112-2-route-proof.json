@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "kind": "root_authenticated_private_route_extension",
+  "operation": "commercial-max522-private-route-extension-20261112-2-install1",
+  "previous_count": 519,
+  "logical_hotels": 522,
+  "new_hotel_ids": [
+    35313,
+    66564,
+    68907
+  ],
+  "publication_summary_sha256": "4ab24de7132c8cc8b77bf2d164367d52267b8d94b449b3a2494699d4ade770de",
+  "bound_read_sha256": "c5e82eb5c550d19083451f8ac9ac2b2fb6ccd3e0107d6798587276fc47d346fb",
+  "new_binding_tuples_sha256": "650ee5fe099708ceeb336d29ad813a146fbc8a99f8dbc6e84ba34f0c2fcbdb87",
+  "route_receipt_sha256": "0f569fc4bb7e9ea5d11b77cf056aa9bc9354d6c4cd8b2d51ed203d3a21ccfd9f",
+  "route_manifest_projection_sha256": "2d3530f7d92083ca6dd902fcfc09e1877762deaf84219a7791f675745e67d43a",
+  "original_route_manifest_sha256": "a0bb32f04997105abebb3814b3f6f0a96019a9a34ceee15201c3519ae39629ef",
+  "original_route_map_sha256": "2fb7bfd06dd133b640c047ff3029e47a996b7abd0d483aa7ecaf23e6fbeb748a",
+  "original_route_module_sha256": "a4d725a5b21ce77957f8ce078abe15b8506e495bb4dece3e72a56657de09f58f",
+  "original_previous_map_sha256": "fae6690e8fdb6b6ab2e0dfaabc074276d11bb3cb24dd7208f7db25528f7b37f8",
+  "verification": {
+    "full_map_checked": true,
+    "previous_rows_preserved": true,
+    "new_tuples_checked": true
+  },
+  "source": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 43238423875,
+    "run_attempt": 1,
+    "head_sha": "08bccf8196d592f744c8fb740bd7dfffb241f85d",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "workflow_path": ".github/workflows/tgmini-identity-readonly.yml",
+    "candidate_artifact": {
+      "id": 13953497608,
+      "name": "commercial-max522-route-extension-candidate",
+      "zip_sha256": "980ef0d6a0adf5e2a5f6ea3106ddef1352373b71a102d6bfe59edd5f7c121ea5"
+    },
+    "result_artifact": {
+      "id": 13953447900,
+      "name": "commercial-max522-route-extension-readback-correction",
+      "zip_sha256": "b500628ea4f159294bb56252b4cf82d6e6933ebff8931dcc9f30e48848dc407a"
+    },
+    "correction_run_id": 43238945335,
+    "correction_head_sha": "6c86ff80e210af9bce97208e292204cf366beebf",
+    "original_result_artifact": {
+      "id": 13952903551,
+      "name": "commercial-max522-route-extension-install-result",
+      "zip_sha256": "5820766b5190a6ffc98b5b83a3e65cde88bd5058f23ca86c4718925995cd5c68"
+    }
+  }
+}
