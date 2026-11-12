@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-          fetch-depth: 2
+          fetch-depth: 3
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
@@ -36,8 +36,8 @@ jobs:
           test "$GITHUB_REF" = refs/heads/audit/appleservice39-progress-20261112
           test "$GITHUB_RUN_ATTEMPT" = 1
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          test "$(git rev-parse HEAD^)" = 6e1c61915d0afc35ec8198d59021fe5a6bddadb6
-          test "$(git diff-tree --no-commit-id --name-only -r HEAD | sort)" = "$(printf '%s\n' .github/workflows/publish-appleservice39-pilot.yml tools/appleservice39_progress.php)"
+          test "$(git rev-parse HEAD^^)" = 6e1c61915d0afc35ec8198d59021fe5a6bddadb6
+          test "$(git diff --name-only 6e1c61915d0afc35ec8198d59021fe5a6bddadb6 HEAD | sort)" = "$(printf '%s\n' .github/workflows/publish-appleservice39-pilot.yml tools/appleservice39_progress.php)"
           php -l tools/appleservice39_progress.php
           node <<'JS'
           const d=require('./tools/deployment_release.js');
