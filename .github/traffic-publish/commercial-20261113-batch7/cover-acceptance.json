@@ -1,0 +1,1255 @@
+{
+  "schema_version": 1,
+  "state": "VISUALLY_ACCEPTED_PREPARED_NOT_SENT",
+  "input_sha256": "f739c6001d7e1c4e647097ee8b72c348a449569ed3166c638a58a50d7ee6e37c",
+  "logo_asset": ".github/traffic-publish/brand/anytour-logo-white.png",
+  "logo_sha256": "b27cda894047b1ecb4125eea2ecf0db9d1e1674472cad62f70edf1ef1a6c968f",
+  "rows": [
+    {
+      "hotel_id": 932,
+      "title": "Titanic Palace",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://storage.googleapis.com/hwaidak-hotels.appspot.com/hotels%2Fimages%2F1738091103846-DJI_0005-min.JPG",
+          "sha256": "f1d8a1023790e4da2ba8cd2ef88467c2d2cefcd2f7272bd2b48ed0bb0cce6aa6",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://firebasestorage.googleapis.com/v0/b/hwaidak-hotels.appspot.com/o/rooms%2Fimages%2F1739514218681-Room%202-14%20%28Large%29.webp?alt=media&token=ade9b4a1-764a-4a83-a0b3-099608f30835",
+          "sha256": "9c83aaf114aa0a5ce6baf7268c1092dc2cab587d8ea8449fd1b859ed7720c499",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://firebasestorage.googleapis.com/v0/b/hwaidak-hotels.appspot.com/o/rooms%2Fimages%2F1739697190115-SSP-TITANIC-D28%20%28Large%29.webp?alt=media&token=cfea3e78-77c9-4f9f-a4ad-d73f40f8b169",
+          "sha256": "8816afcaf89f5f56cc1885fb626d016ef8c72810df5353646dd3ac3fe0506d16",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 225,
+      "sourceRefs": [
+        {
+          "kind": "catalog",
+          "label": "Расширение каталога · 05.11.2026",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Сохранённый каталог от 05.11.2026. catalog_hotels.id; пространство native/Tourvisor каталога, не ANEX ID. Старый признак «не опубликован» не является текущей проверкой. Материалы требуют подготовки и приёмки. Состояние исходной записи: CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+        },
+        {
+          "kind": "catalog",
+          "label": "Сохранённая проверка каталога",
+          "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Источник каталожной записи. Статус в реестре не означает приёмку контента."
+        },
+        {
+          "kind": "official",
+          "label": "Hwaidak Hotels · Titanic Palace",
+          "url": "https://www.hwaidak-hotels.com/hotels/titanic-palace",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "Самостоятельный отель группы; Family Comfort, Bungalow и Swim-Up. Фото взяты только из блока Palace."
+        },
+        {
+          "kind": "catalog",
+          "label": "TUI · совместная инфраструктура",
+          "url": "https://www.tui.nl/titanic-palace-50976728/",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "Подтверждён доступ гостей Palace к аквапарку соседнего Titanic Beach; отдельные отели не объединяются."
+        },
+        {
+          "kind": "catalog",
+          "label": "TUI · ограничения и бассейны",
+          "url": "https://www.tui.com/hotels/titanic-palace-227755/hotelinformation/",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "Минимальный рост 1,20 м указан для аквапарка; подогрев отдельных бассейнов зависит от сезона."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Аквапарк используется совместно с соседним Titanic Beach, это отдельный отель. TUI указывает минимальный рост 1,20 м для аквапарка; допуск на конкретные горки проверяется.",
+        "Swim-Up и бунгало имеют прямой доступ к бассейну. Возрастные ограничения и размещение детей нужно подтвердить по конкретной категории; личный бассейн не обещается.",
+        "Зимний подогрев зависит от сезона и чаши. Условия морского купания, глубину, вход и доступ к пирсу проверяем отдельно; спа и некоторые развлечения платные."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://storage.googleapis.com/hwaidak-hotels.appspot.com/hotels%2Fimages%2F1738091103846-DJI_0005-min.JPG",
+          "sha256": "f1d8a1023790e4da2ba8cd2ef88467c2d2cefcd2f7272bd2b48ed0bb0cce6aa6",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 1104596,
+          "source_dimensions": [
+            4000,
+            3000
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "f1d8a1023790e4da2ba8cd2ef88467c2d2cefcd2f7272bd2b48ed0bb0cce6aa6",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://firebasestorage.googleapis.com/v0/b/hwaidak-hotels.appspot.com/o/rooms%2Fimages%2F1739514218681-Room%202-14%20%28Large%29.webp?alt=media&token=ade9b4a1-764a-4a83-a0b3-099608f30835",
+          "sha256": "9c83aaf114aa0a5ce6baf7268c1092dc2cab587d8ea8449fd1b859ed7720c499",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 367164,
+          "source_dimensions": [
+            800,
+            534
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "9c83aaf114aa0a5ce6baf7268c1092dc2cab587d8ea8449fd1b859ed7720c499",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://firebasestorage.googleapis.com/v0/b/hwaidak-hotels.appspot.com/o/rooms%2Fimages%2F1739697190115-SSP-TITANIC-D28%20%28Large%29.webp?alt=media&token=cfea3e78-77c9-4f9f-a4ad-d73f40f8b169",
+          "sha256": "8816afcaf89f5f56cc1885fb626d016ef8c72810df5353646dd3ac3fe0506d16",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 549464,
+          "source_dimensions": [
+            800,
+            534
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "8816afcaf89f5f56cc1885fb626d016ef8c72810df5353646dd3ac3fe0506d16",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "932.png",
+      "sha256": "297a9368da6b8819828cf61342445b85b84daf34fcc459d23a2dd904f718f1df",
+      "bytes": 473784,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "TITANIC PALACE",
+        "font_size": 28,
+        "text_width": 229.171875,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 483,
+      "title": "SUNRISE Royal Makadi Resort",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64bfa16ba5db4.jpg/1920x1080/fit/80/9f38aaf7584d314a088ff2a6822f65c6.jpg",
+          "sha256": "39b5dc41306667adb9c35bef7e8a9a8262afae30c5f4a482120d9f84f0ea49d5",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64bfa1848e62e.jpg/1920x1080/fit/80/a9a744933c79ea9fe8252c8a9c7ebcf7.jpg",
+          "sha256": "d972134ab8cd44d0eaf014d67f0616a6a6517c3d8270c9f8caf7f6f9534409c3",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64d8c9b891f67.jpg/1920x1080/fit/80/c49b17a559319a4f0bb27766e82f4f5d.jpg",
+          "sha256": "f255213e74160a161190e029d6096c52686e8a85dc62a3fef5289372703931ee",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 225,
+      "sourceRefs": [
+        {
+          "kind": "catalog",
+          "label": "Расширение каталога · 05.11.2026",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Сохранённый каталог от 05.11.2026. catalog_hotels.id; пространство native/Tourvisor каталога, не ANEX ID. Старый признак «не опубликован» не является текущей проверкой. Материалы требуют подготовки и приёмки. Состояние исходной записи: CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+        },
+        {
+          "kind": "catalog",
+          "label": "Сохранённая проверка каталога",
+          "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Источник каталожной записи. Статус в реестре не означает приёмку контента."
+        },
+        {
+          "kind": "official",
+          "label": "SUNRISE Royal Makadi · курорт и фото",
+          "url": "https://www.sunrise-resorts.com/royal-makadi-resort",
+          "at": "2026-11-10T16:12:13.681978Z",
+          "note": "Собственный пляж, аквапарк, детский клуб и семейные категории. Разные счётчики бассейнов на странице не переносятся в публикации."
+        },
+        {
+          "kind": "official",
+          "label": "SUNRISE Royal Makadi · фактшит декабря 2025",
+          "url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/17_rm_factsheet_december_2025.pdf",
+          "at": "2026-11-10T16:12:13.681978Z",
+          "note": "PDF по-прежнему связан с официальной страницей. Перечислены подогреваемые зимой бассейны; это не отдельное подтверждение режима сезона 2026/27."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T16:12:13.681978Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Возрастные и ростовые правила горок, расписание аквапарка и детского клуба уточняются перед поездкой.",
+        "Подогрев ряда бассейнов зимой указан в официальном фактшите декабря 2025 года. Режим сезона 2026/27 отдельно не подтверждён.",
+        "Площадь, планировка и доступ к бассейну зависят от категории. Не все рестораны и дополнительные услуги включены в любой тариф."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64bfa16ba5db4.jpg/1920x1080/fit/80/9f38aaf7584d314a088ff2a6822f65c6.jpg",
+          "sha256": "39b5dc41306667adb9c35bef7e8a9a8262afae30c5f4a482120d9f84f0ea49d5",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 340680,
+          "source_dimensions": [
+            1920,
+            1080
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "39b5dc41306667adb9c35bef7e8a9a8262afae30c5f4a482120d9f84f0ea49d5",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64bfa1848e62e.jpg/1920x1080/fit/80/a9a744933c79ea9fe8252c8a9c7ebcf7.jpg",
+          "sha256": "d972134ab8cd44d0eaf014d67f0616a6a6517c3d8270c9f8caf7f6f9534409c3",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 223199,
+          "source_dimensions": [
+            1920,
+            1080
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "d972134ab8cd44d0eaf014d67f0616a6a6517c3d8270c9f8caf7f6f9534409c3",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64d8c9b891f67.jpg/1920x1080/fit/80/c49b17a559319a4f0bb27766e82f4f5d.jpg",
+          "sha256": "f255213e74160a161190e029d6096c52686e8a85dc62a3fef5289372703931ee",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 223409,
+          "source_dimensions": [
+            1920,
+            1080
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "f255213e74160a161190e029d6096c52686e8a85dc62a3fef5289372703931ee",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "483.png",
+      "sha256": "8fa8b8e9bf110f6ffff3eb2a7b7b5a1c349fd49f3f8cf5089aa130d760889e73",
+      "bytes": 530426,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "SUNRISE ROYAL MAKADI RESORT",
+        "font_size": 28,
+        "text_width": 471.390625,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 212,
+      "title": "SUNRISE Azalea Aqua Park Resort",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a7db2a415d68.jpg/1920x1080/fit/80/64413187163f908aec6947e7cbb2ae11.jpg",
+          "sha256": "82d2e8504c44e5c444e9231c3a1251e196a8d18966b2c11c889a02dad0d17369",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6aa2ae88692ec.png/1920x1080/fit/80/48140acf6e87aec5947f2ec817199fd8.png",
+          "sha256": "d2fd4c4dfdbecced0cd1f14fc55ab2d7353289b89983f78624b69eacf20ba8b2",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a7db2a413083.jpg/1920x1080/fit/80/2cd1df57db136d2ffbfae24b43fda5da.jpg",
+          "sha256": "9c6c873ca8d6bede667667e633db2166cfccbf22bd1b2a749ccb8972831e0841",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 225,
+      "sourceRefs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 256",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "official",
+          "label": "SUNRISE · Azalea Aqua Park",
+          "url": "https://www.sunrise-resorts.com/azalea-aqua-park-resort",
+          "at": "2026-11-11T00:26:34.536855Z",
+          "note": "Текущий самостоятельный отель, ранее Aster; семейный продукт с собственным пляжем. Материалы Serano и Serano Club не переносились."
+        },
+        {
+          "kind": "official",
+          "label": "Azalea · Executive Jacuzzi Suite",
+          "url": "https://www.sunrise-resorts.com/azalea-aqua-park-resort/stay/executive-jacuzzi-suite",
+          "at": "2026-11-11T00:26:34.536855Z",
+          "note": "120 м², две спальни, зона отдыха, терраса с открытым джакузи. Не личный бассейн."
+        },
+        {
+          "kind": "official",
+          "label": "Azalea · Family Jacuzzi Suite",
+          "url": "https://www.sunrise-resorts.com/azalea-aqua-park-resort/stay/family-jacuzzi-suite",
+          "at": "2026-11-11T00:26:34.536855Z",
+          "note": "80 м², две спальни и открытое джакузи; условия размещения проверяются."
+        },
+        {
+          "kind": "official",
+          "label": "Azalea · фактшит апреля 2026",
+          "url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/112_az_factsheet_april_2026.pdf",
+          "at": "2026-11-11T00:26:34.536855Z",
+          "note": "Минимальный рост для горок 120 см. Подогрев обозначен у Oasis, SUNRISE, Tsunami Aqua, Aqua, Island и трёх детских чаш; Insula без отметки. SUNRISE Pool только для взрослых."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-11T00:26:34.536855Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        },
+        {
+          "kind": "receipt",
+          "label": "Ценовой диагностический срез · исходные ответы и проверка",
+          "url": "https://chatgpt.com/library?file_id=libfile_fde3_f-500987befa7c81918ae7ab49fdf68038_839482358a3c8191a38d8cf811d28df4&account_id=personal",
+          "at": "2026-11-11T10:21:13.303070Z",
+          "note": "{\"hotelId\": \"212\", \"searchId\": 14140484288, \"scope\": \"Минимум среди проверенных полных вариантов; Москва, 2 взрослых, вылет12.11–03.12.2026,5–14ночей. Не полный охват рынка или всех будущих месяцев.\", \"quotedTourCount\": 3, \"listingCount\": 409, \"tourId\": \"12303077459471\", \"selectedOption\": 1, \"total\": 127177, \"currency\": \"RUB\", \"fuelAddedSeparately\": false, \"checkedAt\": \"2026-11-11T10:05:01.500814+00:00\", \"quoteResponseSha256\": \"474585bfe00c53de25122cde91393e77d4af030afc4a675efcb7cea44dcd6641\", \"automaticPublishing\": false, \"origin\": \"one_off_diagnostic_before_monitor_unification\"}"
+        },
+        {
+          "kind": "catalog",
+          "label": "Действующий расчёт конкретного тура",
+          "url": "https://anytoour.ru/api-v2.php?action=flights&tourId=12303077459471&currency=RUB",
+          "at": "2026-11-11T10:05:01.500814+00:00",
+          "note": "Использована полная price.value выбранного реального перелёта; fuelCharge повторно не прибавлен. error=null, surcharges отсутствуют, noFlight/noMeal/noTransfer/noInsurance=false, noPlaces/onDemand=false. Снимок не является ежедневным минимумом всех месяцев."
+        },
+        {
+          "kind": "catalog",
+          "label": "Галерея Tourvisor · точный native hotel ID",
+          "url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=212",
+          "at": "2026-11-11T10:21:13.303070Z",
+          "note": "Получена карточка с тем же native ID и названием. Новый общий вид выбран из images; дата съёмки неизвестна. Две прежние общие фотографии переиспользованы. В новом варианте нет фотографии люкса под ценой базового номера."
+        }
+      ],
+      "retained_limitations": [
+        "Джакузи и две спальни относятся к Family Jacuzzi Suite 80 м² и Executive Jacuzzi Suite 120 м². Это не личный плавательный бассейн; вместимость и размещение детей проверяются.",
+        "В официальном фактшите апреля 2026 указан минимальный рост 120 см для горок. У детской водной зоны отдельные правила; допуск, сезон и фактическую работу уточняем.",
+        "Подогрев указан у отдельных чаш, Insula Pool не отмечен подогреваемым. SUNRISE Pool предназначен для взрослых, но весь отель семейный. Спа и отдельные рестораны проверяются по пакету."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a7db2a415d68.jpg/1920x1080/fit/80/64413187163f908aec6947e7cbb2ae11.jpg",
+          "sha256": "82d2e8504c44e5c444e9231c3a1251e196a8d18966b2c11c889a02dad0d17369",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 431592,
+          "source_dimensions": [
+            1920,
+            1080
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "82d2e8504c44e5c444e9231c3a1251e196a8d18966b2c11c889a02dad0d17369",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6aa2ae88692ec.png/1920x1080/fit/80/48140acf6e87aec5947f2ec817199fd8.png",
+          "sha256": "d2fd4c4dfdbecced0cd1f14fc55ab2d7353289b89983f78624b69eacf20ba8b2",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 3008974,
+          "source_dimensions": [
+            1920,
+            1080
+          ],
+          "source_format": "PNG",
+          "actual_sha256": "d2fd4c4dfdbecced0cd1f14fc55ab2d7353289b89983f78624b69eacf20ba8b2",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a7db2a413083.jpg/1920x1080/fit/80/2cd1df57db136d2ffbfae24b43fda5da.jpg",
+          "sha256": "9c6c873ca8d6bede667667e633db2166cfccbf22bd1b2a749ccb8972831e0841",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 475000,
+          "source_dimensions": [
+            1920,
+            1080
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "9c6c873ca8d6bede667667e633db2166cfccbf22bd1b2a749ccb8972831e0841",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "212.png",
+      "sha256": "71c550d2c2d357d540d5b9adf6ab04f854fdefca61fef5c48c1a22934ae8f7fc",
+      "bytes": 658409,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "SUNRISE AZALEA AQUA PARK RESORT",
+        "font_size": 28,
+        "text_width": 541.359375,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 62504,
+      "title": "Sindbad Club",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/e7f3a457-e9ee-4b5e-87f1-6a36b8f20873/Main+Image+min.jpg",
+          "sha256": "b0b0024a9ac0798a0fec9092e0c8c28b3d4dc2a677872a8a67b9fb3b3a07da15",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/b02ad66f-bdaa-47fb-b8fd-7a794032d4c8/Wellness+Suite+-+Room+2.jpg",
+          "sha256": "d821e4d7b12040755547c8369c1f95f3923ed27431e7ed2b129d28e12c05b01a",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/efb1634a-9ef8-4aa1-8871-ca7b931356d9/Boomerang+Slide.jpg",
+          "sha256": "e2aefdff81aeaa15ede251f00cfc8bf1d74675e5b58f4e31a63a2755da7b8e4b",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 225,
+      "sourceRefs": [
+        {
+          "kind": "catalog",
+          "label": "Расширение каталога · 05.11.2026",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Сохранённый каталог от 05.11.2026. catalog_hotels.id; пространство native/Tourvisor каталога, не ANEX ID. Старый признак «не опубликован» не является текущей проверкой. Материалы требуют подготовки и приёмки. Состояние исходной записи: CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+        },
+        {
+          "kind": "catalog",
+          "label": "Сохранённая проверка каталога",
+          "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Источник каталожной записи. Статус в реестре не означает приёмку контента."
+        },
+        {
+          "kind": "official",
+          "label": "Sindbad Club · аквапарк и подогрев",
+          "url": "https://sindbadclub.com/aqua-park",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "7 взрослых и 8 детских горок; ноябрь–март подогрев всех бассейнов кроме волнового."
+        },
+        {
+          "kind": "official",
+          "label": "Sindbad Club · пляж",
+          "url": "https://sindbadclub.com/beach-pools",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "Собственный песчаный пляж примерно в трёх минутах ходьбы от лобби."
+        },
+        {
+          "kind": "official",
+          "label": "Sindbad Club · Wellness Room",
+          "url": "https://sindbadclub.com/special-units",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "Джакузи на террасе, 44 м² всего: 28 м² внутри и 16 м² балкона."
+        },
+        {
+          "kind": "catalog",
+          "label": "Независимый справочник Sindbad · маршрут к пляжу",
+          "url": "https://www.sindbadclub.nl/strand/",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "Дополнительный источник о переходе улицы; не сайт отеля. Основные услуги и фотографии сверены по официальному sindbadclub.com."
+        },
+        {
+          "kind": "official",
+          "label": "Sindbad Club · официальная галерея главной страницы",
+          "url": "https://sindbadclub.com/",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "Пляж и номер; фактическая категория снимка номера отдельно не подтверждена."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "До пляжа около трёх минут пешком от лобби; путь проходит через улицу. Это не выход из корпуса прямо на песок, отель не отмечен как первая линия.",
+        "По официальному описанию подогрев действует с ноября по март; волновой бассейн исключён. Ограничения горок и режим конкретной чаши проверяются на даты.",
+        "Джакузи относится к Wellness Room: общая площадь 44 м² включает 16 м² балкона. У других категорий свои удобства; водные развлечения вне аквапарка и спа могут быть платными."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/e7f3a457-e9ee-4b5e-87f1-6a36b8f20873/Main+Image+min.jpg",
+          "sha256": "b0b0024a9ac0798a0fec9092e0c8c28b3d4dc2a677872a8a67b9fb3b3a07da15",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 485723,
+          "source_dimensions": [
+            1800,
+            1200
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "b0b0024a9ac0798a0fec9092e0c8c28b3d4dc2a677872a8a67b9fb3b3a07da15",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/b02ad66f-bdaa-47fb-b8fd-7a794032d4c8/Wellness+Suite+-+Room+2.jpg",
+          "sha256": "d821e4d7b12040755547c8369c1f95f3923ed27431e7ed2b129d28e12c05b01a",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 430934,
+          "source_dimensions": [
+            2500,
+            1667
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "d821e4d7b12040755547c8369c1f95f3923ed27431e7ed2b129d28e12c05b01a",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/efb1634a-9ef8-4aa1-8871-ca7b931356d9/Boomerang+Slide.jpg",
+          "sha256": "e2aefdff81aeaa15ede251f00cfc8bf1d74675e5b58f4e31a63a2755da7b8e4b",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 777674,
+          "source_dimensions": [
+            2000,
+            1331
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "e2aefdff81aeaa15ede251f00cfc8bf1d74675e5b58f4e31a63a2755da7b8e4b",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "62504.png",
+      "sha256": "11ac991a99f3cca3b400d155a5adf40f35e890bf80e70ffe2482b5e0bdf69e55",
+      "bytes": 544620,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "SINDBAD CLUB",
+        "font_size": 28,
+        "text_width": 213.09375,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 1255,
+      "title": "Timo Deluxe Resort",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://www.hoteltimo.com/images/gallery2/DAP08639-scaled.jpg",
+          "sha256": "eb694541c51330b4ebcddb61689854afbc954f8cb2426f2e294053cd03859cc0",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://www.hoteltimo.com/images/oda_suit.jpg",
+          "sha256": "95121a999579ce868ebfb18f09ce1ca6f25db5ade62a0e8a31d1122346d1088e",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://www.hoteltimo.com/images/gallery2/Timo-Plaj-13-1-scaled.jpg",
+          "sha256": "e9cc4e3f25a4185a46c266f26d0a06cb650efc42cdb268845249ca7a67c216d6",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 225,
+      "sourceRefs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 154",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "official",
+          "label": "Timo Deluxe · семейные категории",
+          "url": "https://www.hoteltimo.com/en",
+          "at": "2026-11-11T00:17:00.324658Z",
+          "note": "Официальный сайт: Suite 55 м², Family Room 36 м² и летний мини-клуб."
+        },
+        {
+          "kind": "official",
+          "label": "Timo Deluxe · Suite",
+          "url": "https://www.hoteltimo.com/en/odalar/suit-oda",
+          "at": "2026-11-11T00:17:00.324658Z",
+          "note": "55 м², две спальни и гостиная. Вместимость проверяется по возрастам и тарифу."
+        },
+        {
+          "kind": "official",
+          "label": "Timo Deluxe · активности",
+          "url": "https://www.hoteltimo.com/en/aktiviteler",
+          "at": "2026-11-11T00:17:00.324658Z",
+          "note": "Водные горки, мини-клуб и спа. Программа зависит от погоды; массаж платный. Подогрев не подтверждён."
+        },
+        {
+          "kind": "catalog",
+          "label": "KOMPAS · путь на пляж",
+          "url": "https://kompastour.com/ge/eng/country/turkey/alanya/timo_resort/",
+          "at": "2026-11-11T00:17:00.324658Z",
+          "note": "Собственная песчано-галечная пляжная зона примерно в 100 м через дорогу, подземный переход. Не прямой выход от корпуса."
+        },
+        {
+          "kind": "official",
+          "label": "Timo Deluxe · фотографии",
+          "url": "https://www.hoteltimo.com/en/galeri",
+          "at": "2026-11-11T00:17:00.324658Z",
+          "note": "Просмотрены пляж, бассейн с горками и изображение категории Suite на отдельной странице; дата съёмки неизвестна."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-11T00:17:00.324658Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Пляж примерно в 100 м через дорогу, доступ по подземному переходу. KOMPAS описывает песок и гальку; непосредственный выход к морю и полностью песчаный вход не обещаются.",
+        "55 м² и гостиная относятся к Suite; Family Room — 36 м². Вместимость и условия размещения детей нужно подтвердить по конкретной категории и тарифу.",
+        "Мини-клуб и развлечения имеют летнюю программу, горки зависят от погоды и расписания. Подогрев крытого или открытых бассейнов не подтверждён; массаж и отдельные спа-услуги платные."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://www.hoteltimo.com/images/gallery2/DAP08639-scaled.jpg",
+          "sha256": "eb694541c51330b4ebcddb61689854afbc954f8cb2426f2e294053cd03859cc0",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 791856,
+          "source_dimensions": [
+            2560,
+            1707
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "eb694541c51330b4ebcddb61689854afbc954f8cb2426f2e294053cd03859cc0",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://www.hoteltimo.com/images/oda_suit.jpg",
+          "sha256": "95121a999579ce868ebfb18f09ce1ca6f25db5ade62a0e8a31d1122346d1088e",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 219516,
+          "source_dimensions": [
+            1500,
+            1000
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "95121a999579ce868ebfb18f09ce1ca6f25db5ade62a0e8a31d1122346d1088e",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://www.hoteltimo.com/images/gallery2/Timo-Plaj-13-1-scaled.jpg",
+          "sha256": "e9cc4e3f25a4185a46c266f26d0a06cb650efc42cdb268845249ca7a67c216d6",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 1092068,
+          "source_dimensions": [
+            2560,
+            1438
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "e9cc4e3f25a4185a46c266f26d0a06cb650efc42cdb268845249ca7a67c216d6",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "1255.png",
+      "sha256": "cc834998586e3b38eab342aa26959466afbb957f86dbecc613bd879790baece7",
+      "bytes": 547453,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "TIMO DELUXE RESORT",
+        "font_size": 28,
+        "text_width": 315.796875,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 55511,
+      "title": "Trendy Verbena Beach",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://trendy.com.tr/wp-content/uploads/2023/09/Trendy-Verbena-Beach-Hava-18_Orta-Boyut.jpg",
+          "sha256": "2d0cf7fcd555375fad82f6c648f2119cfbd2e721289ae19473ee1f3dc95eeb36",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://trendy.com.tr/wp-content/uploads/2023/04/trendy-verbena-suite-3.webp",
+          "sha256": "584496c906188f17934f855551ed0de318c4d187274724a8757d037dacb393d3",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://trendy.com.tr/wp-content/uploads/2023/04/trendy-verbena-indoor-pool-3.webp",
+          "sha256": "71c730c3f398a9d8a0ea8bbfe8497450dc21df0cec6e86ccf845a820cac836ba",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 225,
+      "sourceRefs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 177",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "official",
+          "label": "Trendy Verbena · номера и фотографии",
+          "url": "https://trendy.com.tr/en/trendy-verbena-beach/",
+          "at": "2026-11-10T23:18:49.004538Z",
+          "note": "Семейные категории с двухъярусной кроватью или соединительной дверью; Suite."
+        },
+        {
+          "kind": "official",
+          "label": "Trendy Verbena · пляж и подогрев",
+          "url": "https://trendy.com.tr/en/trendy-verbena-beach/trendy-verbena-beach-havuzlar-ve-plajlar/",
+          "at": "2026-11-10T23:18:49.004538Z",
+          "note": "Пляж через променад. Крытые бассейны 01.11–31.03; открытый подогревается только в ноябре и марте."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T23:18:49.004538Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Крытые основной и детский бассейны подогреваются с 1 ноября по 31 марта. У открытого бассейна подогрев заявлен только в ноябре и марте.",
+        "Пляж расположен через променад. Горки и открытые зоны работают с учётом сезона и погоды; ограничения для детей проверяются.",
+        "Экономичные номера, семейные с двухъярусной кроватью и Family Room имеют разные площади и планировки. Люкс и вид на море подтверждаются выбранной категорией."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://trendy.com.tr/wp-content/uploads/2023/09/Trendy-Verbena-Beach-Hava-18_Orta-Boyut.jpg",
+          "sha256": "2d0cf7fcd555375fad82f6c648f2119cfbd2e721289ae19473ee1f3dc95eeb36",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 299648,
+          "source_dimensions": [
+            2260,
+            1505
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "2d0cf7fcd555375fad82f6c648f2119cfbd2e721289ae19473ee1f3dc95eeb36",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://trendy.com.tr/wp-content/uploads/2023/04/trendy-verbena-suite-3.webp",
+          "sha256": "584496c906188f17934f855551ed0de318c4d187274724a8757d037dacb393d3",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 95966,
+          "source_dimensions": [
+            1920,
+            1280
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "584496c906188f17934f855551ed0de318c4d187274724a8757d037dacb393d3",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://trendy.com.tr/wp-content/uploads/2023/04/trendy-verbena-indoor-pool-3.webp",
+          "sha256": "71c730c3f398a9d8a0ea8bbfe8497450dc21df0cec6e86ccf845a820cac836ba",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 169014,
+          "source_dimensions": [
+            1920,
+            1280
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "71c730c3f398a9d8a0ea8bbfe8497450dc21df0cec6e86ccf845a820cac836ba",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "55511.png",
+      "sha256": "92f5418b8cad17be57be9697e71d3dd3b8668393b014ec55ef42346be65ae02f",
+      "bytes": 521539,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "TRENDY VERBENA BEACH",
+        "font_size": 28,
+        "text_width": 365.578125,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 9434,
+      "title": "FANTASIA DE LUXE",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://www.fantasia.com.tr/uploads/gallery/genel_tr/dji-0932mp400-00-00-29663e00f0ace68.webp",
+          "sha256": "7c7a50543eaf411e6076387d20b898f241d48f98be3a939fda80d1960aaa0351",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://www.fantasia.com.tr/uploads/gallery/senior_suit_oda_tr/kusadasi-senior-suit-b5663dc44ad94a3.webp",
+          "sha256": "bd979d80bc5483304e270431e9dd01c2a9dda305f39fe47e0ee4d3e14b67de6b",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://www.fantasia.com.tr/uploads/gallery/kose_oda_tr/kose-oda-1663dc1fde545b.webp",
+          "sha256": "e191b863e5a80fb5d1b86701ad6ee60a8b0c208fbac1a943f0f772ad4e7f2ed6",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 225,
+      "sourceRefs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 242",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "catalog",
+          "label": "ANEX · точная карточка 16212",
+          "url": "https://anextour.ru/tours/turkey/fantasia-hotel-de-luxe",
+          "at": "2026-11-11T08:01:39.344181Z",
+          "note": "В данных текущей страницы inc=16212, isActive=true, Кушадасы, Yavansu Mh., Süleyman Demirel Blv. No:156, телефон +90 2566220550 и www.fantasia.com.tr. Адрес/телефон совпадают с отелем; историческая связь 16212↔9434 сохранена без новой подстановки."
+        },
+        {
+          "kind": "official",
+          "label": "Fantasia · официальный сайт и адрес",
+          "url": "https://www.fantasia.com.tr/en",
+          "at": "2026-11-11T08:01:39.344181Z",
+          "note": "Кушадасы/Aydın, Yavansu Mh. Süleyman Demirel Bulv. No:156; телефон 0256 622 05 50. Отель не смешан с одноимёнными объектами Кемера."
+        },
+        {
+          "kind": "official",
+          "label": "Senior Suite · 60 м²",
+          "url": "https://www.fantasia.com.tr/en/konaklama/senior-suite-room",
+          "at": "2026-11-11T08:01:39.344181Z",
+          "note": "Отдельная спальня и гостиная, 60 м²; страница указывает 2 взрослых. Наличие категории не подтверждено. Wi-Fi и мини-бар указаны платными; условия тарифа не обобщены."
+        },
+        {
+          "kind": "official",
+          "label": "Family Room · 40 м²",
+          "url": "https://www.fantasia.com.tr/en/konaklama/family-room",
+          "at": "2026-11-11T08:01:39.344181Z",
+          "note": "40 м², нет двери между зонами; страница указывает 2 взрослых + 1 ребёнок либо 3 взрослых. Число кроватей не использовано как доказательство вместимости 2+2."
+        },
+        {
+          "kind": "official",
+          "label": "Fantasia · бассейны и пляж",
+          "url": "https://www.fantasia.com.tr/en/otelimiz/pool-beach",
+          "at": "2026-11-11T08:01:39.344181Z",
+          "note": "Собственный пляж и бассейны. ANEX уточняет пляж-платформу и обрывистый вход; площади крытого бассейна в источниках различаются и не перенесены. Подогрев не обещан безусловно."
+        },
+        {
+          "kind": "official",
+          "label": "Fantasia · SPA",
+          "url": "https://www.fantasia.com.tr/en/otelimiz/spa-wellness",
+          "at": "2026-11-11T08:01:39.344181Z",
+          "note": "Сауна, хаммам, фитнес; процедуры и уход платные. Услуги принадлежат самому отелю."
+        },
+        {
+          "kind": "official",
+          "label": "Fantasia · официальная фотогалерея",
+          "url": "https://www.fantasia.com.tr/en/galeri",
+          "at": "2026-11-11T08:01:39.344181Z",
+          "note": "Три выбранных фото открыты и просмотрены: общий вид 1600×900, спальня Senior Suite 800×450, Family Room 800×450. Дата съёмки неизвестна; фото не гарантируют состояние или наличие номера."
+        },
+        {
+          "kind": "receipt",
+          "label": "Контракт CTA публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-11T08:01:39.344181Z",
+          "note": "Контракт формирования единственной кнопки, не квитанция фактической отправки. ctaMode=publisher, URL CTA пустой."
+        }
+      ],
+      "retained_limitations": [
+        "ANEX описывает песчаный пляж-платформу и обрывистый заход в море. Это не обещание пологого песчаного входа; для маленьких детей условия купания нужно уточнять.",
+        "У Family Room 40 м² нет двери между зонами. Официальная страница указывает 2 взрослых + 1 ребёнок либо 3 взрослых, Senior Suite 60 м² — 2 взрослых. Число кроватей не подтверждает размещение 2+2.",
+        "Подогрев крытого бассейна у ANEX зависит от погоды; открытые бассейны без подогрева. Центральное кондиционирование работает по графику и погоде.",
+        "Wi-Fi в номере и спа-процедуры могут оплачиваться отдельно. Набор услуг и доступность выбранной категории сверяются по тарифу; цена и наличие тура не подтверждены."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://www.fantasia.com.tr/uploads/gallery/genel_tr/dji-0932mp400-00-00-29663e00f0ace68.webp",
+          "sha256": "7c7a50543eaf411e6076387d20b898f241d48f98be3a939fda80d1960aaa0351",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 214618,
+          "source_dimensions": [
+            1600,
+            900
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "7c7a50543eaf411e6076387d20b898f241d48f98be3a939fda80d1960aaa0351",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://www.fantasia.com.tr/uploads/gallery/senior_suit_oda_tr/kusadasi-senior-suit-b5663dc44ad94a3.webp",
+          "sha256": "bd979d80bc5483304e270431e9dd01c2a9dda305f39fe47e0ee4d3e14b67de6b",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 31822,
+          "source_dimensions": [
+            800,
+            450
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "bd979d80bc5483304e270431e9dd01c2a9dda305f39fe47e0ee4d3e14b67de6b",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://www.fantasia.com.tr/uploads/gallery/kose_oda_tr/kose-oda-1663dc1fde545b.webp",
+          "sha256": "e191b863e5a80fb5d1b86701ad6ee60a8b0c208fbac1a943f0f772ad4e7f2ed6",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 31278,
+          "source_dimensions": [
+            800,
+            450
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "e191b863e5a80fb5d1b86701ad6ee60a8b0c208fbac1a943f0f772ad4e7f2ed6",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "9434.png",
+      "sha256": "17e7c3e144c79d8367456da00213863000110e2a2e644125430add1b678db611",
+      "bytes": 524694,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "FANTASIA DE LUXE",
+        "font_size": 28,
+        "text_width": 266.015625,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 30158,
+      "title": "БОГАТЫРЬ",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://uploads2.stells.info/W3ADj7EL4aMwDpin-mXfJuIGTBA=/952x600/jpg/c/ff/cff289192114907c4faa3a00f862ec67.jpg",
+          "sha256": "818d516ae5bc375a83d6deb88c9624a33fc0ee540d46cfbc47a6d1ff2fad0276",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://uploads2.stells.info/47gSPSxhIvHdW25fyOqDIfO7tIY=/952x600/jpg/0/cf/0cf24a015647adfb567bbd749069d196.jpg",
+          "sha256": "2b545b34f0df24881ba84f77101374457764932a168c37665e127b6a0b935a97",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://uploads2.stells.info/_qsdNEmtz6G58WtKn5PGvsRhgg8=/952x600/jpg/f/f2/ff25d8b900f77dd409de3e9defb8a209.jpg",
+          "sha256": "d5bf1dc0b94b06d47a337c86f76d75c2a15824df51499ed5ccc5b62a46375fac",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 3,
+      "registry_version": 225,
+      "sourceRefs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 491",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-09-12T14:57:45+00:00",
+          "note": "Срез 06.11.2026. accepted_mapping_row_in_sep12_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "catalog",
+          "label": "Внутренний local-tv каталог · Tourvisor 30158",
+          "url": "https://anytoour.ru/_preview/search3-next-candidate/data/local-tv-catalog-read-v1.php?tourvisorHotelIds%5B%5D=49345&tourvisorHotelIds%5B%5D=49365&tourvisorHotelIds%5B%5D=68810&tourvisorHotelIds%5B%5D=49342&tourvisorHotelIds%5B%5D=62515&tourvisorHotelIds%5B%5D=30158",
+          "at": "2026-11-11T08:42:11.615249Z",
+          "note": "Точное чтение tourvisorHotelIds: id=30158, БОГАТЫРЬ, Россия. Каталог revision=2. Уже сохранённая связь ANEX 14650 → TV 30158 взята из принятого среза MATCH; новых связей и поставщицких запросов нет."
+        },
+        {
+          "kind": "official",
+          "label": "«Богатырь» · официальная презентация",
+          "url": "https://bogatyr-castle.ru/upload/pdf/hotel_bogatyr_presentation_rus.pdf",
+          "at": "2026-11-11T09:18:05.544612Z",
+          "note": "Официальная презентация содержит «Люкс Короля»130 м², две комнаты; презентация — источник планировки, не гарантия текущих акций/наличия. Цена не заявлена."
+        },
+        {
+          "kind": "official",
+          "label": "«Богатырь» · MICE и категории",
+          "url": "https://mice.bogatyr-castle.ru/",
+          "at": "2026-11-11T09:18:05.544612Z",
+          "note": "«Люкс Короля»130 м², спальня+гостиная, вместимость3. У Алеан есть2основных+2дополнительных — расхождение явно сохранено, размещение4 не обещано. Формулировка MICE «первая линия» не применена: текущая карточка оператора указывает475 м до пляжа."
+        },
+        {
+          "kind": "catalog",
+          "label": "Алеан · «Богатырь», Сириус",
+          "url": "https://www.alean.ru/hotels/rossiya/krasnodarskiy_kray/sochi_gorod-kurort/sirius/bogatyr_otel/",
+          "at": "2026-11-11T09:18:05.544612Z",
+          "note": "Текущая карточка: галечный оборудованный пляж475 м, детский клуб «Карусель», СПА/крытый бассейн. Открытый подогреваемый бассейн сезонный. «Люкс Короля»130 м²: спальня+гостиная, диван нераскладной, доп.места по условиям. Данные отзывов не использованы. Старое описание TV850 м сохранено как историческое, не свежий факт. Основной сайт отеля ответил антибот-проверкой, она не обходилась."
+        },
+        {
+          "kind": "receipt",
+          "label": "Контракт CTA публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-11T09:18:05.544612Z",
+          "note": "Контракт единственной кнопки, не квитанция фактической отправки. ctaMode=publisher, ctaUrl пустой; кнопку формирует существующий публикатор."
+        }
+      ],
+      "retained_limitations": [
+        "До галечного пляжа по текущей карточке Алеан 475 м; первая линия не присвоена. В старом каталоге встречается другое расстояние.",
+        "Вместимость «Люкса Короля» различается в описаниях: 3 на MICE и 2 основных + 2 дополнительных у Алеан. Размещение семьи подтверждается отдельно; диван гостиной не раскладывается.",
+        "Открытый подогреваемый бассейн у оператора указан сезонным; его работу зимой нельзя обещать. Посещение «Сочи Парка» зависит от тарифа и графика парка. Цена и наличие не подтверждены."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://uploads2.stells.info/W3ADj7EL4aMwDpin-mXfJuIGTBA=/952x600/jpg/c/ff/cff289192114907c4faa3a00f862ec67.jpg",
+          "sha256": "818d516ae5bc375a83d6deb88c9624a33fc0ee540d46cfbc47a6d1ff2fad0276",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 167662,
+          "source_dimensions": [
+            952,
+            600
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "818d516ae5bc375a83d6deb88c9624a33fc0ee540d46cfbc47a6d1ff2fad0276",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://uploads2.stells.info/47gSPSxhIvHdW25fyOqDIfO7tIY=/952x600/jpg/0/cf/0cf24a015647adfb567bbd749069d196.jpg",
+          "sha256": "2b545b34f0df24881ba84f77101374457764932a168c37665e127b6a0b935a97",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 144695,
+          "source_dimensions": [
+            952,
+            600
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "2b545b34f0df24881ba84f77101374457764932a168c37665e127b6a0b935a97",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://uploads2.stells.info/_qsdNEmtz6G58WtKn5PGvsRhgg8=/952x600/jpg/f/f2/ff25d8b900f77dd409de3e9defb8a209.jpg",
+          "sha256": "d5bf1dc0b94b06d47a337c86f76d75c2a15824df51499ed5ccc5b62a46375fac",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 211029,
+          "source_dimensions": [
+            952,
+            600
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "d5bf1dc0b94b06d47a337c86f76d75c2a15824df51499ed5ccc5b62a46375fac",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "30158.png",
+      "sha256": "6e1edb1853bd12ecab8bb09d45d3c826b2b681b18c77df6624f76dc6aa011332",
+      "bytes": 640811,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "БОГАТЫРЬ",
+        "font_size": 28,
+        "text_width": 158.15625,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    }
+  ],
+  "provider_calls": 0,
+  "remote_writes": 0,
+  "visual_review": "All eight covers visually inspected: original brand logo, readable hotel title, three distinct retained real hotel photographs; no generated imagery."
+}
