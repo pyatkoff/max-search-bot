@@ -442,3 +442,36 @@ After this checked source is accepted, use one expected-head fast-forward from
 the exact original ops ref; do not rerun the cancelled workflow. Actual69 native
 readbacks,67 server routes and checked branded CSV installation remain required.
 Manager/conversion work and Mac access remain excluded by the owner.
+
+
+
+## Customer-path correction — 12 November 2026
+
+The owner selected one CTA: **Узнать стоимость ремонта**. Do not add time or
+appointment promises to that button. Every existing post retains one bot button;
+models/services/reviews navigation remains text links, with the verified reviews
+label **300+ оценок клиентов — читать отзывы**. Warranty copy is three months.
+
+The 27 coverage model cards currently link to generic service publications, which
+lose the model for a first visitor. The bounded `modelServicePayload` contract
+provides the existing model card plus one of its three already reviewed service
+choices (battery, front glass or display). The text link opens the same bot with
+that complete context. Its post ID remains the real model publication for
+attribution. The bot asks about the symptom without asking for the selected model
+again. No price, stock, appointment, diagnosis or additional publication is
+invented. Existing 15 repair entries and every original payload remain unchanged.
+
+Only after this source is installed may the same content owner update those 81
+text links and the existing 69 CTA labels through the existing publication Store.
+Use a new immutable revision, original native MID/URL/photo/button link readbacks,
+one claim per edit and no automatic retry after UNKNOWN. Preserve all195 accepted
+operations, the current pinned menu and reviews. The channel description must use
+the same three-month warranty. Do not rerun frozen older publishers or overwrite
+their receipts to make a later caption match an old snapshot.
+
+Manager acceptance uses the existing queue and notification owners. The observed
+old waiting conversation is not proven to be a natural lead. Never toggle shifts,
+forge a browser push subscription or a signed MAX identity to obtain acceptance.
+A native customer entry and human reply remain distinct from isolated handoff
+regressions and server routing checks. Advertising spend and conversion activation
+are outside this correction.
