@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261112-6-v1",
+  "state": "COMPLETED",
+  "new_full_pairs": 8,
+  "new_posts": 16,
+  "reused": 0,
+  "publisher": {
+    "run_id": 43300351418,
+    "run_attempt": 1,
+    "head_sha": "74008a8003a99f8243a1fb5c67acab28481c41a6",
+    "artifact_id": 13982030524,
+    "zip_sha256": "37d5e1c23a23a76630aecdaa33f875200a28f1cf3179a0666f247f356bf67326"
+  },
+  "native": {
+    "run_id": 43300763095,
+    "run_attempt": 1,
+    "head_sha": "402de0ca52a246c224c4340932c8f58cdd62ceca",
+    "private_accepted_commit": "4ec43f90cb48d9ded616f03f1fd8081ea47253f9",
+    "receipt_sha256": "11f330d9017baa609cf34d02ee8ff8fd57436a2503fa82d8bcef3ff26abe9ab4"
+  },
+  "feed": {
+    "run_id": 43301014551,
+    "run_attempt": 1,
+    "head_sha": "9575c4ff5c007d9e7954180305b6fcc64004d8b1",
+    "write_sha256": "6122b91d12d5a261df71a631cbf879bf941aa7e0196c52918065586f87cb4e83",
+    "readback_sha256": "b3524845adfb901c93e80553005491174d57bf83a1aa9afdccdfd164ac8c3eac"
+  },
+  "site": {
+    "operation": "site-new8-complete-20261112-b6-r224",
+    "receipt_sha256": "32c5a082a77b4015374c3d4a616b386827d163f511c8364e8074f18f2e2ec212",
+    "verification": {
+      "ok": true,
+      "new_full_pairs": 8,
+      "new_posts": 16,
+      "published_before": 551,
+      "published_after": 559,
+      "queue_before": 54,
+      "queue_after": 46,
+      "registry_version": 225,
+      "untouched_cards_exact": 658,
+      "accepted_materials_preserved": true,
+      "demand_snapshot_preserved": true,
+      "category_membership_delta": {},
+      "registry_export_sha256": "944d783968f086c9b4152aa4a9200dbf569dee8cf0dc541420debfb00e7be18b"
+    }
+  },
+  "nightly": {
+    "before": 523,
+    "after": 531,
+    "source": "bdaa97a9478a7b53346c2cfcd48f14052dfd11d8",
+    "gzip_sha256": "67c768adb4dbfc5326cd19ac53303cdd5a99e236f4e004cb33130082603ca297",
+    "collector_pr": 5025,
+    "collector_merge": "d7cf9d0490e18f2cfa348dcd1f72bfeaa4e952b7"
+  },
+  "zero_send_original": {
+    "run_id": 43299336765,
+    "post_write_attempts": 0,
+    "artifact_id": 13980153343,
+    "zip_sha256": "462c6ee575734befac06781e416d0d623a807ecc16fabac639ae977b45f3b19f"
+  },
+  "clearance": {
+    "run_id": 43299918237,
+    "artifact_id": 13980632560,
+    "zip_sha256": "b324b18f8ae8e3d9176127bb8ddab3867e6229865914fab6d2f015346ef33653"
+  },
+  "excluded": [
+    {
+      "hotel_id": 364,
+      "reason": "Literal title match to existing MAX post; native metadata absent, no linkage or repeat send.",
+      "existing_max_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+    },
+    {
+      "hotel_id": 1531,
+      "reason": "One retained photograph failed the technical image size guards (HTTP200/AssertionError). The diagnostic did not retain pixel/byte measurement, so exact size cause is not asserted. No retry; needs three valid retained images >=500x375 and <=15MB."
+    }
+  ],
+  "prices_invoked": 0,
+  "provider_calls": 0
+}
