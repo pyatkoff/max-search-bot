@@ -16,7 +16,7 @@ function hook_journal(string $op):?array {
     $dir='/var/www/anytoour/data/channel-post-operations/'.$op;hook_need(!is_link($dir),'hook_receipt_path_invalid');
     if(!file_exists($dir.'/receipt.jsonl'))return null;
     $raw=hook_read($dir.'/receipt.jsonl');hook_need($raw!==''&&str_ends_with($raw,"\n"),'hook_incomplete_journal_stop');
-    $lines=explode("\n",rtrim($raw,"\n"));return json_decode(end($lines),true,64,JSON_THROW_ON_ERROR);
+    return monitor_hook_parse_journal($raw,$op);
 }
 function hook_append($lock,array $state):void {
     $raw=json_encode($state,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)."\n";
@@ -28,14 +28,40 @@ function hook_get(string $url,int $max=4000000):string {
     $raw='';$c=curl_init($url);curl_setopt_array($c,[CURLOPT_FOLLOWLOCATION=>false,CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>40,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_HTTPHEADER=>['Cache-Control: no-cache'],CURLOPT_WRITEFUNCTION=>static function($c,string $chunk)use(&$raw,$max):int{if(strlen($raw)+strlen($chunk)>$max)return 0;$raw.=$chunk;return strlen($chunk);}]);
     $ok=curl_exec($c);$http=curl_getinfo($c,CURLINFO_HTTP_CODE);curl_close($c);hook_need($ok===true&&$http===200,'hook_http_read_failed');return $raw;
 }
-function hook_child(string $source,array $constants):array {
+function hook_child(string $source,array $constants,?array &$failure=null):array {
+    $failure=null;
     $prefix="<?php\ndeclare(strict_types=1);\n";$header='';foreach($constants as $k=>$v)$header.='const '.$k.'='.var_export($v,true).";\n";
     $script=$prefix.$header.base64_decode(HOOK_CONTRACT_B64,true)."\n".$source;
     $pipes=[];$p=proc_open([PHP_BINARY], [['pipe','r'],['pipe','w'],['pipe','w']],$pipes,getcwd(),null,['bypass_shell'=>true]);
     hook_need(is_resource($p),'hook_child_start_failed');$written=0;while($written<strlen($script)){$n=fwrite($pipes[0],substr($script,$written));hook_need(is_int($n)&&$n>0,'hook_child_input_failed');$written+=$n;}fclose($pipes[0]);
     $raw=stream_get_contents($pipes[1]);fclose($pipes[1]);$errors=stream_get_contents($pipes[2]);fclose($pipes[2]);$exit=proc_close($p);
     hook_need(is_string($raw)&&strlen($raw)<2000000,'hook_child_output_invalid');$lines=explode("\n",rtrim($raw,"\n"));$result=json_decode(end($lines),true,64,JSON_THROW_ON_ERROR);
-    hook_need($exit===0&&($result['ok']??false)===true,'hook_child_failed_read_original_journal');return $result;
+    if($exit!==0||($result['ok']??false)!==true){
+        $failure=['exit_code'=>$exit,'error'=>monitor_hook_fixed_child_error($result['error']??null)];
+        throw new RuntimeException('hook_child_failed_read_original_journal');
+    }return $result;
+}
+/** The child has exited. Append a no-write terminal only under its original lock. */
+function hook_abandon_failed_preflight(string $operation,array $failure):array {
+    hook_need(monitor_hook_local_preflight_failure($failure),'hook_no_write_child_failure_not_admitted');
+    $dir='/var/www/anytoour/data/channel-post-operations/'.$operation;$path=$dir.'/receipt.jsonl';
+    hook_need(preg_match('/\Acommercial-monitor-price-h[1-9][0-9]*-[a-f0-9]{64}\z/D',$operation)===1
+        &&!is_link($dir)&&realpath($dir)===$dir&&!is_link($path)&&is_file($path)&&realpath($path)===$path,'hook_no_write_journal_missing_stop');
+    $journalLock=fopen($path,'r+b');hook_need(is_resource($journalLock),'hook_no_write_journal_open_failed');
+    try{
+        hook_need(flock($journalLock,LOCK_EX|LOCK_NB),'hook_no_write_journal_busy_stop');
+        $stat=fstat($journalLock);$named=lstat($path);
+        hook_need(is_array($stat)&&is_array($named)&&$stat['ino']===$named['ino']&&$stat['dev']===$named['dev']
+            &&$stat['size']>0&&$stat['size']<=10000000,'hook_no_write_journal_changed_stop');
+        $prefix=stream_get_contents($journalLock,10000001);hook_need(is_string($prefix)&&strlen($prefix)===$stat['size'],'hook_no_write_journal_changed_stop');
+        $line=monitor_hook_terminal_line($prefix,$operation,gmdate('c'),'child_preflight_failed_before_write',
+            ['preflight_error'=>$failure['error'],'child_exit_code'=>$failure['exit_code']]);
+        hook_need(strlen($prefix.$line)<=10000000,'hook_no_write_journal_limit_stop');
+        $terminal=monitor_hook_parse_journal($prefix.$line,$operation);
+        hook_append($journalLock,json_decode($line,true,64,JSON_THROW_ON_ERROR));
+        hook_need(rewind($journalLock)&&stream_get_contents($journalLock,10000001)===$prefix.$line,'hook_no_write_terminal_readback_failed');
+        return $terminal;
+    }finally{flock($journalLock,LOCK_UN);fclose($journalLock);}
 }
 function hook_context(array $row,ChannelPostRegistryService $registry):array {
     $result=[];
@@ -64,14 +90,20 @@ function hook_prepare_feed(array $journal,string $installed):array {
     }
     return ['schema_version'=>3,'operation'=>monitor_hook_feed_operation($journal['operation'],gmdate('Ymd')),'files'=>$files,'generated_at'=>gmdate('Y-m-d\TH:i:s\Z',$at),'price_updates'=>[$binding]];
 }
-function hook_finish_feed(array &$state,$lock,string $installed):void {
+function hook_finish_feed(array &$state,$lock,string $installed):string {
     $pending=$state['pending'];$journal=hook_journal($pending['operation']);
+    if(is_array($journal)){
+        $held=monitor_hook_apply_abandonment($state,$journal);
+        if($held!==null){$state=$held;hook_append($lock,$state);return 'held_before_write';}
+    }
     hook_need(is_array($journal)&&($journal['complete']??false)===true,'hook_post_outcome_unresolved_stop');
     if($pending['phase']==='post_started'){
         $input=hook_prepare_feed($journal,$installed);$raw=json_encode($input,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
         $state['pending']['phase']='feed_started';$state['pending']['feed_operation']=$input['operation'];
         $state['pending']['files']=array_map(static fn($r)=>array_intersect_key($r,array_flip(['name','sha256','bytes','rows','expected_previous_sha256'])),$input['files']);hook_append($lock,$state);
-        hook_child(base64_decode(HOOK_WRITER_B64,true),['EXPECTED_INSTALLED_SHA'=>$installed,'PUBLIC_STATIC_FEED_OPERATION'=>$input['operation'],'PUBLIC_STATIC_FEED_INPUT_SHA256'=>hash('sha256',$raw),'PUBLIC_STATIC_FEED_INPUT_B64'=>base64_encode($raw)]);
+        $failure=null;
+        try{hook_child(base64_decode(HOOK_WRITER_B64,true),['EXPECTED_INSTALLED_SHA'=>$installed,'PUBLIC_STATIC_FEED_OPERATION'=>$input['operation'],'PUBLIC_STATIC_FEED_INPUT_SHA256'=>hash('sha256',$raw),'PUBLIC_STATIC_FEED_INPUT_B64'=>base64_encode($raw)],$failure);}
+        catch(Throwable $e){if($failure!==null){$state['pending']['child_failure']=$failure;hook_append($lock,$state);}throw $e;}
     }
     // Unknown feed outcome is reconciled by exact local + public hashes only, never replayed.
     foreach($state['pending']['files'] as $file){
@@ -80,10 +112,11 @@ function hook_finish_feed(array &$state,$lock,string $installed):void {
     }
     $state['completed'][$pending['tourvisor_hotel_id']]=['operation'=>$pending['operation'],'at'=>gmdate('c'),'feed_operation'=>$state['pending']['feed_operation']];
     $state['pending']=null;hook_append($lock,$state);
+    return 'feed_completed';
 }
 
 $inspect=getenv('ANYTOUR_MONITOR_HOOK_INSPECT')==='1'||($argv[1]??'')==='--inspect';
-$out=['ok'=>false,'mode'=>$inspect?'read_only_hook_inspection':'existing_monitor_post_feed_hook','new_posts'=>0,'supplier_calls'=>0,'site_writes'=>0,'updated_pairs'=>0,'unchanged_pairs'=>0,'eligible_pairs'=>0,'verified_ids'=>[],'eligible_ids'=>[],'unchanged_ids'=>[],'updates'=>[],'deferred'=>[]];
+$out=['ok'=>false,'mode'=>$inspect?'read_only_hook_inspection':'existing_monitor_post_feed_hook','new_posts'=>0,'supplier_calls'=>0,'site_writes'=>0,'updated_pairs'=>0,'unchanged_pairs'=>0,'eligible_pairs'=>0,'held_pairs'=>0,'verified_ids'=>[],'eligible_ids'=>[],'unchanged_ids'=>[],'held_ids'=>[],'updates'=>[],'deferred'=>[]];
 try{
     hook_need(count($argv)===1||($inspect&&count($argv)===2),'hook_argument_invalid');
     hook_need(defined('HOOK_ROSTER_GZIP_B64')&&defined('HOOK_RUNTIME_PINS_B64'),'hook_bundle_required');
@@ -97,7 +130,8 @@ try{
     else{$lock=fopen($path,'c+');hook_need($lock!==false&&flock($lock,LOCK_EX|LOCK_NB),'hook_already_running');$raw=stream_get_contents($lock);}
     hook_need(is_string($raw)&&(!$existed||$raw!=='')&&($raw===''||str_ends_with($raw,"\n")),'hook_journal_incomplete_stop');
     $state=['schema'=>1,'pending'=>null,'completed'=>[]];if($raw!==''){$lines=explode("\n",rtrim($raw,"\n"));$state=json_decode(end($lines),true,64,JSON_THROW_ON_ERROR);}elseif(!$inspect)hook_append($lock,$state);
-    if($state['pending']!==null){hook_need(!$inspect,'hook_pending_operation_inspect_journal');hook_finish_feed($state,$lock,$installed);$out['reconciled_prior_feed']=true;}
+    if($state['pending']!==null){hook_need(!$inspect,'hook_pending_operation_inspect_journal');$reconciled=hook_finish_feed($state,$lock,$installed);$out[$reconciled==='held_before_write'?'reconciled_prior_hold':'reconciled_prior_feed']=true;}
+    hook_need(!isset($state['holds'])||is_array($state['holds']),'hook_hold_state_invalid');
     ob_start();try{require $root.'/config.php';require_once $root.'/services/ChannelPostRuntime.php';require_once $root.'/services/ChannelPostAdminService.php';}finally{ob_end_clean();}
     $registry=new ChannelPostRegistryService(ConversationDb::connection());$roster=json_decode(gzdecode(base64_decode(HOOK_ROSTER_GZIP_B64,true)),true,64,JSON_THROW_ON_ERROR)['rows'];
     hook_need(count($roster)===HOOK_ROSTER_COUNT&&count(array_unique(array_column($roster,'tourvisor_hotel_id')))===HOOK_ROSTER_COUNT,'hook_roster_scope_changed');
@@ -113,6 +147,11 @@ try{
     foreach($roster as $row){
         if(!$inspect&&($out['updated_pairs']>=$passLimit||time()>=$deadline)){$out['bounded_pass_stopped']=true;break;}
         $tv=$row['tourvisor_hotel_id'];
+        if(isset($state['holds'][$tv])){
+            $hold=$state['holds'][$tv];hook_need(is_array($hold)&&is_string($hold['operation']??null),'hook_hold_state_invalid');
+            $reason=monitor_hook_hold_reason($tv,$hold,hook_journal($hold['operation']));
+            $out['held_pairs']++;$out['held_ids'][]=$tv;$out['deferred'][]=['tourvisor_hotel_id'=>$tv,'reason'=>$reason];continue;
+        }
         try{
             $context=$inspect?hook_context($row,$registry):null;
             if($inspect)$out['verified_ids'][]=$tv;
@@ -137,7 +176,19 @@ try{
         }
         $out['eligible_pairs']++;$out['eligible_ids'][]=$tv;if($inspect)continue;
         $state['pending']=['tourvisor_hotel_id'=>$tv,'operation'=>$op,'phase'=>'post_started','at'=>gmdate('c')];hook_append($lock,$state);
-        hook_child(base64_decode(HOOK_EDITOR_B64,true),['EXPECTED_INSTALLED_SHA'=>$installed,'APPROVED_UPDATE_OPERATION'=>$op,'APPROVED_UPDATE_TOURVISOR_ID'=>$tv,'APPROVED_UPDATE_HOTEL_ID'=>$row['hotel_id'],'APPROVED_UPDATE_KEY_B64'=>base64_encode($row['key']),'APPROVED_UPDATE_LOGICAL_B64'=>base64_encode($row['logical_id']),'APPROVED_MANIFEST_SHA256'=>hash('sha256',$raw),'MANIFEST_BASE64'=>base64_encode($raw)]);
+        $failure=null;
+        try{hook_child(base64_decode(HOOK_EDITOR_B64,true),['EXPECTED_INSTALLED_SHA'=>$installed,'APPROVED_UPDATE_OPERATION'=>$op,'APPROVED_UPDATE_TOURVISOR_ID'=>$tv,'APPROVED_UPDATE_HOTEL_ID'=>$row['hotel_id'],'APPROVED_UPDATE_KEY_B64'=>base64_encode($row['key']),'APPROVED_UPDATE_LOGICAL_B64'=>base64_encode($row['logical_id']),'APPROVED_MANIFEST_SHA256'=>hash('sha256',$raw),'MANIFEST_BASE64'=>base64_encode($raw)],$failure);}
+        catch(Throwable $e){
+            if($failure!==null){
+                $state['pending']['child_failure']=$failure;hook_append($lock,$state);
+                if(monitor_hook_local_preflight_failure($failure)){
+                    $terminal=hook_abandon_failed_preflight($op,$failure);$held=monitor_hook_apply_abandonment($state,$terminal);
+                    hook_need($held!==null,'hook_no_write_terminal_missing_stop');$state=$held;hook_append($lock,$state);
+                    $out['held_pairs']++;$out['held_ids'][]=$tv;
+                    $out['deferred'][]=['tourvisor_hotel_id'=>$tv,'reason'=>'abandoned_before_write','preflight_error'=>$failure['error']];continue;
+                }
+            }throw $e;
+        }
         hook_finish_feed($state,$lock,$installed);$out['updated_pairs']++;
         $confirmed=hook_journal($op);$postReceipts=[];
         foreach($confirmed['posts'] as $post)$postReceipts[]=$post['receipt'];
@@ -145,6 +196,7 @@ try{
     }
     $out['ok']=true;$out['installed_sha']=$installed;$out['roster_pairs']=count($roster);$out['completed_at']=gmdate('c');
     $out['existing_monitor_home_matches']=realpath((string)getenv('HOME').'/www/anytoour.ru/data')==='/var/www/anytoour/data/www/anytoour.ru/data';
-}catch(Throwable $e){$out['error']=preg_match('/\A[a-z0-9_]+\z/D',$e->getMessage())?$e->getMessage():'hook_failed_read_original_journal';}
+}catch(Throwable $e){$out['error']=preg_match('/\A[a-z0-9_]+\z/D',$e->getMessage())?$e->getMessage():'hook_failed_read_original_journal';if(is_array($state['pending']['child_failure']??null))$out['child_failure']=$state['pending']['child_failure'];}
 if(isset($lock)&&is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}
 echo 'MONITOR_POST_FEED_RESULT='.json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),"\n";exit($out['ok']?0:2);
+

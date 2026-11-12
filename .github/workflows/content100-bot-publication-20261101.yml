@@ -1,4 +1,4 @@
-name: Read current posts for original pending hotel price operation
+name: Validate original no-write monitor recovery and hold handling
 'on':
   push:
     branches:
@@ -20,7 +20,7 @@ jobs:
       with:
         ref: ${{ github.sha }}
         persist-credentials: false
-    - name: Check exact current main and read-only script before credentials
+    - name: Validate exact repair source and current main before credentials
       env:
         GH_TOKEN: ${{ github.token }}
       shell: bash
@@ -28,7 +28,24 @@ jobs:
 
         test "$GITHUB_RUN_ATTEMPT" = 1
 
-        php -l tools/direct_demand/operations/read-monitor-pending-current-context-20261112.php
+        php -l tools/direct_demand/operations/monitor-price-hook-contract.php
+
+        php -l tools/direct_demand/operations/monitor-price-after-collection.php
+
+        php -l tools/direct_demand/operations/reconcile-monitor-price-no-write-20261112.php
+
+        php tools/direct_demand/operations/test-monitor-price-contract.php
+
+        php tools/direct_demand/operations/test-monitor-price-hook.php
+
+        python3 tools/direct_demand/operations/build-monitor-price-hook.py "$RUNNER_TEMP/monitor-price-hook.php"
+
+        php -l "$RUNNER_TEMP/monitor-price-hook.php"
+
+        python3 tools/direct_demand/operations/build-monitor-no-write-reconciliation.py
+        "$RUNNER_TEMP/monitor-no-write-reconciliation.php"
+
+        php -l "$RUNNER_TEMP/monitor-no-write-reconciliation.php"
 
         gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/main-before-operation.json"
 
@@ -42,74 +59,9 @@ jobs:
 
         PYCURRENT
 
-        python3 - <<''PYROSTER''
-
-        import gzip,json,pathlib
-
-        p=pathlib.Path(''tools/direct_demand/operations/monitor-price-expanded-roster-20261111.json.gz'')
-
-        rows=json.loads(gzip.decompress(p.read_bytes()))[''rows'']
-
-        match=[r for r in rows if r[''tourvisor_hotel_id'']==1142]
-
-        assert len(match)==1
-
-        r=match[0]
-
-        print(''MONITOR_PENDING_SOURCE_ROSTER=''+json.dumps(r,ensure_ascii=False,separators=('','','':'')))
-
-        PYROSTER
-
         '
-    - name: Prepare existing server connection
-      env:
-        DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+    - name: Record built source digests
       shell: bash
-      run: "set -euo pipefail\numask 077\nraw=\"$DEPLOY_SSH_KEY_VALUE\"\nif [[ \"\
-        $raw\" == *\"PRIVATE KEY\"* ]]; then\n  if [[ \"$raw\" == *'\\n'* ]]; then\
-        \ printf '%b\\n' \"$raw\" | tr -d '\\r' > \"$RUNNER_TEMP/channel_key\"; else\
-        \ printf '%s\\n' \"$raw\" | tr -d '\\r' > \"$RUNNER_TEMP/channel_key\"; fi\n\
-        else\n  printf '%s' \"$raw\" | base64 --decode > \"$RUNNER_TEMP/channel_key\"\
-        \nfi\nssh-keygen -y -f \"$RUNNER_TEMP/channel_key\" >/dev/null\n"
-    - name: Pin existing server host-key continuity
-      env:
-        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-      shell: bash
-      run: "set -euo pipefail\numask 077\npython3 - <<'PY'\nimport os,re,subprocess,base64,hashlib,pathlib\n\
-        host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']\nassert re.fullmatch(r'[A-Za-z0-9_.:-]+',host)\
-        \ and not host.startswith('-')\nassert re.fullmatch(r'[A-Za-z0-9_-]+',user)\n\
-        scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)\n\
-        matches=[]\nfor line in scan.stdout.splitlines():\n  fields=line.split()\n\
-        \  if len(fields)<3 or fields[0].startswith('#'):continue\n  try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')\n\
-        \  except Exception:continue\n  if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)\n\
-        assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'\npathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\\\
-        n'.join(matches)+'\\n')\nPY\n"
-    - name: Read current versions and provider state for original TV1142 only
-      env:
-        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-      shell: bash
-      run: 'set -euo pipefail
-
-        umask 077
-
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o
-        IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
-        -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST"
-        ''cd /var/www/anytoour/data/www/app.anytoour.ru && php'' < tools/direct_demand/operations/read-monitor-pending-current-context-20261112.php
-        | tee "$RUNNER_TEMP/monitor-price-current-context-read.jsonl"
-
-        '
-    - uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: monitor-price-current-context-read
-        path: ${{ runner.temp }}/monitor-price-current-context-read.jsonl
-        retention-days: 14
-    - name: Remove ephemeral connection and bundle
-      if: always()
-      shell: bash
-      run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/monitor-price-hook.php"
+      run: sha256sum "$RUNNER_TEMP/monitor-price-hook.php" "$RUNNER_TEMP/monitor-no-write-reconciliation.php"
 env:
   EXPECTED_PRODUCTION_SHA: d1c79f5753d7d254d17921072f5ce59520082f4d
