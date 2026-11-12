@@ -1,0 +1,255 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261112-1-v1",
+  "state": "PREPARED_NOT_SENT",
+  "button_text": "✈️ Узнать стоимость тура",
+  "registry_version": 219,
+  "source_registry_sha256": "4335e0d9991a8054e10c8d976f5d9bd02161e4d375d37edeca213536eebd265e",
+  "expected_new_full_pairs": 10,
+  "rows": [
+    {
+      "hotel_id": 132002,
+      "logical_id": "commercial-akra-didim-132002-v1",
+      "aliases": [
+        "Akra Didim"
+      ],
+      "text": "✈️ Туры в Akra Didim\n📍 Дидим, Турция.\n\nОтпуск на Эгейском побережье с пространством для семьи: Deluxe от 54 м², бассейны, детские и подростковые клубы.\n\n🏖 Family Beach галечный, с песчаной игровой площадкой. Песчаный Laya Beach доступен с 16 лет.\n👶 Baby Club для детей от 0 до 3 лет работает с родителями, без присмотра. Kids Club принимает детей от 4 до 12 лет, Teen Club от 13 до 15 лет.\n💧 Собственный бассейн есть у Priene Houses, не у каждого номера. Открытые бассейны с морской водой без подогрева. Взрослые зоны не исключают семейный отдых.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "5c133c76dbeb861436c7dde2af93b136b9bf8b299610f3c4331585d633844b82",
+      "photo_sha256": "1ab2cb4dbc50d6c46bd803ee2c63600f9f59397ddf6a924583ff30bd19c9e426",
+      "sources": [
+        "https://www.akrahotels.com/en/hotels/akra-didim/",
+        "https://www.akrahotels.com/en/hotels/akra-didim/beach-and-pools/",
+        "https://www.akrahotels.com/en/hotels/akra-didim/kids-teens/",
+        "https://akrahotels-gvhpewgeadfsftcj.a01.azurefd.net/newakraweb/media/2uup44bi/akd_general_drone.jpg",
+        "https://akrahotels-gvhpewgeadfsftcj.a01.azurefd.net/newakraweb/media/xk2f3d2g/dlx_sw_card.jpg",
+        "https://akrahotels-gvhpewgeadfsftcj.a01.azurefd.net/newakraweb/media/n2wlognn/akra-didim-plaj-havuzlar-havuzlar.jpg"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d2e9be4f8d3651e140280acd8a7e5039e7e06b3c/.github/traffic-publish/commercial-20261112-batch1/132002.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 1137,
+      "logical_id": "commercial-cornelia-diamond-1137-v1",
+      "aliases": [
+        "Cornelia Diamond Golf Resort & Spa"
+      ],
+      "text": "✈️ Туры в Cornelia Diamond Golf Resort & Spa\n📍 Белек, Турция.\n\nБелек для пляжного отдыха, гольфа и Crassula Spa. Семьям подойдёт инфраструктура Cornie Kids World; категорию размещения выберем под состав поездки.\n\nБассейны при отдельных номерах и виллах предназначены для их гостей. Набор услуг меняется по сезону, платные процедуры проверяются отдельно.\n\nДля зимнего отдыха подтвердим работу бассейнов и подогрев на выбранные даты: найденный Guest Concept относится к сезону до 31 мая 2026 года, нового подтверждения нет.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "7ddb35f50d842c6704d4ebbc4ed66e3f0bb36b7aa54803a6bfc0582d7e0eeec3",
+      "photo_sha256": "6d195044c5fe2074378968d6edd10f02630afaf6a9ef36c63a806ec199dd06bc",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.corneliaresort.com/EN/Cornelia-Diamond-Luxury-Golf-Resort-Spa-Hotel-Belek-Antalya",
+        "https://www.corneliaresort.com/EN/Cornelia-Diamond-Luxury-Golf-Resort-Spa-Hotel-Belek-Antalya/The-Best-Family-Friendly-Hotel",
+        "https://www.corneliaresort.com/uploads/PDF/Guest-Concept.pdf",
+        "https://www.corneliaresort.com/uploads/640px/Cornelia-Diamond-Sea-View-4.jpg",
+        "https://www.corneliaresort.com/uploads/640px/Yuksek-Standartlarda-Kalite-Anlays-3.jpg",
+        "https://www.corneliaresort.com/uploads/640px/Crassula-Spa-Cornelia-Diamond-5.jpg"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d2e9be4f8d3651e140280acd8a7e5039e7e06b3c/.github/traffic-publish/commercial-20261112-batch1/1137.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 2144,
+      "logical_id": "commercial-d-maris-bay-2144-v1",
+      "aliases": [
+        "D Maris Bay",
+        "D Hotel Maris"
+      ],
+      "text": "✈️ Туры в D Maris Bay\n📍 Полуостров Датча, Турция.\n\nШесть частных пляжей и два бассейна для тех, кто любит менять пляжную обстановку во время отпуска.\n\n🏖 С детьми можно выбрать песчаный Bay Beach.\n👶 Для семей есть программы Maris Kids Club; предварительная запись рекомендуется.\n\nZuma x Silence Beach доступен с 18 лет. Это ограничение отдельной зоны, сам отель принимает семьи. Питание и включённые услуги уточним по условиям конкретного тура.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "ae9e5228d9d6ca35922fb0ec3c5c041841bc6b22e5bbf878ba5465d0e31a3555",
+      "photo_sha256": "f77972eafdc1d0c4151ae079493bfdd5a8fbf9f27f10c79d75c9b183e31e9436",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.dmarisbay.com/en/beaches-and-pools",
+        "https://www.dmarisbay.com/en/experiences/families",
+        "https://fs.dmarisbay.com/cdn/uploads/000001452_375x667_3.jpg",
+        "https://fs.dmarisbay.com/cdn/uploads/000001142_000001056_557x371.jpeg",
+        "https://fs.dmarisbay.com/cdn/uploads/000001451_375x667_4.jpg"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d2e9be4f8d3651e140280acd8a7e5039e7e06b3c/.github/traffic-publish/commercial-20261112-batch1/2144.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 3469,
+      "logical_id": "commercial-d-resort-gocek-3469-v1",
+      "aliases": [
+        "D-Resort Göcek",
+        "D Resort Gocek",
+        "Swissotel Gocek Marina and Resort"
+      ],
+      "text": "✈️ Туры в D-Resort Göcek\n📍 Гёчек, Турция.\n\nОтдых у бухты и прогулки рядом с мариной: частный пляж с белым песком, бассейн и спа.\n\nПляжное обслуживание заявлено с мая по ноябрь и зависит от погоды. Уточним расположение номера относительно пляжа, маршрут и трансфер к морю.\n\nPool Access означает доступ к бассейну у отдельной категории, а не собственный бассейн для каждого номера. Питание, услуги спа и доплаты проверим по тарифу.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "d40fd8eb4a8fb871fa53aafcce74c8b3d17f66ad59e5c0fccfa97f6f88cbf66a",
+      "photo_sha256": "c206a032551abce3382283d1f94625b519eb8de25694d7e5f7adc34e054a99a8",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.dresortgocek.com/",
+        "https://www.dresortgocek.com/en/beaches/beach-pool",
+        "https://fs.dresortgocek.com/cdn/uploads/000000467_beach-hero.webp",
+        "https://fs.dresortgocek.com/cdn/uploads/000000714_plajhavuz_galeri_2_1520x844.jpg",
+        "https://fs.dresortgocek.com/cdn/uploads/000000718_plajhavuz_galeri_4_1520x844.jpg"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d2e9be4f8d3651e140280acd8a7e5039e7e06b3c/.github/traffic-publish/commercial-20261112-batch1/3469.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 1031,
+      "logical_id": "commercial-arum-barut-1031-v1",
+      "aliases": [
+        "Arum Barut Collection"
+      ],
+      "text": "✈️ Туры в Arum Barut Collection\n📍 Сиде, Турция.\n\nПляжный отпуск с выбором номеров, люксов и резиденций. На территории бассейны и детские зоны, у курорта собственный пляж.\n\nВ море встречаются камни: отель рекомендует обувь для купания. Подогрев бассейна №2 указан на апрель и период с 15 октября по 15 ноября; это не обещание подогрева всю зиму. Пирс заявлен с 1 апреля по 31 октября.\n\nВзрослая пляжная зона отделена от семейных; сам отель принимает детей. Работу услуг подтвердим на ваши даты.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "cfc68832dd166ec0e4df7315dab50aff6465b24d6184924ebbd809b5a7f18d70",
+      "photo_sha256": "62e3fbc34cd1c71048283b32aea2879fb549f7c8b8b2c23abe11b9cf4a68c161",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+        "https://barutarum.com/",
+        "https://barutarum.com/en/pools-beach",
+        "https://api.baruthotelsgroup.com/uploads/pages/47580d4a-254d-c775-0fbd-2777d663c574/c800d4732fcd1c1fc69333210696c4ea.webp",
+        "https://api.baruthotelsgroup.com/uploads/room_types/535d2d82-5726-1fb7-830c-35bd317b425c/a2f8129bf63417612f83e68b5f0b3d89.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/67225f93-49b0-97fd-c9c9-c57bf6fc983c/837363c7f0de2c03519ce6bccba30300.jpg"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d2e9be4f8d3651e140280acd8a7e5039e7e06b3c/.github/traffic-publish/commercial-20261112-batch1/1031.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 74258,
+      "logical_id": "commercial-casa-cook-el-gouna-74258-v1",
+      "aliases": [
+        "Casa Cook El Gouna",
+        "Casa Cook El Gouna Adults Only"
+      ],
+      "text": "✈️ Туры в Casa Cook El Gouna\n📍 Эль-Гуна, Египет.\n\nДизайнерский отдых вдвоём у моря: минималистичные интерьеры, частный пляж, бассейн, спа и возможности для кайтсёрфинга. Отель принимает гостей от 16 лет.\n\nДля большего уединения подберём виллу нужной категории. Собственный бассейн есть только у соответствующих вилл; у Junior Suite он может быть общим.\n\nПитание, занятия и процедуры проверим по тарифу. Спокойный дизайн не гарантирует тишину во время мероприятий.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "2ba272b0ba8627d4cd071c5928c925449a4044b0490935925730df69940df2bc",
+      "photo_sha256": "4a71a46ca1e0883b4aa366bf22f94f1ecc69bd0f3c76ab7f454304c62e75f9f2",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://casacook.com/our-hotels/casa-cook-el-gouna/",
+        "https://www.elgouna.com/hotels/casa-cook",
+        "https://casacook.com/wp-content/uploads/2025/04/casa-cook-el-gouna-graf-10-scaled.jpg",
+        "https://busyrooms.cdnserver.net/bnccdn/rooms/39043-Standard-Room/original/drz_casa-cook-elgouna_1744%5B1%5D.jpg",
+        "https://busyrooms.cdnserver.net/bnccdn/rooms/46994-Villa-Sea-View/original/drz_casa-cook-elgouna_0654%5B1%5D.jpg"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d2e9be4f8d3651e140280acd8a7e5039e7e06b3c/.github/traffic-publish/commercial-20261112-batch1/74258.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 9321,
+      "logical_id": "commercial-club-marvy-9321-v1",
+      "aliases": [
+        "Club Marvy",
+        "Paloma Club Sultan"
+      ],
+      "text": "✈️ Туры в Club Marvy\n📍 Оздере, Эгейское побережье, Турция.\n\nДва песчаных пляжа, бассейны и аквапарк для отпуска на Эгейском побережье. Есть семейные номера, детские и подростковые программы.\n\n🏖 Marvy Bay открыт для семей, Kesre Bay предназначен для гостей от 18 лет.\n💧 Горки Combo и Looping Rocket заявлены с 16 лет; режим работы зависит от сезона.\n\nВзрослые категории и их привилегии выбираются отдельно. Рестораны по записи, услуги спа и прочие включения уточним по тарифу; весь отель принимает семьи.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "86103a250ef0de28e39089feed8a8248e73eec86010a0935908b6cf977da511a",
+      "photo_sha256": "947792e09d958c59a855eb55d89a2b583979d6431ae60dfed0fd873b5d103f04",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.clubmarvy.com/en/beach-club-resort-turkey/marvy-blue",
+        "https://www.clubmarvy.com/en/beach-club-resort-turkey/marvy-kids-youngsters",
+        "https://www.clubmarvy.com/en/beach-club-resort-turkey/marvy-adults-only",
+        "https://www.clubmarvy.com/en/beach-club-resort-turkey/rooms",
+        "https://www.clubmarvy.com/adminweb/images_beaches/CM_Web_MarvyBay_is5za1fk.jpg",
+        "https://www.clubmarvy.com/adminweb/images_pools/CM_Web_Havuz-03_by9it2mm.jpg",
+        "https://www.clubmarvy.com/AdminWeb/images_rooms_main_images/1200x800.jpg"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d2e9be4f8d3651e140280acd8a7e5039e7e06b3c/.github/traffic-publish/commercial-20261112-batch1/9321.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 15913,
+      "logical_id": "commercial-titanic-belek-15913-v1",
+      "aliases": [
+        "Titanic Luxury Collection Belek",
+        "Titanic Deluxe Golf Belek"
+      ],
+      "text": "✈️ Туры в Titanic Luxury Collection Belek\n📍 Белек, Турция.\n\nРанее Titanic Deluxe Golf Belek: курорт у реки Бешгёз с аквапарком и Kikoa Kids Club для семейного отдыха.\n\n🏖 Частный песчаный пляж находится отдельно от корпусов. К морю можно отправиться по реке; маршрут и расписание проверим.\n\nРабота аквапарка и пляжных услуг зависит от сезона. Номера с выходом к бассейну и виллы с собственным бассейном выбираются отдельно. Частные газебо могут оплачиваться дополнительно. Взрослые зоны не означают взрослый формат всего курорта.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "b172883b13c1d14c5cf3518bf3f7ea1dc9420bd7b2b95da211afe1af80822c2a",
+      "photo_sha256": "f6030cbd571c37b5565316bb71411d96bd25f4226bf69f02c0273daf48337cf9",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.titanic.com.tr/titanic-luxury-collection-belek",
+        "https://www.titanic.com.tr/titanic-luxury-collection-belek/experiences/the-beach",
+        "https://www.titanic.com.tr/titanic-luxury-collection-belek/experiences/the-river",
+        "https://www.titanic.com.tr/titanic-luxury-collection-belek/experiences/aquapark",
+        "https://image-tc.galaxy.tf/wijpeg-dsyuzo76wwuaasm6raizdth4v/008-titanic-deluxe-belek-aerial-views.jpg?width=1600&height=960",
+        "https://image-tc.galaxy.tf/wijpeg-5j3c7kogtupwz3h15ofn7s4q3/290-titanic-deluxe-golf-belek-beach.jpg?width=1600&height=960",
+        "https://image-tc.galaxy.tf/wijpeg-1w4n5u8vg33n43foq2xkob79b/titanic-deluxe-golf-belek-bali-house-swim-up-1.jpg?width=1600&height=960"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d2e9be4f8d3651e140280acd8a7e5039e7e06b3c/.github/traffic-publish/commercial-20261112-batch1/15913.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 15693,
+      "logical_id": "commercial-makadi-spa-15693-v1",
+      "aliases": [
+        "The Makadi Spa",
+        "The Makadi Spa Adults Only"
+      ],
+      "text": "✈️ Туры в The Makadi Spa\n📍 Макади-Бей, Египет.\n\nОтпуск вдвоём на Красном море: собственный пляж у отеля, Junior Suite, просторные люксы и панорамный бассейн. Отель принимает гостей от 18 лет.\n\nПодогрев открытого бассейна сезонный; даты и температуру уточним. Перед бронированием проверим вход в море, вид из номера и оснащение выбранной категории.\n\nЧасть ресторанных позиций, обслуживание в номере и процедуры спа оплачиваются отдельно. Включения зависят от тарифа.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "3bb401078313686a7203172a8a70178bb6ee95699784162147d08520168c6e8c",
+      "photo_sha256": "bb9f2c50bb91e85ccb79b66705bd5cb70b57416ba187498e9d172e49064102f5",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://redseahotels.com/resorts/makadi-bay/the-makadi-spa/",
+        "https://www.redseaholidays.co.uk/en/destinations/egypt/makadi-bay/makadi-bay/the-makadi-spa-hotel/",
+        "https://redseahotels.com/wp-content/uploads/2023/02/Infinity-Pool-at-Makadi-Spa-Resort.jpg",
+        "https://redseahotels.com/wp-content/uploads/2023/02/Directly-at-the-beach-and-red-sea-is-the-makadi-spa-located.jpg",
+        "https://redseahotels.com/wp-content/uploads/2023/03/Suite-at-adultsonly-hotel-makadi-spa.jpg"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d2e9be4f8d3651e140280acd8a7e5039e7e06b3c/.github/traffic-publish/commercial-20261112-batch1/15693.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 1217,
+      "logical_id": "commercial-adalya-art-side-1217-v1",
+      "aliases": [
+        "Adalya Art Side",
+        "Grand Hotel Artside"
+      ],
+      "text": "✈️ Туры в Adalya Art Side\n📍 Эвренсеки, Сиде, Турция.\n\nСемейный отдых в Сиде: Family Room 57 м² с двумя жилыми зонами, бассейны, горки, детские программы и спа. Площадь относится к Family, не к стандартным номерам.\n\nДо собственного пляжа около 300 метров; прогулку к морю нужно учесть. Текущий сайт описывает песчаную пляжную зону, прежний фактшит также указывает гальку. Вход без камней не гарантирован.\n\nПланировку номера, работу горок, детского клуба и зимний подогрев подтвердим на даты. Включение спа проверим по тарифу.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "af961c664a5b56199f8ab42adb10c08bb8cf9b5c90290a7222504e61e94f8eee",
+      "photo_sha256": "ad6ca2175e525899cf1bd0f67b08020d82366e584f0002d2f776715fb1a5d564",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/accommodation/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/beach-pools/beach/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/beach-pools/",
+        "https://www.adalyaartside.com/uploads/Fact%20Sheet%20ArtSide/ArtSide-factsheet-en.pdf",
+        "https://www.adalyahotels.com/media/v31f0not/adalya-art-side-banner-v2-1-1.jpg",
+        "https://www.adalyahotels.com/media/netnf2mv/adalya-art-side-aile-odalari-anasayfa-card.jpg",
+        "https://www.adalyahotels.com/media/vvqb5vys/adalya-art-side-kaydirak-havuzu-list-card.jpg"
+      ],
+      "category": null,
+      "display_category": false,
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d2e9be4f8d3651e140280acd8a7e5039e7e06b3c/.github/traffic-publish/commercial-20261112-batch1/1217.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ]
+}

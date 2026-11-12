@@ -162,4 +162,41 @@ function monitor_hook_hold_reason(int $tv,array $hold,?array $journal):string {
     return 'abandoned_before_write';
 }
 
-
+/** Night maintenance belongs to the already completed collector, never a new schedule. */
+function monitor_hook_nightly_gate(array $state,int $now,?string $collectionStartedAt,?string $collectorRunId):array {
+    monitor_price_require(is_string($collectorRunId)&&preg_match('/\A[1-9][0-9]{0,19}\z/D',$collectorRunId)===1,'hook_nightly_collector_run_invalid');
+    $collectionAt=monitor_price_time($collectionStartedAt);
+    monitor_price_require($collectionAt<=$now+60&&$now-$collectionAt<=3600,'hook_nightly_collection_time_invalid');
+    $local=(new DateTimeImmutable('@'.$collectionAt))->setTimezone(new DateTimeZone('Europe/Moscow'));
+    $night=$local->format('Y-m-d');
+    if((int)$local->format('G')>=6)return ['due'=>false,'blocked'=>false,'reason'=>'outside_moscow_night','night_date'=>$night];
+    if(($state['pending']??null)!==null)return ['due'=>false,'blocked'=>true,'reason'=>'hook_pending_operation_requires_reconciliation','night_date'=>$night];
+    $prior=$state['nightly_cycle']??null;
+    if($prior!==null){
+        monitor_price_require(is_array($prior)&&is_string($prior['night_date']??null)
+            &&preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}\z/D',$prior['night_date'])===1
+            &&in_array($prior['state']??null,['started','completed','budget_exhausted'],true),'hook_nightly_cycle_invalid');
+        monitor_price_require($prior['night_date']<=$night,'hook_nightly_clock_moved_back');
+        if($prior['night_date']===$night)return ['due'=>false,'blocked'=>$prior['state']==='started',
+            'reason'=>$prior['state']==='started'?'hook_nightly_original_attempt_unresolved':'nightly_cycle_already_attempted',
+            'night_date'=>$night,'cycle'=>$prior];
+    }
+    return ['due'=>true,'blocked'=>false,'night_date'=>$night,'cycle'=>[
+        'night_date'=>$night,'state'=>'started','collector_run_id'=>$collectorRunId,
+        'collection_started_at'=>gmdate('c',$collectionAt),'started_at'=>gmdate('c',$now),
+        'budget_seconds'=>1800,'finish_reserve_seconds'=>300,
+    ]];
+}
+/** Stop admitting new pairs early enough to finish the current original pair. No writer is killed. */
+function monitor_hook_pass_policy(bool $nightly,int $rosterCount,int $startedAt):array {
+    monitor_price_require($rosterCount>=1&&$rosterCount<=1000,'hook_roster_scope_changed');
+    return ['pair_limit'=>$nightly?$rosterCount:30,'budget_seconds'=>$nightly?1800:480,
+        'finish_reserve_seconds'=>$nightly?300:0,'admit_until'=>$startedAt+($nightly?1500:480)];
+}
+function monitor_hook_can_start_pair(array $policy,int $now,int $updatedPairs):bool {
+    return $now<$policy['admit_until']&&$updatedPairs<$policy['pair_limit'];
+}
+/** Saved exports last 15 minutes; refresh the read-only snapshot before that boundary. */
+function monitor_hook_snapshot_refresh_due(int $fetchedAt,int $now):bool {
+    return $now-$fetchedAt>=600;
+}

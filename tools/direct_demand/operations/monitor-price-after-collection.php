@@ -90,6 +90,23 @@ function hook_prepare_feed(array $journal,string $installed):array {
     }
     return ['schema_version'=>3,'operation'=>monitor_hook_feed_operation($journal['operation'],gmdate('Ymd')),'files'=>$files,'generated_at'=>gmdate('Y-m-d\TH:i:s\Z',$at),'price_updates'=>[$binding]];
 }
+/** Same saved monitor reader as before, in batches of 100; no supplier search or writes. */
+function hook_snapshots(array $roster,DateTimeImmutable $today):array {
+    $snapshots=[];
+    foreach(array_chunk(array_column($roster,'tourvisor_hotel_id'),100) as $ids){
+        $query=['tourvisorHotelIds'=>$ids,'departureId'=>1,'dateFrom'=>$today->modify('+1 day')->format('Y-m-d'),'dateTo'=>$today->modify('first day of this month')->modify('+12 months')->modify('-1 day')->format('Y-m-d')];
+        $url='https://anytoour.ru/data/hotel-monitor-prices-read-v1.php?'.http_build_query($query,'','&',PHP_QUERY_RFC3986);
+        $payload=json_decode(hook_get($url),true,64,JSON_THROW_ON_ERROR);
+        foreach($ids as $tv)$snapshots[$tv]=monitor_hook_source($payload,$tv,$url);
+    }
+    return $snapshots;
+}
+function hook_output_and_exit(array $out,$lock=null):void {
+    if(is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}
+    echo 'MONITOR_POST_FEED_RESULT='.json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)."\n";
+    exit($out['ok']?0:2);
+}
+
 function hook_finish_feed(array &$state,$lock,string $installed):string {
     $pending=$state['pending'];$journal=hook_journal($pending['operation']);
     if(is_array($journal)){
@@ -116,9 +133,19 @@ function hook_finish_feed(array &$state,$lock,string $installed):string {
 }
 
 $inspect=getenv('ANYTOUR_MONITOR_HOOK_INSPECT')==='1'||($argv[1]??'')==='--inspect';
-$out=['ok'=>false,'mode'=>$inspect?'read_only_hook_inspection':'existing_monitor_post_feed_hook','new_posts'=>0,'supplier_calls'=>0,'site_writes'=>0,'updated_pairs'=>0,'unchanged_pairs'=>0,'eligible_pairs'=>0,'held_pairs'=>0,'verified_ids'=>[],'eligible_ids'=>[],'unchanged_ids'=>[],'held_ids'=>[],'updates'=>[],'deferred'=>[]];
+$startedAt=time();$nightly=($argv[1]??'')==='--nightly';
+$out=['ok'=>false,'mode'=>$inspect?'read_only_hook_inspection':'existing_monitor_post_feed_hook','new_posts'=>0,'supplier_calls'=>0,'site_writes'=>0,'updated_pairs'=>0,'unchanged_pairs'=>0,'eligible_pairs'=>0,'held_pairs'=>0,'verified_ids'=>[],'eligible_ids'=>[],'unchanged_ids'=>[],'held_ids'=>[],'updates'=>[],'deferred'=>[],'scanned_pairs'=>0];
 try{
-    hook_need(count($argv)===1||($inspect&&count($argv)===2),'hook_argument_invalid');
+    hook_need(count($argv)===1||(($inspect||$nightly)&&count($argv)===2),'hook_argument_invalid');
+    hook_need(!($inspect&&$nightly),'hook_argument_invalid');
+    if($nightly){
+        $nightGate=monitor_hook_nightly_gate([],$startedAt,getenv('ANYTOUR_MONITOR_COLLECTION_STARTED_AT')?:null,getenv('ANYTOUR_MONITOR_COLLECTOR_RUN_ID')?:null);
+        $out['run_policy']='nightly_saved_monitor';$out['night_date']=$nightGate['night_date'];$out['budget_seconds']=1800;
+        if(!$nightGate['due']){
+            $out['ok']=true;$out['skipped']=$nightGate['reason'];$out['nightly_cycle_completed']=false;$out['duration_seconds']=time()-$startedAt;
+            hook_output_and_exit($out);
+        }
+    }
     hook_need(defined('HOOK_ROSTER_GZIP_B64')&&defined('HOOK_RUNTIME_PINS_B64'),'hook_bundle_required');
     $root='/var/www/anytoour/data/www/app.anytoour.ru';hook_need(realpath($root)===$root&&chdir($root),'hook_bot_root_unavailable');
     $installed=trim((string)shell_exec('git rev-parse HEAD'));hook_need(preg_match('/\A[a-f0-9]{40}\z/D',$installed)===1&&trim((string)shell_exec('git status --porcelain --untracked-files=no'))==='','hook_runtime_changed');
@@ -130,22 +157,32 @@ try{
     else{$lock=fopen($path,'c+');hook_need($lock!==false&&flock($lock,LOCK_EX|LOCK_NB),'hook_already_running');$raw=stream_get_contents($lock);}
     hook_need(is_string($raw)&&(!$existed||$raw!=='')&&($raw===''||str_ends_with($raw,"\n")),'hook_journal_incomplete_stop');
     $state=['schema'=>1,'pending'=>null,'completed'=>[]];if($raw!==''){$lines=explode("\n",rtrim($raw,"\n"));$state=json_decode(end($lines),true,64,JSON_THROW_ON_ERROR);}elseif(!$inspect)hook_append($lock,$state);
+    if($nightly){
+        $nightGate=monitor_hook_nightly_gate($state,$startedAt,getenv('ANYTOUR_MONITOR_COLLECTION_STARTED_AT')?:null,getenv('ANYTOUR_MONITOR_COLLECTOR_RUN_ID')?:null);
+        if(!$nightGate['due']){
+            $out['ok']=!$nightGate['blocked'];$out['skipped']=$nightGate['reason'];$out['nightly_cycle_completed']=false;
+            $out['prior_nightly_cycle']=$nightGate['cycle']??null;$out['duration_seconds']=time()-$startedAt;
+            if($nightGate['blocked'])$out['error']=$nightGate['reason'];
+            hook_output_and_exit($out,$lock);
+        }
+        $state['nightly_cycle']=$nightGate['cycle'];hook_append($lock,$state);
+    }
     if($state['pending']!==null){hook_need(!$inspect,'hook_pending_operation_inspect_journal');$reconciled=hook_finish_feed($state,$lock,$installed);$out[$reconciled==='held_before_write'?'reconciled_prior_hold':'reconciled_prior_feed']=true;}
     hook_need(!isset($state['holds'])||is_array($state['holds']),'hook_hold_state_invalid');
     ob_start();try{require $root.'/config.php';require_once $root.'/services/ChannelPostRuntime.php';require_once $root.'/services/ChannelPostAdminService.php';}finally{ob_end_clean();}
     $registry=new ChannelPostRegistryService(ConversationDb::connection());$roster=json_decode(gzdecode(base64_decode(HOOK_ROSTER_GZIP_B64,true)),true,64,JSON_THROW_ON_ERROR)['rows'];
     hook_need(count($roster)===HOOK_ROSTER_COUNT&&count(array_unique(array_column($roster,'tourvisor_hotel_id')))===HOOK_ROSTER_COUNT,'hook_roster_scope_changed');
-    $roster=monitor_hook_order($roster,$state['completed']);$deadline=time()+480;$passLimit=30;
+    $roster=monitor_hook_order($roster,$state['completed']);$policy=monitor_hook_pass_policy($nightly,count($roster),$nightly?$startedAt:time());
+    $out['budget_seconds']=$policy['budget_seconds'];$out['finish_reserve_seconds']=$policy['finish_reserve_seconds'];
     $today=new DateTimeImmutable('today',new DateTimeZone('Europe/Moscow'));
-    $snapshots=[];
-    foreach(array_chunk(array_column($roster,'tourvisor_hotel_id'),100) as $ids){
-        $query=['tourvisorHotelIds'=>$ids,'departureId'=>1,'dateFrom'=>$today->modify('+1 day')->format('Y-m-d'),'dateTo'=>$today->modify('first day of this month')->modify('+12 months')->modify('-1 day')->format('Y-m-d')];
-        $url='https://anytoour.ru/data/hotel-monitor-prices-read-v1.php?'.http_build_query($query,'','&',PHP_QUERY_RFC3986);
-        $payload=json_decode(hook_get($url),true,64,JSON_THROW_ON_ERROR);
-        foreach($ids as $tv)$snapshots[$tv]=monitor_hook_source($payload,$tv,$url);
-    }
+    $snapshotsFetchedAt=time();$snapshots=hook_snapshots($roster,$today);$out['snapshot_reads']=1;
     foreach($roster as $row){
-        if(!$inspect&&($out['updated_pairs']>=$passLimit||time()>=$deadline)){$out['bounded_pass_stopped']=true;break;}
+        if(!$inspect&&!monitor_hook_can_start_pair($policy,time(),$out['updated_pairs'])){$out['bounded_pass_stopped']=true;break;}
+        if($nightly&&monitor_hook_snapshot_refresh_due($snapshotsFetchedAt,time())){
+            $snapshotsFetchedAt=time();$snapshots=hook_snapshots($roster,$today);$out['snapshot_reads']++;
+            if(!monitor_hook_can_start_pair($policy,time(),$out['updated_pairs'])){$out['bounded_pass_stopped']=true;break;}
+        }
+        $out['scanned_pairs']++;
         $tv=$row['tourvisor_hotel_id'];
         if(isset($state['holds'][$tv])){
             $hold=$state['holds'][$tv];hook_need(is_array($hold)&&is_string($hold['operation']??null),'hook_hold_state_invalid');
@@ -194,9 +231,22 @@ try{
         foreach($confirmed['posts'] as $post)$postReceipts[]=$post['receipt'];
         $out['updates'][]=['tourvisor_hotel_id'=>$tv,'operation'=>$op,'price'=>$price['price'],'record_id'=>$price['record_id'],'posts'=>$postReceipts,'feed_operation'=>$state['completed'][$tv]['feed_operation']];
     }
+    if($nightly){
+        $state['nightly_cycle']['state']=!empty($out['bounded_pass_stopped'])?'budget_exhausted':'completed';
+        $state['nightly_cycle']['finished_at']=gmdate('c');$state['nightly_cycle']['duration_seconds']=time()-$startedAt;
+        foreach(['updated_pairs','unchanged_pairs','eligible_pairs','held_pairs','scanned_pairs'] as $key)$state['nightly_cycle'][$key]=$out[$key];
+        $state['nightly_cycle']['remaining_unscanned_pairs']=count($roster)-$out['scanned_pairs'];hook_append($lock,$state);
+        $out['nightly_cycle_completed']=$state['nightly_cycle']['state']==='completed';$out['nightly_cycle']=$state['nightly_cycle'];
+    }
     $out['ok']=true;$out['installed_sha']=$installed;$out['roster_pairs']=count($roster);$out['completed_at']=gmdate('c');
     $out['existing_monitor_home_matches']=realpath((string)getenv('HOME').'/www/anytoour.ru/data')==='/var/www/anytoour/data/www/anytoour.ru/data';
 }catch(Throwable $e){$out['error']=preg_match('/\A[a-z0-9_]+\z/D',$e->getMessage())?$e->getMessage():'hook_failed_read_original_journal';if(is_array($state['pending']['child_failure']??null))$out['child_failure']=$state['pending']['child_failure'];}
-if(isset($lock)&&is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}
-echo 'MONITOR_POST_FEED_RESULT='.json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),"\n";exit($out['ok']?0:2);
-
+$out['duration_seconds']=time()-$startedAt;
+$out['remaining_unscanned_pairs']=is_array($roster??null)?count($roster)-$out['scanned_pairs']:null;
+$out['deferred_counts']=[];$out['error_counts']=[];
+foreach($out['deferred'] as $item){$reason=$item['reason'];$out['deferred_counts'][$reason]=($out['deferred_counts'][$reason]??0)+1;
+    if(!in_array($reason,['no_fresh_observation','abandoned_before_write'],true))$out['error_counts'][$reason]=($out['error_counts'][$reason]??0)+1;}
+if(isset($out['error']))$out['error_counts'][$out['error']]=($out['error_counts'][$out['error']]??0)+1;
+$out['budget_overrun_seconds']=max(0,$out['duration_seconds']-($out['budget_seconds']??480));
+if($nightly&&($out['ok']??false)!==true)$out['nightly_cycle_completed']=false;
+hook_output_and_exit($out,$lock??null);
