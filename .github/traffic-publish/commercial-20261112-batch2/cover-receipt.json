@@ -1,0 +1,343 @@
+{
+  "schema_version": 1,
+  "state": "PREPARED_AWAITING_VISUAL_ACCEPTANCE",
+  "input_sha256": "607650d83d9941fd8ac71ecc0c629e4e17036cfa2d2b209811859e1a6a0190fa",
+  "logo_asset": ".github/traffic-publish/brand/anytour-logo-white.png",
+  "logo_sha256": "b27cda894047b1ecb4125eea2ecf0db9d1e1674472cad62f70edf1ef1a6c968f",
+  "rows": [
+    {
+      "hotel_id": 35313,
+      "title": "Mandarin Oriental, Bodrum",
+      "site_id": "0a978b84-4036-5cf0-8279-39895e52da07",
+      "site_revision": 3,
+      "photos": [
+        {
+          "role": "hero",
+          "path": "35313-0.img",
+          "source_url": "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/1sBzZr7hvksq974bhKhv.jpg",
+          "sha256": "ff9b6a6749ce9a83e7a5b43cf82757b741803bdef5edb7b4a9a5380f05c01c73"
+        },
+        {
+          "role": "detail_left",
+          "path": "35313-1.img",
+          "source_url": "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/rj5e5LrLFrmV6TGTJMzg.jpg",
+          "sha256": "9d844e9331a954d9d9cd3cdc18931db9ef6d5264b2a9abaffb6d3e768a59445b"
+        },
+        {
+          "role": "detail_right",
+          "path": "35313-2.img",
+          "source_url": "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/ezkdifhpnTn89LAiDc24.jpg",
+          "sha256": "7b43e0098f55e9df6aef30611201a08940c30df4ff44d190a5822ebc98c258aa"
+        }
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "path": "35313-0.img",
+          "source_url": "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/1sBzZr7hvksq974bhKhv.jpg",
+          "sha256": "ff9b6a6749ce9a83e7a5b43cf82757b741803bdef5edb7b4a9a5380f05c01c73",
+          "source_bytes": 1166540,
+          "source_dimensions": [
+            4096,
+            1664
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "ff9b6a6749ce9a83e7a5b43cf82757b741803bdef5edb7b4a9a5380f05c01c73",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "path": "35313-1.img",
+          "source_url": "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/rj5e5LrLFrmV6TGTJMzg.jpg",
+          "sha256": "9d844e9331a954d9d9cd3cdc18931db9ef6d5264b2a9abaffb6d3e768a59445b",
+          "source_bytes": 1948351,
+          "source_dimensions": [
+            4048,
+            3032
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "9d844e9331a954d9d9cd3cdc18931db9ef6d5264b2a9abaffb6d3e768a59445b",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "path": "35313-2.img",
+          "source_url": "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/ezkdifhpnTn89LAiDc24.jpg",
+          "sha256": "7b43e0098f55e9df6aef30611201a08940c30df4ff44d190a5822ebc98c258aa",
+          "source_bytes": 1509316,
+          "source_dimensions": [
+            4096,
+            2734
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "7b43e0098f55e9df6aef30611201a08940c30df4ff44d190a5822ebc98c258aa",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "35313.png",
+      "sha256": "effe16f527ca26e7e6b7226d26d45548e7e7ecde552cdb4f39013a8f4590a5b4",
+      "bytes": 540082,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "MANDARIN ORIENTAL, BODRUM",
+        "font_size": 28,
+        "text_width": 442.78125,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 66564,
+      "title": "Erica Nha Trang",
+      "site_id": "0b613eb7-045d-4e89-8321-9aa80e7a8e2c",
+      "site_revision": 2,
+      "photos": [
+        {
+          "role": "hero",
+          "path": "66564-0.img",
+          "source_url": "https://ericanhatranghotel.com/master_images/erica-suite-ocean-view/03.jpg",
+          "sha256": "deae8a8bebb5156b0954aeb4a086a7e93f10d0897577c0ede864735adc509241"
+        },
+        {
+          "role": "detail_left",
+          "path": "66564-1.img",
+          "source_url": "https://ericanhatranghotel.com/master_images/signature/Si01.jpg",
+          "sha256": "225853bc0c6d77c28204eef2766426fe40513ee5db589cf07a17801df78a8ad6"
+        },
+        {
+          "role": "detail_right",
+          "path": "66564-2.img",
+          "source_url": "https://ericanhatranghotel.com/master_images/Family-Connecting/01.jpg",
+          "sha256": "ba317d37c5250883670972ec4b3699d47083ab7226a80cae811b4c65e253e884"
+        }
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "path": "66564-0.img",
+          "source_url": "https://ericanhatranghotel.com/master_images/erica-suite-ocean-view/03.jpg",
+          "sha256": "deae8a8bebb5156b0954aeb4a086a7e93f10d0897577c0ede864735adc509241",
+          "source_bytes": 662485,
+          "source_dimensions": [
+            2048,
+            1365
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "deae8a8bebb5156b0954aeb4a086a7e93f10d0897577c0ede864735adc509241",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "path": "66564-1.img",
+          "source_url": "https://ericanhatranghotel.com/master_images/signature/Si01.jpg",
+          "sha256": "225853bc0c6d77c28204eef2766426fe40513ee5db589cf07a17801df78a8ad6",
+          "source_bytes": 708439,
+          "source_dimensions": [
+            2048,
+            1365
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "225853bc0c6d77c28204eef2766426fe40513ee5db589cf07a17801df78a8ad6",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "path": "66564-2.img",
+          "source_url": "https://ericanhatranghotel.com/master_images/Family-Connecting/01.jpg",
+          "sha256": "ba317d37c5250883670972ec4b3699d47083ab7226a80cae811b4c65e253e884",
+          "source_bytes": 591138,
+          "source_dimensions": [
+            2048,
+            1365
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "ba317d37c5250883670972ec4b3699d47083ab7226a80cae811b4c65e253e884",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "66564.png",
+      "sha256": "2697f41c3ef6ef46a33138cc4a30480afccc76ff3755037aac80bdea4425d2fe",
+      "bytes": 432225,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "ERICA NHA TRANG",
+        "font_size": 28,
+        "text_width": 260.8125,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 319,
+      "title": "SUNRISE Remal Beach",
+      "site_id": "1bf0b22f-c528-496f-9917-21503897961c",
+      "site_revision": 2,
+      "photos": [
+        {
+          "role": "hero",
+          "path": "319-0.img",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a2fecdc8be5b.jpg/1920x1080/fit/80/1cee548f2316399e0055d0c6d04e31e9.jpg",
+          "sha256": "65b8aee183a80ea8a90ee0389a2d9c53868d267fde8ed9683671cec234d777e1"
+        },
+        {
+          "role": "detail_left",
+          "path": "319-1.img",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a2fea596d750.jpg/1920x1080/fit/80/1912587d9d641d7e47cbe63c5eabc7cf.jpg",
+          "sha256": "53a1e3dea5bb577b71155d06e86d708e471261ea83cd78f5571b0025eb5aa1b7"
+        },
+        {
+          "role": "detail_right",
+          "path": "319-2.img",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a0eec34bc4a1.jpg/1920x1080/fit/80/afeb13506e0837ce4e9c5d385871a6f4.jpg",
+          "sha256": "64e103e75cf8fb86ba0c6d03aad7619cae847f28307a9db77213aa99d59fdaed"
+        }
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "path": "319-0.img",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a2fecdc8be5b.jpg/1920x1080/fit/80/1cee548f2316399e0055d0c6d04e31e9.jpg",
+          "sha256": "65b8aee183a80ea8a90ee0389a2d9c53868d267fde8ed9683671cec234d777e1",
+          "source_bytes": 356779,
+          "source_dimensions": [
+            1920,
+            1080
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "65b8aee183a80ea8a90ee0389a2d9c53868d267fde8ed9683671cec234d777e1",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "path": "319-1.img",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a2fea596d750.jpg/1920x1080/fit/80/1912587d9d641d7e47cbe63c5eabc7cf.jpg",
+          "sha256": "53a1e3dea5bb577b71155d06e86d708e471261ea83cd78f5571b0025eb5aa1b7",
+          "source_bytes": 331971,
+          "source_dimensions": [
+            1920,
+            1080
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "53a1e3dea5bb577b71155d06e86d708e471261ea83cd78f5571b0025eb5aa1b7",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "path": "319-2.img",
+          "source_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a0eec34bc4a1.jpg/1920x1080/fit/80/afeb13506e0837ce4e9c5d385871a6f4.jpg",
+          "sha256": "64e103e75cf8fb86ba0c6d03aad7619cae847f28307a9db77213aa99d59fdaed",
+          "source_bytes": 193220,
+          "source_dimensions": [
+            1920,
+            1080
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "64e103e75cf8fb86ba0c6d03aad7619cae847f28307a9db77213aa99d59fdaed",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "319.png",
+      "sha256": "64ccad572260f3a214b627a5e053880f3eb9ff8143d14be73f5258a191d6eb7b",
+      "bytes": 511678,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "SUNRISE REMAL BEACH",
+        "font_size": 28,
+        "text_width": 338.609375,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 68907,
+      "title": "Amarina Abu Soma Resort & Aquapark",
+      "site_id": "1dd87e52-4498-5bcd-bb12-b97e35be08c6",
+      "site_revision": 2,
+      "photos": [
+        {
+          "role": "hero",
+          "path": "68907-0.img",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS85Lzk3ZTM5NTk5LWE3ZDgtNDM1Mi1hMDc4LWI0YTdhNDk3YTI1MC5qcGc=",
+          "sha256": "69c4ca5a705b5eb9b5a1f44d7b518c9c623ca90500e2e14be25fba3fbcc53d14"
+        },
+        {
+          "role": "detail_left",
+          "path": "68907-1.img",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8xLzFkMGU4M2ZjLTMwNjItNDkzNi05MTBlLTE2NmE2MDk3MWYyMC5qcGc=",
+          "sha256": "49a3c91ce72aff6eccae2027e09622d77a9b0871c19d952f866aafbbe2447850"
+        },
+        {
+          "role": "detail_right",
+          "path": "68907-2.img",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9kL2RkZDY1ZGEzLWZkMzktNGVjMC05NTI1LTNjZWYzNDQwM2JiMi5qcGc=",
+          "sha256": "6a97b7ba4d125d847dd7d1dfa8696b692b38fa12e644c8300437fbed7cfe80d8"
+        }
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "path": "68907-0.img",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS85Lzk3ZTM5NTk5LWE3ZDgtNDM1Mi1hMDc4LWI0YTdhNDk3YTI1MC5qcGc=",
+          "sha256": "69c4ca5a705b5eb9b5a1f44d7b518c9c623ca90500e2e14be25fba3fbcc53d14",
+          "source_bytes": 45647,
+          "source_dimensions": [
+            560,
+            420
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "69c4ca5a705b5eb9b5a1f44d7b518c9c623ca90500e2e14be25fba3fbcc53d14",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "path": "68907-1.img",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8xLzFkMGU4M2ZjLTMwNjItNDkzNi05MTBlLTE2NmE2MDk3MWYyMC5qcGc=",
+          "sha256": "49a3c91ce72aff6eccae2027e09622d77a9b0871c19d952f866aafbbe2447850",
+          "source_bytes": 69208,
+          "source_dimensions": [
+            560,
+            420
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "49a3c91ce72aff6eccae2027e09622d77a9b0871c19d952f866aafbbe2447850",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "path": "68907-2.img",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9kL2RkZDY1ZGEzLWZkMzktNGVjMC05NTI1LTNjZWYzNDQwM2JiMi5qcGc=",
+          "sha256": "6a97b7ba4d125d847dd7d1dfa8696b692b38fa12e644c8300437fbed7cfe80d8",
+          "source_bytes": 71857,
+          "source_dimensions": [
+            560,
+            420
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "6a97b7ba4d125d847dd7d1dfa8696b692b38fa12e644c8300437fbed7cfe80d8",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "68907.png",
+      "sha256": "79190ce1c33434cb6be49b95f240cecb9adc7e9aec9d3e915d6a493e3bfdf83d",
+      "bytes": 525177,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "AMARINA ABU SOMA RESORT & AQUAPARK",
+        "font_size": 25,
+        "text_width": 542.984375,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    }
+  ],
+  "provider_calls": 0,
+  "remote_writes": 0
+}
