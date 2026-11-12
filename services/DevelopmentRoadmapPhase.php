@@ -335,7 +335,9 @@ trait DevelopmentRoadmapPhase
         });
         if(!isset($job['operation']))return $job;
         if($job['operation']==='read'){
-            try{$snapshot=DevelopmentRoadmapSavedResult::read($this->pdo,function()use($job):void{$this->roadmapAuthority($job['queue'],$job['phase']['execution_connection_id']);},$job['at']);}
+            try{$snapshot=DevelopmentRoadmapSavedResult::read($this->pdo,function()use($job):void{$this->roadmapAuthority($job['queue'],$job['phase']['execution_connection_id']);},$job['at'],
+                function()use($job):void{(new DevelopmentWorkConnectionAuthority($this->pdo,$this->clock))->assertCurrentSnapshot(
+                    (int)$job['queue']['admin_id'],$job['phase']['execution_connection_id']);});}
             catch(Throwable $error){return $this->transaction(function():array{$this->lane();return $this->roadmapHold($this->one('SELECT * FROM development_work_queues WHERE queue_id=?'.$this->lock(),[DevelopmentWorkServerContract::QUEUE]),'original_read_unknown',true);});}
             return $this->roadmapSaveRead($job,$snapshot);
         }

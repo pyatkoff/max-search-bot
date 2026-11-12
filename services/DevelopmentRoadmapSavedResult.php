@@ -21,17 +21,18 @@ final class DevelopmentRoadmapSavedResult
     }
 
     /** Calls the canonical SELECT-only reader under one real read-only snapshot. */
-    public static function read(PDO $pdo,callable $authorize,int $now): array
+    public static function read(PDO $pdo,callable $authorize,int $now,callable $snapshotAuthorize): array
     {
         if($now<946684800||$pdo->inTransaction())throw new InvalidArgumentException('roadmap_read_context');
         require_once __DIR__.'/ModeledConversionValueDeliveryReader.php';
         $auth=static function()use($authorize):void {if($authorize()===false)throw new DomainException('roadmap_authority_unavailable');};
+        $snapshotAuth=static function()use($snapshotAuthorize):void {if($snapshotAuthorize()===false)throw new DomainException('roadmap_authority_unavailable');};
         $auth();$owned=false;
         try {
             $mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
             if($mysql){$pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');$pdo->exec('SET TRANSACTION READ ONLY');}
             $pdo->beginTransaction();$owned=true;
-            $reader=new ModeledConversionValueDeliveryReader($pdo,$auth,new ModeledConversionStatusBudget());
+            $reader=new ModeledConversionValueDeliveryReader($pdo,$snapshotAuth,new ModeledConversionStatusBudget());
             $repair=$reader->repairAssessments($now);
             $pdo->rollBack();$owned=false;$auth();
             if(!is_array($repair)||($repair['available']??null)!==true)

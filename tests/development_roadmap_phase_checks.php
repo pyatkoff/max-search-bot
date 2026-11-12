@@ -18,7 +18,7 @@ function devRoadmapFixture(bool $newReceipt=true): array
     $pdo->exec("INSERT INTO manager_preparation_oauth_grants
         SELECT '".$fresh."',client_id,admin_id,project_key,resource,".$pdo->quote($scopes).",created_at,expires_at,NULL
         FROM manager_preparation_oauth_grants WHERE grant_id='".str_repeat('a',32)."'");
-    $snapshot=DevelopmentRoadmapSavedResult::read($pdo,static function():void{},$clock->at);
+    $snapshot=DevelopmentRoadmapSavedResult::read($pdo,static function():void{},$clock->at,static function():void{});
     $frontier=$snapshot['repair_assessments']['processing_frontier'];
     $excluded=[];foreach([25,26,27]as$id){
         $row=$pdo->query('SELECT * FROM max_channel_conversion_outbox WHERE id='.$id)->fetch(PDO::FETCH_ASSOC);
@@ -264,4 +264,59 @@ function devRoadmapReviewOutcomeChecks(): void
     DevelopmentWorkServerContract::assertReadback($s);
     devAssert(strlen(DevelopmentWorkServerContract::json($s))<=DevelopmentRoadmapReview::MAX_PROOF,
         'roadmap_all_original_proof_bytes_fit_supported_complete_wire');
+}
+
+/** Actual PDO READ ONLY and canonical authority; no mocked grant or hidden locking query. */
+function devRoadmapSnapshotAuthorityChecks(): void
+{
+    [$pdo,$q,$clock,$fresh,$args]=devRoadmapFixture();$authority=new DevelopmentWorkConnectionAuthority($pdo,static fn():int=>$clock->at);
+    devReject(fn()=>$authority->assertCurrentSnapshot(1,$fresh),DomainException::class,
+        'roadmap_snapshot_authority_requires_an_existing_owned_transaction');
+    $seen=(object)['inside'=>0,'locks'=>0];
+    $pdo->beforeExecute=static function(string $sql)use($pdo,$seen):void{
+        if($pdo->inTransaction()&&preg_match('/manager_preparation_oauth_grants|FROM managers\b/i',$sql)){
+            ++$seen->inside;if(stripos($sql,'FOR UPDATE')!==false)++$seen->locks;
+        }
+    };
+    $outer=static function()use($authority,$pdo,$fresh,$clock):void{
+        $authority->assertCurrent(1,$fresh);
+        if(!(new ManagerPreparationOAuth($pdo,static fn():int=>$clock->at))->connectionAuthorized($fresh,1,
+            [ManagerPreparationOAuth::DEVELOPMENT_SCOPE,ManagerPreparationOAuth::FORECAST_SCOPE]))throw new DomainException('synthetic_scope');
+    };
+    $read=DevelopmentRoadmapSavedResult::read($pdo,$outer,$clock->at,
+        static function()use($authority,$fresh):void{$authority->assertCurrentSnapshot(1,$fresh);});
+    $pdo->beforeExecute=null;
+    devAssert(($read['available']??false)===true&&count($read['repair_assessments']['processing_frontier']['rows'])===59
+        &&$seen->inside>0&&$seen->locks===0&&!$pdo->inTransaction(),
+        'roadmap_populated_snapshot_runs_real_nonlocking_DEV_forecast_authorization_on_actual_PDO');
+    if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
+        $pdo->exec('SET TRANSACTION READ ONLY');$pdo->beginTransaction();
+        try{devReject(fn()=>$authority->assertCurrent(1,$fresh),PDOException::class,
+            'roadmap_native_mysql_negative_control_original_guard_remains_locking_and_read_only_rejects_it');}
+        finally{if($pdo->inTransaction())$pdo->rollBack();}
+    }
+
+    [$pdo,$q,$clock,$fresh,$args]=devRoadmapFixture();$q->roadmap_admit(1,$fresh,$args);[$sender,$log]=devRoadmapSender();
+    $boundary=(object)['snapshot'=>false,'revoked'=>false];
+    $pdo->beforeExecute=static function(string $sql)use($pdo,$clock,$fresh,$boundary):void{
+        if($pdo->inTransaction()&&stripos($sql,'FROM modeled_conversion_profile_versions')!==false)$boundary->snapshot=true;
+        if($boundary->snapshot&&!$pdo->inTransaction()&&!$boundary->revoked
+            &&stripos($sql,'FROM manager_preparation_oauth_grants')!==false){
+            $boundary->revoked=true;
+            $pdo->exec("UPDATE manager_preparation_oauth_grants SET revoked_at=".$clock->at." WHERE grant_id='".$fresh."'");
+        }
+    };
+    $out=$q->roadmapTick(devServerOrigin($clock),$sender);$pdo->beforeExecute=null;
+    $phase=$pdo->query('SELECT * FROM development_work_roadmap_phases')->fetch(PDO::FETCH_ASSOC);
+    $read=$pdo->query('SELECT * FROM development_work_roadmap_reads')->fetch(PDO::FETCH_ASSOC);
+    devAssert($boundary->snapshot&&$boundary->revoked&&$out['state']==='unknown'
+        &&$phase['state']==='unknown'&&(int)$phase['review_calls']===0&&$read['state']==='unknown'
+        &&count($log->sent)===0&&(int)$pdo->query('SELECT accepted_count FROM development_work_queues')->fetchColumn()===2
+        &&(int)$pdo->query('SELECT COUNT(*) FROM development_work_roadmap_steps')->fetchColumn()===1,
+        'roadmap_real_production_post_snapshot_revocation_prevents_acceptance_review_and_B');
+    // Restore only synthetic authority to inspect the held original, never to repeat the read.
+    $pdo->exec("UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id='".$fresh."'");
+    $clock->at+=60;$q->roadmapTick(devServerOrigin($clock),$sender);
+    devAssert((int)$pdo->query('SELECT COUNT(*) FROM development_work_roadmap_reads')->fetchColumn()===1&&count($log->sent)===0,
+        'roadmap_revoked_original_snapshot_stays_held_without_a_second_read_or_review');
 }

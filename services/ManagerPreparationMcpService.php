@@ -247,6 +247,10 @@ final class ManagerPreparationMcpService
                 if ($metadata!==$oauth->currentAuthorizationMetadata($connection,$admin,$scopes)) throw new DomainException();
                 return $challenge;
             }
+            if($name==='development_work_roadmap_admit'){
+                $missing=array_values(array_diff($required,$scopes));
+                return self::capabilityScopeChallenge($scopes,$missing[0],$required);
+            }
             return self::capabilityScopeChallenge($scopes,$required[0]);
         }
         if (!ManagerPreparationOAuth::hasScopes($scopes,$required)
@@ -394,11 +398,11 @@ final class ManagerPreparationMcpService
         return ['ok'=>false,'reason'=>'OWNED_QUEUE_UNAVAILABLE','queue_available'=>false,'caller_self'=>$self];
     }
 
-    private static function capabilityScopeChallenge(array $granted,string $requested): array
+    private static function capabilityScopeChallenge(array $granted,string $requested,array $additional=[]): array
     {
         // Request only the missing capability while preserving existing rights.
         // A challenge never changes the original grant or refresh-token family.
-        $wanted=array_values(array_intersect(ManagerPreparationOAuth::SUPPORTED_SCOPES,array_unique([...$granted,$requested])));
+        $wanted=array_values(array_intersect(ManagerPreparationOAuth::SUPPORTED_SCOPES,array_unique([...$granted,$requested,...$additional])));
         [$description,$message]=match ($requested) {
             ManagerPreparationOAuth::HOTEL_SCOPE=>['Explicit hotel queue consent is required','Подтвердите дополнительный доступ ChatGPT к гостиничной очереди AnyTour.'],
             ManagerPreparationOAuth::ARCHIVE_SCOPE=>['Explicit archive research consent is required','Подтвердите дополнительный доступ ChatGPT к сохранённым историческим диалогам AnyTour.'],

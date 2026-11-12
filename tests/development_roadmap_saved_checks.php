@@ -129,14 +129,14 @@ function devRoadmapSavedChecks(): void
             &&DevelopmentRoadmapSavedResult::evaluate($kind,$capsule,$snapshot,$now)['state']==='blocked','roadmap_no_fake_route_'.$kind);
     }
     $pdo=new PDO('sqlite::memory:');$pdo->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
-    devReject(static fn()=>DevelopmentRoadmapSavedResult::read($pdo,static fn():bool=>false,$now),DomainException::class,
+    devReject(static fn()=>DevelopmentRoadmapSavedResult::read($pdo,static fn():bool=>false,$now,static function():void{}),DomainException::class,
         'roadmap_explicit_false_authorization_stops_before_business_read');
     $pdo->beginTransaction();
-    devReject(static fn()=>DevelopmentRoadmapSavedResult::read($pdo,static fn():bool=>true,$now),InvalidArgumentException::class,
+    devReject(static fn()=>DevelopmentRoadmapSavedResult::read($pdo,static fn():bool=>true,$now,static function():void{}),InvalidArgumentException::class,
         'roadmap_never_joins_a_foreign_business_transaction');
     devAssert($pdo->inTransaction(),'roadmap_foreign_transaction_is_not_rolled_back');
     $pdo->rollBack();$authCalls=0;
-    $read=DevelopmentRoadmapSavedResult::read($pdo,static function()use(&$authCalls):void{++$authCalls;},$now);
+    $read=DevelopmentRoadmapSavedResult::read($pdo,static function()use(&$authCalls):void{++$authCalls;},$now,static function():void{});
     devAssert($read['available']===false&&$read['provider_requests']===0&&$authCalls>=2&&!$pdo->inTransaction(),
         'roadmap_missing_real_schema_remains_unavailable_and_own_snapshot_is_closed');
     devAssert((int)$pdo->query("SELECT COUNT(*) FROM sqlite_master WHERE type='table'")->fetchColumn()===0,
@@ -253,7 +253,7 @@ function devRoadmapCanonicalReadChecks(): void
     $digest=static fn():string=>hash('sha256',json_encode([
         $p->query('SELECT * FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),
         $p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)],JSON_THROW_ON_ERROR));
-    $before=$digest();$auth=0;$read=DevelopmentRoadmapSavedResult::read($p,static function()use(&$auth):void{++$auth;},$now);
+    $before=$digest();$auth=0;$read=DevelopmentRoadmapSavedResult::read($p,static function()use(&$auth):void{++$auth;},$now,static function():void{});
     $r=$read['repair_assessments']??[];$f=$r['processing_frontier']??[];
     devAssert(($read['available']??false)&&($f['available']??false)&&count($f['rows'])===59
         &&$f['later_profile_events']===1&&$f['later_profile_value_rub']==90
@@ -281,7 +281,7 @@ function devRoadmapCanonicalReadChecks(): void
         'roadmap_saved_receipt_after_install_cutoff_survives_later_adapter_activation');
     $p->financial(static fn(PDO $db)=>$db->prepare("UPDATE max_channel_conversion_outbox SET state='processed',upload_status='PROCESSED',
         value_processed_at_unix=? WHERE id=24")->execute([$now+50]));
-    $secondBefore=$digest();$second=DevelopmentRoadmapSavedResult::read($p,static function():void{},$now+60);
+    $secondBefore=$digest();$second=DevelopmentRoadmapSavedResult::read($p,static function():void{},$now+60,static function():void{});
     $final=DevelopmentRoadmapSavedResult::evaluate('saved_finance_processing',$capsule,$second,$now+60,
         $candidate,DevelopmentRoadmapSavedResult::hash($candidate));
     devAssert($final['state']==='candidate'&&$final['new_receipt_value_rub']===34

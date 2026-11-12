@@ -1011,6 +1011,7 @@ devRoadmapSavedChecks();
 devRoadmapArchiveChecks();
 devRoadmapAllTargetsChecks();
 devRoadmapCanonicalReadChecks();
+devRoadmapSnapshotAuthorityChecks();
 devRoadmapPhaseChecks();
 devRoadmapFailureChecks();
 devRoadmapReviewOutcomeChecks();

@@ -48,3 +48,8 @@ of the old control's unchanged limit. The existing complete RPC envelope limit
 remains 262144, tested with the worst supported request ID and reserved metadata.
 Pre-send headroom reserves both a maximum differing actual request and the full
 response/report, even for UNKNOWN outcomes. Equal-byte aliasing is lossless.
+
+The financial reader owns a real read-only consistent snapshot. Its internal
+DEV and forecast checks use the same canonical grant/admin policy without row
+locks. The original locking authority guards still run before and after the
+snapshot and during credit, so revocation at that boundary prevents acceptance.
