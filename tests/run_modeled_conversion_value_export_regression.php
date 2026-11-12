@@ -148,10 +148,9 @@ function modeledValueMaxAttributionWindowAssertions(PDO $p,callable $check):void
         ModeledConversionValueExport::tick($p,$lookup,$api,$now+301,$gate);
         $row=$p->query('SELECT * FROM max_channel_conversion_outbox LIMIT 1')->fetch(PDO::FETCH_ASSOC);
         $check('an old MAX source needs a current ordinary lookup before the unchanged actual-visit gate: '.$lane,
-            $lane==='pending'?$wire->posts===1&&$row['state']==='accepted'&&$lookup->calls===1
-            :$wire->posts===0&&$row['state']==='pending'&&$row['last_error']==='identity_not_found'
-                &&(int)$row['attempts']===0&&empty($row['upload_id'])&&empty($row['claim_token']));
-        $check('dispatch hold retains the original value time and immutable profile: '.$lane,
+            $wire->posts===1&&$row['state']==='accepted'&&$lookup->calls===($lane==='pending'?1:2)
+                &&(int)$row['attempts']===1&&!empty($row['upload_id']));
+        $check('current-source dispatch retains the original value time and immutable profile: '.$lane,
             (int)$row['event_unix']===$now&&(int)$row['value_rub']>0
             &&(string)$p->query('SELECT profile_json FROM modeled_conversion_profile_versions LIMIT 1')->fetchColumn()===$profiles);
         ModeledConversionValueExport::tick($p,$lookup,$api,$now+602,$gate);
@@ -317,9 +316,115 @@ function modeledValueOldCurrentSourceAssertions(PDO $p,callable $check):void
         &&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE id<=3 AND state='pending' AND attempts=0")->fetchColumn()===3);
 }
  
+function modeledValueReadyCurrentLookupAssertions(PDO $p,callable $check):void
+{
+    $now=1793660000;$gate=static fn(string $chat):bool=>true;
+    $setup=static function(int $count)use($p,$now,$gate):array{
+        modeledValueSchema($p);$wire=new ModeledValueTestWire($now-60);$control=new ModeledConversionValueExport($p);
+        $control->configure('create-goal',$wire->api(),$now-20);$control->configure('enable',$wire->api(),$now-10);
+        for($i=1;$i<=$count;$i++)modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,9200+$i),$now));
+        $control->collect(ModeledConversionValueExport::settings($p),$now,$gate);
+        $lookup=new class($now-30*86400){
+            public array $batches=[];public array $replacement=[];public bool $missing=false;
+            public function __construct(public int $observedAt){}
+            public function lookup(string $counter,array $users):array{
+                $this->batches[]=$users;$records=[];
+                if(!$this->missing)foreach($users as$user)$records[$user]=array_replace(
+                    ['external_user_id'=>$user,'client_id'=>'880000'.$user,'record_id'=>'77','observed_at_unix'=>$this->observedAt],$this->replacement);
+                return $records;
+            }
+        };
+        return [$wire,$lookup];
+    };
+    [$wire,$lookup]=$setup(4);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);
+    $held=$p->query("SELECT * FROM max_channel_conversion_outbox WHERE state='ready'")->fetchAll(PDO::FETCH_ASSOC);
+    $check('four ordinary candidates resolve together but the first tick sends only three',
+        count($lookup->batches)===1&&count($lookup->batches[0])===4&&$wire->posts===3&&count($held)===1);
+    $before=$held[0];
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+1,$gate);
+    $after=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id='.$before['id'])->fetch(PDO::FETCH_ASSOC);
+    $check('the carried old-source READY gets one current lookup and sends on the next tick without PENDING',
+        count($lookup->batches)===2&&$lookup->batches[1]===[$before['external_user_id']]&&$wire->posts===4
+        &&$after['state']==='accepted'&&(int)$after['attempts']===1
+        &&$after['event_unix']===$before['event_unix']&&$after['value_rub']===$before['value_rub']);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+2,$gate);
+    $check('an accepted carried row is not looked up or uploaded a second time',
+        count($lookup->batches)===2&&$wire->posts===4
+        &&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE state='accepted' AND attempts=1")->fetchColumn()===4);
+
+    [$wire,$lookup]=$setup(4);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);
+    $held=$p->query("SELECT * FROM max_channel_conversion_outbox WHERE state='ready'")->fetch(PDO::FETCH_ASSOC);
+    for($i=1;$i<=25;$i++)modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,9300+$i),$now+1));
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+1,$gate);
+    $check('a carried READY shares the same 25-user lookup budget with newly pending rows',
+        count($lookup->batches)===2&&count($lookup->batches[1])===25
+        &&in_array($held['external_user_id'],$lookup->batches[1],true)&&$wire->posts===6
+        &&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE state='pending'")->fetchColumn()===1);
+
+    foreach(['client_id'=>'991111','record_id'=>'991112','observed_at_unix'=>$now-30*86400-1,
+        'external_user_id'=>'999999','missing'=>true]as$field=>$value){
+        [$wire,$lookup]=$setup(1);$row=$p->query('SELECT * FROM max_channel_conversion_outbox')->fetch(PDO::FETCH_ASSOC);
+        $p->prepare("UPDATE max_channel_conversion_outbox SET state='ready',client_id=?,tracker_record_id='77',tracker_observed_unix=?,value_ready_at_unix=? WHERE id=?")
+            ->execute(['880000'.$row['external_user_id'],$lookup->observedAt,$now-1,$row['id']]);
+        if($field==='missing')$lookup->missing=true;else $lookup->replacement=[$field=>$value];
+        ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);
+        $after=$p->query('SELECT * FROM max_channel_conversion_outbox')->fetch(PDO::FETCH_ASSOC);
+        $check('a carried READY never sends on a missing or changed canonical tuple '.$field,
+            count($lookup->batches)===1&&$wire->posts===0&&$wire->visitReads===0
+            &&$after['state']==='pending'&&(int)$after['attempts']===0&&$after['last_error']==='identity_not_found'
+            &&empty($after['claim_token'])&&empty($after['upload_id']));
+    }
+    [$wire,$lookup]=$setup(1);$row=$p->query('SELECT * FROM max_channel_conversion_outbox')->fetch(PDO::FETCH_ASSOC);
+    $p->prepare("UPDATE max_channel_conversion_outbox SET state='ready',client_id=?,tracker_record_id='77',tracker_observed_unix=?,value_ready_at_unix=? WHERE id=?")
+        ->execute(['880000'.$row['external_user_id'],$lookup->observedAt,$now-1,$row['id']]);
+    $wire->visitEmpty=true;
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);
+    $after=$p->query('SELECT * FROM max_channel_conversion_outbox')->fetch(PDO::FETCH_ASSOC);
+    $check('a current lookup for carried READY does not replace the actual prior-visit gate',
+        count($lookup->batches)===1&&$wire->visitReads>0&&$wire->posts===0&&$after['state']==='ready'
+        &&(int)$after['attempts']===0&&$after['last_error']==='metrika_visit_unverified');
+
+    [$wire,$lookup]=$setup(4);$rows=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    foreach($rows as$row)$p->prepare("UPDATE max_channel_conversion_outbox SET state='ready',client_id=?,tracker_record_id='77',tracker_observed_unix=?,value_ready_at_unix=? WHERE id=?")
+        ->execute(['880000'.$row['external_user_id'],$lookup->observedAt,$now-1,$row['id']]);
+    $owner=new ModeledConversionValueExport($p);$selection=new ReflectionMethod($owner,'ordinaryReadyLookupRows');
+    $carried=$selection->invoke($owner,$now,$gate,[(string)$rows[0]['id']=>$rows[0]]);
+    $check('READY lookahead covers all next three candidates when the first row is already reserved',
+        array_column($carried,'id')===array_column(array_slice($rows,1),'id'));
+    $protected=new ReflectionProperty($owner,'ordinaryProtectedIds');$protected->setValue($owner,[(string)$rows[0]['id']=>true]);
+    $frame=new ReflectionProperty($owner,'finiteFrame');$frame->setValue($owner,['r'=>[['frozen',(string)$rows[1]['id']]]]);
+    $check('protected and finite READY rows are not added as fresh ordinary lookup users',
+        array_column($selection->invoke($owner,$now,$gate,[]),'id')===array_column(array_slice($rows,2),'id'));
+    $protected->setValue($owner,null);
+    $check('unknown frozen membership never adds READY users to the ordinary lookup',
+        $selection->invoke($owner,$now,$gate,[])===[]);
+
+    $event=ModeledConversionValueVisitEvidence::CHECKPOINT-100;$current=ModeledConversionValueVisitEvidence::CHECKPOINT+20000;
+    $ns=ModeledConversionProfiles::assessmentNamespace();[$originals,$unused,$wire]=modeledValueFiniteCaseFixture($p,$event,$current,$ns,$gate);
+    $p->prepare('UPDATE max_channel_conversion_outbox SET next_attempt_unix=?')->execute([$current+10000]);
+    $receipt=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    foreach([ModeledConversionMaxCounterScopeEvidence::RECEIPT_KEY,ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY,
+        ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY,...ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS]as$key)$receipt[$key]=false;
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
+    for($i=1;$i<=4;$i++)modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,9900+$i),$current));
+    $lookup=new ModeledValueTestLookup();$lookup->observedAt=$current-30*86400;$wire->visitAt=$current-60;
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$current,$gate);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$current+1,$gate);
+    $saved=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    $check('carried ordinary READY progresses after the checkpoint without replaying the consumed frozen cohort',
+        $lookup->calls===2&&$wire->posts===4
+        &&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE conversation_id BETWEEN 9901 AND 9904 AND state='accepted' AND attempts=1")->fetchColumn()===4
+        &&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE id<=3 AND state='pending' AND attempts=0")->fetchColumn()===3
+        &&modeledValueFailureJsonEqual($saved['finite_visit_evidence'],$receipt['finite_visit_evidence'])
+        &&modeledValueFailureJsonEqual($saved['finite_visit_recovery'],$receipt['finite_visit_recovery']));
+}
+
 function modeledValueAssertions(PDO $p,callable $check):void
 {
     modeledValueOldCurrentSourceAssertions($p,$check);
+    modeledValueReadyCurrentLookupAssertions($p,$check);
     modeledValueMaxAttributionWindowAssertions($p,$check);
     modeledValueReportResponseEvidenceAssertions($check);
     modeledValueCurrentVisitLookbackAssertions($check);
