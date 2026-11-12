@@ -104,7 +104,12 @@ function render(rows,box){
    const result=describe(row.file,meta,channel,policy);
    // File promises may settle among layout notifications. Commit one visual
    // batch outside that delivery, without asking Media to rebuild its rows.
-   paint(status,()=>{if(ticket!==renderSequence||captured!==context()||!status.isConnected)return;status.textContent=result.text;status.dataset.warning=String(result.warning)});
+   paint(status,()=>{
+    if(ticket!==renderSequence||captured!==context()||!status.isConnected)return;
+    // Native scroll anchoring can move a focused row when its advisory text
+    // grows. Preserve the position at paint time, including a newer user scroll.
+    const top=box.scrollTop;status.textContent=result.text;status.dataset.warning=String(result.warning);box.scrollTop=top;
+   });
   });
  });
 }

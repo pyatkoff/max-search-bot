@@ -223,6 +223,19 @@ for(const width of [390,430,768,1440])for(const height of [900,420])test(`Ordina
  await bounded(page);await expect(page.locator('#replyText')).toBeInViewport();await expect(page.locator('#sendReply')).toBeInViewport();
  await page.locator('#mediaSelection').evaluate(node=>node.scrollTop=0);await capture(page,browserName,width,`ordinary-preflight-${height}`);clean(s);
 });
+for(const width of [390,430,768,1440])test(`Ordinary file preflight late result preserves a scrolled focused list ${width}x420`,async({page})=>{
+ await page.setViewportSize({width,height:420});const s=await setup(page);await openLead(page);await page.locator('#replyText').fill('Точный черновик при поздней проверке');
+ await page.evaluate(()=>{
+  const releases=[],files=['Первый.txt','Второй.txt'].map(name=>{
+   const file=new File(['Synthetic delayed header'],name,{type:'text/plain'}),slice=file.slice.bind(file);
+   file.slice=(...args)=>{const blob=slice(...args);return {arrayBuffer:()=>new Promise(resolve=>releases.push(()=>blob.arrayBuffer().then(resolve)))}};return file;
+  });WorkspaceV2Media.addFiles(files);window.releaseScrollPreflight=()=>releases.forEach(release=>release());
+ });await expect(page.locator('.mediaFileCheck')).toHaveText(['Проверяем файл в этой вкладке…','Проверяем файл в этой вкладке…']);
+ await page.evaluate(()=>{const box=document.getElementById('mediaSelection'),button=box.querySelectorAll('.mediaRemove')[1];box.scrollTop=box.scrollHeight;button.focus({preventScroll:true});window.preflightFocusedList={box,button,top:box.scrollTop,selection:WorkspaceV2Media.captureSelection()};releaseScrollPreflight()});
+ await expect(page.locator('.mediaFileCheck').nth(1)).toContainText('не определён');
+ expect(await page.evaluate(()=>{const p=preflightFocusedList;return {list:p.box===document.getElementById('mediaSelection'),button:p.button===p.box.querySelectorAll('.mediaRemove')[1],focus:document.activeElement===p.button,scroll:Math.abs(p.box.scrollTop-p.top)<1,files:WorkspaceV2Media.matchesSelection(p.selection)}})).toEqual({list:true,button:true,focus:true,scroll:true,files:true});
+ await expect(page.locator('#replyText')).toHaveValue('Точный черновик при поздней проверке');await bounded(page);clean(s);
+});
 test('Ordinary file preflight late native header cannot touch another client or replace current File',async({page})=>{
  const s=await setup(page);await openLead(page);await page.evaluate(()=>{
   const file=new File([new Uint8Array(24)],'Отложенный.png',{type:'image/png'}),slice=file.slice.bind(file);

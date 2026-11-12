@@ -21,6 +21,12 @@ test('bounded real PNG header warns dimensions before any upload without mutatin
  const h=harness(),f=file(png(9000,2000)),before=Object.getOwnPropertyDescriptors(f),s=h.render(f);await flush();
  assert.ok(s.textContent.startsWith('Сумма ширины'),'Known warning is visible before long recipient/limit details at short height');assert.match(s.textContent,/9000×2000/);assert.match(s.textContent,/Сумма ширины/);assert.equal(s.dataset.warning,'true');assert.deepEqual(f.ranges,[[0,65536]]);assert.equal(h.box.scrollTop,77);assert.deepEqual(Object.keys(f),Object.keys(before));
 });
+test('late visual paint preserves the current list scroll against native anchoring',async()=>{
+ const h=harness('telegram',policies,true),s=h.render(file(png(5,5)));await flush();let text=s.textContent;
+ Object.defineProperty(s,'textContent',{get:()=>text,set:value=>{text=value;h.box.scrollTop+=41}});
+ // The user may scroll again after the read settles and before its visual frame.
+ h.box.scrollTop=123;h.paint();assert.match(s.textContent,/5×5/);assert.equal(h.box.scrollTop,123);
+});
 test('known MAX edge and Telegram photo bytes/ratio use current channel independently',async()=>{
  const a=harness('max'),b=harness(),f=file(png(8000,10),'image/png',12000000),sa=a.render(f),sb=b.render(f);await flush();assert.match(sa.textContent,/Сторона/);assert.doesNotMatch(sa.textContent,/Размер больше/);assert.match(sb.textContent,/Размер больше/);assert.match(sb.textContent,/слишком вытянуто/);
 });
