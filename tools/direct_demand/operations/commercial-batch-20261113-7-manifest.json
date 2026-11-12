@@ -1,0 +1,197 @@
+{
+  "state": "PREPARED_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261113-7-v1",
+  "registry_version": 225,
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 559,
+  "expected_new_full_pairs": 8,
+  "rows": [
+    {
+      "hotel_id": 932,
+      "logical_id": "commercial-hotel-932-v1",
+      "aliases": [
+        "Titanic Palace",
+        "TITANIC PALACE RESORT & SPA"
+      ],
+      "text": "✈️ Туры в Titanic Palace\n📍 Хургада, Египет.\n\nTitanic Palace для семейной поездки в Хургаду: просторные бассейны, семейные категории и отдельные Swim Up. Есть бунгало у воды и доступ к аквапарку соседнего Titanic Beach.\n\nДля аквапарка оператор указывает рост от 1,20 м. Проверим возрастные условия номера, сезонный подогрев и вход в море.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "de270fa6bdf2d7780855268bb83e11b4824938b1abc2f1ed90123ae884c15181",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/adefb010cc65dfa4b3c1d5295dc1214f4bfdf67d/.github/traffic-publish/commercial-20261113-batch7/932.png",
+      "photo_sha256": "297a9368da6b8819828cf61342445b85b84daf34fcc459d23a2dd904f718f1df",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.hwaidak-hotels.com/hotels/titanic-palace",
+        "https://www.tui.nl/titanic-palace-50976728/",
+        "https://www.tui.com/hotels/titanic-palace-227755/hotelinformation/",
+        "https://storage.googleapis.com/hwaidak-hotels.appspot.com/hotels%2Fimages%2F1738091103846-DJI_0005-min.JPG",
+        "https://firebasestorage.googleapis.com/v0/b/hwaidak-hotels.appspot.com/o/rooms%2Fimages%2F1739514218681-Room%202-14%20%28Large%29.webp?alt=media&token=ade9b4a1-764a-4a83-a0b3-099608f30835",
+        "https://firebasestorage.googleapis.com/v0/b/hwaidak-hotels.appspot.com/o/rooms%2Fimages%2F1739697190115-SSP-TITANIC-D28%20%28Large%29.webp?alt=media&token=cfea3e78-77c9-4f9f-a4ad-d73f40f8b169"
+      ]
+    },
+    {
+      "hotel_id": 483,
+      "logical_id": "commercial-hotel-483-v1",
+      "aliases": [
+        "SUNRISE Royal Makadi Resort",
+        "SUNRISE ROYAL MAKADI RESORT"
+      ],
+      "text": "✈️ Туры в SUNRISE Royal Makadi Resort\n📍 Макади-Бей, Египет.\n\nМакади Бей для семьи: собственный пляж, аквапарк и детский клуб. Для просторного размещения есть Family Suite, а также отдельные категории Pool Suite.\n\nУточним ограничения на горках и подходящий номер. Подогрев некоторых бассейнов указан в фактшите декабря 2025 года; текущий зимний режим проверим перед поездкой.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "91cb6b3b5f04118c1dfa37ca79900f3df8b0f5e8b01bb212458ad4ce66a22f71",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/adefb010cc65dfa4b3c1d5295dc1214f4bfdf67d/.github/traffic-publish/commercial-20261113-batch7/483.png",
+      "photo_sha256": "8fa8b8e9bf110f6ffff3eb2a7b7b5a1c349fd49f3f8cf5089aa130d760889e73",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.sunrise-resorts.com/royal-makadi-resort",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/17_rm_factsheet_december_2025.pdf",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64bfa16ba5db4.jpg/1920x1080/fit/80/9f38aaf7584d314a088ff2a6822f65c6.jpg",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64bfa1848e62e.jpg/1920x1080/fit/80/a9a744933c79ea9fe8252c8a9c7ebcf7.jpg",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64d8c9b891f67.jpg/1920x1080/fit/80/c49b17a559319a4f0bb27766e82f4f5d.jpg"
+      ]
+    },
+    {
+      "hotel_id": 212,
+      "logical_id": "commercial-hotel-212-v1",
+      "aliases": [
+        "SUNRISE Azalea Aqua Park Resort",
+        "SUNRISE AZALEA AQUA PARK RESORT (EX. SUNRISE ASTER AQUA PARK RESORT)"
+      ],
+      "text": "✈️ Туры в SUNRISE Azalea Aqua Park Resort\n📍 Хургада, Египет.\n\nДля просторного отдыха в Хургаде: Family Jacuzzi Suite 80 м² или Executive Jacuzzi Suite 120 м². В обеих категориях две спальни и открытое джакузи. У курорта есть пляж, аквапарк и отдельные подогреваемые бассейны.\n\nДля основных горок указан рост от 120 см. Проверим вместимость люкса, работу подогрева и условия детских водных зон.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "330ff963e30c079d1a99f9f44cf37db2fe785cb0fb17b1e4bce3be4aec3a57b8",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/adefb010cc65dfa4b3c1d5295dc1214f4bfdf67d/.github/traffic-publish/commercial-20261113-batch7/212.png",
+      "photo_sha256": "71c550d2c2d357d540d5b9adf6ab04f854fdefca61fef5c48c1a22934ae8f7fc",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://www.sunrise-resorts.com/azalea-aqua-park-resort",
+        "https://www.sunrise-resorts.com/azalea-aqua-park-resort/stay/executive-jacuzzi-suite",
+        "https://www.sunrise-resorts.com/azalea-aqua-park-resort/stay/family-jacuzzi-suite",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/112_az_factsheet_april_2026.pdf",
+        "https://anytoour.ru/api-v2.php?action=flights&tourId=12303077459471&currency=RUB",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=212",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a7db2a415d68.jpg/1920x1080/fit/80/64413187163f908aec6947e7cbb2ae11.jpg",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6aa2ae88692ec.png/1920x1080/fit/80/48140acf6e87aec5947f2ec817199fd8.png",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/6a7db2a413083.jpg/1920x1080/fit/80/2cd1df57db136d2ffbfae24b43fda5da.jpg"
+      ]
+    },
+    {
+      "hotel_id": 62504,
+      "logical_id": "commercial-hotel-62504-v1",
+      "aliases": [
+        "Sindbad Club",
+        "SINDBAD CLUB"
+      ],
+      "text": "✈️ Туры в Sindbad Club\n📍 Хургада, Египет.\n\nАквапарк, песчаный пляж в нескольких минутах ходьбы и Wellness Room с джакузи на террасе   варианты отдыха в Sindbad Club.\n\nС ноября по март подогреваются бассейны, кроме волнового. К пляжу нужно пройти через улицу; подберём категорию и проверим ограничения горок.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "95cd241514df886a91038a1cef3499ca435d0b281c3523307ad6a69de785bbad",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/adefb010cc65dfa4b3c1d5295dc1214f4bfdf67d/.github/traffic-publish/commercial-20261113-batch7/62504.png",
+      "photo_sha256": "11ac991a99f3cca3b400d155a5adf40f35e890bf80e70ffe2482b5e0bdf69e55",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://sindbadclub.com/aqua-park",
+        "https://sindbadclub.com/beach-pools",
+        "https://sindbadclub.com/special-units",
+        "https://www.sindbadclub.nl/strand/",
+        "https://sindbadclub.com/",
+        "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/e7f3a457-e9ee-4b5e-87f1-6a36b8f20873/Main+Image+min.jpg",
+        "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/b02ad66f-bdaa-47fb-b8fd-7a794032d4c8/Wellness+Suite+-+Room+2.jpg",
+        "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/efb1634a-9ef8-4aa1-8871-ca7b931356d9/Boomerang+Slide.jpg"
+      ]
+    },
+    {
+      "hotel_id": 1255,
+      "logical_id": "commercial-hotel-1255-v1",
+      "aliases": [
+        "Timo Deluxe Resort",
+        "TIMO DELUXE RESORT"
+      ],
+      "text": "✈️ Туры в Timo Deluxe Resort\n📍 Конаклы, Аланья, Турция.\n\nДля большой семьи в Аланье рассмотрим Suite 55 м²: две спальни и гостиная. В Timo Deluxe есть водные горки, а летом   мини клуб и развлечения.\n\nПляж расположен через дорогу, примерно в 100 м, с подземным переходом; у воды возможна галька. Уточним размещение детей и сезонную работу бассейнов и горок.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "1aaf34f78503798158b7be64fb4301905275f7a767e45e62ff0111f0e5273abe",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/adefb010cc65dfa4b3c1d5295dc1214f4bfdf67d/.github/traffic-publish/commercial-20261113-batch7/1255.png",
+      "photo_sha256": "cc834998586e3b38eab342aa26959466afbb957f86dbecc613bd879790baece7",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://www.hoteltimo.com/en",
+        "https://www.hoteltimo.com/en/odalar/suit-oda",
+        "https://www.hoteltimo.com/en/aktiviteler",
+        "https://kompastour.com/ge/eng/country/turkey/alanya/timo_resort/",
+        "https://www.hoteltimo.com/en/galeri",
+        "https://www.hoteltimo.com/images/gallery2/DAP08639-scaled.jpg",
+        "https://www.hoteltimo.com/images/oda_suit.jpg",
+        "https://www.hoteltimo.com/images/gallery2/Timo-Plaj-13-1-scaled.jpg"
+      ]
+    },
+    {
+      "hotel_id": 55511,
+      "logical_id": "commercial-hotel-55511-v1",
+      "aliases": [
+        "Trendy Verbena Beach",
+        "SENTIDO TRENDY VERBENA BEACH HOTEL"
+      ],
+      "text": "✈️ Туры в Trendy Verbena Beach\n📍 Эвренсеки, Сиде, Турция.\n\nСемейный отдых в Эвренсеки: песчаный пляж через променад, горки и выбор номеров вплоть до семейных категорий и люксов.\n\nЗимой подогреваются крытые основной и детский бассейны. Открытый бассейн с подогревом   только в ноябре и марте; уточним режим на даты.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "1a5a5ebb1f05ef2a60926929614094f70ed6b2b154f50b4c77c57335639f6909",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/adefb010cc65dfa4b3c1d5295dc1214f4bfdf67d/.github/traffic-publish/commercial-20261113-batch7/55511.png",
+      "photo_sha256": "92f5418b8cad17be57be9697e71d3dd3b8668393b014ec55ef42346be65ae02f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://trendy.com.tr/en/trendy-verbena-beach/",
+        "https://trendy.com.tr/en/trendy-verbena-beach/trendy-verbena-beach-havuzlar-ve-plajlar/",
+        "https://trendy.com.tr/wp-content/uploads/2023/09/Trendy-Verbena-Beach-Hava-18_Orta-Boyut.jpg",
+        "https://trendy.com.tr/wp-content/uploads/2023/04/trendy-verbena-suite-3.webp",
+        "https://trendy.com.tr/wp-content/uploads/2023/04/trendy-verbena-indoor-pool-3.webp"
+      ]
+    },
+    {
+      "hotel_id": 9434,
+      "logical_id": "commercial-hotel-9434-v1",
+      "aliases": [
+        "FANTASIA DE LUXE"
+      ],
+      "text": "✈️ Туры в FANTASIA DE LUXE\n📍 Кушадасы, Турция.\nКушадасы, Эгейское море. Вариант для тех, кто ищет просторнее стандартного номера: Senior Suite 60 м² с отдельной спальней и гостиной или Family Room 40 м².\n\n• Первая линия, собственный пляж платформа\n• Открытые и крытый бассейны\n• Спа, хаммам, сауна и фитнес\n\nВажно: заход в море обрывистый. В Family Room нет двери между зонами; размещение 2+2 не подтверждено. Senior Suite на сайте рассчитан на двух взрослых. Подогрев крытого бассейна зависит от погоды, открытые бассейны без подогрева. Wi Fi в номере и спа процедуры могут быть платными.\n\nКатегорию номера, условия и актуальную стоимость проверим под ваши даты и состав.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "4706e5b445417e94bdd1bf99efbb16cff56020e1b7a98e9c6c4009f45bc30d31",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/adefb010cc65dfa4b3c1d5295dc1214f4bfdf67d/.github/traffic-publish/commercial-20261113-batch7/9434.png",
+      "photo_sha256": "17e7c3e144c79d8367456da00213863000110e2a2e644125430add1b678db611",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://anextour.ru/tours/turkey/fantasia-hotel-de-luxe",
+        "https://www.fantasia.com.tr/en",
+        "https://www.fantasia.com.tr/en/konaklama/senior-suite-room",
+        "https://www.fantasia.com.tr/en/konaklama/family-room",
+        "https://www.fantasia.com.tr/en/otelimiz/pool-beach",
+        "https://www.fantasia.com.tr/en/otelimiz/spa-wellness",
+        "https://www.fantasia.com.tr/en/galeri",
+        "https://www.fantasia.com.tr/uploads/gallery/genel_tr/dji-0932mp400-00-00-29663e00f0ace68.webp",
+        "https://www.fantasia.com.tr/uploads/gallery/senior_suit_oda_tr/kusadasi-senior-suit-b5663dc44ad94a3.webp",
+        "https://www.fantasia.com.tr/uploads/gallery/kose_oda_tr/kose-oda-1663dc1fde545b.webp"
+      ]
+    },
+    {
+      "hotel_id": 30158,
+      "logical_id": "commercial-hotel-30158-v1",
+      "aliases": [
+        "БОГАТЫРЬ"
+      ],
+      "text": "✈️ Туры в БОГАТЫРЬ\n📍 Сочи, Россия.\nРоссия · Сириус\n\nОтдых в отеле замке и просторная категория для тех, кому важна отдельная гостиная: «Люкс Короля» в «Богатыре»   130 м² со спальней и гостиной.\n\n• Детский клуб «Карусель» и игровая площадка.\n• Спа центр с крытым бассейном.\n• «Сочи Парк» рядом; условия посещения проверяются по тарифу и графику.\n\nУчтите: пляж галечный, Алеан указывает 475 м. Открытый бассейн работает сезонно. Вместимость люкса и дополнительные места требуют отдельного подтверждения: источники расходятся. Стоимость и наличие рассчитываются на ваши даты.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "ac44f9771cae1e67086b62f6480467e6a0904bce9908bb408a69a9c2cc32f642",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/adefb010cc65dfa4b3c1d5295dc1214f4bfdf67d/.github/traffic-publish/commercial-20261113-batch7/30158.png",
+      "photo_sha256": "6e1edb1853bd12ecab8bb09d45d3c826b2b681b18c77df6624f76dc6aa011332",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://anytoour.ru/_preview/search3-next-candidate/data/local-tv-catalog-read-v1.php?tourvisorHotelIds%5B%5D=49345&tourvisorHotelIds%5B%5D=49365&tourvisorHotelIds%5B%5D=68810&tourvisorHotelIds%5B%5D=49342&tourvisorHotelIds%5B%5D=62515&tourvisorHotelIds%5B%5D=30158",
+        "https://bogatyr-castle.ru/upload/pdf/hotel_bogatyr_presentation_rus.pdf",
+        "https://mice.bogatyr-castle.ru/",
+        "https://www.alean.ru/hotels/rossiya/krasnodarskiy_kray/sochi_gorod-kurort/sirius/bogatyr_otel/",
+        "https://uploads2.stells.info/W3ADj7EL4aMwDpin-mXfJuIGTBA=/952x600/jpg/c/ff/cff289192114907c4faa3a00f862ec67.jpg",
+        "https://uploads2.stells.info/47gSPSxhIvHdW25fyOqDIfO7tIY=/952x600/jpg/0/cf/0cf24a015647adfb567bbd749069d196.jpg",
+        "https://uploads2.stells.info/_qsdNEmtz6G58WtKn5PGvsRhgg8=/952x600/jpg/f/f2/ff25d8b900f77dd409de3e9defb8a209.jpg"
+      ]
+    }
+  ]
+}
