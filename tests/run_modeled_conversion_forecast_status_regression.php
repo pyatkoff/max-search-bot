@@ -2513,23 +2513,33 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $ini
 /** Real tick/claim path over isolated synthetic rows. Provider/source IO is replaced by bounded doubles. */
 function forecastKnownRelationDispatchAssertions(PDO $p,callable $check,array $frame,array $row,array $known,array $proof,int $now,PDO $fault):void
 {
+    $fetchRows=static function(string $sql)use($p):array{$q=$p->query($sql);try{return $q->fetchAll(PDO::FETCH_ASSOC);}finally{$q->closeCursor();}};
     // This caller owns a deliberately minimal read-only status schema. Use the existing
     // canonical worker fixture in an isolated set of tables, then restore schema and bytes.
     if($p->inTransaction())throw new RuntimeException('relation_fixture_outer_transaction');
     if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'&&$p->query('SELECT DATABASE()')->fetchColumn()!=='maxbot_modeled_stream_test')
         throw new RuntimeException('unsafe_fixture_database');
-    $sourceSettings=$p->query("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetch(PDO::FETCH_ASSOC);
-    $sourceEvents=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
-    $sourceProfiles=$p->query('SELECT * FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $sourceSettings=$fetchRows("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")[0];
+    $sourceEvents=$fetchRows('SELECT * FROM max_channel_conversion_outbox ORDER BY id');
+    $sourceProfiles=$fetchRows('SELECT * FROM modeled_conversion_profile_versions ORDER BY id');
     $core=['modeled_conversion_price_audit','modeled_conversion_value_export_settings','max_channel_conversion_outbox',
         'max_channel_attribution_settings','modeled_conversion_profile_versions','advertising_visit_observations','conversations','customer_channels'];
-    $renamed=[];$ownsSchema=false;
+    $renamed=[];$ownsSchema=false;$primary=null;$stage='backup';
+    $trace=static function(string $stage,Throwable $e):void{
+        $info=$e instanceof PDOException?($e->errorInfo??[]):[];$previous=$e->getPrevious();
+        fwrite(STDERR,'SYNTHETIC_KNOWN_RELATION_EXCEPTION '.json_encode([
+            'stage'=>$stage,'class'=>get_class($e),'line'=>$e->getLine(),'sqlstate'=>$info[0]??null,
+            'driver_code'=>(is_int($info[1]??null)||(is_string($info[1]??null)&&preg_match('/\A[0-9]{1,12}\z/D',$info[1])===1))?(string)$info[1]:null,'previous_class'=>$previous?get_class($previous):null,
+            'previous_line'=>$previous?->getLine()],JSON_THROW_ON_ERROR).PHP_EOL);
+    };
     try{
         foreach($core as$table){
             try{$q=$p->query('SELECT 1 FROM '.$table.' LIMIT 0');$q->closeCursor();}catch(PDOException $missing){continue;}
             $p->exec('ALTER TABLE '.$table.' RENAME TO krd_'.$table);$renamed[]=$table;
         }
-        $ownsSchema=true;modeledValueSchema($p);
+        $ownsSchema=true;$stage='canonical_schema';modeledValueSchema($p);
+        // The read-only legacy schema permits NULL holds; exercise that contract in the native fixture too.
+        if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql')$p->exec("ALTER TABLE max_channel_conversion_outbox MODIFY last_error VARCHAR(64) NULL DEFAULT ''");
         foreach(['assessment_namespace CHAR(64)','assessment_kind VARCHAR(8)','journal_cursor BIGINT DEFAULT 0']as$column)
             $p->exec('ALTER TABLE modeled_conversion_profile_versions ADD COLUMN '.$column);
         $copy=static function(string $table,array $value)use($p):void{
@@ -2538,6 +2548,7 @@ function forecastKnownRelationDispatchAssertions(PDO $p,callable $check,array $f
             $value=array_intersect_key($value,array_fill_keys($names,true));
             $p->prepare('INSERT INTO '.$table.'('.implode(',',array_keys($value)).') VALUES('.implode(',',array_fill(0,count($value),'?')).')')->execute(array_values($value));
         };
+        $stage='copy_fixture';
         $p->exec("DELETE FROM modeled_conversion_value_export_settings WHERE project_key='anytour'");
         $copy('modeled_conversion_value_export_settings',$sourceSettings);
         foreach($sourceProfiles as$profile){$profile['profile_json']='{"access_status":"allowed"}';$copy('modeled_conversion_profile_versions',$profile);}
@@ -2555,10 +2566,10 @@ function forecastKnownRelationDispatchAssertions(PDO $p,callable $check,array $f
                 ->execute([$event['id'],$money,$money,$now-1,$basis,hash('sha256',$basis)]);
         }
 
-    $settings=$p->query("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")->fetch(PDO::FETCH_ASSOC);
-    $outbox=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
-    $audits=$p->query('SELECT * FROM modeled_conversion_price_audit')->fetchAll(PDO::FETCH_ASSOC);
-    $ledgerRows=$p->query('SELECT * FROM modeled_conversion_known_yclid_relations')->fetchAll(PDO::FETCH_ASSOC);
+    $settings=$fetchRows("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'")[0];
+    $outbox=$fetchRows('SELECT * FROM max_channel_conversion_outbox ORDER BY id');
+    $audits=$fetchRows('SELECT * FROM modeled_conversion_price_audit');
+    $ledgerRows=$fetchRows('SELECT * FROM modeled_conversion_known_yclid_relations');
     $statementClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$id=(string)$row['id'];
     $replace=static function(string $table,array $r,string $key)use($p):void{
         $keys=array_values(array_diff(array_keys($r),[$key]));
@@ -2579,10 +2590,10 @@ function forecastKnownRelationDispatchAssertions(PDO $p,callable $check,array $f
     try{
         $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
         foreach(['positive','null_hold','expired','scope_revoke','price_hold','changed_proof','previous_receipt','claim_race','lost_commit','known_retry']as$case){
-            $restore();ForecastV1ObservedStatement::$beforeRelationClaim=null;
+            $stage='tick_'.$case;$restore();ForecastV1ObservedStatement::$beforeRelationClaim=null;
             $p->prepare('UPDATE max_channel_conversion_outbox SET next_attempt_unix=? WHERE id<>?')->execute([$now+1000000,$id]);
-            $p->prepare("UPDATE max_channel_conversion_outbox SET state='ready',client_id=?,tracker_record_id=?,tracker_observed_unix=?,identity_source_key='max_tracker',attempts=0,claimed_at_unix=NULL,claim_token=NULL,upload_id=NULL,upload_status=NULL,value_receipt_basis=NULL,value_api_accepted_at_unix=NULL,value_processed_at_unix=NULL,last_error='metrika_visit_unverified',next_attempt_unix=0 WHERE id=?")
-                ->execute([$row['client_id'],$row['tracker_record_id'],$row['tracker_observed_unix'],$id]);
+            $p->prepare("UPDATE max_channel_conversion_outbox SET state='ready',client_id=?,tracker_record_id=?,tracker_observed_unix=?,identity_source_key='max_tracker',attempts=0,claimed_at_unix=NULL,claim_token=NULL,upload_id=NULL,upload_status=NULL,value_receipt_basis=NULL,value_api_accepted_at_unix=NULL,value_processed_at_unix=NULL,last_error='metrika_visit_unverified',value_ready_at_unix=COALESCE(value_ready_at_unix,?),next_attempt_unix=0 WHERE id=?")
+                ->execute([$row['client_id'],$row['tracker_record_id'],$row['tracker_observed_unix'],$now-20,$id]);
             $p->exec('DELETE FROM modeled_conversion_known_yclid_relations');$insert('modeled_conversion_known_yclid_relations',$proof);
             $receipt=json_decode($settings['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);$receipt['finite_visit_evidence']=$frame;
             $receipt['finite_visit_recovery']=false;$receipt['finite_counter_scope_evidence']=false;
@@ -2639,9 +2650,23 @@ function forecastKnownRelationDispatchAssertions(PDO $p,callable $check,array $f
                     &&(int)$wire['value_rub']===(int)$row['value_rub']&&$wire['target']===$row['target']
                     &&$wire['transport_target']===$row['transport_target']&&(string)$wire['value_profile_id']===(string)$row['value_profile_id']
                     &&$wire['tracker_record_id']===$row['tracker_record_id']&&(string)$wire['tracker_observed_unix']===(string)$row['tracker_observed_unix'];
-                $check('actual tick claims one identical native event with the exact derived CID '.$case,
-                    $result['status']==='running'&&count($api->uploads)===1&&$same&&$api->ordinaryVisits===0&&$lookup->sourceCalls===0
-                    &&$after['client_id']===$internal['client_id']&&($case==='known_retry'?$after['state']==='ready':$after['state']==='accepted'));
+                $pass=$result['status']==='running'&&count($api->uploads)===1&&$same&&$api->ordinaryVisits===0&&$lookup->sourceCalls===0
+                    &&$after['client_id']===($internal['client_id']??null)&&($case==='known_retry'?$after['state']==='ready':$after['state']==='accepted');
+                if(!$pass){
+                    $dq=$p->query("SELECT mode,goal_intent,last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'");
+                    $ds=$dq->fetch(PDO::FETCH_ASSOC);$dq->closeCursor();$dr=json_decode($ds['last_receipt_json']??'null',true);
+                    $sameFields=[];foreach(['id','event_unix','value_rub','target','transport_target','value_profile_id','tracker_record_id','tracker_observed_unix']as$key)
+                        $sameFields[$key]=$wire!==null&&($key==='tracker_record_id'?$wire[$key]===$row[$key]:(string)$wire[$key]===(string)$row[$key]);
+                    $hold=$after['last_error']??null;if($hold!==null&&(!is_string($hold)||preg_match('/\A[a-z_]{0,64}\z/D',$hold)!==1))$hold='other';
+                    fwrite(STDERR,'SYNTHETIC_KNOWN_RELATION_TICK '.json_encode(['case'=>$case,'tick_status'=>$result['status'],
+                        'errors'=>$dr['errors']??null,'failure_phase'=>$dr['last_recorded_failure']['phase']??null,'failure_category'=>$dr['last_recorded_failure']['category']??null,
+                        'state'=>$after['state'],'hold'=>$hold,'attempts'=>(int)$after['attempts'],'ready_clock_known'=>$after['value_ready_at_unix']!==null,
+                        'uploads'=>count($api->uploads),'ordinary_visits'=>$api->ordinaryVisits,'source_calls'=>$lookup->sourceCalls,
+                        'internal_candidate'=>$internal!==null,'same_fields'=>$sameFields,'same_derived_cid'=>$wire!==null&&$internal!==null&&$wire['client_id']===$internal['client_id'],
+                        'receipt_bytes'=>is_string($ds['last_receipt_json']??null)?strlen($ds['last_receipt_json']):null,
+                        'receipt_json_valid'=>is_array($dr),'goal_verified'=>($ds['goal_intent']??null)==='verified','mode_send'=>($ds['mode']??null)==='send'],JSON_THROW_ON_ERROR).PHP_EOL);
+                }
+                $check('actual tick claims one identical native event with the exact derived CID '.$case,$pass);
                 $next=$case==='known_retry'?$tick+1800:$tick+300;
                 ModeledConversionValueExport::tick($p,$lookup,$api,$next,static fn(string $chat):bool=>true,static fn():int=>$next+1);
                 $check('accepted native event never uploads twice while proven-not-sent alone may retry '.$case,
@@ -2665,11 +2690,22 @@ function forecastKnownRelationDispatchAssertions(PDO $p,callable $check,array $f
                 }
             }
         }
-    }finally{ForecastV1ObservedStatement::$beforeRelationClaim=null;$fault->failure='commit_throw';$fault->commits=0;$fault->failCommit=1;$restore();$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$statementClass);}
-    }finally{
-        if($p->inTransaction())$p->rollBack();
-        if($ownsSchema)foreach($core as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
-        foreach(array_reverse($renamed)as$table)$p->exec('ALTER TABLE krd_'.$table.' RENAME TO '.$table);
+    }catch(Throwable $e){$primary=$e;$trace($stage,$e);throw $e;}
+    finally{
+        ForecastV1ObservedStatement::$beforeRelationClaim=null;$fault->failure='commit_throw';$fault->commits=0;$fault->failCommit=1;
+        try{
+            if($p->inTransaction())$p->rollBack();
+            $p->exec('DELETE FROM modeled_conversion_known_yclid_relations');foreach($ledgerRows as$r)$insert('modeled_conversion_known_yclid_relations',$r);
+            $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$statementClass);
+        }catch(Throwable $cleanup){$trace('ledger_cleanup',$cleanup);if($primary===null)throw $cleanup;}
+    }
+    }catch(Throwable $e){if($primary===null){$primary=$e;$trace($stage,$e);}throw $e;}
+    finally{
+        try{
+            if($p->inTransaction())$p->rollBack();
+            if($ownsSchema)foreach($core as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
+            foreach(array_reverse($renamed)as$table)$p->exec('ALTER TABLE krd_'.$table.' RENAME TO '.$table);
+        }catch(Throwable $cleanup){$trace('schema_cleanup',$cleanup);if($primary===null)throw $cleanup;}
     }
 }
 
@@ -2793,7 +2829,7 @@ function forecastKnownYclidRelationAssertions(PDO $p,callable $check,array $fram
         foreach([1,2]as$i)$receipt[ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS[$i-1]]=$saved[$i];
         $p->prepare("UPDATE modeled_conversion_value_export_settings SET mode='send',counter_id='98615635',goal_id='678187097',goal_intent='verified',contract_version=?,last_receipt_json=? WHERE project_key='anytour'")
             ->execute([ModeledConversionValueContract::VERSION,json_encode($receipt,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)]);
-        $q=$p->prepare('SELECT * FROM max_channel_conversion_outbox WHERE id=?');$q->execute([$frame['r'][0][1]]);$missing=$q->fetch(PDO::FETCH_ASSOC);
+        $q=$p->prepare('SELECT * FROM max_channel_conversion_outbox WHERE id=?');$q->execute([$frame['r'][0][1]]);$missing=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
         $check('only the two consumed original kind2 selections yield a private rehydration plan; case0 is excluded',
             $plans[1]!==null&&$plans[2]!==null&&$plans[1]['case_index']===1&&$plans[2]['case_index']===2
             &&ModeledConversionRetainedTrackerIdentityEvidence::knownRehydratePlan($saved[1],$frame,$missing,$ns,$when)===null);
