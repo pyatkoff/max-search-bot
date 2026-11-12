@@ -195,10 +195,19 @@ final class AppleService39CoveragePublisher
     {
         self::check(in_array($mode, ['coverage_inspect','coverage_prepare','coverage_apply','coverage_reconcile'], true), 'invalid_coverage_operation');
         $snapshot = $this->snapshot($mode === 'coverage_reconcile');
-        if ($mode === 'coverage_prepare') $this->execute(AppleService39CoverageRevision::COVER, AppleService39CoverageRevision::UPLOAD);
+        if ($mode === 'coverage_prepare'
+            && ($this->store->operation(AppleService39CoverageRevision::COVER, AppleService39CoverageRevision::UPLOAD)['state'] ?? null) !== 'verified') {
+            $this->execute(AppleService39CoverageRevision::COVER, AppleService39CoverageRevision::UPLOAD);
+        }
         if ($mode === 'coverage_apply') {
-            foreach ($this->revision->order() as $id) $this->execute($id, 'create');
-            $this->execute('menu', AppleService39CoverageRevision::MENU);
+            // The full snapshot has just validated accepted rows. Only an actual
+            // unattempted action needs another fresh before-claim snapshot.
+            foreach ($this->revision->order() as $id) {
+                if (($this->store->operation($id, 'create')['state'] ?? null) !== 'verified') $this->execute($id, 'create');
+            }
+            if (($this->store->operation('menu', AppleService39CoverageRevision::MENU)['state'] ?? null) !== 'verified') {
+                $this->execute('menu', AppleService39CoverageRevision::MENU);
+            }
         }
         $snapshot = $this->snapshot();
         $complete = $snapshot['held'] === 0 && $snapshot['verified'] === 39

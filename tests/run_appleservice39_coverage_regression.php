@@ -85,7 +85,8 @@ function as39CoverageRegression(?PDO $native = null): void
     as39Expect($bodyGuard->invoke(null,['text'=>'Reviewed','notify'=>false])['notify'] === false,
         'transport accepts only explicit false notification override');
     $seed = as39CoverageSeed($native);
-    as39CoverageSuccess($native === null ? as39SearchClone($seed) : $seed);
+    $completed = $native === null ? as39SearchClone($seed) : $seed;
+    as39CoverageSuccess($completed);
     if ($native !== null) return;
     foreach (['upload_lost','create_lost','create_get_lost','menu_lost'] as $fault) {
         [$pdo,$provider,$store] = as39SearchClone($seed); $wire = as39SearchWire($provider); $once = false;
@@ -128,7 +129,7 @@ function as39CoverageRegression(?PDO $native = null): void
         }
     }
     foreach (['pin','authority','old_hold','wrong_channel','upload_source','upload_token','native_photo'] as $fault) {
-        [$pdo,$provider,$store] = as39SearchClone($seed); $publisher = as39SearchPublisher($pdo,$provider);
+        [$pdo,$provider,$store] = as39SearchClone($fault === 'native_photo' ? $completed : $seed); $publisher = as39SearchPublisher($pdo,$provider);
         $mode = 'coverage_prepare'; $reason = 'coverage_operation_held';
         if ($fault === 'pin') { $provider->pinned = null; $reason = 'landing_menu_pin_changed'; }
         elseif ($fault === 'authority') {
@@ -139,7 +140,7 @@ function as39CoverageRegression(?PDO $native = null): void
         } elseif ($fault === 'wrong_channel') {
             $provider->channelId = '-12345'; $publisher = as39SearchPublisher($pdo,$provider); $reason = 'campaign_binding_changed';
         } elseif ($fault === 'native_photo') {
-            as39CoverageSuccess([$pdo,$provider,$store]); $mode = 'coverage_inspect'; $reason = 'invalid_coverage_image_receipt';
+            $mode = 'coverage_inspect'; $reason = 'invalid_coverage_image_receipt';
             $mid = $store->operation('model-iphone-8','create')['external_message_id'];
             $provider->messages[$mid]['body']['attachments'][0]['payload']['photo_id'] = '987654321';
         } else {
