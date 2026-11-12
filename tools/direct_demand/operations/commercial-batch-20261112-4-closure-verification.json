@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "new_full_pairs": 10,
+  "new_posts": 20,
+  "published_before": 532,
+  "published_after": 542,
+  "queue_before": 73,
+  "queue_after": 63,
+  "registry_version": 223,
+  "untouched_cards_exact": 656,
+  "accepted_materials_preserved": true,
+  "demand_snapshot_preserved": true,
+  "category_membership_delta": {},
+  "registry_export_sha256": "081f5239db1f00acc10fa5f13128227dbc0a8f3fb494292f3c6be96cb60c4087"
+}
