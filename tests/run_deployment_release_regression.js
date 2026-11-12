@@ -1134,9 +1134,68 @@ async function terminalContinuationCases(){
     equal(x.f.comment.body,'PR1505: выпуск занят','continuation: uncertain write does not invent a release');
   }
 }
-async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await terminalContinuationCases();
+async function transientReadCases(){
+  const before=assertions,endpoint=R.API_ROOT+'/git/ref/heads/main';
+  {
+    const calls=[],delays=[],current=H('current after temporary refusal');
+    const read=R.makeReadApi('test-read-token',async(url,options)=>{
+      calls.push({url,method:options.method,authorization:options.headers.Authorization});
+      return calls.length===1?new Response('temporary',{status:503}):
+        new Response(JSON.stringify({object:{sha:current}}),{status:200});
+    },{sleep:async(ms)=>{delays.push(ms);}});
+    equal((await read('GET',endpoint)).object.sha,current,'503: use the actual later read, never cached source');
+    equal(calls.map(x=>x.method),['GET','GET'],'503: only repeat the failed read');
+    equal(calls[0],calls[1],'503: same endpoint and authority');
+    equal(delays,[250],'503: one bounded backoff');
+  }
+  {
+    let calls=0;const delays=[];
+    const read=R.makeReadApi('test-read-token',async()=>{calls++;return new Response('temporary',{status:503});},
+      {sleep:async(ms)=>{delays.push(ms);}});
+    await refuses(()=>read('GET',endpoint),'api_http_503');
+    equal(calls,3,'503: finite ceiling of three reads');
+    equal(delays,[250,750],'503: two finite delays');
+  }
+  for(const status of [401,403,404,429]){
+    let calls=0;const read=R.makeReadApi('test-read-token',async()=>{calls++;return new Response('refused',{status});},
+      {sleep:async()=>{throw Error('unexpected delay');}});
+    await refuses(()=>read('GET',endpoint),'api_http_'+status);
+    equal(calls,1,'non-temporary refusal is not retried');
+  }
+  {
+    let calls=0;const delays=[];
+    const read=R.makeReadApi('test-read-token',async()=>{calls++;return calls===1?
+      new Response('temporary',{status:503,headers:{'retry-after':'1'}}):
+      new Response('{"available":true}',{status:200});},{sleep:async(ms)=>{delays.push(ms);}});
+    equal((await read('GET',endpoint)).available,true);
+    equal(delays,[1000],'503: respect the server delay');
+  }
+  {
+    let calls=0;const read=R.makeReadApi('test-read-token',async()=>{calls++;return new Response('temporary',
+      {status:503,headers:{'retry-after':'120'}});},{sleep:async()=>{throw Error('outside the read deadline');}});
+    await refuses(()=>read('GET',endpoint),'api_http_503');
+    equal(calls,1,'503: no wait or retry beyond the existing total deadline');
+  }
+  {
+    let calls=0;const external=new AbortController();
+    const read=R.makeReadApi('test-read-token',async()=>{calls++;return new Response('temporary',{status:503});},
+      {sleep:async(ms,value,options)=>{external.abort();equal(options.signal.aborted,true);throw Error('aborted');}});
+    await refuses(()=>read('GET',endpoint,undefined,false,external.signal),'transport_failed');
+    equal(calls,1,'503: abort stops the retry before another read');
+  }
+  for(const [method,path,body]of [
+    ['PATCH',R.API_ROOT+'/issues/comments/1',{body:'same terminal'}],
+    ['POST',R.API_ROOT+'/git/commits',{message:'test',tree:H('tree'),parents:[H('parent')]}]]){
+    let calls=0;const write=C.makeApi('test-write-token',async()=>{calls++;return new Response('temporary',{status:503});});
+    await refuses(()=>write(method,path,body),'api_http_503');
+    equal(calls,1,'503: never retry a metadata mutation');
+  }
+  return assertions-before;
+}
+
+async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();
   process.stdout.write('Deployment release regression: '+assertions+' assertions passed\n');}
-module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases};
+module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases,transientReadCases};
 if(require.main===module)main().catch(e=>{process.stderr.write(String(e.stack||e)+'\n');process.exitCode=1;});
 
 

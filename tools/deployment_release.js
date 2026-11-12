@@ -10,6 +10,7 @@ const crypto = require('node:crypto');
 const zlib = require('node:zlib');
 const {spawnSync} = require('node:child_process');
 const {performance} = require('node:perf_hooks');
+const {setTimeout: waitForRetry} = require('node:timers/promises');
 
 const REPOSITORY = 'pyatkoff/max-search-bot';
 const API_ROOT = '/repos/' + REPOSITORY;
@@ -521,17 +522,35 @@ async function responseBytes(response,limit) {
   }
   const bytes=Buffer.from(await response.arrayBuffer());requireValue(bytes.length<=limit,'response_size_limit');return bytes;
 }
-function makeReadApi(token,fetchImpl=globalThis.fetch) {
-  requireValue(typeof token==='string'&&token.length>0&&typeof fetchImpl==='function','missing_capability');
+function makeReadApi(token,fetchImpl=globalThis.fetch,{sleep=waitForRetry}={}) {
+  requireValue(typeof token==='string'&&token.length>0&&typeof fetchImpl==='function'&&typeof sleep==='function','missing_capability');
   const request=async(url,headers,redirect='error',limit=MAX_API,signal=null)=>{
+    // Retry only an explicit temporary refusal of this read. The same 20-second
+    // deadline covers all requests and delays; writers use a separate transport.
+    const deadline=performance.now()+20000;
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
     const abort=()=>controller.abort();
     if(signal){if(signal.aborted)abort();else signal.addEventListener('abort',abort,{once:true});}
     try{
-      const response=await fetchImpl(url,{method:'GET',redirect,signal:controller.signal,headers});
-      if(redirect==='manual'&&[301,302,303,307,308].includes(response.status))return response;
-      requireValue(response.ok,'api_http_'+(Number.isInteger(response.status)?response.status:'unknown'));
-      return await responseBytes(response,limit);
+      for(let attempt=0;attempt<3;attempt++){
+        const response=await fetchImpl(url,{method:'GET',redirect,signal:controller.signal,headers});
+        if(response.status===503&&attempt<2){
+          let retryMs=attempt===0?250:750;
+          const retryAfter=response.headers?.get('retry-after');
+          if(retryAfter!==null&&retryAfter!==undefined){
+            const requested=/^[0-9]+$/.test(retryAfter)?Number(retryAfter)*1000:Date.parse(retryAfter)-Date.now();
+            requireValue(Number.isFinite(requested),'api_http_503');
+            retryMs=Math.max(retryMs,requested);
+          }
+          requireValue(performance.now()+retryMs<deadline,'api_http_503');
+          try{await response.body?.cancel();}catch{} // Release only the discarded error response.
+          await sleep(retryMs,undefined,{signal:controller.signal});
+          continue;
+        }
+        if(redirect==='manual'&&[301,302,303,307,308].includes(response.status))return response;
+        requireValue(response.ok,'api_http_'+(Number.isInteger(response.status)?response.status:'unknown'));
+        return await responseBytes(response,limit);
+      }
     }catch(e){if(e instanceof Refusal)throw e;throw new Refusal('transport_failed');}
     finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);}
   };
