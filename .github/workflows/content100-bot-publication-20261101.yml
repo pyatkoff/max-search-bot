@@ -1,4 +1,4 @@
-name: Continue hotel prices from the 115-hotel checkpoint
+name: Read original TV2651 pending journal without writes
 'on':
   push:
     branches:
@@ -7,60 +7,26 @@ name: Continue hotel prices from the 115-hotel checkpoint
     - .github/workflows/content100-bot-publication-20261101.yml
 permissions:
   contents: read
-  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 6
     steps:
     - uses: actions/checkout@v4
       with:
         ref: ${{ github.sha }}
         persist-credentials: false
         fetch-depth: 1
-    - name: Verify original validation, deployment, collector and exact hook before credentials
-      env:
-        GH_TOKEN: ${{ github.token }}
+    - name: Validate exact readonly reader before credentials
       shell: bash
       run: |
         set -euo pipefail
         test "$GITHUB_RUN_ATTEMPT" = 1
-        gh api repos/pyatkoff/max-search-bot/actions/runs/43181493179 > "$RUNNER_TEMP/accepted-source-validation.json"
-        gh api repos/pyatkoff/max-search-bot/actions/runs/43188552867 > "$RUNNER_TEMP/original-deployment-before-operation.json"
-        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/main-before-operation.json"
-        gh api repos/pyatkoff/poisk-turov-test/git/ref/heads/main > "$RUNNER_TEMP/collector-main-before-operation.json"
-        gh api 'repos/pyatkoff/poisk-turov-test/contents/.github/workflows/collect-anytour-tours.yml?ref=main' > "$RUNNER_TEMP/collector-source-before-operation.json"
-        gh api 'repos/pyatkoff/poisk-turov-test/actions/workflows/collect-anytour-tours.yml/runs?event=schedule&status=in_progress&per_page=100' > "$RUNNER_TEMP/collector-active-before-operation.json"
-        gh api 'repos/pyatkoff/poisk-turov-test/actions/workflows/collect-anytour-tours.yml/runs?event=schedule&status=queued&per_page=100' > "$RUNNER_TEMP/collector-queued-before-operation.json"
-        python3 - <<'PYCURRENT'
-        import base64,hashlib,json,os,pathlib
-        root=pathlib.Path(os.environ['RUNNER_TEMP'])
-        read=lambda name:json.loads((root/name).read_text())
-        validation=read('accepted-source-validation.json')
-        assert validation['id']==43181493179 and validation['head_sha']==os.environ['EXPECTED_SOURCE_SHA'] and validation['run_attempt']==1 and validation['status']=='completed' and validation['conclusion']=='success','ORIGINAL_NATIVE_SOURCE_PROOF_NOT_ACCEPTED'
-        deployment=read('original-deployment-before-operation.json')
-        assert deployment['id']==43188552867 and deployment['head_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and deployment['run_attempt']==1 and deployment['status']=='completed' and deployment['conclusion']=='success','ORIGINAL_DEPLOYMENT_NOT_ACCEPTED'
-        assert read('main-before-operation.json')['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA'],'CURRENT_MAIN_CHANGED_BEFORE_CREDENTIALS'
-        assert read('collector-main-before-operation.json')['object']['sha']==os.environ['EXPECTED_COLLECTOR_MAIN_SHA'],'COLLECTOR_MAIN_CHANGED_BEFORE_CREDENTIALS'
-        code=base64.b64decode(read('collector-source-before-operation.json')['content'],validate=False)
-        assert hashlib.sha256(code).hexdigest()==os.environ['EXPECTED_COLLECTOR_FILE_SHA256'],'COLLECTOR_CALLBACK_SOURCE_CHANGED'
-        for name in ('collector-active-before-operation.json','collector-queued-before-operation.json'):
-            runs=read(name)
-            assert runs['total_count']<100 and len(runs['workflow_runs'])==runs['total_count'],'ACTIVE_RUN_INVENTORY_TRUNCATED'
-            for active in runs['workflow_runs']:
-                assert active['head_sha']==os.environ['EXPECTED_COLLECTOR_MAIN_SHA'],'OLD_COLLECTOR_CALLBACK_STILL_ACTIVE'
-        print('ORIGINAL_SOURCE_DEPLOYMENT_AND_COLLECTOR_ADMISSION_OK')
-        PYCURRENT
-        python3 tools/direct_demand/operations/build-monitor-price-hook.py "$RUNNER_TEMP/monitor-price-hook.php"
-        python3 - <<'PYHOOK'
-        import hashlib,os,pathlib
-        bundle=pathlib.Path(os.environ['RUNNER_TEMP'])/'monitor-price-hook.php'
-        assert hashlib.sha256(bundle.read_bytes()).hexdigest()==os.environ['EXPECTED_HOOK_SHA256'],'NATIVE_TESTED_HOOK_BYTES_CHANGED'
-        print('EXACT_NATIVE_TESTED_HOOK_OK')
-        PYHOOK
+        printf '%s  %s\n' "$EXPECTED_READER_SHA256" "tools/direct_demand/operations/read-pending-2651-20261112.php" | sha256sum --check
+        php -l tools/direct_demand/operations/read-pending-2651-20261112.php
     - name: Prepare existing server connection
       env:
         DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -99,7 +65,7 @@ jobs:
         assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
         pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
         PY
-    - name: Run the unchanged callback once for at most 30 hotel pairs
+    - name: Read only the original pending journal
       env:
         DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
         DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -107,31 +73,16 @@ jobs:
       run: |
         set -euo pipefail
         umask 077
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && test "$(git rev-parse --verify HEAD)" = 7a96af3e9d0e262a2ff5a257295dc9e9764e9d53 && php' < "$RUNNER_TEMP/monitor-price-hook.php" | tee "$RUNNER_TEMP/monitor-price-next-pass.jsonl"
-    - name: Inspect the current 481-hotel roster without writes
-      env:
-        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-      shell: bash
-      run: |
-        set -euo pipefail
-        umask 077
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && test "$(git rev-parse --verify HEAD)" = 7a96af3e9d0e262a2ff5a257295dc9e9764e9d53 && ANYTOUR_MONITOR_HOOK_INSPECT=1 php' < "$RUNNER_TEMP/monitor-price-hook.php" | tee "$RUNNER_TEMP/monitor-price-next-inspection.jsonl"
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && test "$(git rev-parse --verify HEAD)" = 7a96af3e9d0e262a2ff5a257295dc9e9764e9d53 && php' < "$GITHUB_WORKSPACE/tools/direct_demand/operations/read-pending-2651-20261112.php" | tee "$RUNNER_TEMP/monitor-pending-2651-read.jsonl"
     - uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: monitor-price-next-bounded-pass
-        path: |-
-          ${{ runner.temp }}/monitor-price-next-pass.jsonl
-          ${{ runner.temp }}/monitor-price-next-inspection.jsonl
+        name: monitor-pending-2651-readonly
+        path: ${{ runner.temp }}/monitor-pending-2651-read.jsonl
         retention-days: 14
-    - name: Remove ephemeral connection and bundle
+    - name: Remove ephemeral connection
       if: always()
       shell: bash
-      run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/monitor-price-hook.php"
+      run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
 env:
-  EXPECTED_PRODUCTION_SHA: 7a96af3e9d0e262a2ff5a257295dc9e9764e9d53
-  EXPECTED_SOURCE_SHA: 8f7faaeea18e2d5e1d6d07d660c761c51ccf7a6c
-  EXPECTED_COLLECTOR_MAIN_SHA: 17449ef5eb74edf1c60197ef3b9f00e40feaf485
-  EXPECTED_COLLECTOR_FILE_SHA256: e186d3dbc534d37d956a863a468ea81c1a120e514dc412bc73d0fbb5645b0cd0
-  EXPECTED_HOOK_SHA256: c165dc1a01e46e5e74da119a205caf8cde32b04b03fead67ae530d64efb15727
+  EXPECTED_READER_SHA256: 38620846507c0b9bed93ff76bf8c29ce79e34c182addeacf9f633afc5b32613b
