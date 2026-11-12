@@ -10,6 +10,7 @@ const crypto = require('node:crypto');
 const zlib = require('node:zlib');
 const {spawnSync} = require('node:child_process');
 const {performance} = require('node:perf_hooks');
+const {setTimeout: waitForRetry} = require('node:timers/promises');
 
 const REPOSITORY = 'pyatkoff/max-search-bot';
 const API_ROOT = '/repos/' + REPOSITORY;
@@ -228,7 +229,32 @@ const TERMINAL_RECOVERY=Object.freeze({
   observation_sha:'f4db027b4fb39242a6b8e51cba460c309b01db3f',observation_run_id:'43240168728',observation_job_id:131258118456,
   read_failure_sha:'d6f732dffd4976c663153771d9bb4b122456e3e6',read_failure_run_id:'43243320862',read_failure_job_id:131269294778
 });
+// The next original release stopped before SSH/TLS; its closer never prepared
+// or patched a terminal. Continue only that proved unstarted gate, once.
+const GATE_RECOVERY=Object.freeze({
+  branch:TERMINAL_RECOVERY.branch,before:'cb98b8ba4f51080d28a5096b62a9bae7c65380bc',
+  sha:'0cb62969d0a8fa59b1872df465b3810bf5b569d4',deploy:'43250756234',
+  run_id:'43254816784',job_id:131310064735,tls_run_id:'43254816916',tls_job_id:131310062683,
+  commit:'89f4fa72811c15fdc0eed25710469f3f01662397',blob:'e5ea04e56b631f9449e16ce3debf53add14fb744',
+  record_digest:'d22939ab236756bdb6ae28fec01d069b59eb84eeb59fd037993583ef03b90047',
+  pr:1506,head_sha:'cb98b8ba4f51080d28a5096b62a9bae7c65380bc',
+  comment_id:6789986080,owner_id:226193297,updated_at:'2026-11-12T15:40:38Z',
+  tls_workflow:PREFIX+'max-tls-preflight.yml',tls_step:'Wait for exact active-server SHA and verify strict TLS'
+});
+function gateRecovery(r){
+  const x=r.closure?.recovery,p=GATE_RECOVERY;
+  requireValue(keys(x,['kind','source_sha','original_commit','original_blob','original_record_digest',
+    'original_run_id','original_job_id','tls_run_id'])&&x.kind==='unstarted_tls_v1'
+    &&sha(x.source_sha)&&x.source_sha!==p.sha&&positive(x.tls_run_id)&&typeof x.tls_run_id==='string'
+    &&x.tls_run_id!==p.tls_run_id&&r.repository_sha===p.sha&&r.kind==='installed'
+    &&r.release.run_id===p.deploy&&r.release.run_attempt===2&&r.closure.job==='release-slot-recovery'
+    &&r.closure.run_id!==p.run_id&&x.original_commit===p.commit&&x.original_blob===p.blob
+    &&x.original_record_digest===p.record_digest&&x.original_run_id===p.run_id&&x.original_job_id===p.job_id
+    &&same(r.closure.binding,{pr:p.pr,head_sha:p.head_sha,comment_id:p.comment_id,
+      owner_id:p.owner_id,updated_at:p.updated_at}),'invalid_gate_recovery');return x;
+}
 function terminalRecovery(r){
+  if(r.closure?.recovery?.kind==='unstarted_tls_v1')return gateRecovery(r);
   const x=r.closure?.recovery,p=TERMINAL_RECOVERY;
   requireValue(keys(x,['source_sha','original_commit','original_blob','original_record_digest','original_run_id','original_job_id'])
     &&sha(x.source_sha)&&x.source_sha!==p.sha&&r.repository_sha===p.sha&&r.kind==='installed'
@@ -292,7 +318,10 @@ function validateRelease(record, success = true) {
       &&c.gates.length>=9&&c.gates.length<=20,'invalid_terminal_proposal');
     for(const g of c.gates)requireValue(keys(g,['path','run_id','run_attempt','head_sha','conclusion'])
       &&typeof g.path==='string'&&g.path.startsWith(PREFIX)&&positive(g.run_id)&&[1,2].includes(g.run_attempt)
-      &&g.head_sha===r.repository_sha&&['success','skipped'].includes(g.conclusion),'invalid_gate_reference');
+      &&(g.head_sha===r.repository_sha||(c.recovery?.kind==='unstarted_tls_v1'
+        &&g.path===GATE_RECOVERY.tls_workflow&&g.run_id===c.recovery.tls_run_id
+        &&g.head_sha===c.recovery.source_sha&&g.run_attempt===1&&g.conclusion==='success'))
+      &&['success','skipped'].includes(g.conclusion),'invalid_gate_reference');
     if(recovered)terminalRecovery(r);
   }
   return {record,installation,release:r};
@@ -477,6 +506,18 @@ async function authenticatePublication(api,location,{closed=false,diagnosticsHea
     producer_run_id:producer.run_id,producer_run_attempt:producer.run_attempt};
 }
 async function authenticateFailedTerminal(api,record){
+  if(record.repository_release?.closure?.recovery?.kind==='unstarted_tls_v1'){
+    const r=validateRelease(record).release,x=gateRecovery(r),original=await failedGateEvidence(api);
+    const restored=clone(record);restored.repository_release.phase='pending_closure';
+    restored.repository_release.closure=null;restored.repository_release.baseline_eligible=false;
+    requireValue(same(restored,original.record),'original_gate_record_changed');
+    const tls=await continuationTls(api,x.tls_run_id,x.source_sha);
+    const expected={path:GATE_RECOVERY.tls_workflow,run_id:String(tls.id),run_attempt:1,
+      head_sha:x.source_sha,conclusion:'success'};
+    requireValue(r.closure.gates.filter(g=>g.path===GATE_RECOVERY.tls_workflow).length===1
+      &&same(r.closure.gates.find(g=>g.path===GATE_RECOVERY.tls_workflow),expected),'gate_proof_changed');
+    return {original,run:tls};
+  }
   const r=validateRelease(record).release,x=terminalRecovery(r),p=TERMINAL_RECOVERY;
   const original=await readRecord(api,x.original_commit);
   requireValue(original.blob===x.original_blob&&original.record_digest===x.original_record_digest,'original_terminal_changed');
@@ -497,6 +538,101 @@ async function authenticateFailedTerminal(api,record){
   requireValue(prepared.length===1&&prepared[0].conclusion==='success'&&prepared[0].status==='completed'
     &&terminal.length===1&&terminal[0].conclusion==='failure'&&terminal[0].status==='completed'
     &&prepared[0].number<terminal[0].number,'original_terminal_not_failed');return {original,run};
+}
+function failedGateJobs(tlsJobs,closeJobs){
+  const p=GATE_RECOVERY;
+  const one=(raw,runId,jobId,name)=>{
+    const jobs=boundedList(raw,'jobs','incomplete_failed_gate_jobs');
+    const rows=jobs.filter(j=>j.id===jobId&&j.name===name);
+    requireValue(rows.length===1&&rows[0].run_id===Number(runId)&&rows[0].head_sha===p.sha
+      &&rows[0].run_attempt===1&&rows[0].status==='completed'&&rows[0].conclusion==='failure'
+      &&Array.isArray(rows[0].steps),'failed_gate_not_original');return rows[0];
+  };
+  const tls=one(tlsJobs,p.tls_run_id,p.tls_job_id,'strict-tls-preflight');
+  const closer=one(closeJobs,p.run_id,p.job_id,'release-slot');
+  const result=(job,name,outcome)=>{const rows=job.steps.filter(s=>s.name===name);
+    requireValue(rows.length===1&&rows[0].status==='completed'&&rows[0].conclusion===outcome,'failed_gate_executed');return rows[0];};
+  const resolved=result(tls,RESOLVER_STEP,'failure');
+  const key=result(tls,'Prepare SSH private key','skipped');
+  const check=result(tls,p.tls_step,'skipped');
+  requireValue(resolved.number<key.number&&key.number<check.number&&tls.steps.every(s=>
+    s===resolved||['success','skipped'].includes(s.conclusion)),'failed_gate_executed');
+  const prepare=result(closer,'Prepare the exact release proof before terminal publication','failure');
+  const terminal=result(closer,TERMINAL_STEP,'skipped');
+  const upload=closer.steps.filter(s=>s.name===TERMINAL_BINDING_STEP);
+  requireValue(upload.length===1&&upload[0].status==='completed'&&upload[0].conclusion==='skipped'
+    &&prepare.number<upload[0].number&&upload[0].number<terminal.number
+    &&closer.steps.every(s=>s===prepare||['success','skipped'].includes(s.conclusion)),'failed_terminal_executed');
+  return {tls,closer};
+}
+async function failedGateEvidence(api){
+  const p=GATE_RECOVERY,get=path=>api('GET',API_ROOT+path);
+  const original=await readRecord(api,p.commit);
+  requireValue(original.blob===p.blob&&original.record_digest===p.record_digest
+    &&original.record.repository_release.phase==='pending_closure','original_gate_record_changed');
+  await authenticatePublication(api,original);
+  for(const [runId,workflow,origin]of [[p.tls_run_id,p.tls_workflow,'deploy-proof:v1:'+p.deploy+':2'],
+    [p.run_id,CLOSER,'deploy-proof:v1:'+p.deploy+':2']]){
+    const run=await get('/actions/runs/'+runId);
+    runIdentity(run,{id:runId,attempt:1,head:p.sha,workflow,event:'workflow_run',conclusion:'failure'});
+    requireValue(run.display_title===origin,'failed_gate_origin_changed');
+  }
+  failedGateJobs(await get('/actions/runs/'+p.tls_run_id+'/attempts/1/jobs?per_page=100'),
+    await get('/actions/runs/'+p.run_id+'/attempts/1/jobs?per_page=100'));
+  requireValue(typeof api.jobLog==='function','failed_gate_log_unavailable');
+  const lines=(await api.jobLog(p.tls_job_id)).toString('utf8').split(/\r?\n/)
+    .filter(l=>/deployment_release=refused reason=/.test(l));
+  requireValue(lines.length===1&&/deployment_release=refused reason=api_http_502$/.test(lines[0]),'failed_gate_reason_changed');
+  return original;
+}
+async function gateContinuationContext({env,event,api,workflow,job}){
+  const p=GATE_RECOVERY,ref='refs/heads/'+p.branch,source=env.GITHUB_SHA;
+  requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_EVENT_NAME==='push'
+    &&env.GITHUB_REF===ref&&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+workflow+'@'+ref
+    &&env.GITHUB_JOB===job&&env.GITHUB_RUN_ATTEMPT==='1'&&sha(source)&&source!==p.sha
+    &&positive(env.GITHUB_RUN_ID)&&event?.repository?.full_name===REPOSITORY
+    &&event.ref===ref&&event.before===p.before&&event.after===source&&event.created===false
+    &&event.deleted===false&&event.forced===false,'untrusted_gate_continuation');
+  const get=path=>api('GET',API_ROOT+path);
+  requireValue((await get('/git/ref/heads/main'))?.object?.sha===p.sha,'main_changed');
+  const native=await get('/actions/runs/'+env.GITHUB_RUN_ID);
+  runIdentity(native,{id:env.GITHUB_RUN_ID,attempt:1,head:source,workflow,event:'push',branch:p.branch,completed:false});
+  requireValue(['queued','in_progress'].includes(native.status)&&native.actor?.id===p.owner_id,'gate_continuation_not_active');
+  const jobs=boundedList(await get('/actions/runs/'+native.id+'/attempts/1/jobs?per_page=100'),'jobs','incomplete_gate_continuation_jobs');
+  const own=jobs.filter(j=>j.name===job);
+  requireValue(own.length===1&&own[0].run_id===native.id&&own[0].run_attempt===1&&own[0].head_sha===source
+    &&own[0].status==='in_progress'&&own[0].conclusion===null&&positive(own[0].runner_id),'gate_continuation_not_active');
+  const relation=await get('/compare/'+p.before+'...'+source+'?per_page=1');
+  requireValue(relation?.status==='ahead'&&relation.merge_base_commit?.sha===p.before,'recovery_source_changed');
+  const runs=boundedList(await get('/actions/runs?head_sha='+source+'&per_page=100'),'workflow_runs','incomplete_gate_continuation_ci');
+  for(const [name,path]of [['Regression tests',PREFIX+'regression-tests.yml'],['Retired domain guard',PREFIX+'retired-domain-guard.yml']]){
+    const found=runs.filter(r=>r.name===name&&r.event==='pull_request');
+    requireValue(found.length===1&&found[0].path===path&&found[0].head_sha===source
+      &&found[0].head_repository?.full_name===REPOSITORY&&found[0].run_attempt===1
+      &&found[0].status==='completed'&&found[0].conclusion==='success','recovery_ci_unconfirmed');
+  }
+  const pr=await get('/pulls/'+p.pr),C=require('./release_slot_close'),b=C.binding(pr,p.sha);
+  requireValue(b&&same(C.bindingSnapshot(b),{pr:p.pr,head_sha:p.head_sha,comment_id:p.comment_id,
+    owner_id:p.owner_id,updated_at:p.updated_at}),'binding_changed');
+  requireValue(C.recordState(await get('/issues/comments/'+p.comment_id),b)==='active','prepared_terminal_already_released');
+  const original=await failedGateEvidence(api);await requireOps(api,p.sha);
+  requireValue((await get('/git/ref/heads/main'))?.object?.sha===p.sha,'main_changed');
+  return {source,runId:String(native.id),original,b};
+}
+async function continuationTls(api,runId,source){
+  const p=GATE_RECOVERY,run=await api('GET',API_ROOT+'/actions/runs/'+runId);
+  runIdentity(run,{id:runId,attempt:1,head:source,workflow:p.tls_workflow,event:'push',branch:p.branch});
+  requireValue(run.actor?.id===p.owner_id,'foreign_tls_continuation');
+  const jobs=boundedList(await api('GET',API_ROOT+'/actions/runs/'+runId+'/attempts/1/jobs?per_page=100'),
+    'jobs','incomplete_tls_continuation_jobs');
+  requireValue(jobs.length===1&&jobs[0].name==='strict-tls-preflight'&&jobs[0].run_id===run.id
+    &&jobs[0].head_sha===source&&jobs[0].run_attempt===1&&jobs[0].status==='completed'
+    &&jobs[0].conclusion==='success'&&Array.isArray(jobs[0].steps),'tls_continuation_unconfirmed');
+  for(const name of [RESOLVER_STEP,'Prepare SSH private key',p.tls_step]){
+    const rows=jobs[0].steps.filter(s=>s.name===name);
+    requireValue(rows.length===1&&rows[0].status==='completed'&&rows[0].conclusion==='success','tls_continuation_unconfirmed');
+  }
+  return run;
 }
 async function readBaseline(api,ref,diagnosticsHead) {
   validateReference(ref);
@@ -522,17 +658,35 @@ async function responseBytes(response,limit) {
   }
   const bytes=Buffer.from(await response.arrayBuffer());requireValue(bytes.length<=limit,'response_size_limit');return bytes;
 }
-function makeReadApi(token,fetchImpl=globalThis.fetch) {
-  requireValue(typeof token==='string'&&token.length>0&&typeof fetchImpl==='function','missing_capability');
+function makeReadApi(token,fetchImpl=globalThis.fetch,{sleep=waitForRetry}={}) {
+  requireValue(typeof token==='string'&&token.length>0&&typeof fetchImpl==='function'&&typeof sleep==='function','missing_capability');
   const request=async(url,headers,redirect='error',limit=MAX_API,signal=null)=>{
+    // Retry only an explicit temporary refusal of this read. The same 20-second
+    // deadline covers all requests and delays; writers use a separate transport.
+    const deadline=performance.now()+20000;
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
     const abort=()=>controller.abort();
     if(signal){if(signal.aborted)abort();else signal.addEventListener('abort',abort,{once:true});}
     try{
-      const response=await fetchImpl(url,{method:'GET',redirect,signal:controller.signal,headers});
-      if(redirect==='manual'&&[301,302,303,307,308].includes(response.status))return response;
-      requireValue(response.ok,'api_http_'+(Number.isInteger(response.status)?response.status:'unknown'));
-      return await responseBytes(response,limit);
+      for(let attempt=0;attempt<3;attempt++){
+        const response=await fetchImpl(url,{method:'GET',redirect,signal:controller.signal,headers});
+        if(api.transientReads!==false&&[502,503].includes(response.status)&&attempt<2){
+          let retryMs=attempt===0?250:750;
+          const retryAfter=response.headers?.get('retry-after');
+          if(retryAfter!==null&&retryAfter!==undefined){
+            const requested=/^[0-9]+$/.test(retryAfter)?Number(retryAfter)*1000:Date.parse(retryAfter)-Date.now();
+            requireValue(Number.isFinite(requested),'api_http_'+response.status);
+            retryMs=Math.max(retryMs,requested);
+          }
+          requireValue(performance.now()+retryMs<deadline,'api_http_'+response.status);
+          try{await response.body?.cancel();}catch{} // Release only the discarded error response.
+          await sleep(retryMs,undefined,{signal:controller.signal});
+          continue;
+        }
+        if(redirect==='manual'&&[301,302,303,307,308].includes(response.status))return response;
+        requireValue(response.ok,'api_http_'+(Number.isInteger(response.status)?response.status:'unknown'));
+        return await responseBytes(response,limit);
+      }
     }catch(e){if(e instanceof Refusal)throw e;throw new Refusal('transport_failed');}
     finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);}
   };
@@ -557,7 +711,7 @@ function makeReadApi(token,fetchImpl=globalThis.fetch) {
   };
   api.jobLog=async job=>{
     requireValue([TERMINAL_RECOVERY.job_id,TERMINAL_RECOVERY.continuation_job_id,TERMINAL_RECOVERY.observation_job_id,
-      TERMINAL_RECOVERY.read_failure_job_id].includes(job),'untrusted_terminal_log');
+      TERMINAL_RECOVERY.read_failure_job_id,GATE_RECOVERY.tls_job_id].includes(job),'untrusted_terminal_log');
     const response=await request('https://api.github.com'+API_ROOT+'/actions/jobs/'+job+'/logs',headers(false),'manual',2*1024*1024);
     if(Buffer.isBuffer(response))return response;
     let url;try{url=new URL(response.headers.get('location'));}catch{throw new Refusal('invalid_log_redirect');}
@@ -932,6 +1086,12 @@ async function finalResolution(api,c,location,result) {
   return result;
 }
 async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),now=()=>performance.now()}) {
+  if(env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_REF==='refs/heads/'+GATE_RECOVERY.branch){
+    const x=await gateContinuationContext({env,event,api,workflow:GATE_RECOVERY.tls_workflow,job:'strict-tls-preflight'});
+    const current=await readRecord(api);
+    requireValue(current.blob===x.original.blob&&current.record_digest===GATE_RECOVERY.record_digest,'deployment_result_changed');
+    return resolution(x.source,GATE_RECOVERY.sha,'installed');
+  }
   const startedAt=now();
   const c=await sourceContext(env,event,api);
   requireValue(c.attempt===1,'consumer_rerun_forbidden');
@@ -1045,7 +1205,8 @@ function argumentsOf(argv,commands) {
 function outputs(value){for(const [key,v]of Object.entries(value)){
   requireValue(/^[a-z_]+$/.test(key)&&!/[\r\n]/.test(String(v)),'invalid_output');process.stdout.write(key+'='+String(v)+'\n');}}
 module.exports={REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
-  TERMINAL_RECOVERY,terminalRecovery,authenticateFailedTerminal,
+  TERMINAL_RECOVERY,GATE_RECOVERY,terminalRecovery,gateRecovery,authenticateFailedTerminal,
+  failedGateJobs,failedGateEvidence,gateContinuationContext,continuationTls,
   CONTENT_POLICY,FINGERPRINT_PROTOCOL,RESOLVER_STEP,TERMINAL_STEP,MAX_RECORD,MAX_API,MAX_ARCHIVE,INSTALL_STAGES,OPS_STAGES,
   PENDING_BINDING_STEP,TERMINAL_BINDING_STEP,
   Refusal,requireValue,object,keys,sha,positive,stamp,canonical,wire,digest,same,clone,iso,gitBlob,parseJson,readJson,saveJson,
