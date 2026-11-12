@@ -44,7 +44,7 @@ final class ManagerPreparationMcpService
             &&($rpc['params']['name']??null)===ModeledConversionStatusMcpAdapter::NAME;
         $this->forecastBudget=$forecastStatus?($forecastBudget??new ModeledConversionStatusBudget()):null;
         $developmentStatus=($rpc['method']??null)==='tools/call'&&is_array($rpc['params']??null)
-            &&($rpc['params']['name']??null)==='development_work_status';
+            &&in_array($rpc['params']['name']??null,['development_work_status','development_work_roadmap_admit'],true);
         if($developmentStatus&&is_string($id)&&strlen($id)>1024)return self::error(null,-32600,'Invalid Request');
         $workStatus=($rpc['method']??null)==='tools/call' && is_array($rpc['params']??null)
             && in_array($rpc['params']['name']??null,['hotel_work_status','development_work_status'],true);

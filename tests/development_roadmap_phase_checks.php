@@ -58,7 +58,7 @@ function devRoadmapSender(?callable $before=null,?callable $mutate=null): array
         $raw=['id'=>'resp_SYNTHETIC_ROADMAP_'.$n,'status'=>'completed','model'=>$request['model'],
             'usage'=>['input_tokens'=>1000,'output_tokens'=>200,'total_tokens'=>1200],
             'output'=>[['type'=>'message','role'=>'assistant','status'=>'completed',
-                'content'=>[['type'=>'output_text','text'=>json_encode($report,JSON_THROW_ON_ERROR)]]]]]];
+                'content'=>[['type'=>'output_text','text'=>json_encode($report,JSON_THROW_ON_ERROR)]]]]];
         $transport=['wire_request_bytes'=>$wire,'wire_complete'=>true,'http_status'=>200];
         if($mutate!==null)$mutate($raw,$report,$transport);
         $transport['wire_response_bytes']=json_encode($raw,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
@@ -170,4 +170,69 @@ function devRoadmapFailureChecks(): void
     devAssert($r['state']==='blocked'&&$r['reason']==='new_saved_terminal_failure'&&count($log->sent)===0
         &&$s['blocked_count']===2&&count($s['server_roadmap']['steps'])===1&&$s['current_run_id']===null,
         'roadmap_actual_saved_failure_has_terminal_receipt_released_claim_and_no_successor');
+}
+
+function devRoadmapReviewOutcomeChecks(): void
+{
+    foreach(['approved_false','negative_check']as$mode){
+        [$pdo,$q,$clock,$fresh,$args]=devRoadmapFixture();$q->roadmap_admit(1,$fresh,$args);
+        [$sender,$log]=devRoadmapSender(null,static function(array &$raw,array &$report)use($mode):void{
+            if($mode==='approved_false')$report['approved']=false;else $report['checks'][2]['approved']=false;
+            $raw['output'][0]['content'][0]['text']=json_encode($report,JSON_THROW_ON_ERROR);
+        });
+        $q->roadmapTick(devServerOrigin($clock),$sender);$clock->at+=60;
+        $r=$q->roadmapTick(devServerOrigin($clock),$sender);$s=devRoadmapStatus($q,$fresh);
+        devAssert($r['state']==='blocked'&&$r['reason']==='independent_review_rejected'&&$s['blocked_count']===2
+            &&count($s['server_roadmap']['steps'])===1&&$s['server_roadmap']['review_calls']===1
+            &&$s['current_run_id']===null&&$pdo->query("SELECT queue_id FROM development_work_lane WHERE lane_key='DEVELOPMENT'")->fetchColumn()===null,
+            'roadmap_known_completed_reviewer_rejection_releases_owned_claims_without_B_'.$mode);
+        $clock->at+=60;$q->roadmapTick(devServerOrigin($clock),$sender);
+        devAssert(count($log->sent)===1,'roadmap_completed_negative_is_not_retried_'.$mode);
+    }
+    foreach(['http503','non_json','partial']as$mode){
+        [$pdo,$q,$clock,$fresh,$args]=devRoadmapFixture();$q->roadmap_admit(1,$fresh,$args);$log=(object)['sent'=>0];
+        $raw=$mode==='non_json'?"invalid JSON \\xFF":($mode==='partial'?'{"id":"resp_PARTIAL':'{"error":"synthetic_unavailable"}');
+        $sender=static function(string $wire,callable $capture)use($mode,$raw,$log):array{
+            ++$log->sent;$capture(['wire_request_bytes'=>$wire,'wire_response_bytes'=>$raw,
+                'wire_complete'=>$mode!=='partial','http_status'=>$mode==='http503'?503:200,
+                'response_capture'=>$mode==='partial'?'incomplete_transport':'complete']);
+            return ['_error'=>$mode==='partial'?'provider_timeout':'provider_unavailable'];
+        };
+        $q->roadmapTick(devServerOrigin($clock),$sender);$clock->at+=60;$q->roadmapTick(devServerOrigin($clock),$sender);
+        $saved=$pdo->query('SELECT * FROM development_work_roadmap_reviews')->fetch(PDO::FETCH_ASSOC);
+        $meta=json_decode($saved['metadata_json'],true,16,JSON_THROW_ON_ERROR);
+        devAssert($saved['response_bytes']===$raw&&$meta['http_status']===($mode==='http503'?503:200)
+            &&$meta['wire_complete']===($mode!=='partial')
+            &&$meta['error_category']===($mode==='partial'?'provider_timeout':'provider_unavailable'),
+            'roadmap_original_failed_transport_status_category_and_exact_bytes_preserved_'.$mode);
+        $clock->at+=60;$q->roadmapTick(devServerOrigin($clock),$sender);
+        devAssert($log->sent===1,'roadmap_failed_original_transport_never_replayed_'.$mode);
+    }
+
+    [$pdo,$q,$clock,$fresh,$args]=devRoadmapFixture();$q->roadmap_admit(1,$fresh,$args);
+    [$sender,$log]=devRoadmapSender(null,static function(array &$raw):void{
+        $raw['synthetic_padding']='';
+        $wire=json_encode($raw,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+        $raw['synthetic_padding']=str_repeat('P',DevelopmentRoadmapReview::MAX_RESPONSE-strlen($wire));
+    });
+    $q->roadmapTick(devServerOrigin($clock),$sender);$clock->at+=60;
+    $first=$q->roadmapTick(devServerOrigin($clock),$sender);$firstStatus=devRoadmapStatus($q,$fresh);
+    devAssert($first['state']==='ready'&&$firstStatus['server_roadmap']['steps'][0]['state']==='accepted'
+        &&strlen($log->results[0]['transport']['wire_response_bytes'])===DevelopmentRoadmapReview::MAX_RESPONSE,
+        'roadmap_populated59_accepts_full_maximum_original_response');
+    $r=$firstStatus['server_roadmap']['steps'][0]['review'];
+    devAssert($r['actual_request_equals_prepared']===true&&$r['actual_request_base64']===null
+        &&base64_decode($r['request_base64'],true)===$log->sent[0],
+        'roadmap_complete_equal_wire_alias_preserves_exact_original_without_duplicate_bytes');
+    $clock->at+=60;$pdo->financial(static fn(PDO $db)=>$db->prepare("UPDATE max_channel_conversion_outbox SET state='processed',
+        upload_status='PROCESSED',value_processed_at_unix=? WHERE id=24")->execute([$clock->at]));
+    $q->roadmapTick(devServerOrigin($clock),$sender);$clock->at+=60;$last=$q->roadmapTick(devServerOrigin($clock),$sender);
+    $s=devRoadmapStatus($q,$fresh);
+    devAssert(($last['state']==='complete'&&count($log->sent)===2)
+        ||($last['state']==='hold'&&$last['reason']==='full_readback_budget_before_send'&&count($log->sent)===1
+            &&$s['server_roadmap']['review_calls']===1),
+        'roadmap_complete_maximum_proof_or_refusal_before_IO_without_consuming_second_once');
+    DevelopmentWorkServerContract::assertReadback($s);
+    devAssert(strlen(DevelopmentWorkServerContract::json($s))<=DevelopmentRoadmapReview::MAX_PROOF,
+        'roadmap_all_original_proof_bytes_fit_supported_complete_wire');
 }

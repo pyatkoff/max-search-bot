@@ -34,3 +34,11 @@ Source preparation, passing CI, installation, explicit phase admission and
 observed real cron acceptance are separate evidence steps. This document alone
 does not authorize or prove any of them. General coding/deploy/native-owner tasks
 remain unsupported until their genuine execution route is available.
+
+A completed, correctly bound negative review is terminal blocked and releases
+its owned claims. Transport errors, incomplete or unrelated results remain
+UNKNOWN. Safe original HTTP status and capture/error categories are retained
+before credit. Equal prepared and actual request bytes have an explicit
+`actual_request_equals_prepared` alias in the private full readback; the original
+bytes remain independently stored. A worst-case complete readback budget is
+checked before each review reservation and network call.

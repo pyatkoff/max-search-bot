@@ -164,7 +164,9 @@ trait DevelopmentRoadmapPhase
             $review=$this->one('SELECT * FROM development_work_roadmap_reviews WHERE queue_id=? AND task_id=?',[$q['queue_id'],$step['task_id']]);$row['review']=null;
             if($review){
                 $r=array_intersect_key($review,array_flip(['attempt_id','cron_id','cron_slot','started_at','state','request_sha256','response_id','response_sha256','report_sha256']));
-                foreach(['request','response','actual_request','report']as$key)$r[$key.'_base64']=$review[$key.'_bytes']===null?null:base64_encode($review[$key.'_bytes']);
+                foreach(['request','response','report']as$key)$r[$key.'_base64']=$review[$key.'_bytes']===null?null:base64_encode($review[$key.'_bytes']);
+                $r['actual_request_equals_prepared']=$review['actual_request_bytes']!==null&&$review['actual_request_bytes']===$review['request_bytes'];
+                $r['actual_request_base64']=$r['actual_request_equals_prepared']||$review['actual_request_bytes']===null?null:base64_encode($review['actual_request_bytes']);
                 $r['metadata']=$review['metadata_json']===null?null:json_decode($review['metadata_json'],true,16,JSON_THROW_ON_ERROR);$row['review']=$r;
             }
             $reads=$this->pdo->prepare('SELECT read_id,run_id,cron_id,cron_slot,started_at,state,result_sha256 FROM development_work_roadmap_reads WHERE queue_id=? AND task_id=? ORDER BY started_at,read_id');
@@ -244,6 +246,22 @@ trait DevelopmentRoadmapPhase
         $this->execute('UPDATE development_work_queues SET plan_sha256=?,task_count=task_count+1,updated_at=? WHERE queue_id=?',[$plan,$this->now(),$q['queue_id']]);
     }
 
+    /** Worst complete next proof, before reserving any model call. Equal wire bytes have an explicit alias. */
+    private function roadmapReviewFits(array $q,array $p,array $step,string $wire): bool
+    {
+        $size=strlen(self::canonical($this->roadmapProof($q,$p)));
+        $b64=static fn(int $n):int=>4*intdiv($n+2,3);
+        $extra=$b64(strlen($wire))+$b64(DevelopmentRoadmapReview::MAX_RESPONSE)+$b64(DevelopmentRoadmapReview::MAX_REPORT)+8192;
+        if((int)$step['ordinal']===1){
+            $input=$this->roadmapInput($p,$step);
+            // Exact future B input has the same capsule and fixed-length parent identifiers/digests.
+            $next=['kind'=>'saved_finance_processing','manifest_sha256'=>$p['manifest_sha256'],'binding_sha256'=>$p['binding_sha256'],
+                'capsule'=>$input['capsule'],'parent_task_id'=>$step['task_id'],'parent_receipt_sha256'=>str_repeat('0',64),
+                'parent_result_sha256'=>$step['candidate_sha256']];
+            $extra+=$b64(strlen(self::canonical($next)))+2048;
+        }
+        return $size+$extra<=DevelopmentRoadmapReview::MAX_PROOF;
+    }
     private function roadmapOut(string $state,string $reason,int $calls=0): array
     {return ['handled'=>true,'execution_kind'=>'server_saved_finance','state'=>$state,'reason'=>$reason,'provider_calls'=>$calls];}
     private function roadmapHold(array $q,string $reason,bool $unknown): array
@@ -292,7 +310,10 @@ trait DevelopmentRoadmapPhase
                 $candidate=$this->roadmapResult($q,$p,$step,$snapshot,(int)$step['snapshot_at']);
                 if($candidate['state']!=='candidate'||self::hash($candidate)!==$step['candidate_sha256']
                     ||hash('sha256',$step['candidate_bytes'])!==$step['candidate_sha256'])return $this->roadmapHold($q,'saved_candidate_changed',true);
-                $wire=DevelopmentRoadmapReview::prepare($this->roadmapPayload($q,$p,$step,$snapshot,$candidate));$attempt=bin2hex(random_bytes(32));
+                try{$wire=DevelopmentRoadmapReview::prepare($this->roadmapPayload($q,$p,$step,$snapshot,$candidate));}
+                catch(DomainException|InvalidArgumentException|JsonException $error){return $this->roadmapHold($q,'review_request_budget_before_send',false);}
+                if(!$this->roadmapReviewFits($q,$p,$step,$wire))return $this->roadmapHold($q,'full_readback_budget_before_send',false);
+                $attempt=bin2hex(random_bytes(32));
                 $this->roadmapBlob('INSERT INTO development_work_roadmap_reviews(attempt_id,queue_id,task_id,cron_id,cron_slot,started_at,state,request_sha256,request_bytes) VALUES(?,?,?,?,?,?,?,?,?)',
                     [$attempt,$id,$step['task_id'],$origin['cron_id'],$slot,$now,'unknown',hash('sha256',$wire),$wire],[8]);
                 $this->execute('UPDATE development_work_roadmap_steps SET state=? WHERE queue_id=? AND task_id=?',['reviewing',$id,$step['task_id']]);
@@ -384,8 +405,15 @@ trait DevelopmentRoadmapPhase
             if(!is_string($raw))$raw=null;if(!is_string($actual))$actual=null;
             $complete=($t['wire_complete']??null)===true&&($raw===null||strlen($raw)<=16384)&&($actual===null||strlen($actual)<=32768);
             if($raw!==null)$raw=substr($raw,0,16384);if($actual!==null)$actual=substr($actual,0,32768);
+            $error=$value['report']['_error']??null;
+            $safe=['http_status'=>is_int($t['http_status']??null)&&$t['http_status']>=0&&$t['http_status']<=599?$t['http_status']:null,
+                'wire_complete'=>($t['wire_complete']??null)===true,'capture_complete'=>$complete,
+                'response_capture'=>in_array($t['response_capture']??null,['complete','incomplete_transport','prefix_truncated_at_budget'],true)?$t['response_capture']:null,
+                'capture_semantics'=>$complete?'original_complete':'bounded_prefix_or_unavailable',
+                'error_category'=>in_array($error,['provider_timeout','provider_unavailable','provider_not_configured','provider_metadata_unavailable',
+                    'provider_response_invalid','provider_response_too_large','transport_exception'],true)?$error:($error===null?null:'unclassified_provider_error')];
             $this->roadmapBlob('UPDATE development_work_roadmap_reviews SET response_sha256=?,response_bytes=?,actual_request_bytes=?,metadata_json=? WHERE attempt_id=?',
-                [$raw===null?null:hash('sha256',$raw),$raw,$actual,self::canonical(['capture_complete'=>$complete,'capture_semantics'=>$complete?'original_complete':'bounded_prefix_or_unavailable']),$review['attempt_id']],[1,2]);
+                [$raw===null?null:hash('sha256',$raw),$raw,$actual,self::canonical($safe),$review['attempt_id']],[1,2]);
             if($step['state']!=='reviewing'||$p['state']!=='reviewing')return $this->roadmapHold($q,'original_review_state_changed',true);
             $this->pdo->exec('SAVEPOINT development_roadmap_credit');
             try{
@@ -394,11 +422,19 @@ trait DevelopmentRoadmapPhase
                 if(self::hash($candidate)!==$step['candidate_sha256']||$this->current($q)['current_run_id']!==$step['producer_run_id']
                     ||$review['request_bytes']!==$job['wire']||$review['cron_id']===$step['producer_cron_id']
                     ||(int)$review['cron_slot']<=intdiv((int)$step['producer_at'],60))throw new DomainException('candidate');
-                $v=DevelopmentRoadmapReview::verify($review['request_bytes'],$value,$candidate);
+                $v=DevelopmentRoadmapReview::verify($review['request_bytes'],$value,$candidate,false);
                 if($this->one('SELECT attempt_id FROM development_work_roadmap_reviews WHERE response_id=?',[$v['response_id']]))throw new DomainException('duplicate_response');
                 $this->roadmapBlob('UPDATE development_work_roadmap_reviews SET state=?,response_id=?,report_sha256=?,report_bytes=?,metadata_json=? WHERE attempt_id=?',
-                    ['succeeded',$v['response_id'],$v['report_sha256'],self::canonical($v['report']),self::canonical($v['metadata']),$review['attempt_id']],[3]);
+                    [$v['approved']?'succeeded':'rejected',$v['response_id'],$v['report_sha256'],self::canonical($v['report']),self::canonical($safe+$v['metadata']),$review['attempt_id']],[3]);
                 $readback=$this->roadmapReadback($step,$p,$v);
+                if(!$v['approved']){
+                    $this->execute('UPDATE development_work_roadmap_steps SET state=? WHERE queue_id=? AND task_id=?',['blocked',$id,$step['task_id']]);
+                    $this->roadmapFinish($q,['run_id'=>$step['producer_run_id'],'outcome'=>'terminal_blocked',
+                        'result_sha256'=>$step['candidate_sha256'],'readback_sha256'=>$readback,'acceptance_sha256'=>null,
+                        'reviewer_run_id'=>null,'owned_claims_released'=>true],$lane);
+                    $this->execute('UPDATE development_work_roadmap_phases SET state=?,last_reason=? WHERE queue_id=?',['blocked','independent_review_rejected',$id]);
+                    $this->pdo->exec('RELEASE SAVEPOINT development_roadmap_credit');return $this->roadmapOut('blocked','independent_review_rejected',1);
+                }
                 $receipt=['run_id'=>$step['producer_run_id'],'outcome'=>'accepted_readback','result_sha256'=>$step['candidate_sha256'],
                     'readback_sha256'=>$readback,'acceptance_sha256'=>self::hash([$p['manifest_sha256'],$step['task_id'],$readback]),
                     'reviewer_run_id'=>$v['response_id'],'owned_claims_released'=>true];

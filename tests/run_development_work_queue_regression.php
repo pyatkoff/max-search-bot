@@ -1013,4 +1013,5 @@ devRoadmapAllTargetsChecks();
 devRoadmapCanonicalReadChecks();
 devRoadmapPhaseChecks();
 devRoadmapFailureChecks();
+devRoadmapReviewOutcomeChecks();
 echo 'DEVELOPMENT WORK QUEUE: '.$checks." PASS\n";

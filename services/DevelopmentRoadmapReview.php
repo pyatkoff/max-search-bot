@@ -55,7 +55,7 @@ final class DevelopmentRoadmapReview
         catch(Throwable $error){$report=['_error'=>'transport_exception'];}
         return ['report'=>$report,'transport'=>$capture];
     }
-    public static function verify(string $wire,array $value,array $candidate): array
+    public static function verify(string $wire,array $value,array $candidate,bool $requireApproval=true): array
     {
         $t=$value['transport']??null;
         self::need(is_array($t)&&($t['wire_request_bytes']??null)===$wire&&($t['wire_complete']??null)===true
@@ -75,16 +75,18 @@ final class DevelopmentRoadmapReview
         }
         self::need(count($texts)===1&&strlen($texts[0])<=self::MAX_REPORT,'single_report');
         $report=json_decode($texts[0],true,16,JSON_THROW_ON_ERROR);
-        self::need(is_array($report)&&count($report)===3&&($report['approved']??null)===true
+        self::need(is_array($report)&&count($report)===3&&is_bool($report['approved']??null)
             &&($report['candidate_sha256']??null)===DevelopmentRoadmapSavedResult::hash($candidate)
             &&is_array($report['checks']??null)&&array_is_list($report['checks'])&&count($report['checks'])===6,'approved_report');
         $seen=[];foreach($report['checks']as$check){
             self::need(is_array($check)&&count($check)===3&&in_array($check['id']??null,self::CHECKS,true)
-                &&!isset($seen[$check['id']])&&($check['approved']??null)===true&&is_string($check['note']??null)
+                &&!isset($seen[$check['id']])&&is_bool($check['approved']??null)&&is_string($check['note']??null)
                 &&strlen($check['note'])>=1&&strlen($check['note'])<=640,'checks');$seen[$check['id']]=true;
         }
         self::need(is_array($value['report']??null)&&DevelopmentRoadmapSavedResult::hash($report)===DevelopmentRoadmapSavedResult::hash($value['report']),'raw_report');
-        return ['response_id'=>$raw['id'],'response_sha256'=>hash('sha256',$bytes),'report'=>$report,
+        $approved=$report['approved']===true&&!in_array(false,array_column($report['checks'],'approved'),true);
+        if($requireApproval)self::need($approved,'review_rejected');
+        return ['approved'=>$approved,'response_id'=>$raw['id'],'response_sha256'=>hash('sha256',$bytes),'report'=>$report,
             'report_sha256'=>DevelopmentRoadmapSavedResult::hash($report),'metadata'=>['model'=>$raw['model'],'status'=>'completed',
                 'http_status'=>$t['http_status'],'usage'=>array_intersect_key($usage,array_flip(['input_tokens','output_tokens','total_tokens']))]];
     }

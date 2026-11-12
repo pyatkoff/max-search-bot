@@ -45,9 +45,7 @@ final class DevelopmentWorkQueue
         $id=self::id($args['queue_id']??null);$expected=self::sha($args['expected_plan_sha256']??null);
         $plan=self::sha($args['plan_sha256']??null);$tasks=self::specs($args['tasks']??null);
         return $this->transaction(function() use($id,$expected,$plan,$tasks,$admin,$connection): array {
-            $lane=$this->lane();$phase=$this->roadmapOwnedStatus($id,$admin,$connection);if($phase!==null)return $phase;
-            $archive=$this->roadmapArchiveCandidate($id,$admin,$connection);if($archive!==null)return $archive;
-            $q=$this->serverAdmissionOwned($id,$admin,$connection);
+            $lane=$this->lane();$q=$this->serverAdmissionOwned($id,$admin,$connection);
             $tasksHash=self::hash($tasks);
             if ($q['plan_sha256']===$plan) {
                 $audit=$this->appendMetadata($q);
@@ -73,7 +71,9 @@ final class DevelopmentWorkQueue
     {
         $id=self::id($queueId);
         return $this->transaction(function() use($id,$admin,$connection): array {
-            $this->lane();$q=$this->serverAdmissionOwned($id,$admin,$connection);$out=$this->serverExtendStatus($q,$this->project($q),$connection);
+            $this->lane();$phase=$this->roadmapOwnedStatus($id,$admin,$connection);if($phase!==null)return $phase;
+            $archive=$this->roadmapArchiveCandidate($id,$admin,$connection);if($archive!==null)return $archive;
+            $q=$this->serverAdmissionOwned($id,$admin,$connection);$out=$this->serverExtendStatus($q,$this->project($q),$connection);
             $this->serverPairAuthority($q,$connection);return $out;
         });
     }
