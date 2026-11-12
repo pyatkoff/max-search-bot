@@ -5,6 +5,10 @@
     {
       "file": "manifest.json",
       "git_blob_sha": "01718ecadda4521a541f07eb5dbacb7b421f7e13"
+    },
+    {
+      "file": "manifest-0001.json",
+      "git_blob_sha": "88ce24f408173b64b1cf0aad148c28694ca7c77c"
     }
   ]
 }
