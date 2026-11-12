@@ -8,6 +8,43 @@ Primary language with the user: Russian.
 
 Read this file first. Then read `AGENTS.md` and only the durable documents relevant to the selected slice.
 
+## AppleService39 publication control recovery — 2026-11-12
+
+PR1499 is installed as c5c0276d94337eee130467716c9794176b2ab25a.
+Original Deploy43184020384/attempt1, all mandatory original gates and closer
+43186206784 succeeded. Publisher6650664504 automatically became
+PR1499: установлено, выпуск свободен at08:51:57Z. The original terminal digest
+7d132955632767a2fb93aa8fd3f36190cc5f32c1db9db3ce5d379b17008d32b7 matches
+the original closer step. Do not repeat that installation or retain its slot.
+
+The original business publisher43186776772/attempt1 was cancelled at its
+eight-minute regression deadline. Native job131075785432 completed cancelled;
+publish131079739970 is explicitly skipped with zero steps. No deployment
+credential, SSH publication or provider operation ran. The public dynamic feed
+still exposes exactly30 verified existing cards, including battery/front glass.
+The39 new posts and static67-offer host update remain pending.
+
+This bounded correction increases that existing regression budget to12 minutes
+and reuses a real synthetic pre-menu snapshot for the lost-menu-ACK case.
+No fixture receipt is invented or rewound and every failure/idempotency case
+remains. The same existing canonical resolver admits one genuine original
+attempt1 fast-forward of the same fixed ops branch **from exact c5c0276...** to
+the newly accepted current main. Before credentials it authenticates the exact
+cancelled original run, both original jobs, and the skipped publisher's zero
+steps, plus source ancestry/current main/actual accepted installation.
+Executed, pending, changed, unavailable or uncertain predecessor evidence stops.
+An arbitrary/later branch update, forced push or workflow attempt2 is refused.
+No branch deletion/recreation, installer replay, new workflow/queue/credential or
+provider retry is introduced. Store attempts, source data and152 parent rows
+retain their existing guards.
+
+Use ordinary exact-head CI, fresh canonical admission, the same SOURCE6722718562
+and publisher6650664504, checked merge/installation and automatic technical
+closure. Only then fast-forward ops/appleservice39-coverage-20261112 once using
+expected old head c5c0276d94337eee130467716c9794176b2ab25a. The business operation
+does not retain the completed MAIN/DEPLOY publisher. Preserve original failed
+run history. Manager/conversions and all Mac access remain outside scope.
+
 ## AppleService39 advertising coverage — 2026-11-12
 
 Current owner scope is **posts → feed → MAX miniapp → exact native post**.

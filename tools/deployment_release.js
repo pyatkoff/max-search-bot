@@ -273,11 +273,11 @@ function validateRelease(record, success = true) {
   return {record,installation,release:r};
 }
 
-function runIdentity(run,{id,attempt,head,workflow,event,completed=true,branch='main'}) {
+function runIdentity(run,{id,attempt,head,workflow,event,completed=true,branch='main',conclusion='success'}) {
   requireValue(object(run)&&String(run.id)===String(id)&&run.run_attempt===attempt&&run.path===workflow
     &&run.head_sha===head&&run.head_branch===branch&&run.head_repository?.full_name===REPOSITORY
     &&(!event||run.event===event)&&stamp(run.created_at),'untrusted_workflow_run');
-  if(completed)requireValue(run.status==='completed'&&run.conclusion==='success','producer_not_successful');
+  if(completed)requireValue(run.status==='completed'&&run.conclusion===conclusion,'producer_not_successful');
   else requireValue(['queued','in_progress','waiting','pending','requested','completed'].includes(run.status)
     &&(run.status==='completed'?run.conclusion==='success':run.conclusion===null),'producer_not_active');
   return run;
@@ -919,18 +919,38 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
 async function resolvePublicationOperation({env,event,api}) {
   const branch='ops/appleservice39-coverage-20261112',ref='refs/heads/'+branch;
   const workflow=PREFIX+'publish-appleservice39-pilot.yml';
+  const predecessor='c5c0276d94337eee130467716c9794176b2ab25a',predecessorRun=43186776772;
+  const initial=event?.before==='0'.repeat(40)&&event?.created===true;
+  const recovery=event?.before===predecessor&&event?.created===false&&event?.after!==predecessor;
   requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
     &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+workflow+'@'+ref
     &&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_JOB==='publish'
     &&env.GITHUB_RUN_ATTEMPT==='1'&&sha(env.GITHUB_SHA)&&positive(env.GITHUB_RUN_ID)
     &&event?.repository?.full_name===REPOSITORY&&event.ref===ref&&event.after===env.GITHUB_SHA
-    &&event.before==='0'.repeat(40)&&event.created===true&&event.deleted===false&&event.forced===false,
+    &&(initial||recovery)&&event.deleted===false&&event.forced===false,
     'untrusted_publication_operation');
   const c={sha:env.GITHUB_SHA,id:String(env.GITHUB_RUN_ID),attempt:1,event:'push',workflow,job:'publish'};
   requireValue((await api('GET',API_ROOT+'/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
   const run=await api('GET',API_ROOT+'/actions/runs/'+c.id);
   runIdentity(run,{id:c.id,attempt:1,head:c.sha,workflow,event:'push',completed:false,branch});
   requireValue(run.status==='in_progress','workflow_not_active');
+  if(recovery){
+    // One native fast-forward from the exact cancelled source, never a rerun or
+    // a new publication identity after a private/provider operation could start.
+    const old=await api('GET',API_ROOT+'/actions/runs/'+predecessorRun);
+    runIdentity(old,{id:predecessorRun,attempt:1,head:predecessor,workflow,event:'push',branch,conclusion:'cancelled'});
+    const jobs=boundedList(await api('GET',API_ROOT+'/actions/runs/'+predecessorRun+'/attempts/1/jobs?per_page=100'),
+      'jobs','publication_predecessor_unknown');
+    const regression=jobs.filter(j=>j.name==='AppleService39 pilot publication regression');
+    const publication=jobs.filter(j=>j.name==='publish');
+    requireValue(jobs.length===2&&regression.length===1&&publication.length===1
+      &&jobs.every(j=>j.run_id===predecessorRun&&j.run_attempt===1&&j.head_sha===predecessor&&j.status==='completed')
+      &&regression[0].conclusion==='cancelled'&&publication[0].conclusion==='skipped'
+      &&Array.isArray(publication[0].steps)&&publication[0].steps.length===0,
+      'publication_predecessor_has_writes');
+    const relation=await api('GET',API_ROOT+'/compare/'+predecessor+'...'+c.sha+'?per_page=1');
+    requireValue(relation?.status==='ahead'&&relation.merge_base_commit?.sha===predecessor,'publication_source_not_descendant');
+  }
   const location=await readRecord(api);
   const result=await resolveCurrent(api,c,location);
   requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
