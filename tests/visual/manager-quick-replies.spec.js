@@ -408,11 +408,11 @@ for(const width of [390,430,768,1440])test.describe('Quick reply full cycle '+wi
  test.use({viewport:{width,height:900}});
  test('library filtering, CRUD and explicit insertion preserve draft and attachment',async({page,browserName})=>{
   // Keep the independently tested 15s Inbox poll outside this CRUD scenario.
-  // Advance only the two intentional search debounces below.
+  // Advance the local inspection's visual frame and the two search debounces.
   await page.clock.install({time:new Date('2026-11-11T12:00:00Z')});await page.clock.pauseAt(new Date('2026-11-11T12:00:01Z'));
   const s=await setup(page);await openLead(page);await page.locator('#replyText').fill('Существующий черновик ответа');await page.locator('#replyText').blur();await capture(page,browserName,width,'after-shell');
   await page.locator('#replyFile').setInputFiles({name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from('Isolated file')});
-  const attachment=await settledAttachmentText(page);
+  const attachment=await settledAttachmentText(page,{advanceClock:true});
   await openLibrary(page);await expect(page.locator('#quickRepliesDialog')).toBeVisible();
   await expect(page.locator('[data-qr-select]')).toHaveCount(3);await bounded(page);await capture(page,browserName,width,'library');
   await page.locator('[data-qr-scope="shared"]').click();await expect(page.locator('[data-qr-select]')).toHaveCount(1);

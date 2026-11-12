@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
+require_once __DIR__ . '/ProjectFunnelContextMigrationRepair.php';
 
 class MigrationRunner
 {
@@ -56,6 +57,9 @@ class MigrationRunner
         // already present and no versions have ever been recorded, register the
         // current migration set as the baseline instead of replaying old DDL.
         if (!$applied && $files && $this->tableExists('conversations')) {
+            if (is_file($this->dir . '/' . ProjectFunnelContextMigrationRepair::REPAIR)) {
+                throw new RuntimeException('Funnel repair requires accepted migration history before legacy baselining');
+            }
             $q = $this->pdo->prepare('INSERT INTO schema_migrations (version,checksum,baseline,execution_ms) VALUES (?,?,1,0)');
             foreach ($files as $file) {
                 $version = basename($file);
@@ -72,6 +76,19 @@ class MigrationRunner
                 if (!hash_equals((string)$applied[$version]['checksum'], $checksum)) {
                     throw new RuntimeException('Applied migration was modified: ' . $version);
                 }
+                continue;
+            }
+
+            // The immutable 104 repeats the value column already owned by 086.
+            // Execute the pinned forward repair and record an explicit proven
+            // baseline for 104; never replay its faulty SQL or ignore 1060.
+            if (($version === ProjectFunnelContextMigrationRepair::ORIGINAL
+                    || $version === ProjectFunnelContextMigrationRepair::REPAIR)
+                && is_file($this->dir . '/' . ProjectFunnelContextMigrationRepair::REPAIR)) {
+                $repair = (new ProjectFunnelContextMigrationRepair($this->pdo, $this->dir))->apply();
+                $baselined = array_merge($baselined, $repair['baselined']);
+                $executed = array_merge($executed, $repair['executed']);
+                $applied = $this->applied();
                 continue;
             }
 
