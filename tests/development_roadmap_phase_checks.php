@@ -66,16 +66,38 @@ function devRoadmapSender(?callable $before=null,?callable $mutate=null): array
     };
     return [$sender,$log];
 }
+
+function devRoadmapRpc(PDO $pdo,DevelopmentWorkQueue $q,object $clock,string $fresh,string $name,array $args): array
+{
+    require_once dirname(__DIR__).'/services/ManagerPreparationMcpService.php';
+    $service=new ManagerPreparationMcpService($pdo,null,null,static fn():int=>$clock->at,null,null,null,null,null,null,$q);
+    return $service->handle(['jsonrpc'=>'2.0','id'=>'roadmap-synthetic','method'=>'tools/call',
+        'params'=>['name'=>$name,'arguments'=>$args]],1,$fresh,
+        [ManagerPreparationOAuth::DEVELOPMENT_SCOPE,ManagerPreparationOAuth::FORECAST_SCOPE]);
+}
+
 function devRoadmapStatus(DevelopmentWorkQueue $q,string $fresh): array
 {return $q->status(1,$fresh,DevelopmentWorkServerContract::QUEUE);}
 function devRoadmapPhaseChecks(): void
 {
     [$pdo,$q,$clock,$fresh,$args,$old,$oldLog]=devRoadmapFixture();[$sender,$log]=devRoadmapSender(
         static function()use($pdo):void{devAssert(!$pdo->inTransaction(),'roadmap_no_transaction_spans_real_transport');});
-    $armed=$q->roadmap_admit(1,$fresh,$args);
+    $beforeRpc=devRoadmapRpc($pdo,$q,$clock,$fresh,'development_work_status',['queue_id'=>$args['queue_id']]);
+    devAssert(($beforeRpc['result']['structuredContent']['execution_kind']??null)==='roadmap_archive_preparation',
+        'roadmap_real_generic_MCP_status_reads_fresh_same_admin_archive_before_admission');
+    $oldAppend=devRoadmapRpc($pdo,$q,$clock,$fresh,'development_work_append',[
+        'queue_id'=>$args['queue_id'],'expected_plan_sha256'=>$args['expected_plan_sha256'],'plan_sha256'=>str_repeat('f',64),'tasks'=>[devSpec('UNSUPPORTED-APPEND')]]);
+    devAssert(isset($oldAppend['error'])||($oldAppend['result']['isError']??false)===true,
+        'roadmap_ordinary_append_is_denied_instead_of_fake_success_projection');
+    $admitRpc=devRoadmapRpc($pdo,$q,$clock,$fresh,'development_work_roadmap_admit',$args);
+    $armed=$admitRpc['result']['structuredContent']??[];
+    devAssert(($armed['execution_kind']??null)==='server_saved_finance','roadmap_new_admit_is_supported_by_actual_MCP_wrapper');
     devAssert($armed['server_roadmap']['review_calls']===0&&count($armed['server_roadmap']['steps'])===1
         &&$armed['roadmap_admission_status']==='admitted_no_send'&&count($log->sent)===0,
         'roadmap_admission_creates_only_first_real_task_without_inline_send');
+    $afterRpc=devRoadmapRpc($pdo,$q,$clock,$fresh,'development_work_status',['queue_id'=>$args['queue_id']]);
+    devAssert(($afterRpc['result']['structuredContent']['execution_kind']??null)==='server_saved_finance',
+        'roadmap_real_generic_MCP_status_reads_fresh_current_phase_after_admission');
     $again=$q->roadmap_admit(1,$fresh,$args);
     devAssert($again['roadmap_admission_status']==='already_recorded_do_not_replay'
         &&$again['task_count']===$armed['task_count'],'roadmap_exact_admission_repeat_does_not_reset_budget_or_task');

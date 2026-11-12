@@ -1,4 +1,4 @@
--- Separate finite saved-result phase; no old control, native grant or business row changes.
+-- Separate finite saved-result phase. No old control, native grant or business row changes.
 CREATE TABLE IF NOT EXISTS development_work_roadmap_phases (
  queue_id VARCHAR(128) NOT NULL PRIMARY KEY, execution_connection_id CHAR(32) NOT NULL,
  request_sha256 CHAR(64) NOT NULL, archive_sha256 CHAR(64) NOT NULL,
