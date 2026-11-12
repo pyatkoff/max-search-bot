@@ -2535,6 +2535,17 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check):void
         &&$r['provider_requests_in_reader']===0&&strlen($r['membership_sha256'])===64
         &&$r['last_saved_terminal_polls'][0]['basis']==='latest_saved_poll_not_first_terminal_clock'
         &&$r['linkage_failure_first_terminal_clock']==='not_persisted');
+    $p->prepare('UPDATE max_channel_conversion_outbox SET event_unix=? WHERE id=80')->execute([$profileCut+101]);
+    $laterChanged=$read()['processing_frontier'];
+    $check('malformed chronology on a later profile cannot invalidate the earlier observed roster',
+        $laterChanged['available']&&$laterChanged['membership_sha256']===$r['membership_sha256']
+        &&$laterChanged['observed_events']===$r['observed_events']);
+    $p->prepare('UPDATE max_channel_conversion_outbox SET event_unix=? WHERE id=80')->execute([$profileCut]);
+    $p->prepare('UPDATE modeled_conversion_profile_versions SET observed_at_unix=? WHERE id=22')->execute([$apiCut-181]);
+    $badProfileClock=$read()['processing_frontier'];
+    $check('invalid chronology inside the profile cut still omits the entire roster',
+        !$badProfileClock['available']&&$badProfileClock['reason']==='invalid_profile_clock');
+    $p->prepare('UPDATE modeled_conversion_profile_versions SET observed_at_unix=? WHERE id=22')->execute([$apiCut-120]);
     $p->exec("UPDATE max_channel_conversion_outbox SET state='accepted',upload_status='UPLOADED' WHERE id=17");
     $changed=$read()['processing_frontier'];
     $check('status changes do not silently replace the frozen membership or initial receipt membership',

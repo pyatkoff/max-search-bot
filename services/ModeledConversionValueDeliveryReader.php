@@ -22,7 +22,7 @@ final class ModeledConversionValueDeliveryReader
     private const FRONTIER_API_CUTOFF=1794437904;
     private const FRONTIER_LIMIT=64;
     private const FRONTIER_PACKET_BYTES=8192;
-    private string $frontierUnavailable='unsupported_sql';
+    private string $frontierUnavailable='projection_unavailable';
     private const STATES=['pending','ready','uploading','accepted','processed','unknown','failed','expired','unmatched'];
     private const UPLOADS=['PREPARED','UPLOADED','EXPORTED','MATCHED','PROCESSED','LINKAGE_FAILURE'];
     private const ERRORS=['identity_not_found','identity_ambiguous','metrika_visit_window','metrika_visit_unverified','wire_key_collision','scope_unavailable','api_rejected','api_row_rejected',
@@ -331,21 +331,13 @@ final class ModeledConversionValueDeliveryReader
 
     /** Original accepted repair cohort, saved ledger metadata only; never a provider poll. */
 
-    /** Same strict joined source and one query; an unsupported engine keeps the old scalar query. */
+    /** Same strict joined source and one query; no provider or capability queries. */
     private function frontierQuery(array $columns,string $from,bool $mysql,int $now):?string
     {
         $this->frontierUnavailable='checkpoint_not_reached';
         if($now<self::FRONTIER_PROFILE_CUTOFF)return null;
         $this->frontierUnavailable='budget_headroom';
         if($this->budget->remainingBytes()<32768)return null;
-        $this->frontierUnavailable='unsupported_sql';
-        try{
-            $driver=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
-            $version=(string)$this->pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
-            $supported=$mysql?stripos($version,'mariadb')===false&&preg_match('/\A([0-9]+)\./',$version,$m)===1&&(int)$m[1]>=8:
-                $driver==='sqlite'&&version_compare($version,'3.30.0','>=');
-            if(!$supported)return null;
-        }catch(Throwable $ignored){return null;}
         $aliases=['p.id'=>'j.pid','p.platform'=>'j.pplatform','p.observed_at_unix'=>'j.pobserved',
             'o.id'=>'j.oid','o.platform'=>'j.oplatform','o.value_rub'=>'j.money','o.upload_id'=>'j.uploadid','o.state'=>'j.state',
             'o.upload_status'=>'j.uploadstatus','o.value_api_accepted_at_unix'=>'j.apiat',
@@ -374,7 +366,7 @@ final class ModeledConversionValueDeliveryReader
         $aggregate=array_map(static fn(string $c):string=>strtr($c,$aliases),$columns);
         $aggregate[]='COALESCE(SUM(j.cut_member),0) AS frontier_n';
         $aggregate[]='COALESCE(SUM(CASE WHEN j.cut_member=1 THEN j.money ELSE 0 END),0) AS frontier_rub';
-        $aggregate[]='COALESCE(SUM(CASE WHEN j.oid IS NOT NULL AND (j.pobserved<946684800 OR j.pobserved IS NULL OR j.pobserved>'.$now.' OR j.eventat>j.pobserved) THEN 1 ELSE 0 END),0) AS frontier_clock_bad';
+        $aggregate[]='COALESCE(SUM(CASE WHEN j.cut_member=1 AND (j.pobserved<946684800 OR j.pobserved IS NULL OR j.pobserved>'.$now.' OR j.eventat>j.pobserved) THEN 1 ELSE 0 END),0) AS frontier_clock_bad';
         $aggregate[]=$packet.' AS frontier_raw';
         $names=[];foreach($columns as$column){
             if(preg_match('/ AS ([a-z0-9_]+)\z/',$column,$match)!==1)return null;
