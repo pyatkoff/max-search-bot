@@ -251,9 +251,14 @@ final class ModeledConversionForecastStatusReader
             foreach(['retained_known_identities','retained_tracker_candidate','retained_identity']as$key)
                 if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments'][$key]))
                     $out['value_delivery']['repair_assessments'][$key]=['available'=>false,'reason'=>'response_budget','financial_permission'=>false];
-        if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments']['retained_relation_outcomes']))
-            $out['value_delivery']['repair_assessments']['retained_relation_outcomes']=[
+        if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments']['retained_relation_outcomes'])){
+            // Preserve the two saved phase outcomes before omitting their optional detail.
+            // This is formatting only: the owner reader already authenticated both bindings and caches.
+            $compact=$this->compactRetainedRelationOutcomes($out['value_delivery']['repair_assessments']['retained_relation_outcomes']);
+            if($compact!==null)$out['value_delivery']['repair_assessments']['retained_relation_outcomes']=$compact;
+            if($bytes($out)>28000)$out['value_delivery']['repair_assessments']['retained_relation_outcomes']=[
                 'available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0,'financial_permission'=>false,'current_eligibility'=>'not_assessed'];
+        }
         if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments']['processing_frontier']))
             $out['value_delivery']['repair_assessments']['processing_frontier']=['available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0];
         // Preserve the original three-case proof when omitting the newer forward journal is sufficient.
@@ -277,6 +282,39 @@ final class ModeledConversionForecastStatusReader
                 'available'=>false,'reason'=>'original_current_binding_unavailable','financial_permission'=>false,
                 'current_eligibility'=>'not_assessed','provider_requests_in_reader'=>0];
         return $out;
+    }
+
+    /**
+     * Compact only the authenticated historical two-case projection, never private capsules.
+     * Admission-mask bits: source=1, recorded-day relation=2, visit base=4, enrichment=8.
+     * A set bit records durable intent, not proof of provider execution; unknown metadata stays null.
+     * Clocks, hashes and other detail remain available only in the unchanged full projection.
+     */
+    private function compactRetainedRelationOutcomes(array $value):?array
+    {
+        if(($value['available']??null)!==true||($value['financial_permission']??null)!==false
+            ||($value['current_eligibility']??null)!=='not_assessed'||($value['provider_requests_in_reader']??null)!==0
+            ||!is_array($value['rows']??null)||count($value['rows'])!==2)return null;
+        $rows=[];$seen=[];
+        foreach($value['rows']as$row){
+            if(!is_array($row)||!in_array($row['case_index']??null,[1,2],true)||isset($seen[$row['case_index']])
+                ||($row['historical']??null)!==true||($row['financial_permission']??null)!==false
+                ||($row['current_eligibility']??null)!=='not_assessed'
+                ||!is_string($row['status']??null)||preg_match('/\A[a-z][a-z0-9_]{0,63}\z/D',$row['status'])!==1)return null;
+            $seen[$row['case_index']]=true;
+            $reason=$row['reason']??$row['relation_reason']??null;
+            if($reason!==null&&(!is_string($reason)||preg_match('/\A[a-z][a-z0-9_]{0,63}\z/D',$reason)!==1))return null;
+            $mask=0;
+            foreach(['source'=>1,'recorded_day_relation'=>2,'visit_base'=>4,'visit_sources'=>8]as$phase=>$bit){
+                $flag=$row['phases_admitted'][$phase]??null;
+                if(!is_bool($flag)){$mask=null;break;}
+                if($flag)$mask|=$bit;
+            }
+            $rows[]=[$row['case_index'],$row['status'],$reason,$mask];
+        }
+        return ['available'=>true,'projection'=>'compact_v1','historical'=>true,
+            'columns'=>['case_index','status','reason','phase_admission_mask'],'rows'=>$rows,
+            'provider_requests_in_reader'=>0,'financial_permission'=>false,'current_eligibility'=>'not_assessed'];
     }
 
     /** Resource omission is explicit; access denial and the shared deadline still fail closed. */
