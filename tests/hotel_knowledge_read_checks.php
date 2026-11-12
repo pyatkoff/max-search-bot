@@ -1,9 +1,11 @@
 <?php
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/ManagerHotelKnowledgeReadService.php';
+require_once __DIR__.'/hotel_catalogue_checks.php';
 
 function hotelKnowledgeReadChecks(): void
 {
+    hotelCatalogueChecks();
     [$pdo,$publication] = draftHotelFixture();
     $source = $publication['offers'][0]['import_source'];
     $offer = array_replace($source['fields'], ['id'=>str_repeat('4',32),'selected'=>true,
