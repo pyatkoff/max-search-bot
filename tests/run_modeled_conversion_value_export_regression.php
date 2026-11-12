@@ -209,20 +209,20 @@ function modeledValueOldCurrentSourceAssertions(PDO $p,callable $check):void
         return [$wire,$lookup,$p->query('SELECT * FROM max_channel_conversion_outbox LIMIT 1')->fetch(PDO::FETCH_ASSOC)];
     };
     foreach([
-        ['direct9','yandex_direct',9*86400,false,true,true],
-        ['other2','other_or_unknown',2*86400,false,true,true],
-        ['direct11','yandex_direct',10*86400+1,false,true,false],
-        ['other4','other_or_unknown',3*86400+1,false,true,false],
-        ['missing','other_or_unknown',60,true,true,false],
-        ['unavailable','other_or_unknown',60,false,false,false],
-        ['postevent','other_or_unknown',-1,false,true,false]
-    ]as[$case,$source,$age,$empty,$available,$allow]){
+        ['direct9','yandex_direct',9*86400,false,true,true,2],
+        ['other2','other_or_unknown',2*86400,false,true,true,1],
+        ['direct11','yandex_direct',10*86400+1,false,true,false,1],
+        ['other4','other_or_unknown',3*86400+1,false,true,false,2],
+        ['missing','other_or_unknown',60,true,true,false,1],
+        ['unavailable','other_or_unknown',60,false,false,false,1],
+        ['postevent','other_or_unknown',-1,false,true,false,1]
+    ]as[$case,$source,$age,$empty,$available,$allow,$visitGets]){
         [$wire,$lookup,$before]=$setup();$wire->visitSource=$source;$wire->visitAt=$now-$age;
         $wire->visitEmpty=$empty;$wire->visitAvailable=$available;
         ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);
         $r=$p->query('SELECT * FROM max_channel_conversion_outbox LIMIT 1')->fetch(PDO::FETCH_ASSOC);
         $check('an old current canonical identity uses only the normal source-specific prior-visit decision '.$case,
-            $lookup->calls===1&&$wire->visitReads===1&&$wire->posts===($allow?1:0)
+            $lookup->calls===1&&$wire->visitReads===$visitGets&&$wire->posts===($allow?1:0)
             &&(int)$r['event_unix']===(int)$before['event_unix']&&$r['value_rub']===$before['value_rub']
             &&(int)$r['tracker_observed_unix']===$lookup->observedAt
             &&($allow?$r['state']==='accepted'&&(int)$r['attempts']===1:
