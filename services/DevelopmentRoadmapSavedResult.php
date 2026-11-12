@@ -32,8 +32,7 @@ final class DevelopmentRoadmapSavedResult
             if($mysql){$pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');$pdo->exec('SET TRANSACTION READ ONLY');}
             $pdo->beginTransaction();$owned=true;
             $reader=new ModeledConversionValueDeliveryReader($pdo,$auth,new ModeledConversionStatusBudget());
-            $saved=$reader->read($now);
-            $repair=$saved['repair_assessments']??null;
+            $repair=$reader->repairAssessments($now);
             $pdo->rollBack();$owned=false;$auth();
             if(!is_array($repair)||($repair['available']??null)!==true)
                 return ['available'=>false,'reason'=>'canonical_saved_projection_unavailable','provider_requests'=>0];
@@ -49,10 +48,10 @@ final class DevelopmentRoadmapSavedResult
     public static function capsule(array $v): array
     {
         self::keys($v,['schema','namespace_sha256','membership_sha256','profile_cutoff_unix','events','value_rub',
-            'old_receipts','excluded_original_refs','not_before_unix','max_snapshot_age_seconds']);
+            'old_receipts','excluded_original_refs','api_observed_not_before_unix','verification_not_before_unix','max_snapshot_age_seconds']);
         self::need(($v['schema']??null)===self::VERSION,'capsule_schema');
         foreach(['namespace_sha256','membership_sha256']as$k)self::need(self::sha($v[$k]??null),'capsule_digest');
-        foreach(['profile_cutoff_unix','not_before_unix']as$k)self::need(self::instant($v[$k]??null),'capsule_clock');
+        foreach(['profile_cutoff_unix','api_observed_not_before_unix','verification_not_before_unix']as$k)self::need(self::instant($v[$k]??null),'capsule_clock');
         self::need(is_int($v['events'])&&$v['events']>=1&&$v['events']<=64,'capsule_row_bound');
         self::need(is_int($v['value_rub'])&&$v['value_rub']>0&&$v['value_rub']<=1600000,'capsule_value');
         self::need(is_int($v['max_snapshot_age_seconds'])&&$v['max_snapshot_age_seconds']>=1
@@ -89,7 +88,7 @@ final class DevelopmentRoadmapSavedResult
             self::keys($snapshot,['available','schema','captured_at','provider_requests','repair_assessments']);
             self::need(($snapshot['schema']??null)===self::VERSION&&($snapshot['provider_requests']??null)===0,'snapshot_kind');
             $at=$snapshot['captured_at']??null;
-            self::need(self::instant($at)&&$at>=$c['not_before_unix']&&$at<=$now
+            self::need(self::instant($at)&&$at>=$c['verification_not_before_unix']&&$at<=$now
                 &&$now-$at<=$c['max_snapshot_age_seconds'],'snapshot_freshness');
             $r=$snapshot['repair_assessments']??null;
             self::need(is_array($r)&&($r['available']??null)===true
@@ -132,31 +131,47 @@ final class DevelopmentRoadmapSavedResult
             $cHash=self::hash($c);$sHash=self::hash($snapshot);$new=[];
             if($kind==='saved_finance_new_receipts'){
                 self::need($parent===null&&$parentHash===null,'unexpected_parent');
+                $observed=[];$failed=false;$pending=false;
                 foreach($rows as$row)if($row[6]!==null&&!isset($old[$row[6]])&&!isset($excluded[$row[0]])
-                    &&$row[7]>=$c['not_before_unix']&&in_array(self::STATES[$row[3]],['accepted','processed'],true)
-                    &&in_array(self::UPLOADS[$row[5]],['UPLOADED','EXPORTED','MATCHED','PROCESSED'],true))$new[]=['event_ref'=>$row[0],'receipt_ref'=>$row[6],'value_rub'=>$row[2]];
-                if(!$new)return self::result('waiting_evidence','no_new_saved_receipt')+['capsule_sha256'=>$cHash,'snapshot_sha256'=>$sHash];
+                    &&$row[7]>=$c['api_observed_not_before_unix']){
+                    $observed[]=['event_ref'=>$row[0],'receipt_ref'=>$row[6],'value_rub'=>$row[2]];
+                    if(self::UPLOADS[$row[5]]==='LINKAGE_FAILURE'||in_array(self::STATES[$row[3]],['failed','unmatched'],true))
+                        $failed=true;
+                    if(!in_array(self::STATES[$row[3]],['accepted','processed'],true)
+                        ||!in_array(self::UPLOADS[$row[5]],['UPLOADED','EXPORTED','MATCHED','PROCESSED'],true))$pending=true;
+                }
+                if(!$observed)return self::result('waiting_evidence','no_new_saved_receipt')+['capsule_sha256'=>$cHash,'snapshot_sha256'=>$sHash];
+                if($failed)return self::result('blocked','new_saved_terminal_failure')
+                    +['capsule_sha256'=>$cHash,'snapshot_sha256'=>$sHash,'new_receipts'=>$observed];
+                if($pending)return self::result('waiting_evidence','new_saved_receipt_not_ready')
+                    +['capsule_sha256'=>$cHash,'snapshot_sha256'=>$sHash,'new_receipts'=>$observed];
+                $new=$observed;
             } else {
                 self::need(is_array($parent)&&self::sha($parentHash)&&self::hash($parent)===$parentHash,'exact_parent_hash');
                 self::need(($parent['state']??null)==='candidate'&&($parent['kind']??null)==='saved_finance_new_receipts'
                     &&($parent['capsule_sha256']??null)===$cHash&&($parent['automatic_acceptance_allowed']??null)===false
                     &&is_array($parent['new_receipts']??null)&&array_is_list($parent['new_receipts'])
                     &&count($parent['new_receipts'])>=1&&count($parent['new_receipts'])<=64,'parent_scope');
-                $seen=[];$seenReceipts=[];
+                $seen=[];$seenReceipts=[];$targetRows=[];
                 foreach($parent['new_receipts']as$target){
                     self::keys($target,['event_ref','receipt_ref','value_rub']);$ref=$target['event_ref']??null;$receipt=$target['receipt_ref']??null;
                     self::need(self::sha($ref)&&self::sha($receipt)&&!isset($seen[$ref])&&!isset($seenReceipts[$receipt])
                         &&!isset($excluded[$ref])&&!isset($old[$receipt]),'parent_target');
                     $seen[$ref]=true;$seenReceipts[$receipt]=true;$row=$rows[$ref]??null;
                     self::need(is_array($row)&&$row[6]===$receipt&&$row[2]===($target['value_rub']??null)
-                        &&$row[7]>=$c['not_before_unix'],'parent_target_changed');
-                    if(self::UPLOADS[$row[5]]==='LINKAGE_FAILURE')return self::result('blocked','new_saved_linkage_failure')
-                        +['capsule_sha256'=>$cHash,'snapshot_sha256'=>$sHash,'parent_result_sha256'=>$parentHash];
-                    if(self::STATES[$row[3]]!=='processed'||self::UPLOADS[$row[5]]!=='PROCESSED'||$row[8]===null)
-                        return self::result('waiting_evidence','new_saved_processing_pending')
-                            +['capsule_sha256'=>$cHash,'snapshot_sha256'=>$sHash,'parent_result_sha256'=>$parentHash];
-                    $new[]=$target;
+                        &&$row[7]>=$c['api_observed_not_before_unix'],'parent_target_changed');
+                    $targetRows[]=$row;$new[]=$target;
                 }
+                // Validate every binding before considering pending status or a terminal failure.
+                $failed=false;$pending=false;
+                foreach($targetRows as$row){
+                    if(self::UPLOADS[$row[5]]==='LINKAGE_FAILURE'||in_array(self::STATES[$row[3]],['failed','unmatched'],true))$failed=true;
+                    if(self::STATES[$row[3]]!=='processed'||self::UPLOADS[$row[5]]!=='PROCESSED'||$row[8]===null)$pending=true;
+                }
+                if($failed)return self::result('blocked','new_saved_linkage_failure')
+                    +['capsule_sha256'=>$cHash,'snapshot_sha256'=>$sHash,'parent_result_sha256'=>$parentHash];
+                if($pending)return self::result('waiting_evidence','new_saved_processing_pending')
+                    +['capsule_sha256'=>$cHash,'snapshot_sha256'=>$sHash,'parent_result_sha256'=>$parentHash];
             }
             usort($new,static fn(array $a,array $b):int=>strcmp($a['event_ref'],$b['event_ref']));
             return self::result('candidate','distinct_review_and_supported_admission_required')+[

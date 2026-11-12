@@ -66,3 +66,19 @@ This projection neither transfers authority nor permits append/subscription or
 execution. Missing, revoked, foreign or unresolved contexts remain denied. The
 historical native configuration remains unreconciled. This is explicit new
 read-only preparation, not recovery or reuse of the consumed handoff/once.
+
+## Evidence clocks and failure precedence
+
+The private capsule separates api_observed_not_before_unix (the independently
+proven original financial installation boundary) from verification_not_before_unix
+(the later roadmap verification boundary). A genuinely new financial receipt
+observed between those boundaries must not disappear when the adapter is installed.
+R1 reports a new terminal failure explicitly. R2 validates every parent target
+binding before it examines statuses; any terminal failure outranks another pending
+target, independently of target ordering. An absent receipt remains waiting.
+
+The nonempty integration uses the existing populated SQL frontier fixture, shared
+with the canonical forecast regression. It executes the real saved-data reader,
+then evaluates a new receipt and its later processing, reconciles the separate
+later profile and proves unchanged business rows/closed read-only transactions.
+No live financial identities, timestamps, API response or private capsule is used.

@@ -1008,4 +1008,6 @@ devServerChecks();
 require_once __DIR__.'/development_roadmap_saved_checks.php';
 devRoadmapSavedChecks();
 devRoadmapArchiveChecks();
+devRoadmapAllTargetsChecks();
+devRoadmapCanonicalReadChecks();
 echo 'DEVELOPMENT WORK QUEUE: '.$checks." PASS\n";
