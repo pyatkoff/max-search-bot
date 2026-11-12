@@ -103,6 +103,10 @@ function gateState(snapshot, c, pending = []) {
     }
     const run = candidates[0];
     validRun(run, c, path, event, name, event === 'workflow_run' ? origin(file) : null);
+    if(file==='max-tls-preflight.yml'&&c.gateRecovery){
+      requireValue(String(run.id)===release.GATE_RECOVERY.tls_run_id&&run.status==='completed'
+        &&run.conclusion==='failure','original_tls_gate_changed');continue;
+    }
     if (file === 'deploy.yml') {
       requireValue(run.id === c.deploy, 'deployment_changed');
       deployment = run;
@@ -126,7 +130,7 @@ function gateState(snapshot, c, pending = []) {
   const own = runs.filter(r => r.path === CLOSER && r.event === 'workflow_run');
   requireValue(own.length === 1 && own[0].id === c.run, 'ambiguous_closer');
   validRun(own[0], c, CLOSER, 'workflow_run', 'Configure AnyTour modeled value goal', origin('modeled-conversion-value-export.yml'));
-  if(c.terminalRecovery)requireValue(String(own[0].id)===release.TERMINAL_RECOVERY.run_id
+  if(c.terminalRecovery)requireValue(String(own[0].id)===(c.gateRecovery?release.GATE_RECOVERY.run_id:release.TERMINAL_RECOVERY.run_id)
     &&own[0].status==='completed'&&own[0].conclusion==='failure','original_terminal_not_failed');
   else requireValue(own[0].status === 'in_progress' && own[0].conclusion === null, 'closer_not_active');
   return waiting ? 'waiting' : 'ready';
@@ -727,7 +731,8 @@ function makeApi(token, fetchImpl = globalThis.fetch) {
       throw new Refusal('transport_failed');
     } finally { clearTimeout(timer); }
   };
-  api.artifact=read.artifact;api.jobLog=read.jobLog;return api;
+  api.artifact=read.artifact;api.jobLog=read.jobLog;
+  api.disableTransientReads=()=>{read.transientReads=false;};return api;
 }
 function recoveryLog(bytes,expected='api_http_503'){
   requireValue(['api_http_503','untrusted_terminal_continuation'].includes(expected),'invalid_terminal_failure');
@@ -778,6 +783,9 @@ async function continuationPredecessors(api){
   }
 }
 function terminalReads(base,{sleep=ms=>new Promise(r=>setTimeout(r,ms))}={}){
+  // The legacy1505 continuation keeps its original shared phase ceiling. Do
+  // not multiply it by the common transport's newer per-request read ceiling.
+  base.disableTransientReads?.();
   let remaining=2;
   const read=async(action,label)=>{
     while(true){
@@ -792,6 +800,8 @@ function terminalReads(base,{sleep=ms=>new Promise(r=>setTimeout(r,ms))}={}){
   api.jobLog=id=>read(()=>base.jobLog(id),'job_log');api.artifact=meta=>read(()=>base.artifact(meta),'artifact');return api;
 }
 async function resumeTerminal({env,event,api,prepare=false,proofFile=null,readOptions={}}){
+  if(event?.before===release.GATE_RECOVERY.before)
+    return resumeGateTerminal({env,event,api,prepare,proofFile});
   api=terminalReads(api,readOptions);
   const p=release.TERMINAL_RECOVERY,root=release.API_ROOT;
   const get=path=>api('GET',root+path);
@@ -873,8 +883,72 @@ async function resumeTerminal({env,event,api,prepare=false,proofFile=null,readOp
   let back;try{back=await get(endpoint);}catch{throw new Refusal('write_unknown');}
   requireValue(back?.id===p.comment_id&&back.body===b.released,'write_unknown');return 'released';
 }
+async function resumeGateTerminal({env,event,api,prepare=false,proofFile=null,
+  sleep=ms=>new Promise(r=>setTimeout(r,ms)),now=Date.now}){
+  const p=release.GATE_RECOVERY,root=release.API_ROOT,get=path=>api('GET',root+path);
+  const x=await release.gateContinuationContext({env,event,api,workflow:CLOSER,job:'release-slot-recovery'});
+  const c={sha:p.sha,deploy:Number(p.deploy),deployAttempt:2,run:Number(p.run_id),configure:'skipped',
+    activation:false,terminalRecovery:true,gateRecovery:true};
+  c.recovery=await readRecovery(get,c);
+  const snapshot=async()=>{
+    const observed=await selectReleaseRuns(await get('/actions/runs?head_sha='+p.sha+'&per_page=100'),c,get);
+    requireValue(gateState(observed.runs,c)==='ready'&&!observed.waiting,'gates_changed');
+    verifyConfigure(await get('/actions/runs/'+p.run_id+'/attempts/1/jobs?per_page=100'),c);
+    const a=observed.runs.workflow_runs.find(r=>r.path===PREFIX+ACTIVATION.file&&r.event==='workflow_run');
+    verifyActivation(await get('/actions/runs/'+a.id+'/attempts/1/jobs?per_page=100'),a,c,
+      observed.runs.workflow_runs.find(r=>r.path===PREFIX+'modeled-conversion-monitor.yml'&&r.event==='workflow_run')?.id);
+    return observed.runs;
+  };
+  // Wait only for the one original native push child. Never start/retry a gate.
+  const deadline=now()+3*60*1000;let tls;
+  while(true){
+    const rows=release.boundedList(await get('/actions/runs?head_sha='+x.source+'&per_page=100'),'workflow_runs','incomplete_continuation_runs');
+    const found=rows.filter(r=>r.path===p.tls_workflow&&r.event==='push'&&r.head_branch===p.branch);
+    requireValue(found.length<=1,'ambiguous_tls_continuation');
+    if(found.length&&found[0].status==='completed'){
+      tls=await release.continuationTls(api,String(found[0].id),x.source);break;
+    }
+    if(found.length)requireValue(['queued','in_progress'].includes(found[0].status)&&found[0].conclusion===null,'tls_continuation_unconfirmed');
+    requireValue(now()<deadline,'tls_continuation_deadline');await sleep(Math.min(5000,deadline-now()));
+  }
+  const gates=await snapshot(),record=release.clone(x.original.record),r=record.repository_release;
+  r.phase='pending_terminal';
+  r.closure={run_id:x.runId,run_attempt:1,job:'release-slot-recovery',terminal_step:release.TERMINAL_STEP,
+    binding:bindingSnapshot(x.b),expected_terminal:x.b.released,
+    gates:gateReferences(gates).map(g=>g.path===p.tls_workflow?{path:p.tls_workflow,
+      run_id:String(tls.id),run_attempt:1,head_sha:x.source,conclusion:'success'}:g),
+    recovery:{kind:'unstarted_tls_v1',source_sha:x.source,original_commit:p.commit,original_blob:p.blob,
+      original_record_digest:p.record_digest,original_run_id:p.run_id,original_job_id:p.job_id,tls_run_id:String(tls.id)}};
+  release.validateRelease(record);await release.authenticateFailedTerminal(api,record);
+  verifyTelemetry(record,await api('GET',root+'/contents/ops_status.json?ref=diagnostics',undefined,true),c);
+  const active=async()=>{
+    requireValue((await get('/git/ref/heads/main'))?.object?.sha===p.sha,'main_changed');
+    requireValue(release.same(bindingSnapshot(binding(await get('/pulls/'+p.pr),p.sha)),r.closure.binding),'binding_changed');
+    requireValue(recordState(await get('/issues/comments/'+p.comment_id),x.b)==='active','prepared_terminal_already_released');
+  };
+  await active();const current=await release.readRecord(api);
+  if(prepare){
+    requireValue(current.blob===p.blob&&current.record_digest===p.record_digest,'prepared_result_changed');
+    await release.requireAncestry(api,p.commit,current.commit);
+    const saved=await publishDiagnostics(api,record,current);
+    if(proofFile)release.saveJson(proofFile,release.publicationProof(record,saved,x.runId,1));
+    return {publication_artifact:release.publicationName('pending_terminal',x.runId,1),
+      publication_file:proofFile||'',record_digest:release.digest(record)};
+  }
+  requireValue(env.PREPARED_RECORD_DIGEST===release.digest(record)&&release.same(current.record,record),'prepared_result_changed');
+  await release.authenticatePublication(api,current);
+  const lastGates=await snapshot();
+  requireValue(release.same(gateReferences(lastGates),gateReferences(gates)),'gates_changed');
+  const last=await release.readRecord(api);
+  requireValue(last.blob===current.blob&&last.record_digest===current.record_digest,'deployment_result_changed');await active();
+  let written;try{written=await api('PATCH',root+'/issues/comments/'+p.comment_id,{body:x.b.released});}
+  catch{throw new Refusal('write_unknown');}
+  requireValue(written?.id===p.comment_id&&written.body===x.b.released,'write_unknown');
+  let back;try{back=await get('/issues/comments/'+p.comment_id);}catch{throw new Refusal('write_unknown');}
+  requireValue(back?.id===p.comment_id&&back.body===x.b.released,'write_unknown');return 'released';
+}
 module.exports = { REQUIRED, CLOSER, ACTIVATION, context, binding, gateState, recordState, verifyTelemetry,
-  recoveryLog,resumeTerminal,terminalReads,
+  recoveryLog,resumeTerminal,resumeGateTerminal,terminalReads,
   verifyConfigure, verifyActivation, closeRelease, makeApi, INSTALL_JOBS, VERIFY_STEPS, stepResult, copiedExecution,
   deploymentHistory, admitVerification, selectRecoveryRuns, selectReleaseRuns, stageStatus, bindingSnapshot, gateReferences,
   onlyMetadataSteps,verifyUnchangedJobs,prepareRecord,PUBLIC_DIAGNOSTIC_JSON,diagnosticsTree,publishDiagnostics,

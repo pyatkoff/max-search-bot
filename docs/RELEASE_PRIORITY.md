@@ -29,7 +29,9 @@ with one second between them and the existing request/job deadlines. This
 includes original immutable job logs/artifacts. No other HTTP error,429,
 transport uncertainty, POST or PATCH is retried. Every final source, original
 gate, owner/version and diagnostics compare remains mandatory after reading.
-All ordinary release paths retain their existing no-retry behavior.
+All metadata mutations retain their existing no-retry behavior. The common
+read-only502/503 policy and the separate non-nesting legacy phase budget are
+specified below; authority and evidence validation remain unchanged.
 
 The fixed recipe pins the original SHA, proposal commit/blob/digest, failed
 run/job and original publisher tuple. Before any write it authenticates that
@@ -178,6 +180,36 @@ Removing a reservation is an explicit metadata release by its owner, not a way
 to bypass a failed source check.
 
 
+## One proved unstarted PR1506 TLS gate
+
+Original Deploy43250756234/a2 is successful with install/smoke/diagnostics_attempt1;
+successful parents and installed verification were not repeated. The sole
+original TLS child43254816916/a1 failed at read-only resolution on explicit502,
+before SSH preparation and strict TLS, both skipped. Original closer43254816784/a1
+failed preparation; its upload and terminal were skipped. This fixed continuation
+does not rerun those workflows or relabel their failures.
+
+After exact-head Regression and guard success, one genuine non-force update of
+the same existing ops branch fromcb98b8ba4f51080d28a5096b62a9bae7c65380bc may
+start the existing TLS workflow and metadata-only closer on that checked source.
+Before TLS credentials, the helper authenticates that original complete job/step
+history, exact502 log, installed pending record/commit/blob/digest and original
+publication, successful recovered Deploy, all diagnostic stages, exact merged
+PR binding and unchanged publisher tuple. It rejects executed/missing/ambiguous
+original protected steps, attempt2, forced/recreated/foreign refs and changed main.
+
+The existing TLS workflow performs only the originally unstarted check against
+the same installed application SHA. Its original successful native push/run/job
+and actual strict TLS step are required; manual, scheduled and synthetic probes
+cannot substitute. The serialized metadata job has no SSH credential. It waits
+at most3minutes for that one native child, authenticates every other original
+gate and records the actual new TLS producer under typed unstarted_tls_v1 lineage.
+The failed originals remain independently authenticated history. Preparation,
+native digest-bound proof upload and the single publisher PATCH/readback remain
+ordered as before; failed/UNKNOWN writes hold without replay. After actual FREE,
+the protocol source is installed through ordinary fresh admission.
+
+
 ## Automatic terminal update
 
 The existing post-deploy workflow `modeled-conversion-value-export.yml` now has
@@ -251,8 +283,12 @@ monitor, activation, installation or retry and changes no workflow or schedule.
 Pending gates are read together every 20 seconds for at most 18 minutes within
 the existing server job. Completed gates are not rerun. Failed/cancelled/skipped
 mandatory gates, changed main, unavailable/ambiguous metadata, API refusal,
-rate limiting and timeouts stop without freeing the slot. There is no retry on
-429 or other API errors.
+rate limiting and timeouts stop without freeing the slot. Common metadata GETs
+may repeat only explicit502/503 responses at most twice within the existing
+20-second total request deadline, honoring Retry-After and cancellation. No
+transport/decoding error,429, other HTTP response, POST or PATCH is retried.
+The fixed1505 continuation disables that common read policy and retains its
+original shared phase ceiling; retries cannot multiply across both layers.
 
 On `gate_deadline`, `release_slot_pending` names the missing original workflow
 files and the exact IDs/statuses of still-pending runs. Independently scheduled
@@ -269,8 +305,9 @@ must be either completed successfully or explicitly `in_progress` with a null
 conclusion. The consumer shares one 30-second monotonic budget across its proof
 reads, permits at most two additional jobs snapshots ten seconds apart, and
 rechecks the same source, attempt, job identities and current main. Missing,
-duplicate, failed, skipped or unknown required steps, changed authority and API
-errors still refuse immediately. A still-pending snapshot exhausts the bounded
+duplicate, failed, skipped or unknown required steps and changed authority still
+refuse immediately. Only the explicit common502/503 GET policy applies to API
+refusals; all other errors stop. A still-pending snapshot exhausts the bounded
 wait without granting acceptance. Manual/scheduled consumers, admission and
 recovery attempts receive no such wait. This is read-only metadata convergence
 within the original run, not permission to rerun a consumer or replace a failed

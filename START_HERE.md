@@ -6,6 +6,39 @@ Roadmap/checkpoint thread: GitHub issue [#55](https://github.com/pyatkoff/max-se
 
 Primary language with the user: Russian.
 
+## PR1506 unstarted TLS gate — 2026-11-12
+
+PR1505 was genuinely recovered by43249510496/a1 and automatically released at
+15:36:37Z. Its48hotels/351declarations remain installed and byte-exact.
+PR1506 installed0cb62969d0a8fa59b1872df465b3810bf5b569d4. Original installer43250756234/a1
+is retained; its one admitted verify-only attempt2 succeeded without replaying
+source, installation, smoke or sealed transfer. Only status/proof/cleanup ran.
+
+Original TLS43254816916/a1/job131310062683 failed on GitHub502 in the read-only
+resolver; SSH preparation and strict TLS were explicitly skipped. Original
+closer43254816784/a1/job131310064735 failed preparation on that gate; proof
+upload and terminal were skipped. All other original required results succeeded.
+Neither failed original may be relabeled, rerun or replaced by a manual probe.
+
+The same owner prepares one source-checked fast-forward of the existing ops
+branch from exactcb98b8ba4f51080d28a5096b62a9bae7c65380bc to its exact CI-accepted
+descendant. The existing TLS workflow alone performs its proved unstarted check;
+the existing serialized metadata-only recovery job authenticates that actual
+native child, all original successful gates, original pending proof and exact
+unchanged main/PR/publisher version before its single terminal PATCH. The new
+typed lineage names the real TLS run; failed originals remain failed. No new
+workflow, schedule, publisher, server installation or business operation exists.
+Current-source CI precedes this continuation. After genuine automatic FREE,
+normal admission/installation of the protocol correction remains necessary so
+current readers authenticate this lineage. Optional runtime UNKNOWN stays UNKNOWN.
+
+The common GitHub read transport handles explicit502/503 GET responses at most
+three times within the existing20-second total deadline and honors Retry-After
+and cancellation. Other errors, decoding,429 and writes do not retry. The older
+1505 continuation explicitly disables common retries and retains its original
+two-additional-reads phase ceiling, preventing nested retries.
+
+
 ## PR1505 terminal metadata continuation — 2026-11-12
 
 PR1505 is installed as6e1c61915d0afc35ec8198d59021fe5a6bddadb6:48hotels/351declarations.
