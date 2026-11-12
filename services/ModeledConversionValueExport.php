@@ -15,6 +15,7 @@ require_once __DIR__.'/ModeledConversionValueVisitRecovery.php';
 require_once __DIR__.'/ModeledConversionMaxCounterScopeEvidence.php';
 require_once __DIR__.'/ModeledConversionFixedPairDecisionEvidence.php';
 require_once __DIR__.'/ModeledConversionReceiptPollEvidence.php';
+require_once __DIR__.'/ModeledConversionRetainedAppIdentityEvidence.php';
 
 /** One bounded addition to the existing cron process and durable conversion outbox. */
 final class ModeledConversionValueExport
@@ -41,6 +42,7 @@ final class ModeledConversionValueExport
     private ?array $counterScopeIntent=null;
     private array $fixedPairDecisions=[];
     private ?array $receiptPollEvidence=null;
+    private bool $retainedAppConsumed=false;
     public function __construct(private PDO $pdo){}
     public static function settings(?PDO $pdo=null):?array
     {
@@ -299,6 +301,7 @@ final class ModeledConversionValueExport
         // Finite GET-only evidence follows ordinary financial work and cannot alter its decisions.
         $self->runFiniteEvidence($api,$now,$gate,$clock);
         $self->runRecoveryEvidence($api,$now,$gate,$clock,$stats['metrika_report']);
+        $self->runRetainedAppEvidence(self::observedAt($clock,$now),$gate);
         $self->persistTickReceipt($stats,$failure,$now);
         // Private counts stay in the DB; ordinary diagnostic logs get technical state only.
         return ['status'=>$stats['errors']?'degraded':'running','contract'=>ModeledConversionValueContract::VERSION];
@@ -336,7 +339,7 @@ final class ModeledConversionValueExport
                     $updated=$receipt;
                     if($retained!==null&&$retained!==$previous){
                         $updated['last_recorded_failure']=$retained;
-                        unset($updated['visit_gate_decisions'],$updated[ModeledConversionFixedPairDecisionEvidence::RECEIPT_KEY],$updated['receipt_poll_evidence'],$updated[ModeledConversionMaxCounterScopeEvidence::RECEIPT_KEY]);
+                        unset($updated['visit_gate_decisions'],$updated[ModeledConversionFixedPairDecisionEvidence::RECEIPT_KEY],$updated['receipt_poll_evidence'],$updated[ModeledConversionMaxCounterScopeEvidence::RECEIPT_KEY],$updated[ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY]);
                         // The new forward journal yields before immutable original evidence or failure history.
                         unset($updated['finite_visit_recovery']);
                         // Only the winning saved audit may yield space to a newly retained failure.
@@ -376,7 +379,7 @@ final class ModeledConversionValueExport
                 $stats=$this->withIdentityEvidence($stats,$audit,$mysql);
                 $stats=$this->withFiniteEvidence($stats,$unreadableReceipt?['finite_visit_evidence'=>false]:(is_array($receipt)?$receipt:[]),$mysql);
                 $stats=$this->withRecoveryEvidence($stats,$unreadableReceipt?['finite_visit_recovery'=>false]:(is_array($receipt)?$receipt:[]),$mysql);
-                $stats=$this->withCounterScopeEvidence($stats,$unreadableReceipt?[ModeledConversionMaxCounterScopeEvidence::RECEIPT_KEY=>false]:(is_array($receipt)?$receipt:[]),$mysql,$now);
+                $stats=$this->withCounterScopeEvidence($stats,$unreadableReceipt?[ModeledConversionMaxCounterScopeEvidence::RECEIPT_KEY=>false,ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY=>false]:(is_array($receipt)?$receipt:[]),$mysql,$now);
                 if($stats===null){$p->commit();return;}
                 $encoded=json_encode($stats,JSON_THROW_ON_ERROR);
                 // Optional audit yields before the established historical failure fallback.
@@ -404,7 +407,7 @@ final class ModeledConversionValueExport
     private function withCounterScopeEvidence(array $stats,array $previous,bool $mysql,int $now):?array
     {
         $key=ModeledConversionMaxCounterScopeEvidence::RECEIPT_KEY;
-        if(!array_key_exists($key,$previous))return $stats;
+        if(!array_key_exists($key,$previous))return $this->withRetainedAppEvidence($stats,$previous,$mysql);
         $saved=$previous[$key];$keep=false;
         try{
             $validationNow=time();$ledger=$this->counterScopeLedger??$this->counterScopeBindingRow($validationNow);
@@ -419,8 +422,71 @@ final class ModeledConversionValueExport
             }
             if(!$this->receiptFits(json_encode($stats,JSON_THROW_ON_ERROR),$mysql))unset($stats['price_continuity_audit']);
             if(!$this->receiptFits(json_encode($stats,JSON_THROW_ON_ERROR),$mysql))return null;
-            return $stats;
+            return $this->withRetainedAppEvidence($stats,$previous,$mysql);
         }catch(Throwable $ignored){return null;}
+    }
+
+
+    /** Optional consumed evidence yields its payload before old proof or failures, but never its no-replay marker. */
+    private function withRetainedAppEvidence(array $stats,array $previous,bool $mysql):?array
+    {
+        $key=ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY;
+        if(!array_key_exists($key,$previous))return $stats;
+        $saved=$previous[$key];$stats[$key]=is_array($saved)&&strlen(json_encode($saved,JSON_THROW_ON_ERROR))<=768?$saved:false;
+        if($this->receiptFits(json_encode($stats,JSON_THROW_ON_ERROR),$mysql))return $stats;
+        $stats[$key]=false;
+        if(!$this->receiptFits(json_encode($stats,JSON_THROW_ON_ERROR),$mysql)&&is_array($stats['identity_resolution_evidence']??null))
+            $stats=$this->withIdentityEvidence($stats,$stats['identity_resolution_evidence'],$mysql);
+        if(!$this->receiptFits(json_encode($stats,JSON_THROW_ON_ERROR),$mysql)&&isset($stats['price_continuity_audit']))unset($stats['price_continuity_audit']);
+        return $this->receiptFits(json_encode($stats,JSON_THROW_ON_ERROR),$mysql)?$stats:null;
+    }
+
+    /** One local-only observation after ordinary financial work, never an identity resolution or delivery path. */
+    private function runRetainedAppEvidence(int $now,callable $gate):void
+    {
+        if($this->retainedAppConsumed||$this->finiteFrame===null||$this->pdo->inTransaction())return;
+        $selected=$this->counterScopeBindingRow($now);if($selected===null)return;
+        $p=$this->pdo;$key=ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY;$intent=null;$row=null;
+        try{
+            $p->beginTransaction();$mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';$lock=$mysql?' FOR UPDATE':'';
+            $s=$p->query("SELECT counter_id,mode,goal_id,goal_intent,contract_version,last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'".$lock)->fetch(PDO::FETCH_ASSOC);
+            $raw=$s['last_receipt_json']??null;
+            if(!$s||$s['counter_id']!=='98615635'||$s['mode']!=='send'||$s['goal_id']!=='678187097'||$s['goal_intent']!=='verified'
+                ||$s['contract_version']!==ModeledConversionValueContract::VERSION||!is_string($raw)||strlen($raw)>8192||!str_starts_with(ltrim($raw),'{')){$p->rollBack();return;}
+            $receipt=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
+            if(!is_array($receipt)||array_key_exists($key,$receipt)){$this->retainedAppConsumed=true;$p->rollBack();return;}
+            $names=['id','value_profile_id','project_key','platform','conversation_id','external_user_id','counter_id','target','transport_target',
+                'value_contract','event_unix','value_rub','state','attempts','identity_source_key','client_id','tracker_record_id','tracker_observed_unix',
+                'claim_token','claimed_at_unix','upload_id','upload_status','value_receipt_basis','value_ready_at_unix','value_api_accepted_at_unix','value_processed_at_unix'];
+            $q=$p->prepare('SELECT '.implode(',',$names)." FROM max_channel_conversion_outbox WHERE id=? AND project_key='anytour' AND counter_id='98615635' LIMIT 1".$lock);
+            $q->execute([$selected['id']]);$row=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+            $ns=$this->finiteFrame['n'];
+            if(!$row||ModeledConversionValueIdentityEvidence::reference($row,$ns)!==ModeledConversionValueIdentityEvidence::reference($selected,$ns)
+                ||$row['state']!=='pending'||(string)$row['attempts']!=='0'||!$this->eligible($row,$gate)){$p->rollBack();return;}
+            foreach(['client_id','tracker_record_id','tracker_observed_unix','claim_token','claimed_at_unix','upload_id','upload_status','value_receipt_basis',
+                'value_ready_at_unix','value_api_accepted_at_unix','value_processed_at_unix']as$field)
+                if(!in_array($row[$field],[null,''],true)){$p->rollBack();return;}
+            $intent=ModeledConversionRetainedAppIdentityEvidence::intent($receipt['finite_visit_evidence']??null,$row,$ns,$now);
+            if($intent===null||ModeledConversionRetainedAppIdentityEvidence::binding($this->finiteFrame,$row,$ns,$now)!==
+                ModeledConversionRetainedAppIdentityEvidence::binding($receipt['finite_visit_evidence']??null,$row,$ns,$now)){$p->rollBack();return;}
+            $receipt[$key]=$intent;$encoded=json_encode($receipt,JSON_THROW_ON_ERROR);
+            if(!$this->receiptFits($encoded,$mysql)){$p->rollBack();return;}
+            $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'");$q->execute([$encoded]);$p->commit();
+            $this->retainedAppConsumed=true;
+            // Both source SELECTs happen only after that committed intent; binding/intent IO is counted separately.
+            $result=ModeledConversionRetainedAppIdentityEvidence::observe($p,$intent,$row,$now);
+            $p->beginTransaction();
+            $s=$p->query("SELECT last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'".$lock)->fetch(PDO::FETCH_ASSOC);
+            $raw=$s['last_receipt_json']??null;
+            if(!is_string($raw)||strlen($raw)>8192||!str_starts_with(ltrim($raw),'{')){$p->rollBack();return;}
+            $receipt=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
+            if(!is_array($receipt)||($receipt[$key]??null)!==$intent){$p->rollBack();return;}
+            $done=ModeledConversionRetainedAppIdentityEvidence::complete($intent,$receipt['finite_visit_evidence']??null,$row,$ns,$result,$now);
+            if($done===null){$p->rollBack();return;}
+            $receipt[$key]=$done;$encoded=json_encode($receipt,JSON_THROW_ON_ERROR);
+            if(!$this->receiptFits($encoded,$mysql)){$p->rollBack();return;}
+            $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'");$q->execute([$encoded]);$p->commit();
+        }catch(Throwable $ignored){if($p->inTransaction())$p->rollBack();}
     }
 
     /** Pure final attachment uses the existing native byte measurement; it cannot crowd out money or once-only proof. */
@@ -923,6 +989,7 @@ final class ModeledConversionValueExport
             foreach($frame['r']as$r)if(!isset($rows[$r[0]])||(string)$rows[$r[0]]['id']!==$r[1]||(int)$rows[$r[0]]['event_unix']!==$r[15])return [];
             $this->finiteFrame=$frame;$this->finiteRows=$rows;
             $this->counterScopeConsumed=array_key_exists(ModeledConversionMaxCounterScopeEvidence::RECEIPT_KEY,$receipt);
+            $this->retainedAppConsumed=array_key_exists(ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY,$receipt);
             $this->counterScopeLedger=$this->counterScopeBindingRow($now);
             $this->fixedPairJournal=ModeledConversionValueVisitRecovery::decode($receipt['finite_visit_recovery']??null,$frame,$namespace,$now);
             $pending=[];foreach($frame['r']as$r)if($r[2]===0)$pending[]=$rows[$r[0]];
