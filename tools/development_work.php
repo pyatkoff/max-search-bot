@@ -53,7 +53,7 @@ try {
         $healthy=$held||!in_array($server['state']??'unknown',['unknown','hold'],true);
         DevelopmentWorkHealth::record($held?'held_unknown':($healthy?'ok':'failed'),$healthy?'complete':'delivery',
             ['accepted'=>isset($server['accepted_task'])?1:0]+($held?['held'=>1]:[]),$trigger,$held?$server['held_evidence_sha256']:null);$finished=true;
-        echo json_encode(['ok'=>$healthy,'execution_kind'=>'server_model']+$safe,JSON_THROW_ON_ERROR)."\n";exit($healthy?0:1);
+        echo json_encode(['ok'=>$healthy,'execution_kind'=>$server['execution_kind']??'server_model']+$safe,JSON_THROW_ON_ERROR)."\n";exit($healthy?0:1);
     }
     $serverMode=false;$events=new DevelopmentWorkEventService(null,null,null,$authorize);$stage='subscription';
     // Native mode alone requires a real authorized verified callback subscription.

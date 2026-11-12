@@ -6,7 +6,7 @@ require_once __DIR__.'/DevelopmentWorkQueue.php';
 /** Separate development metadata capability; never a source/publisher lease. */
 final class DevelopmentWorkMcpAdapter
 {
-    public const NAMES=['development_work_create','development_work_append','development_work_status','development_work_claim','development_work_started','development_work_complete','development_work_resolve_existing_run','development_work_retire_unclaimed','development_work_handoff_preflight','development_work_handoff_connection'];
+    public const NAMES=['development_work_create','development_work_append','development_work_status','development_work_claim','development_work_started','development_work_complete','development_work_resolve_existing_run','development_work_retire_unclaimed','development_work_handoff_preflight','development_work_handoff_connection','development_work_roadmap_admit'];
     public function __construct(private PDO $pdo,private $store=null,private $clock=null,private ?DevelopmentWorkEventService $events=null,private $registrationTraceReader=null) {}
     public static function tools(): array
     {
@@ -25,6 +25,17 @@ final class DevelopmentWorkMcpAdapter
         $resolved['properties']['outcome']=['type'=>'string','enum'=>['accepted_readback','terminal_blocked']];$resolved['properties']['run_id']=$run;
         foreach (['result_sha256','readback_sha256'] as $field) $resolved['properties'][$field]=$sha;
         $resolved['properties']['owned_claims_released']=['type'=>'boolean','const'=>true];
+
+        $row=['type'=>'array','minItems'=>9,'maxItems'=>9,'items'=>['type'=>['string','integer','null']]];
+        $finance=['schema'=>['type'=>'string','const'=>DevelopmentRoadmapSavedResult::VERSION],'namespace_sha256'=>$sha,'membership_sha256'=>$sha,
+            'profile_cutoff_unix'=>['type'=>'integer','minimum'=>946684800],'events'=>['type'=>'integer','minimum'=>1,'maximum'=>64],
+            'value_rub'=>['type'=>'integer','minimum'=>1,'maximum'=>1600000],'old_receipts'=>['type'=>'array','maxItems'=>64,'items'=>$row],
+            'excluded_original_refs'=>['type'=>'array','maxItems'=>3,'items'=>$sha,'uniqueItems'=>true],
+            'api_observed_not_before_unix'=>['type'=>'integer','minimum'=>946684800],
+            'max_snapshot_age_seconds'=>['type'=>'integer','minimum'=>1,'maximum'=>60]];
+        $install=['application_sha'=>['type'=>'string','pattern'=>'^[a-f0-9]{40}$'],'original_deploy_run_id'=>['type'=>'integer','minimum'=>1],
+            'verified_at_unix'=>['type'=>'integer','minimum'=>946684800],'technical_terminal_at_unix'=>['type'=>'integer','minimum'=>946684800],'receipt_sha256'=>$sha];
+        $review=['manifest_sha256'=>$sha,'decision_sha256'=>$sha,'readback_sha256'=>$sha];
         $definitions=[
             ['development_work_create','Register one explicitly authorized immutable development plan on the shared DEVELOPMENT lane. Tasks name existing distinct owners/reviewers and immutable input/acceptance hashes; dependencies must already exist or occur earlier in this batch. Metadata only: no source edits, worker dispatch, merge or deploy.',
                 ['queue_id'=>$id,'plan_sha256'=>$sha,'tasks'=>$tasks],['queue_id','plan_sha256','tasks'],false],
@@ -58,12 +69,23 @@ final class DevelopmentWorkMcpAdapter
                     'decision'=>['type'=>'object','properties'=>['decision_sha256'=>$sha,'readback_sha256'=>$sha,'reviewer_run_id'=>$run],
                         'required'=>['decision_sha256','readback_sha256','reviewer_run_id'],'additionalProperties'=>false]],
                 ['queue_id','task_id','spec_sha256','expected_plan_sha256','expected_pending_event_id','old_connection_id','expected_caller_connection_id','decision'],false],
+            ['development_work_roadmap_admit','Admit one reviewed finite saved-finance phase: two saved-result tasks and at most two independent reviews on future ordinary cron. Pin archive, current caller, implementation and owner-verified financial installation. Preserve old calls and UNKNOWN. No inline send, upload, native owner, coding or deployment.',
+                ['queue_id'=>$id,'expected_archive_sha256'=>$sha,'expected_plan_sha256'=>$sha,
+                    'expected_caller_connection_id'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$'],'implementation_sha256'=>$sha,
+                    'financial_installation'=>['type'=>'object','properties'=>$install,'required'=>array_keys($install),'additionalProperties'=>false],
+                    'financial_input'=>['type'=>'object','properties'=>$finance,'required'=>array_keys($finance),'additionalProperties'=>false],
+                    'review'=>['type'=>'object','properties'=>$review,'required'=>array_keys($review),'additionalProperties'=>false]],
+                ['queue_id','expected_archive_sha256','expected_plan_sha256','expected_caller_connection_id','implementation_sha256','financial_installation','financial_input','review'],false],
         ];
         $out=[];$security=[['type'=>'oauth2','scopes'=>[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]]];
         foreach ($definitions as [$name,$description,$properties,$required,$readOnly]) $out[]=['name'=>$name,'description'=>$description,
             'inputSchema'=>['type'=>'object','properties'=>$properties,'required'=>$required,'additionalProperties'=>false],
             'annotations'=>['readOnlyHint'=>$readOnly,'destructiveHint'=>$name==='development_work_handoff_connection','idempotentHint'=>true,'openWorldHint'=>false],
             'securitySchemes'=>$security,'_meta'=>['securitySchemes'=>$security]];
+        foreach($out as&$tool)if($tool['name']==='development_work_roadmap_admit'){
+            $tool['securitySchemes']=[['type'=>'oauth2','scopes'=>[ManagerPreparationOAuth::DEVELOPMENT_SCOPE,ManagerPreparationOAuth::FORECAST_SCOPE]]];
+            $tool['_meta']['securitySchemes']=$tool['securitySchemes'];
+        }unset($tool);
         return $out;
     }
     public function call(string $name,array $args,int $admin,string $connection): array
@@ -96,6 +118,12 @@ final class DevelopmentWorkMcpAdapter
         if ($operation==='status') {
             require_once __DIR__.'/DevelopmentWorkHealth.php';
             $result['cron_health']=DevelopmentWorkHealth::snapshot($this->clock!==null?(int)($this->clock)():null);
+            if(($result['execution_kind']??null)==='server_saved_finance'){
+                DevelopmentWorkServerContract::assertReadback($result);return $result;
+            }
+            if(($result['execution_kind']??null)==='roadmap_archive_preparation'){
+                $result['subscription_setup']=['semantics'=>'not_armed_no_native_host_route'];return $result;
+            }
             if(in_array($result['execution_kind']??null,['server_model','server_model_candidate'],true)) {
                 $result['subscription_setup']=['semantics'=>'not_applicable_server_owned_cron_no_native_subscription'];
                 DevelopmentWorkServerContract::assertReadback($result);return $result;

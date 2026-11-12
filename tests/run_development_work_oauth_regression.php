@@ -111,13 +111,26 @@ try {
     foreach (['legacy','hotel','dev'] as $profile) {
         $tools=$call('tools/list',[],$profile)['result']['tools'];$byName=array_column($tools,null,'name');
         foreach (DevelopmentWorkMcpAdapter::NAMES as $name) {
+            $required=$name==='development_work_roadmap_admit'?[$devScope,ManagerPreparationOAuth::FORECAST_SCOPE]:[$devScope];
             devOauthCheck('discovery advertises explicit development consent without granting it '.$profile.' '.$name,
-                isset($byName[$name])&&$byName[$name]['securitySchemes']===[['type'=>'oauth2','scopes'=>[$devScope]]]
+                isset($byName[$name])&&$byName[$name]['securitySchemes']===[['type'=>'oauth2','scopes'=>$required]]
                 &&$byName[$name]['_meta']['securitySchemes']===$byName[$name]['securitySchemes']
                 &&$byName[$name]['inputSchema']['additionalProperties']===false);
         }
     }
     devOauthCheck('discovery performs no queue or worker operations',$legacyCalls===0&&$hotelCalls===0&&$developmentCalls===0);
+    foreach(['legacy','hotel','dev','reply_dev','hotel_dev','archive_dev']as$profile){
+        $denied=$call('tools/call',['name'=>'development_work_roadmap_admit','arguments'=>[]],$profile);
+        $challenge=devOauthChallengeScopes($denied);
+        devOauthCheck('saved financial admission cannot execute with an existing nonforecast grant '.$profile,
+            $developmentCalls===0&&(($denied['error']['code']??null)===-32001
+                ||(is_array($challenge)&&in_array($devScope,$challenge,true)&&in_array(ManagerPreparationOAuth::FORECAST_SCOPE,$challenge,true))));
+    }
+    $forgedRoadmap=$service->handle(devOauthRpc('tools/call',['name'=>'development_work_roadmap_admit','arguments'=>[]]),
+        1,$connections['dev'],[$devScope,ManagerPreparationOAuth::FORECAST_SCOPE]);
+    devOauthCheck('caller supplied forecast consent cannot widen a real development-only grant for roadmap admission',
+        ($forgedRoadmap['error']['code']??null)===-32001&&$developmentCalls===0);
+
     $tools=array_column($call('tools/list',[],'dev')['result']['tools'],null,'name');
     $claimSchema=$tools['development_work_claim']['inputSchema'];
     devOauthCheck('development claim requires received current event identity in declared schema',
@@ -576,7 +589,7 @@ try {
         &&array_column($isolatedCall('events/list')['result']['events'],'name')===['development_work.pending','development_work.attention']
         &&($isolatedCall('server/discover')['result']['serverInfo']['name']??null)==='anytour-development-work'
         &&$isolatedChanges===(int)$pdo->query('SELECT total_changes()')->fetchColumn()&&$isolatedRequests===[]);
-    foreach (['list_pending_replies','hotel_work_status','archive_research_inventory','future_development_tool'] as $foreignTool) {
+    foreach (['list_pending_replies','hotel_work_status','archive_research_inventory','development_work_roadmap_admit','future_development_tool'] as $foreignTool) {
         $denied=$isolatedCall('tools/call',['name'=>$foreignTool,'arguments'=>[]]);
         devOauthCheck('isolated surface rejects foreign tool before dispatch '.$foreignTool,($denied['error']['code']??null)===-32601);
     }

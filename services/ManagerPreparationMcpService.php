@@ -44,7 +44,7 @@ final class ManagerPreparationMcpService
             &&($rpc['params']['name']??null)===ModeledConversionStatusMcpAdapter::NAME;
         $this->forecastBudget=$forecastStatus?($forecastBudget??new ModeledConversionStatusBudget()):null;
         $developmentStatus=($rpc['method']??null)==='tools/call'&&is_array($rpc['params']??null)
-            &&($rpc['params']['name']??null)==='development_work_status';
+            &&in_array($rpc['params']['name']??null,['development_work_status','development_work_roadmap_admit'],true);
         if($developmentStatus&&is_string($id)&&strlen($id)>1024)return self::error(null,-32600,'Invalid Request');
         $workStatus=($rpc['method']??null)==='tools/call' && is_array($rpc['params']??null)
             && in_array($rpc['params']['name']??null,['hotel_work_status','development_work_status'],true);
@@ -231,6 +231,7 @@ final class ManagerPreparationMcpService
         $development=in_array($name,DevelopmentWorkMcpAdapter::NAMES,true);
         $legacy=ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES);
         $required=$dialogue?[ManagerPreparationOAuth::DIALOGUE_SCOPE]:($forecast?[ManagerPreparationOAuth::FORECAST_SCOPE]:($development?[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]:($hotel?[ManagerPreparationOAuth::HOTEL_SCOPE]:($archive?[ManagerPreparationOAuth::ARCHIVE_SCOPE]:ManagerPreparationOAuth::SCOPES))));
+        if($name==='development_work_roadmap_admit')$required=[ManagerPreparationOAuth::DEVELOPMENT_SCOPE,ManagerPreparationOAuth::FORECAST_SCOPE];
         if($selection)$required=[ManagerTourSelectionMcpAdapter::scopeFor($name)];
         if($dialogue&&DialogueReviewMcpAdapter::isHistory($args))$required=[ManagerPreparationOAuth::QUALITY_SCOPE];
         $stepUp=$selection||$dialogue||$forecast||$archive||($hotel&&($legacy||in_array(ManagerPreparationOAuth::ARCHIVE_SCOPE,$scopes,true)))
@@ -245,6 +246,10 @@ final class ManagerPreparationMcpService
                 $challenge['_meta']['anytour/authorization_context']=$metadata;
                 if ($metadata!==$oauth->currentAuthorizationMetadata($connection,$admin,$scopes)) throw new DomainException();
                 return $challenge;
+            }
+            if($name==='development_work_roadmap_admit'){
+                $missing=array_values(array_diff($required,$scopes));
+                return self::capabilityScopeChallenge($scopes,$missing[0],$required);
             }
             return self::capabilityScopeChallenge($scopes,$required[0]);
         }
@@ -331,7 +336,9 @@ final class ManagerPreparationMcpService
         if (!is_array($data)) throw new RuntimeException();
         $images=$name==='get_reply_context'?($data['image_inputs']??[]):[];unset($data['image_inputs']);
         if (!is_array($images)||!array_is_list($images)||count($images)>4) throw new RuntimeException();
-        if($name==='development_work_status'&&($data['server_control']['readback_contract']??null)==='full_structured_v2')
+        if(in_array($name,['development_work_status','development_work_roadmap_admit'],true)
+            &&(($data['server_control']['readback_contract']??null)==='full_structured_v2'
+            ||(($data['execution_kind']??null)==='server_saved_finance'&&($data['server_roadmap']['readback_contract']??null)==='full_structured_v2')))
             return DevelopmentWorkServerContract::toolResult($data);
         $content=[['type'=>'text','text'=>json_encode($data,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]];
         $imageBytes=0;
@@ -391,11 +398,11 @@ final class ManagerPreparationMcpService
         return ['ok'=>false,'reason'=>'OWNED_QUEUE_UNAVAILABLE','queue_available'=>false,'caller_self'=>$self];
     }
 
-    private static function capabilityScopeChallenge(array $granted,string $requested): array
+    private static function capabilityScopeChallenge(array $granted,string $requested,array $additional=[]): array
     {
         // Request only the missing capability while preserving existing rights.
         // A challenge never changes the original grant or refresh-token family.
-        $wanted=array_values(array_intersect(ManagerPreparationOAuth::SUPPORTED_SCOPES,array_unique([...$granted,$requested])));
+        $wanted=array_values(array_intersect(ManagerPreparationOAuth::SUPPORTED_SCOPES,array_unique([...$granted,$requested,...$additional])));
         [$description,$message]=match ($requested) {
             ManagerPreparationOAuth::HOTEL_SCOPE=>['Explicit hotel queue consent is required','Подтвердите дополнительный доступ ChatGPT к гостиничной очереди AnyTour.'],
             ManagerPreparationOAuth::ARCHIVE_SCOPE=>['Explicit archive research consent is required','Подтвердите дополнительный доступ ChatGPT к сохранённым историческим диалогам AnyTour.'],

@@ -43,23 +43,34 @@ final class DevelopmentWorkConnectionAuthority
 
     /** Existing current owner may read its immutable completed handoff audit. */
     public function assertCurrent(int $admin,string $current): bool
+    {return $this->currentAuthority($admin,$current,true,[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]);}
+
+    /** Nonlocking authorization inside the caller-owned financial read-only snapshot only. */
+    public function assertCurrentSnapshot(int $admin,string $current): bool
+    {
+        if(!$this->pdo->inTransaction())throw new DomainException('development_work_snapshot_context');
+        return $this->currentAuthority($admin,$current,false,
+            [ManagerPreparationOAuth::DEVELOPMENT_SCOPE,ManagerPreparationOAuth::FORECAST_SCOPE]);
+    }
+
+    private function currentAuthority(int $admin,string $current,bool $locking,array $required): bool
     {
         if ($admin<1||preg_match('/\A[a-f0-9]{32}\z/D',$current)!==1||ProjectConfig::projectId()!=='anytour')
             throw new DomainException('development_work_access_denied');
-        $grant=$this->grant($current,$admin);$this->activeAdmin($admin);
+        $grant=$this->grant($current,$admin,$locking);$this->activeAdmin($admin,$locking);
         if ($grant['revoked_at']!==null||(int)$grant['expires_at']<=$this->now())
             throw new DomainException('development_work_access_denied');
         if (!(new ManagerPreparationOAuth($this->pdo,$this->clock,$this->profile($grant)))
-            ->connectionAuthorized($current,$admin,[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]))
+            ->connectionAuthorized($current,$admin,$required))
             throw new RuntimeException('development_work_authority_unavailable');
         return true;
     }
 
-    private function grant(string $connection,int $admin): array
+    private function grant(string $connection,int $admin,bool $locking=true): array
     {
         $q=$this->pdo->prepare('SELECT g.grant_id,g.client_id,g.admin_id,g.project_key,g.resource,g.scopes,g.expires_at,g.revoked_at,c.redirect_uri
             FROM manager_preparation_oauth_grants g JOIN manager_preparation_oauth_clients c ON c.client_id=g.client_id
-            WHERE g.grant_id=? AND g.admin_id=? LIMIT 1'.$this->lock());
+            WHERE g.grant_id=? AND g.admin_id=? LIMIT 1'.($locking?$this->lock():''));
         if (!$q||!$q->execute([$connection,$admin])) throw new RuntimeException('development_work_authority_unavailable');
         $row=$q->fetch(PDO::FETCH_ASSOC);
         if (!is_array($row)||($row['grant_id']??null)!==$connection||(int)($row['admin_id']??0)!==$admin
@@ -98,12 +109,12 @@ final class DevelopmentWorkConnectionAuthority
         };
     }
 
-    private function activeAdmin(int $admin): void
+    private function activeAdmin(int $admin,bool $locking=true): void
     {
         $name=(string)ProjectConfig::get('brand.name','anytour');
         $q=$this->pdo->prepare("SELECT 1 FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id
             JOIN projects p ON p.id=mp.project_id WHERE m.id=? AND m.is_active=1 AND m.role='admin'
-            AND p.project_key=? AND p.is_active=1 AND p.display_name=? LIMIT 1".$this->lock());
+            AND p.project_key=? AND p.is_active=1 AND p.display_name=? LIMIT 1".($locking?$this->lock():''));
         if (!$q||!$q->execute([$admin,'anytour',$name!==''?$name:'anytour']))
             throw new RuntimeException('development_work_authority_unavailable');
         if ($q->fetchColumn()===false) throw new DomainException('development_work_access_denied');
