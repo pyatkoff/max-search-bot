@@ -204,7 +204,7 @@ class ManagerConversationService
             $fromSql='FROM (SELECT c.id FROM conversations c JOIN customers cu ON cu.id=c.customer_id WHERE '.$whereSql.' ORDER BY '.$orderSql.' LIMIT 200) inbox_page JOIN conversations c ON c.id=inbox_page.id JOIN customers cu ON cu.id=c.customer_id';
             $predicateSql='';
         }
-        $unreadProjection='(SELECT COUNT(*) FROM messages um WHERE um.conversation_id=c.id AND um.direction=\'inbound\' AND um.sender_type=\'customer\' AND um.id>COALESCE((SELECT rr.last_read_message_id FROM manager_conversation_reads rr WHERE rr.manager_id='.$mid.' AND rr.conversation_id=c.id LIMIT 1),0)) AS unread_count ';
+        $unreadProjection='(SELECT COUNT(*) FROM messages um WHERE um.conversation_id=c.id AND '.ManagerReadService::messageSql('um').' AND um.id>COALESCE((SELECT rr.last_read_message_id FROM manager_conversation_reads rr WHERE rr.manager_id='.$mid.' AND rr.conversation_id=c.id LIMIT 1),0)) AS unread_count ';
         if($countsOnly){
             $rankProjection=$queue==='mine'?$replyProjection.' AS awaiting_manager_reply':$requestSql.' AS manager_request_at';
             $sql='SELECT c.id,c.project_key,c.source_id,c.status,c.manager_id,c.started_at,c.last_message_at,'

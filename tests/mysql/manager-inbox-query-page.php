@@ -148,6 +148,10 @@ function inboxNativePair(InboxPageNativePdo $pdo, string $label, array $argument
         // Pending flags are fixture facts, not a duplicate of the production SQL.
         // The isolated preview rows below are all explicitly in AI mode.
         if(!isset($fixtures[$id])&&!in_array($id,range(701,709),true))throw new RuntimeException('Unreviewed current-wait fixture');
+        if(in_array($id,[702,703],true)){
+            inboxNativeCheck($label.' excludes only the designated recorded callback '.$id,(int)$expected['unread_count']===1&&(int)$row['unread_count']===0);
+            $expectedRows[$index]['unread_count']=0;
+        }
         $needed=(int)($fixtures[$id]['pending']??false);
         $validNeeded=$validNeeded&&(int)$row['awaiting_manager_reply']===$needed;
         foreach(['last_text','last_preview_text'] as $field){
@@ -168,7 +172,7 @@ function inboxNativePair(InboxPageNativePdo $pdo, string $label, array $argument
     inboxNativeCheck($label.' adds only truthful unknown current-wait fields',$validAdded);
     inboxNativeCheck($label.' has the exact independently seeded reply flags',$validNeeded);
     inboxNativeCheck($label.' replaces only the exact proven legacy timer prefix',$validLegacyPrefix);
-    inboxNativeCheck($label . ' preserves every legacy non-queue field except an explicitly designated like token', $expectedRows === $compatible);
+    inboxNativeCheck($label . ' preserves every legacy non-queue field except designated callback counts and like token', $expectedRows === $compatible);
     inboxNativeCheck($label . ' preserves the bounded number of SQL executions', $before['sql_count'] === $after['sql_count']);
     return [$before, $after];
 }
@@ -269,7 +273,7 @@ try {
         'manager_customer_names(customer_id BIGINT UNSIGNED PRIMARY KEY,working_name VARCHAR(64),version INT)',
         'conversation_sources(id BIGINT UNSIGNED PRIMARY KEY,display_name VARCHAR(64),primary_group_id INT,fallback_mode VARCHAR(16),fallback_group_id INT,fallback_after_minutes INT,is_active TINYINT)',
         'manager_group_members(manager_id BIGINT UNSIGNED,group_id INT,PRIMARY KEY(manager_id,group_id))',
-        'manager_conversation_reads(manager_id BIGINT UNSIGNED,conversation_id BIGINT UNSIGNED,last_read_message_id BIGINT UNSIGNED,PRIMARY KEY(manager_id,conversation_id),KEY idx_manager_reads_conversation(conversation_id,manager_id))',
+        'manager_conversation_reads(manager_id BIGINT UNSIGNED,conversation_id BIGINT UNSIGNED,last_read_message_id BIGINT UNSIGNED,updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY(manager_id,conversation_id),KEY idx_manager_reads_conversation(conversation_id,manager_id))',
         'lead_stages(stage_key VARCHAR(32) PRIMARY KEY,display_name VARCHAR(64),color VARCHAR(16),sort_order INT,is_active TINYINT,is_terminal TINYINT,is_won TINYINT)',
         'lead_tags(id BIGINT UNSIGNED PRIMARY KEY,tag_key VARCHAR(32),display_name VARCHAR(64),color VARCHAR(16),sort_order INT,is_active TINYINT)',
         'conversation_lead_tags(conversation_id BIGINT UNSIGNED,tag_id BIGINT UNSIGNED,PRIMARY KEY(conversation_id,tag_id),KEY idx_conversation_lead_tags_tag(tag_id,conversation_id))',
@@ -287,7 +291,7 @@ try {
     $conversation = $pdo->prepare('INSERT INTO conversations(id,customer_id,project_key,source_id,channel,status,lead_stage_key,manager_id,started_at,last_message_at,is_test) VALUES(?,?,?,?,?,?,?,?,?,?,?)');
     $message = $pdo->prepare('INSERT INTO messages(id,conversation_id,direction,sender_type,channel,text,metadata_json,created_at) VALUES(?,?,?,?,?,?,?,?)');
     $event = $pdo->prepare("INSERT INTO conversation_events(conversation_id,event_type,created_at) VALUES(?,'waiting_manager',?)");
-    $read = $pdo->prepare('INSERT INTO manager_conversation_reads VALUES(7,?,?)');
+    $read = $pdo->prepare('INSERT INTO manager_conversation_reads(manager_id,conversation_id,last_read_message_id) VALUES(7,?,?)');
     $tag = $pdo->prepare('INSERT INTO conversation_lead_tags VALUES(?,1)');
     $fixtures = []; $base = strtotime('2026-10-12 00:00:00 UTC');
     $pdo->beginTransaction();
@@ -465,6 +469,26 @@ try {
     }
     $pdo->rollBack();
     inboxNativeCheck('native counter reads leave read cursors unchanged',inboxNativeReadState($pdo)===$initialReads);
+    // Native MySQL uses the same human-message population in every read path.
+    $pdo->exec("INSERT INTO projects VALUES(5,'native-count','Synthetic count cohort',1);INSERT INTO manager_projects VALUES(7,5)");
+    $conversation->execute([99001,1,'native-count',1,'max','manager','new',7,'2026-10-17 10:00:00','2026-10-17 10:00:00',0]);
+    foreach([1=>'callback',2=>'start',3=>'bot_started',4=>'message',5=>null,6=>'{broken',7=>'attachment'] as $id=>$type){
+        $meta=$type===null?null:($type==='{broken'?$type:($type==='attachment'?'{"attachments":[{"type":"photo"}]}':json_encode(['type'=>$type])));
+        $message->execute([990010+$id,99001,'inbound','customer','max',$id===4?'show_tours':'Synthetic row',$meta,'2026-10-17 10:00:00']);
+    }
+    $countRow=ManagerConversationService::list(7,'mine',100,'native-count')[0];
+    $read=ManagerReadService::snapshot(7,$countRow);
+    inboxNativeCheck('native personal and list counters exclude callbacks and starts but retain text media and malformed metadata',(int)$countRow['unread_count']===4&&$read['unread_count']===4&&$read['first_unread_id']===990014);
+    $counts=ManagerQueueProjectionService::counts(7,'native-count');
+    inboxNativeCheck('native notification badge and Mine sum the same four human messages',$counts['mine']===['count'=>1,'unread'=>4]&&$counts['notification_unread']===4);
+    $ack=ManagerReadService::acknowledge(7,99001,[990015],$read['context']);
+    inboxNativeCheck('native read acknowledgement cannot jump an unseen human message',$ack['ok']&&$ack['read_state']['unread_count']===4&&$ack['read_state']['last_read_message_id']===0);
+    $ack=ManagerReadService::acknowledge(7,99001,[990014,990015],$read['context']);
+    inboxNativeCheck('native human read prefix advances across excluded action rows',$ack['ok']&&$ack['read_state']['last_read_message_id']===990015&&$ack['read_state']['unread_count']===2);
+    $ack=ManagerReadService::acknowledge(7,99001,[990016,990017],$read['context']);
+    $afterRead=ManagerConversationService::list(7,'mine',100,'native-count')[0];
+    inboxNativeCheck('native read clears unread without resolving a pending question',$ack['ok']&&$ack['read_state']['unread_count']===0&&(int)$afterRead['unread_count']===0&&(int)$afterRead['awaiting_manager_reply']===1);
+    $searchReadBaseline=inboxNativeReadState($pdo);
     // Full-history search uses the same production core index and real native
     // prepared statements. This isolated conversation is added after the
     // immutable list/queue comparisons, never to their measured population.
@@ -483,7 +507,7 @@ try {
     $context=ManagerConversationService::messageContext(9900,90,900007);
     inboxNativeCheck('native search target shares the bounded original context',count($context['messages'])===27&&$context['target_message_id']===900007&&$context['messages'][6]['text']==='Архив & море 🌊 100%_\\ <img>');
     inboxNativeCheck('native foreign target remains unavailable',ManagerConversationService::messageContext(9900,90,1)['available']===false);
-    inboxNativeCheck('native search and context leave all original read markers unchanged',inboxNativeReadState($pdo)===$initialReads);
+    inboxNativeCheck('native search and context leave all original read markers unchanged',inboxNativeReadState($pdo)===$searchReadBaseline);
     echo 'FULL_HISTORY_SEARCH '.json_encode(['rows'=>10051,'requests_to_old_hit'=>$calls,'max_scanned_per_request'=>1000,'max_hits_per_page'=>25,'read_only'=>true],JSON_THROW_ON_ERROR)."\n";
     echo 'EVIDENCE ' . json_encode(['scope'=>'synthetic_native_service_list','base_sha'=>'bc9d104b1f9619d5d6cbb0a7ee05dced06376abf',
         'owned_fixture_rows'=>count(array_filter($fixtures,static fn(array $f):bool=>$f['project']==='native-inbox'&&$f['owner']===7&&$f['status']==='manager'&&!$f['isTest'])),

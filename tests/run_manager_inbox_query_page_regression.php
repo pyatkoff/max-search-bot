@@ -172,7 +172,7 @@ $answeredIds=[];
 foreach(array_slice($mineFixtures,0,300) as $row){
     $id=$row['id'];$at=gmdate('Y-m-d H:i:s',strtotime($row['last_message_at']??$row['started_at'])+60);
     $message->execute([100000+$id*10,$id,'outbound','manager','answered-'.$id,'{}',$at]);
-    // A later button remains unread but does not create another pending reply.
+    // A later button stays in history without adding unread or pending reply work.
     $message->execute([100001+$id*10,$id,'inbound','customer','show_tours','{"type":"callback"}',$at]);
     $db->prepare('UPDATE conversations SET last_message_at=? WHERE id=?')->execute([$at,$id]);
     $fixtures[$id]['last_message_at']=$at;$fixtures[$id]['reply_needed']=false;$answeredIds[]=$id;
@@ -346,6 +346,7 @@ $callbackPreviewBefore=$queueSnapshot();$callbackPreviewPage=null;
 $callbackPreviewArgs=[7,'all',200,'anytour','','',0,['ids'=>[210,211]]];
 $callbackPreviewRows=ManagerConversationService::list(...[...$callbackPreviewArgs,&$callbackPreviewPage]);
 $callbackPreviewById=array_column($callbackPreviewRows,null,'id');
+queryPageCheck('Inbox excludes recorded actions while keeping identical typed text unread',(int)$callbackPreviewById[210]['unread_count']===0&&(int)$callbackPreviewById[211]['unread_count']===1);
 queryPageCheck('SQL callback preview explains manager help while identical customer text stays literal',
     count($callbackPreviewRows)===2
     && $callbackPreviewById[210]['last_preview_text']==='Нажата кнопка «Нужна помощь с подбором»'

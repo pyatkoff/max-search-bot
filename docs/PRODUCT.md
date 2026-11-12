@@ -55,6 +55,17 @@ Manager Workspace V2 is the target workspace. It should help the manager answer 
 
 Important Inbox signals include:
 - unread messages;
+  Counts include actual inbound customer messages and attachments, including
+  historical/malformed metadata and literal text that resembles a button token.
+  Recorded callback/start/bot_started actions stay visible in history but do not
+  add unread messages. Counts, first-unread seeking and display acknowledgement
+  use the same canonical customer-message population. Reading and replying are
+  independent: reading never settles reply work, and “Ответ не требуется” never
+  marks unseen messages read. Mine and the sales board use the current reply
+  decision (including recurring questions), then the canonical task rank/deadline;
+  unread volume does not rank conversations. Waiting retains its current-wait
+  chronological queue. Delivery suspension continues to suppress automatic reply
+  urgency without changing human tasks or operator shifts.
 - first-reply waiting time and 5-minute risk;
 - trip summary;
 - sales stage/tags/outcome;

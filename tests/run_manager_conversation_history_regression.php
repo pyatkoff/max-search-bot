@@ -304,6 +304,20 @@ shown($state,[2,3]);check('late duplicate read acknowledgement is monotonic',cur
 shown($state,[5,6]);check('shown remaining prefix clears only its actual unread rows',cursor($pdo)===6);
 $pdo->exec("INSERT INTO messages VALUES(900,1,'inbound','customer','Global ID gap','2026-10-14 00:00:01','telegram',NULL)");
 shown($state,[900]);check('global ID gaps do not create phantom unread gaps',cursor($pdo)===900);
+// The unread prefix contains human messages, not recorded button/start actions.
+$pdo=fixture(8);
+foreach([2=>'callback',3=>'start',4=>'bot_started'] as $id=>$type){$q=$pdo->prepare('UPDATE messages SET metadata_json=? WHERE id=?');$q->execute([json_encode(['type'=>$type]),$id]);}
+$pdo->exec("UPDATE messages SET text='show_tours',metadata_json='{\"type\":\"message\"}' WHERE id=7;UPDATE messages SET metadata_json='{broken' WHERE id=8");
+$detail=apiDetail(['conversation_id'=>1])['body'];$state=$detail['read_state'];
+check('buttons and starts remain in history but do not inflate unread',count($detail['messages'])===8&&$state['unread_count']===4&&$state['first_unread_id']===5);
+$r=shown($state,[6]);check('excluded actions do not allow skipping an unseen human message',cursor($pdo)===0&&$r['body']['read_state']['unread_count']===4);
+$r=shown($state,[5,6]);check('excluded action rows never block the actually shown human prefix',cursor($pdo)===6&&$r['body']['read_state']['unread_count']===2);
+$r=shown($state,[7,8]);check('typed callback names and malformed metadata remain real unread messages',cursor($pdo)===8&&$r['body']['read_state']['unread_count']===0);
+$pdo->exec("INSERT INTO messages VALUES(9,1,'inbound','customer','New action','2026-10-14 00:00:01','telegram','{\"type\":\"callback\"}')");
+check('a newly recorded action does not revive the personal unread badge',apiDetail(['conversation_id'=>1])['body']['read_state']['unread_count']===0);
+$pdo->exec("INSERT INTO messages VALUES(10,1,'inbound','customer','','2026-10-14 00:00:01','telegram','{\"attachments\":[{\"type\":\"photo\"}]}')");
+$r=shown($state,[9]);check('an action-only acknowledgement cannot clear a newer unseen attachment',cursor($pdo)===8&&$r['body']['read_state']['unread_count']===1&&$r['body']['read_state']['first_unread_id']===10);
+$r=shown($state,[10]);check('a visible customer attachment advances across excluded actions',cursor($pdo)===10&&$r['body']['read_state']['unread_count']===0);
 $pdo=fixture(501);$state=apiDetail(['conversation_id'=>1])['body']['read_state'];shown($state,range(302,501));
 check('bounded latest tail cannot jump an unknown unread prefix',cursor($pdo)===0);
 foreach([range(2,201),range(202,401),range(402,501)] as $ids)shown($state,$ids);
