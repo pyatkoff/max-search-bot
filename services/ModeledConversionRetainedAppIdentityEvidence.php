@@ -84,7 +84,7 @@ final class ModeledConversionRetainedAppIdentityEvidence
                 .($mysql?'FORCE INDEX (idx_advertising_visit)':'INDEXED BY idx_advertising_visit')
                 .' WHERE '.implode(' AND ',$same)." AND x.identity_status='verified' AND HEX(x.identity_status)=HEX('verified')"
                 .' AND HEX(x.external_user_id)<>HEX(v.external_user_id))';
-            $parts=array_map(static fn(string $key):string=>$key==='id'?$cast('v.id'):'v.'.$key,$fields);$parts[]=$conflict;
+            $parts=array_map(static fn(string $key):string=>$key==='id'?$cast('v.id'):'v.'.$key,$fields);$parts[]='CASE WHEN '.$conflict.' THEN 1 ELSE 0 END';
             $points=self::packets($pdo,$point,'JSON_ARRAY('.implode(',',$parts).')',
                 [...$keys,$row['external_user_id']],$mysql,$started,$bytes,'retained_app_identity');
             if(count($points)>64)return $result(5,count($keys));

@@ -2541,12 +2541,16 @@ function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $ori
     finally{ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
     $done=ModeledConversionRetainedAppIdentityEvidence::complete($intent,$original,$row,$ns,$single,$now);
     $projection=ModeledConversionRetainedAppIdentityEvidence::projection($done,$original,$row,$ns,$now);
-    $check('an immutable pre-event YCLID-only witness is a compact candidate without identity or financial promotion',
-        strlen(json_encode($intent,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))===768
+    $candidateValid=strlen(json_encode($intent,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))===768
         &&$single[0]===1&&$single[5]===2&&$projection['status']==='candidate'&&$projection['kind']==='yclid'&&!$projection['financial_permission']
         &&strlen(json_encode($done,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=768
         &&strlen(json_encode($projection,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=225
-        &&!str_contains(json_encode($projection,JSON_THROW_ON_ERROR),'119988776655443322')&&!isset($projection['observation_id']));
+        &&!str_contains(json_encode($projection,JSON_THROW_ON_ERROR),'119988776655443322')&&!isset($projection['observation_id']);
+    if(!$candidateValid)echo 'RETAINED_APP_SYNTHETIC '.json_encode([
+        'result_code'=>$single[0]??null,'kind_code'=>$single[5]??null,'saved_frame'=>is_array($done),
+        'private_bytes'=>strlen(json_encode($done,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),
+        'projection_bytes'=>strlen(json_encode($projection,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))],JSON_THROW_ON_ERROR).PHP_EOL;
+    $check('an immutable pre-event YCLID-only witness is a compact candidate without identity or financial promotion',$candidateValid);
     $malformed=$done;unset($malformed['h']);$malformed['PRIVATE_UNKNOWN_KEY']='PRIVATE_VALUE';
     set_error_handler(static function(int $severity,string $message):never{throw new ErrorException($message,0,$severity);});
     try{$malformedView=ModeledConversionRetainedAppIdentityEvidence::projection($malformed,$original,$row,$ns,$now);}

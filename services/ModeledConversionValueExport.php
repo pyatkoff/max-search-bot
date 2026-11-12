@@ -301,8 +301,10 @@ final class ModeledConversionValueExport
         // Finite GET-only evidence follows ordinary financial work and cannot alter its decisions.
         $self->runFiniteEvidence($api,$now,$gate,$clock);
         $self->runRecoveryEvidence($api,$now,$gate,$clock,$stats['metrika_report']);
-        if($self->persistTickReceipt($stats,$failure,$now))
-            $self->runRetainedAppEvidence(self::observedAt($clock,$now),$gate);
+        if($self->persistTickReceipt($stats,$failure,$now)){
+            try{$self->runRetainedAppEvidence(self::observedAt($clock,$now),$gate);}
+            catch(Throwable $ignoredRetained){ /* Optional clock/evidence never changes the committed financial outcome. */ }
+        }
         // Private counts stay in the DB; ordinary diagnostic logs get technical state only.
         return ['status'=>$stats['errors']?'degraded':'running','contract'=>ModeledConversionValueContract::VERSION];
     }
