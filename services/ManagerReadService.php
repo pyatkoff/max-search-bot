@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ManagerConversationAccessPolicy.php';
+require_once __DIR__ . '/ManagerReplyQueueService.php';
 
 class ManagerReadService
 {
@@ -25,13 +26,19 @@ class ManagerReadService
             && ((int)($c['manager_id']??0)===$managerId || (!(int)($c['manager_id']??0)&&!ManagerSupervisorAccessService::canRead($managerId,$c)));
     }
 
+    /** One customer-message population for counts, seeking and acknowledgements. */
+    public static function messageSql(string $alias='m'): string
+    {
+        return ManagerReplyQueueService::humanSql($alias,ConversationDb::connection()->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql');
+    }
+
     /** Metadata only. Returning a transcript is never a read acknowledgement. */
     public static function snapshot(int $managerId,array $c): array
     {
         if(!self::eligible($managerId,$c))return ['acknowledge'=>false];
         $pdo=ConversationDb::connection();
         $q=$pdo->prepare('SELECT last_read_message_id FROM manager_conversation_reads WHERE manager_id=? AND conversation_id=?');$q->execute([$managerId,(int)$c['id']]);$last=(int)$q->fetchColumn();
-        $q=$pdo->prepare("SELECT MIN(id) AS first_id,COUNT(*) AS unread_count FROM messages WHERE conversation_id=? AND direction='inbound' AND sender_type='customer' AND id>?");$q->execute([(int)$c['id'],$last]);$row=$q->fetch();
+        $q=$pdo->prepare("SELECT MIN(id) AS first_id,COUNT(*) AS unread_count FROM messages m WHERE conversation_id=? AND ".self::messageSql()." AND id>?");$q->execute([(int)$c['id'],$last]);$row=$q->fetch();
         return ['acknowledge'=>true,'context'=>self::context($c),'last_read_message_id'=>$last,'first_unread_id'=>(int)($row['first_id']??0),'unread_count'=>(int)($row['unread_count']??0)];
     }
 
@@ -45,7 +52,7 @@ class ManagerReadService
             $q=$pdo->prepare('SELECT id,project_key,source_id,channel,status,manager_id FROM conversations WHERE id=? FOR UPDATE');$q->execute([$conversationId]);$c=$q->fetch();
             if(!$c||!self::eligible($managerId,$c)||!hash_equals(self::context($c),$context)){$pdo->rollBack();return ['ok'=>false,'error'=>'read_context_changed'];}
             $state=self::snapshot($managerId,$c);if(empty($state['acknowledge'])){$pdo->rollBack();return ['ok'=>false,'error'=>'read_context_changed'];}$last=$state['last_read_message_id'];
-            $q=$pdo->prepare("SELECT id FROM messages WHERE conversation_id=? AND direction='inbound' AND sender_type='customer' AND id>? AND id<=? ORDER BY id ASC LIMIT 201");$q->execute([$conversationId,$last,max($seen)]);$available=$q->fetchAll(PDO::FETCH_COLUMN);$set=array_fill_keys($seen,true);$through=$last;
+            $q=$pdo->prepare("SELECT id FROM messages m WHERE conversation_id=? AND ".self::messageSql()." AND id>? AND id<=? ORDER BY id ASC LIMIT 201");$q->execute([$conversationId,$last,max($seen)]);$available=$q->fetchAll(PDO::FETCH_COLUMN);$set=array_fill_keys($seen,true);$through=$last;
             foreach($available as $id){if(!isset($set[(int)$id]))break;$through=(int)$id;}
             if($through>$last)self::markRead($managerId,$conversationId,$through);
             $state=self::snapshot($managerId,$c);if(empty($state['acknowledge'])){$pdo->rollBack();return ['ok'=>false,'error'=>'read_context_changed'];}$pdo->commit();return ['ok'=>true,'read_state'=>$state];

@@ -172,7 +172,7 @@ $answeredIds=[];
 foreach(array_slice($mineFixtures,0,300) as $row){
     $id=$row['id'];$at=gmdate('Y-m-d H:i:s',strtotime($row['last_message_at']??$row['started_at'])+60);
     $message->execute([100000+$id*10,$id,'outbound','manager','answered-'.$id,'{}',$at]);
-    // A later button remains unread but does not create another pending reply.
+    // A later button stays in history without adding unread or pending reply work.
     $message->execute([100001+$id*10,$id,'inbound','customer','show_tours','{"type":"callback"}',$at]);
     $db->prepare('UPDATE conversations SET last_message_at=? WHERE id=?')->execute([$at,$id]);
     $fixtures[$id]['last_message_at']=$at;$fixtures[$id]['reply_needed']=false;$answeredIds[]=$id;
@@ -313,9 +313,14 @@ if(is_string($baselineFile)&&$baselineFile!==''){
     if($replacements!==1)throw new RuntimeException('preview_baseline_class_mismatch');
     $code='';foreach(token_get_all($source) as $token){if(!is_array($token)){$code.=$token;continue;}if($token[0]===T_OPEN_TAG)continue;$code.=$token[0]===T_DIR?var_export(dirname(__DIR__).'/services',true):$token[1];}eval($code);
     $baselinePage=null;$baselineRows=PreviewBaselineManagerConversationService::list(...[...$previewArgs,&$baselinePage]);
-    $expectedRows=$baselineRows;$redactedLikeRows=0;
+    $expectedRows=$baselineRows;$redactedLikeRows=0;$excludedActionRows=0;
     foreach($expectedRows as &$expectedRow){
-        if((int)$expectedRow['id']!==203)continue;
+        $id=(int)$expectedRow['id'];
+        if(in_array($id,[202,203],true)){
+            queryPageCheck('installed baseline counts exactly the designated recorded action '.$id,(int)$expectedRow['unread_count']===1&&(int)$previewById[$id]['unread_count']===0&&$expectedRow['last_direction']==='inbound'&&$expectedRow['last_sender_type']==='customer');
+            $expectedRow['unread_count']=0;$excludedActionRows++;
+        }
+        if($id!==203)continue;
         queryPageCheck('installed baseline has the exact recorded like fixture before public token redaction',
             $expectedRow['last_direction']==='inbound'&&$expectedRow['last_sender_type']==='customer'
             &&$expectedRow['last_text']==='tour_like_synthetic'&&$expectedRow['last_preview_text']==='Нажата кнопка «Нравится»');
@@ -328,8 +333,8 @@ if(is_string($baselineFile)&&$baselineFile!==''){
         foreach($waitFields as $field)unset($row[$field]);
     }unset($row);
     queryPageCheck('AI preview fixtures add exactly the four truthful unknown current-wait fields',$validWait);
-    queryPageCheck('every legacy preview field and candidate metadata match installed source except the explicit like token redaction',
-        $redactedLikeRows===1&&$expectedRows===$compatibleRows&&$baselinePage===$previewPage);
+    queryPageCheck('every legacy preview field and candidate metadata match installed source except designated action counts and like token',
+        $redactedLikeRows===1&&$excludedActionRows===2&&$expectedRows===$compatibleRows&&$baselinePage===$previewPage);
 }
 $plan=$pdo->prepare('EXPLAIN QUERY PLAN '.$previewSql);$plan->execute($previewSqlArgs);
 $lookups=count(array_filter($plan->fetchAll(),static fn(array $row):bool=>preg_match('/\b(?:SEARCH|SCAN) mm\b/',$row['detail'])===1));
@@ -346,6 +351,7 @@ $callbackPreviewBefore=$queueSnapshot();$callbackPreviewPage=null;
 $callbackPreviewArgs=[7,'all',200,'anytour','','',0,['ids'=>[210,211]]];
 $callbackPreviewRows=ManagerConversationService::list(...[...$callbackPreviewArgs,&$callbackPreviewPage]);
 $callbackPreviewById=array_column($callbackPreviewRows,null,'id');
+queryPageCheck('Inbox excludes recorded actions while keeping identical typed text unread',(int)$callbackPreviewById[210]['unread_count']===0&&(int)$callbackPreviewById[211]['unread_count']===1);
 queryPageCheck('SQL callback preview explains manager help while identical customer text stays literal',
     count($callbackPreviewRows)===2
     && $callbackPreviewById[210]['last_preview_text']==='Нажата кнопка «Нужна помощь с подбором»'

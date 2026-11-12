@@ -103,3 +103,24 @@ test('a new inbound reopens the current series without restarting its timer on l
  const q=f.states.get(11);q.customer_message_id++;q.wait_age_seconds=125;f.data[0].reply_wait_age_seconds=125;
  await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible());await expect(page.locator('#replyQueueText')).toContainText('Ожидает ответа · 2 мин');expect(q.waiting_since_unix).toBe(instant);expect(f.queueCalls.map(c=>c.action)).toEqual(['reply_queue_resolve']);clean(f);
 });
+
+for(const width of [390,430,768,1440])test(`list and board share current reply priority after reading and no-reply ${width}`,async({page},testInfo)=>{
+ await page.setViewportSize({width,height:740});const f=await fixture(page);
+ Object.assign(f.data[0],{unread_count:0,next_task_title:'Задача на завтра',operational_task_state:'soon',operational_task_rank:2});
+ Object.assign(f.data[1],{awaiting_first_reply:1,awaiting_manager_reply:0,reply_wait_age_seconds:null,reply_wait_time_known:false,unread_count:20,next_task_title:'Задача на завтра',operational_task_state:'soon',operational_task_rank:2});
+ const render=async()=>{await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await page.evaluate(()=>WorkspaceV2Kanban.render(WorkspaceV2Inbox.getLoadedSelection()));};
+ await render();
+ await expect(page.locator('.kanbanCard').first()).toHaveAttribute('data-id','11');
+ await expect(page.locator('.kanbanCard[data-id="11"] .kanbanWait')).toContainText('10 мин');
+ await expect(page.locator('.kanbanCard[data-id="12"] .kanbanWait')).toHaveCount(0);
+ await expect(page.locator('.kanbanColumnTitle small').first()).toContainText('1 без ответа');
+ f.data[1].unread_count=0;await render();await expect(page.locator('.kanbanCard').first()).toHaveAttribute('data-id','11');
+ await capture(page,testInfo,'reply-queue-ranking-'+width);
+ await page.locator('.kanbanCard[data-id="11"] .kanbanOpen').click();await expect(page.locator('#replyText')).toBeEnabled();
+ await resolve(page);await expect(page.locator('#replyQueueText')).toContainText('Ответ не требуется');
+ await render();await expect(page.locator('.kanbanWait')).toHaveCount(0);await expect(page.locator('.kanbanColumnTitle small').first()).not.toContainText('без ответа');
+ f.incoming(11,7);await render();await expect(page.locator('.kanbanCard').first()).toHaveAttribute('data-id','11');
+ await expect(page.locator('.kanbanCard[data-id="11"] .kanbanWait')).toContainText('<1 мин');
+ await expect(page.locator('.kanbanColumnTitle small').first()).toContainText('1 без ответа');
+ expect(f.data[0].unread_count).toBe(0);expect(f.data[0].awaiting_first_reply).toBe(0);clean(f);
+});
