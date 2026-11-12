@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "kind": "root_authenticated_private_route_extension",
+  "operation": "commercial-max551-private-route-extension-20261112-5-install1",
+  "previous_count": 542,
+  "logical_hotels": 551,
+  "new_hotel_ids": [
+    1551,
+    1368,
+    1370,
+    129406,
+    62505,
+    73343,
+    46770,
+    63673,
+    973
+  ],
+  "publication_summary_sha256": "720f587f58bab8a7c92fd7cb962cef2c736e9af8565b98c9d4eb8a31f73e9615",
+  "bound_read_sha256": "d8f2943067d47a6a00729d327c1e65d52167ebf1b57cf8a5430638adbee93bd2",
+  "new_binding_tuples_sha256": "e98cba1073445325e2b67af106001fb591dcee2192160864c67cd3a2539d241d",
+  "route_receipt_sha256": "64ee42e1ead141ca1a1c98cdfd49440439f4ec15ad1aa67a40f4508892cbabcd",
+  "route_manifest_projection_sha256": "2fb7260bc1f481249465416befa6cd91b16638991879a355b921332f98a30c20",
+  "original_route_manifest_sha256": "93b53d5839974fedc996c14edcd22a8e3e195faddd4a2184d9ab3bf804c430bd",
+  "original_route_map_sha256": "8da3a57d21fbd717631b6f24789dff6ddc93bc0a791996c226c7618b6416f4b8",
+  "original_route_module_sha256": "b79a169a9e3e9b6e468cf86ee108881a4bc709cc7194cc983c9cb2e59af3b3f6",
+  "original_previous_map_sha256": "ff49fe9efcddc03beca0ad5de8ec70d3a8cbc582b7b8f117acb7f2a891f4dfd7",
+  "verification": {
+    "full_map_checked": true,
+    "previous_rows_preserved": true,
+    "new_tuples_checked": true
+  },
+  "source": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 43288960939,
+    "run_attempt": 1,
+    "head_sha": "701ba1ce4056a2f4d430c1551e34596c67eaeaa7",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "workflow_path": ".github/workflows/tgmini-identity-readonly.yml",
+    "candidate_artifact": {
+      "id": 13975342937,
+      "name": "commercial-max551-route-extension-candidate",
+      "zip_sha256": "08e4ffc6c0b576a1260d4bd17d83bb38869c8a3dcdee68dffd9264f2a6edb730"
+    },
+    "result_artifact": {
+      "id": 13975882666,
+      "name": "commercial-max551-route-extension-install-result",
+      "zip_sha256": "58c03b72a5603c18d8bc8f3c261e2879b3a563f79cff331a3bb7b30aaeeb08ff"
+    }
+  }
+}
