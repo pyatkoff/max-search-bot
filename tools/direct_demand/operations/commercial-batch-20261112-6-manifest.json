@@ -1,0 +1,211 @@
+{
+  "state": "PREPARED_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261112-6-v1",
+  "registry_version": 224,
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 551,
+  "expected_new_full_pairs": 9,
+  "rows": [
+    {
+      "hotel_id": 418,
+      "logical_id": "commercial-hotel-418-418-v1",
+      "aliases": [
+        "SRNTY Sea Reef",
+        "SERENITY ALPHA BEACH (EX. SERENITY MAKADI BEACH)"
+      ],
+      "text": "✈️ Туры в SRNTY Sea Reef\n📍 Макади-Бей, Египет.\n\nМакади Бей для любителей моря: доступ к рифу с пирса, бассейны с морской водой и просторные номера. С 1 ноября 2026 бывший Serenity Alpha Beach называется SRNTY Sea Reef.\n\nУчтём холмистую территорию и условия выхода на пирс. Привилегии Grand Club и доступ в соседний аквапарк проверяются отдельно.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "abe79a3fe02ac7dae6d10422edf43c10435ae3c2823337a53ddb240a6d532034",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7154f63f959bcfd1ba3d382ebb327f9c0af15c2f/.github/traffic-publish/commercial-20261112-batch6/418.png",
+      "photo_sha256": "155114d792e42819f42af641b2d15b97ba45f492a7f7337c6512b554bd892d81",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://srntyhotels.com/srnty-sea-reef/",
+        "https://srntyhotels.com/experiences/",
+        "https://www.easyjet.com/en/holidays/egypt/hurghada/makadi-bay/srnty-sea-reef-ex-serenity-alpha-beach",
+        "https://srntyhotels.com/wp-content/uploads/2026/06/R08-1024x683.webp",
+        "https://srntyhotels.com/wp-content/uploads/2026/06/0L9A2303-683x1024.webp",
+        "https://srntyhotels.com/wp-content/uploads/2026/07/48ab01c6-86e6-49b8-ac0f-b659af349ee5-1200x625.png"
+      ]
+    },
+    {
+      "hotel_id": 364,
+      "logical_id": "commercial-hotel-364-364-v1",
+      "aliases": [
+        "V Hotel Sharm El Sheikh",
+        "V HOTEL SHARM EL SHEIKH (EX. PYRAMISA BEACH RESORT SHARM EL SHEIKH)"
+      ],
+      "text": "✈️ Туры в V Hotel Sharm El Sheikh\n📍 Шаркс-Бей, Шарм-эль-Шейх, Египет.\n\nШаркс Бей для комфортного семейного отдыха: пляж, детский аквапарк и выбор семейных категорий, Executive и Royal Suite.\n\nТерритория спускается к морю, работает пляжный шаттл. Уточним расположение номера, удобный вход в воду и условия выбранного тарифа.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "04dbf68baf1de8162b4ce7aaca2d3f3a0379c6c146f769211b2eb283fc8f589a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7154f63f959bcfd1ba3d382ebb327f9c0af15c2f/.github/traffic-publish/commercial-20261112-batch6/364.png",
+      "photo_sha256": "8647816c7052c9764dfdf8b82a94faf4e2ac0c6d1c24671e8640338d073d92eb",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://thevhotelsegypt.com/v-hotel-sharm-el-sheikh/",
+        "https://thevhotelsegypt.com/wp-content/uploads/2025/09/FACT-SHEET-SSH-July-2025.pdf",
+        "https://kompastour.com/az/rus/country/egypt/sharm/pyramisa_beach_resort_sharm_el_sheikh/",
+        "https://thevhotelsegypt.com/wp-content/uploads/2025/08/V-SSH_-Swimming-Pool-12-1.webp",
+        "https://thevhotelsegypt.com/wp-content/uploads/2025/08/THE-V-SHARM-EL-SHEKH-MARCH-2025-PHOTO-SHOOT-BY-MUSTAFA-ELMASRY-PART-B00003.webp",
+        "https://thevhotelsegypt.com/wp-content/uploads/2025/08/Copy-of-Kids-Aqua-Park-4.webp"
+      ]
+    },
+    {
+      "hotel_id": 1335,
+      "logical_id": "commercial-hotel-1335-1335-v1",
+      "aliases": [
+        "Selectum Family Resort Belek",
+        "SELECTUM FAMILY RESORT (EX. SENTIDO LETOONIA GOLF RESORT)"
+      ],
+      "text": "✈️ Туры в Selectum Family Resort Belek\n📍 Белек, Турция.\n\nПляжный отдых в Белеке для всей семьи: песчаный берег, аквапарк и детская Aquatower. Для спокойного плавания есть отдельный Relax Pool 18+.\n\nПодогрев крытого бассейна указан только на апрель и октябрь. Проверим сезон работы горок, ограничения для детей и подходящий номер.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "3c79cdbca956478064bc74edaaf497d97572c2a096761427503985959f1562bd",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7154f63f959bcfd1ba3d382ebb327f9c0af15c2f/.github/traffic-publish/commercial-20261112-batch6/1335.png",
+      "photo_sha256": "2de81769255b0bc6c0a32825ee0a1717ed639515c65eab3b817597b2630331f3",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://familyresortbelek.selectumhotels.com/en",
+        "https://familyresortbelek.selectumhotels.com/en/pool-and-beach/pools",
+        "https://familyresortbelek.selectumhotels.com/en/pool-and-beach/beach",
+        "https://content.anexapps.com/v1/selectum-family-resort-belek/256727c717a245af86022cd15da28e8c.jpg",
+        "https://content.anexapps.com/v1/selectum-family-resort-belek/f678983928444ea6a0bd208fe4c4f2e1.jpg",
+        "https://content.anexapps.com/v1/selectum-family-resort-belek/4d2cef4c54f248fbb25440e1b7a7c326.jpg"
+      ]
+    },
+    {
+      "hotel_id": 1212,
+      "logical_id": "commercial-hotel-1212-1212-v1",
+      "aliases": [
+        "Granada Luxury Okurcalar",
+        "GRANADA LUXURY OKURCALAR (EX. GRANADA LUXURY RESORT & SPA)"
+      ],
+      "text": "✈️ Туры в Granada Luxury Okurcalar\n📍 Окурджалар, Аланья, Турция.\n\nПляжный отдых в Окурджаларе: бассейны, детский клуб и выбор семейных номеров и люксов. Для особой поездки подберём более просторную категорию.\n\nРаботу пирса, сезонную программу и ресторанные включения проверим на ваши даты. Подогрев бассейнов заранее не обещаем.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "194763624ecff3ec020265f4e66cff7d263489df8b70435fb051533095f53387",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7154f63f959bcfd1ba3d382ebb327f9c0af15c2f/.github/traffic-publish/commercial-20261112-batch6/1212.png",
+      "photo_sha256": "41a579cb0a89cd4afd7f949f79e80ebb257c75a1826bb9c22a34f03beade0260",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.granada.com.tr/en/our-hotels/granada-luxury-okurcalar/",
+        "https://onlinereservationokurcalar.granada.com.tr/en/",
+        "https://granada.com.tr/media/bnrijo2j/2026-okurcalar-factsheet-en.pdf",
+        "https://www.granada.com.tr/media/uh3julci/granada-okurcalar-anasayfa-banner-m.jpg?width=780&format=webp&quality=70",
+        "https://www.granada.com.tr/media/0q1nnvt0/granada-okurcalar-anasayfa-oda-card2.jpg",
+        "https://www.granada.com.tr/media/sornpxdg/granada-okurcalar-plaj-card.jpg"
+      ]
+    },
+    {
+      "hotel_id": 13844,
+      "logical_id": "commercial-hotel-13844-13844-v1",
+      "aliases": [
+        "JA Ocean View Hotel",
+        "JA OCEAN VIEW HOTEL"
+      ],
+      "text": "✈️ Туры в JA Ocean View Hotel\n📍 JBR, Дубай, ОАЭ.\n\nМоре и прогулки по Дубаю: The Walk, общественный пляж JBR, номера с морским видом и бассейн. Для детей   игровая зона Coolzone.\n\nПляжные лежаки и зонты могут оплачиваться отдельно. Доступ в Coral Lounge зависит от категории номера.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "7f51a97467d074f88e50aee21e5625b8144ea8ccc39e42af24d5cf3cd1d78ed2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7154f63f959bcfd1ba3d382ebb327f9c0af15c2f/.github/traffic-publish/commercial-20261112-batch6/13844.png",
+      "photo_sha256": "9743b34d0af306dcff9f0a08e2484d69b317a755605f63af324a2398bf64fbd5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://www.jaresortshotels.com/dubai/ja-ocean-view-hotel",
+        "https://www.jaresortshotels.com/leisure-detail/kids-play-area",
+        "https://www.jaresortshotels.com/dubai/ja-ocean-view-hotel/gallery",
+        "https://jaweb2019cdn.azureedge.net/assets/images/default-source/jarh-images/site-redesign/accommodations/landing-small/a-seaview-room-jpg75a6e2aa-0a2f-4783-b761-e61868b72163.jpg?sfvrsn=98cc8255_0",
+        "https://jaweb2019cdn.azureedge.net/assets/images/default-source/jarh-images/site-redesign/-masonry-grid-image/swimming-pool---1-jpg2241402a-b998-46b3-aedb-7f127ee8b7ff.jpg?sfvrsn=a56b5884_2",
+        "https://jaweb2019cdn.azureedge.net/assets/images/default-source/jarh-images/site-redesign/-masonry-grid-image/aqua-restaurant-bar-4-jpg0ef901fe-63aa-47ee-a73f-5b3f3ead8671.jpg?sfvrsn=aeb58127_2"
+      ]
+    },
+    {
+      "hotel_id": 21476,
+      "logical_id": "commercial-hotel-21476-21476-v1",
+      "aliases": [
+        "Cleopatra Luxury Resort Makadi Bay",
+        "CLEOPATRA LUXURY RESORT MAKADI BAY (EX. ALDIANA MAKADI)"
+      ],
+      "text": "✈️ Туры в Cleopatra Luxury Resort Makadi Bay\n📍 Макади-Бей, Египет.\n\nСемейный отдых в Макади Бей: море у отеля, детский клуб, бассейны и выбор семейных номеров и люксов. Для активных дней есть спорт, для отдыха   спа.\n\nЗимой уточним, какие бассейны подогреваются. Эта карточка относится к семейному курорту; отдельный Adults Only подбирается отдельно.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "94a1c157d78faa0f2e7603676ce4333b8373112a07df2b121e118e813687a6f9",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7154f63f959bcfd1ba3d382ebb327f9c0af15c2f/.github/traffic-publish/commercial-20261112-batch6/21476.png",
+      "photo_sha256": "ece99b9da49a4b0ddd284a8ab5e27bd4fa0d5dd9e8e334508a4932bd0de6f152",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-makadi-bay/",
+        "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-makadi-bay/activities/swimming-pools/",
+        "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2026/11/photo-05.jpg",
+        "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2026/11/experience-makadi-beach.jpg",
+        "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2026/11/557277400.jpg"
+      ]
+    },
+    {
+      "hotel_id": 1569,
+      "logical_id": "commercial-hotel-1569-1569-v1",
+      "aliases": [
+        "Utopia World",
+        "UTOPIA WORLD HOTEL"
+      ],
+      "text": "✈️ Туры в Utopia World\n📍 Каргыджак, Аланья, Турция.\n\nПанорамы моря, бассейны и аквапарк среди сосен в Аланье. Подойдёт для активного семейного отпуска.\n\nДо пляжа   отдельный маршрут через дорогу. Оператор предупреждает о работах у моста и лифта и замене шаттлом; проверим доступ на ваши даты. Категория Villa не означает частный бассейн.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "3026476cd14c9dab393721cbe1450986bcfd9dd34e308e51bf8f789b3c162918",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7154f63f959bcfd1ba3d382ebb327f9c0af15c2f/.github/traffic-publish/commercial-20261112-batch6/1569.png",
+      "photo_sha256": "7f22bc168697be6b410a826e9a8dfd139d0a5f2163efb05b55d9f5a05a82e03a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://www.utopiaworld.com/en/hotel/world",
+        "https://www.utopiahotels.com/en/hotel/world/aquapark",
+        "https://www.corendon.de/turkei/turkische-riviera/alanya/kargicak/utopia-world",
+        "https://cdn.utopiahotels.com/assets/images/pages/090220221955-lg.jpg",
+        "https://cdn.utopiahotels.com/assets/images/pages/02konaklamaanasayfa-lg.jpg",
+        "https://cdn.utopiahotels.com/assets/images/pages/03havuzlaranasayfa-lg.jpg"
+      ]
+    },
+    {
+      "hotel_id": 65779,
+      "logical_id": "commercial-hotel-65779-65779-v1",
+      "aliases": [
+        "Titanic Royal",
+        "TITANIC ROYAL HOTEL"
+      ],
+      "text": "✈️ Туры в Titanic Royal\n📍 Хургада, Египет.\n\nПляжный отдых в Хургаде с бассейнами, водными развлечениями и выбором просторных категорий. Можно рассмотреть Junior Suite или номер Swim Up.\n\nSwim Up выходит к общему бассейну, его зимний подогрев заранее не обещаем. Посещение большого аквапарка соседнего Titanic Resort проверим отдельно.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "10dd571690ffad91ee2ab9f7507058db8e30ddb029ce37f69ea87c9d4908d182",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7154f63f959bcfd1ba3d382ebb327f9c0af15c2f/.github/traffic-publish/commercial-20261112-batch6/65779.png",
+      "photo_sha256": "511d7d455f25dfcf7c046d41eb0d579dc47b6242f4495195f9700c3c0800d456",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.hwaidak-hotels.com/hotels/titanic-royal",
+        "https://pegast.ru/hotel/egypt/hurghada/hurghada/titanic-royal-hotel-350011260",
+        "https://www.tui.nl/titanic-royal-509933001/",
+        "https://storage.googleapis.com/hwaidak-hotels.appspot.com/hotels%2Fimages%2F1738087613523-DJI_20240925234422_0065_D%20-%20Copy.jpg",
+        "https://firebasestorage.googleapis.com/v0/b/hwaidak-hotels.appspot.com/o/rooms%2Fimages%2Foptimized-1738003606746-SSP-TITANIC-D447-min.webp?alt=media&token=167bb514-9352-4175-ad93-92bb6c9f29e7",
+        "https://firebasestorage.googleapis.com/v0/b/hwaidak-hotels.appspot.com/o/restaurants%2Fimages%2F1744782221577-AJ3A7673%20%28Large%29.webp?alt=media&token=4559e43b-5227-40a0-a8d6-082f0f4b4959"
+      ]
+    },
+    {
+      "hotel_id": 1369,
+      "logical_id": "commercial-hotel-1369-1369-v1",
+      "aliases": [
+        "Melas Lara Hotel",
+        "MELAS LARA HOTEL"
+      ],
+      "text": "✈️ Туры в Melas Lara Hotel\n📍 Лара, Анталья, Турция.\n\nДля семейного отдыха в Ларе: песчаный пляж, детский клуб, горки и номера с отдельными спальнями родителей и детей.\n\nС ноября по март подогреваются крытые основной и детский бассейны. У открытых детского бассейна и чаши с горками подогрев заявлен только в марте, апреле, октябре и ноябре.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "9962122f60c6243d266d0d4956e32cdef31c07a7cb9f5e2dc89df6d77550afc3",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7154f63f959bcfd1ba3d382ebb327f9c0af15c2f/.github/traffic-publish/commercial-20261112-batch6/1369.png",
+      "photo_sha256": "37af30e39a7032181ec1010e8acf5d7d07eb4a6b1a99205123348e9eb8239d8a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.melashotels.com/en/melas-lara-hotel",
+        "https://www.melashotels.com/en/melas-lara-hotel/beach-pool",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260508083610494_org.webp",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260624064827077_org.webp",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260508085437547_org.webp"
+      ]
+    }
+  ]
+}
