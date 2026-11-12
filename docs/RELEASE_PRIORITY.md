@@ -6,9 +6,15 @@ The original PR1505 installation and every original required gate succeeded.
 Closer43231780686/attempt1 prepared and published its digest-bound terminal
 proposal, then refused with `api_http_503` before the publisher PATCH. Its
 failure remains immutable history. Pavel's subsequent continuation is handled
-by one real create-push of `ops/recover-pr1505-terminal-20261112` in the same
+by one exact checked fast-forward of `ops/recover-pr1505-terminal-20261112` in the same
 existing serialized tail, only after exact-source required PR CI succeeds.
-This is neither a rerun nor a replacement installation or publisher.
+This is neither a rerun nor a replacement installation or publisher. The first
+source-accepted continuation43239070014 stopped at its initial context guard:
+proof upload and terminal steps are explicitly skipped and its allowlisted
+failure precedes every writer. Read-only observation43240168728 then proved the
+genuine update event from658e387 to f4db027. The final continuation accepts only
+the exact update from that observed f4db027 source to its directly checked child,
+and independently verifies both actual predecessor jobs/logs before any write.
 
 The fixed recipe pins the original SHA, proposal commit/blob/digest, failed
 run/job and original publisher tuple. Before any write it authenticates that

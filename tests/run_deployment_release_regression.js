@@ -1007,6 +1007,13 @@ async function terminalContinuationCases(){
     for(const [i,name]of ['Regression tests','Retired domain guard'].entries())f.runs.set(runId+i+1,
       {...copy(native),id:runId+i+1,name,path:R.PREFIX+(i===0?'regression-tests.yml':'retired-domain-guard.yml'),event:'pull_request',status:'completed',conclusion:'success'});
     const currentJob=job('release-slot-recovery',native,[],null);currentJob.status='in_progress';f.jobs.set(runId,[currentJob]);
+    const stopped={...copy(native),id:Number(p.continuation_run_id),head_sha:p.continuation_sha,status:'completed',conclusion:'failure'};
+    const stoppedJob=job('release-slot-recovery',stopped,[step('Prepare continuation of the original pre-write read refusal','failure'),
+      step(R.TERMINAL_BINDING_STEP,'skipped'),step(R.TERMINAL_STEP,'skipped')],'failure');stoppedJob.id=p.continuation_job_id;
+    f.runs.set(stopped.id,stopped);f.jobs.set(stopped.id,[stoppedJob]);
+    const observed={...copy(native),id:Number(p.observation_run_id),head_sha:p.observation_sha,status:'completed',conclusion:'success'};
+    const observationJob=job('release-slot-recovery',observed,[step('Read only allowlisted native event and run identity')]);
+    observationJob.id=p.observation_job_id;f.runs.set(observed.id,observed);f.jobs.set(observed.id,[observationJob]);
     const bound=original.repository_release.closure.binding;
     f.pr={...f.pr,head:{sha:bound.head_sha,repo:{full_name:R.REPOSITORY}},
       body:'<!-- release-slot-close:v1 '+JSON.stringify({comment_id:p.comment_id,head_sha:bound.head_sha,
@@ -1025,22 +1032,29 @@ async function terminalContinuationCases(){
     f.artifacts.set(failed.id,[artifact]);f.archives.set(artifact.id,archive);
     const base=f.api;
     const api=async(method,path,body,raw)=>{
-      if(path===R.API_ROOT+'/git/commits/'+source)return {sha:source,parents:[{sha:p.sha}]};
+      if(path===R.API_ROOT+'/git/commits/'+source)return {sha:source,parents:[{sha:p.observation_sha}]};
       if(path===R.API_ROOT+'/contents/tools/release_slot_close.js?ref='+p.sha)
         return {sha:'66cf67b48a40517dc4b2afd38b891c5396baeefe'};
+      if(path===R.API_ROOT+'/contents/tools/release_slot_close.js?ref='+p.continuation_sha)
+        return {sha:'4bce0a0fe076ffc4fa481a8f0ba1cce98477ec4d'};
       if(path===R.API_ROOT+'/issues/comments/'+p.comment_id){
         f.calls.push({method,path,body});if(method==='PATCH')f.comment={...f.comment,body:body.body};return copy(f.comment);
       }
       return base(method,path,body,raw);
     };
     api.artifact=base.artifact;
-    api.jobLog=async()=>Buffer.from(T+' release_slot=held reason=api_http_503\n');
+    api.jobLog=async id=>Buffer.from(id===p.observation_job_id?T+' TERMINAL_CONTEXT '+JSON.stringify({
+      env:{GITHUB_SHA:p.observation_sha,GITHUB_RUN_ID:p.observation_run_id,GITHUB_RUN_ATTEMPT:'1',
+        GITHUB_REF:'refs/heads/'+p.branch,GITHUB_JOB:'release-slot-recovery'},
+      event:{before:p.continuation_sha,after:p.observation_sha,created:false,deleted:false,forced:false},
+      native:{id:Number(p.observation_run_id),actor_id:p.owner_id,status:'in_progress'}})+'\n':
+      T+' release_slot=held reason='+(id===p.continuation_job_id?'untrusted_terminal_continuation':'api_http_503')+'\n');
     const env={GITHUB_REPOSITORY:R.REPOSITORY,GITHUB_EVENT_NAME:'push',GITHUB_REF:'refs/heads/'+p.branch,
       GITHUB_SHA:source,GITHUB_RUN_ID:String(runId),GITHUB_RUN_ATTEMPT:'1',GITHUB_JOB:'release-slot-recovery',
       GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.CLOSER+'@refs/heads/'+p.branch};
-    const event={repository:{full_name:R.REPOSITORY},ref:env.GITHUB_REF,after:source,before:'0'.repeat(40),
-      created:true,deleted:false,forced:false};
-    return {f,api,env,event,native,currentJob,oldJob,source,options:()=>({env,event,api})};
+    const event={repository:{full_name:R.REPOSITORY},ref:env.GITHUB_REF,after:source,before:p.observation_sha,
+      created:false,deleted:false,forced:false};
+    return {f,api,env,event,native,currentJob,oldJob,stoppedJob,observationJob,source,options:()=>({env,event,api})};
   }
   for(const bad of [
     ['GITHUB_EVENT_NAME','workflow_dispatch'],['GITHUB_RUN_ATTEMPT','2'],
@@ -1066,6 +1080,19 @@ async function terminalContinuationCases(){
   {
     const x=setup();x.oldJob.steps.at(-1).conclusion='success';
     await refuses(()=>C.resumeTerminal({...x.options(),prepare:true}),'original_terminal_not_failed');
+  }
+  {
+    const x=setup();x.stoppedJob.steps.at(-1).conclusion='success';
+    await refuses(()=>C.resumeTerminal({...x.options(),prepare:true}),'continuation_predecessor_has_writes');
+    equal(x.f.calls.some(q=>q.method!=='GET'),false,'an executed predecessor terminal cannot be replayed');
+  }
+  {
+    const x=setup();x.observationJob.steps.push(step('unexpected private operation'));
+    await refuses(()=>C.resumeTerminal({...x.options(),prepare:true}),'observation_predecessor_changed');
+  }
+  {
+    const x=setup();x.event.before=p.continuation_sha;
+    await refuses(()=>C.resumeTerminal({...x.options(),prepare:true}),'untrusted_terminal_continuation');
   }
   {
     const x=setup();x.f.runs.get(Number(original.repository_release.closure.gates[2].run_id)).conclusion='failure';

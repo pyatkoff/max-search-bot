@@ -729,12 +729,50 @@ function makeApi(token, fetchImpl = globalThis.fetch) {
   };
   api.artifact=read.artifact;api.jobLog=read.jobLog;return api;
 }
-function recoveryLog(bytes){
+function recoveryLog(bytes,expected='api_http_503'){
+  requireValue(['api_http_503','untrusted_terminal_continuation'].includes(expected),'invalid_terminal_failure');
   requireValue(Buffer.isBuffer(bytes)&&bytes.length>0&&bytes.length<=2*1024*1024,'original_terminal_log_unavailable');
   const s=bytes.toString('utf8');requireValue(Buffer.from(s).equals(bytes),'original_terminal_log_unavailable');
   const outcomes=s.split(/\r?\n/).filter(x=>/^\d{4}-\d\d-\d\dT[0-9:.]+Z release_slot=/.test(x));
-  requireValue(outcomes.length===1&&/Z release_slot=held reason=api_http_503$/.test(outcomes[0]),
+  requireValue(outcomes.length===1&&outcomes[0].endsWith('Z release_slot=held reason='+expected),
     'original_terminal_not_prewrite');
+}
+async function continuationPredecessors(api){
+  const p=release.TERMINAL_RECOVERY,get=path=>api('GET',release.API_ROOT+path);
+  for(const [source,id,jobId,outcome]of [[p.continuation_sha,p.continuation_run_id,p.continuation_job_id,'failure'],
+    [p.observation_sha,p.observation_run_id,p.observation_job_id,'success']]){
+    const run=await get('/actions/runs/'+id);
+    release.runIdentity(run,{id,attempt:1,head:source,workflow:CLOSER,event:'push',branch:p.branch,conclusion:outcome});
+    const jobs=release.boundedList(await get('/actions/runs/'+id+'/attempts/1/jobs?per_page=100'),'jobs','incomplete_continuation_predecessor');
+    const own=jobs.filter(j=>j.id===jobId&&j.name==='release-slot-recovery');
+    requireValue(own.length===1&&own[0].head_sha===source&&own[0].run_id===Number(id)&&own[0].run_attempt===1
+      &&own[0].status==='completed'&&own[0].conclusion===outcome&&Array.isArray(own[0].steps),'continuation_predecessor_changed');
+    const steps=own[0].steps;
+    if(outcome==='failure'){
+      const prep=steps.filter(s=>s.name==='Prepare continuation of the original pre-write read refusal');
+      const bind=steps.filter(s=>s.name===release.TERMINAL_BINDING_STEP);
+      const terminal=steps.filter(s=>s.name===release.TERMINAL_STEP);
+      requireValue(prep.length===1&&prep[0].status==='completed'&&prep[0].conclusion==='failure'
+        &&bind.length===1&&bind[0].status==='completed'&&bind[0].conclusion==='skipped'
+        &&terminal.length===1&&terminal[0].status==='completed'&&terminal[0].conclusion==='skipped',
+        'continuation_predecessor_has_writes');
+      requireValue((await get('/contents/tools/release_slot_close.js?ref='+source))?.sha==='4bce0a0fe076ffc4fa481a8f0ba1cce98477ec4d',
+        'continuation_predecessor_changed');
+      recoveryLog(await api.jobLog(jobId),'untrusted_terminal_continuation');
+    }else{
+      requireValue(jobs.length===1&&steps.filter(s=>!['Set up job','Complete job'].includes(s.name)).length===1
+        &&steps.some(s=>s.name==='Read only allowlisted native event and run identity'&&s.conclusion==='success'),
+        'observation_predecessor_changed');
+      const bytes=await api.jobLog(jobId),lines=bytes.toString('utf8').split(/\r?\n/).filter(s=>/Z TERMINAL_CONTEXT /.test(s));
+      requireValue(lines.length===1,'observation_predecessor_changed');let actual;
+      try{actual=JSON.parse(lines[0].split(' TERMINAL_CONTEXT ')[1]);}catch{throw new Refusal('observation_predecessor_changed');}
+      requireValue(actual.env?.GITHUB_SHA===source&&actual.env.GITHUB_RUN_ID===id&&actual.env.GITHUB_RUN_ATTEMPT==='1'
+        &&actual.env.GITHUB_REF==='refs/heads/'+p.branch&&actual.env.GITHUB_JOB==='release-slot-recovery'
+        &&actual.event?.before===p.continuation_sha&&actual.event.after===source&&actual.event.created===false
+        &&actual.event.deleted===false&&actual.event.forced===false&&actual.native?.actor_id===p.owner_id
+        &&actual.native.id===Number(id)&&actual.native.status==='in_progress','observation_predecessor_changed');
+    }
+  }
 }
 async function resumeTerminal({env,event,api,prepare=false,proofFile=null}){
   const p=release.TERMINAL_RECOVERY,root=release.API_ROOT;
@@ -744,7 +782,7 @@ async function resumeTerminal({env,event,api,prepare=false,proofFile=null}){
     &&env.GITHUB_JOB==='release-slot-recovery'&&env.GITHUB_RUN_ATTEMPT==='1'
     &&sha(env.GITHUB_SHA)&&env.GITHUB_SHA!==p.sha&&/^[1-9][0-9]*$/.test(env.GITHUB_RUN_ID||'')
     &&event?.repository?.full_name===REPOSITORY&&event.ref===env.GITHUB_REF&&event.after===env.GITHUB_SHA
-    &&event.before==='0'.repeat(40)&&event.created===true&&event.deleted===false&&event.forced===false,
+    &&event.before===p.observation_sha&&event.created===false&&event.deleted===false&&event.forced===false,
     'untrusted_terminal_continuation');
   const runId=String(env.GITHUB_RUN_ID),source=env.GITHUB_SHA;
   const main=async()=>requireValue((await get('/git/ref/heads/main'))?.object?.sha===p.sha,'main_changed');
@@ -753,7 +791,8 @@ async function resumeTerminal({env,event,api,prepare=false,proofFile=null}){
   release.runIdentity(native,{id:runId,attempt:1,head:source,workflow:CLOSER,event:'push',branch:p.branch,completed:false});
   requireValue(native.status==='in_progress'&&native.actor?.id===p.owner_id,'untrusted_terminal_continuation');
   const commit=await get('/git/commits/'+source);
-  requireValue(commit?.sha===source&&commit.parents?.length===1&&commit.parents[0].sha===p.sha,'recovery_source_changed');
+  requireValue(commit?.sha===source&&commit.parents?.length===1&&commit.parents[0].sha===p.observation_sha,'recovery_source_changed');
+  await continuationPredecessors(api);
   const ci=release.boundedList(await get('/actions/runs?head_sha='+source+'&per_page=100'),'workflow_runs','incomplete_recovery_ci');
   for(const [name,path]of [['Regression tests',PREFIX+'regression-tests.yml'],['Retired domain guard',PREFIX+'retired-domain-guard.yml']]){
     const matches=ci.filter(r=>r.name===name&&r.event==='pull_request');
