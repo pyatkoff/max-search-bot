@@ -1,0 +1,388 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261112-4-v1",
+  "registry_version": 222,
+  "state": "ROOT_VISUALLY_ACCEPTED_EXACT_PNG",
+  "rows": [
+    {
+      "hotel_id": 22660,
+      "photo_sha256": "f1fb3ad8e98ee2f0dad6a28bb357dfa0cf6386a3fcdd330161685aa3f52f561b",
+      "dimensions": [
+        600,
+        600
+      ],
+      "text_sha256": "7940ec1690a452f241c0769140870d1e3ab5d5af296b3b30a98cd9212f0d22da",
+      "source_photos": [
+        {
+          "url": "https://www.sunsuri-phuket.com/wp-content/uploads/2021/08/SUNSURI-Hero-Shot-0031.jpg",
+          "http": 200,
+          "final_url": "https://www.sunsuri-phuket.com/wp-content/uploads/2021/08/SUNSURI-Hero-Shot-0031.jpg",
+          "sha256": "243c2886eda8daf5f5d71ebdfe7179b90b8d9438699e4fc208f4de9b80519a01",
+          "width": 1600,
+          "height": 978,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://www.sunsuri-phuket.com/wp-content/uploads/2019/08/01_pic-swimming-pool-01.jpg",
+          "http": 200,
+          "final_url": "https://www.sunsuri-phuket.com/wp-content/uploads/2019/08/01_pic-swimming-pool-01.jpg",
+          "sha256": "625cd7d69026cf6e90beed6f96d780b85e0871b052e6a326d8628787ddb6cf26",
+          "width": 960,
+          "height": 700,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://www.sunsuri-phuket.com/wp-content/uploads/2025/08/superior-family-triple-1.jpg",
+          "http": 200,
+          "final_url": "https://www.sunsuri-phuket.com/wp-content/uploads/2025/08/superior-family-triple-1.jpg",
+          "sha256": "0470065f130c35da1a2e708d2d408fa22ff03f9cde03f4f4b2aa97c974bf74c0",
+          "width": 960,
+          "height": 700,
+          "format": "JPEG"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1260,
+      "photo_sha256": "f42f0a7c2069dced017bad0481c1b228839dc7e014ecc65ae099e48c03d06393",
+      "dimensions": [
+        600,
+        600
+      ],
+      "text_sha256": "363853b9dc9eb89270e7757a9947fe56addc149f534b0f453d1be5926557a9ee",
+      "source_photos": [
+        {
+          "url": "https://www.ichotels.com.tr/media/y1cpwe2p/ic-hotels-santai-family-resort-plaj-ve-havuzlar-plaj-card.jpg",
+          "http": 200,
+          "final_url": "https://www.ichotels.com.tr/media/y1cpwe2p/ic-hotels-santai-family-resort-plaj-ve-havuzlar-plaj-card.jpg",
+          "sha256": "27ff38d3afbb88af13e6f76a391d8023f9aaadc092b3cc99972d009adf58e0c5",
+          "width": 1005,
+          "height": 705,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/mirohe45/ic-hotels-santai-family-resort-konaklama-sun-swim-up-villa-card.jpg",
+          "http": 200,
+          "final_url": "https://www.ichotels.com.tr/media/mirohe45/ic-hotels-santai-family-resort-konaklama-sun-swim-up-villa-card.jpg",
+          "sha256": "48ddeb9318dad5e5a26b020fcfbc395fb034e440d2dfff7a79c6b814dd68bca9",
+          "width": 833,
+          "height": 555,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/qernjapl/ic-hotels-santai-family-resort-konaklama-standart-deniz-manzarali-card.jpg",
+          "http": 200,
+          "final_url": "https://www.ichotels.com.tr/media/qernjapl/ic-hotels-santai-family-resort-konaklama-standart-deniz-manzarali-card.jpg",
+          "sha256": "eecc1ee67381d3f949a18edc8deffbbcca084f541c83eb96732fb5a67b45b5e4",
+          "width": 833,
+          "height": 555,
+          "format": "JPEG"
+        }
+      ]
+    },
+    {
+      "hotel_id": 67897,
+      "photo_sha256": "05f098dc25378f9da48b593a8253257f7ba58d85d7b50f29dfc6ac9e0f69376e",
+      "dimensions": [
+        600,
+        600
+      ],
+      "text_sha256": "181512b2c748e7b41041cf59386c3f06b5869c6693b66adc49eeff467df7533b",
+      "source_photos": [
+        {
+          "url": "https://storage.googleapis.com/jaz-prod/strapi/1428_Jaz_Maraya_Maraya_Overview_04a58f2fe9/1428_Jaz_Maraya_Maraya_Overview_04a58f2fe9.jpg",
+          "http": 200,
+          "final_url": "https://storage.googleapis.com/jaz-prod/strapi/1428_Jaz_Maraya_Maraya_Overview_04a58f2fe9/1428_Jaz_Maraya_Maraya_Overview_04a58f2fe9.jpg",
+          "sha256": "23124a1ac1fcdd7ccfeb3f88d0e9d69e532f680d524e7a8ef43a0b18fcdfbdd4",
+          "width": 1800,
+          "height": 1200,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://storage.googleapis.com/jaz-prod/strapi/Overview_2_20199412_1b23547e4c/Overview_2_20199412_1b23547e4c.jpg",
+          "http": 200,
+          "final_url": "https://storage.googleapis.com/jaz-prod/strapi/Overview_2_20199412_1b23547e4c/Overview_2_20199412_1b23547e4c.jpg",
+          "sha256": "a274452a67f0dc80e4d37066b380081a95197c52b7dfc85211ee97338ee722ef",
+          "width": 1916,
+          "height": 1436,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://partner.jazhotels.com/Images/uploads/gallery/photos/JazMaraya/Deluxe-Family-Room-Garden-View-20199412.jpg",
+          "http": 200,
+          "final_url": "https://partner.jazhotels.com/Images/uploads/gallery/photos/JazMaraya/Deluxe-Family-Room-Garden-View-20199412.jpg",
+          "sha256": "2078a9f988780655796ae2eeae9611799abd00ae1455cba057d766b77af96623",
+          "width": 800,
+          "height": 600,
+          "format": "JPEG"
+        }
+      ]
+    },
+    {
+      "hotel_id": 132016,
+      "photo_sha256": "6a7b3d9a6e287f8c3231ff90c7382a2ed072c00ede750b13d7d7f91c822aa358",
+      "dimensions": [
+        600,
+        600
+      ],
+      "text_sha256": "8a1e665bcfd9eee9a6b8935959aa451b524c3820c8eb630aef11ed44b1ca0e8b",
+      "source_photos": [
+        {
+          "url": "https://voyagecdn.blob.core.windows.net/mediafiles/uploads/639179901319118386.jpeg",
+          "http": 200,
+          "final_url": "https://voyagecdn.blob.core.windows.net/mediafiles/uploads/639179901319118386.jpeg",
+          "sha256": "46b1eee42c3d932320ea76eaf4f284363dcbfc0ad73f317e5b642799014ed576",
+          "width": 1440,
+          "height": 552,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://voyagecdn.blob.core.windows.net/mediafiles/uploads/639179914392664065.jpeg",
+          "http": 200,
+          "final_url": "https://voyagecdn.blob.core.windows.net/mediafiles/uploads/639179914392664065.jpeg",
+          "sha256": "380a82d738ec84536ba65431d8222a6b7901eccc966249f096616387370d8efc",
+          "width": 1140,
+          "height": 570,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://voyagecdn.blob.core.windows.net/mediafiles/uploads/639179938976474074.jpeg",
+          "http": 200,
+          "final_url": "https://voyagecdn.blob.core.windows.net/mediafiles/uploads/639179938976474074.jpeg",
+          "sha256": "a0b51be1783988b95fad19243c73e45edc504b2ba44486e9cedc1c879e38eb06",
+          "width": 2000,
+          "height": 1538,
+          "format": "JPEG"
+        }
+      ]
+    },
+    {
+      "hotel_id": 83563,
+      "photo_sha256": "e72e79cd8fb3bdbf8d02278ba6a9ef95dc1b06736c30f2fe6d8a9cb558f95427",
+      "dimensions": [
+        600,
+        600
+      ],
+      "text_sha256": "4cc682b007e5f9acb37574d63a16cf41162f64702c686e4abd6f75358bd12762",
+      "source_photos": [
+        {
+          "url": "https://www.theserry.com/Images/47%20Hotel%20Heroes/Beach%20Resort.jpg",
+          "http": 200,
+          "final_url": "https://www.theserry.com/Images/47%20Hotel%20Heroes/Beach%20Resort.jpg",
+          "sha256": "38da1cc9ba51ed2979614a5c7fe54f7485a3b8a90580e3c21ee48fc5143b6bdc",
+          "width": 1500,
+          "height": 875,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://www.theserry.com/Images/01%20Homepage/Design%20(6).jpg",
+          "http": 200,
+          "final_url": "https://www.theserry.com/Images/01%20Homepage/Design%20(6).jpg",
+          "sha256": "44bc50487cd291212b507e8e7c35586ec497e3a9a5f84e1ae8000a90e8b10b1e",
+          "width": 1500,
+          "height": 2000,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://www.theserry.com/Images/01%20Homepage/Beach%20Lifestyle%20%283%29.jpg",
+          "http": 200,
+          "final_url": "https://www.theserry.com/Images/01%20Homepage/Beach%20Lifestyle%20%283%29.jpg",
+          "sha256": "b1531f06d7ac28979085fabcba3e0a90012a4bd7c433e5f3bf5c2641ad3f9186",
+          "width": 1499,
+          "height": 2568,
+          "format": "JPEG"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1421,
+      "photo_sha256": "6dee5bd140e360dece69090c9b40caa5b9cb0c2119c569233408e5006449b4dc",
+      "dimensions": [
+        600,
+        600
+      ],
+      "text_sha256": "f53b2da64a5da58d581429b859e1052dd8d8d2d815326b30d476023c7ecf7f3b",
+      "source_photos": [
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-06-1536x1023.jpg",
+          "http": 200,
+          "final_url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-06-1536x1023.jpg",
+          "sha256": "07bcfbb32a8a2194e3508089316cc6b51566e014ff2cc29b1d0e227035c5d613",
+          "width": 1536,
+          "height": 1023,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-03-1536x1023.jpg",
+          "http": 200,
+          "final_url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-03-1536x1023.jpg",
+          "sha256": "ba34f83f3c49006247719759c81b2a86fb33f946ab3410c287cdb5d263d6e272",
+          "width": 1536,
+          "height": 1023,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/02/Superior_Family_03.jpg",
+          "http": 200,
+          "final_url": "https://papillon.com.tr/wp-content/uploads/2026/02/Superior_Family_03.jpg",
+          "sha256": "f3609bc0743a0e7a4a35c08f9e3f51f4c8ffed5e8d4b208fbf532202b5515969",
+          "width": 2000,
+          "height": 1118,
+          "format": "JPEG"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1416,
+      "photo_sha256": "390d5fa9e9ef2265dd738d745e79f7f82b6791064f7b98003fd2b1b1e4e30d30",
+      "dimensions": [
+        600,
+        600
+      ],
+      "text_sha256": "a9a6435ab4853e688fa17138c09338966ab1e043c06229ccaaf97f275e991621",
+      "source_photos": [
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-36-00oceana%20%281%29.jpg",
+          "http": 200,
+          "final_url": "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-36-00oceana%20%281%29.jpg",
+          "sha256": "0a1289861e53c5f4bf4dec471b80d0da94f56cd240e74a31a2ebdec6af739901",
+          "width": 1920,
+          "height": 1080,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-1-2020-3-54-44-PMoceana-familysuite.jpg",
+          "http": 200,
+          "final_url": "https://www.palomahotels.com/Content/imgUpload/12-1-2020-3-54-44-PMoceana-familysuite.jpg",
+          "sha256": "fdd2f4eb0b53cd6b0a8e76d931e31c663b413c0df243918257e361ccc1a19fe1",
+          "width": 896,
+          "height": 896,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-1-2020-4-15-25-PMoceana-lakevilla.jpg",
+          "http": 200,
+          "final_url": "https://www.palomahotels.com/Content/imgUpload/12-1-2020-4-15-25-PMoceana-lakevilla.jpg",
+          "sha256": "27fb05eecae6f055afbd8845633fd904f7dd7716b92ba52a7fc59e1d3b62bbc8",
+          "width": 896,
+          "height": 896,
+          "format": "JPEG"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1491,
+      "photo_sha256": "ddddd5ae02a46f648704c2a99fdebc7239b1f49fd70da9a022c24a316b940931",
+      "dimensions": [
+        600,
+        600
+      ],
+      "text_sha256": "2f0f7d0d302a494fd173a302b5c33c54a6e41c027b35a0f5df3d9c14fea4628c",
+      "source_photos": [
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-34-21perissia%20%281%29.jpg",
+          "http": 200,
+          "final_url": "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-34-21perissia%20%281%29.jpg",
+          "sha256": "159a5d599718ca6b85b28ee10607a132e78a880c1f0ce328a75ed57b5af9ccd7",
+          "width": 1920,
+          "height": 1080,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-7-12-55-PM10-9-2020-10-51-06-amperissiaindexlobby.jpg",
+          "http": 200,
+          "final_url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-7-12-55-PM10-9-2020-10-51-06-amperissiaindexlobby.jpg",
+          "sha256": "90db6f97c399b1df53082a0b06f2c7c2eaf90213d67171d986ac3fd317f71ac0",
+          "width": 1111,
+          "height": 643,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-1-2020-2-27-15-PMperissia-suite.jpg",
+          "http": 200,
+          "final_url": "https://www.palomahotels.com/Content/imgUpload/12-1-2020-2-27-15-PMperissia-suite.jpg",
+          "sha256": "4b9bf9bb796c72542bac5879e3a3f34ec242e05260a31d175fbfe92c7536ec83",
+          "width": 896,
+          "height": 896,
+          "format": "JPEG"
+        }
+      ]
+    },
+    {
+      "hotel_id": 4181,
+      "photo_sha256": "70916ff4b18d8e2472574f9886b8de9de84087b28d2dbf1e62c024a5aa9b6a35",
+      "dimensions": [
+        600,
+        600
+      ],
+      "text_sha256": "212fe9b3e89e7386c192aa74152c9393bc375d10ee623910ff0b3d7cd1fc3cba",
+      "source_photos": [
+        {
+          "url": "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_1920,h_1080,q_70,f_auto,g_center/g_auto/Imagery/Property%20Photography/Hilton%20International/R/RMFHIHI/RMFHI_Hotel_Main_Building.jpg",
+          "http": 200,
+          "final_url": "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_1920,h_1080,q_70,f_auto,g_center/g_auto/Imagery/Property%20Photography/Hilton%20International/R/RMFHIHI/RMFHI_Hotel_Main_Building.jpg",
+          "sha256": "2433b8933e9a2da22ed63cd8847ccd009f98d6ed40bc05ee8a311e917547db16",
+          "width": 1920,
+          "height": 1080,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_647,h_455,q_80,f_auto,g_auto/Imagery/Property%20Photography/Hilton%20International/R/RMFHIHI/RMFHI__One_Bedroom_Suite_Living_Room_with_Pool_View.jpg",
+          "http": 200,
+          "final_url": "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_647,h_455,q_80,f_auto,g_auto/Imagery/Property%20Photography/Hilton%20International/R/RMFHIHI/RMFHI__One_Bedroom_Suite_Living_Room_with_Pool_View.jpg",
+          "sha256": "bae262a21bd7dd1a24d359a3d98e6aeb6ad2b430947ebdffc16efbcb8147d18f",
+          "width": 647,
+          "height": 455,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_2560,h_1146,q_80,f_auto,g_auto/Imagery/Property%20Photography/Hilton%20Hotels%20and%20Resorts/R/RMFHIHI/6G6A1271.jpg",
+          "http": 200,
+          "final_url": "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_2560,h_1146,q_80,f_auto,g_auto/Imagery/Property%20Photography/Hilton%20Hotels%20and%20Resorts/R/RMFHIHI/6G6A1271.jpg",
+          "sha256": "cdb5c1310f4cf47fc5d4a38e1577b75c80a2cdb4c8e50faa211081cda4820c97",
+          "width": 2560,
+          "height": 1146,
+          "format": "JPEG"
+        }
+      ]
+    },
+    {
+      "hotel_id": 12107,
+      "photo_sha256": "4f00e315865a3b1b40c003ba8d25f397c6a6a6c8fe282eb448415d1c0a96b33a",
+      "dimensions": [
+        600,
+        600
+      ],
+      "text_sha256": "ab595105983559ba0bd409917f6f17358c53af0e8ed18a932b0adff5dcf87b79",
+      "source_photos": [
+        {
+          "url": "https://storage.googleapis.com/jaz-prod/strapi/IMG_3042_JPG_38e0ffddd7/IMG_3042_JPG_38e0ffddd7.jpeg",
+          "http": 200,
+          "final_url": "https://storage.googleapis.com/jaz-prod/strapi/IMG_3042_JPG_38e0ffddd7/IMG_3042_JPG_38e0ffddd7.jpeg",
+          "sha256": "95a58f023ba023d4f462dddf52b64d4e527725299af07000361f99d473f4fee9",
+          "width": 4000,
+          "height": 2250,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://storage.googleapis.com/jaz-prod/strapi/IMG_8966_JPG_2531e57f16/IMG_8966_JPG_2531e57f16.jpeg",
+          "http": 200,
+          "final_url": "https://storage.googleapis.com/jaz-prod/strapi/IMG_8966_JPG_2531e57f16/IMG_8966_JPG_2531e57f16.jpeg",
+          "sha256": "01defb47d3b9a950f424f1b638bc7bf476f12ac53198d9457c26ba4d5130b686",
+          "width": 4000,
+          "height": 2250,
+          "format": "JPEG"
+        },
+        {
+          "url": "https://storage.googleapis.com/jaz-prod/strapi/Beach_1438c76c09/Beach_1438c76c09.jpg",
+          "http": 200,
+          "final_url": "https://storage.googleapis.com/jaz-prod/strapi/Beach_1438c76c09/Beach_1438c76c09.jpg",
+          "sha256": "3417c8e68e2a65652c47d9d1a198cd377dd8ad24c470a6fc20b24305ebea3999",
+          "width": 4146,
+          "height": 2764,
+          "format": "JPEG"
+        }
+      ]
+    }
+  ]
+}
