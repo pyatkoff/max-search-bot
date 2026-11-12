@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261113-7-v1",
+  "state": "COMPLETED",
+  "completed_at_moscow": "2026-11-13T00:45:50.300562+03:00",
+  "new_full_pairs": 8,
+  "new_posts": 16,
+  "reused": 0,
+  "publisher": {
+    "run_id": 43309298575,
+    "run_attempt": 1,
+    "head_sha": "2ba70192ef69c4fdb38cef7cb2e899920f07faf0",
+    "artifact_id": 13985531179,
+    "zip_sha256": "94655236af47717772613625f9aaac212ddddca8d311302454f61fed67fa691c",
+    "original_installed_sha": "b68fa469bc671405be149c04456c4b66464ab8e2",
+    "publication_receipt_sha256": "6df05cf104bf488bbba97368e1af72169c61a521d8d5859f0bc2c23494b87fa2"
+  },
+  "current_runtime_proof": {
+    "source": "1826ab71b6d75143f6a2d7f831533d16e59df90e",
+    "deploy": 43309642842,
+    "tls": 43311564081,
+    "publisher_blobs_identical": 22
+  },
+  "native": {
+    "run_id": 43311736933,
+    "run_attempt": 1,
+    "head_sha": "66698cf242e998e8bd18aff02bd7094b6bb0f079",
+    "private_accepted_commit": "81c88ce1b8ab620127afbd72d96b321dff96fd1f",
+    "receipt_sha256": "74791fed12018c12b0f3483279dd53ac0894ffbb1ce91eb636a56c7759ee306c"
+  },
+  "feed": {
+    "run_id": 43312060964,
+    "run_attempt": 1,
+    "head_sha": "ce4a29cb929ea18ec91e470464133cfc4b175242",
+    "counts": [
+      567,
+      567,
+      1134
+    ],
+    "write_sha256": "198c7291f76a8c19f595731bb65e4cf9bccf81e56ed04bec25a99b3b11e15e7e",
+    "readback_sha256": "4d0e82104eae360c8247e8d319f58023a2c90f0b3355630c120f09d8aa822182",
+    "previous_rows_and_prices_preserved_byte_exact": true
+  },
+  "site": {
+    "operation": "site-new8-complete-20261113-b7-r225",
+    "receipt_sha256": "156f201bd2f75e8b272b94eb30308f73ca0e9f7cb02df287c7075f1be657a60c",
+    "verification": {
+      "ok": true,
+      "new_full_pairs": 8,
+      "new_posts": 16,
+      "published_before": 559,
+      "published_after": 567,
+      "queue_before": 46,
+      "queue_after": 38,
+      "registry_version": 226,
+      "untouched_cards_exact": 658,
+      "accepted_materials_preserved": true,
+      "demand_snapshot_preserved": true,
+      "category_membership_delta": {},
+      "registry_export_sha256": "a9e2068c1c70915fb1ce348fce05c00b1ad525d95e92b2dfbd18e94edd7ec5dc"
+    }
+  },
+  "nightly": {
+    "before": 531,
+    "after": 539,
+    "source": "de76a5582eeca6e312c053a055a71c399d663db0",
+    "gzip_sha256": "9dbd791735cb5018c213691bb6a500aaffd5be6e834cd127a3b55124726bfa4a",
+    "json_sha256": "b85af2724d01ff7c6a10c54e0e288615c2ffa83e5d598613736070ed9f5eef06",
+    "exact_git_blob": "c029fc91384a18c2996ab8b464aef9fc5ac92746",
+    "collector_pr": 5026,
+    "collector_head": "d87b8dee8c70c1e65ba09ce8e0829bd90f426e62",
+    "collector_merge": "44de8c2a070b61fb0edbba232f86a6b8903a4090",
+    "pr_validate": 43313038515,
+    "main_validate": 43313210772,
+    "main_security": 43313210846,
+    "natural_scheduled_callback_result": "not_yet_confirmed",
+    "unchanged_previous_rows": 531
+  },
+  "corrected_before_activation": {
+    "failed_ci": 43312619281,
+    "invalid_roster_source_do_not_use": "ed5fd5d39bf31994715e303bc613928794e4a4de",
+    "invalid_blob_do_not_use": "95a3cc51ed4b6b81c75982fa1a9642466e9dd17b",
+    "reason": "truncated intermediate base64 transfer; exact limited chunks and remote Git object hash verified before activation",
+    "original_completed_publication_native_feed_site_replayed": false
+  },
+  "clearance": {
+    "run_id": 43308191010,
+    "artifact_id": 13985320531,
+    "zip_sha256": "b3d3cc18d2be5ab63ce31ff59f40d64d4e31475268f9cbe65ba9475aea88fb6a"
+  },
+  "excluded": [
+    {
+      "hotel_id": 968,
+      "name": "Ali Bey Park",
+      "reason": "Three retained photograph URLs returned HTTP404 once each; not retried; needs three valid photographs."
+    },
+    {
+      "hotel_id": 967,
+      "name": "Ali Bey Club",
+      "reason": "Three retained photograph URLs returned HTTP404 once each; not retried; needs three valid photographs."
+    }
+  ],
+  "posts": [
+    {
+      "hotel_id": 932,
+      "max": "https://max.ru/channel_anytour/AaHRo0CILKI",
+      "telegram": "https://t.me/any_toour/574"
+    },
+    {
+      "hotel_id": 483,
+      "max": "https://max.ru/channel_anytour/AaHRo0l6WD8",
+      "telegram": "https://t.me/any_toour/575"
+    },
+    {
+      "hotel_id": 212,
+      "max": "https://max.ru/channel_anytour/AaHRo1KGbAI",
+      "telegram": "https://t.me/any_toour/576"
+    },
+    {
+      "hotel_id": 62504,
+      "max": "https://max.ru/channel_anytour/AaHRo1toewA",
+      "telegram": "https://t.me/any_toour/577"
+    },
+    {
+      "hotel_id": 1255,
+      "max": "https://max.ru/channel_anytour/AaHRo2QOeV8",
+      "telegram": "https://t.me/any_toour/578"
+    },
+    {
+      "hotel_id": 55511,
+      "max": "https://max.ru/channel_anytour/AaHRo2yZNPs",
+      "telegram": "https://t.me/any_toour/579"
+    },
+    {
+      "hotel_id": 9434,
+      "max": "https://max.ru/channel_anytour/AaHRo3WFMI0",
+      "telegram": "https://t.me/any_toour/580"
+    },
+    {
+      "hotel_id": 30158,
+      "max": "https://max.ru/channel_anytour/AaHRo35lQ-M",
+      "telegram": "https://t.me/any_toour/581"
+    }
+  ],
+  "prices_invoked": 0,
+  "provider_calls": 0,
+  "new_actors_tasks_schedules": 0
+}
