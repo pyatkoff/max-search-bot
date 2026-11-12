@@ -3243,6 +3243,13 @@ function forecastKnownTrackerAssertions(PDO $p,callable $check):array
             $a!==null&&$b!==null&&$a['key']!==$b['key']&&$a['key']!==ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY
             &&ModeledConversionRetainedTrackerIdentityEvidence::knownBinding($frame,$rows[0],$ns,$now)===null);
         $readyGuard=new ReflectionMethod(ModeledConversionValueExport::class,'knownTrackerReady');$guardWorker=new ModeledConversionValueExport($p);
+        (new ReflectionProperty($guardWorker,'finiteFrame'))->setValue($guardWorker,$frame);
+        $tupleExact=$readyGuard->invoke($guardWorker,$rows[1],$now);
+        foreach(['client_id'=>'99123456789012345','tracker_record_id'=>'998877','tracker_observed_unix'=>(int)$rows[1]['tracker_observed_unix']+1]as$field=>$value){
+            $changedTuple=$rows[1];$changedTuple[$field]=$value;
+            $tupleExact=$tupleExact&&!$readyGuard->invoke($guardWorker,$changedTuple,$now);
+        }
+        $check('known READY reservation and callback require the exact held CID record and source clock',$tupleExact);
         $changed=$rows[1];$changed['state']='unknown';$changed['upload_id']='12345';
         $check('known source reservation cannot use an uploading unknown or provider-accepted row',
             !$readyGuard->invoke($guardWorker,$changed,$now));

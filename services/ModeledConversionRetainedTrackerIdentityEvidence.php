@@ -63,7 +63,8 @@ final class ModeledConversionRetainedTrackerIdentityEvidence
         if((string)$row['id']!==$old[1]||(int)$row['event_unix']!==$old[15]||$old[5]!==1)return null;
         $f=ModeledConversionValueVisitEvidence::decode($frame,$ns,$now);
         return ['ref'=>$ref,'key'=>self::KNOWN_KEYS[$slot],'index'=>array_search($ref,array_column($f['r'],0),true),
-            'digest'=>ModeledConversionValueVisitRecovery::originalDigest($frame,$ns,$now),'held_client_id'=>$old[6],'checked'=>$old[4]];
+            'digest'=>ModeledConversionValueVisitRecovery::originalDigest($frame,$ns,$now),'held_client_id'=>$old[6],
+            'held_record_id'=>$old[7],'held_source_at'=>$old[8],'checked'=>$old[4]];
     }
     public static function knownContext(mixed $frame,array $row,string $ns,int $now):?array
     {

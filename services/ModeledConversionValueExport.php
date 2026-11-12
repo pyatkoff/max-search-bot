@@ -543,6 +543,11 @@ final class ModeledConversionValueExport
         if(($r['project_key']??null)!=='anytour'||($r['platform']??null)!=='max'||($r['counter_id']??null)!=='98615635'
             ||($r['identity_source_key']??null)!=='max_tracker'||($r['state']??null)!=='ready'||(string)($r['attempts']??'')!=='0'
             ||!MaxTrackerLookupProtocol::id($r['client_id']??null,40)||!MaxTrackerLookupProtocol::id($r['tracker_record_id']??null))return false;
+        if($this->finiteFrame===null)return false;
+        $held=ModeledConversionRetainedTrackerIdentityEvidence::knownBinding($this->finiteFrame,$r,$this->finiteFrame['n'],$now);
+        $source=$r['tracker_observed_unix']??null;
+        if($held===null||$r['client_id']!==$held['held_client_id']||$r['tracker_record_id']!==$held['held_record_id']
+            ||(!is_int($source)&&!is_string($source))||preg_match('/\A[1-9][0-9]{8,11}\z/D',(string)$source)!==1||(int)$source!==$held['held_source_at'])return false;
         foreach(['claim_token','claimed_at_unix','upload_id','upload_status','value_receipt_basis','value_api_accepted_at_unix','value_processed_at_unix']as$key)
             if(!array_key_exists($key,$r)||!in_array($r[$key],[null,''],true))return false;
         $ready=$r['value_ready_at_unix']??null;
