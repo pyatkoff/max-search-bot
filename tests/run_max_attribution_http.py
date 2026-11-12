@@ -48,7 +48,13 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
     command = json.loads(os.getenv('TEST_PHP_COMMAND_JSON', '["php"]'))
     request_audit = private_root / 'request-audit.jsonl'
     router = private_root / 'router.php'
-    router.write_text("<?php file_put_contents(" + json.dumps(str(request_audit)) + ", json_encode(['method'=>$_SERVER['REQUEST_METHOD']??'', 'evidence'=>$_SERVER['HTTP_X_MAX_ATTRIBUTION_EVIDENCE']??'']).PHP_EOL, FILE_APPEND|LOCK_EX); return false;\n")
+    candidate_intent_file = private_root / 'retained-candidate-consumed-intent.json'
+    router.write_text("<?php $entry=['method'=>$_SERVER['REQUEST_METHOD']??'', 'evidence'=>$_SERVER['HTTP_X_MAX_ATTRIBUTION_EVIDENCE']??''];"
+        + "if($entry['evidence']==='retained-click-candidate-v1'){$intent=is_file(" + json.dumps(str(candidate_intent_file))
+        + ")?json_decode(file_get_contents(" + json.dumps(str(candidate_intent_file)) + "),true):null;"
+        + "$entry['candidate_intent_persisted']=is_array($intent)&&($intent['state']??null)==='consumed_unknown';"
+        + "$entry['candidate_intent_hash']=$intent['request_sha256']??null;}"
+        + "file_put_contents(" + json.dumps(str(request_audit)) + ",json_encode($entry).PHP_EOL,FILE_APPEND|LOCK_EX);return false;\n")
     with (private_root / 'server.log').open('wb') as log:
         server = subprocess.Popen(command + ['-S', f'127.0.0.1:{port}', '-t', str(site), str(router)], stdout=log, stderr=log)
         try:
@@ -144,6 +150,32 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
                 check(len(audit_after) == len(audit_before) + 1 and json.loads(audit_after[-1]) == {'method': 'POST', 'evidence': ''}, 'callback failure makes exactly one ordinary POST with no evidence opt-in header')
                 consumed_intent = json.loads(intent_file.read_text())
                 check(consumed_intent['state'] == 'consumed_unknown' and consumed_intent['request_sha256'] == callback_result['evidence']['request_sha256'] and callback_result['evidence']['reason'] == 'intent_not_persisted', 'possibly persisted intent remains consumed unknown and is never retried')
+                candidate_context = {'v': 1, 'user_id': '123', 'event_ref': 'b' * 64, 'frame_sha256': 'c' * 64, 'event_at_unix': now - 600}
+                candidate_runner = private_root / 'candidate-client.php'
+                candidate_prefix = "<?php declare(strict_types=1); require " + json.dumps(str(client_fixture / 'MaxTrackerLookupClient.php')) + ";$calls=0;$context=json_decode(" + json.dumps(json.dumps(candidate_context)) + ",true,16,JSON_THROW_ON_ERROR);"
+                candidate_runner.write_text(candidate_prefix
+                    + "$result=(new MaxTrackerLookupClient())->retainedClickCandidate($context,static function(string $hash)use(&$calls):bool{$calls++;return false;});"
+                    + "echo json_encode(['calls'=>$calls,'result'=>$result],JSON_THROW_ON_ERROR);")
+                candidate_before = request_audit.read_text().splitlines()
+                refused_run = subprocess.run(command + [str(candidate_runner)], capture_output=True, text=True, timeout=20)
+                check(refused_run.returncode == 0, 'real candidate client handles refused durable-intent admission')
+                refused = json.loads(refused_run.stdout)
+                check(refused == {'calls': 1, 'result': None} and request_audit.read_text().splitlines() == candidate_before, 'a refused candidate intent causes no HTTP request')
+                candidate_runner.write_text(candidate_prefix
+                    + "$result=(new MaxTrackerLookupClient())->retainedClickCandidate($context,static function(string $hash)use(&$calls):bool{$calls++;"
+                    + "file_put_contents(" + json.dumps(str(candidate_intent_file))
+                    + ",json_encode(['state'=>'consumed_unknown','request_sha256'=>$hash,'intent_at'=>time()],JSON_THROW_ON_ERROR),LOCK_EX);chmod("
+                    + json.dumps(str(candidate_intent_file)) + ",0600);return true;});"
+                    + "echo json_encode(['calls'=>$calls,'result'=>$result],JSON_THROW_ON_ERROR);")
+                candidate_run = subprocess.run(command + [str(candidate_runner)], capture_output=True, text=True, timeout=20)
+                check(candidate_run.returncode == 0, 'real candidate client reaches the signed isolated receiver')
+                candidate = json.loads(candidate_run.stdout)
+                candidate_saved = json.loads(candidate_intent_file.read_text())
+                candidate_after = request_audit.read_text().splitlines()
+                check(candidate['calls'] == 1 and candidate['result'] is not None and set(candidate['result']) == {'request_sha256', 'result', 'received_at_unix'}, 'strict new endpoint DTO round-trips through the production candidate parser')
+                wire = candidate['result']
+                check(wire['request_sha256'] == candidate_saved['request_sha256'] and wire['result'][0] == 3 and len(wire['result']) == 9 and wire['received_at_unix'] >= candidate_saved['intent_at'], 'same signed request binds an explicit unsupported schema result without identity or financial promotion')
+                check(len(candidate_after) == len(candidate_before) + 1 and json.loads(candidate_after[-1]) == {'method': 'POST', 'evidence': 'retained-click-candidate-v1', 'candidate_intent_persisted': True, 'candidate_intent_hash': wire['request_sha256']}, 'the receiver observes the committed candidate marker before its single authenticated HTTP request')
                 scoped = encoded({**data, 'counter_scope_evidence': {'v': 1, 'user_id': '123'}})
                 status, plain_extended = request(scoped, signed=signature(scoped))
                 check(status == 200 and plain_extended['users'] == ordinary_users and 'counter_scope_evidence' not in plain_extended, 'signed option without opt-in header is still one ordinary lookup')
