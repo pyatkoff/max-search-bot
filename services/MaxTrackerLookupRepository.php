@@ -58,6 +58,107 @@ final class MaxTrackerLookupRepository
         } finally { if($this->pdo->inTransaction())$this->pdo->rollBack(); }
     }
 
+
+    /** One separately consumed, candidate-only point prefix; never a source of delivery permission. */
+    public function retainedClickCandidate(array $context,string $requestHash,int $now):array
+    {
+        $started=hrtime(true);$bytes=0;
+        $result=static fn(int $code,?int $rows=null,?int $late=null):array=>[$code,$now,$rows,$late,0,null,null,null,null];
+        $wrap=static fn(array $r):array=>['v'=>1,'request_sha256'=>$requestHash,'result'=>$r];
+        $r=$result(7);
+        try{
+            MaxTrackerLookupProtocol::retainedClickContext(['counter_id'=>'98615635','user_ids'=>[$context['user_id']??null],
+                'retained_click_candidate'=>$context],MaxTrackerLookupProtocol::RETAINED_CLICK_HEADER,$now);
+            if(preg_match('/\A[a-f0-9]{64}\z/D',$requestHash)!==1||$this->pdo->inTransaction())return $wrap($r);
+            if($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql')return $wrap($result(10));
+            $version=(string)$this->pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
+            if(stripos($version,'mariadb')!==false||preg_match('/\A8\.[0-9]+\.[0-9]+(?:[-.][A-Za-z0-9_.-]+)?\z/D',$version)!==1)return $wrap($result(10));
+            $this->pdo->exec('SET TRANSACTION READ ONLY');$this->pdo->beginTransaction();
+            try{
+                $meta="SELECT JSON_ARRAY('index',INDEX_NAME,COLUMN_NAME,SUB_PART) AS packet FROM"
+                    ." (SELECT INDEX_NAME,COLUMN_NAME,SUB_PART FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE()"
+                    ." AND TABLE_NAME='max_sub_links' AND SEQ_IN_INDEX=1 AND COLUMN_NAME='UF_CHAT_ID' LIMIT 9) i"
+                    ." UNION ALL SELECT JSON_ARRAY('column','',COLUMN_NAME,DATA_TYPE) AS packet FROM"
+                    ." (SELECT COLUMN_NAME,DATA_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='max_sub_links'"
+                    ." AND COLUMN_NAME IN ('ID','UF_CHAT_ID','UF_CLIENT_ID','UF_YCLID','UF_DATE','UF_SOURCE','UF_METRIC_SOURCE') LIMIT 8) c";
+                $metadata=$this->retainedClickPackets($meta,[],$started,$bytes,'metadata');
+                $columns=[];$indexes=[];
+                foreach($metadata as$m){
+                    if(!is_array($m)||!array_is_list($m)||count($m)!==4||!is_string($m[1])||!is_string($m[2]))throw new UnexpectedValueException('invalid_source');
+                    if($m[0]==='column'&&$m[1]===''&&is_string($m[3])&&preg_match('/\A[a-z]{1,20}\z/D',$m[3])===1)$columns[$m[2]]=$m[3];
+                    elseif($m[0]==='index'&&$m[2]==='UF_CHAT_ID'&&preg_match('/\A[A-Za-z0-9_]{1,64}\z/D',$m[1])===1
+                        &&($m[3]===null||is_int($m[3])||is_string($m[3]))){
+                        $part=$m[3]===null?40:(int)$m[3];if($part<1||$part>255)throw new UnexpectedValueException('invalid_source');
+                        $indexes[$m[1]]=min(40,$part);
+                    }else throw new UnexpectedValueException('invalid_source');
+                }
+                $required=['ID','UF_CHAT_ID','UF_CLIENT_ID','UF_YCLID','UF_DATE','UF_SOURCE','UF_METRIC_SOURCE'];
+                if(count($columns)!==7||array_diff($required,array_keys($columns))
+                    ||!in_array($columns['UF_CHAT_ID']??null,['char','varchar','tinytext','text','mediumtext','longtext'],true))return $wrap($result(3));
+                if(!$indexes||count($indexes)>8)return $wrap($result(8));
+                arsort($indexes,SORT_NUMERIC);$index=(string)array_key_first($indexes);
+                $prefix=substr($context['user_id'],0,$indexes[$index]);
+                // LIMIT applies to the whole index prefix before exact subject/counter/clock filters.
+                $effective="CASE WHEN s.UF_METRIC_SOURCE IS NOT NULL AND s.UF_METRIC_SOURCE<>'' THEN s.UF_METRIC_SOURCE ELSE s.UF_SOURCE END";
+                $scope="CASE WHEN EXISTS (SELECT 1 FROM b_iblock_element_property ep JOIN b_iblock_property p ON p.ID=ep.IBLOCK_PROPERTY_ID"
+                    ." WHERE p.IBLOCK_ID=8 AND p.CODE='YA_METRIK_ID' AND HEX(p.CODE)=HEX('YA_METRIK_ID')"
+                    ." AND ep.IBLOCK_ELEMENT_ID=".$effective." AND ep.VALUE='98615635' AND HEX(ep.VALUE)=HEX('98615635')) THEN 1 ELSE 0 END";
+                $point="SELECT CAST(s.ID AS CHAR) AS rid,CAST(s.UF_CHAT_ID AS CHAR) AS uid,CAST(s.UF_CLIENT_ID AS CHAR) AS cid,CAST(s.UF_YCLID AS CHAR) AS yclid,"
+                    ."CAST(s.UF_DATE AS CHAR) AS at,".$effective." AS source,".$scope." AS scoped"
+                    ." FROM (SELECT ID,UF_CHAT_ID,UF_CLIENT_ID,UF_YCLID,UF_DATE,UF_SOURCE,UF_METRIC_SOURCE FROM max_sub_links"
+                    ." FORCE INDEX (".chr(96).$index.chr(96).") WHERE UF_CHAT_ID LIKE ? LIMIT 65) s";
+                $source="SELECT JSON_ARRAY(rid,uid,cid,yclid,at,CAST(source AS CHAR),scoped) AS packet FROM (".$point.") v";
+                $rows=$this->retainedClickPackets($source,[$prefix.'%'],$started,$bytes,'point');
+                if(count($rows)>64)return $wrap($result(4));
+                $pool=[];$late=0;$cids=[];$yclids=[];
+                foreach($rows as$x){
+                    if(!is_array($x)||!array_is_list($x)||count($x)!==7||!MaxTrackerLookupProtocol::id($x[0])||!MaxTrackerLookupProtocol::id($x[1])
+                        ||!in_array($x[6],[0,1],true))throw new UnexpectedValueException('invalid_source');
+                    if($x[1]!==$context['user_id']||$x[6]!==1)continue;
+                    if(!MaxTrackerLookupProtocol::id($x[5]))throw new UnexpectedValueException('invalid_source');
+                    foreach([2,3]as$i){if($x[$i]===null)$x[$i]='';if(!is_string($x[$i])||($x[$i]!==''&&!MaxTrackerLookupProtocol::id($x[$i],40)))throw new UnexpectedValueException('invalid_source');}
+                    $at=MaxSubscriptionAttributionPolicy::eventTimeUnix($x[4],new DateTimeZone('Europe/London'));
+                    if($at<946684800||$at>$now)throw new UnexpectedValueException('invalid_source');
+                    if($at>$context['event_at_unix']){$late++;continue;}
+                    if($x[2]!=='')$cids[$x[2]]=true;if($x[3]!=='')$yclids[$x[3]]=true;
+                    if($x[2]!==''||$x[3]!=='')$pool[]=[$x,$at];
+                }
+                if(count($cids)>1||count($yclids)>1)$r=$result(2,count($rows),$late);
+                elseif(!$pool)$r=$result(0,count($rows),$late);
+                elseif($cids&&$yclids&&!array_filter($pool,static fn(array $x):bool=>$x[0][2]!==''&&$x[0][3]!==''))$r=$result(2,count($rows),$late);
+                else{
+                    $kind=$yclids?2:1;$field=$kind===2?3:2;
+                    $pool=array_values(array_filter($pool,static fn(array $x):bool=>$x[0][$field]!==''));
+                    usort($pool,static fn(array $a,array $b):int=>strlen($a[0][0])<=>strlen($b[0][0])?:strcmp($a[0][0],$b[0][0]));
+                    [$x,$at]=$pool[0];$fingerprint=hash('sha256',json_encode($x,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+                    $hash=hash('sha256',json_encode([MaxTrackerLookupProtocol::RETAINED_CLICK_HEADER,$requestHash,$context,$kind,$x[$field],$x[0],$fingerprint,$at],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+                    $r=[1,$now,count($rows),$late,$kind,$hash,$x[0],$fingerprint,$at];
+                }
+            }finally{if($this->pdo->inTransaction())$this->pdo->rollBack();}
+        }catch(UnexpectedValueException $e){$r=$result(['row_limit'=>4,'packet_budget'=>5,'time_headroom'=>9][$e->getMessage()]??6);}
+        catch(InvalidArgumentException $ignored){$r=$result(6);}
+        catch(Throwable $ignored){$r=$result(7);}
+        return $wrap(hrtime(true)-$started>=500000000?$result(9):$r);
+    }
+    private function retainedClickPackets(string $source,array $args,int $started,int &$bytes,string $phase):array
+    {
+        if(hrtime(true)-$started>=500000000)throw new UnexpectedValueException('time_headroom');
+        $sql="SELECT /*+ MAX_EXECUTION_TIME(250) */ CASE WHEN COUNT(*) OVER ()>64 THEN JSON_ARRAY('row_limit') WHEN SUM(OCTET_LENGTH(JSON_QUOTE(CAST(packet AS CHAR)))+24) OVER ()+2<=?"
+            ." THEN packet ELSE NULL END AS packet FROM (".$source.") retained_click_".$phase;
+        $q=$this->pdo->prepare($sql);
+        try{foreach([8192-$bytes,...$args]as$i=>$v)$q->bindValue($i+1,$v,is_int($v)?PDO::PARAM_INT:PDO::PARAM_STR);
+            $q->execute();$rows=$q->fetchAll(PDO::FETCH_ASSOC);
+        }finally{$q->closeCursor();}
+        if(hrtime(true)-$started>=500000000)throw new UnexpectedValueException('time_headroom');
+        $bytes+=strlen(json_encode($rows,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));
+        if($bytes>8192)throw new UnexpectedValueException('packet_budget');
+        $out=[];foreach($rows as$row){if(!is_string($row['packet']??null))throw new UnexpectedValueException('packet_budget');
+            $decoded=json_decode($row['packet'],true,16,JSON_THROW_ON_ERROR|JSON_BIGINT_AS_STRING);
+            if($decoded===['row_limit'])throw new UnexpectedValueException('row_limit');$out[]=$decoded;}
+        if(hrtime(true)-$started>=500000000)throw new UnexpectedValueException('time_headroom');
+        return $out;
+    }
+
     /** One authenticated batch member, exact effective counter only; raw ClientIDs never leave SQL. */
     public function counterScopeEvidence(string $counterId,string $userId,string $requestHash,int $now):array
     {
