@@ -691,4 +691,34 @@ repairCheck('unknown new-entry reply stays on its original attempted intent with
     $searchUnknownAttempts === 1 && $searchUnknownIntent['state'] === 'unknown'
     && repairEntryIntent($searchPdo,(int)$searchUnknownConversation['id']) === $searchUnknownIntent);
 repairCheck('search-intent fixtures never change the global project configuration', ProjectConfig::all() === $globalBefore);
+// The neutral profile uses the same recorder and handoff, with no sales funnel.
+require_once dirname(__DIR__).'/services/ClientBusinessProfile.php';
+$neutralPdo=repairFixture();$neutralRegistry=repairFixtureRegistry();
+foreach(['studio_north'=>4,'studio_south'=>5] as $project=>$id){
+    $neutralRegistry[$project]=['project'=>ClientBusinessProfile::settings('manager_inbox',$project,'Компания '.$project),'max'=>['bot_key'=>$project.'_bot','token'=>'synthetic-token-'.$project,'webhook_secret'=>str_repeat((string)$id,32)]];
+    $neutralPdo->prepare('INSERT INTO projects VALUES(?,?,?,1)')->execute([$id,$project,'Компания '.$project]);
+    $neutralPdo->prepare("INSERT INTO conversation_sources VALUES(?,?,?,?,'max',1,'manager')")->execute([$id*10,$id,'max:'.$project.'-main','Own company source']);
+}
+ProjectMaxConnection::resetForTests($neutralRegistry);$neutralSent=[];$neutralNotices=[];
+$neutralFactory=static function(ProjectMaxConnection $connection)use(&$neutralSent):MaxMessengerAdapter{
+    return new MaxMessengerAdapter(static function($chat,string $text)use($connection,&$neutralSent):string{$neutralSent[]=['project'=>$connection->projectKey(),'text'=>$text];return 'neutral-'.count($neutralSent);},null,'system',null,false);
+};
+$neutralNotify=static function(int $id)use(&$neutralNotices):void{$neutralNotices[]=$id;};
+$neutralHandle=static fn(string $project,string $secret,array $update):array=>RepairMaxWebhookService::handle($project,$secret,$update,$neutralFactory,$neutralNotify);
+foreach(['studio_north'=>'4','studio_south'=>'5'] as $project=>$secret){
+    repairCheck('neutral profile accepts its own authenticated start '.$project,$neutralHandle($project,str_repeat($secret,32),repairStart(7001,'as39_x_battery'))['status']===200);
+    $row=repairConversation($neutralPdo,$project,7001);$metadata=json_decode($row['metadata_json'],true);
+    repairCheck('neutral profile enters canonical queue without imported industry context '.$project,$row['status']==='waiting_manager'&&empty($metadata['repair_context'])&&!isset($metadata['sales_funnel']));
+    repairCheck('neutral greeting belongs only to the chosen company '.$project,end($neutralSent)['text']==='Здравствуйте! Это Компания '.$project.'.' ."\nРасскажите, что вас интересует. Менеджер увидит ваше сообщение и ответит здесь.");
+    $count=count($neutralSent);$neutralHandle($project,str_repeat($secret,32),repairMessage(7001,'shared_mid'));
+    repairCheck('ordinary messages keep canonical quiet handoff '.$project,count($neutralSent)===$count);
+}
+$north=repairConversation($neutralPdo,'studio_north',7001);$south=repairConversation($neutralPdo,'studio_south',7001);
+repairCheck('same provider identity creates separate customers as well as conversations',$north['id']!==$south['id']&&$north['customer_id']!==$south['customer_id']&&$north['customer_channel_id']!==$south['customer_channel_id']&&$north['customer_id']!==100);
+$beforeCount=count($neutralNotices);$beforeMessages=(int)$neutralPdo->query('SELECT COUNT(*) FROM messages')->fetchColumn();
+repairCheck('neutral replay cannot duplicate history or notifications',$neutralHandle('studio_north',str_repeat('4',32),repairMessage(7001,'shared_mid'))['result']==='duplicate'&&count($neutralNotices)===$beforeCount&&(int)$neutralPdo->query('SELECT COUNT(*) FROM messages')->fetchColumn()===$beforeMessages);
+repairCheck('neutral credentials cannot authorize a second company',$neutralHandle('studio_south',str_repeat('4',32),repairStart(7100))['status']===403&&repairConversation($neutralPdo,'studio_south',7100)===[]);
+$neutralRegistry['studio_north']['project']['business']['kind']='unreviewed_industry';ProjectMaxConnection::resetForTests($neutralRegistry);
+repairCheck('unsupported profile without its own reviewed funnel stays closed',$neutralHandle('studio_north',str_repeat('4',32),repairStart(7200))['status']===403&&repairConversation($neutralPdo,'studio_north',7200)===[]);
+repairCheck('neutral profile never changes the shared legacy configuration',ProjectConfig::all()===$globalBefore);
 echo 'TOTAL '.$passed.' passed'.PHP_EOL;

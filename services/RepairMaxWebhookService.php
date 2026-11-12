@@ -22,8 +22,7 @@ final class RepairMaxWebhookService
         if ($connection === null) return self::response(403, 'forbidden');
         if (RepairProjectSettings::businessKind($connection->settings()) !== 'device_repair') {
             if($projectSelector===AppleService39PilotCatalog::PROJECT)return self::response(403,'forbidden');
-            $funnel=ProjectFunnelSettings::load($connection);
-            if(!$funnel||($funnel['handoff_mode']??'')!=='manager_first'||RepairProjectSettings::webhook($connection)===null)return self::response(403, 'forbidden');
+            if(RepairProjectSettings::webhook($connection)===null)return self::response(403, 'forbidden');
         }
 
         $type = (string)($update['update_type'] ?? '');

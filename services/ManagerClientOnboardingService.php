@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/AdminDirectoryService.php';
 require_once __DIR__.'/ProjectClientRegistry.php';
+require_once __DIR__.'/ClientBusinessProfile.php';
 require_once __DIR__.'/../integrations/ProjectMaxWebhookSetup.php';
 
 /** One explicit operator workflow. Existing channel/history/routing owners stay canonical. */
@@ -28,7 +29,7 @@ final class ManagerClientOnboardingService
     {
         if(array_diff(array_keys($data),['operation_id','display_name','business_kind','bot_key','token','materials','staff']))throw new InvalidArgumentException('invalid_client');
         $out=['operation_id'=>self::operation($data['operation_id']??null),'display_name'=>self::text($data,'display_name',1,191)];
-        if(($data['business_kind']??null)!=='device_repair')throw new InvalidArgumentException('unsupported_business_kind');$out['business_kind']='device_repair';
+        if(ClientBusinessProfile::describe($data['business_kind']??null)===null)throw new InvalidArgumentException('unsupported_business_kind');$out['business_kind']=$data['business_kind'];
         $out['bot_key']=self::text($data,'bot_key',1,191);if(!preg_match('/\A[A-Za-z0-9_]{1,191}\z/D',$out['bot_key']))throw new InvalidArgumentException('invalid_bot_key');
         $out['token']=self::text($data,'token',8,4096,false);if(preg_match('/[\x00-\x20\x7f]/',$out['token']))throw new InvalidArgumentException('invalid_token');
         $out['materials']=self::text($data+['materials'=>''],'materials',0,100000,false);
@@ -88,7 +89,7 @@ final class ManagerClientOnboardingService
         $existing=$this->storedOperation($actor,$operation);if($existing)return hash_equals($existing['payload_hash'],$hash)&&$existing['operation_kind']==='create'?self::savedResult($existing):['ok'=>false,'error'=>'operation_conflict'];
         if($count>=1000)return ['ok'=>false,'error'=>'client_capacity'];
         if(!ProjectMaxConnection::availableForNewClient($key,$input['bot_key'],$input['token']))return ['ok'=>false,'error'=>'connection_in_use'];
-        $settings=['id'=>$key,'brand'=>['name'=>$input['display_name']],'business'=>['kind'=>'device_repair','repair'=>['entries'=>[]]],'routing'=>['source_key'=>'max:'.$key.'-main'],'messenger'=>['max'=>['webhook_url'=>'https://app.anytoour.ru/project_max_webhook.php?project='.$key]]];
+        $settings=ClientBusinessProfile::settings($input['business_kind'],$key,$input['display_name']);
         $secret=bin2hex(random_bytes(32));$sealed=$this->registry->credentials->seal($key,$input['bot_key'],['token'=>$input['token'],'webhook_secret'=>$secret]);$committing=false;
         $this->pdo->beginTransaction();
         try{
@@ -168,7 +169,8 @@ final class ManagerClientOnboardingService
         $row=$this->project($id);if(!$row||!ManagerAuthService::byId($actor)||!ProjectAccessService::canAccess($actor,(string)$row['project_key']))return ['ok'=>false,'error'=>'not_found'];
         $q=$this->pdo->prepare('SELECT m.id,m.login,m.display_name FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id WHERE mp.project_id=? AND m.role=? ORDER BY m.id LIMIT 101');$q->execute([$id,'manager']);$staff=$q->fetchAll(PDO::FETCH_ASSOC);
         if(!ManagerAuthService::byId($actor)||!ProjectAccessService::canAccess($actor,(string)$row['project_key']))return ['ok'=>false,'error'=>'not_found'];
-        return ['ok'=>true,'client'=>['id'=>$id,'display_name'=>$row['display_name'],'bot_key'=>$row['bot_key'],'materials'=>$row['materials_text'],'staff'=>$staff,'can_configure'=>$this->admin($actor)&&$this->canConfigure($row)]];
+        $settings=json_decode($row['settings_json'],true,32,JSON_THROW_ON_ERROR);
+        return ['ok'=>true,'client'=>['id'=>$id,'display_name'=>$row['display_name'],'bot_key'=>$row['bot_key'],'business_profile'=>ClientBusinessProfile::describe($settings['business']['kind']??null),'materials'=>$row['materials_text'],'staff'=>$staff,'can_configure'=>$this->admin($actor)&&$this->canConfigure($row)]];
     }
     private function fingerprint(ProjectMaxConnection $connection): string {return hash('sha256',serialize([$connection->projectKey(),$connection->botKey(),$connection->token(),$connection->webhookSecret(),$connection->settings()->all()]));}
     public function verify(int $actor,int $id): array

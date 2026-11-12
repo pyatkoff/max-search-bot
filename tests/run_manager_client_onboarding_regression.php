@@ -78,5 +78,17 @@ try{
     clientCheck('changed valid-length key cannot create mixed-key clients',clientThrows(fn()=>$service->create(1,$new))&&$pdo->query('SELECT COUNT(*) FROM projects')->fetchColumn()===$before&&ProjectMaxConnection::resolve($key)===null);file_put_contents($private.'/master.key',$keyBytes);
     rename($private.'/master.key',$private.'/saved.key');symlink($private.'/saved.key',$private.'/master.key');clientCheck('symlinked key refused',clientThrows(fn()=>$registry->credentials->fingerprint('test')));unlink($private.'/master.key');rename($private.'/saved.key',$private.'/master.key');
     chmod($private.'/master.key',0644);clientCheck('public key permissions fail closed',clientThrows(fn()=>$registry->credentials->fingerprint('test')));chmod($private.'/master.key',0600);
+    $generic=clientFixtureInput('d');$generic['operation_id']=str_repeat('6',31).'d';$generic['display_name']='Студия Север';$generic['business_kind']='manager_inbox';$generic['materials']='Собственные услуги студии';$beforeWrites=$writes;
+    $genericCreated=$service->create(1,$generic);$genericId=$genericCreated['project_id'];$genericKey='client_'.substr($generic['operation_id'],0,24);$genericConnection=ProjectMaxConnection::resolve($genericKey);
+    clientCheck('neutral profile creates an independent company without provider writes',$genericCreated['state']==='created'&&$genericConnection&&$writes===$beforeWrites&&ProjectMaxWebhookSetup::activeDirectory($genericConnection));
+    $genericSettings=$genericConnection->settings()->all();
+    clientCheck('profile uses only its own brand and no repair travel publication or AI defaults',$genericSettings===ClientBusinessProfile::settings('manager_inbox',$genericKey,'Студия Север')&&!isset($genericSettings['business']['repair'],$genericSettings['sales_funnel'],$genericSettings['ai']));
+    clientCheck('profile is visible to its employee without exposing settings or secrets',$service->detail($genericCreated['manager_ids'][0],$genericId)['client']['business_profile']===ClientBusinessProfile::describe('manager_inbox')&&!str_contains(json_encode($service->detail($genericCreated['manager_ids'][0],$genericId)),$generic['token']));
+    clientCheck('new profile preserves immutable creation receipt',$service->create(1,$generic)===$genericCreated&&$service->receipt(1,$generic['operation_id'])===$genericCreated);
+    $subscriptions=[];$genericCheck=$service->verify(1,$genericId);
+    clientCheck('neutral company can verify its existing channel without publication settings',$genericCheck['ok']&&$genericCheck['state']==='planned'&&$writes===$beforeWrites);
+    $genericCorrection=['operation_id'=>str_repeat('6',31).'e','bot_key'=>'neutral_corrected_bot','token'=>'','materials'=>'Обновлённые собственные материалы'];
+    clientCheck('connection correction retains the chosen business profile',$service->configure(1,$genericId,$genericCorrection)['state']==='configured'&&ProjectMaxConnection::resolve($genericKey)->settings()->all()===$genericSettings&&$service->detail($employee,$genericId)['error']==='not_found');
+    clientCheck('unsupported industries are never advertised as ready',ClientBusinessProfile::describe('tourism')===null&&ClientBusinessProfile::describe(['manager_inbox'])===null&&count(ClientBusinessProfile::choices())===2);
     echo 'TOTAL '.$passed.' | PASS '.$passed." | FAIL 0\n";
 }finally{ProjectClientRegistry::resetForTests();foreach(['master.key','saved.key'] as $file)if(is_file($private.'/'.$file))unlink($private.'/'.$file);if(is_dir($private))rmdir($private);}
