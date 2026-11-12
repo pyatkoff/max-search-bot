@@ -2676,11 +2676,14 @@ function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $ori
     $merge=new ReflectionMethod($worker,'withRetainedAppEvidence');
     $base=['finite_visit_evidence'=>$original,'finite_visit_recovery'=>['immutable'=>'forward'],'fixed_pair_operational_decisions'=>['immutable'=>'pair'],
         'finite_counter_scope_evidence'=>false,'last_recorded_failure'=>['immutable'=>'failure'],'padding'=>''];
-    $base['padding']=str_repeat('p',max(0,8100-strlen(json_encode($base,JSON_THROW_ON_ERROR))));
+    $base['padding']=str_repeat('p',max(0,8150-$measure($base+[$key=>false])));
+    $check('native pressure fixture fits its complete protected frame and tombstone but not the full optional result',
+        $measure($base+[$key=>false])<=8192&&$measure($base+[$key=>$done])>8192);
     $pressure=$merge->invoke($worker,$base,[$key=>$done],$mysql);
     $check('private receipt pressure keeps a consumed tombstone without erasing old proof or failure',
         $pressure!==null&&$pressure[$key]===false&&$pressure['finite_visit_evidence']===$original
-        &&$pressure['finite_visit_recovery']===$base['finite_visit_recovery']&&$pressure['last_recorded_failure']===$base['last_recorded_failure']);
+        &&$pressure['finite_visit_recovery']===$base['finite_visit_recovery']&&$pressure['fixed_pair_operational_decisions']===$base['fixed_pair_operational_decisions']
+        &&$pressure['finite_counter_scope_evidence']===$base['finite_counter_scope_evidence']&&$pressure['last_recorded_failure']===$base['last_recorded_failure']);
     $lateMerged=$merge->invoke($worker,['errors'=>0],[$key=>$intent],$mysql);
     $check('a delayed healthy writer preserves the previously consumed UNKNOWN token',$lateMerged[$key]===$intent);
     $p->exec('DROP INDEX idx_advertising_identity'.($mysql?' ON advertising_visit_observations':''));
