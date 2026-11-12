@@ -10,7 +10,7 @@ function as39CoverageSeed(?PDO $pdo = null): array
     return $seed;
 }
 
-function as39CoverageSuccess(array $fixture): void
+function as39CoverageSuccess(array $fixture, ?callable $beforeMenu = null): void
 {
     [$pdo,$provider,$store] = $fixture;
     $publisher = as39SearchPublisher($pdo,$provider);
@@ -25,7 +25,20 @@ function as39CoverageSuccess(array $fixture): void
     as39Expect($provider->count('POST','/uploads') === $uploads+1 && $provider->count('POST','/messages') === $creates,
         'one approved neutral cover accepts zero upload map index and is not uploaded twice');
     $requestOffset = count($provider->requests);
-    $report = $publisher->run('coverage_apply');
+    $priorHook = $provider->membershipHook; $captured = false;
+    if ($beforeMenu !== null) $provider->membershipHook = static function () use ($provider,$store,$beforeMenu,$priorHook,&$captured): void {
+        if ($priorHook !== null) $priorHook();
+        $menu = $store->operation('menu',AppleService39CoverageRevision::MENU);
+        $creates = array_filter($store->rows(),static fn(array $row): bool =>
+            $row['operation'] === 'create' && $row['state'] === 'verified'
+            && AppleService39CoverageRevision::isOperation($row['post_key'],$row['operation'],$row['request']));
+        if (!$captured && count($creates) === 39 && $menu !== null
+            && $menu['state'] === 'prepared' && (int)$menu['write_attempts'] === 0) {
+            $captured = true; $beforeMenu();
+        }
+    };
+    try { $report = $publisher->run('coverage_apply'); }
+    finally { $provider->membershipHook = $priorHook; }
     as39Expect($report['ok'] && $report['coverage_publication_complete'] && $report['coverage_verified_posts'] === 39
         && $report['post_count'] === 69 && $report['expected_feed_offers'] === 67
         && $report['feed_verified_offers'] === 67 && count($report['feed_verified_routes']) === 67
@@ -86,10 +99,16 @@ function as39CoverageRegression(?PDO $native = null): void
         'transport accepts only explicit false notification override');
     $seed = as39CoverageSeed($native);
     $completed = $native === null ? as39SearchClone($seed) : $seed;
-    as39CoverageSuccess($completed);
+    $beforeMenu = null;
+    as39CoverageSuccess($completed,$native !== null ? null : static function () use ($completed,&$beforeMenu): void {
+        $beforeMenu = as39SearchClone($completed);
+        $beforeMenu[1]->membershipHook = null;
+    });
     if ($native !== null) return;
+    as39Expect(is_array($beforeMenu) && $beforeMenu[2]->operation('menu',AppleService39CoverageRevision::MENU)['state'] === 'prepared',
+        'menu recovery reuses an actual pre-claim publisher snapshot without rewinding or fabricating receipts');
     foreach (['upload_lost','create_lost','create_get_lost','menu_lost'] as $fault) {
-        [$pdo,$provider,$store] = as39SearchClone($seed); $wire = as39SearchWire($provider); $once = false;
+        [$pdo,$provider,$store] = as39SearchClone($fault === 'menu_lost' ? $beforeMenu : $seed); $wire = as39SearchWire($provider); $once = false;
         $faultWire = static function(array $request) use($wire,$fault,&$once):array {
             $response = $wire($request); $path = parse_url($request['url'],PHP_URL_PATH);
             if (!$once && ($fault === 'upload_lost' && $request['file'] !== null
@@ -120,7 +139,8 @@ function as39CoverageRegression(?PDO $native = null): void
         if (in_array($fault,['create_get_lost','menu_lost'],true)) {
             as39Expect($fresh['state'] === 'verified' && $report['ok'],$fault.' exact acknowledged native evidence closes its own hold');
             as39Expect($publisher->run('coverage_apply')['coverage_publication_complete']
-                && $provider->count('POST','/messages') === 39 && $provider->count('PUT','/messages') === 1,
+                && $provider->count('POST','/messages') === ($fault === 'menu_lost' ? 0 : 39)
+                && count($provider->messages) === 69 && $provider->count('PUT','/messages') === 1,
                 $fault.' resumes only unattempted actions without duplicate posts');
         } else {
             as39Expect($fresh['state'] === 'unknown' && !$report['ok'],$fault.' unknown upload or lost create MID is never guessed');

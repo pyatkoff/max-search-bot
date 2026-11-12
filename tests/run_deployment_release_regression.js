@@ -460,6 +460,49 @@ async function publicationOperationConsumer(f,repositorySha,applicationSha){
     await refuses(()=>R.resolvePublicationOperation({env:{...env,...patch},event,api:f.api}),
       'untrusted_publication_operation','fixed publication refuses '+label);
   }
+  const predecessor='c5c0276d94337eee130467716c9794176b2ab25a',oldId=43186776772;
+  let oldRun={...copy(run),id:oldId,head_sha:predecessor,status:'completed',conclusion:'cancelled'};
+  const oldJobs=[
+    {id:6503,run_id:oldId,run_attempt:1,head_sha:predecessor,name:'AppleService39 pilot publication regression',status:'completed',conclusion:'cancelled',steps:[]},
+    {id:6504,run_id:oldId,run_attempt:1,head_sha:predecessor,name:'publish',status:'completed',conclusion:'skipped',steps:[]}
+  ];
+  let jobs=copy(oldJobs),relation={status:'ahead',merge_base_commit:{sha:predecessor}};
+  const recoveryApi=async(method,path,...args)=>{
+    if(path===R.API_ROOT+'/actions/runs/'+oldId)return copy(oldRun);
+    if(path===R.API_ROOT+'/actions/runs/'+oldId+'/attempts/1/jobs?per_page=100')return {total_count:jobs.length,jobs:copy(jobs)};
+    if(path===R.API_ROOT+'/compare/'+predecessor+'...'+repositorySha+'?per_page=1')return copy(relation);
+    return f.api(method,path,...args);
+  };
+  const recoveryEvent={...event,before:predecessor,created:false};
+  const recovered=await R.resolvePublicationOperation({env,event:recoveryEvent,api:recoveryApi});
+  equal([recovered.ready,recovered.perform_actions,recovered.repository_sha,recovered.application_sha],
+    [true,true,repositorySha,applicationSha],'one original native fast-forward can replace the exact cancelled zero-publication predecessor');
+  for(const mutate of [
+    ()=>{jobs[1].conclusion='success';},
+    ()=>{jobs[1].steps=[{name:'Prepare deployment credential',status:'completed',conclusion:'success'}];},
+    ()=>{jobs[1].status='in_progress';},
+    ()=>{jobs[1].run_attempt=2;},
+    ()=>{jobs[1].head_sha='f'.repeat(40);},
+    ()=>{jobs[1].run_id++;},
+    ()=>{jobs[0].conclusion='success';},
+    ()=>{jobs.push({...jobs[1],id:6505});},
+    ()=>{jobs.pop();}
+  ]){
+    jobs=copy(oldJobs);mutate();
+    await refuses(()=>R.resolvePublicationOperation({env,event:recoveryEvent,api:recoveryApi}),
+      'publication_predecessor_has_writes','missing, executed, changed or unknown original job evidence cannot grant publication recovery');
+  }
+  jobs=copy(oldJobs);oldRun.run_attempt=2;
+  await refuses(()=>R.resolvePublicationOperation({env,event:recoveryEvent,api:recoveryApi}),
+    'untrusted_workflow_run','a rerun of the cancelled predecessor is not the original zero-write proof');
+  oldRun.run_attempt=1;oldRun.conclusion='success';
+  await refuses(()=>R.resolvePublicationOperation({env,event:recoveryEvent,api:recoveryApi}),
+    'producer_not_successful','a successful or differently concluded predecessor cannot use this finite cancellation recovery');
+  oldRun.conclusion='cancelled';relation={status:'ahead',merge_base_commit:{sha:'f'.repeat(40)}};
+  await refuses(()=>R.resolvePublicationOperation({env,event:recoveryEvent,api:recoveryApi}),
+    'publication_source_not_descendant','recovery cannot install an unrelated publication source');
+  await refuses(()=>R.resolvePublicationOperation({env,event:{...recoveryEvent,before:'f'.repeat(40)},api:recoveryApi}),
+    'untrusted_publication_operation','a later fast-forward cannot become another automatic recovery');
   f.main='f'.repeat(40);
   await refuses(()=>R.resolvePublicationOperation({env,event,api:f.api}),'main_changed','coverage cannot run a stale accepted checkout');
   f.main=repositorySha;run.status='completed';run.conclusion='success';

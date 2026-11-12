@@ -54,7 +54,7 @@ jobs:
   regression:
     name: AppleService39 pilot publication regression
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2

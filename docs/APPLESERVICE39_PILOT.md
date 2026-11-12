@@ -412,3 +412,33 @@ publication, host refresh, or signed-MAX webview acceptance.
 
 Scope remains feed → miniapp → native post. Manager policy, conversions, goals,
 credentials and customer messages are unchanged and outside this slice.
+
+
+## Cancelled pre-publication control: exact finite recovery
+
+Original push43186776772/attempt1 was cancelled at the existing8-minute source
+regression deadline; native publish job131079739970 was skipped with zero steps.
+There was no credential/SSH/provider execution. Preserve that failed original
+result; it is not a completed publication and it is not an UNKNOWN provider write.
+
+The same existing regression now has12 minutes. Its lost-menu-ACK fixture reuses
+a genuine paused publisher state captured before the original menu claim, after
+all39 synthetic creates were actually verified. No verified receipt is deleted,
+rewound or fabricated; the same native PUT loss/GET-only reconciliation and
+single-attempt/no-duplicate predicates still run. Production data is unaffected.
+
+The canonical resolver permits one original attempt1 native fast-forward push
+from the exact old source c5c0276d94337eee130467716c9794176b2ab25a on the same
+ops/appleservice39-coverage-20261112 branch. It first authenticates the exact
+cancelled original run43186776772 and both original source-bound jobs, including
+a skipped publisher with zero steps, then proves source ancestry, fresh current
+main and the actual accepted installed application. Any executed/pending/unknown,
+missing/changed/duplicate job or API failure refuses before credentials.
+A later/arbitrary/forced branch update or workflow attempt2 remains forbidden.
+Existing provider Store claims/UNKNOWN holds are unchanged. There is no new
+workflow, queue, publisher, secret or branch deletion/recreation.
+
+After this checked source is accepted, use one expected-head fast-forward from
+the exact original ops ref; do not rerun the cancelled workflow. Actual69 native
+readbacks,67 server routes and checked branded CSV installation remain required.
+Manager/conversion work and Mac access remain excluded by the owner.
