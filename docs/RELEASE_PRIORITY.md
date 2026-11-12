@@ -13,8 +13,19 @@ source-accepted continuation43239070014 stopped at its initial context guard:
 proof upload and terminal steps are explicitly skipped and its allowlisted
 failure precedes every writer. Read-only observation43240168728 then proved the
 genuine update event from658e387 to f4db027. The final continuation accepts only
-the exact update from that observed f4db027 source to its directly checked child,
-and independently verifies both actual predecessor jobs/logs before any write.
+the observed native update semantics and independently verifies the actual
+predecessor jobs/logs before any write. The checked d6f732 continuation43243320862
+also stopped during preparation on another503; upload/terminal were skipped,
+and original diagnostics commit34f4a2c/publisher version remained exact.
+Only its exact checked direct successor is admitted next.
+
+Inside this explicit continuation only, idempotent metadata GETs may perform
+at most two additional reads after HTTP503 across each preparation/final phase,
+with one second between them and the existing request/job deadlines. This
+includes original immutable job logs/artifacts. No other HTTP error,429,
+transport uncertainty, POST or PATCH is retried. Every final source, original
+gate, owner/version and diagnostics compare remains mandatory after reading.
+All ordinary release paths retain their existing no-retry behavior.
 
 The fixed recipe pins the original SHA, proposal commit/blob/digest, failed
 run/job and original publisher tuple. Before any write it authenticates that

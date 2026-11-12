@@ -17,12 +17,15 @@ fake the old execution context, manually free it or rerun a failed workflow.
 
 The same HOTEL owner implements the narrow source-checked continuation in the
 existing tail. Run required exact-head CI first; only then one exact non-force
-fast-forward of ops/recover-pr1505-terminal-20261112 from the successful read-only
-observation sourcef4db027b4fb39242a6b8e51cba460c309b01db3f to its checked direct child
+fast-forward of ops/recover-pr1505-terminal-20261112 from the checked stopped
+source d6f732dffd4976c663153771d9bb4b122456e3e6 to its checked direct child
 source may authenticate the original failed proof and all original gates,
 publish a separately identified continuation proof and close that exact owned
 record. The initial43239070014 context refusal and observation43240168728 remain
 independently authenticated predecessors, never relabelled or replayed.
+Continuation43243320862 stopped on503 before publication; original diagnostics
+and publisher versions read back exact. This source adds only two bounded
+additional GETs for503 in the explicit continuation; no write/429/unknown retry.
 Changed source/owner/evidence or UNKNOWN write stops. Preserve failed
 history and optional runtime UNKNOWN. No content/model/customer/provider action.
 After genuine continuation success, use normal fresh admission and the same

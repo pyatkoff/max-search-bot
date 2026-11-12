@@ -225,7 +225,8 @@ const TERMINAL_RECOVERY=Object.freeze({
   record_digest:'cf5625c99d737a4f56653d6bf6a11caaa399f52208eb670df45d8b4ff171e4ff',
   pr:1505,comment_id:6789986080,owner_id:226193297,updated_at:'2026-11-12T13:41:14Z',
   continuation_sha:'658e387cadec98ff32f343fbcd5aa830dd0e85bf',continuation_run_id:'43239070014',continuation_job_id:131254894159,
-  observation_sha:'f4db027b4fb39242a6b8e51cba460c309b01db3f',observation_run_id:'43240168728',observation_job_id:131258118456
+  observation_sha:'f4db027b4fb39242a6b8e51cba460c309b01db3f',observation_run_id:'43240168728',observation_job_id:131258118456,
+  read_failure_sha:'d6f732dffd4976c663153771d9bb4b122456e3e6',read_failure_run_id:'43243320862',read_failure_job_id:131269294778
 });
 function terminalRecovery(r){
   const x=r.closure?.recovery,p=TERMINAL_RECOVERY;
@@ -555,7 +556,8 @@ function makeReadApi(token,fetchImpl=globalThis.fetch) {
     return request(url.href,{},'error',MAX_ARCHIVE);
   };
   api.jobLog=async job=>{
-    requireValue([TERMINAL_RECOVERY.job_id,TERMINAL_RECOVERY.continuation_job_id,TERMINAL_RECOVERY.observation_job_id].includes(job),'untrusted_terminal_log');
+    requireValue([TERMINAL_RECOVERY.job_id,TERMINAL_RECOVERY.continuation_job_id,TERMINAL_RECOVERY.observation_job_id,
+      TERMINAL_RECOVERY.read_failure_job_id].includes(job),'untrusted_terminal_log');
     const response=await request('https://api.github.com'+API_ROOT+'/actions/jobs/'+job+'/logs',headers(false),'manual',2*1024*1024);
     if(Buffer.isBuffer(response))return response;
     let url;try{url=new URL(response.headers.get('location'));}catch{throw new Refusal('invalid_log_redirect');}

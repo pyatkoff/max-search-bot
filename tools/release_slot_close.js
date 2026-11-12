@@ -740,7 +740,8 @@ function recoveryLog(bytes,expected='api_http_503'){
 async function continuationPredecessors(api){
   const p=release.TERMINAL_RECOVERY,get=path=>api('GET',release.API_ROOT+path);
   for(const [source,id,jobId,outcome]of [[p.continuation_sha,p.continuation_run_id,p.continuation_job_id,'failure'],
-    [p.observation_sha,p.observation_run_id,p.observation_job_id,'success']]){
+    [p.observation_sha,p.observation_run_id,p.observation_job_id,'success'],
+    [p.read_failure_sha,p.read_failure_run_id,p.read_failure_job_id,'failure']]){
     const run=await get('/actions/runs/'+id);
     release.runIdentity(run,{id,attempt:1,head:source,workflow:CLOSER,event:'push',branch:p.branch,conclusion:outcome});
     const jobs=release.boundedList(await get('/actions/runs/'+id+'/attempts/1/jobs?per_page=100'),'jobs','incomplete_continuation_predecessor');
@@ -756,9 +757,11 @@ async function continuationPredecessors(api){
         &&bind.length===1&&bind[0].status==='completed'&&bind[0].conclusion==='skipped'
         &&terminal.length===1&&terminal[0].status==='completed'&&terminal[0].conclusion==='skipped',
         'continuation_predecessor_has_writes');
-      requireValue((await get('/contents/tools/release_slot_close.js?ref='+source))?.sha==='4bce0a0fe076ffc4fa481a8f0ba1cce98477ec4d',
+      const initial=source===p.continuation_sha;
+      requireValue((await get('/contents/tools/release_slot_close.js?ref='+source))?.sha===(initial?
+        '4bce0a0fe076ffc4fa481a8f0ba1cce98477ec4d':'dba0df10089ba3dd98ab6b1ef735bbe11b434547'),
         'continuation_predecessor_changed');
-      recoveryLog(await api.jobLog(jobId),'untrusted_terminal_continuation');
+      recoveryLog(await api.jobLog(jobId),initial?'untrusted_terminal_continuation':'api_http_503');
     }else{
       requireValue(jobs.length===1&&steps.filter(s=>!['Set up job','Complete job'].includes(s.name)).length===1
         &&steps.some(s=>s.name==='Read only allowlisted native event and run identity'&&s.conclusion==='success'),
@@ -774,7 +777,22 @@ async function continuationPredecessors(api){
     }
   }
 }
-async function resumeTerminal({env,event,api,prepare=false,proofFile=null}){
+function terminalReads(base,{sleep=ms=>new Promise(r=>setTimeout(r,ms))}={}){
+  let remaining=2;
+  const read=async(action,label)=>{
+    while(true){
+      try{return await action();}
+      catch(error){
+        if(error?.code!=='api_http_503'||remaining===0){if(error&&typeof error==='object')error.terminalReadScope=label;throw error;}
+        remaining--;await sleep(1000);
+      }
+    }
+  };
+  const api=(method,path,body,raw=false)=>method==='GET'?read(()=>base(method,path,body,raw),path.replace(release.API_ROOT+'/','')):base(method,path,body,raw);
+  api.jobLog=id=>read(()=>base.jobLog(id),'job_log');api.artifact=meta=>read(()=>base.artifact(meta),'artifact');return api;
+}
+async function resumeTerminal({env,event,api,prepare=false,proofFile=null,readOptions={}}){
+  api=terminalReads(api,readOptions);
   const p=release.TERMINAL_RECOVERY,root=release.API_ROOT;
   const get=path=>api('GET',root+path);
   requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_EVENT_NAME==='push'
@@ -782,7 +800,7 @@ async function resumeTerminal({env,event,api,prepare=false,proofFile=null}){
     &&env.GITHUB_JOB==='release-slot-recovery'&&env.GITHUB_RUN_ATTEMPT==='1'
     &&sha(env.GITHUB_SHA)&&env.GITHUB_SHA!==p.sha&&/^[1-9][0-9]*$/.test(env.GITHUB_RUN_ID||'')
     &&event?.repository?.full_name===REPOSITORY&&event.ref===env.GITHUB_REF&&event.after===env.GITHUB_SHA
-    &&event.before===p.observation_sha&&event.created===false&&event.deleted===false&&event.forced===false,
+    &&event.before===p.read_failure_sha&&event.created===false&&event.deleted===false&&event.forced===false,
     'untrusted_terminal_continuation');
   const runId=String(env.GITHUB_RUN_ID),source=env.GITHUB_SHA;
   const main=async()=>requireValue((await get('/git/ref/heads/main'))?.object?.sha===p.sha,'main_changed');
@@ -791,7 +809,7 @@ async function resumeTerminal({env,event,api,prepare=false,proofFile=null}){
   release.runIdentity(native,{id:runId,attempt:1,head:source,workflow:CLOSER,event:'push',branch:p.branch,completed:false});
   requireValue(native.status==='in_progress'&&native.actor?.id===p.owner_id,'untrusted_terminal_continuation');
   const commit=await get('/git/commits/'+source);
-  requireValue(commit?.sha===source&&commit.parents?.length===1&&commit.parents[0].sha===p.observation_sha,'recovery_source_changed');
+  requireValue(commit?.sha===source&&commit.parents?.length===1&&commit.parents[0].sha===p.read_failure_sha,'recovery_source_changed');
   await continuationPredecessors(api);
   const ci=release.boundedList(await get('/actions/runs?head_sha='+source+'&per_page=100'),'workflow_runs','incomplete_recovery_ci');
   for(const [name,path]of [['Regression tests',PREFIX+'regression-tests.yml'],['Retired domain guard',PREFIX+'retired-domain-guard.yml']]){
@@ -851,7 +869,7 @@ async function resumeTerminal({env,event,api,prepare=false,proofFile=null}){
   requireValue(back?.id===p.comment_id&&back.body===b.released,'write_unknown');return 'released';
 }
 module.exports = { REQUIRED, CLOSER, ACTIVATION, context, binding, gateState, recordState, verifyTelemetry,
-  recoveryLog,resumeTerminal,
+  recoveryLog,resumeTerminal,terminalReads,
   verifyConfigure, verifyActivation, closeRelease, makeApi, INSTALL_JOBS, VERIFY_STEPS, stepResult, copiedExecution,
   deploymentHistory, admitVerification, selectRecoveryRuns, selectReleaseRuns, stageStatus, bindingSnapshot, gateReferences,
   onlyMetadataSteps,verifyUnchangedJobs,prepareRecord,PUBLIC_DIAGNOSTIC_JSON,diagnosticsTree,publishDiagnostics,
@@ -893,6 +911,8 @@ if (typeof require === 'function' && require.main === module) {
     process.stdout.write('release_slot=' + result + '\n');
   })().catch(error => {
     process.stderr.write('release_slot=held reason=' + (error instanceof Refusal||error instanceof release.Refusal ? error.code : 'internal_failure') + '\n');
+    if(typeof error?.terminalReadScope==='string'&&/^[a-z0-9_.?=&/:-]{1,250}$/i.test(error.terminalReadScope))
+      process.stderr.write('terminal_read_scope='+error.terminalReadScope+'\n');
     if (error instanceof Refusal && error.code === 'gate_deadline' && Array.isArray(error.pending))
       process.stderr.write('release_slot_pending=' + JSON.stringify(error.pending) + '\n');
     process.exitCode = 1;

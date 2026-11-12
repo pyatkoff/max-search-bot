@@ -1014,6 +1014,10 @@ async function terminalContinuationCases(){
     const observed={...copy(native),id:Number(p.observation_run_id),head_sha:p.observation_sha,status:'completed',conclusion:'success'};
     const observationJob=job('release-slot-recovery',observed,[step('Read only allowlisted native event and run identity')]);
     observationJob.id=p.observation_job_id;f.runs.set(observed.id,observed);f.jobs.set(observed.id,[observationJob]);
+    const readFailed={...copy(native),id:Number(p.read_failure_run_id),head_sha:p.read_failure_sha,status:'completed',conclusion:'failure'};
+    const readFailedJob=job('release-slot-recovery',readFailed,[step('Prepare continuation of the original pre-write read refusal','failure'),
+      step(R.TERMINAL_BINDING_STEP,'skipped'),step(R.TERMINAL_STEP,'skipped')],'failure');readFailedJob.id=p.read_failure_job_id;
+    f.runs.set(readFailed.id,readFailed);f.jobs.set(readFailed.id,[readFailedJob]);
     const bound=original.repository_release.closure.binding;
     f.pr={...f.pr,head:{sha:bound.head_sha,repo:{full_name:R.REPOSITORY}},
       body:'<!-- release-slot-close:v1 '+JSON.stringify({comment_id:p.comment_id,head_sha:bound.head_sha,
@@ -1032,11 +1036,13 @@ async function terminalContinuationCases(){
     f.artifacts.set(failed.id,[artifact]);f.archives.set(artifact.id,archive);
     const base=f.api;
     const api=async(method,path,body,raw)=>{
-      if(path===R.API_ROOT+'/git/commits/'+source)return {sha:source,parents:[{sha:p.observation_sha}]};
+      if(path===R.API_ROOT+'/git/commits/'+source)return {sha:source,parents:[{sha:p.read_failure_sha}]};
       if(path===R.API_ROOT+'/contents/tools/release_slot_close.js?ref='+p.sha)
         return {sha:'66cf67b48a40517dc4b2afd38b891c5396baeefe'};
       if(path===R.API_ROOT+'/contents/tools/release_slot_close.js?ref='+p.continuation_sha)
         return {sha:'4bce0a0fe076ffc4fa481a8f0ba1cce98477ec4d'};
+      if(path===R.API_ROOT+'/contents/tools/release_slot_close.js?ref='+p.read_failure_sha)
+        return {sha:'dba0df10089ba3dd98ab6b1ef735bbe11b434547'};
       if(path===R.API_ROOT+'/issues/comments/'+p.comment_id){
         f.calls.push({method,path,body});if(method==='PATCH')f.comment={...f.comment,body:body.body};return copy(f.comment);
       }
@@ -1052,7 +1058,7 @@ async function terminalContinuationCases(){
     const env={GITHUB_REPOSITORY:R.REPOSITORY,GITHUB_EVENT_NAME:'push',GITHUB_REF:'refs/heads/'+p.branch,
       GITHUB_SHA:source,GITHUB_RUN_ID:String(runId),GITHUB_RUN_ATTEMPT:'1',GITHUB_JOB:'release-slot-recovery',
       GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.CLOSER+'@refs/heads/'+p.branch};
-    const event={repository:{full_name:R.REPOSITORY},ref:env.GITHUB_REF,after:source,before:p.observation_sha,
+    const event={repository:{full_name:R.REPOSITORY},ref:env.GITHUB_REF,after:source,before:p.read_failure_sha,
       created:false,deleted:false,forced:false};
     return {f,api,env,event,native,currentJob,oldJob,stoppedJob,observationJob,source,options:()=>({env,event,api})};
   }
@@ -1134,7 +1140,23 @@ async function terminalContinuationCases(){
     equal(x.f.comment.body,'PR1505: выпуск занят','continuation: uncertain write does not invent a release');
   }
 }
-async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await terminalContinuationCases();
+async function terminalReadCases(){
+  let reads=0,writes=0,waits=0;
+  const raw=async(method)=>{if(method!=='GET'){writes++;throw new R.Refusal('api_http_503');}
+    reads++;if(reads<=2)throw new R.Refusal('api_http_503');return 'actual read';};
+  const api=C.terminalReads(raw,{sleep:async()=>{waits++;}});
+  equal(await api('GET',R.API_ROOT+'/actions/runs/100'),'actual read','two transient reads can converge');
+  equal(reads,3);equal(waits,2);
+  await refuses(()=>api('PATCH',R.API_ROOT+'/issues/comments/900',{body:'unused'}),'api_http_503');
+  equal(writes,1,'no mutation retry after503');equal(waits,2,'writes receive no read budget');
+  for(const reason of ['api_http_429','api_http_403','transport_failed']){
+    let calls=0;const blocked=C.terminalReads(async()=>{calls++;throw new R.Refusal(reason);},{sleep:async()=>{throw Error('unexpected wait');}});
+    await refuses(()=>blocked('GET',R.API_ROOT+'/actions/runs/100'),reason);equal(calls,1,'other errors remain stops');
+  }
+  let failures=0;const outage=C.terminalReads(async()=>{failures++;throw new R.Refusal('api_http_503');},{sleep:async()=>{}});
+  await refuses(()=>outage('GET',R.API_ROOT+'/actions/runs/100'),'api_http_503');equal(failures,3,'a sustained outage stops after two additional GETs');
+}
+async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await terminalContinuationCases();await terminalReadCases();
   process.stdout.write('Deployment release regression: '+assertions+' assertions passed\n');}
 module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases};
 if(require.main===module)main().catch(e=>{process.stderr.write(String(e.stack||e)+'\n');process.exitCode=1;});
