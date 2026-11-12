@@ -7,8 +7,8 @@ function harness(channel='telegram',policy=policies,manualFrames=false){
  const frames=[];const window={WorkspaceV2:{S},WorkspaceV2Conversation:{getOpenGeneration:()=>open},requestAnimationFrame:fn=>{if(manualFrames)frames.push(fn);else setImmediate(fn);return 1}};
  const input={dataset:{mediaPolicy:JSON.stringify(policy)}},document={getElementById:()=>input,createElement:()=>({textContent:'',className:'',dataset:{},isConnected:true})};
  vm.runInNewContext(source,{window,document,WeakMap,Uint8Array,DataView,Promise,JSON,Number,String,Math});
- const spans=[],info={appendChild:s=>spans.push(s)},box={scrollTop:77,querySelectorAll:()=>[{querySelector:()=>info}]};
- return {S,spans,box,window,paint:()=>frames.splice(0).forEach(fn=>fn()),open:()=>open++,render(file){window.WorkspaceV2MediaPreflight.render([{file,status:'unknown'}],box);return spans.at(-1)},clear(){window.WorkspaceV2MediaPreflight.render([],box)},input};
+ const spans=[],info={appendChild:s=>spans.push(s),querySelector:()=>spans.at(-1)},box={scrollTop:77,querySelectorAll:()=>[{querySelector:()=>info}]};
+ return {S,spans,box,window,paint:()=>frames.splice(0).forEach(fn=>fn()),open:()=>open++,render(file,refresh=false){window.WorkspaceV2MediaPreflight.render([{file,status:'unknown'}],box,refresh);return spans.at(-1)},clear(){window.WorkspaceV2MediaPreflight.render([],box)},input};
 }
 const flush=()=>new Promise(resolve=>setImmediate(()=>setImmediate(resolve)));
 const png=(w,h)=>{const b=Buffer.alloc(24);Buffer.from([137,80,78,71,13,10,26,10]).copy(b);b.write('IHDR',12);b.writeUInt32BE(w,16);b.writeUInt32BE(h,20);return b};
@@ -26,6 +26,10 @@ test('late visual paint preserves the current list scroll against native anchori
  Object.defineProperty(s,'textContent',{get:()=>text,set:value=>{text=value;h.box.scrollTop+=41}});
  // The user may scroll again after the read settles and before its visual frame.
  h.box.scrollTop=123;h.paint();assert.match(s.textContent,/5×5/);assert.equal(h.box.scrollTop,123);
+});
+test('only a fresh accepted render rebinds a retained node and permits one layout update',async()=>{
+ const h=harness('telegram',policies,true),f=file(png(5,5));let resizes=0;h.window.WorkspaceV2ReplyEditor={resize:()=>resizes++};const s=h.render(f);await flush();h.open();h.paint();assert.equal(resizes,0);assert.match(s.textContent,/Проверяем файл/);
+ assert.equal(h.render(f,true),s);await flush();h.paint();assert.equal(h.spans.length,1);assert.equal(f.reads,1);assert.match(s.textContent,/5×5/);assert.equal(resizes,1);
 });
 test('known MAX edge and Telegram photo bytes/ratio use current channel independently',async()=>{
  const a=harness('max'),b=harness(),f=file(png(8000,10),'image/png',12000000),sa=a.render(f),sb=b.render(f);await flush();assert.match(sa.textContent,/Сторона/);assert.doesNotMatch(sa.textContent,/Размер больше/);assert.match(sb.textContent,/Размер больше/);assert.match(sb.textContent,/слишком вытянуто/);

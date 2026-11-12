@@ -6,7 +6,7 @@ const cache=new WeakMap(),HEADER_BYTES=65536;
 const paints=new Map();let paintFrame=0,renderSequence=0;
 function paint(node,apply){
  paints.set(node,apply);
- if(!paintFrame)paintFrame=window.requestAnimationFrame(()=>{paintFrame=0;const batch=[...paints.values()];paints.clear();batch.forEach(commit=>commit())});
+ if(!paintFrame)paintFrame=window.requestAnimationFrame(()=>{paintFrame=0;const batch=[...paints.values()];paints.clear();const changed=batch.reduce((any,commit)=>commit()===true||any,false);if(changed)window.WorkspaceV2ReplyEditor?.resize?.()});
 }
 const kind=mime=>/^image\//.test(mime)?'image':/^video\//.test(mime)?'video':/^audio\//.test(mime)?'audio':'file';
 const labels={image:'фото',video:'видео',audio:'аудио',file:'файл'};
@@ -89,14 +89,15 @@ function context(){
  if(!S||S.authExpired||!S.manager?.id||Number(c?.id)!==Number(S.current)||Number(c?.manager_id)!==Number(S.manager.id)||c.status!=='manager')return null;
  return JSON.stringify([S.manager.id,S.authGeneration,S.current,c.project_key,c.channel,window.WorkspaceV2Conversation?.getOpenGeneration?.()]);
 }
-function render(rows,box){
+function render(rows,box,refresh=false){
  const ticket=++renderSequence,captured=context();
  if(!captured||!rows.length||!box?.querySelectorAll)return;
  const nodes=Array.from(box.querySelectorAll('.mediaSelectedItem')),channel=String(window.WorkspaceV2.S.detail.conversation.channel||'').toLowerCase();
  let policy=null;try{const p=JSON.parse(document.getElementById('replyFile')?.dataset.mediaPolicy||'null');if(p?.schema===1)policy=p.channels?.[channel]||{supported:false}}catch{}
  rows.forEach((row,index)=>{
   const info=nodes[index]?.querySelector('.mediaFileInfo');if(!info)return;
-  const status=document.createElement('span');status.className='mediaFileCheck';status.textContent=policy?'Проверяем файл в этой вкладке…':'Предварительные ограничения недоступны; формат проверится при отправке.';info.appendChild(status);
+  const existing=refresh?info.querySelector?.('.mediaFileCheck'):null,status=existing||document.createElement('span');status.className='mediaFileCheck';
+  const top=box.scrollTop;status.textContent=policy?'Проверяем файл в этой вкладке…':'Предварительные ограничения недоступны; формат проверится при отправке.';if(!existing)info.appendChild(status);box.scrollTop=top;
   if(!policy)return;
   if(!policy.supported){status.textContent=describe(row.file,{},channel,policy).text;status.dataset.warning='true';return}
   inspect(row.file).then(meta=>{
@@ -108,7 +109,7 @@ function render(rows,box){
     if(ticket!==renderSequence||captured!==context()||!status.isConnected)return;
     // Native scroll anchoring can move a focused row when its advisory text
     // grows. Preserve the position at paint time, including a newer user scroll.
-    const top=box.scrollTop;status.textContent=result.text;status.dataset.warning=String(result.warning);box.scrollTop=top;
+    const top=box.scrollTop;status.textContent=result.text;status.dataset.warning=String(result.warning);box.scrollTop=top;return true;
    });
   });
  });

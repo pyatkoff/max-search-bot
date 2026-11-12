@@ -1199,8 +1199,8 @@ test('Manager2 reply editor keeps canonical IME, unknown and newer-draft send se
   expect(sends).toHaveLength(2);expect(sends[1].operation_id).not.toBe(sends[0].operation_id);expect((await editorGeometry(page)).lines).toBeLessThanOrEqual(1.1);
   expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
-test('Manager2 reply editor preserves native File identity and partial unknown delivery',async({page})=>{
-  await page.setViewportSize({width:390,height:420});const s=await setup(page);await openLead(page);await editorReady(page);
+for(const width of [390,430,768,1440])test(`Manager2 reply editor preserves native File identity and partial unknown delivery ${width}x420`,async({page,browserName},testInfo)=>{
+  await page.setViewportSize({width,height:420});const s=await setup(page);await openLead(page);await editorReady(page);
   await page.evaluate(()=>{
     window.editorFiles=[];window.editorUploads=[];window.editorUploadProof=[];
     document.querySelector('#replyFile').addEventListener('change',event=>{window.editorFiles=[...event.target.files]},true);
@@ -1229,8 +1229,16 @@ test('Manager2 reply editor preserves native File identity and partial unknown d
   await expect(page.locator('#mediaSelection')).toContainText('second.txt');await expect(page.locator('#mediaSelection')).not.toContainText('first.txt');
   await expect(page.locator('#mediaSelection')).toContainText('Исход неизвестен');await expect(reply).toHaveValue('');await expect(reply).toBeEnabled();
   expect(await page.evaluate(()=>editorUploads.length===2&&editorUploads.every((file,i)=>file===editorFiles[i]))).toBe(true);
-  await expect(dialog).not.toBeVisible();await page.locator('#m2ReplyExpand').click();await page.locator('#sendReply').click();
+  await expect(dialog).not.toBeVisible();await page.locator('#m2ReplyExpand').click();await settledMediaSelectionText(page);
+  const actionLayout=await page.evaluate(()=>{const button=document.getElementById('sendReply'),main=button.closest('.composerSurface').querySelector('.composerMain'),b=button.getBoundingClientRect(),r=main.getBoundingClientRect();return {clear:r.bottom<=b.top+1,hit:document.elementFromPoint(b.x+b.width/2,b.y+b.height/2)?.closest('#sendReply')===button,contentBottom:r.bottom,buttonTop:b.top}});
+  expect(actionLayout,'The content scrollport must never cover the native send button').toMatchObject({clear:true,hit:true});
+  await page.locator('#sendReply').click();
   await expect(page.locator('#replyStatus')).toContainText('неизвестен');expect(uploads).toBe(2);
+  await page.locator('#replyStatus').scrollIntoViewIfNeeded();await expect(page.locator('#replyStatus')).toBeInViewport();
+  const noticeLayout=await page.locator('#replyStatus').evaluate(el=>{const r=el.getBoundingClientRect(),p=el.closest('.composerMain').getBoundingClientRect();return {top:r.top,bottom:r.bottom,visibleTop:p.top,visibleBottom:p.bottom}});
+  // Match the existing native geometry checks' one-pixel rounding tolerance.
+  expect(noticeLayout.top).toBeGreaterThanOrEqual(noticeLayout.visibleTop-1);expect(noticeLayout.bottom).toBeLessThanOrEqual(noticeLayout.visibleBottom+1);
+  const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});const screenshot=await page.screenshot({path:path.join(directory,`reply-unknown-editor-${browserName}-${width}-420.png`)});await testInfo.attach('unknown-editor-native-action',{body:screenshot,contentType:'image/png'});
   await expect(page.locator('#mediaSelection')).toContainText('second.txt');
   expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
