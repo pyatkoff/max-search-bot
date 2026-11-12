@@ -4,7 +4,7 @@ const fs=require('node:fs'),path=require('node:path');
 
 const clone=value=>JSON.parse(JSON.stringify(value));
 const instant=1792141200;
-function queueState(id){return {schema:1,context:String(id).padStart(64,'0'),version:0,needed:true,customer_message_id:60,request_event_id:1,manager_message_id:58,queue_event_id:1,
+function queueState(id){return {schema:1,context:String(id).padStart(64,'0'),version:0,needed:true,activity_state:'awaiting_manager',customer_message_id:60,request_event_id:1,manager_message_id:58,queue_event_id:1,
  waiting_since_unix:instant-600,waiting_since:new Date((instant-600)*1000).toISOString(),wait_age_seconds:600,wait_time_known:true,
  can_resolve:true,can_undo:false,resolution:null};}
 async function fixture(page,{resolveMode='success'}={}){
@@ -25,10 +25,10 @@ async function fixture(page,{resolveMode='success'}={}){
    expect(d.context).toBe(q.context);expect(d.expected_version).toBe(q.version);
    if(d.action==='reply_queue_resolve'){
     expect(d.through_message_id).toBe(q.customer_message_id);expect(d.through_request_event_id).toBe(q.request_event_id);
-    q.version++;q.queue_event_id++;q.needed=false;q.can_resolve=false;q.can_undo=true;q.resolution={actor_id:7,actor_name:'Мария',operation_id:d.operation_id,recorded_at:instant,through_message_id:d.through_message_id,through_request_event_id:d.through_request_event_id};
+    q.version++;q.queue_event_id++;q.needed=false;q.activity_state='no_reply_required';q.can_resolve=false;q.can_undo=true;q.resolution={actor_id:7,actor_name:'Мария',operation_id:d.operation_id,recorded_at:instant,through_message_id:d.through_message_id,through_request_event_id:d.through_request_event_id};
    }else{
     expect(d.resolution_actor_id).toBe(q.resolution.actor_id);expect(d.resolution_operation_id).toBe(q.resolution.operation_id);
-    q.version++;q.queue_event_id++;q.needed=true;q.can_resolve=true;q.can_undo=false;q.resolution=null;
+    q.version++;q.queue_event_id++;q.needed=true;q.activity_state='awaiting_manager';q.can_resolve=true;q.can_undo=false;q.resolution=null;
    }
    const row=data.find(row=>row.id===id);row.awaiting_manager_reply=Number(q.needed);row.reply_wait_age_seconds=q.needed?q.wait_age_seconds:null;row.reply_wait_time_known=q.needed&&q.wait_time_known;
    const result={ok:true,saved_version:q.version,reply_queue:clone(q)};receipts.set(d.operation_id,{ok:true,saved_version:q.version});
@@ -38,7 +38,7 @@ async function fixture(page,{resolveMode='success'}={}){
   });
  }});
  return {...f,states,queueCalls,data,release:()=>held.shift()?.(),held:()=>held.length,
-  incoming(id,age=0){const q=states.get(id),row=data.find(row=>row.id===id);q.customer_message_id++;q.needed=true;q.can_resolve=true;q.waiting_since_unix=instant;q.waiting_since=new Date(instant*1000).toISOString();q.wait_age_seconds=age;q.wait_time_known=true;
+  incoming(id,age=0){const q=states.get(id),row=data.find(row=>row.id===id);q.customer_message_id++;q.needed=true;q.activity_state='awaiting_manager';q.can_resolve=true;q.waiting_since_unix=instant;q.waiting_since=new Date(instant*1000).toISOString();q.wait_age_seconds=age;q.wait_time_known=true;
    Object.assign(row,{awaiting_manager_reply:1,reply_wait_started_unix:instant,reply_wait_started_at:q.waiting_since,reply_wait_age_seconds:age,reply_wait_time_known:true});}};
 }
 async function open(page,id=11){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();await page.locator(`#inboxList [data-conversation-id="${id}"] .m2RowOpen`).click();await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#replyQueueStatus')).toBeVisible();}
@@ -81,6 +81,40 @@ for(const width of [390,430,768,1440])test(`reply queue decision and undo preser
  await page.locator('#replyQueueUndo').click();await expect(page.locator('#replyQueueText')).toContainText('Ожидает ответа · 10 мин');await expect(page.locator('#replyText')).toHaveValue('Неотправленный ответ не менять');
  expect(f.queueCalls.map(c=>c.action)).toEqual(['reply_queue_resolve','reply_queue_undo']);expect(f.states.get(11).waiting_since_unix).toBe(instant-600);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);await capture(page,testInfo,'reply-queue-'+width);clean(f);
+});
+
+for(const width of [390,430,768,1440])test(`reply activity shows lifecycle and preserves active manager drafts ${width}`,async({page},testInfo)=>{
+ await page.setViewportSize({width,height:740});const f=await fixture(page);await open(page);
+ await expect(page.locator('#replyQueueText')).toContainText('календарное время');
+ await page.locator('#replyText').fill('Уточняю стоимость, пришлю расчёт');
+ await page.locator('#replyFile').setInputFiles({name:'calculation.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic calculation draft')});
+ await expect(page.locator('.mediaFileName')).toHaveText(['calculation.txt']);
+ const q=f.states.get(11);q.needed=false;q.can_resolve=false;q.wait_age_seconds=null;q.waiting_since_unix=null;
+ Object.assign(f.data[0],{awaiting_manager_reply:0,reply_wait_age_seconds:null,reply_wait_time_known:false});
+ for(const [activity,status,label] of [['delivery_unavailable','manager','Доставка недоступна'],['no_pending_reply','manager','Нет активного ожидания ответа']]){
+  q.activity_state=activity;q.queue_event_id++;f.data[0].status=status;await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible());
+  await expect(page.locator('#replyQueueStatus')).toHaveAttribute('data-activity-state',activity);
+  await expect(page.locator('#replyQueueText')).toHaveText(label);await expect(page.locator('#replyQueueStatus')).toBeInViewport();
+  await expect(page.locator('#replyQueueText')).not.toContainText('Ждём клиента');
+  await expect(page.locator('#replyText')).toHaveValue('Уточняю стоимость, пришлю расчёт');await expect(page.locator('.mediaFileName')).toHaveText(['calculation.txt']);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+ }
+ q.resolution={actor_id:7,actor_name:'Мария',operation_id:'e'.repeat(32),recorded_at:instant,through_message_id:59,through_request_event_id:1};q.can_undo=true;q.version++;q.queue_event_id++;
+ await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible());
+ await expect(page.locator('#replyQueueText')).toContainText('Нет активного ожидания ответа');
+ await expect(page.locator('#replyQueueText')).toContainText('Последняя отметка: Ответ не требуется · Мария');
+ await expect(page.locator('#replyQueueUndo')).toBeInViewport();await expect(page.locator('#replyText')).toBeInViewport();
+ expect(f.queueCalls).toEqual([]);await capture(page,testInfo,'reply-queue-activity-'+width);
+ // Lifecycle changes retain Conversation's existing composer reset; the activity renderer does not own it.
+ for(const [activity,status,label] of [['bot','ai','Диалог у бота'],['closed','closed','Диалог закрыт']]){
+  q.activity_state=activity;q.can_undo=false;q.queue_event_id++;f.data[0].status=status;await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible());
+  await expect(page.locator('#replyQueueStatus')).toHaveAttribute('data-activity-state',activity);
+  await expect(page.locator('#replyQueueText')).toContainText(label);await expect(page.locator('#replyQueueStatus')).toBeInViewport();
+  await expect(page.locator('#replyQueueText')).toContainText('Последняя отметка: Ответ не требуется · Мария');
+  await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('.mediaFileName')).toHaveCount(0);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+ }
+ clean(f);
 });
 
 test('a late reply queue decision for A does not repaint B or block its composer',async({page})=>{

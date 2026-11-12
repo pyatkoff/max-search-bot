@@ -8,6 +8,31 @@ function writes(h){return h.calls.filter(c=>['reply_queue_resolve','reply_queue_
 function text(h){return h.ids.get('replyQueueText').textContent;}
 function state(h){return h.W.S.detail.reply_queue;}
 function saved(h){return h.storage.getItem('workspaceV2.replyQueue.pending.v1.7');}
+test('current activity comes from the canonical snapshot without inferring customer waiting or touching the composer',async()=>{
+ const h=await setup();await h.draft('Уточняю стоимость, пришлю расчёт');const file={name:'calculation.pdf'};h.setFile(file);
+ for(const [activity,label] of [['bot','Диалог у бота'],['closed','Диалог закрыт'],['delivery_unavailable','Доставка недоступна'],['no_pending_reply','Нет активного ожидания ответа'],['unknown','Состояние обращения неизвестно']]){
+  h.W.S.detail.reply_queue={...initial,needed:false,can_resolve:false,activity_state:activity};h.Q.sync(h.W.S.detail.conversation);
+  assert.equal(h.ids.get('replyQueueStatus').hidden,false);assert.equal(text(h),label);assert.equal(h.ids.get('replyQueueResolve').hidden,true);assert.doesNotMatch(text(h),/Жд[её]м клиента/);
+  assert.equal(h.ids.get('replyText').value,'Уточняю стоимость, пришлю расчёт');assert.equal(h.getFile(),file);
+ }
+ assert.equal(writes(h).length,0);assertNoMutations(h);
+});
+test('only a covering current decision is the headline; earlier decisions stay explicitly historical',async()=>{
+ const h=await setup(),mark=resolved({operation_id:'e'.repeat(32),through_message_id:35,through_request_event_id:12});
+ h.W.S.detail.reply_queue={...mark,activity_state:'no_reply_required'};h.Q.sync(h.W.S.detail.conversation);
+ assert.match(text(h),/^Ответ не требуется · Тестовый менеджер/);assert.doesNotMatch(text(h),/Последняя отметка/);assert.equal(h.ids.get('replyQueueUndo').hidden,false);
+ h.W.S.detail.reply_queue={...mark,activity_state:'no_pending_reply',customer_message_id:36,manager_message_id:40};h.Q.sync(h.W.S.detail.conversation);
+ assert.match(text(h),/^Нет активного ожидания ответа\nПоследняя отметка: Ответ не требуется/);assert.doesNotMatch(text(h),/Жд[её]м клиента/);assertNoMutations(h);
+});
+test('older snapshots and unknown activity values preserve compatible controls and honest calendar time',async()=>{
+ const h=await setup();assert.match(text(h),/Ожидает ответа · .*календарное время/);
+ h.W.S.detail.reply_queue={...initial,needed:false,can_resolve:false};h.Q.sync(h.W.S.detail.conversation);assert.equal(h.ids.get('replyQueueStatus').hidden,true);
+ for(const activity_state of ['future_state','__proto__']){
+  h.W.S.detail.reply_queue={...initial,activity_state};h.Q.sync(h.W.S.detail.conversation);assert.match(text(h),/^Ожидает ответа/);assert.equal(h.ids.get('replyQueueResolve').hidden,false);
+ }
+ h.W.S.detail.reply_queue={...initial,activity_state:'awaiting_manager',wait_age_seconds:null,waiting_since_unix:null};h.Q.sync(h.W.S.detail.conversation);
+ assert.match(text(h),/время ожидания неизвестно/);assert.doesNotMatch(text(h),/календарное время|<1 мин/);assertNoMutations(h);
+});
 test('mark has an exact immutable displayed frontier; new inbound remains waiting and the composer survives',async()=>{
  const h=await setup();await h.draft('Незавершённый ответ');const file={name:'draft.pdf'};h.setFile(file);h.ids.get('messages').scrollTop=29;
  h.setHook((url,r)=>r.action==='reply_queue_resolve'?response({ok:true,saved_version:90,reply_queue:resolved(r,{needed:true,customer_message_id:36})}):null);
@@ -56,9 +81,9 @@ test('legacy waiting without a message or request anchor can be explicitly settl
 });
 for(const key of ['customer_message_id','request_event_id','manager_message_id','queue_event_id'])test('equal decision version cannot roll back a newer '+key+' snapshot',async()=>{
  const h=await setup(),late=deferred();let input;h.setHook((url,r)=>{if(r.action==='reply_queue_resolve'){input=r;return late.promise}return null});const marking=h.Q.mutate('resolve');
- const olderState=resolved(input),fresh={...olderState,[key]:olderState[key]+1,needed:key==='manager_message_id'?false:true,can_resolve:key!=='manager_message_id'};h.W.S.detail.reply_queue=fresh;h.Q.sync(h.W.S.detail.conversation);
+ const olderState={...resolved(input),activity_state:'no_reply_required'},fresh={...olderState,[key]:olderState[key]+1,needed:key==='manager_message_id'?false:true,can_resolve:key!=='manager_message_id',activity_state:key==='manager_message_id'?'no_pending_reply':'awaiting_manager'};h.W.S.detail.reply_queue=fresh;h.Q.sync(h.W.S.detail.conversation);
  late.resolve(response({ok:true,saved_version:90,reply_queue:{...olderState,needed:!fresh.needed}}));await marking;assert.equal(state(h)[key],fresh[key]);assert.equal(state(h).needed,fresh.needed);
- h.W.S.detail.reply_queue={...olderState,needed:!fresh.needed};h.Q.sync(h.W.S.detail.conversation);assert.equal(state(h)[key],fresh[key]);assert.equal(state(h).needed,fresh.needed);assertNoMutations(h);
+ h.W.S.detail.reply_queue={...olderState,needed:!fresh.needed};h.Q.sync(h.W.S.detail.conversation);assert.equal(state(h)[key],fresh[key]);assert.equal(state(h).needed,fresh.needed);assert.equal(state(h).activity_state,fresh.activity_state);assertNoMutations(h);
 });
 for(const readonly of [false,true])test('late decision cannot restore an old '+(readonly?'readonly':'assignment')+' context',async()=>{
  const h=await setup(),late=deferred();let input,fresh=null;if(!readonly)h.W.S.manager.role='admin';

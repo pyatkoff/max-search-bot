@@ -157,12 +157,26 @@ final class ManagerReplyQueueService
     {
         $cid=(int)$c['id'];$state=self::state($pdo,$cid);$frontier=self::frontiers($cid);
         $mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
-        $q=$pdo->prepare('SELECT CASE WHEN '.self::neededSql('c',$mysql).' THEN 1 ELSE 0 END AS needed,'.self::waitStartedSql('c',$mysql).' AS reply_wait_started_unix FROM conversations c WHERE c.id=?');$q->execute([$cid]);$row=self::decorate([$q->fetch(PDO::FETCH_ASSOC)])[0];
+        $suspended=ManagerDeliveryStateService::activeSuspensionSql('c');if(!$mysql)$suspended=str_replace('JSON_UNQUOTE(','(',$suspended);
+        $q=$pdo->prepare('SELECT CASE WHEN '.self::neededSql('c',$mysql).' THEN 1 ELSE 0 END AS needed,'.self::waitStartedSql('c',$mysql).' AS reply_wait_started_unix,CASE WHEN '.$suspended.' THEN 1 ELSE 0 END AS delivery_suspended FROM conversations c WHERE c.id=?');$q->execute([$cid]);$row=self::decorate([$q->fetch(PDO::FETCH_ASSOC)])[0];
         $resolution=$state['current'];if($resolution){$q=$pdo->prepare('SELECT display_name,login FROM managers WHERE id=?');$q->execute([$resolution['actor_id']]);$name=$q->fetch(PDO::FETCH_ASSOC);$resolution['actor_name']=(string)(($name['display_name']??'')?:($name['login']??'Сотрудник'));}
         $can=self::canMutate($manager,$c);
-        return ['schema'=>1,'context'=>self::context($c,$manager),'version'=>$state['version'],'needed'=>(bool)$row['needed'],'customer_message_id'=>$frontier['customer_message_id'],'request_event_id'=>$frontier['request_event_id'],'manager_message_id'=>$frontier['manager_message_id'],'queue_event_id'=>$frontier['queue_event_id'],
+        return ['schema'=>1,'context'=>self::context($c,$manager),'version'=>$state['version'],'needed'=>(bool)$row['needed'],'activity_state'=>self::activityState($c,$row,$resolution,$frontier),'customer_message_id'=>$frontier['customer_message_id'],'request_event_id'=>$frontier['request_event_id'],'manager_message_id'=>$frontier['manager_message_id'],'queue_event_id'=>$frontier['queue_event_id'],
             'waiting_since_unix'=>$row['reply_wait_started_unix'],'waiting_since'=>$row['reply_wait_started_at'],'wait_age_seconds'=>$row['reply_wait_age_seconds'],'wait_time_known'=>$row['reply_wait_time_known'],
             'can_resolve'=>$can&&(bool)$row['needed'],'can_undo'=>$can&&$resolution!==null,'resolution'=>$resolution];
+    }
+    /** Presentation of existing facts, not a new lifecycle or a promise-completion decision. */
+    private static function activityState(array $c,array $row,?array $resolution,array $frontier): string
+    {
+        $status=(string)($c['status']??'');
+        if($status==='closed')return 'closed';
+        if($status==='ai')return 'bot';
+        if(!in_array($status,['manager','waiting_manager'],true))return 'unknown';
+        if((bool)$row['delivery_suspended'])return 'delivery_unavailable';
+        if((bool)$row['needed'])return 'awaiting_manager';
+        if($resolution!==null&&$resolution['through_message_id']>=$frontier['customer_message_id']&&$resolution['through_request_event_id']>=$frontier['request_event_id'])return 'no_reply_required';
+        // A sent "checking" reply does not establish that the next action belongs to the customer.
+        return 'no_pending_reply';
     }
     private static function state(PDO $pdo,int $cid): array
     {

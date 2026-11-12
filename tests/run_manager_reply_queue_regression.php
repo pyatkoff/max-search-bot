@@ -19,6 +19,7 @@ function rqProtected(PDO $pdo): array {$out=[];foreach(['managers','manager_proj
 replyQueueMessage($pdo,1,101,'inbound','customer',$now-600);
 $request=replyQueueRequest($pdo,101,$now-300);$protected=rqProtected($pdo);$view=rqView();
 rqCheck('initial wait starts at actual handoff, not earlier bot collection',$view['needed']&&$view['waiting_since_unix']===$now-300&&$view['customer_message_id']===1&&$view['request_event_id']===$request);
+rqCheck('handoff exposes a current need for a human response',$view['activity_state']==='awaiting_manager');
 rqCheck('same conversation queue context is bound to the current actor',$view['context']!==rqView(9)['context']);
 $roleInput=replyQueueInput($view,'role-context-00000001');$roleEvents=(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn();
 $pdo->exec("UPDATE managers SET role='admin' WHERE id=7");$roleView=rqView();
@@ -27,6 +28,7 @@ rqCheck('old role context cannot authorize a fresh decision even when current ac
 $pdo->exec("UPDATE managers SET role='manager' WHERE id=7");
 $firstInput=replyQueueInput($view,'resolve-synthetic-0001');$first=rqResolve('resolve-synthetic-0001',$firstInput);
 rqCheck('explicit decision clears only reply work and records actor plus two typed frontiers',!$first['reply_queue']['needed']&&$first['reply_queue']['resolution']['actor_id']===7&&$first['reply_queue']['resolution']['through_message_id']===1&&$first['reply_queue']['resolution']['through_request_event_id']===$request);
+rqCheck('covering manual decision is the current no-reply reason',$first['reply_queue']['activity_state']==='no_reply_required');
 rqCheck('read lifecycle assignment and shift remain unchanged',rqProtected($pdo)===$protected);
 $events=(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn();$repeat=rqResolve('resolve-synthetic-0001',$firstInput);
 rqCheck('same immutable command replays one receipt without another event',$repeat['saved_version']===$first['saved_version']&&(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn()===$events);
@@ -37,6 +39,7 @@ $undone=ManagerReplyQueueService::mutate(7,101,'undo',$undo);
 rqCheck('undo restores the same wait and its original clock',$undone['reply_queue']['needed']&&$undone['reply_queue']['waiting_since_unix']===$now-300&&$undone['reply_queue']['resolution']===null);
 $second=rqResolve('resolve-synthetic-0002');replyQueueMessage($pdo,2,101,'inbound','customer',$now-120);$view=rqView();
 rqCheck('new question automatically begins a new waiting cycle',$view['needed']&&$view['waiting_since_unix']===$now-120);
+rqCheck('old manual decision cannot label a new question as no reply required',$view['activity_state']==='awaiting_manager'&&$view['resolution']!==null);
 $staleInput=replyQueueInput($view,'resolve-synthetic-0003');replyQueueMessage($pdo,3,101,'inbound','customer',$now-60);
 rqCheck('another unanswered message never resets the elapsed wait',rqView()['waiting_since_unix']===$now-120);
 $partial=rqResolve('resolve-synthetic-0003',$staleInput);
@@ -49,12 +52,14 @@ rqCheck('send capture reads only its two required frontiers with one reference p
 replyQueueMessage($pdo,4,101,'inbound','customer',$now-30);
 replyQueueMessage($pdo,5,101,'outbound','manager',$now-20,[ManagerReplyQueueService::SEND_BOUNDARY=>$boundary]);
 rqCheck('question arriving during successful send remains unanswered despite its lower INSERT ID',rqView()['needed']&&rqView()['waiting_since_unix']===$now-30);
-$boundary=ManagerReplyQueueService::captureSendBoundary(101);replyQueueMessage($pdo,6,101,'outbound','manager',$now-15,[ManagerReplyQueueService::SEND_BOUNDARY=>$boundary]);
+$boundary=ManagerReplyQueueService::captureSendBoundary(101);replyQueueMessage($pdo,6,101,'outbound','manager',$now-15,[ManagerReplyQueueService::SEND_BOUNDARY=>$boundary],'Уточняю стоимость, пришлю расчёт позже');
 rqCheck('successful reply resolves its captured cycle',!rqView()['needed']);
+rqCheck('successful checking reply ends only technical waiting and an older manual mark stays historical',rqView()['activity_state']==='no_pending_reply'&&rqView()['resolution']!==null);
 replyQueueMessage($pdo,7,101,'inbound','customer',$now-10);
 rqCheck('subsequent incoming starts a fresh timer',rqView()['waiting_since_unix']===$now-10);
 replyQueueMessage($pdo,8,101,'outbound','ai',$now-9);replyQueueMessage($pdo,9,101,'outbound','system',$now-8);replyQueueMessage($pdo,10,101,'inbound','customer',$now-7,['type'=>'callback']);
 rqCheck('bot output system output callbacks and absent failed-send rows do not resolve or restart wait',rqView()['waiting_since_unix']===$now-10);
+rqCheck('bot or system output never changes the need for a manager reply',rqView()['activity_state']==='awaiting_manager');
 $resolved=rqResolve('resolve-synthetic-0004');
 rqCheck('ordinary read operation is genuinely read-only',ManagerReplyQueueService::operation(7,101,'resolve-synthetic-0004')['found']&&rqProtected($pdo)===$protected);
 rqCheck('unknown operation is not an acknowledgement',ManagerReplyQueueService::operation(7,101,'not-arrived-000000000')['found']===false);
@@ -84,6 +89,7 @@ rqCheck('explicit same-operation retry reads its receipt before stale context ch
 $pdo->exec('UPDATE conversations SET manager_id=7 WHERE id=101');
 replyQueueMessage($pdo,11,101,'inbound','customer',$now-2,null);
 $legacy=rqView();rqCheck('historical bare time is not silently declared UTC',$legacy['needed']&&$legacy['waiting_since_unix']===null&&$legacy['wait_age_seconds']===null&&!$legacy['wait_time_known']);
+rqCheck('unknown legacy time does not hide a known need for a human reply',$legacy['activity_state']==='awaiting_manager');
 $invalid=replyQueueInput($legacy,'foreign-cutoff-000001');$invalid['through_message_id']=999;
 rqCheck('foreign missing or synthetic frontier cannot resolve a question',rqResolve('foreign-cutoff-000001',$invalid)['error']==='invalid_request');
 rqCheck('pure decoration never falls back to legacy raw waiting age',ManagerReplyQueueService::decorate([['reply_wait_started_unix'=>null,'wait_age_seconds'=>999]],$now)[0]['reply_wait_age_seconds']===null);
@@ -105,4 +111,19 @@ rqCheck('unknown clock has its own deterministic position instead of a fake age'
 require_once dirname(__DIR__).'/services/ManagerQueueProjectionService.php';
 $counts=ManagerQueueProjectionService::counts(7,'anytour');rqResolve('ordered-resolve-00001',null,7,201);$after=ManagerQueueProjectionService::counts(7,'anytour');
 rqCheck('operational Waiting shrinks after resolution while all-assigned Mine and unread stay unchanged',$counts['waiting']['count']===3&&$after['waiting']['count']===2&&$counts['mine']['count']===3&&$after['mine']['count']===3&&$counts['notification_unread']===$after['notification_unread']&&$counts['mine']['unread']===$after['mine']['unread']);
+
+// An inactive queue has several distinct causes. None proves that the customer owes the next step.
+$pdo->exec("UPDATE conversations SET status='ai' WHERE id=201");$bot=rqView(7,201);
+rqCheck('bot mode is explicit even when an earlier manual mark exists',$bot['activity_state']==='bot'&&!$bot['needed']&&$bot['resolution']!==null);
+$pdo->exec("UPDATE conversations SET status='manager' WHERE id=201");
+$failure=$pdo->prepare("INSERT INTO conversation_events(conversation_id,event_type,actor_type,payload_json,created_at) VALUES (201,'manager_message_failed','system',?,?)");$failure->execute(['{"category":"suspended"}',gmdate('Y-m-d H:i:s',$now-1)]);
+$suspended=rqView(7,201);
+rqCheck('canonical delivery suspension is distinct from a completed or manually resolved wait',$suspended['activity_state']==='delivery_unavailable'&&!$suspended['needed']);
+$pdo->exec("UPDATE conversations SET status='closed' WHERE id=201");$closed=rqView(7,201);
+rqCheck('closed dialogue is explicit without declaring a sales outcome',$closed['activity_state']==='closed'&&!$closed['needed']&&!$closed['can_resolve']);
+$pdo->exec("UPDATE conversations SET status='future_state' WHERE id=201");
+rqCheck('unrecognized technical state is not presented as customer waiting',rqView(9,201)['activity_state']==='unknown');
+$pdo->exec("UPDATE conversations SET status='manager' WHERE id=201");replyQueueMessage($pdo,25,201,'inbound','customer',$now);
+$resumed=rqView(7,201);
+rqCheck('new inbound clears canonical suspension and restores real reply waiting above the old decision',$resumed['activity_state']==='awaiting_manager'&&$resumed['needed']&&$resumed['resolution']!==null);
 echo 'TOTAL '.$passed.' | PASS '.$passed." | FAIL 0\n";

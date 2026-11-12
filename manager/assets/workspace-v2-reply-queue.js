@@ -4,6 +4,7 @@ const W=window.WorkspaceV2,{S,$}=W;
 const storagePrefix='workspaceV2.replyQueue.pending.v1.';
 let owner=0,generation=0,visibleId=0;
 const pending=new Map(),latest=new Map(),issues=new Map();
+const activityLabels=new Map([['closed','Диалог закрыт'],['bot','Диалог у бота'],['delivery_unavailable','Доставка недоступна'],['no_reply_required','Ответ не требуется'],['no_pending_reply','Нет активного ожидания ответа'],['unknown','Состояние обращения неизвестно']]);
 function authenticated(){return owner>0&&!S.authExpired&&Number(S.manager?.id)===owner&&Number(S.authGeneration||0)===generation}
 function context(){return window.WorkspaceV2Conversation?.captureReplyContext?.()}
 function sameSession(c){return authenticated()&&c?.managerId===owner&&c.authGeneration===generation}
@@ -20,17 +21,19 @@ function bind(){
  if(!$('replyQueueStatus')){const box=document.createElement('div');box.id='replyQueueStatus';box.className='replyQueueStatus';box.hidden=true;box.setAttribute('role','status');box.setAttribute('aria-live','polite');const text=document.createElement('span');text.id='replyQueueText';box.appendChild(text);document.querySelector('.conversationHead')?.insertAdjacentElement('afterend',box)}
 }
 function time(unix){if(!Number.isSafeInteger(unix)||unix<=0)return '';return window.ManagerTime?.format(new Date(unix*1000),{year:true})||''}
-function wait(q){return typeof q.wait_age_seconds==='number'&&Number.isFinite(q.wait_age_seconds)&&q.wait_age_seconds>=0?W.formatWait(q.wait_age_seconds):'время ожидания неизвестно'}
+function wait(q){return typeof q.wait_age_seconds==='number'&&Number.isFinite(q.wait_age_seconds)&&q.wait_age_seconds>=0?W.formatWait(q.wait_age_seconds)+' (календарное время)':'время ожидания неизвестно'}
 function addButton(id,text,fn,disabled=false){let b=$(id);if(!b){b=document.createElement('button');b.id=id;b.type='button';b.className='actionBtn';$('replyQueueStatus').appendChild(b)}b.textContent=text;b.onclick=fn;b.disabled=disabled;b.hidden=false;return b}
 function render(){
  bind();const c=context(),q=S.detail?.reply_queue,available=current(c)&&validState(q),button=$('replyQueueResolve'),box=$('replyQueueStatus');if(!button||!box)return;
  const id=c?.conversationId,p=pending.get(id),issue=issues.get(id);button.hidden=!available||!q.can_resolve;button.disabled=!!p;
  for(const name of ['replyQueueUndo','replyQueueCheck','replyQueueRetry'])if($(name))$(name).hidden=true;
- box.hidden=!available||(!q.needed&&!q.resolution&&!p&&!issue);if(box.hidden)return;
- box.classList.toggle('pending',!!p);box.classList.toggle('error',!!issue||!!p&&!p.busy);
- let text=q.needed?'Ожидает ответа · '+wait(q):'';
+ const activity=q?.needed?'awaiting_manager':activityLabels.has(q?.activity_state)?q.activity_state:'';
+ box.hidden=!available||(!activity&&!q.resolution&&!p&&!issue);if(box.hidden)return;
+ box.setAttribute('data-activity-state',activity);
+ box.classList.toggle('pending',!!p);box.classList.toggle('error',activity==='delivery_unavailable'||!!issue||!!p&&!p.busy);
+ let text=q.needed?'Ожидает ответа · '+wait(q):activityLabels.get(activity)||'';
  if(q.needed&&q.waiting_since_unix){const at=time(q.waiting_since_unix);if(at)text+=' · с '+at+' МСК'}
- if(q.resolution){const r=q.resolution,at=time(r.recorded_at),decision='Ответ не требуется · '+String(r.actor_name||'Сотрудник')+(at?' · '+at+' МСК':'');text+=(text?'\nПоследняя отметка: ':'')+decision}
+ if(q.resolution){const r=q.resolution,at=time(r.recorded_at),decision='Ответ не требуется · '+String(r.actor_name||'Сотрудник')+(at?' · '+at+' МСК':'');text=activity==='no_reply_required'?decision:text+(text?'\nПоследняя отметка: ':'')+decision}
  if(p){text+=(text?'\n':'')+(p.busy?'Проверяем результат…':p.notFound?'Подтверждение пока не найдено. Можно проверить снова или повторить сохранение этой же отметки.':'Результат пока не подтверждён. Проверьте, сохранилась ли отметка.');addButton('replyQueueCheck',p.busy?'Подождите…':'Проверить результат',check,!!p.busy);if(p.notFound&&!p.busy)addButton('replyQueueRetry','Повторить сохранение',retry)}
  else if(q.can_undo)addButton('replyQueueUndo','Отменить отметку',()=>mutate('undo'));
  if(issue)text+=(text?'\n':'')+issue;
