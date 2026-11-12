@@ -311,7 +311,16 @@ for mode,proof,full,oauth,tour_result in [('tour-selection','false','skipped','s
 # It must not change value operations, timers, check execution, or credentials.
 tail_workflow = load('modeled-conversion-value-export.yml')
 tail_events = tail_workflow.get('on', tail_workflow.get(True))
-check(set(tail_events) == {'workflow_run', 'workflow_dispatch'}, 'release closure adds no trigger or timer')
+check(set(tail_events) == {'workflow_run', 'workflow_dispatch', 'push'}, 'only the bounded native terminal continuation adds a trigger')
+check(tail_events['push'] == {'branches':['ops/recover-pr1505-terminal-20261112']}, 'terminal continuation is one fixed owner branch, no timer')
+recovery = tail_workflow['jobs']['release-slot-recovery']
+check(recovery['if'] == "github.event_name == 'push' && github.ref == 'refs/heads/ops/recover-pr1505-terminal-20261112'", 'terminal continuation cannot run as a normal deploy tail or manual dispatch')
+check(recovery['permissions'] == {'contents':'write','actions':'read','pull-requests':'read','issues':'write'}, 'continuation keeps metadata-only authority')
+check(recovery['timeout-minutes'] == 8, 'continuation has a finite metadata deadline')
+check(recovery['steps'][0]['with'] == {'ref':'${{ github.sha }}','persist-credentials':False}, 'continuation loads its genuine source')
+check(len(recovery['steps']) == 4 and recovery['steps'][2]['uses'] == 'actions/upload-artifact@v4', 'continuation preserves one proof before terminal write')
+check(recovery['steps'][3]['name'] == 'Release only the admitted publisher after all original mandatory gates', 'continuation has an independently authenticated native terminal')
+check('secrets.' not in str(recovery) and 'ssh' not in str(recovery).lower(), 'terminal continuation has no deployment credential or server operation')
 check(tail_events['workflow_run'] == {'workflows':['Deploy production'], 'types':['completed']},
       'release closure follows only existing production completion')
 check(tail_workflow['concurrency'] == {'group':'anytour-modeled-value-configuration', 'cancel-in-progress':False},
@@ -399,3 +408,4 @@ check("format('monitor-proof:v1:{0}:{1}', github.event.workflow_run.id, github.e
       'activation provenance follows the exact original monitor')
 
 print(f'PASS {checks} workflow selection and gate cases')
+

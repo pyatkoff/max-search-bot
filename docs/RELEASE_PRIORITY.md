@@ -1,5 +1,53 @@
 # Ready release priority
 
+## Explicit continuation of the PR1505 pre-write read refusal
+
+The original PR1505 installation and every original required gate succeeded.
+Closer43231780686/attempt1 prepared and published its digest-bound terminal
+proposal, then refused with `api_http_503` before the publisher PATCH. Its
+failure remains immutable history. Pavel's subsequent continuation is handled
+by one exact checked fast-forward of `ops/recover-pr1505-terminal-20261112` in the same
+existing serialized tail, only after exact-source required PR CI succeeds.
+This is neither a rerun nor a replacement installation or publisher. The first
+source-accepted continuation43239070014 stopped at its initial context guard:
+proof upload and terminal steps are explicitly skipped and its allowlisted
+failure precedes every writer. Read-only observation43240168728 then proved the
+genuine update event from658e387 to f4db027. The final continuation accepts only
+the observed native update semantics and independently verifies the actual
+predecessor jobs/logs before any write. The checked d6f732 continuation43243320862
+also stopped during preparation on another503; upload/terminal were skipped,
+and original diagnostics commit34f4a2c/publisher version remained exact.
+Only the exact checked descendant in the same original branch update is admitted next.
+GitHub run summaries can remain queued while their real Jobs are already running.
+The continuation therefore requires its exact original source/run/attempt job to
+be in_progress on an assigned positive runner, rather than using that summary
+alone. A genuinely queued job, missing metadata or a different source refuses.
+
+Inside this explicit continuation only, idempotent metadata GETs may perform
+at most two additional reads after HTTP503 across each preparation/final phase,
+with one second between them and the existing request/job deadlines. This
+includes original immutable job logs/artifacts. No other HTTP error,429,
+transport uncertainty, POST or PATCH is retried. Every final source, original
+gate, owner/version and diagnostics compare remains mandatory after reading.
+All ordinary release paths retain their existing no-retry behavior.
+
+The fixed recipe pins the original SHA, proposal commit/blob/digest, failed
+run/job and original publisher tuple. Before any write it authenticates that
+immutable proposal and its original native artifact, failed job/step and
+allowlisted 503 log outcome. It rechecks every original gate, installation,
+ops receipt, PR binding, current main and unchanged owner/version. Unknown
+writes, other errors, changed source/evidence and unavailable data refuse.
+
+The actual continuation has its own native push/source/job identity in the
+same versioned `deploy_status.json` closure. Its digest-bound artifact and final
+successful step are required by consumers; the failed original step is never
+reported as success. Only the continuation's single original attempt may
+perform the one not-previously-attempted publisher PATCH and readback. Refusal
+or an UNKNOWN write retains the record; no automatic retry, branch recreation,
+secret, SSH access, live probe, schedule or new workflow/queue is introduced.
+The fixed branch cannot update main. Normal releases retain their original
+attempt1 validation and all existing verification rules below.
+
 A small cleanup must not repeatedly advance main while a complete product package
 is finishing its required checks. Priority is recorded in that product's existing
 PR description. There is no new queue, scheduler, controller or deployment owner.
@@ -307,4 +355,5 @@ workflow, queue, publisher, customer message or failure experiment is introduced
 
 Recovery is effective only for releases containing this package. Do not repeat
 an accepted older installation to obtain the new workflow layout.
+
 
