@@ -8,6 +8,7 @@ final class MaxTrackerLookupProtocol
     public const MAX_USERS = 25;
     public const MAX_BODY = 8192;
     public const MAX_RESPONSE = 32768;
+    public const COUNTER_SCOPE_HEADER = 'counter-scope-v1';
 
     public static function signature(string $body, string $privateKey): string
     {
@@ -18,13 +19,18 @@ final class MaxTrackerLookupProtocol
         return base64_encode($signature);
     }
 
-    public static function body(string $counterId, array $userIds, int $now, ?string $nonce = null, ?array $membership = null, ?string $memberAfter = null, ?string $historyAfter = null): string
+    public static function body(string $counterId, array $userIds, int $now, ?string $nonce = null, ?array $membership = null, ?string $memberAfter = null, ?string $historyAfter = null, ?string $evidenceUser = null): string
     {
         $data = ['version'=>1,'counter_id'=>$counterId,'user_ids'=>array_values($userIds),
             'issued_at'=>$now,'nonce'=>$nonce ?? bin2hex(random_bytes(16))];
         if ($membership !== null) $data['membership']=$membership;
         if ($memberAfter !== null) $data['member_page_after']=$memberAfter;
         if ($historyAfter !== null) $data['history_member_page_after']=$historyAfter;
+        if($evidenceUser!==null){
+            if($counterId!=='98615635'||!self::id($evidenceUser)||!in_array($evidenceUser,$userIds,true)||$membership!==null||$memberAfter!==null||$historyAfter!==null)
+                throw new InvalidArgumentException('lookup_invalid_counter_scope_request');
+            $data['counter_scope_evidence']=['v'=>1,'user_id'=>$evidenceUser];
+        }
         self::validate($data, $now, $counterId);
         return json_encode($data, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES);
     }
@@ -40,6 +46,18 @@ final class MaxTrackerLookupProtocol
         if (!is_array($data)) throw new InvalidArgumentException('lookup_invalid_body');
         self::validate($data,$now,$counterId);
         return $data;
+    }
+
+    /** Optional evidence never extends the authenticated ordinary batch or its fixed counter. */
+    public static function counterScopeRequest(array $data,string $header):?string
+    {
+        if($header!==self::COUNTER_SCOPE_HEADER)return null;
+        $option=$data['counter_scope_evidence']??null;
+        if(!is_array($option)||count($option)!==2||($option['v']??null)!==1||!self::id($option['user_id']??null)
+            ||($data['counter_id']??null)!=='98615635'||!is_array($data['user_ids']??null)
+            ||!in_array($option['user_id'],$data['user_ids'],true)||array_key_exists('membership',$data)
+            ||array_key_exists('member_page_after',$data)||array_key_exists('history_member_page_after',$data))return null;
+        return $option['user_id'];
     }
 
     private static function validate(array $data, int $now, string $counterId): void

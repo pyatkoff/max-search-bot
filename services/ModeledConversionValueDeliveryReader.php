@@ -7,12 +7,17 @@ require_once __DIR__.'/ModeledConversionProfiles.php';
 if(is_file(__DIR__.'/ModeledConversionValueIdentityEvidence.php'))require_once __DIR__.'/ModeledConversionValueIdentityEvidence.php';
 if(is_file(__DIR__.'/ModeledConversionValueVisitEvidence.php'))require_once __DIR__.'/ModeledConversionValueVisitEvidence.php';
 if(is_file(__DIR__.'/ModeledConversionValueVisitRecovery.php'))require_once __DIR__.'/ModeledConversionValueVisitRecovery.php';
+if(is_file(__DIR__.'/ModeledConversionReceiptPollEvidence.php'))require_once __DIR__.'/ModeledConversionReceiptPollEvidence.php';
+if(is_file(__DIR__.'/ModeledConversionFixedPairDecisionEvidence.php'))require_once __DIR__.'/ModeledConversionFixedPairDecisionEvidence.php';
+if(is_file(__DIR__.'/ModeledConversionMaxCounterScopeEvidence.php'))require_once __DIR__.'/ModeledConversionMaxCounterScopeEvidence.php';
 
 /** Fixed derived-value aggregates only. No source tables, network, processing or mutation. */
 final class ModeledConversionValueDeliveryReader
 {
     public const GOAL='678187097';
     public const ROW_LIMIT=201;
+    public const INITIAL_API_RECEIPT_CUTOFF=1794404149;
+    public const ACCEPTED_PREFIX_CUTOFF=1794419944;
     private const STATES=['pending','ready','uploading','accepted','processed','unknown','failed','expired','unmatched'];
     private const UPLOADS=['PREPARED','UPLOADED','EXPORTED','MATCHED','PROCESSED','LINKAGE_FAILURE'];
     private const ERRORS=['identity_not_found','identity_ambiguous','metrika_visit_window','metrika_visit_unverified','wire_key_collision','scope_unavailable','api_rejected','api_row_rejected',
@@ -123,7 +128,7 @@ final class ModeledConversionValueDeliveryReader
                 'identity_counts_are_stored_resolution_not_a_new_scope_check'=>true,
                 'conversations_are_not_verified_people_or_trips'=>true,'per_upload_visit_match_verified'=>false,'reporting_can_lag'=>true,'no_ids_or_text_returned'=>true];
             $out['price_continuity_audit']=$this->priceAudit($receipt['price_continuity_audit']??null,$now);
-            $out['repair_assessments']=$this->repairAssessments($now,$receipt['identity_resolution_evidence']??null,$receipt['finite_visit_evidence']??null,$receipt['finite_visit_recovery']??null);
+            $out['repair_assessments']=$this->repairAssessments($now,$receipt['identity_resolution_evidence']??null,$receipt['finite_visit_evidence']??null,$receipt['finite_visit_recovery']??null,$receipt['receipt_poll_evidence']??null,$receipt['fixed_pair_operational_decisions']??null,$out['last_tick_at']===null?0:$tick,$receipt['finite_counter_scope_evidence']??null);
             $out['predictive_v1']=$this->predictiveV1($now);
             return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}
@@ -134,7 +139,7 @@ final class ModeledConversionValueDeliveryReader
 
 
     /** All saved current-namespace repairs and their own new increments; no reclassification or provider call. */
-    public function repairAssessments(int $now,mixed $identityAudit=null,mixed $visitFrame=null,mixed $recoveryJournal=null):array
+    public function repairAssessments(int $now,mixed $identityAudit=null,mixed $visitFrame=null,mixed $recoveryJournal=null,mixed $pollAudit=null,mixed $pairAudit=null,int $lastTick=0,mixed $counterScopeAudit=null):array
     {
         $this->budget->check();
         if($this->budget->remainingBytes()<16384)return ['available'=>false,'reason'=>'budget_headroom'];
@@ -153,6 +158,23 @@ final class ModeledConversionValueDeliveryReader
                 "COALESCE(SUM(CASE WHEN o.state='processed' AND o.upload_status='PROCESSED' THEN 1 ELSE 0 END),0) AS processed_events",
                 "COALESCE(SUM(CASE WHEN o.state='processed' AND o.upload_status='PROCESSED' THEN o.value_rub ELSE 0 END),0) AS processed_rub",
                 'MIN(p.observed_at_unix) AS first_at','MAX(p.observed_at_unix) AS last_at'];
+            $apiPresent="(o.upload_id IS NOT NULL AND o.upload_id<>'')";
+            $apiClock="(COALESCE((o.value_api_accepted_at_unix>=946684800 AND o.value_api_accepted_at_unix<=".$now
+                ." AND o.value_api_accepted_at_unix>=o.event_unix".($mysql?'':" AND typeof(o.value_api_accepted_at_unix)='integer'")."),0)=1)";
+            $prefix="(".$apiPresent." AND ".$apiClock." AND o.value_api_accepted_at_unix<=".self::ACCEPTED_PREFIX_CUTOFF.")";
+            $prefixProcessed="(".$prefix." AND o.state='processed' AND o.upload_status='PROCESSED')";
+            $processedClock="(o.value_processed_at_unix>=o.value_api_accepted_at_unix AND o.value_processed_at_unix<=".$now
+                .($mysql?'':" AND typeof(o.value_processed_at_unix)='integer'").")";
+            foreach(['ap_n'=>$prefix,'ap_pn'=>$prefixProcessed,'ac_valid'=>"( ".$apiPresent." AND ".$apiClock.")",
+                'ac_bad'=>"(".$apiPresent." AND (o.value_api_accepted_at_unix IS NULL OR NOT ".$apiClock."))",
+                'ap_pc'=>"(".$prefixProcessed." AND ".$processedClock.")"]as$alias=>$condition)
+                $columns[]="COALESCE(SUM(CASE WHEN ".$condition." THEN 1 ELSE 0 END),0) AS ".$alias;
+            $columns[]="COALESCE(SUM(CASE WHEN ".$prefix." THEN o.value_rub ELSE 0 END),0) AS ap_v";
+            $columns[]="COALESCE(SUM(CASE WHEN ".$prefixProcessed." THEN o.value_rub ELSE 0 END),0) AS ap_pv";
+            foreach(self::STATES as$j=>$state){
+                $columns[]="COALESCE(SUM(CASE WHEN ".$prefix." AND o.state='".$state."' THEN 1 ELSE 0 END),0) AS ap_n".$j;
+                $columns[]="COALESCE(SUM(CASE WHEN ".$prefix." AND o.state='".$state."' THEN o.value_rub ELSE 0 END),0) AS ap_v".$j;
+            }
             foreach(self::STATES as$i=>$state){
                 $columns[]="COALESCE(SUM(CASE WHEN o.state='".$state."' THEN 1 ELSE 0 END),0) AS state_n".$i;
                 $columns[]="COALESCE(SUM(CASE WHEN o.state='".$state."' THEN o.value_rub ELSE 0 END),0) AS state_v".$i;
@@ -167,11 +189,11 @@ final class ModeledConversionValueDeliveryReader
                 ." LEFT JOIN max_channel_conversion_outbox o ON o.value_profile_id=p.id"
                 ." AND o.project_key=p.project_key AND o.conversation_id=p.conversation_id AND o.target=".$key
                 .' AND '.$equal('o.project_key','p.project_key').' AND '.$equal('o.platform','p.platform')
-                .' AND '.$equal('o.conversation_id','p.conversation_id')." AND o.counter_id='98615635'"
+                .' AND '.$equal('o.conversation_id','p.conversation_id')." AND o.counter_id='98615635' AND HEX(o.counter_id)=HEX('98615635')"
                 .' AND '.$equal('o.transport_target','?').' AND '.$equal('o.value_contract','?')
                 .' AND '.$equal('o.target',$key).' AND o.value_rub>0 AND o.value_rub<='.ModeledConversionValueContract::MAX_VALUE_RUB
-                ." WHERE p.project_key='anytour' AND p.assessment_namespace=? AND p.assessment_kind='repair'"
-                ." AND p.platform IN ('max','telegram')";
+                ." WHERE p.project_key='anytour' AND HEX(p.project_key)=HEX('anytour') AND p.assessment_namespace=? AND p.assessment_kind='repair' AND HEX(p.assessment_kind)=HEX('repair')"
+                ." AND p.platform IN ('max','telegram') AND HEX(p.platform) IN (HEX('max'),HEX('telegram'))";
             $r=$this->query($sql,[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$namespace])[0];
             // Whole-cohort scalar bounds are independent of the older 201-row delivery suffix.
             $number=static function(mixed $v,bool $money):int|float{
@@ -200,9 +222,33 @@ final class ModeledConversionValueDeliveryReader
             foreach(['max','telegram']as$platform)$out['by_platform'][$platform]=[
                 'reassessed_profiles'=>$number($r[$platform.'_profiles'],false),
                 'events'=>$number($r[$platform.'_events'],false),'value_rub'=>$number($r[$platform.'_rub'],true)];
+            $prefixN=$number($r['ap_n'],false);$validClockN=$number($r['ac_valid'],false);$badClockN=$number($r['ac_bad'],false);
+            $prefixProcessedN=$number($r['ap_pn'],false);$processedClockN=$number($r['ap_pc'],false);
+            if($validClockN+$badClockN!==$out['api_receipts']['events']||$prefixN>$validClockN||$prefixProcessedN>$prefixN||$processedClockN>$prefixProcessedN)
+                throw new UnexpectedValueException();
+            $prefixOut=['available'=>$now>=self::ACCEPTED_PREFIX_CUTOFF&&$badClockN===0,
+                'checkpoint'=>gmdate('Y-m-d\TH:i:s\Z',self::ACCEPTED_PREFIX_CUTOFF),'basis'=>'saved_first_api_observation_clock_not_upload_visit_time',
+                'api_receipts_with_known_clock'=>['events'=>$prefixN,'value_rub'=>$number($r['ap_v'],true)],
+                'processed_upload_rows'=>['events'=>$prefixProcessedN,'value_rub'=>$number($r['ap_pv'],true)],
+                'other_prefix_rows'=>$prefixN-$prefixProcessedN,'by_state'=>[],
+                'clock_coverage'=>['api_receipt_rows'=>$out['api_receipts']['events'],'valid_first_api_clock_rows'=>$validClockN,
+                    'missing_or_invalid_first_api_clock_rows'=>$badClockN,'later_known_clock_rows'=>$validClockN-$prefixN,
+                    'complete'=>$badClockN===0,'processed_clock_rows'=>$processedClockN,
+                    'processed_missing_or_invalid_clock_rows'=>$prefixProcessedN-$processedClockN,
+                    'processing_clock_coverage_complete'=>$processedClockN===$prefixProcessedN],
+                'per_receipt_visit_linkage'=>'not_checked'];
+            if(!$prefixOut['available'])$prefixOut['reason']=$now<self::ACCEPTED_PREFIX_CUTOFF?'checkpoint_not_reached':'first_api_clock_coverage_incomplete';
+            foreach(self::STATES as$j=>$state)$prefixOut['by_state'][$state]=['events'=>$number($r['ap_n'.$j],false),'value_rub'=>$number($r['ap_v'.$j],true)];
+            if(array_sum(array_column($prefixOut['by_state'],'events'))!==$prefixN)throw new UnexpectedValueException();
+            $out['accepted_prefix']=$prefixOut;
             $out['finite_visit_evidence']=$this->finiteVisitEvidence($visitFrame,$namespace,$now);
             $out['finite_visit_recovery']=$this->finiteVisitRecovery($recoveryJournal,$visitFrame,$out['finite_visit_evidence'],$namespace,$now);
+            $out['fixed_pair_operational_decisions']=$this->fixedPairDecisions($pairAudit,$visitFrame,$out['finite_visit_evidence'],$namespace,$now,$lastTick);
+            $out['finite_counter_scope_evidence']=$this->counterScopeObservation($counterScopeAudit,$visitFrame,$out['finite_visit_evidence'],$namespace,$now);
             $out['retained_native_identity_evidence']=$this->retainedNativeIdentity($out['finite_visit_evidence'],$namespace,$now);
+            $out['receipt_poll_evidence']=class_exists(ModeledConversionReceiptPollEvidence::class)
+                ?ModeledConversionReceiptPollEvidence::projection($pollAudit,$now):['available'=>false,'reason'=>'poll_helper_unavailable','provider_requests_in_reader'=>0];
+            $out['initial_api_receipts']=$this->initialApiReceipts($namespace,$now,$out['receipt_poll_evidence']);
             $out['exact_cases']=$this->repairCases($namespace,$now,$identityAudit);
             $this->budget->check();($this->authorize)();$this->budget->check();return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}
@@ -235,6 +281,118 @@ final class ModeledConversionValueDeliveryReader
             $out['eligible_original_cases']=2;$out['excluded_original_cases']=count($old)-2;
             return $out;
         }catch(UnexpectedValueException|JsonException $ignored){return $fail('original_or_recovery_binding_unavailable');}
+    }
+
+    /** A current decision is separate from the saved financial state and its historical failed probes. */
+    private function fixedPairDecisions(mixed $audit,mixed $original,array $boundOriginal,string $namespace,int $now,int $lastTick):array
+    {
+        $fail=static fn(string $reason):array=>['available'=>false,'reason'=>$reason,'financial_permission'=>false,'provider_requests_in_reader'=>0];
+        if(($boundOriginal['available']??false)!==true)return $fail('original_current_binding_unavailable');
+        if(!class_exists(ModeledConversionFixedPairDecisionEvidence::class))return $fail('pair_observer_helper_unavailable');
+        $out=ModeledConversionFixedPairDecisionEvidence::projection($audit,$original,$namespace,$now,$lastTick);
+        if(($out['available']??false)!==true)return $out;
+        $old=[];foreach($boundOriginal['rows']??[]as$row)$old[$row['event_ref']]=$row;
+        if(count($old)!==3||count($out['rows']??[])!==2)return $fail('original_pair_binding_unavailable');
+        foreach($out['rows']as&$row){
+            $prior=$old[$row['event_ref']]??null;
+            if($prior===null||!isset($this->boundFiniteRows[$row['event_ref']])||($prior['source_provenance']??null)!=='canonical_max_lookup'
+                ||($prior['report_status']??null)!=='unavailable')return $fail('original_pair_binding_unavailable');
+            foreach(['financial_state','first_ready_at','api_accepted_at','processed_at','api_receipt_ref',
+                'current_hold_reason','current_hold_reason_known','next_ordinary_attempt_at']as$key)$row[$key]=$prior[$key]??null;
+        }unset($row);
+        return $out;
+    }
+
+    /** One optional counter-scope observation reuses the already bound original missing-identity row. */
+    private function counterScopeObservation(mixed $audit,mixed $original,array $boundOriginal,string $namespace,int $now):array
+    {
+        $fail=static fn(string $reason):array=>['available'=>false,'reason'=>$reason,'financial_permission'=>false,'provider_requests_in_reader'=>0];
+        if(($boundOriginal['available']??false)!==true)return $fail('original_current_binding_unavailable');
+        if(!class_exists(ModeledConversionMaxCounterScopeEvidence::class))return $fail('counter_scope_helper_unavailable');
+        $missing=[];
+        foreach($boundOriginal['rows']??[]as$row)if(($row['source_status']??null)==='no_valid_canonical_identity_and_no_admissible_retained_identity'
+            &&($row['candidate_sha256']??null)===null)$missing[]=$row;
+        if(count($missing)!==1||!isset($this->boundFiniteRows[$missing[0]['event_ref']]))return $fail('original_missing_identity_binding_unavailable');
+        $out=ModeledConversionMaxCounterScopeEvidence::projection($audit,$original,$this->boundFiniteRows[$missing[0]['event_ref']],$namespace,$now);
+        if(($out['available']??false)===true){
+            foreach(['financial_state','first_ready_at','api_accepted_at','processed_at','api_receipt_ref']as$key)$out[$key]=$missing[0][$key]??null;
+        }
+        return $out;
+    }
+
+    /** Original accepted repair cohort, saved ledger metadata only; never a provider poll. */
+    private function initialApiReceipts(string $namespace,int $now,array $pollEvidence):array
+    {
+        $base=['available'=>false,'checkpoint'=>gmdate('Y-m-d\TH:i:s\Z',self::INITIAL_API_RECEIPT_CUTOFF),
+            'expected_receipts'=>16,'provider_requests_in_reader'=>0];
+        $fail=static fn(string $reason):array=>array_merge($base,['reason'=>$reason]);
+        if(!class_exists(ModeledConversionValueIdentityEvidence::class))return $fail('identity_evidence_helper_unavailable');
+        $this->budget->check();if($this->budget->remainingBytes()<16384)return $fail('budget_headroom');
+        try{
+            $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+            $eq=static fn(string $a,string $b):string=>$mysql?'BINARY '.$a.'=BINARY '.$b:'('.$a.') COLLATE BINARY=('.$b.') COLLATE BINARY';
+            $key=$mysql?"CONCAT('anytour_value_pred_',p.id,'_v1')":"'anytour_value_pred_'||p.id||'_v1'";
+            $names=['id','value_profile_id','project_key','platform','conversation_id','external_user_id','counter_id','target',
+                'transport_target','value_contract','event_unix','value_rub','state','upload_status','upload_id','value_api_accepted_at_unix','value_processed_at_unix'];
+            $fields=array_map(static fn(string $name):string=>'o.'.$name,$names);
+            $point='SELECT o.id AS case_order,JSON_ARRAY('.implode(',',$fields).') AS packet FROM max_channel_conversion_outbox o '
+                .($mysql?'FORCE INDEX (idx_value_delivery_receipt)':'INDEXED BY idx_value_delivery_receipt')
+                .' JOIN modeled_conversion_profile_versions p ON p.id=o.value_profile_id'
+                ." AND p.project_key=o.project_key AND p.conversation_id=o.conversation_id AND o.target=".$key
+                .' AND '.$eq('p.project_key','o.project_key').' AND '.$eq('p.platform','o.platform').' AND '.$eq('p.conversation_id','o.conversation_id')
+                ." WHERE o.project_key='anytour' AND o.counter_id='98615635' AND o.transport_target=? AND o.value_contract=?"
+                ." AND HEX(o.project_key)=HEX('anytour') AND HEX(p.project_key)=HEX('anytour') AND HEX(o.counter_id)=HEX('98615635')"
+                .' AND '.$eq('o.transport_target','?').' AND '.$eq('o.value_contract','?').' AND '.$eq('o.target',$key)
+                ." AND p.assessment_namespace=? AND p.assessment_kind='repair' AND p.platform IN ('max','telegram')"
+                .' AND o.value_rub>0 AND o.value_rub<='.ModeledConversionValueContract::MAX_VALUE_RUB
+                ." AND o.value_api_accepted_at_unix>=946684800 AND o.value_api_accepted_at_unix<=? AND o.value_api_accepted_at_unix<=?"
+                ." ORDER BY o.value_api_accepted_at_unix,o.id LIMIT 17 OFFSET 0";
+            $packetBytes=$mysql?'OCTET_LENGTH(JSON_QUOTE(CAST(packet AS CHAR)))':'LENGTH(CAST(JSON_QUOTE(CAST(packet AS TEXT)) AS BLOB))';
+            $packets=$this->query('SELECT CASE WHEN SUM('.$packetBytes.'+24) OVER ()+2<=? THEN packet ELSE NULL END AS packet'
+                .' FROM ('.$point.') initial_api_receipt_packets ORDER BY case_order',
+                [ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,ModeledConversionValueContract::TARGET,
+                    ModeledConversionValueContract::VERSION,$namespace,self::INITIAL_API_RECEIPT_CUTOFF,$now],8192,250);
+            if($packets&&$packets[0]['packet']===null)return $fail('budget_headroom');
+            if(count($packets)!==16)return $fail('current_initial_api_cohort_unverified');
+            $clock=static function(mixed $v)use($now):?int{
+                if(is_string($v)&&preg_match('/\A[1-9][0-9]{8,9}\z/D',$v)===1)$v=(int)$v;
+                return is_int($v)&&$v>=946684800&&$v<=$now?$v:null;
+            };
+            $out=array_merge($base,['available'=>true,'basis'=>'saved_repair_api_receipts_before_checkpoint',
+                'assessment_namespace'=>$namespace,'complete_within_bound'=>true,'timestamp_basis'=>'unix_seconds',
+                'api_receipts'=>['events'=>16,'value_rub'=>0],'processed_upload_rows'=>['events'=>0,'value_rub'=>0],
+                'by_state'=>array_fill_keys(self::STATES,0),'columns'=>['event_ref','api_receipt_ref','platform','value_rub','state','upload_status','api_accepted_unix','processed_unix'],
+                'rows'=>[],'current_poll_receipts_in_cohort'=>null,'saved_ledger_metadata_only'=>true,
+                'per_receipt_visit_linkage'=>'not_checked']);
+            $refs=[];$receipts=[];
+            foreach($packets as$packet){
+                $values=json_decode($packet['packet'],true,8,JSON_THROW_ON_ERROR|JSON_BIGINT_AS_STRING);
+                if(!is_array($values)||count($values)!==count($names))throw new UnexpectedValueException();
+                $row=array_combine($names,$values);$ref=ModeledConversionValueIdentityEvidence::reference($row,$namespace);
+                $upload=$row['upload_id'];$accepted=$clock($row['value_api_accepted_at_unix']);$processed=$clock($row['value_processed_at_unix']);
+                if($ref===null||isset($refs[$ref])||!is_string($upload)||preg_match('/\A[1-9][0-9]{0,19}\z/D',$upload)!==1
+                    ||!in_array($row['state'],self::STATES,true)||!in_array($row['upload_status'],self::UPLOADS,true)||$accepted===null
+                    ||$accepted>self::INITIAL_API_RECEIPT_CUTOFF||$accepted<(int)$row['event_unix']
+                    ||($row['value_processed_at_unix']!==null&&($processed===null||$processed<$accepted)))throw new UnexpectedValueException();
+                $receipt=hash('sha256','modeled_value_upload_receipt_v1|'.$upload);
+                if(isset($receipts[$receipt]))return $fail('receipt_binding_ambiguous');
+                $money=(float)$row['value_rub'];$out['api_receipts']['value_rub']+=round($money,2);$out['by_state'][$row['state']]++;
+                if($row['state']==='processed'&&$row['upload_status']==='PROCESSED'){
+                    $out['processed_upload_rows']['events']++;$out['processed_upload_rows']['value_rub']+=round($money,2);
+                }
+                $out['rows'][]=[$ref,$receipt,$row['platform'],$money,$row['state'],$row['upload_status'],$accepted,$processed];
+                $refs[$ref]=true;$receipts[$receipt]=true;
+            }
+            if(($pollEvidence['available']??false)===true){
+                $out['current_poll_receipts_in_cohort']=0;
+                foreach($pollEvidence['rows']??[]as$poll)if(isset($receipts[$poll['receipt_ref']??'']))$out['current_poll_receipts_in_cohort']++;
+            }
+            foreach(['api_receipts','processed_upload_rows']as$key)$out[$key]['value_rub']=round($out[$key]['value_rub'],2);
+            if(strlen(json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>4096)return $fail('projection_budget');
+            $this->budget->check();($this->authorize)();$this->budget->check();return $out;
+        }catch(ModeledConversionStatusLimit $error){throw $error;}
+        catch(PDOException $ignored){return $fail('storage_unavailable');}
+        catch(UnexpectedValueException|JsonException $ignored){return $fail('invalid_saved_projection');}
     }
 
     /** Existing local native receipts are candidate evidence only; no provider call or identity assignment. */
@@ -387,8 +545,11 @@ final class ModeledConversionValueDeliveryReader
             $key=$mysql?"CONCAT('anytour_value_pred_',p.id,'_v1')":"'anytour_value_pred_'||p.id||'_v1'";
             $names=['id','value_profile_id','project_key','platform','conversation_id','external_user_id','counter_id','target',
                 'transport_target','value_contract','event_unix','value_rub','state','profile_saved_unix',
-                'value_ready_at_unix','value_api_accepted_at_unix','value_processed_at_unix','upload_id'];
-            $fields=array_map(static fn(string $name):string=>$name==='profile_saved_unix'?'p.observed_at_unix':'o.'.$name,$names);
+                'value_ready_at_unix','value_api_accepted_at_unix','value_processed_at_unix','upload_id','last_error','next_attempt_unix','upload_status'];
+            $holdCases=["WHEN ".$eq('o.last_error',"''")." THEN ''"];
+            foreach(self::ERRORS as$error)$holdCases[]="WHEN ".$eq('o.last_error',"'".$error."'")." THEN '".$error."'";
+            $holdSql='CASE '.implode(' ',$holdCases).' ELSE NULL END';
+            $fields=array_map(static fn(string $name):string=>$name==='profile_saved_unix'?'p.observed_at_unix':($name==='last_error'?$holdSql:'o.'.$name),$names);
             $sql='SELECT o.id AS case_order,JSON_ARRAY('.implode(',',$fields).') AS packet'
                 ." FROM modeled_conversion_profile_versions p JOIN max_channel_conversion_outbox o ON o.value_profile_id=p.id"
                 ." AND o.project_key=p.project_key AND o.conversation_id=p.conversation_id AND o.target=".$key
@@ -431,6 +592,16 @@ final class ModeledConversionValueDeliveryReader
                 $public['first_ready_at']=$at($row['value_ready_at_unix']);$public['api_accepted_at']=$at($row['value_api_accepted_at_unix']);
                 $public['processed_at']=$at($row['value_processed_at_unix']);
                 $public['api_receipt_ref']=$receipt?hash('sha256','modeled_value_upload_receipt_v1|'.$upload):null;
+                $reason=$row['last_error'];$knownReason=is_string($reason)&&($reason===''||in_array($reason,self::ERRORS,true));
+                $public['current_hold_reason']=$knownReason?($reason===''?'none_recorded':$reason):null;
+                $public['current_hold_reason_known']=$knownReason;
+                $due=$row['next_attempt_unix'];
+                if(is_string($due)&&preg_match('/\A(?:0|[1-9][0-9]{0,9})\z/D',$due)===1)$due=(int)$due;
+                $knownDue=is_int($due)&&($due===0||$due>=946684800&&$due<=9999999999);
+                $public['next_ordinary_attempt_at']=$knownDue&&$due!==0?gmdate('Y-m-d\TH:i:s\Z',$due):null;
+                $public['next_ordinary_attempt_clock_known']=$knownDue;
+                $status=$row['upload_status'];$knownStatus=$status===null||in_array($status,self::UPLOADS,true);
+                $public['current_upload_status']=$knownStatus?$status:null;$public['current_upload_status_known']=$knownStatus;
             }unset($public);
             $projection['binding_basis']='three_current_immutable_repair_rows_born_before_checkpoint_with_no_prior_ready_or_api_receipt';
             $this->budget->check();($this->authorize)();$this->budget->check();$this->boundFiniteRows=$bound;return $projection;
