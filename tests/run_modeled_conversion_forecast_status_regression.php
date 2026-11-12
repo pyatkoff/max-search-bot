@@ -3072,11 +3072,11 @@ function forecastRetainedTrackerTickAssertions(PDO $p,callable $check):void
         $p->exec('ALTER TABLE modeled_conversion_profile_versions ADD COLUMN '.$column);
     $ns=ModeledConversionProfiles::assessmentNamespace();$born=ModeledConversionValueVisitEvidence::CHECKPOINT-120;$now=time()-1000;
     for($id=1;$id<=3;$id++){
-        modeledValueBinding($p,$id);
+        $bindingId=900+$id;modeledValueBinding($p,$bindingId);
         $p->prepare("INSERT INTO modeled_conversion_profile_versions(id,project_key,platform,customer_key,conversation_id,observed_at_unix,profile_json,assessment_namespace,assessment_kind) VALUES(?,'anytour','max',?,?,?,'{\"access_status\":\"allowed\"}',?,'repair')")
-            ->execute([$id,(string)$id,$id,$born,$ns]);
+            ->execute([$id,(string)$bindingId,$bindingId,$born,$ns]);
         $p->prepare("INSERT INTO max_channel_conversion_outbox(id,project_key,platform,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,value_rub,value_profile_id,value_stage,value_contract,identity_source_key,state,next_attempt_unix) VALUES(?,'anytour','max',?,?,'98615635',?,?,?,?,?,'specific_request',?,'max_tracker','pending',?)")
-            ->execute([$id,$id,(string)(70000+$id),ModeledConversionValueContract::predictionKey((string)$id),ModeledConversionValueContract::TARGET,$born,500,$id,ModeledConversionValueContract::VERSION,($id===1||($otherDue&&$id===2))?0:$now+10000]);
+            ->execute([$id,$bindingId,(string)(70000+$bindingId),ModeledConversionValueContract::predictionKey((string)$id),ModeledConversionValueContract::TARGET,$born,500,$id,ModeledConversionValueContract::VERSION,($id===1||($otherDue&&$id===2))?0:$now+10000]);
     }
     $rows=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);$row=$rows[0];
     $frame=['v'=>ModeledConversionValueVisitEvidence::VERSION,'n'=>$ns,'b'=>ModeledConversionValueVisitEvidence::CHECKPOINT,'r'=>[]];
@@ -3149,7 +3149,7 @@ function forecastRetainedTrackerTickAssertions(PDO $p,callable $check):void
         &&$lookup->candidateCalls===1&&$lookup->durable&&$view['status']==='candidate'&&!$view['financial_permission']
         &&$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=1')->fetch(PDO::FETCH_ASSOC)===$beforeCandidate);
     $check('the reserved pass preserves every other selected financial user and never sends an empty ordinary batch '.$case,
-        $lookup->ordinaryBatches===($otherDue?1:0)&&($lookup->perTick[$now]['70002']??[])===($otherDue?['ordinary']:[]));
+        $lookup->ordinaryBatches===($otherDue?1:0)&&($lookup->perTick[$now]['70902']??[])===($otherDue?['ordinary']:[]));
     $lookup->tick=$now+300;$second=ModeledConversionValueExport::tick($p,$lookup,$api,$now+300,$gate);
     $check('the next actual300-second cycle resumes the normal subject lookup after its consumed candidate '.$case,
         $second['status']==='running'&&($lookup->perTick[$now+300][$uid]??[])===['ordinary']&&$lookup->candidateCalls===1);

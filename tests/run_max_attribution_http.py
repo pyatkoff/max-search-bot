@@ -120,8 +120,11 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
                 client_fixture = private_root / 'client'
                 client_fixture.mkdir()
                 client_source = (ROOT / 'services/MaxTrackerLookupClient.php').read_text()
-                check(client_source.count('CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS') == 1, 'one pinned client protocol substitution in the isolated fixture')
-                (client_fixture / 'MaxTrackerLookupClient.php').write_text(client_source.replace('CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS', 'CURLOPT_PROTOCOLS=>CURLPROTO_HTTP', 1))
+                check(client_source.count('CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS') == 2, 'both pinned client protocols are substituted only in the isolated fixture')
+                for option in ('CURLOPT_SSL_VERIFYPEER=>true', 'CURLOPT_SSL_VERIFYHOST=>2', 'CURLOPT_FOLLOWLOCATION=>false'):
+                    check(client_source.count(option) == 2, 'both production transports retain their TLS and redirect guards: ' + option)
+                check(client_source.count('MaxTrackerLookupProtocol::signature(') == 2 and client_source.count("'X-Max-Attribution-Signature: '.$signature") == 2, 'both production transports retain signed request authentication')
+                (client_fixture / 'MaxTrackerLookupClient.php').write_text(client_source.replace('CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS', 'CURLOPT_PROTOCOLS=>CURLPROTO_HTTP', 2))
                 (client_fixture / 'MaxTrackerLookupProtocol.php').write_text((ROOT / 'services/MaxTrackerLookupProtocol.php').read_text())
                 (client_fixture / 'MaxTrackerLookupConfig.php').write_text("<?php final class MaxTrackerLookupConfig { public static function endpoint():string{return " + json.dumps(url) + ";} public static function privateKey():string{return file_get_contents(" + json.dumps(str(private_key)) + ");}}\n")
                 intent_file = private_root / 'simulated-consumed-intent.json'
