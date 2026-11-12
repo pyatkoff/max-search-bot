@@ -1,71 +1,66 @@
 {
     "ok": true,
-    "generated_at": "2026-11-11T19:22:38+00:00",
+    "generated_at": "2026-11-12T00:02:44+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 114,
-        "raw_sessions": 114,
+        "sessions": 15,
+        "raw_sessions": 15,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 113,
-            "unresolved": 1
+            "resolved": 15,
+            "unresolved": 0
         },
-        "started": 97,
-        "needs_collected": 11,
-        "tours_opened": 9,
+        "started": 14,
+        "needs_collected": 4,
+        "tours_opened": 4,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 70,
-        "manager_replied": 55,
-        "customer_replied_after_manager": 23,
-        "phone_received": 1,
+        "manager_requested": 7,
+        "manager_replied": 1,
+        "customer_replied_after_manager": 1,
+        "phone_received": 0,
         "manager_response": {
-            "answered_in_90s": 1,
-            "answered_after_90s": 53,
-            "still_unanswered": 8,
-            "measured_responses": 54,
-            "avg_seconds": 22891,
-            "max_seconds": 70449
+            "answered_in_90s": 0,
+            "answered_after_90s": 1,
+            "still_unanswered": 5,
+            "measured_responses": 1,
+            "avg_seconds": 469,
+            "max_seconds": 469
         },
         "drop_points": {
-            "manager_replied": 32,
-            "collecting_needs": 25,
-            "customer_replied_after_manager": 23,
-            "started_only": 17,
-            "manager_requested": 15,
-            "tours_opened": 1,
-            "needs_collected": 1
+            "manager_requested": 6,
+            "collecting_needs": 5,
+            "tours_opened": 2,
+            "customer_replied_after_manager": 1,
+            "started_only": 1
         },
         "flags": {
-            "manager_requested_no_reply": 8,
-            "repeated_same_input": 4,
-            "repeated_callback_input": 2,
-            "left_waiting_queue_without_manager_reply": 1,
-            "manager_taken_no_reply": 1,
-            "excessive_turns": 1
+            "manager_requested_no_reply": 5,
+            "excessive_turns": 1,
+            "repeated_same_input": 1
         },
         "calendar_day": {
-            "conversations_started": 90,
-            "needs_collected_from_started": 9,
-            "tours_opened_from_started": 7,
+            "conversations_started": 12,
+            "needs_collected_from_started": 2,
+            "tours_opened_from_started": 2,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
-            "manager_requested": 49,
-            "manager_replied": 45,
-            "customer_replied_after_manager": 16
+            "manager_requested": 6,
+            "manager_replied": 0,
+            "customer_replied_after_manager": 0
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-11T19:22:38Z",
+        "sampled_at": "2026-11-12T00:02:44Z",
         "available": true,
         "error": null,
         "mode": "send",
         "activated": true,
         "queue_counts": {
-            "pending": 32,
+            "pending": 33,
             "ready": 0,
             "uploading": 0,
             "accepted": 0,
@@ -76,12 +71,12 @@
             "expired": 0,
             "retired": 0
         },
-        "queue_total": 36
+        "queue_total": 37
     },
-    "local_date": "2026-11-11",
-    "local_day_started_at": "2026-11-11T00:00:00+02:00",
-    "local_day_ended_at": "2026-11-12T00:00:00+02:00",
-    "since_utc": "2026-11-10 22:00:00",
-    "until_utc": "2026-11-11 22:00:00",
+    "local_date": "2026-11-12",
+    "local_day_started_at": "2026-11-12T00:00:00+02:00",
+    "local_day_ended_at": "2026-11-13T00:00:00+02:00",
+    "since_utc": "2026-11-11 22:00:00",
+    "until_utc": "2026-11-12 22:00:00",
     "public_redacted": true
 }
