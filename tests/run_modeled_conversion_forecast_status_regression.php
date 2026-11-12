@@ -2568,6 +2568,16 @@ function forecastRetainedTrackerAssertions(PDO $p,callable $check,array $origina
     ForecastV1ObservedStatement::$afterRetainedSourceFetch=static function(string $sql):void{if(str_contains($sql,'retained_click_point'))usleep(510000);};
     try{$slow=$read();}finally{ForecastV1ObservedStatement::$afterRetainedSourceFetch=null;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
     $check('a late tracker point result is rejected after rollback even when both SQL statements succeeded',$slow[0]===9&&!$p->inTransaction());
+    $p->exec('ALTER TABLE max_sub_links DROP INDEX idx_chat_id,MODIFY UF_CHAT_ID BIGINT,ADD INDEX idx_chat_id(UF_CHAT_ID)');
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+    ForecastV1ObservedStatement::$observePredictive=true;ForecastV1ObservedStatement::$predictiveStatements=[];
+    try{$numericSubject=$read();$typeQueries=ForecastV1ObservedStatement::$predictiveStatements;}
+    finally{ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $check('a full numeric subject index refuses nonsargable LIKE before any point read',
+        $numericSubject[0]===3&&count($typeQueries)===1&&str_contains($typeQueries[0]['sql'],'information_schema.COLUMNS'));
+    $p->exec('ALTER TABLE max_sub_links DROP INDEX idx_chat_id,MODIFY UF_CHAT_ID TEXT,ADD INDEX idx_chat_id(UF_CHAT_ID(15))');
+    $restoredPrefix=$read();
+    $check('a text subject with the retained15-character prefix remains supported without index changes',$restoredPrefix[0]===1);
     $p->exec('ALTER TABLE max_sub_links DROP COLUMN UF_YCLID');$unsupported=$read();
     $check('missing actual YCLID schema is explicit unsupported rather than guessed from legacy documentation',$unsupported[0]===3);
     foreach(['max_sub_links','b_iblock_element_property','b_iblock_property']as$t)$p->exec('DROP TABLE '.$t);

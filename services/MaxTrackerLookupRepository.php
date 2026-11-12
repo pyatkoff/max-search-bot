@@ -78,14 +78,14 @@ final class MaxTrackerLookupRepository
                 $meta="SELECT JSON_ARRAY('index',INDEX_NAME,COLUMN_NAME,SUB_PART) AS packet FROM"
                     ." (SELECT INDEX_NAME,COLUMN_NAME,SUB_PART FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE()"
                     ." AND TABLE_NAME='max_sub_links' AND SEQ_IN_INDEX=1 AND COLUMN_NAME='UF_CHAT_ID' LIMIT 9) i"
-                    ." UNION ALL SELECT JSON_ARRAY('column','',COLUMN_NAME,NULL) AS packet FROM"
-                    ." (SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='max_sub_links'"
+                    ." UNION ALL SELECT JSON_ARRAY('column','',COLUMN_NAME,DATA_TYPE) AS packet FROM"
+                    ." (SELECT COLUMN_NAME,DATA_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='max_sub_links'"
                     ." AND COLUMN_NAME IN ('ID','UF_CHAT_ID','UF_CLIENT_ID','UF_YCLID','UF_DATE','UF_SOURCE','UF_METRIC_SOURCE') LIMIT 8) c";
                 $metadata=$this->retainedClickPackets($meta,[],$started,$bytes,'metadata');
                 $columns=[];$indexes=[];
                 foreach($metadata as$m){
                     if(!is_array($m)||!array_is_list($m)||count($m)!==4||!is_string($m[1])||!is_string($m[2]))throw new UnexpectedValueException('invalid_source');
-                    if($m[0]==='column'&&$m[1]===''&&$m[3]===null)$columns[$m[2]]=true;
+                    if($m[0]==='column'&&$m[1]===''&&is_string($m[3])&&preg_match('/\A[a-z]{1,20}\z/D',$m[3])===1)$columns[$m[2]]=$m[3];
                     elseif($m[0]==='index'&&$m[2]==='UF_CHAT_ID'&&preg_match('/\A[A-Za-z0-9_]{1,64}\z/D',$m[1])===1
                         &&($m[3]===null||is_int($m[3])||is_string($m[3]))){
                         $part=$m[3]===null?40:(int)$m[3];if($part<1||$part>255)throw new UnexpectedValueException('invalid_source');
@@ -93,7 +93,8 @@ final class MaxTrackerLookupRepository
                     }else throw new UnexpectedValueException('invalid_source');
                 }
                 $required=['ID','UF_CHAT_ID','UF_CLIENT_ID','UF_YCLID','UF_DATE','UF_SOURCE','UF_METRIC_SOURCE'];
-                if(count($columns)!==7||array_diff($required,array_keys($columns)))return $wrap($result(3));
+                if(count($columns)!==7||array_diff($required,array_keys($columns))
+                    ||!in_array($columns['UF_CHAT_ID']??null,['char','varchar','tinytext','text','mediumtext','longtext'],true))return $wrap($result(3));
                 if(!$indexes||count($indexes)>8)return $wrap($result(8));
                 arsort($indexes,SORT_NUMERIC);$index=(string)array_key_first($indexes);
                 $prefix=substr($context['user_id'],0,$indexes[$index]);
