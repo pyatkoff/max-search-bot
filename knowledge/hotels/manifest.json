@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "2026-11-11.2",
+  "version": "2026-11-12.1",
   "project_key": "anytour",
   "bindings": [
     {
@@ -109,13 +109,13 @@
       },
       "binding_revision": "b43a27ff2d0a9d18f2aba893e08dd5fb17fbe5d2fa8715afc3ebb43dbfcb2f9d",
       "bundle_file": "anytour-81-rooms.json",
-      "bundle_sha256": "55cd9c9a612b42a1c68587d6c4ddcb9904a9c76b82bd9a23fa76ebe3b1677b11",
+      "bundle_sha256": "59107dc073d04dd69de61b495c7fb5997824fe54f254374a3ebee38ff7c70bf7",
       "status": "accepted",
       "approval": {
-        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
-        "common_version": 104,
-        "member": "hotel-knowledge-eg-cohort-20261025/albatros_makadi/accepted-binding.json",
-        "scope": "Research join and sealed saved-evidence group only; no native MATCH mutation, new property research, current offer or natural/runtime acceptance credit."
+        "library_file_id": "libfile_fde3_f-2dfb300a81688191aa8ea077d623001c_839482358a3c8191a38d8cf811d28df4",
+        "common_version": 2,
+        "member": "hotel-45-addenda-v2-20261111/albatros_makadi/accepted-binding.json",
+        "scope": "Exact sealed bundle anytour-81-rooms.json and its selected source-attributed historical declarations, with every source, scope, date, category and conflict caveat retained. Existing typed identity and prior facts only; no current price, tariff equivalence, availability or future service guarantee. Public consumer projection in pyatkoff/max-search-bot authorized by Pavel on 2026-11-12 for the reviewed 14-file packet; original private research and excluded candidates are outside this scope."
       }
     },
     {
@@ -167,13 +167,13 @@
       },
       "binding_revision": "2b90d1e68d2c86bdb5b4edbc40e7b7c56f4c0771f6a4b21bf2111fdd82043c7b",
       "bundle_file": "anytour-80-meal-plans.json",
-      "bundle_sha256": "125d770e8d876be2bae3df858f9acc3621a76fdf0b00fc24aa6598044dfbb1f2",
+      "bundle_sha256": "208b8b078d535f98f413edaeabae4a8d623dedceb994f726bd52dd462c31f275",
       "status": "accepted",
       "approval": {
-        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
-        "common_version": 104,
-        "member": "hotel-knowledge-eg-cohort-20261025/happy_life_village/accepted-binding.json",
-        "scope": "Research join and sealed saved-evidence group only; no native MATCH mutation, new property research, current offer or natural/runtime acceptance credit."
+        "library_file_id": "libfile_fde3_f-2dfb300a81688191aa8ea077d623001c_839482358a3c8191a38d8cf811d28df4",
+        "common_version": 2,
+        "member": "hotel-45-addenda-v2-20261111/happy_life_village/accepted-binding.json",
+        "scope": "Exact sealed bundle anytour-80-meal-plans.json and its selected source-attributed historical declarations, with every source, scope, date, category and conflict caveat retained. Existing typed identity and prior facts only; no current price, tariff equivalence, availability or future service guarantee. Public consumer projection in pyatkoff/max-search-bot authorized by Pavel on 2026-11-12 for the reviewed 14-file packet; original private research and excluded candidates are outside this scope."
       }
     },
     {
@@ -283,13 +283,13 @@
       },
       "binding_revision": "a58330908983221f708c37f543a725800a9b8fe10c59e85149bd036c088fa911",
       "bundle_file": "anytour-877-family-rooms.json",
-      "bundle_sha256": "30d13adf7d8a74da44653525e9c28f873cf6159e4535b17b07cee34cdf93e7ca",
+      "bundle_sha256": "2b6a894d8f8206addb1e65f83c755d3fba33dc71820b350a6fb121ab63c8fcab",
       "status": "accepted",
       "approval": {
-        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
-        "common_version": 104,
-        "member": "hotel-knowledge-eg-cohort-20261025/jaz_neo_naama/accepted-binding.json",
-        "scope": "Research join and sealed saved-evidence group only; no native MATCH mutation, new property research, current offer or natural/runtime acceptance credit."
+        "library_file_id": "libfile_fde3_f-2dfb300a81688191aa8ea077d623001c_839482358a3c8191a38d8cf811d28df4",
+        "common_version": 2,
+        "member": "hotel-45-addenda-v2-20261111/jaz_neo_naama/accepted-binding.json",
+        "scope": "Exact sealed bundle anytour-877-family-rooms.json and its selected source-attributed historical declarations, with every source, scope, date, category and conflict caveat retained. Existing typed identity and prior facts only; no current price, tariff equivalence, availability or future service guarantee. Public consumer projection in pyatkoff/max-search-bot authorized by Pavel on 2026-11-12 for the reviewed 14-file packet; original private research and excluded candidates are outside this scope."
       }
     },
     {
@@ -341,13 +341,13 @@
       },
       "binding_revision": "c54c6897b472ba8da23d365498d18c4cb166114687e232c564ce5def937c3213",
       "bundle_file": "anytour-1654-beach-access.json",
-      "bundle_sha256": "0b677078c8558d193801a09f73e83d34d3841020ee07d4b399951eaecb9e3cee",
+      "bundle_sha256": "1bab5a1071b730a124570b4e4c86a1d55aa7db75f33dcba73d66c2321cbd44b3",
       "status": "accepted",
       "approval": {
-        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
-        "common_version": 104,
-        "member": "hotel-knowledge-eg-cohort-20261025/movenpick_sharm/accepted-binding.json",
-        "scope": "Research join and sealed saved-evidence group only; no native MATCH mutation, new property research, current offer or natural/runtime acceptance credit."
+        "library_file_id": "libfile_fde3_f-2dfb300a81688191aa8ea077d623001c_839482358a3c8191a38d8cf811d28df4",
+        "common_version": 2,
+        "member": "hotel-45-addenda-v2-20261111/movenpick_sharm/accepted-binding.json",
+        "scope": "Exact sealed bundle anytour-1654-beach-access.json and its selected source-attributed historical declarations, with every source, scope, date, category and conflict caveat retained. Existing typed identity and prior facts only; no current price, tariff equivalence, availability or future service guarantee. Public consumer projection in pyatkoff/max-search-bot authorized by Pavel on 2026-11-12 for the reviewed 14-file packet; original private research and excluded candidates are outside this scope."
       }
     },
     {
@@ -457,13 +457,13 @@
       },
       "binding_revision": "4a03c4a2f438b5b2f9efb87489df733ad29c7ee94edbc01c47775f23c50ba325",
       "bundle_file": "anytour-4101-room-meal-plan.json",
-      "bundle_sha256": "e43031dd5865f8b3a89851679bff020601067da2f1f19e78bedc29136a1eb9df",
+      "bundle_sha256": "00b838ae2b9ab93319f4ee7066d8c09b08e21d236f15d082278280ee3f4d8311",
       "status": "accepted",
       "approval": {
-        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
-        "common_version": 107,
-        "member": "hotel-knowledge-tr-cohort-20261025/avia_resort/accepted-binding.json",
-        "scope": "Accepted typed Turkey research join and unchanged sealed saved records; scoped conditional published information only. No native MATCH write, current tariff, operation, model-use or natural/UI confirmation."
+        "library_file_id": "libfile_fde3_f-2dfb300a81688191aa8ea077d623001c_839482358a3c8191a38d8cf811d28df4",
+        "common_version": 2,
+        "member": "hotel-45-addenda-v2-20261111/avia_resort/accepted-binding.json",
+        "scope": "Exact sealed bundle anytour-4101-room-meal-plan.json and its selected source-attributed historical declarations, with every source, scope, date, category and conflict caveat retained. Existing typed identity and prior facts only; no current price, tariff equivalence, availability or future service guarantee. Public consumer projection in pyatkoff/max-search-bot authorized by Pavel on 2026-11-12 for the reviewed 14-file packet; original private research and excluded candidates are outside this scope."
       }
     },
     {
@@ -515,13 +515,13 @@
       },
       "binding_revision": "bbed1cc6f72734a9cc81cd79060a69d833b7f2204265c97fb17471c5884cbc53",
       "bundle_file": "anytour-477-family-rooms.json",
-      "bundle_sha256": "2a5fb87f7b7b22eb00cf95cf6820a0a488c0b9e72d24d0f09dd4a588ead584dd",
+      "bundle_sha256": "7b7042c059bd8a2673da55dcfe8a0686740e7486629efd158cf2273f159ac240",
       "status": "accepted",
       "approval": {
-        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
-        "common_version": 107,
-        "member": "hotel-knowledge-tr-cohort-20261025/club_aqua_plaza/accepted-binding.json",
-        "scope": "Accepted typed Turkey research join and unchanged sealed saved records; scoped conditional published information only. No native MATCH write, current tariff, operation, model-use or natural/UI confirmation."
+        "library_file_id": "libfile_fde3_f-2dfb300a81688191aa8ea077d623001c_839482358a3c8191a38d8cf811d28df4",
+        "common_version": 2,
+        "member": "hotel-45-addenda-v2-20261111/club_aqua_plaza/accepted-binding.json",
+        "scope": "Exact sealed bundle anytour-477-family-rooms.json and its selected source-attributed historical declarations, with every source, scope, date, category and conflict caveat retained. Existing typed identity and prior facts only; no current price, tariff equivalence, availability or future service guarantee. Public consumer projection in pyatkoff/max-search-bot authorized by Pavel on 2026-11-12 for the reviewed 14-file packet; original private research and excluded candidates are outside this scope."
       }
     },
     {
@@ -573,13 +573,13 @@
       },
       "binding_revision": "f4e04f3dbbfe8138cb665a481d3efdc9a42ed05a4f53b61e68a447122e50df16",
       "bundle_file": "anytour-3726-meal-season.json",
-      "bundle_sha256": "26ddf8052bf7c9d6cbe0477d90352371d4417f6953a09ab0a3c53f6a21fa0e4a",
+      "bundle_sha256": "330191b722cf9064b05b2e01baaed663e50df5f502e7530dcbda808d44888dcc",
       "status": "accepted",
       "approval": {
-        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
-        "common_version": 107,
-        "member": "hotel-knowledge-tr-cohort-20261025/dream_fun_world/accepted-binding.json",
-        "scope": "Accepted typed Turkey research join and unchanged sealed saved records; scoped conditional published information only. No native MATCH write, current tariff, operation, model-use or natural/UI confirmation."
+        "library_file_id": "libfile_fde3_f-2dfb300a81688191aa8ea077d623001c_839482358a3c8191a38d8cf811d28df4",
+        "common_version": 2,
+        "member": "hotel-45-addenda-v2-20261111/dream_fun_world/accepted-binding.json",
+        "scope": "Exact sealed bundle anytour-3726-meal-season.json and its selected source-attributed historical declarations, with every source, scope, date, category and conflict caveat retained. Existing typed identity and prior facts only; no current price, tariff equivalence, availability or future service guarantee. Public consumer projection in pyatkoff/max-search-bot authorized by Pavel on 2026-11-12 for the reviewed 14-file packet; original private research and excluded candidates are outside this scope."
       }
     },
     {
@@ -631,13 +631,13 @@
       },
       "binding_revision": "e0a053d0a74605606f75b61051aa3f4cc5cec49643b80fe8e1944763d6278ae2",
       "bundle_file": "anytour-2077-family-rooms.json",
-      "bundle_sha256": "9448e4786c294422f4e279cf9fdb1f5d8043c902b1f1874e6bd35282c4cc5487",
+      "bundle_sha256": "e057545eea5714ac853eb0e586441f32cbcd5f4d8b52322a69b3b088c89b15ec",
       "status": "accepted",
       "approval": {
-        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
-        "common_version": 107,
-        "member": "hotel-knowledge-tr-cohort-20261025/hane_family/accepted-binding.json",
-        "scope": "Accepted typed Turkey research join and unchanged sealed saved records; scoped conditional published information only. No native MATCH write, current tariff, operation, model-use or natural/UI confirmation."
+        "library_file_id": "libfile_fde3_f-2dfb300a81688191aa8ea077d623001c_839482358a3c8191a38d8cf811d28df4",
+        "common_version": 2,
+        "member": "hotel-45-addenda-v2-20261111/hane_family/accepted-binding.json",
+        "scope": "Exact sealed bundle anytour-2077-family-rooms.json and its selected source-attributed historical declarations, with every source, scope, date, category and conflict caveat retained. Existing typed identity and prior facts only; no current price, tariff equivalence, availability or future service guarantee. Public consumer projection in pyatkoff/max-search-bot authorized by Pavel on 2026-11-12 for the reviewed 14-file packet; original private research and excluded candidates are outside this scope."
       }
     },
     {
@@ -689,13 +689,13 @@
       },
       "binding_revision": "ba6585917f16fed8eb778d93f46b2fffaa0453b879a00a8646cfa64a2f2fa518",
       "bundle_file": "anytour-2432-family-meal-rights.json",
-      "bundle_sha256": "8be2df789dd6374d55b6a622011ff4cedaf4923dca6e49f7ba7bc96e222519a7",
+      "bundle_sha256": "13ed4dcc781ed2b738525ccef301dbe832179395f470cdabfd48e484bca623b7",
       "status": "accepted",
       "approval": {
-        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
-        "common_version": 107,
-        "member": "hotel-knowledge-tr-cohort-20261025/jadore_deluxe/accepted-binding.json",
-        "scope": "Accepted typed Turkey research join and unchanged sealed saved records; scoped conditional published information only. No native MATCH write, current tariff, operation, model-use or natural/UI confirmation."
+        "library_file_id": "libfile_fde3_f-2dfb300a81688191aa8ea077d623001c_839482358a3c8191a38d8cf811d28df4",
+        "common_version": 2,
+        "member": "hotel-45-addenda-v2-20261111/jadore_deluxe/accepted-binding.json",
+        "scope": "Exact sealed bundle anytour-2432-family-meal-rights.json and its selected source-attributed historical declarations, with every source, scope, date, category and conflict caveat retained. Existing typed identity and prior facts only; no current price, tariff equivalence, availability or future service guarantee. Public consumer projection in pyatkoff/max-search-bot authorized by Pavel on 2026-11-12 for the reviewed 14-file packet; original private research and excluded candidates are outside this scope."
       }
     },
     {
@@ -747,13 +747,13 @@
       },
       "binding_revision": "c6215832e1a1ab2125d108fa0913c702ae59d0b70055b00232b7307a99ceb5ff",
       "bundle_file": "anytour-3742-family-meal-rights.json",
-      "bundle_sha256": "2b8679767ab52d42104681ce3485c3fc3594b229028e2a75466e6d308280b6bd",
+      "bundle_sha256": "7336e671571dec6b30a02f4ccc111f1296c7ee8955d8a62bdd8beae0e0c55b06",
       "status": "accepted",
       "approval": {
-        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
-        "common_version": 107,
-        "member": "hotel-knowledge-tr-cohort-20261025/side_moon_palace/accepted-binding.json",
-        "scope": "Accepted typed Turkey research join and unchanged sealed saved records; scoped conditional published information only. No native MATCH write, current tariff, operation, model-use or natural/UI confirmation."
+        "library_file_id": "libfile_fde3_f-2dfb300a81688191aa8ea077d623001c_839482358a3c8191a38d8cf811d28df4",
+        "common_version": 2,
+        "member": "hotel-45-addenda-v2-20261111/side_moon_palace/accepted-binding.json",
+        "scope": "Exact sealed bundle anytour-3742-family-meal-rights.json and its selected source-attributed historical declarations, with every source, scope, date, category and conflict caveat retained. Existing typed identity and prior facts only; no current price, tariff equivalence, availability or future service guarantee. Public consumer projection in pyatkoff/max-search-bot authorized by Pavel on 2026-11-12 for the reviewed 14-file packet; original private research and excluded candidates are outside this scope."
       }
     },
     {
@@ -805,13 +805,13 @@
       },
       "binding_revision": "712467ef585d31864c83253cd2e50890308b3198f387b8d146a97d6666f3af95",
       "bundle_file": "anytour-3737-age-rooms.json",
-      "bundle_sha256": "b3277a0e9297b51d156d900a320daa06019e31e623bfc3ef9b781e1c0f66e480",
+      "bundle_sha256": "d2c767c8ccfc6c75434a8270536f84305e803140103889bb39db83f4526e4e2f",
       "status": "accepted",
       "approval": {
-        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
-        "common_version": 107,
-        "member": "hotel-knowledge-tr-cohort-20261025/vox_maris/accepted-binding.json",
-        "scope": "Accepted typed Turkey research join and unchanged sealed saved records; scoped conditional published information only. No native MATCH write, current tariff, operation, model-use or natural/UI confirmation."
+        "library_file_id": "libfile_fde3_f-2dfb300a81688191aa8ea077d623001c_839482358a3c8191a38d8cf811d28df4",
+        "common_version": 2,
+        "member": "hotel-45-addenda-v2-20261111/vox_maris/accepted-binding.json",
+        "scope": "Exact sealed bundle anytour-3737-age-rooms.json and its selected source-attributed historical declarations, with every source, scope, date, category and conflict caveat retained. Existing typed identity and prior facts only; no current price, tariff equivalence, availability or future service guarantee. Public consumer projection in pyatkoff/max-search-bot authorized by Pavel on 2026-11-12 for the reviewed 14-file packet; original private research and excluded candidates are outside this scope."
       }
     },
     {
