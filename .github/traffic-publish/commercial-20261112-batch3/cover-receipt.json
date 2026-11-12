@@ -1,0 +1,651 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261112-3-v1",
+  "registry_version": 221,
+  "source_registry_sha256": "6ddf22bd0c778f994b28234b47a83a4c99840f5d5f9be314800658d50d205a15",
+  "state": "ROOT_VISUALLY_ACCEPTED_EXACT_PNG",
+  "cover_template_sha256": "16b2233c88b5f168be899f3046cd0d6ba4f701f8d7dccf8793cef1ead79f457c",
+  "rows": [
+    {
+      "hotel_id": 65782,
+      "photo_sha256": "d15363fd51a6ba26b5095966dbb3aedab8fd31dc072dffb73f565cc2c4ea2244",
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "photo_provenance": [
+        {
+          "hotel_id": 65782,
+          "role": 0,
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-27-2020-10-33-16-AMfinesse-cabana.jpg",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://www.palomahotels.com/Content/imgUpload/11-27-2020-10-33-16-AMfinesse-cabana.jpg",
+          "content_type": "image/jpeg",
+          "dimensions": [
+            2045,
+            1392
+          ],
+          "format": "JPEG",
+          "bytes": 3076327,
+          "sha256": "6fb55c054bfed2d0a81c0c4fa4eb3e0eed7463422f51af55ca2647a5b22af49c",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/65782-0.image"
+        },
+        {
+          "hotel_id": 65782,
+          "role": 1,
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-16-2020-2-45-10-PMfinesseroomslider.jpg",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://www.palomahotels.com/Content/imgUpload/12-16-2020-2-45-10-PMfinesseroomslider.jpg",
+          "content_type": "image/jpeg",
+          "dimensions": [
+            1920,
+            1080
+          ],
+          "format": "JPEG",
+          "bytes": 1127478,
+          "sha256": "f56617c690a750ab5e5efaabd2bf7b5737381298c989c572d15d5c1e8eb35bed",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/65782-1.image"
+        },
+        {
+          "hotel_id": 65782,
+          "role": 2,
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-1-6-2021-10-52-38-AMfinessepool.jpg",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://www.palomahotels.com/Content/imgUpload/image-1-6-2021-10-52-38-AMfinessepool.jpg",
+          "content_type": "image/jpeg",
+          "dimensions": [
+            1857,
+            1237
+          ],
+          "format": "JPEG",
+          "bytes": 509528,
+          "sha256": "837dd64a120a246b60b7e91052c3d714c1e2f44403be9673a24ac701dcc94343",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/65782-2.image"
+        }
+      ]
+    },
+    {
+      "hotel_id": 65895,
+      "photo_sha256": "f3a572166b0ddf1d99264a834123f7910baf225fe695d56d7a5e536813a057b1",
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "photo_provenance": [
+        {
+          "hotel_id": 65895,
+          "role": 0,
+          "url": "https://www.palomahotels.com/Content/imgUpload/16-10-2026-15-07-45orenda-videokapak-1920x1080.jpg",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://www.palomahotels.com/Content/imgUpload/16-10-2026-15-07-45orenda-videokapak-1920x1080.jpg",
+          "content_type": "image/jpeg",
+          "dimensions": [
+            1920,
+            1080
+          ],
+          "format": "JPEG",
+          "bytes": 464677,
+          "sha256": "72964e69584e88b7fee95ef5de8f86d6973e7672cf8fae4f630fcaabbb4916bc",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/65895-0.image"
+        },
+        {
+          "hotel_id": 65895,
+          "role": 1,
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-14-PM10-8-2020-7-22-34-pmbeach.jpg",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-14-PM10-8-2020-7-22-34-pmbeach.jpg",
+          "content_type": "image/jpeg",
+          "dimensions": [
+            541,
+            547
+          ],
+          "format": "JPEG",
+          "bytes": 43404,
+          "sha256": "2e51d4c6b5ed5c49c90a95cccf03b3f97cbfa5ef2a71942c3592287a4f14b426",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/65895-1.image"
+        },
+        {
+          "hotel_id": 65895,
+          "role": 2,
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmjunior-sutes.jpg",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmjunior-sutes.jpg",
+          "content_type": "image/jpeg",
+          "dimensions": [
+            528,
+            395
+          ],
+          "format": "JPEG",
+          "bytes": 20536,
+          "sha256": "ea06d77185200a43c71b6bd8681086b5e9e9c641e8a6f024e0b704b3b2394725",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/65895-2.image"
+        }
+      ]
+    },
+    {
+      "hotel_id": 2175,
+      "photo_sha256": "7ec953edf59b94aed518e806fbbba36d3a20d6c33c7c428281b829ee792ffbe8",
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "photo_provenance": [
+        {
+          "hotel_id": 2175,
+          "role": 0,
+          "url": "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image/1920x635/main-beach.jpg?=98b3950808f50882f0ad90fac7001209",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image/1920x635/main-beach.jpg?=98b3950808f50882f0ad90fac7001209",
+          "content_type": "image/jpeg",
+          "dimensions": [
+            1920,
+            635
+          ],
+          "format": "JPEG",
+          "bytes": 832916,
+          "sha256": "2fcf993b4ce007b1f7c7f1d8615f707c83689af175eb9dfed643b9532cde03df",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/2175-0.image"
+        },
+        {
+          "hotel_id": 2175,
+          "role": 1,
+          "url": "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery/image/original/hillside-beach-club-room.jpg?=009ec996892707209c4f0b241fae9807",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery/image/original/hillside-beach-club-room.jpg?=009ec996892707209c4f0b241fae9807",
+          "content_type": "image/jpeg",
+          "dimensions": [
+            1200,
+            770
+          ],
+          "format": "JPEG",
+          "bytes": 263932,
+          "sha256": "2ddba830f1d63d6813671e191fc0f7ff0345a027918ce33c2c54059b3c33a405",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/2175-1.image"
+        },
+        {
+          "hotel_id": 2175,
+          "role": 2,
+          "url": "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery/image/original/hillside-beach-club-pool.jpg?=0a6247fb2e6f55ab94afb6d9434c8e99",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery/image/original/hillside-beach-club-pool.jpg?=0a6247fb2e6f55ab94afb6d9434c8e99",
+          "content_type": "image/jpeg",
+          "dimensions": [
+            1165,
+            874
+          ],
+          "format": "JPEG",
+          "bytes": 726072,
+          "sha256": "669ae264bb018f032e0a86117517cfee2664f90817dd6ee59dbf703a6c1aa43b",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/2175-2.image"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1420,
+      "photo_sha256": "603d030e446e67a86fa566d373440a6bfd1f2fd3d7b81e5ecb4e1f2d242141c2",
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "photo_provenance": [
+        {
+          "hotel_id": 1420,
+          "role": 0,
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-10-1536x1023.jpg",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-10-1536x1023.jpg",
+          "content_type": "image/jpeg",
+          "dimensions": [
+            1536,
+            1023
+          ],
+          "format": "JPEG",
+          "bytes": 576652,
+          "sha256": "54d776f5c2b29c132ea90f5bd949c98143092138da63b3279e2817ee15d8d3cc",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/1420-0.image"
+        },
+        {
+          "hotel_id": 1420,
+          "role": 1,
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Ayscha-Oda-Standart-426-01.jpg",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://papillon.com.tr/wp-content/uploads/2026/01/Ayscha-Oda-Standart-426-01.jpg",
+          "content_type": "image/jpeg",
+          "dimensions": [
+            2000,
+            1334
+          ],
+          "format": "JPEG",
+          "bytes": 1866797,
+          "sha256": "fddec0b21bec26b49c57855983d87e30a4fba49090bfb36947643704a19e15ff",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/1420-1.image"
+        },
+        {
+          "hotel_id": 1420,
+          "role": 2,
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/08/PA_GrandFamilyVilla-2-scaled.jpg",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://papillon.com.tr/wp-content/uploads/2026/08/PA_GrandFamilyVilla-2-scaled.jpg",
+          "content_type": "image/jpeg",
+          "dimensions": [
+            2560,
+            1696
+          ],
+          "format": "JPEG",
+          "bytes": 557514,
+          "sha256": "e7aa677b774db89de4df70fa43f31dd9a93d8d940225aca70b082a1079ff5e5a",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/1420-2.image"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1338,
+      "photo_sha256": "44bfd236c7995488fe08b6a1964fee5e925acbb4a2729bde9569760d6864c40b",
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "photo_provenance": [
+        {
+          "hotel_id": 1338,
+          "role": 0,
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GENEL+ALAN+%285%29-1920w.jpg",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GENEL+ALAN+%285%29-1920w.jpg",
+          "content_type": "image/webp",
+          "dimensions": [
+            1600,
+            1000
+          ],
+          "format": "WEBP",
+          "bytes": 219344,
+          "sha256": "060a6aa24c9d9af0c8e41c075462f038cc94e14a62489aa3e7c8cd674ba36129",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/1338-0.image"
+        },
+        {
+          "hotel_id": 1338,
+          "role": 1,
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL+ALAN+%282%29-1920w.jpg",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL+ALAN+%282%29-1920w.jpg",
+          "content_type": "image/webp",
+          "dimensions": [
+            1600,
+            1000
+          ],
+          "format": "WEBP",
+          "bytes": 369372,
+          "sha256": "a77aef590def1d9f9f19c99e91b07e235b1bad43b2d8db69c5557ed1dbbc18ef",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/1338-1.image"
+        },
+        {
+          "hotel_id": 1338,
+          "role": 2,
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/JAKUZI+SUI%CC%87T+ROOM3-1920w.jpg",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/JAKUZI+SUI%CC%87T+ROOM3-1920w.jpg",
+          "content_type": "image/webp",
+          "dimensions": [
+            1600,
+            1000
+          ],
+          "format": "WEBP",
+          "bytes": 103442,
+          "sha256": "f2b097c0ba8a7e47562dbc69044ded0b42b1e2695d85824b63eeb45949d39317",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/1338-2.image"
+        }
+      ]
+    },
+    {
+      "hotel_id": 49345,
+      "photo_sha256": "b669d643da8c89bc3712bac6857b1979665a5abe0a3eb0f437aeeb64ed764dde",
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "photo_provenance": [
+        {
+          "hotel_id": 49345,
+          "role": 0,
+          "url": "https://www.hilton.com/im/en/SLLHIHI/22836448/0-exterior-main-entrance.jpg?impolicy=crop&cw=4500&ch=2519&gravity=NorthWest&xposition=0&yposition=240&rw=768&rh=430",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://www.hilton.com/im/en/SLLHIHI/22836448/0-exterior-main-entrance.jpg?impolicy=crop&cw=4500&ch=2519&gravity=NorthWest&xposition=0&yposition=240&rw=768&rh=430",
+          "content_type": "image/avif",
+          "dimensions": [
+            768,
+            430
+          ],
+          "format": "AVIF",
+          "bytes": 38953,
+          "sha256": "ad0497003afc3005e32ca180057f327dbfecbf08642395b6bd9cce7ee990ce67",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/49345-0.image"
+        },
+        {
+          "hotel_id": 49345,
+          "role": 1,
+          "url": "https://www.hilton.com/im/en/SLLHIHI/22836303/26-king-deluxe-family-room-with-french-balcony.jpg?impolicy=crop&cw=5000&ch=2812&gravity=NorthWest&xposition=0&yposition=0&rw=1200&rh=675",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://www.hilton.com/im/en/SLLHIHI/22836303/26-king-deluxe-family-room-with-french-balcony.jpg?impolicy=crop&cw=5000&ch=2812&gravity=NorthWest&xposition=0&yposition=0&rw=1200&rh=675",
+          "content_type": "image/avif",
+          "dimensions": [
+            1200,
+            675
+          ],
+          "format": "AVIF",
+          "bytes": 33071,
+          "sha256": "2b0de217e3ca955d8103e38e3284057790953ca5b215ba84afe7db6e42323cb2",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/49345-1.image"
+        },
+        {
+          "hotel_id": 49345,
+          "role": 2,
+          "url": "https://www.hilton.com/im/en/SLLHIHI/22835985/0-signature-1-pool-sea-view-1.jpg?impolicy=crop&cw=4500&ch=2519&gravity=NorthWest&xposition=0&yposition=240&rw=768&rh=430",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://www.hilton.com/im/en/SLLHIHI/22835985/0-signature-1-pool-sea-view-1.jpg?impolicy=crop&cw=4500&ch=2519&gravity=NorthWest&xposition=0&yposition=240&rw=768&rh=430",
+          "content_type": "image/avif",
+          "dimensions": [
+            768,
+            430
+          ],
+          "format": "AVIF",
+          "bytes": 34592,
+          "sha256": "9173d97a86780f15db8b656acf2cf5a5cd918436550193b2fbd0db758af65d74",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/49345-2.image"
+        }
+      ]
+    },
+    {
+      "hotel_id": 49365,
+      "photo_sha256": "7428ebe8f1dbbdcd1453d6995cf8ff4b4b000d9feea66f02193f8f710389daa8",
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "photo_provenance": [
+        {
+          "hotel_id": 49365,
+          "role": 0,
+          "url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9kL2RiNjQwNWI4LTY0ZDMtNDkzZC1hMWNmLWMyMmVhZjBhMzExYS5qcGc=",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9kL2RiNjQwNWI4LTY0ZDMtNDkzZC1hMWNmLWMyMmVhZjBhMzExYS5qcGc=",
+          "content_type": "image/jpeg",
+          "dimensions": [
+            560,
+            420
+          ],
+          "format": "JPEG",
+          "bytes": 48521,
+          "sha256": "59a177db36788bfb65cbb5262f411f3883c2527a74b2ce7e846c4c9599a77568",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/49365-0.image"
+        },
+        {
+          "hotel_id": 49365,
+          "role": 1,
+          "url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS83LzcxMTU0M2FkLWFkZmItNDZjMS1hZDg4LTBiMzgxYzhlZjQ2Zi5qcGc=",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS83LzcxMTU0M2FkLWFkZmItNDZjMS1hZDg4LTBiMzgxYzhlZjQ2Zi5qcGc=",
+          "content_type": "image/jpeg",
+          "dimensions": [
+            560,
+            420
+          ],
+          "format": "JPEG",
+          "bytes": 41288,
+          "sha256": "738f673cf2600de76ad33aa80c8f1e560c9f34007a627ab79589f183b6c7cc71",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/49365-1.image"
+        },
+        {
+          "hotel_id": 49365,
+          "role": 2,
+          "url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9hL2EwMDc1MWVhLTI3NzMtNGM2ZC04YzUxLTE0Y2Q4NjFjYmI4Yy5qcGc=",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9hL2EwMDc1MWVhLTI3NzMtNGM2ZC04YzUxLTE0Y2Q4NjFjYmI4Yy5qcGc=",
+          "content_type": "image/jpeg",
+          "dimensions": [
+            560,
+            420
+          ],
+          "format": "JPEG",
+          "bytes": 32840,
+          "sha256": "a97101481ecaf9e5b487dbafb010093c0703dc02102238c19d3576119b5e6091",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/49365-2.image"
+        }
+      ]
+    },
+    {
+      "hotel_id": 49342,
+      "photo_sha256": "6c316ae3a7e91b6fd09468b2eac738c4d54dbaec911d1bad88a4c163b3a1f70b",
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "photo_provenance": [
+        {
+          "hotel_id": 49342,
+          "role": 0,
+          "url": "https://digital.ihg.com/is/image/ihg/crowne-plaza-resort-salalah-6267533408-4x3?wid=733",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://digital.ihg.com/is/image/ihg/crowne-plaza-resort-salalah-6267533408-4x3?wid=733",
+          "content_type": "image/webp",
+          "dimensions": [
+            733,
+            550
+          ],
+          "format": "WEBP",
+          "bytes": 53648,
+          "sha256": "4c8408697e50d060a4980470ab3a1ad6b85d9c71a66410438118d7035985b110",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/49342-0.image"
+        },
+        {
+          "hotel_id": 49342,
+          "role": 1,
+          "url": "https://digital.ihg.com/is/image/ihg/crowne-plaza-resort-salalah-5055630229-4x3?wid=733",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://digital.ihg.com/is/image/ihg/crowne-plaza-resort-salalah-5055630229-4x3?wid=733",
+          "content_type": "image/avif",
+          "dimensions": [
+            733,
+            550
+          ],
+          "format": "AVIF",
+          "bytes": 48927,
+          "sha256": "9c8283f082c2966e519ac9a4cb8e789142c9e4c93e9b70c4bfa277cd97a6c811",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/49342-1.image"
+        },
+        {
+          "hotel_id": 49342,
+          "role": 2,
+          "url": "https://digital.ihg.com/is/image/ihg/crowne-plaza-resort-salalah-6583630596-4x3?wid=733",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://digital.ihg.com/is/image/ihg/crowne-plaza-resort-salalah-6583630596-4x3?wid=733",
+          "content_type": "image/avif",
+          "dimensions": [
+            733,
+            550
+          ],
+          "format": "AVIF",
+          "bytes": 31678,
+          "sha256": "37f3bf241694b8a76d13f2f1260a36ff0d2b6cecbc66b55989e918b82402582f",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/49342-2.image"
+        }
+      ]
+    },
+    {
+      "hotel_id": 102031,
+      "photo_sha256": "7de7e0a233a16952b30ab050959553bb067e92b807ab2ffbcdcd1812914d773c",
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "photo_provenance": [
+        {
+          "hotel_id": 102031,
+          "role": 0,
+          "url": "https://assets.hrewards.com/assets/jpg.xxlarge_562_SHR_Luxor_Nile_Palace_spa_poolview_01_5e6d125c91.jpg?optimize",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://assets.hrewards.com/assets/jpg.xxlarge_562_SHR_Luxor_Nile_Palace_spa_poolview_01_5e6d125c91.jpg?optimize",
+          "content_type": "image/jpeg",
+          "dimensions": [
+            2560,
+            1697
+          ],
+          "format": "AVIF",
+          "bytes": 254188,
+          "sha256": "baf464ea92e14b4c9d1bdeca75e70b54aaf47ab28d4c1a459ff1af089270af5b",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/102031-0.image"
+        },
+        {
+          "hotel_id": 102031,
+          "role": 1,
+          "url": "https://assets.hrewards.com/assets/jpg.xxlarge_562_SHR_Luxor_Nile_Palace_rooms_Executive_Suite_Panoramic_Nile_View_ec0586a976.jpg?optimize",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://assets.hrewards.com/assets/jpg.xxlarge_562_SHR_Luxor_Nile_Palace_rooms_Executive_Suite_Panoramic_Nile_View_ec0586a976.jpg?optimize",
+          "content_type": "image/avif",
+          "dimensions": [
+            2560,
+            1431
+          ],
+          "format": "AVIF",
+          "bytes": 92354,
+          "sha256": "e7d20237b360efdfff5b5dba0dd2fc406d74e5d3f47f4e6b1dc0f6b9adf13a3a",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/102031-1.image"
+        },
+        {
+          "hotel_id": 102031,
+          "role": 2,
+          "url": "https://assets.hrewards.com/assets/jpg.xxlarge_SHR_Luxor_Nile_Palace_restaurant_Nile_Lounge_Bar_2_fe0cac8db9.jpg?optimize",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://assets.hrewards.com/assets/jpg.xxlarge_SHR_Luxor_Nile_Palace_restaurant_Nile_Lounge_Bar_2_fe0cac8db9.jpg?optimize",
+          "content_type": "image/avif",
+          "dimensions": [
+            2560,
+            1707
+          ],
+          "format": "AVIF",
+          "bytes": 306935,
+          "sha256": "1a9c2e313bbda5cf8b22a44c0b6e16910b9904d68c27af82626c9cd0e81c329b",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/102031-2.image"
+        }
+      ]
+    },
+    {
+      "hotel_id": 102774,
+      "photo_sha256": "f8443769988f93dba2d19c4869a0c53c40948cd102c84ebc33b3e6c9182ef8d2",
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "photo_provenance": [
+        {
+          "hotel_id": 102774,
+          "role": 0,
+          "url": "https://www.hilton.com/im/en/LUXHITW/21308512/print-hiltonluxor-susanblick-3.jpg?impolicy=crop&cw=5000&ch=2799&gravity=NorthWest&xposition=0&yposition=266&rw=768&rh=430",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://www.hilton.com/im/en/LUXHITW/21308512/print-hiltonluxor-susanblick-3.jpg?impolicy=crop&cw=5000&ch=2799&gravity=NorthWest&xposition=0&yposition=266&rw=768&rh=430",
+          "content_type": "image/avif",
+          "dimensions": [
+            768,
+            430
+          ],
+          "format": "AVIF",
+          "bytes": 35658,
+          "sha256": "abc8e610df96be22bd07de418e36c85e3d3dcba8842a43ccf6a2f294adaf7511",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/102774-0.image"
+        },
+        {
+          "hotel_id": 102774,
+          "role": 1,
+          "url": "https://www.hilton.com/im/en/LUXHITW/15907967/deluxe-guest-room-king-bed-image-1.jpg?impolicy=crop&cw=5000&ch=2799&gravity=NorthWest&xposition=0&yposition=270&rw=768&rh=430",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://www.hilton.com/im/en/LUXHITW/15907967/deluxe-guest-room-king-bed-image-1.jpg?impolicy=crop&cw=5000&ch=2799&gravity=NorthWest&xposition=0&yposition=270&rw=768&rh=430",
+          "content_type": "image/avif",
+          "dimensions": [
+            768,
+            430
+          ],
+          "format": "AVIF",
+          "bytes": 12695,
+          "sha256": "ed62404a1db678e84a845fcd594bfc5f7523db9351fc12ce2f92cc2cb2964384",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/102774-1.image"
+        },
+        {
+          "hotel_id": 102774,
+          "role": 2,
+          "url": "https://www.hilton.com/im/en/LUXHITW/3048242/luxhitw-14-sunset-terrace.jpg?impolicy=crop&cw=5616&ch=3144&gravity=NorthWest&xposition=0&yposition=515&rw=768&rh=430",
+          "ok": true,
+          "attempts": 1,
+          "http_status": 200,
+          "final_url": "https://www.hilton.com/im/en/LUXHITW/3048242/luxhitw-14-sunset-terrace.jpg?impolicy=crop&cw=5616&ch=3144&gravity=NorthWest&xposition=0&yposition=515&rw=768&rh=430",
+          "content_type": "image/avif",
+          "dimensions": [
+            768,
+            430
+          ],
+          "format": "AVIF",
+          "bytes": 27140,
+          "sha256": "4e233be9d575adfb761963450e7dd74cf43b6795e8fd78a7b0f5d4511c8747ef",
+          "path": "/workspace/scratch/093252c9e7db/hotel-release-priority/next-batch3/photos/102774-2.image"
+        }
+      ]
+    }
+  ]
+}
+
