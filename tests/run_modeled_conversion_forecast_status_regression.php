@@ -2516,6 +2516,10 @@ function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $ori
         return $projection;
     }
     foreach(['advertising_visit_observations','advertising_visit_cursors']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
+    $nativeExists=json_decode($p->query('SELECT JSON_ARRAY(EXISTS(SELECT 1 WHERE 1=0),EXISTS(SELECT 1),CASE WHEN EXISTS(SELECT 1 WHERE 1=0) THEN 1 ELSE 0 END,CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END)')->fetchColumn(),true,8,JSON_THROW_ON_ERROR);
+    $nativeTypes=array_map(static fn(mixed $v):string=>get_debug_type($v),$nativeExists);
+    $check('native owner-conflict JSON types raw_false='.$nativeTypes[0].' raw_true='.$nativeTypes[1].' with canonical CASE zero and one',
+        $nativeExists[2]===0&&$nativeExists[3]===1);
     $collation=$mysql?' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci':' COLLATE RTRIM';
     $p->exec('CREATE TABLE advertising_visit_cursors(project_key VARCHAR(40)'.$collation.',source_key VARCHAR(80)'.$collation.',platform VARCHAR(16)'.$collation.',counter_id VARCHAR(20)'.$collation.',last_cursor VARCHAR(20),PRIMARY KEY(project_key,source_key,platform,counter_id))');
     $p->exec('CREATE TABLE advertising_visit_observations(id BIGINT PRIMARY KEY,project_key VARCHAR(40)'.$collation.',source_key VARCHAR(80)'.$collation.',platform VARCHAR(16)'.$collation.',counter_id VARCHAR(20)'.$collation.',external_user_id VARCHAR(32)'.$collation.',identity_status VARCHAR(16)'.$collation.',source_cursor VARCHAR(20),visit_id VARCHAR(128)'.$collation.',client_id VARCHAR(40),yclid VARCHAR(40),visit_at_unix BIGINT,observed_at_unix BIGINT,received_at_unix BIGINT,payload_sha256 CHAR(64))');
@@ -2547,7 +2551,7 @@ function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $ori
         &&strlen(json_encode($projection,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=225
         &&!str_contains(json_encode($projection,JSON_THROW_ON_ERROR),'119988776655443322')&&!isset($projection['observation_id']);
     if(!$candidateValid)echo 'RETAINED_APP_SYNTHETIC '.json_encode([
-        'result_code'=>$single[0]??null,'kind_code'=>$single[5]??null,'saved_frame'=>is_array($done),
+        'result_code'=>$single[0]??null,'kind_code'=>$single[5]??null,'saved_frame'=>is_array($done),'native_types'=>$nativeTypes,
         'private_bytes'=>strlen(json_encode($done,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),
         'projection_bytes'=>strlen(json_encode($projection,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))],JSON_THROW_ON_ERROR).PHP_EOL;
     $check('an immutable pre-event YCLID-only witness is a compact candidate without identity or financial promotion',$candidateValid);
