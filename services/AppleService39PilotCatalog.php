@@ -138,9 +138,37 @@ final class AppleService39PilotCatalog
         return self::landingEntryForPost($postId)['start_payload'] ?? null;
     }
 
+    /** A service selected on an existing model card retains that exact model. */
+    public static function modelServicePayload(string $modelPost, string $servicePost): ?string
+    {
+        $codes = ['service-battery-replacement'=>'battery',
+            'service-front-glass-replacement'=>'glass', 'service-display'=>'display'];
+        $code = $codes[$servicePost] ?? null;
+        return $code !== null ? (self::modelServiceEntry($modelPost, $code)['start_payload'] ?? null) : null;
+    }
+
+    private static function modelServiceEntry(string $modelPost, string $code): ?array
+    {
+        $services = ['battery'=>'Замена аккумулятора', 'glass'=>'Замена стекла без дисплея',
+            'display'=>'Замена дисплея'];
+        if (!isset($services[$code])) return null;
+        require_once __DIR__.'/AppleService39CoverageRevision.php';
+        $model = (new AppleService39CoverageRevision())->entry($modelPost);
+        if ($model === null || $model['scope'] !== 'model' || $model['model'] === '') return null;
+        $payload = 'as39_pair_'.$modelPost.'_'.$code;
+        self::check(strlen($payload) <= 64);
+        // Attribution still belongs to the real published model card. No price,
+        // availability, new publication or credential is inferred from the link.
+        return ['post_id'=>$modelPost, 'model'=>$model['model'], 'service'=>$services[$code],
+            'scope'=>'model_service', 'service_code'=>$code, 'start_payload'=>$payload];
+    }
+
     public static function resolve(string $projectKey, string $botKey, string $payload): ?array
     {
         if ($projectKey !== self::PROJECT || $botKey !== self::BOT) return null;
+        if (preg_match('/\Aas39_pair_(model-iphone-[a-z0-9-]{1,40})_(battery|glass|display)\z/D', $payload, $parts)) {
+            return self::modelServiceEntry($parts[1], $parts[2]);
+        }
         if ($payload === 'as39_x_battery') return self::forPost('repair-iphone-x-battery-replacement');
         return str_starts_with($payload, 'as39_') ? self::landingEntryForPost(substr($payload, 5)) : null;
     }
@@ -151,7 +179,7 @@ final class AppleService39PilotCatalog
         self::check(self::resolve(self::PROJECT, self::BOT, $payload) === $entry);
         $context = ['model'=>$entry['model'],'service'=>$entry['service'],'entry_code'=>$payload];
         $scope = $entry['scope'] ?? 'repair';
-        if ($scope === 'repair' || $scope === 'search_repair') return $context;
+        if (in_array($scope, ['repair','search_repair','model_service'], true)) return $context;
         $model = $known['model'] ?? '';
         $model = is_string($model) && self::text($model, 160)
             && preg_match('/[\x00-\x1f\x7f]/u', $model) === 0
@@ -194,6 +222,15 @@ final class AppleService39PilotCatalog
     /** Only a fresh entry uses merged copy; saved historical intents are never regenerated. */
     public static function contextResponseText(array $entry, string $brand, array $context): string
     {
+        if (($entry['scope'] ?? '') === 'model_service') {
+            $questions = ['battery'=>'Телефон быстро разряжается или выключается с остатком заряда?',
+                'glass'=>'Изображение и сенсор работают без искажений?',
+                'display'=>'Экран показывает изображение и реагирует на касания?'];
+            self::check(isset($questions[$entry['service_code']]));
+            return 'Здравствуйте! Это '.$brand."\n".$entry['model'].' — '.mb_strtolower($entry['service'], 'UTF-8').".\n"
+                .$questions[$entry['service_code']]."\n".self::WARRANTY_TEXT
+                ."\nСтоимость и наличие подходящей детали уточнит менеджер.";
+        }
         if (!isset($entry['scope'])) return self::responseText($entry, $brand);
         if (!isset(self::SEARCH_ENTRIES[$entry['post_id']])
             && $context['model'] === $entry['model'] && $context['service'] === $entry['service']) {
@@ -245,7 +282,7 @@ final class AppleService39PilotCatalog
     /** Capture this text once in the entry event before attempting delivery. */
     public static function responseText(array $entry, string $brand): string
     {
-        if (isset(self::SEARCH_ENTRIES[$entry['post_id'] ?? ''])) {
+        if (($entry['scope'] ?? '') === 'model_service' || isset(self::SEARCH_ENTRIES[$entry['post_id'] ?? ''])) {
             return self::contextResponseText($entry, $brand,
                 self::entryContext($entry, [], $entry['start_payload']));
         }
@@ -260,3 +297,4 @@ final class AppleService39PilotCatalog
             .$entry['price_text']."\n".self::WARRANTY_TEXT."\n".$entry['question'];
     }
 }
+
