@@ -71,7 +71,9 @@ final class DevelopmentWorkQueue
     {
         $id=self::id($queueId);
         return $this->transaction(function() use($id,$admin,$connection): array {
-            $this->lane();$q=$this->serverAdmissionOwned($id,$admin,$connection);$out=$this->serverExtendStatus($q,$this->project($q),$connection);
+            $this->lane();$phase=$this->roadmapOwnedStatus($id,$admin,$connection);if($phase!==null)return $phase;
+            $archive=$this->roadmapArchiveCandidate($id,$admin,$connection);if($archive!==null)return $archive;
+            $q=$this->serverAdmissionOwned($id,$admin,$connection);$out=$this->serverExtendStatus($q,$this->project($q),$connection);
             $this->serverPairAuthority($q,$connection);return $out;
         });
     }

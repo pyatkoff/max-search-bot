@@ -63,6 +63,29 @@ final class ManagerDraftClient
         }catch(Throwable $ignored){return ['_error'=>'provider_unavailable'];}
     }
 
+
+    /** Same configured stateless transport; new finite saved-result purpose only. */
+    public static function roadmapRequestBody(string $instructions,array $payload,array $schema): array
+    {
+        $body=self::developmentRequestBody('reviewer',$instructions,$payload,$schema,true);
+        $body['text']['format']['name']='development_roadmap_saved_review_v1';return $body;
+    }
+    public static function requestRoadmapPreparedJson(string $wire,?callable $observer=null): array
+    {
+        try{
+            if(strlen($wire)>32768)throw new InvalidArgumentException('roadmap_request_limit');
+            $body=json_decode($wire,true,32,JSON_THROW_ON_ERROR);
+            if(($body['text']['format']['name']??null)!=='development_roadmap_saved_review_v1')throw new InvalidArgumentException('roadmap_purpose');
+            $instructions=$body['input'][0]['content'][0]['text']??null;
+            $payload=json_decode($body['input'][1]['content'][0]['text']??'',true,32,JSON_THROW_ON_ERROR);
+            if(!is_string($instructions)||!is_array($payload))throw new InvalidArgumentException('roadmap_body');
+            $expected=self::roadmapRequestBody($instructions,$payload,$body['text']['format']['schema']);
+            if(json_encode($expected,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)!==$wire)
+                throw new InvalidArgumentException('roadmap_wire');
+            return self::requestPreparedJson($body,32768,$observer,true,true,16384);
+        }catch(Throwable $error){return ['_error'=>'provider_unavailable'];}
+    }
+
     public static function hotelTransportAvailable(): bool
     {return self::hasConfiguredKey()&&function_exists('curl_init');}
 
