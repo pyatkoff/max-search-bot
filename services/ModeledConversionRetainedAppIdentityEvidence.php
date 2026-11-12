@@ -11,7 +11,7 @@ final class ModeledConversionRetainedAppIdentityEvidence
     public const RECEIPT_KEY='finite_retained_app_identity';
     public const MAX_BYTES=768;
     private const REASONS=['observed_no_candidate','candidate_observed','ambiguous','unsupported_source','scope_limit','row_limit',
-        'packet_budget','invalid_source','identity_conflict','storage_unavailable','time_headroom'];
+        'packet_budget','invalid_source','identity_conflict','storage_unavailable','time_headroom','unsupported_execution_limit'];
     public static function intent(mixed $original,array $row,string $namespace,int $now):?array
     {
         $b=self::binding($original,$row,$namespace,$now);if($b===null||$now<$b['checked'])return null;
@@ -33,8 +33,21 @@ final class ModeledConversionRetainedAppIdentityEvidence
     /** The caller has already committed the distinct absent-key intent. Source SELECTs only; result contains no raw identity. */
     public static function observe(PDO $pdo,array $intent,array $row,int $now):array
     {
+        $started=hrtime(true);
+        $unavailable=static fn(int $code):array=>[$code,$now,null,null,null,0,null,null,null,null,null,null];
+        try{
+            if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql')return $unavailable(11);
+            $version=(string)$pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
+            if(stripos($version,'mariadb')!==false||preg_match('/\A8\.[0-9]+\.[0-9]+(?:[-.][A-Za-z0-9_.-]+)?\z/D',$version)!==1)return $unavailable(11);
+        }catch(Throwable $ignored){return $unavailable(11);}
+        $result=self::observeMysql($pdo,$intent,$row,$now,$started);
+        // The inner finally has rolled back before any candidate may be published.
+        return hrtime(true)-$started>=500000000?$unavailable(10):$result;
+    }
+    private static function observeMysql(PDO $pdo,array $intent,array $row,int $now,int $started):array
+    {
         $result=static fn(int $code,?int $scopes=null,?int $rows=null,?int $late=null):array=>[$code,$now,$scopes,$rows,$late,0,null,null,null,null,null,null];
-        $started=hrtime(true);$bytes=0;
+        $bytes=0;
         if($pdo->inTransaction())return $result(9);
         try{
             $mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
@@ -50,7 +63,7 @@ final class ModeledConversionRetainedAppIdentityEvidence
                 if(!is_array($s)||count($s)!==5||!array_is_list($s)||$s[0]!=='anytour')return $result(7);
                 $scope=AdvertisingVisitContract::scope(array_combine(['project_key','source_key','platform','counter_id'],array_slice($s,0,4)),true);
                 if(!is_string($s[4])||preg_match('/\A(?:0|[1-9][0-9]{0,19})\z/D',$s[4])!==1)return $result(7);
-                // A nonzero committed cursor is the existing producer's retained scope authority.
+                // Historical committed cursor only; no current-config or Metrika-visit attestation.
                 if($scope['platform']==='max'&&$scope['counter_id']==='98615635'&&$s[4]!=='0')$sources[$scope['source_key']]=true;
             }
             if(!$sources)return $result(3,0);
@@ -120,13 +133,16 @@ final class ModeledConversionRetainedAppIdentityEvidence
             foreach([8192-$bytes,...$args]as$i=>$v)$q->bindValue($i+1,$v,is_int($v)?PDO::PARAM_INT:PDO::PARAM_STR);
             $q->execute();$rows=$q->fetchAll(PDO::FETCH_ASSOC);
         }finally{$q->closeCursor();}
+        if(hrtime(true)-$started>=500000000)throw new UnexpectedValueException('time_headroom');
         $bytes+=strlen(json_encode($rows,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
         if($bytes>8192)throw new UnexpectedValueException('packet_budget');
         if(count($rows)>=($alias==='retained_app_scopes'?33:65))return array_fill(0,count($rows),null);
         $out=[];foreach($rows as$r){
             if(!is_string($r['packet']??null))throw new UnexpectedValueException('packet_budget');
             $p=json_decode($r['packet'],true,16,JSON_THROW_ON_ERROR|JSON_BIGINT_AS_STRING);if(!is_array($p))throw new UnexpectedValueException('invalid_source');$out[]=$p;
-        }return $out;
+        }
+        if(hrtime(true)-$started>=500000000)throw new UnexpectedValueException('time_headroom');
+        return $out;
     }
     public static function complete(array $intent,mixed $original,array $row,string $namespace,array $result,int $now):?array
     {

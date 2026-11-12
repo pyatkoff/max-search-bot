@@ -19,6 +19,7 @@ final class ForecastV1ObservedStatement extends PDOStatement
     public static mixed $afterNativePoint=null;
     public static mixed $afterInitialApi=null;
     public static mixed $onRetainedSource=null;
+    public static mixed $afterRetainedSourceFetch=null;
     public static bool $observePredictive=false;
     public static int $predictiveExecutions=0;
     public static array $predictiveCopies=[];
@@ -53,6 +54,8 @@ final class ForecastV1ObservedStatement extends PDOStatement
     public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args):array
     {
         $rows=parent::fetchAll($mode,...$args);
+        if(is_callable(self::$afterRetainedSourceFetch)&&(str_contains($this->queryString,'retained_app_scopes')||str_contains($this->queryString,'retained_app_identity')))
+            (self::$afterRetainedSourceFetch)($this->queryString);
         if(self::$observePredictive)self::$predictiveCopies[]=$rows;
         if(self::$observeCore&&str_contains($this->queryString,' AS prediction_json,'))self::$coreCopies[]=$rows;
         if(str_contains($this->queryString,' AS reserved_rub'))self::$valueCopied=true;
@@ -2488,8 +2491,32 @@ function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $ori
     $ns=ModeledConversionProfiles::assessmentNamespace();$key=ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY;
     $intent=ModeledConversionRetainedAppIdentityEvidence::intent($original,$row,$ns,$now);
     $check('retained app intent binds the existing missing case without embedding a raw identity',$intent!==null&&!str_contains(json_encode($intent,JSON_THROW_ON_ERROR),'"'.$row['external_user_id'].'"'));
+    foreach(['5.7.44','10.11.7-MariaDB','8.0.33-MariaDB','unknown']as$version){
+        $unsupported=new class($version) extends PDO {
+            public function __construct(private string $version){}
+            public function getAttribute(int $attribute):mixed{return $attribute===PDO::ATTR_DRIVER_NAME?'mysql':$this->version;}
+        };
+        $refused=ModeledConversionRetainedAppIdentityEvidence::observe($unsupported,$intent,$row,$now);
+        $check('an unsupported server cannot execute source SQL under an ignored timeout hint',$refused[0]===11);
+    }
+    $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+    if(!$mysql){
+        $refused=ModeledConversionRetainedAppIdentityEvidence::observe($p,$intent,$row,$now);
+        $check('SQLite runtime refuses source reads without a supported execution deadline',$refused[0]===11);
+        $synthetic=[1,$now,1,1,0,2,str_repeat('d',64),'1',str_repeat('c',64),(int)$row['event_unix']-30,(int)$row['event_unix']-20,(int)$row['event_unix']-10];
+        $done=ModeledConversionRetainedAppIdentityEvidence::complete($intent,$original,$row,$ns,$synthetic,$now);
+        $projection=ModeledConversionRetainedAppIdentityEvidence::projection($done,$original,$row,$ns,$now);
+        $malformed=$done;unset($malformed['h']);$malformed['PRIVATE_UNKNOWN_KEY']='PRIVATE_VALUE';
+        set_error_handler(static function(int $severity,string $message):never{throw new ErrorException($message,0,$severity);});
+        try{$bad=ModeledConversionRetainedAppIdentityEvidence::projection($malformed,$original,$row,$ns,$now);}
+        finally{restore_error_handler();}
+        $check('pure saved candidate projection binds the case stays compact and rejects malformed keys without source SQL',
+            $projection['status']==='candidate'&&$projection['kind']==='yclid'&&!$projection['financial_permission']
+            &&strlen(json_encode($projection,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=225&&!$bad['available']);
+        return $projection;
+    }
     foreach(['advertising_visit_observations','advertising_visit_cursors']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
-    $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';$collation=$mysql?' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci':' COLLATE RTRIM';
+    $collation=$mysql?' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci':' COLLATE RTRIM';
     $p->exec('CREATE TABLE advertising_visit_cursors(project_key VARCHAR(40)'.$collation.',source_key VARCHAR(80)'.$collation.',platform VARCHAR(16)'.$collation.',counter_id VARCHAR(20)'.$collation.',last_cursor VARCHAR(20),PRIMARY KEY(project_key,source_key,platform,counter_id))');
     $p->exec('CREATE TABLE advertising_visit_observations(id BIGINT PRIMARY KEY,project_key VARCHAR(40)'.$collation.',source_key VARCHAR(80)'.$collation.',platform VARCHAR(16)'.$collation.',counter_id VARCHAR(20)'.$collation.',external_user_id VARCHAR(32)'.$collation.',identity_status VARCHAR(16)'.$collation.',source_cursor VARCHAR(20),visit_id VARCHAR(128)'.$collation.',client_id VARCHAR(40),yclid VARCHAR(40),visit_at_unix BIGINT,observed_at_unix BIGINT,received_at_unix BIGINT,payload_sha256 CHAR(64))');
     $p->exec('CREATE INDEX idx_advertising_identity ON advertising_visit_observations(project_key,source_key,platform,counter_id,external_user_id,identity_status,observed_at_unix)');
@@ -2527,6 +2554,11 @@ function forecastRetainedAppIdentityAssertions(PDO $p,callable $check,array $ori
     $check('malformed receipt keys produce no PHP warning and a changed subject cannot reuse the original intent',
         !$malformedView['available']&&$malformedView['reason']==='invalid_saved_journal'
         &&ModeledConversionRetainedAppIdentityEvidence::intent($original,$changed,$ns,$now)===null);
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+    ForecastV1ObservedStatement::$afterRetainedSourceFetch=static function():void{usleep(510000);};
+    try{$lateRead=$read();}
+    finally{ForecastV1ObservedStatement::$afterRetainedSourceFetch=null;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $check('native delayed fetch cannot publish a late candidate after rollback',$lateRead[0]===10&&!$p->inTransaction());
     $copyBytes=array_sum(array_map(static fn(array $r):int=>strlen(json_encode($r,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),$copies));
     $check('the source read has two bounded indexed SELECTs and one shared guarded8KiB copy budget',
         count($sql)===2&&$copyBytes<=8192&&str_contains($sql[0]['sql'],'LIMIT 33')&&str_contains($sql[1]['sql'],'LIMIT 65')
