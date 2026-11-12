@@ -48,13 +48,14 @@ function forecastNativeAuthRpc():array
     return ['jsonrpc'=>'2.0','id'=>1,'method'=>'tools/call',
         'params'=>['name'=>ModeledConversionStatusMcpAdapter::NAME,'arguments'=>[]]];
 }
-function forecastNativeAuthDispatch(PDO $pdo,array $grant):array
+function forecastNativeAuthDispatch(PDO $pdo,array $grant,?string $receipt=null):array
 {
     $budget=new ModeledConversionStatusBudget();
     $context=ManagerPreparationOAuth::bearerContext('Bearer '.$grant['token']['access_token'],$budget);
     if(!is_array($context))throw new RuntimeException('fixture_budgeted_bearer_missing');
     $afterBearer=$budget->remainingBytes();
-    $response=(new ManagerPreparationMcpService($pdo))->handle(forecastNativeAuthRpc(),
+    $rpc=forecastNativeAuthRpc();if($receipt!==null)$rpc['params']['arguments']=['receipt_ref'=>$receipt];
+    $response=(new ManagerPreparationMcpService($pdo))->handle($rpc,
         $context['admin_id'],$context['connection_id'],$context['scopes'],$budget);
     return [$response,$afterBearer,$budget->remainingBytes()];
 }
@@ -346,6 +347,12 @@ function forecastNativeAuthRegression():void
         });
         $check('monetary composed read preserves every OAuth and saved profile row',forecastNativeAuthSnapshot($pdo)===$before);
         $check('monetary daily coverage preserves saved delivery settings and every outbox row',$deliverySnapshot()===$deliveryBefore);
+        require_once dirname(__DIR__).'/modeled_conversion_saved_receipt_fixture.php';
+        forecastSavedReceiptAssertions($pdo,$check,static function(string $ref)use($pdo,$forecast):array{
+            [$rpc]=forecastNativeAuthDispatch($pdo,$forecast,$ref);
+            $data=$rpc['result']['structuredContent']??null;if(!is_array($data))throw new RuntimeException('fixture_receipt_rpc_failed');
+            return $data;
+        });
         echo 'NATIVE FORECAST AUTH PASSED '.$passed.PHP_EOL;
     }catch(Throwable $error){
         // Fixed phases and sanitized codes only: no tokens, SQL, fixture texts or connection details.
