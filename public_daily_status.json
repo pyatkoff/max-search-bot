@@ -1,60 +1,61 @@
 {
     "ok": true,
-    "generated_at": "2026-11-12T03:55:34+00:00",
+    "generated_at": "2026-11-12T05:15:41+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 16,
-        "raw_sessions": 16,
+        "sessions": 21,
+        "raw_sessions": 21,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 16,
+            "resolved": 21,
             "unresolved": 0
         },
-        "started": 15,
-        "needs_collected": 5,
-        "tours_opened": 4,
+        "started": 19,
+        "needs_collected": 7,
+        "tours_opened": 5,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 8,
+        "manager_requested": 11,
         "manager_replied": 1,
         "customer_replied_after_manager": 1,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 1,
-            "still_unanswered": 5,
+            "still_unanswered": 6,
             "measured_responses": 1,
             "avg_seconds": 469,
             "max_seconds": 469
         },
         "drop_points": {
-            "manager_requested": 7,
-            "collecting_needs": 5,
+            "manager_requested": 10,
+            "collecting_needs": 6,
             "tours_opened": 2,
-            "customer_replied_after_manager": 1,
-            "started_only": 1
+            "started_only": 2,
+            "customer_replied_after_manager": 1
         },
         "flags": {
-            "manager_requested_no_reply": 5,
+            "manager_requested_no_reply": 6,
             "excessive_turns": 1,
-            "repeated_same_input": 1
+            "repeated_same_input": 1,
+            "repeated_callback_input": 1
         },
         "calendar_day": {
-            "conversations_started": 13,
-            "needs_collected_from_started": 3,
-            "tours_opened_from_started": 2,
+            "conversations_started": 17,
+            "needs_collected_from_started": 4,
+            "tours_opened_from_started": 3,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
-            "manager_requested": 7,
+            "manager_requested": 9,
             "manager_replied": 0,
             "customer_replied_after_manager": 0
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-12T03:55:34Z",
+        "sampled_at": "2026-11-12T05:15:41Z",
         "available": true,
         "error": null,
         "mode": "send",
