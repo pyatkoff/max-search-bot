@@ -1,0 +1,1271 @@
+{
+  "schema_version": 1,
+  "state": "VISUALLY_ACCEPTED_PREPARED_NOT_SENT",
+  "input_sha256": "eb8b7a89ffe8ed4c597c95a00a1ac9d6418244213609e16f9d1c9ce6e680e3d2",
+  "logo_asset": ".github/traffic-publish/brand/anytour-logo-white.png",
+  "logo_sha256": "b27cda894047b1ecb4125eea2ecf0db9d1e1674472cad62f70edf1ef1a6c968f",
+  "rows": [
+    {
+      "hotel_id": 1551,
+      "title": "Mövenpick Resort Antalya Tekirova",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://images.hotelagent.com/htlibe_definitions//521355/movenpick-tekirova3-large-178162151846_20260616175157.jpeg",
+          "sha256": "b7af91cf33181e4f34e30116472692c90c175700fd615d7b04d84f920afe14aa",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://images.hotelagent.com/htlibe_definitions//521355/dji0972-1-copy-17823753498_20260625111549.jpeg",
+          "sha256": "57329617b5106f292800e7839efedfc40723b708fe6a5cc8d8d462c1c3ee7dbf",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://images.hotelagent.com/htlibe_definitions//521355/mg4430-hdr-pano-1-178237220665_20260625102326.jpeg",
+          "sha256": "a570fbba5bcbe437d233f5e8ca7218ebcc8dadc51a5786ce1a072086b3280cd8",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 223,
+      "sourceRefs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 26",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "catalog",
+          "label": "Mövenpick Tekirova · страница бронирования отеля",
+          "url": "https://movenpicktekirova.hotelagent.com/en",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Актуальная страница объекта на инфраструктуре HotelAgent: сертификат 2894, пляж с песком и мелкой галькой, аквапарки, мини-клуб, Swim Up. Использованы фотографии этого объекта."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "На пляже песок и мелкая галька; исключительно песчаный вход не обещается.",
+        "Swim Up означает доступ к общему бассейну, а не личный бассейн номера. Возрастные условия категории проверяются отдельно.",
+        "Горки и открытые зоны зависят от сезона; ограничения по росту и возрасту, актуальные включения Ultra All Inclusive и доплаты нужно уточнить."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://images.hotelagent.com/htlibe_definitions//521355/movenpick-tekirova3-large-178162151846_20260616175157.jpeg",
+          "sha256": "b7af91cf33181e4f34e30116472692c90c175700fd615d7b04d84f920afe14aa",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 371752,
+          "source_dimensions": [
+            1280,
+            854
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "b7af91cf33181e4f34e30116472692c90c175700fd615d7b04d84f920afe14aa",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://images.hotelagent.com/htlibe_definitions//521355/dji0972-1-copy-17823753498_20260625111549.jpeg",
+          "sha256": "57329617b5106f292800e7839efedfc40723b708fe6a5cc8d8d462c1c3ee7dbf",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 682004,
+          "source_dimensions": [
+            1351,
+            900
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "57329617b5106f292800e7839efedfc40723b708fe6a5cc8d8d462c1c3ee7dbf",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://images.hotelagent.com/htlibe_definitions//521355/mg4430-hdr-pano-1-178237220665_20260625102326.jpeg",
+          "sha256": "a570fbba5bcbe437d233f5e8ca7218ebcc8dadc51a5786ce1a072086b3280cd8",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 612010,
+          "source_dimensions": [
+            2100,
+            900
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "a570fbba5bcbe437d233f5e8ca7218ebcc8dadc51a5786ce1a072086b3280cd8",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "1551.png",
+      "sha256": "bc30552acea23c0e4dd4deea6eb568daa7a2245894d4c977a74eb3ab3efb25c9",
+      "bytes": 603149,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "MÖVENPICK RESORT ANTALYA TEKIROVA",
+        "font_size": 27,
+        "text_width": 556.140625,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 1368,
+      "title": "Club Melas Privé",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/0e913ac4-edba-41cd-9ae5-fe7f382cdd87/c943d07de90ce7dcdadca02c0f94ac43/001.jpg?w=1600&fm=webp&q=80",
+          "sha256": "5a02812f335fd3980052d61739bb3b56b8815e340a6da964742fab2137fc4ea8",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://static.melashotels.com/networks/1/properties/4/multimedia/20260919123953819_org.webp",
+          "sha256": "94abf7a4d01df8d8656fb9c7ff79d59e9fd349d3fc60f16dc8f9a6b48870a76b",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://static.melashotels.com/networks/1/properties/4/multimedia/20261102115945925_org.webp",
+          "sha256": "150d5a29a147cc0613dcf018e45c1e71c3e534541eff4a22c2b52750f26e0271",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 223,
+      "sourceRefs": [
+        {
+          "kind": "catalog",
+          "label": "Расширение каталога · 05.11.2026",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Сохранённый каталог от 05.11.2026. catalog_hotels.id; пространство native/Tourvisor каталога, не ANEX ID. Старый признак «не опубликован» не является текущей проверкой. Материалы требуют подготовки и приёмки. Состояние исходной записи: EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY"
+        },
+        {
+          "kind": "catalog",
+          "label": "Сохранённая проверка каталога",
+          "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Источник каталожной записи. Статус в реестре не означает приёмку контента."
+        },
+        {
+          "kind": "official",
+          "label": "Melas · нынешнее название и номера",
+          "url": "https://www.melashotels.com/en/club-melas-prive",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "Club Melas Privé, Superior Swim-Up 25–32 м², Deluxe Grand Penthouse; Promo в дополнительном корпусе."
+        },
+        {
+          "kind": "catalog",
+          "label": "Corendon · прежнее название и сезонность",
+          "url": "https://www.corendon.nl/turkije/turkse-riviera/side/side-centrum/d/melas-holiday-village",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "Прямо подтверждено former Melas Holiday Village; пляж через променад, горки май–октябрь и зимнее закрытие детских клубов. Общий вид побережья из галереи оператора."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T23:35:28.512707Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Swim-Up — доступ к общему бассейну, не отдельный личный бассейн. Promo расположен в дополнительном корпусе и отличается от улучшенных категорий.",
+        "По программе Corendon горки работают с мая по октябрь; мини-клуб, подростковый клуб и мини-диско закрыты зимой. Работа нового сезона проверяется отдельно.",
+        "Пляж находится через прибрежный променад. Это бывший Melas Holiday Village, отдельный от Melas Resort объект; принятая карточка Resort сохранена."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/0e913ac4-edba-41cd-9ae5-fe7f382cdd87/c943d07de90ce7dcdadca02c0f94ac43/001.jpg?w=1600&fm=webp&q=80",
+          "sha256": "5a02812f335fd3980052d61739bb3b56b8815e340a6da964742fab2137fc4ea8",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 248304,
+          "source_dimensions": [
+            1244,
+            829
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "5a02812f335fd3980052d61739bb3b56b8815e340a6da964742fab2137fc4ea8",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://static.melashotels.com/networks/1/properties/4/multimedia/20260919123953819_org.webp",
+          "sha256": "94abf7a4d01df8d8656fb9c7ff79d59e9fd349d3fc60f16dc8f9a6b48870a76b",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 200852,
+          "source_dimensions": [
+            1233,
+            822
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "94abf7a4d01df8d8656fb9c7ff79d59e9fd349d3fc60f16dc8f9a6b48870a76b",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://static.melashotels.com/networks/1/properties/4/multimedia/20261102115945925_org.webp",
+          "sha256": "150d5a29a147cc0613dcf018e45c1e71c3e534541eff4a22c2b52750f26e0271",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 213650,
+          "source_dimensions": [
+            1690,
+            990
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "150d5a29a147cc0613dcf018e45c1e71c3e534541eff4a22c2b52750f26e0271",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "1368.png",
+      "sha256": "0ce640dca6f8ddda3c1246d67d65faee10eee6b9b1e1b8fb1317f85a9fc8a6e4",
+      "bytes": 617743,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "CLUB MELAS PRIVÉ",
+        "font_size": 28,
+        "text_width": 275.34375,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 1370,
+      "title": "Melas Resort Hotel",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://static.melashotels.com/networks/1/properties/2/multimedia/20260331085209945_org.webp",
+          "sha256": "b57f93d3c3a5c3fb8d4cbb4b89e05cea56c5fb53474780e3826d14888487c304",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://static.melashotels.com/networks/1/properties/2/multimedia/20260403071228387_org.webp",
+          "sha256": "467ad82b636357bffb270f11fd375d3c4874198e6f3223370e54a455522d7d8a",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://static.melashotels.com/networks/1/properties/2/multimedia/20260331090748415_org.webp",
+          "sha256": "bbc48eaf1d8a89d683cc3043b0029d52d9dbbc4d3ea4e1a42161e37181c84081",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 223,
+      "sourceRefs": [
+        {
+          "kind": "catalog",
+          "label": "Расширение каталога · 05.11.2026",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Сохранённый каталог от 05.11.2026. catalog_hotels.id; пространство native/Tourvisor каталога, не ANEX ID. Старый признак «не опубликован» не является текущей проверкой. Материалы требуют подготовки и приёмки. Состояние исходной записи: EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY"
+        },
+        {
+          "kind": "catalog",
+          "label": "Сохранённая проверка каталога",
+          "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Источник каталожной записи. Статус в реестре не означает приёмку контента."
+        },
+        {
+          "kind": "official",
+          "label": "Melas Resort · номера и фотографии",
+          "url": "https://www.melashotels.com/en/melas-resort-hotel",
+          "at": "2026-11-10T23:18:49.004538Z",
+          "note": "Семейные категории, Suite и Terrace Room."
+        },
+        {
+          "kind": "official",
+          "label": "Melas Resort · пляж и сезонность",
+          "url": "https://www.melashotels.com/en/melas-resort-hotel/beach-pool",
+          "at": "2026-11-10T23:18:49.004538Z",
+          "note": "Песчаный пляж через променад. Открытые бассейны 01.04–31.10, крытый подогреваемый 01.11–31.03. Аквапарк в Club Melas Privé 01.05–31.10."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T23:18:49.004538Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Аквапарк находится в Club Melas Privé и работает с 1 мая по 31 октября по расписанию и погоде. Его нельзя обещать как круглогодичную услугу в собственном корпусе Resort.",
+        "Открытые бассейны работают с 1 апреля по 31 октября; крытый бассейн с подогревом — с 1 ноября по 31 марта.",
+        "Между отелем и пляжем проходит променад. Вид, площадь и терраса зависят от категории; включения спа и ресторанов проверяются по тарифу."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://static.melashotels.com/networks/1/properties/2/multimedia/20260331085209945_org.webp",
+          "sha256": "b57f93d3c3a5c3fb8d4cbb4b89e05cea56c5fb53474780e3826d14888487c304",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 276318,
+          "source_dimensions": [
+            1040,
+            640
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "b57f93d3c3a5c3fb8d4cbb4b89e05cea56c5fb53474780e3826d14888487c304",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://static.melashotels.com/networks/1/properties/2/multimedia/20260403071228387_org.webp",
+          "sha256": "467ad82b636357bffb270f11fd375d3c4874198e6f3223370e54a455522d7d8a",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 237610,
+          "source_dimensions": [
+            1233,
+            822
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "467ad82b636357bffb270f11fd375d3c4874198e6f3223370e54a455522d7d8a",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://static.melashotels.com/networks/1/properties/2/multimedia/20260331090748415_org.webp",
+          "sha256": "bbc48eaf1d8a89d683cc3043b0029d52d9dbbc4d3ea4e1a42161e37181c84081",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 263432,
+          "source_dimensions": [
+            1690,
+            990
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "bbc48eaf1d8a89d683cc3043b0029d52d9dbbc4d3ea4e1a42161e37181c84081",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "1370.png",
+      "sha256": "88ef68efb0cad337018d02a70bf0ea27a39563a65ab9fb1a7915487bebb0afc4",
+      "bytes": 584585,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "MELAS RESORT HOTEL",
+        "font_size": 28,
+        "text_width": 325.125,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 129406,
+      "title": "SRNTY Sahl Hasheesh",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://srntyhotels.com/wp-content/uploads/2026/02/Serenity-SH103-1024x683.webp",
+          "sha256": "3a23aae99913f8d5e3dc7f3b8a86db7e3d3419fddcce932bb5ae5d4241fb3c2d",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://srntyhotels.com/wp-content/uploads/2026/04/SSH_BEACH1-1440x960.webp",
+          "sha256": "3760cf1e28fd8420afa966ef5f6489fa0191067d70480680768d58ec6068e72f",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://srntyhotels.com/wp-content/uploads/2026/07/ff6b3c4d-7a7f-41e1-8f1d-07ce18d29975-1200x625.jpg",
+          "sha256": "6f46f378afb3b88993b48dae570e3cc6a766cab1b8774ed2f75747baa44b9346",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 223,
+      "sourceRefs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 264",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "official",
+          "label": "SRNTY Sahl Hasheesh · категории и фотографии",
+          "url": "https://srntyhotels.com/srnty-sahl-hasheesh/",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Детский клуб, спа, песчаный берег, улучшенные номера и люксы. Adults Only относится к категории Swim Up; общий бассейн не считается личным."
+        },
+        {
+          "kind": "catalog",
+          "label": "Corendon · путь к пляжу и прежнее название",
+          "url": "https://www.corendon.nl/egypte/rode-zee/hurghada/sahl-hasheesh/srnty-sahl-hasheesh-ex-sky-arc",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Пляж отделён променадом; указано прежнее название Sky Arc. Сезонный блок 01.04–31.10.2026 истёк: его подогрев не перенесён как подтверждение зимы 2026/27."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Между отелем и пляжем проходит променад; маршрут и удобство доступа уточняем по выбранному корпусу.",
+        "Adults Only относится к отдельной категории Swim Up. Выход ведёт к общему бассейну, а не к личному бассейну каждого номера.",
+        "Текущий режим зимнего подогрева не подтверждён отдельно. Вид на море, услуги спа и включения питания зависят от категории и тарифа."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://srntyhotels.com/wp-content/uploads/2026/02/Serenity-SH103-1024x683.webp",
+          "sha256": "3a23aae99913f8d5e3dc7f3b8a86db7e3d3419fddcce932bb5ae5d4241fb3c2d",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 80498,
+          "source_dimensions": [
+            1024,
+            683
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "3a23aae99913f8d5e3dc7f3b8a86db7e3d3419fddcce932bb5ae5d4241fb3c2d",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://srntyhotels.com/wp-content/uploads/2026/04/SSH_BEACH1-1440x960.webp",
+          "sha256": "3760cf1e28fd8420afa966ef5f6489fa0191067d70480680768d58ec6068e72f",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 153190,
+          "source_dimensions": [
+            1440,
+            960
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "3760cf1e28fd8420afa966ef5f6489fa0191067d70480680768d58ec6068e72f",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://srntyhotels.com/wp-content/uploads/2026/07/ff6b3c4d-7a7f-41e1-8f1d-07ce18d29975-1200x625.jpg",
+          "sha256": "6f46f378afb3b88993b48dae570e3cc6a766cab1b8774ed2f75747baa44b9346",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 49993,
+          "source_dimensions": [
+            1200,
+            625
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "6f46f378afb3b88993b48dae570e3cc6a766cab1b8774ed2f75747baa44b9346",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "129406.png",
+      "sha256": "c7659d36b5d8b47398ce99c23c76fb01651e5f0a3c08cebb6dc2a7174c2b8576",
+      "bytes": 400538,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "SRNTY SAHL HASHEESH",
+        "font_size": 28,
+        "text_width": 341.234375,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 62505,
+      "title": "ROBINSON Soma Bay",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://mice.robinson.com/fileadmin/user_upload/RCso16_Club_Soma_Bay_sm96_7320_1_RGB.jpg",
+          "sha256": "d797fab1e548874b6bfbe49fcb06d8f5d356f264fe0998532ff58ce5fe27e952",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9840_WOL.jpg",
+          "sha256": "060a1fdfe2f11830780cfcb3f917c6c7fb876c22167afd50cd2cb86b96c27d58",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9990_DZX1_DSX1_DZE1_WOL.jpg",
+          "sha256": "22ec2a220992fd7dc23b8a26bb37782bf581affde8353cec206145c803e61a43",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 223,
+      "sourceRefs": [
+        {
+          "kind": "catalog",
+          "label": "Расширение каталога · 05.11.2026",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Сохранённый каталог от 05.11.2026. catalog_hotels.id; пространство native/Tourvisor каталога, не ANEX ID. Старый признак «не опубликован» не является текущей проверкой. Материалы требуют подготовки и приёмки. Состояние исходной записи: CONTENT_VERIFIED_GENERAL_HOTEL_HERO_DEFERRED"
+        },
+        {
+          "kind": "catalog",
+          "label": "Сохранённая проверка каталога",
+          "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Источник каталожной записи. Статус в реестре не означает приёмку контента."
+        },
+        {
+          "kind": "official",
+          "label": "ROBINSON · действующая концепция клуба",
+          "url": "https://www.robinson.com/en/en/resort-holiday/egypt/soma-bay/club-details/",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "FOR ALL с допуском детей; Full Board с выбранными напитками на основных приёмах пищи. Три подогреваемых бассейна, детский клуб по расписанию, платные курсы и правила аренды."
+        },
+        {
+          "kind": "official",
+          "label": "ROBINSON MICE · фотографии Soma Bay",
+          "url": "https://mice.robinson.com/en/clubs/soma-bay/",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Фотографии пляжа, бассейна и номера действующего ROBINSON Soma Bay."
+        },
+        {
+          "kind": "official",
+          "label": "TUI · планы развития от 05.11.2026",
+          "url": "https://www.tuigroup.com/en/newsroom/news/expansion-in-egypt-robinson-plans-new-resort-and-extensive-modernisation-in-soma-bay",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Отдельный клуб Adults Only планируется на 2029 год. Действующий сохраняет FOR ALL; его модернизация запланирована после открытия нового клуба, не сейчас."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Концепция FOR ALL: дети допускаются, хотя программа ориентирована прежде всего на взрослых. Это не Adults Only; отдельный будущий взрослый клуб не относится к текущему отелю.",
+        "Питание — Full Board. Выбранные напитки включены во время основных приёмов пищи; безлимитное All Inclusive в течение дня не заявляется.",
+        "Детский клуб работает по часам и возрастным группам. Водные курсы оплачиваются отдельно; для аренды виндсёрфинга требуется признанный документ. Возможен ветер."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://mice.robinson.com/fileadmin/user_upload/RCso16_Club_Soma_Bay_sm96_7320_1_RGB.jpg",
+          "sha256": "d797fab1e548874b6bfbe49fcb06d8f5d356f264fe0998532ff58ce5fe27e952",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 590886,
+          "source_dimensions": [
+            1920,
+            1280
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "d797fab1e548874b6bfbe49fcb06d8f5d356f264fe0998532ff58ce5fe27e952",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9840_WOL.jpg",
+          "sha256": "060a1fdfe2f11830780cfcb3f917c6c7fb876c22167afd50cd2cb86b96c27d58",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 518373,
+          "source_dimensions": [
+            1920,
+            1280
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "060a1fdfe2f11830780cfcb3f917c6c7fb876c22167afd50cd2cb86b96c27d58",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9990_DZX1_DSX1_DZE1_WOL.jpg",
+          "sha256": "22ec2a220992fd7dc23b8a26bb37782bf581affde8353cec206145c803e61a43",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 379930,
+          "source_dimensions": [
+            1920,
+            1280
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "22ec2a220992fd7dc23b8a26bb37782bf581affde8353cec206145c803e61a43",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "62505.png",
+      "sha256": "56b0c19e4756341028161ceba1e0d6cc381e356af5d7f2ce18ce04ef9cad1a1e",
+      "bytes": 477070,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "ROBINSON SOMA BAY",
+        "font_size": 28,
+        "text_width": 305.96875,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 73343,
+      "title": "The Grand Palace",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://redseahotels.com/wp-content/uploads/2023/01/Swimming-Pools-in-the-Grand-Palace-in-Hurghada-Hotel.jpg",
+          "sha256": "9ba09aca3c93300aaeb0c578ac83a3c1c234c89a1c8422309d469c8360094476",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://redseahotels.com/wp-content/uploads/2023/03/The-Grand-Palace-in-Hurghada-has-direct-beach-access-at-the-red-sea.jpg",
+          "sha256": "bf2c2bbfacd7e41bc46de50dc921d02f81cb33c0f0fe31b48f0c4c7bc30af56f",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://redseahotels.com/wp-content/uploads/2021/10/The-Grand-Palace-03.jpg",
+          "sha256": "009a1f3ca507ca6ad7549ae8e40c765853dcd693110ab1e03eeaae1178e61368",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 223,
+      "sourceRefs": [
+        {
+          "kind": "catalog",
+          "label": "Расширение каталога · 05.11.2026",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Сохранённый каталог от 05.11.2026. catalog_hotels.id; пространство native/Tourvisor каталога, не ANEX ID. Старый признак «не опубликован» не является текущей проверкой. Материалы требуют подготовки и приёмки. Состояние исходной записи: CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+        },
+        {
+          "kind": "catalog",
+          "label": "Сохранённая проверка каталога",
+          "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Источник каталожной записи. Статус в реестре не означает приёмку контента."
+        },
+        {
+          "kind": "official",
+          "label": "Red Sea Hotels · Grand Palace и фото",
+          "url": "https://redseahotels.com/resorts/hurghada/the-grand-palace-hurghada/",
+          "at": "2026-11-10T16:12:13.681978Z",
+          "note": "Взрослый курорт на собственном пляже. Фото соседних отелей из навигации не использованы. Часть инфраструктуры предоставляют соседние отели."
+        },
+        {
+          "kind": "catalog",
+          "label": "Red Sea Holidays · возраст, кровати и тариф",
+          "url": "https://www.redseaholidays.co.uk/en/destinations/egypt/hurghada/hurghada-city/the-grand-palace",
+          "at": "2026-11-10T16:12:13.681978Z",
+          "note": "Минимум 18 лет; только king-size, twin отсутствуют. Junior Suite и Pool Access. У ряда ресторанных позиций доплаты, требуется бронирование."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T16:12:13.681978Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Минимальный возраст гостей — 18 лет. Во всех номерах king-size; раздельных кроватей twin нет.",
+        "Pool Access означает выход в общий бассейн, а не личный бассейн номера. Категорию и вид подтверждаем при бронировании.",
+        "В à la carte могут быть платные позиции и требуется резервирование. Часть спа, спортивных и водных услуг относится к соседним отелям и оплачивается отдельно."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://redseahotels.com/wp-content/uploads/2023/01/Swimming-Pools-in-the-Grand-Palace-in-Hurghada-Hotel.jpg",
+          "sha256": "9ba09aca3c93300aaeb0c578ac83a3c1c234c89a1c8422309d469c8360094476",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 100131,
+          "source_dimensions": [
+            800,
+            450
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "9ba09aca3c93300aaeb0c578ac83a3c1c234c89a1c8422309d469c8360094476",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://redseahotels.com/wp-content/uploads/2023/03/The-Grand-Palace-in-Hurghada-has-direct-beach-access-at-the-red-sea.jpg",
+          "sha256": "bf2c2bbfacd7e41bc46de50dc921d02f81cb33c0f0fe31b48f0c4c7bc30af56f",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 84725,
+          "source_dimensions": [
+            800,
+            450
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "bf2c2bbfacd7e41bc46de50dc921d02f81cb33c0f0fe31b48f0c4c7bc30af56f",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://redseahotels.com/wp-content/uploads/2021/10/The-Grand-Palace-03.jpg",
+          "sha256": "009a1f3ca507ca6ad7549ae8e40c765853dcd693110ab1e03eeaae1178e61368",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 133134,
+          "source_dimensions": [
+            1440,
+            960
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "009a1f3ca507ca6ad7549ae8e40c765853dcd693110ab1e03eeaae1178e61368",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "73343.png",
+      "sha256": "0f901dcf0c22d5a09aa9281fbf6c83dda48f70b654f2f84cdc7be38b2d260c3c",
+      "bytes": 578817,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "THE GRAND PALACE",
+        "font_size": 28,
+        "text_width": 287.25,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 46770,
+      "title": "Rosaka Nha Trang",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://i2.ex-cdn.com/hotel.crystalbay.com//files/cry/2024/09/19/74483358112556558.jpg",
+          "sha256": "83c7be204e92aaa2ca8509b164d681e745fb1fc852a1e602280e3cf504676f5e",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://i2.ex-cdn.com/hotel.crystalbay.com//files/cry/2024/09/19/fa120335701.jpg",
+          "sha256": "eb075e67afdc34949a974c8be16c5a928ea2416f0f30dc16184f15e397984152",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://i2.ex-cdn.com/hotel.crystalbay.com//files/cry/2024/09/19/es120335833.jpg",
+          "sha256": "5045b8af51ff2d9948550c660cf7181e4e0a5693c96076563e2a6960000dcf7d",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 223,
+      "sourceRefs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 354",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "catalog",
+          "label": "Crystal Bay · Rosaka Nha Trang",
+          "url": "https://hotel.crystalbay.com/en/rosaka-nha-trang-hotel-h50093.html",
+          "at": "2026-11-11T05:16:11.680606Z",
+          "note": "Текущая карточка оператора: Family Suite и Rosaka Suite 50 м², Executive Suite 45 м²; бассейн на 22-м этаже, спа. Максимальная вместимость без проверки тарифа не перенесена. Все фото из галереи именно Rosaka."
+        },
+        {
+          "kind": "receipt",
+          "label": "Контракт CTA публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-11T05:16:11.680606Z",
+          "note": "Контракт кнопок, не квитанция фактической отправки. URL CTA формирует существующий публикатор; цены, наличие и post_id не создавались."
+        }
+      ],
+      "retained_limitations": [
+        "50 м² относятся к Family Suite и Rosaka Suite в каталоге Crystal Bay, не ко всем номерам. Число спален, дополнительные места и максимальную вместимость подтверждаем по конкретному бронированию.",
+        "Это городской отель: до пляжа нужно идти. Прямой выход к морю, собственный пляж, личный бассейн и подогрев общего бассейна не подтверждены.",
+        "Официальный сайт при проверке вернул 503. Использована доступная карточка оператора; фактические часы работы спа/бассейна, платные услуги и параметры номера уточняются на даты."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://i2.ex-cdn.com/hotel.crystalbay.com//files/cry/2024/09/19/74483358112556558.jpg",
+          "sha256": "83c7be204e92aaa2ca8509b164d681e745fb1fc852a1e602280e3cf504676f5e",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 64051,
+          "source_dimensions": [
+            1024,
+            683
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "83c7be204e92aaa2ca8509b164d681e745fb1fc852a1e602280e3cf504676f5e",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://i2.ex-cdn.com/hotel.crystalbay.com//files/cry/2024/09/19/fa120335701.jpg",
+          "sha256": "eb075e67afdc34949a974c8be16c5a928ea2416f0f30dc16184f15e397984152",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 58290,
+          "source_dimensions": [
+            1024,
+            592
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "eb075e67afdc34949a974c8be16c5a928ea2416f0f30dc16184f15e397984152",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://i2.ex-cdn.com/hotel.crystalbay.com//files/cry/2024/09/19/es120335833.jpg",
+          "sha256": "5045b8af51ff2d9948550c660cf7181e4e0a5693c96076563e2a6960000dcf7d",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 56720,
+          "source_dimensions": [
+            1024,
+            646
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "5045b8af51ff2d9948550c660cf7181e4e0a5693c96076563e2a6960000dcf7d",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "46770.png",
+      "sha256": "908ecd952e556082710d090735622d2f15f6a73b1af4d90bbdb59423752ac824",
+      "bytes": 371842,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "ROSAKA NHA TRANG",
+        "font_size": 28,
+        "text_width": 295.03125,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 63673,
+      "title": "Nagar Hotel Nha Trang",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://nagarhotel.com/wp-content/uploads/2018/07/POOL6.jpg",
+          "sha256": "2ce9ba4b085b1bdae5d7283c3139c7917342317d0ca79cd51ebd9c33aad9f0b2",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://nagarhotel.com/wp-content/uploads/2018/07/FAMILY1.jpg",
+          "sha256": "57637167946126be4a8ea7506a8445f21038da3542facdb5778a50cb0afa17e7",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://nagarhotel.com/wp-content/uploads/2018/06/Junior-thay-4-1-645x430.jpg",
+          "sha256": "9f71229e8ff5e5fd2ad3e6e2eaf935530a55635f8f8185ccb8ef622c173ae571",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 223,
+      "sourceRefs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 349",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "official",
+          "label": "Nagar · номера и люксы",
+          "url": "https://nagarhotel.com/rooms-suites/",
+          "at": "2026-11-11T04:12:15.070427Z",
+          "note": "Junior Suite Ocean View 67 м², отдельная гостиная с диваном-кроватью; Family Ocean View 40 м² по официальному описанию. Не обещаем вместимость и наличие без тарифа."
+        },
+        {
+          "kind": "official",
+          "label": "Nagar · инфраструктура",
+          "url": "https://nagarhotel.com/facilities/",
+          "at": "2026-11-11T04:12:15.070427Z",
+          "note": "Бассейн и фитнес на 22-м этаже, сауна и парная. Adults-only относится к парной; подогрев не заявлен."
+        },
+        {
+          "kind": "official",
+          "label": "Nagar · официальный обзор и галерея",
+          "url": "https://www.nagarhotel.com",
+          "at": "2026-11-11T04:12:15.070427Z",
+          "note": "Самостоятельный отель Nagar по адресу 1i Quan Tran – Hung Vuong, Нячанг. Фотографии бассейна и Family из собственной галереи."
+        },
+        {
+          "kind": "catalog",
+          "label": "Crystal Bay · Nagar",
+          "url": "https://hotel.crystalbay.com/en/nagar-hotel-nha-trang-h49907.html",
+          "at": "2026-11-11T04:12:15.070427Z",
+          "note": "Карточка оператора подтверждает Junior Suite 67 м² и семейную категорию. Цены и максимальная вместимость автоматически не переносились."
+        },
+        {
+          "kind": "receipt",
+          "label": "Контракт CTA публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-11T04:12:15.070427Z",
+          "note": "Контракт формирования кнопок, не квитанция отправки. URL кнопки создаёт существующий публикатор; post_id и цена не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Площадь 67 м² и отдельная гостиная относятся только к Junior Suite. Family Ocean View на официальном сайте указан как 40 м²; коды категорий, планировку и размещение детей проверяем по бронированию.",
+        "Ocean View относится к выбранной категории, не ко всем номерам. Это городской отель; прямой выход к пляжу, личный бассейн и подогрев общего бассейна не подтверждены.",
+        "Ограничение adults-only указано для парной, не всего отеля. Часы работы бассейна, сауны и фитнеса, доплаты и доступность люксов уточняются на даты."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://nagarhotel.com/wp-content/uploads/2018/07/POOL6.jpg",
+          "sha256": "2ce9ba4b085b1bdae5d7283c3139c7917342317d0ca79cd51ebd9c33aad9f0b2",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 368415,
+          "source_dimensions": [
+            1024,
+            509
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "2ce9ba4b085b1bdae5d7283c3139c7917342317d0ca79cd51ebd9c33aad9f0b2",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://nagarhotel.com/wp-content/uploads/2018/07/FAMILY1.jpg",
+          "sha256": "57637167946126be4a8ea7506a8445f21038da3542facdb5778a50cb0afa17e7",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 470368,
+          "source_dimensions": [
+            1024,
+            683
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "57637167946126be4a8ea7506a8445f21038da3542facdb5778a50cb0afa17e7",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://nagarhotel.com/wp-content/uploads/2018/06/Junior-thay-4-1-645x430.jpg",
+          "sha256": "9f71229e8ff5e5fd2ad3e6e2eaf935530a55635f8f8185ccb8ef622c173ae571",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 31978,
+          "source_dimensions": [
+            645,
+            430
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "9f71229e8ff5e5fd2ad3e6e2eaf935530a55635f8f8185ccb8ef622c173ae571",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "63673.png",
+      "sha256": "fc97ec20e8a0e59a41f1a553ab2ce1e112dfbad4ceed4b39da841fcc2130846d",
+      "bytes": 471608,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "NAGAR HOTEL NHA TRANG",
+        "font_size": 28,
+        "text_width": 379.5625,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 973,
+      "title": "Dobedan Beach Resort Comfort",
+      "photos": [
+        {
+          "role": "hero",
+          "source_url": "https://www.dobedanhotels.com/media/mhwjq5yb/dobedan-beach-resort-anasayfa-plaj-havuz-slider.jpg",
+          "sha256": "27edc469bed4b83155eccd6f85215e161b3fe229f6c8ed4939e182ddc1e002bc",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://www.dobedanhotels.com/media/1cxfnzxb/dobedan-beach-resort-standart-oda-swaper-slider.jpg",
+          "sha256": "21db643165ead3fd44d21ad3951d6a4decaf7de18a9ddc037dc32de4256e0aec",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://www.dobedanhotels.com/media/kf2kqwv0/dobedan-hotel-beach-resort-card.jpg",
+          "sha256": "0dc3138c72d82a0dd28fd0acb16f4ba2659580770ed45aeb843497b23ad0f2b9",
+          "crop_center": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 223,
+      "sourceRefs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 120",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "official",
+          "label": "Dobedan Beach · номера и фотографии",
+          "url": "https://www.dobedanhotels.com/en/hotels/dobedan-beach-resort-comfort-side/",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Объект в Сиде; стандартные и семейные номера, Royal Suite. Не смешивается с отелями Dobedan в Белеке и Кемере."
+        },
+        {
+          "kind": "official",
+          "label": "Dobedan Beach · пляж и бассейны",
+          "url": "https://www.dobedanhotels.com/en/hotels/dobedan-beach-resort-comfort-side/beach-pools/",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Песчаный пляж и пирс; подогрев явно указан у Activity Pool 1000 м² и Relax Pool 500 м². Есть горки и детский бассейн."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-10T23:04:45.020331Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Подогрев подтверждён для Activity Pool и Relax Pool; он не распространяется автоматически на бассейн с горками и все детские зоны.",
+        "Пирс, горки и пляжный сервис зависят от сезона и погоды; возрастные ограничения и температуру воды уточняем на даты.",
+        "Royal Suite — отдельная категория. Вид, размещение, услуги спа и ресторанные включения проверяются по выбранному тарифу."
+      ],
+      "source_photos": [
+        {
+          "role": "hero",
+          "source_url": "https://www.dobedanhotels.com/media/mhwjq5yb/dobedan-beach-resort-anasayfa-plaj-havuz-slider.jpg",
+          "sha256": "27edc469bed4b83155eccd6f85215e161b3fe229f6c8ed4939e182ddc1e002bc",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 776869,
+          "source_dimensions": [
+            2880,
+            1440
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "27edc469bed4b83155eccd6f85215e161b3fe229f6c8ed4939e182ddc1e002bc",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://www.dobedanhotels.com/media/1cxfnzxb/dobedan-beach-resort-standart-oda-swaper-slider.jpg",
+          "sha256": "21db643165ead3fd44d21ad3951d6a4decaf7de18a9ddc037dc32de4256e0aec",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 378874,
+          "source_dimensions": [
+            1080,
+            1280
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "21db643165ead3fd44d21ad3951d6a4decaf7de18a9ddc037dc32de4256e0aec",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://www.dobedanhotels.com/media/kf2kqwv0/dobedan-hotel-beach-resort-card.jpg",
+          "sha256": "0dc3138c72d82a0dd28fd0acb16f4ba2659580770ed45aeb843497b23ad0f2b9",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "source_bytes": 120161,
+          "source_dimensions": [
+            1080,
+            1280
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "0dc3138c72d82a0dd28fd0acb16f4ba2659580770ed45aeb843497b23ad0f2b9",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "973.png",
+      "sha256": "d6c3b3127c86ff100bac87b7350722170ba7229922942258fe4e5517ce2e0e14",
+      "bytes": 579858,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "DOBEDAN BEACH RESORT COMFORT",
+        "font_size": 28,
+        "text_width": 522.65625,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    }
+  ],
+  "provider_calls": 0,
+  "remote_writes": 0,
+  "visual_review": "Nine branded covers inspected together; readable hotel names and logo, three real photographs per cover; no generated photo content."
+}
