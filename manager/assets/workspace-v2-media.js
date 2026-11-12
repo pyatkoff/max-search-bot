@@ -70,6 +70,7 @@ function renderPersistenceStatus(box=selection()){
 }
 function render(noticeFirst=false){
  const rows=files(),box=selection();if(!box)return;box.setAttribute?.('data-sending',String(state.busy));
+ window.WorkspaceV2MediaPreflight?.render([],box);
  // Storage progress is independent from the selected File list. Keep it outside
  // that list so saving cannot change the list's content or scroll position.
  renderPersistenceStatus(box);
@@ -95,6 +96,7 @@ function render(noticeFirst=false){
  });
  box.setAttribute?.('aria-label',`Выбрано файлов: ${rows.length} из ${MAX_FILES}. Список можно прокручивать.`);
  box.querySelector('.mediaSelectionHint').textContent=state.notice||`Файлов: ${rows.length} из ${MAX_FILES}. Отправятся отдельно; подпись — к первому.`;box.classList.remove('hidden');if(noticeFirst)box.scrollTop=0;
+ window.WorkspaceV2MediaPreflight?.render(rows,box);
 }
 function addFiles(incoming){
  const rows=files(),added=Array.from(incoming||[]);let rejected=0;
@@ -110,7 +112,11 @@ function init(){
    if(!pasted.length)return;event.preventDefault();addFiles(pasted);
  });
 }
-function configure(csrf,conversationId){if(state.conversationId!==Number(conversationId||0)){restoreSequence++;restoring=false}state.csrf=csrf||'';state.conversationId=Number(conversationId||0);window.WorkspaceV2MediaRecovery?.configure(state.conversationId)}
+function configure(csrf,conversationId){const same=state.conversationId===Number(conversationId||0);if(!same){restoreSequence++;restoring=false}state.csrf=csrf||'';state.conversationId=Number(conversationId||0);window.WorkspaceV2MediaRecovery?.configure(state.conversationId);
+ // An accepted same-dialogue read grants a new open generation. Rebind only
+ // this actor's exact retained rows; stale promises cannot authorize this.
+ const rows=attachmentDrafts.get(draftKey(state.conversationId));if(same&&rows===state.restored)window.WorkspaceV2MediaPreflight?.render(rows,selection(),true);
+}
 function hasFile(){return files().length>0}
 function notDispatched(response,j){return response.status===409&&j.error==='delivery_failed'&&j.failure?.category==='not_dispatched'&&j.failure?.http_code===0&&['file_unavailable','context_changed'].includes(j.failure?.reason)}
 function settleRecovery(record){

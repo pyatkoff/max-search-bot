@@ -1,3 +1,4 @@
+const {settledMediaSelectionText}=require('./fixtures/media-selection');
 const {test,expect}=require('@playwright/test');
 const {execFileSync}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path');
@@ -209,7 +210,7 @@ for(const width of [390,1440])test(`unified queues groups favorites archive pres
  await page.setViewportSize({width,height:900});const state=stateFor({groups:6});const wav=silentWav(),messages=[{id:1,sender_type:'customer',text:'Синтетическое аудио',created_at:'2026-10-16 08:00:00',attachments:[{type:'audio',name:'synthetic.wav',url:'data:audio/wav;base64,'+wav.toString('base64')}]}];
  const s=await setup(page,{state,rows:rows(),filterQueues:true,messages});await settled(page,s);await page.locator('.m2TabRow [data-q="mine"]').click();await settled(page,s);await expect(row(page).locator('.m2RowOpen')).toBeVisible();await row(page).locator('.m2RowOpen').click();await expect(page.locator('#replyText')).toBeEnabled();
  await page.locator('#replyText').fill('Ответ с сохранённым файлом и аудио');await page.locator('#replyFile').setInputFiles([{name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment; never sent')},{name:'synthetic.wav',mimeType:'audio/wav',buffer:wav}]);
- const attachment=await page.locator('#mediaSelection').textContent();await expect(page.locator('#mediaSelection .mediaSelectedItem')).toHaveCount(2);
+ const attachment=await settledMediaSelectionText(page);await expect(page.locator('#mediaSelection .mediaSelectedItem')).toHaveCount(2);
  const audio=page.locator('#messages audio');await expect(audio).toHaveCount(1);await audio.evaluate(async el=>{el.muted=true;await el.play();window.compactAudioIdentity=el});await expect.poll(()=>audio.evaluate(el=>el.readyState)).toBeGreaterThanOrEqual(1);await expect.poll(()=>audio.evaluate(el=>el.currentTime)).toBeGreaterThan(.1);await audio.evaluate(el=>window.compactAudioTime=el.currentTime);
  await page.locator('#replyText').evaluate(el=>el.setSelectionRange(2,7));await page.locator('#m2ConversationPin').click();await expect(page.locator('#m2ConversationPin')).toHaveAttribute('aria-pressed','false');
  expect(await page.locator('#replyText').evaluate(el=>[el.selectionStart,el.selectionEnd])).toEqual([2,7]);expect(await audio.evaluate(el=>el===window.compactAudioIdentity&&!el.paused&&el.currentTime>=window.compactAudioTime)).toBe(true);

@@ -1,3 +1,4 @@
+const {settledMediaSelectionText}=require('./fixtures/media-selection');
 const {test,expect}=require('@playwright/test');
 const fs=require('node:fs'),path=require('node:path');
 const {setup,root,emptyState}=require('./fixtures/personal-workspace');
@@ -93,7 +94,7 @@ for(const width of [390,430,768,1440])for(const height of [420,900])for(const pr
   // A normal pointer opens the row after real keyboard tab selection, then
   // normal Back + keyboard activation returns to the same draft and files.
   await openClient(page);await page.locator('#replyText').fill('Личный ответ — сохранить точно');
-  await page.locator('#replyFile').setInputFiles({name:'capacity.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});const attachment=await page.locator('#mediaSelection').textContent();
+  await page.locator('#replyFile').setInputFiles({name:'capacity.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});const attachment=await settledMediaSelectionText(page);
   await page.locator('#replyText').click();await expect(page.locator('#replyText')).toBeFocused();await expect(page.locator('#sendReply')).toBeInViewport();
   await capture(page,browserName,width,height,scenario,'reply');await back(page);await capacity(page);await openClient(page,true);
   await expect(page.locator('#replyText')).toHaveValue('Личный ответ — сохранить точно');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
@@ -122,7 +123,7 @@ for(const width of [390,430,768,1440])test('failed personal refresh keeps a usab
 
 for(const width of [390,1440])test('ordinary Inbox re-entry retains only the matching client file and draft '+width,async({page})=>{
  await page.setViewportSize({width,height:420});const s=await setup(page,{state:stateFor(1,0)});await settled(page,s);await select(page,s,1);await openClient(page);
- await page.locator('#replyText').fill('Только для первого клиента');await page.locator('#replyFile').setInputFiles({name:'first-client.txt',mimeType:'text/plain',buffer:Buffer.from('First synthetic client only')});const firstFile=await page.locator('#mediaSelection').textContent();await expect(page.locator('#mediaSelection')).toContainText('first-client.txt');
+ await page.locator('#replyText').fill('Только для первого клиента');await page.locator('#replyFile').setInputFiles({name:'first-client.txt',mimeType:'text/plain',buffer:Buffer.from('First synthetic client only')});const firstFile=await settledMediaSelectionText(page);await expect(page.locator('#mediaSelection')).toContainText('first-client.txt');
  await back(page);await openClient(page,true);await expect(page.locator('#replyText')).toHaveValue('Только для первого клиента');await expect(page.locator('#mediaSelection')).toHaveText(firstFile);
  await back(page);await openClient(page,false,12);await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('#mediaSelection')).not.toContainText('first-client.txt');await page.locator('#replyText').fill('Только для второго клиента');
  await back(page);await openClient(page,true);await expect(page.locator('#replyText')).toHaveValue('Только для первого клиента');await expect(page.locator('#mediaSelection')).toHaveText(firstFile);
@@ -133,6 +134,6 @@ for(const width of [390,1440])test('short worst-case expanded filters large comf
  await page.setViewportSize({width,height:420});const state=stateFor(12,30,'large','comfortable',true);state.pins=[11];const s=await setup(page,{state});await settled(page,s);await select(page,s,12,true);
  const before=lists(s).length;await page.locator('#filtersToggle').click();await expect(page.locator('#filtersToggle')).toHaveAttribute('aria-expanded','true');await expect(page.locator('#filtersPanel')).toBeVisible();expect(lists(s)).toHaveLength(before);
  const g=await capacity(page);expect(g.markerHeight).toBeLessThanOrEqual(48);expect(g.rowHeight).toBeLessThanOrEqual(230);await expect(page.locator('#inboxList [data-pw-pin]')).toHaveCount(0);expect(await page.evaluate(()=>WorkspaceV2PersonalWorkspace.enhanceRows([{id:11}])[0].personal_pinned)).toBe(true);await capture(page,browserName,width,420,'worst-expanded-large-comfortable','inbox');
- await openClient(page);await expect(page.locator('#m2ConversationPin')).toHaveAttribute('aria-pressed','true');await page.locator('#replyText').fill('Ответ при раскрытых фильтрах');await page.locator('#replyFile').setInputFiles({name:'worst-case.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic worst-case attachment')});const attachment=await page.locator('#mediaSelection').textContent();await page.locator('#replyText').click();await expect(page.locator('#replyText')).toBeFocused();await expect(page.locator('#sendReply')).toBeInViewport();await capture(page,browserName,width,420,'worst-expanded-large-comfortable','reply');
+ await openClient(page);await expect(page.locator('#m2ConversationPin')).toHaveAttribute('aria-pressed','true');await page.locator('#replyText').fill('Ответ при раскрытых фильтрах');await page.locator('#replyFile').setInputFiles({name:'worst-case.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic worst-case attachment')});const attachment=await settledMediaSelectionText(page);await page.locator('#replyText').click();await expect(page.locator('#replyText')).toBeFocused();await expect(page.locator('#sendReply')).toBeInViewport();await capture(page,browserName,width,420,'worst-expanded-large-comfortable','reply');
  await back(page);await capacity(page);await openClient(page,true);await expect(page.locator('#replyText')).toHaveValue('Ответ при раскрытых фильтрах');await expect(page.locator('#mediaSelection')).toHaveText(attachment);expect(lists(s)).toHaveLength(2);expect(s.calls.filter(c=>c.path==='/manager/personal-workspace-api.php'&&c.action==='snapshot')).toHaveLength(1);clean(s);
 });

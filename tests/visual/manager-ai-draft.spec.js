@@ -1,3 +1,4 @@
+const {settledMediaSelectionText}=require('./fixtures/media-selection');
 const {withTransitionDiagnostics}=require('./fixtures/transition-diagnostics');
 const {test,expect}=require('@playwright/test');
 const {execFileSync}=require('node:child_process');
@@ -797,7 +798,7 @@ for(const viewport of [{width:390,height:420},{width:430,height:900},{width:1440
  expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);
  await page.evaluate(()=>{WorkspaceV2Conversation.renderHandoffContext();WorkspaceV2RequestProfile.refresh();});
  await expect(row).toBeVisible();await expect(row.locator('small')).toContainText('7–8 ночей');await expect(row.locator(':scope > summary')).toContainText('Запрос клиента');await expect(row.locator('.m2RequestStatus')).toHaveText('Сохранённого запроса пока нет. Уточните его по переписке.');await expect(row).not.toHaveAttribute('open','');await expect(row.locator('strong')).toBeHidden();await expect(page.locator('#mobileLeadBtn')).toBeHidden();await expect(page.locator('#assistantClientOpen')).toHaveCount(0);await expect(page.locator('#nextWaitingConversation')).toHaveCount(0);
- await page.locator('#replyText').fill('Начал отвечать клиенту сам');await page.locator('#replyFile').setInputFiles({name:'daily-flow.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained file, never sent')});const attachment=await page.locator('#mediaSelection').textContent();await page.evaluate(()=>{window.dailyReplyNode=document.getElementById('replyText');window.dailyFileNode=document.getElementById('replyFile');});
+ await page.locator('#replyText').fill('Начал отвечать клиенту сам');await page.locator('#replyFile').setInputFiles({name:'daily-flow.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained file, never sent')});const attachment=await settledMediaSelectionText(page);await page.evaluate(()=>{window.dailyReplyNode=document.getElementById('replyText');window.dailyFileNode=document.getElementById('replyFile');});
  await row.locator(':scope > summary').click();await expect(row.locator('.m2RequestStatus')).toBeVisible();
  for(const selector of ['.m2RequestTitle','small','.m2RequestStatus']){await row.locator(selector).scrollIntoViewIfNeeded();await expect(row.locator(selector)).toBeInViewport()}
  await settled(page);

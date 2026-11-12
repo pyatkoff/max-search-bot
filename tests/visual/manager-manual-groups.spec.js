@@ -1,3 +1,4 @@
+const {waitForMediaPreflight}=require('./fixtures/media-selection');
 const {withTransitionDiagnostics}=require('./fixtures/transition-diagnostics');
 const {test,expect}=require('@playwright/test');
 const fs=require('node:fs'),path=require('node:path');
@@ -19,7 +20,7 @@ async function createGroup(page){await page.locator('#m2WorkspaceSettings').clic
 async function bounded(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);const d=await page.locator('#pwDialog').boundingBox();if(d){expect(d.x).toBeGreaterThanOrEqual(-1);expect(d.y).toBeGreaterThanOrEqual(-1);expect(d.x+d.width).toBeLessThanOrEqual((await page.viewportSize()).width+1);expect(d.y+d.height).toBeLessThanOrEqual((await page.viewportSize()).height+1)}}
 async function capture(page,browser,width,name){const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(dir,`manual-groups-${browser}-${width}-${name}.png`)})}
 async function select(page,id=10){await inbox(page);await page.locator(`[data-pw-selection="tab:${id}"]`).click()}
-async function drafts(page){return page.evaluate(()=>({text:document.getElementById('replyText').value,media:document.getElementById('mediaSelection').textContent,scroll:document.getElementById('messages').scrollTop,conversation:WorkspaceV2.S.current,manager:WorkspaceV2.S.detail.conversation.manager_id,status:WorkspaceV2.S.detail.conversation.status}))}
+async function drafts(page){await waitForMediaPreflight(page);return page.evaluate(()=>({text:document.getElementById('replyText').value,media:document.getElementById('mediaSelection').textContent,scroll:document.getElementById('messages').scrollTop,conversation:WorkspaceV2.S.current,manager:WorkspaceV2.S.detail.conversation.manager_id,status:WorkspaceV2.S.detail.conversation.status}))}
 async function readEarlier(page){
  const messages=page.locator('#messages');
  // Composer/file layout may still resize the pane after its network settles.

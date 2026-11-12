@@ -1,3 +1,4 @@
+const {settledMediaSelectionText}=require('./fixtures/media-selection');
 const {withTransitionDiagnostics}=require('./fixtures/transition-diagnostics');
 const {test,expect}=require('@playwright/test');
 const {execFileSync}=require('node:child_process');
@@ -464,7 +465,7 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
     const draft='Черновик до загрузки справочника';await page.locator('#replyText').fill(draft);
     await page.locator('#replyFile').setInputFiles({name:'held-metadata.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment, never uploaded or sent')});
     await expect(page.locator('#mediaSelection')).toContainText('held-metadata.txt');
-    const attachment=await page.locator('#mediaSelection').textContent();
+    const attachment=await settledMediaSelectionText(page);
     await page.locator('#replyText').focus();await expect(page.locator('#replyText')).toBeFocused();
     const before={lists:s.calls.filter(call=>call.action==='list').length,details:s.calls.filter(call=>call.path==='/manager/api.php'&&call.action==='detail').length};
     expect(before.lists).toBe(1);expect(s.metadataPending()).toBe(1);
@@ -491,7 +492,7 @@ for(const action of ['catalog','filter_options'])for(const status of [500,401])t
   const draft='Точный черновик при ошибке справочника';await page.locator('#replyText').fill(draft);
   await page.locator('#replyFile').setInputFiles({name:'metadata-failure.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment, never uploaded or sent')});
   await expect(page.locator('#mediaSelection')).toContainText('metadata-failure.txt');
-  const attachment=await page.locator('#mediaSelection').textContent();await page.locator('#replyText').focus();
+  const attachment=await settledMediaSelectionText(page);await page.locator('#replyText').focus();
   const lists=s.calls.filter(call=>call.action==='list').length;await s.releaseMetadata(status);
   if(status===401){
     await expect(page.locator('#managerAuthRecovery')).toBeVisible();await expect(page.locator('#composer')).not.toBeVisible();
@@ -518,7 +519,7 @@ for(const stale of [false,true])test(`Manager2 startup metadata reconciles ${sta
   const draft='Ответ остаётся при сверке сохранённых условий';await page.locator('#replyText').fill(draft);
   await page.locator('#replyFile').setInputFiles({name:'saved-criteria.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic file, never uploaded or sent')});
   await expect(page.locator('#mediaSelection')).toContainText('saved-criteria.txt');
-  const attachment=await page.locator('#mediaSelection').textContent();await page.locator('#replyText').focus();
+  const attachment=await settledMediaSelectionText(page);await page.locator('#replyText').focus();
   expect(s.calls.filter(call=>call.action==='list')).toHaveLength(1);expect(s.metadataPending()).toBe(1);
   await s.releaseMetadata();
   await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.pipeline.stages.length)).toBe(stages.length);
@@ -595,7 +596,7 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     await page.evaluate(()=>{window.fixtureNativeConversationTools=['conversationSearchOpen'].map(id=>document.getElementById(id))});
     await page.locator('#replyText').fill('Черновик Анны для проверки компактного кабинета');
     await page.locator('#replyFile').setInputFiles({name:'compact-Anna.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic file, never sent')});
-    const file=await page.locator('#mediaSelection').textContent();
+    const file=await settledMediaSelectionText(page);
     await menu.locator('summary').press('Enter');await expect(search).toBeVisible();await expect(next).toHaveCount(0);
     await search.click();await expect(menu).not.toHaveAttribute('open');await expect(page.locator('#conversationSearchInput')).toBeFocused();
     await page.locator('#conversationSearchInput').fill('у моря');await page.locator('#conversationSearchInput').press('Escape');
@@ -1198,8 +1199,8 @@ test('Manager2 reply editor keeps canonical IME, unknown and newer-draft send se
   expect(sends).toHaveLength(2);expect(sends[1].operation_id).not.toBe(sends[0].operation_id);expect((await editorGeometry(page)).lines).toBeLessThanOrEqual(1.1);
   expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
-test('Manager2 reply editor preserves native File identity and partial unknown delivery',async({page})=>{
-  await page.setViewportSize({width:390,height:420});const s=await setup(page);await openLead(page);await editorReady(page);
+for(const width of [390,430,768,1440])test(`Manager2 reply editor preserves native File identity and partial unknown delivery ${width}x420`,async({page,browserName},testInfo)=>{
+  await page.setViewportSize({width,height:420});const s=await setup(page);await openLead(page);await editorReady(page);
   await page.evaluate(()=>{
     window.editorFiles=[];window.editorUploads=[];window.editorUploadProof=[];
     document.querySelector('#replyFile').addEventListener('change',event=>{window.editorFiles=[...event.target.files]},true);
@@ -1228,8 +1229,16 @@ test('Manager2 reply editor preserves native File identity and partial unknown d
   await expect(page.locator('#mediaSelection')).toContainText('second.txt');await expect(page.locator('#mediaSelection')).not.toContainText('first.txt');
   await expect(page.locator('#mediaSelection')).toContainText('Исход неизвестен');await expect(reply).toHaveValue('');await expect(reply).toBeEnabled();
   expect(await page.evaluate(()=>editorUploads.length===2&&editorUploads.every((file,i)=>file===editorFiles[i]))).toBe(true);
-  await expect(dialog).not.toBeVisible();await page.locator('#m2ReplyExpand').click();await page.locator('#sendReply').click();
+  await expect(dialog).not.toBeVisible();await page.locator('#m2ReplyExpand').click();await settledMediaSelectionText(page);
+  const actionLayout=await page.evaluate(()=>{const button=document.getElementById('sendReply'),main=button.closest('.composerSurface').querySelector('.composerMain'),b=button.getBoundingClientRect(),r=main.getBoundingClientRect();return {clear:r.bottom<=b.top+1,hit:document.elementFromPoint(b.x+b.width/2,b.y+b.height/2)?.closest('#sendReply')===button,contentBottom:r.bottom,buttonTop:b.top}});
+  expect(actionLayout,'The content scrollport must never cover the native send button').toMatchObject({clear:true,hit:true});
+  await page.locator('#sendReply').click();
   await expect(page.locator('#replyStatus')).toContainText('неизвестен');expect(uploads).toBe(2);
+  await page.locator('#replyStatus').scrollIntoViewIfNeeded();await expect(page.locator('#replyStatus')).toBeInViewport();
+  const noticeLayout=await page.locator('#replyStatus').evaluate(el=>{const r=el.getBoundingClientRect(),p=el.closest('.composerMain').getBoundingClientRect();return {top:r.top,bottom:r.bottom,visibleTop:p.top,visibleBottom:p.bottom}});
+  // Match the existing native geometry checks' one-pixel rounding tolerance.
+  expect(noticeLayout.top).toBeGreaterThanOrEqual(noticeLayout.visibleTop-1);expect(noticeLayout.bottom).toBeLessThanOrEqual(noticeLayout.visibleBottom+1);
+  const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});const screenshot=await page.screenshot({path:path.join(directory,`reply-unknown-editor-${browserName}-${width}-420.png`)});await testInfo.attach('unknown-editor-native-action',{body:screenshot,contentType:'image/png'});
   await expect(page.locator('#mediaSelection')).toContainText('second.txt');
   expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });

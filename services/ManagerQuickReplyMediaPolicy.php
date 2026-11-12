@@ -14,14 +14,40 @@ final class ManagerQuickReplyMediaPolicy
     public static function forChannel(string $channel): array
     {
         $upload=ManagerQuickReplyMaterials::uploadLimits();
+        return self::projection($channel,$upload['max_file_bytes'])+['max_total_bytes'=>$upload['max_total_bytes']];
+    }
+
+    /** Ordinary files use separate multipart requests, without material-store or
+     * aggregate selection caps. This public shell projection contains only public
+     * upload constraints, no account or credentials; it starts no session. */
+    public static function ordinaryUpload(): array
+    {
+        $parse=static function(string $value): ?int {
+            if (!preg_match('/^\s*(\d+)\s*([KMG]?)\s*$/iD',$value,$m)) return null;
+            $bytes=(int)$m[1]*(1024**(strpos('KMG',strtoupper($m[2]))+1));
+            if ($m[2]==='') $bytes=(int)$m[1];
+            return $bytes>0&&$bytes<=PHP_INT_MAX?(int)$bytes:null;
+        };
+        $upload=$parse((string)ini_get('upload_max_filesize'));
+        $post=$parse((string)ini_get('post_max_size'));
+        // Leave room for one multipart file, filename, caption and existing fields.
+        $post=$post===null?null:max(0,$post-65536);
+        $cap=$upload===null?$post:($post===null?$upload:min($upload,$post));
+        return ['schema'=>1,'server_max_file_bytes'=>$cap,'channels'=>[
+            'max'=>self::projection('max',$cap),'telegram'=>self::projection('telegram',$cap),
+        ]];
+    }
+
+    private static function projection(string $channel,?int $cap): array
+    {
         $supported=in_array($channel,['max','telegram'],true);
         $limits=$channel==='telegram'
             ?['image'=>10000000,'video'=>50000000,'audio'=>50000000,'file'=>50000000]
             :['image'=>50000000,'video'=>250000000,'audio'=>256000000,'file'=>4000000000];
-        foreach ($limits as &$limit) $limit=min($limit,$upload['max_file_bytes']);
+        foreach ($limits as &$limit) $limit=$cap===null?$limit:min($limit,$cap);
         unset($limit);
         return ['channel'=>$channel,'supported'=>$supported,'max_files'=>ManagerQuickReplyMaterials::MAX_FILES,
-            'max_file_bytes_by_type'=>$limits,'max_total_bytes'=>$upload['max_total_bytes'],
+            'max_file_bytes_by_type'=>$limits,
             'max_image_edge'=>$channel==='max'?7680:null,
             'max_photo_dimension_sum'=>$channel==='telegram'?10000:null,
             'max_photo_ratio'=>$channel==='telegram'?20:null,

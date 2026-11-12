@@ -1,3 +1,4 @@
+const {settledMediaSelectionText}=require('./fixtures/media-selection');
 const {test,expect}=require('@playwright/test');
 const {execFileSync}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path');
@@ -114,7 +115,7 @@ async function settleDialoguesBeforeReload(page,s){
 for(const width of [390,430,768,1440])test.describe('Customer names '+width,()=>{
  test.use({viewport:{width,height:900}});
  test('rename projects consistently without losing reply/file/task drafts, reload and restore original',async({page,browserName})=>{
-  const s=await setup(page);expect(s.calls.filter(c=>c.path==='/manager/customer-name-api.php')).toHaveLength(0);await openLead(page);await page.locator('#replyText').fill('Черновик для Анны');await page.locator('#replyFile').setInputFiles({name:'Anna.txt',mimeType:'text/plain',buffer:Buffer.from('Private test file')});const file=await page.locator('#mediaSelection').textContent();
+  const s=await setup(page);expect(s.calls.filter(c=>c.path==='/manager/customer-name-api.php')).toHaveLength(0);await openLead(page);await page.locator('#replyText').fill('Черновик для Анны');await page.locator('#replyFile').setInputFiles({name:'Anna.txt',mimeType:'text/plain',buffer:Buffer.from('Private test file')});const file=await settledMediaSelectionText(page);
   await showCard(page);await page.locator('.m2TaskCreate>summary').click();await page.locator('#leadTaskTitle').fill('Черновик следующего действия');await page.locator('#leadTaskDue').fill('2026-10-15T10:00');
   await page.locator('#customerNameCardOpen').click();await expect(page.locator('#customerNameDialog')).toBeVisible();await expect(page.locator('#cnInput')).toBeEnabled();await expect(page.locator('#cnOriginal')).toContainText('Анна Морозова');
   expect(s.calls.filter(c=>c.path==='/manager/customer-name-api.php'&&c.action==='get')).toHaveLength(1);await capture(page,browserName,width,'dialog');
