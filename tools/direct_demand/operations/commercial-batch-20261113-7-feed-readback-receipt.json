@@ -1,0 +1,28 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261113-update7",
+  "ok": true,
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "sha256": "f1a2c83e2a1b8f52c5ed3d43403428cea9d077ecae0bb93535feac40454113e9",
+      "bytes": 461528,
+      "rows": 567
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "sha256": "8eb7326314333217eb90675cc8987d68593447c6fa0d42343550928f30c467b7",
+      "bytes": 553154,
+      "rows": 567
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "sha256": "f104abf20a4e44f469579bd589d80c357a6b04fedf7b4a6ad2626ae4d8abe9b9",
+      "bytes": 1014309,
+      "rows": 1134
+    }
+  ],
+  "verified_at_utc": "2026-11-12T21:38:03.597886+00:00",
+  "post_write_attempts": 0,
+  "provider_calls": 0,
+  "db_writes": 0
+}

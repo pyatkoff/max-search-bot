@@ -1,0 +1,39 @@
+{
+  "state": "PREPARED_LOCALLY_AFTER_CONFIRMED_FEEDS_NOT_SAVED_NOT_ACTIVATED",
+  "operation": "commercial-hotel-batch-20261113-7-v1",
+  "hotel_ids": [
+    932,
+    483,
+    212,
+    62504,
+    1255,
+    55511,
+    9434,
+    30158
+  ],
+  "site_version_before": 225,
+  "expected_site_version_after": 226,
+  "site_payload_sha256": "fb7c100741e97103fa4b7b42aff327378dbe9de8311ba87cd3ff6cf0d3b0cbd5",
+  "approval_sha256": "b35dc96e92eb2b53cd08740a5321ed2332826d9343adeb2c76f690d54b9babd2",
+  "evidence_sha256": "3f7b4526abb206ad4f4f7a3bf02758bd78149231a4fdc1d554261c49864ec95b",
+  "new_pairs": 8,
+  "new_snapshots": 16,
+  "new_feed_presence": 8,
+  "expected_unchanged_other_cards": 658,
+  "accepted_materials_preserved": true,
+  "nightly_roster_before": 531,
+  "nightly_roster_after": 539,
+  "previous_roster_bytes_preserved": true,
+  "roster_gzip_sha256": "9dbd791735cb5018c213691bb6a500aaffd5be6e834cd127a3b55124726bfa4a",
+  "roster_json_sha256": "b85af2724d01ff7c6a10c54e0e288615c2ffa83e5d598613736070ed9f5eef06",
+  "previous_offer_and_price_bytes_preserved": true,
+  "feed_counts": [
+    567,
+    567,
+    1134
+  ],
+  "post_writes": 0,
+  "provider_calls": 0,
+  "site_requests": 0,
+  "activation": "Preview then CAS-import to the same Site once; after readback commit this one existing roster file and repin the two existing collector refs through their normal checks."
+}
