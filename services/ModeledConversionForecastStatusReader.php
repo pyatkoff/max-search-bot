@@ -239,10 +239,14 @@ final class ModeledConversionForecastStatusReader
         if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments']['retained_native_identity_evidence']))
             $out['value_delivery']['repair_assessments']['retained_native_identity_evidence']=[
                 'available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0,'financial_permission'=>false];
-        if(($out['value_delivery']['repair_assessments']['processing_frontier']['available']??false)===true)
+        if(($out['value_delivery']['repair_assessments']['processing_frontier']['available']??false)===true){
             foreach(['today_latency','telegram_linkage','saved_input_diagnosis','input_coverage','saved','window']as$key)
                 if($bytes($out)>28000&&isset($out[$key]))
-                    $out[$key]=['available'=>false,'reason'=>'response_budget','priority'=>'saved_processing_frontier'];
+                    $out[$key]=['available'=>false,'reason'=>'response_budget'];
+            foreach(['predictive_v1','historical_review']as$key)
+                if($bytes($out)>28000&&isset($out['value_delivery'][$key]))
+                    $out['value_delivery'][$key]=['available'=>false,'reason'=>'response_budget'];
+        }
         if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments']['processing_frontier']))
             $out['value_delivery']['repair_assessments']['processing_frontier']=['available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0];
         // Preserve the original three-case proof when omitting the newer forward journal is sufficient.

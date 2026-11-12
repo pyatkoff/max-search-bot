@@ -2487,7 +2487,7 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check):void
     $event=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,'anytour',?,?,'98615635',?,?,?,?,?,?,?,?,?,?,'specific_request',?,?,?,?)");
     $add=static function(int $id,bool $later=false)use($profile,$event,$profileCut,$apiCut,$ns):void{
         $platform=$id%2?'max':'telegram';$born=$later?$profileCut+1:$apiCut-120;$at=$later?$profileCut:$apiCut-180;
-        $api=$id<=17?$apiCut-60+$id:($id<=20?$apiCut+60:null);
+        $api=$id<=20?$apiCut-60+$id:($id<=23?$apiCut+60:null);
         $state=$id<=8?'processed':($id===17?'unmatched':($api!==null?'accepted':($id%2?'ready':'pending')));
         $status=$id<=8?'PROCESSED':($id===17?'LINKAGE_FAILURE':($api!==null?'UPLOADED':null));
         $profile->execute([$id,$platform,(string)(100+$id),200+$id,$born,$ns]);
@@ -2512,8 +2512,8 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check):void
     $r=$full['processing_frontier'];$sum=array_sum(range(11,69));
     $check('the finite primary roster includes every synthetic59 row and its nested savedAPI subset without adding original cases',
         $r['available']&&$r['complete_within_bound']&&count($r['rows'])===59&&$r['observed_events']===59
-        &&$r['observed_value_rub']===$sum&&$r['initial_api_subset']['events']===17
-        &&$r['later_api_observations']['events']===3&&$r['without_saved_api_receipt']['events']===39
+        &&$r['observed_value_rub']===$sum&&$r['initial_api_subset']['events']===20
+        &&$r['later_api_observations']['events']===3&&$r['without_saved_api_receipt']['events']===36
         &&$r['later_profile_events']===1&&$r['later_profile_value_rub']==90
         &&!$r['historical_membership_authenticated']&&$r['late_increment_for_old_profile_can_change_membership']);
     $budget=new ModeledConversionStatusBudget();$budget->consumeBytes(35000);
@@ -2589,26 +2589,37 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check):void
         &&$safe['value_delivery']['repair_assessments']['finite_visit_evidence']===$body['value_delivery']['repair_assessments']['finite_visit_evidence']
         &&$safe['value_delivery']['repair_assessments']['finite_visit_recovery']===$body['value_delivery']['repair_assessments']['finite_visit_recovery']
         &&$safe['value_delivery']['repair_assessments']['finite_counter_scope_evidence']===$body['value_delivery']['repair_assessments']['finite_counter_scope_evidence']);
-    $contextual=['value_delivery'=>['repair_assessments'=>$full]];
-    foreach(['finite_visit_evidence','finite_visit_recovery','finite_counter_scope_evidence']as$key)
-        $contextual['value_delivery']['repair_assessments'][$key]=$body['value_delivery']['repair_assessments'][$key];
+    $sized=static function(int $bytes,string $char):array{
+        $fixture=['fixture'=>''];$fixture['fixture']=str_repeat($char,$bytes-strlen(json_encode($fixture,JSON_THROW_ON_ERROR)));return $fixture;
+    };
+    $contextual=['value_delivery'=>['repair_assessments'=>$full,'by_state'=>$full['by_state'],
+        'predictive_v1'=>$sized(1348,'p'),'historical_review'=>$sized(962,'h')]];
+    $proofs=['finite_visit_evidence'=>3238,'finite_visit_recovery'=>2220,
+        'fixed_pair_operational_decisions'=>2003,'finite_counter_scope_evidence'=>895];
+    foreach($proofs as$key=>$size)$contextual['value_delivery']['repair_assessments'][$key]=['available'=>true]+$sized($size-17,'s');
     foreach(['processing_frontier','exact_cases','initial_api_receipts','retained_native_identity_evidence']as$key)
         unset($contextual['value_delivery']['repair_assessments'][$key]);
+    $contextual['value_delivery']['fixed_output_fixture']='';
+    $financialBytes=strlen(json_encode($contextual['value_delivery'],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    $contextual['value_delivery']['fixed_output_fixture']=str_repeat('f',max(0,18500-$financialBytes));
+    $financialBytes=strlen(json_encode($contextual['value_delivery'],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    $contextual['remaining_context_fixture']=$sized(1800,'c');
     foreach(['today_latency'=>5500,'telegram_linkage'=>1100,'saved_input_diagnosis'=>400,
-        'input_coverage'=>1450,'saved'=>950,'window'=>600]as$key=>$size)
-        $contextual[$key]=['fixture'=>str_repeat('x',$size)];
-    $fixedBytes=strlen(json_encode($contextual,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
-    $contextual['fixed_output_fixture']=str_repeat('f',max(0,27000-$fixedBytes-32));
+        'input_coverage'=>1450,'saved'=>950,'window'=>600]as$key=>$size)$contextual[$key]=$sized($size,'x');
     $contextual['value_delivery']['repair_assessments']['processing_frontier']=$r;
     $contextSafe=$bound->invoke($projection,$contextual);
-    $preserved=true;foreach(['finite_visit_evidence','finite_visit_recovery','finite_counter_scope_evidence']as$key)
+    $preserved=true;foreach($proofs as$key=>$size)
         if($contextSafe['value_delivery']['repair_assessments'][$key]!==$contextual['value_delivery']['repair_assessments'][$key])$preserved=false;
-    $check('near-cap fixed output preserves the complete saved frontier and original proofs by explicitly yielding optional context',
-        strlen(json_encode($contextual,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>28000
+    $check('a full synthetic financial envelope retains its59-event23-receipt roster all four proofs and totals by explicitly yielding only optional context and duplicate projections',
+        $financialBytes===18500&&count(array_filter($r['rows'],static fn(array $v):bool=>$v[6]!==null))===23
+        &&strlen(json_encode($contextual,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>28000
         &&strlen(json_encode($contextSafe,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=28000
         &&$contextSafe['value_delivery']['repair_assessments']['processing_frontier']===$r&&$preserved
+        &&$contextSafe['value_delivery']['by_state']===$contextual['value_delivery']['by_state']
+        &&$contextSafe['value_delivery']['repair_assessments']['by_state']===$full['by_state']
         &&$contextSafe['today_latency']['reason']==='response_budget'
-        &&$contextSafe['today_latency']['priority']==='saved_processing_frontier');
+        &&$contextSafe['value_delivery']['predictive_v1']['reason']==='response_budget'
+        &&$contextSafe['value_delivery']['historical_review']['reason']==='response_budget');
     $p->exec('UPDATE max_channel_conversion_outbox SET id=id+100000000000000000,value_profile_id=value_profile_id+100000000000000000,external_user_id=\'99999999999999999999\'');
     $p->exec('UPDATE modeled_conversion_profile_versions SET id=id+100000000000000000');
     $target=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?"CONCAT('anytour_value_pred_',value_profile_id,'_v1')":"'anytour_value_pred_'||value_profile_id||'_v1'";
