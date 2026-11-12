@@ -31,7 +31,7 @@ final class HistoryFixtureStatement extends PDOStatement
     public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args): array
     {
         $rows=parent::fetchAll($mode,...$args);
-        if((str_starts_with($this->queryString,'SELECT id,direction,sender_type,text,created_at FROM messages')||str_starts_with($this->queryString,'SELECT id,sender_type,text,created_at FROM messages'))&&$this->owner->afterPage){$callback=$this->owner->afterPage;$this->owner->afterPage=null;$callback($this->owner);}
+        if((str_starts_with($this->queryString,'SELECT id,direction,sender_type,text,created_at FROM messages')||str_starts_with($this->queryString,'SELECT id,direction,sender_type,text,created_at,metadata_json FROM messages')||str_starts_with($this->queryString,'SELECT id,sender_type,text,created_at FROM messages'))&&$this->owner->afterPage){$callback=$this->owner->afterPage;$this->owner->afterPage=null;$callback($this->owner);}
         return$rows;
     }
 }
@@ -111,7 +111,7 @@ function ids(array $detail): array{return array_map('intval',array_column($detai
 // No application bootstrap/configuration, network or production connection.
 if(PHP_SAPI==='cli'&&($argv[1]??'')==='--session-read-probe'){
     $directory=realpath((string)($argv[2]??''));$mode=$argv[3]??'';
-    if(!$directory||dirname($directory)!==realpath(sys_get_temp_dir())||!preg_match('/^manager-detail-session-[a-f0-9]{16}$/D',basename($directory))||!in_array($mode,['latest','older'],true))exit(2);
+    if(!$directory||dirname($directory)!==realpath(sys_get_temp_dir())||!preg_match('/^manager-detail-session-[a-f0-9]{16}$/D',basename($directory))||!in_array($mode,['latest','older','materials'],true))exit(2);
     session_save_path($directory);session_name('manager_detail_fixture');session_id('transcript-fixture');
     if(!session_start())throw new RuntimeException('native_session_start_failed');
     $seed=['manager_id'=>1,'csrf'=>'synthetic-session-token'];$_SESSION=$seed;session_write_close();
@@ -123,8 +123,8 @@ if(PHP_SAPI==='cli'&&($argv[1]??'')==='--session-read-probe'){
         $until=microtime(true)+10;
         while(!is_file($directory.'/continue')){if(microtime(true)>$until)throw new RuntimeException('session_probe_barrier_timeout');usleep(10000);clearstatcache();}
     };
-    $response=apiDetail(['conversation_id'=>1]+($mode==='older'?['before_id'=>302]:[]));$page=ids($response['body']);
-    file_put_contents($directory.'/result',json_encode(['status'=>$response['status'],'ok'=>$response['body']['ok'],'count'=>count($page),'first'=>reset($page),'last'=>end($page),'read_writes'=>$pdo->readWrites,'cursor'=>cursor($pdo),'session_closed'=>session_status()===PHP_SESSION_NONE,'identity_preserved'=>$_SESSION===$seed],JSON_THROW_ON_ERROR));
+    $response=$mode==='materials'?apiSearch(['conversation_id'=>1],1,'message_materials'):apiDetail(['conversation_id'=>1]+($mode==='older'?['before_id'=>302]:[]));$page=$mode==='materials'?[]:ids($response['body']);
+    file_put_contents($directory.'/result',json_encode(['status'=>$response['status'],'ok'=>$response['body']['ok'],'count'=>count($page),'first'=>reset($page),'last'=>end($page),'read_writes'=>$pdo->readWrites,'cursor'=>cursor($pdo),'scanned'=>$response['body']['scanned']??null,'session_closed'=>session_status()===PHP_SESSION_NONE,'identity_preserved'=>$_SESSION===$seed],JSON_THROW_ON_ERROR));
     exit;
 }
 
@@ -427,11 +427,12 @@ $pdo=fixture(4);$r=apiSearch(['conversation_id'=>1,'target_message_id'=>99],1,'m
 check('deleted or foreign search target does not expose adjacent messages',!$r['body']['available']&&!isset($r['body']['messages']));
 $pdo=fixture(4);$pdo->failHydration=true;$r=apiSearch(['conversation_id'=>1,'target_message_id'=>2],1,'message_context');
 check('search context hydration failure remains recoverable and read-only',$r['status']===500&&$r['body']['error']==='message_search_failed'&&$pdo->readWrites===0);
-if(PHP_SAPI==='cli')foreach(['latest','older'] as $mode){
+require __DIR__.'/manager_conversation_materials_checks.php';
+if(PHP_SAPI==='cli')foreach(['latest','older','materials'] as $mode){
     $probe=historySessionProbe($mode);$response=$probe['response'];
     echo 'SESSION_PROBE '.json_encode(['mode'=>$mode,'lock_available_during_sql'=>$probe['lock_available'],'original_request_still_paused'=>$probe['sql_still_paused']],JSON_THROW_ON_ERROR)."\n";
     check($mode.' transcript releases the native session while its read is paused',$probe['lock_available']&&$probe['sql_still_paused']);
     check($mode.' read preserves session identity CSRF and stored bytes',$probe['session_file_unchanged']&&$response['identity_preserved']&&$response['session_closed']);
-    check($mode.' concurrent read preserves exact page and performs no acknowledgement',$response['status']===200&&$response['ok']&&$response['count']===200&&$response['first']===($mode==='older'?102:302)&&$response['last']===($mode==='older'?301:501)&&$response['read_writes']===0&&$response['cursor']===0);
+    check($mode.' concurrent read preserves exact page and performs no acknowledgement',$response['status']===200&&$response['ok']&&($mode==='materials'?($response['count']===0&&$response['scanned']===250):($response['count']===200&&$response['first']===($mode==='older'?102:302)&&$response['last']===($mode==='older'?301:501)))&&$response['read_writes']===0&&$response['cursor']===0);
 }
 echo "FINAL TOTAL $passed | FAIL 0\n";

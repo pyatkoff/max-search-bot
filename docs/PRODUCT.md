@@ -72,6 +72,15 @@ Important Inbox signals include:
 - next task/reminder;
 - current owner/technical handoff state.
 
+The conversation materials overview reads saved messages across the available
+conversation history. It separates files, literal web links and explicitly
+recorded sent offers, with sender, recorded date and a link to the original
+message/context. Reading is bounded and continues across empty partial pages;
+only an exhausted cursor means the saved history has been inspected. Later
+arrivals appear after an explicit refresh. The overview does not fetch provider
+media, mark messages read or create a new offer. Its modal and original-message
+navigation retain the current reply, selected files and transcript position.
+
 ## Media
 
 Customer ↔ manager communication should support photo, video, audio/voice and common files through the same protected conversation model. Text-only behavior must remain intact when media is unavailable.
