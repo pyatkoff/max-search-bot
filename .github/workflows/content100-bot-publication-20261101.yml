@@ -1,4 +1,4 @@
-name: Read original TV2651 pending journal without writes
+name: Read original TV2651 journal and current message without writes
 'on':
   push:
     branches:
@@ -65,7 +65,7 @@ jobs:
         assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
         pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
         PY
-    - name: Read only the original pending journal
+    - name: Read the original pending journal and one current MAX message only
       env:
         DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
         DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -85,4 +85,4 @@ jobs:
       shell: bash
       run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
 env:
-  EXPECTED_READER_SHA256: 38620846507c0b9bed93ff76bf8c29ce79e34c182addeacf9f633afc5b32613b
+  EXPECTED_READER_SHA256: 7f5f928e5cd7a8667c4410979b0878a2c3f218c7509c5e15ff97599a41bf4bbb
