@@ -1007,4 +1007,5 @@ foreach (['claim_first','block_first','old_ack_after_block'] as $scenario) {
 devServerChecks();
 require_once __DIR__.'/development_roadmap_saved_checks.php';
 devRoadmapSavedChecks();
+devRoadmapArchiveChecks();
 echo 'DEVELOPMENT WORK QUEUE: '.$checks." PASS\n";

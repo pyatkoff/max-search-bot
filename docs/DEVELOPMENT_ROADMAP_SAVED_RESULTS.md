@@ -53,3 +53,16 @@ parent binding, pending versus final processing, linkage failures, changed
 membership/value/old receipts, duplicate receipts/events, incomplete snapshots,
 clock bounds, rejected authority and preservation of a foreign transaction.
 CI execution and installation must be reported separately from this source.
+
+## Fresh closed-archive metadata
+
+The existing status route may return roadmap_archive_preparation to a canonical
+fresh same-admin DEV grant only for the exactly completed control archive.
+It verifies the original binding, retirement, accepted items and four-spent-call
+proof, then returns a digest and bounded counts/caller CAS. The old native owner
+and exact execution authorizer retain their unchanged full-proof route. No raw
+provider bytes, claim key or pending event are exposed to the new connection.
+This projection neither transfers authority nor permits append/subscription or
+execution. Missing, revoked, foreign or unresolved contexts remain denied. The
+historical native configuration remains unreconciled. This is explicit new
+read-only preparation, not recovery or reuse of the consumed handoff/once.

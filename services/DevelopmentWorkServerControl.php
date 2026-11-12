@@ -2,11 +2,13 @@
 declare(strict_types=1);
 require_once __DIR__.'/DevelopmentWorkServerProvider.php';
 require_once __DIR__.'/DevelopmentWorkServerAmendment.php';
+require_once __DIR__.'/DevelopmentRoadmapArchive.php';
 
 /** Part of the canonical queue: same PDO transaction/lane and native audit. */
 trait DevelopmentWorkServerControl
 {
     use DevelopmentWorkServerAmendment;
+    use DevelopmentRoadmapArchive;
     private function serverControl(array $q): ?array
     {
         return $this->one('SELECT * FROM development_work_server_controls WHERE queue_id=?',[$q['queue_id']]);

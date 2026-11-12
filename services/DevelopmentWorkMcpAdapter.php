@@ -96,6 +96,10 @@ final class DevelopmentWorkMcpAdapter
         if ($operation==='status') {
             require_once __DIR__.'/DevelopmentWorkHealth.php';
             $result['cron_health']=DevelopmentWorkHealth::snapshot($this->clock!==null?(int)($this->clock)():null);
+            if(($result['execution_kind']??null)==='roadmap_archive_preparation') {
+                $result['subscription_setup']=['semantics'=>'not_armed_no_native_host_route'];
+                return $result;
+            }
             if(in_array($result['execution_kind']??null,['server_model','server_model_candidate'],true)) {
                 $result['subscription_setup']=['semantics'=>'not_applicable_server_owned_cron_no_native_subscription'];
                 DevelopmentWorkServerContract::assertReadback($result);return $result;

@@ -120,3 +120,56 @@ function devRoadmapSavedChecks(): void
     devAssert((int)$pdo->query("SELECT COUNT(*) FROM sqlite_master WHERE type='table'")->fetchColumn()===0,
         'roadmap_canonical_reader_creates_no_business_table_or_write');
 }
+
+
+/** Fresh same-admin metadata read is separate from all write/execution authority. */
+function devRoadmapArchiveChecks(): void
+{
+    [$pdo,$q,$clock]=devServerFixture();[$provider,$log]=devServerSender();
+    for($i=0;$i<4;$i++){devServerTestTick($q,$provider,devServerOrigin($clock));$clock->at+=60;}
+    $original=devServerStatus($q);$beforeRows=[];
+    foreach(['development_work_queues','development_work_items','development_work_server_controls',
+        'development_work_server_attempts','development_work_receipts','development_work_resolutions','development_work_retirements']as$table)
+        $beforeRows[$table]=$pdo->query('SELECT * FROM '.$table)->fetchAll(PDO::FETCH_ASSOC);
+    $fresh=str_repeat('d',32);
+    $pdo->exec("INSERT INTO manager_preparation_oauth_grants(grant_id,client_id,admin_id,project_key,resource,scopes,created_at,expires_at,revoked_at)
+        SELECT '".$fresh."',client_id,admin_id,project_key,resource,scopes,created_at,expires_at,NULL
+        FROM manager_preparation_oauth_grants WHERE grant_id='".str_repeat('a',32)."'");
+    $pdo->exec("UPDATE manager_preparation_oauth_grants SET revoked_at=".$clock->at." WHERE grant_id='".str_repeat('a',32)."'");
+    $writes=$pdo->writes;
+    $projection=$q->status(1,$fresh,DevelopmentWorkServerContract::QUEUE);
+    devAssert($projection['execution_kind']==='roadmap_archive_preparation'&&$projection['accepted_count']===2
+        &&$projection['roadmap_preparation']['old_control_state']==='complete'
+        &&$projection['roadmap_preparation']['old_reserved_calls']===4
+        &&$projection['roadmap_preparation']['expected_caller_connection_id']===$fresh,
+        'roadmap_fresh_same_admin_reads_only_closed_archive_metadata_without_old_credential');
+    devAssert($pdo->writes===$writes&&!isset($projection['server_control'])&&!isset($projection['server_amendment_preparation'])
+        &&!isset($projection['expected_pending_event_id'])&&!isset($projection['claim_key'])
+        &&$projection['roadmap_preparation']['dispatch_allowed']===false
+        &&$projection['roadmap_preparation']['admission_allowed']===false,
+        'roadmap_metadata_read_exposes_no_old_raw_provider_payload_claim_or_dispatch_permission');
+    $again=$q->status(1,$fresh,DevelopmentWorkServerContract::QUEUE);
+    devAssert($projection===$again&&$pdo->writes===$writes,'roadmap_closed_archive_read_is_stable_and_nonmutating');
+    require_once dirname(__DIR__).'/services/DevelopmentWorkMcpAdapter.php';
+    $adapter=new DevelopmentWorkMcpAdapter($pdo,$q,static fn():int=>$clock->at);
+    $wrapped=$adapter->call('development_work_status',['queue_id'=>DevelopmentWorkServerContract::QUEUE],1,$fresh);
+    devAssert($wrapped['roadmap_preparation']['archive_sha256']===$projection['roadmap_preparation']['archive_sha256']
+        &&$wrapped['subscription_setup']['semantics']==='not_armed_no_native_host_route',
+        'roadmap_actual_mcp_status_wrapper_does_not_probe_old_native_subscription');
+    devReject(fn()=>$q->append(1,$fresh,['queue_id'=>DevelopmentWorkServerContract::QUEUE,
+        'expected_plan_sha256'=>$projection['plan_sha256'],'plan_sha256'=>str_repeat('e',64),
+        'tasks'=>[devSpec('GENUINE-FUTURE-TASK')]]),DomainException::class,
+        'roadmap_metadata_does_not_authorize_append_or_rearm');
+    devReject(fn()=>$q->nativeEventWrite(1,$fresh,DevelopmentWorkServerContract::QUEUE,static fn()=>null),DomainException::class,
+        'roadmap_metadata_does_not_authorize_a_callback_or_native_worker');
+    devReject(fn()=>$q->status(2,$fresh,DevelopmentWorkServerContract::QUEUE),DomainException::class,
+        'roadmap_foreign_admin_cannot_read_closed_archive');
+    devReject(fn()=>$q->status(1,str_repeat('e',32),DevelopmentWorkServerContract::QUEUE),DomainException::class,
+        'roadmap_unproven_current_grant_cannot_read_closed_archive');
+    foreach($beforeRows as$table=>$rows)devAssert($pdo->query('SELECT * FROM '.$table)->fetchAll(PDO::FETCH_ASSOC)===$rows,
+        'roadmap_read_keeps_every_original_row_'.$table);
+    $pdo->exec("UPDATE manager_preparation_oauth_grants SET revoked_at=".$clock->at." WHERE grant_id='".$fresh."'");
+    devReject(fn()=>$q->status(1,$fresh,DevelopmentWorkServerContract::QUEUE),DomainException::class,
+        'roadmap_current_revocation_blocks_even_readonly_preparation');
+    devAssert(count($log->sent)===4,'roadmap_preparation_never_renews_old_four_call_budget');
+}
