@@ -721,4 +721,63 @@ repairCheck('neutral credentials cannot authorize a second company',$neutralHand
 $neutralRegistry['studio_north']['project']['business']['kind']='unreviewed_industry';ProjectMaxConnection::resetForTests($neutralRegistry);
 repairCheck('unsupported profile without its own reviewed funnel stays closed',$neutralHandle('studio_north',str_repeat('4',32),repairStart(7200))['status']===403&&repairConversation($neutralPdo,'studio_north',7200)===[]);
 repairCheck('neutral profile never changes the shared legacy configuration',ProjectConfig::all()===$globalBefore);
+// Customer-path regression: selecting a service on a reviewed model card must
+// not fall back to a generic service entry or ask for that model again.
+$pairRevision = new AppleService39CoverageRevision();
+$pairCount = 0;
+foreach ($pairRevision->posts() as $post) {
+    if ($post['kind'] !== 'model') continue;
+    foreach (['service-battery-replacement'=>'Замена аккумулятора',
+        'service-front-glass-replacement'=>'Замена стекла без дисплея',
+        'service-display'=>'Замена дисплея'] as $servicePost=>$serviceName) {
+        $payload = AppleService39PilotCatalog::modelServicePayload($post['id'], $servicePost);
+        $entry = AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot',(string)$payload);
+        $context = $entry ? AppleService39PilotCatalog::entryContext($entry,
+            ['model'=>'iPhone X','service'=>'Old diagnosis','price'=>'999999'], $payload) : [];
+        $reply = $entry ? AppleService39PilotCatalog::responseText($entry,'AppleService39') : '';
+        repairCheck('model service pair preserves only the selected published context '.$post['id'].' '.$servicePost,
+            is_string($payload) && strlen($payload) <= 64 && $entry !== null
+            && $entry['post_id'] === $post['id'] && $entry['scope'] === 'model_service'
+            && $context === ['model'=>$post['model'],'service'=>$serviceName,'entry_code'=>$payload]
+            && str_contains($reply, $post['model']) && !str_contains($reply,'Какая у вас модель')
+            && !str_contains($reply,'999999') && !isset($entry['price_text']));
+        $pairCount++;
+    }
+}
+repairCheck('exactly the existing twenty seven models own eighty one service choices', $pairCount === 81);
+foreach ([['menu','service-display'],['model-iphone-15','service-display'],
+    ['model-iphone-13','service-home-button-repair'],['model-iphone-99','service-display']] as [$model,$service]) {
+    repairCheck('unreviewed model service choice stays unavailable '.$model.' '.$service,
+        AppleService39PilotCatalog::modelServicePayload($model,$service) === null);
+}
+$pairPayload = AppleService39PilotCatalog::modelServicePayload('model-iphone-13','service-battery-replacement');
+repairCheck('pair cannot cross company or bot boundaries',
+    AppleService39PilotCatalog::resolve('repair_two','id390521129062_bot',$pairPayload) === null
+    && AppleService39PilotCatalog::resolve('appleservice39','id999999999002_bot',$pairPayload) === null
+    && AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot',$pairPayload.'_extra') === null);
+$pairPdo = repairFixture();$pairSent=[];$pairNotices=[];
+$pairFactory = static function () use (&$pairSent): MaxMessengerAdapter {
+    return new MaxMessengerAdapter(static function ($chat,string $text) use (&$pairSent): string {
+        $pairSent[]=$text;return 'isolated_pair_reply_'.count($pairSent);
+    },null,'system',null,false);
+};
+$pairNotify = static function (int $id,string $text,string $mid) use (&$pairNotices): void { $pairNotices[]=$id; };
+$pairStart = repairStart(7871,$pairPayload);
+$result=RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),$pairStart,$pairFactory,$pairNotify);
+$pairConversation=repairConversation($pairPdo,'appleservice39',7871);
+$pairMetadata=json_decode($pairConversation['metadata_json']??'{}',true);
+repairCheck('model service start records context and enters the real handoff owner once',
+    $result['status']===200 && $pairConversation['status']==='waiting_manager'
+    && ($pairMetadata['repair_context']['model']??'')==='iPhone 13'
+    && ($pairMetadata['repair_context']['service']??'')==='Замена аккумулятора'
+    && count($pairSent)===1 && count($pairNotices)===1
+    && repairEntryIntent($pairPdo,(int)$pairConversation['id'])['state']==='delivered');
+$result=RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),$pairStart,$pairFactory,$pairNotify);
+repairCheck('same model service entry replay is quiet and retains its receipt',
+    $result['result']==='duplicate' && count($pairSent)===1 && count($pairNotices)===1);
+$result=RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),repairMessage(7871,'pair_customer_symptom'),$pairFactory,$pairNotify);
+repairCheck('ordinary pair followup stays in the existing queue without another bot question',
+    $result['status']===200 && count($pairSent)===1 && count($pairNotices)===2
+    && repairConversation($pairPdo,'appleservice39',7871)['id']===$pairConversation['id']);
 echo 'TOTAL '.$passed.' passed'.PHP_EOL;
+
