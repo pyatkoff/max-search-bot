@@ -916,9 +916,14 @@ test('saved quotation changed while opening discards the late comparison',async(
  hold.resolve({body:{ok:true,conversation_id:11,source_message_id:500,available:false,quote_comparison:{state:'unavailable',snapshot:{type:'reply',text:'Старая цитата',sender_name:'',may_be_truncated:false}}}});await settled(page);await expect(page.locator('#messageContextDialog')).not.toBeVisible();await expect(page.locator('#messages')).toContainText('Новая сохранённая цитата');clean(state);
 });
 test('saved quotation modal never acknowledges unseen arrivals and clears on access loss',async({page})=>{
- const state=await setup(page,{quoteTargets:true,quoteComparison:true,readAcknowledgements:true});await open(page);await page.locator('#messages [data-quote-source-id="500"]').click();await expect(page.locator('#messageContextDialog')).toBeVisible();const before=state.ackCalls.length;
- state.documents[11].push({id:501,sender_type:'customer',text:'Не просмотрено за сравнением',created_at:'2026-11-12T09:00:00Z'});await refresh(page);expect(state.ackCalls.length).toBe(before);expect(state.readMarkers[11]||0).toBeLessThan(501);
- state.deny=true;await refresh(page);await expect(page.locator('#messageContextDialog')).not.toBeVisible();await expect(page.locator('#messageContextMessages')).toBeEmpty();clean(state);
+ const state=await setup(page,{quoteTargets:true,quoteComparison:true,readAcknowledgements:true}),gate=deferred();state.ackGate=gate;
+ await open(page);await expect.poll(()=>state.ackCalls.length).toBeGreaterThan(0);await page.locator('#messages [data-quote-source-id="500"]').click();await expect(page.locator('#messageContextDialog')).toBeVisible();
+ state.documents[11].push({id:501,sender_type:'customer',text:'Не просмотрено за сравнением',created_at:'2026-11-12T09:00:00Z'});await refresh(page);
+ // Finish an actual pre-modal acknowledgement. Previously displayed rows may
+ // still be acknowledged; the newly hidden row must never enter any batch.
+ const completed=page.waitForResponse(r=>r.url().endsWith('/manager/api.php')&&r.request().method()==='POST'&&r.request().postDataJSON().action==='ack_read');gate.resolve({});await completed;await settled(page);
+ expect(state.ackCalls.every(call=>!call.message_ids.includes(501))).toBe(true);expect(state.readMarkers[11]||0).toBeLessThan(501);
+ state.deny=true;await refresh(page);await expect(page.locator('#messageContextDialog')).not.toBeVisible();await expect(page.locator('#messageContextMessages')).toBeEmpty();expect(state.ackCalls.every(call=>!call.message_ids.includes(501))).toBe(true);clean(state);
 });
 test('saved quotation malformed comparison is retryable without replacing the draft',async({page})=>{
  const state=await setup(page,{quoteTargets:true,quoteComparison:true});await open(page);await page.locator('#replyText').fill('Черновик при неверном ответе');
