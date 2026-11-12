@@ -126,7 +126,10 @@ final class AppleService39PilotCatalog
                 $scope = 'service'; $service = $name; break;
             }
         }
-        if ($scope === '') return null;
+        if ($scope === '') {
+            require_once __DIR__.'/AppleService39CoverageRevision.php';
+            return (new AppleService39CoverageRevision())->entry($postId);
+        }
         return ['post_id'=>$postId,'model'=>$model,'service'=>$service,'scope'=>$scope,'start_payload'=>'as39_'.$postId];
     }
 

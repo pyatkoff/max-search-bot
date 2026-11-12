@@ -135,6 +135,869 @@
         "Калининград",
         "search-intent-v1"
       ]
+    },
+    "repair-iphone-x-battery-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-repair-iphone-x-battery-replacement",
+      "title": "Замена аккумулятора iPhone X в Калининграде",
+      "description": "Если заряд быстро заканчивается или телефон выключается с остатком, сначала проверим причину. Замена аккумулятора — после диагностики и согласования. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-x-battery-replacement.png",
+      "labels": [
+        "repair",
+        "iphone-x-battery-replacement",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "repair-iphone-x-front-glass-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-repair-iphone-x-front-glass-replacement",
+      "title": "Замена стекла iPhone X в Калининграде",
+      "description": "Если изображение без дефектов и касания работают, мастер проверит возможность заменить только стекло и сохранить исправный дисплей. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-x-front-glass-replacement.png",
+      "labels": [
+        "repair",
+        "iphone-x-front-glass-replacement",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "repair-iphone-x-display": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-repair-iphone-x-display",
+      "title": "Замена дисплея iPhone X в Калининграде",
+      "description": "Полосы, пятна, отсутствие изображения или сбои сенсора требуют проверки дисплея. Подберём подходящий вариант детали для вашей модели. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-x-display.png",
+      "labels": [
+        "repair",
+        "iphone-x-display",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "repair-iphone-15-battery-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-repair-iphone-15-battery-replacement",
+      "title": "Замена аккумулятора iPhone 15 в Калининграде",
+      "description": "Если заряд быстро заканчивается или телефон выключается с остатком, сначала проверим причину. Замена аккумулятора — после диагностики и согласования. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-battery-replacement.png",
+      "labels": [
+        "repair",
+        "iphone-15-battery-replacement",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "repair-iphone-15-front-glass-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-repair-iphone-15-front-glass-replacement",
+      "title": "Замена стекла iPhone 15 в Калининграде",
+      "description": "Если изображение без дефектов и касания работают, мастер проверит возможность заменить только стекло и сохранить исправный дисплей. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-front-glass-replacement.png",
+      "labels": [
+        "repair",
+        "iphone-15-front-glass-replacement",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "repair-iphone-15-display": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-repair-iphone-15-display",
+      "title": "Замена дисплея iPhone 15 в Калининграде",
+      "description": "Полосы, пятна, отсутствие изображения или сбои сенсора требуют проверки дисплея. Подберём подходящий вариант детали для вашей модели. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-display.png",
+      "labels": [
+        "repair",
+        "iphone-15-display",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "repair-iphone-15-plus-battery-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-repair-iphone-15-plus-battery-replacement",
+      "title": "Замена аккумулятора iPhone 15 Plus в Калининграде",
+      "description": "Если заряд быстро заканчивается или телефон выключается с остатком, сначала проверим причину. Замена аккумулятора — после диагностики и согласования. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-plus-battery-replacement.png",
+      "labels": [
+        "repair",
+        "iphone-15-plus-battery-replacement",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "repair-iphone-15-plus-front-glass-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-repair-iphone-15-plus-front-glass-replacement",
+      "title": "Замена стекла iPhone 15 Plus в Калининграде",
+      "description": "Если изображение без дефектов и касания работают, мастер проверит возможность заменить только стекло и сохранить исправный дисплей. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-plus-front-glass-replacement.png",
+      "labels": [
+        "repair",
+        "iphone-15-plus-front-glass-replacement",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "repair-iphone-15-plus-display": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-repair-iphone-15-plus-display",
+      "title": "Замена дисплея iPhone 15 Plus в Калининграде",
+      "description": "Полосы, пятна, отсутствие изображения или сбои сенсора требуют проверки дисплея. Подберём подходящий вариант детали для вашей модели. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-plus-display.png",
+      "labels": [
+        "repair",
+        "iphone-15-plus-display",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "repair-iphone-15-pro-battery-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-repair-iphone-15-pro-battery-replacement",
+      "title": "Замена аккумулятора iPhone 15 Pro в Калининграде",
+      "description": "Если заряд быстро заканчивается или телефон выключается с остатком, сначала проверим причину. Замена аккумулятора — после диагностики и согласования. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-pro-battery-replacement.png",
+      "labels": [
+        "repair",
+        "iphone-15-pro-battery-replacement",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "repair-iphone-15-pro-front-glass-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-repair-iphone-15-pro-front-glass-replacement",
+      "title": "Замена стекла iPhone 15 Pro в Калининграде",
+      "description": "Если изображение без дефектов и касания работают, мастер проверит возможность заменить только стекло и сохранить исправный дисплей. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-pro-front-glass-replacement.png",
+      "labels": [
+        "repair",
+        "iphone-15-pro-front-glass-replacement",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "repair-iphone-15-pro-display": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-repair-iphone-15-pro-display",
+      "title": "Замена дисплея iPhone 15 Pro в Калининграде",
+      "description": "Полосы, пятна, отсутствие изображения или сбои сенсора требуют проверки дисплея. Подберём подходящий вариант детали для вашей модели. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-pro-display.png",
+      "labels": [
+        "repair",
+        "iphone-15-pro-display",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "repair-iphone-15-pro-max-battery-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-repair-iphone-15-pro-max-battery-replacement",
+      "title": "Замена аккумулятора iPhone 15 Pro Max в Калининграде",
+      "description": "Если заряд быстро заканчивается или телефон выключается с остатком, сначала проверим причину. Замена аккумулятора — после диагностики и согласования. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-pro-max-battery-replacement.png",
+      "labels": [
+        "repair",
+        "iphone-15-pro-max-battery-replacement",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "repair-iphone-15-pro-max-front-glass-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-repair-iphone-15-pro-max-front-glass-replacement",
+      "title": "Замена стекла iPhone 15 Pro Max в Калининграде",
+      "description": "Если изображение без дефектов и касания работают, мастер проверит возможность заменить только стекло и сохранить исправный дисплей. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-pro-max-front-glass-replacement.png",
+      "labels": [
+        "repair",
+        "iphone-15-pro-max-front-glass-replacement",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "repair-iphone-15-pro-max-display": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-repair-iphone-15-pro-max-display",
+      "title": "Замена дисплея iPhone 15 Pro Max в Калининграде",
+      "description": "Полосы, пятна, отсутствие изображения или сбои сенсора требуют проверки дисплея. Подберём подходящий вариант детали для вашей модели. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-pro-max-display.png",
+      "labels": [
+        "repair",
+        "iphone-15-pro-max-display",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "model-iphone-x": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-x",
+      "title": "Ремонт iPhone X в Калининграде",
+      "description": "Аккумулятор, стекло или дисплей — выберите подходящую услугу по ссылкам ниже. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/pilot/covers/model-iphone-x.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-x",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "model-iphone-15": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-15",
+      "title": "Ремонт iPhone 15 в Калининграде",
+      "description": "Аккумулятор, стекло или дисплей — выберите подходящую услугу по ссылкам ниже. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/pilot/covers/model-iphone-15.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-15",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "model-iphone-15-plus": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-15-plus",
+      "title": "Ремонт iPhone 15 Plus в Калининграде",
+      "description": "Аккумулятор, стекло или дисплей — выберите подходящую услугу по ссылкам ниже. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/pilot/covers/model-iphone-15-plus.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-15-plus",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "model-iphone-15-pro": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-15-pro",
+      "title": "Ремонт iPhone 15 Pro в Калининграде",
+      "description": "Аккумулятор, стекло или дисплей — выберите подходящую услугу по ссылкам ниже. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/pilot/covers/model-iphone-15-pro.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-15-pro",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "model-iphone-15-pro-max": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-15-pro-max",
+      "title": "Ремонт iPhone 15 Pro Max в Калининграде",
+      "description": "Аккумулятор, стекло или дисплей — выберите подходящую услугу по ссылкам ниже. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/pilot/covers/model-iphone-15-pro-max.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-15-pro-max",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "service-front-glass-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-service-front-glass-replacement",
+      "title": "Замена стекла iPhone: цены по моделям в Калининграде",
+      "description": "Замена стекла без дисплея для моделей iPhone 8–17 и iPhone Air. Мастер проверит, что изображение и касания работают и дисплей можно сохранить. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/pilot/covers/service-front-glass-replacement.png",
+      "labels": [
+        "service",
+        "front-glass-replacement",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "service-battery-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-service-battery-replacement",
+      "title": "Замена аккумулятора iPhone: цены по моделям в Калининграде",
+      "description": "Замена аккумулятора для 33 моделей iPhone. Ниже — цены по модели из прайса услуги. Если причина разрядки другая, сначала уточним необходимый ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/pilot/covers/service-battery-replacement.png",
+      "labels": [
+        "service",
+        "battery-replacement",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ]
+    },
+    "model-iphone-8": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-8",
+      "title": "Ремонт iPhone 8 в Калининграде",
+      "description": "iPhone 8 быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-8",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-8-plus": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-8-plus",
+      "title": "Ремонт iPhone 8 Plus в Калининграде",
+      "description": "iPhone 8 Plus быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-8-plus",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-xr": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-xr",
+      "title": "Ремонт iPhone XR в Калининграде",
+      "description": "iPhone XR быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-xr",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-xs": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-xs",
+      "title": "Ремонт iPhone XS в Калининграде",
+      "description": "iPhone XS быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-xs",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-xs-max": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-xs-max",
+      "title": "Ремонт iPhone XS Max в Калининграде",
+      "description": "iPhone XS Max быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-xs-max",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-11": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-11",
+      "title": "Ремонт iPhone 11 в Калининграде",
+      "description": "iPhone 11 быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-11",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-11-pro": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-11-pro",
+      "title": "Ремонт iPhone 11 Pro в Калининграде",
+      "description": "iPhone 11 Pro быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-11-pro",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-11-pro-max": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-11-pro-max",
+      "title": "Ремонт iPhone 11 Pro Max в Калининграде",
+      "description": "iPhone 11 Pro Max быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-11-pro-max",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-12": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-12",
+      "title": "Ремонт iPhone 12 в Калининграде",
+      "description": "iPhone 12 быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-12",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-12-mini": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-12-mini",
+      "title": "Ремонт iPhone 12 mini в Калининграде",
+      "description": "iPhone 12 mini быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-12-mini",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-12-pro": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-12-pro",
+      "title": "Ремонт iPhone 12 Pro в Калининграде",
+      "description": "iPhone 12 Pro быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-12-pro",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-12-pro-max": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-12-pro-max",
+      "title": "Ремонт iPhone 12 Pro Max в Калининграде",
+      "description": "iPhone 12 Pro Max быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-12-pro-max",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-13": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-13",
+      "title": "Ремонт iPhone 13 в Калининграде",
+      "description": "iPhone 13 быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-13",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-13-mini": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-13-mini",
+      "title": "Ремонт iPhone 13 mini в Калининграде",
+      "description": "iPhone 13 mini быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-13-mini",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-13-pro": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-13-pro",
+      "title": "Ремонт iPhone 13 Pro в Калининграде",
+      "description": "iPhone 13 Pro быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-13-pro",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-13-pro-max": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-13-pro-max",
+      "title": "Ремонт iPhone 13 Pro Max в Калининграде",
+      "description": "iPhone 13 Pro Max быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-13-pro-max",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-14": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-14",
+      "title": "Ремонт iPhone 14 в Калининграде",
+      "description": "iPhone 14 быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-14",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-14-plus": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-14-plus",
+      "title": "Ремонт iPhone 14 Plus в Калининграде",
+      "description": "iPhone 14 Plus быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-14-plus",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-14-pro": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-14-pro",
+      "title": "Ремонт iPhone 14 Pro в Калининграде",
+      "description": "iPhone 14 Pro быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-14-pro",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-14-pro-max": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-14-pro-max",
+      "title": "Ремонт iPhone 14 Pro Max в Калининграде",
+      "description": "iPhone 14 Pro Max быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-14-pro-max",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-16": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-16",
+      "title": "Ремонт iPhone 16 в Калининграде",
+      "description": "iPhone 16 быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-16",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-16-plus": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-16-plus",
+      "title": "Ремонт iPhone 16 Plus в Калининграде",
+      "description": "iPhone 16 Plus быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-16-plus",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-16-pro": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-16-pro",
+      "title": "Ремонт iPhone 16 Pro в Калининграде",
+      "description": "iPhone 16 Pro быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-16-pro",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-16-pro-max": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-16-pro-max",
+      "title": "Ремонт iPhone 16 Pro Max в Калининграде",
+      "description": "iPhone 16 Pro Max быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-16-pro-max",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-17-pro": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-17-pro",
+      "title": "Ремонт iPhone 17 Pro в Калининграде",
+      "description": "iPhone 17 Pro быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-17-pro",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-17-pro-max": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-17-pro-max",
+      "title": "Ремонт iPhone 17 Pro Max в Калининграде",
+      "description": "iPhone 17 Pro Max быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-17-pro-max",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "model-iphone-air": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-model-iphone-air",
+      "title": "Ремонт iPhone Air в Калининграде",
+      "description": "iPhone Air быстро разряжается, получил повреждение экрана или работает с перебоями? В AppleService39 проверим неисправность и подберём подходящий ремонт. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "model",
+        "general",
+        "iphone-air",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "service-charging-port-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-service-charging-port-replacement",
+      "title": "Замена разъёма зарядки iPhone в Калининграде",
+      "description": "iPhone заряжается только под определённым углом, кабель выпадает или зарядка прерывается? Проверим разъём и другие возможные причины. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "service",
+        "charging-port-replacement",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "service-microphone-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-service-microphone-replacement",
+      "title": "Ремонт микрофона iPhone в Калининграде",
+      "description": "Собеседник плохо слышит вас, голос на записи тихий или пропадает? Проверим микрофоны iPhone и причину неисправности. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "service",
+        "microphone-replacement",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "service-loudspeaker-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-service-loudspeaker-replacement",
+      "title": "Ремонт внешнего динамика iPhone в Калининграде",
+      "description": "Не слышно мелодию звонка, музыку или звук громкой связи? Проверим внешний динамик iPhone. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "service",
+        "loudspeaker-replacement",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "service-front-camera-replacement": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-service-front-camera-replacement",
+      "title": "Ремонт передней камеры iPhone в Калининграде",
+      "description": "Передняя камера iPhone не запускается, показывает пятна или работает с перебоями? Проверим камеру и связанные компоненты. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "service",
+        "front-camera-replacement",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "service-home-button-repair": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-service-home-button-repair",
+      "title": "Ремонт кнопки Home iPhone в Калининграде",
+      "description": "Кнопка Home на iPhone 8 или 8 Plus не нажимается или срабатывает нестабильно? Проверим причину и возможность ремонта. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "service",
+        "home-button-repair",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "service-power-button-repair": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-service-power-button-repair",
+      "title": "Ремонт кнопки включения iPhone в Калининграде",
+      "description": "Боковая кнопка iPhone заедает или не реагирует на нажатия? Проверим кнопку и связанные элементы. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "service",
+        "power-button-repair",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "service-antenna-repair": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-service-antenna-repair",
+      "title": "Ремонт антенн и связи iPhone в Калининграде",
+      "description": "iPhone нестабильно ловит сеть или Wi-Fi? Проверим причину и возможность ремонта антенн и связанных компонентов. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "service",
+        "antenna-repair",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "service-software-recovery": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-service-software-recovery",
+      "title": "Восстановление ПО iPhone в Калининграде",
+      "description": "iPhone зависает при загрузке или работает со сбоями? Проверим, связана ли проблема с программным обеспечением. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "service",
+        "software-recovery",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "service-diagnostics": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-service-diagnostics",
+      "title": "Диагностика iPhone в Калининграде",
+      "description": "iPhone работает нестабильно, не заряжается или не включается? Начните с диагностики в AppleService39. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "service",
+        "diagnostics",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "service-housing-repair": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-coverage-v1-service-housing-repair",
+      "title": "Ремонт и замена корпуса iPhone в Калининграде",
+      "description": "Корпус iPhone поцарапан, деформирован или повреждён после падения? Осмотрим устройство и проверим возможность ремонта или замены корпуса. Стоимость и срок согласуем до ремонта. Гарантия на согласованный ремонт — 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/menu.png",
+      "labels": [
+        "service",
+        "housing-repair",
+        "unspecified",
+        "Калининград",
+        "coverage-v1"
+      ],
+      "withhold_until_verified": true
     }
   }
 }

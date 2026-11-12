@@ -93,7 +93,16 @@ final class ApplePilotTestProvider
         }
         if ($method === 'POST' && $path === '/uploads') return $this->ok(['url'=>'https://'.$this->uploadHost.'/uploadImage?id='.(++$this->uploadId)]);
         if ($method === 'POST' && $path === '/messages') {
-            as39ProviderAssert($query === ['chat_id'=>$this->channelId] && !isset($request['body']['notify']), 'create targets the channel with native notification semantics');
+            $silentCoverage = ($request['body']['notify'] ?? null) === false;
+            if ($silentCoverage) {
+                $button = $request['body']['attachments'][1]['payload']['buttons'][0][0]['url'] ?? '';
+                preg_match('/[?&]start=as39_([a-z0-9_-]+)\\z/D', $button, $match);
+                as39ProviderAssert(in_array($match[1] ?? '', (new AppleService39CoverageRevision())->order(), true),
+                    'silent batch contains only the reviewed coverage successor');
+            }
+            as39ProviderAssert($query === ['chat_id'=>$this->channelId]
+                && (!array_key_exists('notify', $request['body']) || $silentCoverage),
+                'create targets the channel with original or explicitly silent successor notification semantics');
             $mid = $this->fixedMid ?? 'mid_'.(count($this->messages)+1);
             $this->messages[$mid] = $this->message($mid, $request['body']);
             if ($this->mode === 'create_timeout') return ['http'=>0,'transport_error'=>true,'data'=>null];

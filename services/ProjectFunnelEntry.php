@@ -5,6 +5,8 @@ require_once __DIR__.'/AdvertisingVisitRepository.php';
 require_once __DIR__.'/AppleService39PilotPublicationStore.php';
 require_once __DIR__.'/ChannelPostRegistryService.php';
 
+final class ProjectFunnelPublicationPending extends RuntimeException {}
+
 /** One server-owned path from a signed MAX launch to a verified native publication. */
 final class ProjectFunnelEntry
 {
@@ -19,9 +21,15 @@ final class ProjectFunnelEntry
         $q->execute([$this->connection->projectKey(),$this->settings['source_key']]);$source=(int)$q->fetchColumn();
         if($source<=0)throw new RuntimeException('source_unavailable');
         if($item['owner']==='appleservice39_pilot'){
-            $url=(new AppleService39PilotPublicationStore($this->pdo))->verifiedPostUrl($post,$source);
+            $url=(new AppleService39PilotPublicationStore($this->pdo))->verifiedPostUrl($post,$source,true);
+            if($url===null)throw new ProjectFunnelPublicationPending('publication_pending');
         }else{
             $row=(new ChannelPostRegistryService($this->pdo))->publication($item['publication_id']);
+            if(!$row)throw new ProjectFunnelPublicationPending('publication_pending');
+            if($row['project_key']!==$this->connection->projectKey()||$row['platform']!=='max'
+                ||$row['bot_key']!==$this->connection->botKey()||$row['channel_id']!==$this->settings['channel_id']
+                ||$row['source_id']!==$source)throw new RuntimeException('publication_unavailable');
+            if(($row['state']??null)!=='sent')throw new ProjectFunnelPublicationPending('publication_pending');
             $url=$row&&$row['project_key']===$this->connection->projectKey()&&$row['platform']==='max'
                 &&$row['bot_key']===$this->connection->botKey()&&$row['channel_id']===$this->settings['channel_id']
                 &&$row['source_id']===$source&&$row['state']==='sent'
@@ -66,7 +74,8 @@ final class ProjectFunnelEntry
         $stream=fopen('php://temp','w+');
         fputcsv($stream,['ID','URL','Image','Title','Description','Price','Currency','custom_label_0','custom_label_1','custom_label_2','custom_label_3','custom_label_4']);
         foreach($this->settings['posts']as$post=>$item){
-            $this->destination((string)$post,$item['offer_id']);
+            try{$this->destination((string)$post,$item['offer_id']);}
+            catch(ProjectFunnelPublicationPending $pending){if(($item['withhold_until_verified']??false)===true)continue;throw $pending;}
             fputcsv($stream,[$item['offer_id'],ProjectFunnelLaunch::feedUrl($this->connection->botKey(),(string)$post,$item['offer_id']),$item['image_url'],$item['title'],$item['description'],'','',...($item['labels']??array_fill(0,5,''))]);
         }
         rewind($stream);$csv=stream_get_contents($stream);fclose($stream);return $csv;

@@ -31,6 +31,7 @@ final class ProjectFunnelSettings
         foreach($data['posts']as$key=>$post){
             ProjectFunnelLaunch::ref((string)$key);
             if(!is_array($post)||!in_array($post['owner']??null,['channel_post_registry','appleservice39_pilot'],true))$fail();
+            if(array_key_exists('withhold_until_verified',$post)&&!is_bool($post['withhold_until_verified']))$fail();
             if($post['owner']==='channel_post_registry'&&(!is_int($post['publication_id']??null)||$post['publication_id']<=0))$fail();
             if($post['owner']==='appleservice39_pilot'&&($project!=='appleservice39'||$bot!=='id390521129062_bot'||!preg_match('/\A[a-z][a-z0-9_-]{0,55}\z/D',(string)$key)))$fail();
             $offer=ProjectFunnelLaunch::ref($post['offer_id']??null);if(isset($offers[$offer]))$fail();$offers[$offer]=true;
