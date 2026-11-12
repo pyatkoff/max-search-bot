@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "kind": "root_authenticated_private_route_extension",
+  "operation": "commercial-max532-private-route-extension-20261112-3-install1",
+  "previous_count": 522,
+  "logical_hotels": 532,
+  "new_hotel_ids": [
+    65782,
+    65895,
+    2175,
+    1420,
+    1338,
+    49345,
+    49365,
+    49342,
+    102031,
+    102774
+  ],
+  "publication_summary_sha256": "6c073ba9cf7580454588593b31789a86dd5e7e54ac08056cd750e8ad8380ee15",
+  "bound_read_sha256": "d555afb303a3c177ac3aa5557c7c7f56c8c0012962f9e0ddbb7cd336e387c5d9",
+  "new_binding_tuples_sha256": "00f8c817a97f94e63418d7e098015916872692e8f4d87f16e590dcb36aebdf58",
+  "route_receipt_sha256": "5a2173d652e51724a18dec353d28a14ac07c38d5dc9bf1f8b215cece5a079be9",
+  "route_manifest_projection_sha256": "46627ac275fba5ccdbf5a1228ab2f56a49b44313f969be2b3118908b2e47fb19",
+  "original_route_manifest_sha256": "a0030764ad65ce51e2ea0b2d6baecb2dc44b4f53859bb210f64c3d3e494dda57",
+  "original_route_map_sha256": "7b83eb5592254d49eb1a84589330b798079377851173c6b014b293c157d7f206",
+  "original_route_module_sha256": "dcc726f09ff0cb7bfafed6fdf9930e41ab887c544c8a1fa3e5e1c1fdc0b40af0",
+  "original_previous_map_sha256": "2fb7bfd06dd133b640c047ff3029e47a996b7abd0d483aa7ecaf23e6fbeb748a",
+  "verification": {
+    "full_map_checked": true,
+    "previous_rows_preserved": true,
+    "new_tuples_checked": true
+  },
+  "source": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 43242811309,
+    "run_attempt": 1,
+    "head_sha": "b88ea995a22ac5f5ed1aa7226cf9abf04707dca7",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "workflow_path": ".github/workflows/tgmini-identity-readonly.yml",
+    "candidate_artifact": {
+      "id": 13955771682,
+      "name": "commercial-max532-route-extension-candidate",
+      "zip_sha256": "d28b0c072064193dc0e8aef364f325bd069e3badfb11004c9e3eb19bde22c71b"
+    },
+    "result_artifact": {
+      "id": 13954867697,
+      "name": "commercial-max532-route-extension-install-result",
+      "zip_sha256": "5aa9f51f2363158efaf1cb447afb86bf87bf8c33cfed3223dfcc69aa6e4f260f"
+    }
+  }
+}
