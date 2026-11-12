@@ -31,6 +31,60 @@ final class ModeledConversionValueDeliveryReader
         'upload_outcome_unknown','event_expired','transport_not_sent','rate_limited'];
     private array $boundFiniteRows=[];
     public function __construct(private PDO $pdo,private $authorize,private ModeledConversionStatusBudget $budget){}
+
+    /** One private saved-receipt result. No provider poll, financial operation or source-table read. */
+    public function savedReceiptStatus(string $reference,int $now):array
+    {
+        if(preg_match('/\A[a-f0-9]{64}\z/D',$reference)!==1||$now<946684800)throw new InvalidArgumentException('invalid_saved_receipt_reference');
+        $base=['goal_id'=>self::GOAL,'counter_id'=>'98615635','receipt_ref'=>$reference,
+            'basis'=>'current_primary_saved_outbox_receipt_status','provider_requests'=>0,'conversion_uploads'=>0,
+            'per_receipt_visit_linkage'=>'not_checked'];
+        $fail=static fn(string $reason):array=>['available'=>false,'reason'=>$reason]+$base;
+        try{
+            $fields=['state','upload_status','event_unix','value_api_accepted_at_unix','value_processed_at_unix'];
+            $columns=['COUNT(*) AS inspected','COALESCE(SUM(is_match),0) AS matched'];
+            foreach($fields as$field)$columns[]='MAX(CASE WHEN is_match=1 THEN '.$field.' ELSE NULL END) AS '.$field;
+            // The hard bound precedes hashing. No native ID, money, customer identity or unrelated row is returned.
+            $binary=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'BINARY':'BLOB';
+            $exact=" AND CAST(project_key AS ".$binary.")=CAST('anytour' AS ".$binary.")"
+                ." AND CAST(counter_id AS ".$binary.")=CAST('98615635' AS ".$binary.")"
+                ." AND CAST(transport_target AS ".$binary.")=CAST(? AS ".$binary.")"
+                ." AND CAST(value_contract AS ".$binary.")=CAST(? AS ".$binary.")";
+            $sql='SELECT '.implode(',',$columns)
+                ." FROM (SELECT b.*,CASE WHEN SHA2(CONCAT('modeled_value_upload_receipt_v1|',upload_id),256)=? THEN 1 ELSE 0 END AS is_match"
+                ." FROM (SELECT upload_id,state,upload_status,event_unix,value_api_accepted_at_unix,value_processed_at_unix"
+                ." FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635'"
+                ." AND transport_target=? AND value_contract=?".$exact." ORDER BY id DESC LIMIT 1001) b) scoped";
+            $rows=$this->query($sql,[$reference,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION],null,250);
+            if(count($rows)!==1)return $fail('saved_projection_unavailable');
+            $r=$rows[0];$seen=$this->number($r['inspected']??null,false);$matched=$this->number($r['matched']??null,false);
+            if($seen<0||$seen>1001||$matched<0||$matched>$seen)return $fail('invalid_saved_projection');
+            if($seen===1001)return $fail('saved_scope_row_limit')+['coverage_complete'=>false,'max_rows'=>1001];
+            if($matched===0)return $fail('receipt_not_found_in_saved_goal_scope')+['coverage_complete'=>true,'inspected_rows'=>$seen];
+            if($matched!==1)return $fail('ambiguous_saved_receipt')+['coverage_complete'=>true,'matching_rows'=>$matched];
+            if(!in_array($r['state']??null,self::STATES,true)||!in_array($r['upload_status']??null,self::UPLOADS,true))
+                return $fail('invalid_saved_status');
+            $clock=static function(mixed $value)use($now):?int{
+                if($value===null)return null;
+                if((!is_int($value)&&!is_string($value))||preg_match('/\A[1-9][0-9]{8,10}\z/D',(string)$value)!==1)
+                    throw new UnexpectedValueException('invalid_saved_clock');
+                $at=(int)$value;if($at<946684800||$at>$now)throw new UnexpectedValueException('invalid_saved_clock');return $at;
+            };
+            $event=$clock($r['event_unix']);$api=$clock($r['value_api_accepted_at_unix']);$processed=$clock($r['value_processed_at_unix']);
+            if($event===null||($api!==null&&$api<$event)||($processed!==null&&($processed<$event||($api!==null&&$processed<$api))))
+                return $fail('invalid_saved_clock');
+            $at=static fn(?int $v):?string=>$v===null?null:gmdate('Y-m-d\TH:i:s\Z',$v);
+            ($this->authorize)();$this->budget->check();
+            return ['available'=>true]+$base+['checked_at'=>$at($now),'coverage_complete'=>true,'inspected_rows'=>$seen,
+                'state'=>$r['state'],'upload_status'=>$r['upload_status'],'event_at'=>$at($event),
+                'first_api_observed_at'=>$at($api),'processed_at'=>$at($processed),'first_api_clock_known'=>$api!==null,
+                'terminal_processing'=>in_array($r['state'],['processed','unmatched','failed'],true),
+                'processed_upload_row'=>$r['state']==='processed'&&$r['upload_status']==='PROCESSED'];
+        }catch(ModeledConversionStatusLimit $e){throw $e;}
+        catch(DomainException $e){throw $e;}
+        catch(Throwable $ignored){return $fail('saved_projection_unavailable');}
+    }
+
     public function read(int $now):array
     {
         try{
