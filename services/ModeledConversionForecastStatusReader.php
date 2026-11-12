@@ -251,6 +251,9 @@ final class ModeledConversionForecastStatusReader
             foreach(['retained_known_identities','retained_tracker_candidate','retained_identity']as$key)
                 if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments'][$key]))
                     $out['value_delivery']['repair_assessments'][$key]=['available'=>false,'reason'=>'response_budget','financial_permission'=>false];
+        if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments']['retained_relation_outcomes']))
+            $out['value_delivery']['repair_assessments']['retained_relation_outcomes']=[
+                'available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0,'financial_permission'=>false,'current_eligibility'=>'not_assessed'];
         if($bytes($out)>28000&&isset($out['value_delivery']['repair_assessments']['processing_frontier']))
             $out['value_delivery']['repair_assessments']['processing_frontier']=['available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0];
         // Preserve the original three-case proof when omitting the newer forward journal is sufficient.
@@ -268,6 +271,11 @@ final class ModeledConversionForecastStatusReader
             if(($out['value_delivery']['repair_assessments'][$key]['available']??false)===true
                 &&($out['value_delivery']['repair_assessments']['finite_visit_evidence']['available']??false)!==true)
                 $out['value_delivery']['repair_assessments'][$key]=['available'=>false,'reason'=>'original_current_binding_unavailable','financial_permission'=>false,'provider_requests_in_reader'=>0];
+        if(($out['value_delivery']['repair_assessments']['retained_relation_outcomes']['available']??false)===true
+            &&($out['value_delivery']['repair_assessments']['finite_visit_evidence']['available']??false)!==true)
+            $out['value_delivery']['repair_assessments']['retained_relation_outcomes']=[
+                'available'=>false,'reason'=>'original_current_binding_unavailable','financial_permission'=>false,
+                'current_eligibility'=>'not_assessed','provider_requests_in_reader'=>0];
         return $out;
     }
 

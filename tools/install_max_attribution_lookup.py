@@ -16,11 +16,11 @@ FILES = (
     'services/MaxTrackerLookupRepository.php',
     'services/MaxSubscriptionAttributionPolicy.php',
 )
-# Forward public-code target for one optional signed retained-click candidate observation.
-TARGET_MANIFEST = {"version":1,"files":{"lookup.php":"95a929fd8396a15486e040241010aa0da45e67ec0cb2c393d51dbcc530776e97","services/MaxTrackerLookupProtocol.php":"407e61332c5e1a6a67cb4a8ce312fa66136615c1b9ce1b62c0108280da3231ce","services/MaxTrackerLookupRepository.php":"60630ae38c349f3106f51cd4b0aa3825fbf44794ae18adfab5545e3d72e6070d","services/MaxSubscriptionAttributionPolicy.php":"2e5b35659b1aa7159b4b2b772ba0fafd1440c98bc63786ba48e3b4f9b34ef53b"}}
-TARGET_RELEASE_SHA256 = 'b7efb7446c2567521251c759e8650f0029e2f23bbcbe8d59a7a8fc2d6960f4d0'
+# Forward public-code target for one separately consumed exact retained-record rehydration.
+TARGET_MANIFEST = {"version":1,"files":{"lookup.php":"a10a2fc07c0691f20d267b30950e884538d8586d1b0da0e7a558af8831283572","services/MaxTrackerLookupProtocol.php":"d090d3e28325e530c4e76e7540045a33a04ae0168b40964a70a0e574e4bbb7de","services/MaxTrackerLookupRepository.php":"4b5fbf90675de4c8cf30bf72b8b3a90c8b8bea4fd210b7abc00fa72b337bb17c","services/MaxSubscriptionAttributionPolicy.php":"2e5b35659b1aa7159b4b2b772ba0fafd1440c98bc63786ba48e3b4f9b34ef53b"}}
+TARGET_RELEASE_SHA256 = '6c6d25f61a34e7d9d9b032fd20b1241ae29a2f8e7f4fae63ce9be94224ed527a'
 # Expected previous public target only; a fresh six-file remote preview must verify this preimage before any write.
-CHECKED_PREIMAGE = {"version":1,"files":{"lookup.php":"2a03f6c72df61ea5a853df53dffb976c51d0fefa154e63bf26cd157912dfe4e9","services/MaxTrackerLookupProtocol.php":"d219e9f9e39f61c0fb8a932b9024c44832c81f83b34da133dd8cde70f52d24c3","services/MaxTrackerLookupRepository.php":"0e3e4ed0e1ca355a0b14f7f16083b3403bd3579df9175d08440056912e9b141c","services/MaxSubscriptionAttributionPolicy.php":"2e5b35659b1aa7159b4b2b772ba0fafd1440c98bc63786ba48e3b4f9b34ef53b"},"release_json_sha256":"53a03b67c250cc0d0db7ca4a2bc6d278f426e122e50140a4f822bac5f26af71e"}
+CHECKED_PREIMAGE = {"version":1,"files":{"lookup.php":"95a929fd8396a15486e040241010aa0da45e67ec0cb2c393d51dbcc530776e97","services/MaxTrackerLookupProtocol.php":"407e61332c5e1a6a67cb4a8ce312fa66136615c1b9ce1b62c0108280da3231ce","services/MaxTrackerLookupRepository.php":"60630ae38c349f3106f51cd4b0aa3825fbf44794ae18adfab5545e3d72e6070d","services/MaxSubscriptionAttributionPolicy.php":"2e5b35659b1aa7159b4b2b772ba0fafd1440c98bc63786ba48e3b4f9b34ef53b"},"release_json_sha256":"b7efb7446c2567521251c759e8650f0029e2f23bbcbe8d59a7a8fc2d6960f4d0"}
 
 
 def _json(raw):

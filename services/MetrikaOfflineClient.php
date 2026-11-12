@@ -4,6 +4,7 @@ require_once __DIR__.'/MaxTrackerLookupProtocol.php';
 require_once __DIR__.'/ModeledConversionAttributionWindow.php';
 require_once __DIR__.'/MaxTrackerLookupConfig.php';
 require_once __DIR__.'/MaxChannelConversionOutbox.php';
+require_once __DIR__.'/ModeledConversionKnownYclidRelation.php';
 
 /** Existing counter/token, new ClientId CSV transport. No raw API logging. */
 final class MetrikaOfflineClient
@@ -392,6 +393,48 @@ final class MetrikaOfflineClient
     {
         return $this->visitReport($clientId,$activated,$now,false);
     }
+    /** R1: one GET links only the recorded click UTC day to one visible CID group. */
+    public function retainedYclidClickDayClients(array $plan,string $rawYclid,int $intentAt,callable $beforeRequest,?callable $observationClock=null):?array
+    {
+        $clock=$observationClock??static fn():int=>time();try{$requested=$clock();}catch(Throwable $ignored){return null;}
+        if(!is_int($requested))return null;$query=ModeledConversionKnownYclidRelation::r1Query($plan,$rawYclid,$intentAt);
+        return $query===null?null:$this->retainedRelationRequest('click_day_cid',$query,$intentAt,$requested,$beforeRequest,$clock);
+    }
+    /** Complete CID/time base, from exact sourceCID or the full positive R1 proof; never a held-CID fallback. */
+    public function retainedIdentityVisitBase(array $plan,array $source,?array $r1,int $intentAt,callable $beforeRequest,?callable $observationClock=null):?array
+    {
+        $clock=$observationClock??static fn():int=>time();try{$requested=$clock();}catch(Throwable $ignored){return null;}
+        if(!is_int($requested))return null;$query=ModeledConversionKnownYclidRelation::r2Query($plan,$source,$r1,$intentAt,$requested);
+        return $query===null?null:$this->retainedRelationRequest('derived_cid_visits',$query,$intentAt,$requested,$beforeRequest,$clock);
+    }
+    /** At most one optional source enrichment, with exactly the same CID/time window as the saved full base. */
+    public function retainedIdentityVisitSources(array $plan,array $source,?array $r1,array $base,int $intentAt,callable $beforeRequest,?callable $observationClock=null):?array
+    {
+        $clock=$observationClock??static fn():int=>time();try{$requested=$clock();}catch(Throwable $ignored){return null;}
+        if(!is_int($requested))return null;$query=ModeledConversionKnownYclidRelation::enrichmentQuery($plan,$source,$r1,$intentAt,$base,$requested);
+        return $query===null?null:$this->retainedRelationRequest('derived_cid_sources',$query,$intentAt,$requested,$beforeRequest,$clock);
+    }
+    private function retainedRelationRequest(string $stage,array $query,int $intent,int $requested,callable $beforeRequest,callable $clock):?array
+    {
+        if($this->counter!=='98615635'||$this->projectPolicy!==null||$requested<$intent||$requested>$intent+ModeledConversionKnownYclidRelation::TTL)return null;
+        $hash=ModeledConversionKnownYclidRelation::queryHash($stage,$query);
+        try{if($beforeRequest($hash,$requested)!==true)return null;}catch(Throwable $ignored){return null;}
+        $out=['v'=>2,'stage'=>$stage,'query_sha256'=>$hash,'request_query'=>$query,'requested_at_unix'=>$requested,
+            'checked_at_unix'=>$requested,'http'=>null,'curl'=>null,'response'=>null,'failure'=>'transport'];
+        try{
+            $r=$this->request('GET','data?'.http_build_query($query,'','&',PHP_QUERY_RFC3986),null,null,true);
+            $checked=$clock();if(!is_int($checked)||$checked<$requested)return null;$out['checked_at_unix']=$checked;
+            $out['http']=is_int($r['http']??null)?$r['http']:null;$out['curl']=is_int($r['error']??null)?$r['error']:null;
+            if($out['http']!==200||$out['curl']!==0){$out['failure']='http';return $out;}
+            $cap=$stage==='click_day_cid'?16384:65536;$bodyCap=$stage==='click_day_cid'?12288:57344;
+            if(!is_string($r['body']??null)||strlen($r['body'])>$bodyCap){$out['failure']='response_budget';return $out;}
+            $out['failure']='json';$body=json_decode($r['body'],true,32,JSON_THROW_ON_ERROR|JSON_BIGINT_AS_STRING);
+            if(!is_array($body))return $out;$out['response']=$body;$out['failure']=null;
+            if(strlen(json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>$cap){$out['response']=null;$out['failure']='response_budget';}
+            return $out;
+        }catch(Throwable $ignored){return $out;}
+    }
+
     /** Exact last-transition source, unaffected by historical attribution models. GET only. */
     public function modeledAttributionVisits(string $clientId,int $activated,int $now,?callable $admitExtraRead=null):array
     {

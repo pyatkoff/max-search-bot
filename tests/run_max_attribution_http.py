@@ -49,11 +49,16 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
     request_audit = private_root / 'request-audit.jsonl'
     router = private_root / 'router.php'
     candidate_intent_file = private_root / 'retained-candidate-consumed-intent.json'
+    rehydrate_intent_file = private_root / 'retained-rehydrate-consumed-intent.json'
     router.write_text("<?php $entry=['method'=>$_SERVER['REQUEST_METHOD']??'', 'evidence'=>$_SERVER['HTTP_X_MAX_ATTRIBUTION_EVIDENCE']??''];"
         + "if($entry['evidence']==='retained-click-candidate-v1'){$intent=is_file(" + json.dumps(str(candidate_intent_file))
         + ")?json_decode(file_get_contents(" + json.dumps(str(candidate_intent_file)) + "),true):null;"
         + "$entry['candidate_intent_persisted']=is_array($intent)&&($intent['state']??null)==='consumed_unknown';"
         + "$entry['candidate_intent_hash']=$intent['request_sha256']??null;}"
+        + "if($entry['evidence']==='retained-click-rehydrate-v1'){$intent=is_file(" + json.dumps(str(rehydrate_intent_file))
+        + ")?json_decode(file_get_contents(" + json.dumps(str(rehydrate_intent_file)) + "),true):null;"
+        + "$entry['rehydrate_intent_persisted']=is_array($intent)&&($intent['state']??null)==='consumed_unknown';"
+        + "$entry['rehydrate_intent_hash']=$intent['request_sha256']??null;}"
         + "file_put_contents(" + json.dumps(str(request_audit)) + ",json_encode($entry).PHP_EOL,FILE_APPEND|LOCK_EX);return false;\n")
     with (private_root / 'server.log').open('wb') as log:
         server = subprocess.Popen(command + ['-S', f'127.0.0.1:{port}', '-t', str(site), str(router)], stdout=log, stderr=log)
@@ -132,6 +137,7 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
                 check(client_source.count('MaxTrackerLookupProtocol::signature(') == 2 and client_source.count("'X-Max-Attribution-Signature: '.$signature") == 2, 'both production transports retain signed request authentication')
                 (client_fixture / 'MaxTrackerLookupClient.php').write_text(client_source.replace('CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS', 'CURLOPT_PROTOCOLS=>CURLPROTO_HTTP', 2))
                 (client_fixture / 'MaxTrackerLookupProtocol.php').write_text((ROOT / 'services/MaxTrackerLookupProtocol.php').read_text())
+                (client_fixture / 'MaxSubscriptionAttributionPolicy.php').write_text((ROOT / 'services/MaxSubscriptionAttributionPolicy.php').read_text())
                 (client_fixture / 'MaxTrackerLookupConfig.php').write_text("<?php final class MaxTrackerLookupConfig { public static function endpoint():string{return " + json.dumps(url) + ";} public static function privateKey():string{return file_get_contents(" + json.dumps(str(private_key)) + ");}}\n")
                 intent_file = private_root / 'simulated-consumed-intent.json'
                 runner = private_root / 'client-callback.php'
@@ -176,6 +182,64 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
                 wire = candidate['result']
                 check(wire['request_sha256'] == candidate_saved['request_sha256'] and wire['result'][0] == 3 and len(wire['result']) == 9 and wire['received_at_unix'] >= candidate_saved['intent_at'], 'same signed request binds an explicit unsupported schema result without identity or financial promotion')
                 check(len(candidate_after) == len(candidate_before) + 1 and json.loads(candidate_after[-1]) == {'method': 'POST', 'evidence': 'retained-click-candidate-v1', 'candidate_intent_persisted': True, 'candidate_intent_hash': wire['request_sha256']}, 'the receiver observes the committed candidate marker before its single authenticated HTTP request')
+                # This is a new exact-PK question about one already selected synthetic record.
+                # It never calls the preferred candidate method or uses real external data.
+                rehydrate_setup = private_root / 'rehydrate-setup.php'
+                rehydrate_context = {**candidate_context, 'user_id': '555001'}
+                rehydrate_setup.write_text("<?php declare(strict_types=1);require " + json.dumps(str(client_fixture / 'MaxTrackerLookupProtocol.php'))
+                    + ";$dsn=(string)getenv('MAX_ATTRIBUTION_TEST_MYSQL_DSN');"
+                    + "if(!preg_match('/dbname=max_attribution_test(?:;|$)/',$dsn))throw new RuntimeException('isolated_test_database_required');"
+                    + "$p=new PDO($dsn,getenv('MAX_ATTRIBUTION_TEST_MYSQL_USER')?:'root',getenv('MAX_ATTRIBUTION_TEST_MYSQL_PASS')?:'',[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_EMULATE_PREPARES=>false]);"
+                    + "$p->exec('ALTER TABLE max_sub_links ADD UF_YCLID TEXT NULL');"
+                    + "$context=json_decode(" + json.dumps(json.dumps(rehydrate_context)) + ",true,16,JSON_THROW_ON_ERROR);$at=$context['event_at_unix']-10;"
+                    + "$date=(new DateTimeImmutable('@'.$at))->setTimezone(new DateTimeZone('Europe/London'))->format('Y-m-d H:i:s');"
+                    + "$x=['9007199254742001','555001','887766','119988776655443322',$date,'10',1];"
+                    + "$q=$p->prepare('INSERT INTO max_sub_links(ID,UF_CHAT_ID,UF_CLIENT_ID,UF_YCLID,UF_DATE,UF_SOURCE,UF_METRIC_SOURCE) VALUES(?,?,?,?,?,?,?)');"
+                    + "$q->execute([$x[0],$x[1],$x[2],$x[3],$date,'10',0]);"
+                    + "$h=str_repeat('d',64);$fp=hash('sha256',json_encode($x,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));"
+                    + "$candidate=hash('sha256',json_encode([MaxTrackerLookupProtocol::RETAINED_CLICK_HEADER,$h,$context,2,$x[3],$x[0],$fp,$at],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));"
+                    + "$selection=['v'=>1,'selection_context'=>$context,'selection_request_sha256'=>$h,'selected_record_id'=>$x[0],'selected_kind'=>2,"
+                    + "'selected_candidate_sha256'=>$candidate,'selected_record_sha256'=>$fp,'selected_recorded_at_unix'=>$at];"
+                    + "echo json_encode($selection,JSON_THROW_ON_ERROR);")
+                setup_run = subprocess.run(command + [str(rehydrate_setup)], capture_output=True, text=True, timeout=20)
+                check(setup_run.returncode == 0, 'prepare one isolated saved exact-record witness')
+                rehydrate_selection = json.loads(setup_run.stdout)
+                rehydrate_runner = private_root / 'rehydrate-client.php'
+                rehydrate_prefix = "<?php declare(strict_types=1);require " + json.dumps(str(client_fixture / 'MaxTrackerLookupClient.php')) + ";$calls=0;$selection=json_decode(" + json.dumps(json.dumps(rehydrate_selection)) + ",true,16,JSON_THROW_ON_ERROR);"
+                rehydrate_runner.write_text(rehydrate_prefix
+                    + "$result=(new MaxTrackerLookupClient())->retainedClickRehydrate($selection,static function(string $hash)use(&$calls):bool{$calls++;return false;});"
+                    + "echo json_encode(['calls'=>$calls,'result'=>$result],JSON_THROW_ON_ERROR);")
+                rehydrate_before = request_audit.read_text().splitlines()
+                refused_run = subprocess.run(command + [str(rehydrate_runner)], capture_output=True, text=True, timeout=20)
+                check(refused_run.returncode == 0 and json.loads(refused_run.stdout) == {'calls': 1, 'result': None}
+                      and request_audit.read_text().splitlines() == rehydrate_before, 'refused exact-record intent makes no HTTP request')
+                rehydrate_runner.write_text(rehydrate_prefix
+                    + "$result=(new MaxTrackerLookupClient())->retainedClickRehydrate($selection,static function(string $hash)use(&$calls):bool{$calls++;"
+                    + "file_put_contents(" + json.dumps(str(rehydrate_intent_file))
+                    + ",json_encode(['state'=>'consumed_unknown','request_sha256'=>$hash],JSON_THROW_ON_ERROR),LOCK_EX);chmod("
+                    + json.dumps(str(rehydrate_intent_file)) + ",0600);return true;});"
+                    + "echo json_encode(['calls'=>$calls,'result'=>$result],JSON_THROW_ON_ERROR);")
+                rehydrate_run = subprocess.run(command + [str(rehydrate_runner)], capture_output=True, text=True, timeout=20)
+                check(rehydrate_run.returncode == 0, 'new exact-record client reaches the isolated signed endpoint')
+                rehydrated = json.loads(rehydrate_run.stdout)
+                rehydrate_saved = json.loads(rehydrate_intent_file.read_text())
+                rehydrate_after = request_audit.read_text().splitlines()
+                check(rehydrated['calls'] == 1 and rehydrated['result'] is not None
+                      and set(rehydrated['result']) == {'request_sha256', 'result', 'received_at_unix'}, 'closed exact-record response passes the production client parser')
+                exact_wire = rehydrated['result']
+                check(exact_wire['request_sha256'] == rehydrate_saved['request_sha256']
+                      and exact_wire['result'][0] == 1 and exact_wire['result'][2][0:4] == ['9007199254742001', '555001', '887766', '119988776655443322']
+                      and exact_wire['result'][2][5:] == ['10', 1], 'real signed wire returns the exact normalized tuple for independent old-hash verification')
+                check(len(rehydrate_after) == len(rehydrate_before) + 1
+                      and json.loads(rehydrate_after[-1]) == {'method': 'POST', 'evidence': 'retained-click-rehydrate-v1', 'rehydrate_intent_persisted': True, 'rehydrate_intent_hash': exact_wire['request_sha256']},
+                      'one new exact-record HTTP request observes its distinct committed intent')
+                rehydrate_data = {'version': 1, 'counter_id': '98615635', 'user_ids': ['555001'], 'issued_at': int(time.time()), 'nonce': 'f' * 32, 'retained_click_rehydrate': rehydrate_selection}
+                exact_body = encoded(rehydrate_data)
+                for header in (None, 'retained-click-rehydrate-v1 ', 'retained-click-candidate-v1'):
+                    bad_status, bad_reply = request(exact_body, signed=signature(exact_body), evidence=header)
+                    check(bad_status == 503 and bad_reply == {'ok': False, 'error': 'lookup_unavailable'}, 'exact-record purpose cannot fall through to ordinary lookup without its exact header')
+                mixed_body = encoded({**rehydrate_data, 'counter_scope_evidence': {'v': 1, 'user_id': '555001'}})
+                check(request(mixed_body, signed=signature(mixed_body), evidence='retained-click-rehydrate-v1')[0] == 401, 'signed mixed-purpose exact-record body fails before database connection')
                 scoped = encoded({**data, 'counter_scope_evidence': {'v': 1, 'user_id': '123'}})
                 status, plain_extended = request(scoped, signed=signature(scoped))
                 check(status == 200 and plain_extended['users'] == ordinary_users and 'counter_scope_evidence' not in plain_extended, 'signed option without opt-in header is still one ordinary lookup')

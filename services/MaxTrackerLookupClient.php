@@ -14,7 +14,28 @@ final class MaxTrackerLookupClient
         $now=time();$data=['version'=>1,'counter_id'=>'98615635','user_ids'=>[$context['user_id']??null],
             'issued_at'=>$now,'nonce'=>bin2hex(random_bytes(16)),'retained_click_candidate'=>$context];
         MaxTrackerLookupProtocol::retainedClickContext($data,MaxTrackerLookupProtocol::RETAINED_CLICK_HEADER,$now);
-        $body=json_encode($data,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);$hash=hash('sha256',$body);
+        $wire=$this->retainedClickRequest(json_encode($data,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),'retained_click_candidate',$beforeRequest);
+        if($wire===null)return null;
+        $r=MaxTrackerLookupProtocol::retainedClickResult($wire['wire'],$wire['request_sha256'],$wire['received_at_unix'],$context['event_at_unix']);
+        return $r===null?null:['request_sha256'=>$wire['request_sha256'],'result'=>$r,'received_at_unix'=>$wire['received_at_unix']];
+    }
+
+    /** Private exact-record material only. No caller may project or log the returned seven-field tuple. */
+    public function retainedClickRehydrate(array $selection,callable $beforeRequest):?array
+    {
+        $body=MaxTrackerLookupProtocol::retainedClickRehydrateBody($selection,time());
+        $wire=$this->retainedClickRequest($body,'retained_click_rehydrate',$beforeRequest);
+        if($wire===null)return null;
+        $r=MaxTrackerLookupProtocol::retainedClickRehydrateResult($wire['wire'],$selection,$wire['request_sha256'],$wire['received_at_unix']);
+        return $r===null?null:['request_sha256'=>$wire['request_sha256'],'result'=>$r,'received_at_unix'=>$wire['received_at_unix']];
+    }
+
+    /** Same pinned signed transport; a consumed intent must be acknowledged before its one HTTP request. */
+    private function retainedClickRequest(string $body,string $field,callable $beforeRequest):?array
+    {
+        $header=match($field){'retained_click_candidate'=>MaxTrackerLookupProtocol::RETAINED_CLICK_HEADER,
+            'retained_click_rehydrate'=>MaxTrackerLookupProtocol::RETAINED_REHYDRATE_HEADER};
+        $hash=hash('sha256',$body);
         if(strlen($body)>MaxTrackerLookupProtocol::MAX_BODY)return null;
         $signature=MaxTrackerLookupProtocol::signature($body,MaxTrackerLookupConfig::privateKey());
         if($beforeRequest($hash)!==true)return null;
@@ -24,17 +45,16 @@ final class MaxTrackerLookupClient
             CURLOPT_FOLLOWLOCATION=>false,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>12,
             CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,
             CURLOPT_HTTPHEADER=>['Content-Type: application/json','Accept: application/json','X-Max-Attribution-Signature: '.$signature,
-                'X-Max-Attribution-Evidence: '.MaxTrackerLookupProtocol::RETAINED_CLICK_HEADER],
+                'X-Max-Attribution-Evidence: '.$header],
             CURLOPT_WRITEFUNCTION=>static function($ch,string $chunk)use(&$response,&$tooLarge):int{
                 if(strlen($response)+strlen($chunk)>MaxTrackerLookupProtocol::MAX_RESPONSE){$tooLarge=true;return 0;}$response.=$chunk;return strlen($chunk);
             }]);
         $ok=curl_exec($ch);$errno=curl_errno($ch);$status=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);curl_close($ch);$received=time();
         if($ok===false||$errno!==0||$status!==200||$tooLarge)return null;
         $d=json_decode($response,true,16,JSON_THROW_ON_ERROR|JSON_BIGINT_AS_STRING);
-        if(!is_array($d)||count($d)!==5||array_diff(array_keys($d),['ok','version','counter_id','tracker_timezone','retained_click_candidate'])
+        if(!is_array($d)||count($d)!==5||array_diff(array_keys($d),['ok','version','counter_id','tracker_timezone',$field])
             ||($d['ok']??null)!==true||($d['version']??null)!==1||($d['counter_id']??null)!=='98615635'||($d['tracker_timezone']??null)!=='Europe/London')return null;
-        $r=MaxTrackerLookupProtocol::retainedClickResult($d['retained_click_candidate']??null,$hash,$received,$context['event_at_unix']);
-        return $r===null?null:['request_sha256'=>$hash,'result'=>$r,'received_at_unix'=>$received];
+        return ['wire'=>$d[$field],'request_sha256'=>$hash,'received_at_unix'=>$received];
     }
 
     public function lookup(string $counterId,array $users): array

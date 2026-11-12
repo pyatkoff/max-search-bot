@@ -140,6 +140,42 @@ final class MaxTrackerLookupRepository
         catch(Throwable $ignored){$r=$result(7);}
         return $wrap(hrtime(true)-$started>=500000000?$result(9):$r);
     }
+    /** One exact saved PK read; no prefix, pool selection, fallback, or source mutation. */
+    public function retainedClickRehydrate(array $selection,string $requestHash,int $now):array
+    {
+        $started=hrtime(true);$bytes=0;$r=[6,$now,null];
+        $wrap=static fn(array $result):array=>['v'=>1,'request_sha256'=>$requestHash,'result'=>$result,'financial_permission'=>false];
+        try{
+            MaxTrackerLookupProtocol::retainedClickRehydrateBody($selection,$now,str_repeat('0',32));
+            if(preg_match('/\A[a-f0-9]{64}\z/D',$requestHash)!==1)return $wrap([7,$now,null]);
+            if($this->pdo->inTransaction())return $wrap($r);
+            if($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql')return $wrap([3,$now,null]);
+            $version=(string)$this->pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
+            if(stripos($version,'mariadb')!==false||preg_match('/\A8\.[0-9]+\.[0-9]+(?:[-.][A-Za-z0-9_.-]+)?\z/D',$version)!==1)return $wrap([3,$now,null]);
+            $this->pdo->exec('SET TRANSACTION READ ONLY');$this->pdo->beginTransaction();
+            try{
+                $effective="CASE WHEN s.UF_METRIC_SOURCE IS NOT NULL AND s.UF_METRIC_SOURCE<>'' THEN s.UF_METRIC_SOURCE ELSE s.UF_SOURCE END";
+                $scope="CASE WHEN EXISTS (SELECT 1 FROM b_iblock_element_property ep JOIN b_iblock_property p ON p.ID=ep.IBLOCK_PROPERTY_ID"
+                    ." WHERE p.IBLOCK_ID=8 AND p.CODE='YA_METRIK_ID' AND HEX(p.CODE)=HEX('YA_METRIK_ID')"
+                    ." AND ep.IBLOCK_ELEMENT_ID=".$effective." AND ep.VALUE='98615635' AND HEX(ep.VALUE)=HEX('98615635')) THEN 1 ELSE 0 END";
+                $point="SELECT CAST(s.ID AS CHAR) AS rid,CAST(s.UF_CHAT_ID AS CHAR) AS uid,CAST(s.UF_CLIENT_ID AS CHAR) AS cid,CAST(s.UF_YCLID AS CHAR) AS yclid,"
+                    ."CAST(s.UF_DATE AS CHAR) AS at,".$effective." AS source,".$scope." AS scoped"
+                    ." FROM (SELECT ID,UF_CHAT_ID,UF_CLIENT_ID,UF_YCLID,UF_DATE,UF_SOURCE,UF_METRIC_SOURCE FROM max_sub_links"
+                    ." FORCE INDEX (PRIMARY) WHERE ID=? LIMIT 1) s";
+                $source="SELECT JSON_ARRAY(rid,uid,cid,yclid,at,CAST(source AS CHAR),scoped) AS packet FROM (".$point.") v";
+                $rows=$this->retainedClickPackets($source,[$selection['selected_record_id']],$started,$bytes,'record');
+                $r=[0,$now,null];
+                if($rows){
+                    $x=$rows[0];if(is_array($x)&&array_is_list($x)&&count($x)===7)foreach([2,3]as$i)if($x[$i]===null)$x[$i]='';
+                    $r=MaxTrackerLookupProtocol::retainedClickRehydrateMatches($selection,$x,$now)?[1,$now,$x]:[2,$now,null];
+                }
+            }finally{if($this->pdo->inTransaction())$this->pdo->rollBack();}
+        }catch(UnexpectedValueException $e){$r=[['packet_budget'=>4,'time_headroom'=>5][$e->getMessage()]??6,$now,null];}
+        catch(InvalidArgumentException $ignored){$r=[7,$now,null];}
+        catch(Throwable $ignored){$r=[6,$now,null];}
+        return $wrap(hrtime(true)-$started>=500000000?[5,$now,null]:$r);
+    }
+
     private function retainedClickPackets(string $source,array $args,int $started,int &$bytes,string $phase):array
     {
         if(hrtime(true)-$started>=500000000)throw new UnexpectedValueException('time_headroom');

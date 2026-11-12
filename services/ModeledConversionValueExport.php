@@ -17,6 +17,7 @@ require_once __DIR__.'/ModeledConversionFixedPairDecisionEvidence.php';
 require_once __DIR__.'/ModeledConversionReceiptPollEvidence.php';
 require_once __DIR__.'/ModeledConversionRetainedAppIdentityEvidence.php';
 require_once __DIR__.'/ModeledConversionRetainedTrackerIdentityEvidence.php';
+require_once __DIR__.'/ModeledConversionKnownYclidRelation.php';
 
 /** One bounded addition to the existing cron process and durable conversion outbox. */
 final class ModeledConversionValueExport
@@ -45,6 +46,7 @@ final class ModeledConversionValueExport
     private ?array $retainedTrackerReservation=null;
     private array $retainedKnownCandidates=[];
     private ?array $retainedKnownReservation=null;
+    private ?array $knownRelationReservation=null;
     private bool $retainedAppAttempted=false;
     private bool $counterScopeConsumed=false;
     private ?array $counterScopeLedger=null;
@@ -199,7 +201,8 @@ final class ModeledConversionValueExport
             foreach($carried as$r)$users[]=$r['external_user_id'];
             foreach(array_merge($finite,$recovery,$pair)as$r)if($r['platform']==='max'&&$self->finiteEligible($r,$gate))$users[]=$r['external_user_id'];
             if($users){$lookup??=new MaxTrackerLookupClient();$users=$self->reserveRetainedTracker($lookup,$users,array_merge($pending,$carried,$finite,$recovery,$pair),$now);
-                $users=$self->reserveKnownTracker($lookup,$users,array_merge($pending,$carried,$finite,$recovery,$pair),$now);}
+                $users=$self->reserveKnownTracker($lookup,$users,array_merge($pending,$carried,$finite,$recovery,$pair),$now);
+                $users=$self->reserveKnownRelation($lookup,$api,$users,array_merge($pending,$carried,$finite,$recovery,$pair),$now,$gate);}
             $identities=[];$lookupReturned=false;
             if($users){$lookup??=new MaxTrackerLookupClient();$self->finiteLookupAttempted=(bool)($finite||$recovery);
                 $batch=array_values(array_unique($users));$self->ordinaryLookupUsers=$batch;$missing=$self->counterScopeCandidate($batch,$now);
@@ -218,7 +221,9 @@ final class ModeledConversionValueExport
                 if($self->retainedTrackerReservation!==null&&(string)$r['id']===(string)$self->retainedTrackerReservation['id'])continue;
                 if($self->resolve($r,$identities,$now,$gate,$lookupReturned))$stats['resolved']++;
             }
-            $ready=$self->rows('ready',$now,3,$self->retainedKnownReservation===null?[]:[(string)$self->retainedKnownReservation['row']['id']]);
+            $readyExcluded=$self->retainedKnownReservation===null?[]:[(string)$self->retainedKnownReservation['row']['id']];
+            if($self->knownRelationReservation!==null)$readyExcluded[]=(string)$self->knownRelationReservation['row']['id'];
+            $ready=$self->rows('ready',$now,3,array_values(array_unique($readyExcluded)));
             $receipts=array_merge($self->rows('accepted',$now,2),$self->rows('unknown',$now,2));
             if($ready||$receipts){
                 $phase='goal_check';
@@ -240,11 +245,13 @@ final class ModeledConversionValueExport
                     }
                     // Revalidate the retained MAX source at dispatch, not only at the earlier signal.
                     $sendAt=$injectedClock?$now:time();$sourceAt=(int)($r['tracker_observed_unix']??0);
+                    $relation=$self->knownRelationCandidate($r,$sendAt);$wire=$r;
+                    if($relation!==null)$wire['client_id']=$relation['client_id'];
                     $pairMember=$self->fixedPairMember($r,$sendAt)!==null;
                     $pairSource=$self->fixedPairCandidate($r,$identities,$lookupReturned,$sendAt);
                     $ordinarySource=!$pairMember&&$sendAt-$sourceAt>ModeledConversionAttributionWindow::MAX_SECONDS
                         &&$self->currentMaxSource($r,$identities,$lookupReturned,$sendAt,true);
-                    if($r['platform']==='max'&&($sourceAt<946684800||$sourceAt>(int)$r['event_unix']
+                    if($relation===null&&$r['platform']==='max'&&($sourceAt<946684800||$sourceAt>(int)$r['event_unix']
                         ||$sourceAt>$sendAt||($pairMember&&!$pairSource)||($sendAt-$sourceAt>ModeledConversionAttributionWindow::MAX_SECONDS&&!$pairSource&&!$ordinarySource))){
                         // This exact pair may wait ready for a successful canonical refresh; it is never claimed on missing/changed source.
                         $self->observeFixedPairDecision($r,$now,$sendAt,3);
@@ -257,18 +264,19 @@ final class ModeledConversionValueExport
                     $collision=$p->prepare("SELECT id FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635'"
                         ." AND transport_target=? AND client_id=? AND event_unix=? AND id<>? AND value_rub>0"
                         ." AND ((upload_id IS NOT NULL AND upload_id<>'') OR state IN ('uploading','unknown')) LIMIT 1");
-                    $collision->execute([ModeledConversionValueContract::TARGET,$r['client_id'],$r['event_unix'],$r['id']]);
+                    $collision->execute([ModeledConversionValueContract::TARGET,$wire['client_id'],$r['event_unix'],$r['id']]);
                     $hasCollision=$collision->fetchColumn()!==false;$collision->closeCursor();
                     if($hasCollision){
-                        $self->observeFixedPairDecision($r,$now,$injectedClock?$now:time(),4);
+                        if($relation===null)$self->observeFixedPairDecision($r,$now,$injectedClock?$now:time(),4);
                         $hold=$p->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error='wire_key_collision' WHERE id=? AND state='ready'");
                         $hold->execute([$sendAt+3600,$r['id']]);continue;
                     }
                     // Confirm the actual preceding Metrika visit before claiming a financial send.
-                    try{$visitReport=method_exists($api,'modeledAttributionVisits')?$api->modeledAttributionVisits((string)$r['client_id'],(int)$r['event_unix'],$sendAt):['status'=>'unavailable','visits'=>[]];}catch(Throwable $ignoredWindow){$visitReport=['status'=>'unavailable','visits'=>[]];}
+                    if($relation!==null)$visitReport=$relation['visit_report'];
+                    else try{$visitReport=method_exists($api,'modeledAttributionVisits')?$api->modeledAttributionVisits((string)$r['client_id'],(int)$r['event_unix'],$sendAt):['status'=>'unavailable','visits'=>[]];}catch(Throwable $ignoredWindow){$visitReport=['status'=>'unavailable','visits'=>[]];}
                     $sendAt=$injectedClock?$now:time();
                     $window=ModeledConversionAttributionWindow::assess($visitReport,(int)$r['event_unix'],$sendAt);
-                    $self->observeFixedPairDecision($r,$now,$sendAt,['within_current_window'=>5,'outside_current_window'=>6,'no_prior_visit'=>7,'visit_report_unavailable'=>8][$window['reason']]??8,$window);
+                    if($relation===null)$self->observeFixedPairDecision($r,$now,$sendAt,['within_current_window'=>5,'outside_current_window'=>6,'no_prior_visit'=>7,'visit_report_unavailable'=>8][$window['reason']]??8,$window);
                     // Aggregate only this already executed financial preclaim decision; no extra visitor read.
                     $reason=array_key_exists($window['reason'],$stats['visit_gate_decisions']['reason_counts'])?$window['reason']:'unknown';
                     $stats['visit_gate_decisions']['attempts']++;
@@ -286,11 +294,16 @@ final class ModeledConversionValueExport
                         $hold->execute([$sendAt+300,$window['reason']==='outside_current_window'?'metrika_visit_window':'metrika_visit_unverified',$r['id']]);continue;
                     }
                     $token=bin2hex(random_bytes(16));
-                    [$pairWhere,$pairParams]=($pairSource||$ordinarySource)?$self->fixedPairSqlGuard($r,false):['',[]];
-                    $q=$p->prepare("UPDATE max_channel_conversion_outbox SET state='uploading',claim_token=?,claimed_at_unix=?,attempts=attempts+1 WHERE id=? AND state='ready' AND target=? AND transport_target=? AND value_rub=?".$pairWhere);
-                    $q->execute([$token,$now,$r['id'],$r['target'],ModeledConversionValueContract::TARGET,$r['value_rub'],...$pairParams]);
-                    if($q->rowCount()!==1)continue;
-                    try{$response=$api->uploadModeledValue($r,$now);}catch(Throwable $ignored){$response=['outcome'=>'unknown','reason'=>'upload_outcome_unknown'];}
+                    if($relation!==null){
+                        $wire=$self->claimKnownRelation($r,$relation,$token,$now,$clock,$gate);
+                        if($wire===null)continue;
+                    }else{
+                        [$pairWhere,$pairParams]=($pairSource||$ordinarySource)?$self->fixedPairSqlGuard($r,false):['',[]];
+                        $q=$p->prepare("UPDATE max_channel_conversion_outbox SET state='uploading',claim_token=?,claimed_at_unix=?,attempts=attempts+1 WHERE id=? AND state='ready' AND target=? AND transport_target=? AND value_rub=?".$pairWhere);
+                        $q->execute([$token,$now,$r['id'],$r['target'],ModeledConversionValueContract::TARGET,$r['value_rub'],...$pairParams]);
+                        if($q->rowCount()!==1)continue;
+                    }
+                    try{$response=$api->uploadModeledValue($wire,$now);}catch(Throwable $ignored){$response=['outcome'=>'unknown','reason'=>'upload_outcome_unknown'];}
                     $self->finishObserved($repo,(string)$r['id'],$token,$response,$now,self::observedAt($clock,$now));
                     if(($response['outcome']??null)==='accepted')$repo->defer((string)$r['id'],'accepted',$now+300);
                     $key=($response['outcome']??'')==='accepted'?'accepted':(($response['outcome']??'')==='unknown'?'unknown':'errors');$stats[$key]++;
@@ -318,7 +331,7 @@ final class ModeledConversionValueExport
             }
             if(method_exists($api,'modeledValueReport'))$stats['metrika_report']=$api->modeledValueReport((int)$s['activated_at_unix'],$now);
         }catch(Throwable $ignoredReport){ /* Keep fixed unavailable, never a fabricated zero. */ }
-        // Finite GET-only evidence follows ordinary financial work and cannot alter its decisions.
+        // Captures follow this financial cycle; only a later normal READY selection may claim a completed positive relation.
         $self->runFiniteEvidence($api,$now,$gate,$clock);
         $self->runRecoveryEvidence($api,$now,$gate,$clock,$stats['metrika_report']);
         if($self->persistTickReceipt($stats,$failure,$now)){
@@ -328,6 +341,7 @@ final class ModeledConversionValueExport
             catch(Throwable $ignoredTracker){ /* A separate source observation cannot change committed financial work. */ }
             try{$self->runRetainedTrackerEvidence($lookup,self::observedAt($clock,$now),$gate,true);}
             catch(Throwable $ignoredKnown){ /* The finite known-ID question never changes committed financial outcomes. */ }
+            $self->runKnownRelationEvidence($lookup,$api,$now,$gate,$clock);
         }
         // Private counts stay in the DB; ordinary diagnostic logs get technical state only.
         return ['status'=>$stats['errors']?'degraded':'running','contract'=>ModeledConversionValueContract::VERSION];
@@ -562,6 +576,60 @@ final class ModeledConversionValueExport
         $ready=$r['value_ready_at_unix']??null;
         return (is_int($ready)||is_string($ready))&&preg_match('/\A[1-9][0-9]{8,11}\z/D',(string)$ready)===1&&(int)$ready<=$now;
     }
+
+    /** Replace one original subject inside the existing 25-user source budget. */
+    private function reserveKnownRelation(object $lookup,mixed $api,array $users,array $rows,int $now,callable $gate):array
+    {
+        if($api!==null&&!is_object($api))return $users;
+        if($api===null&&(!defined('METRIKA_COUNTER_ID')||(string)METRIKA_COUNTER_ID!=='98615635'||!defined('METRIKA_OAUTH_TOKEN')))return $users;
+        if($this->retainedTrackerReservation!==null||$this->retainedKnownReservation!==null||$this->finiteFrame===null
+            ||!method_exists($lookup,'retainedClickRehydrate')||count(array_unique($users))>MaxTrackerLookupProtocol::MAX_USERS
+            ||!method_exists($api??MetrikaOfflineClient::class,'retainedIdentityVisitBase'))return $users;
+        try{
+            $s=self::settings($this->pdo);$raw=$s['last_receipt_json']??null;
+            if(!is_string($raw)||strlen($raw)>8192||!str_starts_with(ltrim($raw),'{'))return $users;
+            $receipt=json_decode($raw,true,32,JSON_THROW_ON_ERROR);$frame=$receipt['finite_visit_evidence']??null;
+            $ns=ModeledConversionProfiles::assessmentNamespace();$ledger=new ModeledConversionKnownYclidRelation($this->pdo);
+            foreach($this->finiteRows as$row){
+                if(!$this->knownTrackerReady($row,$now)||!$this->finiteEligible($row,$gate))continue;
+                $b=ModeledConversionRetainedTrackerIdentityEvidence::knownBinding($frame,$row,$ns,$now);
+                if($b===null||!in_array($b['index'],[1,2],true))continue;
+                $saved=$receipt[$b['key']]??null;
+                if(ModeledConversionRetainedTrackerIdentityEvidence::knownRehydratePlan($saved,$frame,$row,$ns,$now)===null
+                    ||$ledger->read((string)$row['id'])!==null)continue;
+                $uid=$row['external_user_id'];if(!in_array($uid,$users,true))continue;$seen=false;$conflict=false;
+                foreach($rows as$current)if($current['platform']==='max'&&$current['external_user_id']===$uid){
+                    if((string)$current['id']!==(string)$row['id']){$conflict=true;break;}$seen=true;
+                }
+                if(!$seen||$conflict)continue;
+                $this->knownRelationReservation=['row'=>$row,'saved'=>$saved,'frame'=>$frame,'namespace'=>$ns];
+                return array_values(array_filter($users,static fn(string $user):bool=>$user!==$uid));
+            }
+        }catch(Throwable $ignored){/* Missing unapplied evidence schema never changes the ordinary financial lane. */}
+        return $users;
+    }
+
+    /** No send here: only the one reserved evidence capture, after the current financial cycle. */
+    private function runKnownRelationEvidence(mixed $lookup,mixed $api,int $tick,callable $gate,callable $clock):void
+    {
+        $r=$this->knownRelationReservation;
+        if($r===null||!is_object($lookup)||!is_object($api)||$this->pdo->inTransaction()
+            ||count($this->ordinaryLookupUsers)+1>MaxTrackerLookupProtocol::MAX_USERS
+            ||in_array($r['row']['external_user_id'],$this->ordinaryLookupUsers,true))return;
+        try{
+            $allow=function()use($r,$gate):bool{
+                try{
+                    $q=$this->pdo->prepare('SELECT * FROM max_channel_conversion_outbox WHERE id=? LIMIT 1');
+                    $q->execute([$r['row']['id']]);$current=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+                    return is_array($current)&&$this->eligible($current,$gate);
+                }catch(Throwable $ignored){return false;}
+            };
+            $ledger=new ModeledConversionKnownYclidRelation($this->pdo);
+            $ledger->captureOnce($r['saved'],$r['frame'],$r['row'],$r['namespace'],$lookup,$api,
+                self::observedAt($clock,$tick),$clock,$allow);
+        }catch(Throwable $ignored){/* Every started phase retains its durable once intent. */}
+    }
+
     /** One case-bound replacement; it never adds a second call for the same logical user. */
     private function reserveKnownTracker(object $lookup,array $users,array $rows,int $now):array
     {
@@ -982,6 +1050,66 @@ final class ModeledConversionValueExport
         $q=$this->pdo->prepare("SELECT ".$expr." FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND platform=? AND conversation_id=? ORDER BY id DESC LIMIT 1");
         $q->execute([$r['platform'],$r['conversation_id']]);return $q->fetchColumn()==='allowed';
     }
+
+    /** Private completed proof only. The public projection never grants financial permission. */
+    private function knownRelationCandidate(array $row,int $now,?array $settings=null,bool $locked=false):?array
+    {
+        try{
+            $settings??=self::settings($this->pdo);$raw=$settings['last_receipt_json']??null;
+            if(!is_array($settings)||!is_string($raw)||strlen($raw)>8192||!str_starts_with(ltrim($raw),'{'))return null;
+            $receipt=json_decode($raw,true,32,JSON_THROW_ON_ERROR);$frame=$receipt['finite_visit_evidence']??null;
+            $ns=ModeledConversionProfiles::assessmentNamespace();
+            $binding=ModeledConversionRetainedTrackerIdentityEvidence::knownBinding($frame,$row,$ns,$now);
+            if($binding===null||!in_array($binding['index'],[1,2],true))return null;
+            $lock=$locked&&$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
+            $q=$this->pdo->prepare('SELECT * FROM '.ModeledConversionKnownYclidRelation::TABLE
+                .' WHERE purpose=? AND outbox_id=? LIMIT 1'.$lock);
+            $q->execute([ModeledConversionKnownYclidRelation::PURPOSE,$row['id']]);$stored=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+            return ModeledConversionKnownYclidRelation::dispatchCandidate(
+                $stored,$receipt[$binding['key']]??null,$frame,$row,$settings,$ns,$now);
+        }catch(Throwable $ignored){return null;}
+    }
+
+    /** The canonical outbox owner claims the same native event; no second sender or event exists. */
+    private function claimKnownRelation(array $expected,array $proof,string $token,int $tick,callable $clock,callable $gate):?array
+    {
+        $p=$this->pdo;
+        if($p->inTransaction())return null;
+        try{
+            if($p->beginTransaction()!==true)throw new RuntimeException('relation_transaction_unconfirmed');$lock=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
+            $s=$p->query("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'".$lock)->fetch(PDO::FETCH_ASSOC);
+            $q=$p->prepare('SELECT * FROM max_channel_conversion_outbox WHERE id=? LIMIT 1'.$lock);
+            $q->execute([$expected['id']]);$row=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+            $at=self::observedAt($clock,$tick);
+            if(!is_array($s)||!is_array($row)||!$this->eligible($row,$gate)
+                ||!(new ModeledConversionPriceContinuity($p))->maySend($row)){
+                $p->rollBack();return null;
+            }
+            // Settings -> original outbox -> derived proof is the shared lock order.
+            $current=$this->knownRelationCandidate($row,$at,$s,true);
+            if($current===null||$current['outbox_id']!==(string)$expected['id']
+                ||$current['event_ref']!==$proof['event_ref']||$current['client_id']!==$proof['client_id']
+                ||!hash_equals($current['proof_sha256'],$proof['proof_sha256'])
+                ||!ModeledConversionAttributionWindow::assess($current['visit_report'],(int)$row['event_unix'],$at)['allowed']){
+                $p->rollBack();return null;
+            }
+            $collision=$p->prepare("SELECT id FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635'"
+                ." AND transport_target=? AND client_id=? AND event_unix=? AND id<>? AND value_rub>0"
+                ." AND ((upload_id IS NOT NULL AND upload_id<>'') OR state IN ('uploading','unknown')) LIMIT 1");
+            $collision->execute([ModeledConversionValueContract::TARGET,$current['client_id'],$row['event_unix'],$row['id']]);
+            $hasCollision=$collision->fetchColumn()!==false;$collision->closeCursor();
+            if($hasCollision){$p->rollBack();return null;}
+            [$where,$params]=$this->fixedPairSqlGuard($row,false);
+            $claim=$p->prepare("UPDATE max_channel_conversion_outbox SET client_id=?,state='uploading',claim_token=?,claimed_at_unix=?,attempts=attempts+1"
+                ." WHERE id=? AND state='ready' AND target=? AND transport_target=? AND value_rub=?".$where);
+            $claim->execute([$current['client_id'],$token,$at,$row['id'],$row['target'],ModeledConversionValueContract::TARGET,$row['value_rub'],...$params]);
+            if($claim->rowCount()!==1){$p->rollBack();return null;}
+            $wire=$row;$wire['client_id']=$current['client_id'];
+            // Lost commit acknowledgement returns no POST permission; existing recovery retains UNKNOWN.
+            if($p->commit()!==true)throw new RuntimeException('relation_claim_unconfirmed');return $wire;
+        }catch(Throwable $ignored){if($p->inTransaction())$p->rollBack();return null;}
+    }
+
     /** Reserve ordinary old-source READY users inside the existing single lookup and 25-user ceiling. */
     private function ordinaryReadyLookupRows(int $now,callable $gate,array $reserved):array
     {
@@ -1449,7 +1577,8 @@ final class ModeledConversionValueExport
             $where.=' AND attempts=?';$values[]=$row['attempts'];
             if($row['claimed_at_unix']===null)$where.=' AND claimed_at_unix IS NULL';
             else{$where.=' AND claimed_at_unix=?';$values[]=$row['claimed_at_unix'];}
-            $where.=$mysql?' AND BINARY last_error=BINARY ?':' AND last_error COLLATE BINARY=? COLLATE BINARY';$values[]=$row['last_error'];
+            if($row['last_error']===null)$where.=' AND last_error IS NULL';
+            else{$where.=$mysql?' AND BINARY last_error=BINARY ?':' AND last_error COLLATE BINARY=? COLLATE BINARY';$values[]=$row['last_error'];}
         }
         if(!$pending)foreach(['value_ready_at_unix','client_id','tracker_record_id','tracker_observed_unix']as$key){
             $where.=$mysql?' AND BINARY '.$key.'=BINARY ?':' AND '.$key.' COLLATE BINARY=? COLLATE BINARY';$values[]=$row[$key];
