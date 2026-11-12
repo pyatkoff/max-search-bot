@@ -8,7 +8,56 @@ Primary language with the user: Russian.
 
 Read this file first. Then read `AGENTS.md` and only the durable documents relevant to the selected slice.
 
-## Current blocker and forward migration repair — 2026-11-12
+## AppleService39 advertising coverage — 2026-11-12
+
+Current owner scope is **posts → feed → MAX miniapp → exact native post**.
+The owner explicitly requested the missing catalogue models and main services,
+including the already published battery and front-glass posts. Manager and
+conversion work remains deferred. Use only server tools; the owner declined a
+Mac/browser exception for MAX acceptance. Do not invent a signed client result.
+
+The prior blocker below is historical and resolved: PR #1495 installed as
+740b0ca5d72a3eef709a3e083ca71de4298fd01f via original Deploy
+43123450049/attempt1 with the real forward105/explicit104-adoption receipts and
+all mandatory gates. Its original closer released the same publisher. The
+approved tour-max PR #241 relay installed through original push
+43124869943/attempt1; its accepted host manifest is
+8c62ce6bac754167997a4283444d51a388e3cfeef04294b85fb90bf9e99e0ea2.
+Those are evidence of the original eight-offer relay, not proof of this expansion.
+At preparation, current application/repository d1c79f5753d7d254d17921072f5ce59520082f4d
+is accepted via Deploy43170089458/attempt1 and original closer43171060351.
+
+This checked source adds the finite coverage-v1 revision to the existing
+publisher/Store:27 model cards,10 confirmed services and two navigation cards.
+It preserves all152 original publication operations. One exact approved neutral
+repair cover is deliberately shared; the original pinned menu receives only a
+text update with two real navigation links. Expected completed state is69 posts,
+193 operations and67 advertising offers, including all33 catalogue model cards.
+These numbers are targets until the actual provider readbacks prove them.
+
+New feed entries explicitly wait for their own verified create receipts.
+Existing30 posts are required; no duplicate publication is needed to include
+their original addresses. A corrupt verified URL, source mismatch or database
+failure still stops export. Price fields remain empty pending confirmed prices.
+The same generic miniapp context/owner verification resolves every offer.
+
+After exact-head CI/review, use fresh canonical admission and the same SOURCE
+6722718562 / existing owned publisher6650664504. Bind the PR before merge.
+Require normal original installation, every technical tail and automatic closure.
+Only then may one original creation of the fixed
+ops/appleservice39-coverage-20261112 branch at the accepted current main invoke
+the existing publisher workflow. Its canonical resolver authenticates the real
+push/ref/source/attempt1 and accepted application before credentials. No fake
+main environment, workflow dispatch substitute, installer rerun, second queue,
+publisher or credential is introduced. Unknown provider writes stay held.
+
+After actual69/69 native readbacks and upstream67/67 verified destinations,
+update the existing branded relay CSV through a checked tour-max successor and
+its same guarded host route. Prove all public images/feed rows, source contexts
+and exact native addresses. Keep real signed-MAX client acceptance distinct from
+server proof. No test advertising identities, customer inquiries or ad spending.
+
+## Historical blocker and forward migration repair — 2026-11-12
 
 The authorised replacement PR #1494 merged as
 `ad9b93796cb397472bb578146c538d70d9103226`. Its original push Deploy

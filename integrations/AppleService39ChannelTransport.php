@@ -116,7 +116,8 @@ final class AppleService39ChannelTransport
     private static function body(array $body): array
     {
         if (!is_string($body['text'] ?? null) || mb_strlen($body['text'], 'UTF-8') > 4000
-            || array_diff(array_keys($body), ['text','attachments','format']) !== []
+            || array_diff(array_keys($body), ['text','attachments','format','notify']) !== []
+            || array_key_exists('notify', $body) && $body['notify'] !== false
             || isset($body['format']) && $body['format'] !== 'html' || isset($body['attachments']) && !is_array($body['attachments'])) throw new RuntimeException('invalid_channel_body');
         return $body;
     }

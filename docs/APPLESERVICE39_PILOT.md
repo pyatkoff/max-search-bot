@@ -365,3 +365,50 @@ authority predicate, missing media fields, arbitrary/changed imageIDs, a lost PU
 ACK, later token coincidence, intervening corruption and byte-for-byte immutable
 attempt/request/observation retention. Synthetic proofs are restored or removed
 in `finally` and are not live approvals.
+
+
+## Coverage-v1: missing catalogue cards and advertising offers
+
+The fixed reviewed source resources/appleservice39/coverage-v1/manifest.json
+adds27 model cards and10 confirmed basic services, then two navigation cards.
+Together with the30 accepted originals this targets69 native posts and67 feed
+offers. All33 models in the price catalogue have their own model card; the old
+battery/front-glass and model×repair posts enter the feed using existing verified
+create addresses. No unsupported price, stock, original-part or repair-time
+promise is added. The two new navigation cards are excluded from advertising.
+
+All39 new posts deliberately share the existing approved neutral repair cover
+with SHA256 2f580bbf4f0963f5a37be34db455527aa8f650597801b7d0b6e81dce790a8681.
+Each still has an exact model/service caption, real text navigation and one
+contextual bot CTA. The original menu update sends text/format only, retaining
+its MID, URL, native image, keyboard and pin. The original152 Store rows remain
+immutable. One upload,39 creates and one menu edit produce41 new single-attempt
+operations. Shared photo IDs are permitted only for this exact same asset;
+native image identity still requires the original acknowledged POST witness or
+the exact own upload token, never a photo ID alone.
+
+The existing publisher has coverage_inspect, coverage_prepare, coverage_apply
+and coverage_reconcile. It authenticates the complete accepted predecessor and
+current project/source/bot/channel/authority before every claim. Exact canonical
+requests are also enforced by the Store. A lost create MID or upload stays
+UNKNOWN. GET reconciliation may accept only an already recorded own MID with
+complete original evidence; it cannot search by similar content or resend.
+
+The same existing publisher workflow supports one fixed original branch-creation
+push at ops/appleservice39-coverage-20261112 after this source is accepted and
+installed. tools/deployment_release.js resolve-publication-operation authenticates
+the real event, ref, workflow, active attempt1 and current accepted application
+before credentials. Ordinary manual inputs retain their previous guards.
+No new workflow, queue, secret, alternate installer or fake main context exists.
+
+The shared feed supports an explicit boolean withhold_until_verified for new
+configuration entries. Only genuinely pending publication evidence is withheld;
+verified corruption, wrong owner/source and database failures remain errors.
+Existing entries stay required. This allows normal checked installation before
+first publication, with new offers appearing only after their verified creates.
+The final branded static CSV must be refreshed from the completed upstream feed
+through the existing checked host installer. Installing this source alone is not
+publication, host refresh, or signed-MAX webview acceptance.
+
+Scope remains feed → miniapp → native post. Manager policy, conversions, goals,
+credentials and customer messages are unchanged and outside this slice.

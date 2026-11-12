@@ -268,6 +268,7 @@ async function gitBridge(){
     equal(baseline.release.baseline_eligible,true,'first full real release becomes the accepted baseline');
     await connectionSetupConsumer(f, a, a);
     await pilotPublisherConsumer(f, a, a);
+    await publicationOperationConsumer(f, a, a);
     const nextRun={...context,event:'push'};
     const next=R.releaseRecord(receipt(a),nextRun,{kind:'application_unchanged',baseline:baseline.reference,
       content:R.contentSummary(proposal.comparison,a,r),intent:proposal.comparison.intent_scan,observation:observation(a)});
@@ -319,6 +320,7 @@ async function gitBridge(){
       'scheduled monitoring resumes against original application after terminal acceptance');
     await connectionSetupConsumer(f, r, a);
     await pilotPublisherConsumer(f, r, a);
+    await publicationOperationConsumer(f, r, a);
     equal(f.calls.filter(c=>c.method==='PATCH'&&c.path.endsWith('/issues/comments/900')).length,2,
       'two independent waves each make exactly one terminal mutation');
     equal(f.calls.filter(c=>c.path.includes('/actions/artifacts/')).length,0,
@@ -435,6 +437,36 @@ async function pilotPublisherConsumer(f,repositorySha,applicationSha){
   await refuses(()=>R.resolveConsumer({env,event,api:f.api}),'workflow_not_active','historical pilot runs grant no new authority');
   f.runs.delete(run.id);
 }
+async function publicationOperationConsumer(f,repositorySha,applicationSha){
+  const branch='ops/appleservice39-coverage-20261112',ref='refs/heads/'+branch;
+  const workflow=R.PREFIX+'publish-appleservice39-pilot.yml';
+  const run={...copy(f.wave.parent),id:6502,path:workflow,event:'push',head_branch:branch,status:'in_progress',conclusion:null};
+  f.runs.set(run.id,run);
+  const event={repository:{full_name:R.REPOSITORY},ref,after:repositorySha,before:'0'.repeat(40),created:true,deleted:false,forced:false};
+  const env={...consumerEnv(run,workflow,'push','publish'),GITHUB_REF:ref,GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+workflow+'@'+ref};
+  const before=f.calls.length;
+  const result=await R.resolvePublicationOperation({env,event,api:f.api});
+  equal([result.repository_sha,result.application_sha,result.perform_actions,result.ready],
+    [repositorySha,applicationSha,true,true],'original fixed coverage branch creation resolves the actually accepted application');
+  equal(f.calls.slice(before).every(c=>c.method==='GET'),true,'publication source admission is read-only before credentials');
+  for(const [label,patch] of [['not created',{created:false}],['forced',{forced:true}],['deleted',{deleted:true}],
+    ['existing branch update',{before:'b'.repeat(40)}],['other source',{after:'b'.repeat(40)}],['main event',{ref:'refs/heads/main'}]]){
+    await refuses(()=>R.resolvePublicationOperation({env,event:{...event,...patch},api:f.api}),
+      'untrusted_publication_operation','fixed publication rejects '+label);
+  }
+  for(const [label,patch] of [['attempt2',{GITHUB_RUN_ATTEMPT:'2'}],['other job',{GITHUB_JOB:'setup'}],
+    ['fake main',{GITHUB_REF:'refs/heads/main'}],['manual dispatch',{GITHUB_EVENT_NAME:'workflow_dispatch'}],
+    ['foreign workflow',{GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.PREFIX+'other.yml@'+ref}]]){
+    await refuses(()=>R.resolvePublicationOperation({env:{...env,...patch},event,api:f.api}),
+      'untrusted_publication_operation','fixed publication refuses '+label);
+  }
+  f.main='f'.repeat(40);
+  await refuses(()=>R.resolvePublicationOperation({env,event,api:f.api}),'main_changed','coverage cannot run a stale accepted checkout');
+  f.main=repositorySha;run.status='completed';run.conclusion='success';
+  await refuses(()=>R.resolvePublicationOperation({env,event,api:f.api}),'workflow_not_active','historical coverage success grants no replay');
+  f.runs.delete(run.id);
+}
+
 async function resolveSchedule(f,eventName='schedule'){
   const workflow=R.PREFIX+'modeled-conversion-monitor.yml';
   const run={...copy(f.wave.parent),id:5000,path:workflow,event:eventName,status:'in_progress',conclusion:null};

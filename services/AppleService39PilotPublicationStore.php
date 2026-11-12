@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/AppleService39CoverageRevision.php';
 
 /** Durable one-attempt state; no provider call and no runtime schema creation. */
 final class AppleService39PilotPublicationStore
@@ -50,25 +51,30 @@ final class AppleService39PilotPublicationStore
     }
 
     /** Read-only public permalink; no private request/outcome payload is selected. */
-    public function verifiedPostUrl(string $post, int $sourceId): ?string
+    public function verifiedPostUrl(string $post, int $sourceId, bool $strict = false): ?string
     {
         if ($sourceId <= 0 || preg_match('/\A[a-z][a-z0-9_-]{0,55}\z/D', $post) !== 1) return null;
-        $query = $this->pdo->prepare("SELECT o.external_message_id,o.public_url FROM appleservice39_pilot_operations o
+        $query = $this->pdo->prepare("SELECT o.external_message_id,o.public_url,o.state,o.write_attempts FROM appleservice39_pilot_operations o
             JOIN appleservice39_pilot_campaigns c ON c.campaign_key=o.campaign_key
             WHERE c.campaign_key=? AND c.project_key=? AND c.bot_key=? AND c.channel_id=? AND c.source_id=?
-            AND o.post_key=? AND o.operation='create' AND o.state='verified' AND o.write_attempts=1 LIMIT 1");
+            AND o.post_key=? AND o.operation='create' LIMIT 1");
         $query->execute(['appleservice39-pilot-v1','appleservice39','id390521129062_bot','-80917954947727',$sourceId,$post]);
         $row = $query->fetch(PDO::FETCH_ASSOC);
-        if (!$row || !is_string($row['external_message_id'])
+        if (!$row || $row['state'] !== 'verified') return null;
+        if ((int)$row['write_attempts'] !== 1 || !is_string($row['external_message_id'])
             || preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/D', $row['external_message_id']) !== 1
             || !is_string($row['public_url'])
-            || preg_match('~\Ahttps://max\.ru/channel_appleservice39ru/[A-Za-z0-9_-]{1,191}\z~D', $row['public_url']) !== 1) return null;
+            || preg_match('~\Ahttps://max\.ru/channel_appleservice39ru/[A-Za-z0-9_-]{1,191}\z~D', $row['public_url']) !== 1) {
+            if ($strict) throw new RuntimeException('publication_integrity_error');
+            return null;
+        }
         return $row['public_url'];
     }
 
     public function prepare(string $post, string $operation, array $request): array
     {
-        if (!preg_match('/\A[a-z][a-z0-9_-]{0,55}\z/D', $post) || !in_array($operation, ['upload','create','links','pin','landing_upload','landing_edit','catalogue_v1','search_v1_upload','search_v1_edit'], true)) throw new RuntimeException('invalid_pilot_operation');
+        if (!preg_match('/\A[a-z][a-z0-9_-]{0,55}\z/D', $post) || !in_array($operation, ['upload','create','links','pin','landing_upload','landing_edit','catalogue_v1','search_v1_upload','search_v1_edit','coverage_upload','coverage_menu'], true)) throw new RuntimeException('invalid_pilot_operation');
+        if (AppleService39CoverageRevision::isOperation($post, $operation, $request)) $this->validateCoverageRequest($post, $operation, $request);
         if (self::isSearchOperation($post, $operation, $request)) $this->validateSearchRequest($post, $operation, $request);
         $json = self::json($request); $hash = hash('sha256', $json);
         $row = $this->operation($post, $operation);
@@ -90,6 +96,12 @@ final class AppleService39PilotPublicationStore
     public function claim(array $row): bool
     {
         if ($this->pdo->inTransaction()) throw new RuntimeException('pilot_requires_autocommit');
+        if (AppleService39CoverageRevision::isOperation($row['post_key'], $row['operation'], $row['request'])) {
+            $this->validateCoverageRequest($row['post_key'], $row['operation'], $row['request']);
+            $current = $this->operation($row['post_key'], $row['operation']);
+            if (!$current || (int)$current['id'] !== (int)$row['id'] || $current['request'] !== $row['request']
+                || $current['payload_sha256'] !== $row['payload_sha256']) throw new RuntimeException('pilot_operation_changed');
+        }
         if (self::isSearchOperation($row['post_key'], $row['operation'], $row['request'])) {
             $this->validateSearchRequest($row['post_key'], $row['operation'], $row['request']);
             $current = $this->operation($row['post_key'], $row['operation']);
@@ -206,6 +218,17 @@ final class AppleService39PilotPublicationStore
                 || !is_string($current['public_url'])
                 || preg_match('~\Ahttps://max\.ru/channel_appleservice39ru/[A-Za-z0-9_-]{1,191}\z~D', $current['public_url']) !== 1) {
                 throw new RuntimeException('search_image_receipt_required');
+            }
+        }
+        if ($state === 'verified' && AppleService39CoverageRevision::isOperation($current['post_key'], $current['operation'], $current['request'])) {
+            $this->validateCoverageRequest($current['post_key'], $current['operation'], $current['request']);
+            if ($current['operation'] === AppleService39CoverageRevision::UPLOAD) $this->coverageUpload($outcome);
+            else {
+                if (!is_array($receipt) || ($outcome['readback'] ?? null) !== true
+                    || ($outcome['revision_sha256'] ?? null) !== $current['request']['revision_sha256']
+                    || !is_string($current['public_url'])
+                    || !preg_match('~\\Ahttps://max\\.ru/channel_appleservice39ru/[A-Za-z0-9_-]{1,191}\\z~D', $current['public_url'])) throw new RuntimeException('coverage_image_receipt_required');
+                $this->validateCoverageImageReceipt($current, $receipt);
             }
         }
         if (array_key_exists('image_receipt', $outcome) && $outcome['image_receipt'] !== $receipt) throw new RuntimeException('image_receipt_changed');
@@ -334,6 +357,143 @@ final class AppleService39PilotPublicationStore
         $query->execute([self::json($outcome),gmdate('Y-m-d H:i:s'),(int)$row['id'],$row['payload_sha256'],$receipt['message_id'],$current['outcome_json']]);
         $saved = $this->operation($row['post_key'], $row['operation']);
         if (!$saved || ($saved['outcome']['image_receipt'] ?? null) !== $receipt) throw new RuntimeException('image_receipt_storage_unknown');
+    }
+
+
+    /** The same immutable 152 predecessor rows; tokens stay private, only a digest is bound. */
+    public function coverageParentDigest(): string
+    {
+        $parents = [];
+        foreach ($this->rows() as $row) {
+            if (AppleService39CoverageRevision::isOperation($row['post_key'], $row['operation'], $row['request'])) continue;
+            if ($row['state'] !== 'verified' || (int)$row['write_attempts'] !== 1) throw new RuntimeException('coverage_parent_incomplete');
+            $parents[] = $row;
+        }
+        if (count($parents) !== 152) throw new RuntimeException('coverage_parent_incomplete');
+        return hash('sha256', json_encode($parents, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    }
+
+    private function coverageAddresses(): array
+    {
+        $out = []; $mids = [];
+        foreach ($this->rows() as $row) {
+            if ($row['operation'] !== 'create' || $row['state'] !== 'verified') continue;
+            if ((int)$row['write_attempts'] !== 1 || !is_string($row['external_message_id'])
+                || !preg_match('/\\A[A-Za-z0-9_.-]{1,191}\\z/D', $row['external_message_id']) || !is_string($row['public_url'])
+                || !preg_match('~\Ahttps://max\.ru/channel_appleservice39ru/[A-Za-z0-9_-]{1,191}\z~D', $row['public_url'])
+                || isset($mids[$row['external_message_id']]) || in_array($row['public_url'], $out, true)) {
+                throw new RuntimeException('coverage_publication_identity_changed');
+            }
+            $out[$row['post_key']] = $row['public_url']; $mids[$row['external_message_id']] = true;
+        }
+        return $out;
+    }
+
+    /** Pure exact request from accepted source and this Store's own verified receipts. */
+    public function coverageRequest(string $post, string $operation): array
+    {
+        $revision = new AppleService39CoverageRevision();
+        $revision->artwork();
+        $campaign = $this->campaign();
+        if (!$campaign || $campaign['project_key'] !== 'appleservice39'
+            || $campaign['bot_key'] !== 'id390521129062_bot' || $campaign['channel_id'] !== '-80917954947727'
+            || $campaign['manifest_sha256'] !== AppleService39PilotManifest::installed()->sha256()) {
+            throw new RuntimeException('coverage_parent_incomplete');
+        }
+        $request = ['revision'=>AppleService39CoverageRevision::KEY, 'revision_sha256'=>$revision->sha256(),
+            'post_id'=>$post, 'source_sha256'=>$revision->assetSha(), 'parent_operations_sha256'=>$this->coverageParentDigest()];
+        if ($operation === AppleService39CoverageRevision::UPLOAD) {
+            if ($post !== AppleService39CoverageRevision::COVER) throw new RuntimeException('invalid_coverage_operation');
+            return $request;
+        }
+        $addresses = $this->coverageAddresses();
+        if ($operation === AppleService39CoverageRevision::MENU) {
+            if ($post !== 'menu') throw new RuntimeException('invalid_coverage_operation');
+            $parent = $this->operation('menu', 'search_v1_edit');
+            $image = $parent['outcome']['image_receipt'] ?? null;
+            if (!$parent || $parent['state'] !== 'verified' || (int)$parent['write_attempts'] !== 1
+                || !is_array($image) || $image['source_sha256'] !== $revision->assetSha()
+                || ($addresses['menu'] ?? null) !== $parent['public_url']) throw new RuntimeException('coverage_parent_incomplete');
+            $plan = $revision->menuPlan($addresses);
+            return $request + ['parent_operation_id'=>(int)$parent['id'], 'parent_request_sha256'=>$parent['payload_sha256'],
+                'mid'=>$parent['external_message_id'], 'url'=>$parent['public_url'], 'preserved_photo_id'=>$image['photo_id'],
+                'parent_image_receipt_sha256'=>hash('sha256', self::json($image)),
+                'body'=>$plan['body'], 'native_text'=>$plan['native_text'], 'native_markup'=>$plan['native_markup']];
+        }
+        if ($operation !== 'create' || !isset($revision->posts()[$post])) throw new RuntimeException('invalid_coverage_operation');
+        $upload = $this->operation(AppleService39CoverageRevision::COVER, AppleService39CoverageRevision::UPLOAD);
+        if (!$upload || $upload['state'] !== 'verified' || (int)$upload['write_attempts'] !== 1
+            || $upload['request'] !== $this->coverageRequest(AppleService39CoverageRevision::COVER, AppleService39CoverageRevision::UPLOAD)) {
+            throw new RuntimeException('coverage_images_not_prepared');
+        }
+        $this->coverageUpload($upload['outcome']);
+        $plan = $revision->plan($post, $upload['outcome'], $addresses);
+        return $request + ['upload_operation_id'=>(int)$upload['id'], 'upload_request_sha256'=>$upload['payload_sha256'],
+            'upload_token_sha256'=>hash('sha256', $upload['outcome']['token']),
+            'body'=>$plan['body'], 'native_text'=>$plan['native_text'], 'native_markup'=>$plan['native_markup']];
+    }
+
+    private function validateCoverageRequest(string $post, string $operation, array $request): void
+    {
+        if ($request !== $this->coverageRequest($post, $operation)) throw new RuntimeException('invalid_coverage_operation');
+    }
+
+    private function coverageUpload(array $outcome): void
+    {
+        if (array_keys($outcome) !== ['photo_id','token'] || !is_string($outcome['photo_id'])
+            || !preg_match('/\A[0-9]{1,19}\z/D', $outcome['photo_id']) || !is_string($outcome['token'])
+            || $outcome['token'] === '' || strlen($outcome['token']) > 4096
+            || preg_match('/[\x00-\x20\x7f]/', $outcome['token'])) throw new RuntimeException('invalid_coverage_upload');
+        foreach ($this->rows() as $other) {
+            if (!in_array($other['operation'], ['upload','landing_upload','search_v1_upload'], true)
+                || ($other['outcome']['token'] ?? null) !== $outcome['token']) continue;
+            // Deliberate sharing is allowed only for this exact already-approved neutral image.
+            if (($other['request']['source_sha256'] ?? null) !== (new AppleService39CoverageRevision())->assetSha()) {
+                throw new RuntimeException('coverage_upload_collision');
+            }
+        }
+    }
+
+    private function validateCoverageImageReceipt(array $row, array $receipt): void
+    {
+        $r = $row['request'];
+        $base = ['kind'=>$receipt['kind'] ?? null, 'message_id'=>$row['external_message_id'],
+            'photo_id'=>$receipt['photo_id'] ?? null, 'source_sha256'=>$r['source_sha256']];
+        if ($row['operation'] === 'create') {
+            if (!in_array($base['kind'], ['create_response','exact_upload_token'], true)) throw new RuntimeException('invalid_coverage_image_receipt');
+            $expected = $base + ['upload_token_sha256'=>$r['upload_token_sha256'],
+                'request_sha256'=>$row['payload_sha256'], 'revision_sha256'=>$r['revision_sha256']];
+        } elseif ($row['operation'] === AppleService39CoverageRevision::MENU) {
+            if ($base['kind'] !== 'preserved_image' || $base['photo_id'] !== $r['preserved_photo_id']) throw new RuntimeException('invalid_coverage_image_receipt');
+            $expected = $base + ['request_sha256'=>$row['payload_sha256'], 'revision_sha256'=>$r['revision_sha256'],
+                'parent_operation_id'=>$r['parent_operation_id'], 'parent_image_receipt_sha256'=>$r['parent_image_receipt_sha256']];
+        } else throw new RuntimeException('invalid_coverage_image_receipt');
+        if ($receipt !== $expected || !is_string($base['photo_id'])
+            || !preg_match('/\A[1-9][0-9]{0,18}\z/D', $base['photo_id'])) throw new RuntimeException('invalid_coverage_image_receipt');
+    }
+
+    public function rememberCoverageImageReceipt(array $row, array $receipt): void
+    {
+        if ($this->pdo->inTransaction()) throw new RuntimeException('pilot_requires_autocommit');
+        $current = $this->operation($row['post_key'], $row['operation']);
+        if (!$current || (int)$current['id'] !== (int)$row['id'] || $current['payload_sha256'] !== $row['payload_sha256']
+            || !AppleService39CoverageRevision::isOperation($current['post_key'], $current['operation'], $current['request'])
+            || !in_array($current['state'], ['write_started','unknown'], true) || (int)$current['write_attempts'] !== 1) {
+            throw new RuntimeException('invalid_coverage_image_receipt');
+        }
+        $this->validateCoverageRequest($current['post_key'], $current['operation'], $current['request']);
+        $this->validateCoverageImageReceipt($current, $receipt);
+        $old = $current['outcome']['image_receipt'] ?? null;
+        if ($old !== null) {
+            if ($old !== $receipt) throw new RuntimeException('image_receipt_changed');
+            return;
+        }
+        $outcome = $current['outcome']; $outcome['image_receipt'] = $receipt;
+        $q = $this->pdo->prepare("UPDATE appleservice39_pilot_operations SET outcome_json=?,updated_at=? WHERE id=? AND payload_sha256=? AND state IN ('write_started','unknown') AND write_attempts=1 AND external_message_id=? AND outcome_json=?");
+        $q->execute([self::json($outcome),gmdate('Y-m-d H:i:s'),(int)$row['id'],$row['payload_sha256'],$receipt['message_id'],$current['outcome_json']]);
+        if (($this->operation($row['post_key'], $row['operation'])['outcome']['image_receipt'] ?? null) !== $receipt) {
+            throw new RuntimeException('image_receipt_storage_unknown');
+        }
     }
 
     private function decode(array $row): array
