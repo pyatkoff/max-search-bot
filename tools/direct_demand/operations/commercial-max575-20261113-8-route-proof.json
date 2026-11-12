@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "kind": "root_authenticated_private_route_extension",
+  "operation": "commercial-max575-private-route-extension-20261113-8-install1",
+  "previous_count": 567,
+  "logical_hotels": 575,
+  "new_hotel_ids": [
+    948,
+    213,
+    7938,
+    1530,
+    818,
+    2569,
+    68661,
+    1112
+  ],
+  "publication_summary_sha256": "80ea1bff315266110e36750c7b90592dd7304526c0ddc91f505a907e47d2e9b5",
+  "bound_read_sha256": "35a31cda1a58de3bf6155e0f5ea1ac41dcb22c8fe1be38ea6869cc793e4fe612",
+  "new_binding_tuples_sha256": "1b11a7bd2e00939e1eb2e0d64b22b22a49b08653a4249b02e3f6b83b955b93f7",
+  "route_receipt_sha256": "bfd17da29eb797aed2c268e25399197abe2719e9285605ab0e096c9bd1eb9079",
+  "route_manifest_projection_sha256": "1502585b1e9566576d655f36e97269bff8ae66813d6894388d4b2abc8d245d55",
+  "original_route_manifest_sha256": "a14335e7f0b145d57c46d1ccc64a4d5979782f61cf27ebb2ba50ecdf2e9bdd5a",
+  "original_route_map_sha256": "5c80abc56e4b575eb35577f883ce1c4a8072686d0bbe547017f8a8d883f0e1b0",
+  "original_route_module_sha256": "aecdaaed0e5c6e4597cbb6396b01142b01283bfd592dfc1def6b99253d765ec1",
+  "original_previous_map_sha256": "f32b749ec3a4f16e586aabaf761f1d9e70f6b9fc74493ab29fe50cc2e2e32805",
+  "verification": {
+    "full_map_checked": true,
+    "previous_rows_preserved": true,
+    "new_tuples_checked": true
+  },
+  "source": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 43319098194,
+    "run_attempt": 1,
+    "head_sha": "bcdbd6a1bca9971d0016a7e515fa6be3b31178cf",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "workflow_path": ".github/workflows/tgmini-identity-readonly.yml",
+    "candidate_artifact": {
+      "id": 13988579228,
+      "name": "commercial-max575-route-extension-candidate",
+      "zip_sha256": "386e73bd55da9ccff2034fecd78b3a03b9e713bf3f5cb4c4b5a1fbc262294fd8"
+    },
+    "result_artifact": {
+      "id": 13988409306,
+      "name": "commercial-max575-route-extension-install-result",
+      "zip_sha256": "192b05ab64fb0aed86a90f8e6a1edd571088324af2c8725aa690206ae545e1a7"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-channel-hotel-feeds-20261113-update8",
+  "expected_installed_sha": "1826ab71b6d75143f6a2d7f831533d16e59df90e",
+  "previous_count": 567,
+  "manifest_sha256": "a67a6f8cb0886248e65d4f8a4b524cc3727604901c93da2eeac2e38f6ea2bc3c",
+  "approval_sha256": "ba00b2ac16023ccc9505c29d70106ad7562abf4e301228ab9c52cdebc3ff791b",
+  "publisher": {
+    "repository": "pyatkoff/max-search-bot",
+    "run_id": 43318516170,
+    "run_attempt": 1,
+    "head_sha": "1e00958abab16e1a4e89cfb0331deab8e40bd43d",
+    "head_branch": "audit/content100-bot-publication-20261101",
+    "workflow_path": ".github/workflows/content100-bot-publication-20261101.yml",
+    "artifact": {
+      "id": 13988938068,
+      "name": "commercial-batch-20261113-8-publication-and-read",
+      "zip_sha256": "ba75343e030d2208341588613d6c66d613d59d9b507ec9cf03e351b149be4df3"
+    },
+    "publication_summary_sha256": "80ea1bff315266110e36750c7b90592dd7304526c0ddc91f505a907e47d2e9b5",
+    "bound_read_sha256": "35a31cda1a58de3bf6155e0f5ea1ac41dcb22c8fe1be38ea6869cc793e4fe612"
+  },
+  "route": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 43319098194,
+    "run_attempt": 1,
+    "head_sha": "bcdbd6a1bca9971d0016a7e515fa6be3b31178cf",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "workflow_path": ".github/workflows/tgmini-identity-readonly.yml",
+    "candidate_artifact": {
+      "id": 13988579228,
+      "name": "commercial-max575-route-extension-candidate",
+      "zip_sha256": "386e73bd55da9ccff2034fecd78b3a03b9e713bf3f5cb4c4b5a1fbc262294fd8"
+    },
+    "result_artifact": {
+      "id": 13988409306,
+      "name": "commercial-max575-route-extension-install-result",
+      "zip_sha256": "192b05ab64fb0aed86a90f8e6a1edd571088324af2c8725aa690206ae545e1a7"
+    },
+    "operation": "commercial-max575-private-route-extension-20261113-8-install1",
+    "map_sha256": "5c80abc56e4b575eb35577f883ce1c4a8072686d0bbe547017f8a8d883f0e1b0",
+    "module_sha256": "aecdaaed0e5c6e4597cbb6396b01142b01283bfd592dfc1def6b99253d765ec1",
+    "receipt_sha256": "bfd17da29eb797aed2c268e25399197abe2719e9285605ab0e096c9bd1eb9079",
+    "original_manifest_sha256": "a14335e7f0b145d57c46d1ccc64a4d5979782f61cf27ebb2ba50ecdf2e9bdd5a",
+    "manifest_projection_sha256": "1502585b1e9566576d655f36e97269bff8ae66813d6894388d4b2abc8d245d55",
+    "route_proof_sha256": "1ac766fc394c406aad9bcd17880ad80a639ce52e30dd3c907e2ec72aa20a34c1",
+    "source_method": "root_authenticated_private_artifacts"
+  }
+}
