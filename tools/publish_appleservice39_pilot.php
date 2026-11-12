@@ -23,11 +23,12 @@ function applePilotCheckout(string $root, string $expected): bool
 try {
     $mode = $argv[1] ?? '';
     if ($mode === '--help' && $argc === 2) {
-        echo "php tools/publish_appleservice39_pilot.php inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile|search_inspect|search_prepare|search_apply|search_reconcile --expected-sha=<accepted application SHA> --channel-id=<exact negative numeric ID>\n";
+        echo "php tools/publish_appleservice39_pilot.php inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile|search_inspect|search_prepare|search_apply|search_reconcile|coverage_inspect|coverage_prepare|coverage_apply|coverage_reconcile --expected-sha=<accepted application SHA> --channel-id=<exact negative numeric ID>\n";
         exit(0);
     }
     if (!in_array($mode, ['inspect','prepare','publish','finalize','pin','reconcile','landing_inspect','landing_prepare','landing_apply','landing_reconcile',
-        'search_inspect','search_prepare','search_apply','search_reconcile'], true) || $argc !== 4) throw new RuntimeException('fixed_operation_and_target_required');
+        'search_inspect','search_prepare','search_apply','search_reconcile',
+        'coverage_inspect','coverage_prepare','coverage_apply','coverage_reconcile'], true) || $argc !== 4) throw new RuntimeException('fixed_operation_and_target_required');
     $options = [];
     foreach (array_slice($argv, 2) as $argument) {
         if (!preg_match('/\A--(expected-sha|channel-id)=(.*)\z/D', $argument, $match) || isset($options[$match[1]])) throw new RuntimeException('fixed_operation_and_target_required');
@@ -52,7 +53,7 @@ try {
     };
     $publisher = new AppleService39PilotPublisher(ConversationDb::connection(), $manifest, $options['channel-id'],
         $provenance, null, null, new AppleService39CatalogueRevision($manifest),
-        str_starts_with($mode, 'search_') ? new AppleService39SearchIntentRevision($manifest) : null);
+        (str_starts_with($mode, 'search_') || str_starts_with($mode, 'coverage_')) ? new AppleService39SearchIntentRevision($manifest) : null);
     $result = $publisher->run($mode);
     $result['application_sha'] = $expected;
     echo json_encode($result, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL;
@@ -83,7 +84,13 @@ try {
         'search_images_not_prepared','search_link_address_missing','search_source_image_changed','search_source_image_invalid',
         'invalid_search_operation','invalid_search_upload_receipt','search_upload_token_collision',
         'search_native_image_evidence_required','invalid_search_image_receipt','search_image_receipt_required','search_image_collision',
-        'search_review_evidence_invalid'];
+        'search_review_evidence_invalid',
+        'coverage_source_changed','coverage_source_invalid','coverage_post_invalid','coverage_link_invalid','coverage_order_changed',
+        'coverage_catalogue_changed','coverage_models_changed','coverage_image_changed','coverage_upload_required','coverage_parent_changed',
+        'coverage_text_invalid','coverage_parent_incomplete','coverage_publication_identity_changed','invalid_coverage_operation',
+        'coverage_images_not_prepared','invalid_coverage_upload','coverage_upload_collision','invalid_coverage_image_receipt',
+        'coverage_image_receipt_required','coverage_operation_held','coverage_revision_changed','coverage_native_image_evidence_required',
+        'search_superseded'];
     $reason = in_array($error->getMessage(), $allowed, true) ? $error->getMessage() : 'pilot_operation_unavailable';
     echo json_encode(['ok'=>false,'state'=>'stopped','reason'=>$reason,'automatic_retry'=>false], JSON_UNESCAPED_SLASHES).PHP_EOL;
     exit(2);

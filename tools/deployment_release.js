@@ -273,9 +273,9 @@ function validateRelease(record, success = true) {
   return {record,installation,release:r};
 }
 
-function runIdentity(run,{id,attempt,head,workflow,event,completed=true}) {
+function runIdentity(run,{id,attempt,head,workflow,event,completed=true,branch='main'}) {
   requireValue(object(run)&&String(run.id)===String(id)&&run.run_attempt===attempt&&run.path===workflow
-    &&run.head_sha===head&&run.head_branch==='main'&&run.head_repository?.full_name===REPOSITORY
+    &&run.head_sha===head&&run.head_branch===branch&&run.head_repository?.full_name===REPOSITORY
     &&(!event||run.event===event)&&stamp(run.created_at),'untrusted_workflow_run');
   if(completed)requireValue(run.status==='completed'&&run.conclusion==='success','producer_not_successful');
   else requireValue(['queued','in_progress','waiting','pending','requested','completed'].includes(run.status)
@@ -914,6 +914,29 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
     return await finalResolution(proofApi,c,location,resolution(c.sha,c.sha,'installed'));
   }finally{metadataWait?.close();}
 }
+
+/** One fixed owner-authorised publication push, before any SSH/provider access. */
+async function resolvePublicationOperation({env,event,api}) {
+  const branch='ops/appleservice39-coverage-20261112',ref='refs/heads/'+branch;
+  const workflow=PREFIX+'publish-appleservice39-pilot.yml';
+  requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
+    &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+workflow+'@'+ref
+    &&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_JOB==='publish'
+    &&env.GITHUB_RUN_ATTEMPT==='1'&&sha(env.GITHUB_SHA)&&positive(env.GITHUB_RUN_ID)
+    &&event?.repository?.full_name===REPOSITORY&&event.ref===ref&&event.after===env.GITHUB_SHA
+    &&event.before==='0'.repeat(40)&&event.created===true&&event.deleted===false&&event.forced===false,
+    'untrusted_publication_operation');
+  const c={sha:env.GITHUB_SHA,id:String(env.GITHUB_RUN_ID),attempt:1,event:'push',workflow,job:'publish'};
+  requireValue((await api('GET',API_ROOT+'/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
+  const run=await api('GET',API_ROOT+'/actions/runs/'+c.id);
+  runIdentity(run,{id:c.id,attempt:1,head:c.sha,workflow,event:'push',completed:false,branch});
+  requireValue(run.status==='in_progress','workflow_not_active');
+  const location=await readRecord(api);
+  const result=await resolveCurrent(api,c,location);
+  requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
+  return finalResolution(api,c,location,result);
+}
+
 async function resolveEditor({env,event,api,repositorySha,applicationSha}) {
   const c=await sourceContext(env,event,api,HOST);
   requireValue(c.event==='workflow_dispatch'&&c.job==='independent-editor'&&c.attempt===1
@@ -947,11 +970,14 @@ module.exports={REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLIC
   runIdentity,boundedList,readRecord,requireAncestry,publicationName,publicationProof,validatePublication,archiveJson,
   artifactJson,findArtifact,authenticatePublication,readBaseline,makeReadApi,sourceContext,deploymentProof,requireOps,
   v2,intentScan,contentSummary,releaseRecord,acceptedBaseline,planDeployment,currentBinding,requireCurrentBinding,admitUnchanged,
-  wrapInstalled,verifyUnchanged,resolveCurrent,resolveConsumer,resolveEditor,hostObservation,argumentsOf,outputs,responseBytes};
+  wrapInstalled,verifyUnchanged,resolveCurrent,resolveConsumer,resolvePublicationOperation,resolveEditor,hostObservation,argumentsOf,outputs,responseBytes};
 if(require.main===module){
   (async()=>{
-    const args=argumentsOf(process.argv.slice(2),['resolve-consumer','resolve-editor','plan-deployment','admit-unchanged','wrap-installed']);
+    const args=argumentsOf(process.argv.slice(2),['resolve-consumer','resolve-publication-operation','resolve-editor','plan-deployment','admit-unchanged','wrap-installed']);
     const env=process.env,event=readJson(env.GITHUB_EVENT_PATH),api=makeReadApi(env.GITHUB_TOKEN),common={env,event,api};
+    if(args.command==='resolve-publication-operation'){
+      requireValue(keys(args,['command']),'invalid_arguments');outputs(await resolvePublicationOperation(common));return;
+    }
     if(args.command==='resolve-consumer'){
       requireValue(keys(args,['command']),'invalid_arguments');outputs(await resolveConsumer(common));return;
     }

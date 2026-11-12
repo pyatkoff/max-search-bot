@@ -22,6 +22,13 @@ if(realpath($_SERVER['SCRIPT_FILENAME']??'')!==__FILE__)return;
 $pdo=repairFixture();funnelSchema($pdo);$now=time();$connection=ProjectMaxConnection::resolve('appleservice39');$s=ProjectFunnelSettings::load($connection);
 funnelCheck('owner-supplied AppleService counter enables collection without exports',$s['metrika']['counter_id']==='42611469'&&$s['metrika']['mode']==='collect');
 funnelCheck('owner-selected predict goal keeps its exact ID with the required offline condition',$s['metrika']['goals']===['predictive_value'=>'predict']&&$s['metrika']['goal_ids']===['predictive_value'=>'680570232']&&$s['metrika']['goal_match']===['predictive_value'=>'exact']&&$s['metrika']['credential_source']==='platform');
+$expandedSettings=$s;
+funnelCheck('coverage source contains67 offers and preserves previously published batteries and front glass',
+    count($s['posts'])===67&&isset($s['posts']['service-battery-replacement'],$s['posts']['service-front-glass-replacement'])
+    &&count(array_filter(array_keys($s['posts']),static fn($id)=>str_starts_with($id,'model-iphone-')))===33
+    &&!isset($s['posts']['models-index'],$s['posts']['services-index']));
+$oldOfferIds=['menu','model-iphone-17','service-display','repair-iphone-16-display','service-rear-glass-replacement','symptom-not-charging','service-rear-camera-replacement','service-earpiece-replacement'];
+$s['posts']=array_intersect_key($s['posts'],array_flip($oldOfferIds));
 $s['metrika']=['counter_id'=>'','mode'=>'off','goals'=>[]];$fixtureRegistry=repairFixtureRegistry();$fixtureRegistry['appleservice39']['project']['sales_funnel']=$s;ProjectMaxConnection::resetForTests($fixtureRegistry);$connection=ProjectMaxConnection::resolve('appleservice39');$entry=new ProjectFunnelEntry($pdo,$connection,$s);
 funnelCheck('eight approved offers keep their established feed IDs',count($s['posts'])===8&&$s['posts']['menu']['offer_id']==='as39-search-v1-menu');
 funnelCheck('missing company analytics stays explicitly off',$s['metrika']===['counter_id'=>'','mode'=>'off','goals'=>[]]&&ProjectFunnelSettings::publicClient($s)['counter_id']==='');
@@ -52,6 +59,42 @@ funnelCheck('feed has eight stable unique offers and literal Direct macros',coun
 funnelCheck('feed keeps approved images and no invented price',$lines[1][0]==='as39-search-v1-menu'&&$lines[1][2]===$s['posts']['menu']['image_url']&&$lines[1][5]===''&&$lines[1][6]==='');
 $pdo->exec("UPDATE appleservice39_pilot_operations SET state='unknown' WHERE post_key='menu'");
 funnelCheck('unverified publication prevents feed and redirect',funnelReject(fn()=>$entry->feed())&&funnelReject(fn()=>$entry->destination('menu')));$pdo->exec("UPDATE appleservice39_pilot_operations SET state='verified' WHERE post_key='menu'");
+// Pending new cards are withheld; invalid verified evidence and DB errors still fail closed.
+$expandedSettings['metrika']=['counter_id'=>'','mode'=>'off','goals'=>[]];
+$expandedEntry=new ProjectFunnelEntry($pdo,$connection,$expandedSettings);
+$insertPublication=$pdo->prepare('INSERT INTO appleservice39_pilot_operations VALUES(?,?,?,?,?,?,?)');
+$added=[];
+foreach($expandedSettings['posts'] as$id=>$meta){
+    if(in_array($id,$oldOfferIds,true)||($meta['withhold_until_verified']??false))continue;
+    $insertPublication->execute([$id,'appleservice39-pilot-v1','create','verified',1,'fixture_'.$id,'https://max.ru/channel_appleservice39ru/fixture_'.$id]);$added[]=$id;
+}
+$staged=$expandedEntry->feed();
+funnelCheck('staged coverage exposes30 verified originals while37 new advertising cards wait',
+    count(array_map('str_getcsv',explode("\n",trim($staged))))===31
+    &&str_contains($staged,'as39-search-v1-menu')&&str_contains($staged,'service-battery-replacement')
+    &&str_contains($staged,'service-front-glass-replacement')
+    &&funnelReject(fn()=>$expandedEntry->destination('model-iphone-8')));
+foreach($expandedSettings['posts'] as$id=>$meta){
+    if(!($meta['withhold_until_verified']??false))continue;
+    $insertPublication->execute([$id,'appleservice39-pilot-v1','create','verified',1,'fixture_'.$id,'https://max.ru/channel_appleservice39ru/fixture_'.$id]);$added[]=$id;
+}
+$full=$expandedEntry->feed();$fullRows=array_map('str_getcsv',explode("\n",trim($full)));
+funnelCheck('all67 own verified offers use unique miniapp contexts and literal Direct macros',
+    count($fullRows)===68&&count(array_unique(array_column(array_slice($fullRows,1),0)))===67
+    &&substr_count($full,'https://max.ru/id390521129062_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_')===67
+    &&count(array_filter(array_slice($fullRows,1),static fn($r)=>$r[5]!==''||$r[6]!==''))===0);
+$pdo->exec("UPDATE appleservice39_pilot_operations SET public_url='https://max.ru/foreign/borrowed' WHERE post_key='model-iphone-8'");
+funnelCheck('withholding never conceals a corrupt verified publication',funnelReject(fn()=>$expandedEntry->feed()));
+$pdo->exec("UPDATE appleservice39_pilot_operations SET public_url='https://max.ru/channel_appleservice39ru/fixture_model-iphone-8' WHERE post_key='model-iphone-8'");
+$pdo->exec('ALTER TABLE appleservice39_pilot_operations RENAME TO unavailable_publications');
+try{funnelCheck('withholding never hides a publication database failure',funnelReject(fn()=>$expandedEntry->feed()));}
+finally{$pdo->exec('ALTER TABLE unavailable_publications RENAME TO appleservice39_pilot_operations');}
+$deletePublication=$pdo->prepare('DELETE FROM appleservice39_pilot_operations WHERE post_key=?');
+foreach($added as$id)$deletePublication->execute([$id]);
+$badWithholding=$expandedSettings;$badWithholding['posts']['model-iphone-8']['withhold_until_verified']='yes';
+funnelCheck('withholding requires an explicit typed configuration flag',
+    funnelReject(fn()=>ProjectFunnelSettings::validate($badWithholding,'appleservice39','id390521129062_bot')));
+
 $before=$pdo->query("SELECT * FROM conversations WHERE id=100")->fetch();
 $sent=[];$factory=static function(ProjectMaxConnection $c)use(&$sent){return new MaxMessengerAdapter(static function($chat,$text)use(&$sent){$sent[]=$text;return 'synthetic-funnel-'.count($sent);},null,'system',null,false);};
 $result=RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),repairStart(7001,'as39_service-display'),$factory,static function(){});
