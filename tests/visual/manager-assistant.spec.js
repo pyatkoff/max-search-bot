@@ -529,6 +529,53 @@ for(const width of [390,430,768,1440])test('primary My Plan combines actions wit
   if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();await expect(page.locator('#assistantDetail h3')).toHaveText(s.items.get(11).display_name);await page.locator('#assistantBack').click();await page.locator('[data-assistant-filter=waiting]').click();await page.locator('[data-assistant-client="12"]').click();await expect(page.locator('#assistantDetail')).toContainText('Сейчас не писать');await expect(page.locator('#assistantPlan')).toBeVisible();await expect(page.locator('#assistantReply,[data-assistant-decision]')).toHaveCount(0);await bounded(page);await capture(page,browserName,width,'primary-plan');clean(s);
 });
 
+for(const width of [390,1440])test('My Plan retains the native deadline draft through client navigation and a late read '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const s=await setupAssistant(page);
+  s.items.get(11).tasks=[{id:31,title:'Проверить ответ поставщика',status:'open',due_state:'today',due_at_utc:'2030-11-19T10:00:00Z'}];
+  await openConversationForAssistantTest(page,11);await page.locator('#replyText').fill('Мой ответ до переноса срока');
+  await page.locator('#replyFile').setInputFiles({name:'deadline-draft-kept.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic deadline draft attachment')});
+  const media=await settledMediaSelectionText(page);
+  await expect.poll(()=>page.evaluate(()=>WorkspaceV2Media.captureSelection()?.rows.length||0)).toBe(1);
+  await page.evaluate(()=>{window.assistantDeadlineFile=WorkspaceV2Media.captureSelection().rows[0].row.file});
+  if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();
+  await page.locator('[data-m2-nav=tasks]').click();await page.locator('[data-assistant-filter=all]').click();await page.locator('[data-assistant-client="11"]').click();
+  await expect(page.locator(width<768?'#assistantBack':'#assistantConversation')).toBeFocused();
+  s.queueDetail({hold:true,result:{ok:true,item:{...s.items.get(11),recommendation:{...s.items.get(11).recommendation,reason:'Изменившийся ответ начатого раньше чтения.'}}}});
+  // Start the real detail read before the manager opens the inline editor.
+  // Await its own continuation after release, not only the HTTP response.
+  await page.evaluate(()=>{
+    const state={settled:false,result:null,error:null};window.assistantDeadlineRead=state;
+    WorkspaceV2Assistant.loadDetail(11).then(result=>{state.result=result;state.settled=true},error=>{state.error=String(error);state.settled=true});
+  });
+  await expect.poll(()=>s.heldDetailCount()).toBe(1);
+  await page.locator('[data-assistant-snooze="31"]').click();await page.locator('#assistantDue').fill('2030-11-20T16:45');
+  await page.evaluate(()=>{window.assistantDeadlineDraft={form:document.querySelector('#assistantTaskEditor form'),input:document.querySelector('#assistantDue')}});
+  const reads=s.calls.length;
+  await page.locator(width<768?'#assistantBack':'[data-assistant-client="12"]').click();
+  await expect(page.locator('#assistantStatus')).toContainText('Сохраните или отмените новый срок');
+  expect(s.calls).toHaveLength(reads);
+  const expectDraft=async()=>{
+    await expect(page.locator('#assistantDetail h3')).toHaveText(s.items.get(11).display_name);
+    await expect(page.locator('#assistantDue')).toHaveValue('2030-11-20T16:45');await expect(page.locator('#assistantDue')).toBeFocused();
+    expect(await page.evaluate(()=>{
+      const saved=window.assistantDeadlineDraft;
+      return {form:document.querySelector('#assistantTaskEditor form')===saved.form&&saved.form.isConnected,input:document.querySelector('#assistantDue')===saved.input&&saved.input.isConnected,selected:document.querySelector('.assistantClient.isSelected')?.dataset.assistantClient,current:Number(WorkspaceV2.S.current),file:WorkspaceV2Media.captureSelection().rows[0].row.file===window.assistantDeadlineFile};
+    })).toEqual({form:true,input:true,selected:'11',current:11,file:true});
+    await expect(page.locator('#replyText')).toHaveValue('Мой ответ до переноса срока');await expect(page.locator('#mediaSelection')).toHaveText(media);
+  };
+  await expectDraft();s.releaseDetail();
+  await expect.poll(()=>page.evaluate(()=>window.assistantDeadlineRead.settled)).toBe(true);
+  expect(await page.evaluate(()=>({result:window.assistantDeadlineRead.result,error:window.assistantDeadlineRead.error}))).toEqual({result:false,error:null});
+  await expectDraft();await expect(page.locator('#assistantDetail .assistantRecommendation')).toBeHidden();expect(s.calls).toHaveLength(reads);await bounded(page);await capture(page,browserName,width,'deadline-draft-retained');
+  await page.locator('#assistantCancelDue').click();await expect(page.locator('#assistantTaskEditor form')).toHaveCount(0);
+  await expect(page.locator('#assistantStatus')).toHaveText('');
+  if(width<768)await page.locator('#assistantBack').click();await page.locator('[data-assistant-client="12"]').click();
+  await expect(page.locator('#assistantDetail h3')).toHaveText(s.items.get(12).display_name);
+  await expect(page.locator('#replyText')).toHaveValue('Мой ответ до переноса срока');await expect(page.locator('#mediaSelection')).toHaveText(media);
+  expect(await page.evaluate(()=>WorkspaceV2Media.captureSelection().rows[0].row.file===window.assistantDeadlineFile)).toBe(true);
+  expect(s.calls.every(c=>['list','detail'].includes(c.action))).toBe(true);clean(s);
+});
+
 for(const width of [390,1440])test('manual planning without AI opens the empty canonical task editor and retains reply and File '+width,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const s=await setupAssistant(page),item=s.items.get(12);
   Object.assign(item,{manager_id:7,manager_name:'Мария',can_decide:true,recommendation:null,operational:{awaiting_manager_reply:false,due_task:false}});
