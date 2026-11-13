@@ -1,0 +1,23 @@
+{
+  "ok": true,
+  "operation": "commercial-hotel-batch-20261113-11-v1-roster-append2",
+  "previous_rows": 556,
+  "new_rows": 2,
+  "total_rows": 558,
+  "new_hotel_ids": [
+    325,
+    4184
+  ],
+  "old556_rows_identical": true,
+  "old556_bytes_identical": true,
+  "previous_gzip_sha256": "8127029710568888e9db36ed68c3c1916d68b1bd04dba2801a552c6586da0b08",
+  "output_raw_sha256": "4253a15913d7020f851a7748073bc2390f5f901357c7cb74fc9e369416f7156a",
+  "output_gzip_sha256": "84d22fcf8d013701944147cbf676570ffaad7c29f23c17e5340b665c2a8d0d32",
+  "actual_site_final_version": 332,
+  "existing_monitor_baselines_preserved": true,
+  "new_baselines_added": 0,
+  "price_processes_started": 0,
+  "source_price_provider_calls": 0,
+  "publication_summary_sha256": "206be5fea39371effbe79ebdbb17019149259dbad9a0c626fa030be7b7b285a9",
+  "feed_summary_sha256": "60ba3ba5927d605eef4a2c9f156c9ef092722b8870c2b3681381469aede4df48"
+}

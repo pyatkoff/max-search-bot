@@ -1,0 +1,26 @@
+{
+  "operation": "commercial-hotel-batch-20261113-11-v1",
+  "responses": [
+    {
+      "file": "edit-01-72afc465-9029-4131-96d4-180eb3a47a43.response.json",
+      "sha256": "667e44c6d28548fba8a2ea67e7af665dcc2d3cf5b7ddff79af8ac84790630394",
+      "original_raw_utf8": "{\n  \"version\": 330,\n  \"event\": {\n    \"id\": \"batch11-source-20261113-edit-72afc465-9029-4131-96d4-180eb3a47a43\",\n    \"title\": \"MINAMARK RESORT & SPA: новая версия\",\n    \"type\": \"success\"\n  }\n}\n"
+    },
+    {
+      "file": "edit-02-b05aceed-3a9d-5321-999f-70f2dc2c47d6.response.json",
+      "sha256": "7eca7339f02fdba0af44c7f6779593881a7c14f68f6d7545cb803ead0f988161",
+      "original_raw_utf8": "{\n  \"version\": 331,\n  \"event\": {\n    \"id\": \"batch11-source-20261113-edit-b05aceed-3a9d-5321-999f-70f2dc2c47d6\",\n    \"title\": \"SENTIDO REEF OASIS SENSES RESORT (EX. REEF OASIS SENSES RESORT): новая версия\",\n    \"type\": \"success\"\n  }\n}\n"
+    },
+    {
+      "file": "import.response.json",
+      "sha256": "90cbacab6cda19781a825f56cfcbfef4e4899fa0f4d91f937dd77bc91009eb16",
+      "original_raw_utf8": "{\n  \"version\": 332,\n  \"event\": {\n    \"id\": \"batch11-source-20261113-import-v1\",\n    \"title\": \"Batch11 · четыре опубликованных отелей и подтверждённый feed\",\n    \"type\": \"success\"\n  }\n}\n"
+    },
+    {
+      "file": "preview.response.json",
+      "sha256": "2caa46546eb0934fc5585773414b7079ffd97f42837673ddf4e2639fc4f10728",
+      "original_raw_utf8": "{\n  \"version\": 331,\n  \"added\": 0,\n  \"merged\": 2,\n  \"rejected\": 0,\n  \"details\": []\n}\n"
+    }
+  ],
+  "automatic_retries": 0
+}
