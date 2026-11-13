@@ -3305,7 +3305,7 @@ function forecastNativePresentationAssertions(callable $check):void
             !$got['available']&&!$safe['available']&&!isset($safe['candidate_sha256'])
             &&!str_contains(json_encode($safe,JSON_THROW_ON_ERROR),'PRIVATE_'));
     }
-    foreach(['missing_rejection','null_rejection','negative_rejection','sum','unique','admitted','rows65','null_rows','null_unique']as$kind){
+    foreach(['missing_rejection','null_rejection','negative_rejection','sum','unique','admitted','rows65','null_rows','null_unique','admitted_without_candidate']as$kind){
         $v=$native;
         if($kind==='missing_rejection')unset($v['first_rejection_reason_counts']['saved_error_present']);
         if($kind==='null_rejection')$v['first_rejection_reason_counts']['saved_error_present']=null;
@@ -3316,6 +3316,10 @@ function forecastNativePresentationAssertions(callable $check):void
         if($kind==='rows65')$v['inspected_rows']=65;
         if($kind==='null_rows')$v['inspected_rows']=null;
         if($kind==='null_unique')$v['unique_candidate_count']=null;
+        if($kind==='admitted_without_candidate'){
+            $v['unique_candidate_count']=0;$v['status']='no_admissible_native_witness';
+            $v['candidate_sha256']=null;$v['source_observed_at']=null;$v['source_provenance']=null;
+        }
         $got=$format($v)[0];
         $check('malformed native counts never fabricate zero completeness or candidate '.$kind,
             !$got['available']&&$got['reason']==='invalid_native_projection'&&!isset($got['candidate_sha256'],$got['counts']));
@@ -4125,7 +4129,7 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $reta
     $nativeBase['remaining_context_fixture']=['fixture'=>''];
     $nativeBase['value_delivery']['repair_assessments']['processing_frontier']=$r;
     $nativeOmitted=['available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0,'financial_permission'=>false];
-    $nativeBase['value_delivery']['repair_assessments']['retained_native_identity_evidence']=$nativeOmitted;
+    unset($nativeBase['value_delivery']['repair_assessments']['retained_native_identity_evidence']);
     $nativeBaseline=$bound->invoke($projection,$nativeBase);
     // This is an outer omission marker, not a point-reader result. Restore it only for size measurement.
     $nativeBaseline['value_delivery']['repair_assessments']['retained_native_identity_evidence']=$nativeOmitted;

@@ -396,7 +396,7 @@ final class ModeledConversionForecastStatusReader
         foreach(['inspected_rows','admitted_native_witnesses','unique_candidate_count']as$key){
             $n=$value[$key]??null;if(!is_int($n)||$n<0||$n>64)return $fail('invalid_native_projection');$counts[]=$n;
         }
-        if($counts[2]>$counts[1]||$counts[1]>$counts[0])return $fail('invalid_native_projection');
+        if($counts[2]>$counts[1]||$counts[1]>$counts[0]||($counts[1]>0&&$counts[2]===0))return $fail('invalid_native_projection');
         $order=['unsupported_goal_pair','mixed_family_metadata','not_processed_pair','saved_error_present','invalid_upload_receipt_id',
             'invalid_attempt_or_claim_clock','invalid_client_or_tracker_record','missing_or_invalid_source_clock','source_after_signal_or_claim'];
         $rejections=$value['first_rejection_reason_counts']??null;
