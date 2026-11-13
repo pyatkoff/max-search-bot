@@ -15,7 +15,13 @@ class Element{
 }
 const message=id=>({id,sender_type:'customer',text:'Synthetic '+id,created_at:'2026-10-14 10:00:00'});
 const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return{promise,resolve}};
-function renderer(){const box=new Element(),W={S:{},$:id=>id==='messages'?box:null},context={window:{WorkspaceV2:W,ManagerTime:{format:v=>String(v)}},document:{createElement:t=>new Element(t),createTextNode:v=>{const e=new Element('#text');e.textContent=v;return e},createDocumentFragment:()=>new Element('fragment')}};vm.runInNewContext(source('workspace-v2-conversation.js'),context);return{box,render:context.window.WorkspaceV2Conversation.renderMessages}}
+function renderer({manager2=false,historyState=null}={}){
+ const box=new Element(),body=new Element('body');if(manager2)body.className='manager2';
+ const W={S:{manager:{id:7},detail:{conversation:{manager_id:42,manager_name:'Current assignee'}}},$:id=>id==='messages'?box:null};
+ const context={window:{WorkspaceV2:W,ManagerTime:{format:v=>String(v)},...(historyState?{WorkspaceV2History:{getState:()=>historyState,render(){}}}:{})},document:{body,createElement:t=>new Element(t),createTextNode:v=>{const e=new Element('#text');e.textContent=v;return e},createDocumentFragment:()=>new Element('fragment')}};
+ vm.runInNewContext(source('workspace-v2-conversation.js'),context);
+ return{box,render:context.window.WorkspaceV2Conversation.renderMessages,renderContext:context.window.WorkspaceV2Conversation.renderMessageContext};
+}
 function history(){const ids=new Map(),root=new Element(),box=new Element();ids.set('messages',box);root.appendChild(box);const S={current:10,manager:{id:7},authGeneration:1,detail:{conversation:{id:10},messages:[],has_manager_reply:true}},calls=[],queue=[],renders=[];let open=1,epoch=1,busy=false,lost=false;
  const W={S,$:id=>ids.get(id)||null,api:async(action,payload)=>{calls.push({action,...payload});return queue.shift()}},window={WorkspaceV2:W},document={createElement:t=>{const e=new Element(t);Object.defineProperty(e,'id',{set(v){this._id=v;ids.set(v,this)},get(){return this._id}});return e}};
  vm.runInNewContext(source('workspace-v2-history.js'),{window,document});const H=window.WorkspaceV2History,capture=()=>({conversationId:S.current,managerId:S.manager.id,authGeneration:S.authGeneration,openGeneration:open,refreshEpoch:epoch});H.bind({capture,canLoad:()=>!busy&&!lost&&!S.authExpired,isCurrent:c=>!busy&&!lost&&!S.authExpired&&JSON.stringify(c)===JSON.stringify(capture()),accessLost:()=>{lost=true;H.reset()},render:(rows,options)=>renders.push({ids:rows.map(m=>m.id),options})});
@@ -27,6 +33,43 @@ const cases=[];const test=(name,fn)=>cases.push({name,fn});
 test('append and prepend never detach retained audio/focused descendants',()=>{const h=renderer(),one={...message(5),attachments:[{type:'audio',url:'https://example.invalid/synthetic.wav'}]},two=message(6);h.render([one,two]);const first=h.box.children[0],second=h.box.children[1],audio=first.children.find(n=>n.className==='attachments').children[0];audio.currentTime=42;audio.playing=true;let retainedRemovals=0;const remove=h.box.removeChild.bind(h.box);h.box.removeChild=node=>{if(node===first||node===second)retainedRemovals++;return remove(node)};h.render([one,two,message(7)]);assert.equal(h.box.children[0],first);assert.equal(h.box.children[1],second);h.render([message(3),one,two,message(7)],{prepend:true,preserveScroll:true});assert.equal(h.box.children[0].dataset.scrollMessageKey,'3');assert.equal(h.box.children[1],first);assert.equal(h.box.children[2],second);assert.equal(audio.currentTime,42);assert.equal(audio.playing,true);assert.equal(retainedRemovals,0)});
 test('synthetic summary audio survives prepend and timestamp-only update',()=>{const h=renderer(),summary={id:0,sender_type:'ai',direction:'outbound',text:'Synthetic first-reply summary',created_at:'2026-10-14 10:00:00',attachments:[{type:'audio',url:'https://example.invalid/synthetic.wav'}]};h.render([message(5),summary]);const original=h.box.children[1],audio=original.children.find(n=>n.className==='attachments').children[0];audio.currentTime=9;let removals=0;const remove=h.box.removeChild.bind(h.box);h.box.removeChild=node=>{if(node===original)removals++;return remove(node)};h.render([message(3),message(5),{...summary,created_at:'2026-10-14 10:01:00'}]);assert.equal(h.box.children[2],original);assert.equal(original.children.find(n=>n.className==='attachments').children[0],audio);assert.equal(audio.currentTime,9);assert.equal(removals,0)});
 test('changed message replaces only itself and removed message disappears',()=>{const h=renderer();h.render([message(1),message(2),message(3)]);const [a,b,c]=h.box.children;h.render([message(1),{...message(2),text:'Edited synthetic'}]);assert.equal(h.box.children[0],a);assert.notEqual(h.box.children[1],b);assert.equal(c.parentElement,null);assert.equal(h.box.children.length,2)});
+const authored=(id,managerId,name)=>({...message(id),direction:'outbound',sender_type:'manager',author:{manager_id:managerId,name}});
+const sender=row=>row.children.find(node=>node.className==='messageSender');
+test('Manager2 captions use saved authors, separate the bot and do not repeat the customer',()=>{
+ const h=renderer({manager2:true});
+ h.render([message(1),authored(2,8,'Елена'),authored(3,8,'Елена'),authored(4,9,'Елена'),authored(5,7,'Имя текущего пользователя'),{...message(6),sender_type:'ai'},{...message(7),sender_type:'ai'},message(8),authored(9,8,'Елена'),authored(10,null,null),authored(11,null,null),{...authored(12,8,'Елена'),author:undefined},authored(13,'8','Неподтверждённое имя'),{...message(14),direction:'inbound',service_action:{type:'callback',label:'Открыть подборку',raw_payload:'tour:1'}},authored(15,8,'Елена')]);
+ assert.deepEqual(h.box.children.map(row=>[sender(row).textContent,sender(row).hidden]),[
+  ['Турист',true],['Елена',false],['Елена',true],['Елена',false],['Вы',false],['Бот',false],['Бот',true],['Турист',true],['Елена',false],['Менеджер',false],['Менеджер',false],['Менеджер',false],['Менеджер',false],['Действие клиента',false],['Елена',false]
+ ]);
+ assert.equal(h.box.children[4].dataset.sender,'manager','A human message stays a manager message');
+ assert.equal(h.box.children[5].dataset.sender,'ai');assert.ok(!h.box.textContent.includes('Current assignee'));
+});
+test('legacy transcript keeps its role captions and does not group or adopt Manager2 names',()=>{
+ const h=renderer();h.render([message(1),authored(2,8,'Елена'),authored(3,8,'Елена'),authored(4,7,'Имя'),{...message(5),sender_type:'ai'}]);
+ assert.deepEqual(h.box.children.map(row=>sender(row).textContent),['Турист','Менеджер','Менеджер','Менеджер','Бот']);
+ assert.ok(h.box.children.every(row=>sender(row).hidden!==true));
+});
+test('Manager2 reserves the bot caption for an explicit ai sender',()=>{
+ const h=renderer({manager2:true});h.render([{...message(1),sender_type:'service'},{...message(2),sender_type:null},{...message(3),sender_type:'ai'}]);
+ assert.deepEqual(h.box.children.map(row=>[sender(row).textContent,sender(row).hidden]),[['Сообщение',false],['Сообщение',false],['Бот',false]]);
+});
+test('prepending an author group and refreshing its name retain the bubble body and playing media',()=>{
+ const h=renderer({manager2:true}),one={...authored(5,8,'Елена'),attachments:[{type:'audio',url:'https://example.invalid/synthetic.wav'}]},two=authored(6,8,'Елена');
+ h.render([one,two]);const [row,second]=h.box.children,body=row.children.find(n=>n.className==='msgBody'),caption=sender(row),audio=row.querySelectorAll('audio')[0];audio.currentTime=42;audio.playing=true;
+ let removals=0;const remove=h.box.removeChild.bind(h.box);h.box.removeChild=node=>{if(node===row||node===second)removals++;return remove(node)};
+ h.render([authored(3,8,'Елена'),one,two],{prepend:true,preserveScroll:true});
+ assert.equal(h.box.children[1],row);assert.equal(sender(h.box.children[0]).hidden,false);assert.equal(caption.hidden,true);
+ const updated=[authored(3,8,'Елена Смирнова'),{...one,author:{manager_id:8,name:'Елена Смирнова'}},authored(6,9,'Елена Смирнова')];
+ h.render(updated,{preserveScroll:true});assert.equal(h.box.children[1],row);assert.equal(h.box.children[2],second);assert.equal(sender(row),caption);assert.equal(caption.textContent,'Елена Смирнова');assert.equal(caption.hidden,true);assert.equal(sender(second).hidden,false,'Different IDs do not merge even with identical names');
+ assert.equal(row.children.find(n=>n.className==='msgBody'),body);assert.equal(row.querySelectorAll('audio')[0],audio);assert.equal(audio.currentTime,42);assert.equal(audio.playing,true);assert.equal(removals,0);
+});
+test('known history gaps restart author captions while an independent message context groups its own rows',()=>{
+ const historyState={has_gap:false,before_id:1},h=renderer({manager2:true,historyState}),rows=[authored(1,8,'Елена'),authored(1000,8,'Елена')];h.render(rows);const last=h.box.children[1];
+ assert.equal(sender(last).hidden,true,'Global message IDs alone do not imply a gap');
+ Object.assign(historyState,{has_gap:true,before_id:1000});h.render(rows);assert.equal(h.box.children[1],last);assert.equal(sender(last).hidden,false);
+ const context=new Element();h.renderContext(context,rows);assert.equal(sender(context.children[0]).hidden,false);assert.equal(sender(context.children[1]).hidden,true,'The bounded context does not inherit the main transcript gap');
+ historyState.has_gap=false;h.render([rows[0],authored(900,8,'Елена'),rows[1]]);assert.equal(h.box.children[2],last);assert.equal(sender(last).hidden,true);
+});
 test('explicit older pages are single protected reads, sorted and deduplicated',async()=>{const h=history();h.latest([message(5),message(6)]);const pending=deferred();h.queue.push(pending.promise);const a=h.H.loadOlder(),b=h.H.loadOlder();assert.equal(h.calls.length,1);assert.deepEqual(h.calls[0],{action:'detail',conversation_id:10,before_id:5});assert.equal(h.ids.get('conversationLoadOlder').disabled,true);pending.resolve(h.detail([message(3),message(4)],{mode:'older'}));assert.equal(await a,true);assert.equal(await b,true);assert.deepEqual(Array.from(h.S.detail.messages,m=>m.id),[3,4,5,6]);assert.equal(h.H.getState().before_id,3);assert.equal(h.renders[0].options.prepend,true);assert.equal(h.calls.length,1)});
 test('new latest messages arriving during older request remain authoritative',async()=>{const h=history();h.latest([message(5),message(6)]);const pending=deferred();h.queue.push(pending.promise);const old=h.H.loadOlder();h.latest([{...message(6),text:'Newer edit'},message(7)]);pending.resolve(h.detail([message(3),message(4)],{mode:'older',hasReply:false}));await old;assert.deepEqual(Array.from(h.S.detail.messages,m=>m.id),[3,4,5,6,7]);assert.equal(h.S.detail.messages.find(m=>m.id===6).text,'Newer edit');assert.equal(h.S.detail.has_manager_reply,true)});
 test('authoritative latest window removes omitted message and keeps already loaded older rows',async()=>{const h=history();h.latest([message(5),message(6),message(7)]);h.queue.push(h.detail([message(3),message(4)],{mode:'older'}));await h.H.loadOlder();h.latest([message(5),message(7)]);assert.deepEqual(Array.from(h.S.detail.messages,m=>m.id),[3,4,5,7]);h.latest([message(5)],{hasMore:false});assert.deepEqual(Array.from(h.S.detail.messages,m=>m.id),[5])});

@@ -367,6 +367,31 @@ const messageRows=new WeakMap();
 function messageFingerprint(m){return JSON.stringify([m.direction,m.sender_type,m.text,m.created_at,m.attachments||[],m.linked_message||null,m.service_action||null])}
 function messageContentFingerprint(m){return JSON.stringify([m.direction,m.sender_type,m.text,m.attachments||[],m.linked_message||null,m.service_action||null])}
 function createMessageRow(m,pendingControls){const n=document.createElement('div');const event=serviceAction(m),who=event?'service':m.sender_type==='customer'?'customer':m.sender_type==='manager'?'manager':'ai',whoLabel=event?'Действие клиента':who==='customer'?'Турист':who==='manager'?'Менеджер':'Бот';n.className=event?'msg serviceAction':'msg '+who;n.dataset.sender=who;if(Number.isSafeInteger(Number(m.id))&&Number(m.id)>0)n.dataset.scrollMessageKey=String(m.id);const sender=document.createElement('span');sender.className='messageSender';sender.textContent=whoLabel;n.appendChild(sender);renderLinkedMessage(n,m);const body=document.createElement('div');body.className='msgBody';if(event)body.textContent=event.label;else renderMessageBody(body,m);n.appendChild(body);if(event)renderServiceActionDetails(n,event);renderAttachments(n,m.attachments||[],pendingControls);const meta=document.createElement('div');meta.className='msgMeta';meta.textContent=messageTime(m.created_at||'');meta.title=window.ManagerTime.format(m.created_at,{year:true})+' МСК';n.appendChild(meta);return n}
+function manager2MessageAuthor(message){
+  if(serviceAction(message))return {key:null,label:'Действие клиента'};
+  if(message.sender_type==='customer')return {key:null,label:'Турист',hidden:true};
+  if(message.sender_type==='manager'){
+    const id=message.author?.manager_id,name=typeof message.author?.name==='string'?message.author.name.trim():'';
+    // Only the saved sender identifies an author. The current conversation
+    // owner can be a different person, including for older manager messages.
+    return {key:validId(id)?'manager:'+id:null,label:validId(id)&&id===Number(S.manager?.id)?'Вы':validId(id)&&name?name:'Менеджер'};
+  }
+  return message.sender_type==='ai'?{key:'ai',label:'Бот'}:{key:null,label:'Сообщение'};
+}
+function renderMessageAuthors(container,messages,history=null){
+  if(!document.body?.classList.contains('manager2'))return;
+  let previous=null,previousId=0;
+  const nodes=[...container.children],gapBefore=history?.has_gap?Number(history.before_id):0;
+  messages.forEach((message,index)=>{
+    const row=nodes[index],sender=row&&[...row.children].find(node=>node.className==='messageSender');
+    const author=manager2MessageAuthor(message),id=Number(message.id),acrossGap=gapBefore>0&&previousId<gapBefore&&id>=gapBefore;
+    if(sender){
+      if(sender.textContent!==author.label)sender.textContent=author.label;
+      sender.hidden=!!author.hidden||!!(author.key&&author.key===previous&&!acrossGap);
+    }
+    previous=author.key;previousId=id;
+  });
+}
 function emptyMessageRow(){const empty=document.createElement('div');empty.className='conversationEmpty';empty.innerHTML='<div class="conversationEmptyIcon">💬</div><strong>Сообщений пока нет</strong><span>История диалога появится здесь.</span>';return empty}
 function retireMessageMedia(row){
   for(const media of [...row.querySelectorAll('audio'),...row.querySelectorAll('video')]){
@@ -395,6 +420,9 @@ function renderMessages(messages,{stickToBottom=false,preserveScroll=false,prepe
   }else{
     const frag=document.createDocumentFragment();rows.forEach(m=>frag.appendChild(createMessageRow(m,pendingControls)));if(!frag.childNodes.length)frag.appendChild(emptyMessageRow());[...box.children].forEach(retireMessageMedia);box.replaceChildren(frag);
   }
+  // Author presentation is independent of message content: renaming an author
+  // or joining a history page must not recreate a retained bubble/player.
+  renderMessageAuthors(box,rows,window.WorkspaceV2History?.getState?.());
   // WebKit initializes native control UI on connection. Enable new players only
   // after the complete row batch is connected; retained players stay untouched.
   for(const media of pendingControls)media.controls=true;
@@ -408,6 +436,7 @@ function renderMessageContext(container,messages){
   for(const row of [...container.children])retireMessageMedia(row);
   const pending=[];container.replaceChildren();
   for(const message of messages){const row=createMessageRow(message,pending);for(const quote of row.querySelectorAll('[data-quote-source-id]')){quote.disabled=true;quote.removeAttribute('title');quote.removeAttribute('aria-label')}container.appendChild(row)}
+  renderMessageAuthors(container,messages);
   for(const media of pending)media.controls=true;
 }
 function historyContext(){return {...captureReplyContext(),refreshEpoch}}

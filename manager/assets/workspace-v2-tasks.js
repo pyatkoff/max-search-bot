@@ -2,7 +2,7 @@
   const taskMutations=new Map();
   const taskFeedback=new Map(),taskRoots=new Map();
   const feedbackLimit=200;
-  let feedbackSequence=0,feedbackScope='';
+  let feedbackSequence=0,feedbackScope='',plannerTicket=0,plannerRead=null;
   function esc(v){const d=document.createElement('div');d.textContent=v??'';return d.innerHTML}
   function localDue(utc){return window.ManagerTime.parse(utc)?window.ManagerTime.format(utc):'Без срока'}
   function toIso(localValue){return window.ManagerTime.fromInput(localValue)}
@@ -36,6 +36,43 @@
   function dirtyTaskEditDraft(root=document){return [...root.querySelectorAll('.taskEditForm:not(.hidden)')].find(x=>x._taskEditIsDirty?.())||null}
   function dirtyTaskCreateDraft(root=document){const form=root.querySelector('.taskCreate');if(!form)return null;const title=form.querySelector('#leadTaskTitle'),due=form.querySelector('#leadTaskDue');return String(title?.value||'').trim()!==''||String(due?.value||'')!==''?form:null}
   function blockForDirtyDraft(root=document){const form=dirtyTaskEditDraft(root);if(form){window.Manager2Presentation?.revealTaskDraft(form);form._taskEditWarn?.();form.querySelector('[data-task-edit-title]')?.focus();return true}const create=dirtyTaskCreateDraft(root);if(!create)return false;const status=create.querySelector('#leadTaskCreateStatus');if(status){status.textContent=create.querySelector('.m2TaskCancel')?'Добавьте задачу или нажмите «Отмена»':'Добавьте задачу или очистите черновик';status.className='taskCreateStatus dirty'}window.Manager2Presentation?.revealTaskDraft(create);create.querySelector('#leadTaskTitle')?.focus();return true}
+  function plannerScope(){
+    const state=workspace()?.S,c=state?.detail?.conversation,base=window.WorkspaceV2Conversation?.captureReplyContext?.();
+    if(!base||!base.managerId||!base.conversationId||state.authExpired||state.logoutPending||Number(c?.id)!==base.conversationId||window.WorkspaceV2Conversation?.hasReadAccess?.()===false)return null;
+    return JSON.stringify([base,c.manager_id,c.status,c.customer_id,c.customer_channel_id,c.project_key,state.detail.supervisor_read,state.detail.owner_read]);
+  }
+  async function openPlanner(){
+    const W=workspace(),scope=plannerScope(),target=Number(W?.S?.current||0);
+    if(!scope||!W?.pipe)return false;
+    // Revealing an existing draft never refreshes or replaces its inputs.
+    if(blockForDirtyDraft(document))return true;
+    const root=taskRoots.get(feedbackKey(target));if(!root?.isConnected)return false;
+    const feedback=beginFeedback(target,'Проверяем задачи и доступ…'),run=++plannerTicket;
+    window.Manager2Presentation?.revealTaskPlanner(root,{focus:true,create:false});
+    const focusOwner=document.activeElement;
+    plannerRead?.abort();const controller=new AbortController();plannerRead=controller;
+    const current=()=>run===plannerTicket&&scope===plannerScope();let result;
+    const timeout=setTimeout(()=>controller.abort(),20000);
+    try{result=await W.pipe('detail',{conversation_id:target},{signal:controller.signal,isCurrent:current});}catch(e){result=null;}finally{clearTimeout(timeout);}
+    if(!current())return false;plannerRead=null;
+    // A draft started during the read owns its DOM. The user may already have
+    // moved focus elsewhere, so this completion must not reveal or focus it.
+    if(dirtyTaskEditDraft(document)||dirtyTaskCreateDraft(document)){
+      writeFeedback({...feedback,text:'Есть несохранённые изменения задачи.',kind:'dirty'});return true;
+    }
+    const degraded=result?.degraded_components;
+    const valid=result?.ok===true&&typeof result.can_edit_pipeline==='boolean'&&Array.isArray(result.tasks)&&Array.isArray(degraded)&&!degraded.some(part=>['tasks','pipeline'].includes(part))
+      &&result.tasks.every(task=>Number.isSafeInteger(Number(task.id))&&Number(task.id)>0&&Number(task.conversation_id)===target&&typeof task.title==='string'&&['open','done'].includes(task.status))
+      &&['open','won','lost'].includes(result.pipeline?.outcome?.outcome);
+    if(!valid){writeFeedback({...feedback,text:'Не удалось проверить задачи и доступ. Откройте «Запланировать» ещё раз.',kind:'error'});return false;}
+    W.S.detail.lead=result;
+    const ownsFocus=document.activeElement===focusOwner;
+    window.WorkspaceV2Tasks.render(root,{tasks:result.tasks,canEdit:result.can_edit_pipeline,conversationId:target});
+    const canCreate=result.can_edit_pipeline&&result.pipeline.outcome.outcome==='open';
+    writeFeedback({...feedback,text:canCreate?'':result.can_edit_pipeline?'Для закрытого лида новую задачу не создаём.':'Задачи изменяет ответственный менеджер или администратор.',kind:canCreate?'':'error'});
+    window.Manager2Presentation?.revealTaskPlanner(root,{create:canCreate,focus:ownsFocus,onlyIfOpen:true});
+    return canCreate;
+  }
   async function refreshLead(target){try{await window.WorkspaceV2Conversation?.refreshLeadData({refreshInbox:true,conversationId:target})}catch(e){/* The mutation was confirmed; a failed read does not undo it. */}return true}
   async function guardTaskMutation(key,signature,work){const active=taskMutations.get(key);if(active)return active.signature===signature?active.promise:false;let pending;pending=(async()=>{try{return await work()}finally{if(taskMutations.get(key)?.promise===pending)taskMutations.delete(key)}})();taskMutations.set(key,{signature,promise:pending});return pending}
   async function createTask(target,title,dueAt){target=Number(target||0);const W=workspace();if(!target||!W?.pipe)return false;const signature=JSON.stringify([String(title||'').trim(),dueAt||null]);return guardTaskMutation(createMutationKey(target),signature,async()=>{const j=await W.pipe('create_task',{conversation_id:target,title,due_at:dueAt});requireKnownTaskResult(j);if(!j.ok)return false;return refreshLead(target)})}
@@ -59,12 +96,15 @@
     }finally{if(control.isConnected)control.disabled=false;row?.classList.remove('saving')}
   }
   window.WorkspaceV2Tasks={
+    openPlanner,
     blockNavigationForDirtyDraft(){return blockForDirtyDraft(document)},
     render(root,{tasks=[],canEdit=false,conversationId=0}){
       const target=Number(conversationId||0),canCreate=canEdit&&currentLeadOutcome()==='open',onCreate=async(title,due)=>{const drafts=window.WorkspaceV2TaskDraft,operation=drafts?.beginCreate?.(target);let result=false;try{result=await createTask(target,title,due);return result}finally{drafts?.finishCreate?.(operation,result)}},onUpdate=(id,title,due)=>updateTask(target,id,title,due),onToggle=(id,completed)=>toggleTask(target,id,completed),onPin=(id,pinned)=>pinTask(target,id,pinned),onSnooze=(task,preset)=>snoozeTask(target,task,preset);
       const open=tasks.filter(t=>t.status==='open'),done=tasks.filter(t=>t.status!=='open'),byId=new Map(tasks.map(t=>[Number(t.id),t]));
       const statusKey=feedbackKey(target),feedback=taskFeedback.get(statusKey);rememberTaskRoot(statusKey,root);
-      root.innerHTML=`<div class="sectionTitle">Задачи и напоминания</div><div class="taskActionStatus${feedback?' '+esc(feedback.kind):''}" data-task-action-status role="status" aria-live="polite" aria-atomic="true">${esc(feedback?.text||'')}</div><div class="taskList">${open.length?open.map(t=>this.row(t,canEdit)).join(''):'<div class="muted taskEmpty">Открытых задач нет</div>'}${done.length?`<details class="doneTasks"><summary>Выполнено: ${done.length}</summary>${done.map(t=>this.row(t,canEdit)).join('')}</details>`:''}</div>${canCreate?'<div class="taskCreate"><input id="leadTaskTitle" maxlength="255" placeholder="Например: перезвонить туристу"><input id="leadTaskDue" type="datetime-local"><button id="leadTaskAdd" type="button" class="actionBtn">Добавить задачу</button><div id="leadTaskCreateStatus" class="taskCreateStatus" role="status" aria-live="polite"></div></div>':canEdit?'<div class="readonlyNote">Для закрытого лида новую задачу не создаём. Открытые задачи выше можно завершить или скорректировать.</div>':'<div class="readonlyNote">Задачи изменяет ответственный менеджер или администратор.</div>'}`;
+      const manager2=document.body.classList.contains('manager2'),titleInput='<input id="leadTaskTitle" maxlength="255" placeholder="Например: перезвонить туристу">',dueInput='<input id="leadTaskDue" type="datetime-local">';
+      const createFields=manager2?'<label class="taskCreateField" for="leadTaskTitle">Что сделать'+titleInput+'</label><label class="taskCreateField" for="leadTaskDue">Когда · МСК'+dueInput+'</label>':titleInput+dueInput;
+      root.innerHTML=`<div class="sectionTitle">Задачи и напоминания</div><div class="taskActionStatus${feedback?' '+esc(feedback.kind):''}" data-task-action-status role="status" aria-live="polite" aria-atomic="true">${esc(feedback?.text||'')}</div><div class="taskList">${open.length?open.map(t=>this.row(t,canEdit)).join(''):`<div class="muted taskEmpty">${tasks.length||!manager2?'Открытых задач нет':'Пока нет задач. Запланируйте следующее действие для клиента.'}</div>`}${done.length?`<details class="doneTasks"><summary>Выполнено: ${done.length}</summary>${done.map(t=>this.row(t,canEdit)).join('')}</details>`:''}</div>${canCreate?'<div class="taskCreate">'+createFields+'<button id="leadTaskAdd" type="button" class="actionBtn">Добавить задачу</button><div id="leadTaskCreateStatus" class="taskCreateStatus" role="status" aria-live="polite"></div></div>':canEdit?'<div class="readonlyNote">Для закрытого лида новую задачу не создаём. Открытые задачи выше можно завершить или скорректировать.</div>':'<div class="readonlyNote">Задачи изменяет ответственный менеджер или администратор.</div>'}`;
       if(canEdit){
         root.querySelectorAll('[data-task-toggle]').forEach(el=>el.onchange=()=>{const wanted=el.checked,row=el.closest('.taskRow'),task=byId.get(Number(el.dataset.taskToggle));if(blockForDirtyDraft(root)){el.checked=!wanted;return}return runMutation(el,row,()=>onToggle(Number(el.dataset.taskToggle),wanted),()=>{el.checked=!wanted},{target,pending:'Сохраняем состояние задачи…',success:`Задача «${task?.title||''}» ${wanted?'выполнена':'возвращена в работу'}.`,failure:'Не удалось изменить состояние задачи. Обновите список и повторите попытку.'})});
         root.querySelectorAll('[data-task-pin]').forEach(el=>el.onclick=()=>{if(blockForDirtyDraft(root))return;const wanted=el.dataset.pinned!=='1',row=el.closest('.taskRow'),task=byId.get(Number(el.dataset.taskPin));return runMutation(el,row,()=>onPin(Number(el.dataset.taskPin),wanted),null,{target,pending:'Сохраняем приоритет задачи…',success:`Задача «${task?.title||''}» ${wanted?'добавлена в приоритет':'убрана из приоритета'}.`,failure:'Не удалось изменить приоритет задачи. Обновите список и повторите попытку.'})});

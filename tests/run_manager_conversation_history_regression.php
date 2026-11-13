@@ -31,7 +31,7 @@ final class HistoryFixtureStatement extends PDOStatement
     public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args): array
     {
         $rows=parent::fetchAll($mode,...$args);
-        if((str_starts_with($this->queryString,'SELECT id,direction,sender_type,text,created_at FROM messages')||str_starts_with($this->queryString,'SELECT id,direction,sender_type,text,created_at,metadata_json FROM messages')||str_starts_with($this->queryString,'SELECT id,sender_type,text,created_at FROM messages'))&&$this->owner->afterPage){$callback=$this->owner->afterPage;$this->owner->afterPage=null;$callback($this->owner);}
+        if((str_starts_with($this->queryString,'SELECT id,direction,sender_type,text,created_at,sender_id FROM messages')||str_starts_with($this->queryString,'SELECT id,direction,sender_type,text,created_at,metadata_json FROM messages')||str_starts_with($this->queryString,'SELECT id,sender_type,text,created_at FROM messages'))&&$this->owner->afterPage){$callback=$this->owner->afterPage;$this->owner->afterPage=null;$callback($this->owner);}
         return$rows;
     }
 }
@@ -92,7 +92,7 @@ CREATE TABLE manager_customer_names(customer_id INTEGER PRIMARY KEY,working_name
 CREATE TABLE conversations(id INTEGER PRIMARY KEY,customer_id INTEGER,project_key TEXT,source_id INTEGER,channel TEXT,entry_channel TEXT,attribution_region TEXT,attribution_campaign TEXT,status TEXT,lead_stage_key TEXT,manager_id INTEGER,started_at TEXT,last_message_at TEXT,closed_at TEXT,external_chat_id TEXT);
 CREATE TABLE conversation_sources(id INTEGER PRIMARY KEY,display_name TEXT);
 CREATE TABLE conversation_events(id INTEGER PRIMARY KEY,conversation_id INTEGER,event_type TEXT,actor_type TEXT,payload_json TEXT,created_at TEXT);
-CREATE TABLE messages(id INTEGER PRIMARY KEY,conversation_id INTEGER,direction TEXT,sender_type TEXT,text TEXT,created_at TEXT,channel TEXT,metadata_json TEXT);
+CREATE TABLE messages(id INTEGER PRIMARY KEY,conversation_id INTEGER,direction TEXT,sender_type TEXT,text TEXT,created_at TEXT,channel TEXT,metadata_json TEXT,sender_id TEXT);
 CREATE INDEX idx_messages_conversation ON messages(conversation_id,id);
 CREATE TABLE manager_conversation_reads(manager_id INTEGER,conversation_id INTEGER,last_read_message_id INTEGER,updated_at TEXT DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY(manager_id,conversation_id));
 INSERT INTO projects VALUES(1,'anytour','Synthetic project',1),(2,'other','Other project',1);
@@ -100,7 +100,7 @@ INSERT INTO managers VALUES(1,'admin','Synthetic admin','admin','',1,1),(2,'othe
 INSERT INTO manager_projects VALUES(1,1),(2,2);
 INSERT INTO customers VALUES(10,'Synthetic customer','','');
 INSERT INTO conversations VALUES(1,10,'anytour',0,'telegram','','','','manager','new',1,'2026-10-14 00:00:00','2026-10-14 00:00:00',NULL,'synthetic-chat');");
-    $insert=$pdo->prepare('INSERT INTO messages VALUES(?,?,?,?,?,?,?,?)');
+    $insert=$pdo->prepare('INSERT INTO messages (id,conversation_id,direction,sender_type,text,created_at,channel,metadata_json) VALUES(?,?,?,?,?,?,?,?)');
     for($id=1;$id<=$count;$id++)$insert->execute([$id,1,$id===1&&$humanReply?'outbound':'inbound',$id===1&&$humanReply?'manager':'customer',$id===1&&$humanReply?'Ответ &amp; привет':'Сообщение '.$id,'2026-10-14 00:00:00','telegram',null]);
     $pdo->executed=[];$pdo->readWrites=0;return$pdo;
 }
@@ -172,7 +172,7 @@ foreach([500,501,750,1001] as $count){
 }
 $pdo=fixture(200);$page=ManagerConversationService::detail(1,1);check('exactly 200 messages has no phantom older page',!$page['history']['has_more']&&ids($page)===range(1,200));
 $pdo=fixture(0,false);$page=ManagerConversationService::detail(1,1);check('confirmed empty latest has explicit metadata and no read write',$page['messages']===[]&&$page['history']===['has_more'=>false,'before_id'=>0,'page_size'=>200,'mode'=>'latest']&&!$page['has_manager_reply']&&$pdo->readWrites===0);
-$pdo=fixture(501);$pdo->afterPage=static fn($db)=>$db->exec("INSERT INTO messages VALUES(502,1,'inbound','customer','Arrived after captured page','2026-10-14 00:00:01','telegram',NULL)");$page=ManagerConversationService::detail(1,1);check('concurrent arrival after page capture remains unread',end($page['messages'])['id']===501&&cursor($pdo)===0);
+$pdo=fixture(501);$pdo->afterPage=static fn($db)=>$db->exec("INSERT INTO messages (id,conversation_id,direction,sender_type,text,created_at,channel,metadata_json) VALUES(502,1,'inbound','customer','Arrived after captured page','2026-10-14 00:00:01','telegram',NULL)");$page=ManagerConversationService::detail(1,1);check('concurrent arrival after page capture remains unread',end($page['messages'])['id']===501&&cursor($pdo)===0);
 $pdo=fixture(501);$pdo->exec('INSERT INTO manager_conversation_reads(manager_id,conversation_id,last_read_message_id) VALUES(1,1,900)');ManagerConversationService::detail(1,1);check('concurrent newer cursor cannot be overwritten by older captured page',cursor($pdo)===900);
 ManagerReadService::markRead(1,1,100);check('atomic marker remains monotonic for late same-account completion',cursor($pdo)===900);
 $pdo=fixture(750);$page=ManagerConversationService::detail(1,1,501);check('first older-only view does not clear unseen newer history',ids($page)===range(301,500)&&cursor($pdo)===0&&$pdo->readWrites===0);
@@ -180,7 +180,7 @@ $pdo=fixture(750);$page=ManagerConversationService::detail(1,1,0,200,false);chec
 $pdo=fixture(501);$denied=ManagerConversationService::detail(1,2);$messageQueries=array_filter($pdo->executed,static fn($query)=>str_contains($query['sql'],'FROM messages'));check('denied service access neither reads messages nor writes read state',$denied===null&&$messageQueries===[]&&$pdo->readWrites===0);
 $pdo=fixture(501);$response=apiDetail(['conversation_id'=>1]);check('actual API returns latest page and suppresses false first-reply summary outside tail',$response['status']===200&&$response['body']['has_manager_reply']&&ids($response['body'])===range(302,501)&&cursor($pdo)===0);
 check('latest replied detail explicitly clears panel-only context',array_key_exists('handoff_context',$response['body'])&&$response['body']['handoff_context']===null);
-$pageQueries=array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,direction,sender_type,text,created_at FROM messages'));$hydrateQueries=array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,channel,direction,metadata_json'));check('API fetches one bounded page and one bounded hydration query',count($pageQueries)===1&&count($hydrateQueries)===1&&count(array_values($hydrateQueries)[0]['args'])===200);
+$pageQueries=array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,direction,sender_type,text,created_at,sender_id FROM messages'));$hydrateQueries=array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,channel,direction,metadata_json'));check('API fetches one bounded page and one bounded hydration query',count($pageQueries)===1&&count($hydrateQueries)===1&&count(array_values($hydrateQueries)[0]['args'])===200);
 
 // The same server receipt must display the same instant despite mixed DB wall clocks.
 $pdo=fixture(6);
@@ -208,7 +208,7 @@ check('recording projection exposes no raw metadata',!str_contains(json_encode($
 $clockHydrationQueries=array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,channel,direction,metadata_json'));
 check('recording projection reuses the one bounded hydration query',count($clockHydrationQueries)===1&&count(array_values($clockHydrationQueries)[0]['args'])===6);
 
-$pdo=fixture(501);$pdo->afterPage=static fn($db)=>$db->exec("INSERT INTO messages VALUES(502,1,'inbound','customer','Arrived during HTTP request','2026-10-14 00:00:01','telegram',NULL)");$response=apiDetail(['conversation_id'=>1]);check('actual API cannot mark newly arrived unseen message',ids($response['body'])===range(302,501)&&cursor($pdo)===0);
+$pdo=fixture(501);$pdo->afterPage=static fn($db)=>$db->exec("INSERT INTO messages (id,conversation_id,direction,sender_type,text,created_at,channel,metadata_json) VALUES(502,1,'inbound','customer','Arrived during HTTP request','2026-10-14 00:00:01','telegram',NULL)");$response=apiDetail(['conversation_id'=>1]);check('actual API cannot mark newly arrived unseen message',ids($response['body'])===range(302,501)&&cursor($pdo)===0);
 $pdo=fixture(501);$pdo->failHydration=true;$response=apiDetail(['conversation_id'=>1]);check('hydration failure is explicit and writes no read marker',$response['status']===500&&$response['body']===['ok'=>false,'error'=>'conversation_load_failed']&&cursor($pdo)===0&&$pdo->readWrites===0);
 $pdo=fixture(501);$response=apiDetail(['conversation_id'=>1],2);check('denied API returns 404 without read write',$response['status']===404&&$response['body']['error']==='not_found'&&$pdo->readWrites===0);
 $pdo=fixture(501,false);$response=apiDetail(['conversation_id'=>1,'before_id'=>302]);check('older API never appends pseudo-summary or marks unseen newer history',$response['status']===200&&ids($response['body'])===range(102,301)&&!$response['body']['has_manager_reply']&&$response['body']['history']['mode']==='older'&&cursor($pdo)===0);
@@ -218,7 +218,7 @@ check('latest handoff context is separate from unchanged stored message ids',$re
 foreach([-1,'-1','not-an-id',1.5,true,'01','999999999999999999999'] as $invalid){$pdo=fixture(501);$response=apiDetail(['conversation_id'=>1,'before_id'=>$invalid]);check('invalid cursor '.json_encode($invalid).' returns explicit 422 before page/read',$response['status']===422&&$response['body']['error']==='invalid_history_cursor'&&$pdo->executed===[]&&$pdo->readWrites===0);}
 $pdo=fixture(501);$response=apiDetail(['conversation_id'=>1,'before_id'=>'302']);check('canonical decimal-string cursor accepted',ids($response['body'])===range(102,301));
 $pdo=fixture(501);$response=apiDetail(['conversation_id'=>1,'before_id'=>1]);check('older exhaustion is confirmed empty rather than an error',$response['body']['messages']===[]&&!$response['body']['history']['has_more']&&$response['body']['history']['before_id']===0&&$pdo->readWrites===0);
-$plan=$pdo->query('EXPLAIN QUERY PLAN SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=1 AND id<302 ORDER BY id DESC LIMIT 201')->fetchAll();check('history page uses existing conversation/id index',str_contains(json_encode($plan),'idx_messages_conversation'));
+$plan=$pdo->query('EXPLAIN QUERY PLAN SELECT id,direction,sender_type,text,created_at,sender_id FROM messages WHERE conversation_id=1 AND id<302 ORDER BY id DESC LIMIT 201')->fetchAll();check('history page uses existing conversation/id index',str_contains(json_encode($plan),'idx_messages_conversation'));
 
 // A previously read reply is editable, while later customer messages have not
 // been returned in detail. Candidate lookup, edits and cached-media permission
@@ -226,8 +226,7 @@ $plan=$pdo->query('EXPLAIN QUERY PLAN SELECT id,direction,sender_type,text,creat
 function authorizationOnlyFixture(): HistoryFixturePdo
 {
     $pdo=fixture(501);
-    $pdo->exec("ALTER TABLE messages ADD COLUMN sender_id TEXT;
-ALTER TABLE messages ADD COLUMN external_message_id TEXT;
+    $pdo->exec("ALTER TABLE messages ADD COLUMN external_message_id TEXT;
 ALTER TABLE conversation_events ADD COLUMN actor_id TEXT;
 UPDATE messages SET sender_id='1',channel='website',created_at=CURRENT_TIMESTAMP WHERE id=1;
 UPDATE conversations SET channel='website' WHERE id=1;
@@ -236,7 +235,7 @@ INSERT INTO manager_conversation_reads(manager_id,conversation_id,last_read_mess
 }
 function transcriptPageQueries(HistoryFixturePdo $pdo): array
 {
-    return array_values(array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,direction,sender_type,text,created_at FROM messages')));
+    return array_values(array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,direction,sender_type,text,created_at,sender_id FROM messages')));
 }
 function cachedMediaDenied(int $conversationId,int $managerId): bool
 {
@@ -302,7 +301,7 @@ $r=shown($state,[5,6]);check('offscreen unread row cannot be skipped by later vi
 $r=shown($state,[4,6]);check('partial acknowledgement stops at first unseen conversation row',cursor($pdo)===4);
 shown($state,[2,3]);check('late duplicate read acknowledgement is monotonic',cursor($pdo)===4);
 shown($state,[5,6]);check('shown remaining prefix clears only its actual unread rows',cursor($pdo)===6);
-$pdo->exec("INSERT INTO messages VALUES(900,1,'inbound','customer','Global ID gap','2026-10-14 00:00:01','telegram',NULL)");
+$pdo->exec("INSERT INTO messages (id,conversation_id,direction,sender_type,text,created_at,channel,metadata_json) VALUES(900,1,'inbound','customer','Global ID gap','2026-10-14 00:00:01','telegram',NULL)");
 shown($state,[900]);check('global ID gaps do not create phantom unread gaps',cursor($pdo)===900);
 // The unread prefix contains human messages, not recorded button/start actions.
 $pdo=fixture(8);
@@ -313,9 +312,9 @@ check('buttons and starts remain in history but do not inflate unread',count($de
 $r=shown($state,[6]);check('excluded actions do not allow skipping an unseen human message',cursor($pdo)===0&&$r['body']['read_state']['unread_count']===4);
 $r=shown($state,[5,6]);check('excluded action rows never block the actually shown human prefix',cursor($pdo)===6&&$r['body']['read_state']['unread_count']===2);
 $r=shown($state,[7,8]);check('typed callback names and malformed metadata remain real unread messages',cursor($pdo)===8&&$r['body']['read_state']['unread_count']===0);
-$pdo->exec("INSERT INTO messages VALUES(9,1,'inbound','customer','New action','2026-10-14 00:00:01','telegram','{\"type\":\"callback\"}')");
+$pdo->exec("INSERT INTO messages (id,conversation_id,direction,sender_type,text,created_at,channel,metadata_json) VALUES(9,1,'inbound','customer','New action','2026-10-14 00:00:01','telegram','{\"type\":\"callback\"}')");
 check('a newly recorded action does not revive the personal unread badge',apiDetail(['conversation_id'=>1])['body']['read_state']['unread_count']===0);
-$pdo->exec("INSERT INTO messages VALUES(10,1,'inbound','customer','','2026-10-14 00:00:01','telegram','{\"attachments\":[{\"type\":\"photo\"}]}')");
+$pdo->exec("INSERT INTO messages (id,conversation_id,direction,sender_type,text,created_at,channel,metadata_json) VALUES(10,1,'inbound','customer','','2026-10-14 00:00:01','telegram','{\"attachments\":[{\"type\":\"photo\"}]}')");
 $r=shown($state,[9]);check('an action-only acknowledgement cannot clear a newer unseen attachment',cursor($pdo)===8&&$r['body']['read_state']['unread_count']===1&&$r['body']['read_state']['first_unread_id']===10);
 $r=shown($state,[10]);check('a visible customer attachment advances across excluded actions',cursor($pdo)===10&&$r['body']['read_state']['unread_count']===0);
 $pdo=fixture(501);$state=apiDetail(['conversation_id'=>1])['body']['read_state'];shown($state,range(302,501));
@@ -330,7 +329,7 @@ check('fresh project revocation refuses read write',$r['status']===409&&cursor($
 $pdo=fixture(5);$state=apiDetail(['conversation_id'=>1])['body']['read_state'];$pdo->exec('UPDATE managers SET is_active=0 WHERE id=1');$r=shown($state,[2]);
 check('inactive account refuses read write',$r['status']===409&&cursor($pdo)===0);
 foreach([[],[0],['2'],[true],range(1,201)] as $ids){$pdo=fixture(5);$state=apiDetail(['conversation_id'=>1])['body']['read_state'];$r=shown($state,$ids);check('invalid read batch '.json_encode(array_slice($ids,0,3)).' writes nothing',$r['status']===422&&$pdo->readWrites===0);}
-$pdo=fixture(5);$state=apiDetail(['conversation_id'=>1])['body']['read_state'];$pdo->exec("INSERT INTO messages VALUES(6,1,'inbound','customer','Arrived after display','2026-10-14 00:00:01','telegram',NULL)");$r=shown($state,[2,3,4,5]);
+$pdo=fixture(5);$state=apiDetail(['conversation_id'=>1])['body']['read_state'];$pdo->exec("INSERT INTO messages (id,conversation_id,direction,sender_type,text,created_at,channel,metadata_json) VALUES(6,1,'inbound','customer','Arrived after display','2026-10-14 00:00:01','telegram',NULL)");$r=shown($state,[2,3,4,5]);
 check('arrival after display stays unread in authoritative count',cursor($pdo)===5&&$r['body']['read_state']['unread_count']===1);
 
 // Explicit initial-unread reads must seek an old prefix without draining history.
@@ -437,7 +436,7 @@ $pdo=fixture(4);$pdo->prepare('UPDATE messages SET text=? WHERE id=1')->execute(
 check('full search uses displayed manager text including numeric historic entities',array_column($r['body']['matches'],'message_id')===[1]&&str_contains($r['body']['matches'][0]['snippet'],'& море 🌊 "цитата"'));
 $pdo=fixture(61);$r=apiSearch(['conversation_id'=>1,'query'=>'сообщение']);$first=$r['body'];
 check('dense matches return at most 25 short projections',array_column($first['matches'],'message_id')===range(61,37)&&$first['scanned']===25&&$first['before_id']===37&&$first['has_more']&&!isset($first['messages'],$first['read_state']));
-$pdo->exec("INSERT INTO messages VALUES(99,1,'inbound','customer','Новое сообщение','2026-11-11 00:00:00','telegram',NULL)");
+$pdo->exec("INSERT INTO messages (id,conversation_id,direction,sender_type,text,created_at,channel,metadata_json) VALUES(99,1,'inbound','customer','Новое сообщение','2026-11-11 00:00:00','telegram',NULL)");
 $r=apiSearch(['conversation_id'=>1,'query'=>'сообщение','snapshot_id'=>$first['snapshot_id'],'before_id'=>$first['before_id']]);
 check('keyset continuation neither duplicates hits nor includes later arrivals',array_column($r['body']['matches'],'message_id')===range(36,12)&&$r['body']['snapshot_id']===61);
 $pdo=fixture(4);$pdo->exec("UPDATE messages SET conversation_id=2 WHERE id=2");$r=apiSearch(['conversation_id'=>1,'query'=>'Сообщение 2']);
@@ -457,6 +456,82 @@ $pdo=fixture(4);$r=apiSearch(['conversation_id'=>1,'target_message_id'=>99],1,'m
 check('deleted or foreign search target does not expose adjacent messages',!$r['body']['available']&&!isset($r['body']['messages']));
 $pdo=fixture(4);$pdo->failHydration=true;$r=apiSearch(['conversation_id'=>1,'target_message_id'=>2],1,'message_context');
 check('search context hydration failure remains recoverable and read-only',$r['status']===500&&$r['body']['error']==='message_search_failed'&&$pdo->readWrites===0);
+
+// Authors come from each saved message, never from the conversation assignee.
+function authorFixture(int $count): HistoryFixturePdo
+{
+    $pdo=fixture($count,false);
+    $pdo->exec("INSERT INTO managers VALUES
+(3,'private-author-login','Исторический автор','manager','private-author@example.invalid',0,0),
+(4,'private-other-login','Исторический автор','manager','private-other@example.invalid',1,1),
+(5,'private-blank-login','   ','manager','private-blank@example.invalid',1,1);
+UPDATE messages SET sender_id='private-customer-provider-id';");
+    $pdo->executed=[];return$pdo;
+}
+function messageAuthorQueries(HistoryFixturePdo $pdo): array
+{
+    return array_values(array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,display_name FROM managers WHERE id IN (')));
+}
+$pdo=authorFixture(9);
+$pdo->exec("UPDATE messages SET direction='outbound',sender_type='manager',sender_id='3' WHERE id IN (1,2);
+UPDATE messages SET direction='outbound',sender_type='manager',sender_id='4' WHERE id=3;
+UPDATE messages SET direction='outbound',sender_type='manager',sender_id='5' WHERE id=4;
+UPDATE messages SET direction='outbound',sender_type='manager',sender_id='6' WHERE id=5;
+UPDATE messages SET direction='outbound',sender_type='manager',sender_id=NULL WHERE id=6;
+UPDATE messages SET direction='outbound',sender_type='ai',sender_id='3' WHERE id=8;
+UPDATE messages SET direction='outbound',sender_type='manager',sender_id='1',metadata_json='{\"ai_draft\":{\"private\":\"private-ai-draft\"}}' WHERE id=9;");
+$storedAuthors=$pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll();$pdo->executed=[];
+$r=apiDetail(['conversation_id'=>1]);$authors=array_column($r['body']['messages'],null,'id');
+check('historical inactive author is independent of current assignee and project membership',$r['status']===200&&$r['body']['conversation']['manager_id']==1&&$authors[1]['author']===['manager_id'=>3,'name'=>'Исторический автор']&&$authors[2]['author']===$authors[1]['author']);
+check('same-name historical managers retain distinct saved identities',$authors[3]['author']===['manager_id'=>4,'name'=>'Исторический автор']);
+check('blank deleted and unknown authors cannot borrow an assignee name',$authors[4]['author']===['manager_id'=>5,'name'=>null]&&$authors[5]['author']===['manager_id'=>6,'name'=>null]&&$authors[6]['author']===['manager_id'=>null,'name'=>null]);
+check('customer and bot never inherit a manager identity',!array_key_exists('author',$authors[7])&&!array_key_exists('author',$authors[8])&&$authors[8]['sender_type']==='ai');
+check('AI draft sent by a human retains the saved human author',$authors[9]['sender_type']==='manager'&&$authors[9]['author']===['manager_id'=>1,'name'=>'Synthetic admin']);
+$authorWire=json_encode($r['body']['messages'],JSON_THROW_ON_ERROR);
+check('author projection removes every raw sender id and private directory field',array_filter($authors,static fn($row)=>array_key_exists('sender_id',$row))===[]&&!str_contains($authorWire,'private-')&&!str_contains($authorWire,'login')&&!str_contains($authorWire,'email'));
+$queries=messageAuthorQueries($pdo);$lookupIds=$queries[0]['args']??[];sort($lookupIds);
+check('mixed transcript resolves only unique saved manager ids in one query',count($queries)===1&&$lookupIds===[1,3,4,5,6]);
+check('author projection preserves message order storage and unread state',ids($r['body'])===range(1,9)&&$pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll()===$storedAuthors&&cursor($pdo)===0&&$pdo->readWrites===0);
+
+$savedAuthorIds=[null,'','0','01','+1','-1',' 1','1 ','1x','1.0','1e0','9007199254740992','999999999999999999999','1','9007199254740991'];
+$pdo=authorFixture(count($savedAuthorIds));$q=$pdo->prepare("UPDATE messages SET direction='outbound',sender_type='manager',sender_id=? WHERE id=?");
+foreach($savedAuthorIds as $index=>$saved)$q->execute([$saved,$index+1]);
+$pdo->executed=[];$r=apiDetail(['conversation_id'=>1]);
+foreach($savedAuthorIds as $index=>$saved){
+    $expected=$saved==='1'?['manager_id'=>1,'name'=>'Synthetic admin']:($saved==='9007199254740991'?['manager_id'=>9007199254740991,'name'=>null]:['manager_id'=>null,'name'=>null]);
+    check('saved author id is canonical and safe '.json_encode($saved),$r['body']['messages'][$index]['author']===$expected);
+}
+$queries=messageAuthorQueries($pdo);$lookupIds=$queries[0]['args']??[];sort($lookupIds);
+check('invalid author ids never enter the directory lookup',count($queries)===1&&$lookupIds===[1,9007199254740991]);
+
+$pdo=authorFixture(400);$pdo->exec("UPDATE messages SET direction='outbound',sender_type='manager',sender_id=CASE WHEN id%2=0 THEN '3' ELSE '4' END");
+foreach([0=>range(201,400),201=>range(1,200)] as $before=>$expectedIds){
+    $pdo->executed=[];$r=apiDetail(['conversation_id'=>1]+($before?['before_id'=>$before]:[]));$queries=messageAuthorQueries($pdo);
+    $lookupIds=$queries[0]['args']??[];sort($lookupIds);$pageAuthors=array_column($r['body']['messages'],'author');
+    check('bounded author lookup preserves latest or older page '.$before,$r['status']===200&&ids($r['body'])===$expectedIds&&count($queries)===1&&$lookupIds===[3,4]&&count(transcriptPageQueries($pdo))===1&&count($pageAuthors)===200&&array_column($pageAuthors,'manager_id')===array_map(static fn($id)=>$id%2===0?3:4,$expectedIds)&&array_unique(array_column($pageAuthors,'name'))===['Исторический автор']&&$pdo->readWrites===0);
+}
+$pdo=authorFixture(200);$pdo->exec("UPDATE messages SET direction='outbound',sender_type='ai',sender_id='3' WHERE id%2=0");$pdo->executed=[];$r=apiDetail(['conversation_id'=>1]);
+check('customer and bot only page performs no author lookup',ids($r['body'])===range(1,200)&&messageAuthorQueries($pdo)===[]&&array_filter($r['body']['messages'],static fn($row)=>array_key_exists('author',$row)||array_key_exists('sender_id',$row))===[]);
+
+$pdo=authorFixture(1001);$pdo->exec("INSERT INTO manager_conversation_reads VALUES(1,1,200,CURRENT_TIMESTAMP);
+UPDATE messages SET direction='outbound',sender_type='manager',sender_id='3' WHERE id IN (181,280);
+UPDATE messages SET direction='outbound',sender_type='manager',sender_id='4' WHERE id IN (199,1001);");
+$pdo->executed=[];$r=apiDetail(['conversation_id'=>1,'open_unread'=>true]);$authors=array_column($r['body']['messages'],null,'id');$queries=messageAuthorQueries($pdo);$lookupIds=$queries[0]['args']??[];sort($lookupIds);
+check('unread prefix and latest tail share one bounded author lookup',$r['status']===200&&ids($r['body'])===array_merge(range(181,300),range(922,1001))&&count(transcriptPageQueries($pdo))===3&&count($queries)===1&&$lookupIds===[3,4]&&$authors[181]['author']===['manager_id'=>3,'name'=>'Исторический автор']&&$authors[1001]['author']===['manager_id'=>4,'name'=>'Исторический автор']&&cursor($pdo)===200&&$pdo->readWrites===0);
+
+$pdo=authorFixture(1001);$pdo->exec("ALTER TABLE messages ADD COLUMN external_message_id TEXT COLLATE NOCASE;
+UPDATE messages SET direction='outbound',sender_type='manager',sender_id='3',external_message_id='mid.synthetic-author' WHERE id=50;
+UPDATE messages SET direction='outbound',sender_type='manager',sender_id='4' WHERE id=51;
+UPDATE messages SET metadata_json='{\"linked_message\":{\"type\":\"reply\",\"mid\":\"mid.synthetic-author\"}}' WHERE id=1001;");
+foreach(['message_context','message_target'] as $action){
+    $pdo->executed=[];$r=$action==='message_context'?apiSearch(['conversation_id'=>1,'target_message_id'=>50],1,$action):apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);
+    $authors=array_column($r['body']['messages'],null,'id');$queries=messageAuthorQueries($pdo);$lookupIds=$queries[0]['args']??[];sort($lookupIds);
+    check('exact context shares saved author projection '.$action,$r['status']===200&&ids($r['body'])===range(30,70)&&$authors[50]['author']===['manager_id'=>3,'name'=>'Исторический автор']&&$authors[51]['author']===['manager_id'=>4,'name'=>'Исторический автор']&&count(transcriptPageQueries($pdo))===2&&count($queries)===1&&$lookupIds===[3,4]&&array_filter($authors,static fn($row)=>array_key_exists('sender_id',$row))===[]&&cursor($pdo)===0&&$pdo->readWrites===0);
+}
+$pdo->executed=[];$r=apiDetail(['conversation_id'=>1],2);
+check('denied transcript never looks up or exposes authors',$r['status']===404&&messageAuthorQueries($pdo)===[]&&transcriptPageQueries($pdo)===[]&&!isset($r['body']['messages'])&&$pdo->readWrites===0);
+$pdo->afterPage=static fn($db)=>$db->exec('DELETE FROM manager_projects WHERE manager_id=1');$r=apiSearch(['conversation_id'=>1,'target_message_id'=>50],1,'message_context');
+check('access revocation discards the captured author projection',$r['status']===404&&!isset($r['body']['messages'])&&cursor($pdo)===0&&$pdo->readWrites===0);
 require __DIR__.'/manager_conversation_materials_checks.php';
 if(PHP_SAPI==='cli')foreach(['latest','older','materials'] as $mode){
     $probe=historySessionProbe($mode);$response=$probe['response'];

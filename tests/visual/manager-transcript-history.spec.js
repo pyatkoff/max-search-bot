@@ -145,6 +145,51 @@ for(const width of[390,430,768,1440])test.describe('Stable transcript '+width,()
  });
 });
 
+for(const width of [390,430,768,1440])test('Manager2 saved authors stay compact across refresh and older history '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:844});const state=await setup(page,{total:11,pageSize:9});
+ const author=(id,name)=>({manager_id:id,name}),managerRow=(row,id,name)=>Object.assign(row,{direction:'outbound',sender_type:'manager',author:author(id,name)});
+ const rows=state.documents[11];for(const row of rows){row.direction='inbound';row.sender_type='customer';row.text='Сообщение '+row.id;}
+ managerRow(rows[1],8,'Елена');rows[1].text='Сохранила подходящие варианты.';
+ managerRow(rows[2],8,'Елена');rows[2].text='Рассказываю об условиях тура.';rows[2].attachments=[{type:'audio',url:origin+'/synthetic-history.wav',name:'Условия тура'}];
+ managerRow(rows[3],8,'Елена');rows[3].text='Завтрак включён в стоимость.';
+ rows[4].text='Спасибо, посмотрю вечером.';managerRow(rows[5],9,'Ольга');rows[5].text='Уточнила наличие мест.';
+ Object.assign(rows[6],{direction:'outbound',sender_type:'ai',text:'Подборка готова к просмотру.'});
+ managerRow(rows[7],null,null);rows[7].text='Ранее сохранённый ответ.';
+ managerRow(rows[8],7,'Имя текущего пользователя');rows[8].text='Проверю удобное время вылета.';
+ managerRow(rows[9],7,'Имя текущего пользователя');rows[9].text='Вернусь с ответом завтра.';rows[10].text='Буду ждать, спасибо.';
+ await open(page);const row=id=>page.locator('#messages [data-scroll-message-key="'+id+'"]'),caption=id=>row(id).locator('.messageSender');
+ await expect(page.locator('#messages .msg')).toHaveCount(9);
+ for(const [id,label,visible] of [[3,'Елена',true],[4,'Елена',false],[5,'Турист',false],[6,'Ольга',true],[7,'Бот',true],[8,'Менеджер',true],[9,'Вы',true],[10,'Вы',false],[11,'Турист',false]]){
+  await expect(caption(id)).toHaveText(label);if(visible)await expect(caption(id)).toBeVisible();else await expect(caption(id)).toBeHidden();
+ }
+ const appearance=await page.locator('#messages .messageSender').evaluateAll(nodes=>nodes.filter(node=>!node.hidden).map(node=>({label:node.textContent,transform:getComputedStyle(node).textTransform,weight:Number(getComputedStyle(node).fontWeight),size:parseFloat(getComputedStyle(node).fontSize)})));
+ expect(appearance.every(item=>item.transform==='none'&&item.weight<=600&&item.size<=12)).toBe(true);expect(appearance.some(item=>item.label==='Синтетический менеджер')).toBe(false);
+ await page.locator('#replyText').fill('Черновик ответа при чтении истории');await page.locator('#replyFile').setInputFiles({name:'author-draft.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained file')});
+ const audio=row(3).locator('audio');await audio.scrollIntoViewIfNeeded();await audio.evaluate(async node=>{await node.play();await new Promise(resolve=>node.readyState>=1?resolve():node.addEventListener('loadedmetadata',resolve,{once:true}));});
+ await page.locator('#replyText').focus();await page.locator('#replyText').evaluate(node=>node.setSelectionRange(2,9));await readTop(page);
+ expect(await page.evaluate(()=>{
+  const reply=document.getElementById('replyText'),file=WorkspaceV2Media.captureSelection()?.rows[0]?.row.file,audio=document.querySelector('#messages audio');
+  window.authorRetention={reply,text:reply.value,start:reply.selectionStart,end:reply.selectionEnd,file,audio,time:audio.currentTime,rows:[...document.querySelectorAll('#messages .msg')].map(node=>({id:node.dataset.scrollMessageKey,node,body:node.querySelector('.msgBody'),caption:node.querySelector('.messageSender')}))};
+  return file instanceof File&&document.activeElement===reply&&!audio.paused;
+ })).toBe(true);
+ await screenshot(page,browserName,width,'saved-authors');const readsBefore=state.calls.filter(call=>call.path==='/manager/api.php'&&call.action==='detail').length;
+ const longName='Елена '+'ОченьДлиннаяФамилия'.repeat(4);for(const message of rows)if(message.author?.manager_id===8)message.author.name=longName;
+ await refresh(page);await expect(caption(3)).toHaveText(longName);await expect(caption(4)).toBeHidden();
+ expect(await caption(3).evaluate(node=>{const caption=node.getBoundingClientRect(),bubble=node.parentElement.getBoundingClientRect();return node.scrollWidth<=node.clientWidth+1&&caption.left>=bubble.left&&caption.right<=bubble.right})).toBe(true);
+ expect(await page.evaluate(()=>{
+  const saved=window.authorRetention,reply=document.getElementById('replyText'),file=WorkspaceV2Media.captureSelection()?.rows[0]?.row.file;
+  return {nodes:saved.rows.every(item=>{const node=document.querySelector('#messages [data-scroll-message-key="'+item.id+'"]');return node===item.node&&node.querySelector('.msgBody')===item.body&&node.querySelector('.messageSender')===item.caption}),reply:reply===saved.reply&&reply.value===saved.text,caret:reply.selectionStart===saved.start&&reply.selectionEnd===saved.end,focus:document.activeElement===reply,file:file===saved.file,audio:document.querySelector('#messages audio')===saved.audio&&!saved.audio.paused&&saved.audio.currentTime>=saved.time-.05};
+ })).toEqual({nodes:true,reply:true,caret:true,focus:true,file:true,audio:true});
+ expect(state.calls.filter(call=>call.path==='/manager/api.php'&&call.action==='detail')).toHaveLength(readsBefore+1);
+ await readTop(page);const before=await anchor(page);await useConversationTool(page,'conversationLoadOlder');await expect(page.locator('#messages .msg')).toHaveCount(11);await sameAnchor(page,before);
+ await expect(caption(2)).toHaveText(longName);await expect(caption(2)).toBeVisible();await expect(caption(3)).toBeHidden();await expect(caption(4)).toBeHidden();
+ expect(await page.evaluate(()=>{
+  const saved=window.authorRetention,reply=document.getElementById('replyText');
+  return saved.rows.every(item=>document.querySelector('#messages [data-scroll-message-key="'+item.id+'"]')===item.node)&&reply.value===saved.text&&reply.selectionStart===saved.start&&reply.selectionEnd===saved.end&&WorkspaceV2Media.captureSelection().rows[0].row.file===saved.file&&document.querySelector('#messages audio')===saved.audio&&!saved.audio.paused;
+ })).toBe(true);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);await readTop(page);await screenshot(page,browserName,width,'saved-authors-older');clean(state);
+});
+
 // The old automatic read deliberately stays pending across real shell navigation.
 const refreshDetails=state=>state.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail'&&!c.before_id).length;
 // Cold native media requests, not a timing benchmark: all traffic stays in this

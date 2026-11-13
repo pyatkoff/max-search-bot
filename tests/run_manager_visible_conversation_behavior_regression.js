@@ -62,6 +62,21 @@ test('unchanged history retains its DOM and media nodes; same-id synthetic summa
  h.arrive([{id:0,sender_type:'ai',text:'Synthetic summary A'}]);await h.C.refreshVisible();const summary=box.children[0];h.arrive([{id:0,sender_type:'ai',text:'Synthetic summary B'}]);await h.C.refreshVisible();assert.notEqual(box.children[0],summary);assert.equal(h.W.S.detail.messages[0].text,'Synthetic summary B');
 });
 
+test('Manager2 author-only refresh preserves the retained transcript, draft file caret and focus',async()=>{
+ const h=await setup({reconcileMessages:true}),box=h.ids.get('messages');h.document.body.classList.add('manager2');
+ const one={...first,direction:'outbound',sender_type:'manager',author:{manager_id:8,name:'Елена'}},two={...next,direction:'outbound',sender_type:'manager',author:{manager_id:8,name:'Елена'}};
+ h.ownership({manager_name:'Текущий ответственный'});h.arrive([one,two]);await h.C.refreshVisible();
+ const [row,following]=box.children,body=row.querySelector('.msgBody'),caption=row.querySelector('.messageSender'),audio=trackedMedia(h,row,'audio');
+ assert.equal(caption.textContent,'Елена');assert.equal(following.querySelector('.messageSender').hidden,true);
+ await h.draft('Сохранённый ответ');const file={name:'synthetic-author.txt'};h.setFile(file);const reply=h.ids.get('replyText');reply.selectionStart=2;reply.selectionEnd=7;h.document.activeElement=reply;
+ const count=detailCount(h),lead=h.W.S.detail.lead,generation=h.C.getOpenGeneration();
+ h.arrive([{...one,author:{manager_id:8,name:'Елена Смирнова'}},{...two,author:{manager_id:9,name:'Елена Смирнова'}}]);assert.equal(await h.C.refreshVisible(),true);
+ assert.equal(detailCount(h),count+1);assert.equal(box.children[0],row);assert.equal(box.children[1],following);assert.equal(row.querySelector('.msgBody'),body);assert.equal(row.querySelector('.messageSender'),caption);
+ assert.equal(caption.textContent,'Елена Смирнова');assert.equal(caption.hidden,false);assert.equal(following.querySelector('.messageSender').hidden,false,'An author change starts a new group');
+ assert.equal(audio.isConnected,true);assert.equal(audio.currentTime,42);assert.equal(audio.playing,true);assert.equal(audio.pauses,0);assert.equal(audio.loads,0);
+ assert.equal(reply.value,'Сохранённый ответ');assert.equal(h.getFile(),file);assert.equal(reply.selectionStart,2);assert.equal(reply.selectionEnd,7);assert.equal(h.document.activeElement,reply);assert.equal(h.W.S.detail.lead,lead);assert.equal(h.C.getOpenGeneration(),generation);assertNoMutations(h);
+});
+
 test('handoff changes without message changes preserve transcript, draft, disclosure and focusable DOM',async()=>{
  const h=await setup(),root=h.ids.get('handoffContext'),row=h.ids.get('messages').firstChild;
  await h.draft('Unsent reply');h.handoff({summary:'Customer request A',guidance:'Internal guidance',attachments:[]});

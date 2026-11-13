@@ -7,12 +7,13 @@ const clone=value=>JSON.parse(JSON.stringify(value));
 // The shared fixture renders the actual Manager2 PHP shell and serves current
 // production assets. Only synthetic API responses are added here; no server,
 // account, customer send, task mutation or model invocation is used.
-async function setupPromise(page){
+async function setupPromise(page,{empty=false}={}){
   const base=await setup(page,{sourceRoot:root,projectKey:'anytour'}),calls=[],receipts=new Map();
   const tasks=[{id:77,conversation_id:11,title:'Подготовить согласованный расчёт',due_at_utc:'2030-11-20 12:00:00',status:'open',is_pinned:true,assigned_manager_id:7,assigned_manager_name:'Мария',due_state:'upcoming'}];
+  if(empty)tasks.length=0;
   const profile={trip_id:'a'.repeat(32),version:3,sha256:'b'.repeat(64),context_sha256:'c'.repeat(64),boundary_message_id:10,status:'fresh',label:'Зимняя поездка',
     fields:{dates:{value:'20 ноября, 7 ночей',kind:'manager_interpretation',importance:'hard',note:'',citation:{message_id:10,sender_type:'manager',quote:'20 ноября, 7 ночей',sha256:'f'.repeat(64)}}},field_labels:{dates:'Даты поездки'}};
-  const source={id:12,revision:'d'.repeat(64),author_manager_id:7,text:'Пришлю согласованный расчёт на двоих.',recorded_at_utc:'2026-11-13T09:00:00Z'};
+  const source={id:12,revision:'d'.repeat(64),author_manager_id:7,text:'Пришлю согласованный расчёт на двоих.\nВключу перелёт, трансфер и размещение.\nОтдельно укажу доступные варианты питания.',recorded_at_utc:'2026-11-13T09:00:00Z'};
   const conversation=id=>({id,project_key:'anytour',customer_id:id+90,manager_id:7,manager_name:'Мария',status:'manager',channel:'telegram',source_id:1,
     display_name:id===11?'Анна Морозова':'Алексей Иванов',original_display_name:id===11?'Анна Морозова':'Алексей Иванов',working_name:null,customer_name_version:0});
   await page.route('**/manager/api.php',route=>{
@@ -27,7 +28,7 @@ async function setupPromise(page){
     const d=route.request().postDataJSON(),reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',json:body});
     if(!['detail','promise_context','bind_promise','promise_operation'].includes(d.action))return route.fallback();
     calls.push(clone(d));expect(d.csrf).toBe('fixture-csrf');expect(d.conversation_id).toBe(11);
-    if(d.action==='detail')return reply({ok:true,viewer_id:7,conversation_id:11,can_edit_pipeline:true,degraded_components:[],tasks:clone(tasks),pipeline:{stage:null,tags:[],stage_history:[],outcome:{outcome:'open'}},trip:{},contact:{},source:{},handoff:{}});
+    if(d.action==='detail')return reply({ok:true,can_edit_pipeline:true,degraded_components:[],tasks:clone(tasks),pipeline:{stage:null,tags:[],stage_history:[],outcome:{outcome:'open'}},trip:{},contact:{},source:{},handoff:{}});
     if(d.action==='promise_context'){
       expect(d.task_id).toBe(77);expect(d.source_message_id).toBe(12);expect(d.kind).toBe('send_calculation');
       return reply({ok:true,viewer_id:7,conversation_id:11,can_bind:true,task:clone(tasks[0]),profile:clone(profile),source:clone(source),binding:null});
@@ -78,14 +79,19 @@ for(const [width,height] of [[390,900],[430,900],[768,900],[1440,900],[390,420]]
   await page.locator('[data-task-edit="77"]').click();await page.locator('[data-task-edit-title]').fill('Незавершённая правка существующей задачи');await page.locator('[data-task-edit-due]').fill('2031-02-04T14:00');
   await page.evaluate(()=>{window.promiseUiManualNodes={title:document.getElementById('leadTaskTitle'),due:document.getElementById('leadTaskDue'),
     editTitle:document.querySelector('[data-task-edit-title]'),editDue:document.querySelector('[data-task-edit-due]'),draft:sessionStorage.getItem(WorkspaceV2TaskDraft.keyFor(11))}});
-  await showChat(page);const opener=page.locator('.promiseTaskSourceButton[data-promise-source-id="12"]');await expect(opener).toBeVisible();
+  await showChat(page);const opener=page.locator('.promiseTaskMessageMenuToggle[data-promise-source-id="12"]'),action=page.locator('.promiseTaskSourceButton[data-promise-source-id="12"]');await expect(opener).toBeVisible();
+  await expect(action).not.toBeVisible();expect(await action.evaluate(node=>node.parentElement.tagName)).toBe('DETAILS');
   expect(s.calls.filter(call=>call.action.startsWith('promise_')||call.action==='bind_promise')).toEqual([]);
-  await opener.click();await expect(page.locator('#promiseTaskDialog')).toBeVisible();await expect(page.locator('#promiseTaskTask')).toBeEnabled();
+  await opener.click();await expect(action).toBeVisible();await action.click();await expect(page.locator('#promiseTaskDialog')).toBeVisible();await expect(page.locator('#promiseTaskTask')).toBeEnabled();
+  await expect(page.locator('.promiseTaskSource h3')).toHaveText('Сообщение');
+  const sourceHeight=await page.locator('#promiseTaskSource').evaluate(node=>({height:node.getBoundingClientRect().height,line:parseFloat(getComputedStyle(node).lineHeight)}));
+  expect(sourceHeight.height).toBeLessThanOrEqual(sourceHeight.line*2+1);
+  await page.locator('#promiseTaskSourceMore').click();expect((await page.locator('#promiseTaskSource').boundingBox()).height).toBeGreaterThan(sourceHeight.height);
+  await page.locator('#promiseTaskSourceMore').click();
   await page.locator('#promiseTaskTask').selectOption('77');await page.locator('#promiseTaskKind').selectOption('send_calculation');
-  await page.locator('#promiseTaskDeadlineMode').selectOption('date');await page.locator('#promiseTaskDate').fill('2030-11-20');await page.locator('#promiseTaskPreview').click();
+  await page.locator('#promiseTaskDeadlineMode').selectOption('date');await page.locator('#promiseTaskDate').fill('2030-11-20');
   await expect(page.locator('#promiseTaskSource')).toContainText('Пришлю согласованный расчёт на двоих.');
-  await expect(page.locator('#promiseTaskProfile')).toContainText('Зимняя поездка');await expect(page.locator('#promiseTaskProfile')).toContainText('20 ноября, 7 ночей');
-  await expect(page.locator('#promiseTaskTaskSummary')).toContainText('Подготовить согласованный расчёт');await expect(page.locator('#promiseTaskConfirm')).toBeEnabled();
+  await expect(page.locator('#promiseTaskConfirm')).toHaveText('Сохранить связь');await expect(page.locator('#promiseTaskConfirm')).toBeEnabled();await expect(page.locator('#promiseTaskPreview')).toHaveCount(0);
   expect(s.writes()).toHaveLength(0);await preserved(page,fileText);
   const box=await page.locator('#promiseTaskDialog').boundingBox();expect(box.x).toBeGreaterThanOrEqual(-1);expect(box.x+box.width).toBeLessThanOrEqual(width+1);expect(box.y).toBeGreaterThanOrEqual(-1);expect(box.y+box.height).toBeLessThanOrEqual(height+1);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
@@ -93,14 +99,48 @@ for(const [width,height] of [[390,900],[430,900],[768,900],[1440,900],[390,420]]
   await page.screenshot({animations:'disabled',path:path.join(directory,`promise-tasks-preview-${browserName}-${width}x${height}.png`)});
   for(const id of ['promiseTaskKind','promiseTaskTask','promiseTaskDeadlineMode'])expect((await page.locator('#'+id).boundingBox()).height).toBeGreaterThanOrEqual(44);
   await expect(page.locator('#promiseTaskClose')).toBeInViewport();
+  await page.locator('#promiseTaskConfirm').click();await expect(page.locator('#promiseTaskCheck')).toBeVisible();await expect(page.locator('#promiseTaskConfirm')).not.toBeVisible();expect(s.writes()).toHaveLength(1);
+  expect(s.calls.filter(call=>call.action==='promise_context')).toHaveLength(1);
+  await expect(page.locator('#promiseTaskProfile')).toContainText('Зимняя поездка');await expect(page.locator('#promiseTaskProfile')).toContainText('20 ноября, 7 ночей');
+  await expect(page.locator('#promiseTaskTaskSummary')).toContainText('Подготовить согласованный расчёт');await preserved(page,fileText);
   await page.locator('#promiseTaskProfile').scrollIntoViewIfNeeded();await expect(page.locator('#promiseTaskProfile')).toBeInViewport();
   await page.screenshot({animations:'disabled',path:path.join(directory,`promise-tasks-conditions-${browserName}-${width}x${height}.png`)});
-  await page.locator('#promiseTaskConfirm').click();await expect(page.locator('#promiseTaskCheck')).toBeVisible();await expect(page.locator('#promiseTaskConfirm')).not.toBeVisible();expect(s.writes()).toHaveLength(1);
   await page.locator('#promiseTaskCheck').click();await expect(page.locator('#promiseTaskStatus')).toContainText('Связь подтверждена');
   await expect(page.locator('#promiseTaskStatus')).not.toContainText(/Обещание выполнено|Задача выполнена/);expect(s.writes()).toHaveLength(1);
   expect(s.calls.filter(call=>call.action==='promise_operation')).toHaveLength(1);await preserved(page,fileText);
   await page.screenshot({animations:'disabled',path:path.join(directory,`promise-tasks-confirmed-${browserName}-${width}x${height}.png`)});
-  await page.locator('#promiseTaskClose').click();await expect(page.locator('#promiseTaskDialog')).not.toBeVisible();await expect(opener).toBeFocused();await preserved(page,fileText);
+  await page.locator('#promiseTaskClose').click();await expect(page.locator('#promiseTaskDialog')).not.toBeVisible();await expect(opener).toBeFocused();await expect(action).not.toBeVisible();await preserved(page,fileText);
   expect(s.base.errors).toEqual([]);expect(s.base.unexpected).toEqual([]);
   expect(s.base.calls.filter(call=>['send','take','release','close','reopen','create_task','update_task','set_task_completed','set_task_pinned'].includes(call.action))).toEqual([]);
+});
+
+for(const width of [390,430,768,1440])test(`empty tasks and conversation menu open one canonical planner at ${width}`,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const s=await setupPromise(page,{empty:true});
+  await page.locator('#inboxList [data-conversation-id="11"] .m2RowOpen').click();await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');
+  await page.locator('#replyText').fill('Ответ клиенту ещё не отправлен');
+  await page.locator('#replyFile').setInputFiles({name:'planner-draft.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic unsent planner attachment')});
+  const fileText=await settledMediaSelectionText(page);await page.evaluate(()=>{window.plannerFile=WorkspaceV2Media.captureSelection()});
+  await page.locator('.promiseTaskMessageMenuToggle[data-promise-source-id="12"]').click();await page.locator('.promiseTaskSourceButton[data-promise-source-id="12"]').click();
+  await expect(page.locator('#promiseTaskEmpty')).toBeVisible();await expect(page.locator('#promiseTaskTask')).not.toBeVisible();await expect(page.locator('#promiseTaskKind')).not.toBeVisible();
+  const reads=s.calls.filter(call=>call.action==='detail').length;
+  await page.locator('#promiseTaskPlan').click();await expect(page.locator('#promiseTaskDialog')).not.toBeVisible();await expect(page.locator('#leadTaskTitle')).toBeVisible();await expect(page.locator('#leadTaskTitle')).toBeFocused();
+  expect(s.calls.filter(call=>call.action==='detail')).toHaveLength(reads+1);await expect(page.locator('.taskCreate')).toHaveCount(1);await expect(page.locator('.taskCreate input')).toHaveCount(2);
+  await expect(page.locator('.taskEmpty')).toContainText('Пока нет задач');
+  await page.locator('#leadTaskTitle').fill('Позвонить клиенту после согласования');await page.locator('#leadTaskDue').fill('2031-03-04T16:00');
+  await page.evaluate(()=>{window.plannerNodes={title:document.getElementById('leadTaskTitle'),due:document.getElementById('leadTaskDue')};});
+  await showChat(page);await page.locator('#m2ConversationMenuToggle').click();await expect(page.locator('#m2PlanTask')).toHaveCount(1);await expect(page.locator('#m2PlanTask')).toHaveText('Запланировать');
+  await page.locator('#m2PlanTask').click();await expect(page.locator('#leadTaskTitle')).toBeFocused();
+  expect(s.calls.filter(call=>call.action==='detail')).toHaveLength(reads+1);
+  await expect(page.locator('#leadTaskTitle')).toHaveValue('Позвонить клиенту после согласования');await expect(page.locator('#leadTaskDue')).toHaveValue('2031-03-04T16:00');
+  expect(await page.evaluate(()=>window.plannerNodes.title===document.getElementById('leadTaskTitle')&&window.plannerNodes.due===document.getElementById('leadTaskDue'))).toBe(true);
+  expect(await settledMediaSelectionText(page)).toBe(fileText);expect(await page.evaluate(()=>WorkspaceV2Media.matchesSelection(window.plannerFile))).toBe(true);await expect(page.locator('#replyText')).toHaveValue('Ответ клиенту ещё не отправлен');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+  const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});
+  await page.screenshot({animations:'disabled',path:path.join(directory,`promise-tasks-planner-${browserName}-${width}x900.png`)});
+  await page.locator('.m2TaskCancel').click();await showChat(page);
+  s.tasks.push({id:77,conversation_id:11,title:'Уже запланированная задача',due_at_utc:null,status:'open',is_pinned:false,assigned_manager_id:7,assigned_manager_name:'Мария',due_state:'unscheduled'});
+  await page.locator('#m2ConversationMenuToggle').click();await page.locator('#m2PlanTask').click();
+  await expect(page.locator('.taskTitle')).toHaveText('Уже запланированная задача');await expect(page.locator('.m2TaskCreate>summary')).toHaveText('＋ Добавить задачу');await expect(page.locator('#leadTaskTitle')).toHaveValue('');await expect(page.locator('#leadTaskTitle')).toBeFocused();
+  expect(s.writes()).toHaveLength(0);expect(s.base.calls.filter(call=>['send','create_task','update_task','set_task_completed','set_task_pinned'].includes(call.action))).toEqual([]);
+  expect(s.base.errors).toEqual([]);expect(s.base.unexpected).toEqual([]);
 });

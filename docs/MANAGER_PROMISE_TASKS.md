@@ -19,8 +19,11 @@ recorded; it does not mean that the promised work was performed.
 
 ## Manager2 workflow
 
-The message action **Связать с задачей** opens a separate dialog for the selected
-outgoing manager message. The UI owner is
+The native **⋯** menu of an outgoing manager message contains **Связать с
+задачей**. The action is hidden while that menu is closed; ordinary bubbles do
+not label the message as a promise. Opening the action shows a separate dialog
+whose source heading is **Сообщение**, with a two-line excerpt and an explicit
+expand/collapse control. The UI owner is
 [workspace-v2-promise-tasks.js](../manager/assets/workspace-v2-promise-tasks.js),
 with its scoped [stylesheet](../manager/assets/workspace-v2-promise-tasks.css).
 Message decoration reads only already loaded transcript data and performs no
@@ -32,14 +35,37 @@ a deadline mode: no declared deadline, a Moscow calendar day, or a precise Mosco
 date/time. A fresh `pipeline detail` read supplies task options in the dialog's
 private state. Completed tasks remain selectable for inspecting an existing
 relationship; a first binding requires an open task and `promise_context.can_bind`.
-The dialog never renders the canonical task editor or creates a task.
+The dialog never renders the canonical task editor or creates a task. An empty
+task list shows **Пока нет задач** and **Запланировать**, without an unusable task
+selector. Planning closes this dialog and calls the canonical task module.
 
-**Проверить связь** reads `promise_context` and shows the checked source, task,
-declared deadline, current request label and canonical field values. Profile and
-source hashes remain opaque command pins. The returned `needs_review` state is
-shown as a request to check the current conditions. A separate **Подтвердить
-связь** button performs the write. Changing a selection or deadline invalidates
-the preview. A changed server context requires another explicit preview.
+One **Сохранить связь** button reads `promise_context`, validates the checked
+source, task, current request and canonical field values, then confirms a fresh
+unchanged context. Profile and source hashes remain opaque command pins. A
+`needs_review` profile, changed source text, changed displayed task title/deadline/status,
+or a definite context/source/profile
+rejection first displays the checked summary and an explicit instruction to
+review it and press **Сохранить связь** again. No write occurs on that first
+review. The next click reads the context again and accepts only the exact
+summary already shown; another changed version requires another review.
+Changing a choice or deadline invalidates the summary. Existing read-only and
+completed bindings remain inspectable without a write. There is no automatic
+conflict recovery or blind pin replacement.
+
+The conversation's existing **⋯** menu has one **Запланировать** entry. It calls
+`WorkspaceV2Tasks.openPlanner`: that module reads fresh pipeline detail, checks
+the captured session/conversation scope, task conversation IDs, ACL, outcome and
+degraded task/pipeline status, then
+renders the existing task root and reveals its two-field **Что сделать / Когда**
+form. Existing tasks remain visible with **＋ Добавить задачу**. Opening this
+form never creates a task. `manager2.js` owns only presentation; task mutation
+continues through the existing task and draft owners.
+
+A dirty task edit or create is revealed intact before any planner read. A draft
+started during a pending read likewise blocks replacement without moving focus. Planner completion
+does not reopen a dismissed card or steal focus moved elsewhere. Reply text,
+selected File, the existing task writer and the original promise deadline are
+not copied into or replaced by a second editor or a generic message/task link.
 
 If `context.binding` already exists, the dialog shows that saved relationship
 and the linked task's current status without another confirmation/write. This
@@ -67,7 +93,9 @@ not receive the previous account's pending command or dialog contents.
 The dialog fences reads and rendering by conversation, manager, authentication
 generation, conversation-open generation, owner/status and its own modal/read
 tickets. Close/Escape and the canonical mobile overlay release focus only to the
-same current conversation. Access loss or identity change clears private DOM.
+same current conversation, returning to the message menu's visible **⋯** summary.
+Message menus close on Escape or an outside click; access loss, navigation or
+identity change removes stale menus and clears private dialog DOM.
 Opening, previewing and completing a binding never call `Conversation.open`,
 `refreshLeadData` or `LeadCard.render`, so they do not replace a task edit form,
 the reply editor or its selected file. All task updates remain in their existing
@@ -266,11 +294,14 @@ These are implementation acceptance requirements, not a claim that CI,
 installation or production use has already been verified. This backend slice
 and its explicit Manager2 dialog do not enable autonomous obligation tracking.
 
-UI regressions must additionally cover the real message action and separate
-preview/confirm path, an existing completed binding, Moscow date/instant forms,
+UI regressions must additionally cover the collapsed native message menu and
+single-button fresh preview/confirm path, explicit review of changed sources and
+`needs_review` profiles, read failures, an existing completed binding, Moscow date/instant forms,
 pending storage and receipt lookup without automatic writes, account/navigation
 fences, and preservation of the real task edit form, reply text and selected
-file. The current request view and a binding's older profile version must remain
+file. Empty tasks and both planner entry points must use the same canonical
+two-field editor, preserve dirty drafts before and during a read, honor fresh ACL
+and navigation, and never create a task just by opening. The current request view and a binding's older profile version must remain
 visibly distinct. Browser and production verification are separate release gates.
 
 The existing mandatory native MySQL migrations group also runs
@@ -282,7 +313,9 @@ orphan handling and conversation-scoped cascading. Task-write triggers reject
 even attempted task mutations. This adds no workflow, publisher or CI partition.
 The main Chromium/WebKit visual inventory includes this feature at 390, 430,
 768 and 1440 pixels and a short mobile viewport, preserving actual File and
-task-editor nodes through explicit confirmation and lost-response readback.
+task-editor nodes through the single save action and lost-response readback.
+The planner scenarios cover 390, 430, 768 and 1440 pixels, including an empty
+list, retained manual input and an existing task with explicit addition.
 
 Future automatic field updates need a monotonic canonical task version or an
 equivalent durable generation: comparing title/due/status snapshots cannot
