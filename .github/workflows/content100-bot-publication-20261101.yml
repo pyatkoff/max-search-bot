@@ -72,7 +72,7 @@ jobs:
         gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/actions/runs/43455664622/jobs?per_page=30" > "$private/original-jobs.json"
         gh api -H 'Cache-Control: no-cache' repos/pyatkoff/max-search-bot/actions/artifacts/14054371257 > "$private/original-artifact.json"
         gh api repos/pyatkoff/max-search-bot/actions/artifacts/14054371257/zip > "$private/original-result.zip"
-        gh api repos/pyatkoff/max-search-bot/actions/jobs/131989003936/logs > "$private/original-job-log.txt"
+        gh api --allow-escape-sequences repos/pyatkoff/max-search-bot/actions/jobs/131989003936/logs > "$private/original-job-log.txt"
         python3 tools/direct_demand/operations/commercial-caption-review73-20261113-complete-unstarted-batches.py original
     - name: Verify scoped CONTENT installation and nine original technical gates;
         preserve failed closer separately

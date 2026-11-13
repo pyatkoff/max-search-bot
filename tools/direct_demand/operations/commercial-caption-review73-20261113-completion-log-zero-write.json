@@ -1,0 +1,23 @@
+{
+  "run_id": 43462758580,
+  "run_attempt": 1,
+  "head_sha": "5a6131035c178b76b0d8ed4cb3b930158f4be179",
+  "job_id": 132013690744,
+  "conclusion": "failure",
+  "failure": "gh_cli_refused_ansi_bytes_in_read_only_original_job_log",
+  "failed_before": "original helper, source gate, SSH credentials and every protected operation",
+  "ssh_operations": 0,
+  "provider_writes": 0,
+  "protected_steps_skipped": [
+    "Verify scoped CONTENT installation and nine original technical gates; preserve failed closer separately",
+    "Prepare existing server connection",
+    "Pin existing server host-key continuity",
+    "Read all146 posts and reverify54 completed plus92 unchanged before first execution",
+    "First execution of original batch002:46 existing captions only",
+    "First execution of original batch003:46 existing captions only",
+    "Verify combined146 current captions and preserve original54 provenance"
+  ],
+  "artifacts": 0,
+  "raw_api_decoded_log_sha256": "48016d51b771750ebf39c3184a5d2134329186d4cf2a036147ac51ea6c3ef7ca",
+  "proposed_fix": "Allow exact original log bytes only in redirected private read file; do not rerun the failed native job or replay any message edit"
+}
