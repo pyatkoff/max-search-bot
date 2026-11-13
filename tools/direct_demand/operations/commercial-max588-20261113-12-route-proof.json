@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "kind": "root_authenticated_private_route_extension",
+  "operation": "commercial-max588-private-route-extension-20261113-12-install1",
+  "previous_count": 586,
+  "logical_hotels": 588,
+  "new_hotel_ids": [
+    62515,
+    68810
+  ],
+  "publication_summary_sha256": "03c517784c13afbca167e684c3e84109584c0a7ac377cf09e6ea0e4f16606844",
+  "bound_read_sha256": "16d214e83b7cd05640c69d112fbf7474e8479411879465be14ddbade666fe2db",
+  "new_binding_tuples_sha256": "51635e6794a890f781c359d5bd44715be3123cb15e7ed3f20fd3f0b8ba1e7089",
+  "route_receipt_sha256": "0c6ad9aa6e926ff48c7f813f00673c6e28e7ca7946471e3c51cc76b3b5c05d3c",
+  "route_manifest_projection_sha256": "c763bbbff2f012c52026ab3d56eeebf74d5de3699cc3be8e72caab63ccbe03b4",
+  "original_route_manifest_sha256": "c1dce255159615cddf24e97f86a8955c28aeaa81ba7cd44e94b86cf4469172e1",
+  "original_route_map_sha256": "af9ee2578ea06031377832fa30f60b44e1af2eac926624e0273c01000c3546e1",
+  "original_route_module_sha256": "799e163db6f74e59edbe86e992fbd7d9fbdf96bdd5c73ca75a1ec6c602c84481",
+  "original_previous_map_sha256": "8edd4c88092d69d4db2080aabdfa7cc185ea4edec887158481fe2ec42400e2ca",
+  "verification": {
+    "full_map_checked": true,
+    "previous_rows_preserved": true,
+    "new_tuples_checked": true
+  },
+  "source": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 43372530305,
+    "run_attempt": 1,
+    "head_sha": "304a255fc79bdb4100acae8c28655c5837e183b8",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "workflow_path": ".github/workflows/tgmini-identity-readonly.yml",
+    "candidate_artifact": {
+      "id": 14012274796,
+      "name": "commercial-max588-route-extension-candidate",
+      "zip_sha256": "6d6a7e948b1f59770ab945d84710dc5f7eb9fd14082b2fadba12e79ad570bc4b"
+    },
+    "result_artifact": {
+      "id": 14012858235,
+      "name": "commercial-max588-route-extension-install-result",
+      "zip_sha256": "89e81c31e9fa08c4888e4dd5e07ed3eedfef6b93710a10159ad060d490d4ae69"
+    }
+  }
+}
