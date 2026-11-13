@@ -135,14 +135,15 @@ const history=sessionHistory||{entries:[null],index:0,get state(){return this.en
 history.listener=async state=>{const handler=events.get('popstate');if(handler)await handler({state})};
 const reloads=[];
 const context = vm.createContext({window,document,fetch,location:{pathname:'/manager/',search:'',hash:'',href:'https://example.invalid/manager/',reload:()=>reloads.push(history.state)},history,setTimeout:()=>0,setInterval:(fn,ms)=>{timers.push({fn,ms});return timers.length},console,sessionStorage:storage,localStorage:storage});
-for (const file of ['manager-time.js','workspace-v2.js','workspace-v2-conversation.js',...(inbox?['workspace-v2-inbox.js']:[]),...(mobile?['workspace-v2-mobile.js']:[]),...(replyQueue?['workspace-v2-reply-queue.js']:[])]) vm.runInContext(fs.readFileSync(path.join(__dirname,'../manager/assets',file),'utf8'),context,{filename:file});
+function loadAsset(file,globals={}){Object.assign(context,globals);vm.runInContext(fs.readFileSync(path.join(__dirname,'../manager/assets',file),'utf8'),context,{filename:file});}
+for (const file of ['manager-time.js','workspace-v2.js','workspace-v2-conversation.js',...(inbox?['workspace-v2-inbox.js']:[]),...(mobile?['workspace-v2-mobile.js']:[]),...(replyQueue?['workspace-v2-reply-queue.js']:[])]) loadAsset(file);
 
 const W=window.WorkspaceV2,C=window.WorkspaceV2Conversation;
 async function start({open=true}={}){await W.boot();if(open)await C.open(101);}
 async function expire(){hook=(url,r)=>url==='api.php'&&r.action==='detail'?response({ok:false,error:'unauthorized'},401):null;await C.open(101);hook=null;assert.equal(W.S.authExpired,true);}
 async function login(){ids.get('managerAuthLogin').value='synthetic';ids.get('managerAuthPassword').value='synthetic-only';await ids.get('managerAuthForm').dispatch('submit');}
 async function draft(text='Unsent synthetic draft'){ids.get('replyText').value=text;await ids.get('replyText').dispatch('input');}
-return {W,C,ids,calls,start,expire,login,draft,window,history,location:context.location,reloads,document,documentEvents,events,timers,storage,setHook(fn){hook=fn},setIdentity(value){nextIdentity=value},identity,conversation,
+return {W,C,ids,calls,start,expire,login,draft,window,history,location:context.location,reloads,document,documentEvents,events,timers,storage,loadAsset,setHook(fn){hook=fn},setIdentity(value){nextIdentity=value},identity,conversation,
   setFile(file){selectedFile=file},getFile(){return selectedFile}};
 }
 function response(value,status=200){return{ok:status>=200&&status<300,status,json:async()=>value};}
