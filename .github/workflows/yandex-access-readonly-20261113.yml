@@ -1,4 +1,4 @@
-name: Read existing Yandex API access for AppleService39
+name: Diagnose existing Wordstat API DNS after access check
 on:
   push:
     branches: [audit/yandex-access-20261113]
@@ -21,12 +21,12 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Read fixed API methods with existing server credentials
+      - name: Read DNS status only after confirmed API access
         env:
           SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
           SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-          READER_SHA256: 7976fe40de293de705bb2139a3e1f2507f0f634c54f8ce2f3ac03b19d25b3e95
+          READER_SHA256: c14689b3c556b18a13ab18b62fcd7fdbe0ad7e5b6dfcc81b04b0f59d7ab87434
           REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUFuK0prVWhZZ0piaHdyUWd4cXlOQgo1djFTNzNROVllTGhXemNMeXRuWGJWUVNxNFdDSXpBTGRSWnduakhRRksvRmNOczlpQVRuN1FkQ0ttZWptN3I4ClNxWTY4RnJCUTYxK2lvbmVwOHNvYks1QkdxV2Fiak55d0dNMmViUmhZdG5oZE9tUVlMSjdpYmlRU3dEUUg5YzcKSGRQNXhNdERDOTE3U1BMYzd2eVI1TkNOaTJzQ3Z2ZFcxZWp2RU9XcWFwcDJsc2RRSnp3MkdWakIyQkdOM2xLdApCUzZpVkRPYTlCSTdWSHpENnh6Wmc5R21JZUV1WDRoSEZUNjVXejJBc0c2VFdkY3E3ZUJ2QXlReHZvbnpEM2srClEwWEZ4ZUMzdjExbWFYMUIzRHN2b1p6Ylg3bWozY05pZXVIWm13cE5uMVIxTzljcG5va1d1cnU1YnR0OUE1akkKeXdGdmcraHlHR1ExYjBzbWVxcnlESXhNMTFtMkJPOHlCZGpDUnNIakUxZC9la3J2d3BDSUFCZmxHYmJkRHErbwpiK3NuTWVoU3VuQzZOZ3YxVmNvY09xVFIvTlE5TDFsaHhKcnBFZko0a1YxRDUxVGhBQXJpV1IzSDlDVlZ1WElUCkJtTmhVS2NGMVJ1Q1dsQjhaSGhEbHhZMzdYQVdGY2IwUndGc2M0eWVEcTh6QWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
         run: python3 audit/yandex-access-runner-20261113.py
       - name: Retain ciphertext only

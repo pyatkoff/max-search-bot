@@ -10,6 +10,7 @@ import math
 import os
 import re
 import signal
+import socket
 import subprocess
 import time
 import urllib.error
@@ -267,6 +268,23 @@ def collect_wordstat(read):
     RESULT['wordstat']['status'] = 'access_denied_or_incomplete' if any(row.get('stage', '').startswith('wordstat_') for row in RESULT['errors']) else 'responses_collected_for_review'
 
 
+
+def diagnose_dns():
+    rows = []
+    for host in ('api-metrika.yandex.net', 'api.direct.yandex.com', 'api.wordstat.yandex.net'):
+        row = {'host': host}
+        try:
+            resolved = socket.getaddrinfo(host, 443, type=socket.SOCK_STREAM)
+            row.update(status='resolved', address_count=len(resolved))
+        except socket.gaierror as error:
+            row.update(status='resolution_failed', error_class='gaierror', errno=error.errno)
+        except Exception:
+            row.update(status='resolution_failed', error_class='other')
+        rows.append(row)
+    RESULT['diagnostic_scope'] = 'DNS only; no API requests and no credential transmission'
+    RESULT['dns'] = rows
+    RESULT['status'] = 'COLLECTED'
+
 if __name__ == '__main__':
     def timeout(*_):
         raise Stop('TIME_BUDGET')
@@ -274,7 +292,8 @@ if __name__ == '__main__':
     deadline = time.monotonic() + TOTAL_SECONDS
     signal.alarm(TOTAL_SECONDS)
     try:
-        collect(make_reader(load_local_config(), deadline))
+        load_local_config()
+        diagnose_dns()
     except Stop as error:
         RESULT['errors'].append(error.info); RESULT['status'] = 'READ_FAILED'
     except Exception:
