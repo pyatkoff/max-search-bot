@@ -50,6 +50,11 @@
     "services/ManagerTourSelectionOneTouchCapture.php",
     "services/ManagerTourSelectionDraft.php",
     "services/TourChoiceService.php",
-    "services/TourOfferCardRenderer.php"
+    "services/TourOfferCardRenderer.php",
+    "services/ManagerPromiseSelectionService.php",
+    "services/LeadTaskService.php",
+    "services/ManagerPromiseTaskService.php",
+    "services/ManagerRequestProfileService.php",
+    "services/ManagerReplyQueueService.php"
   ]
 }
