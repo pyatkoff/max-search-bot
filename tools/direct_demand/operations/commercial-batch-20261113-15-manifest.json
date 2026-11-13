@@ -1,0 +1,75 @@
+{
+  "state": "PREPARED_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261113-15-v1",
+  "registry_version": 344,
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 592,
+  "expected_new_full_pairs": 3,
+  "rows": [
+    {
+      "hotel_id": 2575,
+      "logical_id": "commercial-hotel-2575-v1",
+      "aliases": [
+        "Rixos Al Mairid Ras Al Khaimah",
+        "RIXOS AL MAIRID RAS AL KHAIMAH (EX. HILTON RAS AL KHAIMAH BEACH RESORT)",
+        "Rixos Al Mairid",
+        "Hilton Ras Al Khaimah"
+      ],
+      "text": "✈️ Туры в Rixos Al Mairid Ras Al Khaimah\n📍 Рас-эль-Хайма, ОАЭ.\n\nОтдых у моря с размещением в номерах вилл, бассейнами и развлечениями для всей семьи.\n\n• Собственный песчаный пляж.\n• Бассейны, спорт и спа.\n• Детские занятия в Rixy Kids Club.\n\nНомера главного корпуса на реновации. Family Pool и ресторан Orient временно закрыты, Rixy работает во временном помещении. Перед бронированием уточним доступные зоны и включённые услуги на ваши даты.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "6f08df814d9d92fa81ee392ee3e058fbc8520c7f6c251859646ae9e91968ff51",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5ed3a2b855d1c4d54ebfd0d3dc1845136f9603de/.github/traffic-publish/commercial-batch-20261113-15/2575.png",
+      "photo_sha256": "d80e97fbc4ceb5a35d1d6d8b46bc5b4408a5bcf24bf682af75fedf554f0fcb4f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://all.accor.com/hotel/C337/index.en.shtml",
+        "https://kompastour.com/kz/rus/country/uae/ras_al_khaimah/rixos_al_mairid_rak/",
+        "https://marjan.ae/press-releases/marjan-hospitality-announces-major-refurbishment-across-rixos-al-mairid-and-pullman-resort-al-marjan-island",
+        "https://laguna.plantravel.ru/countries/uae/hotelnews/rixos_al_mairid_ras_al_khaimah_5_plyazh_oficialno_otkrit_dlya_gostei_s_081126/",
+        "https://www.etihadholidays.co.uk/hotel/ras-al-khaimah/rixos-al-mairid-ras-al-khaimah/"
+      ],
+      "media_provenance": "Three real official own-property photographs retained from the accepted registry photo set. Original photo hashes and source dates retained; cover bytes match the local visual review. Photographs do not establish completion of works, current facility access or room-category inclusion."
+    },
+    {
+      "hotel_id": 32232,
+      "logical_id": "commercial-hotel-32232-v1",
+      "aliases": [
+        "Waldorf Astoria Dubai Palm Jumeirah",
+        "WALDORF ASTORIA DUBAI PALM JUMEIRAH"
+      ],
+      "text": "✈️ Туры в Waldorf Astoria Dubai Palm Jumeirah\n📍 Пальма Джумейра, Дубай, ОАЭ.\n\nПляжный отпуск на Пальме Джумейра с возможностью выбираться на прогулки по Дубаю. Здесь можно чередовать отдых у моря и бассейна со спа, а для детей работает Coco’s Kids Club.\n\n• Собственный песчаный пляж.\n• Бассейны и Waldorf Astoria Spa.\n• Номера с разными видами на залив и город.\n\nРядом ведётся стройка, возможен шум. Клубные привилегии зависят от категории номера; регистрацию заезда и выезда в Pearl Club пока не проводят.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "f70d17e6025b306a8df3f5d81ad24cabf842fdcbb722fa90596bbedeeb9a557e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5ed3a2b855d1c4d54ebfd0d3dc1845136f9603de/.github/traffic-publish/commercial-batch-20261113-15/32232.png",
+      "photo_sha256": "522e5a38e2d21a31674ac184f8ea6661cb5fc0007ae34b5bc1bbf0be8f13f063",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.hilton.com/en/hotels/dxbpdwa-waldorf-astoria-dubai-palm-jumeirah/",
+        "https://www.hilton.com/en/hotels/dxbpdwa-waldorf-astoria-dubai-palm-jumeirah/rooms/pearl-club/",
+        "https://new.kompastour.com/kz/rus/country/uae/dubai/waldorf_astoria_dubai_palm_jumeirah/",
+        "https://www.coral.ge/en/hotels/united-arab-emirates/waldorf-astoria-dubai-palm-jumeirah-jumeira/",
+        "https://www.bestattravel.co.uk/holidays/dubai/waldorf-astoria-dubai-palm-jumeirah"
+      ],
+      "media_provenance": "Three real official own-property photographs retained from the accepted registry photo set. Original photo hashes and source dates retained; cover bytes match the local visual review. Photographs do not establish completion of works, current facility access or room-category inclusion."
+    },
+    {
+      "hotel_id": 32339,
+      "logical_id": "commercial-hotel-32339-v1",
+      "aliases": [
+        "InterContinental Nha Trang",
+        "INTERCONTINENTAL NHA TRANG"
+      ],
+      "text": "✈️ Туры в InterContinental Nha Trang\n📍 Нячанг, Вьетнам.\n\nГородской отель у набережной для тех, кто хочет совмещать отдых у моря с прогулками по Нячангу. После насыщенного дня можно провести время у бассейна или выбрать спа-процедуру.\n\n• Расположение на улице Чан Фу у набережной.\n• Бассейны, фитнес и спа.\n• Детский клуб Planet Trekker.\n\nИз-за ремонта Residences и стройки рядом возможен шум. Отель не указывает срок окончания работ. Клубные привилегии и спа-процедуры зависят от тарифа и выбранных услуг.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "aebc3501101d35b3d6131669e9c5a1e0dfd3be8ed05cce650ddf4383358e3c53",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5ed3a2b855d1c4d54ebfd0d3dc1845136f9603de/.github/traffic-publish/commercial-batch-20261113-15/32339.png",
+      "photo_sha256": "01f37647d15774cb6d3a1971b8cbf626e2a6b898d033e38e61fcaacf8012aca9",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.ihg.com/intercontinental/hotels/us/en/nha-trang/nhach/hoteldetail",
+        "https://www.ihg.com/intercontinental/hotels/us/en/nha-trang/nhach/hoteldetail/amenities",
+        "https://nhatrang.intercontinental.com/hotel/",
+        "https://nhatrang.intercontinental.com/",
+        "https://nhatrang.intercontinental.com/facilities/"
+      ],
+      "media_provenance": "Three real official own-property photographs retained from the accepted registry photo set. Original photo hashes and source dates retained; cover bytes match the local visual review. Photographs do not establish completion of works, current facility access or room-category inclusion."
+    }
+  ]
+}
