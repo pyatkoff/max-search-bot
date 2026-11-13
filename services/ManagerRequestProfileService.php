@@ -164,6 +164,8 @@ final class ManagerRequestProfileService
             $hasFocus=array_key_exists('hotel_focus',$view);$typedFocus=$view['hotel_focus']??null;$tripId=$view['trip_id'];unset($view['hotel_focus']);
             array_walk_recursive($view,static function(&$v){if(is_string($v)){$a=false;$b=false;$v=ManagerAiTextRedactor::redact($v,$a,$b);}});
             $view['trip_id']=$tripId;
+            // Typed immutable pin for optional promise proposals; never redact a digest.
+            $view['profile_sha256']=$r['profile_sha256'];
             if($hasFocus){
                 if($typedFocus!==null){
                     foreach(['selected_hotel','selected_room'] as $key){$a=false;$b=false;$typedFocus[$key]=ManagerAiTextRedactor::redact($typedFocus[$key],$a,$b);}
@@ -175,6 +177,30 @@ final class ManagerRequestProfileService
             }
             return $view;
         }catch(Throwable $ignored){try{$q=$pdo->prepare('SELECT version FROM manager_request_profiles WHERE conversation_id=? ORDER BY version DESC LIMIT 1');$q->execute([(int)$conversation['id']]);$v=$q->fetchColumn();return $v?['status'=>'unavailable','version'=>(int)$v,'fields'=>[]]:null;}catch(Throwable $missing){return null;}}
+    }
+
+    /** Bounded pins for an explicit task binding, inside its authorized transaction. */
+    public static function forTaskBinding(PDO $pdo,array $conversation,int $messageId): array
+    {
+        if(!$pdo->inTransaction()||$pdo!==ConversationDb::connection())throw new LogicException('task_binding_transaction_required');
+        $cid=(int)($conversation['id']??0);
+        if($cid<=0||($conversation['project_key']??null)!=='anytour')throw new DomainException('forbidden');
+        $row=self::latest($pdo,$cid);
+        if(!$row)throw new DomainException('profile_required');
+        $ids=array_values(array_unique([...self::ids($row),$messageId]));sort($ids);
+        if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
+            $q=$pdo->prepare('SELECT id FROM messages WHERE conversation_id=? AND id IN ('.implode(',',array_fill(0,count($ids),'?')).') ORDER BY id FOR UPDATE');
+            $q->execute([$cid,...$ids]);$q->fetchAll();$q->closeCursor();
+        }
+        $ctx=self::context($pdo,$cid,$ids,14);$view=self::view($row,$ctx);
+        if($view['changed_sources'])throw new DomainException('profile_source_changed');
+        $basis=self::basis(['conversation'=>$conversation],$ctx);
+        return ['profile'=>['trip_id'=>$row['trip_id'],'version'=>(int)$row['version'],
+            'sha256'=>$row['profile_sha256'],'context_sha256'=>$basis,
+            'boundary_message_id'=>(int)$row['boundary_message_id'],
+            'label'=>$view['label'],'fields'=>$view['fields'],'field_labels'=>ManagerRequestProfile::FIELDS,
+            'status'=>hash_equals($row['context_sha256'],$basis)?'fresh':'needs_review'],
+            'source'=>$ctx['sources'][$messageId]??null];
     }
 
     private static function scope(PDO $pdo,int $actor,int $cid): ?array
@@ -198,13 +224,13 @@ final class ManagerRequestProfileService
     {
         if(!$row)return [];$ids=[(int)$row['boundary_message_id']];foreach(json_decode($row['profile_json'],true,64,JSON_THROW_ON_ERROR)['fields'] as $f)if($f['citation'])$ids[]=$f['citation']['message_id'];return array_values(array_unique($ids));
     }
-    private static function context(PDO $pdo,int $cid,array $extra): array
+    private static function context(PDO $pdo,int $cid,array $extra,int $extraLimit=13): array
     {
         $sql=self::sourceQuery($pdo);
         $q=$pdo->prepare($sql.' ORDER BY id DESC LIMIT 41');$q->execute([$cid]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);$more=count($rows)>40;$rows=array_slice($rows,0,40);$window=[];$map=[];$bytes=0;
         foreach(array_reverse($rows) as $r){$s=self::source($r);$map[$s['id']]=$s;$window[]=[$s['id'],$s['sha256']];$bytes+=strlen($s['text']);}
         $latest=$rows?(int)$rows[0]['id']:0;$ids=array_values(array_unique(array_filter($extra,static fn($n)=>is_int($n)&&$n>0&&!isset($map[$n]))));
-        if(count($ids)>13)throw new RuntimeException('profile_sources_limit');
+        if(count($ids)>$extraLimit)throw new RuntimeException('profile_sources_limit');
         if($ids){$q=$pdo->prepare($sql.' AND id IN ('.implode(',',array_fill(0,count($ids),'?')).')');$q->execute([$cid,...$ids]);foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r){$s=self::source($r);$map[$s['id']]=$s;$bytes+=strlen($s['text']);}}
         if($bytes>320000)throw new RuntimeException('profile_context_limit');ksort($map);
         return ['latest'=>$latest,'sources'=>$map,'window_ids'=>array_map(static fn($r)=>(int)$r['id'],$rows),'window_hash'=>hash('sha256',json_encode($window,ManagerRequestProfile::FLAGS)),'incomplete'=>$more||count(array_filter($map,static fn($s)=>$s['unavailable']))>0];
@@ -213,6 +239,11 @@ final class ManagerRequestProfileService
     {
         $binary=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'BINARY':'BLOB';
         return 'SELECT id,direction,sender_type,created_at,SUBSTR(CAST(text AS '.$binary.'),1,80001) AS text,SUBSTR(CAST(metadata_json AS '.$binary.'),1,8193) AS metadata FROM messages WHERE conversation_id=?';
+    }
+    /** Pure source projection shared with the bounded promise evidence reader. */
+    public static function messageSource(array $r): array
+    {
+        return self::source($r);
     }
     private static function source(array $r): array
     {

@@ -229,12 +229,14 @@ final class ManagerDraftClient
 
     public static function responseSchema(): array
     {
+        require_once dirname(__DIR__).'/services/ManagerPromiseCandidates.php';
         $properties=['ok'=>['type'=>'boolean','enum'=>[true]],'should_draft'=>['type'=>'boolean','description'=>'Useful customer reply is ready; independent of remaining manager work.'],
             'draft'=>['type'=>['string','null']],
             'next_action'=>['type'=>'string','enum'=>['clarify','answer_question','check_offer','prepare_selection','no_contact']],
             'reason'=>['type'=>'string'],'checks'=>['type'=>'array','items'=>['type'=>'string']],
             'evidence_message_ids'=>['type'=>'array','items'=>['type'=>'integer']],
-            'history_incomplete'=>['type'=>'boolean']];
+            'history_incomplete'=>['type'=>'boolean'],
+            'manager_promises'=>ManagerPromiseCandidates::schema()];
         return ['type'=>'object','properties'=>$properties,'required'=>array_keys($properties),'additionalProperties'=>false];
     }
 

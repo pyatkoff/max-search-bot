@@ -9,14 +9,15 @@ require_once __DIR__.'/ManagerAiDraftReferenceContext.php';
 require_once __DIR__.'/TourConsultationPolicy.php';
 require_once __DIR__.'/ManagerAiDraftInputEvidence.php';
 require_once __DIR__.'/ManagerRequestProfile.php';
+require_once __DIR__.'/ManagerAiDraftProposal.php';
 
 /** A pure draft use-case: no bootstrap, database, bot state, logs or delivery. */
 final class ManagerAiDraftService
 {
     public const MAX_MESSAGES = 120;
     public const MAX_TEXT_CHARACTERS = 40000;
-    public const MAX_DRAFT_CHARACTERS = 3000;
-    private const ACTIONS = ['clarify','answer_question','check_offer','prepare_selection','no_contact'];
+    public const MAX_DRAFT_CHARACTERS = ManagerAiDraftProposal::MAX_DRAFT_CHARACTERS;
+    private const MAX_PROMISE_EVIDENCE_BYTES = 16384;
     private const PROVIDER_ERRORS = ['provider_unavailable','provider_not_configured','provider_refused','provider_incomplete','provider_timeout','provider_response_too_large'];
 
     public static function generate(array $context, ?callable $provider = null, ?ManagerCompanyKnowledge $knowledge = null, ?callable $selectionReader = null, ?ManagerAiDraftReferenceContext $references = null, ?callable $photoReader = null, ?callable $inputObserver = null): array
@@ -57,6 +58,7 @@ final class ManagerAiDraftService
         $hotelReference = null;
         $workingSelection = null;
         $search3Inquiry = null;
+        $promiseSources = null;
         if ($references !== null) {
             $extra = $references->forContext($normalized);
             if ($extra === null) return ['error'=>'invalid_context'];
@@ -65,7 +67,8 @@ final class ManagerAiDraftService
             $hotelReference = $extra['hotel_reference'] ?? null;
             $workingSelection = $extra['working_selection'] ?? null;
             $search3Inquiry = $extra['search3_inquiry'] ?? null;
-            unset($extra['hotel_reference'], $extra['working_selection'], $extra['search3_inquiry']);
+            $promiseSources = $extra['promise_sources'] ?? null;
+            unset($extra['hotel_reference'], $extra['working_selection'], $extra['search3_inquiry'], $extra['promise_sources']);
             $plain = $normalized;
             $normalized += $extra;
             try {
@@ -130,9 +133,44 @@ final class ManagerAiDraftService
         if (is_array($search3Inquiry)) {
             [$normalized, $search3Admission] = self::admitSearch3Inquiry($normalized, $search3Inquiry);
         }
+        $promiseAdmission = null;
+        if (is_array($promiseSources)) {
+            [$normalized, $promiseAdmission] = self::admitPromiseSources($normalized, $promiseSources);
+        }
         return ['context'=>$normalized,'preflight'=>null,'images'=>$images,'hotel_reference_admission'=>$hotelAdmission]
             + ($workingAdmission===null?[]:['working_selection_admission'=>$workingAdmission])
-            + ($search3Admission===null?[]:['search3_inquiry_admission'=>$search3Admission]);
+            + ($search3Admission===null?[]:['search3_inquiry_admission'=>$search3Admission])
+            + ($promiseAdmission===null?[]:['promise_sources_admission'=>$promiseAdmission]);
+    }
+
+    /** Promise evidence is last: it cannot evict any previously admitted context. */
+    private static function admitPromiseSources(array $baseline, array $sources): array
+    {
+        $profile = $baseline['request_profile'] ?? null;
+        if (!is_array($profile) || !isset($profile['trip_id'], $profile['version'], $profile['profile_sha256'], $profile['boundary_message_id'])
+            || !in_array($profile['status'] ?? null, ['fresh','needs_review'], true)
+            || ($profile['changed_sources'] ?? null) !== []
+            || $profile['trip_id'] !== ($sources['trip_id'] ?? null)
+            || $profile['version'] !== ($sources['profile_version'] ?? null)
+            || $profile['profile_sha256'] !== ($sources['profile_sha256'] ?? null)
+            || $profile['boundary_message_id'] !== ($sources['boundary_message_id'] ?? null)
+            || $profile['status'] !== ($sources['profile_status'] ?? null)) {
+            return [$baseline, ['status'=>'omitted','reason'=>'profile_unavailable']];
+        }
+        try {
+            $raw = json_encode($sources, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+            $encode = static fn(array $context): string => json_encode(
+                ManagerDraftClient::requestBody(self::instructions($context), $context),
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+            $before = strlen($encode($baseline));
+            $candidate = $baseline + ['promise_sources'=>$sources];
+            $after = strlen($encode($candidate));
+            if (strlen($raw) > self::MAX_PROMISE_EVIDENCE_BYTES || $after - $before > self::MAX_PROMISE_EVIDENCE_BYTES) {
+                return [$baseline, ['status'=>'omitted','reason'=>'evidence_budget']];
+            }
+            if ($after > ManagerDraftClient::MAX_REQUEST_BYTES) return [$baseline, ['status'=>'omitted','reason'=>'request_budget']];
+            return [$candidate, ['status'=>'available','reason'=>null]];
+        } catch (Throwable $ignored) { return [$baseline, ['status'=>'omitted','reason'=>'evidence_unavailable']]; }
     }
 
     /** A new optional observation cannot evict the transcript or existing evidence. */
@@ -240,7 +278,7 @@ verified_company_facts — утверждённые факты только те
 
 history_incomplete, text_truncated, media_unread и selections_link_unread — ограничения контекста. Метка ссылки не доказывает состав вариантов: используй только соответствующие selection_snapshots. Неполная история/усечение не доказывают, что условие никогда не обсуждалось или продолжения нет. Не спрашивай так, будто турист не давал сведения за пределами окна. Непрочитанные медиа/цитаты не доказывают оплату, содержание предложения или обязательство менеджера. Если данных недостаточно для безопасного ответа, should_draft=false, draft=null; в reason/checks укажи проверку менеджеру. history_incomplete верни точно как во входе.
 
-next_action: clarify — существенное уточнение; answer_question — ответ на текущий вопрос; check_offer — проверка предложения/условий менеджером; prepare_selection — подготовка вариантов без выдуманных карточек; no_contact — исходящий текст не нужен. При no_contact всегда should_draft=false и draft=null. При should_draft=true draft содержит от 1 до 3000 знаков, иначе draft=null. reason — до 1000 знаков, checks — до 10 коротких проверок по 400 знаков. evidence_message_ids — до 20 уникальных положительных ID только из переданных messages, обосновывающих решение; укажи хотя бы один. Никаких дополнительных полей, markdown или цитирования технических идентификаторов в draft.
+Return only the nine schema fields. next_action: clarify=material clarification; answer_question=answer the current question; check_offer=manager checks offer/conditions; prepare_selection=options without invented cards; no_contact=no outgoing text. no_contact requires should_draft=false,draft=null. For other actions: should_draft=true => draft 1-3000 chars, false => null. reason:1-1000 chars; checks:0-10 nonempty strings of <=400 chars. evidence_message_ids:1-20 unique positive IDs from messages supporting the decision. Without promise_sources return manager_promises=[]. Candidates never create tasks or prove completion. No Markdown; no technical IDs in draft.
 
 Практическая проверка перед ответом (выполни мысленно, не выводи как анкету):
 1. Номера веди отдельно. Тарифные «взрослые» не меняют состав. Неясное размещение уточняй без повтора состава. Приоритетный и запасной вылет различай.
@@ -255,7 +293,8 @@ PROMPT;
             . (($context['working_selection']['status'] ?? null) === 'available'
             ? "\n\n".ManagerTourSelectionReferenceContext::instructions() : '')
             . (($context['search3_inquiry']['status'] ?? null) === 'available'
-            ? "\n\n".ManagerSearch3ReferenceContext::instructions() : '');
+            ? "\n\n".ManagerSearch3ReferenceContext::instructions() : '')
+            . (isset($context['promise_sources']) ? "\n\n".ManagerPromiseCandidates::instructions() : '');
     }
 
     public static function responseSchema(): array
@@ -327,31 +366,14 @@ PROMPT;
         return ['ok'=>true,'should_draft'=>false,'draft'=>null,'next_action'=>'check_offer',
             'reason'=>'В утверждённой базе нет проверенных сведений об офисе и личном визите в компанию. Нужна проверка менеджера до ответа туристу.',
             'checks'=>['Проверить по утверждённым данным компании наличие офиса, адрес и условия личного визита; не подтверждать их по прежним репликам.'],
-            'evidence_message_ids'=>[$latest['id']],'history_incomplete'=>$context['history_incomplete']];
+            'evidence_message_ids'=>[$latest['id']],'history_incomplete'=>$context['history_incomplete'],'manager_promises'=>[]];
     }
 
     private static function validResult($result,array $context): bool
     {
-        $keys=['ok','should_draft','draft','next_action','reason','checks','evidence_message_ids','history_incomplete'];
-        if (!is_array($result) || array_is_list($result) || count($result)!==count($keys)
-            || array_diff($keys,array_keys($result)) || $result['ok']!==true
-            || !is_bool($result['should_draft']) || !is_string($result['next_action'])
-            || !in_array($result['next_action'],self::ACTIONS,true)
-            || !is_bool($result['history_incomplete']) || $result['history_incomplete']!==$context['history_incomplete']
-            || !self::validText($result['reason'],1,1000)
-            || !is_array($result['checks']) || !array_is_list($result['checks']) || count($result['checks'])>10
-            || !is_array($result['evidence_message_ids']) || !array_is_list($result['evidence_message_ids'])
-            || !$result['evidence_message_ids'] || count($result['evidence_message_ids'])>20) return false;
-        if ($result['should_draft']) {
-            if ($result['next_action']==='no_contact' || !self::validText($result['draft'],1,self::MAX_DRAFT_CHARACTERS)) return false;
-        } elseif ($result['draft']!==null) return false;
-        foreach ($result['checks'] as $check) if (!self::validText($check,1,400)) return false;
-        $allowed=array_fill_keys(array_column($context['messages'],'id'),true);$seen=[];
-        foreach ($result['evidence_message_ids'] as $id) {
-            if (!is_int($id) || $id<=0 || !isset($allowed[$id]) || isset($seen[$id])) return false;
-            $seen[$id]=true;
-        }
-        return true;
+        return ManagerAiDraftProposal::valid($result, array_fill_keys(array_column($context['messages'], 'id'), true))
+            && $result['history_incomplete'] === $context['history_incomplete']
+            && ManagerPromiseCandidates::valid($result['manager_promises'] ?? [], $context);
     }
 
     private static function validText($value,int $minimum,int $maximum): bool

@@ -356,7 +356,11 @@
     return '';
   }
   function renderResult(result){
-    if(view)view.previewInComposer=!!conversation()?.aiDraftPreview?.();
+    if(view){
+      view.previewInComposer=!!conversation()?.aiDraftPreview?.();
+      // Composer-driven rerenders must keep the generated result's original TTL.
+      if(result.prepared!==true&&!Object.hasOwn(view,'promiseExpires'))view.promiseExpires=Object.hasOwn(result,'expires')?result.expires:Date.now()+600000;
+    }
     clearBody();
     const actions={clarify:'Уточнить запрос',answer_question:'Ответить на вопрос',check_offer:'Проверить данные',prepare_selection:'Подготовить подборку',no_contact:'Сейчас не писать'};
     const rawAction=readable(result.next_action),action=actions[rawAction]||rawAction,reason=readable(result.reason);
@@ -374,11 +378,52 @@
       const list=addText('ul','aiDraftChecks','');
       for(const check of result.checks){const text=readable(check);if(!text)continue;const item=document.createElement('li');item.textContent=text;list.appendChild(item)}
     }
+    renderPromises(result);
     renderAdmission(result.admission);
     const prepared=result.prepared===true&&result.should_draft?'Ответ подготовлен заранее. ':'';
     status.textContent=prepared+(result.should_draft?(editablePreview()&&conversation()?.aiDraftPreview?.()?'Черновик находится в поле ответа. Проверьте и отредактируйте его.':'Проверьте текст. Добавим в конец ответа.'):rawAction==='no_contact'?'Сейчас отвечать не нужно.':'Перед ответом нужно проверить данные. Причина и следующий шаг — ниже.');
     if(supervisorRead())status.textContent=(S.detail?.owner_read?'Режим владельца':'Просмотр руководителя')+' · Ответственный: '+(S.detail?.conversation?.manager_name||'Без назначения')+'. Просмотр не считается использованием или отправкой ответа.';
     retry.textContent=result.should_draft?'Другой вариант':'Повторить подготовку';
+  }
+  function renderPromises(result){
+    const owner=view,promises=result.promise_candidates,P=window.WorkspaceV2PromiseTasks;
+    if(!manager2()||S.detail?.conversation?.project_key!=='anytour'||!owner||!Array.isArray(promises)||!promises.length||promises.length>3||typeof P?.validCandidate!=='function')return;
+    const saved=owner.snapshot,seen=new Set();
+    if(!promises.every(value=>{
+      const key=value?.kind+':'+value?.source_message_id;
+      if(!P.validCandidate(value)||value.conversation_id!==saved.context.conversationId||value.as_of_message_id!==saved.latest||seen.has(key))return false;
+      seen.add(key);return true;
+    }))return;
+    const expiry=(value,fallback)=>value?.prepared===true?window.ManagerTime?.parse?.(value.expires_at)?.getTime():value&&Object.hasOwn(value,'expires')?value.expires:fallback;
+    const expires=expiry(result,owner.promiseExpires),revision=result.revision,preparedAt=result.prepared_at,prepared=result.prepared,candidates=JSON.stringify(promises);
+    if(!Number.isFinite(expires)||expires<=Date.now())return;
+    const isCurrent=()=>{
+      const latest=owner.result,until=expiry(latest,expires);
+      return view===owner&&!owner.stale&&currentSnapshot(saved)&&latest?.revision===revision&&latest?.prepared_at===preparedAt&&latest?.prepared===prepared
+        &&JSON.stringify(latest?.promise_candidates)===candidates&&expires>Date.now()&&Number.isFinite(until)&&until>Date.now();
+    };
+    if(!isCurrent())return;
+    const append=(root,tag,className,text)=>{const item=document.createElement(tag);item.className=className;item.textContent=text;root.appendChild(item);return item};
+    addText('h3','aiDraftSectionTitle',promises.length===1?'Предложение по обещанию менеджера':'Предложения по обещаниям менеджера');
+    for(const value of promises){
+      const item=addText('section','aiPromiseCandidate','');
+      append(item,'strong','aiPromiseKind',value.kind==='send_calculation'?'Отправить расчёт':'Отправить подборку');
+      append(item,'blockquote','aiPromiseQuote',value.quote);
+      if(value.deadline_text)append(item,'p','aiPromiseDeadline','Срок из реплики: «'+value.deadline_text+'».');
+      if(value.deadline!==null){
+        const seconds=value.deadline.kind==='instant'?window.ManagerTime.wallDate(value.deadline.value)?.getUTCSeconds():0;
+        const date=value.deadline.kind==='date'?value.deadline.value.split('-').reverse().join('.')+' · календарный день, Москва':window.ManagerTime.format(value.deadline.value,{year:true})+(seconds?':'+String(seconds).padStart(2,'0'):'')+' МСК';
+        append(item,'p','aiPromiseDeadline','Предлагаемый срок: '+date+'.');
+      }else append(item,'p','aiPromiseHint','Срок нужно выбрать явно при проверке связи.');
+      append(item,'p','aiPromiseHint',value.profile_status==='needs_review'?'Условия поездки требуют проверки. Сверьте их с обещанием перед подтверждением.':'Проверьте смысл обещания и выберите существующую задачу.');
+      const action=append(item,'button','aiPromiseOpen','Связать с задачей');action.type='button';
+      action.addEventListener('click',async()=>{
+        if(!isCurrent())return;
+        action.disabled=true;
+        try{await P.openCandidate(value,action,isCurrent);}
+        finally{if(isCurrent()&&action.isConnected)action.disabled=false;}
+      });
+    }
   }
   function renderAdmission(admission){
     if(admission?.schema_version!==1||admission.decision!=='manager_review'||admission.actual_send_allowed!==false)return;

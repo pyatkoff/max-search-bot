@@ -27,7 +27,7 @@ try {
     $loader = "<?php\nrequire_once ".var_export($fixture,true).";\n";
     file_put_contents($tmp.'/config.php', $loader.'$GLOBALS["manager_ai_http_fixture_directory"] = '.var_export($tmp,true).";\n");
     foreach (['ManagerAuthService','ManagerConversationAccessPolicy','ManagerAiDraftContextService','ManagerAiDraftService','ManagerAiDraftFeedbackService','ManagerPreparedReplyService','ManagerPreparationMcpService'] as $service) file_put_contents($tmp.'/services/'.$service.'.php',$loader);
-    foreach (['manager/ai-draft.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php','services/ManagerAiReplyAdmission.php','services/ManagerAiDraftInputEvidence.php'] as $source) copy($root.'/'.$source,$tmp.'/'.$source);
+    foreach (['manager/ai-draft.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php','services/ManagerAiReplyAdmission.php','services/ManagerAiDraftInputEvidence.php','services/ManagerAiDraftProposal.php','services/ManagerPromiseCandidates.php'] as $source) copy($root.'/'.$source,$tmp.'/'.$source);
     managerAiEndpointCheck('isolated app executes exact current endpoint bytes',hash_file('sha256',$root.'/manager/ai-draft.php') === hash_file('sha256',$tmp.'/manager/ai-draft.php'));
     file_put_contents($tmp.'/manager/fixture-session.php', '<?php require dirname(__DIR__)."/config.php";require __DIR__."/lib/ManagerHttp.php";ManagerHttp::startJson();$_SESSION["manager_id"]=7;$_SESSION["csrf"]="synthetic-csrf";ManagerHttp::respond(["ok"=>true]);');
     $proposal = ['ok'=>true,'should_draft'=>true,'draft'=>'Здравствуйте! Какие даты вылета вам подходят?',

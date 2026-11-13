@@ -133,6 +133,9 @@ try {
             // Semantic unknown alone never blocks the existing manual flow.
             if(empty($observed['ok']))aiDraftRespond(['ok'=>false,'error'=>$observed['error']??'context_unavailable']);
             $prepared['admission']=$observed['admission'];
+            // UI hints are derived only after the exact saved proposal passed its
+            // canonical checks. They are never part of its wire JSON or hash.
+            $prepared['promise_candidates']=ManagerPromiseCandidates::project($proposal,$before);
             if($passivePreview)unset($prepared['job_id']);
             aiDraftRespond($proposal+$prepared+$projection+$policyProjection);
         }
@@ -189,6 +192,7 @@ try {
     catch(Throwable $ignored){$admission=ManagerAiReplyAdmission::unavailable();}
     aiDraftRespond($proposal + [
         'admission'=>$admission,
+        'promise_candidates'=>ManagerPromiseCandidates::project($proposal,$before),
         'revision'=>$after['revision'],
         'latest_message_id'=>$after['latest_message_id'],
         'draft_id'=>$draftId,
