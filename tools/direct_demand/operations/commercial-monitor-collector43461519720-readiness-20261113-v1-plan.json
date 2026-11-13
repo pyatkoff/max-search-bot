@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-monitor-collector43461519720-readiness-20261113-v1",
+  "mode": "one_existing_journal_read_with_optional_exact_native_max_get",
+  "expected_parent_head": "01471cd5deaa150ddbb4719f2067b4a976c862d3",
+  "expected_parent_tree": "d97b778f643131ae13aa4b2f4008295cfeb6fd76",
+  "expected_installed_sha": "8d6ac35dd17614b2cadb3aa3af7637c74280c01c",
+  "owner_pin": {
+    "comment_id": 6818332618,
+    "updated_at": "2026-11-13T15:25:14Z",
+    "body_sha256": "90de12e3defd5f6d79c116d46f7f976e0ae6e6c84d1cd9e26a4d09658d6b2895"
+  },
+  "original_collector": {
+    "run_id": 43461519720,
+    "run_attempt": 1,
+    "head_sha": "f9bd84cbcb74b3f70b6807185f3528944b306f01",
+    "job_id": 132009707080,
+    "event": "schedule",
+    "conclusion": "failure",
+    "artifact_count": 0,
+    "hook_result": "UNKNOWN",
+    "connection_exit_code": 255,
+    "log_sha256": "a6bdb6bf681df46a523ce59c8325e51c66148e1b03623ebe3ce1f6ae93ed086c"
+  },
+  "existing_reader_sha256": "c19f116af9664c6dab39b571ec86fd0f6240988607865326170d43fc73108375",
+  "existing_native_helper_sha256": "c54d768854a2a7aa1eda2aa5c71ca6f44cfc69b5f015cb17a6a2e070662a7b36",
+  "reader_sha256": "b1870e29b87658db8e1fa624df05212c791eb8c3fd88a99d28cb0595b9965a38",
+  "source_helper_sha256": "176db2d3162758bd45b15062b47031e4729e3ddaf8aac12dc29de8f14ae9f2ca",
+  "source_verifier_sha256": "5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb",
+  "read_scope": {
+    "global_journals": 1,
+    "pending_derived_child_journals_max": 1,
+    "native_max_publications_max": 1,
+    "native_gets_max": 3,
+    "global_cap_bytes": 100000000,
+    "child_cap_bytes": 10000000,
+    "lock_mode": "existing EX|NB global and SH|NB child"
+  },
+  "journal_writes": 0,
+  "db_writes": 0,
+  "post_writes": 0,
+  "feed_writes": 0,
+  "supplier_calls": 0,
+  "automatic_retries": 0,
+  "feed_continuation_authorized": false,
+  "unknown_is_not_no_write": true,
+  "only_reader_delta": "safe scalar nightly_cycle projection"
+}
