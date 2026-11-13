@@ -1,0 +1,57 @@
+{
+  "state": "PREPARED_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261113-14-v1",
+  "registry_version": 341,
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 590,
+  "expected_new_full_pairs": 2,
+  "rows": [
+    {
+      "hotel_id": 968,
+      "logical_id": "commercial-hotel-968-v1",
+      "aliases": [
+        "Ali Bey Park Manavgat",
+        "ALI BEY PARK MANAVGAT"
+      ],
+      "text": "✈️ Туры в Ali Bey Park Manavgat\n📍 Кызылагач, Манавгат, Турция.\n\nПляж, водные горки и семейный отдых 🌿\n\nAli Bey Park Manavgat подойдёт для поездки с детьми и активного отпуска у моря. Здесь можно проводить время на пляже, развлекаться в аквапарке и играть в теннис. Для семей есть разные варианты размещения.\n\n• Пляж у территории курорта.\n• Аквапарк с зонами для взрослых и детей.\n• Теннисный центр и спа.\n\nАквапарк работает с учётом сезона. Пляжные павильоны оплачиваются отдельно, а условия тенниса и спа зависят от выбранной услуги.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "f265109466f74f28cd1077d88020f14b49a012a17595bb62c8fd4af7686a520c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0e304c5075ec0c811bdc64a54edd126ae7fd25f4/.github/traffic-publish/commercial-batch-20261113-14/968.png",
+      "photo_sha256": "8e31c389a1b5bdbb77590aa9a48ac0b0e8d8700b05b0380d5cf226762317a709",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://www.alibey.com/en/park",
+        "https://www.alibey.com/en/park/rooms/superior-family-rooms",
+        "https://www.alibey.com/en/park/beach-waterpark",
+        "https://www.alibey.com/en/park/spa/pools",
+        "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+        "https://www.alibey.com/en/our-hotels/ali-bey-park-manavgat/"
+      ],
+      "media_provenance": "Three actual official own-property photographs visually reviewed; source history and original images retained. Park excludes every Club/Sorgun-labelled image; Sunis reuses two byte-exact accepted photos and one new current official-page photograph."
+    },
+    {
+      "hotel_id": 1531,
+      "logical_id": "commercial-hotel-1531-v1",
+      "aliases": [
+        "Sunis Kumköy Beach Resort & Spa",
+        "SUNIS KUMKOY BEACH RESORT & SPA"
+      ],
+      "text": "✈️ Туры в Sunis Kumköy Beach Resort & Spa\n📍 Сиде, Турция.\n\nСемейный отпуск на песчаном берегу ☀️\n\nSunis Kumköy Beach Resort & Spa подойдёт тем, кто хочет чередовать пляжный отдых с развлечениями для всей семьи. Детям доступны клуб и водные горки, взрослым — бассейны и спа. Для большой семьи есть категории с отдельными спальнями.\n\n• Песчаный пляж у территории.\n• Водные горки для взрослых и детей.\n• Детский клуб и спа-центр.\n\nОткрытые бассейны, горки и детские программы работают с учётом сезона. Рестораны à la carte требуют записи; спа-процедуры могут оплачиваться отдельно.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "e2429a21c773bbbab1db809c3ead13c398a27cc684ca5fd7ba07c79dd4e85a51",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0e304c5075ec0c811bdc64a54edd126ae7fd25f4/.github/traffic-publish/commercial-batch-20261113-14/1531.png",
+      "photo_sha256": "c1a0a1bc9085049274e61a2fb050fa0f1dca0ce8966bf4fef45f4ae834601a6e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.kumkoybeachresort.com/",
+        "https://www.kumkoybeachresort.com/index.php/odalar-suitler/",
+        "https://www.kumkoybeachresort.com/index.php/havuz-kaydiraklarimiz/",
+        "https://www.booking.com/hotel/tr/sunis-kumkoy-beach-resort.html",
+        "https://www.kumkoybeachresort.com/index.php/junior-suit-4-kisilik/",
+        "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php"
+      ],
+      "media_provenance": "Three actual official own-property photographs visually reviewed; source history and original images retained. Park excludes every Club/Sorgun-labelled image; Sunis reuses two byte-exact accepted photos and one new current official-page photograph."
+    }
+  ]
+}
