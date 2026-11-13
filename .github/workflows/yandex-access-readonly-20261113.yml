@@ -1,0 +1,39 @@
+name: Read existing Yandex API access for AppleService39
+on:
+  push:
+    branches: [audit/yandex-access-20261113]
+    paths:
+      - .github/workflows/yandex-access-readonly-20261113.yml
+      - audit/yandex-access-readonly-20261113.py
+      - audit/yandex-access-runner-20261113.py
+permissions:
+  contents: read
+concurrency:
+  group: yandex-access-owner-20261113
+  cancel-in-progress: false
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Read fixed API methods with existing server credentials
+        env:
+          SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          READER_SHA256: 7976fe40de293de705bb2139a3e1f2507f0f634c54f8ce2f3ac03b19d25b3e95
+          REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUFuK0prVWhZZ0piaHdyUWd4cXlOQgo1djFTNzNROVllTGhXemNMeXRuWGJWUVNxNFdDSXpBTGRSWnduakhRRksvRmNOczlpQVRuN1FkQ0ttZWptN3I4ClNxWTY4RnJCUTYxK2lvbmVwOHNvYks1QkdxV2Fiak55d0dNMmViUmhZdG5oZE9tUVlMSjdpYmlRU3dEUUg5YzcKSGRQNXhNdERDOTE3U1BMYzd2eVI1TkNOaTJzQ3Z2ZFcxZWp2RU9XcWFwcDJsc2RRSnp3MkdWakIyQkdOM2xLdApCUzZpVkRPYTlCSTdWSHpENnh6Wmc5R21JZUV1WDRoSEZUNjVXejJBc0c2VFdkY3E3ZUJ2QXlReHZvbnpEM2srClEwWEZ4ZUMzdjExbWFYMUIzRHN2b1p6Ylg3bWozY05pZXVIWm13cE5uMVIxTzljcG5va1d1cnU1YnR0OUE1akkKeXdGdmcraHlHR1ExYjBzbWVxcnlESXhNMTFtMkJPOHlCZGpDUnNIakUxZC9la3J2d3BDSUFCZmxHYmJkRHErbwpiK3NuTWVoU3VuQzZOZ3YxVmNvY09xVFIvTlE5TDFsaHhKcnBFZko0a1YxRDUxVGhBQXJpV1IzSDlDVlZ1WElUCkJtTmhVS2NGMVJ1Q1dsQjhaSGhEbHhZMzdYQVdGY2IwUndGc2M0eWVEcTh6QWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+        run: python3 audit/yandex-access-runner-20261113.py
+      - name: Retain ciphertext only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: yandex-access-20261113
+          path: encrypted-yandex-access/*.enc.json
+          retention-days: 3
+          if-no-files-found: error
+
