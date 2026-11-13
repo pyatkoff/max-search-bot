@@ -83,6 +83,20 @@ try {
     if((int)$caseTask['business_revision']!==2||$pdo->query('SELECT * FROM lead_tasks WHERE id=103')->fetch()!==$caseTask)throw new RuntimeException('native_case_only_edit_or_noop_revision_failed');
     echo "PASS native binary title comparison counts case-only edit once and preserves no-op saves\n";
 
+    // Real native NULL/date semantics must preserve a still-valid reminder and
+    // invalidate it only when the deadline changes, including clearing a date.
+    $pdo->exec("UPDATE lead_tasks SET due_at_utc='2030-01-01 09:00:00',reminder_attempted_at_utc='2029-12-31 07:00:00',reminder_notified_at_utc='2029-12-31 07:00:01' WHERE id=103");
+    $reminderBefore=$pdo->query('SELECT * FROM lead_tasks WHERE id=103')->fetch();
+    LeadTaskService::update(1,103,'case','2030-01-01T12:00:00+03:00');
+    if($pdo->query('SELECT * FROM lead_tasks WHERE id=103')->fetch()!==$reminderBefore)throw new RuntimeException('native_identical_due_reset_reminder');
+    LeadTaskService::update(1,103,'CASE','2030-01-01T12:00:00+03:00');$titleOnly=$pdo->query('SELECT * FROM lead_tasks WHERE id=103')->fetch();
+    if((int)$titleOnly['business_revision']!==3||$titleOnly['reminder_attempted_at_utc']!==$reminderBefore['reminder_attempted_at_utc']||$titleOnly['reminder_notified_at_utc']!==$reminderBefore['reminder_notified_at_utc'])throw new RuntimeException('native_title_edit_reset_reminder');
+    LeadTaskService::update(1,103,'CASE','2030-01-02T12:00:00+03:00');$dateChanged=$pdo->query('SELECT * FROM lead_tasks WHERE id=103')->fetch();
+    if((int)$dateChanged['business_revision']!==4||$dateChanged['due_at_utc']!=='2030-01-02 09:00:00'||$dateChanged['reminder_attempted_at_utc']!==null||$dateChanged['reminder_notified_at_utc']!==null)throw new RuntimeException('native_deadline_edit_kept_old_reminder');
+    LeadTaskService::update(1,103,'CASE',null);$cleared=$pdo->query('SELECT * FROM lead_tasks WHERE id=103')->fetch();LeadTaskService::update(1,103,'CASE',null);
+    if((int)$cleared['business_revision']!==5||$cleared['due_at_utc']!==null||$pdo->query('SELECT * FROM lead_tasks WHERE id=103')->fetch()!==$cleared)throw new RuntimeException('native_clear_deadline_not_idempotent');
+    echo "PASS native deadline and NULL edits reset reminders only on a real due change\n";
+
     $pdo->beginTransaction();LeadTaskService::setCompleted(1,101,true);LeadTaskService::setCompleted(1,101,false);
     $second->beginTransaction();$taskConnection->setValue(null,$second);$blocked=false;
     try{LeadTaskService::completeForPromise($second,1,101,1,7);}catch(PDOException $e){$blocked=(int)($e->errorInfo[1]??0)===1205;}
