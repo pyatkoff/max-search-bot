@@ -1,0 +1,254 @@
+{
+  "ok": true,
+  "state": "REAL_RECEIPTS_BOUND_ROSTER_CANDIDATE",
+  "source_commit": "8554ce9fbb7f3c4e37061c731d9395c310756534",
+  "operation": "commercial-caption-batch16-20261113-edit-v1",
+  "rows": 604,
+  "corrected_pairs": 9,
+  "corrected_posts": 18,
+  "unchanged_rows_byte_exact": 595,
+  "original595_raw_prefix_preserved": true,
+  "monitor_baseline_pairs": 0,
+  "original_identity_metadata_and_envelope_preserved": true,
+  "concrete_prices_copied_to_templates": 0,
+  "core_files_changed": 0,
+  "external_writes": 0,
+  "monitor_journal_writes": 0,
+  "evidence": [
+    {
+      "hotel_id": 81358,
+      "platform": "max",
+      "publication_id": 1354,
+      "previous_version_id": 4364,
+      "version_id": 4377,
+      "old_text_sha256": "0a981038c99d63e13a15b39da8a3074282042f80f191bfb7546ceed5ee9ba598",
+      "new_text_sha256": "d54daac9b07f4d5cb9751cccd637e81fad6bfd959bf18a016fca4261d7c9886b",
+      "monitor_price_record_id": null,
+      "template_sha256": "1da3d29998f7b096a8e46cf9f669796f1e1e4a245824eb9dcef1769bbc78b150"
+    },
+    {
+      "hotel_id": 81358,
+      "platform": "telegram",
+      "publication_id": 1345,
+      "previous_version_id": 4355,
+      "version_id": 4378,
+      "old_text_sha256": "0a981038c99d63e13a15b39da8a3074282042f80f191bfb7546ceed5ee9ba598",
+      "new_text_sha256": "d54daac9b07f4d5cb9751cccd637e81fad6bfd959bf18a016fca4261d7c9886b",
+      "monitor_price_record_id": null,
+      "template_sha256": "1da3d29998f7b096a8e46cf9f669796f1e1e4a245824eb9dcef1769bbc78b150"
+    },
+    {
+      "hotel_id": 343,
+      "platform": "max",
+      "publication_id": 1355,
+      "previous_version_id": 4365,
+      "version_id": 4379,
+      "old_text_sha256": "3d1415643b7f1a2cfec36cf90199aaa8384a088a42be266c002294249dfacb5e",
+      "new_text_sha256": "013f02b94234b6d45641f247b7d58af896045f735fbd0584349cd815e30f184b",
+      "monitor_price_record_id": null,
+      "template_sha256": "c7b7ca448f381b44e34fe89034d03a6cfb87342887bfb4db6cbf255ed328a282"
+    },
+    {
+      "hotel_id": 343,
+      "platform": "telegram",
+      "publication_id": 1346,
+      "previous_version_id": 4356,
+      "version_id": 4380,
+      "old_text_sha256": "3d1415643b7f1a2cfec36cf90199aaa8384a088a42be266c002294249dfacb5e",
+      "new_text_sha256": "013f02b94234b6d45641f247b7d58af896045f735fbd0584349cd815e30f184b",
+      "monitor_price_record_id": null,
+      "template_sha256": "c7b7ca448f381b44e34fe89034d03a6cfb87342887bfb4db6cbf255ed328a282"
+    },
+    {
+      "hotel_id": 432,
+      "platform": "max",
+      "publication_id": 1356,
+      "previous_version_id": 4366,
+      "version_id": 4381,
+      "old_text_sha256": "b5deb66268bc044ae2ec2c7b7bc38ffe5a5f3b9ede91221224c456b23f2855bb",
+      "new_text_sha256": "b236ccd2bc0d56cab8db504837e2b1b88ef0c8079f059d1db8c910dfc4ef51b5",
+      "monitor_price_record_id": null,
+      "template_sha256": "e949cd277626203327c78df2991172bccdc3134619371e3d056f7f27ed9c17cb"
+    },
+    {
+      "hotel_id": 432,
+      "platform": "telegram",
+      "publication_id": 1347,
+      "previous_version_id": 4357,
+      "version_id": 4382,
+      "old_text_sha256": "b5deb66268bc044ae2ec2c7b7bc38ffe5a5f3b9ede91221224c456b23f2855bb",
+      "new_text_sha256": "b236ccd2bc0d56cab8db504837e2b1b88ef0c8079f059d1db8c910dfc4ef51b5",
+      "monitor_price_record_id": null,
+      "template_sha256": "e949cd277626203327c78df2991172bccdc3134619371e3d056f7f27ed9c17cb"
+    },
+    {
+      "hotel_id": 65254,
+      "platform": "max",
+      "publication_id": 1357,
+      "previous_version_id": 4367,
+      "version_id": 4383,
+      "old_text_sha256": "e15458d2d32e32dbae202fd3261f664e7d723c5964d3a36b8795cc0cb63b2fe7",
+      "new_text_sha256": "12c5ac9a95dc7b66583ea48ede266f4ea5c82ab81f132921142a6bc8ad6a630d",
+      "monitor_price_record_id": null,
+      "template_sha256": "b43a7ac12318cb5c4ee8acf2347b8076ae190260e11bb779198eab2999ced61b"
+    },
+    {
+      "hotel_id": 65254,
+      "platform": "telegram",
+      "publication_id": 1348,
+      "previous_version_id": 4358,
+      "version_id": 4384,
+      "old_text_sha256": "e15458d2d32e32dbae202fd3261f664e7d723c5964d3a36b8795cc0cb63b2fe7",
+      "new_text_sha256": "12c5ac9a95dc7b66583ea48ede266f4ea5c82ab81f132921142a6bc8ad6a630d",
+      "monitor_price_record_id": null,
+      "template_sha256": "b43a7ac12318cb5c4ee8acf2347b8076ae190260e11bb779198eab2999ced61b"
+    },
+    {
+      "hotel_id": 443,
+      "platform": "max",
+      "publication_id": 1358,
+      "previous_version_id": 4368,
+      "version_id": 4385,
+      "old_text_sha256": "7e361bef6e17a3eef4ac6b58171b7054d10860e281a0ffbb0efefff3b499ce07",
+      "new_text_sha256": "d394c2875c26befbff84deb5d340bab4294908ee5d851d667faa0131d5c7c7dc",
+      "monitor_price_record_id": null,
+      "template_sha256": "3567ed2011a3e2ec395f79cb451a75f608825a2656537c81204657c14784a64c"
+    },
+    {
+      "hotel_id": 443,
+      "platform": "telegram",
+      "publication_id": 1349,
+      "previous_version_id": 4359,
+      "version_id": 4386,
+      "old_text_sha256": "7e361bef6e17a3eef4ac6b58171b7054d10860e281a0ffbb0efefff3b499ce07",
+      "new_text_sha256": "d394c2875c26befbff84deb5d340bab4294908ee5d851d667faa0131d5c7c7dc",
+      "monitor_price_record_id": null,
+      "template_sha256": "3567ed2011a3e2ec395f79cb451a75f608825a2656537c81204657c14784a64c"
+    },
+    {
+      "hotel_id": 107940,
+      "platform": "max",
+      "publication_id": 1359,
+      "previous_version_id": 4369,
+      "version_id": 4387,
+      "old_text_sha256": "e587ff30c0a5d5c3a285ed6a6d306bbec90430ae0452c305e8e1a72c367a1284",
+      "new_text_sha256": "94e06986a1349f2e68348dc6147133990b8455ef95c35170442feec33084d15d",
+      "monitor_price_record_id": null,
+      "template_sha256": "eccf36cb9a4d72673a0112317e287fb549a4646c41a1b98bafacae08ffaf1c96"
+    },
+    {
+      "hotel_id": 107940,
+      "platform": "telegram",
+      "publication_id": 1350,
+      "previous_version_id": 4360,
+      "version_id": 4388,
+      "old_text_sha256": "e587ff30c0a5d5c3a285ed6a6d306bbec90430ae0452c305e8e1a72c367a1284",
+      "new_text_sha256": "94e06986a1349f2e68348dc6147133990b8455ef95c35170442feec33084d15d",
+      "monitor_price_record_id": null,
+      "template_sha256": "eccf36cb9a4d72673a0112317e287fb549a4646c41a1b98bafacae08ffaf1c96"
+    },
+    {
+      "hotel_id": 32356,
+      "platform": "max",
+      "publication_id": 1360,
+      "previous_version_id": 4370,
+      "version_id": 4389,
+      "old_text_sha256": "1fa1bb6661e8ae715e4dc57943b8f3db731837e32d835a060f43a09df0a2c977",
+      "new_text_sha256": "04dc3482cfd88c5ab163556637c6fed8ded04c859c4aff77eb2249d9b31d1642",
+      "monitor_price_record_id": null,
+      "template_sha256": "9aa5c21accaad1d8b8265bcc63608b12159426fc55e942d66aff9cda5e403bad"
+    },
+    {
+      "hotel_id": 32356,
+      "platform": "telegram",
+      "publication_id": 1351,
+      "previous_version_id": 4361,
+      "version_id": 4390,
+      "old_text_sha256": "1fa1bb6661e8ae715e4dc57943b8f3db731837e32d835a060f43a09df0a2c977",
+      "new_text_sha256": "04dc3482cfd88c5ab163556637c6fed8ded04c859c4aff77eb2249d9b31d1642",
+      "monitor_price_record_id": null,
+      "template_sha256": "9aa5c21accaad1d8b8265bcc63608b12159426fc55e942d66aff9cda5e403bad"
+    },
+    {
+      "hotel_id": 195,
+      "platform": "max",
+      "publication_id": 1361,
+      "previous_version_id": 4371,
+      "version_id": 4391,
+      "old_text_sha256": "97064ef5cbd4bffe38f0d4b7b3f4bd415a07e2a282412757a8bebd3acdc95ea8",
+      "new_text_sha256": "41f8b8849964aae311f4e611f5c17199c041528c698c7690fc2674a91cca9b39",
+      "monitor_price_record_id": null,
+      "template_sha256": "f489f618ed71949bbfd45a4d2d9e70902f96ed19abb887af2c04ee9b3bc02acd"
+    },
+    {
+      "hotel_id": 195,
+      "platform": "telegram",
+      "publication_id": 1352,
+      "previous_version_id": 4362,
+      "version_id": 4392,
+      "old_text_sha256": "97064ef5cbd4bffe38f0d4b7b3f4bd415a07e2a282412757a8bebd3acdc95ea8",
+      "new_text_sha256": "41f8b8849964aae311f4e611f5c17199c041528c698c7690fc2674a91cca9b39",
+      "monitor_price_record_id": null,
+      "template_sha256": "f489f618ed71949bbfd45a4d2d9e70902f96ed19abb887af2c04ee9b3bc02acd"
+    },
+    {
+      "hotel_id": 20288,
+      "platform": "max",
+      "publication_id": 1362,
+      "previous_version_id": 4372,
+      "version_id": 4393,
+      "old_text_sha256": "0f33829308d612d8b19878419138d6471db9e09df3b67719998705dd2ab5d9da",
+      "new_text_sha256": "9030ecc1490d8125209a61b855e76bd2c4b3080e11d3b69bf20188ad92fc55e5",
+      "monitor_price_record_id": null,
+      "template_sha256": "5c4335cb7b500bb1a5cff79550b859fe0a5f597fabb7c3d981ba8286a3a958a0"
+    },
+    {
+      "hotel_id": 20288,
+      "platform": "telegram",
+      "publication_id": 1353,
+      "previous_version_id": 4363,
+      "version_id": 4394,
+      "old_text_sha256": "0f33829308d612d8b19878419138d6471db9e09df3b67719998705dd2ab5d9da",
+      "new_text_sha256": "9030ecc1490d8125209a61b855e76bd2c4b3080e11d3b69bf20188ad92fc55e5",
+      "monitor_price_record_id": null,
+      "template_sha256": "5c4335cb7b500bb1a5cff79550b859fe0a5f597fabb7c3d981ba8286a3a958a0"
+    }
+  ],
+  "inputs_sha256": {
+    "manifest": "4204b22e24392e0f31e81faf0063597fb10210706a49eab7e2db139ad1ed6fde",
+    "snapshot": "c296416d9b16319937d8389602a7b81b2932c17a6bdeae08deb69cb0916eb3d0",
+    "result": "86573678e108156552419586e5a9d9823463549285022be752a9c5fe2828e800",
+    "final-snapshot": "e1ef71995f8cfb58be925e562dcbd506db242df96eda0d5df7787ed68d089f21"
+  },
+  "source_gzip_sha256": "87d2c9056209eb7bb0c387b1f9cb129d95a1ee8f9bde96881c45db9b081ffb65",
+  "source_raw_sha256": "96643334d957f3ffc3c0fd4e194c5fccf70bcc6ed3f4c43c026d9c5c5dea37e7",
+  "output_raw_sha256": "6dc7707734d0031b375268d400e65f7284707b159fe05670bd9199cfe62d0571",
+  "output_gzip_sha256": "f95943c91e25b863cdb2d8db377e08e16acae4f457f253c647f6152e2b3eccc0",
+  "actual_editorial_run": {
+    "id": 43435975005,
+    "html_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/43435975005",
+    "head_sha": "b5cccc43ecfe8781b26ec5856fdcdc8582ba59e3",
+    "event": "push",
+    "run_attempt": 1,
+    "conclusion": "success"
+  },
+  "actual_editorial_artifact": {
+    "id": 14043637521,
+    "zip_sha256": "2b9b563b44d2d4dc291da912b67c52241c6b6cc7ae2a379c1c399993cf2e3810"
+  },
+  "bundle": {
+    "bytes": 535954,
+    "sha256": "5ff629dd64be3c91b38198c739616d09fc8fdd2fd94d932de492cc161d521454",
+    "pairs": 604,
+    "supplier_calls": 0
+  },
+  "unchanged_core_files": {
+    "build-monitor-price-hook.py": "8baaf6c1b196a6e82110335c6155a7cb88e236ff6de1b97b0511b1d6740c325b",
+    "monitor-price-contract.php": "ad20601d265e71d6cf58253bb6f263c1171a299130317f9ebbf7e576cf874fa7",
+    "monitor-price-hook-contract.php": "636c8e330009782d163e763d5c0d18859339f16085409d75cd1bbdb5de7834b2",
+    "monitor-price-after-collection.php": "80d63c13890e269b54f7446d6b8566229b286ad84304421ade223c5fb3d8e54a",
+    "update-commercial-price-20261104-remaining1.php": "9654e82448eea8ef10551e93fe6cca744baee4bd43f558d7f6bd7da47cb91182",
+    "publish-commercial-channel-hotel-feeds-20261103-1.php": "8609a2cf06d4a46738f934047d46744bdc54d3863e7c2921fdfec1a9be4b7a5e"
+  },
+  "unchanged_runtime_pin_count": 22
+}
