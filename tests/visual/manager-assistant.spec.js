@@ -311,6 +311,22 @@ async function setupAssistant(page,{owner=false}={}){
   return{base,calls,items,queueDetail:(...responses)=>detailResponses.push(...responses),heldDetailCount:()=>heldDetails.length,releaseDetail:()=>heldDetails.shift()?.()};
 }
 function clean(s){expect(s.base.errors).toEqual([]);expect(s.base.unexpected).toEqual([]);expect(s.base.calls.filter(c=>['send','take','release','close','reopen','create_task','update_task','set_task_completed'].includes(c.action))).toEqual([]);expect(s.calls.filter(c=>!['list','detail','decision'].includes(c.action))).toEqual([])}
+async function setupAssistantLeadTasks(page,tasksByConversation,beforeReply=()=>{}){
+  const reads=[];
+  // Override only canonical reads for the owned, open conversations in the base
+  // fixture. All other reads and every mutation keep its strict local routing.
+  await page.route('**/manager/pipeline-api.php',async route=>{
+    const d=route.request().postDataJSON(),id=Number(d.conversation_id);
+    if(d.action!=='detail'||!tasksByConversation.has(id))return route.fallback();
+    expect(d.csrf).toBe('fixture-csrf');reads.push(d);await beforeReply(d);
+    return route.fulfill({contentType:'application/json',body:JSON.stringify({
+      ok:true,can_edit_pipeline:true,pipeline:{stage:null,tags:[],stage_history:[],outcome:{outcome:'open'}},
+      tasks:tasksByConversation.get(id),trip:{city:'Москва',country:'Турция',adults:2},
+      contact:{},source:{},handoff:{},degraded_components:[]
+    })});
+  });
+  return reads;
+}
 async function bounded(page){
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   const box=await page.locator('#assistantDialog').boundingBox(),v=page.viewportSize();expect(box.x).toBeGreaterThanOrEqual(-1);expect(box.x+box.width).toBeLessThanOrEqual(v.width+1);expect(box.y).toBeGreaterThanOrEqual(-1);expect(box.y+box.height).toBeLessThanOrEqual(v.height+1);await expect(page.locator('#assistantClose')).toBeInViewport();
@@ -348,7 +364,7 @@ for(const width of [390,430,768,1440])test('Manager assistant unifies list and c
   await page.locator('#assistantMore').click();await expect(page.locator('[data-assistant-client]')).toHaveCount(3);await expect(page.locator('#assistantMore')).toBeHidden();expect(s.calls.at(-1).cursor).toBe('v1.'+'a'.repeat(64)+'.12');
 await page.locator('[data-assistant-client="11"]').click();await expect(page.locator('#assistantDetail')).toContainText('Сравнить выбранные отели на двоих.');await expect(page.locator('#assistantPlan')).toBeVisible();if(width<768)await expect(page.locator('.assistantToolbar')).toBeHidden();await page.locator('.assistantSource summary').click();await expect(page.locator('.assistantSource')).toContainText('Сообщений в основании: 1');await bounded(page);await capture(page,browserName,width,'client');
   await page.locator('[data-assistant-decision="done"]').click();await expect(page.locator('#assistantDetail')).toContainText('Отмечено выполненным');expect(s.calls.filter(c=>c.action==='decision')).toHaveLength(1);
-  if(width<768)await page.locator('#assistantBack').click();await page.locator('[data-assistant-client="12"]').click();await expect(page.locator('#assistantDetail')).toContainText('Дождаться клиента');await expect(page.locator('#assistantPlan')).toHaveCount(0);await expect(page.locator('[data-assistant-decision]')).toHaveCount(0);
+  if(width<768)await page.locator('#assistantBack').click();await page.locator('[data-assistant-client="12"]').click();await expect(page.locator('#assistantDetail')).toContainText('Сейчас не писать');await expect(page.locator('#assistantPlan')).toBeVisible();await expect(page.locator('#assistantReply,[data-assistant-decision]')).toHaveCount(0);
 await page.setViewportSize({width,height:420});await bounded(page);await capture(page,browserName,width,'short');await page.locator('#assistantClose').click();if(width>=768)expect(await page.evaluate(()=>document.documentElement.scrollHeight)).toBeLessThanOrEqual(421);
   await page.setViewportSize({width,height:900});await openConversationForAssistantTest(page,11);await expect(page.locator('#replyText')).toBeEnabled();
   await page.locator('#replyText').fill('Мой незаконченный ответ');await page.locator('#replyFile').setInputFiles({name:'assistant-keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained attachment')});
@@ -365,7 +381,7 @@ test('assistant does not present expired reasoning or a missing analysis as comp
 async function selectAssistantClient(page,id=11){
   await openGlobalAssistant(page);
   await page.locator(`[data-assistant-client="${id}"]`).click();
-  await expect(page.locator('#assistantDetail')).toContainText(id===11?'Сравнить выбранные отели на двоих.':'Дождаться клиента');
+  await expect(page.locator('#assistantDetail')).toContainText(id===11?'Сравнить выбранные отели на двоих.':'Сейчас не писать');
 }
 function detailCalls(s){return s.calls.filter(call=>call.action==='detail')}
 async function periodicDetail(page,s){
@@ -436,13 +452,13 @@ test('late periodic assistant reads cannot steal client navigation focus or acco
   const mobile=destination==='back';await page.setViewportSize({width:mobile?390:1440,height:mobile?420:900});await selectAssistantClient(page);
   s.queueDetail({hold:true,result:{ok:true,item:{...s.items.get(11),recommendation:{...s.items.get(11).recommendation,reason:'Устаревший ответ от предыдущего запроса.'}}}});
   await page.clock.runFor(20001);await expect.poll(()=>s.heldDetailCount()).toBe(1);
-  if(destination==='other-client'){await page.locator('[data-assistant-client="12"]').click();await expect(page.locator('#assistantDetail')).toContainText('Дождаться клиента')}
+  if(destination==='other-client'){await page.locator('[data-assistant-client="12"]').click();await expect(page.locator('#assistantDetail')).toContainText('Сейчас не писать')}
   else if(destination==='back')await page.locator('#assistantBack').click();
   else if(destination==='close')await page.locator('#assistantClose').click();
   else{
     await page.evaluate(()=>WorkspaceV2.showAuthRecovery());s.base.switchManager({id:8,role:'manager',display_name:'Другой менеджер',is_working:true});
     await page.locator('#managerAuthLogin').fill('isolated-account');await page.locator('#managerAuthPassword').fill('isolated-password');await page.locator('#managerAuthSubmit').click();await expect(page.locator('#managerAuthRecovery')).toBeHidden();
-    await openGlobalAssistant(page);await page.locator('[data-assistant-client="12"]').click();await expect(page.locator('#assistantDetail')).toContainText('Дождаться клиента');
+    await openGlobalAssistant(page);await page.locator('[data-assistant-client="12"]').click();await expect(page.locator('#assistantDetail')).toContainText('Сейчас не писать');
   }
   // Cached client text renders before its protected detail read completes. Wait
   // for that navigation's intentional focus handoff before releasing older work.
@@ -453,7 +469,7 @@ test('late periodic assistant reads cannot steal client navigation focus or acco
   await expect.poll(()=>page.evaluate(()=>({sameControl:document.activeElement===window.assistantNavigationFocus,connected:window.assistantNavigationFocus.isConnected,activeId:document.activeElement.id,selectedClient:document.querySelector('.assistantClient.isSelected')?.dataset.assistantClient||null}))).toEqual({sameControl:true,connected:true,...focused});
   if(destination==='back'){await expect(page.locator('#assistantDialog')).not.toHaveClass(/hasSelection/);await expect(page.locator('[data-assistant-client="11"]')).toBeFocused()}
   else if(destination==='close'){await expect(page.locator('#assistantDialog')).not.toBeVisible();await expect(page.locator('[data-m2-nav=tasks]')).toBeFocused()}
-  else{await expect(page.locator('#assistantDetail')).toContainText('Дождаться клиента');await expect(page.locator('#assistantDetail h3')).toHaveText('Клиент выбирает отель')}
+  else{await expect(page.locator('#assistantDetail')).toContainText('Сейчас не писать');await expect(page.locator('#assistantDetail h3')).toHaveText('Клиент выбирает отель')}
   });clean(s);
 });
 
@@ -510,5 +526,111 @@ for(const width of [390,430,768,1440])test('primary My Plan combines actions wit
   const media=await settledMediaSelectionText(page);if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();
   await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('#assistantDialog')).toHaveClass(/assistantPlanView/);await expect(page.locator('#assistantTitle')).toHaveText('Мой план');await expect(page.locator('[data-assistant-client]')).toHaveCount(1);expect(s.calls.filter(c=>c.action==='list').at(-1).scope).toBe('mine');await expect(page.locator('[data-assistant-client="11"]')).toContainText(s.items.get(11).recommendation.reason);
   await page.locator('[data-assistant-client="11"]').click();await page.locator('#assistantReply').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Мой ответ остаётся моим');await expect(page.locator('#mediaSelection')).toHaveText(media);
-  if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();await expect(page.locator('#assistantDetail h3')).toHaveText(s.items.get(11).display_name);await page.locator('#assistantBack').click();await page.locator('[data-assistant-filter=waiting]').click();await page.locator('[data-assistant-client="12"]').click();await expect(page.locator('#assistantDetail')).toContainText('Дождаться клиента');await expect(page.locator('#assistantReply,#assistantPlan')).toHaveCount(0);await bounded(page);await capture(page,browserName,width,'primary-plan');clean(s);
+  if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();await expect(page.locator('#assistantDetail h3')).toHaveText(s.items.get(11).display_name);await page.locator('#assistantBack').click();await page.locator('[data-assistant-filter=waiting]').click();await page.locator('[data-assistant-client="12"]').click();await expect(page.locator('#assistantDetail')).toContainText('Сейчас не писать');await expect(page.locator('#assistantPlan')).toBeVisible();await expect(page.locator('#assistantReply,[data-assistant-decision]')).toHaveCount(0);await bounded(page);await capture(page,browserName,width,'primary-plan');clean(s);
+});
+
+for(const width of [390,430,768,1440])test('no-contact promised calculation opens the canonical task draft and retains reply and File '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const s=await setupAssistant(page);
+  const existing={id:41,title:'Отправить обещанный расчёт',status:'open',due_state:'upcoming',due_at_utc:new Date(Date.now()+86400000).toISOString(),assigned_manager_name:'Мария'};
+  for(const id of [11,12])Object.assign(s.items.get(id),{manager_id:7,manager_name:'Мария',can_decide:true,recommendation:{...s.items.get(id).recommendation,next_action:'no_contact',reason:'Менеджер обещал подготовить расчёт по текущей поездке. Клиент ждёт расчёт.',checks:['Подготовить обещанный расчёт по текущей поездке.']}});
+  s.items.get(11).tasks=[existing];
+  const reads=await setupAssistantLeadTasks(page,new Map([[11,[existing]],[12,[]]]));
+  await openConversationForAssistantTest(page,12);
+  await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.detail?.lead?.tasks)).toEqual([]);
+  await page.locator('#replyText').fill('Мой незаконченный ответ о расчёте');
+  await page.locator('#replyFile').setInputFiles({name:'calculation-draft.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic calculation attachment')});
+  const media=await settledMediaSelectionText(page);
+  await expect.poll(()=>page.evaluate(()=>WorkspaceV2Media.captureSelection()?.rows.length||0)).toBe(1);
+  await page.evaluate(()=>{window.promisedCalculationFile=WorkspaceV2Media.captureSelection().rows[0].row.file});
+  if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();
+  await page.locator('[data-m2-nav=tasks]').click();
+  const taskCard=page.locator('[data-assistant-client="11"]');
+  await expect(taskCard.locator(':scope > span')).toHaveText(existing.title);
+  await expect(taskCard.locator(':scope > small').last()).toHaveText('Есть открытая задача');
+  await page.locator('[data-assistant-filter=waiting]').click();
+  const waitingCard=page.locator('[data-assistant-client="12"]');
+  await expect(waitingCard.locator(':scope > span')).toHaveText('Сейчас не писать');
+  await expect(waitingCard.locator(':scope > small').last()).toHaveText('Исходящее сообщение сейчас не нужно');
+  await waitingCard.click();
+  await expect(page.locator('.assistantRecommendation h4')).toHaveText('Сейчас не писать');
+  await expect(page.locator('.assistantRecommendation')).toContainText(s.items.get(12).recommendation.reason);
+  await expect(page.locator('#assistantPlan')).toHaveText('Запланировать');
+  await expect(page.locator('#assistantReply,[data-assistant-decision]')).toHaveCount(0);
+  await bounded(page);await capture(page,browserName,width,'no-contact-promise');
+  const readCount=reads.length,reviewCount=detailCalls(s).length;
+  await page.locator('#assistantPlan').click();
+  await expect(page.locator('#leadTaskTitle')).toBeVisible();
+  await expect(page.locator('#leadTaskTitle')).toHaveValue('Подготовить обещанный расчёт по текущей поездке.');
+  await expect(page.locator('#leadTaskDue')).toHaveValue('');
+  await expect(page.locator('#leadTaskAdd')).toBeEnabled();
+  await expect(page.locator('#assistantTaskEditor form')).toHaveCount(0);
+  expect(reads.length).toBeGreaterThan(readCount);expect(detailCalls(s).length).toBeGreaterThan(reviewCount);
+  await expect(page.locator('#replyText')).toHaveValue('Мой незаконченный ответ о расчёте');
+  await expect(page.locator('#mediaSelection')).toHaveText(media);
+  expect(await page.evaluate(()=>WorkspaceV2Media.captureSelection().rows[0].row.file===window.promisedCalculationFile)).toBe(true);
+  expect(await page.evaluate(()=>WorkspaceV2.S.detail.lead.tasks)).toEqual([]);
+  expect(s.calls.filter(c=>c.action==='decision')).toEqual([]);
+  await capture(page,browserName,width,'no-contact-task-draft');clean(s);
+});
+
+test('no-contact planning opens a task that appeared during the canonical refresh',async({page})=>{
+  await page.setViewportSize({width:430,height:900});const s=await setupAssistant(page),item=s.items.get(12);
+  Object.assign(item,{manager_id:7,manager_name:'Мария',can_decide:true,recommendation:{...item.recommendation,reason:'Менеджер обещал подготовить расчёт. Клиент ждёт результат.',checks:[]}});
+  await openConversationForAssistantTest(page,12);
+  await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.detail?.lead?.tasks)).toEqual([]);
+  if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();
+  await page.locator('[data-m2-nav=tasks]').click();await page.locator('[data-assistant-filter=waiting]').click();await page.locator('[data-assistant-client="12"]').click();
+  await expect(page.locator('#assistantPlan')).toHaveText('Запланировать');
+  const tasks=[];let release;
+  const held=new Promise(resolve=>{release=resolve});
+  const reads=await setupAssistantLeadTasks(page,new Map([[12,tasks]]),()=>held);
+  await page.locator('#assistantPlan').click();
+  await expect.poll(()=>reads.length).toBeGreaterThan(0);
+  const appeared={id:42,title:'Проверить и отправить обещанный расчёт',status:'open',due_state:'upcoming',due_at_utc:new Date(Date.now()+86400000).toISOString(),assigned_manager_name:'Мария'};
+  // The assistant snapshot remains empty. Only the in-flight canonical read
+  // learns about the newly recorded task, so creating another would duplicate it.
+  tasks.push(appeared);release();
+  await expect(page.locator('#leadTasksBody .taskTitle')).toHaveText(appeared.title);
+  await expect(page.locator('#leadTasksBody .taskTitle')).toBeVisible();
+  await expect(page.locator('#leadTaskTitle')).toHaveValue('');await expect(page.locator('#leadTaskDue')).toHaveValue('');
+  await expect(page.locator('#leadTasksBody .m2TaskCreate')).not.toHaveAttribute('open','');
+  expect(await page.evaluate(()=>WorkspaceV2.S.detail.lead.tasks.map(task=>task.id))).toEqual([42]);
+  expect(item.tasks).toEqual([]);expect(s.calls.filter(c=>c.action==='decision')).toEqual([]);clean(s);
+});
+
+test('no-contact planning retains a task edit started while its second canonical read is pending',async({page})=>{
+  await page.setViewportSize({width:1440,height:900});const s=await setupAssistant(page),item=s.items.get(12);
+  const task={id:43,title:'Подготовить обещанный расчёт',status:'open',due_state:'upcoming',due_at_utc:new Date(Date.now()+86400000).toISOString(),assigned_manager_name:'Мария'};
+  Object.assign(item,{manager_id:7,manager_name:'Мария',can_decide:true,tasks:[task],recommendation:{...item.recommendation,reason:'Менеджер обещал расчёт. Работа уже записана в задачу.',checks:[]}});
+  let readCount=0,release;const held=new Promise(resolve=>{release=resolve});
+  await setupAssistantLeadTasks(page,new Map([[12,[task]]]),()=>{readCount++;if(readCount===2)return held});
+  await page.locator('[data-m2-nav=tasks]').click();await page.locator('[data-assistant-filter=waiting]').click();await page.locator('[data-assistant-client="12"]').click();
+  await expect(page.locator('#assistantPlan')).toHaveText('Открыть задачи');await page.locator('#assistantPlan').click();
+  // Let C.open render the real task first; hold only the subsequent refresh.
+  // The manager can edit that visible task while the second read is pending.
+  await expect.poll(()=>readCount).toBe(2);
+  await expect(page.locator('#leadTasksBody .taskTitle')).toHaveText(task.title);
+  await page.locator('#conversationTitle').click();
+  await page.locator('#leadTasksBody [data-task-edit="43"]').click();
+  const form=page.locator('#leadTasksBody .taskEditForm'),title=form.locator('[data-task-edit-title]'),due=form.locator('[data-task-edit-due]');
+  await title.fill('Мой уточнённый расчёт с завтраками');await due.fill('2030-11-20T16:45');
+  await expect(form.locator('[data-task-edit-save]')).toBeEnabled();
+  await expect(form.locator('.taskEditStatus')).toHaveText('Есть несохранённые изменения');
+  await page.evaluate(()=>{
+    const root=document.querySelector('#leadTasksBody'),form=root.querySelector('.taskEditForm');
+    window.assistantPlanEditDraft={root,form,title:form.querySelector('[data-task-edit-title]'),due:form.querySelector('[data-task-edit-due]'),lead:WorkspaceV2.S.detail.lead};
+  });
+  const response=page.waitForResponse(response=>response.url().endsWith('/manager/pipeline-api.php')&&response.request().postDataJSON().action==='detail'&&Number(response.request().postDataJSON().conversation_id)===12);
+  release();await (await response).finished();
+  // This warning proves the protected post-read path has run, not merely that
+  // the request finished before its DOM replacement could start.
+  await expect(form.locator('.taskEditStatus')).toHaveText('Сохраните или отмените изменения');
+  await expect(form).toBeVisible();await expect(title).toHaveValue('Мой уточнённый расчёт с завтраками');await expect(due).toHaveValue('2030-11-20T16:45');
+  expect(await page.evaluate(()=>{
+    const saved=window.assistantPlanEditDraft,root=document.querySelector('#leadTasksBody'),form=root.querySelector('.taskEditForm');
+    return {root:root===saved.root,form:form===saved.form&&saved.form.isConnected,title:form.querySelector('[data-task-edit-title]')===saved.title,due:form.querySelector('[data-task-edit-due]')===saved.due,lead:WorkspaceV2.S.detail.lead===saved.lead};
+  })).toEqual({root:true,form:true,title:true,due:true,lead:true});
+  await expect(form.locator('[data-task-edit-save]')).toBeEnabled();
+  expect(await page.evaluate(()=>WorkspaceV2.S.detail.lead.tasks.map(task=>({id:task.id,title:task.title,due:task.due_at_utc})))).toEqual([{id:task.id,title:task.title,due:task.due_at_utc}]);
+  expect(s.calls.filter(c=>c.action==='decision')).toEqual([]);clean(s);
 });

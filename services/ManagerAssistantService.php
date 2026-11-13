@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__.'/ManagerPreparedReplyService.php';
 require_once __DIR__.'/LeadTaskService.php';
+require_once __DIR__.'/ManagerPromiseSelectionService.php';
 
 /** Personal manager work or the existing administrator's team work view. */
 final class ManagerAssistantService
@@ -170,7 +171,8 @@ final class ManagerAssistantService
         foreach(['project_key','source_id','channel','status','manager_id'] as $key)if($conversation[$key]!=$facts[$key])return null;
         $actualOwner=(int)($conversation['manager_id']??0);
         $canDecide=$actualOwner===$actor&&$conversation['status']==='manager'&&$conversation['project_key']===ProjectConfig::projectId();
-        $team=ManagerAuthService::isAdmin(ManagerAuthService::byId($actor));
+        $viewer=ManagerAuthService::byId($actor);if($viewer===null)return null;
+        $viewerFence=self::viewerScope($viewer);$team=ManagerAuthService::isAdmin($viewer);
         $suspended=!empty($facts['delivery_suspended']);
         $recommendation = $suspended?null:self::currentRecommendation($id, $actor,(string)$conversation['project_key']);
         if ($recommendation !== null) {
@@ -180,11 +182,40 @@ final class ManagerAssistantService
             $recommendation['decision'] = $decision === false ? null : (string)$decision;
             unset($recommendation['context_revision'], $recommendation['instruction_revision']);
         }
-        $tasks = [];
+        $taskRows = [];
         foreach (LeadTaskService::listForConversation($id) as $task) {
             if (($task['status'] ?? '') !== 'open' || (!$team&&$task['assigned_manager_id']!==null && (int)$task['assigned_manager_id']!==$actor)) continue;
+            $taskRows[]=$task;
+        }
+        $tasksTruncated=count($taskRows)>self::MAX_TASKS;$taskRows=array_slice($taskRows,0,self::MAX_TASKS);
+        $promiseCoverage='not_loaded';$promiseFacts=null;
+        if(!$fromFeed){
+            $promiseFacts=ManagerPromiseSelectionService::forTasks($actor,$id,array_map(static fn(array $t):int=>(int)$t['id'],$taskRows));
+            if(empty($promiseFacts['ok'])){
+                if(($promiseFacts['error']??null)!=='storage_unavailable')return null;
+                // Optional provenance failure cannot remove ordinary tasks. The
+                // final account/conversation fence still controls this response.
+                $unavailable=['availability'=>'unavailable','reason'=>'storage_unavailable','binding'=>null,'stale_reasons'=>[],
+                    'selection'=>['availability'=>'not_applicable','reason'=>null,'intent'=>null,'stale_reasons'=>[],'progress'=>null]];
+                $promiseFacts=['by_task'=>array_fill_keys(array_map(static fn(array $t):int=>(int)$t['id'],$taskRows),$unavailable),'task_guards'=>[]];
+            }
+            $promiseCoverage='checked';
+        }
+        $tasks=[];
+        foreach($taskRows as $task){
+            $taskId=(int)$task['id'];
+            if($promiseFacts!==null){
+                $guard=$promiseFacts['task_guards'][$taskId]??null;
+                if($guard!==null){
+                    $canonical=['status'=>(string)$task['status'],'title'=>(string)$task['title'],'due_at_utc'=>$task['due_at_utc'],
+                        'is_pinned'=>!empty($task['is_pinned']),'assigned_manager_id'=>$task['assigned_manager_id']===null?null:(int)$task['assigned_manager_id']];
+                    if(array_intersect_key($guard,$canonical)!==$canonical)return null;
+                }
+                if(($promiseFacts['by_task'][$taskId]['reason']??null)==='task_missing')return null;
+            }
             $tasks[] = ['id'=>(int)$task['id'], 'title'=>(string)$task['title'], 'due_at_utc'=>$task['due_at_utc'],
-                'due_state'=>(string)$task['due_state'], 'status'=>'open', 'is_pinned'=>!empty($task['is_pinned']), 'overdue'=>!empty($task['overdue'])];
+                'due_state'=>(string)$task['due_state'], 'status'=>'open', 'is_pinned'=>!empty($task['is_pinned']), 'overdue'=>!empty($task['overdue'])]
+                +($promiseFacts===null?[]:['promise'=>$promiseFacts['by_task'][$taskId]]);
         }
         // Listing rechecks the complete authorized ordering once after the page,
         // replacing twenty repeated singleton rechecks. Detail keeps its own fence.
@@ -193,6 +224,8 @@ final class ManagerAssistantService
             if($fresh===null)return null;
             foreach(['project_key','source_id','channel','status','manager_id','delivery_suspended','awaiting_manager_reply'] as $key)if($fresh[$key]!=$facts[$key])return null;
             if(ManagerConversationService::visibleConversation($id,$actor,true)===null)return null;
+            $freshViewer=ManagerAuthService::byId($actor);
+            if($freshViewer===null||self::viewerScope($freshViewer)!==$viewerFence)return null;
         }
         return ['conversation_id'=>$id, 'display_name'=>(string)($conversation['display_name'] ?? 'Турист'),
             'project_key'=>(string)$conversation['project_key'], 'channel'=>(string)$conversation['channel'],
@@ -201,8 +234,11 @@ final class ManagerAssistantService
             'last_message_at'=>$conversation['last_message_at'],
             'delivery_suspended'=>$suspended,'delivery_notice'=>$suspended?ManagerDeliveryStateService::SUSPENDED_NOTICE:null,
             'operational'=>['awaiting_manager_reply'=>(bool)$facts['awaiting_manager_reply'],'due_task'=>$facts['due_at_utc']!==null], 'analysis_state'=>$recommendation === null ? 'unavailable' : 'current',
-            'recommendation'=>$recommendation, 'tasks'=>array_slice($tasks,0,self::MAX_TASKS), 'tasks_truncated'=>count($tasks)>self::MAX_TASKS];
+            'recommendation'=>$recommendation, 'tasks'=>$tasks, 'tasks_truncated'=>$tasksTruncated,'promise_coverage'=>$promiseCoverage];
     }
+
+    private static function viewerScope(array $manager): array
+    {$projects=array_column($manager['projects'],'project_key');sort($projects);return [(int)$manager['id'],(string)$manager['role'],$projects];}
 
     private static function currentRecommendation(int $id, int $actor,?string $project=null): ?array
     {

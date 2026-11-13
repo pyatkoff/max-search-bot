@@ -167,12 +167,46 @@ Actions:
 | `cancel` | `operation_id`, `intent_id` | Explicit cancellation of automatic completion |
 | `operation` | `operation_id` | Read-only reconciliation of an uncertain command |
 | `status` | `intent_id` | Read-only current intent status |
+| `view` | `task_id`, `promise_id`, `intent_id`, `publication_id` | Exact read-only historical association and saved composition for the plan |
 
 The local Manager2 launcher delegates to the separate scoped workspace module.
 It does not inspect a standalone editor's private DOM, intercept its transport or
 infer its selected publication. The Manager2 shell gains only the local lazy
 launcher. The shared editor payload, PromiseTasks dialog and pipeline endpoint
 remain owned by their existing implementations.
+
+### Read-only plan projection
+
+The existing plan uses `forTasks()` for at most 50 already visible task IDs in
+one selected conversation. It does not call catalog/preview once per task. The
+binding owner validates saved promise provenance and original deadline; the
+profile owner reads the current profile and the needed sources in one bounded
+initial batch and a final freshness recheck. The selection owner prefers the
+active association and otherwise the latest saved history. An aggregate 8 MiB
+budget bounds heavy intent/publication/receipt data; exhausted coverage is
+reported as unavailable. Missing optional storage is also unavailable, not an
+empty result, and does not remove ordinary tasks.
+
+The plan's `selection.progress.confirmed` is specific to the immutable publication.
+It reuses the existing private native/event/transcript evidence validator for
+each card, preserving its original manifest index. The general status dialog's
+shared-fence `delivered_count` is not a substitute for this evidence. A card sent
+through another publication cannot advance the plan's confirmed count. The
+stored intent state and reasons observed during the read remain separate.
+
+`view` derives the relation from saved data and compares the entire supplied
+tuple. Current ACL and recipient/scope checks precede disclosure of the frozen
+card text. A changed responsible manager or conversation status keeps the
+automation stale but permits the newly authorized viewer to inspect the same
+recipient's saved composition. Changed recipient, source or other privacy scope
+still hides it. An older trip's association can be inspected with its stale reasons;
+its publication is not reinterpreted as belonging to the current trip. The
+browser's `openForTask` mode is read-only: it loads no catalog, opens no preview,
+and has no attachment, cancellation or send controls. The ordinary explicit
+dialog remains the owner of those actions and any pending uncertain operation.
+
+The same projection is documented in `MANAGER_ASSISTANT.md`. It never adds a
+completed task to the open-task list or changes a manually reopened task's status.
 
 ## Editor compatibility
 

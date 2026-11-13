@@ -17,3 +17,6 @@
 .manager2 .assistantPlanView .assistantClientHead{flex-wrap:wrap}.manager2 .assistantPlanView .assistantHead>button{font-size:12px;white-space:nowrap}.manager2 .assistantPlanView button{min-height:42px}
 .manager2 .workspace[data-m2-section=tasks] .inboxZone>.inboxHead,.manager2 .workspace[data-m2-section=tasks] .inboxZone>#inboxList,.manager2 .workspace[data-m2-section=tasks] .inboxZone>#kanbanBoard,.manager2 .workspace[data-m2-section=tasks] .inboxZone>#pwGroupListScope,.manager2 .workspace[data-m2-section=tasks] .inboxZone>.inboxLoadStatus{display:none!important}
 .assistantWorkScope[hidden],.manager2 .m2SalesFilters [hidden],.manager2 .leadOutcomeStageWrap[hidden]{display:none!important}
+.assistantTask>.assistantPromiseFacts{display:flex;flex-direction:column;gap:5px;padding:9px 11px;border-left:3px solid var(--as-accent);background:var(--as-surface);min-width:0;overflow-wrap:anywhere}
+.assistantPromiseFacts>span{line-height:1.45}.assistantPromiseActions{display:flex;flex-wrap:wrap;gap:7px;margin-top:3px}.assistantPromiseActions:empty{display:none}.assistantPromiseActions button{min-height:44px;text-align:left;white-space:normal}
+@media(max-width:767px){.assistantPromiseActions button{flex:1 1 150px}.assistantTask>div{flex-wrap:wrap}}

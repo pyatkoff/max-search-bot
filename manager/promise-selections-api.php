@@ -18,7 +18,7 @@ $actor = (int)$manager['id'];
 $cid = $data['conversation_id'] ?? null;
 $action = $data['action'] ?? null;
 if (!is_int($cid) || $cid <= 0) ManagerHttp::respond(['ok'=>false,'error'=>'invalid_conversation_id'],422);
-if (!is_string($action) || !in_array($action,['catalog','preview','attach','cancel','operation','status'],true)) {
+if (!is_string($action) || !in_array($action,['catalog','preview','attach','cancel','operation','status','view'],true)) {
     ManagerHttp::respond(['ok'=>false,'error'=>'unknown_action'],400);
 }
 $command = $data;
@@ -26,7 +26,9 @@ unset($command['action'],$command['conversation_id'],$command['csrf']);
 if (($action === 'catalog' && $command !== [])
     || ($action === 'preview' && (count($command) !== 2 || !is_string($command['promise_id'] ?? null) || !is_string($command['publication_id'] ?? null)))
     || ($action === 'operation' && (count($command) !== 1 || !is_string($command['operation_id'] ?? null)))
-    || ($action === 'status' && (count($command) !== 1 || !is_string($command['intent_id'] ?? null)))) {
+    || ($action === 'status' && (count($command) !== 1 || !is_string($command['intent_id'] ?? null)))
+    || ($action === 'view' && (count($command) !== 4 || !is_int($command['task_id'] ?? null)
+        || !is_string($command['promise_id'] ?? null) || !is_string($command['intent_id'] ?? null) || !is_string($command['publication_id'] ?? null)))) {
     ManagerHttp::respond(['ok'=>false,'error'=>'invalid_command'],422);
 }
 
@@ -41,6 +43,7 @@ try {
         'cancel' => ManagerPromiseSelectionService::cancel($actor,$cid,$command),
         'operation' => ManagerPromiseSelectionService::operation($actor,$cid,$command['operation_id']),
         'status' => ManagerPromiseSelectionService::status($actor,$cid,$command['intent_id']),
+        'view' => ManagerPromiseSelectionService::viewForTask($actor,$cid,$command['task_id'],$command['promise_id'],$command['intent_id'],$command['publication_id']),
     };
 } catch (Throwable $error) {
     error_log('MANAGER_PROMISE_SELECTION_FAILURE '.get_class($error));
@@ -50,7 +53,7 @@ $status = !empty($result['ok']) ? 200 : match ($result['error'] ?? '') {
     'unauthorized' => 401,
     'forbidden' => 403,
     'not_found','task_missing','task_not_found','publication_not_found','promise_not_found' => 404,
-    'operation_mismatch','preview_changed','context_changed','profile_changed','source_changed',
+    'operation_mismatch','preview_changed','context_changed','stale_context','profile_changed','source_changed',
     'task_changed','task_closed','binding_conflict','intent_conflict','already_attached','profile_required',
     'delivery_started','duplicate_cards','scope_changed','profile_source_changed','source_unavailable' => 409,
     'storage_unavailable','schema_unavailable' => 503,
