@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "kind": "root_authenticated_private_route_extension",
+  "operation": "commercial-max580-private-route-extension-20261113-9-install1",
+  "previous_count": 575,
+  "logical_hotels": 580,
+  "new_hotel_ids": [
+    9287,
+    1013,
+    4185,
+    14140,
+    468
+  ],
+  "publication_summary_sha256": "b35979055fa580ec40e5a8366371a5fc9e5fd8ba86086190b220f97dbcbfa64a",
+  "bound_read_sha256": "df18db00d4288ce7a4b9567d119e4720d2b29dcf6f89ead0072470b603cb4c55",
+  "new_binding_tuples_sha256": "58ec6f07fd52e8b15368f2354d8cdf58f3d36a5b6dda1af78351b0a5e5f7b1ee",
+  "route_receipt_sha256": "824cc63d3c0c5d1dc6bafd67ad70ac9a378a0597c2fb650d7678bddacffbba52",
+  "route_manifest_projection_sha256": "d23338c1e9b4829d5676388f750dcbeaec302743f3539d06dfc99e636d99681d",
+  "original_route_manifest_sha256": "e0063b9e7540e4245f6dcc7a43edd0cc75ac12928522858467b2564bdc9b6945",
+  "original_route_map_sha256": "62984adfa2fe4bc6e8fb14d567a3e75140d1be40f8199b6da52671ec1cbcec1d",
+  "original_route_module_sha256": "30ddfd25d2625ada36b9cf06d5d8cad5880516db4995e9b7e78fa03e38e58cd0",
+  "original_previous_map_sha256": "5c80abc56e4b575eb35577f883ce1c4a8072686d0bbe547017f8a8d883f0e1b0",
+  "verification": {
+    "full_map_checked": true,
+    "previous_rows_preserved": true,
+    "new_tuples_checked": true
+  },
+  "source": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 43338627982,
+    "run_attempt": 1,
+    "head_sha": "2c02e4669a29ec6b854803aed6fb36b8aeb878bc",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "workflow_path": ".github/workflows/tgmini-identity-readonly.yml",
+    "candidate_artifact": {
+      "id": 13997752785,
+      "name": "commercial-max580-route-extension-candidate",
+      "zip_sha256": "46ca5a1ca51ad8bad53e1d6055374422d7facc718b2a94d08094ab5b7e17cb96"
+    },
+    "result_artifact": {
+      "id": 13997652945,
+      "name": "commercial-max580-route-extension-install-result",
+      "zip_sha256": "ec3bdd8eb56c91719e1f7ecfc0298b50d56accdbb4ffca4cffd52caa15bbd1b3"
+    }
+  }
+}

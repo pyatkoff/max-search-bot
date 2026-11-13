@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "ready": true,
+  "operation": "commercial-channel-hotel-feeds-20261113-update10",
+  "expected_installed_sha": "498c5a752cd6f99c2d0e8c343dc5d44b9e80843f",
+  "current_installed_sha": "498c5a752cd6f99c2d0e8c343dc5d44b9e80843f",
+  "expected_parent_head": "eb10d653e4dec2f5d5f148e35e54f9db1cd104cb",
+  "owner_pin": {
+    "comment_id": 6818332618,
+    "owner": "pyatkoff",
+    "updated_at": "2026-11-13T00:21:15Z",
+    "body_sha256": "980a8cc4a4130a416758d4a3e1e19e3e15e812081dafe1b558893bcc7b0f5d25",
+    "required_scope_line": "**Продолжение batch9: IN_PROGRESS, пять отелей у прежнего anytour-max.** Приняты отредактированные тексты TV9287 Green Max,1013 Sunis Elita,4185 Royal Brayka,14140 Stella Makadi Gardens,468 Sultan Bey; SiteUUID/acceptedRevision2 и сохранённые факты/фото из99a-пакета проверены. Canonical rowsSHA `a2ae48be37c51551f99f6086f46e9d8f8562f4e787899b14f8489a8eccde4d77`. Old Palace343 остаётся REVIEW_NOT_FOR_RELEASE, в эти5 не включён."
+  },
+  "previous_count": 575,
+  "hotel_ids": [
+    9287,
+    1013,
+    4185,
+    14140,
+    468
+  ],
+  "manifest_sha256": "af6d63506e14e354c84baf572fcee3745b40c144f1f3b118db4411554656f3af",
+  "approval_sha256": "e4d10d4f219a5d87f9c4e45f5d4262ff28ab86ca7928a6fa941cccb360a0a675",
+  "publisher": {
+    "repository": "pyatkoff/max-search-bot",
+    "run_id": 43337699620,
+    "run_attempt": 1,
+    "head_sha": "eb10d653e4dec2f5d5f148e35e54f9db1cd104cb",
+    "head_branch": "audit/content100-bot-publication-20261101",
+    "workflow_path": ".github/workflows/content100-bot-publication-20261101.yml",
+    "artifact": {
+      "id": 13998660998,
+      "name": "commercial-batch-20261113-9-publication-and-read",
+      "zip_sha256": "fbbf2ac78834d22b9485e9290e595ec296f4a099104e87c507dd0fd7b2ed77c1"
+    },
+    "publication_summary_sha256": "b35979055fa580ec40e5a8366371a5fc9e5fd8ba86086190b220f97dbcbfa64a",
+    "bound_read_sha256": "df18db00d4288ce7a4b9567d119e4720d2b29dcf6f89ead0072470b603cb4c55"
+  },
+  "route": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 43338627982,
+    "run_attempt": 1,
+    "head_sha": "2c02e4669a29ec6b854803aed6fb36b8aeb878bc",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "workflow_path": ".github/workflows/tgmini-identity-readonly.yml",
+    "candidate_artifact": {
+      "id": 13997752785,
+      "name": "commercial-max580-route-extension-candidate",
+      "zip_sha256": "46ca5a1ca51ad8bad53e1d6055374422d7facc718b2a94d08094ab5b7e17cb96"
+    },
+    "result_artifact": {
+      "id": 13997652945,
+      "name": "commercial-max580-route-extension-install-result",
+      "zip_sha256": "ec3bdd8eb56c91719e1f7ecfc0298b50d56accdbb4ffca4cffd52caa15bbd1b3"
+    },
+    "operation": "commercial-max580-private-route-extension-20261113-9-install1",
+    "map_sha256": "62984adfa2fe4bc6e8fb14d567a3e75140d1be40f8199b6da52671ec1cbcec1d",
+    "module_sha256": "30ddfd25d2625ada36b9cf06d5d8cad5880516db4995e9b7e78fa03e38e58cd0",
+    "receipt_sha256": "824cc63d3c0c5d1dc6bafd67ad70ac9a378a0597c2fb650d7678bddacffbba52",
+    "original_manifest_sha256": "e0063b9e7540e4245f6dcc7a43edd0cc75ac12928522858467b2564bdc9b6945",
+    "manifest_projection_sha256": "d23338c1e9b4829d5676388f750dcbeaec302743f3539d06dfc99e636d99681d",
+    "route_proof_sha256": "fa62c7f1e3cad5e55db1fc59ddd5d3ba2fde0ce1dffab6fa3ca907c2e2592fb8",
+    "source_method": "root_authenticated_private_artifacts"
+  },
+  "nightly_guard_sha256": "0c60e5a851ae014de9a1542f268449b7a1d0fb0ba9f3104db8da650035ea8486"
+}
