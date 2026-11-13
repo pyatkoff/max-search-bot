@@ -1,0 +1,120 @@
+{
+  "operation": "commercial-hotel-batch-20261113-12-v1",
+  "state": "COMPLETED",
+  "new_prepared_hotels": 2,
+  "new_hotel_ids": [
+    62515,
+    68810
+  ],
+  "new_posts": 4,
+  "reused_posts": 0,
+  "full_pairs_before": 586,
+  "full_pairs_after": 588,
+  "queue_start": 19,
+  "queue_after_preparation": 21,
+  "queue_after_publication": 19,
+  "site_before": 332,
+  "site_after_preparation": 337,
+  "site_after": 338,
+  "other_cards_exact": 664,
+  "original_native_IDs_and_source_prefixes_unchanged": true,
+  "metadata_revision2_history_preserved": true,
+  "accepted_revision": 3,
+  "current_revision": 3,
+  "research_populated_packets_changed": 0,
+  "empty_array_normalizations": [
+    {
+      "id": "88c46f8a-2bb2-4fc5-b550-cd4718face29",
+      "field": "knowledgePackets",
+      "before": null,
+      "after": []
+    },
+    {
+      "id": "88c46f8a-2bb2-4fc5-b550-cd4718face29",
+      "field": "researchPackets",
+      "before": null,
+      "after": []
+    },
+    {
+      "id": "88c46f8a-2bb2-4fc5-b550-cd4718face29",
+      "field": "receiptHistory",
+      "before": null,
+      "after": []
+    },
+    {
+      "id": "9c63e69b-5a7a-4380-9ced-9441caec1580",
+      "field": "knowledgePackets",
+      "before": null,
+      "after": []
+    },
+    {
+      "id": "9c63e69b-5a7a-4380-9ced-9441caec1580",
+      "field": "researchPackets",
+      "before": null,
+      "after": []
+    },
+    {
+      "id": "9c63e69b-5a7a-4380-9ced-9441caec1580",
+      "field": "receiptHistory",
+      "before": null,
+      "after": []
+    }
+  ],
+  "historical_demand_unchanged": true,
+  "category_growth": {
+    "existing_category_member_growth": {},
+    "new_fact_count": 2,
+    "historical_demand_snapshot_unchanged": true
+  },
+  "publisher_run": 43372325186,
+  "publisher_artifact": 14013455325,
+  "publisher_zip_sha256": "5d08d853e132dd7f5b0f08b2a9b3457487b787f391596a567aefdd8245b2a0d0",
+  "publication_summary_sha256": "03c517784c13afbca167e684c3e84109584c0a7ac377cf09e6ea0e4f16606844",
+  "native_run": 43372530305,
+  "private_checkpoint": "d960b4771c905c71eecb5a04010aa07b8aeda0bb",
+  "feed_run": 43372831889,
+  "feed_artifact": 14013386033,
+  "feed_zip_sha256": "f87a311af78b084cb7e370e8393a184496ae323fe42bf49321150617adc6d168",
+  "feed_counts": [
+    588,
+    588,
+    1176
+  ],
+  "old586_offer_price_bytes_preserved": true,
+  "nightly_before": 558,
+  "nightly_after": 560,
+  "nightly_source": "6e9ec7b4ac36bbb61604c6a0738491035cf43213",
+  "nightly_gzip_sha256": "56ce5291f291a1804ee78a216d27543c47f80e0b7ba23081def43fcec57a94e3",
+  "collector_pr": 5032,
+  "collector_head": "1584408f72e870e4820c68ac93f7aea2915a98d7",
+  "manual_price_supplier_collector_calls": 0,
+  "pairs": [
+    {
+      "hotel_id": 62515,
+      "name": "SALALAH GARDENS",
+      "max": "https://max.ru/channel_anytour/AaHTYkIqaF8",
+      "telegram": "https://t.me/any_toour/601"
+    },
+    {
+      "hotel_id": 68810,
+      "name": "BELAD BONT RESORT",
+      "max": "https://max.ru/channel_anytour/AaHTYkrmRfQ",
+      "telegram": "https://t.me/any_toour/602"
+    }
+  ],
+  "next_photo_gap_input": {
+    "967": 45,
+    "319": 60,
+    "254": 45,
+    "source": "existing local-tv catalogue GET-only, needs own-property photo verification and existing repair/identity holds preserved",
+    "new_identity_bindings": 0
+  },
+  "collector_merge": "852a674dafbbc5eab06529bf962045ad2d0015c7",
+  "collector_pr_validation": 43373428224,
+  "collector_pr_security": 43373428180,
+  "collector_main_validation": 43373523254,
+  "collector_main_security": 43373523264,
+  "collector_production": "SKIPPED",
+  "first_natural_new_roster_nightly_result": "NOT_YET_OBSERVED",
+  "completed_at_moscow": "2026-11-13T08:41:49.982574+03:00"
+}
