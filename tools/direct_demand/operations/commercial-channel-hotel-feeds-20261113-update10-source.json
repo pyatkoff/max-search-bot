@@ -3,14 +3,14 @@
   "ready": true,
   "operation": "commercial-channel-hotel-feeds-20261113-update10",
   "expected_installed_sha": "498c5a752cd6f99c2d0e8c343dc5d44b9e80843f",
-  "current_installed_sha": "498c5a752cd6f99c2d0e8c343dc5d44b9e80843f",
-  "expected_parent_head": "eb10d653e4dec2f5d5f148e35e54f9db1cd104cb",
+  "current_installed_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+  "expected_parent_head": "f705c165134b63674927019abe23e6068bbd92c5",
   "owner_pin": {
     "comment_id": 6818332618,
     "owner": "pyatkoff",
-    "updated_at": "2026-11-13T00:21:15Z",
-    "body_sha256": "980a8cc4a4130a416758d4a3e1e19e3e15e812081dafe1b558893bcc7b0f5d25",
-    "required_scope_line": "**Продолжение batch9: IN_PROGRESS, пять отелей у прежнего anytour-max.** Приняты отредактированные тексты TV9287 Green Max,1013 Sunis Elita,4185 Royal Brayka,14140 Stella Makadi Gardens,468 Sultan Bey; SiteUUID/acceptedRevision2 и сохранённые факты/фото из99a-пакета проверены. Canonical rowsSHA `a2ae48be37c51551f99f6086f46e9d8f8562f4e787899b14f8489a8eccde4d77`. Old Palace343 остаётся REVIEW_NOT_FOR_RELEASE, в эти5 не включён."
+    "updated_at": "2026-11-13T02:33:17Z",
+    "body_sha256": "4cef7d28cf883ca3570a6f72add58bec2486c44e01630f0badbd7f7091fef962",
+    "required_scope_line": "SOURCE IN_PROGRESS — anytour-max; commercial-channel-hotel-feeds-20261113-update10-continuation1"
   },
   "previous_count": 575,
   "hotel_ids": [
@@ -63,5 +63,149 @@
     "route_proof_sha256": "fa62c7f1e3cad5e55db1fc59ddd5d3ba2fde0ce1dffab6fa3ca907c2e2592fb8",
     "source_method": "root_authenticated_private_artifacts"
   },
-  "nightly_guard_sha256": "0c60e5a851ae014de9a1542f268449b7a1d0fb0ba9f3104db8da650035ea8486"
+  "nightly_guard_sha256": "0c60e5a851ae014de9a1542f268449b7a1d0fb0ba9f3104db8da650035ea8486",
+  "recovery_terminal": {
+    "run_id": 43352649982,
+    "run_attempt": 1,
+    "head_sha": "f705c165134b63674927019abe23e6068bbd92c5",
+    "conclusion": "success",
+    "artifact": {
+      "id": 14004551907,
+      "name": "commercial-monitor-price-h112914-recovery-20261113-1-result",
+      "sha256": "08589250e34abd0b207868b23b9d99154b9b6b8ac14678af45cd8816133d2240"
+    },
+    "files": {
+      "recovery-plan.json": "afbe6d6e5432b3da5cff79f3c346ed3b12f7b37dc18cae31a4745aa74556e077",
+      "recovery-evidence-contract.py": "de4c15c2a3d95b94a0c25367fee5a3a13edd72c8990fb8f8b5a102a2151c4acf",
+      "result.json": "2af5d5895ad75df1d3d538dabba726f937a245155065146ddc0bc43e01be112f",
+      "transport.json": "3ddccd86e80276b08e774dd696ea08d5784638a6be3f4ad757c25482f872b3ff",
+      "recovery.started": "24804ab0e25088a5699a598e58211d713012bf3cf609828abd1d2888e9ad59ed",
+      "summary.json": "9d5ccc7ccc61dfae83a15ca3eb2391e33ad6b01686ee2f060f509c310d97408b",
+      "current-source-acceptance.json": "c6ca90e5dc90dbfc8b33fc9e5bf18a82e86deeaf59351d6b6f1d763ed1e578dd",
+      "source-gate-receipts.json": "4cec00cb353d761dc97f89ff1c1bf880abbe416edf863e8b701562ee9379c28e",
+      "accepted-core-pr.json": "b2b9254be6558b50a04b93c4c5811f1117febb2cb19ef0b20a304cfbcafc24b8",
+      "readiness2-original.zip": "6a5e5430497dcc51add064560f8871f630e045beaeff74af8e4921866b3e34c7",
+      "readiness2-run.json": "d151b979df84f184bca695b905ec0af71a7c01843da4856e7af9db58377fcd99",
+      "readiness2-artifact.json": "515f5da46aa00ad55d66b3d8282a97c56a0e275b71d43799fb5e7bd9887aa71b"
+    }
+  },
+  "current_source_acceptance": {
+    "schema": "anytour.current-source-acceptance.v1",
+    "installed_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+    "core_pull_request": 1522,
+    "core_head_sha": "2a1f13ed4f766f5d1371c6275e3d4f69bac0e558",
+    "core_merge_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+    "verifier_sha256": "5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb",
+    "runtime_pins_sha256": "3232defb6fa18ac047f8bbe222cff84a2743224cf243d3fbd91a654b95f0646a",
+    "source_gates": {
+      "deploy.yml": {
+        "run_id": 43350270066,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "max-tls-preflight.yml": {
+        "run_id": 43351917787,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "modeled-conversion-value-export.yml": {
+        "run_id": 43351917592,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "max-production-health.yml": {
+        "run_id": 43351917585,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "telegram-production-health.yml": {
+        "run_id": 43351917600,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "live-session-diagnostics.yml": {
+        "run_id": 43351917653,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "modeled-conversion-monitor.yml": {
+        "run_id": 43351917560,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "tour-selection-host.yml": {
+        "run_id": 43351917744,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "publish-conversation-diagnostics.yml": {
+        "run_id": 43351917584,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      }
+    }
+  },
+  "continuation": {
+    "id": "commercial-channel-hotel-feeds-20261113-update10-continuation1",
+    "final_admission_bound": true,
+    "reason": "original guard refusal before frozen writer; one conditional first frozen-writer execution after actual pending closure",
+    "historical": {
+      "original_feed": {
+        "run_id": 43340115672,
+        "run_attempt": 1,
+        "head_sha": "618b81d6a163a69ff50639c63b5e9ab08d92ad4f",
+        "conclusion": "failure",
+        "artifact": {
+          "id": 13999056851,
+          "name": "commercial-channel-hotel-feeds-20261113-update10-result",
+          "sha256": "c27586e556f47c5be136a54207a4d93e1fe7e41ad83a9e8187b0665e9c8e3781"
+        },
+        "files": {
+          "writer-receipt.json": "7c97664e2d11163248963428e753b215577dce1376e7424c7d4e3bd03cddb3ab",
+          "feed-writer.started": "9071ca429af0e157e7bd0415529c6aa7a79490c7e4364c1d1a2f402d2d2a06c8",
+          "wrapper-proof.json": "178470252e48df4951b24ee86d75b787d0f63421c3dade1bb163d95acf60f3e6"
+        }
+      },
+      "readiness1": {
+        "run_id": 43343920003,
+        "run_attempt": 1,
+        "head_sha": "34660c8a934462bb6d9553e7d0ba5b4d6a715bdd",
+        "conclusion": "success",
+        "artifact": {
+          "id": 14000693166,
+          "name": "commercial-channel-hotel-feeds-20261113-update10-readiness1-result",
+          "sha256": "6f25168f7b4ce0e407ef9b58710a3e5565b6d1711b3e53d69752c7251669ff7e"
+        },
+        "files": {
+          "result.json": "08c8bda673ca3c11cd8dcc11e524cdb3ef342bbc3f107dcbfb220c0c583d95b8",
+          "transport.json": "c28eaa948f18c2e273a090212e27661ad3c63587ef54108cfc2fe21a741e3da0"
+        }
+      },
+      "readiness2": {
+        "run_id": 43346016740,
+        "run_attempt": 1,
+        "head_sha": "dfdde5f3d57252011cf2883b55c3c5b0ea737134",
+        "conclusion": "success",
+        "artifact": {
+          "id": 14001197561,
+          "name": "commercial-channel-hotel-feeds-20261113-update10-readiness2-result",
+          "sha256": "6a5e5430497dcc51add064560f8871f630e045beaeff74af8e4921866b3e34c7"
+        },
+        "files": {
+          "result.json": "eac3c31e0201ac72c16143c75f3fc90cdd7c2d79a51fbdb693fca63c00c5e094",
+          "transport.json": "c7d235963367a661a055e00ed07d283630e964c6b21c1a843de2994c8bcf19a4",
+          "previous-readiness-result.json": "08c8bda673ca3c11cd8dcc11e524cdb3ef342bbc3f107dcbfb220c0c583d95b8"
+        }
+      }
+    }
+  }
 }
