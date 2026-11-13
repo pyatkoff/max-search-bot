@@ -818,7 +818,7 @@ foreach(['service-battery-replacement'=>'Замена аккумулятора',
         $result['status']===200&&($meta['repair_context']['model']??'')==='iPhone 17'
         &&($meta['repair_context']['service']??'')===$serviceName
         &&count($pair17Sent)===$sentBefore+1&&count($pair17Notices)===$noticeBefore+1
-        &&str_contains(end($pair17Sent),'iPhone 17')&&str_contains(end($pair17Sent),$serviceName)
+        &&str_contains(end($pair17Sent),'iPhone 17')&&str_contains(end($pair17Sent),mb_strtolower($serviceName,'UTF-8'))
         &&!str_contains(end($pair17Sent),'Какая у вас модель')&&!str_contains(end($pair17Sent),'Какая у вас версия')
         &&!str_contains(end($pair17Sent),'999999'));
     $result=RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),$start,$pair17Factory,$pair17Notify);
