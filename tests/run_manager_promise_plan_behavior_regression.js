@@ -53,8 +53,10 @@ function attachPresentation(h){
  // omit shell boot only; keep the real lazy loader, scope guards and public API.
  vm.runInNewContext(source.replace('  init();',''),{window:h.window,document:h.document,URL,location:{href:'https://example.invalid/manager2/'},history:h.history,MutationObserver:class{observe(){}},HTMLDetailsElement:class{},setTimeout:()=>0,clearTimeout(){},console});
 }
-async function harness({data=fixture(),lazy=false}={}){
+async function harness({data=fixture(),lazy=false,now=null}={}){
  const h=await setup();nestedDom(h);let intercept=null;
+ let clock=now===null?null:Date.parse(now),refresh=null;
+ const Clock=class extends Date{constructor(...args){super(...(args.length?args:[clock]))}static now(){return clock}};
  const rows=new Map([[data.item.conversation_id,data.item],[103,{...clone(data.item),conversation_id:103,display_name:'Другой клиент'}]]),observers=[];
  h.setIntercept(async(url,request)=>{
   const custom=intercept?await intercept(url,request):null;if(custom!==null&&custom!==undefined)return custom;
@@ -69,6 +71,7 @@ async function harness({data=fixture(),lazy=false}={}){
   return null;
  });
  const globals={AbortController,TextEncoder,clearTimeout,MutationObserver:class{constructor(callback){observers.push(callback)}observe(){}},Event:class{constructor(type,options={}){this.type=type;Object.assign(this,options)}}};
+ if(now!==null)Object.assign(globals,{Date:Clock,setTimeout:(fn,ms)=>{if(ms===20000)refresh=fn;return 0;},clearTimeout(){}});
  h.loadAsset('workspace-v2-message-navigation.js',globals);
  const loadSelection=()=>h.loadAsset('workspace-v2-promise-selection.js',globals);if(!lazy)loadSelection();
  attachPresentation(h);
@@ -80,7 +83,7 @@ async function harness({data=fixture(),lazy=false}={}){
  const noWrites=()=>{assert.equal(h.calls.some(c=>['ack_read','decision','attach','cancel','send','send_reply','send_file','create_task','update_task','set_task_completed','set_task_pinned','ai_draft','bind_promise'].includes(c.action)),false);assert.equal(h.calls.some(c=>c.url==='promise-selections-api.php'&&c.action!=='view'),false);};
  const saved=h.snapshot(),taskDraftKey=h.window.WorkspaceV2TaskDraft.keyFor(101),messages=h.$('messages'),children=[...messages.children],scroll=messages.scrollTop;
  const preserved=()=>{h.preserved({...saved,draft:h.storage.getItem(h.window.WorkspaceV2TaskDraft.keyFor(101))});assert.equal(h.storage.getItem(taskDraftKey),saved.draft,'the captured account task draft stays intact');assert.deepEqual([...messages.children],children);assert.equal(messages.scrollTop,scroll);noWrites();};
- return Object.assign(h,{A,N,data,rows,click,source,selection,preservedPlan:preserved,noWrites,loadSelection,intercept:fn=>intercept=fn,observe:()=>observers.forEach(fn=>fn()),get Q(){return h.window.WorkspaceV2PromiseSelection},text:()=>h.$('assistantDetail').textContent,featureCalls:()=>h.calls.filter(c=>c.url==='promise-selections-api.php')});
+ return Object.assign(h,{A,N,data,rows,click,source,selection,preservedPlan:preserved,noWrites,loadSelection,intercept:fn=>intercept=fn,observe:()=>observers.forEach(fn=>fn()),setNow:value=>{assert.notEqual(clock,null);clock=Date.parse(value)},refresh:async()=>{assert.ok(refresh);refresh();await tick();await tick()},get Q(){return h.window.WorkspaceV2PromiseSelection},text:()=>h.$('assistantDetail').textContent,featureCalls:()=>h.calls.filter(c=>c.url==='promise-selections-api.php')});
 }
 
 test('one canonical open task receives promise facts without AI or a second task row',async()=>{
@@ -95,6 +98,67 @@ test('calendar-day promise stays distinct from same-day task time; only equal in
  const h=await harness({data});assert.match(h.text(),/15:00/);assert.match(h.text(),/Срок обещания: 13\.11\.2026 · календарный день, Москва/);
  data.binding.deadline={kind:'instant',value:'2026-11-13T15:00:00+03:00'};await h.A.loadDetail(102);assert.doesNotMatch(h.text(),/Срок обещания:/);
  data.binding.deadline={kind:'instant',value:'2026-11-13T15:00:27+03:00'};await h.A.loadDetail(102);assert.match(h.text(),/Срок обещания:.*15:00:27 МСК/);h.preservedPlan();
+});
+const elapsedPromise=/Срок обещания прошёл — проверьте выполнение\./;
+function deadlineFixture(){
+ const data=fixture();data.binding.deadline={kind:'date',value:'2026-11-13',zone:'Europe/Moscow'};
+ data.task.title='Перенесённая вручную задача';data.task.due_at_utc='2026-11-16 09:30:00';data.task.is_pinned=true;
+ return data;
+}
+test('promise deadline: calendar day ends at Moscow midnight independently of the postponed manual due',async()=>{
+ const data=deadlineFixture();data.projection.selection.stale_reasons=['task_changed'];const before=clone(data.task);
+ const h=await harness({data,now:'2026-11-13T20:59:59.999Z'});assert.doesNotMatch(h.text(),elapsedPromise);
+ h.setNow('2026-11-13T21:00:00.000Z');await h.A.loadDetail(102);assert.match(h.text(),elapsedPromise);
+ assert.match(h.text(),/Срок обещания: 13\.11\.2026 · календарный день, Москва/);assert.match(h.text(),/Запланировано · 16\.11\.2026 12:30 МСК/);
+ assert.doesNotMatch(h.text(),/Наступил срок задачи/);assert.equal(h.document.querySelectorAll('.assistantTask').length,1);assert.deepEqual(data.task,before);h.preservedPlan();
+});
+test('promise deadline: exact offsets and seconds expire strictly after the instant even when task dates coincide',async()=>{
+ const data=deadlineFixture();data.binding.deadline={kind:'instant',value:'2026-11-13T16:00:27-05:00'};data.task.due_at_utc='2026-11-13 21:00:27';
+ const h=await harness({data,now:'2026-11-13T21:00:26.999Z'});assert.doesNotMatch(h.text(),elapsedPromise);
+ h.setNow('2026-11-13T21:00:27.000Z');await h.A.loadDetail(102);assert.doesNotMatch(h.text(),elapsedPromise);
+ h.setNow('2026-11-13T21:00:27.001Z');await h.A.loadDetail(102);assert.match(h.text(),elapsedPromise);assert.doesNotMatch(h.text(),/Срок обещания:/);
+ data.binding.deadline.value='2026-11-14T00:00:27+03:00';await h.A.loadDetail(102);assert.match(h.text(),elapsedPromise);h.preservedPlan();
+});
+test('promise deadline: calculation and unassociated selection keep the saved date without borrowing task urgency',async()=>{
+ const data=deadlineFixture();data.binding.kind='send_calculation';data.projection.selection={availability:'not_applicable',reason:null,intent:null,stale_reasons:[],progress:null};
+ data.task.due_at_utc=null;data.task.due_state='unscheduled';const h=await harness({data,now:'2026-11-14T09:00:00Z'});assert.match(h.text(),elapsedPromise);assert.match(h.text(),/Без срока/);
+ data.binding.kind='send_selection';data.projection.selection.availability='none';await h.A.loadDetail(102);assert.match(h.text(),elapsedPromise);assert.match(h.text(),/Следующий шаг: закрепить состав подборки/);h.preservedPlan();
+});
+test('promise deadline: absent, corrupt, unchecked and unavailable evidence never creates a deadline warning',async()=>{
+ const data=deadlineFixture(),h=await harness({data,now:'2026-11-14T09:00:00Z'}),deadline=clone(data.binding.deadline),selection=clone(data.projection.selection);
+ for(const value of [null,{kind:'date',value:'2026-02-30',zone:'Europe/Moscow'},{kind:'date',value:'2026-11-13',zone:'UTC'},{kind:'instant',value:'2026-11-13T12:00:00'}]){data.binding.deadline=value;await h.A.loadDetail(102);assert.doesNotMatch(h.text(),elapsedPromise);}
+ data.binding.deadline=deadline;
+ for(const coverage of ['not_loaded',undefined]){data.item.promise_coverage=coverage;await h.A.loadDetail(102);assert.doesNotMatch(h.text(),elapsedPromise);}
+ data.item.promise_coverage='checked';data.projection.availability='unavailable';await h.A.loadDetail(102);assert.doesNotMatch(h.text(),elapsedPromise);
+ data.projection.availability='available';data.projection.selection={availability:'unavailable',reason:'storage_unavailable',intent:null,stale_reasons:[],progress:null};await h.A.loadDetail(102);assert.doesNotMatch(h.text(),elapsedPromise);
+ data.projection.selection=selection;data.projection.selection.progress={availability:'unavailable',reason:'delivery_evidence_changed',confirmed:null,total:2};await h.A.loadDetail(102);assert.doesNotMatch(h.text(),elapsedPromise);assert.match(h.text(),/Подтверждение отправки сейчас недоступно/);
+ data.projection.selection=clone(selection);const time=h.window.ManagerTime;h.window.ManagerTime=null;await h.A.loadDetail(102);assert.doesNotMatch(h.text(),elapsedPromise);h.window.ManagerTime=time;h.preservedPlan();
+});
+test('promise deadline: stale source trip profile or scope retains the original date without alleging an active overdue promise',async()=>{
+ const data=deadlineFixture(),h=await harness({data,now:'2026-11-14T09:00:00Z'});
+ for(const state of ['changed','unavailable']){data.binding.source_state=state;await h.A.loadDetail(102);assert.doesNotMatch(h.text(),elapsedPromise);assert.match(h.text(),/Срок обещания: 13\.11\.2026/);}
+ data.binding.source_state='current';
+ for(const reason of ['trip_changed','profile_changed','profile_source_changed','profile_unavailable','scope_changed','source_changed','source_unavailable']){data.projection.stale_reasons=[reason];await h.A.loadDetail(102);assert.doesNotMatch(h.text(),elapsedPromise);assert.match(h.text(),/Срок обещания: 13\.11\.2026/);}
+ data.projection.stale_reasons=[];
+ for(const reason of ['scope_changed','publication_changed','context_unavailable','future_unknown_reason']){data.projection.selection.stale_reasons=[reason];await h.A.loadDetail(102);assert.doesNotMatch(h.text(),elapsedPromise);}
+ data.projection.selection.stale_reasons=[];data.intent.state='blocked';data.intent.reason='profile_changed';await h.A.loadDetail(102);assert.doesNotMatch(h.text(),elapsedPromise);h.preservedPlan();
+});
+test('promise deadline: manual rescheduling new inbound and cancelling automation do not erase the original current promise',async()=>{
+ const data=deadlineFixture(),h=await harness({data,now:'2026-11-14T09:00:00Z'});data.projection.selection.stale_reasons=['task_changed','context_changed'];
+ for(const [state,reason] of [['armed',null],['blocked','task_changed'],['blocked','context_changed'],['cancelled',null]]){data.intent.state=state;data.intent.reason=reason;await h.A.loadDetail(102);assert.match(h.text(),elapsedPromise);assert.match(h.text(),/Пришло новое сообщение; проверьте дальнейший шаг/);assert.match(h.text(),/Запланировано · 16\.11\.2026/);}
+ assert.equal(data.task.status,'open');h.preservedPlan();
+});
+test('promise deadline: partial UNKNOWN still asks to inspect delivery and completed or fully delivered history is not a new debt',async()=>{
+ const data=deadlineFixture(),h=await harness({data,now:'2026-11-14T09:00:00Z'});
+ for(const [reason,label] of [['delivery_unknown','проверить результат отправки'],['delivery_unverified','проверить подтверждение отправки'],['delivery_rejected','Отправка отклонена']]){data.projection.selection.progress.reason=reason;await h.A.loadDetail(102);assert.match(h.text(),elapsedPromise);assert.ok(h.text().includes(label));assert.doesNotMatch(h.text(),/Обещание не выполнено|Повторить отправку|Отправить заново/);}
+ data.projection.selection.progress.reason=null;data.projection.selection.progress.confirmed=2;data.projection.selection.stale_reasons=['task_changed'];await h.A.loadDetail(102);assert.doesNotMatch(h.text(),elapsedPromise);assert.match(h.text(),/2 из 2/);
+ data.intent.state='completed';data.intent.completed_at='2026-11-13 09:05:00';data.projection.selection.progress={availability:'unavailable',reason:'delivery_evidence_changed',confirmed:null,total:2};await h.A.loadDetail(102);assert.doesNotMatch(h.text(),elapsedPromise);assert.match(h.text(),/Задача уже завершалась автоматически.*Сейчас она открыта/);
+ assert.equal(data.task.status,'open');assert.ok(h.document.querySelector('[data-assistant-task="77"]'));data.task.status='done';await h.A.loadDetail(102);assert.doesNotMatch(h.text(),elapsedPromise);assert.equal(h.document.querySelectorAll('.assistantTask').length,0);h.preservedPlan();
+});
+test('promise deadline: existing refresh crosses midnight only after preserving an unfinished deadline editor',async()=>{
+ const data=deadlineFixture(),h=await harness({data,now:'2026-11-13T20:59:59Z'});await h.click('[data-assistant-snooze="77"]');const input=h.$('assistantDue'),form=input.closest('form');input.value='2026-11-18T18:15';
+ h.setNow('2026-11-13T21:00:00Z');const reads=h.calls.length;await h.refresh();assert.equal(h.calls.length,reads);assert.equal(h.$('assistantDue'),input);assert.equal(input.closest('form'),form);assert.equal(input.value,'2026-11-18T18:15');assert.doesNotMatch(h.text(),elapsedPromise);h.preservedPlan();
+ await h.click('#assistantCancelDue');assert.match(h.text(),elapsedPromise);const source=h.document.querySelector('[data-assistant-promise-source="77"]');source.focus();await h.refresh();assert.equal(h.document.querySelector('[data-assistant-promise-source="77"]'),source);assert.equal(h.document.activeElement,source);h.preservedPlan();
 });
 test('coverage, successful absence and unavailable facts never invent a binding or zero',async()=>{
  const h=await harness(),row=h.data.item;

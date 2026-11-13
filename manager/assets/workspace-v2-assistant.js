@@ -161,12 +161,22 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
     const promised=window.ManagerTime.parse(deadline.value);if(current?.getTime()===promised?.getTime())return '';
     return 'Срок обещания: '+time(deadline.value)+':'+String(window.ManagerTime.wallDate(deadline.value).getUTCSeconds()).padStart(2,'0')+' МСК';
   }
+  function promiseDeadlinePassed(task,p){
+    const b=p.binding,s=p.selection,i=s.intent,progress=s.progress,changes=['task_changed','context_changed'];
+    if(task.status!=='open'||p.availability!=='available'||p.reason!==null||b.deadline===null||b.source_state!=='current'||p.stale_reasons.length||s.reason!==null)return false;
+    if(s.availability==='available'){
+      if(b.kind!=='send_selection'||!i||i.state==='completed'||!progress||progress.availability!=='available'||progress.confirmed>=progress.total||s.stale_reasons.some(code=>!changes.includes(code))||i.reason!==null&&!changes.includes(i.reason)||![null,'delivery_unknown','delivery_unverified','delivery_rejected'].includes(progress.reason))return false;
+    }else if(s.availability!==(b.kind==='send_selection'?'none':'not_applicable')||s.stale_reasons.length||i!==null||progress!==null)return false;
+    const now=Date.now();if(!Number.isFinite(now))return false;
+    if(b.deadline.kind==='date')return (window.ManagerTime?.toInput?.(new Date(now))||'').slice(0,10)>b.deadline.value;
+    const deadline=window.ManagerTime?.parse?.(b.deadline.value);return !!deadline&&now>deadline.getTime();
+  }
   function promiseMarkup(item,task){
     if(item.promise_coverage==='not_loaded')return '<div class="assistantPromiseFacts"><span>Проверяем связь с обещанием…</span></div>';
     if(item.promise_coverage!=='checked')return '';
     const p=promiseFacts(task.promise);if(!p||p.availability==='unavailable')return '<div class="assistantPromiseFacts"><span>Связь с обещанием сейчас недоступна. Обновите план.</span></div>';
     if(p.availability!=='available')return '';
-    const b=p.binding,s=p.selection,i=s.intent,progress=s.progress,lines=['Подтверждённое обещание: '+promiseKinds[b.kind]],due=promisedDue(task,b);if(due)lines.push(due);
+    const b=p.binding,s=p.selection,i=s.intent,progress=s.progress,lines=['Подтверждённое обещание: '+promiseKinds[b.kind]],due=promisedDue(task,b),deadlineWarning=promiseDeadlinePassed(task,p)?'Срок обещания прошёл — проверьте выполнение.':'';if(due)lines.push(due);if(deadlineWarning)lines.push(deadlineWarning);
     if(s.availability==='none'&&b.kind==='send_selection')lines.push('Следующий шаг: закрепить состав подборки.');
     if(s.availability==='unavailable')lines.push('Состояние закреплённой подборки сейчас недоступно.');
     if(s.availability==='available'){
@@ -178,7 +188,7 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
     for(const message of new Set(warnings.map(code=>promiseReasons[code]||'Проверьте актуальность связи и выполнение вручную.')))lines.push(message);
     const source=b.source_state!=='unavailable'?`<button type="button" data-assistant-promise-source="${Number(task.id)}">Исходное сообщение</button>`:'';
     const publication=s.availability==='available'&&i?`<button type="button" data-assistant-promise-selection="${Number(task.id)}">Состав и отправка</button>`:'';
-    return `<div class="assistantPromiseFacts" data-promise-availability="${p.availability}">${lines.map(line=>`<span>${esc(line)}</span>`).join('')}<div class="assistantPromiseActions">${source}${publication}</div></div>`;
+    return `<div class="assistantPromiseFacts" data-promise-availability="${p.availability}">${lines.map(line=>line===deadlineWarning?`<strong class="assistantWarning">${esc(line)}</strong>`:`<span>${esc(line)}</span>`).join('')}<div class="assistantPromiseActions">${source}${publication}</div></div>`;
   }
   function promiseIdentity(task){const p=promiseFacts(task?.promise),b=p?.binding,i=p?.selection?.intent;return p?.availability==='available'?JSON.stringify([Number(task.id),b.promise_id,b.source_message_id,b.source_state,i?.intent_id||null,i?.publication_id||null]):'';}
   async function openPromiseFact(item,task,kind,button){

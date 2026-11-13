@@ -137,6 +137,29 @@ calendar date without an invented hour; an `instant` is formatted in Moscow;
 null means no deadline was recorded. A manually changed task deadline remains
 canonical and any different original commitment is shown separately.
 
+For an open task with a current confirmed promise, the same row can say
+«Срок обещания прошёл — проверьте выполнение.» A date-only promise includes the
+whole saved Moscow calendar day; the signal starts on the following day. An
+instant is elapsed strictly after that moment, including its seconds and offset.
+The original promise deadline is independent of the manual task date and urgency:
+postponing a task, receiving another customer message or cancelling automatic
+completion does not itself erase the saved commitment. The task's canonical
+title, date, status, pin, ordering and controls remain unchanged.
+
+This is a display hint using the existing device clock, `ManagerTime` and detail
+render/refresh, not a persisted SLA or proof that a result was not delivered.
+The existing refresh still waits for an unfinished deadline editor. No extra
+timer, request, metric, notification or write is introduced. Unchecked facts,
+missing/invalid deadlines, changed or unavailable source/trip/profile/scope,
+unknown reason codes, unavailable selection/proof, historical completion after
+manual reopen and a fully confirmed exact composition suppress the warning.
+The saved original deadline and existing factual warnings remain visible.
+Partial `delivery_unknown`, `delivery_unverified` or rejected delivery with
+available progress retains its existing instruction to inspect the result;
+the elapsed deadline never authorizes a resend or completes the task. A current
+calculation promise or a selection promise without an attached composition can
+also display this reminder; its manual task controls remain the next action.
+
 Selection facts keep the stored intent and observed freshness separate. An
 `armed` association does not prove delivery. Partial progress requires the exact
 publication's native receipt, delivery event and outbound transcript for each

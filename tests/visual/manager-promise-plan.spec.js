@@ -59,16 +59,26 @@ function clean(s,baseline){
 async function bounded(page,id,width){const box=await page.locator('#'+id).boundingBox();expect(box.x).toBeGreaterThanOrEqual(-1);expect(box.x+box.width).toBeLessThanOrEqual(width+1);expect(box.y).toBeGreaterThanOrEqual(-1);expect(box.y+box.height).toBeLessThanOrEqual(901);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);}
 async function capture(page,browser,width,label){const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`promise-plan-${label}-${browser}-${width}.png`)});}
 
-for(const width of [390,1440])test(`promise facts and exact read-only source/publication preserve all manual work at ${width}px`,async({page,browserName})=>{
- await page.setViewportSize({width,height:900});const s=await setupPlan(page);await prepare(page);const baseline=s.base.calls.length;
- await expect(page.locator('.assistantTask')).toHaveCount(1);await expect(page.locator('.assistantTask')).toContainText('Отправить согласованную подборку');await expect(page.locator('.assistantPromiseFacts')).toContainText('календарный день, Москва');await expect(page.locator('.assistantPromiseFacts')).toContainText('1 из 2');
+for(const width of [390,1440])test(`elapsed promise deadline with a future task due and exact read-only source/publication preserve all manual work at ${width}px`,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});
+ // UTC is still 20 November; the promised Moscow calendar day has just ended.
+ // Fixed Date preserves the real timers used by the shell and read-only views.
+ await page.clock.setFixedTime(new Date('2030-11-20T21:00:01Z'));
+ const s=await setupPlan(page);s.data.binding.deadline={kind:'date',value:'2030-11-20',zone:'Europe/Moscow'};s.data.task.due_at_utc='2030-11-22 12:00:00';
+ s.data.projection.selection.stale_reasons=['task_changed'];s.data.projection.selection.progress.reason='delivery_unknown';
+ await prepare(page);const baseline=s.base.calls.length,task=page.locator('.assistantTask'),facts=task.locator('.assistantPromiseFacts');
+ await expect(task).toHaveCount(1);await expect(task).toContainText('Отправить согласованную подборку');await expect(task).toContainText('Запланировано · 22.11.2030 15:00 МСК');
+ await expect(facts).toContainText('Срок обещания: 20.11.2030 · календарный день, Москва');await expect(facts.getByText('Срок обещания прошёл — проверьте выполнение.',{exact:true})).toBeVisible();
+ await expect(facts).toContainText('Подтверждена отправка 1 из 2 вариантов.');await expect(facts).toContainText('Следующий шаг: проверить результат отправки.');await expect(task.locator('[data-assistant-task="77"]')).toHaveText('Выполнено');
+ await task.scrollIntoViewIfNeeded();await capture(page,browserName,width,'deadline');
  await page.locator('[data-assistant-snooze="77"]').click();await page.locator('#assistantDue').fill('2031-02-05T17:12');await page.evaluate(()=>{window.promisePlanDue=document.getElementById('assistantDue')});
  await page.locator('[data-assistant-promise-source="77"]').click();await expect(page.locator('#messageContextMessages')).toContainText('Пришлю согласованную подборку');await bounded(page,'messageContextDialog',width);await capture(page,browserName,width,'source');await preserved(page);
  await page.locator('#messageContextBack').click();await expect(page.locator('[data-assistant-promise-source="77"]')).toBeFocused();await expect(page.locator('#assistantDue')).toHaveValue('2031-02-05T17:12');
  await page.locator('[data-assistant-promise-selection="77"]').click();await expect(page.locator('#promiseSelectionCards>li')).toHaveCount(2);for(const [index,card] of s.data.publication.cards.entries())await expect(page.locator('#promiseSelectionCards>li').nth(index)).toHaveText(card.text);
  await expect(page.locator('#promiseSelectionIntent')).toContainText('1 из 2');for(const id of ['promiseSelectionFields','promiseSelectionPreview','promiseSelectionConfirm','promiseSelectionCancel','promiseSelectionCheck','promiseSelectionRetry'])await expect(page.locator('#'+id)).toBeHidden();
  await bounded(page,'promiseSelectionDialog',width);await capture(page,browserName,width,'composition');await preserved(page);await page.evaluate(()=>history.back());await expect(page.locator('#promiseSelectionDialog')).toBeHidden();await expect(page.locator('[data-assistant-promise-selection="77"]')).toBeFocused();
- await expect(page.locator('#assistantDue')).toHaveValue('2031-02-05T17:12');expect(await page.evaluate(()=>document.getElementById('assistantDue')===window.promisePlanDue)).toBe(true);await preserved(page);clean(s,baseline);
+ await expect(page.locator('#assistantDue')).toHaveValue('2031-02-05T17:12');expect(await page.evaluate(()=>document.getElementById('assistantDue')===window.promisePlanDue)).toBe(true);await preserved(page);
+ await expect(task).toContainText('Запланировано · 22.11.2030 15:00 МСК');await expect(facts.getByText('Срок обещания прошёл — проверьте выполнение.',{exact:true})).toBeVisible();clean(s,baseline);
 });
 for(const width of [390,1440])for(const [kind,change] of [['source','actor'],['selection','client']])test(`late ${kind} read is discarded after ${change} change at ${width}px`,async({page})=>{
  await page.setViewportSize({width,height:900});const s=await setupPlan(page);await prepare(page);const baseline=s.base.calls.length;s.hold(kind);await page.locator('[data-assistant-promise-'+kind+'="77"]').click();await expect.poll(s.held).toBe(1);
