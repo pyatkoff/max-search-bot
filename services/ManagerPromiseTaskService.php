@@ -91,6 +91,37 @@ final class ManagerPromiseTaskService
         });
     }
 
+    /** Bounded immutable records for an already authorized read transaction. */
+    public static function readBindings(PDO $pdo,array $conversation,array $taskIds): array
+    {
+        if(!$pdo->inTransaction()||$pdo!==ConversationDb::connection())throw new LogicException('promise_read_transaction_required');
+        $cid=(int)($conversation['id']??0);
+        if($cid<=0||($conversation['project_key']??null)!=='anytour'||count($taskIds)>50)throw new InvalidArgumentException('invalid_promise_read');
+        foreach($taskIds as $id)if(!is_int($id)||$id<=0)throw new InvalidArgumentException('invalid_promise_read');
+        $taskIds=array_values(array_unique($taskIds));if(!$taskIds)return [];
+        $binary=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'BINARY':'BLOB';
+        $q=$pdo->prepare('SELECT promise_id,conversation_id,trip_id,kind,source_message_id,source_message_revision,source_author_manager_id,profile_version,profile_sha256,profile_context_sha256,task_id,created_by_manager_id,created_at,SUBSTR(CAST(scope_json AS '.$binary.'),1,2049) AS scope_json,SUBSTR(CAST(deadline_json AS '.$binary.'),1,513) AS deadline_json FROM manager_task_promises WHERE conversation_id=? AND task_id IN ('.implode(',',array_fill(0,count($taskIds),'?')).') ORDER BY task_id LIMIT 50');
+        $q->execute([$cid,...$taskIds]);$records=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();$out=[];
+        foreach($records as $row){
+            if((int)$row['conversation_id']!==$cid||!self::hex($row['promise_id'],64)||!self::hex($row['trip_id'],32)
+                ||!in_array($row['kind'],self::KINDS,true)||!self::hex($row['source_message_revision'],64)
+                ||!self::hex($row['profile_sha256'],64)||!self::hex($row['profile_context_sha256'],64)
+                ||(int)$row['task_id']<=0||(int)$row['source_message_id']<=0||(int)$row['source_author_manager_id']<=0
+                ||(int)$row['profile_version']<1||strlen($row['scope_json'])>2048||strlen($row['deadline_json'])>512
+                ||$row['promise_id']!==self::promiseId($conversation,$row['trip_id'],$row['kind'],(int)$row['source_message_id']))throw new RuntimeException('invalid_promise_storage');
+            $stored=json_decode($row['scope_json'],true,16,JSON_THROW_ON_ERROR);
+            if(!is_array($stored)||array_keys($stored)!==array_keys(self::identity($conversation))
+                ||($stored['conversation_id']??null)!==$cid||($stored['project_key']??null)!=='anytour'
+                ||!is_int($stored['customer_id']??null)||$stored['customer_id']<=0
+                ||!is_string($stored['channel']??null)||!is_string($stored['external_chat_id']??null))throw new RuntimeException('invalid_promise_scope');
+            // A historical recipient/source mismatch is data for the reader,
+            // never authority to rebind or silently present it as current.
+            $row['_scope']=$stored;$row['_deadline']=self::deadline(json_decode($row['deadline_json'],true,8,JSON_THROW_ON_ERROR));
+            $out[(int)$row['task_id']]=$row;
+        }
+        return $out;
+    }
+
     private static function transaction(int $actor,int $cid,callable $work): array
     {
         if($actor<=0||$cid<=0)return self::error('forbidden');

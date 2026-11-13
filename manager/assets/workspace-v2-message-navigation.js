@@ -14,8 +14,8 @@ function restore(saved){
  window.WorkspaceV2Jump?.restore({followingLatest:false,anchor:{row,key:String(saved.id),offset:saved.offset},top:saved.top},{preserveScroll:true});focusQuote(saved.id);return true;
 }
 function clearPreview(){if(dialog)window.WorkspaceV2Conversation?.renderMessageContext?.($('messageContextMessages'),[])}
-function reset(){revision++;active=null;stack=[];scope='';if(dialog?.open)dialog.close();clearPreview();renderBar()}
-function sync(){const next=key();if(scope&&scope!==next)reset();scope=next;renderBar()}
+function reset(){const previous=active;revision++;active=null;stack=[];scope='';if(previous?.overlay)window.WorkspaceV2Mobile?.closeOverlay('message-context');if(dialog?.open)dialog.close();clearPreview();if($('messageContextStatus')){$('messageContextStatus').hidden=true;$('messageContextStatus').textContent=''}renderBar()}
+function sync(){if(active?.external){if(!externalAllowed(active))reset();return}const next=key();if(scope&&scope!==next)reset();scope=next;renderBar()}
 function ensureBar(){
  let bar=$('messageNavigationBar');const messages=$('messages');if(bar||!messages)return bar;
  bar=document.createElement('div');bar.id='messageNavigationBar';bar.className='messageNavigationBar';bar.hidden=true;
@@ -25,6 +25,7 @@ function ensureBar(){
  bar.append(back,status,retry);messages.before(bar);return bar;
 }
 function renderBar(){
+ if(active?.external)return;
  const bar=ensureBar();if(!bar)return;
  const visible=!!S.current&&!S.authExpired&&(stack.length>0||!!active);bar.hidden=!visible;
  $('messageNavigationBack').hidden=!stack.length;
@@ -38,8 +39,9 @@ function ensureDialog(){
  const back=document.createElement('button');back.id='messageContextBack';back.type='button';back.className='actionBtn';back.textContent='Вернуться к цитате';back.onclick=()=>dialog.close();head.append(title,back);
  const description=document.createElement('p');description.className='messageContextDescription';description.textContent='Оригинал и соседние сообщения. Это ограниченный фрагмент переписки.';
  const messages=document.createElement('div');messages.id='messageContextMessages';messages.className='messages messageContextMessages';
- dialog.append(head,description,messages);document.body.appendChild(dialog);
- dialog.addEventListener('close',()=>{clearPreview();if(active?.peek){const saved=active.anchor,focus=active.returnFocus;active=null;renderBar();if(scope===key()){if(focus?.isConnected)focus.focus({preventScroll:true});else restore(saved)}}});
+ const status=document.createElement('p');status.id='messageContextStatus';status.hidden=true;status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+ dialog.append(head,description,status,messages);document.body.appendChild(dialog);
+ dialog.addEventListener('close',()=>{if(dialog.open)return;clearPreview();const previous=active;if(previous?.external){active=null;revision++;if(previous.overlay&&!previous.fromHistory)window.WorkspaceV2Mobile?.closeOverlay('message-context');status.hidden=true;status.textContent='';if(externalAllowed(previous)){if(typeof previous.onReturn==='function')previous.onReturn();else previous.returnFocus?.isConnected&&previous.returnFocus.focus({preventScroll:true})}return}if(active?.peek){const saved=active.anchor,focus=active.returnFocus;active=null;renderBar();if(scope===key()){if(focus?.isConnected)focus.focus({preventScroll:true});else restore(saved)}}});
  return dialog;
 }
 function validResponse(result,sourceId,conversationId){
@@ -93,7 +95,27 @@ async function openQuote(sourceId,button=null,{retry=false}={}){
  const original=[...$('messageContextMessages').children].find(node=>Number(node.dataset.scrollMessageKey)===target);original?.classList.add('messageNavigationTarget');
  peek.showModal();const box=$('messageContextMessages');if(original)box.scrollTop=Math.max(0,original.offsetTop-box.offsetTop-48);return true;
 }
-async function openSearchTarget(target,button,{isCurrent=()=>true,returnLabel='Вернуться к поиску'}={}){
+function externalAllowed(view){try{return !S.authExpired&&!S.logoutPending&&Number(S.manager?.id)===view.context.managerId&&S.authGeneration===view.context.authGeneration&&view.isCurrent()===true}catch(e){return false}}
+async function openExternalTarget(target,button,{context:captured,isCurrent,returnLabel,historyOverlay,onReturn,title}){
+ if(!captured||!Number.isSafeInteger(captured.conversationId)||captured.conversationId<=0||!Number.isSafeInteger(captured.managerId)||captured.managerId<=0||typeof isCurrent!=='function'||!Number.isSafeInteger(target)||target<=0)return false;
+ const next={external:true,context:{...captured},isCurrent,returnFocus:button,onReturn,overlay:false,fromHistory:false};if(!externalAllowed(next)||dialog?.open)return false;
+ const peek=ensureDialog(),ticket=++revision;active=next;
+ if(historyOverlay){const token=window.WorkspaceV2Mobile?.openOverlay('message-context',()=>{if(active===next){next.fromHistory=true;peek.close()}});if(token===false){active=null;return false}next.overlay=!!token;}
+ $('messageContextTitle').textContent=typeof title==='string'?title.slice(0,300):'Исходное сообщение';$('messageContextBack').textContent=returnLabel;
+ const status=$('messageContextStatus');status.hidden=false;status.textContent='Загружаем исходное сообщение…';clearPreview();peek.showModal();$('messageContextBack').focus({preventScroll:true});
+ const valid=()=>active===next&&ticket===revision&&peek.open&&externalAllowed(next);let result;
+ try{result=await api('message_context',{conversation_id:captured.conversationId,target_message_id:target},{isCurrent:valid})}catch(e){result=null}
+ if(!valid())return false;
+ // An external task preview has its own ACL. Its refusal never invalidates
+ // the unrelated conversation, composer or attachment currently on screen.
+ if(!validResponse(result,null,captured.conversationId)||(result.available&&Number(result.target_message_id)!==target)){status.textContent='Не удалось открыть исходное сообщение. Закройте просмотр и обновите план.';return false;}
+ if(!result.available){status.textContent='Исходное сообщение недоступно в сохранённой переписке.';return false;}
+ window.WorkspaceV2Conversation?.renderMessageContext?.($('messageContextMessages'),result.messages);status.hidden=true;status.textContent='';
+ const box=$('messageContextMessages'),original=[...box.children].find(row=>Number(row.dataset.scrollMessageKey)===target);original?.classList.add('messageNavigationTarget');if(original)box.scrollTop=Math.max(0,original.offsetTop-box.offsetTop-48);return true;
+}
+async function openSearchTarget(target,button,options={}){
+ const {isCurrent=()=>true,returnLabel='Вернуться к поиску'}=options;
+ if(options.context!==undefined)return openExternalTarget(Number(target),button,{...options,isCurrent,returnLabel});
  target=Number(target);const captured=context();if(!Number.isSafeInteger(target)||target<=0||!current(captured)||!isCurrent())return false;
  sync();const ticket=++revision;
  active={sourceId:target,search:true,returnFocus:button,isCurrent,returnLabel,status:'Открываем найденное сообщение…',retry:false};renderBar();

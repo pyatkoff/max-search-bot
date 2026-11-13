@@ -18,6 +18,17 @@ function assistantRespond(array $result): never
     ManagerHttp::respond($result,$status);
 }
 
+function assistantReadRespond(array $result,int $actor,string $csrf): never
+{
+    // Reads release the session while they work. Match the canonical profile
+    // reader: a logout, account switch or rotated CSRF revokes this response.
+    if (!session_start(['read_and_close'=>true]) || ManagerHttp::managerId() !== $actor
+        || !ManagerRequestContext::validCsrf($csrf)) {
+        assistantRespond(['ok'=>false,'error'=>'unauthorized']);
+    }
+    assistantRespond($result + ['viewer_id'=>$actor]);
+}
+
 try {
     ProjectAccessService::initializeReadOnly();
     $manager = ManagerHttp::requireManager();
@@ -31,14 +42,14 @@ try {
         $scope = $data['scope'] ?? 'default';
         if (($cursor !== null && (!is_string($cursor) || strlen($cursor)>90)) || !is_int($limit) || !is_string($scope)) assistantRespond(['ok'=>false,'error'=>'invalid_request']);
         session_write_close();
-        assistantRespond(ManagerAssistantService::listing($actor,$cursor,$limit,$scope));
+        assistantReadRespond(ManagerAssistantService::listing($actor,$cursor,$limit,$scope),$actor,(string)$data['csrf']);
     }
     if (!in_array($action,['detail','decision'],true)) assistantRespond(['ok'=>false,'error'=>'unknown_action']);
     $cid = $data['conversation_id'] ?? null;
     if (!is_int($cid) || $cid <= 0) assistantRespond(['ok'=>false,'error'=>'invalid_request']);
     if ($action === 'detail') {
         session_write_close();
-        assistantRespond(ManagerAssistantService::detail($actor,$cid));
+        assistantReadRespond(ManagerAssistantService::detail($actor,$cid),$actor,(string)$data['csrf']);
     }
     $revision = $data['revision'] ?? null;
     $decision = $data['decision'] ?? null;

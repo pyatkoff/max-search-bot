@@ -201,6 +201,28 @@ final class ManagerRequestProfileService
             'source'=>$ctx['sources'][$messageId]??null];
     }
 
+    /** One bounded evidence read for existing task annotations; no save/admission. */
+    public static function forTaskProjection(PDO $pdo,array $conversation,array $messageIds): array
+    {
+        if(!$pdo->inTransaction()||$pdo!==ConversationDb::connection())throw new LogicException('task_projection_transaction_required');
+        $cid=(int)($conversation['id']??0);
+        if($cid<=0||($conversation['project_key']??null)!=='anytour'||count($messageIds)>50)throw new InvalidArgumentException('invalid_task_projection');
+        foreach($messageIds as $id)if(!is_int($id)||$id<=0)throw new InvalidArgumentException('invalid_task_projection');
+        $messageIds=array_values(array_unique($messageIds));$row=self::latest($pdo,$cid);
+        $ids=array_values(array_unique([...self::ids($row),...$messageIds]));sort($ids);
+        if($ids&&$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
+            $q=$pdo->prepare('SELECT id FROM messages WHERE conversation_id=? AND id IN ('.implode(',',array_fill(0,count($ids),'?')).') ORDER BY id FOR UPDATE');
+            $q->execute([$cid,...$ids]);$q->fetchAll();$q->closeCursor();
+        }
+        // Existing consumers retain their 13/14-extra limits. This projection
+        // adds at most fifty exact sources to the twelve citations + boundary;
+        // the existing 40-message window and aggregate byte cap still apply.
+        $ctx=self::context($pdo,$cid,$ids,63);$view=self::view($row,$ctx);$profile=null;
+        if($row)$profile=['trip_id'=>$row['trip_id'],'version'=>(int)$row['version'],'sha256'=>$row['profile_sha256'],
+            'boundary_message_id'=>(int)$row['boundary_message_id'],'changed_sources'=>$view['changed_sources']];
+        return ['profile'=>$profile,'sources'=>array_intersect_key($ctx['sources'],array_fill_keys($messageIds,true))];
+    }
+
     private static function scope(PDO $pdo,int $actor,int $cid): ?array
     {
         if($actor<=0||$cid<=0)return null;ProjectAccessService::initializeReadOnly();$m=ManagerAuthService::byId($actor);if(!$m)return null;

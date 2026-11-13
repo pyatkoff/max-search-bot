@@ -203,7 +203,17 @@
       if(run!==promiseSelectionLaunch||!current())return;
       if(conversationMenu)conversationMenu.open=true;
       opener.dataset.loadError='true';opener.title='Не удалось открыть связь. Нажмите, чтобы повторить открытие.';opener.setAttribute('aria-label',opener.title);
-    }finally{clearTimeout(timeout);if(run===promiseSelectionLaunch&&opener.isConnected){opener.disabled=false;opener.textContent=opener.dataset.loadError?'Повторить открытие связи':'Связать подборку с обещанием'}}
+    }finally{clearTimeout(timeout);if(opener.isConnected){opener.disabled=false;opener.textContent=opener.dataset.loadError?'Повторить открытие связи':'Связать подборку с обещанием'}}
+  }
+  async function openPromiseSelectionForTask(target,opener,options={}){
+    const actor=Number(S.manager?.id),auth=S.authGeneration;let timeout;
+    const allowed=()=>{try{return actor>0&&!S.authExpired&&!S.logoutPending&&Number(S.manager?.id)===actor&&S.authGeneration===auth&&options.isCurrent?.()===true}catch(e){return false}};
+    if(!allowed())return false;const run=++promiseSelectionLaunch,current=()=>run===promiseSelectionLaunch&&allowed();
+    try{
+      await Promise.race([Promise.all([loadPromiseSelectionAsset('css'),loadPromiseSelectionAsset('js')]),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('promise_selection_load_timeout')),15000)})]);
+      if(!current()||typeof window.WorkspaceV2PromiseSelection?.openForTask!=='function')return false;
+      return await window.WorkspaceV2PromiseSelection.openForTask(target,opener,{...options,isCurrent:current});
+    }catch(e){return false}finally{clearTimeout(timeout)}
   }
   function syncPromiseSelectionLauncher(){
     window.WorkspaceV2PromiseSelection?.sync?.();
@@ -713,7 +723,7 @@
     updateClock();setInterval(updateClock,60000);syncNavigation();
   }
   installSelectionLoader();
-  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,registerConversationTool,conversationHistoryTarget,revealTaskDraft,budgetFact,navigate,syncNavigation,listFilters,salesCoverage,enhanceInbox,enhanceInboxMarkers,ownershipSignal,formatInboxActivity,openClientCard,closeClientCard,syncClientCard,syncSelectionLauncher,revealInboxSearch,syncPersonalChrome};
+  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,registerConversationTool,conversationHistoryTarget,revealTaskDraft,budgetFact,navigate,syncNavigation,listFilters,salesCoverage,enhanceInbox,enhanceInboxMarkers,ownershipSignal,formatInboxActivity,openClientCard,closeClientCard,syncClientCard,syncSelectionLauncher,openPromiseSelectionForTask,revealInboxSearch,syncPersonalChrome};
   init();
 })();
 
