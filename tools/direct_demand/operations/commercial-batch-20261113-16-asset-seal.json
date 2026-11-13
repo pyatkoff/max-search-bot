@@ -1,0 +1,50 @@
+{
+  "state": "ASSETS_BOUND_LOCAL_PREPARED_PENDING_ORIGINAL_READ162",
+  "operation": "commercial-hotel-batch-20261113-16-v1",
+  "hotel_ids": [
+    81358,
+    343,
+    432,
+    65254,
+    443,
+    107940,
+    32356,
+    195,
+    20288
+  ],
+  "asset_commit": "87274a8ee4b54e727fb3ec6df550c0e884a2dac9",
+  "expected_installed_sha": "c292bcd9f1d46d097703d4cf7c2508e0116189ce",
+  "root_supplied_read_run": {
+    "id": "PENDING_ORIGINAL_READ162_RUN_ID",
+    "run_attempt": 1,
+    "head_sha": "be195cdb8fc36d26ff1db4f59bbe96e3468eff55",
+    "acceptance": "PENDING_ORIGINAL_RUN_AND_ARTIFACT_AUTHENTICATION"
+  },
+  "manifest_sha256": "8050026105a5ece1c297ed99e785364a186e964f172a2d843277469d1709b591",
+  "approval_sha256": "0eabc56521726a1db351c07c21e518a37073e7f189e655ac5483dee6d3769c31",
+  "asset_bound_workflow_template_sha256": "a09b2674dd3289a0f4594b7ae1dcf061deb5ec98390437721cce46bb79057147",
+  "canonical_sender_php_sha256": "5496490a6a42ae298265246a664ff23b6100a23e01bb0ae79e3359441e963619",
+  "canonical_reader_php_sha256": "04e56099e31840d4814d2b6b78bf0de817ad24261b8f24525e7d25803a06ba75",
+  "canonical_preparation_receipts_sha256": "997c2c504ab38ae9b627e63c207dfb9f2202094e3f3a8a9a3111adff3d0a60f5",
+  "exact_change_from_manifest_template": "Only the immutable commit in all nine photo_url fields.",
+  "exact_change_from_broad_publisher_manifest": "Only Palm20288 aliases -> [accepted complete first line]; all nine texts/photos/IDs/logical IDs and all other fields identical.",
+  "sender_implementation_bytes_other_than_manifest_constant": "IDENTICAL_TO_BROAD_PREPARATION",
+  "collision_proof_index_sha256": "b71054be614fc963479a94a2039204115dff5c448443b5912fe3ca982f01f13f",
+  "original_templates_preserved": true,
+  "local_canonical_preparation": "PASS",
+  "php_execution": false,
+  "unresolved_workflow_placeholders": [
+    "__CLEARANCE_ARTIFACT_ID__",
+    "__CLEARANCE_ARTIFACT_ZIP_SHA256__",
+    "__CLEARANCE_RUN_ID__"
+  ],
+  "source_gates": "Root reports all nine original gates successful; workflow retains independent current source9 checks.",
+  "site_editorial_revision3": "Final registry383 read locally; all nine accepted revision3 exact texts and original photos matched.",
+  "remote_asset_fetch_performed_by_this_script": false,
+  "remote_asset_provenance": "Exact commit supplied by root after asset/read161 carrier commit; cover hashes remain the visually reviewed bytes.",
+  "network_calls": 0,
+  "provider_calls": 0,
+  "server_calls": 0,
+  "remote_writes": 0,
+  "publication_started": false
+}

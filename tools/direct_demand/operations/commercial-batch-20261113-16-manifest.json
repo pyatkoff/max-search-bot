@@ -1,0 +1,188 @@
+{
+  "state": "PREPARED_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261113-16-v1",
+  "registry_version": 355,
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 595,
+  "expected_new_full_pairs": 9,
+  "rows": [
+    {
+      "hotel_id": 81358,
+      "logical_id": "commercial-hotel-81358-v1",
+      "aliases": [
+        "GLOW Mira Karon Beach",
+        "GLOW MIRA KARON BEACH"
+      ],
+      "text": "✈️ Туры в GLOW Mira Karon Beach\n📍 Карон, Пхукет, Таиланд.\n\nОтель рядом с пляжем Карон: открытый бассейн во внутреннем дворе, а до моря можно дойти пешком. Для семьи есть Family Suite с двухъярусной детской кроватью.\n\nПляж общественный, через дорогу. Ранее в здании объявляли работы возле лобби; перед бронированием уточним, завершены ли они, и подберём подходящий номер.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "0a981038c99d63e13a15b39da8a3074282042f80f191bfb7546ceed5ee9ba598",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87274a8ee4b54e727fb3ec6df550c0e884a2dac9/.github/traffic-publish/commercial-batch-20261113-16/81358.png",
+      "photo_sha256": "5a74a170feab01ff49f8d86069369d5357c06eeeea9359f68838ded19f79e03b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://mirakaronbeach.glowhotels.com/",
+        "https://mirakaronbeach.glowhotels.com/suites-rooms/family-suite/",
+        "https://kompastour.com/kg/rus/country/thailand/phuket/glow_mira_karon_beach/"
+      ],
+      "media_provenance": "Three real photographs retained exactly from the accepted registry photo set and attributed official/operator sources. Source URLs, hashes and unknown photo dates retained. Cover bytes match the full-size visual review, including its two branding-contrast notes. Photographs do not establish completion of works, current facility access or room-category inclusion."
+    },
+    {
+      "hotel_id": 343,
+      "logical_id": "commercial-hotel-343-v1",
+      "aliases": [
+        "Old Palace Resort Sahl Hasheesh",
+        "OLD PALACE RESORT SAHL HASHESH"
+      ],
+      "text": "✈️ Туры в Old Palace Resort Sahl Hasheesh\n📍 Сахл-Хашиш, Египет.\n\nСобственный песчаный пляж и променад для вечерних прогулок. На территории есть детский клуб и спа; зимой заявлен подогрев одного бассейна и джакузи.\n\nПеред бронированием уточним состояние фасадов после ранее объявленной покраски и режим зимнего подогрева.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "3d1415643b7f1a2cfec36cf90199aaa8384a088a42be266c002294249dfacb5e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87274a8ee4b54e727fb3ec6df550c0e884a2dac9/.github/traffic-publish/commercial-batch-20261113-16/343.png",
+      "photo_sha256": "0502ddf8d62c6df40e52c48a36d14c034bb823a61f572012e47282f322dc2da2",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://oldpalaceresort.com/en/",
+        "https://oldpalaceresort.com/en/accommodation/suites/grand-suite",
+        "https://oldpalaceresort.com/en/activities/swimming-pools",
+        "https://anytoour.ru/api-v2.php?action=flights&tourId=16304990809476&currency=RUB",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=343",
+        "https://oldpalaceresort.com/en/news/"
+      ],
+      "media_provenance": "Three real photographs retained exactly from the accepted registry photo set and attributed official/operator sources. Source URLs, hashes and unknown photo dates retained. Cover bytes match the full-size visual review, including its two branding-contrast notes. Photographs do not establish completion of works, current facility access or room-category inclusion."
+    },
+    {
+      "hotel_id": 432,
+      "logical_id": "commercial-hotel-432-v1",
+      "aliases": [
+        "Sheraton Miramar Resort",
+        "SHERATON MIRAMAR RESORT"
+      ],
+      "text": "✈️ Туры в Sheraton Miramar Resort\n📍 Эль-Гуна, Египет.\n\nОтель на девяти островах среди лагун Эль-Гуны. Здесь есть собственные пляжи, детский бассейн и клуб.\n\nВ отдельной зоне продолжается ремонт. По информации отеля, бассейн Sports Pool и пляж доступны. До бронирования уточним расположение номера и возможный шум на ваши даты.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "b5deb66268bc044ae2ec2c7b7bc38ffe5a5f3b9ede91221224c456b23f2855bb",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87274a8ee4b54e727fb3ec6df550c0e884a2dac9/.github/traffic-publish/commercial-batch-20261113-16/432.png",
+      "photo_sha256": "0017dd490b829029c897f9098323ece76d6026d9a03b62417abf5d82709e5500",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.marriott.com/en-us/hotels/hrgsi-sheraton-miramar-resort-el-gouna/overview/",
+        "https://www.marriott.com/en-us/hotels/hrgsi-sheraton-miramar-resort-el-gouna/photos/"
+      ],
+      "media_provenance": "Three real photographs retained exactly from the accepted registry photo set and attributed official/operator sources. Source URLs, hashes and unknown photo dates retained. Cover bytes match the full-size visual review, including its two branding-contrast notes. Photographs do not establish completion of works, current facility access or room-category inclusion."
+    },
+    {
+      "hotel_id": 65254,
+      "logical_id": "commercial-hotel-65254-v1",
+      "aliases": [
+        "Premier Residences Phu Quoc Emerald Bay",
+        "PREMIER RESIDENCES PHU QUOC EMERALD BAY"
+      ],
+      "text": "✈️ Туры в Premier Residences Phu Quoc Emerald Bay\n📍 Пляж Кхем, Фукуок, Вьетнам.\n\nДля семейного отдыха у моря: детский клуб, номера и просторные апартаменты. Есть отдельные категории с частным бассейном.\n\nУчтите: из-за демонтажа горки и обслуживания бассейнов зоны 1–3 временно закрыты. Зоны 4–6 заявлены открытыми. Работы могут мешать отдыху; перед бронированием уточним обстановку на ваши даты.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "e15458d2d32e32dbae202fd3261f664e7d723c5964d3a36b8795cc0cb63b2fe7",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87274a8ee4b54e727fb3ec6df550c0e884a2dac9/.github/traffic-publish/commercial-batch-20261113-16/65254.png",
+      "photo_sha256": "6090e6df2f606c5674bc0daa12f5dd7d5f39f16b502a97159fc7c487e280c209",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://premierresidencesphuquoc.com/",
+        "https://premierresidencesphuquoc.com/emerald-spa-recreation/kids-club/",
+        "https://premierresidencesphuquoc.com/rooms-suites/",
+        "https://all.accor.com/hotel/B2Q9/index.en.shtml"
+      ],
+      "media_provenance": "Three real photographs retained exactly from the accepted registry photo set and attributed official/operator sources. Source URLs, hashes and unknown photo dates retained. Cover bytes match the full-size visual review, including its two branding-contrast notes. Photographs do not establish completion of works, current facility access or room-category inclusion."
+    },
+    {
+      "hotel_id": 443,
+      "logical_id": "commercial-hotel-443-v1",
+      "aliases": [
+        "Mercure Hurghada",
+        "MERCURE HURGHADA"
+      ],
+      "text": "✈️ Туры в Mercure Hurghada\n📍 Хургада, Египет.\n\nСобственный песчаный пляж с рифом, бассейн и детский клуб. Для семей есть номера Superior Family с отдельной детской комнатой.\n\nВ главном здании завершается реновация. Работы над новым рестораном планируют закончить к 27 января 2027 года. Перед бронированием уточним влияние работ на отдых и расположение номера.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "7e361bef6e17a3eef4ac6b58171b7054d10860e281a0ffbb0efefff3b499ce07",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87274a8ee4b54e727fb3ec6df550c0e884a2dac9/.github/traffic-publish/commercial-batch-20261113-16/443.png",
+      "photo_sha256": "efd365ed429bf606c435453a44821be2761e01014931a07f1518064561bd8502",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://all.accor.com/hotel/1815/index.en.shtml"
+      ],
+      "media_provenance": "Three real photographs retained exactly from the accepted registry photo set and attributed official/operator sources. Source URLs, hashes and unknown photo dates retained. Cover bytes match the full-size visual review, including its two branding-contrast notes. Photographs do not establish completion of works, current facility access or room-category inclusion."
+    },
+    {
+      "hotel_id": 107940,
+      "logical_id": "commercial-hotel-107940-v1",
+      "aliases": [
+        "Bella Nara Phuket Naiyang Beach",
+        "BELLA NARA PHUKET NAIYANG BEACH"
+      ],
+      "text": "✈️ Туры в Bella Nara Phuket Naiyang Beach\n📍 Най-Янг, Пхукет, Таиланд.\n\nОбщественный песчаный пляж поблизости, открытый бассейн и детский клуб. Есть номера Pool Access с выходом к общему бассейну.\n\nРядом с отелем идут строительные работы, возможен шум. Перед бронированием уточним расположение номера и обстановку на ваши даты.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "e587ff30c0a5d5c3a285ed6a6d306bbec90430ae0452c305e8e1a72c367a1284",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87274a8ee4b54e727fb3ec6df550c0e884a2dac9/.github/traffic-publish/commercial-batch-20261113-16/107940.png",
+      "photo_sha256": "a38a582c4f1f135fcd1b41e44582580f94a5a76c8b3b52ed43d9a76d935ac201",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ua/rus/country/thailand/phuket/bella_nara_phuket_naiyang_beach/",
+        "https://www.etihadholidays.co.uk/hotel/nai-yang/bella-nara-phuket-naiyang-beach/",
+        "https://www.coraltravel.pl/hotel/tajlandia/bella-nara-phuket-naiyang-beach-phuket/"
+      ],
+      "media_provenance": "Three real photographs retained exactly from the accepted registry photo set and attributed official/operator sources. Source URLs, hashes and unknown photo dates retained. Cover bytes match the full-size visual review, including its two branding-contrast notes. Photographs do not establish completion of works, current facility access or room-category inclusion."
+    },
+    {
+      "hotel_id": 32356,
+      "logical_id": "commercial-hotel-32356-v1",
+      "aliases": [
+        "Galina Hotel & Spa",
+        "GALINA HOTEL & SPA"
+      ],
+      "text": "✈️ Туры в Galina Hotel & Spa\n📍 Нячанг, Вьетнам.\n\nГородской отель для прогулок по Нячангу и отдыха у моря. Общественный пляж в пешей доступности, при отеле есть Galina Mud Bath & Spa с грязевыми ваннами. Процедуры выбираются отдельно.\n\nСобственного пляжного обслуживания нет. По сообщению Coral, соседняя стройка временно приостановлена. Ремонт 9–10 этажей планировали закончить 10 ноября; перед бронированием уточним его завершение.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "1fa1bb6661e8ae715e4dc57943b8f3db731837e32d835a060f43a09df0a2c977",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87274a8ee4b54e727fb3ec6df550c0e884a2dac9/.github/traffic-publish/commercial-batch-20261113-16/32356.png",
+      "photo_sha256": "4244ae2199abf8937d8c8a0ee0b294605f4992ad380baf00d6a47e29df25c905",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://galina.vn/en",
+        "https://www.coral.ge/en/hotels/vietnam/galina-hotel-nha-trang/"
+      ],
+      "media_provenance": "Three real photographs retained exactly from the accepted registry photo set and attributed official/operator sources. Source URLs, hashes and unknown photo dates retained. Cover bytes match the full-size visual review, including its two branding-contrast notes. Photographs do not establish completion of works, current facility access or room-category inclusion."
+    },
+    {
+      "hotel_id": 195,
+      "logical_id": "commercial-hotel-195-v1",
+      "aliases": [
+        "Dreams Beach Resort",
+        "DREAMS BEACH"
+      ],
+      "text": "✈️ Туры в Dreams Beach Resort\n📍 Рас-Ум-эль-Сид, Шарм-эль-Шейх, Египет.\n\nДля тех, кто едет к Красному морю ради рифа и снорклинга. Пляж расположен у скал: вниз ведут ступеньки и лифт, вход в море с понтонов.\n\nНомера обновляют частями, поэтому состояние корпуса и возможные работы проверим на ваши даты. Работу ресторанов и условия питания уточним по выбранному туру.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "97064ef5cbd4bffe38f0d4b7b3f4bd415a07e2a282412757a8bebd3acdc95ea8",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87274a8ee4b54e727fb3ec6df550c0e884a2dac9/.github/traffic-publish/commercial-batch-20261113-16/195.png",
+      "photo_sha256": "a21dbe5b77148027886d08a61a55a8108256b366c21f4b8dd07d0eb37786e389",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.dreamsresortsegypt.com/dreams-beach-sharm-el-sheikh.html",
+        "https://www.dreamsresortsegypt.com/dreams-beach-sharm-el-sheikh/rooms-suites.html",
+        "https://www.dreamsresortsegypt.com/dreams-beach-sharm-el-sheikh/photo-gallery.html",
+        "https://kompastour.com/ua/rus/country/egypt/sharm/dreams_beach_resort/",
+        "https://www.bgoperator.ru/price.shtml?action=shw&code=102632924045&flt=100410000047&page=info&tid=26"
+      ],
+      "media_provenance": "Three real photographs retained exactly from the accepted registry photo set and attributed official/operator sources. Source URLs, hashes and unknown photo dates retained. Cover bytes match the full-size visual review, including its two branding-contrast notes. Photographs do not establish completion of works, current facility access or room-category inclusion."
+    },
+    {
+      "hotel_id": 20288,
+      "logical_id": "commercial-hotel-20288-v1",
+      "aliases": [
+        "✈️ Туры в Palm Beach Resort"
+      ],
+      "text": "✈️ Туры в Palm Beach Resort\n📍 Эль-Ахия, Хургада, Египет.\n\nСемейный отдых у собственного песчаного пляжа. Есть бассейны, детский клуб и две горки La Siesta, на которые допускают при росте от 140 см. Для малышей есть отдельный мелкий бассейн.\n\nТуроператор предупреждает о ремонте лобби ориентировочно до 1 декабря 2026 года: возможны шум и изменение проходов. Влияние работ на ваши даты уточним до бронирования.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "0f33829308d612d8b19878419138d6471db9e09df3b67719998705dd2ab5d9da",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87274a8ee4b54e727fb3ec6df550c0e884a2dac9/.github/traffic-publish/commercial-batch-20261113-16/20288.png",
+      "photo_sha256": "0e6c76110e3a00a99758c9442361a1d173cc5f30ca1d4c90a9ab8dacabea745d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.palmbeach-hurghada.com/en",
+        "https://www.palmbeach-hurghada.com/rooms/superior-family-room",
+        "https://www.palmbeach-hurghada.com/hotel/activities",
+        "https://kompastour.com/kz/rus/country/egypt/hurgada_al_ahiya_road/palm_beach_resort_spa/?load_map=",
+        "https://holidays.eurowings.com/de-de/hotel/agypten/hurghada/palm-beach-resort-64964"
+      ],
+      "media_provenance": "Three real photographs retained exactly from the accepted registry photo set and attributed official/operator sources. Source URLs, hashes and unknown photo dates retained. Cover bytes match the full-size visual review, including its two branding-contrast notes. Photographs do not establish completion of works, current facility access or room-category inclusion."
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "state": "LOCAL_SEALED_NOT_ACTIVATED",
+  "operation": "commercial-hotel-batch-20261113-16-v1",
+  "hotel_ids": [
+    81358,
+    343,
+    432,
+    65254,
+    443,
+    107940,
+    32356,
+    195,
+    20288
+  ],
+  "asset_commit": "87274a8ee4b54e727fb3ec6df550c0e884a2dac9",
+  "read162": {
+    "run_id": 43416919468,
+    "run_attempt": 1,
+    "head_sha": "be195cdb8fc36d26ff1db4f59bbe96e3468eff55",
+    "artifact_id": 14031104792,
+    "artifact_name": "commercial-batch-20261113-16-duplicate-clearance-resolved",
+    "artifact_zip_sha256": "d2a2f99bf18e688252aeb2b773514ad5aee08de4ab05f22c4368b3bd0a54f4a2",
+    "read_file_sha256": "8ff8324bbc5bb793e7e5bb0ea3142e4b6403dbfe39ff448c200451d0b26ba8c9",
+    "candidate_count": 9,
+    "all_clear": true,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0
+  },
+  "metadata_sources": {
+    "authentication_json_sha256": "165377827a74de654f95da3c705509fa77db078cbefebda94d90199257f63c27"
+  },
+  "collision_proof_index_sha256": "b71054be614fc963479a94a2039204115dff5c448443b5912fe3ca982f01f13f",
+  "broad_read161_preserved": "clear=false for20288; no result edited or substituted; both old hits typed to818.",
+  "manifest_sha256": "8050026105a5ece1c297ed99e785364a186e964f172a2d843277469d1709b591",
+  "approval_sha256": "0eabc56521726a1db351c07c21e518a37073e7f189e655ac5483dee6d3769c31",
+  "workflow_sha256": "5cd9c4568bf378e5b7c9e6b689ee1ea953778eb14d507ad8860cd8c7ebb01dfb",
+  "final_source9_and_fresh_publisher_admission": "REQUIRED_BY_ROOT_BEFORE_ACTIVATION; runtime workflow also rechecks source9.",
+  "remote_writes": 0,
+  "provider_calls": 0,
+  "publication_started": false
+}
