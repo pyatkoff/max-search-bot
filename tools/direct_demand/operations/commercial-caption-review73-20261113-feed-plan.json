@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "ready": true,
+  "operation": "commercial-channel-hotel-feeds-20261113-update19",
+  "current_installed_sha": "8d6ac35dd17614b2cadb3aa3af7637c74280c01c",
+  "cohort_installed_sha": "5fbb61990706ae4289e539df2c26c60e409032f4",
+  "completion_installed_sha": "8d6ac35dd17614b2cadb3aa3af7637c74280c01c",
+  "cohort_sha256": "4d8f9340e3fd5b62d7c5828bd889a9828d87c91a343a98b2d5db8c5de46b9fab",
+  "expected_parent_head": "f793943c6b32ae95ca002a792abc78a54103d45b",
+  "expected_actor": "pyatkoff",
+  "owner_pin": {
+    "comment_id": 6818332618,
+    "owner": "pyatkoff",
+    "updated_at": "2026-11-13T15:25:14Z",
+    "body_sha256": "90de12e3defd5f6d79c116d46f7f976e0ae6e6c84d1cd9e26a4d09658d6b2895",
+    "required_scope_line": "ACTIVE CONTENT — Pavel: «так исправляй!», 13 November. Same owner/scope: correct73 audited hotel pairs in place, then registry/feeds/price templates. Preserve prices/photos/buttons/URLs; no new posts, collector dispatch or MAIN deploy. Base carrier502298a; app5fbb619. Prior receipts retained below."
+  },
+  "original_caption": {
+    "run_id": 43455664622,
+    "head_sha": "ea88349442e926ea39b409347eb14635eb891760",
+    "run_attempt": 1,
+    "conclusion": "failure",
+    "job_id": 131989003936,
+    "artifact_id": 14054371257,
+    "artifact_name": "commercial-caption-review73-20261113-result",
+    "artifact_sha256": "ca308824dcf688d179d09705ffbc90752be6bec28124330a8bb842adb343e596"
+  },
+  "completion_caption": {
+    "run_id": 43463340468,
+    "head_sha": "f793943c6b32ae95ca002a792abc78a54103d45b",
+    "run_attempt": 1,
+    "conclusion": "success",
+    "artifact_id": 14057478292,
+    "artifact_name": "commercial-caption-review73-20261113-completion-result",
+    "artifact_sha256": "6555895a8bb9c2f88c9820964cc9a01c507f5f8685eb09c54bae553f0b5b6168",
+    "summary_sha256": "de463ecf8261b753b96b5f4059e65850606d414d8f7c1c9c2ed616b64dca3cbf"
+  },
+  "operations": [
+    {
+      "name": "canary",
+      "operation": "commercial-caption-review73-20261113-canary-v1",
+      "manifest_sha256": "65595a177031b4240ff0dcf757870ba2dc5a01132789e84bcd64080ce64ab14a",
+      "installed_sha": "5fbb61990706ae4289e539df2c26c60e409032f4",
+      "row_count": 8
+    },
+    {
+      "name": "batch001",
+      "operation": "commercial-caption-review73-20261113-batch001-v1",
+      "manifest_sha256": "870960c2dd9b17c43b07a83cd6fe484e3a41effe771a06537aa686646053b94d",
+      "installed_sha": "5fbb61990706ae4289e539df2c26c60e409032f4",
+      "row_count": 46
+    },
+    {
+      "name": "batch002",
+      "operation": "commercial-caption-review73-20261113-batch002-v1",
+      "manifest_sha256": "7a5ea2f4c469daf6851f4e6264ff57f6001265f8ea84c9a8dbc939d9d3cf610b",
+      "installed_sha": "8d6ac35dd17614b2cadb3aa3af7637c74280c01c",
+      "row_count": 46
+    },
+    {
+      "name": "batch003",
+      "operation": "commercial-caption-review73-20261113-batch003-v1",
+      "manifest_sha256": "ba694b939740a4e28388ca6cccc9e2d6d542703539e5f546d1d9961fe2c0e2e2",
+      "installed_sha": "8d6ac35dd17614b2cadb3aa3af7637c74280c01c",
+      "row_count": 46
+    }
+  ],
+  "original_manifest_sha256": {
+    "canary": "65595a177031b4240ff0dcf757870ba2dc5a01132789e84bcd64080ce64ab14a",
+    "batch001": "870960c2dd9b17c43b07a83cd6fe484e3a41effe771a06537aa686646053b94d",
+    "batch002": "ab928395858e39eecf579eb9cf1be5678c9353ffa12047a5254ce8239c31cde0",
+    "batch003": "24d3a28ffeae94ef7839c5a9331065d143fa74b393683f1cfd1f0e118408be5e"
+  },
+  "current_source_gates": {
+    "deploy.yml": 43456259794,
+    "retired-domain-guard.yml": 43456259765,
+    "max-tls-preflight.yml": 43458415792,
+    "telegram-production-health.yml": 43458412715,
+    "max-production-health.yml": 43458412674,
+    "publish-conversation-diagnostics.yml": 43458415744,
+    "live-session-diagnostics.yml": 43458412698,
+    "tour-selection-host.yml": 43458412489,
+    "modeled-conversion-monitor.yml": 43458412487
+  },
+  "source_scope": {
+    "literal_max_update_for_date": 18,
+    "approved_next_update": 19,
+    "source_ref": "f793943c6b32ae95ca002a792abc78a54103d45b",
+    "monitor_operation_namespace": "sha256_prefix14_hex_to_integer",
+    "runtime_absence_required": true
+  },
+  "source_admission": "existing_authorized_content_push",
+  "expected_feed_price_pairs": 274,
+  "expected_caption_price_pairs": 27,
+  "source_script_pins": {
+    "commercial-caption-review73-20261113-feed-contract.php": "a2e74fceb181dd226659449451cfd90fd2348b646833ea9c7a05f55834d6e5a8",
+    "commercial-caption-review73-20261113-feed-preparation.php": "34da59363d3e7dc6645cbad2248fad245f6132818b4438c3911474c75ecf944f",
+    "commercial-caption-review73-20261113-feed-prepare.php": "0497e56fa6bc9df50c8c18690731159a73e1d367a345eace5bad12a0487c3d0a",
+    "monitor-price-expanded-roster-20261111.json.gz": "69f704608e32c60686bf6cd21e736fe2a80d5eff27169460dded5380600a145e",
+    "commercial-caption-review73-20261113-price-runtime-fixture.json.gz.b64": "1262ae1fe3085e92f3c2c4850bf98855600780ca76ffb30d0b0cd33726064d8d",
+    "commercial-caption-review73-20261113-test-price-roster.php": "51423a247eeb2bcec6423c62a94fdc31bdd60aaa0340f9386c64c3b8f9dd67d9",
+    "commercial-caption-review73-20261113-price-roster-verification.json": "8794a31832b630b1d8519ba5e298d7fa51a2049b95261ce747c742c25927d0d7",
+    "commercial-caption-review73-20261113-feed-capture.php": "1826b14da463e9a6870bf9308e399b50a014aceea66aa93a35cda684083ea7e2",
+    "commercial-caption-review73-20261113-feed-readback.php": "e518ffc51d9e0cb055b10985b606d216cf1787f66db881226edb04a8cf443a40",
+    "commercial-caption-review73-20261113-feed-tools.py": "2ad457e01d5e9395b3911e1601542b537a9410c6da75e7c624ffc348c3cc846d",
+    "commercial-caption-review73-20261113-completion-contract.py": "5d6dc194ea3341bfc86e96882b0c9b8eb1d4cb159547ac5c1d43bd0c95f1fd6a",
+    "commercial-caption-review73-20261113-verify-content-source.py": "176db2d3162758bd45b15062b47031e4729e3ddaf8aac12dc29de8f14ae9f2ca",
+    "commercial-caption-review73-20261113-feed-inputs.json.gz.b64": "55f6c0c87e68b84d09be382fa5a44de0c9688e194dbc6743cc8896ee6abf12bb",
+    "monitor-price-contract.php": "ad20601d265e71d6cf58253bb6f263c1171a299130317f9ebbf7e576cf874fa7",
+    "publish-commercial-channel-hotel-feeds-20261103-1.php": "8609a2cf06d4a46738f934047d46744bdc54d3863e7c2921fdfec1a9be4b7a5e",
+    "verify-commercial-source.py": "5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb"
+  },
+  "price_validation": {
+    "roster_file": "monitor-price-expanded-roster-20261111.json.gz",
+    "roster_gzip_sha256": "69f704608e32c60686bf6cd21e736fe2a80d5eff27169460dded5380600a145e",
+    "roster_sha256": "3b5b25ec135a0d775d05c16e81f6388b7d4efacdf9c406fbb8b7dc8eee3ee70a",
+    "fixture_file": "commercial-caption-review73-20261113-price-runtime-fixture.json.gz.b64",
+    "fixture_base64_sha256": "1262ae1fe3085e92f3c2c4850bf98855600780ca76ffb30d0b0cd33726064d8d",
+    "fixture_gzip_sha256": "4c7dd8bc8019420c6bd193cf7865cdf5606ca8d4dc306a281625a2f876f727f7",
+    "fixture_sha256": "ef8226914d11e12078395853b2f244c0d46afa8c32ca3502d7ec5d2ab2ba9978",
+    "test_file": "commercial-caption-review73-20261113-test-price-roster.php",
+    "test_sha256": "51423a247eeb2bcec6423c62a94fdc31bdd60aaa0340f9386c64c3b8f9dd67d9",
+    "original_caption_run_id": 43455664622,
+    "completion_caption_run_id": 43463340468,
+    "rows": 604,
+    "editorial_pairs": 73,
+    "template_only_pairs": 3,
+    "unchanged_rows_byte_exact": 528,
+    "drafts_validated": 152,
+    "priced_baseline_pairs": 27,
+    "unpriced_pairs_without_baseline": 46,
+    "negative_admission_checks": 778,
+    "assertions": 2281
+  }
+}

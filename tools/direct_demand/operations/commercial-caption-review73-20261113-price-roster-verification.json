@@ -1,0 +1,1020 @@
+{
+  "ok": true,
+  "source_roster_sha256": "6dc7707734d0031b375268d400e65f7284707b159fe05670bd9199cfe62d0571",
+  "source_roster_ref": "82e0b81cb63c350d0ce404bc317c1fced28c5895",
+  "updated_roster_sha256": "3b5b25ec135a0d775d05c16e81f6388b7d4efacdf9c406fbb8b7dc8eee3ee70a",
+  "updated_roster_gzip_sha256": "69f704608e32c60686bf6cd21e736fe2a80d5eff27169460dded5380600a145e",
+  "original_caption_run_id": 43455664622,
+  "original_confirmed_posts": 54,
+  "completion_caption_run_id": 43463340468,
+  "first_execution_remaining_posts": 92,
+  "completion_head": "f793943c6b32ae95ca002a792abc78a54103d45b",
+  "completion_artifact_sha256": "6555895a8bb9c2f88c9820964cc9a01c507f5f8685eb09c54bae553f0b5b6168",
+  "editor_final_snapshot_sha256": "689b64da20ecbb0f7fc5c0a484ef594e018771d4507870a661b4c1d19fc9f9b2",
+  "editor_cohort_sha256": "4d8f9340e3fd5b62d7c5828bd889a9828d87c91a343a98b2d5db8c5de46b9fab",
+  "rows": 604,
+  "edited_rows": 76,
+  "editorial_rows": 73,
+  "template_only_rows": 3,
+  "unchanged_rows_byte_exact": 528,
+  "target_templates": 152,
+  "editorial_templates": 146,
+  "template_only_templates": 6,
+  "target_expected_hashes": 146,
+  "target_baseline_pairs": 27,
+  "added_baseline_pairs": 26,
+  "replaced_baseline_pairs": 1,
+  "previous_target_baseline_pairs": 1,
+  "unpriced_pairs_without_baseline": 46,
+  "total_baseline_pairs": 37,
+  "special_proofs_preserved": {
+    "legacy_proof": [
+      310,
+      469,
+      498,
+      1971,
+      1981
+    ],
+    "caption_proof": [
+      381,
+      67910,
+      68323
+    ]
+  },
+  "special_proof_target_intersection": [],
+  "identity_and_feed_bindings_unchanged": true,
+  "meal_introduction_splits": [
+    1196,
+    1368
+  ],
+  "price_template_cta": "Узнать стоимость тура",
+  "priced_hotel_ids": [
+    273,
+    365,
+    371,
+    1032,
+    1100,
+    1124,
+    1141,
+    1154,
+    1199,
+    1348,
+    2514,
+    2651,
+    2673,
+    2688,
+    3434,
+    5389,
+    9260,
+    12116,
+    28159,
+    49083,
+    55574,
+    57652,
+    71259,
+    74032,
+    117935,
+    68907,
+    932
+  ],
+  "unpriced_hotel_ids": [
+    512,
+    1142,
+    1196,
+    1203,
+    1440,
+    1493,
+    1585,
+    2791,
+    4071,
+    14133,
+    15872,
+    20971,
+    23766,
+    24778,
+    28509,
+    43236,
+    45496,
+    54605,
+    57039,
+    57082,
+    57650,
+    65020,
+    70032,
+    70033,
+    73055,
+    80605,
+    81154,
+    88750,
+    128087,
+    132002,
+    3469,
+    9321,
+    15693,
+    66564,
+    65895,
+    102031,
+    102774,
+    1260,
+    83563,
+    1368,
+    129406,
+    418,
+    497,
+    386,
+    8053,
+    32232
+  ],
+  "template_only_hotel_ids": [
+    2569,
+    22660,
+    73343
+  ],
+  "template_only_reason": {
+    "original_monitor_run_id": 43336135923,
+    "error": "monitor_text_conditions_mismatch",
+    "rejected_cta": "✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты."
+  },
+  "changed_fields": {
+    "273": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "365": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "371": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "512": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "1032": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "1100": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "1124": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "1141": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "1142": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "1154": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "1196": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "1199": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "1203": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "1348": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "1440": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "1493": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "1585": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "2514": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "2651": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "2673": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "2688": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "2791": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "3434": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "4071": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "5389": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "9260": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "12116": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "14133": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "15872": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "20971": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "23766": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "24778": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "28159": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "28509": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "43236": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "45496": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "49083": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "54605": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "55574": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "57039": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "57082": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "57650": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "57652": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "65020": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "70032": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "70033": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "71259": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "73055": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "74032": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "80605": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "81154": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "88750": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "117935": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "128087": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "132002": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "3469": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "9321": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "15693": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "66564": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "68907": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "65895": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "102031": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "102774": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "1260": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "83563": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "1368": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "129406": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "418": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "932": [
+      "caption_correction_baseline",
+      "expected_text_sha256",
+      "templates"
+    ],
+    "497": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "386": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "8053": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "32232": [
+      "expected_text_sha256",
+      "templates"
+    ],
+    "2569": [
+      "templates"
+    ],
+    "22660": [
+      "templates"
+    ],
+    "73343": [
+      "templates"
+    ]
+  },
+  "baseline_lineage": [
+    {
+      "tourvisor_hotel_id": 273,
+      "record_id": "508e0ea49b3e1b3b9f72535f173e34a052b6b6c40bc6e00fa58726463cad586e",
+      "original_journal_sha256": "a5ae7d72158290c37ccdf83bdbc348f76869dd4c0b8a569a32b00a1d26e5a52a",
+      "original_journal_bytes": 132089,
+      "baseline": {
+        "max": {
+          "publication_id": 320,
+          "version_id": 4407,
+          "text_sha256": "19af88b288da3609c77ecb783182ff48f8fb55e695e3fa203ccea8017f37f828",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        },
+        "telegram": {
+          "publication_id": 314,
+          "version_id": 4408,
+          "text_sha256": "19af88b288da3609c77ecb783182ff48f8fb55e695e3fa203ccea8017f37f828",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 365,
+      "record_id": "0dd14c809dc36bdd5a418afacf396d86a6807e1b91a8842bc8897cd75539fae9",
+      "original_journal_sha256": "3460bc450f9426eccbb6b9b8684e41d04023865b7c9b3b4b695b97fc77ec2945",
+      "original_journal_bytes": 117171,
+      "baseline": {
+        "max": {
+          "publication_id": 828,
+          "version_id": 4445,
+          "text_sha256": "7e2473e6174f84ceb7d5da5f0725e44b17b1478ee2682d98af861c6f9d73461d",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        },
+        "telegram": {
+          "publication_id": 818,
+          "version_id": 4446,
+          "text_sha256": "7e2473e6174f84ceb7d5da5f0725e44b17b1478ee2682d98af861c6f9d73461d",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 371,
+      "record_id": "0a0608af3b70f9a350ddc952ee3310806e73ffbf901b9ecb1ffc21291bb7cbcd",
+      "original_journal_sha256": "f163f74c90437f5d78b795defad5047b7f70a076eb281f3e94f290ad07d90ebc",
+      "original_journal_bytes": 131463,
+      "baseline": {
+        "max": {
+          "publication_id": 242,
+          "version_id": 4405,
+          "text_sha256": "d2cfb538f67690a92bed914a4a3ecba27fd1ad7275a758520ce993f2d4a421b5",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        },
+        "telegram": {
+          "publication_id": 232,
+          "version_id": 4406,
+          "text_sha256": "d2cfb538f67690a92bed914a4a3ecba27fd1ad7275a758520ce993f2d4a421b5",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 1032,
+      "record_id": "1588d3ae492b3ecc353b2a40037fbd68774d825bea570c4eafa5be28d9dbd69a",
+      "original_journal_sha256": "965ce14dcc18bb768e75636bc185de96f4a06ee42f4e8c102b3810a4fc02b7ee",
+      "original_journal_bytes": 132387,
+      "baseline": {
+        "max": {
+          "publication_id": 883,
+          "version_id": 4451,
+          "text_sha256": "8d2facce02a002370c56c0117a836b746561784a8a83e8532ae3e5c5f4f97dc6",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        },
+        "telegram": {
+          "publication_id": 873,
+          "version_id": 4452,
+          "text_sha256": "8d2facce02a002370c56c0117a836b746561784a8a83e8532ae3e5c5f4f97dc6",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 1100,
+      "record_id": "ff9e3cd95c0fe1d7ec8c08ba61a9d3577acffb18e5a8e9deff2a72bc9aa68101",
+      "original_journal_sha256": "f7e9ad1607d98854a0c07f7d593b140f48f13071fb3ae38927d5a910f2fd2a26",
+      "original_journal_bytes": 134107,
+      "baseline": {
+        "max": {
+          "publication_id": 436,
+          "version_id": 4415,
+          "text_sha256": "a1708afbf5fcf3d65e1055b6f9dc69d9485f49d36df7d8cffd2c56d70a12a973",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        },
+        "telegram": {
+          "publication_id": 434,
+          "version_id": 4416,
+          "text_sha256": "a1708afbf5fcf3d65e1055b6f9dc69d9485f49d36df7d8cffd2c56d70a12a973",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 1124,
+      "record_id": "cb3a50d9d793b02ba63a4f0e0a9735cab191fd0df4faadae549a7b1da4a266a3",
+      "original_journal_sha256": "b0003e13d6acc21a87a0ab03cea99d15623f3b4fbd8a26fea949cc2247b60c73",
+      "original_journal_bytes": 131425,
+      "baseline": {
+        "max": {
+          "publication_id": 944,
+          "version_id": 4461,
+          "text_sha256": "27638e53581f8cb1d014e1aa7608aad7afe9aabdc50fa84a3d3a915c37cbe705",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        },
+        "telegram": {
+          "publication_id": 935,
+          "version_id": 4462,
+          "text_sha256": "27638e53581f8cb1d014e1aa7608aad7afe9aabdc50fa84a3d3a915c37cbe705",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 1141,
+      "record_id": "330378932eeb5aa99fe33a5a3754e2cfc6b635575d6b14ba544408503185970e",
+      "original_journal_sha256": "07f0de508926c01396dea59f64d5115c9b703d09a1d8e4d808b8ba87a8c353a1",
+      "original_journal_bytes": 130951,
+      "baseline": {
+        "max": {
+          "publication_id": 790,
+          "version_id": 4399,
+          "text_sha256": "54c5ef4b0ec1224488685d5e4e65837f3cdb52d5aadee68921748b0759ec1dc7",
+          "operation": "commercial-caption-review73-20261113-canary-v1"
+        },
+        "telegram": {
+          "publication_id": 782,
+          "version_id": 4400,
+          "text_sha256": "54c5ef4b0ec1224488685d5e4e65837f3cdb52d5aadee68921748b0759ec1dc7",
+          "operation": "commercial-caption-review73-20261113-canary-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 1154,
+      "record_id": "79b2ae04522922038463ba95d6b0b85be6979f4b394ab58e20ca110d5f1d63f2",
+      "original_journal_sha256": "07b34c59a20a3829abcb37743931b390de85db2fe4719e5f14788274779177d5",
+      "original_journal_bytes": 129839,
+      "baseline": {
+        "max": {
+          "publication_id": 940,
+          "version_id": 4459,
+          "text_sha256": "fb49e4842857ce2e1293535772cc1c64e78b45ecb6689fdf366f6778e3528f61",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        },
+        "telegram": {
+          "publication_id": 931,
+          "version_id": 4460,
+          "text_sha256": "fb49e4842857ce2e1293535772cc1c64e78b45ecb6689fdf366f6778e3528f61",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 1199,
+      "record_id": "49a654a4f6b8e456c9e19445244bc506662b0736ea1ab31b5f57bf52949e61b3",
+      "original_journal_sha256": "f124009eb6d9deccff1f7ccaebd4600a5df08a4614a9208a42ab08150368ac8f",
+      "original_journal_bytes": 130053,
+      "baseline": {
+        "max": {
+          "publication_id": 409,
+          "version_id": 4413,
+          "text_sha256": "b6acfd68baa643ae0c9234b9771740327c216961f59f1614507bb3043a8608a2",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        },
+        "telegram": {
+          "publication_id": 407,
+          "version_id": 4414,
+          "text_sha256": "b6acfd68baa643ae0c9234b9771740327c216961f59f1614507bb3043a8608a2",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 1348,
+      "record_id": "e64527496d1fc0641e6fa615157b19755fdaa78e9a05736c788a7f23bf69a88a",
+      "original_journal_sha256": "7a12b050a30359d1e4e1e9c3dfe983e561045cd41bc98d8a048d74502143813c",
+      "original_journal_bytes": 130373,
+      "baseline": {
+        "max": {
+          "publication_id": 406,
+          "version_id": 4411,
+          "text_sha256": "54cda372391d32b039990d2764837cc97adbd15c96c5cbe98987f4b3abf85d09",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        },
+        "telegram": {
+          "publication_id": 404,
+          "version_id": 4412,
+          "text_sha256": "54cda372391d32b039990d2764837cc97adbd15c96c5cbe98987f4b3abf85d09",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 2514,
+      "record_id": "b5d33662f4110b9bc5f4fb982e2293754214cd55e81b4ac63a55f9efae2abc99",
+      "original_journal_sha256": "e34e46e61747953206467e80b91eb0d3d38500e59a66b2e1c54812fee52935ec",
+      "original_journal_bytes": 134979,
+      "baseline": {
+        "max": {
+          "publication_id": 962,
+          "version_id": 4469,
+          "text_sha256": "ffbe0bb43b5113a678cbc2b30fcfc26de80fc91c63b2ad5a16baf228732fa78f",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        },
+        "telegram": {
+          "publication_id": 952,
+          "version_id": 4470,
+          "text_sha256": "ffbe0bb43b5113a678cbc2b30fcfc26de80fc91c63b2ad5a16baf228732fa78f",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 2651,
+      "record_id": "3c6637d73d3424159b7d01b9ffcf2e2051fc3fbae084bb645c7b259c33413d11",
+      "original_journal_sha256": "cf35ed5eacaccd8939262e1231f43cc00752938b72c1260d8d4751afb50f832d",
+      "original_journal_bytes": 123238,
+      "baseline": {
+        "max": {
+          "publication_id": 957,
+          "version_id": 4463,
+          "text_sha256": "90b5cd530c976abf492edf982f2d07b2f06222da7e5af521ea79f41f744cbc1b",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        },
+        "telegram": {
+          "publication_id": 947,
+          "version_id": 4464,
+          "text_sha256": "90b5cd530c976abf492edf982f2d07b2f06222da7e5af521ea79f41f744cbc1b",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 2673,
+      "record_id": "8285cd6e0614888e88394a60254e603965c404cf0e8bcc9ae3ecca88f56db559",
+      "original_journal_sha256": "6d8083eafdf2ecafcd1cc76d82e4735a8e911d411ca8a772e666f1edcdaa563e",
+      "original_journal_bytes": 135619,
+      "baseline": {
+        "max": {
+          "publication_id": 958,
+          "version_id": 4465,
+          "text_sha256": "10d6fd65892767f6adfeff22a8e67849514b12d74c1b1001d83b361f0dbd980a",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        },
+        "telegram": {
+          "publication_id": 948,
+          "version_id": 4466,
+          "text_sha256": "10d6fd65892767f6adfeff22a8e67849514b12d74c1b1001d83b361f0dbd980a",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 2688,
+      "record_id": "070698a05243d0cc3cbdf4ee41543e5e5f6ef443e48342e213198f9fb4766006",
+      "original_journal_sha256": "adcace393961ad16be5ce925584d4d80527625c1e2b75e52bde78cc8d25d26ae",
+      "original_journal_bytes": 125223,
+      "baseline": {
+        "max": {
+          "publication_id": 960,
+          "version_id": 4467,
+          "text_sha256": "f5167a4296fd563afa741e795e5107c9421c1dc10bb246c773485e2c0a15c419",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        },
+        "telegram": {
+          "publication_id": 950,
+          "version_id": 4468,
+          "text_sha256": "f5167a4296fd563afa741e795e5107c9421c1dc10bb246c773485e2c0a15c419",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 3434,
+      "record_id": "403f3b021d5574cf31fb9acdc258656773da376de363e26bfeab73b811c2b5f9",
+      "original_journal_sha256": "8c9f17955bc27cc26235ad178574686e539345d3b3667a125168dc3ee7d4f1c4",
+      "original_journal_bytes": 134975,
+      "baseline": {
+        "max": {
+          "publication_id": 832,
+          "version_id": 4447,
+          "text_sha256": "911ba744a89a763a3d3aee8e365278229bd058912f42ad2e683e4e689809b0c2",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        },
+        "telegram": {
+          "publication_id": 822,
+          "version_id": 4448,
+          "text_sha256": "911ba744a89a763a3d3aee8e365278229bd058912f42ad2e683e4e689809b0c2",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 5389,
+      "record_id": "260a288ab81efe969d8d4e3da1406cc69542f3cadde75d7169b77af95290d0c7",
+      "original_journal_sha256": "ef6b658e0e7f78441122d02fb7b10a112fc0f974929a9e7951591ca9e56aa793",
+      "original_journal_bytes": 135179,
+      "baseline": {
+        "max": {
+          "publication_id": 1134,
+          "version_id": 4509,
+          "text_sha256": "1ed21dd802fa907a6956e55fd48cb8eeb26f8e34b219d488824499e2fa1674f2",
+          "operation": "commercial-caption-review73-20261113-batch003-v1"
+        },
+        "telegram": {
+          "publication_id": 1125,
+          "version_id": 4510,
+          "text_sha256": "1ed21dd802fa907a6956e55fd48cb8eeb26f8e34b219d488824499e2fa1674f2",
+          "operation": "commercial-caption-review73-20261113-batch003-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 9260,
+      "record_id": "4a9908f8bb5cdad7def9b9225e184e9321eac9e30b01e4ffbac86a80f15a02bc",
+      "original_journal_sha256": "78970cfe18dcde93f3c5881f46cd906a1f4d5041ca83a1ecbe0132771b63a0bd",
+      "original_journal_bytes": 131415,
+      "baseline": {
+        "max": {
+          "publication_id": 1041,
+          "version_id": 4479,
+          "text_sha256": "5eaa1e2394a0c96ff9ba3c1a1198b18a23a94e56c27d524422a4601303823e3d",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        },
+        "telegram": {
+          "publication_id": 1034,
+          "version_id": 4480,
+          "text_sha256": "5eaa1e2394a0c96ff9ba3c1a1198b18a23a94e56c27d524422a4601303823e3d",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 12116,
+      "record_id": "2697fb5a81e95c789a446ba6f56b9473fac898b9aec4309baf6b61aae4ff96d7",
+      "original_journal_sha256": "04f6bc6288807ca8cc59b5824231639b3bd9879480f878f58404c7f3476d8630",
+      "original_journal_bytes": 133921,
+      "baseline": {
+        "max": {
+          "publication_id": 354,
+          "version_id": 4409,
+          "text_sha256": "82293ecfe78483d5218e226c95d2e9553364bd3bd4524db37fcf01fb59a75fd1",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        },
+        "telegram": {
+          "publication_id": 350,
+          "version_id": 4410,
+          "text_sha256": "82293ecfe78483d5218e226c95d2e9553364bd3bd4524db37fcf01fb59a75fd1",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 28159,
+      "record_id": "662a9955777b85b524dca59d44b0505fb73cbbc3c32a9e4eaa262b95c25d8cac",
+      "original_journal_sha256": "bc63fc126d6cefca7ec8827e359c26a1521f001da6a17229f96bdee001f9512d",
+      "original_journal_bytes": 142305,
+      "baseline": {
+        "max": {
+          "publication_id": 792,
+          "version_id": 4441,
+          "text_sha256": "cd2970929b68335b6f97034eef8a81e7390ff78b7087be685f8c486290653cfa",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        },
+        "telegram": {
+          "publication_id": 784,
+          "version_id": 4442,
+          "text_sha256": "cd2970929b68335b6f97034eef8a81e7390ff78b7087be685f8c486290653cfa",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 49083,
+      "record_id": "98037b8e2e1b5bb29019b55c4de8bdb701c766600660267b72b6b3b3e7d83ed3",
+      "original_journal_sha256": "4c3e475a7c743634b8468618a4fe6b81cb74aa2caead91e5cacaa78abd1bfc16",
+      "original_journal_bytes": 132147,
+      "baseline": {
+        "max": {
+          "publication_id": 1027,
+          "version_id": 4477,
+          "text_sha256": "88d3aa23c31165bf3d59e8834d9ea064a044618ab26f344c8a02c89a5e7ab63a",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        },
+        "telegram": {
+          "publication_id": 1017,
+          "version_id": 4478,
+          "text_sha256": "88d3aa23c31165bf3d59e8834d9ea064a044618ab26f344c8a02c89a5e7ab63a",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 55574,
+      "record_id": "621404c273ba223ab99c7ee58f4e4db8c732c7108d93e529758b0afea71dfaf0",
+      "original_journal_sha256": "227721b9baae9ce51e8e102c528852cd441a13745642c4ae4f89dc5fb141b8ac",
+      "original_journal_bytes": 135275,
+      "baseline": {
+        "max": {
+          "publication_id": 218,
+          "version_id": 4397,
+          "text_sha256": "32d580289b59862ae476124e62a6471da632b734f1463bde76940c7035e91504",
+          "operation": "commercial-caption-review73-20261113-canary-v1"
+        },
+        "telegram": {
+          "publication_id": 214,
+          "version_id": 4398,
+          "text_sha256": "32d580289b59862ae476124e62a6471da632b734f1463bde76940c7035e91504",
+          "operation": "commercial-caption-review73-20261113-canary-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 57652,
+      "record_id": "b1b64dfb7bacbbe736318f088329ebb6731cc7514047214a4cb47d81a81dbb6b",
+      "original_journal_sha256": "7df1cac98764c32596bff6e6364a17531ca766e624ebfa500999bb0cf7a573b3",
+      "original_journal_bytes": 135673,
+      "baseline": {
+        "max": {
+          "publication_id": 1090,
+          "version_id": 4495,
+          "text_sha256": "8cfee4d76d2c7ceae5bcb62b98c4642d1ee117bcd4b968c0408007a412d64f83",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        },
+        "telegram": {
+          "publication_id": 1080,
+          "version_id": 4496,
+          "text_sha256": "8cfee4d76d2c7ceae5bcb62b98c4642d1ee117bcd4b968c0408007a412d64f83",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 71259,
+      "record_id": "2d93f9c737dc2b1e432a47375c8b79c7a0883effa25a5d6cb474ec4d6b8b7106",
+      "original_journal_sha256": "98276f38f755b193ff5ae7d12498f2812e2a8c01faece7c61e7f0047dfb7e019",
+      "original_journal_bytes": 133985,
+      "baseline": {
+        "max": {
+          "publication_id": 1063,
+          "version_id": 4401,
+          "text_sha256": "fd3edab9fe18438e7870ae9f4ef34cf62cc7da60137ea8e48a41e2953d28526a",
+          "operation": "commercial-caption-review73-20261113-canary-v1"
+        },
+        "telegram": {
+          "publication_id": 1053,
+          "version_id": 4402,
+          "text_sha256": "fd3edab9fe18438e7870ae9f4ef34cf62cc7da60137ea8e48a41e2953d28526a",
+          "operation": "commercial-caption-review73-20261113-canary-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 74032,
+      "record_id": "e875f7e9ae6b3552c24c444e2098b30ccb1dbd4e92d8d56397874b58fa82423e",
+      "original_journal_sha256": "8cce2e0035064eefd738558f1a3b235f4652f9eca66bdefeca1c50a0e743981c",
+      "original_journal_bytes": 142891,
+      "baseline": {
+        "max": {
+          "publication_id": 775,
+          "version_id": 4435,
+          "text_sha256": "082e547e96ce1e112af3f2125bce5351674ea641cfd435d462d2844f5a567027",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        },
+        "telegram": {
+          "publication_id": 765,
+          "version_id": 4436,
+          "text_sha256": "082e547e96ce1e112af3f2125bce5351674ea641cfd435d462d2844f5a567027",
+          "operation": "commercial-caption-review73-20261113-batch001-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 117935,
+      "record_id": "007a0455facf1361ba3a62d19183d4166d615c3a931fc93d67373106fe094a29",
+      "original_journal_sha256": "7cc3d30060edf0bef3b40e592c6192958ecfd0ebbb7909d4b2b064f6c87d2763",
+      "original_journal_bytes": 99065,
+      "baseline": {
+        "max": {
+          "publication_id": 1064,
+          "version_id": 4481,
+          "text_sha256": "edc84f118673182eddd3b94b5e6dfb311688f9eb7b98cf953f4def3c8a27e9fb",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        },
+        "telegram": {
+          "publication_id": 1054,
+          "version_id": 4482,
+          "text_sha256": "edc84f118673182eddd3b94b5e6dfb311688f9eb7b98cf953f4def3c8a27e9fb",
+          "operation": "commercial-caption-review73-20261113-batch002-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 68907,
+      "record_id": "4ee9a811b57f7df21940031daf80e66b02e4c9bc4cebd9f8c9f290e63ba9e15a",
+      "original_journal_sha256": "d7856a6dc372d3144e5cd656992de4d723e14aea8604e70f16e7ceaea427a20e",
+      "original_journal_bytes": 145785,
+      "baseline": {
+        "max": {
+          "publication_id": 1198,
+          "version_id": 4521,
+          "text_sha256": "7861ad5344c6e2a37f9b963e58c2e2ad58fa3e7cd2be05b1e5c9f24af2174e43",
+          "operation": "commercial-caption-review73-20261113-batch003-v1"
+        },
+        "telegram": {
+          "publication_id": 1195,
+          "version_id": 4522,
+          "text_sha256": "7861ad5344c6e2a37f9b963e58c2e2ad58fa3e7cd2be05b1e5c9f24af2174e43",
+          "operation": "commercial-caption-review73-20261113-batch003-v1"
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 932,
+      "record_id": "14d049b007806b1b224da339fb31cff3dc9d5f96aa91bccf12857b23e6e7fa0b",
+      "original_journal_sha256": "0384c1e8bf9f92c4f4985e91631c23a9100365d1b86a902b1bc107ef16182ad3",
+      "original_journal_bytes": 144101,
+      "baseline": {
+        "max": {
+          "publication_id": 1281,
+          "version_id": 4539,
+          "text_sha256": "2d38e35ec92f9866a7de7bedb871c1ad829b8098b5197619387c86ceeea88e66",
+          "operation": "commercial-caption-review73-20261113-batch003-v1"
+        },
+        "telegram": {
+          "publication_id": 1273,
+          "version_id": 4540,
+          "text_sha256": "2d38e35ec92f9866a7de7bedb871c1ad829b8098b5197619387c86ceeea88e66",
+          "operation": "commercial-caption-review73-20261113-batch003-v1"
+        }
+      }
+    }
+  ],
+  "source_contract_pins": {
+    "monitor-price-contract.php": "ad20601d265e71d6cf58253bb6f263c1171a299130317f9ebbf7e576cf874fa7",
+    "monitor-price-hook-contract.php": "636c8e330009782d163e763d5c0d18859339f16085409d75cd1bbdb5de7834b2",
+    "build-monitor-price-hook.py": "8baaf6c1b196a6e82110335c6155a7cb88e236ff6de1b97b0511b1d6740c325b",
+    "collect-anytour-tours.yml": "bdae2ee9860600a205fd26aa36fd1c7d0585d4f8b74fc07a589e641e67e7974c"
+  },
+  "core_changes": 0,
+  "external_writes": 0,
+  "supplier_calls": 0,
+  "runtime_contract_tests": "required with native PHP before release"
+}
