@@ -1,4 +1,4 @@
-name: Publish the approved AnyTour hotel batch in both channels
+name: Qualified original four hotel publication after exact reader pin correction
 permissions:
   contents: read
   actions: read
@@ -19,6 +19,36 @@ jobs:
       with:
         ref: ${{ github.sha }}
         persist-credentials: false
+    - name: Authenticate original zero-write preflight failure before one qualified first send
+      env:
+        GH_TOKEN: ${{ github.token }}
+      shell: bash
+      run: 'set -euo pipefail
+
+        python3 - <<''PYCODE''
+
+        import json,subprocess
+
+        r=json.loads(subprocess.check_output([''gh'',''api'',''repos/pyatkoff/max-search-bot/actions/runs/43357850083'']))
+
+        assert r[''run_attempt'']==1 and r[''status'']==''completed'' and r[''conclusion'']==''failure'' and r[''head_sha'']==''8d8fa6e5ec1cb8b0f8f0060961dc5c6b473b7a61''
+
+        j=json.loads(subprocess.check_output([''gh'',''api'',''repos/pyatkoff/max-search-bot/actions/runs/43357850083/jobs?per_page=20'']));assert
+        j[''total_count'']==1
+
+        steps={s[''name'']:s for s in j[''jobs''][0][''steps'']}
+
+        assert steps[''Prepare and validate the exact sender and bounded read''][''conclusion'']==''failure''
+
+        for name in [''Retain exact approved inputs before any channel write'',''Prepare existing server connection'',''Pin
+        existing server host-key continuity'',''Publish the exact approved hotel posts with canonical buttons and
+        no duplicates'',''Read only the confirmed canonical pairs and native MAX bindings'']:assert steps[name][''conclusion'']==''skipped'',name
+
+        print(''ORIGINAL_UNSTARTED_SEND_PROVED same_operation=1 provider_actions=0'')
+
+        PYCODE
+
+        '
     - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
       env:
         GH_TOKEN: ${{ github.token }}
@@ -89,7 +119,7 @@ jobs:
 
         assert hashlib.sha256((base/''prepare-commercial-batch.py'').read_bytes()).hexdigest()==''b3b46889004a992351f681032400dc6da04a36b756a27ba54af41275cc531f1d''
 
-        pins={''prepare-publication-tail.py'': ''0de4315c4480274d66dcc560cf7cef4280422ede369ee7c7d858b9f5a73d1f38''}
+        pins={''prepare-publication-tail.py'': ''6db0ef9d8bb51d897387140c6f5c1d9e5b68bc33ffff41c9cea98621c927c4b8''}
 
         for name,sha in pins.items():assert hashlib.sha256((base/name).read_bytes()).hexdigest()==sha,name
 
@@ -163,8 +193,8 @@ jobs:
         print(json.dumps({'new_post_urls':[{'platform':p['platform'],'logical_id':p['logical_id'],'post_url':p['post_url'],'verified':p['body_photo_button_verified']}\
         \ for p in d.get('posts',[])]},ensure_ascii=False))\nassert d['operation']=='commercial-hotel-batch-20261113-10-v1'\
         \ and d['mode']=='publish_approved_commercial_batch'\nassert d['ok'] is True and len(d['posts'])==16\nassert\
-        \ d['post_write_attempts']<=8 and d['new_posts']<=8\nassert len({(p['platform'],p['logical_id']) for p\
-        \ in d['posts']})==16\nassert all(p['body_photo_button_verified'] and p['button_text']=='\u2708\uFE0F \u0423\
+        \ d['post_write_attempts']<=8 and d['new_posts']<=8\nassert len({(p['platform'],p['logical_id']) for p in\
+        \ d['posts']})==16\nassert all(p['body_photo_button_verified'] and p['button_text']=='\u2708\uFE0F \u0423\
         \u0437\u043D\u0430\u0442\u044C \u0441\u0442\u043E\u0438\u043C\u043E\u0441\u0442\u044C \u0442\u0443\u0440\
         \u0430' for p in d['posts'])\nPY\ntest \"${probe_status:-0}\" = 0\n"
     - name: Read only the confirmed canonical pairs and native MAX bindings
@@ -177,8 +207,8 @@ jobs:
         $RUNNER_TEMP/channel_known_hosts\" \"$DEPLOY_USER@$DEPLOY_HOST\" \"set -e; cd /var/www/anytoour/data/www/app.anytoour.ru;\
         \ php\" < \"$RUNNER_TEMP/channel-feed-read.php\" > \"$RUNNER_TEMP/channel-feed-read.json\" || read_status=$?\n\
         python3 - <<'PYREAD'\nimport json,os,pathlib\np=pathlib.Path(os.environ['RUNNER_TEMP'])\nreceipt=json.loads((p/'channel-preflight.json').read_text().splitlines()[-1])\n\
-        d=json.loads((p/'channel-feed-read.json').read_text().splitlines()[-1])\nids=[1330,983,497,231]\n\
-        assert d['ok'] is True and d['operation']=='commercial-channel-hotel-feeds-20261113-read10'\nassert d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']\n\
+        d=json.loads((p/'channel-feed-read.json').read_text().splitlines()[-1])\nids=[1330,983,497,231]\nassert\
+        \ d['ok'] is True and d['operation']=='commercial-channel-hotel-feeds-20261113-read10'\nassert d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']\n\
         assert d['scope_hotels']==d['feed_rows']==d['private_binding_count']==4 and d['deferred_count']==0\nassert\
         \ [r['hotel_id'] for r in d['rows']]==[r['hotel_id'] for r in d['private_max_bindings']]==ids\nassert all(d[k]==0\
         \ for k in ('db_writes','provider_calls','message_sends'))\nby_pair={(r['hotel_id'],r['platform']):r for\

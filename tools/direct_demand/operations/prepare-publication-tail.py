@@ -5,7 +5,7 @@ import argparse,base64,datetime,hashlib,json,os,re,subprocess,tempfile
 from pathlib import Path
 
 PREFIX="<?php\ndeclare(strict_types=1);\n"
-READER_SHA256="428644627174c95bc2c05216d8c33b66c9eefd4cff61a9e1fc22eda9c0fc7d72"
+READER_SHA256="4b066afc72cd60cbda911cb0dd91db0a06209731685f0cd7231f647a92a0500c"
 NAMES=("hotel-posts-telegram.xml","hotel-posts-max.xml","hotel-posts-all.xml")
 def require(ok,why):
  if not ok:raise ValueError(why)
