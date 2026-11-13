@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "ready": true,
+  "operation": "commercial-channel-hotel-feeds-20261113-update9",
+  "current_installed_sha": "498c5a752cd6f99c2d0e8c343dc5d44b9e80843f",
+  "cohort_installed_sha": "8d3dfec0e6bce70e16b8717312d5dd6faf954fc1",
+  "cohort_sha256": "070c9c2d084ae2b6199d8ece0e037b15ffca22c6ef7f9f5d444a1aba5b8dd456",
+  "expected_parent_head": "038ae01b7d4eb9ffc9d895e1512af2d8b74a3d93",
+  "expected_actor": "pyatkoff",
+  "owner_pin": {
+    "comment_id": 6818332618,
+    "owner": "pyatkoff",
+    "updated_at": "2026-11-12T23:58:09Z",
+    "body_sha256": "bf826adc4c8b98cab68e3c02ac9e047456217b8729767a9d052c8ee51fadefeb",
+    "required_scope_line": "### 13 ноября 2026, 02:57 МСК — исправление 88 гостиничных пар IN_PROGRESS: 176 постов DONE, завершается синхронизация источников и фидов"
+  },
+  "original_caption": {
+    "run_id": 43327630710,
+    "head_sha": "ee73041f93353b002c5561ead612603b2d1ff134",
+    "run_attempt": 1,
+    "conclusion": "failure",
+    "job_id": 131564009766,
+    "artifact_id": 13994670839,
+    "artifact_name": "commercial-caption-repair-20261113-result",
+    "artifact_sha256": "868fec5bcb1da175358ac60ce73eb3d40ae19c41aa41b951cc29e07550f47e6f"
+  },
+  "completion_caption": {
+    "run_id": 43331221181,
+    "head_sha": "c49369f4cd2bc4234495bf12bf7f283c4ef6b43f",
+    "run_attempt": 1,
+    "conclusion": "success",
+    "artifact_id": 13994523685,
+    "artifact_name": "commercial-caption-repair-20261113-completion-result",
+    "artifact_sha256": "9e6926275edf9d5a6d7c15b23ff3b9f11253fb240519ea077cf30f8daaed4ba9",
+    "summary_sha256": "e11c1ea79331be5c117ee2139091fe9b96bc5313d71745218a8506f38ef115f0"
+  },
+  "operations": [
+    {
+      "name": "canary",
+      "operation": "commercial-caption-repair-20261113-canary-v1",
+      "manifest_sha256": "bc70032250007ada73ce141a88b2c7dd2e7d6c82b78566033bb86d2c01d593fa",
+      "installed_sha": "8d3dfec0e6bce70e16b8717312d5dd6faf954fc1",
+      "row_count": 8
+    },
+    {
+      "name": "batch001",
+      "operation": "commercial-caption-repair-20261113-batch001-v1",
+      "manifest_sha256": "244d66a133c02417ed2004a1978cac1d84541166bb1ae3be0e2a3dab211d7b5e",
+      "installed_sha": "8d3dfec0e6bce70e16b8717312d5dd6faf954fc1",
+      "row_count": 50
+    },
+    {
+      "name": "batch002",
+      "operation": "commercial-caption-repair-20261113-batch002-v1",
+      "manifest_sha256": "e2b49edb8c63209ef1f9e3c37500e1a9b4ce5e2bd9586b29f9e024198f676341",
+      "installed_sha": "8d3dfec0e6bce70e16b8717312d5dd6faf954fc1",
+      "row_count": 50
+    },
+    {
+      "name": "batch003",
+      "operation": "commercial-caption-repair-20261113-batch003-v1",
+      "manifest_sha256": "1c74c9411f5d8488a246c99b6b3f812df19fab36f26ff4cb24e287dd147a425e",
+      "installed_sha": "8d3dfec0e6bce70e16b8717312d5dd6faf954fc1",
+      "row_count": 50
+    },
+    {
+      "name": "batch004",
+      "operation": "commercial-caption-repair-20261113-batch004-v1",
+      "manifest_sha256": "98a3b0e33e770bdfb60f6d3b34dc72ad2c1f0bb9e94d0c1e55ce8af6b1e92524",
+      "installed_sha": "85b500236de471f62fde547e5f799d12509e47c4",
+      "row_count": 18
+    }
+  ],
+  "source_scope": {
+    "literal_max_update_for_date": 8,
+    "approved_next_update": 9,
+    "source_ref": "ee73041f93353b002c5561ead612603b2d1ff134",
+    "monitor_operation_namespace": "sha256_prefix14_hex_to_integer",
+    "runtime_absence_required": true
+  },
+  "source_script_pins": {
+    "caption-feed-contract.php": "8115c974a3bd23da88b14339826929185b1765d6f4cbbe0a705e96fb25dc45e0",
+    "caption-feed-preparation.php": "1a75898f1fb41794e4bec627a8c46c87cc248454e705c55b32d89f1775484465",
+    "publish-commercial-channel-hotel-feeds-20261103-1.php": "8609a2cf06d4a46738f934047d46744bdc54d3863e7c2921fdfec1a9be4b7a5e",
+    "commercial-caption-repair-20261113-feed-capture.php": "1826b14da463e9a6870bf9308e399b50a014aceea66aa93a35cda684083ea7e2",
+    "commercial-caption-repair-20261113-feed-prepare.php": "37ef41af9dcce00a088e82a96fbc13a7d775dced98d65a3255e408b8f07038cb",
+    "commercial-caption-repair-20261113-feed-readback.php": "e518ffc51d9e0cb055b10985b606d216cf1787f66db881226edb04a8cf443a40",
+    "commercial-caption-repair-20261113-feed-tools.py": "e7d76357b89c3d567df298e2153b600ac4147519f9c968c7c6ec720adbd14c92",
+    "commercial-caption-repair-20261113-complete-unstarted-batch.py": "494e065eaa7b0bfe802903536e75a4c1c59a357fac1451302c11f545323d3b3e",
+    "commercial-caption-repair-20261113-inputs.json.gz.b64": "66f3238c74e256967e6c50b8e4abd2d0a7c865bc8b881ea99bc40cd22e8305f0",
+    "monitor-price-contract.php": "62e8ab1ab0c08eea9dd42ac6dbb362f0015e397e90e2617d7f44aa6be0c7f690"
+  },
+  "completion_installed_sha": "85b500236de471f62fde547e5f799d12509e47c4"
+}

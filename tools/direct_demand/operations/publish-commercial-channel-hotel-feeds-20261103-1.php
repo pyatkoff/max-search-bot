@@ -119,14 +119,19 @@ if(getenv('ANYTOUR_STATIC_FEED_UPDATE_FIXTURE')==='1'){
  echo "STATIC_FEED_UPDATE_PREPARATION_OK cases=10 exact_previous_hash=required unknown_previous=rejected missing_previous=stopped post_write_reconcile=reused provider_calls=0 server_calls=0 writes=0\n";exit;
 }
 
+$captionLocks=[];
 $out=['operation'=>PUBLIC_STATIC_FEED_OPERATION,'mode'=>'publish_three_static_public_direct_yml_feeds','ok'=>false,'db_writes'=>0,'provider_calls'=>0,'message_sends'=>0,'files'=>[]];
 try{
  upload_insist(PHP_SAPI==='cli'&&trim((string)shell_exec('git rev-parse HEAD'))===EXPECTED_INSTALLED_SHA,'installed_source_changed');
  upload_insist(trim((string)shell_exec('git status --porcelain --untracked-files=no'))==='','tracked_tree_not_clean');
  $raw=base64_decode(PUBLIC_STATIC_FEED_INPUT_B64,true);upload_insist(is_string($raw)&&hash('sha256',$raw)===PUBLIC_STATIC_FEED_INPUT_SHA256,'static_input_changed');
- $input=json_decode($raw,true,32,JSON_THROW_ON_ERROR);$monitorMode=($input['schema_version']??null)===3;$extensionMode=($input['schema_version']??null)===4;
- upload_insist(array_keys($input)===($monitorMode?['schema_version','operation','files','generated_at','price_updates']:($extensionMode?['schema_version','operation','files','generated_at','publication_updates','route_receipt_base64']:['schema_version','operation','files']))&&in_array($input['schema_version'],[2,3,4],true)&&$input['operation']===$out['operation'],'static_input_schema');
- $priceUpdates=[];$generatedAt=0;
+ $input=json_decode($raw,true,32,JSON_THROW_ON_ERROR);$monitorMode=($input['schema_version']??null)===3;$extensionMode=($input['schema_version']??null)===4;$captionMode=($input['schema_version']??null)===5;
+ upload_insist(array_keys($input)===($monitorMode?['schema_version','operation','files','generated_at','price_updates']:($extensionMode?['schema_version','operation','files','generated_at','publication_updates','route_receipt_base64']:($captionMode?['schema_version','operation','files','generated_at','caption_operations','caption_updates']:['schema_version','operation','files'])))&&in_array($input['schema_version'],[2,3,4,5],true)&&$input['operation']===$out['operation'],'static_input_schema');
+ $priceUpdates=[];$captionUpdates=[];$generatedAt=0;
+ if($captionMode){
+  $generatedAt=monitor_price_time($input['generated_at']);
+  upload_insist($generatedAt<=time()+60&&$generatedAt>=time()-900&&is_array($input['caption_operations'])&&is_array($input['caption_updates']),'caption_feed_input_invalid');
+ }
  if($monitorMode){
   $generatedAt=monitor_price_time($input['generated_at']);upload_insist($generatedAt<=time()+60&&$generatedAt>=time()-900&&is_array($input['price_updates'])&&count($input['price_updates'])>=1&&count($input['price_updates'])<=100,'monitor_feed_input_invalid');
   $seen=[];foreach($input['price_updates'] as $binding){
@@ -150,16 +155,21 @@ try{
 
  $names=['hotel-posts-telegram.xml','hotel-posts-max.xml','hotel-posts-all.xml'];upload_insist(array_column($input['files'],'name')===$names,'static_scope_changed');
  $root=realpath(getcwd());upload_insist(is_string($root)&&$root==='/var/www/anytoour/data/www/app.anytoour.ru','document_root_changed');
+ if($captionMode){
+  if(!function_exists('caption_feed_admit'))require_once __DIR__.'/caption-feed-contract.php';
+  $captionUpdates=caption_feed_admit($input,EXPECTED_INSTALLED_SHA,$captionLocks);
+ }
  $dir=$root.'/feed';upload_insist(!is_link($dir),'feed_directory_symlink');
+ if($captionMode)upload_insist(is_dir($dir)&&realpath($dir)===$dir,'caption_feed_directory_missing');
  if(!is_dir($dir))upload_insist(mkdir($dir,0755),'feed_directory_create_failed');
  upload_insist(realpath($dir)===$dir&&is_writable($dir),'feed_directory_not_writable');
  $prepared=[];
  foreach($input['files'] as $r){
-  upload_insist(array_keys($r)===($extensionMode?['name','sha256','bytes','rows','expected_previous_sha256','content_base64','previous_content_base64']:['name','sha256','bytes','rows','expected_previous_sha256','content_base64']),'static_file_schema');
-  $bytes=base64_decode((string)$r['content_base64'],true);upload_insist(is_string($bytes)&&strlen($bytes)===$r['bytes']&&hash('sha256',$bytes)===$r['sha256']&&strlen($bytes)>1000&&strlen($bytes)<(($monitorMode||$extensionMode)?4000000:1000000),'static_bytes_changed');
+  upload_insist(array_keys($r)===(($extensionMode||$captionMode)?['name','sha256','bytes','rows','expected_previous_sha256','content_base64','previous_content_base64']:['name','sha256','bytes','rows','expected_previous_sha256','content_base64']),'static_file_schema');
+  $bytes=base64_decode((string)$r['content_base64'],true);upload_insist(is_string($bytes)&&strlen($bytes)===$r['bytes']&&hash('sha256',$bytes)===$r['sha256']&&strlen($bytes)>1000&&strlen($bytes)<(($monitorMode||$extensionMode||$captionMode)?4000000:1000000),'static_bytes_changed');
   upload_insist(str_starts_with($bytes,'<?xml version="1.0" encoding="UTF-8"?>'."\n<yml_catalog date=\"")&&str_ends_with($bytes,"</yml_catalog>\n"),'static_yml_envelope_changed');
   upload_insist(preg_match('//u',$bytes)===1&&substr_count($bytes,'<offer id="')===$r['rows']&&substr_count($bytes,'<description>')===$r['rows'],'static_yml_rows_changed');
-  upload_insist(stripos($bytes,'<!DOCTYPE')===false&&stripos($bytes,'<!ENTITY')===false&&($monitorMode||$extensionMode||stripos($bytes,'<price')===false)&&stripos($bytes,'available=')===false,'unsafe_static_yml_content');
+  upload_insist(stripos($bytes,'<!DOCTYPE')===false&&stripos($bytes,'<!ENTITY')===false&&($monitorMode||$extensionMode||$captionMode||stripos($bytes,'<price')===false)&&stripos($bytes,'available=')===false,'unsafe_static_yml_content');
   $dest=$dir.'/'.$r['name'];upload_insist(!is_link($dest),'static_destination_symlink');
   upload_insist(!file_exists($dest)||is_file($dest),'static_destination_not_file');
   $current=file_exists($dest)?hash_file('sha256',$dest):null;upload_insist($current===null||is_string($current),'static_current_hash_unreadable');
@@ -168,6 +178,12 @@ try{
   if($extensionMode){
    $original=base64_decode($r['previous_content_base64'],true);upload_insist(is_string($original)&&is_string($r['expected_previous_sha256']),'extension_previous_bytes_changed');
    static_extension_assert_content($original,$r['expected_previous_sha256'],$bytes,$extensionRows,$r['name'],$generatedAt,PUBLIC_STATIC_FEED_PREVIOUS_COUNT);
+  }
+  if($captionMode){
+   upload_insist($current!==null&&is_string($r['expected_previous_sha256']),'caption_feed_requires_existing');
+   $original=base64_decode($r['previous_content_base64'],true);
+   upload_insist(is_string($original)&&strlen($original)>1000&&strlen($original)<4000000&&hash('sha256',$original)===$r['expected_previous_sha256'],'caption_feed_previous_bytes_changed');
+   upload_insist(caption_feed_render($original,$captionUpdates,$r['name'])===$bytes,'caption_feed_receipt_content_mismatch');
   }
   if($action==='reuse'){$prepared[]=['r'=>$r,'dest'=>$dest,'tmp'=>null,'current'=>$current,'action'=>$action];continue;}
   upload_insist(preg_match('/\Acommercial-channel-hotel-feeds-[0-9]{8}-update[1-9][0-9]*\z/D',PUBLIC_STATIC_FEED_OPERATION)===1,'invalid_static_update_operation');
@@ -179,5 +195,6 @@ try{
  foreach($prepared as $p){upload_insist(!is_link($p['dest']),'static_destination_symlink');$current=file_exists($p['dest'])?hash_file('sha256',$p['dest']):null;upload_insist($current===$p['current'],'static_destination_changed_before_commit');if($p['tmp']!==null)upload_insist(rename($p['tmp'],$p['dest']),'static_atomic_rename_failed');upload_insist(hash_file('sha256',$p['dest'])===$p['r']['sha256'],'static_final_hash_changed');$out['files'][]=['name'=>$p['r']['name'],'bytes'=>$p['r']['bytes'],'sha256'=>$p['r']['sha256'],'rows'=>$p['r']['rows'],'write_action'=>$p['action'],'public_url'=>'https://app.anytoour.ru/feed/'.$p['r']['name']];}
  $out['ok']=true;
 }catch(Throwable $e){$out['error']=preg_match('/\A[a-z][a-z0-9_]{1,100}\z/D',$e->getMessage())?$e->getMessage():'static_feed_publish_failed';}
+foreach(array_reverse($captionLocks) as $captionLock){if(is_resource($captionLock)){flock($captionLock,LOCK_UN);fclose($captionLock);}}
 echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;exit($out['ok']?0:2);
 
