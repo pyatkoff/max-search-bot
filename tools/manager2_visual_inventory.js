@@ -19,7 +19,7 @@ const MAIN = Object.freeze([
   'manager2-workspace', 'manager2-messenger-layout', 'manager2-inbox-compact',
   'manager-admin-load', 'manager-admin-workspace', 'manager-client-onboarding', 'manager-quick-replies',
   'manager-personal-workspace', 'manager-manual-groups', 'manager-internal-notes', 'manager-client-events', 'manager-reply-queue', 'manager-tour-selection', 'manager-assistant',
-  'manager-request-profile', 'manager-promise-task', 'manager-customer-name', 'manager2-customer-avatar', 'manager-media-compose', 'manager-ai-draft',
+  'manager-request-profile', 'manager-promise-task', 'manager-promise-selection', 'manager-customer-name', 'manager2-customer-avatar', 'manager-media-compose', 'manager-ai-draft',
   'manager-handoff-cancellation', 'manager-handoff-cancellation-shell', 'manager-transcript-history',
 ].map(name => 'tests/visual/' + name + '.spec.js'));
 const CACHE_SPEC = 'tests/visual/manager-avatar-cache.spec.js';
@@ -41,7 +41,7 @@ const PART_SPECS = Object.freeze([
     'workspace-send-feedback','manager-handoff-cancellation-shell'],
   ['manager2-workspace','manager2-customer-avatar','manager-personal-workspace',
     'workspace-notification-diagnostics','manager-browser-push-state','manager-media-compose',
-    'workspace-timezone','workspace-emoji-picker','manager-client-events','manager-reply-queue','manager-handoff-cancellation','manager-request-profile','manager-promise-task'],
+    'workspace-timezone','workspace-emoji-picker','manager-client-events','manager-reply-queue','manager-handoff-cancellation','manager-request-profile','manager-promise-task','manager-promise-selection'],
   ['manager-tour-selection'],
 ].map(group=>Object.freeze(group.map(name=>'tests/visual/'+name+'.spec.js'))));
 const PART_COUNT = PART_SPECS.length;

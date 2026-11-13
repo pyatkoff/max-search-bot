@@ -107,8 +107,13 @@ class LeadTaskService
         if($conversationId<=0||$taskId<=0)return ['ok'=>false,'error'=>'not_found'];
         $input=self::normalizeCreateInput($title,$dueIso);if(empty($input['ok']))return$input;
         $pdo=ConversationDb::connection();
-        $q=$pdo->prepare("UPDATE lead_tasks SET title=?,reminder_attempted_at_utc=IF(NOT(due_at_utc<=>?),NULL,reminder_attempted_at_utc),reminder_notified_at_utc=IF(NOT(due_at_utc<=>?),NULL,reminder_notified_at_utc),due_at_utc=?,updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=? AND status='open'");
-        $q->execute([$input['title'],$input['due_at_utc'],$input['due_at_utc'],$input['due_at_utc'],$taskId,$conversationId]);
+        $mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+        $sameDue=$mysql?'due_at_utc<=>?':'due_at_utc IS ?';
+        $changedTitle=$mysql?'BINARY title<>BINARY ?':'title<>? COLLATE BINARY';
+        // Null deadlines and case-only title edits are real business changes;
+        // identical saves do not consume a revision or reset reminder receipts.
+        $q=$pdo->prepare("UPDATE lead_tasks SET title=?,reminder_attempted_at_utc=CASE WHEN {$sameDue} THEN reminder_attempted_at_utc ELSE NULL END,reminder_notified_at_utc=CASE WHEN {$sameDue} THEN reminder_notified_at_utc ELSE NULL END,due_at_utc=?,business_revision=business_revision+1,updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=? AND status='open' AND ({$changedTitle} OR NOT({$sameDue}))");
+        $q->execute([$input['title'],$input['due_at_utc'],$input['due_at_utc'],$input['due_at_utc'],$taskId,$conversationId,$input['title'],$input['due_at_utc']]);
         if($q->rowCount()>0)return ['ok'=>true];
         $q=$pdo->prepare("SELECT title,due_at_utc FROM lead_tasks WHERE id=? AND conversation_id=? AND status='open' LIMIT 1");
         $q->execute([$taskId,$conversationId]);$current=$q->fetch();
@@ -124,7 +129,7 @@ class LeadTaskService
         $status=$completed?'done':'open';$completedSql=$completed?'UTC_TIMESTAMP()':'NULL';
         $reminderReset=$completed?'':' ,reminder_attempted_at_utc=NULL,reminder_notified_at_utc=NULL';
         $pdo=ConversationDb::connection();
-        $q=$pdo->prepare("UPDATE lead_tasks SET status=?,completed_at_utc={$completedSql}{$reminderReset},updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=? AND status<>?");
+        $q=$pdo->prepare("UPDATE lead_tasks SET status=?,completed_at_utc={$completedSql}{$reminderReset},business_revision=business_revision+1,updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=? AND status<>?");
         $q->execute([$status,$taskId,$conversationId,$status]);if($q->rowCount()>0)return true;
         $q=$pdo->prepare("SELECT status FROM lead_tasks WHERE id=? AND conversation_id=? LIMIT 1");
         $q->execute([$taskId,$conversationId]);$current=$q->fetchColumn();
@@ -135,10 +140,29 @@ class LeadTaskService
     {
         if($conversationId<=0||$taskId<=0)return false;
         $pdo=ConversationDb::connection();$value=$pinned?1:0;
-        $q=$pdo->prepare("UPDATE lead_tasks SET is_pinned=?,updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=? AND status='open'");
-        $q->execute([$value,$taskId,$conversationId]);if($q->rowCount()>0)return true;
+        $q=$pdo->prepare("UPDATE lead_tasks SET is_pinned=?,business_revision=business_revision+1,updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=? AND status='open' AND is_pinned<>?");
+        $q->execute([$value,$taskId,$conversationId,$value]);if($q->rowCount()>0)return true;
         $q=$pdo->prepare("SELECT 1 FROM lead_tasks WHERE id=? AND conversation_id=? AND status='open' AND is_pinned=? LIMIT 1");
         $q->execute([$taskId,$conversationId,$value]);return(bool)$q->fetchColumn();
+    }
+
+    /** The authorized delivery owner supplies its transaction; this remains the only task writer. */
+    public static function completeForPromise(PDO $pdo,int $conversationId,int $taskId,int $expectedRevision,int $actor): array
+    {
+        if($pdo!==ConversationDb::connection()||!$pdo->inTransaction())throw new LogicException('promise_task_transaction_required');
+        if($conversationId<=0||$taskId<=0||$expectedRevision<=0||$expectedRevision>=PHP_INT_MAX||$actor<=0)throw new InvalidArgumentException('invalid_promise_task');
+        $lock=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
+        $q=$pdo->prepare('SELECT status,business_revision FROM lead_tasks WHERE id=? AND conversation_id=?'.$lock);
+        $q->execute([$taskId,$conversationId]);$row=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+        if(!$row)return ['outcome'=>'missing','business_revision'=>null];
+        $revision=filter_var($row['business_revision'],FILTER_VALIDATE_INT,['options'=>['min_range'=>1,'max_range'=>PHP_INT_MAX-1]]);
+        if($revision===false||!in_array($row['status'],['open','done'],true))throw new RuntimeException('invalid_promise_task_state');
+        if($row['status']==='done')return ['outcome'=>'already_done','business_revision'=>$revision];
+        if($revision!==$expectedRevision)return ['outcome'=>'changed','business_revision'=>$revision];
+        $q=$pdo->prepare("UPDATE lead_tasks SET status='done',completed_at_utc=UTC_TIMESTAMP(),business_revision=business_revision+1,updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=? AND status='open' AND business_revision=?");
+        $q->execute([$taskId,$conversationId,$expectedRevision]);
+        if($q->rowCount()!==1)throw new RuntimeException('promise_task_completion_unconfirmed');
+        return ['outcome'=>'applied','business_revision'=>$revision+1];
     }
 
     private static function length(string $value): int

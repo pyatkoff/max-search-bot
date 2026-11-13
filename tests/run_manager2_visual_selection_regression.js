@@ -45,11 +45,11 @@ try {
   const original=commit(),baseline=sourceManifest(root,original);
   check('inventory preserves main commands and daily cache separately',()=>{
     assert.equal(SCHEMA,2);assert.equal(TOOLCHAIN.playwright,'1.55.0');
-    assert.equal(mainSpecs('chromium').length,30);assert.equal(mainSpecs('webkit').length,29);
-    assert.equal(allSpecs('chromium').length,31);assert.equal(allSpecs('webkit').length,30);
-    assert.equal(new Set(allSpecs('chromium')).size,31);
+    assert.equal(mainSpecs('chromium').length,31);assert.equal(mainSpecs('webkit').length,30);
+    assert.equal(allSpecs('chromium').length,32);assert.equal(allSpecs('webkit').length,31);
+    assert.equal(new Set(allSpecs('chromium')).size,32);
     for(const browser of ['chromium','webkit']){
-      for(const required of ['tests/visual/manager-client-onboarding.spec.js','tests/visual/manager-client-events.spec.js','tests/visual/manager-request-profile.spec.js','tests/visual/manager-promise-task.spec.js','tests/visual/manager-reply-queue.spec.js']){
+      for(const required of ['tests/visual/manager-client-onboarding.spec.js','tests/visual/manager-client-events.spec.js','tests/visual/manager-request-profile.spec.js','tests/visual/manager-promise-task.spec.js','tests/visual/manager-promise-selection.spec.js','tests/visual/manager-reply-queue.spec.js']){
         assert(allSpecs(browser).includes(required));
         assert.equal(Array.from({length:PART_COUNT},(_,part)=>partitionSpecs(browser,part)).flat().filter(spec=>spec===required).length,1);
       }
