@@ -1,0 +1,22 @@
+[
+  {
+    "hotel_id": 62515,
+    "aliases": [
+      "Salalah Gardens Hotel",
+      "SALALAH GARDENS"
+    ],
+    "logical_id": "commercial-hotel-62515-v1",
+    "expected_text_sha256": "7879ef6ae99acd3fb4fa046b08ad21c82575b21c20bdb7b7a6e46c315d694312",
+    "scope": "same_original_batch12_candidate_preflight"
+  },
+  {
+    "hotel_id": 68810,
+    "aliases": [
+      "Belad Bont Resort",
+      "BELAD BONT RESORT"
+    ],
+    "logical_id": "commercial-hotel-68810-v1",
+    "expected_text_sha256": "6aa94043b57ccb3c3a9eb9ca00620484a5b2d0524f030611e14c4409ddf4c4ec",
+    "scope": "same_original_batch12_candidate_preflight"
+  }
+]
