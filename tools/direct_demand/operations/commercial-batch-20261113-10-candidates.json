@@ -1,0 +1,42 @@
+[
+  {
+    "hotel_id": 1330,
+    "aliases": [
+      "Castle Park Hotel",
+      "CASTLE PARK (EX. LARISSA PARK)"
+    ],
+    "logical_id": "commercial-hotel-1330-v1",
+    "expected_text_sha256": "b211a47b23a2a004b93cae53f3251b14750316beef9d0f23912b3d1c91b18170",
+    "scope": "same_original_batch10_candidate_preflight"
+  },
+  {
+    "hotel_id": 983,
+    "aliases": [
+      "Anitas Beach Hotel",
+      "ANITAS"
+    ],
+    "logical_id": "commercial-hotel-983-v1",
+    "expected_text_sha256": "f8651bf75e7d4b9ca2b3e4ee7d0685406a273370ae2feb5d0e47fe985a2aae51",
+    "scope": "same_original_batch10_candidate_preflight"
+  },
+  {
+    "hotel_id": 497,
+    "aliases": [
+      "Titanic Resort & Aqua Park",
+      "TITANIC RESORT & AQUA PARK"
+    ],
+    "logical_id": "commercial-hotel-497-v1",
+    "expected_text_sha256": "74c03845f548ec6ba573b05f726b105ecb56cb17a1931ff0ec404d4f34aa88e8",
+    "scope": "same_original_batch10_candidate_preflight"
+  },
+  {
+    "hotel_id": 231,
+    "aliases": [
+      "The Grand Makadi",
+      "GRAND MAKADI"
+    ],
+    "logical_id": "commercial-hotel-231-v1",
+    "expected_text_sha256": "1d6a52f7e4f1f7c14557f3b88424ad767a9432a36617fa0af73314b9d00bdfad",
+    "scope": "same_original_batch10_candidate_preflight"
+  }
+]
