@@ -118,7 +118,7 @@ class ModeledValueTestWire
     }
     public function api():MetrikaOfflineClient{return new MetrikaOfflineClient('98615635','fixture-only',[$this,'request']);}
 }
-final class ModeledValueTestLookup
+class ModeledValueTestLookup
 {
     public bool $missing=false;public int $calls=0;public ?int $observedAt=1793500000;
     public function lookup(string $counter,array $users):array
