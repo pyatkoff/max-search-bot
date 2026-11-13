@@ -1,0 +1,136 @@
+{
+  "state": "SUPPORTED_INPUT_DISAMBIGUATION_PENDING_FRESH_READ162",
+  "scope": "Assessment only; original broad clearance remains false and all-nine final seal blocked. Root has accepted preparing a separate resolved input.",
+  "broad_clearance": {
+    "authentication_file": "read161-authentication.json",
+    "authentication_sha256": "25340d34e96dce74b61b85af6a4f3219ba63d88aff503cad330b3b0f46b84654",
+    "run_id": 43415930245,
+    "run_attempt": 1,
+    "head_sha": "87274a8ee4b54e727fb3ec6df550c0e884a2dac9",
+    "artifact_id": 14032345106,
+    "artifact_name": "commercial-batch-20261113-16-duplicate-clearance",
+    "zip_path": "read161-actual/download.zip",
+    "zip_sha256": "3fa92b153d735619e483d1f56314c70f7f105b403e0ec30b6ba27f521ccc8f59",
+    "exact_extracted_files": {
+      "channel-feed-read.json": "80caebf18f4c330f9adc4e6363d58794cf4b8876114caf71e3a289b1e2bf7de9"
+    }
+  },
+  "original_typed_publication_proof": {
+    "authentication_file": "thavorn818-original-authentication.json",
+    "authentication_sha256": "a5d14d741c56457b570b5b24f4f0377ece1f30ad176288c7abf39f6dde820bd5",
+    "run_id": 43318516170,
+    "run_attempt": 1,
+    "head_sha": "1e00958abab16e1a4e89cfb0331deab8e40bd43d",
+    "artifact_id": 13988938068,
+    "artifact_name": "commercial-batch-20261113-8-publication-and-read",
+    "zip_path": "thavorn818-original/download.zip",
+    "zip_sha256": "ba75343e030d2208341588613d6c66d613d59d9b507ec9cf03e351b149be4df3",
+    "exact_extracted_files": {
+      "channel-preflight.json": "75fe7cb848714291146e1f4d24e0431a24e16bd418c8a414c096d15a44fa320a",
+      "channel-feed-read.json": "35a31cda1a58de3bf6155e0f5ea1ac41dcb22c8fe1be38ea6869cc793e4fe612"
+    }
+  },
+  "site_snapshot": {
+    "version": 355,
+    "path": "current-registry.json",
+    "sha256": "2411ecf3aaac93cf22b9e9946a1c40a7359ebdc76be95da39189adb11200a6fa",
+    "thavorn_site_id": "2714a61c-d182-4d89-bacb-7276d7303064",
+    "palm_site_id": "fb562b7b-15a0-4cc6-8a6d-c2db15260be6",
+    "palm_tourvisor_id": 20288,
+    "palm_country": "Египет"
+  },
+  "broad_input": {
+    "path": "clearance-prepared/candidate-input.json",
+    "sha256": "b6d09de46ab8c71d87a36172fd4408d42092098f9e77712d65b76bcfd5a071db",
+    "original_aliases": [
+      "Palm Beach Resort",
+      "PALM BEACH RESORT"
+    ],
+    "logical_id": "commercial-hotel-20288-v1",
+    "hotel_id": 20288
+  },
+  "broad_result": {
+    "candidate_count": 9,
+    "clear_ids": [
+      81358,
+      343,
+      432,
+      65254,
+      443,
+      107940,
+      32356,
+      195
+    ],
+    "palm_clear": false,
+    "palm_limit_reached": false,
+    "palm_match_count": 2,
+    "all_two_matches_typed_to_hotel818": true
+  },
+  "typed_match_proof": [
+    {
+      "platform": "telegram",
+      "publication_id": 1293,
+      "post_url": "https://t.me/any_toour/586",
+      "current_version_id": 4144,
+      "current_text_sha256": "0d2bbf070cf8b0378d62db4d83376b5063f74469f92230a7b8a46e3812c3873e",
+      "current_native_id": "818",
+      "current_logical_id": "commercial-hotel-818-v1",
+      "current_first_line": "✈️ Туры в Thavorn Palm Beach Resort",
+      "original_hotel_id": 818,
+      "original_logical_id": "commercial-hotel-818-v1",
+      "original_version_id": 3913,
+      "original_text_sha256": "f6043fafd391ed36f505c23550801f6b256a30b022324421f0a98903ea35029e",
+      "original_body_photo_button_verified": true,
+      "original_button_url": "https://t.me/anyru_bot?start=p_ljEVY1wzXDx6e1q3gEtiqdXo",
+      "site_button_proof_hotel_id": 818,
+      "typed_identity_match": "publication_id + platform + post_url + original verified hotel_id/logical_id; Site exact button proof; MAX original native binding"
+    },
+    {
+      "platform": "max",
+      "publication_id": 1301,
+      "post_url": "https://max.ru/channel_anytour/AaHR2ApDH3s",
+      "current_version_id": 4143,
+      "current_text_sha256": "0d2bbf070cf8b0378d62db4d83376b5063f74469f92230a7b8a46e3812c3873e",
+      "current_native_id": null,
+      "current_logical_id": null,
+      "current_first_line": "✈️ Туры в Thavorn Palm Beach Resort",
+      "original_hotel_id": 818,
+      "original_logical_id": "commercial-hotel-818-v1",
+      "original_version_id": 3921,
+      "original_text_sha256": "f6043fafd391ed36f505c23550801f6b256a30b022324421f0a98903ea35029e",
+      "original_body_photo_button_verified": true,
+      "original_button_url": "https://max.ru/id9704048781_1_bot?start=p_3PD7NaDi0bdkcCAOLjtAN9T6",
+      "site_button_proof_hotel_id": 818,
+      "typed_identity_match": "publication_id + platform + post_url + original verified hotel_id/logical_id; Site exact button proof; MAX original native binding"
+    }
+  ],
+  "caption_identity_note": "Current text hashes differ from original publication hashes; this proof does not claim unchanged captions. Identity uses stable publication IDs/URLs and authenticated original bindings.",
+  "proposed_input_only_change": {
+    "hotel_id": 20288,
+    "aliases": [
+      "✈️ Туры в Palm Beach Resort"
+    ],
+    "all_other_candidates": "unchanged",
+    "native_id_and_logical_id": "unchanged",
+    "text_and_cover_hashes": "unchanged",
+    "old_aliases_retained_in_this_immutable_preimage": true
+  },
+  "existing_contract_assessment": {
+    "aliases": "Existing canonical contract permits 1–12 nonempty literals, each <=160 characters; an accepted complete first line is a valid literal selector.",
+    "matcher": "Canonical reader LOCATE and sender mb_strpos remain unchanged and still combine aliases with native ID/logical ID via OR.",
+    "semantic_limit": "This is a more specific literal selector, not equality or a stronger generic duplicate guard. It may miss legacy alternative heading formats if both typed IDs are absent.",
+    "why_supported_here": "The exhaustive broad read found only two hits and neither is Palm20288, established by authenticated typed original publication/binding proofs; actual accepted Palm heading is retained; automatic publication is paused.",
+    "required_followup": "Fresh original read162/a1 for the same nine candidates with only Palm active alias changed, actual clear=true/no matches/limit_reached=false for all nine, exact new input hash/alias binding, current source9/publisher admission.",
+    "fallback": "Any unclassified/new broad hit, exhausted bound or failed new exact clearance requires Palm hold or scope8; never overwrite clear=false."
+  },
+  "negative_sealer_check": {
+    "existing_read161_rejected": true,
+    "reason": "targeted_clearance_not_clear:20288",
+    "exit_code": 1,
+    "final_workflow_created": false
+  },
+  "new_guard_exceptions": 0,
+  "canonical_code_changes": 0,
+  "remote_writes": 0,
+  "publication_started": false
+}

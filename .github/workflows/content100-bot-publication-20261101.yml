@@ -63,7 +63,7 @@ jobs:
 
         sha256sum -c <<''PINS''
 
-        2670145a574f310e376110dfd8ffe3cc69baed1c58026474a0a48cc40816a721  tools/direct_demand/operations/commercial-batch-20261113-16-duplicate-read.php
+        f0f9dffe38342744e5f56eb48639c660d692b50fe0eb18cd6a6386a5bca88e64  tools/direct_demand/operations/commercial-batch-20261113-16-duplicate-read.php
 
         PINS
 
@@ -75,7 +75,7 @@ jobs:
     - name: Retain exact approved inputs before any channel write
       uses: actions/upload-artifact@v4
       with:
-        name: commercial-batch-20261113-16-candidate-inputs
+        name: commercial-batch-20261113-16-candidate-inputs-resolved
         path: 'tools/direct_demand/operations/commercial-batch-20261113-16-candidates.json
 
           tools/direct_demand/operations/commercial-batch-20261113-16-duplicate-read.php
@@ -124,7 +124,7 @@ jobs:
 
         p=pathlib.Path(os.environ[''RUNNER_TEMP'']);d=json.loads((p/''channel-feed-read.json'').read_text().splitlines()[-1])
 
-        assert d[''ok''] and d[''operation'']==''commercial-channel-hotel-feeds-20261113-read161''
+        assert d[''ok''] and d[''operation'']==''commercial-channel-hotel-feeds-20261113-read162''
 
         assert d[''installed_sha'']==os.environ[''EXPECTED_PRODUCTION_SHA''] and d[''candidate_count'']==9
 
@@ -144,7 +144,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: commercial-batch-20261113-16-duplicate-clearance
+        name: commercial-batch-20261113-16-duplicate-clearance-resolved
         path: ${{ runner.temp }}/channel-feed-read.json
         retention-days: 14
         if-no-files-found: warn

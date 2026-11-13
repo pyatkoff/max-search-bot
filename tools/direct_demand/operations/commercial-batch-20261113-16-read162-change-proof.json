@@ -1,0 +1,70 @@
+{
+  "state": "PREPARED_NEW_ORIGINAL_READ162_NOT_RUN",
+  "operation": "commercial-channel-hotel-feeds-20261113-read162",
+  "hotel_ids": [
+    81358,
+    343,
+    432,
+    65254,
+    443,
+    107940,
+    32356,
+    195,
+    20288
+  ],
+  "candidate_count": 9,
+  "source_input_sha256": "b6d09de46ab8c71d87a36172fd4408d42092098f9e77712d65b76bcfd5a071db",
+  "source_reader_sha256": "2670145a574f310e376110dfd8ffe3cc69baed1c58026474a0a48cc40816a721",
+  "source_workflow_sha256": "7d4486fb8ede7a7acac1326b56435cf63266924967d940261e7d36bea7347e4c",
+  "candidate_input_sha256": "fbbe4593a1195bacd150c642fe51aa7b15da96934e4782df1fe41d2471d462bf",
+  "reader_sha256": "f0f9dffe38342744e5f56eb48639c660d692b50fe0eb18cd6a6386a5bca88e64",
+  "workflow_sha256": "7603a6fda51d59b56830f3f8c9b61b427590f35eee72e4d14c8e8c6c9f2cd301",
+  "only_candidate_change": {
+    "hotel_id": 20288,
+    "from_aliases": [
+      "Palm Beach Resort",
+      "PALM BEACH RESORT"
+    ],
+    "to_aliases": [
+      "✈️ Туры в Palm Beach Resort"
+    ]
+  },
+  "reader_changes": [
+    "candidate_input_base64",
+    "candidate_input_sha256",
+    "new_original_read_operation"
+  ],
+  "workflow_changes": [
+    "new_reader_sha256",
+    "new_original_read_operation",
+    "new_result_artifact_name",
+    "new_input_artifact_name"
+  ],
+  "all_other_reader_and_workflow_bytes_identical": true,
+  "runtime_deploy_tls_9ids_SQL_and_all_guards_unchanged": true,
+  "exact_original_broad_result_preserved": {
+    "path": "/workspace/scratch/0a7fb700a5e5/remaining9/read161-actual/channel-feed-read.json",
+    "sha256": "80caebf18f4c330f9adc4e6363d58794cf4b8876114caf71e3a289b1e2bf7de9",
+    "operation": "commercial-channel-hotel-feeds-20261113-read161",
+    "clear_count": 8,
+    "palm20288_clear": false,
+    "palm20288_match_count": 2
+  },
+  "resolution_basis": {
+    "decision": "Root and independent Asia identified both broad substring matches as the existing Thavorn Palm Beach Resort TV818. This is a new exact-title selector read; original clear=false is unchanged.",
+    "original_authenticated_sender_run": 43318516170,
+    "original_authenticated_artifact": 13988938068,
+    "local_reference_prefix": "/workspace/scratch/0a7fb700a5e5/remaining9/thavorn818-original",
+    "site_receipt_hotel_id": 818
+  },
+  "local_checks": {
+    "byte_reversal_identity": "PASS",
+    "candidate_semantic_change_only_alias20288": "PASS",
+    "yaml_parse_and_fixed_env_guards": "PASS",
+    "sql_readonly_and_rollback_bytes": "PASS",
+    "php_lint": "NOT_RUN: PHP CLI unavailable; original workflow lint gate retained"
+  },
+  "remote_mutations": 0,
+  "dispatches": 0,
+  "new_read_result": null
+}
