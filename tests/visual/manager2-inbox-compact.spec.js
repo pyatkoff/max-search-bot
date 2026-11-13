@@ -129,6 +129,7 @@ for(const profile of profiles)test(`compact Inbox same data ${profile.width} ${p
   expect(g.headerHeight).toBeLessThanOrEqual(132);expect(g.listHeight).toBeGreaterThanOrEqual(height===420?220:650);
   expect(g.rowHeight).toBeLessThanOrEqual((profile.font==='large'?138:128)+(lines-2)*g.lineHeight);
   if(profile.width===1440){expect(g.inboxWidth).toBeGreaterThanOrEqual(330);expect(g.inboxWidth).toBeLessThanOrEqual(380);}
+  await expect(row(page).locator('.m2OwnershipMark')).toBeHidden();
   await expect(row(page).locator('.unreadBadge')).toHaveText('999');await expect(row(page).locator('.m2RowOpen')).toHaveAccessibleName(new RegExp(longName));
   await capture(page,browserName,profile,height,testInfo);
  }
