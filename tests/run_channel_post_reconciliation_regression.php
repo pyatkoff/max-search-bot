@@ -201,5 +201,154 @@ $configOld=$seedLegacy($configRace);$configHash=ChannelPostIncomingAdapter::cont
 $onPage=static function()use($registry,$config,$currentChannel):void{$registry->configureChannel(array_replace($config,['expected_version'=>(int)$currentChannel['config_version'],'button_text'=>'Другая кнопка']));};
 $changedConfig=$service->recover($identity,$config['channel_id'],$configRace['timestamp'],$configHash,true,true,$configOld['version_id'],(int)$currentChannel['config_version']);
 reconcileCheck('configuration change during the provider read prevents appending or editing',$changedConfig['reason']==='channel_configuration_changed'&&$registry->publication($configOld['publication_id'])['version_id']===$configOld['version_id']&&$writes===$beforeWrites+1);
+// A transient pre-write rights read can leave the correct native button in a
+// rejected version. Explicit confirmation is separate from ordinary retries.
+function reconcileReadFailureFixture(?PDO $db = null): array
+{
+    $db = $db ?? new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+    createChannelPostRegistryFixture($db);
+    $db->exec("INSERT INTO projects VALUES(1,'anytour','AnyTour',1); INSERT INTO conversation_sources VALUES(11,1,'max_manager','MAX','max',1,'manager');");
+    $registry = new ChannelPostRegistryService($db);
+    $config = ['project_key'=>'anytour','platform'=>'max','bot_key'=>'test_bot','channel_id'=>'-80095447388179','source_key'=>'max_manager','display_name'=>'Test','bot_url'=>'https://max.ru/test_bot','is_enabled'=>true];
+    $channel = $registry->configureChannel($config);
+    $identity = ['project_key'=>'anytour','platform'=>'max','bot_key'=>'test_bot','bot_url'=>'https://max.ru/test_bot'];
+    $wire = (object)['message'=>(require __DIR__.'/fixtures/channel_post_automation.php')['max'], 'calls'=>[], 'writes'=>0, 'fail_rights'=>true, 'on_get'=>null];
+    $wire->message_id=$wire->message['body']['mid'];
+    $snapshot = ChannelPostIncomingAdapter::maxSnapshot($wire->message);
+    $p = $registry->registerPublication('anytour','max','test_bot',$config['channel_id'],$wire->message['body']['mid'],$snapshot);
+    $wire->message['body']['attachments'][1]['payload']['buttons'] = [[['type'=>'link','text'=>$channel['button_text'],'url'=>ChannelPostButtonTransport::buttonUrl($p)]]];
+    $request = static function (string $platform,string $method,string $path,array $query,?array $body) use ($wire): array {
+        $wire->calls[] = [$platform,$method,$path,$query,$body];
+        if ($method !== 'GET') { $wire->writes++; throw new RuntimeException('fixture_provider_write_forbidden'); }
+        $good = static fn(array $data): array => ['http'=>200,'data'=>$data,'transport_error'=>false];
+        if ($path === '/me') return $good(['is_bot'=>true,'username'=>'test_bot','user_id'=>1]);
+        if (str_ends_with($path,'/members/me')) return $wire->fail_rights ? ['http'=>0,'data'=>null,'transport_error'=>true] : $good(['is_bot'=>true,'username'=>'test_bot','user_id'=>1,'is_admin'=>true,'permissions'=>['read_all_messages','edit']]);
+        if ($path === '/messages/'.$wire->message_id) {
+            if ($wire->on_get !== null) { $f=$wire->on_get; $wire->on_get=null; $f(); }
+            return $good($wire->message);
+        }
+        throw new RuntimeException('fixture_unexpected_read');
+    };
+    $original = (new ChannelPostAutomationService($registry,new ChannelPostButtonTransport($request)))->processPublication('anytour','max','test_bot',$p['publication_id'],$p['version_id']);
+    if (($original['state']??'') !== 'requires_attention' || ($original['reason']??'') !== 'provider_read_failed' || $wire->writes !== 0) throw new RuntimeException('read_failure_fixture_did_not_reproduce');
+    $wire->fail_rights=false; $wire->calls=[];
+    $p=$registry->publication($p['publication_id']);
+    $service=new ChannelPostReconciliationService($db,$request);
+    $confirm=static fn(bool $apply=false,string $hash=''):array=>$service->confirmReadFailure($identity,$config['channel_id'],$p['publication_id'],$p['version_id'],(int)$channel['config_version'],$hash,$apply);
+    return compact('db','registry','config','channel','identity','wire','request','original','p','service','confirm');
+}
+$rf = reconcileReadFailureFixture();
+extract($rf, EXTR_PREFIX_ALL, 'rf');
+$rfVersion = $rf_db->query('SELECT * FROM post_versions')->fetch();
+$rfPublication = $rf_db->query('SELECT * FROM post_publications')->fetch();
+$rfHash = ChannelPostIncomingAdapter::contentFingerprint($rf_p['snapshot']);
+reconcileCheck('ordinary worker and observed-button method keep a read rejection terminal',
+    (new ChannelPostAutomationService($rf_registry,new ChannelPostButtonTransport($rf_request)))->processPublication('anytour','max','test_bot',$rf_p['publication_id'],$rf_p['version_id'])['reason']==='target_not_claimable'
+    && !$rf_registry->confirmObservedButton($rf_p['publication_id'],$rf_p['version_id'],['verified'=>true])
+    && $rfVersion===$rf_db->query('SELECT * FROM post_versions')->fetch() && count($rf_wire->calls)===0);
+reconcileCheck('read failure has an explicit confirmation API', method_exists($rf_service,'confirmReadFailure'));
+$rfPreview = $rf_confirm();
+reconcileCheck('confirmation preview uses only three exact GETs and preserves the rejected version',
+    $rfPreview['ok'] && $rfPreview['state']==='preview' && $rfPreview['content_hash']===$rfHash
+    && $rfPreview['database_writes']===0 && $rfPreview['provider_writes']===0 && count($rf_wire->calls)===3
+    && array_column($rf_wire->calls,1)===['GET','GET','GET'] && $rfVersion===$rf_db->query('SELECT * FROM post_versions')->fetch());
+$rf_wire->calls=[];
+$rfConfirmed=$rf_confirm(true,$rfHash);
+$rfAfter=$rf_db->query('SELECT * FROM post_versions')->fetch();
+$rfReceipt=json_decode($rfAfter['receipt_json'],true);
+reconcileCheck('explicit confirmation marks the same current version sent without a claim or provider write',
+    $rfConfirmed['ok'] && $rfConfirmed['state']==='sent' && $rfConfirmed['database_writes']===1
+    && $rfAfter['id']===$rfVersion['id'] && $rfAfter['state']==='sent' && $rfAfter['write_attempts']===0
+    && $rfAfter['attempt_count']===$rfVersion['attempt_count'] && $rfAfter['claim_token']===null && $rfAfter['claimed_at']===null
+    && $rf_wire->writes===0 && count($rf_wire->calls)===3 && (int)$rf_db->query('SELECT COUNT(*) FROM post_versions')->fetchColumn()===1
+    && $rfPublication===$rf_db->query('SELECT * FROM post_publications')->fetch());
+reconcileCheck('confirmation retains exact prior failure evidence and immutable content',
+    $rfReceipt['previous_failure']===['state'=>$rfVersion['state'],'reason'=>$rfVersion['error_reason'],'attempt_count'=>$rfVersion['attempt_count'],'write_attempts'=>$rfVersion['write_attempts'],'receipt_json'=>$rfVersion['receipt_json'],'updated_at'=>$rfVersion['updated_at']]
+    && $rfAfter['snapshot_json']===$rfVersion['snapshot_json'] && $rfAfter['content_hash']===$rfVersion['content_hash']
+    && $rfAfter['created_at']===$rfVersion['created_at'] && $rfReceipt['confirmation_kind']==='max_observed_after_read_failure');
+$rf_wire->calls=[];
+$rfRepeated=$rf_confirm(true,$rfHash);
+reconcileCheck('a completed selection is not reopened or silently confirmed a second time',
+    !$rfRepeated['ok'] && $rfRepeated['reason']==='read_failure_confirmation_not_eligible'
+    && $rfAfter===$rf_db->query('SELECT * FROM post_versions')->fetch() && count($rf_wire->calls)===0 && $rf_wire->writes===0);
+reconcileCheck('safe confirmation output contains no native body media credentials or start payload',
+    !str_contains(json_encode($rfConfirmed),'fixture-private-image-token') && !str_contains(json_encode($rfConfirmed),$rf_p['start_payload'])
+    && !str_contains(json_encode($rfConfirmed),$rf_p['snapshot']['text']));
+
+foreach ([
+    'unknown'=>['state'=>'unknown'], 'pending'=>['state'=>'pending'], 'sent'=>['state'=>'sent'],
+    'claimed'=>['state'=>'claimed'], 'write_started'=>['state'=>'write_started'],
+    'other rejection'=>['error_reason'=>'provider_rejected_edit'], 'unsupported media'=>['error_reason'=>'unsupported_media'],
+    'prior write'=>['write_attempts'=>1], 'active token'=>['claim_token'=>'held'], 'active lease'=>['claimed_at'=>'2026-11-13 00:54:14'],
+] as $case=>$changes) {
+    $f=reconcileReadFailureFixture();
+    foreach($changes as $column=>$value){$q=$f['db']->prepare('UPDATE post_versions SET '.$column.'=?');$q->execute([$value]);}
+    $before=$f['db']->query('SELECT * FROM post_versions')->fetchAll();
+    $denied=($f['confirm'])(true,ChannelPostIncomingAdapter::contentFingerprint($f['p']['snapshot']));
+    reconcileCheck('confirmation refuses '.$case.' without reads writes or requeue',
+        !$denied['ok'] && $denied['reason']==='read_failure_confirmation_not_eligible'
+        && $before===$f['db']->query('SELECT * FROM post_versions')->fetchAll() && count($f['wire']->calls)===0 && $f['wire']->writes===0);
+}
+foreach (['text','image','url','markup','forward','missing button','wrong button','wrong label','mixed button','second image','foreign channel','foreign message','read outage'] as $case) {
+    $f=reconcileReadFailureFixture(); $w=$f['wire'];
+    if($case==='text')$w->message['body']['text'].=' changed';
+    if($case==='image')$w->message['body']['attachments'][0]['payload']['photo_id']=999;
+    if($case==='url')$w->message['url']='https://max.ru/c/-80095447388179/AaOtherPost';
+    if($case==='markup')$w->message['body']['markup']=[];
+    if($case==='forward')$w->message['link']=['type'=>'forward','mid'=>'mid.other'];
+    if($case==='missing button')array_pop($w->message['body']['attachments']);
+    if($case==='wrong button')$w->message['body']['attachments'][1]['payload']['buttons'][0][0]['url']='https://example.test/wrong';
+    if($case==='wrong label')$w->message['body']['attachments'][1]['payload']['buttons'][0][0]['text']='Wrong label';
+    if($case==='mixed button')$w->message['body']['attachments'][1]['payload']['buttons'][0][]=['type'=>'link','text'=>'Extra','url'=>'https://example.test/extra'];
+    if($case==='second image')$w->message['body']['attachments'][]=$w->message['body']['attachments'][0];
+    if($case==='foreign channel')$w->message['recipient']['chat_id']=-999;
+    if($case==='foreign message')$w->message['body']['mid']='mid.foreign';
+    if($case==='read outage')$w->fail_rights=true;
+    $before=$f['db']->query('SELECT * FROM post_versions')->fetchAll();
+    $denied=($f['confirm'])(true,ChannelPostIncomingAdapter::contentFingerprint($f['p']['snapshot']));
+    reconcileCheck('native '.$case.' cannot confirm the rejected version',
+        !$denied['ok'] && $before===$f['db']->query('SELECT * FROM post_versions')->fetchAll()
+        && $w->writes===0 && count($w->calls)<=3 && count($w->calls)>=2);
+}
+foreach (['version','config','claim','receipt'] as $case) {
+    $f=reconcileReadFailureFixture(); $old=$f['db']->query('SELECT * FROM post_versions')->fetch();
+    $f['wire']->on_get=static function()use($f,$case):void{
+        if($case==='version'){$s=$f['p']['snapshot'];$s['text'].=' New revision';$f['registry']->registerPublication('anytour','max','test_bot',$f['config']['channel_id'],$f['p']['message_id'],$s);}
+        if($case==='config')$f['registry']->configureChannel(array_replace($f['config'],['expected_version'=>(int)$f['channel']['config_version'],'button_text'=>'New label']));
+        if($case==='claim')$f['db']->exec("UPDATE post_versions SET claim_token='concurrent'");
+        if($case==='receipt')$f['db']->exec("UPDATE post_versions SET receipt_json='{}'");
+    };
+    $denied=($f['confirm'])(true,ChannelPostIncomingAdapter::contentFingerprint($f['p']['snapshot']));
+    $oldAfter=$f['db']->query('SELECT * FROM post_versions WHERE id='.(int)$old['id'])->fetch();
+    reconcileCheck('post-read '.$case.' CAS rejects concurrent changes without confirmation',
+        !$denied['ok'] && in_array($denied['reason'],['target_publication_changed','channel_configuration_changed'],true)
+        && $oldAfter['state']==='requires_attention' && $oldAfter['attempt_count']===$old['attempt_count'] && $f['wire']->writes===0);
+}
+$f=reconcileReadFailureFixture();
+$wrongHash=($f['confirm'])(true,str_repeat('0',64));
+$missingHash=($f['confirm'])(true);
+$staleVersion=$f['service']->confirmReadFailure($f['identity'],$f['config']['channel_id'],$f['p']['publication_id'],$f['p']['version_id']+1,(int)$f['channel']['config_version'],'',false);
+$staleConfig=$f['service']->confirmReadFailure($f['identity'],$f['config']['channel_id'],$f['p']['publication_id'],$f['p']['version_id'],(int)$f['channel']['config_version']+1,'',false);
+$wrongChannel=$f['service']->confirmReadFailure($f['identity'],'-999',$f['p']['publication_id'],$f['p']['version_id'],(int)$f['channel']['config_version'],'',false);
+reconcileCheck('explicit version configuration channel and content selectors fail before provider access',
+    !$wrongHash['ok'] && !$missingHash['ok'] && !$staleVersion['ok'] && !$staleConfig['ok'] && !$wrongChannel['ok'] && count($f['wire']->calls)===0 && $f['wire']->writes===0);
+
+class ReconciliationLostCommitFixture extends PDO
+{
+    public bool $loseCommitReply=false;
+    public function commit(): bool
+    {
+        $saved=parent::commit();
+        if($this->loseCommitReply){$this->loseCommitReply=false;throw new RuntimeException('fixture_commit_acknowledgement_lost');}
+        return $saved;
+    }
+}
+$faultDb=new ReconciliationLostCommitFixture('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+$f=reconcileReadFailureFixture($faultDb);$faultDb->loseCommitReply=true;
+$ambiguous=($f['confirm'])(true,ChannelPostIncomingAdapter::contentFingerprint($f['p']['snapshot']));
+reconcileCheck('lost database commit acknowledgement stays UNKNOWN and does not invite another confirmation',
+    !$ambiguous['ok'] && $ambiguous['state']==='unknown' && $f['registry']->publication($f['p']['publication_id'])['state']==='sent'
+    && $f['wire']->writes===0 && count($f['wire']->calls)===3);
+
 echo "OK $passed MAX publication reconciliation checks\n";
 

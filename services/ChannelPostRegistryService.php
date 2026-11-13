@@ -454,6 +454,89 @@ final class ChannelPostRegistryService
         return $this->execute("UPDATE post_versions SET state='sent',claim_token=NULL,claimed_at=NULL,error_reason='',receipt_json=?,updated_at=? WHERE id=? AND publication_id=? AND state IN ('pending','claimed','write_started','unknown')", [self::json(self::receipt($receipt)), self::now(), $versionId, $publicationId]) === 1;
     }
 
+    /** This opt-in confirmation cannot make a rejected job claimable again. */
+    public static function maxReadFailureConfirmationEligible(array $publication): bool
+    {
+        $media = $publication['snapshot']['attachments'] ?? [];
+        $receipt = $publication['receipt'] ?? [];
+        $reads = $receipt['http_results'] ?? [];
+        if (($publication['platform'] ?? '') !== 'max' || ($publication['state'] ?? '') !== 'requires_attention'
+            || ($publication['error_reason'] ?? '') !== 'provider_read_failed' || ($publication['write_attempts'] ?? -1) !== 0
+            || ($publication['claim_token'] ?? null) !== null || ($publication['claimed_at'] ?? null) !== null
+            || ($publication['snapshot']['metadata']['capability'] ?? '') !== 'supported'
+            || !is_array($media) || count($media) !== 1 || ($media[0]['type'] ?? '') !== 'image'
+            || ($media[0]['provider'] ?? '') !== 'max' || !preg_match('/\A[0-9]+\z/D', (string)($media[0]['photo_id'] ?? ''))
+            || ($receipt['write_attempts'] ?? -1) !== 0 || !is_array($reads) || !array_is_list($reads)
+            || !in_array($receipt['request_count'] ?? 0, [1, 2, 3], true) || count($reads) > $receipt['request_count']) return false;
+        // Older stored receipts may omit successful HTTP results; retained
+        // entries must still be an ordered subset of the pre-write GET prefix.
+        $allowed = array_slice(['bot_identity', 'channel_rights', 'current_post'], 0, $receipt['request_count']);
+        $previous = -1;
+        foreach ($reads as $read) {
+            $index = array_search($read['operation'] ?? '', $allowed, true);
+            if ($index === false || $index <= $previous) return false;
+            $previous = $index;
+        }
+        return true;
+    }
+
+    /**
+     * Called only after an authenticated GET-only confirmation by the existing
+     * reconciliation service. Compare the complete pre-read publication and
+     * configuration under locks; retain the original failed result verbatim.
+     * No queue, claim, content version, token or provider write is created.
+     */
+    public function confirmMaxReadFailure(array $expected, array $observed, array $proof, bool $apply = false): array
+    {
+        $check = function () use ($expected, $observed, $proof, $apply): array {
+            $channel = $this->channel((string)($expected['project_key'] ?? ''), 'max', (string)($expected['bot_key'] ?? ''), (string)($expected['channel_id'] ?? ''), true, $apply);
+            if (!$channel || $channel !== ($expected['channel'] ?? null)) throw new RuntimeException('channel_configuration_changed');
+            $id = (int)($expected['publication_id'] ?? 0);
+            $versionId = (int)($expected['version_id'] ?? 0);
+            if ($apply) $this->fetch('SELECT id FROM post_publications WHERE id=?' . $this->lock(), [$id]);
+            $version = $this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?' . ($apply ? $this->lock() : ''), [$versionId, $id]);
+            $current = $this->publication($id);
+            if (!$version || !$current || $current !== $expected) throw new RuntimeException('target_publication_changed');
+            if (!self::maxReadFailureConfirmationEligible($current)) throw new RuntimeException('read_failure_confirmation_not_eligible');
+            $receipt = $proof['receipt'] ?? [];
+            $reads = $receipt['http_results'] ?? [];
+            if (($proof['state'] ?? '') !== 'sent' || ($proof['reason'] ?? '') !== 'already_present'
+                || ($receipt['write_attempts'] ?? -1) !== 0 || ($receipt['request_count'] ?? -1) !== 3
+                || !is_array($reads) || count($reads) !== 3
+                || array_column($reads, 'operation') !== ['bot_identity', 'channel_rights', 'current_post']) throw new RuntimeException('read_only_button_confirmation_required');
+            foreach ($reads as $read) if (($read['http'] ?? 0) !== 200 || !empty($read['transport_error'])) throw new RuntimeException('read_only_button_confirmation_required');
+            $snapshot = $current['snapshot'];
+            $url = rtrim((string)$channel['bot_url'], '/') . '?start=' . rawurlencode((string)$current['start_payload']);
+            if (($observed['raw_body']['body']['mid'] ?? '') !== $current['external_message_id']
+                || (string)($observed['raw_body']['recipient']['chat_id'] ?? '') !== $current['channel_id']
+                || ($observed['raw_body']['recipient']['chat_type'] ?? '') !== 'channel'
+                || ($observed['metadata']['capability'] ?? '') !== 'supported'
+                || !hash_equals(ChannelPostIncomingAdapter::contentFingerprint($snapshot), ChannelPostIncomingAdapter::contentFingerprint($observed))
+                || ($snapshot['text'] ?? null) !== ($observed['text'] ?? null)
+                || ($snapshot['post_url'] ?? null) !== ($observed['post_url'] ?? null)
+                || !ChannelPostIncomingAdapter::containsOnlyButton($observed, $url, (string)$channel['button_text'])) throw new RuntimeException('observed_post_does_not_match');
+            if (!$apply) return $current;
+            foreach ($receipt['http_results'] as &$read) $read['transport_error'] = 0;
+            unset($read);
+            $confirmed = self::receipt($receipt);
+            $confirmed['verified'] = true;
+            $confirmed['reconciled'] = true;
+            $confirmed['content_preserved'] = true;
+            $confirmed['button_verified'] = true;
+            $confirmed['confirmation_kind'] = 'max_observed_after_read_failure';
+            $confirmed['previous_failure'] = [
+                'state' => (string)$version['state'], 'reason' => (string)$version['error_reason'],
+                'attempt_count' => (int)$version['attempt_count'], 'write_attempts' => (int)$version['write_attempts'],
+                'receipt_json' => (string)$version['receipt_json'], 'updated_at' => (string)$version['updated_at'],
+            ];
+            $saved = $this->execute("UPDATE post_versions SET state='sent',error_reason='',receipt_json=?,updated_at=? WHERE id=? AND publication_id=? AND state='requires_attention' AND error_reason='provider_read_failed' AND write_attempts=0 AND claim_token IS NULL AND claimed_at IS NULL", [self::json($confirmed), self::now(), $versionId, $id]);
+            if ($saved !== 1) throw new RuntimeException('target_publication_changed');
+            return $this->publication($id) ?? throw new RuntimeException('target_publication_changed');
+        };
+        return $apply ? $this->transaction($check) : $check();
+    }
+
+
     /** Entry and event pointer commit together; existing dialogue ownership is untouched. */
     public function recordEntry(int $conversationId, array $resolved, string $eventKey = '', bool $joinTransaction = false): ?array
     {
