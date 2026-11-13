@@ -312,9 +312,9 @@ for mode,proof,full,oauth,tour_result in [('tour-selection','false','skipped','s
 tail_workflow = load('modeled-conversion-value-export.yml')
 tail_events = tail_workflow.get('on', tail_workflow.get(True))
 check(set(tail_events) == {'workflow_run', 'workflow_dispatch', 'push'}, 'only the bounded native terminal continuation adds a trigger')
-check(tail_events['push'] == {'branches':['ops/recover-pr1505-terminal-20261112']}, 'terminal continuation is one fixed owner branch, no timer')
+check(tail_events['push'] == {'branches':['ops/recover-pr1505-terminal-20261112', 'ops/recover-pr1529-terminal-20261113']}, 'terminal continuations use only the two fixed owner branches, no timer')
 recovery = tail_workflow['jobs']['release-slot-recovery']
-check(recovery['if'] == "github.event_name == 'push' && github.ref == 'refs/heads/ops/recover-pr1505-terminal-20261112'", 'terminal continuation cannot run as a normal deploy tail or manual dispatch')
+check(recovery['if'] == "github.event_name == 'push' && (github.ref == 'refs/heads/ops/recover-pr1505-terminal-20261112' || github.ref == 'refs/heads/ops/recover-pr1529-terminal-20261113')", 'terminal continuation cannot run as a normal deploy tail or manual dispatch')
 check(recovery['permissions'] == {'contents':'write','actions':'read','pull-requests':'read','issues':'write'}, 'continuation keeps metadata-only authority')
 check(recovery['timeout-minutes'] == 8, 'continuation has a finite metadata deadline')
 check(recovery['steps'][0]['with'] == {'ref':'${{ github.sha }}','persist-credentials':False}, 'continuation loads its genuine source')

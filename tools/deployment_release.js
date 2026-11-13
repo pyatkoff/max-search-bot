@@ -241,6 +241,33 @@ const GATE_RECOVERY=Object.freeze({
   comment_id:6789986080,owner_id:226193297,updated_at:'2026-11-12T15:40:38Z',
   tls_workflow:PREFIX+'max-tls-preflight.yml',tls_step:'Wait for exact active-server SHA and verify strict TLS'
 });
+// Owner-authorised one-time metadata completion for the already installed1529.
+// The original ref write is proved present, but its upload/terminal never ran.
+const UNPUBLISHED_TERMINAL_RECOVERY=Object.freeze({
+  branch:'ops/recover-pr1529-terminal-20261113',sha:'8d6ac35dd17614b2cadb3aa3af7637c74280c01c',
+  deploy:'43456259794',run_id:'43458412572',job_id:131998597573,
+  commit:'b367a1aac9d5ae58ecf2be7fbc7a00be5080b51c',blob:'a46b8d215b6719be2ba9b6bd8361dcdc728e388d',
+  record_digest:'6ece5ff4fad0e479b039c2dba2debbd40742a703f41b3632068f9c98239a5ddc',
+  pending_commit:'a432237a9e528b9f55c6e10fe89e5893fbc06649',pending_blob:'978e1999d1e55091b2dd560c547da6b9ea94d9da',
+  pending_digest:'4c7f0d7a6eca6f96ddffc60614105a0f9d4fff9f4d276d1da89238e900b2346c',
+  pr:1529,head_sha:'51a900b316cad03a41b07c6a79e36e6ee322c029',comment_id:6775467253,
+  owner_id:226193297,updated_at:'2026-11-13T15:47:04Z',
+  original_code:'5b81f5e8f4e2d98aff760fc5d093f2d8f7d8ea88'
+});
+function unpublishedTerminalRecovery(r){
+  const x=r.closure?.recovery,p=UNPUBLISHED_TERMINAL_RECOVERY;
+  requireValue(keys(x,['kind','source_sha','original_commit','original_blob','original_record_digest',
+    'original_run_id','original_job_id'])&&x.kind==='unpublished_terminal_v1'&&sha(x.source_sha)&&x.source_sha!==p.sha
+    &&r.repository_sha===p.sha&&r.kind==='installed'&&r.release.run_id===p.deploy&&r.release.run_attempt===1
+    &&r.closure.job==='release-slot-recovery'&&r.closure.run_id!==p.run_id
+    &&x.original_commit===p.commit&&x.original_blob===p.blob&&x.original_record_digest===p.record_digest
+    &&x.original_run_id===p.run_id&&x.original_job_id===p.job_id
+    &&same(r.closure.binding,{pr:p.pr,head_sha:p.head_sha,comment_id:p.comment_id,
+      owner_id:p.owner_id,updated_at:p.updated_at}),'invalid_unpublished_terminal_recovery');return x;
+}
+function recoveryBranch(r){
+  return r.closure?.recovery?.kind==='unpublished_terminal_v1'?UNPUBLISHED_TERMINAL_RECOVERY.branch:TERMINAL_RECOVERY.branch;
+}
 function gateRecovery(r){
   const x=r.closure?.recovery,p=GATE_RECOVERY;
   requireValue(keys(x,['kind','source_sha','original_commit','original_blob','original_record_digest',
@@ -254,6 +281,7 @@ function gateRecovery(r){
       owner_id:p.owner_id,updated_at:p.updated_at}),'invalid_gate_recovery');return x;
 }
 function terminalRecovery(r){
+  if(r.closure?.recovery?.kind==='unpublished_terminal_v1')return unpublishedTerminalRecovery(r);
   if(r.closure?.recovery?.kind==='unstarted_tls_v1')return gateRecovery(r);
   const x=r.closure?.recovery,p=TERMINAL_RECOVERY;
   requireValue(keys(x,['source_sha','original_commit','original_blob','original_record_digest','original_run_id','original_job_id'])
@@ -485,7 +513,7 @@ async function authenticatePublication(api,location,{closed=false,diagnosticsHea
   }else{
     run=await api('GET',API_ROOT+'/actions/runs/'+producer.run_id);
     runIdentity(run,{id:producer.run_id,attempt:producer.run_attempt,head:r.closure?.recovery?.source_sha||r.repository_sha,
-      branch:r.closure?.recovery?TERMINAL_RECOVERY.branch:'main',
+      branch:r.closure?.recovery?recoveryBranch(r):'main',
       workflow:r.phase==='pending_closure'?DEPLOY:CLOSER,event:r.closure?.recovery?'push':r.phase==='pending_closure'?r.release.event:'workflow_run',
       completed:r.phase==='pending_closure'||closed});
   }
@@ -506,6 +534,14 @@ async function authenticatePublication(api,location,{closed=false,diagnosticsHea
     producer_run_id:producer.run_id,producer_run_attempt:producer.run_attempt};
 }
 async function authenticateFailedTerminal(api,record){
+  if(record.repository_release?.closure?.recovery?.kind==='unpublished_terminal_v1'){
+    const r=validateRelease(record).release,p=UNPUBLISHED_TERMINAL_RECOVERY;
+    unpublishedTerminalRecovery(r);
+    const original=await failedUnpublishedTerminal(api);
+    const restored=clone(record);delete restored.repository_release.closure.recovery;
+    restored.repository_release.closure.run_id=p.run_id;restored.repository_release.closure.job='release-slot';
+    requireValue(same(restored,original.record),'original_unpublished_record_changed');return {original};
+  }
   if(record.repository_release?.closure?.recovery?.kind==='unstarted_tls_v1'){
     const r=validateRelease(record).release,x=gateRecovery(r),original=await failedGateEvidence(api);
     const restored=clone(record);restored.repository_release.phase='pending_closure';
@@ -564,6 +600,57 @@ function failedGateJobs(tlsJobs,closeJobs){
     &&prepare.number<upload[0].number&&upload[0].number<terminal.number
     &&closer.steps.every(s=>s===prepare||['success','skipped'].includes(s.conclusion)),'failed_terminal_executed');
   return {tls,closer};
+}
+async function failedUnpublishedTerminal(api){
+  const p=UNPUBLISHED_TERMINAL_RECOVERY,get=path=>api('GET',API_ROOT+path),C=require('./release_slot_close');
+  const original=await readRecord(api,p.commit),pending=await readRecord(api,p.pending_commit);
+  requireValue(original.blob===p.blob&&original.record_digest===p.record_digest
+    &&pending.blob===p.pending_blob&&pending.record_digest===p.pending_digest,'original_unpublished_record_changed');
+  const r=validateRelease(original.record).release,prior=validateRelease(pending.record).release;
+  requireValue(r.repository_sha===p.sha&&r.phase==='pending_terminal'&&r.kind==='installed'&&!r.closure.recovery
+    &&r.closure.run_id===p.run_id&&r.closure.job==='release-slot'&&r.release.run_id===p.deploy
+    &&prior.phase==='pending_closure','original_unpublished_record_changed');
+  const restored=clone(original.record),s=restored.repository_release;
+  s.phase=prior.phase;s.closure=prior.closure;s.observation=prior.observation;
+  s.observation_producer=prior.observation_producer;s.baseline_eligible=prior.baseline_eligible;
+  requireValue(same(restored,pending.record),'original_installation_record_changed');
+  await requireAncestry(api,p.pending_commit,p.commit);
+  await authenticatePublication(api,pending);await deploymentProof(api,installationReceipt(pending.record));
+  const run=await get('/actions/runs/'+p.run_id);
+  runIdentity(run,{id:p.run_id,attempt:1,head:p.sha,workflow:CLOSER,event:'workflow_run',conclusion:'failure'});
+  requireValue(run.display_title==='deploy-proof:v1:'+p.deploy+':1','failed_terminal_origin_changed');
+  const raw=await get('/actions/runs/'+p.run_id+'/attempts/1/jobs?per_page=100');
+  const jobs=boundedList(raw,'jobs','incomplete_failed_terminal_jobs'),rows=jobs.filter(j=>j.id===p.job_id&&j.name==='release-slot');
+  requireValue(rows.length===1&&rows[0].run_id===Number(p.run_id)&&rows[0].run_attempt===1&&rows[0].head_sha===p.sha
+    &&rows[0].status==='completed'&&rows[0].conclusion==='failure'&&Array.isArray(rows[0].steps),'failed_terminal_not_original');
+  const own=rows[0],one=(name,result)=>{const ss=own.steps.filter(s=>s.name===name);
+    requireValue(ss.length===1&&ss[0].status==='completed'&&ss[0].conclusion===result,'failed_terminal_executed');return ss[0];};
+  const prepare=one('Prepare the exact release proof before terminal publication','failure');
+  const upload=one(TERMINAL_BINDING_STEP,'skipped'),terminal=one(TERMINAL_STEP,'skipped');
+  requireValue(prepare.number<upload.number&&upload.number<terminal.number
+    &&own.steps.every(s=>s===prepare||['success','skipped'].includes(s.conclusion)),'failed_terminal_executed');
+  requireValue(boundedList(await get('/actions/runs/'+p.run_id+'/artifacts?per_page=100'),
+    'artifacts','incomplete_failed_terminal_artifacts').length===0,'original_terminal_already_published');
+  requireValue((await get('/contents/tools/release_slot_close.js?ref='+p.sha))?.sha===p.original_code,'original_terminal_source_changed');
+  requireValue(typeof api.jobLog==='function','original_terminal_log_unavailable');
+  const bytes=await api.jobLog(p.job_id);
+  requireValue(Buffer.isBuffer(bytes)&&bytes.length>0&&bytes.length<=2*1024*1024
+    &&Buffer.from(bytes.toString('utf8')).equals(bytes),'original_terminal_log_unavailable');
+  const lines=bytes.toString('utf8').split(/\r?\n/).filter(l=>/^\d{4}-\d\d-\d\dT[0-9:.]+Z release_slot=/.test(l));
+  requireValue(lines.length===1&&lines[0].endsWith('Z release_slot=held reason=diagnostics_write_unknown'),'failed_terminal_reason_changed');
+  const c={sha:p.sha,deploy:Number(p.deploy),run:Number(p.run_id),configure:'skipped',activation:false,
+    terminalRecovery:true,unpublishedRecovery:true};
+  const snapshot=await C.selectReleaseRuns(await get('/actions/runs?head_sha='+p.sha+'&per_page=100'),c,get);
+  requireValue(!snapshot.waiting&&C.gateState(snapshot.runs,c)==='ready'
+    &&same(C.gateReferences(snapshot.runs),r.closure.gates),'gates_changed');
+  C.verifyConfigure(raw,c);
+  const configuration=jobs.find(j=>j.name==='configure');
+  requireValue(Array.isArray(configuration.steps)&&configuration.steps.length===0,'configuration_executed');
+  const activation=snapshot.runs.workflow_runs.find(x=>x.path===PREFIX+C.ACTIVATION.file&&x.event==='workflow_run');
+  const activationJobs=await get('/actions/runs/'+activation.id+'/attempts/1/jobs?per_page=100');
+  C.verifyActivation(activationJobs,activation,c,snapshot.runs.workflow_runs.find(x=>x.path===PREFIX+'modeled-conversion-monitor.yml'&&x.event==='workflow_run')?.id);
+  requireValue(activationJobs.jobs[0].steps.length===0,'activation_executed');
+  return original;
 }
 async function failedGateEvidence(api){
   const p=GATE_RECOVERY,get=path=>api('GET',API_ROOT+path);
@@ -711,7 +798,7 @@ function makeReadApi(token,fetchImpl=globalThis.fetch,{sleep=waitForRetry}={}) {
   };
   api.jobLog=async job=>{
     requireValue([TERMINAL_RECOVERY.job_id,TERMINAL_RECOVERY.continuation_job_id,TERMINAL_RECOVERY.observation_job_id,
-      TERMINAL_RECOVERY.read_failure_job_id,GATE_RECOVERY.tls_job_id].includes(job),'untrusted_terminal_log');
+      TERMINAL_RECOVERY.read_failure_job_id,GATE_RECOVERY.tls_job_id,UNPUBLISHED_TERMINAL_RECOVERY.job_id].includes(job),'untrusted_terminal_log');
     const response=await request('https://api.github.com'+API_ROOT+'/actions/jobs/'+job+'/logs',headers(false),'manual',2*1024*1024);
     if(Buffer.isBuffer(response))return response;
     let url;try{url=new URL(response.headers.get('location'));}catch{throw new Refusal('invalid_log_redirect');}
@@ -1071,7 +1158,7 @@ async function resolveCurrent(api,c,location,{defer=false}={}) {
   }
   const closer=await api('GET',API_ROOT+'/actions/runs/'+r.closure.run_id);
   runIdentity(closer,{id:r.closure.run_id,attempt:1,head:r.closure.recovery?.source_sha||c.sha,
-    branch:r.closure.recovery?TERMINAL_RECOVERY.branch:'main',workflow:CLOSER,
+    branch:r.closure.recovery?recoveryBranch(r):'main',workflow:CLOSER,
     event:r.closure.recovery?'push':'workflow_run',completed:false});
   if(closer.status!=='completed')return pending();
   await authenticatePublication(api,location,{closed:true});await deploymentProof(api,installation);
@@ -1205,7 +1292,8 @@ function argumentsOf(argv,commands) {
 function outputs(value){for(const [key,v]of Object.entries(value)){
   requireValue(/^[a-z_]+$/.test(key)&&!/[\r\n]/.test(String(v)),'invalid_output');process.stdout.write(key+'='+String(v)+'\n');}}
 module.exports={REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
-  TERMINAL_RECOVERY,GATE_RECOVERY,terminalRecovery,gateRecovery,authenticateFailedTerminal,
+  TERMINAL_RECOVERY,GATE_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY,terminalRecovery,gateRecovery,
+  unpublishedTerminalRecovery,recoveryBranch,failedUnpublishedTerminal,authenticateFailedTerminal,
   failedGateJobs,failedGateEvidence,gateContinuationContext,continuationTls,
   CONTENT_POLICY,FINGERPRINT_PROTOCOL,RESOLVER_STEP,TERMINAL_STEP,MAX_RECORD,MAX_API,MAX_ARCHIVE,INSTALL_STAGES,OPS_STAGES,
   PENDING_BINDING_STEP,TERMINAL_BINDING_STEP,

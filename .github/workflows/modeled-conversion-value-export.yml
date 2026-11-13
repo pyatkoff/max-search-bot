@@ -2,7 +2,7 @@ name: Configure AnyTour modeled value goal
 run-name: "${{ github.event_name == 'workflow_run' && format('deploy-proof:v1:{0}:{1}', github.event.workflow_run.id, github.event.workflow_run.run_attempt) || 'Configure AnyTour modeled value goal' }}"
 on:
   push:
-    branches: [ops/recover-pr1505-terminal-20261112]
+    branches: [ops/recover-pr1505-terminal-20261112, ops/recover-pr1529-terminal-20261113]
   workflow_run:
     workflows: [Deploy production]
     types: [completed]
@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   release-slot-recovery:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/ops/recover-pr1505-terminal-20261112'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/ops/recover-pr1505-terminal-20261112' || github.ref == 'refs/heads/ops/recover-pr1529-terminal-20261113')
     permissions:
       contents: write
       actions: read

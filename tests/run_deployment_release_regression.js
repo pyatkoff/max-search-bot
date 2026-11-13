@@ -177,7 +177,7 @@ function fixture(source,record=installed(source)){
   };
   api.artifact=async meta=>archives.get(meta.id);
   return {api,calls,runs,jobs,records,commits,trees,artifacts,archives,
-    get head(){return head;},get record(){return records.get(head).value;},get wave(){return wave;},
+    get head(){return head;},set head(v){assert.ok(records.has(v)&&commits.has(v));head=v;},get record(){return records.get(head).value;},get wave(){return wave;},
     get comment(){return comment;},set comment(v){comment=v;},get pr(){return currentPr;},set pr(v){currentPr=v;},
     set hook(fn){hook=fn;},set main(v){main=v;},addHost,putRecord,
     next(sha,record,deploy=1100,closer=2100){putRecord(record,head);wave=setupWave(sha,deploy,closer,56);return wave;},
@@ -1396,7 +1396,110 @@ async function gateContinuationCases(){
   }
 }
 
-async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();
+
+// The public, immutable original receipts are used as fixed negative/positive
+// boundary input. All API/run/job identities below are synthetic in-memory.
+function unpublishedTerminalFixture(){
+  const pending={"bundle":"success","diagnostics":"success","diagnostics_attempt":1,"install_attempt":1,"install_checks":"success","key":"success","max_webhook":"success","metrika_cron":"success","migration":"success","provenance":"success","reported_at":"2026-11-13T16:00:56Z","repository_release":{"application_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","baseline":null,"baseline_eligible":false,"closure":null,"content":{"candidate_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","classification":"unconfirmed","installed_sha":"5fbb61990706ae4289e539df2c26c60e409032f4","policy":"anytour-development-content-v1","release_path":"full_required","runtime_fingerprint":null},"intent_scan":{"checked_commits":5,"coverage":"registered_markers_and_reserved_families","matched_commits":[],"status":"no_registered_intent"},"kind":"installed","observation":null,"observation_producer":null,"phase":"pending_closure","release":{"event":"push","run_attempt":1,"run_id":"43456259794"},"repository_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","schema":1,"stages":{"bundle":{"execution":"performed","result":"success"},"diagnostics":{"execution":"performed","result":"success"},"install_checks":{"execution":"performed","result":"success"},"key":{"execution":"performed","result":"success"},"max_webhook":{"execution":"performed","result":"success"},"metrika_cron":{"execution":"performed","result":"success"},"migration":{"execution":"performed","result":"success"},"provenance":{"execution":"performed","result":"success"},"smoke":{"execution":"performed","result":"success"},"sync":{"execution":"performed","result":"success"}}},"run_id":"43456259794","schema":2,"sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","smoke":"success","smoke_attempt":1,"sync":"success"},terminal={"bundle":"success","diagnostics":"success","diagnostics_attempt":1,"install_attempt":1,"install_checks":"success","key":"success","max_webhook":"success","metrika_cron":"success","migration":"success","provenance":"success","reported_at":"2026-11-13T16:00:56Z","repository_release":{"application_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","baseline":null,"baseline_eligible":false,"closure":{"binding":{"comment_id":6775467253,"head_sha":"51a900b316cad03a41b07c6a79e36e6ee322c029","owner_id":226193297,"pr":1529,"updated_at":"2026-11-13T15:47:04Z"},"expected_terminal":"PR1529: установлено, выпуск свободен","gates":[{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/deploy.yml","run_attempt":1,"run_id":"43456259794"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/retired-domain-guard.yml","run_attempt":1,"run_id":"43456259765"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/max-tls-preflight.yml","run_attempt":1,"run_id":"43458415792"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/max-production-health.yml","run_attempt":1,"run_id":"43458412674"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/telegram-production-health.yml","run_attempt":1,"run_id":"43458412715"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/publish-conversation-diagnostics.yml","run_attempt":1,"run_id":"43458415744"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/live-session-diagnostics.yml","run_attempt":1,"run_id":"43458412698"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/tour-selection-host.yml","run_attempt":1,"run_id":"43458412489"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/modeled-conversion-monitor.yml","run_attempt":1,"run_id":"43458412487"},{"conclusion":"skipped","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/modeled-pipeline-monitor-activation.yml","run_attempt":1,"run_id":"43458573580"}],"job":"release-slot","run_attempt":1,"run_id":"43458412572","terminal_step":"Release only the admitted publisher after all original mandatory gates"},"content":{"candidate_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","classification":"unconfirmed","installed_sha":"5fbb61990706ae4289e539df2c26c60e409032f4","policy":"anytour-development-content-v1","release_path":"full_required","runtime_fingerprint":null},"intent_scan":{"checked_commits":5,"coverage":"registered_markers_and_reserved_families","matched_commits":[],"status":"no_registered_intent"},"kind":"installed","observation":{"application_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","components":{"editor":null,"public":null},"configuration_key_id":null,"core_digest":null,"digest":null,"mode":"all","protocol":"anytour-deployment-runtime-v1","reason_code":"configuration_loader_unsupported","schema":1,"status":"unknown"},"observation_producer":{"run_attempt":1,"run_id":"43458412489"},"phase":"pending_terminal","release":{"event":"push","run_attempt":1,"run_id":"43456259794"},"repository_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","schema":1,"stages":{"bundle":{"execution":"performed","result":"success"},"diagnostics":{"execution":"performed","result":"success"},"install_checks":{"execution":"performed","result":"success"},"key":{"execution":"performed","result":"success"},"max_webhook":{"execution":"performed","result":"success"},"metrika_cron":{"execution":"performed","result":"success"},"migration":{"execution":"performed","result":"success"},"provenance":{"execution":"performed","result":"success"},"smoke":{"execution":"performed","result":"success"},"sync":{"execution":"performed","result":"success"}}},"run_id":"43456259794","schema":2,"sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","smoke":"success","smoke_attempt":1,"sync":"success"},p=R.UNPUBLISHED_TERMINAL_RECOVERY;
+  const f=fixture(p.sha,pending),initial=f.head;
+  const alias=(from,to,parent=null)=>{const x=f.records.get(from),c=f.commits.get(from);f.records.set(to,x);
+    f.commits.set(to,{...copy(c),sha:to,parents:parent?[{sha:parent}]:[]});};
+  alias(initial,p.pending_commit);
+  f.putRecord(terminal,p.pending_commit);const originalHead=f.head;alias(originalHead,p.commit,p.pending_commit);f.head=p.commit;
+  const wave=f.start(p.sha,Number(p.deploy),Number(p.run_id),p.pr);f.runs.clear();f.jobs.clear();
+  for(const r of wave.wave){const g=terminal.repository_release.closure.gates.find(g=>g.path===r.path);r.id=Number(g.run_id);
+    r.conclusion=g.conclusion;f.runs.set(r.id,r);}
+  const monitor=wave.wave.find(r=>r.path.endsWith('modeled-conversion-monitor.yml'));
+  const activation=wave.wave.find(r=>r.path.endsWith(C.ACTIVATION.file));activation.display_title='monitor-proof:v1:'+monitor.id+':1';
+  f.jobs.set(activation.id,[job('activate',activation,[],'skipped')]);
+  f.jobs.set(Number(p.deploy),fullJobs(wave.parent,pending));
+  const failed=wave.own;failed.status='completed';failed.conclusion='failure';f.runs.set(failed.id,failed);
+  const failure=job('release-slot',failed,[step('Prepare the exact release proof before terminal publication','failure'),
+    step(R.TERMINAL_BINDING_STEP,'skipped'),step(R.TERMINAL_STEP,'skipped')],'failure');failure.id=p.job_id;
+  f.jobs.set(failed.id,[job('configure',failed,[],'skipped'),failure,job('release-slot-recovery',failed,[],'skipped')]);
+  const b={comment_id:p.comment_id,head_sha:p.head_sha,owner_id:p.owner_id,updated_at:p.updated_at};
+  f.pr={...f.pr,number:p.pr,head:{sha:p.head_sha,repo:{full_name:R.REPOSITORY}},body:'<!-- release-slot-close:v1 '+JSON.stringify(b)+' -->'};
+  f.comment={...f.comment,id:p.comment_id,user:{id:p.owner_id},updated_at:p.updated_at,body:'PR1529: выпуск занят'};
+  const source=H('source-checked unpublished1529 completion'),runId=700000;
+  const native={...copy(failed),id:runId,head_sha:source,head_branch:p.branch,event:'push',status:'in_progress',conclusion:null,
+    actor:{id:p.owner_id}};delete native.display_title;f.runs.set(runId,native);
+  const own=job('release-slot-recovery',native,[],null);own.status='in_progress';own.runner_id=345;
+  f.jobs.set(runId,[own,job('configure',native,[],'skipped'),job('release-slot',native,[],'skipped')]);
+  for(const [i,name,file]of [[1,'Regression tests','regression-tests.yml'],[2,'Retired domain guard','retired-domain-guard.yml']])
+    f.runs.set(runId+i,{...copy(native),id:runId+i,name,path:R.PREFIX+file,event:'pull_request',status:'completed',conclusion:'success'});
+  f.api.jobLog=async id=>{equal(id,p.job_id,'only the fixed stopped original log is read');return Buffer.from(T+' release_slot=held reason=diagnostics_write_unknown\n');};
+  const originalHook=async call=>{
+    const q=call.path;
+    if(q===R.API_ROOT+'/git/ref/heads/diagnostics'&&f.head===originalHead)return {object:{sha:p.commit}};
+    if(q===R.API_ROOT+'/compare/'+p.sha+'...'+source+'?per_page=1')return {status:'ahead',merge_base_commit:{sha:p.sha}};
+    if(q===R.API_ROOT+'/contents/tools/release_slot_close.js?ref='+p.sha)return {sha:p.original_code};
+    if(q===R.API_ROOT+'/issues/comments/'+p.comment_id){if(call.method==='PATCH')f.comment={...f.comment,body:call.body.body};return copy(f.comment);}
+  };
+  f.hook=originalHook;
+  const env={GITHUB_REPOSITORY:R.REPOSITORY,GITHUB_EVENT_NAME:'push',GITHUB_REF:'refs/heads/'+p.branch,GITHUB_SHA:source,
+    GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.CLOSER+'@refs/heads/'+p.branch,GITHUB_JOB:'release-slot-recovery',
+    GITHUB_RUN_ID:String(runId),GITHUB_RUN_ATTEMPT:'1'};
+  const event={repository:{full_name:R.REPOSITORY},ref:env.GITHUB_REF,before:'0'.repeat(40),after:source,created:true,deleted:false,forced:false};
+  return {f,p,env,event,source,native,own,failure,originalHook,options:()=>({env,event,api:f.api})};
+}
+async function unpublishedTerminalCases(){
+  {
+    const x=unpublishedTerminalFixture();const original=await R.failedUnpublishedTerminal(x.f.api);
+    equal(original.record_digest,x.p.record_digest,'actual written original is proved without upload or terminal invention');
+    equal(x.f.calls.filter(c=>c.method!=='GET').length,0,'original reconciliation is read-only');
+    const proof=await C.resumeUnpublishedTerminal({...x.options(),prepare:true});
+    equal(x.f.comment.body,'PR1529: выпуск занят','new proof preparation holds same publisher');
+    equal(x.f.record.repository_release.closure.recovery.kind,'unpublished_terminal_v1','new native lineage is explicit');
+    equal(x.f.calls.filter(c=>c.method==='PATCH'&&c.path.includes('/issues/comments/')).length,0,'preparation never frees');
+    x.own.steps.push(step(R.TERMINAL_BINDING_STEP+proof.record_digest));x.env.PREPARED_RECORD_DIGEST=proof.record_digest;
+    equal(await C.resumeTerminal(x.options()),'released','existing recovery entry point completes this fixed case');
+    equal(x.f.calls.filter(c=>c.method==='PATCH'&&c.path.includes('/issues/comments/')).length,1,'one terminal PATCH only');
+    x.native.status='completed';x.native.conclusion='success';x.own.status='completed';x.own.conclusion='success';x.own.steps.push(step(R.TERMINAL_STEP));
+    const location=await R.readRecord(x.f.api);await R.authenticatePublication(x.f.api,location,{closed:true});
+    equal(x.failure.conclusion,'failure','failed original retains failure after accepted new completion');
+    equal(x.f.record.repository_release.observation.status,'unknown','runtime UNKNOWN stays unknown');
+    equal((await R.resolveCurrent(x.f.api,{sha:x.p.sha},location)).application_sha,x.p.sha,'canonical consumers accept honest continuation');
+    const before=x.f.calls.filter(c=>c.method!=='GET').length;
+    await refuses(()=>C.resumeUnpublishedTerminal(x.options()),'unpublished_continuation_not_active');
+    equal(x.f.calls.filter(c=>c.method!=='GET').length,before,'completed native continuation cannot repeat writes');
+  }
+  for(const mutate of [x=>x.env.GITHUB_RUN_ATTEMPT='2',x=>x.env.GITHUB_REF='refs/heads/foreign',x=>x.event.before=H('old'),
+    x=>x.event.created=false,x=>x.event.forced=true,x=>x.event.deleted=true,x=>x.event.after=H('other'),x=>x.env.GITHUB_SHA=x.p.sha]){
+    const x=unpublishedTerminalFixture();mutate(x);await refuses(()=>C.resumeUnpublishedTerminal({...x.options(),prepare:true}),'untrusted_unpublished_terminal_continuation');
+    equal(x.f.calls.filter(c=>c.method!=='GET').length,0,'changed origin refuses before writes');
+  }
+  for(const [mutate,reason]of [
+    [x=>x.f.main=H('new main'),'main_changed'],[x=>x.native.actor.id++,'unpublished_continuation_not_active'],
+    [x=>x.own.runner_id=0,'unpublished_continuation_not_active'],[x=>x.f.runs.get(x.native.id+1).conclusion='failure','recovery_ci_unconfirmed'],
+    [x=>x.f.comment.updated_at='2026-11-13T15:47:05Z','record_changed'],[x=>x.f.comment.user.id++,'foreign_record'],
+    [x=>x.failure.steps[1].conclusion='success','failed_terminal_executed'],[x=>x.failure.steps[2].conclusion='success','failed_terminal_executed'],
+    [x=>x.failure.run_attempt=2,'failed_terminal_not_original'],[x=>x.f.runs.get(43458415792).conclusion='failure','required_gate_failed'],
+    [x=>x.f.jobs.get(43458573580)[0].steps.push(step('protected operation')),'activation_executed'],
+    [x=>x.f.jobs.get(Number(x.p.run_id))[0].steps.push(step('configuration')),'configuration_executed'],
+    [x=>x.f.artifacts.set(Number(x.p.run_id),[{id:123}]),'original_terminal_already_published']
+  ]){
+    const x=unpublishedTerminalFixture();mutate(x);await refuses(()=>C.resumeUnpublishedTerminal({...x.options(),prepare:true}),reason);
+    equal(x.f.calls.filter(c=>c.method!=='GET').length,0,'changed fixed evidence keeps publisher without writes');
+  }
+  {
+    const x=unpublishedTerminalFixture();x.f.api.jobLog=async()=>Buffer.from(T+' release_slot=held reason=write_unknown\n');
+    await refuses(()=>C.resumeUnpublishedTerminal({...x.options(),prepare:true}),'failed_terminal_reason_changed');
+    equal(x.f.calls.filter(c=>c.method!=='GET').length,0,'unknown comment write cannot use this exception');
+  }
+  {
+    const x=unpublishedTerminalFixture();const proof=await C.resumeUnpublishedTerminal({...x.options(),prepare:true});
+    x.env.PREPARED_RECORD_DIGEST=proof.record_digest;
+    await refuses(()=>C.resumeUnpublishedTerminal(x.options()),'publication_step_unconfirmed');
+    equal(x.f.calls.filter(c=>c.method==='PATCH'&&c.path.includes('/issues/comments/')).length,0,'missing real upload holds');
+    x.own.steps.push(step(R.TERMINAL_BINDING_STEP+proof.record_digest));
+    x.f.hook=async c=>{if(c.method==='PATCH'&&c.path.includes('/issues/comments/'))throw new C.Refusal('api_http_503');return x.originalHook(c);};
+    await refuses(()=>C.resumeUnpublishedTerminal(x.options()),'write_unknown');
+    equal(x.f.calls.filter(c=>c.method==='PATCH'&&c.path.includes('/issues/comments/')).length,1,'uncertain terminal write never retries');
+    equal(x.f.comment.body,'PR1529: выпуск занят','unknown terminal is not accepted');
+  }
+}
+
+async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();
   process.stdout.write('Deployment release regression: '+assertions+' assertions passed\n');}
 module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases};
 if(require.main===module)main().catch(e=>{process.stderr.write(String(e.stack||e)+'\n');process.exitCode=1;});

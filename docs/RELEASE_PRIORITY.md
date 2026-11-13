@@ -212,6 +212,20 @@ the protocol source is installed through ordinary fresh admission.
 
 ## Automatic terminal update
 
+PR1529 has a separately owner-authorised, fixed metadata-only continuation after
+its terminal record was proved written but the original upload/terminal steps
+were proved unexecuted. The existing recovery job accepts one genuine creation
+of ops/recover-pr1529-terminal-20261113 at an exact-source CI-accepted descendant
+of8d6ac35dd17614b2cadb3aa3af7637c74280c01c. Its unpublished_terminal_v1 lineage
+names the real new native producer and preserves the failed original. Every
+original successful installation/gate, both immutable record digests, original
+failed job/log/source, unexecuted upload/terminal and exact original owner tuple
+remain mandatory. The existing job has no server credential. Changed main,
+source/owner/record, missing CI/publication and unknown writes hold without
+replaying installation or repeating a mutation. This is the explicit one-time
+PR1529 exception, not general permission to replace a failed closer. Normal
+installation of the protocol correction follows only after actual accepted FREE.
+
 The existing post-deploy workflow `modeled-conversion-value-export.yml` now has
 a metadata-only `release-slot` job after its unchanged `configure` job. It uses
 the same existing workflow serialization. No new workflow, schedule, business

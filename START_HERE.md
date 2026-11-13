@@ -6,6 +6,40 @@ Roadmap/checkpoint thread: GitHub issue [#55](https://github.com/pyatkoff/max-se
 
 Primary language with the user: Russian.
 
+## Owner-authorised PR1529 terminal publication recovery — 2026-11-13
+
+The owner explicitly approved a one-time recovery of PR1529's technical
+completion in the same Manager2 chat. That exception concerns metadata only.
+PR1529 is installed as8d6ac35dd17614b2cadb3aa3af7637c74280c01c through original
+Deploy43456259794/a1. All original mandatory gates succeeded, activation and
+configuration were explicitly skipped, and migrations have0pending/0checksum
+failures. Do not repeat that installation or its successful checks.
+
+Original closer43458412572/a1/job131998597573 failed diagnostics_write_unknown
+while preparing terminal publication. Its actual pending_terminal record is
+commit b367a1aac9d5ae58ecf2be7fbc7a00be5080b51c, blob
+a46b8d215b6719be2ba9b6bd8361dcdc728e388d. Its upload and publisher step were
+explicitly skipped, with0artifacts. Publisher6775467253 retains its original
+owner226193297 and15:47:04Z acquisition. A JSON record alone is not acceptance.
+
+After exact-source required CI, the same owner may create the fixed branch
+ops/recover-pr1529-terminal-20261113 once at that checked descendant of current
+main. Only that genuine initial push/attempt1 may enter the existing serialized
+release-slot-recovery job. It authenticates the immutable original pending and
+terminal records, original successful deployment publication, failed original
+job/log/source, all original gates, actual unexecuted steps and the unchanged
+main/PR/publisher tuple. It publishes a separately identified native proof under
+typed unpublished_terminal_v1 lineage before its single terminal PATCH. Failure
+or unknown writes hold without retry. Preserve the failed original and optional
+runtime UNKNOWN. No new workflow, job, queue, publisher, schedule, server install
+or business operation is introduced by this continuation.
+
+After actual automatic FREE, use ordinary fresh admission and the same publisher
+to install this checked protocol correction prospectively, so current consumers
+can authenticate its honest lineage. That is a new checked code update; the
+already successful original PR1529 installation and every original technical
+gate remain unreplayed. No extra product package belongs in this correction.
+
 ## PR1506 unstarted TLS gate — 2026-11-12
 
 PR1505 was genuinely recovered by43249510496/a1 and automatically released at
