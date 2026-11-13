@@ -1,0 +1,78 @@
+{
+  "operation": "commercial-hotel-batch-20261113-14-v1",
+  "state": "POSTS_NATIVE_FEEDS_SITE_COMPLETE_COLLECTOR_PINS_PENDING",
+  "new_prepared_hotels": 2,
+  "new_hotel_ids": [
+    968,
+    1531
+  ],
+  "new_posts": 4,
+  "reused_posts": 0,
+  "full_pairs_before": 590,
+  "full_pairs_after": 592,
+  "queue_before": 17,
+  "queue_after": 15,
+  "site_before": 341,
+  "site_after": 344,
+  "accepted_revision": 2,
+  "current_revision": 3,
+  "other664_cards_exact": true,
+  "source_old_photos_archived": true,
+  "source_old_photoSets_prefix_exact": true,
+  "publisher_run": 43382026346,
+  "publisher_head": "3d01657d097e51d6095700ed77de080863716016",
+  "publisher_artifact": 14016862267,
+  "publisher_zip_sha256": "b1452aab7f02699dbda84835009d23b47c2acfe14b46040d68a692f38a103d36",
+  "native_run": 43382253955,
+  "private_accepted": "f4b6707a40acc2755480f363c9e87c0e08bc7671",
+  "feed_run": 43382484575,
+  "feed_head": "8ec575cafab1c417f892fc4ab85c82df3b2c1dbe",
+  "feed_artifact": 14016599853,
+  "feed_zip_sha256": "c371d998a44c0b756bd7d437015a85350b13f341c06742cd2837392f89bef525",
+  "feed_counts": [
+    592,
+    592,
+    1184
+  ],
+  "old590_offer_price_bytes_exact": true,
+  "nightly_before": 562,
+  "nightly_after": 564,
+  "nightly_gzip_sha256": "4853978a4a8944793e985371578687983aee27c8aeb214b936b814997ebc009e",
+  "manual_price_supplier_collector_calls": 0,
+  "original_readonly_failures_preserved": [
+    {
+      "run": 43381340458,
+      "reason": "old finite exactscope3",
+      "message_sends": 0,
+      "db_writes": 0
+    },
+    {
+      "run": 43381580379,
+      "reason": "stale fixed report counts3; exact2 clear and zero writes, not relabelled"
+    }
+  ],
+  "successful_original_clearance": 43381801145,
+  "site_preview": {
+    "original_http_status": 400,
+    "original_version": 343,
+    "source_edits_not_replayed": true,
+    "actual_import_attempts": 1,
+    "original_import_operation_id_unchanged": true,
+    "new_photo_set_labels_shortened_from": 339,
+    "original_failed_preview_receipt_preserved": true
+  },
+  "pairs": [
+    {
+      "hotel_id": 968,
+      "name": "ALI BEY PARK MANAVGAT",
+      "max": "https://max.ru/channel_anytour/AaHTsQwvQXY",
+      "telegram": "https://t.me/any_toour/605"
+    },
+    {
+      "hotel_id": 1531,
+      "name": "SUNIS KUMKOY BEACH RESORT & SPA",
+      "max": "https://max.ru/channel_anytour/AaHTsRUWKD8",
+      "telegram": "https://t.me/any_toour/606"
+    }
+  ]
+}

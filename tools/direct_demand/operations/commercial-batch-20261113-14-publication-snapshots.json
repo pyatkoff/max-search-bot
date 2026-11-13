@@ -1,0 +1,172 @@
+[
+  {
+    "hotel_id": 968,
+    "site_id": "ba1a1db1-162b-4a28-939b-9187da9d8832",
+    "snapshots": [
+      {
+        "channel": "max",
+        "text": "✈️ Туры в Ali Bey Park Manavgat\n📍 Кызылагач, Манавгат, Турция.\n\nПляж, водные горки и семейный отдых 🌿\n\nAli Bey Park Manavgat подойдёт для поездки с детьми и активного отпуска у моря. Здесь можно проводить время на пляже, развлекаться в аквапарке и играть в теннис. Для семей есть разные варианты размещения.\n\n• Пляж у территории курорта.\n• Аквапарк с зонами для взрослых и детей.\n• Теннисный центр и спа.\n\nАквапарк работает с учётом сезона. Пляжные павильоны оплачиваются отдельно, а условия тенниса и спа зависят от выбранной услуги.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+        "textSha256": "f265109466f74f28cd1077d88020f14b49a012a17595bb62c8fd4af7686a520c",
+        "capturedAt": "2026-11-13T06:56:05+00:00",
+        "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43382026346/attempts/1",
+        "proofKind": "completed_package",
+        "post": {
+          "url": "https://max.ru/channel_anytour/AaHTsQwvQXY",
+          "mid": "mid.ffffb6caf0606fed01a1d3b10c2f4176",
+          "at": "2026-11-13T06:56:05+00:00",
+          "idKind": "provider",
+          "buttonProof": {
+            "url": "https://max.ru/id9704048781_1_bot?start=p_o_pNMrDEJo1CCm9wYgb7rDSb",
+            "publicationId": "1337",
+            "hotelNativeId": "968",
+            "verifiedAt": "2026-11-13T06:56:05+00:00",
+            "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43382026346/attempts/1"
+          }
+        },
+        "publicationId": "1337",
+        "versionId": "4347",
+        "buttonText": "✈️ Узнать стоимость тура",
+        "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0e304c5075ec0c811bdc64a54edd126ae7fd25f4/.github/traffic-publish/commercial-batch-20261113-14/968.png",
+        "mediaCount": 1
+      },
+      {
+        "channel": "telegram",
+        "text": "✈️ Туры в Ali Bey Park Manavgat\n📍 Кызылагач, Манавгат, Турция.\n\nПляж, водные горки и семейный отдых 🌿\n\nAli Bey Park Manavgat подойдёт для поездки с детьми и активного отпуска у моря. Здесь можно проводить время на пляже, развлекаться в аквапарке и играть в теннис. Для семей есть разные варианты размещения.\n\n• Пляж у территории курорта.\n• Аквапарк с зонами для взрослых и детей.\n• Теннисный центр и спа.\n\nАквапарк работает с учётом сезона. Пляжные павильоны оплачиваются отдельно, а условия тенниса и спа зависят от выбранной услуги.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+        "textSha256": "f265109466f74f28cd1077d88020f14b49a012a17595bb62c8fd4af7686a520c",
+        "capturedAt": "2026-11-13T06:56:05+00:00",
+        "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43382026346/attempts/1",
+        "proofKind": "completed_package",
+        "post": {
+          "url": "https://t.me/any_toour/605",
+          "mid": "605",
+          "at": "2026-11-13T06:56:05+00:00",
+          "idKind": "provider",
+          "buttonProof": {
+            "url": "https://t.me/anyru_bot?start=p_VlBc4joGSJXEnBEXc9c3PaAe",
+            "publicationId": "1335",
+            "hotelNativeId": "968",
+            "verifiedAt": "2026-11-13T06:56:05+00:00",
+            "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43382026346/attempts/1"
+          }
+        },
+        "publicationId": "1335",
+        "versionId": "4345",
+        "buttonText": "✈️ Узнать стоимость тура",
+        "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0e304c5075ec0c811bdc64a54edd126ae7fd25f4/.github/traffic-publish/commercial-batch-20261113-14/968.png",
+        "mediaCount": 1
+      }
+    ],
+    "feedPresence": {
+      "at": "2026-11-13T07:00:16.582997+00:00",
+      "sourceDate": "2026-11-13 09:59",
+      "url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+      "maxUrl": "https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMDZhY2Y5NGFjNGRkNjUyMDc5ZDczNzBlZWNiYzU4MjAiLCJvZmZlcl9pZCI6Im1heF85NjgifQ",
+      "telegramUrl": "https://t.me/any_toour/605"
+    },
+    "newPhotoSet": {
+      "capturedAt": "2026-11-13T06:56:05+00:00",
+      "sourceUrl": "https://www.alibey.com/en/our-hotels/ali-bey-park-manavgat/",
+      "proofUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43382026346/attempts/1",
+      "label": "Три разные официальные фотографии своего отеля просмотрены. Исходные фото и принятая история сохранены; дата съёмки неизвестна.",
+      "photos": [
+        {
+          "url": "https://www.alibey.com/media/tmajmxmi/alibey-park-manavgat-anasayfa-havuz-banner-d.jpg",
+          "alt": "Бассейн Ali Bey Park Manavgat"
+        },
+        {
+          "url": "https://www.alibey.com/media/xkdp4bvn/alibey-park-manavgat-anasayfa-aqua-straight.jpg",
+          "alt": "Водная игровая зона Ali Bey Park Manavgat"
+        },
+        {
+          "url": "https://www.alibey.com/media/hwdhod0l/alibey-resort-park-manavgat-anasayfa-spa-card.jpg",
+          "alt": "Зона отдыха спа Ali Bey Park Manavgat"
+        }
+      ]
+    }
+  },
+  {
+    "hotel_id": 1531,
+    "site_id": "bfe9f605-a80a-5368-a546-d4867859a7a7",
+    "snapshots": [
+      {
+        "channel": "max",
+        "text": "✈️ Туры в Sunis Kumköy Beach Resort & Spa\n📍 Сиде, Турция.\n\nСемейный отпуск на песчаном берегу ☀️\n\nSunis Kumköy Beach Resort & Spa подойдёт тем, кто хочет чередовать пляжный отдых с развлечениями для всей семьи. Детям доступны клуб и водные горки, взрослым — бассейны и спа. Для большой семьи есть категории с отдельными спальнями.\n\n• Песчаный пляж у территории.\n• Водные горки для взрослых и детей.\n• Детский клуб и спа-центр.\n\nОткрытые бассейны, горки и детские программы работают с учётом сезона. Рестораны à la carte требуют записи; спа-процедуры могут оплачиваться отдельно.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+        "textSha256": "e2429a21c773bbbab1db809c3ead13c398a27cc684ca5fd7ba07c79dd4e85a51",
+        "capturedAt": "2026-11-13T06:56:05+00:00",
+        "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43382026346/attempts/1",
+        "proofKind": "completed_package",
+        "post": {
+          "url": "https://max.ru/channel_anytour/AaHTsRUWKD8",
+          "mid": "mid.ffffb6caf0606fed01a1d3b11516283f",
+          "at": "2026-11-13T06:56:05+00:00",
+          "idKind": "provider",
+          "buttonProof": {
+            "url": "https://max.ru/id9704048781_1_bot?start=p_W1a7ttV-fmP05yjR4ySwzl1W",
+            "publicationId": "1338",
+            "hotelNativeId": "1531",
+            "verifiedAt": "2026-11-13T06:56:05+00:00",
+            "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43382026346/attempts/1"
+          }
+        },
+        "publicationId": "1338",
+        "versionId": "4348",
+        "buttonText": "✈️ Узнать стоимость тура",
+        "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0e304c5075ec0c811bdc64a54edd126ae7fd25f4/.github/traffic-publish/commercial-batch-20261113-14/1531.png",
+        "mediaCount": 1
+      },
+      {
+        "channel": "telegram",
+        "text": "✈️ Туры в Sunis Kumköy Beach Resort & Spa\n📍 Сиде, Турция.\n\nСемейный отпуск на песчаном берегу ☀️\n\nSunis Kumköy Beach Resort & Spa подойдёт тем, кто хочет чередовать пляжный отдых с развлечениями для всей семьи. Детям доступны клуб и водные горки, взрослым — бассейны и спа. Для большой семьи есть категории с отдельными спальнями.\n\n• Песчаный пляж у территории.\n• Водные горки для взрослых и детей.\n• Детский клуб и спа-центр.\n\nОткрытые бассейны, горки и детские программы работают с учётом сезона. Рестораны à la carte требуют записи; спа-процедуры могут оплачиваться отдельно.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+        "textSha256": "e2429a21c773bbbab1db809c3ead13c398a27cc684ca5fd7ba07c79dd4e85a51",
+        "capturedAt": "2026-11-13T06:56:05+00:00",
+        "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43382026346/attempts/1",
+        "proofKind": "completed_package",
+        "post": {
+          "url": "https://t.me/any_toour/606",
+          "mid": "606",
+          "at": "2026-11-13T06:56:05+00:00",
+          "idKind": "provider",
+          "buttonProof": {
+            "url": "https://t.me/anyru_bot?start=p_fi9inRQznjQE_4-fbAvPKb8m",
+            "publicationId": "1336",
+            "hotelNativeId": "1531",
+            "verifiedAt": "2026-11-13T06:56:05+00:00",
+            "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43382026346/attempts/1"
+          }
+        },
+        "publicationId": "1336",
+        "versionId": "4346",
+        "buttonText": "✈️ Узнать стоимость тура",
+        "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0e304c5075ec0c811bdc64a54edd126ae7fd25f4/.github/traffic-publish/commercial-batch-20261113-14/1531.png",
+        "mediaCount": 1
+      }
+    ],
+    "feedPresence": {
+      "at": "2026-11-13T07:00:16.582997+00:00",
+      "sourceDate": "2026-11-13 09:59",
+      "url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+      "maxUrl": "https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYWQzMGNiZGM5ZGRiODg1NDgwMThjN2I1MDI1NTY0NGMiLCJvZmZlcl9pZCI6Im1heF8xNTMxIn0",
+      "telegramUrl": "https://t.me/any_toour/606"
+    },
+    "newPhotoSet": {
+      "capturedAt": "2026-11-13T06:56:05+00:00",
+      "sourceUrl": "https://www.kumkoybeachresort.com/index.php/odalar-suitler/",
+      "proofUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43382026346/attempts/1",
+      "label": "Три разные официальные фотографии своего отеля просмотрены. Исходные фото и принятая история сохранены; дата съёмки неизвестна.",
+      "photos": [
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0610-scaled.jpg",
+          "alt": "Территория и бассейны Sunis Kumköy Beach Resort"
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2024/10/CTM9908-1536x1024.jpg",
+          "alt": "Номер Sunis Kumköy Beach Resort"
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0537-scaled.jpg",
+          "alt": "Зелёная территория Sunis Kumköy Beach Resort"
+        }
+      ]
+    }
+  }
+]

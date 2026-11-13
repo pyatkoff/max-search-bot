@@ -1,0 +1,52 @@
+{
+  "preview-short-photo-label.response.json": {
+    "version": 343,
+    "added": 0,
+    "merged": 2,
+    "rejected": 0,
+    "details": []
+  },
+  "import.response.json": {
+    "version": 344,
+    "event": {
+      "id": "batch14-source-20261113-import-v1",
+      "title": "Batch14 · два опубликованных отеля и подтверждённый feed",
+      "type": "success"
+    }
+  },
+  "edit-02-bfe9f605-a80a-5368-a546-d4867859a7a7.response.json": {
+    "version": 343,
+    "event": {
+      "id": "batch14-source-20261113-edit-bfe9f605-a80a-5368-a546-d4867859a7a7",
+      "title": "SUNIS KUMKOY BEACH RESORT & SPA: новая версия",
+      "type": "success"
+    }
+  },
+  "edit-01-ba1a1db1-162b-4a28-939b-9187da9d8832.response.json": {
+    "version": 342,
+    "event": {
+      "id": "batch14-source-20261113-edit-ba1a1db1-162b-4a28-939b-9187da9d8832",
+      "title": "ALI BEY PARK MANAVGAT: новая версия",
+      "type": "success"
+    }
+  },
+  "preview.unconfirmed.json": {
+    "operationId": "batch14-source-20261113-import-v1",
+    "errorType": "HTTPError",
+    "httpStatus": 400,
+    "retryPerformed": false
+  },
+  "preview-reconciliation.json": {
+    "originalPreview": "HTTP400",
+    "originalVersion": 343,
+    "freshVersion": 343,
+    "importEventAbsent": true,
+    "actualImportAttemptAbsent": true,
+    "sourceEditsNotReplayed": true,
+    "changedFields": [
+      "new photoSet.label only, 339 characters -> 127"
+    ],
+    "operationIdUnchanged": "batch14-source-20261113-import-v1",
+    "automaticRetry": false
+  }
+}

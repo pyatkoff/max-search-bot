@@ -1,0 +1,182 @@
+{
+  "inspected_photos": 8,
+  "visual_inspection_performed": true,
+  "published_native_ids": [
+    968,
+    1531
+  ],
+  "published_photos": {
+    "968": [
+      "https://www.alibey.com/media/tmajmxmi/alibey-park-manavgat-anasayfa-havuz-banner-d.jpg",
+      "https://www.alibey.com/media/xkdp4bvn/alibey-park-manavgat-anasayfa-aqua-straight.jpg",
+      "https://www.alibey.com/media/hwdhod0l/alibey-resort-park-manavgat-anasayfa-spa-card.jpg"
+    ],
+    "1531": [
+      "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0610-scaled.jpg",
+      "https://www.kumkoybeachresort.com/wp-content/uploads/2024/10/CTM9908-1536x1024.jpg",
+      "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0537-scaled.jpg"
+    ]
+  },
+  "photo_date_unknown": true,
+  "accepted_identity_relationships_unchanged": true,
+  "old_failed_URLs_repeated": 0,
+  "retained_sunis_originals_reused": 2,
+  "new_image_requests": 6,
+  "pages": [
+    {
+      "key": "1531-rooms",
+      "url": "https://www.kumkoybeachresort.com/index.php/odalar-suitler/",
+      "final_url": "https://www.kumkoybeachresort.com/index.php/odalar-suitler/",
+      "http": 200,
+      "title": "Odalar &#038; Suitler &#8211; Kumköy Beach Resort Hotel"
+    },
+    {
+      "key": "1531-pools",
+      "url": "https://www.kumkoybeachresort.com/index.php/havuz-kaydiraklarimiz/",
+      "final_url": "https://www.kumkoybeachresort.com/index.php/havuz-kaydiraklarimiz/",
+      "http": 200,
+      "title": "Havuz ve Kaydıraklarımız &#8211; Kumköy Beach Resort Hotel"
+    },
+    {
+      "key": "968-home",
+      "url": "https://www.alibey.com/en/park",
+      "final_url": "https://www.alibey.com/en/our-hotels/ali-bey-park-manavgat/",
+      "http": 200,
+      "title": "Mainpage | Ali Bey Park Manavgat | Ali Bey Hotels &amp; Resorts"
+    },
+    {
+      "key": "968-beach",
+      "url": "https://www.alibey.com/en/park/beach-waterpark",
+      "final_url": "https://www.alibey.com/en/our-hotels/ali-bey-park-manavgat/beach-pools-waterpark/",
+      "http": 200,
+      "title": ""
+    }
+  ],
+  "selection_note": "Park uses only own Park-labelled pool/aqua/spa files from official Park overview; all Club/Sorgun files excluded. Park beach subpage is mixed with Sorgun media and was not used for image selection. Sunis third image was directly observed in official rooms page. No photography date or rate inclusions inferred.",
+  "checks": [
+    {
+      "hotel_id": 968,
+      "index": 0,
+      "url": "https://www.alibey.com/media/tmajmxmi/alibey-park-manavgat-anasayfa-havuz-banner-d.jpg",
+      "attempts": 1,
+      "ok": true,
+      "http": 200,
+      "final_url": "https://www.alibey.com/media/tmajmxmi/alibey-park-manavgat-anasayfa-havuz-banner-d.jpg",
+      "mime": "image/jpeg",
+      "width": 2160,
+      "height": 1161,
+      "sha256": "928899ffac88994b85e135b08c40e630169c3a4e77e1a1eabfb72abf9feec6f8",
+      "bytes": 495270,
+      "format": "JPEG"
+    },
+    {
+      "hotel_id": 968,
+      "index": 1,
+      "url": "https://www.alibey.com/media/l1cpcdrz/alibey-park-manavgat-anasayfa-aqua-tilted.jpg",
+      "attempts": 1,
+      "ok": true,
+      "http": 200,
+      "final_url": "https://www.alibey.com/media/l1cpcdrz/alibey-park-manavgat-anasayfa-aqua-tilted.jpg",
+      "mime": "image/jpeg",
+      "width": 638,
+      "height": 734,
+      "sha256": "7878848498efeb057bcd89e0e776bd7973e248851a58edb87938464b00f2b4b6",
+      "bytes": 153288,
+      "format": "JPEG"
+    },
+    {
+      "hotel_id": 968,
+      "index": 2,
+      "url": "https://www.alibey.com/media/fvjowgxu/alibey-resort-park-manavgat-anasayfa-padel.jpg",
+      "attempts": 1,
+      "ok": true,
+      "http": 200,
+      "final_url": "https://www.alibey.com/media/fvjowgxu/alibey-resort-park-manavgat-anasayfa-padel.jpg",
+      "mime": "image/jpeg",
+      "width": 578,
+      "height": 578,
+      "sha256": "63f18befdd359cc9103792f54985fec2513c75c16207be2861070d96b1234595",
+      "bytes": 515842,
+      "format": "JPEG"
+    },
+    {
+      "hotel_id": 1531,
+      "index": 0,
+      "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0610-scaled.jpg",
+      "attempts": 1,
+      "ok": true,
+      "http": 200,
+      "final_url": "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0610-scaled.jpg",
+      "mime": "image/jpeg",
+      "width": 2560,
+      "height": 1920,
+      "sha256": "ca4443b8a55d57015f1a72e2ce04a471ecf5f91330dcd366728ac36a3069bd7f",
+      "bytes": 1702439,
+      "format": "JPEG",
+      "retained_from": "batch6",
+      "attempts_this_pass": 0
+    },
+    {
+      "hotel_id": 1531,
+      "index": 1,
+      "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2024/10/CTM9908-1536x1024.jpg",
+      "attempts": 1,
+      "ok": true,
+      "http": 200,
+      "final_url": "https://www.kumkoybeachresort.com/wp-content/uploads/2024/10/CTM9908-1536x1024.jpg",
+      "mime": "image/jpeg",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "b1403caed09fdfe4a753161cc467ebb94e6f7b6aa388984bfd11d2798b459b68",
+      "bytes": 273279,
+      "format": "JPEG"
+    },
+    {
+      "hotel_id": 1531,
+      "index": 2,
+      "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0537-scaled.jpg",
+      "attempts": 1,
+      "ok": true,
+      "http": 200,
+      "final_url": "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0537-scaled.jpg",
+      "mime": "image/jpeg",
+      "width": 2560,
+      "height": 1920,
+      "sha256": "7edf208965b5e44fb3adb6e6beb3ed771a1d43743bd8883931cc23eee64cc517",
+      "bytes": 1475274,
+      "format": "JPEG",
+      "retained_from": "batch6",
+      "attempts_this_pass": 0
+    },
+    {
+      "hotel_id": 968,
+      "index": 3,
+      "url": "https://www.alibey.com/media/xkdp4bvn/alibey-park-manavgat-anasayfa-aqua-straight.jpg",
+      "attempts": 1,
+      "ok": true,
+      "http": 200,
+      "final_url": "https://www.alibey.com/media/xkdp4bvn/alibey-park-manavgat-anasayfa-aqua-straight.jpg",
+      "mime": "image/jpeg",
+      "width": 534,
+      "height": 651,
+      "sha256": "6c556a5ec32d0c9330a5cd48f1a2437ded1c5de4d57dff839587f5b5679bf378",
+      "bytes": 93533,
+      "format": "JPEG"
+    },
+    {
+      "hotel_id": 968,
+      "index": 4,
+      "url": "https://www.alibey.com/media/hwdhod0l/alibey-resort-park-manavgat-anasayfa-spa-card.jpg",
+      "attempts": 1,
+      "ok": true,
+      "http": 200,
+      "final_url": "https://www.alibey.com/media/hwdhod0l/alibey-resort-park-manavgat-anasayfa-spa-card.jpg",
+      "mime": "image/jpeg",
+      "width": 1062,
+      "height": 1200,
+      "sha256": "2b8f515858ba620a207fe6ab2a858763f1dd7d9344a5718e93db9e5ccdfa4973",
+      "bytes": 167878,
+      "format": "JPEG"
+    }
+  ]
+}
