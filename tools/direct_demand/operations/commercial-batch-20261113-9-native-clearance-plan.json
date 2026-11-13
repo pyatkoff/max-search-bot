@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "ready": true,
+  "operation": "commercial-channel-hotel-feeds-20261113-read91",
+  "publisher_operation": "commercial-hotel-batch-20261113-9-v1",
+  "bound_reader_operation": "commercial-channel-hotel-feeds-20261113-read9",
+  "next_feed_operation": "commercial-channel-hotel-feeds-20261113-update10",
+  "expected_installed_sha": "498c5a752cd6f99c2d0e8c343dc5d44b9e80843f",
+  "expected_parent_head": "68467c0b8eeb35146bcfd96af680348fd90f04d8",
+  "hotel_ids": [
+    9287,
+    1013,
+    4185,
+    14140,
+    468
+  ],
+  "excluded_hotel_ids": [
+    343
+  ],
+  "owner_pin": {
+    "comment_id": 6818332618,
+    "owner": "pyatkoff",
+    "updated_at": "2026-11-13T00:21:15Z",
+    "body_sha256": "980a8cc4a4130a416758d4a3e1e19e3e15e812081dafe1b558893bcc7b0f5d25",
+    "required_scope_line": "**Продолжение batch9: IN_PROGRESS, пять отелей у прежнего anytour-max.** Приняты отредактированные тексты TV9287 Green Max,1013 Sunis Elita,4185 Royal Brayka,14140 Stella Makadi Gardens,468 Sultan Bey; SiteUUID/acceptedRevision2 и сохранённые факты/фото из99a-пакета проверены. Canonical rowsSHA `a2ae48be37c51551f99f6086f46e9d8f8562f4e787899b14f8489a8eccde4d77`. Old Palace343 остаётся REVIEW_NOT_FOR_RELEASE, в эти5 не включён."
+  },
+  "canonical_rows_sha256": "a2ae48be37c51551f99f6086f46e9d8f8562f4e787899b14f8489a8eccde4d77",
+  "editorial_material_sha256": "e1f7e8a62c68f2e2149d8191a1a95e4f8f401cf5286a8268b1556ac62fbcb6d9",
+  "manifest_sha256": "af6d63506e14e354c84baf572fcee3745b40c144f1f3b118db4411554656f3af",
+  "reader_template_source": "dc4e7704efebf0184384542c2853accdb98acc1d",
+  "reader_template_sha256": "426cac35ab1502d43edb7ca7a6243cebc2c6f9c9992b9c69a9c1462483d8b2d9"
+}

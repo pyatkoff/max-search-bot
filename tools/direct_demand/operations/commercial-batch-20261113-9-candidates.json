@@ -1,0 +1,52 @@
+[
+  {
+    "hotel_id": 9287,
+    "aliases": [
+      "Green Max Hotel",
+      "GREEN MAX HOTEL MANAGED BY FM (EX.CHERVO CLUB SIRENE)"
+    ],
+    "logical_id": "commercial-hotel-9287-v1",
+    "expected_text_sha256": "6d282372982c9cac9616dd0d54c664002e26221384c6d93851a802a4622429ca",
+    "scope": "same_original_batch9_candidate_preflight"
+  },
+  {
+    "hotel_id": 1013,
+    "aliases": [
+      "Sunis Elita Beach Resort & Spa",
+      "SUNIS ELITA BEACH RESORT (EX. ASTERIA ELITA RESORT)"
+    ],
+    "logical_id": "commercial-hotel-1013-v1",
+    "expected_text_sha256": "fe600ccb5abe0a887f70c6c1a3203410c29814c32534724b4171443452befc87",
+    "scope": "same_original_batch9_candidate_preflight"
+  },
+  {
+    "hotel_id": 4185,
+    "aliases": [
+      "Royal Brayka Resort",
+      "ROYAL BRAYKA BEACH RESORT"
+    ],
+    "logical_id": "commercial-hotel-4185-v1",
+    "expected_text_sha256": "d8efe86d7fed9215feccf996d4b07b20a219bba833d633ad603b11ae574ec1a1",
+    "scope": "same_original_batch9_candidate_preflight"
+  },
+  {
+    "hotel_id": 14140,
+    "aliases": [
+      "Stella Makadi Gardens Resort & Spa",
+      "STELLA MAKADI GARDENS RESORT & SPA"
+    ],
+    "logical_id": "commercial-hotel-14140-v1",
+    "expected_text_sha256": "d934012351c584624125d9ca5e49c73a02eb76054c4ac41d5b90c67eb3a75334",
+    "scope": "same_original_batch9_candidate_preflight"
+  },
+  {
+    "hotel_id": 468,
+    "aliases": [
+      "Sultan Bey Hotel",
+      "SULTAN BEY HOTEL"
+    ],
+    "logical_id": "commercial-hotel-468-v1",
+    "expected_text_sha256": "c2d1f96a36d270ed85a37b73602f45127f749b0796b9b3ba62ea6400dcadd475",
+    "scope": "same_original_batch9_candidate_preflight"
+  }
+]

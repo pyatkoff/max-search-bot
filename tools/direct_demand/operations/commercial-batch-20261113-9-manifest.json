@@ -1,0 +1,112 @@
+{
+  "state": "PREPARED_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261113-9-v1",
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 9287,
+      "logical_id": "commercial-hotel-9287-v1",
+      "aliases": [
+        "Green Max Hotel",
+        "GREEN MAX HOTEL MANAGED BY FM (EX.CHERVO CLUB SIRENE)"
+      ],
+      "text": "✈️ Туры в Green Max Hotel\n📍 Кадрие, Белек, Турция.\n\nОтель для семейного отдыха у собственного песчаного пляжа. Здесь есть мини-клуб, детские бассейны и четыре водные горки.\n\nКрытый бассейн с подогревом пригодится в прохладную погоду. Горки работают сезонно.\n\n✈️ Рассчитаем стоимость тура на ваши даты.",
+      "text_sha256": "6d282372982c9cac9616dd0d54c664002e26221384c6d93851a802a4622429ca",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/99a1f410d8f083b14e82d478c748a57bba17fc31/.github/traffic-publish/commercial-batch-20261113-9/9287.png",
+      "photo_sha256": "0cc46eac3691920465644fbac609908cd2f8dee5fef2d38ddc57ef1d10f5acdf",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.greenmaxhotel.com.tr/en/",
+        "https://www.greenmaxhotel.com.tr/en/about-us/",
+        "https://www.greenmaxhotel.com.tr/en/pools/",
+        "https://www.greenmaxhotel.com.tr/wp-content/uploads/2022/02/greenmax-havuz-8.jpg",
+        "https://www.greenmaxhotel.com.tr/wp-content/uploads/2022/02/Zeus-Suit-2.jpg",
+        "https://www.greenmaxhotel.com.tr/wp-content/uploads/2022/02/aqua-havadan-2.jpg"
+      ]
+    },
+    {
+      "hotel_id": 1013,
+      "logical_id": "commercial-hotel-1013-v1",
+      "aliases": [
+        "Sunis Elita Beach Resort & Spa",
+        "SUNIS ELITA BEACH RESORT (EX. ASTERIA ELITA RESORT)"
+      ],
+      "text": "✈️ Туры в Sunis Elita Beach Resort & Spa\n📍 Кызылагач, Манавгат, Турция.\n\nОтдых с детьми у собственного галечного пляжа. В отеле есть семейные номера, бассейны с горками и детские развлечения. В спа можно посетить хаммам и сауну.\n\nРасписание горок и детской программы зависит от сезона. Условия посещения спа и отдельных ресторанов зависят от выбранного тура.\n\n✈️ Рассчитаем стоимость тура на ваши даты.",
+      "text_sha256": "fe600ccb5abe0a887f70c6c1a3203410c29814c32534724b4171443452befc87",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/99a1f410d8f083b14e82d478c748a57bba17fc31/.github/traffic-publish/commercial-batch-20261113-9/1013.png",
+      "photo_sha256": "aadeea26d28389fa95c3527a5798503c009ff5991b5a931aa81a338bae303375",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.elitabeachresort.com/index.php/odalarimiz/",
+        "https://www.dertour.de/hotel/sunis-elita-beach-resort-hotel-spa-112Lwb",
+        "https://www.elitabeachresort.com/",
+        "https://www.corendon.nl/turkije/turkse-riviera/side/kizilagac/sunis-elita-beach-resort",
+        "https://www.elitabeachresort.com/wp-content/uploads/2019/08/DJI_0923-scaled.jpg",
+        "https://www.elitabeachresort.com/wp-content/uploads/2019/08/Club-Aile-Odasi-1-600x390.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2019/08/DJI_0916-1-scaled.jpg"
+      ]
+    },
+    {
+      "hotel_id": 4185,
+      "logical_id": "commercial-hotel-4185-v1",
+      "aliases": [
+        "Royal Brayka Resort",
+        "ROYAL BRAYKA BEACH RESORT"
+      ],
+      "text": "✈️ Туры в Royal Brayka Resort\n📍 Марса-Алам, Египет.\n\nСемейный отдых у собственного песчаного пляжа с пирсом. В отеле есть бассейн с водными горками, детская зона и семейные номера.\n\nВ прохладный сезон подогревают отдельный бассейн. Купание с пирса зависит от погоды и состояния моря.\n\n✈️ Рассчитаем стоимость тура на ваши даты.",
+      "text_sha256": "d8efe86d7fed9215feccf996d4b07b20a219bba833d633ad603b11ae574ec1a1",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/99a1f410d8f083b14e82d478c748a57bba17fc31/.github/traffic-publish/commercial-batch-20261113-9/4185.png",
+      "photo_sha256": "a89b9b0cda6197e67b5630362a8a94d81369772ed7a8209848686920a16f3393",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://braykaresorts.com/royal-brayka-resort/overview",
+        "https://braykaresorts.com/royal-brayka-resort/experiences/beach",
+        "https://braykaresorts.com/royal-brayka-resort/experiences/swimming-pools",
+        "https://braykaresorts.com/royal-brayka-resort/accommodation/deluxe-family-room",
+        "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-royal-brayka-resort-swimming-pools-75583.webp",
+        "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-royal-brayka-resort-standard-room-89f7f.webp",
+        "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-royal-brayka-resort-beach-06fe3c26-cb14-4b77-a936-9e29c1ebe99b-6deea.webp"
+      ]
+    },
+    {
+      "hotel_id": 14140,
+      "logical_id": "commercial-hotel-14140-v1",
+      "aliases": [
+        "Stella Makadi Gardens Resort & Spa",
+        "STELLA MAKADI GARDENS RESORT & SPA"
+      ],
+      "text": "✈️ Туры в Stella Makadi Gardens Resort & Spa\n📍 Макади-Бей, Египет.\n\nДля отпуска с детьми: бассейны, две горки для взрослых и номера Standard площадью около 41 м². Зимой подогревают отдельные взрослые бассейны и детский бассейн.\n\nДо пляжа соседнего Stella Beach около 1 км, есть шаттл. Аквапарк Nunia Aquarena находится отдельно, его посещение зависит от условий тура.\n\n✈️ Рассчитаем стоимость тура на ваши даты.",
+      "text_sha256": "d934012351c584624125d9ca5e49c73a02eb76054c4ac41d5b90c67eb3a75334",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/99a1f410d8f083b14e82d478c748a57bba17fc31/.github/traffic-publish/commercial-batch-20261113-9/14140.png",
+      "photo_sha256": "cbcf9f0ae955269a0b0f6e2c6bc8b70134fbfcb7a8e04f2db371601825d17984",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.corendon.nl/egypte/rode-zee/hurghada/makadi-bay/stella-gardens-resort-spa-makadi-bay",
+        "https://www.coral.ge/en/hotels/egypt/stella-makadi-gardens-resort-spa-hurghada/",
+        "https://images.ctfassets.net/g8yn6gjj7q12/8e6eb8e7-f0e5-488a-8761-4e7ea25e4efd/243ebe741d45e5479f58828ab022722c/002.jpg?w=1024&fm=webp&q=80",
+        "https://images.ctfassets.net/g8yn6gjj7q12/6db351c8-4746-4568-bfb9-fabbcfa1a5e6/0e0e17efc30915436aa1ad28fe865057/003.jpg?w=1024&fm=webp&q=80",
+        "https://images.ctfassets.net/g8yn6gjj7q12/7c51fccb-adb7-426b-9a6e-b7d4c9e49c8b/cd8923753d4c3bec0876f0756476b28d/004.jpg?w=1024&fm=webp&q=80"
+      ]
+    },
+    {
+      "hotel_id": 468,
+      "logical_id": "commercial-hotel-468-v1",
+      "aliases": [
+        "Sultan Bey Hotel",
+        "SULTAN BEY HOTEL"
+      ],
+      "text": "✈️ Туры в Sultan Bey Hotel\n📍 Эль-Гуна, Египет.\n\nНебольшой отель с пляжем у лагуны рядом с центром Эль-Гуны. Подойдёт тем, кто хочет отдыхать у воды и гулять по курорту. Взрослый и детский бассейны подогреваются зимой.\n\nДо морского пляжа Зейтуна нужна отдельная поездка на лодке.\n\n✈️ Рассчитаем стоимость тура на ваши даты.",
+      "text_sha256": "c2d1f96a36d270ed85a37b73602f45127f749b0796b9b3ba62ea6400dcadd475",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/99a1f410d8f083b14e82d478c748a57bba17fc31/.github/traffic-publish/commercial-batch-20261113-9/468.png",
+      "photo_sha256": "3278a8066325bd05e94f7226bc797903ea5aab7bc4b42bc80daef68816b6581b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.elgouna.com/hotels/sultan-bey-hotel",
+        "https://www.elgouna.com/hotels/sultan-bey-hotel/facilities",
+        "https://www.elgouna.com/_next/image?url=https%3A%2F%2Fcms.elgouna.com%2Fapi%2Fmedia%2Ffile%2FSultan_Bey_El_Gouna_Red_Sea_Egypt_pool-scaled-6a6bd7c2.webp&w=3840&q=75",
+        "https://www.elgouna.com/_next/image?url=https%3A%2F%2Fcms.elgouna.com%2Fapi%2Fmedia%2Ffile%2FSultan_Bey_El_Gouna_Red_Sea_Egypt_King_bed-1-0d0e5ee4.webp&w=3840&q=75",
+        "https://www.elgouna.com/_next/image?url=https%3A%2F%2Fcms.elgouna.com%2Fapi%2Fmedia%2Ffile%2FNew-Project-49-4f32b105.webp&w=3840&q=75"
+      ]
+    }
+  ]
+}
