@@ -1,0 +1,22 @@
+[
+  {
+    "hotel_id": 968,
+    "aliases": [
+      "Ali Bey Park Manavgat",
+      "ALI BEY PARK MANAVGAT"
+    ],
+    "logical_id": "commercial-hotel-968-v1",
+    "expected_text_sha256": "f265109466f74f28cd1077d88020f14b49a012a17595bb62c8fd4af7686a520c",
+    "scope": "same_original_batch14_candidate_preflight"
+  },
+  {
+    "hotel_id": 1531,
+    "aliases": [
+      "Sunis Kumköy Beach Resort & Spa",
+      "SUNIS KUMKOY BEACH RESORT & SPA"
+    ],
+    "logical_id": "commercial-hotel-1531-v1",
+    "expected_text_sha256": "e2429a21c773bbbab1db809c3ead13c398a27cc684ca5fd7ba07c79dd4e85a51",
+    "scope": "same_original_batch14_candidate_preflight"
+  }
+]
