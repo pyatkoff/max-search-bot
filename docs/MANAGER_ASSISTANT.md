@@ -28,7 +28,16 @@ Prepared proposals retain the canonical one-hour TTL and all content, instructio
 
 `Выполнено`, `Неактуально` and `Вернуть в работу` change only private assistant decision metadata in migration048. Decisions are bound to the precise proposal and context, so a new analysis does not inherit an old dismissal. Compare-and-set state protects conflicting actions; an unknown response is reconciled by a read, never by automatically repeating a write.
 
-Task completion and deadline changes delegate to the existing Pipeline/LeadTask service. Scheduling a recommendation opens the current client's canonical task editor. Existing open tasks are shown first; no second reminder delivery system or automatic task creation exists. An unfinished task/reply/file remains under its existing draft owner.
+Task completion and deadline changes delegate to the existing Pipeline/LeadTask
+service. The task section owns one explicit `Открыть задачи` / `Запланировать`
+action for the assigned manager, independent of a current AI recommendation.
+Missing or expired analysis, a `done` / `irrelevant` recommendation decision and
+completion of the last task leave manual planning available. The existing owner
+admission and fresh `can_decide` check remain; this does not extend another
+manager's or administrator's permissions. Existing open tasks are shown first;
+otherwise the action opens the same canonical task editor. Navigation does not
+create a task. An unfinished task/reply/file remains under its existing draft
+owner. No second editor, task store or reminder delivery system exists.
 
 The assigned manager may explicitly plan internal work from a current
 `no_contact` recommendation, including an already promised calculation. This
@@ -41,10 +50,15 @@ Planning reopens the canonical conversation and reads its full current task
 card, instead of relying on the older, filtered assistant task list. A failed or
 degraded task/pipeline read never proves that there are no tasks. An existing
 open task opens that card; a new editor requires current edit rights and an open
-sales outcome. Before copying a recommendation check into an empty editor, the
-existing assistant detail is read again and must have the same unexpired
-revision. A changed or missing recommendation opens an empty editor without
-copying old advice; existing manual title/deadline values remain untouched.
+sales outcome. The existing assistant detail read rechecks current owner access.
+A recommendation can prefill an empty editor only if it was eligible when the
+manager clicked and its same unexpired, undecided revision is confirmed again.
+An action started without eligible advice stays manual even if a new
+recommendation appears during those reads. A changed or missing recommendation
+opens an empty editor without copying old advice; existing manual title/deadline
+values remain untouched. Ordinary manual planning does not claim that a
+recommendation changed. Availability of the button alone does not make a client
+urgent or change the action filter, task ranking or status.
 For `no_contact` with no check, the title stays empty rather than becoming
 "Сейчас не писать". The manager chooses any deadline and explicitly saves.
 

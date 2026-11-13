@@ -39,7 +39,7 @@ function harness(){
   const lead=(changes={})=>({ok:true,tasks:[],can_edit_pipeline:true,pipeline:{outcome:{outcome:'open'}},degraded_components:[],...changes});
   const leads=new Map([[101,lead()],[102,lead()]]);
   const S={manager:{id:7},authExpired:false,authGeneration:1,current:101,detail:{conversation:{id:101,manager_id:7,status:'manager'},messages:[{id:35,text:'Current customer request'}],lead:leads.get(101)}};
-  const calls=[],timers=[],leadReads=[];let now=Date.now(),hook=null,leadHook=null,openGeneration=1;
+  const calls=[],timers=[],leadReads=[],loadStatuses=[];let now=Date.now(),hook=null,leadHook=null,openGeneration=1;
   class Clock extends Date{constructor(...args){super(...(args.length?args:[now]))}static now(){return now}static parse(value){return /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(String(value))?NaN:Date.parse(value)}}
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const item=(id=101,changes={})=>({conversation_id:id,manager_id:7,status:'manager',can_decide:true,display_name:'Client '+id,channel:'telegram',last_message_at:'2026-10-20T15:00:00Z',tasks:[],recommendation:{revision:'a'.repeat(64),next_action:'check_offer',reason:'Check selected hotel & meal plan.',checks:['Compare the two selected hotels.'],prepared_at:new Date(now).toISOString(),expires_at:new Date(now+3600000).toISOString(),latest_message_id:35,evidence_message_ids:[35],history_incomplete:false,decision:null},...changes});
@@ -49,6 +49,7 @@ function harness(){
   const navigate=id=>{openGeneration++;S.current=Number(id);const row=data.get(Number(id));S.detail={...S.detail,conversation:{id:Number(id),manager_id:row?.manager_id??S.manager?.id,status:row?.status??'manager'},lead:leads.get(Number(id))??lead()};};
   const opened=[];const window={WorkspaceV2:W,WorkspaceV2Conversation:{
     open:async(id,opts)=>{opened.push({id,opts});navigate(id);return true},
+    setLoadStatus:(text,tone)=>loadStatuses.push({text,tone}),
     captureReplyContext,getOpenGeneration:()=>openGeneration,
     refreshLeadData:async(options={})=>{const id=Number(options.conversationId??S.current),before=captureReplyContext();leadReads.push({...options,conversationId:id});const result=leadHook?await leadHook(options):leads.get(id);if(result===false||!result?.ok||S.authExpired||id!==Number(S.current)||JSON.stringify(before)!==JSON.stringify(captureReplyContext()))return false;S.detail.lead=result;return true}
   },ManagerTime:{format:v=>v,toInput:()=>'',fromInput:v=>v}};
@@ -57,19 +58,19 @@ function harness(){
   const A=window.WorkspaceV2Assistant,$=W.$;
   async function click(selector){const n=body.querySelector(selector);assert.ok(n,'Control exists: '+selector);assert.equal(n.disabled,false,'Control is enabled: '+selector);return n.onclick?.({preventDefault(){}})}
   function onlyReads(){assert.equal(calls.some(c=>!['list','detail'].includes(c.action)),false,'Only assistant list/detail requests')}
-  return{A,W,S,window,document,$,body,calls,data,item,lead,leads,leadReads,timers,opened,file,click,onlyReads,navigate,setHook:fn=>hook=fn,setLeadHook:fn=>leadHook=fn,advance:ms=>now+=ms};
+  return{A,W,S,window,document,$,body,calls,data,item,lead,leads,leadReads,loadStatuses,timers,opened,file,click,onlyReads,navigate,setHook:fn=>hook=fn,setLeadHook:fn=>leadHook=fn,advance:ms=>now+=ms};
 }
 const deferred=()=>{let resolve;return{promise:new Promise(r=>resolve=r),resolve}};
 const tests=[];function test(name,run){tests.push({name,run})}
 
 test('unanswered work stays visible without AI and fresh no-contact remains separate',async()=>{
-  const h=harness();h.data.clear();h.data.set(101,h.item(101,{recommendation:null,operational:{awaiting_manager_reply:true,due_task:false}}));h.A.activate(7);await h.A.open();await h.click('[data-assistant-filter="actions"]');assert.ok(h.body.querySelector('[data-assistant-client="101"]'));await h.A.loadDetail(101);assert.match(h.$('assistantDetail').textContent,/Обращение без записанного ответа/);assert.match(h.$('assistantDetail').textContent,/Нет свежего разбора/);assert.equal(h.$('assistantPlan'),null);
+  const h=harness();h.data.clear();h.data.set(101,h.item(101,{recommendation:null,operational:{awaiting_manager_reply:true,due_task:false}}));h.A.activate(7);await h.A.open();await h.click('[data-assistant-filter="actions"]');assert.ok(h.body.querySelector('[data-assistant-client="101"]'));await h.A.loadDetail(101);assert.match(h.$('assistantDetail').textContent,/Обращение без записанного ответа/);assert.match(h.$('assistantDetail').textContent,/Нет свежего разбора/);assert.equal(h.$('assistantPlan').textContent,'Запланировать');assert.ok(h.$('assistantDetail').querySelector('.assistantTasks').contains(h.$('assistantPlan')));
   h.data.set(101,h.item(101,{operational:{awaiting_manager_reply:true,due_task:false},recommendation:{...h.item().recommendation,next_action:'no_contact'}}));await h.A.loadDetail(101);assert.equal(h.$('assistantDetail').querySelector('.assistantOperational'),null);neutralNoContact(h);assert.equal(h.body.querySelector('[data-assistant-client="101"]'),null);
   h.advance(3600001);await h.A.loadDetail(101);assert.ok(h.body.querySelector('[data-assistant-client="101"]'));assert.match(h.$('assistantDetail').textContent,/Обращение без записанного ответа/);h.onlyReads();
 });
 for(const role of ['manager','admin'])test(role+' sees neutral suspended state without automatic reply or old AI action',async()=>{
   const h=harness();h.S.manager.role=role;h.data.set(101,h.item(101,{delivery_suspended:true,delivery_notice:'Ответ станет доступен после новой активности клиента.',operational:{awaiting_manager_reply:true,due_task:false}}));h.A.activate(7);await h.A.open(101);
-  assert.ok(h.$('assistantDetail').querySelector('.assistantUnavailable'));assert.equal(h.$('assistantDetail').querySelector('.assistantOperational'),null);assert.equal(h.$('assistantDetail').querySelector('.assistantRecommendation'),null);assert.equal(h.$('assistantPlan'),null);assert.match(h.body.querySelector('[data-assistant-client="101"]').textContent,/Клиент недоступен в MAX/);assert.doesNotMatch(h.$('assistantDetail').textContent,/Обращение без записанного ответа|Check selected hotel/);
+  assert.ok(h.$('assistantDetail').querySelector('.assistantUnavailable'));assert.equal(h.$('assistantDetail').querySelector('.assistantOperational'),null);assert.equal(h.$('assistantDetail').querySelector('.assistantRecommendation'),null);assert.equal(h.$('assistantPlan').textContent,'Запланировать');assert.equal(h.$('assistantReply'),null);assert.match(h.body.querySelector('[data-assistant-client="101"]').textContent,/Клиент недоступен в MAX/);assert.doesNotMatch(h.$('assistantDetail').textContent,/Обращение без записанного ответа|Check selected hotel/);
   await h.click('[data-assistant-filter="actions"]');assert.equal(h.body.querySelector('[data-assistant-client="101"]'),null);
   h.data.set(101,h.item(101,{delivery_suspended:false,operational:{awaiting_manager_reply:true,due_task:false}}));await h.A.loadDetail(101);assert.equal(h.$('assistantDetail').querySelector('.assistantUnavailable'),null);assert.ok(h.$('assistantDetail').querySelector('.assistantOperational'));assert.ok(h.$('assistantDetail').querySelector('.assistantRecommendation'));assert.ok(h.body.querySelector('[data-assistant-client="101"]'));h.onlyReads();
 });
@@ -107,7 +108,7 @@ for(const [screen,id,mode] of [['conversation',101,'none'],['conversation',102,'
 
 test('workspace owner sees team identity and cannot change another manager decision',async()=>{
   const h=harness();h.S.manager.role='admin';h.data.set(101,h.item(101,{project_name:'AnyTour',manager_name:'Другой менеджер',manager_id:9,can_decide:false}));h.A.activate(7);await h.A.open(101);
-  assert.match(h.$('assistantTitle').textContent,/владельца/);assert.match(h.$('assistantSubtitle').textContent,/всей команды/);assert.match(h.$('assistantDetail').textContent,/Другой менеджер/);assert.equal(h.$('assistantDetail').querySelector('[data-assistant-decision]'),null);h.onlyReads();
+  assert.match(h.$('assistantTitle').textContent,/владельца/);assert.match(h.$('assistantSubtitle').textContent,/всей команды/);assert.match(h.$('assistantDetail').textContent,/Другой менеджер/);assert.equal(h.$('assistantDetail').querySelector('[data-assistant-decision]'),null);assert.equal(h.$('assistantPlan'),null);h.onlyReads();
 });
 
 test('entry review binding keeps the canonical reply helper and creates no duplicate menu launcher',async()=>{
@@ -162,8 +163,8 @@ test('planning protects the canonical task draft and preserves existing unsaved 
   const h=harness(),host=h.document.createElement('div');host.id='leadTasksBody';host.innerHTML='<form class="taskCreate"><input id="leadTaskTitle"><input id="leadTaskDue"></form>';h.body.appendChild(host);h.$('leadTaskTitle').value='Already edited task';h.$('leadTaskDue').value='2026-10-21T10:00';let blocked=0;h.window.WorkspaceV2Tasks={blockNavigationForDirtyDraft:()=>{blocked++;return true}};h.A.activate(7);await h.A.open(101);await h.click('#assistantPlan');assert.equal(h.opened.length,0);assert.equal(h.leadReads.length,0);assert.ok(blocked>0);assert.equal(h.$('leadTaskTitle').value,'Already edited task');assert.equal(h.$('leadTaskDue').value,'2026-10-21T10:00');assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
 });
 
-// Planning must read two independent canonical facts: the current saved advice
-// and the current task list. Cached assistant tasks are deliberately separate.
+// Planning reads the full current task card and rechecks current owner access.
+// A saved recommendation is optional; cached assistant tasks remain separate.
 function planningHarness(checks=['  Подготовить обещанный расчёт  ']){
   const h=harness(),host=h.document.createElement('section');host.id='leadTasksBody';host.innerHTML='<div class="taskCreate"><input id="leadTaskTitle"><input id="leadTaskDue"></div>';h.body.appendChild(host);
   const heading=h.document.createElement('h3');heading.id='conversationTitle';h.body.appendChild(heading);
@@ -183,6 +184,36 @@ async function pausePlanning(h,phase){
   const flight=h.click('#assistantPlan');await new Promise(setImmediate);assert.equal(reached,true,'Planning awaits the canonical '+phase+' read');
   return{finish:async(result)=>{gate.resolve(result??(phase==='detail'?{ok:true,item:h.data.get(101)}:h.leads.get(101)));await flight}};
 }
+
+for(const kind of ['missing','expired','invalid expiry','done','irrelevant','delivery suspended'])test('planning manual action remains available when advice is '+kind,async()=>{
+  const h=planningHarness(),item=h.data.get(101);
+  if(kind==='missing')item.recommendation=null;
+  else if(kind==='expired'||kind==='invalid expiry')item.recommendation.expires_at=kind==='expired'?'2000-01-01T00:00:00Z':'unknown';
+  else if(kind==='delivery suspended')item.delivery_suspended=true;
+  else item.recommendation.decision=kind;
+  await openPlanning(h);assert.equal(h.$('assistantDetail').querySelectorAll('#assistantPlan').length,1);assert.ok(h.$('assistantDetail').querySelector('.assistantTasks').contains(h.$('assistantPlan')));
+  await h.click('#assistantPlan');assert.equal(h.opened.length,1);assert.equal(h.leadReads.length,1);assert.equal(h.effects.reveals.length,1);assert.equal(h.effects.cards.length,0);
+  assert.equal(h.$('leadTaskTitle').value,'');assert.equal(h.$('leadTaskDue').value,'');assert.equal(h.document.activeElement,h.$('leadTaskTitle'));assert.equal(h.loadStatuses.some(s=>s.text.includes('Рекомендация изменилась')),false);preservedComposer(h);
+});
+test('planning manual action never borrows a newly arrived recommendation that was absent at the click',async()=>{
+  const h=planningHarness(),recommendation={...h.data.get(101).recommendation};h.data.get(101).recommendation=null;await openPlanning(h);const paused=await pausePlanning(h,'detail');
+  h.data.get(101).recommendation=recommendation;await paused.finish();assert.equal(h.effects.reveals.length,1);assert.equal(h.$('leadTaskTitle').value,'');assert.equal(h.$('leadTaskDue').value,'');preservedComposer(h);
+});
+test('planning manual action opens the task that appeared in the full current card without AI',async()=>{
+  const h=planningHarness(),task={id:93,title:'Уже созданная ручная задача',status:'open',due_state:'unscheduled'};h.data.get(101).recommendation=null;await openPlanning(h);assert.equal(h.$('assistantPlan').textContent,'Запланировать');
+  h.setLeadHook(()=>h.lead({tasks:[task]}));await h.click('#assistantPlan');assert.equal(h.effects.cards.length,1);assert.equal(h.effects.reveals.length,0);assert.equal(h.$('leadTaskTitle').value,'');assert.equal(h.$('leadTaskDue').value,'');assert.deepEqual(h.S.detail.lead.tasks,[task]);preservedComposer(h);
+});
+test('planning manual action after completing the last task still requires explicit creation',async()=>{
+  const h=planningHarness(),task={id:94,title:'Завершить текущую работу',status:'open',due_state:'unscheduled'};h.data.get(101).recommendation=null;h.data.get(101).tasks=[task];h.leads.set(101,h.lead({tasks:[task]}));await openPlanning(h);assert.equal(h.$('assistantPlan').textContent,'Открыть задачи');
+  h.setHook((url,action,payload)=>{if(url==='pipeline-api.php'&&action==='set_task_completed'){assert.equal(payload.task_id,94);assert.equal(payload.completed,true);h.data.get(101).tasks=[];h.leads.set(101,h.lead());return{ok:true}}});
+  await h.click('[data-assistant-task="94"]');await new Promise(setImmediate);assert.equal(h.$('assistantPlan').textContent,'Запланировать');assert.match(h.$('assistantDetail').textContent,/Открытых задач нет/);assert.equal(h.effects.reveals.length,0);
+  await h.click('#assistantPlan');assert.equal(h.effects.reveals.length,1);assert.equal(h.$('leadTaskTitle').value,'');assert.equal(h.$('leadTaskDue').value,'');assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);
+  assert.equal(h.calls.filter(c=>c.action==='set_task_completed').length,1);assert.equal(h.calls.some(c=>!['list','detail','set_task_completed'].includes(c.action)),false);
+});
+test('planning manual action keeps its existing owner gate when advice and access disappear',async()=>{
+  const h=planningHarness();h.data.get(101).recommendation=null;await openPlanning(h);const paused=await pausePlanning(h,'detail');await paused.finish({ok:false,error:'not_found'});
+  assert.equal(h.effects.reveals.length,0);assert.equal(h.effects.focuses,0);assert.equal(h.$('leadTaskTitle').value,'');assert.equal(h.$('leadTaskDue').value,'');preservedComposer(h);
+});
 
 test('planning no-contact opens the canonical draft from a fresh check without sending or saving',async()=>{
   const h=planningHarness();await openPlanning(h);const reads=h.calls.filter(c=>c.action==='detail').length;await h.click('#assistantPlan');

@@ -363,7 +363,7 @@ for(const width of [390,430,768,1440])test('Manager assistant unifies list and c
   await openGlobalAssistant(page);await expect(page.locator('[data-assistant-client]')).toHaveCount(2);expect(s.calls.map(c=>c.action)).toEqual(['list']);await bounded(page);await capture(page,browserName,width,'list');
   await page.locator('#assistantMore').click();await expect(page.locator('[data-assistant-client]')).toHaveCount(3);await expect(page.locator('#assistantMore')).toBeHidden();expect(s.calls.at(-1).cursor).toBe('v1.'+'a'.repeat(64)+'.12');
 await page.locator('[data-assistant-client="11"]').click();await expect(page.locator('#assistantDetail')).toContainText('Сравнить выбранные отели на двоих.');await expect(page.locator('#assistantPlan')).toBeVisible();if(width<768)await expect(page.locator('.assistantToolbar')).toBeHidden();await page.locator('.assistantSource summary').click();await expect(page.locator('.assistantSource')).toContainText('Сообщений в основании: 1');await bounded(page);await capture(page,browserName,width,'client');
-  await page.locator('[data-assistant-decision="done"]').click();await expect(page.locator('#assistantDetail')).toContainText('Отмечено выполненным');expect(s.calls.filter(c=>c.action==='decision')).toHaveLength(1);
+  await page.locator('[data-assistant-decision="done"]').click();await expect(page.locator('#assistantDetail')).toContainText('Отмечено выполненным');await expect(page.locator('.assistantTasks #assistantPlan')).toHaveText('Запланировать');expect(s.calls.filter(c=>c.action==='decision')).toHaveLength(1);
   if(width<768)await page.locator('#assistantBack').click();await page.locator('[data-assistant-client="12"]').click();await expect(page.locator('#assistantDetail')).toContainText('Сейчас не писать');await expect(page.locator('#assistantPlan')).toBeVisible();await expect(page.locator('#assistantReply,[data-assistant-decision]')).toHaveCount(0);
 await page.setViewportSize({width,height:420});await bounded(page);await capture(page,browserName,width,'short');await page.locator('#assistantClose').click();if(width>=768)expect(await page.evaluate(()=>document.documentElement.scrollHeight)).toBeLessThanOrEqual(421);
   await page.setViewportSize({width,height:900});await openConversationForAssistantTest(page,11);await expect(page.locator('#replyText')).toBeEnabled();
@@ -375,7 +375,7 @@ await expect(page.locator('.conversationIdentityText #assistantClientOpen')).toH
 }));
 
 test('assistant does not present expired reasoning or a missing analysis as completed work',async({page})=>{
-  const s=await setupAssistant(page);s.items.get(11).recommendation.expires_at=new Date(Date.now()-1000).toISOString();await openGlobalAssistant(page);await page.locator('[data-assistant-client="11"]').click();await expect(page.locator('#assistantDetail')).toContainText('Нет свежего разбора');await expect(page.locator('#assistantDetail')).toContainText('Это не означает');await expect(page.locator('#assistantDetail')).not.toContainText('Клиент выбрал два отеля');await expect(page.locator('[data-assistant-decision]')).toHaveCount(0);expect(s.calls.every(c=>['list','detail'].includes(c.action))).toBe(true);clean(s);
+  const s=await setupAssistant(page);s.items.get(11).recommendation.expires_at=new Date(Date.now()-1000).toISOString();await openGlobalAssistant(page);await page.locator('[data-assistant-client="11"]').click();await expect(page.locator('#assistantDetail')).toContainText('Нет свежего разбора');await expect(page.locator('#assistantDetail')).toContainText('Это не означает');await expect(page.locator('#assistantDetail')).not.toContainText('Клиент выбрал два отеля');await expect(page.locator('[data-assistant-decision]')).toHaveCount(0);await expect(page.locator('.assistantTasks #assistantPlan')).toHaveText('Запланировать');expect(s.calls.every(c=>['list','detail'].includes(c.action))).toBe(true);clean(s);
 });
 
 async function selectAssistantClient(page,id=11){
@@ -506,7 +506,7 @@ for(const viewport of [{width:390,height:844},{width:430,height:844},{width:768,
   if(viewport.width<=740)await page.locator('#mobileBack').click();
   await openGlobalAssistant(page);await expect(page.locator('[data-assistant-client]')).toHaveCount(20);await expect(page.locator('[data-assistant-client="11"]')).toBeVisible();await expect(page.locator('[data-assistant-client="12"]')).toBeVisible();await page.locator('[data-assistant-filter="actions"]').click();await expect(page.locator('[data-assistant-client]')).toHaveCount(2);
   await bounded(page);await capture(page,browserName,viewport.width,`operational-list-${viewport.height}`);
-  await page.locator('[data-assistant-client="11"]').click();await expect(page.locator('.assistantOperational')).toContainText('Обращение без записанного ответа');await expect(page.locator('#assistantDetail')).toContainText('Нет свежего разбора');await expect(page.locator('#assistantPlan')).toHaveCount(0);await bounded(page);await capture(page,browserName,viewport.width,`operational-detail-${viewport.height}`);
+  await page.locator('[data-assistant-client="11"]').click();await expect(page.locator('.assistantOperational')).toContainText('Обращение без записанного ответа');await expect(page.locator('#assistantDetail')).toContainText('Нет свежего разбора');await expect(page.locator('.assistantTasks #assistantPlan')).toHaveText('Запланировать');await expect(page.locator('#assistantReply,[data-assistant-decision]')).toHaveCount(0);await bounded(page);await capture(page,browserName,viewport.width,`operational-detail-${viewport.height}`);
   await page.locator('#assistantConversation').click();await expect(page.locator('#replyText')).toHaveValue('Мой ответ остаётся в черновике');await expect(page.locator('#mediaSelection')).toHaveText(selection);expect(await page.evaluate(()=>({host:priorityReading.host===document.querySelector('#messages'),scroll:Math.round(priorityReading.host.scrollTop-priorityReading.top),node:!!priorityReading.node?.isConnected}))).toEqual({host:true,scroll:0,node:true});
   if(viewport.width<=740)await page.locator('#mobileBack').click();
   await openGlobalAssistant(page);await page.locator('[data-assistant-filter="all"]').click();await page.locator('#assistantMore').click();await expect.poll(()=>restarted).toBe(true);await expect(page.locator('[data-assistant-client]')).toHaveCount(20);await expect(page.locator('[data-assistant-client="11"]')).toHaveCount(0);await expect(page.locator('[data-assistant-client="12"]')).toBeVisible();
@@ -518,7 +518,7 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
   await page.setViewportSize(viewport);const s=await setupAssistant(page,{owner:true});await page.evaluate(()=>WorkspaceV2Conversation.open(11));await page.locator('#replyText').fill('Сохранить мой незаконченный ответ');await page.locator('#replyFile').setInputFiles({name:'owner-kept.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained attachment')});
   if(viewport.width<768){await page.getByRole('button',{name:'Назад к диалогам',exact:true}).click();await expect(page.locator('#inboxList')).toBeVisible();}
   await openGlobalAssistant(page);await expect(page.locator('#assistantTitle')).toHaveText('Обзор работы владельца');await expect(page.locator('#assistantSubtitle')).toContainText('всей команды');await expect(page.locator('[data-assistant-client="11"]')).toContainText('Светлана');await expect(page.locator('[data-assistant-client="12"]')).toContainText('Анна');await expect(page.locator('[data-assistant-client="12"]')).toContainText('Pegas');await bounded(page);await capture(page,browserName,viewport.width,'owner-list-'+viewport.height);
-  await page.locator('[data-assistant-client="11"]').click();await expect(page.locator('#assistantDetail')).toContainText('Светлана');await expect(page.locator('.assistantRecommendation')).toBeVisible();await expect(page.locator('[data-assistant-decision]')).toHaveCount(0);await bounded(page);await capture(page,browserName,viewport.width,'owner-detail-'+viewport.height);await page.locator('#assistantClose').click();await expect(page.locator('#replyText')).toHaveValue('Сохранить мой незаконченный ответ');await expect(page.locator('#mediaSelection')).toContainText('owner-kept.txt');clean(s);
+  await page.locator('[data-assistant-client="11"]').click();await expect(page.locator('#assistantDetail')).toContainText('Светлана');await expect(page.locator('.assistantRecommendation')).toBeVisible();await expect(page.locator('[data-assistant-decision],#assistantPlan')).toHaveCount(0);await bounded(page);await capture(page,browserName,viewport.width,'owner-detail-'+viewport.height);await page.locator('#assistantClose').click();await expect(page.locator('#replyText')).toHaveValue('Сохранить мой незаконченный ответ');await expect(page.locator('#mediaSelection')).toContainText('owner-kept.txt');clean(s);
 });
 
 for(const width of [390,430,768,1440])test('primary My Plan combines actions with advice and retains reply and attachment '+width,async({page,browserName})=>{
@@ -527,6 +527,37 @@ for(const width of [390,430,768,1440])test('primary My Plan combines actions wit
   await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('#assistantDialog')).toHaveClass(/assistantPlanView/);await expect(page.locator('#assistantTitle')).toHaveText('Мой план');await expect(page.locator('[data-assistant-client]')).toHaveCount(1);expect(s.calls.filter(c=>c.action==='list').at(-1).scope).toBe('mine');await expect(page.locator('[data-assistant-client="11"]')).toContainText(s.items.get(11).recommendation.reason);
   await page.locator('[data-assistant-client="11"]').click();await page.locator('#assistantReply').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Мой ответ остаётся моим');await expect(page.locator('#mediaSelection')).toHaveText(media);
   if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();await expect(page.locator('#assistantDetail h3')).toHaveText(s.items.get(11).display_name);await page.locator('#assistantBack').click();await page.locator('[data-assistant-filter=waiting]').click();await page.locator('[data-assistant-client="12"]').click();await expect(page.locator('#assistantDetail')).toContainText('Сейчас не писать');await expect(page.locator('#assistantPlan')).toBeVisible();await expect(page.locator('#assistantReply,[data-assistant-decision]')).toHaveCount(0);await bounded(page);await capture(page,browserName,width,'primary-plan');clean(s);
+});
+
+for(const width of [390,1440])test('manual planning without AI opens the empty canonical task editor and retains reply and File '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const s=await setupAssistant(page),item=s.items.get(12);
+  Object.assign(item,{manager_id:7,manager_name:'Мария',can_decide:true,recommendation:null,operational:{awaiting_manager_reply:false,due_task:false}});
+  const reads=await setupAssistantLeadTasks(page,new Map([[12,[]]]));
+  await openConversationForAssistantTest(page,12);await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.detail?.lead?.tasks)).toEqual([]);
+  await page.locator('#replyText').fill('Мой ответ перед ручным планированием');
+  await page.locator('#replyFile').setInputFiles({name:'manual-plan-kept.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic manual planning attachment')});
+  const media=await settledMediaSelectionText(page);
+  await expect.poll(()=>page.evaluate(()=>WorkspaceV2Media.captureSelection()?.rows.length||0)).toBe(1);
+  await page.evaluate(()=>{window.manualPlanKeptFile=WorkspaceV2Media.captureSelection().rows[0].row.file});
+  if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();
+  await page.locator('[data-m2-nav=tasks]').click();await page.locator('[data-assistant-filter=all]').click();await page.locator('[data-assistant-client="12"]').click();
+  await expect(page.locator('#assistantDetail')).toContainText('Нет свежего разбора');
+  await expect(page.locator('.assistantRecommendation,#assistantReply,[data-assistant-decision]')).toHaveCount(0);
+  await expect(page.locator('#assistantPlan')).toHaveCount(1);await expect(page.locator('.assistantTasks #assistantPlan')).toHaveText('Запланировать');
+  await bounded(page);await capture(page,browserName,width,'manual-plan-no-analysis');
+  const readCount=reads.length,reviewCount=detailCalls(s).length;
+  await page.locator('#assistantPlan').click();
+  await expect(page.locator('#leadTaskTitle')).toBeVisible();await expect(page.locator('#leadTaskTitle')).toBeFocused();
+  await expect(page.locator('#leadTaskTitle')).toHaveValue('');await expect(page.locator('#leadTaskDue')).toHaveValue('');
+  await expect(page.locator('#leadTaskAdd')).toBeEnabled();await expect(page.locator('#assistantTaskEditor form')).toHaveCount(0);
+  expect(reads.length).toBeGreaterThan(readCount);expect(detailCalls(s).length).toBeGreaterThan(reviewCount);
+  expect(await page.evaluate(()=>WorkspaceV2.S.detail.lead.tasks)).toEqual([]);
+  await capture(page,browserName,width,'manual-task-empty');
+  await page.locator('#leadTaskTitle').fill('Уточнить условия у поставщика');await page.locator('#leadTaskDue').fill('2030-11-20T16:45');
+  await expect(page.locator('#leadTaskTitle')).toHaveValue('Уточнить условия у поставщика');await expect(page.locator('#leadTaskDue')).toHaveValue('2030-11-20T16:45');
+  await expect(page.locator('#replyText')).toHaveValue('Мой ответ перед ручным планированием');await expect(page.locator('#mediaSelection')).toHaveText(media);
+  expect(await page.evaluate(()=>WorkspaceV2Media.captureSelection().rows[0].row.file===window.manualPlanKeptFile)).toBe(true);
+  expect(s.calls.every(c=>['list','detail'].includes(c.action))).toBe(true);clean(s);
 });
 
 for(const width of [390,430,768,1440])test('no-contact promised calculation opens the canonical task draft and retains reply and File '+width,async({page,browserName})=>{
@@ -573,13 +604,13 @@ for(const width of [390,430,768,1440])test('no-contact promised calculation open
   await capture(page,browserName,width,'no-contact-task-draft');clean(s);
 });
 
-test('no-contact planning opens a task that appeared during the canonical refresh',async({page})=>{
+test('manual planning without AI opens a task that appeared during the canonical refresh',async({page})=>{
   await page.setViewportSize({width:430,height:900});const s=await setupAssistant(page),item=s.items.get(12);
-  Object.assign(item,{manager_id:7,manager_name:'Мария',can_decide:true,recommendation:{...item.recommendation,reason:'Менеджер обещал подготовить расчёт. Клиент ждёт результат.',checks:[]}});
+  Object.assign(item,{manager_id:7,manager_name:'Мария',can_decide:true,recommendation:null});
   await openConversationForAssistantTest(page,12);
   await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.detail?.lead?.tasks)).toEqual([]);
   if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();
-  await page.locator('[data-m2-nav=tasks]').click();await page.locator('[data-assistant-filter=waiting]').click();await page.locator('[data-assistant-client="12"]').click();
+  await page.locator('[data-m2-nav=tasks]').click();await page.locator('[data-assistant-filter=all]').click();await page.locator('[data-assistant-client="12"]').click();
   await expect(page.locator('#assistantPlan')).toHaveText('Запланировать');
   const tasks=[];let release;
   const held=new Promise(resolve=>{release=resolve});
