@@ -206,6 +206,12 @@ final class ModeledConversionForecastStatusReader
     private function boundedResponse(array $out):array
     {
         $bytes=static fn(array $v):int=>strlen(json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        $native=$out['value_delivery']['repair_assessments']['retained_native_identity_evidence']??null;
+        if(is_array($native)){
+            // Presentation only: this reader result has already been computed. Never query it again.
+            $views=$this->nativeIdentityPresentations($native,$out['value_delivery']['repair_assessments']['finite_visit_evidence']??[]);
+            $out['value_delivery']['repair_assessments']['retained_native_identity_evidence']=$views[0];
+        }
         // Current delivery calculations take precedence over optional historic failure details.
         while($bytes($out)>28000&&!empty($out['visit_delivery_check']['followup_sent_cohort']['failure_examples'])){
             array_pop($out['visit_delivery_check']['followup_sent_cohort']['failure_examples']);
@@ -281,6 +287,13 @@ final class ModeledConversionForecastStatusReader
             $out['value_delivery']['repair_assessments']['retained_relation_outcomes']=[
                 'available'=>false,'reason'=>'original_current_binding_unavailable','financial_permission'=>false,
                 'current_eligibility'=>'not_assessed','provider_requests_in_reader'=>0];
+        if(is_array($native)){
+            // Mandatory financial evidence retains priority. Recheck the visible original binding.
+            foreach($this->nativeIdentityPresentations($native,$out['value_delivery']['repair_assessments']['finite_visit_evidence']??[])as$view){
+                $next=$out;$next['value_delivery']['repair_assessments']['retained_native_identity_evidence']=$view;
+                if($bytes($next)<=28000){$out=$next;break;}
+            }
+        }
         return $out;
     }
 
@@ -315,6 +328,105 @@ final class ModeledConversionForecastStatusReader
         return ['available'=>true,'projection'=>'compact_v1','historical'=>true,
             'columns'=>['case_index','status','reason','phase_admission_mask'],'rows'=>$rows,
             'provider_requests_in_reader'=>0,'financial_permission'=>false,'current_eligibility'=>'not_assessed'];
+    }
+
+    /**
+     * Format one existing local point-reader result; no PDO, file or provider access.
+     * counts: inspected rows, admitted native witnesses, distinct candidate ClientIDs.
+     * first_rejections uses the fixed first-failed-guard order below, including zeroes.
+     * A frame-only binding and missing counts never attest that the point SELECT executed.
+     */
+    private function nativeIdentityPresentations(array $value,array $original):array
+    {
+        $fail=static fn(string $reason):array=>[['available'=>false,'reason'=>$reason,
+            'provider_requests_in_reader'=>0,'financial_permission'=>false,'visit_linkage'=>'not_checked']];
+        $clock=static function(mixed $v):?int{
+            if(!is_string($v)||preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\z/D',$v)!==1)return null;
+            $d=DateTimeImmutable::createFromFormat('!Y-m-d\TH:i:s\Z',$v,new DateTimeZone('UTC'));
+            return $d&&$d->format('Y-m-d\TH:i:s\Z')===$v&&$d->getTimestamp()>=946684800?$d->getTimestamp():null;
+        };
+        if(($original['available']??null)!==true||!is_array($original['rows']??null)
+            ||!array_is_list($original['rows'])||count($original['rows'])!==3)return $fail('original_current_binding_unavailable');
+        $missing=[];$seen=[];
+        foreach($original['rows']as$i=>$row){
+            if(!is_array($row))return $fail('original_current_binding_unavailable');
+            $ref=$row['event_ref']??null;
+            if(!is_string($ref)||preg_match('/\A[a-f0-9]{64}\z/D',$ref)!==1||isset($seen[$ref]))
+                return $fail('original_current_binding_unavailable');
+            $seen[$ref]=true;
+            if(($row['source_status']??null)==='no_valid_canonical_identity_and_no_admissible_retained_identity'
+                &&array_key_exists('candidate_sha256',$row)&&$row['candidate_sha256']===null
+                &&($row['report_status']??null)==='not_requested')$missing[$i]=$row;
+        }
+        if(count($missing)!==1||!isset($missing[0])||($eventAt=$clock($missing[0]['event_at']??null))===null)
+            return $fail('original_current_binding_unavailable');
+        $ref=$missing[0]['event_ref'];
+        if(($value['basis']??null)!=='bounded_local_native_processed_receipt_metadata'
+            ||($value['scope']??null)!=='same_project_platform_external_user_and_counter_across_conversations'
+            ||($value['provider_requests_in_reader']??null)!==0||($value['financial_permission']??null)!==false
+            ||($value['visit_linkage']??null)!=='not_checked'||($value['acknowledgement_time']??null)!=='not_persisted'
+            ||($value['max_rows']??null)!==64||!is_bool($value['available']??null))return $fail('invalid_native_projection');
+        $common=['available','basis','scope','provider_requests_in_reader','financial_permission','visit_linkage',
+            'acknowledgement_time','max_rows','complete_within_bound'];
+        $compact=['available'=>$value['available'],'projection'=>'compact_native_identity_v1','case_index'=>0,'event_ref'=>$ref,
+            'binding_state'=>$value['available']?'verified_original_and_result':'original_frame_only',
+            'snapshot_at'=>null,'status'=>null,'scope'=>'same_subject_outbox_point_v1','max_rows'=>64,
+            'complete_within_bound'=>false,'point_read_execution'=>$value['available']?'completed':'not_attested','counts'=>null,'first_rejections'=>null,
+            'candidate_sha256'=>null,'source_observed_at'=>null,'global_absence_proven'=>false,
+            'financial_permission'=>false,'visit_linkage'=>'not_checked','provider_requests_in_reader'=>0];
+        if(!$value['available']){
+            $reasons=['original_current_binding_unavailable','single_missing_original_identity_not_verified','original_scope_unavailable',
+                'budget_headroom','point_index_unavailable','row_limit','point_storage_unavailable','invalid_point_projection'];
+            if(array_diff(array_keys($value),array_merge($common,['reason']))
+                ||($value['complete_within_bound']??null)!==false||!in_array($value['reason']??null,$reasons,true))
+                return $fail('invalid_native_projection');
+            $compact['reason']=$value['reason'];
+            // budget_headroom covers both the pre-query guard and a packet-copy refusal.
+            return [$value,$compact];
+        }
+        $fields=['event_ref','snapshot_at','inspected_rows','admitted_native_witnesses','first_rejection_reason_counts','facets',
+            'classification_basis','unique_candidate_count','candidate_sha256','source_observed_at','source_provenance',
+            'local_absence_does_not_prove_tracker_or_visit_absence','status'];
+        if(array_diff(array_keys($value),array_merge($common,$fields))||($value['event_ref']??null)!==$ref
+            ||($value['complete_within_bound']??null)!==true
+            ||($value['classification_basis']??null)!=='independent_field_facets_and_first_failed_native_witness_guard_not_identity_permission'
+            ||($value['local_absence_does_not_prove_tracker_or_visit_absence']??null)!==true
+            ||($snapshot=$clock($value['snapshot_at']??null))===null)return $fail('invalid_native_projection');
+        $counts=[];
+        foreach(['inspected_rows','admitted_native_witnesses','unique_candidate_count']as$key){
+            $n=$value[$key]??null;if(!is_int($n)||$n<0||$n>64)return $fail('invalid_native_projection');$counts[]=$n;
+        }
+        if($counts[2]>$counts[1]||$counts[1]>$counts[0]||($counts[1]>0&&$counts[2]===0))return $fail('invalid_native_projection');
+        $order=['unsupported_goal_pair','mixed_family_metadata','not_processed_pair','saved_error_present','invalid_upload_receipt_id',
+            'invalid_attempt_or_claim_clock','invalid_client_or_tracker_record','missing_or_invalid_source_clock','source_after_signal_or_claim'];
+        $rejections=$value['first_rejection_reason_counts']??null;
+        if(!is_array($rejections)||count($rejections)!==9||array_diff(array_keys($rejections),$order))return $fail('invalid_native_projection');
+        $rejects=[];
+        foreach($order as$key){$n=$rejections[$key]??null;if(!is_int($n)||$n<0||$n>64)return $fail('invalid_native_projection');$rejects[]=$n;}
+        if(array_sum($rejects)+$counts[1]!==$counts[0])return $fail('invalid_native_projection');
+        $facetKeys=['family'=>['native','modeled_value','other'],'state'=>['pending','ready','uploading','accepted','processed','unknown','failed','expired','unmatched','other'],
+            'identity_fields'=>['canonical_client_id','canonical_tracker_record_id','valid_source_clock','source_clock_at_or_before_event']];
+        if(!is_array($value['facets']??null)||count($value['facets'])!==3||array_diff(array_keys($value['facets']),array_keys($facetKeys)))
+            return $fail('invalid_native_projection');
+        foreach($facetKeys as$group=>$keys){
+            $f=$value['facets'][$group]??null;if(!is_array($f)||count($f)!==count($keys)||array_diff(array_keys($f),$keys))return $fail('invalid_native_projection');
+            foreach($keys as$key)if(!is_int($f[$key]??null)||$f[$key]<0||$f[$key]>$counts[0])return $fail('invalid_native_projection');
+            if($group!=='identity_fields'&&array_sum($f)!==$counts[0])return $fail('invalid_native_projection');
+        }
+        $expected=$counts[2]===1?'candidate_observed':($counts[2]>1?'ambiguous_native_candidates':'no_admissible_native_witness');
+        if(($value['status']??null)!==$expected)return $fail('invalid_native_projection');
+        if($counts[2]===1){
+            $hash=$value['candidate_sha256']??null;$source=$clock($value['source_observed_at']??null);
+            if(!is_string($hash)||preg_match('/\A[a-f0-9]{64}\z/D',$hash)!==1||$source===null||$source>$eventAt||$source>$snapshot
+                ||($value['source_provenance']??null)!=='retained_native_processed_tracker_source')return $fail('invalid_native_projection');
+            $compact['candidate_sha256']=$hash;$compact['source_observed_at']=$value['source_observed_at'];
+        }elseif(($value['candidate_sha256']??null)!==null||($value['source_observed_at']??null)!==null
+            ||($value['source_provenance']??null)!==null)return $fail('invalid_native_projection');
+        $compact['snapshot_at']=$value['snapshot_at'];$compact['status']=$expected;$compact['complete_within_bound']=true;
+        $compact['counts']=$counts;$compact['first_rejections']=$rejects;
+        if(strlen(json_encode($compact,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>768)
+            return $fail('invalid_native_projection');
+        return [$value,$compact];
     }
 
     /** Resource omission is explicit; access denial and the shared deadline still fail closed. */
