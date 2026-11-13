@@ -551,7 +551,9 @@ for(const width of [390,1440])test('My Plan retains the native deadline draft th
   await page.locator('[data-assistant-snooze="31"]').click();await page.locator('#assistantDue').fill('2030-11-20T16:45');
   await page.evaluate(()=>{window.assistantDeadlineDraft={form:document.querySelector('#assistantTaskEditor form'),input:document.querySelector('#assistantDue')}});
   const reads=s.calls.length;
-  await page.locator(width<768?'#assistantBack':'[data-assistant-client="12"]').click();
+  // My Plan keeps its client list hidden while a detail is selected at every width.
+  // Attempt navigation through the same visible Back control a manager can use.
+  await page.locator('#assistantBack').click();
   await expect(page.locator('#assistantStatus')).toContainText('Сохраните или отмените новый срок');
   expect(s.calls).toHaveLength(reads);
   const expectDraft=async()=>{
@@ -569,7 +571,7 @@ for(const width of [390,1440])test('My Plan retains the native deadline draft th
   await expectDraft();await expect(page.locator('#assistantDetail .assistantRecommendation')).toBeHidden();expect(s.calls).toHaveLength(reads);await bounded(page);await capture(page,browserName,width,'deadline-draft-retained');
   await page.locator('#assistantCancelDue').click();await expect(page.locator('#assistantTaskEditor form')).toHaveCount(0);
   await expect(page.locator('#assistantStatus')).toHaveText('');
-  if(width<768)await page.locator('#assistantBack').click();await page.locator('[data-assistant-client="12"]').click();
+  await page.locator('#assistantBack').click();await page.locator('[data-assistant-client="12"]').click();
   await expect(page.locator('#assistantDetail h3')).toHaveText(s.items.get(12).display_name);
   await expect(page.locator('#replyText')).toHaveValue('Мой ответ до переноса срока');await expect(page.locator('#mediaSelection')).toHaveText(media);
   expect(await page.evaluate(()=>WorkspaceV2Media.captureSelection().rows[0].row.file===window.assistantDeadlineFile)).toBe(true);
