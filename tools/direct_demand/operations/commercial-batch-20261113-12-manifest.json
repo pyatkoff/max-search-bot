@@ -1,0 +1,54 @@
+{
+  "state": "PREPARED_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261113-12-v1",
+  "registry_version": 337,
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 586,
+  "expected_new_full_pairs": 2,
+  "rows": [
+    {
+      "hotel_id": 62515,
+      "logical_id": "commercial-hotel-62515-v1",
+      "aliases": [
+        "Salalah Gardens Hotel",
+        "SALALAH GARDENS"
+      ],
+      "text": "✈️ Туры в Salalah Gardens Hotel\n📍 Салала, Оман.\n\nГородской отдых с бассейном и всем необходимым рядом 🌿\n\nSalalah Gardens Hotel расположен над торговым центром Salalah Gardens Mall. Подойдёт для поездок по Салале и отдыха с детьми, когда удобно иметь рядом магазины, рестораны и развлечения.\n\n• Открытый бассейн на крыше.\n• Тренажёрный зал и сауна.\n• Номера Deluxe с мини-кухней, детская игровая зона.\n\nЭто городской отель: поездки к морю нужно планировать отдельно. Игровая зона предназначена для детей 3–6 лет под присмотром родителей.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "7879ef6ae99acd3fb4fa046b08ad21c82575b21c20bdb7b7a6e46c315d694312",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2960cbfb887bd37f48bde42fb63ac10bcb6c50cd/.github/traffic-publish/commercial-batch-20261113-12/62515.png",
+      "photo_sha256": "a177d7f8f431260fa4523d7bb9a2a4d043984cd5e82987071ef7844e879b69eb",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://anytoour.ru/_preview/search3-next-candidate/data/local-tv-catalog-read-v1.php?tourvisorHotelIds%5B%5D=49345&tourvisorHotelIds%5B%5D=49365&tourvisorHotelIds%5B%5D=68810&tourvisorHotelIds%5B%5D=49342&tourvisorHotelIds%5B%5D=62515&tourvisorHotelIds%5B%5D=30158",
+        "https://www.safirhotels.com/en/hotel/salalah-gardens",
+        "https://www.safirhotels.com/en/hotel/salalah-gardens/accommodation/rooms",
+        "https://www.safirhotels.com/en/hotel/salalah-gardens/lifestyle",
+        "https://kompastour.com/uz/rus/country/oman/salalah/salalah_gardens_hotel/",
+        "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php"
+      ]
+    },
+    {
+      "hotel_id": 68810,
+      "logical_id": "commercial-hotel-68810-v1",
+      "aliases": [
+        "Belad Bont Resort",
+        "BELAD BONT RESORT"
+      ],
+      "text": "✈️ Туры в Belad Bont Resort\n📍 Салала, Оман.\n\nСпокойный отдых с бассейном и поездками по Салале ☀️\n\nBelad Bont Resort подойдёт тем, кто хочет отдыхать на территории отеля и знакомиться с окрестностями. Здесь есть рестораны, спа и разные варианты размещения: от обычных номеров до шале.\n\n• Открытый бассейн и зона отдыха.\n• Спа с сауной, паровой баней и массажными кабинетами.\n• Несколько ресторанов на территории.\n\nОтель не на первой линии: до побережья около 1,5 км. Поездки к морю нужно планировать отдельно. Крытый бассейн находится в женской зоне; состав включённых услуг зависит от тарифа.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "6aa94043b57ccb3c3a9eb9ca00620484a5b2d0524f030611e14c4409ddf4c4ec",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2960cbfb887bd37f48bde42fb63ac10bcb6c50cd/.github/traffic-publish/commercial-batch-20261113-12/68810.png",
+      "photo_sha256": "7e8554bd5dcf3139cdeda5473d30b0f28f5dc9071008c70f88f37280def11f39",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://anytoour.ru/_preview/search3-next-candidate/data/local-tv-catalog-read-v1.php?tourvisorHotelIds%5B%5D=49345&tourvisorHotelIds%5B%5D=49365&tourvisorHotelIds%5B%5D=68810&tourvisorHotelIds%5B%5D=49342&tourvisorHotelIds%5B%5D=62515&tourvisorHotelIds%5B%5D=30158",
+        "https://beladbont.com/",
+        "https://beladbont.com/accommodation",
+        "https://beladbont.com/spa-gym",
+        "https://kompastour.com/kz/rus/country/oman/salalah/belad_bont_resort/",
+        "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php"
+      ]
+    }
+  ]
+}
