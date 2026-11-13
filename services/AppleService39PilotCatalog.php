@@ -29,6 +29,9 @@ final class AppleService39PilotCatalog
         'service-rear-camera-replacement'=>['model'=>'','service'=>'Замена основной камеры','scope'=>'service'],
         'service-earpiece-replacement'=>['model'=>'','service'=>'Ремонт разговорного динамика','scope'=>'service'],
     ];
+    // The original search card predates coverage-v1 but has its own exact model.
+    // Keep its legacy family launch intact; only explicit service picks use this model.
+    private const SEARCH_SERVICE_MODELS = ['model-iphone-17'=>'iPhone 17'];
     private static ?array $catalog = null;
 
     private static function check(bool $ok): void
@@ -154,6 +157,9 @@ final class AppleService39PilotCatalog
         if (!isset($services[$code])) return null;
         require_once __DIR__.'/AppleService39CoverageRevision.php';
         $model = (new AppleService39CoverageRevision())->entry($modelPost);
+        if ($model === null && isset(self::SEARCH_SERVICE_MODELS[$modelPost])) {
+            $model = ['scope'=>'model', 'model'=>self::SEARCH_SERVICE_MODELS[$modelPost]];
+        }
         if ($model === null || $model['scope'] !== 'model' || $model['model'] === '') return null;
         $payload = 'as39_pair_'.$modelPost.'_'.$code;
         self::check(strlen($payload) <= 64);

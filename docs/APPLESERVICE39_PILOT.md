@@ -475,3 +475,28 @@ forge a browser push subscription or a signed MAX identity to obtain acceptance.
 A native customer entry and human reply remain distinct from isolated handoff
 regressions and server routing checks. Advertising spend and conversion activation
 are outside this correction.
+
+
+## iPhone 17 and caption consistency — 13 November 2026
+
+The existing iPhone 17 search card predates the 27 coverage model cards. Its
+three explicit model/service links now resolve the base iPhone 17 plus battery,
+front glass or display, through the same catalog and repair entry owner. Existing
+81 coverage pairs and the old `as39_model-iphone-17` family start remain unchanged.
+No price, stock, appointment or diagnosis is inferred. Isolated entry/replay
+cases cover each new choice and preserve project/bot boundaries.
+
+The owner also requested the nine public-caption followups identified in the
+67-offer audit. Their wording is aligned with the existing single button
+«Узнать стоимость ремонта». The iPhone 17 card gains explicit service choices.
+These are edits to nine existing native MIDs, not new posts. Images, keyboard
+targets, pin, reviews, the other 60 posts and all 292 previous operations must
+remain exact. No advertising feed, price or manager/conversion setting changes.
+
+Only after normal source CI, fresh same-owner publication admission, checked
+installation and automatic technical closure may a finite content branch use the
+installed Store and publisher preflight. It reads the real current native posts
+before preparing new immutable operations. Text/format-only edits omit image and
+keyboard attachments and independently verify them afterward. An attempted or
+unknown write stays held; prior content publishers and operations are never
+replayed. Publication and public readback remain pending until real receipts exist.
