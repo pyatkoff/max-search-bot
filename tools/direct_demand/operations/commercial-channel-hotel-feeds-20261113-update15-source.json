@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "ready": true,
+  "operation": "commercial-channel-hotel-feeds-20261113-update15",
+  "expected_installed_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+  "current_installed_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+  "expected_parent_head": "3d01657d097e51d6095700ed77de080863716016",
+  "owner_pin": {
+    "comment_id": 6818332618,
+    "owner": "pyatkoff",
+    "updated_at": "2026-11-13T06:58:34Z",
+    "body_sha256": "6206e328bb2fa09f509f0f34d0c58c51c8c6d488a8fe3635f9d2ecefb8a7ee87",
+    "required_scope_line": "SOURCE IN_PROGRESS — anytour-max; batch14 FEED15 exact TV968/1531 completion only; original4posts/native592 confirmed, no new sends."
+  },
+  "previous_count": 590,
+  "hotel_ids": [
+    968,
+    1531
+  ],
+  "manifest_sha256": "0271a61dea9f40ca24ac7d3e19436a1078f09a3b0d4a72dd98d2c7e5ee642d95",
+  "approval_sha256": "23aba852adf57569c91d18b5063326f318741b4ea3485fcc4318266e5e57f4f5",
+  "publisher": {
+    "repository": "pyatkoff/max-search-bot",
+    "run_id": 43382026346,
+    "run_attempt": 1,
+    "head_sha": "3d01657d097e51d6095700ed77de080863716016",
+    "head_branch": "audit/content100-bot-publication-20261101",
+    "workflow_path": ".github/workflows/content100-bot-publication-20261101.yml",
+    "artifact": {
+      "id": 14016862267,
+      "name": "commercial-batch-20261113-14-publication-and-read",
+      "zip_sha256": "b1452aab7f02699dbda84835009d23b47c2acfe14b46040d68a692f38a103d36"
+    },
+    "publication_summary_sha256": "c2fcad9924ad9aea277e018d5e1dc9dabf7d49479bfed6de9e2f912a3555cdb8",
+    "bound_read_sha256": "18e74ef39f3969bb510a72d202a9aa2caf5acbba18d160f5856ac0908fcf7bf6"
+  },
+  "route": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 43382253955,
+    "run_attempt": 1,
+    "head_sha": "474a75eec82e14456208109bafca3b6239d42559",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "workflow_path": ".github/workflows/tgmini-identity-readonly.yml",
+    "candidate_artifact": {
+      "id": 14017480992,
+      "name": "commercial-max592-route-extension-candidate",
+      "zip_sha256": "64982cdb995b2dd1ab4a6536198bc538b8e22220db017ee3aac7b15aa92a8603"
+    },
+    "result_artifact": {
+      "id": 14016972143,
+      "name": "commercial-max592-route-extension-install-result",
+      "zip_sha256": "7b3f62c4a34abf8d01c6b56616f4c408ff7dad2bb48078c5dc4da81b036b10ff"
+    },
+    "operation": "commercial-max592-private-route-extension-20261113-14-install1",
+    "map_sha256": "f017b9445949557199053b852cec3881bfeb0c36602aef8ad18f9db55cdcb19f",
+    "module_sha256": "ec855752e98b928b582f1df57191950b58e3cbd65e207ee65936e7b815d7b185",
+    "receipt_sha256": "5497f6d58a79f4da0b6e3a8127e76fd8a629e485d58fb94c4f6d37dca3eaa0b0",
+    "original_manifest_sha256": "265d14393534935a7cabea853b612f8eaaebd79f43679cf9b9b260795ef54a0f",
+    "manifest_projection_sha256": "f1d5b34301839f3de2e5ad335654106fabee590430a49cd173a9f07bc782c28f",
+    "route_proof_sha256": "29ba3dbe67bf4ced1c8e32a6b56cf120970e778c0fb860ccb65e02cbbc9792fb",
+    "source_method": "root_authenticated_private_artifacts"
+  },
+  "nightly_guard_sha256": "0c60e5a851ae014de9a1542f268449b7a1d0fb0ba9f3104db8da650035ea8486",
+  "current_source_acceptance": {
+    "schema": "anytour.current-source-acceptance.v1",
+    "installed_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+    "core_pull_request": 1522,
+    "core_head_sha": "2a1f13ed4f766f5d1371c6275e3d4f69bac0e558",
+    "core_merge_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+    "verifier_sha256": "5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb",
+    "runtime_pins_sha256": "3232defb6fa18ac047f8bbe222cff84a2743224cf243d3fbd91a654b95f0646a",
+    "source_gates": {
+      "deploy.yml": {
+        "run_id": 43350270066,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "max-tls-preflight.yml": {
+        "run_id": 43351917787,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "modeled-conversion-value-export.yml": {
+        "run_id": 43351917592,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "max-production-health.yml": {
+        "run_id": 43351917585,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "telegram-production-health.yml": {
+        "run_id": 43351917600,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "live-session-diagnostics.yml": {
+        "run_id": 43351917653,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "modeled-conversion-monitor.yml": {
+        "run_id": 43351917560,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "tour-selection-host.yml": {
+        "run_id": 43351917744,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "publish-conversation-diagnostics.yml": {
+        "run_id": 43351917584,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      }
+    }
+  }
+}
