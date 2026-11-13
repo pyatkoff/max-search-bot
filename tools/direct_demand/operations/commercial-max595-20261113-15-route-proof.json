@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "kind": "root_authenticated_private_route_extension",
+  "operation": "commercial-max595-private-route-extension-20261113-15-install1",
+  "previous_count": 592,
+  "logical_hotels": 595,
+  "new_hotel_ids": [
+    2575,
+    32232,
+    32339
+  ],
+  "publication_summary_sha256": "a476043d4ee21e11012955b4151238ce882554469d37c3b13901450979e8c450",
+  "bound_read_sha256": "9ad843b063b5cbefdfb2cad2433bc002dd9e170384a35128f15199631ecd0a5a",
+  "new_binding_tuples_sha256": "860da4db565070deacc674681353aa44933b1869a4c2bf8e1d04f2656037d14a",
+  "route_receipt_sha256": "d9d0ac5300f89072044e9d354bfc3f196f588aaff670aa8346641b4b9e093c2a",
+  "route_manifest_projection_sha256": "cf6b1b7fb40f9cd55d4174e52a2928366406ed1e90ad29d669d2ab6ac6795bc9",
+  "original_route_manifest_sha256": "5f3ce52060da150aabc3257c40b5269ad9ca54e2d904d28fd2793a88386f9f98",
+  "original_route_map_sha256": "0064562f2a9604d3e95d37d319586a26214b9b8d039f16fd6c996219689f0392",
+  "original_route_module_sha256": "b90e90d899c09969d24ad96643862a73580beecc0077dab771791e25e043e2c1",
+  "original_previous_map_sha256": "f017b9445949557199053b852cec3881bfeb0c36602aef8ad18f9db55cdcb19f",
+  "verification": {
+    "full_map_checked": true,
+    "previous_rows_preserved": true,
+    "new_tuples_checked": true
+  },
+  "source": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 43409098525,
+    "run_attempt": 1,
+    "head_sha": "344e7207182c0a1147087ec16b123c84f5a5b8ea",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "workflow_path": ".github/workflows/tgmini-identity-readonly.yml",
+    "candidate_artifact": {
+      "id": 14027994589,
+      "name": "commercial-max595-route-extension-candidate",
+      "zip_sha256": "f56bc161b3db1693a3a67d4364dbc215f14aa8c8afdd01c133de41de5e5312fe"
+    },
+    "result_artifact": {
+      "id": 14029435168,
+      "name": "commercial-max595-route-extension-install-result",
+      "zip_sha256": "9a55757194869e910878d35ea8a2e3bcf53c324be57266bcd5a22d9947480bdf"
+    }
+  }
+}
