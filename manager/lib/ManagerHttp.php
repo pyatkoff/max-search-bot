@@ -80,9 +80,15 @@ final class ManagerHttp
     public static function requireCsrf(array $data): void
     {
         $token=isset($data['csrf'])?(string)$data['csrf']:null;
-        if(!ManagerRequestContext::validCsrf($token)){
+        if(!self::validCsrf($token)){
             self::respond(['ok'=>false,'error'=>'csrf'],403);
         }
+    }
+
+    /** Revalidate a released session without bypassing the shared HTTP owner. */
+    public static function validCsrf(?string $token): bool
+    {
+        return ManagerRequestContext::validCsrf($token);
     }
 
     public static function requireAdmin(array $manager): void

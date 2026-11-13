@@ -66,7 +66,7 @@ if($promiseAction){
             'bind_promise'=>ManagerPromiseTaskService::bind($actor,$cid,$command),
             'promise_operation'=>ManagerPromiseTaskService::operation($actor,$cid,$command['operation_id'])};
         if(!session_start(['read_and_close'=>true])||ManagerHttp::managerId()!==$actor
-            ||!ManagerRequestContext::validCsrf((string)$data['csrf']))ManagerHttp::respond(['ok'=>false,'error'=>'unauthorized'],401);
+            ||!ManagerHttp::validCsrf((string)$data['csrf']))ManagerHttp::respond(['ok'=>false,'error'=>'unauthorized'],401);
         $status=!empty($result['ok'])?200:match($result['error']??''){
             'forbidden'=>403,'task_not_found'=>404,
             'profile_changed','context_changed','source_changed','profile_source_changed','binding_conflict','operation_mismatch','task_closed'=>409,

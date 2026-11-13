@@ -160,7 +160,8 @@ try{
     promiseNativeCheck(($orphan['error']??null)==='storage_unavailable'&&($replay['error']??null)==='storage_unavailable'
         &&promiseTaskCounts($pdo)===[4,5]&&(int)$pdo->query('SELECT COUNT(*) FROM lead_tasks WHERE id=105')->fetchColumn()===0,'orphan receipt is retained and never recreates its deleted task');
     $view=ManagerRequestProfileService::read(1,2);
-    $saved=ManagerRequestProfileService::save(1,2,requestProfileCommand($view,['boundary_message_id'=>20,'fields'=>[]]));
+    $saved=ManagerRequestProfileService::save(1,2,['version'=>$view['profile']['version'],'context_sha256'=>$view['context_sha256'],
+        'operation_id'=>bin2hex(random_bytes(16)),'boundary_message_id'=>20,'new_trip'=>false,'label'=>'Контрольная поездка','fields'=>[]]);
     promiseNativeCheck(!empty($saved['ok']),'independent control conversation has its own canonical trip');
     $control=promiseTaskCommand(ManagerPromiseTaskService::context(1,2,201,20,'send_calculation'));
     promiseNativeCheck(!empty(ManagerPromiseTaskService::bind(1,2,$control)['ok']),'independent control binding exists');
