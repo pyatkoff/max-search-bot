@@ -4127,6 +4127,8 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $reta
     $nativeOmitted=['available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0,'financial_permission'=>false];
     $nativeBase['value_delivery']['repair_assessments']['retained_native_identity_evidence']=$nativeOmitted;
     $nativeBaseline=$bound->invoke($projection,$nativeBase);
+    // This is an outer omission marker, not a point-reader result. Restore it only for size measurement.
+    $nativeBaseline['value_delivery']['repair_assessments']['retained_native_identity_evidence']=$nativeOmitted;
     $nativeMethod=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'nativeIdentityPresentations');
     $nativeFull=$nativeFixtures['guarded'];
     $nativeCompact=$nativeMethod->invoke($projection,$nativeFull,$nativeFixtures['original'])[1];
