@@ -1,0 +1,378 @@
+{
+  "schema_version": 1,
+  "state": "PREPARED_AND_VISUALLY_REVIEWED_WITH_NOTES",
+  "reviewed_at_utc": "2026-11-13T11:12:54.986816+00:00",
+  "reviewer": "/root/asia_limits",
+  "scope": "Offline preparation and visual review only; parent handles content, publishing, and any final release acceptance.",
+  "baseline_registry_version": 344,
+  "current_registry_version_read": 355,
+  "hotel_count": 9,
+  "original_photo_count": 27,
+  "exact_accepted_url_http_successes": 27,
+  "substituted_photos": 0,
+  "new_photo_sources": 0,
+  "generated_photographs": 0,
+  "remote_writes": 0,
+  "checkout_writes": 0,
+  "renderer_path": "/workspace/scratch/188b33f7f77d/evidence/next6/carrier-checkout/tools/direct_demand/operations/prepare-commercial-covers.py",
+  "renderer_git_blob": "e127828a612146f0ec0b9274d6dea57443a5ca20",
+  "renderer_sha256": "16b2233c88b5f168be899f3046cd0d6ba4f701f8d7dccf8793cef1ead79f457c",
+  "logo_path": "/workspace/scratch/188b33f7f77d/evidence/next6/carrier-checkout/.github/traffic-publish/brand/anytour-logo-white.png",
+  "logo_sha256": "b27cda894047b1ecb4125eea2ecf0db9d1e1674472cad62f70edf1ef1a6c968f",
+  "input_path": "approved-cover-input.json",
+  "input_sha256": "c30ae43868d8f774542fc69693fdb3b9e67beb3ac27bef05fe9d97e4e9a84fec",
+  "canonical_receipt_path": "output/cover-receipt.json",
+  "canonical_receipt_sha256": "7afce95fc43ec560e1a538d55855216f5eeb865dd3f05ecfab6aa6c0b3100395",
+  "canonical_receipt_preserved_unmodified": true,
+  "download_receipt_path": "source-download-receipt.json",
+  "download_receipt_sha256": "02594f38c65c8dec2863afe1763539ebccdfd758c3b7918b64466fdb5fddf367",
+  "contact_sheet": {
+    "path": "output/contact-sheet.jpg",
+    "sha256": "3b274505bc82bef1e9feb5947a2a744461ed1e0a1b7416453bcd87b9f88fa95e",
+    "visually_inspected": true
+  },
+  "source_sheets": [
+    {
+      "path": "source-sheets/sources-page-1.jpg",
+      "sha256": "a9ac5b5225e872549dc6ab8bbe2fee41686ec7a89dad7d3255ab676bb29a5cdb",
+      "visually_inspected": true
+    },
+    {
+      "path": "source-sheets/sources-page-2.jpg",
+      "sha256": "9c4906b3448bfb9635c914fc25e7c2e8e4f129294bcb60d04b617a73e54b2d63",
+      "visually_inspected": true
+    },
+    {
+      "path": "source-sheets/sources-page-3.jpg",
+      "sha256": "f7fe8f6e353c74729b7dcb52eb8aad488e34a12664566e979178614f9d0e8bc7",
+      "visually_inspected": true
+    }
+  ],
+  "cross_cutting_notes": [
+    "All three accepted source images per hotel were visually inspected on full source sheets; all nine finished covers were separately viewed at 600x600.",
+    "Only ordinary EXIF orientation, proportional resize/crop, canonical brand overlay and title strip were applied by the unchanged renderer.",
+    "Hotel identity attribution, photo dates being unknown, and room-category specificity remain those of the accepted evidence. The images do not certify current facilities or absence of construction.",
+    "Seven covers pass without branding notes. GLOW and Old Palace have partial white-logo contrast loss against a bright photo region; titles are intact and legible. Source order and canonical brand placement are preserved."
+  ],
+  "rows": [
+    {
+      "hotel_id": 81358,
+      "site_id": "3a3d346c-3d94-457e-b001-6d6b218388b2",
+      "title": "GLOW Mira Karon Beach",
+      "output_path": "output/81358.png",
+      "sha256": "5a74a170feab01ff49f8d86069369d5357c06eeeea9359f68838ded19f79e03b",
+      "bytes": 481710,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "GLOW MIRA KARON BEACH",
+        "font_size": 28,
+        "text_width": 383.15625,
+        "font": "LiberationSans-Bold.ttf"
+      },
+      "accepted_urls_in_accepted_order": true,
+      "source_photo_hashes_verified": true,
+      "source_sheet_viewed": "source-sheets/sources-page-1.jpg",
+      "source_set_visually_inspected": true,
+      "cover_visually_inspected_at_full_600": true,
+      "hotel_identity_basis": "Exact accepted baseline/current-registry URLs and stored photoSet attribution preserved; no independent identity research or new source selection.",
+      "title_legible": true,
+      "distinct_source_images": true,
+      "crop_and_proportions_acceptable": true,
+      "scenes": [
+        "courtyard pool and turquoise umbrellas",
+        "bedroom with orange chair",
+        "family room bunk bed and GLOW sign"
+      ],
+      "notes": [
+        "The fixed white anytour logo partially blends into bright umbrellas; the hotel title remains fully legible."
+      ],
+      "decision": "PASS_WITH_BRANDING_NOTE"
+    },
+    {
+      "hotel_id": 343,
+      "site_id": "7238cebc-03ef-5d28-9c3f-088e5a7b25bb",
+      "title": "Old Palace Resort Sahl Hasheesh",
+      "output_path": "output/343.png",
+      "sha256": "0502ddf8d62c6df40e52c48a36d14c034bb823a61f572012e47282f322dc2da2",
+      "bytes": 440884,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "OLD PALACE RESORT SAHL HASHEESH",
+        "font_size": 28,
+        "text_width": 551.21875,
+        "font": "LiberationSans-Bold.ttf"
+      },
+      "accepted_urls_in_accepted_order": true,
+      "source_photo_hashes_verified": true,
+      "source_sheet_viewed": "source-sheets/sources-page-1.jpg",
+      "source_set_visually_inspected": true,
+      "cover_visually_inspected_at_full_600": true,
+      "hotel_identity_basis": "Exact accepted baseline/current-registry URLs and stored photoSet attribution preserved; no independent identity research or new source selection.",
+      "title_legible": true,
+      "distinct_source_images": true,
+      "crop_and_proportions_acceptable": true,
+      "scenes": [
+        "pool and palms with resort model",
+        "approved Grand Suite bedroom",
+        "beach loungers and umbrellas"
+      ],
+      "notes": [
+        "A portion of the fixed white anytour logo crosses sun glare; the hotel title remains fully legible.",
+        "Rebuilt from the current three h.photos URLs. The later alternate photoSet and previous 343.png were not used. The room photo does not promise a room category in any tariff."
+      ],
+      "decision": "PASS_WITH_BRANDING_NOTE"
+    },
+    {
+      "hotel_id": 432,
+      "site_id": "7512ce82-1625-5d0e-bd9d-7514829d18fd",
+      "title": "Sheraton Miramar Resort",
+      "output_path": "output/432.png",
+      "sha256": "0017dd490b829029c897f9098323ece76d6026d9a03b62417abf5d82709e5500",
+      "bytes": 535451,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "SHERATON MIRAMAR RESORT",
+        "font_size": 28,
+        "text_width": 422.078125,
+        "font": "LiberationSans-Bold.ttf"
+      },
+      "accepted_urls_in_accepted_order": true,
+      "source_photo_hashes_verified": true,
+      "source_sheet_viewed": "source-sheets/sources-page-1.jpg",
+      "source_set_visually_inspected": true,
+      "cover_visually_inspected_at_full_600": true,
+      "hotel_identity_basis": "Exact accepted baseline/current-registry URLs and stored photoSet attribution preserved; no independent identity research or new source selection.",
+      "title_legible": true,
+      "distinct_source_images": true,
+      "crop_and_proportions_acceptable": true,
+      "scenes": [
+        "lagoon resort overview with bridges",
+        "waterside restaurant terrace",
+        "bedroom"
+      ],
+      "notes": [],
+      "decision": "PASS"
+    },
+    {
+      "hotel_id": 65254,
+      "site_id": "82027e40-e50b-4638-9d10-81d4fc2cdd9c",
+      "title": "Premier Residences Phu Quoc Emerald Bay",
+      "output_path": "output/65254.png",
+      "sha256": "6090e6df2f606c5674bc0daa12f5dd7d5f39f16b502a97159fc7c487e280c209",
+      "bytes": 585917,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "PREMIER RESIDENCES PHU QUOC EMERALD BAY",
+        "font_size": 22,
+        "text_width": 539.484375,
+        "font": "LiberationSans-Bold.ttf"
+      },
+      "accepted_urls_in_accepted_order": true,
+      "source_photo_hashes_verified": true,
+      "source_sheet_viewed": "source-sheets/sources-page-2.jpg",
+      "source_set_visually_inspected": true,
+      "cover_visually_inspected_at_full_600": true,
+      "hotel_identity_basis": "Exact accepted baseline/current-registry URLs and stored photoSet attribution preserved; no independent identity research or new source selection.",
+      "title_legible": true,
+      "distinct_source_images": true,
+      "crop_and_proportions_acceptable": true,
+      "scenes": [
+        "beachfront resort overview",
+        "room with bed and sofa",
+        "room with corner windows"
+      ],
+      "notes": [
+        "The full long hotel title is legible at 600x600. No slide is featured in the accepted photo set. Images do not attest that all pool zones are operating."
+      ],
+      "decision": "PASS"
+    },
+    {
+      "hotel_id": 443,
+      "site_id": "ac2cf1fa-7657-4d96-a3d5-e57f7d3be833",
+      "title": "Mercure Hurghada",
+      "output_path": "output/443.png",
+      "sha256": "efd365ed429bf606c435453a44821be2761e01014931a07f1518064561bd8502",
+      "bytes": 610954,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "MERCURE HURGHADA",
+        "font_size": 28,
+        "text_width": 312.640625,
+        "font": "LiberationSans-Bold.ttf"
+      },
+      "accepted_urls_in_accepted_order": true,
+      "source_photo_hashes_verified": true,
+      "source_sheet_viewed": "source-sheets/sources-page-2.jpg",
+      "source_set_visually_inspected": true,
+      "cover_visually_inspected_at_full_600": true,
+      "hotel_identity_basis": "Exact accepted baseline/current-registry URLs and stored photoSet attribution preserved; no independent identity research or new source selection.",
+      "title_legible": true,
+      "distinct_source_images": true,
+      "crop_and_proportions_acceptable": true,
+      "scenes": [
+        "beach bay and resort aerial",
+        "purple-accent bedroom",
+        "pool loungers and umbrellas at sunset"
+      ],
+      "notes": [],
+      "decision": "PASS"
+    },
+    {
+      "hotel_id": 107940,
+      "site_id": "bb2dc7a9-9881-4c8f-97bd-0c883df33a71",
+      "title": "Bella Nara Phuket Naiyang Beach",
+      "output_path": "output/107940.png",
+      "sha256": "a38a582c4f1f135fcd1b41e44582580f94a5a76c8b3b52ed43d9a76d935ac201",
+      "bytes": 534379,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "BELLA NARA PHUKET NAIYANG BEACH",
+        "font_size": 28,
+        "text_width": 544.46875,
+        "font": "LiberationSans-Bold.ttf"
+      },
+      "accepted_urls_in_accepted_order": true,
+      "source_photo_hashes_verified": true,
+      "source_sheet_viewed": "source-sheets/sources-page-2.jpg",
+      "source_set_visually_inspected": true,
+      "cover_visually_inspected_at_full_600": true,
+      "hotel_identity_basis": "Exact accepted baseline/current-registry URLs and stored photoSet attribution preserved; no independent identity research or new source selection.",
+      "title_legible": true,
+      "distinct_source_images": true,
+      "crop_and_proportions_acceptable": true,
+      "scenes": [
+        "courtyard pool and buildings",
+        "main pool and blue loungers from a different angle",
+        "bedroom"
+      ],
+      "notes": [
+        "The two pool photographs show different viewpoints and are not duplicate images."
+      ],
+      "decision": "PASS"
+    },
+    {
+      "hotel_id": 32356,
+      "site_id": "c8e4b48f-6caa-46bc-8f6b-e2c9b9507656",
+      "title": "Galina Hotel & Spa",
+      "output_path": "output/32356.png",
+      "sha256": "4244ae2199abf8937d8c8a0ee0b294605f4992ad380baf00d6a47e29df25c905",
+      "bytes": 579895,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "GALINA HOTEL & SPA",
+        "font_size": 28,
+        "text_width": 299.734375,
+        "font": "LiberationSans-Bold.ttf"
+      },
+      "accepted_urls_in_accepted_order": true,
+      "source_photo_hashes_verified": true,
+      "source_sheet_viewed": "source-sheets/sources-page-3.jpg",
+      "source_set_visually_inspected": true,
+      "cover_visually_inspected_at_full_600": true,
+      "hotel_identity_basis": "Exact accepted baseline/current-registry URLs and stored photoSet attribution preserved; no independent identity research or new source selection.",
+      "title_legible": true,
+      "distinct_source_images": true,
+      "crop_and_proportions_acceptable": true,
+      "scenes": [
+        "hotel facade with visible GALINA sign",
+        "bedroom",
+        "garden mud-spa area"
+      ],
+      "notes": [
+        "The facade crop retains the hotel sign and entrance area; source photo date remains unknown."
+      ],
+      "decision": "PASS"
+    },
+    {
+      "hotel_id": 195,
+      "site_id": "f89db21d-dd98-4432-a6ab-6c26f7c06fc8",
+      "title": "Dreams Beach Resort",
+      "output_path": "output/195.png",
+      "sha256": "a21dbe5b77148027886d08a61a55a8108256b366c21f4b8dd07d0eb37786e389",
+      "bytes": 539700,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "DREAMS BEACH RESORT",
+        "font_size": 28,
+        "text_width": 353.109375,
+        "font": "LiberationSans-Bold.ttf"
+      },
+      "accepted_urls_in_accepted_order": true,
+      "source_photo_hashes_verified": true,
+      "source_sheet_viewed": "source-sheets/sources-page-3.jpg",
+      "source_set_visually_inspected": true,
+      "cover_visually_inspected_at_full_600": true,
+      "hotel_identity_basis": "Exact accepted baseline/current-registry URLs and stored photoSet attribution preserved; no independent identity research or new source selection.",
+      "title_legible": true,
+      "distinct_source_images": true,
+      "crop_and_proportions_acceptable": true,
+      "scenes": [
+        "beach terrace with loungers",
+        "rocky coast outlook",
+        "cliff restaurant entrance and pier"
+      ],
+      "notes": [
+        "All three photographs are coastal, but show distinct scenes and framing."
+      ],
+      "decision": "PASS"
+    },
+    {
+      "hotel_id": 20288,
+      "site_id": "fb562b7b-15a0-4cc6-8a6d-c2db15260be6",
+      "title": "Palm Beach Resort",
+      "output_path": "output/20288.png",
+      "sha256": "0e6c76110e3a00a99758c9442361a1d173cc5f30ca1d4c90a9ab8dacabea745d",
+      "bytes": 527248,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "PALM BEACH RESORT",
+        "font_size": 28,
+        "text_width": 309.03125,
+        "font": "LiberationSans-Bold.ttf"
+      },
+      "accepted_urls_in_accepted_order": true,
+      "source_photo_hashes_verified": true,
+      "source_sheet_viewed": "source-sheets/sources-page-3.jpg",
+      "source_set_visually_inspected": true,
+      "cover_visually_inspected_at_full_600": true,
+      "hotel_identity_basis": "Exact accepted baseline/current-registry URLs and stored photoSet attribution preserved; no independent identity research or new source selection.",
+      "title_legible": true,
+      "distinct_source_images": true,
+      "crop_and_proportions_acceptable": true,
+      "scenes": [
+        "grounds and palm-lined buildings",
+        "bedroom with blue bedspread",
+        "beach bay with boat"
+      ],
+      "notes": [],
+      "decision": "PASS"
+    }
+  ]
+}

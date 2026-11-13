@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "state": "PREPARED_ORIGINAL_READ161",
+  "operation": "commercial-channel-hotel-feeds-20261113-read161",
+  "carrier_parent": "fae87b246024eb388454ac172bea3dff257cf38a",
+  "expected_production_sha": "c292bcd9f1d46d097703d4cf7c2508e0116189ce",
+  "source_gates": [
+    {
+      "id": 43413304863,
+      "head_sha": "c292bcd9f1d46d097703d4cf7c2508e0116189ce",
+      "run_attempt": 1,
+      "event": "push",
+      "path": ".github/workflows/deploy.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "Merge pull request #1526 from pyatkoff/feat/manager2-promise-tasks-re…",
+      "html_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/43413304863",
+      "updated_at": "2026-11-13T11:12:01Z"
+    },
+    {
+      "id": 43415131582,
+      "head_sha": "c292bcd9f1d46d097703d4cf7c2508e0116189ce",
+      "run_attempt": 1,
+      "event": "workflow_run",
+      "path": ".github/workflows/max-tls-preflight.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "deploy-proof:v1:43413304863:1",
+      "html_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/43415131582",
+      "updated_at": "2026-11-13T11:12:23Z"
+    },
+    {
+      "id": 43415133047,
+      "head_sha": "c292bcd9f1d46d097703d4cf7c2508e0116189ce",
+      "run_attempt": 1,
+      "event": "workflow_run",
+      "path": ".github/workflows/telegram-production-health.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "deploy-proof:v1:43413304863:1",
+      "html_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/43415133047",
+      "updated_at": "2026-11-13T11:12:28Z"
+    },
+    {
+      "id": 43415132262,
+      "head_sha": "c292bcd9f1d46d097703d4cf7c2508e0116189ce",
+      "run_attempt": 1,
+      "event": "workflow_run",
+      "path": ".github/workflows/max-production-health.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "deploy-proof:v1:43413304863:1",
+      "html_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/43415132262",
+      "updated_at": "2026-11-13T11:12:20Z"
+    },
+    {
+      "id": 43415131818,
+      "head_sha": "c292bcd9f1d46d097703d4cf7c2508e0116189ce",
+      "run_attempt": 1,
+      "event": "workflow_run",
+      "path": ".github/workflows/modeled-conversion-value-export.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "deploy-proof:v1:43413304863:1",
+      "html_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/43415131818",
+      "updated_at": "2026-11-13T11:13:56Z"
+    },
+    {
+      "id": 43415131603,
+      "head_sha": "c292bcd9f1d46d097703d4cf7c2508e0116189ce",
+      "run_attempt": 1,
+      "event": "workflow_run",
+      "path": ".github/workflows/publish-conversation-diagnostics.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "deploy-proof:v1:43413304863:1",
+      "html_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/43415131603",
+      "updated_at": "2026-11-13T11:13:21Z"
+    },
+    {
+      "id": 43415131594,
+      "head_sha": "c292bcd9f1d46d097703d4cf7c2508e0116189ce",
+      "run_attempt": 1,
+      "event": "workflow_run",
+      "path": ".github/workflows/modeled-conversion-monitor.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "deploy-proof:v1:43413304863:1",
+      "html_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/43415131594",
+      "updated_at": "2026-11-13T11:12:50Z"
+    },
+    {
+      "id": 43415132016,
+      "head_sha": "c292bcd9f1d46d097703d4cf7c2508e0116189ce",
+      "run_attempt": 1,
+      "event": "workflow_run",
+      "path": ".github/workflows/tour-selection-host.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "deploy-proof:v1:43413304863:1",
+      "html_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/43415132016",
+      "updated_at": "2026-11-13T11:13:07Z"
+    },
+    {
+      "id": 43415131792,
+      "head_sha": "c292bcd9f1d46d097703d4cf7c2508e0116189ce",
+      "run_attempt": 1,
+      "event": "workflow_run",
+      "path": ".github/workflows/live-session-diagnostics.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "deploy-proof:v1:43413304863:1",
+      "html_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/43415131792",
+      "updated_at": "2026-11-13T11:12:55Z"
+    }
+  ],
+  "assets": [
+    {
+      "hotel_id": 81358,
+      "bytes": 481710,
+      "sha256": "5a74a170feab01ff49f8d86069369d5357c06eeeea9359f68838ded19f79e03b",
+      "git_blob": "1fb6bd09dd3b7bda563cc4a3edf647348d94d999"
+    },
+    {
+      "hotel_id": 195,
+      "bytes": 539700,
+      "sha256": "a21dbe5b77148027886d08a61a55a8108256b366c21f4b8dd07d0eb37786e389",
+      "git_blob": "a85c59870712891fc5995ad9318ec28a8c23e4f6"
+    },
+    {
+      "hotel_id": 343,
+      "bytes": 440884,
+      "sha256": "0502ddf8d62c6df40e52c48a36d14c034bb823a61f572012e47282f322dc2da2",
+      "git_blob": "9181c506c12712e9d84ef7af16235e3b318afc7a"
+    },
+    {
+      "hotel_id": 432,
+      "bytes": 535451,
+      "sha256": "0017dd490b829029c897f9098323ece76d6026d9a03b62417abf5d82709e5500",
+      "git_blob": "d992a1cfcb2b393aad43a1b9328d219184883c5b"
+    },
+    {
+      "hotel_id": 443,
+      "bytes": 610954,
+      "sha256": "efd365ed429bf606c435453a44821be2761e01014931a07f1518064561bd8502",
+      "git_blob": "f8c898f12c003c18226e57d5b25758f055741ceb"
+    },
+    {
+      "hotel_id": 20288,
+      "bytes": 527248,
+      "sha256": "0e6c76110e3a00a99758c9442361a1d173cc5f30ca1d4c90a9ab8dacabea745d",
+      "git_blob": "3f70e788eeaf1dd7fdbfa4e86a83876b637210b5"
+    },
+    {
+      "hotel_id": 32356,
+      "bytes": 579895,
+      "sha256": "4244ae2199abf8937d8c8a0ee0b294605f4992ad380baf00d6a47e29df25c905",
+      "git_blob": "f114376eb745a556549fef5579ae8a290f2d7c99"
+    },
+    {
+      "hotel_id": 65254,
+      "bytes": 585917,
+      "sha256": "6090e6df2f606c5674bc0daa12f5dd7d5f39f16b502a97159fc7c487e280c209",
+      "git_blob": "f7862732c1043d23fa2c5a506b64fa2b84167175"
+    },
+    {
+      "hotel_id": 107940,
+      "bytes": 534379,
+      "sha256": "a38a582c4f1f135fcd1b41e44582580f94a5a76c8b3b52ed43d9a76d935ac201",
+      "git_blob": "d1125e767ede02aa98970583b5fd146c4d4ae857"
+    }
+  ],
+  "files": [
+    {
+      "name": "clearance-prepared/candidate-input.json",
+      "sha256": "b6d09de46ab8c71d87a36172fd4408d42092098f9e77712d65b76bcfd5a071db"
+    },
+    {
+      "name": "clearance-prepared/duplicate-read.php",
+      "sha256": "2670145a574f310e376110dfd8ffe3cc69baed1c58026474a0a48cc40816a721"
+    },
+    {
+      "name": "clearance-prepared/clearance-workflow.yml",
+      "sha256": "7d4486fb8ede7a7acac1326b56435cf63266924967d940261e7d36bea7347e4c"
+    },
+    {
+      "name": "editorial-ready.json",
+      "sha256": "29e610d3561c5affc2c566ade7adbc0739e2667635c2660f54547fe3c16a16fa"
+    },
+    {
+      "name": "covers-stage/visual-review-receipt.json",
+      "sha256": "4306a25f6ba509b60f96a5872275a6d1a44df9415958d95621f2fcad55c41893"
+    },
+    {
+      "name": "covers-stage/output/cover-receipt.json",
+      "sha256": "7afce95fc43ec560e1a538d55855216f5eeb865dd3f05ecfab6aa6c0b3100395"
+    }
+  ],
+  "publication_sends": 0
+}

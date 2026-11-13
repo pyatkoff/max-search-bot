@@ -1,0 +1,2024 @@
+{
+  "schema_version": 1,
+  "state": "PREPARED_AWAITING_VISUAL_ACCEPTANCE",
+  "baseline_registry_version": 344,
+  "read_current_registry_version": 355,
+  "no_generated_photographs": true,
+  "no_new_sources": true,
+  "input_sha256": "c30ae43868d8f774542fc69693fdb3b9e67beb3ac27bef05fe9d97e4e9a84fec",
+  "logo_asset": ".github/traffic-publish/brand/anytour-logo-white.png",
+  "logo_sha256": "b27cda894047b1ecb4125eea2ecf0db9d1e1674472cad62f70edf1ef1a6c968f",
+  "rows": [
+    {
+      "hotel_id": 81358,
+      "site_id": "3a3d346c-3d94-457e-b001-6d6b218388b2",
+      "title": "GLOW Mira Karon Beach",
+      "photos": [
+        {
+          "hotel_id": 81358,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://kompastour.com/useruploads/hotels/hotel_2d14bfedc9.jpg",
+          "source_url_sha256": "6e56957955b21dc22682129ce8235d0e1c76083bcb8acaa8bde280409573baed",
+          "sha256": "79ad9ba6811590688892cfb507ec79bb54da53c39707d1130d335aeb4fb6ebe2",
+          "path": "photos/81358-hero.jpg",
+          "bytes": 103512,
+          "dimensions": [
+            1000,
+            666
+          ],
+          "format": "JPEG",
+          "response_url": "https://kompastour.com/useruploads/hotels/hotel_2d14bfedc9.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 81358,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://kompastour.com/useruploads/hotels_room/room_136292c191.jpg",
+          "source_url_sha256": "a4581bdd54e3a3ccd3b71cd199e988053167f68274148c0b31a6c2d0b41fff8f",
+          "sha256": "e1b6f960663273aaeb6f903f464269ea33cbdba7b6f425594b5e11d961688019",
+          "path": "photos/81358-detail_left.jpg",
+          "bytes": 73083,
+          "dimensions": [
+            1000,
+            666
+          ],
+          "format": "JPEG",
+          "response_url": "https://kompastour.com/useruploads/hotels_room/room_136292c191.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 81358,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://kompastour.com/useruploads/hotels_room/room_d1e50fc03a.jpg",
+          "source_url_sha256": "0c6e4c50091c2761079de6aa5e5f067e160cdb12f9dcf8e9499b01823ab8f474",
+          "sha256": "d7cf445679aa54ca0b428a353a9850a2f8fa2c50d62414d12ef77dc3c9dfd21b",
+          "path": "photos/81358-detail_right.jpg",
+          "bytes": 78735,
+          "dimensions": [
+            1000,
+            666
+          ],
+          "format": "JPEG",
+          "response_url": "https://kompastour.com/useruploads/hotels_room/room_d1e50fc03a.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        }
+      ],
+      "baseline_accepted_revision": 2,
+      "source_photo_sets": [
+        {
+          "capturedAt": "2026-11-11T00:17:00.324658Z",
+          "sourceUrl": "https://kompastour.com/kg/rus/country/thailand/phuket/glow_mira_karon_beach/",
+          "proofUrl": "https://kompastour.com/kg/rus/country/thailand/phuket/glow_mira_karon_beach/",
+          "label": "3 фотографии с указанных страниц отеля/оператора просмотрены. Дата съёмки неизвестна; фото категории номера не описывает все тарифы, сезонную работу услуг проверяем на даты.",
+          "photos": [
+            {
+              "url": "https://kompastour.com/useruploads/hotels/hotel_2d14bfedc9.jpg",
+              "alt": "Бассейн во дворе GLOW Mira Karon"
+            },
+            {
+              "url": "https://kompastour.com/useruploads/hotels_room/room_136292c191.jpg",
+              "alt": "Family Suite GLOW Mira Karon из галереи оператора"
+            },
+            {
+              "url": "https://kompastour.com/useruploads/hotels_room/room_d1e50fc03a.jpg",
+              "alt": "Детская двухъярусная кровать в Family Suite GLOW Mira Karon"
+            }
+          ]
+        }
+      ],
+      "photo_date": "unknown",
+      "operational_caveats_preserved": true,
+      "source_photos": [
+        {
+          "hotel_id": 81358,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://kompastour.com/useruploads/hotels/hotel_2d14bfedc9.jpg",
+          "source_url_sha256": "6e56957955b21dc22682129ce8235d0e1c76083bcb8acaa8bde280409573baed",
+          "sha256": "79ad9ba6811590688892cfb507ec79bb54da53c39707d1130d335aeb4fb6ebe2",
+          "path": "photos/81358-hero.jpg",
+          "bytes": 103512,
+          "dimensions": [
+            1000,
+            666
+          ],
+          "format": "JPEG",
+          "response_url": "https://kompastour.com/useruploads/hotels/hotel_2d14bfedc9.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 103512,
+          "source_dimensions": [
+            1000,
+            666
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "79ad9ba6811590688892cfb507ec79bb54da53c39707d1130d335aeb4fb6ebe2",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 81358,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://kompastour.com/useruploads/hotels_room/room_136292c191.jpg",
+          "source_url_sha256": "a4581bdd54e3a3ccd3b71cd199e988053167f68274148c0b31a6c2d0b41fff8f",
+          "sha256": "e1b6f960663273aaeb6f903f464269ea33cbdba7b6f425594b5e11d961688019",
+          "path": "photos/81358-detail_left.jpg",
+          "bytes": 73083,
+          "dimensions": [
+            1000,
+            666
+          ],
+          "format": "JPEG",
+          "response_url": "https://kompastour.com/useruploads/hotels_room/room_136292c191.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 73083,
+          "source_dimensions": [
+            1000,
+            666
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "e1b6f960663273aaeb6f903f464269ea33cbdba7b6f425594b5e11d961688019",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 81358,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://kompastour.com/useruploads/hotels_room/room_d1e50fc03a.jpg",
+          "source_url_sha256": "0c6e4c50091c2761079de6aa5e5f067e160cdb12f9dcf8e9499b01823ab8f474",
+          "sha256": "d7cf445679aa54ca0b428a353a9850a2f8fa2c50d62414d12ef77dc3c9dfd21b",
+          "path": "photos/81358-detail_right.jpg",
+          "bytes": 78735,
+          "dimensions": [
+            1000,
+            666
+          ],
+          "format": "JPEG",
+          "response_url": "https://kompastour.com/useruploads/hotels_room/room_d1e50fc03a.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 78735,
+          "source_dimensions": [
+            1000,
+            666
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "d7cf445679aa54ca0b428a353a9850a2f8fa2c50d62414d12ef77dc3c9dfd21b",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "81358.png",
+      "sha256": "5a74a170feab01ff49f8d86069369d5357c06eeeea9359f68838ded19f79e03b",
+      "bytes": 481710,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "GLOW MIRA KARON BEACH",
+        "font_size": 28,
+        "text_width": 383.15625,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 343,
+      "site_id": "7238cebc-03ef-5d28-9c3f-088e5a7b25bb",
+      "title": "Old Palace Resort Sahl Hasheesh",
+      "photos": [
+        {
+          "hotel_id": 343,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://oldpalaceresort.com/images/uploads/20211421103973.jpg",
+          "source_url_sha256": "77de0ee20942fdb54a5946a79d6a7497e12cfd658d39d7763710c22da8f06bb5",
+          "sha256": "3f5542250977b3ef9f3baa19a37e329ed2d874dac9c2845e599c5c6709b29768",
+          "path": "photos/343-hero.jpg",
+          "bytes": 100354,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "format": "JPEG",
+          "response_url": "https://oldpalaceresort.com/images/uploads/20211421103973.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 343,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-old-palace-resort-grand-suite-20222011740520.jpg",
+          "source_url_sha256": "9b7dc520a8719b509e5a6478bc59a15ba459b4ac805f0987ba9aefda818f318f",
+          "sha256": "faac2a533ac789facb17edd7b20d3c733a47b81270e2ac88952f52f9416cbcd9",
+          "path": "photos/343-detail_left.jpg",
+          "bytes": 45732,
+          "dimensions": [
+            900,
+            600
+          ],
+          "format": "JPEG",
+          "response_url": "https://oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-old-palace-resort-grand-suite-20222011740520.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 343,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-beach-202115184273.jpg",
+          "source_url_sha256": "3e5c5a2b145288b3c1923873c1de4a1d3ece1cea9f1bda1c8e2e7f33d1899859",
+          "sha256": "61e9c0a861967910e8e7c067dc1be0463cb0c570a4072a53684381231121552c",
+          "path": "photos/343-detail_right.jpg",
+          "bytes": 87142,
+          "dimensions": [
+            900,
+            600
+          ],
+          "format": "JPEG",
+          "response_url": "https://oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-beach-202115184273.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        }
+      ],
+      "baseline_accepted_revision": 2,
+      "source_photo_sets": [
+        {
+          "capturedAt": "2026-11-11T00:05:49.872459Z",
+          "sourceUrl": "https://oldpalaceresort.com/en/",
+          "proofUrl": "https://oldpalaceresort.com/en/",
+          "label": "3 фотографии с указанных страниц отеля/оператора просмотрены. Дата съёмки неизвестна; фото категории номера не описывает все тарифы, сезонную работу услуг проверяем на даты.",
+          "photos": [
+            {
+              "url": "https://oldpalaceresort.com/images/uploads/20211421103973.jpg",
+              "alt": "Бассейн Old Palace с официальной страницы"
+            },
+            {
+              "url": "https://oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-old-palace-resort-grand-suite-20222011740520.jpg",
+              "alt": "Номер Old Palace из официальной галереи размещения"
+            },
+            {
+              "url": "https://oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-beach-202115184273.jpg",
+              "alt": "Песчаная пляжная зона Old Palace"
+            }
+          ]
+        },
+        {
+          "capturedAt": "2026-11-11T10:21:13.303070Z",
+          "sourceUrl": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=343",
+          "proofUrl": "https://chatgpt.com/library?file_id=libfile_fde3_f-500987befa7c81918ae7ab49fdf68038_839482358a3c8191a38d8cf811d28df4&account_id=personal",
+          "label": "Ценовой вариант: три разные общие фотографии отеля, без фото люкса",
+          "photos": [
+            {
+              "url": "https://oldpalaceresort.com/images/uploads/20211421103973.jpg",
+              "alt": "Бассейн Old Palace с официальной страницы"
+            },
+            {
+              "url": "https://oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-beach-202115184273.jpg",
+              "alt": "Песчаная пляжная зона Old Palace"
+            },
+            {
+              "url": "https://static.tourvisor.ru/hotel_pics/verybig/1/old-palace-resort-102003561.jpg",
+              "alt": "Общий вид Old Palace Resort Sahl Hasheesh из галереи Tourvisor; дата съёмки неизвестна"
+            }
+          ]
+        }
+      ],
+      "photo_date": "unknown",
+      "operational_caveats_preserved": true,
+      "source_photos": [
+        {
+          "hotel_id": 343,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://oldpalaceresort.com/images/uploads/20211421103973.jpg",
+          "source_url_sha256": "77de0ee20942fdb54a5946a79d6a7497e12cfd658d39d7763710c22da8f06bb5",
+          "sha256": "3f5542250977b3ef9f3baa19a37e329ed2d874dac9c2845e599c5c6709b29768",
+          "path": "photos/343-hero.jpg",
+          "bytes": 100354,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "format": "JPEG",
+          "response_url": "https://oldpalaceresort.com/images/uploads/20211421103973.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 100354,
+          "source_dimensions": [
+            1200,
+            800
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "3f5542250977b3ef9f3baa19a37e329ed2d874dac9c2845e599c5c6709b29768",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 343,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-old-palace-resort-grand-suite-20222011740520.jpg",
+          "source_url_sha256": "9b7dc520a8719b509e5a6478bc59a15ba459b4ac805f0987ba9aefda818f318f",
+          "sha256": "faac2a533ac789facb17edd7b20d3c733a47b81270e2ac88952f52f9416cbcd9",
+          "path": "photos/343-detail_left.jpg",
+          "bytes": 45732,
+          "dimensions": [
+            900,
+            600
+          ],
+          "format": "JPEG",
+          "response_url": "https://oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-old-palace-resort-grand-suite-20222011740520.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 45732,
+          "source_dimensions": [
+            900,
+            600
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "faac2a533ac789facb17edd7b20d3c733a47b81270e2ac88952f52f9416cbcd9",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 343,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-beach-202115184273.jpg",
+          "source_url_sha256": "3e5c5a2b145288b3c1923873c1de4a1d3ece1cea9f1bda1c8e2e7f33d1899859",
+          "sha256": "61e9c0a861967910e8e7c067dc1be0463cb0c570a4072a53684381231121552c",
+          "path": "photos/343-detail_right.jpg",
+          "bytes": 87142,
+          "dimensions": [
+            900,
+            600
+          ],
+          "format": "JPEG",
+          "response_url": "https://oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-beach-202115184273.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 87142,
+          "source_dimensions": [
+            900,
+            600
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "61e9c0a861967910e8e7c067dc1be0463cb0c570a4072a53684381231121552c",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "343.png",
+      "sha256": "0502ddf8d62c6df40e52c48a36d14c034bb823a61f572012e47282f322dc2da2",
+      "bytes": 440884,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "OLD PALACE RESORT SAHL HASHEESH",
+        "font_size": 28,
+        "text_width": 551.21875,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 432,
+      "site_id": "7512ce82-1625-5d0e-bd9d-7514829d18fd",
+      "title": "Sheraton Miramar Resort",
+      "photos": [
+        {
+          "hotel_id": 432,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://cache.marriott.com/is/image/marriotts7prod/si-hrgsi-bridges-lagoons-ext-11832-83257:Wide-Hor?wid=1336&fit=constrain",
+          "source_url_sha256": "e8af57b133befb8c7f24ce5fceb989d55ed91ab87f9a2b3c6ff1805cc2a3d56f",
+          "sha256": "2261c26647305af736161bfb6fd7938002c1a2495121963478704d3be7c4e489",
+          "path": "photos/432-hero.jpg",
+          "bytes": 210667,
+          "dimensions": [
+            1336,
+            751
+          ],
+          "format": "JPEG",
+          "response_url": "https://cache.marriott.com/is/image/marriotts7prod/si-hrgsi-bridges-lagoons-ext-11832-83257:Wide-Hor?wid=1336&fit=constrain",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 432,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://cache.marriott.com/content/dam/marriott-renditions/HRGSI/hrgsi-pier17-3840-hor-wide.jpg?output-quality=70&interpolation=progressive-bilinear&downsize=1336px:*",
+          "source_url_sha256": "f03373836690566c0cde61ed4bb5b619441f302207f8ce0e2295a5ea0127de45",
+          "sha256": "089de44f2a8ca818801746ead7ff667800da3546ebf1cacb5c59555bbd0779eb",
+          "path": "photos/432-detail_left.jpg",
+          "bytes": 403840,
+          "dimensions": [
+            1336,
+            751
+          ],
+          "format": "JPEG",
+          "response_url": "https://cache.marriott.com/content/dam/marriott-renditions/HRGSI/hrgsi-pier17-3840-hor-wide.jpg?output-quality=70&interpolation=progressive-bilinear&downsize=1336px:*",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 432,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://cache.marriott.com/is/image/marriotts7prod/si-hrgsi-premium-guest-room-41862:Wide-Hor?wid=1336&fit=constrain",
+          "source_url_sha256": "ef5f3858b04fbda48d9306c0ad55df90677f876a07333207dc654d4b38b0a343",
+          "sha256": "aa3f0a33a2135e6a685ef1a201305270a81281ccb34c9ab4a7ae6b3ac16f2444",
+          "path": "photos/432-detail_right.jpg",
+          "bytes": 93632,
+          "dimensions": [
+            1336,
+            751
+          ],
+          "format": "JPEG",
+          "response_url": "https://cache.marriott.com/is/image/marriotts7prod/si-hrgsi-premium-guest-room-41862:Wide-Hor?wid=1336&fit=constrain",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        }
+      ],
+      "baseline_accepted_revision": 2,
+      "source_photo_sets": [
+        {
+          "capturedAt": "2026-11-10T23:04:45.020331Z",
+          "sourceUrl": "https://www.marriott.com/en-us/hotels/hrgsi-sheraton-miramar-resort-el-gouna/photos/",
+          "proofUrl": "https://www.marriott.com/en-us/hotels/hrgsi-sheraton-miramar-resort-el-gouna/photos/",
+          "label": "3 фотографии с указанной страницы отеля просмотрены. Дата съёмки неизвестна; фото категории номера не описывает все тарифы, сезонную работу услуг проверяем на даты.",
+          "photos": [
+            {
+              "url": "https://cache.marriott.com/is/image/marriotts7prod/si-hrgsi-bridges-lagoons-ext-11832-83257:Wide-Hor?wid=1336&fit=constrain",
+              "alt": "Sheraton Miramar: корпуса и лагуны Эль-Гуны"
+            },
+            {
+              "url": "https://cache.marriott.com/content/dam/marriott-renditions/HRGSI/hrgsi-pier17-3840-hor-wide.jpg?output-quality=70&interpolation=progressive-bilinear&downsize=1336px:*",
+              "alt": "Терраса ресторана Sheraton Miramar у воды"
+            },
+            {
+              "url": "https://cache.marriott.com/is/image/marriotts7prod/si-hrgsi-premium-guest-room-41862:Wide-Hor?wid=1336&fit=constrain",
+              "alt": "Номер Sheraton Miramar; вид зависит от категории"
+            }
+          ]
+        }
+      ],
+      "photo_date": "unknown",
+      "operational_caveats_preserved": true,
+      "source_photos": [
+        {
+          "hotel_id": 432,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://cache.marriott.com/is/image/marriotts7prod/si-hrgsi-bridges-lagoons-ext-11832-83257:Wide-Hor?wid=1336&fit=constrain",
+          "source_url_sha256": "e8af57b133befb8c7f24ce5fceb989d55ed91ab87f9a2b3c6ff1805cc2a3d56f",
+          "sha256": "2261c26647305af736161bfb6fd7938002c1a2495121963478704d3be7c4e489",
+          "path": "photos/432-hero.jpg",
+          "bytes": 210667,
+          "dimensions": [
+            1336,
+            751
+          ],
+          "format": "JPEG",
+          "response_url": "https://cache.marriott.com/is/image/marriotts7prod/si-hrgsi-bridges-lagoons-ext-11832-83257:Wide-Hor?wid=1336&fit=constrain",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 210667,
+          "source_dimensions": [
+            1336,
+            751
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "2261c26647305af736161bfb6fd7938002c1a2495121963478704d3be7c4e489",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 432,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://cache.marriott.com/content/dam/marriott-renditions/HRGSI/hrgsi-pier17-3840-hor-wide.jpg?output-quality=70&interpolation=progressive-bilinear&downsize=1336px:*",
+          "source_url_sha256": "f03373836690566c0cde61ed4bb5b619441f302207f8ce0e2295a5ea0127de45",
+          "sha256": "089de44f2a8ca818801746ead7ff667800da3546ebf1cacb5c59555bbd0779eb",
+          "path": "photos/432-detail_left.jpg",
+          "bytes": 403840,
+          "dimensions": [
+            1336,
+            751
+          ],
+          "format": "JPEG",
+          "response_url": "https://cache.marriott.com/content/dam/marriott-renditions/HRGSI/hrgsi-pier17-3840-hor-wide.jpg?output-quality=70&interpolation=progressive-bilinear&downsize=1336px:*",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 403840,
+          "source_dimensions": [
+            1336,
+            751
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "089de44f2a8ca818801746ead7ff667800da3546ebf1cacb5c59555bbd0779eb",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 432,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://cache.marriott.com/is/image/marriotts7prod/si-hrgsi-premium-guest-room-41862:Wide-Hor?wid=1336&fit=constrain",
+          "source_url_sha256": "ef5f3858b04fbda48d9306c0ad55df90677f876a07333207dc654d4b38b0a343",
+          "sha256": "aa3f0a33a2135e6a685ef1a201305270a81281ccb34c9ab4a7ae6b3ac16f2444",
+          "path": "photos/432-detail_right.jpg",
+          "bytes": 93632,
+          "dimensions": [
+            1336,
+            751
+          ],
+          "format": "JPEG",
+          "response_url": "https://cache.marriott.com/is/image/marriotts7prod/si-hrgsi-premium-guest-room-41862:Wide-Hor?wid=1336&fit=constrain",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 93632,
+          "source_dimensions": [
+            1336,
+            751
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "aa3f0a33a2135e6a685ef1a201305270a81281ccb34c9ab4a7ae6b3ac16f2444",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "432.png",
+      "sha256": "0017dd490b829029c897f9098323ece76d6026d9a03b62417abf5d82709e5500",
+      "bytes": 535451,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "SHERATON MIRAMAR RESORT",
+        "font_size": 28,
+        "text_width": 422.078125,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 65254,
+      "site_id": "82027e40-e50b-4638-9d10-81d4fc2cdd9c",
+      "title": "Premier Residences Phu Quoc Emerald Bay",
+      "photos": [
+        {
+          "hotel_id": 65254,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://www.ahstatic.com/photos/b2q9_ho_00_p_1024x768.jpg",
+          "source_url_sha256": "660d730dec5bf3d62d08e1b1152038328ce9b00faa90d5fdc847f5171e8497f0",
+          "sha256": "097717050208a9a4fb58c5106146230ac318e805a78be264b2c3f1c9bfc93b6b",
+          "path": "photos/65254-hero.jpg",
+          "bytes": 172199,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "format": "JPEG",
+          "response_url": "https://www.ahstatic.com/photos/b2q9_ho_00_p_1024x768.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 65254,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://www.ahstatic.com/photos/b2q9_rokgcbc_00_p_1024x768.jpg",
+          "source_url_sha256": "9e08df8e748dcc04c8681f685b93c6c04b6627cd4df2e399d2d87792facec223",
+          "sha256": "cfa62e0f2af645558be8a7dfbf0379abebcbee8f2ccca5e5b7819d109202a7a5",
+          "path": "photos/65254-detail_left.jpg",
+          "bytes": 97154,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "format": "JPEG",
+          "response_url": "https://www.ahstatic.com/photos/b2q9_rokgcbc_00_p_1024x768.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 65254,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://www.ahstatic.com/photos/b2q9_rov3c_00_p_1024x768.jpg",
+          "source_url_sha256": "245c266e4e19d3654adddb78bab52c79b66ca2a4a9183eaf25714ade8946166d",
+          "sha256": "3d64a9293e16574d3a5ad98daeb56f141a742fab6ecc77586203ab4756b1fd4b",
+          "path": "photos/65254-detail_right.jpg",
+          "bytes": 102340,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "format": "JPEG",
+          "response_url": "https://www.ahstatic.com/photos/b2q9_rov3c_00_p_1024x768.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        }
+      ],
+      "baseline_accepted_revision": 2,
+      "source_photo_sets": [
+        {
+          "capturedAt": "2026-11-10T15:35:28.751047Z",
+          "sourceUrl": "https://all.accor.com/hotel/B2Q9/index.en.shtml",
+          "proofUrl": "https://all.accor.com/hotel/B2Q9/index.en.shtml",
+          "label": "3 официальных фотографии просмотрены. Дата съёмки неизвестна. Фото отдельной категории не описывает все тарифы; доступность инфраструктуры уточняется на даты.",
+          "photos": [
+            {
+              "url": "https://www.ahstatic.com/photos/b2q9_ho_00_p_1024x768.jpg",
+              "alt": "Premier Residences Phu Quoc: общий вид у пляжа, дата съёмки неизвестна"
+            },
+            {
+              "url": "https://www.ahstatic.com/photos/b2q9_rokgcbc_00_p_1024x768.jpg",
+              "alt": "Один из номеров Premier Residences из галереи Accor"
+            },
+            {
+              "url": "https://www.ahstatic.com/photos/b2q9_rov3c_00_p_1024x768.jpg",
+              "alt": "Интерьер отдельной виллы Premier Residences; не стандартный тариф"
+            }
+          ]
+        }
+      ],
+      "photo_date": "unknown",
+      "operational_caveats_preserved": true,
+      "source_photos": [
+        {
+          "hotel_id": 65254,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://www.ahstatic.com/photos/b2q9_ho_00_p_1024x768.jpg",
+          "source_url_sha256": "660d730dec5bf3d62d08e1b1152038328ce9b00faa90d5fdc847f5171e8497f0",
+          "sha256": "097717050208a9a4fb58c5106146230ac318e805a78be264b2c3f1c9bfc93b6b",
+          "path": "photos/65254-hero.jpg",
+          "bytes": 172199,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "format": "JPEG",
+          "response_url": "https://www.ahstatic.com/photos/b2q9_ho_00_p_1024x768.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 172199,
+          "source_dimensions": [
+            1024,
+            768
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "097717050208a9a4fb58c5106146230ac318e805a78be264b2c3f1c9bfc93b6b",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 65254,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://www.ahstatic.com/photos/b2q9_rokgcbc_00_p_1024x768.jpg",
+          "source_url_sha256": "9e08df8e748dcc04c8681f685b93c6c04b6627cd4df2e399d2d87792facec223",
+          "sha256": "cfa62e0f2af645558be8a7dfbf0379abebcbee8f2ccca5e5b7819d109202a7a5",
+          "path": "photos/65254-detail_left.jpg",
+          "bytes": 97154,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "format": "JPEG",
+          "response_url": "https://www.ahstatic.com/photos/b2q9_rokgcbc_00_p_1024x768.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 97154,
+          "source_dimensions": [
+            1024,
+            768
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "cfa62e0f2af645558be8a7dfbf0379abebcbee8f2ccca5e5b7819d109202a7a5",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 65254,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://www.ahstatic.com/photos/b2q9_rov3c_00_p_1024x768.jpg",
+          "source_url_sha256": "245c266e4e19d3654adddb78bab52c79b66ca2a4a9183eaf25714ade8946166d",
+          "sha256": "3d64a9293e16574d3a5ad98daeb56f141a742fab6ecc77586203ab4756b1fd4b",
+          "path": "photos/65254-detail_right.jpg",
+          "bytes": 102340,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "format": "JPEG",
+          "response_url": "https://www.ahstatic.com/photos/b2q9_rov3c_00_p_1024x768.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 102340,
+          "source_dimensions": [
+            1024,
+            768
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "3d64a9293e16574d3a5ad98daeb56f141a742fab6ecc77586203ab4756b1fd4b",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "65254.png",
+      "sha256": "6090e6df2f606c5674bc0daa12f5dd7d5f39f16b502a97159fc7c487e280c209",
+      "bytes": 585917,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "PREMIER RESIDENCES PHU QUOC EMERALD BAY",
+        "font_size": 22,
+        "text_width": 539.484375,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 443,
+      "site_id": "ac2cf1fa-7657-4d96-a3d5-e57f7d3be833",
+      "title": "Mercure Hurghada",
+      "photos": [
+        {
+          "hotel_id": 443,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://www.ahstatic.com/photos/1815_ho_00_p_1024x768.jpg",
+          "source_url_sha256": "19f4e7acd612d370f579472eae2fcd74fd951431c3e932ec6003e2478b546afc",
+          "sha256": "1edf35e8a1ed8b1758ed1e34dd05ff719b2b8890edf99d9b3c88166e3c1d7006",
+          "path": "photos/443-hero.jpg",
+          "bytes": 128889,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "format": "JPEG",
+          "response_url": "https://www.ahstatic.com/photos/1815_ho_00_p_1024x768.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 443,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://www.ahstatic.com/photos/1815_ros2bgs_00_p_1024x768.jpg",
+          "source_url_sha256": "d8b84f567458acdaa715186e7002c080c72f78c926e29a3d43d2b2d21e00df43",
+          "sha256": "d682590064869998f9412d1a30c3b9a6ee28ea15b8fdfe9d3941e58054db6d2e",
+          "path": "photos/443-detail_left.jpg",
+          "bytes": 113534,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "format": "JPEG",
+          "response_url": "https://www.ahstatic.com/photos/1815_ros2bgs_00_p_1024x768.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 443,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://www.ahstatic.com/photos/1815_sw_00_p_1024x768.jpg",
+          "source_url_sha256": "6155647f85039164bd6bee02e3a59fd02594b61e26a3aada4c7035290d5d6149",
+          "sha256": "d484f7e04049e9fecde73f811a28787846d8984d586ef5bb6a761b9df8d07aa7",
+          "path": "photos/443-detail_right.jpg",
+          "bytes": 104209,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "format": "JPEG",
+          "response_url": "https://www.ahstatic.com/photos/1815_sw_00_p_1024x768.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        }
+      ],
+      "baseline_accepted_revision": 2,
+      "source_photo_sets": [
+        {
+          "capturedAt": "2026-11-10T23:35:28.512707Z",
+          "sourceUrl": "https://all.accor.com/hotel/1815/index.en.shtml",
+          "proofUrl": "https://all.accor.com/hotel/1815/index.en.shtml",
+          "label": "3 фотографии с указанных страниц отеля/оператора просмотрены. Дата съёмки неизвестна; фото категории номера не описывает все тарифы, сезонную работу услуг проверяем на даты.",
+          "photos": [
+            {
+              "url": "https://www.ahstatic.com/photos/1815_ho_00_p_1024x768.jpg",
+              "alt": "Mercure Hurghada: территория и частный пляж"
+            },
+            {
+              "url": "https://www.ahstatic.com/photos/1815_ros2bgs_00_p_1024x768.jpg",
+              "alt": "Superior Family Garden Side Mercure Hurghada"
+            },
+            {
+              "url": "https://www.ahstatic.com/photos/1815_sw_00_p_1024x768.jpg",
+              "alt": "Зона отдыха у бассейна Mercure Hurghada"
+            }
+          ]
+        }
+      ],
+      "photo_date": "unknown",
+      "operational_caveats_preserved": true,
+      "source_photos": [
+        {
+          "hotel_id": 443,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://www.ahstatic.com/photos/1815_ho_00_p_1024x768.jpg",
+          "source_url_sha256": "19f4e7acd612d370f579472eae2fcd74fd951431c3e932ec6003e2478b546afc",
+          "sha256": "1edf35e8a1ed8b1758ed1e34dd05ff719b2b8890edf99d9b3c88166e3c1d7006",
+          "path": "photos/443-hero.jpg",
+          "bytes": 128889,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "format": "JPEG",
+          "response_url": "https://www.ahstatic.com/photos/1815_ho_00_p_1024x768.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 128889,
+          "source_dimensions": [
+            1024,
+            768
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "1edf35e8a1ed8b1758ed1e34dd05ff719b2b8890edf99d9b3c88166e3c1d7006",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 443,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://www.ahstatic.com/photos/1815_ros2bgs_00_p_1024x768.jpg",
+          "source_url_sha256": "d8b84f567458acdaa715186e7002c080c72f78c926e29a3d43d2b2d21e00df43",
+          "sha256": "d682590064869998f9412d1a30c3b9a6ee28ea15b8fdfe9d3941e58054db6d2e",
+          "path": "photos/443-detail_left.jpg",
+          "bytes": 113534,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "format": "JPEG",
+          "response_url": "https://www.ahstatic.com/photos/1815_ros2bgs_00_p_1024x768.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 113534,
+          "source_dimensions": [
+            1024,
+            768
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "d682590064869998f9412d1a30c3b9a6ee28ea15b8fdfe9d3941e58054db6d2e",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 443,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://www.ahstatic.com/photos/1815_sw_00_p_1024x768.jpg",
+          "source_url_sha256": "6155647f85039164bd6bee02e3a59fd02594b61e26a3aada4c7035290d5d6149",
+          "sha256": "d484f7e04049e9fecde73f811a28787846d8984d586ef5bb6a761b9df8d07aa7",
+          "path": "photos/443-detail_right.jpg",
+          "bytes": 104209,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "format": "JPEG",
+          "response_url": "https://www.ahstatic.com/photos/1815_sw_00_p_1024x768.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 104209,
+          "source_dimensions": [
+            1024,
+            768
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "d484f7e04049e9fecde73f811a28787846d8984d586ef5bb6a761b9df8d07aa7",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "443.png",
+      "sha256": "efd365ed429bf606c435453a44821be2761e01014931a07f1518064561bd8502",
+      "bytes": 610954,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "MERCURE HURGHADA",
+        "font_size": 28,
+        "text_width": 312.640625,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 107940,
+      "site_id": "bb2dc7a9-9881-4c8f-97bd-0c883df33a71",
+      "title": "Bella Nara Phuket Naiyang Beach",
+      "photos": [
+        {
+          "hotel_id": 107940,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://kompastour.com/useruploads/hotels/hotel_5cd20e822a.jpg",
+          "source_url_sha256": "8459092477402fe60315db2a8d252a41a8bd94bac2de7e019b45c5bc1f9c2041",
+          "sha256": "77f96f8004103408f5b3d7260a7153850ef7bdd50daccb47b1f49dde751970ae",
+          "path": "photos/107940-hero.jpg",
+          "bytes": 126007,
+          "dimensions": [
+            1000,
+            668
+          ],
+          "format": "JPEG",
+          "response_url": "https://kompastour.com/useruploads/hotels/hotel_5cd20e822a.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 107940,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://kompastour.com/useruploads/hotels/hotel_da6ea89fed.jpg",
+          "source_url_sha256": "f20cb812a7a73613056ab60a75e60968f5efe0c65252425ab392d4cb2aba358a",
+          "sha256": "18cc636757fcd7ca40b00ea8c8b3a7f6c21585ae7e57804917b6f3dfc9ffa512",
+          "path": "photos/107940-detail_left.jpg",
+          "bytes": 111962,
+          "dimensions": [
+            1000,
+            668
+          ],
+          "format": "JPEG",
+          "response_url": "https://kompastour.com/useruploads/hotels/hotel_da6ea89fed.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 107940,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://kompastour.com/useruploads/hotels_room/room_d88181e42d.jpg",
+          "source_url_sha256": "cee490e1a3cb7a8905ca020dcd81ac7c0f237f88619c330adfffde8b635b6bec",
+          "sha256": "78798fc6105749079e2814ef0c0947341462b01b47f09f9232b817129b5a7e81",
+          "path": "photos/107940-detail_right.jpg",
+          "bytes": 80635,
+          "dimensions": [
+            1000,
+            666
+          ],
+          "format": "JPEG",
+          "response_url": "https://kompastour.com/useruploads/hotels_room/room_d88181e42d.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        }
+      ],
+      "baseline_accepted_revision": 2,
+      "source_photo_sets": [
+        {
+          "capturedAt": "2026-11-10T15:17:16.700285Z",
+          "sourceUrl": "https://kompastour.com/ua/rus/country/thailand/phuket/bella_nara_phuket_naiyang_beach/",
+          "proofUrl": "https://kompastour.com/ua/rus/country/thailand/phuket/bella_nara_phuket_naiyang_beach/",
+          "label": "3 фотографии из каталога KOMPAS просмотрены. Дата съёмки неизвестна. Фото отдельной категории не описывает все тарифы; доступность инфраструктуры уточняется на даты.",
+          "photos": [
+            {
+              "url": "https://kompastour.com/useruploads/hotels/hotel_5cd20e822a.jpg",
+              "alt": "Bella Nara Phuket: территория у корпусов"
+            },
+            {
+              "url": "https://kompastour.com/useruploads/hotels/hotel_da6ea89fed.jpg",
+              "alt": "Общий бассейн Bella Nara Phuket"
+            },
+            {
+              "url": "https://kompastour.com/useruploads/hotels_room/room_d88181e42d.jpg",
+              "alt": "Deluxe Room Bella Nara Phuket: конкретная категория"
+            }
+          ]
+        }
+      ],
+      "photo_date": "unknown",
+      "operational_caveats_preserved": true,
+      "source_photos": [
+        {
+          "hotel_id": 107940,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://kompastour.com/useruploads/hotels/hotel_5cd20e822a.jpg",
+          "source_url_sha256": "8459092477402fe60315db2a8d252a41a8bd94bac2de7e019b45c5bc1f9c2041",
+          "sha256": "77f96f8004103408f5b3d7260a7153850ef7bdd50daccb47b1f49dde751970ae",
+          "path": "photos/107940-hero.jpg",
+          "bytes": 126007,
+          "dimensions": [
+            1000,
+            668
+          ],
+          "format": "JPEG",
+          "response_url": "https://kompastour.com/useruploads/hotels/hotel_5cd20e822a.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 126007,
+          "source_dimensions": [
+            1000,
+            668
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "77f96f8004103408f5b3d7260a7153850ef7bdd50daccb47b1f49dde751970ae",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 107940,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://kompastour.com/useruploads/hotels/hotel_da6ea89fed.jpg",
+          "source_url_sha256": "f20cb812a7a73613056ab60a75e60968f5efe0c65252425ab392d4cb2aba358a",
+          "sha256": "18cc636757fcd7ca40b00ea8c8b3a7f6c21585ae7e57804917b6f3dfc9ffa512",
+          "path": "photos/107940-detail_left.jpg",
+          "bytes": 111962,
+          "dimensions": [
+            1000,
+            668
+          ],
+          "format": "JPEG",
+          "response_url": "https://kompastour.com/useruploads/hotels/hotel_da6ea89fed.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 111962,
+          "source_dimensions": [
+            1000,
+            668
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "18cc636757fcd7ca40b00ea8c8b3a7f6c21585ae7e57804917b6f3dfc9ffa512",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 107940,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://kompastour.com/useruploads/hotels_room/room_d88181e42d.jpg",
+          "source_url_sha256": "cee490e1a3cb7a8905ca020dcd81ac7c0f237f88619c330adfffde8b635b6bec",
+          "sha256": "78798fc6105749079e2814ef0c0947341462b01b47f09f9232b817129b5a7e81",
+          "path": "photos/107940-detail_right.jpg",
+          "bytes": 80635,
+          "dimensions": [
+            1000,
+            666
+          ],
+          "format": "JPEG",
+          "response_url": "https://kompastour.com/useruploads/hotels_room/room_d88181e42d.jpg",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 80635,
+          "source_dimensions": [
+            1000,
+            666
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "78798fc6105749079e2814ef0c0947341462b01b47f09f9232b817129b5a7e81",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "107940.png",
+      "sha256": "a38a582c4f1f135fcd1b41e44582580f94a5a76c8b3b52ed43d9a76d935ac201",
+      "bytes": 534379,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "BELLA NARA PHUKET NAIYANG BEACH",
+        "font_size": 28,
+        "text_width": 544.46875,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 32356,
+      "site_id": "c8e4b48f-6caa-46bc-8f6b-e2c9b9507656",
+      "title": "Galina Hotel & Spa",
+      "photos": [
+        {
+          "hotel_id": 32356,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://galina.vn/storage/app/media/_perf/861e31d9581025be20de-w1600.webp",
+          "source_url_sha256": "9c3b73948184eba1e6ae40e48b0b370abfe2530b601b8c6ef78abc19479f2789",
+          "sha256": "9b1d01f986d398919daf10b3baf6508d7e6d8cb127f9788e20786f46f9e24825",
+          "path": "photos/32356-hero.webp",
+          "bytes": 180698,
+          "dimensions": [
+            1600,
+            1067
+          ],
+          "format": "WEBP",
+          "response_url": "https://galina.vn/storage/app/media/_perf/861e31d9581025be20de-w1600.webp",
+          "content_type": "image/webp",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 32356,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://galina.vn/storage/app/media/_perf/dd3c0f35978a68e62688-w900.webp",
+          "source_url_sha256": "e0e46a01328ae3da76e19cfda81ace9f563f18b02778f5a3305a2adb02b40944",
+          "sha256": "3ea89cf371df8f8457878a1fb38eec0a1a0defd28292dd15a2167796d7c2f401",
+          "path": "photos/32356-detail_left.webp",
+          "bytes": 30520,
+          "dimensions": [
+            900,
+            600
+          ],
+          "format": "WEBP",
+          "response_url": "https://galina.vn/storage/app/media/_perf/dd3c0f35978a68e62688-w900.webp",
+          "content_type": "image/webp",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 32356,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://galina.vn/storage/app/media/optimal/tam-bun-khoang-nha-trang%20.webp",
+          "source_url_sha256": "c807b843aaac0ce20d03f4859605bd6ec0e9e8e7ce66f4a59816b1c2878f7ee3",
+          "sha256": "3ffd5c1f99adfc635a71e62f6052077055e8f77d75a5488460b694088adefcf7",
+          "path": "photos/32356-detail_right.webp",
+          "bytes": 28172,
+          "dimensions": [
+            760,
+            507
+          ],
+          "format": "WEBP",
+          "response_url": "https://galina.vn/storage/app/media/optimal/tam-bun-khoang-nha-trang%20.webp",
+          "content_type": "image/webp",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        }
+      ],
+      "baseline_accepted_revision": 2,
+      "source_photo_sets": [
+        {
+          "capturedAt": "2026-11-11T00:05:49.872459Z",
+          "sourceUrl": "https://galina.vn/en",
+          "proofUrl": "https://galina.vn/en",
+          "label": "3 фотографии с указанных страниц отеля/оператора просмотрены. Дата съёмки неизвестна; фото категории номера не описывает все тарифы, сезонную работу услуг проверяем на даты.",
+          "photos": [
+            {
+              "url": "https://galina.vn/storage/app/media/_perf/861e31d9581025be20de-w1600.webp",
+              "alt": "Фасад Galina Hotel & Spa в Нячанге"
+            },
+            {
+              "url": "https://galina.vn/storage/app/media/_perf/dd3c0f35978a68e62688-w900.webp",
+              "alt": "Suite Galina из официальной галереи номеров"
+            },
+            {
+              "url": "https://galina.vn/storage/app/media/optimal/tam-bun-khoang-nha-trang%20.webp",
+              "alt": "Зона Galina Mud Bath & Spa"
+            }
+          ]
+        }
+      ],
+      "photo_date": "unknown",
+      "operational_caveats_preserved": true,
+      "source_photos": [
+        {
+          "hotel_id": 32356,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://galina.vn/storage/app/media/_perf/861e31d9581025be20de-w1600.webp",
+          "source_url_sha256": "9c3b73948184eba1e6ae40e48b0b370abfe2530b601b8c6ef78abc19479f2789",
+          "sha256": "9b1d01f986d398919daf10b3baf6508d7e6d8cb127f9788e20786f46f9e24825",
+          "path": "photos/32356-hero.webp",
+          "bytes": 180698,
+          "dimensions": [
+            1600,
+            1067
+          ],
+          "format": "WEBP",
+          "response_url": "https://galina.vn/storage/app/media/_perf/861e31d9581025be20de-w1600.webp",
+          "content_type": "image/webp",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 180698,
+          "source_dimensions": [
+            1600,
+            1067
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "9b1d01f986d398919daf10b3baf6508d7e6d8cb127f9788e20786f46f9e24825",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 32356,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://galina.vn/storage/app/media/_perf/dd3c0f35978a68e62688-w900.webp",
+          "source_url_sha256": "e0e46a01328ae3da76e19cfda81ace9f563f18b02778f5a3305a2adb02b40944",
+          "sha256": "3ea89cf371df8f8457878a1fb38eec0a1a0defd28292dd15a2167796d7c2f401",
+          "path": "photos/32356-detail_left.webp",
+          "bytes": 30520,
+          "dimensions": [
+            900,
+            600
+          ],
+          "format": "WEBP",
+          "response_url": "https://galina.vn/storage/app/media/_perf/dd3c0f35978a68e62688-w900.webp",
+          "content_type": "image/webp",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 30520,
+          "source_dimensions": [
+            900,
+            600
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "3ea89cf371df8f8457878a1fb38eec0a1a0defd28292dd15a2167796d7c2f401",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 32356,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://galina.vn/storage/app/media/optimal/tam-bun-khoang-nha-trang%20.webp",
+          "source_url_sha256": "c807b843aaac0ce20d03f4859605bd6ec0e9e8e7ce66f4a59816b1c2878f7ee3",
+          "sha256": "3ffd5c1f99adfc635a71e62f6052077055e8f77d75a5488460b694088adefcf7",
+          "path": "photos/32356-detail_right.webp",
+          "bytes": 28172,
+          "dimensions": [
+            760,
+            507
+          ],
+          "format": "WEBP",
+          "response_url": "https://galina.vn/storage/app/media/optimal/tam-bun-khoang-nha-trang%20.webp",
+          "content_type": "image/webp",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 28172,
+          "source_dimensions": [
+            760,
+            507
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "3ffd5c1f99adfc635a71e62f6052077055e8f77d75a5488460b694088adefcf7",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "32356.png",
+      "sha256": "4244ae2199abf8937d8c8a0ee0b294605f4992ad380baf00d6a47e29df25c905",
+      "bytes": 579895,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "GALINA HOTEL & SPA",
+        "font_size": 28,
+        "text_width": 299.734375,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 195,
+      "site_id": "f89db21d-dd98-4432-a6ab-6c26f7c06fc8",
+      "title": "Dreams Beach Resort",
+      "photos": [
+        {
+          "hotel_id": 195,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://webbox.imgix.net/images/outtmvqzlhcvkexe/433ee2b0-3965-4fd8-b62d-8287a9a68333.jpg?auto=format,compress&fit=crop&crop=entropy",
+          "source_url_sha256": "090211a9ebe54ac7de118ddbfd03fe83890c07faaf998417aa789501d74e06d7",
+          "sha256": "aad14ca6781cae5b15f5f480552818f3b53632a66a00ace9dcd75a8e386772c7",
+          "path": "photos/195-hero.jpg",
+          "bytes": 531479,
+          "dimensions": [
+            2000,
+            1335
+          ],
+          "format": "JPEG",
+          "response_url": "https://webbox.imgix.net/images/outtmvqzlhcvkexe/433ee2b0-3965-4fd8-b62d-8287a9a68333.jpg?auto=format,compress&fit=crop&crop=entropy",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 195,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://webbox.imgix.net/images/outtmvqzlhcvkexe/4249ef55-e7ba-42f5-865a-4c4b46e8c2c6.jpg?auto=format,compress&fit=crop&crop=entropy",
+          "source_url_sha256": "7274eef36d8739ddae35638b6c0c380b99d7a390fb0123c2cfb63947ee78c16d",
+          "sha256": "a022248625b006f105d59735130dbf4bd396521ca61c577a4d3fb107586f20bc",
+          "path": "photos/195-detail_left.jpg",
+          "bytes": 494548,
+          "dimensions": [
+            2000,
+            1429
+          ],
+          "format": "JPEG",
+          "response_url": "https://webbox.imgix.net/images/outtmvqzlhcvkexe/4249ef55-e7ba-42f5-865a-4c4b46e8c2c6.jpg?auto=format,compress&fit=crop&crop=entropy",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 195,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://webbox.imgix.net/images/outtmvqzlhcvkexe/6ecf5a3b-3b72-4f66-b454-389cfa089093.jpg?auto=format,compress&fit=crop&crop=entropy",
+          "source_url_sha256": "89ffb044212043b5afe4b6287f4053104d97f05896871edb49e53c363b9701b8",
+          "sha256": "eaa37a0866b07569641808409f1eede1b5c47768374a0a29d3c530583a99c64f",
+          "path": "photos/195-detail_right.jpg",
+          "bytes": 377643,
+          "dimensions": [
+            2000,
+            1335
+          ],
+          "format": "JPEG",
+          "response_url": "https://webbox.imgix.net/images/outtmvqzlhcvkexe/6ecf5a3b-3b72-4f66-b454-389cfa089093.jpg?auto=format,compress&fit=crop&crop=entropy",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        }
+      ],
+      "baseline_accepted_revision": 2,
+      "source_photo_sets": [
+        {
+          "capturedAt": "2026-11-11T07:43:25.729112Z",
+          "sourceUrl": "https://www.dreamsresortsegypt.com/dreams-beach-sharm-el-sheikh/photo-gallery.html",
+          "proofUrl": "https://www.dreamsresortsegypt.com/dreams-beach-sharm-el-sheikh/photo-gallery.html",
+          "label": "Три разные фотографии данного отеля открыты и визуально проверены. Дата съёмки неизвестна; фото не подтверждают текущую работу услуг, отсутствие ремонта, конкретный номер или наличие.",
+          "photos": [
+            {
+              "url": "https://webbox.imgix.net/images/outtmvqzlhcvkexe/433ee2b0-3965-4fd8-b62d-8287a9a68333.jpg?auto=format,compress&fit=crop&crop=entropy",
+              "alt": "Пляжная территория Dreams Beach Sharm из официальной галереи"
+            },
+            {
+              "url": "https://webbox.imgix.net/images/outtmvqzlhcvkexe/4249ef55-e7ba-42f5-865a-4c4b46e8c2c6.jpg?auto=format,compress&fit=crop&crop=entropy",
+              "alt": "Скалистое побережье Dreams Beach Sharm и места отдыха"
+            },
+            {
+              "url": "https://webbox.imgix.net/images/outtmvqzlhcvkexe/6ecf5a3b-3b72-4f66-b454-389cfa089093.jpg?auto=format,compress&fit=crop&crop=entropy",
+              "alt": "Скалистая площадка и пирс Dreams Beach Sharm из официальной галереи"
+            }
+          ]
+        }
+      ],
+      "photo_date": "unknown",
+      "operational_caveats_preserved": true,
+      "source_photos": [
+        {
+          "hotel_id": 195,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://webbox.imgix.net/images/outtmvqzlhcvkexe/433ee2b0-3965-4fd8-b62d-8287a9a68333.jpg?auto=format,compress&fit=crop&crop=entropy",
+          "source_url_sha256": "090211a9ebe54ac7de118ddbfd03fe83890c07faaf998417aa789501d74e06d7",
+          "sha256": "aad14ca6781cae5b15f5f480552818f3b53632a66a00ace9dcd75a8e386772c7",
+          "path": "photos/195-hero.jpg",
+          "bytes": 531479,
+          "dimensions": [
+            2000,
+            1335
+          ],
+          "format": "JPEG",
+          "response_url": "https://webbox.imgix.net/images/outtmvqzlhcvkexe/433ee2b0-3965-4fd8-b62d-8287a9a68333.jpg?auto=format,compress&fit=crop&crop=entropy",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 531479,
+          "source_dimensions": [
+            2000,
+            1335
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "aad14ca6781cae5b15f5f480552818f3b53632a66a00ace9dcd75a8e386772c7",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 195,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://webbox.imgix.net/images/outtmvqzlhcvkexe/4249ef55-e7ba-42f5-865a-4c4b46e8c2c6.jpg?auto=format,compress&fit=crop&crop=entropy",
+          "source_url_sha256": "7274eef36d8739ddae35638b6c0c380b99d7a390fb0123c2cfb63947ee78c16d",
+          "sha256": "a022248625b006f105d59735130dbf4bd396521ca61c577a4d3fb107586f20bc",
+          "path": "photos/195-detail_left.jpg",
+          "bytes": 494548,
+          "dimensions": [
+            2000,
+            1429
+          ],
+          "format": "JPEG",
+          "response_url": "https://webbox.imgix.net/images/outtmvqzlhcvkexe/4249ef55-e7ba-42f5-865a-4c4b46e8c2c6.jpg?auto=format,compress&fit=crop&crop=entropy",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 494548,
+          "source_dimensions": [
+            2000,
+            1429
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "a022248625b006f105d59735130dbf4bd396521ca61c577a4d3fb107586f20bc",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 195,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://webbox.imgix.net/images/outtmvqzlhcvkexe/6ecf5a3b-3b72-4f66-b454-389cfa089093.jpg?auto=format,compress&fit=crop&crop=entropy",
+          "source_url_sha256": "89ffb044212043b5afe4b6287f4053104d97f05896871edb49e53c363b9701b8",
+          "sha256": "eaa37a0866b07569641808409f1eede1b5c47768374a0a29d3c530583a99c64f",
+          "path": "photos/195-detail_right.jpg",
+          "bytes": 377643,
+          "dimensions": [
+            2000,
+            1335
+          ],
+          "format": "JPEG",
+          "response_url": "https://webbox.imgix.net/images/outtmvqzlhcvkexe/6ecf5a3b-3b72-4f66-b454-389cfa089093.jpg?auto=format,compress&fit=crop&crop=entropy",
+          "content_type": "image/jpeg",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 377643,
+          "source_dimensions": [
+            2000,
+            1335
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "eaa37a0866b07569641808409f1eede1b5c47768374a0a29d3c530583a99c64f",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "195.png",
+      "sha256": "a21dbe5b77148027886d08a61a55a8108256b366c21f4b8dd07d0eb37786e389",
+      "bytes": 539700,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "DREAMS BEACH RESORT",
+        "font_size": 28,
+        "text_width": 353.109375,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 20288,
+      "site_id": "fb562b7b-15a0-4cc6-8a6d-c2db15260be6",
+      "title": "Palm Beach Resort",
+      "photos": [
+        {
+          "hotel_id": 20288,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://wa-uploads.profitroom.com/palmbeachresort/1162x656/17460030355335_.overviewbuildingab.webp",
+          "source_url_sha256": "0620315b17f34fcf40f6cc682277763ab97aec017ec13b9cf28ad5bdd8196f69",
+          "sha256": "8f282bc4b256aa211d3fa26571e677faa0edf96971507a1ce62c5e60d1c5e06c",
+          "path": "photos/20288-hero.webp",
+          "bytes": 100758,
+          "dimensions": [
+            1162,
+            656
+          ],
+          "format": "WEBP",
+          "response_url": "https://wa-uploads.profitroom.com/palmbeachresort/1162x656/17460030355335_.overviewbuildingab.webp",
+          "content_type": "image/webp",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 20288,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://r.profitroom.com/palmbeachresort/images/rooms/41ed2562-28ea-4505-9c23-f987818d5620.png",
+          "source_url_sha256": "5b63179cb51799b76aebc85ab27b67c70ef5a5e94c8a864c52cc646d15606a92",
+          "sha256": "2b5c93087221645166ca23651abc3513270d53814c8ee05f98f692282308bd56",
+          "path": "photos/20288-detail_left.png",
+          "bytes": 1697089,
+          "dimensions": [
+            1280,
+            853
+          ],
+          "format": "PNG",
+          "response_url": "https://r.profitroom.com/palmbeachresort/images/rooms/41ed2562-28ea-4505-9c23-f987818d5620.png",
+          "content_type": "image/png",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        },
+        {
+          "hotel_id": 20288,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://wa-uploads.profitroom.com/palmbeachresort/1162x656/17458328040819_.beach2.webp",
+          "source_url_sha256": "2a9a1cc4d894566a966889056199e66523e8b67b79b8b37ef9c77945b63148ba",
+          "sha256": "9f0aedd5d451df19223a142d2a02f5a8978f7e5b34203934dc900f757ed16bef",
+          "path": "photos/20288-detail_right.webp",
+          "bytes": 62590,
+          "dimensions": [
+            1162,
+            656
+          ],
+          "format": "WEBP",
+          "response_url": "https://wa-uploads.profitroom.com/palmbeachresort/1162x656/17458328040819_.beach2.webp",
+          "content_type": "image/webp",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2"
+        }
+      ],
+      "baseline_accepted_revision": 2,
+      "source_photo_sets": [
+        {
+          "capturedAt": "2026-11-11T00:26:34.536855Z",
+          "sourceUrl": "https://www.palmbeach-hurghada.com/en",
+          "proofUrl": "https://www.palmbeach-hurghada.com/en",
+          "label": "3 фотографии с указанных страниц отеля/оператора просмотрены. Дата съёмки неизвестна; фото категории номера не описывает все тарифы, сезонную работу услуг проверяем на даты.",
+          "photos": [
+            {
+              "url": "https://wa-uploads.profitroom.com/palmbeachresort/1162x656/17460030355335_.overviewbuildingab.webp",
+              "alt": "Территория и корпуса Palm Beach Resort"
+            },
+            {
+              "url": "https://r.profitroom.com/palmbeachresort/images/rooms/41ed2562-28ea-4505-9c23-f987818d5620.png",
+              "alt": "Superior Family Palm Beach из официальной галереи"
+            },
+            {
+              "url": "https://wa-uploads.profitroom.com/palmbeachresort/1162x656/17458328040819_.beach2.webp",
+              "alt": "Собственная пляжная зона Palm Beach"
+            }
+          ]
+        }
+      ],
+      "photo_date": "unknown",
+      "operational_caveats_preserved": true,
+      "source_photos": [
+        {
+          "hotel_id": 20288,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://wa-uploads.profitroom.com/palmbeachresort/1162x656/17460030355335_.overviewbuildingab.webp",
+          "source_url_sha256": "0620315b17f34fcf40f6cc682277763ab97aec017ec13b9cf28ad5bdd8196f69",
+          "sha256": "8f282bc4b256aa211d3fa26571e677faa0edf96971507a1ce62c5e60d1c5e06c",
+          "path": "photos/20288-hero.webp",
+          "bytes": 100758,
+          "dimensions": [
+            1162,
+            656
+          ],
+          "format": "WEBP",
+          "response_url": "https://wa-uploads.profitroom.com/palmbeachresort/1162x656/17460030355335_.overviewbuildingab.webp",
+          "content_type": "image/webp",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 0,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 100758,
+          "source_dimensions": [
+            1162,
+            656
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "8f282bc4b256aa211d3fa26571e677faa0edf96971507a1ce62c5e60d1c5e06c",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 20288,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://r.profitroom.com/palmbeachresort/images/rooms/41ed2562-28ea-4505-9c23-f987818d5620.png",
+          "source_url_sha256": "5b63179cb51799b76aebc85ab27b67c70ef5a5e94c8a864c52cc646d15606a92",
+          "sha256": "2b5c93087221645166ca23651abc3513270d53814c8ee05f98f692282308bd56",
+          "path": "photos/20288-detail_left.png",
+          "bytes": 1697089,
+          "dimensions": [
+            1280,
+            853
+          ],
+          "format": "PNG",
+          "response_url": "https://r.profitroom.com/palmbeachresort/images/rooms/41ed2562-28ea-4505-9c23-f987818d5620.png",
+          "content_type": "image/png",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 1,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 1697089,
+          "source_dimensions": [
+            1280,
+            853
+          ],
+          "source_format": "PNG",
+          "actual_sha256": "2b5c93087221645166ca23651abc3513270d53814c8ee05f98f692282308bd56",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 20288,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://wa-uploads.profitroom.com/palmbeachresort/1162x656/17458328040819_.beach2.webp",
+          "source_url_sha256": "2a9a1cc4d894566a966889056199e66523e8b67b79b8b37ef9c77945b63148ba",
+          "sha256": "9f0aedd5d451df19223a142d2a02f5a8978f7e5b34203934dc900f757ed16bef",
+          "path": "photos/20288-detail_right.webp",
+          "bytes": 62590,
+          "dimensions": [
+            1162,
+            656
+          ],
+          "format": "WEBP",
+          "response_url": "https://wa-uploads.profitroom.com/palmbeachresort/1162x656/17458328040819_.beach2.webp",
+          "content_type": "image/webp",
+          "retrieval": "original_accepted_url_http",
+          "ok": true,
+          "accepted_photo_url_index": 2,
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "baseline9.json registry344 acceptedRevision2",
+          "source_bytes": 62590,
+          "source_dimensions": [
+            1162,
+            656
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "9f0aedd5d451df19223a142d2a02f5a8978f7e5b34203934dc900f757ed16bef",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "20288.png",
+      "sha256": "0e6c76110e3a00a99758c9442361a1d173cc5f30ca1d4c90a9ab8dacabea745d",
+      "bytes": 527248,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "PALM BEACH RESORT",
+        "font_size": 28,
+        "text_width": 309.03125,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    }
+  ],
+  "provider_calls": 0,
+  "remote_writes": 0
+}
