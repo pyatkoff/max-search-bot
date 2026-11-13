@@ -1,4 +1,4 @@
-name: Read only the exact original pending journals and first native MAX state
+name: Complete the exact original112914 pending operation after canonical confirmation
 permissions:
   contents: read
   actions: read
@@ -6,9 +6,9 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: cc58204bcaae562d237351e7dd8d23c6be9e3e36
+  EXPECTED_PRODUCTION_SHA: 77dfb182148d9df9903e8e21fb8f29e986d4fd5f
 jobs:
-  inspect:
+  recover:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -17,66 +17,35 @@ jobs:
       with:
         ref: ${{ github.sha }}
         persist-credentials: false
-    - name: Validate exact bounded read-only source and PHP syntax
+    - name: Require actual recovery admission and exact frozen inputs
       shell: bash
       run: |
         set -euo pipefail
         umask 077
         test "$GITHUB_RUN_ATTEMPT" = 1
         sha256sum -c <<'PINS'
-        f99cb68b71a3dde9a50ea24ce52a88edfd7723900c91a6ab8ecc7b4e08c524c9  tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness2.php
-        b2055d47613a0e0e2a7b891f3b071126214681ea4ed320b431f476ed3cf839b8  tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness2-plan.json
-        51270e4ce241914001ddc307e581ffdac69234c3880e77bd99a7be6b4e5d4a7a  tools/direct_demand/operations/verify-commercial-source.py
+        5e5126c2cab821d05279f61924b0dcd0f43f5e7131c317a8712a3f16ece8bf23  tools/direct_demand/operations/commercial-monitor-price-h112914-recovery-20261113-1.php
+        afbe6d6e5432b3da5cff79f3c346ed3b12f7b37dc18cae31a4745aa74556e077  tools/direct_demand/operations/commercial-monitor-price-h112914-recovery-20261113-1-plan.json
+        de4c15c2a3d95b94a0c25367fee5a3a13edd72c8990fb8f8b5a102a2151c4acf  tools/direct_demand/operations/commercial-monitor-price-h112914-recovery-20261113-1-evidence.py
+        5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb  tools/direct_demand/operations/verify-commercial-source.py
         PINS
-        cp tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness2.php "$RUNNER_TEMP/nightly-pending-read.php"
-        php -l "$RUNNER_TEMP/nightly-pending-read.php"
-    - name: Authenticate original readiness1 GET0 and exact journal CAS evidence
+        python3 - <<'ADMISSION'
+        import importlib.util,json,pathlib
+        p=pathlib.Path('tools/direct_demand/operations/')
+        s=importlib.util.spec_from_file_location('recovery',p/'commercial-monitor-price-h112914-recovery-20261113-1-evidence.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
+        m.require_admission(json.loads((p/'commercial-monitor-price-h112914-recovery-20261113-1-plan.json').read_bytes()))
+        ADMISSION
+        cp tools/direct_demand/operations/commercial-monitor-price-h112914-recovery-20261113-1.php "$RUNNER_TEMP/original-monitor-recovery.php"
+        php -l "$RUNNER_TEMP/original-monitor-recovery.php"
+    - name: Authenticate original readiness2 and accepted canonical core
       env:
         GH_TOKEN: ${{ github.token }}
       shell: bash
       run: |
         set -euo pipefail
         umask 077
-        test "$GITHUB_RUN_ATTEMPT" = 1
         test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-        python3 - <<'AUTH'
-        import hashlib,io,json,os,pathlib,subprocess,zipfile
-        base=pathlib.Path('tools/direct_demand/operations');plan=json.loads((base/'commercial-channel-hotel-feeds-20261113-update10-readiness2-plan.json').read_bytes());b=plan['original_readiness']
-        e=pathlib.Path(os.environ['RUNNER_TEMP'],'readiness-evidence');e.mkdir(mode=0o700)
-        def api(path):return subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+path])
-        run_raw=api('actions/runs/'+str(b['run_id']));meta_raw=api('actions/artifacts/'+str(b['artifact_id']))
-        run=json.loads(run_raw);meta=json.loads(meta_raw)
-        assert run['id']==b['run_id'] and run['run_attempt']==1 and run['head_sha']==b['head_sha'] and run['status']=='completed' and run['conclusion']=='success'
-        assert run['path']=='.github/workflows/content100-bot-publication-20261101.yml' and run['head_branch']=='audit/content100-bot-publication-20261101'
-        assert meta['id']==b['artifact_id'] and meta['name']==b['artifact_name'] and meta['expired'] is False and meta['digest']=='sha256:'+b['artifact_sha256']
-        assert meta['workflow_run']['id']==b['run_id'] and meta['workflow_run']['head_sha']==b['head_sha']
-        raw=api('actions/artifacts/'+str(b['artifact_id'])+'/zip');assert hashlib.sha256(raw).hexdigest()==b['artifact_sha256']
-        with zipfile.ZipFile(io.BytesIO(raw)) as z:
-         assert len(z.infolist())<=80 and sum(i.file_size for i in z.infolist())<20000000
-         def one(name):
-          members=[i for i in z.infolist() if pathlib.PurePosixPath(i.filename).name==name];assert len(members)==1 and members[0].file_size<200000;return z.read(members[0])
-         result_raw=one('result.json');transport_raw=one('transport.json')
-         assert hashlib.sha256(result_raw).hexdigest()==b['result_sha256'] and hashlib.sha256(transport_raw).hexdigest()==b['transport_sha256']
-         d=json.loads(result_raw.splitlines()[-1]);t=json.loads(transport_raw)
-         assert d['operation']==b['operation'] and d['installed_sha']==b['installed_sha'] and d['ok'] is True and d['global_lock_available'] is True and d['global_pending_is_null'] is False
-         assert d['feed_continuation_authorized'] is False and all(d[k]==0 for k in ['db_write_attempts','journal_write_attempts','post_write_attempts','configuration_write_attempts','provider_write_attempts','feed_write_attempts'])
-         n=d['native_max'];assert n['attempted'] is False and n['ok'] is False and n['native_confirmed'] is False and n['provider_gets']==0 and n['before_write_callback_calls']==0 and n['error']=='native_original_journal_not_incomplete'
-         assert all(n[k]==0 for k in ['db_write_attempts','journal_write_attempts','post_write_attempts','provider_write_attempts'])
-         assert t['ssh_status']==0 and t['read_only'] is True and t['retry_authorized'] is False and str(t['run_id'])==str(b['run_id']) and t['head_sha']==b['head_sha'] and t['run_attempt']==1
-         expected=plan['expected_original_context'];assert d['pending']==expected['pending']
-         for kind in ['global_journal','child_journal']:
-          assert all(d[kind][key]==value for key,value in expected[kind].items())
-         child=d['child_journal'];assert child['history_lines_scanned']==child['lines']==4 and child['historical_post_keys']==['max:anjum'] and child['telegram_intent_seen'] is False
-         assert child['complete'] is None and 'complete' not in child['state_keys']
-         previous_failure=json.loads(one('original-failure-binding.json'));assert previous_failure=={'verified':True,**plan['original_feed_attempt']}
-         receipt_raw=one('original-guard-receipt.json');assert hashlib.sha256(receipt_raw).hexdigest()==plan['original_feed_attempt']['writer_receipt_sha256']
-         for name in ['original-failure-binding.json','original-guard-receipt.json','original-started.json','original-wrapper-proof.json']:(e/name).write_bytes(one(name))
-         (e/'previous-readiness-result.json').write_bytes(result_raw);(e/'previous-readiness-transport.json').write_bytes(transport_raw)
-        (e/'previous-readiness-original.zip').write_bytes(raw)
-        (e/'previous-readiness-run.json').write_bytes(run_raw);(e/'previous-readiness-artifact.json').write_bytes(meta_raw)
-        (e/'previous-readiness-binding.json').write_text(json.dumps({'verified':True,**b},indent=2)+'\n')
-        print('ORIGINAL_READINESS1_GET0_AND_EXACT_JOURNAL_PINS_VERIFIED; first native GET only; no feed continuation')
-        AUTH
+        python3 tools/direct_demand/operations/commercial-monitor-price-h112914-recovery-20261113-1-evidence.py authenticate --plan tools/direct_demand/operations/commercial-monitor-price-h112914-recovery-20261113-1-plan.json --evidence "$RUNNER_TEMP/recovery-evidence"
     - name: Require original current-source release and health gates
       env:
         GH_TOKEN: ${{ github.token }}
@@ -115,14 +84,21 @@ jobs:
         p=pathlib.Path(os.environ['RUNNER_TEMP'],'commercial-source-evidence');jobs=json.loads((p/'verify_jobs.json').read_text())['jobs']
         assert len(jobs)==6 and all(j['head_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and j['status']=='completed' and j['conclusion']=='success' for j in jobs)
         PY
-        cp "$evidence/gate-receipts.json" "$RUNNER_TEMP/readiness-evidence/source-gate-receipts.json"
-    - name: Retain exact read-only inputs before credentials
+        cp "$evidence/gate-receipts.json" "$RUNNER_TEMP/recovery-evidence/source-gate-receipts.json"
+        python3 - <<'BOUNDGATES'
+        import json,os,pathlib
+        p=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-monitor-price-h112914-recovery-20261113-1-plan.json').read_bytes());actual=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'recovery-evidence/source-gate-receipts.json').read_bytes())
+        assert actual==p['current_source_acceptance']['source_gates'],'actual accepted source gates changed'
+        BOUNDGATES
+    - name: Retain exact recovery inputs before credentials
       uses: actions/upload-artifact@v4
       with:
-        name: commercial-channel-hotel-feeds-20261113-update10-readiness2-inputs
+        name: commercial-monitor-price-h112914-recovery-20261113-1-inputs
         path: |-
-          tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness2.php
-          tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness2-plan.json
+          tools/direct_demand/operations/commercial-monitor-price-h112914-recovery-20261113-1.php
+          tools/direct_demand/operations/commercial-monitor-price-h112914-recovery-20261113-1-plan.json
+          tools/direct_demand/operations/commercial-monitor-price-h112914-recovery-20261113-1-evidence.py
+          tools/direct_demand/operations/verify-commercial-source.py
         retention-days: 14
         if-no-files-found: error
     - name: Prepare existing server connection
@@ -163,14 +139,14 @@ jobs:
         assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
         pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
         PY
-    - name: Require exact first-native-read owner and carrier lease
+    - name: Require exact recovery owner and carrier lease
       env:
         GH_TOKEN: ${{ github.token }}
       shell: bash
       run: |
         set -euo pipefail
         umask 077
-        evidence="$RUNNER_TEMP/readiness-evidence/lease"
+        evidence="$RUNNER_TEMP/recovery-evidence/lease"
         mkdir -p "$evidence"
         gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
         gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$evidence/carrier.json"
@@ -181,9 +157,9 @@ jobs:
         gh api 'repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30' > "$evidence/queued.json"
         python3 - <<'PYLEASE'
         import hashlib,json,os,pathlib
-        p=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness2-plan.json').read_bytes())
+        p=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-monitor-price-h112914-recovery-20261113-1-plan.json').read_bytes())
         assert p['ready'] is True,'owner pin has not been supplied'
-        e=pathlib.Path(os.environ['RUNNER_TEMP'],'readiness-evidence/lease')
+        e=pathlib.Path(os.environ['RUNNER_TEMP'],'recovery-evidence/lease')
         get=lambda n:json.loads((e/(n+'.json')).read_bytes())
         assert get('main')['object']['sha']==p['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
         assert get('carrier')['object']['sha']==os.environ['GITHUB_SHA']
@@ -205,7 +181,7 @@ jobs:
         (e/'lease.json').write_text(json.dumps({'ok':True,'operation':p['operation'],'owner_pin':pin,'installed_sha':p['expected_installed_sha'],'parent_head':p['expected_parent_head'],'carrier_head':os.environ['GITHUB_SHA'],'run_id':os.environ['GITHUB_RUN_ID'],'run_attempt':1},indent=2)+'\n')
         print('BATCH9_OWNER_SOURCE_CARRIER_LEASE_OK')
         PYLEASE
-    - name: Read existing pending and native MAX once without state changes
+    - name: Complete only the original pending operation once
       env:
         DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
         DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -213,31 +189,47 @@ jobs:
       run: |
         set -euo pipefail
         umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        python3 - <<'INTENT'
+        import hashlib,json,os,pathlib
+        p=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-monitor-price-h112914-recovery-20261113-1-plan.json').read_bytes())
+        assert p['ready'] is True and p['execution_authorized'] is True
+        raw=json.dumps(p,ensure_ascii=False,separators=(',',':')).encode()
+        e=pathlib.Path(os.environ['RUNNER_TEMP'],'recovery-evidence')
+        m={'operation':p['operation'],'ready_plan_sha256':hashlib.sha256(raw).hexdigest(),
+           'readiness_result_sha256':p['readiness_result_sha256'],'current_installed_sha':p['expected_current_installed_sha'],
+           'run_id':os.environ['GITHUB_RUN_ID'],'head_sha':os.environ['GITHUB_SHA'],'run_attempt':1,
+           'compiled_sha256':hashlib.sha256(pathlib.Path(os.environ['RUNNER_TEMP'],'original-monitor-recovery.php').read_bytes()).hexdigest(),
+           'retry_authorized':False}
+        with (e/'recovery.started').open('x') as f:
+         f.write(json.dumps(m,ensure_ascii=False,indent=2)+'\n');f.flush();os.fsync(f.fileno())
+        INTENT
         status=0
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/nightly-pending-read.php" > "$RUNNER_TEMP/readiness-evidence/result.json" || status=$?
-        python3 - "$status" <<'CHECK'
-        import json,os,pathlib,sys
-        p=pathlib.Path(os.environ['RUNNER_TEMP'],'readiness-evidence');raw=(p/'result.json').read_bytes();d=json.loads(raw.splitlines()[-1])
-        assert d['operation']=='commercial-channel-hotel-feeds-20261113-update10-readiness2' and d['feed_continuation_authorized'] is False
-        assert all(d[k]==0 for k in ['db_write_attempts','journal_write_attempts','post_write_attempts','configuration_write_attempts','provider_write_attempts','feed_write_attempts'])
-        (p/'transport.json').write_text(json.dumps({'ssh_status':int(sys.argv[1]),'read_only':True,'retry_authorized':False,'run_id':os.environ['GITHUB_RUN_ID'],'head_sha':os.environ['GITHUB_SHA'],'run_attempt':1},indent=2)+'\n')
-        print(json.dumps(d,ensure_ascii=False))
-        assert d['ok'] is True and d['journal_cas_verified'] is True
-        assert d['original_readiness_result_sha256']=='08c8bda673ca3c11cd8dcc11e524cdb3ef342bbc3f107dcbfb220c0c583d95b8'
-        CHECK
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/original-monitor-recovery.php" > "$RUNNER_TEMP/recovery-evidence/result.json" 2> "$RUNNER_TEMP/recovery.stderr" || status=$?
+        python3 - "$status" <<'TRANSPORT'
+        import hashlib,json,os,pathlib,sys
+        e=pathlib.Path(os.environ['RUNNER_TEMP'],'recovery-evidence');raw=(e/'result.json').read_bytes();err=pathlib.Path(os.environ['RUNNER_TEMP'],'recovery.stderr').read_bytes()
+        r={'ssh_status':int(sys.argv[1]),'read_only':False,'retry_authorized':False,'run_id':os.environ['GITHUB_RUN_ID'],
+           'head_sha':os.environ['GITHUB_SHA'],'run_attempt':1,'stdout_sha256':hashlib.sha256(raw).hexdigest(),
+           'stdout_bytes':len(raw),'stderr_sha256':hashlib.sha256(err).hexdigest(),'stderr_bytes':len(err),
+           'started_sha256':hashlib.sha256((e/'recovery.started').read_bytes()).hexdigest()}
+        (e/'transport.json').write_text(json.dumps(r,indent=2)+'\n')
+        print(json.dumps(r))
+        TRANSPORT
+        python3 tools/direct_demand/operations/commercial-monitor-price-h112914-recovery-20261113-1-evidence.py verify-result --plan tools/direct_demand/operations/commercial-monitor-price-h112914-recovery-20261113-1-plan.json --evidence "$RUNNER_TEMP/recovery-evidence"
         test "$status" = 0
-    - name: Retain actual bounded inspection and original failure evidence
+    - name: Retain original proof and actual recovery outcome
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: commercial-channel-hotel-feeds-20261113-update10-readiness2-result
-        path: ${{ runner.temp }}/readiness-evidence
+        name: commercial-monitor-price-h112914-recovery-20261113-1-result
+        path: ${{ runner.temp }}/recovery-evidence
         retention-days: 14
         if-no-files-found: error
-    - name: Remove ephemeral connection and reader files
+    - name: Remove ephemeral connection and compiled recovery files
       if: always()
       shell: bash
-      run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/nightly-pending-read.php"
+      run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/original-monitor-recovery.php" "$RUNNER_TEMP/recovery.stderr"
 'on':
   push:
     branches:

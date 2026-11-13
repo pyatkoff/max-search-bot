@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "ready": true,
+  "execution_authorized": true,
+  "operation": "commercial-monitor-price-h112914-recovery-20261113-1",
+  "mode": "one_original_pending_completion_after_read_only_native_proof",
+  "expected_current_installed_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+  "expected_installed_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+  "expected_parent_head": "aec3dbcd3ed4a0db6519cf909708e02bbe1ea0c6",
+  "owner_pin": {
+    "comment_id": 6818332618,
+    "owner": "pyatkoff",
+    "updated_at": "2026-11-13T02:28:25Z",
+    "body_sha256": "5dd94e93167cfe4e838f4093ce44002919eec59fb149dac1f14fd35a2adda248",
+    "required_scope_line": "SOURCE IN_PROGRESS — anytour-max; commercial-monitor-price-h112914-recovery-20261113-1"
+  },
+  "current_source_acceptance": {
+    "schema": "anytour.current-source-acceptance.v1",
+    "installed_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+    "core_pull_request": 1522,
+    "core_head_sha": "2a1f13ed4f766f5d1371c6275e3d4f69bac0e558",
+    "core_merge_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+    "verifier_sha256": "5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb",
+    "runtime_pins_sha256": "3232defb6fa18ac047f8bbe222cff84a2743224cf243d3fbd91a654b95f0646a",
+    "source_gates": {
+      "deploy.yml": {
+        "run_id": 43350270066,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "max-tls-preflight.yml": {
+        "run_id": 43351917787,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "modeled-conversion-value-export.yml": {
+        "run_id": 43351917592,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "max-production-health.yml": {
+        "run_id": 43351917585,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "telegram-production-health.yml": {
+        "run_id": 43351917600,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "live-session-diagnostics.yml": {
+        "run_id": 43351917653,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "modeled-conversion-monitor.yml": {
+        "run_id": 43351917560,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "tour-selection-host.yml": {
+        "run_id": 43351917744,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "publish-conversation-diagnostics.yml": {
+        "run_id": 43351917584,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      }
+    }
+  },
+  "preparatory_carrier_checkpoint": "aec3dbcd3ed4a0db6519cf909708e02bbe1ea0c6",
+  "current_runtime_pins": {
+    "integrations/ChannelPostApiTransport.php": "300634d77cb9fddf51adf9869974f956cca6e3f9",
+    "migrations/033_channel_post_context.sql": "0530458030a4bfe6b6cc55d1e5e441745c29b947",
+    "migrations/036_channel_post_member_delivery.sql": "1bda463e52b33130ad12752ddef4ee5c92699c05",
+    "migrations/040_channel_post_reconciliation.sql": "0f24b838eacd45333c5ade9a2991d060488c6035",
+    "services/ChannelPostAdminService.php": "b80eefc801054bfe6fdb58ec345ecdf687b2e89a",
+    "services/ChannelPostAutomationService.php": "f5975ab95de5f45e087eb7a0f768f566c5bca648",
+    "services/ChannelPostButtonTransport.php": "7b6711f1de63000346d8e5789f2dbb7f725535b8",
+    "services/ChannelPostEntryService.php": "f0e04e9b4e0ed6859ced96279cbf0619931596e6",
+    "services/ChannelPostMaxAlbumRecovery.php": "de266cd068587cc3b2ff83f308a966ea66887a04",
+    "services/ChannelPostMediaService.php": "f794efd0f6f24df916e18909ff6281b0bc928433",
+    "services/ChannelPostMemberDeliveryService.php": "20c1d7984898b2a5996a5f9e20e4d2d8c20b4778",
+    "services/ChannelPostReconciliationService.php": "43133f576845c14446102dedfffb7f0de2d4ba1c",
+    "services/ChannelPostReconciliationState.php": "d9583ceca80d1424a44ade3561c21282a23a52f0",
+    "services/ChannelPostRegistryService.php": "db8181426091a685a79ee55991cde22671f0d9dd",
+    "services/ChannelPostRuntime.php": "2f1dd9b77474fdbaa92f0402f3b0aa170c595474",
+    "services/ChannelPostTelegramAlbum.php": "faa1a14bc279a4af33936282126bf0d46e343040",
+    "services/ChannelPostWebhookConfigService.php": "d5fdcb056088f1e3a541b4046325d97eef6417d9",
+    "services/ConversationDb.php": "bb6281faf55aca7beeae7f8a57389d19751936f7",
+    "services/MaxTlsConfig.php": "032c0211ee3f39c6f0d27c669abd5b467e321dea",
+    "services/MaxTransport.php": "2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159",
+    "services/ProjectConfig.php": "63c17c8103412f8cff8cdcc4bbb062e744106af9",
+    "services/ProjectConfiguration.php": "07019d473c588e3386ace42977db93092e8112e3"
+  },
+  "source_verifier_sha256": "5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb",
+  "historical_publication_installed_sha": "498c5a752cd6f99c2d0e8c343dc5d44b9e80843f",
+  "collector_source_sha": "038ae01b7d4eb9ffc9d895e1512af2d8b74a3d93",
+  "original_operation": "commercial-monitor-price-h112914-d7617e5a491183b8f8e73d26a8b419b6147d6a8323b84799d0b6057819f93e70",
+  "tourvisor_hotel_id": 112914,
+  "record_id": "d7617e5a491183b8f8e73d26a8b419b6147d6a8323b84799d0b6057819f93e70",
+  "original_pending": {
+    "phase": "post_started",
+    "operation": "commercial-monitor-price-h112914-d7617e5a491183b8f8e73d26a8b419b6147d6a8323b84799d0b6057819f93e70",
+    "tourvisor_hotel_id": 112914,
+    "at": "2026-11-13T00:54:14+00:00",
+    "child_failure": {
+      "error": "max_button_outcome_not_confirmed",
+      "exit_code": 2
+    }
+  },
+  "global_prefix": {
+    "sha256": "bbd86df24d4e5221b21811be68f7638e5944920c9fe5323b619d3134fd3f8edc",
+    "last_line_sha256": "16bb8a1b5ad32bd53db48ed6a8de4199a00e9ddf08ff41fb05aab15ade0e9eb2",
+    "bytes": 26121206,
+    "lines": 814
+  },
+  "child_prefix": {
+    "sha256": "96f791897e42e1ad468e2d03521482f6b1c110cbd66146a332a105feb1b702a9",
+    "last_line_sha256": "bfd7f1b1e0e8a09735d376b49377d20f901b1227057d030712609ebaf2a55a20",
+    "bytes": 36772,
+    "lines": 4
+  },
+  "original_manifest_sha256": "d5d6c062b7dd0e91fc1511d43e4fc06f9d82c9d420fd6fb0caeadaf3aff2ba31",
+  "original_monitor_snapshot_sha256": "da93c70c313163cbf4d33a368b43e43adf9acf48566189fdbfad624d78178b60",
+  "original_feed_binding_sha256": "8e00ec87c7903ddc20c30cefcace57e410a07f9f9e792d614d39d9b0cd2d1b3b",
+  "original_roster_row_sha256": "9f51ec5b1b6c5c1e2e478315f96d41d554a28d8d23e7494638b2187cd8ead55f",
+  "original_max_plan_sha256": "74d73fc46ac3765c266b0d38b01acae09dd8928dfe43257e57a95a77bc156f55",
+  "original_max_button_result_sha256": "952f71ab094c356ced573b181c7eb92e16de4296862c90dafeea72faf13ed304",
+  "expected_max_text_sha256": "88cd249e752ced304af687d1e7a82366c824dc681126c30552cf5abae00deb0b",
+  "expected_max_photo_signature_sha256": "b8160eab4240f7bc182c7b56f3253a9dff782f23019a4a3ecf796fc972261133",
+  "readiness_original_run": {
+    "run_id": 43346016740,
+    "run_attempt": 1,
+    "head_sha": "dfdde5f3d57252011cf2883b55c3c5b0ea737134",
+    "installed_sha": "cc58204bcaae562d237351e7dd8d23c6be9e3e36"
+  },
+  "readiness_artifact": {
+    "artifact_id": 14001197561,
+    "artifact_name": "commercial-channel-hotel-feeds-20261113-update10-readiness2-result",
+    "artifact_sha256": "6a5e5430497dcc51add064560f8871f630e045beaeff74af8e4921866b3e34c7"
+  },
+  "readiness_result_sha256": "eac3c31e0201ac72c16143c75f3fc90cdd7c2d79a51fbdb693fca63c00c5e094",
+  "readiness_binding": {
+    "operation": "commercial-channel-hotel-feeds-20261113-update10-readiness2",
+    "run_id": 43346016740,
+    "run_attempt": 1,
+    "head_sha": "dfdde5f3d57252011cf2883b55c3c5b0ea737134",
+    "installed_sha": "cc58204bcaae562d237351e7dd8d23c6be9e3e36",
+    "artifact_id": 14001197561,
+    "artifact_name": "commercial-channel-hotel-feeds-20261113-update10-readiness2-result",
+    "artifact_sha256": "6a5e5430497dcc51add064560f8871f630e045beaeff74af8e4921866b3e34c7",
+    "result_sha256": "eac3c31e0201ac72c16143c75f3fc90cdd7c2d79a51fbdb693fca63c00c5e094",
+    "transport_sha256": "c7d235963367a661a055e00ed07d283630e964c6b21c1a843de2994c8bcf19a4"
+  },
+  "original_readiness1": {
+    "operation": "commercial-channel-hotel-feeds-20261113-update10-readiness1",
+    "run_id": 43343920003,
+    "run_attempt": 1,
+    "head_sha": "34660c8a934462bb6d9553e7d0ba5b4d6a715bdd",
+    "installed_sha": "cc58204bcaae562d237351e7dd8d23c6be9e3e36",
+    "artifact_id": 14000693166,
+    "artifact_name": "commercial-channel-hotel-feeds-20261113-update10-readiness1-result",
+    "artifact_sha256": "6f25168f7b4ce0e407ef9b58710a3e5565b6d1711b3e53d69752c7251669ff7e",
+    "result_sha256": "08c8bda673ca3c11cd8dcc11e524cdb3ef342bbc3f107dcbfb220c0c583d95b8",
+    "transport_sha256": "c28eaa948f18c2e273a090212e27661ad3c63587ef54108cfc2fe21a741e3da0",
+    "provider_gets": 0,
+    "native_error": "native_original_journal_not_incomplete"
+  },
+  "original_feed_attempt": {
+    "run_id": 43340115672,
+    "head_sha": "618b81d6a163a69ff50639c63b5e9ab08d92ad4f",
+    "artifact_id": 13999056851,
+    "artifact_name": "commercial-channel-hotel-feeds-20261113-update10-result",
+    "artifact_sha256": "c27586e556f47c5be136a54207a4d93e1fe7e41ad83a9e8187b0665e9c8e3781",
+    "writer_receipt_sha256": "7c97664e2d11163248963428e753b215577dce1376e7424c7d4e3bd03cddb3ab",
+    "input_sha256": "ebdbd6b7310d46ff7bb61300ab16bdf620b3bdc50b4cfaae9118a1000b4fa83d",
+    "nightly_guard_sha256": "0c60e5a851ae014de9a1542f268449b7a1d0fb0ba9f3104db8da650035ea8486",
+    "frozen_writer_invoked": false,
+    "feed_writes": 0
+  },
+  "components": {
+    "frozen_prefix_sha256": "045c21c760460483a75a9497fcd21f17b8f80b25c0e807b20bcce046035cf538",
+    "contract_php_sha256": "0753618c4851ec10c66fe2d430ee39e6d30910d1870fa13a35be56e8ec82f275",
+    "telegram_confirmation_helper_sha256": "ce64d5e6712c627b27d375b935d4d905fa4487894c79eb0982f977fb03248f55",
+    "body_sha256": "4466ebea1b5dbdf7d2edbe766725e497bc01fdd400dfc29cce7fd24efac43a63"
+  },
+  "max_confirmation": {
+    "publication_id": 184,
+    "version_id": 4323,
+    "config_version": 2,
+    "fresh_canonical_read_then_apply_once": true,
+    "provider_put_allowed": false
+  },
+  "telegram_scope": "only the original unstarted leg derived from the same frozen manifest and approved receipt",
+  "journal_completion": "original child append only; global completion only through frozen hook_finish_feed",
+  "retry_authorized": false,
+  "feed_update10_continuation_authorized": false
+}

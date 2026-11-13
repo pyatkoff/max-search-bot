@@ -54,7 +54,8 @@ try {
     ];
     if($monitorMode)$accepted=array_replace($accepted,[
         'services/ChannelPostButtonTransport.php'=>'7b6711f1de63000346d8e5789f2dbb7f725535b8',
-        'services/ChannelPostRegistryService.php'=>'8335bf2fb0c1cd78f268d4e90fad1a4465fa6390',
+        'services/ChannelPostRegistryService.php'=>'db8181426091a685a79ee55991cde22671f0d9dd',
+        'services/ChannelPostReconciliationService.php'=>'43133f576845c14446102dedfffb7f0de2d4ba1c',
         'services/MaxTransport.php'=>'2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159',
         'services/ProjectConfig.php'=>'63c17c8103412f8cff8cdcc4bbb062e744106af9',
         'services/ProjectConfiguration.php'=>'07019d473c588e3386ace42977db93092e8112e3',
