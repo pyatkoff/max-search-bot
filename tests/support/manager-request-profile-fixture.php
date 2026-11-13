@@ -27,6 +27,18 @@ CREATE TABLE messages(id INTEGER PRIMARY KEY,conversation_id INTEGER,direction T
 CREATE INDEX profile_messages ON messages(conversation_id,id);
 CREATE TABLE manager_conversation_reads(manager_id INTEGER,conversation_id INTEGER,last_read_message_id INTEGER,updated_at TEXT,PRIMARY KEY(manager_id,conversation_id));
 CREATE TABLE manager_request_profiles(conversation_id INTEGER,version INTEGER,trip_id TEXT,boundary_message_id INTEGER,manager_id INTEGER,operation_id TEXT,request_sha256 TEXT,context_sha256 TEXT,profile_json TEXT,profile_sha256 TEXT,changed_fields_json TEXT,created_at TEXT,PRIMARY KEY(conversation_id,version),UNIQUE(manager_id,operation_id),FOREIGN KEY(conversation_id) REFERENCES conversations(id) ON DELETE CASCADE);
+");
+    requestProfileSeed($p);
+    if($mode==='hotel_focus'){
+        require_once dirname(__DIR__).'/hotel_current_trip_focus_checks.php';
+        hotelCurrentTripFocusSeed($p);
+    }
+    return $p;
+}
+/** Shared synthetic rows; each dialect fixture owns its actual schema. */
+function requestProfileSeed(PDO $p): void
+{
+    $p->exec("
 INSERT INTO projects VALUES(1,'anytour','AnyTour',1),(2,'other','Other',1);
 INSERT INTO managers VALUES(1,'manager','Мария','manager','',1,1),(2,'owner','Павел','admin','',1,1),(3,'foreign','Foreign','admin','',1,1),(4,'inactive','Inactive','admin','',0,1),(5,'colleague','Colleague','manager','',1,1);
 INSERT INTO manager_projects VALUES(1,1),(2,1),(3,2),(4,1),(5,1);
@@ -35,11 +47,6 @@ INSERT INTO conversations VALUES(1,10,'anytour',0,'telegram','','','','manager',
 INSERT INTO manager_conversation_reads VALUES(1,1,10,'2026-10-30 10:00:00');");
     requestProfileMessage($p,10,'manager','Москва, 19 декабря, 7 ночей. Стоимость за двоих: 180 000 ₽.');
     requestProfileMessage($p,11,'customer','Даты подходят. Нужен песчаный пляж. Едем вдвоём, детей нет.');
-    if($mode==='hotel_focus'){
-        require_once dirname(__DIR__).'/hotel_current_trip_focus_checks.php';
-        hotelCurrentTripFocusSeed($p);
-    }
-    return $p;
 }
 function requestProfileMessage(PDO $p,int $id,string $role,string $text,int $cid=1): void
 {

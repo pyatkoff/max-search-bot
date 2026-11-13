@@ -452,3 +452,9 @@ require __DIR__.'/modeled-conversion-acquisition.php';
 $dialogueReadCommand=escapeshellarg(PHP_BINARY).' '.escapeshellarg(dirname(__DIR__).'/run_dialogue_review_read_regression.php').' --mysql';
 passthru($dialogueReadCommand,$dialogueReadStatus);
 if($dialogueReadStatus!==0)throw new RuntimeException('native_dialogue_review_read_failed');
+
+// Real migration, concurrent binding and rollback proof uses this same required
+// MySQL group after the preceding disposable fixture has released its tables.
+$promiseTaskCommand=escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/manager-promise-tasks.php');
+passthru($promiseTaskCommand,$promiseTaskStatus);
+if($promiseTaskStatus!==0)throw new RuntimeException('native_promise_task_failed');
