@@ -1,4 +1,4 @@
-name: Read the interrupted collector journal and exact pending context once
+name: Read remaining48 ANEX bindings and3 old MAX contexts without writes
 'on':
   push:
     branches:
@@ -19,37 +19,59 @@ jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
     - uses: actions/checkout@v4
       with:
         ref: ${{ github.sha }}
         persist-credentials: false
-    - name: Verify pinned existing reader and native PHP syntax before credentials
+        fetch-depth: 2
+    - name: Verify frozen48 ANEX and3 MAX scope; compile native read-only reader before
+        credentials
       shell: bash
       run: |
         set -euo pipefail
         umask 077
         test "$GITHUB_RUN_ATTEMPT" = 1
         test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+        mkdir -p "$RUNNER_TEMP/remaining-resolver-private" "$RUNNER_TEMP/remaining-resolver-safe"
         python3 - <<'PARENT'
-        import json,os,subprocess
-        e=json.load(open(os.environ['GITHUB_EVENT_PATH']))
-        assert os.environ['GITHUB_EVENT_NAME']=='push' and e['before']=='01471cd5deaa150ddbb4719f2067b4a976c862d3'
-        parents=[x.split(' ',1)[1] for x in subprocess.check_output(['git','cat-file','-p','HEAD'],text=True).splitlines() if x.startswith('parent ')]
-        assert parents==['01471cd5deaa150ddbb4719f2067b4a976c862d3']
+        import json,os,pathlib,subprocess
+        expected='060a58bf0b73d4cd9185e0a8f65560047a652031'
+        expected_tree='fe554bb472ddf3a3a7b25556d09182f7e1d7db1a'
+        assert os.environ['GITHUB_EVENT_NAME']=='push' and os.environ['GITHUB_RUN_ATTEMPT']=='1'
+        event=json.loads(pathlib.Path(os.environ['GITHUB_EVENT_PATH']).read_bytes())
+        assert event['before']==expected and event['after']==os.environ['GITHUB_SHA']
+        assert event['ref']=='refs/heads/audit/content100-bot-publication-20261101'
+        header=subprocess.check_output(['git','cat-file','-p','HEAD'],text=True).split('\n\n',1)[0]
+        parents=[line.split(' ',1)[1] for line in header.splitlines() if line.startswith('parent ')]
+        assert parents==[expected],parents
+        parent_tree=subprocess.check_output(['git','rev-parse',expected+'^{tree}'],text=True).strip()
+        assert parent_tree==expected_tree,parent_tree
+        proof={'parent_head_frozen':True,'parent_head':expected,'parent_tree':parent_tree,
+                'event_before':event['before'],'event_after':event['after'],'observed_parent_heads':parents,
+                'head_sha':os.environ['GITHUB_SHA'],'run_id':int(os.environ['GITHUB_RUN_ID']),'run_attempt':1,
+                'operation':'commercial-remaining-anex48-and-max3-read-20261113-v1','external_mutations':0}
+        pathlib.Path(os.environ['RUNNER_TEMP'],'remaining-resolver-safe','carrier-parent-proof.json').write_text(json.dumps(proof,indent=2)+'\n')
         PARENT
-        mkdir -p "$RUNNER_TEMP/monitor-readiness-private" "$RUNNER_TEMP/monitor-readiness-safe"
-        sha256sum -c <<'PINS'
-        b1870e29b87658db8e1fa624df05212c791eb8c3fd88a99d28cb0595b9965a38  tools/direct_demand/operations/commercial-monitor-collector43461519720-readiness-20261113-v1.php
-        44c5189a0209d7351ac887110b72a0c06af7974c990326e15056c0339ef6ec2f  tools/direct_demand/operations/commercial-monitor-collector43461519720-readiness-20261113-v1-plan.json
-        176db2d3162758bd45b15062b47031e4729e3ddaf8aac12dc29de8f14ae9f2ca  tools/direct_demand/operations/commercial-caption-review73-20261113-verify-content-source.py
-        5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb  tools/direct_demand/operations/verify-commercial-source.py
+        python3 - <<'PINS'
+        import hashlib,json,os,pathlib
+        root=pathlib.Path('tools/direct_demand/operations/commercial-remaining-resolver-20261113')
+        pins={'compile_reader.py': '0960f986ddde57a55d41e35b4379f4af9aed5f6b4308aa6fb9cd5a58e4489d27', 'reader_lib.php': '6211fe86c413e6ae8f25683c27800a70388c849ab920523ac6426ee573491e7e', 'reader_entry.php': '456a6b46857de771fcc4ed5a90c30d1004756050c936a9f63552e8f3752788fc', 'verify_reader_cases.php': '333a9602e5e6bc380bbfcbfa1e136530ea0da88b27ad4e16f490beaeca70a49b', 'scope.json': '5263f2f61f0e02f64d801cfc2ec74981737ceb8a9ccc43df25e507ed77bf5d87', 'source_provenance.json': '217266155751281fb500fce1b0813184374e7bf69caaf6ca0383e5bf9ef38291', 'installed_source_pins.json': '17a53eae09fb40946dad14884fe3927d1f4ccb20fbaef08beef971a0c0e33ed1', 'assess_result.py': '621c7d9d35d3c594eaf1771c85041a725d6cbd7a2dd43fa468257a573c8a40c2', 'published_baseline_minimal.json': '451394eb13d855675a63e18557704bf4959f0c7e12345b37f800a9d68401575c', 'source/HotelDatabase.php': '8bafffffb952007d19e075cd7bbc976b70eba296d6334446bdd4840fdb787ac5', 'source/ChannelPostEntryService.php': '5f67c0d2d7296d39b17934857e29204977d94afa148e9fff3ccb954d28e18009', 'source/033_channel_post_context.sql': 'ffe39e54f71924626cb7df89275c5a4ef2e1dede24707fce46ce3076c4855087', 'source/ChannelPostIncomingAdapter.php': 'd2d4c72e6b6c7f61deb829d324987418e86ab8144dc638f0185b8c84127d60a9', 'source/catalog-schema-v1.sql': 'e055a0f48d2836a538ad036475290668c88390d118cadf6ead627106520ded3d', 'source/top500-anex-namespace-smoke.php': '3846028fb8b75d092ba7be8b4d975cc58a0b1fd95496f2b65dddb3888b68b457', 'source/ANYTOUR_DATA_FOUNDATION.md': 'adf13122bdfedca3a629807e50388c734113e8131b7437426cfa74fb2e57042a', 'source/anex-search-mapping-registry.php': 'ba06d082ac66d671efc01569a7d11e9d8b5abd73cabde8ea72ecc154b3e67814', 'source/ChannelPostRegistryService.php': '2180fea69e7f7a25da14096cbc0d3ec2f47ce5adbdc07f1b915f0c12679b4aa9'}
+        for name,wanted in pins.items():
+         assert hashlib.sha256((root/name).read_bytes()).hexdigest()==wanted,name
+        assert hashlib.sha256(pathlib.Path('tools/direct_demand/operations/commercial-caption-review73-20261113-verify-content-source.py').read_bytes()).hexdigest()=='176db2d3162758bd45b15062b47031e4729e3ddaf8aac12dc29de8f14ae9f2ca'
+        safe=pathlib.Path(os.environ['RUNNER_TEMP'],'remaining-resolver-safe')
+        for name in ['scope.json','installed_source_pins.json']:(safe/name).write_bytes((root/name).read_bytes())
+        (safe/'reader-input-pins.json').write_text(json.dumps({'files':pins,'source_helper_sha256':'176db2d3162758bd45b15062b47031e4729e3ddaf8aac12dc29de8f14ae9f2ca','parent_head_frozen':True,'parent_head':'060a58bf0b73d4cd9185e0a8f65560047a652031','parent_tree':'fe554bb472ddf3a3a7b25556d09182f7e1d7db1a','parent_proof_sha256':hashlib.sha256((safe/'carrier-parent-proof.json').read_bytes()).hexdigest()},indent=2)+'\n')
         PINS
-        cp tools/direct_demand/operations/commercial-monitor-collector43461519720-readiness-20261113-v1.php "$RUNNER_TEMP/monitor-readiness-private/reader.php"
-        cp tools/direct_demand/operations/commercial-monitor-collector43461519720-readiness-20261113-v1-plan.json "$RUNNER_TEMP/monitor-readiness-safe/plan.json"
-        php -l "$RUNNER_TEMP/monitor-readiness-private/reader.php"
-    - name: Verify installed CONTENT source and retain the failed release closure
+        python3 tools/direct_demand/operations/commercial-remaining-resolver-20261113/compile_reader.py --expected-installed-sha "$EXPECTED_PRODUCTION_SHA" --output "$RUNNER_TEMP/remaining-resolver-private/reader.php"
+        cp "$RUNNER_TEMP/remaining-resolver-private/reader.manifest.json" "$RUNNER_TEMP/remaining-resolver-safe/reader.manifest.json"
+        php -l "$RUNNER_TEMP/remaining-resolver-private/reader.php"
+        php -l tools/direct_demand/operations/commercial-remaining-resolver-20261113/verify_reader_cases.php
+        php -d allow_url_fopen=0 -d disable_functions=curl_exec,curl_multi_exec,fsockopen,pfsockopen,stream_socket_client,socket_create,socket_connect,exec,system,shell_exec,passthru,proc_open,popen tools/direct_demand/operations/commercial-remaining-resolver-20261113/verify_reader_cases.php
+    - name: Verify scoped CONTENT installation and nine original technical gates;
+        preserve failed closer separately
       env:
         GH_TOKEN: ${{ github.token }}
       shell: bash
@@ -59,33 +81,45 @@ jobs:
         import json,os,pathlib,subprocess
         assert os.environ['GITHUB_RUN_ATTEMPT']=='1'
         expected=os.environ['EXPECTED_PRODUCTION_SHA']
-        gates=[(43456259794, '.github/workflows/deploy.yml', 'push'), (43458415792, '.github/workflows/max-tls-preflight.yml', 'workflow_run'), (43458412715, '.github/workflows/telegram-production-health.yml', 'workflow_run'), (43458412674, '.github/workflows/max-production-health.yml', 'workflow_run'), (43456259765, '.github/workflows/retired-domain-guard.yml', 'push'), (43458415744, '.github/workflows/publish-conversation-diagnostics.yml', 'workflow_run'), (43458412487, '.github/workflows/modeled-conversion-monitor.yml', 'workflow_run'), (43458412489, '.github/workflows/tour-selection-host.yml', 'workflow_run'), (43458412698, '.github/workflows/live-session-diagnostics.yml', 'workflow_run')]
+        gates=[(43456259794, '.github/workflows/deploy.yml', 'push'), (43456259765, '.github/workflows/retired-domain-guard.yml', 'push'), (43458415792, '.github/workflows/max-tls-preflight.yml', 'workflow_run'), (43458412715, '.github/workflows/telegram-production-health.yml', 'workflow_run'), (43458412674, '.github/workflows/max-production-health.yml', 'workflow_run'), (43458415744, '.github/workflows/publish-conversation-diagnostics.yml', 'workflow_run'), (43458412487, '.github/workflows/modeled-conversion-monitor.yml', 'workflow_run'), (43458412489, '.github/workflows/tour-selection-host.yml', 'workflow_run'), (43458412698, '.github/workflows/live-session-diagnostics.yml', 'workflow_run')]
         assert len(gates)==9 and len({x[0] for x in gates})==9
         for run_id,path,event in gates:
-         r=json.loads(subprocess.check_output(['gh','api','--method','GET','-H','Cache-Control: no-cache',f'repos/pyatkoff/max-search-bot/actions/runs/{run_id}']))
+         r=json.loads(subprocess.check_output(['gh','api',f'repos/pyatkoff/max-search-bot/actions/runs/{run_id}']))
          assert r['id']==run_id and r['run_attempt']==1 and r['head_sha']==expected
          assert r['head_branch']=='main' and r['path']==path and r['event']==event
          assert r['status']=='completed' and r['conclusion']=='success'
          if event=='workflow_run':assert r['display_title']=='deploy-proof:v1:43456259794:1'
          pathlib.Path(os.environ['RUNNER_TEMP'],f'commercial-source-gate-{run_id}.json').write_text(json.dumps(r))
-        print('NINE_ACTUAL_CONTENT_SOURCE_GATES_SUCCESS_ATTEMPT1')
+        print('NINE_ORIGINAL_TECHNICAL_CONTENT_GATES_SUCCESS_ATTEMPT1')
         SOURCE9
         test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
         evidence="$RUNNER_TEMP/commercial-source-evidence"
         mkdir -p "$evidence"
-        gh api -H 'Cache-Control: no-cache' repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-        gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/actions/runs/$EXPECTED_DEPLOY_RUN_ID" > "$evidence/verify_run.json"
-        gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/actions/runs/${EXPECTED_DEPLOY_RUN_ID}/jobs?per_page=20" > "$evidence/verify_jobs.json"
-        gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/actions/runs/$EXPECTED_TLS_RUN_ID" > "$evidence/tls_run.json"
-        gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs/$EXPECTED_DEPLOY_RUN_ID" > "$evidence/verify_run.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs/${EXPECTED_DEPLOY_RUN_ID}/jobs?per_page=20" > "$evidence/verify_jobs.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs/$EXPECTED_TLS_RUN_ID" > "$evidence/tls_run.json"
+        gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
         tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
-        gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
+        gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
         python3 - <<'PYPIN'
         import hashlib,pathlib
         assert hashlib.sha256(pathlib.Path('tools/direct_demand/operations/verify-commercial-source.py').read_bytes()).hexdigest()=='5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb'
         PYPIN
         python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-        python3 tools/direct_demand/operations/commercial-caption-review73-20261113-verify-content-source.py --evidence-dir "$evidence" --safe-dir "$RUNNER_TEMP/monitor-readiness-safe" --private-dir "$RUNNER_TEMP/monitor-readiness-private"
+
+        python3 tools/direct_demand/operations/commercial-caption-review73-20261113-verify-content-source.py --safe-dir "$RUNNER_TEMP/remaining-resolver-safe" --private-dir "$RUNNER_TEMP/remaining-resolver-private"
+
+        python3 - <<'EXTRA_PINS'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP']);tree=json.loads((p/'commercial-source-evidence/source_tree.json').read_bytes())
+        assert tree['truncated'] is False
+        rows={x['path']:x for x in tree['tree']}
+        pins=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-remaining-resolver-20261113/installed_source_pins.json').read_bytes())
+        assert len(pins)==24
+        for path,sha in pins.items():assert rows[path]['type']=='blob' and rows[path]['sha']==sha,path
+        (p/'remaining-resolver-safe/reader-source-acceptance.json').write_text(json.dumps({'operation':'commercial-remaining-anex48-and-max3-read-20261113-v1','installed_sha':'8d6ac35dd17614b2cadb3aa3af7637c74280c01c','source_tree_sha':tree['sha'],'verified_publishing_pins':22,'verified_read_dependencies':{k:pins[k] for k in ['services/HotelDatabase.php','integrations/ChannelPostIncomingAdapter.php']},'release_consumer_invoked':False,'external_mutations':0},indent=2)+'\n')
+        EXTRA_PINS
     - name: Prepare existing server connection
       env:
         DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -124,29 +158,29 @@ jobs:
         assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
         pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
         PY
-    - name: Read one existing global journal and its actual pending child without writes
+    - name: Read the48 accepted ANEX resolutions and3 exact MAX contexts without writes
+      shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
         DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
         DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-      shell: bash
       run: |
         set -euo pipefail
         umask 077
         set -euo pipefail
         umask 077
-        gh api -H 'Cache-Control: no-cache' repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/monitor-readiness-private/main.json"
-        gh api -H 'Cache-Control: no-cache' repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$RUNNER_TEMP/monitor-readiness-private/carrier.json"
-        gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$RUNNER_TEMP/monitor-readiness-private/active.json"
-        gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$RUNNER_TEMP/monitor-readiness-private/queued.json"
-        gh api -H 'Cache-Control: no-cache' repos/pyatkoff/max-search-bot/issues/comments/6818332618 > "$RUNNER_TEMP/monitor-readiness-private/owner.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/remaining-resolver-private/main.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$RUNNER_TEMP/remaining-resolver-private/carrier.json"
+        gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$RUNNER_TEMP/remaining-resolver-private/active.json"
+        gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$RUNNER_TEMP/remaining-resolver-private/queued.json"
+        gh api repos/pyatkoff/max-search-bot/issues/comments/6818332618 > "$RUNNER_TEMP/remaining-resolver-private/owner.json"
         python3 - <<'PY'
         import json,os,pathlib,hashlib
-        p=pathlib.Path(os.environ['RUNNER_TEMP'],'monitor-readiness-private')
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'remaining-resolver-private')
         assert json.loads((p/'main.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
         assert json.loads((p/'carrier.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
         active=json.loads((p/'active.json').read_text());queued=json.loads((p/'queued.json').read_text())
-        print(json.dumps({'admission':'before_monitor_journal_read','active_total':active['total_count'],'queued_total':queued['total_count'],'active':[{'id':r['id'],'status':r['status']} for r in active['workflow_runs']],'queued':[{'id':r['id'],'status':r['status']} for r in queued['workflow_runs']]},sort_keys=True))
+        print(json.dumps({'admission':'before_next_caption_batch','active_total':active['total_count'],'queued_total':queued['total_count'],'active':[{'id':r['id'],'status':r['status']} for r in active['workflow_runs']],'queued':[{'id':r['id'],'status':r['status']} for r in queued['workflow_runs']]},sort_keys=True))
         assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
         assert queued['total_count']==0
         owner=json.loads((p/'owner.json').read_text());assert owner['id']==6818332618 and hashlib.sha256(owner['body'].encode()).hexdigest()=='90de12e3defd5f6d79c116d46f7f976e0ae6e6c84d1cd9e26a4d09658d6b2895'
@@ -154,36 +188,39 @@ jobs:
 
 
         status=0
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/monitor-readiness-private/reader.php" > "$RUNNER_TEMP/monitor-readiness-safe/result.json" || status=$?
-        python3 - "$status" <<'READ_RESULT'
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php -d allow_url_fopen=0 -d disable_functions=curl_exec,curl_multi_exec,fsockopen,pfsockopen,stream_socket_client,socket_create,socket_connect" < "$RUNNER_TEMP/remaining-resolver-private/reader.php" > "$RUNNER_TEMP/remaining-resolver-safe/remaining-read.json" || status=$?
+        python3 - "$status" <<'TRANSPORT'
         import hashlib,json,os,pathlib,sys
-        safe=pathlib.Path(os.environ['RUNNER_TEMP'],'monitor-readiness-safe');raw=(safe/'result.json').read_bytes()
-        transport={'operation':'commercial-monitor-collector43461519720-readiness-20261113-v1','ssh_status':int(sys.argv[1]),'run_id':int(os.environ['GITHUB_RUN_ID']),'run_attempt':1,'head_sha':os.environ['GITHUB_SHA'],'expected_installed_sha':os.environ['EXPECTED_PRODUCTION_SHA'],'stdout_sha256':hashlib.sha256(raw).hexdigest(),'stdout_bytes':len(raw),'retry_authorized':False,'read_only':True,'feed_continuation_authorized':False}
-        (safe/'transport.json').write_text(json.dumps(transport,indent=2)+'\n')
+        safe=pathlib.Path(os.environ['RUNNER_TEMP'],'remaining-resolver-safe');raw=(safe/'remaining-read.json').read_bytes()
+        out={'operation':'commercial-remaining-anex48-and-max3-read-20261113-v1','read_only':True,'ssh_status':int(sys.argv[1]),'run_id':int(os.environ['GITHUB_RUN_ID']),'run_attempt':1,'head_sha':os.environ['GITHUB_SHA'],'parent_head':'060a58bf0b73d4cd9185e0a8f65560047a652031','parent_tree':'fe554bb472ddf3a3a7b25556d09182f7e1d7db1a','parent_proof_sha256':hashlib.sha256((safe/'carrier-parent-proof.json').read_bytes()).hexdigest(),'installed_sha':'8d6ac35dd17614b2cadb3aa3af7637c74280c01c','stdout_sha256':hashlib.sha256(raw).hexdigest(),'stdout_bytes':len(raw),'retry_authorized':False}
+        (safe/'transport.json').write_text(json.dumps(out,indent=2)+'\n')
         try:r=json.loads(raw)
         except Exception:
-         (safe/'read-status.json').write_text(json.dumps({'status':'UNKNOWN','reason':'no_valid_reader_json','feed_continuation_authorized':False})+'\n');raise SystemExit(2)
-        assert r['operation']=='commercial-monitor-collector43461519720-readiness-20261113-v1' and r['feed_continuation_authorized'] is False
-        assert all(r[k]==0 for k in ['db_write_attempts','journal_write_attempts','post_write_attempts','configuration_write_attempts','provider_write_attempts','feed_write_attempts'])
-        native=r.get('native_max',{})
-        if native:
-         assert native.get('provider_gets',0)<=3
-         for k in ['db_write_attempts','journal_write_attempts','post_write_attempts','provider_write_attempts','before_write_callback_calls']:assert native.get(k,0)==0
-        status={'status':'READ_COMPLETE' if r.get('ok') is True and transport['ssh_status']==0 else 'READ_INCOMPLETE','global_lock_available':r.get('global_lock_available'),'global_pending_is_null':r.get('global_pending_is_null'),'pending':r.get('pending'),'nightly_cycle':r.get('nightly_cycle'),'child_disposition':r.get('child_disposition'),'native_confirmed':native.get('native_confirmed',False),'error':r.get('error'),'feed_continuation_authorized':False,'original_hook_outcome_not_relabelled':True}
-        (safe/'read-status.json').write_text(json.dumps(status,indent=2)+'\n');print(json.dumps(status))
-        assert r.get('ok') is True and transport['ssh_status']==0
-        READ_RESULT
+         (safe/'read-status.json').write_text(json.dumps({'status':'unknown','reason':'no_valid_bounded_json','ready_for_mutation':False})+'\n');raise SystemExit(2)
+        assert r['operation']=='commercial-remaining-anex48-and-max3-read-20261113-v1' and r['installed_sha']=='8d6ac35dd17614b2cadb3aa3af7637c74280c01c'
+        assert r['read_result_is_not_publication_or_identity_mutation_permission'] is True
+        for k in ['db_writes','provider_calls','price_reads','model_calls','customer_rows_read','message_sends','new_publications','identity_bindings_written','automation_changes']:assert r[k]==0,k
+        assert out['ssh_status'] in [0,2]
+        status={'status':'complete' if r['ok'] is True and out['ssh_status']==0 else 'incomplete','operation':r['operation'],'fatal_source_error':'fatal' in r,'catalog_resolution_complete':r['catalog_resolution'].get('complete') is True,'old_max_context_complete':r['old_max_context'].get('complete') is True,'current_native_posts_complete':r['current_native_posts'].get('complete') is True,'ready_for_mutation':False}
+        (safe/'read-status.json').write_text(json.dumps(status,indent=2)+'\n')
+        print(json.dumps(status))
+        TRANSPORT
+        python3 - <<'ASSESS'
+        import json,os,pathlib,subprocess
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'remaining-resolver-safe');r=json.loads((p/'remaining-read.json').read_bytes())
+        if 'fatal' not in r and r['catalog_resolution'].get('complete') is True:
+         subprocess.run(['python3','tools/direct_demand/operations/commercial-remaining-resolver-20261113/assess_result.py',str(p/'remaining-read.json'),'--output',str(p/'remaining-assessment.json')],check=True)
+        ASSESS
         test "$status" = 0
-    - name: Preserve actual read and scoped source evidence including UNKNOWN
+    - name: Preserve real bounded read and separate source and release-closure evidence
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: commercial-monitor-collector43461519720-readiness-20261113-v1-result
-        path: ${{ runner.temp }}/monitor-readiness-safe
-        retention-days: 14
-        if-no-files-found: error
-    - name: Remove ephemeral connection and reader files
+        name: commercial-remaining-resolver48-max3-20261113-result
+        path: ${{ runner.temp }}/remaining-resolver-safe/
+        retention-days: 30
+        if-no-files-found: warn
+    - name: Remove ephemeral connection and read-only package
       if: always()
       shell: bash
-      run: |
-        rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/monitor-readiness-private/reader.php"
+      run: rm -rf "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/remaining-resolver-private"

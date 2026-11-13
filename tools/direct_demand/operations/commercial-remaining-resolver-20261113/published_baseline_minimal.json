@@ -1,0 +1,4233 @@
+{
+  "registry_sha256": "84e63e6907b42faacd1e4aef1168e078b9b57c8e30e36728748a24462231b3a0",
+  "rows": [
+    {
+      "site_hotel_id": "001a61be-6c4b-5207-b0bc-f00caeb4bddc",
+      "name": "SERENITY ALPHA BEACH (EX. SERENITY MAKADI BEACH)",
+      "catalog_hotel_id": 418,
+      "max_url": "https://max.ru/channel_anytour/AaHRceBGDBw",
+      "telegram_url": "https://t.me/any_toour/566"
+    },
+    {
+      "site_hotel_id": "00506122-6bfa-4c20-a580-a052510c128c",
+      "name": "SUNRISE AQUA JOY RESORT",
+      "catalog_hotel_id": 12112,
+      "max_url": "https://max.ru/channel_anytour/AaGck-ufUS0",
+      "telegram_url": "https://t.me/any_toour/43"
+    },
+    {
+      "site_hotel_id": "00630c5b-14ee-4022-879d-e994687e7495",
+      "name": "FAME RESIDENCE KEMER & SPA",
+      "catalog_hotel_id": 1183,
+      "max_url": "https://max.ru/channel_anytour/AaG2_E8DOuw",
+      "telegram_url": "https://t.me/any_toour/316"
+    },
+    {
+      "site_hotel_id": "00ea98e4-317f-423e-bb8a-334e20fc3b29",
+      "name": "AVARI HOTEL",
+      "catalog_hotel_id": 117935,
+      "max_url": "https://max.ru/channel_anytour/AaG31RTEWJg",
+      "telegram_url": "https://t.me/any_toour/480"
+    },
+    {
+      "site_hotel_id": "010b3157-aedb-4fad-bffa-06fe87e1cfde",
+      "name": "RUBI PLATINUM SPA RESORT & SUITES",
+      "catalog_hotel_id": 27426,
+      "max_url": "https://max.ru/channel_anytour/AaG1E2swIp4",
+      "telegram_url": "https://t.me/any_toour/176"
+    },
+    {
+      "site_hotel_id": "0154e058-d662-49c2-97d5-b61b610c570d",
+      "name": "Three Corners Fayrouz Plaza Beach Resort",
+      "catalog_hotel_id": 488,
+      "max_url": "https://max.ru/channel_anytour/AaGi7fyyXBA",
+      "telegram_url": "https://t.me/any_toour/138"
+    },
+    {
+      "site_hotel_id": "01550bc9-5d34-4136-82a1-9371a74ed8e0",
+      "name": "ARALIYA BEACH RESORT & SPA",
+      "catalog_hotel_id": 77625,
+      "max_url": "https://max.ru/channel_anytour/AaG3R_oiBOE",
+      "telegram_url": "https://t.me/any_toour/382"
+    },
+    {
+      "site_hotel_id": "01b24d6a-2048-456d-88ff-110b23a7c250",
+      "name": "JAZ Neo Saraya Palms",
+      "catalog_hotel_id": 13869,
+      "max_url": "https://max.ru/channel_anytour/AaGgXBBBOgA",
+      "telegram_url": "https://t.me/any_toour/108"
+    },
+    {
+      "site_hotel_id": "023f9465-bab3-4aed-ae47-89f89292d7a3",
+      "name": "JAZ Casa del Mar Resort",
+      "catalog_hotel_id": 233,
+      "max_url": "https://max.ru/channel_anytour/AaGdPPHyfR0",
+      "telegram_url": "https://t.me/any_toour/56"
+    },
+    {
+      "site_hotel_id": "02706035-79b5-40f8-8ea0-58fd06e510d3",
+      "name": "Delphin Palace",
+      "catalog_hotel_id": 1151,
+      "max_url": "https://max.ru/channel_anytour/AaGjnkw2DwE",
+      "telegram_url": "https://t.me/any_toour/152"
+    },
+    {
+      "site_hotel_id": "02708979-b498-458c-8052-4f92a6f97947",
+      "name": "AKRA ANTALYA",
+      "catalog_hotel_id": 1146,
+      "max_url": "https://max.ru/channel_anytour/AaGbWUKzSyY",
+      "telegram_url": "https://t.me/any_toour/32"
+    },
+    {
+      "site_hotel_id": "028bd1b1-7231-4bbb-946c-5a5df2dc3884",
+      "name": "THE SENSE DELUXE",
+      "catalog_hotel_id": 1173,
+      "max_url": "https://max.ru/channel_anytour/AaG3Xy3JP5c",
+      "telegram_url": "https://t.me/any_toour/399"
+    },
+    {
+      "site_hotel_id": "029ec1db-680e-41d8-b97f-fe44fcb5350e",
+      "name": "Beach Albatros Resort",
+      "catalog_hotel_id": 132,
+      "max_url": "https://max.ru/channel_anytour/AaGeHrVUSL0",
+      "telegram_url": "https://t.me/any_toour/78"
+    },
+    {
+      "site_hotel_id": "030bbcdd-3a04-4e0c-835d-8e562f003c9d",
+      "name": "PICKALBATROS AQUA BLU RESORT SHARM EL SHEIKH",
+      "catalog_hotel_id": 125,
+      "max_url": "https://max.ru/channel_anytour/AaGeHqk9YVc",
+      "telegram_url": "https://t.me/any_toour/77"
+    },
+    {
+      "site_hotel_id": "030dc20e-e661-4e0c-9f1c-c84cb9d06d3c",
+      "name": "Delphin BE Grand Resort",
+      "catalog_hotel_id": 1451,
+      "max_url": "https://max.ru/channel_anytour/AaGjnkJTK1U",
+      "telegram_url": "https://t.me/any_toour/151"
+    },
+    {
+      "site_hotel_id": "03222dc8-1f6d-476b-aadf-e7569cd44be5",
+      "name": "RIXOS SUNGATE THE LAND OF LEGENDS FREE ACCESS",
+      "catalog_hotel_id": 1452,
+      "max_url": "https://max.ru/channel_anytour/AaG3fpyfESM",
+      "telegram_url": "https://t.me/any_toour/407"
+    },
+    {
+      "site_hotel_id": "035cad15-e5f3-5d45-aacf-9dc3f4e23a26",
+      "name": "ADALYA BLISS (EX. ADALYA RESORT & SPA) ADULTS ONLY",
+      "catalog_hotel_id": 948,
+      "max_url": "https://max.ru/channel_anytour/AaHR1-daXF8",
+      "telegram_url": "https://t.me/any_toour/582"
+    },
+    {
+      "site_hotel_id": "03f00386-fb03-469c-83e7-b22c2f0c3cf1",
+      "name": "EDELE HOTEL",
+      "catalog_hotel_id": 36451,
+      "max_url": "https://max.ru/channel_anytour/AaG31Sb3EsU",
+      "telegram_url": "https://t.me/any_toour/482"
+    },
+    {
+      "site_hotel_id": "04bdadc0-392e-4777-a843-b928de83b48a",
+      "name": "WYNDHAM GRAND PHU QUOC (EX. VINOASIS PHU QUOC RESORT)",
+      "catalog_hotel_id": 57217,
+      "max_url": "https://max.ru/channel_anytour/AaG2UhmGEHA",
+      "telegram_url": "https://t.me/any_toour/246"
+    },
+    {
+      "site_hotel_id": "04e4fec6-0e5f-444f-9807-4fdbc552dff2",
+      "name": "SUNRISE GRAND SELECT MONTEMARE RESORT",
+      "catalog_hotel_id": 32577,
+      "max_url": "https://max.ru/channel_anytour/AaGcCXAYYwg",
+      "telegram_url": "https://t.me/any_toour/40"
+    },
+    {
+      "site_hotel_id": "051362c4-de6c-4910-9949-c0a4539982b6",
+      "name": "MIRAGE PARK RESORT (EX. MAJESTY MIRAGE PARK)",
+      "catalog_hotel_id": 1354,
+      "max_url": "https://max.ru/channel_anytour/AaG1yR92cnk",
+      "telegram_url": "https://t.me/any_toour/197"
+    },
+    {
+      "site_hotel_id": "05149cef-f31d-4477-a9cf-04e80989f4f0",
+      "name": "HAWAII RESORT PHU QUOC (EX. THIEN HAI SON RESORT)",
+      "catalog_hotel_id": 14135,
+      "max_url": "https://max.ru/channel_anytour/AaG2kbULQgE",
+      "telegram_url": "https://t.me/any_toour/274"
+    },
+    {
+      "site_hotel_id": "052e6f41-76c6-4b86-97f9-1a07eae74382",
+      "name": "RUBI HOTEL",
+      "catalog_hotel_id": 1465,
+      "max_url": "https://max.ru/channel_anytour/AaG3RNKnIsM",
+      "telegram_url": "https://t.me/any_toour/367"
+    },
+    {
+      "site_hotel_id": "0579f61a-b333-477c-9cb4-4b1f805f21c6",
+      "name": "SUNRISE SERANO AQUA PARK RESORT (EX. SUNRISE RIVIERA AQUA PARK)",
+      "catalog_hotel_id": 213,
+      "max_url": "https://max.ru/channel_anytour/AaHR1-_zDg8",
+      "telegram_url": "https://t.me/any_toour/583"
+    },
+    {
+      "site_hotel_id": "05a2f62d-84ee-4f9f-b121-b4200bc03e9a",
+      "name": "EMPIRE BEACH AQUA PARK (EX.ROYAL STAR EMPIRE BEACH RESORT)",
+      "catalog_hotel_id": 501,
+      "max_url": "https://max.ru/channel_anytour/AaG2NREhRiI",
+      "telegram_url": "https://t.me/any_toour/230"
+    },
+    {
+      "site_hotel_id": "05ac02ab-1999-48b7-834c-7d0f48f5f2ae",
+      "name": "DOUBLETREE BY HILTON ANTALYA KEMER",
+      "catalog_hotel_id": 1555,
+      "max_url": "https://max.ru/channel_anytour/AaG7kmf6KaA",
+      "telegram_url": "https://t.me/any_toour/518"
+    },
+    {
+      "site_hotel_id": "05d0d72b-c040-43d1-a349-6edbaf1f7d4a",
+      "name": "CRYSTAL PRESTIGE PEARL COLLECTION (EX. CRYSTAL PRESTIGE ELITE HOTEL)",
+      "catalog_hotel_id": 1331,
+      "max_url": "https://max.ru/channel_anytour/AaG3R9WhIGA",
+      "telegram_url": "https://t.me/any_toour/378"
+    },
+    {
+      "site_hotel_id": "05fddc42-cf5f-4f84-b489-0f5d18ca471c",
+      "name": "SEALIFE KEMER RESORT (EX. SEALIFE ROSE RESIDENCE)",
+      "catalog_hotel_id": 1456,
+      "max_url": "https://max.ru/channel_anytour/AaG3NYWCHEo",
+      "telegram_url": "https://t.me/any_toour/362"
+    },
+    {
+      "site_hotel_id": "061cb255-f24d-44e8-b153-38ca3fd51f51",
+      "name": "REWAYA MAJESTIC RESORT",
+      "catalog_hotel_id": 129161,
+      "max_url": "https://max.ru/channel_anytour/AaG2NOx8OsU",
+      "telegram_url": "https://t.me/any_toour/226"
+    },
+    {
+      "site_hotel_id": "0627fa47-1806-4338-b686-1d9dfb850138",
+      "name": "MARMARIS PARK HOTEL",
+      "catalog_hotel_id": 1684,
+      "max_url": "https://max.ru/channel_anytour/AaG2_GF4cLU",
+      "telegram_url": "https://t.me/any_toour/318"
+    },
+    {
+      "site_hotel_id": "0674a106-2112-4d6d-81ce-e67c08d97501",
+      "name": "Pickalbatros Dana Beach Resort",
+      "catalog_hotel_id": 174,
+      "max_url": "https://max.ru/channel_anytour/AaGd4cUkZFY",
+      "telegram_url": "https://t.me/any_toour/67"
+    },
+    {
+      "site_hotel_id": "06fa0904-30f7-4085-bf5d-16611edb5720",
+      "name": "Miracle Resort",
+      "catalog_hotel_id": 1379,
+      "max_url": "https://max.ru/channel_anytour/AaGjuHn3Xps",
+      "telegram_url": "https://t.me/any_toour/154"
+    },
+    {
+      "site_hotel_id": "07ddada8-625f-4ed8-ac44-bdbbe763eb10",
+      "name": "AMWAJ BEACH CLUB ABU SOMA (EX. PICKALBATROS BEACH CLUB)",
+      "catalog_hotel_id": 1960,
+      "max_url": "https://max.ru/channel_anytour/AaG15pkYUZs",
+      "telegram_url": "https://t.me/any_toour/203"
+    },
+    {
+      "site_hotel_id": "07df2062-247d-43fe-aeff-441afff7df1b",
+      "name": "LARA BARUT COLLECTION",
+      "catalog_hotel_id": 1035,
+      "max_url": "https://max.ru/channel_anytour/AaG1rqt1DKU",
+      "telegram_url": "https://t.me/any_toour/185"
+    },
+    {
+      "site_hotel_id": "081d33f3-d06d-4c84-bf14-67df1f2c3d36",
+      "name": "Uga Jungle Beach",
+      "catalog_hotel_id": 24462,
+      "max_url": "https://max.ru/channel_anytour/AaG1m_VxebE",
+      "telegram_url": "https://t.me/any_toour/179"
+    },
+    {
+      "site_hotel_id": "0980bdd8-15a0-402b-9075-4b5f8f72259e",
+      "name": "BLUE PEARL HOTEL",
+      "catalog_hotel_id": 13941,
+      "max_url": "https://max.ru/channel_anytour/AaG2QvvlA2g",
+      "telegram_url": "https://t.me/any_toour/242"
+    },
+    {
+      "site_hotel_id": "0a5d7f2a-aca9-4446-af12-086b1afd0f69",
+      "name": "QUEENS PARK RESORT GOYNUK",
+      "catalog_hotel_id": 1440,
+      "max_url": "https://max.ru/channel_anytour/AaG3XxufPwc",
+      "telegram_url": "https://t.me/any_toour/397"
+    },
+    {
+      "site_hotel_id": "0a978b84-4036-5cf0-8279-39895e52da07",
+      "name": "MANDARIN ORIENTAL BODRUM",
+      "catalog_hotel_id": 35313,
+      "max_url": "https://max.ru/channel_anytour/AaHQKt7sLNo",
+      "telegram_url": "https://t.me/any_toour/534"
+    },
+    {
+      "site_hotel_id": "0aceaaec-60b3-49dc-ba49-9126e1423948",
+      "name": "MIAROSA KEMER BEACH (EX. DAIMA RESORT)",
+      "catalog_hotel_id": 1145,
+      "max_url": "https://max.ru/channel_anytour/AaG2_BAhBYc",
+      "telegram_url": "https://t.me/any_toour/309"
+    },
+    {
+      "site_hotel_id": "0aeaab96-9966-4bda-8f0d-ba3ea8c00ccb",
+      "name": "LIBERTY HOTELS LYKIA",
+      "catalog_hotel_id": 3452,
+      "max_url": "https://max.ru/channel_anytour/AaG2GHc8bvM",
+      "telegram_url": "https://t.me/any_toour/220"
+    },
+    {
+      "site_hotel_id": "0b4a6af8-e235-4a21-bb44-edbc0c871bd6",
+      "name": "BELLIS DELUXE HOTEL",
+      "catalog_hotel_id": 1257,
+      "max_url": "https://max.ru/channel_anytour/AaG2UkeBZHY",
+      "telegram_url": "https://t.me/any_toour/251"
+    },
+    {
+      "site_hotel_id": "0b613eb7-045d-4e89-8321-9aa80e7a8e2c",
+      "name": "ERICA NHA TRANG",
+      "catalog_hotel_id": 66564,
+      "max_url": "https://max.ru/channel_anytour/AaHQKudjIiQ",
+      "telegram_url": "https://t.me/any_toour/535"
+    },
+    {
+      "site_hotel_id": "0b698ea9-3226-4a92-a351-2f6695608703",
+      "name": "ASTERIA FAMILY RESORT BELEK (EX. AQUAWORLD BELEK)",
+      "catalog_hotel_id": 1350,
+      "max_url": "https://max.ru/channel_anytour/AaG2eCRtcfE",
+      "telegram_url": "https://t.me/any_toour/265"
+    },
+    {
+      "site_hotel_id": "0bbfc44d-3a9f-4586-8296-f9aa56d75787",
+      "name": "SPICE HOTEL & SPA",
+      "catalog_hotel_id": 1512,
+      "max_url": "https://max.ru/channel_anytour/AaG2kdlITSg",
+      "telegram_url": "https://t.me/any_toour/278"
+    },
+    {
+      "site_hotel_id": "0bec7376-49e4-4bf9-a284-c8ca40d6dfe6",
+      "name": "SELECTUM FAMILY RESORT (EX. SENTIDO LETOONIA GOLF RESORT)",
+      "catalog_hotel_id": 1335,
+      "max_url": "https://max.ru/channel_anytour/AaHRcekff1Y",
+      "telegram_url": "https://t.me/any_toour/567"
+    },
+    {
+      "site_hotel_id": "0c0ed287-e256-4802-a946-d0f967569ef6",
+      "name": "DELPHIN IMPERIAL LARA",
+      "catalog_hotel_id": 9432,
+      "max_url": "https://max.ru/channel_anytour/AaGjnjiiMnM",
+      "telegram_url": "https://t.me/any_toour/150"
+    },
+    {
+      "site_hotel_id": "0c3601a1-12b6-4e8e-8fd8-e04a40c61fe6",
+      "name": "THE X BELEK",
+      "catalog_hotel_id": 88750,
+      "max_url": "https://max.ru/channel_anytour/AaG3MmMJYLc",
+      "telegram_url": "https://t.me/any_toour/356"
+    },
+    {
+      "site_hotel_id": "0cb293fb-266e-4777-b8e3-3d87d917b56b",
+      "name": "THE SOL HOTEL (EX. AN VISTA)",
+      "catalog_hotel_id": 47470,
+      "max_url": "https://max.ru/channel_anytour/AaG2kccpLM0",
+      "telegram_url": "https://t.me/any_toour/276"
+    },
+    {
+      "site_hotel_id": "0da6c43d-4147-4849-afdb-9b6910adb218",
+      "name": "THE TIME HOTEL",
+      "catalog_hotel_id": 83189,
+      "max_url": "https://max.ru/channel_anytour/AaG2y1IYOTs",
+      "telegram_url": "https://t.me/any_toour/293"
+    },
+    {
+      "site_hotel_id": "0e5238b3-19f4-4b77-aca0-4506af9d795a",
+      "name": "Paloma Pasha",
+      "catalog_hotel_id": 9322,
+      "max_url": "https://max.ru/channel_anytour/AaGll1jFUrM",
+      "telegram_url": "https://t.me/any_toour/163"
+    },
+    {
+      "site_hotel_id": "0e78ee4e-302c-4cdb-af8a-5d2e46501cb9",
+      "name": "CORAL BEACH RESORT",
+      "catalog_hotel_id": 2536,
+      "max_url": "https://max.ru/channel_anytour/AaG3_aRGZWk",
+      "telegram_url": "https://t.me/any_toour/512"
+    },
+    {
+      "site_hotel_id": "0f1c21bf-fdeb-453b-bf2c-4887e63f785f",
+      "name": "NIRVANA COSMOPOLITAN",
+      "catalog_hotel_id": 1294,
+      "max_url": "https://max.ru/channel_anytour/AaG2Y20DabI",
+      "telegram_url": "https://t.me/any_toour/253"
+    },
+    {
+      "site_hotel_id": "0f2125da-63b9-4225-bfe5-4d39b8da002a",
+      "name": "CRYSTAL BOUTIQUE COMFORT COLLECTION ADULTS ONLY 16+",
+      "catalog_hotel_id": 64371,
+      "max_url": "https://max.ru/channel_anytour/AaG3fregTnc",
+      "telegram_url": "https://t.me/any_toour/410"
+    },
+    {
+      "site_hotel_id": "0fdb6356-acbe-48ed-992b-063b3e1b83c0",
+      "name": "MEGASARAY RESORT SIDE (EX. ASKA SIDE HOTEL)",
+      "catalog_hotel_id": 1221,
+      "max_url": "https://max.ru/channel_anytour/AaG2Qtf1Fdo",
+      "telegram_url": "https://t.me/any_toour/238"
+    },
+    {
+      "site_hotel_id": "102c5a4b-d984-4de2-acc8-2998b6fb7f8b",
+      "name": "AVIA RESORT & SPA",
+      "catalog_hotel_id": 157359,
+      "max_url": "https://max.ru/channel_anytour/AaGbniGlG9w",
+      "telegram_url": "https://t.me/any_toour/35"
+    },
+    {
+      "site_hotel_id": "107a8e65-cf8b-4f20-a8b5-cf90afe0fce2",
+      "name": "RIXOS RADAMIS SHARM EL SHEIKH",
+      "catalog_hotel_id": 115918,
+      "max_url": "https://max.ru/channel_anytour/AaGeimaBEmc",
+      "telegram_url": "https://t.me/any_toour/100"
+    },
+    {
+      "site_hotel_id": "1091b430-8104-44e0-8e04-b9fde5ba0cd9",
+      "name": "NALICAS HOTEL",
+      "catalog_hotel_id": 70033,
+      "max_url": "https://max.ru/channel_anytour/AaG38DV2Mqg",
+      "telegram_url": "https://t.me/any_toour/489"
+    },
+    {
+      "site_hotel_id": "11a41336-e165-48a3-837d-760ea22ad6c9",
+      "name": "TUI BLUE XANTHE (EX. THE XANTHE RESORT & SPA)",
+      "catalog_hotel_id": 1591,
+      "max_url": "https://max.ru/channel_anytour/AaG3R-frP8Y",
+      "telegram_url": "https://t.me/any_toour/380"
+    },
+    {
+      "site_hotel_id": "12206672-e67e-4119-87b5-08584c0415c6",
+      "name": "CATAMARAN QUALITY TIMES (EX. CATAMARAN)",
+      "catalog_hotel_id": 1067,
+      "max_url": "https://max.ru/channel_anytour/AaG2kavEGKY",
+      "telegram_url": "https://t.me/any_toour/273"
+    },
+    {
+      "site_hotel_id": "1279daec-1f6b-4f8e-8e15-72bc7af2cafb",
+      "name": "CULLINAN BELEK (EX. CULLINAN GOLF RESORT BELEK)",
+      "catalog_hotel_id": 78251,
+      "max_url": "https://max.ru/channel_anytour/AaGqB-1VeqQ",
+      "telegram_url": "https://t.me/any_toour/175"
+    },
+    {
+      "site_hotel_id": "138b1aab-8851-489f-931c-2270a336c45f",
+      "name": "REGNUM CARYA GOLF & SPA",
+      "catalog_hotel_id": 27316,
+      "max_url": "https://max.ru/channel_anytour/AaGjuI2pXao",
+      "telegram_url": "https://t.me/any_toour/156"
+    },
+    {
+      "site_hotel_id": "14d92b97-4f38-4ed8-9b04-b720ee06b852",
+      "name": "SUNRISE GARDEN BEACH RESORT SELECT",
+      "catalog_hotel_id": 476,
+      "max_url": "https://max.ru/channel_anytour/AaGb6M5sOTU",
+      "telegram_url": "https://t.me/any_toour/37"
+    },
+    {
+      "site_hotel_id": "16a37d69-8314-46fe-97ff-7afd8f99c8a9",
+      "name": "Coral Sea Aqua Club",
+      "catalog_hotel_id": 12116,
+      "max_url": "https://max.ru/channel_anytour/AaGisiXvJds",
+      "telegram_url": "https://t.me/any_toour/133"
+    },
+    {
+      "site_hotel_id": "16be335f-a73a-405b-925a-675fa09f4b01",
+      "name": "QUEEN ANN NHA TRANG",
+      "catalog_hotel_id": 57652,
+      "max_url": "https://max.ru/channel_anytour/AaG38D4qAVw",
+      "telegram_url": "https://t.me/any_toour/490"
+    },
+    {
+      "site_hotel_id": "16d2883d-2cfb-54db-961b-7523354a3737",
+      "name": "GRANADA LUXURY OKURCALAR (EX. GRANADA LUXURY RESORT & SPA)",
+      "catalog_hotel_id": 1212,
+      "max_url": "https://max.ru/channel_anytour/AaHRcfHqU0w",
+      "telegram_url": "https://t.me/any_toour/568"
+    },
+    {
+      "site_hotel_id": "18cddb98-8f29-54c4-bf72-5591d33b7759",
+      "name": "THE MAKADI SPA ADULTS ONLY 18+",
+      "catalog_hotel_id": 15693,
+      "max_url": "https://max.ru/channel_anytour/AaHQDVICNd0",
+      "telegram_url": "https://t.me/any_toour/532"
+    },
+    {
+      "site_hotel_id": "1951dd96-b95d-4d0f-b9ba-f3ab9816495d",
+      "name": "CITRUS WASKADUWA",
+      "catalog_hotel_id": 24492,
+      "max_url": "https://max.ru/channel_anytour/AaG3loCfZK8",
+      "telegram_url": "https://t.me/any_toour/436"
+    },
+    {
+      "site_hotel_id": "1a7dbc9c-e641-415f-87ef-dbdc3bb5a3dd",
+      "name": "Steigenberger Coraya Beach",
+      "catalog_hotel_id": 263,
+      "max_url": "https://max.ru/channel_anytour/AaGePIPBMYk",
+      "telegram_url": "https://t.me/any_toour/90"
+    },
+    {
+      "site_hotel_id": "1adbcd97-c1ea-4f67-a333-75b07ed4f56b",
+      "name": "Savoy Sharm El Sheikh",
+      "catalog_hotel_id": 408,
+      "max_url": "https://max.ru/channel_anytour/AaGhJ7JODvU",
+      "telegram_url": "https://t.me/any_toour/120"
+    },
+    {
+      "site_hotel_id": "1b1dfa70-2744-4d3e-9dac-be9c4b4e5e46",
+      "name": "UTOPIA RESORT & RESIDENCE (EX. ALARA PARK HOTEL)",
+      "catalog_hotel_id": 961,
+      "max_url": "https://max.ru/channel_anytour/AaG3MhpTQJU",
+      "telegram_url": "https://t.me/any_toour/348"
+    },
+    {
+      "site_hotel_id": "1baf4446-b6ec-4463-92c4-fd54894359db",
+      "name": "DUYEN HA RESORT CAM RANH",
+      "catalog_hotel_id": 57066,
+      "max_url": "https://max.ru/channel_anytour/AaG2d_XzI9M",
+      "telegram_url": "https://t.me/any_toour/260"
+    },
+    {
+      "site_hotel_id": "1bb176cf-2514-466f-8c08-d3d2eda0986b",
+      "name": "AMC ROYAL HOTEL",
+      "catalog_hotel_id": 1959,
+      "max_url": "https://max.ru/channel_anytour/AaG3so3_deE",
+      "telegram_url": "https://t.me/any_toour/470"
+    },
+    {
+      "site_hotel_id": "1befeebd-bc14-42c8-8373-a60c0bdd22e8",
+      "name": "PINE BEACH BELEK (EX. MARITIM PINE BEACH RESORT)",
+      "catalog_hotel_id": 1362,
+      "max_url": "https://max.ru/channel_anytour/AaG1yOmXEko",
+      "telegram_url": "https://t.me/any_toour/191"
+    },
+    {
+      "site_hotel_id": "1c5deb45-eb58-4441-aa86-7559db29a401",
+      "name": "SPHINX AQUA PARK BEACH RESORT",
+      "catalog_hotel_id": 462,
+      "max_url": "https://max.ru/channel_anytour/AaG1yQ2XJb8",
+      "telegram_url": "https://t.me/any_toour/195"
+    },
+    {
+      "site_hotel_id": "1ceda298-3af3-419e-8629-61e05f2b6ffe",
+      "name": "KHAO LAK MARRIOTT BEACH RESORT & SPA",
+      "catalog_hotel_id": 120117,
+      "max_url": "https://max.ru/channel_anytour/AaG10y3HV_A",
+      "telegram_url": "https://t.me/any_toour/201"
+    },
+    {
+      "site_hotel_id": "1cfa78cb-a00a-4b94-b4ee-a9d74e91bb6d",
+      "name": "UTOPIA BEACH CLUB",
+      "catalog_hotel_id": 70030,
+      "max_url": "https://max.ru/channel_anytour/AaG7kl8qV4Y",
+      "telegram_url": "https://t.me/any_toour/517"
+    },
+    {
+      "site_hotel_id": "1d489658-7439-48b5-b234-0468b3fad8a1",
+      "name": "JAZ Elite Amara",
+      "catalog_hotel_id": 108090,
+      "max_url": "https://max.ru/channel_anytour/AaGd_yj7K2Y",
+      "telegram_url": "https://t.me/any_toour/70"
+    },
+    {
+      "site_hotel_id": "1d9c6565-32c0-4ee8-8ea4-96ba83ccc612",
+      "name": "RIXOS PREMIUM SEAGATE",
+      "catalog_hotel_id": 37668,
+      "max_url": "https://max.ru/channel_anytour/AaGd4buFOdw",
+      "telegram_url": "https://t.me/any_toour/66"
+    },
+    {
+      "site_hotel_id": "1dcbff85-f61e-4195-84d2-e541315c1e68",
+      "name": "PARK REGENCY SHARM EL SHEIKH (EX. HYATT REGENCY SSH)",
+      "catalog_hotel_id": 260,
+      "max_url": "https://max.ru/channel_anytour/AaGg3Pv9dF8",
+      "telegram_url": "https://t.me/any_toour/118"
+    },
+    {
+      "site_hotel_id": "1dd87e52-4498-5bcd-bb12-b97e35be08c6",
+      "name": "AMARINA ABU SOMA RESORT & AQUAPARK",
+      "catalog_hotel_id": 68907,
+      "max_url": "https://max.ru/channel_anytour/AaHQKvAPYFo",
+      "telegram_url": "https://t.me/any_toour/536"
+    },
+    {
+      "site_hotel_id": "1de6bdf8-04a4-4f60-b962-7171cf7c029d",
+      "name": "MOVENPICK HOTEL ANTALYA TEKIROVA (EX.ROYAL DIWA TEKIROVA RESORT)",
+      "catalog_hotel_id": 1551,
+      "max_url": "https://max.ru/channel_anytour/AaHQ_Wy3PTM",
+      "telegram_url": "https://t.me/any_toour/557"
+    },
+    {
+      "site_hotel_id": "1e65a0da-e385-4eff-b051-534993e89d87",
+      "name": "BARCELO COCONUT ISLAND (EX. THE VILLAGE COCONUT ISLAND)",
+      "catalog_hotel_id": 4432,
+      "max_url": "https://max.ru/channel_anytour/AaG2UiL7KvI",
+      "telegram_url": "https://t.me/any_toour/247"
+    },
+    {
+      "site_hotel_id": "1eedb16f-37b8-4bd6-adf9-a45ebb4c7d3b",
+      "name": "KHAOLAK EMERALD BEACH RESORT & SPA",
+      "catalog_hotel_id": 7938,
+      "max_url": "https://max.ru/channel_anytour/AaHR1_jOTN4",
+      "telegram_url": "https://t.me/any_toour/584"
+    },
+    {
+      "site_hotel_id": "1ef92f50-9b0e-4687-8e18-34bbdc05e761",
+      "name": "Pickalbatros Jungle Aqua Park",
+      "catalog_hotel_id": 110,
+      "max_url": "https://max.ru/channel_anytour/AaGeHpWbLtA",
+      "telegram_url": "https://t.me/any_toour/75"
+    },
+    {
+      "site_hotel_id": "1f5dc6d8-5116-41ee-8acf-3ea433f1af32",
+      "name": "THE MARIN PHUKET",
+      "catalog_hotel_id": 107938,
+      "max_url": "https://max.ru/channel_anytour/AaG2Inu8czM",
+      "telegram_url": "https://t.me/any_toour/224"
+    },
+    {
+      "site_hotel_id": "20a3b54e-649d-4d69-82d8-fd041d9b1254",
+      "name": "Palm Royale Soma Bay",
+      "catalog_hotel_id": 273,
+      "max_url": "https://max.ru/channel_anytour/AaGg3QWNRxc",
+      "telegram_url": "https://t.me/any_toour/119"
+    },
+    {
+      "site_hotel_id": "20b45396-2804-4c40-8666-bb4409f744de",
+      "name": "LIBERTY SIGNA",
+      "catalog_hotel_id": 109655,
+      "max_url": "https://max.ru/channel_anytour/AaG3sFUqKWc",
+      "telegram_url": "https://t.me/any_toour/464"
+    },
+    {
+      "site_hotel_id": "20bab3d2-6f9b-43df-87a9-c29a3d06e15f",
+      "name": "CRYSTAL WATERWORLD AQUA COLLECTION (EX. CRYSTAL WATERWORLD RESORT & SPA)",
+      "catalog_hotel_id": 15872,
+      "max_url": "https://max.ru/channel_anytour/AaG3GHDVRYI",
+      "telegram_url": "https://t.me/any_toour/341"
+    },
+    {
+      "site_hotel_id": "20c67db2-8fe7-50d9-9e63-acba0711a563",
+      "name": "HILTON LUXOR RESORT & SPA",
+      "catalog_hotel_id": 102774,
+      "max_url": "https://max.ru/channel_anytour/AaHQQzsnRJ8",
+      "telegram_url": "https://t.me/any_toour/546"
+    },
+    {
+      "site_hotel_id": "20e53fdc-daa9-48bd-ab91-8228a1296635",
+      "name": "AQUA FANTASY AQUAPARK HOTEL & SPA",
+      "catalog_hotel_id": 9419,
+      "max_url": "https://max.ru/channel_anytour/AaG3NWnfEfI",
+      "telegram_url": "https://t.me/any_toour/359"
+    },
+    {
+      "site_hotel_id": "2193fbf1-8c1e-47ed-989b-89b8488d0443",
+      "name": "SUNDIA BY LIBERTY OLUDENIZ (EX. LIBERTY HOTEL OLUDENIZ)",
+      "catalog_hotel_id": 9303,
+      "max_url": "https://max.ru/channel_anytour/AaG3EKYkeUw",
+      "telegram_url": "https://t.me/any_toour/333"
+    },
+    {
+      "site_hotel_id": "2237a40a-8b3e-4ffb-822c-5d08cb28b59f",
+      "name": "RIXOS THE PALM DUBAI HOTEL & SUITES",
+      "catalog_hotel_id": 8964,
+      "max_url": "https://max.ru/channel_anytour/AaG3k7knacM",
+      "telegram_url": "https://t.me/any_toour/423"
+    },
+    {
+      "site_hotel_id": "22654d07-9e38-5e66-b75f-a5786961f0b4",
+      "name": "SUNIS EVREN BEACH RESORT & SPA",
+      "catalog_hotel_id": 1530,
+      "max_url": "https://max.ru/channel_anytour/AaHR2AFyWVQ",
+      "telegram_url": "https://t.me/any_toour/585"
+    },
+    {
+      "site_hotel_id": "229147c5-7dbe-4739-bd71-3175450a5b2c",
+      "name": "SUNSURI PHUKET RESORT",
+      "catalog_hotel_id": 22660,
+      "max_url": "https://max.ru/channel_anytour/AaHQYtWGPLQ",
+      "telegram_url": "https://t.me/any_toour/547"
+    },
+    {
+      "site_hotel_id": "229c11fe-e820-4486-ae35-d34f4299ee7b",
+      "name": "Reef Oasis Beach Resort",
+      "catalog_hotel_id": 371,
+      "max_url": "https://max.ru/channel_anytour/AaGeHsjldCE",
+      "telegram_url": "https://t.me/any_toour/80"
+    },
+    {
+      "site_hotel_id": "2316d545-23dc-4a74-8802-8e0098f0a342",
+      "name": "Kempinski Hotel Soma Bay",
+      "catalog_hotel_id": 287,
+      "max_url": "https://max.ru/channel_anytour/AaGeijVYf9w",
+      "telegram_url": "https://t.me/any_toour/95"
+    },
+    {
+      "site_hotel_id": "2328362e-cfe9-4a07-b23a-1942a2609c8c",
+      "name": "ORKA LOTUS BEACH",
+      "catalog_hotel_id": 37396,
+      "max_url": "https://max.ru/channel_anytour/AaG3NWCoRe8",
+      "telegram_url": "https://t.me/any_toour/358"
+    },
+    {
+      "site_hotel_id": "238427ce-08ec-45cb-b216-f8c49e646b37",
+      "name": "ALI BEY RESORT SORGUN",
+      "catalog_hotel_id": 970,
+      "max_url": "https://max.ru/channel_anytour/AaG3gdAhS-Y",
+      "telegram_url": "https://t.me/any_toour/418"
+    },
+    {
+      "site_hotel_id": "239154c3-c03f-484d-a3f0-2081fa24d0e5",
+      "name": "Steigenberger Aqua Magic",
+      "catalog_hotel_id": 26044,
+      "max_url": "https://max.ru/channel_anytour/AaGc6erBIjc",
+      "telegram_url": "https://t.me/any_toour/53"
+    },
+    {
+      "site_hotel_id": "23966c17-0186-43de-aac3-e51a52701818",
+      "name": "Steigenberger Makadi 16+",
+      "catalog_hotel_id": 13870,
+      "max_url": "https://max.ru/channel_anytour/AaGeYQ9sC-o",
+      "telegram_url": "https://t.me/any_toour/92"
+    },
+    {
+      "site_hotel_id": "23cf672a-cec8-410f-a91a-7aea1528ed26",
+      "name": "RAMADA RESORT BY WYNDHAM SIDE (EX. RAMADA RESORT SIDE)",
+      "catalog_hotel_id": 17669,
+      "max_url": "https://max.ru/channel_anytour/AaG2_CH5Xco",
+      "telegram_url": "https://t.me/any_toour/311"
+    },
+    {
+      "site_hotel_id": "242c8c51-c4c5-4b31-a4c4-186694d6dfb2",
+      "name": "ROYAL STAR BEACH RESORT",
+      "catalog_hotel_id": 26530,
+      "max_url": "https://max.ru/channel_anytour/AaG2Y3-TQtE",
+      "telegram_url": "https://t.me/any_toour/255"
+    },
+    {
+      "site_hotel_id": "2440cac0-fab5-4d2f-bddc-78efe6a06bcc",
+      "name": "SENSITIVE PREMIUM RESORT & SPA",
+      "catalog_hotel_id": 48863,
+      "max_url": "https://max.ru/channel_anytour/AaG2zjF2a3k",
+      "telegram_url": "https://t.me/any_toour/305"
+    },
+    {
+      "site_hotel_id": "247d1380-e974-484b-bb9a-d612ffc8350f",
+      "name": "ARCANUS HOTELS TRENDLINE SIDE (EX. ARCANUS TRENDLINE RESORT)",
+      "catalog_hotel_id": 81578,
+      "max_url": "https://max.ru/channel_anytour/AaG3R969dm0",
+      "telegram_url": "https://t.me/any_toour/379"
+    },
+    {
+      "site_hotel_id": "24830a11-5cd6-4722-8a9c-41471d2fee46",
+      "name": "Stella Di Mare Beach Hotel & Spa",
+      "catalog_hotel_id": 465,
+      "max_url": "https://max.ru/channel_anytour/AaGg3OiTOJ4",
+      "telegram_url": "https://t.me/any_toour/116"
+    },
+    {
+      "site_hotel_id": "2565f4e7-c5cc-490d-98f5-43e5f984b3ac",
+      "name": "RAI PREMIUM TEKIROVA (EX. QUEENS PARK TEKIROVA)",
+      "catalog_hotel_id": 1439,
+      "max_url": "https://max.ru/channel_anytour/AaG2zgMzTew",
+      "telegram_url": "https://t.me/any_toour/300"
+    },
+    {
+      "site_hotel_id": "257902e5-19c0-5a80-8ab8-34b3f7dd1559",
+      "name": "MELAS HOLIDAY VILLAGE",
+      "catalog_hotel_id": 1368,
+      "max_url": "https://max.ru/channel_anytour/AaHQ_XVpbfI",
+      "telegram_url": "https://t.me/any_toour/558"
+    },
+    {
+      "site_hotel_id": "258212e2-98a4-4133-a36d-30e8610b7958",
+      "name": "VIKINGEN INFINITY RESORT",
+      "catalog_hotel_id": 9354,
+      "max_url": "https://max.ru/channel_anytour/AaG3XxI1TGQ",
+      "telegram_url": "https://t.me/any_toour/396"
+    },
+    {
+      "site_hotel_id": "26895dc6-7731-4e47-b6fa-760c95275ca1",
+      "name": "PORTO BELLO",
+      "catalog_hotel_id": 1436,
+      "max_url": "https://max.ru/channel_anytour/AaG3o_FYBiA",
+      "telegram_url": "https://t.me/any_toour/451"
+    },
+    {
+      "site_hotel_id": "268a2a4d-333b-424b-9fe2-2fe5ba240b9d",
+      "name": "DOBEDAN WORLD PALACE (EX. ALVA DONNA WORLD PALACE)",
+      "catalog_hotel_id": 1429,
+      "max_url": "https://max.ru/channel_anytour/AaG2uSDVTtY",
+      "telegram_url": "https://t.me/any_toour/285"
+    },
+    {
+      "site_hotel_id": "26f504a6-e272-43a8-9ad2-89353ffc560e",
+      "name": "SEHER RESORT & SPA",
+      "catalog_hotel_id": 1483,
+      "max_url": "https://max.ru/channel_anytour/AaG3oZO-Yqw",
+      "telegram_url": "https://t.me/any_toour/439"
+    },
+    {
+      "site_hotel_id": "2714a61c-d182-4d89-bacb-7276d7303064",
+      "name": "THAVORN PALM BEACH RESORT",
+      "catalog_hotel_id": 818,
+      "max_url": "https://max.ru/channel_anytour/AaHR2ApDH3s",
+      "telegram_url": "https://t.me/any_toour/586"
+    },
+    {
+      "site_hotel_id": "277ee0c4-be30-4766-90a5-3447a389fbc2",
+      "name": "Desert Rose",
+      "catalog_hotel_id": 178,
+      "max_url": "https://max.ru/channel_anytour/AaGeHr8-UCw",
+      "telegram_url": "https://t.me/any_toour/79"
+    },
+    {
+      "site_hotel_id": "28079a07-345d-4f4b-b621-f02bcbe1caed",
+      "name": "ANANAS HOTEL",
+      "catalog_hotel_id": 981,
+      "max_url": "https://max.ru/channel_anytour/AaG2uQWeQJk",
+      "telegram_url": "https://t.me/any_toour/282"
+    },
+    {
+      "site_hotel_id": "282dae7f-7442-4425-b775-710c7eb29366",
+      "name": "JAZ Lamaya Resort",
+      "catalog_hotel_id": 265,
+      "max_url": "https://max.ru/channel_anytour/AaGdPSMVMqc",
+      "telegram_url": "https://t.me/any_toour/61"
+    },
+    {
+      "site_hotel_id": "29064315-74f8-40aa-b046-4d89c4b161e0",
+      "name": "Royal Wings Hotel",
+      "catalog_hotel_id": 1464,
+      "max_url": "https://max.ru/channel_anytour/AaGlZHE1b30",
+      "telegram_url": "https://t.me/any_toour/162"
+    },
+    {
+      "site_hotel_id": "2a26117e-1dfb-42b4-9d49-cd3697d22681",
+      "name": "СОЧИ ПАРК ОТЕЛЬ",
+      "catalog_hotel_id": 30095,
+      "max_url": "https://max.ru/channel_anytour/AaG3RRLjZ7Q",
+      "telegram_url": "https://t.me/any_toour/374"
+    },
+    {
+      "site_hotel_id": "2a4fbf94-b62a-4304-886f-d0b803a001de",
+      "name": "SUNRISE WHITE HILLS RESORT",
+      "catalog_hotel_id": 81173,
+      "max_url": "https://max.ru/channel_anytour/AaGb6NgvJvM",
+      "telegram_url": "https://t.me/any_toour/38"
+    },
+    {
+      "site_hotel_id": "2ac25b74-9fd9-470e-9a38-1695e970e635",
+      "name": "VESNA HOTEL",
+      "catalog_hotel_id": 65877,
+      "max_url": "https://max.ru/channel_anytour/AaG2NPXdL0M",
+      "telegram_url": "https://t.me/any_toour/227"
+    },
+    {
+      "site_hotel_id": "2ad4614b-718e-4efd-bede-4547137b01e0",
+      "name": "VON RESORT GOLDEN BEACH (EX. VON CLUB GOLDEN BEACH)",
+      "catalog_hotel_id": 28159,
+      "max_url": "https://max.ru/channel_anytour/AaG3GIvpA24",
+      "telegram_url": "https://t.me/any_toour/344"
+    },
+    {
+      "site_hotel_id": "2afb76a5-cebc-5709-a82d-4950405e775a",
+      "name": "MELAS RESORT HOTEL",
+      "catalog_hotel_id": 1370,
+      "max_url": "https://max.ru/channel_anytour/AaHQ_X5WP0s",
+      "telegram_url": "https://t.me/any_toour/559"
+    },
+    {
+      "site_hotel_id": "2aff334a-9d17-493f-ac04-ffe98118c2b4",
+      "name": "Papillon Zeugma Relaxury",
+      "catalog_hotel_id": 1422,
+      "max_url": "https://max.ru/channel_anytour/AaGpu8hXB30",
+      "telegram_url": "https://t.me/any_toour/174"
+    },
+    {
+      "site_hotel_id": "2b36b28b-28c7-4bce-a395-63d0610cdcef",
+      "name": "BARUT HEMERA",
+      "catalog_hotel_id": 1033,
+      "max_url": "https://max.ru/channel_anytour/AaG1_5mHIhM",
+      "telegram_url": "https://t.me/any_toour/212"
+    },
+    {
+      "site_hotel_id": "2b5f4cdd-3497-4a6f-8896-4077016b4707",
+      "name": "Iberotel Makadi Beach",
+      "catalog_hotel_id": 267,
+      "max_url": "https://max.ru/channel_anytour/AaGgXBr6OgI",
+      "telegram_url": "https://t.me/any_toour/109"
+    },
+    {
+      "site_hotel_id": "2c9e4f55-0794-4ca0-b90b-928f408f8760",
+      "name": "SEAHORSE RESORT & SPA",
+      "catalog_hotel_id": 4074,
+      "max_url": "https://max.ru/channel_anytour/AaG38H1BRs4",
+      "telegram_url": "https://t.me/any_toour/497"
+    },
+    {
+      "site_hotel_id": "2d1fe1ed-5326-4600-a6a2-2f56767aba0a",
+      "name": "CLUB HOTEL TURAN PRINCE WORLD",
+      "catalog_hotel_id": 1105,
+      "max_url": "https://max.ru/channel_anytour/AaG3MiNXaZ4",
+      "telegram_url": "https://t.me/any_toour/349"
+    },
+    {
+      "site_hotel_id": "2eb60542-f639-4ae2-8f43-f23454e98a86",
+      "name": "CA TY MUINE RESORT",
+      "catalog_hotel_id": 58473,
+      "max_url": "https://max.ru/channel_anytour/AaG2uTyWUmg",
+      "telegram_url": "https://t.me/any_toour/288"
+    },
+    {
+      "site_hotel_id": "2f2541d4-8f1a-4518-88f7-48726edb653e",
+      "name": "ALEXIA RESORT & SPA ADULTS ONLY 16+",
+      "catalog_hotel_id": 70289,
+      "max_url": "https://max.ru/channel_anytour/AaG3WYqQZnE",
+      "telegram_url": "https://t.me/any_toour/385"
+    },
+    {
+      "site_hotel_id": "2f35105a-2aec-5ac7-afa2-e24937445d87",
+      "name": "THE THREE CORNERS SEA BEACH RESORT",
+      "catalog_hotel_id": 254,
+      "max_url": "https://max.ru/channel_anytour/AaHTkeCpSWw",
+      "telegram_url": "https://t.me/any_toour/603"
+    },
+    {
+      "site_hotel_id": "2f6b1413-0784-4abf-a175-3151140a8a3e",
+      "name": "GRAND YAZICI CLUB TURBAN",
+      "catalog_hotel_id": 1647,
+      "max_url": "https://max.ru/channel_anytour/AaG3sEw2PZk",
+      "telegram_url": "https://t.me/any_toour/463"
+    },
+    {
+      "site_hotel_id": "2fa1a3dc-c063-4bfc-ba10-cd9855682c94",
+      "name": "MUONG THANH LUXURY PHU QUOC",
+      "catalog_hotel_id": 57064,
+      "max_url": "https://max.ru/channel_anytour/AaG38vGRd08",
+      "telegram_url": "https://t.me/any_toour/501"
+    },
+    {
+      "site_hotel_id": "2fa88e19-0caf-405f-a5d8-51cf4581d587",
+      "name": "RIXOS PREMIUM BELEK THE LAND OF LEGENDS FREE ACCESS",
+      "catalog_hotel_id": 1449,
+      "max_url": "https://max.ru/channel_anytour/AaGjniTUaqA",
+      "telegram_url": "https://t.me/any_toour/148"
+    },
+    {
+      "site_hotel_id": "2fb54ef1-ff7a-4287-8aac-0067d92486df",
+      "name": "KEMPINSKI HOTEL THE DOME",
+      "catalog_hotel_id": 1292,
+      "max_url": "https://max.ru/channel_anytour/AaG3NarZXZY",
+      "telegram_url": "https://t.me/any_toour/366"
+    },
+    {
+      "site_hotel_id": "2fc62ee1-6a01-4ed7-be2b-6bca930ac884",
+      "name": "YASAKA SAIGON NHATRANG HOTEL",
+      "catalog_hotel_id": 4095,
+      "max_url": "https://max.ru/channel_anytour/AaG2QvL6f7U",
+      "telegram_url": "https://t.me/any_toour/241"
+    },
+    {
+      "site_hotel_id": "2ffe699e-6fa8-40fc-8304-8efeef362890",
+      "name": "Sunrise Crystal Bay Resort",
+      "catalog_hotel_id": 416,
+      "max_url": "https://max.ru/channel_anytour/AaGck-F7KJ4",
+      "telegram_url": "https://t.me/any_toour/42"
+    },
+    {
+      "site_hotel_id": "3057c2be-5c39-4f6c-bdf3-84802ab65f42",
+      "name": "FAIRMONT FUJAIRAH BEACH RESORT",
+      "catalog_hotel_id": 54605,
+      "max_url": "https://max.ru/channel_anytour/AaG3lAEbWSA",
+      "telegram_url": "https://t.me/any_toour/431"
+    },
+    {
+      "site_hotel_id": "30ddb55b-d4e7-4fb3-849b-eef3f8a858b7",
+      "name": "DIAMOND PREMIUM",
+      "catalog_hotel_id": 42928,
+      "max_url": "https://max.ru/channel_anytour/AaG3sDdBOVQ",
+      "telegram_url": "https://t.me/any_toour/461"
+    },
+    {
+      "site_hotel_id": "317476a0-2868-41ba-88bf-150f0e17d9ff",
+      "name": "TUI BLUE BARUT ANDIZ ADULTS ONLY 16+",
+      "catalog_hotel_id": 21673,
+      "max_url": "https://max.ru/channel_anytour/AaG3WaWEAts",
+      "telegram_url": "https://t.me/any_toour/388"
+    },
+    {
+      "site_hotel_id": "31c864f2-c85c-4101-885c-95a1edb9a1f5",
+      "name": "JAZ NEO NAAMA BAY (EX. SOLYMAR NAAMA BAY)",
+      "catalog_hotel_id": 1981,
+      "max_url": "https://max.ru/channel_anytour/AaGa-J63PEo",
+      "telegram_url": "https://t.me/any_toour/25"
+    },
+    {
+      "site_hotel_id": "32609f66-9f19-42eb-a640-580e3d18c939",
+      "name": "Pickalbatros White Beach Resort",
+      "catalog_hotel_id": 55574,
+      "max_url": "https://max.ru/channel_anytour/AaGd4c7dGwc",
+      "telegram_url": "https://t.me/any_toour/68"
+    },
+    {
+      "site_hotel_id": "32a564be-38c0-43c5-b50a-2fafa0f9dc60",
+      "name": "AL HABTOOR GRAND RESORT AUTOGRAPH COLLECTION",
+      "catalog_hotel_id": 2569,
+      "max_url": "https://max.ru/channel_anytour/AaHR2BNARwQ",
+      "telegram_url": "https://t.me/any_toour/587"
+    },
+    {
+      "site_hotel_id": "335824d7-88d2-49ce-bba6-36d322750a34",
+      "name": "Pickalbatros Oasis Port Ghalib",
+      "catalog_hotel_id": 173,
+      "max_url": "https://max.ru/channel_anytour/AaGeHovGaCQ",
+      "telegram_url": "https://t.me/any_toour/74"
+    },
+    {
+      "site_hotel_id": "3394655b-0297-42c2-9d02-04915707a50e",
+      "name": "JAZ Mirabel Club",
+      "catalog_hotel_id": 282,
+      "max_url": "https://max.ru/channel_anytour/AaGiIcOYXpU",
+      "telegram_url": "https://t.me/any_toour/125"
+    },
+    {
+      "site_hotel_id": "33b7fd35-1b6b-40e3-8847-95a732808ef4",
+      "name": "LITORE RESORT HOTEL & SPA",
+      "catalog_hotel_id": 37168,
+      "max_url": "https://max.ru/channel_anytour/AaG3EJPaCaY",
+      "telegram_url": "https://t.me/any_toour/331"
+    },
+    {
+      "site_hotel_id": "348c18b0-17d7-44fb-8a89-168c58bf6546",
+      "name": "SRNTY SAHL HASHEESH (EX. SERENITY SKY ARC SAHL HASHEESH)",
+      "catalog_hotel_id": 129406,
+      "max_url": "https://max.ru/channel_anytour/AaHQ_YcmDok",
+      "telegram_url": "https://t.me/any_toour/560"
+    },
+    {
+      "site_hotel_id": "34f38659-da9a-4854-8891-ddca495a5abf",
+      "name": "FLOW SPECTRUM RESORT SAHL HASHEESH",
+      "catalog_hotel_id": 118475,
+      "max_url": "https://max.ru/channel_anytour/AaG1yQSfbMc",
+      "telegram_url": "https://t.me/any_toour/194"
+    },
+    {
+      "site_hotel_id": "35c191cc-7c1a-4e3e-9ee4-57082886f5ba",
+      "name": "TUI BLUE Palm Garden",
+      "catalog_hotel_id": 17480,
+      "max_url": "https://max.ru/channel_anytour/AaGoWHxLOEA",
+      "telegram_url": "https://t.me/any_toour/172"
+    },
+    {
+      "site_hotel_id": "369fa778-e05d-4b64-8826-42206ada5a5d",
+      "name": "ASTERIA FAMILY RESORT SIDE (EX. EUPHORIA PALM BEACH RESORT)",
+      "catalog_hotel_id": 1353,
+      "max_url": "https://max.ru/channel_anytour/AaG2kaKJTuI",
+      "telegram_url": "https://t.me/any_toour/272"
+    },
+    {
+      "site_hotel_id": "37c7c2cc-c642-4a28-9833-c8361b62424d",
+      "name": "ADALYA ELITE LARA",
+      "catalog_hotel_id": 47025,
+      "max_url": "https://max.ru/channel_anytour/AaG2esUuLcc",
+      "telegram_url": "https://t.me/any_toour/271"
+    },
+    {
+      "site_hotel_id": "37e6b026-bb1e-43ec-9b13-718b3ad999e3",
+      "name": "THAVORN BEACH VILLAGE & SPA",
+      "catalog_hotel_id": 817,
+      "max_url": "https://max.ru/channel_anytour/AaG3_X-cRf0",
+      "telegram_url": "https://t.me/any_toour/508"
+    },
+    {
+      "site_hotel_id": "3826f4cf-848e-4bb0-906e-b3d24601d504",
+      "name": "NOOE Maldives Kunaavashi",
+      "catalog_hotel_id": 101694,
+      "max_url": "https://max.ru/channel_anytour/AaG1nAdWK9U",
+      "telegram_url": "https://t.me/any_toour/181"
+    },
+    {
+      "site_hotel_id": "382ef1e3-b1e1-431b-8436-f9b5e8b8c09e",
+      "name": "NOVOTEL PHUKET VINTAGE PARK",
+      "catalog_hotel_id": 8053,
+      "max_url": "https://max.ru/channel_anytour/AaG1_4eqKhU",
+      "telegram_url": "https://t.me/any_toour/210"
+    },
+    {
+      "site_hotel_id": "3833e6a9-8c8d-4e78-b8bc-dc513d8824ce",
+      "name": "LOTUS BAY BEACH RESORT",
+      "catalog_hotel_id": 302,
+      "max_url": "https://max.ru/channel_anytour/AaG2ImjgQGM",
+      "telegram_url": "https://t.me/any_toour/222"
+    },
+    {
+      "site_hotel_id": "3847cd2e-21b4-4f9f-a495-9d931782fdb0",
+      "name": "MERAKI RESORT SHARM EL SHEIKH ADULTS ONLY 16+",
+      "catalog_hotel_id": 80964,
+      "max_url": "https://max.ru/channel_anytour/AaGeinoRLSQ",
+      "telegram_url": "https://t.me/any_toour/102"
+    },
+    {
+      "site_hotel_id": "38948e28-8ba2-4ef7-9f96-4b868b86f6e5",
+      "name": "AKKA CLAROS HOTEL",
+      "catalog_hotel_id": 956,
+      "max_url": "https://max.ru/channel_anytour/AaG3fq6oDvM",
+      "telegram_url": "https://t.me/any_toour/409"
+    },
+    {
+      "site_hotel_id": "3896680d-a5a3-4ccc-ad91-6960791d2401",
+      "name": "VINPEARL RESORT NHA TRANG",
+      "catalog_hotel_id": 4091,
+      "max_url": "https://max.ru/channel_anytour/AaG2eBrpNlk",
+      "telegram_url": "https://t.me/any_toour/264"
+    },
+    {
+      "site_hotel_id": "38b4115f-69bb-4bc8-8a7f-1f960d7a2316",
+      "name": "STELLA MAKADI GARDENS RESORT & SPA",
+      "catalog_hotel_id": 14140,
+      "max_url": "https://max.ru/channel_anytour/AaHSUbsDacE",
+      "telegram_url": "https://t.me/any_toour/593"
+    },
+    {
+      "site_hotel_id": "38c2c63d-4b95-4682-af70-9406fcc156c1",
+      "name": "GRANADA LUXURY RED ADULTS ONLY",
+      "catalog_hotel_id": 113292,
+      "max_url": "https://max.ru/channel_anytour/AaG3o-ijcuk",
+      "telegram_url": "https://t.me/any_toour/450"
+    },
+    {
+      "site_hotel_id": "38ec2fe8-7f2b-4f5d-88f6-9f8321f53d28",
+      "name": "LEODIKYA KIRMAN PREMIUM (EX. KIRMAN LEODIKYA RESORT)",
+      "catalog_hotel_id": 1334,
+      "max_url": "https://max.ru/channel_anytour/AaGmKDyXAvs",
+      "telegram_url": "https://t.me/any_toour/169"
+    },
+    {
+      "site_hotel_id": "390e1ad1-8679-5300-aae6-c7e124bc0cd2",
+      "name": "ROBINSON SOMA BAY",
+      "catalog_hotel_id": 62505,
+      "max_url": "https://max.ru/channel_anytour/AaHQ_ZADERU",
+      "telegram_url": "https://t.me/any_toour/561"
+    },
+    {
+      "site_hotel_id": "398df4c9-6205-495a-940c-b3bc4cacd888",
+      "name": "SAIGON MUI NE RESORT",
+      "catalog_hotel_id": 4071,
+      "max_url": "https://max.ru/channel_anytour/AaG2QwTTC2w",
+      "telegram_url": "https://t.me/any_toour/243"
+    },
+    {
+      "site_hotel_id": "39924dac-c8c4-4e46-a6f4-b874aa04ddda",
+      "name": "CORENDON PLAYA KEMER (EX. GRAND PARK KEMER)",
+      "catalog_hotel_id": 996,
+      "max_url": "https://max.ru/channel_anytour/AaG3AD9iGv0",
+      "telegram_url": "https://t.me/any_toour/325"
+    },
+    {
+      "site_hotel_id": "39ce7826-921b-4e62-af41-28d3bb89f4a8",
+      "name": "PICKALBATROS BLU SPA RESORT HURGHADA ADULTS ONLY 16+",
+      "catalog_hotel_id": 78898,
+      "max_url": "https://max.ru/channel_anytour/AaGePFyOTCg",
+      "telegram_url": "https://t.me/any_toour/86"
+    },
+    {
+      "site_hotel_id": "3a3d346c-3d94-457e-b001-6d6b218388b2",
+      "name": "GLOW MIRA KARON BEACH",
+      "catalog_hotel_id": 81358,
+      "max_url": "https://max.ru/channel_anytour/AaHUrEE-Jjs",
+      "telegram_url": "https://t.me/any_toour/610"
+    },
+    {
+      "site_hotel_id": "3ac8f13d-8be6-457f-b721-686dd4c1eaa3",
+      "name": "PRESTIGE GARDEN HOTEL",
+      "catalog_hotel_id": 59563,
+      "max_url": "https://max.ru/channel_anytour/AaG3EK8FcjQ",
+      "telegram_url": "https://t.me/any_toour/334"
+    },
+    {
+      "site_hotel_id": "3b2325b3-0d5f-42cd-9ad9-1f011bbb8c70",
+      "name": "Renaissance Golden View Beach",
+      "catalog_hotel_id": 382,
+      "max_url": "https://max.ru/channel_anytour/AaGiIddbVWk",
+      "telegram_url": "https://t.me/any_toour/127"
+    },
+    {
+      "site_hotel_id": "3b68b74f-9329-4cc0-a536-624769c3829c",
+      "name": "Eftalia Ocean",
+      "catalog_hotel_id": 55205,
+      "max_url": "https://max.ru/channel_anytour/AaGmKDLzROI",
+      "telegram_url": "https://t.me/any_toour/168"
+    },
+    {
+      "site_hotel_id": "3b713d15-492b-4f94-b899-bba605110913",
+      "name": "MONTE CARLO SHARM RESORT SPA & AQUA PARK",
+      "catalog_hotel_id": 386,
+      "max_url": "https://max.ru/channel_anytour/AaG1_6LVUx8",
+      "telegram_url": "https://t.me/any_toour/213"
+    },
+    {
+      "site_hotel_id": "3b76c74b-e493-44ac-8aab-0c3c35b02fce",
+      "name": "SEASHELLS PHU QUOC HOTEL & SPA",
+      "catalog_hotel_id": 58987,
+      "max_url": "https://max.ru/channel_anytour/AaG1_5CKV6I",
+      "telegram_url": "https://t.me/any_toour/211"
+    },
+    {
+      "site_hotel_id": "3c34360a-3a4e-4c2d-a312-0b7b8af13b21",
+      "name": "Pickalbatros The Palace Port Ghalib",
+      "catalog_hotel_id": 275,
+      "max_url": "https://max.ru/channel_anytour/AaGeHoHUT8w",
+      "telegram_url": "https://t.me/any_toour/73"
+    },
+    {
+      "site_hotel_id": "3c71ab78-86e3-4dd2-9dd7-f224d35f1bb6",
+      "name": "Hurghada Marriott Beach Resort",
+      "catalog_hotel_id": 315,
+      "max_url": "https://max.ru/channel_anytour/AaGg3N8BQdQ",
+      "telegram_url": "https://t.me/any_toour/115"
+    },
+    {
+      "site_hotel_id": "3cccbdd0-5883-5e38-9c0b-b3767f09f907",
+      "name": "THE GRAND PALACE ADULTS ONLY 18+",
+      "catalog_hotel_id": 73343,
+      "max_url": "https://max.ru/channel_anytour/AaHQ_ZjzcEA",
+      "telegram_url": "https://t.me/any_toour/562"
+    },
+    {
+      "site_hotel_id": "3d656b24-5afe-4a33-94de-05b9030c44e6",
+      "name": "GRANADA LUXURY BELEK",
+      "catalog_hotel_id": 54592,
+      "max_url": "https://max.ru/channel_anytour/AaG2UhCtBYs",
+      "telegram_url": "https://t.me/any_toour/245"
+    },
+    {
+      "site_hotel_id": "3e0c0383-f1a6-4299-a236-7ef39c870f71",
+      "name": "LAGO HOTEL (EX. AZURA DELUXE SORGUN)",
+      "catalog_hotel_id": 1273,
+      "max_url": "https://max.ru/channel_anytour/AaG3MlpHDdo",
+      "telegram_url": "https://t.me/any_toour/355"
+    },
+    {
+      "site_hotel_id": "3eff9f78-0d2c-4132-a13e-ec2a0a70632b",
+      "name": "MOVENPICK RESORT CAM RANH",
+      "catalog_hotel_id": 68661,
+      "max_url": "https://max.ru/channel_anytour/AaHR2BwWCmU",
+      "telegram_url": "https://t.me/any_toour/588"
+    },
+    {
+      "site_hotel_id": "3f0ba698-e80d-4164-95b2-d80d98e85182",
+      "name": "PHUKET GRACELAND RESORT & SPA",
+      "catalog_hotel_id": 748,
+      "max_url": "https://max.ru/channel_anytour/AaG15qstL0Y",
+      "telegram_url": "https://t.me/any_toour/205"
+    },
+    {
+      "site_hotel_id": "3f8a592c-0ccd-5a4c-952d-d19dcce1a018",
+      "name": "HILTON MARSA ALAM NUBIAN RESORT",
+      "catalog_hotel_id": 4181,
+      "max_url": "https://max.ru/channel_anytour/AaHQYxwLYMY",
+      "telegram_url": "https://t.me/any_toour/555"
+    },
+    {
+      "site_hotel_id": "3fe619a8-0ce6-456f-9a1b-a88b8b1651a4",
+      "name": "JAZ Makadi Star & Spa",
+      "catalog_hotel_id": 280,
+      "max_url": "https://max.ru/channel_anytour/AaGdPQ-jO1I",
+      "telegram_url": "https://t.me/any_toour/59"
+    },
+    {
+      "site_hotel_id": "400f9db2-fef8-4db7-a324-867a0945ba53",
+      "name": "MEGASARAY CLUB BELEK",
+      "catalog_hotel_id": 1112,
+      "max_url": "https://max.ru/channel_anytour/AaHR2CTAJAo",
+      "telegram_url": "https://t.me/any_toour/589"
+    },
+    {
+      "site_hotel_id": "408be884-4483-48a0-abfe-4be00cb22a1e",
+      "name": "Hilton Hurghada Plaza",
+      "catalog_hotel_id": 249,
+      "max_url": "https://max.ru/channel_anytour/AaGg3NUaRFA",
+      "telegram_url": "https://t.me/any_toour/114"
+    },
+    {
+      "site_hotel_id": "40d48ec7-7202-4e41-9305-750040355d16",
+      "name": "MAXX ROYAL BODRUM RESORT",
+      "catalog_hotel_id": 108942,
+      "max_url": "https://max.ru/channel_anytour/AaG3sF4JRBU",
+      "telegram_url": "https://t.me/any_toour/465"
+    },
+    {
+      "site_hotel_id": "41d26b80-9ccf-4656-8b6f-bd2692a1247d",
+      "name": "LONG BEACH RESORT HURGHADA (EX. HILTON)",
+      "catalog_hotel_id": 247,
+      "max_url": "https://max.ru/channel_anytour/AaG15rQbQH0",
+      "telegram_url": "https://t.me/any_toour/206"
+    },
+    {
+      "site_hotel_id": "4264bb85-b2f6-4401-956c-a18e5529d7ba",
+      "name": "ROSAKA",
+      "catalog_hotel_id": 46770,
+      "max_url": "https://max.ru/channel_anytour/AaHQ_aGMBAY",
+      "telegram_url": "https://t.me/any_toour/563"
+    },
+    {
+      "site_hotel_id": "426c5252-a05b-4a13-94ae-54e57f53fd11",
+      "name": "KAHYA",
+      "catalog_hotel_id": 53578,
+      "max_url": "https://max.ru/channel_anytour/AaG3o_pIVEI",
+      "telegram_url": "https://t.me/any_toour/452"
+    },
+    {
+      "site_hotel_id": "428bc047-159d-4839-8f15-47bf081637a6",
+      "name": "RIXOS DOWNTOWN ANTALYA THE LAND OF LEGENDS FREE ACCESS",
+      "catalog_hotel_id": 1494,
+      "max_url": "https://max.ru/channel_anytour/AaG3NXweS5Q",
+      "telegram_url": "https://t.me/any_toour/361"
+    },
+    {
+      "site_hotel_id": "42ac74ff-4a98-4796-81f4-87611012f9c5",
+      "name": "LOCEANICA BEACH RESORT HOTEL",
+      "catalog_hotel_id": 1313,
+      "max_url": "https://max.ru/channel_anytour/AaG3EIGvBBk",
+      "telegram_url": "https://t.me/any_toour/329"
+    },
+    {
+      "site_hotel_id": "4319b25b-59e9-56b8-9ea6-59160e0f2202",
+      "name": "JAZ FANARA RESORT & RESIDENCE (EX. IBEROTEL CLUB)",
+      "catalog_hotel_id": 12107,
+      "max_url": "https://max.ru/channel_anytour/AaHQYyUwahM",
+      "telegram_url": "https://t.me/any_toour/556"
+    },
+    {
+      "site_hotel_id": "437c48bf-1787-416d-b989-fdb26da2a07a",
+      "name": "Continental Hotel Hurghada",
+      "catalog_hotel_id": 272,
+      "max_url": "https://max.ru/channel_anytour/AaGg3PJKAB8",
+      "telegram_url": "https://t.me/any_toour/117"
+    },
+    {
+      "site_hotel_id": "4516d88e-2ea7-494b-8035-f2e6e67f584b",
+      "name": "SELECTUM LUXURY RESORT BELEK",
+      "catalog_hotel_id": 55828,
+      "max_url": "https://max.ru/channel_anytour/AaG2eD-BQRg",
+      "telegram_url": "https://t.me/any_toour/268"
+    },
+    {
+      "site_hotel_id": "45c5fe6d-4445-4a86-86f0-87760a386dda",
+      "name": "JAZ Elite Asteria",
+      "catalog_hotel_id": 111801,
+      "max_url": "https://max.ru/channel_anytour/AaGeYSK7AH0",
+      "telegram_url": "https://t.me/any_toour/94"
+    },
+    {
+      "site_hotel_id": "462e280c-98a6-4cca-a111-614f84ca66b7",
+      "name": "RUBI PLATINUM SIGN",
+      "catalog_hotel_id": 75041,
+      "max_url": "https://max.ru/channel_anytour/AaG2keIrBrw",
+      "telegram_url": "https://t.me/any_toour/279"
+    },
+    {
+      "site_hotel_id": "4658314e-9f24-4459-9f0e-52a58ad0bc67",
+      "name": "BLUE BAY PLATINUM",
+      "catalog_hotel_id": 1614,
+      "max_url": "https://max.ru/channel_anytour/AaG3AAjVCWM",
+      "telegram_url": "https://t.me/any_toour/319"
+    },
+    {
+      "site_hotel_id": "46985331-7f20-448d-8460-b224f79ec870",
+      "name": "WHITE CITY RESORT",
+      "catalog_hotel_id": 15873,
+      "max_url": "https://max.ru/channel_anytour/AaG3obfMTSI",
+      "telegram_url": "https://t.me/any_toour/443"
+    },
+    {
+      "site_hotel_id": "46e6ff60-5628-4552-a9af-eaef5d654d17",
+      "name": "VOYAGE KUNDU HOTEL",
+      "catalog_hotel_id": 132016,
+      "max_url": "https://max.ru/channel_anytour/AaHQYu_Vdyw",
+      "telegram_url": "https://t.me/any_toour/550"
+    },
+    {
+      "site_hotel_id": "47973e9b-8a9a-454b-b3e7-682b7cd7572c",
+      "name": "JAZ Soma Beach",
+      "catalog_hotel_id": 73342,
+      "max_url": "https://max.ru/channel_anytour/AaGgW-hKRzw",
+      "telegram_url": "https://t.me/any_toour/104"
+    },
+    {
+      "site_hotel_id": "47bd1fce-40c3-40f4-b99c-3c374f23e8d9",
+      "name": "RAMADA RESORT BY WYNDHAM LARA",
+      "catalog_hotel_id": 17595,
+      "max_url": "https://max.ru/channel_anytour/AaG3pBVMct4",
+      "telegram_url": "https://t.me/any_toour/455"
+    },
+    {
+      "site_hotel_id": "49a02605-9f42-4b52-b119-6b6394339fd0",
+      "name": "MY HOME RESORT",
+      "catalog_hotel_id": 2219,
+      "max_url": "https://max.ru/channel_anytour/AaG2yzaUO2c",
+      "telegram_url": "https://t.me/any_toour/290"
+    },
+    {
+      "site_hotel_id": "4a053f89-a382-4f8d-92c5-6139dd0b8dfe",
+      "name": "MUINE DE CENTURY BEACH RESORT & SPA",
+      "catalog_hotel_id": 4054,
+      "max_url": "https://max.ru/channel_anytour/AaG38GsfWTw",
+      "telegram_url": "https://t.me/any_toour/495"
+    },
+    {
+      "site_hotel_id": "4a1cd8b8-54ca-4ed0-989d-1d2595d99694",
+      "name": "SENZA GARDEN HOLIDAY CLUB (EX. LARISSA HILL BEACH)",
+      "catalog_hotel_id": 1228,
+      "max_url": "https://max.ru/channel_anytour/AaG3ABHjXZU",
+      "telegram_url": "https://t.me/any_toour/320"
+    },
+    {
+      "site_hotel_id": "4a219580-2c96-4b0b-8266-ff49887ec31b",
+      "name": "CORAL SANDS",
+      "catalog_hotel_id": 5389,
+      "max_url": "https://max.ru/channel_anytour/AaG3_ci5XaI",
+      "telegram_url": "https://t.me/any_toour/516"
+    },
+    {
+      "site_hotel_id": "4a924ab4-0a6f-41d8-ac13-bc8db5842411",
+      "name": "JAZ Aquamarine",
+      "catalog_hotel_id": 262,
+      "max_url": "https://max.ru/channel_anytour/AaGc6c3UfW4",
+      "telegram_url": "https://t.me/any_toour/50"
+    },
+    {
+      "site_hotel_id": "4b4165ab-f69f-43e2-90af-f01b70ee6483",
+      "name": "AMWAJ ROTANA JUMEIRAH BEACH",
+      "catalog_hotel_id": 2514,
+      "max_url": "https://max.ru/channel_anytour/AaG3k-8IWNo",
+      "telegram_url": "https://t.me/any_toour/429"
+    },
+    {
+      "site_hotel_id": "4be0847c-c5ec-4de2-9ee2-7f46f54092a2",
+      "name": "SUNRISE SENTIDO MAMLOUK PALACE RESORT",
+      "catalog_hotel_id": 482,
+      "max_url": "https://max.ru/channel_anytour/AaGb6MRjHEM",
+      "telegram_url": "https://t.me/any_toour/36"
+    },
+    {
+      "site_hotel_id": "4c3fe638-e903-4c4b-9f73-ea9ceb9212c1",
+      "name": "HAPPY LIFE VILLAGE",
+      "catalog_hotel_id": 240,
+      "max_url": "https://max.ru/channel_anytour/AaGa3G0Ba0I",
+      "telegram_url": "https://t.me/any_toour/22"
+    },
+    {
+      "site_hotel_id": "4eaa97b1-3df2-4b06-9e5d-8d1639ca7d0b",
+      "name": "SIRENE BELEK HOTEL",
+      "catalog_hotel_id": 1507,
+      "max_url": "https://max.ru/channel_anytour/AaG2yz_FAGA",
+      "telegram_url": "https://t.me/any_toour/291"
+    },
+    {
+      "site_hotel_id": "4ee5647f-667b-4b49-a716-7a086d8c0cb8",
+      "name": "DIAMOND BAY HOTEL",
+      "catalog_hotel_id": 50624,
+      "max_url": "https://max.ru/channel_anytour/AaG2uTMTGXU",
+      "telegram_url": "https://t.me/any_toour/287"
+    },
+    {
+      "site_hotel_id": "4eef5c5b-dd58-4086-87a4-153f0f657c77",
+      "name": "HILTON SALALAH RESORT",
+      "catalog_hotel_id": 49345,
+      "max_url": "https://max.ru/channel_anytour/AaHQQxgWdmM",
+      "telegram_url": "https://t.me/any_toour/542"
+    },
+    {
+      "site_hotel_id": "4f2e8f4f-f133-4407-93c5-64b364ff5954",
+      "name": "TRENDY LARA",
+      "catalog_hotel_id": 46670,
+      "max_url": "https://max.ru/channel_anytour/AaG3fqWVB0U",
+      "telegram_url": "https://t.me/any_toour/408"
+    },
+    {
+      "site_hotel_id": "4f475321-7d16-4ed8-a66e-ec85b8948ea4",
+      "name": "ORANGE COUNTY RESORT HOTEL ALANYA",
+      "catalog_hotel_id": 1579,
+      "max_url": "https://max.ru/channel_anytour/AaG3sASuY_8",
+      "telegram_url": "https://t.me/any_toour/457"
+    },
+    {
+      "site_hotel_id": "4f7272dc-31aa-4cc6-836a-3030330213f3",
+      "name": "KIMEROS PARK HOLIDAY VILLAGE",
+      "catalog_hotel_id": 37527,
+      "max_url": "https://max.ru/channel_anytour/AaG2zigHLzM",
+      "telegram_url": "https://t.me/any_toour/304"
+    },
+    {
+      "site_hotel_id": "4fe89c94-3055-4054-b274-7758467647e8",
+      "name": "STARLET",
+      "catalog_hotel_id": 4078,
+      "max_url": "https://max.ru/channel_anytour/AaG38FkjGZg",
+      "telegram_url": "https://t.me/any_toour/493"
+    },
+    {
+      "site_hotel_id": "501acc1a-a7f0-4062-9a24-063d740b27d6",
+      "name": "SUENO HOTELS DELUXE BELEK",
+      "catalog_hotel_id": 37360,
+      "max_url": "https://max.ru/channel_anytour/AaG1rqKAe2o",
+      "telegram_url": "https://t.me/any_toour/184"
+    },
+    {
+      "site_hotel_id": "50e56e9c-4306-4cab-b856-6bae8a9900e3",
+      "name": "ASTERIA BLOOM SIDE (EX. SELECTUM FOR TWO SIDE)",
+      "catalog_hotel_id": 27647,
+      "max_url": "https://max.ru/channel_anytour/AaG2kdBJaSY",
+      "telegram_url": "https://t.me/any_toour/277"
+    },
+    {
+      "site_hotel_id": "514ae207-efde-4d9a-a34a-ec54884627fe",
+      "name": "Nika Island Resort & Spa",
+      "catalog_hotel_id": 2469,
+      "max_url": "https://max.ru/channel_anytour/AaG1nBBkPwY",
+      "telegram_url": "https://t.me/any_toour/182"
+    },
+    {
+      "site_hotel_id": "51657e16-ac8d-41c9-be98-af71d3dad818",
+      "name": "RIXOS PREMIUM GOCEK ADULTS ONLY 13+",
+      "catalog_hotel_id": 28668,
+      "max_url": "https://max.ru/channel_anytour/AaGmKCmVex4",
+      "telegram_url": "https://t.me/any_toour/167"
+    },
+    {
+      "site_hotel_id": "51a60021-d675-4538-a8b2-08e750be6794",
+      "name": "ELL LOUNGE SPA & HOTEL",
+      "catalog_hotel_id": 82545,
+      "max_url": "https://max.ru/channel_anytour/AaG7koxXOo4",
+      "telegram_url": "https://t.me/any_toour/522"
+    },
+    {
+      "site_hotel_id": "524cda79-4f02-4dba-87ab-b47e8cb44317",
+      "name": "JAZ Neo Dar El Madina",
+      "catalog_hotel_id": 456,
+      "max_url": "https://max.ru/channel_anytour/AaGdPRlhGzs",
+      "telegram_url": "https://t.me/any_toour/60"
+    },
+    {
+      "site_hotel_id": "52aed9d3-a1ee-4db5-a796-b37a2f377d2c",
+      "name": "GURAL PREMIER TEKIROVA",
+      "catalog_hotel_id": 969,
+      "max_url": "https://max.ru/channel_anytour/AaG10xu2ENI",
+      "telegram_url": "https://t.me/any_toour/199"
+    },
+    {
+      "site_hotel_id": "52fcf237-e95f-452d-a83b-2b67f3b44db7",
+      "name": "The Breakers Soma Bay",
+      "catalog_hotel_id": 109149,
+      "max_url": "https://max.ru/channel_anytour/AaGeikjzceE",
+      "telegram_url": "https://t.me/any_toour/97"
+    },
+    {
+      "site_hotel_id": "5313926a-2303-4881-8253-9bf39e9f6ebf",
+      "name": "LIMAK LIMRA HOTEL & RESORT",
+      "catalog_hotel_id": 1339,
+      "max_url": "https://max.ru/channel_anytour/AaG3o82NB0U",
+      "telegram_url": "https://t.me/any_toour/447"
+    },
+    {
+      "site_hotel_id": "54fc96ed-2f67-5d42-bafa-aa6ec8a2662e",
+      "name": "SERRY BEACH RESORT",
+      "catalog_hotel_id": 83563,
+      "max_url": "https://max.ru/channel_anytour/AaHQYvjrAzg",
+      "telegram_url": "https://t.me/any_toour/551"
+    },
+    {
+      "site_hotel_id": "5509d22b-144c-40a2-9d26-9c05393dc0f2",
+      "name": "JAZ Neo Reef Marsa",
+      "catalog_hotel_id": 384,
+      "max_url": "https://max.ru/channel_anytour/AaGgkHXqIM0",
+      "telegram_url": "https://t.me/any_toour/111"
+    },
+    {
+      "site_hotel_id": "55238fef-f496-43e3-9f3a-acb79ed4eaaa",
+      "name": "BARON PALACE RESORT SAHL HASHEESH",
+      "catalog_hotel_id": 21475,
+      "max_url": "https://max.ru/channel_anytour/AaGdPTaZQts",
+      "telegram_url": "https://t.me/any_toour/63"
+    },
+    {
+      "site_hotel_id": "5557b3e1-fe76-4d99-a35c-41ecf3cc1466",
+      "name": "SULTAN OF SIDE",
+      "catalog_hotel_id": 1521,
+      "max_url": "https://max.ru/channel_anytour/AaG3EMECH2s",
+      "telegram_url": "https://t.me/any_toour/336"
+    },
+    {
+      "site_hotel_id": "55a23859-a4f4-4f1f-97f3-635750585046",
+      "name": "ASTERIA COLLECTION SIDE (EX.AMARA FAMILY RESORT)",
+      "catalog_hotel_id": 21817,
+      "max_url": "https://max.ru/channel_anytour/AaG2eAiYDj0",
+      "telegram_url": "https://t.me/any_toour/262"
+    },
+    {
+      "site_hotel_id": "5620a15a-b420-4bff-b3b4-2b420cdaf603",
+      "name": "MC BEACH RESORT",
+      "catalog_hotel_id": 1493,
+      "max_url": "https://max.ru/channel_anytour/AaG3gb3UWPg",
+      "telegram_url": "https://t.me/any_toour/416"
+    },
+    {
+      "site_hotel_id": "563a55a8-5a47-4983-950e-3d79b1d2eec5",
+      "name": "YASMIN BODRUM RESORT (EX. PALOMA YASMIN RESORT)",
+      "catalog_hotel_id": 1699,
+      "max_url": "https://max.ru/channel_anytour/AaG7koOKFHk",
+      "telegram_url": "https://t.me/any_toour/521"
+    },
+    {
+      "site_hotel_id": "56b928e7-858d-40f3-b0fc-58dd7b35ac5f",
+      "name": "ASTERIA MUI NE RESORT",
+      "catalog_hotel_id": 108167,
+      "max_url": "https://max.ru/channel_anytour/AaG2erK-Lj0",
+      "telegram_url": "https://t.me/any_toour/269"
+    },
+    {
+      "site_hotel_id": "57bbf0af-44e2-47eb-af30-3d970c031877",
+      "name": "GRANADA LUXURY BEACH HOTEL",
+      "catalog_hotel_id": 65712,
+      "max_url": "https://max.ru/channel_anytour/AaG3XzamMEk",
+      "telegram_url": "https://t.me/any_toour/400"
+    },
+    {
+      "site_hotel_id": "57e7e757-f98a-4dad-affc-aeb646be9332",
+      "name": "Meraki Resort Hurghada",
+      "catalog_hotel_id": 64895,
+      "max_url": "https://max.ru/channel_anytour/AaGc6cPhfeQ",
+      "telegram_url": "https://t.me/any_toour/49"
+    },
+    {
+      "site_hotel_id": "586a95b2-2ad7-54a6-a6dd-a5468b910f95",
+      "name": "PAPILLON AYSCHA",
+      "catalog_hotel_id": 1420,
+      "max_url": "https://max.ru/channel_anytour/AaHQQwa4aYw",
+      "telegram_url": "https://t.me/any_toour/540"
+    },
+    {
+      "site_hotel_id": "58919eba-de88-4cda-bca5-a03d0e46e2cc",
+      "name": "SELECTUM FAMILY RESORT SIDE (EX. SILENCE BEACH RESORT)",
+      "catalog_hotel_id": 1501,
+      "max_url": "https://max.ru/channel_anytour/AaG3GF5AX9A",
+      "telegram_url": "https://t.me/any_toour/339"
+    },
+    {
+      "site_hotel_id": "589d7075-b8a0-4c70-960e-a5190458d4b2",
+      "name": "DENDRO HOTEL",
+      "catalog_hotel_id": 16750,
+      "max_url": "https://max.ru/channel_anytour/AaG2y20GDJ0",
+      "telegram_url": "https://t.me/any_toour/296"
+    },
+    {
+      "site_hotel_id": "591a18a6-26da-42f5-8a1e-ca53ea80b4d0",
+      "name": "Pickalbatros Citadel",
+      "catalog_hotel_id": 150,
+      "max_url": "https://max.ru/channel_anytour/AaGeHm38ACE",
+      "telegram_url": "https://t.me/any_toour/71"
+    },
+    {
+      "site_hotel_id": "591a6964-a091-4e56-991a-2fc45ac07174",
+      "name": "CALISTA LUXURY RESORT",
+      "catalog_hotel_id": 1065,
+      "max_url": "https://max.ru/channel_anytour/AaG15pBCV-0",
+      "telegram_url": "https://t.me/any_toour/202"
+    },
+    {
+      "site_hotel_id": "591d915e-d00b-4f03-9fa5-f8592d868ec0",
+      "name": "VOGUE HOTEL SUPREME BODRUM",
+      "catalog_hotel_id": 21847,
+      "max_url": "https://max.ru/channel_anytour/AaG2Il-5O-o",
+      "telegram_url": "https://t.me/any_toour/221"
+    },
+    {
+      "site_hotel_id": "5936c8a9-1d7b-4b17-88e9-624fb0d19008",
+      "name": "AKRA DIDIM",
+      "catalog_hotel_id": 132002,
+      "max_url": "https://max.ru/channel_anytour/AaHQDQwoRK8",
+      "telegram_url": "https://t.me/any_toour/524"
+    },
+    {
+      "site_hotel_id": "598233c8-4d9e-4df0-a605-095e4c88a504",
+      "name": "HIKKA TRANZ BY CINNAMON",
+      "catalog_hotel_id": 2810,
+      "max_url": "https://max.ru/channel_anytour/AaG3SAL0GWc",
+      "telegram_url": "https://t.me/any_toour/383"
+    },
+    {
+      "site_hotel_id": "59d3d571-fadd-4cb4-a1ca-c7213a4e860e",
+      "name": "HILTON DALAMAN SARIGERME RESORT & SPA",
+      "catalog_hotel_id": 1653,
+      "max_url": "https://max.ru/channel_anytour/AaG2NQglLYU",
+      "telegram_url": "https://t.me/any_toour/229"
+    },
+    {
+      "site_hotel_id": "5a8e1b18-01f7-4ffd-a2c6-e0b1239f2c4a",
+      "name": "NAGAR",
+      "catalog_hotel_id": 63673,
+      "max_url": "https://max.ru/channel_anytour/AaHQ_apUKj4",
+      "telegram_url": "https://t.me/any_toour/564"
+    },
+    {
+      "site_hotel_id": "5ab9b2d3-1d14-49a3-85cb-cd6c795b65c4",
+      "name": "GOLDCITY HOTEL",
+      "catalog_hotel_id": 1203,
+      "max_url": "https://max.ru/channel_anytour/AaG2eDarJWo",
+      "telegram_url": "https://t.me/any_toour/267"
+    },
+    {
+      "site_hotel_id": "5b2fdb63-ac38-49c7-baa0-bd7cba7204ba",
+      "name": "NUBIAN ISLAND",
+      "catalog_hotel_id": 340,
+      "max_url": "https://max.ru/channel_anytour/AaG2y4iJCps",
+      "telegram_url": "https://t.me/any_toour/299"
+    },
+    {
+      "site_hotel_id": "5b4e6a8a-9394-5825-b7cd-378d2c13dce7",
+      "name": "PALOMA PERISSIA",
+      "catalog_hotel_id": 1491,
+      "max_url": "https://max.ru/channel_anytour/AaHQYxMqL0o",
+      "telegram_url": "https://t.me/any_toour/554"
+    },
+    {
+      "site_hotel_id": "5bc88b4a-5000-4de7-bb83-b78dd4b28273",
+      "name": "ASKA LARA RESORT & SPA",
+      "catalog_hotel_id": 27642,
+      "max_url": "https://max.ru/channel_anytour/AaG2zkPUfYA",
+      "telegram_url": "https://t.me/any_toour/307"
+    },
+    {
+      "site_hotel_id": "5c7fe76d-a626-4026-b962-ae3e0f39ee76",
+      "name": "SWISS INN RESORT HURGHADA (EX. HILTON RESORT)",
+      "catalog_hotel_id": 250,
+      "max_url": "https://max.ru/channel_anytour/AaGiIeE0Lts",
+      "telegram_url": "https://t.me/any_toour/128"
+    },
+    {
+      "site_hotel_id": "5d063815-d44c-463e-ac33-bc25e235056d",
+      "name": "PORT NATURE LUXURY RESORT HOTEL & SPA",
+      "catalog_hotel_id": 28326,
+      "max_url": "https://max.ru/channel_anytour/AaG3Mg98aeo",
+      "telegram_url": "https://t.me/any_toour/347"
+    },
+    {
+      "site_hotel_id": "5f8710b5-098c-46cc-a1bf-5846011d87af",
+      "name": "JADORE DELUXE HOTEL & SPA",
+      "catalog_hotel_id": 46672,
+      "max_url": "https://max.ru/channel_anytour/AaGbPGTLPAI",
+      "telegram_url": "https://t.me/any_toour/27"
+    },
+    {
+      "site_hotel_id": "611ae015-f617-4d72-a8e2-08c6f207218c",
+      "name": "VOYAGE BELEK GOLF & SPA",
+      "catalog_hotel_id": 1582,
+      "max_url": "https://max.ru/channel_anytour/AaGjdIwhKPk",
+      "telegram_url": "https://t.me/any_toour/147"
+    },
+    {
+      "site_hotel_id": "613507e2-bd06-4bc6-8322-095f97b16811",
+      "name": "CASTLE PARK (EX. LARISSA PARK)",
+      "catalog_hotel_id": 1330,
+      "max_url": "https://max.ru/channel_anytour/AaHS6yZoVr4",
+      "telegram_url": "https://t.me/any_toour/595"
+    },
+    {
+      "site_hotel_id": "618e6790-4acd-4029-821b-3f7178b3be2f",
+      "name": "The Oberoi Beach Resort Sahl Hasheesh",
+      "catalog_hotel_id": 342,
+      "max_url": "https://max.ru/channel_anytour/AaGjHGjBODk",
+      "telegram_url": "https://t.me/any_toour/141"
+    },
+    {
+      "site_hotel_id": "61f4a7f9-ed46-4a85-8827-1867d1f42e5d",
+      "name": "ARABELLA WORLD HOTEL",
+      "catalog_hotel_id": 990,
+      "max_url": "https://max.ru/channel_anytour/AaG3NY7MVQ4",
+      "telegram_url": "https://t.me/any_toour/363"
+    },
+    {
+      "site_hotel_id": "621ea10e-2542-4c2c-a08a-54d49cff067c",
+      "name": "VINPEARL RESORT & SPA PHU QUOC",
+      "catalog_hotel_id": 32342,
+      "max_url": "https://max.ru/channel_anytour/AaG2QuDYdKE",
+      "telegram_url": "https://t.me/any_toour/239"
+    },
+    {
+      "site_hotel_id": "6232ee23-c708-4d4b-baa2-2faa6f5e8725",
+      "name": "MELISSA KATA BEACH RESORT (EX. PUDING HOLIDAY WORLD KATA)",
+      "catalog_hotel_id": 24898,
+      "max_url": "https://max.ru/channel_anytour/AaG3R_DtRcw",
+      "telegram_url": "https://t.me/any_toour/381"
+    },
+    {
+      "site_hotel_id": "62636017-2722-5048-a389-dc24d89205cf",
+      "name": "JAZ MARAYA",
+      "catalog_hotel_id": 67897,
+      "max_url": "https://max.ru/channel_anytour/AaHQYucKExs",
+      "telegram_url": "https://t.me/any_toour/549"
+    },
+    {
+      "site_hotel_id": "62d4e7d6-241b-4558-ad15-6b3d2613cd7d",
+      "name": "LONICERA RESORT & SPA HOTEL",
+      "catalog_hotel_id": 1344,
+      "max_url": "https://max.ru/channel_anytour/AaG3fsECYx4",
+      "telegram_url": "https://t.me/any_toour/411"
+    },
+    {
+      "site_hotel_id": "63c65f9d-4e93-4dbb-bbc5-74c765a4ee32",
+      "name": "VOYAGE TORBA",
+      "catalog_hotel_id": 1715,
+      "max_url": "https://max.ru/channel_anytour/AaGmKEX_bMI",
+      "telegram_url": "https://t.me/any_toour/170"
+    },
+    {
+      "site_hotel_id": "640b7d86-5b31-413d-86d0-840ef764bf38",
+      "name": "WATER SIDE RESORT & SPA",
+      "catalog_hotel_id": 37364,
+      "max_url": "https://max.ru/channel_anytour/AaG2_BkRQ18",
+      "telegram_url": "https://t.me/any_toour/310"
+    },
+    {
+      "site_hotel_id": "641424d8-74e3-49cd-ba03-4deb0f031dc4",
+      "name": "PRESTIGE ALANYA (EX.EUPHORIA COMFORT BEACH ALANYA)",
+      "catalog_hotel_id": 1236,
+      "max_url": "https://max.ru/channel_anytour/AaG3RSTSc94",
+      "telegram_url": "https://t.me/any_toour/376"
+    },
+    {
+      "site_hotel_id": "6435718b-68c2-40b2-b80f-d80560a93200",
+      "name": "Cleopatra Luxury Resort Sharm Adults Only",
+      "catalog_hotel_id": 98723,
+      "max_url": "https://max.ru/channel_anytour/AaGjHFTqWDo",
+      "telegram_url": "https://t.me/any_toour/139"
+    },
+    {
+      "site_hotel_id": "6459fec4-5592-4d63-9354-3e93724e56fa",
+      "name": "CRYSTAL FLORA PEARL COLLECTION (EX. CRYSTAL FLORA BEACH RESORT)",
+      "catalog_hotel_id": 1142,
+      "max_url": "https://max.ru/channel_anytour/AaG3GIMJFYs",
+      "telegram_url": "https://t.me/any_toour/343"
+    },
+    {
+      "site_hotel_id": "64820b40-c62e-4dd0-9b4b-45f5b9b1133f",
+      "name": "WYNDHAM GARDEN GRANDWORLD PHU QUOC (EX. VINHOLIDAYS INFINITY PHU QUOC)",
+      "catalog_hotel_id": 79071,
+      "max_url": "https://max.ru/channel_anytour/AaG2NTS1FAE",
+      "telegram_url": "https://t.me/any_toour/234"
+    },
+    {
+      "site_hotel_id": "656c63f3-76ae-48db-8b3d-5e1adbffb089",
+      "name": "CLUB PRIVE BY RIXOS SHARM EL SHEIKH",
+      "catalog_hotel_id": 110289,
+      "max_url": "https://max.ru/channel_anytour/AaG2GFMuUmw",
+      "telegram_url": "https://t.me/any_toour/216"
+    },
+    {
+      "site_hotel_id": "66185369-6fbd-43fb-8f24-008a326e58c0",
+      "name": "JAZ Elite Palace 16+",
+      "catalog_hotel_id": 12114,
+      "max_url": "https://max.ru/channel_anytour/AaGgXCTyDEg",
+      "telegram_url": "https://t.me/any_toour/110"
+    },
+    {
+      "site_hotel_id": "66696b03-9f23-5cab-9a6e-89c269efd8b8",
+      "name": "SULTAN BEY HOTEL",
+      "catalog_hotel_id": 468,
+      "max_url": "https://max.ru/channel_anytour/AaHSUcOwNTM",
+      "telegram_url": "https://t.me/any_toour/594"
+    },
+    {
+      "site_hotel_id": "66ed9159-46d0-41d5-aad4-d413bffa5b3f",
+      "name": "Pickalbatros Sands Port Ghalib",
+      "catalog_hotel_id": 172,
+      "max_url": "https://max.ru/channel_anytour/AaGeHnfcJ9s",
+      "telegram_url": "https://t.me/any_toour/72"
+    },
+    {
+      "site_hotel_id": "6711bf24-8b17-4cd9-99bd-70bd3f8cb6d9",
+      "name": "JAZ Makadi Oasis Resort & Club",
+      "catalog_hotel_id": 13873,
+      "max_url": "https://max.ru/channel_anytour/AaGdPQXeYgY",
+      "telegram_url": "https://t.me/any_toour/58"
+    },
+    {
+      "site_hotel_id": "67bdd577-94af-48d8-970a-22cbdd842a24",
+      "name": "JA OCEAN VIEW HOTEL",
+      "catalog_hotel_id": 13844,
+      "max_url": "https://max.ru/channel_anytour/AaHRcfqXdE0",
+      "telegram_url": "https://t.me/any_toour/569"
+    },
+    {
+      "site_hotel_id": "68687b45-c219-4626-89a0-1b5f658f07a4",
+      "name": "Gravity Hotel & Aqua Park Hurghada",
+      "catalog_hotel_id": 56092,
+      "max_url": "https://max.ru/channel_anytour/AaGeilyCad0",
+      "telegram_url": "https://t.me/any_toour/99"
+    },
+    {
+      "site_hotel_id": "68782e4e-562f-4795-a905-7675e1364af9",
+      "name": "FLORA GARDEN EPHESUS (EX. CLUB MERSIN BEACH)",
+      "catalog_hotel_id": 9260,
+      "max_url": "https://max.ru/channel_anytour/AaG3snMbUEw",
+      "telegram_url": "https://t.me/any_toour/467"
+    },
+    {
+      "site_hotel_id": "68940f86-011a-4fd9-b2c6-e5d61d51948f",
+      "name": "SEHER SIDE QUALITY RESORT & SPA ADULTS ONLY 16+",
+      "catalog_hotel_id": 123757,
+      "max_url": "https://max.ru/channel_anytour/AaG3WZNSBGM",
+      "telegram_url": "https://t.me/any_toour/386"
+    },
+    {
+      "site_hotel_id": "6935d86e-6303-4364-af78-fd8a05b25978",
+      "name": "RAMADA BY WYNDHAM BEACH HOTEL AJMAN",
+      "catalog_hotel_id": 4499,
+      "max_url": "https://max.ru/channel_anytour/AaG3lm6-Dj0",
+      "telegram_url": "https://t.me/any_toour/434"
+    },
+    {
+      "site_hotel_id": "6b6b4567-e884-4c34-842e-f15ff9742dbd",
+      "name": "Sunrise Alma Bay Resort",
+      "catalog_hotel_id": 237,
+      "max_url": "https://max.ru/channel_anytour/AaGc6aZ6D-s",
+      "telegram_url": "https://t.me/any_toour/46"
+    },
+    {
+      "site_hotel_id": "6bb6f3fb-fe01-415d-937e-2927b81ab7dd",
+      "name": "RIXOS PREMIUM BODRUM",
+      "catalog_hotel_id": 1702,
+      "max_url": "https://max.ru/channel_anytour/AaG3_b_Ecj8",
+      "telegram_url": "https://t.me/any_toour/515"
+    },
+    {
+      "site_hotel_id": "6c34d739-801e-418e-9d6d-0f56559877c0",
+      "name": "RED SUN NHA TRANG",
+      "catalog_hotel_id": 57650,
+      "max_url": "https://max.ru/channel_anytour/AaG38Ebjbk0",
+      "telegram_url": "https://t.me/any_toour/491"
+    },
+    {
+      "site_hotel_id": "6d14988a-7bfe-457b-a667-914915811ee6",
+      "name": "VIRGO HOTEL",
+      "catalog_hotel_id": 69261,
+      "max_url": "https://max.ru/channel_anytour/AaG2Qs8kYsU",
+      "telegram_url": "https://t.me/any_toour/237"
+    },
+    {
+      "site_hotel_id": "6d403f3d-b744-46c7-b44e-7334946a7cfe",
+      "name": "ASIA BEACH RESORT & SPA",
+      "catalog_hotel_id": 45496,
+      "max_url": "https://max.ru/channel_anytour/AaG3fsobG7I",
+      "telegram_url": "https://t.me/any_toour/412"
+    },
+    {
+      "site_hotel_id": "6d817f94-6a89-40dc-a6f2-4840d4a32abc",
+      "name": "DOBEDAN BEACH RESORT COMFORT (EX. ALVA DONNA BEACH RESORT COMFORT)",
+      "catalog_hotel_id": 973,
+      "max_url": "https://max.ru/channel_anytour/AaHQ_bN3VAY",
+      "telegram_url": "https://t.me/any_toour/565"
+    },
+    {
+      "site_hotel_id": "6de35553-3fd6-44cf-82ac-96fbd8c6fc24",
+      "name": "WYNDHAM GARDEN PHUKET KAMALA",
+      "catalog_hotel_id": 128087,
+      "max_url": "https://max.ru/channel_anytour/AaG10xLJScI",
+      "telegram_url": "https://t.me/any_toour/198"
+    },
+    {
+      "site_hotel_id": "6ee7b00f-af73-41a1-98a6-60fd60ad72c7",
+      "name": "SIDEMARIN KIRMAN PREMIUM",
+      "catalog_hotel_id": 47027,
+      "max_url": "https://max.ru/channel_anytour/AaG3ACQcCZE",
+      "telegram_url": "https://t.me/any_toour/322"
+    },
+    {
+      "site_hotel_id": "6ef88c82-980f-47d1-950a-9666ba9bb8c9",
+      "name": "LA BLANCHE ISLAND BODRUM",
+      "catalog_hotel_id": 28448,
+      "max_url": "https://max.ru/channel_anytour/AaG3RO4gWZs",
+      "telegram_url": "https://t.me/any_toour/370"
+    },
+    {
+      "site_hotel_id": "6f13e96e-951c-45c6-81f5-26d69bacff9a",
+      "name": "SAADIYAT ROTANA RESORT & VILLAS",
+      "catalog_hotel_id": 61760,
+      "max_url": "https://max.ru/channel_anytour/AaG3RQnucso",
+      "telegram_url": "https://t.me/any_toour/373"
+    },
+    {
+      "site_hotel_id": "6ff55d6c-2ca1-48d7-a450-8392fe7b8aff",
+      "name": "NARCIA RESORT",
+      "catalog_hotel_id": 2222,
+      "max_url": "https://max.ru/channel_anytour/AaG3gaMfEwg",
+      "telegram_url": "https://t.me/any_toour/413"
+    },
+    {
+      "site_hotel_id": "706415c4-0be9-491a-a4b7-defeb4d66833",
+      "name": "Pickalbatros Aqua Vista",
+      "catalog_hotel_id": 109,
+      "max_url": "https://max.ru/channel_anytour/AaGePDTZCUk",
+      "telegram_url": "https://t.me/any_toour/82"
+    },
+    {
+      "site_hotel_id": "709cc788-4965-4d9a-a8b3-e9082f7bccf9",
+      "name": "VIKING GARDEN HOTEL (EX. GARDEN RESORT BERGAMOT)",
+      "catalog_hotel_id": 1196,
+      "max_url": "https://max.ru/channel_anytour/AaG3oZykOIE",
+      "telegram_url": "https://t.me/any_toour/440"
+    },
+    {
+      "site_hotel_id": "70b487eb-eb10-41d1-9a02-dd5d23c382e0",
+      "name": "SHERATON PHU QUOC LONG BEACH RESORT (EX. VINPEARL RESORT & GOLF PHU QUOC)",
+      "catalog_hotel_id": 50659,
+      "max_url": "https://max.ru/channel_anytour/AaG2NSvqN7Q",
+      "telegram_url": "https://t.me/any_toour/233"
+    },
+    {
+      "site_hotel_id": "70d3965f-2688-4143-97a4-898576109b43",
+      "name": "PRIMASOL HANE FAMILY RESORT (EX. FAMILY HANE RESORT)",
+      "catalog_hotel_id": 28666,
+      "max_url": "https://max.ru/channel_anytour/AaGa-Ki6FG0",
+      "telegram_url": "https://t.me/any_toour/26"
+    },
+    {
+      "site_hotel_id": "70ec2141-aece-4880-a46a-7eeee62f14e8",
+      "name": "CRYSTAL CENTRO PEARL COLLECTION",
+      "catalog_hotel_id": 1293,
+      "max_url": "https://max.ru/channel_anytour/AaG3EIr9LT8",
+      "telegram_url": "https://t.me/any_toour/330"
+    },
+    {
+      "site_hotel_id": "71159b75-2038-4571-a4b0-705c263caee4",
+      "name": "PULLMAN PATTAYA HOTEL G (EX. PULLMAN PATTAYA AISAWAN)",
+      "catalog_hotel_id": 2050,
+      "max_url": "https://max.ru/channel_anytour/AaG1yRaEb7g",
+      "telegram_url": "https://t.me/any_toour/196"
+    },
+    {
+      "site_hotel_id": "7238cebc-03ef-5d28-9c3f-088e5a7b25bb",
+      "name": "OLD PALACE RESORT SAHL HASHESH",
+      "catalog_hotel_id": 343,
+      "max_url": "https://max.ru/channel_anytour/AaHUrEngDNg",
+      "telegram_url": "https://t.me/any_toour/611"
+    },
+    {
+      "site_hotel_id": "72ade321-aa98-4247-8dae-04bfe44a01a0",
+      "name": "ANNOVA NHA TRANG HOTEL",
+      "catalog_hotel_id": 95165,
+      "max_url": "https://max.ru/channel_anytour/AaG2NSMTA2o",
+      "telegram_url": "https://t.me/any_toour/232"
+    },
+    {
+      "site_hotel_id": "72afc465-9029-4131-96d4-180eb3a47a43",
+      "name": "MINAMARK RESORT & SPA",
+      "catalog_hotel_id": 325,
+      "max_url": "https://max.ru/channel_anytour/AaHTI-iFZ5E",
+      "telegram_url": "https://t.me/any_toour/599"
+    },
+    {
+      "site_hotel_id": "72bcca0c-0fa4-4786-a87f-762b89407b6e",
+      "name": "CRYSTAL DE LUXE COMFORT COLLECTION (EX. CRYSTAL DE LUXE RESORT & SPA)",
+      "catalog_hotel_id": 1140,
+      "max_url": "https://max.ru/channel_anytour/AaG2eC1wANs",
+      "telegram_url": "https://t.me/any_toour/266"
+    },
+    {
+      "site_hotel_id": "72e7de96-ce68-4298-a04b-9744792217d6",
+      "name": "A GOOD LIFE UTOPIA FAMILY RESORT",
+      "catalog_hotel_id": 1585,
+      "max_url": "https://max.ru/channel_anytour/AaG3SAvcEDI",
+      "telegram_url": "https://t.me/any_toour/384"
+    },
+    {
+      "site_hotel_id": "72f26471-25fc-40e8-82be-71174756ce35",
+      "name": "EMPIRE HOTEL AQUA PARK (EX. THE THREE CORNERS TRITON EMPIRE)",
+      "catalog_hotel_id": 502,
+      "max_url": "https://max.ru/channel_anytour/AaG2NRo2PGw",
+      "telegram_url": "https://t.me/any_toour/231"
+    },
+    {
+      "site_hotel_id": "7331e66f-42fb-45f7-9078-54be62d293c0",
+      "name": "LA FLORA RESORT & SPA KHAO LAK",
+      "catalog_hotel_id": 8008,
+      "max_url": "https://max.ru/channel_anytour/AaG38x7FOEo",
+      "telegram_url": "https://t.me/any_toour/506"
+    },
+    {
+      "site_hotel_id": "73641a9e-c610-4cbc-8889-5e958fa1ead9",
+      "name": "Sunrise Holidays Resort",
+      "catalog_hotel_id": 478,
+      "max_url": "https://max.ru/channel_anytour/AaGck_VyAZM",
+      "telegram_url": "https://t.me/any_toour/44"
+    },
+    {
+      "site_hotel_id": "73e7a626-5398-44a0-98ac-f1d756b62d75",
+      "name": "Pickalbatros Royal Moderna",
+      "catalog_hotel_id": 389,
+      "max_url": "https://max.ru/channel_anytour/AaGePCsUN8U",
+      "telegram_url": "https://t.me/any_toour/81"
+    },
+    {
+      "site_hotel_id": "741d65fc-13c9-4b66-82d4-982515383bcf",
+      "name": "GREEN MAX HOTEL MANAGED BY FM (EX.CHERVO CLUB SIRENE)",
+      "catalog_hotel_id": 9287,
+      "max_url": "https://max.ru/channel_anytour/AaHSUaANR0A",
+      "telegram_url": "https://t.me/any_toour/590"
+    },
+    {
+      "site_hotel_id": "74390ee7-2ee5-4dfa-b673-1b43fe6166c7",
+      "name": "Sunrise Tucana Resort",
+      "catalog_hotel_id": 77914,
+      "max_url": "https://max.ru/channel_anytour/AaGc6ZyuFlA",
+      "telegram_url": "https://t.me/any_toour/45"
+    },
+    {
+      "site_hotel_id": "74fdffa6-b135-4cc1-968a-f3eac56e3268",
+      "name": "TUI BLUE Samaya",
+      "catalog_hotel_id": 269,
+      "max_url": "https://max.ru/channel_anytour/AaGeinA7LaI",
+      "telegram_url": "https://t.me/any_toour/101"
+    },
+    {
+      "site_hotel_id": "7512ce82-1625-5d0e-bd9d-7514829d18fd",
+      "name": "SHERATON MIRAMAR RESORT",
+      "catalog_hotel_id": 432,
+      "max_url": "https://max.ru/channel_anytour/AaHUrFKoSGk",
+      "telegram_url": "https://t.me/any_toour/612"
+    },
+    {
+      "site_hotel_id": "75c716d3-8190-4cc0-8994-02baa93f5c76",
+      "name": "SALALAH ROTANA RESORT",
+      "catalog_hotel_id": 49365,
+      "max_url": "https://max.ru/channel_anytour/AaHQQyDEYsw",
+      "telegram_url": "https://t.me/any_toour/543"
+    },
+    {
+      "site_hotel_id": "760769fd-e57e-45a9-98b2-726698dd2f39",
+      "name": "Coral Sea Water World",
+      "catalog_hotel_id": 165,
+      "max_url": "https://max.ru/channel_anytour/AaGishvPGJA",
+      "telegram_url": "https://t.me/any_toour/132"
+    },
+    {
+      "site_hotel_id": "7633e43f-151b-42c0-8de4-f6038fee8233",
+      "name": "Steigenberger Resort Alaya",
+      "catalog_hotel_id": 69155,
+      "max_url": "https://max.ru/channel_anytour/AaGePHAgePE",
+      "telegram_url": "https://t.me/any_toour/88"
+    },
+    {
+      "site_hotel_id": "7666817e-4681-4516-94a0-943270557610",
+      "name": "The Grand Resort",
+      "catalog_hotel_id": 235,
+      "max_url": "https://max.ru/channel_anytour/AaGiIc2caEQ",
+      "telegram_url": "https://t.me/any_toour/126"
+    },
+    {
+      "site_hotel_id": "7705f611-b3d9-5bb3-ba5b-06bea2e7e7a7",
+      "name": "ARUM BARUT COLLECTION",
+      "catalog_hotel_id": 1031,
+      "max_url": "https://max.ru/channel_anytour/AaHQDS8lGL0",
+      "telegram_url": "https://t.me/any_toour/528"
+    },
+    {
+      "site_hotel_id": "777007c3-53ae-42f6-9772-a5c9f95b302b",
+      "name": "SOFITEL DUBAI JUMEIRAH BEACH",
+      "catalog_hotel_id": 2673,
+      "max_url": "https://max.ru/channel_anytour/AaG3k8u4X9Q",
+      "telegram_url": "https://t.me/any_toour/425"
+    },
+    {
+      "site_hotel_id": "77f08d68-0051-43d4-b446-cf07b52869c3",
+      "name": "Steigenberger Golf Resort El Gouna",
+      "catalog_hotel_id": 464,
+      "max_url": "https://max.ru/channel_anytour/AaGiW44QeSI",
+      "telegram_url": "https://t.me/any_toour/129"
+    },
+    {
+      "site_hotel_id": "784579eb-fbc7-42ca-baed-dd47c37853c5",
+      "name": "FLORA GARDEN BEACH ADULTS ONLY 16+",
+      "catalog_hotel_id": 1189,
+      "max_url": "https://max.ru/channel_anytour/AaG3ocnWfBg",
+      "telegram_url": "https://t.me/any_toour/445"
+    },
+    {
+      "site_hotel_id": "793cb688-e81a-4bc8-9608-38d5de18f404",
+      "name": "Steigenberger Pure Lifestyle",
+      "catalog_hotel_id": 66150,
+      "max_url": "https://max.ru/channel_anytour/AaGc6fSGB3c",
+      "telegram_url": "https://t.me/any_toour/54"
+    },
+    {
+      "site_hotel_id": "79ab65e8-d1be-4ac1-9a80-3cec4c5d987f",
+      "name": "HOLIDAY PARK RESORT",
+      "catalog_hotel_id": 1246,
+      "max_url": "https://max.ru/channel_anytour/AaG3MjYHc9Y",
+      "telegram_url": "https://t.me/any_toour/351"
+    },
+    {
+      "site_hotel_id": "79ae9093-99b5-4ca4-9ecc-b4b116e5116f",
+      "name": "SUN HEAVEN HOTEL (EX. CLUB SUN HEAVEN FAMILY & SPA)",
+      "catalog_hotel_id": 1126,
+      "max_url": "https://max.ru/channel_anytour/AaG3Wa6tH-o",
+      "telegram_url": "https://t.me/any_toour/389"
+    },
+    {
+      "site_hotel_id": "79e8037e-ff3e-438a-86da-183c8e8cd124",
+      "name": "VILLA SUNFLOWER APARTS & SUITES",
+      "catalog_hotel_id": 55925,
+      "max_url": "https://max.ru/channel_anytour/AaG3o9-xTb0",
+      "telegram_url": "https://t.me/any_toour/449"
+    },
+    {
+      "site_hotel_id": "79fd03bd-8992-43d2-9855-87f5972d8fb4",
+      "name": "GRACELAND KHAO LAK BEACH RESORT (EX. SENTIDO GRACELAND KHAO LAK RESORT & SPA)",
+      "catalog_hotel_id": 24909,
+      "max_url": "https://max.ru/channel_anytour/AaG1rsYqb1E",
+      "telegram_url": "https://t.me/any_toour/188"
+    },
+    {
+      "site_hotel_id": "7af416b7-c3b7-4986-a9de-a1cfc9b13aa4",
+      "name": "BARON PALMS RESORT ADULTS ONLY 16+",
+      "catalog_hotel_id": 1962,
+      "max_url": "https://max.ru/channel_anytour/AaG31OfqHMw",
+      "telegram_url": "https://t.me/any_toour/475"
+    },
+    {
+      "site_hotel_id": "7c047994-b8c9-449e-a3ff-6fd3da7a624f",
+      "name": "JAZ Neo Ivory",
+      "catalog_hotel_id": 60589,
+      "max_url": "https://max.ru/channel_anytour/AaGheE3NWPA",
+      "telegram_url": "https://t.me/any_toour/123"
+    },
+    {
+      "site_hotel_id": "7c569edc-dfff-4077-89ad-c8d440c76fbb",
+      "name": "TROPITEL SAHL HASHEESH",
+      "catalog_hotel_id": 4191,
+      "max_url": "https://max.ru/channel_anytour/AaGcCXoMBpM",
+      "telegram_url": "https://t.me/any_toour/41"
+    },
+    {
+      "site_hotel_id": "7d08db4f-6efc-4e4d-b7f0-59d5e862c7ee",
+      "name": "BELEK BEACH RESORT",
+      "catalog_hotel_id": 1042,
+      "max_url": "https://max.ru/channel_anytour/AaG3gav_G40",
+      "telegram_url": "https://t.me/any_toour/414"
+    },
+    {
+      "site_hotel_id": "7d092684-9cc9-4432-8e12-e0866dd930e4",
+      "name": "ORBIT RESORT & SPA",
+      "catalog_hotel_id": 64670,
+      "max_url": "https://max.ru/channel_anytour/AaG2QunfNDE",
+      "telegram_url": "https://t.me/any_toour/240"
+    },
+    {
+      "site_hotel_id": "7df7f617-7aeb-476c-8286-82f891e0196a",
+      "name": "WALDORF ASTORIA DUBAI PALM JUMEIRAH",
+      "catalog_hotel_id": 32232,
+      "max_url": "https://max.ru/channel_anytour/AaHUbCynAq4",
+      "telegram_url": "https://t.me/any_toour/608"
+    },
+    {
+      "site_hotel_id": "7e5eef33-b426-47da-a8cd-602cdd862c6a",
+      "name": "GRAND YAZICI CLUB MARMARIS PALACE",
+      "catalog_hotel_id": 1649,
+      "max_url": "https://max.ru/channel_anytour/AaG3ROSkFNU",
+      "telegram_url": "https://t.me/any_toour/369"
+    },
+    {
+      "site_hotel_id": "7ed9fea4-9a6a-4dd5-8e0c-dd7d140b8b5e",
+      "name": "JAZ Dahabeya",
+      "catalog_hotel_id": 264,
+      "max_url": "https://max.ru/channel_anytour/AaGgW95NR9s",
+      "telegram_url": "https://t.me/any_toour/103"
+    },
+    {
+      "site_hotel_id": "7ee0d6ca-f165-4a7e-9b3f-6be261eabac5",
+      "name": "VINPEARL RESORT & SPA NHA TRANG BAY",
+      "catalog_hotel_id": 41149,
+      "max_url": "https://max.ru/channel_anytour/AaG2UgefHN8",
+      "telegram_url": "https://t.me/any_toour/244"
+    },
+    {
+      "site_hotel_id": "7ef1258e-5c78-49eb-94f6-9dc0faae8218",
+      "name": "NG PHASELIS BAY",
+      "catalog_hotel_id": 74503,
+      "max_url": "https://max.ru/channel_anytour/AaGjdIJ3D9s",
+      "telegram_url": "https://t.me/any_toour/146"
+    },
+    {
+      "site_hotel_id": "7f44e5c4-f9f0-42f4-bc3b-e1d8318ac09f",
+      "name": "COMODO NHA TRANG HOTEL",
+      "catalog_hotel_id": 103731,
+      "max_url": "https://max.ru/channel_anytour/AaG2GGU0fgw",
+      "telegram_url": "https://t.me/any_toour/218"
+    },
+    {
+      "site_hotel_id": "7f7dbf2b-4a65-4e7b-a53e-87663a0c3072",
+      "name": "STELLA MAKADI BEACH RESORT & SPA",
+      "catalog_hotel_id": 466,
+      "max_url": "https://max.ru/channel_anytour/AaG31NW7Nsc",
+      "telegram_url": "https://t.me/any_toour/473"
+    },
+    {
+      "site_hotel_id": "7f96591c-8af2-4f58-b969-f3e28fa0a523",
+      "name": "MOVENPICK WATERPARK RESORT & SPA SOMA BAY",
+      "catalog_hotel_id": 21477,
+      "max_url": "https://max.ru/channel_anytour/AaGheEQaaTs",
+      "telegram_url": "https://t.me/any_toour/122"
+    },
+    {
+      "site_hotel_id": "7fbb0a06-7c0e-4d3e-a451-113377fe68be",
+      "name": "JAZ Neo Sharks Bay",
+      "catalog_hotel_id": 1983,
+      "max_url": "https://max.ru/channel_anytour/AaGeYRkIc6E",
+      "telegram_url": "https://t.me/any_toour/93"
+    },
+    {
+      "site_hotel_id": "7fe91a36-f8a4-5d90-973a-813613a630ab",
+      "name": "PAPILLON BELVIL",
+      "catalog_hotel_id": 1421,
+      "max_url": "https://max.ru/channel_anytour/AaHQYwH9EJY",
+      "telegram_url": "https://t.me/any_toour/552"
+    },
+    {
+      "site_hotel_id": "800b7683-253d-4e8e-8f10-1c1362dd54f9",
+      "name": "ALADDIN BEACH RESORT",
+      "catalog_hotel_id": 106,
+      "max_url": "https://max.ru/channel_anytour/AaG3snxOWfo",
+      "telegram_url": "https://t.me/any_toour/468"
+    },
+    {
+      "site_hotel_id": "8082cfa1-ca58-53aa-8b00-5c9fa2328793",
+      "name": "PALOMA ORENDA RESORT",
+      "catalog_hotel_id": 65895,
+      "max_url": "https://max.ru/channel_anytour/AaHQQvS0K_w",
+      "telegram_url": "https://t.me/any_toour/538"
+    },
+    {
+      "site_hotel_id": "80ec4cf9-c5f3-461b-8232-12c697dd3882",
+      "name": "PHUKET KATA RESOTEL",
+      "catalog_hotel_id": 95159,
+      "max_url": "https://max.ru/channel_anytour/AaG2y1tAIgw",
+      "telegram_url": "https://t.me/any_toour/294"
+    },
+    {
+      "site_hotel_id": "82027e40-e50b-4638-9d10-81d4fc2cdd9c",
+      "name": "PREMIER RESIDENCES PHU QUOC EMERALD BAY",
+      "catalog_hotel_id": 65254,
+      "max_url": "https://max.ru/channel_anytour/AaHUrFtzf-Q",
+      "telegram_url": "https://t.me/any_toour/613"
+    },
+    {
+      "site_hotel_id": "821f6cb6-c09d-41b2-b5a6-70210faf62d3",
+      "name": "TUI BLUE Sarigerme Park",
+      "catalog_hotel_id": 1659,
+      "max_url": "https://max.ru/channel_anytour/AaGmKBZxbs0",
+      "telegram_url": "https://t.me/any_toour/165"
+    },
+    {
+      "site_hotel_id": "8233d4ee-6651-4a7e-bdc3-dda66b489781",
+      "name": "MARINA GALLERY RESORT KACHA KALIM BAY",
+      "catalog_hotel_id": 70048,
+      "max_url": "https://max.ru/channel_anytour/AaG7kpV6AQI",
+      "telegram_url": "https://t.me/any_toour/523"
+    },
+    {
+      "site_hotel_id": "82b3e1c2-60bd-4bb1-aad1-220eb31a3acb",
+      "name": "Pickalbatros Laguna Vista",
+      "catalog_hotel_id": 293,
+      "max_url": "https://max.ru/channel_anytour/AaGePD60KYU",
+      "telegram_url": "https://t.me/any_toour/83"
+    },
+    {
+      "site_hotel_id": "82b83625-b75e-461b-9893-440faac203a0",
+      "name": "MORENO HORIZON SPA & RESORT (EX. HOTELUX MARINA BEACH)",
+      "catalog_hotel_id": 1972,
+      "max_url": "https://max.ru/channel_anytour/AaG3WcDqe3Y",
+      "telegram_url": "https://t.me/any_toour/391"
+    },
+    {
+      "site_hotel_id": "82bcb67b-649e-47bb-a871-ace73888b688",
+      "name": "Mövenpick El Gouna",
+      "catalog_hotel_id": 328,
+      "max_url": "https://max.ru/channel_anytour/AaGh9vEJfqU",
+      "telegram_url": "https://t.me/any_toour/124"
+    },
+    {
+      "site_hotel_id": "834733b1-0a84-41a2-b211-786aa7ec39f9",
+      "name": "PARROTEL AQUA PARK RESORT (EX. PARK INN BY RADISSON)",
+      "catalog_hotel_id": 352,
+      "max_url": "https://max.ru/channel_anytour/AaG3GJ5uQ8w",
+      "telegram_url": "https://t.me/any_toour/346"
+    },
+    {
+      "site_hotel_id": "8399e9cc-84e7-49a3-96cd-9e44cfa148c4",
+      "name": "SELECTUM NOA RESORT CAM RANH",
+      "catalog_hotel_id": 69116,
+      "max_url": "https://max.ru/channel_anytour/AaG2Y4jjcAg",
+      "telegram_url": "https://t.me/any_toour/256"
+    },
+    {
+      "site_hotel_id": "83be359d-eba7-4a41-bafe-c202938708ed",
+      "name": "NIRVANA DOLCE VITA",
+      "catalog_hotel_id": 975,
+      "max_url": "https://max.ru/channel_anytour/AaG2Y3Z4EWo",
+      "telegram_url": "https://t.me/any_toour/254"
+    },
+    {
+      "site_hotel_id": "84358348-5247-4f4d-8246-b4f3ad3a7f36",
+      "name": "SUSESI LUXURY RESORT",
+      "catalog_hotel_id": 1543,
+      "max_url": "https://max.ru/channel_anytour/AaGnaRwbHSk",
+      "telegram_url": "https://t.me/any_toour/171"
+    },
+    {
+      "site_hotel_id": "843ad01c-e782-42bd-851e-5b4e718cb2d7",
+      "name": "TAC PREMIER HOTEL & SPA",
+      "catalog_hotel_id": 15917,
+      "max_url": "https://max.ru/channel_anytour/AaG3gbTuHlg",
+      "telegram_url": "https://t.me/any_toour/415"
+    },
+    {
+      "site_hotel_id": "8531fc23-1874-46ef-986e-ab648e72002f",
+      "name": "CESARS SIDE (EX.CESARS RESORT)",
+      "catalog_hotel_id": 1070,
+      "max_url": "https://max.ru/channel_anytour/AaG3Mj8UNo0",
+      "telegram_url": "https://t.me/any_toour/352"
+    },
+    {
+      "site_hotel_id": "8568b667-08c7-487f-ae1f-7f25ce5050f7",
+      "name": "KEMER DREAM HOTEL",
+      "catalog_hotel_id": 1287,
+      "max_url": "https://max.ru/channel_anytour/AaG3AFF_e9Y",
+      "telegram_url": "https://t.me/any_toour/327"
+    },
+    {
+      "site_hotel_id": "85ae4f40-3771-4e50-963a-4364ac5a70e4",
+      "name": "Pickalbatros Water Valley Resort",
+      "catalog_hotel_id": 79059,
+      "max_url": "https://max.ru/channel_anytour/AaGeilKiHDY",
+      "telegram_url": "https://t.me/any_toour/98"
+    },
+    {
+      "site_hotel_id": "861cd268-db8c-43a1-aef6-670e048c8d03",
+      "name": "SEAGULL BEACH RESORT & CLUB",
+      "catalog_hotel_id": 415,
+      "max_url": "https://max.ru/channel_anytour/AaG3sp-8SoU",
+      "telegram_url": "https://t.me/any_toour/472"
+    },
+    {
+      "site_hotel_id": "863f481c-48b2-5584-be7d-b9889e020896",
+      "name": "CLEOPATRA LUXURY RESORT MAKADI BAY (EX. ALDIANA MAKADI)",
+      "catalog_hotel_id": 21476,
+      "max_url": "https://max.ru/channel_anytour/AaHRcgOIOD0",
+      "telegram_url": "https://t.me/any_toour/570"
+    },
+    {
+      "site_hotel_id": "86c737ed-9495-46a1-9ade-902dfb476e9a",
+      "name": "AKKA ANTEDON HOTEL",
+      "catalog_hotel_id": 955,
+      "max_url": "https://max.ru/channel_anytour/AaG3Wcn7UFc",
+      "telegram_url": "https://t.me/any_toour/392"
+    },
+    {
+      "site_hotel_id": "879c1c93-c145-4bf3-959d-4248b82b2de7",
+      "name": "CLUB HOTEL SIDELYA HV-2",
+      "catalog_hotel_id": 1124,
+      "max_url": "https://max.ru/channel_anytour/AaG3gevITBM",
+      "telegram_url": "https://t.me/any_toour/421"
+    },
+    {
+      "site_hotel_id": "87b3eac1-d1f7-4868-8cd1-bddca1b70cef",
+      "name": "RADISSON BLU RESORT GALLE",
+      "catalog_hotel_id": 51238,
+      "max_url": "https://max.ru/channel_anytour/AaG3_bXhU2Q",
+      "telegram_url": "https://t.me/any_toour/514"
+    },
+    {
+      "site_hotel_id": "880d6ac8-1c00-4010-933d-afb02d50cba0",
+      "name": "HOANG NGOC BEACH RESORT (ORIENTAL PEARL)",
+      "catalog_hotel_id": 14133,
+      "max_url": "https://max.ru/channel_anytour/AaG38HQ4RIc",
+      "telegram_url": "https://t.me/any_toour/496"
+    },
+    {
+      "site_hotel_id": "88c46f8a-2bb2-4fc5-b550-cd4718face29",
+      "name": "SALALAH GARDENS",
+      "catalog_hotel_id": 62515,
+      "max_url": "https://max.ru/channel_anytour/AaHTYkIqaF8",
+      "telegram_url": "https://t.me/any_toour/601"
+    },
+    {
+      "site_hotel_id": "891e31e5-59d5-52de-a4eb-6fe7114bc998",
+      "name": "CORNELIA DIAMOND GOLF RESORT & SPA",
+      "catalog_hotel_id": 1137,
+      "max_url": "https://max.ru/channel_anytour/AaHQDRThSfg",
+      "telegram_url": "https://t.me/any_toour/525"
+    },
+    {
+      "site_hotel_id": "892cb181-8bbd-4adc-92b2-e48d8ebda955",
+      "name": "LUJO HOTEL BODRUM (EX. LUJO ART & JOY)",
+      "catalog_hotel_id": 59116,
+      "max_url": "https://max.ru/channel_anytour/AaG3smo9N-w",
+      "telegram_url": "https://t.me/any_toour/466"
+    },
+    {
+      "site_hotel_id": "893690c5-6b58-40aa-ac19-3b6dace27fd4",
+      "name": "JAZ Grand Marsa",
+      "catalog_hotel_id": 383,
+      "max_url": "https://max.ru/channel_anytour/AaGd_x9bEBA",
+      "telegram_url": "https://t.me/any_toour/69"
+    },
+    {
+      "site_hotel_id": "89e22b82-a528-424b-ab17-f79ea64c134a",
+      "name": "GOLDEN BEACH RESORT (EX. MOVIE GATE)",
+      "catalog_hotel_id": 140,
+      "max_url": "https://max.ru/channel_anytour/AaG1_36xOug",
+      "telegram_url": "https://t.me/any_toour/209"
+    },
+    {
+      "site_hotel_id": "8a2a08ea-dbf6-4e39-bff0-772efcc52692",
+      "name": "ROYAL HOLIDAY PALACE",
+      "catalog_hotel_id": 3415,
+      "max_url": "https://max.ru/channel_anytour/AaG2Y5seTmY",
+      "telegram_url": "https://t.me/any_toour/258"
+    },
+    {
+      "site_hotel_id": "8a4d9314-3a3e-458e-bb20-cd8d40d96f20",
+      "name": "JAZ Bluemarine",
+      "catalog_hotel_id": 12117,
+      "max_url": "https://max.ru/channel_anytour/AaGc6ddcado",
+      "telegram_url": "https://t.me/any_toour/51"
+    },
+    {
+      "site_hotel_id": "8a755d0e-01cf-4c1a-bada-5cf15aa1d8ec",
+      "name": "Steigenberger ALDAU Beach",
+      "catalog_hotel_id": 12119,
+      "max_url": "https://max.ru/channel_anytour/AaGc6eEdZ9U",
+      "telegram_url": "https://t.me/any_toour/52"
+    },
+    {
+      "site_hotel_id": "8b753032-4276-430a-b6bd-bf74b49cf245",
+      "name": "BEST WESTERN PREMIER SONASEA PHU QUOC RESORT",
+      "catalog_hotel_id": 66555,
+      "max_url": "https://max.ru/channel_anytour/AaG2GEpLHjw",
+      "telegram_url": "https://t.me/any_toour/215"
+    },
+    {
+      "site_hotel_id": "8be4861c-43a2-499a-9389-ce52966ad2d9",
+      "name": "LIMAK ATLANTIS DE LUXE HOTEL & RESORT",
+      "catalog_hotel_id": 1337,
+      "max_url": "https://max.ru/channel_anytour/AaG2UjUkPMg",
+      "telegram_url": "https://t.me/any_toour/249"
+    },
+    {
+      "site_hotel_id": "8c397319-4814-4bbc-a0be-547bae635dba",
+      "name": "JAZ Mirabel Beach",
+      "catalog_hotel_id": 281,
+      "max_url": "https://max.ru/channel_anytour/AaGgkH_KGNw",
+      "telegram_url": "https://t.me/any_toour/112"
+    },
+    {
+      "site_hotel_id": "8c6aa719-0ba7-4dbc-aa6a-77557a62572e",
+      "name": "ALBATROS SHARM (EX. BEACH ALBATROS SHARM)",
+      "catalog_hotel_id": 134,
+      "max_url": "https://max.ru/channel_anytour/AaG31Pn3TFs",
+      "telegram_url": "https://t.me/any_toour/477"
+    },
+    {
+      "site_hotel_id": "8d390202-b3d4-4dfb-8200-d74f6207a980",
+      "name": "ROYAL DRAGON",
+      "catalog_hotel_id": 1459,
+      "max_url": "https://max.ru/channel_anytour/AaG3XyTlF80",
+      "telegram_url": "https://t.me/any_toour/398"
+    },
+    {
+      "site_hotel_id": "8d5a7c6a-4db9-4ad1-8176-b10d43bc3853",
+      "name": "SELECTUM COLOURS BODRUM (EX. ASTERIA BODRUM RESORT)",
+      "catalog_hotel_id": 1716,
+      "max_url": "https://max.ru/channel_anytour/AaG3RPgEd2Q",
+      "telegram_url": "https://t.me/any_toour/371"
+    },
+    {
+      "site_hotel_id": "8e2f66b8-4a84-4465-aeb0-8f90bcaeaf6a",
+      "name": "SELCUKHAN HOTEL",
+      "catalog_hotel_id": 1486,
+      "max_url": "https://max.ru/channel_anytour/AaG2zh6MRlQ",
+      "telegram_url": "https://t.me/any_toour/303"
+    },
+    {
+      "site_hotel_id": "8e3baa24-6cbd-40e4-9bed-67020ed8ccd8",
+      "name": "ANA MANDARA CAM RANH",
+      "catalog_hotel_id": 80915,
+      "max_url": "https://max.ru/channel_anytour/AaG38t86PFk",
+      "telegram_url": "https://t.me/any_toour/499"
+    },
+    {
+      "site_hotel_id": "8e4baca2-d90c-4343-9323-0124df727e86",
+      "name": "CROWNE PLAZA RESORT SALALAH",
+      "catalog_hotel_id": 49342,
+      "max_url": "https://max.ru/channel_anytour/AaHQQymVDlE",
+      "telegram_url": "https://t.me/any_toour/544"
+    },
+    {
+      "site_hotel_id": "8e5e80df-9cb0-4119-a3ce-d623a32dce7a",
+      "name": "RIXOS PREMIUM TEKIROVA THE LAND OF LEGENDS FREE ACCESS",
+      "catalog_hotel_id": 1453,
+      "max_url": "https://max.ru/channel_anytour/AaGjni6yLtM",
+      "telegram_url": "https://t.me/any_toour/149"
+    },
+    {
+      "site_hotel_id": "8e91113c-584f-4972-bf3a-f43d522b9d6b",
+      "name": "TITANIC DELUXE LARA",
+      "catalog_hotel_id": 1559,
+      "max_url": "https://max.ru/channel_anytour/AaGjuJd4ON4",
+      "telegram_url": "https://t.me/any_toour/157"
+    },
+    {
+      "site_hotel_id": "8e968c47-e2e7-4467-a030-679ee02d5be3",
+      "name": "ANITAS",
+      "catalog_hotel_id": 983,
+      "max_url": "https://max.ru/channel_anytour/AaHS6y9oOBE",
+      "telegram_url": "https://t.me/any_toour/596"
+    },
+    {
+      "site_hotel_id": "8f27171c-858c-4fe7-8c3c-ccaeb0d8ef76",
+      "name": "LUCIDA BEACH HOTEL",
+      "catalog_hotel_id": 27652,
+      "max_url": "https://max.ru/channel_anytour/AaG2_EWjE18",
+      "telegram_url": "https://t.me/any_toour/315"
+    },
+    {
+      "site_hotel_id": "8f2f5e95-4ff5-4029-953c-217ab1cfd8e1",
+      "name": "PARROTEL BEACH RESORT (EX. RADISSON BLU RESORT)",
+      "catalog_hotel_id": 365,
+      "max_url": "https://max.ru/channel_anytour/AaG3NXLmM1g",
+      "telegram_url": "https://t.me/any_toour/360"
+    },
+    {
+      "site_hotel_id": "8fc88824-0674-577d-8de3-7e1139ba997f",
+      "name": "LIMAK LARA DE LUXE HOTEL & RESORT",
+      "catalog_hotel_id": 1338,
+      "max_url": "https://max.ru/channel_anytour/AaHQQw9QCfs",
+      "telegram_url": "https://t.me/any_toour/541"
+    },
+    {
+      "site_hotel_id": "90aaf405-1c45-4b69-8946-3f3d46655452",
+      "name": "TURUNC HOTEL",
+      "catalog_hotel_id": 1712,
+      "max_url": "https://max.ru/channel_anytour/AaG3sEI_Nok",
+      "telegram_url": "https://t.me/any_toour/462"
+    },
+    {
+      "site_hotel_id": "90f482d1-8b36-4524-a435-5cef7c7a0b2d",
+      "name": "ANDA BARUT COLLECTION",
+      "catalog_hotel_id": 108146,
+      "max_url": "https://max.ru/channel_anytour/AaG1yOCiXr4",
+      "telegram_url": "https://t.me/any_toour/190"
+    },
+    {
+      "site_hotel_id": "9128a2c6-3867-4576-bd9a-3a0812d1fabc",
+      "name": "OZKAYMAK MARINA",
+      "catalog_hotel_id": 1410,
+      "max_url": "https://max.ru/channel_anytour/AaG3odK-HZs",
+      "telegram_url": "https://t.me/any_toour/446"
+    },
+    {
+      "site_hotel_id": "91fee671-6394-401e-9d64-05715b6a4973",
+      "name": "PICKALBATROS GOLF BEACH RESORT (EX. GOLF BEACH RESORT MANAGED BY RIXOS)",
+      "catalog_hotel_id": 310,
+      "max_url": "https://max.ru/channel_anytour/AaF5iNrwGdY",
+      "telegram_url": "https://t.me/any_toour/11"
+    },
+    {
+      "site_hotel_id": "929b1d84-6e48-5a0e-9270-501fc4da47d7",
+      "name": "PALOMA OCEANA RESORT",
+      "catalog_hotel_id": 1416,
+      "max_url": "https://max.ru/channel_anytour/AaHQYwqSGN4",
+      "telegram_url": "https://t.me/any_toour/553"
+    },
+    {
+      "site_hotel_id": "933d436a-e9a4-4467-9808-9cf419500705",
+      "name": "SUNRISE DIAMOND BEACH RESORT",
+      "catalog_hotel_id": 9373,
+      "max_url": "https://max.ru/channel_anytour/AaGcCWXVRrY",
+      "telegram_url": "https://t.me/any_toour/39"
+    },
+    {
+      "site_hotel_id": "942168d8-f4d1-4dbc-b0b8-109021c34fe0",
+      "name": "BLUE STAR",
+      "catalog_hotel_id": 1055,
+      "max_url": "https://max.ru/channel_anytour/AaG3gdlqcQw",
+      "telegram_url": "https://t.me/any_toour/419"
+    },
+    {
+      "site_hotel_id": "94945106-2d21-5f24-a03a-a09892d074b8",
+      "name": "TITANIC RESORT & AQUA PARK",
+      "catalog_hotel_id": 497,
+      "max_url": "https://max.ru/channel_anytour/AaHS6zgmfC0",
+      "telegram_url": "https://t.me/any_toour/597"
+    },
+    {
+      "site_hotel_id": "949bae27-c58b-43e5-9bd0-92cecf50e794",
+      "name": "SEALIFE BUKET BEACH (EX. ASKA BUKET RESORT & SPA)",
+      "catalog_hotel_id": 1004,
+      "max_url": "https://max.ru/channel_anytour/AaG3pAxRYIY",
+      "telegram_url": "https://t.me/any_toour/454"
+    },
+    {
+      "site_hotel_id": "95551083-e4e0-4315-b69a-9a505c8b2ea9",
+      "name": "VINPEARL EMPIRE NHA TRANG AFFILIATED BY MELIA (EX. MELIA VINPEARL NHA TRANG EMPIRE)",
+      "catalog_hotel_id": 61591,
+      "max_url": "https://max.ru/channel_anytour/AaG3WbfCHxE",
+      "telegram_url": "https://t.me/any_toour/390"
+    },
+    {
+      "site_hotel_id": "9562a9b9-ea31-4f15-9a56-87db2c1c205b",
+      "name": "JAZ Solaya",
+      "catalog_hotel_id": 454,
+      "max_url": "https://max.ru/channel_anytour/AaGdPS0HPCo",
+      "telegram_url": "https://t.me/any_toour/62"
+    },
+    {
+      "site_hotel_id": "95e662af-d9dd-415b-8cb1-4518e4417113",
+      "name": "JAZ Sharm Dreams",
+      "catalog_hotel_id": 245,
+      "max_url": "https://max.ru/channel_anytour/AaGgXAZ5Tak",
+      "telegram_url": "https://t.me/any_toour/107"
+    },
+    {
+      "site_hotel_id": "970a090c-9d53-413b-9a5d-6f46faa452f1",
+      "name": "SUNRISE SERANO CLUB RESORT",
+      "catalog_hotel_id": 74032,
+      "max_url": "https://max.ru/channel_anytour/AaG3ELgDN6M",
+      "telegram_url": "https://t.me/any_toour/335"
+    },
+    {
+      "site_hotel_id": "97aba67b-c9d9-4203-8ba5-3d6fa08b3c12",
+      "name": "Cook's Club El Gouna 16+",
+      "catalog_hotel_id": 129,
+      "max_url": "https://max.ru/channel_anytour/AaGihSzeSiA",
+      "telegram_url": "https://t.me/any_toour/131"
+    },
+    {
+      "site_hotel_id": "97f3bf5b-055b-4ccf-a8a6-bff5e12457be",
+      "name": "OCEAN STAR RESORT",
+      "catalog_hotel_id": 4060,
+      "max_url": "https://max.ru/channel_anytour/AaG2uUXhS08",
+      "telegram_url": "https://t.me/any_toour/289"
+    },
+    {
+      "site_hotel_id": "98acb8e5-e90c-4c2e-b57b-bcfbc7e697b1",
+      "name": "JAZ Fayrouz",
+      "catalog_hotel_id": 246,
+      "max_url": "https://max.ru/channel_anytour/AaGgW_zLBIc",
+      "telegram_url": "https://t.me/any_toour/106"
+    },
+    {
+      "site_hotel_id": "99a1f17e-cc4a-46be-b772-0ec11e3c9de8",
+      "name": "DREAM FUN WORLD",
+      "catalog_hotel_id": 109900,
+      "max_url": "https://max.ru/channel_anytour/AaGbPG9QBVI",
+      "telegram_url": "https://t.me/any_toour/28"
+    },
+    {
+      "site_hotel_id": "9a213968-6502-4b01-b4b0-deaa31a9b0f2",
+      "name": "SIDE STAR RESORT (EX. VERA CLUB LINDITA)",
+      "catalog_hotel_id": 1095,
+      "max_url": "https://max.ru/channel_anytour/AaG1E30AeiM",
+      "telegram_url": "https://t.me/any_toour/178"
+    },
+    {
+      "site_hotel_id": "9b04de4e-218a-492f-8f0d-a319ba2e8215",
+      "name": "JAZ MAKADI SARAYA RESORT (EX. IBEROTEL MAKADI SARAYA RESORT)",
+      "catalog_hotel_id": 268,
+      "max_url": "https://max.ru/channel_anytour/AaGa3Hb2aNA",
+      "telegram_url": "https://t.me/any_toour/23"
+    },
+    {
+      "site_hotel_id": "9b3746e2-e314-496b-b3ec-22a2ae40ab72",
+      "name": "Seven Seas Hotel Life",
+      "catalog_hotel_id": 1348,
+      "max_url": "https://max.ru/channel_anytour/AaGj5tI6HDg",
+      "telegram_url": "https://t.me/any_toour/160"
+    },
+    {
+      "site_hotel_id": "9c63e69b-5a7a-4380-9ced-9441caec1580",
+      "name": "BELAD BONT RESORT",
+      "catalog_hotel_id": 68810,
+      "max_url": "https://max.ru/channel_anytour/AaHTYkrmRfQ",
+      "telegram_url": "https://t.me/any_toour/602"
+    },
+    {
+      "site_hotel_id": "9cb2ce23-2db4-4fec-8345-5aae9a0b0aa0",
+      "name": "Steigenberger Alcazar",
+      "catalog_hotel_id": 43204,
+      "max_url": "https://max.ru/channel_anytour/AaGeYQXUTJs",
+      "telegram_url": "https://t.me/any_toour/91"
+    },
+    {
+      "site_hotel_id": "9d11106c-cd27-468c-bb9c-25eb5114a7c4",
+      "name": "UTOPIA WORLD HOTEL",
+      "catalog_hotel_id": 1569,
+      "max_url": "https://max.ru/channel_anytour/AaHRcgxpNoQ",
+      "telegram_url": "https://t.me/any_toour/571"
+    },
+    {
+      "site_hotel_id": "9d571799-325e-479d-8c72-0a9b68b8195b",
+      "name": "RIU SRI LANKA AHUNGALLA",
+      "catalog_hotel_id": 50869,
+      "max_url": "https://max.ru/channel_anytour/AaG3_az3K-k",
+      "telegram_url": "https://t.me/any_toour/513"
+    },
+    {
+      "site_hotel_id": "9dec35a9-bbf3-5c1a-bc19-a72bc18e5a48",
+      "name": "ROYAL BRAYKA BEACH RESORT",
+      "catalog_hotel_id": 4185,
+      "max_url": "https://max.ru/channel_anytour/AaHSUbInHXg",
+      "telegram_url": "https://t.me/any_toour/592"
+    },
+    {
+      "site_hotel_id": "9ef61480-2366-4bd3-a223-d67d63b53a74",
+      "name": "VOX MARIS RESORT ADULTS ONLY 16+",
+      "catalog_hotel_id": 111045,
+      "max_url": "https://max.ru/channel_anytour/AaGbWS7jGsU",
+      "telegram_url": "https://t.me/any_toour/30"
+    },
+    {
+      "site_hotel_id": "9efa966f-51fe-4a3e-b935-2802a3c61e11",
+      "name": "The Chedi El Gouna",
+      "catalog_hotel_id": 103021,
+      "max_url": "https://max.ru/channel_anytour/AaGiW5fUUg0",
+      "telegram_url": "https://t.me/any_toour/130"
+    },
+    {
+      "site_hotel_id": "9efddeaf-542b-40a2-9de6-d0c999c40ce1",
+      "name": "AROMA BEACH RESORT & SPA",
+      "catalog_hotel_id": 24778,
+      "max_url": "https://max.ru/channel_anytour/AaG38GIxH2o",
+      "telegram_url": "https://t.me/any_toour/494"
+    },
+    {
+      "site_hotel_id": "9f08f763-c601-4bff-8c8a-cac54b707ee3",
+      "name": "DIAMOND COTTAGE RESORT & SPA",
+      "catalog_hotel_id": 2015,
+      "max_url": "https://max.ru/channel_anytour/AaG2d_94R6M",
+      "telegram_url": "https://t.me/any_toour/261"
+    },
+    {
+      "site_hotel_id": "9f0bd0cc-6485-483f-8c83-2f8d76bcc451",
+      "name": "LIU RESORTS",
+      "catalog_hotel_id": 76588,
+      "max_url": "https://max.ru/channel_anytour/AaG2zkytfiM",
+      "telegram_url": "https://t.me/any_toour/308"
+    },
+    {
+      "site_hotel_id": "9f254c4f-ae4b-4c1c-b749-5de77aa0d0ba",
+      "name": "QUATTRO BEACH RESORT & SPA",
+      "catalog_hotel_id": 28325,
+      "max_url": "https://max.ru/channel_anytour/AaG2zgySZTY",
+      "telegram_url": "https://t.me/any_toour/301"
+    },
+    {
+      "site_hotel_id": "a02a348c-b1e6-5f6e-87a7-5a6e2ed80ffa",
+      "name": "SUNIS ELITA BEACH RESORT (EX. ASTERIA ELITA RESORT)",
+      "catalog_hotel_id": 1013,
+      "max_url": "https://max.ru/channel_anytour/AaHSUaknQ48",
+      "telegram_url": "https://t.me/any_toour/591"
+    },
+    {
+      "site_hotel_id": "a031f7fc-4949-411a-a25c-93c3497e4462",
+      "name": "CRYSTAL ADMIRAL AQUA COLLECTION (EX. CRYSTAL ADMIRAL RESORT SUITES & SPA)",
+      "catalog_hotel_id": 1139,
+      "max_url": "https://max.ru/channel_anytour/AaG3GGdwULg",
+      "telegram_url": "https://t.me/any_toour/340"
+    },
+    {
+      "site_hotel_id": "a05c0a8a-f212-456f-9b1c-d025e645a97c",
+      "name": "KAYA PALAZZO GOLF RESORT (EX. RIU)",
+      "catalog_hotel_id": 15904,
+      "max_url": "https://max.ru/channel_anytour/AaG3X0hTDhw",
+      "telegram_url": "https://t.me/any_toour/402"
+    },
+    {
+      "site_hotel_id": "a0c4f056-2fc0-4af3-96ca-80fc75d316e6",
+      "name": "KARMIR RESORT & SPA",
+      "catalog_hotel_id": 28512,
+      "max_url": "https://max.ru/channel_anytour/AaG3MkgCL9Q",
+      "telegram_url": "https://t.me/any_toour/353"
+    },
+    {
+      "site_hotel_id": "a0ee8c47-0cfa-423e-98c2-1ede7c7e9a74",
+      "name": "MIRADA DEL MAR",
+      "catalog_hotel_id": 1380,
+      "max_url": "https://max.ru/channel_anytour/AaG3oYGfVHM",
+      "telegram_url": "https://t.me/any_toour/437"
+    },
+    {
+      "site_hotel_id": "a1f9ff2a-d5f9-4907-be3c-5d6efabadbb0",
+      "name": "SHERWOOD EXCLUSIVE KEMER (EX. SHERWOOD CLUB, MAJESTY CLUB)",
+      "catalog_hotel_id": 1352,
+      "max_url": "https://max.ru/channel_anytour/AaG1rpnTEFI",
+      "telegram_url": "https://t.me/any_toour/183"
+    },
+    {
+      "site_hotel_id": "a2087f20-0384-4260-a958-b7aab060e514",
+      "name": "AKRA KEMER (EX. KEMER BARUT COLLECTION)",
+      "catalog_hotel_id": 1291,
+      "max_url": "https://max.ru/channel_anytour/AaGjSZmnI2w",
+      "telegram_url": "https://t.me/any_toour/142"
+    },
+    {
+      "site_hotel_id": "a25d7d16-f90c-4595-82ec-ddf89d290583",
+      "name": "Sheraton Soma Bay Resort",
+      "catalog_hotel_id": 435,
+      "max_url": "https://max.ru/channel_anytour/AaGeij7eOTo",
+      "telegram_url": "https://t.me/any_toour/96"
+    },
+    {
+      "site_hotel_id": "a2943f04-7ef6-4761-8f56-04c825faa535",
+      "name": "FUJAIRAH ROTANA RESORT & SPA AL AQAH BEACH",
+      "catalog_hotel_id": 2559,
+      "max_url": "https://max.ru/channel_anytour/AaG3_YiLGwU",
+      "telegram_url": "https://t.me/any_toour/509"
+    },
+    {
+      "site_hotel_id": "a2a704f1-7305-47fc-9ab8-745a9fd762bf",
+      "name": "ORANGE COUNTY KEMER",
+      "catalog_hotel_id": 1402,
+      "max_url": "https://max.ru/channel_anytour/AaG2_Cr1JX4",
+      "telegram_url": "https://t.me/any_toour/312"
+    },
+    {
+      "site_hotel_id": "a2cc49b0-2281-414b-8d5e-a1d565a04c50",
+      "name": "SUNRISE ALORA AQUA PARK RESORT (EX. CAESAR PALACE)",
+      "catalog_hotel_id": 32575,
+      "max_url": "https://max.ru/channel_anytour/AaGc6bA5buw",
+      "telegram_url": "https://t.me/any_toour/47"
+    },
+    {
+      "site_hotel_id": "a2e28fd6-26cf-5925-a80e-2fda77a4744f",
+      "name": "IC HOTELS SANTAI FAMILY RESORT",
+      "catalog_hotel_id": 1260,
+      "max_url": "https://max.ru/channel_anytour/AaHQYt4dcmY",
+      "telegram_url": "https://t.me/any_toour/548"
+    },
+    {
+      "site_hotel_id": "a3193d13-318c-461f-9e54-a350fc85a584",
+      "name": "SUNRISE ARABIAN BEACH RESORT",
+      "catalog_hotel_id": 9374,
+      "max_url": "https://max.ru/channel_anytour/AaGbng1eNs0",
+      "telegram_url": "https://t.me/any_toour/33"
+    },
+    {
+      "site_hotel_id": "a3305642-078a-42b1-b81f-06ca1c1e9ff3",
+      "name": "REGNUM THE CROWN",
+      "catalog_hotel_id": 123374,
+      "max_url": "https://max.ru/channel_anytour/AaG3EMofPe0",
+      "telegram_url": "https://t.me/any_toour/337"
+    },
+    {
+      "site_hotel_id": "a3df8571-a31f-430d-99a7-6661c0e581d9",
+      "name": "SUGAR MARINA RESORT SURF KATA BEACH",
+      "catalog_hotel_id": 33313,
+      "max_url": "https://max.ru/channel_anytour/AaG1_6u7De8",
+      "telegram_url": "https://t.me/any_toour/214"
+    },
+    {
+      "site_hotel_id": "a3e896dc-ff47-4017-9106-badcded77f71",
+      "name": "GONSALA HOTEL NHA TRANG",
+      "catalog_hotel_id": 70032,
+      "max_url": "https://max.ru/channel_anytour/AaG32TMlTDc",
+      "telegram_url": "https://t.me/any_toour/484"
+    },
+    {
+      "site_hotel_id": "a4611e56-1370-43a4-8367-789b83a99d0c",
+      "name": "AKKA ALINDA HOTEL",
+      "catalog_hotel_id": 954,
+      "max_url": "https://max.ru/channel_anytour/AaG3WdL9MLk",
+      "telegram_url": "https://t.me/any_toour/393"
+    },
+    {
+      "site_hotel_id": "a4db4c26-0253-45de-b8f2-20bf4c4fd6d0",
+      "name": "PIRATES BEACH CLUB",
+      "catalog_hotel_id": 1433,
+      "max_url": "https://max.ru/channel_anytour/AaG3Mix7DQ0",
+      "telegram_url": "https://t.me/any_toour/350"
+    },
+    {
+      "site_hotel_id": "a500825f-0f44-4c8e-a5f0-22c97d792c3d",
+      "name": "CRYSTAL PARAISO AQUA COLLECTION (EX. CRYSTAL PARAISO VERDE RESORT & SPA)",
+      "catalog_hotel_id": 1143,
+      "max_url": "https://max.ru/channel_anytour/AaG2Qr0HIZo",
+      "telegram_url": "https://t.me/any_toour/235"
+    },
+    {
+      "site_hotel_id": "a5a26d71-d37a-42e8-a16b-007be4c2f5d7",
+      "name": "Brayka Bay Resort",
+      "catalog_hotel_id": 139,
+      "max_url": "https://max.ru/channel_anytour/AaGjHF7dGOQ",
+      "telegram_url": "https://t.me/any_toour/140"
+    },
+    {
+      "site_hotel_id": "a63c6688-14f6-435f-bd5e-a08c5f081059",
+      "name": "Siva Grand Beach",
+      "catalog_hotel_id": 441,
+      "max_url": "https://max.ru/channel_anytour/AaGhSGS2Sy4",
+      "telegram_url": "https://t.me/any_toour/121"
+    },
+    {
+      "site_hotel_id": "a66b0a41-a831-4ba0-877a-fd6537f5e27b",
+      "name": "THE V LUXURY RESORT",
+      "catalog_hotel_id": 90236,
+      "max_url": "https://max.ru/channel_anytour/AaG2kb5GDi8",
+      "telegram_url": "https://t.me/any_toour/275"
+    },
+    {
+      "site_hotel_id": "a6d831e8-fd70-563d-bac6-a72a13560628",
+      "name": "ADALYA ART SIDE (EX. GRAND HOTEL ARTSIDE)",
+      "catalog_hotel_id": 1217,
+      "max_url": "https://max.ru/channel_anytour/AaHQDVqxNNI",
+      "telegram_url": "https://t.me/any_toour/533"
+    },
+    {
+      "site_hotel_id": "a7e653c0-f214-46c6-91fd-4b75d5307152",
+      "name": "WHITE CITY BEACH ADULTS ONLY 16+",
+      "catalog_hotel_id": 1586,
+      "max_url": "https://max.ru/channel_anytour/AaG3o9ayEyo",
+      "telegram_url": "https://t.me/any_toour/448"
+    },
+    {
+      "site_hotel_id": "a7f36bf9-2325-4308-af4e-cd6d0f72239e",
+      "name": "INTERCONTINENTAL NHA TRANG",
+      "catalog_hotel_id": 32339,
+      "max_url": "https://max.ru/channel_anytour/AaHUbDVCWF0",
+      "telegram_url": "https://t.me/any_toour/609"
+    },
+    {
+      "site_hotel_id": "a81f0a08-653f-471a-b26b-714982a46cfe",
+      "name": "SIDE AMOUR HOTEL",
+      "catalog_hotel_id": 76515,
+      "max_url": "https://max.ru/channel_anytour/AaG2_FgWDOA",
+      "telegram_url": "https://t.me/any_toour/317"
+    },
+    {
+      "site_hotel_id": "a844261a-1986-4c7e-a07b-6a15e46af9a2",
+      "name": "BAIA LARA HOTEL",
+      "catalog_hotel_id": 1026,
+      "max_url": "https://max.ru/channel_anytour/AaG2eBHEQpo",
+      "telegram_url": "https://t.me/any_toour/263"
+    },
+    {
+      "site_hotel_id": "a8620114-e389-440a-a16f-38288fa934fe",
+      "name": "LE MERIDIEN KHAO LAK RESORT & SPA (EX. BANGSAK MERLIN RESORT)",
+      "catalog_hotel_id": 68984,
+      "max_url": "https://max.ru/channel_anytour/AaG1yPKiXNI",
+      "telegram_url": "https://t.me/any_toour/192"
+    },
+    {
+      "site_hotel_id": "a8f5bd81-7e09-4b4a-992e-145994f08859",
+      "name": "REHANA SHARM RESORT AQUA PARK & SPA",
+      "catalog_hotel_id": 380,
+      "max_url": "https://max.ru/channel_anytour/AaG2Uj4pQ0w",
+      "telegram_url": "https://t.me/any_toour/250"
+    },
+    {
+      "site_hotel_id": "aa99f003-6480-4147-bb86-2fcafb50d636",
+      "name": "SIDE MOON PALACE HOTEL",
+      "catalog_hotel_id": 111129,
+      "max_url": "https://max.ru/channel_anytour/AaGbPHjzPRg",
+      "telegram_url": "https://t.me/any_toour/29"
+    },
+    {
+      "site_hotel_id": "ab533555-2bbf-4a53-89ab-5c62cdd2dfd4",
+      "name": "Coral Sea Holiday Resort & Aqua Park",
+      "catalog_hotel_id": 163,
+      "max_url": "https://max.ru/channel_anytour/AaGisjnCN7c",
+      "telegram_url": "https://t.me/any_toour/135"
+    },
+    {
+      "site_hotel_id": "ac07c563-0c5a-4742-a0f3-0436b6cf7e55",
+      "name": "CRYSTAL SUNSET PEARL COLLECTION (EX. CRYSTAL SUNSET LUXURY RESORT & SPA)",
+      "catalog_hotel_id": 15871,
+      "max_url": "https://max.ru/channel_anytour/AaG2IoR8C5g",
+      "telegram_url": "https://t.me/any_toour/225"
+    },
+    {
+      "site_hotel_id": "ac2cf1fa-7657-4d96-a3d5-e57f7d3be833",
+      "name": "MERCURE HURGHADA",
+      "catalog_hotel_id": 443,
+      "max_url": "https://max.ru/channel_anytour/AaHUrGRWBZI",
+      "telegram_url": "https://t.me/any_toour/614"
+    },
+    {
+      "site_hotel_id": "ac95efdb-5659-4a2a-a2ba-89c4bfe0f519",
+      "name": "SULTAN GARDENS RESORT",
+      "catalog_hotel_id": 469,
+      "max_url": "https://max.ru/channel_anytour/AaF5iOO-R8w",
+      "telegram_url": "https://t.me/any_toour/12"
+    },
+    {
+      "site_hotel_id": "ad58ee01-9eb3-4082-a2d5-e986b86c6cf8",
+      "name": "LONICERA WORLD HOTEL",
+      "catalog_hotel_id": 82606,
+      "max_url": "https://max.ru/channel_anytour/AaG2UiwBBps",
+      "telegram_url": "https://t.me/any_toour/248"
+    },
+    {
+      "site_hotel_id": "ae4dffa4-6532-4270-88c8-e9785b44894c",
+      "name": "ARCANUS HOTELS SORGUN (EX. ARCANUS SIDE RESORT)",
+      "catalog_hotel_id": 1015,
+      "max_url": "https://max.ru/channel_anytour/AaG3RNuNaLQ",
+      "telegram_url": "https://t.me/any_toour/368"
+    },
+    {
+      "site_hotel_id": "af06c580-2c65-4854-85ae-92cd25489f28",
+      "name": "ROYAL SEGINUS",
+      "catalog_hotel_id": 53514,
+      "max_url": "https://max.ru/channel_anytour/AaG3oa6FOpM",
+      "telegram_url": "https://t.me/any_toour/442"
+    },
+    {
+      "site_hotel_id": "b00894a7-0575-46bc-b709-5ae56d563364",
+      "name": "LONICERA PREMIUM",
+      "catalog_hotel_id": 69184,
+      "max_url": "https://max.ru/channel_anytour/AaG3EJzVd24",
+      "telegram_url": "https://t.me/any_toour/332"
+    },
+    {
+      "site_hotel_id": "b05aceed-3a9d-5321-999f-70f2dc2c47d6",
+      "name": "SENTIDO REEF OASIS SENSES RESORT (EX. REEF OASIS SENSES RESORT)",
+      "catalog_hotel_id": 4184,
+      "max_url": "https://max.ru/channel_anytour/AaHTI_GNfDA",
+      "telegram_url": "https://t.me/any_toour/600"
+    },
+    {
+      "site_hotel_id": "b061bd59-f11a-5a61-8a14-e959ef3819d1",
+      "name": "TITANIC DELUXE GOLF BELEK",
+      "catalog_hotel_id": 15913,
+      "max_url": "https://max.ru/channel_anytour/AaHQDUk1OZo",
+      "telegram_url": "https://t.me/any_toour/531"
+    },
+    {
+      "site_hotel_id": "b0a81ee4-81cd-5b96-87dc-18adf8e9fb04",
+      "name": "HILLSIDE BEACH CLUB",
+      "catalog_hotel_id": 2175,
+      "max_url": "https://max.ru/channel_anytour/AaHQQv2hEvM",
+      "telegram_url": "https://t.me/any_toour/539"
+    },
+    {
+      "site_hotel_id": "b124ec43-c696-483c-b173-ad539b711850",
+      "name": "THE NORM ORIENTAL KEMER (EX. ASTERIA KEMER RESORT)",
+      "catalog_hotel_id": 1186,
+      "max_url": "https://max.ru/channel_anytour/AaG3Xwa4Fn4",
+      "telegram_url": "https://t.me/any_toour/395"
+    },
+    {
+      "site_hotel_id": "b15c459c-e0cc-4a76-934f-02e590ded49d",
+      "name": "ALI BABA PALACE",
+      "catalog_hotel_id": 114,
+      "max_url": "https://max.ru/channel_anytour/AaG3soUIZh0",
+      "telegram_url": "https://t.me/any_toour/469"
+    },
+    {
+      "site_hotel_id": "b260401b-e881-4fb6-88f3-fb46c021a30b",
+      "name": "SENZA HOTELS GRAND SANTANA",
+      "catalog_hotel_id": 1469,
+      "max_url": "https://max.ru/channel_anytour/AaG3Wdu6PaA",
+      "telegram_url": "https://t.me/any_toour/394"
+    },
+    {
+      "site_hotel_id": "b3162fd3-cbe2-5b72-abc5-764a16a1fcc7",
+      "name": "D MARIS BAY (EX. D HOTEL MARIS)",
+      "catalog_hotel_id": 2144,
+      "max_url": "https://max.ru/channel_anytour/AaHQDR25IIc",
+      "telegram_url": "https://t.me/any_toour/526"
+    },
+    {
+      "site_hotel_id": "b435be87-d0b8-44af-9073-6b57e241f42f",
+      "name": "MA BICHE KEMER BY WERDE HOTELS (EX. KIMEROS MA BICHE HOTEL & THALASSO)",
+      "catalog_hotel_id": 28581,
+      "max_url": "https://max.ru/channel_anytour/AaG3AEh9LSA",
+      "telegram_url": "https://t.me/any_toour/326"
+    },
+    {
+      "site_hotel_id": "b5307965-fd79-4a18-ad77-cd7fb55566d2",
+      "name": "CRYSTAL TAT BEACH PEARL COLLECTION (EX. CRYSTAL TAT BEACH GOLF RESORT & SPA)",
+      "catalog_hotel_id": 1029,
+      "max_url": "https://max.ru/channel_anytour/AaG3R8y9MrE",
+      "telegram_url": "https://t.me/any_toour/377"
+    },
+    {
+      "site_hotel_id": "b6596051-b050-4999-8595-e2ec2dd96b7a",
+      "name": "SATURN PALACE RESORT",
+      "catalog_hotel_id": 1474,
+      "max_url": "https://max.ru/channel_anytour/AaG3NaGLK_k",
+      "telegram_url": "https://t.me/any_toour/365"
+    },
+    {
+      "site_hotel_id": "b77b38ea-8244-48b7-be3b-f6c4437c648f",
+      "name": "MIRACLE LUXURY",
+      "catalog_hotel_id": 80605,
+      "max_url": "https://max.ru/channel_anytour/AaG32VaZBJI",
+      "telegram_url": "https://t.me/any_toour/488"
+    },
+    {
+      "site_hotel_id": "b8aaeff0-0283-429a-a785-4c2cc5dd3a80",
+      "name": "Pickalbatros Vita Resort Portofino",
+      "catalog_hotel_id": 83105,
+      "max_url": "https://max.ru/channel_anytour/AaGePGaqRfA",
+      "telegram_url": "https://t.me/any_toour/87"
+    },
+    {
+      "site_hotel_id": "b8b58f6e-b5fd-4ab3-901e-4915d6e94a0d",
+      "name": "BLUE FISH",
+      "catalog_hotel_id": 1051,
+      "max_url": "https://max.ru/channel_anytour/AaG3oaW-MPo",
+      "telegram_url": "https://t.me/any_toour/441"
+    },
+    {
+      "site_hotel_id": "b923fee9-3a43-4b36-9406-cb7d4d0fefe2",
+      "name": "ELA EXCELLENCE RESORT BELEK (EX. ELA QUALITY RESORT)",
+      "catalog_hotel_id": 1165,
+      "max_url": "https://max.ru/channel_anytour/AaG3foqWBqE",
+      "telegram_url": "https://t.me/any_toour/405"
+    },
+    {
+      "site_hotel_id": "ba1a1db1-162b-4a28-939b-9187da9d8832",
+      "name": "ALI BEY PARK MANAVGAT",
+      "catalog_hotel_id": 968,
+      "max_url": "https://max.ru/channel_anytour/AaHTsQwvQXY",
+      "telegram_url": "https://t.me/any_toour/605"
+    },
+    {
+      "site_hotel_id": "ba78aeaf-9467-4918-8d49-bba0bd625ea3",
+      "name": "GLORIA GOLF RESORT",
+      "catalog_hotel_id": 1198,
+      "max_url": "https://max.ru/channel_anytour/AaG3fniEGw0",
+      "telegram_url": "https://t.me/any_toour/403"
+    },
+    {
+      "site_hotel_id": "ba995d60-c181-4078-858a-744aa20bfc09",
+      "name": "TIMO DELUXE RESORT",
+      "catalog_hotel_id": 1255,
+      "max_url": "https://max.ru/channel_anytour/AaHRo2QOeV8",
+      "telegram_url": "https://t.me/any_toour/578"
+    },
+    {
+      "site_hotel_id": "bafaf7d5-7545-40fa-9439-1fe3eece7e4a",
+      "name": "DREAM FAMILY CLUB (EX. PRIME)",
+      "catalog_hotel_id": 28779,
+      "max_url": "https://max.ru/channel_anytour/AaG3NVd3fs4",
+      "telegram_url": "https://t.me/any_toour/357"
+    },
+    {
+      "site_hotel_id": "bb2dc7a9-9881-4c8f-97bd-0c883df33a71",
+      "name": "BELLA NARA PHUKET NAIYANG BEACH",
+      "catalog_hotel_id": 107940,
+      "max_url": "https://max.ru/channel_anytour/AaHUrG0-eJQ",
+      "telegram_url": "https://t.me/any_toour/615"
+    },
+    {
+      "site_hotel_id": "bbbd4a18-bc9f-4284-8ebf-0c822878626a",
+      "name": "ADDRESS BEACH RESORT FUJAIRAH",
+      "catalog_hotel_id": 73055,
+      "max_url": "https://max.ru/channel_anytour/AaG3_ZHsUtQ",
+      "telegram_url": "https://t.me/any_toour/510"
+    },
+    {
+      "site_hotel_id": "bc5a02bf-442b-4302-9562-c4dd607e7730",
+      "name": "CHATEAU DU VILLAGE",
+      "catalog_hotel_id": 116932,
+      "max_url": "https://max.ru/channel_anytour/AaG15qI5McY",
+      "telegram_url": "https://t.me/any_toour/204"
+    },
+    {
+      "site_hotel_id": "bce2c162-a5e5-41ad-9170-834b4bf7c89d",
+      "name": "REHANA ROYAL BEACH RESORT AQUA PARK & SPA",
+      "catalog_hotel_id": 381,
+      "max_url": "https://max.ru/channel_anytour/AaF5iPYSJTA",
+      "telegram_url": "https://t.me/any_toour/13"
+    },
+    {
+      "site_hotel_id": "bd2c4169-cbac-4781-8925-0b677b0fe44e",
+      "name": "IC HOTELS GREEN PALACE",
+      "catalog_hotel_id": 1258,
+      "max_url": "https://max.ru/channel_anytour/AaG2keteR4o",
+      "telegram_url": "https://t.me/any_toour/280"
+    },
+    {
+      "site_hotel_id": "be9550c7-b2a5-4517-83cf-cfef52987c2b",
+      "name": "GRAND PARK LARA",
+      "catalog_hotel_id": 15889,
+      "max_url": "https://max.ru/channel_anytour/AaG2zjrAGmk",
+      "telegram_url": "https://t.me/any_toour/306"
+    },
+    {
+      "site_hotel_id": "beb407fe-98a7-435f-b79e-5e13d72b7684",
+      "name": "WYNDHAM RESIDENCES THE PALM",
+      "catalog_hotel_id": 80713,
+      "max_url": "https://max.ru/channel_anytour/AaG3llzeabw",
+      "telegram_url": "https://t.me/any_toour/432"
+    },
+    {
+      "site_hotel_id": "bf12c0c7-ff76-41db-9cfc-9db9d1a222ac",
+      "name": "COURTYARD BY MARRIOTT PHUKET PATONG BEACH RESORT",
+      "catalog_hotel_id": 116934,
+      "max_url": "https://max.ru/channel_anytour/AaG38wzRdy8",
+      "telegram_url": "https://t.me/any_toour/504"
+    },
+    {
+      "site_hotel_id": "bfe9f605-a80a-5368-a546-d4867859a7a7",
+      "name": "SUNIS KUMKOY BEACH RESORT & SPA",
+      "catalog_hotel_id": 1531,
+      "max_url": "https://max.ru/channel_anytour/AaHTsRUWKD8",
+      "telegram_url": "https://t.me/any_toour/606"
+    },
+    {
+      "site_hotel_id": "c0451864-2008-4c9d-abc2-4bc09b17c1d8",
+      "name": "Iberotel Luxor by JAZ",
+      "catalog_hotel_id": 103124,
+      "max_url": "https://max.ru/channel_anytour/AaGi7fLNILc",
+      "telegram_url": "https://t.me/any_toour/137"
+    },
+    {
+      "site_hotel_id": "c07de080-62b9-4597-b2e3-59fe87a3fbd2",
+      "name": "ALOFT PALM JUMEIRAH",
+      "catalog_hotel_id": 61159,
+      "max_url": "https://max.ru/channel_anytour/AaG3k-ZDGFA",
+      "telegram_url": "https://t.me/any_toour/428"
+    },
+    {
+      "site_hotel_id": "c11be715-541a-4493-a42c-457d9f724aab",
+      "name": "BOSPHORUS SORGUN",
+      "catalog_hotel_id": 52925,
+      "max_url": "https://max.ru/channel_anytour/AaG3sCGXdt4",
+      "telegram_url": "https://t.me/any_toour/459"
+    },
+    {
+      "site_hotel_id": "c1a3117e-5b4d-55e2-bbba-8436b5140301",
+      "name": "SINDBAD CLUB",
+      "catalog_hotel_id": 62504,
+      "max_url": "https://max.ru/channel_anytour/AaHRo1toewA",
+      "telegram_url": "https://t.me/any_toour/577"
+    },
+    {
+      "site_hotel_id": "c2e659d1-a634-40df-a2a4-a9166beefdcf",
+      "name": "CLUB HOTEL PHASELIS ROSE",
+      "catalog_hotel_id": 1096,
+      "max_url": "https://max.ru/channel_anytour/AaG2zhV2Rxw",
+      "telegram_url": "https://t.me/any_toour/302"
+    },
+    {
+      "site_hotel_id": "c30f4cab-25df-4c10-b76e-9e8f4bd53eca",
+      "name": "LUSSO SORGUN",
+      "catalog_hotel_id": 120209,
+      "max_url": "https://max.ru/channel_anytour/AaG2_DzUH3s",
+      "telegram_url": "https://t.me/any_toour/314"
+    },
+    {
+      "site_hotel_id": "c5eca227-78ef-41d3-8c3f-333b5e876f40",
+      "name": "PHUKET MARRIOTT RESORT & SPA MERLIN BEACH (EX. MERLIN BEACH RESORT)",
+      "catalog_hotel_id": 703,
+      "max_url": "https://max.ru/channel_anytour/AaG1yPuGEJA",
+      "telegram_url": "https://t.me/any_toour/193"
+    },
+    {
+      "site_hotel_id": "c692e248-2776-59db-a5a8-a75518955259",
+      "name": "TITANIC ROYAL HOTEL",
+      "catalog_hotel_id": 65779,
+      "max_url": "https://max.ru/channel_anytour/AaHRchVOYio",
+      "telegram_url": "https://t.me/any_toour/572"
+    },
+    {
+      "site_hotel_id": "c6fd6493-8ff3-44bc-b301-f09b23bf486d",
+      "name": "Pickalbatros Palace Resort Hurghada",
+      "catalog_hotel_id": 111,
+      "max_url": "https://max.ru/channel_anytour/AaGisi-ve3Q",
+      "telegram_url": "https://t.me/any_toour/134"
+    },
+    {
+      "site_hotel_id": "c7d11aa5-f6b2-4f39-912c-eb9f3f3e7f2c",
+      "name": "FANTASIA DE LUXE",
+      "catalog_hotel_id": 9434,
+      "max_url": "https://max.ru/channel_anytour/AaHRo3WFMI0",
+      "telegram_url": "https://t.me/any_toour/580"
+    },
+    {
+      "site_hotel_id": "c7d1c4f2-4060-4919-8312-62f6510af584",
+      "name": "IBIS STYLES NHA TRANG",
+      "catalog_hotel_id": 57082,
+      "max_url": "https://max.ru/channel_anytour/AaG32UTMG84",
+      "telegram_url": "https://t.me/any_toour/486"
+    },
+    {
+      "site_hotel_id": "c857af60-028a-414f-b91d-4338170dc4ca",
+      "name": "AMARIN RESORT",
+      "catalog_hotel_id": 57039,
+      "max_url": "https://max.ru/channel_anytour/AaG38vrMaGs",
+      "telegram_url": "https://t.me/any_toour/502"
+    },
+    {
+      "site_hotel_id": "c8b928fd-6d82-41f0-b549-b3c2d1942824",
+      "name": "JAZ Costa Mares 16+",
+      "catalog_hotel_id": 75725,
+      "max_url": "https://max.ru/channel_anytour/AaGgkInWb2E",
+      "telegram_url": "https://t.me/any_toour/113"
+    },
+    {
+      "site_hotel_id": "c8becec2-ba01-44b8-b3ca-89063843921c",
+      "name": "JAZ Makadina",
+      "catalog_hotel_id": 13872,
+      "max_url": "https://max.ru/channel_anytour/AaGdPPvxQRQ",
+      "telegram_url": "https://t.me/any_toour/57"
+    },
+    {
+      "site_hotel_id": "c8e4b48f-6caa-46bc-8f6b-e2c9b9507656",
+      "name": "GALINA HOTEL & SPA",
+      "catalog_hotel_id": 32356,
+      "max_url": "https://max.ru/channel_anytour/AaHUrHYNHp0",
+      "telegram_url": "https://t.me/any_toour/616"
+    },
+    {
+      "site_hotel_id": "c907da7b-6b1b-4aad-bea1-1e69752cf33d",
+      "name": "ROYAL GARDEN BEACH HOTEL (EX. ROYAL GARDEN SELECT & SUITE)",
+      "catalog_hotel_id": 15905,
+      "max_url": "https://max.ru/channel_anytour/AaG2uSoXDfs",
+      "telegram_url": "https://t.me/any_toour/286"
+    },
+    {
+      "site_hotel_id": "caf16187-f7f0-4eff-9d97-439c93d89edb",
+      "name": "NUBIAN VILLAGE",
+      "catalog_hotel_id": 341,
+      "max_url": "https://max.ru/channel_anytour/AaG2y39LWpo",
+      "telegram_url": "https://t.me/any_toour/298"
+    },
+    {
+      "site_hotel_id": "cb8d44de-25c0-4fdb-a30c-71dce999ec48",
+      "name": "ALIBU RESORT",
+      "catalog_hotel_id": 71259,
+      "max_url": "https://max.ru/channel_anytour/AaG31Qu4aRk",
+      "telegram_url": "https://t.me/any_toour/479"
+    },
+    {
+      "site_hotel_id": "cc07bb86-badc-40a9-beba-433f344a6201",
+      "name": "SUNNY BEACH RESORT & SPA",
+      "catalog_hotel_id": 4079,
+      "max_url": "https://max.ru/channel_anytour/AaG38IYfRTk",
+      "telegram_url": "https://t.me/any_toour/498"
+    },
+    {
+      "site_hotel_id": "cc60590a-a073-4562-8143-06b11c43034c",
+      "name": "CITRUS HIKKADUWA (EX. AMAYA REEF)",
+      "catalog_hotel_id": 2791,
+      "max_url": "https://max.ru/channel_anytour/AaG3lneeRt4",
+      "telegram_url": "https://t.me/any_toour/435"
+    },
+    {
+      "site_hotel_id": "cd4e4210-a432-5a27-a103-cbb8564471b4",
+      "name": "MELAS LARA HOTEL",
+      "catalog_hotel_id": 1369,
+      "max_url": "https://max.ru/channel_anytour/AaHRch4KQ_8",
+      "telegram_url": "https://t.me/any_toour/573"
+    },
+    {
+      "site_hotel_id": "cd534b32-6d09-40b9-ab1f-9d3739f91093",
+      "name": "GREEN WORLD NHA TRANG",
+      "catalog_hotel_id": 28509,
+      "max_url": "https://max.ru/channel_anytour/AaG32Tv5Bwo",
+      "telegram_url": "https://t.me/any_toour/485"
+    },
+    {
+      "site_hotel_id": "ce1f01c6-f5f9-4d07-9cf6-a5188d039463",
+      "name": "ALBATROS MAKADI RESORT",
+      "catalog_hotel_id": 241,
+      "max_url": "https://max.ru/channel_anytour/AaGa3GMLV1E",
+      "telegram_url": "https://t.me/any_toour/21"
+    },
+    {
+      "site_hotel_id": "ce426e25-d3f7-4f18-8918-4dc436df9bcd",
+      "name": "SIDE STAR PARK",
+      "catalog_hotel_id": 45199,
+      "max_url": "https://max.ru/channel_anytour/AaG1rrR-DFE",
+      "telegram_url": "https://t.me/any_toour/186"
+    },
+    {
+      "site_hotel_id": "ce66c797-2ca2-452e-9316-17c3e5f3965e",
+      "name": "SERENITY QUEEN HOTEL",
+      "catalog_hotel_id": 78905,
+      "max_url": "https://max.ru/channel_anytour/AaG3MlD1AUY",
+      "telegram_url": "https://t.me/any_toour/354"
+    },
+    {
+      "site_hotel_id": "cf51675f-28d5-45d6-9b9a-ecd1c2631043",
+      "name": "NH COLLECTION DUBAI THE PALM",
+      "catalog_hotel_id": 82716,
+      "max_url": "https://max.ru/channel_anytour/AaG3lmXKcZQ",
+      "telegram_url": "https://t.me/any_toour/433"
+    },
+    {
+      "site_hotel_id": "d0b67a5f-d762-4541-a061-7b5466f089ef",
+      "name": "TROPITEL DAHAB OASIS",
+      "catalog_hotel_id": 512,
+      "max_url": "https://max.ru/channel_anytour/AaG2InKkR7c",
+      "telegram_url": "https://t.me/any_toour/223"
+    },
+    {
+      "site_hotel_id": "d16ad08a-89e3-46cc-959c-51bacb1b70d1",
+      "name": "KING TUT AQUA PARK BEACH RESORT",
+      "catalog_hotel_id": 288,
+      "max_url": "https://max.ru/channel_anytour/AaG3spagCP4",
+      "telegram_url": "https://t.me/any_toour/471"
+    },
+    {
+      "site_hotel_id": "d188cdd1-5db8-4eb2-bffb-f83bb60a2e0e",
+      "name": "PRAHA HOTEL",
+      "catalog_hotel_id": 45516,
+      "max_url": "https://max.ru/channel_anytour/AaG2uRe1Bk4",
+      "telegram_url": "https://t.me/any_toour/284"
+    },
+    {
+      "site_hotel_id": "d1a88462-897a-55da-a8c5-0d19beaa8999",
+      "name": "PALOMA FINESSE SIDE",
+      "catalog_hotel_id": 65782,
+      "max_url": "https://max.ru/channel_anytour/AaHQQuvVLI0",
+      "telegram_url": "https://t.me/any_toour/537"
+    },
+    {
+      "site_hotel_id": "d1caf2fd-182d-49ce-aa3e-6afe9aeee604",
+      "name": "MAPLE HOTEL & APARTMENT NHA TRANG",
+      "catalog_hotel_id": 64672,
+      "max_url": "https://max.ru/channel_anytour/AaG32U2uQbs",
+      "telegram_url": "https://t.me/any_toour/487"
+    },
+    {
+      "site_hotel_id": "d204a4fe-f010-49c1-8815-e2731b27b439",
+      "name": "SWISSOTEL SHARM EL SHEIKH",
+      "catalog_hotel_id": 91404,
+      "max_url": "https://max.ru/channel_anytour/AaG31PEWUw4",
+      "telegram_url": "https://t.me/any_toour/476"
+    },
+    {
+      "site_hotel_id": "d22d4a0a-45aa-4e0d-a120-27b7d1154431",
+      "name": "GREEN GARDEN RESORT HOTEL",
+      "catalog_hotel_id": 54621,
+      "max_url": "https://max.ru/channel_anytour/AaG3r_LKHY0",
+      "telegram_url": "https://t.me/any_toour/456"
+    },
+    {
+      "site_hotel_id": "d28269cf-0498-47cc-92ea-15f15360b5e2",
+      "name": "Concorde De Luxe Resort",
+      "catalog_hotel_id": 1133,
+      "max_url": "https://max.ru/channel_anytour/AaGjuIOyGyI",
+      "telegram_url": "https://t.me/any_toour/155"
+    },
+    {
+      "site_hotel_id": "d2d20b81-3026-4e01-9715-43fcb321f415",
+      "name": "TND HOTEL (EX. CICILIA)",
+      "catalog_hotel_id": 55721,
+      "max_url": "https://max.ru/channel_anytour/AaG2y2Q6A8g",
+      "telegram_url": "https://t.me/any_toour/295"
+    },
+    {
+      "site_hotel_id": "d3648558-451f-4b07-8995-265762dd174a",
+      "name": "RIXOS PREMIUM SAADIYAT ISLAND",
+      "catalog_hotel_id": 63833,
+      "max_url": "https://max.ru/channel_anytour/AaG3k7BdGwg",
+      "telegram_url": "https://t.me/any_toour/422"
+    },
+    {
+      "site_hotel_id": "d52e61ff-3be7-5f42-be1d-e05dfb4491df",
+      "name": "TITANIC PALACE RESORT & SPA",
+      "catalog_hotel_id": 932,
+      "max_url": "https://max.ru/channel_anytour/AaHRo0CILKI",
+      "telegram_url": "https://t.me/any_toour/574"
+    },
+    {
+      "site_hotel_id": "d5617046-ae57-4bb0-8543-253f23bf70cd",
+      "name": "Safir Sharm Waterfalls Resort",
+      "catalog_hotel_id": 253,
+      "max_url": "https://max.ru/channel_anytour/AaGjSa3TJ40",
+      "telegram_url": "https://t.me/any_toour/144"
+    },
+    {
+      "site_hotel_id": "d5731eac-ac3e-4428-ad02-3537683ef600",
+      "name": "Paloma Grida",
+      "catalog_hotel_id": 1417,
+      "max_url": "https://max.ru/channel_anytour/AaGj5sgZdbc",
+      "telegram_url": "https://t.me/any_toour/159"
+    },
+    {
+      "site_hotel_id": "d5baa7a8-d063-4d8e-be3e-55c40d2ba0ad",
+      "name": "PARROTEL LAGOON WATERPARK RESORT",
+      "catalog_hotel_id": 71147,
+      "max_url": "https://max.ru/channel_anytour/AaG31QLZADc",
+      "telegram_url": "https://t.me/any_toour/478"
+    },
+    {
+      "site_hotel_id": "d60b24f4-3f5b-4940-8838-51219bc7d5cc",
+      "name": "NAITHONBURI BEACH RESORT",
+      "catalog_hotel_id": 713,
+      "max_url": "https://max.ru/channel_anytour/AaG2y3YGbx0",
+      "telegram_url": "https://t.me/any_toour/297"
+    },
+    {
+      "site_hotel_id": "d693acae-a37f-411c-b9e2-a2e455512ed0",
+      "name": "ANDAMAN EMBRACE PATONG",
+      "catalog_hotel_id": 613,
+      "max_url": "https://max.ru/channel_anytour/AaG1rr1TAlI",
+      "telegram_url": "https://t.me/any_toour/187"
+    },
+    {
+      "site_hotel_id": "d6c37065-3fcb-4873-9d03-d6f2b97f8da8",
+      "name": "MAXX ROYAL KEMER RESORT",
+      "catalog_hotel_id": 27349,
+      "max_url": "https://max.ru/channel_anytour/AaG3Xz91efA",
+      "telegram_url": "https://t.me/any_toour/401"
+    },
+    {
+      "site_hotel_id": "d826d92a-662e-4289-9682-d649bfebf6bd",
+      "name": "Sunrise Anjum Resort",
+      "catalog_hotel_id": 112914,
+      "max_url": "https://max.ru/channel_anytour/AaGc6bnrGPE",
+      "telegram_url": "https://t.me/any_toour/48"
+    },
+    {
+      "site_hotel_id": "d8694287-2a7f-4e73-a1f0-4614b346c40a",
+      "name": "Rixos Sharm El Sheikh",
+      "catalog_hotel_id": 358,
+      "max_url": "https://max.ru/channel_anytour/AaGd4bFlag4",
+      "telegram_url": "https://t.me/any_toour/65"
+    },
+    {
+      "site_hotel_id": "d8ac82c5-51a9-46c2-bcd2-2203e3d9ed2a",
+      "name": "ALMA RESORT CAM RANH",
+      "catalog_hotel_id": 73974,
+      "max_url": "https://max.ru/channel_anytour/AaG15r05E18",
+      "telegram_url": "https://t.me/any_toour/207"
+    },
+    {
+      "site_hotel_id": "d8b7e41e-bbf9-4494-a098-be79339bb7ec",
+      "name": "FAIRMONT AJMAN",
+      "catalog_hotel_id": 42662,
+      "max_url": "https://max.ru/channel_anytour/AaG3k_hCevA",
+      "telegram_url": "https://t.me/any_toour/430"
+    },
+    {
+      "site_hotel_id": "d8be9749-40f4-4809-abf6-43a9ab9863d1",
+      "name": "MAXX ROYAL BELEK GOLF & SPA",
+      "catalog_hotel_id": 3405,
+      "max_url": "https://max.ru/channel_anytour/AaGjuKF0FLE",
+      "telegram_url": "https://t.me/any_toour/158"
+    },
+    {
+      "site_hotel_id": "d8e96b83-480a-471a-b1fc-3e8be0ced980",
+      "name": "PALMA RESORT PHU QUOC TRADEMARK COLLECTION BY WYNDHAM",
+      "catalog_hotel_id": 65266,
+      "max_url": "https://max.ru/channel_anytour/AaG38wQzGoI",
+      "telegram_url": "https://t.me/any_toour/503"
+    },
+    {
+      "site_hotel_id": "d960051f-84ee-4459-98fb-eceed2c2beb8",
+      "name": "SOL BY MELIA PHU QUOC (EX. SOL BEACH HOUSE PHU QUOC)",
+      "catalog_hotel_id": 54193,
+      "max_url": "https://max.ru/channel_anytour/AaG15sYgRhQ",
+      "telegram_url": "https://t.me/any_toour/208"
+    },
+    {
+      "site_hotel_id": "d96e5fb8-1b2e-493f-9e0f-27808ab06052",
+      "name": "GLORIA SERENITY RESORT",
+      "catalog_hotel_id": 1199,
+      "max_url": "https://max.ru/channel_anytour/AaGlZGZhNVE",
+      "telegram_url": "https://t.me/any_toour/161"
+    },
+    {
+      "site_hotel_id": "d9b93a2f-121f-4e3f-93cb-10af8eb45f7c",
+      "name": "TUI BLUE Seno",
+      "catalog_hotel_id": 21695,
+      "max_url": "https://max.ru/channel_anytour/AaGmKB_hHaM",
+      "telegram_url": "https://t.me/any_toour/166"
+    },
+    {
+      "site_hotel_id": "d9d0da00-e6b6-47b0-960c-485b2a9db7e1",
+      "name": "БОГАТЫРЬ",
+      "catalog_hotel_id": 30158,
+      "max_url": "https://max.ru/channel_anytour/AaHRo35lQ-M",
+      "telegram_url": "https://t.me/any_toour/581"
+    },
+    {
+      "site_hotel_id": "da055191-55d9-4e46-b022-392ce11881b4",
+      "name": "Pickalbatros Laguna Club",
+      "catalog_hotel_id": 107965,
+      "max_url": "https://max.ru/channel_anytour/AaGePEiAVwQ",
+      "telegram_url": "https://t.me/any_toour/84"
+    },
+    {
+      "site_hotel_id": "dac92a1e-28b1-5392-8fff-8077d17b77df",
+      "name": "ALI BEY CLUB (EX. ALI BEY CLUB MANAVGAT)",
+      "catalog_hotel_id": 967,
+      "max_url": "https://max.ru/channel_anytour/AaHTke1-b00",
+      "telegram_url": "https://t.me/any_toour/604"
+    },
+    {
+      "site_hotel_id": "dad8b837-9aed-4ad0-93f5-86896f4ef45a",
+      "name": "PICKALBATROS PALACE RESORT SHARM EL SHEIKH (EX. CYRENE GRAND)",
+      "catalog_hotel_id": 1971,
+      "max_url": "https://max.ru/channel_anytour/AaF5iQf-GJ4",
+      "telegram_url": "https://t.me/any_toour/15"
+    },
+    {
+      "site_hotel_id": "db40d600-370a-4033-9d33-4cbc05d84e36",
+      "name": "KLEOPATRA ATLAS ADULTS ONLY 16+",
+      "catalog_hotel_id": 28754,
+      "max_url": "https://max.ru/channel_anytour/AaG3ocDhB_s",
+      "telegram_url": "https://t.me/any_toour/444"
+    },
+    {
+      "site_hotel_id": "dbf19171-b45d-4b3c-916e-9a6aa8f12c78",
+      "name": "GOLDEN TULIP MEDIA (EX. GOLDEN TULIP AL THANYAH)",
+      "catalog_hotel_id": 43060,
+      "max_url": "https://max.ru/channel_anytour/AaG3_Zs4Nek",
+      "telegram_url": "https://t.me/any_toour/511"
+    },
+    {
+      "site_hotel_id": "dbfa2429-2ff8-4ebe-ab8f-6424728d8f33",
+      "name": "Akra Sorgun TUI Blue Sensatori",
+      "catalog_hotel_id": 15869,
+      "max_url": "https://max.ru/channel_anytour/AaGjSaPBcNU",
+      "telegram_url": "https://t.me/any_toour/143"
+    },
+    {
+      "site_hotel_id": "dd5f1962-7483-45fa-b733-008cca7c9710",
+      "name": "BARUT B SUITES (EX. FAMILY LIFE SIDE, SUNWING)",
+      "catalog_hotel_id": 55647,
+      "max_url": "https://max.ru/channel_anytour/AaG10yTSMl4",
+      "telegram_url": "https://t.me/any_toour/200"
+    },
+    {
+      "site_hotel_id": "de9b9827-60bf-4705-bfd9-b74027f26736",
+      "name": "SIDE ALUNA (EX. DIAMOND BEACH HOTEL)",
+      "catalog_hotel_id": 1154,
+      "max_url": "https://max.ru/channel_anytour/AaG3gcbbQs8",
+      "telegram_url": "https://t.me/any_toour/417"
+    },
+    {
+      "site_hotel_id": "df1f6479-3540-4162-8503-ef37d27f2bca",
+      "name": "SELECTUM COLLECTION BODRUM (EX. KAIRABA BODRUM IMPERIAL)",
+      "catalog_hotel_id": 28704,
+      "max_url": "https://max.ru/channel_anytour/AaG7knpnN6E",
+      "telegram_url": "https://t.me/any_toour/520"
+    },
+    {
+      "site_hotel_id": "dfb61dac-6d10-42b9-a8da-287f74de3795",
+      "name": "PHUKET EMERALD BEACH RESORT",
+      "catalog_hotel_id": 82567,
+      "max_url": "https://max.ru/channel_anytour/AaG2UlCIP10",
+      "telegram_url": "https://t.me/any_toour/252"
+    },
+    {
+      "site_hotel_id": "dfd5f5c8-d662-4247-8c34-be7ef4bc82e2",
+      "name": "DECEMBER HOTEL NHA TRANG",
+      "catalog_hotel_id": 81154,
+      "max_url": "https://max.ru/channel_anytour/AaG31R2_I5s",
+      "telegram_url": "https://t.me/any_toour/481"
+    },
+    {
+      "site_hotel_id": "dff109ad-c28d-4325-9a25-3f3a66adc9ee",
+      "name": "KIRMAN BELAZUR RESORT & SPA",
+      "catalog_hotel_id": 15879,
+      "max_url": "https://max.ru/channel_anytour/AaG3ENNBdFo",
+      "telegram_url": "https://t.me/any_toour/338"
+    },
+    {
+      "site_hotel_id": "dff59fbd-b769-4948-ab68-0d97d5f3e1f1",
+      "name": "SUNRISE SOLARA AQUA PARK RESORT (EX.CAESAR DREAMS RESORT BY SUNRISE)",
+      "catalog_hotel_id": 68323,
+      "max_url": "https://max.ru/channel_anytour/AaF5iP7mCB0",
+      "telegram_url": "https://t.me/any_toour/14"
+    },
+    {
+      "site_hotel_id": "e01ecfe0-8fe6-4495-9fb4-01ec93822b16",
+      "name": "PICKALBATROS ROYAL GRAND RESORT ADULTS ONLY 16+",
+      "catalog_hotel_id": 393,
+      "max_url": "https://max.ru/channel_anytour/AaGePFLGSr0",
+      "telegram_url": "https://t.me/any_toour/85"
+    },
+    {
+      "site_hotel_id": "e029fa67-6527-4d21-a854-61c74f261caf",
+      "name": "SUGAR MARINA HOTEL POP KATA BEACH",
+      "catalog_hotel_id": 119046,
+      "max_url": "https://max.ru/channel_anytour/AaG38ye_T4k",
+      "telegram_url": "https://t.me/any_toour/507"
+    },
+    {
+      "site_hotel_id": "e0eaa1ab-65d1-4785-8fd3-6e92c9600fb6",
+      "name": "BAYOU ACANTHUS (EX. ACANTHUS CENNET BARUT COLLECTION)",
+      "catalog_hotel_id": 1032,
+      "max_url": "https://max.ru/channel_anytour/AaG3WZyRdPo",
+      "telegram_url": "https://t.me/any_toour/387"
+    },
+    {
+      "site_hotel_id": "e124ceb9-7096-46f5-97ff-31b2757704d2",
+      "name": "NAAMA BAY HOTEL & RESORT (EX. TROPITEL NAAMA BAY)",
+      "catalog_hotel_id": 513,
+      "max_url": "https://max.ru/channel_anytour/AaG2GFxpMCA",
+      "telegram_url": "https://t.me/any_toour/217"
+    },
+    {
+      "site_hotel_id": "e17f03f4-58b1-4ace-8dc8-88be5769c8eb",
+      "name": "BARON RESORT",
+      "catalog_hotel_id": 1963,
+      "max_url": "https://max.ru/channel_anytour/AaGdPUBAMI8",
+      "telegram_url": "https://t.me/any_toour/64"
+    },
+    {
+      "site_hotel_id": "e198a048-30f6-4397-9866-7297c1878370",
+      "name": "RIXOS AL MAIRID RAS AL KHAIMAH (EX. HILTON RAS AL KHAIMAH BEACH RESORT)",
+      "catalog_hotel_id": 2575,
+      "max_url": "https://max.ru/channel_anytour/AaHUbCPFLMc",
+      "telegram_url": "https://t.me/any_toour/607"
+    },
+    {
+      "site_hotel_id": "e3053369-42d6-471f-a2b1-f6ef3782d2ca",
+      "name": "SUNRISE AZALEA AQUA PARK RESORT (EX. SUNRISE ASTER AQUA PARK RESORT)",
+      "catalog_hotel_id": 212,
+      "max_url": "https://max.ru/channel_anytour/AaHRo1KGbAI",
+      "telegram_url": "https://t.me/any_toour/576"
+    },
+    {
+      "site_hotel_id": "e3340efd-8214-43e5-b0aa-c79da7e4bd77",
+      "name": "LIBERTY CENTRAL NHA TRANG HOTEL",
+      "catalog_hotel_id": 41495,
+      "max_url": "https://max.ru/channel_anytour/AaG2QsYTfUM",
+      "telegram_url": "https://t.me/any_toour/236"
+    },
+    {
+      "site_hotel_id": "e36fed61-3665-59bd-b0f3-8251f0b62a40",
+      "name": "SUNRISE ROYAL MAKADI RESORT",
+      "catalog_hotel_id": 483,
+      "max_url": "https://max.ru/channel_anytour/AaHRo0l6WD8",
+      "telegram_url": "https://t.me/any_toour/575"
+    },
+    {
+      "site_hotel_id": "e4a0e531-d977-4ac7-80d3-0a6b04f40933",
+      "name": "RADISSON BLU RESORT PHU QUOC",
+      "catalog_hotel_id": 63674,
+      "max_url": "https://max.ru/channel_anytour/AaG2erwGCro",
+      "telegram_url": "https://t.me/any_toour/270"
+    },
+    {
+      "site_hotel_id": "e51dd0c1-5652-4ad0-ac35-65f683cb03cc",
+      "name": "COSTABELLA RESORT NHA TRANG (EX. DIAMOND BAY CONDOTEL RESORT)",
+      "catalog_hotel_id": 65020,
+      "max_url": "https://max.ru/channel_anytour/AaG2y0knJhI",
+      "telegram_url": "https://t.me/any_toour/292"
+    },
+    {
+      "site_hotel_id": "e5ef1a6b-ddaf-4348-82f3-7408d9256aac",
+      "name": "GM DOC LET BEACH RESORT & SPA",
+      "catalog_hotel_id": 36453,
+      "max_url": "https://max.ru/channel_anytour/AaG32SogfQU",
+      "telegram_url": "https://t.me/any_toour/483"
+    },
+    {
+      "site_hotel_id": "e60f365f-a0cb-418c-9862-8b398ea24def",
+      "name": "THE LAND OF LEGENDS KINGDOM (EX. RIXOS THE LAND OF LEGENDS THEME PARK)",
+      "catalog_hotel_id": 49083,
+      "max_url": "https://max.ru/channel_anytour/AaG3sCxXSZw",
+      "telegram_url": "https://t.me/any_toour/460"
+    },
+    {
+      "site_hotel_id": "e63e7256-abe9-45c5-9d04-a5ecd629977a",
+      "name": "NIRVANA MEDITERRANEAN EXCELLENCE",
+      "catalog_hotel_id": 28327,
+      "max_url": "https://max.ru/channel_anytour/AaG3RRvYJnc",
+      "telegram_url": "https://t.me/any_toour/375"
+    },
+    {
+      "site_hotel_id": "e6515eb0-f233-4a5c-8fa5-cfbf218ac7bf",
+      "name": "Sun Siyam Pasikudah",
+      "catalog_hotel_id": 43236,
+      "max_url": "https://max.ru/channel_anytour/AaG1m_6ZIkM",
+      "telegram_url": "https://t.me/any_toour/180"
+    },
+    {
+      "site_hotel_id": "e6cb90ba-2b7f-44e1-8174-c3effc93f42a",
+      "name": "CONCORDIA CELES HOTEL",
+      "catalog_hotel_id": 1134,
+      "max_url": "https://max.ru/channel_anytour/AaG3ABsBOxg",
+      "telegram_url": "https://t.me/any_toour/321"
+    },
+    {
+      "site_hotel_id": "e6e55a5c-e47c-47cc-baaa-c9be7a2ac333",
+      "name": "SENZA THE INN RESORT & SPA (EX. ZEN THE INN)",
+      "catalog_hotel_id": 16794,
+      "max_url": "https://max.ru/channel_anytour/AaG3AFp9Qkw",
+      "telegram_url": "https://t.me/any_toour/328"
+    },
+    {
+      "site_hotel_id": "e6ebe2b8-a633-4458-baa3-54fc1c1bfb16",
+      "name": "LIMAK ARCADIA GOLF & SPORT RESORT",
+      "catalog_hotel_id": 1336,
+      "max_url": "https://max.ru/channel_anytour/AaG3pAMxE1A",
+      "telegram_url": "https://t.me/any_toour/453"
+    },
+    {
+      "site_hotel_id": "e72ad958-afb8-48cb-be79-444986378d43",
+      "name": "CRYSTAL FAMILY COMFORT COLLECTION (EX. CRYSTAL FAMILY RESORT & SPA)",
+      "catalog_hotel_id": 1141,
+      "max_url": "https://max.ru/channel_anytour/AaG3GHnoT_M",
+      "telegram_url": "https://t.me/any_toour/342"
+    },
+    {
+      "site_hotel_id": "e736fa85-29db-43d3-810a-a4173361f208",
+      "name": "SENTIDO TRENDY VERBENA BEACH HOTEL",
+      "catalog_hotel_id": 55511,
+      "max_url": "https://max.ru/channel_anytour/AaHRo2yZNPs",
+      "telegram_url": "https://t.me/any_toour/579"
+    },
+    {
+      "site_hotel_id": "e7a4761a-6032-45f3-a8d7-02d8e480cf8e",
+      "name": "THIEN THANH RESORT",
+      "catalog_hotel_id": 22791,
+      "max_url": "https://max.ru/channel_anytour/AaG38uh9BaQ",
+      "telegram_url": "https://t.me/any_toour/500"
+    },
+    {
+      "site_hotel_id": "e84966fa-124d-4586-bcfe-ad26e0204871",
+      "name": "SUGAR MARINA RESORT NAUTICAL KATA BEACH",
+      "catalog_hotel_id": 20971,
+      "max_url": "https://max.ru/channel_anytour/AaG2NP8EKh8",
+      "telegram_url": "https://t.me/any_toour/228"
+    },
+    {
+      "site_hotel_id": "e9994efd-fbd6-4f33-86e5-8725e835b1b6",
+      "name": "RIXOS PREMIUM MAGAWISH SUITES & VILLAS",
+      "catalog_hotel_id": 67910,
+      "max_url": "https://max.ru/channel_anytour/AaF5iOyMXHU",
+      "telegram_url": "https://t.me/any_toour/10"
+    },
+    {
+      "site_hotel_id": "ea018c7e-8e62-4883-b4f1-b85b77ac05f3",
+      "name": "ROSE RAYHAAN BY ROTANA",
+      "catalog_hotel_id": 2651,
+      "max_url": "https://max.ru/channel_anytour/AaG3k8JMapQ",
+      "telegram_url": "https://t.me/any_toour/424"
+    },
+    {
+      "site_hotel_id": "ea47c98f-ab58-467a-b477-ec666d396641",
+      "name": "SELECTUM FAMILY COMFORT SIDE (EX. LYRA RESORT HOTEL)",
+      "catalog_hotel_id": 1346,
+      "max_url": "https://max.ru/channel_anytour/AaG2_DP7JLw",
+      "telegram_url": "https://t.me/any_toour/313"
+    },
+    {
+      "site_hotel_id": "eab88ffa-1ed5-55af-b304-f0a6f955f450",
+      "name": "GRAND MAKADI",
+      "catalog_hotel_id": 231,
+      "max_url": "https://max.ru/channel_anytour/AaHS60D1FKA",
+      "telegram_url": "https://t.me/any_toour/598"
+    },
+    {
+      "site_hotel_id": "eacfb67a-3247-4020-a073-4b5dd526433d",
+      "name": "CLUB HOTEL SERA",
+      "catalog_hotel_id": 1100,
+      "max_url": "https://max.ru/channel_anytour/AaGoWIVFK9M",
+      "telegram_url": "https://t.me/any_toour/173"
+    },
+    {
+      "site_hotel_id": "ecbf3a25-a5df-430a-b364-f184d8346755",
+      "name": "ETHNO HOTEL BELEK",
+      "catalog_hotel_id": 109786,
+      "max_url": "https://max.ru/channel_anytour/AaG3fpOcDPo",
+      "telegram_url": "https://t.me/any_toour/406"
+    },
+    {
+      "site_hotel_id": "ecfb8814-d720-4d3e-b90d-54cc0933dcd0",
+      "name": "ADAM & EVE HOTEL ADULTS ONLY 16+",
+      "catalog_hotel_id": 949,
+      "max_url": "https://max.ru/channel_anytour/AaG3oYrTVTI",
+      "telegram_url": "https://t.me/any_toour/438"
+    },
+    {
+      "site_hotel_id": "ed70d497-9dc2-4afd-a25e-7c33de733a27",
+      "name": "CRYSTAL AURA AQUA COLLECTION (EX. CRYSTAL AURA BEACH RESORT & SPA)",
+      "catalog_hotel_id": 964,
+      "max_url": "https://max.ru/channel_anytour/AaG2Y6Q2dxg",
+      "telegram_url": "https://t.me/any_toour/259"
+    },
+    {
+      "site_hotel_id": "edb81088-5546-4a7e-a512-771c1d58ffe0",
+      "name": "PICKALBATROS AQUA PARK SHARM",
+      "catalog_hotel_id": 57028,
+      "max_url": "https://max.ru/channel_anytour/AaGeHp92NlE",
+      "telegram_url": "https://t.me/any_toour/76"
+    },
+    {
+      "site_hotel_id": "edf5f200-1cb2-4192-b81c-395bafca9d0a",
+      "name": "MOVENPICK RESORT SHARM EL SHEIKH NAAMA BAY",
+      "catalog_hotel_id": 12111,
+      "max_url": "https://max.ru/channel_anytour/AaGa-JTILig",
+      "telegram_url": "https://t.me/any_toour/24"
+    },
+    {
+      "site_hotel_id": "ef6dc65f-4460-40bc-ae10-5a456cca4bd2",
+      "name": "Kempinski Hotel Barbaros Bay",
+      "catalog_hotel_id": 1672,
+      "max_url": "https://max.ru/channel_anytour/AaGll2IjOh8",
+      "telegram_url": "https://t.me/any_toour/164"
+    },
+    {
+      "site_hotel_id": "f07b0b3e-d7f8-45b7-9bd5-e3a581879c10",
+      "name": "KATA SILVER SAND",
+      "catalog_hotel_id": 7985,
+      "max_url": "https://max.ru/channel_anytour/AaG3RQE8cRk",
+      "telegram_url": "https://t.me/any_toour/372"
+    },
+    {
+      "site_hotel_id": "f0ff6274-1537-49b2-9e5f-733e832217e7",
+      "name": "ROX RESORT (EX. ROX ROYAL)",
+      "catalog_hotel_id": 1216,
+      "max_url": "https://max.ru/channel_anytour/AaG1E3QPSBI",
+      "telegram_url": "https://t.me/any_toour/177"
+    },
+    {
+      "site_hotel_id": "f1ab3a01-cfec-4e17-8766-f66ebff7162f",
+      "name": "GRAND KAPTAN",
+      "catalog_hotel_id": 1218,
+      "max_url": "https://max.ru/channel_anytour/AaG3sBaidtM",
+      "telegram_url": "https://t.me/any_toour/458"
+    },
+    {
+      "site_hotel_id": "f20aaba3-019b-4fe1-8619-d37156651386",
+      "name": "JAZ Elite Casa del Mar Beach",
+      "catalog_hotel_id": 232,
+      "max_url": "https://max.ru/channel_anytour/AaGdPOgkYvU",
+      "telegram_url": "https://t.me/any_toour/55"
+    },
+    {
+      "site_hotel_id": "f273f929-d9a6-5fa5-a479-65f3309b759e",
+      "name": "D RESORT GOCEK (EX. SWISSOTEL GOCEK MARINA AND RESORT)",
+      "catalog_hotel_id": 3469,
+      "max_url": "https://max.ru/channel_anytour/AaHQDSaNAvw",
+      "telegram_url": "https://t.me/any_toour/527"
+    },
+    {
+      "site_hotel_id": "f2903129-bc6d-4397-93b6-05e30fa1ceef",
+      "name": "CLUB AQUA PLAZA (EX. SUNEOCLUB AQUA PLAZA)",
+      "catalog_hotel_id": 1077,
+      "max_url": "https://max.ru/channel_anytour/AaGbWTjVf-Y",
+      "telegram_url": "https://t.me/any_toour/31"
+    },
+    {
+      "site_hotel_id": "f2eaa286-d4b1-5cf4-ab41-3b967d1e14e8",
+      "name": "CASA COOK EL GOUNA ADULTS ONLY",
+      "catalog_hotel_id": 74258,
+      "max_url": "https://max.ru/channel_anytour/AaHQDTfkaWI",
+      "telegram_url": "https://t.me/any_toour/529"
+    },
+    {
+      "site_hotel_id": "f3452286-26ad-4b59-b94c-11e9a2911e41",
+      "name": "VOYAGE SORGUN",
+      "catalog_hotel_id": 1583,
+      "max_url": "https://max.ru/channel_anytour/AaGjnlYMF6c",
+      "telegram_url": "https://t.me/any_toour/153"
+    },
+    {
+      "site_hotel_id": "f3c319b7-4dc3-492f-8684-50e32bb93c63",
+      "name": "SUGAR MARINA RESORT ART KARON BEACH",
+      "catalog_hotel_id": 800,
+      "max_url": "https://max.ru/channel_anytour/AaG2GG5XH2I",
+      "telegram_url": "https://t.me/any_toour/219"
+    },
+    {
+      "site_hotel_id": "f53c7bf1-bc95-46f6-98bb-d79285d45a98",
+      "name": "JAZ Belvedere",
+      "catalog_hotel_id": 278,
+      "max_url": "https://max.ru/channel_anytour/AaGgW_MKZBk",
+      "telegram_url": "https://t.me/any_toour/105"
+    },
+    {
+      "site_hotel_id": "f5cef7d1-359c-44b7-8d6d-d0988bda4591",
+      "name": "SEASIDE BOUTIQUE HOTEL",
+      "catalog_hotel_id": 128508,
+      "max_url": "https://max.ru/channel_anytour/AaG2uQ6rQzE",
+      "telegram_url": "https://t.me/any_toour/283"
+    },
+    {
+      "site_hotel_id": "f6768daa-053e-4e50-a299-eb467759da61",
+      "name": "MIRAGE WORLD",
+      "catalog_hotel_id": 1690,
+      "max_url": "https://max.ru/channel_anytour/AaG7knE5YTU",
+      "telegram_url": "https://t.me/any_toour/519"
+    },
+    {
+      "site_hotel_id": "f6896946-7396-4cc6-9873-fd5035fb6d31",
+      "name": "THE ART NEST HOTEL NHA TRANG",
+      "catalog_hotel_id": 66496,
+      "max_url": "https://max.ru/channel_anytour/AaG2uPxHOv8",
+      "telegram_url": "https://t.me/any_toour/281"
+    },
+    {
+      "site_hotel_id": "f80b5e2f-b3c2-46b5-b931-ebeb445478de",
+      "name": "KATA SEA BREEZE",
+      "catalog_hotel_id": 681,
+      "max_url": "https://max.ru/channel_anytour/AaG38xXOcmo",
+      "telegram_url": "https://t.me/any_toour/505"
+    },
+    {
+      "site_hotel_id": "f89db21d-dd98-4432-a6ab-6c26f7c06fc8",
+      "name": "DREAMS BEACH",
+      "catalog_hotel_id": 195,
+      "max_url": "https://max.ru/channel_anytour/AaHUrH76WKs",
+      "telegram_url": "https://t.me/any_toour/617"
+    },
+    {
+      "site_hotel_id": "f8d70d40-1fe7-4207-9173-f8417ccf86b5",
+      "name": "STELLA DI MARE DUBAI MARINA",
+      "catalog_hotel_id": 64914,
+      "max_url": "https://max.ru/channel_anytour/AaG3k9RoYJQ",
+      "telegram_url": "https://t.me/any_toour/426"
+    },
+    {
+      "site_hotel_id": "f94261c4-1e6d-4058-8585-7e070ed28911",
+      "name": "AMWAJ OYOUN RESORT & CASINO (EX. AA AMWAJ HOTEL & RESORT)",
+      "catalog_hotel_id": 124,
+      "max_url": "https://max.ru/channel_anytour/AaG31N6_b4M",
+      "telegram_url": "https://t.me/any_toour/474"
+    },
+    {
+      "site_hotel_id": "f989099c-2b5e-40b1-b196-fe7b5af2b09d",
+      "name": "TITANIC BEACH SPA & AQUA PARK",
+      "catalog_hotel_id": 498,
+      "max_url": "https://max.ru/channel_anytour/AaGbnheCU9w",
+      "telegram_url": "https://t.me/any_toour/34"
+    },
+    {
+      "site_hotel_id": "f9a7d5a9-a5b1-4225-84d9-4af65761dac8",
+      "name": "KREMLIN PALACE (EX. ASTERIA KREMLIN PALACE)",
+      "catalog_hotel_id": 1588,
+      "max_url": "https://max.ru/channel_anytour/AaG2Y5HpQTQ",
+      "telegram_url": "https://t.me/any_toour/257"
+    },
+    {
+      "site_hotel_id": "f9d85e07-2bb5-4003-90ff-203a4052b024",
+      "name": "GRAND KOLIBRI PRESTIGE & SPA",
+      "catalog_hotel_id": 75040,
+      "max_url": "https://max.ru/channel_anytour/AaG3geKbJzs",
+      "telegram_url": "https://t.me/any_toour/420"
+    },
+    {
+      "site_hotel_id": "fa204acc-9ff7-4013-80eb-dd4a25cf7fb4",
+      "name": "SEA LIGHT",
+      "catalog_hotel_id": 23766,
+      "max_url": "https://max.ru/channel_anytour/AaG38FAgAQU",
+      "telegram_url": "https://t.me/any_toour/492"
+    },
+    {
+      "site_hotel_id": "faa1a119-df53-4a2d-8230-2cb2e0fdc477",
+      "name": "GURAL PREMIER BELEK",
+      "catalog_hotel_id": 1074,
+      "max_url": "https://max.ru/channel_anytour/AaG1yNfoLas",
+      "telegram_url": "https://t.me/any_toour/189"
+    },
+    {
+      "site_hotel_id": "facde4f5-5d6d-446e-abc7-34a37eb75e3c",
+      "name": "GLORIA VERDE RESORT",
+      "catalog_hotel_id": 1201,
+      "max_url": "https://max.ru/channel_anytour/AaG3foGIZho",
+      "telegram_url": "https://t.me/any_toour/404"
+    },
+    {
+      "site_hotel_id": "faddc034-3720-4415-84ba-02f9e9c7dcbe",
+      "name": "SIDE STAR ELEGANCE (EX. ASTERIA SIDE)",
+      "catalog_hotel_id": 1014,
+      "max_url": "https://max.ru/channel_anytour/AaG3GJVsV5Q",
+      "telegram_url": "https://t.me/any_toour/345"
+    },
+    {
+      "site_hotel_id": "fb562b7b-15a0-4cc6-8a6d-c2db15260be6",
+      "name": "PALM BEACH RESORT",
+      "catalog_hotel_id": 20288,
+      "max_url": "https://max.ru/channel_anytour/AaHUrIfYTYo",
+      "telegram_url": "https://t.me/any_toour/618"
+    },
+    {
+      "site_hotel_id": "fb648e34-5731-5c9c-9080-9babfd917485",
+      "name": "CLUB MARVY (EX. PALOMA CLUB SULTAN)",
+      "catalog_hotel_id": 9321,
+      "max_url": "https://max.ru/channel_anytour/AaHQDUB5al8",
+      "telegram_url": "https://t.me/any_toour/530"
+    },
+    {
+      "site_hotel_id": "fbb44e99-ff7f-439a-bd04-00a42d891990",
+      "name": "DIAMOND EXCELLENCE RESORT & SPA (EX. CRYSTAL PALACE LUXURY)",
+      "catalog_hotel_id": 3434,
+      "max_url": "https://max.ru/channel_anytour/AaG3NZg2BQw",
+      "telegram_url": "https://t.me/any_toour/364"
+    },
+    {
+      "site_hotel_id": "fbc1b72b-f18e-43ea-8933-d0a61507b682",
+      "name": "Ancient Sands Golf Resort & Residences",
+      "catalog_hotel_id": 56091,
+      "max_url": "https://max.ru/channel_anytour/AaGi7ekZJf4",
+      "telegram_url": "https://t.me/any_toour/136"
+    },
+    {
+      "site_hotel_id": "fbdb5bb7-ff8d-41f2-a18d-dfbee17dcc34",
+      "name": "Steigenberger Resort Ras Soma",
+      "catalog_hotel_id": 69409,
+      "max_url": "https://max.ru/channel_anytour/AaGePHnuApk",
+      "telegram_url": "https://t.me/any_toour/89"
+    },
+    {
+      "site_hotel_id": "fbdc0276-fca3-49fa-b43b-2bd88cf15365",
+      "name": "SIDERA KIRMAN PREMIUM",
+      "catalog_hotel_id": 1101,
+      "max_url": "https://max.ru/channel_anytour/AaG3ACzqDHE",
+      "telegram_url": "https://t.me/any_toour/323"
+    },
+    {
+      "site_hotel_id": "fc74813c-a566-44fa-8f66-2e434b7c7cb0",
+      "name": "TOWERS ROTANA",
+      "catalog_hotel_id": 2688,
+      "max_url": "https://max.ru/channel_anytour/AaG3k91Ke-M",
+      "telegram_url": "https://t.me/any_toour/427"
+    },
+    {
+      "site_hotel_id": "fc8e61da-1d8a-4b40-b1d9-6f8410984be9",
+      "name": "Liberty Fabay",
+      "catalog_hotel_id": 75377,
+      "max_url": "https://max.ru/channel_anytour/AaGjSbf0FXs",
+      "telegram_url": "https://t.me/any_toour/145"
+    },
+    {
+      "site_hotel_id": "fe09d84b-1914-59e0-9e35-ed6775ece19b",
+      "name": "STEIGENBERGER NILE PALACE LUXOR",
+      "catalog_hotel_id": 102031,
+      "max_url": "https://max.ru/channel_anytour/AaHQQzJdK9w",
+      "telegram_url": "https://t.me/any_toour/545"
+    },
+    {
+      "site_hotel_id": "ff63f811-5bf3-486a-94a8-3cf372bee501",
+      "name": "CRYSTAL WORLD OF COLOURS COMFORT COLLECTION",
+      "catalog_hotel_id": 70233,
+      "max_url": "https://max.ru/channel_anytour/AaG3ADXrVTM",
+      "telegram_url": "https://t.me/any_toour/324"
+    }
+  ]
+}

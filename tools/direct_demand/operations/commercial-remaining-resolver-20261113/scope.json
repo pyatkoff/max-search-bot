@@ -1,0 +1,366 @@
+{
+  "schema": 1,
+  "operation": "commercial-remaining-anex48-and-max3-read-20261113-v1",
+  "source_namespace": "anex_hotel_id",
+  "target_namespace": "legacy_catalog/catalog_hotels.id",
+  "target_external_namespace_contract": "tourvisor_native",
+  "resolver_scope": "preview",
+  "resolver_providers": [
+    "anex_online",
+    "anex_xml"
+  ],
+  "anex_ids": [
+    8520,
+    39875,
+    8589,
+    26638,
+    8538,
+    20763,
+    38120,
+    39837,
+    28037,
+    16804,
+    18598,
+    9070,
+    15448,
+    37320,
+    806,
+    5033,
+    799,
+    1361,
+    28396,
+    5564,
+    37175,
+    5623,
+    7972,
+    5606,
+    5625,
+    39313,
+    28360,
+    21557,
+    6703,
+    4483,
+    28212,
+    28380,
+    15647,
+    30927,
+    34660,
+    39493,
+    41722,
+    39484,
+    40030,
+    39422,
+    25099,
+    10954,
+    10949,
+    32978,
+    36373,
+    28323,
+    31459,
+    42155
+  ],
+  "anex_count": 48,
+  "anex_rows": [
+    {
+      "anex_id": 8520,
+      "site_hotel_id": "76c59493-d28b-447f-93a8-16f72e2fdb68",
+      "name": "ANEX 8520 · связь не установлена"
+    },
+    {
+      "anex_id": 39875,
+      "site_hotel_id": "31c4b4c2-7627-4700-8ba1-ee5166f1bb85",
+      "name": "ANEX 39875 · связь не установлена"
+    },
+    {
+      "anex_id": 8589,
+      "site_hotel_id": "d63f1727-c92d-45f7-8f6e-e90043796535",
+      "name": "ANEX 8589 · связь не установлена"
+    },
+    {
+      "anex_id": 26638,
+      "site_hotel_id": "d4d487e4-6e36-45f0-8569-e5759fc8b347",
+      "name": "ANEX 26638 · связь не установлена"
+    },
+    {
+      "anex_id": 8538,
+      "site_hotel_id": "1a9c4abd-b588-41ba-b169-d04306b8f2b3",
+      "name": "Vonresort Golden Coast"
+    },
+    {
+      "anex_id": 20763,
+      "site_hotel_id": "bb4b9e41-55a7-4716-bfd7-41a70e024018",
+      "name": "ANEX 20763 · связь не установлена"
+    },
+    {
+      "anex_id": 38120,
+      "site_hotel_id": "7a563921-3471-4c05-8549-c7716a4851d0",
+      "name": "ANEX 38120 · связь не установлена"
+    },
+    {
+      "anex_id": 39837,
+      "site_hotel_id": "af1e2549-d5f8-4458-a227-eb9cabe9300a",
+      "name": "ANEX 39837 · связь не установлена"
+    },
+    {
+      "anex_id": 28037,
+      "site_hotel_id": "23aff99a-c60c-4857-bac3-197fc9ec3ff8",
+      "name": "ANEX 28037 · связь не установлена"
+    },
+    {
+      "anex_id": 16804,
+      "site_hotel_id": "04cb1ae3-6cdb-446d-a713-df7413e9f78b",
+      "name": "Labranda Mares Marmaris"
+    },
+    {
+      "anex_id": 18598,
+      "site_hotel_id": "e5b03fc5-ecbd-46c1-a9b1-01d61edde03e",
+      "name": "ANEX 18598 · связь не установлена"
+    },
+    {
+      "anex_id": 9070,
+      "site_hotel_id": "e9a1d3e7-42a4-42da-bcf2-0cc193f2955c",
+      "name": "ANEX 9070 · связь не установлена"
+    },
+    {
+      "anex_id": 15448,
+      "site_hotel_id": "cd13e042-ea84-4ac9-894e-394a2ee893a8",
+      "name": "ANEX 15448 · связь не установлена"
+    },
+    {
+      "anex_id": 37320,
+      "site_hotel_id": "604b19d6-0171-4b95-8a23-9e8ee7acb34d",
+      "name": "ANEX 37320 · связь не установлена"
+    },
+    {
+      "anex_id": 806,
+      "site_hotel_id": "17d22a8e-1aa6-462d-a7ff-2e118dbbb104",
+      "name": "ANEX 806 · связь не установлена"
+    },
+    {
+      "anex_id": 5033,
+      "site_hotel_id": "9bf6c599-a474-4f0e-95a6-f3908e692a75",
+      "name": "ANEX 5033 · связь не установлена"
+    },
+    {
+      "anex_id": 799,
+      "site_hotel_id": "45386f06-e739-4f25-8f4b-75632ee5eda5",
+      "name": "ANEX 799 · связь не установлена"
+    },
+    {
+      "anex_id": 1361,
+      "site_hotel_id": "7c0169b0-b711-40b2-b47d-9b29401424ac",
+      "name": "Pickalbatros Laguna Club Resort Sharm El Sheikh"
+    },
+    {
+      "anex_id": 28396,
+      "site_hotel_id": "a160ddad-20e8-42e9-8732-73d6a513121f",
+      "name": "Pickalbatros Laguna Vista Resort"
+    },
+    {
+      "anex_id": 5564,
+      "site_hotel_id": "4a4891fd-a1fc-4b71-b5c6-18b4da54f74b",
+      "name": "Bamboo Village Resort & Spa"
+    },
+    {
+      "anex_id": 37175,
+      "site_hotel_id": "6aaf4b11-28be-42f5-91db-fc9500ab07fd",
+      "name": "ANEX 37175 · связь не установлена"
+    },
+    {
+      "anex_id": 5623,
+      "site_hotel_id": "cf23e5e2-736b-4795-b314-c918bf3b730b",
+      "name": "ANEX 5623 · связь не установлена"
+    },
+    {
+      "anex_id": 7972,
+      "site_hotel_id": "94c7c463-1f0d-43a0-b4ac-6c8488c4e04c",
+      "name": "ANEX 7972 · связь не установлена"
+    },
+    {
+      "anex_id": 5606,
+      "site_hotel_id": "e2e9a7c0-8d21-4ef2-b85b-77f92a9e2070",
+      "name": "ANEX 5606 · связь не установлена"
+    },
+    {
+      "anex_id": 5625,
+      "site_hotel_id": "3b213103-c3c8-4a73-b435-037aecd82d4d",
+      "name": "ANEX 5625 · связь не установлена"
+    },
+    {
+      "anex_id": 39313,
+      "site_hotel_id": "8d57ae33-e395-45bd-ac61-5d17793b84cc",
+      "name": "ANEX 39313 · связь не установлена"
+    },
+    {
+      "anex_id": 28360,
+      "site_hotel_id": "09fd1ed6-90cd-426a-b08a-b6cec2fbc469",
+      "name": "Avs Hotel Phu Quoc"
+    },
+    {
+      "anex_id": 21557,
+      "site_hotel_id": "2ee02b8d-1c25-4b14-9004-215c69dbab3b",
+      "name": "ANEX 21557 · связь не установлена"
+    },
+    {
+      "anex_id": 6703,
+      "site_hotel_id": "daf84522-b960-4641-a60e-8c0ffe0f6f11",
+      "name": "ANEX 6703 · связь не установлена"
+    },
+    {
+      "anex_id": 4483,
+      "site_hotel_id": "d80880cf-28ab-4916-ab36-73835809838e",
+      "name": "ANEX 4483 · связь не установлена"
+    },
+    {
+      "anex_id": 28212,
+      "site_hotel_id": "53ccdd7d-2f8d-48f9-b75b-937d92b86703",
+      "name": "ANEX 28212 · связь не установлена"
+    },
+    {
+      "anex_id": 28380,
+      "site_hotel_id": "71f00209-2a9f-43b6-bc9f-4700ebeb50e4",
+      "name": "ANEX 28380 · связь не установлена"
+    },
+    {
+      "anex_id": 15647,
+      "site_hotel_id": "24d4e8d6-723d-4d15-9023-22653fce130c",
+      "name": "ANEX 15647 · связь не установлена"
+    },
+    {
+      "anex_id": 30927,
+      "site_hotel_id": "03d4e1d5-ed02-4b6c-9242-69a8856e5060",
+      "name": "Raffles The Palm Dubai"
+    },
+    {
+      "anex_id": 34660,
+      "site_hotel_id": "efac398c-faef-4ef8-ae41-51daa297f8cc",
+      "name": "ANEX 34660 · связь не установлена"
+    },
+    {
+      "anex_id": 39493,
+      "site_hotel_id": "a59e174c-c0eb-47f4-bd73-51d788055bbc",
+      "name": "ANEX 39493 · связь не установлена"
+    },
+    {
+      "anex_id": 41722,
+      "site_hotel_id": "9f5572e0-908b-434a-aec8-f126cef32606",
+      "name": "ANEX 41722 · связь не установлена"
+    },
+    {
+      "anex_id": 39484,
+      "site_hotel_id": "30da3dd5-5468-4902-8d27-012afdd485a1",
+      "name": "ANEX 39484 · связь не установлена"
+    },
+    {
+      "anex_id": 40030,
+      "site_hotel_id": "2c5088f7-f7c9-42ee-9eef-b7d28a7f2500",
+      "name": "Alila Hinu Bay"
+    },
+    {
+      "anex_id": 39422,
+      "site_hotel_id": "b0d7aa33-ac2f-4634-8467-08b10033f383",
+      "name": "ANEX 39422 · связь не установлена"
+    },
+    {
+      "anex_id": 25099,
+      "site_hotel_id": "d82496ff-cd92-42bf-926b-e76cb5cb08c2",
+      "name": "ANEX 25099 · связь не установлена"
+    },
+    {
+      "anex_id": 10954,
+      "site_hotel_id": "b08d8f89-1792-4806-96d1-7f6e76edb5e8",
+      "name": "ANEX 10954 · связь не установлена"
+    },
+    {
+      "anex_id": 10949,
+      "site_hotel_id": "ed3f0046-5500-4662-8a6a-ea5ba2c7e6df",
+      "name": "ANEX 10949 · связь не установлена"
+    },
+    {
+      "anex_id": 32978,
+      "site_hotel_id": "03732980-bc7d-4d20-936f-ebdd8bb6699a",
+      "name": "Гранд Отель Анапа / Grand Hotel Anapa"
+    },
+    {
+      "anex_id": 36373,
+      "site_hotel_id": "5f0d09a8-9c3a-425f-b74c-45f64e7674c0",
+      "name": "ANEX 36373 · связь не установлена"
+    },
+    {
+      "anex_id": 28323,
+      "site_hotel_id": "9cf475f5-d70e-4c16-9ee7-dad44d74c91d",
+      "name": "ANEX 28323 · связь не установлена"
+    },
+    {
+      "anex_id": 31459,
+      "site_hotel_id": "24219fe5-1765-46be-84d0-94730e1bf06b",
+      "name": "ANEX 31459 · связь не установлена"
+    },
+    {
+      "anex_id": 42155,
+      "site_hotel_id": "cfd60165-2ec6-478b-8b25-b23a3c70cd2d",
+      "name": "ANEX 42155 · связь не установлена"
+    }
+  ],
+  "old_max_posts": [
+    {
+      "publication_id": 58,
+      "candidate_catalog_hotel_id": 319,
+      "expected_archival_version_id": 70,
+      "external_message_id": "mid.ffffb6caf0606fed01a17501edbc64dc",
+      "post_url": "https://max.ru/channel_anytour/AaF1Ae28ZNw",
+      "archive_caption_sha256": "cf64749b9f77ec7c83cb796b47bee3068dd1debd464c591f950046e24dc3dc37",
+      "start_payload_sha256": "e85d290432e87ee253479654504090f789ebf9fdb0e877ee679a4ca4c4fc7331"
+    },
+    {
+      "publication_id": 59,
+      "candidate_catalog_hotel_id": 496,
+      "expected_archival_version_id": 71,
+      "external_message_id": "mid.ffffb6caf0606fed01a17501f67c595d",
+      "post_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0",
+      "archive_caption_sha256": "7adc7431ef8928a02bdbc6d10d4b61e45ab34a7c21542bf06e3694b1eab03539",
+      "start_payload_sha256": "4aeb6e71aab8698721b0c5f2d832e36c77cb1d555a3624431ed0fce66d518176"
+    },
+    {
+      "publication_id": 61,
+      "candidate_catalog_hotel_id": 364,
+      "expected_archival_version_id": 73,
+      "external_message_id": "mid.ffffb6caf0606fed01a1750208482d52",
+      "post_url": "https://max.ru/channel_anytour/AaF1AghILVI",
+      "archive_caption_sha256": "7756ee932784320a1b78501cd07b966134ae6333de613aed4c588aac575e5e8a",
+      "start_payload_sha256": "de36264056f8f6e8c2880e1994f2c844c3f35af8b64dfeb62786e233ab044796"
+    }
+  ],
+  "old_max_count": 3,
+  "registry_baseline": {
+    "version": 394,
+    "sha256": "84e63e6907b42faacd1e4aef1168e078b9b57c8e30e36728748a24462231b3a0",
+    "published_count": 604
+  },
+  "old_max_receipt": {
+    "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/43407787367",
+    "sha256": "027789e4f43a1d2e35e0dded171fb50bcfa99623dc6829efaecbcb91829d8a82",
+    "observed_at_utc": "2026-11-13T10:15:54+00:00"
+  },
+  "limits": {
+    "mapping_rows": 48,
+    "decision_rows": 48,
+    "exclusion_rows": 768,
+    "native_targets": 51,
+    "current_publications": 512,
+    "history_per_old_publication": 64,
+    "snapshot_bytes": 131072,
+    "max_execution_seconds": 45
+  },
+  "permissions": {
+    "db_writes": 0,
+    "provider_calls": 0,
+    "price_reads": 0,
+    "model_calls": 0,
+    "customer_rows": 0,
+    "message_sends": 0,
+    "new_publications": 0,
+    "automation_changes": 0,
+    "identity_bindings_written": 0
+  }
+}

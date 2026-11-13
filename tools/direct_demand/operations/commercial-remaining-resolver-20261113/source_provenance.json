@@ -1,0 +1,65 @@
+[
+  {
+    "name": "HotelDatabase.php",
+    "sha": "0973a849add7f0c594ae920c5eb0ef62c58dffb5",
+    "url": "https://github.com/pyatkoff/max-search-bot/blob/main/services/HotelDatabase.php",
+    "sha256": "8bafffffb952007d19e075cd7bbc976b70eba296d6334446bdd4840fdb787ac5",
+    "bytes": 1421
+  },
+  {
+    "name": "ChannelPostEntryService.php",
+    "sha": "f0e04e9b4e0ed6859ced96279cbf0619931596e6",
+    "url": "https://github.com/pyatkoff/max-search-bot/blob/main/services/ChannelPostEntryService.php",
+    "sha256": "5f67c0d2d7296d39b17934857e29204977d94afa148e9fff3ccb954d28e18009",
+    "bytes": 5515
+  },
+  {
+    "name": "033_channel_post_context.sql",
+    "sha": "0530458030a4bfe6b6cc55d1e5e441745c29b947",
+    "url": "https://github.com/pyatkoff/max-search-bot/blob/main/migrations/033_channel_post_context.sql",
+    "sha256": "ffe39e54f71924626cb7df89275c5a4ef2e1dede24707fce46ce3076c4855087",
+    "bytes": 6182
+  },
+  {
+    "name": "ChannelPostIncomingAdapter.php",
+    "sha": "7d3e8aaaa56c9a372050521b9f1bb6bdc7c31ad9",
+    "url": "https://github.com/pyatkoff/max-search-bot/blob/main/integrations/ChannelPostIncomingAdapter.php",
+    "sha256": "d2d4c72e6b6c7f61deb829d324987418e86ab8144dc638f0185b8c84127d60a9",
+    "bytes": 17240
+  },
+  {
+    "name": "catalog-schema-v1.sql",
+    "sha": "aa9791c8a17b769db132fc00293d721ac975b91c",
+    "url": "https://github.com/pyatkoff/poisk-turov-test/blob/main/v2/data/schema-v1.sql",
+    "sha256": "e055a0f48d2836a538ad036475290668c88390d118cadf6ead627106520ded3d",
+    "bytes": 12140
+  },
+  {
+    "name": "top500-anex-namespace-smoke.php",
+    "sha": "b9db2746e78b735cc9e7b2bca09e9b85d2e3d610",
+    "url": "https://github.com/pyatkoff/poisk-turov-test/blob/main/tests/top500-anex-namespace-smoke.php",
+    "sha256": "3846028fb8b75d092ba7be8b4d975cc58a0b1fd95496f2b65dddb3888b68b457",
+    "bytes": 6290
+  },
+  {
+    "name": "ANYTOUR_DATA_FOUNDATION.md",
+    "sha": "eb535b58e478dfffb648b00f793b350126631e13",
+    "url": "https://github.com/pyatkoff/poisk-turov-test/blob/main/ANYTOUR_DATA_FOUNDATION.md",
+    "sha256": "adf13122bdfedca3a629807e50388c734113e8131b7437426cfa74fb2e57042a",
+    "bytes": 9169
+  },
+  {
+    "name": "anex-search-mapping-registry.php",
+    "sha": "cc135a95d2a6e0f73ce50be2141c9b8a26fddc58",
+    "url": "https://github.com/pyatkoff/poisk-turov-test/blob/f9bd84cbcb74b3f70b6807185f3528944b306f01/app/integrations/anex-search-mapping-registry.php",
+    "sha256": "ba06d082ac66d671efc01569a7d11e9d8b5abd73cabde8ea72ecc154b3e67814",
+    "bytes": 8865
+  },
+  {
+    "name": "ChannelPostRegistryService.php",
+    "sha": "db8181426091a685a79ee55991cde22671f0d9dd",
+    "url": "https://github.com/pyatkoff/max-search-bot/blob/main/services/ChannelPostRegistryService.php",
+    "sha256": "2180fea69e7f7a25da14096cbc0d3ec2f47ce5adbdc07f1b915f0c12679b4aa9",
+    "bytes": 66076
+  }
+]

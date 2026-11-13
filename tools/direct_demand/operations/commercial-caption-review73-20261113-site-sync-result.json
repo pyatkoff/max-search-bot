@@ -1,0 +1,40 @@
+{
+  "ok": true,
+  "state": "CONFIRMED_COMPLETE_BY_READONLY_RECONCILIATION",
+  "phase": "caption-review73-source-20261113-reconciled-sixth-v1",
+  "sourceEdits": 73,
+  "publicationSnapshotsAdded": 146,
+  "priceBlocksRetained": 54,
+  "otherHotelsUnchanged": 593,
+  "initialVersion": 394,
+  "finalVersion": 468,
+  "originalSixthHttpOutcome": "UNKNOWN",
+  "sixthLogicalEditConfirmedExactlyOnce": true,
+  "sixthAdditionalIdenticalRequestIssued": true,
+  "automaticRetries": 0,
+  "acceptedRevisionsPreserved": true,
+  "newAcceptancePerformed": false,
+  "publishedReceiptsPhotosPrivateEvidenceAndCardHistoryPreserved": true,
+  "auditExportProjection": {
+    "limit": 300,
+    "order": "at DESC,id DESC",
+    "exactMatch": true,
+    "visibleEvents": 300
+  },
+  "auditDeletes": 0,
+  "editorRunId": "43463340468",
+  "editorSummarySha256": "de463ecf8261b753b96b5f4059e65850606d414d8f7c1c9c2ed616b64dca3cbf",
+  "originalPlanSha256": "847455c64451e8870cef16b110f63cd9191d27c77a17ca6a66a7c7b803221a35",
+  "continuationPlanSha256": "5f30a00243696ea03684290513442444cc5e61ded59c88bd303a515a19f54f57",
+  "finalRegistrySha256": "25da0034ac51498a2a06523a39ad6f67c6573484d3f27d4346dfb93aad3514ba",
+  "finalRegistryFileSha256": "17c6753a0bfce223ac11033952f14b89cacc0c8edc1319ff2ad31f07cb7c96eb",
+  "readOnlyVerifierSha256": "040fa15d367048cf27341f1c158c20627ff168cc73ad1dc0130e76cc43c0e40e",
+  "sourcePins": {
+    "continue_sync.py": "dc20cc6f68645d8e32c954135e18319ab59534a7b9d42a75f0123c33ca721673",
+    "continuation-plan.json": "5f30a00243696ea03684290513442444cc5e61ded59c88bd303a515a19f54f57",
+    "reconcile_native.mjs": "38e98eca734283a16e9735ddd71e9eda701d2eda34861c5a4f15ef671ff9b4e2",
+    "reconcile_native_persisted.mjs": "c40d5ccc38b01f6c700c6b28d68c0d018226c67c113b4cbd42aef18b69ea0a87"
+  },
+  "networkRequests": 0,
+  "registryWrites": 0
+}
