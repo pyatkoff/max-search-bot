@@ -154,7 +154,7 @@ for(const width of [390,1440])test(`compact Inbox admin keeps channel owner urge
  await expect(row(page).locator('.leadReplyStatus')).toHaveText('Ждёт ответа');await expect(row(page,12).locator('.leadWaitCompact')).toBeVisible();
  expect(await row(page,12).locator('.leadWaitCompact').evaluate(el=>el.scrollWidth<=el.clientWidth+1),'Urgency and wait duration must remain readable').toBe(true);
  for(const [id,text]of[[11,'MAX'],[12,'TG'],[13,'Сайт']])await expect(row(page,id).locator('.m2ChannelBadge')).toHaveText(text);
- await expect(row(page,13).locator('.m2OwnershipMark')).toHaveAttribute('aria-label',/Елизавета|друг/i);
+ await expect(row(page,13).locator('.m2OwnershipMark')).toBeHidden();
  await capture(page,browserName,profile,420,testInfo);clean(s);
 });
 

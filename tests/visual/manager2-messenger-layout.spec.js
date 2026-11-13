@@ -236,20 +236,17 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
   });
 });
 
-for(const role of ['manager','admin'])test('Messenger ownership is compact and role appropriate: '+role,async({page})=>{
+for(const role of ['manager','admin'])test('Messenger rows keep unread counts without ownership dots: '+role,async({page})=>{
   await page.setViewportSize({width:1440,height:900});const fixture=await setup(page,{role});
   const own=page.locator('#inboxList [data-conversation-id="11"]'),free=page.locator('#inboxList [data-conversation-id="12"]');
   for(const item of [own,free]){
-    await expect(item.locator('.m2OwnershipMark')).toBeVisible();
+    await expect(item.locator('.m2OwnershipMark')).toBeHidden();
     await expect(item.locator('.leadAvatar')).toBeVisible();
     await expect(item.locator('.leadPreview')).toHaveText('Ждём варианты у моря');
     for(const selector of ['.leadTrip','.leadActionRow','.leadContextRow','.leadSource:not(.leadActivityTime)'])for(const element of await item.locator(selector).all())await expect(element).not.toBeVisible();
   }
-  const ownLabel=await own.locator('.m2OwnershipMark').evaluate(element=>element.getAttribute('aria-label')||element.title);
-  const freeLabel=await free.locator('.m2OwnershipMark').evaluate(element=>element.getAttribute('aria-label')||element.title);
-  expect(ownLabel).toMatch(/мой|ваш|свой|мария/i);expect(freeLabel).toMatch(/свобод|не назначен/i);
-  const colors=await page.locator('#inboxList .m2OwnershipMark').evaluateAll(elements=>elements.map(element=>getComputedStyle(element).backgroundColor));
-  expect(colors[0]).not.toBe(colors[1]);
+  await expect(own.locator('.unreadBadge')).toBeVisible();
+  await expect(own.locator('.unreadBadge')).toHaveText('2');
   await expect(own.locator('.leadReplyStatus')).toHaveText('Ждёт ответа');
   await expect(own.locator('.m2ChannelBadge')).toHaveText('MAX');
   await expect(free.locator('.m2ChannelBadge')).toHaveText('TG');
