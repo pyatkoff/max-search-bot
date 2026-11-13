@@ -64,7 +64,7 @@ function modeledValueSave(PDO $p,array $w):void
     $p->prepare("INSERT INTO modeled_conversion_profile_versions(project_key,platform,customer_key,conversation_id,profile_json) VALUES(?,?,?,?,?)")
         ->execute([$s['project_key'],$s['platform'],$s['customer_key'],$s['conversation_id'],json_encode($w,JSON_THROW_ON_ERROR)]);
 }
-final class ModeledValueTestWire
+class ModeledValueTestWire
 {
     public array $goals=[['id'=>'9','type'=>'action','name'=>'unchanged','conditions'=>[['type'=>'exact','url'=>'existing_goal']]]];
     public array $csv=[];public array $receipts=[];public int $creates=0;public int $posts=0;public int $gets=0;public int $visitReads=0;
@@ -118,7 +118,7 @@ final class ModeledValueTestWire
     }
     public function api():MetrikaOfflineClient{return new MetrikaOfflineClient('98615635','fixture-only',[$this,'request']);}
 }
-final class ModeledValueTestLookup
+class ModeledValueTestLookup
 {
     public bool $missing=false;public int $calls=0;public ?int $observedAt=1793500000;
     public function lookup(string $counter,array $users):array
@@ -1067,8 +1067,127 @@ function modeledValueOrdinaryExpiryAssertions(PDO $p,callable $check):void
     }
 }
 
+final class ModeledFreshRetryHintStatement extends PDOStatement
+{
+    public static bool $failHint=false;
+    protected function __construct(){}
+    public function execute(?array $params=null):bool
+    {
+        if(self::$failHint&&str_contains($this->queryString,'ORDER BY event_unix DESC,next_attempt_unix,id LIMIT 1')){
+            self::$failHint=false;throw new PDOException('synthetic_hint_read_unavailable');
+        }
+        return parent::execute($params);
+    }
+}
+
+/** A synthetic deep backlog: source-current MAX rows, genuine visitor gate, unchanged three-row pass. */
+function modeledValueFreshRetryPriorityAssertions(PDO $p,callable $check):void
+{
+    $now=1793665000;$gate=static fn(string $chat):bool=>true;$older=$now-7*3600;$fresh=$now-600;
+    $setup=static function(bool $alsoRecent=false)use($p,$now,$gate,$older,$fresh):array{
+        modeledValueSchema($p);
+        $wire=new class($fresh-60)extends ModeledValueTestWire{
+            public array $visitClients=[];
+            public function request(string $method,string $url,mixed $body):array{
+                if($method==='GET'&&parse_url($url,PHP_URL_PATH)==='/stat/v1/data'){
+                    parse_str((string)parse_url($url,PHP_URL_QUERY),$query);
+                    if(($query['dimensions']??null)==='ym:s:clientID,ym:s:dateTime'){
+                        preg_match("/clientID=='([0-9]+)'/",$query['filters'],$id);$this->visitClients[]=$id[1]??'invalid';
+                    }
+                }
+                return parent::request($method,$url,$body);
+            }
+        };
+        $owner=new ModeledConversionValueExport($p);$owner->configure('create-goal',$wire->api(),$older-10);$owner->configure('enable',$wire->api(),$older-10);
+        for($i=0;$i<81;$i++)modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,9801+$i),$i===80?$fresh:($alsoRecent&&$i===0?$now-5000:$older)));
+        while((int)ModeledConversionValueExport::settings($p)['profile_cursor']<81){
+            $before=ModeledConversionValueExport::settings($p)['profile_cursor'];$owner->collect(ModeledConversionValueExport::settings($p),$now,$gate);
+            if(ModeledConversionValueExport::settings($p)['profile_cursor']===$before)throw new RuntimeException('fresh_retry_fixture_cursor');
+        }
+        $rows=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        if(count($rows)!==81)throw new RuntimeException('fresh_retry_fixture_rows');
+        $ready=$p->prepare("UPDATE max_channel_conversion_outbox SET state='ready',client_id=?,tracker_record_id='77',tracker_observed_unix=?,value_ready_at_unix=?,next_attempt_unix=?,last_error='metrika_visit_unverified' WHERE id=?");
+        foreach($rows as$i=>$row)$ready->execute(['880000'.$row['external_user_id'],$now-30*86400,$row['event_unix'],$i===80?$now-300:$now-3600,$row['id']]);
+        $lookup=new class extends ModeledValueTestLookup{
+            public array $batches=[];public mixed $beforeReturn=null;
+            public function lookup(string $counter,array $users):array{
+                $this->batches[]=$users;$out=parent::lookup($counter,$users);
+                if(is_callable($this->beforeReturn)){$hook=$this->beforeReturn;$this->beforeReturn=null;$hook();}
+                return$out;
+            }
+        };$lookup->observedAt=$now-30*86400;
+        return[$wire,$lookup,$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)];
+    };
+    $saved=static fn():array=>$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+
+    // Another due recent row has the older retry clock; newest event, not oldest retry, owns the hint.
+    [$wire,$lookup,$rows]=$setup(true);$latest=$rows[80];
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);$after=$saved();
+    $check('one newest fresh retry crosses a deep older backlog through the real MAX lookup and visitor gate while two FIFO rows progress',
+        $wire->posts===1&&$wire->visitReads===3&&$lookup->calls===1&&count($lookup->batches[0])===5
+        &&$wire->visitClients===[$latest['client_id'],$rows[0]['client_id'],$rows[1]['client_id']]
+        &&$after[80]['state']==='accepted'&&(int)$after[80]['attempts']===1
+        &&$after[80]['event_unix']===$latest['event_unix']&&$after[80]['value_rub']===$latest['value_rub']
+        &&(int)$after[0]['next_attempt_unix']===$now+300&&(int)$after[1]['next_attempt_unix']===$now+300);
+
+    [$wire,$lookup,$rows]=$setup();$p->prepare('UPDATE max_channel_conversion_outbox SET next_attempt_unix=0 WHERE id=?')->execute([$rows[79]['id']]);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);
+    $check('a never-checked zero-due row stays before the fresh retry hint and the remaining slot remains FIFO',
+        $wire->visitClients===[$rows[79]['client_id'],$rows[80]['client_id'],$rows[0]['client_id']]
+        &&$wire->visitReads===3&&$wire->posts===1);
+    [$wire,$lookup,$rows]=$setup();$p->prepare('UPDATE max_channel_conversion_outbox SET next_attempt_unix=? WHERE id=?')->execute([$now+300,$rows[80]['id']]);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);
+    $check('an unused priority slot is borrowed by the existing FIFO without extra visitor checks',
+        $wire->visitClients===array_column(array_slice($rows,0,3),'client_id')&&count($lookup->batches[0])===4
+        &&$wire->visitReads===3&&$wire->posts===0);
+
+    [$wire,$lookup,$rows]=$setup();$owner=new ModeledConversionValueExport($p);$pick=new ReflectionMethod($owner,'freshReadyRetry');
+    $protected=new ReflectionProperty($owner,'ordinaryProtectedIds');$protected->setValue($owner,null);
+    $unknown=$pick->invoke($owner,$now,$gate,[]);$legacy=(new ReflectionMethod($owner,'rows'))->invoke($owner,'ready',$now,3,[],null);
+    $protected->setValue($owner,[(string)$rows[80]['id']=>true]);$frozen=$pick->invoke($owner,$now,$gate,[]);
+    $protected->setValue($owner,[]);
+    $p->prepare("UPDATE max_channel_conversion_outbox SET attempts=1,claimed_at_unix=?,claim_token='synthetic_claim' WHERE id=?")->execute([$now,$rows[80]['id']]);
+    $claimed=$pick->invoke($owner,$now,$gate,[]);
+    $check('unknown protected membership keeps the legacy FIFO and frozen or already claimed rows never supply a fresh hint',
+        $unknown===null&&array_column($legacy,'id')===array_column(array_slice($rows,0,3),'id')
+        &&$frozen===null&&$claimed===null);
+    // Native claim_token is CHAR(32); use a VARCHAR trace whose stored space survives the driver roundtrip.
+    $p->prepare("UPDATE max_channel_conversion_outbox SET attempts=0,claimed_at_unix=NULL,claim_token=NULL,upload_id=' ' WHERE id=?")->execute([$rows[80]['id']]);
+    $storedUpload=$saved()[80]['upload_id'];$paddedUpload=$pick->invoke($owner,$now,$gate,[]);
+    $check('a byte-preserved space-only VARCHAR upload trace never supplies a fresh retry hint',
+        $storedUpload===' '&&$paddedUpload===null);
+
+    [$wire,$lookup,$rows]=$setup();$previousClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ModeledFreshRetryHintStatement::class]);ModeledFreshRetryHintStatement::$failHint=true;
+    try{ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);}
+    finally{ModeledFreshRetryHintStatement::$failHint=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$previousClass);}
+    $tick=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    $check('an unavailable optional hint read falls back to the legacy FIFO without halting the existing financial cycle',
+        $wire->posts===0&&$wire->visitReads===3&&count($lookup->batches[0])===4
+        &&$wire->visitClients===array_column(array_slice($rows,0,3),'client_id')&&($tick['errors']??null)===0);
+
+    [$wire,$lookup,$rows]=$setup();$lookup->beforeReturn=static function()use($p,$now,$rows):void{
+        $p->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,attempts=1,claimed_at_unix=?,claim_token='synthetic_changed_claim' WHERE id=?")
+            ->execute([$now+300,$now,$rows[80]['id']]);
+    };
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);$after=$saved();
+    $check('dispatch rereads a changed hint after lookup instead of sending a stale candidate snapshot',
+        $lookup->calls===1&&count($lookup->batches[0])===5&&$wire->posts===0&&$wire->visitReads===3
+        &&$wire->visitClients===array_column(array_slice($rows,0,3),'client_id')
+        &&$after[80]['claim_token']==='synthetic_changed_claim'&&$after[80]['state']==='ready');
+
+    [$wire,$lookup,$rows]=$setup();
+    for($i=0;$i<25;$i++)modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,10001+$i),$now));
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);$after=$saved();
+    $check('fresh retry lookahead shares the same 25 unique MAX subjects while new zero-due work retains the unchanged three-send cap',
+        $lookup->calls===1&&count($lookup->batches[0])===25&&count(array_unique($lookup->batches[0]))===25
+        &&in_array($rows[80]['external_user_id'],$lookup->batches[0],true)
+        &&$wire->posts===3&&$wire->visitReads===3&&$after[80]['state']==='ready'&&empty($after[80]['upload_id']));
+}
+
 function modeledValueFairProgressAssertions(PDO $p,callable $check):void
 {
+    modeledValueFreshRetryPriorityAssertions($p,$check);
     modeledValueOrdinaryExpiryAssertions($p,$check);
     modeledValueSchema($p);$now=1793659000;$gate=static fn(string $chat):bool=>true;
     $wire=new ModeledValueTestWire($now-86400);$wire->goals[]=['id'=>'678187097','name'=>ModeledConversionValueContract::NAME,

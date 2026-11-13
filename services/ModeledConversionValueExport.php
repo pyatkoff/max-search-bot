@@ -191,7 +191,8 @@ final class ModeledConversionValueExport
             $pair=$self->prepareFixedPair($now);
             $reserved=[];foreach(array_merge($finite,$recovery,$pair)as$row)$reserved[(string)$row['id']]=$row;
             // Ready rows carried over by the three-send cap need the same current lookup as pending rows.
-            $carried=$self->ordinaryReadyLookupRows($now,$gate,$reserved);
+            $freshRetry=$self->freshReadyRetry($now,$gate,$reserved);
+            $carried=$self->ordinaryReadyLookupRows($now,$gate,$reserved,$freshRetry);
             $pending=$self->rows('pending',$now,MaxTrackerLookupProtocol::MAX_USERS-count($reserved)-count($carried),array_keys($reserved));
             foreach($reserved as$row)if($row['state']==='pending'
                 &&(is_int($row['next_attempt_unix'])||is_string($row['next_attempt_unix']))
@@ -223,7 +224,7 @@ final class ModeledConversionValueExport
             }
             $readyExcluded=$self->retainedKnownReservation===null?[]:[(string)$self->retainedKnownReservation['row']['id']];
             if($self->knownRelationReservation!==null)$readyExcluded[]=(string)$self->knownRelationReservation['row']['id'];
-            $ready=$self->rows('ready',$now,3,array_values(array_unique($readyExcluded)));
+            $ready=$self->rows('ready',$now,3,array_values(array_unique($readyExcluded)),$freshRetry===null?null:(string)$freshRetry['id']);
             $receipts=array_merge($self->rows('accepted',$now,2),$self->rows('unknown',$now,2));
             if($ready||$receipts){
                 $phase='goal_check';
@@ -1150,8 +1151,39 @@ final class ModeledConversionValueExport
         return true;
     }
 
+    /** One early-hours retry is a priority hint, never identity or attribution permission. */
+    private function freshReadyRetry(int $now,callable $gate,array $reserved):?array
+    {
+        if($this->ordinaryProtectedIds===null)return null;
+        $excluded=array_map('strval',array_keys($reserved+$this->ordinaryProtectedIds));
+        if(count($excluded)>6)return null;
+        foreach($excluded as$id)if(preg_match('/\\A[1-9][0-9]{0,19}\\z/D',$id)!==1)return null;
+        $skip=$excluded?' AND id NOT IN ('.implode(',',array_fill(0,count($excluded),'?')).')':'';
+        $q=null;
+        try{
+            $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state='ready'"
+                .' AND '.$this->freshRetryPredicate($now).$skip.' ORDER BY event_unix DESC,next_attempt_unix,id LIMIT 1');
+            if(!$q||!$q->execute($excluded))return null;
+            $row=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();$q=null;
+            return is_array($row)&&$this->eligible($row,$gate)?$row:null;
+        }catch(Throwable $ignored){if($q!==null)try{$q->closeCursor();}catch(Throwable $ignoredClose){}return null;}
+    }
+    /** Same closed admission predicate before lookup and in the current dispatch reread. */
+    private function freshRetryPredicate(int $now):string
+    {
+        return "HEX(project_key)=HEX('anytour') AND HEX(counter_id)=HEX('98615635') AND HEX(state)=HEX('ready')"
+            ." AND HEX(transport_target)=HEX('anytour_modeled_value_v1') AND HEX(value_contract)=HEX('semantic_stage_value_25000_v1')"
+            ." AND HEX(platform) IN (HEX('max'),HEX('telegram'))"
+            ." AND HEX(identity_source_key)=HEX(CASE WHEN HEX(platform)=HEX('telegram') THEN 'tgmini' ELSE 'max_tracker' END)"
+            ." AND value_origin IS NULL AND event_unix>=".max(946684800,$now-6*3600)." AND event_unix<=".$now
+            ." AND next_attempt_unix>0 AND next_attempt_unix<=".$now." AND value_ready_at_unix>=946684800 AND value_ready_at_unix<=".$now
+            ." AND client_id IS NOT NULL AND client_id<>'' AND attempts=0 AND claimed_at_unix IS NULL"
+            ." AND (claim_token IS NULL OR HEX(claim_token)='') AND (upload_id IS NULL OR HEX(upload_id)='') AND (upload_status IS NULL OR HEX(upload_status)='')"
+            ." AND value_api_accepted_at_unix IS NULL AND value_processed_at_unix IS NULL AND (value_receipt_basis IS NULL OR HEX(value_receipt_basis)='')";
+    }
+
     /** Reserve ordinary old-source READY users inside the existing single lookup and 25-user ceiling. */
-    private function ordinaryReadyLookupRows(int $now,callable $gate,array $reserved):array
+    private function ordinaryReadyLookupRows(int $now,callable $gate,array $reserved,?array $freshRetry=null):array
     {
         if($this->ordinaryProtectedIds===null)return [];
         $excluded=$reserved;
@@ -1159,7 +1191,9 @@ final class ModeledConversionValueExport
         foreach($this->finiteFrame['r']??[]as$original)$excluded[(string)$original[1]]=true;
         $carried=[];
         // One extra row covers the single known-READY reservation excluded at dispatch below.
-        foreach($this->rows('ready',$now,4)as$row){
+        $lookahead=$this->rows('ready',$now,4);
+        if($freshRetry!==null&&!in_array((string)$freshRetry['id'],array_map('strval',array_column($lookahead,'id')),true))$lookahead[]=$freshRetry;
+        foreach($lookahead as$row){
             $source=(int)($row['tracker_observed_unix']??0);
             if($row['platform']==='max'&&!isset($excluded[(string)$row['id']])&&$source>=946684800
                 &&$source<=(int)$row['event_unix']&&$now-$source>ModeledConversionAttributionWindow::MAX_SECONDS
@@ -1168,14 +1202,20 @@ final class ModeledConversionValueExport
         return $carried;
     }
 
-    private function rows(string $state,int $now,int $limit,array $excluded=[]):array
+    private function rows(string $state,int $now,int $limit,array $excluded=[],?string $freshRetryId=null):array
     {
         $excluded=in_array($state,['pending','ready'],true)?array_values(array_unique(array_map('strval',$excluded))):[];
         if(count($excluded)>3)throw new RuntimeException('finite_source_bound');
         foreach($excluded as$id)if(preg_match('/\A[1-9][0-9]{0,19}\z/D',$id)!==1)throw new RuntimeException('finite_source_bound');
         $skip=$excluded?' AND id NOT IN ('.implode(',',array_fill(0,count($excluded),'?')).')':'';
-        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state=? AND transport_target=? AND value_contract=? AND next_attempt_unix<=?".$skip." ORDER BY next_attempt_unix,id LIMIT ".min($state==='pending'?MaxTrackerLookupProtocol::MAX_USERS:5,max(1,$limit)));
-        $q->execute([$state,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$now,...$excluded]);return$q->fetchAll(PDO::FETCH_ASSOC);
+        $order='next_attempt_unix,id';$extra=[];
+        if($state==='ready'&&$freshRetryId!==null){
+            if(preg_match('/\\A[1-9][0-9]{0,19}\\z/D',$freshRetryId)!==1)throw new RuntimeException('fresh_retry_bound');
+            $order='CASE WHEN next_attempt_unix=0 THEN 0 WHEN id=? AND '.$this->freshRetryPredicate($now).' THEN 1 ELSE 2 END,next_attempt_unix,id';
+            $extra=[$freshRetryId];
+        }
+        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state=? AND transport_target=? AND value_contract=? AND next_attempt_unix<=?".$skip." ORDER BY ".$order." LIMIT ".min($state==='pending'?MaxTrackerLookupProtocol::MAX_USERS:5,max(1,$limit)));
+        $q->execute([$state,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$now,...$excluded,...$extra]);return$q->fetchAll(PDO::FETCH_ASSOC);
     }
     private function resolve(array $r,array $identities,int $now,callable $gate,bool $lookupReturned=false):bool
     {
