@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "ready": true,
+  "operation": "commercial-channel-hotel-feeds-20261113-update11",
+  "expected_installed_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+  "current_installed_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+  "expected_parent_head": "7c49eeb2f97c5c58ecb23709194287d8cb0f61ad",
+  "owner_pin": {
+    "comment_id": 6818332618,
+    "owner": "pyatkoff",
+    "updated_at": "2026-11-13T03:31:00Z",
+    "body_sha256": "b5e14aa8b74ba5c48982ef700957b10831cd2f1cf2cb49a269a6994db5d5aaa0",
+    "required_scope_line": "SOURCE IN_PROGRESS — anytour-max; batch10 native584 DONE, guarded feed update11 first-write admission"
+  },
+  "previous_count": 580,
+  "hotel_ids": [
+    1330,
+    983,
+    497,
+    231
+  ],
+  "manifest_sha256": "1705a856a97e47acca6193862144c4026fb406bca41cf3a089e54dbcacaba108",
+  "approval_sha256": "61535735225290b56710b45bdead761ab85d515c9cbb0a6ce1ba119c427e9015",
+  "publisher": {
+    "repository": "pyatkoff/max-search-bot",
+    "run_id": 43358127823,
+    "run_attempt": 1,
+    "head_sha": "1386463de6c28f5f27985717f2363c7ff35135d0",
+    "head_branch": "audit/content100-bot-publication-20261101",
+    "workflow_path": ".github/workflows/content100-bot-publication-20261101.yml",
+    "artifact": {
+      "id": 14006987622,
+      "name": "commercial-batch-20261113-10-publication-and-read",
+      "zip_sha256": "63f47c14306a666d914ef0b40dbbbe64d8b2f640e4f0eda634febb83e69a5b63"
+    },
+    "publication_summary_sha256": "0510d0536d3aa00d7d719b13ad3b64ab0f2344a14ac98f808babd35e648f27b3",
+    "bound_read_sha256": "19f6a1d81cd331e9c7b8ef4b8bc8b9912379b07e383a1c838919010d1bc81cfa",
+    "qualified_outcome": {
+      "original_run_conclusion": "failure",
+      "failure_stage": "post_send_wrapper_count_assertion",
+      "actual_sent_receipt_verified": true,
+      "actual_new_posts": 8,
+      "reused": 0
+    }
+  },
+  "route": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 43359006895,
+    "run_attempt": 1,
+    "head_sha": "f2f23f4afc340e410b2e5649c3befcbd151ed707",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "workflow_path": ".github/workflows/tgmini-identity-readonly.yml",
+    "candidate_artifact": {
+      "id": 14007546091,
+      "name": "commercial-max584-route-extension-candidate",
+      "zip_sha256": "c9fac6f321ecef5dbacbfb54c83c8a79b30bd7f8c799267c397f65e9566643dc"
+    },
+    "result_artifact": {
+      "id": 14007625585,
+      "name": "commercial-max584-route-extension-install-result",
+      "zip_sha256": "cc0261cb69a08ac36f9fe5d7216a1a0db0d187ddbf98c3821b0c9369bde23bdb"
+    },
+    "operation": "commercial-max584-private-route-extension-20261113-10-install1",
+    "map_sha256": "dbf7f85543a78abc9593e7bc50529ed6993f0910fd12042cb4fd7786b9225cd3",
+    "module_sha256": "0e3947964d1ca9b3c77b43fd82ce1d174926634f908af633a6dbdbabd2cd91f2",
+    "receipt_sha256": "8561df8ce9c491634331ab7b7a8b11c0fc65897cd9f6a9da8e6ea8b72209085e",
+    "original_manifest_sha256": "969924a8118e381d94693e94c989066d1f587bd7cec04380bfe4a6217381a356",
+    "manifest_projection_sha256": "d2bbcb02b572c7f28ee7fefe78f97511930aef858f7d1db922a85676b15602c5",
+    "route_proof_sha256": "acb04f0a1e4381f96ceb7aac8a1e6a67ed08f0bd5e2cc3d8629c453f80c13163",
+    "source_method": "root_authenticated_private_artifacts"
+  },
+  "nightly_guard_sha256": "0c60e5a851ae014de9a1542f268449b7a1d0fb0ba9f3104db8da650035ea8486",
+  "current_source_acceptance": {
+    "schema": "anytour.current-source-acceptance.v1",
+    "installed_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+    "core_pull_request": 1522,
+    "core_head_sha": "2a1f13ed4f766f5d1371c6275e3d4f69bac0e558",
+    "core_merge_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+    "verifier_sha256": "5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb",
+    "runtime_pins_sha256": "3232defb6fa18ac047f8bbe222cff84a2743224cf243d3fbd91a654b95f0646a",
+    "source_gates": {
+      "deploy.yml": {
+        "run_id": 43350270066,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "max-tls-preflight.yml": {
+        "run_id": 43351917787,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "modeled-conversion-value-export.yml": {
+        "run_id": 43351917592,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "max-production-health.yml": {
+        "run_id": 43351917585,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "telegram-production-health.yml": {
+        "run_id": 43351917600,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "live-session-diagnostics.yml": {
+        "run_id": 43351917653,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "modeled-conversion-monitor.yml": {
+        "run_id": 43351917560,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "tour-selection-host.yml": {
+        "run_id": 43351917744,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      },
+      "publish-conversation-diagnostics.yml": {
+        "run_id": 43351917584,
+        "head_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+        "run_attempt": 1,
+        "conclusion": "success"
+      }
+    }
+  },
+  "bound_reader": {
+    "repository": "pyatkoff/max-search-bot",
+    "run_id": 43358539473,
+    "run_attempt": 1,
+    "head_sha": "7c49eeb2f97c5c58ecb23709194287d8cb0f61ad",
+    "head_branch": "audit/content100-bot-publication-20261101",
+    "workflow_path": ".github/workflows/content100-bot-publication-20261101.yml",
+    "artifact": {
+      "id": 14007490826,
+      "name": "commercial-batch-20261113-10-read-only-after-verified-send",
+      "zip_sha256": "d5d3c02914608756f1a989797dd83eb5ada87319a360ca75897a769b7f4ef42b"
+    },
+    "bound_read_sha256": "19f6a1d81cd331e9c7b8ef4b8bc8b9912379b07e383a1c838919010d1bc81cfa"
+  }
+}

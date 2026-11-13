@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "root_authenticated_private_route_extension",
+  "operation": "commercial-max584-private-route-extension-20261113-10-install1",
+  "previous_count": 580,
+  "logical_hotels": 584,
+  "new_hotel_ids": [
+    1330,
+    983,
+    497,
+    231
+  ],
+  "publication_summary_sha256": "0510d0536d3aa00d7d719b13ad3b64ab0f2344a14ac98f808babd35e648f27b3",
+  "bound_read_sha256": "19f6a1d81cd331e9c7b8ef4b8bc8b9912379b07e383a1c838919010d1bc81cfa",
+  "new_binding_tuples_sha256": "767eb3d1677a75ded9a30075b4b38024a678c00f53c600c037ffaff3ba09a456",
+  "route_receipt_sha256": "8561df8ce9c491634331ab7b7a8b11c0fc65897cd9f6a9da8e6ea8b72209085e",
+  "route_manifest_projection_sha256": "d2bbcb02b572c7f28ee7fefe78f97511930aef858f7d1db922a85676b15602c5",
+  "original_route_manifest_sha256": "969924a8118e381d94693e94c989066d1f587bd7cec04380bfe4a6217381a356",
+  "original_route_map_sha256": "dbf7f85543a78abc9593e7bc50529ed6993f0910fd12042cb4fd7786b9225cd3",
+  "original_route_module_sha256": "0e3947964d1ca9b3c77b43fd82ce1d174926634f908af633a6dbdbabd2cd91f2",
+  "original_previous_map_sha256": "62984adfa2fe4bc6e8fb14d567a3e75140d1be40f8199b6da52671ec1cbcec1d",
+  "verification": {
+    "full_map_checked": true,
+    "previous_rows_preserved": true,
+    "new_tuples_checked": true
+  },
+  "source": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 43359006895,
+    "run_attempt": 1,
+    "head_sha": "f2f23f4afc340e410b2e5649c3befcbd151ed707",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "workflow_path": ".github/workflows/tgmini-identity-readonly.yml",
+    "candidate_artifact": {
+      "id": 14007546091,
+      "name": "commercial-max584-route-extension-candidate",
+      "zip_sha256": "c9fac6f321ecef5dbacbfb54c83c8a79b30bd7f8c799267c397f65e9566643dc"
+    },
+    "result_artifact": {
+      "id": 14007625585,
+      "name": "commercial-max584-route-extension-install-result",
+      "zip_sha256": "cc0261cb69a08ac36f9fe5d7216a1a0db0d187ddbf98c3821b0c9369bde23bdb"
+    }
+  }
+}

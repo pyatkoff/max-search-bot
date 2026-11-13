@@ -1,0 +1,27 @@
+{
+  "operation": "commercial-max584-private-route-extension-20261113-10",
+  "state": "CANDIDATE_NOT_INSTALLED",
+  "previous_count": 580,
+  "logical_hotels": 584,
+  "new_hotel_ids": [
+    1330,
+    983,
+    497,
+    231
+  ],
+  "new_map_filename": "anytour-hotel-feed-routes-v584-20261113-10.private.php",
+  "previous_module_sha256": "30ddfd25d2625ada36b9cf06d5d8cad5880516db4995e9b7e78fa03e38e58cd0",
+  "files": [
+    {
+      "bytes": 124248,
+      "name": "anytour-hotel-feed-routes-v584-20261113-10.private.php",
+      "sha256": "dbf7f85543a78abc9593e7bc50529ed6993f0910fd12042cb4fd7786b9225cd3"
+    },
+    {
+      "bytes": 3780,
+      "name": "anytour-hotel-feed-context.php",
+      "sha256": "0e3947964d1ca9b3c77b43fd82ce1d174926634f908af633a6dbdbabd2cd91f2"
+    }
+  ],
+  "previous580_rows_identical": true
+}
