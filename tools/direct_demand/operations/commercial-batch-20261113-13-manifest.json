@@ -1,0 +1,59 @@
+{
+  "state": "PREPARED_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261113-13-v1",
+  "registry_version": 338,
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 588,
+  "expected_new_full_pairs": 2,
+  "rows": [
+    {
+      "hotel_id": 254,
+      "logical_id": "commercial-hotel-254-v1",
+      "aliases": [
+        "Three Corners Sea Beach Resort",
+        "THE THREE CORNERS SEA BEACH RESORT"
+      ],
+      "text": "✈️ Туры в Three Corners Sea Beach Resort\n📍 Марса-Алам, Египет.\n\nСемейный отпуск у моря с водными горками ☀️\n\nВ Three Corners Sea Beach Resort можно чередовать пляжный отдых с развлечениями в аквапарке. Детям будет чем заняться в клубе Trixie, а для морского купания предусмотрен пирс.\n\n• Пляж непосредственно у территории.\n• Аквапарк с детскими зонами.\n• Детский клуб Trixie.\n\nДоступ к морским зонам купания и снорклинга зависит от погоды. Работу горок и возрастные ограничения учтём при выборе дат поездки.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "7a866ae114016d6a380cae9af13a96973d40caf6ec104e43b3c0c83908750879",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5c692edaea371346b5b3c3293758a32d1ae5d95f/.github/traffic-publish/commercial-batch-20261113-13/254.png",
+      "photo_sha256": "5d03840e142de0333da8e99b516bb8d32ad8aeed9d8c80b20590868ba3396bcb",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/_preview/search3-next-candidate/data/local-tv-catalog-read-v1.php?tourvisorHotelIds%5B%5D=968&tourvisorHotelIds%5B%5D=967&tourvisorHotelIds%5B%5D=1531&tourvisorHotelIds%5B%5D=319&tourvisorHotelIds%5B%5D=254",
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://threecorners.com/red-sea/sea-beach-resort/",
+        "https://threecorners.com/red-sea/sea-beach-resort/rooms-2/deluxe-room-with-private-pool/",
+        "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+        "https://chatgpt.com/library?file_id=libfile_fde3_f-500987befa7c81918ae7ab49fdf68038_839482358a3c8191a38d8cf811d28df4&account_id=personal",
+        "https://anytoour.ru/api-v2.php?action=flights&tourId=13305944706629&currency=RUB",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=254"
+      ],
+      "media_provenance": "Retained exact-native Tourvisor catalogue photography; source dates and actual visual checks recorded separately. Canonical media_state is the existing publisher acceptance marker."
+    },
+    {
+      "hotel_id": 967,
+      "logical_id": "commercial-hotel-967-v1",
+      "aliases": [
+        "Ali Bey Club Manavgat",
+        "ALI BEY CLUB (EX. ALI BEY CLUB MANAVGAT)"
+      ],
+      "text": "✈️ Туры в Ali Bey Club Manavgat\n📍 Кызылагач, Манавгат, Турция.\n\nМоре, аквапарк и активный отдых всей семьёй 🌿\n\nAli Bey Club Manavgat подойдёт тем, кто хочет совместить пляжный отпуск с развлечениями и спортом. Здесь есть семейные категории номеров, а на территории курорта найдутся занятия для детей и взрослых.\n\n• Пляж у территории.\n• Аквапарк с детскими и взрослыми зонами.\n• Теннисный центр.\n\nРежим работы горок зависит от сезона, пляжные павильоны оплачиваются отдельно. При подборе учтём расположение и планировку выбранной категории.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "626e57d265a8e5a3fdb7503644d083e00e3712953c2edcce69f07e790f9c3399",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5c692edaea371346b5b3c3293758a32d1ae5d95f/.github/traffic-publish/commercial-batch-20261113-13/967.png",
+      "photo_sha256": "8994b76f7d0dfbac09532817a8f313a15fa11d6d47e73ffc3971947bc2184969",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/_preview/search3-next-candidate/data/local-tv-catalog-read-v1.php?tourvisorHotelIds%5B%5D=968&tourvisorHotelIds%5B%5D=967&tourvisorHotelIds%5B%5D=1531&tourvisorHotelIds%5B%5D=319&tourvisorHotelIds%5B%5D=254",
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.alibey.com/en/club",
+        "https://www.alibey.com/en/club/rooms",
+        "https://www.alibey.com/en/club/rooms/superior-family-rooms",
+        "https://www.alibey.com/en/club/beach-waterpark",
+        "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php"
+      ],
+      "media_provenance": "Retained exact-native Tourvisor catalogue photography; source dates and actual visual checks recorded separately. Canonical media_state is the existing publisher acceptance marker."
+    }
+  ]
+}
