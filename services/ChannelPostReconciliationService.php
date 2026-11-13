@@ -91,6 +91,50 @@ final class ChannelPostReconciliationService
         } catch(Throwable $e) {return ['ok'=>false,'state'=>'requires_attention','reason'=>self::reason($e)];}
     }
 
+    /** Exact operator-selected confirmation; it never retries a rejected edit. */
+    public function confirmReadFailure(array $identity, string $channelId, int $publicationId, int $expectedVersionId, int $expectedConfigVersion, string $expectedHash = '', bool $apply = false): array
+    {
+        $confirmationStarted = false;
+        try {
+            self::identity($identity);
+            if ($publicationId <= 0 || $expectedVersionId <= 0 || $expectedConfigVersion <= 0
+                || ($expectedHash !== '' && !preg_match('/\A[a-f0-9]{64}\z/D', $expectedHash))
+                || ($apply && $expectedHash === '')) throw new RuntimeException('exact_read_failure_confirmation_target_required');
+            $publication = $this->registry->publication($publicationId);
+            if (!$publication || $publication['project_key'] !== $identity['project_key'] || $publication['platform'] !== 'max'
+                || $publication['bot_key'] !== $identity['bot_key'] || $publication['channel_id'] !== $channelId
+                || $publication['version_id'] !== $expectedVersionId) throw new RuntimeException('target_publication_changed');
+            if ((int)$publication['channel']['config_version'] !== $expectedConfigVersion) throw new RuntimeException('channel_configuration_changed');
+            if (!ChannelPostRegistryService::maxReadFailureConfirmationEligible($publication)) throw new RuntimeException('read_failure_confirmation_not_eligible');
+            $hash = ChannelPostIncomingAdapter::contentFingerprint($publication['snapshot']);
+            if ($expectedHash !== '' && !hash_equals($expectedHash, $hash)) throw new RuntimeException('target_content_changed');
+            $paths = ['/me', '/chats/' . $channelId . '/members/me', '/messages/' . rawurlencode($publication['external_message_id'])];
+            $reads = 0; $beforeWriteCalls = 0; $message = null;
+            $request = function (string $platform, string $method, string $path, array $query, ?array $body) use ($paths, &$reads, &$message): array {
+                if ($platform !== 'max' || $method !== 'GET' || $query !== [] || $body !== null || $reads >= 3 || $path !== $paths[$reads]) throw new RuntimeException('confirmation_read_scope_changed');
+                $reads++;
+                $response = ($this->request)($platform, $method, $path, $query, $body);
+                if ($reads === 3 && is_array($response['data'] ?? null)) $message = $response['data'];
+                return $response;
+            };
+            $proof = (new ChannelPostButtonTransport($request))->attempt($publication, static function () use (&$beforeWriteCalls): bool { $beforeWriteCalls++; return false; }, true);
+            if ($beforeWriteCalls !== 0 || $reads !== 3 || ($proof['state'] ?? '') !== 'sent' || ($proof['reason'] ?? '') !== 'already_present'
+                || ($proof['receipt']['write_attempts'] ?? -1) !== 0 || !is_array($message)) throw new RuntimeException('existing_button_not_confirmed');
+            $snapshot = ChannelPostIncomingAdapter::maxSnapshot($message);
+            if (!$snapshot) throw new RuntimeException('observed_post_does_not_match');
+            $confirmationStarted = $apply;
+            $this->registry->confirmMaxReadFailure($publication, $snapshot, $proof, $apply);
+            return ['ok' => true, 'state' => $apply ? 'sent' : 'preview', 'reason' => 'already_present',
+                'publication_id' => $publicationId, 'version_id' => $expectedVersionId, 'config_version' => $expectedConfigVersion,
+                'content_hash' => $hash, 'database_writes' => $apply ? 1 : 0, 'provider_writes' => 0, 'receipt' => $proof['receipt']];
+        } catch (Throwable $e) {
+            $reason = self::reason($e);
+            // A lost commit acknowledgement is not proof that the CAS failed.
+            return ['ok' => false, 'state' => $confirmationStarted && $reason === 'reconciliation_unavailable' ? 'unknown' : 'requires_attention', 'reason' => $reason, 'provider_writes' => 0];
+        }
+    }
+
+
     private function verify(array $channel): void
     {
         $check=$this->transport->verifyChannel($channel);
@@ -118,7 +162,7 @@ final class ChannelPostReconciliationService
     }
     private static function reason(Throwable $e): string
     {
-        $known=['channel_configuration_changed','provider_channel_verification_failed','provider_page_unavailable','provider_page_identity_mismatch','pagination_boundary_requires_attention','reconciliation_claim_changed','exact_target_required','exact_video_recovery_target_required','channel_not_enabled','exact_target_not_unique','unsupported_post','target_content_changed','target_registration_changed','target_version_changed','legacy_video_not_eligible','legacy_video_content_changed','canonical_identity_required'];
+        $known=['channel_configuration_changed','provider_channel_verification_failed','provider_page_unavailable','provider_page_identity_mismatch','pagination_boundary_requires_attention','reconciliation_claim_changed','exact_target_required','exact_video_recovery_target_required','channel_not_enabled','exact_target_not_unique','unsupported_post','target_content_changed','target_registration_changed','target_version_changed','legacy_video_not_eligible','legacy_video_content_changed','canonical_identity_required','exact_read_failure_confirmation_target_required','target_publication_changed','read_failure_confirmation_not_eligible','read_only_button_confirmation_required','observed_post_does_not_match','existing_button_not_confirmed'];
         return in_array($e->getMessage(),$known,true)?$e->getMessage():'reconciliation_unavailable';
     }
 }

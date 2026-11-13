@@ -234,6 +234,65 @@ forward context and ordered photographs/videos. No permalink decoder, global que
 reset, customer send, webhook reconfiguration or historical event replay occurs.
 Migration040 and existing publication records remain in place on rollback.
 
+## Confirm an already present MAX image button after a read failure
+
+The existing exact-post recovery CLI has a separate, operator-selected
+confirmation mode. Use it only when the selected current MAX version is
+requires_attention / provider_read_failed, its button write counter is zero,
+there is no claim, and its saved supported media is one image. Ordinary
+scan, recover and processPublication behavior, the generic observed-button
+allowlist and the unsupported-video recovery remain unchanged.
+
+Select the publication, its current version and channel configuration explicitly.
+Preview is read-only and returns the content hash for that exact version:
+
+    php tools/recover_max_channel_post.php --confirm-observed-read-failure \
+      --expected-sha=<installed-sha> --channel-id=<channel-id> \
+      --publication-id=<publication-id> --expected-version-id=<version-id> \
+      --expected-config-version=<config-version>
+
+Apply requires the same selection plus --content-hash=<preview-content-hash>
+and --apply. This mode does not accept --published-ms or
+--recover-unsupported-video. It performs a fresh check itself; a saved preview or
+external success boolean cannot substitute for provider readback. The callable
+entry point is ChannelPostReconciliationService::confirmReadFailure with the
+same identity, channel, publication/version/configuration and content selectors;
+apply defaults to false. The caller must first obtain existing operator/source
+authorization. Do not wrap the call in another PDO transaction: the registry owns
+the short compare-and-swap transaction after the reads.
+
+Each call permits at most three canonical MAX GETs: bot identity, channel rights
+and that exact message. The transport runs with reconcileOnly=true and a refusing
+before-write callback. The read must show the same caption, markup, forward
+context, stable image identity and post URL, with exactly the expected single
+button. Missing, changed or additional buttons stop; this mode cannot add one.
+Provider failure, another rejection reason, UNKNOWN, prior write, active claim,
+changed identity or stale content/version/configuration also stop.
+
+Apply locks and compares the complete pre-read channel, publication and version
+before marking that same version sent. It does not claim or requeue work, append
+a content version, change the snapshot, token, observation clock or attempt
+counters, or make any MAX edit/send. The resulting private receipt preserves the
+prior state, reason, attempt counters, exact stored receipt JSON and update time
+under previous_failure, followed by the new read-only confirmation evidence.
+Older receipts may omit successful HTTP entries; the retained entries must be an
+ordered subset of the original pre-write GET prefix. Existing failure evidence is
+never filled in or rewritten. The new proof must contain all three successful
+reads. Public CLI output contains only selectors, hashes and safe HTTP receipts.
+
+A failed or lost database commit acknowledgement is UNKNOWN. Inspect the exact
+current version and original operation evidence before deciding any next action;
+do not rerun confirmation automatically. A successful version confirmation alone
+does not close a separate monitor journal, authorize a Telegram edit, publish a
+feed or complete a nightly cycle. Those existing owners retain their original
+locks, operation identities, CAS checks and final receipts.
+
+Regression coverage reproduces a real pre-write channel-rights read failure,
+verifies unchanged ordinary rejection behavior, preview/apply preservation,
+native body/photo/URL/button mismatches, stale selectors and post-read
+version/configuration/claim/receipt races, plus a lost commit acknowledgement.
+
+
 ## Exact recovery of a previously unsupported MAX video
 
 The ordinary worker does not revive historical rejected jobs. For an owner-selected
