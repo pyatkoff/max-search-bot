@@ -1,0 +1,32 @@
+[
+  {
+    "hotel_id": 325,
+    "aliases": [
+      "Minamark Resort & Spa",
+      "MINAMARK RESORT & SPA"
+    ],
+    "logical_id": "commercial-hotel-325-v1",
+    "expected_text_sha256": "5f59b9359094d302be4fed6cc35c467a7cfacd8c1349380cf8b79c122e70c08d",
+    "scope": "same_original_batch11_candidate_preflight"
+  },
+  {
+    "hotel_id": 496,
+    "aliases": [
+      "SUNRISE Remal Resort",
+      "SUNRISE REMAL RESORT (EX. MELTON TIRAN RESORT)"
+    ],
+    "logical_id": "commercial-hotel-496-v1",
+    "expected_text_sha256": "6921bd1782d66fe8677019fafecd8954a5644c0e03b892f01856fc5cbdfd638b",
+    "scope": "same_original_batch11_candidate_preflight"
+  },
+  {
+    "hotel_id": 4184,
+    "aliases": [
+      "Sentido Reef Oasis Senses",
+      "SENTIDO REEF OASIS SENSES RESORT (EX. REEF OASIS SENSES RESORT)"
+    ],
+    "logical_id": "commercial-hotel-4184-v1",
+    "expected_text_sha256": "2372104c694b88273e1ea2a7b38f90c4b466e018af83780b11143f27a7f65098",
+    "scope": "same_original_batch11_candidate_preflight"
+  }
+]
