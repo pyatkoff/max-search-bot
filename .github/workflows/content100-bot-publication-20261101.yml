@@ -1,4 +1,4 @@
-name: Read only exact batch9 five candidate clearance; no sender
+name: Publish exact approved batch9 five hotels in both existing channels
 permissions:
   contents: read
   actions: read
@@ -17,29 +17,45 @@ jobs:
       with:
         ref: ${{ github.sha }}
         persist-credentials: false
-    - name: Validate exact bounded read-only scope5 and frozen input hashes
+    - name: Prepare and validate the exact sender and bounded read
       shell: bash
       run: |
         set -euo pipefail
-        umask 077
-        test "$GITHUB_RUN_ATTEMPT" = 1
-        test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-        sha256sum -c <<'PINS'
-        b7e49e70f32585a06ba3194ff19e3fc2d38ff2fa80514d0bf97726766bb2a21c  tools/direct_demand/operations/commercial-batch-20261113-9-duplicate-read.php
-        46c6af15e444e8410aa513736b2aa2351e8af90ea46a4d3616a0965f270c8582  tools/direct_demand/operations/commercial-batch-20261113-9-candidates.json
+        sha256sum -c <<'BATCH9PINS'
+        fc0cffee3925e2194982ad66743c6170d49a7699324f106a71b1ecbcca8a7712  tools/direct_demand/operations/commercial-batch-20261113-9-publisher-plan.json
+        6e311e3aa3ef49b6de4983dbdd157603ccc90f3900d08eed855dbe7f2d796c60  tools/direct_demand/operations/commercial-batch-20261113-9-source-closure.json
         af6d63506e14e354c84baf572fcee3745b40c144f1f3b118db4411554656f3af  tools/direct_demand/operations/commercial-batch-20261113-9-manifest.json
         e4d10d4f219a5d87f9c4e45f5d4262ff28ab86ca7928a6fa941cccb360a0a675  tools/direct_demand/operations/commercial-batch-20261113-9-approval.json
-        55f67042c3b5ee7a5a21b52c0c127df7708f8b5a9c1e9de617eef533e75dda23  tools/direct_demand/operations/commercial-batch-20261113-9-native-clearance-plan.json
         51270e4ce241914001ddc307e581ffdac69234c3880e77bd99a7be6b4e5d4a7a  tools/direct_demand/operations/verify-commercial-source.py
-        PINS
-        python3 - <<'READY'
-        import json,pathlib
-        p=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-batch-20261113-9-native-clearance-plan.json').read_bytes())
-        assert p['ready'] is True,'fresh owner pin required before execution'
-        READY
-        cp tools/direct_demand/operations/commercial-batch-20261113-9-duplicate-read.php "$RUNNER_TEMP/channel-feed-read.php"
+        0de4315c4480274d66dcc560cf7cef4280422ede369ee7c7d858b9f5a73d1f38  tools/direct_demand/operations/prepare-publication-tail.py
+        428644627174c95bc2c05216d8c33b66c9eefd4cff61a9e1fc22eda9c0fc7d72  tools/direct_demand/operations/read-commercial-channel-hotel-feeds-20261108-48.php
+        BATCH9PINS
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        umask 077
+        python3 - <<'PY'
+        import hashlib,json,os,pathlib
+        base=pathlib.Path('tools/direct_demand/operations')
+        closure=json.loads((base/'commercial-batch-20261113-9-source-closure.json').read_bytes())
+        assert closure['schema_version']==1 and closure['kind']=='verified_previous_repair_source_closure'
+        assert closure['source_verification']['ok'] is True and closure['feed_verification']['ok'] is True
+        assert closure['source_verification']['finalVersion']==closure['feed_verification']['initialVersion']==317 and closure['feed_verification']['finalVersion']==318
+        assert hashlib.sha256((base/'prepare-commercial-batch.py').read_bytes()).hexdigest()=='0b44bd834f308469491f8eccecd9ee9af1013f317497e86cb40045759808a228'
+        pins={'prepare-publication-tail.py': '0de4315c4480274d66dcc560cf7cef4280422ede369ee7c7d858b9f5a73d1f38'}
+        for name,sha in pins.items():assert hashlib.sha256((base/name).read_bytes()).hexdigest()==sha,name
+        approval=json.loads((base/'commercial-batch-20261113-9-approval.json').read_text())
+        assert approval['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert approval['operation']=='commercial-hotel-batch-20261113-9-v1' and approval['hotel_ids']==[9287, 1013, 4185, 14140, 468]
+        PY
+        python3 tools/direct_demand/operations/prepare-commercial-batch.py --manifest tools/direct_demand/operations/commercial-batch-20261113-9-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261113-9-approval.json --output "$RUNNER_TEMP/channel-preflight.php"
+        php -l "$RUNNER_TEMP/channel-preflight.php"
+        python3 tools/direct_demand/operations/prepare-publication-tail.py reader --manifest tools/direct_demand/operations/commercial-batch-20261113-9-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261113-9-approval.json --reader-template tools/direct_demand/operations/read-commercial-channel-hotel-feeds-20261108-48.php --reader-operation commercial-channel-hotel-feeds-20261113-read9 --output "$RUNNER_TEMP/channel-feed-read.php"
         php -l "$RUNNER_TEMP/channel-feed-read.php"
         ANYTOUR_CHANNEL_BATCH51_SCOPE_FIXTURE=1 php "$RUNNER_TEMP/channel-feed-read.php"
+
+        sha256sum -c <<BATCH9COMPILED
+        6c02c229c291de455528841e61fbc6cd8d2e4b5cd651cb4c5e51e8fcce8c4472  $RUNNER_TEMP/channel-preflight.php
+        17a743e07b8f76a4416d6207e87e623b4f01d33709b5d6df47f1ffd12ab438de  $RUNNER_TEMP/channel-feed-read.php
+        BATCH9COMPILED
     - name: Require original current-source release and health gates
       env:
         GH_TOKEN: ${{ github.token }}
@@ -79,16 +95,53 @@ jobs:
         assert len(jobs)==6 and all(j['head_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and j['status']=='completed' and j['conclusion']=='success' for j in jobs)
         PY
         cp "$evidence/gate-receipts.json" "$RUNNER_TEMP/batch9-source-gate-receipts.json"
-    - name: Retain exact five candidate inputs before native read
+    - name: Authenticate original exact read91 success for these five candidates
+      env:
+        GH_TOKEN: ${{ github.token }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        umask 077
+        python3 - <<'CLEAR'
+        import json,pathlib,hashlib,subprocess,zipfile,io,os
+        p=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-batch-20261113-9-publisher-plan.json').read_bytes());b=p['clearance']
+        r=json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/runs/'+str(b['run_id'])]))
+        assert r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success' and r['head_sha']==b['head_sha']
+        assert r['head_branch']=='audit/content100-bot-publication-20261101' and r['path']=='.github/workflows/content100-bot-publication-20261101.yml' and r['actor']['login']=='pyatkoff' and r['event']=='push'
+        meta=json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/'+str(b['artifact_id'])]))
+        assert meta['id']==b['artifact_id'] and meta['name']==b['artifact_name'] and meta['expired'] is False
+        assert meta['digest']=='sha256:'+b['artifact_sha256'] and meta['workflow_run']['id']==b['run_id'] and meta['workflow_run']['head_sha']==b['head_sha']
+        raw=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/'+str(b['artifact_id'])+'/zip'])
+        assert hashlib.sha256(raw).hexdigest()==b['artifact_sha256']
+        z=zipfile.ZipFile(io.BytesIO(raw));infos=z.infolist()
+        assert 1<=len(infos)<=10 and len({i.filename for i in infos})==len(infos) and sum(i.file_size for i in infos)<1000000 and all(i.file_size<200000 and not i.is_dir() for i in infos)
+        def one(name):
+         found=[i for i in infos if pathlib.PurePosixPath(i.filename).name==name];assert len(found)==1;return z.read(found[0])
+        result_raw=one('channel-feed-read.json');assert hashlib.sha256(result_raw).hexdigest()==b['result_sha256']
+        c=json.loads(result_raw.splitlines()[-1]);lease=json.loads(one('lease.json'))
+        assert c['ok'] is True and c['operation']=='commercial-channel-hotel-feeds-20261113-read91' and c['installed_sha']==p['expected_installed_sha']
+        assert c['candidate_count']==5 and all(c[k]==0 for k in ['db_writes','provider_calls','message_sends'])
+        m=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-batch-20261113-9-manifest.json').read_bytes())
+        assert [x['native_hotel_id'] for x in c['candidate_clearance']]==[r['hotel_id'] for r in m['rows']]==[9287,1013,4185,14140,468]
+        for r,x in zip(m['rows'],c['candidate_clearance']):
+         assert x['clear'] is True and x['matches']==[] and x['limit_reached'] is False
+         assert x['logical_id']==r['logical_id'] and x['aliases']==r['aliases'] and x['scope']=='same_original_batch9_candidate_preflight'
+        assert lease['ok'] is True and lease['operation']==c['operation'] and lease['owner_pin']==b['owner_pin']
+        assert lease['installed_sha']==p['expected_installed_sha'] and lease['carrier_head']==b['head_sha'] and lease['parent_head']==b['parent_head']
+        assert str(lease['run_id'])==str(b['run_id']) and lease['run_attempt']==1
+        pathlib.Path(os.environ['RUNNER_TEMP'],'batch9-clearance-proof.json').write_text(json.dumps({'verified':True,**b},indent=2)+'\n')
+        print('EXACT_FIVE_BATCH9_NATIVE_CLEARANCE_ACCEPTED; sender rechecks duplicates before sends')
+        CLEAR
+    - name: Retain exact approved inputs before any channel write
       uses: actions/upload-artifact@v4
       with:
-        name: commercial-batch-20261113-9-candidate-inputs
+        name: commercial-batch-20261113-9-inputs
         path: |-
-          tools/direct_demand/operations/commercial-batch-20261113-9-duplicate-read.php
-          tools/direct_demand/operations/commercial-batch-20261113-9-candidates.json
           tools/direct_demand/operations/commercial-batch-20261113-9-manifest.json
           tools/direct_demand/operations/commercial-batch-20261113-9-approval.json
-          tools/direct_demand/operations/commercial-batch-20261113-9-native-clearance-plan.json
+          tools/direct_demand/operations/commercial-batch-20261113-9-publisher-plan.json
+          tools/direct_demand/operations/commercial-batch-20261113-9-source-closure.json
+          ${{ runner.temp }}/batch9-clearance-proof.json
         retention-days: 14
         if-no-files-found: error
     - name: Prepare existing server connection
@@ -129,14 +182,14 @@ jobs:
         assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
         pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
         PY
-    - name: Require current exact batch9 owner and carrier lease
+    - name: Require unchanged exact batch9 owner and publisher carrier lease
       env:
         GH_TOKEN: ${{ github.token }}
       shell: bash
       run: |
         set -euo pipefail
         umask 077
-        evidence="$RUNNER_TEMP/batch9-lease"
+        evidence="$RUNNER_TEMP/batch9-publisher-lease"
         mkdir -p "$evidence"
         gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
         gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$evidence/carrier.json"
@@ -147,9 +200,9 @@ jobs:
         gh api 'repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30' > "$evidence/queued.json"
         python3 - <<'PYLEASE'
         import hashlib,json,os,pathlib
-        p=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-batch-20261113-9-native-clearance-plan.json').read_bytes())
+        p=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-batch-20261113-9-publisher-plan.json').read_bytes())
         assert p['ready'] is True,'owner pin has not been supplied'
-        e=pathlib.Path(os.environ['RUNNER_TEMP'],'batch9-lease')
+        e=pathlib.Path(os.environ['RUNNER_TEMP'],'batch9-publisher-lease')
         get=lambda n:json.loads((e/(n+'.json')).read_bytes())
         assert get('main')['object']['sha']==p['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
         assert get('carrier')['object']['sha']==os.environ['GITHUB_SHA']
@@ -171,7 +224,7 @@ jobs:
         (e/'lease.json').write_text(json.dumps({'ok':True,'operation':p['operation'],'owner_pin':pin,'installed_sha':p['expected_installed_sha'],'parent_head':p['expected_parent_head'],'carrier_head':os.environ['GITHUB_SHA'],'run_id':os.environ['GITHUB_RUN_ID'],'run_attempt':1},indent=2)+'\n')
         print('BATCH9_OWNER_SOURCE_CARRIER_LEASE_OK')
         PYLEASE
-    - name: Read only exact five candidate matches without writes
+    - name: Publish the exact approved hotel posts with canonical buttons and no duplicates
       env:
         DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
         DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -179,31 +232,60 @@ jobs:
       run: |
         set -euo pipefail
         umask 077
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-feed-read.php" > "$RUNNER_TEMP/channel-feed-read.json" || read_status=$?
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
+        python3 - <<'PY'
+        import pathlib,json,os
+        lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
+        d=json.loads(lines[-1])
+        print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
+        print(json.dumps({'new_post_urls':[{'platform':p['platform'],'logical_id':p['logical_id'],'post_url':p['post_url'],'verified':p['body_photo_button_verified']} for p in d.get('posts',[])]},ensure_ascii=False))
+        assert d['operation']=='commercial-hotel-batch-20261113-9-v1' and d['mode']=='publish_approved_commercial_batch'
+        assert d['ok'] is True and len(d['posts'])==10
+        assert d['post_write_attempts']<=10 and d['new_posts']<=10
+        assert len({(p['platform'],p['logical_id']) for p in d['posts']})==10
+        assert all(p['body_photo_button_verified'] and p['button_text']=='✈️ Узнать стоимость тура' for p in d['posts'])
+        PY
+        test "${probe_status:-0}" = 0
+    - name: Read only the confirmed canonical pairs and native MAX bindings
+      env:
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        umask 077
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php" < "$RUNNER_TEMP/channel-feed-read.php" > "$RUNNER_TEMP/channel-feed-read.json" || read_status=$?
         python3 - <<'PYREAD'
-        import os,json,pathlib
-        p=pathlib.Path(os.environ['RUNNER_TEMP']);d=json.loads((p/'channel-feed-read.json').read_text().splitlines()[-1])
-        assert d['ok'] and d['operation']=='commercial-channel-hotel-feeds-20261113-read91'
-        assert d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and d['candidate_count']==5
-        assert [r['native_hotel_id'] for r in d['candidate_clearance']]==[9287, 1013, 4185, 14140, 468]
-        expected=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-batch-20261113-9-candidates.json').read_text())
-        for actual,wanted in zip(d['candidate_clearance'],expected):
-         assert actual['aliases']==wanted['aliases'] and actual['logical_id']==wanted['logical_id'] and actual['scope']==wanted['scope'] and actual['limit_reached'] is False
-        assert all(d[k]==0 for k in ['db_writes','provider_calls','message_sends'])
-        print(json.dumps({'operation':d['operation'],'clearance':[{'hotel_id':r['native_hotel_id'],'clear':r['clear'],'matches':[{'platform':x['platform'],'hotel_catalog_id':x['hotel_catalog_id'],'first_line':x['first_line'],'post_url':x['post_url'],'reasons':x['match_reasons']} for x in r['matches']]} for r in d['candidate_clearance']]}))
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'])
+        receipt=json.loads((p/'channel-preflight.json').read_text().splitlines()[-1])
+        d=json.loads((p/'channel-feed-read.json').read_text().splitlines()[-1])
+        ids=[9287, 1013, 4185, 14140, 468]
+        assert d['ok'] is True and d['operation']=='commercial-channel-hotel-feeds-20261113-read9'
+        assert d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert d['scope_hotels']==d['feed_rows']==d['private_binding_count']==5 and d['deferred_count']==0
+        assert [r['hotel_id'] for r in d['rows']]==[r['hotel_id'] for r in d['private_max_bindings']]==ids
+        assert all(d[k]==0 for k in ('db_writes','provider_calls','message_sends'))
+        by_pair={(r['hotel_id'],r['platform']):r for r in receipt['posts']}
+        for r,b in zip(d['rows'],d['private_max_bindings']):
+          for platform in ('telegram','max'):assert r[platform+'_post_url']==by_pair[(r['hotel_id'],platform)]['post_url']
+          assert str(b['publication_id'])==str(by_pair[(r['hotel_id'],'max')]['publication_id'])
+        print(json.dumps({k:d[k] for k in ('operation','ok','scope_hotels','feed_rows','private_binding_count','deferred_count','provider_calls','db_writes','message_sends')}))
         PYREAD
         test "${read_status:-0}" = 0
     - name: Retain bounded route evidence
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: commercial-batch-20261113-9-duplicate-clearance
+        name: commercial-batch-20261113-9-publication-and-read
         path: |-
+          ${{ runner.temp }}/channel-preflight.json
           ${{ runner.temp }}/channel-feed-read.json
+
           ${{ runner.temp }}/batch9-source-gate-receipts.json
-          ${{ runner.temp }}/batch9-lease/lease.json
+          ${{ runner.temp }}/batch9-publisher-lease/lease.json
         retention-days: 14
-        if-no-files-found: error
+        if-no-files-found: warn
     - name: Remove ephemeral connection and script files
       if: always()
       shell: bash

@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "ready": true,
+  "operation": "commercial-hotel-batch-20261113-9-v1",
+  "bound_reader_operation": "commercial-channel-hotel-feeds-20261113-read9",
+  "expected_installed_sha": "498c5a752cd6f99c2d0e8c343dc5d44b9e80843f",
+  "expected_parent_head": "096dc5a88dc050f65a6ac71a30df44bf781514ec",
+  "hotel_ids": [
+    9287,
+    1013,
+    4185,
+    14140,
+    468
+  ],
+  "owner_pin": {
+    "comment_id": 6818332618,
+    "owner": "pyatkoff",
+    "updated_at": "2026-11-13T00:21:15Z",
+    "body_sha256": "980a8cc4a4130a416758d4a3e1e19e3e15e812081dafe1b558893bcc7b0f5d25",
+    "required_scope_line": "**Продолжение batch9: IN_PROGRESS, пять отелей у прежнего anytour-max.** Приняты отредактированные тексты TV9287 Green Max,1013 Sunis Elita,4185 Royal Brayka,14140 Stella Makadi Gardens,468 Sultan Bey; SiteUUID/acceptedRevision2 и сохранённые факты/фото из99a-пакета проверены. Canonical rowsSHA `a2ae48be37c51551f99f6086f46e9d8f8562f4e787899b14f8489a8eccde4d77`. Old Palace343 остаётся REVIEW_NOT_FOR_RELEASE, в эти5 не включён."
+  },
+  "clearance": {
+    "run_id": 43336815858,
+    "head_sha": "096dc5a88dc050f65a6ac71a30df44bf781514ec",
+    "run_attempt": 1,
+    "artifact_id": 13997786439,
+    "artifact_name": "commercial-batch-20261113-9-duplicate-clearance",
+    "artifact_sha256": "4792c691aaac9599ecb541799ed04e8feb9d57bdfb7a311fe7d69f720a3ecfaa",
+    "result_sha256": "2420f12503a2528189bea2e1abac66d3f0d2ad6dbe77864e81a12516d531b608",
+    "owner_pin": {
+      "comment_id": 6818332618,
+      "owner": "pyatkoff",
+      "updated_at": "2026-11-13T00:21:15Z",
+      "body_sha256": "980a8cc4a4130a416758d4a3e1e19e3e15e812081dafe1b558893bcc7b0f5d25",
+      "required_scope_line": "**Продолжение batch9: IN_PROGRESS, пять отелей у прежнего anytour-max.** Приняты отредактированные тексты TV9287 Green Max,1013 Sunis Elita,4185 Royal Brayka,14140 Stella Makadi Gardens,468 Sultan Bey; SiteUUID/acceptedRevision2 и сохранённые факты/фото из99a-пакета проверены. Canonical rowsSHA `a2ae48be37c51551f99f6086f46e9d8f8562f4e787899b14f8489a8eccde4d77`. Old Palace343 остаётся REVIEW_NOT_FOR_RELEASE, в эти5 не включён."
+    },
+    "parent_head": "68467c0b8eeb35146bcfd96af680348fd90f04d8"
+  },
+  "manifest_sha256": "af6d63506e14e354c84baf572fcee3745b40c144f1f3b118db4411554656f3af",
+  "canonical_rows_sha256": "a2ae48be37c51551f99f6086f46e9d8f8562f4e787899b14f8489a8eccde4d77",
+  "editorial_material_sha256": "e1f7e8a62c68f2e2149d8191a1a95e4f8f401cf5286a8268b1556ac62fbcb6d9",
+  "prior_repair_source_closure_sha256": "6e311e3aa3ef49b6de4983dbdd157603ccc90f3900d08eed855dbe7f2d796c60"
+}
