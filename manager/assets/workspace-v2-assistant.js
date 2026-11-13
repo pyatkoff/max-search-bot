@@ -54,14 +54,15 @@
     dialog=document.createElement('dialog');dialog.id='assistantDialog';dialog.className='assistantDialog';dialog.setAttribute('aria-labelledby','assistantTitle');
     dialog.innerHTML='<header class="assistantHead"><div><h2 id="assistantTitle">Обзор работы</h2><p id="assistantSubtitle">Рекомендации и существующие задачи по моим активным клиентам</p></div><button id="assistantClose" type="button">Закрыть</button></header><div class="assistantToolbar"><div class="assistantFilters" role="group" aria-label="Показать клиентов"><button type="button" data-assistant-filter="all">Все клиенты</button><button type="button" data-assistant-filter="actions">Следующие шаги</button><button type="button" data-assistant-filter="tasks">С задачами</button><button type="button" data-assistant-filter="waiting">Сейчас не писать</button><button type="button" data-assistant-filter="done">Отмеченные</button></div><button id="assistantRefresh" type="button">Обновить</button></div><div id="assistantStatus" class="assistantStatus" role="status" aria-live="polite"></div><p id="assistantCoverage" class="assistantCoverage"></p><div class="assistantBody"><section class="assistantClients" aria-label="Мои клиенты"><div id="assistantList"></div><button id="assistantMore" type="button" hidden>Ещё клиенты</button></section><section id="assistantDetail" class="assistantDetail" aria-label="Рекомендация по клиенту"></section></div>';
     document.body.appendChild(dialog);
-    $('assistantClose').onclick=()=>planMode?window.Manager2Presentation?.navigate('dialogues'):close();dialog.addEventListener('cancel',event=>{event.preventDefault();if(planMode)window.Manager2Presentation?.navigate('dialogues');else close()});dialog.addEventListener('keydown',event=>event.stopPropagation());
+    $('assistantClose').onclick=()=>{if(!canLeaveTaskEditor())return;return planMode?window.Manager2Presentation?.navigate('dialogues'):close()};dialog.addEventListener('cancel',event=>{event.preventDefault();if(!canLeaveTaskEditor())return;if(planMode)window.Manager2Presentation?.navigate('dialogues');else close()});dialog.addEventListener('keydown',event=>event.stopPropagation());
     const scope=document.createElement('div');scope.className='assistantWorkScope';scope.innerHTML='<label for="assistantScope">Клиенты</label><select id="assistantScope"><option value="mine">Мои</option><option value="team">Команда</option></select>';dialog.insertBefore(scope,dialog.querySelector('.assistantToolbar'));
     $('assistantScope').onchange=()=>{if(busy||pending.size||!canLeavePlan()){$('assistantScope').value=workScope;return}workScope=S.manager?.role==='admin'&&$('assistantScope').value==='team'?'team':'mine';rows.clear();cursor=null;hasMore=false;selected=0;detailTicket++;render();void loadList(false)};
     $('assistantRefresh').onclick=()=>loadList(false);$('assistantMore').onclick=()=>loadList(true);
-    dialog.querySelectorAll('[data-assistant-filter]').forEach(button=>button.onclick=()=>{filter=button.dataset.assistantFilter;render()});
+    dialog.querySelectorAll('[data-assistant-filter]').forEach(button=>button.onclick=()=>{if(!canLeaveTaskEditor())return;filter=button.dataset.assistantFilter;render()});
   }
   async function open(id=0,{plan=false}={}){
     if(!authenticated())return false;
+    if(dialog?.open&&!canLeaveTaskEditor())return false;
     ensureDialog();if(planMode!==plan){if(dialog.open)dialog.close();clear();}modal++;const opened=modal,scope=epoch;opener=document.activeElement;selected=Number(id||0);signature=JSON.stringify([S.current,S.detail?.conversation?.manager_id,S.detail?.conversation?.status,S.detail?.messages]);
     planMode=plan;
     dialog.classList.toggle('assistantPlanView',planMode);
@@ -73,16 +74,23 @@
     if(valid(scope)&&dialog.open&&modal===opened){if(loaded&&detailTicket===initialDetail&&listTicket===initialList)$('assistantClose').focus();schedule()}
     return true;
   }
-  function canLeavePlan(){if(!planMode||!$('assistantTaskEditor')?.querySelector('form'))return true;status('Сохраните или отмените новый срок перед переходом.');$('assistantDue')?.focus({preventScroll:true});return false;}
+  function canLeaveTaskEditor({focus=true,invalidateAdvice=false}={}){
+    if(!$('assistantTaskEditor')?.querySelector('form'))return true;
+    // A deferred read cannot keep old advice actionable while its form is retained.
+    if(invalidateAdvice||!fresh(rows.get(selected))){const item=rows.get(selected);if(item)item.recommendation=null;const advice=$('assistantDetail')?.querySelector('.assistantRecommendation');if(advice)advice.hidden=true}
+    status('Сохраните или отмените новый срок перед переходом.');if(focus)$('assistantDue')?.focus({preventScroll:true});return false;
+  }
+  function canLeavePlan(){return !planMode||canLeaveTaskEditor()}
   function close({restoreFocus=true}={}){modal++;clearTimeout(timer);timer=null;detailTicket++;listTicket++;busy=false;if(dialog?.open){dialog.close();if(restoreFocus&&authenticated()&&opener?.isConnected){if(opener.id==='assistantClientOpen'){const menu=opener.closest?.('details');if(menu)menu.open=true}opener.focus({preventScroll:true})}}planMode=false;if(dialog){dialog.classList.remove('assistantPlanView');dialog.setAttribute('role','dialog');if(dialog.parentElement!==document.body)document.body.appendChild(dialog)}syncPromiseViews()}
 function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())return;timer=setTimeout(()=>{if(!dialog?.open)return;if(!$('assistantTaskEditor')?.querySelector('form')){render();if(selected)void loadDetail(selected)}else if(!fresh(rows.get(selected))){const advice=$('assistantDetail').querySelector('.assistantRecommendation');if(advice)advice.hidden=true}schedule()},20000)}
   async function loadList(more=false){
     if(!authenticated()||busy)return false;
-    if($('assistantTaskEditor')?.querySelector('form')){status('Сохраните или отмените новый срок перед обновлением списка.');return false}
+    if(!canLeaveTaskEditor())return false;
     const scope=epoch,ticket=++listTicket,selectionTicket=detailTicket;busy=true;status('Загружаем клиентов…');renderBusy();
     const result=await request('list',{limit:20,...(planMode?{scope:workScope}:{}),...(more&&cursor?{cursor}:{})},scope);
     if(!valid(scope)||ticket!==listTicket||!dialog?.open)return false;
     busy=false;
+    if(result.error!=='forbidden'&&!canLeaveTaskEditor({focus:false,invalidateAdvice:true})){renderBusy();return false}
     if(!result.ok||!Array.isArray(result.items)){if(more&&result.error==='list_changed'){rows.clear();cursor=null;hasMore=false;selected=0;detailTicket++;render();return loadList(false)}if(result.error==='forbidden')clear();status(errorText(result),true);renderBusy();return false}
     const newerSelected=selectionTicket!==detailTicket?rows.get(selected):null;
     if(!more)rows.clear();
@@ -94,10 +102,12 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
   }
   async function loadDetail(id){
     if(!authenticated())return false;
+    if(!canLeaveTaskEditor())return false;
     if(selected!==id)selectionVersion++;
     const scope=epoch,ticket=++detailTicket;selected=id;render();
     const result=await request('detail',{conversation_id:id},scope);
     if(!valid(scope)||ticket!==detailTicket||selected!==id||!dialog?.open)return false;
+    if(result.error!=='forbidden'&&!canLeaveTaskEditor({focus:false,invalidateAdvice:true}))return false;
     if(!result.ok||!result.item){rows.delete(id);selected=0;status(errorText(result),true);render();return false}
     rows.set(id,result.item);status('');render();return true;
   }
@@ -215,7 +225,7 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
     const planAction=item.can_decide===false?'':'<button type="button" id="assistantPlan">'+(tasks.length?'Открыть задачи':'Запланировать')+'</button>';
     const recommendationActions=r?`${r.next_action!=='no_contact'?'<button id="assistantReply" type="button">Совет и ответ в переписке</button>':''}${item.can_decide===false?'':['done','irrelevant'].includes(r.decision)?'<button type="button" data-assistant-decision="open">Вернуть в работу</button>':r.next_action==='no_contact'?'':'<button type="button" data-assistant-decision="done">Выполнено</button><button type="button" data-assistant-decision="irrelevant">Неактуально</button>'}`:'';
     const changed=renderMarkup(root,`<button id="assistantBack" class="assistantBack" type="button">← К списку</button><div class="assistantClientHead"><div><h3>${esc(item.display_name||'Клиент')}</h3><span>${esc(item.channel||'')} · ${esc(time(item.last_message_at))}</span>${S.manager?.role==='admin'?`<p>${esc(item.project_name||item.project_key||'')} · ${esc(item.manager_name||'Без назначения')}</p>`:''}</div><button id="assistantConversation" type="button">Открыть диалог</button></div>${suspended?`<article class="assistantUnavailable"><strong>Клиент недоступен в MAX</strong><p>${esc(item.delivery_notice||'Ответ станет доступен после новой активности клиента.')}</p></article>`:''}${reviewNeeded(item)||arrived(item)?`<article class="assistantOperational"><h4>${reviewNeeded(item)?'Обращение без записанного ответа':'Наступил срок задачи'}</h4><p>${reviewNeeded(item)?'Откройте переписку и проверьте, нужен ли ответ.':'Проверьте существующую задачу и её срок ниже.'}</p></article>`:''}${r?`<article class="assistantRecommendation"><div class="assistantKicker">Рекомендация · ${esc(labels[r.next_action]||'Следующий шаг')}</div><h4>${r.decision==='done'?'Отмечено выполненным':r.decision==='irrelevant'?'Отмечено неактуальным':r.next_action==='no_contact'?'Сейчас не писать':esc(labels[r.next_action]||'Следующий шаг')}</h4><p>${esc(r.reason)}</p>${r.checks?.length?`<ul>${r.checks.map(text=>`<li>${esc(text)}</li>`).join('')}</ul>`:''}${r.history_incomplete?'<p class="assistantWarning">В доступной истории есть пропуски. Перед действием проверьте переписку.</p>':''}<details class="assistantSource"><summary>Основание и актуальность</summary><p>По переписке до сообщения ${Number(r.latest_message_id)||'—'}. Подготовлено ${esc(time(r.prepared_at))} МСК. Действительно до ${esc(time(r.expires_at))} МСК.</p><p>Сообщений в основании: ${(r.evidence_message_ids||[]).length}. Полную переписку можно открыть в диалоге.</p></details>${recommendationActions?`<div class="assistantActions">${recommendationActions}</div>`:''}</article>`:suspended?'':'<div class="assistantEmpty"><strong>Нет свежего разбора</strong><p>Это не означает, что по клиенту всё сделано. Проверьте переписку и существующие задачи.</p></div>'}<section class="assistantTasks"><h4>Задачи и напоминания</h4>${planAction}${tasks.length?tasks.map(task=>`<article class="assistantTask"><strong>${esc(task.title)}</strong><span>${esc({overdue:'Просрочено',today:'Сегодня',upcoming:'Запланировано',unscheduled:'Без срока'}[task.due_state]||'Без срока')}${task.due_at_utc?' · '+esc(time(task.due_at_utc))+' МСК':''}</span>${promiseMarkup(item,task)}<div><button type="button" data-assistant-task="${Number(task.id)}">Выполнено</button><button type="button" data-assistant-snooze="${Number(task.id)}">Перенести</button></div></article>`).join(''):'<p>Открытых задач нет.</p>'}${item.tasks_truncated?'<p>Показаны первые 50 задач. Все задачи можно открыть в карточке клиента.</p>':''}</section><div id="assistantTaskEditor"></div>`,id);
-    $('assistantBack').onclick=()=>{const old=selected;selected=0;selectionVersion++;detailTicket++;render();dialog.querySelector(`[data-assistant-client="${old}"]`)?.focus()};
+    $('assistantBack').onclick=()=>{if(!canLeaveTaskEditor())return;const old=selected;selected=0;selectionVersion++;detailTicket++;render();dialog.querySelector(`[data-assistant-client="${old}"]`)?.focus()};
     $('assistantConversation').onclick=()=>openConversation(id);
     if($('assistantReply'))$('assistantReply').onclick=()=>openAdvice(id);
     root.querySelectorAll('[data-assistant-decision]').forEach(button=>{button.disabled=blocked;button.onclick=()=>decide(item,button.dataset.assistantDecision)});
@@ -230,6 +240,7 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
   }
   async function decide(item,decision){
     const id=Number(item.conversation_id),r=item.recommendation,scope=epoch,opened=modal;if(pending.has(id)||!fresh(item)||item.can_decide===false)return false;
+    if(!canLeaveTaskEditor())return false;
     pending.add(id);renderDetail();status('Сохраняем отметку…');
     const result=await request('decision',{conversation_id:id,revision:r.revision,expected_decision:r.decision??null,decision},scope);
     if(!valid(scope))return false;
@@ -241,6 +252,7 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
   }
   async function openConversation(id){
     if(!authenticated())return false;
+    if(!canLeaveTaskEditor())return false;
     if(protectTaskDraft())return false;
     const mobileHistory=Number(S.current)===Number(id)&&window.WorkspaceV2Mobile?.getScreen?.()==='conversation'?'none':'push';
     if(!planMode)close({restoreFocus:false});return window.WorkspaceV2Conversation?.open(id,{preserveAttachment:true,preserveMessageScroll:true,preserveHistory:true,protectTaskDraft:true,mobileHistory});
@@ -258,6 +270,7 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
   async function planTask(item){
     const id=Number(item.conversation_id),scope=epoch;
     if(pending.has(id)||item.can_decide===false)return false;
+    if(!canLeaveTaskEditor())return false;
     // Advice may seed the manual editor only if it was eligible at this click.
     const revision=fresh(item)&&!['done','irrelevant'].includes(item.recommendation?.decision)?item.recommendation.revision??null:null;
     pending.add(id);renderDetail();
@@ -294,11 +307,13 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
   }
   function editTask(item,task){
     if(!task)return;
+    if(!canLeaveTaskEditor())return;
     const host=$('assistantTaskEditor');host.innerHTML=`<form class="assistantTaskEditor"><label for="assistantDue">Новый срок · МСК</label><input id="assistantDue" type="datetime-local" required value="${esc(window.ManagerTime?.toInput(task.due_at_utc)||'')}"><div><button type="submit">Сохранить срок</button><button type="button" id="assistantCancelDue">Отмена</button></div></form>`;
     $('assistantCancelDue').onclick=()=>{host.replaceChildren();$('assistantConversation')?.focus({preventScroll:true});return loadDetail(Number(item.conversation_id))};host.querySelector('form').onsubmit=event=>{event.preventDefault();const due=window.ManagerTime?.fromInput($('assistantDue').value);if(!due){status('Укажите корректные дату и время по МСК.',true);return}void taskMutation(item,{action:'update_task',task_id:Number(task.id),title:task.title,due_at:due})};$('assistantDue').focus();
   }
   async function taskMutation(item,data){
     const id=Number(item.conversation_id),scope=epoch,opened=modal;if(pending.has(id))return false;
+    if(data.action!=='update_task'&&!canLeaveTaskEditor())return false;
     if(protectTaskDraft())return false;
     // Save explicitly consumes this deadline editor, even if the canonical task
     // already has the requested value and the following read is identical.

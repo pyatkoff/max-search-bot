@@ -100,6 +100,22 @@ first page once. It does not append across cohorts or repeat a mutation. Account
 and request epochs still discard late responses. An unfinished inline deadline
 blocks list refresh/continuation until explicitly saved or cancelled, preserving
 that input and the canonical conversation's reply/File/history/reading position.
+The same unfinished deadline also blocks selecting another or the current client,
+returning to the client list, changing a filter or opening another task's deadline.
+Opening the conversation/planning, changing a recommendation or completing a task
+also waits for the active deadline; the editor's own explicit Save remains usable.
+User-requested Close/Escape and reopening the assistant cannot consume this input.
+These explicit attempts retain the actual form/input and selected client, make no request and
+focus the existing input with the save-or-cancel prompt. The internal guard is
+shared by the plan and modal assistant; it adds no draft store or confirmation.
+List/detail reads started before editing cannot replace that form when they
+finish. They are deferred without moving focus or automatically repeating a
+read, including a `list_changed` continuation. The old recommendation is invalidated
+and hidden without replacing the form; its retained handlers cannot save an old
+decision. Save/Cancel remove the form before their canonical refresh, so normal
+navigation resumes. Explicit `forbidden`,
+account replacement and authentication suspension still clear private content;
+an unfinished input never grants continued access.
 These are live read pages, not a frozen historical export or full AI coverage.
 
 The final whole-feed visibility/active-account check also replaces repeated
