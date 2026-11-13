@@ -51,6 +51,78 @@ check(substr_count(monitor_price_render_feed($xml,[$update],'hotel-posts-max.xml
 $bad=str_replace('retained_tracking','changed_tracking',$xml);rejects(fn()=>monitor_price_render_feed($bad,[$update],'hotel-posts-all.xml',$now),'monitor_feed_destination_changed');
 rejects(fn()=>monitor_price_render_feed('<!DOCTYPE x>'.$xml,[$update],'hotel-posts-all.xml',$now),'monitor_feed_invalid');
 rejects(fn()=>monitor_price_render_feed($xml,[$update,$update],'hotel-posts-all.xml',$now),'monitor_feed_target_invalid');
+
+// Preserve the accepted legacy closing sentence when adding a fresh price block.
+$acceptedCta='✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты.';
+$legacyText=str_replace('Узнать стоимость тура',$acceptedCta,$text);
+monitor_price_validate_text($legacyText,$price);check(true,'accepted_legacy_cta_preserved');
+rejects(fn()=>monitor_price_validate_text($legacyText."\nУзнать стоимость тура",$price),'monitor_text_conditions_mismatch');
+rejects(fn()=>monitor_price_validate_text(str_replace($acceptedCta,'',$legacyText),$price),'monitor_text_conditions_mismatch');
+
+// Synthetic journal/transport fixtures use the five actual frozen roster identities.
+// They are never persisted as production receipts and contain no actual start tokens.
+$roster=json_decode(gzdecode(file_get_contents(__DIR__.'/monitor-price-expanded-roster-20261111.json.gz')),true,64,JSON_THROW_ON_ERROR)['rows'];
+$legacyRows=array_values(array_filter($roster,static fn($r)=>array_key_exists('legacy_proof',$r)));
+check(array_column($legacyRows,'tourvisor_hotel_id')===[310,469,498,1971,1981],'exact_legacy_five_scope');
+foreach($legacyRows as $row){
+    $binding=monitor_price_legacy_binding($row);$tv=$row['tourvisor_hotel_id'];
+    check($binding['publisher_hotel_id']===$row['hotel_id'],'nullable_or_typed_role_preserved');
+    $fixture=['operation'=>$binding['prior_price']['operation'],'manifest_hash'=>$binding['prior_price']['manifest_hash'],'configs'=>[],'posts'=>[],'complete'=>true];
+    foreach(['max','telegram'] as $platform){
+        $token='test-only-'.$platform.'-'.$tv;$button='https://example.invalid/'.$token;
+        $row['legacy_proof']['contexts'][$platform]['start_payload_sha256']=hash('sha256',$token);
+        $row['legacy_proof']['contexts'][$platform]['button_url_sha256']=hash('sha256',$button);
+        $c=$row['legacy_proof']['contexts'][$platform];$r=array_intersect_key($c,array_flip(['publication_id','message_id','version_id','logical_id','source_key','post_url','photo_signature']));
+        $r+=['platform'=>$platform,'state'=>'sent','body_photo_button_verified'=>true,'existing_message_reused'=>true,
+            'text_sha256'=>$binding['prior_price']['text_sha256'],'button_url'=>$button];
+        $fixture['posts'][$platform.':'.$binding['prior_price']['source_key']]=['state'=>'confirmed','receipt'=>$r];
+    }
+    $encode=static fn(array $v):string=>json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)."\n";
+    $raw=$encode($fixture);check(count(monitor_price_legacy_receipts($row,$raw))===2,'two_original_legacy_receipts');
+    $bad=$row;$bad['hotel_id']=$tv;rejects(fn()=>monitor_price_legacy_binding($bad),'canonical_original_receipt_mismatch');
+    $bad=$row;$bad['hotel_id']=0;rejects(fn()=>monitor_price_legacy_binding($bad),'canonical_original_receipt_mismatch');
+    $bad=$row;$bad['hotel_id']=(string)($row['hotel_id']??'');rejects(fn()=>monitor_price_legacy_binding($bad),'canonical_original_receipt_mismatch');
+    $bad=$row;$bad['tourvisor_hotel_id']=9373;rejects(fn()=>monitor_price_legacy_binding($bad),'canonical_original_receipt_mismatch');
+    $bad=$row;unset($bad['legacy_proof']['publisher_hotel_id']);rejects(fn()=>monitor_price_legacy_binding($bad),'canonical_original_receipt_mismatch');
+    $bad=$row;$bad['legacy_proof']['publisher_hotel_id']=$tv===498?877:228;rejects(fn()=>monitor_price_legacy_binding($bad),'canonical_original_receipt_mismatch');
+    $bad=$row;$bad['original_publication_operation']='invented-original';rejects(fn()=>monitor_price_legacy_binding($bad),'canonical_original_receipt_mismatch');
+    $bad=$row;$bad['cover_sha256']=str_repeat('0',64);rejects(fn()=>monitor_price_legacy_binding($bad),'canonical_original_receipt_mismatch');
+    $bad=$row;$bad['legacy_proof']['prior_price']['operation']='../foreign';rejects(fn()=>monitor_price_legacy_binding($bad),'canonical_original_receipt_mismatch');
+    $bad=$row;$bad['legacy_proof']['prior_price']['source_key']='other';rejects(fn()=>monitor_price_legacy_binding($bad),'canonical_original_receipt_mismatch');
+    $bad=$row;unset($bad['legacy_proof']['contexts']['telegram']);rejects(fn()=>monitor_price_legacy_binding($bad),'canonical_original_receipt_mismatch');
+    $bad=$row;$bad['legacy_proof']['contexts']['max']['post_url'].='-foreign';rejects(fn()=>monitor_price_legacy_binding($bad),'canonical_original_receipt_mismatch');
+    $bad=$fixture;$bad['complete']=false;rejects(fn()=>monitor_price_legacy_receipts($row,$encode($bad)),'hook_legacy_source_unresolved_stop');
+    $bad=$fixture;unset($bad['posts']['telegram:'.$binding['prior_price']['source_key']]);rejects(fn()=>monitor_price_legacy_receipts($row,$encode($bad)),'hook_legacy_source_unresolved_stop');
+    $bad=$fixture;$bad['posts']['max:'.$binding['prior_price']['source_key']]['state']='UNKNOWN';rejects(fn()=>monitor_price_legacy_receipts($row,$encode($bad)),'hook_legacy_source_unresolved_stop');
+    $bad=$fixture;$bad['manifest_hash']=str_repeat('0',64);rejects(fn()=>monitor_price_legacy_receipts($row,$encode($bad)),'canonical_original_receipt_mismatch');
+    $bad=$fixture;$bad['operation'].='-other';rejects(fn()=>monitor_price_legacy_receipts($row,$encode($bad)),'canonical_original_receipt_mismatch');
+    rejects(fn()=>monitor_price_legacy_receipts($row,rtrim($raw,"\n")),'hook_legacy_source_incomplete_stop');
+    rejects(fn()=>monitor_price_legacy_receipts($row,"{broken}\n"),'hook_legacy_source_incomplete_stop');
+    $bad=$fixture;$bad['complete']=false;rejects(fn()=>monitor_price_legacy_receipts($row,$raw.$encode($bad)),'hook_legacy_source_unresolved_stop');
+    foreach(['logical_id','publication_id','message_id','post_url','photo_signature','text_sha256','button_url'] as $field){
+        $bad=$fixture;$bad['posts']['max:'.$binding['prior_price']['source_key']]['receipt'][$field]=$field==='publication_id'?999999:'foreign';
+        rejects(fn()=>monitor_price_legacy_receipts($row,$encode($bad)),'canonical_original_receipt_mismatch');
+    }
+    foreach(['max','telegram'] as $platform){
+        $c=$row['legacy_proof']['contexts'][$platform];$token='test-only-'.$platform.'-'.$tv;$button='https://example.invalid/'.$token;
+        $slot="💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\n";
+        $caption=str_replace($slot,'',$row['templates'][$platform]);
+        $p=['publication_id'=>$c['publication_id'],'version_id'=>$c['baseline_version_id'],'external_message_id'=>$c['message_id'],
+            'project_key'=>'anytour','platform'=>$platform,'state'=>'sent','source_key'=>$c['source_key'],'start_payload'=>$token,
+            'bot_key'=>$platform==='max'?'id9704048781_1_bot':'anyru_bot','channel_id'=>$platform==='max'?'-80492244209683':'-1002262666616',
+            'snapshot'=>['text'=>$caption,'post_url'=>$c['post_url'],'attachments'=>[['type'=>'image','provider'=>$platform,'photo_id'=>explode(':',$c['photo_signature'],2)[1]]]]];
+        check(monitor_price_legacy_publication_matches($p,$row,$platform,$button),'actual_legacy_identity_with_test_transport');
+        check(monitor_price_legacy_initial_caption_matches($p,$row,$platform),'exact_accepted_editorial_baseline');
+        $bad=$p;$bad['version_id']++;check(!monitor_price_legacy_initial_caption_matches($bad,$row,$platform),'same_caption_new_manual_version_stops');
+        $bad=$p;$bad['version_id']=$c['version_id'];check(!monitor_price_legacy_initial_caption_matches($bad,$row,$platform),'old_price_version_stops');
+        $bad=$p;$bad['snapshot']['text'].=' edited';check(!monitor_price_legacy_initial_caption_matches($bad,$row,$platform),'manual_caption_stops');
+        $bad=$p;$bad['snapshot']['metadata']['monitor_price_record_id']=str_repeat('a',64);check(!monitor_price_legacy_initial_caption_matches($bad,$row,$platform),'later_monitor_needs_own_completed_receipt');
+        foreach(['start_payload','source_key','external_message_id','bot_key','channel_id'] as $field){$bad=$p;$bad[$field]='foreign';check(!monitor_price_legacy_publication_matches($bad,$row,$platform,$button),'changed_physical_identity_stops');}
+        $bad=$p;$bad['snapshot']['attachments'][0]['photo_id']='foreign';check(!monitor_price_legacy_publication_matches($bad,$row,$platform,$button),'changed_photo_stops');
+        $bad=$p;$bad['claim_token']='active';check(!monitor_price_legacy_publication_matches($bad,$row,$platform,$button),'claimed_publication_stops');
+        check(!monitor_price_legacy_publication_matches($p,$row,$platform,$button.'changed'),'changed_button_stops');
+    }
+}
 if(isset($argv[1])){
     $real=json_decode(file_get_contents($argv[1]),true,64,JSON_THROW_ON_ERROR);$realUpdates=[];
     foreach($real['hotels'] as $hotel){if(!isset($hotel['updatePlan']))continue;$s=$hotel['source'];$p=monitor_price_observation($s,(int)$hotel['tourvisorHotelId'],monitor_price_time($s['generatedAt']));$plan=$hotel['updatePlan'];

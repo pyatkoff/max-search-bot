@@ -80,10 +80,12 @@ try {
         need($payload['operation']===monitor_price_operation($monitorPrice),'monitor_operation_changed');
         need(is_array($payload['feed_binding']??null)&&($payload['feed_binding']['tourvisor_hotel_id']??null)===APPROVED_UPDATE_TOURVISOR_ID,'monitor_feed_binding_missing');
         foreach($rows as $r){
-            need(($r['tourvisor_hotel_id']??null)===APPROVED_UPDATE_TOURVISOR_ID&&$r['key']===base64_decode(APPROVED_UPDATE_KEY_B64,true)&&(int)$r['hotel_id']===APPROVED_UPDATE_HOTEL_ID&&$r['logical_id']===base64_decode(APPROVED_UPDATE_LOGICAL_B64,true),'monitor_native_binding_changed');
+            $legacyMode=array_key_exists('legacy_proof',$r);
+            if($legacyMode)monitor_price_legacy_binding($r);
+            need(($r['tourvisor_hotel_id']??null)===APPROVED_UPDATE_TOURVISOR_ID&&$r['key']===base64_decode(APPROVED_UPDATE_KEY_B64,true)&&($legacyMode?$r['hotel_id']:(int)$r['hotel_id'])===APPROVED_UPDATE_HOTEL_ID&&$r['logical_id']===base64_decode(APPROVED_UPDATE_LOGICAL_B64,true),'monitor_native_binding_changed');
             foreach(['max','telegram'] as $platform){
                 $v=$r['channel_texts'][$platform]??[];
-                need(is_string($v['old_text']??null)&&is_string($v['new_text']??null)&&hash('sha256',$v['old_text'])===($v['old_text_sha256']??'')&&hash('sha256',$v['new_text'])===($v['new_text_sha256']??'')&&preg_match('/\A[a-f0-9]{64}\z/D',$v['original_text_sha256']??'')===1&&is_int($v['expected_version_id']??null)&&$v['expected_version_id']>0&&is_string($v['expected_post_url']??null),'monitor_channel_text_invalid');
+                need(is_string($v['old_text']??null)&&is_string($v['new_text']??null)&&hash('sha256',$v['old_text'])===($v['old_text_sha256']??'')&&hash('sha256',$v['new_text'])===($v['new_text_sha256']??'')&&($legacyMode?!array_key_exists('original_text_sha256',$v):preg_match('/\A[a-f0-9]{64}\z/D',$v['original_text_sha256']??'')===1)&&is_int($v['expected_version_id']??null)&&$v['expected_version_id']>0&&is_string($v['expected_post_url']??null),'monitor_channel_text_invalid');
                 monitor_price_validate_text($v['new_text'],$monitorPrice);
                 need(($payload['feed_binding']['posts'][$platform]??null)===$v['expected_post_url'],'monitor_post_binding_mismatch');
             }
@@ -100,6 +102,15 @@ try {
     foreach($state['configs'] as $r)need(($r['state']??'')==='confirmed','prior_configuration_outcome_unresolved');foreach($state['posts'] as $r)need(($r['state']??'')==='confirmed','prior_edit_outcome_unresolved');
     $registry=new ChannelPostRegistryService($pdo);$automation=new ChannelPostAutomationService($registry);
     $targets=['max'=>['bot'=>'id9704048781_1_bot','channel'=>'-80492244209683','source'=>'max_anytour_msk1','id'=>9],'telegram'=>['bot'=>'anyru_bot','channel'=>'-1002262666616','source'=>'tg_anytour_msk','id'=>10]];$channels=[];$plans=[];
+    $legacyProofs=null;
+    if($monitorMode&&array_key_exists('legacy_proof',$rows[0])){
+        $legacy=monitor_price_legacy_binding($rows[0]);
+        $legacyDir='/var/www/anytoour/data/channel-post-operations/'.$legacy['prior_price']['operation'];$legacyPath=$legacyDir.'/receipt.jsonl';
+        need(!is_link(dirname($legacyDir))&&!is_link($legacyDir)&&realpath($legacyDir)===$legacyDir
+            &&!is_link($legacyPath)&&is_file($legacyPath)&&realpath($legacyPath)===$legacyPath&&filesize($legacyPath)<=10000000,'canonical_original_receipt_missing');
+        $legacyRaw=file_get_contents($legacyPath);need(is_string($legacyRaw),'canonical_original_receipt_missing');
+        $legacyProofs=monitor_price_legacy_receipts($rows[0],$legacyRaw);
+    }
     // Resolve the two existing messages and exact retained photos before any provider/configuration write.
     foreach($targets as $platform=>$t){
         $identity=ChannelPostRuntime::identity($platform);need(is_array($identity)&&$identity['project_key']==='anytour'&&$identity['bot_key']===$t['bot'],'configured_bot_changed');
@@ -107,12 +118,19 @@ try {
         need(((new ChannelPostButtonTransport())->verifyChannel($channel)['state']??'')==='ready','provider_channel_rights_changed');$channels[$platform]=$channel;
         foreach($rows as $r){
             if($monitorMode){$r=array_replace($r,$r['channel_texts'][$platform]);$r['update_text']=$r['new_text']!==$r['old_text'];}
+            if($legacyProofs!==null){$proof=$legacyProofs[$platform];}else{
             $proofPath='/var/www/anytoour/data/channel-post-operations/'.$r['original_publication_operation'].'/'.$platform.'-'.$r['logical_id'].'-approved.json';
             need(!is_link($proofPath)&&is_file($proofPath),'canonical_original_receipt_missing');
             $prior=json_decode(file_get_contents($proofPath),true,64,JSON_THROW_ON_ERROR);$proof=$prior['receipt']??[];
             need(($prior['state']??'')==='confirmed'&&($prior['text_sha256']??'')===($monitorMode?$r['original_text_sha256']:$r['old_text_sha256'])&&($prior['photo_sha256']??'')===$r['cover_sha256']&&($proof['logical_id']??'')===$r['logical_id']&&(int)($proof['hotel_id']??0)===APPROVED_UPDATE_HOTEL_ID&&($proof['platform']??'')===$platform&&!empty($proof['body_photo_button_verified']),'canonical_original_receipt_mismatch');
+            }
             $id=(int)($proof['publication_id']??0);$mid=(string)($proof['message_id']??'');
             $p=$registry->publication($id);need(is_array($p)&&$p['project_key']==='anytour'&&$p['platform']===$platform&&$p['bot_key']===$t['bot']&&$p['channel_id']===$t['channel']&&$p['external_message_id']===$mid&&$p['source_key']===$t['source']&&$p['state']==='sent','existing_publication_identity_changed');
+            if($legacyProofs!==null){
+                need(monitor_price_legacy_publication_matches($p,$r,$platform,ChannelPostButtonTransport::buttonUrl($p)),'existing_publication_identity_changed');
+                if(($p['snapshot']['metadata']['monitor_price_record_id']??null)===null)
+                    need(monitor_price_legacy_initial_caption_matches($p,$r,$platform),'monitor_publication_version_changed');
+            }
             $key=$platform.':'.$r['key'];$done=$state['posts'][$key]??null;
             if($monitorMode){need(($p['snapshot']['post_url']??'')===$r['expected_post_url']&&($done||(int)$p['version_id']===$r['expected_version_id']),'monitor_publication_version_changed');}
             need(($p['snapshot']['text']??'')===($done?$r['new_text']:$r['old_text']),'existing_caption_changed');

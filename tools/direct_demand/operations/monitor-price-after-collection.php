@@ -65,16 +65,26 @@ function hook_abandon_failed_preflight(string $operation,array $failure):array {
 }
 function hook_context(array $row,ChannelPostRegistryService $registry):array {
     $result=[];
+    $legacyProofs=null;
+    if(array_key_exists('legacy_proof',$row)){
+        $legacy=monitor_price_legacy_binding($row);
+        $dir='/var/www/anytoour/data/channel-post-operations/'.$legacy['prior_price']['operation'];
+        hook_need(!is_link(dirname($dir))&&!is_link($dir)&&realpath($dir)===$dir,'canonical_original_receipt_missing');
+        $legacyProofs=monitor_price_legacy_receipts($row,hook_read($dir.'/receipt.jsonl'));
+    }
     foreach(['max','telegram'] as $platform){
+        if($legacyProofs!==null){$proof=$legacyProofs[$platform];}else{
         $dir='/var/www/anytoour/data/channel-post-operations/'.$row['original_publication_operation'];
         hook_need(!is_link($dir),'hook_original_directory_invalid');
         $original=json_decode(hook_read($dir.'/'.$platform.'-'.$row['logical_id'].'-approved.json',1048576),true,64,JSON_THROW_ON_ERROR);$proof=$original['receipt']??[];
         hook_need(($original['state']??'')==='confirmed'&&($original['text_sha256']??'')===$row['original_text_sha256']&&($original['photo_sha256']??'')===$row['cover_sha256']
             &&($proof['logical_id']??'')===$row['logical_id']&&(int)($proof['hotel_id']??0)===$row['hotel_id']&&($proof['platform']??'')===$platform
             &&($proof['post_url']??'')===$row['posts'][$platform]&&($proof['body_photo_button_verified']??false)===true,'hook_original_pair_mismatch');
+        }
         $p=$registry->publication((int)$proof['publication_id']);
         hook_need(is_array($p)&&$p['project_key']==='anytour'&&$p['platform']===$platform&&$p['state']==='sent'
             &&$p['external_message_id']===(string)$proof['message_id']&&($p['snapshot']['post_url']??'')===$row['posts'][$platform],'hook_publication_changed');
+        if($legacyProofs!==null)hook_need(monitor_price_legacy_publication_matches($p,$row,$platform,ChannelPostButtonTransport::buttonUrl($p)),'existing_publication_identity_changed');
         $record=$p['snapshot']['metadata']['monitor_price_record_id']??null;$prior=null;
         if($record!==null){hook_need(is_string($record)&&preg_match('/\A[a-f0-9]{64}\z/D',$record)===1,'hook_record_invalid');$prior=hook_journal('commercial-monitor-price-h'.$row['tourvisor_hotel_id'].'-'.$record);}
         hook_need(monitor_hook_caption_allowed($p,$row,$platform,$prior),'hook_manual_caption_changed_hold');
@@ -213,8 +223,11 @@ try{
                 $out['unchanged_pairs']++;$out['unchanged_ids'][]=$tv;continue;
             }
             $r=array_intersect_key($row,array_flip(['key','hotel_id','tourvisor_hotel_id','logical_id','original_publication_operation','cover_sha256']));$r['channel_texts']=[];
+            if(array_key_exists('legacy_proof',$row)){$r['legacy_proof']=$row['legacy_proof'];$r['posts']=$row['posts'];}
             foreach($context as $channel=>$p){$text=monitor_hook_draft($row['templates'][$channel],$price);$old=$p['snapshot']['text'];
-                $r['channel_texts'][$channel]=['old_text'=>$old,'old_text_sha256'=>hash('sha256',$old),'new_text'=>$text,'new_text_sha256'=>hash('sha256',$text),'original_text_sha256'=>$row['original_text_sha256'],'expected_version_id'=>(int)$p['version_id'],'expected_post_url'=>$row['posts'][$channel]];}
+                $r['channel_texts'][$channel]=['old_text'=>$old,'old_text_sha256'=>hash('sha256',$old),'new_text'=>$text,'new_text_sha256'=>hash('sha256',$text)];
+                if(!array_key_exists('legacy_proof',$row))$r['channel_texts'][$channel]['original_text_sha256']=$row['original_text_sha256'];
+                $r['channel_texts'][$channel]['expected_version_id']=(int)$p['version_id'];$r['channel_texts'][$channel]['expected_post_url']=$row['posts'][$channel];}
             $input=['operation'=>$op,'price_basis'=>'scheduled_monitor_result','monitor_snapshot'=>$snapshot,'button_text'=>'✈️ Узнать стоимость тура','feed_binding'=>$row['feed_binding'],'rows'=>[$r]];
             $raw=json_encode($input,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
         }catch(Throwable $e){

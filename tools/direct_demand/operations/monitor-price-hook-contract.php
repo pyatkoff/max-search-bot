@@ -44,6 +44,7 @@ function monitor_hook_caption_correction_allowed(array $publication,array $row,s
 function monitor_hook_caption_allowed(array $publication,array $row,string $platform,?array $prior):bool {
     $s=$publication['snapshot']??[];$hash=hash('sha256',$s['text']??'');
     $record=$s['metadata']['monitor_price_record_id']??null;
+    if($record===null&&array_key_exists('legacy_proof',$row))return monitor_price_legacy_initial_caption_matches($publication,$row,$platform);
     if($record===null)return !array_key_exists('caption_correction_baseline',$row)
         &&hash_equals($row['expected_text_sha256'][$platform],$hash);
     if(!is_string($record)||!preg_match('/\A[a-f0-9]{64}\z/D',$record)||!$prior||($prior['complete']??false)!==true

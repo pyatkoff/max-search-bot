@@ -158,5 +158,52 @@ hook_test_check($start!==false&&$end!==false,'driver_hold_gate_fixture_missing')
 eval('foreach($rows as $row){'.substr($driver,$start,$end-$start).'$visited[]=$row[\'tourvisor_hotel_id\'];}');
 hook_test_check($visited===[999999]&&$out['held_pairs']===2&&$state['completed']===$terminalGlobal['completed'],'driver_new_record_bypassed_hold');
 
+// Exercise actual packet construction and the first/subsequent legacy caption gates.
+$expanded=json_decode(gzdecode(file_get_contents(__DIR__.'/monitor-price-expanded-roster-20261111.json.gz')),true,64,JSON_THROW_ON_ERROR);
+$legacyRows=array_values(array_filter($expanded['rows'],static fn($r)=>array_key_exists('legacy_proof',$r)));
+$packetStart=strpos($driver,"            ".'$r=array_intersect_key($row,');
+$packetEnd=strpos($driver,"        }catch(Throwable ".'$e)', $packetStart);
+hook_test_check($packetStart!==false&&$packetEnd!==false,'actual_driver_packet_fixture_missing');
+foreach($legacyRows as $row){
+    $tv=$row['tourvisor_hotel_id'];$snapshot=$terminalSnapshot;$snapshot['scope']['tourvisorHotelIds']=[$tv];$snapshot['item']['tourvisorHotelId']=$tv;
+    foreach($snapshot['item']['offers'] as $i=>$offer){$snapshot['item']['offers'][$i]['tourvisorHotelId']=$tv;$snapshot['item']['offers'][$i]['recordId']=hash('sha256','legacy-test-'.$tv.'-'.$i);}
+    $price=monitor_price_observation($snapshot,$tv,strtotime($snapshot['generatedAt']));$op=monitor_price_operation($price);$context=[];
+    foreach(['max','telegram'] as $platform){
+        $c=$row['legacy_proof']['contexts'][$platform];
+        $slot="💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\n";
+        $caption=str_replace($slot,'',$row['templates'][$platform]);
+        $context[$platform]=['publication_id'=>$c['publication_id'],'version_id'=>$c['baseline_version_id'],
+            'external_message_id'=>$c['message_id'],'snapshot'=>['text'=>$caption,'post_url'=>$c['post_url'],'metadata'=>[]]];
+        hook_test_check(monitor_hook_caption_allowed($context[$platform],$row,$platform,null),'legacy_first_baseline_rejected');
+        $manual=$context[$platform];$manual['version_id']++;
+        hook_test_check(!monitor_hook_caption_allowed($manual,$row,$platform,null),'legacy_same_text_manual_revision_accepted');
+    }
+    eval(substr($driver,$packetStart,$packetEnd-$packetStart));
+    $packet=json_decode($raw,true,64,JSON_THROW_ON_ERROR);$childRow=$packet['rows'][0];
+    hook_test_check(monitor_price_legacy_binding($childRow)===$row['legacy_proof']
+        &&$childRow['hotel_id']===$row['hotel_id']&&!array_key_exists('cover_sha256',$childRow)
+        &&!array_key_exists('original_publication_operation',$childRow),'driver_lost_legacy_proof_or_publisher_role');
+    $journal=['complete'=>true,'operation'=>$op,'feed_binding'=>$row['feed_binding'],'posts'=>[]];
+    foreach(['max','telegram'] as $platform){
+        $p=$context[$platform];$p['version_id']++;$p['snapshot']['text']=$childRow['channel_texts'][$platform]['new_text'];
+        $p['snapshot']['metadata']['monitor_price_record_id']=$price['record_id'];$context[$platform]=$p;
+        $journal['posts'][$platform]=['state'=>'confirmed','receipt'=>['platform'=>$platform,'publication_id'=>$p['publication_id'],'version_id'=>$p['version_id'],
+            'message_id'=>$p['external_message_id'],'post_url'=>$p['snapshot']['post_url'],'text'=>$p['snapshot']['text'],
+            'text_sha256'=>hash('sha256',$p['snapshot']['text']),'existing_message_reused'=>true,'body_photo_button_verified'=>true]];
+        monitor_price_validate_text($p['snapshot']['text'],$price);
+        hook_test_check(str_ends_with($p['snapshot']['text'],'✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты.'),'legacy_accepted_cta_lost');
+    }
+    foreach(['max','telegram'] as $platform){
+        $p=$context[$platform];
+        hook_test_check(monitor_hook_caption_allowed($p,$row,$platform,$journal),'legacy_second_cycle_rejected');
+        hook_test_check(!monitor_hook_caption_allowed($p,$row,$platform,null),'legacy_second_cycle_without_receipt_accepted');
+        $bad=$journal;$bad['complete']=false;hook_test_check(!monitor_hook_caption_allowed($p,$row,$platform,$bad),'legacy_unknown_monitor_accepted');
+        $bad=$journal;$bad['feed_binding']['tourvisor_hotel_id']=9373;hook_test_check(!monitor_hook_caption_allowed($p,$row,$platform,$bad),'legacy_foreign_monitor_feed_accepted');
+        $bad=$p;$bad['version_id']++;hook_test_check(!monitor_hook_caption_allowed($bad,$row,$platform,$journal),'legacy_later_manual_revision_accepted');
+    }
+}
+foreach(['hook_legacy_source_incomplete_stop','hook_legacy_source_unresolved_stop'] as $error)
+    hook_test_check(!monitor_hook_local_preflight_failure(['exit_code'=>2,'error'=>$error]),'legacy_unknown_source_auto_released');
+
 echo 'MONITOR_PRICE_HOOK_OK cases='.$cases." no_provider_calls=1 no_writes=1\n";
 
