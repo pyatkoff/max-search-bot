@@ -207,6 +207,21 @@ foreach(['hook_legacy_source_incomplete_stop','hook_legacy_source_unresolved_sto
 
 // All23 retained additions use the actual packet code; no provider or filesystem journals are created.
 $additionProof=json_decode(file_get_contents(__DIR__.'/monitor-price-remaining23-20261113-proof.json'),true,64,JSON_THROW_ON_ERROR);
+// Two of these23 captions were subsequently edited in the confirmed73-pair operation.
+// The saved public caption is the baseline; a future price template has its own CTA.
+$editorFixturePacked=base64_decode(trim(file_get_contents(__DIR__.'/commercial-caption-review73-20261113-price-runtime-fixture.json.gz.b64')),true);
+hook_test_check(is_string($editorFixturePacked),'editorial_fixture_encoding_changed');
+$editorFixtureRaw=gzdecode($editorFixturePacked);
+hook_test_check(is_string($editorFixtureRaw)&&hash('sha256',$editorFixtureRaw)==='ef8226914d11e12078395853b2f244c0d46afa8c32ca3502d7ec5d2ab2ba9978','editorial_fixture_bytes_changed');
+$editorFixture=json_decode($editorFixtureRaw,true,128,JSON_THROW_ON_ERROR);
+hook_test_check($editorFixture['fixture_only']===true&&$editorFixture['original_caption_run_id']===43455664622
+    &&$editorFixture['completion_caption_run_id']===43463340468&&count($editorFixture['cases'])===73,'editorial_fixture_provenance_changed');
+$editorialRemaining=[];
+foreach($editorFixture['cases'] as $case)if(in_array($case['tourvisor_hotel_id'],[386,8053],true)){
+    hook_test_check($case['priced']===false&&!isset($editorialRemaining[$case['tourvisor_hotel_id']]),'remaining_editorial_baseline_scope_changed');
+    $editorialRemaining[$case['tourvisor_hotel_id']]=$case;
+}
+hook_test_check(count($editorialRemaining)===2,'remaining_editorial_baselines_missing');
 $addedRows=array_values(array_filter($expanded['rows'],static fn($r)=>in_array($r['tourvisor_hotel_id'],$additionProof['appended_tourvisor_ids'],true)));
 hook_test_check(count($addedRows)===23&&count($expanded['rows'])>=592,'remaining_published_scope_changed');
 $captionCount=0;$canonicalCount=0;
@@ -220,9 +235,15 @@ foreach($addedRows as $row){
         $c=$sourceProof['current_accepted_contexts'][$platform];
         $slot="💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\n";
         $caption=str_replace($slot,'',$row['templates'][$platform]);
-        hook_test_check(hash('sha256',$caption)===$row['expected_text_sha256'][$platform],'remaining_template_changed_accepted_caption');
         $context[$platform]=['publication_id'=>$c['publication_id'],'version_id'=>$c['baseline_version_id'],
             'external_message_id'=>$c['message_id'],'snapshot'=>['text'=>$caption,'post_url'=>$c['post_url'],'metadata'=>[]]];
+        if(isset($editorialRemaining[$tv])){
+            $accepted=$editorialRemaining[$tv]['publications'][$platform];
+            hook_test_check($accepted['publication_id']===$c['publication_id']&&$accepted['external_message_id']===$c['message_id']
+                &&$accepted['snapshot']['post_url']===$c['post_url'],'remaining_editorial_publication_identity_changed');
+            $context[$platform]=$accepted;$caption=$accepted['snapshot']['text'];
+        }
+        hook_test_check(hash('sha256',$caption)===$row['expected_text_sha256'][$platform],'remaining_template_changed_accepted_caption');
         hook_test_check(monitor_hook_caption_allowed($context[$platform],$row,$platform,null),'remaining_first_baseline_rejected');
         $manual=$context[$platform];$manual['snapshot']['text'].=' manual';
         hook_test_check(!monitor_hook_caption_allowed($manual,$row,$platform,null),'remaining_manual_caption_accepted');
