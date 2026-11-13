@@ -63,7 +63,7 @@ jobs:
 
         sha256sum -c <<''PINS''
 
-        321d70633636e75cd837f5c84b371a49cf7df50bf6ff0fe6c75cb37ad433e4c8  tools/direct_demand/operations/commercial-batch-20261113-14-duplicate-read.php
+        fbfde7011dc8fc1ba7d9628b6971190fc32859f8ed611903616ee610d7b4c333  tools/direct_demand/operations/commercial-batch-20261113-14-duplicate-read.php
 
         PINS
 

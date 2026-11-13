@@ -224,9 +224,9 @@ try {
       }
       $clear[]=['native_hotel_id'=>$candidate['hotel_id'],'scope'=>$candidate['scope'],'logical_id'=>$candidate['logical_id'],'aliases'=>$candidate['aliases'],'matches'=>$matches,'clear'=>$matches===[],'limit_reached'=>false];
     }
-    $out['candidate_clearance']=$clear;$out['candidate_count']=3;$out['read_at_utc']=gmdate('c');
+    $out['candidate_clearance']=$clear;$out['candidate_count']=count($candidates);$out['read_at_utc']=gmdate('c');
     $registry->rollBack();$catalog->rollBack();
-    $out['scope_hotels']=3;$out['feed_rows']=count($built['rows']);$out['deferred_count']=count($built['deferred']);$out['installed_sha']=EXPECTED_INSTALLED_SHA;$out['ok']=true;
+    $out['scope_hotels']=count($inputs);$out['feed_rows']=count($built['rows']);$out['deferred_count']=count($built['deferred']);$out['installed_sha']=EXPECTED_INSTALLED_SHA;$out['ok']=true;
 
 } catch(Throwable $e){
     if(isset($catalog)&&$catalog->inTransaction())$catalog->rollBack();
