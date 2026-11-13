@@ -5,6 +5,7 @@ require_once __DIR__.'/ManagerTourSelectionPublicationDraft.php';
 require_once __DIR__.'/TourSelectionPhotoStore.php';
 require_once __DIR__.'/ConversationRecorder.php';
 require_once __DIR__.'/ManagerReplyQueueService.php';
+require_once __DIR__.'/ManagerPromiseSelectionService.php';
 require_once __DIR__.'/../integrations/TourSelectionNativeTransport.php';
 
 /** Manager intent -> frozen offers -> durable one-creation fences -> native proof. */
@@ -140,6 +141,10 @@ final class ManagerTourSelectionDeliveryService
     {
         $pdo=ConversationDb::connection();self::begin($pdo);
         try {
+            // The original native sender owns this completion. Lock that actor
+            // before the conversation, matching attach and canonical task ACLs.
+            ProjectAccessService::initializeReadOnly();
+            $manager=ManagerAuthService::byId((int)$receipt['actor'],true);
             $q=$pdo->prepare('SELECT id FROM conversations WHERE id=?'.self::lock($pdo));$q->execute([$publication['conversation_id']]);
             $q=$pdo->prepare('SELECT state FROM manager_tour_selection_deliveries WHERE offer_id=?'.self::lock($pdo));$q->execute([$cardRow['offer_id']]);$state=$q->fetchColumn();
             if ($state==='delivered') {$pdo->rollBack();return;}
@@ -153,7 +158,11 @@ final class ManagerTourSelectionDeliveryService
             // Never replace it with the current post-delivery message IDs.
             $metadata[ManagerReplyQueueService::SEND_BOUNDARY]=$receipt[ManagerReplyQueueService::SEND_BOUNDARY]??['version'=>0,'customer_message_id'=>0,'request_event_id'=>0];
             if (!ConversationRecorder::outboundForConversation((int)$publication['conversation_id'],$channel,htmlspecialchars($card['plain_text'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'),'manager',(string)$receipt['actor'],$metadata,$receipt['native']['mid'])) throw new RuntimeException('Transcript storage unavailable');
-            $q=$pdo->prepare("UPDATE manager_tour_selection_deliveries SET state='delivered',updated_at=? WHERE offer_id=? AND state='known'");$q->execute([gmdate('Y-m-d H:i:s'),$cardRow['offer_id']]);$pdo->commit();
+            $q=$pdo->prepare("UPDATE manager_tour_selection_deliveries SET state='delivered',updated_at=? WHERE offer_id=? AND state='known'");$q->execute([gmdate('Y-m-d H:i:s'),$cardRow['offer_id']]);
+            if($q->rowCount()!==1)throw new RuntimeException('Delivery mirror unconfirmed');
+            ManagerPromiseSelectionService::afterDeliveredInTransaction($pdo,(int)$publication['conversation_id'],
+                $publication['publication_id'],(int)$receipt['actor'],$manager);
+            $pdo->commit();
         } catch (Throwable $e) {if ($pdo->inTransaction()) $pdo->rollBack();throw $e;}
     }
 

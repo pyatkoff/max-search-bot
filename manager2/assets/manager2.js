@@ -175,6 +175,42 @@
       conversationMenuActions.before(local);
     }
     if(local)local.hidden=!entry||!button||!S.manager||S.authExpired||Number(S.current)!==Number(S.detail?.conversation?.id);
+    syncPromiseSelectionLauncher();
+  }
+  const promiseSelectionAssets=new Map();
+  let promiseSelectionLaunch=0;
+  const promiseSelectionAssetVersion=(()=>{try{const value=new URL(document.currentScript.src,document.baseURI).searchParams.get('v');return /^\d+$/.test(value||'')?value:'1'}catch(e){return '1'}})();
+  function loadPromiseSelectionAsset(kind){
+    if(promiseSelectionAssets.has(kind))return promiseSelectionAssets.get(kind);
+    const promise=new Promise((resolve,reject)=>{
+      const element=document.createElement(kind==='css'?'link':'script'),url='/manager/assets/workspace-v2-promise-selection.'+kind+'?v='+promiseSelectionAssetVersion;
+      if(kind==='css'){element.rel='stylesheet';element.href=url}else{element.src=url;element.async=false}
+      element.onload=()=>resolve();element.onerror=()=>{promiseSelectionAssets.delete(kind);element.remove();reject(new Error('promise_selection_asset_unavailable'))};
+      document.head.appendChild(element);
+    });
+    promiseSelectionAssets.set(kind,promise);return promise;
+  }
+  async function openPromiseSelection(opener){
+    const target=selectionNavigationContext(),current=()=>{const now=selectionNavigationContext();return target&&now&&['conversationId','managerId','authGeneration','openGeneration'].every(key=>now[key]===target[key])&&S.detail?.conversation?.project_key==='anytour'&&(!window.WorkspaceV2Mobile?.isMobile?.()||window.WorkspaceV2Mobile?.getScreen?.()!=='inbox')};
+    if(!current()||opener.disabled)return;
+    const run=++promiseSelectionLaunch;let timeout;opener.disabled=true;opener.textContent='Открываем связь…';delete opener.dataset.loadError;opener.removeAttribute('title');opener.removeAttribute('aria-label');
+    try{
+      await Promise.race([Promise.all([loadPromiseSelectionAsset('css'),loadPromiseSelectionAsset('js')]),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('promise_selection_load_timeout')),15000)})]);
+      if(run!==promiseSelectionLaunch||!current())return;
+      if(typeof window.WorkspaceV2PromiseSelection?.open!=='function')throw new Error('promise_selection_owner_unavailable');
+      await window.WorkspaceV2PromiseSelection.open(opener);
+    }catch(e){
+      if(run!==promiseSelectionLaunch||!current())return;
+      if(conversationMenu)conversationMenu.open=true;
+      opener.dataset.loadError='true';opener.title='Не удалось открыть связь. Нажмите, чтобы повторить открытие.';opener.setAttribute('aria-label',opener.title);
+    }finally{clearTimeout(timeout);if(run===promiseSelectionLaunch&&opener.isConnected){opener.disabled=false;opener.textContent=opener.dataset.loadError?'Повторить открытие связи':'Связать подборку с обещанием'}}
+  }
+  function syncPromiseSelectionLauncher(){
+    window.WorkspaceV2PromiseSelection?.sync?.();
+    if(!conversationMenuActions)return;
+    let button=$('m2PromiseSelectionOpen');
+    if(!button){button=document.createElement('button');button.id='m2PromiseSelectionOpen';button.type='button';button.className='actionBtn';button.textContent='Связать подборку с обещанием';button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','promiseSelectionDialog');button.onclick=()=>openPromiseSelection(button);registerConversationTool(button)}
+    button.hidden=!S.manager||S.authExpired||S.detail?.conversation?.project_key!=='anytour'||Number(S.current)!==Number(S.detail?.conversation?.id);
   }
   document.addEventListener('click',event=>{
     const button=event.target?.closest?.('#tourSelectionOpen, #m2SelectionInPanel');
