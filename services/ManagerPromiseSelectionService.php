@@ -12,6 +12,7 @@ final class ManagerPromiseSelectionService
 {
     private const FLAGS=JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR;
     private const MAX_BYTES=2097152;
+    private const MAX_PROJECTION_BYTES=8388608;
     private const STATES=['armed','completed','cancelled','blocked'];
 
     public static function catalog(int $actor,int $cid): array
@@ -108,6 +109,289 @@ final class ManagerPromiseSelectionService
         return self::transaction($actor,$cid,static fn(PDO $pdo,array $scope):array=>[
             'ok'=>true,'intent'=>self::intentView($pdo,self::intent($pdo,$cid,$intentId))]);
     }
+
+    /** Existing task IDs only. No catalog, preparation, task write or native read. */
+    public static function forTasks(int $actor,int $cid,array $taskIds): array
+    {
+        if(!self::projectionIds($taskIds))return self::error('invalid_input');
+        return self::projectionTransaction($actor,$cid,static function(PDO $pdo,array $scope)use($taskIds):array{
+            $result=self::readTaskFacts($pdo,$scope,$taskIds);unset($result['_publications']);return $result;
+        });
+    }
+
+    /** An exact historical association, never a replacement selected by a catalog. */
+    public static function viewForTask(int $actor,int $cid,int $taskId,string $promiseId,string $intentId,string $publicationId): array
+    {
+        if($taskId<=0||!self::hex($promiseId,64)||!self::hex($intentId,32)||!self::hex($publicationId,32))return self::error('invalid_input');
+        return self::projectionTransaction($actor,$cid,static function(PDO $pdo,array $scope)use($cid,$taskId,$promiseId,$intentId,$publicationId):array{
+            if($scope['conversation']['project_key']!=='anytour')return self::error('not_found');
+            $metadata=self::projectionIntentMetadata($pdo,$cid,[],$intentId);$row=$metadata[0]??null;
+            if(!$row||(int)$row['task_id']!==$taskId||$row['promise_id']!==$promiseId||$row['publication_id']!==$publicationId)return self::error('not_found');
+            $result=self::readTaskFacts($pdo,$scope,[$taskId],$row,true);$projection=$result['by_task'][$taskId];
+            if(!isset($result['task_guards'][$taskId]))return self::error('not_found');
+            if($projection['availability']!=='available'||($projection['binding']['promise_id']??null)!==$promiseId)return self::error('storage_unavailable');
+            return ['ok'=>true,'task_id'=>$taskId,'promise_id'=>$promiseId,'intent_id'=>$intentId,'publication_id'=>$publicationId,
+                'projection'=>$projection,'publication'=>$result['_publications'][$taskId]??null];
+        });
+    }
+
+    private static function projectionTransaction(int $actor,int $cid,callable $work): array
+    {
+        if($actor<=0||$cid<=0)return self::error('forbidden');$pdo=null;
+        try{
+            $pdo=ConversationDb::connection();if($pdo->inTransaction())return self::error('storage_unavailable');
+            ProjectAccessService::initializeReadOnly();
+            if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql')$pdo->exec('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+            $pdo->beginTransaction();$manager=ManagerAuthService::byId($actor,true);
+            if(!$manager){$pdo->rollBack();return self::error('forbidden');}
+            $q=$pdo->prepare('SELECT id FROM conversations WHERE id=?'.self::lock($pdo));$q->execute([$cid]);$exists=$q->fetchColumn();$q->closeCursor();
+            $c=$exists?ManagerConversationService::visibleConversation($cid,$actor,false,true):null;
+            if(!$c){$pdo->rollBack();return self::error('forbidden');}
+            $fence=self::projectionScope($manager,$c);$result=$work($pdo,['actor'=>$actor,'team'=>ManagerAuthService::isAdmin($manager),'conversation'=>$c]);
+            // Account role/project membership and the receiver are part of this
+            // read, including an administrator viewing their own conversation.
+            $freshManager=ManagerAuthService::byId($actor,true);
+            $fresh=$freshManager?ManagerConversationService::visibleConversation($cid,$actor,false,true):null;
+            if(!$fresh||self::projectionScope($freshManager,$fresh)!==$fence){$pdo->rollBack();return self::error('stale_context');}
+            if(empty($result['ok']))$pdo->rollBack();else{$pdo->commit();$result+=['viewer_id'=>$actor,'conversation_id'=>$cid];}
+            return $result;
+        }catch(DomainException $e){if($pdo&&$pdo->inTransaction())$pdo->rollBack();return self::error($e->getMessage());}
+        catch(Throwable $e){if($pdo&&$pdo->inTransaction())$pdo->rollBack();return self::error('storage_unavailable');}
+    }
+
+    private static function readTaskFacts(PDO $pdo,array $scope,array $taskIds,?array $exactIntent=null,bool $withPublication=false): array
+    {
+        $cid=(int)$scope['conversation']['id'];$c=$scope['conversation'];$facts=[];$guards=[];$views=[];
+        if(!$taskIds)return ['ok'=>true,'by_task'=>[],'task_guards'=>[],'_publications'=>[]];
+        if($c['project_key']!=='anytour'){
+            foreach($taskIds as $id)$facts[$id]=self::emptyPromiseProjection('not_applicable');
+            return ['ok'=>true,'by_task'=>$facts,'task_guards'=>[],'_publications'=>[]];
+        }
+        try{$guards=self::projectionTasks($pdo,$cid,$taskIds,$scope['actor'],$scope['team']);}
+        catch(Throwable $e){foreach($taskIds as $id)$facts[$id]=self::emptyPromiseProjection('unavailable',self::readFailure($e));
+            return ['ok'=>true,'by_task'=>$facts,'task_guards'=>[],'_publications'=>[]];}
+        foreach($taskIds as $id)$facts[$id]=isset($guards[$id])?self::emptyPromiseProjection('none'):self::emptyPromiseProjection('unavailable','task_missing');
+        try{$bindings=ManagerPromiseTaskService::readBindings($pdo,$c,array_keys($guards));}
+        catch(Throwable $e){foreach(array_keys($guards) as $id)$facts[$id]=self::emptyPromiseProjection('unavailable',self::readFailure($e));
+            self::projectionTaskFence($pdo,$cid,$taskIds,$guards,$scope);return ['ok'=>true,'by_task'=>$facts,'task_guards'=>$guards,'_publications'=>[]];}
+        if(!$bindings){self::projectionTaskFence($pdo,$cid,$taskIds,$guards,$scope);return ['ok'=>true,'by_task'=>$facts,'task_guards'=>$guards,'_publications'=>[]];}
+        $sourceIds=array_values(array_unique(array_map(static fn(array $p):int=>(int)$p['source_message_id'],array_values($bindings))));
+        $context=self::projectionContext($pdo,$c,$sourceIds);$contextFence=self::projectionContextFence($context);
+        $intentRows=[];$intentError=null;
+        $selectionPromises=array_values(array_map(static fn(array $p):string=>$p['promise_id'],array_filter($bindings,static fn(array $p):bool=>$p['kind']==='send_selection')));
+        if($selectionPromises){
+            try{$rows=$exactIntent?[$exactIntent]:self::projectionIntentMetadata($pdo,$cid,$selectionPromises);
+                foreach($rows as $row)$intentRows[$row['promise_id']]=$row;}
+            catch(Throwable $e){$intentError=self::readFailure($e);}
+        }
+        $remaining=self::MAX_PROJECTION_BYTES;$publications=[];
+        foreach($bindings as $taskId=>$binding){
+            $stale=self::bindingStale($binding,$c,$context);$source=$context['sources'][(int)$binding['source_message_id']]??null;
+            $sourceState=$source===null?'unavailable':(hash_equals($binding['source_message_revision'],$source['revision'])
+                &&(int)$binding['source_author_manager_id']===$source['author_manager_id']?'current':'changed');
+            if(in_array('scope_changed',$stale,true))$sourceState='unavailable';
+            $projection=['availability'=>'available','reason'=>null,'binding'=>[
+                'promise_id'=>$binding['promise_id'],'kind'=>$binding['kind'],'deadline'=>$binding['_deadline'],
+                'source_message_id'=>(int)$binding['source_message_id'],'source_state'=>$sourceState,
+                'trip_id'=>$binding['trip_id'],'profile_version'=>(int)$binding['profile_version']],
+                'stale_reasons'=>$stale,'selection'=>self::emptySelectionProjection($binding['kind']==='send_selection'?'none':'not_applicable')];
+            $meta=$intentRows[$binding['promise_id']]??null;
+            if($binding['kind']==='send_selection'&&$intentError!==null)$projection['selection']=self::emptySelectionProjection('unavailable',$intentError);
+            elseif($meta){
+                try{
+                    self::consumeProjectionBytes($remaining,(int)$meta['read_bytes']);
+                    $intent=self::intent($pdo,$cid,$meta['intent_id']);self::intentBinding($intent,$binding);
+                    $issues=$stale;$storedScope=$intent['_scope'];$boundary=$storedScope['reply_boundary'];unset($storedScope['reply_boundary']);
+                    $currentScope=$context['transport']===null?null:self::scopeIdentity($c,$context['transport']);
+                    if($currentScope!==$storedScope)$issues[]='scope_changed';
+                    // Fresh ACL permits a new owner to inspect the same client's
+                    // historical composition. Assignment/status remain stale
+                    // fulfillment pins, but do not hide same-recipient history.
+                    $operational=['manager_id'=>true,'status'=>true];
+                    $privateScopeMatches=$currentScope!==null&&$binding['_scope']===self::promiseIdentity($c)
+                        &&array_diff_key($currentScope,$operational)===array_diff_key($storedScope,$operational);
+                    if($context['boundary']===null)$issues[]='context_unavailable';
+                    elseif($boundary!==$context['boundary'])$issues[]='context_changed';
+                    $expectedTaskRevision=(int)$intent['task_revision'];
+                    if($intent['state']==='completed')$expectedTaskRevision=self::completedProofRevision($intent);
+                    if($guards[$taskId]['business_revision']!==$expectedTaskRevision)$issues[]='task_changed';
+                    if($intent['state']==='armed'&&$guards[$taskId]['status']!=='open')$issues[]='task_closed';
+                    $selection=['availability'=>'available','reason'=>null,'intent'=>self::projectionIntentView($intent),
+                        'stale_reasons'=>array_values(array_unique($issues)),
+                        'progress'=>['availability'=>'unavailable','reason'=>'scope_changed','confirmed'=>null,'total'=>count($intent['_manifest'])]];
+                    if($privateScopeMatches){
+                        try{
+                            if(!isset($publications[$intent['publication_id']]))$publications[$intent['publication_id']]=self::projectionPublication($pdo,$cid,$intent['publication_id'],$remaining);
+                            $publication=$publications[$intent['publication_id']];$manifest=self::manifest($publication);
+                            if(!hash_equals($intent['publication_sha256'],$publication['draft_hash'])||self::json($manifest)!==$intent['manifest_json']
+                                ||$publication['binding']!==$context['transport'])throw new DomainException('publication_changed');
+                            $selection['progress']=self::projectionProgress($pdo,$publication,$manifest);
+                            if($selection['progress']['availability']!=='available')$selection['stale_reasons'][]=$selection['progress']['reason'];
+                            if($withPublication)$views[$taskId]=self::projectionPublicationView($publication,$manifest);
+                        }catch(Throwable $e){$reason=$e instanceof DomainException?'publication_changed':self::readFailure($e);
+                            $selection['progress']=['availability'=>'unavailable','reason'=>$reason,'confirmed'=>null,'total'=>count($intent['_manifest'])];
+                            $selection['stale_reasons'][]=$reason==='coverage_limit'?'coverage_limit':'publication_changed';}
+                    }
+                    $selection['stale_reasons']=array_values(array_unique($selection['stale_reasons']));$projection['selection']=$selection;
+                }catch(Throwable $e){$projection['selection']=self::emptySelectionProjection('unavailable',self::readFailure($e));}
+            }
+            $facts[$taskId]=$projection;
+        }
+        self::projectionTaskFence($pdo,$cid,$taskIds,$guards,$scope);
+        if(self::projectionContextFence(self::projectionContext($pdo,$c,$sourceIds))!==$contextFence)throw new DomainException('stale_context');
+        return ['ok'=>true,'by_task'=>$facts,'task_guards'=>$guards,'_publications'=>$views];
+    }
+
+    private static function projectionContext(PDO $pdo,array $c,array $sourceIds): array
+    {
+        $result=['profile'=>null,'sources'=>[],'transport'=>null,'boundary'=>null,'error'=>null];
+        try{$view=ManagerRequestProfileService::forTaskProjection($pdo,$c,$sourceIds);$result['profile']=$view['profile'];
+            $result['sources']=self::projectionSources($pdo,$c,$view['sources'],$sourceIds);}
+        catch(Throwable $e){$result['error']=self::readFailure($e);}
+        try{$result['transport']=self::transport($pdo,$c);}catch(Throwable $e){$result['transport']=null;}
+        try{$result['boundary']=ManagerReplyQueueService::captureSendBoundary((int)$c['id']);}catch(Throwable $e){$result['boundary']=null;}
+        return $result;
+    }
+
+    private static function projectionSources(PDO $pdo,array $c,array $sources,array $ids): array
+    {
+        if(!$ids)return [];$binary=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'BINARY':'BLOB';
+        $q=$pdo->prepare('SELECT id,direction,sender_type,sender_id,channel,external_message_id,SUBSTR(CAST(metadata_json AS '.$binary.'),1,8193) AS metadata FROM messages WHERE conversation_id=? AND id IN ('.implode(',',array_fill(0,count($ids),'?')).') ORDER BY id');
+        $q->execute([(int)$c['id'],...$ids]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();$out=[];$authors=[];
+        foreach($rows as $row){$source=$sources[(int)$row['id']]??null;if(!$source)continue;
+            $e=ManagerPromiseTaskService::sourceEvidence($row,$c,$source,true);if($e!==null){$out[$e['id']]=$e;$authors[$e['author_manager_id']]=true;}}
+        if(!$authors)return [];
+        $q=$pdo->prepare('SELECT id FROM managers WHERE id IN ('.implode(',',array_fill(0,count($authors),'?')).')');
+        $q->execute(array_keys($authors));$known=array_fill_keys(array_map('intval',$q->fetchAll(PDO::FETCH_COLUMN)),true);$q->closeCursor();
+        return array_filter($out,static fn(array $e):bool=>isset($known[$e['author_manager_id']]));
+    }
+
+    private static function bindingStale(array $binding,array $c,array $context): array
+    {
+        $issues=[];
+        if($binding['_scope']!==self::promiseIdentity($c))$issues[]='scope_changed';
+        $p=$context['profile'];
+        if($p===null)$issues[]='profile_unavailable';
+        elseif($p['trip_id']!==$binding['trip_id'])$issues[]='trip_changed';
+        else{
+            if($p['version']!==(int)$binding['profile_version']||!hash_equals($p['sha256'],$binding['profile_sha256']))$issues[]='profile_changed';
+            if($p['changed_sources'])$issues[]='profile_source_changed';
+        }
+        $source=$context['sources'][(int)$binding['source_message_id']]??null;
+        if($source===null)$issues[]='source_unavailable';
+        elseif(!hash_equals($binding['source_message_revision'],$source['revision'])||(int)$binding['source_author_manager_id']!==$source['author_manager_id'])$issues[]='source_changed';
+        return $issues;
+    }
+
+    private static function projectionTasks(PDO $pdo,int $cid,array $ids,int $actor,bool $team): array
+    {
+        if(!$ids)return [];$ids=array_values($ids);sort($ids);
+        $q=$pdo->prepare('SELECT id,status,title,due_at_utc,is_pinned,assigned_manager_id,business_revision FROM lead_tasks WHERE conversation_id=? AND id IN ('.implode(',',array_fill(0,count($ids),'?')).')'.($team?'':' AND (assigned_manager_id IS NULL OR assigned_manager_id=?)').' ORDER BY id'.self::lock($pdo));
+        $args=[$cid,...$ids];if(!$team)$args[]=$actor;
+        $q->execute($args);$rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();$out=[];
+        foreach($rows as $row){
+            $revision=filter_var($row['business_revision'],FILTER_VALIDATE_INT,['options'=>['min_range'=>1,'max_range'=>PHP_INT_MAX-1]]);
+            if($revision===false||!in_array($row['status'],['open','done'],true))throw new RuntimeException('invalid_task_storage');
+            $out[(int)$row['id']]=['status'=>$row['status'],'title'=>$row['title'],'due_at_utc'=>$row['due_at_utc'],
+                'is_pinned'=>(bool)$row['is_pinned'],'assigned_manager_id'=>$row['assigned_manager_id']===null?null:(int)$row['assigned_manager_id'],'business_revision'=>$revision];
+        }
+        return $out;
+    }
+    private static function projectionTaskFence(PDO $pdo,int $cid,array $ids,array $expected,array $scope): void
+    {if(self::projectionTasks($pdo,$cid,$ids,$scope['actor'],$scope['team'])!==$expected)throw new DomainException('stale_context');}
+
+    /** Small metadata precedes any MEDIUMTEXT load; one chosen intent per promise. */
+    private static function projectionIntentMetadata(PDO $pdo,int $cid,array $promiseIds,?string $exact=null): array
+    {
+        $binary=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'BINARY':'BLOB';
+        $sql='SELECT i.intent_id,i.conversation_id,i.promise_id,i.task_id,i.publication_id,LENGTH(CAST(i.manifest_json AS '.$binary.'))+LENGTH(CAST(i.scope_json AS '.$binary.'))+COALESCE(LENGTH(CAST(i.evidence_json AS '.$binary.')),0)+2048 AS read_bytes FROM manager_promise_selection_intents i WHERE i.conversation_id=?';$args=[$cid];
+        if($exact!==null){$sql.=' AND i.intent_id=?';$args[]=$exact;}
+        else{
+            if(!$promiseIds)return [];
+            $sql.=' AND i.promise_id IN ('.implode(',',array_fill(0,count($promiseIds),'?')).") AND i.intent_id=(SELECT n.intent_id FROM manager_promise_selection_intents n WHERE n.conversation_id=i.conversation_id AND n.promise_id=i.promise_id ORDER BY CASE WHEN n.state='armed' THEN 0 ELSE 1 END,n.created_at DESC,n.intent_id DESC LIMIT 1)";
+            array_push($args,...$promiseIds);
+        }
+        $q=$pdo->prepare($sql.' ORDER BY i.promise_id LIMIT 50'.self::lock($pdo));$q->execute($args);$rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
+        foreach($rows as $row)if(!self::hex($row['intent_id'],32)||!self::hex($row['promise_id'],64)||!self::hex($row['publication_id'],32)
+            ||(int)$row['conversation_id']!==$cid||(int)$row['task_id']<=0||(int)$row['read_bytes']<2048)throw new RuntimeException('invalid_intent_storage');
+        return $rows;
+    }
+
+    private static function projectionPublication(PDO $pdo,int $cid,string $id,int &$remaining): array
+    {
+        $binary=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'BINARY':'BLOB';
+        $q=$pdo->prepare('SELECT LENGTH(CAST(selection_json AS '.$binary.'))+LENGTH(CAST(binding_json AS '.$binary.'))+2048 AS bytes FROM manager_tour_selection_publications WHERE conversation_id=? AND publication_id=?'.self::lock($pdo));
+        $q->execute([$cid,$id]);$bytes=$q->fetchColumn();$q->closeCursor();if($bytes===false)throw new DomainException('publication_changed');
+        $q=$pdo->prepare('SELECT LENGTH(CAST(d.receipt_json AS '.$binary.'))+512 AS bytes FROM manager_tour_selection_cards c JOIN manager_tour_selection_deliveries d ON d.offer_id=c.offer_id WHERE c.publication_id=? ORDER BY c.card_index LIMIT 21'.self::lock($pdo));
+        $q->execute([$id]);$cards=$q->fetchAll(PDO::FETCH_COLUMN);$q->closeCursor();
+        if(count($cards)<1||count($cards)>20)throw new RuntimeException('invalid_publication_storage');
+        self::consumeProjectionBytes($remaining,(int)$bytes+array_sum(array_map('intval',$cards)));
+        return self::publication($pdo,$cid,$id);
+    }
+
+    private static function projectionProgress(PDO $pdo,array $publication,array $manifest): array
+    {
+        $confirmed=0;$reason=null;$priority=0;
+        try{
+            foreach($manifest as $i=>$card){$state=$publication['cards'][$i]['state'];
+                if($state==='delivered'){
+                    // Preserve the original index: a shared delivery from a
+                    // different publication cannot confirm this manifest slot.
+                    if(self::evidence($pdo,$publication,[$i=>$card])===null)return ['availability'=>'unavailable','reason'=>'delivery_evidence_changed','confirmed'=>null,'total'=>count($manifest)];
+                    ++$confirmed;
+                }else{
+                    [$rank,$code]=match($state){'reserved','unknown'=>[3,'delivery_unknown'],'known'=>[2,'delivery_unverified'],'rejected'=>[1,'delivery_rejected'],default=>[0,null]};
+                    if($rank>$priority){$priority=$rank;$reason=$code;}
+                }
+            }
+        }catch(Throwable $e){return ['availability'=>'unavailable','reason'=>self::readFailure($e),'confirmed'=>null,'total'=>count($manifest)];}
+        return ['availability'=>'available','reason'=>$reason,'confirmed'=>$confirmed,'total'=>count($manifest)];
+    }
+
+    private static function projectionPublicationView(array $p,array $manifest): array
+    {
+        $cards=[];foreach($manifest as $i=>$card)$cards[]=['index'=>$i,'offer_id'=>$card['offer_id'],
+            'text'=>TourOfferCardRenderer::render($card['snapshot'],$card['presentation'],$card['callback_data'])['plain_text'],'snapshot'=>$card['snapshot']];
+        return ['publication_id'=>$p['publication_id'],'title'=>$p['selection']['title'],'card_count'=>count($cards),'cards'=>$cards];
+    }
+
+    private static function intentBinding(array $intent,array $binding): void
+    {
+        foreach(['promise_id','trip_id','profile_sha256','source_message_revision'] as $key)if($intent[$key]!==$binding[$key])throw new RuntimeException('intent_binding_changed');
+        foreach(['task_id','profile_version','source_message_id','source_author_manager_id'] as $key)if((int)$intent[$key]!== (int)$binding[$key])throw new RuntimeException('intent_binding_changed');
+    }
+    private static function completedProofRevision(array $intent): int
+    {
+        $proof=json_decode($intent['evidence_json'],true,32,JSON_THROW_ON_ERROR);
+        if(($proof['task_outcome']??null)!=='applied'||!is_int($proof['task_revision']??null)
+            ||$proof['task_revision']!==(int)$intent['task_revision']+1||!is_int($proof['actor']??null)||$proof['actor']<=0
+            ||!array_is_list($proof['cards']))throw new RuntimeException('invalid_completion_proof');
+        foreach($proof['cards'] as $i=>$card)if(!is_array($card)||($card['index']??null)!==$i
+            ||($card['offer_id']??null)!==$intent['_manifest'][$i]['offer_id']||!is_int($card['delivery_event_id']??null)||$card['delivery_event_id']<=0
+            ||!is_int($card['transcript_message_id']??null)||$card['transcript_message_id']<=0||!self::hex($card['transcript_sha256']??null,64)
+            ||!is_string($card['native_mid']??null)||$card['native_mid']===''||!is_string($card['native_chat_id']??null)||$card['native_chat_id']==='')throw new RuntimeException('invalid_completion_proof');
+        return $proof['task_revision'];
+    }
+    private static function projectionIntentView(array $row): array
+    {return ['intent_id'=>$row['intent_id'],'publication_id'=>$row['publication_id'],'state'=>$row['state'],'reason'=>$row['reason'],
+        'created_at'=>$row['created_at'],'completed_at'=>$row['completed_at'],'cancelled_at'=>$row['cancelled_at']];}
+    private static function emptyPromiseProjection(string $availability,?string $reason=null): array
+    {return ['availability'=>$availability,'reason'=>$reason,'binding'=>null,'stale_reasons'=>[],
+        'selection'=>self::emptySelectionProjection('not_applicable')];}
+    private static function emptySelectionProjection(string $availability,?string $reason=null): array
+    {return ['availability'=>$availability,'reason'=>$reason,'intent'=>null,'stale_reasons'=>[],'progress'=>null];}
+    private static function consumeProjectionBytes(int &$remaining,int $bytes): void
+    {if($bytes<0||$bytes>$remaining)throw new LengthException('coverage_limit');$remaining-=$bytes;}
+    private static function readFailure(Throwable $e): string
+    {return $e instanceof PDOException?'storage_unavailable':($e instanceof LengthException||in_array($e->getMessage(),['profile_context_limit','profile_sources_limit'],true)?'coverage_limit':'integrity_unavailable');}
+    private static function projectionIds(array $ids): bool
+    {if(!array_is_list($ids)||count($ids)>50||count(array_unique($ids,SORT_REGULAR))!==count($ids))return false;foreach($ids as $id)if(!is_int($id)||$id<=0)return false;return true;}
+    private static function projectionContextFence(array $context): string
+    {$copy=$context;$copy['sources']=array_map(static fn(array $s):array=>[$s['id'],$s['revision'],$s['author_manager_id']],$context['sources']);return self::hash($copy);}
+    private static function projectionScope(array $manager,array $c): array
+    {$projects=array_column($manager['projects'],'project_key');sort($projects);return [(int)$manager['id'],(string)$manager['role'],$projects,
+        (int)$c['id'],(string)$c['project_key'],(int)($c['source_id']??0),(string)$c['channel'],(string)$c['status'],
+        (int)($c['manager_id']??0),(int)$c['customer_id'],(string)$c['external_chat_id']];}
 
     /**
      * Called only by the native delivery owner, after its verified local mirror.

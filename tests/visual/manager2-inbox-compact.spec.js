@@ -129,6 +129,7 @@ for(const profile of profiles)test(`compact Inbox same data ${profile.width} ${p
   expect(g.headerHeight).toBeLessThanOrEqual(132);expect(g.listHeight).toBeGreaterThanOrEqual(height===420?220:650);
   expect(g.rowHeight).toBeLessThanOrEqual((profile.font==='large'?138:128)+(lines-2)*g.lineHeight);
   if(profile.width===1440){expect(g.inboxWidth).toBeGreaterThanOrEqual(330);expect(g.inboxWidth).toBeLessThanOrEqual(380);}
+  await expect(row(page).locator('.m2OwnershipMark')).toBeHidden();
   await expect(row(page).locator('.unreadBadge')).toHaveText('999');await expect(row(page).locator('.m2RowOpen')).toHaveAccessibleName(new RegExp(longName));
   await capture(page,browserName,profile,height,testInfo);
  }
@@ -154,7 +155,7 @@ for(const width of [390,1440])test(`compact Inbox admin keeps channel owner urge
  await expect(row(page).locator('.leadReplyStatus')).toHaveText('Ждёт ответа');await expect(row(page,12).locator('.leadWaitCompact')).toBeVisible();
  expect(await row(page,12).locator('.leadWaitCompact').evaluate(el=>el.scrollWidth<=el.clientWidth+1),'Urgency and wait duration must remain readable').toBe(true);
  for(const [id,text]of[[11,'MAX'],[12,'TG'],[13,'Сайт']])await expect(row(page,id).locator('.m2ChannelBadge')).toHaveText(text);
- await expect(row(page,13).locator('.m2OwnershipMark')).toHaveAttribute('aria-label',/Елизавета|друг/i);
+ await expect(row(page,13).locator('.m2OwnershipMark')).toBeHidden();
  await capture(page,browserName,profile,420,testInfo);clean(s);
 });
 

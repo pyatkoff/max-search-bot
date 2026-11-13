@@ -114,6 +114,76 @@ try {
     if(!$blocked||$first!==['outcome'=>'applied','business_revision'=>2]||$duplicate!==['outcome'=>'already_done','business_revision'=>2]
         ||(int)$second->query('SELECT business_revision FROM lead_tasks WHERE id=102')->fetchColumn()!==2)throw new RuntimeException('native_task_completion_not_exactly_once');
     echo "PASS native competing task completions converge on one done revision without overwrite\n";
+
+    // Exercise the new read boundaries with real MySQL syntax and InnoDB locks.
+    // Full ACL/session/lifecycle behavior uses the canonical native HTTP suite;
+    // these calls isolate the physical queries that SQLite cannot validate.
+    require_once dirname(__DIR__,2).'/services/ManagerPromiseSelectionService.php';
+    $taskConnection->setValue(null,$pdo);
+    $newTables=['manager_task_promise_operations','manager_task_promises','manager_request_profiles','messages'];
+    foreach($newTables as $table){
+        $q=$pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?');$q->execute([$table]);
+        if((int)$q->fetchColumn()!==0)throw new RuntimeException('promise_plan_requires_clean_fixture_table');
+    }
+    $tables=array_merge($newTables,$tables);
+    foreach(['080_manager_request_profiles.sql','108_manager_task_promises.sql'] as $file)
+        $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/'.$file));
+    $pdo->exec('CREATE TABLE messages(id BIGINT UNSIGNED PRIMARY KEY,conversation_id BIGINT UNSIGNED NOT NULL,direction VARCHAR(16),sender_type VARCHAR(16),text MEDIUMTEXT,metadata_json TEXT,created_at DATETIME,KEY messages_conversation(conversation_id,id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+    $pdo->prepare('INSERT INTO messages VALUES(12,1,?,?,?,?,?)')->execute(['outbound','manager','Пришлю подборку после уточнения.','{"type":"message"}',$now]);
+    $conversation=['id'=>1,'project_key'=>'anytour','customer_id'=>101,'channel'=>'telegram','external_chat_id'=>'synthetic-plan'];
+    $trip=str_repeat('a',32);$flags=JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR;
+    $promisePlanId=hash('sha256',json_encode(['anytour',1,$trip,'send_selection',12],$flags));
+    $promiseScope=['conversation_id'=>1,'project_key'=>'anytour','customer_id'=>101,'channel'=>'telegram','external_chat_id'=>'synthetic-plan'];
+    $bindingRow=['promise_id'=>$promisePlanId,'conversation_id'=>1,'trip_id'=>$trip,'kind'=>'send_selection','source_message_id'=>12,
+        'source_message_revision'=>str_repeat('b',64),'source_author_manager_id'=>7,'profile_version'=>1,'profile_sha256'=>str_repeat('c',64),
+        'profile_context_sha256'=>str_repeat('d',64),'task_id'=>101,'deadline_json'=>'{"kind":"date","value":"2030-11-20","zone":"Europe/Moscow"}',
+        'scope_json'=>json_encode($promiseScope,$flags),'created_by_manager_id'=>7,'created_at'=>$now];
+    $pdo->prepare('INSERT INTO manager_task_promises('.implode(',',array_keys($bindingRow)).') VALUES('.implode(',',array_fill(0,count($bindingRow),'?')).')')->execute(array_values($bindingRow));
+    $bindingBefore=$pdo->query('SELECT * FROM manager_task_promises')->fetchAll();
+    $pdo->beginTransaction();$read=ManagerPromiseTaskService::readBindings($pdo,$conversation,[101,103]);$oversized=false;
+    try{ManagerPromiseTaskService::readBindings($pdo,$conversation,range(1,51));}catch(InvalidArgumentException $e){$oversized=true;}
+    if(array_keys($read)!==[101]||$read[101]['_deadline']!==['kind'=>'date','value'=>'2030-11-20','zone'=>'Europe/Moscow']||!$oversized)
+        throw new RuntimeException('native_promise_plan_binding_bounds_failed');
+    $pdo->commit();
+    if($pdo->query('SELECT * FROM manager_task_promises')->fetchAll()!==$bindingBefore)throw new RuntimeException('native_promise_plan_read_changed_binding');
+    echo "PASS native promise-plan binding read preserves calendar day, task subset and fifty-ID bound without writes\n";
+
+    $pdo->beginTransaction();$largeScope=$promiseScope;$largeScope['external_chat_id']=str_repeat('я',1100);
+    $pdo->prepare('UPDATE manager_task_promises SET scope_json=? WHERE promise_id=?')->execute([json_encode($largeScope,$flags),$promisePlanId]);$byteBound=false;
+    try{ManagerPromiseTaskService::readBindings($pdo,$conversation,[101]);}catch(RuntimeException $e){$byteBound=$e->getMessage()==='invalid_promise_storage';}
+    $pdo->rollBack();if(!$byteBound)throw new RuntimeException('native_promise_plan_utf8_byte_bound_failed');
+    echo "PASS native BINARY projection rejects oversized UTF-8 scope rather than treating it as an absent promise\n";
+
+    $pdo->beginTransaction();$sources=ManagerRequestProfileService::forTaskProjection($pdo,$conversation,[12]);$blocked=false;
+    try{$second->exec("UPDATE messages SET text='Concurrent source edit' WHERE id=12");}catch(PDOException $e){$blocked=(int)($e->errorInfo[1]??0)===1205;}
+    if(!$blocked||array_keys($sources['sources'])!==[12]||$sources['sources'][12]['text']!=='Пришлю подборку после уточнения.')
+        throw new RuntimeException('native_promise_plan_source_read_lock_failed');
+    $pdo->rollBack();$second->beginTransaction();$unblocked=$second->exec("UPDATE messages SET text='Concurrent source edit' WHERE id=12");$second->rollBack();
+    if($unblocked!==1)throw new RuntimeException('native_promise_plan_source_lock_not_released');
+    echo "PASS native task-profile read locks its exact source until the read transaction ends\n";
+
+    $pdo->exec('UPDATE lead_tasks SET assigned_manager_id=8 WHERE id=103');
+    $taskBefore=$pdo->query('SELECT * FROM lead_tasks ORDER BY id')->fetchAll();
+    $tasksRead=new ReflectionMethod(ManagerPromiseSelectionService::class,'projectionTasks');
+    $taskFence=new ReflectionMethod(ManagerPromiseSelectionService::class,'projectionTaskFence');
+    $pdo->beginTransaction();$mine=$tasksRead->invoke(null,$pdo,1,[101,103],7,false);$otherManager=$tasksRead->invoke(null,$pdo,1,[101,103],8,false);
+    $team=$tasksRead->invoke(null,$pdo,1,[101,103],7,true);$foreign=$tasksRead->invoke(null,$pdo,2,[101,103],7,true);$blocked=false;
+    try{$second->exec("UPDATE lead_tasks SET title='Concurrent manual edit' WHERE id=101");}catch(PDOException $e){$blocked=(int)($e->errorInfo[1]??0)===1205;}
+    $taskFence->invoke(null,$pdo,1,[101,103],$mine,['actor'=>7,'team'=>false]);$pdo->rollBack();
+    if(!$blocked||array_keys($mine)!==[101]||array_keys($otherManager)!==[103]||array_keys($team)!==[101,103]||$foreign!==[]
+        ||$pdo->query('SELECT * FROM lead_tasks ORDER BY id')->fetchAll()!==$taskBefore)throw new RuntimeException('native_promise_plan_task_scope_or_lock_failed');
+    echo "PASS native promise-plan task snapshot enforces assignee/conversation scope and blocks a concurrent manual edit\n";
+
+    $intentRead=new ReflectionMethod(ManagerPromiseSelectionService::class,'projectionIntentMetadata');
+    $intentBefore=$pdo->query('SELECT * FROM manager_promise_selection_intents ORDER BY intent_id')->fetchAll();
+    $pdo->beginTransaction();$active=$intentRead->invoke(null,$pdo,1,[$promise]);$historical=$intentRead->invoke(null,$pdo,1,[],$intentA);$foreign=$intentRead->invoke(null,$pdo,2,[],$intentA);$blocked=false;
+    try{$second->prepare('UPDATE manager_promise_selection_intents SET reason=? WHERE intent_id=?')->execute(['Concurrent intent edit',$intentC]);}catch(PDOException $e){$blocked=(int)($e->errorInfo[1]??0)===1205;}
+    $pdo->rollBack();
+    if(!$blocked||count($active)!==1||$active[0]['intent_id']!==$intentC||(int)$active[0]['read_bytes']!==2052||isset($active[0]['manifest_json'])
+        ||count($historical)!==1||$historical[0]['intent_id']!==$intentA||$foreign!==[]
+        ||$pdo->query('SELECT * FROM manager_promise_selection_intents ORDER BY intent_id')->fetchAll()!==$intentBefore)
+        throw new RuntimeException('native_promise_plan_intent_metadata_failed');
+    echo "PASS native intent metadata selects the active or exact historical association with bounded bytes and no status change\n";
 } finally {
     if($second&&$second->inTransaction())$second->rollBack();
     if ($pdo && $safe) {if ($pdo->inTransaction()) $pdo->rollBack();foreach ($tables as $table) $pdo->exec('DROP TABLE IF EXISTS '.$table);}
