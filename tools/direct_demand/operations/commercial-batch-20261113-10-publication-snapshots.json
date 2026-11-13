@@ -1,0 +1,273 @@
+{
+  "operation": "commercial-hotel-batch-20261113-10-v1",
+  "rows": [
+    {
+      "id": "613507e2-bd06-4bc6-8322-095f97b16811",
+      "tourvisorId": "1330",
+      "revision": 3,
+      "acceptedRevision": 2,
+      "publicationSnapshots": [
+        {
+          "channel": "max",
+          "text": "✈️ Туры в Castle Park Hotel\n📍 Бельдиби, Кемер, Турция.\n\nСемейный отпуск среди зелени Бельдиби 🌿\n\nВ Castle Park Hotel есть бассейны и детская инфраструктура. Подойдёт тем, кто планирует чередовать пляжный отдых с прогулками.\n\nПляж песчано-галечный, примерно в 400–550 м от отеля. До моря нужно идти пешком. У отдельных операторов есть ограничения на размещение только мужчин — учтём их при подборе.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "textSha256": "738fb918afd93ead5cef736fe3929eac8901e0ea0726c6faeecc5ab6a85401d2",
+          "capturedAt": "2026-11-13T03:23:16+00:00",
+          "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43358127823/attempts/1",
+          "proofKind": "completed_package",
+          "post": {
+            "url": "https://max.ru/channel_anytour/AaHS6yZoVr4",
+            "mid": "mid.ffffb6caf0606fed01a1d2eb266856be",
+            "at": "2026-11-13T03:23:16+00:00",
+            "idKind": "provider",
+            "buttonProof": {
+              "url": "https://max.ru/id9704048781_1_bot?start=p_Tk-Ybf18mAW24qD5CLbU5ht_",
+              "publicationId": "1319",
+              "hotelNativeId": "1330",
+              "verifiedAt": "2026-11-13T03:23:16+00:00",
+              "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43358127823/attempts/1"
+            }
+          },
+          "publicationId": "1319",
+          "versionId": "4329",
+          "buttonText": "✈️ Узнать стоимость тура",
+          "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/deb21f08c7bb5d0d34c7a1d9a29ff44b4b0a1bf7/.github/traffic-publish/commercial-batch-20261113-10/1330.png",
+          "mediaCount": 1
+        },
+        {
+          "channel": "telegram",
+          "text": "✈️ Туры в Castle Park Hotel\n📍 Бельдиби, Кемер, Турция.\n\nСемейный отпуск среди зелени Бельдиби 🌿\n\nВ Castle Park Hotel есть бассейны и детская инфраструктура. Подойдёт тем, кто планирует чередовать пляжный отдых с прогулками.\n\nПляж песчано-галечный, примерно в 400–550 м от отеля. До моря нужно идти пешком. У отдельных операторов есть ограничения на размещение только мужчин — учтём их при подборе.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "textSha256": "738fb918afd93ead5cef736fe3929eac8901e0ea0726c6faeecc5ab6a85401d2",
+          "capturedAt": "2026-11-13T03:23:16+00:00",
+          "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43358127823/attempts/1",
+          "proofKind": "completed_package",
+          "post": {
+            "url": "https://t.me/any_toour/595",
+            "mid": "595",
+            "at": "2026-11-13T03:23:16+00:00",
+            "idKind": "provider",
+            "buttonProof": {
+              "url": "https://t.me/anyru_bot?start=p_Gn6QTcb98_wUgTfOplye1A1B",
+              "publicationId": "1315",
+              "hotelNativeId": "1330",
+              "verifiedAt": "2026-11-13T03:23:16+00:00",
+              "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43358127823/attempts/1"
+            }
+          },
+          "publicationId": "1315",
+          "versionId": "4325",
+          "buttonText": "✈️ Узнать стоимость тура",
+          "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/deb21f08c7bb5d0d34c7a1d9a29ff44b4b0a1bf7/.github/traffic-publish/commercial-batch-20261113-10/1330.png",
+          "mediaCount": 1
+        }
+      ],
+      "feedPresence": {
+        "at": "2026-11-13T03:33:10.829670+00:00",
+        "sourceDate": "2026-11-13 06:32",
+        "url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+        "maxUrl": "https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNTMwODU2ODQzM2MzYWVlNzZjYzcwYTcwYmFiZDZiODQiLCJvZmZlcl9pZCI6Im1heF8xMzMwIn0",
+        "telegramUrl": "https://t.me/any_toour/595"
+      }
+    },
+    {
+      "id": "8e968c47-e2e7-4467-a030-679ee02d5be3",
+      "tourvisorId": "983",
+      "revision": 3,
+      "acceptedRevision": 2,
+      "publicationSnapshots": [
+        {
+          "channel": "max",
+          "text": "✈️ Туры в Anitas Beach Hotel\n📍 Конаклы, Алания, Турция.\n\nКомпактный отель на первой линии в Конаклы — для пляжного отпуска без большой территории.\n\n• Открытый и детский бассейны.\n• Игровая площадка для детей.\n• Фитнес и хамам; условия посещения зависят от тарифа.\n\nНа песчано-галечном пляже у входа в море есть каменные плиты и пирс. Для поездки с малышами важно учесть такой заход в воду.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "textSha256": "4109e7bb7a95b9851ea48e24534a1ce9caba60e1a17d75dcf3a88d4315218a74",
+          "capturedAt": "2026-11-13T03:23:16+00:00",
+          "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43358127823/attempts/1",
+          "proofKind": "completed_package",
+          "post": {
+            "url": "https://max.ru/channel_anytour/AaHS6y9oOBE",
+            "mid": "mid.ffffb6caf0606fed01a1d2eb2f683811",
+            "at": "2026-11-13T03:23:16+00:00",
+            "idKind": "provider",
+            "buttonProof": {
+              "url": "https://max.ru/id9704048781_1_bot?start=p_rDFKcHViYoTXQPfDZSf5842C",
+              "publicationId": "1320",
+              "hotelNativeId": "983",
+              "verifiedAt": "2026-11-13T03:23:16+00:00",
+              "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43358127823/attempts/1"
+            }
+          },
+          "publicationId": "1320",
+          "versionId": "4330",
+          "buttonText": "✈️ Узнать стоимость тура",
+          "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/deb21f08c7bb5d0d34c7a1d9a29ff44b4b0a1bf7/.github/traffic-publish/commercial-batch-20261113-10/983.png",
+          "mediaCount": 1
+        },
+        {
+          "channel": "telegram",
+          "text": "✈️ Туры в Anitas Beach Hotel\n📍 Конаклы, Алания, Турция.\n\nКомпактный отель на первой линии в Конаклы — для пляжного отпуска без большой территории.\n\n• Открытый и детский бассейны.\n• Игровая площадка для детей.\n• Фитнес и хамам; условия посещения зависят от тарифа.\n\nНа песчано-галечном пляже у входа в море есть каменные плиты и пирс. Для поездки с малышами важно учесть такой заход в воду.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "textSha256": "4109e7bb7a95b9851ea48e24534a1ce9caba60e1a17d75dcf3a88d4315218a74",
+          "capturedAt": "2026-11-13T03:23:16+00:00",
+          "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43358127823/attempts/1",
+          "proofKind": "completed_package",
+          "post": {
+            "url": "https://t.me/any_toour/596",
+            "mid": "596",
+            "at": "2026-11-13T03:23:16+00:00",
+            "idKind": "provider",
+            "buttonProof": {
+              "url": "https://t.me/anyru_bot?start=p_K5c1Fh4bL34n0UDLT6FPkzoK",
+              "publicationId": "1316",
+              "hotelNativeId": "983",
+              "verifiedAt": "2026-11-13T03:23:16+00:00",
+              "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43358127823/attempts/1"
+            }
+          },
+          "publicationId": "1316",
+          "versionId": "4326",
+          "buttonText": "✈️ Узнать стоимость тура",
+          "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/deb21f08c7bb5d0d34c7a1d9a29ff44b4b0a1bf7/.github/traffic-publish/commercial-batch-20261113-10/983.png",
+          "mediaCount": 1
+        }
+      ],
+      "feedPresence": {
+        "at": "2026-11-13T03:33:10.829670+00:00",
+        "sourceDate": "2026-11-13 06:32",
+        "url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+        "maxUrl": "https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZmQxOTZmNmMzZTY1M2UwZTI4YWVmNmJiNjk3YTRlY2YiLCJvZmZlcl9pZCI6Im1heF85ODMifQ",
+        "telegramUrl": "https://t.me/any_toour/596"
+      }
+    },
+    {
+      "id": "94945106-2d21-5f24-a03a-a09892d074b8",
+      "tourvisorId": "497",
+      "revision": 3,
+      "acceptedRevision": 2,
+      "publicationSnapshots": [
+        {
+          "channel": "max",
+          "text": "✈️ Туры в Titanic Resort & Aqua Park\n📍 Хургада, Египет.\n\nСемейный отдых с аквапарком в Хургаде 💦\n\nВ Titanic Resort & Aqua Park — 14 горок для взрослых и 16 для детей. Хороший вариант для тех, кто хочет добавить водные развлечения к пляжному отпуску.\n\n• Горки для разных возрастов.\n• В каталоге отеля есть семейные категории номеров.\n• До пляжа Titanic Royal предусмотрен шаттл.\n\nОтель не на первой линии. У горок действуют ограничения по возрасту и росту.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "textSha256": "f978323ed3f943b3f3fae7c413e7be2aa74d1b8619a493bdf8bed9deef732506",
+          "capturedAt": "2026-11-13T03:23:16+00:00",
+          "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43358127823/attempts/1",
+          "proofKind": "completed_package",
+          "post": {
+            "url": "https://max.ru/channel_anytour/AaHS6zgmfC0",
+            "mid": "mid.ffffb6caf0606fed01a1d2eb38267c2d",
+            "at": "2026-11-13T03:23:16+00:00",
+            "idKind": "provider",
+            "buttonProof": {
+              "url": "https://max.ru/id9704048781_1_bot?start=p_Wgf3aTZJEKlyNCUDAlF5vfns",
+              "publicationId": "1321",
+              "hotelNativeId": "497",
+              "verifiedAt": "2026-11-13T03:23:16+00:00",
+              "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43358127823/attempts/1"
+            }
+          },
+          "publicationId": "1321",
+          "versionId": "4331",
+          "buttonText": "✈️ Узнать стоимость тура",
+          "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/deb21f08c7bb5d0d34c7a1d9a29ff44b4b0a1bf7/.github/traffic-publish/commercial-batch-20261113-10/497.png",
+          "mediaCount": 1
+        },
+        {
+          "channel": "telegram",
+          "text": "✈️ Туры в Titanic Resort & Aqua Park\n📍 Хургада, Египет.\n\nСемейный отдых с аквапарком в Хургаде 💦\n\nВ Titanic Resort & Aqua Park — 14 горок для взрослых и 16 для детей. Хороший вариант для тех, кто хочет добавить водные развлечения к пляжному отпуску.\n\n• Горки для разных возрастов.\n• В каталоге отеля есть семейные категории номеров.\n• До пляжа Titanic Royal предусмотрен шаттл.\n\nОтель не на первой линии. У горок действуют ограничения по возрасту и росту.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "textSha256": "f978323ed3f943b3f3fae7c413e7be2aa74d1b8619a493bdf8bed9deef732506",
+          "capturedAt": "2026-11-13T03:23:16+00:00",
+          "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43358127823/attempts/1",
+          "proofKind": "completed_package",
+          "post": {
+            "url": "https://t.me/any_toour/597",
+            "mid": "597",
+            "at": "2026-11-13T03:23:16+00:00",
+            "idKind": "provider",
+            "buttonProof": {
+              "url": "https://t.me/anyru_bot?start=p_RWFuF9nSdfaO3tndPMAA1xOH",
+              "publicationId": "1317",
+              "hotelNativeId": "497",
+              "verifiedAt": "2026-11-13T03:23:16+00:00",
+              "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43358127823/attempts/1"
+            }
+          },
+          "publicationId": "1317",
+          "versionId": "4327",
+          "buttonText": "✈️ Узнать стоимость тура",
+          "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/deb21f08c7bb5d0d34c7a1d9a29ff44b4b0a1bf7/.github/traffic-publish/commercial-batch-20261113-10/497.png",
+          "mediaCount": 1
+        }
+      ],
+      "feedPresence": {
+        "at": "2026-11-13T03:33:10.829670+00:00",
+        "sourceDate": "2026-11-13 06:32",
+        "url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+        "maxUrl": "https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfY2FmY2IyNWJiYjBkOWYzMzk0Njc1ZjBiM2VhM2IyZDgiLCJvZmZlcl9pZCI6Im1heF80OTcifQ",
+        "telegramUrl": "https://t.me/any_toour/597"
+      }
+    },
+    {
+      "id": "eab88ffa-1ed5-55af-b304-f0a6f955f450",
+      "tourvisorId": "231",
+      "revision": 3,
+      "acceptedRevision": 2,
+      "publicationSnapshots": [
+        {
+          "channel": "max",
+          "text": "✈️ Туры в The Grand Makadi\n📍 Макади-Бей, Египет.\n\nМакади-Бей для тех, кто едет к морю и рифу 🐠\n\nThe Grand Makadi подойдёт для пляжного отдыха и знакомства с подводным миром Красного моря.\n\n• Пляжная зона у территории.\n• Пирс с доступом к домашнему рифу.\n• Открытый бассейн с сезонным подогревом.\n\nВход к рифу — с пирса. Песчаный пляж не означает плавный песчаный заход в море.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "textSha256": "22304371d7a27280536f821e7e9fdc0ba51b152b75d4a4bbf52bd492b1c96872",
+          "capturedAt": "2026-11-13T03:23:16+00:00",
+          "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43358127823/attempts/1",
+          "proofKind": "completed_package",
+          "post": {
+            "url": "https://max.ru/channel_anytour/AaHS60D1FKA",
+            "mid": "mid.ffffb6caf0606fed01a1d2eb40f514a0",
+            "at": "2026-11-13T03:23:16+00:00",
+            "idKind": "provider",
+            "buttonProof": {
+              "url": "https://max.ru/id9704048781_1_bot?start=p_dzkx1G13-UCEqsCj83qgdJOh",
+              "publicationId": "1322",
+              "hotelNativeId": "231",
+              "verifiedAt": "2026-11-13T03:23:16+00:00",
+              "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43358127823/attempts/1"
+            }
+          },
+          "publicationId": "1322",
+          "versionId": "4332",
+          "buttonText": "✈️ Узнать стоимость тура",
+          "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/deb21f08c7bb5d0d34c7a1d9a29ff44b4b0a1bf7/.github/traffic-publish/commercial-batch-20261113-10/231.png",
+          "mediaCount": 1
+        },
+        {
+          "channel": "telegram",
+          "text": "✈️ Туры в The Grand Makadi\n📍 Макади-Бей, Египет.\n\nМакади-Бей для тех, кто едет к морю и рифу 🐠\n\nThe Grand Makadi подойдёт для пляжного отдыха и знакомства с подводным миром Красного моря.\n\n• Пляжная зона у территории.\n• Пирс с доступом к домашнему рифу.\n• Открытый бассейн с сезонным подогревом.\n\nВход к рифу — с пирса. Песчаный пляж не означает плавный песчаный заход в море.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "textSha256": "22304371d7a27280536f821e7e9fdc0ba51b152b75d4a4bbf52bd492b1c96872",
+          "capturedAt": "2026-11-13T03:23:16+00:00",
+          "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43358127823/attempts/1",
+          "proofKind": "completed_package",
+          "post": {
+            "url": "https://t.me/any_toour/598",
+            "mid": "598",
+            "at": "2026-11-13T03:23:16+00:00",
+            "idKind": "provider",
+            "buttonProof": {
+              "url": "https://t.me/anyru_bot?start=p_JwsaKex-fPBtk0Bthia6qvZm",
+              "publicationId": "1318",
+              "hotelNativeId": "231",
+              "verifiedAt": "2026-11-13T03:23:16+00:00",
+              "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43358127823/attempts/1"
+            }
+          },
+          "publicationId": "1318",
+          "versionId": "4328",
+          "buttonText": "✈️ Узнать стоимость тура",
+          "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/deb21f08c7bb5d0d34c7a1d9a29ff44b4b0a1bf7/.github/traffic-publish/commercial-batch-20261113-10/231.png",
+          "mediaCount": 1
+        }
+      ],
+      "feedPresence": {
+        "at": "2026-11-13T03:33:10.829670+00:00",
+        "sourceDate": "2026-11-13 06:32",
+        "url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+        "maxUrl": "https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMWZiMWM5MzJjZmExZTExZDcyN2U3MjYxM2U4M2VlNGUiLCJvZmZlcl9pZCI6Im1heF8yMzEifQ",
+        "telegramUrl": "https://t.me/any_toour/598"
+      }
+    }
+  ]
+}

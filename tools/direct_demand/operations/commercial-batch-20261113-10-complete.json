@@ -1,0 +1,124 @@
+{
+  "operation": "commercial-hotel-batch-20261113-10-v1",
+  "state": "COMPLETED",
+  "hotels": [
+    1330,
+    983,
+    497,
+    231
+  ],
+  "full_pairs_before": 580,
+  "full_pairs_after": 584,
+  "queue_before": 25,
+  "queue_after": 21,
+  "site_version": 329,
+  "original_publication": {
+    "run_id": 43358127823,
+    "conclusion": "failure_after_verified_send",
+    "actual_new_posts": 8,
+    "reused": 0,
+    "artifact_id": 14006987622,
+    "archive_sha256": "63f47c14306a666d914ef0b40dbbbe64d8b2f640e4f0eda634febb83e69a5b63",
+    "terminal_summary_sha256": "0510d0536d3aa00d7d719b13ad3b64ab0f2344a14ac98f808babd35e648f27b3"
+  },
+  "independent_read": {
+    "run_id": 43358539473,
+    "conclusion": "success",
+    "artifact_id": 14007490826,
+    "archive_sha256": "d5d3c02914608756f1a989797dd83eb5ada87319a360ca75897a769b7f4ef42b",
+    "bound_read_sha256": "19f6a1d81cd331e9c7b8ef4b8bc8b9912379b07e383a1c838919010d1bc81cfa"
+  },
+  "native": {
+    "run_id": 43359006895,
+    "conclusion": "success",
+    "total": 584,
+    "old580_identical": true,
+    "private_checkpoint": "6dc83da8ff90ea8f85dffd10847d0c984345f336"
+  },
+  "feed": {
+    "run_id": 43359639697,
+    "conclusion": "success",
+    "artifact_id": 14007338590,
+    "archive_sha256": "0924a0266da63a8d4cf13152eeab4a79d5e67738b93fb06cab687bcac9a28da5",
+    "counts": [
+      584,
+      584,
+      1168
+    ],
+    "old580_offer_and_price_bytes_preserved": true
+  },
+  "site": {
+    "ok": true,
+    "operation": "commercial-hotel-batch-20261113-10-v1",
+    "site_version_before": 324,
+    "site_version_after": 329,
+    "cards": 666,
+    "published_pairs_before": 580,
+    "published_pairs_after": 584,
+    "queue_before": 25,
+    "queue_after": 21,
+    "feed_pairs": 584,
+    "new_publication_snapshots": 8,
+    "unaffected_cards_exact": 662,
+    "accepted_versions_research_holds_prices_preserved": true,
+    "historical_demand_snapshot_unchanged": true,
+    "category_evidence_growth": 0,
+    "source_edits": 4,
+    "receipt_imports": 1,
+    "automatic_retries": 0,
+    "new_pairs": [
+      {
+        "hotel_id": 1330,
+        "site_id": "613507e2-bd06-4bc6-8322-095f97b16811",
+        "name": "CASTLE PARK (EX. LARISSA PARK)",
+        "max": "https://max.ru/channel_anytour/AaHS6yZoVr4",
+        "telegram": "https://t.me/any_toour/595"
+      },
+      {
+        "hotel_id": 983,
+        "site_id": "8e968c47-e2e7-4467-a030-679ee02d5be3",
+        "name": "ANITAS",
+        "max": "https://max.ru/channel_anytour/AaHS6y9oOBE",
+        "telegram": "https://t.me/any_toour/596"
+      },
+      {
+        "hotel_id": 497,
+        "site_id": "94945106-2d21-5f24-a03a-a09892d074b8",
+        "name": "TITANIC RESORT & AQUA PARK",
+        "max": "https://max.ru/channel_anytour/AaHS6zgmfC0",
+        "telegram": "https://t.me/any_toour/597"
+      },
+      {
+        "hotel_id": 231,
+        "site_id": "eab88ffa-1ed5-55af-b304-f0a6f955f450",
+        "name": "GRAND MAKADI",
+        "max": "https://max.ru/channel_anytour/AaHS60D1FKA",
+        "telegram": "https://t.me/any_toour/598"
+      }
+    ]
+  },
+  "nightly": {
+    "previous": 552,
+    "total": 556,
+    "source": "d0e3b3ead42e8ffc6118d2cb053c8fdb14a9d207",
+    "gzip_sha256": "8127029710568888e9db36ed68c3c1916d68b1bd04dba2801a552c6586da0b08",
+    "collector_pr": 5030,
+    "head": "6ed60d4e3071cab2454b831c5ad9394aa3a4ff70",
+    "manual_price_or_supplier_calls": 0,
+    "collector_merge": "23af90cfd1616443b45a785dba7ff9f4c561b535",
+    "collector_pr_validation": 43360849145,
+    "collector_pr_security": 43360849184,
+    "collector_main_validation": 43360958627,
+    "collector_main_security": 43360958383,
+    "production_collection": "SKIPPED",
+    "first_natural_new_roster_nightly_result": "NOT_YET_OBSERVED"
+  },
+  "preflight_failures_preserved": [
+    43357850083,
+    43358824903
+  ],
+  "resends": 0,
+  "completed_at_moscow": "2026-11-13T06:45:58.878925+03:00",
+  "site_action_receipts_file": "commercial-batch-20261113-10-site-action-receipts.json",
+  "publication_snapshots_file": "commercial-batch-20261113-10-publication-snapshots.json"
+}

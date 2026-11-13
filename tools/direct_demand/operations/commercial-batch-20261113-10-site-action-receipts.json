@@ -1,0 +1,36 @@
+{
+  "operation": "commercial-hotel-batch-20261113-10-v1",
+  "responses": [
+    {
+      "filename": "edit-01-613507e2-bd06-4bc6-8322-095f97b16811.response.json",
+      "sha256": "f5a22da94ae6b9fa242718ad5652cacab691a676ba3181a567c51404d03fbed4",
+      "original_raw_utf8": "{\n  \"version\": 325,\n  \"event\": {\n    \"id\": \"batch10-source-20261113-edit-613507e2-bd06-4bc6-8322-095f97b16811\",\n    \"title\": \"CASTLE PARK (EX. LARISSA PARK): новая версия\",\n    \"type\": \"success\"\n  }\n}\n"
+    },
+    {
+      "filename": "edit-02-8e968c47-e2e7-4467-a030-679ee02d5be3.response.json",
+      "sha256": "f5cbfd5a5c3ca5b13455a164abdfdd5fd34d2647addf569acc85a87ce35c57c9",
+      "original_raw_utf8": "{\n  \"version\": 326,\n  \"event\": {\n    \"id\": \"batch10-source-20261113-edit-8e968c47-e2e7-4467-a030-679ee02d5be3\",\n    \"title\": \"ANITAS: новая версия\",\n    \"type\": \"success\"\n  }\n}\n"
+    },
+    {
+      "filename": "edit-03-94945106-2d21-5f24-a03a-a09892d074b8.response.json",
+      "sha256": "ad32caceb178c9b9413ca914ebeb5387eda94eaf703b35dc714aeeb08ac8fc86",
+      "original_raw_utf8": "{\n  \"version\": 327,\n  \"event\": {\n    \"id\": \"batch10-source-20261113-edit-94945106-2d21-5f24-a03a-a09892d074b8\",\n    \"title\": \"TITANIC RESORT & AQUA PARK: новая версия\",\n    \"type\": \"success\"\n  }\n}\n"
+    },
+    {
+      "filename": "edit-04-eab88ffa-1ed5-55af-b304-f0a6f955f450.response.json",
+      "sha256": "1f99abeb825988a2257e06f22ee147ae7063a405b116c4810a8074a5086988c4",
+      "original_raw_utf8": "{\n  \"version\": 328,\n  \"event\": {\n    \"id\": \"batch10-source-20261113-edit-eab88ffa-1ed5-55af-b304-f0a6f955f450\",\n    \"title\": \"GRAND MAKADI: новая версия\",\n    \"type\": \"success\"\n  }\n}\n"
+    },
+    {
+      "filename": "import.response.json",
+      "sha256": "6eb1110c372e0137cb832e813dd7d1929362e505c3e0a37905c576a1c18b96be",
+      "original_raw_utf8": "{\n  \"version\": 329,\n  \"event\": {\n    \"id\": \"batch10-source-20261113-import-v1\",\n    \"title\": \"Batch10 · четыре опубликованных отелей и подтверждённый feed\",\n    \"type\": \"success\"\n  }\n}\n"
+    },
+    {
+      "filename": "preview.response.json",
+      "sha256": "403bb35b655cab044882bbd0ca5b0dcb90a89dfb82ae682c2b3e6a619269a325",
+      "original_raw_utf8": "{\n  \"version\": 328,\n  \"added\": 0,\n  \"merged\": 4,\n  \"rejected\": 0,\n  \"details\": []\n}\n"
+    }
+  ],
+  "automatic_retries": 0
+}
