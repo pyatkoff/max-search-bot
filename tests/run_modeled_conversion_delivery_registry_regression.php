@@ -78,11 +78,12 @@ function operationalDailyStatusAssertions(PDO $p,callable $check,string $date,in
         $adapter=new ModeledConversionStatusMcpAdapter($p);
         $got=$adapter->call(ModeledConversionStatusMcpAdapter::NAME,[],1,str_repeat('e',32),static function():void{},new ModeledConversionStatusBudget());
         $queries=OperationalStatusObservedStatement::$queries;
-        $check('unchanged empty-argument MCP executes operational status before old profile or historical source reads',
+        $check('unchanged empty-argument MCP executes operational status without historical source readers',
             $got['available']&&$got['view']==='operational_delivery_v1'
             &&$got['state']['last_tick_status']==='profiled'&&$got['provider_requests_in_reader']===0
             &&$got['model_calls']===0&&$got['conversion_uploads']===0
-            &&!preg_match('/native_identity_point|retained_app_|retained_click_|initial_api_receipt_packets|namespace_matches|prediction_json|profile_json|assessment_namespace/i',implode(' ',$queries)));
+            &&array_key_exists('forecast_core',$got)&&is_bool($got['forecast_core']['available'])
+            &&!preg_match('/native_identity_point|retained_app_|retained_click_|initial_api_receipt_packets/i',implode(' ',$queries)));
         // A fixed past day exercises real nonzero channel totals independently of today's empty MCP day.
         $budget=new ModeledConversionStatusBudget();
         $daily=(new ModeledConversionDailyReconciliationReader($p,static function():void{},null,$budget))->read(['date'=>$date],$now);

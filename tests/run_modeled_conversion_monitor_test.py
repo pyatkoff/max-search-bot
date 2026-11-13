@@ -570,12 +570,12 @@ class LinkageObservationTests(unittest.TestCase):
         self.assertEqual(result["notification"], "sent")
         self.assertEqual(state["linkage_seen"]["events"], 4)
         self.assertEqual(self.wire.posts(), 1)
-        self.assertIn("сохранённых отказов", self.wire.calls[-1][2]["text"])
+        self.assertIn("сохранённых отказов", self.wire.calls[-1][1]["text"])
         self.assertIsNone(state["pending"])
         state, result = self.cycle(state, linkage_health(4), "503", 600)
         self.assertEqual(result["notification"], "sent")
         self.assertIsNone(state["incident"])
-        text = self.wire.calls[-1][2]["text"]
+        text = self.wire.calls[-1][1]["text"]
         self.assertIn("новых отказов привязки не наблюдалось", text)
         self.assertIn("Ранее отклонённые начисления сохранены", text)
         self.assertNotIn("восстановлена", text)

@@ -27,7 +27,7 @@ function forecastNativeAuthGrant(ManagerPreparationOAuth $oauth,string $client,s
 function forecastNativeAuthSnapshot(PDO $pdo):array
 {
     $tables=['managers'=>'id','projects'=>'id','manager_projects'=>'manager_id,project_id',
-        'conversations'=>'id','manager_preparation_oauth_clients'=>'client_id',
+        'conversations'=>'id','customers'=>'id','customer_channels'=>'id','manager_preparation_oauth_clients'=>'client_id',
         'manager_preparation_oauth_grants'=>'grant_id','manager_preparation_oauth_codes'=>'code_hash',
         'manager_preparation_oauth_tokens'=>'token_hash','manager_prepared_replies'=>'job_id',
         'manager_preparation_events'=>'subscription_id','manager_preparation_cursors'=>'project_key,lane',
@@ -74,6 +74,39 @@ function forecastNativeEmptyUpdate(string $cursor):array
     return $wrapper+$packet+['processing'=>['version'=>'admitted_journal_profiles_v1_2',
         'journal_cursor'=>$cursor,'source_fence_journal_id'=>$cursor]];
 }
+/** Exact four-row owner day, independent of moving suffix or optional forecasts. */
+function forecastNativeOperationalDay(array $data):bool
+{
+    $day=$data['daily_reconciliation']??[];
+    return ($day['available']??false)===true&&($day['timezone']??null)==='Europe/Moscow'
+        &&($day['calendar']['accruals']['events']??null)===4
+        &&($day['calendar']['accruals']['conversations']??null)===2
+        &&($day['calendar']['accruals']['value_rub']??null)===37500
+        &&($day['calendar']['accruals']['by_platform']['max']??null)===['events'=>3,'conversations'=>1,'value_rub'=>12500]
+        &&($day['calendar']['accruals']['by_platform']['telegram']??null)===['events'=>1,'conversations'=>1,'value_rub'=>25000]
+        &&($day['calendar']['upload_claims']['events']??null)===3
+        &&($day['calendar']['api_receipts']['events']??null)===0
+        &&($day['calendar']['processed']['events']??null)===0
+        &&($day['coverage']['api_receipts_without_observed_clock']['events']??null)===3
+        &&($day['coverage']['api_receipts_without_observed_clock']['conversations']??null)===1
+        &&($day['coverage']['api_receipts_without_observed_clock']['value_rub']??null)===12500
+        &&($day['coverage']['per_event_visit_match']['status']??null)==='unavailable';
+}
+function forecastNativeOptionalBudget(array $section):bool
+{
+    return ($section['available']??null)===false
+        &&in_array($section['reason']??null,['budget_headroom','time_headroom','response_budget'],true);
+}
+function forecastNativeMonetaryUnknown(array $core):bool
+{
+    $money=$core['saved']['deal_value']['by_monetary_policy'][ModeledConversionDealValue::VERSION]??[];
+    return ($core['available']??false)===true&&($money['versions']??null)===1
+        &&($money['estimated_value_versions']??null)===0
+        &&($money['value_cap_rub']??null)===100000&&($money['unknown_price_base_rub']??null)===10000
+        &&($money['unknown_price_versions']??null)===1
+        &&($money['full_value_base_range_rub']??null)===['minimum'=>10000,'maximum'=>10000]
+        &&($core['saved']['deal_value']['value_range_rub']??null)===['minimum'=>null,'maximum'=>null];
+}
 function forecastNativeAuthRegression():void
 {
     $admin=null;$pdo=null;$created=false;$database='';$previousConnection=null;$connectionProperty=null;
@@ -99,11 +132,13 @@ function forecastNativeAuthRegression():void
         $pdo->exec("CREATE TABLE managers(id BIGINT UNSIGNED PRIMARY KEY,role VARCHAR(32),is_active TINYINT) ENGINE=InnoDB;
             CREATE TABLE projects(id BIGINT UNSIGNED PRIMARY KEY,project_key VARCHAR(64),display_name VARCHAR(191),is_active TINYINT) ENGINE=InnoDB;
             CREATE TABLE manager_projects(manager_id BIGINT UNSIGNED,project_id BIGINT UNSIGNED,PRIMARY KEY(manager_id,project_id)) ENGINE=InnoDB;
-            CREATE TABLE conversations(id BIGINT UNSIGNED PRIMARY KEY) ENGINE=InnoDB;
+            CREATE TABLE customers(id BIGINT UNSIGNED PRIMARY KEY,display_name VARCHAR(191)) ENGINE=InnoDB;
+            CREATE TABLE customer_channels(id BIGINT UNSIGNED PRIMARY KEY,customer_id BIGINT UNSIGNED,project_key VARCHAR(64),channel VARCHAR(16),external_user_id VARCHAR(32),external_chat_id VARCHAR(32)) ENGINE=InnoDB;
+            CREATE TABLE conversations(id BIGINT UNSIGNED PRIMARY KEY,customer_id BIGINT UNSIGNED,customer_channel_id BIGINT UNSIGNED,project_key VARCHAR(64),channel VARCHAR(16),is_test INT DEFAULT 0,external_chat_id VARCHAR(32)) ENGINE=InnoDB;
             INSERT INTO managers VALUES(1,'admin',1);
             INSERT INTO projects VALUES(1,'anytour','Native forecast fixture',1);
             INSERT INTO manager_projects VALUES(1,1);
-            INSERT INTO conversations VALUES(1)");
+            INSERT INTO conversations(id) VALUES(1)");
         foreach(['044_manager_prepared_replies.sql','045_manager_preparation_oauth.sql',
             '046_manager_preparation_events.sql','050_manager_preparation_cursors.sql',
             '066_modeled_conversion_profiles.sql']as$file)
@@ -156,14 +191,21 @@ function forecastNativeAuthRegression():void
             foreach([$forecast,$combined]as$i=>$grant){
                 [$response,$afterBearer,$afterRead]=forecastNativeAuthDispatch($pdo,$grant);
                 $saved=$response['result']['structuredContent']??[];
-                $check('real dispatcher reads new saved V1 percentages with grant variant '.$i,
-                    ($saved['available']??false)&&($saved['reader_version']??null)===ModeledConversionForecastStatusReader::VERSION
+                $check('real operational dispatcher retains validated current V1 percentages with grant variant '.$i,
+                    ($saved['available']??false)&&($saved['view']??null)==='operational_delivery_v1'
+                    &&($saved['forecast_core']['available']??false)
+                    &&($saved['reader_version']??null)===ModeledConversionForecastStatusReader::VERSION
                     &&($saved['confirmation']??null)==='saved_prospective_estimates'
                     &&($saved['saved']['prospective_estimates']??null)===1
                     &&($saved['saved']['valid_v1_versions']??null)===1
                     &&($saved['saved']['estimated_probability_range']['minimum']??null)===0.083333
                     &&($saved['saved']['channel_counts']['telegram']??null)===1
                     &&($saved['state']['last_tick_status']??null)==='idle');
+                $check('missing initial delivery schema stays explicitly unknown without hiding a valid profile core variant '.$i,
+                    ($saved['daily_reconciliation']['available']??true)===false
+                    &&($saved['daily_reconciliation']['reason']??null)==='storage_unavailable'
+                    &&($saved['value_delivery']['available']??true)===false
+                    &&($saved['value_delivery']['reason']??null)==='storage_unavailable');
                 $check('one budget includes real bearer repeated authorization and reader variant '.$i,
                     $afterBearer<65536&&$afterRead<$afterBearer&&$afterRead>=4096
                     &&strlen(json_encode($response,JSON_THROW_ON_ERROR))<=65536);
@@ -209,7 +251,9 @@ function forecastNativeAuthRegression():void
                 [$response]=forecastNativeAuthDispatch($pdo,$forecast);
                 $data=$response['result']['structuredContent']??[];
                 $check('missing derived storage remains authorized explicit unknown without a consent challenge',
-                    ($data['available']??null)===false&&($data['reason']??null)==='storage_unavailable'
+                    ($data['available']??null)===true&&($data['view']??null)==='operational_delivery_v1'
+                    &&($data['forecast_core']['available']??true)===false
+                    &&($data['forecast_core']['reason']??null)==='storage_unavailable'
                     &&array_key_exists('saved',$data)&&$data['saved']===null
                     &&!isset($response['result']['_meta']['mcp/www_authenticate']));
             });
@@ -217,11 +261,23 @@ function forecastNativeAuthRegression():void
         $check('all read and fault cases preserve complete fixture state',forecastNativeAuthSnapshot($pdo)===$before);
         $phase='composed_status_budget';
         forecastLatencyAssertions($pdo,$check);
+        $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN target VARCHAR(100)');
         $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN value_reviewed_at_unix BIGINT NULL');
         $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN external_user_id VARCHAR(32)');
         $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN next_attempt_unix BIGINT DEFAULT 0');
         $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD value_ready_at_unix BIGINT NULL,ADD value_api_accepted_at_unix BIGINT NULL,ADD value_processed_at_unix BIGINT NULL,ADD value_receipt_basis VARCHAR(24) NULL');
         $pdo->exec('UPDATE max_channel_conversion_outbox SET external_user_id=CAST(conversation_id AS CHAR)');
+        $pdo->exec("INSERT INTO customers VALUES(111,'Synthetic MAX owner'),(333,'Synthetic Telegram owner');
+            INSERT INTO customer_channels VALUES(111,111,'anytour','max','111','-111'),(333,333,'anytour','telegram','333','333');
+            INSERT INTO conversations(id,customer_id,customer_channel_id,project_key,channel,is_test,external_chat_id)
+                VALUES(111,111,111,'anytour','max',0,'-111'),(333,333,333,'anytour','telegram',0,'333')");
+        $targets=$pdo->query('SELECT id,value_stage FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        $bindTarget=$pdo->prepare('UPDATE max_channel_conversion_outbox SET target=? WHERE id=?');
+        foreach($targets as$target){
+            $rank=array_search($target['value_stage'],ModeledConversionValueContract::STAGES,true);
+            if($rank===false)throw new RuntimeException('fixture_unknown_stage');
+            $bindTarget->execute([ModeledConversionValueContract::key($rank),$target['id']]);
+        }
         $pdo->exec("CREATE TABLE advertising_visit_observations(id BIGINT PRIMARY KEY,project_key VARCHAR(40),source_key VARCHAR(80),platform VARCHAR(16),counter_id VARCHAR(20),external_user_id VARCHAR(32),identity_status VARCHAR(16),client_id VARCHAR(40),visit_at_unix BIGINT,observed_at_unix BIGINT,received_at_unix BIGINT)");
         // Keep the synthetic visit before its pending signal when the fixture calendar changes.
         $pdo->exec("INSERT INTO advertising_visit_observations SELECT 1,'anytour','tgmini','telegram','98615635','333','verified','88000003',event_unix-1300,event_unix-1200,event_unix-1100 FROM max_channel_conversion_outbox WHERE id=3");
@@ -240,6 +296,11 @@ function forecastNativeAuthRegression():void
         // must be inside the current Moscow day, including its first second.
         $composedDay=(new DateTimeImmutable('@'.time()))->setTimezone(new DateTimeZone('Europe/Moscow'))->setTime(0,0);
         $composedDayStart=$composedDay->getTimestamp();
+        // These four existing value rows, not the bounded recent suffix, are the complete current owner day.
+        $pdo->prepare('UPDATE max_channel_conversion_outbox SET event_unix=?,claimed_at_unix=CASE WHEN claimed_at_unix IS NULL THEN NULL ELSE ? END')
+            ->execute([$composedDayStart,$composedDayStart]);
+        $pdo->prepare('UPDATE advertising_visit_observations SET visit_at_unix=?,observed_at_unix=?,received_at_unix=? WHERE id=1')
+            ->execute([$composedDayStart-1300,$composedDayStart-1200,$composedDayStart-1100]);
         $alignSource=$pdo->prepare("UPDATE modeled_conversion_stream_versions SET observed_at_unix=?,snapshot_json=JSON_SET(snapshot_json,'$.source_created_at_unix',CAST(? AS UNSIGNED)) WHERE project_key='anytour' AND source_kind='message' AND id BETWEEN 3000 AND 5004");
         $alignSource->execute([$composedDayStart,$composedDayStart]);
         $alignProfiles=$pdo->prepare("UPDATE modeled_conversion_profile_versions SET observed_at_unix=? WHERE project_key='anytour' AND platform='max' AND id BETWEEN 10000 AND 12687");
@@ -261,37 +322,39 @@ function forecastNativeAuthRegression():void
                 'budget_reason'=>in_array($reason,['byte_limit','time_limit'],true)?$reason:null,
                 'remaining_after_bearer'=>$afterBearer,'remaining_after_read'=>$afterRead,
                 'available'=>$data['available']??null,'value_available'=>$data['value_delivery']['available']??null,
+                'day_available'=>$data['daily_reconciliation']['available']??null,
+                'core_available'=>$data['forecast_core']['available']??null,'core_reason'=>$data['forecast_core']['reason']??null,
                 'timing_available'=>$data['today_latency']['available']??null,
                 'linkage_available'=>$data['telegram_linkage']['available']??null,
-                'daily_available'=>$data['daily_delivery']['available']??null,
-                'daily_reason'=>$data['daily_delivery']['reason']??null,
-                'linkage_reason'=>$data['telegram_linkage']['reason']??null,
-                'timing_scopes'=>$data['today_latency']['profile_sample']['scopes_inspected']??null,
-                'diagnosis_limit'=>$data['saved_input_diagnosis']['window']['max_versions']??null,
-                'diagnosis_inspected'=>$data['saved_input_diagnosis']['window']['inspected_versions']??null,
-                'valid_packets'=>$data['saved']['valid_v1_versions']??null,
                 'result_bytes'=>strlen(json_encode($data,JSON_THROW_ON_ERROR)),
                 'rpc_bytes'=>strlen(json_encode($response,JSON_THROW_ON_ERROR))],JSON_THROW_ON_ERROR).PHP_EOL;
-            $check('composed real OAuth read retains delivery timing and forecasts under one shared byte budget',
-                ($data['available']??false)&&($data['value_delivery']['available']??false)
-                &&($data['daily_delivery']['available']??false)
-                &&($data['today_latency']['available']??false)
-                &&($data['today_latency']['profile_sample']['scopes_inspected']??null)===32
-                &&($data['telegram_linkage']['available']??false)&&($data['telegram_linkage']['pending']['events']??null)===1
-                &&($data['telegram_linkage']['pending']['reason_counts']['unique_eligible']??null)===1
-                &&($data['saved_input_diagnosis']['window']['max_versions']??null)===100
-                &&($data['saved_input_diagnosis']['window']['inspected_versions']??null)===100
-                &&($data['saved_input_diagnosis']['window']['complete_within_bound']??true)===false
-                &&($data['saved']['valid_v1_versions']??0)>0
-                &&$afterRead>0&&$afterRead<$afterBearer
-                &&strlen(json_encode($data,JSON_THROW_ON_ERROR))<=30000
+            $check('composed real OAuth operational read prioritizes the complete owner day and delivery under the shared budget',
+                ($data['available']??false)&&($data['view']??null)==='operational_delivery_v1'
+                &&($data['value_delivery']['available']??false)&&forecastNativeOperationalDay($data)
+                &&is_array($data['external_monitor']??null)&&array_key_exists('pipeline',$data['external_monitor'])
+                &&($data['provider_requests_in_reader']??null)===0
+                &&($data['model_calls']??null)===0&&($data['conversion_uploads']??null)===0
+                &&$afterRead>=4096&&$afterRead<$afterBearer
+                &&strlen(json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=28000
                 &&strlen(json_encode($response,JSON_THROW_ON_ERROR))<=65536);
+            $core=$data['forecast_core']??[];
+            $check('dense operational profile context is one validated saved version or an explicit budget omission',
+                (($core['available']??false)&&($data['saved']['valid_v1_versions']??null)===1
+                    &&($core['basis']??null)==='at_most_one_current_immutable_profile_core_after_operational_priorities')
+                ||(forecastNativeOptionalBudget($core)&&array_key_exists('saved',$data)&&$data['saved']===null));
+            $timing=$data['today_latency']??[];$linkage=$data['telegram_linkage']??[];
+            $check('optional timing and Telegram context retain exact observations or explicitly yield to day and monitor priorities',
+                ((($timing['available']??false)&&($timing['profile_sample']['scopes_inspected']??null)===32)
+                    ||forecastNativeOptionalBudget($timing))
+                &&((($linkage['available']??false)&&($linkage['pending']['events']??null)===1
+                    &&($linkage['pending']['reason_counts']['unique_eligible']??null)===1)
+                    ||forecastNativeOptionalBudget($linkage)));
         });
         $check('combined private status preserves every OAuth and saved profile row',forecastNativeAuthSnapshot($pdo)===$before);
 
         $phase='composed_monetary_policy';
-        // Keep the original all-subviews baseline above unchanged. The newer monetary
-        // core is a separate read whose optional sections may declare their own budget limit.
+        // Day and monitor remain mandatory priorities; an optional one-profile core
+        // must never invent a price when its source price is unknown.
         $packet=forecastV1Packet($person,$conversation,[['text'=>'Здравствуйте!']]);
         $packet['deal_value_prediction']=ModeledConversionDealValue::freeze($packet,[]);
         $pdo->prepare("UPDATE modeled_conversion_profile_versions SET journal_cursor=?,observed_at_unix=?,profile_json=? WHERE id=30099 AND project_key='anytour' AND platform='telegram'")
@@ -305,45 +368,31 @@ function forecastNativeAuthRegression():void
         forecastNativeReadOnly($pdo,static function()use($pdo,$forecast,$check):void{
             [$response,$afterBearer,$afterRead]=forecastNativeAuthDispatch($pdo,$forecast);
             $data=$response['result']['structuredContent']??[];
-            $money=$data['saved']['deal_value']['by_monetary_policy'][ModeledConversionDealValue::VERSION]??[];
-            $check('composed real OAuth read retains validated V2 policy without inventing a numeric estimate',
-                ($data['available']??false)&&($money['versions']??null)===1&&($money['estimated_value_versions']??null)===0
-                &&($money['value_cap_rub']??null)===100000&&($money['unknown_price_base_rub']??null)===10000
-                &&($money['unknown_price_versions']??null)===1
-                &&($money['full_value_base_range_rub']??null)===['minimum'=>10000,'maximum'=>10000]
-                &&($data['saved']['deal_value']['value_range_rub']??null)===['minimum'=>null,'maximum'=>null]
+            $core=$data['forecast_core']??[];
+            $check('composed real OAuth retains exact V2 unknown-price policy when the optional core fits',
+                (($core['available']??false)&&forecastNativeMonetaryUnknown($data))
+                ||(forecastNativeOptionalBudget($core)&&array_key_exists('saved',$data)&&$data['saved']===null));
+            $check('monetary operational output preserves complete daily coverage and final OAuth headroom',
+                !isset($response['error'])&&($data['available']??false)&&($data['value_delivery']['available']??false)
+                &&forecastNativeOperationalDay($data)&&is_array($data['external_monitor']??null)
                 &&($data['model_calls']??null)===0&&($data['conversion_uploads']??null)===0
-                &&strlen(json_encode($data,JSON_THROW_ON_ERROR))<=30000
+                &&$afterRead>=4096&&$afterRead<$afterBearer
+                &&strlen(json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=28000
                 &&strlen(json_encode($response,JSON_THROW_ON_ERROR))<=65536);
-            $daily=$data['daily_delivery']??[];
-            $check('a heavier monetary core retains an available daily section or its exact optional byte-limit diagnosis',
-                ($daily['available']??false)||$daily===['available'=>false,'reason'=>'budget_headroom']);
             echo 'MONETARY_COMPOSED_FIXTURE_TECHNICAL '.json_encode([
                 'remaining_after_bearer'=>$afterBearer,'remaining_after_read'=>$afterRead,
-                'daily_available'=>$daily['available']??null,'daily_reason'=>$daily['reason']??null,
+                'daily_available'=>$data['daily_reconciliation']['available']??null,
+                'core_available'=>$core['available']??null,'core_reason'=>$core['reason']??null,
                 'timing_available'=>$data['today_latency']['available']??null,
-                'timing_scopes'=>$data['today_latency']['profile_sample']['scopes_inspected']??null,
                 'linkage_available'=>$data['telegram_linkage']['available']??null,
-                'diagnosis_inspected'=>$data['saved_input_diagnosis']['window']['inspected_versions']??null,
                 'result_bytes'=>strlen(json_encode($data,JSON_THROW_ON_ERROR)),
                 'rpc_bytes'=>strlen(json_encode($response,JSON_THROW_ON_ERROR))],JSON_THROW_ON_ERROR).PHP_EOL;
-            $check('the same monetary fixture now retains daily totals timing linkage and final OAuth headroom together',
-                !isset($response['error'])&&($data['value_delivery']['available']??false)&&($daily['available']??false)
-                &&($data['today_latency']['available']??false)
-                &&($data['today_latency']['profile_sample']['scopes_inspected']??null)===32
-                &&($data['telegram_linkage']['available']??false)
-                &&($data['telegram_linkage']['pending']['events']??null)===1
-                &&($data['telegram_linkage']['pending']['reason_counts']['unique_eligible']??null)===1
-                &&($data['saved_input_diagnosis']['window']['max_versions']??null)===100
-                &&($data['saved_input_diagnosis']['window']['inspected_versions']??null)===100
-                &&($daily['api_receipts_observed_today']['events']??null)===0
-                &&($daily['processed_observed_today']['events']??null)===0
-                &&($daily['coverage']['api_receipts_without_observed_clock']['events']??null)===3
-                &&($daily['coverage']['api_receipts_without_observed_clock']['conversations']??null)===1
-                &&($daily['coverage']['api_receipts_without_observed_clock']['value_rub']??null)===12500
-                &&$afterRead>=4096&&$afterRead<$afterBearer
-                &&strlen(json_encode($data,JSON_THROW_ON_ERROR))<=30000
-                &&strlen(json_encode($response,JSON_THROW_ON_ERROR))<=65536);
+            // The exact canonical profile validator is still proved separately, with
+            // its unchanged budget and no delivery subview or fabricated numeric price.
+            $profile=(new ModeledConversionForecastStatusReader($pdo,static function():void{},new ModeledConversionStatusBudget()))->read(false);
+            $check('canonical one-profile validation preserves V2 policy and numeric unknown on the real native JSON representation',
+                forecastNativeMonetaryUnknown($profile)&&($profile['model_calls']??null)===0
+                &&($profile['conversion_uploads']??null)===0);
         });
         $check('monetary composed read preserves every OAuth and saved profile row',forecastNativeAuthSnapshot($pdo)===$before);
         $check('monetary daily coverage preserves saved delivery settings and every outbox row',$deliverySnapshot()===$deliveryBefore);

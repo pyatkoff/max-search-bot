@@ -186,6 +186,16 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
         &&$brief['predictive_v1']===['available'=>false,'reason'=>'not_requested_operational_view']
         &&$brief['historical_review']===['available'=>false,'reason'=>'not_requested_operational_view']
         &&count($briefQueries)===2&&!preg_match('/modeled_conversion_profile_versions|native_identity_point|retained_click_|retained_app_/i',implode(' ',$briefQueries)));
+    $coreBudget=new ModeledConversionStatusBudget();$coreBudget->consumeBytes(52000);
+    $coreReader=new ModeledConversionForecastStatusReader($p,static function():void{},$coreBudget);
+    $partialCore=$coreReader->read(false);
+    $presented=(new ReflectionMethod(ModeledConversionForecastStatusReader::class,'operationalCorePresentation'))->invoke($coreReader,$partialCore);
+    $check('real budget-omitted current metadata becomes unknown rather than a successful zero forecast in operational output',
+        $partialCore['available']&&$partialCore['window']['profile_rows_read']===0
+        &&$partialCore['window']['byte_limit_omissions']>0
+        &&!$presented['available']&&$presented['reason']==='budget_headroom'&&$presented['saved']===null
+        &&$presented['confirmation']==='unknown'&&$presented['input_coverage']===['available'=>false,'reason'=>'budget_headroom']
+        &&$presented['window']===$partialCore['window']);
     $check('private value suffix keeps disjoint queue states and exact incremental sums',$d['available']&&$d['window']['inspected_rows']===4&&$d['reserved_value_rub']===8333.0
         &&$d['by_state']['unknown']['value_rub']===2084.0&&$d['by_state']['pending']['value_rub']===4166.0);
     $check('API acceptance valid rows and visit report are separate',$d['api_accepted_receipts']['events']===2&&$d['api_accepted_receipts']['value_rub']===2083.0

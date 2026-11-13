@@ -11,8 +11,11 @@ and PROCESSED do not establish an individual advertising-visit match.
 
 The recent value-ledger suffix retains its explicit row/coverage limits and is
 not used as a complete daily denominator. Detailed historical repair, Native,
-profile-body and predictive-audit reads are not executed by this operational
-default. The internal detailed read, explicit primary-source branch and saved
+historical profile-body and predictive-audit reads are not executed by this operational
+default. Spare budget may validate one newest immutable current-profile core
+through the existing canonical projection; unavailable storage or budget remains
+explicit in forecast_core and never becomes a zero forecast. The internal detailed
+read, explicit primary-source branch and saved
 receipt branch retain their existing contracts. No new tool argument, scope,
 connection, provider request, financial action or customer interaction is added.
 
