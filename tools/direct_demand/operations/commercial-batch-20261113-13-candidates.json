@@ -1,0 +1,32 @@
+[
+  {
+    "hotel_id": 319,
+    "aliases": [
+      "SUNRISE Remal Beach",
+      "SUNRISE REMAL BEACH RESORT"
+    ],
+    "logical_id": "commercial-hotel-319-v1",
+    "expected_text_sha256": "e6c763d2d969f89d4c67d2abee5bb50c04715e572ee9b0cbfb3bb47083987ce2",
+    "scope": "same_original_batch13_candidate_preflight"
+  },
+  {
+    "hotel_id": 254,
+    "aliases": [
+      "Three Corners Sea Beach Resort",
+      "THE THREE CORNERS SEA BEACH RESORT"
+    ],
+    "logical_id": "commercial-hotel-254-v1",
+    "expected_text_sha256": "0eb5763f88411e3177165b6a5523adb541e6da85e9ccc0f7db16ff5f6f81565e",
+    "scope": "same_original_batch13_candidate_preflight"
+  },
+  {
+    "hotel_id": 967,
+    "aliases": [
+      "Ali Bey Club Manavgat",
+      "ALI BEY CLUB (EX. ALI BEY CLUB MANAVGAT)"
+    ],
+    "logical_id": "commercial-hotel-967-v1",
+    "expected_text_sha256": "cffd3b1ae38eb91d230f71c240d3bcde2a5042e637cb4a08f6be4e795219c6e2",
+    "scope": "same_original_batch13_candidate_preflight"
+  }
+]
