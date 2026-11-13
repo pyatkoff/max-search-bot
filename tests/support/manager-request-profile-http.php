@@ -15,7 +15,7 @@ function managerRequestProfileHttpFixture(string $directory,bool $visual=false,s
         if($mode==='default')requestProfileMessage($pdo,12,'customer','На те же даты только на 3-х, 2 взрослых и один ребёнок 12 лет');
     }
     $web=$directory.'/web';mkdir($web.'/manager/lib',0700,true);mkdir($web.'/manager/assets',0700,true);mkdir($web.'/manager2',0700,true);mkdir($directory.'/sessions',0700);
-    foreach(['manager/request-profile-api.php','manager/request-profile.php','manager2/request-profile.php','manager/lib/ManagerHttp.php','manager/assets/manager-http-client.js','manager/assets/manager-request-profile.js','manager/assets/manager-request-profile.css','manager/assets/manager-ai-usage.css'] as $file){if(!copy($root.'/'.$file,$web.'/'.$file))throw new RuntimeException('fixture_copy_failed');}
+    foreach(['manager/request-profile-api.php','manager/request-profile.php','manager2/request-profile.php','manager/lib/ManagerHttp.php','manager/assets/manager-http-client.js','manager/assets/manager-request-history.js','manager/assets/manager-request-profile.js','manager/assets/manager-request-profile.css','manager/assets/manager-ai-usage.css'] as $file){if(!copy($root.'/'.$file,$web.'/'.$file))throw new RuntimeException('fixture_copy_failed');}
     if(!symlink($root.'/services',$web.'/services'))throw new RuntimeException('fixture_service_link_failed');
     $config="<?php\nrequire_once ".var_export($root.'/services/ManagerRequestProfileService.php',true).";\n";
     $config.='(new ReflectionProperty(ConversationDb::class,\'pdo\'))->setValue(null,new PDO('.var_export('sqlite:'.$db,true).",null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]));\n";

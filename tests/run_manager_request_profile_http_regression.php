@@ -52,9 +52,22 @@ try{
     [$status,$view]=profileHttpRequest($address,$fixture,1,$get);profileHttpCheck('latest party correction is bounded candidate',$status===200&&$view['profile']['status']==='needs_review'&&$view['party_suggestion']['value']['child_ages']===[12]);
     $command=requestProfileCommand($view);$s=$view['party_suggestion'];$command['fields']['party']=['value'=>$s['value'],'kind'=>'customer_statement','importance'=>'hard','note'=>'','source_id'=>$s['source_id'],'quote'=>$s['quote']];
     [$status,$r]=profileHttpRequest($address,$fixture,1,$command+['action'=>'save','csrf'=>$identity['csrf'],'conversation_id'=>1]);profileHttpCheck('explicit correction saves v2',$status===200&&$r['saved_version']===2);
+    $history=array_replace($get,['action'=>'history']);$target=array_replace($get,['action'=>'history_source','version'=>2,'field'=>'party','side'=>'after']);
+    [$status,$r]=profileHttpRequest($address,$fixture,1,$history);
+    profileHttpCheck('history HTTP returns exact correction with author and explicit recording instant',$status===200&&$r['viewer_id']===1&&$r['snapshot_version']===2&&$r['events'][0]['changes'][0]['before']['value']['children']===0&&$r['events'][0]['changes'][0]['after']['value']['child_ages']===[12]&&$r['events'][0]['author']['name']==='Мария'&&str_ends_with($r['events'][0]['recorded_at'],'Z'));
+    [$status,$r]=profileHttpRequest($address,$fixture,1,$target);
+    profileHttpCheck('source HTTP resolves exact server-owned message instead of a caller message id',$status===200&&$r['available']&&$r['message']['id']===12&&$r['source_state']==='matches_saved');
+    foreach([['snapshot_version'=>null],['before_version'=>'1'],['before_version'=>2,'snapshot_version'=>0]] as $invalid){[$status]=profileHttpRequest($address,$fixture,1,array_replace($history,$invalid));profileHttpCheck('history HTTP rejects malformed continuation '.json_encode($invalid),$status===422);}
+    [$status]=profileHttpRequest($address,$fixture,1,array_replace($target,['version'=>'2']));profileHttpCheck('source HTTP rejects string version',$status===422);
+    [$status]=profileHttpRequest($address,$fixture,1,array_replace($target,['side'=>'any']));profileHttpCheck('source HTTP rejects unknown side',$status===422);
+    [$status]=profileHttpRequest($address,$fixture,1,array_replace($history,['csrf'=>'wrong']));profileHttpCheck('history HTTP requires current CSRF',$status===403);
+    [$status,$r,$body]=profileHttpRequest($address,$fixture,3,$target);profileHttpCheck('foreign project HTTP cannot disclose saved quotation or source',$status===403&&!str_contains($body,'ребёнок'));
+    $db->exec("UPDATE messages SET text='Состав изменён позже' WHERE id=12");[$status,$r]=profileHttpRequest($address,$fixture,1,$target);
+    profileHttpCheck('source HTTP preserves old quotation separately from edited source',$status===200&&$r['source_state']==='changed'&&$r['message']['text']==='Состав изменён позже'&&str_contains($r['citation']['quote'],'ребёнок 12 лет'));
     $db->exec('DELETE FROM manager_projects WHERE manager_id=1');
     [$status,$r,$body]=profileHttpRequest($address,$fixture,1,$get);profileHttpCheck('revoked project blocks later private read',$status===403&&!str_contains($body,'ребёнок'));
     [$status]=profileHttpRequest($address,$fixture,1,$save);profileHttpCheck('revoked project blocks idempotent replay',$status===403);
+    foreach([$history,$target] as $read){[$status,$r,$body]=profileHttpRequest($address,$fixture,1,$read);profileHttpCheck('revoked project blocks '.$read['action'].' private response',$status===403&&!str_contains($body,'ребёнок'));}
     profileHttpCheck('profile endpoints never send or advance read markers',(int)$db->query('SELECT COUNT(*) FROM messages')->fetchColumn()===3&&(int)$db->query('SELECT last_read_message_id FROM manager_conversation_reads WHERE manager_id=1')->fetchColumn()===10);
     }
     echo 'TOTAL '.$passed.' | PASS '.$passed.' | FAIL 0'."\n";

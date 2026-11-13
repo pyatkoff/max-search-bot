@@ -21,6 +21,28 @@ Migration080 adds append-only versions and a per-manager operation key. Conversa
 
 Saving rechecks canonical project and conversation access, current actor, source integrity, expected version and context basis. A conversation lock serializes profile saves; stale editors cannot overwrite another version. Another trip has a new trip id, explicit boundary and empty fields; older citations cannot cross that boundary. The form keeps private unsaved edits in sessionStorage per actor/conversation for up to24hours. No private data is embedded in presentation HTML. Account/access mismatch clears the visible profile. Unknown write results are reconciled by operation id before an explicit retry of the same command; there is no background retry.
 
+The history view lazily reads three immutable versions and one immediate
+predecessor at a time, behind the same current actor/project/conversation fence.
+It derives before/after values, provenance, importance, comments and citations
+from validated stored profiles rather than trusting changed-field labels. A new
+trip starts a separate baseline; gaps or unavailable predecessors remain unknown.
+The initial five-version summary stays cheap; explicit keyset continuation reaches
+older saved versions with a stable ceiling, and refresh admits later versions.
+Author names are the current directory label for the recorded author id, with an
+id fallback. Version timestamps have an explicit UTC writer contract (`gmdate`
+in `save`); validated timestamps are projected as ISO instants and displayed in
+Europe/Moscow. Invalid times remain unconfirmed. Message wall times, travel dates
+and stored history are not shifted or rewritten.
+
+Each historical citation can open its exact saved message inside the profile
+without navigating or replacing the reply composer. The same canonical profile
+source reader checks current access and source fingerprints; the historical quote
+stays separate from changed or unavailable current text. An absent source does
+not prove provider deletion. No provider request, media download, read marker,
+profile write, restored historical value or automatic save is performed. Late
+history/source replies and old authentication failures cannot replace a newer
+view or clear another account's draft.
+
 ## Explicit sales-outcome links
 
 The existing Manager2 outcome form can explicitly link a sale, refusal or reopened outcome to a saved trip and its exact manager-profile version. The latest profile is never selected automatically. An unknown trip remains valid; a later trip in the same conversation does not move an earlier link. The bounded choice list contains the latest version of each retained trip and the current historical pin, and indicates incomplete coverage.

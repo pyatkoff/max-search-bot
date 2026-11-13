@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/ManagerRequestProfile.php';
 require_once __DIR__.'/ManagerConversationService.php';
+require_once __DIR__.'/ManagerRequestHistory.php';
 
 /** One canonical manager-curated profile history; no wizard, message or send writes. */
 final class ManagerRequestProfileService
@@ -29,6 +30,53 @@ final class ManagerRequestProfileService
                 'sources'=>$sources,'coverage_incomplete'=>$context['incomplete'],'profile'=>$view,'history'=>$history,
                 'preparation'=>$preparation,'party_suggestion'=>$party,'field_labels'=>ManagerRequestProfile::FIELDS,'hotel_focus_candidates'=>$candidates];
         }catch(Throwable $ignored){if($pdo->inTransaction())$pdo->rollBack();return self::error('profile_unavailable');}
+    }
+
+    /** Three versions and their immediate predecessor per explicit read. No read markers. */
+    public static function historyPage(int $actor,int $cid,int $before=0,int $snapshot=0): array
+    {
+        if($before<0||$snapshot<0||($before>0&&($snapshot===0||$before>$snapshot)))return self::error('invalid_history_cursor');
+        $pdo=ConversationDb::connection();if($pdo->inTransaction())return self::error('history_unavailable');
+        try{
+            $scope=self::scope($pdo,$actor,$cid);if(!$scope)return self::error('forbidden');
+            $pdo->beginTransaction();
+            if($snapshot===0){$q=$pdo->prepare('SELECT COALESCE(MAX(version),0) FROM manager_request_profiles WHERE conversation_id=?');$q->execute([$cid]);$snapshot=(int)$q->fetchColumn();}
+            $rows=self::historyRows($pdo,$cid,$before,$snapshot);$events=[];
+            foreach(array_slice($rows,0,3) as $index=>$row)$events[]=ManagerRequestHistory::event($row,$rows[$index+1]??null);
+            $pdo->commit();$after=self::scope($pdo,$actor,$cid);
+            if(!$after||self::scopeKey($scope)!==self::scopeKey($after))return self::error('forbidden');
+            return ['ok'=>true,'viewer_id'=>$actor,'conversation_id'=>$cid,'snapshot_version'=>$snapshot,'before_version'=>$events?(int)$events[count($events)-1]['version']:0,'has_more'=>count($rows)>3,'events'=>$events];
+        }catch(Throwable $ignored){if($pdo->inTransaction())$pdo->rollBack();return self::error('history_unavailable');}
+    }
+
+    /** Resolve the selected side of a server-owned historical citation. */
+    public static function historySource(int $actor,int $cid,int $version,string $field,string $side): array
+    {
+        if($version<=0||!array_key_exists($field,ManagerRequestProfile::FIELDS)||!in_array($side,['before','after'],true))return self::error('invalid_history_source');
+        $pdo=ConversationDb::connection();if($pdo->inTransaction())return self::error('history_unavailable');
+        try{
+            $scope=self::scope($pdo,$actor,$cid);if(!$scope)return self::error('forbidden');$pdo->beginTransaction();
+            $binary=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'BINARY':'BLOB';
+            $q=$pdo->prepare('SELECT version,trip_id,boundary_message_id,manager_id,profile_sha256,SUBSTR(CAST(profile_json AS '.$binary.'),1,'.(ManagerRequestProfile::MAX_BYTES+1).') AS profile_json FROM manager_request_profiles WHERE conversation_id=? AND version IN (?,?) ORDER BY version DESC');
+            $q->execute([$cid,$version,max(0,$version-1)]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
+            $row=$rows[0]??null;$chosen=null;
+            if($row&&(int)$row['version']===$version){
+                ManagerRequestHistory::decode($row);
+                if($side==='after')$chosen=$row;
+                elseif(isset($rows[1])&&(int)$rows[1]['version']===$version-1&&$rows[1]['trip_id']===$row['trip_id']&&(int)$rows[1]['boundary_message_id']===(int)$row['boundary_message_id'])$chosen=$rows[1];
+            }
+            $profile=$chosen?ManagerRequestHistory::decode($chosen):null;$citation=$profile['fields'][$field]['citation']??null;
+            $result=['ok'=>true,'viewer_id'=>$actor,'conversation_id'=>$cid,'version'=>$version,'field'=>$field,'side'=>$side,'available'=>false,'source_state'=>'unavailable'];
+            if($citation){
+                $result['citation']=array_intersect_key($citation,array_flip(['message_id','sender_type','quote']));
+                $q=$pdo->prepare(self::sourceQuery($pdo).' AND id=? LIMIT 1');$q->execute([$cid,$citation['message_id']]);$original=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();$source=$original?self::source($original):null;
+                if($source&&!$source['unavailable']&&in_array($source['sender_type'],['customer','manager'],true))$result+=['message'=>['id'=>$source['id'],'sender_type'=>$source['sender_type'],'text'=>mb_substr($source['text'],0,6000,'UTF-8'),'truncated'=>mb_strlen($source['text'],'UTF-8')>6000]];
+                if(isset($result['message'])){$result['available']=true;$result['source_state']=hash_equals($citation['sha256'],$source['sha256'])?'matches_saved':'changed';}
+            }
+            $pdo->commit();$after=self::scope($pdo,$actor,$cid);
+            if(!$after||self::scopeKey($scope)!==self::scopeKey($after))return self::error('forbidden');
+            return $result;
+        }catch(Throwable $ignored){if($pdo->inTransaction())$pdo->rollBack();return self::error('history_unavailable');}
     }
 
     public static function save(int $actor,int $cid,array $input): array
@@ -152,8 +200,7 @@ final class ManagerRequestProfileService
     }
     private static function context(PDO $pdo,int $cid,array $extra): array
     {
-        $binary=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'BINARY':'BLOB';
-        $sql='SELECT id,direction,sender_type,created_at,SUBSTR(CAST(text AS '.$binary.'),1,80001) AS text,SUBSTR(CAST(metadata_json AS '.$binary.'),1,8193) AS metadata FROM messages WHERE conversation_id=?';
+        $sql=self::sourceQuery($pdo);
         $q=$pdo->prepare($sql.' ORDER BY id DESC LIMIT 41');$q->execute([$cid]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);$more=count($rows)>40;$rows=array_slice($rows,0,40);$window=[];$map=[];$bytes=0;
         foreach(array_reverse($rows) as $r){$s=self::source($r);$map[$s['id']]=$s;$window[]=[$s['id'],$s['sha256']];$bytes+=strlen($s['text']);}
         $latest=$rows?(int)$rows[0]['id']:0;$ids=array_values(array_unique(array_filter($extra,static fn($n)=>is_int($n)&&$n>0&&!isset($map[$n]))));
@@ -161,6 +208,11 @@ final class ManagerRequestProfileService
         if($ids){$q=$pdo->prepare($sql.' AND id IN ('.implode(',',array_fill(0,count($ids),'?')).')');$q->execute([$cid,...$ids]);foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r){$s=self::source($r);$map[$s['id']]=$s;$bytes+=strlen($s['text']);}}
         if($bytes>320000)throw new RuntimeException('profile_context_limit');ksort($map);
         return ['latest'=>$latest,'sources'=>$map,'window_ids'=>array_map(static fn($r)=>(int)$r['id'],$rows),'window_hash'=>hash('sha256',json_encode($window,ManagerRequestProfile::FLAGS)),'incomplete'=>$more||count(array_filter($map,static fn($s)=>$s['unavailable']))>0];
+    }
+    private static function sourceQuery(PDO $pdo): string
+    {
+        $binary=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'BINARY':'BLOB';
+        return 'SELECT id,direction,sender_type,created_at,SUBSTR(CAST(text AS '.$binary.'),1,80001) AS text,SUBSTR(CAST(metadata_json AS '.$binary.'),1,8193) AS metadata FROM messages WHERE conversation_id=?';
     }
     private static function source(array $r): array
     {
@@ -188,7 +240,17 @@ final class ManagerRequestProfileService
         return ManagerRequestHotelFocus::inspect($pdo,$conversation,$ctx,(int)$row['boundary_message_id'],$view['hotel_focus'],
             self::basis(['conversation'=>$conversation],$ctx),ManagerRequestHotelFocus::profileHash($row['trip_id'],(int)$row['boundary_message_id'],$view['label'],$view['fields']),$view['status']);
     }
-    private static function history(PDO $pdo,int $cid): array{$q=$pdo->prepare('SELECT version,manager_id,trip_id,changed_fields_json,created_at FROM manager_request_profiles WHERE conversation_id=? ORDER BY version DESC LIMIT 5');$q->execute([$cid]);$out=[];foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r){$r['changed_fields']=json_decode($r['changed_fields_json'],true,8,JSON_THROW_ON_ERROR);unset($r['changed_fields_json']);$out[]=$r;}return $out;}
+    private static function history(PDO $pdo,int $cid): array
+    {
+        $q=$pdo->prepare('SELECT p.version,p.manager_id,p.trip_id,p.changed_fields_json,p.created_at,m.display_name AS author_name FROM manager_request_profiles p LEFT JOIN managers m ON m.id=p.manager_id WHERE p.conversation_id=? ORDER BY p.version DESC LIMIT 5');$q->execute([$cid]);$out=[];
+        foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r){$r['changed_fields']=json_decode($r['changed_fields_json'],true,8,JSON_THROW_ON_ERROR);$r['recorded_at']=ManagerRequestHistory::recordedAt($r['created_at']);if(!ManagerRequestProfile::text($r['author_name'],160))$r['author_name']=null;unset($r['changed_fields_json']);$out[]=$r;}return $out;
+    }
+    private static function historyRows(PDO $pdo,int $cid,int $before,int $snapshot): array
+    {
+        $binary=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'BINARY':'BLOB';
+        $sql='SELECT p.version,p.trip_id,p.boundary_message_id,p.manager_id,p.created_at,p.profile_sha256,SUBSTR(CAST(p.profile_json AS '.$binary.'),1,'.(ManagerRequestProfile::MAX_BYTES+1).') AS profile_json,m.display_name AS author_name FROM manager_request_profiles p LEFT JOIN managers m ON m.id=p.manager_id WHERE p.conversation_id=? AND p.version<=?'.($before>0?' AND p.version<?':'').' ORDER BY p.version DESC LIMIT 4';
+        $q=$pdo->prepare($sql);$q->execute($before>0?[$cid,$snapshot,$before]:[$cid,$snapshot]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();return $rows;
+    }
     private static function hex($v,int $n): bool{return is_string($v)&&preg_match('/\A[a-f0-9]{'.$n.'}\z/D',$v)===1;}
     private static function error(string $reason): array{return ['ok'=>false,'error'=>$reason];}
 }

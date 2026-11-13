@@ -18,7 +18,7 @@ async function setupRequestProfile(page,options={}){
     const errors=[],calls=[],actualResponses=[],unexpected=[],queued=options.initialGetAbort?[{action:'get',abort:true}]:[],held=[];page.on('pageerror',e=>errors.push(e.message));
     await page.route('**/*',async route=>{const request=route.request(),url=new URL(request.url());if(url.origin!==origin){unexpected.push(request.url());return route.abort()}
       if(url.pathname==='/manager/request-profile-api.php'){
-        const input=request.postDataJSON();calls.push(input);if(!['identity','get','save','operation'].includes(input.action)){unexpected.push(input.action);return route.abort()}
+        const input=request.postDataJSON();calls.push(input);if(!['identity','get','save','operation','history','history_source'].includes(input.action)){unexpected.push(input.action);return route.abort()}
         const at=queued.findIndex(r=>r.action===input.action);if(at>=0){const next=queued.splice(at,1)[0];let original=null;
           if(next.actual){const headers=await request.allHeaders();if(!headers.cookie)headers.cookie=(await page.context().cookies()).filter(c=>c.domain.replace(/^\./,'')===url.hostname&&url.pathname.startsWith(c.path)&&(!c.secure||url.protocol==='https:')).map(c=>c.name+'='+c.value).join('; ');original=await isolated.fetch(request.url(),{method:request.method(),headers,data:request.postData()});}
           if(original)actualResponses.push({action:input.action,status:original.status(),body:await original.json()});
