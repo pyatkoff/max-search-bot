@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "operation": "monitor-price-premium3-bindings-20261113",
+  "state": "prepared_source_bindings_natural_execution_not_claimed",
+  "previous_source": "2d52fd7642c775f572464c7627f6e7e1d77fbc5e",
+  "closure_carrier_head": "fac66dd8f6f0531ea9b524d28b1687f52d2d296f",
+  "previous_roster_pairs": 592,
+  "new_roster_pairs": 595,
+  "published_pairs": 595,
+  "remaining_published_outside_roster": 0,
+  "canonical_sender_pairs_added": 3,
+  "appended_tourvisor_ids": [
+    2575,
+    32232,
+    32339
+  ],
+  "original_rows_equal": true,
+  "original_uncompressed_prefix_preserved": true,
+  "previous_roster_gzip_sha256": "679126fa353b2b98894fd9bcf6dc7b5df2445ae2ef2b95c87ebd8f818e97e274",
+  "roster_gzip_sha256": "e294c43f28446737f3f5a8190d3c558fd62dad4fdb158160fa30f1997b3dd86b",
+  "roster_raw_sha256": "09a40ff4ba3067878d09ad872dba5307e3d831230986a42a95be9891494adcaa",
+  "previous_uncompressed_prefix_sha256": "cb80ee62b7d95900746390ad0199215df92c57fb9bf5aba1c6fd6888f3ea93fb",
+  "preserved_nullable_publisher_ids": 6,
+  "original_publication": {
+    "run": "https://github.com/pyatkoff/max-search-bot/actions/runs/43408274067/attempts/1",
+    "head_sha": "9b14bcd7ebe4b08fd6595f2b4950261787528211",
+    "run_attempt": 1,
+    "artifact_id": 14028556184,
+    "zip_sha256": "803094b852e98da9038eb9439c46f595acedfeb008d79e07a2f9ea66574a326f",
+    "summary_sha256": "a476043d4ee21e11012955b4151238ce882554469d37c3b13901450979e8c450",
+    "bound_read_sha256": "9ad843b063b5cbefdfb2cad2433bc002dd9e170384a35128f15199631ecd0a5a"
+  },
+  "accepted_native": {
+    "run": "https://github.com/pyatkoff/tour-max/actions/runs/43409098525/attempts/1",
+    "head_sha": "344e7207182c0a1147087ec16b123c84f5a5b8ea",
+    "run_attempt": 1,
+    "route_proof_sha256": "52ee849c473c0cbbd532092edab4a642297bb9ca9540b00a39f7a5d9e31463ea",
+    "native_count": 595
+  },
+  "served_feeds": {
+    "run": "https://github.com/pyatkoff/max-search-bot/actions/runs/43409956112/attempts/1",
+    "head_sha": "fac66dd8f6f0531ea9b524d28b1687f52d2d296f",
+    "run_attempt": 1,
+    "summary_sha256": "b5c1dd0170d957a990d1d2011a55c9c70e11aa290097c048e7b70490d5c530f1",
+    "captured_at": "2026-11-13T10:34:07.524906+00:00",
+    "catalog_date": "2026-11-13 13:33",
+    "rows": [
+      595,
+      595,
+      1190
+    ]
+  },
+  "accepted_registry": {
+    "version": 355,
+    "canonical_sha256": "05526cdd33ce1077f9d5944d8a388813806599f6f0e60d3149dbd14c01c00c56",
+    "verification_sha256": "f73ce8242d41957a6f91c3303d927e7da6ca8c863f8e53c5b970d159c471ec3f",
+    "other_hotels_unchanged": 663
+  },
+  "caption_policy": "accepted_publication_body_preserved; one_price_slot_and_terms_slot; canonical_price_cta",
+  "rows": [
+    {
+      "tourvisor_hotel_id": 2575,
+      "publisher_hotel_id": 2575,
+      "site_hotel_id": "e198a048-30f6-4397-9866-7297c1878370",
+      "site_revision": 3,
+      "logical_id": "commercial-hotel-2575-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261113-15-v1",
+      "original_text_sha256": "6f08df814d9d92fa81ee392ee3e058fbc8520c7f6c251859646ae9e91968ff51",
+      "cover_sha256": "d80e97fbc4ceb5a35d1d6d8b46bc5b4408a5bcf24bf682af75fedf554f0fcb4f",
+      "posts": {
+        "max": "https://max.ru/channel_anytour/AaHUbCPFLMc",
+        "telegram": "https://t.me/any_toour/607"
+      },
+      "publication_ids": {
+        "max": 1342,
+        "telegram": 1339
+      },
+      "original_version_ids": {
+        "max": 4352,
+        "telegram": 4349
+      },
+      "template_sha256": {
+        "max": "69b227a29d00e7d0bf1473accfc954a2f0f87d873de3fb4017c90806a6ca6037",
+        "telegram": "69b227a29d00e7d0bf1473accfc954a2f0f87d873de3fb4017c90806a6ca6037"
+      },
+      "feed_offer_ids": {
+        "max": "max_2575",
+        "telegram": "tg_2575"
+      }
+    },
+    {
+      "tourvisor_hotel_id": 32232,
+      "publisher_hotel_id": 32232,
+      "site_hotel_id": "7df7f617-7aeb-476c-8286-82f891e0196a",
+      "site_revision": 3,
+      "logical_id": "commercial-hotel-32232-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261113-15-v1",
+      "original_text_sha256": "f70d17e6025b306a8df3f5d81ad24cabf842fdcbb722fa90596bbedeeb9a557e",
+      "cover_sha256": "522e5a38e2d21a31674ac184f8ea6661cb5fc0007ae34b5bc1bbf0be8f13f063",
+      "posts": {
+        "max": "https://max.ru/channel_anytour/AaHUbCynAq4",
+        "telegram": "https://t.me/any_toour/608"
+      },
+      "publication_ids": {
+        "max": 1343,
+        "telegram": 1340
+      },
+      "original_version_ids": {
+        "max": 4353,
+        "telegram": 4350
+      },
+      "template_sha256": {
+        "max": "5523c9a1ac6962b54fa044dbfee14f6f0b980d0361047d3a0c08b43c8de70053",
+        "telegram": "5523c9a1ac6962b54fa044dbfee14f6f0b980d0361047d3a0c08b43c8de70053"
+      },
+      "feed_offer_ids": {
+        "max": "max_32232",
+        "telegram": "tg_32232"
+      }
+    },
+    {
+      "tourvisor_hotel_id": 32339,
+      "publisher_hotel_id": 32339,
+      "site_hotel_id": "a7f36bf9-2325-4308-af4e-cd6d0f72239e",
+      "site_revision": 3,
+      "logical_id": "commercial-hotel-32339-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261113-15-v1",
+      "original_text_sha256": "aebc3501101d35b3d6131669e9c5a1e0dfd3be8ed05cce650ddf4383358e3c53",
+      "cover_sha256": "01f37647d15774cb6d3a1971b8cbf626e2a6b898d033e38e61fcaacf8012aca9",
+      "posts": {
+        "max": "https://max.ru/channel_anytour/AaHUbDVCWF0",
+        "telegram": "https://t.me/any_toour/609"
+      },
+      "publication_ids": {
+        "max": 1344,
+        "telegram": 1341
+      },
+      "original_version_ids": {
+        "max": 4354,
+        "telegram": 4351
+      },
+      "template_sha256": {
+        "max": "f0e4f291649a2903eb832b18053549aae4bfb93c1536b231494254517fbba383",
+        "telegram": "f0e4f291649a2903eb832b18053549aae4bfb93c1536b231494254517fbba383"
+      },
+      "feed_offer_ids": {
+        "max": "max_32339",
+        "telegram": "tg_32339"
+      }
+    }
+  ],
+  "unchanged_builder_sha256": "8baaf6c1b196a6e82110335c6155a7cb88e236ff6de1b97b0511b1d6740c325b",
+  "unchanged_runtime_pins": 22,
+  "bundle": {
+    "bytes": 530670,
+    "sha256": "710da98f9f4e51296cdbda888c0f6e6e10b6ffa8efda6347e30ccaea1d3f8e74",
+    "pairs": 595,
+    "supplier_calls": 0
+  },
+  "source_writes": 0,
+  "supplier_calls": 0,
+  "production_journal_or_provider_reads": 0,
+  "old_operations_replayed": 0,
+  "live_price_updates_claimed": false,
+  "runtime_admission": "unchanged_existing_collector_callback_guards"
+}

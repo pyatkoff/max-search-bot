@@ -1,0 +1,223 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261113-15-v1",
+  "state": "PUBLICATION_NATIVE_FEEDS_REGISTRY_ACCEPTED",
+  "hotel_ids": [
+    2575,
+    32232,
+    32339
+  ],
+  "published_pair_count": 595,
+  "new_post_count": 6,
+  "publisher": {
+    "run_id": 43408274067,
+    "run_attempt": 1,
+    "head_sha": "9b14bcd7ebe4b08fd6595f2b4950261787528211",
+    "artifact_id": 14028556184,
+    "artifact_zip_sha256": "803094b852e98da9038eb9439c46f595acedfeb008d79e07a2f9ea66574a326f",
+    "manifest_sha256": "bda13375336d3d4d2591942d433154868546f9dd24a31d860e89809c46ccc7c4"
+  },
+  "posts": [
+    {
+      "hotel_id": 2575,
+      "logical_id": "commercial-hotel-2575-v1",
+      "platform": "telegram",
+      "publication_id": 1339,
+      "version_id": 4349,
+      "post_url": "https://t.me/any_toour/607",
+      "text_sha256": "6f08df814d9d92fa81ee392ee3e058fbc8520c7f6c251859646ae9e91968ff51",
+      "photo_sha256": "d80e97fbc4ceb5a35d1d6d8b46bc5b4408a5bcf24bf682af75fedf554f0fcb4f",
+      "body_photo_button_verified": true,
+      "state": "sent",
+      "reused": false
+    },
+    {
+      "hotel_id": 32232,
+      "logical_id": "commercial-hotel-32232-v1",
+      "platform": "telegram",
+      "publication_id": 1340,
+      "version_id": 4350,
+      "post_url": "https://t.me/any_toour/608",
+      "text_sha256": "f70d17e6025b306a8df3f5d81ad24cabf842fdcbb722fa90596bbedeeb9a557e",
+      "photo_sha256": "522e5a38e2d21a31674ac184f8ea6661cb5fc0007ae34b5bc1bbf0be8f13f063",
+      "body_photo_button_verified": true,
+      "state": "sent",
+      "reused": false
+    },
+    {
+      "hotel_id": 32339,
+      "logical_id": "commercial-hotel-32339-v1",
+      "platform": "telegram",
+      "publication_id": 1341,
+      "version_id": 4351,
+      "post_url": "https://t.me/any_toour/609",
+      "text_sha256": "aebc3501101d35b3d6131669e9c5a1e0dfd3be8ed05cce650ddf4383358e3c53",
+      "photo_sha256": "01f37647d15774cb6d3a1971b8cbf626e2a6b898d033e38e61fcaacf8012aca9",
+      "body_photo_button_verified": true,
+      "state": "sent",
+      "reused": false
+    },
+    {
+      "hotel_id": 2575,
+      "logical_id": "commercial-hotel-2575-v1",
+      "platform": "max",
+      "publication_id": 1342,
+      "version_id": 4352,
+      "post_url": "https://max.ru/channel_anytour/AaHUbCPFLMc",
+      "text_sha256": "6f08df814d9d92fa81ee392ee3e058fbc8520c7f6c251859646ae9e91968ff51",
+      "photo_sha256": "d80e97fbc4ceb5a35d1d6d8b46bc5b4408a5bcf24bf682af75fedf554f0fcb4f",
+      "body_photo_button_verified": true,
+      "state": "sent",
+      "reused": false
+    },
+    {
+      "hotel_id": 32232,
+      "logical_id": "commercial-hotel-32232-v1",
+      "platform": "max",
+      "publication_id": 1343,
+      "version_id": 4353,
+      "post_url": "https://max.ru/channel_anytour/AaHUbCynAq4",
+      "text_sha256": "f70d17e6025b306a8df3f5d81ad24cabf842fdcbb722fa90596bbedeeb9a557e",
+      "photo_sha256": "522e5a38e2d21a31674ac184f8ea6661cb5fc0007ae34b5bc1bbf0be8f13f063",
+      "body_photo_button_verified": true,
+      "state": "sent",
+      "reused": false
+    },
+    {
+      "hotel_id": 32339,
+      "logical_id": "commercial-hotel-32339-v1",
+      "platform": "max",
+      "publication_id": 1344,
+      "version_id": 4354,
+      "post_url": "https://max.ru/channel_anytour/AaHUbDVCWF0",
+      "text_sha256": "aebc3501101d35b3d6131669e9c5a1e0dfd3be8ed05cce650ddf4383358e3c53",
+      "photo_sha256": "01f37647d15774cb6d3a1971b8cbf626e2a6b898d033e38e61fcaacf8012aca9",
+      "body_photo_button_verified": true,
+      "state": "sent",
+      "reused": false
+    }
+  ],
+  "native": {
+    "run_id": 43409098525,
+    "run_attempt": 1,
+    "head_sha": "344e7207182c0a1147087ec16b123c84f5a5b8ea",
+    "accepted_private_commit": "961d75fcbcee9fbbad79afa725a667080f26445f",
+    "result": "INSTALLED_AND_NATIVE_VERIFIED",
+    "total_routes": 595,
+    "new_routes": 3,
+    "previous592_rows_identical": true,
+    "natural_signed_user_launch_verified": false
+  },
+  "feeds": {
+    "ok": true,
+    "operation": "commercial-channel-hotel-feeds-20261113-update16",
+    "schema_version": 4,
+    "run_id": "43409956112",
+    "run_attempt": 1,
+    "head_sha": "fac66dd8f6f0531ea9b524d28b1687f52d2d296f",
+    "installed_sha": "9bc805310e5ae6a678d5d9e06d27cb812cb8bb5c",
+    "publication_installed_sha": "9bc805310e5ae6a678d5d9e06d27cb812cb8bb5c",
+    "previous_logical_hotels": 592,
+    "new_hotel_ids": [
+      2575,
+      32232,
+      32339
+    ],
+    "logical_hotels": 595,
+    "offer_counts": [
+      595,
+      595,
+      1190
+    ],
+    "old592_offer_blocks_byte_exact": true,
+    "old_price_blocks_byte_exact": true,
+    "writer_attempts": 1,
+    "retry_authorized": false,
+    "post_write_attempts": 0,
+    "provider_calls": 0,
+    "db_writes": 0,
+    "files": [
+      {
+        "name": "hotel-posts-telegram.xml",
+        "sha256": "2f35ad07ca29e93accbfc27b75ee7dba275c48d5350874a103343a0fa5aa0ebc",
+        "bytes": 579604,
+        "rows": 595
+      },
+      {
+        "name": "hotel-posts-max.xml",
+        "sha256": "8ef9da0f91f7cba0d278a97a5ea6e284bd78f77cbbcb122dc286a5a7866f90e1",
+        "bytes": 675783,
+        "rows": 595
+      },
+      {
+        "name": "hotel-posts-all.xml",
+        "sha256": "858aab935fbbfd8cbc9ee9831ed789f471d814fb5c5910d1eee92c0d33193473",
+        "bytes": 1255014,
+        "rows": 1190
+      }
+    ],
+    "source_sha256": "94be626e468eb69991aa5c439c36f4f2d4244da78c5c6f9e87975eeffcfecd49",
+    "input_sha256": "96df014f089c4586960639d478ea8142aa6f2cca6b294d42891635a62da24ce4",
+    "writer_receipt_sha256": "f2e9c34a8d28144e29128a94be6427f951fab7a0ff0ca739286b285ce1421bbe",
+    "readback_sha256": "3dd79f1d2d51f31d828240a0a85e0df337fb2730f106ee776f60e8b97094fe10",
+    "publication_summary_sha256": "a476043d4ee21e11012955b4151238ce882554469d37c3b13901450979e8c450",
+    "bound_read_sha256": "9ad843b063b5cbefdfb2cad2433bc002dd9e170384a35128f15199631ecd0a5a",
+    "route_proof_sha256": "52ee849c473c0cbbd532092edab4a642297bb9ca9540b00a39f7a5d9e31463ea",
+    "verified_at_utc": "2026-11-13T10:34:07.524906+00:00",
+    "original_publication_run_id": 43408274067,
+    "original_publication_conclusion": "success"
+  },
+  "site": {
+    "url": "https://anytour-hotel-release.fq4yjrcrmm.chatgpt.site",
+    "version": 355,
+    "hotels": 666,
+    "published_pairs": 595,
+    "queue": 12,
+    "review": 59,
+    "receipt": {
+      "ok": true,
+      "operation": "commercial-hotel-batch-20261113-15-v1",
+      "importOperationId": "batch15-source-20261113-import-v1",
+      "initialVersion": 354,
+      "finalVersion": 355,
+      "sourceEdits": 0,
+      "importOperations": 1,
+      "previewAttempts": 1,
+      "actualImportAttempts": 1,
+      "automaticRetries": 0,
+      "publicationSnapshotsAdded": 6,
+      "operationalReferencesAdded": 11,
+      "otherHotelsCompared": 663,
+      "otherHotelsUnchanged": true,
+      "acceptedRevisionPreserved": 3,
+      "currentRevision": 3,
+      "photosPreserved": true,
+      "photoSetsPreserved": true,
+      "priorContentVersionsPreserved": true,
+      "privateFactsPreserved": true,
+      "monitorPriceSnapshotsPreserved": true,
+      "actualFeedPresenceAdded": 3,
+      "publicationSummarySha256": "a476043d4ee21e11012955b4151238ce882554469d37c3b13901450979e8c450",
+      "routeProofSha256": "52ee849c473c0cbbd532092edab4a642297bb9ca9540b00a39f7a5d9e31463ea",
+      "feedSummarySha256": "b5c1dd0170d957a990d1d2011a55c9c70e11aa290097c048e7b70490d5c530f1",
+      "initialRegistrySha256": "2a8b5ee9acd23dc79484ddcbc1a9c1d913c9345779d41cc28e742be4ff21564f",
+      "finalRegistrySha256": "05526cdd33ce1077f9d5944d8a388813806599f6f0e60d3149dbd14c01c00c56"
+    }
+  },
+  "prior_identity_holds": {
+    "hotel_ids": [
+      319,
+      364,
+      496
+    ],
+    "original_read_run_id": 43407787367,
+    "reason": "Existing MAX receipts and immutable archive lack a typed native/publisher relation; title-alias evidence alone was not accepted. No duplicate message or binding was written."
+  },
+  "scheduled_price_maintenance": {
+    "scope_after_roster_activation": 595,
+    "collector_activation": "Separate two-ref PR required after immutable roster source is reviewed.",
+    "natural_price_cycle_acceptance": "pending",
+    "manual_collection_calls": 0
+  },
+  "earlier_photos_and_content_history_preserved": true
+}
