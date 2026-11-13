@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "operation": "commercial-hotel-batch-20261113-10-v1",
+  "initialVersion": 324,
+  "finalVersion": 329,
+  "sourceEdits": 4,
+  "importOperations": 1,
+  "publicationSnapshotsAdded": 8,
+  "otherHotelsCompared": 662,
+  "otherHotelsUnchanged": true,
+  "acceptedRevisionPreserved": 2,
+  "currentRevision": 3,
+  "priorContentVersionsPreserved": true,
+  "privateFactsPreserved": true,
+  "monitorPriceSnapshotsPreserved": true,
+  "actualFeedPresenceAdded": 4,
+  "automaticRetries": 0,
+  "publicationSummarySha256": "0510d0536d3aa00d7d719b13ad3b64ab0f2344a14ac98f808babd35e648f27b3",
+  "feedSummarySha256": "e5a92f6074c93adadf47a3549259a931477e0063a33e93944aefbadd1a425d31",
+  "initialRegistrySha256": "dfcc8bf2d382cdd0ac420a4070d90f9483ae986299a908030bbb0770eccfd6b1",
+  "finalRegistrySha256": "cf22daf78e19e9f544c1acbd8c4263f564288cb98c1a17bcf7c1d4a888e4ac18"
+}

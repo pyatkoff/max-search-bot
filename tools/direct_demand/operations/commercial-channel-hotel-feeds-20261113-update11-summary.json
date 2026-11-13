@@ -1,0 +1,61 @@
+{
+  "ok": true,
+  "operation": "commercial-channel-hotel-feeds-20261113-update11",
+  "schema_version": 4,
+  "run_id": "43359639697",
+  "run_attempt": 1,
+  "head_sha": "3503f26d4fd5cc0542863c4eae113083378e69e4",
+  "installed_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+  "publication_installed_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+  "previous_logical_hotels": 580,
+  "new_hotel_ids": [
+    1330,
+    983,
+    497,
+    231
+  ],
+  "logical_hotels": 584,
+  "offer_counts": [
+    584,
+    584,
+    1168
+  ],
+  "old580_offer_blocks_byte_exact": true,
+  "old_price_blocks_byte_exact": true,
+  "writer_attempts": 1,
+  "retry_authorized": false,
+  "post_write_attempts": 0,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "sha256": "5235d4eaaeda0c8f89c63a8b8cf5762151b48561f79063fd2549ee43cbf93e60",
+      "bytes": 572503,
+      "rows": 584
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "sha256": "d924ccfd9c90ab950fc58447e064449298a3536c6b15e5a9d88f46b76417d6ff",
+      "bytes": 666955,
+      "rows": 584
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "sha256": "20bc540832724746a73f8eefebe01664b7df7f46ac3c8541891703c5cd9b2099",
+      "bytes": 1239085,
+      "rows": 1168
+    }
+  ],
+  "source_sha256": "5fcb5a6d18c34c984d5c427c1398b93a3461a4aefa9201e6006c95c011f4ffe5",
+  "input_sha256": "adccadddaca8309a03425af6fc6fc5683ea43242d959e4d72eaf5d57c5534b9b",
+  "writer_receipt_sha256": "7135e9c03b9809a33620e55cace95ca499c6468920dc8c00dd79ee86998320b2",
+  "readback_sha256": "d363f1ca151a008249ec7d3448473cfcf582d1d8604e68575998bdb581452d2f",
+  "publication_summary_sha256": "0510d0536d3aa00d7d719b13ad3b64ab0f2344a14ac98f808babd35e648f27b3",
+  "bound_read_sha256": "19f6a1d81cd331e9c7b8ef4b8bc8b9912379b07e383a1c838919010d1bc81cfa",
+  "route_proof_sha256": "acb04f0a1e4381f96ceb7aac8a1e6a67ed08f0bd5e2cc3d8629c453f80c13163",
+  "verified_at_utc": "2026-11-13T03:33:10.829670+00:00",
+  "original_publication_run_id": 43358127823,
+  "original_publication_conclusion": "failure_after_verified_send",
+  "bound_reader_run_id": 43358539473
+}

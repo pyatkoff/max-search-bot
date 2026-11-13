@@ -1,0 +1,50 @@
+{
+  "ok": true,
+  "operation": "commercial-hotel-batch-20261113-10-v1",
+  "site_version_before": 324,
+  "site_version_after": 329,
+  "cards": 666,
+  "published_pairs_before": 580,
+  "published_pairs_after": 584,
+  "queue_before": 25,
+  "queue_after": 21,
+  "feed_pairs": 584,
+  "new_publication_snapshots": 8,
+  "unaffected_cards_exact": 662,
+  "accepted_versions_research_holds_prices_preserved": true,
+  "historical_demand_snapshot_unchanged": true,
+  "category_evidence_growth": 0,
+  "source_edits": 4,
+  "receipt_imports": 1,
+  "automatic_retries": 0,
+  "new_pairs": [
+    {
+      "hotel_id": 1330,
+      "site_id": "613507e2-bd06-4bc6-8322-095f97b16811",
+      "name": "CASTLE PARK (EX. LARISSA PARK)",
+      "max": "https://max.ru/channel_anytour/AaHS6yZoVr4",
+      "telegram": "https://t.me/any_toour/595"
+    },
+    {
+      "hotel_id": 983,
+      "site_id": "8e968c47-e2e7-4467-a030-679ee02d5be3",
+      "name": "ANITAS",
+      "max": "https://max.ru/channel_anytour/AaHS6y9oOBE",
+      "telegram": "https://t.me/any_toour/596"
+    },
+    {
+      "hotel_id": 497,
+      "site_id": "94945106-2d21-5f24-a03a-a09892d074b8",
+      "name": "TITANIC RESORT & AQUA PARK",
+      "max": "https://max.ru/channel_anytour/AaHS6zgmfC0",
+      "telegram": "https://t.me/any_toour/597"
+    },
+    {
+      "hotel_id": 231,
+      "site_id": "eab88ffa-1ed5-55af-b304-f0a6f955f450",
+      "name": "GRAND MAKADI",
+      "max": "https://max.ru/channel_anytour/AaHS60D1FKA",
+      "telegram": "https://t.me/any_toour/598"
+    }
+  ]
+}
