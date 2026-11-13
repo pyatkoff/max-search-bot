@@ -3,7 +3,7 @@ declare(strict_types=1);
 ini_set('display_errors','0');
 const AS39_POLISH_CTA='Узнать стоимость ремонта';
 const AS39_POLISH_ROOT='/var/www/anytoour/data/www/app.anytoour.ru';
-const AS39_POLISH_APP='__APPLICATION_SHA__';
+const AS39_POLISH_APP='25b01edd0a84bec80cae8402b572373f843eff7f';
 const AS39_POLISH_CHANNEL='-80917954947727';
 const AS39_POLISH_PIN='mid.ffffb667d20a157101a1bd6d233963da';
 function ck(bool $ok,string $reason):void{if(!$ok)throw new RuntimeException($reason);}
@@ -388,6 +388,12 @@ function replaceOnce(string $text,array $markup,string $old,string $next):array{
  $at=mb_strpos($text,$old,0,'UTF-8');ck($at!==false&&mb_strpos($text,$old,$at+1,'UTF-8')===false,'caption_phrase_changed');
  return replaceRange($text,$markup,$at,mb_strlen($old,'UTF-8'),$next);
 }
+function baselineLinks(string $text,array $markup,array $expected):void{
+ $links=array_values(array_filter($markup,static fn($span)=>$span['type']==='link'));
+ usort($links,static fn($a,$b)=>$a['from']<=>$b['from']);
+ $actual=array_map(static fn($span)=>['label'=>mb_substr($text,$span['from'],$span['length'],'UTF-8'),'url'=>$span['url']??null],$links);
+ ck($actual===$expected,'baseline_navigation_changed');
+}
 function plan(string $id,string $text,array $markup,string $displayUrl):array{
  ck(isset(targets()[$id]),'unreviewed_target');
  if(in_array($id,['models-index','services-index'],true)){
@@ -438,6 +444,11 @@ function selfTest():void{
   foreach($target['link_fixtures']as$link){
    $from=mb_strpos($text,$link['label'],$cursor,'UTF-8');ck($from!==false,'fixture_label_missing');
    $length=mb_strlen($link['label'],'UTF-8');$markup[]=['type'=>'link','from'=>$from,'length'=>$length,'url'=>$link['url']];$cursor=$from+$length;
+  }
+  baselineLinks($text,$markup,$target['link_fixtures']);$expect(true);
+  if($id==='model-iphone-17'){
+   $bad=$markup;foreach($bad as&$span)if($span['type']==='link'){$span['url']='https://max.ru/channel_appleservice39ru/other';break;}unset($span);
+   try{baselineLinks($text,$bad,$target['link_fixtures']);throw new RuntimeException('changed_navigation_accepted');}catch(RuntimeException$e){$expect($e->getMessage()==='baseline_navigation_changed');}
   }
   $before=htmlPlan($text,$markup);$next=plan($id,$text,$markup,$display);
   $expect(str_contains($next['native_text'],'«'.AS39_POLISH_CTA.'»')&&!str_contains($next['native_text'],'Напишите менеджеру —'));
@@ -513,6 +524,7 @@ try{
  foreach(targets()as$id=>$target){
   $before=$beforeAll[$id];ck($before['mid']===$target['mid']&&$before['url']===$target['url'],'fixed_target_changed');
   ck(plain($before['plan']['native_text'])===plain($target['before_public_plain']),'caption_preimage_changed');
+  baselineLinks($before['plan']['native_text'],$before['plan']['native_markup'],$target['link_fixtures']);
   $next=plan($id,$before['plan']['native_text'],$before['plan']['native_markup'],$displayUrl);
   $plans[$id]=['before'=>$before,'after'=>$next];
  }
