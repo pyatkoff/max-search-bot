@@ -115,9 +115,7 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .leadTitleLine{gap:5px}
 .manager2 .leadPreview{margin:3px 0 0;font-size:13px;line-height:1.4;-webkit-line-clamp:1}
 .manager2 .leadActivityTime{font-size:10px}
-.manager2 .m2OwnershipMark{display:inline-block;width:7px;height:7px;border-radius:50%;flex:0 0 7px;background:#8b9891}
-.manager2 .m2OwnershipMark.own{background:#3d8059}
-.manager2 .m2OwnershipMark.free{background:#b98023}
+.manager2 .m2OwnershipMark{display:none}
 .manager2 .m2ChatMeta{display:flex;gap:5px;align-items:center;margin-top:4px;min-width:0;font-size:11px;color:#637457}
 .manager2 .m2ChannelBadge{font-size:9px;font-weight:700;line-height:15px;border:1px solid #dce5de;border-radius:4px;padding:0 3px;color:#486153;flex-shrink:0}
 .manager2 .m2ChatManager{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
