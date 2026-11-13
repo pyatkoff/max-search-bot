@@ -1148,11 +1148,14 @@ function modeledValueFreshRetryPriorityAssertions(PDO $p,callable $check):void
     $protected->setValue($owner,[]);
     $p->prepare("UPDATE max_channel_conversion_outbox SET attempts=1,claimed_at_unix=?,claim_token='synthetic_claim' WHERE id=?")->execute([$now,$rows[80]['id']]);
     $claimed=$pick->invoke($owner,$now,$gate,[]);
-    $p->prepare("UPDATE max_channel_conversion_outbox SET attempts=0,claimed_at_unix=NULL,claim_token=' ' WHERE id=?")->execute([$rows[80]['id']]);
-    $paddedClaim=$pick->invoke($owner,$now,$gate,[]);
-    $check('unknown protected membership keeps the legacy FIFO and frozen claimed or space-only claim traces never supply a fresh hint',
+    $check('unknown protected membership keeps the legacy FIFO and frozen or already claimed rows never supply a fresh hint',
         $unknown===null&&array_column($legacy,'id')===array_column(array_slice($rows,0,3),'id')
-        &&$frozen===null&&$claimed===null&&$paddedClaim===null);
+        &&$frozen===null&&$claimed===null);
+    // Native claim_token is CHAR(32); use a VARCHAR trace whose stored space survives the driver roundtrip.
+    $p->prepare("UPDATE max_channel_conversion_outbox SET attempts=0,claimed_at_unix=NULL,claim_token=NULL,upload_id=' ' WHERE id=?")->execute([$rows[80]['id']]);
+    $storedUpload=$saved()[80]['upload_id'];$paddedUpload=$pick->invoke($owner,$now,$gate,[]);
+    $check('a byte-preserved space-only VARCHAR upload trace never supplies a fresh retry hint',
+        $storedUpload===' '&&$paddedUpload===null);
 
     [$wire,$lookup,$rows]=$setup();$previousClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);
     $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ModeledFreshRetryHintStatement::class]);ModeledFreshRetryHintStatement::$failHint=true;
