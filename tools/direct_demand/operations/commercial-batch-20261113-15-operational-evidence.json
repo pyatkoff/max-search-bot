@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "checked_on": "2026-11-13",
+  "scope": "Read-only targeted review of three previously accepted hotels. No prices, provider requests, messages, publication, repository, Site or hold mutations.",
+  "input_registry": "/workspace/scratch/715224df0ce7/batch14/closure/execution/final-registry.json",
+  "method": "Saved cards plus current system1 searches with recency and opened primary hotel/owner pages and original operator notices. Elapsed dates and removed notices were not treated as completion evidence.",
+  "hotels": [
+    {
+      "tourvisor_hotel_id": 32232,
+      "name": "Waldorf Astoria Dubai Palm Jumeirah",
+      "conclusion": "Sufficient for a limited accurate post with a caveat; update the former unconditional Pearl Club closure statement.",
+      "supported_available": [
+        "Coral Travel's dated hotel operations update of 2026-10-02 explicitly reports Pearl Club service periods, an open beach until sunset, and operating pools, spa and kids club.",
+        "Current Hilton Pearl Club page describes service periods and availability, consistent with resumed club service, though closing hours differ from the operator notice."
+      ],
+      "supported_restrictions": [
+        "The dated October operator update says check-in/check-out service is not available inside Pearl Club until further notice.",
+        "Best at Travel currently carries a nearby construction warning with possible audible/visible works."
+      ],
+      "unresolved_but_avoidable": [
+        "No completion certificate for August 3-7 beach nourishment was found. An explicit October operating update supports current beach availability without claiming every work finished.",
+        "KOMPAS still carries the old full Pearl closure notice; the later dated October operator update is materially newer and affirmative. Preserve conflict in research evidence instead of copying the old claim into a current post.",
+        "Exact Pearl closing hours and shuttle availability conflict across pages; omit these details from the short post."
+      ],
+      "suggested_caveat": "Рядом с отелем идут строительные работы, возможен шум. Регистрацию заезда и выезда в Pearl Club пока не проводят; клубные привилегии зависят от категории номера.",
+      "sources": [
+        {
+          "url": "https://www.coral.ge/en/hotels/united-arab-emirates/waldorf-astoria-dubai-palm-jumeirah-jumeira/",
+          "web_ref": "turn9view1",
+          "kind": "original_operator_notice",
+          "document_date": "2026-10-02",
+          "relevant_lines": "208-238"
+        },
+        {
+          "url": "https://www.hilton.com/en/hotels/dxbpdwa-waldorf-astoria-dubai-palm-jumeirah/rooms/pearl-club/",
+          "web_ref": "turn6view4",
+          "kind": "official_hotel",
+          "document_date": null,
+          "relevant_lines": "158-179"
+        },
+        {
+          "url": "https://www.bestattravel.co.uk/holidays/dubai/waldorf-astoria-dubai-palm-jumeirah",
+          "web_ref": "turn6view2",
+          "kind": "original_operator_notice",
+          "document_date": null,
+          "relevant_lines": "1483-1496"
+        },
+        {
+          "url": "https://new.kompastour.com/kz/rus/country/uae/dubai/waldorf_astoria_dubai_palm_jumeirah/",
+          "web_ref": "turn5view4",
+          "other_web_ref": "turn5view3",
+          "kind": "original_operator_notice",
+          "document_date": null,
+          "relevant_lines": "245-246",
+          "role": "old-warning-conflict"
+        }
+      ]
+    },
+    {
+      "tourvisor_hotel_id": 2575,
+      "name": "Rixos Al Mairid Ras Al Khaimah",
+      "conclusion": "Sufficient for a limited post acknowledging renovations. The beach reopening evidence is specific to this hotel and describes an accomplished reopening, not a future plan.",
+      "supported_available": [
+        "Planeta Travel explicitly reports that this hotel's beach and beach infrastructure reopened on 2026-11-08 and are being used by guests.",
+        "KOMPAS and Etihad Holidays report villa accommodation, six operating pools and continuing Rixy activities in a temporary first-floor right-wing space.",
+        "L'Olivo and Toro Loco are listed as available restaurant choices by the two operator descriptions."
+      ],
+      "supported_restrictions": [
+        "Rooms in the main building are under renovation through the planned 2026-11-30 window; reopening/accommodation is scheduled for December, not verified as already completed.",
+        "Family Pool remains under renovation.",
+        "The permanent Rixy Kids Club is being rebuilt; new club completion is planned for February 2027.",
+        "Orient is temporarily closed with December reopening planned."
+      ],
+      "unresolved_but_avoidable": [
+        "Turquoise is reported available by Etihad Holidays but temporarily unavailable in KOMPAS's dining list. Do not promise this restaurant or that every restaurant operates.",
+        "Etihad Holidays still displays a general closure notice for Ras Al Khaimah hotel beaches. The hotel's specific subsequent opening notice from Planeta Travel is affirmative, dated by event and identifies the exact property.",
+        "The entire main building is not established as closed: the temporary kids club is in its right wing. Restriction wording must specify main-building rooms."
+      ],
+      "suggested_caveat": "Номера главного корпуса обновляют, размещение сейчас предусмотрено в виллах. Family Pool и ресторан Orient временно недоступны, Rixy работает во временном помещении. Сроки открытия и доступные услуги уточняются на даты поездки.",
+      "sources": [
+        {
+          "url": "https://laguna.plantravel.ru/countries/uae/hotelnews/rixos_al_mairid_ras_al_khaimah_5_plyazh_oficialno_otkrit_dlya_gostei_s_081126/",
+          "web_ref": "turn10view1",
+          "kind": "original_operator_notice",
+          "document_date": null,
+          "event_date": "2026-11-08",
+          "relevant_lines": "457-468"
+        },
+        {
+          "url": "https://kompastour.com/kz/rus/country/uae/ras_al_khaimah/rixos_al_mairid_rak/",
+          "web_ref": "turn5view6",
+          "kind": "original_operator_notice",
+          "document_date": "2026-07 (page label; notice includes later dates)",
+          "relevant_lines": "296-300;345-355"
+        },
+        {
+          "url": "https://www.etihadholidays.co.uk/hotel/ras-al-khaimah/rixos-al-mairid-ras-al-khaimah/",
+          "web_ref": "turn6view3",
+          "kind": "original_operator_notice",
+          "document_date": null,
+          "relevant_lines": "104-111"
+        },
+        {
+          "url": "https://marjan.ae/press-releases/marjan-hospitality-announces-major-refurbishment-across-rixos-al-mairid-and-pullman-resort-al-marjan-island",
+          "web_ref": "turn8view4",
+          "kind": "official_owner",
+          "document_date": "2026-09-29",
+          "relevant_lines": "291-294"
+        }
+      ]
+    },
+    {
+      "tourvisor_hotel_id": 32339,
+      "name": "InterContinental Nha Trang",
+      "conclusion": "Sufficient for a limited post with the explicit ongoing-noise warning. Do not narrow the noise period to daytime without a source.",
+      "supported_available": [
+        "Official hotel and IHG pages currently offer hotel accommodation and publish reception/check-in terms.",
+        "The hotel's facilities page publishes pool hours 06:00-18:00, gym 24/7, spa 11:00-20:00 and describes Planet Trekker kids club.",
+        "Official site lists current dining operations and events."
+      ],
+      "supported_restrictions": [
+        "The official alert says noise continues from Residences renovation and nearby construction.",
+        "InterContinental Nha Trang and InterContinental Residences Nha Trang operate separately; hotel facilities are not available to Residences guests."
+      ],
+      "unresolved_but_avoidable": [
+        "No completion date, work hours or definitive list of affected rooms is provided by the official alert.",
+        "No hotel-wide closure is reported in the alert; no claim of operational availability for specific travel dates was checked.",
+        "The alert does not say noise is limited to daytime. Do not imply quiet nights.",
+        "Pool counts conflict between IHG sections; use the generic plural rather than a count."
+      ],
+      "suggested_caveat": "Отель предупреждает о шуме из-за ремонта Residences и стройки рядом; срок окончания работ не указан. InterContinental Nha Trang и Residences — разные объекты.",
+      "sources": [
+        {
+          "url": "https://nhatrang.intercontinental.com/",
+          "web_ref": "turn4view3",
+          "kind": "official_hotel_alert",
+          "document_date": null,
+          "relevant_lines": "2-3;74-85"
+        },
+        {
+          "url": "https://nhatrang.intercontinental.com/facilities/",
+          "web_ref": "turn8view3",
+          "other_web_ref": "turn8view2",
+          "kind": "official_hotel",
+          "document_date": null,
+          "relevant_lines": "68-123;129-155"
+        },
+        {
+          "url": "https://www.ihg.com/intercontinental/hotels/us/en/nha-trang/nhach/hoteldetail",
+          "web_ref": "turn9view2",
+          "kind": "official_brand",
+          "document_date": null,
+          "relevant_lines": "97-154;275-315"
+        }
+      ]
+    }
+  ],
+  "caution": "All availability statements are attributed to public hotel/operator notices checked on 2026-11-13. They are not live checks of a booked package, future dates, room inventory or service delivery. No holds were removed."
+}

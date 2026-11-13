@@ -1,0 +1,158 @@
+{
+  "operation": "commercial-hotel-batch-20261113-15-v1",
+  "state": "PREPARED_NOT_SENT",
+  "registry_version": 344,
+  "rows": [
+    {
+      "hotel_id": 2575,
+      "site_id": "e198a048-30f6-4397-9866-7297c1878370",
+      "source_revision": 2,
+      "logical_id": "commercial-hotel-2575-v1",
+      "aliases": [
+        "Rixos Al Mairid Ras Al Khaimah",
+        "RIXOS AL MAIRID RAS AL KHAIMAH (EX. HILTON RAS AL KHAIMAH BEACH RESORT)",
+        "Rixos Al Mairid",
+        "Hilton Ras Al Khaimah"
+      ],
+      "text": "✈️ Туры в Rixos Al Mairid Ras Al Khaimah\n📍 Рас-эль-Хайма, ОАЭ.\n\nОтдых у моря с размещением в номерах вилл, бассейнами и развлечениями для всей семьи.\n\n• Собственный песчаный пляж.\n• Бассейны, спорт и спа.\n• Детские занятия в Rixy Kids Club.\n\nНомера главного корпуса на реновации. Family Pool и ресторан Orient временно закрыты, Rixy работает во временном помещении. Перед бронированием уточним доступные зоны и включённые услуги на ваши даты.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "6f08df814d9d92fa81ee392ee3e058fbc8520c7f6c251859646ae9e91968ff51",
+      "patch": {
+        "maxText": "✈️ Туры в Rixos Al Mairid Ras Al Khaimah\n📍 Рас-эль-Хайма, ОАЭ.\n\nОтдых у моря с размещением в номерах вилл, бассейнами и развлечениями для всей семьи.\n\n• Собственный песчаный пляж.\n• Бассейны, спорт и спа.\n• Детские занятия в Rixy Kids Club.\n\nНомера главного корпуса на реновации. Family Pool и ресторан Orient временно закрыты, Rixy работает во временном помещении. Перед бронированием уточним доступные зоны и включённые услуги на ваши даты.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+        "telegramText": "✈️ Туры в Rixos Al Mairid Ras Al Khaimah\n📍 Рас-эль-Хайма, ОАЭ.\n\nОтдых у моря с размещением в номерах вилл, бассейнами и развлечениями для всей семьи.\n\n• Собственный песчаный пляж.\n• Бассейны, спорт и спа.\n• Детские занятия в Rixy Kids Club.\n\nНомера главного корпуса на реновации. Family Pool и ресторан Orient временно закрыты, Rixy работает во временном помещении. Перед бронированием уточним доступные зоны и включённые услуги на ваши даты.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+        "limitations": [
+          "Номера главного корпуса на реновации; размещение предусмотрено в виллах. Открытие номеров планируется с декабря 2026, фактическое завершение работ не подтверждено.",
+          "Family Pool и ресторан Orient временно недоступны; Rixy работает во временной зоне. Сроки открытия и услуги требуют уточнения на даты поездки.",
+          "Планета Travel подтверждает состоявшееся открытие пляжа и его инфраструктуры 08.11.2026. Статус Turquoise в операторских уведомлениях расходится; работу всех ресторанов не обещаем."
+        ],
+        "evidence": "Повторно использовано сохранённое исследование ИИ (6 исходных сведений); сырые пакеты и ограничения сохранены. 10.11.2026 проверены официальные страницы и просмотрены три фотографии. Приёмка относится к редакционным материалам, не к цене, наличию или работе услуг на будущие даты. Кнопки формирует действующий публикатор после регистрации сообщения; Sites не выполнял отправку.\n\n[commercial-hotel-batch-20261113-15-v1/operational-update]\n13.11.2026 выполнена только адресная сверка прежних ограничений. Sufficient for a limited post acknowledging renovations. The beach reopening evidence is specific to this hotel and describes an accomplished reopening, not a future plan.\nhttps://laguna.plantravel.ru/countries/uae/hotelnews/rixos_al_mairid_ras_al_khaimah_5_plyazh_oficialno_otkrit_dlya_gostei_s_081126/\nhttps://kompastour.com/kz/rus/country/uae/ras_al_khaimah/rixos_al_mairid_rak/\nhttps://www.etihadholidays.co.uk/hotel/ras-al-khaimah/rixos-al-mairid-ras-al-khaimah/\nhttps://marjan.ae/press-releases/marjan-hospitality-announces-major-refurbishment-across-rixos-al-mairid-and-pullman-resort-al-marjan-island"
+      },
+      "new_source_refs": [
+        {
+          "kind": "catalog",
+          "label": "Уточнение работы отеля · laguna.plantravel.ru",
+          "url": "https://laguna.plantravel.ru/countries/uae/hotelnews/rixos_al_mairid_ras_al_khaimah_5_plyazh_oficialno_otkrit_dlya_gostei_s_081126/",
+          "at": "2026-11-13T10:06:00Z",
+          "note": "Адресная проверка работы зон перед выпуском. Исходные предупреждения и плановые сроки сохранены в истории; подтверждение не является наличием тура на будущие даты."
+        },
+        {
+          "kind": "catalog",
+          "label": "Уточнение работы отеля · kompastour.com",
+          "url": "https://kompastour.com/kz/rus/country/uae/ras_al_khaimah/rixos_al_mairid_rak/",
+          "at": "2026-11-13T10:06:00Z",
+          "note": "Адресная проверка работы зон перед выпуском. Исходные предупреждения и плановые сроки сохранены в истории; подтверждение не является наличием тура на будущие даты."
+        },
+        {
+          "kind": "catalog",
+          "label": "Уточнение работы отеля · www.etihadholidays.co.uk",
+          "url": "https://www.etihadholidays.co.uk/hotel/ras-al-khaimah/rixos-al-mairid-ras-al-khaimah/",
+          "at": "2026-11-13T10:06:00Z",
+          "note": "Адресная проверка работы зон перед выпуском. Исходные предупреждения и плановые сроки сохранены в истории; подтверждение не является наличием тура на будущие даты."
+        },
+        {
+          "kind": "official",
+          "label": "Уточнение работы отеля · marjan.ae",
+          "url": "https://marjan.ae/press-releases/marjan-hospitality-announces-major-refurbishment-across-rixos-al-mairid-and-pullman-resort-al-marjan-island",
+          "at": "2026-11-13T10:06:00Z",
+          "note": "Адресная проверка работы зон перед выпуском. Исходные предупреждения и плановые сроки сохранены в истории; подтверждение не является наличием тура на будущие даты."
+        }
+      ]
+    },
+    {
+      "hotel_id": 32232,
+      "site_id": "7df7f617-7aeb-476c-8286-82f891e0196a",
+      "source_revision": 2,
+      "logical_id": "commercial-hotel-32232-v1",
+      "aliases": [
+        "Waldorf Astoria Dubai Palm Jumeirah",
+        "WALDORF ASTORIA DUBAI PALM JUMEIRAH"
+      ],
+      "text": "✈️ Туры в Waldorf Astoria Dubai Palm Jumeirah\n📍 Пальма Джумейра, Дубай, ОАЭ.\n\nПляжный отпуск на Пальме Джумейра с возможностью выбираться на прогулки по Дубаю. Здесь можно чередовать отдых у моря и бассейна со спа, а для детей работает Coco’s Kids Club.\n\n• Собственный песчаный пляж.\n• Бассейны и Waldorf Astoria Spa.\n• Номера с разными видами на залив и город.\n\nРядом ведётся стройка, возможен шум. Клубные привилегии зависят от категории номера; регистрацию заезда и выезда в Pearl Club пока не проводят.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "f70d17e6025b306a8df3f5d81ad24cabf842fdcbb722fa90596bbedeeb9a557e",
+      "patch": {
+        "maxText": "✈️ Туры в Waldorf Astoria Dubai Palm Jumeirah\n📍 Пальма Джумейра, Дубай, ОАЭ.\n\nПляжный отпуск на Пальме Джумейра с возможностью выбираться на прогулки по Дубаю. Здесь можно чередовать отдых у моря и бассейна со спа, а для детей работает Coco’s Kids Club.\n\n• Собственный песчаный пляж.\n• Бассейны и Waldorf Astoria Spa.\n• Номера с разными видами на залив и город.\n\nРядом ведётся стройка, возможен шум. Клубные привилегии зависят от категории номера; регистрацию заезда и выезда в Pearl Club пока не проводят.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+        "telegramText": "✈️ Туры в Waldorf Astoria Dubai Palm Jumeirah\n📍 Пальма Джумейра, Дубай, ОАЭ.\n\nПляжный отпуск на Пальме Джумейра с возможностью выбираться на прогулки по Дубаю. Здесь можно чередовать отдых у моря и бассейна со спа, а для детей работает Coco’s Kids Club.\n\n• Собственный песчаный пляж.\n• Бассейны и Waldorf Astoria Spa.\n• Номера с разными видами на залив и город.\n\nРядом ведётся стройка, возможен шум. Клубные привилегии зависят от категории номера; регистрацию заезда и выезда в Pearl Club пока не проводят.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+        "limitations": [
+          "Рядом с отелем ведётся строительство, возможен шум и визуальное влияние работ; график и срок окончания не подтверждены.",
+          "Coral Travel 02.10.2026 сообщает о работе Pearl Club и пляжа. Регистрацию заезда и выезда в клубе пока не проводят; старое уведомление о полном закрытии клуба не переносится в текущий пост.",
+          "Питание, клубные привилегии, вид и размещение детей зависят от выбранного тарифа и категории."
+        ],
+        "evidence": "Повторно использовано сохранённое исследование ИИ: 6 исходных сведений. Архив и исходные ограничения сохранены. 10.11.2026 проверены указанные официальные страницы, существенные предупреждения и три фотографии. Это приёмка редакционного пакета, не подтверждение цены/наличия/работы услуг на будущие даты. Кнопки формирует действующий публикатор после регистрации сообщения; отправка из Sites не выполнялась.\n\n[commercial-hotel-batch-20261113-15-v1/operational-update]\n13.11.2026 выполнена только адресная сверка прежних ограничений. Sufficient for a limited accurate post with a caveat; update the former unconditional Pearl Club closure statement.\nhttps://www.coral.ge/en/hotels/united-arab-emirates/waldorf-astoria-dubai-palm-jumeirah-jumeira/\nhttps://www.hilton.com/en/hotels/dxbpdwa-waldorf-astoria-dubai-palm-jumeirah/rooms/pearl-club/\nhttps://www.bestattravel.co.uk/holidays/dubai/waldorf-astoria-dubai-palm-jumeirah\nhttps://new.kompastour.com/kz/rus/country/uae/dubai/waldorf_astoria_dubai_palm_jumeirah/"
+      },
+      "new_source_refs": [
+        {
+          "kind": "catalog",
+          "label": "Уточнение работы отеля · www.coral.ge",
+          "url": "https://www.coral.ge/en/hotels/united-arab-emirates/waldorf-astoria-dubai-palm-jumeirah-jumeira/",
+          "at": "2026-11-13T10:06:00Z",
+          "note": "Адресная проверка работы зон перед выпуском. Исходные предупреждения и плановые сроки сохранены в истории; подтверждение не является наличием тура на будущие даты."
+        },
+        {
+          "kind": "official",
+          "label": "Уточнение работы отеля · www.hilton.com",
+          "url": "https://www.hilton.com/en/hotels/dxbpdwa-waldorf-astoria-dubai-palm-jumeirah/rooms/pearl-club/",
+          "at": "2026-11-13T10:06:00Z",
+          "note": "Адресная проверка работы зон перед выпуском. Исходные предупреждения и плановые сроки сохранены в истории; подтверждение не является наличием тура на будущие даты."
+        },
+        {
+          "kind": "catalog",
+          "label": "Уточнение работы отеля · www.bestattravel.co.uk",
+          "url": "https://www.bestattravel.co.uk/holidays/dubai/waldorf-astoria-dubai-palm-jumeirah",
+          "at": "2026-11-13T10:06:00Z",
+          "note": "Адресная проверка работы зон перед выпуском. Исходные предупреждения и плановые сроки сохранены в истории; подтверждение не является наличием тура на будущие даты."
+        },
+        {
+          "kind": "catalog",
+          "label": "Уточнение работы отеля · new.kompastour.com",
+          "url": "https://new.kompastour.com/kz/rus/country/uae/dubai/waldorf_astoria_dubai_palm_jumeirah/",
+          "at": "2026-11-13T10:06:00Z",
+          "note": "Адресная проверка работы зон перед выпуском. Исходные предупреждения и плановые сроки сохранены в истории; подтверждение не является наличием тура на будущие даты."
+        }
+      ]
+    },
+    {
+      "hotel_id": 32339,
+      "site_id": "a7f36bf9-2325-4308-af4e-cd6d0f72239e",
+      "source_revision": 2,
+      "logical_id": "commercial-hotel-32339-v1",
+      "aliases": [
+        "InterContinental Nha Trang",
+        "INTERCONTINENTAL NHA TRANG"
+      ],
+      "text": "✈️ Туры в InterContinental Nha Trang\n📍 Нячанг, Вьетнам.\n\nГородской отель у набережной для тех, кто хочет совмещать отдых у моря с прогулками по Нячангу. После насыщенного дня можно провести время у бассейна или выбрать спа-процедуру.\n\n• Расположение на улице Чан Фу у набережной.\n• Бассейны, фитнес и спа.\n• Детский клуб Planet Trekker.\n\nИз-за ремонта Residences и стройки рядом возможен шум. Отель не указывает срок окончания работ. Клубные привилегии и спа-процедуры зависят от тарифа и выбранных услуг.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "aebc3501101d35b3d6131669e9c5a1e0dfd3be8ed05cce650ddf4383358e3c53",
+      "patch": {
+        "maxText": "✈️ Туры в InterContinental Nha Trang\n📍 Нячанг, Вьетнам.\n\nГородской отель у набережной для тех, кто хочет совмещать отдых у моря с прогулками по Нячангу. После насыщенного дня можно провести время у бассейна или выбрать спа-процедуру.\n\n• Расположение на улице Чан Фу у набережной.\n• Бассейны, фитнес и спа.\n• Детский клуб Planet Trekker.\n\nИз-за ремонта Residences и стройки рядом возможен шум. Отель не указывает срок окончания работ. Клубные привилегии и спа-процедуры зависят от тарифа и выбранных услуг.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+        "telegramText": "✈️ Туры в InterContinental Nha Trang\n📍 Нячанг, Вьетнам.\n\nГородской отель у набережной для тех, кто хочет совмещать отдых у моря с прогулками по Нячангу. После насыщенного дня можно провести время у бассейна или выбрать спа-процедуру.\n\n• Расположение на улице Чан Фу у набережной.\n• Бассейны, фитнес и спа.\n• Детский клуб Planet Trekker.\n\nИз-за ремонта Residences и стройки рядом возможен шум. Отель не указывает срок окончания работ. Клубные привилегии и спа-процедуры зависят от тарифа и выбранных услуг.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+        "limitations": [
+          "Официальное предупреждение: шум от ремонта Residences и соседнего строительства. Срок окончания не указан.",
+          "InterContinental Nha Trang и InterContinental Residences Nha Trang — разные объекты; инфраструктура отеля не предоставляется гостям Residences.",
+          "Доступ в Club InterContinental зависит от тарифа. Прямой выход на пляж без дороги и тихий отдых не обещаем."
+        ],
+        "evidence": "Повторно использовано сохранённое исследование ИИ: 6 исходных сведений. Архив и исходные ограничения сохранены. 10.11.2026 проверены указанные официальные страницы, существенные предупреждения и три фотографии. Это приёмка редакционного пакета, не подтверждение цены/наличия/работы услуг на будущие даты. Кнопки формирует действующий публикатор после регистрации сообщения; отправка из Sites не выполнялась.\n\n[commercial-hotel-batch-20261113-15-v1/operational-update]\n13.11.2026 выполнена только адресная сверка прежних ограничений. Sufficient for a limited post with the explicit ongoing-noise warning. Do not narrow the noise period to daytime without a source.\nhttps://nhatrang.intercontinental.com/\nhttps://nhatrang.intercontinental.com/facilities/\nhttps://www.ihg.com/intercontinental/hotels/us/en/nha-trang/nhach/hoteldetail"
+      },
+      "new_source_refs": [
+        {
+          "kind": "official",
+          "label": "Уточнение работы отеля · nhatrang.intercontinental.com",
+          "url": "https://nhatrang.intercontinental.com/",
+          "at": "2026-11-13T10:06:00Z",
+          "note": "Адресная проверка работы зон перед выпуском. Исходные предупреждения и плановые сроки сохранены в истории; подтверждение не является наличием тура на будущие даты."
+        },
+        {
+          "kind": "official",
+          "label": "Уточнение работы отеля · nhatrang.intercontinental.com",
+          "url": "https://nhatrang.intercontinental.com/facilities/",
+          "at": "2026-11-13T10:06:00Z",
+          "note": "Адресная проверка работы зон перед выпуском. Исходные предупреждения и плановые сроки сохранены в истории; подтверждение не является наличием тура на будущие даты."
+        },
+        {
+          "kind": "official",
+          "label": "Уточнение работы отеля · www.ihg.com",
+          "url": "https://www.ihg.com/intercontinental/hotels/us/en/nha-trang/nhach/hoteldetail",
+          "at": "2026-11-13T10:06:00Z",
+          "note": "Адресная проверка работы зон перед выпуском. Исходные предупреждения и плановые сроки сохранены в истории; подтверждение не является наличием тура на будущие даты."
+        }
+      ]
+    }
+  ]
+}

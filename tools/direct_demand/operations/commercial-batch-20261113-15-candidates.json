@@ -1,0 +1,72 @@
+[
+  {
+    "hotel_id": 319,
+    "aliases": [
+      "SUNRISE Remal Beach",
+      "SUNRISE REMAL BEACH RESORT",
+      "Sunrise Remal Beach",
+      "Remal Beach",
+      "Melton Beach"
+    ],
+    "logical_id": null,
+    "expected_text_sha256": "e6c763d2d969f89d4c67d2abee5bb50c04715e572ee9b0cbfb3bb47083987ce2",
+    "scope": "next6_candidates_read_only_prior3_identity_not_accepted"
+  },
+  {
+    "hotel_id": 364,
+    "aliases": [
+      "V Hotel Sharm El Sheikh",
+      "V HOTEL SHARM EL SHEIKH (EX. PYRAMISA BEACH RESORT SHARM EL SHEIKH)",
+      "V Hotel Sharm",
+      "Pyramisa Beach Resort Sharm"
+    ],
+    "logical_id": null,
+    "expected_text_sha256": "50e2022d2efa20201d4da060acde76d3e2db0734bcbf62efb003c39b20b641a5",
+    "scope": "next6_candidates_read_only_prior3_identity_not_accepted"
+  },
+  {
+    "hotel_id": 496,
+    "aliases": [
+      "SUNRISE Remal Resort",
+      "SUNRISE REMAL RESORT (EX. MELTON TIRAN RESORT)",
+      "Sunrise Remal Resort",
+      "Remal Resort",
+      "Melton Tiran"
+    ],
+    "logical_id": null,
+    "expected_text_sha256": "6921bd1782d66fe8677019fafecd8954a5644c0e03b892f01856fc5cbdfd638b",
+    "scope": "next6_candidates_read_only_prior3_identity_not_accepted"
+  },
+  {
+    "hotel_id": 2575,
+    "aliases": [
+      "Rixos Al Mairid Ras Al Khaimah",
+      "RIXOS AL MAIRID RAS AL KHAIMAH (EX. HILTON RAS AL KHAIMAH BEACH RESORT)",
+      "Rixos Al Mairid",
+      "Hilton Ras Al Khaimah"
+    ],
+    "logical_id": "commercial-hotel-2575-v1",
+    "expected_text_sha256": "6f08df814d9d92fa81ee392ee3e058fbc8520c7f6c251859646ae9e91968ff51",
+    "scope": "next6_candidates_read_only_prior3_identity_not_accepted"
+  },
+  {
+    "hotel_id": 32232,
+    "aliases": [
+      "Waldorf Astoria Dubai Palm Jumeirah",
+      "WALDORF ASTORIA DUBAI PALM JUMEIRAH"
+    ],
+    "logical_id": "commercial-hotel-32232-v1",
+    "expected_text_sha256": "f70d17e6025b306a8df3f5d81ad24cabf842fdcbb722fa90596bbedeeb9a557e",
+    "scope": "next6_candidates_read_only_prior3_identity_not_accepted"
+  },
+  {
+    "hotel_id": 32339,
+    "aliases": [
+      "InterContinental Nha Trang",
+      "INTERCONTINENTAL NHA TRANG"
+    ],
+    "logical_id": "commercial-hotel-32339-v1",
+    "expected_text_sha256": "aebc3501101d35b3d6131669e9c5a1e0dfd3be8ed05cce650ddf4383358e3c53",
+    "scope": "next6_candidates_read_only_prior3_identity_not_accepted"
+  }
+]
