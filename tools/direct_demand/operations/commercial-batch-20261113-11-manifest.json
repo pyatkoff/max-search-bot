@@ -1,0 +1,56 @@
+{
+  "state": "PREPARED_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261113-11-v1",
+  "registry_version": 329,
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 584,
+  "expected_new_full_pairs": 2,
+  "rows": [
+    {
+      "hotel_id": 325,
+      "logical_id": "commercial-hotel-325-v1",
+      "aliases": [
+        "Minamark Resort & Spa",
+        "MINAMARK RESORT & SPA"
+      ],
+      "text": "✈️ Туры в Minamark Resort & Spa\n📍 Хургада, Египет.\n\nМоре и прогулки по Хургаде в одной поездке 🌴\n\nMinamark расположен в центре Саккалы и имеет собственный песчаный пляж. Подойдёт тем, кто хочет отдыхать у воды и выходить на прогулки по городу.\n\n• Для детей есть клуб и водные горки.\n• На территории работает спа Agua.\n• Для поездки с детьми предусмотрены семейные категории.\n\nВ Club/Economy нет балкона. Подберём категорию с подходящей планировкой и кроватями для вашей семьи.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "d434b65d89fc890d049c650310049e214c4b26fdc14b6beaac49f337a4a12e62",
+      "photo_sha256": "b1149764b24c266e10179a1daad386cbb18cdad080bbd4e06970d4b360022130",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0b3445d24f743deab13a15d2b93e54d467276a63/.github/traffic-publish/commercial-batch-20261113-11/325.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://minamark.com/accommodation/",
+        "https://minamark.com/services/",
+        "https://minamark.com/agua-spa/",
+        "https://minamark.com/",
+        "https://www.tez-tour.com/hotel.html?id=16279",
+        "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/minamark-beach",
+        "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+        "https://chatgpt.com/library?file_id=libfile_fde3_f-500987befa7c81918ae7ab49fdf68038_839482358a3c8191a38d8cf811d28df4&account_id=personal",
+        "https://anytoour.ru/api-v2.php?action=flights&tourId=12305163658618&currency=RUB",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=325"
+      ]
+    },
+    {
+      "hotel_id": 4184,
+      "logical_id": "commercial-hotel-4184-v1",
+      "aliases": [
+        "Sentido Reef Oasis Senses",
+        "SENTIDO REEF OASIS SENSES RESORT (EX. REEF OASIS SENSES RESORT)"
+      ],
+      "text": "✈️ Туры в Sentido Reef Oasis Senses\n📍 Рас-Ум-эль-Сид, Шарм-эль-Шейх, Египет.\n\nОтдых у Красного моря для семьи и любителей рифа 🐠\n\nSentido Reef Oasis Senses предлагает просторные семейные категории и доступ к пляжу комплекса с домашним рифом. Подойдёт тем, кто хочет совместить морское купание с отдыхом на территории отеля.\n\n• Песчаная пляжная зона комплекса.\n• Домашний риф для знакомства с подводным миром.\n• Семейные категории номеров.\n\nДо пляжа около 500 м, на пути есть ступени. Пригодится обувь для воды. С 10 января по 28 февраля 2027 года аквапарк будет закрыт.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "442d44769860d5c78e4801c2e9f271187ada17d7ab299bd1b83cb2e9d75ec486",
+      "photo_sha256": "5f096a6e0aed68f980c6cd7a1f2644a31bbf55a49dc360d26c8933c08b8036a6",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0b3445d24f743deab13a15d2b93e54d467276a63/.github/traffic-publish/commercial-batch-20261113-11/4184.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.sentido.com/en/Sentido-Reef-Oasis-Resort.html",
+        "https://www.reefoasisresorts.com/sentido-reef-oasis-senses-aqua-park-resort",
+        "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php"
+      ]
+    }
+  ]
+}
