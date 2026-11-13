@@ -1,4 +1,4 @@
-name: Read exact nine existing hotel pairs for owner caption correction
+name: Correct18 existing hotel captions after owner review
 'on':
   push:
     branches:
@@ -19,13 +19,13 @@ jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
     - uses: actions/checkout@v4
       with:
         ref: ${{ github.sha }}
         persist-credentials: false
-    - name: Compile exact nine-pair read-only capture
+    - name: Compile exact finite18 owner correction
       shell: bash
       run: |
         set -euo pipefail
@@ -35,16 +35,53 @@ jobs:
         mkdir -m 700 "$RUNNER_TEMP/caption-repair-private"
         mkdir -m 700 "$RUNNER_TEMP/caption-repair-safe"
         python3 - <<'PY'
-        import pathlib,hashlib,base64,os,json
-        r=pathlib.Path('tools/direct_demand/operations/commercial-caption-batch16-20261113-read-scope.php').read_bytes();s=pathlib.Path('tools/direct_demand/operations/commercial-caption-batch16-20261113-scope.json').read_bytes()
-        assert hashlib.sha256(r).hexdigest()=='085edcc133fa0fe3b16d5f28413414b8b24f23d77687b1cc7c9363ca1274ea4b'
-        assert hashlib.sha256(s).hexdigest()=='91cf744c6b013b8aa75627769a149fea277c6440cc9782bd10815d2c8bd5d895'
-        assert len(json.loads(s)['rows'])==9
-        defs={'EXPECTED_INSTALLED_SHA':'4ab42ce44669919abf9d7bb54d075f380720c5f1','APPROVED_MANIFEST_SHA256':hashlib.sha256(s).hexdigest(),'MANIFEST_BASE64':base64.b64encode(s).decode()}
-        compiled=r.decode().replace('declare(strict_types=1);','declare(strict_types=1);\n'+'\n'.join("define('%s', '%s');"%(k,v) for k,v in defs.items()),1)
-        pathlib.Path(os.environ['RUNNER_TEMP'],'caption-repair-private','reader.php').write_text(compiled)
+        import pathlib,hashlib,base64,gzip,json,os
+        o=pathlib.Path('tools/direct_demand/operations');p=pathlib.Path(os.environ['RUNNER_TEMP'],'caption-repair-private')
+        packed=(o/'commercial-caption-batch16-20261113-edit-inputs.json.gz.b64').read_bytes()
+        assert hashlib.sha256(packed).hexdigest()=='eb8af70d4963dcf7f5ddf8d35b51d536cf37d5ae1938af56a28e49dcf959edc3'
+        files=json.loads(gzip.decompress(base64.b64decode(packed)))
+        assert set(files)=={'approved-cohort.json','edit.manifest.json','source-snapshot.json','read-proof.json'}
+        for name,text in files.items():(p/name).write_text(text)
+        m=json.loads(files['edit.manifest.json']);c=json.loads(files['approved-cohort.json'])
+        assert hashlib.sha256(files['edit.manifest.json'].encode()).hexdigest()=='4204b22e24392e0f31e81faf0063597fb10210706a49eab7e2db139ad1ed6fde'
+        assert hashlib.sha256(files['approved-cohort.json'].encode()).hexdigest()=='eed7fc09fa4356c164b80a6d651882e8df685ee5cb6ef73b22d270644ba4bb97'
+        assert hashlib.sha256(files['source-snapshot.json'].encode()).hexdigest()=='c296416d9b16319937d8389602a7b81b2932c17a6bdeae08deb69cb0916eb3d0'
+        assert m['rows']==c['rows'] and len(m['rows'])==18 and m['snapshot']['sha256']==c['source_read_sha256']
+        executor=(o/'commercial-caption-batch16-20261113-executor.php').read_bytes();verifier=(o/'commercial-caption-batch16-20261113-verify.py').read_bytes()
+        assert hashlib.sha256(executor).hexdigest()=='949ad32f2750813a4d3df7d5cb1141860654d73964c88b10babeaa0aa5790761' and hashlib.sha256(verifier).hexdigest()=='65f36e211521a8e6fd5579b5e2f24e23b0e7238eb130ba6be19e63a281c113ad'
+        defs={'EXPECTED_INSTALLED_SHA':'4ab42ce44669919abf9d7bb54d075f380720c5f1','APPROVED_UPDATE_OPERATION':'commercial-caption-batch16-20261113-edit-v1','APPROVED_MANIFEST_SHA256':'4204b22e24392e0f31e81faf0063597fb10210706a49eab7e2db139ad1ed6fde','MANIFEST_BASE64':base64.b64encode(files['edit.manifest.json'].encode()).decode(),'REPAIR_COHORT_SHA256':'eed7fc09fa4356c164b80a6d651882e8df685ee5cb6ef73b22d270644ba4bb97','REPAIR_PUBLICATION_IDS_BASE64':base64.b64encode(json.dumps([x['publication_id'] for x in m['rows']]).encode()).decode()}
+        constants='\n'.join("define('%s', '%s');"%(k,v) for k,v in defs.items())
+        (p/'edit.php').write_text(executor.decode().replace('declare(strict_types=1);','declare(strict_types=1);\n'+constants,1))
+        reader=(o/'commercial-caption-batch16-20261113-read-scope.php').read_text();scope=(o/'commercial-caption-batch16-20261113-scope.json').read_bytes()
+        assert hashlib.sha256(reader.encode()).hexdigest()=='085edcc133fa0fe3b16d5f28413414b8b24f23d77687b1cc7c9363ca1274ea4b'
+        assert hashlib.sha256(scope).hexdigest()=='91cf744c6b013b8aa75627769a149fea277c6440cc9782bd10815d2c8bd5d895'
+        defs={'EXPECTED_INSTALLED_SHA':'4ab42ce44669919abf9d7bb54d075f380720c5f1','APPROVED_MANIFEST_SHA256':hashlib.sha256(scope).hexdigest(),'MANIFEST_BASE64':base64.b64encode(scope).decode()}
+        (p/'reader.php').write_text(reader.replace('declare(strict_types=1);','declare(strict_types=1);\n'+'\n'.join("define('%s', '%s');"%(k,v) for k,v in defs.items()),1))
+        compile(verifier.decode(),'<verifier>','exec')
+        print('EXACT_18_REVISIONS_COMPILED_NO_SEND')
         PY
+        php -l "$RUNNER_TEMP/caption-repair-private/edit.php"
         php -l "$RUNNER_TEMP/caption-repair-private/reader.php"
+    - name: Authenticate original read artifact and exact preimage
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        python3 - <<'PY'
+        import subprocess,json,hashlib,zipfile,io,pathlib,os
+        run=43435373307;head='7bd57d2ccbcf0cfac61068761263197768a5865d';aid=14042682539;digest='63fac47d5b7fdf6c52d10de6a7713a6cc70289e2eec830c33b9956b3e725ce8a'
+        r=json.loads(subprocess.check_output(['gh','api',f'repos/pyatkoff/max-search-bot/actions/runs/{run}']))
+        assert r['id']==run and r['head_sha']==head and r['run_attempt']==1 and r['event']=='push' and r['head_branch']=='audit/content100-bot-publication-20261101' and r['path']=='.github/workflows/content100-bot-publication-20261101.yml' and r['status']=='completed' and r['conclusion']=='success'
+        a=json.loads(subprocess.check_output(['gh','api',f'repos/pyatkoff/max-search-bot/actions/artifacts/{aid}']))
+        assert a['id']==aid and a['name']=='commercial-caption-batch16-20261113-current' and a['expired'] is False and a['digest']=='sha256:'+digest and a['workflow_run']['id']==run and a['workflow_run']['head_sha']==head
+        raw=subprocess.check_output(['gh','api',f'repos/pyatkoff/max-search-bot/actions/artifacts/{aid}/zip']);assert hashlib.sha256(raw).hexdigest()==digest
+        z=zipfile.ZipFile(io.BytesIO(raw));assert len(z.infolist())<=10 and all(not i.filename.startswith('/') and '..' not in pathlib.PurePosixPath(i.filename).parts for i in z.infolist())
+        xs=[i for i in z.infolist() if pathlib.PurePosixPath(i.filename).name=='current-snapshot.json'];assert len(xs)==1 and xs[0].file_size<1000000
+        snapshot=z.read(xs[0]);assert hashlib.sha256(snapshot).hexdigest()=='c296416d9b16319937d8389602a7b81b2932c17a6bdeae08deb69cb0916eb3d0'
+        assert snapshot==pathlib.Path(os.environ['RUNNER_TEMP'],'caption-repair-private','source-snapshot.json').read_bytes()
+        print('ORIGINAL_READ_ARTIFACT_AUTHENTICATED_EXACT_SNAPSHOT')
+        PY
     - name: Verify nine original source gates and the unchanged 22 publishing pins
       env:
         GH_TOKEN: ${{ github.token }}
@@ -119,9 +156,9 @@ jobs:
         assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
         pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
         PY
-    - name: Read exact 18 current captions and verify nine live MAX messages
+    - name: Edit only the18 reviewed existing captions once
       shell: bash
-      env:
+      env: &id001
         GH_TOKEN: ${{ github.token }}
         DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
         DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -141,22 +178,24 @@ jobs:
         assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
         assert queued['total_count']==0
         PY
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/caption-repair-private/reader.php" > "$RUNNER_TEMP/caption-repair-safe/current-snapshot.json"
-        python3 - <<'PY'
-        import pathlib,os,json
-        r=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'caption-repair-safe','current-snapshot.json').read_text())
-        assert r['ok'] is True and r['post_write_attempts']==0 and r['provider_calls']==9 and len(r['posts'])==18
-        assert all(p['status']=='sent' and p['button_resolves_to_current_post'] for p in r['posts'])
-        assert [p['hotel_id'] for p in r['posts'][::2]]==[81358,343,432,65254,443,107940,32356,195,20288]
-        assert all(p['provider_live_verified'] is (p['platform']=='max') for p in r['posts'])
-        assert r['monitor_pending'] is False
-        print(json.dumps({'existing_posts_read':len(r['posts']),'post_writes':0,'provider_calls':9}))
-        PY
-    - name: Retain exact current public snapshots
+        test ! -e "$RUNNER_TEMP/caption-repair-safe/edit.started"
+        printf '%s\n' "$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT" > "$RUNNER_TEMP/caption-repair-safe/edit.started"
+        status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/caption-repair-private/edit.php" > "$RUNNER_TEMP/caption-repair-private/edit.runtime.jsonl" || status=$?
+        python3 tools/direct_demand/operations/commercial-caption-batch16-20261113-verify.py result edit "$status"
+    - name: Read back18 revised captions and retained photo/button identities
+      shell: bash
+      env: *id001
+      run: |
+        set -euo pipefail
+        status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/caption-repair-private/reader.php" > "$RUNNER_TEMP/caption-repair-safe/final-snapshot.json" || status=$?
+        python3 tools/direct_demand/operations/commercial-caption-batch16-20261113-verify.py final "$status"
+    - name: Retain actual edit receipts and final snapshots
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: commercial-caption-batch16-20261113-current
+        name: commercial-caption-batch16-20261113-result
         path: ${{ runner.temp }}/caption-repair-safe
         retention-days: 14
         if-no-files-found: error
