@@ -779,5 +779,54 @@ $result=RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),repa
 repairCheck('ordinary pair followup stays in the existing queue without another bot question',
     $result['status']===200 && count($pairSent)===1 && count($pairNotices)===2
     && repairConversation($pairPdo,'appleservice39',7871)['id']===$pairConversation['id']);
+
+// The original iPhone 17 search card also owns explicit model/service choices.
+// Its old broad family start remains byte-for-byte compatible.
+$legacy17 = AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot','as39_model-iphone-17');
+repairCheck('legacy iPhone17 family launch keeps the existing scope and no guessed version',
+    $legacy17 === ['post_id'=>'model-iphone-17','model'=>'','service'=>'','scope'=>'model_family',
+        'model_family'=>'iphone-17','start_payload'=>'as39_model-iphone-17']);
+$pair17Pdo=repairFixture();$pair17Sent=[];$pair17Notices=[];
+$pair17Factory=static function()use(&$pair17Sent):MaxMessengerAdapter{
+    return new MaxMessengerAdapter(static function($chat,string $reply)use(&$pair17Sent):string{
+        $pair17Sent[]=$reply;return 'isolated_17_pair_'.count($pair17Sent);
+    },null,'system',null,false);
+};
+$pair17Notify=static function(int $id,string $reply,string $mid)use(&$pair17Notices):void{$pair17Notices[]=$id;};
+$pair17User=7900;
+foreach(['service-battery-replacement'=>'Замена аккумулятора',
+    'service-front-glass-replacement'=>'Замена стекла без дисплея',
+    'service-display'=>'Замена дисплея']as$servicePost=>$serviceName){
+    $payload=AppleService39PilotCatalog::modelServicePayload('model-iphone-17',$servicePost);
+    $entry=is_string($payload)?AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot',$payload):null;
+    repairCheck('iPhone17 explicit service preserves only the selected base model '.$servicePost,
+        is_string($payload)&&strlen($payload)<=64&&$entry!==null
+        &&$entry['post_id']==='model-iphone-17'&&$entry['model']==='iPhone 17'
+        &&$entry['scope']==='model_service'&&$entry['service']===$serviceName
+        &&AppleService39PilotCatalog::entryContext($entry,['model'=>'iPhone 17 Pro Max','service'=>'old','price'=>'999999'],$payload)
+          ===['model'=>'iPhone 17','service'=>$serviceName,'entry_code'=>$payload]
+        &&!isset($entry['price_text']));
+    repairCheck('iPhone17 explicit service cannot cross bot or project '.$servicePost,
+        is_string($payload)&&AppleService39PilotCatalog::resolve('repair_two','id390521129062_bot',$payload)===null
+        &&AppleService39PilotCatalog::resolve('appleservice39','id999999999002_bot',$payload)===null);
+    $user=++$pair17User;$start=repairStart($user,(string)$payload);
+    $sentBefore=count($pair17Sent);$noticeBefore=count($pair17Notices);
+    $result=RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),$start,$pair17Factory,$pair17Notify);
+    $conversation=repairConversation($pair17Pdo,'appleservice39',$user);
+    $meta=json_decode($conversation['metadata_json']??'{}',true);
+    repairCheck('iPhone17 service reaches the existing entry owner without asking for the model again '.$servicePost,
+        $result['status']===200&&($meta['repair_context']['model']??'')==='iPhone 17'
+        &&($meta['repair_context']['service']??'')===$serviceName
+        &&count($pair17Sent)===$sentBefore+1&&count($pair17Notices)===$noticeBefore+1
+        &&str_contains(end($pair17Sent),'iPhone 17')&&str_contains(end($pair17Sent),$serviceName)
+        &&!str_contains(end($pair17Sent),'Какая у вас модель')&&!str_contains(end($pair17Sent),'Какая у вас версия')
+        &&!str_contains(end($pair17Sent),'999999'));
+    $result=RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),$start,$pair17Factory,$pair17Notify);
+    repairCheck('iPhone17 native entry replay stays quiet '.$servicePost,
+        $result['result']==='duplicate'&&count($pair17Sent)===$sentBefore+1&&count($pair17Notices)===$noticeBefore+1);
+}
+repairCheck('unreviewed iPhone17 service remains unavailable',
+    AppleService39PilotCatalog::modelServicePayload('model-iphone-17','service-home-button-repair')===null);
+
 echo 'TOTAL '.$passed.' passed'.PHP_EOL;
 
