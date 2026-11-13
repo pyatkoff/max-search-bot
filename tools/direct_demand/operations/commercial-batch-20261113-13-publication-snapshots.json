@@ -1,0 +1,172 @@
+[
+  {
+    "hotel_id": 254,
+    "site_id": "2f35105a-2aec-5ac7-afa2-e24937445d87",
+    "snapshots": [
+      {
+        "channel": "max",
+        "text": "✈️ Туры в Three Corners Sea Beach Resort\n📍 Марса-Алам, Египет.\n\nСемейный отпуск у моря с водными горками ☀️\n\nВ Three Corners Sea Beach Resort можно чередовать пляжный отдых с развлечениями в аквапарке. Детям будет чем заняться в клубе Trixie, а для морского купания предусмотрен пирс.\n\n• Пляж непосредственно у территории.\n• Аквапарк с детскими зонами.\n• Детский клуб Trixie.\n\nДоступ к морским зонам купания и снорклинга зависит от погоды. Работу горок и возрастные ограничения учтём при выборе дат поездки.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+        "textSha256": "7a866ae114016d6a380cae9af13a96973d40caf6ec104e43b3c0c83908750879",
+        "capturedAt": "2026-11-13T06:22:03+00:00",
+        "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43378096844/attempts/1",
+        "proofKind": "completed_package",
+        "post": {
+          "url": "https://max.ru/channel_anytour/AaHTkeCpSWw",
+          "mid": "mid.ffffb6caf0606fed01a1d391e0a9496c",
+          "at": "2026-11-13T06:22:03+00:00",
+          "idKind": "provider",
+          "buttonProof": {
+            "url": "https://max.ru/id9704048781_1_bot?start=p_Ifj_F2_U4PmFsM7tjnxIND4X",
+            "publicationId": "1333",
+            "hotelNativeId": "254",
+            "verifiedAt": "2026-11-13T06:22:03+00:00",
+            "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43378096844/attempts/1"
+          }
+        },
+        "publicationId": "1333",
+        "versionId": "4343",
+        "buttonText": "✈️ Узнать стоимость тура",
+        "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5c692edaea371346b5b3c3293758a32d1ae5d95f/.github/traffic-publish/commercial-batch-20261113-13/254.png",
+        "mediaCount": 1
+      },
+      {
+        "channel": "telegram",
+        "text": "✈️ Туры в Three Corners Sea Beach Resort\n📍 Марса-Алам, Египет.\n\nСемейный отпуск у моря с водными горками ☀️\n\nВ Three Corners Sea Beach Resort можно чередовать пляжный отдых с развлечениями в аквапарке. Детям будет чем заняться в клубе Trixie, а для морского купания предусмотрен пирс.\n\n• Пляж непосредственно у территории.\n• Аквапарк с детскими зонами.\n• Детский клуб Trixie.\n\nДоступ к морским зонам купания и снорклинга зависит от погоды. Работу горок и возрастные ограничения учтём при выборе дат поездки.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+        "textSha256": "7a866ae114016d6a380cae9af13a96973d40caf6ec104e43b3c0c83908750879",
+        "capturedAt": "2026-11-13T06:22:03+00:00",
+        "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43378096844/attempts/1",
+        "proofKind": "completed_package",
+        "post": {
+          "url": "https://t.me/any_toour/603",
+          "mid": "603",
+          "at": "2026-11-13T06:22:03+00:00",
+          "idKind": "provider",
+          "buttonProof": {
+            "url": "https://t.me/anyru_bot?start=p_8_BM4YCm5dhvIa0dvdxeuCqk",
+            "publicationId": "1331",
+            "hotelNativeId": "254",
+            "verifiedAt": "2026-11-13T06:22:03+00:00",
+            "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43378096844/attempts/1"
+          }
+        },
+        "publicationId": "1331",
+        "versionId": "4341",
+        "buttonText": "✈️ Узнать стоимость тура",
+        "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5c692edaea371346b5b3c3293758a32d1ae5d95f/.github/traffic-publish/commercial-batch-20261113-13/254.png",
+        "mediaCount": 1
+      }
+    ],
+    "feedPresence": {
+      "at": "2026-11-13T06:31:49.372222+00:00",
+      "sourceDate": "2026-11-13 09:31",
+      "url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+      "maxUrl": "https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfODAwMDM5NWU4ZjkyOWY0ODM4MjAzY2Q2YWY5ODZlYjYiLCJvZmZlcl9pZCI6Im1heF8yNTQifQ",
+      "telegramUrl": "https://t.me/any_toour/603"
+    },
+    "newPhotoSet": {
+      "capturedAt": "2026-11-13T06:22:03+00:00",
+      "sourceUrl": "https://anytoour.ru/_preview/search3-next-candidate/data/local-tv-catalog-read-v1.php?tourvisorHotelIds%5B%5D=968&tourvisorHotelIds%5B%5D=967&tourvisorHotelIds%5B%5D=1531&tourvisorHotelIds%5B%5D=319&tourvisorHotelIds%5B%5D=254",
+      "proofUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43378096844/attempts/1",
+      "label": "Три разные фотографии просмотрены 13.11.2026; сохранённая галерея точного native Tourvisor ID от 04.10.2026. Дата съёмки неизвестна. Исходные фото и принятые версии сохранены.",
+      "photos": [
+        {
+          "url": "https://static.tourvisor.ru/hotel_pics/verybig/1/holiday-beach-resort-96351601.jpg",
+          "alt": "Аквапарк Three Corners Sea Beach Resort"
+        },
+        {
+          "url": "https://static.tourvisor.ru/hotel_pics/verybig/1/holiday-beach-resort-96351600.jpg",
+          "alt": "Номер Three Corners Sea Beach Resort"
+        },
+        {
+          "url": "https://static.tourvisor.ru/hotel_pics/verybig/1/holiday-beach-resort-96351602.jpg",
+          "alt": "Балкон Three Corners Sea Beach Resort"
+        }
+      ]
+    }
+  },
+  {
+    "hotel_id": 967,
+    "site_id": "dac92a1e-28b1-5392-8fff-8077d17b77df",
+    "snapshots": [
+      {
+        "channel": "max",
+        "text": "✈️ Туры в Ali Bey Club Manavgat\n📍 Кызылагач, Манавгат, Турция.\n\nМоре, аквапарк и активный отдых всей семьёй 🌿\n\nAli Bey Club Manavgat подойдёт тем, кто хочет совместить пляжный отпуск с развлечениями и спортом. Здесь есть семейные категории номеров, а на территории курорта найдутся занятия для детей и взрослых.\n\n• Пляж у территории.\n• Аквапарк с детскими и взрослыми зонами.\n• Теннисный центр.\n\nРежим работы горок зависит от сезона, пляжные павильоны оплачиваются отдельно. При подборе учтём расположение и планировку выбранной категории.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+        "textSha256": "626e57d265a8e5a3fdb7503644d083e00e3712953c2edcce69f07e790f9c3399",
+        "capturedAt": "2026-11-13T06:22:03+00:00",
+        "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43378096844/attempts/1",
+        "proofKind": "completed_package",
+        "post": {
+          "url": "https://max.ru/channel_anytour/AaHTke1-b00",
+          "mid": "mid.ffffb6caf0606fed01a1d391ed7e6f4d",
+          "at": "2026-11-13T06:22:03+00:00",
+          "idKind": "provider",
+          "buttonProof": {
+            "url": "https://max.ru/id9704048781_1_bot?start=p_KHy4xjj_WVhmd7Pq1jA4whRy",
+            "publicationId": "1334",
+            "hotelNativeId": "967",
+            "verifiedAt": "2026-11-13T06:22:03+00:00",
+            "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43378096844/attempts/1"
+          }
+        },
+        "publicationId": "1334",
+        "versionId": "4344",
+        "buttonText": "✈️ Узнать стоимость тура",
+        "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5c692edaea371346b5b3c3293758a32d1ae5d95f/.github/traffic-publish/commercial-batch-20261113-13/967.png",
+        "mediaCount": 1
+      },
+      {
+        "channel": "telegram",
+        "text": "✈️ Туры в Ali Bey Club Manavgat\n📍 Кызылагач, Манавгат, Турция.\n\nМоре, аквапарк и активный отдых всей семьёй 🌿\n\nAli Bey Club Manavgat подойдёт тем, кто хочет совместить пляжный отпуск с развлечениями и спортом. Здесь есть семейные категории номеров, а на территории курорта найдутся занятия для детей и взрослых.\n\n• Пляж у территории.\n• Аквапарк с детскими и взрослыми зонами.\n• Теннисный центр.\n\nРежим работы горок зависит от сезона, пляжные павильоны оплачиваются отдельно. При подборе учтём расположение и планировку выбранной категории.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+        "textSha256": "626e57d265a8e5a3fdb7503644d083e00e3712953c2edcce69f07e790f9c3399",
+        "capturedAt": "2026-11-13T06:22:03+00:00",
+        "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43378096844/attempts/1",
+        "proofKind": "completed_package",
+        "post": {
+          "url": "https://t.me/any_toour/604",
+          "mid": "604",
+          "at": "2026-11-13T06:22:03+00:00",
+          "idKind": "provider",
+          "buttonProof": {
+            "url": "https://t.me/anyru_bot?start=p_an3jGpt6XTlT66iw7GzQUBPT",
+            "publicationId": "1332",
+            "hotelNativeId": "967",
+            "verifiedAt": "2026-11-13T06:22:03+00:00",
+            "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43378096844/attempts/1"
+          }
+        },
+        "publicationId": "1332",
+        "versionId": "4342",
+        "buttonText": "✈️ Узнать стоимость тура",
+        "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5c692edaea371346b5b3c3293758a32d1ae5d95f/.github/traffic-publish/commercial-batch-20261113-13/967.png",
+        "mediaCount": 1
+      }
+    ],
+    "feedPresence": {
+      "at": "2026-11-13T06:31:49.372222+00:00",
+      "sourceDate": "2026-11-13 09:31",
+      "url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+      "maxUrl": "https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZGRmMzI1ZjU1M2I2N2Q2Y2M1NjkzY2JiM2I5ZjI5MjMiLCJvZmZlcl9pZCI6Im1heF85NjcifQ",
+      "telegramUrl": "https://t.me/any_toour/604"
+    },
+    "newPhotoSet": {
+      "capturedAt": "2026-11-13T06:22:03+00:00",
+      "sourceUrl": "https://anytoour.ru/_preview/search3-next-candidate/data/local-tv-catalog-read-v1.php?tourvisorHotelIds%5B%5D=968&tourvisorHotelIds%5B%5D=967&tourvisorHotelIds%5B%5D=1531&tourvisorHotelIds%5B%5D=319&tourvisorHotelIds%5B%5D=254",
+      "proofUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43378096844/attempts/1",
+      "label": "Три разные фотографии просмотрены 13.11.2026; сохранённая галерея точного native Tourvisor ID от 04.10.2026. Дата съёмки неизвестна. Исходные фото и принятые версии сохранены.",
+      "photos": [
+        {
+          "url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ali-bey-club-manavgat-90996600.jpg",
+          "alt": "Территория Ali Bey Club Manavgat"
+        },
+        {
+          "url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ali-bey-club-manavgat-90996601.jpg",
+          "alt": "Номер Ali Bey Club Manavgat"
+        },
+        {
+          "url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ali-bey-club-manavgat-90996615.jpg",
+          "alt": "Водные горки Ali Bey Club Manavgat"
+        }
+      ]
+    }
+  }
+]

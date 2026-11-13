@@ -1,0 +1,192 @@
+{
+  "inspected_photos": 12,
+  "visual_inspection_performed": true,
+  "published_native_ids": [
+    254,
+    967
+  ],
+  "published_photos": {
+    "254": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/holiday-beach-resort-96351601.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/holiday-beach-resort-96351600.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/holiday-beach-resort-96351602.jpg"
+    ],
+    "967": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/ali-bey-club-manavgat-90996600.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/ali-bey-club-manavgat-90996601.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/ali-bey-club-manavgat-90996615.jpg"
+    ]
+  },
+  "historical_catalogue_dates": {
+    "254": "2026-10-04 10:10:22",
+    "967": "2026-10-04 10:14:59",
+    "319": "2026-10-09 10:52:09"
+  },
+  "catalogue_source_url": "https://anytoour.ru/_preview/search3-next-candidate/data/local-tv-catalog-read-v1.php?tourvisorHotelIds%5B%5D=968&tourvisorHotelIds%5B%5D=967&tourvisorHotelIds%5B%5D=1531&tourvisorHotelIds%5B%5D=319&tourvisorHotelIds%5B%5D=254",
+  "photo_date_unknown": true,
+  "accepted_identity_relationships_unchanged": true,
+  "checks": [
+    {
+      "hotel_id": 319,
+      "index": 0,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/1/319-19367743.jpg",
+      "attempts": 1,
+      "ok": true,
+      "http": 200,
+      "final_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/319-19367743.jpg",
+      "mime": "image/jpeg",
+      "width": 1200,
+      "height": 672,
+      "sha256": "6dce172f5cb8f63b601daa64362bb8ef712db110faf2098471e30a9e5172f3df",
+      "bytes": 228634,
+      "format": "JPEG"
+    },
+    {
+      "hotel_id": 319,
+      "index": 1,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/1/319-19366000.jpg",
+      "attempts": 1,
+      "ok": true,
+      "http": 200,
+      "final_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/319-19366000.jpg",
+      "mime": "image/jpeg",
+      "width": 1121,
+      "height": 1121,
+      "sha256": "67c743bb3d93d28856a0a167e3ec1470a6bea5ee4493bcd91c65baa07c3a2758",
+      "bytes": 241420,
+      "format": "JPEG"
+    },
+    {
+      "hotel_id": 319,
+      "index": 2,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/1/319-19366101.jpg",
+      "attempts": 1,
+      "ok": true,
+      "http": 200,
+      "final_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/319-19366101.jpg",
+      "mime": "image/jpeg",
+      "width": 1200,
+      "height": 672,
+      "sha256": "65376d311738212c9abf4e074588011e73b9833df8202f1bd6b3732f78e4307e",
+      "bytes": 202376,
+      "format": "JPEG"
+    },
+    {
+      "hotel_id": 254,
+      "index": 0,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/1/holiday-beach-resort-96351600.jpg",
+      "attempts": 1,
+      "ok": true,
+      "http": 200,
+      "final_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/holiday-beach-resort-96351600.jpg",
+      "mime": "image/jpeg",
+      "width": 1024,
+      "height": 683,
+      "sha256": "398a4b3477c0c0b36d14084a3c164f4ccc47cedebb6152a6ae96d4588ce9c358",
+      "bytes": 127854,
+      "format": "JPEG"
+    },
+    {
+      "hotel_id": 254,
+      "index": 1,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/1/holiday-beach-resort-96351601.jpg",
+      "attempts": 1,
+      "ok": true,
+      "http": 200,
+      "final_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/holiday-beach-resort-96351601.jpg",
+      "mime": "image/jpeg",
+      "width": 1024,
+      "height": 682,
+      "sha256": "72ddece4b68d796fd0e8ddebb6f8f009af4c1f9dc9e9afa4dab2e1912804f0b2",
+      "bytes": 278317,
+      "format": "JPEG"
+    },
+    {
+      "hotel_id": 254,
+      "index": 2,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/1/holiday-beach-resort-96351602.jpg",
+      "attempts": 1,
+      "ok": true,
+      "http": 200,
+      "final_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/holiday-beach-resort-96351602.jpg",
+      "mime": "image/jpeg",
+      "width": 1024,
+      "height": 683,
+      "sha256": "be24551c9043d83acab24e6f4d88ea93120c4f2fc596d466d9d4d8a46ce6a24b",
+      "bytes": 195767,
+      "format": "JPEG"
+    },
+    {
+      "hotel_id": 967,
+      "index": 0,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ali-bey-club-manavgat-90996600.jpg",
+      "attempts": 1,
+      "ok": true,
+      "http": 200,
+      "final_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ali-bey-club-manavgat-90996600.jpg",
+      "mime": "image/jpeg",
+      "width": 1024,
+      "height": 576,
+      "sha256": "ac631596dab2116a3372781b4134411866a87a4793a137ce26f9f0633bebabf3",
+      "bytes": 272187,
+      "format": "JPEG"
+    },
+    {
+      "hotel_id": 967,
+      "index": 1,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ali-bey-club-manavgat-90996601.jpg",
+      "attempts": 1,
+      "ok": true,
+      "http": 200,
+      "final_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ali-bey-club-manavgat-90996601.jpg",
+      "mime": "image/jpeg",
+      "width": 1024,
+      "height": 682,
+      "sha256": "ed15195a3f351e30cebc97726cdf7f2f562fd0f0ef26cf38c4d4c5414c79d337",
+      "bytes": 143843,
+      "format": "JPEG"
+    },
+    {
+      "hotel_id": 967,
+      "index": 2,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ali-bey-club-manavgat-90996602.jpg",
+      "attempts": 1,
+      "ok": true,
+      "http": 200,
+      "final_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ali-bey-club-manavgat-90996602.jpg",
+      "mime": "image/jpeg",
+      "width": 1024,
+      "height": 683,
+      "sha256": "28f4190becfbf3094b89465a37e7dd5d88ff1dbf76ff98d9348a3b58f7304976",
+      "bytes": 127541,
+      "format": "JPEG"
+    },
+    {
+      "index": 6,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ali-bey-club-manavgat-90996606.jpg",
+      "ok": true,
+      "http": 200,
+      "width": 1024,
+      "height": 679,
+      "sha256": "7a5747ed12231822f43eb7a01f035e6c1fe791e9ef65fc7d353125678ed29468"
+    },
+    {
+      "index": 15,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ali-bey-club-manavgat-90996615.jpg",
+      "ok": true,
+      "http": 200,
+      "width": 1024,
+      "height": 683,
+      "sha256": "5bb65e9e4794bc043480d083bb876c8b91104f0fc89070757617a52d5d17efe9"
+    },
+    {
+      "index": 25,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ali-bey-club-manavgat-90996625.jpg",
+      "ok": true,
+      "http": 200,
+      "width": 1024,
+      "height": 683,
+      "sha256": "365c016b72d38b866259a61a4476ba74592f69b0713cf4719d4f31482820751f"
+    }
+  ]
+}

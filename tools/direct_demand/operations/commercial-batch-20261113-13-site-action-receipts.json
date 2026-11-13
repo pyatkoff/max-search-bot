@@ -1,0 +1,33 @@
+{
+  "edit-02-dac92a1e-28b1-5392-8fff-8077d17b77df.response.json": {
+    "version": 340,
+    "event": {
+      "id": "batch13-source-20261113-edit-dac92a1e-28b1-5392-8fff-8077d17b77df",
+      "title": "ALI BEY CLUB (EX. ALI BEY CLUB MANAVGAT): новая версия",
+      "type": "success"
+    }
+  },
+  "edit-01-2f35105a-2aec-5ac7-afa2-e24937445d87.response.json": {
+    "version": 339,
+    "event": {
+      "id": "batch13-source-20261113-edit-2f35105a-2aec-5ac7-afa2-e24937445d87",
+      "title": "THE THREE CORNERS SEA BEACH RESORT: новая версия",
+      "type": "success"
+    }
+  },
+  "import.response.json": {
+    "version": 341,
+    "event": {
+      "id": "batch13-source-20261113-import-v1",
+      "title": "Batch13 · два опубликованных отеля и подтверждённый feed",
+      "type": "success"
+    }
+  },
+  "preview.response.json": {
+    "version": 340,
+    "added": 0,
+    "merged": 2,
+    "rejected": 0,
+    "details": []
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "ok": true,
+  "operation": "commercial-channel-hotel-feeds-20261113-update14",
+  "schema_version": 4,
+  "run_id": "43379254719",
+  "run_attempt": 1,
+  "head_sha": "4d7418c22bd585e4541f53dc84ecc17ac47fa810",
+  "installed_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+  "publication_installed_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+  "previous_logical_hotels": 588,
+  "new_hotel_ids": [
+    254,
+    967
+  ],
+  "logical_hotels": 590,
+  "offer_counts": [
+    590,
+    590,
+    1180
+  ],
+  "old588_offer_blocks_byte_exact": true,
+  "old_price_blocks_byte_exact": true,
+  "writer_attempts": 1,
+  "retry_authorized": false,
+  "post_write_attempts": 0,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "sha256": "0da2ffcf5c566c5d16b5b458f46df7d85824b0a8b4e8a7937dca92d2ea70c3fb",
+      "bytes": 576370,
+      "rows": 590
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "sha256": "b3acae2795c1e68a7f77129b2ab3d0f591cd1047b6522b45693dfc4da5296c95",
+      "bytes": 671763,
+      "rows": 590
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "sha256": "260b923488cacbbc3dbb520a244db3712f63a5ece8de01dec334d003bf78afc0",
+      "bytes": 1247760,
+      "rows": 1180
+    }
+  ],
+  "source_sha256": "c0ff7dacdd7051049f5c326b0a2cd480d6e36d168ae56336d34e56bc0987f6fb",
+  "input_sha256": "a5781e134a95c2e37675f5f6595348208a591f1403c87af47ff3312dc5d9de60",
+  "writer_receipt_sha256": "99048caffe637580fcc1ab1b46511443f1e36acfc886be1960cef992e371b3bd",
+  "readback_sha256": "c76aa560749582b02fa71d91826080af2d4fc4a0efb61c9cd0dbd6e0dc39b961",
+  "publication_summary_sha256": "71da62e62965b85e78349caadc14ed2c9f2ac7cdce637b57572c63e0f0b709e0",
+  "bound_read_sha256": "7714b5e457271b6f037f2ba8389a250c8e448ba525d632e5b799c19172082ec5",
+  "route_proof_sha256": "6e2d0d275bfa49ed25b7740d13b7006c119345db5ca255aebffbd956bb73a70c",
+  "verified_at_utc": "2026-11-13T06:31:49.372222+00:00",
+  "original_publication_run_id": 43378096844,
+  "original_publication_conclusion": "success"
+}
