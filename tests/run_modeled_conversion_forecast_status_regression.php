@@ -28,6 +28,7 @@ final class ForecastV1ObservedStatement extends PDOStatement
     public static array $relationOutcomeQueries=[];
     public static array $relationOutcomeCopies=[];
     public static ?array $lastRelationOutcomePacket=null;
+    public static ?array $nativePresentationFixtures=null;
     public static bool $observePredictive=false;
     public static int $predictiveExecutions=0;
     public static array $predictiveCopies=[];
@@ -2243,6 +2244,11 @@ function forecastFiniteVisitEvidenceAssertions(PDO $p,callable $check,array $ini
         $none['available']&&$none['status']==='no_admissible_native_witness'&&$none['candidate_sha256']===null
         &&$none['local_absence_does_not_prove_tracker_or_visit_absence']&&$none['visit_linkage']==='not_checked');
 
+    ForecastV1ObservedStatement::$nativePresentationFixtures=['original'=>$forwardView['finite_visit_evidence'],
+        'positive'=>$native,'guarded'=>$guarded,'same_client'=>$sameClient,'ambiguous'=>$ambiguous,
+        'no_index'=>$withoutIndex,'row_limit'=>$rowBound,'budget'=>$copyBound['retained_native_identity_evidence'],'none'=>$none];
+    forecastNativePresentationAssertions($check);
+
     $pairRefs=ModeledConversionValueVisitRecovery::originals($unavailableOriginal,$namespace,$now);
     $pairRows=[];foreach($pairRefs as$ref=>$tuple)$pairRows[]=[$ref,$now-2,$now-1,count($pairRows)===0?5:7,
         count($pairRows)===0?$tuple[15]-30:null,count($pairRows)===0?1:0];
@@ -3237,6 +3243,88 @@ function forecastKnownYclidRelationAssertions(PDO $p,callable $check,array $fram
 }
 
 /** Isolated synthetic tracker rows only; no HTTP, provider or production source read. */
+/** Presentation tests reuse the actual synthetic reader outputs; no extra native point or provider calls. */
+function forecastNativePresentationAssertions(callable $check):void
+{
+    $fixture=ForecastV1ObservedStatement::$nativePresentationFixtures;
+    if($fixture===null)throw new RuntimeException('native_presentation_fixture_missing');
+    $projection=(new ReflectionClass(ModeledConversionForecastStatusReader::class))->newInstanceWithoutConstructor();
+    $views=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'nativeIdentityPresentations');
+    $bound=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'boundedResponse');
+    $original=$fixture['original'];$native=$fixture['guarded'];
+    $format=static fn(array $v,?array $o=null):array=>$views->invoke($projection,$v,$o??$original);
+    $small=['value_delivery'=>['repair_assessments'=>['finite_visit_evidence'=>$original,'retained_native_identity_evidence'=>$native]],
+        'money_fixture'=>['events'=>5,'value_rub'=>123]];
+    $smallSafe=$bound->invoke($projection,$small);
+    $check('a feasible complete response preserves actual native projection original binding and money byte for byte',$smallSafe===$small);
+    $variants=$format($native);$compact=$variants[1]??[];
+    $expected=[3,2,1,0,0,2,1,1,1];
+    $check('compact native evidence retains all nine first rejection counts in fixed order and exact current original binding',
+        $variants[0]===$native&&$compact['projection']==='compact_native_identity_v1'
+        &&$compact['event_ref']===$original['rows'][0]['event_ref']&&$compact['case_index']===0
+        &&$compact['binding_state']==='verified_original_and_result'
+        &&$compact['first_rejections']===$expected&&$compact['counts']===[12,1,1]
+        &&array_sum($compact['first_rejections'])+$compact['counts'][1]===$compact['counts'][0]
+        &&$compact['candidate_sha256']===$native['candidate_sha256']&&$compact['source_observed_at']===$native['source_observed_at']
+        &&$compact['snapshot_at']===$native['snapshot_at']&&$compact['point_read_execution']==='completed'
+        &&$compact['global_absence_proven']===false&&!$compact['financial_permission']
+        &&$compact['visit_linkage']==='not_checked'&&$compact['provider_requests_in_reader']===0
+        &&strlen(json_encode($compact,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=768);
+    $same=$format($fixture['same_client'])[1];$ambiguous=$format($fixture['ambiguous'])[1];$none=$format($fixture['none'])[1];
+    $check('same ClientID witnesses preserve one candidate while distinct identities preserve ambiguity without an arbitrary choice',
+        $same['counts'][1]===2&&$same['counts'][2]===1&&$same['candidate_sha256']!==null
+        &&$ambiguous['status']==='ambiguous_native_candidates'&&$ambiguous['counts'][2]===2
+        &&$ambiguous['candidate_sha256']===null&&$ambiguous['source_observed_at']===null
+        &&$none['status']==='no_admissible_native_witness'&&$none['counts'][2]===0
+        &&!$none['global_absence_proven']&&$none['candidate_sha256']===null);
+    foreach(['no_index'=>'point_index_unavailable','row_limit'=>'row_limit','budget'=>'budget_headroom']as$key=>$reason){
+        $v=$format($fixture[$key]);$c=$v[1]??[];
+        $check('unavailable existing native result retains unknown coverage and no assertion of SELECT execution '.$key,
+            $v[0]===$fixture[$key]&&!$c['available']&&$c['reason']===$reason
+            &&$c['binding_state']==='original_frame_only'&&$c['snapshot_at']===null
+            &&$c['counts']===null&&$c['first_rejections']===null&&$c['point_read_execution']==='not_attested'
+            &&!$c['complete_within_bound']&&$c['candidate_sha256']===null&&$c['source_observed_at']===null);
+    }
+    foreach(['available','duplicate_missing','changed_ref','future_clock','missing_snapshot','scope','raw_field','ambiguous_hash']as$kind){
+        $v=$native;$o=$original;
+        if($kind==='available')$o['available']=false;
+        if($kind==='duplicate_missing'){
+            $o['rows'][1]['source_status']=$o['rows'][0]['source_status'];$o['rows'][1]['candidate_sha256']=null;
+            $o['rows'][1]['report_status']='not_requested';
+        }
+        if($kind==='changed_ref')$v['event_ref']=str_repeat('f',64);
+        if($kind==='future_clock')$v['source_observed_at']=gmdate('Y-m-d\TH:i:s\Z',strtotime($o['rows'][0]['event_at'])+1);
+        if($kind==='missing_snapshot')unset($v['snapshot_at']);
+        if($kind==='scope')$v['scope']='OTHER_PRIVATE_SCOPE';
+        if($kind==='raw_field')$v['client_id']='PRIVATE_RAW_CLIENT_MUST_NOT_ESCAPE';
+        if($kind==='ambiguous_hash'){$v=$fixture['ambiguous'];$v['candidate_sha256']=$native['candidate_sha256'];}
+        $got=$format($v,$o)[0];$s=$small;$s['value_delivery']['repair_assessments']['finite_visit_evidence']=$o;
+        $s['value_delivery']['repair_assessments']['retained_native_identity_evidence']=$v;
+        $safe=$bound->invoke($projection,$s)['value_delivery']['repair_assessments']['retained_native_identity_evidence'];
+        $check('invalid or unavailable native binding suppresses candidate even in an otherwise feasible full response '.$kind,
+            !$got['available']&&!$safe['available']&&!isset($safe['candidate_sha256'])
+            &&!str_contains(json_encode($safe,JSON_THROW_ON_ERROR),'PRIVATE_'));
+    }
+    foreach(['missing_rejection','null_rejection','negative_rejection','sum','unique','admitted','rows65','null_rows','null_unique']as$kind){
+        $v=$native;
+        if($kind==='missing_rejection')unset($v['first_rejection_reason_counts']['saved_error_present']);
+        if($kind==='null_rejection')$v['first_rejection_reason_counts']['saved_error_present']=null;
+        if($kind==='negative_rejection')$v['first_rejection_reason_counts']['saved_error_present']=-1;
+        if($kind==='sum')$v['first_rejection_reason_counts']['saved_error_present']=1;
+        if($kind==='unique')$v['unique_candidate_count']=2;
+        if($kind==='admitted')$v['admitted_native_witnesses']=13;
+        if($kind==='rows65')$v['inspected_rows']=65;
+        if($kind==='null_rows')$v['inspected_rows']=null;
+        if($kind==='null_unique')$v['unique_candidate_count']=null;
+        $got=$format($v)[0];
+        $check('malformed native counts never fabricate zero completeness or candidate '.$kind,
+            !$got['available']&&$got['reason']==='invalid_native_projection'&&!isset($got['candidate_sha256'],$got['counts']));
+    }
+    $encoded=json_encode($compact,JSON_THROW_ON_ERROR);
+    foreach(['9912345678901234','880100','890100','740001','client_id','record_id','upload_id']as$private)
+        $check('compact native projection does not disclose a raw source field or identifier '.$private,!str_contains($encoded,$private));
+}
+
 function forecastRetainedTrackerAssertions(PDO $p,callable $check,array $original,array $row,int $now):void
 {
     $ns=ModeledConversionProfiles::assessmentNamespace();$hash=str_repeat('a',64);
@@ -4021,6 +4109,72 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $reta
         $knownProofs&&$financialBytes===18500&&$knownNormalSafe['value_delivery']['repair_assessments']['retained_known_identities']===$knownPositive
         &&$knownNormalSafe['value_delivery']['repair_assessments']['processing_frontier']===$r
         &&strlen(json_encode($knownNormalSafe,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=28000);
+
+    // Use the already-read original three-case frame, not the earlier size-only proof stub.
+    // Preserve the18500 financial baseline before adding the unchanged59/23 roster and native metadata.
+    $nativeFixtures=ForecastV1ObservedStatement::$nativePresentationFixtures;
+    if($nativeFixtures===null)throw new RuntimeException('native_pressure_fixture_missing');
+    $nativeBase=$contextual;
+    unset($nativeBase['value_delivery']['repair_assessments']['processing_frontier'],$nativeBase['value_delivery']['repair_assessments']['retained_identity']);
+    $nativeBase['value_delivery']['repair_assessments']['finite_visit_evidence']=$nativeFixtures['original'];
+    $nativeBase['value_delivery']['fixed_output_fixture']='';
+    $nativeFixed=$size($nativeBase['value_delivery']);
+    if($nativeFixed>18500)throw new RuntimeException('native_financial_fixture_too_large');
+    $nativeBase['value_delivery']['fixed_output_fixture']=str_repeat('f',18500-$nativeFixed);
+    $nativeFinancialBytes=$size($nativeBase['value_delivery']);
+    $nativeBase['remaining_context_fixture']=['fixture'=>''];
+    $nativeBase['value_delivery']['repair_assessments']['processing_frontier']=$r;
+    $nativeOmitted=['available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0,'financial_permission'=>false];
+    $nativeBase['value_delivery']['repair_assessments']['retained_native_identity_evidence']=$nativeOmitted;
+    $nativeBaseline=$bound->invoke($projection,$nativeBase);
+    $nativeMethod=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'nativeIdentityPresentations');
+    $nativeFull=$nativeFixtures['guarded'];
+    $nativeCompact=$nativeMethod->invoke($projection,$nativeFull,$nativeFixtures['original'])[1];
+    $nativePreserved=static function(array $actual,array $expected)use($proofs,$r):bool{
+        foreach($proofs as$key=>$ignored)
+            if($actual['value_delivery']['repair_assessments'][$key]!==$expected['value_delivery']['repair_assessments'][$key])return false;
+        return $actual['value_delivery']['repair_assessments']['processing_frontier']===$r
+            &&$actual['value_delivery']['by_state']===$expected['value_delivery']['by_state']
+            &&$actual['value_delivery']['repair_assessments']['by_state']===$expected['value_delivery']['repair_assessments']['by_state'];
+    };
+    foreach([27335,27337]as$targetBytes){
+        $nativePressure=$nativeBaseline;$nativePressure['native_pressure_padding']='';
+        $nativePad=$targetBytes-$size($nativePressure);
+        if($nativePad<0)throw new RuntimeException('native_pressure_target_below_financial_fixture');
+        $nativePressure['native_pressure_padding']=str_repeat('x',$nativePad);
+        $markerBaseline=$nativePressure;
+        $nativePressure['value_delivery']['repair_assessments']['retained_native_identity_evidence']=$nativeFull;
+        $nativeSafe=$bound->invoke($projection,$nativePressure);
+        $check('whole response native replacement fits live-shaped envelope without altering59/23 money or any original proof '.$targetBytes,
+            $nativeFinancialBytes===18500&&$size($markerBaseline)===$targetBytes&&$size($nativeOmitted)===107
+            &&$size($nativePressure)>28000&&$size($nativeSafe)<=28000&&$size($nativeCompact)<=768
+            &&$size($nativeSafe)===$targetBytes-$size($nativeOmitted)+$size($nativeCompact)
+            &&$nativeSafe['value_delivery']['repair_assessments']['retained_native_identity_evidence']===$nativeCompact
+            &&$nativePreserved($nativeSafe,$markerBaseline));
+        $nativeTooTight=$nativePressure;
+        $nativeTooTight['native_pressure_padding'].=str_repeat('x',28001-$size($nativeSafe));
+        $nativeTightSafe=$bound->invoke($projection,$nativeTooTight);
+        $check('whole response one byte beyond native replacement budget keeps an explicit omission and all financial evidence '.$targetBytes,
+            $size($nativeTooTight)-$size($nativeFull)+$size($nativeCompact)===28001
+            &&$size($nativeTightSafe)<=28000
+            &&$nativeTightSafe['value_delivery']['repair_assessments']['retained_native_identity_evidence']===$nativeOmitted
+            &&$nativePreserved($nativeTightSafe,$markerBaseline));
+        $unknownNative=$markerBaseline;
+        $unknownNative['value_delivery']['repair_assessments']['retained_native_identity_evidence']=$nativeFixtures['budget'];
+        $unknownNativeSafe=$bound->invoke($projection,$unknownNative);
+        $check('a feasible existing budget refusal is preserved exactly without implying that the native point SELECT ran '.$targetBytes,
+            $unknownNativeSafe['value_delivery']['repair_assessments']['retained_native_identity_evidence']===$nativeFixtures['budget']
+            &&$size($unknownNativeSafe)<=28000&&$nativePreserved($unknownNativeSafe,$markerBaseline));
+        $unboundNative=$nativePressure;
+        $unboundNative['value_delivery']['repair_assessments']['finite_visit_evidence']['available']=false;
+        $unboundNativeSafe=$bound->invoke($projection,$unboundNative);
+        $unboundResult=$unboundNativeSafe['value_delivery']['repair_assessments']['retained_native_identity_evidence'];
+        $check('response pressure never restores a candidate after losing the original frame '.$targetBytes,
+            !$unboundResult['available']&&$unboundResult['reason']==='original_current_binding_unavailable'
+            &&!isset($unboundResult['candidate_sha256'])&&$size($unboundNativeSafe)<=28000
+            &&$unboundNativeSafe['value_delivery']['repair_assessments']['processing_frontier']===$r
+            &&$unboundNativeSafe['value_delivery']['by_state']===$markerBaseline['value_delivery']['by_state']);
+    }
 
     $p->exec('UPDATE max_channel_conversion_outbox SET id=id+100000000000000000,value_profile_id=value_profile_id+100000000000000000,external_user_id=\'99999999999999999999\'');
     $p->exec('UPDATE modeled_conversion_profile_versions SET id=id+100000000000000000');
