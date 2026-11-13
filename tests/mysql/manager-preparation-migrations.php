@@ -115,6 +115,36 @@ try{
     $pdo->exec('DELETE FROM conversations WHERE id=99');
     if((int)$pdo->query('SELECT COUNT(*) FROM manager_request_profiles WHERE conversation_id=99')->fetchColumn()!==0)throw new RuntimeException('native_profile_conversation_retention_failed');
     echo "PASS native MySQL080 append-only versions, exact Unicode digest, operation uniqueness, migration retry and conversation retention\n";
+    // Exercise the shipped bounded history query on native prepared statements;
+    // actor/CSRF/scope fences are exercised by the real HTTP profile regression.
+    require_once dirname(__DIR__,2).'/services/ManagerRequestProfileService.php';
+    $pdo->exec("ALTER TABLE managers ADD display_name VARCHAR(160) NULL");
+    $pdo->exec("UPDATE managers SET display_name='Синтетический автор 🧳' WHERE id=1");
+    $pdo->exec('INSERT INTO conversations VALUES(98)');
+    for($historyVersion=1;$historyVersion<=8;$historyVersion++){
+        $historyJson=json_encode(['schema_version'=>1,'label'=>'История 🧳','fields'=>['budget'=>[
+            'value'=>'Сумма '.$historyVersion.' ₽','kind'=>'manager_interpretation','importance'=>'unknown','note'=>'','citation'=>null,
+        ]]],ManagerRequestProfile::FLAGS);
+        $profileInsert->execute([98,$historyVersion,str_repeat($historyVersion===8?'8':'7',32),2,1,sprintf('%032x',9800+$historyVersion),str_repeat('c',64),str_repeat('d',64),$historyJson,hash('sha256',$historyJson),'[]','2026-12-31 22:30:00']);
+    }
+    $historyBefore=$pdo->query('SELECT * FROM manager_request_profiles WHERE conversation_id=98 ORDER BY version')->fetchAll();
+    $historyQuery=new ReflectionMethod(ManagerRequestProfileService::class,'historyRows');
+    $historyRows=$historyQuery->invoke(null,$pdo,98,0,7);
+    $historyEvent=ManagerRequestHistory::event($historyRows[0],$historyRows[1]);
+    $historyOlder=$historyQuery->invoke(null,$pdo,98,5,7);
+    $historyNewest=$historyQuery->invoke(null,$pdo,98,0,8);
+    if(array_map('intval',array_column($historyRows,'version'))!==[7,6,5,4]
+        ||array_map('intval',array_column($historyOlder,'version'))!==[4,3,2,1]
+        ||$historyEvent['changes'][0]['before']['value']!=='Сумма 6 ₽'
+        ||$historyEvent['changes'][0]['after']['value']!=='Сумма 7 ₽'
+        ||$historyEvent['author']['name']!=='Синтетический автор 🧳'
+        ||$historyEvent['recorded_at']!=='2026-12-31T22:30:00Z'
+        ||ManagerRequestHistory::event($historyNewest[0],$historyNewest[1])['baseline']!=='new_trip'
+        ||$pdo->query('SELECT * FROM manager_request_profiles WHERE conversation_id=98 ORDER BY version')->fetchAll()!==$historyBefore)
+        throw new RuntimeException('native_profile_history_projection_failed');
+    $pdo->exec('DELETE FROM conversations WHERE id=98');$pdo->exec('ALTER TABLE managers DROP COLUMN display_name');
+    if($pdo->query('SELECT * FROM manager_request_profiles ORDER BY version')->fetchAll()!==$profilesBefore)throw new RuntimeException('native_profile_history_changed_other_versions');
+    echo "PASS native MySQL080 bounded exact-byte history, snapshot keyset, author, instant and separate-trip baseline without history writes\n";
     require __DIR__.'/sales-outcome-trip.php';
     nativeOutcomeTripMigrationChecks($pdo);
     $inputDuplicateRejected=false;

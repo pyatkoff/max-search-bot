@@ -3,7 +3,7 @@ require_once __DIR__.'/lib/ManagerHttp.php';
 if(($requestProfilePresentation??'')!=='manager2')ManagerHttp::start();
 ?><!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="/manager/"><title>Профиль запроса · AnyTour</title>
 <link rel="stylesheet" href="assets/manager-ai-usage.css?v=<?=filemtime(__DIR__.'/assets/manager-ai-usage.css')?>"><link rel="stylesheet" href="assets/manager-request-profile.css?v=<?=filemtime(__DIR__.'/assets/manager-request-profile.css')?>">
-<script src="assets/manager-http-client.js" defer></script><script src="assets/manager-request-profile.js?v=<?=filemtime(__DIR__.'/assets/manager-request-profile.js')?>" defer></script></head><body>
+<script src="assets/manager-http-client.js" defer></script><script src="assets/manager-request-history.js?v=<?=filemtime(__DIR__.'/assets/manager-request-history.js')?>" defer></script><script src="assets/manager-request-profile.js?v=<?=filemtime(__DIR__.'/assets/manager-request-profile.js')?>" defer></script></head><body>
 <header class="usageHeader"><a class="usageBrand" href="/manager2/">Any<span>Tour</span></a><a id="profileConversation" href="/manager2/">К переписке ↗</a></header><main>
 <p class="usageEyebrow">Текущая поездка</p><h1>Профиль запроса</h1><p class="profileIntro">Сверьте условия с сообщениями и зафиксируйте, что важно для этой поездки. Профиль помогает подготовить ответ; цены, наличие и услуги проверяются отдельно.</p>
 <p id="profileStatus" class="usageStatus" role="status" aria-live="polite">Проверяем доступ…</p>

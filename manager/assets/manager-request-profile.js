@@ -9,12 +9,15 @@
   if(embedded){document.body.classList.add('profileEmbedded');$('profileConversation').addEventListener('click',event=>{event.preventDefault();notifyWorkspace('close')});}
   const node=(tag,text='')=>{const e=document.createElement(tag);e.textContent=text;return e},clone=v=>JSON.parse(JSON.stringify(v));
   let actor=0,csrf='',epoch=0,current=null,draft=null,pending=null,dirty=false,busy=false,revision=0,beforeNewTrip=null,needsSync=false,retryReady=false;
+  const historyView=window.ManagerRequestHistory.create({root:$('profileHistory'),request,labels});
   const key=()=>`anytour.requestProfile.${actor}.${cid}`;
   function status(text,error=false){$('profileStatus').textContent=text;$('profileStatus').classList.toggle('error',error)}
   function persist(){if(!actor)return;if(dirty||pending)notifyWorkspace('editing');try{if(dirty||pending)sessionStorage.setItem(key(),JSON.stringify({at:Date.now(),draft,pending,dirty}));else sessionStorage.removeItem(key())}catch(e){}}
-  function clear(){notifyWorkspace('access-lost');epoch++;actor=0;current=draft=pending=null;$('profileFields').replaceChildren();$('profileHistory').replaceChildren();$('profileSuggestion').replaceChildren();$('profilePreparation').replaceChildren();$('profileHotelChoice').replaceChildren();$('profileHotelTerms').textContent='';$('profileHotelState').textContent='';$('profileHotelConfirm').checked=false;$('profileHotelFocus').hidden=true;$('profileLabel').value='';$('profileBoundary').replaceChildren();$('profileApp').hidden=true;$('profileRetryLoad').hidden=true;status('Доступ или аккаунт изменился. Откройте профиль из доступной переписки.',true)}
-  async function request(action,data={}){
-    const r=await http.request(action,{conversation_id:cid,...data},csrf,'request-profile-api.php');
+  function clear(){notifyWorkspace('access-lost');epoch++;historyView.reset();actor=0;current=draft=pending=null;$('profileFields').replaceChildren();$('profileHistory').replaceChildren();$('profileSuggestion').replaceChildren();$('profilePreparation').replaceChildren();$('profileHotelChoice').replaceChildren();$('profileHotelTerms').textContent='';$('profileHotelState').textContent='';$('profileHotelConfirm').checked=false;$('profileHotelFocus').hidden=true;$('profileLabel').value='';$('profileBoundary').replaceChildren();$('profileApp').hidden=true;$('profileRetryLoad').hidden=true;status('Доступ или аккаунт изменился. Откройте профиль из доступной переписки.',true)}
+  async function request(action,data={},options={}){
+    const viewer=actor,ticket=epoch;
+    const r=await http.request(action,{conversation_id:cid,...data},csrf,'request-profile-api.php',options);
+    if(options.isCurrent&&(viewer!==actor||ticket!==epoch||!options.isCurrent()))return {ok:false,error:'superseded'};
     if(['unauthorized','csrf','forbidden'].includes(r.error)||(actor&&r.ok&&r.viewer_id!==actor)){clear();return {ok:false,error:'forbidden'}}return r;
   }
   const source=id=>current?.sources?.find(s=>s.id===Number(id));
@@ -112,7 +115,7 @@
     renderPreparation();
     const suggestion=$('profileSuggestion');suggestion.replaceChildren();suggestion.hidden=!current.party_suggestion||!current.can_edit;
     if(!suggestion.hidden){suggestion.appendChild(node('p','В последнем сообщении турист явно указал состав. Можно изменить только состав в черновике; даты и остальные условия останутся на месте.'));const quote=node('p',current.party_suggestion.quote);quote.className='profileCitation';suggestion.appendChild(quote);const b=node('button','Применить состав к черновику');b.type='button';b.className='usageReview profileSuggestionButton';b.onclick=()=>{const s=current.party_suggestion;draft=collect()||draft;draft.fields.party={value:clone(s.value),kind:'customer_statement',importance:draft.fields.party?.importance||'unknown',note:'',source_id:s.source_id,quote:s.quote};dirty=true;revision++;persist();render();$('profileFields').querySelector('[data-field=party]').open=true;status('Состав обновлён в черновике. Сверьте профиль и сохраните его явно.')};suggestion.appendChild(b)}
-    $('profileHistory').replaceChildren();for(const h of current.history||[]){$('profileHistory').appendChild(node('p',`Версия ${h.version} · менеджер №${h.manager_id} · ${h.created_at} UTC · ${h.changed_fields.map(k=>k==='hotel_focus'?'Предложение для поездки':labels[k]||k).join(', ')||'Повторная сверка условий'}`))}
+    historyView.sync({actor,conversationId:cid,latestVersion:current.profile.version,history:current.history});
     for(const e of $('profileForm').querySelectorAll('input,textarea,select'))e.disabled=!current.can_edit;renderHotelFocus();buttons();
   }
   async function load(mode='keep'){
