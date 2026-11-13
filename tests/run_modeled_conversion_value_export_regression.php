@@ -64,7 +64,7 @@ function modeledValueSave(PDO $p,array $w):void
     $p->prepare("INSERT INTO modeled_conversion_profile_versions(project_key,platform,customer_key,conversation_id,profile_json) VALUES(?,?,?,?,?)")
         ->execute([$s['project_key'],$s['platform'],$s['customer_key'],$s['conversation_id'],json_encode($w,JSON_THROW_ON_ERROR)]);
 }
-final class ModeledValueTestWire
+class ModeledValueTestWire
 {
     public array $goals=[['id'=>'9','type'=>'action','name'=>'unchanged','conditions'=>[['type'=>'exact','url'=>'existing_goal']]]];
     public array $csv=[];public array $receipts=[];public int $creates=0;public int $posts=0;public int $gets=0;public int $visitReads=0;
