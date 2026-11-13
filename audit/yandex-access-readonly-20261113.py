@@ -10,7 +10,6 @@ import math
 import os
 import re
 import signal
-import socket
 import subprocess
 import time
 import urllib.error
@@ -164,7 +163,13 @@ def make_reader(tokens, deadline):
             status = error.code
             try: raw = error.read(MAX_BYTES + 1)
             finally: error.close()
-        except Exception:
+        except Exception as failure:
+            reason = getattr(failure, 'reason', None)
+            detail = {'exception_class': type(failure).__name__, 'reason_class': type(reason).__name__}
+            for attr in ('errno', 'verify_code'):
+                value = getattr(reason, attr, None)
+                if type(value) is int: detail[attr] = value
+            attempt['network_error'] = detail
             raise Stop('HTTPS_READ_FAILED') from None
         attempt['http'] = status
         if len(raw) > MAX_BYTES:
@@ -235,7 +240,7 @@ def collect_wordstat(read):
         RESULT['errors'].append({'stage': 'wordstat_regions', **error.info})
         RESULT['wordstat']['status'] = 'region_not_confirmed'
         return
-    for endpoint, field in (('wordstat_top', 'topRequests'), ('wordstat_dynamics', 'dynamics')):
+    for endpoint, field in (('wordstat_top', 'topRequests'),):
         try:
             body = read(endpoint); rows = body.get(field)
             if not isinstance(rows, list) or len(rows) > 10000:
@@ -268,23 +273,6 @@ def collect_wordstat(read):
     RESULT['wordstat']['status'] = 'access_denied_or_incomplete' if any(row.get('stage', '').startswith('wordstat_') for row in RESULT['errors']) else 'responses_collected_for_review'
 
 
-
-def diagnose_dns():
-    rows = []
-    for host in ('api-metrika.yandex.net', 'api.direct.yandex.com', 'api.wordstat.yandex.net'):
-        row = {'host': host}
-        try:
-            resolved = socket.getaddrinfo(host, 443, type=socket.SOCK_STREAM)
-            row.update(status='resolved', address_count=len(resolved))
-        except socket.gaierror as error:
-            row.update(status='resolution_failed', error_class='gaierror', errno=error.errno)
-        except Exception:
-            row.update(status='resolution_failed', error_class='other')
-        rows.append(row)
-    RESULT['diagnostic_scope'] = 'DNS only; no API requests and no credential transmission'
-    RESULT['dns'] = rows
-    RESULT['status'] = 'COLLECTED'
-
 if __name__ == '__main__':
     def timeout(*_):
         raise Stop('TIME_BUDGET')
@@ -292,8 +280,9 @@ if __name__ == '__main__':
     deadline = time.monotonic() + TOTAL_SECONDS
     signal.alarm(TOTAL_SECONDS)
     try:
-        load_local_config()
-        diagnose_dns()
+        RESULT['diagnostic_scope'] = 'Final bounded Wordstat-only transport classification; at most two calls, no passed API checks repeated'
+        collect_wordstat(make_reader(load_local_config(), deadline))
+        RESULT['status'] = 'COLLECTED' if not RESULT['errors'] else 'PARTIAL'
     except Stop as error:
         RESULT['errors'].append(error.info); RESULT['status'] = 'READ_FAILED'
     except Exception:
