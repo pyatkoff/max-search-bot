@@ -1,0 +1,16 @@
+{
+  "operation": "commercial-hotel-batch-20261113-12-v1",
+  "responses": [
+    {
+      "filename": "import.response.json",
+      "sha256": "650887d821dbfe45735ee2cdee1d67d0ee4af3c9bd1c26b8fb6aa3ccccac69a8",
+      "original_raw_utf8": "{\n  \"version\": 338,\n  \"event\": {\n    \"id\": \"batch12-source-20261113-import-v1\",\n    \"title\": \"Batch12 · два новых отеля Салалы, подтверждённые посты и фиды\",\n    \"type\": \"success\"\n  }\n}\n"
+    },
+    {
+      "filename": "preview.response.json",
+      "sha256": "43fdbb0d54d68b193defd7b77b9e2c8fe989c825c4d45f3e664e1e5ca6891cd3",
+      "original_raw_utf8": "{\n  \"version\": 337,\n  \"added\": 0,\n  \"merged\": 2,\n  \"rejected\": 0,\n  \"details\": []\n}\n"
+    }
+  ],
+  "automatic_retries": 0
+}

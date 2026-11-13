@@ -1,0 +1,32 @@
+{
+  "operation": "commercial-hotel-batch-20261113-12-v1",
+  "phase": "prepare_validate_accept_enqueue",
+  "responses": [
+    {
+      "filename": "accept-1.response.json",
+      "sha256": "f4b505cfdcd632561763eac92145de49606149391b61cbd4b1022b10547affec",
+      "original_raw_utf8": "{\n  \"version\": 335,\n  \"event\": {\n    \"id\": \"commercial-batch12-accept-oman-88c46f8a-2bb2-4fc5-b550-cd4718face29-20261113-v1\",\n    \"title\": \"SALALAH GARDENS: Принят\",\n    \"type\": \"success\"\n  }\n}\n"
+    },
+    {
+      "filename": "accept-2.response.json",
+      "sha256": "cf825b25524a63a28a2b037c1fc7c4540b7b09535d42e0417b8c6abf2706ced7",
+      "original_raw_utf8": "{\n  \"version\": 336,\n  \"event\": {\n    \"id\": \"commercial-batch12-accept-oman-9c63e69b-5a7a-4380-9ced-9441caec1580-20261113-v1\",\n    \"title\": \"BELAD BONT RESORT: Принят\",\n    \"type\": \"success\"\n  }\n}\n"
+    },
+    {
+      "filename": "enqueue.response.json",
+      "sha256": "9dde04d236379c359b3863f6544169fa3eedca66b7c2c4d5d268733dfb84021e",
+      "original_raw_utf8": "{\n  \"version\": 337,\n  \"event\": {\n    \"id\": \"commercial-batch12-enqueue-oman-20261113-v1\",\n    \"title\": \"Очередь обновлена\",\n    \"type\": \"success\"\n  }\n}\n"
+    },
+    {
+      "filename": "prepare.response.json",
+      "sha256": "8d0aab102d2f298ad1ff6b71ab978d5dacfd991ebed655a357f0589977d058c0",
+      "original_raw_utf8": "{\n  \"version\": 333,\n  \"event\": {\n    \"id\": \"commercial-batch12-prepare-oman-20261113-v1\",\n    \"title\": \"Материалы по официальным источникам подготовлены\",\n    \"type\": \"success\"\n  }\n}\n"
+    },
+    {
+      "filename": "validate.response.json",
+      "sha256": "87fd86e085af8046fed1130cf6606c5914821d8c888b5c10e259e2a3e0907b12",
+      "original_raw_utf8": "{\n  \"version\": 334,\n  \"event\": {\n    \"id\": \"commercial-batch12-validate-oman-20261113-v1\",\n    \"title\": \"Проверка материалов\",\n    \"type\": \"success\"\n  }\n}\n"
+    }
+  ],
+  "automatic_retries": 0
+}

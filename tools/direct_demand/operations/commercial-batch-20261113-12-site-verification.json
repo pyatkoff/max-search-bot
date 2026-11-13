@@ -1,0 +1,61 @@
+{
+  "ok": true,
+  "operation": "commercial-hotel-batch-20261113-12-v1",
+  "initialVersion": 337,
+  "finalVersion": 338,
+  "sourceEdits": 0,
+  "importOperations": 1,
+  "publicationSnapshotsAdded": 4,
+  "otherHotelsCompared": 664,
+  "otherHotelsUnchanged": true,
+  "acceptedRevisionPreserved": 3,
+  "currentRevision": 3,
+  "priorContentVersionsPreserved": true,
+  "privateFactsPreserved": true,
+  "monitorPriceSnapshotsPreserved": true,
+  "actualFeedPresenceAdded": 2,
+  "automaticRetries": 0,
+  "postWriteReconciliationOnly": true,
+  "emptyArrayNormalizations": [
+    {
+      "id": "88c46f8a-2bb2-4fc5-b550-cd4718face29",
+      "field": "knowledgePackets",
+      "before": null,
+      "after": []
+    },
+    {
+      "id": "88c46f8a-2bb2-4fc5-b550-cd4718face29",
+      "field": "researchPackets",
+      "before": null,
+      "after": []
+    },
+    {
+      "id": "88c46f8a-2bb2-4fc5-b550-cd4718face29",
+      "field": "receiptHistory",
+      "before": null,
+      "after": []
+    },
+    {
+      "id": "9c63e69b-5a7a-4380-9ced-9441caec1580",
+      "field": "knowledgePackets",
+      "before": null,
+      "after": []
+    },
+    {
+      "id": "9c63e69b-5a7a-4380-9ced-9441caec1580",
+      "field": "researchPackets",
+      "before": null,
+      "after": []
+    },
+    {
+      "id": "9c63e69b-5a7a-4380-9ced-9441caec1580",
+      "field": "receiptHistory",
+      "before": null,
+      "after": []
+    }
+  ],
+  "populatedPacketsChanged": 0,
+  "publicationSummarySha256": "03c517784c13afbca167e684c3e84109584c0a7ac377cf09e6ea0e4f16606844",
+  "feedSummarySha256": "df6c78af0129155e2fe319a6b6e972a590dc39370fd52fc6359c2e6a2afb797f",
+  "finalRegistrySha256": "3711474daf7b8ccff86be4ef181be44274c86e43c7b8924c40837a75cdf74102"
+}
