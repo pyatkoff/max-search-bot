@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "ready": true,
+  "operation": "commercial-channel-hotel-feeds-20261113-update10-readiness1",
+  "expected_installed_sha": "cc58204bcaae562d237351e7dd8d23c6be9e3e36",
+  "expected_parent_head": "618b81d6a163a69ff50639c63b5e9ab08d92ad4f",
+  "owner_pin": {
+    "comment_id": 6818332618,
+    "owner": "pyatkoff",
+    "updated_at": "2026-11-13T00:57:07Z",
+    "body_sha256": "173740d9112bbd89a6f819188e046d5716de9546a6bc0adb271d60084fa3d910",
+    "required_scope_line": "### 13 ноября 2026, 03:56 МСК — 88 исправленных пар DONE; batch9:10 постов/native580 DONE, update10 SAFE_PREWRITE_STOP, read-only reconciliation IN_PROGRESS"
+  },
+  "mode": "bounded_read_only_journal_and_pending_derived_native_max",
+  "feed_continuation_authorized": false,
+  "original_feed_attempt": {
+    "run_id": 43340115672,
+    "head_sha": "618b81d6a163a69ff50639c63b5e9ab08d92ad4f",
+    "artifact_id": 13999056851,
+    "artifact_name": "commercial-channel-hotel-feeds-20261113-update10-result",
+    "artifact_sha256": "c27586e556f47c5be136a54207a4d93e1fe7e41ad83a9e8187b0665e9c8e3781",
+    "writer_receipt_sha256": "7c97664e2d11163248963428e753b215577dce1376e7424c7d4e3bd03cddb3ab",
+    "input_sha256": "ebdbd6b7310d46ff7bb61300ab16bdf620b3bdc50b4cfaae9118a1000b4fa83d",
+    "nightly_guard_sha256": "0c60e5a851ae014de9a1542f268449b7a1d0fb0ba9f3104db8da650035ea8486",
+    "frozen_writer_invoked": false,
+    "feed_writes": 0
+  },
+  "collector_terminal": {
+    "repository": "pyatkoff/poisk-turov-test",
+    "run_id": 43336135923,
+    "run_attempt": 1,
+    "head_sha": "84a8bb52ec4a8023a5b39c951a8a5fac7c8e0610",
+    "conclusion": "failure",
+    "run_metadata_sha256": "3af0696030eec78cf5b5dc0e0aed72a4e27b66dd3a50d91ff1528e53a5a4b152",
+    "monitor_error": "hook_child_failed_read_original_journal",
+    "child_failure": {
+      "exit_code": 2,
+      "error": "max_button_outcome_not_confirmed"
+    }
+  },
+  "reader_sha256": "1c496e9b3035be8e0251b1c07c603762d04547c1ab9471c47c9b8d01c8da3b3e",
+  "native_helper_sha256": "c54d768854a2a7aa1eda2aa5c71ca6f44cfc69b5f015cb17a6a2e070662a7b36",
+  "journal_main_sha256": "c19f116af9664c6dab39b571ec86fd0f6240988607865326170d43fc73108375",
+  "journal_scope": "one global journal; at most one child named only by exact actual pending",
+  "native_scope": "at most one actual MAX publication derived from that child plan; canonical GET-only comparison"
+}
