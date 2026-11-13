@@ -485,7 +485,8 @@
     const form=root?.querySelector('.taskCreate');
     if(!root||onlyIfOpen&&!clientCardIsOpen())return false;
     for(const details of root.querySelectorAll('.m2AllTasks'))details.open=true;
-    if(form&&create)revealTaskDraft(form);else openClientCard($('conversationTitle'),{focus:false});
+    if(!clientCardIsOpen())openClientCard($('conversationTitle'),{focus:false});
+    if(form&&create)for(let el=form.parentElement;el;el=el.parentElement)if(el instanceof HTMLDetailsElement)el.open=true;
     const target=form&&create?form.querySelector('#leadTaskTitle'):root.querySelector('[data-task-action-status]');
     if(target&&focus){if(!form||!create)target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView?.({block:'nearest'});}
     return true;

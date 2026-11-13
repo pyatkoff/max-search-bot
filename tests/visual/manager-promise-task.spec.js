@@ -50,6 +50,14 @@ async function showCard(page){
 }
 async function showChat(page){
   await page.locator('#mobileLeadClose').click();
+  if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile())){
+    await expect.poll(()=>page.evaluate(()=>WorkspaceV2Mobile.getScreen())).toBe('conversation');
+    await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','conversation');
+    await expect(page.locator('#leadZone')).not.toHaveClass(/\bopen\b/);
+  }else{
+    await expect(page.locator('#workspaceRoot')).not.toHaveClass(/\bm2ClientCardOpen\b/);
+    await expect(page.locator('#leadZone')).not.toBeVisible();
+  }
   await expect(page.locator('#messages')).toBeVisible();
 }
 async function preserved(page,fileText){
