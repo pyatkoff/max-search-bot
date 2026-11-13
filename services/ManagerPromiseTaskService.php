@@ -123,19 +123,29 @@ final class ManagerPromiseTaskService
         $binary=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'BINARY':'BLOB';
         $q=$pdo->prepare('SELECT direction,sender_type,sender_id,channel,external_message_id,SUBSTR(CAST(metadata_json AS '.$binary.'),1,8193) AS metadata FROM messages WHERE conversation_id=? AND id=?'.self::lock($pdo));
         $q->execute([(int)$conversation['id'],$sourceId]);$row=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+        $evidence=self::sourceEvidence($row?:[],$conversation,$source,true);
+        if($evidence===null)throw new DomainException('source_unavailable');
+        $q=$pdo->prepare('SELECT id FROM managers WHERE id=?');$q->execute([$evidence['author_manager_id']]);$known=$q->fetchColumn();$q->closeCursor();
+        if(!$known)throw new DomainException('source_unavailable');
+        return ['profile'=>$profile,'source'=>$evidence];
+    }
+
+    /** Pure shared admission; caller owns the authorized snapshot and author lookup. */
+    public static function sourceEvidence(array $row,array $conversation,array $source,bool $knownAuthor): ?array
+    {
         $raw=(string)($row['metadata']??'');$meta=$raw===''?[]:json_decode($raw,true,32);
         $author=(string)($row['sender_id']??'');$native=(string)($row['external_message_id']??'');
-        if(!$row||$row['direction']!=='outbound'||$row['sender_type']!=='manager'||!ctype_digit($author)||(int)$author<=0
-            ||$row['channel']!==$conversation['channel']||trim($native)===''||strlen($native)>255
+        if(!$knownAuthor||($row['direction']??null)!=='outbound'||($row['sender_type']??null)!=='manager'||!ctype_digit($author)||(int)$author<=0
+            ||($row['channel']??null)!==($conversation['channel']??null)||trim($native)===''||strlen($native)>255
             ||strlen($raw)>8192||!is_array($meta)||($meta['type']??'message')!=='message'
             ||!empty($meta['linked_message'])||!empty($meta['forwarded'])||!empty($meta['forward_origin'])
-            ||trim($source['text'])===''||mb_strlen($source['text'])>6000)throw new DomainException('source_unavailable');
-        $q=$pdo->prepare('SELECT id FROM managers WHERE id=?');$q->execute([(int)$author]);$known=$q->fetchColumn();$q->closeCursor();
-        if(!$known)throw new DomainException('source_unavailable');
+            ||($source['unavailable']??true)!==false||!is_int($source['id']??null)||$source['id']<=0
+            ||!self::hex($source['sha256']??null,64)||!is_string($source['text']??null)
+            ||trim($source['text'])===''||mb_strlen($source['text'])>6000)return null;
         $clock=ConversationRecordClock::read($raw);
-        return ['profile'=>$profile,'source'=>['id'=>$sourceId,'author_manager_id'=>(int)$author,
+        return ['id'=>$source['id'],'author_manager_id'=>(int)$author,
             'revision'=>self::hash([$source['sha256'],$row['channel'],$author,$native]),'text'=>$source['text'],
-            'recorded_at_utc'=>$clock===null?null:gmdate('Y-m-d\TH:i:s\Z',$clock)]];
+            'recorded_at_utc'=>$clock===null?null:gmdate('Y-m-d\TH:i:s\Z',$clock)];
     }
 
     private static function command(array $input): array

@@ -1,0 +1,24 @@
+.promiseSelectionDialog{width:min(780px,calc(100vw - 24px));max-height:calc(100dvh - 24px);margin:auto;padding:0;border:1px solid #cedacc;border-radius:16px;background:#fff;color:#243228;box-shadow:0 18px 70px #14291e35;font:14px/1.5 system-ui,sans-serif}
+.promiseSelectionDialog::backdrop{background:#172b254d}
+.promiseSelectionDialog,.promiseSelectionDialog *{box-sizing:border-box}
+.promiseSelectionShell{display:flex;flex-direction:column;max-height:calc(100dvh - 26px);min-width:0}
+.promiseSelectionHead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px 20px 12px;border-bottom:1px solid #e1e8de}
+.promiseSelectionHead h2{margin:0;font-size:21px;line-height:1.25}.promiseSelectionHead p{margin:6px 0 0;color:#667263}
+.promiseSelectionClose{flex:0 0 44px;min-height:44px;border:1px solid #d5dfd0;border-radius:10px;background:#f7faf5;font-size:23px;cursor:pointer}
+.promiseSelectionBody{overflow:auto;min-height:0;padding:14px 20px 20px;overscroll-behavior:contain}
+.promiseSelectionStatus{margin:0 0 12px;padding:10px 12px;border-radius:9px;background:#f1f6ed;overflow-wrap:anywhere}.promiseSelectionStatus.error{background:#fff2e9;color:#8c4028}
+.promiseSelectionHint{color:#657261;font-size:12px}.promiseSelectionBody>p{margin-top:0}
+.promiseSelectionFields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}.promiseSelectionFields label,.promiseSelectionExisting label{display:flex;flex-direction:column;gap:5px;font-weight:600;min-width:0}
+/* The existing PromiseTasks release verified this native WebKit select fix. */
+.promiseSelectionDialog select{width:100%;min-width:0;min-height:44px;padding:9px 34px 9px 9px;border:1px solid #cbd7c5;border-radius:9px;background:#fff;color:inherit;font:inherit;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%232f4a32' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
+.promiseSelectionExisting{display:flex;align-items:flex-end;gap:10px;margin:16px 0;padding-top:14px;border-top:1px solid #e1e8de}.promiseSelectionExisting label{flex:1}
+.promiseSelectionReview{padding:14px;border:1px solid #d6e1d0;border-radius:12px;background:#f9fbf6;overflow-wrap:anywhere}.promiseSelectionReview h3{margin:0 0 8px}.promiseSelectionReview h4{margin:16px 0 5px}
+.promiseSelectionQuote{margin:8px 0;padding:10px 12px;border-left:3px solid #8ca47a;background:#fff;white-space:pre-wrap;overflow-wrap:anywhere}
+.promiseSelectionConditions{display:grid;grid-template-columns:minmax(100px,1fr) minmax(0,2fr);gap:6px 12px;margin:8px 0}.promiseSelectionConditions dt{color:#64705f}.promiseSelectionConditions dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.promiseSelectionCards{margin:8px 0;padding-left:24px}.promiseSelectionCards li{padding:9px 0;border-bottom:1px solid #e2e9dc;white-space:pre-wrap;overflow-wrap:anywhere}.promiseSelectionCards li:last-child{border-bottom:0}
+.promiseSelectionIntent{margin:14px 0 0;padding:12px;border:1px solid #d6e1d0;border-radius:10px;background:#f3f7ee;overflow-wrap:anywhere}.promiseSelectionIntent p{margin:5px 0}.promiseSelectionIntent strong{font-size:15px}
+.promiseSelectionCancelNotice{margin:12px 0;padding:12px;border:1px solid #e6cab7;border-radius:9px;background:#fff6ed}
+.promiseSelectionFooter{padding:12px 20px 16px;border-top:1px solid #e1e8de;background:#fff}.promiseSelectionFooter p{margin:0 0 9px}.promiseSelectionActions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.promiseSelectionButton{min-height:44px;padding:9px 13px;border:1px solid #cbd8c4;border-radius:9px;background:#fff;color:#2f4a32;font:inherit;font-weight:600;cursor:pointer}.promiseSelectionPrimary{background:#2d6a43;color:#fff;border-color:#2d6a43}.promiseSelectionButton:disabled{opacity:.55;cursor:default}
+.promiseSelectionDialog [hidden]{display:none!important}.promiseSelectionDialog :focus-visible{outline:3px solid #82aa6d;outline-offset:2px}
+@media(max-width:600px){.promiseSelectionDialog{width:calc(100vw - 12px);max-height:calc(100dvh - 12px);border-radius:12px}.promiseSelectionShell{max-height:calc(100dvh - 14px)}.promiseSelectionHead,.promiseSelectionBody,.promiseSelectionFooter{padding-left:14px;padding-right:14px}.promiseSelectionFields{grid-template-columns:1fr}.promiseSelectionExisting{align-items:stretch;flex-direction:column}.promiseSelectionActions .promiseSelectionButton{flex:1 1 160px}.promiseSelectionConditions{grid-template-columns:1fr}.promiseSelectionConditions dd{margin-bottom:5px}}

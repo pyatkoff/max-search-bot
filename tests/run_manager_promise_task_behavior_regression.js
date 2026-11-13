@@ -194,4 +194,5 @@ test('readonly or degraded tasks and rejected context never become an authorized
   const empty=await setup();empty.server.profile.fields=[];await ready(empty);assert.equal(await empty.P.confirm(),true);
 });
 
+module.exports={setup,clone,tick,field,choose,response,deferred};
 if(require.main===module)(async()=>{const match=process.argv.find(arg=>arg.startsWith('--match='))?.slice(8),selected=cases.filter(item=>!match||new RegExp(match).test(item.name));assert.ok(selected.length,'at least one requested case');let failed=0;for(const item of selected){try{await item.run();console.log('PASS '+item.name)}catch(error){failed++;console.error('FAIL '+item.name+'\n'+error.stack)}}console.log(`TOTAL ${selected.length} | PASS ${selected.length-failed} | FAIL ${failed}`);process.exitCode=failed?1:0})();
