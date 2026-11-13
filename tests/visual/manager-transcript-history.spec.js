@@ -813,10 +813,18 @@ for(const [width,height] of [[390,844],[430,844],[768,844],[1440,844],[390,420]]
  await page.locator('#replyText').fill('Черновик без отправки');await page.locator('#replyFile').setInputFiles({name:'unread.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic unread')});
  await composerGeometryReady(page);
  await page.locator('#messages').hover();await page.mouse.wheel(0,-20000);await expect.poll(()=>page.locator('#messages').evaluate(b=>b.scrollTop)).toBe(0);
- if(height===420){await page.mouse.wheel(0,100);await expect.poll(()=>page.locator('#messages').evaluate(b=>b.scrollTop)).toBeGreaterThan(0);}
+ if(height===420){await page.mouse.wheel(0,100);await expect.poll(()=>page.locator('#messages').evaluate(b=>b.scrollTop)).toBe(100);}
+ // A pre-wheel acknowledgement can already satisfy marker > 1. Settle the
+ // final visible prefix on both sides before recording the refresh baseline.
+ await settled(page);
+ const shown=await page.locator('#messages').evaluate(box=>{const bounds=box.getBoundingClientRect();return [...box.querySelectorAll('.msg.customer')].filter(row=>{const r=row.getBoundingClientRect(),top=Math.max(bounds.top,r.top),bottom=Math.min(bounds.bottom,r.bottom);return bottom>top&&row.contains(document.elementFromPoint((r.left+r.right)/2,(top+bottom)/2))}).map(row=>Number(row.dataset.scrollMessageKey))});
+ expect(shown.length).toBeGreaterThan(0);const visibleFrontier=Math.max(...shown);
+ await expect.poll(()=>shown.every(id=>state.ackCalls.some(call=>call.conversation_id===11&&call.message_ids.includes(id)))).toBe(true);
+ await expect.poll(()=>state.readMarkers[11]||0).toBe(visibleFrontier);
+ await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.detail.read_state.last_read_message_id)).toBe(visibleFrontier);
  await expect.poll(()=>state.readMarkers[11]||0).toBeGreaterThan(1);expect(state.readMarkers[11]).toBeLessThan(35);const marker=state.readMarkers[11],before=await anchor(page);
- state.documents[11].push({id:1001,sender_type:'customer',text:'Новое сообщение вне видимой части'});await refresh(page);
- await expect(page.locator('#messages [data-scroll-message-key="1001"]')).toHaveCount(1);await sameAnchor(page,before);expect(state.readMarkers[11]).toBe(marker);
+ state.documents[11].push({id:1001,sender_type:'customer',text:'Новое сообщение вне видимой части'});expect(state.ackCalls.every(call=>!call.message_ids.includes(1001))).toBe(true);await refresh(page);
+ await expect(page.locator('#messages [data-scroll-message-key="1001"]')).toHaveCount(1);await sameAnchor(page,before);expect(state.readMarkers[11]).toBe(marker);expect(state.ackCalls.every(call=>!call.message_ids.includes(1001))).toBe(true);
  await expect(page.locator('#replyText')).toHaveValue('Черновик без отправки');await expect(page.locator('#mediaSelection')).toContainText('unread.txt');
  await screenshot(page,browserName,width,'explicit-read-'+height);clean(state);
 });
