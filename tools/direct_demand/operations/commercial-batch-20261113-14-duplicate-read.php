@@ -123,8 +123,8 @@ if(getenv('ANYTOUR_CHANNEL_BATCH38_SCOPE_FIXTURE')==='1'){
 
 
 function batch20261107_input_scope(array $in):void{
- insist(count($in)===3&&array_column($in,'hotel_id')===[319,254,967],'read17_exact_new1_scope');
- insist(count(array_unique(array_column($in,'accepted_first_line')))===3,'read17_duplicate_firstline');
+ insist(count($in)===2&&array_column($in,'hotel_id')===[968,1531],'read17_exact_new1_scope');
+ insist(count(array_unique(array_column($in,'accepted_first_line')))===2,'read17_duplicate_firstline');
 }
 if(getenv('ANYTOUR_CHANNEL_BATCH51_SCOPE_FIXTURE')==='1'){
  $in=json_decode(base64_decode(FEED_EXPORT_INPUT_B64,true),true,9,JSON_THROW_ON_ERROR);batch20261107_input_scope($in);
@@ -179,7 +179,7 @@ try {
 
     $raw=base64_decode(FEED_EXPORT_INPUT_B64,true);insist(is_string($raw)&&hash('sha256',$raw)===FEED_EXPORT_INPUT_SHA256,'feed_input_hash_changed');
     $inputs=json_decode($raw,true,9,JSON_THROW_ON_ERROR);insist(is_array($inputs),'feed_scope_changed');batch20261107_input_scope($inputs);
-    $ids=array_column($inputs,'hotel_id');insist(count(array_unique($ids))===3,'feed_scope_duplicate');
+    $ids=array_column($inputs,'hotel_id');insist(count(array_unique($ids))===2,'feed_scope_duplicate');
     $catalog->exec('SET TRANSACTION READ ONLY');$catalog->beginTransaction();
     $registry=ConversationDb::connection();$registry->exec('SET TRANSACTION READ ONLY');$registry->beginTransaction();
     $sql='SELECT h.id,h.name,h.is_active,h.country_id,h.region_id,r.name AS region FROM catalog_hotels h LEFT JOIN catalog_regions r ON r.id=h.region_id AND r.country_id=h.country_id WHERE h.id IN ('.implode(',',array_fill(0,count($ids),'?')).') ORDER BY h.id';
@@ -192,7 +192,7 @@ try {
       $one=channel_feed_build([$input],$hotels,$publications);
       $built['rows']=array_merge($built['rows'],$one['rows']);$built['deferred']=array_merge($built['deferred'],$one['deferred']);$built['image_missing_count']+=$one['image_missing_count'];
     }
-    $out+=$built;insist(count($built['rows'])+count($built['deferred'])===3,'candidate_export_scope_changed');
+    $out+=$built;insist(count($built['rows'])+count($built['deferred'])===2,'candidate_export_scope_changed');
     $out['private_max_bindings']=[];
     foreach($built['rows'] as $r){
       $input=['hotel_id'=>$r['hotel_id'],'platform'=>'max','post_url'=>$r['max_post_url']];
@@ -203,7 +203,7 @@ try {
     $out['private_binding_count']=count($out['private_max_bindings']);
     // Exact empty candidate scope: all planned FIRST clearances are already retained.
     $candidateRaw=base64_decode(CANDIDATE_INPUT_B64,true);insist(is_string($candidateRaw)&&hash('sha256',$candidateRaw)===CANDIDATE_INPUT_SHA256,'candidate_input_hash_changed');
-    $candidates=json_decode($candidateRaw,true,32,JSON_THROW_ON_ERROR);insist(count($candidates)===3&&array_column($candidates,'hotel_id')===[319,254,967],'candidate_scope_changed');
+    $candidates=json_decode($candidateRaw,true,32,JSON_THROW_ON_ERROR);insist(count($candidates)===2&&array_column($candidates,'hotel_id')===[968,1531],'candidate_scope_changed');
     $first="SUBSTRING_INDEX(JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.text')),CHAR(10),1)";
     $native="JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id'))";
     $logical="JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.logical_id'))";

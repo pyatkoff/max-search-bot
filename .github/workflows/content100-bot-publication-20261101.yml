@@ -63,7 +63,7 @@ jobs:
 
         sha256sum -c <<''PINS''
 
-        6bd69f36aa806c010ded8bd6b8b9fb916f7a164216d1ff88fc8f4c3836157ae6  tools/direct_demand/operations/commercial-batch-20261113-14-duplicate-read.php
+        321d70633636e75cd837f5c84b371a49cf7df50bf6ff0fe6c75cb37ad433e4c8  tools/direct_demand/operations/commercial-batch-20261113-14-duplicate-read.php
 
         PINS
 
@@ -124,11 +124,11 @@ jobs:
 
         p=pathlib.Path(os.environ[''RUNNER_TEMP'']);d=json.loads((p/''channel-feed-read.json'').read_text().splitlines()[-1])
 
-        assert d[''ok''] and d[''operation'']==''commercial-channel-hotel-feeds-20261113-read131''
+        assert d[''ok''] and d[''operation'']==''commercial-channel-hotel-feeds-20261113-read141''
 
-        assert d[''installed_sha'']==os.environ[''EXPECTED_PRODUCTION_SHA''] and d[''candidate_count'']==3
+        assert d[''installed_sha'']==os.environ[''EXPECTED_PRODUCTION_SHA''] and d[''candidate_count'']==2
 
-        assert [r[''native_hotel_id''] for r in d[''candidate_clearance'']]==[319, 254, 967]
+        assert [r[''native_hotel_id''] for r in d[''candidate_clearance'']]==[968,1531]
 
         assert all(d[k]==0 for k in [''db_writes'',''provider_calls'',''message_sends''])
 
