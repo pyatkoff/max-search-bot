@@ -36,14 +36,44 @@ function pipelineCatalogSaveStatus(array $result):int
 
 $data=ManagerHttp::body();
 $action=(string)($data['action']??'');
+$promiseAction=in_array($action,['promise_context','bind_promise','promise_operation'],true);
+if($promiseAction&&($_SERVER['REQUEST_METHOD']??'')!=='POST')ManagerHttp::respond(['ok'=>false,'error'=>'method_not_allowed'],405);
 // A secondary card read verifies the configured project without repairing it.
-if(in_array($action,['detail','outcome_operation'],true)&&ManagerHttp::managerId()>0){
+if(($promiseAction||in_array($action,['detail','outcome_operation'],true))&&ManagerHttp::managerId()>0){
     try{ProjectAccessService::initializeReadOnly();}
     catch(Throwable $ignored){ManagerHttp::respond(['ok'=>false,'error'=>'project_unavailable'],503);}
 }
 $m=ManagerHttp::requireManager();
 ManagerHttp::requireCsrf($data);
 $isAdmin=ManagerHttp::isAdmin($m);
+
+if($promiseAction){
+    $cid=$data['conversation_id']??null;
+    if(!is_int($cid)||$cid<=0)ManagerHttp::respond(['ok'=>false,'error'=>'invalid_binding'],422);
+    $command=$data;unset($command['action'],$command['csrf'],$command['conversation_id']);
+    if($action==='promise_context'&&(count($command)!==3
+        ||!is_int($command['task_id']??null)||!is_int($command['source_message_id']??null)
+        ||!is_string($command['kind']??null)))ManagerHttp::respond(['ok'=>false,'error'=>'invalid_binding'],422);
+    if($action==='promise_operation'&&(count($command)!==1||!is_string($command['operation_id']??null)))ManagerHttp::respond(['ok'=>false,'error'=>'invalid_operation'],422);
+    $actor=(int)$m['id'];
+    // The service refreshes ACL inside the same transaction as binding/receipt.
+    // Release the session while it works, then fence logout/account changes.
+    session_write_close();
+    try{
+        require_once $baseDir.'/services/ManagerPromiseTaskService.php';
+        $result=match($action){
+            'promise_context'=>ManagerPromiseTaskService::context($actor,$cid,$command['task_id'],$command['source_message_id'],$command['kind']),
+            'bind_promise'=>ManagerPromiseTaskService::bind($actor,$cid,$command),
+            'promise_operation'=>ManagerPromiseTaskService::operation($actor,$cid,$command['operation_id'])};
+        if(!session_start(['read_and_close'=>true])||ManagerHttp::managerId()!==$actor
+            ||!ManagerRequestContext::validCsrf((string)$data['csrf']))ManagerHttp::respond(['ok'=>false,'error'=>'unauthorized'],401);
+        $status=!empty($result['ok'])?200:match($result['error']??''){
+            'forbidden'=>403,'task_not_found'=>404,
+            'profile_changed','context_changed','source_changed','profile_source_changed','binding_conflict','operation_mismatch','task_closed'=>409,
+            'storage_unavailable'=>503,default=>422};
+        ManagerHttp::respond($result+['viewer_id'=>$actor],$status);
+    }catch(Throwable $ignored){ManagerHttp::respond(['ok'=>false,'error'=>'storage_unavailable'],503);}
+}
 
 if($action==='catalog')ManagerHttp::respond(['ok'=>true,'stages'=>SalesPipelineService::stages(true),'tags'=>SalesPipelineService::tags(true),'outcomes'=>SalesPipelineService::outcomeOptions(),'close_reasons'=>SalesPipelineService::closeReasonOptions(true)]);
 if($action==='filter_options')ManagerHttp::respond(['ok'=>true,'filters'=>ManagerWorkspaceFilterService::snapshot((int)$m['id'])]);
