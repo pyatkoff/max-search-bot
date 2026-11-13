@@ -63,17 +63,42 @@ function hook_abandon_failed_preflight(string $operation,array $failure):array {
         return $terminal;
     }finally{flock($journalLock,LOCK_UN);fclose($journalLock);}
 }
+/** Original completed caption batches are read once per pass; the editor independently rechecks them. */
+function hook_caption_source(array $row):array {
+    static $cache=[];
+    $binding=monitor_price_caption_binding($row);$source=$binding['source'];$key=$source['operation'];
+    if(!isset($cache[$key])){
+        $dir='/var/www/anytoour/data/channel-post-operations/'.$source['operation'];$path=$dir.'/receipt.jsonl';
+        hook_need(!is_link(dirname($dir))&&!is_link($dir)&&realpath($dir)===$dir
+            &&!is_link($path)&&is_file($path)&&realpath($path)===$path,'canonical_original_receipt_missing');
+        $stream=fopen($path,'rb');hook_need(is_resource($stream),'canonical_original_receipt_missing');
+        try{
+            hook_need(flock($stream,LOCK_SH|LOCK_NB),'hook_caption_source_unresolved_stop');
+            $before=fstat($stream);$named=lstat($path);
+            hook_need(is_array($before)&&is_array($named)&&$before['ino']===$named['ino']&&$before['dev']===$named['dev']
+                &&$before['size']>0&&$before['size']<=134217728,'hook_caption_source_incomplete_stop');
+            $journal=monitor_price_caption_journal($stream,$source);
+            clearstatcache(true,$path);$after=fstat($stream);$named=lstat($path);
+            foreach(['ino','dev','size','mtime','ctime'] as $field)
+                hook_need(($after[$field]??null)===$before[$field]&&($named[$field]??null)===$before[$field],'hook_caption_source_unresolved_stop');
+            $cache[$key]=['source'=>$source,'journal'=>$journal];
+        }finally{flock($stream,LOCK_UN);fclose($stream);}
+    }
+    hook_need($cache[$key]['source']===$source,'canonical_original_receipt_mismatch');
+    return monitor_price_caption_receipts($row,$cache[$key]['journal']);
+}
 function hook_context(array $row,ChannelPostRegistryService $registry):array {
     $result=[];
-    $legacyProofs=null;
+    $legacyProofs=null;$captionProofs=null;
     if(array_key_exists('legacy_proof',$row)){
         $legacy=monitor_price_legacy_binding($row);
         $dir='/var/www/anytoour/data/channel-post-operations/'.$legacy['prior_price']['operation'];
         hook_need(!is_link(dirname($dir))&&!is_link($dir)&&realpath($dir)===$dir,'canonical_original_receipt_missing');
         $legacyProofs=monitor_price_legacy_receipts($row,hook_read($dir.'/receipt.jsonl'));
     }
+    if(array_key_exists('caption_proof',$row))$captionProofs=hook_caption_source($row);
     foreach(['max','telegram'] as $platform){
-        if($legacyProofs!==null){$proof=$legacyProofs[$platform];}else{
+        if($captionProofs!==null){$proof=$captionProofs[$platform];}elseif($legacyProofs!==null){$proof=$legacyProofs[$platform];}else{
         $dir='/var/www/anytoour/data/channel-post-operations/'.$row['original_publication_operation'];
         hook_need(!is_link($dir),'hook_original_directory_invalid');
         $original=json_decode(hook_read($dir.'/'.$platform.'-'.$row['logical_id'].'-approved.json',1048576),true,64,JSON_THROW_ON_ERROR);$proof=$original['receipt']??[];
@@ -85,6 +110,7 @@ function hook_context(array $row,ChannelPostRegistryService $registry):array {
         hook_need(is_array($p)&&$p['project_key']==='anytour'&&$p['platform']===$platform&&$p['state']==='sent'
             &&$p['external_message_id']===(string)$proof['message_id']&&($p['snapshot']['post_url']??'')===$row['posts'][$platform],'hook_publication_changed');
         if($legacyProofs!==null)hook_need(monitor_price_legacy_publication_matches($p,$row,$platform,ChannelPostButtonTransport::buttonUrl($p)),'existing_publication_identity_changed');
+        if($captionProofs!==null)hook_need(monitor_price_caption_publication_matches($p,$row,$platform,ChannelPostButtonTransport::buttonUrl($p),$proof),'existing_publication_identity_changed');
         $record=$p['snapshot']['metadata']['monitor_price_record_id']??null;$prior=null;
         if($record!==null){hook_need(is_string($record)&&preg_match('/\A[a-f0-9]{64}\z/D',$record)===1,'hook_record_invalid');$prior=hook_journal('commercial-monitor-price-h'.$row['tourvisor_hotel_id'].'-'.$record);}
         hook_need(monitor_hook_caption_allowed($p,$row,$platform,$prior),'hook_manual_caption_changed_hold');
@@ -224,9 +250,10 @@ try{
             }
             $r=array_intersect_key($row,array_flip(['key','hotel_id','tourvisor_hotel_id','logical_id','original_publication_operation','cover_sha256']));$r['channel_texts']=[];
             if(array_key_exists('legacy_proof',$row)){$r['legacy_proof']=$row['legacy_proof'];$r['posts']=$row['posts'];}
+            if(array_key_exists('caption_proof',$row)){$r['caption_proof']=$row['caption_proof'];$r['posts']=$row['posts'];}
             foreach($context as $channel=>$p){$text=monitor_hook_draft($row['templates'][$channel],$price);$old=$p['snapshot']['text'];
                 $r['channel_texts'][$channel]=['old_text'=>$old,'old_text_sha256'=>hash('sha256',$old),'new_text'=>$text,'new_text_sha256'=>hash('sha256',$text)];
-                if(!array_key_exists('legacy_proof',$row))$r['channel_texts'][$channel]['original_text_sha256']=$row['original_text_sha256'];
+                if(!array_key_exists('legacy_proof',$row)&&!array_key_exists('caption_proof',$row))$r['channel_texts'][$channel]['original_text_sha256']=$row['original_text_sha256'];
                 $r['channel_texts'][$channel]['expected_version_id']=(int)$p['version_id'];$r['channel_texts'][$channel]['expected_post_url']=$row['posts'][$channel];}
             $input=['operation'=>$op,'price_basis'=>'scheduled_monitor_result','monitor_snapshot'=>$snapshot,'button_text'=>'✈️ Узнать стоимость тура','feed_binding'=>$row['feed_binding'],'rows'=>[$r]];
             $raw=json_encode($input,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);

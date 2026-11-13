@@ -1,0 +1,1331 @@
+{
+  "schema_version": 1,
+  "operation": "monitor-price-remaining23-bindings-20261113",
+  "state": "prepared_source_bindings_natural_execution_not_claimed",
+  "previous_source": "892002d74f3fd2937a3cad250b033774baa2b5b8",
+  "previous_roster_pairs": 569,
+  "new_roster_pairs": 592,
+  "published_pairs": 592,
+  "remaining_published_outside_roster": 0,
+  "canonical_sender_pairs_added": 20,
+  "confirmed_caption_pairs_added": 3,
+  "appended_tourvisor_ids": [
+    140,
+    240,
+    241,
+    268,
+    381,
+    386,
+    1033,
+    1077,
+    1095,
+    1146,
+    8053,
+    9374,
+    12111,
+    28666,
+    33313,
+    46672,
+    58987,
+    67910,
+    68323,
+    109900,
+    111045,
+    111129,
+    157359
+  ],
+  "original_rows_equal": true,
+  "original_uncompressed_prefix_preserved": true,
+  "previous_roster_gzip_sha256": "5faa9f006bb6934cd4e4fd87b3ce770556cf56f5448605bef6c1c5f41e73eb07",
+  "roster_gzip_sha256": "679126fa353b2b98894fd9bcf6dc7b5df2445ae2ef2b95c87ebd8f818e97e274",
+  "previous_uncompressed_prefix_sha256": "f19909e16ca055a2b6376d5bf665a59823241ed786eca4e43fcde0d7b284b820",
+  "verified_original_source_files": [
+    {
+      "path": "tools/direct_demand/operations/commercial-channel-hotel-ad-copy-20261103.json",
+      "sha": "5d7d0d3f1a5e839f9b908143cdb1017bd8ce9c56",
+      "sha256": "2d7d56ca786eeb49b79e6ed634982c9a5be3146a95fe89341f4c36fcfd7079ed",
+      "match": true
+    },
+    {
+      "path": "tools/direct_demand/operations/commercial-content-quality-20261108-inputs.json.gz",
+      "sha": "f29c7ae3a13e348c47f16b3a98470ae428b6151b",
+      "sha256": "5628cca7b6fc1919bb28178423c2066b773c5bd903ede56ed7e69d4891f0230f",
+      "match": true
+    },
+    {
+      "path": "tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+      "sha": "ee84de0fe419393b2cea76a6fdbc08fb369092bb",
+      "sha256": "cc9b17c4b12954953f65d1c75d2c9a58c13a9317732cf245e94ea51d10003094",
+      "match": true
+    },
+    {
+      "path": "tools/direct_demand/operations/commercial-next-three-manifest.json",
+      "sha": "b5adeca6bfd34993384cabc43288777b4c67df74",
+      "sha256": "1b1ae3588c0dac907efaa04999f4996719fe2c0fb50ef2081aed6cac8d5a56f2",
+      "match": true
+    },
+    {
+      "path": "tools/direct_demand/operations/commercial-three-20261102-2-manifest.json",
+      "sha": "2a3ee6595f3ed1206916f9bb0c2c4809a72d2b23",
+      "sha256": "0d3b449e3c17b2b6d3ed6af577a231ada017476dde95a2197a07cb495cbb8151",
+      "match": true
+    },
+    {
+      "path": "tools/direct_demand/operations/commercial-three-20261102-3-manifest.json",
+      "sha": "f3fa54a5ede8f061f7e1265259a1ac5468972ca0",
+      "sha256": "d9dc2a6ed5c036813a883fc3fda6b7039e5cad62c58ed715d66316943f9e07ca",
+      "match": true
+    },
+    {
+      "path": "tools/direct_demand/operations/commercial-three-20261102-4-manifest.json",
+      "sha": "c6c53f765514b953f775b13a87dc2a64ac55a3bf",
+      "sha256": "e8733fdda14d54e43e3496aa995f1b7b1937beef4f675108d022639289791673",
+      "match": true
+    },
+    {
+      "path": "tools/direct_demand/operations/commercial-three-20261102-5-manifest.json",
+      "sha": "98a2af8a1d2536d2bc43d7b8e425f84957d6327c",
+      "sha256": "7239f83de356fafedfa89ed007a68d83b6f33032eae78ebddbc3c48669debba6",
+      "match": true
+    },
+    {
+      "path": "tools/direct_demand/operations/commercial-batch-20261107-1-state.json",
+      "sha": "5ff66c3b02a2282f63a2425f870ecd4b8ac8bca7",
+      "sha256": "0bf0946df73e9a498208722434b59d8f6939131dd138df14cc1d9ba6544398ee",
+      "match": true
+    },
+    {
+      "path": "tools/direct_demand/operations/commercial-batch-20261107-8-state.json",
+      "sha": "03325d79b0d9c6147a93116af18635262141f82d",
+      "sha256": "b12ea22dd526152e50efce8be310ce2c54039e97501f5a9ea248e02d121c9aa6",
+      "match": true
+    },
+    {
+      "path": "tools/direct_demand/operations/commercial-human-copy-early-nine-manifest.json",
+      "sha": "8a73d3abb489f9d642cbfe626dd8d7400537465c",
+      "sha256": "6f7338695126d04d77cba5517bf973738c428f1588938ae796dc6b44ac0537b4",
+      "match": true
+    }
+  ],
+  "original_quality_run": {
+    "id": 42471342497,
+    "job_id": 128702567730,
+    "attempt": 1,
+    "head_sha": "01c93128f8ca42491f252ebe9d85cd8ed15d6e76",
+    "expected_installed_sha": "160e019701165cd53dd5a9be0fa3db533d82120e",
+    "branch": "audit/content100-bot-publication-20261101",
+    "workflow": ".github/workflows/content100-bot-publication-20261101.yml",
+    "result_artifact_id": 13613848953,
+    "result_zip_sha256": "3e17ffdfbafbca1996ed37f7cc3c0e7b2ff7fe6a0b8ba284c1265f77b95aac02"
+  },
+  "canonical_legacy_capture": {
+    "run_id": 41944182035,
+    "artifact_id": 13377767316,
+    "zip_sha256": "7d15e2acc550e44a975b5b71805d5c42af0cb5158fd1f0e0b18dfaba96598201"
+  },
+  "accepted_registry": {
+    "version": 344,
+    "sha256": "0afc968fd13226e43946f1550f5a878c902dbcd6ad0beb692346559da10d1c13"
+  },
+  "accepted_native_route_map": {
+    "source_commit": "f4b6707a40acc2755480f363c9e87c0e08bc7671",
+    "sha256": "f017b9445949557199053b852cec3881bfeb0c36602aef8ad18f9db55cdcb19f",
+    "pairs": 592,
+    "join": "unique exact physical MAX post URL",
+    "country_id_claimed": false
+  },
+  "later_saraya_baseline": {
+    "operation": "commercial-caption-repair-20261113-batch002-v1",
+    "manifest_sha256": "e2b49edb8c63209ef1f9e3c37500e1a9b4ce5e2bd9586b29f9e024198f676341",
+    "result_sha256": "d653d9a2d2bee519f0e35c8ad03656f1733f54d3052b3bb9d008a0c0ebcf0e98",
+    "posts": [
+      {
+        "hotel_id": 268,
+        "platform": "max",
+        "publication_id": 117,
+        "previous_version_id": 3163,
+        "version_id": 4001,
+        "message_id": "mid.ffffb6caf0606fed01a19adc76f668d0",
+        "post_url": "https://max.ru/channel_anytour/AaGa3Hb2aNA",
+        "text_sha256": "25aeaccb40bdd54622354c2e094f2d3e799cf5d8c9cf13358b4302fb01c5af7a",
+        "previous_text_sha256": "bb52d5bedb3ee538333e374d6bbb4e870c7b44c9031364635e8815b20b2e5bd3",
+        "photo_signature": "max:48765838600",
+        "previous_attachments_sha256": "e97b2f9fc17dea2d0bf6dccbe30aeb3d5be60a5da9da4370f55910673f7c4c5c",
+        "attachments_sha256": "c48e3bbdb06d9b2fc819e4a1c990c80b497b1a909747e87ec172d29f597236f5",
+        "button_url_sha256": "97cc145cc49f9d5dd2ff2df33b636f538f8906b7f670e28a89689741c2cfc86d",
+        "button_text": "✈️ Узнать стоимость тура",
+        "source_key": "max_anytour_msk1",
+        "state": "sent",
+        "body_photo_button_verified": true,
+        "formatting_verified": true,
+        "existing_message_reused": true,
+        "existing_token_resolves_to_current_version": true
+      },
+      {
+        "hotel_id": 268,
+        "platform": "telegram",
+        "publication_id": 114,
+        "previous_version_id": 3164,
+        "version_id": 4002,
+        "message_id": "23",
+        "post_url": "https://t.me/any_toour/23",
+        "text_sha256": "25aeaccb40bdd54622354c2e094f2d3e799cf5d8c9cf13358b4302fb01c5af7a",
+        "previous_text_sha256": "bb52d5bedb3ee538333e374d6bbb4e870c7b44c9031364635e8815b20b2e5bd3",
+        "photo_signature": "telegram:AQADpR1rGwpTSEt9",
+        "previous_attachments_sha256": "d360c22491528c02b3403a29b16c2a25c3f3167771614b3a527d21dc4a493087",
+        "attachments_sha256": "8dc1956df15f87f78bc115350b0a14a8712361854ca2c24761313659d8b985d4",
+        "button_url_sha256": "b471fd55fecfe2082fd7db23dc9d324f8eec4839bb7bc0ed694faf5c05657ea9",
+        "button_text": "✈️ Узнать стоимость тура",
+        "source_key": "tg_anytour_msk",
+        "state": "sent",
+        "body_photo_button_verified": true,
+        "formatting_verified": true,
+        "existing_message_reused": true,
+        "existing_token_resolves_to_current_version": true
+      }
+    ]
+  },
+  "feed_sources": {
+    "max": {
+      "sha256": "8a84a594acf5ebec774e1b83628b789df785aa0ace4410244f051d864255fe79",
+      "offer_count": 592
+    },
+    "telegram": {
+      "sha256": "2740f1311740edea581714423a9f23c31dc5fa668740fbb213e0a91ce5e4251a",
+      "offer_count": 592
+    },
+    "all": {
+      "sha256": "d76176c5bcc91ddb198f23d8c0fead8d9ddd3997795b29a8440e01fd646dc71d",
+      "offer_count": 1184
+    }
+  },
+  "caption_policy": {
+    "templates_roundtrip_to_accepted_caption": true,
+    "individual_closings_preserved": 7,
+    "existing_meal_narrative_filter_unchanged": true,
+    "meal_filter_affects_new_ids": [
+      240,
+      1095,
+      67910
+    ]
+  },
+  "rows": [
+    {
+      "tourvisor_hotel_id": 140,
+      "publisher_hotel_id": 140,
+      "logical_id": "commercial-golden-beach-resort-ex-movie-gate-140-v1",
+      "key": "commercial-golden-beach-resort-ex-movie-gate-140-v1",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_sender_state_exact_both_post_urls",
+        "run_id": 42372918570,
+        "artifact_id": 13574283201,
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-batch-20261107-8-state.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 525,
+          "message_id": "mid.ffffb6caf0606fed01a1b5ff7eb13ae8",
+          "baseline_version_id": 2565,
+          "baseline_text_sha256": "8e38c0f96c7f19fec0c96c990a63261577b4afa1221b979178bda7262ac192a7",
+          "post_url": "https://max.ru/channel_anytour/AaG1_36xOug",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:49807884808",
+          "button_url_sha256": "0ae40b7d1605aa3006fd30618dbc7049188bde9b76b64ed01314d4d62b63f425",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "unchanged_current_registry_baseline",
+          "nov8_version_id": 2565,
+          "nov8_text_sha256": "8e38c0f96c7f19fec0c96c990a63261577b4afa1221b979178bda7262ac192a7",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 519,
+          "message_id": "209",
+          "baseline_version_id": 2566,
+          "baseline_text_sha256": "8e38c0f96c7f19fec0c96c990a63261577b4afa1221b979178bda7262ac192a7",
+          "post_url": "https://t.me/any_toour/209",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQAD2TVrG-HPeUt9",
+          "button_url_sha256": "17fa673d50626ff191809dac9e284750da80cbf17e2bb4d2e9e474c5306abc43",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "unchanged_current_registry_baseline",
+          "nov8_version_id": 2566,
+          "nov8_text_sha256": "8e38c0f96c7f19fec0c96c990a63261577b4afa1221b979178bda7262ac192a7",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "2bfe482c5e1da78564a001dceb538b4cf3f3e3ca24c548ce609d200c943ad214"
+    },
+    {
+      "tourvisor_hotel_id": 240,
+      "publisher_hotel_id": 80,
+      "logical_id": "at-hotel-happy-life",
+      "key": "at-hotel-happy-life",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_ad_copy_exact_both_post_urls_to_unique_immutable_image_url_and_publisher_manifest",
+        "immutable_image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/happy-life.png",
+        "publisher_id_source": "original publisher manifest row hotel_id; never current native TV label",
+        "canonical_capture": {
+          "capture_operation": "commercial-price-legacy9-contexts-20261105-read2",
+          "capture_run": 41941689331,
+          "capture_epoch_utc": 1793838580,
+          "capture_source_sha": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+          "capture_input_sha256": "b9f474ba046cdd8fad344b2cdd67650852268e49a50ac6c06856744e438c81d3"
+        },
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-next-three-manifest.json",
+        "pair_binding_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-channel-hotel-ad-copy-20261103.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 116,
+          "message_id": "mid.ffffb6caf0606fed01a19adc6d016b42",
+          "baseline_version_id": 3137,
+          "baseline_text_sha256": "21a693080e2a4f913204a490cb8bb8f6ad0540c81620be3c2f0e40fcb1b96ad1",
+          "post_url": "https://max.ru/channel_anytour/AaGa3G0Ba0I",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:48765831688",
+          "button_url_sha256": "38a152cfe0ed4f88dd9ca3bddbc56d2ae5dfd3df9ec74ce3ef12f8c6c0c1817f",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3137,
+          "nov8_text_sha256": "21a693080e2a4f913204a490cb8bb8f6ad0540c81620be3c2f0e40fcb1b96ad1",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 113,
+          "message_id": "22",
+          "baseline_version_id": 3138,
+          "baseline_text_sha256": "21a693080e2a4f913204a490cb8bb8f6ad0540c81620be3c2f0e40fcb1b96ad1",
+          "post_url": "https://t.me/any_toour/22",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQADpB1rGwpTSEt9",
+          "button_url_sha256": "11b4745fae804f5ec7910289d04e0af50055ca4725716ec90983670fc2fea72f",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3138,
+          "nov8_text_sha256": "21a693080e2a4f913204a490cb8bb8f6ad0540c81620be3c2f0e40fcb1b96ad1",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "a78d268245baab12e1f7bc07802b607e3c8f136ce9c15f19e2abe7c186092cda"
+    },
+    {
+      "tourvisor_hotel_id": 241,
+      "publisher_hotel_id": 81,
+      "logical_id": "at-hotel-makadi",
+      "key": "at-hotel-makadi",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_ad_copy_exact_both_post_urls_to_unique_immutable_image_url_and_publisher_manifest",
+        "immutable_image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/makadi.png",
+        "publisher_id_source": "original publisher manifest row hotel_id; never current native TV label",
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-next-three-manifest.json",
+        "pair_binding_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-channel-hotel-ad-copy-20261103.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 115,
+          "message_id": "mid.ffffb6caf0606fed01a19adc630b5751",
+          "baseline_version_id": 3139,
+          "baseline_text_sha256": "49c2acc480fa2bc26e9920dd9f8a8fe115111270c62731dd2862d6523c84bafe",
+          "post_url": "https://max.ru/channel_anytour/AaGa3GMLV1E",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:48765824520",
+          "button_url_sha256": "0a1268961abae38a8b716c32e085e5ab7b44a676b59e18df4a2c51fba230db2c",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3139,
+          "nov8_text_sha256": "49c2acc480fa2bc26e9920dd9f8a8fe115111270c62731dd2862d6523c84bafe",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 112,
+          "message_id": "21",
+          "baseline_version_id": 3140,
+          "baseline_text_sha256": "49c2acc480fa2bc26e9920dd9f8a8fe115111270c62731dd2862d6523c84bafe",
+          "post_url": "https://t.me/any_toour/21",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQADox1rGwpTSEt9",
+          "button_url_sha256": "5b069226969d020d0c9317060c8c83e52193b55dbd9b8e32abaff045d78b49e0",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3140,
+          "nov8_text_sha256": "49c2acc480fa2bc26e9920dd9f8a8fe115111270c62731dd2862d6523c84bafe",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "ff4c7ff8ad3c4b91e452ed9c8f4edc74d80251b90839226494551927c1889127"
+    },
+    {
+      "tourvisor_hotel_id": 268,
+      "publisher_hotel_id": 99,
+      "logical_id": "at-hotel-jaz-saraya",
+      "key": "at-hotel-jaz-saraya",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_ad_copy_exact_both_post_urls_to_unique_immutable_image_url_and_publisher_manifest",
+        "immutable_image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/jaz-saraya.png",
+        "publisher_id_source": "original publisher manifest row hotel_id; never current native TV label",
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-next-three-manifest.json",
+        "pair_binding_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-channel-hotel-ad-copy-20261103.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 117,
+          "message_id": "mid.ffffb6caf0606fed01a19adc76f668d0",
+          "baseline_version_id": 4001,
+          "baseline_text_sha256": "25aeaccb40bdd54622354c2e094f2d3e799cf5d8c9cf13358b4302fb01c5af7a",
+          "post_url": "https://max.ru/channel_anytour/AaGa3Hb2aNA",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:48765838600",
+          "button_url_sha256": "97cc145cc49f9d5dd2ff2df33b636f538f8906b7f670e28a89689741c2cfc86d",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/43331221181/attempts/1",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3163,
+          "nov8_text_sha256": "bb52d5bedb3ee538333e374d6bbb4e870c7b44c9031364635e8815b20b2e5bd3",
+          "nov8_matches_current_caption": false
+        },
+        "telegram": {
+          "publication_id": 114,
+          "message_id": "23",
+          "baseline_version_id": 4002,
+          "baseline_text_sha256": "25aeaccb40bdd54622354c2e094f2d3e799cf5d8c9cf13358b4302fb01c5af7a",
+          "post_url": "https://t.me/any_toour/23",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQADpR1rGwpTSEt9",
+          "button_url_sha256": "b471fd55fecfe2082fd7db23dc9d324f8eec4839bb7bc0ed694faf5c05657ea9",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/43331221181/attempts/1",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3164,
+          "nov8_text_sha256": "bb52d5bedb3ee538333e374d6bbb4e870c7b44c9031364635e8815b20b2e5bd3",
+          "nov8_matches_current_caption": false
+        }
+      },
+      "maintenance_row_sha256": "410c68e38275ffb60ddc29d07edcd608f07665b7360c4195653ea8e801949296"
+    },
+    {
+      "tourvisor_hotel_id": 381,
+      "publisher_hotel_id": null,
+      "logical_id": "at-hotel-rehana",
+      "key": "rehana",
+      "proof_kind": "confirmed_caption_receipt_v1",
+      "original_source": {
+        "kind": "exact both publication IDs and provider message IDs from original copy manifest",
+        "copy_operation": "commercial-human-copy-early-nine-20261102-v1",
+        "canonical_manifest_hash": "093ad293187a6bfad874e5896e5abac1575ac7442f97cf348a041b3e8cf7d8aa",
+        "copy_key": "rehana",
+        "original_copy_caption_sha256": "27fd0190b92c11730529060c16c984a14f2f4b48afa1e9b3d9deaf5a7138d813",
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-human-copy-early-nine-manifest.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 71,
+          "message_id": "mid.ffffb6caf0606fed01a17988f6122530",
+          "baseline_version_id": 3197,
+          "baseline_text_sha256": "90dd3186324d1d668ab4a347966251af1724ab737e0eb75cf4e16cc9a2941d66",
+          "post_url": "https://max.ru/channel_anytour/AaF5iPYSJTA",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:47573572872",
+          "button_url_sha256": "981d95f1bb2d5db8c5c1fd245b5c451728580e4997682126f4f2472763311614",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3197,
+          "nov8_text_sha256": "90dd3186324d1d668ab4a347966251af1724ab737e0eb75cf4e16cc9a2941d66",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 104,
+          "message_id": "13",
+          "baseline_version_id": 3198,
+          "baseline_text_sha256": "90dd3186324d1d668ab4a347966251af1724ab737e0eb75cf4e16cc9a2941d66",
+          "post_url": "https://t.me/any_toour/13",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQAD6SVrG-bCOEt9",
+          "button_url_sha256": "27a147b396f57b7c16cab7a7dc9310a3d717608a7fc991cb259af7c3a1c26373",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3198,
+          "nov8_text_sha256": "90dd3186324d1d668ab4a347966251af1724ab737e0eb75cf4e16cc9a2941d66",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "1a55ac68ef18e7bdccb83f9a25710991b4dd508c69f7b9efd2eb50e637518ef0"
+    },
+    {
+      "tourvisor_hotel_id": 386,
+      "publisher_hotel_id": 386,
+      "logical_id": "commercial-monte-carlo-sharm-resort-spa-aqua-park-386-v1",
+      "key": "commercial-monte-carlo-sharm-resort-spa-aqua-park-386-v1",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_sender_state_exact_both_post_urls",
+        "run_id": 42372918570,
+        "artifact_id": 13574283201,
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-batch-20261107-8-state.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 529,
+          "message_id": "mid.ffffb6caf0606fed01a1b5ffa2d5531f",
+          "baseline_version_id": 2573,
+          "baseline_text_sha256": "b2f2329183bbd290e942f08df702b507ece301abe0471d6938e36ac492af7807",
+          "post_url": "https://max.ru/channel_anytour/AaG1_6LVUx8",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:49807900168",
+          "button_url_sha256": "8651704293b590830368a4eb728bc21ccc415afe2b2ceaea32e90cd72b51bc41",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "unchanged_current_registry_baseline",
+          "nov8_version_id": 2573,
+          "nov8_text_sha256": "b2f2329183bbd290e942f08df702b507ece301abe0471d6938e36ac492af7807",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 523,
+          "message_id": "213",
+          "baseline_version_id": 2574,
+          "baseline_text_sha256": "b2f2329183bbd290e942f08df702b507ece301abe0471d6938e36ac492af7807",
+          "post_url": "https://t.me/any_toour/213",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQAD3TVrG-HPeUt9",
+          "button_url_sha256": "fc8cfff216fe35647152257cc2a19d2ec2b7b002f8d1266d46302387920e59b2",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "unchanged_current_registry_baseline",
+          "nov8_version_id": 2574,
+          "nov8_text_sha256": "b2f2329183bbd290e942f08df702b507ece301abe0471d6938e36ac492af7807",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "7549e4bb393afd64df5dd8d680309bb83ba4797149370a002fd7b5e630a82dbb"
+    },
+    {
+      "tourvisor_hotel_id": 1033,
+      "publisher_hotel_id": 1033,
+      "logical_id": "commercial-barut-hemera-1033-v1",
+      "key": "commercial-barut-hemera-1033-v1",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_sender_state_exact_both_post_urls",
+        "run_id": 42372918570,
+        "artifact_id": 13574283201,
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-batch-20261107-8-state.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 528,
+          "message_id": "mid.ffffb6caf0606fed01a1b5ff99872213",
+          "baseline_version_id": 2571,
+          "baseline_text_sha256": "5c8cedbdd108cd7f469eaa96574f9d3d90a39224f3b1acc41eb91d0714bbf4d9",
+          "post_url": "https://max.ru/channel_anytour/AaG1_5mHIhM",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:49807897352",
+          "button_url_sha256": "a10a35238ce2f31dfb119a6f806f7e595f43d55399e389510a14a502952b4bf1",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "unchanged_current_registry_baseline",
+          "nov8_version_id": 2571,
+          "nov8_text_sha256": "5c8cedbdd108cd7f469eaa96574f9d3d90a39224f3b1acc41eb91d0714bbf4d9",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 522,
+          "message_id": "212",
+          "baseline_version_id": 2572,
+          "baseline_text_sha256": "5c8cedbdd108cd7f469eaa96574f9d3d90a39224f3b1acc41eb91d0714bbf4d9",
+          "post_url": "https://t.me/any_toour/212",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQAD3DVrG-HPeUt9",
+          "button_url_sha256": "6f16fc14c51187a4279b213767de68cd93e865cff2373db4dd80162bacdc024b",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "unchanged_current_registry_baseline",
+          "nov8_version_id": 2572,
+          "nov8_text_sha256": "5c8cedbdd108cd7f469eaa96574f9d3d90a39224f3b1acc41eb91d0714bbf4d9",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "ca4ef5bd6dbdef1e27951925cd7fea0fb771267cc3e033eb839b1136de6a8fa3"
+    },
+    {
+      "tourvisor_hotel_id": 1077,
+      "publisher_hotel_id": 477,
+      "logical_id": "commercial-club-aqua-plaza-477-v1",
+      "key": "commercial-club-aqua-plaza-477-v1",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_ad_copy_exact_both_post_urls_to_unique_immutable_image_url_and_publisher_manifest",
+        "immutable_image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/club-aqua-plaza.png",
+        "publisher_id_source": "original publisher manifest row hotel_id; never current native TV label",
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-three-20261102-4-manifest.json",
+        "pair_binding_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-channel-hotel-ad-copy-20261103.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 134,
+          "message_id": "mid.ffffb6caf0606fed01a19b5938d57fe6",
+          "baseline_version_id": 3231,
+          "baseline_text_sha256": "94541665f549147f65bcf3ef373f92f100f1c98b19cdd1303c0d4d3aa6b33e34",
+          "post_url": "https://max.ru/channel_anytour/AaGbWTjVf-Y",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:48795288840",
+          "button_url_sha256": "e1bec9bfc8c047688b916c2c306171527120c0ef4d9303cac420afb49808aa6e",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3231,
+          "nov8_text_sha256": "94541665f549147f65bcf3ef373f92f100f1c98b19cdd1303c0d4d3aa6b33e34",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 131,
+          "message_id": "31",
+          "baseline_version_id": 3232,
+          "baseline_text_sha256": "94541665f549147f65bcf3ef373f92f100f1c98b19cdd1303c0d4d3aa6b33e34",
+          "post_url": "https://t.me/any_toour/31",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQADfR5rGwpTSEt9",
+          "button_url_sha256": "5e920ac1e85db802ae1f286db485a118b02ccf1a8ea84709dfe119fbc5960594",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3232,
+          "nov8_text_sha256": "94541665f549147f65bcf3ef373f92f100f1c98b19cdd1303c0d4d3aa6b33e34",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "0aa2fe22923d0c01b3d5d528cdaf727a1f6895457a5bb6c376190f57bb881d13"
+    },
+    {
+      "tourvisor_hotel_id": 1095,
+      "publisher_hotel_id": 1095,
+      "logical_id": "commercial-side-star-resort-1095-v1",
+      "key": "commercial-side-star-resort-1095-v1",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_sender_state_exact_both_post_urls",
+        "run_id": 42354637509,
+        "artifact_id": 13566708906,
+        "accepted_later_media_correction": {
+          "operation": "commercial-side-star-media-20261107-1-v1",
+          "state": "COMPLETE_TWO_EXISTING_POSTS_VERIFIED",
+          "source_commit": "3121b27be57e7791a76370adad2361d442aaf27e",
+          "run_id": 42364064916,
+          "job_id": 128378312060,
+          "result_artifact_id": 13571111569,
+          "photo_sha256": "0a117604ce61e6f0d30e6cc16fe90da418ff674298ceec04ee6ce736eff78733",
+          "new_posts_created": 0,
+          "caption_edits": 0,
+          "total_media_edits": 2,
+          "max_write_repeated": false,
+          "prior_stop_run": 42363467896,
+          "readback_run": 42363843492,
+          "versions": {
+            "max": 933,
+            "telegram": 934
+          },
+          "same_post_ids_urls_buttons_tokens": true
+        },
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-batch-20261107-1-state.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 458,
+          "message_id": "mid.ffffb6caf0606fed01a1b5137d007a23",
+          "baseline_version_id": 2503,
+          "baseline_text_sha256": "7cd3377fd32724ec9ab9cbebde8dda792b152429e2f17aeaba52295aa1ddc316",
+          "post_url": "https://max.ru/channel_anytour/AaG1E30AeiM",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:49785899016",
+          "button_url_sha256": "1ca92ad996ae95e366574a8e1c734d33338b73dc99923404dcc41bf084e6a28e",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "unchanged_current_registry_baseline",
+          "nov8_version_id": 2503,
+          "nov8_text_sha256": "7cd3377fd32724ec9ab9cbebde8dda792b152429e2f17aeaba52295aa1ddc316",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 455,
+          "message_id": "178",
+          "baseline_version_id": 2504,
+          "baseline_text_sha256": "7cd3377fd32724ec9ab9cbebde8dda792b152429e2f17aeaba52295aa1ddc316",
+          "post_url": "https://t.me/any_toour/178",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQAD-zRrG-HPeUt9",
+          "button_url_sha256": "d4c34eac4fa917c52cf207db44acafa04d1d27b52c6c57d7f2fb236298da6504",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "unchanged_current_registry_baseline",
+          "nov8_version_id": 2504,
+          "nov8_text_sha256": "7cd3377fd32724ec9ab9cbebde8dda792b152429e2f17aeaba52295aa1ddc316",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "73d5aa60df6b43b81951c5ebdc006803fb4f9d68a869184dad005ae01416ed05"
+    },
+    {
+      "tourvisor_hotel_id": 1146,
+      "publisher_hotel_id": 516,
+      "logical_id": "commercial-akra-antalya-516-v1",
+      "key": "commercial-akra-antalya-516-v1",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_ad_copy_exact_both_post_urls_to_unique_immutable_image_url_and_publisher_manifest",
+        "immutable_image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/akra-antalya.png",
+        "publisher_id_source": "original publisher manifest row hotel_id; never current native TV label",
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-three-20261102-4-manifest.json",
+        "pair_binding_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-channel-hotel-ad-copy-20261103.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 135,
+          "message_id": "mid.ffffb6caf0606fed01a19b5942b34b26",
+          "baseline_version_id": 3237,
+          "baseline_text_sha256": "f2be3be49e774af2a66126f699dd7361d0fc8e8dedfa40820d4021a17fb84e33",
+          "post_url": "https://max.ru/channel_anytour/AaGbWUKzSyY",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:48795296520",
+          "button_url_sha256": "233eb7916e7778a7e06ac4f04d0b701557b1e4b4661046cbe89c55f7c4bb9432",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3237,
+          "nov8_text_sha256": "f2be3be49e774af2a66126f699dd7361d0fc8e8dedfa40820d4021a17fb84e33",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 132,
+          "message_id": "32",
+          "baseline_version_id": 3238,
+          "baseline_text_sha256": "f2be3be49e774af2a66126f699dd7361d0fc8e8dedfa40820d4021a17fb84e33",
+          "post_url": "https://t.me/any_toour/32",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQADfx5rGwpTSEt9",
+          "button_url_sha256": "67b471475721ba6d63f74419a0f782139d5fe559b7dbbf607c1595873cd90cdf",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3238,
+          "nov8_text_sha256": "f2be3be49e774af2a66126f699dd7361d0fc8e8dedfa40820d4021a17fb84e33",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "8c0e587e7220d3d8915a293fbc7f0b0efa41cd6491aeae0c97b574af135aaf79"
+    },
+    {
+      "tourvisor_hotel_id": 8053,
+      "publisher_hotel_id": 8053,
+      "logical_id": "commercial-novotel-phuket-vintage-park-8053-v1",
+      "key": "commercial-novotel-phuket-vintage-park-8053-v1",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_sender_state_exact_both_post_urls",
+        "run_id": 42372918570,
+        "artifact_id": 13574283201,
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-batch-20261107-8-state.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 526,
+          "message_id": "mid.ffffb6caf0606fed01a1b5ff87aa2a15",
+          "baseline_version_id": 2567,
+          "baseline_text_sha256": "dfad55db899e02d448a1dc75c18aa77218fe6aecf3b99fbd1539249488389f18",
+          "post_url": "https://max.ru/channel_anytour/AaG1_4eqKhU",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:49807889672",
+          "button_url_sha256": "c9e58c4bfc9dc9337d27b0bfcdeda0950fe64abb561724aa8745b860cbd7e5dc",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "unchanged_current_registry_baseline",
+          "nov8_version_id": 2567,
+          "nov8_text_sha256": "dfad55db899e02d448a1dc75c18aa77218fe6aecf3b99fbd1539249488389f18",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 520,
+          "message_id": "210",
+          "baseline_version_id": 2568,
+          "baseline_text_sha256": "dfad55db899e02d448a1dc75c18aa77218fe6aecf3b99fbd1539249488389f18",
+          "post_url": "https://t.me/any_toour/210",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQAD2jVrG-HPeUt9",
+          "button_url_sha256": "d4cf52f6faf765e706cc0d390fafdc7d6b7d67504557cef0a3d5535cf2fa1860",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "unchanged_current_registry_baseline",
+          "nov8_version_id": 2568,
+          "nov8_text_sha256": "dfad55db899e02d448a1dc75c18aa77218fe6aecf3b99fbd1539249488389f18",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "c49ca6f152c0c750ceedb7f7fd04992c3cfd227b609b0a7b6291700c003be4a4"
+    },
+    {
+      "tourvisor_hotel_id": 9374,
+      "publisher_hotel_id": 1554,
+      "logical_id": "commercial-sunrise-arabian-1554-v1",
+      "key": "commercial-sunrise-arabian-1554-v1",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_ad_copy_exact_both_post_urls_to_unique_immutable_image_url_and_publisher_manifest",
+        "immutable_image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/772ac7fe301468ab8649834e4d6c8b278fe4c2f0/.github/traffic-publish/commercial-three-20261102-5/sunrise-arabian.png",
+        "publisher_id_source": "original publisher manifest row hotel_id; never current native TV label",
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-three-20261102-5-manifest.json",
+        "pair_binding_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-channel-hotel-ad-copy-20261103.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 139,
+          "message_id": "mid.ffffb6caf0606fed01a19b9e0d5e36cd",
+          "baseline_version_id": 3291,
+          "baseline_text_sha256": "560c22192ff8282bcf20896b3e8f89d26ae383ba68ad5baedfdf606ab61f1277",
+          "post_url": "https://max.ru/channel_anytour/AaGbng1eNs0",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:48810567432",
+          "button_url_sha256": "a1a1150cdf765d3106f9c2382c7d579f2d9e9a7c293ce3faf218ed87c9cb0fd9",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3291,
+          "nov8_text_sha256": "560c22192ff8282bcf20896b3e8f89d26ae383ba68ad5baedfdf606ab61f1277",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 136,
+          "message_id": "33",
+          "baseline_version_id": 3292,
+          "baseline_text_sha256": "560c22192ff8282bcf20896b3e8f89d26ae383ba68ad5baedfdf606ab61f1277",
+          "post_url": "https://t.me/any_toour/33",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQAD6x5rGwpTSEt9",
+          "button_url_sha256": "7da8ebe669fefaaf869c930abbb93a2a6b654d7540c1d19fcfb499818a0f88d9",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3292,
+          "nov8_text_sha256": "560c22192ff8282bcf20896b3e8f89d26ae383ba68ad5baedfdf606ab61f1277",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "5277f1b0bff57b4bddee27add60b75df82dbb2c03396f1489765eb7b4c0cd0c3"
+    },
+    {
+      "tourvisor_hotel_id": 12111,
+      "publisher_hotel_id": 1654,
+      "logical_id": "at-hotel-movenpick-sharm",
+      "key": "at-hotel-movenpick-sharm",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_ad_copy_exact_both_post_urls_to_unique_immutable_image_url_and_publisher_manifest",
+        "immutable_image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5299afdd511d63124a4dc3094934bed3d5a943ad/.github/traffic-publish/commercial-three-20261102-2/movenpick-sharm.png",
+        "publisher_id_source": "original publisher manifest row hotel_id; never current native TV label",
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-three-20261102-2-manifest.json",
+        "pair_binding_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-channel-hotel-ad-copy-20261103.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 121,
+          "message_id": "mid.ffffb6caf0606fed01a19af894c82e28",
+          "baseline_version_id": 3295,
+          "baseline_text_sha256": "d4a909550c47edfae102d132251dc1bb9a1acfebcae276373302ce6459942177",
+          "post_url": "https://max.ru/channel_anytour/AaGa-JTILig",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:48772604424",
+          "button_url_sha256": "490557e99b85a2d1c7950086d66d8ed1ef28a8002484637441548b7136162172",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3295,
+          "nov8_text_sha256": "d4a909550c47edfae102d132251dc1bb9a1acfebcae276373302ce6459942177",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 118,
+          "message_id": "24",
+          "baseline_version_id": 3296,
+          "baseline_text_sha256": "d4a909550c47edfae102d132251dc1bb9a1acfebcae276373302ce6459942177",
+          "post_url": "https://t.me/any_toour/24",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQAD1x1rGwpTSEt9",
+          "button_url_sha256": "f3dd7fda0b3d4b42068e4faa765af5884cd1d90c788ba15f861a60c6ca7afc12",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3296,
+          "nov8_text_sha256": "d4a909550c47edfae102d132251dc1bb9a1acfebcae276373302ce6459942177",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "de788380a21a838720f0beccbb439ad2841b9025a8c4eda8b3b568e493bb5790"
+    },
+    {
+      "tourvisor_hotel_id": 28666,
+      "publisher_hotel_id": 2077,
+      "logical_id": "at-hotel-hane-family",
+      "key": "at-hotel-hane-family",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_ad_copy_exact_both_post_urls_to_unique_immutable_image_url_and_publisher_manifest",
+        "immutable_image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5299afdd511d63124a4dc3094934bed3d5a943ad/.github/traffic-publish/commercial-three-20261102-2/hane-family.png",
+        "publisher_id_source": "original publisher manifest row hotel_id; never current native TV label",
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-three-20261102-2-manifest.json",
+        "pair_binding_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-channel-hotel-ad-copy-20261103.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 123,
+          "message_id": "mid.ffffb6caf0606fed01a19af8a8ba146d",
+          "baseline_version_id": 3329,
+          "baseline_text_sha256": "16687ab7d9162ba07e86e392bcdf6bfa6b77535e9197d80c405af13fd67fb24a",
+          "post_url": "https://max.ru/channel_anytour/AaGa-Ki6FG0",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:48772622344",
+          "button_url_sha256": "8e9e70eb49f99305fec9bb39511968cfe5a68d12e1c224bfa2b0674edec8ac42",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3329,
+          "nov8_text_sha256": "16687ab7d9162ba07e86e392bcdf6bfa6b77535e9197d80c405af13fd67fb24a",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 120,
+          "message_id": "26",
+          "baseline_version_id": 3330,
+          "baseline_text_sha256": "16687ab7d9162ba07e86e392bcdf6bfa6b77535e9197d80c405af13fd67fb24a",
+          "post_url": "https://t.me/any_toour/26",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQAD2R1rGwpTSEt9",
+          "button_url_sha256": "31e6eb059c0c790f960ccc991f4059e199d5bba89e10e0c681c13d44a85dfb36",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3330,
+          "nov8_text_sha256": "16687ab7d9162ba07e86e392bcdf6bfa6b77535e9197d80c405af13fd67fb24a",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "f83ebad26ea8ba9216346a07f876b3230892feff20994d9f020132393b0d6ee1"
+    },
+    {
+      "tourvisor_hotel_id": 33313,
+      "publisher_hotel_id": 33313,
+      "logical_id": "commercial-sugar-marina-resort-surf-kata-beach-33313-v1",
+      "key": "commercial-sugar-marina-resort-surf-kata-beach-33313-v1",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_sender_state_exact_both_post_urls",
+        "run_id": 42372918570,
+        "artifact_id": 13574283201,
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-batch-20261107-8-state.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 530,
+          "message_id": "mid.ffffb6caf0606fed01a1b5ffabbb0def",
+          "baseline_version_id": 2575,
+          "baseline_text_sha256": "2c1b2dc286a4ae04b1c7c49a2afa21b3bfc62e36135a522017047fabff0feb13",
+          "post_url": "https://max.ru/channel_anytour/AaG1_6u7De8",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:49807902728",
+          "button_url_sha256": "e4fb765db84881e514138909201d167c795001a0441aecf0539aefc9412b0738",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "unchanged_current_registry_baseline",
+          "nov8_version_id": 2575,
+          "nov8_text_sha256": "2c1b2dc286a4ae04b1c7c49a2afa21b3bfc62e36135a522017047fabff0feb13",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 524,
+          "message_id": "214",
+          "baseline_version_id": 2576,
+          "baseline_text_sha256": "2c1b2dc286a4ae04b1c7c49a2afa21b3bfc62e36135a522017047fabff0feb13",
+          "post_url": "https://t.me/any_toour/214",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQAD3jVrG-HPeUt9",
+          "button_url_sha256": "2b0a59124c9cd6e1a619e2eef8512342ad53c021faea78ec5afcf5b078f84f5f",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "unchanged_current_registry_baseline",
+          "nov8_version_id": 2576,
+          "nov8_text_sha256": "2c1b2dc286a4ae04b1c7c49a2afa21b3bfc62e36135a522017047fabff0feb13",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "3dcf282c1c69a3dd14e92881a85791045d2ce3ed8ccdada6be7d1a342b3addd1"
+    },
+    {
+      "tourvisor_hotel_id": 46672,
+      "publisher_hotel_id": 2432,
+      "logical_id": "at-hotel-jadore-deluxe",
+      "key": "at-hotel-jadore-deluxe",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_ad_copy_exact_both_post_urls_to_unique_immutable_image_url_and_publisher_manifest",
+        "immutable_image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a011287435ba7ce32781a71ae0ed81e6c4d8f1d9/.github/traffic-publish/commercial-three-20261102-3/jadore-deluxe.png",
+        "publisher_id_source": "original publisher manifest row hotel_id; never current native TV label",
+        "canonical_capture": {
+          "capture_operation": "commercial-price-legacy9-contexts-20261105-read4",
+          "capture_run": 41943048307,
+          "capture_epoch_utc": 1793839232,
+          "capture_source_sha": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+          "capture_input_sha256": "566e10630124045e94615ca7cefa0eb7648616591f9d25ce2327196ce3770833"
+        },
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-three-20261102-3-manifest.json",
+        "pair_binding_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-channel-hotel-ad-copy-20261103.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 127,
+          "message_id": "mid.ffffb6caf0606fed01a19b3c64cb3c02",
+          "baseline_version_id": 3339,
+          "baseline_text_sha256": "5d1a665211092fa5057a5bf61d29afbcd69ff7726909f94a20da4eab275bc7b0",
+          "post_url": "https://max.ru/channel_anytour/AaGbPGTLPAI",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:48788766216",
+          "button_url_sha256": "2ef3a5707d9a897e286885eedb2cec8339a332285e343a5b1aa40610825e31de",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3339,
+          "nov8_text_sha256": "5d1a665211092fa5057a5bf61d29afbcd69ff7726909f94a20da4eab275bc7b0",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 124,
+          "message_id": "27",
+          "baseline_version_id": 3340,
+          "baseline_text_sha256": "5d1a665211092fa5057a5bf61d29afbcd69ff7726909f94a20da4eab275bc7b0",
+          "post_url": "https://t.me/any_toour/27",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQADSh5rGwpTSEt9",
+          "button_url_sha256": "a173efd1ac291128ad7ce6ccb6e8e2a1eef4fdde2b05e1ca0f0f2aed9e16c58f",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3340,
+          "nov8_text_sha256": "5d1a665211092fa5057a5bf61d29afbcd69ff7726909f94a20da4eab275bc7b0",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "3cb5b6f548d3b7194601710b4a6251038c4b0501cb73f304741cca39b8bc1384"
+    },
+    {
+      "tourvisor_hotel_id": 58987,
+      "publisher_hotel_id": 58987,
+      "logical_id": "commercial-seashells-phu-quoc-hotel-spa-58987-v1",
+      "key": "commercial-seashells-phu-quoc-hotel-spa-58987-v1",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_sender_state_exact_both_post_urls",
+        "run_id": 42372918570,
+        "artifact_id": 13574283201,
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-batch-20261107-8-state.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 527,
+          "message_id": "mid.ffffb6caf0606fed01a1b5ff908a57a2",
+          "baseline_version_id": 2569,
+          "baseline_text_sha256": "f4419dfd190363de5f2646b1960ea13604459895339386a34a36dcc8a14ae211",
+          "post_url": "https://max.ru/channel_anytour/AaG1_5CKV6I",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:49807893768",
+          "button_url_sha256": "6e9f5166286cde9d29b22426b42e694162f54397d811cc98497f7ea741d0b897",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "unchanged_current_registry_baseline",
+          "nov8_version_id": 2569,
+          "nov8_text_sha256": "f4419dfd190363de5f2646b1960ea13604459895339386a34a36dcc8a14ae211",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 521,
+          "message_id": "211",
+          "baseline_version_id": 2570,
+          "baseline_text_sha256": "f4419dfd190363de5f2646b1960ea13604459895339386a34a36dcc8a14ae211",
+          "post_url": "https://t.me/any_toour/211",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQAD2zVrG-HPeUt9",
+          "button_url_sha256": "27f748331f2dac96deca2a84f574c2139a929296427152a68b14c7e2871548ba",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "unchanged_current_registry_baseline",
+          "nov8_version_id": 2570,
+          "nov8_text_sha256": "f4419dfd190363de5f2646b1960ea13604459895339386a34a36dcc8a14ae211",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "aa02a689685908b3d233d57544e962fc268ae6abb40d7ca2cd9b060eefde4d16"
+    },
+    {
+      "tourvisor_hotel_id": 67910,
+      "publisher_hotel_id": null,
+      "logical_id": "at-hotel-rixos",
+      "key": "rixos",
+      "proof_kind": "confirmed_caption_receipt_v1",
+      "original_source": {
+        "kind": "exact both publication IDs and provider message IDs from original copy manifest",
+        "copy_operation": "commercial-human-copy-early-nine-20261102-v1",
+        "canonical_manifest_hash": "093ad293187a6bfad874e5896e5abac1575ac7442f97cf348a041b3e8cf7d8aa",
+        "copy_key": "rixos",
+        "original_copy_caption_sha256": "8657f52059dd18d6856d37dd9ca4cd79e769895f7511008761dbb7c4c0ba433a",
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-human-copy-early-nine-manifest.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 70,
+          "message_id": "mid.ffffb6caf0606fed01a17988ec8c5c75",
+          "baseline_version_id": 3357,
+          "baseline_text_sha256": "7f128507913b413b64c5587db3e96046b7eb9dbc874289e61dc589b7b850c5b5",
+          "post_url": "https://max.ru/channel_anytour/AaF5iOyMXHU",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:47573566472",
+          "button_url_sha256": "9e545097324a92b139004e50e355c8f90a653e830695f31eae634331b06e70d4",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3357,
+          "nov8_text_sha256": "7f128507913b413b64c5587db3e96046b7eb9dbc874289e61dc589b7b850c5b5",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 101,
+          "message_id": "10",
+          "baseline_version_id": 3358,
+          "baseline_text_sha256": "7f128507913b413b64c5587db3e96046b7eb9dbc874289e61dc589b7b850c5b5",
+          "post_url": "https://t.me/any_toour/10",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQADriVrG-bCOEt9",
+          "button_url_sha256": "589102c5e515fcbd106c364b7122ead9fd896425caead384a46dd13079b9714d",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3358,
+          "nov8_text_sha256": "7f128507913b413b64c5587db3e96046b7eb9dbc874289e61dc589b7b850c5b5",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "bd88103e27c4bf4f3fafc4df97dd33850fd5a0446c6f37a81f011658c36a562d"
+    },
+    {
+      "tourvisor_hotel_id": 68323,
+      "publisher_hotel_id": null,
+      "logical_id": "at-hotel-solara",
+      "key": "solara",
+      "proof_kind": "confirmed_caption_receipt_v1",
+      "original_source": {
+        "kind": "exact both publication IDs and provider message IDs from original copy manifest",
+        "copy_operation": "commercial-human-copy-early-nine-20261102-v1",
+        "canonical_manifest_hash": "093ad293187a6bfad874e5896e5abac1575ac7442f97cf348a041b3e8cf7d8aa",
+        "copy_key": "solara",
+        "original_copy_caption_sha256": "40069e09adf6f7f148900a07f46475b2a5cdcac662519dfa7e944455410b0a8e",
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-human-copy-early-nine-manifest.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 72,
+          "message_id": "mid.ffffb6caf0606fed01a17988fee6081d",
+          "baseline_version_id": 3359,
+          "baseline_text_sha256": "923492fcb8e886b40349d6357d366c2ce0d252c282d907f8843fd23cc8deec11",
+          "post_url": "https://max.ru/channel_anytour/AaF5iP7mCB0",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:47573574664",
+          "button_url_sha256": "96e707c9eaf710dc9b2c94fcf51f7913c4d3e06c26dfb9a3b6dbf1547fceb10a",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3359,
+          "nov8_text_sha256": "923492fcb8e886b40349d6357d366c2ce0d252c282d907f8843fd23cc8deec11",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 105,
+          "message_id": "14",
+          "baseline_version_id": 3360,
+          "baseline_text_sha256": "923492fcb8e886b40349d6357d366c2ce0d252c282d907f8843fd23cc8deec11",
+          "post_url": "https://t.me/any_toour/14",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQAD6iVrG-bCOEt9",
+          "button_url_sha256": "3489ff9c71694c19f93d414f0be940437e4886ff6d8830b87257c010772c8984",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3360,
+          "nov8_text_sha256": "923492fcb8e886b40349d6357d366c2ce0d252c282d907f8843fd23cc8deec11",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "14cb17c281ee307794e76497afc8c968e55f5649cf85396e58e9f4a641ae8d8d"
+    },
+    {
+      "tourvisor_hotel_id": 109900,
+      "publisher_hotel_id": 3726,
+      "logical_id": "at-hotel-dream-fun-world",
+      "key": "at-hotel-dream-fun-world",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_ad_copy_exact_both_post_urls_to_unique_immutable_image_url_and_publisher_manifest",
+        "immutable_image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a011287435ba7ce32781a71ae0ed81e6c4d8f1d9/.github/traffic-publish/commercial-three-20261102-3/dream-fun-world.png",
+        "publisher_id_source": "original publisher manifest row hotel_id; never current native TV label",
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-three-20261102-3-manifest.json",
+        "pair_binding_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-channel-hotel-ad-copy-20261103.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 128,
+          "message_id": "mid.ffffb6caf0606fed01a19b3c6f500552",
+          "baseline_version_id": 3397,
+          "baseline_text_sha256": "0932e1bf0c1345b7983832a724eb069a273571a5944232685fc95e98e523dc42",
+          "post_url": "https://max.ru/channel_anytour/AaGbPG9QBVI",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:48788786696",
+          "button_url_sha256": "ad7ec21ba7e635207f409cde493004a7d08f3540ff4fdfc92b6f837d10be8339",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3397,
+          "nov8_text_sha256": "0932e1bf0c1345b7983832a724eb069a273571a5944232685fc95e98e523dc42",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 125,
+          "message_id": "28",
+          "baseline_version_id": 3398,
+          "baseline_text_sha256": "0932e1bf0c1345b7983832a724eb069a273571a5944232685fc95e98e523dc42",
+          "post_url": "https://t.me/any_toour/28",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQADSx5rGwpTSEt9",
+          "button_url_sha256": "20260eab9efd657dc5429aa35b3ae79f00597a79100d45e10e1e5596a5755b85",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3398,
+          "nov8_text_sha256": "0932e1bf0c1345b7983832a724eb069a273571a5944232685fc95e98e523dc42",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "1c178e66cb72e653d8b7145ee416619a07ae6ce662be4988055770a65270fcca"
+    },
+    {
+      "tourvisor_hotel_id": 111045,
+      "publisher_hotel_id": 3737,
+      "logical_id": "commercial-vox-maris-3737-v1",
+      "key": "commercial-vox-maris-3737-v1",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_ad_copy_exact_both_post_urls_to_unique_immutable_image_url_and_publisher_manifest",
+        "immutable_image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/vox-maris.png",
+        "publisher_id_source": "original publisher manifest row hotel_id; never current native TV label",
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-three-20261102-4-manifest.json",
+        "pair_binding_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-channel-hotel-ad-copy-20261103.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 133,
+          "message_id": "mid.ffffb6caf0606fed01a19b592ee31ac5",
+          "baseline_version_id": 3399,
+          "baseline_text_sha256": "4b904c864768f8d2adae173051ac56559c915b18117fda1ec376393b86d8d5c9",
+          "post_url": "https://max.ru/channel_anytour/AaGbWS7jGsU",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:48795275784",
+          "button_url_sha256": "8067b1eed4e5bdf341e4f2f2a57e44ce7cc7dbdfc2bea206608fb4a915648905",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3399,
+          "nov8_text_sha256": "4b904c864768f8d2adae173051ac56559c915b18117fda1ec376393b86d8d5c9",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 130,
+          "message_id": "30",
+          "baseline_version_id": 3400,
+          "baseline_text_sha256": "4b904c864768f8d2adae173051ac56559c915b18117fda1ec376393b86d8d5c9",
+          "post_url": "https://t.me/any_toour/30",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQADfB5rGwpTSEt9",
+          "button_url_sha256": "a32e34acfcc60f1b080a738dfd640e8e889b0140fade2e7f5f07d56f62daf40f",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3400,
+          "nov8_text_sha256": "4b904c864768f8d2adae173051ac56559c915b18117fda1ec376393b86d8d5c9",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "61e12c8322b32f8458d38efbf7ef0252b64c8435116751158102d1e8889af1c8"
+    },
+    {
+      "tourvisor_hotel_id": 111129,
+      "publisher_hotel_id": 3742,
+      "logical_id": "at-hotel-side-moon-palace",
+      "key": "at-hotel-side-moon-palace",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_ad_copy_exact_both_post_urls_to_unique_immutable_image_url_and_publisher_manifest",
+        "immutable_image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a011287435ba7ce32781a71ae0ed81e6c4d8f1d9/.github/traffic-publish/commercial-three-20261102-3/side-moon-palace.png",
+        "publisher_id_source": "original publisher manifest row hotel_id; never current native TV label",
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-three-20261102-3-manifest.json",
+        "pair_binding_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-channel-hotel-ad-copy-20261103.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 129,
+          "message_id": "mid.ffffb6caf0606fed01a19b3c78f33d18",
+          "baseline_version_id": 3401,
+          "baseline_text_sha256": "58187f300b24d7e9d421fa39b4a04d8c998d63ec1bfadc868c115b8cd94d0560",
+          "post_url": "https://max.ru/channel_anytour/AaGbPHjzPRg",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:48788794632",
+          "button_url_sha256": "3e42888e31d73bdf592413d05a8c396fc65c154e54154ca4b36a0b5fa89d0fbf",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3401,
+          "nov8_text_sha256": "58187f300b24d7e9d421fa39b4a04d8c998d63ec1bfadc868c115b8cd94d0560",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 126,
+          "message_id": "29",
+          "baseline_version_id": 3402,
+          "baseline_text_sha256": "58187f300b24d7e9d421fa39b4a04d8c998d63ec1bfadc868c115b8cd94d0560",
+          "post_url": "https://t.me/any_toour/29",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQADTB5rGwpTSEt9",
+          "button_url_sha256": "18999fa600adec5cb8e41e1816fb8be43dba2d29d4fb37f84f55678dfe45de67",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3402,
+          "nov8_text_sha256": "58187f300b24d7e9d421fa39b4a04d8c998d63ec1bfadc868c115b8cd94d0560",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "6e59ddf75a6041861f944ebc21bc9b5aff9246a649a5adb51d0e229aa10c2d03"
+    },
+    {
+      "tourvisor_hotel_id": 157359,
+      "publisher_hotel_id": 4101,
+      "logical_id": "commercial-avia-resort-4101-v1",
+      "key": "commercial-avia-resort-4101-v1",
+      "proof_kind": "original_publisher_receipt",
+      "original_source": {
+        "kind": "accepted_ad_copy_exact_both_post_urls_to_unique_immutable_image_url_and_publisher_manifest",
+        "immutable_image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/772ac7fe301468ab8649834e4d6c8b278fe4c2f0/.github/traffic-publish/commercial-three-20261102-5/avia-resort.png",
+        "publisher_id_source": "original publisher manifest row hotel_id; never current native TV label",
+        "source_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-three-20261102-5-manifest.json",
+        "pair_binding_url": "https://github.com/pyatkoff/max-search-bot/blob/892002d74f3fd2937a3cad250b033774baa2b5b8/tools/direct_demand/operations/commercial-channel-hotel-ad-copy-20261103.json"
+      },
+      "current_accepted_contexts": {
+        "max": {
+          "publication_id": 141,
+          "message_id": "mid.ffffb6caf0606fed01a19b9e21a51bdc",
+          "baseline_version_id": 3409,
+          "baseline_text_sha256": "9b15bd15caa6eecd0199d45c7bff093194e6407ea2690eb2870add84c25cdb61",
+          "post_url": "https://max.ru/channel_anytour/AaGbniGlG9w",
+          "source_key": "max_anytour_msk1",
+          "photo_signature": "max:48810587912",
+          "button_url_sha256": "750df009ff678e141d13fe5cac0409094d03cd18c21dd277024b9ea63c3ec7ce",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3409,
+          "nov8_text_sha256": "9b15bd15caa6eecd0199d45c7bff093194e6407ea2690eb2870add84c25cdb61",
+          "nov8_matches_current_caption": true
+        },
+        "telegram": {
+          "publication_id": 138,
+          "message_id": "35",
+          "baseline_version_id": 3410,
+          "baseline_text_sha256": "9b15bd15caa6eecd0199d45c7bff093194e6407ea2690eb2870add84c25cdb61",
+          "post_url": "https://t.me/any_toour/35",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQAD7R5rGwpTSEt9",
+          "button_url_sha256": "6602cf95b161f734f8258f82708304abba3be74d181baa4bdd8a51f3cf07311b",
+          "caption_source_url": "https://github.com/pyatkoff/max-search-bot/blob/9d120037dd00e81629324405dd5afa2819566683/tools/direct_demand/operations/commercial-content-quality-20261108-terminal-receipt.json",
+          "nov8_proof_kind": "completed_quality_terminal_receipt",
+          "nov8_version_id": 3410,
+          "nov8_text_sha256": "9b15bd15caa6eecd0199d45c7bff093194e6407ea2690eb2870add84c25cdb61",
+          "nov8_matches_current_caption": true
+        }
+      },
+      "maintenance_row_sha256": "a861f0bbe967867a17fa9d320870ccfbb1312b38561927b36dbcffec6a307c14"
+    }
+  ],
+  "new_posts": 0,
+  "supplier_calls": 0,
+  "production_journal_or_provider_reads": 0,
+  "old_operations_replayed": 0,
+  "live_price_updates_claimed": false,
+  "runtime_admission": "The existing canonical sender guard for20; original complete quality batch and exact physical publication/photo/button/token/current baseline for3; then ordinary completed monitor journals. Saved fresh observation and ordinary successful original schedule still required."
+}

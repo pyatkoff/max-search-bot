@@ -123,6 +123,111 @@ foreach($legacyRows as $row){
         check(!monitor_price_legacy_publication_matches($p,$row,$platform,$button.'changed'),'changed_button_stops');
     }
 }
+// Exact individual closing paragraphs remain restricted to their own native hotel.
+$ownClosings=[
+    140=>'✈️ Подберём категорию под состав семьи и рассчитаем тур в Golden Beach с перелётом на ваши даты.',
+    386=>'✈️ Подберём категорию и расположение номера, рассчитаем тур с перелётом на ваши даты.',
+    1033=>'✈️ Подберём семейный номер в Barut Hemera и рассчитаем тур с перелётом на ваши даты.',
+    1095=>'✈️ Подберём тур в Side Star Resort с перелётом и подходящим номером. Рассчитаем полную стоимость на вашу семью.',
+    8053=>'✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.',
+    33313=>'✈️ Подберём номер и питание в Sugar Marina Surf, рассчитаем тур с перелётом на ваши даты и состав семьи.',
+    58987=>'✈️ Подберём номер и питание в Seashells, рассчитаем тур с перелётом на ваши даты.',
+];
+foreach($ownClosings as $tv=>$closing){
+    $p=$price;$p['tourvisor_hotel_id']=$tv;$draft=str_replace('Узнать стоимость тура',$closing,$text);
+    monitor_price_validate_text($draft,$p);check(true,'accepted_own_closing');
+    rejects(fn()=>monitor_price_validate_text($draft,$price),'monitor_text_conditions_mismatch');
+    rejects(fn()=>monitor_price_validate_text($draft."\n\n".$closing,$p),'monitor_text_conditions_mismatch');
+    rejects(fn()=>monitor_price_validate_text($draft."\nUnapproved tail",$p),'monitor_text_conditions_mismatch');
+    rejects(fn()=>monitor_price_validate_text($draft."\nУзнать стоимость тура",$p),'monitor_text_conditions_mismatch');
+    rejects(fn()=>monitor_price_validate_text($text."\n\n".$closing,$price),'monitor_text_conditions_mismatch');
+}
+$foreign=$price;$foreign['tourvisor_hotel_id']=140;
+rejects(fn()=>monitor_price_validate_text(str_replace('Узнать стоимость тура',$ownClosings[386],$text),$foreign),'monitor_text_conditions_mismatch');
+rejects(fn()=>monitor_price_validate_text(str_replace('Узнать стоимость тура',$ownClosings[140]."\n\n".$ownClosings[386],$text),$foreign),'monitor_text_conditions_mismatch');
+
+// Read-only parser fixtures are synthetic, including all tokens and the 48 unrelated batch members.
+// Production contexts are copied from the reviewed roster; no fixture is a production receipt.
+function caption_test_raw(array $journal):string{return json_encode($journal,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)."\n";}
+function caption_test_parse(string $raw,array $source):array{
+    $stream=fopen('php://temp','w+b');fwrite($stream,$raw);rewind($stream);
+    try{return monitor_price_caption_journal($stream,$source);}finally{fclose($stream);}
+}
+$captionRows=array_values(array_filter($roster,static fn($r)=>array_key_exists('caption_proof',$r)));
+check(array_column($captionRows,'tourvisor_hotel_id')===[381,67910,68323],'exact_caption_fallback_three');
+foreach($captionRows as $row){
+    $b=monitor_price_caption_binding($row);$tv=$row['tourvisor_hotel_id'];
+    $fixture=$b['source']+['snapshot_sha256'=>str_repeat('d',64),'complete'=>true,'posts'=>[]];
+    foreach(['max','telegram'] as $platform){
+        $c=$b['contexts'][$platform];$token='p_test_only_'.$tv.'_'.$platform;$button='https://example.invalid/bot?start='.$token;
+        $caption=str_replace("💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\n",'',$row['templates'][$platform]);
+        check(hash('sha256',$caption)===$c['text_sha256'],'real_caption_baseline_matches_template');
+        $c['button_url_sha256']=hash('sha256',$button);$c['previous_text_sha256']=hash('sha256','fixture old caption');
+        $row['caption_proof']['contexts'][$platform]=$c;
+        $plan=array_intersect_key($c,array_flip(['hotel_id','platform','publication_id','message_id','post_url','source_key','photo_signature','button_url_sha256','button_text']));
+        $plan+=['version_id'=>$c['previous_version_id'],'new_text'=>$caption,'old_text'=>'fixture old caption',
+            'new_text_sha256'=>$c['text_sha256'],'old_text_sha256'=>$c['previous_text_sha256'],
+            'attachments_sha256'=>$c['previous_attachments_sha256'],'button_url'=>$button,'token'=>$token];
+        $fixture['posts'][$platform.':'.$c['publication_id']]=['state'=>'confirmed','plan'=>$plan,'receipt'=>$c];
+    }
+    for($i=0;$i<48;$i++)$fixture['posts']['max:'.(900000+$i)]=['state'=>'confirmed','receipt'=>['platform'=>'max','publication_id'=>900000+$i,'state'=>'sent',
+        'body_photo_button_verified'=>true,'formatting_verified'=>true,'existing_message_reused'=>true,'existing_token_resolves_to_current_version'=>true]];
+    $first=$fixture;$first['complete']=false;$first['posts']=[];
+    $raw=caption_test_raw($first);$progress=$first;
+    foreach(['max'=>'text_edit_returned','telegram'=>'provider_response_recorded'] as $platform=>$returned){
+        $key=$platform.':'.$row['caption_proof']['contexts'][$platform]['publication_id'];$member=$fixture['posts'][$key];
+        unset($member['receipt']);$member['state']='edit_started';$progress['posts'][$key]=$member;$raw.=caption_test_raw($progress);
+        $progress['posts'][$key]['state']=$returned;$raw.=caption_test_raw($progress);
+        $progress['posts'][$key]=$fixture['posts'][$key];$raw.=caption_test_raw($progress);
+    }
+    $raw.=caption_test_raw($fixture);
+    $terminal=caption_test_parse($raw,$b['source']);$selected=monitor_price_caption_receipts($row,$terminal);
+    check(count($selected)===2&&!isset($selected['max']['token']),'caption_pair_returns_only_token_hash');
+    check(caption_test_parse($raw.caption_test_raw($fixture),$b['source'])===$terminal,'identical_completed_line_accepted');
+    $bad=$row;$bad['hotel_id']=$tv;rejects(fn()=>monitor_price_caption_binding($bad),'canonical_original_receipt_mismatch');
+    $bad=$row;$bad['caption_proof']['publisher_hotel_id']=$tv;rejects(fn()=>monitor_price_caption_binding($bad),'canonical_original_receipt_mismatch');
+    $bad=$row;$bad['caption_proof']['native_projection_sha256']=str_repeat('a',64);rejects(fn()=>monitor_price_caption_binding($bad),'canonical_original_receipt_mismatch');
+    $bad=$row;$bad['original_publication_operation']='invented';rejects(fn()=>monitor_price_caption_binding($bad),'canonical_original_receipt_mismatch');
+    foreach(['max','telegram'] as $platform){
+        $c=$row['caption_proof']['contexts'][$platform];$member=$fixture['posts'][$platform.':'.$c['publication_id']];$plan=$member['plan'];
+        $p=['publication_id'=>$c['publication_id'],'version_id'=>$c['version_id'],'external_message_id'=>$c['message_id'],
+            'project_key'=>'anytour','platform'=>$platform,'state'=>'sent','source_key'=>$c['source_key'],'start_payload'=>$plan['token'],
+            'bot_key'=>$platform==='max'?'id9704048781_1_bot':'anyru_bot','channel_id'=>$platform==='max'?'-80492244209683':'-1002262666616',
+            'snapshot'=>['text'=>$plan['new_text'],'post_url'=>$c['post_url'],'attachments'=>[['type'=>'image','provider'=>$platform,'photo_id'=>explode(':',$c['photo_signature'],2)[1]]]]];
+        check(monitor_price_caption_publication_matches($p,$row,$platform,$plan['button_url'],$selected[$platform]),'caption_original_physical_binding');
+        check(monitor_price_caption_initial_caption_matches($p,$row,$platform),'source_and_initial_versions_equal');
+        $bad=$p;$bad['version_id']++;check(!monitor_price_caption_initial_caption_matches($bad,$row,$platform),'caption_same_text_manual_revision_stops');
+        $bad=$p;$bad['snapshot']['metadata']['monitor_price_record_id']=str_repeat('a',64);check(!monitor_price_caption_initial_caption_matches($bad,$row,$platform),'caption_next_cycle_requires_monitor_journal');
+        foreach(['start_payload','source_key','external_message_id','bot_key','channel_id'] as $field){$bad=$p;$bad[$field]='changed';check(!monitor_price_caption_publication_matches($bad,$row,$platform,$plan['button_url'],$selected[$platform]),'caption_physical_drift_stops');}
+        $bad=$p;$bad['snapshot']['attachments'][0]['photo_id']='foreign';check(!monitor_price_caption_publication_matches($bad,$row,$platform,$plan['button_url'],$selected[$platform]),'caption_photo_drift_stops');
+        check(!monitor_price_caption_publication_matches($p,$row,$platform,$plan['button_url'].'changed',$selected[$platform]),'caption_button_drift_stops');
+    }
+    // Shared-batch safety must include unrelated posts, not just these two selected targets.
+    $bad=$fixture;$bad['posts']['max:900000']['state']='UNKNOWN';rejects(fn()=>caption_test_parse(caption_test_raw($bad),$b['source']),'hook_caption_source_unresolved_stop');
+    $bad=$fixture;unset($bad['posts']['max:900000']);rejects(fn()=>caption_test_parse(caption_test_raw($bad),$b['source']),'hook_caption_source_unresolved_stop');
+    $bad=$fixture;$bad['posts']['max:900000']['receipt']['formatting_verified']=false;rejects(fn()=>caption_test_parse(caption_test_raw($bad),$b['source']),'hook_caption_source_unresolved_stop');
+    $bad=$fixture;$bad['complete']=false;rejects(fn()=>caption_test_parse($raw.caption_test_raw($bad),$b['source']),'hook_caption_source_unresolved_stop');
+    $bad=$fixture;$bad['posts']['max:900000']['receipt']['version_id']=999;rejects(fn()=>caption_test_parse($raw.caption_test_raw($bad),$b['source']),'hook_caption_source_unresolved_stop');
+    foreach(['manifest_sha256','installed_sha','operation'] as $field){$bad=$fixture;$bad[$field]='changed';rejects(fn()=>caption_test_parse(caption_test_raw($bad),$b['source']),'canonical_original_receipt_mismatch');}
+    rejects(fn()=>caption_test_parse(rtrim($raw,"\n"),$b['source']),'hook_caption_source_incomplete_stop');
+    rejects(fn()=>caption_test_parse("{broken}\n",$b['source']),'hook_caption_source_incomplete_stop');
+    $key='max:'.$row['caption_proof']['contexts']['max']['publication_id'];
+    foreach(['token','new_text','old_text','photo_signature','button_url'] as $field){$bad=$fixture;$bad['posts'][$key]['plan'][$field]='changed';rejects(fn()=>monitor_price_caption_receipts($row,$bad),'canonical_original_receipt_mismatch');}
+    $bad=$fixture;$bad['posts'][$key]['receipt']['version_id']++;rejects(fn()=>monitor_price_caption_receipts($row,$bad),'canonical_original_receipt_mismatch');
+}
+// Reject an oversized stream by metadata before reading or allocating a 128 MiB fixture.
+class MonitorCaptionOversizeStream {
+    public $context;
+    public function stream_open($path,$mode,$options,&$opened_path):bool{return true;}
+    public function stream_stat():array{return ['size'=>134217729];}
+    public function stream_tell():int{return 0;}
+    public function stream_eof():bool{return true;}
+}
+stream_wrapper_register('captionoversize',MonitorCaptionOversizeStream::class);
+$oversize=fopen('captionoversize://test','r');
+rejects(fn()=>monitor_price_caption_journal($oversize,$captionRows[0]['caption_proof']['source']),'hook_caption_source_incomplete_stop');
+fclose($oversize);stream_wrapper_unregister('captionoversize');
+
 if(isset($argv[1])){
     $real=json_decode(file_get_contents($argv[1]),true,64,JSON_THROW_ON_ERROR);$realUpdates=[];
     foreach($real['hotels'] as $hotel){if(!isset($hotel['updatePlan']))continue;$s=$hotel['source'];$p=monitor_price_observation($s,(int)$hotel['tourvisorHotelId'],monitor_price_time($s['generatedAt']));$plan=$hotel['updatePlan'];

@@ -22,6 +22,26 @@ function priceObservationMetadata(array $metadata,array $payload,?array $price):
     return $metadata;
 }
 
+/** Independently re-read the real caption batch before this editor can write. */
+function captionSource(array $row):array {
+    $binding=monitor_price_caption_binding($row);$source=$binding['source'];
+    $dir='/var/www/anytoour/data/channel-post-operations/'.$source['operation'];$path=$dir.'/receipt.jsonl';
+    need(!is_link(dirname($dir))&&!is_link($dir)&&realpath($dir)===$dir
+        &&!is_link($path)&&is_file($path)&&realpath($path)===$path,'canonical_original_receipt_missing');
+    $stream=fopen($path,'rb');need(is_resource($stream),'canonical_original_receipt_missing');
+    try{
+        need(flock($stream,LOCK_SH|LOCK_NB),'hook_caption_source_unresolved_stop');
+        $before=fstat($stream);$named=lstat($path);
+        need(is_array($before)&&is_array($named)&&$before['ino']===$named['ino']&&$before['dev']===$named['dev']
+            &&$before['size']>0&&$before['size']<=134217728,'hook_caption_source_incomplete_stop');
+        $journal=monitor_price_caption_journal($stream,$source);
+        clearstatcache(true,$path);$after=fstat($stream);$named=lstat($path);
+        foreach(['ino','dev','size','mtime','ctime'] as $field)
+            need(($after[$field]??null)===$before[$field]&&($named[$field]??null)===$before[$field],'hook_caption_source_unresolved_stop');
+        return monitor_price_caption_receipts($row,$journal);
+    }finally{flock($stream,LOCK_UN);fclose($stream);}
+}
+
 try {
     if(PHP_SAPI!=='cli'||trim((string)shell_exec('git rev-parse HEAD'))!==EXPECTED_INSTALLED_SHA)throw new RuntimeException('installed_source_changed');
     $payload=json_decode(base64_decode(MANIFEST_BASE64,true),true,64,JSON_THROW_ON_ERROR);
@@ -80,12 +100,13 @@ try {
         need($payload['operation']===monitor_price_operation($monitorPrice),'monitor_operation_changed');
         need(is_array($payload['feed_binding']??null)&&($payload['feed_binding']['tourvisor_hotel_id']??null)===APPROVED_UPDATE_TOURVISOR_ID,'monitor_feed_binding_missing');
         foreach($rows as $r){
-            $legacyMode=array_key_exists('legacy_proof',$r);
+            $legacyMode=array_key_exists('legacy_proof',$r);$captionMode=array_key_exists('caption_proof',$r);$retainedMode=$legacyMode||$captionMode;
             if($legacyMode)monitor_price_legacy_binding($r);
-            need(($r['tourvisor_hotel_id']??null)===APPROVED_UPDATE_TOURVISOR_ID&&$r['key']===base64_decode(APPROVED_UPDATE_KEY_B64,true)&&($legacyMode?$r['hotel_id']:(int)$r['hotel_id'])===APPROVED_UPDATE_HOTEL_ID&&$r['logical_id']===base64_decode(APPROVED_UPDATE_LOGICAL_B64,true),'monitor_native_binding_changed');
+            if($captionMode)monitor_price_caption_binding($r);
+            need(($r['tourvisor_hotel_id']??null)===APPROVED_UPDATE_TOURVISOR_ID&&$r['key']===base64_decode(APPROVED_UPDATE_KEY_B64,true)&&($retainedMode?$r['hotel_id']:(int)$r['hotel_id'])===APPROVED_UPDATE_HOTEL_ID&&$r['logical_id']===base64_decode(APPROVED_UPDATE_LOGICAL_B64,true),'monitor_native_binding_changed');
             foreach(['max','telegram'] as $platform){
                 $v=$r['channel_texts'][$platform]??[];
-                need(is_string($v['old_text']??null)&&is_string($v['new_text']??null)&&hash('sha256',$v['old_text'])===($v['old_text_sha256']??'')&&hash('sha256',$v['new_text'])===($v['new_text_sha256']??'')&&($legacyMode?!array_key_exists('original_text_sha256',$v):preg_match('/\A[a-f0-9]{64}\z/D',$v['original_text_sha256']??'')===1)&&is_int($v['expected_version_id']??null)&&$v['expected_version_id']>0&&is_string($v['expected_post_url']??null),'monitor_channel_text_invalid');
+                need(is_string($v['old_text']??null)&&is_string($v['new_text']??null)&&hash('sha256',$v['old_text'])===($v['old_text_sha256']??'')&&hash('sha256',$v['new_text'])===($v['new_text_sha256']??'')&&($retainedMode?!array_key_exists('original_text_sha256',$v):preg_match('/\A[a-f0-9]{64}\z/D',$v['original_text_sha256']??'')===1)&&is_int($v['expected_version_id']??null)&&$v['expected_version_id']>0&&is_string($v['expected_post_url']??null),'monitor_channel_text_invalid');
                 monitor_price_validate_text($v['new_text'],$monitorPrice);
                 need(($payload['feed_binding']['posts'][$platform]??null)===$v['expected_post_url'],'monitor_post_binding_mismatch');
             }
@@ -102,7 +123,7 @@ try {
     foreach($state['configs'] as $r)need(($r['state']??'')==='confirmed','prior_configuration_outcome_unresolved');foreach($state['posts'] as $r)need(($r['state']??'')==='confirmed','prior_edit_outcome_unresolved');
     $registry=new ChannelPostRegistryService($pdo);$automation=new ChannelPostAutomationService($registry);
     $targets=['max'=>['bot'=>'id9704048781_1_bot','channel'=>'-80492244209683','source'=>'max_anytour_msk1','id'=>9],'telegram'=>['bot'=>'anyru_bot','channel'=>'-1002262666616','source'=>'tg_anytour_msk','id'=>10]];$channels=[];$plans=[];
-    $legacyProofs=null;
+    $legacyProofs=null;$captionProofs=null;
     if($monitorMode&&array_key_exists('legacy_proof',$rows[0])){
         $legacy=monitor_price_legacy_binding($rows[0]);
         $legacyDir='/var/www/anytoour/data/channel-post-operations/'.$legacy['prior_price']['operation'];$legacyPath=$legacyDir.'/receipt.jsonl';
@@ -111,6 +132,7 @@ try {
         $legacyRaw=file_get_contents($legacyPath);need(is_string($legacyRaw),'canonical_original_receipt_missing');
         $legacyProofs=monitor_price_legacy_receipts($rows[0],$legacyRaw);
     }
+    if($monitorMode&&array_key_exists('caption_proof',$rows[0]))$captionProofs=captionSource($rows[0]);
     // Resolve the two existing messages and exact retained photos before any provider/configuration write.
     foreach($targets as $platform=>$t){
         $identity=ChannelPostRuntime::identity($platform);need(is_array($identity)&&$identity['project_key']==='anytour'&&$identity['bot_key']===$t['bot'],'configured_bot_changed');
@@ -118,7 +140,7 @@ try {
         need(((new ChannelPostButtonTransport())->verifyChannel($channel)['state']??'')==='ready','provider_channel_rights_changed');$channels[$platform]=$channel;
         foreach($rows as $r){
             if($monitorMode){$r=array_replace($r,$r['channel_texts'][$platform]);$r['update_text']=$r['new_text']!==$r['old_text'];}
-            if($legacyProofs!==null){$proof=$legacyProofs[$platform];}else{
+            if($captionProofs!==null){$proof=$captionProofs[$platform];}elseif($legacyProofs!==null){$proof=$legacyProofs[$platform];}else{
             $proofPath='/var/www/anytoour/data/channel-post-operations/'.$r['original_publication_operation'].'/'.$platform.'-'.$r['logical_id'].'-approved.json';
             need(!is_link($proofPath)&&is_file($proofPath),'canonical_original_receipt_missing');
             $prior=json_decode(file_get_contents($proofPath),true,64,JSON_THROW_ON_ERROR);$proof=$prior['receipt']??[];
@@ -130,6 +152,11 @@ try {
                 need(monitor_price_legacy_publication_matches($p,$r,$platform,ChannelPostButtonTransport::buttonUrl($p)),'existing_publication_identity_changed');
                 if(($p['snapshot']['metadata']['monitor_price_record_id']??null)===null)
                     need(monitor_price_legacy_initial_caption_matches($p,$r,$platform),'monitor_publication_version_changed');
+            }
+            if($captionProofs!==null){
+                need(monitor_price_caption_publication_matches($p,$r,$platform,ChannelPostButtonTransport::buttonUrl($p),$proof),'existing_publication_identity_changed');
+                if(($p['snapshot']['metadata']['monitor_price_record_id']??null)===null)
+                    need(monitor_price_caption_initial_caption_matches($p,$r,$platform),'monitor_publication_version_changed');
             }
             $key=$platform.':'.$r['key'];$done=$state['posts'][$key]??null;
             if($monitorMode){need(($p['snapshot']['post_url']??'')===$r['expected_post_url']&&($done||(int)$p['version_id']===$r['expected_version_id']),'monitor_publication_version_changed');}

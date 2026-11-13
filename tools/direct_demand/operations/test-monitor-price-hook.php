@@ -205,5 +205,67 @@ foreach($legacyRows as $row){
 foreach(['hook_legacy_source_incomplete_stop','hook_legacy_source_unresolved_stop'] as $error)
     hook_test_check(!monitor_hook_local_preflight_failure(['exit_code'=>2,'error'=>$error]),'legacy_unknown_source_auto_released');
 
+// All23 retained additions use the actual packet code; no provider or filesystem journals are created.
+$additionProof=json_decode(file_get_contents(__DIR__.'/monitor-price-remaining23-20261113-proof.json'),true,64,JSON_THROW_ON_ERROR);
+$addedRows=array_values(array_filter($expanded['rows'],static fn($r)=>in_array($r['tourvisor_hotel_id'],$additionProof['appended_tourvisor_ids'],true)));
+hook_test_check(count($addedRows)===23&&count($expanded['rows'])>=592,'remaining_published_scope_changed');
+$captionCount=0;$canonicalCount=0;
+foreach($addedRows as $row){
+    $tv=$row['tourvisor_hotel_id'];$snapshot=$terminalSnapshot;$snapshot['scope']['tourvisorHotelIds']=[$tv];$snapshot['item']['tourvisorHotelId']=$tv;
+    foreach($snapshot['item']['offers'] as $i=>$offer){$snapshot['item']['offers'][$i]['tourvisorHotelId']=$tv;$snapshot['item']['offers'][$i]['recordId']=hash('sha256','remaining23-test-'.$tv.'-'.$i);}
+    $price=monitor_price_observation($snapshot,$tv,strtotime($snapshot['generatedAt']));$op=monitor_price_operation($price);$context=[];
+    $captionMode=array_key_exists('caption_proof',$row);
+    $sourceProof=array_values(array_filter($additionProof['rows'],static fn($r)=>$r['tourvisor_hotel_id']===$tv))[0];
+    foreach(['max','telegram'] as $platform){
+        $c=$sourceProof['current_accepted_contexts'][$platform];
+        $slot="💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\n";
+        $caption=str_replace($slot,'',$row['templates'][$platform]);
+        hook_test_check(hash('sha256',$caption)===$row['expected_text_sha256'][$platform],'remaining_template_changed_accepted_caption');
+        $context[$platform]=['publication_id'=>$c['publication_id'],'version_id'=>$c['baseline_version_id'],
+            'external_message_id'=>$c['message_id'],'snapshot'=>['text'=>$caption,'post_url'=>$c['post_url'],'metadata'=>[]]];
+        hook_test_check(monitor_hook_caption_allowed($context[$platform],$row,$platform,null),'remaining_first_baseline_rejected');
+        $manual=$context[$platform];$manual['snapshot']['text'].=' manual';
+        hook_test_check(!monitor_hook_caption_allowed($manual,$row,$platform,null),'remaining_manual_caption_accepted');
+        if($captionMode){$manual=$context[$platform];$manual['version_id']++;
+            hook_test_check(!monitor_hook_caption_allowed($manual,$row,$platform,null),'caption_same_text_manual_revision_accepted');}
+    }
+    eval(substr($driver,$packetStart,$packetEnd-$packetStart));
+    $packet=json_decode($raw,true,64,JSON_THROW_ON_ERROR);$childRow=$packet['rows'][0];
+    hook_test_check($childRow['hotel_id']===$row['hotel_id']&&$packet['feed_binding']===$row['feed_binding'],'remaining_packet_identity_changed');
+    if($captionMode){
+        $captionCount++;
+        hook_test_check(monitor_price_caption_binding($childRow)===$row['caption_proof']&&$childRow['hotel_id']===null
+            &&!array_key_exists('cover_sha256',$childRow)&&!array_key_exists('original_publication_operation',$childRow)
+            &&!array_key_exists('original_text_sha256',$childRow['channel_texts']['max'])
+            &&!array_key_exists('original_text_sha256',$childRow['channel_texts']['telegram']),'driver_lost_caption_proof_or_invented_sender');
+    }else{
+        $canonicalCount++;
+        hook_test_check($childRow['original_publication_operation']===$row['original_publication_operation']
+            &&$childRow['cover_sha256']===$row['cover_sha256']&&!array_key_exists('caption_proof',$childRow)
+            &&$childRow['channel_texts']['max']['original_text_sha256']===$row['original_text_sha256']
+            &&$childRow['channel_texts']['telegram']['original_text_sha256']===$row['original_text_sha256'],'remaining_canonical_packet_changed');
+    }
+    $journal=['complete'=>true,'operation'=>$op,'feed_binding'=>$row['feed_binding'],'posts'=>[]];
+    foreach(['max','telegram'] as $platform){
+        $p=$context[$platform];$p['version_id']++;$p['snapshot']['text']=$childRow['channel_texts'][$platform]['new_text'];
+        $p['snapshot']['metadata']['monitor_price_record_id']=$price['record_id'];$context[$platform]=$p;
+        $journal['posts'][$platform]=['state'=>'confirmed','receipt'=>['platform'=>$platform,'publication_id'=>$p['publication_id'],'version_id'=>$p['version_id'],
+            'message_id'=>$p['external_message_id'],'post_url'=>$p['snapshot']['post_url'],'text'=>$p['snapshot']['text'],
+            'text_sha256'=>hash('sha256',$p['snapshot']['text']),'existing_message_reused'=>true,'body_photo_button_verified'=>true]];
+        $closing=substr($row['templates'][$platform],strrpos($row['templates'][$platform],"\n\n")+2);
+        hook_test_check(str_ends_with($p['snapshot']['text'],"\n\n".$closing),'remaining_accepted_closing_lost');
+    }
+    foreach(['max','telegram'] as $platform){
+        $p=$context[$platform];
+        hook_test_check(monitor_hook_caption_allowed($p,$row,$platform,$journal),'remaining_second_cycle_rejected');
+        hook_test_check(!monitor_hook_caption_allowed($p,$row,$platform,null),'remaining_second_cycle_without_receipt_accepted');
+        $bad=$journal;$bad['complete']=false;hook_test_check(!monitor_hook_caption_allowed($p,$row,$platform,$bad),'remaining_unknown_monitor_accepted');
+        $bad=$p;$bad['version_id']++;hook_test_check(!monitor_hook_caption_allowed($bad,$row,$platform,$journal),'remaining_later_manual_revision_accepted');
+    }
+}
+hook_test_check($captionCount===3&&$canonicalCount===20,'remaining_provenance_kind_counts_changed');
+foreach(['hook_caption_source_incomplete_stop','hook_caption_source_unresolved_stop'] as $error)
+    hook_test_check(!monitor_hook_local_preflight_failure(['exit_code'=>2,'error'=>$error]),'caption_unknown_source_auto_released');
+
 echo 'MONITOR_PRICE_HOOK_OK cases='.$cases." no_provider_calls=1 no_writes=1\n";
 
