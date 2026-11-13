@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "kind": "root_authenticated_private_route_extension",
+  "operation": "commercial-max604-private-route-extension-20261113-16-install1",
+  "previous_count": 595,
+  "logical_hotels": 604,
+  "new_hotel_ids": [
+    81358,
+    343,
+    432,
+    65254,
+    443,
+    107940,
+    32356,
+    195,
+    20288
+  ],
+  "publication_summary_sha256": "afb983a8d8aee153fe1ef35e6fc6ca16fe891f414eb29c6507450cd978806c41",
+  "bound_read_sha256": "d0bc8ffd01b45cb05d8ac7cd4f1d2bfaecfb9298b84593c9a74cd4d6265f4d64",
+  "new_binding_tuples_sha256": "f19275b7486d1b5b172c617bf2d2fe965d7c4c338e11deed8e223ba702d4c376",
+  "route_receipt_sha256": "e763904ff4cc2c198fef2347233434688459ce186cdc8c444ee3548fd17cfa87",
+  "route_manifest_projection_sha256": "9696fd229868088b85083933c366de4a4a75eca2c399c90e68c956979ed666cf",
+  "original_route_manifest_sha256": "b6021ebccb24451d0ade7f5534a0dc83d55d3bda3beaa072cd2788654ff2c66e",
+  "original_route_map_sha256": "e36cc6312440c484eb93b9976ad94b74ecb93c054e142e9ddd2bb28b070254a4",
+  "original_route_module_sha256": "4ffd2e240bd29d966460bb64648a351133e13b37decf33ec164541e28f1f600f",
+  "original_previous_map_sha256": "0064562f2a9604d3e95d37d319586a26214b9b8d039f16fd6c996219689f0392",
+  "verification": {
+    "full_map_checked": true,
+    "previous_rows_preserved": true,
+    "new_tuples_checked": true
+  },
+  "source": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 43418552380,
+    "run_attempt": 1,
+    "head_sha": "40ab70355f95d5fd66a790c2b3975486e904b74c",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "workflow_path": ".github/workflows/tgmini-identity-readonly.yml",
+    "candidate_artifact": {
+      "id": 14033341371,
+      "name": "commercial-max604-route-extension-candidate",
+      "zip_sha256": "01070a4b4a24f9a48ba9f689c89f68a4b8d166cd74b34f2f0fa10bf8e2814176"
+    },
+    "result_artifact": {
+      "id": 14032209163,
+      "name": "commercial-max604-route-extension-install-result",
+      "zip_sha256": "e6f092ad190daba35abbc29fd4178bdb98b73d5a004c694cf05093e687184d21"
+    }
+  }
+}
