@@ -984,7 +984,7 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
     $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
     $p->exec("CREATE TABLE modeled_conversion_stream_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),source_kind VARCHAR(16),source_id BIGINT,version_no INT,observed_at_unix BIGINT,snapshot_json TEXT)");
     $p->exec("CREATE TABLE modeled_conversion_profile_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),customer_key VARCHAR(40),conversation_id BIGINT,journal_cursor BIGINT,observed_at_unix BIGINT,profile_json TEXT)");
-    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),conversation_id BIGINT,counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),value_origin VARCHAR(32),value_profile_id BIGINT,event_unix BIGINT,value_rub DECIMAL(12,2),value_stage VARCHAR(32),state VARCHAR(24),client_id VARCHAR(40),upload_id VARCHAR(40),upload_status VARCHAR(32),last_error VARCHAR(64),claimed_at_unix BIGINT,created_at DATETIME)");
+    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),conversation_id BIGINT,counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),value_origin VARCHAR(32),value_profile_id BIGINT,event_unix BIGINT,value_rub DECIMAL(12,2),value_stage VARCHAR(32),state VARCHAR(24),client_id VARCHAR(40),upload_id VARCHAR(40),upload_status VARCHAR(32),last_error VARCHAR(64),claimed_at_unix BIGINT,created_at DATETIME,next_attempt_unix BIGINT DEFAULT 0)");
     $day=strtotime('2026-11-02T21:00:00Z');$now=$day+43200;
     $oldTimeZone=$mysql?$p->query('SELECT @@session.time_zone')->fetchColumn():null;
     if($mysql)$p->exec("SET time_zone='+00:00'");
@@ -1002,7 +1002,7 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
         [$id,$conversation,$platform,$cursor,$at,$status,$stage]=$row;
         $p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour',?,?,?,?,?,?)")->execute([$id,$platform,(string)$conversation,$conversation,$cursor,$day+$at,json_encode(['semantic_prediction'=>['status'=>$status,'stage'=>$stage],'private_marker'=>'PRIVATE_PROFILE_NEVER_RETURN'],JSON_THROW_ON_ERROR)]);
     }
-    $insert=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,'anytour',?,?,'98615635','anytour_modeled_value_v1','semantic_stage_value_25000_v1',?,?,?,?,?,?,?,?,'UPLOADED','',?,?)");
+    $insert=$p->prepare("INSERT INTO max_channel_conversion_outbox(id,project_key,platform,conversation_id,counter_id,transport_target,value_contract,value_origin,value_profile_id,event_unix,value_rub,value_stage,state,client_id,upload_id,upload_status,last_error,claimed_at_unix,created_at) VALUES(?,'anytour',?,?,'98615635','anytour_modeled_value_v1','semantic_stage_value_25000_v1',?,?,?,?,?,?,?,?,'UPLOADED','',?,?)");
     foreach([[1,'max',111,null,1,121,1250,'interest','accepted','88000001','PRIVATE_RECEIPT_ONE',130,122],
         [2,'max',111,null,2,900,7083,'purchase_intent','accepted','88000001','PRIVATE_RECEIPT_TWO',1205,901],
         [3,'telegram',333,null,3,1800,25000,'payment_report','pending',null,null,null,1801],
@@ -1058,6 +1058,22 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
         !str_contains($json,'PRIVATE_')&&!str_contains($json,'88000001')&&!str_contains($json,'customer_key')&&!str_contains($json,'conversation_id'));
     $read();$check('repeated latency inspection never mutates delivery rows',
         $before===json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR));
+    // A saved reason and retry clock must be attributable to this row, never
+    // inferred from the last batch's aggregate visitor decisions.
+    $p->prepare("UPDATE max_channel_conversion_outbox SET state='ready',last_error='metrika_visit_unverified',next_attempt_unix=? WHERE id=3")->execute([$now-600]);
+    $heldBefore=json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR);
+    $held=$read();$example=$held['live_value']['examples'][0];
+    $check('saved per-row hold distinguishes an overdue recheck without asserting a missing visit',
+        $example['state']==='ready'&&$example['last_recorded_hold_reason']==='metrika_visit_unverified'
+        &&$example['next_check_not_before']===gmdate('Y-m-d\\TH:i:s\\Z',$now-600)&&$example['overdue_for_saved_check_seconds']===600
+        &&$held['interpretation']['visit_unverified_combines_absent_visit_and_unavailable_report']===true
+        &&$heldBefore===json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR));
+    $p->prepare("UPDATE max_channel_conversion_outbox SET last_error='PRIVATE_UNRECOGNIZED_ERROR',next_attempt_unix=? WHERE id=3")->execute([$now+300]);
+    $future=$read();$example=$future['live_value']['examples'][0];
+    $check('future retry is not overdue and arbitrary stored error text never leaves the private timing reader',
+        $example['last_recorded_hold_reason']===null&&$example['next_check_not_before']===gmdate('Y-m-d\\TH:i:s\\Z',$now+300)
+        &&$example['overdue_for_saved_check_seconds']===null&&!str_contains(json_encode($future,JSON_THROW_ON_ERROR),'PRIVATE_'));
+    $p->exec("UPDATE max_channel_conversion_outbox SET state='pending',last_error='',next_attempt_unix=0 WHERE id=3");
     $revoked=false;$calls=0;
     try{(new ModeledConversionLatencyReader($p,static function()use(&$calls):void{if(++$calls>=4)throw new DomainException();},new ModeledConversionStatusBudget()))->read($now);}
     catch(DomainException $ignored){$revoked=true;}

@@ -1111,3 +1111,18 @@ Every result retains `financial_permission=false`,
 No file, intent, marker, cache, event date, identity binding, money, read marker,
 schedule or customer message is changed. Any later financial use requires
 independent evidence and the canonical sender's existing safeguards.
+
+
+## Saved per-row wait evidence
+
+The existing bounded current-Moscow-day timing examples include the allowlisted
+last recorded hold reason, saved next-check-not-before instant and overdue seconds
+for a pending/READY row with a valid due clock. They reuse the same bounded query,
+authorization and byte/time budget; no visitor report, sender tick or source read
+is launched. A null reason is unknown, not proof that the row was never checked.
+`metrika_visit_unverified` combines an absent preceding visit with an unavailable
+report. It is not classified from a different row's latest batch aggregate.
+The saved due instant is a lower bound, not a scheduled execution promise, and a
+saved reason does not establish current attribution eligibility. Arbitrary stored
+error strings remain redacted. Receipt acceptance, processing and individual visit
+association remain distinct.

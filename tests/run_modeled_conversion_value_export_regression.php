@@ -990,8 +990,86 @@ function modeledValueCatchUpAssertions(PDO $p,callable $check):void
         &&$lookup->calls===1&&$wire->posts===3&&$wire->gets===6&&$wire->visitReads===3&&$receipt()['accepted']===3&&$receipt()['errors']===0);
 }
 
+/** Real canonical ticks: an event older than every allowed preceding visit is terminal, never replayed. */
+function modeledValueOrdinaryExpiryAssertions(PDO $p,callable $check):void
+{
+    $now=1793660000;$old=$now-ModeledConversionAttributionWindow::MAX_SECONDS-1;$gate=static fn(string $chat):bool=>true;
+    $setup=static function(array $events,string $platform='telegram')use($p,$now,$gate):array{
+        modeledValueSchema($p);$wire=new ModeledValueTestWire($now-60);$owner=new ModeledConversionValueExport($p);
+        $owner->configure('create-goal',$wire->api(),min($events)-10);$owner->configure('enable',$wire->api(),min($events)-10);
+        foreach($events as$i=>$event)modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,9601+$i,$platform),$event));
+        $owner->collect(ModeledConversionValueExport::settings($p),$now,$gate);
+        $rows=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        if(count($rows)!==count($events))throw new RuntimeException('expiry_fixture_rows');
+        $ready=$p->prepare("UPDATE max_channel_conversion_outbox SET state='ready',event_unix=?,client_id=?,value_ready_at_unix=?,next_attempt_unix=?,tracker_record_id=?,tracker_observed_unix=?,last_error='metrika_visit_unverified' WHERE id=?");
+        foreach($rows as$i=>$row)$ready->execute([$events[$i],'880000'.$row['external_user_id'],$events[$i],$events[$i]===$now?0:$now-300,
+            $platform==='max'?'77':null,$platform==='max'?$events[$i]-1:null,$row['id']]);
+        $lookup=new ModeledValueTestLookup();if($platform==='max')$lookup->observedAt=min($events)-1;
+        return[$wire,$lookup];
+    };
+    $rows=static fn():array=>$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $immutable=static function(array $row):array{unset($row['state'],$row['last_error']);return$row;};
+
+    [$wire,$lookup]=$setup([$old,$old,$old,$old]);$before=$rows();
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);$after=$rows();
+    $check('strictly expired ordinary READY keeps immutable values and uses only the existing three-row pass without visitor reads',
+        count(array_filter($after,static fn(array $r):bool=>$r['state']==='expired'&&$r['last_error']==='event_expired'))===3
+        &&$after[3]['state']==='ready'&&array_map($immutable,$after)===array_map($immutable,$before)
+        &&$wire->visitReads===0&&$wire->posts===0&&$lookup->calls===0);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+300,$gate);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+600,$gate);
+    $check('the bounded next natural passes finish expiry without a claim a visitor retry or duplicate financial send',
+        count(array_filter($rows(),static fn(array $r):bool=>$r['state']==='expired'))===4
+        &&$wire->visitReads===0&&$wire->posts===0&&$lookup->calls===0);
+
+    [$wire,$lookup]=$setup([$old,$old,$old,$old,$now]);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);$after=$rows();
+    $check('fresh zero-due READY retains priority over overdue rechecks while the total pass remains three rows',
+        $wire->posts===1&&$wire->visitReads===1&&$after[4]['state']==='accepted'
+        &&count(array_filter($after,static fn(array $r):bool=>$r['state']==='expired'))===2
+        &&count(array_filter($after,static fn(array $r):bool=>$r['state']==='ready'))===2);
+
+    [$wire,$lookup]=$setup([$old],'max');$before=$rows()[0];
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);$after=$rows()[0];
+    $check('ordinary MAX expiry preserves its exact source tuple after the existing bounded current lookup and performs no visitor or upload',
+        $lookup->calls===1&&$wire->visitReads===0&&$wire->posts===0
+        &&$after['state']==='expired'&&$after['last_error']==='event_expired'&&$immutable($after)===$immutable($before));
+
+    $edge=$now-ModeledConversionAttributionWindow::MAX_SECONDS;
+    [$wire,$lookup]=$setup([$edge]);$before=$rows()[0];$wire->visitAt=$edge;$wire->visitSource='yandex_direct';
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);$after=$rows()[0];
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+1,$gate);
+    $check('the exact inclusive ten-day Direct boundary still sends the same event once after the genuine visitor gate',
+        $wire->posts===1&&$wire->visitReads===2&&$after['state']==='accepted'&&(int)$after['attempts']===1
+        &&$after['event_unix']===$before['event_unix']&&$after['value_rub']===$before['value_rub']
+        &&$after['target']===$before['target']&&$after['client_id']===$before['client_id']);
+
+    [$wire,$lookup]=$setup([$old]);$before=$rows()[0];$owner=new ModeledConversionValueExport($p);
+    $expire=new ReflectionMethod($owner,'expireOrdinaryReady');$settings=ModeledConversionValueExport::settings($p);
+    $frame=new ReflectionProperty($owner,'finiteFrame');$frame->setValue($owner,['r'=>[['protected',(string)$before['id']]]]);
+    $frozen=$expire->invoke($owner,$before,$settings,$now);$frame->setValue($owner,null);
+    $unknown=$expire->invoke($owner,$before,$settings,ModeledConversionValueVisitEvidence::CHECKPOINT+1);
+    $p->prepare("UPDATE max_channel_conversion_outbox SET attempts=1,claimed_at_unix=?,claim_token='synthetic_pending_claim' WHERE id=?")->execute([$now,$before['id']]);
+    $claimed=$rows()[0];$held=$expire->invoke($owner,$claimed,$settings,$now);
+    $check('frozen originals missing post-checkpoint binding and an existing financial claim are preserved without expiry',
+        $frozen===false&&$unknown===false&&$held===false&&$rows()[0]===$claimed&&$wire->posts===0&&$wire->visitReads===0);
+
+    foreach(['event','accepted','configuration','receipt_frame']as$race){
+        [$wire,$lookup]=$setup([$old]);$before=$rows()[0];$owner=new ModeledConversionValueExport($p);
+        $expire=new ReflectionMethod($owner,'expireOrdinaryReady');$settings=ModeledConversionValueExport::settings($p);
+        if($race==='event')$p->prepare('UPDATE max_channel_conversion_outbox SET event_unix=? WHERE id=?')->execute([$now-60,$before['id']]);
+        elseif($race==='accepted')$p->prepare("UPDATE max_channel_conversion_outbox SET state='accepted',upload_id='9090',value_api_accepted_at_unix=? WHERE id=?")->execute([$now,$before['id']]);
+        elseif($race==='configuration')$p->exec("UPDATE modeled_conversion_value_export_settings SET mode='off'");
+        else$p->exec("UPDATE modeled_conversion_value_export_settings SET last_receipt_json='{}'");
+        $changed=$rows()[0];$expire->invoke($owner,$before,$settings,$now);
+        $check('expiry CAS preserves a changed original event receipt configuration or protected frame '.$race,
+            $rows()[0]===$changed&&$wire->visitReads===0&&$wire->posts===0);
+    }
+}
+
 function modeledValueFairProgressAssertions(PDO $p,callable $check):void
 {
+    modeledValueOrdinaryExpiryAssertions($p,$check);
     modeledValueSchema($p);$now=1793659000;$gate=static fn(string $chat):bool=>true;
     $wire=new ModeledValueTestWire($now-86400);$wire->goals[]=['id'=>'678187097','name'=>ModeledConversionValueContract::NAME,
         'type'=>'action','conditions'=>[['type'=>'exact','url'=>ModeledConversionValueContract::TARGET]]];
