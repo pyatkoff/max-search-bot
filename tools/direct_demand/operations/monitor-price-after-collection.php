@@ -140,7 +140,7 @@ try{
     hook_need(!($inspect&&$nightly),'hook_argument_invalid');
     if($nightly){
         $nightGate=monitor_hook_nightly_gate([],$startedAt,getenv('ANYTOUR_MONITOR_COLLECTION_STARTED_AT')?:null,getenv('ANYTOUR_MONITOR_COLLECTOR_RUN_ID')?:null);
-        $out['run_policy']='nightly_saved_monitor';$out['night_date']=$nightGate['night_date'];$out['budget_seconds']=1800;
+        $out['run_policy']='collector_saved_monitor';$out['night_date']=$nightGate['night_date'];$out['budget_seconds']=1800;
         if(!$nightGate['due']){
             $out['ok']=true;$out['skipped']=$nightGate['reason'];$out['nightly_cycle_completed']=false;$out['duration_seconds']=time()-$startedAt;
             hook_output_and_exit($out);
@@ -158,7 +158,8 @@ try{
     hook_need(is_string($raw)&&(!$existed||$raw!=='')&&($raw===''||str_ends_with($raw,"\n")),'hook_journal_incomplete_stop');
     $state=['schema'=>1,'pending'=>null,'completed'=>[]];if($raw!==''){$lines=explode("\n",rtrim($raw,"\n"));$state=json_decode(end($lines),true,64,JSON_THROW_ON_ERROR);}elseif(!$inspect)hook_append($lock,$state);
     if($nightly){
-        $nightGate=monitor_hook_nightly_gate($state,$startedAt,getenv('ANYTOUR_MONITOR_COLLECTION_STARTED_AT')?:null,getenv('ANYTOUR_MONITOR_COLLECTOR_RUN_ID')?:null);
+        $attemptedRuns=$raw===''?[]:monitor_hook_attempted_collector_runs($lines);
+        $nightGate=monitor_hook_nightly_gate($state,$startedAt,getenv('ANYTOUR_MONITOR_COLLECTION_STARTED_AT')?:null,getenv('ANYTOUR_MONITOR_COLLECTOR_RUN_ID')?:null,$attemptedRuns);
         if(!$nightGate['due']){
             $out['ok']=!$nightGate['blocked'];$out['skipped']=$nightGate['reason'];$out['nightly_cycle_completed']=false;
             $out['prior_nightly_cycle']=$nightGate['cycle']??null;$out['duration_seconds']=time()-$startedAt;
@@ -250,3 +251,4 @@ if(isset($out['error']))$out['error_counts'][$out['error']]=($out['error_counts'
 $out['budget_overrun_seconds']=max(0,$out['duration_seconds']-($out['budget_seconds']??480));
 if($nightly&&($out['ok']??false)!==true)$out['nightly_cycle_completed']=false;
 hook_output_and_exit($out,$lock??null);
+
