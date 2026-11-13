@@ -4116,16 +4116,17 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $reta
 
     // Use the already-read original three-case frame, not the earlier size-only proof stub.
     // Preserve the18500 financial baseline before adding the unchanged59/23 roster and native metadata.
+    $nativeBytes=static fn(array $v):int=>strlen(json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
     $nativeFixtures=ForecastV1ObservedStatement::$nativePresentationFixtures;
     if($nativeFixtures===null)throw new RuntimeException('native_pressure_fixture_missing');
     $nativeBase=$contextual;
     unset($nativeBase['value_delivery']['repair_assessments']['processing_frontier'],$nativeBase['value_delivery']['repair_assessments']['retained_identity']);
     $nativeBase['value_delivery']['repair_assessments']['finite_visit_evidence']=$nativeFixtures['original'];
     $nativeBase['value_delivery']['fixed_output_fixture']='';
-    $nativeFixed=$size($nativeBase['value_delivery']);
+    $nativeFixed=$nativeBytes($nativeBase['value_delivery']);
     if($nativeFixed>18500)throw new RuntimeException('native_financial_fixture_too_large');
     $nativeBase['value_delivery']['fixed_output_fixture']=str_repeat('f',18500-$nativeFixed);
-    $nativeFinancialBytes=$size($nativeBase['value_delivery']);
+    $nativeFinancialBytes=$nativeBytes($nativeBase['value_delivery']);
     $nativeBase['remaining_context_fixture']=['fixture'=>''];
     $nativeBase['value_delivery']['repair_assessments']['processing_frontier']=$r;
     $nativeOmitted=['available'=>false,'reason'=>'response_budget','provider_requests_in_reader'=>0,'financial_permission'=>false];
@@ -4145,24 +4146,24 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $reta
     };
     foreach([27335,27337]as$targetBytes){
         $nativePressure=$nativeBaseline;$nativePressure['native_pressure_padding']='';
-        $nativePad=$targetBytes-$size($nativePressure);
+        $nativePad=$targetBytes-$nativeBytes($nativePressure);
         if($nativePad<0)throw new RuntimeException('native_pressure_target_below_financial_fixture');
         $nativePressure['native_pressure_padding']=str_repeat('x',$nativePad);
         $markerBaseline=$nativePressure;
         $nativePressure['value_delivery']['repair_assessments']['retained_native_identity_evidence']=$nativeFull;
         $nativeSafe=$bound->invoke($projection,$nativePressure);
         $check('whole response native replacement fits live-shaped envelope without altering59/23 money or any original proof '.$targetBytes,
-            $nativeFinancialBytes===18500&&$size($markerBaseline)===$targetBytes&&$size($nativeOmitted)===107
-            &&$size($nativePressure)>28000&&$size($nativeSafe)<=28000&&$size($nativeCompact)<=768
-            &&$size($nativeSafe)===$targetBytes-$size($nativeOmitted)+$size($nativeCompact)
+            $nativeFinancialBytes===18500&&$nativeBytes($markerBaseline)===$targetBytes&&$nativeBytes($nativeOmitted)===107
+            &&$nativeBytes($nativePressure)>28000&&$nativeBytes($nativeSafe)<=28000&&$nativeBytes($nativeCompact)<=768
+            &&$nativeBytes($nativeSafe)===$targetBytes-$nativeBytes($nativeOmitted)+$nativeBytes($nativeCompact)
             &&$nativeSafe['value_delivery']['repair_assessments']['retained_native_identity_evidence']===$nativeCompact
             &&$nativePreserved($nativeSafe,$markerBaseline));
         $nativeTooTight=$nativePressure;
-        $nativeTooTight['native_pressure_padding'].=str_repeat('x',28001-$size($nativeSafe));
+        $nativeTooTight['native_pressure_padding'].=str_repeat('x',28001-$nativeBytes($nativeSafe));
         $nativeTightSafe=$bound->invoke($projection,$nativeTooTight);
         $check('whole response one byte beyond native replacement budget keeps an explicit omission and all financial evidence '.$targetBytes,
-            $size($nativeTooTight)-$size($nativeFull)+$size($nativeCompact)===28001
-            &&$size($nativeTightSafe)<=28000
+            $nativeBytes($nativeTooTight)-$nativeBytes($nativeFull)+$nativeBytes($nativeCompact)===28001
+            &&$nativeBytes($nativeTightSafe)<=28000
             &&$nativeTightSafe['value_delivery']['repair_assessments']['retained_native_identity_evidence']===$nativeOmitted
             &&$nativePreserved($nativeTightSafe,$markerBaseline));
         $unknownNative=$markerBaseline;
@@ -4170,14 +4171,14 @@ function forecastProcessingFrontierAssertions(PDO $p,callable $check,array $reta
         $unknownNativeSafe=$bound->invoke($projection,$unknownNative);
         $check('a feasible existing budget refusal is preserved exactly without implying that the native point SELECT ran '.$targetBytes,
             $unknownNativeSafe['value_delivery']['repair_assessments']['retained_native_identity_evidence']===$nativeFixtures['budget']
-            &&$size($unknownNativeSafe)<=28000&&$nativePreserved($unknownNativeSafe,$markerBaseline));
+            &&$nativeBytes($unknownNativeSafe)<=28000&&$nativePreserved($unknownNativeSafe,$markerBaseline));
         $unboundNative=$nativePressure;
         $unboundNative['value_delivery']['repair_assessments']['finite_visit_evidence']['available']=false;
         $unboundNativeSafe=$bound->invoke($projection,$unboundNative);
         $unboundResult=$unboundNativeSafe['value_delivery']['repair_assessments']['retained_native_identity_evidence'];
         $check('response pressure never restores a candidate after losing the original frame '.$targetBytes,
             !$unboundResult['available']&&$unboundResult['reason']==='original_current_binding_unavailable'
-            &&!isset($unboundResult['candidate_sha256'])&&$size($unboundNativeSafe)<=28000
+            &&!isset($unboundResult['candidate_sha256'])&&$nativeBytes($unboundNativeSafe)<=28000
             &&$unboundNativeSafe['value_delivery']['repair_assessments']['processing_frontier']===$r
             &&$unboundNativeSafe['value_delivery']['by_state']===$markerBaseline['value_delivery']['by_state']);
     }
