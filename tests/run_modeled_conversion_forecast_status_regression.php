@@ -13,6 +13,7 @@ require_once dirname(__DIR__).'/services/ModeledConversionRetainedTrackerIdentit
 require_once dirname(__DIR__).'/services/MaxTrackerLookupRepository.php';
 require_once dirname(__DIR__).'/services/ModeledConversionValueExport.php';
 require_once __DIR__.'/support/archive-predictive-model.php';
+require_once __DIR__.'/support/forecast-primary-source.php';
 
 final class ForecastV1ObservedStatement extends PDOStatement
 {
@@ -879,6 +880,7 @@ function forecastV1Assertions(PDO $p,callable $check):void
     forecastInputDiagnosisAssertions($p,$check);
     forecastPredictiveValueAssertions($p,$check);
     forecastRetainedTrackerTickAssertions($p,$check);
+    forecastPrimarySourceAssertions($p,$check);
 }
 
 function forecastInputDiagnosisAssertions(PDO $p,callable $check):void

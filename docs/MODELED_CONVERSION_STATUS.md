@@ -1026,3 +1026,46 @@ authorization rules remain. The one-core-packet priority and explicit omissions,
 20 metadata/four packets/48KiB packet-copy, 64KiB shared, 30000-byte result and
 five-second limits are unchanged. There is no new query, model call, provider
 request, capture, reservation, upload, replay or mutation of saved values.
+
+
+## Exact existing primary traffic review
+
+The existing tool accepts the optional literal object
+`{"primary_source_review":true}`. It is mutually exclusive with
+`receipt_ref` and uses the same existing `forecasts:read` authorization.
+The default forecast result and the saved-receipt branch are unchanged.
+
+This separate read-only branch validates the saved original three-event frame,
+its namespace and checkpoint, then reads exactly those three outbox primary
+keys and their scalar profile bindings. It does not call the default forecast
+reader, the Native point reader, the retained-app/source operations, Reports,
+or any sender. No current first-three cohort, profile body, transcript, secret,
+queue operation or financial admission is substituted.
+
+For each still-unaccepted original MAX row it inspects only the literal
+`traffic/<negative-external-user-id>.json` file under the application root.
+The filename is built as a string. It never calls the existing traffic getter
+because that getter may create the directory. All three source files together
+remain inside the shared five-second and 64KiB read budget; each file is bounded
+at8192bytes with an8193-byte overrun sentinel. Existing directory and file
+ownership, regular-file type, symlinks and before/open/after inode/device/size/
+mode/time metadata are checked. A changing file is UNKNOWN without a retry.
+
+The result is at most28000bytes. It exposes the original opaque event reference,
+case index, current-file digest and contextual locator, hashed Yclid hint,
+strict explicit-offset writer timestamp and pure payload-consistency flag.
+It returns no raw user ID, Yclid, ClientID, file path or start payload.
+
+This is a mutable latest metadata file, not an immutable click or visit ledger.
+`history_complete=false`, unknown first-save/enrichment clocks and
+`source_counter_binding=not_recorded_in_file` are explicit. A file written
+after the original signal, missing, malformed, oversize or changing remains an
+unknown historical source. A preserved Yclid paired with a later post payload
+is not attributed to a new advertising click. A Yclid is never interpreted as
+a ClientID or a proven Metrika visit.
+
+Every result retains `financial_permission=false`,
+`visit_linkage=not_checked` and zero provider/model/upload counts.
+No file, intent, marker, cache, event date, identity binding, money, read marker,
+schedule or customer message is changed. Any later financial use requires
+independent evidence and the canonical sender's existing safeguards.
