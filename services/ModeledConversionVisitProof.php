@@ -325,14 +325,17 @@ final class ModeledConversionVisitProof
         if(!is_dir($dir)&&!mkdir($dir,0700))throw new RuntimeException('verification_cache_directory');
         if((fileperms($dir)&0777)!==0700||fileowner($dir)!==posix_geteuid())throw new RuntimeException('verification_cache_permissions');
     }
-    public static function automatic(int $now):array
+    public static function automatic(int $now,?ModeledConversionStatusBudget $budget=null):array
     {
         $path=dirname(self::path()).'/automatic.json';
         if(is_link(dirname($path))||is_link($path)||!is_file($path))return ['available'=>false];
         $owner=fileowner(__FILE__);$size=filesize($path);
         if((fileperms(dirname($path))&0777)!==0700||(fileperms($path)&0777)!==0600
             ||fileowner(dirname($path))!==$owner||fileowner($path)!==$owner||!is_int($size)||$size>4096)return ['available'=>false];
-        try{$d=json_decode((string)file_get_contents($path),true,8,JSON_THROW_ON_ERROR);}catch(JsonException $ignored){return ['available'=>false];}
+        if($budget!==null&&$size+4096>$budget->remainingBytes())return ['available'=>false,'reason'=>'budget_headroom'];
+        $raw=file_get_contents($path);if(!is_string($raw)||strlen($raw)!==$size)return ['available'=>false];
+        if($budget!==null)$budget->consumeBytes(strlen($raw));
+        try{$d=json_decode($raw,true,8,JSON_THROW_ON_ERROR);}catch(JsonException $ignored){return ['available'=>false];}
         if(($d['origin']??null)!=='server_cron'||!in_array($d['status']??null,['running','ok','failed'],true)
             ||!is_int($d['attempt_unix']??null)||$d['attempt_unix']<946684800||$d['attempt_unix']>$now
             ||!is_int($d['success_unix']??null)||$d['success_unix']<0||$d['success_unix']>$now
@@ -638,9 +641,9 @@ final class ModeledConversionVisitProof
 
     public static function privateSummary(int $now,ModeledConversionStatusBudget $budget):array
     {
-        $c=self::readCache($now,$budget);if(($c['available']??false)!==true)return [...$c,'automatic'=>self::automatic($now)];
+        $c=self::readCache($now,$budget);if(($c['available']??false)!==true)return [...$c,'automatic'=>self::automatic($now,$budget)];
         $r=$c['receipt'];$out=['available'=>true,'fresh'=>$c['fresh'],'checked_at'=>$r['checked_at'],'checkpoint_at'=>$r['checkpoint_at'],
-            'goal_id'=>'678187097','currency'=>'RUB','current_attribution_policy'=>ModeledConversionAttributionWindow::metadata(),'basis'=>$r['basis'],'automatic'=>self::automatic($now),
+            'goal_id'=>'678187097','currency'=>'RUB','current_attribution_policy'=>ModeledConversionAttributionWindow::metadata(),'basis'=>$r['basis'],'automatic'=>self::automatic($now,$budget),
             'selected_rows'=>$r['selected_rows'],'other_rows_omitted'=>$r['other_rows_omitted'],
             'today_sent_cohort'=>self::dailySummary($r['today_sent_cohort']??null,$now),
             'yesterday_sent_cohort'=>self::dailySummary($r['yesterday_sent_cohort']??null,$now,self::previousDayReference($now)),

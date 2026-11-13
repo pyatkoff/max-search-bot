@@ -15,6 +15,8 @@ from pathlib import Path
 PROJECT = "anytour"
 COUNTER = "98615635"
 DOMAIN = b"anytour-modeled-monitor-v1\0"
+LINKAGE_BASIS = "complete_saved_goal_linkage_failures_v1"
+LINKAGE_MAX = 2147483647
 STATUSES = {"ok", "off", "degraded", "unavailable"}
 FLAGS = {
     "delivery_tick_stale", "profile_tick_stale", "delivery_tick_errors",
@@ -23,7 +25,7 @@ FLAGS = {
     "storage_unavailable", "configuration_unavailable", "invalid_clock",
     "health_metadata_unavailable", "monitor_transport_unavailable", "monitor_source_mismatch",
     "pipeline_checker_stale", "pipeline_checker_notification_unknown",
-    "visit_proof_stale", "visit_proof_refresh_failed",
+    "visit_proof_stale", "visit_proof_refresh_failed", "linkage_failures_increased",
 }
 ID_RE = re.compile(r"[1-9][0-9]{0,19}\Z")
 TOKEN_RE = re.compile(r"[1-9][0-9]{4,19}:[A-Za-z0-9_-]{30,100}\Z")
@@ -60,6 +62,37 @@ def clean_flags(flags):
         raise ValueError("invalid_flags")
     return sorted(set(flags))
 
+def linkage_snapshot(value):
+    fields = {"basis", "goal_id", "transport_target", "value_contract", "complete", "events"}
+    if not isinstance(value, dict) or set(value) != fields \
+            or value["basis"] != LINKAGE_BASIS or value["goal_id"] != "678187097" \
+            or value["transport_target"] != "anytour_modeled_value_v1" \
+            or value["value_contract"] != "semantic_stage_value_25000_v1" \
+            or value["complete"] is not True or type(value["events"]) is not int \
+            or not 0 <= value["events"] <= LINKAGE_MAX:
+        raise ValueError("invalid_linkage_snapshot")
+    return dict(value)
+
+
+def observe_linkage(health, state, now, status, flags):
+    """First complete count is a quiet historical baseline, never a provider event date."""
+    if status not in {"ok", "degraded"}:
+        return status, flags
+    previous = state.get("linkage_seen")
+    if previous is None and "linkage_failures" not in health:
+        return status, flags  # Preserve older health suppliers and existing monitor state.
+    try:
+        count = linkage_snapshot(health.get("linkage_failures"))["events"]
+        if previous is not None and (count < previous["events"] or now < previous["observed_at"]):
+            raise ValueError("linkage_baseline_regressed")
+    except (KeyError, TypeError, ValueError):
+        return "unavailable", clean_flags([*flags, "health_metadata_unavailable"])
+    state["linkage_seen"] = {"basis": LINKAGE_BASIS, "events": count, "observed_at": now}
+    if previous is not None and count > previous["events"]:
+        return "degraded", clean_flags([*flags, "linkage_failures_increased"])
+    return status, flags
+
+
 def fingerprint(status, flags):
     return hashlib.sha256(canonical_bytes([status, clean_flags(flags)])).hexdigest()
 
@@ -70,6 +103,13 @@ def validate_state(state):
         raise ValueError("invalid_cache")
     if "role" in state and (not isinstance(state["role"], str) or state["role"] not in {"legacy", "pipeline", "external"}):
         raise ValueError("invalid_cache_role")
+    if "linkage_seen" in state:
+        seen = state["linkage_seen"]
+        if state.get("role") != "pipeline" or not isinstance(seen, dict) \
+                or set(seen) != {"basis", "events", "observed_at"} or seen["basis"] != LINKAGE_BASIS \
+                or type(seen["events"]) is not int or not 0 <= seen["events"] <= LINKAGE_MAX \
+                or type(seen["observed_at"]) is not int or not 946684800 <= seen["observed_at"] <= 4102444800:
+            raise ValueError("invalid_linkage_baseline")
     incident = state.get("incident")
     if incident is not None:
         if not isinstance(incident, dict) or incident.get("status") not in ("degraded", "unavailable") or incident.get("fingerprint") != fingerprint(incident["status"], incident.get("flags")):
@@ -81,6 +121,9 @@ def validate_state(state):
         if pending.get("health_status") not in STATUSES:
             raise ValueError("invalid_intent")
         clean_flags(pending.get("flags"))
+        if "linkage_activity_recovered" in pending and (pending["linkage_activity_recovered"] is not True
+                or pending["kind"] != "recovery" or state.get("role") != "pipeline"):
+            raise ValueError("invalid_linkage_recovery")
         if not re.fullmatch(r"[0-9a-f]{32}", str(pending.get("intent_id", ""))) or not re.fullmatch(r"[1-9][0-9]*", str(pending.get("owner_run", ""))):
             raise ValueError("invalid_intent")
 
@@ -192,6 +235,9 @@ def prepare(health, route, state, recipient, wire, run_id, bootstrap=False, now=
             out["ok"] = False
             return state, out
         state["verified"] = True
+    if role == "pipeline" and state["initialized"]:
+        status, flags = observe_linkage(health, state, now, status, flags)
+        role_guard(state, role, flags)
     if not state["initialized"]:
         kind = "bootstrap"
     elif status == "off":
@@ -209,6 +255,8 @@ def prepare(health, route, state, recipient, wire, run_id, bootstrap=False, now=
     state["pending"] = {"intent_id": uuid.uuid4().hex, "owner_run": str(run_id), "kind": kind,
                         "state": "prepared", "prepared_at": now, "health_status": status,
                         "flags": flags, "fingerprint": fingerprint(status, flags)}
+    if kind == "recovery" and role == "pipeline" and "linkage_failures_increased" in state["incident"]["flags"]:
+        state["pending"]["linkage_activity_recovered"] = True
     return state, result(status, flags, prepared=True)
 
 def message_for(pending, role=None):
@@ -216,6 +264,8 @@ def message_for(pending, role=None):
         return "AnyTour: мониторинг подключён. Проверка доставки уведомлений."
     if pending["kind"] == "recovery":
         if role == "pipeline":
+            if pending.get("linkage_activity_recovered") is True:
+                return "AnyTour: текущие проверки доставки проходят; новых отказов привязки не наблюдалось. Ранее отклонённые начисления сохранены в реестре."
             return "AnyTour: обработка конверсий — работа восстановлена."
         if role == "external":
             return "AnyTour: внешний контроль — работа восстановлена."
@@ -231,6 +281,7 @@ def message_for(pending, role=None):
         "ready_queue_stale": "Готовые начисления ожидают отправки более двух циклов.",
         "upload_outcome_unknown": "Результат отправки в Метрику остаётся неподтверждённым.",
         "api_row_rejected": "Обнаружено начисление с ошибкой обработки.",
+        "linkage_failures_increased": "После предыдущего полного среза выросло число сохранённых отказов привязки к визитам.",
         "report_unavailable": "Отчёт Метрики недоступен более 15 минут.",
         "storage_unavailable": "Не удалось прочитать состояние обработки.",
         "configuration_unavailable": "Не удалось проверить настройки мониторинга.",

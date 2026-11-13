@@ -12,7 +12,7 @@ final class ModeledConversionStatusMcpAdapter
     {
         $security=[['type'=>'oauth2','scopes'=>[ManagerPreparationOAuth::FORECAST_SCOPE]]];
         return [['name'=>self::NAME,
-            'description'=>'Without arguments, read a bounded private aggregate check of already saved AnyTour V1 contextual purchase hypotheses and later payment-evidence comparisons. Checks immutable derived profile snapshots, fixed scalar input-omission diagnosis over at most100 saved versions with at most8 anonymous distinct-case summaries, fixed goal678187097 value-delivery aggregates cached Metrika goal-session totals and a saved anonymous per-event visit reconciliation cohort, not customer transcripts. With primary_source_review:true, read only the three frozen original-event bindings and their existing latest MAX traffic files; no Native or provider query, financial permission or history completeness is implied. With receipt_ref, read only one bounded primary saved-ledger outcome for that opaque receipt; no native IDs or money are returned. No live external API request occurs in this read. Coverage is limited to the reported window; an idle latest tick is not proof that no forecast was saved. Read-only: no capture, manual tick, customer send, source/read-marker change, model call or advertising export.',
+            'description'=>'Without arguments, read bounded private operational delivery status: complete Moscow-day accrual, API-receipt and processing-observation aggregates for MAX and Telegram using the existing owner reconciliation scope, saved processing state and monitor health. The separate recent ledger suffix is explicitly bounded and is not a daily total. Historical repair and Native source readers are not executed in this default view. With primary_source_review:true, read only the three frozen original-event bindings and their existing latest MAX traffic files; no Native or provider query, financial permission or history completeness is implied. With receipt_ref, read only one bounded primary saved-ledger outcome for that opaque receipt; no native IDs or money are returned. No live external API request occurs in this read. Coverage is limited to the reported window; an idle latest tick is not proof that no forecast was saved. Read-only: no capture, manual tick, customer send, source/read-marker change, model call or advertising export.',
             'inputSchema'=>['type'=>'object','properties'=>['receipt_ref'=>['type'=>'string','pattern'=>'^[a-f0-9]{64}$',
                 'description'=>'Optional opaque receipt reference already returned by this private status. Reads only its saved primary ledger result; never polls or sends.'],
                 'primary_source_review'=>['type'=>'boolean','const'=>true,'description'=>'Inspect only the existing latest traffic files for the three frozen original events; mutually exclusive with receipt_ref. Read-only hints, no provider query or financial admission.']],'additionalProperties'=>false],
@@ -40,7 +40,7 @@ final class ModeledConversionStatusMcpAdapter
         }else{
             require_once __DIR__.'/ModeledConversionForecastStatusReader.php';
             $reader=$this->store??new ModeledConversionForecastStatusReader($this->pdo,$authorize,$budget);
-            $result=$reader->read();
+            $result=$reader->readOperational();
         }
         $budget->check();$authorize();$budget->check();
         if(!is_array($result)||array_is_list($result)

@@ -108,6 +108,7 @@ function deliveryMoscowMidnightAssertions(PDO $p,callable $check):void
 }
 function deliveryHealthAssertions(PDO $p,callable $check):void
 {
+    deliveryLinkageObservationAssertions($p,$check);
     deliveryHealthPriceCorrectionAssertions($p,$check);
     $now=1793700000;deliveryObservationFixture($p,$now);
     $h=static fn():array=>ModeledConversionDeliveryHealth::collect($p,$now);
@@ -134,6 +135,60 @@ function deliveryHealthAssertions(PDO $p,callable $check):void
     $p->exec("UPDATE modeled_conversion_value_export_settings SET mode='off'");
     $check('explicit disabled mode does not report stopped cron',$h()['status']==='off'&&$h()['flags']===[]);
 }
+/** Complete saved rejection scope; never a provider call or a rewritten outcome. */
+function deliveryLinkageObservationAssertions(PDO $p,callable $check):void
+{
+    $now=1793700000;deliveryObservationFixture($p,$now);
+    $h=static fn():array=>ModeledConversionDeliveryHealth::collect($p,$now);
+    $snapshot=static function()use($p):string{
+        $out=[];foreach(['max_channel_conversion_outbox','modeled_conversion_value_export_settings']as$table){
+            $q=$p->query('SELECT * FROM '.$table.' ORDER BY '.($table==='max_channel_conversion_outbox'?'id':'project_key'));
+            $out[$table]=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
+        }return json_encode($out,JSON_THROW_ON_ERROR);
+    };
+    $zero=$h();
+    $check('complete saved linkage count starts at a proven zero rather than an unavailable projection',
+        $zero['status']==='ok'&&$zero['linkage_failures']===['basis'=>'complete_saved_goal_linkage_failures_v1','goal_id'=>'678187097',
+            'transport_target'=>'anytour_modeled_value_v1','value_contract'=>'semantic_stage_value_25000_v1','complete'=>true,'events'=>0]);
+    deliveryObservationInsert($p,['id'=>1,'state'=>'unmatched','upload_status'=>'LINKAGE_FAILURE']);
+    foreach([
+        ['project_key'=>'foreign'],['project_key'=>'anytour '],['counter_id'=>'98615636'],['counter_id'=>'98615635 '],
+        ['transport_target'=>'anytour_modeled_value_v1 '],['value_contract'=>'semantic_stage_value_25000_v1 '],
+        ['state'=>'unmatched '],['upload_status'=>'LINKAGE_FAILURE '],['state'=>'accepted'],['upload_status'=>'UPLOADED'],
+    ]as$i=>$different)deliveryObservationInsert($p,array_replace(['id'=>2+$i,'state'=>'unmatched','upload_status'=>'LINKAGE_FAILURE'],$different));
+    $before=$snapshot();$one=$h();
+    $check('saved linkage count is byte-exact to project counter wire goal contract state and provider status',
+        $one['status']==='ok'&&$one['linkage_failures']['events']===1&&$one['linkage_failures']['complete']===true
+        &&$snapshot()===$before);
+    deliveryObservationInsert($p,['id'=>30,'state'=>'accepted','upload_id'=>'5030','value_api_accepted_at_unix'=>$now-86400]);
+    $q=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=30');$old=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+    (new MaxChannelConversionOutbox($p))->status($old,['id'=>'5030','status'=>'LINKAGE_FAILURE'],$now);
+    $two=$h();
+    $check('a newly observed terminal rejection of an old accepted upload is included without guessing its provider failure date',
+        $two['linkage_failures']['events']===2
+        &&!array_key_exists('rejected_at',$two['linkage_failures'])&&!array_key_exists('last_failure_at',$two['linkage_failures']));
+    for($id=41;$id<=250;$id++)deliveryObservationInsert($p,['id'=>$id,'state'=>'unmatched','upload_status'=>'LINKAGE_FAILURE']);
+    $before=$snapshot();$full=$h();
+    $check('linkage rejection baseline is a complete goal count beyond the moving201 rows with no identity or money packet',
+        $full['linkage_failures']['events']===212&&$full['linkage_failures']['complete']===true
+        &&!str_contains(json_encode($full['linkage_failures'],JSON_THROW_ON_ERROR),'70001')
+        &&!array_key_exists('value_rub',$full['linkage_failures'])&&$snapshot()===$before);
+    foreach(['project','counter','goal']as$changed){
+        try{
+            if($changed==='project')$p->exec("UPDATE modeled_conversion_value_export_settings SET project_key='anytour '");
+            elseif($changed==='counter')$p->exec("UPDATE modeled_conversion_value_export_settings SET counter_id='98615635 '");
+            else$p->exec("UPDATE modeled_conversion_value_export_settings SET goal_id='678187098'");
+            $bad=$h();$check('unavailable exact settings never supply zero rejection history '.$changed,
+                $bad['status']==='unavailable'&&$bad['linkage_failures']===null);
+        }finally{$p->exec("UPDATE modeled_conversion_value_export_settings SET project_key='anytour',counter_id='98615635',goal_id='678187097'");}
+    }
+    $method=new ReflectionMethod(ModeledConversionDeliveryHealth::class,'boundedCount');
+    foreach([null,true,-1,'01','1.5','2147483648',2147483648]as$bad){
+        $rejected=false;try{$method->invoke(null,$bad);}catch(UnexpectedValueException $ignored){$rejected=true;}
+        $check('invalid or excessive saved rejection counts remain unknown '.get_debug_type($bad),$rejected);
+    }
+}
+
 function deliveryHealthPriceCorrectionAssertions(PDO $p,callable $check):void
 {
     $now=1793700000;deliveryObservationFixture($p,$now);$scope=modeledValueBinding($p,1201);

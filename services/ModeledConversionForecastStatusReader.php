@@ -10,6 +10,7 @@ require_once __DIR__.'/ModeledConversionDailyDeliveryReader.php';
 require_once __DIR__.'/ModeledConversionDeliveryHealth.php';
 require_once __DIR__.'/ModeledConversionDealValue.php';
 require_once __DIR__.'/ModeledConversionVisitProof.php';
+require_once __DIR__.'/ModeledConversionDailyReconciliationReader.php';
 
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
@@ -28,6 +29,78 @@ final class ModeledConversionForecastStatusReader
     private int $copied=0;
     public function __construct(private PDO $pdo,private $authorize,private ModeledConversionStatusBudget $budget)
     {$this->mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';}
+
+    /**
+     * Existing MCP default: current Moscow-day movement and monitor health first.
+     * Historical detailed readers remain explicit internal audits and are not executed here.
+     */
+    public function readOperational(?int $now=null):array
+    {
+        $now??=time();$entryRemaining=$this->budget->remainingMilliseconds();$this->auth();
+        if($now<946684800||$now>time())return $this->unavailable('invalid_clock');
+        if($this->pdo->inTransaction())return $this->unavailable('outer_transaction');
+        try{
+            return $this->budget->withReservedBytes(self::RELEASE_RESERVE,function()use($now,$entryRemaining):array{
+                $out=['available'=>true,'reader_version'=>self::VERSION,'view'=>'operational_delivery_v1',
+                    'checked_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),'timezone'=>'Europe/Moscow',
+                    'model_version'=>ModeledConversionSemanticPrediction::VERSION,
+                    'confirmation'=>'saved_processing_state_not_semantic_validation',
+                    'state'=>$this->state(),
+                    'interpretation'=>['daily_totals_use_exact_current_owner_scope'=>true,
+                        'bounded_ledger_suffix_is_not_a_daily_total'=>true,
+                        'receipt_and_processing_are_not_individual_visit_linkage'=>true,
+                        'idle_tick_does_not_mean_no_saved_forecasts'=>true,
+                        'historical_audits_not_executed'=>true],
+                    'limits'=>['max_selected_bytes'=>65536,'max_execution_seconds'=>5,'max_response_bytes'=>28000],
+                    'provider_requests_in_reader'=>0,'model_calls'=>0,'conversion_uploads'=>0,
+                    'read_budget'=>['basis'=>'shared_budget_v1','remaining_ms'=>['reader_entry'=>$entryRemaining]]];
+                $out['daily_reconciliation']=$this->optionalRead(fn():array=>
+                    (new ModeledConversionDailyReconciliationReader($this->pdo,$this->authorize,null,$this->budget))->read([],$now));
+                $out['read_budget']['remaining_ms']['daily_reconciliation']=$this->budget->remainingMilliseconds();
+                $out['external_monitor']=$this->optionalRead(fn():array=>
+                    ModeledConversionDeliveryHealth::externalStatus($this->budget,$this->authorize,$now));
+                $out['value_delivery']=$this->optionalRead(fn():array=>
+                    (new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read($now,false));
+                $out['read_budget']['remaining_ms']['value_delivery']=$this->budget->remainingMilliseconds();
+                $out['today_latency']=$this->optionalRead(fn():array=>
+                    (new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read($now));
+                $out['telegram_linkage']=$this->optionalRead(fn():array=>
+                    (new ModeledConversionTelegramLinkageReader($this->pdo,$this->authorize,$this->budget))->read($now));
+                $out['visit_delivery_check']=$this->optionalRead(fn():array=>ModeledConversionVisitProof::privateSummary($now,$this->budget));
+                $out['read_budget']['remaining_ms']['optional_views']=$this->budget->remainingMilliseconds();
+                $out=$this->boundedOperationalResponse($out);$this->auth();return$out;
+            });
+        }catch(ModeledConversionStatusLimit|DomainException $error){throw$error;}
+        catch(PDOException $ignored){return$this->unavailable('storage_unavailable');}
+    }
+    private function boundedOperationalResponse(array $out):array
+    {
+        $bytes=static fn(array $v):int=>strlen(json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        foreach([['visit_delivery_check','followup_sent_cohort','failure_examples'],['visit_delivery_check','examples']]as$path){
+            if(count($path)===3){
+                while($bytes($out)>28000&&!empty($out[$path[0]][$path[1]][$path[2]])){
+                    array_pop($out[$path[0]][$path[1]][$path[2]]);
+                    $out[$path[0]][$path[1]]['examples_omitted_due_to_response_budget']=true;
+                }
+            }else{
+                while($bytes($out)>28000&&!empty($out[$path[0]][$path[1]])){
+                    array_pop($out[$path[0]][$path[1]]);
+                    $out[$path[0]]['examples_omitted_due_to_response_budget']=true;
+                }
+            }
+        }
+        foreach(['telegram_linkage','today_latency','visit_delivery_check']as$key){
+            if($bytes($out)<=28000)break;
+            $automatic=$key==='visit_delivery_check'?($out[$key]['automatic']??null):null;
+            $out[$key]=['available'=>false,'reason'=>'response_budget'];
+            if(is_array($automatic))$out[$key]['automatic']=$automatic;
+        }
+        foreach(['historical_review','price_continuity_audit']as$key)
+            if($bytes($out)>28000&&isset($out['value_delivery'][$key]))
+                $out['value_delivery'][$key]=['available'=>false,'reason'=>'response_budget'];
+        if($bytes($out)>28000)throw new ModeledConversionStatusLimit('byte_limit');
+        return$out;
+    }
 
     public function read():array
     {

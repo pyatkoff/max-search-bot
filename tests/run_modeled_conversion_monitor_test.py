@@ -27,6 +27,13 @@ ROUTE = {"schema_version": 1, "project": "anytour", "counter_id": "98615635", "t
 def health(status="ok", flags=None):
     return {"schema_version": 1, "project": "anytour", "counter_id": "98615635", "status": status, "flags": flags or []}
 
+def linkage_health(count):
+    return {**health(), "linkage_failures": {
+        "basis": monitor.LINKAGE_BASIS, "goal_id": "678187097",
+        "transport_target": "anytour_modeled_value_v1",
+        "value_contract": "semantic_stage_value_25000_v1", "complete": True, "events": count}}
+
+
 class Wire:
     def __init__(self):
         self.calls = []
@@ -225,6 +232,38 @@ class RuntimeTests(unittest.TestCase):
                                    env=env, capture_output=True, text=True, timeout=5)
         self.assertEqual(completed.returncode, 0, completed.stderr[:500])
         self.assertEqual(completed.stdout.strip(), "stdlib-runtime-import-ok")
+
+    def test_linkage_baseline_and_new_failure_intent_are_durable_before_notification(self):
+        first = self.runtime(linkage_health(3)).cycle()
+        self.assertEqual(first["notification"], "quiet")
+        self.assertEqual(self.saved()["linkage_seen"]["events"], 3)
+        self.assertEqual(self.wire.posts(), 0)
+        def before_send():
+            retained = self.saved()
+            self.assertEqual(retained["linkage_seen"]["events"], 4)
+            self.assertEqual(retained["pending"]["state"], "sending")
+            self.assertEqual(retained["pending"]["flags"], ["linkage_failures_increased"])
+        self.wire.before_send = before_send
+        failure = self.runtime(linkage_health(4), clock=lambda: self.NOW + 300).cycle()
+        self.assertTrue(failure["ok"])
+        self.assertEqual(failure["notification"], "sent")
+        self.assertEqual(self.wire.posts(), 1)
+        self.assertEqual(self.saved()["linkage_seen"]["events"], 4)
+
+    def test_lost_linkage_notification_ack_is_not_retried_and_keeps_old_state(self):
+        self.runtime(linkage_health(3)).cycle()
+        self.wire.lose_send_response = True
+        failed = self.runtime(linkage_health(4), clock=lambda: self.NOW + 300).cycle()
+        retained = self.saved()
+        self.assertEqual(failed["notification"], "unknown")
+        self.assertEqual(retained["pending"]["state"], "unknown")
+        self.assertEqual(retained["linkage_seen"]["events"], 4)
+        before = self.wire.posts()
+        again = self.runtime(linkage_health(5), clock=lambda: self.NOW + 600).cycle()
+        self.assertEqual(again["notification"], "unknown")
+        self.assertEqual(self.wire.posts(), before)
+        self.assertEqual(self.saved()["linkage_seen"], retained["linkage_seen"])
+        self.assertEqual(self.saved()["pending"]["intent_id"], retained["pending"]["intent_id"])
 
     def test_quiet_preserves_state_and_last_notification(self):
         before = (self.directory / durable_runtime.STATE_FILE).read_bytes()
@@ -501,6 +540,114 @@ def typed_fixture_state(role):
             "incident": None, "pending": None, "role": role,
             "last_notification": {"kind": "bootstrap", "intent_id": "a" * 32, "message_id": 7, "confirmed_at": 1793699900}}
 
+class LinkageObservationTests(unittest.TestCase):
+    NOW = 1793700000
+
+    def setUp(self):
+        self.state = typed_fixture_state("pipeline")
+        self.wire = Wire()
+        self.saved = []
+
+    def cycle(self, state, observed, run="501", offset=0):
+        state, result = monitor.prepare(observed, None, state, RECIPIENT, self.wire, run,
+                                        now=self.NOW + offset, role="pipeline")
+        self.saved.append(copy.deepcopy(state))
+        if result["intent_prepared"]:
+            state, result = monitor.send(state, RECIPIENT, self.wire,
+                                          lambda value: self.saved.append(copy.deepcopy(value)),
+                                          run, True, now=self.NOW + offset + 1, role="pipeline")
+        return state, result
+
+    def test_history_is_quiet_then_increase_alerts_and_unchanged_means_no_new_observations(self):
+        notification = copy.deepcopy(self.state["last_notification"])
+        state, result = self.cycle(self.state, linkage_health(3))
+        self.assertEqual(result["notification"], "quiet")
+        self.assertEqual(state["last_notification"], notification)
+        self.assertEqual(state["linkage_seen"], {"basis": monitor.LINKAGE_BASIS, "events": 3, "observed_at": self.NOW})
+        self.assertEqual(self.wire.calls, [])
+        state, result = self.cycle(state, linkage_health(4), "502", 300)
+        self.assertEqual(result["flags"], ["linkage_failures_increased"])
+        self.assertEqual(result["notification"], "sent")
+        self.assertEqual(state["linkage_seen"]["events"], 4)
+        self.assertEqual(self.wire.posts(), 1)
+        self.assertIn("сохранённых отказов", self.wire.calls[-1][2]["text"])
+        self.assertIsNone(state["pending"])
+        state, result = self.cycle(state, linkage_health(4), "503", 600)
+        self.assertEqual(result["notification"], "sent")
+        self.assertIsNone(state["incident"])
+        text = self.wire.calls[-1][2]["text"]
+        self.assertIn("новых отказов привязки не наблюдалось", text)
+        self.assertIn("Ранее отклонённые начисления сохранены", text)
+        self.assertNotIn("восстановлена", text)
+        state, result = self.cycle(state, linkage_health(4), "504", 900)
+        self.assertEqual(result["notification"], "quiet")
+        self.assertEqual(self.wire.posts(), 2)
+
+    def test_continuing_increases_share_one_incident_without_resetting_seen_history(self):
+        state, _ = self.cycle(self.state, linkage_health(1))
+        state, _ = self.cycle(state, linkage_health(2), "502", 300)
+        state, result = self.cycle(state, linkage_health(3), "503", 600)
+        self.assertEqual(result["status"], "degraded")
+        self.assertEqual(result["notification"], "quiet")
+        self.assertEqual(self.wire.posts(), 1)
+        self.assertEqual(state["linkage_seen"]["events"], 3)
+        self.assertEqual(state["recipient"], self.state["recipient"])
+        self.assertEqual(state["token"], self.state["token"])
+
+    def test_decrease_missing_or_incomplete_snapshot_never_rebases_to_zero(self):
+        state, _ = self.cycle(self.state, linkage_health(3))
+        previous = copy.deepcopy(state["linkage_seen"])
+        cases = [health(), linkage_health(2)]
+        for field, value in (("events", None), ("events", True), ("events", -1),
+                             ("events", "4"), ("events", 2147483648), ("complete", False),
+                             ("goal_id", "678187098"), ("transport_target", "foreign"),
+                             ("value_contract", "foreign"), ("basis", "foreign")):
+            bad = linkage_health(4)
+            bad["linkage_failures"][field] = value
+            cases.append(bad)
+        for observed in cases:
+            with self.subTest(observed=observed):
+                changed, result = monitor.prepare(observed, None, state, RECIPIENT, self.wire, "502",
+                                                  now=self.NOW + 300, role="pipeline")
+                self.assertEqual(result["status"], "unavailable")
+                self.assertIn("health_metadata_unavailable", result["flags"])
+                self.assertEqual(changed["linkage_seen"], previous)
+        unavailable, result = monitor.prepare(health("unavailable", ["storage_unavailable"]), None, state,
+                                               RECIPIENT, self.wire, "503", now=self.NOW + 600, role="pipeline")
+        self.assertEqual(unavailable["linkage_seen"], previous)
+        self.assertEqual(result["flags"], ["storage_unavailable"])
+        off, result = monitor.prepare(health("off"), None, state, RECIPIENT, self.wire, "504",
+                                       now=self.NOW + 900, role="pipeline")
+        self.assertEqual(off["linkage_seen"], previous)
+        self.assertEqual(result["notification"], "quiet")
+
+    def test_pending_unknown_preserves_the_consumed_intent_and_does_not_advance_baseline(self):
+        state, _ = self.cycle(self.state, linkage_health(3))
+        state, result = monitor.prepare(linkage_health(4), None, state, RECIPIENT, self.wire, "502",
+                                         now=self.NOW + 300, role="pipeline")
+        original_intent = state["pending"]["intent_id"]
+        held, result = monitor.prepare(linkage_health(5), None, state, RECIPIENT, self.wire, "503",
+                                       now=self.NOW + 600, role="pipeline")
+        self.assertEqual(result["notification"], "unknown")
+        self.assertEqual(held["pending"]["intent_id"], original_intent)
+        self.assertEqual(held["linkage_seen"]["events"], 4)
+        self.assertEqual(self.wire.posts(), 0)
+
+    def test_invalid_retained_baseline_is_not_silently_reinitialized(self):
+        state, _ = self.cycle(self.state, linkage_health(3))
+        for field, value in (("events", None), ("events", True), ("events", -1),
+                             ("basis", "foreign"), ("observed_at", None)):
+            bad = copy.deepcopy(state)
+            bad["linkage_seen"][field] = value
+            with self.subTest(field=field, value=value), self.assertRaises(ValueError):
+                monitor.prepare(linkage_health(4), None, bad, RECIPIENT, self.wire, "502",
+                                now=self.NOW + 300, role="pipeline")
+        reversed_clock, result = monitor.prepare(linkage_health(4), None, state, RECIPIENT, self.wire, "502",
+                                                  now=self.NOW - 1, role="pipeline")
+        self.assertEqual(result["status"], "unavailable")
+        self.assertEqual(reversed_clock["linkage_seen"], state["linkage_seen"])
+
+
 class RoleTests(unittest.TestCase):
     def test_role_flag_partitions_and_legacy_calls(self):
         wire = Wire()
@@ -723,6 +870,23 @@ class LocalCliTests(unittest.TestCase):
             self.assertNotIn("monitor_transport_unavailable", result["flags"])
             if code != 0 or "monitor_transport_unavailable" in payload["flags"]:
                 self.assertEqual(result["flags"], ["health_metadata_unavailable"])
+
+    def test_php_bridge_preserves_only_a_complete_typed_linkage_snapshot(self):
+        for complete in (True, False):
+            payload = linkage_health(3)
+            payload["linkage_failures"]["complete"] = complete
+            def run(command, **kwargs):
+                self.assertEqual(command, ["/usr/bin/php", "tools/modeled_conversion_monitor.php", "health"])
+                kwargs["stdout"].write(json.dumps(payload).encode())
+                return SimpleNamespace(returncode=0)
+            with mock.patch.object(local_monitor.subprocess, "run", side_effect=run):
+                observed = local_monitor.pipeline_health()
+            if complete:
+                self.assertEqual(observed["linkage_failures"], payload["linkage_failures"])
+            else:
+                self.assertEqual(observed["status"], "unavailable")
+                self.assertEqual(observed["flags"], ["health_metadata_unavailable"])
+                self.assertNotIn("linkage_failures", observed)
 
     def test_git_source_is_fixed_and_timed(self):
         with mock.patch.object(local_monitor.subprocess, "run", return_value=SimpleNamespace(returncode=0, stdout=b"a" * 40 + b"\n")) as run:

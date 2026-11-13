@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionValueContract.php';
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
+require_once __DIR__.'/ModeledConversionStatusBudget.php';
 
 /** Owner-only recorded-value reconciliation. SELECT-only; never sends or resolves identities. */
 final class ModeledConversionDailyReconciliationReader
@@ -13,7 +14,7 @@ final class ModeledConversionDailyReconciliationReader
     private $clock;
     private float $started;
     private int $bytes=0;
-    public function __construct(private PDO $pdo,private $authorize,?callable $monotonic=null)
+    public function __construct(private PDO $pdo,private $authorize,?callable $monotonic=null,private ?ModeledConversionStatusBudget $budget=null)
     {$this->clock=$monotonic??static fn():float=>microtime(true);}
     public function read(array $input,int $now):array
     {
@@ -130,7 +131,9 @@ final class ModeledConversionDailyReconciliationReader
                     'legacy_clock_is_unknown_not_claim_time'=>true,'historical_review_is_origin_not_delivery_day'=>true,
                     'current_binding_changes_can_change_historical_scope'=>true,'identity_is_stored_presence_not_a_new_attribution_check'=>true,
                     'no_ids_text_or_external_requests'=>true],
-                'limits'=>['seconds'=>self::MAX_SECONDS,'read_bytes'=>self::MAX_BYTES]]);
+                'limits'=>['seconds'=>$this->budget===null?self::MAX_SECONDS:5,
+                    'read_bytes'=>$this->budget===null?self::MAX_BYTES:ModeledConversionStatusBudget::MAX_BYTES,
+                    'shared_status_budget'=>$this->budget!==null]]);
         }catch(PDOException $ignored){
             if($own&&$this->pdo->inTransaction())$this->pdo->rollBack();
             return$this->done(['available'=>false,'reason'=>'storage_unavailable']);
@@ -149,7 +152,7 @@ final class ModeledConversionDailyReconciliationReader
             .' JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id AND HEX(cc.project_key)=HEX(c.project_key) AND HEX(cc.channel)=HEX(c.channel)'
             .' JOIN customers cu ON cu.id=c.customer_id'
             ." WHERE o.project_key='anytour' AND o.counter_id='98615635' AND o.transport_target='anytour_modeled_value_v1' AND o.value_contract='semantic_stage_value_25000_v1'"
-            ." AND HEX(o.project_key)=HEX('anytour') AND HEX(o.transport_target)=HEX('anytour_modeled_value_v1') AND HEX(o.value_contract)=HEX('semantic_stage_value_25000_v1')"
+            ." AND HEX(o.project_key)=HEX('anytour') AND HEX(o.counter_id)=HEX('98615635') AND HEX(o.transport_target)=HEX('anytour_modeled_value_v1') AND HEX(o.value_contract)=HEX('semantic_stage_value_25000_v1')"
             ." AND NOT (COALESCE(o.value_rub,-1)=0 AND COALESCE(HEX(o.state),'')=HEX('failed') AND COALESCE(HEX(o.last_error),'')=HEX('price_loss_reconciled'))"
             ." AND o.platform IN ('max','telegram') AND c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c')
             .' AND HEX(CAST(cc.external_user_id AS '.$cast.'))=HEX(CAST(o.external_user_id AS '.$cast.'))'
@@ -195,19 +198,24 @@ final class ModeledConversionDailyReconciliationReader
         $this->guard();$this->auth();
         if($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
             $left=(int)floor((self::MAX_SECONDS-(($this->clock)()-$this->started))*1000);
+            if($this->budget!==null)$left=min($left,$this->budget->remainingMilliseconds());
             if($left<1)throw new OverflowException();
             $sql=preg_replace('/\ASELECT /','SELECT /*+ MAX_EXECUTION_TIME('.min(4500,$left).') */ ',$sql,1);
         }
         $q=$this->pdo->prepare($sql);$q->execute($args);$rows=[];
         try{while(($r=$q->fetch(PDO::FETCH_ASSOC))!==false){
             if(count($rows)>=$limit)throw new UnexpectedValueException();
-            $this->bytes+=strlen(json_encode($r,JSON_THROW_ON_ERROR));$this->guard();$rows[]=$r;
+            $copied=strlen(json_encode($r,JSON_THROW_ON_ERROR));
+            $this->bytes+=$copied;if($this->budget!==null)$this->budget->consumeBytes($copied);
+            $this->guard();$rows[]=$r;
         }}finally{$q->closeCursor();}
         $this->auth();$this->guard();return$rows;
     }
     private function guard():void
-    {if(($this->clock)()-$this->started>self::MAX_SECONDS||$this->bytes>self::MAX_BYTES)throw new OverflowException();}
+    {if($this->budget!==null)$this->budget->check();
+        if(($this->clock)()-$this->started>self::MAX_SECONDS||$this->bytes>self::MAX_BYTES)throw new OverflowException();}
     private function done(array $result):array
     {$this->auth();$this->guard();return$result;}
-    private function auth():void{($this->authorize)();}
+    private function auth():void
+    {if($this->budget!==null)$this->budget->check();($this->authorize)();if($this->budget!==null)$this->budget->check();}
 }

@@ -12,7 +12,7 @@ final class ModeledConversionDeliveryHealth
     {
         $out=['schema_version'=>1,'project'=>'anytour','counter_id'=>'98615635','checked_at'=>null,'enabled'=>null,
             'status'=>'unavailable','flags'=>[],'last_tick_at'=>null,'profile_tick_at'=>null,
-            'last_report_success_at'=>null,'last_report_failure_at'=>null,'report_failure_since_at'=>null];
+            'last_report_success_at'=>null,'last_report_failure_at'=>null,'report_failure_since_at'=>null,'linkage_failures'=>null];
         $guard=static function()use($budget,$authorize):void{$budget?->check();if($authorize!==null)$authorize();$budget?->check();};
         $guard();
         if($now<946684800||$now>253402300799){$out['flags']=['invalid_clock'];return$out;}
@@ -32,7 +32,7 @@ final class ModeledConversionDeliveryHealth
             $rows=$query("SELECT mode,goal_id,goal_intent,contract_version,activated_at_unix,last_tick_unix,last_report_success_unix,"
                 ."report_failure_since_unix,".$length('last_receipt_json')." AS receipt_bytes,"
                 ."CASE WHEN ".$length('last_receipt_json')."<=8192 THEN last_receipt_json ELSE NULL END AS receipt_json"
-                ." FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1");
+                ." FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' AND HEX(project_key)=HEX('anytour') AND HEX(counter_id)=HEX('98615635') LIMIT 1");
             if(count($rows)!==1){$out['flags']=['configuration_unavailable'];return$out;}$s=$rows[0];
             if(($s['mode']??null)==='off'){$out['enabled']=false;$out['status']='off';return$out;}
             if(($s['mode']??null)!=='send'||($s['goal_id']??null)!=='678187097'||($s['goal_intent']??null)!=='verified'
@@ -82,13 +82,22 @@ final class ModeledConversionDeliveryHealth
                 ." AND COALESCE(HEX(o.upload_status),'')='' AND COALESCE(HEX(o.claim_token),'')=''"
                 ." AND o.claimed_at_unix IS NULL AND o.value_api_accepted_at_unix IS NULL"
                 ." AND o.value_processed_at_unix IS NULL AND o.value_receipt_basis IS NULL)";
+            // Cumulative complete saved scope: the monitor, not this reader, owns the first-observed baseline.
+            $linkage="SELECT COUNT(*) FROM max_channel_conversion_outbox o WHERE o.project_key='anytour'"
+                ." AND HEX(o.project_key)=HEX('anytour') AND o.counter_id='98615635' AND HEX(o.counter_id)=HEX('98615635')"
+                ." AND o.transport_target=? AND HEX(o.transport_target)=HEX(?) AND o.value_contract=? AND HEX(o.value_contract)=HEX(?)"
+                ." AND HEX(o.state)=HEX('unmatched') AND HEX(o.upload_status)=HEX('LINKAGE_FAILURE')";
             $sql='SELECT '.$exists("state='ready' AND value_ready_at_unix IS NOT NULL AND value_ready_at_unix<=? AND next_attempt_unix<=?").' AS ready_queue_stale,'
                 .$exists("state IN ('uploading','unknown') AND claimed_at_unix IS NOT NULL AND claimed_at_unix<=?").' AS upload_outcome_unknown,'
                 .$exists($failed).' AS api_row_rejected,'
+                .'('.$linkage.') AS linkage_failure_events,'
                 .$exists('(value_ready_at_unix>? OR value_api_accepted_at_unix>? OR value_processed_at_unix>? OR claimed_at_unix>?)').' AS invalid_clock';
             $rows=$query($sql,[self::TARGET,self::CONTRACT,$now-600,$now-600,self::TARGET,self::CONTRACT,$now-900,
-                self::TARGET,self::CONTRACT,self::TARGET,self::CONTRACT,$now+60,$now+60,$now+60,$now+60]);
+                self::TARGET,self::CONTRACT,self::TARGET,self::TARGET,self::CONTRACT,self::CONTRACT,self::TARGET,self::CONTRACT,$now+60,$now+60,$now+60,$now+60]);
             if(count($rows)!==1)throw new UnexpectedValueException('invalid_metadata');
+            $out['linkage_failures']=['basis'=>'complete_saved_goal_linkage_failures_v1','goal_id'=>'678187097',
+                'transport_target'=>self::TARGET,'value_contract'=>self::CONTRACT,'complete'=>true,
+                'events'=>self::boundedCount($rows[0]['linkage_failure_events']??null)];
             foreach(['ready_queue_stale','upload_outcome_unknown','api_row_rejected']as$key)if(self::bit($rows[0][$key]??null))$flags[]=$key;
             if(self::bit($rows[0]['invalid_clock']??null))throw new UnexpectedValueException('invalid_clock');
             require_once __DIR__.'/ModeledConversionVisitProof.php';
@@ -252,6 +261,12 @@ final class ModeledConversionDeliveryHealth
         if($json===null||$json==='')return[];
         if(!is_string($json)||strlen($json)>$limit)throw new UnexpectedValueException('invalid_metadata');
         $v=json_decode($json,true,32);if(json_last_error()!==JSON_ERROR_NONE||!is_array($v))throw new UnexpectedValueException('invalid_metadata');return$v;
+    }
+    private static function boundedCount(mixed $v):int
+    {
+        if((!is_int($v)&&!is_string($v))||preg_match('/\A(?:0|[1-9][0-9]{0,9})\z/D',(string)$v)!==1
+            ||(int)$v>2147483647)throw new UnexpectedValueException('invalid_metadata');
+        return (int)$v;
     }
     private static function bit(mixed $v):bool
     {if($v===1||$v==='1'||$v===true)return true;if($v===0||$v==='0'||$v===false)return false;throw new UnexpectedValueException('invalid_metadata');}

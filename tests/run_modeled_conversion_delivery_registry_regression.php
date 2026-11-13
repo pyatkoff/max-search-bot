@@ -5,6 +5,8 @@ require_once __DIR__.'/run_modeled_conversion_value_export_regression.php';
 require_once dirname(__DIR__).'/services/ModeledConversionDeliveryRegistry.php';
 require_once dirname(__DIR__).'/services/ModeledConversionDailyReconciliationReader.php';
 require_once dirname(__DIR__).'/services/ModeledConversionDailyReconciliationView.php';
+require_once dirname(__DIR__).'/services/ModeledConversionForecastStatusReader.php';
+require_once dirname(__DIR__).'/services/ModeledConversionStatusMcpAdapter.php';
 require_once __DIR__.'/fixtures/modeled_forecast_payment_checks.php';
 
 function deliveryRegistrySchema(PDO $p):void
@@ -47,6 +49,93 @@ function deliveryRegistryDataDigest(PDO $p):string
     $data=[];foreach(['customers','customer_channels','conversations','modeled_conversion_profile_versions','max_channel_conversion_outbox']as$table)
         $data[$table]=$p->query('SELECT * FROM '.$table.' ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
     return hash('sha256',json_encode($data,JSON_THROW_ON_ERROR));
+}
+
+
+final class OperationalStatusObservedStatement extends PDOStatement
+{
+    public static array $queries=[];
+    protected function __construct(){}
+    public function execute(?array $params=null):bool
+    {self::$queries[]=$this->queryString;return parent::execute($params);}
+}
+/** Real default adapter and canonical day reader; same unchanged synthetic DB on both drivers. */
+function operationalDailyStatusAssertions(PDO $p,callable $check,string $date,int $now,array $expected):void
+{
+    $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';$table='modeled_conversion_profiles_state';
+    $q=$p->prepare($mysql?'SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?'
+        :"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?");
+    $q->execute([$table]);$exists=(int)$q->fetchColumn()===1;$q->closeCursor();
+    $backup=$table.'_operational_fixture_backup';$created=false;
+    $oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$before=deliveryRegistryDataDigest($p);
+    try{
+        if($exists)$p->exec('ALTER TABLE '.$table.' RENAME TO '.$backup);
+        $p->exec('CREATE TABLE '.$table.'(project_key VARCHAR(40) PRIMARY KEY,enabled INT,last_receipt_json TEXT,last_error_at_unix BIGINT,last_error_category VARCHAR(40))');$created=true;
+        $json=json_encode(['status'=>'profiled','observed_at_unix'=>$now,'profiles_written'=>1],JSON_THROW_ON_ERROR);
+        $p->prepare("INSERT INTO $table VALUES('anytour',1,?,NULL,NULL)")->execute([$json]);
+        $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[OperationalStatusObservedStatement::class]);
+        OperationalStatusObservedStatement::$queries=[];
+        $adapter=new ModeledConversionStatusMcpAdapter($p);
+        $got=$adapter->call(ModeledConversionStatusMcpAdapter::NAME,[],1,str_repeat('e',32),static function():void{},new ModeledConversionStatusBudget());
+        $queries=OperationalStatusObservedStatement::$queries;
+        $check('unchanged empty-argument MCP executes operational status before old profile or historical source reads',
+            $got['available']&&$got['view']==='operational_delivery_v1'
+            &&$got['state']['last_tick_status']==='profiled'&&$got['provider_requests_in_reader']===0
+            &&$got['model_calls']===0&&$got['conversion_uploads']===0
+            &&!preg_match('/native_identity_point|retained_app_|retained_click_|initial_api_receipt_packets|namespace_matches|prediction_json|profile_json|assessment_namespace/i',implode(' ',$queries)));
+        // A fixed past day exercises real nonzero channel totals independently of today's empty MCP day.
+        $budget=new ModeledConversionStatusBudget();
+        $daily=(new ModeledConversionDailyReconciliationReader($p,static function():void{},null,$budget))->read(['date'=>$date],$now);
+        $check('shared status budget returns the same complete day channel totals and lifecycle cohorts as the owner page',
+            $daily['available']&&$daily['calendar']===$expected['calendar']
+            &&$daily['current_statuses']===$expected['current_statuses']
+            &&$daily['coverage']===$expected['coverage']
+            &&$daily['limits']['seconds']===5&&$daily['limits']['read_bytes']===65536
+            &&$daily['limits']['shared_status_budget']===true&&$budget->remainingBytes()<65536&&!$p->inTransaction());
+        $wire=json_encode($got,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+        $check('operational default includes a full current Moscow day and preserves the whole response ceiling',
+            $got['daily_reconciliation']['available']&&$got['daily_reconciliation']['timezone']==='Europe/Moscow'
+            &&$got['daily_reconciliation']['coverage']['scope']==='current_exact_owner_admitted_native_bindings'
+            &&strlen($wire)<=28000&&!str_contains($wire,'fixturePrivateClientIdentifier')&&!str_contains($wire,'fixtureUploadId')
+            &&!str_contains($wire,'fixtureName')&&deliveryRegistryDataDigest($p)===$before&&!$p->inTransaction());
+        $reader=new ModeledConversionForecastStatusReader($p,static function():void{},new ModeledConversionStatusBudget());
+        $formatter=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'boundedOperationalResponse');
+        $large=$got;$large['daily_reconciliation']=$expected;
+        $large['external_monitor']=['available'=>true,'pipeline'=>['available'=>true,'regular'=>true,'fresh'=>true]];
+        $large['visit_delivery_check']=['available'=>true,'automatic'=>['available'=>true,'fresh'=>true],
+            'examples'=>array_fill(0,20,['synthetic'=>str_repeat('x',3000)])];
+        $out=$formatter->invoke($reader,$large);
+        $check('operational projection keeps exact day monitor and value summaries while trimming only optional context',
+            $out['daily_reconciliation']===$expected&&$out['external_monitor']===$large['external_monitor']
+            &&$out['value_delivery']===$large['value_delivery']
+            &&strlen(json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=28000
+            &&($out['visit_delivery_check']['examples_omitted_due_to_response_budget']??false));
+        $low=new ModeledConversionStatusBudget();$low->consumeBytes(65530);$limited=false;
+        try{(new ModeledConversionDailyReconciliationReader($p,static function():void{},null,$low))->read(['date'=>$date],$now);}
+        catch(ModeledConversionStatusLimit $e){$limited=$e->reason==='byte_limit';}
+        $check('shared byte exhaustion releases the day snapshot and never becomes a zero-day result',$limited&&!$p->inTransaction());
+        $limited=false;$expired=new ModeledConversionStatusBudget(0.0,static fn():float=>5.0);
+        try{(new ModeledConversionDailyReconciliationReader($p,static function():void{},null,$expired))->read(['date'=>$date],$now);}
+        catch(ModeledConversionStatusLimit $e){$limited=$e->reason==='time_limit';}
+        $check('shared deadline is enforced before a daily snapshot starts',$limited&&!$p->inTransaction());
+        $calls=0;$denied=false;
+        try{(new ModeledConversionForecastStatusReader($p,static function()use(&$calls):void{
+            if(++$calls===7)throw new DomainException('operational_fixture_revoked');
+        },new ModeledConversionStatusBudget()))->readOperational($now);}
+        catch(DomainException $e){$denied=$e->getMessage()==='operational_fixture_revoked';}
+        $check('revocation inside operational day reading withholds the packet and releases the transaction',
+            $denied&&!$p->inTransaction()&&deliveryRegistryDataDigest($p)===$before);
+        $p->beginTransaction();
+        try{$outer=(new ModeledConversionForecastStatusReader($p,static function():void{},new ModeledConversionStatusBudget()))->readOperational($now);
+            $check('operational status does not adopt or release an outer transaction',
+                !$outer['available']&&$outer['reason']==='outer_transaction'&&$p->inTransaction());}
+        finally{$p->rollBack();}
+    }finally{
+        $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);
+        if($p->inTransaction())$p->rollBack();
+        if($created)$p->exec('DROP TABLE '.$table);
+        if($exists)$p->exec('ALTER TABLE '.$backup.' RENAME TO '.$table);
+    }
 }
 
 /** Shared SQLite/native-MySQL assertions. Real-data identities never enter this fixture. */
@@ -114,6 +203,7 @@ function dailyReconciliationAssertions(PDO $p,callable $check):void
             $page['date']===$date&&$page['timezone']==='Europe/Moscow'
             &&$page['window']===['from'=>gmdate('Y-m-d\TH:i:s\Z',$from),'until_exclusive'=>gmdate('Y-m-d\TH:i:s\Z',$until)]
             &&$page['as_of']===gmdate('Y-m-d\TH:i:s\Z',$now));
+        operationalDailyStatusAssertions($p,$check,$date,$now,$page);
         $accrual=$page['calendar']['accruals'];
         $check('accrual totals use distinct conversations and exclude every foreign owner native or test scope',
             $accrual['events']===10&&$accrual['conversations']===9&&$accrual['value_rub']===12083
@@ -204,6 +294,10 @@ function dailyReconciliationAssertions(PDO $p,callable $check):void
         $set($a,['value_stage'=>'Interest']);$invalid=$read();$set($a,['value_stage'=>'interest']);
         $check('case-insensitive native collation cannot admit a foreign financial stage into global sums',
             $invalid===['available'=>false,'reason'=>'invalid_aggregate']&&!$p->inTransaction());
+        $set($a,['counter_id'=>'98615635 ']);$counterAlias=$read();$set($a,['counter_id'=>'98615635']);
+        $check('native collation cannot fold a trailing-space counter alias into exact daily totals',
+            $counterAlias['available']&&$counterAlias['calendar']['accruals']['events']===9
+            &&$counterAlias['calendar']['accruals']['value_rub']===10833&&!$p->inTransaction());
         $set($a,['value_api_accepted_at_unix'=>$from+1]);$invalid=$read();$set($a,['value_api_accepted_at_unix'=>null]);
         $check('receipt observation without a stored API receipt withholds every aggregate',
             $invalid===['available'=>false,'reason'=>'invalid_aggregate']&&!$p->inTransaction());
@@ -224,6 +318,14 @@ function dailyReconciliationAssertions(PDO $p,callable $check):void
             &&(int)round(($dc['by_platform']['telegram']['value_rub']??0)*100)===500010
             &&deliveryRegistryDataDigest($p)===$decimalBefore&&!$p->inTransaction());
 
+        for($i=2000;$i<2225;$i++)$event($i,1,$from+$i);
+        $whole=(new ModeledConversionDailyReconciliationReader($p,$auth,null,new ModeledConversionStatusBudget()))->read(['date'=>$date],$now);
+        $check('shared day projection covers more than the recent 201-row suffix without losing early assignments or kopecks',
+            $whole['available']&&$whole['calendar']['accruals']['events']===238
+            &&(int)round($whole['calendar']['accruals']['value_rub']*100)===29333331
+            &&(int)round($whole['calendar']['accruals']['by_platform']['max']['value_rub']*100)===14833321
+            &&(int)round($whole['calendar']['accruals']['by_platform']['telegram']['value_rub']*100)===14500010
+            &&!$p->inTransaction());
     }finally{
         if($p->inTransaction())$p->rollBack();
         foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions','conversations','customer_channels','customers']as$table)$p->exec('DELETE FROM '.$table);

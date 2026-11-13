@@ -6,7 +6,7 @@ require_once __DIR__.'/ModeledConversionStatusBudget.php';
 final class ModeledConversionPipelineMonitorStatus
 {
     private const FLAGS=['delivery_tick_stale','profile_tick_stale','delivery_tick_errors','profile_tick_errors',
-        'profile_disabled','ready_queue_stale','upload_outcome_unknown','api_row_rejected','report_unavailable',
+        'profile_disabled','ready_queue_stale','upload_outcome_unknown','api_row_rejected','linkage_failures_increased','report_unavailable',
         'storage_unavailable','configuration_unavailable','invalid_clock','health_metadata_unavailable','visit_proof_stale','visit_proof_refresh_failed'];
     private const ACTIVATION_KEYS=['schema_version','project','counter_id','role','operation','activated_at','source_sha','state_imported'];
     private const RECEIPT_KEYS=['schema_version','project','counter_id','role','origin','checked_at','status','flags',
