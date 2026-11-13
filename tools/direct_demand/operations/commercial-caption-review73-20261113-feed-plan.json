@@ -6,7 +6,7 @@
   "cohort_installed_sha": "5fbb61990706ae4289e539df2c26c60e409032f4",
   "completion_installed_sha": "8d6ac35dd17614b2cadb3aa3af7637c74280c01c",
   "cohort_sha256": "4d8f9340e3fd5b62d7c5828bd889a9828d87c91a343a98b2d5db8c5de46b9fab",
-  "expected_parent_head": "f793943c6b32ae95ca002a792abc78a54103d45b",
+  "expected_parent_head": "b806854c865c2b960848d15e45a6f13ce59acc80",
   "expected_actor": "pyatkoff",
   "owner_pin": {
     "comment_id": 6818332618,
@@ -90,25 +90,26 @@
     "runtime_absence_required": true
   },
   "source_admission": "existing_authorized_content_push",
-  "expected_feed_price_pairs": 274,
   "expected_caption_price_pairs": 27,
   "source_script_pins": {
-    "commercial-caption-review73-20261113-feed-contract.php": "a2e74fceb181dd226659449451cfd90fd2348b646833ea9c7a05f55834d6e5a8",
+    "commercial-caption-review73-20261113-feed-contract.php": "a8531c831c9350c89569b26783a5f8a5115b66aa887accaa89e80683895fc11e",
     "commercial-caption-review73-20261113-feed-preparation.php": "34da59363d3e7dc6645cbad2248fad245f6132818b4438c3911474c75ecf944f",
     "commercial-caption-review73-20261113-feed-prepare.php": "0497e56fa6bc9df50c8c18690731159a73e1d367a345eace5bad12a0487c3d0a",
     "monitor-price-expanded-roster-20261111.json.gz": "69f704608e32c60686bf6cd21e736fe2a80d5eff27169460dded5380600a145e",
     "commercial-caption-review73-20261113-price-runtime-fixture.json.gz.b64": "1262ae1fe3085e92f3c2c4850bf98855600780ca76ffb30d0b0cd33726064d8d",
     "commercial-caption-review73-20261113-test-price-roster.php": "51423a247eeb2bcec6423c62a94fdc31bdd60aaa0340f9386c64c3b8f9dd67d9",
     "commercial-caption-review73-20261113-price-roster-verification.json": "8794a31832b630b1d8519ba5e298d7fa51a2049b95261ce747c742c25927d0d7",
-    "commercial-caption-review73-20261113-feed-capture.php": "1826b14da463e9a6870bf9308e399b50a014aceea66aa93a35cda684083ea7e2",
+    "commercial-caption-review73-20261113-feed-capture.php": "d50e9cbdce0b7b854144da354695f2eac064fb1dc80cf460b2f07114ad12a7c8",
     "commercial-caption-review73-20261113-feed-readback.php": "e518ffc51d9e0cb055b10985b606d216cf1787f66db881226edb04a8cf443a40",
-    "commercial-caption-review73-20261113-feed-tools.py": "2ad457e01d5e9395b3911e1601542b537a9410c6da75e7c624ffc348c3cc846d",
+    "commercial-caption-review73-20261113-feed-tools.py": "4a62864b6e0cfc6a5bba423b406087b9bbfb4ad00cd6266331aa92903ddffdb9",
     "commercial-caption-review73-20261113-completion-contract.py": "5d6dc194ea3341bfc86e96882b0c9b8eb1d4cb159547ac5c1d43bd0c95f1fd6a",
     "commercial-caption-review73-20261113-verify-content-source.py": "176db2d3162758bd45b15062b47031e4729e3ddaf8aac12dc29de8f14ae9f2ca",
     "commercial-caption-review73-20261113-feed-inputs.json.gz.b64": "55f6c0c87e68b84d09be382fa5a44de0c9688e194dbc6743cc8896ee6abf12bb",
     "monitor-price-contract.php": "ad20601d265e71d6cf58253bb6f263c1171a299130317f9ebbf7e576cf874fa7",
     "publish-commercial-channel-hotel-feeds-20261103-1.php": "8609a2cf06d4a46738f934047d46744bdc54d3863e7c2921fdfec1a9be4b7a5e",
-    "verify-commercial-source.py": "5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb"
+    "verify-commercial-source.py": "5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb",
+    "commercial-caption-review73-20261113-verify-unstarted-feed.py": "fe56a37d1469e8eee323ca177ac5509cb255fe0501e87ef46a713284924cfe0d",
+    "test-monitor-price-hook.php": "ee514621b5a7ff64d0853ef60f5b996c068df8e3491c612e39db1e6ec4e8e520"
   },
   "price_validation": {
     "roster_file": "monitor-price-expanded-roster-20261111.json.gz",
@@ -131,5 +132,59 @@
     "unpriced_pairs_without_baseline": 46,
     "negative_admission_checks": 778,
     "assertions": 2281
+  },
+  "price_preservation_policy": {
+    "mode": "derive_from_fresh_capture_exact_price_maps",
+    "minimum_priced_pairs": 1,
+    "maximum_priced_pairs": 604,
+    "price_changes_allowed": false,
+    "all_nondescription_bytes_must_match": true
+  },
+  "actual_readiness_observation": {
+    "run_id": 43470755421,
+    "head_sha": "060a58bf0b73d4cd9185e0a8f65560047a652031",
+    "run_attempt": 1,
+    "artifact_id": 14061110958,
+    "artifact_name": "commercial-monitor-collector43461519720-readiness-20261113-v1-result",
+    "artifact_sha256": "404d6832c3dcc5c2ae018bb67bfdc0a337cd0fc5426e5a8a544961cc1963ff2b",
+    "result_sha256": "4aeeed9b0de5791c1666dcce378bdcd6206ceb9e6db01682b1dd2fc9926b47fd",
+    "observed_at_utc": "2026-11-13T17:14:45+00:00",
+    "global_journal_sha256": "51cce526cbd70129325edd4a2e52c95f4ed5ca530e98670576868e224192b008",
+    "global_lock_available": true,
+    "global_pending_is_null": true,
+    "nightly_cycle": {
+      "collector_run_id": "43461519720",
+      "state": "budget_exhausted",
+      "night_date": "2026-11-13",
+      "collection_started_at": "2026-11-13T16:20:41+00:00",
+      "started_at": "2026-11-13T16:41:12+00:00",
+      "finished_at": "2026-11-13T17:06:16+00:00",
+      "budget_seconds": 1800,
+      "finish_reserve_seconds": 300,
+      "duration_seconds": 1504,
+      "updated_pairs": 162,
+      "unchanged_pairs": 0,
+      "eligible_pairs": 162,
+      "held_pairs": 1,
+      "scanned_pairs": 449,
+      "remaining_unscanned_pairs": 155
+    },
+    "completed_journal_pair_count": 369,
+    "public_price_pair_count": null,
+    "public_price_baseline": "derive only from the next fresh captured XML price maps",
+    "authentication": "root verified native run/jobs and exact seven-file artifact; focused review PASS",
+    "does_not_replace_fresh_runtime_guards": true
+  },
+  "prior_unstarted_feed": {
+    "run_id": 43466635418,
+    "head_sha": "6b75cec7d88c4774eb84bc90e7803e1c9ca182ba",
+    "job_id": 132027406620,
+    "run_attempt": 1,
+    "artifact_id": 14058672089,
+    "artifact_sha256": "a2f2e05114b60336c1d5bb1446ca54592710783120e931ebb6351aa6b11f9533",
+    "plan_sha256": "a7331833670d3f315294fdfed51c49573d5453eba42b8524e2b323db75e6a01a",
+    "original_writer_attempts": 0,
+    "new_readonly_capture_limit": 1,
+    "write_retry_authorized": false
   }
 }

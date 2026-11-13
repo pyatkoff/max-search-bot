@@ -14,6 +14,7 @@ try {
     $out += caption_feed_capture($operations, CAPTION_FEED_OPERATION);
     $out['installed_sha'] = EXPECTED_INSTALLED_SHA; $out['ok'] = true;
 } catch (Throwable $e) {
+    if ($e instanceof CaptionFeedLockBusy) $out['lock_failure'] = $e->diagnostic;
     $out['error'] = preg_match('/\A[a-z][a-z0-9_]{1,100}\z/D', $e->getMessage()) ? $e->getMessage() : 'caption_feed_capture_failed';
 }
 echo json_encode($out, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), "\n";

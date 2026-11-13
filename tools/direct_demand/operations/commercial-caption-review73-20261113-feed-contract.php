@@ -129,6 +129,46 @@ function caption_feed_confirmed_updates(array $states, array $operations, array 
     return array_values($updates);
 }
 
+final class CaptionFeedLockBusy extends RuntimeException
+{
+    public array $diagnostic;
+    public function __construct(array $diagnostic)
+    {
+        parent::__construct('caption_existing_operation_busy');
+        $this->diagnostic = $diagnostic;
+    }
+}
+
+/** Observe only the five existing journal identities after a failed nonblocking lock. */
+function caption_feed_lock_diagnostic(string $path, int $kind, int $wouldBlock, array $stat): array
+{
+    $root = '/var/www/anytoour/data/channel-post-operations';
+    $known = [$root.'/monitor-price-after-collection-v1.jsonl' => 'monitor-price-after-collection-v1'];
+    foreach (array_keys(caption_feed_operation_counts()) as $operation) $known[$root.'/'.$operation.'/receipt.jsonl'] = $operation;
+    caption_feed_need(isset($known[$path]) && in_array($kind, [LOCK_EX, LOCK_SH], true)
+        && in_array($wouldBlock, [0, 1], true), 'caption_lock_diagnostic_scope_changed');
+    $out = ['journal_id' => $known[$path], 'requested_lock' => $kind === LOCK_EX ? 'exclusive' : 'shared',
+        'would_block' => $wouldBlock, 'holder_lookup' => 'unavailable', 'holders' => [],
+        'holders_observed_after_failure' => true];
+    $raw = @file_get_contents('/proc/locks', false, null, 0, 1048577);
+    if (!is_string($raw) || strlen($raw) > 1048576) return $out;
+    $dev = $stat['dev']; $major = (($dev >> 8) & 0xfff) | (($dev >> 32) & 0xfffff000);
+    $minor = ($dev & 0xff) | (($dev >> 12) & 0xffffff00);
+    $out['holder_lookup'] = 'no_matching_holder_observed';
+    foreach (explode("\n", $raw) as $line) {
+        // Waiting rows ("->") are excluded. Only PID and process comm can leave the host.
+        if (preg_match('/\A[0-9]+:\s+(FLOCK|POSIX|OFDLCK)\s+ADVISORY\s+(READ|WRITE)\s+([1-9][0-9]*)\s+([0-9a-f]+):([0-9a-f]+):([0-9]+)\s+/i', $line, $m) !== 1
+            || hexdec($m[4]) !== $major || hexdec($m[5]) !== $minor || (int)$m[6] !== $stat['ino']) continue;
+        if (count($out['holders']) >= 8) { $out['holder_lookup'] = 'matching_holders_truncated'; break; }
+        $comm = @file_get_contents('/proc/'.$m[3].'/comm', false, null, 0, 81);
+        $comm = is_string($comm) ? trim($comm) : '';
+        if (preg_match('/\A[A-Za-z0-9_.:-]{1,64}\z/D', $comm) !== 1) $comm = 'unavailable';
+        $out['holders'][] = ['pid' => (int)$m[3], 'comm' => $comm, 'kind' => $m[1], 'mode' => $m[2]];
+        $out['holder_lookup'] = 'matching_holders_observed';
+    }
+    return $out;
+}
+
 /** Existing rb file, existing lock; nothing is created, appended, or modified. */
 function caption_feed_locked_jsonl(string $path, int $cap, int $lockKind, array &$locks): array
 {
@@ -137,7 +177,10 @@ function caption_feed_locked_jsonl(string $path, int $cap, int $lockKind, array 
     $before = lstat($path); $stream = fopen($path, 'rb');
     caption_feed_need(is_array($before) && is_resource($stream), 'caption_journal_open_failed');
     $locks[] = $stream;
-    caption_feed_need(flock($stream, $lockKind | LOCK_NB), 'caption_existing_operation_busy');
+    $wouldBlock = 0;
+    if (!flock($stream, $lockKind | LOCK_NB, $wouldBlock)) {
+        throw new CaptionFeedLockBusy(caption_feed_lock_diagnostic($path, $lockKind, $wouldBlock, $before));
+    }
     $locked = fstat($stream);
     caption_feed_need(is_array($locked) && $locked['ino'] === $before['ino'] && $locked['dev'] === $before['dev']
         && ($locked['mode'] & 0170000) === 0100000 && $locked['size'] > 0 && $locked['size'] <= $cap,

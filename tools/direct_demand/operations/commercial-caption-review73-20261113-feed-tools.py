@@ -25,7 +25,7 @@ def plan():
     need(p['cohort_installed_sha']=='5fbb61990706ae4289e539df2c26c60e409032f4' and p['completion_installed_sha']=='8d6ac35dd17614b2cadb3aa3af7637c74280c01c' and p['cohort_sha256']=='4d8f9340e3fd5b62d7c5828bd889a9828d87c91a343a98b2d5db8c5de46b9fab','cohort_source_changed')
     need(p['operations']==[{'name': 'canary', 'operation': 'commercial-caption-review73-20261113-canary-v1', 'manifest_sha256': '65595a177031b4240ff0dcf757870ba2dc5a01132789e84bcd64080ce64ab14a', 'installed_sha': '5fbb61990706ae4289e539df2c26c60e409032f4', 'row_count': 8}, {'name': 'batch001', 'operation': 'commercial-caption-review73-20261113-batch001-v1', 'manifest_sha256': '870960c2dd9b17c43b07a83cd6fe484e3a41effe771a06537aa686646053b94d', 'installed_sha': '5fbb61990706ae4289e539df2c26c60e409032f4', 'row_count': 46}, {'name': 'batch002', 'operation': 'commercial-caption-review73-20261113-batch002-v1', 'manifest_sha256': '7a5ea2f4c469daf6851f4e6264ff57f6001265f8ea84c9a8dbc939d9d3cf610b', 'installed_sha': '8d6ac35dd17614b2cadb3aa3af7637c74280c01c', 'row_count': 46}, {'name': 'batch003', 'operation': 'commercial-caption-review73-20261113-batch003-v1', 'manifest_sha256': 'ba694b939740a4e28388ca6cccc9e2d6d542703539e5f546d1d9961fe2c0e2e2', 'installed_sha': '8d6ac35dd17614b2cadb3aa3af7637c74280c01c', 'row_count': 46}],'operation_scope_changed')
     need(p['source_admission']=='existing_authorized_content_push' and p['current_source_gates']=={'deploy.yml': 43456259794, 'retired-domain-guard.yml': 43456259765, 'max-tls-preflight.yml': 43458415792, 'telegram-production-health.yml': 43458412715, 'max-production-health.yml': 43458412674, 'publish-conversation-diagnostics.yml': 43458415744, 'live-session-diagnostics.yml': 43458412698, 'tour-selection-host.yml': 43458412489, 'modeled-conversion-monitor.yml': 43458412487},'content_source_admission_changed')
-    need(p['expected_feed_price_pairs']==274 and p['expected_caption_price_pairs']==27,'price_scope_changed')
+    need(p['price_preservation_policy']==PRICE_PRESERVATION_POLICY and p['expected_caption_price_pairs']==27,'price_scope_changed')
     return p
 
 def prepare():
@@ -164,25 +164,38 @@ def capture(status):
     need(len(seen)==146,'captured_receipts_incomplete')
     print(json.dumps({'fresh_files':3,'confirmed_original_receipts':146,'capture_lock_released':True}))
 
-def verify_all_feed_prices(i, p):
-    """Independent byte check: only the 146 exact descriptions may change."""
+PRICE_PRESERVATION_POLICY = {'mode':'derive_from_fresh_capture_exact_price_maps','minimum_priced_pairs':1,
+    'maximum_priced_pairs':604,'price_changes_allowed':False,'all_nondescription_bytes_must_match':True}
+
+def verify_all_feed_prices(i, p, capture_raw, input_raw):
+    """Preserve every fresh captured price; only 146 exact descriptions may change."""
     import xml.etree.ElementTree as ET
+    need(p['price_preservation_policy']==PRICE_PRESERVATION_POLICY,'preservation_policy_changed')
+    need(json.loads(input_raw)==i,'preservation_input_binding_changed')
+    capture=json.loads(capture_raw)
+    need(capture['ok'] is True and capture['operation']==i['operation']==p['operation']
+        and capture['installed_sha']==p['current_installed_sha'] and capture['locks_released_before_return'] is True
+        and capture['monitor_journal_unchanged'] is True and capture['filesystem_writes']==capture['database_calls']==capture['provider_calls']==0,
+        'preservation_capture_not_confirmed')
     updates=i['caption_updates']
-    need(len(updates)==146, 'preservation_update_scope_changed')
-    need(len({u['offer_id'] for u in updates})==146, 'preservation_duplicate_offer')
-    need([f['name'] for f in i['files']]==['hotel-posts-telegram.xml','hotel-posts-max.xml','hotel-posts-all.xml'],'preservation_file_scope_changed')
+    need(len(updates)==146,'preservation_update_scope_changed')
+    need(len({u['offer_id'] for u in updates})==146,'preservation_duplicate_offer')
+    names=['hotel-posts-telegram.xml','hotel-posts-max.xml','hotel-posts-all.xml']
+    need([f['name'] for f in i['files']]==[f['name'] for f in capture['files']]==names,'preservation_file_scope_changed')
     need(all(u['platform'] in ['max','telegram'] for u in updates),'preservation_platform_changed')
-    blocks_re=re.compile(rb'<offer id="([A-Za-z0-9_-]+)">.*?</offer>', re.S)
+    blocks_re=re.compile(rb'<offer id="([A-Za-z0-9_-]+)">.*?</offer>',re.S)
     prices={};checks=[]
-    for f in i['files']:
+    for f,captured in zip(i['files'],capture['files']):
         name=f['name'];before=base64.b64decode(f['previous_content_base64'],validate=True);after=base64.b64decode(f['content_base64'],validate=True)
-        need(digest(before)==f['expected_previous_sha256'] and digest(after)==f['sha256'], 'preservation_preimage_changed')
+        captured_bytes=base64.b64decode(captured['content_base64'],validate=True)
+        need(before==captured_bytes and len(before)==captured['bytes'] and digest(before)==captured['sha256']==f['expected_previous_sha256']
+            and digest(after)==f['sha256'],'preservation_preimage_changed')
         targets={u['offer_id']:u for u in updates if name=='hotel-posts-all.xml' or u['platform']==('max' if name=='hotel-posts-max.xml' else 'telegram')}
-        need(len(targets)==(146 if name=='hotel-posts-all.xml' else 73), 'preservation_target_count_changed')
+        need(len(targets)==(146 if name=='hotel-posts-all.xml' else 73),'preservation_target_count_changed')
         old={m.group(1).decode():m.group(0) for m in blocks_re.finditer(before)}
         new={m.group(1).decode():m.group(0) for m in blocks_re.finditer(after)}
         expected=1208 if name=='hotel-posts-all.xml' else 604
-        need(len(old)==len(new)==expected and list(old)==list(new), 'preservation_offer_scope_changed')
+        need(len(old)==len(new)==expected and list(old)==list(new),'preservation_offer_scope_changed')
         need(set(targets)<=set(old) and set(targets)<=set(new),'preservation_target_missing')
         def masked(raw):
             def change(m):
@@ -195,34 +208,43 @@ def verify_all_feed_prices(i, p):
         def price_map(root):
             values={}
             for offer in root.findall('.//offer'):
-                ns=offer.findall('price')
-                need(len(ns)<=1,'preservation_price_not_unique')
+                ns=offer.findall('price');need(len(ns)<=1,'preservation_price_not_unique')
                 if ns:
-                    v=ns[0].text or ''
-                    need(re.fullmatch(r'[0-9]+(?:\.[0-9]{1,2})?',v) and float(v)>0,'preservation_price_invalid')
-                    values[offer.attrib['id']]=(v,offer.findtext('currencyId'))
+                    key=offer.attrib['id'];v=ns[0].text or '';currency=offer.findall('currencyId')
+                    need(key not in values and re.fullmatch(r'[0-9]+(?:\.[0-9]{1,2})?',v) and float(v)>0,'preservation_price_invalid')
+                    need(len(currency)==1 and isinstance(currency[0].text,str) and currency[0].text!='','preservation_currency_missing')
+                    values[key]=(v,currency[0].text)
             return values
         pa=price_map(a);pb=price_map(b)
-        need(pa==pb and len(pa)==p['expected_feed_price_pairs']*(2 if name=='hotel-posts-all.xml' else 1),'preservation_274_price_pairs_changed')
+        need(pa==pb,'preservation_price_map_changed')
         for offer in b.findall('.//offer'):
             key=offer.attrib['id']
             if key in targets:
-                t=offer.findtext('description') or ''
-                need(digest(t.encode())==targets[key]['text_sha256'],'preservation_description_receipt_changed')
+                text=offer.findtext('description') or ''
+                need(digest(text.encode())==targets[key]['text_sha256'],'preservation_description_receipt_changed')
         prices[name]=pa
-        checks.append({'name':name,'rows':expected,'target_descriptions':len(targets),'priced_offers_retained':len(pa),'all_other_bytes_preserved':True,'before_sha256':digest(before),'after_sha256':digest(after)})
+        checks.append({'name':name,'rows':expected,'target_descriptions':len(targets),'priced_offers_before':len(pa),
+            'priced_offers_after':len(pb),'priced_offers_retained':len(pa),'all_other_bytes_preserved':True,
+            'before_sha256':digest(before),'after_sha256':digest(after)})
+    need(all(k.startswith('max_') for k in prices['hotel-posts-max.xml'])
+        and all(k.startswith('tg_') for k in prices['hotel-posts-telegram.xml']),'preservation_price_platform_changed')
     max_prices={k.removeprefix('max_'):v for k,v in prices['hotel-posts-max.xml'].items()}
     tg_prices={k.removeprefix('tg_'):v for k,v in prices['hotel-posts-telegram.xml'].items()}
-    need(max_prices==tg_prices and len(max_prices)==274,'preservation_price_pair_binding_changed')
-    need(prices['hotel-posts-all.xml']==dict(prices['hotel-posts-telegram.xml'],**prices['hotel-posts-max.xml']),'preservation_combined_prices_changed')
-    return {'ok':True,'priced_hotel_pairs_retained':274,'priced_messages_retained':548,'priced_xml_occurrences_retained':1096,'target_description_occurrences':292,'price_changes':0,'url_changes':0,'photo_changes':0,'all_nondescription_bytes_preserved':True,'files':checks}
+    count=len(max_prices)
+    need(max_prices==tg_prices and 1<=count<=604,'preservation_price_pair_binding_changed')
+    need(prices['hotel-posts-all.xml']==dict(prices['hotel-posts-telegram.xml'],**prices['hotel-posts-max.xml']),
+        'preservation_combined_prices_changed')
+    return {'ok':True,'price_baseline_source':'fresh_locked_capture','capture_sha256':digest(capture_raw),'input_sha256':digest(input_raw),
+        'priced_hotel_pairs_before':count,'priced_hotel_pairs_after':count,'priced_hotel_pairs_retained':count,
+        'priced_messages_retained':2*count,'priced_xml_occurrences_retained':4*count,'target_description_occurrences':292,
+        'price_changes':0,'url_changes':0,'photo_changes':0,'all_nondescription_bytes_preserved':True,'files':checks}
 
 
 def prepared():
     p=plan(); prep=read(SAFE/'preparation.json'); saved=(SAFE/'actual-feed-input.json').read_bytes();need(saved.endswith(b'\n'),'input_file_incomplete');raw=saved[:-1];i=json.loads(raw)
     need(digest(raw)==prep['input_sha256'] and digest(saved)==prep['saved_input_file_sha256'] and digest((PRIVATE/'writer.php').read_bytes())==prep['compiled_writer_sha256']
          and i['operation']==p['operation'] and i['schema_version']==5 and len(i['caption_updates'])==146,'prepared_writer_binding_changed')
-    preservation=verify_all_feed_prices(i,p)
+    preservation=verify_all_feed_prices(i,p,(SAFE/'capture.json').read_bytes(),raw)
     save(SAFE/'preservation-verification.json',preservation)
     files=[{k:f[k] for k in ['name','sha256','bytes','rows','expected_previous_sha256']} for f in i['files']]
     need([f['name'] for f in files]==FEEDS and [f['rows'] for f in files]==[604,604,1208]
@@ -267,8 +289,11 @@ def readback(status):
         'original_caption_run':p['original_caption']['run_id'],'completion_caption_run':p['completion_caption']['run_id'],
         'observed_at_utc':r['observed_at_utc'],'retry_authorized':False}
     preservation=read(SAFE/'preservation-verification.json')
-    need(preservation['ok'] is True and preservation['priced_hotel_pairs_retained']==274 and preservation['target_description_occurrences']==292,'final_preservation_proof_missing')
-    out.update({k:preservation[k] for k in ['priced_hotel_pairs_retained','priced_messages_retained','priced_xml_occurrences_retained','all_nondescription_bytes_preserved']})
+    saved=(SAFE/'actual-feed-input.json').read_bytes()
+    need(saved.endswith(b'\n') and digest(saved[:-1])==prep['input_sha256'],'final_preservation_input_changed')
+    current_proof=verify_all_feed_prices(json.loads(saved),p,(SAFE/'capture.json').read_bytes(),saved[:-1])
+    need(preservation==current_proof and preservation['ok'] is True and preservation['target_description_occurrences']==292,'final_preservation_proof_changed')
+    out.update({k:preservation[k] for k in ['priced_hotel_pairs_before','priced_hotel_pairs_after','priced_hotel_pairs_retained','priced_messages_retained','priced_xml_occurrences_retained','all_nondescription_bytes_preserved','price_baseline_source','capture_sha256','input_sha256']})
     from runpy import run_path
     contract=run_path(str(OPS/(PREFIX+'-completion-contract.py')))
     source_plan={**p,'completion_caption':{'run_id':decimal(os.environ['GITHUB_RUN_ID']),'head_sha':os.environ['GITHUB_SHA']}}
