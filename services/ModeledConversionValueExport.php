@@ -235,8 +235,10 @@ final class ModeledConversionValueExport
                 if(($goal['id']??null)!==$s['goal_id'])throw new RuntimeException('value_goal_changed');
                 $phase='upload';
                 foreach($ready as$r){
-                    if((self::settings($p)['mode']??'off')!=='send')break;
+                    $currentSettings=self::settings($p);
+                    if(($currentSettings['mode']??'off')!=='send')break;
                     if(!$self->eligible($r,$gate)){$self->observeFixedPairDecision($r,$now,$injectedClock?$now:time(),1);self::failRow($p,$r,'scope_unavailable');continue;}
+                    if($self->expireOrdinaryReady($r,$currentSettings,$injectedClock?$now:time()))continue;
                     if(!$priceGuard->maySend($r)){
                         // Preserve the price hold while letting later eligible rows advance.
                         $repo->defer((string)$r['id'],'ready',($injectedClock?$now:time())+300);
@@ -1108,6 +1110,44 @@ final class ModeledConversionValueExport
             // Lost commit acknowledgement returns no POST permission; existing recovery retains UNKNOWN.
             if($p->commit()!==true)throw new RuntimeException('relation_claim_unconfirmed');return $wire;
         }catch(Throwable $ignored){if($p->inTransaction())$p->rollBack();return null;}
+    }
+
+    /** A prior visit cannot be newer than its event: after the maximum window no send can qualify. */
+    private function expireOrdinaryReady(array $row,array $settings,int $now):bool
+    {
+        if(($row['project_key']??null)!=='anytour'||($row['counter_id']??null)!=='98615635'
+            ||!in_array($row['platform']??null,['max','telegram'],true)||($row['state']??null)!=='ready'
+            ||($row['transport_target']??null)!==ModeledConversionValueContract::TARGET
+            ||($row['value_contract']??null)!==ModeledConversionValueContract::VERSION
+            ||($row['identity_source_key']??null)!==($row['platform']==='telegram'?'tgmini':'max_tracker')
+            ||!ModeledConversionValueContract::isKey($row['target']??null))return false;
+        $event=$row['event_unix']??null;
+        if((!is_int($event)&&!is_string($event))||preg_match('/\\A[1-9][0-9]{8,11}\\z/D',(string)$event)!==1
+            ||(int)$event<946684800||(int)$event>=$now-ModeledConversionAttributionWindow::MAX_SECONDS)return false;
+        if(($settings['project_key']??null)!=='anytour'||($settings['counter_id']??null)!=='98615635'
+            ||($settings['mode']??null)!=='send'||($settings['goal_id']??null)!=='678187097'
+            ||($settings['goal_intent']??null)!=='verified'||($settings['contract_version']??null)!==ModeledConversionValueContract::VERSION)return false;
+        $protected=$this->protectedOriginalSourceIds($settings['last_receipt_json']??null,$now);
+        if($protected===null||isset($protected[(string)($row['id']??'')]))return false;
+        foreach($this->finiteFrame['r']??[]as$original)if((string)$original[1]===(string)($row['id']??''))return false;
+        if(!in_array($row['attempts']??null,[0,'0'],true)||($row['claimed_at_unix']??null)!==null
+            ||($row['value_api_accepted_at_unix']??null)!==null||($row['value_processed_at_unix']??null)!==null)return false;
+        foreach(['claim_token','upload_id','upload_status','value_receipt_basis']as$key)
+            if(!array_key_exists($key,$row)||!in_array($row[$key],[null,''],true))return false;
+        // The existing complete nullable tuple CAS also rejects a concurrent identity, scope or event change.
+        [$where,$args]=$this->pendingMaxSourceSqlGuard($row);
+        $raw=$settings['last_receipt_json']??null;$mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+        $receipt=$raw===null?'e.last_receipt_json IS NULL':
+            ($mysql?'BINARY e.last_receipt_json=BINARY ?':'e.last_receipt_json COLLATE BINARY=? COLLATE BINARY');
+        $configured=" AND EXISTS(SELECT 1 FROM modeled_conversion_value_export_settings e"
+            ." WHERE HEX(e.project_key)=HEX('anytour') AND HEX(e.counter_id)=HEX('98615635') AND HEX(e.mode)=HEX('send')"
+            ." AND HEX(e.goal_id)=HEX('678187097') AND HEX(e.goal_intent)=HEX('verified')"
+            ." AND HEX(e.contract_version)=HEX('semantic_stage_value_25000_v1') AND ".$receipt.")";
+        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET state='expired',last_error='event_expired'"
+            ." WHERE id=? AND state='ready' AND next_attempt_unix=?".$where.$configured);
+        $q->execute([$row['id'],$row['next_attempt_unix'],...$args,...($raw===null?[]:[$raw])]);
+        // A changed row is left untouched; the stale, impossible candidate still performs no provider read.
+        return true;
     }
 
     /** Reserve ordinary old-source READY users inside the existing single lookup and 25-user ceiling. */

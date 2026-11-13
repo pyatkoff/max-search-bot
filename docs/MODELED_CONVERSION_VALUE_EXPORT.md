@@ -227,3 +227,25 @@ The existing delivery ledger links to both views. Advertising goal, target, valu
 Current and previous completed delivery days use `Europe/Moscow`, matching the closed administrator ledger. A day is selected from the Moscow midnight interval; original event, upload and receipt instants remain unchanged. A cached live-day report using the former calendar is explicitly unavailable until the existing GET-only verifier refreshes it, rather than being relabelled.
 
 The frozen launch-history review and sent-before checkpoint audits retain their original recorded calendar and immutable time bounds. They are historical evidence, not the live today/yesterday totals. Their receipt members, monetary allocations and provider uploads are not rewritten or replayed by a report-calendar change.
+
+
+## Terminal expiry of an ordinary unsent READY event
+
+The canonical three-row READY pass stops rechecking an ordinary event whose
+original instant is strictly older than `ModeledConversionAttributionWindow::MAX_SECONDS`.
+Every admissible visit must precede that event, so no such visit can remain within
+the maximum current window. The inclusive boundary still follows the actual
+visitor report; this guard never assumes the ten-day Direct classification for
+a younger event. It uses the existing configured window, not a separate TTL.
+
+Only a never-claimed READY row with no upload, receipt, API/processing clock or
+known financial attempt may become `expired/event_expired`. The exact nullable
+row tuple, due clock, current send configuration and saved protected-frame bytes
+must still match in the same update. Frozen originals, unknown protected-frame
+state and concurrent changes remain held. Original event, identity, assigned
+amount and reservation are retained; nothing is redated, deleted, reallocated or
+replayed. Expiry performs no visitor-report read or conversion upload and uses
+only the existing bounded pass. Fresh zero-due rows retain their priority; the
+25-subject lookup, three-send and two-receipt limits are unchanged. Actual queue
+expiry is an operational observation after installation, not implied by a source
+test or the count of existing READY rows.

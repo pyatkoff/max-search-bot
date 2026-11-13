@@ -116,7 +116,9 @@ final class ModeledConversionLatencyReader
                 'profile_saved_is_not_proof_each_message_was_admitted_as_a_feature'=>true,
                 'recorded_status_is_not_new_semantic_validation'=>true,'missing_profile_does_not_prove_queued_processing'=>true,
                 'historical_value_review_excluded'=>true,'upload_time_is_existing_claim_tick_not_exact_api_response_time'=>true,
-                'api_receipt_processed_and_visits_are_separate'=>true,'no_ids_or_text_returned'=>true];
+                'api_receipt_processed_and_visits_are_separate'=>true,'saved_hold_reason_is_not_a_current_eligibility_check'=>true,
+                'visit_unverified_combines_absent_visit_and_unavailable_report'=>true,
+                'next_check_not_before_is_not_a_scheduled_execution_promise'=>true,'no_ids_or_text_returned'=>true];
             $this->auth();return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}
         catch(PDOException|UnexpectedValueException $ignored){$this->auth();return ['available'=>false,'reason'=>'today_latency_storage_or_clock_unavailable'];}
@@ -134,7 +136,7 @@ final class ModeledConversionLatencyReader
     private function values(int $since,int $now):array
     {
         $queued=$this->mysql?'UNIX_TIMESTAMP(o.created_at)':"CAST(strftime('%s',o.created_at) AS INTEGER)";
-        $base="SELECT o.id,o.platform,o.state,o.value_stage,o.value_rub,o.claimed_at_unix,o.upload_id,o.upload_status,o.last_error,"
+        $base="SELECT o.id,o.platform,o.state,o.value_stage,o.value_rub,o.claimed_at_unix,o.upload_id,o.upload_status,o.last_error,o.next_attempt_unix,"
             ."CASE WHEN o.client_id IS NOT NULL AND o.client_id<>'' THEN 1 ELSE 0 END AS identity_present,"
             .$queued." AS queued,p.observed_at_unix AS saved FROM max_channel_conversion_outbox o"
             ." JOIN modeled_conversion_profile_versions p ON p.id=o.value_profile_id AND p.project_key=o.project_key AND p.platform=o.platform AND p.conversation_id=o.conversation_id"
@@ -163,12 +165,15 @@ final class ModeledConversionLatencyReader
             'oldest_ready_seconds'=>$this->nullable($r['oldest_ready_seconds']),'profile_to_queue_seconds'=>$this->delay($r,'profile_to_queue'),
             'accepted_upload_claim_ticks'=>['same_five_minute_interval'=>$this->count($r['same_tick']),
                 'later_interval'=>$this->count($r['later_tick']),'maximum_intervals'=>$this->nullable($r['max_tick_intervals'])],'examples'=>[]];
-        $rows=$this->query("SELECT platform,state,value_stage,value_rub,saved,queued,claimed_at_unix,identity_present,"
+        $rows=$this->query("SELECT platform,state,value_stage,value_rub,saved,queued,claimed_at_unix,identity_present,last_error,next_attempt_unix,"
             ."CASE WHEN upload_id IS NOT NULL AND upload_id<>'' THEN 1 ELSE 0 END AS api_receipt FROM (".$base.") examples ORDER BY id DESC LIMIT 6");
         foreach($rows as$e)$out['examples'][]=['platform'=>$e['platform'],'stage'=>in_array($e['value_stage'],ModeledConversionValueContract::STAGES,true)?$e['value_stage']:null,'increment_rub'=>$this->count($e['value_rub']),
             'profile_saved_at'=>$this->at($e['saved']),'value_queued_at'=>$this->at($e['queued']),
             'upload_claim_tick_at'=>$this->at($e['claimed_at_unix']),'state'=>in_array($e['state'],['pending','ready','uploading','accepted','processed','unknown','failed','expired','unmatched'],true)?$e['state']:'unrecognized_state',
-            'identity_resolved'=>(int)$e['identity_present']===1,'api_receipt_present'=>(int)$e['api_receipt']===1];
+            'identity_resolved'=>(int)$e['identity_present']===1,'api_receipt_present'=>(int)$e['api_receipt']===1,
+            'last_recorded_hold_reason'=>in_array($e['last_error'],['identity_not_found','identity_ambiguous','metrika_visit_window','metrika_visit_unverified','wire_key_collision','scope_unavailable','event_expired'],true)?$e['last_error']:null,
+            'next_check_not_before'=>$this->at($e['next_attempt_unix']),
+            'overdue_for_saved_check_seconds'=>in_array($e['state'],['pending','ready'],true)&&(int)$e['next_attempt_unix']>=946684800&&(int)$e['next_attempt_unix']<=$now?$now-(int)$e['next_attempt_unix']:null];
         return $out;
     }
     private function delayColumns(string $key,string $value,string $condition):array

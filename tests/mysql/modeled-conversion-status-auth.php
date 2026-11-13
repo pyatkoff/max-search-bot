@@ -264,7 +264,6 @@ function forecastNativeAuthRegression():void
         $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN target VARCHAR(100)');
         $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN value_reviewed_at_unix BIGINT NULL');
         $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN external_user_id VARCHAR(32)');
-        $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN next_attempt_unix BIGINT DEFAULT 0');
         $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD value_ready_at_unix BIGINT NULL,ADD value_api_accepted_at_unix BIGINT NULL,ADD value_processed_at_unix BIGINT NULL,ADD value_receipt_basis VARCHAR(24) NULL');
         $pdo->exec('UPDATE max_channel_conversion_outbox SET external_user_id=CAST(conversation_id AS CHAR)');
         $pdo->exec("INSERT INTO customers VALUES(111,'Synthetic MAX owner'),(333,'Synthetic Telegram owner');
