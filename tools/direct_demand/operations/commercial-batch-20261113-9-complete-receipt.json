@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261113-9-v1",
+  "state": "CONTENT_AND_SITE_COMPLETE_NIGHTLY_PIN_PENDING",
+  "content_completed_at_moscow": "2026-11-13T05:42:58.805000+03:00",
+  "new_full_pairs": 5,
+  "new_posts": 10,
+  "reused": 0,
+  "hotel_ids": [
+    9287,
+    1013,
+    4185,
+    14140,
+    468
+  ],
+  "publisher": {
+    "run_id": 43337699620,
+    "run_attempt": 1,
+    "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/43337699620/attempts/1",
+    "head_sha": "eb10d653e4dec2f5d5f148e35e54f9db1cd104cb",
+    "artifact_id": 13998660998,
+    "zip_sha256": "fbbf2ac78834d22b9485e9290e595ec296f4a099104e87c507dd0fd7b2ed77c1",
+    "installed_sha": "498c5a752cd6f99c2d0e8c343dc5d44b9e80843f",
+    "manifest_sha256": "af6d63506e14e354c84baf572fcee3745b40c144f1f3b118db4411554656f3af",
+    "canonical_rows_sha256": "a2ae48be37c51551f99f6086f46e9d8f8562f4e787899b14f8489a8eccde4d77",
+    "summary_sha256": "b35979055fa580ec40e5a8366371a5fc9e5fd8ba86086190b220f97dbcbfa64a"
+  },
+  "bound_reader": {
+    "original_operation": "commercial-channel-hotel-feeds-20261113-read9",
+    "sha256": "df18db00d4288ce7a4b9567d119e4720d2b29dcf6f89ead0072470b603cb4c55"
+  },
+  "native": {
+    "run_id": 43338627982,
+    "run_attempt": 1,
+    "run_url": "https://github.com/pyatkoff/tour-max/actions/runs/43338627982/attempts/1",
+    "head_sha": "2c02e4669a29ec6b854803aed6fb36b8aeb878bc",
+    "private_accepted_commit": "bed5c31fb998ebc0964fd1d68c971447c4e18931",
+    "previous_logical_hotels": 575,
+    "logical_hotels": 580,
+    "previous575_rows_identical": true,
+    "receipt_sha256": "824cc63d3c0c5d1dc6bafd67ad70ac9a378a0597c2fb650d7678bddacffbba52",
+    "safe_proof_sha256": "fa62c7f1e3cad5e55db1fc59ddd5d3ba2fde0ce1dffab6fa3ca907c2e2592fb8"
+  },
+  "feed": {
+    "run_id": 43353276133,
+    "run_attempt": 1,
+    "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/43353276133/attempts/1",
+    "operation": "commercial-channel-hotel-feeds-20261113-update10",
+    "head_sha": "c70db5c3c404dc5f6323a71206a8fd19ff9da9f9",
+    "counts": [
+      580,
+      580,
+      1160
+    ],
+    "summary_sha256": "79352c063f17e0afed05067fa3d7de0e7395eb4b19f646e76035fa79b703290c",
+    "write_sha256": "86e91d1a796dcdf9664d1dd3892e93525ed95b1e58d7e6c2ce77bf207a2eaa8b",
+    "readback_sha256": "725a57e8c59c9ca721d2e360155d040e3013800c06fc9cda778aba9f945a8b16",
+    "input_sha256": "058630edba4fa9006fb359522495f9c39c07832ce40bf854b058d47913f4f310",
+    "runtime_lineage": {
+      "schema": "anytour.batch9-feed-lineage.v1",
+      "qualified_continuation_id": "commercial-channel-hotel-feeds-20261113-update10-continuation1",
+      "original_feed_run_id": 43340115672,
+      "publication_installed_sha": "498c5a752cd6f99c2d0e8c343dc5d44b9e80843f",
+      "installed_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+      "core_pull_request": 1522,
+      "core_head_sha": "2a1f13ed4f766f5d1371c6275e3d4f69bac0e558",
+      "core_merge_sha": "77dfb182148d9df9903e8e21fb8f29e986d4fd5f",
+      "current_source_acceptance_sha256": "a6e33c794e31ab7db683e58c7ce5dd5d785de68bc66330c9e19cdc5be33f38cf",
+      "runtime_pins_sha256": "3232defb6fa18ac047f8bbe222cff84a2743224cf243d3fbd91a654b95f0646a",
+      "recovery": {
+        "operation": "commercial-monitor-price-h112914-recovery-20261113-1",
+        "run_id": 43352649982,
+        "run_attempt": 1,
+        "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/43352649982/attempts/1",
+        "head_sha": "f705c165134b63674927019abe23e6068bbd92c5",
+        "artifact_id": 14004551907,
+        "archive_sha256": "08589250e34abd0b207868b23b9d99154b9b6b8ac14678af45cd8816133d2240",
+        "summary_sha256": "9d5ccc7ccc61dfae83a15ca3eb2391e33ad6b01686ee2f060f509c310d97408b",
+        "result_sha256": "2af5d5895ad75df1d3d538dabba726f937a245155065146ddc0bc43e01be112f",
+        "original_pending_closed": true,
+        "nightly_cycle_preserved": true
+      }
+    },
+    "previous_offer_and_price_bytes_preserved": true,
+    "previous_attempt": {
+      "run_id": 43340115672,
+      "run_attempt": 1,
+      "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/43340115672/attempts/1",
+      "head_sha": "618b81d6a163a69ff50639c63b5e9ab08d92ad4f",
+      "conclusion": "failure",
+      "reason": "monitor_already_running",
+      "frozen_writer_invoked": false,
+      "feed_write_count": 0,
+      "partial_replace": false,
+      "writer_receipt_sha256": "7c97664e2d11163248963428e753b215577dce1376e7424c7d4e3bd03cddb3ab",
+      "read_only_reconciliation_sha256": "eebb8d6de47b1f1f3e1b9c0ccaf32912178d4e7b66348d42f7b4e00f73b320c7",
+      "old_result_relabelled": false
+    }
+  },
+  "site": {
+    "operation": "batch9-source-20261113-import-v1",
+    "verification": {
+      "ok": true,
+      "operation": "commercial-hotel-batch-20261113-9-v1",
+      "source_edits": 5,
+      "import_operation": "batch9-source-20261113-import-v1",
+      "new_full_pairs": 5,
+      "new_posts": 10,
+      "published_before": 575,
+      "published_after": 580,
+      "queue_before": 30,
+      "queue_after": 25,
+      "registry_version": 324,
+      "untouched_cards_exact": 661,
+      "accepted_revision": 2,
+      "current_working_revision": 3,
+      "accepted_materials_and_history_preserved": true,
+      "private_facts_preserved": true,
+      "monitor_price_snapshots_preserved": true,
+      "automatic_retries": 0,
+      "registry_export_sha256": "1c35617882df794b65c9913ebb856c0d0bb2c890efd15dacbaa5d88485028fb6",
+      "private_verification_sha256": "e864952461ff279ea9184f5d65ea761bb3000b624ddbf9dee63a0a9560976e16",
+      "import_response_sha256": "d850e91a4aa5b5f70104c9005aa2383e8132b993da5a602d6a99ea7c5cc72c1d",
+      "import_payload_sha256": "304c54ac8fc482499c40eb2d5652c1aeaeddccbd1a1cc10d77e60a201308b98d"
+    }
+  },
+  "nightly": {
+    "before": 547,
+    "after": 552,
+    "activation": "PENDING_COLLECTOR_PIN",
+    "activation_scope": "next_scheduled_nightly_cycle_only",
+    "prior_failed_cycle_resumed": false,
+    "gzip_sha256": "ae20b5c47c5ffe1bbeeb8ed12cc58a905ae3b334073abeedb7e76b812bfa4341",
+    "json_sha256": "32360036b2dde763f22073b91f40c2a8a59211471deb4e1639d9b53253fac9d0",
+    "old547_rows_identical": true,
+    "existing_monitor_baseline_entries_preserved": 22,
+    "first_natural_nightly_result_for_new5": "not_yet_confirmed"
+  },
+  "posts": [
+    {
+      "hotel_id": 9287,
+      "max": "https://max.ru/channel_anytour/AaHSUaANR0A",
+      "telegram": "https://t.me/any_toour/590"
+    },
+    {
+      "hotel_id": 1013,
+      "max": "https://max.ru/channel_anytour/AaHSUaknQ48",
+      "telegram": "https://t.me/any_toour/591"
+    },
+    {
+      "hotel_id": 4185,
+      "max": "https://max.ru/channel_anytour/AaHSUbInHXg",
+      "telegram": "https://t.me/any_toour/592"
+    },
+    {
+      "hotel_id": 14140,
+      "max": "https://max.ru/channel_anytour/AaHSUbsDacE",
+      "telegram": "https://t.me/any_toour/593"
+    },
+    {
+      "hotel_id": 468,
+      "max": "https://max.ru/channel_anytour/AaHSUcOwNTM",
+      "telegram": "https://t.me/any_toour/594"
+    }
+  ],
+  "price_processes_started_by_this_tail": 0,
+  "new_actors_tasks_schedules": 0
+}
