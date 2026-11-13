@@ -65,6 +65,44 @@ rejects(fn()=>monitor_hook_attempted_collector_runs([json_encode($invalid,JSON_T
 rejects(fn()=>monitor_hook_nightly_gate($invalid,$now,$collection,'43205530036'),'hook_nightly_cycle_invalid');
 $snapshot=$state;monitor_hook_nightly_gate($state,$now,$collection,'43205530038',$seen);
 check($state===$snapshot,'legacy completed map holds and original cycle remain byte-for-byte untouched by admission');
+// Synthetic state shapes exercise the pure transition; runtime hashes actual journals under lock.
+$proof=monitor_hook_cycle_recovery_proof();$legacyState=$state;
+$legacyState['nightly_cycle']=['night_date'=>'2026-11-13','state'=>'started','collector_run_id'=>$proof['collector_run_id'],
+    'collection_started_at'=>'2026-11-13T00:20:00+00:00','started_at'=>'2026-11-13T00:35:00+00:00','budget_seconds'=>1800,'finish_reserve_seconds'=>300];
+$legacyState['completed'][112914]=['operation'=>$proof['operation'],'feed_operation'=>$proof['feed_operation'],'at'=>'2026-11-13T02:31:07+00:00'];
+$child=['operation'=>$proof['operation'],'complete'=>true];$closeAt=instant('2026-11-13T08:00:00Z');$legacyBefore=$legacyState;
+$closed=monitor_hook_close_reconciled_cycle($legacyState,$proof['global'],$proof['child'],$child,$closeAt);
+check($closed!==null&&monitor_hook_reconciled_cycle_valid($closed['nightly_cycle']),'exact accepted recovery closes only the interrupted metadata');
+check($closed['nightly_cycle']['state']==='interrupted_reconciled'&&!isset($closed['nightly_cycle']['finished_at']),'failed partial sweep is never relabelled completed');
+check(array_diff_key($closed,['nightly_cycle'=>true])===array_diff_key($legacyState,['nightly_cycle'=>true]),'completed hotels holds and pending are preserved exactly');
+check($legacyState===$legacyBefore,'pure closeout never mutates its original input');
+check(monitor_hook_close_reconciled_cycle($closed,[],[],[],0)===null,'already closed original needs no second metadata append or old-prefix replay');
+$closedRuns=monitor_hook_attempted_collector_runs([json_encode($legacyState,JSON_THROW_ON_ERROR),json_encode($closed,JSON_THROW_ON_ERROR)]);
+check(monitor_hook_nightly_gate($closed,$closeAt,'2026-11-13T07:50:00Z','43394479904',$closedRuns)['due'],'new daytime collector follows exact interrupted recovery');
+check(!monitor_hook_nightly_gate($closed,$closeAt,'2026-11-13T07:50:00Z',$proof['collector_run_id'],$closedRuns)['due'],'reconciled original collector itself remains non-repeatable');
+foreach(['sha256','bytes','lines'] as $field){
+    $bad=$proof['global'];$bad[$field]=$field==='sha256'?str_repeat('0',64):$bad[$field]+1;
+    rejects(fn()=>monitor_hook_close_reconciled_cycle($legacyState,$bad,$proof['child'],$child,$closeAt),'hook_cycle_recovery_prefix_changed');
+    $bad=$proof['child'];$bad[$field]=$field==='sha256'?str_repeat('0',64):$bad[$field]+1;
+    rejects(fn()=>monitor_hook_close_reconciled_cycle($legacyState,$proof['global'],$bad,$child,$closeAt),'hook_cycle_recovery_prefix_changed');
+}
+$bad=$legacyState;$bad['pending']=['operation'=>'unknown'];
+rejects(fn()=>monitor_hook_close_reconciled_cycle($bad,$proof['global'],$proof['child'],$child,$closeAt),'hook_cycle_recovery_not_terminal');
+$badChild=$child;$badChild['complete']=false;
+rejects(fn()=>monitor_hook_close_reconciled_cycle($legacyState,$proof['global'],$proof['child'],$badChild,$closeAt),'hook_cycle_recovery_not_terminal');
+foreach(['operation','feed_operation'] as $field){$bad=$legacyState;$bad['completed'][112914][$field]='different';
+    rejects(fn()=>monitor_hook_close_reconciled_cycle($bad,$proof['global'],$proof['child'],$child,$closeAt),'hook_cycle_recovery_not_terminal');}
+rejects(fn()=>monitor_hook_close_reconciled_cycle($legacyState,$proof['global'],$proof['child'],$child,instant('2026-11-13T02:31:06Z')),'hook_cycle_recovery_clock_invalid');
+$other=$legacyState;$other['nightly_cycle']['collector_run_id']='43336135924';
+check(monitor_hook_close_reconciled_cycle($other,[],[],[],0)===null,'unrelated unfinished collector has no recovery exception');
+$forged=$closed;unset($forged['nightly_cycle']['recovery']);
+rejects(fn()=>monitor_hook_nightly_gate($forged,$closeAt,'2026-11-13T07:50:00Z','43394479904'),'hook_nightly_cycle_invalid');
+rejects(fn()=>monitor_hook_attempted_collector_runs([json_encode($forged,JSON_THROW_ON_ERROR)]),'hook_nightly_history_invalid');
+$forged=$closed;$forged['nightly_cycle']['recovery']['recovery_result_sha256']=str_repeat('0',64);
+check(!monitor_hook_reconciled_cycle_valid($forged['nightly_cycle']),'different recovery proof cannot create a general terminal bypass');
+$raw="{\"schema\":1}\n";$pin=monitor_hook_cycle_journal_pin($raw);
+check($pin===['sha256'=>hash('sha256',$raw),'bytes'=>strlen($raw),'lines'=>1],'actual bytes produce the full journal CAS');
+rejects(fn()=>monitor_hook_cycle_journal_pin(rtrim($raw,"\n")),'hook_cycle_recovery_journal_incomplete');
 $night=monitor_hook_pass_policy(true,481,1000);
 check($night['pair_limit']===481&&$night['budget_seconds']===1800&&$night['finish_reserve_seconds']===300,'whole catalogue admitted within one maintenance budget');
 check(monitor_hook_can_start_pair($night,1300,30),'night cycle continues beyond old thirty pair limit');

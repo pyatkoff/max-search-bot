@@ -192,6 +192,43 @@ function monitor_hook_hold_reason(int $tv,array $hold,?array $journal):string {
     return 'abandoned_before_write';
 }
 
+/** Original failed collector and independently accepted recovery; no new post/feed operation. */
+function monitor_hook_cycle_recovery_proof():array {
+    return ['collector_run_id'=>'43336135923','recovery_run_id'=>'43352649982',
+        'recovery_result_sha256'=>'2af5d5895ad75df1d3d538dabba726f937a245155065146ddc0bc43e01be112f',
+        'operation'=>'commercial-monitor-price-h112914-d7617e5a491183b8f8e73d26a8b419b6147d6a8323b84799d0b6057819f93e70',
+        'feed_operation'=>'commercial-channel-hotel-feeds-20261113-update39435617341790398',
+        'global'=>['sha256'=>'cf1bf2656c1370baa8cec1b1daa2167c223a7a501d12e9fe599acf25f97fdec3','bytes'=>26249468,'lines'=>816],
+        'child'=>['sha256'=>'ff01bfb9a14667c8a89822d8c2e6edc7baa946a499bfd8b9d0c8e5c32341bef0','bytes'=>143160,'lines'=>10]];
+}
+function monitor_hook_cycle_journal_pin(string $raw):array {
+    monitor_price_require($raw!==''&&str_ends_with($raw,"\n"),'hook_cycle_recovery_journal_incomplete');
+    return ['sha256'=>hash('sha256',$raw),'bytes'=>strlen($raw),'lines'=>substr_count($raw,"\n")];
+}
+function monitor_hook_reconciled_cycle_valid(array $cycle):bool {
+    return ($cycle['state']??null)==='interrupted_reconciled'
+        &&($cycle['collector_run_id']??null)==='43336135923'&&($cycle['night_date']??null)==='2026-11-13'
+        &&($cycle['recovery']??null)===monitor_hook_cycle_recovery_proof()
+        &&is_string($cycle['reconciled_at']??null)
+        &&preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\+00:00\z/D',$cycle['reconciled_at'])===1
+        &&$cycle['reconciled_at']>='2026-11-13T02:31:07+00:00';
+}
+/** A forward-only metadata line for one proved recovery; an interrupted sweep is never completed. */
+function monitor_hook_close_reconciled_cycle(array $state,array $globalPin,array $childPin,array $child,int $now):?array {
+    $cycle=$state['nightly_cycle']??null;$proof=monitor_hook_cycle_recovery_proof();
+    if(!is_array($cycle)||($cycle['collector_run_id']??null)!==$proof['collector_run_id']||($cycle['state']??null)!=='started')return null;
+    monitor_price_require($globalPin===$proof['global']&&$childPin===$proof['child'],'hook_cycle_recovery_prefix_changed');
+    monitor_price_require(array_key_exists('pending',$state)&&$state['pending']===null
+        &&($state['schema']??null)===1&&($cycle['night_date']??null)==='2026-11-13'
+        &&($child['operation']??null)===$proof['operation']&&($child['complete']??false)===true
+        &&($state['completed'][112914]['operation']??null)===$proof['operation']
+        &&($state['completed'][112914]['feed_operation']??null)===$proof['feed_operation'],'hook_cycle_recovery_not_terminal');
+    monitor_price_require($now>=monitor_price_time('2026-11-13T02:31:07+00:00'),'hook_cycle_recovery_clock_invalid');
+    $state['nightly_cycle']['state']='interrupted_reconciled';
+    $state['nightly_cycle']['recovery']=$proof;$state['nightly_cycle']['reconciled_at']=gmdate('c',$now);
+    return $state;
+}
+
 /** Reuse the original append-only journal; a later collector never erases replay history. */
 function monitor_hook_attempted_collector_runs(array $journalLines):array {
     $runs=[];
@@ -201,7 +238,8 @@ function monitor_hook_attempted_collector_runs(array $journalLines):array {
         $cycle=$entry['nightly_cycle']??null;if($cycle===null)continue;
         monitor_price_require(is_array($cycle)&&is_string($cycle['collector_run_id']??null)
             &&preg_match('/\A[1-9][0-9]{0,19}\z/D',$cycle['collector_run_id'])===1
-            &&in_array($cycle['state']??null,['started','completed','budget_exhausted'],true),'hook_nightly_history_invalid');
+            &&(in_array($cycle['state']??null,['started','completed','budget_exhausted'],true)
+                ||monitor_hook_reconciled_cycle_valid($cycle)),'hook_nightly_history_invalid');
         $runs['run:'.$cycle['collector_run_id']]=true;
     }
     return $runs;
@@ -218,7 +256,7 @@ function monitor_hook_nightly_gate(array $state,int $now,?string $collectionStar
     if($prior!==null){
         monitor_price_require(is_array($prior)&&is_string($prior['night_date']??null)
             &&preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}\z/D',$prior['night_date'])===1
-            &&in_array($prior['state']??null,['started','completed','budget_exhausted'],true)
+            &&(in_array($prior['state']??null,['started','completed','budget_exhausted'],true)||monitor_hook_reconciled_cycle_valid($prior))
             &&is_string($prior['collector_run_id']??null)&&preg_match('/\A[1-9][0-9]{0,19}\z/D',$prior['collector_run_id'])===1
             &&is_string($prior['collection_started_at']??null),'hook_nightly_cycle_invalid');
         monitor_price_require($prior['night_date']<=$night,'hook_nightly_clock_moved_back');

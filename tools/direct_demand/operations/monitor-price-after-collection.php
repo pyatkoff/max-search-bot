@@ -158,6 +158,15 @@ try{
     hook_need(is_string($raw)&&(!$existed||$raw!=='')&&($raw===''||str_ends_with($raw,"\n")),'hook_journal_incomplete_stop');
     $state=['schema'=>1,'pending'=>null,'completed'=>[]];if($raw!==''){$lines=explode("\n",rtrim($raw,"\n"));$state=json_decode(end($lines),true,64,JSON_THROW_ON_ERROR);}elseif(!$inspect)hook_append($lock,$state);
     if($nightly){
+        $cycleRecovery=monitor_hook_cycle_recovery_proof();
+        if(($state['nightly_cycle']['collector_run_id']??null)===$cycleRecovery['collector_run_id']&&($state['nightly_cycle']['state']??null)==='started'){
+            $childRaw=hook_read($private.'/'.$cycleRecovery['operation'].'/receipt.jsonl');
+            $closed=monitor_hook_close_reconciled_cycle($state,monitor_hook_cycle_journal_pin($raw),monitor_hook_cycle_journal_pin($childRaw),
+                monitor_hook_parse_journal($childRaw,$cycleRecovery['operation']),$startedAt);
+            hook_need($closed!==null,'hook_cycle_recovery_terminal_missing');
+            hook_append($lock,$closed);$state=$closed;
+            $out['reconciled_prior_collector']=['collector_run_id'=>$cycleRecovery['collector_run_id'],'state'=>'interrupted_reconciled','post_writes'=>0,'feed_writes'=>0];
+        }
         $attemptedRuns=$raw===''?[]:monitor_hook_attempted_collector_runs($lines);
         $nightGate=monitor_hook_nightly_gate($state,$startedAt,getenv('ANYTOUR_MONITOR_COLLECTION_STARTED_AT')?:null,getenv('ANYTOUR_MONITOR_COLLECTOR_RUN_ID')?:null,$attemptedRuns);
         if(!$nightGate['due']){
