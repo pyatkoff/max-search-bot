@@ -1,4 +1,4 @@
-name: Read only the existing nightly pending journal and exact native MAX state
+name: Read only the exact original pending journals and first native MAX state
 permissions:
   contents: read
   actions: read
@@ -24,13 +24,13 @@ jobs:
         umask 077
         test "$GITHUB_RUN_ATTEMPT" = 1
         sha256sum -c <<'PINS'
-        1c496e9b3035be8e0251b1c07c603762d04547c1ab9471c47c9b8d01c8da3b3e  tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness1.php
-        39275eab0e6cccd6d12368a12a3d1a243c6f2acabb32df8f0915488773da8c8f  tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness1-plan.json
+        f99cb68b71a3dde9a50ea24ce52a88edfd7723900c91a6ab8ecc7b4e08c524c9  tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness2.php
+        b2055d47613a0e0e2a7b891f3b071126214681ea4ed320b431f476ed3cf839b8  tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness2-plan.json
         51270e4ce241914001ddc307e581ffdac69234c3880e77bd99a7be6b4e5d4a7a  tools/direct_demand/operations/verify-commercial-source.py
         PINS
-        cp tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness1.php "$RUNNER_TEMP/nightly-pending-read.php"
+        cp tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness2.php "$RUNNER_TEMP/nightly-pending-read.php"
         php -l "$RUNNER_TEMP/nightly-pending-read.php"
-    - name: Authenticate exact original prewrite refusal and preserve its receipt
+    - name: Authenticate original readiness1 GET0 and exact journal CAS evidence
       env:
         GH_TOKEN: ${{ github.token }}
       shell: bash
@@ -41,30 +41,41 @@ jobs:
         test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
         python3 - <<'AUTH'
         import hashlib,io,json,os,pathlib,subprocess,zipfile
-        base=pathlib.Path('tools/direct_demand/operations');plan=json.loads((base/'commercial-channel-hotel-feeds-20261113-update10-readiness1-plan.json').read_bytes());b=plan['original_feed_attempt']
+        base=pathlib.Path('tools/direct_demand/operations');plan=json.loads((base/'commercial-channel-hotel-feeds-20261113-update10-readiness2-plan.json').read_bytes());b=plan['original_readiness']
         e=pathlib.Path(os.environ['RUNNER_TEMP'],'readiness-evidence');e.mkdir(mode=0o700)
         def api(path):return subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+path])
-        run=json.loads(api('actions/runs/'+str(b['run_id'])));meta=json.loads(api('actions/artifacts/'+str(b['artifact_id'])))
-        assert run['id']==b['run_id'] and run['run_attempt']==1 and run['head_sha']==b['head_sha'] and run['status']=='completed' and run['conclusion']=='failure'
+        run_raw=api('actions/runs/'+str(b['run_id']));meta_raw=api('actions/artifacts/'+str(b['artifact_id']))
+        run=json.loads(run_raw);meta=json.loads(meta_raw)
+        assert run['id']==b['run_id'] and run['run_attempt']==1 and run['head_sha']==b['head_sha'] and run['status']=='completed' and run['conclusion']=='success'
         assert run['path']=='.github/workflows/content100-bot-publication-20261101.yml' and run['head_branch']=='audit/content100-bot-publication-20261101'
         assert meta['id']==b['artifact_id'] and meta['name']==b['artifact_name'] and meta['expired'] is False and meta['digest']=='sha256:'+b['artifact_sha256']
         assert meta['workflow_run']['id']==b['run_id'] and meta['workflow_run']['head_sha']==b['head_sha']
         raw=api('actions/artifacts/'+str(b['artifact_id'])+'/zip');assert hashlib.sha256(raw).hexdigest()==b['artifact_sha256']
         with zipfile.ZipFile(io.BytesIO(raw)) as z:
-         assert sum(i.file_size for i in z.infolist())<20000000
+         assert len(z.infolist())<=80 and sum(i.file_size for i in z.infolist())<20000000
          def one(name):
           members=[i for i in z.infolist() if pathlib.PurePosixPath(i.filename).name==name];assert len(members)==1 and members[0].file_size<200000;return z.read(members[0])
-         receipt_raw=one('writer-receipt.json');marker=json.loads(one('feed-writer.started'));wrapper=json.loads(one('wrapper-proof.json'))
-         assert hashlib.sha256(receipt_raw).hexdigest()==b['writer_receipt_sha256']
-         r=json.loads(receipt_raw.splitlines()[-1]);assert r['operation']=='commercial-channel-hotel-feeds-20261113-update10' and r['ok'] is False and r['error']=='monitor_already_running' and r['files']==[]
-         assert all(r[k]==0 for k in ['db_writes','provider_calls','message_sends'])
-         assert marker['operation']==r['operation'] and marker['input_sha256']==b['input_sha256'] and str(marker['run_id'])==str(b['run_id']) and marker['writer_attempts']==1 and marker['retry_authorized'] is False
-         assert wrapper['nightly_guard_sha256']==b['nightly_guard_sha256'] and wrapper['frozen_writer_body_preserved'] is True and wrapper['journal_write_attempts']==0
-         (e/'original-guard-receipt.json').write_bytes(receipt_raw)
-         (e/'original-started.json').write_text(json.dumps(marker,indent=2)+'\n')
-         (e/'original-wrapper-proof.json').write_text(json.dumps(wrapper,indent=2)+'\n')
-        (e/'original-failure-binding.json').write_text(json.dumps({'verified':True,**b},indent=2)+'\n')
-        print('ORIGINAL_PREWRITE_GUARD_REFUSAL_VERIFIED; no feed continuation authorized')
+         result_raw=one('result.json');transport_raw=one('transport.json')
+         assert hashlib.sha256(result_raw).hexdigest()==b['result_sha256'] and hashlib.sha256(transport_raw).hexdigest()==b['transport_sha256']
+         d=json.loads(result_raw.splitlines()[-1]);t=json.loads(transport_raw)
+         assert d['operation']==b['operation'] and d['installed_sha']==b['installed_sha'] and d['ok'] is True and d['global_lock_available'] is True and d['global_pending_is_null'] is False
+         assert d['feed_continuation_authorized'] is False and all(d[k]==0 for k in ['db_write_attempts','journal_write_attempts','post_write_attempts','configuration_write_attempts','provider_write_attempts','feed_write_attempts'])
+         n=d['native_max'];assert n['attempted'] is False and n['ok'] is False and n['native_confirmed'] is False and n['provider_gets']==0 and n['before_write_callback_calls']==0 and n['error']=='native_original_journal_not_incomplete'
+         assert all(n[k]==0 for k in ['db_write_attempts','journal_write_attempts','post_write_attempts','provider_write_attempts'])
+         assert t['ssh_status']==0 and t['read_only'] is True and t['retry_authorized'] is False and str(t['run_id'])==str(b['run_id']) and t['head_sha']==b['head_sha'] and t['run_attempt']==1
+         expected=plan['expected_original_context'];assert d['pending']==expected['pending']
+         for kind in ['global_journal','child_journal']:
+          assert all(d[kind][key]==value for key,value in expected[kind].items())
+         child=d['child_journal'];assert child['history_lines_scanned']==child['lines']==4 and child['historical_post_keys']==['max:anjum'] and child['telegram_intent_seen'] is False
+         assert child['complete'] is None and 'complete' not in child['state_keys']
+         previous_failure=json.loads(one('original-failure-binding.json'));assert previous_failure=={'verified':True,**plan['original_feed_attempt']}
+         receipt_raw=one('original-guard-receipt.json');assert hashlib.sha256(receipt_raw).hexdigest()==plan['original_feed_attempt']['writer_receipt_sha256']
+         for name in ['original-failure-binding.json','original-guard-receipt.json','original-started.json','original-wrapper-proof.json']:(e/name).write_bytes(one(name))
+         (e/'previous-readiness-result.json').write_bytes(result_raw);(e/'previous-readiness-transport.json').write_bytes(transport_raw)
+        (e/'previous-readiness-original.zip').write_bytes(raw)
+        (e/'previous-readiness-run.json').write_bytes(run_raw);(e/'previous-readiness-artifact.json').write_bytes(meta_raw)
+        (e/'previous-readiness-binding.json').write_text(json.dumps({'verified':True,**b},indent=2)+'\n')
+        print('ORIGINAL_READINESS1_GET0_AND_EXACT_JOURNAL_PINS_VERIFIED; first native GET only; no feed continuation')
         AUTH
     - name: Require original current-source release and health gates
       env:
@@ -108,10 +119,10 @@ jobs:
     - name: Retain exact read-only inputs before credentials
       uses: actions/upload-artifact@v4
       with:
-        name: commercial-channel-hotel-feeds-20261113-update10-readiness1-inputs
+        name: commercial-channel-hotel-feeds-20261113-update10-readiness2-inputs
         path: |-
-          tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness1.php
-          tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness1-plan.json
+          tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness2.php
+          tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness2-plan.json
         retention-days: 14
         if-no-files-found: error
     - name: Prepare existing server connection
@@ -152,7 +163,7 @@ jobs:
         assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
         pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
         PY
-    - name: Require exact read-only owner and carrier lease before inspection
+    - name: Require exact first-native-read owner and carrier lease
       env:
         GH_TOKEN: ${{ github.token }}
       shell: bash
@@ -170,7 +181,7 @@ jobs:
         gh api 'repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30' > "$evidence/queued.json"
         python3 - <<'PYLEASE'
         import hashlib,json,os,pathlib
-        p=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness1-plan.json').read_bytes())
+        p=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-readiness2-plan.json').read_bytes())
         assert p['ready'] is True,'owner pin has not been supplied'
         e=pathlib.Path(os.environ['RUNNER_TEMP'],'readiness-evidence/lease')
         get=lambda n:json.loads((e/(n+'.json')).read_bytes())
@@ -207,18 +218,19 @@ jobs:
         python3 - "$status" <<'CHECK'
         import json,os,pathlib,sys
         p=pathlib.Path(os.environ['RUNNER_TEMP'],'readiness-evidence');raw=(p/'result.json').read_bytes();d=json.loads(raw.splitlines()[-1])
-        assert d['operation']=='commercial-channel-hotel-feeds-20261113-update10-readiness1' and d['feed_continuation_authorized'] is False
+        assert d['operation']=='commercial-channel-hotel-feeds-20261113-update10-readiness2' and d['feed_continuation_authorized'] is False
         assert all(d[k]==0 for k in ['db_write_attempts','journal_write_attempts','post_write_attempts','configuration_write_attempts','provider_write_attempts','feed_write_attempts'])
         (p/'transport.json').write_text(json.dumps({'ssh_status':int(sys.argv[1]),'read_only':True,'retry_authorized':False,'run_id':os.environ['GITHUB_RUN_ID'],'head_sha':os.environ['GITHUB_SHA'],'run_attempt':1},indent=2)+'\n')
         print(json.dumps(d,ensure_ascii=False))
-        assert d['ok'] is True
+        assert d['ok'] is True and d['journal_cas_verified'] is True
+        assert d['original_readiness_result_sha256']=='08c8bda673ca3c11cd8dcc11e524cdb3ef342bbc3f107dcbfb220c0c583d95b8'
         CHECK
         test "$status" = 0
     - name: Retain actual bounded inspection and original failure evidence
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: commercial-channel-hotel-feeds-20261113-update10-readiness1-result
+        name: commercial-channel-hotel-feeds-20261113-update10-readiness2-result
         path: ${{ runner.temp }}/readiness-evidence
         retention-days: 14
         if-no-files-found: error

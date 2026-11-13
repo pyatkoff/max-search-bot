@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "ready": true,
+  "operation": "commercial-channel-hotel-feeds-20261113-update10-readiness2",
+  "expected_installed_sha": "cc58204bcaae562d237351e7dd8d23c6be9e3e36",
+  "expected_parent_head": "34660c8a934462bb6d9553e7d0ba5b4d6a715bdd",
+  "owner_pin": {
+    "comment_id": 6818332618,
+    "owner": "pyatkoff",
+    "updated_at": "2026-11-13T01:28:14Z",
+    "body_sha256": "9c934fb09e9f48b39aae7916989671f154b2712dd4d0333f52a7d9cd193579dc",
+    "required_scope_line": "### 13 ноября 2026, 04:27 МСК — batch9 posts/native DONE; exact pending112914 подтверждён, первое native GET read-only IN_PROGRESS"
+  },
+  "mode": "bounded_read_only_exact_original_journals_and_first_native_max_get",
+  "feed_continuation_authorized": false,
+  "original_feed_attempt": {
+    "run_id": 43340115672,
+    "head_sha": "618b81d6a163a69ff50639c63b5e9ab08d92ad4f",
+    "artifact_id": 13999056851,
+    "artifact_name": "commercial-channel-hotel-feeds-20261113-update10-result",
+    "artifact_sha256": "c27586e556f47c5be136a54207a4d93e1fe7e41ad83a9e8187b0665e9c8e3781",
+    "writer_receipt_sha256": "7c97664e2d11163248963428e753b215577dce1376e7424c7d4e3bd03cddb3ab",
+    "input_sha256": "ebdbd6b7310d46ff7bb61300ab16bdf620b3bdc50b4cfaae9118a1000b4fa83d",
+    "nightly_guard_sha256": "0c60e5a851ae014de9a1542f268449b7a1d0fb0ba9f3104db8da650035ea8486",
+    "frozen_writer_invoked": false,
+    "feed_writes": 0
+  },
+  "original_readiness": {
+    "operation": "commercial-channel-hotel-feeds-20261113-update10-readiness1",
+    "run_id": 43343920003,
+    "run_attempt": 1,
+    "head_sha": "34660c8a934462bb6d9553e7d0ba5b4d6a715bdd",
+    "installed_sha": "cc58204bcaae562d237351e7dd8d23c6be9e3e36",
+    "artifact_id": 14000693166,
+    "artifact_name": "commercial-channel-hotel-feeds-20261113-update10-readiness1-result",
+    "artifact_sha256": "6f25168f7b4ce0e407ef9b58710a3e5565b6d1711b3e53d69752c7251669ff7e",
+    "result_sha256": "08c8bda673ca3c11cd8dcc11e524cdb3ef342bbc3f107dcbfb220c0c583d95b8",
+    "transport_sha256": "c28eaa948f18c2e273a090212e27661ad3c63587ef54108cfc2fe21a741e3da0",
+    "provider_gets": 0,
+    "native_error": "native_original_journal_not_incomplete"
+  },
+  "expected_original_context": {
+    "global_journal": {
+      "sha256": "bbd86df24d4e5221b21811be68f7638e5944920c9fe5323b619d3134fd3f8edc",
+      "last_line_sha256": "16bb8a1b5ad32bd53db48ed6a8de4199a00e9ddf08ff41fb05aab15ade0e9eb2",
+      "bytes": 26121206,
+      "lines": 814
+    },
+    "child_journal": {
+      "sha256": "96f791897e42e1ad468e2d03521482f6b1c110cbd66146a332a105feb1b702a9",
+      "last_line_sha256": "bfd7f1b1e0e8a09735d376b49377d20f901b1227057d030712609ebaf2a55a20",
+      "bytes": 36772,
+      "lines": 4
+    },
+    "pending": {
+      "phase": "post_started",
+      "operation": "commercial-monitor-price-h112914-d7617e5a491183b8f8e73d26a8b419b6147d6a8323b84799d0b6057819f93e70",
+      "tourvisor_hotel_id": 112914,
+      "at": "2026-11-13T00:54:14+00:00",
+      "child_failure": {
+        "error": "max_button_outcome_not_confirmed",
+        "exit_code": 2
+      }
+    }
+  },
+  "reader_sha256": "f99cb68b71a3dde9a50ea24ce52a88edfd7723900c91a6ab8ecc7b4e08c524c9",
+  "native_helper_sha256": "02482504456ecd94f30df28eb53c7f7e6d0cf13f0eb233eb241fdabcee39dbe0",
+  "journal_main_sha256": "a7715571219fc3c3d57c3b7810424b6109856e1ebd3eba498f409c22a40555f6",
+  "journal_scope": "same global and same one actual child; exact whole-prefix SHA/bytes/lines CAS under existing EX/SH locks",
+  "native_scope": "publication184/version4323/TV112914 only; at most three canonical GETs; no write capability"
+}
