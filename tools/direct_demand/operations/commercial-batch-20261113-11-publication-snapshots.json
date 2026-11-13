@@ -1,0 +1,135 @@
+{
+  "operation": "commercial-hotel-batch-20261113-11-v1",
+  "rows": [
+    {
+      "id": "72afc465-9029-4131-96d4-180eb3a47a43",
+      "tourvisorId": "325",
+      "publicationSnapshots": [
+        {
+          "channel": "max",
+          "text": "✈️ Туры в Minamark Resort & Spa\n📍 Хургада, Египет.\n\nМоре и прогулки по Хургаде в одной поездке 🌴\n\nMinamark расположен в центре Саккалы и имеет собственный песчаный пляж. Подойдёт тем, кто хочет отдыхать у воды и выходить на прогулки по городу.\n\n• Для детей есть клуб и водные горки.\n• На территории работает спа Agua.\n• Для поездки с детьми предусмотрены семейные категории.\n\nВ Club/Economy нет балкона. Подберём категорию с подходящей планировкой и кроватями для вашей семьи.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "textSha256": "d434b65d89fc890d049c650310049e214c4b26fdc14b6beaac49f337a4a12e62",
+          "capturedAt": "2026-11-13T04:21:54+00:00",
+          "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43364950177/attempts/1",
+          "proofKind": "completed_package",
+          "post": {
+            "url": "https://max.ru/channel_anytour/AaHTI-iFZ5E",
+            "mid": "mid.ffffb6caf0606fed01a1d323e8856791",
+            "at": "2026-11-13T04:21:54+00:00",
+            "idKind": "provider",
+            "buttonProof": {
+              "url": "https://max.ru/id9704048781_1_bot?start=p_hVI3G9kXCqVV2nQzPKxfpBbM",
+              "publicationId": "1325",
+              "hotelNativeId": "325",
+              "verifiedAt": "2026-11-13T04:21:54+00:00",
+              "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43364950177/attempts/1"
+            }
+          },
+          "publicationId": "1325",
+          "versionId": "4335",
+          "buttonText": "✈️ Узнать стоимость тура",
+          "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0b3445d24f743deab13a15d2b93e54d467276a63/.github/traffic-publish/commercial-batch-20261113-11/325.png",
+          "mediaCount": 1
+        },
+        {
+          "channel": "telegram",
+          "text": "✈️ Туры в Minamark Resort & Spa\n📍 Хургада, Египет.\n\nМоре и прогулки по Хургаде в одной поездке 🌴\n\nMinamark расположен в центре Саккалы и имеет собственный песчаный пляж. Подойдёт тем, кто хочет отдыхать у воды и выходить на прогулки по городу.\n\n• Для детей есть клуб и водные горки.\n• На территории работает спа Agua.\n• Для поездки с детьми предусмотрены семейные категории.\n\nВ Club/Economy нет балкона. Подберём категорию с подходящей планировкой и кроватями для вашей семьи.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "textSha256": "d434b65d89fc890d049c650310049e214c4b26fdc14b6beaac49f337a4a12e62",
+          "capturedAt": "2026-11-13T04:21:54+00:00",
+          "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43364950177/attempts/1",
+          "proofKind": "completed_package",
+          "post": {
+            "url": "https://t.me/any_toour/599",
+            "mid": "599",
+            "at": "2026-11-13T04:21:54+00:00",
+            "idKind": "provider",
+            "buttonProof": {
+              "url": "https://t.me/anyru_bot?start=p_LKxha6cULLrQulw4QzbNm3LP",
+              "publicationId": "1323",
+              "hotelNativeId": "325",
+              "verifiedAt": "2026-11-13T04:21:54+00:00",
+              "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43364950177/attempts/1"
+            }
+          },
+          "publicationId": "1323",
+          "versionId": "4333",
+          "buttonText": "✈️ Узнать стоимость тура",
+          "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0b3445d24f743deab13a15d2b93e54d467276a63/.github/traffic-publish/commercial-batch-20261113-11/325.png",
+          "mediaCount": 1
+        }
+      ],
+      "feedPresence": {
+        "at": "2026-11-13T04:26:46.023442+00:00",
+        "sourceDate": "2026-11-13 07:26",
+        "url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+        "maxUrl": "https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZDc4MmQ0ODJkOTY0OGRkMjIwNWY4ZDg4ZDlmMWJkZjQiLCJvZmZlcl9pZCI6Im1heF8zMjUifQ",
+        "telegramUrl": "https://t.me/any_toour/599"
+      }
+    },
+    {
+      "id": "b05aceed-3a9d-5321-999f-70f2dc2c47d6",
+      "tourvisorId": "4184",
+      "publicationSnapshots": [
+        {
+          "channel": "max",
+          "text": "✈️ Туры в Sentido Reef Oasis Senses\n📍 Рас-Ум-эль-Сид, Шарм-эль-Шейх, Египет.\n\nОтдых у Красного моря для семьи и любителей рифа 🐠\n\nSentido Reef Oasis Senses предлагает просторные семейные категории и доступ к пляжу комплекса с домашним рифом. Подойдёт тем, кто хочет совместить морское купание с отдыхом на территории отеля.\n\n• Песчаная пляжная зона комплекса.\n• Домашний риф для знакомства с подводным миром.\n• Семейные категории номеров.\n\nДо пляжа около 500 м, на пути есть ступени. Пригодится обувь для воды. С 10 января по 28 февраля 2027 года аквапарк будет закрыт.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "textSha256": "442d44769860d5c78e4801c2e9f271187ada17d7ab299bd1b83cb2e9d75ec486",
+          "capturedAt": "2026-11-13T04:21:54+00:00",
+          "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43364950177/attempts/1",
+          "proofKind": "completed_package",
+          "post": {
+            "url": "https://max.ru/channel_anytour/AaHTI_GNfDA",
+            "mid": "mid.ffffb6caf0606fed01a1d323f18d7c30",
+            "at": "2026-11-13T04:21:54+00:00",
+            "idKind": "provider",
+            "buttonProof": {
+              "url": "https://max.ru/id9704048781_1_bot?start=p_q-uOCD8f6CTDIxs7fNCQNgWM",
+              "publicationId": "1326",
+              "hotelNativeId": "4184",
+              "verifiedAt": "2026-11-13T04:21:54+00:00",
+              "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43364950177/attempts/1"
+            }
+          },
+          "publicationId": "1326",
+          "versionId": "4336",
+          "buttonText": "✈️ Узнать стоимость тура",
+          "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0b3445d24f743deab13a15d2b93e54d467276a63/.github/traffic-publish/commercial-batch-20261113-11/4184.png",
+          "mediaCount": 1
+        },
+        {
+          "channel": "telegram",
+          "text": "✈️ Туры в Sentido Reef Oasis Senses\n📍 Рас-Ум-эль-Сид, Шарм-эль-Шейх, Египет.\n\nОтдых у Красного моря для семьи и любителей рифа 🐠\n\nSentido Reef Oasis Senses предлагает просторные семейные категории и доступ к пляжу комплекса с домашним рифом. Подойдёт тем, кто хочет совместить морское купание с отдыхом на территории отеля.\n\n• Песчаная пляжная зона комплекса.\n• Домашний риф для знакомства с подводным миром.\n• Семейные категории номеров.\n\nДо пляжа около 500 м, на пути есть ступени. Пригодится обувь для воды. С 10 января по 28 февраля 2027 года аквапарк будет закрыт.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "textSha256": "442d44769860d5c78e4801c2e9f271187ada17d7ab299bd1b83cb2e9d75ec486",
+          "capturedAt": "2026-11-13T04:21:54+00:00",
+          "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43364950177/attempts/1",
+          "proofKind": "completed_package",
+          "post": {
+            "url": "https://t.me/any_toour/600",
+            "mid": "600",
+            "at": "2026-11-13T04:21:54+00:00",
+            "idKind": "provider",
+            "buttonProof": {
+              "url": "https://t.me/anyru_bot?start=p_Z8Ot31-v7YlN4eVk6gFIcMP8",
+              "publicationId": "1324",
+              "hotelNativeId": "4184",
+              "verifiedAt": "2026-11-13T04:21:54+00:00",
+              "sourceUrl": "https://github.com/pyatkoff/max-search-bot/actions/runs/43364950177/attempts/1"
+            }
+          },
+          "publicationId": "1324",
+          "versionId": "4334",
+          "buttonText": "✈️ Узнать стоимость тура",
+          "coverUrl": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0b3445d24f743deab13a15d2b93e54d467276a63/.github/traffic-publish/commercial-batch-20261113-11/4184.png",
+          "mediaCount": 1
+        }
+      ],
+      "feedPresence": {
+        "at": "2026-11-13T04:26:46.023442+00:00",
+        "sourceDate": "2026-11-13 07:26",
+        "url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+        "maxUrl": "https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMDFiNzhjZWQxN2Y0NTcwOTY5M2JkM2Q4NzhlNDBlZTkiLCJvZmZlcl9pZCI6Im1heF80MTg0In0",
+        "telegramUrl": "https://t.me/any_toour/600"
+      }
+    }
+  ]
+}

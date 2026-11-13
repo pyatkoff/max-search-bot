@@ -1,0 +1,72 @@
+{
+  "operation": "commercial-hotel-batch-20261113-11-v1",
+  "state": "COMPLETED",
+  "new_hotels": [
+    325,
+    4184
+  ],
+  "new_posts": 4,
+  "reused_posts": 0,
+  "full_pairs_before": 584,
+  "full_pairs_after": 586,
+  "queue_before": 21,
+  "queue_after": 19,
+  "site_before": 329,
+  "site_after": 332,
+  "other_cards_exact": 664,
+  "accepted_history_research_holds_prices_preserved": true,
+  "historical_demand_unchanged": true,
+  "category_evidence_growth": 0,
+  "original_publisher_run": 43364950177,
+  "publication_artifact": 14010026546,
+  "publication_zip_sha256": "01a08b49f53dbe3a929634809f9403c55e5a916e5cb1ef471920e4b9ed70d9d8",
+  "publication_summary_sha256": "206be5fea39371effbe79ebdbb17019149259dbad9a0c626fa030be7b7b285a9",
+  "native_run": 43365183321,
+  "private_checkpoint": "cfa30f67a50e260cf183e0a3dd7bb9bc52665c58",
+  "feed_run": 43365480019,
+  "feed_artifact": 14009763798,
+  "feed_zip_sha256": "63ad9536842f80aea3dd95e979de33d2d4684d2169ec329fb3f686f31d4d1c0d",
+  "feed_counts": [
+    586,
+    586,
+    1172
+  ],
+  "old584_offer_price_bytes_preserved": true,
+  "nightly_before": 556,
+  "nightly_after": 558,
+  "nightly_source": "ef85550ea6f81aa39935591b67effa54cc08138f",
+  "nightly_gzip_sha256": "84d22fcf8d013701944147cbf676570ffaad7c29f23c17e5340b665c2a8d0d32",
+  "collector_pr": 5031,
+  "collector_head": "93af05fb083dd721e9b17e5eaf01b6c5c6cba214",
+  "manual_collector_provider_price_calls": 0,
+  "new_blocker": {
+    "hotel_id": 496,
+    "reason": "Existing MAX post matched by literal alias, native identity not bound; excluded from new publication",
+    "publication_id": 59,
+    "version_id": 71,
+    "url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+  },
+  "pairs": [
+    {
+      "hotel_id": 325,
+      "name": "MINAMARK RESORT & SPA",
+      "max": "https://max.ru/channel_anytour/AaHTI-iFZ5E",
+      "telegram": "https://t.me/any_toour/599"
+    },
+    {
+      "hotel_id": 4184,
+      "name": "SENTIDO REEF OASIS SENSES RESORT (EX. REEF OASIS SENSES RESORT)",
+      "max": "https://max.ru/channel_anytour/AaHTI_GNfDA",
+      "telegram": "https://t.me/any_toour/600"
+    }
+  ],
+  "collector_merge": "229608be9bd421c33a326f5b141cd3c23674113e",
+  "collector_pr_validation": 43365919202,
+  "collector_pr_security": 43365919225,
+  "collector_main_validation": 43366026605,
+  "collector_main_security": 43366026547,
+  "first_natural_new_roster_nightly_result": "NOT_YET_OBSERVED",
+  "collector_production": "SKIPPED",
+  "completed_at_moscow": "2026-11-13T07:32:17.246753+03:00",
+  "history_archive": "commercial-batch-20261113-11-prior-source-history.md"
+}
