@@ -135,7 +135,12 @@ try {
     $before=assistantBusinessState($pdo); $writes=$pdo->privateWrites;
     $detail=ManagerAssistantService::detail(1,1); $item=$detail['item']??[]; $recommendation=$item['recommendation']??[];
     $list=ManagerAssistantService::listing(1);
-    assistantCheck('feed and dialog read exactly the same saved recommendation',!empty($detail['ok']) && ($list['items'][0]??null)===$item && $recommendation['reason']===$proposal['reason'] && $recommendation['checks']===$proposal['checks'] && $recommendation['evidence_message_ids']===[2] && $recommendation['decision']===null);
+    $feed=$list['items'][0]??[];
+    assistantCheck('feed and dialog read exactly the same saved recommendation',!empty($detail['ok']) && ($feed['recommendation']??null)===$recommendation && $recommendation['reason']===$proposal['reason'] && $recommendation['checks']===$proposal['checks'] && $recommendation['evidence_message_ids']===[2] && $recommendation['decision']===null);
+    $detailBase=$item;$feedBase=$feed;unset($detailBase['promise_coverage'],$feedBase['promise_coverage']);
+    $detailBase['tasks']=array_map(static function(array $task):array{unset($task['promise']);return $task;},$detailBase['tasks']);
+    assistantCheck('bounded promise enrichment retains every ordinary feed field and task',($feed['promise_coverage']??null)==='not_loaded' && ($item['promise_coverage']??null)==='checked' && $detailBase===$feedBase);
+    assistantCheck('legacy optional schema is explicitly unavailable rather than an absent promise',count($item['tasks'])===2 && array_reduce($item['tasks'],static fn(bool $ok,array $task):bool=>$ok && ($task['promise']['availability']??null)==='unavailable' && ($task['promise']['reason']??null)==='storage_unavailable',true));
     assistantCheck('projection contains no draft body private contacts or internal context hashes',array_intersect_key($recommendation,array_flip(['draft','context_revision','instruction_revision']))===[] && !str_contains(json_encode($detail),'PRIVATE') && $item['analysis_state']==='current' && $recommendation['should_draft']);
     assistantCheck('existing open tasks retain canonical ordering and deadline semantics',array_column($item['tasks'],'id')===[2,1] && $item['tasks'][0]['due_state']==='unscheduled' && $item['tasks'][1]['due_state']==='overdue' && !$item['tasks_truncated']);
     assistantCheck('reads neither mark messages read nor change tasks routing shifts or private state',assistantBusinessState($pdo)===$before && $pdo->businessWriteAttempts===0 && $pdo->privateWrites===$writes);
