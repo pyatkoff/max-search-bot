@@ -1,0 +1,14 @@
+{
+  "run_id": 43454861778,
+  "job_id": 131986213061,
+  "head_sha": "c6173fa88bd8b74dba1855de98cfc0d36e269fb0",
+  "run_attempt": 1,
+  "failed_stage": "first_prebatch_admission",
+  "failed_assertion": "queued.total_count == 0",
+  "editor_ssh_invocations": 0,
+  "provider_write_attempts": 0,
+  "operation_reservations": 0,
+  "proof": "Original job traceback line7 precedes first canary.started and editor SSH under set -e; uploader found no safe files. No run replay; same unused operation IDs keep server absence and no-replay checks.",
+  "cause": "queue response contents were not retained; cause remains undetermined",
+  "continuation": "Cache-Control:no-cache and bounded status diagnostics added to the existing run-list GETs; every original admission assertion retained."
+}

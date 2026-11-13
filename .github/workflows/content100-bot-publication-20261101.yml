@@ -179,8 +179,8 @@ jobs:
         umask 077
         gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/caption-repair-private/main.json"
         gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$RUNNER_TEMP/caption-repair-private/carrier.json"
-        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$RUNNER_TEMP/caption-repair-private/active.json"
-        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$RUNNER_TEMP/caption-repair-private/queued.json"
+        gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$RUNNER_TEMP/caption-repair-private/active.json"
+        gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$RUNNER_TEMP/caption-repair-private/queued.json"
         gh api repos/pyatkoff/max-search-bot/issues/comments/6818332618 > "$RUNNER_TEMP/caption-repair-private/owner.json"
         python3 - <<'PY'
         import json,os,pathlib,hashlib
@@ -188,6 +188,7 @@ jobs:
         assert json.loads((p/'main.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
         assert json.loads((p/'carrier.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
         active=json.loads((p/'active.json').read_text());queued=json.loads((p/'queued.json').read_text())
+        print(json.dumps({'admission':'before_next_caption_batch','active_total':active['total_count'],'queued_total':queued['total_count'],'active':[{'id':r['id'],'status':r['status']} for r in active['workflow_runs']],'queued':[{'id':r['id'],'status':r['status']} for r in queued['workflow_runs']]},sort_keys=True))
         assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
         assert queued['total_count']==0
         owner=json.loads((p/'owner.json').read_text());assert owner['id']==6818332618 and hashlib.sha256(owner['body'].encode()).hexdigest()=='90de12e3defd5f6d79c116d46f7f976e0ae6e6c84d1cd9e26a4d09658d6b2895'
@@ -202,8 +203,8 @@ jobs:
         umask 077
         gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/caption-repair-private/main.json"
         gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$RUNNER_TEMP/caption-repair-private/carrier.json"
-        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$RUNNER_TEMP/caption-repair-private/active.json"
-        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$RUNNER_TEMP/caption-repair-private/queued.json"
+        gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$RUNNER_TEMP/caption-repair-private/active.json"
+        gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$RUNNER_TEMP/caption-repair-private/queued.json"
         gh api repos/pyatkoff/max-search-bot/issues/comments/6818332618 > "$RUNNER_TEMP/caption-repair-private/owner.json"
         python3 - <<'PY'
         import json,os,pathlib,hashlib
@@ -211,6 +212,7 @@ jobs:
         assert json.loads((p/'main.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
         assert json.loads((p/'carrier.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
         active=json.loads((p/'active.json').read_text());queued=json.loads((p/'queued.json').read_text())
+        print(json.dumps({'admission':'before_next_caption_batch','active_total':active['total_count'],'queued_total':queued['total_count'],'active':[{'id':r['id'],'status':r['status']} for r in active['workflow_runs']],'queued':[{'id':r['id'],'status':r['status']} for r in queued['workflow_runs']]},sort_keys=True))
         assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
         assert queued['total_count']==0
         owner=json.loads((p/'owner.json').read_text());assert owner['id']==6818332618 and hashlib.sha256(owner['body'].encode()).hexdigest()=='90de12e3defd5f6d79c116d46f7f976e0ae6e6c84d1cd9e26a4d09658d6b2895'
@@ -225,8 +227,8 @@ jobs:
         umask 077
         gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/caption-repair-private/main.json"
         gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$RUNNER_TEMP/caption-repair-private/carrier.json"
-        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$RUNNER_TEMP/caption-repair-private/active.json"
-        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$RUNNER_TEMP/caption-repair-private/queued.json"
+        gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$RUNNER_TEMP/caption-repair-private/active.json"
+        gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$RUNNER_TEMP/caption-repair-private/queued.json"
         gh api repos/pyatkoff/max-search-bot/issues/comments/6818332618 > "$RUNNER_TEMP/caption-repair-private/owner.json"
         python3 - <<'PY'
         import json,os,pathlib,hashlib
@@ -234,6 +236,7 @@ jobs:
         assert json.loads((p/'main.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
         assert json.loads((p/'carrier.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
         active=json.loads((p/'active.json').read_text());queued=json.loads((p/'queued.json').read_text())
+        print(json.dumps({'admission':'before_next_caption_batch','active_total':active['total_count'],'queued_total':queued['total_count'],'active':[{'id':r['id'],'status':r['status']} for r in active['workflow_runs']],'queued':[{'id':r['id'],'status':r['status']} for r in queued['workflow_runs']]},sort_keys=True))
         assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
         assert queued['total_count']==0
         owner=json.loads((p/'owner.json').read_text());assert owner['id']==6818332618 and hashlib.sha256(owner['body'].encode()).hexdigest()=='90de12e3defd5f6d79c116d46f7f976e0ae6e6c84d1cd9e26a4d09658d6b2895'
@@ -248,8 +251,8 @@ jobs:
         umask 077
         gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/caption-repair-private/main.json"
         gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$RUNNER_TEMP/caption-repair-private/carrier.json"
-        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$RUNNER_TEMP/caption-repair-private/active.json"
-        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$RUNNER_TEMP/caption-repair-private/queued.json"
+        gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$RUNNER_TEMP/caption-repair-private/active.json"
+        gh api -H 'Cache-Control: no-cache' "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$RUNNER_TEMP/caption-repair-private/queued.json"
         gh api repos/pyatkoff/max-search-bot/issues/comments/6818332618 > "$RUNNER_TEMP/caption-repair-private/owner.json"
         python3 - <<'PY'
         import json,os,pathlib,hashlib
@@ -257,6 +260,7 @@ jobs:
         assert json.loads((p/'main.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
         assert json.loads((p/'carrier.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
         active=json.loads((p/'active.json').read_text());queued=json.loads((p/'queued.json').read_text())
+        print(json.dumps({'admission':'before_next_caption_batch','active_total':active['total_count'],'queued_total':queued['total_count'],'active':[{'id':r['id'],'status':r['status']} for r in active['workflow_runs']],'queued':[{'id':r['id'],'status':r['status']} for r in queued['workflow_runs']]},sort_keys=True))
         assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
         assert queued['total_count']==0
         owner=json.loads((p/'owner.json').read_text());assert owner['id']==6818332618 and hashlib.sha256(owner['body'].encode()).hexdigest()=='90de12e3defd5f6d79c116d46f7f976e0ae6e6c84d1cd9e26a4d09658d6b2895'
