@@ -1,0 +1,78 @@
+{
+  "operation": "commercial-hotel-batch-20261113-13-v1",
+  "state": "COMPLETED",
+  "new_prepared_hotels": 2,
+  "new_hotel_ids": [
+    254,
+    967
+  ],
+  "new_posts": 4,
+  "reused_posts": 0,
+  "full_pairs_before": 588,
+  "full_pairs_after": 590,
+  "queue_before": 19,
+  "queue_after": 17,
+  "site_before": 338,
+  "site_after": 341,
+  "site_action_receipts": "site-action-receipts.json",
+  "accepted_revision": 2,
+  "current_revision": 3,
+  "other664_cards_exact": true,
+  "source_old_photos_archived": true,
+  "source_old_photoSets_prefix_exact": true,
+  "publisher_run": 43378096844,
+  "publisher_head": "6dad75c86a7cd864330e610aca58f310c52b0e39",
+  "publisher_artifact": 14015735417,
+  "publisher_zip_sha256": "b0329ae3ae8d1039a726a8628743414db134868423a13c3d0119a767ecf535f8",
+  "native_run": 43378622568,
+  "private_accepted": "7fc3899c432876687ee5c105f44542bd59fdf529",
+  "feed_run": 43379254719,
+  "feed_head": "4d7418c22bd585e4541f53dc84ecc17ac47fa810",
+  "feed_artifact": 14015831970,
+  "feed_zip_sha256": "1fd06deb16cc7ec523c847f3415e491957a0b14d5e0582ef24319c40fa85ab0c",
+  "feed_counts": [
+    590,
+    590,
+    1180
+  ],
+  "old588_offer_price_bytes_exact": true,
+  "nightly_before": 560,
+  "nightly_after": 562,
+  "nightly_gzip_sha256": "70eaaf3c8af3ebdc0f770a2a9e5464b74d5fe0838c97d5cc0d6e96bb8fe97c7d",
+  "manual_price_supplier_collector_calls": 0,
+  "new_blocker": {
+    "hotel_id": 319,
+    "reason": "Existing MAX publication58/version70 literal alias but null native hotel_catalog_id/logical_id; hold for original accepted native reconciliation, no duplicate/rebinding by name",
+    "url": "https://max.ru/channel_anytour/AaF1Ae28ZNw"
+  },
+  "pairs": [
+    {
+      "hotel_id": 254,
+      "name": "THE THREE CORNERS SEA BEACH RESORT",
+      "max": "https://max.ru/channel_anytour/AaHTkeCpSWw",
+      "telegram": "https://t.me/any_toour/603"
+    },
+    {
+      "hotel_id": 967,
+      "name": "ALI BEY CLUB (EX. ALI BEY CLUB MANAVGAT)",
+      "max": "https://max.ru/channel_anytour/AaHTke1-b00",
+      "telegram": "https://t.me/any_toour/604"
+    }
+  ],
+  "historical_demand_snapshot_unchanged": true,
+  "category_membership_unchanged": true,
+  "nightly_source": "9007e4f2c2b3d735ff03a97c8bace7d2b77835ae",
+  "collector_pr": 5033,
+  "collector_head": "9003af9e0904ac527c4469d882086dba18eb788c",
+  "collector_merge": "be2bc74e9e82f86d318cc893b32d766971d8d363",
+  "collector_reviewed_tree": "2ca1121e76639509751dfeef09ec0a2ee61fc033",
+  "collector_pr_validation": 43379918303,
+  "collector_pr_security": 43379918357,
+  "collector_main_validation": 43380040875,
+  "collector_main_security": 43380040834,
+  "collector_main_validate_job": 131735432746,
+  "collector_production": "SKIPPED",
+  "collector_actual_compiled_pairs": 562,
+  "first_natural_new_roster_nightly_result": "NOT_YET_OBSERVED",
+  "completed_at_moscow": "2026-11-13T09:39:42+03:00"
+}
