@@ -103,8 +103,11 @@ def pipeline_health():
         if any(flag not in monitor.ROLE_FLAGS["pipeline"] for flag in flags) \
                 or (value["status"] == "ok" and flags):
             return _unavailable_health()
-        return {"schema_version": 1, "project": monitor.PROJECT, "counter_id": monitor.COUNTER,
-                "status": value["status"], "flags": flags}
+        result = {"schema_version": 1, "project": monitor.PROJECT, "counter_id": monitor.COUNTER,
+                  "status": value["status"], "flags": flags}
+        if "linkage_failures" in value and value["status"] in {"ok", "degraded"}:
+            result["linkage_failures"] = monitor.linkage_snapshot(value["linkage_failures"])
+        return result
     except Exception:
         return _unavailable_health()
 

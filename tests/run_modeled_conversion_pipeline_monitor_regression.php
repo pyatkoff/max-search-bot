@@ -93,7 +93,7 @@ function pipelineMonitorStatusAssertions(callable $check):void
             &&$r['flags']===['delivery_tick_stale']&&!$r['scheduled']['regular']);
         $check('confirmed local business incident does not duplicate an external alert',$availability($now)['status']==='ok'
             &&$availability($now)['flags']===[]);
-        foreach(['visit_proof_stale','visit_proof_refresh_failed']as$flag){
+        foreach(['visit_proof_stale','visit_proof_refresh_failed','linkage_failures_increased']as$flag){
             $proofFailure=$degraded;$proofFailure['flags']=[$flag];pipelineMonitorFixtureWrite($receiptPath,$proofFailure);
             $check('visit-verification failures remain valid pipeline evidence: '.$flag,
                 $read($now)['available']&&$read($now)['flags']===[$flag]&&$availability($now)['status']==='ok');

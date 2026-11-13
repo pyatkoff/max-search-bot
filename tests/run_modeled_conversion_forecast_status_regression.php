@@ -173,6 +173,29 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
     $p->exec("UPDATE max_channel_conversion_outbox SET platform=CASE WHEN id<=2 THEN 'max' ELSE 'telegram' END,conversation_id=CASE WHEN id<=2 THEN 10 ELSE id END,client_id=CASE WHEN id<=3 THEN '8800000123' ELSE NULL END");
     $before=json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR);
     $r=forecastV1Read($p);$d=$r['value_delivery'];
+    $oldSummaryClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+    ForecastV1ObservedStatement::$observePredictive=true;ForecastV1ObservedStatement::$predictiveStatements=[];
+    try{$brief=(new ModeledConversionValueDeliveryReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($now,false);}
+    finally{ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldSummaryClass);}
+    $briefQueries=array_column(ForecastV1ObservedStatement::$predictiveStatements,'sql');
+    $check('operational value summary keeps all current amounts and does not execute historical profile Native or repair readers',
+        $brief['available']&&$brief['by_state']===$d['by_state']&&$brief['api_accepted_receipts']===$d['api_accepted_receipts']
+        &&$brief['metrika_goal_report']===$d['metrika_goal_report']
+        &&$brief['repair_assessments']===['available'=>false,'reason'=>'not_requested_operational_view']
+        &&$brief['predictive_v1']===['available'=>false,'reason'=>'not_requested_operational_view']
+        &&$brief['historical_review']===['available'=>false,'reason'=>'not_requested_operational_view']
+        &&count($briefQueries)===2&&!preg_match('/modeled_conversion_profile_versions|native_identity_point|retained_click_|retained_app_/i',implode(' ',$briefQueries)));
+    $coreBudget=new ModeledConversionStatusBudget();$coreBudget->consumeBytes(52000);
+    $coreReader=new ModeledConversionForecastStatusReader($p,static function():void{},$coreBudget);
+    $partialCore=$coreReader->read(false);
+    $presented=(new ReflectionMethod(ModeledConversionForecastStatusReader::class,'operationalCorePresentation'))->invoke($coreReader,$partialCore);
+    $check('real budget-omitted current metadata becomes unknown rather than a successful zero forecast in operational output',
+        $partialCore['available']&&$partialCore['window']['profile_rows_read']===0
+        &&$partialCore['window']['byte_limit_omissions']>0
+        &&!$presented['available']&&$presented['reason']==='budget_headroom'&&$presented['saved']===null
+        &&$presented['confirmation']==='unknown'&&$presented['input_coverage']===['available'=>false,'reason'=>'budget_headroom']
+        &&$presented['window']===$partialCore['window']);
     $check('private value suffix keeps disjoint queue states and exact incremental sums',$d['available']&&$d['window']['inspected_rows']===4&&$d['reserved_value_rub']===8333.0
         &&$d['by_state']['unknown']['value_rub']===2084.0&&$d['by_state']['pending']['value_rub']===4166.0);
     $check('API acceptance valid rows and visit report are separate',$d['api_accepted_receipts']['events']===2&&$d['api_accepted_receipts']['value_rub']===2083.0

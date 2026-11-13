@@ -1,3 +1,45 @@
+## Current operational status
+
+The existing empty-argument MCP call prioritizes the complete current Moscow-day
+reconciliation and saved monitoring state. It invokes the same canonical
+DailyReconciliationReader as the closed owner report, under the unchanged shared
+five-second/64KiB status budget and a 28000-byte complete-response ceiling.
+Accrual, last claim, first API observation and first processing observation are
+separate overlapping calendar cohorts; their totals must not be added. Current
+native owner bindings and unknown historical clocks remain explicit. API receipt
+and PROCESSED do not establish an individual advertising-visit match.
+
+The recent value-ledger suffix retains its explicit row/coverage limits and is
+not used as a complete daily denominator. Detailed historical repair, Native,
+historical profile-body and predictive-audit reads are not executed by this operational
+default. Spare budget may validate one newest immutable current-profile core
+through the existing canonical projection; unavailable storage or budget remains
+explicit in forecast_core and never becomes a zero forecast. The internal detailed
+read, explicit primary-source branch and saved
+receipt branch retain their existing contracts. No new tool argument, scope,
+connection, provider request, financial action or customer interaction is added.
+
+Optional cached visit examples and contextual diagnostics yield their response
+space before the complete day totals and monitor state. Local pipeline and
+external host monitoring retain distinct provenance and freshness. The closed
+administrator ledger remains the existing page; manager access is unchanged.
+
+### Newly observed linkage failures
+
+The existing pipeline health SELECT also returns a complete exact-goal count of
+saved unmatched/LINKAGE_FAILURE rows. The existing private monitor state retains
+the last observed count: its first complete observation quietly baselines prior
+history; an increase raises the ordinary technical alert. An unchanged count is
+not proof that any earlier rejection was repaired. A decrease, invalid scope or
+incomplete observation is unavailable and does not reset the retained baseline.
+These are observation clocks, not invented provider rejection timestamps.
+
+Alert preparation and the new observation are durably saved before the existing
+notification wire. Pending/unknown delivery is never retried. The recovery text
+explicitly describes current checks and the absence of new observed failures.
+No conversion is re-uploaded, no old receipt is reset and no new scheduler,
+recipient, route or public runtime data is introduced.
+
 ## Private owner delivery registry
 
 The canonical closed page is /manager/assigned-value.php?view=delivery, also linked as «Конверсии» from the existing administrator area. The link is hidden until current administrator identity is accepted and hidden again on refusal. The server independently requires an active existing admin, AnyTour project access and the same current session actor before and after reading. Ordinary managers do not gain access. There is no new role, named-login exception, grant, password or manager-workspace entry.

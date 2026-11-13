@@ -10,6 +10,7 @@ require_once __DIR__.'/ModeledConversionDailyDeliveryReader.php';
 require_once __DIR__.'/ModeledConversionDeliveryHealth.php';
 require_once __DIR__.'/ModeledConversionDealValue.php';
 require_once __DIR__.'/ModeledConversionVisitProof.php';
+require_once __DIR__.'/ModeledConversionDailyReconciliationReader.php';
 
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
@@ -29,7 +30,99 @@ final class ModeledConversionForecastStatusReader
     public function __construct(private PDO $pdo,private $authorize,private ModeledConversionStatusBudget $budget)
     {$this->mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';}
 
-    public function read():array
+    /**
+     * Existing MCP default: current Moscow-day movement and monitor health first.
+     * Historical detailed readers remain explicit internal audits and are not executed here.
+     */
+    public function readOperational(?int $now=null):array
+    {
+        $now??=time();$entryRemaining=$this->budget->remainingMilliseconds();$this->auth();
+        if($now<946684800||$now>time())return $this->unavailable('invalid_clock');
+        if($this->pdo->inTransaction())return $this->unavailable('outer_transaction');
+        try{
+            return $this->budget->withReservedBytes(self::RELEASE_RESERVE,function()use($now,$entryRemaining):array{
+                $out=['available'=>true,'reader_version'=>self::VERSION,'view'=>'operational_delivery_v1',
+                    'checked_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),'timezone'=>'Europe/Moscow',
+                    'model_version'=>ModeledConversionSemanticPrediction::VERSION,
+                    'confirmation'=>'saved_processing_state_not_semantic_validation',
+                    'state'=>$this->state(),
+                    'interpretation'=>['daily_totals_use_exact_current_owner_scope'=>true,
+                        'bounded_ledger_suffix_is_not_a_daily_total'=>true,
+                        'receipt_and_processing_are_not_individual_visit_linkage'=>true,
+                        'idle_tick_does_not_mean_no_saved_forecasts'=>true,
+                        'historical_audits_not_executed'=>true],
+                    'limits'=>['max_selected_bytes'=>65536,'max_execution_seconds'=>5,'max_response_bytes'=>28000],
+                    'provider_requests_in_reader'=>0,'model_calls'=>0,'conversion_uploads'=>0,
+                    'read_budget'=>['basis'=>'shared_budget_v1','remaining_ms'=>['reader_entry'=>$entryRemaining]]];
+                $out['daily_reconciliation']=$this->optionalRead(fn():array=>
+                    (new ModeledConversionDailyReconciliationReader($this->pdo,$this->authorize,null,$this->budget))->read([],$now));
+                $out['read_budget']['remaining_ms']['daily_reconciliation']=$this->budget->remainingMilliseconds();
+                $out['external_monitor']=$this->optionalRead(fn():array=>
+                    ModeledConversionDeliveryHealth::externalStatus($this->budget,$this->authorize,$now));
+                $out['value_delivery']=$this->optionalRead(fn():array=>
+                    (new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read($now,false));
+                $out['read_budget']['remaining_ms']['value_delivery']=$this->budget->remainingMilliseconds();
+                // Reuse the canonical current-profile validation with no delivery/history/source readers.
+                $core=$this->operationalCorePresentation($this->optionalRead(fn():array=>$this->read(false)));
+                $out['forecast_core']=['available'=>($core['available']??false)===true,
+                    'basis'=>'at_most_one_current_immutable_profile_core_after_operational_priorities'];
+                if(($core['available']??false)!==true)$out['forecast_core']['reason']=$core['reason']??'unavailable';
+                $out['saved']=$core['saved']??null;
+                $out['window']=$core['window']??['available'=>false,'reason'=>$core['reason']??'unavailable'];
+                $out['input_coverage']=$core['input_coverage']??['available'=>false,'reason'=>$core['reason']??'unavailable'];
+                $out['confirmation']=$core['confirmation']??'unknown';
+                $out['today_latency']=$this->optionalRead(fn():array=>
+                    (new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read($now));
+                $out['telegram_linkage']=$this->optionalRead(fn():array=>
+                    (new ModeledConversionTelegramLinkageReader($this->pdo,$this->authorize,$this->budget))->read($now));
+                $out['visit_delivery_check']=$this->optionalRead(fn():array=>ModeledConversionVisitProof::privateSummary($now,$this->budget));
+                $out['read_budget']['remaining_ms']['optional_views']=$this->budget->remainingMilliseconds();
+                $out=$this->boundedOperationalResponse($out);$this->auth();return$out;
+            });
+        }catch(ModeledConversionStatusLimit|DomainException $error){throw$error;}
+        catch(PDOException $ignored){return$this->unavailable('storage_unavailable');}
+    }
+    /** A budget-omitted core is unknown, not a successful zero-profile observation. */
+    private function operationalCorePresentation(array $core):array
+    {
+        if(($core['available']??false)===true&&($core['window']['profile_rows_read']??null)===0
+            &&($core['window']['byte_limit_omissions']??0)>0){
+            $core['available']=false;$core['reason']='budget_headroom';
+            $core['saved']=null;$core['confirmation']='unknown';
+            $core['input_coverage']=['available'=>false,'reason'=>'budget_headroom'];
+        }
+        return$core;
+    }
+    private function boundedOperationalResponse(array $out):array
+    {
+        $bytes=static fn(array $v):int=>strlen(json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        foreach([['visit_delivery_check','followup_sent_cohort','failure_examples'],['visit_delivery_check','examples']]as$path){
+            if(count($path)===3){
+                while($bytes($out)>28000&&!empty($out[$path[0]][$path[1]][$path[2]])){
+                    array_pop($out[$path[0]][$path[1]][$path[2]]);
+                    $out[$path[0]][$path[1]]['examples_omitted_due_to_response_budget']=true;
+                }
+            }else{
+                while($bytes($out)>28000&&!empty($out[$path[0]][$path[1]])){
+                    array_pop($out[$path[0]][$path[1]]);
+                    $out[$path[0]]['examples_omitted_due_to_response_budget']=true;
+                }
+            }
+        }
+        foreach(['telegram_linkage','today_latency','visit_delivery_check']as$key){
+            if($bytes($out)<=28000)break;
+            $automatic=$key==='visit_delivery_check'?($out[$key]['automatic']??null):null;
+            $out[$key]=['available'=>false,'reason'=>'response_budget'];
+            if(is_array($automatic))$out[$key]['automatic']=$automatic;
+        }
+        foreach(['historical_review','price_continuity_audit']as$key)
+            if($bytes($out)>28000&&isset($out['value_delivery'][$key]))
+                $out['value_delivery'][$key]=['available'=>false,'reason'=>'response_budget'];
+        if($bytes($out)>28000)throw new ModeledConversionStatusLimit('byte_limit');
+        return$out;
+    }
+
+    public function read(bool $includeDeliveryViews=true):array
     {
         $entryRemaining=$this->budget->remainingMilliseconds();
         $this->auth();
@@ -173,24 +266,31 @@ final class ModeledConversionForecastStatusReader
                     }else $out['window']['invalid_followup_blocks']++;
                 }
             };
-            // Saved financial and three-case visit evidence has priority over optional cached context and profile bodies.
-            $out['value_delivery']=$this->optionalRead(fn():array=>(new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time()));
-            $out['read_budget']['remaining_ms']['value_delivery']=$this->budget->remainingMilliseconds();
-            $out['visit_delivery_check']=$this->optionalRead(fn():array=>ModeledConversionVisitProof::privateSummary(time(),$this->budget));
-            $out['read_budget']['remaining_ms']['visit_receipt']=$this->budget->remainingMilliseconds();
+            if($includeDeliveryViews){
+                // Saved financial and three-case visit evidence has priority over optional cached context and profile bodies.
+                $out['value_delivery']=$this->optionalRead(fn():array=>(new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time()));
+                $out['read_budget']['remaining_ms']['value_delivery']=$this->budget->remainingMilliseconds();
+                $out['visit_delivery_check']=$this->optionalRead(fn():array=>ModeledConversionVisitProof::privateSummary(time(),$this->budget));
+                $out['read_budget']['remaining_ms']['visit_receipt']=$this->budget->remainingMilliseconds();
+            }else{
+                $out['value_delivery']=['available'=>false,'reason'=>'not_requested_profile_context'];
+                $out['visit_delivery_check']=['available'=>false,'reason'=>'not_requested_profile_context'];
+            }
             $readProfiles(1);
             $out['read_budget']['remaining_ms']['first_profile']=$this->budget->remainingMilliseconds();
-            $activation=$out['value_delivery']['activated_at']??null;
-            $activation=is_string($activation)?strtotime($activation):false;
-            $out['saved_input_diagnosis']=$this->optionalRead(fn():array=>(new ModeledConversionInputDiagnosisReader($this->pdo,$this->authorize,$this->budget))->read($activation===false?null:$activation),4000);
-            $reportNow=time(); // Both calendar sections belong to the same Moscow day.
-            $out['today_latency']=$this->optionalRead(fn():array=>(new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read($reportNow));
-            $out['daily_delivery']=$this->optionalRead(fn():array=>(new ModeledConversionDailyDeliveryReader($this->pdo,$this->authorize,$this->budget))->read($reportNow));
-            // This bounded reader already owns an 8KiB admission gate; do not reserve that headroom twice.
-            $out['telegram_linkage']=(new ModeledConversionTelegramLinkageReader($this->pdo,$this->authorize,$this->budget))->read(time());
-            $out['external_monitor']=$this->optionalRead(fn():array=>ModeledConversionDeliveryHealth::externalStatus($this->budget,$this->authorize,time()));
-            $out['read_budget']['remaining_ms']['optional_views']=$this->budget->remainingMilliseconds();
-            $readProfiles(self::PROFILE_LIMIT);
+            if($includeDeliveryViews){
+                $activation=$out['value_delivery']['activated_at']??null;
+                $activation=is_string($activation)?strtotime($activation):false;
+                $out['saved_input_diagnosis']=$this->optionalRead(fn():array=>(new ModeledConversionInputDiagnosisReader($this->pdo,$this->authorize,$this->budget))->read($activation===false?null:$activation),4000);
+                $reportNow=time(); // Both calendar sections belong to the same Moscow day.
+                $out['today_latency']=$this->optionalRead(fn():array=>(new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read($reportNow));
+                $out['daily_delivery']=$this->optionalRead(fn():array=>(new ModeledConversionDailyDeliveryReader($this->pdo,$this->authorize,$this->budget))->read($reportNow));
+                // This bounded reader already owns an 8KiB admission gate; do not reserve that headroom twice.
+                $out['telegram_linkage']=(new ModeledConversionTelegramLinkageReader($this->pdo,$this->authorize,$this->budget))->read(time());
+                $out['external_monitor']=$this->optionalRead(fn():array=>ModeledConversionDeliveryHealth::externalStatus($this->budget,$this->authorize,time()));
+                $out['read_budget']['remaining_ms']['optional_views']=$this->budget->remainingMilliseconds();
+            }
+            $readProfiles($includeDeliveryViews?self::PROFILE_LIMIT:1);
             $out['read_budget']['remaining_ms']['remaining_profiles']=$this->budget->remainingMilliseconds();
             $out['window']['selected_document_bytes']=$this->copied;
             $out['saved']['distinct_inspected_scopes']=$out['saved']['valid_v1_versions'];

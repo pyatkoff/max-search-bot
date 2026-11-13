@@ -86,7 +86,7 @@ final class ModeledConversionValueDeliveryReader
         catch(Throwable $ignored){return $fail('saved_projection_unavailable');}
     }
 
-    public function read(int $now):array
+    public function read(int $now,bool $includeHistoricalEvidence=true):array
     {
         try{
             $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
@@ -159,28 +159,30 @@ final class ModeledConversionValueDeliveryReader
                 $lastGood=is_string($s['last_success_json']??null)?json_decode($s['last_success_json'],true):null;
                 $out['last_successful_metrika_goal_report']=$this->report($lastGood,$activation,$now);
             }
-            $out['historical_review']=['date'=>'2026-11-02','date_from'=>(int)($s['history_from_unix']??0)===1792447200?'2026-10-20':'2026-11-02','date_until_inclusive'=>'2026-11-02','timezone'=>'Europe/Kaliningrad',
-                'configured'=>ModeledConversionValueContract::historyWindow((int)($s['history_from_unix']??0),(int)($s['history_until_unix']??0)),
-                'fortnight_requested'=>is_numeric($s['history_fortnight_requested_at_unix']??null),
-                'completed'=>is_numeric($s['history_completed_at_unix']??null)&&(int)$s['history_completed_at_unix']<=$now,
-                'profiles_scanned'=>is_numeric($s['history_scanned']??null)?$this->number($s['history_scanned'],false):null,
-                'events_collected'=>is_numeric($s['history_collected']??null)?$this->number($s['history_collected'],false):null,
-                'historical_events_in_ledger_window'=>$this->number($r['historical_events'],false),
-                'not_prospective_forecasts'=>true];
-            $historyReasons=is_string($s['history_stats_json']??null)?json_decode($s['history_stats_json'],true):null;
-            $out['historical_review']['reason_counts']=[];
-            foreach(['customer_text_profiles','eligible_signal_profiles','invalid_packet','no_day_signal','binding_or_scope_held','already_reserved']as$key){
-                $v=is_array($historyReasons)?($historyReasons[$key]??null):null;
-                $out['historical_review']['reason_counts'][$key]=is_int($v)&&$v>=0&&$v<=1000000000?$v:null;
-            }
-            if($out['historical_review']['configured']){
-                $out['historical_review']['saved_cohort']=$this->cohort($s);
-                $first=is_string($s['history_day_receipt_json']??null)?json_decode($s['history_day_receipt_json'],true):null;
-                if(is_array($first)&&($first['history_from_unix']??null)==1793570400&&($first['history_until_unix']??null)==1793656800
-                    &&is_numeric($first['history_completed_at_unix']??null)&&(int)$first['history_completed_at_unix']<=$now)
-                    $out['historical_review']['first_day_receipt']=['date'=>'2026-11-02','completed'=>true,
-                        'profiles_scanned'=>$this->number($first['history_scanned'],false),'events_collected'=>$this->number($first['history_collected'],false)];
-            }
+            if($includeHistoricalEvidence){
+                $out['historical_review']=['date'=>'2026-11-02','date_from'=>(int)($s['history_from_unix']??0)===1792447200?'2026-10-20':'2026-11-02','date_until_inclusive'=>'2026-11-02','timezone'=>'Europe/Kaliningrad',
+                    'configured'=>ModeledConversionValueContract::historyWindow((int)($s['history_from_unix']??0),(int)($s['history_until_unix']??0)),
+                    'fortnight_requested'=>is_numeric($s['history_fortnight_requested_at_unix']??null),
+                    'completed'=>is_numeric($s['history_completed_at_unix']??null)&&(int)$s['history_completed_at_unix']<=$now,
+                    'profiles_scanned'=>is_numeric($s['history_scanned']??null)?$this->number($s['history_scanned'],false):null,
+                    'events_collected'=>is_numeric($s['history_collected']??null)?$this->number($s['history_collected'],false):null,
+                    'historical_events_in_ledger_window'=>$this->number($r['historical_events'],false),
+                    'not_prospective_forecasts'=>true];
+                $historyReasons=is_string($s['history_stats_json']??null)?json_decode($s['history_stats_json'],true):null;
+                $out['historical_review']['reason_counts']=[];
+                foreach(['customer_text_profiles','eligible_signal_profiles','invalid_packet','no_day_signal','binding_or_scope_held','already_reserved']as$key){
+                    $v=is_array($historyReasons)?($historyReasons[$key]??null):null;
+                    $out['historical_review']['reason_counts'][$key]=is_int($v)&&$v>=0&&$v<=1000000000?$v:null;
+                }
+                if($out['historical_review']['configured']){
+                    $out['historical_review']['saved_cohort']=$this->cohort($s);
+                    $first=is_string($s['history_day_receipt_json']??null)?json_decode($s['history_day_receipt_json'],true):null;
+                    if(is_array($first)&&($first['history_from_unix']??null)==1793570400&&($first['history_until_unix']??null)==1793656800
+                        &&is_numeric($first['history_completed_at_unix']??null)&&(int)$first['history_completed_at_unix']<=$now)
+                        $out['historical_review']['first_day_receipt']=['date'=>'2026-11-02','completed'=>true,
+                            'profiles_scanned'=>$this->number($first['history_scanned'],false),'events_collected'=>$this->number($first['history_collected'],false)];
+                }
+            }else $out['historical_review']=['available'=>false,'reason'=>'not_requested_operational_view'];
             $out['interpretation']=['values'=>'owner_assigned_advertising_estimates_not_actual_income',
                 'last_recorded_failure_is_historical'=>true,
                 'states_are_disjoint'=>true,'accepted_receipts_include_later_rejected_or_unmatched_rows'=>true,
@@ -190,8 +192,13 @@ final class ModeledConversionValueDeliveryReader
                 'identity_counts_are_stored_resolution_not_a_new_scope_check'=>true,
                 'conversations_are_not_verified_people_or_trips'=>true,'per_upload_visit_match_verified'=>false,'reporting_can_lag'=>true,'no_ids_or_text_returned'=>true];
             $out['price_continuity_audit']=$this->priceAudit($receipt['price_continuity_audit']??null,$now);
-            $out['repair_assessments']=$this->repairAssessments($now,$receipt['identity_resolution_evidence']??null,$receipt['finite_visit_evidence']??null,$receipt['finite_visit_recovery']??null,$receipt['receipt_poll_evidence']??null,$receipt['fixed_pair_operational_decisions']??null,$out['last_tick_at']===null?0:$tick,$receipt['finite_counter_scope_evidence']??null,$receipt['finite_retained_app_identity']??null,$receipt['finite_retained_tracker_candidate']??null,(class_exists(ModeledConversionRetainedTrackerIdentityEvidence::class)&&is_array($receipt)?array_intersect_key($receipt,array_flip(ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS)):[]));
-            $out['predictive_v1']=$this->predictiveV1($now);
+            if($includeHistoricalEvidence){
+                $out['repair_assessments']=$this->repairAssessments($now,$receipt['identity_resolution_evidence']??null,$receipt['finite_visit_evidence']??null,$receipt['finite_visit_recovery']??null,$receipt['receipt_poll_evidence']??null,$receipt['fixed_pair_operational_decisions']??null,$out['last_tick_at']===null?0:$tick,$receipt['finite_counter_scope_evidence']??null,$receipt['finite_retained_app_identity']??null,$receipt['finite_retained_tracker_candidate']??null,(class_exists(ModeledConversionRetainedTrackerIdentityEvidence::class)&&is_array($receipt)?array_intersect_key($receipt,array_flip(ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS)):[]));
+                $out['predictive_v1']=$this->predictiveV1($now);
+            }else{
+                $out['repair_assessments']=['available'=>false,'reason'=>'not_requested_operational_view'];
+                $out['predictive_v1']=['available'=>false,'reason'=>'not_requested_operational_view'];
+            }
             return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}
         catch(PDOException $ignored){return $this->unavailable('storage_unavailable');}
