@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "ready": true,
+  "operation": "commercial-channel-hotel-feeds-20261113-update18",
+  "current_installed_sha": "4ab42ce44669919abf9d7bb54d075f380720c5f1",
+  "cohort_installed_sha": "4ab42ce44669919abf9d7bb54d075f380720c5f1",
+  "cohort_sha256": "eed7fc09fa4356c164b80a6d651882e8df685ee5cb6ef73b22d270644ba4bb97",
+  "expected_parent_head": "82e0b81cb63c350d0ce404bc317c1fced28c5895",
+  "expected_actor": "pyatkoff",
+  "owner_pin": {
+    "comment_id": 6818332618,
+    "owner": "pyatkoff",
+    "updated_at": "2026-11-13T13:34:51Z",
+    "body_sha256": "578dc48145df8cad90ef489c9b69f51cc7ce8855c65a0ded80badb124ec10297",
+    "required_scope_line": "SOURCE CONTENT ACTIVE — owner correction of batch16 captions, 13 November 2026. Same existing owner; in-place editorial repair of these nine existing hotel pairs only: 81358, 343, 432, 65254, 443, 107940, 32356, 195, 20288. Preserve message/photo/button identities, current prices, prior facts/history and unrelated hotels. Synchronize accepted text, feeds, Site and existing price templates. Reuse the existing finite editor/carrier; no new posts, worker, schedule, collector replay or application MAIN/DEPLOY ownership. User complaint about Palm Beach quoted the actual defective text. Prior completed batch16 receipts remain below."
+  },
+  "original_caption": {
+    "run_id": 43435975005,
+    "head_sha": "b5cccc43ecfe8781b26ec5856fdcdc8582ba59e3",
+    "run_attempt": 1,
+    "conclusion": "success",
+    "artifact_id": 14043637521,
+    "artifact_name": "commercial-caption-batch16-20261113-result",
+    "artifact_sha256": "2b9b563b44d2d4dc291da912b67c52241c6b6cc7ae2a379c1c399993cf2e3810",
+    "summary_sha256": "8bbbee251845e17e6733b73f72cf39016ca2c29a7a4fd7ac32b22245b54f0ced"
+  },
+  "operations": [
+    {
+      "name": "edit",
+      "operation": "commercial-caption-batch16-20261113-edit-v1",
+      "manifest_sha256": "4204b22e24392e0f31e81faf0063597fb10210706a49eab7e2db139ad1ed6fde",
+      "installed_sha": "4ab42ce44669919abf9d7bb54d075f380720c5f1",
+      "row_count": 18
+    }
+  ],
+  "source_scope": {
+    "literal_max_update_for_date": 17,
+    "approved_next_update": 18,
+    "source_ref": "b5cccc43ecfe8781b26ec5856fdcdc8582ba59e3",
+    "monitor_operation_namespace": "sha256_prefix14_hex_to_integer",
+    "runtime_absence_required": true
+  },
+  "source_script_pins": {
+    "commercial-caption-batch16-20261113-feed-contract.php": "3348b3135504df7821317883b116852de59e62eec15bae3c54155855e2b7c9bc",
+    "commercial-caption-batch16-20261113-feed-preparation.php": "34103fc85a9f05aabfc8c77c3d3ea47a8446ea4e619fa7d06996f86a3be83390",
+    "commercial-caption-batch16-20261113-feed-capture.php": "1826b14da463e9a6870bf9308e399b50a014aceea66aa93a35cda684083ea7e2",
+    "commercial-caption-batch16-20261113-feed-prepare.php": "0182cb98c9943d3e72ecc936df68d16b8ba07ccfd5c89a5554c875dbc89b6fab",
+    "commercial-caption-batch16-20261113-feed-readback.php": "e518ffc51d9e0cb055b10985b606d216cf1787f66db881226edb04a8cf443a40",
+    "commercial-caption-batch16-20261113-feed-tools.py": "3255eea5bce453c8ad5f43614e85dcb9c7f39f70e86130c98e5b7397de227140",
+    "monitor-price-contract.php": "ad20601d265e71d6cf58253bb6f263c1171a299130317f9ebbf7e576cf874fa7",
+    "publish-commercial-channel-hotel-feeds-20261103-1.php": "8609a2cf06d4a46738f934047d46744bdc54d3863e7c2921fdfec1a9be4b7a5e",
+    "commercial-caption-batch16-20261113-edit-inputs.json.gz.b64": "eb8af70d4963dcf7f5ddf8d35b51d536cf37d5ae1938af56a28e49dcf959edc3"
+  }
+}
