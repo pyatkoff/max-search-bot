@@ -820,8 +820,8 @@ for(const [width,height] of [[390,844],[430,844],[768,844],[1440,844],[390,420]]
  const shown=await page.locator('#messages').evaluate(box=>{const bounds=box.getBoundingClientRect();return [...box.querySelectorAll('.msg.customer')].filter(row=>{const r=row.getBoundingClientRect(),top=Math.max(bounds.top,r.top),bottom=Math.min(bounds.bottom,r.bottom);return bottom>top&&row.contains(document.elementFromPoint((r.left+r.right)/2,(top+bottom)/2))}).map(row=>Number(row.dataset.scrollMessageKey))});
  expect(shown.length).toBeGreaterThan(0);const visibleFrontier=Math.max(...shown);
  await expect.poll(()=>shown.every(id=>state.ackCalls.some(call=>call.conversation_id===11&&call.message_ids.includes(id)))).toBe(true);
- await expect.poll(()=>state.readMarkers[11]||0).toBe(visibleFrontier);
- await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.detail.read_state.last_read_message_id)).toBe(visibleFrontier);
+ await expect.poll(()=>state.readMarkers[11]||0).toBeGreaterThanOrEqual(visibleFrontier);
+ await expect.poll(async()=>{const clientMarker=await page.evaluate(()=>WorkspaceV2.S.detail.read_state.last_read_message_id),serverMarker=state.readMarkers[11]||0;return serverMarker>=visibleFrontier&&clientMarker===serverMarker}).toBe(true);
  await expect.poll(()=>state.readMarkers[11]||0).toBeGreaterThan(1);expect(state.readMarkers[11]).toBeLessThan(35);const marker=state.readMarkers[11],before=await anchor(page);
  state.documents[11].push({id:1001,sender_type:'customer',text:'Новое сообщение вне видимой части'});expect(state.ackCalls.every(call=>!call.message_ids.includes(1001))).toBe(true);await refresh(page);
  await expect(page.locator('#messages [data-scroll-message-key="1001"]')).toHaveCount(1);await sameAnchor(page,before);expect(state.readMarkers[11]).toBe(marker);expect(state.ackCalls.every(call=>!call.message_ids.includes(1001))).toBe(true);

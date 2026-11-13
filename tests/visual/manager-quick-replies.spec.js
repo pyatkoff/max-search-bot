@@ -231,9 +231,16 @@ for(const width of [390,430,768,1440])test(`Ordinary file preflight late result 
    file.slice=(...args)=>{const blob=slice(...args);return {arrayBuffer:()=>new Promise(resolve=>releases.push(()=>blob.arrayBuffer().then(resolve)))}};return file;
   });WorkspaceV2Media.addFiles(files);window.releaseScrollPreflight=()=>releases.forEach(release=>release());
  });await expect(page.locator('.mediaFileCheck')).toHaveText(['Проверяем файл в этой вкладке…','Проверяем файл в этой вкладке…']);
- await page.evaluate(()=>{const box=document.getElementById('mediaSelection'),button=box.querySelectorAll('.mediaRemove')[1];box.scrollTop=box.scrollHeight;button.focus({preventScroll:true});window.preflightFocusedList={box,button,top:box.scrollTop,selection:WorkspaceV2Media.captureSelection()};releaseScrollPreflight()});
+ // Hold both results until the initial composer/list geometry settles; observe only.
+ await expect.poll(()=>page.evaluate(async()=>{
+  const geometry=()=>['composer','mediaSelection'].map(id=>{const el=document.getElementById(id),rect=el.getBoundingClientRect();return[rect.width,rect.height,el.scrollHeight,el.clientHeight]});
+  const before=geometry();await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  return JSON.stringify(geometry())===JSON.stringify(before);
+ })).toBe(true);
+ await page.evaluate(()=>{const box=document.getElementById('mediaSelection'),button=box.querySelectorAll('.mediaRemove')[1];box.scrollTop=box.scrollHeight;button.focus({preventScroll:true});window.preflightFocusedList={box,button,top:box.scrollTop,geometry:{top:box.scrollTop,scrollHeight:box.scrollHeight,clientHeight:box.clientHeight,width:box.getBoundingClientRect().width,m2ReplyMultiline:document.getElementById('composer').classList.contains('m2ReplyMultiline')},selection:WorkspaceV2Media.captureSelection()};releaseScrollPreflight()});
  await expect(page.locator('.mediaFileCheck').nth(1)).toContainText('не определён');
- expect(await page.evaluate(()=>{const p=preflightFocusedList;return {list:p.box===document.getElementById('mediaSelection'),button:p.button===p.box.querySelectorAll('.mediaRemove')[1],focus:document.activeElement===p.button,scroll:Math.abs(p.box.scrollTop-p.top)<1,files:WorkspaceV2Media.matchesSelection(p.selection)}})).toEqual({list:true,button:true,focus:true,scroll:true,files:true});
+ const retained=await page.evaluate(()=>{const p=preflightFocusedList;return {result:{list:p.box===document.getElementById('mediaSelection'),button:p.button===p.box.querySelectorAll('.mediaRemove')[1],focus:document.activeElement===p.button,scroll:Math.abs(p.box.scrollTop-p.top)<1,files:WorkspaceV2Media.matchesSelection(p.selection)},geometry:{before:p.geometry,after:{top:p.box.scrollTop,scrollHeight:p.box.scrollHeight,clientHeight:p.box.clientHeight,width:p.box.getBoundingClientRect().width,m2ReplyMultiline:document.getElementById('composer').classList.contains('m2ReplyMultiline')}}}});
+ expect(retained.result,JSON.stringify(retained.geometry)).toEqual({list:true,button:true,focus:true,scroll:true,files:true});
  await expect(page.locator('#replyText')).toHaveValue('Точный черновик при поздней проверке');await bounded(page);clean(s);
 });
 test('Ordinary file preflight late native header cannot touch another client or replace current File',async({page})=>{
