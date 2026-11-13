@@ -1,0 +1,102 @@
+{
+  "state": "PREPARED_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261113-10-v1",
+  "registry_version": 324,
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 580,
+  "expected_new_full_pairs": 4,
+  "rows": [
+    {
+      "hotel_id": 1330,
+      "logical_id": "commercial-hotel-1330-v1",
+      "aliases": [
+        "Castle Park Hotel",
+        "CASTLE PARK (EX. LARISSA PARK)"
+      ],
+      "text": "✈️ Туры в Castle Park Hotel\n📍 Бельдиби, Кемер, Турция.\n\nСемейный отпуск среди зелени Бельдиби 🌿\n\nВ Castle Park Hotel есть бассейны и детская инфраструктура. Подойдёт тем, кто планирует чередовать пляжный отдых с прогулками.\n\nПляж песчано-галечный, примерно в 400–550 м от отеля. До моря нужно идти пешком. У отдельных операторов есть ограничения на размещение только мужчин — учтём их при подборе.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "738fb918afd93ead5cef736fe3929eac8901e0ea0726c6faeecc5ab6a85401d2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/deb21f08c7bb5d0d34c7a1d9a29ff44b4b0a1bf7/.github/traffic-publish/commercial-batch-20261113-10/1330.png",
+      "photo_sha256": "672d4faf2d68a443f115bf249222941ef052b2b7cfd32403a554ab6c556a15a7",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://www.castlepark.com.tr/odalar/aile-odas%C4%B1",
+        "https://www.castlepark.com.tr/",
+        "https://www.tez-tour.com/hotel.html?id=361859",
+        "https://kompastour.com/md/rus/country/turkey/kemer/castle_park_hotel/",
+        "https://www.gruda.lt/kemeras-larissa-park-hotel",
+        "https://assets2.waavo.com/images2/hotels/teztour/0/8/7/2/1/6/4/1/6/5/872164165.jpeg",
+        "https://assets2.waavo.com/images2/hotels/teztour/0/8/7/2/1/6/4/1/6/9/872164169.jpeg",
+        "https://assets2.waavo.com/images2/hotels/teztour/0/8/7/2/1/6/4/1/7/1/872164171.jpeg"
+      ]
+    },
+    {
+      "hotel_id": 983,
+      "logical_id": "commercial-hotel-983-v1",
+      "aliases": [
+        "Anitas Beach Hotel",
+        "ANITAS"
+      ],
+      "text": "✈️ Туры в Anitas Beach Hotel\n📍 Конаклы, Алания, Турция.\n\nКомпактный отель на первой линии в Конаклы — для пляжного отпуска без большой территории.\n\n• Открытый и детский бассейны.\n• Игровая площадка для детей.\n• Фитнес и хамам; условия посещения зависят от тарифа.\n\nНа песчано-галечном пляже у входа в море есть каменные плиты и пирс. Для поездки с малышами важно учесть такой заход в воду.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "4109e7bb7a95b9851ea48e24534a1ce9caba60e1a17d75dcf3a88d4315218a74",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/deb21f08c7bb5d0d34c7a1d9a29ff44b4b0a1bf7/.github/traffic-publish/commercial-batch-20261113-10/983.png",
+      "photo_sha256": "abdca7d8ff1bb3d44f36f1fa3eed90fdb7739b5a193added9f0c9c57dcfc1514",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://www.tui.com/hotels/anitas-beach-hotel-4528/hotelinformation/",
+        "https://www.tez-tour.com/hotel.html?id=10023704",
+        "https://www.alltours.de/hotels/hotel-anitas-beach-antalya-ayt07.html",
+        "https://anitasbeach.com/",
+        "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8zLzNhNjdhNWY3NTU5OTdiNTczNTQ3MTIxZTgwYzg5NDZlX29jcHByb2QuanBn",
+        "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS84LzgzNWRjY2RlZDllZDAwNGNlMTc1MTExM2M0NDFjOTU1X29jcHByb2QuanBn",
+        "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS84LzhmYzllZDZmY2JjYmY5MTkwMzNhYWY3M2YzMWMxMDc0X29jcHByb2QuanBn"
+      ]
+    },
+    {
+      "hotel_id": 497,
+      "logical_id": "commercial-hotel-497-v1",
+      "aliases": [
+        "Titanic Resort & Aqua Park",
+        "TITANIC RESORT & AQUA PARK"
+      ],
+      "text": "✈️ Туры в Titanic Resort & Aqua Park\n📍 Хургада, Египет.\n\nСемейный отдых с аквапарком в Хургаде 💦\n\nВ Titanic Resort & Aqua Park — 14 горок для взрослых и 16 для детей. Хороший вариант для тех, кто хочет добавить водные развлечения к пляжному отпуску.\n\n• Горки для разных возрастов.\n• В каталоге отеля есть семейные категории номеров.\n• До пляжа Titanic Royal предусмотрен шаттл.\n\nОтель не на первой линии. У горок действуют ограничения по возрасту и росту.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "f978323ed3f943b3f3fae7c413e7be2aa74d1b8619a493bdf8bed9deef732506",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/deb21f08c7bb5d0d34c7a1d9a29ff44b4b0a1bf7/.github/traffic-publish/commercial-batch-20261113-10/497.png",
+      "photo_sha256": "58712650b768aafdc18ed94e8eee9e66c108a9e85f1d5a29ea67a1a043ea49c4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://www.hwaidak-hotels.com/hotels/titanic-resort",
+        "https://redseaholidays.co.uk/en/destinations/egypt/hurghada/hurghada-city/titanic-resort-aqua-park/",
+        "https://storage.googleapis.com/hwaidak-hotels.appspot.com/hotels%2Fimages%2F1738091155382-DJI_20240925225100_0048_D.jpg",
+        "https://firebasestorage.googleapis.com/v0/b/hwaidak-hotels.appspot.com/o/rooms%2Fimages%2F1739514707216-SSP-TITANIC-D336%20(Large).webp?alt=media&token=2b512824-80c6-446c-b966-0ff1a4c3b184",
+        "https://firebasestorage.googleapis.com/v0/b/hwaidak-hotels.appspot.com/o/rooms%2Fimages%2F1745038296347-SSP-TITANIC-D377%20(Large).webp?alt=media&token=b0cfb53a-5068-4624-92a0-3c3ff68789a9"
+      ]
+    },
+    {
+      "hotel_id": 231,
+      "logical_id": "commercial-hotel-231-v1",
+      "aliases": [
+        "The Grand Makadi",
+        "GRAND MAKADI"
+      ],
+      "text": "✈️ Туры в The Grand Makadi\n📍 Макади-Бей, Египет.\n\nМакади-Бей для тех, кто едет к морю и рифу 🐠\n\nThe Grand Makadi подойдёт для пляжного отдыха и знакомства с подводным миром Красного моря.\n\n• Пляжная зона у территории.\n• Пирс с доступом к домашнему рифу.\n• Открытый бассейн с сезонным подогревом.\n\nВход к рифу — с пирса. Песчаный пляж не означает плавный песчаный заход в море.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "22304371d7a27280536f821e7e9fdc0ba51b152b75d4a4bbf52bd492b1c96872",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/deb21f08c7bb5d0d34c7a1d9a29ff44b4b0a1bf7/.github/traffic-publish/commercial-batch-20261113-10/231.png",
+      "photo_sha256": "8e26de6de31c2c33b21661e0d3f822d5d9c9dfffe980e64bbc595f7345c18ad3",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+        "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+        "https://redseahotels.com/resorts/makadi-bay/the-grand-makadi/",
+        "https://anytoour.ru/api-v2.php?action=flights&tourId=16305023476263&currency=RUB",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=231",
+        "https://redseahotels.com/wp-content/uploads/2023/02/Big-swimming-pools-at-grand-makadi.jpg",
+        "https://redseahotels.com/wp-content/uploads/2023/03/Junior-Suite-at-the-grand-makadi-allinclusive-resort.jpg",
+        "https://redseahotels.com/wp-content/uploads/2023/03/Sandy-beach-at-grand-makadi.jpg"
+      ]
+    }
+  ]
+}
