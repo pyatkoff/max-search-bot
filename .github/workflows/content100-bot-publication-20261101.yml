@@ -1,4 +1,4 @@
-name: Continue saved hotel prices within existing bounded maintenance
+name: Read the original cancelled collector and saved-price journals
 'on':
   push:
     branches:
@@ -12,7 +12,12 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: 80ebb725c0a954bae7d2ae78ba6e7c48056248a6
+  EXPECTED_PRODUCTION_SHA: e5c93a27aa46f197a3d2e02e7a536ed5de8cd672
+  EXPECTED_READER_MAIN_SHA: 4bcc3c52ed9c6bff98ff2a26707144cca71426ff
+  EXPECTED_READER_DELIVERY_RUN_ID: '43590528854'
+  EXPECTED_READER_DELIVERY_PATH: .github/workflows/bootstrap-anytour-data.yml
+  EXPECTED_READER_DELIVERY_EVENT: push
+  EXPECTED_READER_SOURCE_SHA256: 6628fe156013bb6e856313bc2d7f058a54da21325768fbc9fb1886ce749134e3
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
@@ -23,90 +28,81 @@ jobs:
       with:
         ref: ${{ github.sha }}
         persist-credentials: false
-    - name: Validate bounded continuation and unchanged saved-price publisher
+    - name: Validate only the standalone read-only reader before credentials
       shell: bash
-      run: 'set -euo pipefail
-
-        umask 077
-
-        test "$GITHUB_RUN_ATTEMPT" = 1
-
-        test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-
-        mkdir -p "$RUNNER_TEMP/monitor-price-incident-private" "$RUNNER_TEMP/monitor-price-incident-safe"
-
-        python3 - <<''PY''
-
-        import hashlib,pathlib
-
-        assert hashlib.sha256(pathlib.Path(''tools/direct_demand/operations/verify-commercial-source.py'').read_bytes()).hexdigest()==''5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb''
-
-        PY
-
-        php -l tools/direct_demand/operations/monitor-price-after-collection.php
-
-        php -l tools/direct_demand/operations/update-commercial-price-20261104-remaining1.php
-
-        php tools/direct_demand/operations/test-monitor-price-contract.php
-
-        php tools/direct_demand/operations/test-monitor-price-hook.php
-
-        php tools/direct_demand/operations/test-monitor-price-nightly-policy.php
-
-        python3 tools/direct_demand/operations/build-monitor-price-hook.py "$RUNNER_TEMP/monitor-price-incident-private/validated-hook.php"
-
-        php -l "$RUNNER_TEMP/monitor-price-incident-private/validated-hook.php"
-
-        python3 tools/direct_demand/operations/test-continue-saved-monitor-prices-20261114.py
-
-        '
+      run: "set -euo pipefail\numask 077\nmkdir -p \"$RUNNER_TEMP/monitor-price-incident-private\" \"$RUNNER_TEMP/monitor-price-incident-safe\"\
+        \npython3 - <<'PY'\nimport ast,hashlib,pathlib\nroot=pathlib.Path('tools/direct_demand/operations')\npins={\n 'read-cancelled-monitor-collector-20261114.php':'6e72b76e479c6f65b0bdc23df3f31ca59bfe080bfe798ed27d0dcc2aca69d150',\n\
+        \ 'verify-commercial-source.py':'5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb',\n}\nfor name,sha\
+        \ in pins.items():assert hashlib.sha256((root/name).read_bytes()).hexdigest()==sha\nast.parse((root/'verify-commercial-source.py').read_text())\n\
+        PY\nphp -n -l tools/direct_demand/operations/read-cancelled-monitor-collector-20261114.php\nphp -n tools/direct_demand/operations/read-cancelled-monitor-collector-20261114.php\
+        \ --self-test\n"
     - name: Authenticate accepted current installation without rerunning it
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
       run: "set -euo pipefail\numask 077\nevidence=\"$RUNNER_TEMP/monitor-price-incident-private/source\"\nmkdir -p \"$evidence\"\
         \npython3 - <<'PY'\nimport concurrent.futures,json,os,pathlib,subprocess\nexpected=os.environ['EXPECTED_PRODUCTION_SHA']\n\
-        gates=[(43581055548,'.github/workflows/deploy.yml','push'),(43581055574,'.github/workflows/retired-domain-guard.yml','push'),(43581950208,'.github/workflows/max-tls-preflight.yml','workflow_run'),(43581950228,'.github/workflows/max-production-health.yml','workflow_run'),(43581950209,'.github/workflows/telegram-production-health.yml','workflow_run'),(43581950210,'.github/workflows/publish-conversation-diagnostics.yml','workflow_run'),(43581950157,'.github/workflows/live-session-diagnostics.yml','workflow_run'),(43581950234,'.github/workflows/tour-selection-host.yml','workflow_run'),(43581950216,'.github/workflows/modeled-conversion-monitor.yml','workflow_run')]\n\
+        gates=[(43587651928,'.github/workflows/deploy.yml','push'),(43587651937,'.github/workflows/retired-domain-guard.yml','push'),(43588637463,'.github/workflows/max-tls-preflight.yml','workflow_run'),(43588637458,'.github/workflows/max-production-health.yml','workflow_run'),(43588637471,'.github/workflows/telegram-production-health.yml','workflow_run'),(43588637456,'.github/workflows/publish-conversation-diagnostics.yml','workflow_run'),(43588637473,'.github/workflows/live-session-diagnostics.yml','workflow_run'),(43588637551,'.github/workflows/tour-selection-host.yml','workflow_run'),(43588637486,'.github/workflows/modeled-conversion-monitor.yml','workflow_run')]\n\
         def check(g):\n rid,path,event=g\n r=json.loads(subprocess.check_output(['gh','api','--method','GET','-H','Cache-Control:\
         \ no-cache',f'repos/pyatkoff/max-search-bot/actions/runs/{rid}']))\n assert r['id']==rid and r['run_attempt']==1 and\
         \ r['head_sha']==expected and r['head_branch']=='main'\n assert r['path']==path and r['event']==event and r['status']=='completed'\
-        \ and r['conclusion']=='success'\n if event=='workflow_run':assert r['display_title']=='deploy-proof:v1:43581055548:1'\n\
+        \ and r['conclusion']=='success'\n if event=='workflow_run':assert r['display_title']=='deploy-proof:v1:43587651928:1'\n\
         \ return {'run_id':rid,'path':path,'conclusion':'success','attempt':1}\nwith concurrent.futures.ThreadPoolExecutor(max_workers=5)\
         \ as pool:results=list(pool.map(check,gates))\npathlib.Path(os.environ['RUNNER_TEMP'],'monitor-price-incident-safe','original-installation.json').write_text(json.dumps({'installed_sha':expected,'gates':results}))\n\
         PY\ngh api --method GET -H 'Cache-Control: no-cache' repos/pyatkoff/max-search-bot/git/ref/heads/main > \"$evidence/main.json\"\
-        \ngh api --method GET -H 'Cache-Control: no-cache' repos/pyatkoff/max-search-bot/actions/runs/43581055548 > \"$evidence/verify_run.json\"\
-        \ngh api --method GET -H 'Cache-Control: no-cache' 'repos/pyatkoff/max-search-bot/actions/runs/43581055548/jobs?per_page=20'\
-        \ > \"$evidence/verify_jobs.json\"\ngh api --method GET -H 'Cache-Control: no-cache' repos/pyatkoff/max-search-bot/actions/runs/43581950208\
+        \ngh api --method GET -H 'Cache-Control: no-cache' repos/pyatkoff/max-search-bot/actions/runs/43587651928 > \"$evidence/verify_run.json\"\
+        \ngh api --method GET -H 'Cache-Control: no-cache' 'repos/pyatkoff/max-search-bot/actions/runs/43587651928/jobs?per_page=20'\
+        \ > \"$evidence/verify_jobs.json\"\ngh api --method GET -H 'Cache-Control: no-cache' repos/pyatkoff/max-search-bot/actions/runs/43588637463\
         \ > \"$evidence/tls_run.json\"\ngh api --method GET -H 'Cache-Control: no-cache' \"repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA\"\
         \ > \"$evidence/source_commit.json\"\ntree_sha=\"$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))[\"\
         tree\"][\"sha\"])' \"$evidence/source_commit.json\")\"\ngh api --method GET -H 'Cache-Control: no-cache' \"repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1\"\
         \ > \"$evidence/source_tree.json\"\npython3 tools/direct_demand/operations/verify-commercial-source.py --expected-source\
         \ \"$EXPECTED_PRODUCTION_SHA\" --evidence-dir \"$evidence\"\n"
-    - name: Authenticate same owner, exact continuation and previous completed pass
+    - name: Authenticate the cancelled original and current read-only scope
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
-      run: "set -euo pipefail\numask 077\npython3 - <<'PY'\nimport json,os,pathlib,subprocess\nrepo='repos/pyatkoff/max-search-bot/'\n\
-        def get(path):return json.loads(subprocess.check_output(['gh','api','--method','GET','-H','Cache-Control: no-cache',repo+path]))\n\
-        assert get('git/ref/heads/main')['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']\nassert get('git/ref/heads/audit/content100-bot-publication-20261101')['object']['sha']==os.environ['GITHUB_SHA']\n\
+      run: "set -euo pipefail\numask 077\npython3 - <<'PY'\nimport base64,hashlib,json,os,pathlib,subprocess\n\nrepo='repos/pyatkoff/max-search-bot/'\n\
+        foreign='repos/pyatkoff/poisk-turov-test/'\nparent='922d7b34e2d0e4adb2db09086e4f5ada3739f712'\nsafe=pathlib.Path(os.environ['RUNNER_TEMP'],'monitor-price-incident-safe')\n\
+        private=pathlib.Path(os.environ['RUNNER_TEMP'],'monitor-price-incident-private')\ndef raw_get(path):\n    return subprocess.check_output(['gh','api','--allow-escape-sequences','--method','GET','-H','Cache-Control:\
+        \ no-cache',path],stderr=subprocess.PIPE)\ndef get(path):return json.loads(raw_get(repo+path))\ndef foreign_get(path):return\
+        \ json.loads(raw_get(foreign+path))\n\nassert get('git/ref/heads/main')['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']\n\
+        assert get('git/ref/heads/audit/content100-bot-publication-20261101')['object']['sha']==os.environ['GITHUB_SHA']\n\
         owner=get('issues/comments/6818332618')\nassert owner['user']['id']==226193297 and owner['body'].startswith('ACTIVE14Nov:\
-        \ saved-price continuation; same carrier, 1800s total; no replay.')\nrun=get('actions/runs/'+os.environ['GITHUB_RUN_ID'])\n\
-        assert run['event']=='push' and run['run_attempt']==1 and run['head_sha']==os.environ['GITHUB_SHA']\nassert run['head_branch']=='audit/content100-bot-publication-20261101'\
-        \ and run['path']=='.github/workflows/content100-bot-publication-20261101.yml'\nassert run['actor']['id']==run['triggering_actor']['id']==226193297\n\
-        commit=get('git/commits/'+os.environ['GITHUB_SHA'])\nassert [p['sha'] for p in commit['parents']]==['f71e4642a56cc94cb06c96cb74678a515f40914d']\n\
-        previous=get('actions/runs/43580948623')\nassert previous['run_attempt']==1 and previous['head_sha']=='f71e4642a56cc94cb06c96cb74678a515f40914d'\n\
-        assert previous['status']=='completed' and previous['conclusion']=='success' and previous['event']=='push'\nassert\
-        \ previous['head_branch']==run['head_branch'] and previous['path']==run['path']\nassert previous['actor']['id']==previous['triggering_actor']['id']==226193297\n\
-        proof={'current_source':os.environ['GITHUB_SHA'],'parent':previous['head_sha'],'previous_run_id':43580948623,'previous_attempt':1,'previous_status':'success','same_owner':True,'no_retirement_replay':True}\n\
-        root=pathlib.Path(os.environ['RUNNER_TEMP'],'monitor-price-incident-safe')\n(root/'continuation-admission.json').write_text(json.dumps(proof,ensure_ascii=False,indent=2)+'\\\
-        n')\nprint('SAVED_PRICE_CONTINUATION_ADMISSION='+json.dumps(proof))\n# One metadata GET diagnoses the absent hourly\
-        \ collector events. It neither enables nor dispatches it.\nmeta={'workflow_id':346454799,'read_attempts':1,'method':'GET','available':False,'writes':0}\n\
-        try:\n    p=subprocess.run(['gh','api','--method','GET','-H','Cache-Control: no-cache','repos/pyatkoff/poisk-turov-test/actions/workflows/346454799'],capture_output=True,timeout=25)\n\
-        \    if p.returncode==0:\n        data=json.loads(p.stdout)\n        assert data['id']==346454799 and data['path']=='.github/workflows/collect-anytour-tours.yml'\n\
-        \        meta.update({'available':True,'workflow':{k:data.get(k) for k in ['id','name','path','state','created_at','updated_at']}})\n\
-        \    else:meta.update({'error':'metadata_get_failed','exit_code':p.returncode})\nexcept (subprocess.TimeoutExpired,ValueError,AssertionError,KeyError):meta['error']='metadata_get_unavailable'\n\
-        (root/'collector-workflow-state.json').write_text(json.dumps(meta,ensure_ascii=False,indent=2)+'\\n')\nprint('COLLECTOR_WORKFLOW_METADATA='+json.dumps(meta))\n\
-        PY\n"
+        \ saved-price continuation; same carrier, 1800s total; no replay.')\npublisher=get('issues/comments/6775467253')\n\
+        assert publisher['user']['id']==226193297 and publisher['body'].strip()=='PR1531: установлено, выпуск свободен'\n\
+        run=get('actions/runs/'+os.environ['GITHUB_RUN_ID'])\nassert run['event']=='push' and run['run_attempt']==1 and run['head_sha']==os.environ['GITHUB_SHA']\n\
+        assert run['head_branch']=='audit/content100-bot-publication-20261101' and run['path']=='.github/workflows/content100-bot-publication-20261101.yml'\n\
+        assert run['actor']['id']==run['triggering_actor']['id']==226193297\ncommit=get('git/commits/'+os.environ['GITHUB_SHA'])\n\
+        assert [p['sha'] for p in commit['parents']]==[parent]\n\n# The cancelled original remains cancelled. Its remote callback\
+        \ is UNKNOWN.\noriginal=foreign_get('actions/runs/43585911376')\nassert original['id']==43585911376 and original['run_attempt']==1\
+        \ and original['event']=='schedule'\nassert original['head_sha']=='01a0eeefcb87732ae1ef6f8f0010de18b7cf02b5' and original['head_branch']=='main'\n\
+        assert original['path']=='.github/workflows/collect-anytour-tours.yml'\nassert original['status']=='completed' and\
+        \ original['conclusion']=='cancelled'\njob=foreign_get('actions/jobs/132420332331')\nassert job['id']==132420332331\
+        \ and job['run_id']==43585911376 and job['run_attempt']==1\nassert job['head_sha']==original['head_sha'] and job['name']=='collect-production'\n\
+        assert job['status']=='completed' and job['conclusion']=='cancelled'\nsteps={s['name']:s for s in job['steps']}\n\
+        assert steps['Collect due TOP500 months and refresh production aggregates']['conclusion']=='cancelled'\nraw=raw_get(foreign+'actions/jobs/132420332331/logs')\n\
+        # Hash exact binary API bytes before decoding; never a UI-rendered log.\nlog_sha=hashlib.sha256(raw).hexdigest()\n\
+        assert log_sha=='a6804d16bfa34c7ebb7b7fefd2132d82061ce0e656d333105be7bde887485a1b'\n(private/'original-cancelled-43585911376.log').write_bytes(raw)\n\
+        callbacks=[line for line in raw.splitlines() if b'MONITOR_POST_FEED_RESULT={' in line]\nassert len(callbacks)==0\n\
+        \nreader_main=os.environ['EXPECTED_READER_MAIN_SHA']\nassert reader_main=='4bcc3c52ed9c6bff98ff2a26707144cca71426ff'\n\
+        # This is the immutable delivery source, not a claim about a later workflow-only main.\ndelivery=foreign_get('actions/runs/43590528854')\n\
+        assert delivery['id']==43590528854 and delivery['run_attempt']==1 and delivery['event']=='push'\nassert delivery['head_sha']==reader_main\
+        \ and delivery['head_branch']=='main'\nassert delivery['path']=='.github/workflows/bootstrap-anytour-data.yml' and\
+        \ delivery['status']=='completed' and delivery['conclusion']=='success'\ndelivery_job=foreign_get('actions/jobs/132434070120')\n\
+        assert delivery_job['id']==132434070120 and delivery_job['run_id']==43590528854 and delivery_job['run_attempt']==1\n\
+        assert delivery_job['head_sha']==reader_main and delivery_job['status']=='completed' and delivery_job['conclusion']=='success'\n\
+        reader=foreign_get('contents/v2/data/hotel-monitor-prices-v1.php?ref='+reader_main)\nassert reader['type']=='file'\
+        \ and reader['sha']=='f6e893705505989000f5c61ad1dbb62ee54ea37d' and reader['encoding']=='base64'\nassert hashlib.sha256(base64.b64decode(reader['content'])).hexdigest()==os.environ['EXPECTED_READER_SOURCE_SHA256']\n\
+        proof={'mode':'read_only_cancelled_collector_reconciliation','current_source':os.environ['GITHUB_SHA'],'parent':parent,\n\
+        \       'current_installed_sha':os.environ['EXPECTED_PRODUCTION_SHA'],'original_run_id':43585911376,'original_attempt':1,\n\
+        \       'original_head':original['head_sha'],'original_conclusion':'cancelled','original_job_id':132420332331,\n \
+        \      'original_job_conclusion':'cancelled','original_job_completed_at':job['completed_at'],'original_raw_log_sha256':log_sha,\n\
+        \       'original_callback_markers':0,'original_callback_outcome':'unknown','absence_of_marker_is_not_no_write_proof':True,\n\
+        \       'reader_main':reader_main,'reader_delivery_run_id':43590528854,'reader_sha256':os.environ['EXPECTED_READER_SOURCE_SHA256'],\n\
+        \       'same_owner':True,'publisher_free':True,'new_original_push':True,'business_admission':'blocked_pending_review'}\n\
+        (safe/'cancelled-collector-read-admission.json').write_text(json.dumps(proof,ensure_ascii=False,indent=2)+'\\n')\n\
+        print('CANCELLED_COLLECTOR_READ_ADMISSION='+json.dumps(proof,ensure_ascii=False))\n\nPY\n"
     - name: Prepare existing server connection
       env:
         DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -128,19 +124,42 @@ jobs:
         \  except Exception:continue\n  if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)\n\
         assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'\npathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\\\
         n'.join(matches)+'\\n')\nPY\n"
-    - name: Apply successive existing saved-price passes within one total budget
+    - name: Read process and complete journal evidence once without executing the hook
       shell: bash
       env:
         DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
         DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-      run: "set -euo pipefail\numask 077\ntest \"$GITHUB_RUN_ATTEMPT\" = 1\npython3 tools/direct_demand/operations/continue-saved-monitor-prices-20261114.py\
-        \ \\\n  --hook \"$RUNNER_TEMP/monitor-price-incident-private/validated-hook.php\" \\\n  --output-dir \"$RUNNER_TEMP/monitor-price-incident-safe\"\
-        \ \\\n  --key \"$RUNNER_TEMP/channel_key\" \\\n  --known-hosts \"$RUNNER_TEMP/channel_known_hosts\"\n"
-    - name: Retain every original pass and final continuation outcome
+      run: "set -euo pipefail\numask 077\npython3 - <<'PY'\nimport hashlib,json,os,pathlib,re,shlex,subprocess\nsafe=pathlib.Path(os.environ['RUNNER_TEMP'],'monitor-price-incident-safe')\n\
+        private=pathlib.Path(os.environ['RUNNER_TEMP'],'monitor-price-incident-private')\nexpected=os.environ['EXPECTED_PRODUCTION_SHA']\n\
+        assert expected=='e5c93a27aa46f197a3d2e02e7a536ed5de8cd672' and re.fullmatch('[a-f0-9]{40}',expected)\nhost=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']\n\
+        assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')\nassert re.fullmatch(r'[A-Za-z0-9_-]+',user)\n\
+        source=pathlib.Path('tools/direct_demand/operations/read-cancelled-monitor-collector-20261114.php').read_bytes()\n\
+        assert hashlib.sha256(source).hexdigest()=='6e72b76e479c6f65b0bdc23df3f31ca59bfe080bfe798ed27d0dcc2aca69d150'\nremote=\"\
+        \"\"set -eu\ncd /var/www/anytoour/data/www/app.anytoour.ru\ntest \"$(git --no-optional-locks -c core.fsmonitor=false\
+        \ rev-parse --verify HEAD)\" = EXPECTED_SHA\ntest -z \"$(git --no-optional-locks -c core.fsmonitor=false status --porcelain\
+        \ --untracked-files=no)\"\nset +e\nphp -n -d display_errors=0 -d log_errors=0\nreader_rc=$?\nset -e\ntest \"$(git\
+        \ --no-optional-locks -c core.fsmonitor=false rev-parse --verify HEAD)\" = EXPECTED_SHA\ntest -z \"$(git --no-optional-locks\
+        \ -c core.fsmonitor=false status --porcelain --untracked-files=no)\"\nprintf 'RUNTIME_SOURCE_READ_ONLY_CHECK=%s\\\
+        n' EXPECTED_SHA\nexit \"$reader_rc\"\n\"\"\".replace('EXPECTED_SHA',shlex.quote(expected))\nargv=['ssh','-i',os.environ['RUNNER_TEMP']+'/channel_key','-o','BatchMode=yes','-o','ConnectTimeout=10',\n\
+        \      '-o','IdentitiesOnly=yes','-o','StrictHostKeyChecking=yes','-o','GlobalKnownHostsFile=/dev/null',\n      '-o','UserKnownHostsFile='+os.environ['RUNNER_TEMP']+'/channel_known_hosts',user+'@'+host,remote]\n\
+        # One original SSH read only. Do not retry or kill an existing remote process.\nresult=subprocess.run(argv,input=source,stdout=subprocess.PIPE,stderr=subprocess.PIPE)\n\
+        (safe/'cancelled-collector-read.stdout').write_bytes(result.stdout)\nprefix=b'CANCELLED_COLLECTOR_READ_RESULT='\n\
+        payloads=[line[len(prefix):] for line in result.stdout.splitlines() if line.startswith(prefix)]\nreceipt={'ssh_exit_code':result.returncode,'stdout_sha256':hashlib.sha256(result.stdout).hexdigest(),\n\
+        \         'marker_count':len(payloads),'stderr_present':bool(result.stderr),'business_admission':'blocked_pending_review'}\n\
+        if len(payloads)==1:\n    (safe/'cancelled-collector-read.json').write_bytes(payloads[0]+b'\\n')\n    receipt['result_sha256']=hashlib.sha256(payloads[0]).hexdigest()\n\
+        (safe/'cancelled-collector-read-transport.json').write_text(json.dumps(receipt,indent=2)+'\\n')\nprint('CANCELLED_COLLECTOR_READ_TRANSPORT='+json.dumps(receipt))\n\
+        assert result.returncode==0 and len(payloads)==1,'read_result_unknown'\ndata=json.loads(payloads[0])\nassert data['ok']\
+        \ is True and data['mode']=='read_only_cancelled_collector_reconciliation'\nassert data['original_collector_run_id']=='43585911376'\
+        \ and data['expected_installed_sha']==expected\nassert data['business_admission']=='blocked_pending_review' and data['callback_outcome']=='unknown_until_evidence_review'\n\
+        assert all(type(data[k]) is int and data[k]==0 for k in ['journal_writes','database_calls','provider_calls','network_calls','hook_executions','process_signals'])\n\
+        assert data['read_complete'] is True and data['held_files_unchanged'] is True\nassert result.stdout.splitlines().count(('RUNTIME_SOURCE_READ_ONLY_CHECK='+expected).encode())==1\n\
+        # scan_complete, pending, cycle and hash results remain facts for manual review.\n# They never grant continuation\
+        \ or change the original cancelled conclusion.\nprint(prefix.decode()+payloads[0].decode())\nPY\n"
+    - name: Retain the exact read-only reconciliation evidence
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: monitor-price-saved-continuation-20261114
+        name: monitor-price-cancelled-collector-read-20261114
         path: ${{ runner.temp }}/monitor-price-incident-safe
         retention-days: 14
         if-no-files-found: error
