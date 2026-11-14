@@ -1,4 +1,4 @@
-name: Continue saved hotel prices after the exact meal-reader fix
+name: Continue remaining saved hotel prices after the confirmed partial series
 'on':
   push:
     branches:
@@ -77,12 +77,12 @@ jobs:
         tree\"][\"sha\"])' \"$evidence/source_commit.json\")\"\ngh api --method GET -H 'Cache-Control: no-cache' \"repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1\"\
         \ > \"$evidence/source_tree.json\"\npython3 tools/direct_demand/operations/verify-commercial-source.py --expected-source\
         \ \"$EXPECTED_PRODUCTION_SHA\" --evidence-dir \"$evidence\"\n"
-    - name: Authenticate original failure receipts, intervening collector and delivered reader
+    - name: Authenticate prior original results and the completed partial series
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
       run: "set -euo pipefail\numask 077\npython3 - <<'PY'\nimport hashlib,io,json,os,pathlib,re,subprocess,zipfile\n\nrepo='repos/pyatkoff/max-search-bot/'\n\
-        source_parent='4bc098c06a33c259be3bfdf61dd6bdde07212f6e'\nprevious_head='bcfe5bd065f3010f7a77550a53dde321ef8c4e52'\n\
+        source_parent='45ad104e0af6c33cfba9fa030f4a2f9c2bef3922'\nprevious_head='bcfe5bd065f3010f7a77550a53dde321ef8c4e52'\n\
         previous_installed='80ebb725c0a954bae7d2ae78ba6e7c48056248a6'\nroot=pathlib.Path(os.environ['RUNNER_TEMP'],'monitor-price-incident-safe')\n\
         private=pathlib.Path(os.environ['RUNNER_TEMP'],'monitor-price-incident-private')\ndef raw_get(path):\n    return subprocess.check_output(['gh','api','--allow-escape-sequences','--method','GET','-H','Cache-Control:\
         \ no-cache',path])\ndef get(path):return json.loads(raw_get(repo+path))\ndef foreign_get(path):return json.loads(raw_get('repos/pyatkoff/poisk-turov-test/'+path))\n\
@@ -215,8 +215,85 @@ jobs:
         (root/'original-read-only-43593313709-result.json').write_bytes(read_payload+b'\\n')\n(root/'original-read-only-43593313709-transport.json').write_bytes(transport_payload+b'\\\
         n')\n(root/'original-read-only-43593313709-admission.json').write_bytes(read_marker(b'CANCELLED_COLLECTOR_READ_ADMISSION=')+b'\\\
         n')\n(root/'intervening-original-43585911376-proof.json').write_text(json.dumps(intervening_expected,indent=2)+'\\\
-        n')\n\n# Reader delivery is distinct from collector execution. Verify only an already\n# completed exact delivery;\
-        \ this workflow never dispatches or installs it.\nreader_main=os.environ['EXPECTED_READER_MAIN_SHA']\nreader_delivery_source=os.environ['EXPECTED_READER_DELIVERY_SOURCE_SHA']\n\
+        n')\n\n# A new original series follows one exact successful but partial original.\n# Its per-series budget is unchanged;\
+        \ no earlier run or closed operation is retried.\npartial_expected={\n    'kind':'successful_partial_original_43594090484_v1','run_id':43594090484,'attempt':1,\n\
+        \    'head':'45ad104e0af6c33cfba9fa030f4a2f9c2bef3922','job_id':132444791811,\n    'log_sha256':'4c7fde6f99d3e5e663b96b9455a71719b8493b82fbd46a703234c317e7304423',\n\
+        \    'aggregate_payload_sha256':'7f994568a706cd5caa19159471a9f5b53d5ed99b5bef4ea61fce9b1f2d5e0ee5',\n    'artifact_id':14113927918,'artifact_bytes':334356,\n\
+        \    'artifact_sha256':'a7b935081150afd5b44cca26edeb3a7db23519e47e29eeb4e849b17e5564c722',\n    'pass_payload_sha256':[\n\
+        \        '18dac8b9d890534bb29c8675a11802f81f3a7e92dba56bc0b43deb803d75ebde',\n        'f4e829cfab0c855acb768f434b4f3c4add43e5f6601d02b7b02f8d43c2c18b2f',\n\
+        \        '42b3a559f1386fba036d41de48c495465bed1f5f16fc4c7d90a08a4798f349b4',\n        '5b2f829ddb37a654f768eac773e71482a42ab2ea98ee33f43e0eb2c0c4ccd299'],\n\
+        }\npartial_run=get('actions/runs/43594090484')\nassert partial_run['id']==43594090484 and partial_run['run_attempt']==1\
+        \ and partial_run['event']=='push'\nassert partial_run['head_sha']==partial_expected['head'] and partial_run['head_branch']==run['head_branch']\
+        \ and partial_run['path']==run['path']\nassert partial_run['status']=='completed' and partial_run['conclusion']=='success'\n\
+        assert partial_run['actor']['id']==partial_run['triggering_actor']['id']==226193297\npartial_job=get('actions/jobs/132444791811')\n\
+        assert partial_job['id']==132444791811 and partial_job['run_id']==43594090484 and partial_job['run_attempt']==1\n\
+        assert partial_job['head_sha']==partial_expected['head'] and partial_job['name']=='inspect'\nassert partial_job['status']=='completed'\
+        \ and partial_job['conclusion']=='success'\npartial_steps={s['name']:s for s in partial_job['steps']}\nassert partial_steps['Apply\
+        \ successive existing saved-price passes within one total budget']['conclusion']=='success'\nassert partial_steps['Retain\
+        \ every original pass and final continuation outcome']['conclusion']=='success'\npartial_log=raw_get(repo+'actions/jobs/132444791811/logs')\n\
+        assert hashlib.sha256(partial_log).hexdigest()==partial_expected['log_sha256']\n(private/'previous-successful-partial-43594090484.log').write_bytes(partial_log)\n\
+        marker=b'MONITOR_SAVED_CONTINUATION_RESULT='\npartial_payloads=[line.split(marker,1)[1] for line in partial_log.splitlines()\
+        \ if marker in line and line.split(marker,1)[1].startswith(b'{')]\nassert len(partial_payloads)==1 and hashlib.sha256(partial_payloads[0]).hexdigest()==partial_expected['aggregate_payload_sha256']\n\
+        partial_aggregate=json.loads(partial_payloads[0])\npartial_artifact=get('actions/artifacts/14113927918')\nassert partial_artifact['id']==14113927918\
+        \ and partial_artifact['name']=='monitor-price-saved-continuation-20261114-after-meal-fix'\nassert partial_artifact['expired']\
+        \ is False and partial_artifact['size_in_bytes']==partial_expected['artifact_bytes']\nassert partial_artifact['digest']=='sha256:'+partial_expected['artifact_sha256']\n\
+        assert partial_artifact['workflow_run']['id']==43594090484 and partial_artifact['workflow_run']['head_sha']==partial_expected['head']\n\
+        assert partial_artifact['workflow_run']['head_branch']==run['head_branch']\npartial_archive=raw_get(repo+'actions/artifacts/14113927918/zip')\n\
+        assert len(partial_archive)==partial_expected['artifact_bytes'] and hashlib.sha256(partial_archive).hexdigest()==partial_expected['artifact_sha256']\n\
+        partial_history=root/'previous-successful-partial-43594090484';partial_history.mkdir()\n(partial_history/'artifact.zip').write_bytes(partial_archive)\n\
+        partial_results=[]\nwith zipfile.ZipFile(io.BytesIO(partial_archive)) as z:\n    assert len(z.namelist())==27 and\
+        \ len(set(z.namelist()))==27\n    assert json.loads(z.read('continuation.json'))==partial_aggregate\n    prior_admission=json.loads(z.read('continuation-after-meal-fix-admission.json'))\n\
+        \    assert prior_admission['current_source']==partial_expected['head'] and prior_admission['parent']=='4bc098c06a33c259be3bfdf61dd6bdde07212f6e'\n\
+        \    assert prior_admission['previous_native_status']=='failure' and prior_admission['intervening_original_conclusion']=='cancelled'\n\
+        \    assert prior_admission['intervening_original_callback_outcome']=='unknown' and prior_admission['separate_reconciliation_run_id']==43593313709\n\
+        \    for name in ['continuation.json','continuation-after-meal-fix-admission.json','guarded-publisher-source.json']:\n\
+        \        (partial_history/name).write_bytes(z.read(name))\n    for ordinal,sha in enumerate(partial_expected['pass_payload_sha256'],1):\n\
+        \        stdout=z.read(f'pass-{ordinal:02d}.stdout');prefix=b'MONITOR_POST_FEED_RESULT='\n        payloads=[line[len(prefix):]\
+        \ for line in stdout.splitlines() if line.startswith(prefix)]\n        assert len(payloads)==1 and hashlib.sha256(payloads[0]).hexdigest()==sha\n\
+        \        assert z.read(f'pass-{ordinal:02d}.json')==payloads[0]+b'\\n'\n        assert stdout.splitlines().count(b'SAVED_READER_SOURCE_SHA256=6628fe156013bb6e856313bc2d7f058a54da21325768fbc9fb1886ce749134e3')==1\n\
+        \        (partial_history/f'pass-{ordinal:02d}.stdout').write_bytes(stdout)\n        (partial_history/f'pass-{ordinal:02d}.json').write_bytes(payloads[0]+b'\\\
+        n')\n        partial_results.append(json.loads(payloads[0]))\n\n# Reuse the exact frozen, pure validator; this never\
+        \ invokes its SSH runner.\nimport importlib.util\nrunner_path=pathlib.Path('tools/direct_demand/operations/continue-saved-monitor-prices-20261114.py')\n\
+        assert hashlib.sha256(runner_path.read_bytes()).hexdigest()=='e2760f1b38927a7471f4a11a71645a26f6df4e534d39c01842557de44c4004ec'\n\
+        runner_spec=importlib.util.spec_from_file_location('accepted_continuation_proof',runner_path)\naccepted_runner=importlib.util.module_from_spec(runner_spec);runner_spec.loader.exec_module(accepted_runner)\n\
+        \ndef validate_successful_partial(aggregate,results):\n    assert aggregate['ok'] is True and aggregate['mode']=='bounded_saved_monitor_continuation'\n\
+        \    historical_installed='e5c93a27aa46f197a3d2e02e7a536ed5de8cd672'\n    assert aggregate['installed_sha']==historical_installed\n\
+        \    assert aggregate['partial'] is True and aggregate['scan_complete'] is False and aggregate['stop_reason']=='aggregate_admission_deadline'\n\
+        \    assert aggregate['counts_from_accepted_passes_only'] is True\n    for key,expected in {'total_budget_seconds':1800,'pass_budget_seconds':480,'finish_reserve_seconds':300,'max_passes':21,\n\
+        \                         'passes_attempted':4,'passes_accepted':4,'updated_pairs':120,'unique_updated_hotels':120,\n\
+        \                         'scanned_pairs_total':1253,'last_accepted_remaining_unscanned_pairs':187,\n            \
+        \             'budget_overrun_seconds':0,'new_posts':0,'supplier_calls':0,'site_writes':0}.items():\n        assert\
+        \ type(aggregate[key]) is int and aggregate[key]==expected\n    assert aggregate['duration_seconds']==1165.194 and\
+        \ aggregate.get('error') is None\n    assert len(results)==len(aggregate['passes'])==4\n    seen_ops=set();seen_records=set();seen_hotels=set();seen_posts=set();visited=set();unchanged=set();no_fresh=set()\n\
+        \    for index,result in enumerate(results):\n        receipt=aggregate['passes'][index]\n        assert receipt['pass']==index+1\
+        \ and receipt['status']=='accepted' and type(receipt['ssh_exit_code']) is int and receipt['ssh_exit_code']==0\n  \
+        \      assert receipt['result_sha256']==partial_expected['pass_payload_sha256'][index]\n        assert receipt.get('error')\
+        \ is None and receipt['stdout_file']==f'pass-{index+1:02d}.stdout' and receipt['result_file']==f'pass-{index+1:02d}.json'\n\
+        \        ops_now,records_now,hotels_now=accepted_runner.validate_result(result,historical_installed,seen_ops,seen_records)\n\
+        \        assert len(hotels_now)==30 and not (hotels_now&seen_hotels)\n        assert (result['scanned_pairs'],result['remaining_unscanned_pairs'])==[(137,467),(327,277),(372,232),(417,187)][index]\n\
+        \        for key in ['updated_pairs','scanned_pairs','remaining_unscanned_pairs','duration_seconds']:assert receipt[key]==result[key]\n\
+        \        seen_ops|=ops_now;seen_records|=records_now;seen_hotels|=hotels_now\n        un=set(result['unchanged_ids']);nf={d['tourvisor_hotel_id']\
+        \ for d in result['deferred']}\n        assert all(d['reason']=='no_fresh_observation' for d in result['deferred'])\n\
+        \        assert len(hotels_now|un|nf)==result['scanned_pairs'];visited|=hotels_now|un|nf;unchanged|=un;no_fresh|=nf\n\
+        \        for update in result['updates']:\n            for post in update['posts']:\n                identity=(post['platform'],post['publication_id']);assert\
+        \ identity not in seen_posts;seen_posts.add(identity)\n                assert post['monitor_price']['record_id']==update['record_id']\
+        \ and post['monitor_price']['tourvisor_hotel_id']==update['tourvisor_hotel_id']\n                assert post['monitor_price']['price']==update['price']\
+        \ and hashlib.sha256(post['text'].encode()).hexdigest()==post['text_sha256']\n    assert len(seen_ops)==len(seen_records)==len(seen_hotels)==120\
+        \ and len(seen_posts)==240\n    assert (len(visited),len(unchanged),len(no_fresh))==(507,48,339)\n    assert not (seen_hotels&unchanged\
+        \ or seen_hotels&no_fresh or unchanged&no_fresh)\n    last=results[-1]['updates'][-1]\n    anchor={key:last[key] for\
+        \ key in ['tourvisor_hotel_id','record_id','operation','price','feed_operation']}\n    assert anchor=={'tourvisor_hotel_id':43236,'record_id':'85da2665b8b0330e86024ec490348c18afb32f4c72588a1634b3338da1851d36',\n\
+        \        'operation':'commercial-monitor-price-h43236-85da2665b8b0330e86024ec490348c18afb32f4c72588a1634b3338da1851d36',\n\
+        \        'price':256870,'feed_operation':'commercial-channel-hotel-feeds-20261114-update33374267797598168'}\n    assert\
+        \ results[-1]['completed_at']=='2026-11-14T12:37:40+00:00'\n    assert {(p['platform'],p['publication_id'],p['version_id'])\
+        \ for p in last['posts']}=={('max',464,5355),('telegram',460,5356)}\n    anchor['completed_at']=results[-1]['completed_at'];anchor['kind']='last_confirmed_completed_feed_update'\n\
+        \    return seen_ops,seen_records,seen_hotels,anchor\n\npartial_ops,partial_records,partial_hotels,partial_anchor=validate_successful_partial(partial_aggregate,partial_results)\n\
+        assert not (partial_ops&operations or partial_records&records or partial_hotels&historical_hotels)\npartial_proof=partial_expected|{'conclusion':'success','actual_updated_pairs':120,'confirmed_reused_posts':240,\n\
+        \    'original_partial':True,'original_scan_complete':False,'original_stop_reason':'aggregate_admission_deadline',\n\
+        \    'unique_scanned':507,'never_scanned_in_previous_series':97,'remaining_eligible_count':'unknown_until_fresh_normal_pass',\n\
+        \    'last_completed_anchor':partial_anchor,'historical_60_and_previous_120_disjoint':True,\n    'new_series_not_rerun_or_retry':True,'per_series_limits_unchanged':True}\n\
+        (root/'previous-successful-partial-admission.json').write_text(json.dumps(partial_proof,indent=2)+'\\n')\n\n\n# Reader\
+        \ delivery is distinct from collector execution. Verify only an already\n# completed exact delivery; this workflow\
+        \ never dispatches or installs it.\nreader_main=os.environ['EXPECTED_READER_MAIN_SHA']\nreader_delivery_source=os.environ['EXPECTED_READER_DELIVERY_SOURCE_SHA']\n\
         delivery_id=os.environ['EXPECTED_READER_DELIVERY_RUN_ID']\ndelivery_path=os.environ['EXPECTED_READER_DELIVERY_PATH']\n\
         delivery_event=os.environ['EXPECTED_READER_DELIVERY_EVENT']\nassert re.fullmatch('[a-f0-9]{40}',reader_main) and re.fullmatch('[a-f0-9]{40}',reader_delivery_source)\
         \ and re.fullmatch('[1-9][0-9]+',delivery_id)\nassert re.fullmatch(r'\\.github/workflows/[a-z0-9_-]+\\.ya?ml',delivery_path)\
@@ -234,7 +311,8 @@ jobs:
         \       'intervening_original_collector_run_id':43585911376,'intervening_original_collector':intervening_expected,\n\
         \       'intervening_original_conclusion':'cancelled','intervening_original_callback_outcome':'unknown',\n       'separate_reconciliation_run_id':43593313709,'separate_reconciliation_result_sha256':intervening_expected['read_payload_sha256'],\n\
         \       'reconciliation_facts':'no original admitted cycle, pending, holds, completed changes or scoped original processes\
-        \ observed',\n       'unattributed_php_cli_preserved':6,'reconciliation_is_not_a_collector_replay':True,\n       'reader_main':reader_main,'reader_delivery_source':reader_delivery_source,'reader_delivery_run_id':int(delivery_id),'reader_sha256':os.environ['EXPECTED_READER_SOURCE_SHA256'],\n\
+        \ observed',\n       'unattributed_php_cli_preserved':6,'reconciliation_is_not_a_collector_replay':True,\n       'previous_successful_partial':partial_proof,\n\
+        \       'reader_main':reader_main,'reader_delivery_source':reader_delivery_source,'reader_delivery_run_id':int(delivery_id),'reader_sha256':os.environ['EXPECTED_READER_SOURCE_SHA256'],\n\
         \       'same_owner':True,'no_retirement_replay':True,'new_original_push':True}\n(root/'continuation-after-meal-fix-admission.json').write_text(json.dumps(proof,ensure_ascii=False,indent=2)+'\\\
         n')\nprint('SAVED_PRICE_CONTINUATION_AFTER_MEAL_FIX_ADMISSION='+json.dumps(proof,ensure_ascii=False))\n\nPY\n"
     - name: Prepare existing server connection
@@ -271,7 +349,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: monitor-price-saved-continuation-20261114-after-meal-fix
+        name: monitor-price-saved-continuation-20261114-after-partial-43594090484
         path: ${{ runner.temp }}/monitor-price-incident-safe
         retention-days: 14
         if-no-files-found: error
