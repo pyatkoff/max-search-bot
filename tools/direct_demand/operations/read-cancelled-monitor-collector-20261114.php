@@ -4,12 +4,12 @@ declare(strict_types=1);
 const CR_ROOT='/var/www/anytoour/data/channel-post-operations';
 const CR_APP='/var/www/anytoour/data/www/app.anytoour.ru';
 const CR_SITE='/var/www/anytoour/data/www/anytoour.ru/data';
-const CR_RUN='43585911376';
-const CR_INSTALLED='e5c93a27aa46f197a3d2e02e7a536ed5de8cd672';
+const CR_RUN='43619092757';
+const CR_INSTALLED='62fc5cf8cf5cb3e41b370a808c2281d27ae83da7';
 const CR_HOOK_SHA='6ea8080b59cfd02bf20d270701530a8e45376a4618dc53d1a22845be74e5038d';
 const CR_READER_SHA='6628fe156013bb6e856313bc2d7f058a54da21325768fbc9fb1886ce749134e3';
-const CR_BASE_OP='commercial-monitor-price-h1228-81091ae09f18059aeab05f3fa3cf098d88dc5a7dfd849a4001c103ff69a945b6';
-const CR_BASE_FEED='commercial-channel-hotel-feeds-20261114-update37980760290373485';
+const CR_BASE_OP='commercial-monitor-price-h498-c37074cfa08a2799cd850b8a1a30804ccc507638c7a0015b4781bccd6cb2eb93';
+const CR_BASE_FEED='commercial-channel-hotel-feeds-20261114-update41872417342273090';
 $crLocks=[];$crStart=hrtime(true);
 function cr_need(bool $ok,string $code):void{if(!$ok)throw new RuntimeException($code);}
 function cr_json($v):string{return json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);}
@@ -167,14 +167,14 @@ function cr_child(array $pending,array &$meta):array{
 }
 if(PHP_SAPI!=='cli'){exit(2);}
 if(($argv[1]??null)==='--self-test'){
-    cr_need(cr_time('2026-11-14T10:32:24+00:00')!==null&&cr_time('secret')===null,'selftest_time');
-    cr_need(cr_pending(null)===null&&cr_id('43585911376')===CR_RUN,'selftest_identity');
-    $p=cr_pending(['tourvisor_hotel_id'=>1228,'operation'=>CR_BASE_OP,'phase'=>'post_started','at'=>'2026-11-14T10:32:24+00:00','secret'=>'not_exported']);
+    cr_need(cr_time('2026-11-14T13:01:46+00:00')!==null&&cr_time('secret')===null,'selftest_time');
+    cr_need(cr_pending(null)===null&&cr_id('43619092757')===CR_RUN,'selftest_identity');
+    $p=cr_pending(['tourvisor_hotel_id'=>498,'operation'=>CR_BASE_OP,'phase'=>'post_started','at'=>'2026-11-14T13:01:46+00:00','secret'=>'not_exported']);
     cr_need(!array_key_exists('secret',$p)&&$p['operation']===CR_BASE_OP,'selftest_projection');
     $blocked=false;try{cr_operation(CR_BASE_OP,1142);}catch(RuntimeException $e){$blocked=true;}cr_need($blocked,'selftest_binding');
-    echo "CANCELLED_COLLECTOR_READER_SELF_TEST_OK cases=4 runtime_reads=0 writes=0\n";exit(0);
+    echo "MONITOR_COLLECTOR_READER_SELF_TEST_OK cases=4 runtime_reads=0 writes=0\n";exit(0);
 }
-$out=['ok'=>false,'mode'=>'read_only_cancelled_collector_reconciliation','original_collector_run_id'=>CR_RUN,'expected_installed_sha'=>CR_INSTALLED,
+$out=['ok'=>false,'mode'=>'read_only_monitor_collector_reconciliation','original_collector_run_id'=>CR_RUN,'expected_installed_sha'=>CR_INSTALLED,
     'started_at'=>gmdate('c'),'business_admission'=>'blocked_pending_review','callback_outcome'=>'unknown_until_evidence_review',
     'journal_writes'=>0,'database_calls'=>0,'provider_calls'=>0,'network_calls'=>0,'hook_executions'=>0,'process_signals'=>0];
 try{
@@ -190,7 +190,7 @@ try{
         if($cycle!==null){$key='run:'.$cycle['collector_run_id'];
             if(!isset($cycles[$key]))$cycles[$key]=['first_line'=>$line,'first'=>$cycle,'states'=>[]];
             $cycles[$key]['last_line']=$line;$cycles[$key]['last']=$cycle;$cycles[$key]['states'][$cycle['state']]=true;cr_need(count($cycles)<=1000,'cycle_history_limit_unknown');}
-        if($baseline===null&&$r['pending']===null&&($r['completed'][1228]['operation']??null)===CR_BASE_OP&&($r['completed'][1228]['feed_operation']??null)===CR_BASE_FEED){
+        if($baseline===null&&$r['pending']===null&&($r['completed'][498]['operation']??null)===CR_BASE_OP&&($r['completed'][498]['feed_operation']??null)===CR_BASE_FEED){
             $baseline=$r['completed'];$baselineLine=$line;$baselineLineHash=$hash;}
         if($baseline!==null){$pendingHash=cr_hash($r['pending']);if($pendingHash!==$lastPendingHash){
             $pendingChanges[]=['line'=>$line,'pending'=>cr_pending($r['pending']),'tuple_sha256'=>$pendingHash];$lastPendingHash=$pendingHash;
@@ -205,7 +205,7 @@ try{
     $out['holds_count']=count($holds);$out['held_hotel_ids']=[];foreach(array_keys($holds) as $tv){cr_need(cr_id($tv)!==null,'held_hotel_id_unknown');$out['held_hotel_ids'][]=(int)$tv;}
     $out['confirmed_pass_baseline']=null;$out['changed_completed_entries']=null;
     if($baseline!==null){$before=cr_completed($baseline);$out['confirmed_pass_baseline']=['line'=>$baselineLine,'line_sha256'=>$baselineLineHash,'completed_count'=>count($before),
-            'completed_tuple_sha256'=>cr_hash($baseline),'anchor'=>$before['1228'],'confirmed_pass_completed_at'=>'2026-11-14T10:32:24+00:00'];
+            'completed_tuple_sha256'=>cr_hash($baseline),'anchor'=>$before['498'],'confirmed_pass_completed_at'=>'2026-11-14T13:01:46+00:00'];
         $changes=[];foreach(array_unique(array_merge(array_keys($before),array_keys($completed))) as $tv){$b=$before[$tv]??null;$a=$completed[$tv]??null;
             if($b!==$a)$changes[]=['tourvisor_hotel_id'=>(int)$tv,'before'=>$b,'after'=>$a];}
         $out['changed_completed_entries']=$changes;}
@@ -221,5 +221,5 @@ finally{
 }
 $out['ok']=($out['read_complete']??false)===true&&!isset($out['error'])&&!isset($out['final_stability_error']);
 $out['completed_at']=gmdate('c');$out['duration_seconds']=round((hrtime(true)-$crStart)/1000000000,3);
-echo 'CANCELLED_COLLECTOR_READ_RESULT='.cr_json($out)."\n";
+echo 'MONITOR_COLLECTOR_READ_RESULT='.cr_json($out)."\n";
 exit($out['ok']?0:2);
