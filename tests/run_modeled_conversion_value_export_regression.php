@@ -2191,13 +2191,14 @@ final class ModeledBatchClaimRaceStatement extends PDOStatement
 function modeledValueBatchWorkerFixture(PDO $p,int $now):array
 {
     $gate=static fn(string $chat):bool=>true;$event=$now-7*3600;modeledValueSchema($p);$wire=new ModeledValueBatchTestWire();
-    $owner=new ModeledConversionValueExport($p);$api=$wire->api();$owner->configure('create-goal',$api,$event-20);$owner->configure('enable',$api,$event-10);
+    $owner=new ModeledConversionValueExport($p);$api=$wire->api();$owner->configure('create-goal',$api,$event-500);$owner->configure('enable',$api,$event-500);
     for($i=0;$i<20;$i++)modeledValueSave($p,modeledExpertWrapper(modeledValueBinding($p,12001+$i),$event,100000));
     while((int)ModeledConversionValueExport::settings($p)['profile_cursor']<20){
         $before=ModeledConversionValueExport::settings($p)['profile_cursor'];$owner->collect(ModeledConversionValueExport::settings($p),$now,$gate);
         if(ModeledConversionValueExport::settings($p)['profile_cursor']===$before)throw new RuntimeException('batch_worker_fixture_cursor');
     }
     $rows=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    if(count($rows)!==20)throw new RuntimeException('batch_worker_fixture_expected_twenty_admitted_rows');
     $q=$p->prepare("UPDATE max_channel_conversion_outbox SET state='ready',client_id=?,tracker_record_id='77',tracker_observed_unix=?,value_ready_at_unix=?,next_attempt_unix=?,last_error='metrika_visit_unverified' WHERE id=?");
     foreach($rows as$i=>$row){
         $id='880000'.$row['external_user_id'];$q->execute([$id,$now-30*86400,$event,$now-900,$row['id']]);
@@ -2272,16 +2273,19 @@ function modeledValueBatchWorkerAssertions(PDO $p,callable $check):void
         $wire->posts===0&&$wire->visitReads===3&&($receipt['visit_gate_decisions']['failures']??null)===[[5,503,0,0,18]]);
 
     foreach(['event','identity','claim','price','configuration']as$race){
-        [$wire,$lookup,$before]=modeledValueBatchWorkerFixture($p,$now);$wire->entries=array_slice($wire->entries,0,1);$id=$before[3]['id'];
-        $wire->duringBatch=static function()use($p,$id,$race,$now):void{
+        [$wire,$lookup,$before]=modeledValueBatchWorkerFixture($p,$now);$wire->entries=array_slice($wire->entries,0,1);$id=$before[3]['id'];$mutated=null;
+        $wire->duringBatch=static function()use($p,$id,$race,$now,&$mutated):void{
             if($race==='event')$p->prepare('UPDATE max_channel_conversion_outbox SET event_unix=event_unix+1 WHERE id=?')->execute([$id]);
             elseif($race==='identity')$p->prepare("UPDATE max_channel_conversion_outbox SET client_id='88999999001' WHERE id=?")->execute([$id]);
             elseif($race==='claim')$p->prepare("UPDATE max_channel_conversion_outbox SET state='unknown',claim_token='other_claim',attempts=1 WHERE id=?")->execute([$id]);
             elseif($race==='price')$p->prepare("UPDATE modeled_conversion_price_audit SET action='unverified' WHERE outbox_id=?")->execute([$id]);
             else$p->exec("UPDATE modeled_conversion_value_export_settings SET mode='off'");
+            $q=$p->prepare('SELECT * FROM max_channel_conversion_outbox WHERE id=?');$q->execute([$id]);$mutated=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
         };
         ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);
-        $check('current tuple scope price and financial state are rechecked after a Report before any POST '.$race,$wire->posts===0);
+        $q=$p->prepare('SELECT * FROM max_channel_conversion_outbox WHERE id=?');$q->execute([$id]);$afterRace=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+        $check('current tuple scope price and financial state are rechecked after a Report before any POST '.$race,
+            $wire->posts===0&&is_array($mutated)&&($race==='price'||$afterRace===$mutated));
     }
 
     [$wire,$lookup,$before]=modeledValueBatchWorkerFixture($p,$now);$wire->entries=array_slice($wire->entries,0,1);$previous=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$ran=false;
