@@ -22,15 +22,15 @@ final class AppleService39PilotCatalog
     ];
     /** Finite search-intent successor entries; the fifteen original repairs stay immutable. */
     private const SEARCH_ENTRIES = [
-        'model-iphone-17'=>['model'=>'','service'=>'','scope'=>'model_family','model_family'=>'iphone-17'],
+        'model-iphone-17'=>['model'=>'iPhone 17','service'=>'','scope'=>'model'],
         'repair-iphone-16-display'=>['model'=>'iPhone 16','service'=>'Замена дисплея','scope'=>'search_repair'],
         'service-rear-glass-replacement'=>['model'=>'','service'=>'Замена заднего стекла','scope'=>'service'],
         'symptom-not-charging'=>['model'=>'','service'=>'iPhone не заряжается','scope'=>'symptom','symptom'=>'not_charging'],
         'service-rear-camera-replacement'=>['model'=>'','service'=>'Замена основной камеры','scope'=>'service'],
         'service-earpiece-replacement'=>['model'=>'','service'=>'Ремонт разговорного динамика','scope'=>'service'],
     ];
-    // The original search card predates coverage-v1 but has its own exact model.
-    // Keep its legacy family launch intact; only explicit service picks use this model.
+    // The original search card predates coverage-v1. Its existing generic and
+    // service launches both describe the exact base model, without a new alias.
     private const SEARCH_SERVICE_MODELS = ['model-iphone-17'=>'iPhone 17'];
     private static ?array $catalog = null;
 
