@@ -217,7 +217,7 @@ final class ModeledConversionDailyReconciliationReader
                 'alarm_rows'=>$monitorDue.' AND o.next_attempt_unix<=CASE WHEN ('.$visitWait.') THEN '
                     .($now-ModeledConversionDeliveryHealth::VISIT_RECHECK_OVERDUE_SECONDS).' ELSE '.($now-600).' END',
                 'ordinary_or_inconsistent_due'=>$monitorDue.' AND NOT COALESCE(('.$visitWait.'),0)',
-                'empty_receipt_basis_due'=>$monitorDue." AND HEX(o.value_receipt_basis)=''",
+                'empty_receipt_basis_due'=>$monitorDue." AND o.value_receipt_basis IS NOT NULL AND HEX(o.value_receipt_basis)=''",
                 'clock_order_due'=>$monitorDue.' AND (o.event_unix>o.value_ready_at_unix OR o.next_attempt_unix<o.value_ready_at_unix)',
                 'unverified_visit_due'=>$monitorDue." AND HEX(o.last_error)=HEX('metrika_visit_unverified')",
                 'upload_trace_due'=>$monitorDue.' AND NOT ('.$never.')'];
