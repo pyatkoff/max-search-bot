@@ -106,8 +106,69 @@ function deliveryMoscowMidnightAssertions(PDO $p,callable $check):void
     $check('calendar projection preserves original UTC clocks values receipts and identifiers',
         $before===$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC));
 }
+
+/** Visit-denied first sends keep a bounded recheck deadline, never financial permission. */
+function deliveryHealthVisitHoldAssertions(PDO $p,callable $check):void
+{
+    $now=1793700000;deliveryObservationFixture($p,$now);
+    $base=['state'=>'ready','upload_id'=>null,'upload_status'=>null,'claim_token'=>null,
+        'claimed_at_unix'=>null,'attempts'=>0,'value_api_accepted_at_unix'=>null,
+        'value_processed_at_unix'=>null,'value_receipt_basis'=>null,
+        'client_id'=>'10000001','event_unix'=>$now-7201,'value_ready_at_unix'=>$now-7200,
+        'next_attempt_unix'=>$now-900,'last_error'=>'metrika_no_prior_visit','value_rub'=>1250];
+    deliveryObservationInsert($p,['id'=>401]+$base);
+    $keys=array_keys($base);
+    $update=$p->prepare('UPDATE max_channel_conversion_outbox SET '.implode(',',array_map(static fn(string $key):string=>$key.'=?',$keys)).' WHERE id=401');
+    $put=static function(array $change=[])use($update,$base):void{$update->execute(array_values(array_replace($base,$change)));};
+    $readOnly=true;
+    $stale=static function()use($p,$now,&$readOnly):bool{
+        $before=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        $settings=$p->query('SELECT * FROM modeled_conversion_value_export_settings')->fetchAll(PDO::FETCH_ASSOC);
+        $health=ModeledConversionDeliveryHealth::collect($p,$now);
+        $readOnly=$readOnly&&$before===$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)
+            &&$settings===$p->query('SELECT * FROM modeled_conversion_value_export_settings')->fetchAll(PDO::FETCH_ASSOC);
+        if(!in_array($health['status'],['ok','degraded'],true))throw new RuntimeException('visit_hold_health_unavailable');
+        return in_array('ready_queue_stale',$health['flags'],true);
+    };
+    foreach(['metrika_no_prior_visit','metrika_visit_window']as$reason){
+        foreach([0,600,900,1800,3599,3600,3601]as$overdue){
+            $put(['last_error'=>$reason,'next_attempt_unix'=>$now-$overdue]);
+            $check('saved negative '.$reason.' keeps bounded recheck grace at '.$overdue.' seconds',
+                $stale()===($overdue>=3600));
+        }
+        // The former alarm/recovery pattern around a normal 30-minute negative retry remains quiet.
+        foreach([-900,1800,1500,1200,900,600,300,0,-300,-600,-900,-1200,-1500]as$until){
+            $put(['last_error'=>$reason,'next_attempt_unix'=>$now+$until]);
+            $check('normal negative retry does not alternate failure and recovery '.$reason.' '.$until,!$stale());
+        }
+    }
+    foreach([null,'transport_not_sent','metrika_visit_unverified','identity_not_found',
+        'metrika_no_prior_visit ','METRIKA_NO_PRIOR_VISIT','metrika_visit_window ']as$error){
+        $put(['last_error'=>$error]);
+        $check('unconfirmed or noncanonical hold retains ten-minute alert '.(string)$error,$stale());
+    }
+    $put(['last_error'=>null,'next_attempt_unix'=>$now-599]);
+    $check('ordinary work retains its exact ten-minute grace',!$stale());
+    $put(['last_error'=>null,'next_attempt_unix'=>$now-600]);
+    $check('genuinely unexamined ready work still alerts at ten minutes',$stale());
+    foreach([
+        ['attempts'=>1],['upload_id'=>'5001'],['upload_status'=>'UPLOADED'],['claim_token'=>'synthetic-claim'],
+        ['claimed_at_unix'=>$now-1200],['value_api_accepted_at_unix'=>$now-1200],
+        ['value_processed_at_unix'=>$now-1200],['value_receipt_basis'=>'post_response'],
+        ['client_id'=>null],['client_id'=>''],['value_rub'=>0],['event_unix'=>$now-7199],
+        ['next_attempt_unix'=>0],
+    ]as$index=>$change){
+        $put($change);
+        $check('upload trace or inconsistent saved row cannot borrow negative recheck grace '.$index,$stale());
+    }
+    $put(['upload_id'=>'','upload_status'=>'','claim_token'=>'']);
+    $check('empty unclaimed markers remain absent traces for a known negative',!$stale());
+    $check('health classification leaves all financial rows settings and upload markers unchanged',$readOnly);
+}
+
 function deliveryHealthAssertions(PDO $p,callable $check):void
 {
+    deliveryHealthVisitHoldAssertions($p,$check);
     deliveryLinkageObservationAssertions($p,$check);
     deliveryHealthPriceCorrectionAssertions($p,$check);
     $now=1793700000;deliveryObservationFixture($p,$now);
