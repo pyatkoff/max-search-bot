@@ -103,6 +103,92 @@ check(!monitor_hook_reconciled_cycle_valid($forged['nightly_cycle']),'different 
 $raw="{\"schema\":1}\n";$pin=monitor_hook_cycle_journal_pin($raw);
 check($pin===['sha256'=>hash('sha256',$raw),'bytes'=>strlen($raw),'lines'=>1],'actual bytes produce the full journal CAS');
 rejects(fn()=>monitor_hook_cycle_journal_pin(rtrim($raw,"\n")),'hook_cycle_recovery_journal_incomplete');
+
+// A typed global preflight failure is a terminal attempt, not completion or a fresh budget.
+$channelFailure=monitor_hook_child_failure(2,['error'=>'provider_channel_preflight_unavailable',
+    'channel_preflight'=>monitor_price_channel_preflight('max',['state'=>'unknown','reason'=>'provider_read_failed',
+        'receipt'=>['request_count'=>1,'write_attempts'=>0,'http_results'=>[['operation'=>'bot_identity','http'=>503,'transport_error'=>false]]]])]);
+$channelOperation='commercial-monitor-price-h42-'.str_repeat('a',64);$channelState=$before;
+$channelState['pending']=['tourvisor_hotel_id'=>42,'operation'=>$channelOperation,'phase'=>'post_started','at'=>gmdate('c',$now+1),
+    'collector_cycle'=>monitor_hook_preflight_cycle_identity($channelState['nightly_cycle']),'child_failure'=>$channelFailure,
+    'preflight_progress'=>monitor_hook_preflight_progress(['updated_pairs'=>2,'unchanged_pairs'=>3,'eligible_pairs'=>3,'held_pairs'=>0,'scanned_pairs'=>12],604,$now,$now+2)];
+$channelChild=['operation'=>$channelOperation,'posts'=>[],'configs'=>[],'feed_binding'=>['tourvisor_hotel_id'=>42],
+    '_terminal_journal_sha256'=>str_repeat('b',64),'terminal'=>['state'=>'abandoned_before_write','reason'=>'channel_preflight_blocked_before_write',
+        'prior_sha256'=>str_repeat('c',64),'prior_bytes'=>1234,'prior_lines'=>1,'recorded_at'=>gmdate('c',$now+3),
+        'preflight_error'=>$channelFailure['error'],'child_exit_code'=>2,'channel_preflight'=>$channelFailure['channel_preflight']]];
+$channelClosed=monitor_hook_close_channel_preflight($channelState,$channelChild,$now+4);
+check($channelClosed!==null&&monitor_hook_preflight_cycle_valid($channelClosed['nightly_cycle'])
+    &&$channelClosed['nightly_cycle']['state']==='preflight_blocked'&&!isset($channelClosed['nightly_cycle']['finished_at']),'channel failure is never full sweep completion');
+check($channelClosed['pending']===null&&$channelClosed['completed']===$channelState['completed']&&$channelClosed['holds']===$channelState['holds'],
+    'channel close preserves every success and hold');
+$channelSeen=monitor_hook_attempted_collector_runs([json_encode($channelState,JSON_THROW_ON_ERROR),json_encode($channelClosed,JSON_THROW_ON_ERROR)]);
+$old=monitor_hook_nightly_gate($channelClosed,$now+5,$collection,$run,$channelSeen);
+check(!$old['due']&&!$old['blocked']&&$old['reason']==='collector_cycle_already_attempted','preflight blocked original cannot replay');
+check(monitor_hook_nightly_gate($channelClosed,$now+5,$collection,'43205530036',$channelSeen)['due'],'new original collector is admissible after typed no-write stop');
+check($channelClosed['nightly_cycle']['remaining_unscanned_pairs']===592&&$channelClosed['nightly_cycle']['updated_pairs']===2
+    &&$channelClosed['nightly_cycle']['duration_seconds']===2,'preflight closure retains measured progress from before terminal');
+foreach(['missing_proof','collector','error','http','remaining','time'] as $bad){
+    $changed=$channelClosed;
+    if($bad==='missing_proof')unset($changed['nightly_cycle']['preflight_block']);
+    if($bad==='collector')$changed['nightly_cycle']['collector_run_id']='43205530036';
+    if($bad==='error')$changed['nightly_cycle']['preflight_error']='provider_channel_rights_changed';
+    if($bad==='http')$changed['nightly_cycle']['preflight_block']['child_failure']['channel_preflight']['http_results'][0]['http']=null;
+    if($bad==='remaining')$changed['nightly_cycle']['remaining_unscanned_pairs']=0;
+    if($bad==='time')$changed['nightly_cycle']['preflight_block']['closed_at']=gmdate('c',$now);
+    rejects(fn()=>monitor_hook_nightly_gate($changed,$now+5,$collection,'43205530036'),'hook_nightly_cycle_invalid');
+    rejects(fn()=>monitor_hook_attempted_collector_runs([json_encode($changed,JSON_THROW_ON_ERROR)]),'hook_nightly_history_invalid');
+}
+
+// Exact TV512 recovery uses the original accepted receipt and adds only cycle bookkeeping.
+$expiredProof=monitor_hook_expired_cycle_recovery_proof();
+$expiredState=['schema'=>1,'pending'=>null,'completed'=>[],'holds'=>[1142=>['operation'=>'retained-hold']],
+    'nightly_cycle'=>['night_date'=>'2026-11-14','state'=>'started','collector_run_id'=>'43520564593',
+        'collection_started_at'=>'2026-11-13T22:37:16+00:00','started_at'=>'2026-11-13T23:01:57+00:00','budget_seconds'=>1800,'finish_reserve_seconds'=>300]];
+foreach(range(1000,1370) as $id)$expiredState['completed'][$id]=['operation'=>'retained-'.$id];
+$expiredChild=['operation'=>$expiredProof['operation'],'posts'=>[],'configs'=>[],'feed_binding'=>['tourvisor_hotel_id'=>512],
+    'terminal'=>$expiredProof['terminal'],'_terminal_journal_sha256'=>$expiredProof['child']['sha256']];
+$expiredAt=instant('2026-11-14T01:00:00Z');$expiredBefore=$expiredState;
+$expiredClosed=monitor_hook_close_expired_reconciled_cycle($expiredState,$expiredProof['global'],$expiredProof['child'],$expiredChild,$expiredAt);
+check($expiredClosed!==null&&monitor_hook_expired_reconciled_cycle_valid($expiredClosed['nightly_cycle'])
+    &&$expiredClosed['nightly_cycle']['state']==='interrupted_reconciled'&&!isset($expiredClosed['nightly_cycle']['finished_at']),'accepted no-write retirement closes exact interrupted cycle');
+check(array_diff_key($expiredClosed,['nightly_cycle'=>true])===array_diff_key($expiredBefore,['nightly_cycle'=>true])
+    &&$expiredState===$expiredBefore&&!isset($expiredClosed['holds'][512]),'phase2 preserves pending completed receipts and unrelated holds');
+check(monitor_hook_close_expired_reconciled_cycle($expiredClosed,[],[],[],0)===null,'phase2 cannot append twice');
+$expiredSeen=monitor_hook_attempted_collector_runs([json_encode($expiredBefore,JSON_THROW_ON_ERROR),json_encode($expiredClosed,JSON_THROW_ON_ERROR)]);
+check(monitor_hook_nightly_gate($expiredClosed,$expiredAt,'2026-11-14T00:55:00Z','900000003',$expiredSeen)['due'],'new collector follows accepted TV512 recovery');
+check(!monitor_hook_nightly_gate($expiredClosed,$expiredAt,'2026-11-14T00:55:00Z',$expiredProof['collector_run_id'],$expiredSeen)['due'],'original TV512 failed collector stays consumed');
+foreach(['sha256','bytes','lines'] as $field){
+    $bad=$expiredProof['global'];$bad[$field]=$field==='sha256'?str_repeat('0',64):$bad[$field]+1;
+    rejects(fn()=>monitor_hook_close_expired_reconciled_cycle($expiredState,$bad,$expiredProof['child'],$expiredChild,$expiredAt),'hook_expired_cycle_recovery_prefix_changed');
+    $bad=$expiredProof['child'];$bad[$field]=$field==='sha256'?str_repeat('0',64):$bad[$field]+1;
+    rejects(fn()=>monitor_hook_close_expired_reconciled_cycle($expiredState,$expiredProof['global'],$bad,$expiredChild,$expiredAt),'hook_expired_cycle_recovery_prefix_changed');
+}
+foreach(['pending','hold','completed','cycle','post_intent','complete','terminal','child_hash'] as $bad){
+    $changed=$expiredState;$child=$expiredChild;
+    if($bad==='pending')$changed['pending']=['operation'=>'unknown'];
+    if($bad==='hold')$changed['holds'][512]=[];
+    if($bad==='completed')array_pop($changed['completed']);
+    if($bad==='cycle')$changed['nightly_cycle']['collection_started_at']='2026-11-13T22:37:17+00:00';
+    if($bad==='post_intent')$child['posts']=['max:fixture'=>['state'=>'edit_started']];
+    if($bad==='complete')$child['complete']=true;
+    if($bad==='terminal')$child['terminal']['readback_evidence_sha256']=str_repeat('0',64);
+    if($bad==='child_hash')$child['_terminal_journal_sha256']=str_repeat('0',64);
+    rejects(fn()=>monitor_hook_close_expired_reconciled_cycle($changed,$expiredProof['global'],$expiredProof['child'],$child,$expiredAt),'hook_expired_cycle_recovery_not_terminal');
+}
+rejects(fn()=>monitor_hook_close_expired_reconciled_cycle($expiredState,$expiredProof['global'],$expiredProof['child'],$expiredChild,
+    instant('2026-11-14T00:52:26Z')),'hook_expired_cycle_recovery_clock_invalid');
+$changed=$expiredClosed;$changed['nightly_cycle']['recovery']['recovery_run_id']='900000004';
+rejects(fn()=>monitor_hook_nightly_gate($changed,$expiredAt,'2026-11-14T00:55:00Z','900000003'),'hook_nightly_cycle_invalid');
+rejects(fn()=>monitor_hook_attempted_collector_runs([json_encode($changed,JSON_THROW_ON_ERROR)]),'hook_nightly_history_invalid');
+check(monitor_hook_cycle_recovery_proof()===$proof,'prior successful recovery proof remains unchanged');
+$driver=file_get_contents(__DIR__.'/monitor-price-after-collection.php');
+$phase2Start=strpos($driver,"    if(!".'$inspect){'."\n        ".'$expiredRecovery=monitor_hook_expired_cycle_recovery_proof();');
+$phase2End=strpos($driver,"    if(".'$nightly){',$phase2Start===false?0:$phase2Start);
+$admission=strpos($driver,'$nightGate=monitor_hook_nightly_gate($state,');
+check($phase2Start!==false&&$phase2End!==false&&$admission!==false&&$phase2Start<$phase2End&&$phase2End<$admission,
+    'phase2 runs in ordinary standalone maintenance before nightly admission');
+check(str_contains(substr($driver,$phase2Start,$phase2End-$phase2Start),"'recovery_run_id'=>".'$expiredRecovery[\'recovery_run_id\']'),
+    'phase2 exposes actual recovery identity for the native result gate');
 $night=monitor_hook_pass_policy(true,481,1000);
 check($night['pair_limit']===481&&$night['budget_seconds']===1800&&$night['finish_reserve_seconds']===300,'whole catalogue admitted within one maintenance budget');
 check(monitor_hook_can_start_pair($night,1300,30),'night cycle continues beyond old thirty pair limit');
@@ -115,4 +201,5 @@ check(monitor_hook_can_start_pair($legacy,1479,29)&&!monitor_hook_can_start_pair
 check(!monitor_hook_snapshot_refresh_due(1000,1599)&&monitor_hook_snapshot_refresh_due(1000,1600),'saved export refreshed before fifteen minute expiry');
 check(monitor_hook_can_start_pair($night,1300,31)&&!monitor_hook_can_start_pair($night,2501,31),'budget rechecked after saved export read');
 echo json_encode(['ok'=>true,'nightly_policy_cases'=>$checks,'supplier_calls'=>0,'post_writes'=>0,'journal_writes'=>0],JSON_THROW_ON_ERROR),PHP_EOL;
+
 

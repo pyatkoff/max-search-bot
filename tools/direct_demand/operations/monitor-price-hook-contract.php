@@ -109,6 +109,23 @@ function monitor_hook_child_failure(int $exit,array $result):array {
     }
     return $failure;
 }
+/** Global channel failures stop this pass; a typed error alone is never a no-write proof. */
+function monitor_hook_channel_preflight_failure(array $failure):bool {
+    $p=$failure['channel_preflight']??null;
+    if(array_keys($failure)!==['exit_code','error','channel_preflight']||($failure['exit_code']??null)!==2||!is_array($p)
+        ||!in_array($failure['error']??null,['provider_channel_preflight_unavailable','provider_channel_permission_denied','provider_channel_identity_mismatch'],true)
+        ||!in_array($p['platform']??null,['max','telegram'],true)||!in_array($p['state']??null,['unknown','requires_attention'],true)
+        ||$p!==monitor_price_channel_preflight($p['platform'],$p)||($p['error']??null)!==$failure['error']
+        ||!is_int($p['request_count']??null)||$p['request_count']<0||$p['request_count']>5||($p['write_attempts']??null)!==0
+        ||($p['receipt_valid']??null)!==true||($p['http_results_truncated']??null)!==false||!is_array($p['http_results']??null)||!array_is_list($p['http_results'])
+        ||count($p['http_results'])!==$p['request_count'])return false;
+    foreach($p['http_results'] as $http){
+        if(!is_array($http)||array_keys($http)!==['operation','http','transport_error']
+            ||!in_array($http['operation'],['bot_identity','channel_rights','channel_type'],true)
+            ||!is_int($http['http'])||$http['http']<0||$http['http']>599||!is_bool($http['transport_error']))return false;
+    }
+    return true;
+}
 /** Hotel-local preflight failures only. Runtime/schema/channel/auth gates stay closed. */
 function monitor_hook_local_preflight_failure(array $failure):bool {
     return ($failure['exit_code']??null)===2&&in_array($failure['error']??null,[
@@ -151,6 +168,10 @@ function monitor_hook_terminal_line(string $prefix,string $operation,string $rec
     }elseif($reason==='child_preflight_failed_before_write'){
         monitor_price_require(array_keys($evidence)===['preflight_error','child_exit_code']
             &&monitor_hook_local_preflight_failure(['error'=>$evidence['preflight_error'],'exit_code'=>$evidence['child_exit_code']]),'hook_no_write_child_failure_not_admitted');
+    }elseif($reason==='channel_preflight_blocked_before_write'){
+        monitor_price_require(array_keys($evidence)===['preflight_error','child_exit_code','channel_preflight']
+            &&monitor_hook_channel_preflight_failure(['exit_code'=>$evidence['child_exit_code'],'error'=>$evidence['preflight_error'],
+                'channel_preflight'=>$evidence['channel_preflight']]),'hook_no_write_channel_failure_not_admitted_stop');
     }else throw new RuntimeException('hook_no_write_terminal_reason_invalid');
     $state['terminal']=['state'=>'abandoned_before_write','reason'=>$reason,'prior_sha256'=>$proof['sha256'],
         'prior_bytes'=>$proof['bytes'],'prior_lines'=>$proof['lines'],'recorded_at'=>$recordedAt]+$evidence;
@@ -178,6 +199,7 @@ function monitor_hook_parse_journal(string $raw,string $operation):array {
 /** Resolve only the old pending metadata; successful counts and receipts remain intact. */
 function monitor_hook_apply_abandonment(array $state,array $journal):?array {
     if(!isset($journal['terminal']))return null;
+    monitor_price_require(($journal['terminal']['reason']??null)!=='channel_preflight_blocked_before_write','hook_channel_preflight_requires_global_reconciliation_stop');
     $pending=$state['pending']??null;$operation=$journal['operation']??'';
     monitor_price_require(($journal['terminal']['state']??null)==='abandoned_before_write'
         &&is_string($journal['_terminal_journal_sha256']??null)&&preg_match('/\A[a-f0-9]{64}\z/D',$journal['_terminal_journal_sha256'])===1
@@ -201,6 +223,102 @@ function monitor_hook_hold_reason(int $tv,array $hold,?array $journal):string {
         &&is_string($journal['_terminal_journal_sha256']??null)&&($hold['terminal_journal_sha256']??null)===$journal['_terminal_journal_sha256']
         &&($hold['at']??null)===($journal['terminal']['recorded_at']??null),'hook_hold_evidence_changed_stop');
     return 'abandoned_before_write';
+}
+
+/** Exact original collector identity, or null for a standalone bounded pass. */
+function monitor_hook_preflight_cycle_identity(array $cycle):array {
+    return array_intersect_key($cycle,array_flip(['night_date','collector_run_id','collection_started_at','started_at']));
+}
+function monitor_hook_preflight_utc_time($value):?int {
+    if(!is_string($value)||preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\+00:00\z/D',$value)!==1)return null;
+    try{$time=monitor_price_time($value);return gmdate('c',$time)===$value?$time:null;}catch(Throwable $e){return null;}
+}
+function monitor_hook_preflight_cycle_identity_valid(array $identity):bool {
+    if(array_keys($identity)!==['night_date','collector_run_id','collection_started_at','started_at']
+        ||!is_string($identity['collector_run_id'])||preg_match('/\A[1-9][0-9]{0,19}\z/D',$identity['collector_run_id'])!==1)return false;
+    $collection=monitor_hook_preflight_utc_time($identity['collection_started_at']);$started=monitor_hook_preflight_utc_time($identity['started_at']);
+    return $collection!==null&&$started!==null&&$collection<=$started+60&&$started-$collection<=3600
+        &&$identity['night_date']===(new DateTimeImmutable('@'.$collection))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('Y-m-d');
+}
+/** Progress is captured in the failure append before any child-terminal append. */
+function monitor_hook_preflight_progress(array $out,int $rosterCount,int $startedAt,int $now):array {
+    $progress=['roster_pairs'=>$rosterCount];
+    foreach(['updated_pairs','unchanged_pairs','eligible_pairs','held_pairs','scanned_pairs'] as $key)$progress[$key]=$out[$key]??null;
+    $progress['remaining_unscanned_pairs']=$rosterCount-($out['scanned_pairs']??0);
+    $progress['duration_seconds']=$now-$startedAt;$progress['recorded_at']=gmdate('c',$now);
+    monitor_price_require(monitor_hook_preflight_progress_valid($progress),'hook_channel_preflight_progress_invalid_stop');return $progress;
+}
+function monitor_hook_preflight_progress_valid(array $progress):bool {
+    if(array_keys($progress)!==['roster_pairs','updated_pairs','unchanged_pairs','eligible_pairs','held_pairs','scanned_pairs',
+        'remaining_unscanned_pairs','duration_seconds','recorded_at'])return false;
+    foreach(['roster_pairs','updated_pairs','unchanged_pairs','eligible_pairs','held_pairs','scanned_pairs','remaining_unscanned_pairs'] as $key)
+        if(!is_int($progress[$key])||$progress[$key]<0||$progress[$key]>1000)return false;
+    return $progress['roster_pairs']>0&&$progress['scanned_pairs']>0&&$progress['eligible_pairs']>0
+        &&$progress['scanned_pairs']<=$progress['roster_pairs']&&$progress['eligible_pairs']<=$progress['scanned_pairs']
+        &&$progress['updated_pairs']<=$progress['eligible_pairs']
+        &&$progress['updated_pairs']+$progress['unchanged_pairs']+$progress['held_pairs']<=$progress['scanned_pairs']
+        &&$progress['remaining_unscanned_pairs']===$progress['roster_pairs']-$progress['scanned_pairs']
+        &&is_int($progress['duration_seconds'])&&$progress['duration_seconds']>=0&&$progress['duration_seconds']<=86400
+        &&monitor_hook_preflight_utc_time($progress['recorded_at'])!==null;
+}
+/** Bounded durable evidence. The transition below also requires the canonically parsed child. */
+function monitor_hook_preflight_block_valid(array $block):bool {
+    if(array_keys($block)!==['operation','tourvisor_hotel_id','pending_at','child_failure','collector_cycle','progress','terminal','terminal_journal_sha256','closed_at']
+        ||!is_int($block['tourvisor_hotel_id'])||$block['tourvisor_hotel_id']<=0||!is_string($block['operation'])
+        ||preg_match('/\Acommercial-monitor-price-h'.$block['tourvisor_hotel_id'].'-[a-f0-9]{64}\z/D',$block['operation'])!==1
+        ||!is_array($block['child_failure'])||!monitor_hook_channel_preflight_failure($block['child_failure'])
+        ||!is_array($block['progress'])||!monitor_hook_preflight_progress_valid($block['progress'])
+        ||!is_string($block['terminal_journal_sha256'])||preg_match('/\A[a-f0-9]{64}\z/D',$block['terminal_journal_sha256'])!==1
+        ||($block['collector_cycle']!==null&&(!is_array($block['collector_cycle'])||!monitor_hook_preflight_cycle_identity_valid($block['collector_cycle']))))return false;
+    $terminal=$block['terminal'];$failure=$block['child_failure'];
+    if(!is_array($terminal)||array_keys($terminal)!==['state','reason','prior_sha256','prior_bytes','prior_lines','recorded_at','preflight_error','child_exit_code','channel_preflight']
+        ||$terminal['state']!=='abandoned_before_write'||$terminal['reason']!=='channel_preflight_blocked_before_write'
+        ||!is_string($terminal['prior_sha256'])||preg_match('/\A[a-f0-9]{64}\z/D',$terminal['prior_sha256'])!==1
+        ||!is_int($terminal['prior_bytes'])||$terminal['prior_bytes']<1||$terminal['prior_bytes']>10000000
+        ||!is_int($terminal['prior_lines'])||$terminal['prior_lines']<1||$terminal['prior_lines']>$terminal['prior_bytes']
+        ||$terminal['preflight_error']!==$failure['error']||$terminal['child_exit_code']!==$failure['exit_code']
+        ||$terminal['channel_preflight']!==$failure['channel_preflight'])return false;
+    $pendingAt=monitor_hook_preflight_utc_time($block['pending_at']);$recordedAt=monitor_hook_preflight_utc_time($terminal['recorded_at']);
+    $closedAt=monitor_hook_preflight_utc_time($block['closed_at']);$progressAt=monitor_hook_preflight_utc_time($block['progress']['recorded_at']);
+    return $pendingAt!==null&&$recordedAt!==null&&$closedAt!==null&&$pendingAt<=$progressAt&&$progressAt<=$recordedAt&&$recordedAt<=$closedAt
+        &&($block['collector_cycle']===null||monitor_hook_preflight_utc_time($block['collector_cycle']['started_at'])<=$pendingAt);
+}
+function monitor_hook_preflight_cycle_valid(array $cycle):bool {
+    $block=$cycle['preflight_block']??null;
+    if(($cycle['state']??null)!=='preflight_blocked'||!is_array($block)||!monitor_hook_preflight_block_valid($block)
+        ||$block['collector_cycle']===null||monitor_hook_preflight_cycle_identity($cycle)!==$block['collector_cycle']
+        ||($cycle['budget_seconds']??null)!==1800||($cycle['finish_reserve_seconds']??null)!==300||array_key_exists('finished_at',$cycle)
+        ||($cycle['blocked_at']??null)!==$block['terminal']['recorded_at']||($cycle['preflight_error']??null)!==$block['child_failure']['error'])return false;
+    foreach(['updated_pairs','unchanged_pairs','eligible_pairs','held_pairs','scanned_pairs','remaining_unscanned_pairs','duration_seconds'] as $key)
+        if(($cycle[$key]??null)!==$block['progress'][$key])return false;
+    return true;
+}
+/** No hotel hold or completion. Close only the exact cycle that owned this pending child. */
+function monitor_hook_close_channel_preflight(array $state,array $journal,int $now):?array {
+    if(($journal['terminal']['reason']??null)!=='channel_preflight_blocked_before_write')return null;
+    $pending=$state['pending']??null;$operation=$journal['operation']??null;
+    monitor_price_require(($state['schema']??null)===1&&is_array($state['completed']??null)&&is_array($pending)
+        &&($pending['phase']??null)==='post_started'&&($pending['operation']??null)===$operation
+        &&array_key_exists('collector_cycle',$pending)&&is_array($pending['child_failure']??null)
+        &&monitor_hook_channel_preflight_failure($pending['child_failure'])&&is_array($pending['preflight_progress']??null)
+        &&($journal['posts']??null)===[]&&($journal['configs']??null)===[]&&($journal['complete']??false)===false
+        &&($journal['feed_binding']['tourvisor_hotel_id']??null)===($pending['tourvisor_hotel_id']??null),'hook_channel_preflight_pending_invalid_stop');
+    $tv=$pending['tourvisor_hotel_id'];
+    monitor_price_require(($state['completed'][$tv]['operation']??null)!==$operation,'hook_channel_preflight_already_completed_stop');
+    $block=['operation'=>$operation,'tourvisor_hotel_id'=>$tv,'pending_at'=>$pending['at']??null,'child_failure'=>$pending['child_failure'],
+        'collector_cycle'=>$pending['collector_cycle'],'progress'=>$pending['preflight_progress'],'terminal'=>$journal['terminal'],
+        'terminal_journal_sha256'=>$journal['_terminal_journal_sha256']??null,'closed_at'=>gmdate('c',$now)];
+    monitor_price_require(monitor_hook_preflight_block_valid($block),'hook_channel_preflight_evidence_invalid_stop');
+    if($block['collector_cycle']!==null){
+        $cycle=$state['nightly_cycle']??null;
+        monitor_price_require(is_array($cycle)&&($cycle['state']??null)==='started'
+            &&monitor_hook_preflight_cycle_identity($cycle)===$block['collector_cycle'],'hook_channel_preflight_cycle_changed_stop');
+        $cycle['state']='preflight_blocked';$cycle['preflight_block']=$block;$cycle['blocked_at']=$block['terminal']['recorded_at'];
+        $cycle['preflight_error']=$block['child_failure']['error'];
+        foreach(['updated_pairs','unchanged_pairs','eligible_pairs','held_pairs','scanned_pairs','remaining_unscanned_pairs','duration_seconds'] as $key)$cycle[$key]=$block['progress'][$key];
+        monitor_price_require(monitor_hook_preflight_cycle_valid($cycle),'hook_channel_preflight_cycle_invalid_stop');$state['nightly_cycle']=$cycle;
+    }
+    $state['last_preflight_block']=$block;$state['pending']=null;return $state;
 }
 
 /** Original failed collector and independently accepted recovery; no new post/feed operation. */
@@ -240,6 +358,45 @@ function monitor_hook_close_reconciled_cycle(array $state,array $globalPin,array
     return $state;
 }
 
+/** Separate exact receipt for the accepted TV512 no-write retirement; never a legacy-error waiver. */
+function monitor_hook_expired_cycle_recovery_proof():array {
+    return ['collector_run_id'=>'43520564593','recovery_run_id'=>'43536956032',
+        'recovery_source_sha'=>'acf2114e994f20b6a2f0694e252b8856da5ed8c2',
+        'recovery_result_sha256'=>'81faf4ff1d490fba41986089e28205847deef61542c06633191f81788cebbd43',
+        'operation'=>'commercial-monitor-price-h512-3d068cf2c5aeecbe17f5d682ba8c5b19b01b69a49ff5f34159b33e86e0485dfc',
+        'global'=>['sha256'=>'6808a4f735b01ca1e241052dcd9a119883dc53a624c2de491093068895071105','bytes'=>66389613,'lines'=>1315],
+        'child'=>['sha256'=>'47243d4322d82ca9758537fa1ccff3f5d5050f30f7263db7cecdce26afbc28a5','bytes'=>15077,'lines'=>2],
+        'completed_count'=>371,'completed_tuple_sha256'=>'66d62626f15847ea576171fa7c397a250ba145d9bfb1724ef0252940703bd021',
+        'cycle_tuple_sha256'=>'6a931e905b8a83ba58c5f2eac574feae5628e315d5bbc88d799064ea9caeb72d',
+        'terminal'=>['state'=>'abandoned_before_write','reason'=>'expired_observation_after_no_write_failure',
+            'prior_sha256'=>'66af374c6e5a1e50331b80d106c9a514f77382692bfdd1fd931de89cb327e167','prior_bytes'=>7362,'prior_lines'=>1,
+            'recorded_at'=>'2026-11-14T00:52:27+00:00','readback_evidence_sha256'=>'a1df3c521b21ace94148f01f58d35c621cd8e3d2d105e5f052ebd2b495e335fe']];
+}
+function monitor_hook_expired_reconciled_cycle_valid(array $cycle):bool {
+    $proof=monitor_hook_expired_cycle_recovery_proof();$at=monitor_hook_preflight_utc_time($cycle['reconciled_at']??null);
+    if(($cycle['state']??null)!=='interrupted_reconciled'||($cycle['recovery']??null)!==$proof||$at===null
+        ||$at<monitor_price_time($proof['terminal']['recorded_at']))return false;
+    unset($cycle['recovery'],$cycle['reconciled_at']);$cycle['state']='started';
+    return hash('sha256',json_encode($cycle,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))===$proof['cycle_tuple_sha256'];
+}
+/** Actual pinned post-retirement journals admit one metadata append, including in standalone maintenance. */
+function monitor_hook_close_expired_reconciled_cycle(array $state,array $globalPin,array $childPin,array $child,int $now):?array {
+    $cycle=$state['nightly_cycle']??null;$proof=monitor_hook_expired_cycle_recovery_proof();
+    if(!is_array($cycle)||($cycle['collector_run_id']??null)!==$proof['collector_run_id']||($cycle['state']??null)!=='started')return null;
+    monitor_price_require($globalPin===$proof['global']&&$childPin===$proof['child'],'hook_expired_cycle_recovery_prefix_changed');
+    monitor_price_require(($state['schema']??null)===1&&array_key_exists('pending',$state)&&$state['pending']===null
+        &&is_array($state['completed']??null)&&count($state['completed'])===$proof['completed_count']
+        &&(!isset($state['holds'])||is_array($state['holds']))&&!array_key_exists(512,$state['holds']??[])
+        &&($child['operation']??null)===$proof['operation']&&($child['complete']??false)===false
+        &&($child['posts']??null)===[]&&($child['configs']??null)===[]&&($child['feed_binding']['tourvisor_hotel_id']??null)===512
+        &&($child['terminal']??null)===$proof['terminal']&&($child['_terminal_journal_sha256']??null)===$proof['child']['sha256']
+        &&hash('sha256',json_encode($cycle,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))===$proof['cycle_tuple_sha256'],
+        'hook_expired_cycle_recovery_not_terminal');
+    monitor_price_require($now>=monitor_price_time($proof['terminal']['recorded_at']),'hook_expired_cycle_recovery_clock_invalid');
+    $state['nightly_cycle']['state']='interrupted_reconciled';$state['nightly_cycle']['recovery']=$proof;
+    $state['nightly_cycle']['reconciled_at']=gmdate('c',$now);return $state;
+}
+
 /** Reuse the original append-only journal; a later collector never erases replay history. */
 function monitor_hook_attempted_collector_runs(array $journalLines):array {
     $runs=[];
@@ -250,7 +407,8 @@ function monitor_hook_attempted_collector_runs(array $journalLines):array {
         monitor_price_require(is_array($cycle)&&is_string($cycle['collector_run_id']??null)
             &&preg_match('/\A[1-9][0-9]{0,19}\z/D',$cycle['collector_run_id'])===1
             &&(in_array($cycle['state']??null,['started','completed','budget_exhausted'],true)
-                ||monitor_hook_reconciled_cycle_valid($cycle)),'hook_nightly_history_invalid');
+                ||monitor_hook_reconciled_cycle_valid($cycle)||monitor_hook_expired_reconciled_cycle_valid($cycle)
+                ||monitor_hook_preflight_cycle_valid($cycle)),'hook_nightly_history_invalid');
         $runs['run:'.$cycle['collector_run_id']]=true;
     }
     return $runs;
@@ -267,7 +425,8 @@ function monitor_hook_nightly_gate(array $state,int $now,?string $collectionStar
     if($prior!==null){
         monitor_price_require(is_array($prior)&&is_string($prior['night_date']??null)
             &&preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}\z/D',$prior['night_date'])===1
-            &&(in_array($prior['state']??null,['started','completed','budget_exhausted'],true)||monitor_hook_reconciled_cycle_valid($prior))
+            &&(in_array($prior['state']??null,['started','completed','budget_exhausted'],true)||monitor_hook_reconciled_cycle_valid($prior)
+                ||monitor_hook_expired_reconciled_cycle_valid($prior)||monitor_hook_preflight_cycle_valid($prior))
             &&is_string($prior['collector_run_id']??null)&&preg_match('/\A[1-9][0-9]{0,19}\z/D',$prior['collector_run_id'])===1
             &&is_string($prior['collection_started_at']??null),'hook_nightly_cycle_invalid');
         monitor_price_require($prior['night_date']<=$night,'hook_nightly_clock_moved_back');

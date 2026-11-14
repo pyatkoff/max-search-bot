@@ -183,14 +183,30 @@ $checked=hook_test_editor_preflight($unsafeReady,'max',$preflightSource);
 hook_test_check(!$checked['admitted']&&$checked['error']==='provider_channel_verification_failed','preflight_unexpected_write_admitted');
 $wrongState=['state'=>'unknown','reason'=>'channel_edit_permission_required','receipt'=>['request_count'=>2,'write_attempts'=>0,'http_results'=>array_slice($preflightHttp,0,2)]];
 hook_test_check(monitor_price_channel_preflight('max',$wrongState)['error']==='provider_channel_verification_failed','preflight_unknown_reported_as_denied');
+foreach(['unknown','ready'] as $stateCode){
+    $rawVerification=['state'=>$stateCode,'reason'=>$stateCode==='ready'?'capability_verified':'provider_read_failed',
+        'receipt'=>['request_count'=>1,'write_attempts'=>0,'http_results'=>['not_a_list'=>$preflightHttp[0]]]];
+    $checked=hook_test_editor_preflight($rawVerification,'max',$preflightSource);$projected=$checked['out']['channel_preflight'];
+    $carried=monitor_hook_child_failure(2,['error'=>$checked['error'],'channel_preflight'=>$projected]);
+    hook_test_check(!$checked['admitted']&&$projected['receipt_valid']===false&&$carried['channel_preflight']===$projected
+        &&$carried['channel_preflight']['error']!==null&&!monitor_hook_channel_preflight_failure($carried),'malformed_original_receipt_became_valid_after_projection_'.$stateCode);
+}
+$invalidState=['state'=>'invalid_original_state','reason'=>'provider_read_failed','receipt'=>['request_count'=>1,'write_attempts'=>0,'http_results'=>[$preflightHttp[0]]]];
+$checked=hook_test_editor_preflight($invalidState,'max',$preflightSource);
+$carried=monitor_hook_child_failure(2,['error'=>$checked['error'],'channel_preflight'=>$checked['out']['channel_preflight']]);
+hook_test_check($carried['channel_preflight']['receipt_valid']===false&&!monitor_hook_channel_preflight_failure($carried),'unrecognized_original_state_became_proven_after_projection');
 
 // Exercise the actual driver reconciliation function with recording dependencies.
 // Only that function is evaluated; the CLI driver and all real I/O remain unloaded.
-$testReadJournal=$terminalParsed;$testDriverCalls=['append'=>0,'child'=>0,'feed'=>0,'read'=>0];
+$testReadJournal=$terminalParsed;$testDriverCalls=['append'=>0,'child'=>0,'feed'=>0,'read'=>0];$testAppendedStates=[];$testChildFailure=null;
 function hook_need(bool $ok,string $why):void { monitor_price_require($ok,$why); }
 function hook_journal(string $operation):?array { global $testReadJournal;return $testReadJournal; }
-function hook_append($lock,array $state):void { global $testDriverCalls;$testDriverCalls['append']++; }
-function hook_child(string $source,array $constants,?array &$failure=null):array { global $testDriverCalls;$testDriverCalls['child']++;throw new RuntimeException('test_unexpected_child'); }
+function hook_append($lock,array $state):void { global $testDriverCalls,$testAppendedStates;$testDriverCalls['append']++;$testAppendedStates[]=$state; }
+function hook_child(string $source,array $constants,?array &$failure=null):array {
+    global $testDriverCalls,$testChildFailure;$testDriverCalls['child']++;
+    if(is_array($testChildFailure)){$failure=$testChildFailure;throw new RuntimeException('hook_child_failed_read_original_journal');}
+    throw new RuntimeException('test_unexpected_child');
+}
 function hook_prepare_feed(array $journal,string $installed):array { global $testDriverCalls;$testDriverCalls['feed']++;throw new RuntimeException('test_unexpected_feed'); }
 function hook_read(string $path,int $max=10000000):string { global $testDriverCalls;$testDriverCalls['read']++;throw new RuntimeException('test_unexpected_read'); }
 function hook_get(string $url,int $max=4000000):string { global $testDriverCalls;$testDriverCalls['read']++;throw new RuntimeException('test_unexpected_read'); }
@@ -225,6 +241,153 @@ $start=strpos($driver,"        ".'$tv=$row[\'tourvisor_hotel_id\'];');$end=strpo
 hook_test_check($start!==false&&$end!==false,'driver_hold_gate_fixture_missing');
 eval('foreach($rows as $row){'.substr($driver,$start,$end-$start).'$visited[]=$row[\'tourvisor_hotel_id\'];}');
 hook_test_check($visited===[999999]&&$out['held_pairs']===2&&$state['completed']===$terminalGlobal['completed'],'driver_new_record_bypassed_hold');
+
+// Global channel failures close this exact pass without a hotel hold or a second child.
+// The actual editor catch/stop/reconcile functions execute against recording dependencies.
+$testTerminalPrefix=$terminalPrefix;$testTerminalAppends=0;
+function hook_abandon_failed_preflight(string $operation,array $failure):array {
+    global $testTerminalPrefix,$testTerminalAppends,$testReadJournal,$testAppendedStates;
+    $saved=end($testAppendedStates);
+    hook_test_check(is_array($saved)&&($saved['pending']['child_failure']??null)===$failure
+        &&monitor_hook_preflight_progress_valid($saved['pending']['preflight_progress']??[]),'driver_did_not_persist_progress_before_terminal');
+    $line=monitor_hook_terminal_line($testTerminalPrefix,$operation,gmdate('c'),'channel_preflight_blocked_before_write',
+        ['preflight_error'=>$failure['error'],'child_exit_code'=>$failure['exit_code'],'channel_preflight'=>$failure['channel_preflight']]);
+    $testReadJournal=monitor_hook_parse_journal($testTerminalPrefix.$line,$operation);$testTerminalAppends++;return $testReadJournal;
+}
+$stopStart=strpos($driver,'function hook_stop_channel_preflight(');
+$stopEnd=strpos($driver,'/** Original completed caption batches',$stopStart);
+hook_test_check($stopStart!==false&&$stopEnd!==false,'driver_global_preflight_functions_missing');
+eval(substr($driver,$stopStart,$stopEnd-$stopStart));
+$editStart=strpos($driver,"        try{hook_child(base64_decode(HOOK_EDITOR_B64,true)");
+$editEnd=strpos($driver,"        ".'hook_finish_feed($state,$lock,$installed);$out[\'updated_pairs\']++;',$editStart);
+hook_test_check($editStart!==false&&$editEnd!==false,'driver_editor_failure_fixture_missing');
+$editCatch=substr($driver,$editStart,$editEnd-$editStart);
+if(!defined('HOOK_EDITOR_B64'))define('HOOK_EDITOR_B64','');
+function hook_test_channel_driver(array $failure,string $source,array $base,string $operation,int $tv):array {
+    global $testChildFailure,$testDriverCalls,$testAppendedStates,$testTerminalAppends;
+    $testChildFailure=$failure;$testDriverCalls=['append'=>0,'child'=>0,'feed'=>0,'read'=>0];$testAppendedStates=[];$testTerminalAppends=0;
+    $now=time();$startedAt=$now-10;$nightly=true;$lock=null;$installed=str_repeat('e',40);$op=$operation;$raw='{}';
+    $state=$base;$state['nightly_cycle']=monitor_hook_nightly_gate([],$startedAt,gmdate('c',$now-20),'900000001')['cycle'];
+    $state['pending']['at']=gmdate('c',$now-1);$state['pending']['collector_cycle']=monitor_hook_preflight_cycle_identity($state['nightly_cycle']);
+    $state['holds']=[999998=>['retained'=>'unrelated-hold']];$before=$state;
+    $out=['ok'=>false,'updated_pairs'=>1,'unchanged_pairs'=>1,'eligible_pairs'=>2,'held_pairs'=>0,'scanned_pairs'=>3,'deferred'=>[]];
+    $roster=array_fill(0,10,[]);$visited=[];$caught=null;
+    $row=['hotel_id'=>1,'tourvisor_hotel_id'=>$tv,'key'=>'fixture','logical_id'=>'fixture'];
+    try{eval('foreach([$row,$row] as $row){'.$source.'$visited[]=$row[\'tourvisor_hotel_id\'];}');}
+    catch(Throwable $e){$caught=$e->getMessage();}
+    $testChildFailure=null;
+    return ['state'=>$state,'before'=>$before,'out'=>$out,'error'=>$caught,'visited'=>$visited,'calls'=>$testDriverCalls,
+        'terminal_appends'=>$testTerminalAppends,'appended'=>$testAppendedStates];
+}
+$channelFailures=[];$channelResults=[];
+foreach(array_slice($preflightCases,0,3) as [$platform,$stateCode,$reason,$http,$expectedError]){
+    $safe=monitor_price_channel_preflight($platform,['state'=>$stateCode,'reason'=>$reason,
+        'receipt'=>['request_count'=>count($http),'write_attempts'=>0,'http_results'=>$http]]);
+    $failure=['exit_code'=>2,'error'=>$expectedError,'channel_preflight'=>$safe];$channelFailures[]=$failure;
+    hook_test_check(monitor_hook_channel_preflight_failure($failure),'typed_channel_failure_not_admitted_'.$reason);
+    $run=hook_test_channel_driver($failure,$editCatch,$terminalGlobal,$terminalOperation,$terminalTv);$channelResults[]=$run;
+    hook_test_check($run['error']===$expectedError&&$run['out']['ok']===false&&$run['visited']===[]
+        &&$run['calls']===['append'=>2,'child'=>1,'feed'=>0,'read'=>0]&&$run['terminal_appends']===1,'global_failure_retried_or_continued_'.$reason);
+    hook_test_check($run['state']['pending']===null&&monitor_hook_preflight_cycle_valid($run['state']['nightly_cycle'])
+        &&$run['state']['nightly_cycle']['state']==='preflight_blocked'&&$run['out']['nightly_cycle_completed']===false
+        &&$run['state']['completed']===$run['before']['completed']&&$run['state']['holds']===$run['before']['holds'],'global_failure_became_hold_or_completion_'.$reason);
+    hook_test_check($run['state']['nightly_cycle']['remaining_unscanned_pairs']===7&&$run['state']['nightly_cycle']['updated_pairs']===1
+        &&$run['out']['child_failure']===$failure&&$run['appended'][0]['pending']['preflight_progress']===$run['state']['last_preflight_block']['progress'],'global_failure_lost_progress_'.$reason);
+    hook_test_reject(static fn()=>monitor_hook_apply_abandonment($run['before'],$testReadJournal),'global_failure_accepted_as_hotel_hold');
+}
+
+// Neither a typed label nor the sanitizer can admit malformed or uncertain evidence.
+$goodFailure=$channelFailures[0];
+foreach(['exit','count','negative_count','string_count','write','truncated','operation','http','transport','extra','unknown_reason','error_mismatch'] as $bad){
+    $failure=$goodFailure;
+    if($bad==='exit')$failure['exit_code']=-1;
+    if($bad==='count')$failure['channel_preflight']['request_count']++;
+    if($bad==='negative_count')$failure['channel_preflight']['request_count']=-1;
+    if($bad==='string_count')$failure['channel_preflight']['request_count']='2';
+    if($bad==='write')$failure['channel_preflight']['write_attempts']=1;
+    if($bad==='truncated')$failure['channel_preflight']['http_results_truncated']=true;
+    if($bad==='operation')$failure['channel_preflight']['http_results'][0]['operation']='unknown';
+    if($bad==='http')$failure['channel_preflight']['http_results'][0]['http']=null;
+    if($bad==='transport')$failure['channel_preflight']['http_results'][0]['transport_error']=null;
+    if($bad==='extra')$failure['channel_preflight']['http_results'][0]['response']='LEAK_SECRET';
+    if($bad==='unknown_reason')$failure['channel_preflight']['reason']='unrecognized_verification_result';
+    if($bad==='error_mismatch')$failure['error']='provider_channel_permission_denied';
+    hook_test_check(!monitor_hook_channel_preflight_failure($failure),'global_failure_admitted_malformed_'.$bad);
+    hook_test_reject(static fn()=>monitor_hook_terminal_line($terminalPrefix,$terminalOperation,gmdate('c'),'channel_preflight_blocked_before_write',
+        ['preflight_error'=>$failure['error'],'child_exit_code'=>$failure['exit_code'],'channel_preflight'=>$failure['channel_preflight']]),'global_terminal_admitted_malformed_'.$bad);
+    $run=hook_test_channel_driver($failure,$editCatch,$terminalGlobal,$terminalOperation,$terminalTv);
+    hook_test_check($run['error']==='hook_child_failed_read_original_journal'&&$run['state']['pending']!==null
+        &&$run['state']['nightly_cycle']['state']==='started'&&$run['terminal_appends']===0&&$run['calls']['child']===1
+        &&$run['calls']['append']===1&&$run['visited']===[],'malformed_failure_not_held_'.$bad);
+}
+foreach(['posts_started','posts_confirmed','config_started','already_complete'] as $bad){
+    $changed=$terminalOriginal;
+    if($bad==='posts_started')$changed['posts']=['max:fixture'=>['state'=>'edit_started']];
+    if($bad==='posts_confirmed')$changed['posts']=['max:fixture'=>['state'=>'confirmed']];
+    if($bad==='config_started')$changed['configs']=['fixture'=>['state'=>'started']];
+    if($bad==='already_complete')$changed['complete']=true;
+    $testTerminalPrefix=hook_test_json_line($changed).$terminalPrefix;
+    $run=hook_test_channel_driver($goodFailure,$editCatch,$terminalGlobal,$terminalOperation,$terminalTv);
+    hook_test_check($run['state']['pending']!==null&&$run['state']['nightly_cycle']['state']==='started'
+        &&$run['terminal_appends']===0&&$run['calls']['append']===1&&$run['visited']===[],'global_failure_erased_prior_'.$bad);
+}
+$testTerminalPrefix=$terminalPrefix;
+$run=hook_test_channel_driver($goodFailure,$editCatch,$terminalGlobal,$terminalOperation,$terminalTv);
+$crashState=$run['appended'][0];$crashJournal=$testReadJournal;$crashBefore=$crashState;
+$testDriverCalls=['append'=>0,'child'=>0,'feed'=>0,'read'=>0];$testAppendedStates=[];$recoveryOut=['ok'=>false];$stopped=false;
+try{hook_reconcile_channel_preflight($crashState,null,$recoveryOut);}catch(Throwable $e){$stopped=$e->getMessage()===$goodFailure['error'];}
+hook_test_check($stopped&&$crashState['pending']===null&&$recoveryOut['reconciled_prior_preflight']===true
+    &&$testDriverCalls===['append'=>1,'child'=>0,'feed'=>0,'read'=>0]&&$crashState['completed']===$crashBefore['completed']
+    &&$crashState['holds']===$crashBefore['holds'],'crash_recovery_replayed_provider_or_lost_state');
+hook_test_check($crashState['nightly_cycle']['duration_seconds']===$crashBefore['pending']['preflight_progress']['duration_seconds']
+    &&$crashState['nightly_cycle']['remaining_unscanned_pairs']===7,'crash_recovery_invented_progress');
+$callsBefore=$testDriverCalls;hook_reconcile_channel_preflight($crashState,null,$recoveryOut);
+hook_test_check($testDriverCalls===$callsBefore,'crash_recovery_repeated_global_close');
+foreach(['failure','progress','cycle','phase'] as $bad){
+    $changed=$crashBefore;
+    if($bad==='failure')$changed['pending']['child_failure']=$channelFailures[1];
+    if($bad==='progress')unset($changed['pending']['preflight_progress']);
+    if($bad==='cycle')$changed['nightly_cycle']['collector_run_id']='900000002';
+    if($bad==='phase')$changed['pending']['phase']='feed_started';
+    hook_test_reject(static fn()=>monitor_hook_close_channel_preflight($changed,$crashJournal,time()),'global_close_admitted_changed_'.$bad);
+}
+$standalone=$crashBefore;$standalone['pending']['collector_cycle']=null;$oldCycle=$standalone['nightly_cycle'];
+$standalone=monitor_hook_close_channel_preflight($standalone,$crashJournal,time());
+hook_test_check($standalone['pending']===null&&$standalone['nightly_cycle']===$oldCycle
+    &&$standalone['last_preflight_block']['collector_cycle']===null,'standalone_closed_foreign_collector');
+$reconcileAt=strpos($driver,'if(!$inspect)hook_reconcile_channel_preflight($state,$lock,$out);');
+$storedGateAt=strpos($driver,'$nightGate=monitor_hook_nightly_gate($state,');
+hook_test_check($reconcileAt!==false&&$storedGateAt!==false&&$reconcileAt<$storedGateAt,'crash_recovery_after_nightly_admission');
+
+// The actual record gate skips only this validated operation; a new record keeps the normal path.
+$recordStart=strpos($driver,"            if(is_array(".'$prior)&&array_key_exists(\'terminal\',$prior)){');
+$recordEnd=strpos($driver,"            ".'$context=$context??hook_context($row,$registry);',$recordStart);
+hook_test_check($recordStart!==false&&$recordEnd!==false,'driver_record_terminal_gate_missing');
+$recordGate=substr($driver,$recordStart,$recordEnd-$recordStart);
+foreach([$terminalParsed,$crashJournal] as $parsed){
+    $out=['deferred'=>[]];$tv=$terminalTv;$visited=[];$newOperation='commercial-monitor-price-h'.$tv.'-'.str_repeat('f',64);
+    $records=[[$terminalOperation,$parsed],[$newOperation,null]];
+    eval('foreach($records as [$op,$prior]){'.$recordGate.'$visited[]=$op;}');
+    hook_test_check($visited===[$newOperation]&&$out['deferred']===[['tourvisor_hotel_id'=>$tv,'reason'=>'abandoned_before_write_record']],'record_terminal_held_new_observation');
+}
+// Parser failures must reach the outer stop, even if the original code has no unresolved/incomplete suffix.
+$parseStart=strpos($driver,'    try{return monitor_hook_parse_journal($raw,$op);}');
+$parseEnd=strpos($driver,"\n}",$parseStart);
+hook_test_check($parseStart!==false&&$parseEnd!==false,'driver_parser_stop_wrapper_missing');
+$parseActual=eval('return function(string $raw,string $op):array {'.substr($driver,$parseStart,$parseEnd-$parseStart).'};');
+$badLine=json_decode($terminalLine,true,64,JSON_THROW_ON_ERROR);$badLine['terminal']['prior_sha256']=str_repeat('f',64);
+$parserError=null;try{$parseActual($terminalPrefix.hook_test_json_line($badLine),$terminalOperation);}catch(Throwable $e){$parserError=$e->getMessage();}
+hook_test_check($parserError==='hook_journal_invalid_stop','malformed_terminal_not_normalized_to_stop');
+$candidateCatchStart=strpos($driver,"}catch(Throwable ".'$e){'."\n            if(str_contains");
+$candidateCatchEnd=strpos($driver,"        ".'$out[\'eligible_pairs\']++;',$candidateCatchStart);
+hook_test_check($candidateCatchStart!==false&&$candidateCatchEnd!==false,'driver_candidate_catch_missing');
+$candidateCatch=substr($driver,$candidateCatchStart,$candidateCatchEnd-$candidateCatchStart);
+foreach(['hook_journal_invalid_stop','hook_record_terminal_invalid_stop','hook_no_write_prefix_has_intent_stop'] as $error){
+    $out=['deferred'=>[]];$visited=[];$stopped=false;
+    try{eval('foreach([1] as $ignored){try{throw new RuntimeException($error);'.$candidateCatch.'$visited[]=1;}');}
+    catch(Throwable $e){$stopped=$e->getMessage()===$error;}
+    hook_test_check($stopped&&$out['deferred']===[]&&$visited===[],'candidate_swallowed_terminal_failure_'.$error);
+}
 
 // Exercise actual packet construction and the first/subsequent legacy caption gates.
 $expanded=json_decode(gzdecode(file_get_contents(__DIR__.'/monitor-price-expanded-roster-20261111.json.gz')),true,64,JSON_THROW_ON_ERROR);

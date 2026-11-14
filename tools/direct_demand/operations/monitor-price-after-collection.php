@@ -16,7 +16,7 @@ function hook_journal(string $op):?array {
     $dir='/var/www/anytoour/data/channel-post-operations/'.$op;hook_need(!is_link($dir),'hook_receipt_path_invalid');
     if(!file_exists($dir.'/receipt.jsonl'))return null;
     $raw=hook_read($dir.'/receipt.jsonl');hook_need($raw!==''&&str_ends_with($raw,"\n"),'hook_incomplete_journal_stop');
-    return monitor_hook_parse_journal($raw,$op);
+    try{return monitor_hook_parse_journal($raw,$op);}catch(Throwable $e){throw new RuntimeException('hook_journal_invalid_stop',0,$e);}
 }
 function hook_append($lock,array $state):void {
     $raw=json_encode($state,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)."\n";
@@ -43,7 +43,8 @@ function hook_child(string $source,array $constants,?array &$failure=null):array
 }
 /** The child has exited. Append a no-write terminal only under its original lock. */
 function hook_abandon_failed_preflight(string $operation,array $failure):array {
-    hook_need(monitor_hook_local_preflight_failure($failure),'hook_no_write_child_failure_not_admitted');
+    $channelFailure=monitor_hook_channel_preflight_failure($failure);
+    hook_need($channelFailure||monitor_hook_local_preflight_failure($failure),'hook_no_write_child_failure_not_admitted');
     $dir='/var/www/anytoour/data/channel-post-operations/'.$operation;$path=$dir.'/receipt.jsonl';
     hook_need(preg_match('/\Acommercial-monitor-price-h[1-9][0-9]*-[a-f0-9]{64}\z/D',$operation)===1
         &&!is_link($dir)&&realpath($dir)===$dir&&!is_link($path)&&is_file($path)&&realpath($path)===$path,'hook_no_write_journal_missing_stop');
@@ -54,14 +55,35 @@ function hook_abandon_failed_preflight(string $operation,array $failure):array {
         hook_need(is_array($stat)&&is_array($named)&&$stat['ino']===$named['ino']&&$stat['dev']===$named['dev']
             &&$stat['size']>0&&$stat['size']<=10000000,'hook_no_write_journal_changed_stop');
         $prefix=stream_get_contents($journalLock,10000001);hook_need(is_string($prefix)&&strlen($prefix)===$stat['size'],'hook_no_write_journal_changed_stop');
-        $line=monitor_hook_terminal_line($prefix,$operation,gmdate('c'),'child_preflight_failed_before_write',
-            ['preflight_error'=>$failure['error'],'child_exit_code'=>$failure['exit_code']]);
+        $evidence=['preflight_error'=>$failure['error'],'child_exit_code'=>$failure['exit_code']];
+        if($channelFailure)$evidence['channel_preflight']=$failure['channel_preflight'];
+        $line=monitor_hook_terminal_line($prefix,$operation,gmdate('c'),
+            $channelFailure?'channel_preflight_blocked_before_write':'child_preflight_failed_before_write',$evidence);
         hook_need(strlen($prefix.$line)<=10000000,'hook_no_write_journal_limit_stop');
         $terminal=monitor_hook_parse_journal($prefix.$line,$operation);
         hook_append($journalLock,json_decode($line,true,64,JSON_THROW_ON_ERROR));
         hook_need(rewind($journalLock)&&stream_get_contents($journalLock,10000001)===$prefix.$line,'hook_no_write_terminal_readback_failed');
         return $terminal;
     }finally{flock($journalLock,LOCK_UN);fclose($journalLock);}
+}
+/** Persist the proved stop and exit the entire pass; never turn a channel failure into a hotel hold. */
+function hook_stop_channel_preflight(array &$state,$lock,array $journal,array &$out):void {
+    $closed=monitor_hook_close_channel_preflight($state,$journal,time());
+    hook_need($closed!==null,'hook_channel_preflight_terminal_missing_stop');hook_append($lock,$closed);$state=$closed;
+    $block=$state['last_preflight_block'];$out['child_failure']=$block['child_failure'];$out['preflight_block']=$block;
+    foreach(['roster_pairs','updated_pairs','unchanged_pairs','eligible_pairs','held_pairs','scanned_pairs','remaining_unscanned_pairs'] as $key)$out[$key]=$block['progress'][$key];
+    $out['nightly_cycle_completed']=false;
+    if($block['collector_cycle']!==null)$out['nightly_cycle']=$state['nightly_cycle'];
+    throw new RuntimeException($block['child_failure']['error']);
+}
+/** Crash after child terminal but before global append: reconcile metadata before any new admission. */
+function hook_reconcile_channel_preflight(array &$state,$lock,array &$out):void {
+    $pending=$state['pending']??null;
+    if(!is_array($pending)||($pending['phase']??null)!=='post_started'||!is_array($pending['child_failure']??null)
+        ||!monitor_hook_channel_preflight_failure($pending['child_failure']))return;
+    $journal=hook_journal($pending['operation']);
+    if(!is_array($journal)||($journal['terminal']['reason']??null)!=='channel_preflight_blocked_before_write')return;
+    $out['reconciled_prior_preflight']=true;hook_stop_channel_preflight($state,$lock,$journal,$out);
 }
 /** Original completed caption batches are read once per pass; the editor independently rechecks them. */
 function hook_caption_source(array $row):array {
@@ -193,6 +215,18 @@ try{
     else{$lock=fopen($path,'c+');hook_need($lock!==false&&flock($lock,LOCK_EX|LOCK_NB),'hook_already_running');$raw=stream_get_contents($lock);}
     hook_need(is_string($raw)&&(!$existed||$raw!=='')&&($raw===''||str_ends_with($raw,"\n")),'hook_journal_incomplete_stop');
     $state=['schema'=>1,'pending'=>null,'completed'=>[]];if($raw!==''){$lines=explode("\n",rtrim($raw,"\n"));$state=json_decode(end($lines),true,64,JSON_THROW_ON_ERROR);}elseif(!$inspect)hook_append($lock,$state);
+    if(!$inspect)hook_reconcile_channel_preflight($state,$lock,$out);
+    if(!$inspect){
+        $expiredRecovery=monitor_hook_expired_cycle_recovery_proof();
+        if(($state['nightly_cycle']['collector_run_id']??null)===$expiredRecovery['collector_run_id']&&($state['nightly_cycle']['state']??null)==='started'){
+            $childRaw=hook_read($private.'/'.$expiredRecovery['operation'].'/receipt.jsonl');
+            $closed=monitor_hook_close_expired_reconciled_cycle($state,monitor_hook_cycle_journal_pin($raw),monitor_hook_cycle_journal_pin($childRaw),
+                monitor_hook_parse_journal($childRaw,$expiredRecovery['operation']),$startedAt);
+            hook_need($closed!==null,'hook_expired_cycle_recovery_terminal_missing');hook_append($lock,$closed);$state=$closed;
+            $out['reconciled_prior_collector']=['collector_run_id'=>$expiredRecovery['collector_run_id'],'recovery_run_id'=>$expiredRecovery['recovery_run_id'],
+                'recovery_result_sha256'=>$expiredRecovery['recovery_result_sha256'],'state'=>'interrupted_reconciled','post_writes'=>0,'feed_writes'=>0];
+        }
+    }
     if($nightly){
         $cycleRecovery=monitor_hook_cycle_recovery_proof();
         if(($state['nightly_cycle']['collector_run_id']??null)===$cycleRecovery['collector_run_id']&&($state['nightly_cycle']['state']??null)==='started'){
@@ -240,7 +274,14 @@ try{
             if($inspect)$out['verified_ids'][]=$tv;
             $snapshot=$snapshots[$tv];
             if(($snapshot['item']['state']??'')==='no_fresh_observation'){$out['deferred'][]=['tourvisor_hotel_id'=>$tv,'reason'=>'no_fresh_observation'];continue;}
-            $price=monitor_price_observation($snapshot,$tv,time());$op=monitor_price_operation($price);$context=$context??hook_context($row,$registry);$prior=hook_journal($op);
+            $price=monitor_price_observation($snapshot,$tv,time());$op=monitor_price_operation($price);$prior=hook_journal($op);
+            if(is_array($prior)&&array_key_exists('terminal',$prior)){
+                hook_need(($prior['terminal']['state']??null)==='abandoned_before_write'&&($prior['operation']??null)===$op
+                    &&is_string($prior['_terminal_journal_sha256']??null)&&preg_match('/\A[a-f0-9]{64}\z/D',$prior['_terminal_journal_sha256'])===1
+                    &&($prior['posts']??null)===[]&&($prior['configs']??null)===[]&&($prior['complete']??false)===false,'hook_record_terminal_invalid_stop');
+                $out['deferred'][]=['tourvisor_hotel_id'=>$tv,'reason'=>'abandoned_before_write_record'];continue;
+            }
+            $context=$context??hook_context($row,$registry);
             if(!$inspect)$out['verified_ids'][]=$tv;
             $knownFailure=monitor_hook_known_failure($row,$price);hook_need($knownFailure===null,$knownFailure??'hook_known_failure');
             if($prior!==null){
@@ -258,16 +299,22 @@ try{
             $input=['operation'=>$op,'price_basis'=>'scheduled_monitor_result','monitor_snapshot'=>$snapshot,'button_text'=>'✈️ Узнать стоимость тура','feed_binding'=>$row['feed_binding'],'rows'=>[$r]];
             $raw=json_encode($input,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
         }catch(Throwable $e){
-            if(str_contains($e->getMessage(),'unresolved')||str_contains($e->getMessage(),'incomplete'))throw $e;
+            if(str_contains($e->getMessage(),'unresolved')||str_contains($e->getMessage(),'incomplete')||str_ends_with($e->getMessage(),'_stop'))throw $e;
             $out['deferred'][]=['tourvisor_hotel_id'=>$tv,'reason'=>preg_match('/\A[a-z0-9_]+\z/D',$e->getMessage())?$e->getMessage():'hook_candidate_invalid'];continue;
         }
         $out['eligible_pairs']++;$out['eligible_ids'][]=$tv;if($inspect)continue;
-        $state['pending']=['tourvisor_hotel_id'=>$tv,'operation'=>$op,'phase'=>'post_started','at'=>gmdate('c')];hook_append($lock,$state);
+        $state['pending']=['tourvisor_hotel_id'=>$tv,'operation'=>$op,'phase'=>'post_started','at'=>gmdate('c'),
+            'collector_cycle'=>$nightly?monitor_hook_preflight_cycle_identity($state['nightly_cycle']):null];hook_append($lock,$state);
         $failure=null;
         try{hook_child(base64_decode(HOOK_EDITOR_B64,true),['EXPECTED_INSTALLED_SHA'=>$installed,'APPROVED_UPDATE_OPERATION'=>$op,'APPROVED_UPDATE_TOURVISOR_ID'=>$tv,'APPROVED_UPDATE_HOTEL_ID'=>$row['hotel_id'],'APPROVED_UPDATE_KEY_B64'=>base64_encode($row['key']),'APPROVED_UPDATE_LOGICAL_B64'=>base64_encode($row['logical_id']),'APPROVED_MANIFEST_SHA256'=>hash('sha256',$raw),'MANIFEST_BASE64'=>base64_encode($raw)],$failure);}
         catch(Throwable $e){
             if($failure!==null){
-                $state['pending']['child_failure']=$failure;hook_append($lock,$state);
+                $state['pending']['child_failure']=$failure;
+                if(monitor_hook_channel_preflight_failure($failure))$state['pending']['preflight_progress']=monitor_hook_preflight_progress($out,count($roster),$startedAt,time());
+                hook_append($lock,$state);
+                if(monitor_hook_channel_preflight_failure($failure)){
+                    $terminal=hook_abandon_failed_preflight($op,$failure);hook_stop_channel_preflight($state,$lock,$terminal,$out);
+                }
                 if(monitor_hook_local_preflight_failure($failure)){
                     $terminal=hook_abandon_failed_preflight($op,$failure);$held=monitor_hook_apply_abandonment($state,$terminal);
                     hook_need($held!==null,'hook_no_write_terminal_missing_stop');$state=$held;hook_append($lock,$state);
@@ -292,10 +339,10 @@ try{
     $out['existing_monitor_home_matches']=realpath((string)getenv('HOME').'/www/anytoour.ru/data')==='/var/www/anytoour/data/www/anytoour.ru/data';
 }catch(Throwable $e){$out['error']=preg_match('/\A[a-z0-9_]+\z/D',$e->getMessage())?$e->getMessage():'hook_failed_read_original_journal';if(is_array($state['pending']['child_failure']??null))$out['child_failure']=$state['pending']['child_failure'];}
 $out['duration_seconds']=time()-$startedAt;
-$out['remaining_unscanned_pairs']=is_array($roster??null)?count($roster)-$out['scanned_pairs']:null;
+$out['remaining_unscanned_pairs']=is_array($roster??null)?count($roster)-$out['scanned_pairs']:($out['remaining_unscanned_pairs']??null);
 $out['deferred_counts']=[];$out['error_counts']=[];
 foreach($out['deferred'] as $item){$reason=$item['reason'];$out['deferred_counts'][$reason]=($out['deferred_counts'][$reason]??0)+1;
-    if(!in_array($reason,['no_fresh_observation','abandoned_before_write'],true))$out['error_counts'][$reason]=($out['error_counts'][$reason]??0)+1;}
+    if(!in_array($reason,['no_fresh_observation','abandoned_before_write','abandoned_before_write_record'],true))$out['error_counts'][$reason]=($out['error_counts'][$reason]??0)+1;}
 if(isset($out['error']))$out['error_counts'][$out['error']]=($out['error_counts'][$out['error']]??0)+1;
 $out['budget_overrun_seconds']=max(0,$out['duration_seconds']-($out['budget_seconds']??480));
 if($nightly&&($out['ok']??false)!==true)$out['nightly_cycle_completed']=false;

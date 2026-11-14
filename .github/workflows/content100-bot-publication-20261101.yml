@@ -1,4 +1,4 @@
-name: Reconcile one expired no-write hotel price operation
+name: Verify recovered prices through existing bounded saved-monitor maintenance
 'on':
   push:
     branches:
@@ -13,33 +13,51 @@ concurrency:
   cancel-in-progress: false
 env:
   EXPECTED_PRODUCTION_SHA: 9a8c8dc93e2abb102be663e48b93a097d98927ea
-  RECOVERY_SOURCE_SHA256: b5f051947a5a4a51496c24dc0208fe27f827e7251f04eb632809ef48cc978e56
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 15
     steps:
     - uses: actions/checkout@v4
       with:
         ref: ${{ github.sha }}
         persist-credentials: false
-    - name: Validate exact recovery source and existing hook before credentials
+    - name: Validate recovered publisher and complete existing regression suites
       shell: bash
-      run: "set -euo pipefail\numask 077\ntest \"$GITHUB_RUN_ATTEMPT\" = 1\ntest \"$(git rev-parse HEAD)\" = \"$GITHUB_SHA\"\
-        \nmkdir -p \"$RUNNER_TEMP/monitor-price-incident-private\" \"$RUNNER_TEMP/monitor-price-incident-safe\"\npython3 -\
-        \ <<'PY'\nimport hashlib,os,pathlib,re\nops=pathlib.Path('tools/direct_demand/operations')\nwriter=ops/'recover-monitor-price-no-write-20261114.php'\n\
-        assert hashlib.sha256(writer.read_bytes()).hexdigest()==os.environ['RECOVERY_SOURCE_SHA256']\nassert hashlib.sha256((ops/'verify-commercial-source.py').read_bytes()).hexdigest()=='5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb'\n\
-        parts=[]\nfor name in ['monitor-price-contract.php','monitor-price-hook-contract.php','recover-monitor-price-no-write-20261114.php']:\n\
-        \ source=(ops/name).read_text()\n source,n=re.subn(r'\\A<\\?php\\s*declare\\(strict_types=1\\);\\s*','',source,count=1)\n\
-        \ assert n==1,name\n source,n=re.subn(r\"^require_once __DIR__\\.'/monitor-price-(?:hook-)?contract\\.php';\\s*$\"\
-        ,'',source,flags=re.M)\n assert n==(0 if name=='monitor-price-contract.php' else 1),name\n parts.append(source)\n\
-        bundle='<?php\\ndeclare(strict_types=1);\\n'+'\\n'.join(parts)\npathlib.Path(os.environ['RUNNER_TEMP'],'monitor-price-incident-private','recovery.php').write_text(bundle)\n\
-        print('RECOVERY_BUNDLE_SHA256='+hashlib.sha256(bundle.encode()).hexdigest())\nPY\nphp -l tools/direct_demand/operations/recover-monitor-price-no-write-20261114.php\n\
-        php -l \"$RUNNER_TEMP/monitor-price-incident-private/recovery.php\"\nphp \"$RUNNER_TEMP/monitor-price-incident-private/recovery.php\"\
-        \ --self-test\nphp tools/direct_demand/operations/test-monitor-price-hook.php\npython3 tools/direct_demand/operations/build-monitor-price-hook.py\
-        \ \"$RUNNER_TEMP/monitor-price-incident-private/validated-hook.php\"\nphp -l \"$RUNNER_TEMP/monitor-price-incident-private/validated-hook.php\"\
-        \n"
+      run: 'set -euo pipefail
+
+        umask 077
+
+        test "$GITHUB_RUN_ATTEMPT" = 1
+
+        test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+
+        mkdir -p "$RUNNER_TEMP/monitor-price-incident-private" "$RUNNER_TEMP/monitor-price-incident-safe"
+
+        python3 - <<''PY''
+
+        import hashlib,pathlib
+
+        assert hashlib.sha256(pathlib.Path(''tools/direct_demand/operations/verify-commercial-source.py'').read_bytes()).hexdigest()==''5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb''
+
+        PY
+
+        php -l tools/direct_demand/operations/monitor-price-after-collection.php
+
+        php -l tools/direct_demand/operations/update-commercial-price-20261104-remaining1.php
+
+        php tools/direct_demand/operations/test-monitor-price-contract.php
+
+        php tools/direct_demand/operations/test-monitor-price-hook.php
+
+        php tools/direct_demand/operations/test-monitor-price-nightly-policy.php
+
+        python3 tools/direct_demand/operations/build-monitor-price-hook.py "$RUNNER_TEMP/monitor-price-incident-private/validated-hook.php"
+
+        php -l "$RUNNER_TEMP/monitor-price-incident-private/validated-hook.php"
+
+        '
     - name: Authenticate accepted current installation without rerunning it
       shell: bash
       env:
@@ -96,19 +114,19 @@ jobs:
 
         commit=get(''git/commits/''+os.environ[''GITHUB_SHA''])
 
-        assert [x[''sha''] for x in commit[''parents'']]==[''b3d3272a5df7094fdb0de690da33def0f918765e'']
+        assert [x[''sha''] for x in commit[''parents'']]==[''acf2114e994f20b6a2f0694e252b8856da5ed8c2'']
 
-        diagnostic=get(''actions/runs/43535778714'')
+        recovery=get(''actions/runs/43536956032'')
 
-        assert diagnostic[''run_attempt'']==1 and diagnostic[''head_sha'']==''b3d3272a5df7094fdb0de690da33def0f918765e''
+        assert recovery[''run_attempt'']==1 and recovery[''head_sha'']==''acf2114e994f20b6a2f0694e252b8856da5ed8c2''
 
-        assert diagnostic[''status'']==''completed'' and diagnostic[''conclusion'']==''success'' and diagnostic[''event'']==''push''
+        assert recovery[''status'']==''completed'' and recovery[''conclusion'']==''success'' and recovery[''event'']==''push''
 
-        assert diagnostic[''path'']==''.github/workflows/content100-bot-publication-20261101.yml''
+        assert recovery[''path'']==''.github/workflows/content100-bot-publication-20261101.yml''
 
-        assert diagnostic[''head_branch'']==''audit/content100-bot-publication-20261101''
+        assert recovery[''head_branch'']==''audit/content100-bot-publication-20261101''
 
-        print(''CURRENT_SOURCE_OWNER_ORIGINAL_PUSH_AND_INCIDENT_READ_VERIFIED'')
+        print(''CURRENT_SOURCE_OWNER_ORIGINAL_PUSH_AND_RECOVERY_VERIFIED'')
 
         PY
 
@@ -134,7 +152,7 @@ jobs:
         \  except Exception:continue\n  if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)\n\
         assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'\npathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\\\
         n'.join(matches)+'\\n')\nPY\n"
-    - name: Append one original no-write terminal and clear only its pending metadata
+    - name: Run one existing bounded saved-monitor pass without a supplier collection
       shell: bash
       env:
         DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -150,36 +168,36 @@ jobs:
         ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes
         -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST"
         "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = ''$EXPECTED_PRODUCTION_SHA'';
-        test -z \"\$(git --no-optional-locks status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/monitor-price-incident-private/recovery.php"
-        > "$RUNNER_TEMP/monitor-price-incident-safe/original-recovery.stdout" || status=$?
+        test -z \"\$(git --no-optional-locks status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/monitor-price-incident-private/validated-hook.php"
+        > "$RUNNER_TEMP/monitor-price-incident-safe/maintenance.stdout" || status=$?
 
         python3 - "$status" <<''PY''
 
-        import hashlib,json,os,pathlib,sys
+        import json,os,pathlib,sys
 
         root=pathlib.Path(os.environ[''RUNNER_TEMP''],''monitor-price-incident-safe'')
 
-        raw=(root/''original-recovery.stdout'').read_text()
+        raw=(root/''maintenance.stdout'').read_text()
 
-        prefix=''MONITOR_NO_WRITE_RECONCILIATION=''
+        prefix=''MONITOR_POST_FEED_RESULT=''
 
         lines=[line[len(prefix):] for line in raw.splitlines() if line.startswith(prefix)]
 
-        assert len(lines)==1,''original_recovery_missing_or_ambiguous''
+        assert len(lines)==1,''saved_monitor_maintenance_missing_or_ambiguous''
 
-        r=json.loads(lines[0]);result_sha=hashlib.sha256(lines[0].encode()).hexdigest()
+        r=json.loads(lines[0]);r[''ssh_exit_code'']=int(sys.argv[1])
 
-        (root/''result-sha256.txt'').write_text(result_sha+''\n'')
+        (root/''maintenance.json'').write_text(json.dumps(r,ensure_ascii=False,indent=2)+''\n'')
 
-        print(''RECOVERY_RESULT_SHA256=''+result_sha)
+        summary={k:v for k,v in r.items() if k not in [''updates'',''deferred'',''verified_ids'',''eligible_ids'',''unchanged_ids'',''held_ids'']}
 
-        r[''ssh_exit_code'']=int(sys.argv[1])
+        summary[''updates'']=[{''tourvisor_hotel_id'':u.get(''tourvisor_hotel_id''),''operation'':u.get(''operation''),''price'':u.get(''price''),''record_id'':u.get(''record_id''),''feed_operation'':u.get(''feed_operation''),''posts'':[{k:p.get(k)
+        for k in [''platform'',''state'',''publication_id'',''version_id'',''message_id'',''post_url'',''text_sha256'',''existing_message_reused'',''body_photo_button_verified'']}
+        for p in u.get(''posts'',[])]} for u in r.get(''updates'',[])]
 
-        (root/''recovery.json'').write_text(json.dumps(r,ensure_ascii=False,indent=2)+''\n'')
+        print(json.dumps(summary,ensure_ascii=False))
 
-        print(json.dumps(r,ensure_ascii=False))
-
-        assert sys.argv[1]==''0'' and r.get(''ok'') is True,''original_recovery_not_successful''
+        assert sys.argv[1]==''0'' and r.get(''ok'') is True,''saved_monitor_maintenance_not_successful''
 
         PY
 
@@ -187,22 +205,37 @@ jobs:
 
         import json,os,pathlib
 
-        root=pathlib.Path(os.environ[''RUNNER_TEMP''],''monitor-price-incident-safe'')
+        r=json.loads(pathlib.Path(os.environ[''RUNNER_TEMP''],''monitor-price-incident-safe'',''maintenance.json'').read_text())
 
-        r=json.loads((root/''recovery.json'').read_text())
+        assert r[''mode'']==''existing_monitor_post_feed_hook'' and r[''roster_pairs'']==604
 
-        assert r[''journal_appends'']==2
+        assert r[''budget_seconds'']==480 and r[''finish_reserve_seconds'']==0
 
-        assert all(r.get(k)==0 for k in [''database_writes'',''post_edits'',''new_posts'',''feed_writes'',''supplier_calls'',''site_writes''])
+        closed=r[''reconciled_prior_collector'']
+
+        assert closed[''collector_run_id'']==''43520564593'' and closed[''recovery_run_id'']==''43536956032''
+
+        assert closed[''recovery_result_sha256'']==''81faf4ff1d490fba41986089e28205847deef61542c06633191f81788cebbd43''
+
+        assert closed[''state'']==''interrupted_reconciled'' and closed[''post_writes'']==closed[''feed_writes'']==0
+
+        assert all(r.get(k)==0 for k in [''new_posts'',''supplier_calls'',''site_writes''])
+
+        assert 0 < r[''updated_pairs''] <= 30
+
+        assert r[''updated_pairs'']==len(r[''updates''])
+
+        assert all(len(u[''posts''])==2 and {p[''platform''] for p in u[''posts'']}=={''max'',''telegram''} and all(p[''existing_message_reused'']
+        is True and p[''body_photo_button_verified''] is True for p in u[''posts'']) for u in r[''updates''])
 
         PY
 
         '
-    - name: Retain original recovery result and exact journal evidence
+    - name: Retain actual maintenance and publication readback receipts
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: monitor-price-incident-20261114-recovery
+        name: monitor-price-incident-20261114-maintenance
         path: ${{ runner.temp }}/monitor-price-incident-safe
         retention-days: 14
         if-no-files-found: error

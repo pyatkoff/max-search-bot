@@ -25,6 +25,8 @@ function monitor_price_channel_preflight(string $platform,array $verification):a
         'write_attempts'=>is_int($writes)&&$writes>=0&&$writes<=1?$writes:null,
         'http_results'=>[],'http_results_truncated'=>($receipt['http_results_truncated']??false)===true||(is_array($http)&&count($http)>5)];
     $valid=is_array($http)&&array_is_list($http)&&!$out['http_results_truncated']&&$out['platform']!=='unknown'
+        &&($verification['state']??null)===$state&&($verification['reason']??null)===$reason
+        &&(!array_key_exists('receipt_valid',$receipt)||$receipt['receipt_valid']===true)
         &&$out['request_count']!==null&&$out['request_count']===count($http)&&$out['write_attempts']===0;
     foreach(is_array($http)?array_slice($http,0,5):[] as $item){
         $item=is_array($item)?$item:[];
@@ -40,7 +42,7 @@ function monitor_price_channel_preflight(string $platform,array $verification):a
     elseif($state==='requires_attention'&&in_array($reason,$identity,true))$error='provider_channel_identity_mismatch';
     elseif($state==='requires_attention'&&$reason==='request_budget_exhausted')$error='provider_channel_preflight_unavailable';
     elseif($state==='ready'&&$reason==='capability_verified'&&$valid)$error=null;
-    $out['error']=$error;return $out;
+    $out['receipt_valid']=$valid;$out['error']=$error;return $out;
 }
 /** Exact compatibility for five accepted pre-batch publications; publisher null is a real role. */
 function monitor_price_legacy_binding(array $row):array {
