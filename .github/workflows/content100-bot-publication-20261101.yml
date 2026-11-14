@@ -99,7 +99,24 @@ jobs:
 
         commit=get(''git/commits/''+os.environ[''GITHUB_SHA''])
 
-        assert [x[''sha''] for x in commit[''parents'']]==[''8cfdf5519730de743b3cf5122a83b652ff45d2dd'']
+        assert [x[''sha''] for x in commit[''parents'']]==[''533eef6fe2edc1d7737ca4d5abdbc094d1c6a363'']
+
+        previous=get(''actions/runs/43580750229'')
+
+        assert previous[''head_sha'']==''533eef6fe2edc1d7737ca4d5abdbc094d1c6a363'' and previous[''run_attempt'']==1 and previous[''status'']==''completed''
+        and previous[''conclusion'']==''failure''
+
+        previous_jobs=get(''actions/runs/43580750229/jobs?per_page=30'')[''jobs'']
+
+        previous_job=[j for j in previous_jobs if j[''id'']==132404775661]
+
+        assert len(previous_job)==1 and previous_job[0][''conclusion'']==''failure''
+
+        previous_steps={s[''number'']:s for s in previous_job[0][''steps'']}
+
+        assert previous_steps[3][''conclusion'']==previous_steps[4][''conclusion'']==''success'' and previous_steps[5][''conclusion'']==''failure''
+
+        assert all(previous_steps[n][''conclusion'']==''skipped'' for n in [6,7,8])
 
         old=get(''actions/runs/43182188959'')
 
@@ -118,7 +135,7 @@ jobs:
         assert len(job)==1 and job[0][''status'']==''completed'' and job[0][''conclusion'']==''success'' and job[0][''run_id'']==43182188959
         and job[0][''head_sha'']==old[''head_sha'']
 
-        raw=subprocess.check_output([''gh'',''api'',''--method'',''GET'',repo+''actions/jobs/131060607947/logs'']).decode()
+        raw=subprocess.check_output([''gh'',''api'',''--allow-escape-sequences'',''--method'',''GET'',repo+''actions/jobs/131060607947/logs'']).decode()
 
         marker=''MONITOR_NO_WRITE_RECONCILIATION=''
 
