@@ -3,6 +3,7 @@ declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionValueContract.php';
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
 require_once __DIR__.'/ModeledConversionStatusBudget.php';
+require_once __DIR__.'/ModeledConversionDeliveryHealth.php';
 
 /** Owner-only recorded-value reconciliation. SELECT-only; never sends or resolves identities. */
 final class ModeledConversionDailyReconciliationReader
@@ -205,6 +206,24 @@ final class ModeledConversionDailyReconciliationReader
             $reasons=['identity_not_found','identity_ambiguous','metrika_visit_window','metrika_visit_unverified','metrika_no_prior_visit','wire_key_collision'];
             foreach($reasons as$i=>$reason)$fields[]="COALESCE(SUM(CASE WHEN ".$queue
                 ." AND HEX(o.last_error)=HEX('".$reason."') THEN 1 ELSE 0 END),0) AS r".$i;
+            // Same pure predicate as the monitor, over this already bounded private owner scope.
+            // Counts only: no row, identifier, financial permission or extra provider request.
+            $monitorDue="o.state='ready' AND o.value_ready_at_unix IS NOT NULL"
+                .' AND o.value_ready_at_unix<='.($now-600).' AND o.next_attempt_unix<='.($now-600);
+            $visitWait=ModeledConversionDeliveryHealth::visitWaitSql();
+            $monitorConditions=[
+                'due_over_600_seconds'=>$monitorDue,
+                'visit_wait_rows'=>"o.state='ready' AND (".$visitWait.')',
+                'alarm_rows'=>$monitorDue.' AND o.next_attempt_unix<=CASE WHEN ('.$visitWait.') THEN '
+                    .($now-ModeledConversionDeliveryHealth::VISIT_RECHECK_OVERDUE_SECONDS).' ELSE '.($now-600).' END',
+                'ordinary_or_inconsistent_due'=>$monitorDue.' AND NOT COALESCE(('.$visitWait.'),0)',
+                'empty_receipt_basis_due'=>$monitorDue." AND o.value_receipt_basis IS NOT NULL AND HEX(o.value_receipt_basis)=''",
+                'clock_order_due'=>$monitorDue.' AND (o.event_unix>o.value_ready_at_unix OR o.next_attempt_unix<o.value_ready_at_unix)',
+                'unverified_visit_due'=>$monitorDue." AND HEX(o.last_error)=HEX('metrika_visit_unverified')",
+                'upload_trace_due'=>$monitorDue.' AND NOT ('.$never.')'];
+            $monitorKeys=array_keys($monitorConditions);
+            foreach(array_values($monitorConditions)as$i=>$condition)$fields[]=
+                'COALESCE(SUM(CASE WHEN o.id IS NOT NULL AND ('.$condition.') THEN 1 ELSE 0 END),0) AS h'.$i;
             // Fixed scalar positional transport avoids copying every repeated metric
             // alias twelve times. Cast before JSON encoding so DECIMAL and counts
             // retain their exact database strings; CAST(NULL) remains JSON null.
@@ -257,11 +276,18 @@ final class ModeledConversionDailyReconciliationReader
                     if($n>$queueSummary['events'])throw new UnexpectedValueException();$holds[$reason]=$n;}
                 $stale=self::count($r['stale_source']??null);
                 if($stale>$summary['events'])throw new UnexpectedValueException();
+                $monitor=[];foreach($monitorKeys as$i=>$key){
+                    $n=self::count($r['h'.$i]??null);
+                    if($n>$summary['events'])throw new UnexpectedValueException();$monitor[$key]=$n;
+                }
+                if($monitor['alarm_rows']>$monitor['due_over_600_seconds']
+                    ||$monitor['ordinary_or_inconsistent_due']>$monitor['alarm_rows'])
+                    throw new UnexpectedValueException();
                 $queueView=['waiting'=>$queueSummary,'due'=>$dueSummary,'held_until_later'=>$futureSummary,
                     'overdue_at_least_600_seconds'=>$overdueSummary,
                     'oldest_due_wait_seconds'=>$oldest===null?null:$now-(int)$oldest,
                     'ready_never_claimed'=>$neverSummary,'ready_max_source_old_or_missing'=>$stale,
-                    'saved_hold_reason_counts'=>$holds];
+                    'saved_hold_reason_counts'=>$holds,'ready_monitor'=>$monitor];
                 if($bucket==='all'&&$category==='all')$all=$summary+['queue'=>$queueView];
                 elseif($bucket==='platform'&&in_array($category,['max','telegram'],true))$platforms[$category]=$summary+['queue'=>$queueView];
                 elseif($bucket==='state'&&in_array($category,self::STATES,true))$states[$category]=$summary;

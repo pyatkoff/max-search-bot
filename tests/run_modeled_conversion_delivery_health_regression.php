@@ -130,7 +130,7 @@ function deliveryHealthVisitHoldAssertions(PDO $p,callable $check):void
         if(!in_array($health['status'],['ok','degraded'],true))throw new RuntimeException('visit_hold_health_unavailable');
         return in_array('ready_queue_stale',$health['flags'],true);
     };
-    foreach(['metrika_no_prior_visit','metrika_visit_window']as$reason){
+    foreach(['metrika_no_prior_visit','metrika_visit_window','metrika_visit_unverified']as$reason){
         foreach([0,600,900,1800,3599,3600,3601]as$overdue){
             $put(['last_error'=>$reason,'next_attempt_unix'=>$now-$overdue]);
             $check('saved negative '.$reason.' keeps bounded recheck grace at '.$overdue.' seconds',
@@ -142,7 +142,7 @@ function deliveryHealthVisitHoldAssertions(PDO $p,callable $check):void
             $check('normal negative retry does not alternate failure and recovery '.$reason.' '.$until,!$stale());
         }
     }
-    foreach(['','transport_not_sent','metrika_visit_unverified','identity_not_found',
+    foreach(['','transport_not_sent','identity_not_found',
         'metrika_no_prior_visit ','METRIKA_NO_PRIOR_VISIT','metrika_visit_window ']as$error){
         $put(['last_error'=>$error]);
         $check('unconfirmed or noncanonical hold retains ten-minute alert '.(string)$error,$stale());
@@ -161,7 +161,7 @@ function deliveryHealthVisitHoldAssertions(PDO $p,callable $check):void
         $put($change);
         $check('upload trace or inconsistent saved row cannot borrow negative recheck grace '.$index,$stale());
     }
-    $put(['upload_id'=>'','upload_status'=>'','claim_token'=>'']);
+    $put(['upload_id'=>'','upload_status'=>'','claim_token'=>'','value_receipt_basis'=>'']);
     $check('empty unclaimed markers remain absent traces for a known negative',!$stale());
     $check('health classification leaves all financial rows settings and upload markers unchanged',$readOnly);
 }

@@ -81,6 +81,19 @@ function modeledBacklogAssertions(PDO $p,callable $check):void
         &&($q['saved_hold_reason_counts']['metrika_visit_unverified']??null)===75
         &&($q['saved_hold_reason_counts']['metrika_visit_window']??null)===75
         &&($q['saved_hold_reason_counts']['metrika_no_prior_visit']??null)===25);
+    $check('private queue monitor counts explain the exact shared alert predicate without customer fields',
+        ($q['ready_monitor']??null)===['due_over_600_seconds'=>150,'visit_wait_rows'=>75,'alarm_rows'=>150,
+            'ordinary_or_inconsistent_due'=>150,'empty_receipt_basis_due'=>0,'clock_order_due'=>150,
+            'unverified_visit_due'=>75,'upload_trace_due'=>0]);
+    $p->exec("UPDATE max_channel_conversion_outbox SET value_ready_at_unix=event_unix,value_receipt_basis='' WHERE id BETWEEN 1 AND 100");
+    $legacy=$reader->readBacklog($now);$diagnosis=$legacy['total']['queue']['ready_monitor']??[];
+    $check('legacy empty markers and generic visit holds remain waiting while their recheck is current',
+        ($legacy['available']??false)&&($diagnosis['due_over_600_seconds']??null)===150
+        &&($diagnosis['visit_wait_rows']??null)===175&&($diagnosis['alarm_rows']??null)===50
+        &&($diagnosis['ordinary_or_inconsistent_due']??null)===50
+        &&($diagnosis['empty_receipt_basis_due']??null)===100
+        &&($diagnosis['clock_order_due']??null)===50&&($diagnosis['unverified_visit_due']??null)===75);
+    $p->exec("UPDATE max_channel_conversion_outbox SET value_ready_at_unix=".($now-600).",value_receipt_basis=NULL WHERE id BETWEEN 1 AND 100");
     $check('backlog state dialogue counts retain overlap and no stored identifier escapes',
         ($r['by_state']['ready']['conversations']??null)===1
         &&($r['by_state']['accepted']['conversations']??null)===1
