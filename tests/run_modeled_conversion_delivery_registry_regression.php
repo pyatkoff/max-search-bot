@@ -400,6 +400,92 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
         $check('rotated single-event evidence uses a private atomic hashed receipt with its original event time',
             $saved['available']&&count($saved['receipt']['events'])===1&&(fileperms($archive)&0777)===0600
             &&ModeledConversionVisitProof::forEvent($saved,$a,$now)['checked_at']===$single['events'][0]['checked_at']);
+
+        // The operational per-event projection reads only its exact archived binding.
+        // Use a new synthetic fingerprint; preserve all pre-existing shared cache files.
+        $savedRow=$a;$savedRow['id']=(string)random_int(810000000,819999999);
+        $savedRow['conversation_id']=(string)random_int(820000000,829999999);
+        $savedRow['client_id']=(string)random_int(830000000,839999999);
+        $savedRow['upload_id']=(string)random_int(840000000,849999999);
+        $savedRow['value_rub']='17.00';
+        $eventPath=new ReflectionMethod(ModeledConversionVisitProof::class,'eventPath');
+        $savedFile=$eventPath->invoke(null,$savedRow);$eventDirectory=dirname($savedFile);$cacheDirectory=dirname($eventDirectory);
+        $createdCache=!is_dir($cacheDirectory);$createdEvents=!is_dir($eventDirectory);
+        if($createdCache&&!mkdir($cacheDirectory,0700))throw new RuntimeException('fixture_saved_cache_directory');
+        if($createdEvents&&!mkdir($eventDirectory,0700))throw new RuntimeException('fixture_saved_event_directory');
+        if(file_exists($savedFile)||is_link($savedFile))throw new RuntimeException('fixture_saved_event_collision');
+        $savedReceipt=$single;$savedEvent=$single['events'][0];
+        $savedEvent['outbox_id']=$savedRow['id'];$savedEvent['conversation_id']=$savedRow['conversation_id'];
+        $savedEvent['fingerprint']=ModeledConversionVisitProof::fingerprint($savedRow);
+        $savedReceipt['events']=[$savedEvent];$savedReceipt['selected_rows']=1;
+        try{
+            $writer->invoke(null,$savedFile,$savedReceipt);clearstatcache(true,$savedFile);
+            $savedBytes=filesize($savedFile);$savedHash=hash_file('sha256',$savedFile);$savedTime=filemtime($savedFile);
+            $apiCalls=count($api->calls);$ledgerBefore=serialize($ledger);
+            $budget=new ModeledConversionStatusBudget();$remaining=$budget->remainingBytes();
+            $projected=ModeledConversionVisitProof::savedForEvent($savedRow,$now,$budget);
+            $check('operational saved visit projection reads exact decimal-bound archive and charges its actual bytes',
+                $projected===ModeledConversionVisitProof::forEvent(
+                    ModeledConversionVisitProof::validateCache($wrap($savedReceipt),$now),$savedRow,$now)
+                &&$projected['linkage']==='unique_visit_reconciled'&&$projected['upload_status']==='PROCESSED'
+                &&$budget->remainingBytes()===$remaining-$savedBytes);
+            $safe=json_encode($projected,JSON_THROW_ON_ERROR);
+            $check('operational saved visit projection exposes no native identities receipt identifiers or archive fingerprint',
+                !str_contains($safe,$savedRow['id'])&&!str_contains($safe,$savedRow['conversation_id'])
+                &&!str_contains($safe,$savedRow['client_id'])&&!str_contains($safe,$savedRow['upload_id'])
+                &&!str_contains($safe,$savedEvent['fingerprint'])&&!str_contains($safe,'outbox_id')
+                &&!str_contains($safe,'client_id')&&!str_contains($safe,'conversation_id'));
+            $stale=ModeledConversionVisitProof::savedForEvent($savedRow,$now+901,new ModeledConversionStatusBudget());
+            $check('operational archived evidence keeps its original check clock and becomes explicitly stale',
+                $stale['available']&&$stale['fresh']===false&&$stale['checked_at']===$projected['checked_at']);
+            $exactDecimal=$savedRow;$exactDecimal['value_rub']=17;
+            $changedOwner=$savedRow;$changedOwner['conversation_id']=(string)((int)$savedRow['conversation_id']+1);
+            $invalid=$savedRow;$invalid['upload_id']='PRIVATE_INVALID_RECEIPT';
+            $check('changed row tuple or decimal serialization never inherits a different archived proof',
+                ModeledConversionVisitProof::savedForEvent($exactDecimal,$now,new ModeledConversionStatusBudget())
+                    ===['available'=>false,'reason'=>'not_recorded']
+                &&ModeledConversionVisitProof::savedForEvent($changedOwner,$now,new ModeledConversionStatusBudget())
+                    ===['available'=>false,'reason'=>'not_recorded']
+                &&ModeledConversionVisitProof::savedForEvent($invalid,$now,new ModeledConversionStatusBudget())
+                    ===['available'=>false,'reason'=>'event_binding_unavailable']);
+            $small=new ModeledConversionStatusBudget();$small->consumeBytes(ModeledConversionStatusBudget::MAX_BYTES-8191);
+            $beforeSmall=$small->remainingBytes();
+            $check('insufficient per-event cache headroom reads no bytes and does not fall back to a whole cache',
+                ModeledConversionVisitProof::savedForEvent($savedRow,$now,$small)
+                    ===['available'=>false,'reason'=>'budget_headroom']
+                &&$small->remainingBytes()===$beforeSmall);
+            $limited=false;
+            try{ModeledConversionVisitProof::savedForEvent($savedRow,$now,new ModeledConversionStatusBudget(0.0,static fn():float=>5.0));}
+            catch(ModeledConversionStatusLimit $e){$limited=$e->reason==='time_limit';}
+            $check('expired operational proof budget fails before archive access',$limited);
+            ModeledConversionVisitProof::savedForEvent($savedRow,$now,new ModeledConversionStatusBudget());
+            $check('repeated saved visit inspections change no archive ledger or provider state',
+                hash_file('sha256',$savedFile)===$savedHash&&filemtime($savedFile)===$savedTime
+                &&serialize($ledger)===$ledgerBefore&&count($api->calls)===$apiCalls);
+            $wrong=$savedReceipt;$wrong['events'][0]['outbox_id']='899999999';
+            $writer->invoke(null,$savedFile,$wrong);clearstatcache(true,$savedFile);
+            $check('an exact-path cache containing another outbox row is withheld without archive fallback',
+                ModeledConversionVisitProof::savedForEvent($savedRow,$now,new ModeledConversionStatusBudget())
+                    ===['available'=>false,'reason'=>'event_changed']);
+            $wrong=$savedReceipt;$wrong['events'][0]['fingerprint']=str_repeat('e',64);
+            $writer->invoke(null,$savedFile,$wrong);clearstatcache(true,$savedFile);
+            $check('a freshly hashed receipt with the wrong row fingerprint remains unavailable',
+                ModeledConversionVisitProof::savedForEvent($savedRow,$now,new ModeledConversionStatusBudget())
+                    ===['available'=>false,'reason'=>'event_changed']);
+            $wrong=$savedReceipt;$wrong['events'][]=$wrong['events'][0];$writer->invoke(null,$savedFile,$wrong);clearstatcache(true,$savedFile);
+            $check('per-event projection refuses a multi-event cache even if its first binding matches',
+                ModeledConversionVisitProof::savedForEvent($savedRow,$now,new ModeledConversionStatusBudget())
+                    ===['available'=>false,'reason'=>'event_changed']);
+            $writer->invoke(null,$savedFile,$savedReceipt);clearstatcache(true,$savedFile);chmod($savedFile,0644);clearstatcache(true,$savedFile);
+            $check('operational saved event reader refuses a publicly readable archive',
+                ModeledConversionVisitProof::savedForEvent($savedRow,$now,new ModeledConversionStatusBudget())
+                    ===['available'=>false,'reason'=>'invalid_cache']);
+        }finally{
+            if(is_file($savedFile))unlink($savedFile);
+            if($createdEvents&&is_dir($eventDirectory))rmdir($eventDirectory);
+            if($createdCache&&is_dir($cacheDirectory))rmdir($cacheDirectory);
+        }
+
         chmod($archive,0644);clearstatcache(true,$archive);
         $check('a publicly readable archived receipt is never trusted',!$reader->invoke(null,$archive,$now,null)['available']);
         unlink($archive);

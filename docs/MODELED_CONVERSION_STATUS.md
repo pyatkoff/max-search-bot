@@ -16,13 +16,36 @@ default. Spare budget may validate one newest immutable current-profile core
 through the existing canonical projection; unavailable storage or budget remains
 explicit in forecast_core and never becomes a zero forecast. The internal detailed
 read, explicit primary-source branch and saved
-receipt branch retain their existing contracts. No new tool argument, scope,
-connection, provider request, financial action or customer interaction is added.
+receipt branch retain their existing contracts. The operational default adds no
+scope, connection, provider request, financial action or customer interaction.
 
 Optional cached visit examples and contextual diagnostics yield their response
 space before the complete day totals and monitor state. Local pipeline and
 external host monitoring retain distinct provenance and freshness. The closed
 administrator ledger remains the existing page; manager access is unchanged.
+
+### Saved visit reconciliation on its own read budget
+
+The fixed optional `visit_reconciliation:true` argument to the same
+`get_modeled_conversion_status` tool reads only the existing private visit-proof
+cache through `ModeledConversionVisitProof::privateSummary`. It is mutually
+exclusive with `receipt_ref`, `primary_source_review` and every other argument;
+false, coerced booleans and arbitrary paths or checkpoints are rejected.
+
+This read retains the same `forecasts:read` grant, active AnyTour administrator,
+authorization checks before and after reading, cumulative64KiB/five-second
+budget and30000-byte tool-result limit. The fixed cache still requires its
+owner-only directory/file permissions, exact hash/schema/scope and8192-byte
+remaining headroom. Missing, invalid, stale or budget-limited evidence stays
+explicit. The complete operational day/backlog priority is unchanged.
+
+The result preserves the saved original checkpoint, cohort count and RUB,
+processed and uniquely reconciled totals, anonymous per-event reasons/check
+times and existing follow-up aggregates. API acceptance or PROCESSED alone is
+not individual visit linkage. Later events do not redefine the frozen cohort.
+No outbox/profile/source-table query, live provider request, cache refresh,
+sender tick, financial upload, queue/configuration write or customer action is
+performed. Existing scheduled reconciliation remains the only automatic updater.
 
 ### Newly observed linkage failures
 
@@ -1111,3 +1134,18 @@ Every result retains `financial_permission=false`,
 No file, intent, marker, cache, event date, identity binding, money, read marker,
 schedule or customer message is changed. Any later financial use requires
 independent evidence and the canonical sender's existing safeguards.
+
+
+## Saved per-row wait evidence
+
+The existing bounded current-Moscow-day timing examples include the allowlisted
+last recorded hold reason, saved next-check-not-before instant and overdue seconds
+for a pending/READY row with a valid due clock. They reuse the same bounded query,
+authorization and byte/time budget; no visitor report, sender tick or source read
+is launched. A null reason is unknown, not proof that the row was never checked.
+`metrika_visit_unverified` combines an absent preceding visit with an unavailable
+report. It is not classified from a different row's latest batch aggregate.
+The saved due instant is a lower bound, not a scheduled execution promise, and a
+saved reason does not establish current attribution eligibility. Arbitrary stored
+error strings remain redacted. Receipt acceptance, processing and individual visit
+association remain distinct.

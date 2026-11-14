@@ -28,7 +28,7 @@ final class ModeledConversionValueDeliveryReader
     private string $frontierUnavailable='projection_unavailable';
     private const STATES=['pending','ready','uploading','accepted','processed','unknown','failed','expired','unmatched'];
     private const UPLOADS=['PREPARED','UPLOADED','EXPORTED','MATCHED','PROCESSED','LINKAGE_FAILURE'];
-    private const ERRORS=['identity_not_found','identity_ambiguous','metrika_visit_window','metrika_visit_unverified','wire_key_collision','scope_unavailable','api_rejected','api_row_rejected',
+    private const ERRORS=['identity_not_found','identity_ambiguous','metrika_visit_window','metrika_visit_unverified','metrika_no_prior_visit','wire_key_collision','scope_unavailable','api_rejected','api_row_rejected',
         'upload_outcome_unknown','event_expired','transport_not_sent','rate_limited'];
     private array $boundFiniteRows=[];
     public function __construct(private PDO $pdo,private $authorize,private ModeledConversionStatusBudget $budget){}
@@ -91,7 +91,32 @@ final class ModeledConversionValueDeliveryReader
         try{
             $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
             $len=$mysql?'OCTET_LENGTH(last_receipt_json)':'LENGTH(CAST(last_receipt_json AS BLOB))';
-            $rows=$this->query("SELECT mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,history_from_unix,history_until_unix,history_cursor,history_ceiling,history_fortnight_requested_at_unix,history_day_receipt_json,history_completed_at_unix,history_scanned,history_collected,history_stats_json,CASE WHEN ".$len."<=8192 THEN last_receipt_json ELSE NULL END AS receipt_json,last_report_success_unix,CASE WHEN ".($mysql?'OCTET_LENGTH(last_report_success_json)':'LENGTH(CAST(last_report_success_json AS BLOB))')."<=8192 THEN last_report_success_json ELSE NULL END AS last_success_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1",[]);
+            if($includeHistoricalEvidence){
+                $rows=$this->query("SELECT mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,history_from_unix,history_until_unix,history_cursor,history_ceiling,history_fortnight_requested_at_unix,history_day_receipt_json,history_completed_at_unix,history_scanned,history_collected,history_stats_json,CASE WHEN ".$len."<=8192 THEN last_receipt_json ELSE NULL END AS receipt_json,last_report_success_unix,CASE WHEN ".($mysql?'OCTET_LENGTH(last_report_success_json)':'LENGTH(CAST(last_report_success_json AS BLOB))')."<=8192 THEN last_report_success_json ELSE NULL END AS last_success_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1",[]);
+            }else{
+                // Operational delivery uses only these five saved receipt fields.
+                // Do not copy history documents or protected repair/source frames that
+                // this view never executes. Preserve each selected native JSON type.
+                $doc="CASE WHEN JSON_VALID(last_receipt_json) AND ".$len."<=8192 THEN last_receipt_json ELSE '{}' END";
+                $keys=['errors','last_recorded_failure','visit_gate_decisions','metrika_report','price_continuity_audit'];
+                $pairs=[];$missing=[];
+                foreach($keys as$key){
+                    $path="'$.".$key."'";
+                    $pairs[]="'".$key."',JSON_EXTRACT(".$doc.",".$path.")";
+                    $absent=$mysql?'JSON_TYPE(JSON_EXTRACT('.$doc.','.$path.')) IS NULL'
+                        :'json_type('.$doc.','.$path.') IS NULL';
+                    // Removing only missing top-level keys keeps explicit/nested JSON nulls.
+                    $missing[]='CASE WHEN '.$absent.' THEN '.$path." ELSE '$.__operational_absent' END";
+                }
+                $projected='JSON_REMOVE(JSON_OBJECT('.implode(',',$pairs).'),'.implode(',',$missing).')';
+                $projectedBytes=$mysql?'OCTET_LENGTH('.$projected.')':'LENGTH(CAST('.$projected.' AS BLOB))';
+                $rows=$this->query('SELECT mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,'
+                    .'CASE WHEN JSON_VALID(last_receipt_json) AND '.$len.'<=8192 AND '.$projectedBytes.'<=8192 THEN '
+                    .$projected.' ELSE NULL END AS receipt_json,last_report_success_unix,CASE WHEN '
+                    .($mysql?'OCTET_LENGTH(last_report_success_json)':'LENGTH(CAST(last_report_success_json AS BLOB))')
+                    ."<=8192 THEN last_report_success_json ELSE NULL END AS last_success_json"
+                    ." FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1",[]);
+            }
             if(!$rows)return $this->unavailable('not_configured');
             $s=$rows[0];
             if(($s['goal_id']??null)!==self::GOAL||($s['contract_version']??null)!==ModeledConversionValueContract::VERSION
@@ -1332,16 +1357,16 @@ final class ModeledConversionValueDeliveryReader
         if(!is_array($saved)||!in_array($saved['v']??null,[1,2],true)||count($saved)!==($saved['v']===2?5:4)
             ||!isset($saved['checked_at_unix'],$saved['attempts'],$saved['reason_counts'])
             ||!is_int($saved['checked_at_unix'])||$saved['checked_at_unix']<$activation||$saved['checked_at_unix']>$now
-            ||!is_int($saved['attempts'])||$saved['attempts']<0||$saved['attempts']>3||!is_array($saved['reason_counts']))return $unknown;
+            ||!is_int($saved['attempts'])||$saved['attempts']<0||$saved['attempts']>18||!is_array($saved['reason_counts']))return $unknown;
         try{if(strlen(json_encode($saved,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>512)return $unknown;}
         catch(JsonException $ignored){return $unknown;}
         $counts=[];foreach(['within_current_window','outside_current_window','no_prior_visit','visit_report_unavailable','unknown']as$reason){
-            $n=$saved['reason_counts'][$reason]??null;if(!is_int($n)||$n<0||$n>3)return $unknown;$counts[$reason]=$n;
+            $n=$saved['reason_counts'][$reason]??null;if(!is_int($n)||$n<0||$n>18)return $unknown;$counts[$reason]=$n;
         }
         if(count($saved['reason_counts'])!==count($counts)||array_sum($counts)!==$saved['attempts'])return $unknown;
         $diagnostics=['available'=>false,'reason'=>'not_recorded_v1'];
         if($saved['v']===2){
-            if(!is_array($saved['failures']??null)||!array_is_list($saved['failures'])||count($saved['failures'])>3)return $unknown;
+            if(!is_array($saved['failures']??null)||!array_is_list($saved['failures'])||count($saved['failures'])>18)return $unknown;
             $stages=[1=>'counter_transport',2=>'counter_http',3=>'counter_metadata',4=>'report_transport',5=>'report_http',
                 6=>'report_scope',7=>'report_shape',8=>'report_row',9=>'internal_unavailable'];
             $flags=[3=>[1=>'counter_object_invalid',2=>'counter_id_invalid',4=>'counter_timezone_type_invalid',8=>'counter_timezone_invalid'],
@@ -1358,7 +1383,7 @@ final class ModeledConversionValueDeliveryReader
                 [$stage,$http,$curl,$mask,$n]=$tuple;
                 if(!is_int($stage)||!isset($stages[$stage])||($http!==null&&(!is_int($http)||$http<100||$http>599))
                     ||($curl!==null&&(!is_int($curl)||$curl<0||$curl>100))||!is_int($mask)||$mask<0||$mask>$limits[$stage]
-                    ||!is_int($n)||$n<1||$n>3||(in_array($stage,[3,6,7],true)&&$mask===0)||($stage===9&&($http!==null||$curl!==null)))return $unknown;
+                    ||!is_int($n)||$n<1||$n>18||(in_array($stage,[3,6,7],true)&&$mask===0)||($stage===9&&($http!==null||$curl!==null)))return $unknown;
                 if($stage===8){
                     $base=$mask&127;$clock=$base&96;
                     if($base===0||(($mask&384)!==0&&$base!==4))return $unknown;

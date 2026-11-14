@@ -17,6 +17,28 @@ final class ModeledConversionVisitProof
         return hash('sha256',json_encode(array_map(static fn(string $k):string=>(string)($r[$k]??''),
             ['id','conversation_id','platform','target','value_rub','event_unix','client_id','upload_id']),JSON_THROW_ON_ERROR));
     }
+    /** Saved per-event archive only; no whole-cache fallback, provider query or financial mutation. */
+    public static function savedForEvent(array $row,int $now,ModeledConversionStatusBudget $budget):array
+    {
+        $budget->check();
+        foreach(['id','conversation_id','client_id','upload_id']as$key)
+            if(!isset($row[$key])||preg_match('/\\A[1-9][0-9]{0,'.($key==='client_id'?'39':'19').'}\\z/D',(string)$row[$key])!==1)
+                return ['available'=>false,'reason'=>'event_binding_unavailable'];
+        if(!in_array($row['platform']??null,['max','telegram'],true)||!ModeledConversionValueContract::isKey($row['target']??null)
+            ||!isset($row['value_rub'],$row['event_unix'])||!is_numeric($row['value_rub'])||(float)$row['value_rub']<=0
+            ||(float)$row['value_rub']>ModeledConversionValueContract::MAX_VALUE_RUB
+            ||(!is_int($row['event_unix'])&&(!is_string($row['event_unix'])||preg_match('/\\A[1-9][0-9]{8,10}\\z/D',$row['event_unix'])!==1))||(int)$row['event_unix']<946684800||(int)$row['event_unix']>$now)
+            return ['available'=>false,'reason'=>'event_binding_unavailable'];
+        $cache=self::readCacheAt(self::eventPath($row),$now,$budget);
+        if(($cache['available']??false)!==true)return $cache;
+        $events=$cache['receipt']['events'];
+        if(count($events)!==1||($events[0]['outbox_id']??null)!==(string)$row['id']
+            ||!hash_equals((string)($events[0]['fingerprint']??''),self::fingerprint($row)))
+            return ['available'=>false,'reason'=>'event_changed'];
+        // These checks guarantee forEvent returns this entry without an unbudgeted prior-cache read.
+        $result=self::forEvent($cache,$row,$now);$budget->check();return $result;
+    }
+
     public static function ledger(PDO $pdo):array
     {
         require_once __DIR__.'/ModeledConversionDeliveryRegistry.php';

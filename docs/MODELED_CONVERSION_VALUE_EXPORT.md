@@ -227,3 +227,50 @@ The existing delivery ledger links to both views. Advertising goal, target, valu
 Current and previous completed delivery days use `Europe/Moscow`, matching the closed administrator ledger. A day is selected from the Moscow midnight interval; original event, upload and receipt instants remain unchanged. A cached live-day report using the former calendar is explicitly unavailable until the existing GET-only verifier refreshes it, rather than being relabelled.
 
 The frozen launch-history review and sent-before checkpoint audits retain their original recorded calendar and immutable time bounds. They are historical evidence, not the live today/yesterday totals. Their receipt members, monetary allocations and provider uploads are not rewritten or replayed by a report-calendar change.
+
+
+## Terminal expiry of an ordinary unsent READY event
+
+The canonical three-row READY pass stops rechecking an ordinary event whose
+original instant is strictly older than `ModeledConversionAttributionWindow::MAX_SECONDS`.
+Every admissible visit must precede that event, so no such visit can remain within
+the maximum current window. The inclusive boundary still follows the actual
+visitor report; this guard never assumes the ten-day Direct classification for
+a younger event. It uses the existing configured window, not a separate TTL.
+
+Only a never-claimed READY row with no upload, receipt, API/processing clock or
+known financial attempt may become `expired/event_expired`. The exact nullable
+row tuple, due clock, current send configuration and saved protected-frame bytes
+must still match in the same update. Frozen originals, unknown protected-frame
+state and concurrent changes remain held. Original event, identity, assigned
+amount and reservation are retained; nothing is redated, deleted, reallocated or
+replayed. Expiry performs no visitor-report read or conversion upload and uses
+only the existing bounded pass. Fresh zero-due rows retain their priority; the
+25-subject lookup, three-send and two-receipt limits are unchanged. Actual queue
+expiry is an operational observation after installation, not implied by a source
+test or the count of existing READY rows.
+
+## One early-hours retry hint in the existing READY pass
+
+The canonical sender may reserve one priority hint for the newest original event
+among due ordinary retries within six hours. Only a never-claimed live-origin
+READY row with no upload, receipt or API/processing evidence qualifies. Frozen
+originals and other reserved rows are excluded; unknown protected membership uses
+the existing FIFO unchanged; a failed optional local hint read also falls back
+to that FIFO. Empty financial trace fields are byte-empty, not whitespace aliases.
+This six-hour bound is an operational heuristic,
+not an attribution window or a prediction-quality claim.
+
+Never-checked zero-due rows remain first. If capacity remains, the current READY
+query rereads the hinted row and repeats its complete admission predicate before
+ranking it ahead of the remaining global FIFO. A changed, claimed, no-longer-due
+or no-longer-fresh hint gains no priority. The same hint joins the existing
+four-row source lookahead, within the unchanged 25-subject lookup budget; no
+stale pre-lookup row is dispatched. Actual source, price, visitor-window and
+financial claim checks remain mandatory.
+
+The pass still selects at most three rows and the existing receipt lane remains
+unchanged. A persistent newest no-prior-visit retry may use this one slot again;
+other capacity follows FIFO, while new zero-due work can consume all three slots.
+This does not promise a five-minute deadline for every retry. No new scheduler,
+queue, provider transport, replay epoch, value or event timestamp is introduced.

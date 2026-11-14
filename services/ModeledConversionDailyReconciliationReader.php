@@ -145,6 +145,159 @@ final class ModeledConversionDailyReconciliationReader
             $this->auth();return['available'=>false,'reason'=>'read_limit'];
         }catch(Throwable $error){if($own&&$this->pdo->inTransaction())$this->pdo->rollBack();throw$error;}
     }
+    /**
+     * Full current-owner ledger movement when it fits the explicit metadata bound.
+     * No transcript/profile, identity resolution, provider request or delivery is performed.
+     */
+    public function readBacklog(int $now):array
+    {
+        $this->started=($this->clock)();$this->bytes=0;$this->auth();
+        if($now<946684800)return$this->done(['available'=>false,'reason'=>'invalid_clock']);
+        if($this->pdo->inTransaction())return$this->done(['available'=>false,'reason'=>'outer_transaction']);
+        $own=false;
+        try{
+            $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+            if($mysql){$this->pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');$this->pdo->exec('SET TRANSACTION READ ONLY');}
+            $this->pdo->beginTransaction();$own=true;
+            // Apply the canonical exact-owner scope before the bound. Only these fixed scalar
+            // columns enter the derived table; no customer ID or row is copied to the caller.
+            $meta='SELECT o.id,o.platform,o.state,o.conversation_id,o.client_id,o.value_rub,o.event_unix,'
+                .'o.next_attempt_unix,o.value_ready_at_unix,o.last_error,o.attempts,o.claim_token,'
+                .'o.claimed_at_unix,o.upload_id,o.upload_status,o.value_receipt_basis,'
+                .'o.value_api_accepted_at_unix,o.value_processed_at_unix,o.tracker_observed_unix '
+                .$this->base($mysql).' ORDER BY o.id DESC LIMIT 10001';
+            $groups=["SELECT 'all' AS bucket,'all' AS category",
+                "SELECT 'platform','max'","SELECT 'platform','telegram'"];
+            foreach(self::STATES as$state)$groups[]="SELECT 'state','".$state."'";
+            $queue="o.state IN ('pending','ready')";
+            $due=$queue.' AND o.next_attempt_unix<='.$now;
+            $future=$queue.' AND o.next_attempt_unix>'.$now;
+            $dueAt='CASE WHEN o.next_attempt_unix>0 THEN o.next_attempt_unix'
+                .' WHEN o.value_ready_at_unix>=946684800 AND o.value_ready_at_unix<='.$now
+                .' THEN o.value_ready_at_unix ELSE o.event_unix END';
+            $overdue=$due.' AND ('.$dueAt.')<='.($now-600);
+            $empty=static fn(string $field):string=>'('.$field." IS NULL OR HEX(".$field.")='')";
+            $never="o.state='ready' AND o.attempts=0 AND o.claimed_at_unix IS NULL"
+                .' AND '.$empty('o.claim_token').' AND '.$empty('o.upload_id').' AND '.$empty('o.upload_status')
+                .' AND '.$empty('o.value_receipt_basis')
+                .' AND o.value_api_accepted_at_unix IS NULL AND o.value_processed_at_unix IS NULL';
+            $metric=static function(string $condition,string $prefix):array{
+                $condition='o.id IS NOT NULL AND ('.$condition.')';
+                return ['COALESCE(SUM(CASE WHEN '.$condition.' THEN 1 ELSE 0 END),0) AS '.$prefix.'n',
+                    'COUNT(DISTINCT CASE WHEN '.$condition.' THEN o.conversation_id ELSE NULL END) AS '.$prefix.'c',
+                    'COALESCE(SUM(CASE WHEN '.$condition.' THEN o.value_rub ELSE 0 END),0) AS '.$prefix.'v'];
+            };
+            $stateHex=implode(',',array_map(static fn(string $v):string=>"HEX('".$v."')",self::STATES));
+            $bad="o.state IS NULL OR HEX(o.state) NOT IN (".$stateHex.")"
+                ." OR o.platform IS NULL OR HEX(o.platform) NOT IN (HEX('max'),HEX('telegram'))"
+                .' OR o.value_rub IS NULL OR o.value_rub<=0 OR o.value_rub>'.ModeledConversionValueContract::MAX_VALUE_RUB
+                .' OR o.event_unix IS NULL OR o.event_unix<946684800 OR o.event_unix>'.$now
+                .' OR ('.$queue.' AND (o.next_attempt_unix IS NULL OR o.next_attempt_unix<0))';
+            $fields=['b.bucket,b.category',...$metric('1=1',''),
+                'COUNT(DISTINCT CASE WHEN o.client_id IS NOT NULL AND HEX(o.client_id)<>\'\' THEN o.client_id ELSE NULL END) AS identities',
+                ...$metric($queue,'q_'),...$metric($due,'d_'),...$metric($future,'f_'),...$metric($overdue,'o_'),
+                ...$metric($never,'u_'),
+                'MIN(CASE WHEN o.id IS NOT NULL AND ('.$due.') THEN '.$dueAt.' ELSE NULL END) AS oldest_due',
+                'COALESCE(SUM(CASE WHEN o.id IS NOT NULL AND ('.$bad.') THEN 1 ELSE 0 END),0) AS bad',
+                "COALESCE(SUM(CASE WHEN o.state='ready' AND o.platform='max' AND"
+                    .' (o.tracker_observed_unix IS NULL OR o.tracker_observed_unix<'.($now-864000)
+                    .' OR o.tracker_observed_unix>'.$now.') THEN 1 ELSE 0 END),0) AS stale_source'];
+            $reasons=['identity_not_found','identity_ambiguous','metrika_visit_window','metrika_visit_unverified','metrika_no_prior_visit','wire_key_collision'];
+            foreach($reasons as$i=>$reason)$fields[]="COALESCE(SUM(CASE WHEN ".$queue
+                ." AND HEX(o.last_error)=HEX('".$reason."') THEN 1 ELSE 0 END),0) AS r".$i;
+            // Fixed scalar positional transport avoids copying every repeated metric
+            // alias twelve times. Cast before JSON encoding so DECIMAL and counts
+            // retain their exact database strings; CAST(NULL) remains JSON null.
+            $names=[];$packed=[];
+            foreach(array_slice($fields,1)as$field){
+                if(preg_match('/\A(.+) AS ([a-z][a-z0-9_]*)\z/sD',$field,$match)!==1)
+                    throw new UnexpectedValueException();
+                $names[]=$match[2];$packed[]='CAST(('.$match[1].') AS '.($mysql?'CHAR':'TEXT').')';
+            }
+            if(count(array_unique($names))!==count($names))throw new UnexpectedValueException();
+            $wire='b.bucket,b.category,'.($mysql?'JSON_ARRAY':'json_array').'('.implode(',',$packed).') AS packet';
+            $rows=$this->query('SELECT '.$wire
+                .' FROM ('.implode(' UNION ALL ',$groups).') b LEFT JOIN ('.$meta.') o'
+                ." ON b.bucket='all' OR (b.bucket='platform' AND HEX(o.platform)=HEX(b.category))"
+                ." OR (b.bucket='state' AND HEX(o.state)=HEX(b.category))"
+                .' GROUP BY b.bucket,b.category',[],12,true);
+            if(count($rows)!==12)throw new UnexpectedValueException();
+            // query() already charged the actual encoded wire rows before decoding.
+            foreach($rows as&$row){
+                if(!is_string($row['packet']??null))throw new UnexpectedValueException();
+                $values=json_decode($row['packet'],true,8,JSON_THROW_ON_ERROR);
+                if(!is_array($values)||!array_is_list($values)||count($values)!==count($names))
+                    throw new UnexpectedValueException();
+                foreach($values as$value)if($value!==null&&!is_string($value))throw new UnexpectedValueException();
+                $row=['bucket'=>$row['bucket'],'category'=>$row['category']]+array_combine($names,$values);
+            }
+            unset($row);
+            $seen=[];$all=null;$platforms=[];$states=[];
+            foreach($rows as$r){
+                $bucket=$r['bucket']??null;$category=$r['category']??null;
+                if(!is_string($bucket)||!is_string($category)||isset($seen[$bucket.':'.$category])
+                    ||self::count($r['bad']??null)!==0)throw new UnexpectedValueException();
+                $seen[$bucket.':'.$category]=true;$summary=self::summary($r);
+                $ids=self::count($r['identities']??null);
+                if($ids>$summary['events'])throw new UnexpectedValueException();
+                $summary['stored_client_ids']=$ids;
+                $queueSummary=self::summary($r,'q_');$dueSummary=self::summary($r,'d_');
+                $futureSummary=self::summary($r,'f_');$overdueSummary=self::summary($r,'o_');
+                $neverSummary=self::summary($r,'u_');
+                if($queueSummary['events']!==$dueSummary['events']+$futureSummary['events']
+                    ||self::cents($queueSummary['value_rub'])!==self::cents($dueSummary['value_rub'])+self::cents($futureSummary['value_rub'])
+                    ||$overdueSummary['events']>$dueSummary['events']||$neverSummary['events']>$summary['events'])
+                    throw new UnexpectedValueException();
+                $oldest=$r['oldest_due']??null;
+                if($oldest!==null&&((!is_int($oldest)&&!is_string($oldest))
+                    ||preg_match('/\A[1-9][0-9]{8,10}\z/D',(string)$oldest)!==1
+                    ||(int)$oldest<946684800||(int)$oldest>$now))throw new UnexpectedValueException();
+                if(($dueSummary['events']===0)!==($oldest===null))throw new UnexpectedValueException();
+                $holds=[];foreach($reasons as$i=>$reason){$n=self::count($r['r'.$i]??null);
+                    if($n>$queueSummary['events'])throw new UnexpectedValueException();$holds[$reason]=$n;}
+                $stale=self::count($r['stale_source']??null);
+                if($stale>$summary['events'])throw new UnexpectedValueException();
+                $queueView=['waiting'=>$queueSummary,'due'=>$dueSummary,'held_until_later'=>$futureSummary,
+                    'overdue_at_least_600_seconds'=>$overdueSummary,
+                    'oldest_due_wait_seconds'=>$oldest===null?null:$now-(int)$oldest,
+                    'ready_never_claimed'=>$neverSummary,'ready_max_source_old_or_missing'=>$stale,
+                    'saved_hold_reason_counts'=>$holds];
+                if($bucket==='all'&&$category==='all')$all=$summary+['queue'=>$queueView];
+                elseif($bucket==='platform'&&in_array($category,['max','telegram'],true))$platforms[$category]=$summary+['queue'=>$queueView];
+                elseif($bucket==='state'&&in_array($category,self::STATES,true))$states[$category]=$summary;
+                else throw new UnexpectedValueException();
+            }
+            if($all===null||count($platforms)!==2||count($states)!==count(self::STATES))throw new UnexpectedValueException();
+            $n=0;$cents=0;foreach($states as$r){$n+=$r['events'];$cents+=self::cents($r['value_rub']);}
+            if($n!==$all['events']||$cents!==self::cents($all['value_rub'])
+                ||$platforms['max']['events']+$platforms['telegram']['events']!==$all['events']
+                ||self::cents($platforms['max']['value_rub'])+self::cents($platforms['telegram']['value_rub'])!==self::cents($all['value_rub']))
+                throw new UnexpectedValueException();
+            $this->pdo->rollBack();$own=false;
+            return$this->done(['available'=>true,'version'=>'modeled_current_backlog_v1',
+                'as_of'=>gmdate('Y-m-d\TH:i:s\Z',$now),'timezone'=>'Europe/Moscow','currency'=>'RUB',
+                'scope'=>'current_exact_owner_admitted_native_goal_rows',
+                'coverage'=>['basis'=>'newest_current_scope_scalar_rows','max_rows'=>10000,
+                    'inspected_rows'=>$all['events'],'complete_within_bound'=>$all['events']<=10000],
+                'total'=>$all,'by_platform'=>$platforms,'by_state'=>$states,
+                'interpretation'=>['sender_rechecks_current_eligibility'=>true,
+                    'saved_holds_are_not_current_visit_checks'=>true,
+                    'never_claimed_is_not_financial_permission'=>true,
+                    'identities_are_stored_client_ids_not_verified_people'=>true,
+                    'dialogue_counts_overlap_across_states'=>true,
+                    'incomplete_bound_is_not_the_whole_backlog'=>true,
+                    'no_ids_text_provider_requests_or_writes'=>true]]);
+        }catch(PDOException $ignored){
+            if($own&&$this->pdo->inTransaction())$this->pdo->rollBack();
+            return$this->done(['available'=>false,'reason'=>'storage_unavailable']);
+        }catch(UnexpectedValueException|JsonException $ignored){
+            if($own&&$this->pdo->inTransaction())$this->pdo->rollBack();
+            return$this->done(['available'=>false,'reason'=>'invalid_aggregate']);
+        }catch(OverflowException $ignored){
+            if($own&&$this->pdo->inTransaction())$this->pdo->rollBack();
+            $this->auth();return['available'=>false,'reason'=>$ignored->getMessage()==='backlog_headroom'?'budget_headroom':'read_limit'];
+        }catch(Throwable $error){if($own&&$this->pdo->inTransaction())$this->pdo->rollBack();throw$error;}
+    }
     private function base(bool $mysql):string
     {
         $cast=$mysql?'CHAR':'TEXT';$peer=$mysql?"CONCAT('-',o.external_user_id)":"'-'||o.external_user_id";
@@ -193,8 +346,9 @@ final class ModeledConversionDailyReconciliationReader
         return(int)$m[1]*100+(int)str_pad($m[2]??'',2,'0');
     }
     private static function rub(int $cents):int|float{return$cents%100===0?intdiv($cents,100):$cents/100;}
-    private function query(string $sql,array $args,int $limit):array
+    private function query(string $sql,array $args,int $limit,bool $boundedBacklog=false):array
     {
+        if($boundedBacklog)$this->backlogHeadroom();
         $this->guard();$this->auth();
         if($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
             $left=(int)floor((self::MAX_SECONDS-(($this->clock)()-$this->started))*1000);
@@ -203,13 +357,28 @@ final class ModeledConversionDailyReconciliationReader
             $sql=preg_replace('/\ASELECT /','SELECT /*+ MAX_EXECUTION_TIME('.min(4500,$left).') */ ',$sql,1);
         }
         $q=$this->pdo->prepare($sql);$q->execute($args);$rows=[];
-        try{while(($r=$q->fetch(PDO::FETCH_ASSOC))!==false){
+        try{while(true){
+            // The backlog SQL has exactly twelve fixed buckets. Stop after the twelfth
+            // without copying an unnecessary sentinel row; guard BEFORE each fetch.
+            if($boundedBacklog){if(count($rows)>=$limit)break;$this->backlogHeadroom();}
+            $r=$q->fetch(PDO::FETCH_ASSOC);if($r===false)break;
             if(count($rows)>=$limit)throw new UnexpectedValueException();
             $copied=strlen(json_encode($r,JSON_THROW_ON_ERROR));
             $this->bytes+=$copied;if($this->budget!==null)$this->budget->consumeBytes($copied);
+            if($boundedBacklog&&$copied>2048)throw new UnexpectedValueException();
             $this->guard();$rows[]=$r;
         }}finally{$q->closeCursor();}
         $this->auth();$this->guard();return$rows;
+    }
+    /** Fixed scalar aliases, at most10001 rows and25000 RUB bound each encoded bucket below2KiB.
+     * Keep8KiB for the existing post-query/result authorization checks before another copy.
+     * A headroom omission rolls back; bytes already copied remain charged to the shared budget.
+     */
+    private function backlogHeadroom():void
+    {
+        $this->guard();
+        if($this->budget!==null&&$this->budget->remainingBytes()<2048+8192)
+            throw new OverflowException('backlog_headroom');
     }
     private function guard():void
     {if($this->budget!==null)$this->budget->check();

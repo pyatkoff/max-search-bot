@@ -64,7 +64,7 @@ function modeledValueSave(PDO $p,array $w):void
     $p->prepare("INSERT INTO modeled_conversion_profile_versions(project_key,platform,customer_key,conversation_id,profile_json) VALUES(?,?,?,?,?)")
         ->execute([$s['project_key'],$s['platform'],$s['customer_key'],$s['conversation_id'],json_encode($w,JSON_THROW_ON_ERROR)]);
 }
-final class ModeledValueTestWire
+class ModeledValueTestWire
 {
     public array $goals=[['id'=>'9','type'=>'action','name'=>'unchanged','conditions'=>[['type'=>'exact','url'=>'existing_goal']]]];
     public array $csv=[];public array $receipts=[];public int $creates=0;public int $posts=0;public int $gets=0;public int $visitReads=0;
@@ -118,7 +118,7 @@ final class ModeledValueTestWire
     }
     public function api():MetrikaOfflineClient{return new MetrikaOfflineClient('98615635','fixture-only',[$this,'request']);}
 }
-final class ModeledValueTestLookup
+class ModeledValueTestLookup
 {
     public bool $missing=false;public int $calls=0;public ?int $observedAt=1793500000;
     public function lookup(string $counter,array $users):array
@@ -421,13 +421,120 @@ function modeledValueReadyCurrentLookupAssertions(PDO $p,callable $check):void
         &&modeledValueFailureJsonEqual($saved['finite_visit_recovery'],$receipt['finite_visit_recovery']));
 }
 
+
+/** Observe actual result copies, rather than trusting a SELECT's intended projection. */
+final class ModeledValueOperationalReceiptStatement extends PDOStatement
+{
+    public static bool $active=false;
+    public static array $copies=[];
+    protected function __construct(){}
+    public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args):array
+    {
+        $rows=parent::fetchAll($mode,...$args);
+        if(self::$active)self::$copies[]=$rows;
+        return $rows;
+    }
+}
+
+/** Real saved operational values; unrelated archived evidence must cost no read bytes. */
+function modeledValueOperationalReceiptProjectionAssertions(PDO $p,callable $check):void
+{
+    require_once dirname(__DIR__).'/services/ModeledConversionValueDeliveryReader.php';
+    $now=1793670000;modeledValueSchema($p);$wire=new ModeledValueTestWire($now-600);$api=$wire->api();
+    $owner=new ModeledConversionValueExport($p);$owner->configure('create-goal',$api,$now-500);$owner->configure('enable',$api,$now-400);
+    modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,17801),$now-120));
+    $lookup=new ModeledValueTestLookup();$lookup->observedAt=$now-900;
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now,static fn(string $chat):bool=>true);
+    $settings=ModeledConversionValueExport::settings($p);
+    $receipt=json_decode($settings['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    $receipt['metrika_report']['synthetic_nullable']=null;
+    $write=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?,history_day_receipt_json=?,history_stats_json=? WHERE project_key='anytour'");
+    $write->execute([json_encode($receipt,JSON_THROW_ON_ERROR),null,null]);
+    $networkBefore=serialize([$wire->gets,$wire->posts,$wire->csv,$wire->receipts]);
+    $canonical=static function(mixed $v)use(&$canonical):mixed{
+        if(!is_array($v))return $v;
+        foreach($v as$key=>$item)$v[$key]=$canonical($item);
+        if(!array_is_list($v))ksort($v);
+        return $v;
+    };
+    $snapshot=static function()use($p):string{
+        $data=[];foreach(['modeled_conversion_value_export_settings','max_channel_conversion_outbox',
+            'modeled_conversion_profile_versions','conversations','customer_channels','advertising_visit_observations','modeled_conversion_price_audit']as$table)
+            $data[$table]=$p->query('SELECT * FROM '.$table.' ORDER BY '.($table==='modeled_conversion_value_export_settings'?'project_key':($table==='modeled_conversion_price_audit'?'outbox_id':'id')))->fetchAll(PDO::FETCH_ASSOC);
+        return hash('sha256',json_encode($data,JSON_THROW_ON_ERROR));
+    };
+    $previous=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ModeledValueOperationalReceiptStatement::class]);
+    $read=static function(?ModeledConversionStatusBudget $budget=null,bool $authorizationCost=false)use($p,$now):array{
+        $budget??=new ModeledConversionStatusBudget();$before=$budget->remainingBytes();$authorizations=0;
+        ModeledValueOperationalReceiptStatement::$copies=[];ModeledValueOperationalReceiptStatement::$active=true;
+        try{
+            $value=(new ModeledConversionValueDeliveryReader($p,static function()use($budget,$authorizationCost,&$authorizations):void{
+                $authorizations++;if($authorizationCost)$budget->consumeBytes(512);
+            },$budget))->read($now,false);
+        }finally{ModeledValueOperationalReceiptStatement::$active=false;}
+        $copies=ModeledValueOperationalReceiptStatement::$copies;$copied=0;
+        foreach($copies as$rows)$copied+=strlen(json_encode($rows,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        return [$value,$copies,$copied,$before-$budget->remainingBytes(),$authorizations];
+    };
+    try{
+        [$baseline,$baseCopies,$baseBytes]=$read();
+        $check('operational receipt projection preserves real saved counters typed visit decisions and the cached report',
+            ($baseline['available']??false)===true&&$baseline['api_accepted_receipts']['events']===1
+            &&$baseline['last_tick_errors']===0&&$baseline['visit_gate_decisions']['available']===true
+            &&$baseline['visit_gate_decisions']['attempts']===1
+            &&$baseline['metrika_goal_report']['status']==='ok'&&$baseline['metrika_goal_report']['sampled']===false);
+        $padded=$receipt;$padded['finite_visit_evidence']=['PRIVATE_UNUSED_FROZEN_FRAME'=>''];
+        $raw=json_encode($padded,JSON_THROW_ON_ERROR);$padding=7600-strlen($raw);
+        if($padding<1)throw new RuntimeException('fixture_operational_receipt_padding');
+        $padded['finite_visit_evidence']['PRIVATE_UNUSED_FROZEN_FRAME']=str_repeat('p',$padding);
+        $paddedRaw=json_encode($padded,JSON_THROW_ON_ERROR);
+        $history=json_encode(['PRIVATE_UNUSED_HISTORY'=>str_repeat('h',6000)],JSON_THROW_ON_ERROR);
+        $write->execute([$paddedRaw,$history,$history]);$before=$snapshot();
+        [$got,$copies,$copied,$charged]=$read();
+        $actual=json_decode($copies[0][0]['receipt_json'],true,32,JSON_THROW_ON_ERROR);
+        $expected=array_intersect_key($receipt,array_flip(['errors','last_recorded_failure','visit_gate_decisions','metrika_report','price_continuity_audit']));
+        $copiedJson=json_encode($copies,JSON_THROW_ON_ERROR);
+        $check('unrequested history and frozen frames never enter operational result copies or change their saved financial meaning',
+            strlen($paddedRaw)===7600&&strlen($paddedRaw)<8192&&$got===$baseline
+            &&$canonical($actual)===$canonical($expected)&&$copied===$baseBytes&&$copied<8192&&$charged===$copied
+            &&!str_contains($copiedJson,'PRIVATE_UNUSED_')&&!array_key_exists('history_day_receipt_json',$copies[0][0])
+            &&!array_key_exists('history_stats_json',$copies[0][0])&&$snapshot()===$before);
+        $low=new ModeledConversionStatusBudget();$low->consumeBytes(ModeledConversionStatusBudget::MAX_BYTES-12288);
+        [$underPressure,$lowCopies,$lowCopied,$lowCharged,$authCalls]=$read($low,true);
+        $check('a real twelve-KiB remaining budget still returns live delivery and retains the four-KiB authorization floor',
+            $underPressure===$baseline&&$lowCopied===$copied&&$authCalls>=2
+            &&$lowCharged===$lowCopied+512*$authCalls&&$low->remainingBytes()>=4096&&$snapshot()===$before);
+        $sparse=['errors'=>null,'metrika_report'=>$receipt['metrika_report'],'price_continuity_audit'=>null,
+            'PRIVATE_UNUSED_FROZEN_FRAME'=>str_repeat('s',1000)];
+        $write->execute([json_encode($sparse,JSON_THROW_ON_ERROR),$history,$history]);$sparseBefore=$snapshot();
+        [$sparseValue,$sparseCopies]=$read();
+        $selected=json_decode($sparseCopies[0][0]['receipt_json'],true,32,JSON_THROW_ON_ERROR);
+        $expectedSparse=array_intersect_key($sparse,array_flip(['errors','last_recorded_failure','visit_gate_decisions','metrika_report','price_continuity_audit']));
+        $check('SQL JSON projection distinguishes missing top-level evidence from explicit null without losing nested JSON types',
+            $canonical($selected)===$canonical($expectedSparse)
+            &&array_key_exists('errors',$selected)&&$selected['errors']===null
+            &&!array_key_exists('last_recorded_failure',$selected)&&!array_key_exists('visit_gate_decisions',$selected)
+            &&array_key_exists('synthetic_nullable',$selected['metrika_report'])&&$selected['metrika_report']['synthetic_nullable']===null
+            &&$selected['metrika_report']['sampled']===false&&$sparseValue['last_tick_errors']===null
+            &&$sparseValue['metrika_goal_report']===$baseline['metrika_goal_report']&&$snapshot()===$sparseBefore);
+        $check('repeated operational receipt reads make no provider calls and mutate none of the saved financial or native rows',
+            serialize([$wire->gets,$wire->posts,$wire->csv,$wire->receipts])===$networkBefore&&$snapshot()===$sparseBefore&&!$p->inTransaction());
+    }finally{
+        ModeledValueOperationalReceiptStatement::$active=false;
+        $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$previous);
+    }
+}
+
 function modeledValueAssertions(PDO $p,callable $check):void
 {
+    modeledValueOperationalReceiptProjectionAssertions($p,$check);
     modeledValueOldCurrentSourceAssertions($p,$check);
     modeledValueReadyCurrentLookupAssertions($p,$check);
     modeledValueMaxAttributionWindowAssertions($p,$check);
     modeledValueReportResponseEvidenceAssertions($check);
     modeledValueCurrentVisitLookbackAssertions($check);
+    modeledValueBatchVisitAssertions($check);
+    modeledValueBatchWorkerAssertions($p,$check);
     modeledValueReportTimeoutAssertions($check);
     modeledValueAttributionFailureAssertions($check);
     foreach([
@@ -990,8 +1097,205 @@ function modeledValueCatchUpAssertions(PDO $p,callable $check):void
         &&$lookup->calls===1&&$wire->posts===3&&$wire->gets===6&&$wire->visitReads===3&&$receipt()['accepted']===3&&$receipt()['errors']===0);
 }
 
+/** Real canonical ticks: an event older than every allowed preceding visit is terminal, never replayed. */
+function modeledValueOrdinaryExpiryAssertions(PDO $p,callable $check):void
+{
+    $now=1793660000;$old=$now-ModeledConversionAttributionWindow::MAX_SECONDS-1;$gate=static fn(string $chat):bool=>true;
+    $setup=static function(array $events,string $platform='telegram')use($p,$now,$gate):array{
+        modeledValueSchema($p);$wire=new ModeledValueTestWire($now-60);$owner=new ModeledConversionValueExport($p);
+        $owner->configure('create-goal',$wire->api(),min($events)-10);$owner->configure('enable',$wire->api(),min($events)-10);
+        foreach($events as$i=>$event)modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,9601+$i,$platform),$event));
+        $owner->collect(ModeledConversionValueExport::settings($p),$now,$gate);
+        $rows=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        if(count($rows)!==count($events))throw new RuntimeException('expiry_fixture_rows');
+        $ready=$p->prepare("UPDATE max_channel_conversion_outbox SET state='ready',event_unix=?,client_id=?,value_ready_at_unix=?,next_attempt_unix=?,tracker_record_id=?,tracker_observed_unix=?,last_error='metrika_visit_unverified' WHERE id=?");
+        foreach($rows as$i=>$row)$ready->execute([$events[$i],'880000'.$row['external_user_id'],$events[$i],$events[$i]===$now?0:$now-300,
+            $platform==='max'?'77':null,$platform==='max'?$events[$i]-1:null,$row['id']]);
+        $lookup=new ModeledValueTestLookup();if($platform==='max')$lookup->observedAt=min($events)-1;
+        return[$wire,$lookup];
+    };
+    $rows=static fn():array=>$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $immutable=static function(array $row):array{unset($row['state'],$row['last_error']);return$row;};
+
+    [$wire,$lookup]=$setup([$old,$old,$old,$old]);$before=$rows();
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);$after=$rows();
+    $check('strictly expired ordinary READY keeps immutable values and uses only the existing three-row pass without visitor reads',
+        count(array_filter($after,static fn(array $r):bool=>$r['state']==='expired'&&$r['last_error']==='event_expired'))===3
+        &&$after[3]['state']==='ready'&&array_map($immutable,$after)===array_map($immutable,$before)
+        &&$wire->visitReads===0&&$wire->posts===0&&$lookup->calls===0);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+300,$gate);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+600,$gate);
+    $check('the bounded next natural passes finish expiry without a claim a visitor retry or duplicate financial send',
+        count(array_filter($rows(),static fn(array $r):bool=>$r['state']==='expired'))===4
+        &&$wire->visitReads===0&&$wire->posts===0&&$lookup->calls===0);
+
+    [$wire,$lookup]=$setup([$old,$old,$old,$old,$now]);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);$after=$rows();
+    $check('fresh zero-due READY retains priority over overdue rechecks while the total pass remains three rows',
+        $wire->posts===1&&$wire->visitReads===1&&$after[4]['state']==='accepted'
+        &&count(array_filter($after,static fn(array $r):bool=>$r['state']==='expired'))===2
+        &&count(array_filter($after,static fn(array $r):bool=>$r['state']==='ready'))===2);
+
+    [$wire,$lookup]=$setup([$old],'max');$before=$rows()[0];
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);$after=$rows()[0];
+    $check('ordinary MAX expiry preserves its exact source tuple after the existing bounded current lookup and performs no visitor or upload',
+        $lookup->calls===1&&$wire->visitReads===0&&$wire->posts===0
+        &&$after['state']==='expired'&&$after['last_error']==='event_expired'&&$immutable($after)===$immutable($before));
+
+    $edge=$now-ModeledConversionAttributionWindow::MAX_SECONDS;
+    [$wire,$lookup]=$setup([$edge]);$before=$rows()[0];$wire->visitAt=$edge;$wire->visitSource='yandex_direct';
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);$after=$rows()[0];
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+1,$gate);
+    $check('the exact inclusive ten-day Direct boundary still sends the same event once after the genuine visitor gate',
+        $wire->posts===1&&$wire->visitReads===2&&$after['state']==='accepted'&&(int)$after['attempts']===1
+        &&$after['event_unix']===$before['event_unix']&&$after['value_rub']===$before['value_rub']
+        &&$after['target']===$before['target']&&$after['client_id']===$before['client_id']);
+
+    [$wire,$lookup]=$setup([$old]);$before=$rows()[0];$owner=new ModeledConversionValueExport($p);
+    $expire=new ReflectionMethod($owner,'expireOrdinaryReady');$settings=ModeledConversionValueExport::settings($p);
+    $frame=new ReflectionProperty($owner,'finiteFrame');$frame->setValue($owner,['r'=>[['protected',(string)$before['id']]]]);
+    $frozen=$expire->invoke($owner,$before,$settings,$now);$frame->setValue($owner,null);
+    $unknown=$expire->invoke($owner,$before,$settings,ModeledConversionValueVisitEvidence::CHECKPOINT+1);
+    $p->prepare("UPDATE max_channel_conversion_outbox SET attempts=1,claimed_at_unix=?,claim_token='synthetic_pending_claim' WHERE id=?")->execute([$now,$before['id']]);
+    $claimed=$rows()[0];$held=$expire->invoke($owner,$claimed,$settings,$now);
+    $check('frozen originals missing post-checkpoint binding and an existing financial claim are preserved without expiry',
+        $frozen===false&&$unknown===false&&$held===false&&$rows()[0]===$claimed&&$wire->posts===0&&$wire->visitReads===0);
+
+    foreach(['event','accepted','configuration','receipt_frame']as$race){
+        [$wire,$lookup]=$setup([$old]);$before=$rows()[0];$owner=new ModeledConversionValueExport($p);
+        $expire=new ReflectionMethod($owner,'expireOrdinaryReady');$settings=ModeledConversionValueExport::settings($p);
+        if($race==='event')$p->prepare('UPDATE max_channel_conversion_outbox SET event_unix=? WHERE id=?')->execute([$now-60,$before['id']]);
+        elseif($race==='accepted')$p->prepare("UPDATE max_channel_conversion_outbox SET state='accepted',upload_id='9090',value_api_accepted_at_unix=? WHERE id=?")->execute([$now,$before['id']]);
+        elseif($race==='configuration')$p->exec("UPDATE modeled_conversion_value_export_settings SET mode='off'");
+        else$p->exec("UPDATE modeled_conversion_value_export_settings SET last_receipt_json='{}'");
+        $changed=$rows()[0];$expire->invoke($owner,$before,$settings,$now);
+        $check('expiry CAS preserves a changed original event receipt configuration or protected frame '.$race,
+            $rows()[0]===$changed&&$wire->visitReads===0&&$wire->posts===0);
+    }
+}
+
+final class ModeledFreshRetryHintStatement extends PDOStatement
+{
+    public static bool $failHint=false;
+    protected function __construct(){}
+    public function execute(?array $params=null):bool
+    {
+        if(self::$failHint&&str_contains($this->queryString,'ORDER BY event_unix DESC,next_attempt_unix,id LIMIT 1')){
+            self::$failHint=false;throw new PDOException('synthetic_hint_read_unavailable');
+        }
+        return parent::execute($params);
+    }
+}
+
+/** A synthetic deep backlog: source-current MAX rows, genuine visitor gate, unchanged three-row pass. */
+function modeledValueFreshRetryPriorityAssertions(PDO $p,callable $check):void
+{
+    $now=1793665000;$gate=static fn(string $chat):bool=>true;$older=$now-7*3600;$fresh=$now-600;
+    $setup=static function(bool $alsoRecent=false)use($p,$now,$gate,$older,$fresh):array{
+        modeledValueSchema($p);
+        $wire=new class($fresh-60)extends ModeledValueTestWire{
+            public array $visitClients=[];
+            public function request(string $method,string $url,mixed $body):array{
+                if($method==='GET'&&parse_url($url,PHP_URL_PATH)==='/stat/v1/data'){
+                    parse_str((string)parse_url($url,PHP_URL_QUERY),$query);
+                    if(($query['dimensions']??null)==='ym:s:clientID,ym:s:dateTime'){
+                        preg_match("/clientID=='([0-9]+)'/",$query['filters'],$id);$this->visitClients[]=$id[1]??'invalid';
+                    }
+                }
+                return parent::request($method,$url,$body);
+            }
+        };
+        $owner=new ModeledConversionValueExport($p);$owner->configure('create-goal',modeledValueLegacyApi($wire->api()),$older-10);$owner->configure('enable',modeledValueLegacyApi($wire->api()),$older-10);
+        for($i=0;$i<81;$i++)modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,9801+$i),$i===80?$fresh:($alsoRecent&&$i===0?$now-5000:$older)));
+        while((int)ModeledConversionValueExport::settings($p)['profile_cursor']<81){
+            $before=ModeledConversionValueExport::settings($p)['profile_cursor'];$owner->collect(ModeledConversionValueExport::settings($p),$now,$gate);
+            if(ModeledConversionValueExport::settings($p)['profile_cursor']===$before)throw new RuntimeException('fresh_retry_fixture_cursor');
+        }
+        $rows=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        if(count($rows)!==81)throw new RuntimeException('fresh_retry_fixture_rows');
+        $ready=$p->prepare("UPDATE max_channel_conversion_outbox SET state='ready',client_id=?,tracker_record_id='77',tracker_observed_unix=?,value_ready_at_unix=?,next_attempt_unix=?,last_error='metrika_visit_unverified' WHERE id=?");
+        foreach($rows as$i=>$row)$ready->execute(['880000'.$row['external_user_id'],$now-30*86400,$row['event_unix'],$i===80?$now-300:$now-3600,$row['id']]);
+        $lookup=new class extends ModeledValueTestLookup{
+            public array $batches=[];public mixed $beforeReturn=null;
+            public function lookup(string $counter,array $users):array{
+                $this->batches[]=$users;$out=parent::lookup($counter,$users);
+                if(is_callable($this->beforeReturn)){$hook=$this->beforeReturn;$this->beforeReturn=null;$hook();}
+                return$out;
+            }
+        };$lookup->observedAt=$now-30*86400;
+        return[$wire,$lookup,$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)];
+    };
+    $saved=static fn():array=>$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+
+    // Another due recent row has the older retry clock; newest event, not oldest retry, owns the hint.
+    [$wire,$lookup,$rows]=$setup(true);$latest=$rows[80];
+    ModeledConversionValueExport::tick($p,$lookup,modeledValueLegacyApi($wire->api()),$now,$gate);$after=$saved();
+    $check('one newest fresh retry crosses a deep older backlog through the real MAX lookup and visitor gate while two FIFO rows progress',
+        $wire->posts===1&&$wire->visitReads===3&&$lookup->calls===1&&count($lookup->batches[0])===5
+        &&$wire->visitClients===[$latest['client_id'],$rows[0]['client_id'],$rows[1]['client_id']]
+        &&$after[80]['state']==='accepted'&&(int)$after[80]['attempts']===1
+        &&$after[80]['event_unix']===$latest['event_unix']&&$after[80]['value_rub']===$latest['value_rub']
+        &&(int)$after[0]['next_attempt_unix']===$now+300&&(int)$after[1]['next_attempt_unix']===$now+300);
+
+    [$wire,$lookup,$rows]=$setup();$p->prepare('UPDATE max_channel_conversion_outbox SET next_attempt_unix=0 WHERE id=?')->execute([$rows[79]['id']]);
+    ModeledConversionValueExport::tick($p,$lookup,modeledValueLegacyApi($wire->api()),$now,$gate);
+    $check('a never-checked zero-due row stays before the fresh retry hint and the remaining slot remains FIFO',
+        $wire->visitClients===[$rows[79]['client_id'],$rows[80]['client_id'],$rows[0]['client_id']]
+        &&$wire->visitReads===3&&$wire->posts===1);
+    [$wire,$lookup,$rows]=$setup();$p->prepare('UPDATE max_channel_conversion_outbox SET next_attempt_unix=? WHERE id=?')->execute([$now+300,$rows[80]['id']]);
+    ModeledConversionValueExport::tick($p,$lookup,modeledValueLegacyApi($wire->api()),$now,$gate);
+    $check('an unused priority slot is borrowed by the existing FIFO without extra visitor checks',
+        $wire->visitClients===array_column(array_slice($rows,0,3),'client_id')&&count($lookup->batches[0])===4
+        &&$wire->visitReads===3&&$wire->posts===0);
+
+    [$wire,$lookup,$rows]=$setup();$owner=new ModeledConversionValueExport($p);$pick=new ReflectionMethod($owner,'freshReadyRetry');
+    $protected=new ReflectionProperty($owner,'ordinaryProtectedIds');$protected->setValue($owner,null);
+    $unknown=$pick->invoke($owner,$now,$gate,[]);$legacy=(new ReflectionMethod($owner,'rows'))->invoke($owner,'ready',$now,3,[],null);
+    $protected->setValue($owner,[(string)$rows[80]['id']=>true]);$frozen=$pick->invoke($owner,$now,$gate,[]);
+    $protected->setValue($owner,[]);
+    $p->prepare("UPDATE max_channel_conversion_outbox SET attempts=1,claimed_at_unix=?,claim_token='synthetic_claim' WHERE id=?")->execute([$now,$rows[80]['id']]);
+    $claimed=$pick->invoke($owner,$now,$gate,[]);
+    $check('unknown protected membership keeps the legacy FIFO and frozen or already claimed rows never supply a fresh hint',
+        $unknown===null&&array_column($legacy,'id')===array_column(array_slice($rows,0,3),'id')
+        &&$frozen===null&&$claimed===null);
+    // Native claim_token is CHAR(32); use a VARCHAR trace whose stored space survives the driver roundtrip.
+    $p->prepare("UPDATE max_channel_conversion_outbox SET attempts=0,claimed_at_unix=NULL,claim_token=NULL,upload_id=' ' WHERE id=?")->execute([$rows[80]['id']]);
+    $storedUpload=$saved()[80]['upload_id'];$paddedUpload=$pick->invoke($owner,$now,$gate,[]);
+    $check('a byte-preserved space-only VARCHAR upload trace never supplies a fresh retry hint',
+        $storedUpload===' '&&$paddedUpload===null);
+
+    [$wire,$lookup,$rows]=$setup();$previousClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ModeledFreshRetryHintStatement::class]);ModeledFreshRetryHintStatement::$failHint=true;
+    try{ModeledConversionValueExport::tick($p,$lookup,modeledValueLegacyApi($wire->api()),$now,$gate);}
+    finally{ModeledFreshRetryHintStatement::$failHint=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$previousClass);}
+    $tick=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    $check('an unavailable optional hint read falls back to the legacy FIFO without halting the existing financial cycle',
+        $wire->posts===0&&$wire->visitReads===3&&count($lookup->batches[0])===4
+        &&$wire->visitClients===array_column(array_slice($rows,0,3),'client_id')&&($tick['errors']??null)===0);
+
+    [$wire,$lookup,$rows]=$setup();$lookup->beforeReturn=static function()use($p,$now,$rows):void{
+        $p->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,attempts=1,claimed_at_unix=?,claim_token='synthetic_changed_claim' WHERE id=?")
+            ->execute([$now+300,$now,$rows[80]['id']]);
+    };
+    ModeledConversionValueExport::tick($p,$lookup,modeledValueLegacyApi($wire->api()),$now,$gate);$after=$saved();
+    $check('dispatch rereads a changed hint after lookup instead of sending a stale candidate snapshot',
+        $lookup->calls===1&&count($lookup->batches[0])===5&&$wire->posts===0&&$wire->visitReads===3
+        &&$wire->visitClients===array_column(array_slice($rows,0,3),'client_id')
+        &&$after[80]['claim_token']==='synthetic_changed_claim'&&$after[80]['state']==='ready');
+
+    [$wire,$lookup,$rows]=$setup();
+    for($i=0;$i<25;$i++)modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,10001+$i),$now));
+    ModeledConversionValueExport::tick($p,$lookup,modeledValueLegacyApi($wire->api()),$now,$gate);$after=$saved();
+    $check('fresh retry lookahead shares the same 25 unique MAX subjects while new zero-due work retains the unchanged three-send cap',
+        $lookup->calls===1&&count($lookup->batches[0])===25&&count(array_unique($lookup->batches[0]))===25
+        &&in_array($rows[80]['external_user_id'],$lookup->batches[0],true)
+        &&$wire->posts===3&&$wire->visitReads===3&&$after[80]['state']==='ready'&&empty($after[80]['upload_id']));
+}
+
 function modeledValueFairProgressAssertions(PDO $p,callable $check):void
 {
+    modeledValueFreshRetryPriorityAssertions($p,$check);
+    modeledValueOrdinaryExpiryAssertions($p,$check);
     modeledValueSchema($p);$now=1793659000;$gate=static fn(string $chat):bool=>true;
     $wire=new ModeledValueTestWire($now-86400);$wire->goals[]=['id'=>'678187097','name'=>ModeledConversionValueContract::NAME,
         'type'=>'action','conditions'=>[['type'=>'exact','url'=>ModeledConversionValueContract::TARGET]]];
@@ -1869,7 +2173,7 @@ function modeledValueVisitGateDecisionAssertions(PDO $p,callable $check):void
     $now=1793660000;$gate=static fn(string $chat):bool=>true;$held=[];
     $saved=static fn():array=>json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
     foreach(['no_prior_visit','visit_report_unavailable','outside_current_window','within_current_window']as$reason){
-        modeledValueSchema($p);$wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$control=new ModeledConversionValueExport($p);
+        modeledValueSchema($p);$wire=new ModeledValueTestWire($now-86400);$api=modeledValueLegacyApi($wire->api());$control=new ModeledConversionValueExport($p);
         $control->configure('create-goal',$api,$now-20);$control->configure('enable',$api,$now-10);
         $wire->visitEmpty=$reason==='no_prior_visit';$wire->visitAvailable=$reason!=='visit_report_unavailable';
         $wire->visitAt=$now-($reason==='outside_current_window'?4*86400:60);
@@ -1896,7 +2200,7 @@ function modeledValueVisitGateDecisionAssertions(PDO $p,callable $check):void
     $check('identical legacy hold errors now retain distinct actual no-prior and unavailable decision counts',
         $held['no_prior_visit']===$held['visit_report_unavailable']);
 
-    modeledValueSchema($p);$wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$owner=new ModeledConversionValueExport($p);
+    modeledValueSchema($p);$wire=new ModeledValueTestWire($now-86400);$api=modeledValueLegacyApi($wire->api());$owner=new ModeledConversionValueExport($p);
     $owner->configure('create-goal',$api,$now-20);$owner->configure('enable',$api,$now-10);
     ModeledConversionValueExport::tick($p,new ModeledValueTestLookup(),$api,$now,$gate);
     $empty=$saved()['visit_gate_decisions'];
@@ -1960,6 +2264,258 @@ function modeledValueVisitGateDecisionAssertions(PDO $p,callable $check):void
         &&modeledValueFailureJsonEqual($after['last_recorded_failure'],$newFailure)
         &&$after['accepted']===1&&$after['processed']===3&&$after['errors']===1
         &&ModeledConversionValueExport::settings($p)['last_tick_unix']===$before['last_tick_unix']);
+}
+
+/** Explicit legacy API coverage keeps the original three-row contract without hiding a batch transport failure. */
+function modeledValueLegacyApi(MetrikaOfflineClient $actual):object
+{
+    return new class($actual){
+        public function __construct(private MetrikaOfflineClient $actual){}
+        public function modeledValueGoalStatus():?array{return $this->actual->modeledValueGoalStatus();}
+        public function createModeledValueGoal():array{return $this->actual->createModeledValueGoal();}
+        public function modeledAttributionVisits(string $id,int $event,int $now,?callable $admit=null):array{return $this->actual->modeledAttributionVisits($id,$event,$now,$admit);}
+        public function uploadModeledValue(array $row,int $now):array{return $this->actual->uploadModeledValue($row,$now);}
+        public function poll(string $id):?array{return $this->actual->poll($id);}
+        public function pollEvidence(string $id):?array{return $this->actual->pollEvidence($id);}
+        public function findUnknown(array $row):?array{return $this->actual->findUnknown($row);}
+        public function modeledValueReport(int $activated,int $now):array{return $this->actual->modeledValueReport($activated,$now);}
+    };
+}
+final class ModeledBatchClaimRaceStatement extends PDOStatement
+{
+    public static mixed $beforeClaim=null;
+    protected function __construct(){}
+    public function execute(?array $params=null):bool
+    {
+        if(is_callable(self::$beforeClaim)&&str_starts_with($this->queryString,"UPDATE max_channel_conversion_outbox SET state='uploading'")){
+            $hook=self::$beforeClaim;self::$beforeClaim=null;$hook();
+        }
+        return parent::execute($params);
+    }
+}
+function modeledValueBatchWorkerFixture(PDO $p,int $now):array
+{
+    $gate=static fn(string $chat):bool=>true;$event=$now-7*3600;modeledValueSchema($p);$wire=new ModeledValueBatchTestWire();
+    $owner=new ModeledConversionValueExport($p);$api=$wire->api();$owner->configure('create-goal',$api,$event-500);$owner->configure('enable',$api,$event-500);
+    for($i=0;$i<20;$i++)modeledValueSave($p,modeledExpertWrapper(modeledValueBinding($p,12001+$i),$event,100000));
+    while((int)ModeledConversionValueExport::settings($p)['profile_cursor']<20){
+        $before=ModeledConversionValueExport::settings($p)['profile_cursor'];$owner->collect(ModeledConversionValueExport::settings($p),$now,$gate);
+        if(ModeledConversionValueExport::settings($p)['profile_cursor']===$before)throw new RuntimeException('batch_worker_fixture_cursor');
+    }
+    $rows=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    if(count($rows)!==20)throw new RuntimeException('batch_worker_fixture_expected_twenty_admitted_rows');
+    $q=$p->prepare("UPDATE max_channel_conversion_outbox SET state='ready',client_id=?,tracker_record_id='77',tracker_observed_unix=?,value_ready_at_unix=?,next_attempt_unix=?,last_error='metrika_visit_unverified' WHERE id=?");
+    foreach($rows as$i=>$row){
+        $id='880000'.$row['external_user_id'];$q->execute([$id,$now-30*86400,$event,$now-900,$row['id']]);
+        if($i>=3&&$i<11)$wire->entries[]=[$id,$event-60,'other_or_unknown'];
+    }
+    $lookup=new class extends ModeledValueTestLookup{
+        public array $batches=[];
+        public function lookup(string $counter,array $users):array{$this->batches[]=$users;return parent::lookup($counter,$users);}
+    };$lookup->observedAt=$now-30*86400;
+    return[$wire,$lookup,$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)];
+}
+function modeledValueBatchWorkerAssertions(PDO $p,callable $check):void
+{
+    $now=1793665000;$gate=static fn(string $chat):bool=>true;$saved=static fn():array=>$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    [$wire,$lookup,$before]=modeledValueBatchWorkerFixture($p,$now);$api=$wire->api();$result=ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);$after=$saved();
+    $receipt=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    $same=true;foreach([3,4,5]as$i){
+        $csv=str_getcsv(explode("\n",trim($wire->csv[$i-3]??''))[1]??'');
+        $same=$same&&($csv[0]??null)===$before[$i]['client_id']&&($csv[1]??null)===ModeledConversionValueContract::TARGET
+            &&($csv[2]??null)===(string)$before[$i]['event_unix']&&($csv[3]??null)===(string)(int)$before[$i]['value_rub']
+            &&$after[$i]['event_unix']===$before[$i]['event_unix']&&$after[$i]['value_profile_id']===$before[$i]['value_profile_id']&&(int)$after[$i]['attempts']===1;
+    }
+    $ok=$result['status']==='running'&&$wire->posts===3&&$wire->visitReads===3&&$same&&count($lookup->batches[0])<=25
+        &&($receipt['visit_gate_decisions']['attempts']??null)===18&&count(array_filter($after,static fn(array $r):bool=>$r['state']==='accepted'))===3
+        &&$after[0]['last_error']==='metrika_no_prior_visit'&&(int)$after[0]['next_attempt_unix']===$now+1800&&(int)$after[18]['next_attempt_unix']===$now-900;
+    if(!$ok)echo 'SYNTHETIC_BATCH_TICK '.json_encode(['status'=>$result['status'],'posts'=>$wire->posts,'reports'=>$wire->visitReads,'same_fields'=>$same,
+        'lookup_subjects'=>count($lookup->batches[0]??[]),'decisions'=>$receipt['visit_gate_decisions']['attempts']??null,'states'=>array_count_values(array_column($after,'state'))],JSON_THROW_ON_ERROR).PHP_EOL;
+    $check('an actual ordinary tick crosses three negative heads checks at most eighteen and sends exactly three unchanged native events',$ok);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+301,$gate);$keys=[];
+    foreach($wire->csv as$csv){$r=str_getcsv(explode("\n",trim($csv))[1]);$keys[]=$r[0].'|'.$r[1].'|'.$r[2];}
+    $check('the next natural pass does not resend an accepted native event or duplicate a CID target second wire key',count($keys)===count(array_unique($keys))&&(int)$saved()[3]['attempts']===1);
+
+    [$wire,$lookup,$before]=modeledValueBatchWorkerFixture($p,$now);$wire->entries=array_slice($wire->entries,0,1);
+    modeledValueSave($p,modeledExpertWrapper(['project_key'=>'anytour','platform'=>'max','customer_key'=>'12004','conversation_id'=>'12004'],$now-7*3600,200000));
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);$colliding=$p->query('SELECT state,last_error FROM max_channel_conversion_outbox WHERE conversation_id=12004 ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $check('two native increments sharing one CID target event second never both POST after batch prefetch',
+        $wire->posts===1&&count($colliding)===2&&count(array_filter($colliding,static fn(array $r):bool=>$r['state']==='accepted'))===1
+        &&count(array_filter($colliding,static fn(array $r):bool=>$r['last_error']==='wire_key_collision'))===1);
+
+    [$wire,$lookup,$before]=modeledValueBatchWorkerFixture($p,$now);$wire->visitAt=$now-7*3600-60;
+    ModeledConversionValueExport::tick($p,$lookup,modeledValueLegacyApi($wire->api()),$now,$gate);
+    $check('an API without batch support retains the original three-row pass and four-user carried lookup before any batch I/O',
+        $wire->posts===3&&$wire->visitReads===3&&count($lookup->batches[0])===4);
+    [$wire,$lookup,$before]=modeledValueBatchWorkerFixture($p,$now);$owner=new ModeledConversionValueExport($p);
+    $protected=new ReflectionProperty($owner,'ordinaryProtectedIds');$select=new ReflectionMethod($owner,'ordinaryBatchReadyRows');$gets=$wire->gets;
+    $protected->setValue($owner,null);$unbound=$select->invoke($owner,$now,[],null,$gate);
+    $protected->setValue($owner,[(string)$before[0]['id']=>true]);$frozen=$select->invoke($owner,$now,[],null,$gate);
+    $check('unknown original membership and a protected original prefix cannot expand the lookup or report lane',$unbound===[]&&$frozen===[]&&$wire->gets===$gets&&$lookup->calls===0);
+
+    [$wire,$lookup,$before]=modeledValueBatchWorkerFixture($p,$now);$wire->postMode='unknown';
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);
+    $check('three POST attempts including UNKNOWN consume the entire shared financial lane',$wire->posts===3&&count(array_filter($saved(),static fn(array $r):bool=>$r['state']==='unknown'))===3);
+
+    [$wire,$lookup,$before]=modeledValueBatchWorkerFixture($p,$now);$wire->mode='partial';
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);$after=$saved();
+    $receipt=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    require_once dirname(__DIR__).'/services/ModeledConversionValueDeliveryReader.php';
+    $view=(new ReflectionMethod(ModeledConversionValueDeliveryReader::class,'visitGateDecisions'))->invoke(
+        new ModeledConversionValueDeliveryReader($p,static fn():bool=>true,new ModeledConversionStatusBudget()),$receipt['visit_gate_decisions']??null,$now-8*3600,$now);
+    $check('partial batch responses never trigger single-CID retries or long negative backoff and saved reader accepts eighteen UNKNOWN decisions',
+        $wire->posts===0&&$wire->visitReads===3&&(int)$after[0]['next_attempt_unix']===$now+300&&$after[0]['last_error']==='metrika_visit_unverified'
+        &&($view['available']??false)===true&&$view['attempts']===18&&$view['reason_counts']['visit_report_unavailable']===18);
+    $tooMany=$receipt['visit_gate_decisions'];$tooMany['attempts']=19;$tooMany['reason_counts']['visit_report_unavailable']=19;$tooMany['failures'][0][4]=19;
+    $invalid=(new ReflectionMethod(ModeledConversionValueDeliveryReader::class,'visitGateDecisions'))->invoke(
+        new ModeledConversionValueDeliveryReader($p,static fn():bool=>true,new ModeledConversionStatusBudget()),$tooMany,$now-8*3600,$now);
+    $check('the saved reader refuses nineteen decisions beyond the new finite bound',($invalid['available']??null)===false);
+
+    [$wire,$lookup,$before]=modeledValueBatchWorkerFixture($p,$now);$wire->mode='base_http';
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);
+    $receipt=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    $check('three failed base requests preserve their same HTTP failure stage without a single-CID fallback',
+        $wire->posts===0&&$wire->visitReads===3&&($receipt['visit_gate_decisions']['failures']??null)===[[5,503,0,0,18]]);
+
+    foreach(['event','identity','claim','price','configuration']as$race){
+        [$wire,$lookup,$before]=modeledValueBatchWorkerFixture($p,$now);$wire->entries=array_slice($wire->entries,0,1);$id=$before[3]['id'];$mutated=null;
+        $wire->duringBatch=static function()use($p,$id,$race,$now,&$mutated):void{
+            if($race==='event')$p->prepare('UPDATE max_channel_conversion_outbox SET event_unix=event_unix+1 WHERE id=?')->execute([$id]);
+            elseif($race==='identity')$p->prepare("UPDATE max_channel_conversion_outbox SET client_id='88999999001' WHERE id=?")->execute([$id]);
+            elseif($race==='claim')$p->prepare("UPDATE max_channel_conversion_outbox SET state='unknown',claim_token='other_claim',attempts=1 WHERE id=?")->execute([$id]);
+            elseif($race==='price')$p->prepare("UPDATE modeled_conversion_price_audit SET action='unverified' WHERE outbox_id=?")->execute([$id]);
+            else$p->exec("UPDATE modeled_conversion_value_export_settings SET mode='off'");
+            $q=$p->prepare('SELECT * FROM max_channel_conversion_outbox WHERE id=?');$q->execute([$id]);$mutated=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+        };
+        ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);
+        $q=$p->prepare('SELECT * FROM max_channel_conversion_outbox WHERE id=?');$q->execute([$id]);$afterRace=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+        $check('current tuple scope price and financial state are rechecked after a Report before any POST '.$race,
+            $wire->posts===0&&is_array($mutated)&&($race==='price'||$afterRace===$mutated));
+    }
+
+    [$wire,$lookup,$before]=modeledValueBatchWorkerFixture($p,$now);$wire->entries=array_slice($wire->entries,0,1);$previous=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$ran=false;
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ModeledBatchClaimRaceStatement::class]);
+    ModeledBatchClaimRaceStatement::$beforeClaim=static function()use($p,$before,&$ran):void{$ran=true;$p->prepare('UPDATE max_channel_conversion_outbox SET value_rub=value_rub+1 WHERE id=?')->execute([$before[3]['id']]);};
+    try{ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);}
+    finally{ModeledBatchClaimRaceStatement::$beforeClaim=null;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$previous);}
+    $check('the full final SQL tuple CAS rejects a mutation after local admission and before claim execution',$ran&&$wire->posts===0&&(int)$saved()[3]['attempts']===0);
+
+    [$wire,$lookup,$before]=modeledValueBatchWorkerFixture($p,$now);$wire->entries=array_slice($wire->entries,0,1);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate,static fn():int=>$now+4*86400);
+    $check('actual dispatch time re-assesses the complete visit proof instead of using an expired prefetch positive',$wire->posts===0);
+
+    [$wire,$lookup,$before]=modeledValueBatchWorkerFixture($p,$now);
+    for($i=0;$i<12;$i++){modeledValueSave($p,modeledExpertWrapper(modeledValueBinding($p,13001+$i),$now,100000));$wire->entries[]=['880000'.(83001+$i),$now-60,'other_or_unknown'];}
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);
+    $check('expanded READY refresh retains pending capacity and exactly twenty-five unique source subjects with three sends',
+        count($lookup->batches[0])===25&&count(array_unique($lookup->batches[0]))===25&&$wire->posts===3
+        &&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE conversation_id>=13001 AND state='accepted'")->fetchColumn()===3);
+
+    $unknown=new ModeledValueCounterAmbiguousCommitPdo();[$wire,$lookup,$before]=modeledValueBatchWorkerFixture($unknown,$now);$wire->entries=array_slice($wire->entries,0,1);
+    $wire->duringBatch=static function()use($unknown):void{$unknown->failNextCommitAfterWrite=true;};
+    ModeledConversionValueExport::tick($unknown,$lookup,$wire->api(),$now,$gate);
+    $check('lost financial commit acknowledgement performs no POST and retains the consumed uploading claim',
+        $wire->posts===0&&$unknown->query('SELECT state FROM max_channel_conversion_outbox WHERE id='.(int)$before[3]['id'])->fetchColumn()==='uploading');
+}
+
+/** Synthetic transport only; ordinary single-CID fixtures keep their existing path. */
+class ModeledValueBatchTestWire extends ModeledValueTestWire
+{
+    public array $queries=[];public array $entries=[];public mixed $duringBatch=null;public string $mode='';public string $zoneName='Europe/Moscow';
+    public function request(string $method,string $url,mixed $body):array
+    {
+        $path=(string)parse_url($url,PHP_URL_PATH);parse_str((string)parse_url($url,PHP_URL_QUERY),$q);
+        if($method==='GET'&&$path==='/management/v1/counter/98615635'){
+            $this->gets++;return ['http'=>200,'error'=>0,'body'=>json_encode(['counter'=>['id'=>98615635,'time_zone_name'=>$this->mode==='bad_zone'?'UNSUPPORTED_ZONE':$this->zoneName]],JSON_THROW_ON_ERROR)];
+        }
+        if($method!=='GET'||$path!=='/stat/v1/data'||($q['date2']??'today')==='today')return parent::request($method,$url,$body);
+        $this->gets++;$this->visitReads++;$this->queries[]=$q;$dims=explode(',',$q['dimensions']);$traffic=count($dims)===4;
+        if((!$traffic&&$this->mode==='base_http')||($traffic&&$this->mode==='source_http'))return ['http'=>503,'error'=>0,'body'=>'SYNTHETIC_UNAVAILABLE'];
+        preg_match_all("/ym:s:clientID=='([0-9]+)'/",$q['filters'],$matches);$ids=$matches[1];$rows=[];$zone=new DateTimeZone($this->zoneName);
+        foreach($this->entries as[$id,$at,$kind]){
+            if(!in_array($id,$ids,true)||($traffic&&$kind==='omitted'))continue;
+            $d=[['name'=>$id],['name'=>(new DateTimeImmutable('@'.$at))->setTimezone($zone)->format('Y-m-d H:i:s')]];
+            if($traffic){$d[]=['id'=>$kind==='yandex_direct'?'ad':'direct'];$d[]=['id'=>$kind==='yandex_direct'?'ya_direct':null];}
+            $rows[]=['dimensions'=>$d,'metrics'=>[1]];
+        }
+        if(!$traffic&&$this->mode==='foreign')$rows[0]['dimensions'][0]['name']='88999999999';
+        if(!$traffic&&$this->mode==='duplicate')$rows[]=$rows[0];
+        if(!$traffic&&$this->mode==='bad_shape')$rows[0]['metrics']=[1=>1];
+        if(!$traffic&&$this->mode==='bad_count')$rows[0]['metrics'][0]=1.5;
+        if(!$traffic&&$this->mode==='bad_date')$rows[0]['dimensions'][1]['name']='2026-11-14T00:00:00Z';
+        if(!$traffic&&$this->mode==='future')$rows[0]['dimensions'][1]['name']='2099-01-01 00:00:00';
+        if(!$traffic&&$this->mode==='overflow')$rows=array_fill(0,101,$rows[0]);
+        if($traffic&&$this->mode==='source_extra'){$extra=$rows[0];$extra['dimensions'][1]['name']='2026-11-13 06:00:00';$rows[]=$extra;}
+        if($traffic&&$this->mode==='source_count')$rows[1]['metrics'][0]=2;
+        if($traffic&&$this->mode==='source_conflict'){$extra=$rows[1];$extra['dimensions'][2]['id']='direct';$extra['dimensions'][3]['id']=null;$rows[]=$extra;}
+        $echo=['ids'=>[98615635],'metrics'=>explode(',',$q['metrics']),'dimensions'=>$dims,'filters'=>$q['filters'],'date1'=>$q['date1'],'date2'=>$q['date2']];
+        if($this->mode==='bad_scope_shape')$echo['ids']=[['id'=>98615635]];
+        if($this->mode==='echo')$echo['filters']="ym:s:clientID=='88999999999'";
+        if($this->mode==='date_echo')$echo['date1']='2026-01-01';
+        if($this->mode==='zone_echo')$echo['timezone']='+00:00';
+        $data=['query'=>$echo,'data'=>$rows,'sampled'=>$this->mode==='sampled','total_rows'=>count($rows)];
+        if($this->mode==='partial')$data['total_rows']++;
+        if($this->mode==='rounded')$data['total_rows_rounded']=true;
+        if($this->mode==='sensitive')$data['contains_sensitive_data']=true;
+        if($this->mode==='bad_flag')$data['total_rows_rounded']=0;
+        if(is_callable($this->duringBatch)){$hook=$this->duringBatch;$this->duringBatch=null;$hook();}
+        return ['http'=>200,'error'=>0,'body'=>json_encode($data,JSON_THROW_ON_ERROR)];
+    }
+}
+function modeledValueBatchVisitAssertions(callable $check):void
+{
+    $now=strtotime('2026-11-14T01:00:00Z');$ids=['88000000901','88000000902','88000000903','88000000904','88000000905','18446744073709551614'];
+    $cases=array_map(static fn(string $id):array=>['client_id'=>$id,'event_unix'=>$now],$ids);$cases[4]['event_unix']=$now-120;
+    $make=static function(string $mode='')use($ids,$now):ModeledValueBatchTestWire{
+        $wire=new ModeledValueBatchTestWire();$wire->mode=$mode;$wire->entries=[
+            [$ids[0],$now-60,'other_or_unknown'],[$ids[1],$now-9*86400,'yandex_direct'],
+            [$ids[2],$now-4*86400,'other_or_unknown'],[$ids[3],$now-4*86400,'omitted'],[$ids[4],$now-30,'other_or_unknown']];return $wire;
+    };
+    $normalizer=new ReflectionMethod(ModeledConversionValueExport::class,'normalizeVisitFailure');
+    $index=static function(array $batch):array{$out=[];foreach($batch['reports']as$r)$out[$r['client_id']]=$r['report'];return $out;};
+    $wire=$make();$api=$wire->api();$extra=0;$batch=$api->modeledAttributionVisitsBatch($cases,$now,static function()use(&$extra):void{$extra++;});$reports=$index($batch);$allowed=[];
+    foreach($cases as$case)$allowed[]=ModeledConversionAttributionWindow::assess($reports[$case['client_id']],$case['event_unix'],$now)['allowed'];
+    $check('one six-CID batch keeps complete per-CID visits and unchanged Direct other unknown and pre-event windows',
+        $batch['status']==='ok'&&$allowed===[true,true,false,false,false,false]&&count($reports)===6&&$extra===1&&$wire->gets===3&&$wire->posts===0
+        &&$reports[$ids[1]]['source_report_status']==='ok'&&$reports[$ids[3]]['visits'][0]['source_class']==='other_or_unknown'&&$reports[$ids[5]]['visits']===[]);
+    $expectedFrom=(new DateTimeImmutable('@'.($now-10*86400)))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('Y-m-d');
+    $check('batch query has only six exact CID conditions and the identical explicit counter-local current window',
+        substr_count($wire->queries[0]['filters'],"ym:s:clientID==")===6&&substr_count($wire->queries[0]['filters'],' OR ')===5
+        &&$wire->queries[0]['date1']===$expectedFrom&&$wire->queries[0]['date2']==='2026-11-14'&&$wire->queries[0]['limit']==='101'
+        &&$wire->queries[0]['filters']===$wire->queries[1]['filters']&&$wire->queries[0]['date1']===$wire->queries[1]['date1']&&$wire->queries[0]['date2']===$wire->queries[1]['date2']);
+    foreach(['source_http','source_extra','source_conflict','source_count']as$mode){
+        $wire=$make($mode);$reports=$index($wire->api()->modeledAttributionVisitsBatch($cases,$now));$report=$reports[$ids[1]];
+        $check('failed omitted or conflicting enrichment never removes full base visits or grants Direct '.$mode,
+            count($report['visits'])===1&&$report['visits'][0]['started_at']===gmdate('Y-m-d\TH:i:s\Z',$now-9*86400)
+            &&$report['visits'][0]['source_class']==='other_or_unknown'&&!ModeledConversionAttributionWindow::assess($report,$now,$now)['allowed']
+            &&$report['source_report_status']===(in_array($mode,['source_conflict','source_count'],true)?'ambiguous':'unavailable')&&$wire->gets===3);
+    }
+    foreach(['foreign','duplicate','bad_shape','bad_count','bad_date','future','overflow','bad_scope_shape','echo','date_echo','zone_echo','sampled','partial','rounded','sensitive','bad_flag','bad_zone']as$mode){
+        $wire=$make($mode);$batch=$wire->api()->modeledAttributionVisitsBatch($cases,$now);$reports=$index($batch);
+        $check('an incomplete or malformed batch is UNKNOWN for every requested CID '.$mode,
+            $batch['status']==='unavailable'&&count($reports)===6&&count(array_filter($reports,static fn(array $r):bool=>$r['status']==='unavailable'&&$r['visits']===[]))===6
+            &&$normalizer->invoke(null,$reports[$ids[0]]['attribution_failure'])===$reports[$ids[0]]['attribution_failure']
+            &&$wire->gets===($mode==='bad_zone'?1:2)&&$wire->posts===0);
+    }
+    $wire=$make();$reports=$index($wire->api()->modeledAttributionVisitsBatch($cases,$now,static fn():bool=>false));
+    $check('denied extra read preserves complete unknown-source base with no enrichment request',$wire->gets===2&&$reports[$ids[1]]['source_report_status']==='not_admitted'&&count($reports[$ids[1]]['visits'])===1);
+    $wire=$make();$api=$wire->api();$same=[['client_id'=>$ids[0],'event_unix'=>$now],['client_id'=>$ids[0],'event_unix'=>$now-120]];
+    $batch=$api->modeledAttributionVisitsBatch($same,$now);$report=$batch['reports'][0]['report'];
+    $check('repeated CID shares one full report while separate original events retain separate preceding-visit decisions',
+        count($batch['reports'])===1&&$wire->gets===2&&count($wire->queries)===1
+        &&ModeledConversionAttributionWindow::assess($report,$now,$now)['allowed']&&!ModeledConversionAttributionWindow::assess($report,$now-120,$now)['allowed']);
+    $wire=$make();$wire->entries=[];for($i=0;$i<100;$i++)$wire->entries[]=[$ids[0],$now-60-$i*60,'other_or_unknown'];
+    $batch=$wire->api()->modeledAttributionVisitsBatch([['client_id'=>$ids[0],'event_unix'=>$now]],$now);
+    $check('exactly one hundred complete rows fit while the 101 sentinel was refused',count($batch['reports'][0]['report']['visits'])===100&&$wire->gets===2);
+    $wire=$make();$api=$wire->api();$api->modeledAttributionVisitsBatch($cases,$now);$wire->entries[1][2]='other_or_unknown';
+    $reports=$index($api->modeledAttributionVisitsBatch($cases,$now));
+    $check('later batches fetch fresh evidence rather than reuse a prior Direct positive',$wire->gets===5&&$reports[$ids[1]]['visits'][0]['source_class']==='other_or_unknown'&&!ModeledConversionAttributionWindow::assess($reports[$ids[1]],$now,$now)['allowed']);
+    $wire=$make();$api=$wire->api();for($i=0;$i<3;$i++)$api->modeledAttributionVisitsBatch($cases,$now);
+    $check('three groups use at most three base and three enrichment requests with one cached counter-zone read',$wire->gets===7&&$wire->visitReads===6&&$wire->posts===0);
+    foreach([array_merge($cases,[$cases[0]]),[['client_id'=>"1' OR x",'event_unix'=>$now]],[['client_id'=>$ids[0],'event_unix'=>$now+1]]]as$bad){
+        $wire=$make();$batch=$wire->api()->modeledAttributionVisitsBatch($bad,$now);
+        $check('invalid batch scope or case count is refused before any GET',$batch===['status'=>'unavailable','reports'=>[]]&&$wire->gets===0&&$wire->posts===0);
+    }
 }
 
 /** URL-level counter-zone bounds retain every visit that the unchanged current gates can admit. */

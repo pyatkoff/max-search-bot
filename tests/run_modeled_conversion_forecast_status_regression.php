@@ -510,8 +510,67 @@ function forecastCoreProjectionBudgetAssertions(PDO $p,callable $check,array $ex
         &&$boundaryBudget->remainingBytes()>=8192&&$snapshot()===$before);
 }
 
+
+/** Formatting only: saved financial views must survive optional profile-context pressure. */
+function forecastOperationalCorePressureAssertions(PDO $p,callable $check):void
+{
+    $authorizations=0;$budget=new ModeledConversionStatusBudget();
+    $reader=new ModeledConversionForecastStatusReader($p,static function()use(&$authorizations):void{$authorizations++;},$budget);
+    $format=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'boundedOperationalResponse');
+    $flags=JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR;
+    $size=static fn(array $v):int=>strlen(json_encode($v,$flags));
+    $packet=['available'=>true,'confirmation'=>'saved_prospective_estimates',
+        'forecast_core'=>['available'=>true,'basis'=>'at_most_one_current_immutable_profile_core_after_operational_priorities'],
+        'saved'=>['valid_v1_versions'=>1,'prospective_estimates'=>1,
+            'synthetic_profile_summary'=>'PRIVATE_OPTIONAL_PROFILE_CONTEXT_'.str_repeat('c',4000)],
+        'window'=>['profile_rows_read'=>1,'selected_document_bytes'=>4200],
+        'input_coverage'=>['validated_profiles'=>1,'admitted_customer_turns'=>2],
+        'daily_reconciliation'=>['available'=>true,'date'=>'2026-11-03','timezone'=>'Europe/Moscow',
+            'calendar'=>['api_receipts'=>['events'=>2,'conversations'=>2,'value_rub'=>1700]],
+            'coverage'=>['scope'=>'current_exact_owner_admitted_native_bindings']],
+        'value_delivery'=>['available'=>true,'goal_id'=>'678187097','mode'=>'send',
+            'by_state'=>['accepted'=>['events'=>1,'value_rub'=>700],'processed'=>['events'=>1,'value_rub'=>1000]]],
+        'backlog'=>['available'=>true,'window'=>['inspected_rows'=>450,'complete_within_bound'=>true],
+            'by_state'=>['ready'=>['events'=>7,'value_rub'=>5100]]],
+        'today_latency'=>['available'=>true,'live_value'=>['examples'=>[['platform'=>'max','increment_rub'=>700,
+            'state'=>'accepted','saved_visit_check'=>['available'=>true,'fresh'=>true,'upload_status'=>'PROCESSED',
+                'linkage'=>'unique_visit_reconciled','visit_started_at'=>'2026-11-03T07:00:00Z']]]]],
+        'external_monitor'=>['available'=>true,'pipeline'=>['available'=>true,'fresh'=>true]],
+        'telegram_linkage'=>['available'=>false,'reason'=>'not_recorded'],
+        'visit_delivery_check'=>['available'=>false,'reason'=>'not_recorded']];
+    $remaining=$budget->remainingBytes();$ordinary=$format->invoke($reader,$packet);
+    $check('operational formatter preserves all profile and financial context when the complete packet fits',
+        $ordinary===$packet&&$size($ordinary)<=28000);
+    $packet['synthetic_budget_pressure']='';
+    $withoutCore=$packet;
+    $withoutCore['forecast_core']=['available'=>false,
+        'basis'=>'at_most_one_current_immutable_profile_core_after_operational_priorities','reason'=>'response_budget'];
+    $withoutCore['saved']=null;$withoutCore['window']=$withoutCore['input_coverage']=['available'=>false,'reason'=>'response_budget'];
+    $withoutCore['confirmation']='unknown';
+    $padding=27000-$size($withoutCore);
+    if($padding<1)throw new RuntimeException('fixture_operational_core_pressure');
+    $packet['synthetic_budget_pressure']=str_repeat('x',$padding);
+    $bounded=$format->invoke($reader,$packet);
+    $sameFinancial=true;
+    foreach(['daily_reconciliation','value_delivery','backlog','today_latency','external_monitor']as$key)
+        $sameFinancial=$sameFinancial&&$bounded[$key]===$packet[$key];
+    $check('optional profile context cannot hide exact daily totals full backlog or saved per-event visit proof at the response ceiling',
+        $size($packet)>28000&&$size($bounded)===27000&&$sameFinancial
+        &&$bounded['forecast_core']['available']===false&&$bounded['forecast_core']['reason']==='response_budget'
+        &&$bounded['saved']===null&&$bounded['window']===['available'=>false,'reason'=>'response_budget']
+        &&$bounded['input_coverage']===['available'=>false,'reason'=>'response_budget']
+        &&$bounded['confirmation']==='unknown'
+        &&!str_contains(json_encode($bounded,$flags),'PRIVATE_OPTIONAL_PROFILE_CONTEXT_'));
+    $unavoidable=$packet;$unavoidable['synthetic_budget_pressure'].=str_repeat('x',10000);$limited=false;
+    try{$format->invoke($reader,$unavoidable);}
+    catch(ModeledConversionStatusLimit $e){$limited=$e->reason==='byte_limit';}
+    $check('irreducible financial response overflow still fails closed without forgiving copy charges or authorizing reads',
+        $limited&&$authorizations===0&&$budget->remainingBytes()===$remaining);
+}
+
 function forecastV1Assertions(PDO $p,callable $check):void
 {
+    forecastOperationalCorePressureAssertions($p,$check);
     forecastReceiptPollEvidenceAssertions($check);
     $projection=new ModeledConversionForecastStatusReader($p,static function():void{},new ModeledConversionStatusBudget());
     $method=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'boundedResponse');
@@ -984,7 +1043,7 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
     $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
     $p->exec("CREATE TABLE modeled_conversion_stream_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),source_kind VARCHAR(16),source_id BIGINT,version_no INT,observed_at_unix BIGINT,snapshot_json TEXT)");
     $p->exec("CREATE TABLE modeled_conversion_profile_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),customer_key VARCHAR(40),conversation_id BIGINT,journal_cursor BIGINT,observed_at_unix BIGINT,profile_json TEXT)");
-    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),conversation_id BIGINT,counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),value_origin VARCHAR(32),value_profile_id BIGINT,event_unix BIGINT,value_rub DECIMAL(12,2),value_stage VARCHAR(32),state VARCHAR(24),client_id VARCHAR(40),upload_id VARCHAR(40),upload_status VARCHAR(32),last_error VARCHAR(64),claimed_at_unix BIGINT,created_at DATETIME)");
+    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),conversation_id BIGINT,counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),value_origin VARCHAR(32),value_profile_id BIGINT,event_unix BIGINT,value_rub DECIMAL(12,2),value_stage VARCHAR(32),state VARCHAR(24),client_id VARCHAR(40),upload_id VARCHAR(40),upload_status VARCHAR(32),last_error VARCHAR(64),claimed_at_unix BIGINT,created_at DATETIME,next_attempt_unix BIGINT DEFAULT 0,target VARCHAR(100))");
     $day=strtotime('2026-11-02T21:00:00Z');$now=$day+43200;
     $oldTimeZone=$mysql?$p->query('SELECT @@session.time_zone')->fetchColumn():null;
     if($mysql)$p->exec("SET time_zone='+00:00'");
@@ -1002,7 +1061,7 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
         [$id,$conversation,$platform,$cursor,$at,$status,$stage]=$row;
         $p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour',?,?,?,?,?,?)")->execute([$id,$platform,(string)$conversation,$conversation,$cursor,$day+$at,json_encode(['semantic_prediction'=>['status'=>$status,'stage'=>$stage],'private_marker'=>'PRIVATE_PROFILE_NEVER_RETURN'],JSON_THROW_ON_ERROR)]);
     }
-    $insert=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,'anytour',?,?,'98615635','anytour_modeled_value_v1','semantic_stage_value_25000_v1',?,?,?,?,?,?,?,?,'UPLOADED','',?,?)");
+    $insert=$p->prepare("INSERT INTO max_channel_conversion_outbox(id,project_key,platform,conversation_id,counter_id,transport_target,value_contract,value_origin,value_profile_id,event_unix,value_rub,value_stage,state,client_id,upload_id,upload_status,last_error,claimed_at_unix,created_at) VALUES(?,'anytour',?,?,'98615635','anytour_modeled_value_v1','semantic_stage_value_25000_v1',?,?,?,?,?,?,?,?,'UPLOADED','',?,?)");
     foreach([[1,'max',111,null,1,121,1250,'interest','accepted','88000001','PRIVATE_RECEIPT_ONE',130,122],
         [2,'max',111,null,2,900,7083,'purchase_intent','accepted','88000001','PRIVATE_RECEIPT_TWO',1205,901],
         [3,'telegram',333,null,3,1800,25000,'payment_report','pending',null,null,null,1801],
@@ -1053,11 +1112,36 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
         &&$r['live_value']['accepted_upload_claim_ticks']['later_interval']===1
         &&$r['live_value']['accepted_upload_claim_ticks']['maximum_intervals']===1.0
         &&$r['live_value']['profile_to_queue_seconds']['maximum_seconds']===1.0);
+    $check('each live timing example projects only its own saved visit outcome without inventing a binding',
+        count($r['live_value']['examples'])===3
+        &&array_column($r['live_value']['examples'],'saved_visit_check')===array_fill(0,3,[
+            'available'=>false,'reason'=>'event_binding_unavailable']));
     $json=json_encode($r,JSON_THROW_ON_ERROR);
     $check('today timing output contains no source text profile text native identity or provider IDs',
         !str_contains($json,'PRIVATE_')&&!str_contains($json,'88000001')&&!str_contains($json,'customer_key')&&!str_contains($json,'conversation_id'));
     $read();$check('repeated latency inspection never mutates delivery rows',
         $before===json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR));
+    // A saved reason and retry clock must be attributable to this row, never
+    // inferred from the last batch's aggregate visitor decisions.
+    $p->prepare("UPDATE max_channel_conversion_outbox SET state='ready',last_error='metrika_visit_unverified',next_attempt_unix=? WHERE id=3")->execute([$now-600]);
+    $heldBefore=json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR);
+    $held=$read();$example=$held['live_value']['examples'][0];
+    $check('saved per-row hold distinguishes an overdue recheck without asserting a missing visit',
+        $example['state']==='ready'&&$example['last_recorded_hold_reason']==='metrika_visit_unverified'
+        &&$example['next_check_not_before']===gmdate('Y-m-d\\TH:i:s\\Z',$now-600)&&$example['overdue_for_saved_check_seconds']===600
+        &&$held['interpretation']['visit_unverified_combines_absent_visit_and_unavailable_report']===true
+        &&$heldBefore===json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR));
+    $p->exec("UPDATE max_channel_conversion_outbox SET last_error='metrika_no_prior_visit' WHERE id=3");
+    $noPrior=$read()['live_value']['examples'][0];
+    $check('a saved complete no-prior-visit decision stays distinct from an unavailable visit report',
+        $noPrior['last_recorded_hold_reason']==='metrika_no_prior_visit'
+        &&$noPrior['overdue_for_saved_check_seconds']===600);
+    $p->prepare("UPDATE max_channel_conversion_outbox SET last_error='PRIVATE_UNRECOGNIZED_ERROR',next_attempt_unix=? WHERE id=3")->execute([$now+300]);
+    $future=$read();$example=$future['live_value']['examples'][0];
+    $check('future retry is not overdue and arbitrary stored error text never leaves the private timing reader',
+        $example['last_recorded_hold_reason']===null&&$example['next_check_not_before']===gmdate('Y-m-d\\TH:i:s\\Z',$now+300)
+        &&$example['overdue_for_saved_check_seconds']===null&&!str_contains(json_encode($future,JSON_THROW_ON_ERROR),'PRIVATE_'));
+    $p->exec("UPDATE max_channel_conversion_outbox SET state='pending',last_error='',next_attempt_unix=0 WHERE id=3");
     $revoked=false;$calls=0;
     try{(new ModeledConversionLatencyReader($p,static function()use(&$calls):void{if(++$calls>=4)throw new DomainException();},new ModeledConversionStatusBudget()))->read($now);}
     catch(DomainException $ignored){$revoked=true;}
@@ -4512,5 +4596,7 @@ function forecastKnownTrackerAssertions(PDO $p,callable $check):array
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);$passed=0;
     $check=static function(string $name,bool $ok)use(&$passed):void{if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
-    forecastV1Assertions($p,$check);forecastLatencyAssertions($p,$check);forecastTelegramLinkageAssertions($p,$check);echo 'V1 FORECAST STATUS PASSED '.$passed.PHP_EOL;
+    forecastV1Assertions($p,$check);forecastLatencyAssertions($p,$check);forecastTelegramLinkageAssertions($p,$check);
+    require_once __DIR__.'/modeled_conversion_backlog_fixture.php';modeledBacklogAssertions($p,$check);
+    echo 'V1 FORECAST STATUS PASSED '.$passed.PHP_EOL;
 }
