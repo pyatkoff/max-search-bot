@@ -142,14 +142,14 @@ function deliveryHealthVisitHoldAssertions(PDO $p,callable $check):void
             $check('normal negative retry does not alternate failure and recovery '.$reason.' '.$until,!$stale());
         }
     }
-    foreach([null,'transport_not_sent','metrika_visit_unverified','identity_not_found',
+    foreach(['','transport_not_sent','metrika_visit_unverified','identity_not_found',
         'metrika_no_prior_visit ','METRIKA_NO_PRIOR_VISIT','metrika_visit_window ']as$error){
         $put(['last_error'=>$error]);
         $check('unconfirmed or noncanonical hold retains ten-minute alert '.(string)$error,$stale());
     }
-    $put(['last_error'=>null,'next_attempt_unix'=>$now-599]);
+    $put(['last_error'=>'','next_attempt_unix'=>$now-599]);
     $check('ordinary work retains its exact ten-minute grace',!$stale());
-    $put(['last_error'=>null,'next_attempt_unix'=>$now-600]);
+    $put(['last_error'=>'','next_attempt_unix'=>$now-600]);
     $check('genuinely unexamined ready work still alerts at ten minutes',$stale());
     foreach([
         ['attempts'=>1],['upload_id'=>'5001'],['upload_status'=>'UPLOADED'],['claim_token'=>'synthetic-claim'],
