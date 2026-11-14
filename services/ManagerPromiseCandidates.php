@@ -241,9 +241,17 @@ PROMPT;
         } elseif (preg_match('/\A(\d{1,2})\.(\d{1,2})\.(\d{4})(?:\s+(?:к|до|в)\s+([01]?\d|2[0-3]):([0-5]\d))?\z/uD', $value, $m)) {
             $day = sprintf('%04d-%02d-%02d', (int)$m[3], (int)$m[2], (int)$m[1]);
             if (isset($m[4], $m[5])) $time = sprintf('%02d:%02d', (int)$m[4], (int)$m[5]);
-        } elseif (preg_match('/\A(\d{1,2})\s+(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)\s+(\d{4})(?:\s+(?:к|до|в)\s+([01]?\d|2[0-3]):([0-5]\d))?\z/uD', $value, $m)) {
+        } elseif (preg_match('/\A(\d{1,2})\s+(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)\s+(\d{4})(?:\s+(?:к|до|в)\s+([01]?\d|2[0-3]):([0-5]\d))?\z/uiD', $value, $m)) {
             $months = array_flip(['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря']);
-            $day = sprintf('%04d-%02d-%02d', (int)$m[3], $months[$m[2]] + 1, (int)$m[1]);
+            $month = null;
+            foreach ($months as $name => $index) {
+                if (preg_match('/\A'.$name.'\z/uiD', $m[2])) {
+                    $month = $index + 1;
+                    break;
+                }
+            }
+            if ($month === null) return null;
+            $day = sprintf('%04d-%02d-%02d', (int)$m[3], $month, (int)$m[1]);
             if (isset($m[4], $m[5])) $time = sprintf('%02d:%02d', (int)$m[4], (int)$m[5]);
         }
         if ($day === null || !preg_match('/\A(\d{4})-(\d{2})-(\d{2})\z/D', $day, $d)

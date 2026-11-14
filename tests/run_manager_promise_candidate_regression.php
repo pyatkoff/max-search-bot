@@ -160,6 +160,12 @@ $dateCases=[
     ['2026-11-20',null,['kind'=>'date','value'=>'2026-11-20','zone'=>'Europe/Moscow']],
     ['20.11.2026',null,['kind'=>'date','value'=>'2026-11-20','zone'=>'Europe/Moscow']],
     ['20 ноября 2026',null,['kind'=>'date','value'=>'2026-11-20','zone'=>'Europe/Moscow']],
+    ['20 Ноября 2026',null,['kind'=>'date','value'=>'2026-11-20','zone'=>'Europe/Moscow']],
+    ['20 НОЯБРЯ 2026',null,['kind'=>'date','value'=>'2026-11-20','zone'=>'Europe/Moscow']],
+    ['20 НоЯбРя 2026 к 14:30',null,['kind'=>'instant','value'=>'2026-11-20T14:30:00+03:00']],
+    ['29 Февраля 2028',null,['kind'=>'date','value'=>'2028-02-29','zone'=>'Europe/Moscow']],
+    ['31 ФЕВРАЛЯ 2026',null,null],['29 Февраля 2026',null,null],
+    ['20 Ноября',null,null],['20 Ноября 2026 вечером',null,null],
     ['2026-11-20T14:30:00+03:00',null,['kind'=>'instant','value'=>'2026-11-20T14:30:00+03:00']],
     ['завтра',null,null],['вечером','2026-11-13T20:59:00Z',null],['31.02.2026',null,null],
 ];
@@ -168,7 +174,8 @@ foreach($dateCases as [$text,$clock,$deadline]){
     $message='Пришлю расчёт '.$text.'.';promiseCandidateMessage($pdo,12,$message,$clock);$s=promiseCandidateSnapshot($pdo);
     $p=promiseCandidateProposal([promiseCandidateItem(['quote'=>$message,'deadline_text'=>$text])]);$v=ManagerPromiseCandidates::project($p,$s);
     candidateCheck('deadline preserves Moscow source time and precision: '.$text.' / '.($clock??'unknown'),count($v)===1
-        &&$v[0]['deadline']===$deadline&&$v[0]['deadline_state']===($deadline===null?'manual_required':'suggested'),$v);
+        &&$v[0]['deadline']===$deadline&&$v[0]['deadline_state']===($deadline===null?'manual_required':'suggested')
+        &&$v[0]['quote']===$message&&$v[0]['deadline_text']===$text,$v);
 }
 
 // Real persistence/readback paths retain legacy bytes and the complete new proposal.
