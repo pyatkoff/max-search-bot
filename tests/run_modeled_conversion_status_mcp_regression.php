@@ -318,6 +318,117 @@ function forecastReceiptArgumentAssertions():void
 }
 
 
+function forecastVisitReconciliationAssertions():void
+{
+    [$pdo,$oauth,$client]=forecastMcpFixture();
+    [, $family]=forecastMcpGrant($oauth,$client,ManagerPreparationOAuth::FORECAST_SCOPE);
+    $calls=0;$service=forecastMcpService($pdo,static function()use(&$calls):array{++$calls;return ['available'=>true];});
+    $tool=ModeledConversionStatusMcpAdapter::tools()[0];
+    forecastMcpCheck('saved visit selection advertises only the existing read-only forecast capability',
+        ($tool['inputSchema']['properties']['visit_reconciliation']['type']??null)==='boolean'
+        &&($tool['inputSchema']['properties']['visit_reconciliation']['const']??null)===true
+        &&$tool['securitySchemes']===[['type'=>'oauth2','scopes'=>[ManagerPreparationOAuth::FORECAST_SCOPE]]]);
+    foreach([['visit_reconciliation'=>false],['visit_reconciliation'=>1],['visit_reconciliation'=>'true'],
+        ['visit_reconciliation'=>null],['visit_reconciliation'=>true,'receipt_ref'=>str_repeat('a',64)],
+        ['visit_reconciliation'=>true,'primary_source_review'=>true],['visit_reconciliation'=>true,'path'=>'PRIVATE_VISIT_PATH']]as$args){
+        $r=$service->handle(forecastMcpRpc('tools/call',['name'=>ModeledConversionStatusMcpAdapter::NAME,'arguments'=>$args]),1,$family,['forecasts:read']);
+        forecastMcpCheck('saved visit selection rejects coercion and mixed arguments '.json_encode(array_keys($args)),
+            ($r['error']['code']??null)===-32602&&$calls===0&&!str_contains(json_encode($r),'PRIVATE_VISIT_PATH'));
+    }
+    [, $legacy]=forecastMcpGrant($oauth,$client,'queue:read prepared:write archive:read');
+    $rpc=forecastMcpRpc('tools/call',['name'=>ModeledConversionStatusMcpAdapter::NAME,'arguments'=>['visit_reconciliation'=>true]]);
+    $denied=$service->handle($rpc,1,$legacy,['forecasts:read']);
+    forecastMcpCheck('saved visit selection cannot elevate an archive-only connection',($denied['error']['code']??null)===-32001&&$calls===0);
+
+    // Relocate unchanged runtime files, never the fixed private cache of this checkout.
+    $tmp=sys_get_temp_dir().'/forecast-visit-cache-'.bin2hex(random_bytes(6));
+    try{
+        mkdir($tmp,0700);mkdir($tmp.'/app',0700);mkdir($tmp.'/app/services',0700);
+        foreach(glob(dirname(__DIR__).'/services/*.php')?:[]as$file)
+            file_put_contents($tmp.'/app/services/'.basename($file),'<?php require_once '.var_export($file,true).';');
+        foreach(['ManagerPreparationMcpService','ModeledConversionStatusMcpAdapter','ModeledConversionVisitProof']as$name)
+            copy(dirname(__DIR__).'/services/'.$name.'.php',$tmp.'/app/services/'.$name.'.php');
+        $script="<?php\ndeclare(strict_types=1);\nrequire __DIR__.'/app/services/ManagerPreparationMcpService.php';\n";
+        $source=file(__FILE__);
+        foreach(['forecastMcpFixture','forecastMcpGrant','forecastMcpRpc']as$name){
+            $f=new ReflectionFunction($name);$script.=implode('',array_slice($source,$f->getStartLine()-1,$f->getEndLine()-$f->getStartLine()+1))."\n";
+        }
+        $script.= <<<'PHP'
+[$pdo,$oauth,$client]=forecastMcpFixture();
+[$tokens,$family]=forecastMcpGrant($oauth,$client,ManagerPreparationOAuth::FORECAST_SCOPE);
+require_once __DIR__.'/app/services/ModeledConversionVisitProof.php';
+$now=time();$at=gmdate('Y-m-d\TH:i:s\Z',$now);$checkpoint=gmdate('Y-m-d\TH:i:s\Z',$now-300);
+$events=[];
+foreach([[140,'PROCESSED','unique_visit_reconciled',true],[260,'PROCESSED','unverified',true],
+    [330,'UPLOADED','not_checked',true],[470,'PROCESSED','unique_visit_reconciled',true],[1100,'PROCESSED','unique_visit_reconciled',false]]as$i=>$v){
+    $events[]=['outbox_id'=>(string)(810001+$i),'conversation_id'=>(string)(820001+$i),
+        'client_id'=>'PRIVATE_VISIT_CLIENT','upload_id'=>'PRIVATE_VISIT_UPLOAD','fingerprint'=>hash('sha256','synthetic-visit-'.$i),
+        'platform'=>'max','stage'=>'specific_request','increment_rub'=>$v[0],'signal_at'=>$checkpoint,'cohort'=>$v[3],
+        'checked_at'=>$at,'upload_status'=>$v[1],'linkage'=>$v[2],
+        'reason'=>$v[2]==='unique_visit_reconciled'?'client_and_visit_start_count_and_value_reconciled':($v[2]==='unverified'?'other_receipts_unavailable':'provider_processing'),
+        'visit_started_at'=>null,'visit_goal_reaches'=>null,'visit_goal_value_rub'=>null,'expected_goal_reaches'=>null,'expected_goal_value_rub'=>null];
+}
+$receipt=['version'=>ModeledConversionVisitProof::VERSION,'project_key'=>'anytour','counter_id'=>'98615635','goal_id'=>'678187097','currency'=>'RUB',
+    'checked_at'=>$at,'checkpoint_at'=>$checkpoint,'basis'=>'unique_client_and_second_precision_visit_start_reconciliation_not_native_visit_id_or_event_log',
+    'ledger_complete'=>true,'selected_rows'=>5,'other_rows_omitted'=>0,'events'=>$events,'provider_write_requests'=>0,'source_writes'=>0,
+    'private_fixture_padding'=>str_repeat('x',32000)];
+$encoded=json_encode($receipt,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+$raw=json_encode(['receipt'=>$receipt,'sha256'=>hash('sha256',$encoded)],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+$path=ModeledConversionVisitProof::path();mkdir(dirname($path),0700);file_put_contents($path,$raw);chmod($path,0600);
+$tables=$pdo->query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")->fetchAll(PDO::FETCH_COLUMN);
+$snapshot=static function()use($pdo,$tables):array{$out=[];foreach($tables as$t)$out[$t]=$pdo->query('SELECT * FROM '.$t)->fetchAll();return$out;};
+$before=$snapshot();$files=scandir(dirname($path));$pdo->exec('PRAGMA query_only=ON');
+$budget=new ModeledConversionStatusBudget();$context=ManagerPreparationOAuth::bearerContext('Bearer '.$tokens['access_token'],$budget);
+$rpc=forecastMcpRpc('tools/call',['name'=>ModeledConversionStatusMcpAdapter::NAME,'arguments'=>['visit_reconciliation'=>true]]);
+$service=new ManagerPreparationMcpService($pdo);
+$response=$service->handle($rpc,$context['admin_id'],$context['connection_id'],$context['scopes'],$budget);
+$data=$response['result']['structuredContent']??[];$json=json_encode($response);
+$checks=[];
+$checks['real OAuth dispatcher reads the isolated saved cache without any business tables']=($data['available']??false)===true
+    &&($data['checkpoint_at']??null)===$checkpoint&&($data['cohort_events']??null)===4&&($data['cohort_value_rub']??null)===1200;
+$checks['saved visit projection preserves processed reconciled and unresolved outcomes of the original cohort']=
+    ($data['processed_events']??null)===3&&($data['processed_value_rub']??null)===870
+    &&($data['reconciled_events']??null)===2&&($data['reconciled_value_rub']??null)===610
+    &&array_column($data['examples']??[],'linkage')===['unique_visit_reconciled','unverified','not_checked','unique_visit_reconciled'];
+$checks['native identities unrelated events and private cache padding never leave the saved projection']=
+    !str_contains($json,'PRIVATE_VISIT')&&!str_contains($json,'81000')&&!str_contains($json,'82000')
+    &&!str_contains($json,$events[0]['fingerprint'])&&!str_contains($json,'private_fixture_padding')
+    &&!in_array(1100,array_column($data['examples']??[],'increment_rub'),true);
+$checks['saved visit read preserves cache and OAuth rows while charging the unchanged shared budget']=
+    file_get_contents($path)===$raw&&scandir(dirname($path))===$files&&$snapshot()===$before
+    &&$budget->remainingBytes()<65536-strlen($raw)&&$budget->remainingBytes()>0;
+$limited=new ModeledConversionStatusBudget();$limited->consumeBytes(30000);
+$r=$service->handle($rpc,1,$family,['forecasts:read'],$limited);
+$checks['saved cache retains explicit headroom refusal instead of uncharged data']=
+    ($r['result']['structuredContent']['available']??true)===false&&($r['result']['structuredContent']['reason']??null)==='budget_headroom';
+$pdo->exec('PRAGMA query_only=OFF');$revoked=false;$revocationBudget=null;
+$bytes=new ReflectionProperty(ModeledConversionStatusBudget::class,'bytes');
+$revocationBudget=new ModeledConversionStatusBudget(microtime(true),static function()use($pdo,$family,&$revoked,&$revocationBudget,$bytes,$raw):float{
+    if(!$revoked&&$revocationBudget!==null&&$bytes->getValue($revocationBudget)>=strlen($raw)){
+        $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([time(),$family]);$revoked=true;
+    }
+    return microtime(true);
+});
+$r=$service->handle($rpc,1,$family,['forecasts:read'],$revocationBudget);
+$checks['grant revoked after the actual cache read suppresses the complete private response']=$revoked
+    &&($r['error']['code']??null)===-32001&&!isset($r['result'])&&!str_contains(json_encode($r),'cohort_value_rub');
+echo json_encode($checks,JSON_THROW_ON_ERROR)."\n";
+PHP;
+        file_put_contents($tmp.'/fixture.php',$script);
+        $process=proc_open([PHP_BINARY,'-d','allow_url_fopen=0','-d','disable_functions=curl_init,curl_exec,curl_multi_exec,fsockopen,pfsockopen,stream_socket_client',
+            $tmp.'/fixture.php'],[0=>['pipe','r'],1=>['pipe','w'],2=>['file',$tmp.'/error.log','w']],$pipes);
+        if(!is_resource($process))throw new RuntimeException('visit_fixture_process');fclose($pipes[0]);
+        $output=stream_get_contents($pipes[1]);fclose($pipes[1]);$exit=proc_close($process);$checks=json_decode($output,true);
+        forecastMcpCheck('actual saved visit fixture completes with provider transports disabled',$exit===0&&is_array($checks)&&count($checks)===6);
+        foreach($checks as$name=>$ok)forecastMcpCheck($name,$ok===true);
+    }finally{
+        if(is_dir($tmp)){
+            $it=new RecursiveIteratorIterator(new RecursiveDirectoryIterator($tmp,FilesystemIterator::SKIP_DOTS),RecursiveIteratorIterator::CHILD_FIRST);
+            foreach($it as$file){if($file->isDir())rmdir($file->getPathname());else unlink($file->getPathname());}rmdir($tmp);
+        }
+    }
+}
+
 function forecastPrimarySourceArgumentAssertions():void
 {
     [$pdo,$oauth,$client]=forecastMcpFixture();
@@ -360,5 +471,6 @@ forecastMcpAssertions();
 forecastMcpHttpAssertions();
 forecastReceiptArgumentAssertions();
 forecastPrimarySourceArgumentAssertions();
+forecastVisitReconciliationAssertions();
 forecastSavedReceiptAssertions(new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]),'forecastMcpCheck');
 echo 'FORECAST STATUS MCP PASSED '.$passed.PHP_EOL;
