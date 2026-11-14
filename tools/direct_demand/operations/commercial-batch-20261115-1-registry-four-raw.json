@@ -1,0 +1,1088 @@
+[
+  {
+    "sourceRefs": [
+      {
+        "kind": "anex",
+        "label": "ТОП500 ANEX · место 199",
+        "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "at": "2026-10-20T01:28:35+00:00",
+        "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+      },
+      {
+        "kind": "ai",
+        "label": "Сохранённое исследование ИИ · кандидат к использованию",
+        "url": "https://chatgpt.com/library?file_id=libfile_e554d6c3171c8191926e5a7ae8bcd1e4&account_id=personal",
+        "at": "2026-11-10T14:07:48.520799+00:00",
+        "note": "Архив v134, 10 сведений с исходными датами чтения. Сходство не является принятой связью идентификаторов; условия и применимость требуют проверки."
+      },
+      {
+        "kind": "official",
+        "label": "Akdora · семейный номер",
+        "url": "https://akdoraelitehotelspa.com/aile-odasi/",
+        "at": "2026-11-11T06:18:03.710891Z",
+        "note": "45 м², две комнаты с дверью или перегородкой, двуспальная и две односпальные кровати; 3 взрослых и 1 ребёнок. Это условия категории, не всех номеров."
+      },
+      {
+        "kind": "official",
+        "label": "Akdora · официальная галерея",
+        "url": "https://akdoraelitehotelspa.com/",
+        "at": "2026-11-11T06:18:03.710891Z",
+        "note": "Фотографии территории и бара. Фотография ресторана взята из официальной галереи; фото не подтверждают текущий ассортимент."
+      },
+      {
+        "kind": "official",
+        "label": "Akdora · фотогалерея",
+        "url": "https://akdoraelitehotelspa.com/galeri/",
+        "at": "2026-11-11T06:18:03.710891Z",
+        "note": "Источник фотографии ресторана; дата съёмки неизвестна."
+      },
+      {
+        "kind": "catalog",
+        "label": "KOMPAS · Akdora Elite",
+        "url": "https://kompastour.com/ua/rus/country/turkey/side/akdora_elite_hotel_spa/",
+        "at": "2026-11-11T06:18:03.710891Z",
+        "note": "Уведомление о соседней стройке с планом открытия в 2027 сохраняется. Даты и текущее влияние работ не подтверждены. Бассейны без подогрева, пляж 300 м."
+      },
+      {
+        "kind": "receipt",
+        "label": "Контракт CTA публикатора",
+        "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+        "at": "2026-11-11T06:18:03.710891Z",
+        "note": "Контракт кнопок, не квитанция отправки. Публикация заблокирована до разрешения оговорки; URL CTA не вымышлен."
+      }
+    ],
+    "revision": 3,
+    "versions": [
+      {
+        "revision": 1,
+        "at": "2026-11-11T06:18:47.140Z",
+        "reason": "Сохранено до подготовки по официальным источникам",
+        "content": {
+          "description": "",
+          "advantages": [],
+          "limitations": [],
+          "photos": [],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "",
+          "telegramText": ""
+        }
+      },
+      {
+        "revision": 2,
+        "at": "2026-11-14T23:16:14.472Z",
+        "reason": "Сохранено до подготовки по официальным источникам",
+        "content": {
+          "ctaMode": "publisher",
+          "description": "Akdora Elite в Сиде предлагает семейную категорию 45 м² из двух комнат с дверью или перегородкой. У отеля есть бассейны и песчаный пляж примерно в 300 м. Материалы пока на проверке: оператор сохраняет уведомление о соседней стройке, фактическое влияние на отдых не подтверждено.",
+          "advantages": [
+            "Семейная категория 45 м² из двух комнат",
+            "Песчаный пляж примерно в 300 м по описанию оператора",
+            "Открытые бассейны и спа"
+          ],
+          "limitations": [
+            "Рядом заявлена стройка нового отеля с планом открытия в 2027 году. Переход работ внутрь здания после мая 2026 не подтверждает их завершение. Нужны текущие сведения о шуме и ограничениях на даты поездки.",
+            "Официальный Family 45 м²: две комнаты с дверью или перегородкой, двуспальная и две односпальные кровати; указаны 3 взрослых и 1 ребёнок. Сохранённый Join UP описывает Family 40 м²: коды и вместимость не объединяем.",
+            "Отель на второй линии; бассейны у оператора без подогрева. Формула 2+2 относится к отдельному Bunkbed, не базовому Standard. Условия размещения только мужчин у Join UP проверяются по конкретному оператору."
+          ],
+          "photos": [
+            "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-OVERVIEW3-scaled.jpg",
+            "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-POOLBAR3-1-scaled.jpg",
+            "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-RESTAURANT1-min-scaled.jpg"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "✈️ Туры в Akdora Elite Hotel & Spa\n📍 Сиде, Турция.\n\nСемейная категория 45 м² в Akdora Elite включает две комнаты с дверью или перегородкой. По описанию оператора до песчаного пляжа около 300 м, есть открытые бассейны и спа.\n\nВажно: рядом заявлена стройка нового отеля. Перед предложением тура нужно подтвердить текущее состояние работ, шум и ограничения. План открытия соседнего отеля в 2027 году не означает завершения стройки.\n\n👇 Узнать стоимость тура",
+          "telegramText": "✈️ Туры в Akdora Elite Hotel & Spa\n📍 Сиде, Турция.\n\nДля семейного размещения в Сиде рассмотрим Akdora Elite: на официальном сайте указан Family 45 м² с двумя комнатами. Планировка может включать дверь или перегородку; категорию и размещение детей проверим по тарифу.\n\nМатериалы пока требуют проверки соседней стройки: оператор продолжает размещать предупреждение, а фактический уровень шума неизвестен. Это вторая линия, подогрев бассейнов не заявлен.\n\n👇 Узнать стоимость тура"
+        }
+      },
+      {
+        "revision": 3,
+        "at": "2026-11-14T23:29:17.064Z",
+        "reason": "Принято в реестре",
+        "content": {
+          "ctaMode": "publisher",
+          "description": "Akdora Elite в Сиде расположен примерно в 300 м от собственного песчаного пляжа. На территории есть открытые бассейны и спа.\n\nРядом с отелем стройка — возможен шум.",
+          "advantages": [
+            "Собственный песчаный пляж примерно в 300 м",
+            "Открытые бассейны и спа на территории"
+          ],
+          "limitations": [
+            "Рядом заявлена стройка нового отеля с планом открытия в 2027 году; возможен шум. Переход работ внутрь здания после мая 2026 не подтверждает их завершение. Фактические условия и ограничения на даты поездки не установлены.",
+            "Официальный Family 45 м²: две комнаты с дверью или перегородкой, двуспальная и две односпальные кровати; указаны 3 взрослых и 1 ребёнок. Сохранённый Join UP описывает Family 40 м²: коды и вместимость не объединяем.",
+            "Отель на второй линии; бассейны у оператора без подогрева. Формула 2+2 относится к отдельному Bunkbed, не базовому Standard. Условия размещения только мужчин у Join UP проверяются по конкретному оператору."
+          ],
+          "photos": [
+            "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-OVERVIEW3-scaled.jpg",
+            "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-POOLBAR3-1-scaled.jpg",
+            "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-RESTAURANT1-min-scaled.jpg"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "✈️ Туры в Akdora Elite Hotel & Spa\n📍 Сиде, Турция.\n\nДо собственного песчаного пляжа примерно 300 м. На территории есть открытые бассейны и спа.\n\nРядом с отелем стройка — возможен шум.\n\n👇 Узнать стоимость тура",
+          "telegramText": "✈️ Туры в Akdora Elite Hotel & Spa\n📍 Сиде, Турция.\n\nДо собственного песчаного пляжа примерно 300 м. На территории есть открытые бассейны и спа.\n\nРядом с отелем стройка — возможен шум.\n\n👇 Узнать стоимость тура"
+        }
+      }
+    ],
+    "reuse": 2,
+    "name": "AKDORA ELITE HOTEL & SPA (EX. SEADEN SWEET PARK)",
+    "country": "Турция",
+    "region": "",
+    "stars": 0,
+    "anexId": "35433",
+    "aiId": "",
+    "tourvisorId": "59114",
+    "sources": [
+      "anex",
+      "ai"
+    ],
+    "description": "Akdora Elite в Сиде расположен примерно в 300 м от собственного песчаного пляжа. На территории есть открытые бассейны и спа.\n\nРядом с отелем стройка — возможен шум.",
+    "advantages": [
+      "Собственный песчаный пляж примерно в 300 м",
+      "Открытые бассейны и спа на территории"
+    ],
+    "limitations": [
+      "Рядом заявлена стройка нового отеля с планом открытия в 2027 году; возможен шум. Переход работ внутрь здания после мая 2026 не подтверждает их завершение. Фактические условия и ограничения на даты поездки не установлены.",
+      "Официальный Family 45 м²: две комнаты с дверью или перегородкой, двуспальная и две односпальные кровати; указаны 3 взрослых и 1 ребёнок. Сохранённый Join UP описывает Family 40 м²: коды и вместимость не объединяем.",
+      "Отель на второй линии; бассейны у оператора без подогрева. Формула 2+2 относится к отдельному Bunkbed, не базовому Standard. Условия размещения только мужчин у Join UP проверяются по конкретному оператору."
+    ],
+    "photos": [
+      "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-OVERVIEW3-scaled.jpg",
+      "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-POOLBAR3-1-scaled.jpg",
+      "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-RESTAURANT1-min-scaled.jpg"
+    ],
+    "cta": "Узнать стоимость тура",
+    "ctaUrl": "",
+    "maxText": "✈️ Туры в Akdora Elite Hotel & Spa\n📍 Сиде, Турция.\n\nДо собственного песчаного пляжа примерно 300 м. На территории есть открытые бассейны и спа.\n\nРядом с отелем стройка — возможен шум.\n\n👇 Узнать стоимость тура",
+    "telegramText": "✈️ Туры в Akdora Elite Hotel & Spa\n📍 Сиде, Турция.\n\nДо собственного песчаного пляжа примерно 300 м. На территории есть открытые бассейны и спа.\n\nРядом с отелем стройка — возможен шум.\n\n👇 Узнать стоимость тура",
+    "status": "accepted",
+    "published": {},
+    "evidence": "Переиспользованы 10 сохранённых исследовательских сведений; исходный пакет, ID ANEX 35433 / Tourvisor 59114 и ссылки сохранены. 11.11.2026 уточнён официальный Family 45 м²; Bunkbed, Standard и операторский Family 40 м² не объединены. Три фото просмотрены. Уведомление о соседней стройке сохраняется: выпуск приостановлен до подтверждения фактических условий. Цена и наличие не подтверждены; отправки не было.",
+    "id": "369f3286-fe3d-4c3e-a410-46514fdc3d99",
+    "acceptedRevision": 3,
+    "queued": true,
+    "updatedAt": "2026-11-14T23:29:32.984Z",
+    "conflicts": [],
+    "publicationSnapshots": [],
+    "photoSets": [
+      {
+        "capturedAt": "2026-11-11T06:18:03.710891Z",
+        "sourceUrl": "https://akdoraelitehotelspa.com/",
+        "proofUrl": "https://akdoraelitehotelspa.com/galeri/",
+        "label": "Три разные официальные фотографии открыты и просмотрены 11.11.2026. Дата съёмки неизвестна; фото не подтверждают отсутствие стройки или шума.",
+        "photos": [
+          {
+            "url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-OVERVIEW3-scaled.jpg",
+            "alt": "Территория Akdora Elite из официальной галереи"
+          },
+          {
+            "url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-POOLBAR3-1-scaled.jpg",
+            "alt": "Бар у бассейна Akdora Elite из официальной галереи"
+          },
+          {
+            "url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-RESTAURANT1-min-scaled.jpg",
+            "alt": "Ресторан Akdora Elite из официальной галереи"
+          }
+        ]
+      }
+    ],
+    "receiptHistory": [],
+    "knowledgePackets": [],
+    "researchPackets": [
+      {
+        "archiveUrl": "https://chatgpt.com/library?file_id=libfile_e554d6c3171c8191926e5a7ae8bcd1e4&account_id=personal",
+        "archiveSha256": "05aac018c4205eeb1f3e6a22239f785a67c137327576646e35b12ac1f8b48735",
+        "member": "integration163/working-knowledge-index.json",
+        "importedAt": "2026-11-10T14:07:48.520799+00:00",
+        "sha256": "815f078fd4a344f1141a06f6a5b5e80d9b8ed389c8afc5044133717403d4ec92",
+        "payload": "{\"hotelKey\":\"top500_3125c861b7964b10\",\"hotelName\":\"Akdora Elite Hotel & Spa\",\"country\":\"Турция\",\"nativeId\":\"59114\",\"identityBasis\":\"Кандидат на повторное использование: точное нормализованное название совпало с существующей карточкой; страна и адреса источников сопоставлены. Идентификатор research key не заменяет ANEX / Tourvisor. Перед переносом в пост требуется содержательная проверка.\",\"claims\":[{\"id\":\"top500_3125c861b7964b10_run06_c01\",\"aspect\":\"category\",\"text\":\"Источник публикует 4★; категория не является оценкой качества.\",\"kind\":\"operator_declared\",\"scope\":{\"kind\":\"hotel\",\"key\":\"top500_3125c861b7964b10\"},\"source_ids\":[\"top500_3125c861b7964b10_run06_s01\"],\"valid_at_travel\":\"unverified\",\"document_season\":\"Описание содержит уведомление 2026; ссылка Fact Sheet 2023 не подтверждает будущий сезон.\",\"hotel_key\":\"top500_3125c861b7964b10\",\"declared\":true},{\"id\":\"top500_3125c861b7964b10_run06_c02\",\"aspect\":\"board\",\"text\":\"Опубликованные планы/концепции: AI. Конкретный оплаченный план не проверен.\",\"kind\":\"operator_declared\",\"scope\":{\"kind\":\"hotel\",\"key\":\"top500_3125c861b7964b10\"},\"source_ids\":[\"top500_3125c861b7964b10_run06_s01\"],\"valid_at_travel\":\"unverified\",\"document_season\":\"Описание содержит уведомление 2026; ссылка Fact Sheet 2023 не подтверждает будущий сезон.\",\"hotel_key\":\"top500_3125c861b7964b10\",\"declared\":true},{\"id\":\"top500_3125c861b7964b10_run06_c03\",\"aspect\":\"room\",\"text\":\"Standard 28 м²: максимум 3; Bunkbed 35 м²: 2+2; Family 45 м²: две спальни, максимум 4.\",\"kind\":\"operator_declared\",\"scope\":{\"kind\":\"room_category\",\"key\":\"Standard / Bunkbed\"},\"source_ids\":[\"top500_3125c861b7964b10_run06_s01\"],\"valid_at_travel\":\"unverified\",\"document_season\":\"Описание содержит уведомление 2026; ссылка Fact Sheet 2023 не подтверждает будущий сезон.\",\"hotel_key\":\"top500_3125c861b7964b10\",\"declared\":true},{\"id\":\"top500_3125c861b7964b10_run06_c04\",\"aspect\":\"beach\",\"text\":\"Частный песчаный пляж в 300 м; оператор относит отель ко второй линии.\",\"kind\":\"operator_declared\",\"scope\":{\"kind\":\"hotel\",\"key\":\"top500_3125c861b7964b10\"},\"source_ids\":[\"top500_3125c861b7964b10_run06_s01\"],\"valid_at_travel\":\"unverified\",\"document_season\":\"Описание содержит уведомление 2026; ссылка Fact Sheet 2023 не подтверждает будущий сезон.\",\"hotel_key\":\"top500_3125c861b7964b10\",\"declared\":true},{\"id\":\"top500_3125c861b7964b10_run06_c05\",\"aspect\":\"entertainment\",\"text\":\"Живая музыка и турецкая ночь в отдельные дни.\",\"kind\":\"operator_declared\",\"scope\":{\"kind\":\"hotel\",\"key\":\"top500_3125c861b7964b10\"},\"source_ids\":[\"top500_3125c861b7964b10_run06_s01\"],\"valid_at_travel\":\"unverified\",\"document_season\":\"Описание содержит уведомление 2026; ссылка Fact Sheet 2023 не подтверждает будущий сезон.\",\"hotel_key\":\"top500_3125c861b7964b10\",\"declared\":true},{\"id\":\"top500_3125c861b7964b10_run06_c06\",\"aspect\":\"caution\",\"text\":\"Опубликовано уведомление о соседней стройке с планом открытия в 2027; переход работ внутрь здания привязан примерно к 15.05.2026. Шум на даты поездки не проверен.\",\"kind\":\"research_interpretation\",\"scope\":{\"kind\":\"hotel\",\"key\":\"top500_3125c861b7964b10\"},\"source_ids\":[\"top500_3125c861b7964b10_run06_s01\"],\"valid_at_travel\":\"unverified\",\"document_season\":\"Описание содержит уведомление 2026; ссылка Fact Sheet 2023 не подтверждает будущий сезон.\",\"hotel_key\":\"top500_3125c861b7964b10\",\"declared\":true},{\"id\":\"top500_3125c861b7964b10_run11_c01\",\"aspect\":\"room_capacity_scope\",\"text\":\"Опубликованная2+2 установлена только для Standard with Bunkbed35м²; базовый Standard28м² остаётся с общим max3. Для2+1 неизвестный возраст ребёнка не получает supported.\",\"kind\":\"research_interpretation\",\"scope\":{\"kind\":\"room_category\",\"key\":\"Standard with Bunkbed\"},\"source_ids\":[\"top500_3125c861b7964b10_run06_s01\"],\"retrieved_on\":\"2026-10-19\",\"valid_at_travel\":\"unverified\",\"hotel_key\":\"top500_3125c861b7964b10\",\"declared\":true},{\"id\":\"top500_3125c861b7964b10_run11_c02\",\"aspect\":\"reading_limit\",\"text\":\"Явная2+2 относится к отдельному Bunkbed, не к базовому Standard28м². Его допуск пары не закрыт переносом формулы из другой категории. Соседняя стройка/планы2027 остаются прежними неразрешёнными оговорками.\",\"kind\":\"research_interpretation\",\"scope\":{\"kind\":\"hotel\",\"key\":\"top500_3125c861b7964b10\"},\"source_ids\":[\"top500_3125c861b7964b10_run06_s01\"],\"retrieved_on\":\"2026-10-19\",\"valid_at_travel\":\"unverified\",\"hotel_key\":\"top500_3125c861b7964b10\",\"declared\":true},{\"id\":\"top500_3125c861b7964b10_run12_c01\",\"aspect\":\"room\",\"text\":\"Join UP: Standard Room Land View 20 м², максимум гостей 2, максимум с детьми 3. Standard Sea View 20 м² с общим max3 и Family 40 м² max4 описаны отдельно; формулу Land на них не переношу.\",\"kind\":\"operator_declared\",\"scope\":{\"kind\":\"room_category\",\"key\":\"Standard Room Land View 20m²\"},\"source_ids\":[\"top500_3125c861b7964b10_run12_s01\"],\"retrieved_on\":\"2026-10-20\",\"valid_at_travel\":\"unverified\",\"hotel_key\":\"top500_3125c861b7964b10\",\"declared\":true},{\"id\":\"top500_3125c861b7964b10_run12_c02\",\"aspect\":\"operator_booking_scope\",\"text\":\"Join UP публикует запрет размещения только мужчин в одном номере. Scope — опубликованное условие данного оператора/размещения в комнате; состав и пол туристов неизвестны, общий hotel-wide конфликт не назначается.\",\"kind\":\"research_interpretation\",\"scope\":{\"kind\":\"operator_booking\",\"key\":\"Join UP male-only room restriction\"},\"source_ids\":[\"top500_3125c861b7964b10_run12_s01\"],\"retrieved_on\":\"2026-10-20\",\"valid_at_travel\":\"unverified\",\"hotel_key\":\"top500_3125c861b7964b10\",\"declared\":true}],\"sources\":[{\"id\":\"top500_3125c861b7964b10_run06_s01\",\"url\":\"https://kompastour.com/ua/rus/country/turkey/side/akdora_elite_hotel_spa/\",\"title\":\"Akdora Elite Hotel & SPA ☀️ Турция, Сиде ✈️ KOMPAS Touroperator\",\"kind\":\"operator\",\"retrieved_on\":\"2026-10-19\",\"publication_date\":null,\"document_season\":\"Описание содержит уведомление 2026; ссылка Fact Sheet 2023 не подтверждает будущий сезон.\",\"read_refs\":[\"turn3view0\",\"turn5view0\"],\"web_ref\":\"turn3view0\",\"read_scope\":\"Прочитаны доступные извлечённые разделы, перечисленные в связанных кратких утверждениях. Это чтение разделов страницы, не аттестация всей страницы, сайта или сезона. Поисковые сниппеты не являются основаниями.\",\"limitations\":\"Описание и условия опубликованы источником; тариф, наличие и фактическая работа на даты поездки не проверены. Сведения гостей и AI-резюме отзывов не использованы. Изображения и непрочитанные PDF не подтверждают данные.\",\"additional_read_refs\":[\"turn236view7\"],\"additional_read_observations\":[{\"source_id\":\"top500_3125c861b7964b10_run06_s01\",\"read_on\":\"2026-10-19\",\"additional_read_refs\":[\"turn236view7\"],\"additional_read_scope\":\"Standard Land/Sea View28м² имеет общий max3; отдельно Standard with Bunkbed35м² публикует max2+2, KING и двухъярусную кровать, вид на бассейн.\",\"reading_limit\":\"Явная2+2 относится к отдельному Bunkbed, не к базовому Standard28м². Его допуск пары не закрыт переносом формулы из другой категории. Соседняя стройка/планы2027 остаются прежними неразрешёнными оговорками.\",\"document_season_observed\":null}],\"hotel_key\":\"top500_3125c861b7964b10\"},{\"id\":\"top500_3125c861b7964b10_run12_s01\",\"url\":\"https://agent-content.joinup.ua/uk/hotel/akdora-hotel/\",\"title\":\"Akdora Elite Hotel & Spa — agent-content.joinup.ua\",\"title_is_research_label\":true,\"kind\":\"operator\",\"retrieved_on\":\"2026-10-20\",\"publication_date\":null,\"document_season\":null,\"web_ref\":\"turn362view2\",\"additional_read_refs\":[\"turn361view0\"],\"read_scope\":\"Содержательные разделы StandardLand/Sea, Family, AI и операторское условие male-only room. Цены/турпоиск не использованы.\",\"limitations\":\"Relevant sections only, not full-site reading. Published description, not exact tariff, availability or actual operation.\",\"independent_source_verified\":false,\"hotel_key\":\"top500_3125c861b7964b10\"}]}",
+        "matchStatus": "needs_review"
+      }
+    ],
+    "categoryEvidence": [
+      {
+        "need": "family",
+        "text": "Официальная семейная категория 45 м² из двух комнат; текущие условия отдыха требуют проверки из-за соседней стройки.",
+        "scope": "hotel",
+        "sourceUrl": "https://akdoraelitehotelspa.com/aile-odasi/",
+        "checkedAt": "2026-11-11T06:18:03.710891Z"
+      }
+    ],
+    "releaseHolds": [
+      {
+        "key": "akdora-neighbour-construction-20261111",
+        "reason": "Оператор сохраняет уведомление о соседней стройке и плане открытия в 2027. Переход работ внутрь здания не доказывает завершение. До выпуска нужны подтверждение текущего состояния работ, влияния шума и ограничений на даты поездки.",
+        "sourceUrl": "https://kompastour.com/ua/rus/country/turkey/side/akdora_elite_hotel_spa/",
+        "checkedAt": "2026-11-11T06:18:03.710891Z"
+      }
+    ],
+    "premium": {
+      "reason": "Официальный Family 45 м² из двух комнат. Приоритет семейной категории, не подтверждённой цены. Выпуск удерживается из-за неразрешённого уведомления о соседней стройке.",
+      "sourceUrl": "https://akdoraelitehotelspa.com/aile-odasi/",
+      "at": "2026-11-11T06:18:03.710891Z"
+    },
+    "ctaMode": "publisher",
+    "releaseHoldResolutions": [
+      {
+        "hotelId": "369f3286-fe3d-4c3e-a410-46514fdc3d99",
+        "hold": {
+          "key": "akdora-neighbour-construction-20261111",
+          "reason": "Оператор сохраняет уведомление о соседней стройке и плане открытия в 2027. Переход работ внутрь здания не доказывает завершение. До выпуска нужны подтверждение текущего состояния работ, влияния шума и ограничений на даты поездки.",
+          "sourceUrl": "https://kompastour.com/ua/rus/country/turkey/side/akdora_elite_hotel_spa/",
+          "checkedAt": "2026-11-11T06:18:03.710891Z"
+        },
+        "revision": 3,
+        "at": "2026-11-14T23:29:05.727Z",
+        "decision": "publish_with_disclosure",
+        "reason": "В текстах прямо раскрыты соседняя стройка и возможный шум. Это редакторское решение о выпуске с предупреждением; завершение работ и тишина не подтверждались. Исходное уведомление и ограничения сохраняются.",
+        "disclosure": "Рядом с отелем стройка — возможен шум."
+      }
+    ]
+  },
+  {
+    "sourceRefs": [
+      {
+        "kind": "anex",
+        "label": "ТОП500 ANEX · место 254",
+        "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "at": "2026-10-20T01:28:35+00:00",
+        "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+      },
+      {
+        "kind": "ai",
+        "label": "Сохранённое исследование ИИ · кандидат к использованию",
+        "url": "https://chatgpt.com/library?file_id=libfile_e554d6c3171c8191926e5a7ae8bcd1e4&account_id=personal",
+        "at": "2026-11-10T14:07:48.520799+00:00",
+        "note": "Архив v134, 10 сведений с исходными датами чтения. Сходство не является принятой связью идентификаторов; условия и применимость требуют проверки."
+      },
+      {
+        "kind": "catalog",
+        "label": "DERTOUR · Rewaya Inn ex Hawaii Paradise",
+        "url": "https://www.dertour.ro/egipt/hurghada/hurghada/hawaii-paradise-aqua-park-resort",
+        "at": "2026-11-11T07:43:25.729112Z",
+        "note": "Переиспользован и прочитан вновь сохранённый источник: Family с 2 спальнями, аквапарк, мини-клуб. А-ля-карт платно, 10–24 напитки, без адаптации для инвалидности."
+      },
+      {
+        "kind": "catalog",
+        "label": "vtours · предупреждение о стройке Rewaya Inn",
+        "url": "https://www.vtours.com/de/reiseziele/%C3%A4gypten/rewaya-inn-resort-hurghada-HRG100012/",
+        "at": "2026-11-11T07:43:25.729112Z",
+        "note": "Переиспользован источник исследования. На соседнем участке работы, визуальное и звуковое воздействие среднего уровня. Дата завершения не названа. Условия hotel-only относятся только к vtours."
+      },
+      {
+        "kind": "catalog",
+        "label": "TUI · Rewaya Inn, фотогалерея",
+        "url": "https://www.tui.com/hotels/rewaya-inn-resort-1254588/hotelinformation/",
+        "at": "2026-11-11T07:43:25.729112Z",
+        "note": "3 разные фотографии именно Rewaya Inn открыты и просмотрены. Не используются как доказательство отсутствия стройки."
+      },
+      {
+        "kind": "receipt",
+        "label": "Контракт CTA публикатора",
+        "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+        "at": "2026-11-11T07:43:25.729112Z",
+        "note": "Контракт формирования единственной кнопки, не квитанция фактической отправки. ctaMode=publisher, URL CTA пустой."
+      }
+    ],
+    "revision": 4,
+    "versions": [
+      {
+        "revision": 1,
+        "at": "2026-11-11T07:44:43.576Z",
+        "reason": "Сохранено до подготовки по официальным источникам",
+        "content": {
+          "description": "",
+          "advantages": [],
+          "limitations": [],
+          "photos": [],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "",
+          "telegramText": ""
+        }
+      },
+      {
+        "revision": 2,
+        "at": "2026-11-14T23:16:14.472Z",
+        "reason": "Сохранено до подготовки по официальным источникам",
+        "content": {
+          "ctaMode": "publisher",
+          "description": "Rewaya Inn Resort, ранее Hawaii Paradise Aqua Park, предлагает аквапарк, детскую инфраструктуру и семейную категорию с двумя спальнями по DERTOUR. Материалы остаются на проверке: vtours сохраняет предупреждение о соседней стройке со звуковым и визуальным воздействием.",
+          "advantages": [
+            "Family с двумя спальнями по описанию DERTOUR",
+            "Аквапарк для детей и взрослых",
+            "Мини-клуб и детская площадка"
+          ],
+          "limitations": [
+            "vtours сохраняет недатированное предупреждение о стройке на соседнем участке со средним визуальным и звуковым воздействием. Завершение работ не подтверждено; до выпуска нужны текущий статус стройки, влияние шума и ограничения на даты.",
+            "Family с двумя спальнями у DERTOUR не сопоставлена с 65/80 м² из сохранённого factsheet. Площадь, взрослую и детскую вместимость нельзя переносить без точного кода категории.",
+            "DERTOUR указывает местные напитки 10:00–24:00; круглосуточный бесплатный алкоголь не обещается. Азиатский/итальянский à la carte — платно, по записи. Сезонный подогрев и его температура определяются отелем.",
+            "У DERTOUR отель не адаптирован для гостей с инвалидностью. Условия vtours hotel-only с подтверждением прибытия из EU/Швейцарии относятся к конкретному оператору, не всем гостям отеля."
+          ],
+          "photos": [
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS80LzQwY2ExODBjNDVjNGI0YzZiYzM3YTRjZTFhMzUxODg3X29jcHByb2QuanBn",
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS84LzhmNmViMTRkYjhiYzI4OGM2NWNiZTA5YTFjMzBjZGE5X29jcHByb2QuanBn",
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8yLzI4YzY1YmYwZWRiYTE4MDNjN2IyYTFhY2RmZmUzNGMwX29jcHByb2QuanBn"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "✈️ Туры в Rewaya Inn Resort\n📍 Хургада, Египет\n\nСемейная категория с двумя спальнями и большой аквапарк — основания рассмотреть Rewaya Inn Resort в Хургаде после проверки условий отдыха. DERTOUR также описывает мини-клуб и детскую площадку.\n\nСейчас выпуск материалов удерживается: vtours предупреждает о стройке на соседнем участке, но не указывает срок её окончания. Сначала нужно подтвердить текущие работы и шум на даты поездки. Площадь и вместимость Family уточняются по конкретному коду.\n\n👇 Узнать стоимость тура",
+          "telegramText": "✈️ Туры в Rewaya Inn Resort\n📍 Хургада, Египет\n\nВ Rewaya Inn, бывшем Hawaii Paradise Aqua Park, семейный формат связан с аквапарком и отдельной категорией Family с двумя спальнями. Размеры 65/80 м² из прежнего factsheet к этому коду не привязаны, поэтому в предложение их не переносим.\n\nПеред выбором отеля требуется проверка соседней стройки: предупреждение оператора остаётся, актуальные сроки и влияние на отдых неизвестны. Включённые напитки, платные рестораны и условия доступности проверяются отдельно.\n\n👇 Узнать стоимость тура"
+        }
+      },
+      {
+        "revision": 3,
+        "at": "2026-11-14T23:21:22.176Z",
+        "reason": "Сохранено до подготовки по официальным источникам",
+        "content": {
+          "ctaMode": "publisher",
+          "description": "Rewaya Inn Resort в Хургаде подойдёт любителям водных развлечений: здесь есть собственный аквапарк с горками для детей и взрослых. Кроме аквапарка, для детей есть мини-клуб и площадка.\n\nРядом с отелем стройка: её может быть видно и слышно.",
+          "advantages": [
+            "Собственный аквапарк с горками для детей и взрослых",
+            "Мини-клуб и детская площадка"
+          ],
+          "limitations": [
+            "По соседству стройка; её может быть видно и слышно. Сохранённое уведомление vtours не содержит срока окончания работ. Фактический уровень шума и условия на даты поездки не установлены.",
+            "Family с двумя спальнями у DERTOUR не сопоставлена с 65/80 м² из сохранённого factsheet. Площадь, взрослую и детскую вместимость нельзя переносить без точного кода категории.",
+            "DERTOUR указывает местные напитки 10:00–24:00; круглосуточный бесплатный алкоголь не обещается. Азиатский/итальянский à la carte — платно, по записи. Сезонный подогрев и его температура определяются отелем.",
+            "У DERTOUR отель не адаптирован для гостей с инвалидностью. Условия vtours hotel-only с подтверждением прибытия из EU/Швейцарии относятся к конкретному оператору, не всем гостям отеля."
+          ],
+          "photos": [
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS80LzQwY2ExODBjNDVjNGI0YzZiYzM3YTRjZTFhMzUxODg3X29jcHByb2QuanBn",
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS84LzhmNmViMTRkYjhiYzI4OGM2NWNiZTA5YTFjMzBjZGE5X29jcHByb2QuanBn",
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8yLzI4YzY1YmYwZWRiYTE4MDNjN2IyYTFhY2RmZmUzNGMwX29jcHByb2QuanBn"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "✈️ Туры в Rewaya Inn Resort\n📍 Хургада, Египет\n\nЗдесь есть собственный аквапарк с горками для детей и взрослых, мини-клуб и детская площадка.\n\nРядом с отелем стройка: её может быть видно и слышно.\n\n👇 Узнать стоимость тура",
+          "telegramText": "✈️ Туры в Rewaya Inn Resort\n📍 Хургада, Египет\n\nЗдесь есть собственный аквапарк с горками для детей и взрослых, мини-клуб и детская площадка.\n\nРядом с отелем стройка: её может быть видно и слышно.\n\n👇 Узнать стоимость тура"
+        }
+      },
+      {
+        "revision": 4,
+        "at": "2026-11-14T23:29:22.302Z",
+        "reason": "Принято в реестре",
+        "content": {
+          "ctaMode": "publisher",
+          "description": "Rewaya Inn Resort в Хургаде подойдёт любителям водных развлечений: здесь есть собственный аквапарк с горками для детей и взрослых. Кроме аквапарка, для детей есть мини-клуб и площадка.\n\nРядом с отелем стройка: её может быть видно и слышно.",
+          "advantages": [
+            "Собственный аквапарк с горками для детей и взрослых",
+            "Мини-клуб и детская площадка"
+          ],
+          "limitations": [
+            "По соседству стройка; её может быть видно и слышно. Сохранённое уведомление vtours не содержит срока окончания работ. Фактический уровень шума и условия на даты поездки не установлены.",
+            "Family с двумя спальнями у DERTOUR не сопоставлена с 65/80 м² из сохранённого factsheet. Площадь, взрослую и детскую вместимость нельзя переносить без точного кода категории.",
+            "DERTOUR указывает местные напитки 10:00–24:00; круглосуточный бесплатный алкоголь не обещается. Азиатский/итальянский à la carte — платно, по записи. Сезонный подогрев и его температура определяются отелем.",
+            "У DERTOUR отель не адаптирован для гостей с инвалидностью. Условия vtours hotel-only с подтверждением прибытия из EU/Швейцарии относятся к конкретному оператору, не всем гостям отеля."
+          ],
+          "photos": [
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS80LzQwY2ExODBjNDVjNGI0YzZiYzM3YTRjZTFhMzUxODg3X29jcHByb2QuanBn",
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS84LzhmNmViMTRkYjhiYzI4OGM2NWNiZTA5YTFjMzBjZGE5X29jcHByb2QuanBn",
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8yLzI4YzY1YmYwZWRiYTE4MDNjN2IyYTFhY2RmZmUzNGMwX29jcHByb2QuanBn"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "✈️ Туры в Rewaya Inn Resort\n📍 Хургада, Египет.\n\nЗдесь есть собственный аквапарк с горками для детей и взрослых, мини-клуб и детская площадка.\n\nРядом с отелем стройка: её может быть видно и слышно.\n\n👇 Узнать стоимость тура",
+          "telegramText": "✈️ Туры в Rewaya Inn Resort\n📍 Хургада, Египет.\n\nЗдесь есть собственный аквапарк с горками для детей и взрослых, мини-клуб и детская площадка.\n\nРядом с отелем стройка: её может быть видно и слышно.\n\n👇 Узнать стоимость тура"
+        }
+      }
+    ],
+    "reuse": 2,
+    "name": "REWAYA INN RESORT (EX. HAWAII PARADISE AQUA PARK RESORT)",
+    "country": "Египет",
+    "region": "",
+    "stars": 0,
+    "anexId": "30497",
+    "aiId": "",
+    "tourvisorId": "74036",
+    "sources": [
+      "anex",
+      "ai"
+    ],
+    "description": "Rewaya Inn Resort в Хургаде подойдёт любителям водных развлечений: здесь есть собственный аквапарк с горками для детей и взрослых. Кроме аквапарка, для детей есть мини-клуб и площадка.\n\nРядом с отелем стройка: её может быть видно и слышно.",
+    "advantages": [
+      "Собственный аквапарк с горками для детей и взрослых",
+      "Мини-клуб и детская площадка"
+    ],
+    "limitations": [
+      "По соседству стройка; её может быть видно и слышно. Сохранённое уведомление vtours не содержит срока окончания работ. Фактический уровень шума и условия на даты поездки не установлены.",
+      "Family с двумя спальнями у DERTOUR не сопоставлена с 65/80 м² из сохранённого factsheet. Площадь, взрослую и детскую вместимость нельзя переносить без точного кода категории.",
+      "DERTOUR указывает местные напитки 10:00–24:00; круглосуточный бесплатный алкоголь не обещается. Азиатский/итальянский à la carte — платно, по записи. Сезонный подогрев и его температура определяются отелем.",
+      "У DERTOUR отель не адаптирован для гостей с инвалидностью. Условия vtours hotel-only с подтверждением прибытия из EU/Швейцарии относятся к конкретному оператору, не всем гостям отеля."
+    ],
+    "photos": [
+      "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS80LzQwY2ExODBjNDVjNGI0YzZiYzM3YTRjZTFhMzUxODg3X29jcHByb2QuanBn",
+      "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS84LzhmNmViMTRkYjhiYzI4OGM2NWNiZTA5YTFjMzBjZGE5X29jcHByb2QuanBn",
+      "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8yLzI4YzY1YmYwZWRiYTE4MDNjN2IyYTFhY2RmZmUzNGMwX29jcHByb2QuanBn"
+    ],
+    "cta": "Узнать стоимость тура",
+    "ctaUrl": "",
+    "maxText": "✈️ Туры в Rewaya Inn Resort\n📍 Хургада, Египет.\n\nЗдесь есть собственный аквапарк с горками для детей и взрослых, мини-клуб и детская площадка.\n\nРядом с отелем стройка: её может быть видно и слышно.\n\n👇 Узнать стоимость тура",
+    "telegramText": "✈️ Туры в Rewaya Inn Resort\n📍 Хургада, Египет.\n\nЗдесь есть собственный аквапарк с горками для детей и взрослых, мини-клуб и детская площадка.\n\nРядом с отелем стройка: её может быть видно и слышно.\n\n👇 Узнать стоимость тура",
+    "status": "accepted",
+    "published": {},
+    "evidence": "Переиспользованы 10 сохранённых research-claims; researchPacket, исходные ссылки и ANEX 30497 / Tourvisor 74036 сохранены. DERTOUR подтверждает Family с двумя спальнями, аквапарк и детскую инфраструктуру; площади 65/80 м² не сопоставлены с кодом. vtours по-прежнему предупреждает о соседней стройке без срока окончания. 3 фото TUI открыты и просмотрены. Цена, наличие и фактическое завершение работ не подтверждены; выпуск удерживается.",
+    "id": "a69daef2-7fc0-4865-b86f-0e1f6b099fa5",
+    "acceptedRevision": 4,
+    "queued": true,
+    "updatedAt": "2026-11-14T23:29:32.984Z",
+    "conflicts": [],
+    "publicationSnapshots": [],
+    "photoSets": [
+      {
+        "capturedAt": "2026-11-11T07:43:25.729112Z",
+        "sourceUrl": "https://www.tui.com/hotels/rewaya-inn-resort-1254588/hotelinformation/",
+        "proofUrl": "https://www.tui.com/hotels/rewaya-inn-resort-1254588/hotelinformation/",
+        "label": "Три разные фотографии данного отеля открыты и визуально проверены. Дата съёмки неизвестна; фото не подтверждают текущую работу услуг, отсутствие ремонта, конкретный номер или наличие.",
+        "photos": [
+          {
+            "url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS80LzQwY2ExODBjNDVjNGI0YzZiYzM3YTRjZTFhMzUxODg3X29jcHByb2QuanBn",
+            "alt": "Бассейн и корпуса Rewaya Inn из галереи TUI"
+          },
+          {
+            "url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS84LzhmNmViMTRkYjhiYzI4OGM2NWNiZTA5YTFjMzBjZGE5X29jcHByb2QuanBn",
+            "alt": "Водные горки Rewaya Inn, галерея TUI"
+          },
+          {
+            "url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8yLzI4YzY1YmYwZWRiYTE4MDNjN2IyYTFhY2RmZmUzNGMwX29jcHByb2QuanBn",
+            "alt": "Пляжная зона Rewaya Inn из галереи TUI"
+          }
+        ]
+      }
+    ],
+    "receiptHistory": [],
+    "knowledgePackets": [],
+    "researchPackets": [
+      {
+        "archiveUrl": "https://chatgpt.com/library?file_id=libfile_e554d6c3171c8191926e5a7ae8bcd1e4&account_id=personal",
+        "archiveSha256": "05aac018c4205eeb1f3e6a22239f785a67c137327576646e35b12ac1f8b48735",
+        "member": "integration163/working-knowledge-index.json",
+        "importedAt": "2026-11-10T14:07:48.520799+00:00",
+        "sha256": "db9e83a557a64ae7cd5349b3fdecb3e32d90c579597f3bb7327f35adb9333f4c",
+        "payload": "{\"hotelKey\":\"top500_860a58920fac8b91\",\"hotelName\":\"Rewaya Inn Resort\",\"country\":\"Египет\",\"nativeId\":\"74036\",\"identityBasis\":\"Кандидат на повторное использование: точное нормализованное название совпало с существующей карточкой; страна и адреса источников сопоставлены. Идентификатор research key не заменяет ANEX / Tourvisor. Перед переносом в пост требуется содержательная проверка.\",\"claims\":[{\"id\":\"top500_860a58920fac8b91_gap50_1_c1\",\"aspect\":\"source_scope_caution\",\"text\":\"В factsheet Rewaya Inn перечислены Standard 45/55 м² и Family 65/80 м². Взрослая вместимость и звёздность в прочитанном тексте не установлены.\",\"kind\":\"operator_declared\",\"scope\":{\"kind\":\"hotel\",\"key\":\"top500_860a58920fac8b91\"},\"source_ids\":[\"top500_860a58920fac8b91_gap50_1_s\"],\"valid_at_travel\":\"unverified\",\"hotel_key\":\"top500_860a58920fac8b91\",\"declared\":true},{\"id\":\"top500_860a58920fac8b91_mass39_c01\",\"aspect\":\"category\",\"text\":\"DERTOUR RO под текущим именем Rewaya Inn Resort ex. Hawaii Paradise прямо указывает официальную категорию5★. Это категория публикации для данного объекта; название Rewaya Majestic другого объекта сюда не перенесено, оценка качества не назначена.\",\"kind\":\"operator_declared\",\"scope\":{\"kind\":\"hotel\",\"key\":\"RewayaInn current published category\"},\"source_ids\":[\"top500_860a58920fac8b91_mass39_s01\"],\"retrieved_on\":\"2026-10-20\",\"valid_at_travel\":\"unverified\",\"value\":5,\"hotel_key\":\"top500_860a58920fac8b91\",\"declared\":true},{\"id\":\"top500_860a58920fac8b91_mass39_c02\",\"aspect\":\"Family_two_bedrooms\",\"text\":\"DERTOUR RO Rewaya Family описана с двумя спальнями; площадь и состав не даны. Прежние FS65/80 м² не привязаны к этой строке без точного кода. Это не допуск2+1 без возраста.\",\"kind\":\"operator_declared\",\"scope\":{\"kind\":\"room_category\",\"key\":\"DERTOUR Rewaya Family\"},\"source_ids\":[\"top500_860a58920fac8b91_mass39_s01\"],\"retrieved_on\":\"2026-10-20\",\"valid_at_travel\":\"unverified\",\"hotel_key\":\"top500_860a58920fac8b91\",\"declared\":true},{\"id\":\"top500_860a58920fac8b91_mass39_c03\",\"aspect\":\"ala_fee_scope\",\"text\":\"DERTOUR RO Rewaya отдельно помечает азиатский и итальянский a la carte платными по записи. Веб-период не назван; прежние ночные алкогольные оговорки сохранены отдельно.\",\"kind\":\"operator_declared\",\"scope\":{\"kind\":\"facility\",\"key\":\"Rewaya Asian / Italian\"},\"source_ids\":[\"top500_860a58920fac8b91_mass39_s01\"],\"retrieved_on\":\"2026-10-20\",\"valid_at_travel\":\"unverified\",\"hotel_key\":\"top500_860a58920fac8b91\",\"declared\":true},{\"id\":\"top500_860a58920fac8b91_run03_c01\",\"aspect\":\"research_summary\",\"text\":\"AI-памятка именно Rewaya Inn: заявлено круглосуточное AI с отсутствием алкогольной подачи 00:00–10:00; Kids Club 6–12 лет; room service платный, Wi-Fi в лобби бесплатный, в комнатах платный.\",\"kind\":\"operator_declared\",\"scope\":{\"kind\":\"hotel\",\"key\":\"top500_860a58920fac8b91\"},\"source_ids\":[\"top500_860a58920fac8b91_run03_s01\"],\"valid_at_travel\":\"unverified\",\"hotel_key\":\"top500_860a58920fac8b91\",\"declared\":true},{\"id\":\"top500_860a58920fac8b91_run11_c01\",\"aspect\":\"board_exclusions\",\"text\":\"В концепции Rewaya Inn24h относится к AI/soft. Бесплатный алкоголь10–00 и только18+; ночью два раздела расходятся между отсутствием подачи и платной подачей. Включение алкоголя24h не установлено.\",\"kind\":\"operator_declared\",\"scope\":{\"kind\":\"facility\",\"key\":\"Lobby Bar / AI alcohol service\"},\"source_ids\":[\"top500_860a58920fac8b91_run03_s01\"],\"retrieved_on\":\"2026-10-19\",\"valid_at_travel\":\"unverified\",\"hotel_key\":\"top500_860a58920fac8b91\",\"declared\":true},{\"id\":\"top500_860a58920fac8b91_run11_c02\",\"aspect\":\"reading_limit\",\"text\":\"Инвентарные53/505 и площадь45/55м² не вместимость; таблица извлечена с перемешанными колонками, визуальная привязка не подтверждена. Вводный текст «не подают00–10» расходится с lobby-строкой «платно00–10», ночной алкоголь не считать включённым.\",\"kind\":\"research_interpretation\",\"scope\":{\"kind\":\"hotel\",\"key\":\"top500_860a58920fac8b91\"},\"source_ids\":[\"top500_860a58920fac8b91_gap50_1_s\"],\"retrieved_on\":\"2026-10-19\",\"valid_at_travel\":\"unverified\",\"hotel_key\":\"top500_860a58920fac8b91\",\"declared\":true},{\"id\":\"top500_860a58920fac8b91_run12_c01\",\"aspect\":\"room\",\"text\":\"Vtours прямо публикует Doppelzimmer Gartenblick DZG и Meerblick DZM; категории Alleinbenutzung DAG/DAM выделены отдельно. Это точная двухместная категория, не автоматические 2 Adults в форме. Площадь DZG не раскрыта.\",\"kind\":\"operator_declared\",\"scope\":{\"kind\":\"room_category\",\"key\":\"Doppelzimmer Gartenblick DZG\"},\"source_ids\":[\"top500_860a58920fac8b91_run12_s01\"],\"retrieved_on\":\"2026-10-20\",\"valid_at_travel\":\"unverified\",\"hotel_key\":\"top500_860a58920fac8b91\",\"declared\":true},{\"id\":\"top500_860a58920fac8b91_run12_c02\",\"aspect\":\"facility_notice\",\"text\":\"На странице vtours есть недатированное предупреждение о стройке на соседнем участке со зрительным и звуковым воздействием. Прочитано 20.10.2026; начало, конец и фактическое продолжение работ не установлены. В описании есть отметка Aug. 2023.\",\"kind\":\"operator_declared\",\"scope\":{\"kind\":\"facility\",\"key\":\"undated neighbouring construction notice\"},\"source_ids\":[\"top500_860a58920fac8b91_run12_s01\"],\"retrieved_on\":\"2026-10-20\",\"valid_at_travel\":\"unverified\",\"hotel_key\":\"top500_860a58920fac8b91\",\"declared\":true},{\"id\":\"top500_860a58920fac8b91_run12_c03\",\"aspect\":\"operator_booking_scope\",\"text\":\"Для vtours hotel-only указана возможная проверка прибытия из EU/Switzerland и доплата или отказ без подтверждения. Это операторское условие бронирования, не предположение о туристах и не запрет всего отеля.\",\"kind\":\"research_interpretation\",\"scope\":{\"kind\":\"operator_booking\",\"key\":\"vtours hotel-only arrival-origin condition\"},\"source_ids\":[\"top500_860a58920fac8b91_run12_s01\"],\"retrieved_on\":\"2026-10-20\",\"valid_at_travel\":\"unverified\",\"hotel_key\":\"top500_860a58920fac8b91\",\"declared\":true}],\"sources\":[{\"title\":\"Factsheet / описание отеля\",\"url\":\"https://kompastour.com/useruploads/tiny_MCE/egypt/hurghada_elahiya/hawaii_paradise_aquapark_resort/fact_sheet_Rewaya_inn.pdf\",\"web_ref\":\"turn241view0\",\"id\":\"top500_860a58920fac8b91_gap50_1_s\",\"kind\":\"operator\",\"retrieved_on\":\"2026-10-19\",\"publication_date\":null,\"read_scope\":\"Прочитаны только разделы, отражённые в связанных фактах. Сезон в используемом разделе не установлен\",\"limitations\":\"Опубликованное/историческое описание; будущая применимость, тариф и наличие не проверены. Таблицы PDF не подтверждены визуальным просмотром.\",\"additional_read_refs\":[\"turn268view1\"],\"additional_read_observations\":[{\"source_id\":\"top500_860a58920fac8b91_gap50_1_s\",\"read_on\":\"2026-10-19\",\"additional_read_refs\":[\"turn268view1\"],\"additional_read_scope\":\"Фактическое чтение Rewaya Inn: в factsheet перечислены Standard с king/twin; таблица инвентаря имеет общие количества/площади, но не явный2AD. AI concept отдельно ограничивает бесплатный алкоголь10–00 и18+.\",\"reading_limit\":\"Инвентарные53/505 и площадь45/55м² не вместимость; таблица извлечена с перемешанными колонками, визуальная привязка не подтверждена. Вводный текст «не подают00–10» расходится с lobby-строкой «платно00–10», ночной алкоголь не считать включённым.\",\"document_season_observed\":null}],\"hotel_key\":\"top500_860a58920fac8b91\"},{\"id\":\"top500_860a58920fac8b91_mass39_s01\",\"url\":\"https://www.dertour.ro/egipt/hurghada/hurghada/hawaii-paradise-aqua-park-resort\",\"title\":\"Rewaya Inn Resort — Current name104–112,category179–180,rooms127–138,ala114–117\",\"title_is_research_label\":true,\"kind\":\"operator\",\"retrieved_on\":\"2026-10-20\",\"publication_date\":null,\"document_season\":\"Not stated;offerquery omitted\",\"information_as_of\":null,\"web_ref\":\"turn623view0\",\"additional_web_refs\":[],\"read_scope\":\"Current name104–112,category179–180,rooms127–138,ala114–117\",\"limitations\":\"Only specified relevant sections read,not whole site. Reading date is not publication date. No travel tariff,availability,actual operation,guest review,nativeID or tourist characteristics verified.\",\"hotel_key\":\"top500_860a58920fac8b91\"},{\"id\":\"top500_860a58920fac8b91_run03_s01\",\"url\":\"https://www.bgoperator.ru/pr_img/1000512/20251121/25238008/Rewaya_Inn_All__info_English_docx_new.pdf\",\"title\":\"Прочитанный официальный или операторский источник\",\"kind\":\"operator\",\"retrieved_on\":\"2026-10-19\",\"publication_date\":null,\"read_scope\":\"Прочитан раздел, отражённый в связанном утверждении; прочие блоки не использованы.\",\"limitations\":\"Опубликованное описание; будущие даты и тариф не проверены.\",\"web_ref\":\"turn74view0\",\"additional_read_refs\":[\"turn263view0\"],\"additional_read_observations\":[{\"source_id\":\"top500_860a58920fac8b91_run03_s01\",\"read_on\":\"2026-10-19\",\"additional_read_refs\":[\"turn263view0\"],\"additional_read_scope\":\"RewayaInn AI concept sections: free alcohol10–00/18+, inconsistent overnight no-service vs charged; no room admission.\",\"reading_limit\":\"Инвентарные53/505 и площадь45/55м² не вместимость; таблица извлечена с перемешанными колонками, визуальная привязка не подтверждена. Вводный текст «не подают00–10» расходится с lobby-строкой «платно00–10», ночной алкоголь не считать включённым.\",\"document_season_observed\":null}],\"hotel_key\":\"top500_860a58920fac8b91\"},{\"id\":\"top500_860a58920fac8b91_run12_s01\",\"url\":\"https://www.vtours.com/de/reiseziele/%C3%A4gypten/rewaya-inn-resort-hurghada-HRG100012/\",\"title\":\"Rewaya Inn Resort — www.vtours.com\",\"title_is_research_label\":true,\"kind\":\"operator\",\"retrieved_on\":\"2026-10-20\",\"publication_date\":null,\"document_season\":\"Description section endsAug2023; construction notice undated\",\"web_ref\":\"turn373view2\",\"additional_read_refs\":[\"turn372view1\"],\"read_scope\":\"Содержательная Hotelbeschreibung:двухместныеDZG/DZM,отдельныеsingle-use,AI,недатированноепредупреждениеоработах и scopedhotel-onlycondition. Форма2Adults/цены не использованы.\",\"limitations\":\"Relevant sections only, not full-site reading. Published description, not exact tariff, availability or actual operation.\",\"independent_source_verified\":false,\"hotel_key\":\"top500_860a58920fac8b91\"}]}",
+        "matchStatus": "needs_review"
+      }
+    ],
+    "categoryEvidence": [
+      {
+        "need": "family",
+        "text": "DERTOUR описывает мини-клуб и детскую площадку Rewaya Inn.",
+        "scope": "hotel",
+        "sourceUrl": "https://www.dertour.ro/egipt/hurghada/hurghada/hawaii-paradise-aqua-park-resort",
+        "checkedAt": "2026-11-11T07:43:25.729112Z"
+      },
+      {
+        "need": "family",
+        "text": "Family у DERTOUR имеет две спальни; площадь и возрастная формула не установлены.",
+        "scope": "room",
+        "sourceUrl": "https://www.dertour.ro/egipt/hurghada/hurghada/hawaii-paradise-aqua-park-resort",
+        "checkedAt": "2026-11-11T07:43:25.729112Z"
+      },
+      {
+        "need": "waterpark",
+        "text": "DERTOUR подтверждает собственный аквапарк Rewaya Inn с горками для детей и взрослых.",
+        "scope": "hotel",
+        "sourceUrl": "https://www.dertour.ro/egipt/hurghada/hurghada/hawaii-paradise-aqua-park-resort",
+        "checkedAt": "2026-11-11T07:43:25.729112Z"
+      }
+    ],
+    "releaseHolds": [
+      {
+        "key": "rewaya-neighbour-construction-20261111",
+        "reason": "vtours сохраняет недатированное предупреждение о соседней стройке со средним визуальным и звуковым воздействием. До выпуска нужны подтверждение текущего статуса работ, шума и ограничений на даты поездки.",
+        "sourceUrl": "https://www.vtours.com/de/reiseziele/%C3%A4gypten/rewaya-inn-resort-hurghada-HRG100012/",
+        "checkedAt": "2026-11-11T07:43:25.729112Z"
+      }
+    ],
+    "premium": {
+      "reason": "DERTOUR подтверждает Family с двумя спальнями. Приоритет семейной категории; площадь 65/80 м² не сопоставлена с кодом, подтверждённой цены тура нет. Выпуск удерживается из-за соседней стройки.",
+      "sourceUrl": "https://www.dertour.ro/egipt/hurghada/hurghada/hawaii-paradise-aqua-park-resort",
+      "at": "2026-11-11T07:43:25.729112Z"
+    },
+    "ctaMode": "publisher",
+    "releaseHoldResolutions": [
+      {
+        "hotelId": "a69daef2-7fc0-4865-b86f-0e1f6b099fa5",
+        "hold": {
+          "key": "rewaya-neighbour-construction-20261111",
+          "reason": "vtours сохраняет недатированное предупреждение о соседней стройке со средним визуальным и звуковым воздействием. До выпуска нужны подтверждение текущего статуса работ, шума и ограничений на даты поездки.",
+          "sourceUrl": "https://www.vtours.com/de/reiseziele/%C3%A4gypten/rewaya-inn-resort-hurghada-HRG100012/",
+          "checkedAt": "2026-11-11T07:43:25.729112Z"
+        },
+        "revision": 4,
+        "at": "2026-11-14T23:29:05.727Z",
+        "decision": "publish_with_disclosure",
+        "reason": "В текстах прямо раскрыты визуальное воздействие соседней стройки и возможный шум. Срок окончания не установлен и не обещается; исходное уведомление vtours сохраняется.",
+        "disclosure": "Рядом с отелем стройка: её может быть видно и слышно."
+      }
+    ]
+  },
+  {
+    "sourceRefs": [
+      {
+        "kind": "anex",
+        "label": "ТОП500 ANEX · место 274",
+        "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "at": "2026-10-20T01:28:35+00:00",
+        "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+      },
+      {
+        "kind": "official",
+        "label": "Sunny Days Palma De Mirette · размещение",
+        "url": "https://sunnydaysegypt.com/palma-de-mirrette/accommodation/",
+        "at": "2026-11-11T07:06:58.009827Z",
+        "note": "Факты относятся только к категориям на странице данного отеля; номера соседних объектов не объединены."
+      },
+      {
+        "kind": "official",
+        "label": "Sunny Days Palma De Mirette · услуги",
+        "url": "https://sunnydaysegypt.com/palma-de-mirrette/facilities/",
+        "at": "2026-11-11T07:06:58.009827Z",
+        "note": "Детские/водные услуги и сезонный подогрев описаны отдельно. Текущая доступность при ремонте требует подтверждения."
+      },
+      {
+        "kind": "official",
+        "label": "Sunny Days Palma De Mirette · описание",
+        "url": "https://sunnydaysegypt.com/palma-de-mirrette/",
+        "at": "2026-11-11T07:06:58.009827Z",
+        "note": "Пляжное расположение данного объекта. Услуги соседних отелей не приравниваются к собственным."
+      },
+      {
+        "kind": "catalog",
+        "label": "ПАКС · уведомление о реновации 06.10.2026",
+        "url": "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+        "at": "2026-11-11T07:06:58.009827Z",
+        "note": "Актуальное уведомление о ремонте отдельно перечисляет Palma и El Palacio. Обещание отсутствия неудобств не является доказательством их отсутствия."
+      },
+      {
+        "kind": "catalog",
+        "label": "Corendon · карточка и фотографии Sunny Days Palma De Mirette",
+        "url": "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/sunny-days-palma-de-mirette-resort-spa",
+        "at": "2026-11-11T07:06:58.009827Z",
+        "note": "Три разные фотографии из галереи именно этой карточки открыты и просмотрены. Дата съёмки неизвестна. Фото номера не обещает категорию, вид или завершение ремонта."
+      },
+      {
+        "kind": "receipt",
+        "label": "Контракт CTA публикатора",
+        "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+        "at": "2026-11-11T07:06:58.009827Z",
+        "note": "Контракт формирования единственной кнопки, не квитанция отправки. ctaMode=publisher, URL пустой. Выпуск удерживается."
+      },
+      {
+        "kind": "catalog",
+        "label": "TEZ TOUR · Palma De Mirette",
+        "url": "https://www.tez-tour.com/hotel.html?id=607",
+        "at": "2026-11-11T07:06:58.009827Z",
+        "note": "Ремонт 14.10–23.12.2026, отдельная категория Boho Suite. Остановка продаж 01–14.11.2026 — условие этого оператора, не доказательство закрытия отеля."
+      }
+    ],
+    "revision": 4,
+    "versions": [
+      {
+        "revision": 1,
+        "at": "2026-11-11T07:08:21.321Z",
+        "reason": "Сохранено до подготовки по официальным источникам",
+        "content": {
+          "description": "",
+          "advantages": [],
+          "limitations": [],
+          "photos": [],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "",
+          "telegramText": ""
+        }
+      },
+      {
+        "revision": 2,
+        "at": "2026-11-14T23:16:14.472Z",
+        "reason": "Сохранено до подготовки по официальным источникам",
+        "content": {
+          "ctaMode": "publisher",
+          "description": "Sunny Days Palma De Mirette — пляжный отель в Хургаде с лагуной. На официальном сайте есть многокомнатный Boho Suite 98 м² для 3 взрослых и 2 детей. Подготовленные материалы остаются на проверке: операторы сообщают о ремонте номеров до декабря 2026 года.",
+          "advantages": [
+            "Boho Suite 98 м² — просторная многокомнатная категория",
+            "Пляж и лагуна у отеля",
+            "Детский клуб и отдельный детский бассейн по официальному описанию"
+          ],
+          "limitations": [
+            "Идёт ремонт номеров. ПАКС указывает 10.10–20.12.2026, TEZ TOUR — 14.10–23.12.2026. Нужны уточнение актуального графика, затронутых корпусов, шума и доступности услуг на даты поездки.",
+            "98 м² и размещение 3 взрослых + 2 детей относятся только к Boho Suite. Возраст детей, кровати и наличие категории нужно сверить по тарифу; стандартные номера не считаются такими же просторными.",
+            "Зимний подогрев заявлен для взрослого бассейна, а не всех бассейнов. Питание и услуги соседних El Palacio/Mirette не включаются автоматически. TEZ TOUR отдельно показывает остановку продаж 01–14.11.2026; это не закрытие всего отеля."
+          ],
+          "photos": [
+            "https://images.ctfassets.net/g8yn6gjj7q12/4a3a13e0-039a-42a3-8680-7840a33c694d/b653a971b63f8c36919b84ce556431be/001.jpg?w=1600&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/5f09a4e9-4605-4e71-97c6-43836bcb4225/f8b3303f404b93cdf467a021280f0eef/002.jpg?w=1024&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/613a2b76-0e7a-4e86-a9ea-a1ca3a92e27e/9056a651b6f33412aa2b659ddb86b60a/003.jpg?w=1024&fm=webp&q=80"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "✈️ Туры в Sunny Days Palma De Mirette\n📍 Хургада, Египет\n\nДля тех, кому важен простор: на официальном сайте Palma De Mirette указан многокомнатный Boho Suite 98 м² с размещением 3 взрослых и 2 детей. Это отдельная категория, её наличие и условия размещения проверяются на ваши даты.\n\nУ отеля есть пляж, лагуна и детская инфраструктура. Сейчас материалы на проверке: в номерном фонде идёт ремонт, а операторы указывают разные даты завершения в декабре 2026. До предложения тура нужно уточнить корпуса, шум и работающие услуги.\n\n👇 Узнать стоимость тура",
+          "telegramText": "✈️ Туры в Sunny Days Palma De Mirette\n📍 Хургада, Египет\n\nЛагуна и пляж в Хургаде, а для большой семьи — отдельный Boho Suite 98 м². Официальное описание этой многокомнатной категории указывает 3 взрослых и 2 детей; на обычные номера эти условия не распространяются.\n\nВажная оговорка: Palma De Mirette ремонтирует часть номеров. В уведомлениях фигурируют 20 и 23 декабря 2026 года. Текущее влияние работ и доступность выбранной категории требуют подтверждения. Цена тура пока не рассчитана.\n\n👇 Узнать стоимость тура"
+        }
+      },
+      {
+        "revision": 3,
+        "at": "2026-11-14T23:21:22.176Z",
+        "reason": "Сохранено до подготовки по официальным источникам",
+        "content": {
+          "ctaMode": "publisher",
+          "description": "Sunny Days Palma De Mirette — пляжный отель в Хургаде с лагуной. Здесь можно чередовать море и отдых у бассейна; для детей есть отдельный бассейн и клуб. Для взрослого бассейна предусмотрен подогрев зимой.\n\nВ отеле ремонтируют номера — возможен шум.",
+          "advantages": [
+            "Пляж и лагуна у отеля",
+            "Детский клуб и отдельный детский бассейн",
+            "Зимний подогрев взрослого бассейна"
+          ],
+          "limitations": [
+            "Идёт ремонт номеров. ПАКС указывает 10.10–20.12.2026, TEZ TOUR — 14.10–23.12.2026. Актуальный график, затронутые корпуса, фактический шум и доступность услуг на даты поездки не подтверждены.",
+            "98 м² и размещение 3 взрослых + 2 детей относятся только к Boho Suite. Возраст детей, кровати и наличие категории нужно сверить по тарифу; стандартные номера не считаются такими же просторными.",
+            "Зимний подогрев заявлен для взрослого бассейна, а не всех бассейнов. Питание и услуги соседних El Palacio/Mirette не включаются автоматически. TEZ TOUR отдельно показывает остановку продаж 01–14.11.2026; это не закрытие всего отеля."
+          ],
+          "photos": [
+            "https://images.ctfassets.net/g8yn6gjj7q12/4a3a13e0-039a-42a3-8680-7840a33c694d/b653a971b63f8c36919b84ce556431be/001.jpg?w=1600&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/5f09a4e9-4605-4e71-97c6-43836bcb4225/f8b3303f404b93cdf467a021280f0eef/002.jpg?w=1024&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/613a2b76-0e7a-4e86-a9ea-a1ca3a92e27e/9056a651b6f33412aa2b659ddb86b60a/003.jpg?w=1024&fm=webp&q=80"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "✈️ Туры в Sunny Days Palma De Mirette\n📍 Хургада, Египет\n\nМожно чередовать отдых у моря и бассейна: у отеля есть пляж и лагуна, а для детей — отдельный бассейн и клуб. Для взрослого бассейна предусмотрен подогрев зимой.\n\nВ отеле ремонтируют номера — возможен шум.\n\n👇 Узнать стоимость тура",
+          "telegramText": "✈️ Туры в Sunny Days Palma De Mirette\n📍 Хургада, Египет\n\nМожно чередовать отдых у моря и бассейна: у отеля есть пляж и лагуна, а для детей — отдельный бассейн и клуб. Для взрослого бассейна предусмотрен подогрев зимой.\n\nВ отеле ремонтируют номера — возможен шум.\n\n👇 Узнать стоимость тура"
+        }
+      },
+      {
+        "revision": 4,
+        "at": "2026-11-14T23:29:11.754Z",
+        "reason": "Принято в реестре",
+        "content": {
+          "ctaMode": "publisher",
+          "description": "Sunny Days Palma De Mirette — пляжный отель в Хургаде с лагуной. Здесь можно чередовать море и отдых у бассейна; для детей есть отдельный бассейн и клуб. Для взрослого бассейна предусмотрен подогрев зимой.\n\nВ отеле ремонтируют номера — возможен шум.",
+          "advantages": [
+            "Пляж и лагуна у отеля",
+            "Детский клуб и отдельный детский бассейн",
+            "Зимний подогрев взрослого бассейна"
+          ],
+          "limitations": [
+            "Идёт ремонт номеров. ПАКС указывает 10.10–20.12.2026, TEZ TOUR — 14.10–23.12.2026. Актуальный график, затронутые корпуса, фактический шум и доступность услуг на даты поездки не подтверждены.",
+            "98 м² и размещение 3 взрослых + 2 детей относятся только к Boho Suite. Возраст детей, кровати и наличие категории нужно сверить по тарифу; стандартные номера не считаются такими же просторными.",
+            "Зимний подогрев заявлен для взрослого бассейна, а не всех бассейнов. Питание и услуги соседних El Palacio/Mirette не включаются автоматически. TEZ TOUR отдельно показывает остановку продаж 01–14.11.2026; это не закрытие всего отеля."
+          ],
+          "photos": [
+            "https://images.ctfassets.net/g8yn6gjj7q12/4a3a13e0-039a-42a3-8680-7840a33c694d/b653a971b63f8c36919b84ce556431be/001.jpg?w=1600&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/5f09a4e9-4605-4e71-97c6-43836bcb4225/f8b3303f404b93cdf467a021280f0eef/002.jpg?w=1024&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/613a2b76-0e7a-4e86-a9ea-a1ca3a92e27e/9056a651b6f33412aa2b659ddb86b60a/003.jpg?w=1024&fm=webp&q=80"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "✈️ Туры в Sunny Days Palma De Mirette\n📍 Хургада, Египет.\n\nМожно чередовать отдых у моря и бассейна: у отеля есть пляж и лагуна, а для детей — отдельный бассейн и клуб. Для взрослого бассейна предусмотрен подогрев зимой.\n\nВ отеле ремонтируют номера — возможен шум.\n\n👇 Узнать стоимость тура",
+          "telegramText": "✈️ Туры в Sunny Days Palma De Mirette\n📍 Хургада, Египет.\n\nМожно чередовать отдых у моря и бассейна: у отеля есть пляж и лагуна, а для детей — отдельный бассейн и клуб. Для взрослого бассейна предусмотрен подогрев зимой.\n\nВ отеле ремонтируют номера — возможен шум.\n\n👇 Узнать стоимость тура"
+        }
+      }
+    ],
+    "reuse": 1,
+    "name": "SUNNY DAYS PALMA DE MIRETTE RESORT",
+    "country": "Египет",
+    "region": "",
+    "stars": 0,
+    "anexId": "902",
+    "aiId": "",
+    "tourvisorId": "475",
+    "sources": [
+      "anex"
+    ],
+    "description": "Sunny Days Palma De Mirette — пляжный отель в Хургаде с лагуной. Здесь можно чередовать море и отдых у бассейна; для детей есть отдельный бассейн и клуб. Для взрослого бассейна предусмотрен подогрев зимой.\n\nВ отеле ремонтируют номера — возможен шум.",
+    "advantages": [
+      "Пляж и лагуна у отеля",
+      "Детский клуб и отдельный детский бассейн",
+      "Зимний подогрев взрослого бассейна"
+    ],
+    "limitations": [
+      "Идёт ремонт номеров. ПАКС указывает 10.10–20.12.2026, TEZ TOUR — 14.10–23.12.2026. Актуальный график, затронутые корпуса, фактический шум и доступность услуг на даты поездки не подтверждены.",
+      "98 м² и размещение 3 взрослых + 2 детей относятся только к Boho Suite. Возраст детей, кровати и наличие категории нужно сверить по тарифу; стандартные номера не считаются такими же просторными.",
+      "Зимний подогрев заявлен для взрослого бассейна, а не всех бассейнов. Питание и услуги соседних El Palacio/Mirette не включаются автоматически. TEZ TOUR отдельно показывает остановку продаж 01–14.11.2026; это не закрытие всего отеля."
+    ],
+    "photos": [
+      "https://images.ctfassets.net/g8yn6gjj7q12/4a3a13e0-039a-42a3-8680-7840a33c694d/b653a971b63f8c36919b84ce556431be/001.jpg?w=1600&fm=webp&q=80",
+      "https://images.ctfassets.net/g8yn6gjj7q12/5f09a4e9-4605-4e71-97c6-43836bcb4225/f8b3303f404b93cdf467a021280f0eef/002.jpg?w=1024&fm=webp&q=80",
+      "https://images.ctfassets.net/g8yn6gjj7q12/613a2b76-0e7a-4e86-a9ea-a1ca3a92e27e/9056a651b6f33412aa2b659ddb86b60a/003.jpg?w=1024&fm=webp&q=80"
+    ],
+    "cta": "Узнать стоимость тура",
+    "ctaUrl": "",
+    "maxText": "✈️ Туры в Sunny Days Palma De Mirette\n📍 Хургада, Египет.\n\nМожно чередовать отдых у моря и бассейна: у отеля есть пляж и лагуна, а для детей — отдельный бассейн и клуб. Для взрослого бассейна предусмотрен подогрев зимой.\n\nВ отеле ремонтируют номера — возможен шум.\n\n👇 Узнать стоимость тура",
+    "telegramText": "✈️ Туры в Sunny Days Palma De Mirette\n📍 Хургада, Египет.\n\nМожно чередовать отдых у моря и бассейна: у отеля есть пляж и лагуна, а для детей — отдельный бассейн и клуб. Для взрослого бассейна предусмотрен подогрев зимой.\n\nВ отеле ремонтируют номера — возможен шум.\n\n👇 Узнать стоимость тура",
+    "status": "accepted",
+    "published": {},
+    "evidence": "Сохранены исходная связь ANEX 902 / Tourvisor 475 и источник ТОП500; сохранённых researchPackets/knowledgePackets у карточки нет. Проверены официальные страницы: Boho Suite 98 м², 3 взрослых + 2 детей; услуги отдельно от соседних объектов. ПАКС и TEZ TOUR дают разные декабрьские сроки ремонта. 3 фото Corendon открыты и просмотрены, даты съёмки неизвестны. Цена и наличие не подтверждены; выпуск удерживается.",
+    "id": "151df4c8-cf5b-424a-bb0d-de15e4443596",
+    "acceptedRevision": 4,
+    "queued": true,
+    "updatedAt": "2026-11-14T23:29:32.984Z",
+    "conflicts": [],
+    "premium": {
+      "reason": "Официальный Boho Suite 98 м² — просторная многокомнатная категория для 3 взрослых и 2 детей. Основание — тип номера, подтверждённой цены тура нет. Выпуск удерживается из-за ремонта.",
+      "sourceUrl": "https://sunnydaysegypt.com/palma-de-mirrette/accommodation/",
+      "at": "2026-11-11T07:06:58.009827Z"
+    },
+    "ctaMode": "publisher",
+    "categoryEvidence": [
+      {
+        "need": "family",
+        "text": "Boho Suite 98 м²: многокомнатная категория, официально до 3 взрослых и 2 детей; возраст и условия тарифа требуют уточнения.",
+        "scope": "room",
+        "sourceUrl": "https://sunnydaysegypt.com/palma-de-mirrette/accommodation/",
+        "checkedAt": "2026-11-11T07:06:58.009827Z"
+      },
+      {
+        "need": "family",
+        "text": "На собственной странице услуг Palma описаны детский клуб и отдельный детский бассейн.",
+        "scope": "hotel",
+        "sourceUrl": "https://sunnydaysegypt.com/palma-de-mirrette/facilities/",
+        "checkedAt": "2026-11-11T07:06:58.009827Z"
+      },
+      {
+        "need": "first_line",
+        "text": "TEZ TOUR указывает расположение Palma De Mirette на самом берегу моря.",
+        "scope": "hotel",
+        "sourceUrl": "https://www.tez-tour.com/hotel.html?id=607",
+        "checkedAt": "2026-11-11T07:06:58.009827Z"
+      },
+      {
+        "need": "coral_reef",
+        "text": "Официальная страница Palma описывает коралловые рифы у отеля; фактические условия купания требуют проверки.",
+        "scope": "area",
+        "sourceUrl": "https://sunnydaysegypt.com/palma-de-mirrette/",
+        "checkedAt": "2026-11-11T07:06:58.009827Z"
+      },
+      {
+        "need": "heated_pool",
+        "text": "Для взрослого бассейна Infinity на странице Palma заявлен подогрев зимой; не утверждение о текущей температуре или всех бассейнах.",
+        "scope": "season",
+        "sourceUrl": "https://sunnydaysegypt.com/palma-de-mirrette/facilities/",
+        "checkedAt": "2026-11-11T07:06:58.009827Z"
+      }
+    ],
+    "releaseHolds": [
+      {
+        "key": "sunny-palma-renovation-20261111",
+        "reason": "Ремонт номеров: ПАКС 10.10–20.12.2026, TEZ TOUR 14.10–23.12.2026. До выпуска нужны актуальные сроки, перечень затронутых корпусов, условия размещения, шум и доступность услуг. Остановка продаж TEZ TOUR 01–14.11 не означает закрытие всего отеля.",
+        "sourceUrl": "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+        "checkedAt": "2026-11-11T07:06:58.009827Z"
+      }
+    ],
+    "photoSets": [
+      {
+        "capturedAt": "2026-11-11T07:06:58.009827Z",
+        "sourceUrl": "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/sunny-days-palma-de-mirette-resort-spa",
+        "proofUrl": "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/sunny-days-palma-de-mirette-resort-spa",
+        "label": "3 разные фотографии данного отеля из галереи Corendon открыты и визуально проверены. Фото не подтверждают отсутствие ремонта; категория номера и дата съёмки неизвестны.",
+        "photos": [
+          {
+            "url": "https://images.ctfassets.net/g8yn6gjj7q12/4a3a13e0-039a-42a3-8680-7840a33c694d/b653a971b63f8c36919b84ce556431be/001.jpg?w=1600&fm=webp&q=80",
+            "alt": "Пляж и бассейн Palma De Mirette, фото из карточки Corendon"
+          },
+          {
+            "url": "https://images.ctfassets.net/g8yn6gjj7q12/5f09a4e9-4605-4e71-97c6-43836bcb4225/f8b3303f404b93cdf467a021280f0eef/002.jpg?w=1024&fm=webp&q=80",
+            "alt": "Пример интерьера номера Palma De Mirette; категория не определена"
+          },
+          {
+            "url": "https://images.ctfassets.net/g8yn6gjj7q12/613a2b76-0e7a-4e86-a9ea-a1ca3a92e27e/9056a651b6f33412aa2b659ddb86b60a/003.jpg?w=1024&fm=webp&q=80",
+            "alt": "Лагуна и территория Palma De Mirette с другого ракурса"
+          }
+        ]
+      }
+    ],
+    "releaseHoldResolutions": [
+      {
+        "hotelId": "151df4c8-cf5b-424a-bb0d-de15e4443596",
+        "hold": {
+          "key": "sunny-palma-renovation-20261111",
+          "reason": "Ремонт номеров: ПАКС 10.10–20.12.2026, TEZ TOUR 14.10–23.12.2026. До выпуска нужны актуальные сроки, перечень затронутых корпусов, условия размещения, шум и доступность услуг. Остановка продаж TEZ TOUR 01–14.11 не означает закрытие всего отеля.",
+          "sourceUrl": "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+          "checkedAt": "2026-11-11T07:06:58.009827Z"
+        },
+        "revision": 4,
+        "at": "2026-11-14T23:29:05.727Z",
+        "decision": "publish_with_disclosure",
+        "reason": "Ремонт номеров и возможный шум раскрыты в описании и обоих постах. Различающиеся сроки ПАКС и TEZ TOUR сохранены в ограничениях; завершение ремонта и доступность конкретных услуг не объявляются подтверждёнными.",
+        "disclosure": "В отеле ремонтируют номера — возможен шум."
+      }
+    ]
+  },
+  {
+    "sourceRefs": [
+      {
+        "kind": "anex",
+        "label": "ТОП500 ANEX · место 273",
+        "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "at": "2026-10-20T01:28:35+00:00",
+        "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+      },
+      {
+        "kind": "official",
+        "label": "Sunny Days El Palacio · размещение",
+        "url": "https://sunnydaysegypt.com/el-palacio-resort-spa/accommodation/",
+        "at": "2026-11-11T07:06:58.009827Z",
+        "note": "Факты относятся только к категориям на странице данного отеля; номера соседних объектов не объединены."
+      },
+      {
+        "kind": "official",
+        "label": "Sunny Days El Palacio · услуги",
+        "url": "https://sunnydaysegypt.com/el-palacio-resort-spa/facilities/",
+        "at": "2026-11-11T07:06:58.009827Z",
+        "note": "Детские/водные услуги и сезонный подогрев описаны отдельно. Текущая доступность при ремонте требует подтверждения."
+      },
+      {
+        "kind": "official",
+        "label": "Sunny Days El Palacio · описание",
+        "url": "https://sunnydaysegypt.com/el-palacio-resort-spa/",
+        "at": "2026-11-11T07:06:58.009827Z",
+        "note": "Пляжное расположение данного объекта. Услуги соседних отелей не приравниваются к собственным."
+      },
+      {
+        "kind": "catalog",
+        "label": "ПАКС · уведомление о реновации 06.10.2026",
+        "url": "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+        "at": "2026-11-11T07:06:58.009827Z",
+        "note": "Актуальное уведомление о ремонте отдельно перечисляет Palma и El Palacio. Обещание отсутствия неудобств не является доказательством их отсутствия."
+      },
+      {
+        "kind": "catalog",
+        "label": "Corendon · карточка и фотографии Sunny Days El Palacio",
+        "url": "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/sunny-days-el-palacio",
+        "at": "2026-11-11T07:06:58.009827Z",
+        "note": "Три разные фотографии из галереи именно этой карточки открыты и просмотрены. Дата съёмки неизвестна. Фото номера не обещает категорию, вид или завершение ремонта."
+      },
+      {
+        "kind": "receipt",
+        "label": "Контракт CTA публикатора",
+        "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+        "at": "2026-11-11T07:06:58.009827Z",
+        "note": "Контракт формирования единственной кнопки, не квитанция отправки. ctaMode=publisher, URL пустой. Выпуск удерживается."
+      }
+    ],
+    "revision": 4,
+    "versions": [
+      {
+        "revision": 1,
+        "at": "2026-11-11T07:08:21.321Z",
+        "reason": "Сохранено до подготовки по официальным источникам",
+        "content": {
+          "description": "",
+          "advantages": [],
+          "limitations": [],
+          "photos": [],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "",
+          "telegramText": ""
+        }
+      },
+      {
+        "revision": 2,
+        "at": "2026-11-14T23:16:14.472Z",
+        "reason": "Сохранено до подготовки по официальным источникам",
+        "content": {
+          "ctaMode": "publisher",
+          "description": "Sunny Days El Palacio — отель на берегу Красного моря в Хургаде с лагуной, бассейнами и спа Horus. Официальная страница описывает Lagoon & Pool View и Sea View по 28 м². Материалы оставлены на проверке из-за текущей реновации номеров и общественных зон.",
+          "advantages": [
+            "Пляжное расположение и лагуна",
+            "Открытый взрослый и отдельный детский бассейны",
+            "Спа Horus на территории; услуги оплачиваются отдельно"
+          ],
+          "limitations": [
+            "ПАКС сообщает о ремонте номеров с 10.10.2026 до конца зимнего сезона, итальянского ресторана примерно на 45 дней и лобби Arya примерно на 30 дней. Corendon указывает работы до 31.03.2027. Завершение отдельных зон нужно подтвердить.",
+            "Официальные Lagoon & Pool View и Sea View — 28 м² с формулой 2 взрослых + 2 детей. У операторов вместимость отдельных кодов отличается; размещение и дополнительные кровати проверяются по конкретному тарифу.",
+            "Horus Spa платный. Зимний подогрев относится к взрослому бассейну. Доступ к ресторанам и барам соседних отелей различается у операторов; не обещаем общий пакет услуг всего комплекса."
+          ],
+          "photos": [
+            "https://images.ctfassets.net/g8yn6gjj7q12/fc5b1f72-432d-4f40-99fb-eb574a75a29e/bc8d5a43f84013b49cbc6788e96ae0f9/001.jpg?w=1600&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/a8992590-5f0e-4baf-9f02-4bd5601db9b7/b8d153980d068df3d8037a976ca3ab44/002.jpg?w=1024&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/0d7565c5-eb67-4cb0-920f-d987b7e9a153/daab143edbd7e50718d1569ab69dd121/003.jpg?w=1024&fm=webp&q=80"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "✈️ Туры в Sunny Days El Palacio\n📍 Хургада, Египет\n\nОтдых у лагуны Красного моря: в El Palacio есть взрослый и детский бассейны, а спа Horus предлагает процедуры за отдельную плату. Официальные категории Lagoon & Pool View и Sea View имеют площадь 28 м².\n\nПеред предложением тура нужно проверить ремонт. Операторы сообщают о реновации номеров и отдельных общественных зон с октября 2026, для номерного фонда — до конца зимнего сезона. Подтверждение текущих ограничений пока не получено.\n\n👇 Узнать стоимость тура",
+          "telegramText": "✈️ Туры в Sunny Days El Palacio\n📍 Хургада, Египет\n\nEl Palacio в Хургаде подойдёт для обсуждения пляжного отдыха у лагуны. В официальном описании — номера 28 м² с видом на море либо лагуну и бассейн; формула размещения зависит от выбранного кода у оператора.\n\nСейчас карточка на проверке: ремонт затрагивает номера, итальянский ресторан и лобби Arya. Ориентировочный срок не доказывает завершение работ. Сначала уточним доступность зон и влияние на отдых; услуги соседних Palma и Mirette автоматически не включаем.\n\n👇 Узнать стоимость тура"
+        }
+      },
+      {
+        "revision": 3,
+        "at": "2026-11-14T23:21:22.176Z",
+        "reason": "Сохранено до подготовки по официальным источникам",
+        "content": {
+          "ctaMode": "publisher",
+          "description": "У Sunny Days El Palacio в Хургаде есть собственный песчаный пляж и лагуна. На территории — взрослый и отдельный детский бассейны; для взрослого предусмотрен зимний подогрев. Услуги спа оплачиваются отдельно.\n\nВ отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.",
+          "advantages": [
+            "Собственный песчаный пляж и лагуна",
+            "Взрослый бассейн с зимним подогревом и отдельный детский бассейн",
+            "Спа на территории; услуги оплачиваются отдельно"
+          ],
+          "limitations": [
+            "ПАКС сообщает о ремонте номеров с 10.10.2026 до конца зимнего сезона, итальянского ресторана примерно на 45 дней и лобби Arya примерно на 30 дней. Corendon указывает работы до 31.03.2027. Завершение отдельных зон не подтверждено.",
+            "Официальные Lagoon & Pool View и Sea View — 28 м² с формулой 2 взрослых + 2 детей. У операторов вместимость отдельных кодов отличается; размещение и дополнительные кровати проверяются по конкретному тарифу.",
+            "Horus Spa платный. Зимний подогрев относится к взрослому бассейну. Доступ к ресторанам и барам соседних отелей различается у операторов; не обещаем общий пакет услуг всего комплекса."
+          ],
+          "photos": [
+            "https://images.ctfassets.net/g8yn6gjj7q12/fc5b1f72-432d-4f40-99fb-eb574a75a29e/bc8d5a43f84013b49cbc6788e96ae0f9/001.jpg?w=1600&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/a8992590-5f0e-4baf-9f02-4bd5601db9b7/b8d153980d068df3d8037a976ca3ab44/002.jpg?w=1024&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/0d7565c5-eb67-4cb0-920f-d987b7e9a153/daab143edbd7e50718d1569ab69dd121/003.jpg?w=1024&fm=webp&q=80"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "✈️ Туры в Sunny Days El Palacio\n📍 Хургада, Египет\n\nУ отеля есть собственный песчаный пляж и лагуна. На территории — взрослый и отдельный детский бассейны; для взрослого предусмотрен зимний подогрев. Услуги спа оплачиваются отдельно.\n\nВ отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.\n\n👇 Узнать стоимость тура",
+          "telegramText": "✈️ Туры в Sunny Days El Palacio\n📍 Хургада, Египет\n\nУ отеля есть собственный песчаный пляж и лагуна. На территории — взрослый и отдельный детский бассейны; для взрослого предусмотрен зимний подогрев. Услуги спа оплачиваются отдельно.\n\nВ отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.\n\n👇 Узнать стоимость тура"
+        }
+      },
+      {
+        "revision": 4,
+        "at": "2026-11-14T23:29:27.676Z",
+        "reason": "Принято в реестре",
+        "content": {
+          "ctaMode": "publisher",
+          "description": "У Sunny Days El Palacio в Хургаде есть собственный песчаный пляж и лагуна. На территории — взрослый и отдельный детский бассейны; для взрослого предусмотрен зимний подогрев. Услуги спа оплачиваются отдельно.\n\nВ отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.",
+          "advantages": [
+            "Собственный песчаный пляж и лагуна",
+            "Взрослый бассейн с зимним подогревом и отдельный детский бассейн",
+            "Спа на территории; услуги оплачиваются отдельно"
+          ],
+          "limitations": [
+            "ПАКС сообщает о ремонте номеров с 10.10.2026 до конца зимнего сезона, итальянского ресторана примерно на 45 дней и лобби Arya примерно на 30 дней. Corendon указывает работы до 31.03.2027. Завершение отдельных зон не подтверждено.",
+            "Официальные Lagoon & Pool View и Sea View — 28 м² с формулой 2 взрослых + 2 детей. У операторов вместимость отдельных кодов отличается; размещение и дополнительные кровати проверяются по конкретному тарифу.",
+            "Horus Spa платный. Зимний подогрев относится к взрослому бассейну. Доступ к ресторанам и барам соседних отелей различается у операторов; не обещаем общий пакет услуг всего комплекса."
+          ],
+          "photos": [
+            "https://images.ctfassets.net/g8yn6gjj7q12/fc5b1f72-432d-4f40-99fb-eb574a75a29e/bc8d5a43f84013b49cbc6788e96ae0f9/001.jpg?w=1600&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/a8992590-5f0e-4baf-9f02-4bd5601db9b7/b8d153980d068df3d8037a976ca3ab44/002.jpg?w=1024&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/0d7565c5-eb67-4cb0-920f-d987b7e9a153/daab143edbd7e50718d1569ab69dd121/003.jpg?w=1024&fm=webp&q=80"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "✈️ Туры в Sunny Days El Palacio\n📍 Хургада, Египет.\n\nУ отеля есть собственный песчаный пляж и лагуна. На территории — взрослый и отдельный детский бассейны; для взрослого предусмотрен зимний подогрев. Услуги спа оплачиваются отдельно.\n\nВ отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.\n\n👇 Узнать стоимость тура",
+          "telegramText": "✈️ Туры в Sunny Days El Palacio\n📍 Хургада, Египет.\n\nУ отеля есть собственный песчаный пляж и лагуна. На территории — взрослый и отдельный детский бассейны; для взрослого предусмотрен зимний подогрев. Услуги спа оплачиваются отдельно.\n\nВ отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.\n\n👇 Узнать стоимость тура"
+        }
+      }
+    ],
+    "reuse": 1,
+    "name": "SUNNY DAYS EL PALACIO (EX. SUNNY DAYS RESORTS SPA & AQUA PARK)",
+    "country": "Египет",
+    "region": "",
+    "stars": 0,
+    "anexId": "984",
+    "aiId": "",
+    "tourvisorId": "473",
+    "sources": [
+      "anex"
+    ],
+    "description": "У Sunny Days El Palacio в Хургаде есть собственный песчаный пляж и лагуна. На территории — взрослый и отдельный детский бассейны; для взрослого предусмотрен зимний подогрев. Услуги спа оплачиваются отдельно.\n\nВ отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.",
+    "advantages": [
+      "Собственный песчаный пляж и лагуна",
+      "Взрослый бассейн с зимним подогревом и отдельный детский бассейн",
+      "Спа на территории; услуги оплачиваются отдельно"
+    ],
+    "limitations": [
+      "ПАКС сообщает о ремонте номеров с 10.10.2026 до конца зимнего сезона, итальянского ресторана примерно на 45 дней и лобби Arya примерно на 30 дней. Corendon указывает работы до 31.03.2027. Завершение отдельных зон не подтверждено.",
+      "Официальные Lagoon & Pool View и Sea View — 28 м² с формулой 2 взрослых + 2 детей. У операторов вместимость отдельных кодов отличается; размещение и дополнительные кровати проверяются по конкретному тарифу.",
+      "Horus Spa платный. Зимний подогрев относится к взрослому бассейну. Доступ к ресторанам и барам соседних отелей различается у операторов; не обещаем общий пакет услуг всего комплекса."
+    ],
+    "photos": [
+      "https://images.ctfassets.net/g8yn6gjj7q12/fc5b1f72-432d-4f40-99fb-eb574a75a29e/bc8d5a43f84013b49cbc6788e96ae0f9/001.jpg?w=1600&fm=webp&q=80",
+      "https://images.ctfassets.net/g8yn6gjj7q12/a8992590-5f0e-4baf-9f02-4bd5601db9b7/b8d153980d068df3d8037a976ca3ab44/002.jpg?w=1024&fm=webp&q=80",
+      "https://images.ctfassets.net/g8yn6gjj7q12/0d7565c5-eb67-4cb0-920f-d987b7e9a153/daab143edbd7e50718d1569ab69dd121/003.jpg?w=1024&fm=webp&q=80"
+    ],
+    "cta": "Узнать стоимость тура",
+    "ctaUrl": "",
+    "maxText": "✈️ Туры в Sunny Days El Palacio\n📍 Хургада, Египет.\n\nУ отеля есть собственный песчаный пляж и лагуна. На территории — взрослый и отдельный детский бассейны; для взрослого предусмотрен зимний подогрев. Услуги спа оплачиваются отдельно.\n\nВ отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.\n\n👇 Узнать стоимость тура",
+    "telegramText": "✈️ Туры в Sunny Days El Palacio\n📍 Хургада, Египет.\n\nУ отеля есть собственный песчаный пляж и лагуна. На территории — взрослый и отдельный детский бассейны; для взрослого предусмотрен зимний подогрев. Услуги спа оплачиваются отдельно.\n\nВ отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.\n\n👇 Узнать стоимость тура",
+    "status": "accepted",
+    "published": {},
+    "evidence": "Сохранены исходная связь ANEX 984 / Tourvisor 473 и источник ТОП500; researchPackets/knowledgePackets отсутствуют. Проверены собственные страницы El Palacio: номера 28 м², бассейны и платный Horus Spa. Текущие уведомления ПАКС и Corendon подтверждают ремонт; ограничения соседних объектов не объединены. 3 разных фото из карточки Corendon открыты и просмотрены. Цена, наличие и фактическое завершение ремонта не подтверждены; выпуск удерживается.",
+    "id": "c0f46124-91bc-4486-a6c6-5ea6cd9039c4",
+    "acceptedRevision": 4,
+    "queued": true,
+    "updatedAt": "2026-11-14T23:29:32.984Z",
+    "conflicts": [],
+    "ctaMode": "publisher",
+    "categoryEvidence": [
+      {
+        "need": "family",
+        "text": "Официальные категории Lagoon & Pool View и Sea View 28 м² предусматривают 2 взрослых и 2 детей; условия кода оператора проверяются отдельно.",
+        "scope": "room",
+        "sourceUrl": "https://sunnydaysegypt.com/el-palacio-resort-spa/accommodation/",
+        "checkedAt": "2026-11-11T07:06:58.009827Z"
+      },
+      {
+        "need": "first_line",
+        "text": "El Palacio расположен у Красного моря и имеет собственную пляжную зону по официальному описанию.",
+        "scope": "hotel",
+        "sourceUrl": "https://sunnydaysegypt.com/el-palacio-resort-spa/",
+        "checkedAt": "2026-11-11T07:06:58.009827Z"
+      },
+      {
+        "need": "sandy_beach",
+        "text": "Собственная страница услуг El Palacio указывает sandy beach; не обещание песчаного входа на каждом участке.",
+        "scope": "hotel",
+        "sourceUrl": "https://sunnydaysegypt.com/el-palacio-resort-spa/facilities/",
+        "checkedAt": "2026-11-11T07:06:58.009827Z"
+      },
+      {
+        "need": "spa",
+        "text": "Horus Spa описан на странице услуг El Palacio; услуги за дополнительную плату.",
+        "scope": "hotel",
+        "sourceUrl": "https://sunnydaysegypt.com/el-palacio-resort-spa/facilities/",
+        "checkedAt": "2026-11-11T07:06:58.009827Z"
+      },
+      {
+        "need": "heated_pool",
+        "text": "Официально взрослый бассейн El Palacio подогревается в зимние месяцы; не все бассейны и не подтверждение текущей температуры.",
+        "scope": "season",
+        "sourceUrl": "https://sunnydaysegypt.com/el-palacio-resort-spa/facilities/",
+        "checkedAt": "2026-11-11T07:06:58.009827Z"
+      }
+    ],
+    "releaseHolds": [
+      {
+        "key": "sunny-palacio-renovation-20261111",
+        "reason": "Номера ремонтируются с 10.10.2026 до конца зимнего сезона; Corendon указывает до 31.03.2027. Ресторан и лобби Arya имеют отдельные ориентировочные сроки. Нужны подтверждение открытых зон, текущего шума и условий на даты поездки.",
+        "sourceUrl": "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+        "checkedAt": "2026-11-11T07:06:58.009827Z"
+      }
+    ],
+    "photoSets": [
+      {
+        "capturedAt": "2026-11-11T07:06:58.009827Z",
+        "sourceUrl": "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/sunny-days-el-palacio",
+        "proofUrl": "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/sunny-days-el-palacio",
+        "label": "3 разные фотографии данного отеля из галереи Corendon открыты и визуально проверены. Фото не подтверждают отсутствие ремонта; категория номера и дата съёмки неизвестны.",
+        "photos": [
+          {
+            "url": "https://images.ctfassets.net/g8yn6gjj7q12/fc5b1f72-432d-4f40-99fb-eb574a75a29e/bc8d5a43f84013b49cbc6788e96ae0f9/001.jpg?w=1600&fm=webp&q=80",
+            "alt": "Бассейн и лагуна El Palacio, фотография из карточки Corendon"
+          },
+          {
+            "url": "https://images.ctfassets.net/g8yn6gjj7q12/a8992590-5f0e-4baf-9f02-4bd5601db9b7/b8d153980d068df3d8037a976ca3ab44/002.jpg?w=1024&fm=webp&q=80",
+            "alt": "Территория и лагуна El Palacio с высоты"
+          },
+          {
+            "url": "https://images.ctfassets.net/g8yn6gjj7q12/0d7565c5-eb67-4cb0-920f-d987b7e9a153/daab143edbd7e50718d1569ab69dd121/003.jpg?w=1024&fm=webp&q=80",
+            "alt": "Пример номера El Palacio с двумя кроватями; категория не определена"
+          }
+        ]
+      }
+    ],
+    "releaseHoldResolutions": [
+      {
+        "hotelId": "c0f46124-91bc-4486-a6c6-5ea6cd9039c4",
+        "hold": {
+          "key": "sunny-palacio-renovation-20261111",
+          "reason": "Номера ремонтируются с 10.10.2026 до конца зимнего сезона; Corendon указывает до 31.03.2027. Ресторан и лобби Arya имеют отдельные ориентировочные сроки. Нужны подтверждение открытых зон, текущего шума и условий на даты поездки.",
+          "sourceUrl": "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+          "checkedAt": "2026-11-11T07:06:58.009827Z"
+        },
+        "revision": 4,
+        "at": "2026-11-14T23:29:05.727Z",
+        "decision": "publish_with_disclosure",
+        "reason": "Ремонт номеров и части общественных зон, возможные шум и временные ограничения раскрыты в описании и обоих постах. Открытие отдельных зон и окончание работ не объявляются подтверждёнными; исходные источники сохранены.",
+        "disclosure": "В отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения."
+      }
+    ]
+  }
+]

@@ -1,0 +1,950 @@
+{
+  "schema_version": 1,
+  "registry_version": 476,
+  "registry_sha256": "3879dd95ddcfdcd35005fb885a12b45c1ea21a1add0285c0ecc349e254c80815",
+  "operation": "commercial-hotel-batch-20261115-1-v1",
+  "state": "PREPARED_AWAITING_VISUAL_ACCEPTANCE",
+  "input_sha256": "7304a9f71a076c4127daf91efa7fca2681eaa28803419a24f4296939b85f06ca",
+  "logo_asset": ".github/traffic-publish/brand/anytour-logo-white.png",
+  "logo_sha256": "b27cda894047b1ecb4125eea2ecf0db9d1e1674472cad62f70edf1ef1a6c968f",
+  "rows": [
+    {
+      "hotel_id": 59114,
+      "site_id": "369f3286-fe3d-4c3e-a410-46514fdc3d99",
+      "title": "Akdora Elite Hotel & Spa",
+      "accepted_revision": 3,
+      "photos": [
+        {
+          "hotel_id": 59114,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-OVERVIEW3-scaled.jpg",
+          "source_url_sha256": "b58f40e7453e54f365d4d80cbd992e07f434b136605936cfadd34be36c3d862c",
+          "accepted_photo_url_index": 0,
+          "retrieved_at": "2026-11-14T23:35:30+00:00",
+          "http_status": 200,
+          "response_url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-OVERVIEW3-scaled.jpg",
+          "content_type": "image/jpeg",
+          "ok": true,
+          "bytes": 686875,
+          "sha256": "c7a28a79a27c2de36409abd78e79fca1e61657947ea82839183cda48bd18ddf0",
+          "dimensions": [
+            2560,
+            1920
+          ],
+          "format": "JPEG",
+          "path": "photos/59114-hero.jpg",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/369f3286-fe3d-4c3e-a410-46514fdc3d99/acceptedRevision3"
+        },
+        {
+          "hotel_id": 59114,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-POOLBAR3-1-scaled.jpg",
+          "source_url_sha256": "6a1e17e977063b2a7a625e8788133efe3f2178ab2f067cd168b53d9231fe6034",
+          "accepted_photo_url_index": 1,
+          "retrieved_at": "2026-11-14T23:35:30+00:00",
+          "http_status": 200,
+          "response_url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-POOLBAR3-1-scaled.jpg",
+          "content_type": "image/jpeg",
+          "ok": true,
+          "bytes": 724545,
+          "sha256": "63cc0efd9beffba0ba28d9c49219d395cc8e4b5dd25cd726d40053690df74f5e",
+          "dimensions": [
+            2560,
+            1706
+          ],
+          "format": "JPEG",
+          "path": "photos/59114-detail_left.jpg",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/369f3286-fe3d-4c3e-a410-46514fdc3d99/acceptedRevision3"
+        },
+        {
+          "hotel_id": 59114,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-RESTAURANT1-min-scaled.jpg",
+          "source_url_sha256": "64ebd2ad7fd4916ff448732d213881f57de7b3aa8a2afad53b1740f443e0ae5c",
+          "accepted_photo_url_index": 2,
+          "retrieved_at": "2026-11-14T23:35:30+00:00",
+          "http_status": 200,
+          "response_url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-RESTAURANT1-min-scaled.jpg",
+          "content_type": "image/jpeg",
+          "ok": true,
+          "bytes": 590142,
+          "sha256": "65516c4a6b10c9d00d853e6feb49c138e62a8408d8b051eb79ece655f4968ffd",
+          "dimensions": [
+            2560,
+            1439
+          ],
+          "format": "JPEG",
+          "path": "photos/59114-detail_right.jpg",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/369f3286-fe3d-4c3e-a410-46514fdc3d99/acceptedRevision3"
+        }
+      ],
+      "source_photo_sets": [
+        {
+          "capturedAt": "2026-11-11T06:18:03.710891Z",
+          "sourceUrl": "https://akdoraelitehotelspa.com/",
+          "proofUrl": "https://akdoraelitehotelspa.com/galeri/",
+          "label": "Три разные официальные фотографии открыты и просмотрены 11.11.2026. Дата съёмки неизвестна; фото не подтверждают отсутствие стройки или шума.",
+          "photos": [
+            {
+              "url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-OVERVIEW3-scaled.jpg",
+              "alt": "Территория Akdora Elite из официальной галереи"
+            },
+            {
+              "url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-POOLBAR3-1-scaled.jpg",
+              "alt": "Бар у бассейна Akdora Elite из официальной галереи"
+            },
+            {
+              "url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-RESTAURANT1-min-scaled.jpg",
+              "alt": "Ресторан Akdora Elite из официальной галереи"
+            }
+          ]
+        }
+      ],
+      "photo_date": "unknown",
+      "operational_caveats_preserved": true,
+      "disclosure": "Рядом с отелем стройка — возможен шум.",
+      "source_photos": [
+        {
+          "hotel_id": 59114,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-OVERVIEW3-scaled.jpg",
+          "source_url_sha256": "b58f40e7453e54f365d4d80cbd992e07f434b136605936cfadd34be36c3d862c",
+          "accepted_photo_url_index": 0,
+          "retrieved_at": "2026-11-14T23:35:30+00:00",
+          "http_status": 200,
+          "response_url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-OVERVIEW3-scaled.jpg",
+          "content_type": "image/jpeg",
+          "ok": true,
+          "bytes": 686875,
+          "sha256": "c7a28a79a27c2de36409abd78e79fca1e61657947ea82839183cda48bd18ddf0",
+          "dimensions": [
+            2560,
+            1920
+          ],
+          "format": "JPEG",
+          "path": "photos/59114-hero.jpg",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/369f3286-fe3d-4c3e-a410-46514fdc3d99/acceptedRevision3",
+          "source_bytes": 686875,
+          "source_dimensions": [
+            2560,
+            1920
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "c7a28a79a27c2de36409abd78e79fca1e61657947ea82839183cda48bd18ddf0",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 59114,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-POOLBAR3-1-scaled.jpg",
+          "source_url_sha256": "6a1e17e977063b2a7a625e8788133efe3f2178ab2f067cd168b53d9231fe6034",
+          "accepted_photo_url_index": 1,
+          "retrieved_at": "2026-11-14T23:35:30+00:00",
+          "http_status": 200,
+          "response_url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-POOLBAR3-1-scaled.jpg",
+          "content_type": "image/jpeg",
+          "ok": true,
+          "bytes": 724545,
+          "sha256": "63cc0efd9beffba0ba28d9c49219d395cc8e4b5dd25cd726d40053690df74f5e",
+          "dimensions": [
+            2560,
+            1706
+          ],
+          "format": "JPEG",
+          "path": "photos/59114-detail_left.jpg",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/369f3286-fe3d-4c3e-a410-46514fdc3d99/acceptedRevision3",
+          "source_bytes": 724545,
+          "source_dimensions": [
+            2560,
+            1706
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "63cc0efd9beffba0ba28d9c49219d395cc8e4b5dd25cd726d40053690df74f5e",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 59114,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-RESTAURANT1-min-scaled.jpg",
+          "source_url_sha256": "64ebd2ad7fd4916ff448732d213881f57de7b3aa8a2afad53b1740f443e0ae5c",
+          "accepted_photo_url_index": 2,
+          "retrieved_at": "2026-11-14T23:35:30+00:00",
+          "http_status": 200,
+          "response_url": "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-RESTAURANT1-min-scaled.jpg",
+          "content_type": "image/jpeg",
+          "ok": true,
+          "bytes": 590142,
+          "sha256": "65516c4a6b10c9d00d853e6feb49c138e62a8408d8b051eb79ece655f4968ffd",
+          "dimensions": [
+            2560,
+            1439
+          ],
+          "format": "JPEG",
+          "path": "photos/59114-detail_right.jpg",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/369f3286-fe3d-4c3e-a410-46514fdc3d99/acceptedRevision3",
+          "source_bytes": 590142,
+          "source_dimensions": [
+            2560,
+            1439
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "65516c4a6b10c9d00d853e6feb49c138e62a8408d8b051eb79ece655f4968ffd",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "59114.png",
+      "sha256": "f984c8aa5ee56d56e3ab9c48cf9a0b018a8edaea457d5e26402d3783a92ae78a",
+      "bytes": 590974,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "AKDORA ELITE HOTEL & SPA",
+        "font_size": 28,
+        "text_width": 402.40625,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 74036,
+      "site_id": "a69daef2-7fc0-4865-b86f-0e1f6b099fa5",
+      "title": "Rewaya Inn Resort",
+      "accepted_revision": 4,
+      "photos": [
+        {
+          "hotel_id": 74036,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS80LzQwY2ExODBjNDVjNGI0YzZiYzM3YTRjZTFhMzUxODg3X29jcHByb2QuanBn",
+          "source_url_sha256": "275170e6f02fbd2ffe776d91fad97ed5642e9f0af44e650f1bf4030854803d41",
+          "accepted_photo_url_index": 0,
+          "retrieved_at": "2026-11-14T23:35:30+00:00",
+          "http_status": 200,
+          "response_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS80LzQwY2ExODBjNDVjNGI0YzZiYzM3YTRjZTFhMzUxODg3X29jcHByb2QuanBn",
+          "content_type": "image/jpeg",
+          "ok": true,
+          "bytes": 56031,
+          "sha256": "b5082965311c89b0dc785e63739b3bda631b586e869960f4faa6117fd9db288a",
+          "dimensions": [
+            560,
+            420
+          ],
+          "format": "JPEG",
+          "path": "photos/74036-hero.jpg",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/a69daef2-7fc0-4865-b86f-0e1f6b099fa5/acceptedRevision4"
+        },
+        {
+          "hotel_id": 74036,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS84LzhmNmViMTRkYjhiYzI4OGM2NWNiZTA5YTFjMzBjZGE5X29jcHByb2QuanBn",
+          "source_url_sha256": "07017f06979620042eb0988d9b3158fb542445a6df7f4d9a0b18ed126d11e7a4",
+          "accepted_photo_url_index": 1,
+          "retrieved_at": "2026-11-14T23:35:38+00:00",
+          "http_status": 200,
+          "response_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS84LzhmNmViMTRkYjhiYzI4OGM2NWNiZTA5YTFjMzBjZGE5X29jcHByb2QuanBn",
+          "content_type": "image/jpeg",
+          "ok": true,
+          "bytes": 63613,
+          "sha256": "b55eb2ce75d074ee4659029580db5696573099ea55bce87e0df9c8a814cfafb8",
+          "dimensions": [
+            560,
+            420
+          ],
+          "format": "JPEG",
+          "path": "photos/74036-detail_left.jpg",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/a69daef2-7fc0-4865-b86f-0e1f6b099fa5/acceptedRevision4"
+        },
+        {
+          "hotel_id": 74036,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8yLzI4YzY1YmYwZWRiYTE4MDNjN2IyYTFhY2RmZmUzNGMwX29jcHByb2QuanBn",
+          "source_url_sha256": "04c1950ceaceaf003369c7d39929c0ad1c1aa455110b4afe5bbf1ac6a990863f",
+          "accepted_photo_url_index": 2,
+          "retrieved_at": "2026-11-14T23:35:43+00:00",
+          "http_status": 200,
+          "response_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8yLzI4YzY1YmYwZWRiYTE4MDNjN2IyYTFhY2RmZmUzNGMwX29jcHByb2QuanBn",
+          "content_type": "image/jpeg",
+          "ok": true,
+          "bytes": 40698,
+          "sha256": "7648f5bdb645010860d030ccfec44fc60fe1fbdb58097d80fe055b19ba30a3ba",
+          "dimensions": [
+            560,
+            420
+          ],
+          "format": "JPEG",
+          "path": "photos/74036-detail_right.jpg",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/a69daef2-7fc0-4865-b86f-0e1f6b099fa5/acceptedRevision4"
+        }
+      ],
+      "source_photo_sets": [
+        {
+          "capturedAt": "2026-11-11T07:43:25.729112Z",
+          "sourceUrl": "https://www.tui.com/hotels/rewaya-inn-resort-1254588/hotelinformation/",
+          "proofUrl": "https://www.tui.com/hotels/rewaya-inn-resort-1254588/hotelinformation/",
+          "label": "Три разные фотографии данного отеля открыты и визуально проверены. Дата съёмки неизвестна; фото не подтверждают текущую работу услуг, отсутствие ремонта, конкретный номер или наличие.",
+          "photos": [
+            {
+              "url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS80LzQwY2ExODBjNDVjNGI0YzZiYzM3YTRjZTFhMzUxODg3X29jcHByb2QuanBn",
+              "alt": "Бассейн и корпуса Rewaya Inn из галереи TUI"
+            },
+            {
+              "url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS84LzhmNmViMTRkYjhiYzI4OGM2NWNiZTA5YTFjMzBjZGE5X29jcHByb2QuanBn",
+              "alt": "Водные горки Rewaya Inn, галерея TUI"
+            },
+            {
+              "url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8yLzI4YzY1YmYwZWRiYTE4MDNjN2IyYTFhY2RmZmUzNGMwX29jcHByb2QuanBn",
+              "alt": "Пляжная зона Rewaya Inn из галереи TUI"
+            }
+          ]
+        }
+      ],
+      "photo_date": "unknown",
+      "operational_caveats_preserved": true,
+      "disclosure": "Рядом с отелем стройка: её может быть видно и слышно.",
+      "source_photos": [
+        {
+          "hotel_id": 74036,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS80LzQwY2ExODBjNDVjNGI0YzZiYzM3YTRjZTFhMzUxODg3X29jcHByb2QuanBn",
+          "source_url_sha256": "275170e6f02fbd2ffe776d91fad97ed5642e9f0af44e650f1bf4030854803d41",
+          "accepted_photo_url_index": 0,
+          "retrieved_at": "2026-11-14T23:35:30+00:00",
+          "http_status": 200,
+          "response_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS80LzQwY2ExODBjNDVjNGI0YzZiYzM3YTRjZTFhMzUxODg3X29jcHByb2QuanBn",
+          "content_type": "image/jpeg",
+          "ok": true,
+          "bytes": 56031,
+          "sha256": "b5082965311c89b0dc785e63739b3bda631b586e869960f4faa6117fd9db288a",
+          "dimensions": [
+            560,
+            420
+          ],
+          "format": "JPEG",
+          "path": "photos/74036-hero.jpg",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/a69daef2-7fc0-4865-b86f-0e1f6b099fa5/acceptedRevision4",
+          "source_bytes": 56031,
+          "source_dimensions": [
+            560,
+            420
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "b5082965311c89b0dc785e63739b3bda631b586e869960f4faa6117fd9db288a",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 74036,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS84LzhmNmViMTRkYjhiYzI4OGM2NWNiZTA5YTFjMzBjZGE5X29jcHByb2QuanBn",
+          "source_url_sha256": "07017f06979620042eb0988d9b3158fb542445a6df7f4d9a0b18ed126d11e7a4",
+          "accepted_photo_url_index": 1,
+          "retrieved_at": "2026-11-14T23:35:38+00:00",
+          "http_status": 200,
+          "response_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS84LzhmNmViMTRkYjhiYzI4OGM2NWNiZTA5YTFjMzBjZGE5X29jcHByb2QuanBn",
+          "content_type": "image/jpeg",
+          "ok": true,
+          "bytes": 63613,
+          "sha256": "b55eb2ce75d074ee4659029580db5696573099ea55bce87e0df9c8a814cfafb8",
+          "dimensions": [
+            560,
+            420
+          ],
+          "format": "JPEG",
+          "path": "photos/74036-detail_left.jpg",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/a69daef2-7fc0-4865-b86f-0e1f6b099fa5/acceptedRevision4",
+          "source_bytes": 63613,
+          "source_dimensions": [
+            560,
+            420
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "b55eb2ce75d074ee4659029580db5696573099ea55bce87e0df9c8a814cfafb8",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 74036,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8yLzI4YzY1YmYwZWRiYTE4MDNjN2IyYTFhY2RmZmUzNGMwX29jcHByb2QuanBn",
+          "source_url_sha256": "04c1950ceaceaf003369c7d39929c0ad1c1aa455110b4afe5bbf1ac6a990863f",
+          "accepted_photo_url_index": 2,
+          "retrieved_at": "2026-11-14T23:35:43+00:00",
+          "http_status": 200,
+          "response_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8yLzI4YzY1YmYwZWRiYTE4MDNjN2IyYTFhY2RmZmUzNGMwX29jcHByb2QuanBn",
+          "content_type": "image/jpeg",
+          "ok": true,
+          "bytes": 40698,
+          "sha256": "7648f5bdb645010860d030ccfec44fc60fe1fbdb58097d80fe055b19ba30a3ba",
+          "dimensions": [
+            560,
+            420
+          ],
+          "format": "JPEG",
+          "path": "photos/74036-detail_right.jpg",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/a69daef2-7fc0-4865-b86f-0e1f6b099fa5/acceptedRevision4",
+          "source_bytes": 40698,
+          "source_dimensions": [
+            560,
+            420
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "7648f5bdb645010860d030ccfec44fc60fe1fbdb58097d80fe055b19ba30a3ba",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "74036.png",
+      "sha256": "a23a4d438a5f10cacf541bb2cef34f460da4b75b900417d25fda0cad479de691",
+      "bytes": 543430,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "REWAYA INN RESORT",
+        "font_size": 28,
+        "text_width": 297.171875,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 475,
+      "site_id": "151df4c8-cf5b-424a-bb0d-de15e4443596",
+      "title": "Sunny Days Palma De Mirette",
+      "accepted_revision": 4,
+      "photos": [
+        {
+          "hotel_id": 475,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/4a3a13e0-039a-42a3-8680-7840a33c694d/b653a971b63f8c36919b84ce556431be/001.jpg?w=1600&fm=webp&q=80",
+          "source_url_sha256": "f4b9dafee3d1fad20e4a27accab31466cfa6e9e33e03062a3dce1118eeaed974",
+          "accepted_photo_url_index": 0,
+          "retrieved_at": "2026-11-14T23:35:43+00:00",
+          "http_status": 200,
+          "response_url": "https://images.ctfassets.net/g8yn6gjj7q12/4a3a13e0-039a-42a3-8680-7840a33c694d/b653a971b63f8c36919b84ce556431be/001.jpg?w=1600&fm=webp&q=80",
+          "content_type": "image/webp",
+          "ok": true,
+          "bytes": 452938,
+          "sha256": "96f8a990f1ee2af6b846d1dfc8101fc63478392bdbd7ac98e8595d0a33c28c5a",
+          "dimensions": [
+            1600,
+            1200
+          ],
+          "format": "WEBP",
+          "path": "photos/475-hero.webp",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/151df4c8-cf5b-424a-bb0d-de15e4443596/acceptedRevision4"
+        },
+        {
+          "hotel_id": 475,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/5f09a4e9-4605-4e71-97c6-43836bcb4225/f8b3303f404b93cdf467a021280f0eef/002.jpg?w=1024&fm=webp&q=80",
+          "source_url_sha256": "fb13240689b48cd39e84005b4bce50860933ab6428da44e04bb5e2f435cd763b",
+          "accepted_photo_url_index": 1,
+          "retrieved_at": "2026-11-14T23:35:44+00:00",
+          "http_status": 200,
+          "response_url": "https://images.ctfassets.net/g8yn6gjj7q12/5f09a4e9-4605-4e71-97c6-43836bcb4225/f8b3303f404b93cdf467a021280f0eef/002.jpg?w=1024&fm=webp&q=80",
+          "content_type": "image/webp",
+          "ok": true,
+          "bytes": 29326,
+          "sha256": "a2e5635bda512901335385c94b1708f932c267bd8bb4d0ce5417cdab4ef5c723",
+          "dimensions": [
+            1024,
+            683
+          ],
+          "format": "WEBP",
+          "path": "photos/475-detail_left.webp",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/151df4c8-cf5b-424a-bb0d-de15e4443596/acceptedRevision4"
+        },
+        {
+          "hotel_id": 475,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/613a2b76-0e7a-4e86-a9ea-a1ca3a92e27e/9056a651b6f33412aa2b659ddb86b60a/003.jpg?w=1024&fm=webp&q=80",
+          "source_url_sha256": "4244b9623513936c940ad985a39febe375ed602f6d9ca011c31d58d063856bc1",
+          "accepted_photo_url_index": 2,
+          "retrieved_at": "2026-11-14T23:35:47+00:00",
+          "http_status": 200,
+          "response_url": "https://images.ctfassets.net/g8yn6gjj7q12/613a2b76-0e7a-4e86-a9ea-a1ca3a92e27e/9056a651b6f33412aa2b659ddb86b60a/003.jpg?w=1024&fm=webp&q=80",
+          "content_type": "image/webp",
+          "ok": true,
+          "bytes": 240008,
+          "sha256": "3daeac124ed151220e67ea99d8ba66ddc040951d09eb77abafb1418be6bd7f7e",
+          "dimensions": [
+            1024,
+            594
+          ],
+          "format": "WEBP",
+          "path": "photos/475-detail_right.webp",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/151df4c8-cf5b-424a-bb0d-de15e4443596/acceptedRevision4"
+        }
+      ],
+      "source_photo_sets": [
+        {
+          "capturedAt": "2026-11-11T07:06:58.009827Z",
+          "sourceUrl": "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/sunny-days-palma-de-mirette-resort-spa",
+          "proofUrl": "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/sunny-days-palma-de-mirette-resort-spa",
+          "label": "3 разные фотографии данного отеля из галереи Corendon открыты и визуально проверены. Фото не подтверждают отсутствие ремонта; категория номера и дата съёмки неизвестны.",
+          "photos": [
+            {
+              "url": "https://images.ctfassets.net/g8yn6gjj7q12/4a3a13e0-039a-42a3-8680-7840a33c694d/b653a971b63f8c36919b84ce556431be/001.jpg?w=1600&fm=webp&q=80",
+              "alt": "Пляж и бассейн Palma De Mirette, фото из карточки Corendon"
+            },
+            {
+              "url": "https://images.ctfassets.net/g8yn6gjj7q12/5f09a4e9-4605-4e71-97c6-43836bcb4225/f8b3303f404b93cdf467a021280f0eef/002.jpg?w=1024&fm=webp&q=80",
+              "alt": "Пример интерьера номера Palma De Mirette; категория не определена"
+            },
+            {
+              "url": "https://images.ctfassets.net/g8yn6gjj7q12/613a2b76-0e7a-4e86-a9ea-a1ca3a92e27e/9056a651b6f33412aa2b659ddb86b60a/003.jpg?w=1024&fm=webp&q=80",
+              "alt": "Лагуна и территория Palma De Mirette с другого ракурса"
+            }
+          ]
+        }
+      ],
+      "photo_date": "unknown",
+      "operational_caveats_preserved": true,
+      "disclosure": "В отеле ремонтируют номера — возможен шум.",
+      "source_photos": [
+        {
+          "hotel_id": 475,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/4a3a13e0-039a-42a3-8680-7840a33c694d/b653a971b63f8c36919b84ce556431be/001.jpg?w=1600&fm=webp&q=80",
+          "source_url_sha256": "f4b9dafee3d1fad20e4a27accab31466cfa6e9e33e03062a3dce1118eeaed974",
+          "accepted_photo_url_index": 0,
+          "retrieved_at": "2026-11-14T23:35:43+00:00",
+          "http_status": 200,
+          "response_url": "https://images.ctfassets.net/g8yn6gjj7q12/4a3a13e0-039a-42a3-8680-7840a33c694d/b653a971b63f8c36919b84ce556431be/001.jpg?w=1600&fm=webp&q=80",
+          "content_type": "image/webp",
+          "ok": true,
+          "bytes": 452938,
+          "sha256": "96f8a990f1ee2af6b846d1dfc8101fc63478392bdbd7ac98e8595d0a33c28c5a",
+          "dimensions": [
+            1600,
+            1200
+          ],
+          "format": "WEBP",
+          "path": "photos/475-hero.webp",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/151df4c8-cf5b-424a-bb0d-de15e4443596/acceptedRevision4",
+          "source_bytes": 452938,
+          "source_dimensions": [
+            1600,
+            1200
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "96f8a990f1ee2af6b846d1dfc8101fc63478392bdbd7ac98e8595d0a33c28c5a",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 475,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/5f09a4e9-4605-4e71-97c6-43836bcb4225/f8b3303f404b93cdf467a021280f0eef/002.jpg?w=1024&fm=webp&q=80",
+          "source_url_sha256": "fb13240689b48cd39e84005b4bce50860933ab6428da44e04bb5e2f435cd763b",
+          "accepted_photo_url_index": 1,
+          "retrieved_at": "2026-11-14T23:35:44+00:00",
+          "http_status": 200,
+          "response_url": "https://images.ctfassets.net/g8yn6gjj7q12/5f09a4e9-4605-4e71-97c6-43836bcb4225/f8b3303f404b93cdf467a021280f0eef/002.jpg?w=1024&fm=webp&q=80",
+          "content_type": "image/webp",
+          "ok": true,
+          "bytes": 29326,
+          "sha256": "a2e5635bda512901335385c94b1708f932c267bd8bb4d0ce5417cdab4ef5c723",
+          "dimensions": [
+            1024,
+            683
+          ],
+          "format": "WEBP",
+          "path": "photos/475-detail_left.webp",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/151df4c8-cf5b-424a-bb0d-de15e4443596/acceptedRevision4",
+          "source_bytes": 29326,
+          "source_dimensions": [
+            1024,
+            683
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "a2e5635bda512901335385c94b1708f932c267bd8bb4d0ce5417cdab4ef5c723",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 475,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/613a2b76-0e7a-4e86-a9ea-a1ca3a92e27e/9056a651b6f33412aa2b659ddb86b60a/003.jpg?w=1024&fm=webp&q=80",
+          "source_url_sha256": "4244b9623513936c940ad985a39febe375ed602f6d9ca011c31d58d063856bc1",
+          "accepted_photo_url_index": 2,
+          "retrieved_at": "2026-11-14T23:35:47+00:00",
+          "http_status": 200,
+          "response_url": "https://images.ctfassets.net/g8yn6gjj7q12/613a2b76-0e7a-4e86-a9ea-a1ca3a92e27e/9056a651b6f33412aa2b659ddb86b60a/003.jpg?w=1024&fm=webp&q=80",
+          "content_type": "image/webp",
+          "ok": true,
+          "bytes": 240008,
+          "sha256": "3daeac124ed151220e67ea99d8ba66ddc040951d09eb77abafb1418be6bd7f7e",
+          "dimensions": [
+            1024,
+            594
+          ],
+          "format": "WEBP",
+          "path": "photos/475-detail_right.webp",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/151df4c8-cf5b-424a-bb0d-de15e4443596/acceptedRevision4",
+          "source_bytes": 240008,
+          "source_dimensions": [
+            1024,
+            594
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "3daeac124ed151220e67ea99d8ba66ddc040951d09eb77abafb1418be6bd7f7e",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "475.png",
+      "sha256": "2d3775186a8d8282ed32c980701048f7a5119e466fdd29ca254fd2b0625d11bb",
+      "bytes": 695067,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "SUNNY DAYS PALMA DE MIRETTE",
+        "font_size": 28,
+        "text_width": 462.0625,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    },
+    {
+      "hotel_id": 473,
+      "site_id": "c0f46124-91bc-4486-a6c6-5ea6cd9039c4",
+      "title": "Sunny Days El Palacio",
+      "accepted_revision": 4,
+      "photos": [
+        {
+          "hotel_id": 473,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/fc5b1f72-432d-4f40-99fb-eb574a75a29e/bc8d5a43f84013b49cbc6788e96ae0f9/001.jpg?w=1600&fm=webp&q=80",
+          "source_url_sha256": "593feadf66e0fc527da913ca245e2f2555d797e976a38b80974d730e8acae4ea",
+          "accepted_photo_url_index": 0,
+          "retrieved_at": "2026-11-14T23:35:48+00:00",
+          "http_status": 200,
+          "response_url": "https://images.ctfassets.net/g8yn6gjj7q12/fc5b1f72-432d-4f40-99fb-eb574a75a29e/bc8d5a43f84013b49cbc6788e96ae0f9/001.jpg?w=1600&fm=webp&q=80",
+          "content_type": "image/webp",
+          "ok": true,
+          "bytes": 251950,
+          "sha256": "5a6ebe973c56f6f5d624b96694008c65cb2e8a65a7b81df9474392070b808e49",
+          "dimensions": [
+            1600,
+            1150
+          ],
+          "format": "WEBP",
+          "path": "photos/473-hero.webp",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/c0f46124-91bc-4486-a6c6-5ea6cd9039c4/acceptedRevision4"
+        },
+        {
+          "hotel_id": 473,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/a8992590-5f0e-4baf-9f02-4bd5601db9b7/b8d153980d068df3d8037a976ca3ab44/002.jpg?w=1024&fm=webp&q=80",
+          "source_url_sha256": "49139f79c6f37829e2ed2710ebd03dd95c66af6575d278694d729446adb903be",
+          "accepted_photo_url_index": 1,
+          "retrieved_at": "2026-11-14T23:35:49+00:00",
+          "http_status": 200,
+          "response_url": "https://images.ctfassets.net/g8yn6gjj7q12/a8992590-5f0e-4baf-9f02-4bd5601db9b7/b8d153980d068df3d8037a976ca3ab44/002.jpg?w=1024&fm=webp&q=80",
+          "content_type": "image/webp",
+          "ok": true,
+          "bytes": 197892,
+          "sha256": "aec492443dc46bf06db649226146133da61da3815b342fc14e8a1d934c17b7a8",
+          "dimensions": [
+            1024,
+            767
+          ],
+          "format": "WEBP",
+          "path": "photos/473-detail_left.webp",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/c0f46124-91bc-4486-a6c6-5ea6cd9039c4/acceptedRevision4"
+        },
+        {
+          "hotel_id": 473,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/0d7565c5-eb67-4cb0-920f-d987b7e9a153/daab143edbd7e50718d1569ab69dd121/003.jpg?w=1024&fm=webp&q=80",
+          "source_url_sha256": "476b7107d106a935dba750fd39fa55bd7724d7e188861be74dd3331516bd1a9e",
+          "accepted_photo_url_index": 2,
+          "retrieved_at": "2026-11-14T23:35:49+00:00",
+          "http_status": 200,
+          "response_url": "https://images.ctfassets.net/g8yn6gjj7q12/0d7565c5-eb67-4cb0-920f-d987b7e9a153/daab143edbd7e50718d1569ab69dd121/003.jpg?w=1024&fm=webp&q=80",
+          "content_type": "image/webp",
+          "ok": true,
+          "bytes": 57142,
+          "sha256": "7e019d79ef9046a0de2810c8d78e22c0ef7cdcfd4da26167b3ff09566d6fd002",
+          "dimensions": [
+            1024,
+            768
+          ],
+          "format": "WEBP",
+          "path": "photos/473-detail_right.webp",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/c0f46124-91bc-4486-a6c6-5ea6cd9039c4/acceptedRevision4"
+        }
+      ],
+      "source_photo_sets": [
+        {
+          "capturedAt": "2026-11-11T07:06:58.009827Z",
+          "sourceUrl": "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/sunny-days-el-palacio",
+          "proofUrl": "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/sunny-days-el-palacio",
+          "label": "3 разные фотографии данного отеля из галереи Corendon открыты и визуально проверены. Фото не подтверждают отсутствие ремонта; категория номера и дата съёмки неизвестны.",
+          "photos": [
+            {
+              "url": "https://images.ctfassets.net/g8yn6gjj7q12/fc5b1f72-432d-4f40-99fb-eb574a75a29e/bc8d5a43f84013b49cbc6788e96ae0f9/001.jpg?w=1600&fm=webp&q=80",
+              "alt": "Бассейн и лагуна El Palacio, фотография из карточки Corendon"
+            },
+            {
+              "url": "https://images.ctfassets.net/g8yn6gjj7q12/a8992590-5f0e-4baf-9f02-4bd5601db9b7/b8d153980d068df3d8037a976ca3ab44/002.jpg?w=1024&fm=webp&q=80",
+              "alt": "Территория и лагуна El Palacio с высоты"
+            },
+            {
+              "url": "https://images.ctfassets.net/g8yn6gjj7q12/0d7565c5-eb67-4cb0-920f-d987b7e9a153/daab143edbd7e50718d1569ab69dd121/003.jpg?w=1024&fm=webp&q=80",
+              "alt": "Пример номера El Palacio с двумя кроватями; категория не определена"
+            }
+          ]
+        }
+      ],
+      "photo_date": "unknown",
+      "operational_caveats_preserved": true,
+      "disclosure": "В отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.",
+      "source_photos": [
+        {
+          "hotel_id": 473,
+          "index": 0,
+          "role": "hero",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/fc5b1f72-432d-4f40-99fb-eb574a75a29e/bc8d5a43f84013b49cbc6788e96ae0f9/001.jpg?w=1600&fm=webp&q=80",
+          "source_url_sha256": "593feadf66e0fc527da913ca245e2f2555d797e976a38b80974d730e8acae4ea",
+          "accepted_photo_url_index": 0,
+          "retrieved_at": "2026-11-14T23:35:48+00:00",
+          "http_status": 200,
+          "response_url": "https://images.ctfassets.net/g8yn6gjj7q12/fc5b1f72-432d-4f40-99fb-eb574a75a29e/bc8d5a43f84013b49cbc6788e96ae0f9/001.jpg?w=1600&fm=webp&q=80",
+          "content_type": "image/webp",
+          "ok": true,
+          "bytes": 251950,
+          "sha256": "5a6ebe973c56f6f5d624b96694008c65cb2e8a65a7b81df9474392070b808e49",
+          "dimensions": [
+            1600,
+            1150
+          ],
+          "format": "WEBP",
+          "path": "photos/473-hero.webp",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/c0f46124-91bc-4486-a6c6-5ea6cd9039c4/acceptedRevision4",
+          "source_bytes": 251950,
+          "source_dimensions": [
+            1600,
+            1150
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "5a6ebe973c56f6f5d624b96694008c65cb2e8a65a7b81df9474392070b808e49",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 473,
+          "index": 1,
+          "role": "detail_left",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/a8992590-5f0e-4baf-9f02-4bd5601db9b7/b8d153980d068df3d8037a976ca3ab44/002.jpg?w=1024&fm=webp&q=80",
+          "source_url_sha256": "49139f79c6f37829e2ed2710ebd03dd95c66af6575d278694d729446adb903be",
+          "accepted_photo_url_index": 1,
+          "retrieved_at": "2026-11-14T23:35:49+00:00",
+          "http_status": 200,
+          "response_url": "https://images.ctfassets.net/g8yn6gjj7q12/a8992590-5f0e-4baf-9f02-4bd5601db9b7/b8d153980d068df3d8037a976ca3ab44/002.jpg?w=1024&fm=webp&q=80",
+          "content_type": "image/webp",
+          "ok": true,
+          "bytes": 197892,
+          "sha256": "aec492443dc46bf06db649226146133da61da3815b342fc14e8a1d934c17b7a8",
+          "dimensions": [
+            1024,
+            767
+          ],
+          "format": "WEBP",
+          "path": "photos/473-detail_left.webp",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/c0f46124-91bc-4486-a6c6-5ea6cd9039c4/acceptedRevision4",
+          "source_bytes": 197892,
+          "source_dimensions": [
+            1024,
+            767
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "aec492443dc46bf06db649226146133da61da3815b342fc14e8a1d934c17b7a8",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "hotel_id": 473,
+          "index": 2,
+          "role": "detail_right",
+          "source_url": "https://images.ctfassets.net/g8yn6gjj7q12/0d7565c5-eb67-4cb0-920f-d987b7e9a153/daab143edbd7e50718d1569ab69dd121/003.jpg?w=1024&fm=webp&q=80",
+          "source_url_sha256": "476b7107d106a935dba750fd39fa55bd7724d7e188861be74dd3331516bd1a9e",
+          "accepted_photo_url_index": 2,
+          "retrieved_at": "2026-11-14T23:35:49+00:00",
+          "http_status": 200,
+          "response_url": "https://images.ctfassets.net/g8yn6gjj7q12/0d7565c5-eb67-4cb0-920f-d987b7e9a153/daab143edbd7e50718d1569ab69dd121/003.jpg?w=1024&fm=webp&q=80",
+          "content_type": "image/webp",
+          "ok": true,
+          "bytes": 57142,
+          "sha256": "7e019d79ef9046a0de2810c8d78e22c0ef7cdcfd4da26167b3ff09566d6fd002",
+          "dimensions": [
+            1024,
+            768
+          ],
+          "format": "WEBP",
+          "path": "photos/473-detail_right.webp",
+          "retrieval": "exact_accepted_source_url_http",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "approval_reference": "registry476/c0f46124-91bc-4486-a6c6-5ea6cd9039c4/acceptedRevision4",
+          "source_bytes": 57142,
+          "source_dimensions": [
+            1024,
+            768
+          ],
+          "source_format": "WEBP",
+          "actual_sha256": "7e019d79ef9046a0de2810c8d78e22c0ef7cdcfd4da26167b3ff09566d6fd002",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "473.png",
+      "sha256": "c78ab3f77345de6286defc4cd3d2b6e25f69f833c5a183b896bf193ced907705",
+      "bytes": 495354,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "SUNNY DAYS EL PALACIO",
+        "font_size": 28,
+        "text_width": 355.265625,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    }
+  ],
+  "provider_calls": 0,
+  "remote_writes": 0
+}

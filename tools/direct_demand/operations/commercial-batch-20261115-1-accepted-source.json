@@ -1,0 +1,415 @@
+{
+  "registry_version": 476,
+  "registry_export_sha256": "3879dd95ddcfdcd35005fb885a12b45c1ea21a1add0285c0ecc349e254c80815",
+  "operation": "commercial-hotel-batch-20261115-1-v1",
+  "rows": [
+    {
+      "hotel_id": 59114,
+      "site_id": "369f3286-fe3d-4c3e-a410-46514fdc3d99",
+      "tourvisor_id": "59114",
+      "anex_id": "35433",
+      "registry_name": "AKDORA ELITE HOTEL & SPA (EX. SEADEN SWEET PARK)",
+      "registry_version": 476,
+      "revision": 3,
+      "accepted_revision": 3,
+      "status": "accepted",
+      "queued": true,
+      "published": {},
+      "description": "Akdora Elite в Сиде расположен примерно в 300 м от собственного песчаного пляжа. На территории есть открытые бассейны и спа.\n\nРядом с отелем стройка — возможен шум.",
+      "max_text_sha256": "dc25b1490c9b7582f4474a1592f6e3edf0ae323cc04b3662b36a9f482c9aa812",
+      "telegram_text_sha256": "dc25b1490c9b7582f4474a1592f6e3edf0ae323cc04b3662b36a9f482c9aa812",
+      "exact_shared_text": true,
+      "cta_mode": "publisher",
+      "cta_text": "Узнать стоимость тура",
+      "cta_url": "",
+      "release_hold": {
+        "key": "akdora-neighbour-construction-20261111",
+        "reason": "Оператор сохраняет уведомление о соседней стройке и плане открытия в 2027. Переход работ внутрь здания не доказывает завершение. До выпуска нужны подтверждение текущего состояния работ, влияния шума и ограничений на даты поездки.",
+        "sourceUrl": "https://kompastour.com/ua/rus/country/turkey/side/akdora_elite_hotel_spa/",
+        "checkedAt": "2026-11-11T06:18:03.710891Z"
+      },
+      "release_hold_resolution": {
+        "hotelId": "369f3286-fe3d-4c3e-a410-46514fdc3d99",
+        "hold": {
+          "key": "akdora-neighbour-construction-20261111",
+          "reason": "Оператор сохраняет уведомление о соседней стройке и плане открытия в 2027. Переход работ внутрь здания не доказывает завершение. До выпуска нужны подтверждение текущего состояния работ, влияния шума и ограничений на даты поездки.",
+          "sourceUrl": "https://kompastour.com/ua/rus/country/turkey/side/akdora_elite_hotel_spa/",
+          "checkedAt": "2026-11-11T06:18:03.710891Z"
+        },
+        "revision": 3,
+        "at": "2026-11-14T23:29:05.727Z",
+        "decision": "publish_with_disclosure",
+        "reason": "В текстах прямо раскрыты соседняя стройка и возможный шум. Это редакторское решение о выпуске с предупреждением; завершение работ и тишина не подтверждались. Исходное уведомление и ограничения сохраняются.",
+        "disclosure": "Рядом с отелем стройка — возможен шум."
+      },
+      "original_photo_urls": [
+        "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-OVERVIEW3-scaled.jpg",
+        "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-POOLBAR3-1-scaled.jpg",
+        "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-RESTAURANT1-min-scaled.jpg"
+      ],
+      "photo_binary_sha256": [
+        "c7a28a79a27c2de36409abd78e79fca1e61657947ea82839183cda48bd18ddf0",
+        "63cc0efd9beffba0ba28d9c49219d395cc8e4b5dd25cd726d40053690df74f5e",
+        "65516c4a6b10c9d00d853e6feb49c138e62a8408d8b051eb79ece655f4968ffd"
+      ],
+      "cover_sha256": "f984c8aa5ee56d56e3ab9c48cf9a0b018a8edaea457d5e26402d3783a92ae78a",
+      "source_refs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 199",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "ai",
+          "label": "Сохранённое исследование ИИ · кандидат к использованию",
+          "url": "https://chatgpt.com/library?file_id=libfile_e554d6c3171c8191926e5a7ae8bcd1e4&account_id=personal",
+          "at": "2026-11-10T14:07:48.520799+00:00",
+          "note": "Архив v134, 10 сведений с исходными датами чтения. Сходство не является принятой связью идентификаторов; условия и применимость требуют проверки."
+        },
+        {
+          "kind": "official",
+          "label": "Akdora · семейный номер",
+          "url": "https://akdoraelitehotelspa.com/aile-odasi/",
+          "at": "2026-11-11T06:18:03.710891Z",
+          "note": "45 м², две комнаты с дверью или перегородкой, двуспальная и две односпальные кровати; 3 взрослых и 1 ребёнок. Это условия категории, не всех номеров."
+        },
+        {
+          "kind": "official",
+          "label": "Akdora · официальная галерея",
+          "url": "https://akdoraelitehotelspa.com/",
+          "at": "2026-11-11T06:18:03.710891Z",
+          "note": "Фотографии территории и бара. Фотография ресторана взята из официальной галереи; фото не подтверждают текущий ассортимент."
+        },
+        {
+          "kind": "official",
+          "label": "Akdora · фотогалерея",
+          "url": "https://akdoraelitehotelspa.com/galeri/",
+          "at": "2026-11-11T06:18:03.710891Z",
+          "note": "Источник фотографии ресторана; дата съёмки неизвестна."
+        },
+        {
+          "kind": "catalog",
+          "label": "KOMPAS · Akdora Elite",
+          "url": "https://kompastour.com/ua/rus/country/turkey/side/akdora_elite_hotel_spa/",
+          "at": "2026-11-11T06:18:03.710891Z",
+          "note": "Уведомление о соседней стройке с планом открытия в 2027 сохраняется. Даты и текущее влияние работ не подтверждены. Бассейны без подогрева, пляж 300 м."
+        },
+        {
+          "kind": "receipt",
+          "label": "Контракт CTA публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-11T06:18:03.710891Z",
+          "note": "Контракт кнопок, не квитанция отправки. Публикация заблокирована до разрешения оговорки; URL CTA не вымышлен."
+        }
+      ]
+    },
+    {
+      "hotel_id": 74036,
+      "site_id": "a69daef2-7fc0-4865-b86f-0e1f6b099fa5",
+      "tourvisor_id": "74036",
+      "anex_id": "30497",
+      "registry_name": "REWAYA INN RESORT (EX. HAWAII PARADISE AQUA PARK RESORT)",
+      "registry_version": 476,
+      "revision": 4,
+      "accepted_revision": 4,
+      "status": "accepted",
+      "queued": true,
+      "published": {},
+      "description": "Rewaya Inn Resort в Хургаде подойдёт любителям водных развлечений: здесь есть собственный аквапарк с горками для детей и взрослых. Кроме аквапарка, для детей есть мини-клуб и площадка.\n\nРядом с отелем стройка: её может быть видно и слышно.",
+      "max_text_sha256": "e8931f6f3bbd3709439d01aa98aadbefa13fa7075896c4f64cdd0fc869ce80a9",
+      "telegram_text_sha256": "e8931f6f3bbd3709439d01aa98aadbefa13fa7075896c4f64cdd0fc869ce80a9",
+      "exact_shared_text": true,
+      "cta_mode": "publisher",
+      "cta_text": "Узнать стоимость тура",
+      "cta_url": "",
+      "release_hold": {
+        "key": "rewaya-neighbour-construction-20261111",
+        "reason": "vtours сохраняет недатированное предупреждение о соседней стройке со средним визуальным и звуковым воздействием. До выпуска нужны подтверждение текущего статуса работ, шума и ограничений на даты поездки.",
+        "sourceUrl": "https://www.vtours.com/de/reiseziele/%C3%A4gypten/rewaya-inn-resort-hurghada-HRG100012/",
+        "checkedAt": "2026-11-11T07:43:25.729112Z"
+      },
+      "release_hold_resolution": {
+        "hotelId": "a69daef2-7fc0-4865-b86f-0e1f6b099fa5",
+        "hold": {
+          "key": "rewaya-neighbour-construction-20261111",
+          "reason": "vtours сохраняет недатированное предупреждение о соседней стройке со средним визуальным и звуковым воздействием. До выпуска нужны подтверждение текущего статуса работ, шума и ограничений на даты поездки.",
+          "sourceUrl": "https://www.vtours.com/de/reiseziele/%C3%A4gypten/rewaya-inn-resort-hurghada-HRG100012/",
+          "checkedAt": "2026-11-11T07:43:25.729112Z"
+        },
+        "revision": 4,
+        "at": "2026-11-14T23:29:05.727Z",
+        "decision": "publish_with_disclosure",
+        "reason": "В текстах прямо раскрыты визуальное воздействие соседней стройки и возможный шум. Срок окончания не установлен и не обещается; исходное уведомление vtours сохраняется.",
+        "disclosure": "Рядом с отелем стройка: её может быть видно и слышно."
+      },
+      "original_photo_urls": [
+        "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS80LzQwY2ExODBjNDVjNGI0YzZiYzM3YTRjZTFhMzUxODg3X29jcHByb2QuanBn",
+        "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS84LzhmNmViMTRkYjhiYzI4OGM2NWNiZTA5YTFjMzBjZGE5X29jcHByb2QuanBn",
+        "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8yLzI4YzY1YmYwZWRiYTE4MDNjN2IyYTFhY2RmZmUzNGMwX29jcHByb2QuanBn"
+      ],
+      "photo_binary_sha256": [
+        "b5082965311c89b0dc785e63739b3bda631b586e869960f4faa6117fd9db288a",
+        "b55eb2ce75d074ee4659029580db5696573099ea55bce87e0df9c8a814cfafb8",
+        "7648f5bdb645010860d030ccfec44fc60fe1fbdb58097d80fe055b19ba30a3ba"
+      ],
+      "cover_sha256": "a23a4d438a5f10cacf541bb2cef34f460da4b75b900417d25fda0cad479de691",
+      "source_refs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 254",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "ai",
+          "label": "Сохранённое исследование ИИ · кандидат к использованию",
+          "url": "https://chatgpt.com/library?file_id=libfile_e554d6c3171c8191926e5a7ae8bcd1e4&account_id=personal",
+          "at": "2026-11-10T14:07:48.520799+00:00",
+          "note": "Архив v134, 10 сведений с исходными датами чтения. Сходство не является принятой связью идентификаторов; условия и применимость требуют проверки."
+        },
+        {
+          "kind": "catalog",
+          "label": "DERTOUR · Rewaya Inn ex Hawaii Paradise",
+          "url": "https://www.dertour.ro/egipt/hurghada/hurghada/hawaii-paradise-aqua-park-resort",
+          "at": "2026-11-11T07:43:25.729112Z",
+          "note": "Переиспользован и прочитан вновь сохранённый источник: Family с 2 спальнями, аквапарк, мини-клуб. А-ля-карт платно, 10–24 напитки, без адаптации для инвалидности."
+        },
+        {
+          "kind": "catalog",
+          "label": "vtours · предупреждение о стройке Rewaya Inn",
+          "url": "https://www.vtours.com/de/reiseziele/%C3%A4gypten/rewaya-inn-resort-hurghada-HRG100012/",
+          "at": "2026-11-11T07:43:25.729112Z",
+          "note": "Переиспользован источник исследования. На соседнем участке работы, визуальное и звуковое воздействие среднего уровня. Дата завершения не названа. Условия hotel-only относятся только к vtours."
+        },
+        {
+          "kind": "catalog",
+          "label": "TUI · Rewaya Inn, фотогалерея",
+          "url": "https://www.tui.com/hotels/rewaya-inn-resort-1254588/hotelinformation/",
+          "at": "2026-11-11T07:43:25.729112Z",
+          "note": "3 разные фотографии именно Rewaya Inn открыты и просмотрены. Не используются как доказательство отсутствия стройки."
+        },
+        {
+          "kind": "receipt",
+          "label": "Контракт CTA публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-11T07:43:25.729112Z",
+          "note": "Контракт формирования единственной кнопки, не квитанция фактической отправки. ctaMode=publisher, URL CTA пустой."
+        }
+      ]
+    },
+    {
+      "hotel_id": 475,
+      "site_id": "151df4c8-cf5b-424a-bb0d-de15e4443596",
+      "tourvisor_id": "475",
+      "anex_id": "902",
+      "registry_name": "SUNNY DAYS PALMA DE MIRETTE RESORT",
+      "registry_version": 476,
+      "revision": 4,
+      "accepted_revision": 4,
+      "status": "accepted",
+      "queued": true,
+      "published": {},
+      "description": "Sunny Days Palma De Mirette — пляжный отель в Хургаде с лагуной. Здесь можно чередовать море и отдых у бассейна; для детей есть отдельный бассейн и клуб. Для взрослого бассейна предусмотрен подогрев зимой.\n\nВ отеле ремонтируют номера — возможен шум.",
+      "max_text_sha256": "fed32eeeb4f9ccf5494191e0ab1ff7ffee41619248bde52a6ffdb9cf1ff8a2d8",
+      "telegram_text_sha256": "fed32eeeb4f9ccf5494191e0ab1ff7ffee41619248bde52a6ffdb9cf1ff8a2d8",
+      "exact_shared_text": true,
+      "cta_mode": "publisher",
+      "cta_text": "Узнать стоимость тура",
+      "cta_url": "",
+      "release_hold": {
+        "key": "sunny-palma-renovation-20261111",
+        "reason": "Ремонт номеров: ПАКС 10.10–20.12.2026, TEZ TOUR 14.10–23.12.2026. До выпуска нужны актуальные сроки, перечень затронутых корпусов, условия размещения, шум и доступность услуг. Остановка продаж TEZ TOUR 01–14.11 не означает закрытие всего отеля.",
+        "sourceUrl": "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+        "checkedAt": "2026-11-11T07:06:58.009827Z"
+      },
+      "release_hold_resolution": {
+        "hotelId": "151df4c8-cf5b-424a-bb0d-de15e4443596",
+        "hold": {
+          "key": "sunny-palma-renovation-20261111",
+          "reason": "Ремонт номеров: ПАКС 10.10–20.12.2026, TEZ TOUR 14.10–23.12.2026. До выпуска нужны актуальные сроки, перечень затронутых корпусов, условия размещения, шум и доступность услуг. Остановка продаж TEZ TOUR 01–14.11 не означает закрытие всего отеля.",
+          "sourceUrl": "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+          "checkedAt": "2026-11-11T07:06:58.009827Z"
+        },
+        "revision": 4,
+        "at": "2026-11-14T23:29:05.727Z",
+        "decision": "publish_with_disclosure",
+        "reason": "Ремонт номеров и возможный шум раскрыты в описании и обоих постах. Различающиеся сроки ПАКС и TEZ TOUR сохранены в ограничениях; завершение ремонта и доступность конкретных услуг не объявляются подтверждёнными.",
+        "disclosure": "В отеле ремонтируют номера — возможен шум."
+      },
+      "original_photo_urls": [
+        "https://images.ctfassets.net/g8yn6gjj7q12/4a3a13e0-039a-42a3-8680-7840a33c694d/b653a971b63f8c36919b84ce556431be/001.jpg?w=1600&fm=webp&q=80",
+        "https://images.ctfassets.net/g8yn6gjj7q12/5f09a4e9-4605-4e71-97c6-43836bcb4225/f8b3303f404b93cdf467a021280f0eef/002.jpg?w=1024&fm=webp&q=80",
+        "https://images.ctfassets.net/g8yn6gjj7q12/613a2b76-0e7a-4e86-a9ea-a1ca3a92e27e/9056a651b6f33412aa2b659ddb86b60a/003.jpg?w=1024&fm=webp&q=80"
+      ],
+      "photo_binary_sha256": [
+        "96f8a990f1ee2af6b846d1dfc8101fc63478392bdbd7ac98e8595d0a33c28c5a",
+        "a2e5635bda512901335385c94b1708f932c267bd8bb4d0ce5417cdab4ef5c723",
+        "3daeac124ed151220e67ea99d8ba66ddc040951d09eb77abafb1418be6bd7f7e"
+      ],
+      "cover_sha256": "2d3775186a8d8282ed32c980701048f7a5119e466fdd29ca254fd2b0625d11bb",
+      "source_refs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 274",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "official",
+          "label": "Sunny Days Palma De Mirette · размещение",
+          "url": "https://sunnydaysegypt.com/palma-de-mirrette/accommodation/",
+          "at": "2026-11-11T07:06:58.009827Z",
+          "note": "Факты относятся только к категориям на странице данного отеля; номера соседних объектов не объединены."
+        },
+        {
+          "kind": "official",
+          "label": "Sunny Days Palma De Mirette · услуги",
+          "url": "https://sunnydaysegypt.com/palma-de-mirrette/facilities/",
+          "at": "2026-11-11T07:06:58.009827Z",
+          "note": "Детские/водные услуги и сезонный подогрев описаны отдельно. Текущая доступность при ремонте требует подтверждения."
+        },
+        {
+          "kind": "official",
+          "label": "Sunny Days Palma De Mirette · описание",
+          "url": "https://sunnydaysegypt.com/palma-de-mirrette/",
+          "at": "2026-11-11T07:06:58.009827Z",
+          "note": "Пляжное расположение данного объекта. Услуги соседних отелей не приравниваются к собственным."
+        },
+        {
+          "kind": "catalog",
+          "label": "ПАКС · уведомление о реновации 06.10.2026",
+          "url": "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+          "at": "2026-11-11T07:06:58.009827Z",
+          "note": "Актуальное уведомление о ремонте отдельно перечисляет Palma и El Palacio. Обещание отсутствия неудобств не является доказательством их отсутствия."
+        },
+        {
+          "kind": "catalog",
+          "label": "Corendon · карточка и фотографии Sunny Days Palma De Mirette",
+          "url": "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/sunny-days-palma-de-mirette-resort-spa",
+          "at": "2026-11-11T07:06:58.009827Z",
+          "note": "Три разные фотографии из галереи именно этой карточки открыты и просмотрены. Дата съёмки неизвестна. Фото номера не обещает категорию, вид или завершение ремонта."
+        },
+        {
+          "kind": "receipt",
+          "label": "Контракт CTA публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-11T07:06:58.009827Z",
+          "note": "Контракт формирования единственной кнопки, не квитанция отправки. ctaMode=publisher, URL пустой. Выпуск удерживается."
+        },
+        {
+          "kind": "catalog",
+          "label": "TEZ TOUR · Palma De Mirette",
+          "url": "https://www.tez-tour.com/hotel.html?id=607",
+          "at": "2026-11-11T07:06:58.009827Z",
+          "note": "Ремонт 14.10–23.12.2026, отдельная категория Boho Suite. Остановка продаж 01–14.11.2026 — условие этого оператора, не доказательство закрытия отеля."
+        }
+      ]
+    },
+    {
+      "hotel_id": 473,
+      "site_id": "c0f46124-91bc-4486-a6c6-5ea6cd9039c4",
+      "tourvisor_id": "473",
+      "anex_id": "984",
+      "registry_name": "SUNNY DAYS EL PALACIO (EX. SUNNY DAYS RESORTS SPA & AQUA PARK)",
+      "registry_version": 476,
+      "revision": 4,
+      "accepted_revision": 4,
+      "status": "accepted",
+      "queued": true,
+      "published": {},
+      "description": "У Sunny Days El Palacio в Хургаде есть собственный песчаный пляж и лагуна. На территории — взрослый и отдельный детский бассейны; для взрослого предусмотрен зимний подогрев. Услуги спа оплачиваются отдельно.\n\nВ отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.",
+      "max_text_sha256": "f3544153d6c39f174070029ea8af1ff2bc2f9a848176df9334d18aaac7079e54",
+      "telegram_text_sha256": "f3544153d6c39f174070029ea8af1ff2bc2f9a848176df9334d18aaac7079e54",
+      "exact_shared_text": true,
+      "cta_mode": "publisher",
+      "cta_text": "Узнать стоимость тура",
+      "cta_url": "",
+      "release_hold": {
+        "key": "sunny-palacio-renovation-20261111",
+        "reason": "Номера ремонтируются с 10.10.2026 до конца зимнего сезона; Corendon указывает до 31.03.2027. Ресторан и лобби Arya имеют отдельные ориентировочные сроки. Нужны подтверждение открытых зон, текущего шума и условий на даты поездки.",
+        "sourceUrl": "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+        "checkedAt": "2026-11-11T07:06:58.009827Z"
+      },
+      "release_hold_resolution": {
+        "hotelId": "c0f46124-91bc-4486-a6c6-5ea6cd9039c4",
+        "hold": {
+          "key": "sunny-palacio-renovation-20261111",
+          "reason": "Номера ремонтируются с 10.10.2026 до конца зимнего сезона; Corendon указывает до 31.03.2027. Ресторан и лобби Arya имеют отдельные ориентировочные сроки. Нужны подтверждение открытых зон, текущего шума и условий на даты поездки.",
+          "sourceUrl": "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+          "checkedAt": "2026-11-11T07:06:58.009827Z"
+        },
+        "revision": 4,
+        "at": "2026-11-14T23:29:05.727Z",
+        "decision": "publish_with_disclosure",
+        "reason": "Ремонт номеров и части общественных зон, возможные шум и временные ограничения раскрыты в описании и обоих постах. Открытие отдельных зон и окончание работ не объявляются подтверждёнными; исходные источники сохранены.",
+        "disclosure": "В отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения."
+      },
+      "original_photo_urls": [
+        "https://images.ctfassets.net/g8yn6gjj7q12/fc5b1f72-432d-4f40-99fb-eb574a75a29e/bc8d5a43f84013b49cbc6788e96ae0f9/001.jpg?w=1600&fm=webp&q=80",
+        "https://images.ctfassets.net/g8yn6gjj7q12/a8992590-5f0e-4baf-9f02-4bd5601db9b7/b8d153980d068df3d8037a976ca3ab44/002.jpg?w=1024&fm=webp&q=80",
+        "https://images.ctfassets.net/g8yn6gjj7q12/0d7565c5-eb67-4cb0-920f-d987b7e9a153/daab143edbd7e50718d1569ab69dd121/003.jpg?w=1024&fm=webp&q=80"
+      ],
+      "photo_binary_sha256": [
+        "5a6ebe973c56f6f5d624b96694008c65cb2e8a65a7b81df9474392070b808e49",
+        "aec492443dc46bf06db649226146133da61da3815b342fc14e8a1d934c17b7a8",
+        "7e019d79ef9046a0de2810c8d78e22c0ef7cdcfd4da26167b3ff09566d6fd002"
+      ],
+      "cover_sha256": "c78ab3f77345de6286defc4cd3d2b6e25f69f833c5a183b896bf193ced907705",
+      "source_refs": [
+        {
+          "kind": "anex",
+          "label": "ТОП500 ANEX · место 273",
+          "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+          "at": "2026-10-20T01:28:35+00:00",
+          "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+        },
+        {
+          "kind": "official",
+          "label": "Sunny Days El Palacio · размещение",
+          "url": "https://sunnydaysegypt.com/el-palacio-resort-spa/accommodation/",
+          "at": "2026-11-11T07:06:58.009827Z",
+          "note": "Факты относятся только к категориям на странице данного отеля; номера соседних объектов не объединены."
+        },
+        {
+          "kind": "official",
+          "label": "Sunny Days El Palacio · услуги",
+          "url": "https://sunnydaysegypt.com/el-palacio-resort-spa/facilities/",
+          "at": "2026-11-11T07:06:58.009827Z",
+          "note": "Детские/водные услуги и сезонный подогрев описаны отдельно. Текущая доступность при ремонте требует подтверждения."
+        },
+        {
+          "kind": "official",
+          "label": "Sunny Days El Palacio · описание",
+          "url": "https://sunnydaysegypt.com/el-palacio-resort-spa/",
+          "at": "2026-11-11T07:06:58.009827Z",
+          "note": "Пляжное расположение данного объекта. Услуги соседних отелей не приравниваются к собственным."
+        },
+        {
+          "kind": "catalog",
+          "label": "ПАКС · уведомление о реновации 06.10.2026",
+          "url": "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+          "at": "2026-11-11T07:06:58.009827Z",
+          "note": "Актуальное уведомление о ремонте отдельно перечисляет Palma и El Palacio. Обещание отсутствия неудобств не является доказательством их отсутствия."
+        },
+        {
+          "kind": "catalog",
+          "label": "Corendon · карточка и фотографии Sunny Days El Palacio",
+          "url": "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/sunny-days-el-palacio",
+          "at": "2026-11-11T07:06:58.009827Z",
+          "note": "Три разные фотографии из галереи именно этой карточки открыты и просмотрены. Дата съёмки неизвестна. Фото номера не обещает категорию, вид или завершение ремонта."
+        },
+        {
+          "kind": "receipt",
+          "label": "Контракт CTA публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-11T07:06:58.009827Z",
+          "note": "Контракт формирования единственной кнопки, не квитанция отправки. ctaMode=publisher, URL пустой. Выпуск удерживается."
+        }
+      ]
+    }
+  ]
+}

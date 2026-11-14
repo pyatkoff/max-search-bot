@@ -1,0 +1,75 @@
+{
+  "state": "LOCAL_VISUAL_REVIEW_COMPLETE_NOT_PUBLISHED",
+  "reviewed_at": "2026-11-14T23:38:44+00:00",
+  "reviewed_by": "assistant during root-delegated preparation",
+  "reviewed_full_size_files": [
+    "/workspace/scratch/c51ee45ff0fe/four-publication-prep-20261115/assets/covers/59114.png",
+    "/workspace/scratch/c51ee45ff0fe/four-publication-prep-20261115/assets/covers/74036.png",
+    "/workspace/scratch/c51ee45ff0fe/four-publication-prep-20261115/assets/covers/475.png",
+    "/workspace/scratch/c51ee45ff0fe/four-publication-prep-20261115/assets/covers/473.png"
+  ],
+  "checks": [
+    {
+      "hotel_id": 59114,
+      "accepted_revision": 3,
+      "caption_utf16_units": 210,
+      "exact_description_and_captions": "PASS",
+      "canonical_validate_caption": "PASS",
+      "exact_disclosure_once_in_three_fields": "PASS",
+      "three_distinct_source_photographs": "PASS",
+      "visual_review": "PASS",
+      "visual_note": "No material clipping or layout defect observed."
+    },
+    {
+      "hotel_id": 74036,
+      "accepted_revision": 4,
+      "caption_utf16_units": 223,
+      "exact_description_and_captions": "PASS",
+      "canonical_validate_caption": "PASS",
+      "exact_disclosure_once_in_three_fields": "PASS",
+      "three_distinct_source_photographs": "PASS",
+      "visual_review": "PASS",
+      "visual_note": "No material clipping or layout defect observed."
+    },
+    {
+      "hotel_id": 475,
+      "accepted_revision": 4,
+      "caption_utf16_units": 290,
+      "exact_description_and_captions": "PASS",
+      "canonical_validate_caption": "PASS",
+      "exact_disclosure_once_in_three_fields": "PASS",
+      "three_distinct_source_photographs": "PASS",
+      "visual_review": "PASS",
+      "visual_note": "No material clipping or layout defect observed."
+    },
+    {
+      "hotel_id": 473,
+      "accepted_revision": 4,
+      "caption_utf16_units": 353,
+      "exact_description_and_captions": "PASS",
+      "canonical_validate_caption": "PASS",
+      "exact_disclosure_once_in_three_fields": "PASS",
+      "three_distinct_source_photographs": "PASS",
+      "visual_review": "PASS",
+      "visual_note": "White logo has lower contrast over the light sky; it remains readable at 600px. Existing composition and branding unchanged."
+    }
+  ],
+  "facts_unchanged": true,
+  "renderer_unmodified": true,
+  "all_photos_are_retained_real_source_photos": true,
+  "no_generated_photo_content": true,
+  "asset_commit": null,
+  "publication_started": false,
+  "root_review_acceptance": {
+    "at": "2026-11-14T23:45:26+00:00",
+    "accepted_hotel_ids": [
+      59114,
+      74036,
+      475,
+      473
+    ],
+    "reviewed_surface": "assets/covers/contact-sheet.jpg",
+    "decision": "All four standard covers accepted; three retained source photographs, title and logo; warnings remain in exact accepted captions.",
+    "source": "Parent/root explicit message during the same task"
+  }
+}

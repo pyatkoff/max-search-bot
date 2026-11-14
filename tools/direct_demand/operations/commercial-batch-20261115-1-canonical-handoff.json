@@ -1,0 +1,338 @@
+{
+  "format": "anytour-release-handoff-v2",
+  "generatedAt": "2026-11-14T23:39:17.751Z",
+  "automaticDispatch": false,
+  "hotels": [
+    {
+      "hotelId": "369f3286-fe3d-4c3e-a410-46514fdc3d99",
+      "anexId": "35433",
+      "aiId": "",
+      "tourvisorId": "59114",
+      "name": "AKDORA ELITE HOTEL & SPA (EX. SEADEN SWEET PARK)",
+      "revision": 3,
+      "channels": [
+        {
+          "channel": "max",
+          "operationKey": "369f3286-fe3d-4c3e-a410-46514fdc3d99:3:max",
+          "text": "✈️ Туры в Akdora Elite Hotel & Spa\n📍 Сиде, Турция.\n\nДо собственного песчаного пляжа примерно 300 м. На территории есть открытые бассейны и спа.\n\nРядом с отелем стройка — возможен шум.\n\n👇 Узнать стоимость тура",
+          "photos": [
+            "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-OVERVIEW3-scaled.jpg",
+            "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-POOLBAR3-1-scaled.jpg",
+            "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-RESTAURANT1-min-scaled.jpg"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "ctaBinding": {
+            "mode": "existing_publisher",
+            "contract": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+            "hotelNativeId": "59114",
+            "createAfter": "registered_publication",
+            "requiredBeforeCompletion": [
+              "publication_id",
+              "canonical_button_url",
+              "button_readback",
+              "hotel_identity_match"
+            ],
+            "generateTokenInSite": false
+          }
+        },
+        {
+          "channel": "telegram",
+          "operationKey": "369f3286-fe3d-4c3e-a410-46514fdc3d99:3:telegram",
+          "text": "✈️ Туры в Akdora Elite Hotel & Spa\n📍 Сиде, Турция.\n\nДо собственного песчаного пляжа примерно 300 м. На территории есть открытые бассейны и спа.\n\nРядом с отелем стройка — возможен шум.\n\n👇 Узнать стоимость тура",
+          "photos": [
+            "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-OVERVIEW3-scaled.jpg",
+            "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-POOLBAR3-1-scaled.jpg",
+            "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-RESTAURANT1-min-scaled.jpg"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "ctaBinding": {
+            "mode": "existing_publisher",
+            "contract": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+            "hotelNativeId": "59114",
+            "createAfter": "registered_publication",
+            "requiredBeforeCompletion": [
+              "publication_id",
+              "canonical_button_url",
+              "button_readback",
+              "hotel_identity_match"
+            ],
+            "generateTokenInSite": false
+          }
+        }
+      ],
+      "acceptedContent": {
+        "ctaMode": "publisher",
+        "description": "Akdora Elite в Сиде расположен примерно в 300 м от собственного песчаного пляжа. На территории есть открытые бассейны и спа.\n\nРядом с отелем стройка — возможен шум.",
+        "advantages": [
+          "Собственный песчаный пляж примерно в 300 м",
+          "Открытые бассейны и спа на территории"
+        ],
+        "limitations": [
+          "Рядом заявлена стройка нового отеля с планом открытия в 2027 году; возможен шум. Переход работ внутрь здания после мая 2026 не подтверждает их завершение. Фактические условия и ограничения на даты поездки не установлены.",
+          "Официальный Family 45 м²: две комнаты с дверью или перегородкой, двуспальная и две односпальные кровати; указаны 3 взрослых и 1 ребёнок. Сохранённый Join UP описывает Family 40 м²: коды и вместимость не объединяем.",
+          "Отель на второй линии; бассейны у оператора без подогрева. Формула 2+2 относится к отдельному Bunkbed, не базовому Standard. Условия размещения только мужчин у Join UP проверяются по конкретному оператору."
+        ],
+        "photos": [
+          "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-OVERVIEW3-scaled.jpg",
+          "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-POOLBAR3-1-scaled.jpg",
+          "https://akdoraelitehotelspa.com/wp-content/uploads/2023/07/AKDORA-ELITE-RESTAURANT1-min-scaled.jpg"
+        ],
+        "cta": "Узнать стоимость тура",
+        "ctaUrl": "",
+        "maxText": "✈️ Туры в Akdora Elite Hotel & Spa\n📍 Сиде, Турция.\n\nДо собственного песчаного пляжа примерно 300 м. На территории есть открытые бассейны и спа.\n\nРядом с отелем стройка — возможен шум.\n\n👇 Узнать стоимость тура",
+        "telegramText": "✈️ Туры в Akdora Elite Hotel & Spa\n📍 Сиде, Турция.\n\nДо собственного песчаного пляжа примерно 300 м. На территории есть открытые бассейны и спа.\n\nРядом с отелем стройка — возможен шум.\n\n👇 Узнать стоимость тура"
+      }
+    },
+    {
+      "hotelId": "a69daef2-7fc0-4865-b86f-0e1f6b099fa5",
+      "anexId": "30497",
+      "aiId": "",
+      "tourvisorId": "74036",
+      "name": "REWAYA INN RESORT (EX. HAWAII PARADISE AQUA PARK RESORT)",
+      "revision": 4,
+      "channels": [
+        {
+          "channel": "max",
+          "operationKey": "a69daef2-7fc0-4865-b86f-0e1f6b099fa5:4:max",
+          "text": "✈️ Туры в Rewaya Inn Resort\n📍 Хургада, Египет.\n\nЗдесь есть собственный аквапарк с горками для детей и взрослых, мини-клуб и детская площадка.\n\nРядом с отелем стройка: её может быть видно и слышно.\n\n👇 Узнать стоимость тура",
+          "photos": [
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS80LzQwY2ExODBjNDVjNGI0YzZiYzM3YTRjZTFhMzUxODg3X29jcHByb2QuanBn",
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS84LzhmNmViMTRkYjhiYzI4OGM2NWNiZTA5YTFjMzBjZGE5X29jcHByb2QuanBn",
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8yLzI4YzY1YmYwZWRiYTE4MDNjN2IyYTFhY2RmZmUzNGMwX29jcHByb2QuanBn"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "ctaBinding": {
+            "mode": "existing_publisher",
+            "contract": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+            "hotelNativeId": "74036",
+            "createAfter": "registered_publication",
+            "requiredBeforeCompletion": [
+              "publication_id",
+              "canonical_button_url",
+              "button_readback",
+              "hotel_identity_match"
+            ],
+            "generateTokenInSite": false
+          }
+        },
+        {
+          "channel": "telegram",
+          "operationKey": "a69daef2-7fc0-4865-b86f-0e1f6b099fa5:4:telegram",
+          "text": "✈️ Туры в Rewaya Inn Resort\n📍 Хургада, Египет.\n\nЗдесь есть собственный аквапарк с горками для детей и взрослых, мини-клуб и детская площадка.\n\nРядом с отелем стройка: её может быть видно и слышно.\n\n👇 Узнать стоимость тура",
+          "photos": [
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS80LzQwY2ExODBjNDVjNGI0YzZiYzM3YTRjZTFhMzUxODg3X29jcHByb2QuanBn",
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS84LzhmNmViMTRkYjhiYzI4OGM2NWNiZTA5YTFjMzBjZGE5X29jcHByb2QuanBn",
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8yLzI4YzY1YmYwZWRiYTE4MDNjN2IyYTFhY2RmZmUzNGMwX29jcHByb2QuanBn"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "ctaBinding": {
+            "mode": "existing_publisher",
+            "contract": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+            "hotelNativeId": "74036",
+            "createAfter": "registered_publication",
+            "requiredBeforeCompletion": [
+              "publication_id",
+              "canonical_button_url",
+              "button_readback",
+              "hotel_identity_match"
+            ],
+            "generateTokenInSite": false
+          }
+        }
+      ],
+      "acceptedContent": {
+        "ctaMode": "publisher",
+        "description": "Rewaya Inn Resort в Хургаде подойдёт любителям водных развлечений: здесь есть собственный аквапарк с горками для детей и взрослых. Кроме аквапарка, для детей есть мини-клуб и площадка.\n\nРядом с отелем стройка: её может быть видно и слышно.",
+        "advantages": [
+          "Собственный аквапарк с горками для детей и взрослых",
+          "Мини-клуб и детская площадка"
+        ],
+        "limitations": [
+          "По соседству стройка; её может быть видно и слышно. Сохранённое уведомление vtours не содержит срока окончания работ. Фактический уровень шума и условия на даты поездки не установлены.",
+          "Family с двумя спальнями у DERTOUR не сопоставлена с 65/80 м² из сохранённого factsheet. Площадь, взрослую и детскую вместимость нельзя переносить без точного кода категории.",
+          "DERTOUR указывает местные напитки 10:00–24:00; круглосуточный бесплатный алкоголь не обещается. Азиатский/итальянский à la carte — платно, по записи. Сезонный подогрев и его температура определяются отелем.",
+          "У DERTOUR отель не адаптирован для гостей с инвалидностью. Условия vtours hotel-only с подтверждением прибытия из EU/Швейцарии относятся к конкретному оператору, не всем гостям отеля."
+        ],
+        "photos": [
+          "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS80LzQwY2ExODBjNDVjNGI0YzZiYzM3YTRjZTFhMzUxODg3X29jcHByb2QuanBn",
+          "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS84LzhmNmViMTRkYjhiYzI4OGM2NWNiZTA5YTFjMzBjZGE5X29jcHByb2QuanBn",
+          "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS8yLzI4YzY1YmYwZWRiYTE4MDNjN2IyYTFhY2RmZmUzNGMwX29jcHByb2QuanBn"
+        ],
+        "cta": "Узнать стоимость тура",
+        "ctaUrl": "",
+        "maxText": "✈️ Туры в Rewaya Inn Resort\n📍 Хургада, Египет.\n\nЗдесь есть собственный аквапарк с горками для детей и взрослых, мини-клуб и детская площадка.\n\nРядом с отелем стройка: её может быть видно и слышно.\n\n👇 Узнать стоимость тура",
+        "telegramText": "✈️ Туры в Rewaya Inn Resort\n📍 Хургада, Египет.\n\nЗдесь есть собственный аквапарк с горками для детей и взрослых, мини-клуб и детская площадка.\n\nРядом с отелем стройка: её может быть видно и слышно.\n\n👇 Узнать стоимость тура"
+      }
+    },
+    {
+      "hotelId": "151df4c8-cf5b-424a-bb0d-de15e4443596",
+      "anexId": "902",
+      "aiId": "",
+      "tourvisorId": "475",
+      "name": "SUNNY DAYS PALMA DE MIRETTE RESORT",
+      "revision": 4,
+      "channels": [
+        {
+          "channel": "max",
+          "operationKey": "151df4c8-cf5b-424a-bb0d-de15e4443596:4:max",
+          "text": "✈️ Туры в Sunny Days Palma De Mirette\n📍 Хургада, Египет.\n\nМожно чередовать отдых у моря и бассейна: у отеля есть пляж и лагуна, а для детей — отдельный бассейн и клуб. Для взрослого бассейна предусмотрен подогрев зимой.\n\nВ отеле ремонтируют номера — возможен шум.\n\n👇 Узнать стоимость тура",
+          "photos": [
+            "https://images.ctfassets.net/g8yn6gjj7q12/4a3a13e0-039a-42a3-8680-7840a33c694d/b653a971b63f8c36919b84ce556431be/001.jpg?w=1600&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/5f09a4e9-4605-4e71-97c6-43836bcb4225/f8b3303f404b93cdf467a021280f0eef/002.jpg?w=1024&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/613a2b76-0e7a-4e86-a9ea-a1ca3a92e27e/9056a651b6f33412aa2b659ddb86b60a/003.jpg?w=1024&fm=webp&q=80"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "ctaBinding": {
+            "mode": "existing_publisher",
+            "contract": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+            "hotelNativeId": "475",
+            "createAfter": "registered_publication",
+            "requiredBeforeCompletion": [
+              "publication_id",
+              "canonical_button_url",
+              "button_readback",
+              "hotel_identity_match"
+            ],
+            "generateTokenInSite": false
+          }
+        },
+        {
+          "channel": "telegram",
+          "operationKey": "151df4c8-cf5b-424a-bb0d-de15e4443596:4:telegram",
+          "text": "✈️ Туры в Sunny Days Palma De Mirette\n📍 Хургада, Египет.\n\nМожно чередовать отдых у моря и бассейна: у отеля есть пляж и лагуна, а для детей — отдельный бассейн и клуб. Для взрослого бассейна предусмотрен подогрев зимой.\n\nВ отеле ремонтируют номера — возможен шум.\n\n👇 Узнать стоимость тура",
+          "photos": [
+            "https://images.ctfassets.net/g8yn6gjj7q12/4a3a13e0-039a-42a3-8680-7840a33c694d/b653a971b63f8c36919b84ce556431be/001.jpg?w=1600&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/5f09a4e9-4605-4e71-97c6-43836bcb4225/f8b3303f404b93cdf467a021280f0eef/002.jpg?w=1024&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/613a2b76-0e7a-4e86-a9ea-a1ca3a92e27e/9056a651b6f33412aa2b659ddb86b60a/003.jpg?w=1024&fm=webp&q=80"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "ctaBinding": {
+            "mode": "existing_publisher",
+            "contract": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+            "hotelNativeId": "475",
+            "createAfter": "registered_publication",
+            "requiredBeforeCompletion": [
+              "publication_id",
+              "canonical_button_url",
+              "button_readback",
+              "hotel_identity_match"
+            ],
+            "generateTokenInSite": false
+          }
+        }
+      ],
+      "acceptedContent": {
+        "ctaMode": "publisher",
+        "description": "Sunny Days Palma De Mirette — пляжный отель в Хургаде с лагуной. Здесь можно чередовать море и отдых у бассейна; для детей есть отдельный бассейн и клуб. Для взрослого бассейна предусмотрен подогрев зимой.\n\nВ отеле ремонтируют номера — возможен шум.",
+        "advantages": [
+          "Пляж и лагуна у отеля",
+          "Детский клуб и отдельный детский бассейн",
+          "Зимний подогрев взрослого бассейна"
+        ],
+        "limitations": [
+          "Идёт ремонт номеров. ПАКС указывает 10.10–20.12.2026, TEZ TOUR — 14.10–23.12.2026. Актуальный график, затронутые корпуса, фактический шум и доступность услуг на даты поездки не подтверждены.",
+          "98 м² и размещение 3 взрослых + 2 детей относятся только к Boho Suite. Возраст детей, кровати и наличие категории нужно сверить по тарифу; стандартные номера не считаются такими же просторными.",
+          "Зимний подогрев заявлен для взрослого бассейна, а не всех бассейнов. Питание и услуги соседних El Palacio/Mirette не включаются автоматически. TEZ TOUR отдельно показывает остановку продаж 01–14.11.2026; это не закрытие всего отеля."
+        ],
+        "photos": [
+          "https://images.ctfassets.net/g8yn6gjj7q12/4a3a13e0-039a-42a3-8680-7840a33c694d/b653a971b63f8c36919b84ce556431be/001.jpg?w=1600&fm=webp&q=80",
+          "https://images.ctfassets.net/g8yn6gjj7q12/5f09a4e9-4605-4e71-97c6-43836bcb4225/f8b3303f404b93cdf467a021280f0eef/002.jpg?w=1024&fm=webp&q=80",
+          "https://images.ctfassets.net/g8yn6gjj7q12/613a2b76-0e7a-4e86-a9ea-a1ca3a92e27e/9056a651b6f33412aa2b659ddb86b60a/003.jpg?w=1024&fm=webp&q=80"
+        ],
+        "cta": "Узнать стоимость тура",
+        "ctaUrl": "",
+        "maxText": "✈️ Туры в Sunny Days Palma De Mirette\n📍 Хургада, Египет.\n\nМожно чередовать отдых у моря и бассейна: у отеля есть пляж и лагуна, а для детей — отдельный бассейн и клуб. Для взрослого бассейна предусмотрен подогрев зимой.\n\nВ отеле ремонтируют номера — возможен шум.\n\n👇 Узнать стоимость тура",
+        "telegramText": "✈️ Туры в Sunny Days Palma De Mirette\n📍 Хургада, Египет.\n\nМожно чередовать отдых у моря и бассейна: у отеля есть пляж и лагуна, а для детей — отдельный бассейн и клуб. Для взрослого бассейна предусмотрен подогрев зимой.\n\nВ отеле ремонтируют номера — возможен шум.\n\n👇 Узнать стоимость тура"
+      }
+    },
+    {
+      "hotelId": "c0f46124-91bc-4486-a6c6-5ea6cd9039c4",
+      "anexId": "984",
+      "aiId": "",
+      "tourvisorId": "473",
+      "name": "SUNNY DAYS EL PALACIO (EX. SUNNY DAYS RESORTS SPA & AQUA PARK)",
+      "revision": 4,
+      "channels": [
+        {
+          "channel": "max",
+          "operationKey": "c0f46124-91bc-4486-a6c6-5ea6cd9039c4:4:max",
+          "text": "✈️ Туры в Sunny Days El Palacio\n📍 Хургада, Египет.\n\nУ отеля есть собственный песчаный пляж и лагуна. На территории — взрослый и отдельный детский бассейны; для взрослого предусмотрен зимний подогрев. Услуги спа оплачиваются отдельно.\n\nВ отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.\n\n👇 Узнать стоимость тура",
+          "photos": [
+            "https://images.ctfassets.net/g8yn6gjj7q12/fc5b1f72-432d-4f40-99fb-eb574a75a29e/bc8d5a43f84013b49cbc6788e96ae0f9/001.jpg?w=1600&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/a8992590-5f0e-4baf-9f02-4bd5601db9b7/b8d153980d068df3d8037a976ca3ab44/002.jpg?w=1024&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/0d7565c5-eb67-4cb0-920f-d987b7e9a153/daab143edbd7e50718d1569ab69dd121/003.jpg?w=1024&fm=webp&q=80"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "ctaBinding": {
+            "mode": "existing_publisher",
+            "contract": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+            "hotelNativeId": "473",
+            "createAfter": "registered_publication",
+            "requiredBeforeCompletion": [
+              "publication_id",
+              "canonical_button_url",
+              "button_readback",
+              "hotel_identity_match"
+            ],
+            "generateTokenInSite": false
+          }
+        },
+        {
+          "channel": "telegram",
+          "operationKey": "c0f46124-91bc-4486-a6c6-5ea6cd9039c4:4:telegram",
+          "text": "✈️ Туры в Sunny Days El Palacio\n📍 Хургада, Египет.\n\nУ отеля есть собственный песчаный пляж и лагуна. На территории — взрослый и отдельный детский бассейны; для взрослого предусмотрен зимний подогрев. Услуги спа оплачиваются отдельно.\n\nВ отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.\n\n👇 Узнать стоимость тура",
+          "photos": [
+            "https://images.ctfassets.net/g8yn6gjj7q12/fc5b1f72-432d-4f40-99fb-eb574a75a29e/bc8d5a43f84013b49cbc6788e96ae0f9/001.jpg?w=1600&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/a8992590-5f0e-4baf-9f02-4bd5601db9b7/b8d153980d068df3d8037a976ca3ab44/002.jpg?w=1024&fm=webp&q=80",
+            "https://images.ctfassets.net/g8yn6gjj7q12/0d7565c5-eb67-4cb0-920f-d987b7e9a153/daab143edbd7e50718d1569ab69dd121/003.jpg?w=1024&fm=webp&q=80"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "ctaBinding": {
+            "mode": "existing_publisher",
+            "contract": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+            "hotelNativeId": "473",
+            "createAfter": "registered_publication",
+            "requiredBeforeCompletion": [
+              "publication_id",
+              "canonical_button_url",
+              "button_readback",
+              "hotel_identity_match"
+            ],
+            "generateTokenInSite": false
+          }
+        }
+      ],
+      "acceptedContent": {
+        "ctaMode": "publisher",
+        "description": "У Sunny Days El Palacio в Хургаде есть собственный песчаный пляж и лагуна. На территории — взрослый и отдельный детский бассейны; для взрослого предусмотрен зимний подогрев. Услуги спа оплачиваются отдельно.\n\nВ отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.",
+        "advantages": [
+          "Собственный песчаный пляж и лагуна",
+          "Взрослый бассейн с зимним подогревом и отдельный детский бассейн",
+          "Спа на территории; услуги оплачиваются отдельно"
+        ],
+        "limitations": [
+          "ПАКС сообщает о ремонте номеров с 10.10.2026 до конца зимнего сезона, итальянского ресторана примерно на 45 дней и лобби Arya примерно на 30 дней. Corendon указывает работы до 31.03.2027. Завершение отдельных зон не подтверждено.",
+          "Официальные Lagoon & Pool View и Sea View — 28 м² с формулой 2 взрослых + 2 детей. У операторов вместимость отдельных кодов отличается; размещение и дополнительные кровати проверяются по конкретному тарифу.",
+          "Horus Spa платный. Зимний подогрев относится к взрослому бассейну. Доступ к ресторанам и барам соседних отелей различается у операторов; не обещаем общий пакет услуг всего комплекса."
+        ],
+        "photos": [
+          "https://images.ctfassets.net/g8yn6gjj7q12/fc5b1f72-432d-4f40-99fb-eb574a75a29e/bc8d5a43f84013b49cbc6788e96ae0f9/001.jpg?w=1600&fm=webp&q=80",
+          "https://images.ctfassets.net/g8yn6gjj7q12/a8992590-5f0e-4baf-9f02-4bd5601db9b7/b8d153980d068df3d8037a976ca3ab44/002.jpg?w=1024&fm=webp&q=80",
+          "https://images.ctfassets.net/g8yn6gjj7q12/0d7565c5-eb67-4cb0-920f-d987b7e9a153/daab143edbd7e50718d1569ab69dd121/003.jpg?w=1024&fm=webp&q=80"
+        ],
+        "cta": "Узнать стоимость тура",
+        "ctaUrl": "",
+        "maxText": "✈️ Туры в Sunny Days El Palacio\n📍 Хургада, Египет.\n\nУ отеля есть собственный песчаный пляж и лагуна. На территории — взрослый и отдельный детский бассейны; для взрослого предусмотрен зимний подогрев. Услуги спа оплачиваются отдельно.\n\nВ отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.\n\n👇 Узнать стоимость тура",
+        "telegramText": "✈️ Туры в Sunny Days El Palacio\n📍 Хургада, Египет.\n\nУ отеля есть собственный песчаный пляж и лагуна. На территории — взрослый и отдельный детский бассейны; для взрослого предусмотрен зимний подогрев. Услуги спа оплачиваются отдельно.\n\nВ отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.\n\n👇 Узнать стоимость тура"
+      }
+    }
+  ]
+}

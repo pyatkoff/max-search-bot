@@ -1,0 +1,165 @@
+{
+  "registryVersion": 476,
+  "rawSnapshot": {
+    "path": "/workspace/scratch/c51ee45ff0fe/registry-read-20261114/after-four-accepted-queued.json",
+    "bytes": 13022620,
+    "sha256": "3879dd95ddcfdcd35005fb885a12b45c1ea21a1add0285c0ecc349e254c80815"
+  },
+  "rawSelectedFour": {
+    "path": "/workspace/scratch/c51ee45ff0fe/four-publication-prep-20261115/raw-selected-four-with-history.json",
+    "sha256": "29ac170a286a5190aa938dfb92366e8da037b06801e20c159276a3eea16f235e"
+  },
+  "canonicalHandoff": {
+    "path": "/workspace/scratch/c51ee45ff0fe/four-publication-prep-20261115/canonical-export-queue-selected-four.json",
+    "sha256": "271bff8a06fa2fbeca5f8367869c6ba3458974ad21452cbfe4e4beeb5cbb079f",
+    "format": "anytour-release-handoff-v2",
+    "automaticDispatch": false,
+    "hotelCount": 4
+  },
+  "canonicalSources": [
+    {
+      "path": "registry-read-20261114/site-v15-source/lib/registry.ts",
+      "sha256": "5dc866e57bfe6e99cd1ce190c733b48455f40775f219a7c0090e8c1d0024b5f6"
+    },
+    {
+      "path": "registry-read-20261114/site-v15-source/lib/content-evidence.ts",
+      "sha256": "85aab839758ad9025cf1a72aa665cfdd960b14a919d8318aaafd362d39b3c665"
+    },
+    {
+      "path": "registry-read-20261114/site-v15-source/lib/publisher-cta.ts",
+      "sha256": "1c2f325cc7a5039c2bfeb2c668e25a8c225584fdfc1a5aaee568b708e83652b7"
+    }
+  ],
+  "cards": [
+    {
+      "id": "369f3286-fe3d-4c3e-a410-46514fdc3d99",
+      "tourvisorId": "59114",
+      "revision": 3,
+      "acceptedRevision": 3,
+      "canQueue": true,
+      "originalReleaseHolds": [
+        {
+          "key": "akdora-neighbour-construction-20261111",
+          "reason": "Оператор сохраняет уведомление о соседней стройке и плане открытия в 2027. Переход работ внутрь здания не доказывает завершение. До выпуска нужны подтверждение текущего состояния работ, влияния шума и ограничений на даты поездки.",
+          "sourceUrl": "https://kompastour.com/ua/rus/country/turkey/side/akdora_elite_hotel_spa/",
+          "checkedAt": "2026-11-11T06:18:03.710891Z"
+        }
+      ],
+      "releaseHoldResolutions": [
+        {
+          "hotelId": "369f3286-fe3d-4c3e-a410-46514fdc3d99",
+          "hold": {
+            "key": "akdora-neighbour-construction-20261111",
+            "reason": "Оператор сохраняет уведомление о соседней стройке и плане открытия в 2027. Переход работ внутрь здания не доказывает завершение. До выпуска нужны подтверждение текущего состояния работ, влияния шума и ограничений на даты поездки.",
+            "sourceUrl": "https://kompastour.com/ua/rus/country/turkey/side/akdora_elite_hotel_spa/",
+            "checkedAt": "2026-11-11T06:18:03.710891Z"
+          },
+          "revision": 3,
+          "at": "2026-11-14T23:29:05.727Z",
+          "decision": "publish_with_disclosure",
+          "reason": "В текстах прямо раскрыты соседняя стройка и возможный шум. Это редакторское решение о выпуске с предупреждением; завершение работ и тишина не подтверждались. Исходное уведомление и ограничения сохраняются.",
+          "disclosure": "Рядом с отелем стройка — возможен шум."
+        }
+      ],
+      "activeReleaseHolds": []
+    },
+    {
+      "id": "a69daef2-7fc0-4865-b86f-0e1f6b099fa5",
+      "tourvisorId": "74036",
+      "revision": 4,
+      "acceptedRevision": 4,
+      "canQueue": true,
+      "originalReleaseHolds": [
+        {
+          "key": "rewaya-neighbour-construction-20261111",
+          "reason": "vtours сохраняет недатированное предупреждение о соседней стройке со средним визуальным и звуковым воздействием. До выпуска нужны подтверждение текущего статуса работ, шума и ограничений на даты поездки.",
+          "sourceUrl": "https://www.vtours.com/de/reiseziele/%C3%A4gypten/rewaya-inn-resort-hurghada-HRG100012/",
+          "checkedAt": "2026-11-11T07:43:25.729112Z"
+        }
+      ],
+      "releaseHoldResolutions": [
+        {
+          "hotelId": "a69daef2-7fc0-4865-b86f-0e1f6b099fa5",
+          "hold": {
+            "key": "rewaya-neighbour-construction-20261111",
+            "reason": "vtours сохраняет недатированное предупреждение о соседней стройке со средним визуальным и звуковым воздействием. До выпуска нужны подтверждение текущего статуса работ, шума и ограничений на даты поездки.",
+            "sourceUrl": "https://www.vtours.com/de/reiseziele/%C3%A4gypten/rewaya-inn-resort-hurghada-HRG100012/",
+            "checkedAt": "2026-11-11T07:43:25.729112Z"
+          },
+          "revision": 4,
+          "at": "2026-11-14T23:29:05.727Z",
+          "decision": "publish_with_disclosure",
+          "reason": "В текстах прямо раскрыты визуальное воздействие соседней стройки и возможный шум. Срок окончания не установлен и не обещается; исходное уведомление vtours сохраняется.",
+          "disclosure": "Рядом с отелем стройка: её может быть видно и слышно."
+        }
+      ],
+      "activeReleaseHolds": []
+    },
+    {
+      "id": "151df4c8-cf5b-424a-bb0d-de15e4443596",
+      "tourvisorId": "475",
+      "revision": 4,
+      "acceptedRevision": 4,
+      "canQueue": true,
+      "originalReleaseHolds": [
+        {
+          "key": "sunny-palma-renovation-20261111",
+          "reason": "Ремонт номеров: ПАКС 10.10–20.12.2026, TEZ TOUR 14.10–23.12.2026. До выпуска нужны актуальные сроки, перечень затронутых корпусов, условия размещения, шум и доступность услуг. Остановка продаж TEZ TOUR 01–14.11 не означает закрытие всего отеля.",
+          "sourceUrl": "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+          "checkedAt": "2026-11-11T07:06:58.009827Z"
+        }
+      ],
+      "releaseHoldResolutions": [
+        {
+          "hotelId": "151df4c8-cf5b-424a-bb0d-de15e4443596",
+          "hold": {
+            "key": "sunny-palma-renovation-20261111",
+            "reason": "Ремонт номеров: ПАКС 10.10–20.12.2026, TEZ TOUR 14.10–23.12.2026. До выпуска нужны актуальные сроки, перечень затронутых корпусов, условия размещения, шум и доступность услуг. Остановка продаж TEZ TOUR 01–14.11 не означает закрытие всего отеля.",
+            "sourceUrl": "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+            "checkedAt": "2026-11-11T07:06:58.009827Z"
+          },
+          "revision": 4,
+          "at": "2026-11-14T23:29:05.727Z",
+          "decision": "publish_with_disclosure",
+          "reason": "Ремонт номеров и возможный шум раскрыты в описании и обоих постах. Различающиеся сроки ПАКС и TEZ TOUR сохранены в ограничениях; завершение ремонта и доступность конкретных услуг не объявляются подтверждёнными.",
+          "disclosure": "В отеле ремонтируют номера — возможен шум."
+        }
+      ],
+      "activeReleaseHolds": []
+    },
+    {
+      "id": "c0f46124-91bc-4486-a6c6-5ea6cd9039c4",
+      "tourvisorId": "473",
+      "revision": 4,
+      "acceptedRevision": 4,
+      "canQueue": true,
+      "originalReleaseHolds": [
+        {
+          "key": "sunny-palacio-renovation-20261111",
+          "reason": "Номера ремонтируются с 10.10.2026 до конца зимнего сезона; Corendon указывает до 31.03.2027. Ресторан и лобби Arya имеют отдельные ориентировочные сроки. Нужны подтверждение открытых зон, текущего шума и условий на даты поездки.",
+          "sourceUrl": "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+          "checkedAt": "2026-11-11T07:06:58.009827Z"
+        }
+      ],
+      "releaseHoldResolutions": [
+        {
+          "hotelId": "c0f46124-91bc-4486-a6c6-5ea6cd9039c4",
+          "hold": {
+            "key": "sunny-palacio-renovation-20261111",
+            "reason": "Номера ремонтируются с 10.10.2026 до конца зимнего сезона; Corendon указывает до 31.03.2027. Ресторан и лобби Arya имеют отдельные ориентировочные сроки. Нужны подтверждение открытых зон, текущего шума и условий на даты поездки.",
+            "sourceUrl": "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+            "checkedAt": "2026-11-11T07:06:58.009827Z"
+          },
+          "revision": 4,
+          "at": "2026-11-14T23:29:05.727Z",
+          "decision": "publish_with_disclosure",
+          "reason": "Ремонт номеров и части общественных зон, возможные шум и временные ограничения раскрыты в описании и обоих постах. Открытие отдельных зон и окончание работ не объявляются подтверждёнными; исходные источники сохранены.",
+          "disclosure": "В отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения."
+        }
+      ],
+      "activeReleaseHolds": []
+    }
+  ],
+  "sourceMutations": 0,
+  "remoteActions": 0
+}
