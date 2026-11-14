@@ -101,9 +101,39 @@ function modeledBacklogAssertions(PDO $p,callable $check):void
         $denied&&$calls===3&&!$p->inTransaction()&&$snapshot()===$before);
     $budget=new ModeledConversionStatusBudget();
     $budgeted=(new ModeledConversionDailyReconciliationReader($p,static function():void{},null,$budget))->readBacklog($now);
-    $check('backlog uses the shared copied-byte budget for bounded scalar aggregates',
+    $check('backlog copies every positional scalar aggregate within eight KiB of the shared budget',
         ($budgeted['available']??false)&&$budget->remainingBytes()<ModeledConversionStatusBudget::MAX_BYTES
-        &&$budget->remainingBytes()>40000&&strlen(json_encode($budgeted,JSON_THROW_ON_ERROR))<10000);
+        &&ModeledConversionStatusBudget::MAX_BYTES-$budget->remainingBytes()<8192
+        &&strlen(json_encode($budgeted,JSON_THROW_ON_ERROR))<10000);
+    // Reproduce an optional read late in the real shared64KiB envelope. The
+    // synthetic authorizer enforces the same4KiB admission floor on every recheck.
+    $pressureRead=static function(int $visible)use($p,$now):array{
+        $pressure=new ModeledConversionStatusBudget();
+        $pressure->consumeBytes(ModeledConversionStatusBudget::MAX_BYTES-8192-4096-$visible);
+        return$pressure->withReservedBytes(8192,static function()use($pressure,$p,$now):array{
+            return$pressure->withReservedBytes(4096,static function()use($pressure,$p,$now):array{
+                $calls=0;$authorize=static function()use($pressure,&$calls):void{
+                    if($pressure->remainingBytes()<4096)throw new ModeledConversionStatusLimit('byte_limit');
+                    $pressure->consumeBytes(512);++$calls;
+                };
+                $entry=$pressure->remainingBytes();
+                $result=(new ModeledConversionDailyReconciliationReader($p,$authorize,null,$pressure))->readBacklog($now);
+                $remaining=$pressure->remainingBytes();$copied=$entry-$remaining-$calls*512;
+                // The caller's final permission check also remains mandatory.
+                $authorize();
+                return['result'=>$result,'remaining'=>$pressure->remainingBytes(),'copied'=>$copied,'auth_calls'=>$calls];
+            });
+        });
+    };
+    $tight=$pressureRead(8192);$partial=$pressureRead(12288);
+    $check('backlog low-headroom refusal preserves the final authorization floor before any aggregate fetch',
+        ($tight['result']['available']??true)===false&&($tight['result']['reason']??null)==='budget_headroom'
+        &&$tight['remaining']>=4096&&$tight['copied']===0&&$tight['auth_calls']>=3
+        &&!$p->inTransaction()&&$snapshot()===$before);
+    $check('backlog stops before another copied bucket and retains charges for the rows already fetched',
+        ($partial['result']['available']??true)===false&&($partial['result']['reason']??null)==='budget_headroom'
+        &&$partial['remaining']>=4096&&$partial['copied']>0&&$partial['auth_calls']>=4
+        &&!$p->inTransaction()&&$snapshot()===$before);
     $p->exec("UPDATE max_channel_conversion_outbox SET next_attempt_unix=-1 WHERE id=1");
     $invalid=$reader->readBacklog($now);
     $check('backlog rejects corrupt pending-ready clocks rather than hiding a due row',

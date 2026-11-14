@@ -510,8 +510,67 @@ function forecastCoreProjectionBudgetAssertions(PDO $p,callable $check,array $ex
         &&$boundaryBudget->remainingBytes()>=8192&&$snapshot()===$before);
 }
 
+
+/** Formatting only: saved financial views must survive optional profile-context pressure. */
+function forecastOperationalCorePressureAssertions(PDO $p,callable $check):void
+{
+    $authorizations=0;$budget=new ModeledConversionStatusBudget();
+    $reader=new ModeledConversionForecastStatusReader($p,static function()use(&$authorizations):void{$authorizations++;},$budget);
+    $format=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'boundedOperationalResponse');
+    $flags=JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR;
+    $size=static fn(array $v):int=>strlen(json_encode($v,$flags));
+    $packet=['available'=>true,'confirmation'=>'saved_prospective_estimates',
+        'forecast_core'=>['available'=>true,'basis'=>'at_most_one_current_immutable_profile_core_after_operational_priorities'],
+        'saved'=>['valid_v1_versions'=>1,'prospective_estimates'=>1,
+            'synthetic_profile_summary'=>'PRIVATE_OPTIONAL_PROFILE_CONTEXT_'.str_repeat('c',4000)],
+        'window'=>['profile_rows_read'=>1,'selected_document_bytes'=>4200],
+        'input_coverage'=>['validated_profiles'=>1,'admitted_customer_turns'=>2],
+        'daily_reconciliation'=>['available'=>true,'date'=>'2026-11-03','timezone'=>'Europe/Moscow',
+            'calendar'=>['api_receipts'=>['events'=>2,'conversations'=>2,'value_rub'=>1700]],
+            'coverage'=>['scope'=>'current_exact_owner_admitted_native_bindings']],
+        'value_delivery'=>['available'=>true,'goal_id'=>'678187097','mode'=>'send',
+            'by_state'=>['accepted'=>['events'=>1,'value_rub'=>700],'processed'=>['events'=>1,'value_rub'=>1000]]],
+        'backlog'=>['available'=>true,'window'=>['inspected_rows'=>450,'complete_within_bound'=>true],
+            'by_state'=>['ready'=>['events'=>7,'value_rub'=>5100]]],
+        'today_latency'=>['available'=>true,'live_value'=>['examples'=>[['platform'=>'max','increment_rub'=>700,
+            'state'=>'accepted','saved_visit_check'=>['available'=>true,'fresh'=>true,'upload_status'=>'PROCESSED',
+                'linkage'=>'unique_visit_reconciled','visit_started_at'=>'2026-11-03T07:00:00Z']]]]],
+        'external_monitor'=>['available'=>true,'pipeline'=>['available'=>true,'fresh'=>true]],
+        'telegram_linkage'=>['available'=>false,'reason'=>'not_recorded'],
+        'visit_delivery_check'=>['available'=>false,'reason'=>'not_recorded']];
+    $remaining=$budget->remainingBytes();$ordinary=$format->invoke($reader,$packet);
+    $check('operational formatter preserves all profile and financial context when the complete packet fits',
+        $ordinary===$packet&&$size($ordinary)<=28000);
+    $packet['synthetic_budget_pressure']='';
+    $withoutCore=$packet;
+    $withoutCore['forecast_core']=['available'=>false,
+        'basis'=>'at_most_one_current_immutable_profile_core_after_operational_priorities','reason'=>'response_budget'];
+    $withoutCore['saved']=null;$withoutCore['window']=$withoutCore['input_coverage']=['available'=>false,'reason'=>'response_budget'];
+    $withoutCore['confirmation']='unknown';
+    $padding=27000-$size($withoutCore);
+    if($padding<1)throw new RuntimeException('fixture_operational_core_pressure');
+    $packet['synthetic_budget_pressure']=str_repeat('x',$padding);
+    $bounded=$format->invoke($reader,$packet);
+    $sameFinancial=true;
+    foreach(['daily_reconciliation','value_delivery','backlog','today_latency','external_monitor']as$key)
+        $sameFinancial=$sameFinancial&&$bounded[$key]===$packet[$key];
+    $check('optional profile context cannot hide exact daily totals full backlog or saved per-event visit proof at the response ceiling',
+        $size($packet)>28000&&$size($bounded)===27000&&$sameFinancial
+        &&$bounded['forecast_core']['available']===false&&$bounded['forecast_core']['reason']==='response_budget'
+        &&$bounded['saved']===null&&$bounded['window']===['available'=>false,'reason'=>'response_budget']
+        &&$bounded['input_coverage']===['available'=>false,'reason'=>'response_budget']
+        &&$bounded['confirmation']==='unknown'
+        &&!str_contains(json_encode($bounded,$flags),'PRIVATE_OPTIONAL_PROFILE_CONTEXT_'));
+    $unavoidable=$packet;$unavoidable['synthetic_budget_pressure'].=str_repeat('x',10000);$limited=false;
+    try{$format->invoke($reader,$unavoidable);}
+    catch(ModeledConversionStatusLimit $e){$limited=$e->reason==='byte_limit';}
+    $check('irreducible financial response overflow still fails closed without forgiving copy charges or authorizing reads',
+        $limited&&$authorizations===0&&$budget->remainingBytes()===$remaining);
+}
+
 function forecastV1Assertions(PDO $p,callable $check):void
 {
+    forecastOperationalCorePressureAssertions($p,$check);
     forecastReceiptPollEvidenceAssertions($check);
     $projection=new ModeledConversionForecastStatusReader($p,static function():void{},new ModeledConversionStatusBudget());
     $method=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'boundedResponse');
