@@ -93,6 +93,13 @@
 .aiDraftAction{font-weight:650}
 .aiDraftWarning{color:#865d24}
 .aiDraftChecks{padding-left:20px;margin:8px 0;overflow-wrap:anywhere}
+.aiPromiseCandidate{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0;margin:8px 0;padding:12px;border:1px solid #d7e3d0;border-radius:10px;background:#f8faf5;overflow-wrap:anywhere}
+.aiPromiseKind{font-size:14px;color:#35573b}
+.aiPromiseQuote{align-self:stretch;min-width:0;margin:0;padding:8px 10px;border-left:3px solid #88a477;background:#fff;white-space:pre-wrap;overflow-wrap:anywhere}
+.aiPromiseDeadline,.aiPromiseHint{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.aiPromiseHint{color:#65705f;font-size:12px}
+.aiDraftPanel .aiPromiseOpen{min-height:44px;margin-top:2px}
+@media(max-width:600px){.aiPromiseCandidate{padding:10px}.aiDraftPanel .aiPromiseOpen{width:100%}}
 .aiDraftText{margin:10px 0;padding:10px;border:1px solid #e0e8db;border-radius:8px;background:#f7faf4;white-space:pre-wrap;overflow-wrap:anywhere;user-select:text}
 .aiDraftBody>.aiDraftText:first-child{margin-top:0}
 .aiDraftActions{justify-content:flex-start;flex-wrap:wrap;padding-top:8px}

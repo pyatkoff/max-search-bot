@@ -3,17 +3,15 @@
 declare(strict_types=1);
 
 require_once __DIR__.'/ManagerAiDraftInputEvidence.php';
+require_once __DIR__.'/ManagerAiDraftProposal.php';
 
 /** Read-only decision data, never a send permit or a semantic reviewer. No I/O. */
 final class ManagerAiReplyAdmission
 {
-    private const FIELDS=['ok','should_draft','draft','next_action','reason','checks','evidence_message_ids','history_incomplete'];
-
     public static function proposalHash(array $proposal): ?string
     {
-        if(array_is_list($proposal)||count($proposal)!==count(self::FIELDS)||array_diff(self::FIELDS,array_keys($proposal)))return null;
-        try{$ordered=[];foreach(self::FIELDS as $field)$ordered[$field]=$proposal[$field];return hash('sha256',json_encode($ordered,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));}
-        catch(Throwable $ignored){return null;}
+        $json = ManagerAiDraftProposal::json($proposal);
+        return $json === null ? null : hash('sha256', $json);
     }
 
     /** Only the canonical generate boundary calls this with its captured input. */

@@ -173,7 +173,8 @@ foreach (['У вас есть офис?','У вас есть офис','Где �
     draftCheck('office question requires verified company facts: '.$question,!$called && $guarded['ok']===true
         && $guarded['should_draft']===false && $guarded['draft']===null && $guarded['next_action']==='check_offer'
         && $guarded['evidence_message_ids']===[103] && $guarded['history_incomplete']===false && $guarded['checks']!==[]);
-    draftCheck('company guard preserves the exact response contract: '.$question,array_keys($guarded)===array_keys(draftResult()));
+    draftCheck('company guard preserves the exact response contract: '.$question,
+        array_keys($guarded)===array_keys(draftResult()+['manager_promises'=>[]])&&$guarded['manager_promises']===[]);
 }
 $office=draftContext();$office['messages'][1]['text']='У нас есть офис.';$office['messages'][2]['text']='Пришлите адрес вашего офиса.';
 $office['history_incomplete']=true;$office['verified_company_facts']=['office'=>'unapproved historical claim'];
@@ -733,7 +734,7 @@ draftCheck('unknown provider error and detail are reduced to a safe enum',draftG
 
 $schema=ManagerAiDraftService::responseSchema();
 draftCheck('strict schema rejects unknown fields and requires every result field',$schema['additionalProperties']===false
-    && $schema['required']===array_keys($schema['properties']) && count($schema['required'])===8);
+    && $schema['required']===array_keys($schema['properties']) && count($schema['required'])===9);
 $body=ManagerDraftClient::requestBody(ManagerAiDraftService::instructions(),draftContext());
 draftCheck('manager drafts default to GPT-6.1 Sol with explicit low reasoning',
     $body['model']==='gpt-6.1-sol' && $body['reasoning']===['effort'=>'low'] && $body['service_tier']==='default');

@@ -372,6 +372,8 @@ return [
         'php tests/run_manager_assistant_promise_facts_regression.php',
         'php tests/run_manager_assistant_promise_facts_http_regression.php',
         'node tests/run_manager_promise_plan_behavior_regression.js',
+        'php tests/run_manager_promise_candidate_regression.php',
+        'node tests/run_manager_promise_candidate_behavior_regression.js',
         'php tests/run_manager_ai_usage_regression.php',
         'php tests/run_manager_ai_usage_http_regression.php',
         'php tests/run_manager_read_profile_regression.php',
