@@ -391,6 +391,29 @@ foreach(['hook_journal_invalid_stop','hook_record_terminal_invalid_stop','hook_n
 
 // Exercise actual packet construction and the first/subsequent legacy caption gates.
 $expanded=json_decode(gzdecode(file_get_contents(__DIR__.'/monitor-price-expanded-roster-20261111.json.gz')),true,64,JSON_THROW_ON_ERROR);
+// Original maintenance43537828604 rejected seven real templates at the existing CTA contract.
+// The same saved-source literal occurs in three more rows: two had no fresh offer, one was not scanned.
+$ctaFixIds=[948,1335,1338,1369,1416,1551,2144,12107,15913,132016];
+$badCta='✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.';
+$acceptedCta='✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты.';
+$ctaRows=array_values(array_filter($expanded['rows'],static fn($row)=>in_array($row['tourvisor_hotel_id'],$ctaFixIds,true)));
+hook_test_check(count($ctaRows)===10,'cta_repair_fixture_scope_changed');
+foreach($ctaRows as $row){
+    $tv=$row['tourvisor_hotel_id'];$snapshot=$terminalSnapshot;$snapshot['scope']['tourvisorHotelIds']=[$tv];$snapshot['item']['tourvisorHotelId']=$tv;
+    foreach($snapshot['item']['offers'] as $i=>$offer){$snapshot['item']['offers'][$i]['tourvisorHotelId']=$tv;$snapshot['item']['offers'][$i]['recordId']=hash('sha256','cta-repair-test-'.$tv.'-'.$i);}
+    $price=monitor_price_observation($snapshot,$tv,strtotime($snapshot['generatedAt']));
+    foreach(['max','telegram'] as $platform){
+        $template=$row['templates'][$platform];
+        hook_test_check(str_ends_with($template,"\n\n".$acceptedCta),'cta_repair_missing_'.$tv.'_'.$platform);
+        $before=substr($template,0,-strlen($acceptedCta)).$badCta;$beforeError=null;
+        try{monitor_hook_draft($before,$price);}catch(Throwable $e){$beforeError=$e->getMessage();}
+        hook_test_check($beforeError==='monitor_text_conditions_mismatch','cta_old_template_did_not_reproduce_'.$tv.'_'.$platform);
+        $draft=monitor_hook_draft($template,$price);
+        hook_test_check(str_ends_with($draft,"\n\n".$acceptedCta),'cta_current_real_template_rejected_'.$tv.'_'.$platform);
+    }
+}
+$retainedBadCta=0;foreach($expanded['rows'] as $row)foreach($row['templates'] as $template)$retainedBadCta+=substr_count($template,$badCta);
+hook_test_check($retainedBadCta===0,'cta_exact_defect_retained_in_saved_roster');
 $legacyRows=array_values(array_filter($expanded['rows'],static fn($r)=>array_key_exists('legacy_proof',$r)));
 $packetStart=strpos($driver,"            ".'$r=array_intersect_key($row,');
 $packetEnd=strpos($driver,"        }catch(Throwable ".'$e)', $packetStart);
