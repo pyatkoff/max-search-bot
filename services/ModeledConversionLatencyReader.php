@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionStatusBudget.php';
 require_once __DIR__.'/ModeledConversionValueContract.php';
+require_once __DIR__.'/ModeledConversionVisitProof.php';
 
 /** Private timing of stored metadata only; never executes capture, prediction or delivery. */
 final class ModeledConversionLatencyReader
@@ -136,7 +137,7 @@ final class ModeledConversionLatencyReader
     private function values(int $since,int $now):array
     {
         $queued=$this->mysql?'UNIX_TIMESTAMP(o.created_at)':"CAST(strftime('%s',o.created_at) AS INTEGER)";
-        $base="SELECT o.id,o.platform,o.state,o.value_stage,o.value_rub,o.claimed_at_unix,o.upload_id,o.upload_status,o.last_error,o.next_attempt_unix,"
+        $base="SELECT o.id,o.conversation_id,o.target,o.event_unix,o.client_id,o.platform,o.state,o.value_stage,o.value_rub,o.claimed_at_unix,o.upload_id,o.upload_status,o.last_error,o.next_attempt_unix,"
             ."CASE WHEN o.client_id IS NOT NULL AND o.client_id<>'' THEN 1 ELSE 0 END AS identity_present,"
             .$queued." AS queued,p.observed_at_unix AS saved FROM max_channel_conversion_outbox o"
             ." JOIN modeled_conversion_profile_versions p ON p.id=o.value_profile_id AND p.project_key=o.project_key AND p.platform=o.platform AND p.conversation_id=o.conversation_id"
@@ -165,15 +166,16 @@ final class ModeledConversionLatencyReader
             'oldest_ready_seconds'=>$this->nullable($r['oldest_ready_seconds']),'profile_to_queue_seconds'=>$this->delay($r,'profile_to_queue'),
             'accepted_upload_claim_ticks'=>['same_five_minute_interval'=>$this->count($r['same_tick']),
                 'later_interval'=>$this->count($r['later_tick']),'maximum_intervals'=>$this->nullable($r['max_tick_intervals'])],'examples'=>[]];
-        $rows=$this->query("SELECT platform,state,value_stage,value_rub,saved,queued,claimed_at_unix,identity_present,last_error,next_attempt_unix,"
+        $rows=$this->query("SELECT id,conversation_id,target,event_unix,client_id,upload_id,platform,state,value_stage,value_rub,saved,queued,claimed_at_unix,identity_present,last_error,next_attempt_unix,"
             ."CASE WHEN upload_id IS NOT NULL AND upload_id<>'' THEN 1 ELSE 0 END AS api_receipt FROM (".$base.") examples ORDER BY id DESC LIMIT 6");
         foreach($rows as$e)$out['examples'][]=['platform'=>$e['platform'],'stage'=>in_array($e['value_stage'],ModeledConversionValueContract::STAGES,true)?$e['value_stage']:null,'increment_rub'=>$this->count($e['value_rub']),
             'profile_saved_at'=>$this->at($e['saved']),'value_queued_at'=>$this->at($e['queued']),
             'upload_claim_tick_at'=>$this->at($e['claimed_at_unix']),'state'=>in_array($e['state'],['pending','ready','uploading','accepted','processed','unknown','failed','expired','unmatched'],true)?$e['state']:'unrecognized_state',
             'identity_resolved'=>(int)$e['identity_present']===1,'api_receipt_present'=>(int)$e['api_receipt']===1,
-            'last_recorded_hold_reason'=>in_array($e['last_error'],['identity_not_found','identity_ambiguous','metrika_visit_window','metrika_visit_unverified','wire_key_collision','scope_unavailable','event_expired'],true)?$e['last_error']:null,
+            'last_recorded_hold_reason'=>in_array($e['last_error'],['identity_not_found','identity_ambiguous','metrika_visit_window','metrika_visit_unverified','metrika_no_prior_visit','wire_key_collision','scope_unavailable','event_expired'],true)?$e['last_error']:null,
             'next_check_not_before'=>$this->at($e['next_attempt_unix']),
-            'overdue_for_saved_check_seconds'=>in_array($e['state'],['pending','ready'],true)&&(int)$e['next_attempt_unix']>=946684800&&(int)$e['next_attempt_unix']<=$now?$now-(int)$e['next_attempt_unix']:null];
+            'overdue_for_saved_check_seconds'=>in_array($e['state'],['pending','ready'],true)&&(int)$e['next_attempt_unix']>=946684800&&(int)$e['next_attempt_unix']<=$now?$now-(int)$e['next_attempt_unix']:null,
+            'saved_visit_check'=>ModeledConversionVisitProof::savedForEvent($e,$now,$this->budget)];
         return $out;
     }
     private function delayColumns(string $key,string $value,string $condition):array

@@ -193,6 +193,14 @@ final class ModeledConversionValueExport
             // Ready rows carried over by the three-send cap need the same current lookup as pending rows.
             $freshRetry=$self->freshReadyRetry($now,$gate,$reserved);
             $carried=$self->ordinaryReadyLookupRows($now,$gate,$reserved,$freshRetry);
+            $batchCapable=$api===null?method_exists(MetrikaOfflineClient::class,'modeledAttributionVisitsBatch'):method_exists($api,'modeledAttributionVisitsBatch');
+            $batchLookahead=$batchCapable?$self->ordinaryBatchReadyRows($now,[],$freshRetry,$gate):[];
+            // Carried rows and frozen reservations share 25 subjects, leaving at least three pending rows.
+            foreach($batchLookahead as$row){
+                if(count($carried)>=MaxTrackerLookupProtocol::MAX_USERS-count($reserved)-3)break;
+                if($row['platform']==='max'&&$now-(int)$row['tracker_observed_unix']>ModeledConversionAttributionWindow::MAX_SECONDS
+                    &&!in_array((string)$row['id'],array_map('strval',array_column($carried,'id')),true))$carried[]=$row;
+            }
             $pending=$self->rows('pending',$now,MaxTrackerLookupProtocol::MAX_USERS-count($reserved)-count($carried),array_keys($reserved));
             foreach($reserved as$row)if($row['state']==='pending'
                 &&(is_int($row['next_attempt_unix'])||is_string($row['next_attempt_unix']))
@@ -225,6 +233,12 @@ final class ModeledConversionValueExport
             $readyExcluded=$self->retainedKnownReservation===null?[]:[(string)$self->retainedKnownReservation['row']['id']];
             if($self->knownRelationReservation!==null)$readyExcluded[]=(string)$self->knownRelationReservation['row']['id'];
             $ready=$self->rows('ready',$now,3,array_values(array_unique($readyExcluded)),$freshRetry===null?null:(string)$freshRetry['id']);
+            $batchMode=false;
+            if($batchLookahead){
+                $allowed=array_fill_keys(array_map('strval',array_column(array_merge($batchLookahead,$pending),'id')),true);
+                $expanded=array_values(array_filter($self->ordinaryBatchReadyRows($now,$readyExcluded,$freshRetry,$gate),static fn(array $r):bool=>isset($allowed[(string)$r['id']])));
+                if(count($expanded)>3){$ready=$expanded;$batchMode=true;}
+            }
             $receipts=array_merge($self->rows('accepted',$now,2),$self->rows('unknown',$now,2));
             if($ready||$receipts){
                 $phase='goal_check';
@@ -234,21 +248,24 @@ final class ModeledConversionValueExport
                 }
                 $goal=$api->modeledValueGoalStatus();
                 if(($goal['id']??null)!==$s['goal_id'])throw new RuntimeException('value_goal_changed');
-                $phase='upload';
+                $phase='upload';$postAttempts=0;
+                $batchReports=$batchMode?$self->ordinaryBatchReports($ready,$identities,$lookupReturned,$api,$now,$gate):[];
                 foreach($ready as$r){
                     $currentSettings=self::settings($p);
                     if(($currentSettings['mode']??'off')!=='send')break;
-                    if(!$self->eligible($r,$gate)){$self->observeFixedPairDecision($r,$now,$injectedClock?$now:time(),1);self::failRow($p,$r,'scope_unavailable');continue;}
+                    if(!$self->eligible($r,$gate)){$self->observeFixedPairDecision($r,$now,$injectedClock?$now:time(),1);
+                        if($batchMode)$self->deferOrdinaryBatch($r,(int)$r['next_attempt_unix'],'scope_unavailable','failed');else self::failRow($p,$r,'scope_unavailable');continue;}
                     if($self->expireOrdinaryReady($r,$currentSettings,$injectedClock?$now:time()))continue;
                     if(!$priceGuard->maySend($r)){
                         // Preserve the price hold while letting later eligible rows advance.
-                        $repo->defer((string)$r['id'],'ready',($injectedClock?$now:time())+300);
+                        if($batchMode)$self->deferOrdinaryBatch($r,($injectedClock?$now:time())+300,$r['last_error']);
+                        else $repo->defer((string)$r['id'],'ready',($injectedClock?$now:time())+300);
                         $self->observeFixedPairDecision($r,$now,$injectedClock?$now:time(),2);
                         continue;
                     }
                     // Revalidate the retained MAX source at dispatch, not only at the earlier signal.
                     $sendAt=$injectedClock?$now:time();$sourceAt=(int)($r['tracker_observed_unix']??0);
-                    $relation=$self->knownRelationCandidate($r,$sendAt);$wire=$r;
+                    $relation=$batchMode?null:$self->knownRelationCandidate($r,$sendAt);$wire=$r;
                     if($relation!==null)$wire['client_id']=$relation['client_id'];
                     $pairMember=$self->fixedPairMember($r,$sendAt)!==null;
                     $pairSource=$self->fixedPairCandidate($r,$identities,$lookupReturned,$sendAt);
@@ -258,6 +275,7 @@ final class ModeledConversionValueExport
                         ||$sourceAt>$sendAt||($pairMember&&!$pairSource)||($sendAt-$sourceAt>ModeledConversionAttributionWindow::MAX_SECONDS&&!$pairSource&&!$ordinarySource))){
                         // This exact pair may wait ready for a successful canonical refresh; it is never claimed on missing/changed source.
                         $self->observeFixedPairDecision($r,$now,$sendAt,3);
+                        if($batchMode){$self->deferOrdinaryBatch($r,$sendAt+300,'identity_not_found','pending');continue;}
                         $pairHold=$pairMember;
                         $preserveReason=$pairMember&&$self->fixedPairRow($r,$sendAt)===null;
                         $hold=$p->prepare("UPDATE max_channel_conversion_outbox SET ".($pairHold?'':"state='pending',")."next_attempt_unix=?".($preserveReason?'':",last_error='identity_not_found'")
@@ -271,11 +289,13 @@ final class ModeledConversionValueExport
                     $hasCollision=$collision->fetchColumn()!==false;$collision->closeCursor();
                     if($hasCollision){
                         if($relation===null)$self->observeFixedPairDecision($r,$now,$injectedClock?$now:time(),4);
+                        if($batchMode){$self->deferOrdinaryBatch($r,$sendAt+3600,'wire_key_collision');continue;}
                         $hold=$p->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error='wire_key_collision' WHERE id=? AND state='ready'");
                         $hold->execute([$sendAt+3600,$r['id']]);continue;
                     }
                     // Confirm the actual preceding Metrika visit before claiming a financial send.
-                    if($relation!==null)$visitReport=$relation['visit_report'];
+                    if($batchMode)$visitReport=$batchReports[(string)$r['id']]??['status'=>'unavailable','visits'=>[]];
+                    elseif($relation!==null)$visitReport=$relation['visit_report'];
                     else try{$visitReport=method_exists($api,'modeledAttributionVisits')?$api->modeledAttributionVisits((string)$r['client_id'],(int)$r['event_unix'],$sendAt):['status'=>'unavailable','visits'=>[]];}catch(Throwable $ignoredWindow){$visitReport=['status'=>'unavailable','visits'=>[]];}
                     $sendAt=$injectedClock?$now:time();
                     $window=ModeledConversionAttributionWindow::assess($visitReport,(int)$r['event_unix'],$sendAt);
@@ -293,11 +313,26 @@ final class ModeledConversionValueExport
                         if(!$found)$stats['visit_gate_decisions']['failures'][]=[...$tuple,1];
                     }
                     if(!$window['allowed']){
-                        $hold=$p->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error=? WHERE id=? AND state='ready' AND (upload_id IS NULL OR upload_id='') AND (claim_token IS NULL OR claim_token='')");
-                        $hold->execute([$sendAt+300,$window['reason']==='outside_current_window'?'metrika_visit_window':'metrika_visit_unverified',$r['id']]);continue;
+                        $holdReason=$window['reason']==='outside_current_window'?'metrika_visit_window':'metrika_visit_unverified';
+                        if($batchMode){
+                            $complete=($visitReport['status']??null)==='ok';
+                            $negative=$complete&&($window['reason']==='no_prior_visit'||($window['reason']==='outside_current_window'
+                                &&(($window['visit_at']!==null&&$sendAt-$window['visit_at']>ModeledConversionAttributionWindow::MAX_SECONDS)
+                                    ||in_array($visitReport['source_report_status']??null,['ok','not_needed'],true))));
+                            if($complete&&$window['reason']==='no_prior_visit')$holdReason='metrika_no_prior_visit';
+                            $self->deferOrdinaryBatch($r,$sendAt+($negative&&$sendAt-(int)$r['event_unix']>6*3600?1800:300),$holdReason);
+                        }else{
+                            $hold=$p->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error=? WHERE id=? AND state='ready' AND (upload_id IS NULL OR upload_id='') AND (claim_token IS NULL OR claim_token='')");
+                            $hold->execute([$sendAt+300,$holdReason,$r['id']]);
+                        }
+                        continue;
                     }
+                    if($postAttempts>=3)continue;
                     $token=bin2hex(random_bytes(16));
-                    if($relation!==null){
+                    if($batchMode){
+                        $wire=$self->claimOrdinaryBatch($r,$visitReport,$identities,$lookupReturned,$token,$now,$clock,$gate);
+                        if($wire===null)continue;
+                    }elseif($relation!==null){
                         $wire=$self->claimKnownRelation($r,$relation,$token,$now,$clock,$gate);
                         if($wire===null)continue;
                     }else{
@@ -306,6 +341,7 @@ final class ModeledConversionValueExport
                         $q->execute([$token,$now,$r['id'],$r['target'],ModeledConversionValueContract::TARGET,$r['value_rub'],...$pairParams]);
                         if($q->rowCount()!==1)continue;
                     }
+                    $postAttempts++;
                     try{$response=$api->uploadModeledValue($wire,$now);}catch(Throwable $ignored){$response=['outcome'=>'unknown','reason'=>'upload_outcome_unknown'];}
                     $self->finishObserved($repo,(string)$r['id'],$token,$response,$now,self::observedAt($clock,$now));
                     if(($response['outcome']??null)==='accepted')$repo->defer((string)$r['id'],'accepted',$now+300);
@@ -795,22 +831,22 @@ final class ModeledConversionValueExport
         if(!is_array($audit)||!in_array($audit['v']??null,[1,2],true)
             ||count($audit)!==(($audit['v']??null)===2?5:4)||!is_int($audit['checked_at_unix']??null)
             ||$audit['checked_at_unix']<946684800||$audit['checked_at_unix']>253402300799||$audit['checked_at_unix']!==$tick
-            ||!is_int($audit['attempts']??null)||$audit['attempts']<0||$audit['attempts']>3
+            ||!is_int($audit['attempts']??null)||$audit['attempts']<0||$audit['attempts']>18
             ||!is_array($audit['reason_counts']??null))return $stats;
         $counts=[];$total=0;
         foreach(['within_current_window','outside_current_window','no_prior_visit','visit_report_unavailable','unknown']as$key){
             $count=$audit['reason_counts'][$key]??null;
-            if(!is_int($count)||$count<0||$count>3)return $stats;
+            if(!is_int($count)||$count<0||$count>18)return $stats;
             $counts[$key]=$count;$total+=$count;
         }
         if(count($audit['reason_counts'])!==count($counts)||$total!==$audit['attempts'])return $stats;
         $clean=['v'=>$audit['v'],'checked_at_unix'=>$audit['checked_at_unix'],'attempts'=>$audit['attempts'],'reason_counts'=>$counts];
         if($audit['v']===2){
             $failures=$audit['failures']??null;$unavailable=0;$seen=[];
-            if(!is_array($failures)||!array_is_list($failures)||count($failures)>3)return $stats;
+            if(!is_array($failures)||!array_is_list($failures)||count($failures)>18)return $stats;
             foreach($failures as$tuple){
                 if(!is_array($tuple)||!array_is_list($tuple)||count($tuple)!==5
-                    ||!is_int($tuple[4])||$tuple[4]<1||$tuple[4]>3
+                    ||!is_int($tuple[4])||$tuple[4]<1||$tuple[4]>18
                     ||self::normalizeVisitFailure(array_slice($tuple,0,4))!==array_slice($tuple,0,4))return $stats;
                 $key=json_encode(array_slice($tuple,0,4),JSON_THROW_ON_ERROR);
                 if(isset($seen[$key]))return $stats;$seen[$key]=true;
@@ -1202,6 +1238,111 @@ final class ModeledConversionValueExport
         return $carried;
     }
 
+    /** Expanded ordinary work is bounded locally; the original protected/unknown prefix keeps its legacy lane. */
+    private function ordinaryBatchRow(array $r,int $now):bool
+    {
+        if($this->ordinaryProtectedIds===null||isset($this->ordinaryProtectedIds[(string)($r['id']??'')])
+            ||($r['project_key']??null)!=='anytour'||($r['counter_id']??null)!=='98615635'||($r['state']??null)!=='ready'
+            ||!in_array($r['platform']??null,['max','telegram'],true)||($r['identity_source_key']??null)!==($r['platform']==='max'?'max_tracker':'tgmini')
+            ||($r['transport_target']??null)!==ModeledConversionValueContract::TARGET||($r['value_contract']??null)!==ModeledConversionValueContract::VERSION
+            ||!ModeledConversionValueContract::isKey($r['target']??null)||($r['value_origin']??null)!==null
+            ||!in_array($r['attempts']??null,[0,'0'],true)||($r['claimed_at_unix']??null)!==null
+            ||($r['value_api_accepted_at_unix']??null)!==null||($r['value_processed_at_unix']??null)!==null
+            ||!MaxTrackerLookupProtocol::id($r['client_id']??null,40))return false;
+        foreach(['claim_token','upload_id','upload_status','value_receipt_basis']as$key)if(!array_key_exists($key,$r)||!in_array($r[$key],[null,''],true))return false;
+        foreach(['event_unix','value_ready_at_unix','next_attempt_unix']as$key)if(!array_key_exists($key,$r)
+            ||(!is_int($r[$key])&&!is_string($r[$key]))||preg_match('/\A(?:0|[1-9][0-9]{0,11})\z/D',(string)$r[$key])!==1)return false;
+        if((int)$r['event_unix']<max(946684800,$now-ModeledConversionAttributionWindow::MAX_SECONDS)||(int)$r['event_unix']>$now
+            ||(int)$r['value_ready_at_unix']<(int)$r['event_unix']||(int)$r['value_ready_at_unix']>$now||(int)$r['next_attempt_unix']>$now)return false;
+        foreach($this->finiteFrame['r']??[]as$old)if((string)$old[1]===(string)$r['id'])return false;
+        return true;
+    }
+    private function ordinaryBatchReadyRows(int $now,array $excluded,?array $freshRetry,callable $gate):array
+    {
+        if($this->ordinaryProtectedIds===null)return [];
+        try{
+            $rows=$this->rows('ready',$now,19,$excluded,$freshRetry===null?null:(string)$freshRetry['id']);
+            if(count($rows)<=3)return [];
+            foreach(array_slice($rows,0,3)as$row)if(!$this->ordinaryBatchRow($row,$now)||!$this->eligible($row,$gate))return [];
+            return array_slice(array_values(array_filter($rows,fn(array $r):bool=>$this->ordinaryBatchRow($r,$now)&&$this->eligible($r,$gate))),0,18);
+        }catch(Throwable $ignored){return [];}
+    }
+    /** Current local admission is repeated before the financial claim; no identity or visit is invented. */
+    private function ordinaryBatchAdmission(array $r,array $s,array $identities,bool $returned,int $now,callable $gate):bool
+    {
+        if(($s['project_key']??null)!=='anytour'||($s['counter_id']??null)!=='98615635'||($s['mode']??null)!=='send'
+            ||($s['goal_id']??null)!=='678187097'||($s['goal_intent']??null)!=='verified'||(int)($s['base_value_rub']??0)!==25000
+            ||($s['contract_version']??null)!==ModeledConversionValueContract::VERSION||!$this->ordinaryBatchRow($r,$now))return false;
+        $protected=$this->protectedOriginalSourceIds($s['last_receipt_json']??null,$now);
+        if($protected===null||isset($protected[(string)$r['id']])||!$this->eligible($r,$gate)
+            ||!(new ModeledConversionPriceContinuity($this->pdo))->maySend($r))return false;
+        if($r['platform']==='max'){
+            $at=(int)($r['tracker_observed_unix']??0);
+            if($at<946684800||$at>(int)$r['event_unix']||$at>$now||($now-$at>ModeledConversionAttributionWindow::MAX_SECONDS
+                &&!$this->currentMaxSource($r,$identities,$returned,$now,true)))return false;
+        }
+        $q=$this->pdo->prepare("SELECT id FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635'"
+            ." AND transport_target=? AND client_id=? AND event_unix=? AND id<>? AND value_rub>0"
+            ." AND ((upload_id IS NOT NULL AND upload_id<>'') OR state IN ('uploading','unknown')) LIMIT 1");
+        $q->execute([ModeledConversionValueContract::TARGET,$r['client_id'],$r['event_unix'],$r['id']]);$collision=$q->fetchColumn()!==false;$q->closeCursor();return !$collision;
+    }
+    private function ordinaryBatchReports(array $rows,array $identities,bool $returned,mixed $api,int $tick,callable $gate):array
+    {
+        $out=[];$at=$tick;foreach($rows as$r)$out[(string)$r['id']]=['status'=>'unavailable','visits'=>[]];
+        foreach(array_chunk($rows,6)as$candidates){
+            $group=[];foreach($candidates as$r){
+                $q=$this->pdo->prepare('SELECT * FROM max_channel_conversion_outbox WHERE id=? LIMIT 1');$q->execute([$r['id']]);$live=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+                $s=self::settings($this->pdo);
+                if($live===$r&&is_array($s)&&$this->ordinaryBatchAdmission($r,$s,$identities,$returned,$at,$gate))$group[]=$r;
+            }
+            if(!$group)continue;
+            $cases=array_map(static fn(array $r):array=>['client_id'=>(string)$r['client_id'],'event_unix'=>(int)$r['event_unix']],$group);
+            $batch=['status'=>'unavailable','reports'=>[]];$extra=0;
+            try{$batch=$api->modeledAttributionVisitsBatch($cases,$at,static function()use(&$extra):bool{return ++$extra<=1;});}catch(Throwable $ignored){}
+            $ids=array_values(array_unique(array_column($cases,'client_id')));$byId=[];$valid=in_array($batch['status']??null,['ok','unavailable'],true)&&is_array($batch['reports']??null)&&array_is_list($batch['reports'])&&count($batch['reports'])===count($ids);
+            if($valid)foreach($batch['reports']as$item){
+                if(!is_array($item)||!is_string($item['client_id']??null)||!in_array($item['client_id'],$ids,true)||isset($byId[$item['client_id']])
+                    ||!is_array($item['report']??null)||!in_array($item['report']['status']??null,['ok','unavailable'],true)||!is_array($item['report']['visits']??null)
+                    ||($batch['status']==='unavailable'&&($item['report']['status']!=='unavailable'||$item['report']['visits']!==[]))){$valid=false;break;}
+                $byId[$item['client_id']]=$item['report']['status']==='unavailable'
+                    ?['status'=>'unavailable','visits'=>[],'attribution_failure'=>self::normalizeVisitFailure($item['report']['attribution_failure']??null)]:$item['report'];
+            }
+            if($valid)foreach($group as$r)$out[(string)$r['id']]=$byId[$r['client_id']];
+        }
+        return $out;
+    }
+    private function deferOrdinaryBatch(array $row,int $until,?string $reason,string $state='ready'):void
+    {
+        [$where,$args]=$this->pendingMaxSourceSqlGuard($row);
+        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET state=?,next_attempt_unix=?,last_error=? WHERE id=? AND state='ready' AND next_attempt_unix=?".$where);
+        $q->execute([$state,$until,$reason,$row['id'],$row['next_attempt_unix'],...$args]);
+    }
+    /** Settings -> row lock, exact original tuple and wire-key collision immediately before one canonical POST. */
+    private function claimOrdinaryBatch(array $expected,array $report,array $identities,bool $returned,string $token,int $tick,callable $clock,callable $gate):?array
+    {
+        $p=$this->pdo;if($p->inTransaction())return null;
+        try{
+            if($p->beginTransaction()!==true)throw new RuntimeException('batch_claim_unconfirmed');$lock=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
+            $q=$p->query("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'".$lock);$s=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+            $q=$p->prepare('SELECT * FROM max_channel_conversion_outbox WHERE id=? LIMIT 1'.$lock);$q->execute([$expected['id']]);$row=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+            $at=self::observedAt($clock,$tick);
+            if($row!==$expected||!is_array($s)||!$this->ordinaryBatchAdmission($row,$s,$identities,$returned,$at,$gate)
+                ||!ModeledConversionAttributionWindow::assess($report,(int)$row['event_unix'],$at)['allowed']){$p->rollBack();return null;}
+            [$where,$args]=$this->pendingMaxSourceSqlGuard($expected);$mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';$raw=$s['last_receipt_json']??null;
+            $receipt=$raw===null?'e.last_receipt_json IS NULL':($mysql?'BINARY e.last_receipt_json=BINARY ?':'e.last_receipt_json COLLATE BINARY=? COLLATE BINARY');
+            $configured=" AND EXISTS(SELECT 1 FROM modeled_conversion_value_export_settings e WHERE HEX(e.project_key)=HEX('anytour')"
+                ." AND HEX(e.counter_id)=HEX('98615635') AND HEX(e.mode)=HEX('send') AND HEX(e.goal_id)=HEX('678187097')"
+                ." AND HEX(e.goal_intent)=HEX('verified') AND HEX(e.contract_version)=HEX('semantic_stage_value_25000_v1') AND e.base_value_rub=25000 AND ".$receipt.")";
+            $price=str_starts_with((string)$expected['target'],'anytour_value_pred_')
+                ?" AND EXISTS(SELECT 1 FROM modeled_conversion_price_audit a WHERE a.outbox_id=max_channel_conversion_outbox.id AND a.action IN ('unchanged','rebased','reduced') AND a.applied_value_rub=max_channel_conversion_outbox.value_rub)":'';
+            $q=$p->prepare("UPDATE max_channel_conversion_outbox SET state='uploading',claim_token=?,claimed_at_unix=?,attempts=attempts+1"
+                ." WHERE id=? AND state='ready' AND next_attempt_unix=?".$where.$configured.$price);
+            $q->execute([$token,$at,$expected['id'],$expected['next_attempt_unix'],...$args,...($raw===null?[]:[$raw])]);
+            if($q->rowCount()!==1){$p->rollBack();return null;}
+            if($p->commit()!==true)throw new RuntimeException('batch_claim_unconfirmed');return $row;
+        }catch(Throwable $ignored){if($p->inTransaction())$p->rollBack();return null;}
+    }
+
     private function rows(string $state,int $now,int $limit,array $excluded=[],?string $freshRetryId=null):array
     {
         $excluded=in_array($state,['pending','ready'],true)?array_values(array_unique(array_map('strval',$excluded))):[];
@@ -1214,7 +1355,7 @@ final class ModeledConversionValueExport
             $order='CASE WHEN next_attempt_unix=0 THEN 0 WHEN id=? AND '.$this->freshRetryPredicate($now).' THEN 1 ELSE 2 END,next_attempt_unix,id';
             $extra=[$freshRetryId];
         }
-        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state=? AND transport_target=? AND value_contract=? AND next_attempt_unix<=?".$skip." ORDER BY ".$order." LIMIT ".min($state==='pending'?MaxTrackerLookupProtocol::MAX_USERS:5,max(1,$limit)));
+        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state=? AND transport_target=? AND value_contract=? AND next_attempt_unix<=?".$skip." ORDER BY ".$order." LIMIT ".min($state==='pending'?MaxTrackerLookupProtocol::MAX_USERS:($state==='ready'?19:5),max(1,$limit)));
         $q->execute([$state,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$now,...$excluded,...$extra]);return$q->fetchAll(PDO::FETCH_ASSOC);
     }
     private function resolve(array $r,array $identities,int $now,callable $gate,bool $lookupReturned=false):bool
