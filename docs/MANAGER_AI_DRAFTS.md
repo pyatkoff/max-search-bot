@@ -74,6 +74,101 @@ A useful partial reply may coexist with check_offer and the unchanged four-crite
 manager_review/actual_send_allowed=false metadata. Technical currentness is not
 semantic acceptance. Sending remains the existing explicit manager action.
 
+## Manager promise proposals
+
+The existing analysis may suggest up to three promises to send a calculation or
+a selection for the saved current trip. These suggestions are independent of
+`should_draft` and `next_action`: `no_contact` may still carry work for the manager.
+They neither create a task nor establish that a promise remains unfulfilled.
+Semantic interpretation, later cancellation or replacement, and whether several
+messages continue one promise still require manager review of the conversation.
+
+The new provider schema requires a ninth result field, `manager_promises`, even
+when its value is `[]`. Each item contains exactly these four required fields:
+
+| Field | Wire meaning |
+| --- | --- |
+| `kind` | `send_calculation` or `send_selection` |
+| `source_message_id` | A positive message ID from the admitted server source list |
+| `quote` | A nonempty literal quotation of at most 600 characters from that message |
+| `deadline_text` | A literal deadline phrase of at most 160 characters from that message, or `null` |
+
+The model does not choose a task, trip identity, deadline timestamp or revision
+hash. Questions, conditional offers, negations, bot handoffs, forwarded or quoted
+content, a private unsent draft and an already completed send are not promises.
+The instructions exclude other or ambiguous trips, and require the model to
+consider later cancellation and replacement within the available window. An
+empty result is not evidence that no obligation exists outside that window.
+
+`ManagerPromiseCandidates` captures a bounded source projection inside the same
+authorized read transaction as `ManagerAiDraftReferenceContext`. It uses only
+manager messages already present in the redacted AI window, at or after the saved
+trip boundary. The canonical manual-binding source checks verify outbound human
+authorship, a known manager, native external message identity, matching channel
+and conversation, and the absence of linked/forward containers. At most 20 source
+records expose the local message ID, revision and a verified UTC recording receipt
+when one exists. Native channel identities, raw metadata and additional source
+text are not added to the model payload. Source text remains the existing redacted
+message text; literal quotations and deadline phrases must occur in that text.
+
+The source group binds the current trip, profile version/hash and boundary.
+`fresh` and `needs_review` profiles with unchanged citations may support a
+proposal; `needs_review` is an explicit request for human review, never permission
+for automatic creation or execution. Missing, changed or unavailable profile
+evidence produces no promise candidates. The captured group participates in the
+existing context revision even if its later provider admission is omitted.
+
+Promise evidence is admitted last, after existing transcript, company, profile,
+post, route, photo, selection, hotel, working-selection and Search3 evidence.
+Both its encoded group and its actual request increment, including the conditional
+instructions, must fit 16 KiB and the existing text-request limit. Overflow drops
+only this optional group. Admission also requires the matching `request_profile`
+to remain in the actual provider input, with the same trip, version/hash, status
+and boundary and no changed citations. Omission of that profile keeps a useful
+draft but prevents promise suggestions. Without an admitted `promise_sources`
+group, validation accepts only an empty `manager_promises` list. Provider instructions/schema change
+the existing instruction revision; transport, model settings and output budgets
+stay with their current owners.
+
+The pure `ManagerAiDraftProposal` codec accepts historical eight-field and new
+nine-field proposals with exact key sets. It retains the original canonical key
+order and JSON encoding for eight-field values: it never appends `[]` before
+storage comparison or hashing. Prepared replies, feedback, historical reports and
+the technical reply-admission hash use this same codec. A historical proposal has
+no candidates; it is not rewritten or backfilled. New nonempty candidates pass
+source/literal checks against the input actually admitted by the draft service.
+Importing a nonempty candidate list also requires the existing canonical
+`input_receipt`: completion checks the exact issued packet before making the
+result ready, so rebuilding a smaller context cannot restore source evidence that
+was omitted from the worker input. Eight-field results and an empty new list keep
+their existing receipt-optional path. The receipt proves server issuance, not the
+external worker's complete host/model input or semantic correctness.
+Later loss of the archived receipt keeps the existing admission `unknown`
+semantics. It does not rewrite or invalidate an already checked ready proposal:
+readback still verifies its stored hash and current source/trip context, and any
+binding still requires review of fresh canonical evidence and explicit saving
+through the current single-button promise dialog.
+The existing prepared-reply store, worker and MCP tools remain the only work path;
+there is no extra model call, queue, worker or task store for extraction.
+
+Only full, freshly validated HTTP results add the separate `promise_candidates`
+UI envelope, after normal feedback and admission handling. `prepared_status`
+remains metadata-only. The projection uses the same matching captured snapshot,
+with no new database, page or model read, and does not alter the model proposal,
+stored JSON or proposal hash. It supplies source/profile pins, quotation and a
+conservative deadline suggestion. Supported explicit dates or instants may be
+normalized by the server; relative dates require a verified recording receipt and
+use `Europe/Moscow`. An ambiguous or unsupported phrase leaves the deadline for
+explicit manual selection. A suggestion is never a task deadline update.
+
+The confirmation boundary remains the existing explicit
+[promise-to-task binding](MANAGER_PROMISE_TASKS.md): choose an existing task,
+review fresh canonical source/profile context and the deadline, then confirm.
+Extraction itself performs no task CRUD, binding write, auto-close or tourist
+send. Reply admission retains its four manager-review criteria and
+`actual_send_allowed=false`. Unconfirmed candidates do not enter MyPlan;
+confirmed bindings use its existing promise projection.
+
 ## Saved AI status in the Inbox
 
 The list can show `AI готовится`, `AI подготовлен` or `AI: рекомендации` for an
@@ -106,6 +201,10 @@ responses share the explicit viewer-bound enrichment.
 - `ManagerAiDraftContextService`: fresh active-account, project/source visibility
   and strict reply ownership; short read-only snapshots; revision fingerprint.
 - `ManagerAiDraftService`: isolated draft instructions and strict result checks.
+- `ManagerAiDraftProposal`: shared eight/nine-field wire codec, validation and
+  canonical ordering without rewriting historical proposals.
+- `ManagerPromiseCandidates`: bounded source evidence, literal validation and a
+  separate UI projection; no task or delivery authority.
 - `ManagerCompanyKnowledge`: immutable approved company snapshot, versioned source
   and expiry checks; see [company knowledge](COMPANY_KNOWLEDGE.md).
 - `ManagerSelectionSnapshot`: bounded on-click observation of supported selection
@@ -142,8 +241,8 @@ are projected. No response IDs, instructions, content, raw body or arbitrary
 metadata reach this observer. It is not invoked on errors, refusals or incomplete
 responses; observer exceptions do not change the result. No observer is installed
 in the manager endpoint, and this client does not log or persist the metadata.
-The eight-field manager result remains unchanged; its schema and evidence checks
-still run separately after decoding.
+Provider decoding remains separate from the nine-field schema and evidence
+checks. Historical eight-field results retain their original codec and hashes.
 
 The normal project initializer has a legacy UPSERT. This endpoint invokes
 `ProjectAccessService::initializeReadOnly()` before auth instead. Draft generation
