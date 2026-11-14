@@ -91,7 +91,32 @@ final class ModeledConversionValueDeliveryReader
         try{
             $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
             $len=$mysql?'OCTET_LENGTH(last_receipt_json)':'LENGTH(CAST(last_receipt_json AS BLOB))';
-            $rows=$this->query("SELECT mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,history_from_unix,history_until_unix,history_cursor,history_ceiling,history_fortnight_requested_at_unix,history_day_receipt_json,history_completed_at_unix,history_scanned,history_collected,history_stats_json,CASE WHEN ".$len."<=8192 THEN last_receipt_json ELSE NULL END AS receipt_json,last_report_success_unix,CASE WHEN ".($mysql?'OCTET_LENGTH(last_report_success_json)':'LENGTH(CAST(last_report_success_json AS BLOB))')."<=8192 THEN last_report_success_json ELSE NULL END AS last_success_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1",[]);
+            if($includeHistoricalEvidence){
+                $rows=$this->query("SELECT mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,history_from_unix,history_until_unix,history_cursor,history_ceiling,history_fortnight_requested_at_unix,history_day_receipt_json,history_completed_at_unix,history_scanned,history_collected,history_stats_json,CASE WHEN ".$len."<=8192 THEN last_receipt_json ELSE NULL END AS receipt_json,last_report_success_unix,CASE WHEN ".($mysql?'OCTET_LENGTH(last_report_success_json)':'LENGTH(CAST(last_report_success_json AS BLOB))')."<=8192 THEN last_report_success_json ELSE NULL END AS last_success_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1",[]);
+            }else{
+                // Operational delivery uses only these five saved receipt fields.
+                // Do not copy history documents or protected repair/source frames that
+                // this view never executes. Preserve each selected native JSON type.
+                $doc="CASE WHEN JSON_VALID(last_receipt_json) AND ".$len."<=8192 THEN last_receipt_json ELSE '{}' END";
+                $keys=['errors','last_recorded_failure','visit_gate_decisions','metrika_report','price_continuity_audit'];
+                $pairs=[];$missing=[];
+                foreach($keys as$key){
+                    $path="'$.".$key."'";
+                    $pairs[]="'".$key."',JSON_EXTRACT(".$doc.",".$path.")";
+                    $absent=$mysql?'JSON_TYPE(JSON_EXTRACT('.$doc.','.$path.')) IS NULL'
+                        :'json_type('.$doc.','.$path.') IS NULL';
+                    // Removing only missing top-level keys keeps explicit/nested JSON nulls.
+                    $missing[]='CASE WHEN '.$absent.' THEN '.$path." ELSE '$.__operational_absent' END";
+                }
+                $projected='JSON_REMOVE(JSON_OBJECT('.implode(',',$pairs).'),'.implode(',',$missing).')';
+                $projectedBytes=$mysql?'OCTET_LENGTH('.$projected.')':'LENGTH(CAST('.$projected.' AS BLOB))';
+                $rows=$this->query('SELECT mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,'
+                    .'CASE WHEN JSON_VALID(last_receipt_json) AND '.$len.'<=8192 AND '.$projectedBytes.'<=8192 THEN '
+                    .$projected.' ELSE NULL END AS receipt_json,last_report_success_unix,CASE WHEN '
+                    .($mysql?'OCTET_LENGTH(last_report_success_json)':'LENGTH(CAST(last_report_success_json AS BLOB))')
+                    ."<=8192 THEN last_report_success_json ELSE NULL END AS last_success_json"
+                    ." FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1",[]);
+            }
             if(!$rows)return $this->unavailable('not_configured');
             $s=$rows[0];
             if(($s['goal_id']??null)!==self::GOAL||($s['contract_version']??null)!==ModeledConversionValueContract::VERSION
