@@ -6,14 +6,13 @@ require_once __DIR__.'/ConversationDb.php';
 require_once __DIR__.'/ManagerConversationService.php';
 require_once __DIR__.'/ManagerAiDraftService.php';
 require_once __DIR__.'/ManagerAiDraftInputEvidence.php';
+require_once __DIR__.'/ManagerAiDraftProposal.php';
 
 /** Private provenance only. A request to insert is neither insertion nor acceptance. */
 final class ManagerAiDraftFeedbackService
 {
     public const MAX_PROPOSAL_BYTES = 32768;
     public const ATTRIBUTION_SECONDS = 86400;
-    private const FIELDS = ['ok','should_draft','draft','next_action','reason','checks','evidence_message_ids','history_incomplete'];
-    private const ACTIONS = ['clarify','answer_question','check_offer','prepare_selection','no_contact'];
 
     public static function record(int $cid, int $actor, array $snapshot, array $proposal, ?string $preparedJobId = null, ?ManagerAiDraftInputEvidence $inputEvidence = null): ?string
     {
@@ -40,10 +39,8 @@ final class ManagerAiDraftFeedbackService
             }
             if (!isset($ids[$latest]) || !self::validProposal($proposal, $ids)
                 || $proposal['history_incomplete'] !== $context['history_incomplete']) return null;
-            $copy = [];
-            foreach (self::FIELDS as $field) $copy[$field] = $proposal[$field];
-            $json = json_encode($copy, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
-            if (strlen($json) > self::MAX_PROPOSAL_BYTES) return null;
+            $json = ManagerAiDraftProposal::json($proposal);
+            if ($json === null || strlen($json) > self::MAX_PROPOSAL_BYTES) return null;
             $id = $preparedJobId === null ? bin2hex(random_bytes(16))
                 : substr(hash('sha256', "prepared\0".$scope['project_key']."\0".$actor."\0".$preparedJobId), 0, 32);
             $values = [$id,$cid,$actor,$scope['project_key'],$revision,
@@ -181,23 +178,7 @@ final class ManagerAiDraftFeedbackService
 
     private static function validProposal(array $value, ?array $allowedIds = null): bool
     {
-        if (array_is_list($value) || count($value) !== count(self::FIELDS) || array_diff(self::FIELDS, array_keys($value))
-            || $value['ok'] !== true || !is_bool($value['should_draft']) || !is_bool($value['history_incomplete'])
-            || !is_string($value['next_action']) || !in_array($value['next_action'], self::ACTIONS, true)
-            || !self::validText($value['reason'], 1, 1000)
-            || !is_array($value['checks']) || !array_is_list($value['checks']) || count($value['checks']) > 10
-            || !is_array($value['evidence_message_ids']) || !array_is_list($value['evidence_message_ids'])
-            || !$value['evidence_message_ids'] || count($value['evidence_message_ids']) > 20) return false;
-        if ($value['should_draft']) {
-            if ($value['next_action'] === 'no_contact' || !self::validText($value['draft'], 1, ManagerAiDraftService::MAX_DRAFT_CHARACTERS)) return false;
-        } elseif ($value['draft'] !== null) return false;
-        foreach ($value['checks'] as $check) if (!self::validText($check, 1, 400)) return false;
-        $seen = [];
-        foreach ($value['evidence_message_ids'] as $id) {
-            if (!is_int($id) || $id <= 0 || isset($seen[$id]) || ($allowedIds !== null && !isset($allowedIds[$id]))) return false;
-            $seen[$id] = true;
-        }
-        return true;
+        return ManagerAiDraftProposal::valid($value, $allowedIds);
     }
 
     private static function validText($value, int $minimum, int $maximum): bool

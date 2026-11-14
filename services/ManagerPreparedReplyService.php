@@ -9,6 +9,7 @@ require_once __DIR__.'/ManagerDraftPilotCollector.php';
 require_once __DIR__.'/ManagerPreparationEligibility.php';
 require_once __DIR__.'/ManagerPreparedInputService.php';
 require_once __DIR__.'/ManagerAiReplyAdmission.php';
+require_once __DIR__.'/ManagerAiDraftProposal.php';
 
 /** Private work metadata and reviewed proposals; never a transcript or delivery queue. */
 final class ManagerPreparedReplyService
@@ -17,7 +18,6 @@ final class ManagerPreparedReplyService
     public const MAX_PENDING = 200;
     public const TTL_SECONDS = 3600;
     public const MAX_PROPOSAL_BYTES = 32768;
-    private const FIELDS = ['ok','should_draft','draft','next_action','reason','checks','evidence_message_ids','history_incomplete'];
 
     /** Opening one authorized chat requests work; it never calls a model or sends. */
     public static function requestOnOpen(int $cid, int $viewer, array $before): array
@@ -406,7 +406,11 @@ final class ManagerPreparedReplyService
                 $e=ManagerPreparedInputService::receipt($pdo,$inputReceipt,$row,$admin,$connection);
                 if(!$e)return self::failure('invalid_input_receipt');
                 if($e->packet()['company_knowledge']['revision']!==$snapshot['company_knowledge']->revision())return self::failure('stale_context');
-            }
+                // Recapturing references without the original selection/photo
+                // payload can admit evidence omitted from the worker's input.
+                // New promises require the exact canonical issuance receipt.
+                if(!ManagerPromiseCandidates::valid($proposal['manager_promises']??[],$e->packet()['context']))return self::failure('invalid_proposal');
+            }elseif(!empty($proposal['manager_promises']))return self::failure('invalid_input_receipt');
             $linked=null;$captureUnknown=false;
             if($inputReceipt!==null)$linked=ManagerPreparedInputService::linked($pdo,$jobId);
             elseif($row['status']==='ready'){
@@ -515,17 +519,16 @@ final class ManagerPreparedReplyService
 
     private static function validatedJson(array $proposal, array $snapshot): ?string
     {
-        if (count($proposal) !== count(self::FIELDS) || array_diff(self::FIELDS, array_keys($proposal))) return null;
+        $fields = ManagerAiDraftProposal::fields($proposal);
+        if ($fields === null) return null;
         $result = ManagerAiDraftService::generate($snapshot['context'], static fn(string $instructions, array $context): array => $proposal,
             $snapshot['company_knowledge'], null, $snapshot['reference_context'] ?? null);
         if (($result['ok'] ?? null) !== true) return null;
-        $ordered = [];
-        foreach (self::FIELDS as $field) {
+        foreach ($fields as $field) {
             if (!array_key_exists($field, $result) || $result[$field] !== $proposal[$field]) return null;
-            $ordered[$field] = $result[$field];
         }
-        $json = json_encode($ordered, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
-        return strlen($json) <= self::MAX_PROPOSAL_BYTES ? $json : null;
+        $json = ManagerAiDraftProposal::json($proposal);
+        return $json !== null && strlen($json) <= self::MAX_PROPOSAL_BYTES ? $json : null;
     }
 
     private static function snapshotFor(PDO $pdo, array $row): ?array

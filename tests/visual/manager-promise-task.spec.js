@@ -7,20 +7,29 @@ const clone=value=>JSON.parse(JSON.stringify(value));
 // The shared fixture renders the actual Manager2 PHP shell and serves current
 // production assets. Only synthetic API responses are added here; no server,
 // account, customer send, task mutation or model invocation is used.
-async function setupPromise(page,{empty=false}={}){
+async function setupPromise(page,{empty=false,candidate=false}={}){
   const base=await setup(page,{sourceRoot:root,projectKey:'anytour'}),calls=[],receipts=new Map();
   const tasks=[{id:77,conversation_id:11,title:'Подготовить согласованный расчёт',due_at_utc:'2030-11-20 12:00:00',status:'open',is_pinned:true,assigned_manager_id:7,assigned_manager_name:'Мария',due_state:'upcoming'}];
   if(empty)tasks.length=0;
   const profile={trip_id:'a'.repeat(32),version:3,sha256:'b'.repeat(64),context_sha256:'c'.repeat(64),boundary_message_id:10,status:'fresh',label:'Зимняя поездка',
     fields:{dates:{value:'20 ноября, 7 ночей',kind:'manager_interpretation',importance:'hard',note:'',citation:{message_id:10,sender_type:'manager',quote:'20 ноября, 7 ночей',sha256:'f'.repeat(64)}}},field_labels:{dates:'Даты поездки'}};
-  const source={id:12,revision:'d'.repeat(64),author_manager_id:7,text:'Пришлю согласованный расчёт на двоих.\nВключу перелёт, трансфер и размещение.\nОтдельно укажу доступные варианты питания.',recorded_at_utc:'2026-11-13T09:00:00Z'};
+  const source={id:12,revision:'d'.repeat(64),author_manager_id:7,text:candidate?'Пришлю согласованный расчёт на двоих 20.11.2030.':'Пришлю согласованный расчёт на двоих.\nВключу перелёт, трансфер и размещение.\nОтдельно укажу доступные варианты питания.',recorded_at_utc:'2026-11-13T09:00:00Z'};
+  const preparedAt=new Date().toISOString(),expiresAt=new Date(Date.now()+3600000).toISOString();
+  if(candidate)await page.route('**/manager/ai-draft.php',route=>{
+    const d=route.request().postDataJSON();expect(d.csrf).toBe('fixture-csrf');expect(['prepared','prepared_preview','prepared_status']).toContain(d.action);
+    return route.fulfill({contentType:'application/json',json:{ok:true,prepared:true,prepared_at:preparedAt,expires_at:expiresAt,source:'chatgpt',
+      should_draft:false,draft:'',next_action:'no_contact',reason:'Менеджер уже обещал прислать расчёт.',checks:[],evidence_message_ids:[12],history_incomplete:false,revision:'synthetic-promise-candidate',latest_message_id:13,
+      promise_candidates:[{conversation_id:11,as_of_message_id:13,kind:'send_calculation',source_message_id:12,source_message_revision:source.revision,
+        trip_id:profile.trip_id,profile_version:profile.version,profile_sha256:profile.sha256,profile_status:profile.status,quote:source.text,
+        deadline_text:'20.11.2030',deadline:{kind:'date',value:'2030-11-20',zone:'Europe/Moscow'},deadline_state:'suggested'}]}});
+  });
   const conversation=id=>({id,project_key:'anytour',customer_id:id+90,manager_id:7,manager_name:'Мария',status:'manager',channel:'telegram',source_id:1,
     display_name:id===11?'Анна Морозова':'Алексей Иванов',original_display_name:id===11?'Анна Морозова':'Алексей Иванов',working_name:null,customer_name_version:0});
   await page.route('**/manager/api.php',route=>{
     const d=route.request().postDataJSON();if(d.action!=='detail')return route.fallback();
     expect(d.csrf).toBe('fixture-csrf');
     return route.fulfill({contentType:'application/json',json:{ok:true,conversation:conversation(d.conversation_id),delivery_failure:null,has_manager_reply:true,
-      messages:[{id:10,direction:'inbound',sender_type:'customer',text:'Нужен расчёт на двоих.',created_at:'2026-11-13 08:59:00'},
+      messages:candidate?[{id:13,direction:'inbound',sender_type:'customer',text:'Хорошо, буду ждать.',created_at:'2026-11-13 09:01:00'}]:[{id:10,direction:'inbound',sender_type:'customer',text:'Нужен расчёт на двоих.',created_at:'2026-11-13 08:59:00'},
         {id:12,direction:'outbound',sender_type:'manager',manager_id:7,sender_id:'7',channel:'telegram',external_message_id:'synthetic-outgoing-12',text:source.text,created_at:'2026-11-13 09:00:00'}],
       history:{has_more:false,before_id:10,page_size:200,mode:'latest'}}});
   });
@@ -76,8 +85,12 @@ async function preserved(page,fileText){
   })).toBe(true);
 }
 
-for(const [width,height] of [[390,900],[430,900],[768,900],[1440,900],[390,420]])test(`explicit promise binding preserves manual work and reconciles once at ${width}x${height}`,async({page,browserName})=>{
-  await page.setViewportSize({width,height});const s=await setupPromise(page);
+const bindingViewports=[
+  ...[[390,900],[430,900],[768,900],[1440,900],[390,420]].map(([width,height])=>({width,height,candidate:false})),
+  ...[390,1440].map(width=>({width,height:900,candidate:true})),
+];
+for(const {width,height,candidate} of bindingViewports)test(`${candidate?'AI candidate outside the transcript':'explicit promise binding'} preserves manual work and reconciles once at ${width}x${height}`,async({page,browserName})=>{
+  await page.setViewportSize({width,height});const s=await setupPromise(page,{candidate});
   await page.locator('#inboxList [data-conversation-id="11"] .m2RowOpen').click();await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');
   await page.locator('#replyText').fill('Ручной ответ остаётся черновиком');
   await page.locator('#replyFile').setInputFiles({name:'private-synthetic.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic unsent attachment')});
@@ -87,37 +100,58 @@ for(const [width,height] of [[390,900],[430,900],[768,900],[1440,900],[390,420]]
   await page.locator('[data-task-edit="77"]').click();await page.locator('[data-task-edit-title]').fill('Незавершённая правка существующей задачи');await page.locator('[data-task-edit-due]').fill('2031-02-04T14:00');
   await page.evaluate(()=>{window.promiseUiManualNodes={title:document.getElementById('leadTaskTitle'),due:document.getElementById('leadTaskDue'),
     editTitle:document.querySelector('[data-task-edit-title]'),editDue:document.querySelector('[data-task-edit-due]'),draft:sessionStorage.getItem(WorkspaceV2TaskDraft.keyFor(11))}});
-  await showChat(page);const opener=page.locator('.promiseTaskMessageMenuToggle[data-promise-source-id="12"]'),action=page.locator('.promiseTaskSourceButton[data-promise-source-id="12"]');await expect(opener).toBeVisible();
-  await expect(action).not.toBeVisible();expect(await action.evaluate(node=>node.parentElement.tagName)).toBe('DETAILS');
+  await showChat(page);
+  if(candidate){
+    await expect(page.locator('#messages .promiseTaskSourceButton[data-promise-source-id="12"]')).toHaveCount(0);
+    await page.locator('#aiDraftOpen').click();await expect(page.locator('.aiPromiseCandidate')).toBeVisible();
+    await expect(page.locator('.aiPromiseQuote')).toHaveText('Пришлю согласованный расчёт на двоих 20.11.2030.');
+    await expect(page.locator('#aiDraftPanel')).toContainText('Предложение по обещанию менеджера');
+    await expect(page.locator('#aiDraftInsert')).not.toBeVisible();await expect(page.locator('.aiPromiseCandidate')).toContainText('20.11.2030');
+  }
+  const opener=page.locator(candidate?'.aiPromiseOpen':'.promiseTaskMessageMenuToggle[data-promise-source-id="12"]'),action=page.locator('.promiseTaskSourceButton[data-promise-source-id="12"]');await expect(opener).toBeVisible();
+  if(!candidate){await expect(action).not.toBeVisible();expect(await action.evaluate(node=>node.parentElement.tagName)).toBe('DETAILS');}
   expect(s.calls.filter(call=>call.action.startsWith('promise_')||call.action==='bind_promise')).toEqual([]);
-  await opener.click();await expect(action).toBeVisible();await action.click();await expect(page.locator('#promiseTaskDialog')).toBeVisible();await expect(page.locator('#promiseTaskTask')).toBeEnabled();
+  await opener.click();if(!candidate){await expect(action).toBeVisible();await action.click();}
+  await expect(page.locator('#promiseTaskDialog')).toBeVisible();await expect(page.locator('#promiseTaskTask')).toBeEnabled();
   await expect(page.locator('.promiseTaskSource h3')).toHaveText('Сообщение');
-  const sourceHeight=await page.locator('#promiseTaskSource').evaluate(node=>({height:node.getBoundingClientRect().height,line:parseFloat(getComputedStyle(node).lineHeight)}));
-  expect(sourceHeight.height).toBeLessThanOrEqual(sourceHeight.line*2+1);
-  await page.locator('#promiseTaskSourceMore').click();expect((await page.locator('#promiseTaskSource').boundingBox()).height).toBeGreaterThan(sourceHeight.height);
-  await page.locator('#promiseTaskSourceMore').click();
-  await page.locator('#promiseTaskTask').selectOption('77');await page.locator('#promiseTaskKind').selectOption('send_calculation');
-  await page.locator('#promiseTaskDeadlineMode').selectOption('date');await page.locator('#promiseTaskDate').fill('2030-11-20');
-  await expect(page.locator('#promiseTaskSource')).toContainText('Пришлю согласованный расчёт на двоих.');
+  if(!candidate){
+    const sourceHeight=await page.locator('#promiseTaskSource').evaluate(node=>({height:node.getBoundingClientRect().height,line:parseFloat(getComputedStyle(node).lineHeight)}));
+    expect(sourceHeight.height).toBeLessThanOrEqual(sourceHeight.line*2+1);
+    await page.locator('#promiseTaskSourceMore').click();expect((await page.locator('#promiseTaskSource').boundingBox()).height).toBeGreaterThan(sourceHeight.height);
+    await page.locator('#promiseTaskSourceMore').click();
+  }
+  await expect(page.locator('#promiseTaskTask')).toHaveValue('');
+  await page.locator('#promiseTaskTask').selectOption('77');
+  if(candidate){await expect(page.locator('#promiseTaskKind')).toHaveValue('');await expect(page.locator('#promiseTaskDeadlineMode')).toHaveValue('');await expect(page.locator('#promiseTaskKind')).toBeDisabled();}
+  else{await page.locator('#promiseTaskKind').selectOption('send_calculation');await page.locator('#promiseTaskDeadlineMode').selectOption('date');await page.locator('#promiseTaskDate').fill('2030-11-20');}
   await expect(page.locator('#promiseTaskConfirm')).toHaveText('Сохранить связь');await expect(page.locator('#promiseTaskConfirm')).toBeEnabled();await expect(page.locator('#promiseTaskPreview')).toHaveCount(0);
+  await expect(page.locator('#promiseTaskSource')).toContainText(candidate?'Пришлю согласованный расчёт на двоих 20.11.2030.':'Пришлю согласованный расчёт на двоих.');
+  if(candidate){
+    await page.locator('#promiseTaskConfirm').click();
+    await expect(page.locator('#promiseTaskKind')).toHaveValue('send_calculation');await expect(page.locator('#promiseTaskDate')).toHaveValue('2030-11-20');
+    await expect(page.locator('#promiseTaskProfile')).toContainText('Зимняя поездка');await expect(page.locator('#promiseTaskProfile')).toContainText('20 ноября, 7 ночей');
+    await expect(page.locator('#promiseTaskTaskSummary')).toContainText('Подготовить согласованный расчёт');await expect(page.locator('#promiseTaskConfirm')).toBeEnabled();
+    expect(s.calls.filter(call=>call.action==='promise_context')).toHaveLength(1);
+  }
   expect(s.writes()).toHaveLength(0);await preserved(page,fileText);
   const box=await page.locator('#promiseTaskDialog').boundingBox();expect(box.x).toBeGreaterThanOrEqual(-1);expect(box.x+box.width).toBeLessThanOrEqual(width+1);expect(box.y).toBeGreaterThanOrEqual(-1);expect(box.y+box.height).toBeLessThanOrEqual(height+1);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});
-  await page.screenshot({animations:'disabled',path:path.join(directory,`promise-tasks-preview-${browserName}-${width}x${height}.png`)});
+  const artifactPrefix=candidate?'promise-candidates':'promise-tasks';
+  await page.screenshot({animations:'disabled',path:path.join(directory,`${artifactPrefix}-preview-${browserName}-${width}x${height}.png`)});
   for(const id of ['promiseTaskKind','promiseTaskTask','promiseTaskDeadlineMode'])expect((await page.locator('#'+id).boundingBox()).height).toBeGreaterThanOrEqual(44);
   await expect(page.locator('#promiseTaskClose')).toBeInViewport();
   await page.locator('#promiseTaskConfirm').click();await expect(page.locator('#promiseTaskCheck')).toBeVisible();await expect(page.locator('#promiseTaskConfirm')).not.toBeVisible();expect(s.writes()).toHaveLength(1);
-  expect(s.calls.filter(call=>call.action==='promise_context')).toHaveLength(1);
+  expect(s.calls.filter(call=>call.action==='promise_context')).toHaveLength(candidate?2:1);
   await expect(page.locator('#promiseTaskProfile')).toContainText('Зимняя поездка');await expect(page.locator('#promiseTaskProfile')).toContainText('20 ноября, 7 ночей');
   await expect(page.locator('#promiseTaskTaskSummary')).toContainText('Подготовить согласованный расчёт');await preserved(page,fileText);
   await page.locator('#promiseTaskProfile').scrollIntoViewIfNeeded();await expect(page.locator('#promiseTaskProfile')).toBeInViewport();
-  await page.screenshot({animations:'disabled',path:path.join(directory,`promise-tasks-conditions-${browserName}-${width}x${height}.png`)});
+  await page.screenshot({animations:'disabled',path:path.join(directory,`${artifactPrefix}-conditions-${browserName}-${width}x${height}.png`)});
   await page.locator('#promiseTaskCheck').click();await expect(page.locator('#promiseTaskStatus')).toContainText('Связь подтверждена');
   await expect(page.locator('#promiseTaskStatus')).not.toContainText(/Обещание выполнено|Задача выполнена/);expect(s.writes()).toHaveLength(1);
   expect(s.calls.filter(call=>call.action==='promise_operation')).toHaveLength(1);await preserved(page,fileText);
-  await page.screenshot({animations:'disabled',path:path.join(directory,`promise-tasks-confirmed-${browserName}-${width}x${height}.png`)});
-  await page.locator('#promiseTaskClose').click();await expect(page.locator('#promiseTaskDialog')).not.toBeVisible();await expect(opener).toBeFocused();await expect(action).not.toBeVisible();await preserved(page,fileText);
+  await page.screenshot({animations:'disabled',path:path.join(directory,`${artifactPrefix}-confirmed-${browserName}-${width}x${height}.png`)});
+  await page.locator('#promiseTaskClose').click();await expect(page.locator('#promiseTaskDialog')).not.toBeVisible();await expect(opener).toBeFocused();if(!candidate)await expect(action).not.toBeVisible();await preserved(page,fileText);
   expect(s.base.errors).toEqual([]);expect(s.base.unexpected).toEqual([]);
   expect(s.base.calls.filter(call=>['send','take','release','close','reopen','create_task','update_task','set_task_completed','set_task_pinned'].includes(call.action))).toEqual([]);
 });

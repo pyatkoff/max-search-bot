@@ -164,6 +164,8 @@ final class ManagerRequestProfileService
             $hasFocus=array_key_exists('hotel_focus',$view);$typedFocus=$view['hotel_focus']??null;$tripId=$view['trip_id'];unset($view['hotel_focus']);
             array_walk_recursive($view,static function(&$v){if(is_string($v)){$a=false;$b=false;$v=ManagerAiTextRedactor::redact($v,$a,$b);}});
             $view['trip_id']=$tripId;
+            // Typed immutable pin for optional promise proposals; never redact a digest.
+            $view['profile_sha256']=$r['profile_sha256'];
             if($hasFocus){
                 if($typedFocus!==null){
                     foreach(['selected_hotel','selected_room'] as $key){$a=false;$b=false;$typedFocus[$key]=ManagerAiTextRedactor::redact($typedFocus[$key],$a,$b);}
@@ -259,6 +261,11 @@ final class ManagerRequestProfileService
     {
         $binary=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'BINARY':'BLOB';
         return 'SELECT id,direction,sender_type,created_at,SUBSTR(CAST(text AS '.$binary.'),1,80001) AS text,SUBSTR(CAST(metadata_json AS '.$binary.'),1,8193) AS metadata FROM messages WHERE conversation_id=?';
+    }
+    /** Pure source projection shared with the bounded promise evidence reader. */
+    public static function messageSource(array $r): array
+    {
+        return self::source($r);
     }
     private static function source(array $r): array
     {

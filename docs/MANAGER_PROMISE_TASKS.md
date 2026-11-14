@@ -11,8 +11,9 @@ the bounded helper in [ManagerRequestProfileService](../services/ManagerRequestP
 the existing [pipeline API](../manager/pipeline-api.php) and
 [LeadTaskService](../services/LeadTaskService.php) for all task state.
 
-Manager2 exposes this explicit link from an outgoing manager message. It enables
-no model extraction, automatic task creation, task-field updates, automatic
+Manager2 exposes this explicit link from an outgoing manager message or a
+verified suggestion in the existing AI result. The binding itself runs no model
+and enables no automatic task creation, task-field updates, automatic
 completion or customer send. The existing task editor and its manual create, edit, complete and reopen
 commands retain their behavior. A successful bind means that a relationship was
 recorded; it does not mean that the promised work was performed.
@@ -326,3 +327,68 @@ contents to this promise and use verified canonical receipts; a generic outgoing
 reply, `known` without verification, or a partial selection is not fulfillment.
 Models, delivery, Replies authority and their existing consumers retain their
 current ownership until those separate changes are explicitly implemented.
+
+## Promise suggestions in the existing AI result
+
+The same manual generation and prepared-reply analysis may now return
+manager_promises independently of should_draft or next_action. A no_contact
+decision may therefore contain an obligation suggestion. The new provider
+schema requires this array, including an empty array; historical eight-field
+proposals remain readable with their original JSON order and digest.
+
+Each of at most three wire elements has exactly kind, source_message_id, quote
+and deadline_text. The result kinds are send_calculation and send_selection.
+The quote is a literal nonempty fragment of at most600 characters from the
+actual supplied message; the optional deadline phrase is a literal fragment of
+at most160 characters from that same message. A duplicate source/kind or an
+unsupported field is rejected. The model never selects a task or supplies
+profile/source pins.
+
+ManagerPromiseCandidates captures at most20 eligible sources from the existing
+authorized AI snapshot. It shares the manual binding's pure source admission:
+outgoing human-manager message, known author, native message ID, valid metadata,
+no linked/forward container and no truncated source. The source must be inside
+the supplied window and at or after the saved trip boundary. Its typed revision
+includes the author and native ID without exposing those raw identifiers to the
+model. The same ReferenceContext revision seals these sources and the immutable
+profile version. Optional promise evidence is admitted last under the existing
+transport cap; it cannot displace the transcript or other accepted references.
+
+An absent, unavailable or source_changed profile supplies no actionable
+candidate. needs_review permits only a suggestion with an explicit human check
+of the trip: a new manager message alone can make an earlier saved profile
+require review. Fresh means the saved textual context is unchanged, not that
+the promise's meaning or every condition has been verified.
+
+The UI receives a separate promise_candidates projection after the existing
+result/context checks. The model proposal and persisted hash are not enriched.
+This projection includes source, trip and profile pins plus the literal quote
+and deadline phrase. It appears in the current AI panel even without a customer
+draft, and opens the same explicit promise dialog. A valid AI source need not be
+in the browser's shorter current message window. The original source/trip/profile
+pins must still match the fresh promise_context before any suggested values are
+used. Task choice and final confirmation remain explicit. After the manager
+chooses a task, the first **Сохранить связь** reads that fresh context and shows
+the verified candidate values for review without writing. The same button then
+rechecks the displayed values and saves; there is no separate preview button.
+A missing or unresolved deadline requires the manager's explicit selection.
+The ordinary message-menu path retains its current one-click save behavior for
+unchanged, already reviewed values. Existing MyPlan facts, planning, drafts,
+selected files and pending-operation receipts keep their current owners.
+
+Only a small literal deadline grammar is normalized: a complete calendar date,
+a whole-second zoned instant, or today/tomorrow/the following day anchored to
+the source's confirmed recorded_at_utc and projected into Europe/Moscow.
+An explicit time with a known day becomes an instant; a day alone stays a date.
+A missing recording clock, omitted year, vague time or unsupported phrase
+leaves the deadline unresolved. A null deadline always requires an explicit
+manager choice and is never silently converted into the manager's decision
+that no deadline exists.
+
+These source, schema, persistence and UI checks establish provenance and
+integrity. They do not establish semantic extraction quality. Negation,
+conditional promises, a quoted third party, another trip, cancellation and
+continued/replaced promises also require the model instruction and human
+confirmation. Synthetic contract tests are not a held-out language-quality
+evaluation. No model/provider call, new processing queue, automatic task write
+or customer delivery is introduced by opening or accepting a suggestion.
