@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__.'/ManagerAiDraftProposal.php';
+
 /** Private observation only: persisted provenance is neither acceptance nor quality. */
 final class ManagerAiDraftFeedbackReport
 {
@@ -208,17 +210,7 @@ final class ManagerAiDraftFeedbackReport
     {
         if (!is_string($json)||strlen($json)>32768||!str_starts_with(ltrim($json),'{')) return null;
         try {$v=json_decode($json,true,16,JSON_THROW_ON_ERROR);} catch(Throwable $ignored) {return null;}
-        $fields=['ok','should_draft','draft','next_action','reason','checks','evidence_message_ids','history_incomplete'];
-        if (!is_array($v)||count($v)!==8||array_diff($fields,array_keys($v))||$v['ok']!==true
-            ||!is_bool($v['should_draft'])||!is_bool($v['history_incomplete'])
-            ||!in_array($v['next_action'],['clarify','answer_question','check_offer','prepare_selection','no_contact'],true)
-            ||!self::text($v['reason'],1,1000)||!is_array($v['checks'])||!array_is_list($v['checks'])||count($v['checks'])>10
-            ||!is_array($v['evidence_message_ids'])||!array_is_list($v['evidence_message_ids'])
-            ||!$v['evidence_message_ids']||count($v['evidence_message_ids'])>20) return null;
-        if ($v['should_draft']?($v['next_action']==='no_contact'||!self::text($v['draft'],1,3000)):$v['draft']!==null) return null;
-        foreach ($v['checks'] as $check) if (!self::text($check,1,400)) return null;
-        $seen=[];foreach($v['evidence_message_ids'] as $id) {if(!is_int($id)||$id<=0||isset($seen[$id]))return null;$seen[$id]=true;}
-        return $v;
+        return ManagerAiDraftProposal::valid($v) ? $v : null;
     }
     private static function text($value,int $min,int $max): bool
     {

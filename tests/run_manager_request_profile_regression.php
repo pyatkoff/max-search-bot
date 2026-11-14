@@ -68,7 +68,9 @@ foreach(ManagerRequestProfile::FIELDS as $key=>$unused)$fields[$key]=['value'=>$
 $budgetCommand=requestProfileCommand($v,['fields'=>$fields]);profileCheck('large valid curated profile is stored before budget verification',ManagerRequestProfileService::save(1,1,$budgetCommand)['ok']);
 $p->prepare('UPDATE messages SET text=? WHERE id=10')->execute([str_repeat('🧳',40000)]);$snap=ManagerAiDraftContextService::snapshot(1,1);
 $base=$snap['context'];$extra=$snap['reference_context']->forContext($base);$edge=null;
-for($count=30000;$count<=39900;$count+=50){$ctx=$base;$ctx['messages'][0]['text']=str_repeat('🧳',$count);$plain=ManagerAiDraftService::prepareInput($ctx)['context'];$early=$extra;unset($early['hotel_reference'],$early['working_selection']);$candidate=$plain+$early;
+// Promise evidence is admitted after the profile; its optional instructions must
+// not manufacture the profile-only boundary this fixture is meant to exercise.
+for($count=30000;$count<=39900;$count+=50){$ctx=$base;$ctx['messages'][0]['text']=str_repeat('🧳',$count);$plain=ManagerAiDraftService::prepareInput($ctx)['context'];$early=$extra;unset($early['hotel_reference'],$early['working_selection'],$early['promise_sources']);$candidate=$plain+$early;
     $oldBytes=strlen(json_encode(ManagerDraftClient::requestBody(ManagerAiDraftService::instructions(),$candidate),ManagerRequestProfile::FLAGS));
     $actualBytes=strlen(json_encode(ManagerDraftClient::requestBody(ManagerAiDraftService::instructions($candidate),$candidate),ManagerRequestProfile::FLAGS));
     if($oldBytes<=ManagerDraftClient::MAX_REQUEST_BYTES&&$actualBytes>ManagerDraftClient::MAX_REQUEST_BYTES+100){$edge=$ctx;break;}}

@@ -27,7 +27,7 @@ try {
     $loader = "<?php\nrequire_once ".var_export($fixture,true).";\n";
     file_put_contents($tmp.'/config.php', $loader.'$GLOBALS["manager_ai_http_fixture_directory"] = '.var_export($tmp,true).";\n");
     foreach (['ManagerAuthService','ManagerConversationAccessPolicy','ManagerAiDraftContextService','ManagerAiDraftService','ManagerAiDraftFeedbackService','ManagerPreparedReplyService','ManagerPreparationMcpService'] as $service) file_put_contents($tmp.'/services/'.$service.'.php',$loader);
-    foreach (['manager/ai-draft.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php','services/ManagerAiReplyAdmission.php','services/ManagerAiDraftInputEvidence.php'] as $source) copy($root.'/'.$source,$tmp.'/'.$source);
+    foreach (['manager/ai-draft.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php','services/ManagerAiReplyAdmission.php','services/ManagerAiDraftInputEvidence.php','services/ManagerAiDraftProposal.php','services/ManagerPromiseCandidates.php'] as $source) copy($root.'/'.$source,$tmp.'/'.$source);
     managerAiEndpointCheck('isolated app executes exact current endpoint bytes',hash_file('sha256',$root.'/manager/ai-draft.php') === hash_file('sha256',$tmp.'/manager/ai-draft.php'));
     file_put_contents($tmp.'/manager/fixture-session.php', '<?php require dirname(__DIR__)."/config.php";require __DIR__."/lib/ManagerHttp.php";ManagerHttp::startJson();$_SESSION["manager_id"]=7;$_SESSION["csrf"]="synthetic-csrf";ManagerHttp::respond(["ok"=>true]);');
     $proposal = ['ok'=>true,'should_draft'=>true,'draft'=>'Здравствуйте! Какие даты вылета вам подходят?',
@@ -71,7 +71,17 @@ try {
             // Keep every existing exact proposal/metadata assertion. Only the
             // separately checked additive decision is projected alongside it.
             $response['admission']=$a;unset($response['json']['admission']);
-        }elseif(isset($json['admission']))throw new RuntimeException('FAIL admission leaked into error or lightweight readiness');
+            // Candidate hints are a separate HTTP projection, never an appended
+            // field in the historical eight-field proposal or its saved hash.
+            if(!array_key_exists('promise_candidates',$json)||!is_array($json['promise_candidates'])
+                ||!array_is_list($json['promise_candidates']))throw new RuntimeException('FAIL promise candidate projection must be an explicit list');
+            if(!array_key_exists('manager_promises',$json)&&$json['promise_candidates']!==[])
+                throw new RuntimeException('FAIL legacy proposal cannot invent promise candidates');
+            $response['promise_candidates']=$json['promise_candidates'];unset($response['json']['promise_candidates']);
+        }else{
+            if(isset($json['admission']))throw new RuntimeException('FAIL admission leaked into error or lightweight readiness');
+            if(is_array($json)&&array_key_exists('promise_candidates',$json))throw new RuntimeException('FAIL promise candidates leaked into error or lightweight readiness');
+        }
         return $response;
     };
     $login = static fn(): string=>managerAiHttpFixtureRequest($address,'/manager/fixture-session.php',[],'','GET')['cookie'];
@@ -127,6 +137,8 @@ try {
     $ready=$request($prepared,$cookie);
     managerAiEndpointCheck('prepared action returns only current owner cache result',
         $ready['status']===200&&$ready['json']===$cached);
+    managerAiEndpointCheck('legacy prepared reply has a separate empty candidate list without an appended model field',
+        $ready['promise_candidates']===[]&&!array_key_exists('manager_promises',$ready['json']));
     managerAiEndpointCheck('selected prepared reply carries a separate closed admission decision',$ready['admission']['actual_send_allowed']===false&&$ready['admission']['decision']==='manager_review');
     $assertNoProvider('prepared hit has zero provider calls');
     managerAiEndpointCheck('explicit preview records the exact prepared job after fresh authorization',
@@ -150,6 +162,8 @@ try {
     managerAiEndpointCheck('passive preview returns full current proposal without private job identity',
         $inlinePreview['status']===200&&$inlinePreview['json']===array_replace(array_diff_key($cached,['job_id'=>true]),
             ['draft_id'=>null,'expires_at'=>'2026-10-19 11:00:00','preparation_source'=>'chatgpt_assistant'])+$policyProjection);
+    managerAiEndpointCheck('legacy passive preview keeps the candidate projection empty and outside the saved model proposal',
+        $inlinePreview['promise_candidates']===[]&&!array_key_exists('manager_promises',$inlinePreview['json']));
     $assertNoProvider('passive full-text preview never calls provider');
     managerAiEndpointCheck('passive full-text preview never records use or insertion feedback',
         !array_intersect(['feedback_record','feedback_insert_request'],array_column($events(),'event')));
@@ -300,6 +314,8 @@ try {
     $forged=$request($body+['admission'=>['decision'=>'approved','actual_send_allowed'=>true]],$cookie);
     managerAiEndpointCheck('caller admission JSON is ignored at the canonical boundary',$forged['admission']['decision']==='manager_review'&&$forged['admission']['actual_send_allowed']===false);
     managerAiEndpointCheck('valid proposal passes with server revision, latest ID and draft identity',$valid['status'] === 200 && $valid['json'] === $proposal+['revision'=>$baseState['revision'],'latest_message_id'=>10,'draft_id'=>str_repeat('d',32)]);
+    managerAiEndpointCheck('legacy generated reply keeps its exact proposal beside an empty candidate projection',
+        $valid['promise_candidates']===[]&&!array_key_exists('manager_promises',$valid['json']));
     managerAiEndpointCheck('feedback persistence follows fresh post-provider authorization',array_column($flow,'event') === ['initialize_read_only','auth','snapshot','provider','snapshot','feedback_record']
         && $flow[5]['manager_id']===7 && $flow[5]['conversation_id']===42 && $flow[5]['revision']===$baseState['revision']);
     managerAiEndpointCheck('provider receives authenticated actor context, not posted manager ID',array_column(array_values(array_filter($flow,static fn(array $event): bool=>$event['event'] === 'snapshot')),'manager_id') === [7,7]);
