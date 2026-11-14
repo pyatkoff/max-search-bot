@@ -205,12 +205,33 @@ final class ModeledConversionDailyReconciliationReader
             $reasons=['identity_not_found','identity_ambiguous','metrika_visit_window','metrika_visit_unverified','metrika_no_prior_visit','wire_key_collision'];
             foreach($reasons as$i=>$reason)$fields[]="COALESCE(SUM(CASE WHEN ".$queue
                 ." AND HEX(o.last_error)=HEX('".$reason."') THEN 1 ELSE 0 END),0) AS r".$i;
-            $rows=$this->query('SELECT '.implode(',',$fields)
+            // Fixed scalar positional transport avoids copying every repeated metric
+            // alias twelve times. Cast before JSON encoding so DECIMAL and counts
+            // retain their exact database strings; CAST(NULL) remains JSON null.
+            $names=[];$packed=[];
+            foreach(array_slice($fields,1)as$field){
+                if(preg_match('/\A(.+) AS ([a-z][a-z0-9_]*)\z/sD',$field,$match)!==1)
+                    throw new UnexpectedValueException();
+                $names[]=$match[2];$packed[]='CAST(('.$match[1].') AS '.($mysql?'CHAR':'TEXT').')';
+            }
+            if(count(array_unique($names))!==count($names))throw new UnexpectedValueException();
+            $wire='b.bucket,b.category,'.($mysql?'JSON_ARRAY':'json_array').'('.implode(',',$packed).') AS packet';
+            $rows=$this->query('SELECT '.$wire
                 .' FROM ('.implode(' UNION ALL ',$groups).') b LEFT JOIN ('.$meta.') o'
                 ." ON b.bucket='all' OR (b.bucket='platform' AND HEX(o.platform)=HEX(b.category))"
                 ." OR (b.bucket='state' AND HEX(o.state)=HEX(b.category))"
-                .' GROUP BY b.bucket,b.category',[],12);
+                .' GROUP BY b.bucket,b.category',[],12,true);
             if(count($rows)!==12)throw new UnexpectedValueException();
+            // query() already charged the actual encoded wire rows before decoding.
+            foreach($rows as&$row){
+                if(!is_string($row['packet']??null))throw new UnexpectedValueException();
+                $values=json_decode($row['packet'],true,8,JSON_THROW_ON_ERROR);
+                if(!is_array($values)||!array_is_list($values)||count($values)!==count($names))
+                    throw new UnexpectedValueException();
+                foreach($values as$value)if($value!==null&&!is_string($value))throw new UnexpectedValueException();
+                $row=['bucket'=>$row['bucket'],'category'=>$row['category']]+array_combine($names,$values);
+            }
+            unset($row);
             $seen=[];$all=null;$platforms=[];$states=[];
             foreach($rows as$r){
                 $bucket=$r['bucket']??null;$category=$r['category']??null;
@@ -269,12 +290,12 @@ final class ModeledConversionDailyReconciliationReader
         }catch(PDOException $ignored){
             if($own&&$this->pdo->inTransaction())$this->pdo->rollBack();
             return$this->done(['available'=>false,'reason'=>'storage_unavailable']);
-        }catch(UnexpectedValueException $ignored){
+        }catch(UnexpectedValueException|JsonException $ignored){
             if($own&&$this->pdo->inTransaction())$this->pdo->rollBack();
             return$this->done(['available'=>false,'reason'=>'invalid_aggregate']);
         }catch(OverflowException $ignored){
             if($own&&$this->pdo->inTransaction())$this->pdo->rollBack();
-            $this->auth();return['available'=>false,'reason'=>'read_limit'];
+            $this->auth();return['available'=>false,'reason'=>$ignored->getMessage()==='backlog_headroom'?'budget_headroom':'read_limit'];
         }catch(Throwable $error){if($own&&$this->pdo->inTransaction())$this->pdo->rollBack();throw$error;}
     }
     private function base(bool $mysql):string
@@ -325,8 +346,9 @@ final class ModeledConversionDailyReconciliationReader
         return(int)$m[1]*100+(int)str_pad($m[2]??'',2,'0');
     }
     private static function rub(int $cents):int|float{return$cents%100===0?intdiv($cents,100):$cents/100;}
-    private function query(string $sql,array $args,int $limit):array
+    private function query(string $sql,array $args,int $limit,bool $boundedBacklog=false):array
     {
+        if($boundedBacklog)$this->backlogHeadroom();
         $this->guard();$this->auth();
         if($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
             $left=(int)floor((self::MAX_SECONDS-(($this->clock)()-$this->started))*1000);
@@ -335,13 +357,28 @@ final class ModeledConversionDailyReconciliationReader
             $sql=preg_replace('/\ASELECT /','SELECT /*+ MAX_EXECUTION_TIME('.min(4500,$left).') */ ',$sql,1);
         }
         $q=$this->pdo->prepare($sql);$q->execute($args);$rows=[];
-        try{while(($r=$q->fetch(PDO::FETCH_ASSOC))!==false){
+        try{while(true){
+            // The backlog SQL has exactly twelve fixed buckets. Stop after the twelfth
+            // without copying an unnecessary sentinel row; guard BEFORE each fetch.
+            if($boundedBacklog){if(count($rows)>=$limit)break;$this->backlogHeadroom();}
+            $r=$q->fetch(PDO::FETCH_ASSOC);if($r===false)break;
             if(count($rows)>=$limit)throw new UnexpectedValueException();
             $copied=strlen(json_encode($r,JSON_THROW_ON_ERROR));
             $this->bytes+=$copied;if($this->budget!==null)$this->budget->consumeBytes($copied);
+            if($boundedBacklog&&$copied>2048)throw new UnexpectedValueException();
             $this->guard();$rows[]=$r;
         }}finally{$q->closeCursor();}
         $this->auth();$this->guard();return$rows;
+    }
+    /** Fixed scalar aliases, at most10001 rows and25000 RUB bound each encoded bucket below2KiB.
+     * Keep8KiB for the existing post-query/result authorization checks before another copy.
+     * A headroom omission rolls back; bytes already copied remain charged to the shared budget.
+     */
+    private function backlogHeadroom():void
+    {
+        $this->guard();
+        if($this->budget!==null&&$this->budget->remainingBytes()<2048+8192)
+            throw new OverflowException('backlog_headroom');
     }
     private function guard():void
     {if($this->budget!==null)$this->budget->check();
