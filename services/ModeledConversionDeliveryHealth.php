@@ -8,6 +8,9 @@ final class ModeledConversionDeliveryHealth
 {
     private const TARGET='anytour_modeled_value_v1';
     private const CONTRACT='semantic_stage_value_25000_v1';
+    // A completed negative visit check is business waiting, not an upload-ready item.
+    // Still detect starvation if its next read remains overdue for one hour.
+    private const VISIT_RECHECK_OVERDUE_SECONDS=3600;
     public static function collect(PDO $pdo,int $now,?ModeledConversionStatusBudget $budget=null,?callable $authorize=null):array
     {
         $out=['schema_version'=>1,'project'=>'anytour','counter_id'=>'98615635','checked_at'=>null,'enabled'=>null,
@@ -87,12 +90,23 @@ final class ModeledConversionDeliveryHealth
                 ." AND HEX(o.project_key)=HEX('anytour') AND o.counter_id='98615635' AND HEX(o.counter_id)=HEX('98615635')"
                 ." AND o.transport_target=? AND HEX(o.transport_target)=HEX(?) AND o.value_contract=? AND HEX(o.value_contract)=HEX(?)"
                 ." AND HEX(o.state)=HEX('unmatched') AND HEX(o.upload_status)=HEX('LINKAGE_FAILURE')";
-            $sql='SELECT '.$exists("state='ready' AND value_ready_at_unix IS NOT NULL AND value_ready_at_unix<=? AND next_attempt_unix<=?").' AS ready_queue_stale,'
+            // Only an untouched, still-scoped row with an exact saved negative receives the recheck grace.
+            // Unknown checks, malformed rows and any upload trace retain the ordinary two-cycle deadline.
+            $visitHold="HEX(o.last_error) IN(HEX('metrika_no_prior_visit'),HEX('metrika_visit_window'))"
+                ." AND o.attempts=0 AND COALESCE(HEX(o.upload_id),'')='' AND COALESCE(HEX(o.upload_status),'')=''"
+                ." AND COALESCE(HEX(o.claim_token),'')='' AND o.claimed_at_unix IS NULL"
+                ." AND o.value_api_accepted_at_unix IS NULL AND o.value_processed_at_unix IS NULL"
+                ." AND o.value_receipt_basis IS NULL AND o.value_rub>0"
+                ." AND o.client_id IS NOT NULL AND LENGTH(o.client_id)>0"
+                ." AND o.event_unix>0 AND o.event_unix<=o.value_ready_at_unix"
+                ." AND o.next_attempt_unix>=o.value_ready_at_unix";
+            $sql='SELECT '.$exists("state='ready' AND value_ready_at_unix IS NOT NULL AND value_ready_at_unix<=?"
+                ." AND next_attempt_unix<=CASE WHEN (".$visitHold.") THEN ? ELSE ? END").' AS ready_queue_stale,'
                 .$exists("state IN ('uploading','unknown') AND claimed_at_unix IS NOT NULL AND claimed_at_unix<=?").' AS upload_outcome_unknown,'
                 .$exists($failed).' AS api_row_rejected,'
                 .'('.$linkage.') AS linkage_failure_events,'
                 .$exists('(value_ready_at_unix>? OR value_api_accepted_at_unix>? OR value_processed_at_unix>? OR claimed_at_unix>?)').' AS invalid_clock';
-            $rows=$query($sql,[self::TARGET,self::CONTRACT,$now-600,$now-600,self::TARGET,self::CONTRACT,$now-900,
+            $rows=$query($sql,[self::TARGET,self::CONTRACT,$now-600,$now-self::VISIT_RECHECK_OVERDUE_SECONDS,$now-600,self::TARGET,self::CONTRACT,$now-900,
                 self::TARGET,self::CONTRACT,self::TARGET,self::TARGET,self::CONTRACT,self::CONTRACT,self::TARGET,self::CONTRACT,$now+60,$now+60,$now+60,$now+60]);
             if(count($rows)!==1)throw new UnexpectedValueException('invalid_metadata');
             $out['linkage_failures']=['basis'=>'complete_saved_goal_linkage_failures_v1','goal_id'=>'678187097',

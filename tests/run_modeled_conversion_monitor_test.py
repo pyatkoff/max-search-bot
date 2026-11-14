@@ -71,6 +71,12 @@ class MonitorTests(unittest.TestCase):
         if output["intent_prepared"]:
             state, output = monitor.send(state, RECIPIENT, self.wire, self.save, run_id, True, now=201)
         return state, output
+    def test_ready_queue_alert_describes_processing_and_visit_recheck(self):
+        text = monitor.message_for({"kind": "failure", "flags": ["ready_queue_stale"]}, role="pipeline")
+        self.assertIn("повторная проверка", text)
+        self.assertNotIn("Готовые начисления", text)
+        self.assertNotIn("двух циклов", text)
+
     def test_cipher_roundtrip_and_tamper(self):
         state = self.activate()
         key = b"synthetic-private-key\n"
