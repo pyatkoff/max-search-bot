@@ -1,0 +1,599 @@
+{
+  "schema": "local_hotel_editorial_draft_v1",
+  "status": "DRAFT_EDITORIALLY_REVIEWED_NOT_REGISTRY_ACCEPTANCE",
+  "prepared_at_utc": "2026-11-14T10:18:33Z",
+  "repository": "pyatkoff/max-search-bot",
+  "preparation_scope": "Exactly 16 retained claims and two retained source records for Palace Beach; fresh reading restricted to those same two primary URLs. No accepted-catalogue re-audit.",
+  "identity": {
+    "tourvisor_hotel_id": 206,
+    "anex_hotel_id": 1351,
+    "anytour_hotel_id": 58,
+    "registry_record_id": "119dc72a-789b-4023-94e3-9a6a4dc517a3",
+    "research_hotel_key": "top500_cabdda7333335724",
+    "canonical_name": "PALACE BEACH HOTEL (EX. WHITE VALLEY)",
+    "retained_identity": {
+      "anytour_hotel_id": 58,
+      "archive_name": "additional-fifth20-identity-read-retained.zip",
+      "association_basis": "Previously root-approved exact native-to-retained-key association; recovery128 JSON",
+      "canonical_name": "PALACE BEACH HOTEL (EX. WHITE VALLEY)",
+      "canonical_revision": 1,
+      "catalogue_member": "additional-fifth20-current-catalog.json",
+      "consumer_admission": false,
+      "country": "EG",
+      "country_original": {
+        "name": "Египет"
+      },
+      "identity_member": "additional-fifth20-typed-identities.json",
+      "legacy_catalog_hotel_id": 206,
+      "local_tv_edge": "NOT_ESTABLISHED_BY_THIS_SAVED_LEGACY_ANYTOUR_LINK",
+      "research_hotel_key": "top500_cabdda7333335724",
+      "root_identity_limitations": [
+        "Current typed catalog and registry clearance remain required. Historic promotions, ages, rights, rooms and notices require retained scope review during preparation.",
+        "Palace Beach / formerWhiteValley identity only."
+      ],
+      "saved_catalogue_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e"
+    },
+    "current_registry_card_revision": null,
+    "current_registry_full_card_read": false,
+    "last_observed_global_registry_version": 468,
+    "global_version_is_not_card_revision": true,
+    "actual_accepted_binding": null,
+    "actual_local_tv_edge": null,
+    "new_content_admission": false,
+    "ready": false,
+    "runtime_installed": false
+  },
+  "customer_post": "✈️ Туры в Palace Beach (ранее White Valley Palace)\n📍 Хургада, Египет.\n\nМоре рядом и просторные номера: отель на первой линии, с собственным пляжем. Standard — 48 м², с балконом или террасой. Для семьи есть номера из двух комнат.\n\nПитание — «всё включено».\n\nПодберём подходящий номер и рассчитаем тур с перелётом на ваши даты.",
+  "customer_post_utf16_units": 326,
+  "customer_post_sha256": "0ba12bb75971e99e1abed74b19f0ce82a953f447ec41765fe9a80281fa9de6e3",
+  "material_caveat": {
+    "customer_text": null,
+    "candidate_text_only_if_current_work_confirmed": "В части номеров на первом этаже идёт ремонт.",
+    "source_id": "top500_cabdda7333335724_s01",
+    "source_url": "https://kompastour.com/kz/rus/country/egypt/hurgada_village_road/white_valley/",
+    "source_section": "Description: published notice; web lines 330–332",
+    "observed_on": "2026-11-14",
+    "underlying_description_date": "2025-09",
+    "published_end_condition": "Until further notice; no end date",
+    "confirmed_scope": "An undated-end notice in a September 2025 description concerns renovation of part of the first-floor guestrooms.",
+    "current_renovation_status": "unconfirmed",
+    "current_renovation_status_unconfirmed": true,
+    "limits": "A still-published historical notice is not positive evidence that work continues in November 2026. Neither current works nor completion is established. No current noise, closure or completion date inferred.",
+    "required_before_admission": "Resolve the current status of this material notice; if current work is confirmed, include a concise exact factual warning with only proven guest impact.",
+    "customer_post_omits_unresolved_material_notice": true,
+    "can_publish_without_resolving_this": false
+  },
+  "used_claim_ids": [
+    "HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c37",
+    "HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c38",
+    "top500_cabdda7333335724_c02",
+    "top500_cabdda7333335724_c03",
+    "top500_cabdda7333335724_c04",
+    "top500_cabdda7333335724_run03_c01"
+  ],
+  "claim_review": [
+    {
+      "claim_id": "HOTEL-EG-CONTINUOUS-20261028-EBE0FAEA6A15-08_H05_c01",
+      "source_ids": [
+        "top500_cabdda7333335724_run03_s01"
+      ],
+      "archive_member": "claims/part-001.jsonl",
+      "variant_count": 1,
+      "decision": "omitted",
+      "reason": "Reception, Wi-Fi and on-call services add little to this short post; no price, access or time promise is inferred.",
+      "original_acceptance": {
+        "direct_working_acceptance_refs": [
+          {
+            "json_pointer": "/working_acceptances/28",
+            "observed_state": "WORKING_ACCEPTED_NATIVE_READBACK_CONFIRMED",
+            "operation_id": "HOTEL-CENTRAL-EG-CONTINUOUS-20261028-946B18DD6630-ONCE",
+            "variant_index": 0
+          }
+        ],
+        "explicit_import_ledger_refs": [
+          {
+            "import_id": "HOTEL-CENTRAL-EG-CONTINUOUS-20261028-946B18DD6630-ONCE::HOTEL-EG-CONTINUOUS-20261028-EBE0FAEA6A15-08",
+            "json_pointer": "/country_import_ledger/imports/103",
+            "observed_acceptance_ref": "#/working_acceptances/28",
+            "observed_import_status": "WORKING_ACCEPTED_EXPORT_PENDING",
+            "observed_packet_sha256": "045242b714479d55e92e66acf54c8e3723dd89ad8f9c7c73ccdea101ac080922"
+          }
+        ],
+        "no_inferred_assignment_to_19_server_packets": true,
+        "working_presence": "retained_working165"
+      },
+      "original_provenance": {
+        "json_pointer": "/knowledge/claims/HOTEL-EG-CONTINUOUS-20261028-EBE0FAEA6A15-08_H05_c01",
+        "source_ref": "working165"
+      }
+    },
+    {
+      "claim_id": "HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c37",
+      "source_ids": [
+        "top500_cabdda7333335724_s01"
+      ],
+      "archive_member": "claims/part-001.jsonl",
+      "variant_count": 1,
+      "decision": "used_in_part",
+      "reason": "Standard balcony or terrace only. No minibar refill/free-service promise.",
+      "original_acceptance": {
+        "direct_working_acceptance_refs": [],
+        "explicit_import_ledger_refs": [
+          {
+            "import_id": "HOTEL-EG-HURGHADA-SAVED-MASS-163::HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07",
+            "json_pointer": "/country_import_ledger/imports/45",
+            "observed_acceptance_ref": "working-bootstrap-native-create",
+            "observed_import_status": "WORKING_ACCEPTED_EXPORT_PENDING",
+            "observed_packet_sha256": null
+          }
+        ],
+        "no_inferred_assignment_to_19_server_packets": true,
+        "working_presence": "retained_working165"
+      },
+      "original_provenance": {
+        "json_pointer": "/knowledge/claims/HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c37",
+        "source_ref": "working165"
+      }
+    },
+    {
+      "claim_id": "HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c38",
+      "source_ids": [
+        "top500_cabdda7333335724_s01"
+      ],
+      "archive_member": "claims/part-001.jsonl",
+      "variant_count": 1,
+      "decision": "used_in_part",
+      "reason": "Family has two rooms only; omit disputed 85 m², occupancy and door type.",
+      "original_acceptance": {
+        "direct_working_acceptance_refs": [],
+        "explicit_import_ledger_refs": [
+          {
+            "import_id": "HOTEL-EG-HURGHADA-SAVED-MASS-163::HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07",
+            "json_pointer": "/country_import_ledger/imports/45",
+            "observed_acceptance_ref": "working-bootstrap-native-create",
+            "observed_import_status": "WORKING_ACCEPTED_EXPORT_PENDING",
+            "observed_packet_sha256": null
+          }
+        ],
+        "no_inferred_assignment_to_19_server_packets": true,
+        "working_presence": "retained_working165"
+      },
+      "original_provenance": {
+        "json_pointer": "/knowledge/claims/HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c38",
+        "source_ref": "working165"
+      }
+    },
+    {
+      "claim_id": "HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c39",
+      "source_ids": [
+        "top500_cabdda7333335724_s01"
+      ],
+      "archive_member": "claims/part-001.jsonl",
+      "variant_count": 1,
+      "decision": "omitted",
+      "reason": "Old building description is not evidence of completed works. Current same-source repair notice is preserved separately as material caveat.",
+      "original_acceptance": {
+        "direct_working_acceptance_refs": [],
+        "explicit_import_ledger_refs": [
+          {
+            "import_id": "HOTEL-EG-HURGHADA-SAVED-MASS-163::HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07",
+            "json_pointer": "/country_import_ledger/imports/45",
+            "observed_acceptance_ref": "working-bootstrap-native-create",
+            "observed_import_status": "WORKING_ACCEPTED_EXPORT_PENDING",
+            "observed_packet_sha256": null
+          }
+        ],
+        "no_inferred_assignment_to_19_server_packets": true,
+        "working_presence": "retained_working165"
+      },
+      "original_provenance": {
+        "json_pointer": "/knowledge/claims/HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c39",
+        "source_ref": "working165"
+      }
+    },
+    {
+      "claim_id": "HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c40",
+      "source_ids": [
+        "top500_cabdda7333335724_s01"
+      ],
+      "archive_member": "claims/part-001.jsonl",
+      "variant_count": 1,
+      "decision": "omitted",
+      "reason": "No nine-pool or heating/current-operation promise.",
+      "original_acceptance": {
+        "direct_working_acceptance_refs": [],
+        "explicit_import_ledger_refs": [
+          {
+            "import_id": "HOTEL-EG-HURGHADA-SAVED-MASS-163::HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07",
+            "json_pointer": "/country_import_ledger/imports/45",
+            "observed_acceptance_ref": "working-bootstrap-native-create",
+            "observed_import_status": "WORKING_ACCEPTED_EXPORT_PENDING",
+            "observed_packet_sha256": null
+          }
+        ],
+        "no_inferred_assignment_to_19_server_packets": true,
+        "working_presence": "retained_working165"
+      },
+      "original_provenance": {
+        "json_pointer": "/knowledge/claims/HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c40",
+        "source_ref": "working165"
+      }
+    },
+    {
+      "claim_id": "HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c41",
+      "source_ids": [
+        "top500_cabdda7333335724_s01"
+      ],
+      "archive_member": "claims/part-001.jsonl",
+      "variant_count": 1,
+      "decision": "omitted",
+      "reason": "Off-building aquapark at 800 m; entitlement, transport and present operation are unproved. No Palace ownership or inclusion inferred.",
+      "original_acceptance": {
+        "direct_working_acceptance_refs": [],
+        "explicit_import_ledger_refs": [
+          {
+            "import_id": "HOTEL-EG-HURGHADA-SAVED-MASS-163::HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07",
+            "json_pointer": "/country_import_ledger/imports/45",
+            "observed_acceptance_ref": "working-bootstrap-native-create",
+            "observed_import_status": "WORKING_ACCEPTED_EXPORT_PENDING",
+            "observed_packet_sha256": null
+          }
+        ],
+        "no_inferred_assignment_to_19_server_packets": true,
+        "working_presence": "retained_working165"
+      },
+      "original_provenance": {
+        "json_pointer": "/knowledge/claims/HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c41",
+        "source_ref": "working165"
+      }
+    },
+    {
+      "claim_id": "HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c42",
+      "source_ids": [
+        "top500_cabdda7333335724_s01"
+      ],
+      "archive_member": "claims/part-001.jsonl",
+      "variant_count": 1,
+      "decision": "omitted",
+      "reason": "No named kids-club, ages or schedule promise; current common concept is unconfirmed.",
+      "original_acceptance": {
+        "direct_working_acceptance_refs": [],
+        "explicit_import_ledger_refs": [
+          {
+            "import_id": "HOTEL-EG-HURGHADA-SAVED-MASS-163::HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07",
+            "json_pointer": "/country_import_ledger/imports/45",
+            "observed_acceptance_ref": "working-bootstrap-native-create",
+            "observed_import_status": "WORKING_ACCEPTED_EXPORT_PENDING",
+            "observed_packet_sha256": null
+          }
+        ],
+        "no_inferred_assignment_to_19_server_packets": true,
+        "working_presence": "retained_working165"
+      },
+      "original_provenance": {
+        "json_pointer": "/knowledge/claims/HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c42",
+        "source_ref": "working165"
+      }
+    },
+    {
+      "claim_id": "HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c43",
+      "source_ids": [
+        "top500_cabdda7333335724_s01"
+      ],
+      "archive_member": "claims/part-001.jsonl",
+      "variant_count": 1,
+      "decision": "omitted",
+      "reason": "No operational gym or tennis claim from the old coming-soon notice; no free SPA promise.",
+      "original_acceptance": {
+        "direct_working_acceptance_refs": [],
+        "explicit_import_ledger_refs": [
+          {
+            "import_id": "HOTEL-EG-HURGHADA-SAVED-MASS-163::HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07",
+            "json_pointer": "/country_import_ledger/imports/45",
+            "observed_acceptance_ref": "working-bootstrap-native-create",
+            "observed_import_status": "WORKING_ACCEPTED_EXPORT_PENDING",
+            "observed_packet_sha256": null
+          }
+        ],
+        "no_inferred_assignment_to_19_server_packets": true,
+        "working_presence": "retained_working165"
+      },
+      "original_provenance": {
+        "json_pointer": "/knowledge/claims/HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c43",
+        "source_ref": "working165"
+      }
+    },
+    {
+      "claim_id": "HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c44",
+      "source_ids": [
+        "top500_cabdda7333335724_s01"
+      ],
+      "archive_member": "claims/part-001.jsonl",
+      "variant_count": 1,
+      "decision": "omitted",
+      "reason": "Service-fee and Wi-Fi details omitted from the short post.",
+      "original_acceptance": {
+        "direct_working_acceptance_refs": [],
+        "explicit_import_ledger_refs": [
+          {
+            "import_id": "HOTEL-EG-HURGHADA-SAVED-MASS-163::HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07",
+            "json_pointer": "/country_import_ledger/imports/45",
+            "observed_acceptance_ref": "working-bootstrap-native-create",
+            "observed_import_status": "WORKING_ACCEPTED_EXPORT_PENDING",
+            "observed_packet_sha256": null
+          }
+        ],
+        "no_inferred_assignment_to_19_server_packets": true,
+        "working_presence": "retained_working165"
+      },
+      "original_provenance": {
+        "json_pointer": "/knowledge/claims/HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c44",
+        "source_ref": "working165"
+      }
+    },
+    {
+      "claim_id": "top500_cabdda7333335724_c01",
+      "source_ids": [
+        "top500_cabdda7333335724_s01"
+      ],
+      "archive_member": "claims/part-004.jsonl",
+      "variant_count": 1,
+      "decision": "omitted",
+      "reason": "Root review preserves the established tour-post heading without a star-category claim.",
+      "original_acceptance": {
+        "direct_working_acceptance_refs": [],
+        "explicit_import_ledger_refs": [],
+        "no_inferred_assignment_to_19_server_packets": true,
+        "working_presence": "retained_working165"
+      },
+      "original_provenance": {
+        "json_pointer": "/knowledge/claims/top500_cabdda7333335724_c01",
+        "source_ref": "working165"
+      }
+    },
+    {
+      "claim_id": "top500_cabdda7333335724_c02",
+      "source_ids": [
+        "top500_cabdda7333335724_s01"
+      ],
+      "archive_member": "claims/part-004.jsonl",
+      "variant_count": 1,
+      "decision": "used",
+      "reason": "Published AI meal plan only; no 24-hour alcohol, all-group facilities or all-restaurants-included promise.",
+      "original_acceptance": {
+        "direct_working_acceptance_refs": [],
+        "explicit_import_ledger_refs": [],
+        "no_inferred_assignment_to_19_server_packets": true,
+        "working_presence": "retained_working165"
+      },
+      "original_provenance": {
+        "json_pointer": "/knowledge/claims/top500_cabdda7333335724_c02",
+        "source_ref": "working165"
+      }
+    },
+    {
+      "claim_id": "top500_cabdda7333335724_c03",
+      "source_ids": [
+        "top500_cabdda7333335724_s01"
+      ],
+      "archive_member": "claims/part-004.jsonl",
+      "variant_count": 1,
+      "decision": "used_in_part",
+      "reason": "Standard 48 m² only; omit disputed Family area, all occupancy limits and Triple detail.",
+      "original_acceptance": {
+        "direct_working_acceptance_refs": [],
+        "explicit_import_ledger_refs": [],
+        "no_inferred_assignment_to_19_server_packets": true,
+        "working_presence": "retained_working165"
+      },
+      "original_provenance": {
+        "json_pointer": "/knowledge/claims/top500_cabdda7333335724_c03",
+        "source_ref": "working165"
+      }
+    },
+    {
+      "claim_id": "top500_cabdda7333335724_c04",
+      "source_ids": [
+        "top500_cabdda7333335724_s01"
+      ],
+      "archive_member": "claims/part-004.jsonl",
+      "variant_count": 1,
+      "decision": "used",
+      "reason": "First line and own beach at the hotel only; no sandy entry, reef or safety promise.",
+      "original_acceptance": {
+        "direct_working_acceptance_refs": [],
+        "explicit_import_ledger_refs": [],
+        "no_inferred_assignment_to_19_server_packets": true,
+        "working_presence": "retained_working165"
+      },
+      "original_provenance": {
+        "json_pointer": "/knowledge/claims/top500_cabdda7333335724_c04",
+        "source_ref": "working165"
+      }
+    },
+    {
+      "claim_id": "top500_cabdda7333335724_c05",
+      "source_ids": [
+        "top500_cabdda7333335724_s01"
+      ],
+      "archive_member": "claims/part-004.jsonl",
+      "variant_count": 1,
+      "decision": "omitted",
+      "reason": "Disco omitted; current operation is not proved by a retained listing.",
+      "original_acceptance": {
+        "direct_working_acceptance_refs": [],
+        "explicit_import_ledger_refs": [],
+        "no_inferred_assignment_to_19_server_packets": true,
+        "working_presence": "retained_working165"
+      },
+      "original_provenance": {
+        "json_pointer": "/knowledge/claims/top500_cabdda7333335724_c05",
+        "source_ref": "working165"
+      }
+    },
+    {
+      "claim_id": "top500_cabdda7333335724_mass38_c01",
+      "source_ids": [
+        "top500_cabdda7333335724_run03_s01"
+      ],
+      "archive_member": "claims/part-004.jsonl",
+      "variant_count": 1,
+      "decision": "omitted",
+      "reason": "Restaurant/bar schedules omitted; opening hours do not prove AI entitlement.",
+      "original_acceptance": {
+        "direct_working_acceptance_refs": [],
+        "explicit_import_ledger_refs": [],
+        "no_inferred_assignment_to_19_server_packets": true,
+        "working_presence": "retained_working165"
+      },
+      "original_provenance": {
+        "json_pointer": "/knowledge/claims/top500_cabdda7333335724_mass38_c01",
+        "source_ref": "working165"
+      }
+    },
+    {
+      "claim_id": "top500_cabdda7333335724_run03_c01",
+      "source_ids": [
+        "top500_cabdda7333335724_run03_s01"
+      ],
+      "archive_member": "claims/part-004.jsonl",
+      "variant_count": 1,
+      "decision": "used_in_part",
+      "reason": "Palace-specific Standard 48 m² and Family two-room layout corroborate the post. Family 70 m² omitted because it conflicts with KOMPAS 85 m².",
+      "original_acceptance": {
+        "direct_working_acceptance_refs": [],
+        "explicit_import_ledger_refs": [],
+        "no_inferred_assignment_to_19_server_packets": true,
+        "working_presence": "retained_working165"
+      },
+      "original_provenance": {
+        "json_pointer": "/knowledge/claims/top500_cabdda7333335724_run03_c01",
+        "source_ref": "working165"
+      }
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "top500_cabdda7333335724_s01",
+      "url": "https://kompastour.com/kz/rus/country/egypt/hurgada_village_road/white_valley/",
+      "kind": "operator primary property description",
+      "retained_retrieved_on": "2026-10-19",
+      "retained_document_date": "2025-09",
+      "fresh_read_on": "2026-11-14",
+      "web_reference": "turn8view0",
+      "use": "4-star/AI, first line and own beach, Standard 48 m² with balcony/terrace, Family two rooms, retained repair notice.",
+      "relevant_sections": [
+        "hotel title",
+        "description notice",
+        "meal plan",
+        "beach",
+        "room categories"
+      ],
+      "does_not_prove": "Travel-date availability, tariff entitlement or physical operation/completion."
+    },
+    {
+      "source_id": "top500_cabdda7333335724_run03_s01",
+      "url": "https://www.icstrvl.ru/data/2025/08/04/6281612745/fact%20sheet.pdf",
+      "kind": "hotel-authored White Valley Palace factsheet hosted by operator",
+      "retained_retrieved_on": "2026-10-19",
+      "publication_date": null,
+      "fresh_read_on": "2026-11-14",
+      "web_reference": "turn7view1",
+      "room_table_visual_reference": "turn8view1",
+      "visually_checked_pdf_page_index": 1,
+      "use": "Document expressly names White Valley Palace; Standard 48 m² and balcony/terrace, Family two-room layout corroborated.",
+      "does_not_prove": "Current tariff or operation; URL year is not a validity period."
+    }
+  ],
+  "material_limits_internal": [
+    "Family area conflict preserved: KOMPAS 85 m², hotel-authored PDF 70 m². Both say two rooms. No exact Family area, room-capacity or connecting-door promise in post.",
+    "No Diamond Beach content or common White Valley group privileges are imported. The Palace-specific PDF is used only for its named property and room table.",
+    "Off-building aquapark, 38 slides, admission rights and transport are omitted. Own nine-pool/operational-heating, gym and tennis claims are omitted.",
+    "No inference that 24-hour bar hours mean free AI alcohol; meal plan does not include all group services by default.",
+    "The saved property-scope hold is not cleared. Own-beach listing is not fresh physical proof of open access; current typed identity, complete registry revision and ordinary clearance remain required. The September 2025 repair notice does not establish November 2026 work or completion.",
+    "No photo selected or changed; no price, flight, room availability or completed publication claimed."
+  ],
+  "known_registry_hold": {
+    "key": "palace-property-scope-conflict-20261111",
+    "recorded_at": "2026-11-11T07:43:25.729112Z",
+    "source_url": "https://whitevalleyhotels.com/the-palace-beach-hotel/",
+    "reason": "Official Palace page mixes Diamond Beach content and group privileges; exact-property services, current beach access, operation and tariff conditions needed before release.",
+    "authority": "Previously saved remaining input; not a fresh full-card read.",
+    "current_full_hold_history": null,
+    "removed_by_this_draft": false,
+    "third_url_reopened_for_this_draft": false
+  },
+  "retained_input_provenance": {
+    "coverage_library_file_id": "libfile_fde3_f-a9b9a1acd0c88191b328a2bd46f23dc8_839482358a3c8191a38d8cf811d28df4",
+    "coverage_member": "consumer_input_completion_20261111.rows[100]",
+    "coverage_authority_counts": {
+      "continuous-claim-level": 1,
+      "explicit-accepted": 8,
+      "inherited-baseline": 7
+    },
+    "working_archive_library_file_id": "libfile_953a0cc315088191b191e8119c6090c8",
+    "working_archive_local_sha256": "2aa019ac2327faf23dc3e809e9030e4e5c0f225fba69846235bf3c4fa2599c55",
+    "identity_archive_library_file_id": "libfile_fde3_f-784623f0b728819194dbad5217046dae_839482358a3c8191a38d8cf811d28df4",
+    "identity_archive_local_sha256": "72bc857763f5e84413253bcbd945d55e840dd33c07f1e3bf33d4a55f652de175",
+    "identity_catalogue_member_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e",
+    "exact_selected_input_local_path": "/workspace/scratch/1dfd4679f845/palace206-retained-inputs/palace206-selected-retained.json",
+    "exact_selected_input_sha256": "989102c2c182212813578d9a653cab55befa0c5cd0a52a6643088da2d68e717f",
+    "claim_count": 16,
+    "source_count": 2,
+    "used_claim_count": 6,
+    "original_authority_not_promoted": true
+  },
+  "next_safe_step": "Resolve the current renovation notice, obtain the exact complete current registry record/revision and use ordinary typed identity/registry admission. Editorial review of this provisional text is complete; it cannot be published as-is while the material notice is unresolved.",
+  "actions": {
+    "site_writes": 0,
+    "acceptances": 0,
+    "post_writes": 0,
+    "price_changes": 0,
+    "supplier_api_requests": 0,
+    "new_workers": 0,
+    "remote_repository_writes": 0
+  },
+  "admission_gates": {
+    "ready": false,
+    "current_renovation_status_unconfirmed": true,
+    "current_complete_registry_record_and_revision_missing": true,
+    "saved_property_scope_hold_not_cleared": true,
+    "typed_identity_and_registry_clearance_not_established_by_draft": true,
+    "no_automatic_acceptance_or_publication": true
+  },
+  "property_specific_ai_evidence": {
+    "claim_id": "top500_cabdda7333335724_c02",
+    "source_id": "top500_cabdda7333335724_s01",
+    "retained_claim_scope": {
+      "kind": "hotel",
+      "key": "top500_cabdda7333335724"
+    },
+    "retained_claim_kind": "operator_declared",
+    "retained_valid_at_travel": "unverified",
+    "retained_authority": "inherited-baseline; no explicit per-claim acceptance ref",
+    "current_read_property_title": "White Valley Palace (ex. Emerald Resort (Golden 5)) 4*",
+    "source_section": "Meal plan AI under the named property, web line 389; The Eatery in the main building follows at line 390.",
+    "group_privileges_used": false,
+    "does_not_prove": "A specific travel-date tariff or inclusion of Diamond/group facilities, all restaurants or 24-hour alcohol."
+  },
+  "editorial_review_notes": {
+    "root_corrections": [
+      "Use the established tour-post header, without adding a star category.",
+      "Do not promote the historical repair notice into a current physical fact.",
+      "Keep property-specific AI separate from shared group privileges."
+    ],
+    "initial_used_claim_count": 7,
+    "current_used_claim_count": 6,
+    "removed_after_root_review": "top500_cabdda7333335724_c01",
+    "reviewer_fact_transfer_findings": "No Diamond/group, aquapark or disputed Family-area transfer identified in the initial seven-claim selection; concern about current repair wording resolved by withholding it behind the explicit admission gate.",
+    "review_is_not_registry_acceptance": true
+  },
+  "root_editorial_review": {
+    "completed_at_utc": "2026-11-14T10:30:29.471106+00:00",
+    "decision": "accepted_as_provisional_draft_only",
+    "accepted_claim_count": 6,
+    "current_renovation_status_unconfirmed": true,
+    "registry_or_identity_clearance": false,
+    "publication_authorized_by_this_review": false
+  }
+}
