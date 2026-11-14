@@ -235,13 +235,15 @@ try {
     $snapshot = $original['monitor_snapshot'] ?? null; $binding = $original['feed_binding'] ?? null;
     incident_need(is_array($snapshot) && ($snapshot['format'] ?? null) === 'anytour-hotel-monitor-prices-v1'
         && ($snapshot['item']['tourvisorHotelId'] ?? null) === INCIDENT_READ_TV && is_array($snapshot['item']['offers'] ?? null)
-        && count($snapshot['item']['offers']) === 1 && is_array($binding)
+        // Canonical monitor_price_observation accepts 1–3 ordered offers and selects offers[0].
+        && count($snapshot['item']['offers']) >= 1 && count($snapshot['item']['offers']) <= 3 && is_array($binding)
         && ($binding['tourvisor_hotel_id'] ?? null) === INCIDENT_READ_TV, 'incident_snapshot_or_feed_identity_changed');
     $offer = $snapshot['item']['offers'][0];
     incident_need(is_array($offer) && ($offer['recordId'] ?? null) === substr($operation, -64), 'incident_record_identity_changed');
     $generatedAt = incident_stamp($snapshot['generatedAt'] ?? null); $expiresAt = incident_stamp($offer['expiresAt'] ?? null);
     $out['original_journal']['monitor_snapshot'] = ['sha256' => hash('sha256', incident_json($snapshot)),
         'generated_at' => $generatedAt, 'record_id' => $offer['recordId'], 'tourvisor_hotel_id' => INCIDENT_READ_TV,
+        'observed_offer_count' => count($snapshot['item']['offers']), 'selected_offer_index' => 0,
         'expires_at' => $expiresAt, 'expires_epoch' => (new DateTimeImmutable($expiresAt))->getTimestamp(),
         'expired_at_read' => (new DateTimeImmutable($expiresAt))->getTimestamp() < time(),
         'age_seconds_at_export' => is_int($offer['ageSecondsAtExport'] ?? null) ? $offer['ageSecondsAtExport'] : null];

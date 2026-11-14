@@ -126,6 +126,64 @@ foreach(['publishing_surface_changed','publishing_schema_not_accepted','channel_
 hook_test_check(!monitor_hook_local_preflight_failure(['exit_code'=>-1,'error'=>'max_read_failed'])
     &&!monitor_hook_local_preflight_failure(['exit_code'=>0,'error'=>'max_read_failed']),'uncertain_child_exit_admitted');
 
+// Run the actual editor gate against the installed transport's bounded result shapes.
+// No provider call, child process, journal or publication is used by these cases.
+final class ChannelPostButtonTransport {
+    public static array $preflightResult=[];
+    public static int $preflightCalls=0;
+    public function verifyChannel(array $channel):array { self::$preflightCalls++;return self::$preflightResult; }
+}
+function need(bool $ok,string $reason):void { monitor_price_require($ok,$reason); }
+function hook_test_editor_preflight(array $verification,string $platform,string $source):array {
+    ChannelPostButtonTransport::$preflightResult=$verification;ChannelPostButtonTransport::$preflightCalls=0;
+    $channel=['platform'=>$platform];$channels=[];$out=['post_write_attempts'=>0];$error=null;
+    try{eval($source);}catch(Throwable $e){$error=$e->getMessage();}
+    return ['error'=>$error,'out'=>$out,'admitted'=>isset($channels[$platform]),'calls'=>ChannelPostButtonTransport::$preflightCalls];
+}
+$editorSource=file_get_contents(__DIR__.'/update-commercial-price-20261104-remaining1.php');
+$preflightStart=strpos($editorSource,'$channelVerification=(new ChannelPostButtonTransport())->verifyChannel($channel);');
+$preflightEnd=strpos($editorSource,'$channels[$platform]=$channel;',$preflightStart===false?0:$preflightStart);
+hook_test_check($preflightStart!==false&&$preflightEnd!==false,'editor_preflight_gate_missing');
+$preflightSource=substr($editorSource,$preflightStart,$preflightEnd-$preflightStart+strlen('$channels[$platform]=$channel;'));
+$preflightHttp=[['operation'=>'bot_identity','http'=>200,'transport_error'=>false],
+    ['operation'=>'channel_rights','http'=>200,'transport_error'=>false],['operation'=>'channel_type','http'=>200,'transport_error'=>false]];
+$unavailableHttp=array_slice($preflightHttp,0,2);$unavailableHttp[1]['http']=503;
+$preflightCases=[
+    ['max','unknown','provider_read_failed',$unavailableHttp,'provider_channel_preflight_unavailable'],
+    ['telegram','requires_attention','channel_edit_permission_required',array_slice($preflightHttp,0,2),'provider_channel_permission_denied'],
+    ['max','requires_attention','canonical_bot_identity_mismatch',array_slice($preflightHttp,0,1),'provider_channel_identity_mismatch'],
+    ['max','unknown','verification_failure',[],'provider_channel_preflight_unavailable'],
+    ['max','ready','capability_verified',$preflightHttp,null],
+];
+foreach($preflightCases as [$platform,$stateCode,$reason,$http,$expectedError]){
+    $verification=['state'=>$stateCode,'reason'=>$reason,'receipt'=>['request_count'=>count($http),'write_attempts'=>0,'http_results'=>$http]];
+    $checked=hook_test_editor_preflight($verification,$platform,$preflightSource);$safe=$checked['out']['channel_preflight'];
+    hook_test_check($checked['error']===$expectedError&&$checked['admitted']===($expectedError===null)
+        &&$checked['calls']===1&&$checked['out']['post_write_attempts']===0,'preflight_admission_or_retry_changed_'.$reason);
+    hook_test_check($safe['platform']===$platform&&$safe['state']===$stateCode&&$safe['reason']===$reason
+        &&$safe['request_count']===count($http)&&$safe['write_attempts']===0&&$safe['http_results']===$http,'preflight_evidence_lost_'.$reason);
+    if($expectedError!==null){
+        $failure=monitor_hook_child_failure(2,['ok'=>false,'error'=>$expectedError,'channel_preflight'=>$safe]);
+        hook_test_check($failure['error']===$expectedError&&$failure['channel_preflight']===$safe
+            &&!monitor_hook_local_preflight_failure($failure),'preflight_failure_not_retained_or_released_'.$reason);
+        hook_test_reject(static fn()=>monitor_hook_terminal_line($terminalPrefix,$terminalOperation,$terminalAt,'child_preflight_failed_before_write',
+            ['preflight_error'=>$expectedError,'child_exit_code'=>2]),'preflight_failure_auto_abandoned_'.$reason);
+    }
+}
+$unsafePreflight=['state'=>'requires_attention','reason'=>'LEAK_SECRET','token'=>'LEAK_SECRET','raw_response'=>'LEAK_SECRET',
+    'receipt'=>['request_count'=>5,'write_attempts'=>0,'http_results'=>array_fill(0,6,
+        ['operation'=>'https://example.test/LEAK_SECRET','http'=>'LEAK_SECRET','transport_error'=>'LEAK_SECRET','data'=>['token'=>'LEAK_SECRET']])]];
+$boundedPreflight=monitor_price_channel_preflight('max',$unsafePreflight);
+$boundedFailure=monitor_hook_child_failure(2,['error'=>'provider_channel_verification_failed','channel_preflight'=>$boundedPreflight,
+    'stdout'=>'LEAK_SECRET','stderr'=>'LEAK_SECRET']);
+hook_test_check(count($boundedPreflight['http_results'])===5&&$boundedPreflight['http_results_truncated']===true
+    &&$boundedFailure['channel_preflight']===$boundedPreflight&&!str_contains(json_encode($boundedFailure,JSON_THROW_ON_ERROR),'LEAK_SECRET'),'preflight_provider_data_leaked_or_unbounded');
+$unsafeReady=['state'=>'ready','reason'=>'capability_verified','receipt'=>['request_count'=>3,'write_attempts'=>1,'http_results'=>$preflightHttp]];
+$checked=hook_test_editor_preflight($unsafeReady,'max',$preflightSource);
+hook_test_check(!$checked['admitted']&&$checked['error']==='provider_channel_verification_failed','preflight_unexpected_write_admitted');
+$wrongState=['state'=>'unknown','reason'=>'channel_edit_permission_required','receipt'=>['request_count'=>2,'write_attempts'=>0,'http_results'=>array_slice($preflightHttp,0,2)]];
+hook_test_check(monitor_price_channel_preflight('max',$wrongState)['error']==='provider_channel_verification_failed','preflight_unknown_reported_as_denied');
+
 // Exercise the actual driver reconciliation function with recording dependencies.
 // Only that function is evaluated; the CLI driver and all real I/O remain unloaded.
 $testReadJournal=$terminalParsed;$testDriverCalls=['append'=>0,'child'=>0,'feed'=>0,'read'=>0];
@@ -137,6 +195,16 @@ function hook_prepare_feed(array $journal,string $installed):array { global $tes
 function hook_read(string $path,int $max=10000000):string { global $testDriverCalls;$testDriverCalls['read']++;throw new RuntimeException('test_unexpected_read'); }
 function hook_get(string $url,int $max=4000000):string { global $testDriverCalls;$testDriverCalls['read']++;throw new RuntimeException('test_unexpected_read'); }
 $driver=file_get_contents(__DIR__.'/monitor-price-after-collection.php');
+$childFailureStart=strpos($driver,"    if(".'$exit!==0||($result[\'ok\']??false)!==true){');
+$childFailureEnd=strpos($driver,'    }return $result;',$childFailureStart===false?0:$childFailureStart);
+hook_test_check($childFailureStart!==false&&$childFailureEnd!==false,'driver_child_failure_gate_missing');
+$exit=2;$failure=null;$result=['ok'=>false,'error'=>'provider_channel_preflight_unavailable',
+    'channel_preflight'=>monitor_price_channel_preflight('max',['state'=>'unknown','reason'=>'provider_read_failed',
+        'receipt'=>['request_count'=>2,'write_attempts'=>0,'http_results'=>$unavailableHttp]])];
+$childStopped=false;
+try{eval(substr($driver,$childFailureStart,$childFailureEnd-$childFailureStart).'    }');}
+catch(Throwable $e){$childStopped=$e->getMessage()==='hook_child_failed_read_original_journal';}
+hook_test_check($childStopped&&$failure===monitor_hook_child_failure(2,$result),'driver_discarded_channel_preflight');
 $start=strpos($driver,'function hook_finish_feed(');$end=strpos($driver,"\n\n".'$inspect=',$start);
 hook_test_check($start!==false&&$end!==false,'driver_reconciliation_fixture_missing');
 eval(substr($driver,$start,$end-$start));
@@ -289,4 +357,5 @@ foreach(['hook_caption_source_incomplete_stop','hook_caption_source_unresolved_s
     hook_test_check(!monitor_hook_local_preflight_failure(['exit_code'=>2,'error'=>$error]),'caption_unknown_source_auto_released');
 
 echo 'MONITOR_PRICE_HOOK_OK cases='.$cases." no_provider_calls=1 no_writes=1\n";
+
 

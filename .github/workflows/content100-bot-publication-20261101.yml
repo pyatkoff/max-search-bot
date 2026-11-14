@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 env:
   EXPECTED_PRODUCTION_SHA: 9a8c8dc93e2abb102be663e48b93a097d98927ea
-  INCIDENT_READER_SHA256: defcafc8984662f90183398f92053fdcef5803c27c0c02858592408faa4f3f71
+  INCIDENT_READER_SHA256: 674891f92d3947a9224d31798ea0b47eb3cf058d054cb9c9ac7a947d31c0d354
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
@@ -55,6 +55,10 @@ jobs:
         php -l tools/direct_demand/operations/monitor-price-after-collection.php
 
         php tools/direct_demand/operations/test-monitor-price-hook.php
+
+        python3 tools/direct_demand/operations/build-monitor-price-hook.py "$RUNNER_TEMP/monitor-price-incident-private/validated-hook.php"
+
+        php -l "$RUNNER_TEMP/monitor-price-incident-private/validated-hook.php"
 
         '
     - name: Authenticate accepted current installation without rerunning it
@@ -113,7 +117,7 @@ jobs:
 
         commit=get(''git/commits/''+os.environ[''GITHUB_SHA''])
 
-        assert [x[''sha''] for x in commit[''parents'']]==[''a9b0e5c7e654e89cb957c5cbb406e6af741b49f2'']
+        assert [x[''sha''] for x in commit[''parents'']]==[''ef1432f068a15a826769cd3f4f763827541bd0ea'']
 
         print(''CURRENT_SOURCE_OWNER_AND_ORIGINAL_PUSH_VERIFIED'')
 

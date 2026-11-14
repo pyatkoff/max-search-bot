@@ -7,6 +7,41 @@ declare(strict_types=1);
 function monitor_price_require(bool $ok,string $reason):void {
     if(!$ok)throw new RuntimeException($reason);
 }
+/** Bounded verifyChannel evidence only; never retain provider payloads, paths or identities. */
+function monitor_price_channel_preflight(string $platform,array $verification):array {
+    $states=['ready','unknown','requires_attention'];
+    $denied=['channel_admin_required','channel_read_permission_required','channel_edit_permission_required'];
+    $identity=['unsupported_platform','invalid_channel_id','canonical_bot_url_mismatch','invalid_expected_public_channel_url',
+        'canonical_bot_identity_mismatch','membership_identity_mismatch','channel_type_mismatch','public_channel_identity_mismatch'];
+    $reasons=array_merge(['capability_verified','provider_read_failed','verification_failure','request_budget_exhausted'],$denied,$identity);
+    $state=in_array($verification['state']??null,$states,true)?$verification['state']:'unknown';
+    $reason=in_array($verification['reason']??null,$reasons,true)?$verification['reason']:'unrecognized_verification_result';
+    // Accept the same safe projection when carrying the child result into its parent journal.
+    $receipt=array_key_exists('receipt',$verification)?$verification['receipt']:$verification;
+    $receipt=is_array($receipt)?$receipt:[];$http=$receipt['http_results']??null;
+    $reads=$receipt['request_count']??null;$writes=$receipt['write_attempts']??null;
+    $out=['platform'=>in_array($platform,['max','telegram'],true)?$platform:'unknown','state'=>$state,'reason'=>$reason,
+        'request_count'=>is_int($reads)&&$reads>=0&&$reads<=5?$reads:null,
+        'write_attempts'=>is_int($writes)&&$writes>=0&&$writes<=1?$writes:null,
+        'http_results'=>[],'http_results_truncated'=>($receipt['http_results_truncated']??false)===true||(is_array($http)&&count($http)>5)];
+    $valid=is_array($http)&&array_is_list($http)&&!$out['http_results_truncated']&&$out['platform']!=='unknown'
+        &&$out['request_count']!==null&&$out['request_count']===count($http)&&$out['write_attempts']===0;
+    foreach(is_array($http)?array_slice($http,0,5):[] as $item){
+        $item=is_array($item)?$item:[];
+        $operation=in_array($item['operation']??null,['bot_identity','channel_rights','channel_type'],true)?$item['operation']:'unknown';
+        $status=$item['http']??null;$transport=$item['transport_error']??null;
+        $status=is_int($status)&&$status>=0&&$status<=599?$status:null;$transport=is_bool($transport)?$transport:null;
+        $valid=$valid&&$operation!=='unknown'&&$status!==null&&$transport!==null;
+        $out['http_results'][]=['operation'=>$operation,'http'=>$status,'transport_error'=>$transport];
+    }
+    $error='provider_channel_verification_failed';
+    if($state==='unknown'&&in_array($reason,['provider_read_failed','verification_failure'],true))$error='provider_channel_preflight_unavailable';
+    elseif($state==='requires_attention'&&in_array($reason,$denied,true))$error='provider_channel_permission_denied';
+    elseif($state==='requires_attention'&&in_array($reason,$identity,true))$error='provider_channel_identity_mismatch';
+    elseif($state==='requires_attention'&&$reason==='request_budget_exhausted')$error='provider_channel_preflight_unavailable';
+    elseif($state==='ready'&&$reason==='capability_verified'&&$valid)$error=null;
+    $out['error']=$error;return $out;
+}
 /** Exact compatibility for five accepted pre-batch publications; publisher null is a real role. */
 function monitor_price_legacy_binding(array $row):array {
     $roles=[310=>null,469=>null,498=>228,1971=>null,1981=>877];
@@ -356,3 +391,4 @@ function monitor_price_render_feed(string $xml,array $updates,string $name,int $
     $next=preg_replace('/<yml_catalog date="[^"<>]+">/','<yml_catalog date="'.$date.'">',$next,1,$changed);
     monitor_price_require(is_string($next)&&$changed===1,'monitor_feed_date_invalid');return $next;
 }
+

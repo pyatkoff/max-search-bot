@@ -96,9 +96,18 @@ function monitor_hook_known_failure(array $row,array $price):?string {
 }
 
 
-/** A child result is a fixed code only; never retain its stdout, stderr or provider body. */
+/** A child error is a fixed code only; never retain its stdout, stderr or provider body. */
 function monitor_hook_fixed_child_error($value):?string {
     return is_string($value)&&preg_match('/\A[a-z][a-z0-9_]{1,100}\z/D',$value)===1?$value:null;
+}
+/** Keep the bounded read-only preflight, without expanding any local failure admission. */
+function monitor_hook_child_failure(int $exit,array $result):array {
+    $failure=['exit_code'=>$exit,'error'=>monitor_hook_fixed_child_error($result['error']??null)];
+    if(is_array($result['channel_preflight']??null)){
+        $preflight=$result['channel_preflight'];
+        $failure['channel_preflight']=monitor_price_channel_preflight(is_string($preflight['platform']??null)?$preflight['platform']:'',$preflight);
+    }
+    return $failure;
 }
 /** Hotel-local preflight failures only. Runtime/schema/channel/auth gates stay closed. */
 function monitor_hook_local_preflight_failure(array $failure):bool {
@@ -288,5 +297,6 @@ function monitor_hook_can_start_pair(array $policy,int $now,int $updatedPairs):b
 function monitor_hook_snapshot_refresh_due(int $fetchedAt,int $now):bool {
     return $now-$fetchedAt>=600;
 }
+
 
 

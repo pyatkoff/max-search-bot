@@ -37,7 +37,7 @@ function hook_child(string $source,array $constants,?array &$failure=null):array
     $raw=stream_get_contents($pipes[1]);fclose($pipes[1]);$errors=stream_get_contents($pipes[2]);fclose($pipes[2]);$exit=proc_close($p);
     hook_need(is_string($raw)&&strlen($raw)<2000000,'hook_child_output_invalid');$lines=explode("\n",rtrim($raw,"\n"));$result=json_decode(end($lines),true,64,JSON_THROW_ON_ERROR);
     if($exit!==0||($result['ok']??false)!==true){
-        $failure=['exit_code'=>$exit,'error'=>monitor_hook_fixed_child_error($result['error']??null)];
+        $failure=monitor_hook_child_failure($exit,is_array($result)?$result:[]);
         throw new RuntimeException('hook_child_failed_read_original_journal');
     }return $result;
 }
@@ -300,4 +300,5 @@ if(isset($out['error']))$out['error_counts'][$out['error']]=($out['error_counts'
 $out['budget_overrun_seconds']=max(0,$out['duration_seconds']-($out['budget_seconds']??480));
 if($nightly&&($out['ok']??false)!==true)$out['nightly_cycle_completed']=false;
 hook_output_and_exit($out,$lock??null);
+
 

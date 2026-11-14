@@ -137,7 +137,9 @@ try {
     foreach($targets as $platform=>$t){
         $identity=ChannelPostRuntime::identity($platform);need(is_array($identity)&&$identity['project_key']==='anytour'&&$identity['bot_key']===$t['bot'],'configured_bot_changed');
         $channel=$registry->channel('anytour',$platform,$t['bot'],$t['channel']);need(is_array($channel)&&(int)$channel['id']===$t['id']&&$channel['source_key']===$t['source']&&$channel['button_text']===$payload['button_text']&&(int)$channel['config_version']===2,'channel_configuration_changed');
-        need(((new ChannelPostButtonTransport())->verifyChannel($channel)['state']??'')==='ready','provider_channel_rights_changed');$channels[$platform]=$channel;
+        $channelVerification=(new ChannelPostButtonTransport())->verifyChannel($channel);
+        $out['channel_preflight']=monitor_price_channel_preflight($platform,$channelVerification);
+        need($out['channel_preflight']['error']===null,$out['channel_preflight']['error']??'provider_channel_verification_failed');$channels[$platform]=$channel;
         foreach($rows as $r){
             if($monitorMode){$r=array_replace($r,$r['channel_texts'][$platform]);$r['update_text']=$r['new_text']!==$r['old_text'];}
             if($captionProofs!==null){$proof=$captionProofs[$platform];}elseif($legacyProofs!==null){$proof=$legacyProofs[$platform];}else{
@@ -214,3 +216,4 @@ try {
 } catch(Throwable $e){$out['error']=preg_match('/\A[a-z][a-z0-9_]{1,100}\z/',$e->getMessage())?$e->getMessage():'bounded_existing_post_update_failed';}
 if(isset($lock)&&is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}
 echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;exit($out['ok']?0:2);
+
