@@ -1,4 +1,4 @@
-name: Release exact no-write hotel hold and continue saved prices
+name: Continue saved hotel prices within existing bounded maintenance
 'on':
   push:
     branches:
@@ -12,157 +12,101 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: 4aa59d7355c928382fe3d939731f1348f2b11c7f
+  EXPECTED_PRODUCTION_SHA: 80ebb725c0a954bae7d2ae78ba6e7c48056248a6
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 35
     steps:
     - uses: actions/checkout@v4
       with:
         ref: ${{ github.sha }}
         persist-credentials: false
-    - name: Validate exact hold release and existing saved-price publisher
+    - name: Validate bounded continuation and unchanged saved-price publisher
       shell: bash
-      run: "set -euo pipefail\numask 077\ntest \"$GITHUB_RUN_ATTEMPT\" = 1\ntest \"$(git rev-parse HEAD)\" = \"$GITHUB_SHA\"\
-        \nmkdir -p \"$RUNNER_TEMP/monitor-price-incident-private\" \"$RUNNER_TEMP/monitor-price-incident-safe\"\npython3 -\
-        \ <<'PY'\nimport hashlib,pathlib\nassert hashlib.sha256(pathlib.Path('tools/direct_demand/operations/verify-commercial-source.py').read_bytes()).hexdigest()=='5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb'\n\
-        PY\nphp -l tools/direct_demand/operations/monitor-price-after-collection.php\nphp -l tools/direct_demand/operations/update-commercial-price-20261104-remaining1.php\n\
-        php tools/direct_demand/operations/test-monitor-price-contract.php\nphp tools/direct_demand/operations/test-monitor-price-hook.php\n\
-        php tools/direct_demand/operations/test-monitor-price-nightly-policy.php\npython3 tools/direct_demand/operations/build-monitor-price-hook.py\
-        \ \"$RUNNER_TEMP/monitor-price-incident-private/validated-hook.php\"\nphp -l \"$RUNNER_TEMP/monitor-price-incident-private/validated-hook.php\"\
-        \nphp -l tools/direct_demand/operations/release-monitor-price-h1142-no-write-hold-20261114.php\nphp tools/direct_demand/operations/test-release-monitor-price-h1142-no-write-hold-20261114.php\n\
-        python3 - <<'PY'\nimport pathlib,os,hashlib\nroot=pathlib.Path('tools/direct_demand/operations')\nprefix='<?php\\\
-        ndeclare(strict_types=1);\\n'\ndef source(name):\n    raw=(root/name).read_text()\n    assert raw.startswith(prefix),name\n\
-        \    return raw[len(prefix):]\ncontract=source('monitor-price-contract.php')\nhook=source('monitor-price-hook-contract.php').replace(\"\
-        require_once __DIR__.'/monitor-price-contract.php';\",'')\nrelease=source('release-monitor-price-h1142-no-write-hold-20261114.php').replace(\"\
-        require_once __DIR__.'/monitor-price-hook-contract.php';\",'')\nbundle=prefix+contract+'\\n'+hook+'\\n'+release\n\
-        p=pathlib.Path(os.environ['RUNNER_TEMP'],'monitor-price-incident-private','validated-h1142-release.php')\np.write_text(bundle)\n\
-        print('H1142_BUNDLE_SHA256='+hashlib.sha256(bundle.encode()).hexdigest())\nPY\nphp -l \"$RUNNER_TEMP/monitor-price-incident-private/validated-h1142-release.php\"\
-        \n"
+      run: 'set -euo pipefail
+
+        umask 077
+
+        test "$GITHUB_RUN_ATTEMPT" = 1
+
+        test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+
+        mkdir -p "$RUNNER_TEMP/monitor-price-incident-private" "$RUNNER_TEMP/monitor-price-incident-safe"
+
+        python3 - <<''PY''
+
+        import hashlib,pathlib
+
+        assert hashlib.sha256(pathlib.Path(''tools/direct_demand/operations/verify-commercial-source.py'').read_bytes()).hexdigest()==''5e2a31e62984792225fc57f512b508c5975d1ec463413f18bddb29bfa0aa82fb''
+
+        PY
+
+        php -l tools/direct_demand/operations/monitor-price-after-collection.php
+
+        php -l tools/direct_demand/operations/update-commercial-price-20261104-remaining1.php
+
+        php tools/direct_demand/operations/test-monitor-price-contract.php
+
+        php tools/direct_demand/operations/test-monitor-price-hook.php
+
+        php tools/direct_demand/operations/test-monitor-price-nightly-policy.php
+
+        python3 tools/direct_demand/operations/build-monitor-price-hook.py "$RUNNER_TEMP/monitor-price-incident-private/validated-hook.php"
+
+        php -l "$RUNNER_TEMP/monitor-price-incident-private/validated-hook.php"
+
+        python3 tools/direct_demand/operations/test-continue-saved-monitor-prices-20261114.py
+
+        '
     - name: Authenticate accepted current installation without rerunning it
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
       run: "set -euo pipefail\numask 077\nevidence=\"$RUNNER_TEMP/monitor-price-incident-private/source\"\nmkdir -p \"$evidence\"\
         \npython3 - <<'PY'\nimport concurrent.futures,json,os,pathlib,subprocess\nexpected=os.environ['EXPECTED_PRODUCTION_SHA']\n\
-        gates=[(43549299944,'.github/workflows/deploy.yml','push'),(43549299903,'.github/workflows/retired-domain-guard.yml','push'),(43550639446,'.github/workflows/max-tls-preflight.yml','workflow_run'),(43550639454,'.github/workflows/max-production-health.yml','workflow_run'),(43550639387,'.github/workflows/telegram-production-health.yml','workflow_run'),(43550639627,'.github/workflows/publish-conversation-diagnostics.yml','workflow_run'),(43550639522,'.github/workflows/live-session-diagnostics.yml','workflow_run'),(43550639415,'.github/workflows/tour-selection-host.yml','workflow_run'),(43550639379,'.github/workflows/modeled-conversion-monitor.yml','workflow_run')]\n\
+        gates=[(43581055548,'.github/workflows/deploy.yml','push'),(43581055574,'.github/workflows/retired-domain-guard.yml','push'),(43581950208,'.github/workflows/max-tls-preflight.yml','workflow_run'),(43581950228,'.github/workflows/max-production-health.yml','workflow_run'),(43581950209,'.github/workflows/telegram-production-health.yml','workflow_run'),(43581950210,'.github/workflows/publish-conversation-diagnostics.yml','workflow_run'),(43581950157,'.github/workflows/live-session-diagnostics.yml','workflow_run'),(43581950234,'.github/workflows/tour-selection-host.yml','workflow_run'),(43581950216,'.github/workflows/modeled-conversion-monitor.yml','workflow_run')]\n\
         def check(g):\n rid,path,event=g\n r=json.loads(subprocess.check_output(['gh','api','--method','GET','-H','Cache-Control:\
         \ no-cache',f'repos/pyatkoff/max-search-bot/actions/runs/{rid}']))\n assert r['id']==rid and r['run_attempt']==1 and\
         \ r['head_sha']==expected and r['head_branch']=='main'\n assert r['path']==path and r['event']==event and r['status']=='completed'\
-        \ and r['conclusion']=='success'\n if event=='workflow_run':assert r['display_title']=='deploy-proof:v1:43549299944:1'\n\
+        \ and r['conclusion']=='success'\n if event=='workflow_run':assert r['display_title']=='deploy-proof:v1:43581055548:1'\n\
         \ return {'run_id':rid,'path':path,'conclusion':'success','attempt':1}\nwith concurrent.futures.ThreadPoolExecutor(max_workers=5)\
         \ as pool:results=list(pool.map(check,gates))\npathlib.Path(os.environ['RUNNER_TEMP'],'monitor-price-incident-safe','original-installation.json').write_text(json.dumps({'installed_sha':expected,'gates':results}))\n\
         PY\ngh api --method GET -H 'Cache-Control: no-cache' repos/pyatkoff/max-search-bot/git/ref/heads/main > \"$evidence/main.json\"\
-        \ngh api --method GET -H 'Cache-Control: no-cache' repos/pyatkoff/max-search-bot/actions/runs/43549299944 > \"$evidence/verify_run.json\"\
-        \ngh api --method GET -H 'Cache-Control: no-cache' 'repos/pyatkoff/max-search-bot/actions/runs/43549299944/jobs?per_page=20'\
-        \ > \"$evidence/verify_jobs.json\"\ngh api --method GET -H 'Cache-Control: no-cache' repos/pyatkoff/max-search-bot/actions/runs/43550639446\
+        \ngh api --method GET -H 'Cache-Control: no-cache' repos/pyatkoff/max-search-bot/actions/runs/43581055548 > \"$evidence/verify_run.json\"\
+        \ngh api --method GET -H 'Cache-Control: no-cache' 'repos/pyatkoff/max-search-bot/actions/runs/43581055548/jobs?per_page=20'\
+        \ > \"$evidence/verify_jobs.json\"\ngh api --method GET -H 'Cache-Control: no-cache' repos/pyatkoff/max-search-bot/actions/runs/43581950208\
         \ > \"$evidence/tls_run.json\"\ngh api --method GET -H 'Cache-Control: no-cache' \"repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA\"\
         \ > \"$evidence/source_commit.json\"\ntree_sha=\"$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))[\"\
         tree\"][\"sha\"])' \"$evidence/source_commit.json\")\"\ngh api --method GET -H 'Cache-Control: no-cache' \"repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1\"\
         \ > \"$evidence/source_tree.json\"\npython3 tools/direct_demand/operations/verify-commercial-source.py --expected-source\
         \ \"$EXPECTED_PRODUCTION_SHA\" --evidence-dir \"$evidence\"\n"
-    - name: Verify same owner, exact push and original retired no-write operation
+    - name: Authenticate same owner, exact continuation and previous completed pass
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
-      run: 'set -euo pipefail
-
-        umask 077
-
-        python3 - <<''PY''
-
-        import hashlib,json,os,pathlib,subprocess
-
-        repo=''repos/pyatkoff/max-search-bot/''
-
-        def get(path):return json.loads(subprocess.check_output([''gh'',''api'',''--method'',''GET'',''-H'',''Cache-Control:
-        no-cache'',repo+path]))
-
-        assert get(''git/ref/heads/main'')[''object''][''sha'']==os.environ[''EXPECTED_PRODUCTION_SHA'']
-
-        assert get(''git/ref/heads/audit/content100-bot-publication-20261101'')[''object''][''sha'']==os.environ[''GITHUB_SHA'']
-
-        owner=get(''issues/comments/6818332618'')
-
-        assert owner[''user''][''id'']==226193297 and owner[''body''].startswith(''ACTIVE14Nov: TV1142 no-write hold release
-        + bounded saved prices; same carrier; no replay.'')
-
-        run=get(''actions/runs/''+os.environ[''GITHUB_RUN_ID''])
-
-        assert run[''event'']==''push'' and run[''run_attempt'']==1 and run[''head_sha'']==os.environ[''GITHUB_SHA'']
-
-        assert run[''head_branch'']==''audit/content100-bot-publication-20261101'' and run[''path'']==''.github/workflows/content100-bot-publication-20261101.yml''
-
-        assert run[''actor''][''id'']==run[''triggering_actor''][''id'']==226193297
-
-        commit=get(''git/commits/''+os.environ[''GITHUB_SHA''])
-
-        assert [x[''sha''] for x in commit[''parents'']]==[''533eef6fe2edc1d7737ca4d5abdbc094d1c6a363'']
-
-        previous=get(''actions/runs/43580750229'')
-
-        assert previous[''head_sha'']==''533eef6fe2edc1d7737ca4d5abdbc094d1c6a363'' and previous[''run_attempt'']==1 and previous[''status'']==''completed''
-        and previous[''conclusion'']==''failure''
-
-        previous_jobs=get(''actions/runs/43580750229/jobs?per_page=30'')[''jobs'']
-
-        previous_job=[j for j in previous_jobs if j[''id'']==132404775661]
-
-        assert len(previous_job)==1 and previous_job[0][''conclusion'']==''failure''
-
-        previous_steps={s[''number'']:s for s in previous_job[0][''steps'']}
-
-        assert previous_steps[3][''conclusion'']==previous_steps[4][''conclusion'']==''success'' and previous_steps[5][''conclusion'']==''failure''
-
-        assert all(previous_steps[n][''conclusion'']==''skipped'' for n in [6,7,8])
-
-        old=get(''actions/runs/43182188959'')
-
-        assert old[''id'']==43182188959 and old[''run_attempt'']==1 and old[''head_sha'']==''547e6ba60fd67e4cf12914694dd9b96413995492''
-
-        assert old[''status'']==''completed'' and old[''conclusion'']==''success'' and old[''event'']==''push''
-
-        assert old[''head_branch'']==''audit/content100-bot-publication-20261101'' and old[''path'']==''.github/workflows/content100-bot-publication-20261101.yml''
-
-        assert old[''actor''][''id'']==old[''triggering_actor''][''id'']==226193297
-
-        jobs=get(''actions/runs/43182188959/jobs?per_page=30'')[''jobs'']
-
-        job=[j for j in jobs if j[''id'']==131060607947]
-
-        assert len(job)==1 and job[0][''status'']==''completed'' and job[0][''conclusion'']==''success'' and job[0][''run_id'']==43182188959
-        and job[0][''head_sha'']==old[''head_sha'']
-
-        raw=subprocess.check_output([''gh'',''api'',''--allow-escape-sequences'',''--method'',''GET'',repo+''actions/jobs/131060607947/logs'']).decode()
-
-        marker=''MONITOR_NO_WRITE_RECONCILIATION=''
-
-        lines=[line.split(marker,1)[1] for line in raw.splitlines() if marker in line]
-
-        assert len(lines)==1
-
-        assert hashlib.sha256(lines[0].encode()).hexdigest()==''5ca0035e6d936fbfb3e3693d531d70ac365066e4d3a72d0ffd754a89aa2dac99''
-
-        proof=json.loads(lines[0])
-
-        assert proof[''ok''] is True and proof[''tourvisor_hotel_id'']==1142 and proof[''journal_appends'']==2
-
-        assert proof[''operation'']==''commercial-monitor-price-h1142-41661d209964ffc44d0285473085d0a86d149f35642ec95558769a70d4346839''
-
-        assert proof[''after''][''original_sha256'']==''8690a4310a61103f25d62c5ca04346e41241405b13ef1c9926ebdeeee666eb4e''
-        and proof[''after''][''original_lines'']==2
-
-        assert all(proof[k]==0 for k in [''database_writes'',''post_edits'',''new_posts'',''feed_writes'',''supplier_calls'',''site_writes''])
-
-        pathlib.Path(os.environ[''RUNNER_TEMP''],''monitor-price-incident-safe'',''original-h1142-retirement.json'').write_text(json.dumps(proof,ensure_ascii=False,indent=2)+''\n'')
-
-        print(''CURRENT_OWNER_PUSH_AND_ORIGINAL_H1142_NO_WRITE_PROOF_VERIFIED'')
-
-        PY
-
-        '
+      run: "set -euo pipefail\numask 077\npython3 - <<'PY'\nimport json,os,pathlib,subprocess\nrepo='repos/pyatkoff/max-search-bot/'\n\
+        def get(path):return json.loads(subprocess.check_output(['gh','api','--method','GET','-H','Cache-Control: no-cache',repo+path]))\n\
+        assert get('git/ref/heads/main')['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']\nassert get('git/ref/heads/audit/content100-bot-publication-20261101')['object']['sha']==os.environ['GITHUB_SHA']\n\
+        owner=get('issues/comments/6818332618')\nassert owner['user']['id']==226193297 and owner['body'].startswith('ACTIVE14Nov:\
+        \ saved-price continuation; same carrier, 1800s total; no replay.')\nrun=get('actions/runs/'+os.environ['GITHUB_RUN_ID'])\n\
+        assert run['event']=='push' and run['run_attempt']==1 and run['head_sha']==os.environ['GITHUB_SHA']\nassert run['head_branch']=='audit/content100-bot-publication-20261101'\
+        \ and run['path']=='.github/workflows/content100-bot-publication-20261101.yml'\nassert run['actor']['id']==run['triggering_actor']['id']==226193297\n\
+        commit=get('git/commits/'+os.environ['GITHUB_SHA'])\nassert [p['sha'] for p in commit['parents']]==['f71e4642a56cc94cb06c96cb74678a515f40914d']\n\
+        previous=get('actions/runs/43580948623')\nassert previous['run_attempt']==1 and previous['head_sha']=='f71e4642a56cc94cb06c96cb74678a515f40914d'\n\
+        assert previous['status']=='completed' and previous['conclusion']=='success' and previous['event']=='push'\nassert\
+        \ previous['head_branch']==run['head_branch'] and previous['path']==run['path']\nassert previous['actor']['id']==previous['triggering_actor']['id']==226193297\n\
+        proof={'current_source':os.environ['GITHUB_SHA'],'parent':previous['head_sha'],'previous_run_id':43580948623,'previous_attempt':1,'previous_status':'success','same_owner':True,'no_retirement_replay':True}\n\
+        root=pathlib.Path(os.environ['RUNNER_TEMP'],'monitor-price-incident-safe')\n(root/'continuation-admission.json').write_text(json.dumps(proof,ensure_ascii=False,indent=2)+'\\\
+        n')\nprint('SAVED_PRICE_CONTINUATION_ADMISSION='+json.dumps(proof))\n# One metadata GET diagnoses the absent hourly\
+        \ collector events. It neither enables nor dispatches it.\nmeta={'workflow_id':346454799,'read_attempts':1,'method':'GET','available':False,'writes':0}\n\
+        try:\n    p=subprocess.run(['gh','api','--method','GET','-H','Cache-Control: no-cache','repos/pyatkoff/poisk-turov-test/actions/workflows/346454799'],capture_output=True,timeout=25)\n\
+        \    if p.returncode==0:\n        data=json.loads(p.stdout)\n        assert data['id']==346454799 and data['path']=='.github/workflows/collect-anytour-tours.yml'\n\
+        \        meta.update({'available':True,'workflow':{k:data.get(k) for k in ['id','name','path','state','created_at','updated_at']}})\n\
+        \    else:meta.update({'error':'metadata_get_failed','exit_code':p.returncode})\nexcept (subprocess.TimeoutExpired,ValueError,AssertionError,KeyError):meta['error']='metadata_get_unavailable'\n\
+        (root/'collector-workflow-state.json').write_text(json.dumps(meta,ensure_ascii=False,indent=2)+'\\n')\nprint('COLLECTOR_WORKFLOW_METADATA='+json.dumps(meta))\n\
+        PY\n"
     - name: Prepare existing server connection
       env:
         DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -184,121 +128,19 @@ jobs:
         \  except Exception:continue\n  if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)\n\
         assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'\npathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\\\
         n'.join(matches)+'\\n')\nPY\n"
-    - name: Release only the retired hotel hold, then run existing bounded saved prices
+    - name: Apply successive existing saved-price passes within one total budget
       shell: bash
       env:
         DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
         DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-      run: 'set -euo pipefail
-
-        umask 077
-
-        test "$GITHUB_RUN_ATTEMPT" = 1
-
-        status=0
-
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes
-        -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST"
-        "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = ''$EXPECTED_PRODUCTION_SHA'';
-        test -z \"\$(git --no-optional-locks status --porcelain --untracked-files=no)\"; monthly_sha=\"\$(sha256sum /var/www/anytoour/data/www/anytoour.ru/data/top500-monthly-plan-v1.php
-        | cut -d '' '' -f 1)\"; test \"\$monthly_sha\" = ''922efe136c933a416471b33f2d0fec8dbf0b7122b23a77b62d3325a90a88cdef'';
-        printf ''COLLECTOR_MONTHLY_SOURCE_SHA256=%s\\n'' \"\$monthly_sha\"; php" < "$RUNNER_TEMP/monitor-price-incident-private/validated-h1142-release.php"
-        > "$RUNNER_TEMP/monitor-price-incident-safe/h1142-release.stdout" || status=$?
-
-        python3 - "$status" <<''PY''
-
-        import json,os,pathlib,sys
-
-        root=pathlib.Path(os.environ[''RUNNER_TEMP''],''monitor-price-incident-safe'')
-
-        raw=(root/''h1142-release.stdout'').read_text()
-
-        lines=[line[len(''MONITOR_H1142_HOLD_RELEASE=''):] for line in raw.splitlines() if line.startswith(''MONITOR_H1142_HOLD_RELEASE='')]
-
-        assert len(lines)==1,''hold_release_missing_or_ambiguous''
-
-        r=json.loads(lines[0]);r[''ssh_exit_code'']=int(sys.argv[1])
-
-        (root/''h1142-release.json'').write_text(json.dumps(r,ensure_ascii=False,indent=2)+''\n'')
-
-        print(json.dumps(r,ensure_ascii=False))
-
-        assert sys.argv[1]==''0'' and r.get(''ok'') is True,''hold_release_not_successful''
-
-        assert r[''tourvisor_hotel_id'']==1142 and r[''journal_appends'']==1 and r[''hold_removed''] is True
-
-        assert all(r[k]==0 for k in [''database_writes'',''post_edits'',''new_posts'',''feed_writes'',''supplier_calls'',''site_writes'',''configuration_writes'',''provider_write_requests''])
-
-        assert ''COLLECTOR_MONTHLY_SOURCE_SHA256=922efe136c933a416471b33f2d0fec8dbf0b7122b23a77b62d3325a90a88cdef'' in raw
-
-        PY
-
-
-        status=0
-
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes
-        -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST"
-        "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = ''$EXPECTED_PRODUCTION_SHA'';
-        test -z \"\$(git --no-optional-locks status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/monitor-price-incident-private/validated-hook.php"
-        > "$RUNNER_TEMP/monitor-price-incident-safe/maintenance.stdout" || status=$?
-
-        python3 - "$status" <<''PY''
-
-        import json,os,pathlib,sys
-
-        root=pathlib.Path(os.environ[''RUNNER_TEMP''],''monitor-price-incident-safe'')
-
-        raw=(root/''maintenance.stdout'').read_text()
-
-        prefix=''MONITOR_POST_FEED_RESULT=''
-
-        lines=[line[len(prefix):] for line in raw.splitlines() if line.startswith(prefix)]
-
-        assert len(lines)==1,''saved_monitor_maintenance_missing_or_ambiguous''
-
-        r=json.loads(lines[0]);r[''ssh_exit_code'']=int(sys.argv[1])
-
-        (root/''maintenance.json'').write_text(json.dumps(r,ensure_ascii=False,indent=2)+''\n'')
-
-        summary={k:v for k,v in r.items() if k not in [''updates'',''deferred'',''verified_ids'',''eligible_ids'',''unchanged_ids'',''held_ids'']}
-
-        summary[''updates'']=[{''tourvisor_hotel_id'':u.get(''tourvisor_hotel_id''),''operation'':u.get(''operation''),''price'':u.get(''price''),''record_id'':u.get(''record_id''),''feed_operation'':u.get(''feed_operation''),''posts'':[{k:p.get(k)
-        for k in [''platform'',''state'',''publication_id'',''version_id'',''message_id'',''post_url'',''text_sha256'',''existing_message_reused'',''body_photo_button_verified'']}
-        for p in u.get(''posts'',[])]} for u in r.get(''updates'',[])]
-
-        print(json.dumps(summary,ensure_ascii=False))
-
-        assert sys.argv[1]==''0'' and r.get(''ok'') is True,''saved_monitor_maintenance_not_successful''
-
-        PY
-
-        python3 - <<''PY''
-
-        import json,os,pathlib
-
-        r=json.loads(pathlib.Path(os.environ[''RUNNER_TEMP''],''monitor-price-incident-safe'',''maintenance.json'').read_text())
-
-        assert r[''mode'']==''existing_monitor_post_feed_hook'' and r[''roster_pairs'']==604
-
-        assert r[''budget_seconds'']==480 and r[''finish_reserve_seconds'']==0
-
-        assert all(r.get(k)==0 for k in [''new_posts'',''supplier_calls'',''site_writes''])
-
-        assert 0 <= r[''updated_pairs''] <= 30
-
-        assert r[''updated_pairs'']==len(r[''updates''])
-
-        assert all(len(u[''posts''])==2 and {p[''platform''] for p in u[''posts'']}=={''max'',''telegram''} and all(p[''existing_message_reused'']
-        is True and p[''body_photo_button_verified''] is True for p in u[''posts'']) for u in r[''updates''])
-
-        PY
-
-        '
-    - name: Retain exact release and actual saved-price readback receipts
+      run: "set -euo pipefail\numask 077\ntest \"$GITHUB_RUN_ATTEMPT\" = 1\npython3 tools/direct_demand/operations/continue-saved-monitor-prices-20261114.py\
+        \ \\\n  --hook \"$RUNNER_TEMP/monitor-price-incident-private/validated-hook.php\" \\\n  --output-dir \"$RUNNER_TEMP/monitor-price-incident-safe\"\
+        \ \\\n  --key \"$RUNNER_TEMP/channel_key\" \\\n  --known-hosts \"$RUNNER_TEMP/channel_known_hosts\"\n"
+    - name: Retain every original pass and final continuation outcome
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: monitor-price-h1142-release-20261114
+        name: monitor-price-saved-continuation-20261114
         path: ${{ runner.temp }}/monitor-price-incident-safe
         retention-days: 14
         if-no-files-found: error
