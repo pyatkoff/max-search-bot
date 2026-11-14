@@ -595,17 +595,35 @@ foreach ($searchPosts as $post) {
         && AppleService39PilotCatalog::resolve('appleservice39','id999999999002_bot','as39_'.$post) === null);
 }
 repairCheck('original strict repair catalog remains fifteen entries', AppleService39PilotCatalog::entries() === $catalog);
-$family17 = AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot','as39_model-iphone-17');
-$familyKnown = AppleService39PilotCatalog::entryContext($family17,
-    ['model'=>'iPhone 17 Pro Max','service'=>'Замена дисплея','price'=>3500],'as39_model-iphone-17');
-repairCheck('family entry preserves the compatible exact variant without a price', $familyKnown['model'] === 'iPhone 17 Pro Max'
-    && $familyKnown['service'] === 'Замена дисплея' && !isset($familyKnown['price'])
-    && !str_contains(AppleService39PilotCatalog::contextResponseText($family17,'AppleService39',$familyKnown),'Какая у вас версия'));
-$familyUnknown = AppleService39PilotCatalog::entryContext($family17,
-    ['model'=>'iPhone X','service'=>'Замена аккумулятора'],'as39_model-iphone-17');
-repairCheck('incompatible prior model cannot turn a family into an exact variant or inherit its repair',
-    $familyUnknown['model'] === 'Серия iPhone 17' && $familyUnknown['service'] === ''
-    && $familyUnknown['model_family'] === 'iphone-17');
+$model17 = AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot','as39_model-iphone-17');
+$fresh17 = AppleService39PilotCatalog::entryContext($model17,[],'as39_model-iphone-17');
+$fresh17Reply = AppleService39PilotCatalog::contextResponseText($model17,'AppleService39',$fresh17);
+repairCheck('generic iPhone17 entry opens the selected base model without asking for its version',
+    $fresh17 === ['model'=>'iPhone 17','service'=>'','entry_code'=>'as39_model-iphone-17']
+    && str_contains($fresh17Reply,'Ремонт iPhone 17.')
+    && !str_contains($fresh17Reply,'Какая у вас') && !str_contains($fresh17Reply,'Pro'));
+$same17 = AppleService39PilotCatalog::entryContext($model17,
+    ['model'=>'iPhone 17','service'=>'Замена дисплея','price'=>3500],'as39_model-iphone-17');
+repairCheck('same base model reentry keeps its known service without importing a price',
+    $same17 === ['model'=>'iPhone 17','service'=>'Замена дисплея','entry_code'=>'as39_model-iphone-17']
+    && !str_contains(AppleService39PilotCatalog::contextResponseText($model17,'AppleService39',$same17),'Какая у вас'));
+foreach (['iPhone 17 Pro','iPhone 17 Pro Max','iPhone X','Серия iPhone 17'] as $previousModel) {
+    $changed17 = AppleService39PilotCatalog::entryContext($model17,
+        ['model'=>$previousModel,'service'=>'Замена аккумулятора','price'=>3500,'model_family'=>'iphone-17'],
+        'as39_model-iphone-17');
+    repairCheck('base model entry does not inherit another variant or its service '.$previousModel,
+        $changed17 === $fresh17);
+}
+$menu17 = AppleService39PilotCatalog::landingEntryForPost('menu');
+$oldFamilyContext = ['model'=>'Серия iPhone 17','service'=>'','model_family'=>'iphone-17'];
+$oldFamilyMenu = AppleService39PilotCatalog::entryContext($menu17,$oldFamilyContext,'as39_menu');
+repairCheck('historical broad family context remains broad when opening the menu',
+    $oldFamilyMenu === ['model'=>'Серия iPhone 17','service'=>'','entry_code'=>'as39_menu','model_family'=>'iphone-17']
+    && str_contains(AppleService39PilotCatalog::contextResponseText($menu17,'AppleService39',$oldFamilyMenu),'Уточните версию'));
+$exactMenu = AppleService39PilotCatalog::entryContext($menu17,$same17,'as39_menu');
+repairCheck('menu after base model reentry retains the exact model and selected service',
+    $exactMenu === ['model'=>'iPhone 17','service'=>'Замена дисплея','entry_code'=>'as39_menu']
+    && !str_contains(AppleService39PilotCatalog::contextResponseText($menu17,'AppleService39',$exactMenu),'версию'));
 $searchPdo = repairFixture();
 $searchSent = [];
 $searchFactory = static function () use ($searchPdo,&$searchSent): MaxMessengerAdapter {
@@ -676,6 +694,52 @@ foreach (['model-iphone-17'=>9502,'service-rear-glass-replacement'=>9503,
         && $event['repair_entry_reply']['post_id'] === $post
         && $event['repair_entry_reply']['state'] === 'delivered');
 }
+$generic17Conversation = repairConversation($searchPdo,'appleservice39',9502);
+$generic17Id = (int)$generic17Conversation['id'];
+$generic17Event = repairEntryPayload($searchPdo,$generic17Id);
+$generic17SentBefore = count($searchSent);
+repairCheck('generic iPhone17 CTA records the exact model under its unchanged publication identity',
+    $generic17Event['repair_context'] === $fresh17
+    && $generic17Event['repair_entry_reply']['entry_code'] === 'as39_model-iphone-17'
+    && $generic17Event['repair_entry_reply']['post_id'] === 'model-iphone-17'
+    && $generic17Event['repair_entry_reply']['text'] === $fresh17Reply);
+$searchHandle(repairStart(9502,'as39_model-iphone-17',1800000200100+9502));
+repairCheck('generic iPhone17 native start replay preserves the captured answer without resending',
+    count($searchSent) === $generic17SentBefore
+    && repairEntryPayload($searchPdo,$generic17Id) === $generic17Event);
+// A pending answer recorded before the correction keeps its original broad
+// context and text. Duplicate delivery must never render it from the new entry.
+$historical17Start = repairStart(9520,'as39_model-iphone-17',1800000209520);
+$searchHandle($historical17Start,static function (): MaxMessengerAdapter {
+    throw new RuntimeException('Synthetic transport construction failure');
+});
+$historical17Conversation = repairConversation($searchPdo,'appleservice39',9520);
+$historical17Id = (int)$historical17Conversation['id'];
+$historical17Event = repairEntryPayload($searchPdo,$historical17Id);
+$historical17Text = "Здравствуйте! Это AppleService39.\nРемонт: Серия iPhone 17. Какая у вас версия — 17, 17 Pro или 17 Pro Max — и что произошло?\nГарантия — 3 месяца.\nСтоимость, наличие детали и возможность записи уточнит менеджер.";
+$historical17Context = $oldFamilyContext + ['entry_code'=>'as39_model-iphone-17'];
+$historical17Event['repair_context'] = $historical17Context;
+$historical17Event['repair_entry_reply']['text'] = $historical17Text;
+$historical17Metadata = json_decode($historical17Conversation['metadata_json'],true);
+$historical17Metadata['repair_context'] = $historical17Context;
+$searchPdo->prepare("UPDATE conversation_events SET payload_json=? WHERE conversation_id=? AND event_type='bot_started'")
+    ->execute([json_encode($historical17Event,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$historical17Id]);
+$searchPdo->prepare('UPDATE conversations SET metadata_json=? WHERE id=?')
+    ->execute([json_encode($historical17Metadata,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$historical17Id]);
+$historical17SentBefore = count($searchSent);
+$searchHandle($historical17Start);
+$historical17Delivered = repairEntryPayload($searchPdo,$historical17Id);
+$historical17Expected = $historical17Event;
+$historical17Expected['repair_entry_reply']['state'] = 'delivered';
+repairCheck('previously captured pending family answer is delivered verbatim without rewriting its context',
+    count($searchSent) === $historical17SentBefore + 1
+    && end($searchSent)['text'] === $historical17Text
+    && $historical17Delivered === $historical17Expected
+    && json_decode(repairConversation($searchPdo,'appleservice39',9520)['metadata_json'],true) === $historical17Metadata);
+$searchHandle($historical17Start);
+repairCheck('delivered historical family answer remains immutable and does not replay',
+    count($searchSent) === $historical17SentBefore + 1
+    && repairEntryPayload($searchPdo,$historical17Id) === $historical17Delivered);
 $searchUnknownAttempts = 0;
 $searchAmbiguous = static function () use (&$searchUnknownAttempts): MaxMessengerAdapter {
     return new MaxMessengerAdapter(static function () use (&$searchUnknownAttempts): bool {
@@ -781,11 +845,11 @@ repairCheck('ordinary pair followup stays in the existing queue without another 
     && repairConversation($pairPdo,'appleservice39',7871)['id']===$pairConversation['id']);
 
 // The original iPhone 17 search card also owns explicit model/service choices.
-// Its old broad family start remains byte-for-byte compatible.
-$legacy17 = AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot','as39_model-iphone-17');
-repairCheck('legacy iPhone17 family launch keeps the existing scope and no guessed version',
-    $legacy17 === ['post_id'=>'model-iphone-17','model'=>'','service'=>'','scope'=>'model_family',
-        'model_family'=>'iphone-17','start_payload'=>'as39_model-iphone-17']);
+// The generic CTA keeps its existing post and payload while naming the same base model.
+$generic17 = AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot','as39_model-iphone-17');
+repairCheck('generic iPhone17 launch retains its existing identity and exact base model',
+    $generic17 === ['post_id'=>'model-iphone-17','model'=>'iPhone 17','service'=>'','scope'=>'model',
+        'start_payload'=>'as39_model-iphone-17']);
 $pair17Pdo=repairFixture();$pair17Sent=[];$pair17Notices=[];
 $pair17Factory=static function()use(&$pair17Sent):MaxMessengerAdapter{
     return new MaxMessengerAdapter(static function($chat,string $reply)use(&$pair17Sent):string{
