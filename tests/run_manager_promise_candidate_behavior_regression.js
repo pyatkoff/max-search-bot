@@ -59,7 +59,8 @@ test('no-contact candidate outside the transcript uses one Save control and veri
   await field(h,'promiseTaskTask','77');assert.equal(await h.P.save(),false);
   assert.equal(h.contexts()[0].source_message_id,12);assert.equal(h.$('promiseTaskKind').value,'send_calculation');assert.equal(h.$('promiseTaskDeadlineMode').value,'date');assert.equal(h.$('promiseTaskDate').value,'2026-11-14');
   assert.equal(h.$('promiseTaskConfirm').hidden,false);assert.equal(h.$('promiseTaskConfirm').textContent,'Сохранить связь');assert.equal(h.document.querySelector('#promiseTaskPreview'),null);
-  assert.match(h.$('promiseTaskStatus').textContent,/ещё раз/);assert.equal(h.contexts().length,1);assert.equal(h.writes().length,0);h.preserved(before);
+  assert.equal(h.$('promiseTaskStatus').textContent,'Проверьте обещание, задачу и срок. Чтобы сохранить связь, нажмите «Сохранить связь».');
+  assert.equal(h.$('promiseTaskStatus').classList.contains('error'),false);assert.equal(h.contexts().length,1);assert.equal(h.writes().length,0);h.preserved(before);
   assert.equal(await h.P.save(),true);assert.equal(await h.P.save(),false);assert.equal(h.writes().length,1);
   assert.equal(h.contexts().length,2);assert.deepEqual(h.writes()[0].deadline,h.promise.deadline);assert.equal(h.writes()[0].source_message_revision,h.promise.source_message_revision);
   assert.equal(h.writes()[0].trip_id,h.promise.trip_id);assert.equal(h.writes()[0].profile_version,h.promise.profile_version);assert.equal(h.writes()[0].profile_sha256,h.promise.profile_sha256);
@@ -69,9 +70,11 @@ test('no-contact candidate outside the transcript uses one Save control and veri
 test('a candidate already visible in the transcript still requires review before its first write',async()=>{
   const h=await harness({outside:false}),before=h.snapshot();await h.show();await checked(h);
   assert.equal(h.$('promiseTaskKind').value,'send_calculation');assert.equal(h.$('promiseTaskDate').value,'2026-11-14');
-  assert.match(h.$('promiseTaskStatus').textContent,/ещё раз/);assert.equal(h.contexts().length,1);assert.equal(h.writes().length,0);
+  assert.match(h.$('promiseTaskStatus').textContent,/Проверьте обещание, задачу и срок/);assert.doesNotMatch(h.$('promiseTaskStatus').textContent,/изменились/);
+  assert.equal(h.$('promiseTaskStatus').classList.contains('error'),false);assert.equal(h.contexts().length,1);assert.equal(h.writes().length,0);
   h.server.tasks[0].title='Уточнённая задача менеджера';
   assert.equal(await h.P.save(),false);assert.equal(h.writes().length,0);assert.match(h.$('promiseTaskTaskSummary').textContent,/Уточнённая задача менеджера/);
+  assert.match(h.$('promiseTaskStatus').textContent,/Задача, сообщение или условия изменились/);assert.equal(h.$('promiseTaskStatus').classList.contains('error'),true);
   assert.equal(await h.P.save(),true);assert.equal(h.contexts().length,3);assert.equal(h.writes().length,1);h.preserved(before);
 });
 
@@ -91,13 +94,15 @@ test('changed source, trip or profile pins reject seeding without rebasing the o
     h=>{h.server.profile.version++},h=>{h.server.profile.sha256='9'.repeat(64)},h=>{h.server.sources[12].text='Другой текст без обещания'}]){
     const h=await harness(),before=h.snapshot();await h.show();await h.open();const original=clone(h.promise);change(h);await field(h,'promiseTaskTask','77');
     assert.equal(await h.P.save(),false);assert.equal(h.$('promiseTaskKind').value,'');assert.equal(h.$('promiseTaskDeadlineMode').value,'');
-    assert.match(h.$('promiseTaskStatus').textContent,/свежий AI-разбор/);assert.equal(await h.P.save(),false);assert.equal(h.writes().length,0);assert.deepEqual(h.promise,original);h.preserved(before);
+    assert.match(h.$('promiseTaskStatus').textContent,/свежий AI-разбор/);assert.equal(h.$('promiseTaskStatus').classList.contains('error'),true);
+    assert.equal(await h.P.save(),false);assert.equal(h.writes().length,0);assert.deepEqual(h.promise,original);h.preserved(before);
   }
 });
 
 test('fresh canonical needs-review status is shown without replacing immutable candidate pins',async()=>{
   const h=await harness();await h.show();h.server.profile.status='needs_review';await checked(h);
   assert.match(h.$('promiseTaskProfile').textContent,/Сверьте текущие условия/);assert.equal(h.$('promiseTaskConfirm').hidden,false);assert.equal(h.promise.profile_status,'fresh');
+  assert.match(h.$('promiseTaskStatus').textContent,/Задача, сообщение или условия изменились/);assert.equal(h.$('promiseTaskStatus').classList.contains('error'),true);
   assert.equal(await h.P.save(),true);assert.equal(h.writes()[0].profile_sha256,h.promise.profile_sha256);
 });
 

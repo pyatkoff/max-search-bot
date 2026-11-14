@@ -131,6 +131,8 @@ for(const {width,height,candidate} of bindingViewports)test(`${candidate?'AI can
     await expect(page.locator('#promiseTaskKind')).toHaveValue('send_calculation');await expect(page.locator('#promiseTaskDate')).toHaveValue('2030-11-20');
     await expect(page.locator('#promiseTaskProfile')).toContainText('Зимняя поездка');await expect(page.locator('#promiseTaskProfile')).toContainText('20 ноября, 7 ночей');
     await expect(page.locator('#promiseTaskTaskSummary')).toContainText('Подготовить согласованный расчёт');await expect(page.locator('#promiseTaskConfirm')).toBeEnabled();
+    await expect(page.locator('#promiseTaskStatus')).toHaveText('Проверьте обещание, задачу и срок. Чтобы сохранить связь, нажмите «Сохранить связь».');
+    await expect(page.locator('#promiseTaskStatus')).not.toHaveClass(/\berror\b/);
     expect(s.calls.filter(call=>call.action==='promise_context')).toHaveLength(1);
   }
   expect(s.writes()).toHaveLength(0);await preserved(page,fileText);

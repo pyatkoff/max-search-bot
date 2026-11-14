@@ -325,15 +325,19 @@ async function save(){
  const v=view;if(!v||!current(v)||v.busy||v.pending||v.confirmed)return false;
  // Every click reads the current verified context. A second explicit click can
  // acknowledge only the exact summary already shown, never a changed version.
+ const firstCandidateReview=!!v.proposal&&!v.proposalVerified&&!v.reviewRequired;
  const reviewed=v.ready?.needsReview&&v.ready.signature===selection()?reviewStamp(v.ready.result):null;
  if(!await preview()||!current(v))return false;
  const r=v.ready;if(!r||r.result.binding||!r.result.can_bind||!v.canEdit)return false;
  const shownTask=v.tasks.find(task=>Number(task.id)===Number(r.result.task.id));
- const needsReview=v.reviewRequired||r.result.profile.status==='needs_review'||(!v.proposal&&r.result.source.text!==candidate(v.sourceId)?.text)
+ const changedContext=r.result.profile.status==='needs_review'||(!v.proposal&&r.result.source.text!==candidate(v.sourceId)?.text)
   ||taskReviewStamp(shownTask)!==taskReviewStamp(r.result.task);
+ const needsReview=v.reviewRequired||changedContext;
  if(needsReview&&reviewed!==reviewStamp(r.result)){
   r.needsReview=true;v.reviewRequired=true;
-  status('Задача, сообщение или условия изменились. Сверьте сводку ниже и нажмите «Сохранить связь» ещё раз. Пока ничего не сохранено.',true);
+  const initialReview=firstCandidateReview&&!changedContext;
+  status(initialReview?'Проверьте обещание, задачу и срок. Чтобы сохранить связь, нажмите «Сохранить связь».':
+   'Задача, сообщение или условия изменились. Сверьте сводку ниже и нажмите «Сохранить связь» ещё раз. Пока ничего не сохранено.',!initialReview);
   controls();$('promiseTaskStatus').focus({preventScroll:true});return false;
  }
  return confirm();
