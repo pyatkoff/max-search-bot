@@ -421,3 +421,10 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .m2SelectionLoadActions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.manager2 .m2SelectionLoadActions .actionBtn{min-height:44px;padding:8px 14px}
 
 .manager2 .leadEntryRegion{margin:0 0 10px;padding:8px 10px;border-color:#e5ebdd;background:#f7f9f3;border-radius:9px}.manager2 .leadEntryRegionCaption{font-size:12px;color:#637457}.manager2 .leadEntryRegionValue{font-size:13px;color:#344b3b}
+
+/* The planner reveals the canonical task form; no parallel editor is rendered. */
+.manager2 .taskCreate{grid-template-columns:minmax(0,1fr)}
+.manager2 .taskCreateField{display:flex;flex-direction:column;gap:6px;min-width:0;color:#4d6345;font-size:12px;font-weight:600}
+.manager2 .taskCreateField input{width:100%;min-width:0;font-weight:400}
+.manager2 .taskEmpty{font-size:13px;line-height:1.5;padding:8px 0}
+.manager2 #m2PlanTask{font-weight:600}

@@ -80,6 +80,7 @@ async function request(action,data,{isCurrent,controller=new AbortController()}=
 function status(text,error=false){if(!$('promiseTaskStatus'))return;$('promiseTaskStatus').textContent=text;$('promiseTaskStatus').classList.toggle('error',error);}
 function sourceText(source){
  $('promiseTaskSource').textContent=source?.text||'Текст исходного сообщения сейчас не загружен.';
+ $('promiseTaskSource').classList.remove('expanded');$('promiseTaskSourceMore').setAttribute('aria-expanded','false');$('promiseTaskSourceMore').textContent='Показать полностью';
  const at=source?.recorded_at_utc?window.ManagerTime.format(source.recorded_at_utc,{year:true})+' МСК':'Время записи не подтверждено';
  $('promiseTaskSourceMeta').textContent=source?.author_manager_id?'Сообщение менеджера · '+at:'Исходящая реплика в этом диалоге';
 }
@@ -124,10 +125,12 @@ function controls(){
  for(const id of ['promiseTaskKind','promiseTaskTask','promiseTaskDeadlineMode','promiseTaskDate','promiseTaskInstant'])$(id).disabled=locked||!v.loaded;
  $('promiseTaskDateWrap').hidden=$('promiseTaskDeadlineMode').value!=='date';
  $('promiseTaskInstantWrap').hidden=$('promiseTaskDeadlineMode').value!=='instant';
- $('promiseTaskPreview').hidden=!!v.pending||!!v.confirmed;
- $('promiseTaskPreview').disabled=!!v.busy||!v.loaded||!v.tasks.length||v.storageBlocked;
- $('promiseTaskConfirm').hidden=!v.ready||!!v.ready.result.binding||!v.ready.result.can_bind||!!v.pending||!!v.confirmed;
- $('promiseTaskConfirm').disabled=!!v.busy||!v.canEdit||v.storageBlocked;
+ const empty=v.loaded&&!v.tasks.length&&!v.pending&&!v.confirmed;
+ $('promiseTaskFields').hidden=empty;
+ $('promiseTaskEmpty').hidden=!empty;
+ $('promiseTaskPlan').hidden=!empty||!v.canEdit;
+ $('promiseTaskConfirm').hidden=empty||!!v.ready?.result.binding||!!v.pending||!!v.confirmed;
+ $('promiseTaskConfirm').disabled=!!v.busy||!v.loaded||!v.tasks.length||v.storageBlocked;
  $('promiseTaskCheck').hidden=!v.pending;
  $('promiseTaskCheck').disabled=!!v.busy;
  $('promiseTaskRetry').hidden=!v.pending||!v.notFound;
@@ -135,8 +138,7 @@ function controls(){
  $('promiseTaskReload').hidden=v.loaded||!!v.pending;
  $('promiseTaskReload').disabled=!!v.busy;
  $('promiseTaskProfileOpen').hidden=!v.profileRequired||!!v.pending;
- $('promiseTaskPreview').textContent=v.busy==='preview'?'Проверяем…':'Проверить связь';
- $('promiseTaskConfirm').textContent=v.busy==='write'?'Сохраняем…':'Подтвердить связь';
+ $('promiseTaskConfirm').textContent=v.busy==='preview'?'Проверяем…':v.busy==='write'?'Сохраняем…':v.loaded&&!v.canEdit?'Посмотреть связь':'Сохранить связь';
 }
 function edit(){
  const v=view;if(!v||v.pending||v.confirmed)return;
@@ -165,7 +167,7 @@ function renderTask(task,target=$('promiseTaskTaskSummary')){
 function renderPreview(v,result,declaredDeadline){
  const binding=result.binding,task=binding?.task||result.task;
  sourceText(result.source);renderProfile(result.profile,binding);renderTask(task);
- $('promiseTaskReviewTitle').textContent=binding?'Обещание уже связано с задачей':'Проверьте связь';
+ $('promiseTaskReviewTitle').textContent=binding?'Связь уже сохранена':'Проверьте связь';
  $('promiseTaskResultKind').textContent=kinds[binding?.kind||$('promiseTaskKind').value];
  $('promiseTaskDeclaredDeadline').textContent=deadlineText(binding?binding.deadline:declaredDeadline);
  $('promiseTaskBindingNotice').textContent=binding&&binding.task_id!==Number($('promiseTaskTask').value)
@@ -175,9 +177,11 @@ function renderPreview(v,result,declaredDeadline){
 function ensureDialog(){
  if(dialog)return;
  dialog=document.createElement('dialog');dialog.id='promiseTaskDialog';dialog.className='promiseTaskDialog';dialog.setAttribute('aria-labelledby','promiseTaskTitle');
- dialog.innerHTML=`<div class="promiseTaskShell"><header class="promiseTaskHead"><div><p class="promiseTaskEyebrow">Обещание менеджера</p><h2 id="promiseTaskTitle">Связать с задачей</h2><p id="promiseTaskClient"></p></div><button id="promiseTaskClose" type="button" class="promiseTaskClose" aria-label="Закрыть привязку">×</button></header><div id="promiseTaskStatus" class="promiseTaskStatus" role="status" aria-live="polite" tabindex="-1"></div><div class="promiseTaskBody"><section class="promiseTaskSource"><h3>Выбранное обещание</h3><blockquote id="promiseTaskSource"></blockquote><p id="promiseTaskSourceMeta" class="promiseTaskHint"></p></section><div class="promiseTaskFields"><label for="promiseTaskKind">Что обещали отправить<select id="promiseTaskKind"><option value="">Выберите результат</option><option value="send_calculation">Расчёт</option><option value="send_selection">Подборку</option></select></label><label for="promiseTaskTask">Существующая задача<select id="promiseTaskTask"><option value="">Выберите задачу</option></select></label><label for="promiseTaskDeadlineMode">Срок обещания<select id="promiseTaskDeadlineMode"><option value="">Укажите срок явно</option><option value="none">Срок не указан</option><option value="date">Календарная дата</option><option value="instant">Дата и точное время</option></select></label><label id="promiseTaskDateWrap" for="promiseTaskDate" hidden>Дата · Москва<input id="promiseTaskDate" type="date" min="1000-01-01" max="9999-12-31"></label><label id="promiseTaskInstantWrap" for="promiseTaskInstant" hidden>Дата и время · Москва<input id="promiseTaskInstant" type="datetime-local" min="1000-01-01T00:00" max="9999-12-31T23:59"></label></div><section id="promiseTaskReview" class="promiseTaskReview" hidden><h3 id="promiseTaskReviewTitle">Проверьте связь</h3><p id="promiseTaskResultKind" class="promiseTaskResultKind"></p><div id="promiseTaskTaskSummary" class="promiseTaskTaskSummary"></div><p id="promiseTaskDeclaredDeadline"></p><p id="promiseTaskBindingNotice" class="promiseTaskHint"></p><div id="promiseTaskProfile"></div></section><button id="promiseTaskReload" class="promiseTaskButton" type="button" hidden>Повторить загрузку задач</button><button id="promiseTaskProfileOpen" class="promiseTaskButton" type="button" hidden>Открыть запрос клиента</button></div><footer class="promiseTaskFooter"><p>Связь сохраняет обещание и его срок. Поля и выполнение задачи остаются в карточке клиента.</p><div class="promiseTaskActions"><button id="promiseTaskPreview" class="promiseTaskButton" type="button">Проверить связь</button><button id="promiseTaskConfirm" class="promiseTaskButton promiseTaskPrimary" type="button" hidden>Подтвердить связь</button><button id="promiseTaskCheck" class="promiseTaskButton promiseTaskPrimary" type="button" hidden>Проверить сохранение</button><button id="promiseTaskRetry" class="promiseTaskButton" type="button" hidden>Повторить эту попытку</button></div></footer></div>`;
+ dialog.innerHTML=`<div class="promiseTaskShell"><header class="promiseTaskHead"><div><h2 id="promiseTaskTitle">Связать с задачей</h2><p id="promiseTaskClient"></p></div><button id="promiseTaskClose" type="button" class="promiseTaskClose" aria-label="Закрыть привязку">×</button></header><div id="promiseTaskStatus" class="promiseTaskStatus" role="status" aria-live="polite" tabindex="-1"></div><div class="promiseTaskBody"><section class="promiseTaskSource"><h3>Сообщение</h3><blockquote id="promiseTaskSource"></blockquote><button id="promiseTaskSourceMore" type="button" class="promiseTaskSourceMore" aria-controls="promiseTaskSource" aria-expanded="false">Показать полностью</button><p id="promiseTaskSourceMeta" class="promiseTaskHint"></p></section><section id="promiseTaskEmpty" class="promiseTaskEmpty" hidden><h3>Пока нет задач</h3><p>Запланируйте действие для этого клиента: что сделать и когда.</p><button id="promiseTaskPlan" type="button" class="promiseTaskButton promiseTaskPrimary">Запланировать</button></section><div id="promiseTaskFields" class="promiseTaskFields"><label for="promiseTaskKind">Что обещали отправить<select id="promiseTaskKind"><option value="">Выберите результат</option><option value="send_calculation">Расчёт</option><option value="send_selection">Подборку</option></select></label><label for="promiseTaskTask">Существующая задача<select id="promiseTaskTask"><option value="">Выберите задачу</option></select></label><label for="promiseTaskDeadlineMode">Исходный срок обещания<select id="promiseTaskDeadlineMode"><option value="">Укажите срок явно</option><option value="none">Срок не указан</option><option value="date">Календарная дата</option><option value="instant">Дата и точное время</option></select></label><label id="promiseTaskDateWrap" for="promiseTaskDate" hidden>Дата · Москва<input id="promiseTaskDate" type="date" min="1000-01-01" max="9999-12-31"></label><label id="promiseTaskInstantWrap" for="promiseTaskInstant" hidden>Дата и время · Москва<input id="promiseTaskInstant" type="datetime-local" min="1000-01-01T00:00" max="9999-12-31T23:59"></label></div><section id="promiseTaskReview" class="promiseTaskReview" hidden><h3 id="promiseTaskReviewTitle">Проверьте связь</h3><p id="promiseTaskResultKind" class="promiseTaskResultKind"></p><div id="promiseTaskTaskSummary" class="promiseTaskTaskSummary"></div><p id="promiseTaskDeclaredDeadline"></p><p id="promiseTaskBindingNotice" class="promiseTaskHint"></p><div id="promiseTaskProfile"></div></section><button id="promiseTaskReload" class="promiseTaskButton" type="button" hidden>Повторить загрузку задач</button><button id="promiseTaskProfileOpen" class="promiseTaskButton" type="button" hidden>Открыть запрос клиента</button></div><footer class="promiseTaskFooter"><p>Для обещания отправить расчёт или подборку. Исходный срок сохраняется отдельно от срока задачи.</p><div class="promiseTaskActions"><button id="promiseTaskConfirm" class="promiseTaskButton promiseTaskPrimary" type="button">Сохранить связь</button><button id="promiseTaskCheck" class="promiseTaskButton promiseTaskPrimary" type="button" hidden>Проверить сохранение</button><button id="promiseTaskRetry" class="promiseTaskButton" type="button" hidden>Повторить эту попытку</button></div></footer></div>`;
  document.body.appendChild(dialog);
- $('promiseTaskClose').onclick=()=>close();$('promiseTaskPreview').onclick=()=>preview();$('promiseTaskConfirm').onclick=()=>confirm();$('promiseTaskCheck').onclick=()=>check();$('promiseTaskRetry').onclick=()=>retry();$('promiseTaskReload').onclick=()=>view&&loadTasks(view);
+ $('promiseTaskClose').onclick=()=>close();$('promiseTaskConfirm').onclick=()=>save();$('promiseTaskCheck').onclick=()=>check();$('promiseTaskRetry').onclick=()=>retry();$('promiseTaskReload').onclick=()=>view&&loadTasks(view);
+ $('promiseTaskSourceMore').onclick=()=>{const expanded=$('promiseTaskSourceMore').getAttribute('aria-expanded')!=='true';$('promiseTaskSource').classList.toggle('expanded',expanded);$('promiseTaskSourceMore').setAttribute('aria-expanded',String(expanded));$('promiseTaskSourceMore').textContent=expanded?'Свернуть':'Показать полностью';};
+ $('promiseTaskPlan').onclick=()=>{const v=view;if(!v||!current(v)||v.busy||v.pending)return;close({restoreFocus:false});void window.WorkspaceV2Tasks?.openPlanner();};
  $('promiseTaskProfileOpen').onclick=()=>{const v=view;if(!v||!current(v))return;const opener=v.opener;close({restoreFocus:false});void window.WorkspaceV2RequestProfile?.open(opener);};
  for(const id of ['promiseTaskKind','promiseTaskTask','promiseTaskDeadlineMode','promiseTaskDate','promiseTaskInstant']){ $(id).addEventListener('input',edit);$(id).addEventListener('change',edit); }
  dialog.addEventListener('cancel',event=>{event.preventDefault();close();});
@@ -203,12 +207,12 @@ function close({restoreFocus=true,fromHistory=false}={}){
 }
 function reset(forget=false){
  close({restoreFocus:false});clearTimeout(timer);timer=0;deniedScope='';
- document.querySelectorAll('.promiseTaskSourceButton').forEach(button=>button.remove());
+ document.querySelectorAll('.promiseTaskMessageMenu').forEach(menu=>menu.remove());
  // Durable pending commands stay isolated by actor. A different identity never
  // reads them; the original actor may reconcile after authenticating again.
  if(forget)clearDialog();
 }
-function sourceButton(id){return [...document.querySelectorAll('.promiseTaskSourceButton')].find(button=>Number(button.dataset.promiseSourceId)===id)||null;}
+function sourceButton(id){return [...document.querySelectorAll('.promiseTaskMessageMenuToggle')].find(button=>Number(button.dataset.promiseSourceId)===id)||null;}
 function refuse(v){if(view===v){const key=scopeKey(v.scope);close({restoreFocus:false});deniedScope=key;decorate();}}
 function taskOptions(v){
  const select=$('promiseTaskTask'),selected=v.pending?String(v.pending.input.task_id):select.value;
@@ -232,9 +236,9 @@ async function loadTasks(v){
  v.loaded=true;v.tasks=result.tasks;v.canEdit=result.can_edit_pipeline===true;taskOptions(v);
  if(v.pending)status('Есть неподтверждённая попытка привязки. Проверьте сохранение перед следующим действием.');
  else if(v.storageBlocked)status('Не удалось прочитать сведения о незавершённых попытках. Сохранение пока недоступно.',true);
- else if(!v.tasks.length)status('В этом диалоге пока нет задач. Создайте задачу в карточке клиента, затем откройте привязку снова.');
+ else if(!v.tasks.length)status(v.canEdit?'Сначала запланируйте задачу. Сообщение можно связать с ней позже.':'В этом диалоге пока нет задач. Их добавляет ответственный менеджер или администратор.');
  else if(!v.canEdit)status('Доступен просмотр существующей связи. Новую связь сейчас сохранить нельзя.');
- else status('Выберите результат, задачу и срок обещания. Затем проверьте связь.');
+ else status('Укажите, что обещали отправить, выберите задачу и исходный срок.');
  controls();return true;
 }
 async function open(sourceId,opener=document.activeElement){
@@ -245,7 +249,7 @@ async function open(sourceId,opener=document.activeElement){
  close({restoreFocus:false});ensureDialog();
  const v={scope,sourceId:pending?.input.source_message_id||sourceId,opener,epoch:++epoch,overlay:false,
   originalStamp:messageStamp(candidate(pending?.input.source_message_id||sourceId)),loaded:false,tasks:[],canEdit:false,busy:'',ready:null,confirmed:null,
-  pending,notFound:false,storageBlocked:saved.blocked,profileRequired:false};view=v;
+  pending,notFound:false,storageBlocked:saved.blocked,profileRequired:false,reviewRequired:false};view=v;
  const overlay=window.WorkspaceV2Mobile?.openOverlay('promise-task',()=>close({fromHistory:true}));
  if(overlay===false){view=null;return false;}v.overlay=!!overlay;
  $('promiseTaskClient').textContent=String(S.detail.conversation.display_name||'Турист');
@@ -257,7 +261,7 @@ async function open(sourceId,opener=document.activeElement){
 }
 const errors={profile_required:'Сначала сохраните запрос текущей поездки.',profile_source_changed:'Основание запроса изменилось. Проверьте запрос клиента.',
  profile_changed:'Запрос поездки изменился. Проверьте связь заново.',context_changed:'Переписка или назначение изменились. Проверьте связь заново.',
- source_changed:'Выбранное сообщение изменилось. Проверьте обещание заново.',source_unavailable:'Это сообщение нельзя использовать как основание связи. Выберите исходящее сообщение менеджера текущей поездки.',
+ source_changed:'Выбранное сообщение изменилось. Проверьте связь заново.',source_unavailable:'Это сообщение нельзя использовать как основание связи. Выберите исходящее сообщение менеджера текущей поездки.',
  binding_conflict:'Для обещания или задачи уже сохранена другая связь. Проверьте существующую связь.',task_closed:'Для новой связи нужна открытая задача.',task_not_found:'Задача больше недоступна. Загрузите список задач заново.',
  invalid_binding:'Данные привязки не приняты. Проверьте связь заново.',invalid_deadline:'Проверьте дату и время обещания.',operation_mismatch:'Данные сохранённой попытки не совпали. Повторное сохранение заблокировано.'};
 async function preview(){
@@ -270,12 +274,31 @@ async function preview(){
  try{result=await request('promise_context',{conversation_id:v.scope.conversationId,task_id:taskId,source_message_id:v.sourceId,kind},{controller:read,isCurrent:valid});}catch(e){result=null;}
  if(!valid())return false;read=null;v.busy='';
  if(result?.error==='forbidden'||result?.http_status===403){refuse(v);return false;}
- if(!validContext(result,v,taskId,kind)){v.profileRequired=result?.error==='profile_required';status(errors[result?.error]||'Не удалось проверить связь. Ничего не сохранено.',true);controls();return false;}
+ if(!validContext(result,v,taskId,kind)){v.profileRequired=result?.error==='profile_required';if(definiteRejections.has(result?.error))v.reviewRequired=true;status(errors[result?.error]||'Не удалось проверить связь. Ничего не сохранено.',true);controls();return false;}
  v.ready={result,deadline:declared,signature};renderPreview(v,result,declared);
  if(result.binding)status('Связь уже сохранена. Задача показана в её текущем состоянии.');
  else if(!result.can_bind||!v.canEdit)status(result.task.status==='done'?'Для новой связи нужна открытая задача.':'Новую связь для этой задачи сейчас сохранить нельзя.',true);
- else status('Проверьте обещание, задачу и условия поездки. Сохранение — отдельным подтверждением.');
+ else status('Сообщение, задача и условия поездки проверены.');
  controls();return true;
+}
+function reviewStamp(result){return JSON.stringify([result.profile,result.source,result.task,result.can_bind,result.binding]);}
+function taskReviewStamp(task){return JSON.stringify([Number(task?.id),task?.title,task?.due_at_utc,task?.status]);}
+async function save(){
+ const v=view;if(!v||!current(v)||v.busy||v.pending||v.confirmed)return false;
+ // Every click reads the current verified context. A second explicit click can
+ // acknowledge only the exact summary already shown, never a changed version.
+ const reviewed=v.ready?.needsReview&&v.ready.signature===selection()?reviewStamp(v.ready.result):null;
+ if(!await preview()||!current(v))return false;
+ const r=v.ready;if(!r||r.result.binding||!r.result.can_bind||!v.canEdit)return false;
+ const shownTask=v.tasks.find(task=>Number(task.id)===Number(r.result.task.id));
+ const needsReview=v.reviewRequired||r.result.profile.status==='needs_review'||r.result.source.text!==candidate(v.sourceId)?.text
+  ||taskReviewStamp(shownTask)!==taskReviewStamp(r.result.task);
+ if(needsReview&&reviewed!==reviewStamp(r.result)){
+  r.needsReview=true;v.reviewRequired=true;
+  status('Задача, сообщение или условия изменились. Сверьте сводку ниже и нажмите «Сохранить связь» ещё раз. Пока ничего не сохранено.',true);
+  controls();$('promiseTaskStatus').focus({preventScroll:true});return false;
+ }
+ return confirm();
 }
 function successfulBind(result,v,p){
  const c=p.input,b=result?.binding;
@@ -304,7 +327,7 @@ async function dispatch(v,p){
  if(!current(v))return false;v.busy='';
  if(result?.error==='forbidden'||result?.http_status===403){refuse(v);return false;}
  if(result?.ok===false&&definiteRejections.has(result.error)&&Number(result.http_status||0)<500){
-  if(forgetPending(p)){v.pending=null;v.ready=null;$('promiseTaskReview').hidden=true;v.profileRequired=result.error==='profile_required';}
+  if(forgetPending(p)){v.pending=null;v.ready=null;v.reviewRequired=true;$('promiseTaskReview').hidden=true;v.profileRequired=result.error==='profile_required';}
   else v.storageBlocked=true;
   status(errors[result.error],true);controls();return false;
  }
@@ -345,20 +368,26 @@ function decorate(){
  if(view&&!sameScope(view.scope))close({restoreFocus:false});
  if(view&&!view.pending&&!view.confirmed){
   const m=candidate(view.sourceId),stamp=messageStamp(m);
-  if(m&&stamp!==view.originalStamp){view.originalStamp=stamp;edit();sourceText(m);status('Выбранное сообщение изменилось. Проверьте связь заново.',true);}
+  if(m&&stamp!==view.originalStamp){view.originalStamp=stamp;edit();view.reviewRequired=true;sourceText(m);status('Выбранное сообщение изменилось. Проверьте связь заново.',true);}
  }
  const c=capture(),recover=c?pendingFor(c):{pending:null},allowed=!!c&&scopeKey(c)!==deniedScope&&(editHint(c)||!!recover.pending);
  const messages=new Map((S.detail?.messages||[]).map(m=>[Number(m.id),m]));
  for(const row of $('messages')?.children||[]){
-  const id=Number(row.dataset.scrollMessageKey),m=messages.get(id),button=row.querySelector('.promiseTaskSourceButton');
-  if(!allowed||(!eligible(m)&&recover.pending?.input.source_message_id!==id)){button?.remove();continue;}
-  if(button)continue;const meta=row.querySelector('.msgMeta');if(!meta)continue;
+  const id=Number(row.dataset.scrollMessageKey),m=messages.get(id);let menu=row.querySelector('.promiseTaskMessageMenu');
+  if(!allowed||(!eligible(m)&&recover.pending?.input.source_message_id!==id)){menu?.remove();continue;}
+  if(menu&&menu._promiseScope!==scopeKey(c)){menu.remove();menu=null;}
+  if(menu)continue;const meta=row.querySelector('.msgMeta');if(!meta)continue;
+  menu=node('details','','promiseTaskMessageMenu');menu._promiseScope=scopeKey(c);
+  const toggle=node('summary','⋯','promiseTaskMessageMenuToggle');toggle.dataset.promiseSourceId=String(id);toggle.setAttribute('aria-label','Действия с сообщением');
   const action=node('button','Связать с задачей','promiseTaskSourceButton');action.type='button';action.dataset.promiseSourceId=String(id);
-  action.setAttribute('aria-label','Связать обещание из этого сообщения с задачей');action.onclick=()=>open(id,action);meta.appendChild(action);
+  action.onclick=()=>{menu.open=false;return open(id,toggle);};menu.append(toggle,action);meta.appendChild(menu);
+  menu.addEventListener('toggle',()=>{if(menu.open)document.querySelectorAll('.promiseTaskMessageMenu').forEach(other=>{if(other!==menu)other.open=false;});});
+  menu.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();menu.open=false;toggle.focus({preventScroll:true});}});
  }
 }
 function schedule(){clearTimeout(timer);timer=setTimeout(()=>{timer=0;decorate();},0);}
+document.addEventListener('click',event=>{document.querySelectorAll('.promiseTaskMessageMenu').forEach(menu=>{if(menu.open&&!menu.contains(event.target))menu.open=false;});});
 window.addEventListener('pagehide',()=>reset());
-window.WorkspaceV2PromiseTasks={open,close,preview,confirm,check,retry,reset,schedule,decorate};
+window.WorkspaceV2PromiseTasks={open,close,save,preview,confirm,check,retry,reset,schedule,decorate};
 schedule();
 })();

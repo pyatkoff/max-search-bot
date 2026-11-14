@@ -295,7 +295,7 @@
     });
     const create=root.querySelector('.taskCreate');
     if(create){
-      const details=disclosure('create','＋ Задача',conversationId);details.className='m2TaskCreate';create.before(details);details.appendChild(create);
+      const details=disclosure('create',tasks.length?'＋ Добавить задачу':'Запланировать',conversationId);details.className='m2TaskCreate';create.before(details);details.appendChild(create);
       const title=create.querySelector('#leadTaskTitle'),due=create.querySelector('#leadTaskDue');
       title?.setAttribute('aria-label','Название новой задачи');due?.setAttribute('aria-label','Срок новой задачи, МСК');
       const cancel=document.createElement('button');cancel.type='button';cancel.className='m2TaskCancel';cancel.textContent='Отмена';
@@ -481,6 +481,16 @@
     if(mobile?.isMobile()&&mobile.getScreen()==='inbox')mobile.conversationOpened(S.current);
     openClientCard($('conversationTitle'),{focus:false});
   }
+  function revealTaskPlanner(root,{create=true,focus=true,onlyIfOpen=false}={}){
+    const form=root?.querySelector('.taskCreate');
+    if(!root||onlyIfOpen&&!clientCardIsOpen())return false;
+    for(const details of root.querySelectorAll('.m2AllTasks'))details.open=true;
+    if(!clientCardIsOpen())openClientCard($('conversationTitle'),{focus:false});
+    if(form&&create)for(let el=form.parentElement;el;el=el.parentElement)if(el instanceof HTMLDetailsElement)el.open=true;
+    const target=form&&create?form.querySelector('#leadTaskTitle'):root.querySelector('[data-task-action-status]');
+    if(target&&focus){if(!form||!create)target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView?.({block:'nearest'});}
+    return true;
+  }
   function syncConversationMenu(){
     if(!conversationMenu)return;
     conversationMenu.hidden=!S.manager||S.authExpired||!S.current;
@@ -519,6 +529,8 @@
     // renderActions clears only the canonical root. This stable sibling retains
     // the real Search/Next nodes and their once-bound listeners across redraws.
     root.after(conversationMenu);
+    const planner=document.createElement('button');planner.id='m2PlanTask';planner.type='button';planner.className='actionBtn';planner.textContent='Запланировать';
+    planner.onclick=()=>void window.WorkspaceV2Tasks?.openPlanner();registerConversationTool(planner);
     conversationMenu.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();conversationMenu.open=false;summary.focus()}});
     new MutationObserver(syncConversationMenu).observe(document.body,{attributes:true,attributeFilter:['class']});
     syncConversationMenu();
@@ -723,7 +735,7 @@
     updateClock();setInterval(updateClock,60000);syncNavigation();
   }
   installSelectionLoader();
-  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,registerConversationTool,conversationHistoryTarget,revealTaskDraft,budgetFact,navigate,syncNavigation,listFilters,salesCoverage,enhanceInbox,enhanceInboxMarkers,ownershipSignal,formatInboxActivity,openClientCard,closeClientCard,syncClientCard,syncSelectionLauncher,openPromiseSelectionForTask,revealInboxSearch,syncPersonalChrome};
+  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,registerConversationTool,conversationHistoryTarget,revealTaskDraft,revealTaskPlanner,budgetFact,navigate,syncNavigation,listFilters,salesCoverage,enhanceInbox,enhanceInboxMarkers,ownershipSignal,formatInboxActivity,openClientCard,closeClientCard,syncClientCard,syncSelectionLauncher,openPromiseSelectionForTask,revealInboxSearch,syncPersonalChrome};
   init();
 })();
 

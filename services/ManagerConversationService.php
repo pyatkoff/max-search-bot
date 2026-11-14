@@ -395,7 +395,7 @@ class ManagerConversationService
         $replyQueue=$beforeId===0?ManagerReplyQueueService::snapshot($managerId,$conversationId):null;
         $supervisorRead=(int)($conversation['manager_id']??0)!==$managerId&&ManagerSupervisorAccessService::canRead($managerId,$conversation);
         $pdo=ConversationDb::connection();
-        $sql='SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=?'.($beforeId>0?' AND id<?':'').' ORDER BY id DESC LIMIT '.($limit+1);
+        $sql='SELECT id,direction,sender_type,text,created_at,sender_id FROM messages WHERE conversation_id=?'.($beforeId>0?' AND id<?':'').' ORDER BY id DESC LIMIT '.($limit+1);
         $q=$pdo->prepare($sql);$q->execute($beforeId>0?[$conversationId,$beforeId]:[$conversationId]);$messages=$q->fetchAll();
         $hasMore=count($messages)>$limit;if($hasMore)array_pop($messages);$messages=array_reverse($messages);
         $opening=[];
@@ -406,8 +406,8 @@ class ManagerConversationService
                 if($hasMore&&$target<=(int)$messages[min(19,count($messages)-1)]['id']){
                     // Two bounded, indexed windows: context around the unread
                     // prefix plus the actual latest tail, never a history drain.
-                    $q=$pdo->prepare('SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=? AND id<? ORDER BY id DESC LIMIT 20');$q->execute([$conversationId,$target]);$prior=$q->fetchAll();
-                    $q=$pdo->prepare('SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=? AND id>=? ORDER BY id ASC LIMIT 100');$q->execute([$conversationId,$target]);$after=$q->fetchAll();
+                    $q=$pdo->prepare('SELECT id,direction,sender_type,text,created_at,sender_id FROM messages WHERE conversation_id=? AND id<? ORDER BY id DESC LIMIT 20');$q->execute([$conversationId,$target]);$prior=$q->fetchAll();
+                    $q=$pdo->prepare('SELECT id,direction,sender_type,text,created_at,sender_id FROM messages WHERE conversation_id=? AND id>=? ORDER BY id ASC LIMIT 100');$q->execute([$conversationId,$target]);$after=$q->fetchAll();
                     if($after&&(int)$after[0]['id']===$target){
                         $context=array_merge(array_reverse($prior),$after);$tail=array_slice($messages,-80);
                         $frontier=(int)$context[count($context)-1]['id'];$tailBefore=(int)$tail[0]['id'];
@@ -419,6 +419,7 @@ class ManagerConversationService
                 }else if(in_array($target,array_map('intval',array_column($messages,'id')),true))$opening=['initial_unread_id'=>$target];
             }
         }
+        $messages=self::messageAuthors($messages);
         foreach($messages as &$message){if(($message['sender_type']??'')==='manager')$message['text']=html_entity_decode((string)$message['text'],ENT_QUOTES|ENT_HTML5,'UTF-8');}unset($message);
         $q=$pdo->prepare("SELECT EXISTS(SELECT 1 FROM messages WHERE conversation_id=? AND direction='outbound' AND sender_type='manager')");$q->execute([$conversationId]);
         $detail=['conversation'=>$conversation,'messages'=>$messages,'has_manager_reply'=>(bool)$q->fetchColumn(),
@@ -481,16 +482,44 @@ class ManagerConversationService
         return$result;
     }
 
+    /** Resolve saved human authors once for this already-authorized bounded page. */
+    private static function messageAuthors(array $messages): array
+    {
+        $ids=[];
+        foreach($messages as &$message){
+            $saved=$message['sender_id']??null;unset($message['sender_id']);
+            if(($message['sender_type']??'')!=='manager')continue;
+            $id=null;
+            if(is_string($saved)||is_int($saved)){
+                $raw=(string)$saved;
+                // Do not coerce legacy/provider values or lose identity in JavaScript.
+                if(preg_match('/\A[1-9][0-9]{0,15}\z/',$raw)&&(strlen($raw)<16||strcmp($raw,'9007199254740991')<=0))$id=(int)$raw;
+            }
+            $message['author']=['manager_id'=>$id,'name'=>null];
+            if($id!==null)$ids[$id]=$id;
+        }
+        unset($message);
+        if(!$ids)return$messages;
+        // Historical authors may be inactive or no longer assigned to this project.
+        // Only their saved identity and display name belong in the transcript DTO.
+        $q=ConversationDb::connection()->prepare('SELECT id,display_name FROM managers WHERE id IN ('.implode(',',array_fill(0,count($ids),'?')).')');
+        $q->execute(array_values($ids));$names=[];
+        foreach($q->fetchAll() as $row){$name=is_string($row['display_name']??null)?trim($row['display_name']):'';$names[(int)$row['id']]=$name!==''?$name:null;}
+        foreach($messages as &$message)if(isset($message['author']))$message['author']['name']=$names[$message['author']['manager_id']]??null;
+        unset($message);
+        return$messages;
+    }
+
     /** Same bounded renderer projection for a quote or an explicit search hit. */
     private static function messageWindow(int $conversationId,int $target): array
     {
         $pdo=ConversationDb::connection();
-        $q=$pdo->prepare('SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=? AND id<? ORDER BY id DESC LIMIT 21');
+        $q=$pdo->prepare('SELECT id,direction,sender_type,text,created_at,sender_id FROM messages WHERE conversation_id=? AND id<? ORDER BY id DESC LIMIT 21');
         $q->execute([$conversationId,$target]);$prior=$q->fetchAll();
-        $q=$pdo->prepare('SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=? AND id>=? ORDER BY id ASC LIMIT 22');
+        $q=$pdo->prepare('SELECT id,direction,sender_type,text,created_at,sender_id FROM messages WHERE conversation_id=? AND id>=? ORDER BY id ASC LIMIT 22');
         $q->execute([$conversationId,$target]);$after=$q->fetchAll();
         if(!$after||(int)$after[0]['id']!==$target)return ['available'=>false];
-        $messages=array_merge(array_reverse(array_slice($prior,0,20)),array_slice($after,0,21));
+        $messages=self::messageAuthors(array_merge(array_reverse(array_slice($prior,0,20)),array_slice($after,0,21)));
         foreach($messages as &$message)if(($message['sender_type']??'')==='manager')$message['text']=html_entity_decode((string)$message['text'],ENT_QUOTES|ENT_HTML5,'UTF-8');
         unset($message);
         return ['available'=>true,'target_message_id'=>$target,'messages'=>$messages,'context'=>['has_before'=>count($prior)>20,'has_after'=>count($after)>21]];

@@ -468,7 +468,7 @@ function preparedReplyOpenRequests(): void
     $writes=$pdo->cacheWrites;$again=ManagerPreparedReplyService::requestOnOpen(101,1,$snap);
     $check('reopening an unchanged pending context does not duplicate or rewrite work',$again['preparation_state']==='pending'&&(int)$pdo->query('SELECT COUNT(*) FROM manager_prepared_replies')->fetchColumn()===1&&$pdo->cacheWrites===$writes);
     $pdo->executed=[];$pending=ManagerPreparedReplyService::pending(20);
-    $history=array_filter($pdo->executed,static fn(string $sql):bool=>str_starts_with($sql,'SELECT id,direction,sender_type,text,created_at FROM messages')||str_starts_with($sql,'SELECT id,metadata_json FROM messages'));
+    $history=array_filter($pdo->executed,static fn(string $sql):bool=>str_starts_with($sql,'SELECT id,direction,sender_type,text,created_at,sender_id FROM messages')||str_starts_with($sql,'SELECT id,metadata_json FROM messages'));
     $check('pending request inventory is bounded metadata with canonical source visibility',count($pending['jobs'])===1&&$pending['jobs'][0]['job_id']===$job&&$history===[]&&!str_contains(json_encode($pending,JSON_THROW_ON_ERROR),'PRIVATE'));
     $context=ManagerPreparedReplyService::context($job);
     $check('worker receives opened-chat scope and canonical instructions',!empty($context['ok'])&&$context['preparation_scope']==='opened_chat'&&$context['instructions']===ManagerAiDraftService::instructions($context['context'])&&$context['revision']===$snap['revision']);
@@ -528,7 +528,7 @@ function preparedReplyOpenRequests(): void
     $pdo->mutate("UPDATE manager_prepared_replies SET created_at='$older',expires_at='$olderExpiry'");
     $pdo->mutate("INSERT INTO conversation_sources VALUES(31,'New owner-visible source',1,99,'none',NULL,0,1,'telegram')");
     $fresh=ManagerAiDraftContextService::viewerSnapshot(1021,2);$result=ManagerPreparedReplyService::requestOnOpen(1021,2,$fresh);$pdo->executed=[];$inventory=ManagerPreparedReplyService::pending(20);
-    $histories=array_filter($pdo->executed,static fn(string $sql):bool=>str_starts_with($sql,'SELECT id,direction,sender_type,text,created_at FROM messages')||str_starts_with($sql,'SELECT id,metadata_json FROM messages'));
+    $histories=array_filter($pdo->executed,static fn(string $sql):bool=>str_starts_with($sql,'SELECT id,direction,sender_type,text,created_at,sender_id FROM messages')||str_starts_with($sql,'SELECT id,metadata_json FROM messages'));
     $check('stale access rows beyond one page cannot hide a fresh opening',!empty($result['ok'])&&array_column($inventory['jobs'],'conversation_id')===[1021]&&$histories===[]);
 
     $pdo=preparedReplyFixture();$snap=ManagerAiDraftContextService::viewerSnapshot(101,1);ManagerPreparedReplyService::requestOnOpen(101,1,$snap);$job=$latest($pdo)['job_id'];$pdo->failSnapshotOnce=true;

@@ -30,7 +30,7 @@ function managerAiInboxStatusRegression(): void
     [$pdo]=$seed();$row=managerAiInboxRow($pdo);$before=preparedReplySourceState($pdo);$cache=$pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll();$writes=$pdo->cacheWrites;$pdo->executed=[];
     $pending=$read($pdo,1,$row);$queries=$pdo->executed;
     $metadata=array_filter($queries,static fn(string $sql):bool=>str_contains($sql,'FROM manager_prepared_replies j JOIN conversations c'));
-    $histories=array_filter($queries,static fn(string $sql):bool=>str_starts_with($sql,'SELECT id,direction,sender_type,text,created_at FROM messages')||str_starts_with($sql,'SELECT id,metadata_json FROM messages'));
+    $histories=array_filter($queries,static fn(string $sql):bool=>str_starts_with($sql,'SELECT id,direction,sender_type,text,created_at,sender_id FROM messages')||str_starts_with($sql,'SELECT id,metadata_json FROM messages'));
     $check('own pending state is two inert fields',$status($pending)==='pending'&&array_keys(array_diff_key($pending,$row))===['ai_preparation_status','ai_preparation_expires_at']&&array_diff_key($pending,array_flip(['ai_preparation_status','ai_preparation_expires_at']))===$row);
     $check('uses one bounded job metadata read without histories',count($metadata)===1&&$histories===[]&&!str_contains(json_encode(array_diff_key($pending,$row),JSON_THROW_ON_ERROR),'PRIVATE'));
     $check('never writes source/cache or read markers',preparedReplySourceState($pdo)===$before&&$pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll()===$cache&&$pdo->cacheWrites===$writes&&$pdo->sourceWriteAttempts===0);
