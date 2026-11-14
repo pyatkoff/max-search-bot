@@ -153,4 +153,212 @@ function modeledBacklogAssertions(PDO $p,callable $check):void
         ($overflow['available']??false)&&($overflow['coverage']['inspected_rows']??null)===10001
         &&($overflow['coverage']['complete_within_bound']??true)===false
         &&($overflow['interpretation']['incomplete_bound_is_not_the_whole_backlog']??false));
+    modeledBacklogOperationalGrowthAssertions($p,$check);
+}
+
+
+/** Observe copied rows as well as execution order; copying an unused receipt still costs the shared budget. */
+final class ModeledBacklogOperationalStatement extends PDOStatement
+{
+    public static array $queries=[];
+    public static array $settingsCopies=[];
+    protected function __construct(){}
+    public function execute(?array $params=null):bool
+    {
+        if(preg_match('/\ASELECT\s/i',$this->queryString)!==1)
+            throw new RuntimeException('fixture_operational_status_must_select_only');
+        self::$queries[]=$this->queryString;
+        return parent::execute($params);
+    }
+    public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args):array
+    {
+        $rows=parent::fetchAll($mode,...$args);
+        if(str_contains($this->queryString,'FROM modeled_conversion_value_export_settings'))
+            self::$settingsCopies[]=$rows;
+        return $rows;
+    }
+}
+
+/** Full portable disposable schema: modeledValueSchema deliberately refuses the native OAuth database name. */
+function modeledBacklogOperationalGrowthAssertions(PDO $p,callable $check):void
+{
+    require_once __DIR__.'/run_modeled_conversion_value_export_regression.php';
+    require_once dirname(__DIR__).'/services/ModeledConversionForecastStatusReader.php';
+    require_once dirname(__DIR__).'/services/ModeledConversionPredictionFollowup.php';
+    $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+    if($mysql){
+        $database=(string)$p->query('SELECT DATABASE()')->fetchColumn();
+        if($database!=='maxbot_modeled_stream_test'
+            &&preg_match('/\Amaxbot_forecast_auth_test_[a-f0-9]{12}\z/D',$database)!==1)
+            throw new RuntimeException('unsafe_fixture_database');
+    }
+    $tables=['modeled_conversion_price_audit','modeled_conversion_value_export_settings',
+        'max_channel_conversion_outbox','modeled_conversion_profile_versions','modeled_conversion_profiles_state',
+        'modeled_conversion_stream_versions','advertising_visit_observations','conversations','customer_channels','customers'];
+    foreach($tables as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
+    $auto=$mysql?'BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY':'INTEGER PRIMARY KEY AUTOINCREMENT';
+    $json=$mysql?'JSON':'TEXT';
+    $profileProject=$mysql?'project_key VARCHAR(40) CHARACTER SET ascii COLLATE ascii_bin':'project_key VARCHAR(40)';
+    $p->exec('CREATE TABLE customers(id BIGINT PRIMARY KEY,display_name VARCHAR(191))');
+    $p->exec('CREATE TABLE customer_channels(id BIGINT PRIMARY KEY,customer_id BIGINT,project_key VARCHAR(64),channel VARCHAR(16),external_user_id VARCHAR(20),external_chat_id VARCHAR(32))');
+    $p->exec('CREATE TABLE conversations(id BIGINT PRIMARY KEY,customer_id BIGINT,customer_channel_id BIGINT,project_key VARCHAR(64),channel VARCHAR(16),is_test INT,external_chat_id VARCHAR(32))');
+    $p->exec("CREATE TABLE modeled_conversion_profile_versions(id $auto,$profileProject,platform VARCHAR(16),customer_key VARCHAR(20),conversation_id BIGINT,journal_cursor BIGINT,observed_at_unix BIGINT,input_sha256 CHAR(64),assessment_namespace CHAR(64),assessment_kind VARCHAR(8),profile_json $json)");
+    $p->exec('CREATE TABLE modeled_conversion_profiles_state(project_key VARCHAR(40) PRIMARY KEY,enabled INT,last_receipt_json TEXT,last_error_at_unix BIGINT,last_error_category VARCHAR(40))');
+    $p->exec("CREATE TABLE modeled_conversion_stream_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),source_kind VARCHAR(16),source_id BIGINT,version_no INT,observed_at_unix BIGINT,snapshot_json $json)");
+    $p->exec("CREATE TABLE advertising_visit_observations(id $auto,project_key VARCHAR(64),source_key VARCHAR(80),platform VARCHAR(16),counter_id VARCHAR(20),external_user_id VARCHAR(20),identity_status VARCHAR(20),client_id VARCHAR(40),visit_at_unix BIGINT,observed_at_unix BIGINT,received_at_unix BIGINT)");
+    // Every field selected by the real operational ValueDelivery reader is present.
+    // Keep unused historical/source documents large enough to detect accidental whole-document copies.
+    $p->exec("CREATE TABLE modeled_conversion_value_export_settings(project_key VARCHAR(40) PRIMARY KEY,counter_id VARCHAR(20),mode VARCHAR(16),goal_id VARCHAR(20),goal_intent VARCHAR(20),activated_at_unix BIGINT,profile_cursor BIGINT,base_value_rub BIGINT,contract_version VARCHAR(64),last_tick_unix BIGINT,last_receipt_json $json,history_from_unix BIGINT,history_until_unix BIGINT,history_cursor BIGINT,history_ceiling BIGINT,history_completed_at_unix BIGINT,history_scanned BIGINT,history_collected BIGINT,history_stats_json $json,history_fortnight_requested_at_unix BIGINT,history_day_receipt_json $json,last_report_success_unix BIGINT,last_report_success_json $json,report_failure_since_unix BIGINT)");
+    $p->exec("CREATE TABLE max_channel_conversion_outbox(id $auto,project_key VARCHAR(40),conversation_id BIGINT,external_user_id VARCHAR(20),counter_id VARCHAR(20),target VARCHAR(100),transport_target VARCHAR(64),event_unix BIGINT,client_id VARCHAR(40),tracker_record_id VARCHAR(40),tracker_observed_unix BIGINT,state VARCHAR(24),next_attempt_unix BIGINT,claim_token VARCHAR(64),claimed_at_unix BIGINT,attempts INT,upload_id VARCHAR(40),upload_status VARCHAR(32),last_error VARCHAR(64),platform VARCHAR(16),identity_source_key VARCHAR(80),identity_observation_id BIGINT,value_rub DECIMAL(12,2),value_profile_id BIGINT,value_stage VARCHAR(40),value_contract VARCHAR(64),value_origin VARCHAR(32),value_reviewed_at_unix BIGINT,value_ready_at_unix BIGINT,value_api_accepted_at_unix BIGINT,value_processed_at_unix BIGINT,value_receipt_basis VARCHAR(32),created_at DATETIME,UNIQUE(project_key,conversation_id,target))");
+    $p->exec('CREATE TABLE modeled_conversion_price_audit(outbox_id BIGINT PRIMARY KEY,action VARCHAR(24),original_value_rub BIGINT,applied_value_rub BIGINT,prior_reserved_rub BIGINT,assessed_at_unix BIGINT,basis_json TEXT,basis_sha256 CHAR(64))');
+    $now=1741089600; // Fixed synthetic noon; no moving production population or monetary sample.
+    $flags=JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR;
+    $marker='PRIVATE_GROWTH_FRAME_MUST_NOT_BE_COPIED';
+    $frame=['private_marker'=>$marker,'padding'=>str_repeat('h',7200)];
+    $receipt=['errors'=>0,'finite_visit_evidence'=>$frame];
+    $receiptJson=json_encode($receipt,$flags);$frameJson=json_encode($frame,$flags);
+    $p->prepare("INSERT INTO modeled_conversion_value_export_settings(project_key,counter_id,mode,goal_id,goal_intent,activated_at_unix,profile_cursor,base_value_rub,contract_version,last_tick_unix,last_receipt_json,history_stats_json,history_day_receipt_json) VALUES('anytour','98615635','send','678187097','verified',?,0,25000,?,?,?,?,?)")
+        ->execute([$now-3600,ModeledConversionValueContract::VERSION,$now,$receiptJson,$frameJson,$frameJson]);
+    $state=json_encode(['status'=>'profiled','observed_at_unix'=>$now-60,'profiles_written'=>8],$flags);
+    $p->prepare("INSERT INTO modeled_conversion_profiles_state VALUES('anytour',1,?,NULL,NULL)")->execute([$state]);
+    $profileInsert=$p->prepare('INSERT INTO modeled_conversion_profile_versions(project_key,platform,customer_key,conversation_id,journal_cursor,observed_at_unix,input_sha256,assessment_namespace,assessment_kind,profile_json) VALUES(?,?,?,?,?,?,?,?,?,?)');
+    $messageInsert=$p->prepare("INSERT INTO modeled_conversion_stream_versions VALUES(?,'anytour','message',?,1,?,?)");
+    $valueInsert=$p->prepare("INSERT INTO max_channel_conversion_outbox(project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,platform,value_rub,value_profile_id,value_stage,value_contract,state,client_id,tracker_observed_unix,next_attempt_unix,value_ready_at_unix,last_error,attempts,created_at) VALUES('anytour',?,?,'98615635',?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+    $validCapsules=0;$p->beginTransaction();
+    for($scopeIndex=1;$scopeIndex<=32;$scopeIndex++){
+        $id=81000+$scopeIndex;$platform=$scopeIndex%2===0?'max':'telegram';
+        $scope=modeledValueBinding($p,$id,$platform);
+        $p->prepare('INSERT INTO customers VALUES(?,?)')->execute([$id,'Synthetic growth customer']);
+        $persisted=$now-1200+$scopeIndex;$captured=$persisted+1;
+        $snapshot=$scope+['source_status'=>'present','source_created_at_unix'=>$persisted,
+            'payload'=>['direction'=>'inbound','sender_type'=>'customer','text'=>'PRIVATE_GROWTH_MESSAGE_TEXT']];
+        $messageInsert->execute([$scopeIndex,$scopeIndex,$captured,json_encode($snapshot,$flags)]);
+        for($version=0;$version<20;$version++){
+            $saved=$captured+2+$version;
+            $wrapper=modeledExpertWrapper($scope,$saved,180000);
+            $prediction=$wrapper['semantic_prediction'];
+            $cursor=(string)$prediction['journal_cursor'];
+            $wrapper['processing']['journal_cursor']=$cursor;
+            $wrapper['processing']['source_fence_journal_id']=$prediction['source_fence_journal_id'];
+            $wrapper['prediction_followup']=ModeledConversionPredictionFollowup::compare($prediction,null);
+            $wrapper['early_forecast']=['status'=>'early_assessment'];
+            $wrapper['contextual_signals']['engagement']=['customer_turns'=>1,'manager_turns'=>0];
+            $counts=array_count_values(array_column($wrapper['contextual_signals']['events'],'goal'));
+            foreach(['substantive_interest','general_purchase_intent','agency_purchase_intent']as$goal)
+                $wrapper['contextual_signals']['goal_counts'][$goal]=$counts[$goal]??0;
+            $wrapper['contextual_signals']['coverage']['context_linking_disabled']=false;
+            $wrapper['contextual_signals']['coverage']['prediction_source_continuity']=array_fill_keys([
+                'preserved_ai_replies','preserved_handoff_receipts','unresolved_clock_barriers','long_gap_barriers',
+                'unavailable_message_barriers','unavailable_event_barriers','other_source_barriers'],0);
+            $wrapper['coverage']=['applied_wizard_fields'=>0,'errors'=>['action_or_unknown_message_type'=>0]];
+            $wrapper['private_fixture_marker']='PRIVATE_GROWTH_IMMUTABLE_PROFILE';
+            $body=json_encode($wrapper,$flags);
+            if(ModeledConversionSemanticPrediction::digestMatches($prediction)
+                &&($prediction['status']??null)==='predicted'&&is_string($prediction['stage']??null))$validCapsules++;
+            $profileInsert->execute(['anytour',$platform,(string)$id,$id,$cursor,$saved,hash('sha256',$body),
+                str_repeat('0',64),'legacy',$body]);
+            $profile=(int)$p->lastInsertId();
+            // Twenty immutable versions per exact native binding exceed the 201-row suffix.
+            // Alternating saved queue states retain a full historical backlog and both platforms.
+            $ready=$version%2===0;
+            $valueInsert->execute([$id,(string)(70000+$id),ModeledConversionValueContract::predictionKey((string)$profile),
+                ModeledConversionValueContract::TARGET,$saved+1,$platform,'10.00',$profile,
+                ModeledConversionValueContract::STAGES[2],ModeledConversionValueContract::VERSION,
+                $ready?'ready':'pending',$ready?'880000'.(70000+$id):null,$ready?$captured:null,
+                $now-600,$ready?$saved+1:null,$ready?'metrika_visit_unverified':'identity_not_found',0,
+                gmdate('Y-m-d H:i:s',$saved+1)]);
+        }
+    }
+    $p->commit();
+    $check('composed growth fixture has all 640 valid immutable predictions and large unused saved frames',
+        $validCapsules===640&&strlen($receiptJson)>=7000&&strlen($receiptJson)<=8192&&strlen($frameJson)>=7000);
+    $digest=static function()use($p,$tables,$flags):string{
+        $hash=hash_init('sha256');
+        foreach($tables as$table){
+            $order=in_array($table,['modeled_conversion_value_export_settings','modeled_conversion_profiles_state'],true)?'project_key':
+                ($table==='modeled_conversion_price_audit'?'outbox_id':'id');
+            hash_update($hash,$table.json_encode($p->query('SELECT * FROM '.$table.' ORDER BY '.$order)->fetchAll(PDO::FETCH_ASSOC),$flags));
+        }
+        return hash_final($hash);
+    };
+    $before=$digest();$oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $oldReadOnly=$mysql?(int)$p->query('SELECT @@session.transaction_read_only')->fetchColumn()
+        :(int)$p->query('PRAGMA query_only')->fetchColumn();
+    $oldZone=$mysql?(string)$p->query('SELECT @@session.time_zone')->fetchColumn():null;
+    $budget=new ModeledConversionStatusBudget();$authCalls=0;$lowestAuthHeadroom=65536;
+    $authorize=static function()use($budget,&$authCalls,&$lowestAuthHeadroom):void{
+        $headroom=$budget->remainingBytes();$lowestAuthHeadroom=min($lowestAuthHeadroom,$headroom);
+        if($headroom<4096)throw new ModeledConversionStatusLimit('byte_limit');
+        $budget->consumeBytes(512);$authCalls++;
+    };
+    $wire=new ModeledValueTestWire($now-60);
+    ModeledBacklogOperationalStatement::$queries=[];ModeledBacklogOperationalStatement::$settingsCopies=[];
+    try{
+        if($mysql){$p->exec("SET time_zone='+00:00'");$p->exec('SET SESSION TRANSACTION READ ONLY');}
+        else$p->exec('PRAGMA query_only=ON');
+        $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ModeledBacklogOperationalStatement::class]);
+        $data=(new ModeledConversionForecastStatusReader($p,$authorize,$budget))->readOperational($now);
+        $authorize(); // Mandatory caller/result authorization after the complete composed read.
+        $remaining=$budget->remainingBytes();$remainingMs=$budget->remainingMilliseconds();
+        $queries=ModeledBacklogOperationalStatement::$queries;$copies=ModeledBacklogOperationalStatement::$settingsCopies;
+    }finally{
+        $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);
+        if($p->inTransaction())$p->rollBack();
+        if($mysql){$p->exec('SET SESSION TRANSACTION '.($oldReadOnly?'READ ONLY':'READ WRITE'));$p->exec('SET time_zone='.$p->quote($oldZone));}
+        else$p->exec('PRAGMA query_only='.($oldReadOnly?'ON':'OFF'));
+    }
+    $day=$data['daily_reconciliation']??[];$backlog=$data['backlog']??[];$value=$data['value_delivery']??[];
+    $check('composed 32-scope status retains the complete 640-row day and full backlog within the unchanged shared budget',
+        ($data['available']??false)&&($day['available']??false)&&($backlog['available']??false)
+        &&($day['calendar']['accruals']['events']??null)===640
+        &&($day['calendar']['accruals']['conversations']??null)===32
+        &&($day['calendar']['accruals']['value_rub']??null)===6400
+        &&($day['calendar']['accruals']['by_platform']['max']['events']??null)===320
+        &&($day['calendar']['accruals']['by_platform']['telegram']['events']??null)===320
+        &&($backlog['coverage']['inspected_rows']??null)===640
+        &&($backlog['coverage']['complete_within_bound']??false)===true
+        &&($backlog['total']['events']??null)===640&&($backlog['total']['conversations']??null)===32
+        &&($backlog['total']['value_rub']??null)===6400
+        &&($backlog['total']['queue']['waiting']['events']??null)===640
+        &&($backlog['total']['queue']['due']['events']??null)===640
+        &&($backlog['total']['queue']['ready_never_claimed']['events']??null)===320
+        &&($backlog['by_platform']['max']['events']??null)===320
+        &&($backlog['by_platform']['telegram']['events']??null)===320
+        &&($backlog['by_state']['ready']['events']??null)===320
+        &&($backlog['by_state']['pending']['events']??null)===320);
+    $check('real operational ValueDelivery remains available and labels its 201-row suffix independently of the complete backlog',
+        ($value['available']??false)&&($value['window']['inspected_rows']??null)===201
+        &&($value['window']['complete_within_bound']??true)===false
+        &&($value['reserved_value_rub']??null)===2010.0
+        &&($value['conversations_in_ledger_window']??null)===11
+        &&($value['by_state']['pending']['events']??null)===101
+        &&($value['by_state']['ready']['events']??null)===100);
+    $backlogAt=null;$latencyAt=null;
+    foreach($queries as$index=>$sql){
+        if(str_contains($sql,' AS packet')&&str_contains($sql,'GROUP BY b.bucket,b.category'))$backlogAt=$index;
+        if($latencyAt===null&&str_contains($sql,'modeled_conversion_stream_versions'))$latencyAt=$index;
+    }
+    $timing=$data['today_latency']??[];
+    $timingKnown=($timing['available']??false)
+        ?($timing['messages']['conversations']??null)===32&&($timing['profile_sample']['scopes_inspected']??null)===32
+            &&($timing['profile_sample']['recorded_prediction_status']['predicted']??null)===32
+        :in_array($timing['reason']??null,['budget_headroom','time_headroom','response_budget'],true);
+    $core=$data['forecast_core']??[];
+    $coreKnown=($core['available']??false)
+        ?($data['saved']['valid_v1_versions']??null)===1&&($data['input_coverage']['validated_profiles']??null)===1
+        :in_array($core['reason']??null,['budget_headroom','time_headroom','response_budget'],true);
+    $check('complete financial backlog executes before any 32-scope optional timing copy and optional omission stays explicit',
+        $backlogAt!==null&&($latencyAt===null||$backlogAt<$latencyAt)&&$timingKnown&&$coreKnown);
+    $copiedSettings=json_encode($copies,$flags);$result=json_encode($data,$flags);
+    $check('unused seven-KiB history and source frames never enter the operational settings copy or response',
+        count($copies)===1&&strlen($copiedSettings)<2048
+        &&!str_contains($copiedSettings,$marker)&&!str_contains($result,'PRIVATE_GROWTH_'));
+    $check('grown composed status stays read-only with no provider/model/upload work and preserves final authorization headroom',
+        $authCalls>=10&&$lowestAuthHeadroom>=4096&&$remaining>=4096&&$remaining<65536&&$remainingMs>0
+        &&($data['limits']['max_selected_bytes']??null)===65536
+        &&($data['limits']['max_execution_seconds']??null)===5&&strlen($result)<=28000
+        &&($data['provider_requests_in_reader']??null)===0&&($data['model_calls']??null)===0
+        &&($data['conversion_uploads']??null)===0
+        &&$wire->creates===0&&$wire->posts===0&&$wire->gets===0&&$wire->visitReads===0
+        &&$digest()===$before&&!$p->inTransaction());
 }

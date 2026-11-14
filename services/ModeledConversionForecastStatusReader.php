@@ -15,7 +15,7 @@ require_once __DIR__.'/ModeledConversionDailyReconciliationReader.php';
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_22';
+    public const VERSION='saved_semantic_prediction_status_v1_23';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
@@ -62,11 +62,12 @@ final class ModeledConversionForecastStatusReader
                 $out['value_delivery']=$this->optionalRead(fn():array=>
                     (new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read($now,false));
                 $out['read_budget']['remaining_ms']['value_delivery']=$this->budget->remainingMilliseconds();
-                $out['today_latency']=$this->optionalRead(fn():array=>
-                    (new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read($now));
                 $out['backlog']=$this->optionalRead(fn():array=>
                     (new ModeledConversionDailyReconciliationReader($this->pdo,$this->authorize,null,$this->budget))->readBacklog($now));
                 $out['read_budget']['remaining_ms']['backlog']=$this->budget->remainingMilliseconds();
+                // Full financial scope precedes optional timing; reserve enough for its bounded metadata reads.
+                $out['today_latency']=$this->optionalRead(fn():array=>
+                    (new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read($now),0,24576);
                 // Reuse the canonical current-profile validation with no delivery/history/source readers.
                 $core=$this->operationalCorePresentation($this->optionalRead(fn():array=>$this->read(false)));
                 $out['forecast_core']=['available'=>($core['available']??false)===true,
@@ -121,7 +122,7 @@ final class ModeledConversionForecastStatusReader
                 }
             }
         }
-        foreach(['telegram_linkage','visit_delivery_check','backlog','today_latency']as$key){
+        foreach(['telegram_linkage','visit_delivery_check','today_latency','backlog']as$key){
             if($bytes($out)<=28000)break;
             $automatic=$key==='visit_delivery_check'?($out[$key]['automatic']??null):null;
             $out[$key]=['available'=>false,'reason'=>'response_budget'];
@@ -542,12 +543,12 @@ final class ModeledConversionForecastStatusReader
     }
 
     /** Resource omission is explicit; access denial and the shared deadline still fail closed. */
-    private function optionalRead(callable $read,int $minimumMilliseconds=0):array
+    private function optionalRead(callable $read,int $minimumMilliseconds=0,int $minimumSelectedBytes=4096):array
     {
         $remaining=$this->budget->remainingMilliseconds();
         if($remaining<$minimumMilliseconds)return ['available'=>false,'reason'=>'time_headroom',
             'minimum_required_ms'=>$minimumMilliseconds,'remaining_ms'=>$remaining];
-        if($this->budget->remainingBytes()<self::OPTIONAL_RESERVE+4096)
+        if($this->budget->remainingBytes()<self::OPTIONAL_RESERVE+max(4096,$minimumSelectedBytes))
             return ['available'=>false,'reason'=>'budget_headroom'];
         try{return $this->budget->withReservedBytes(self::OPTIONAL_RESERVE,$read);}
         catch(ModeledConversionStatusLimit $error){
