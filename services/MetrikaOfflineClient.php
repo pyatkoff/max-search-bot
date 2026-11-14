@@ -456,6 +456,94 @@ final class MetrikaOfflineClient
         }
         unset($visit);return $base;
     }
+    /** One ordinary group: complete visits for at most six cases, with at most one source enrichment. GET only. */
+    public function modeledAttributionVisitsBatch(array $cases,int $now,?callable $admitExtraRead=null):array
+    {
+        if($this->counter!=='98615635'||$this->projectPolicy!==null||$now<946684800||!array_is_list($cases)||count($cases)<1||count($cases)>6)return ['status'=>'unavailable','reports'=>[]];
+        $ids=[];foreach($cases as$case){
+            if(!is_array($case))return ['status'=>'unavailable','reports'=>[]];$keys=array_keys($case);sort($keys);
+            if($keys!==['client_id','event_unix']||!is_string($case['client_id'])||!MaxTrackerLookupProtocol::id($case['client_id'],40)
+                ||!is_int($case['event_unix'])||$case['event_unix']<946684800||$case['event_unix']>$now)return ['status'=>'unavailable','reports'=>[]];
+            if(!in_array($case['client_id'],$ids,true))$ids[]=$case['client_id'];
+        }
+        $unavailable=['status'=>'unavailable','visits'=>[],'attribution_failure'=>[4,null,null,0]];
+        try{$base=$this->batchVisitReport($ids,$now,false);}catch(Throwable $ignored){$base=$unavailable;}
+        $reports=[];foreach($ids as$id)$reports[$id]=($base['status']??null)==='ok'
+            ?['status'=>'ok','visits'=>$base['by_client'][$id],'source_report_status'=>'not_needed']
+            :$base+['source_report_status'=>'not_requested'];
+        if(($base['status']??null)!=='ok')return ['status'=>'unavailable','reports'=>array_map(static fn(string $id):array=>['client_id'=>$id,'report'=>$reports[$id]],$ids)];
+        $needed=false;foreach($cases as$case){
+            $window=ModeledConversionAttributionWindow::assess($reports[$case['client_id']],$case['event_unix'],$now);
+            if($window['visit_at']!==null&&!$window['allowed']&&$now-$window['visit_at']<=ModeledConversionAttributionWindow::MAX_SECONDS)$needed=true;
+        }
+        if($needed){
+            $admitted=true;try{if($admitExtraRead!==null&&$admitExtraRead()===false)$admitted=false;}catch(Throwable $ignored){$admitted=false;}
+            $sources=$unavailable;if($admitted){try{$sources=$this->batchVisitReport($ids,$now,true);}catch(Throwable $ignored){}}
+            $usable=($sources['status']??null)==='ok';
+            if($usable)foreach($ids as$id){
+                $times=array_fill_keys(array_column($reports[$id]['visits'],'started_at'),true);
+                foreach($sources['by_client'][$id]as$source)if(!isset($times[$source['started_at']]))$usable=false;
+            }
+            foreach($ids as$id){
+                $reports[$id]['source_report_status']=!$admitted?'not_admitted':($usable?'ok':'unavailable');
+                if(!$usable)continue;
+                foreach($reports[$id]['visits']as&$visit){
+                    $matches=array_values(array_filter($sources['by_client'][$id],static fn(array $s):bool=>$s['started_at']===$visit['started_at']));
+                    if(count($matches)>1||(count($matches)===1&&$matches[0]['visits']!==$visit['visits']))$reports[$id]['source_report_status']='ambiguous';
+                    if(count($matches)===1&&$matches[0]['visits']===$visit['visits']&&$matches[0]['source_class']==='yandex_direct')$visit['source_class']='yandex_direct';
+                }
+                unset($visit);
+            }
+        }
+        return ['status'=>'ok','reports'=>array_map(static fn(string $id):array=>['client_id'=>$id,'report'=>$reports[$id]],$ids)];
+    }
+
+    /** Same current-window counter-zone parser as the single-CID path; partial batches never imply absence. */
+    private function batchVisitReport(array $ids,int $now,bool $traffic):array
+    {
+        $failed=static function(int $stage,?array $r=null,int $mask=0):array{
+            if(!in_array($stage,[1,2,4,5],true))return ['status'=>'unavailable','visits'=>[],'attribution_failure'=>[9,null,null,0]];
+            return ['status'=>'unavailable','visits'=>[],'attribution_failure'=>[
+            $stage,is_int($r['http']??null)&&$r['http']>=100&&$r['http']<=599?$r['http']:null,is_int($r['error']??null)&&$r['error']>=0&&$r['error']<=100?$r['error']:null,$mask]];};
+        if($this->reportZone===null){
+            $r=$this->request('GET','');if(($r['error']??null)!==0)return $failed(1,$r);
+            if(($r['http']??null)!==200)return $failed(2,$r);$counter=$this->decode($r)['counter']??null;
+            if(!is_array($counter)||(!is_string($counter['id']??null)&&!is_int($counter['id']??null))||(string)$counter['id']!==$this->counter||!is_string($counter['time_zone_name']??null)
+                ||!in_array($counter['time_zone_name'],DateTimeZone::listIdentifiers(DateTimeZone::ALL_WITH_BC),true))return $failed(3,$r);
+            $this->reportZone=new DateTimeZone($counter['time_zone_name']);
+        }
+        $zone=$this->reportZone;$from=(new DateTimeImmutable('@'.($now-ModeledConversionAttributionWindow::MAX_SECONDS)))->setTimezone($zone)->format('Y-m-d');
+        $until=(new DateTimeImmutable('@'.$now))->setTimezone($zone)->format('Y-m-d');$dimensions=['ym:s:clientID','ym:s:dateTime'];
+        if($traffic)$dimensions=array_merge($dimensions,['ym:s:lastTrafficSource','ym:s:lastAdvEngine']);
+        $parts=array_map(static fn(string $id):string=>"ym:s:clientID=='".$id."'",$ids);$filter=count($parts)===1?$parts[0]:'('.implode(' OR ',$parts).')';
+        $query=['ids'=>'98615635','metrics'=>'ym:s:visits','dimensions'=>implode(',',$dimensions),'filters'=>$filter,
+            'date1'=>$from,'date2'=>$until,'accuracy'=>'full','limit'=>101];
+        $r=$this->request('GET','data?'.http_build_query($query,'','&',PHP_QUERY_RFC3986),null,null,true);
+        if(($r['error']??null)!==0)return $failed(4,$r);if(($r['http']??null)!==200)return $failed(5,$r);
+        $data=$this->decode($r);$q=$data['query']??null;$rows=$data['data']??null;
+        if(!is_array($q)||(($q['ids']??null)!==[98615635]&&($q['ids']??null)!==['98615635'])||($q['metrics']??null)!==['ym:s:visits']
+            ||($q['dimensions']??null)!==$dimensions||($q['filters']??null)!==$filter||($q['date1']??null)!==$from||($q['date2']??null)!==$until
+            ||(array_key_exists('timezone',$q)&&$q['timezone']!==(new DateTimeImmutable('@'.$now))->setTimezone($zone)->format('P')))return $failed(6,$r);
+        if(($data['sampled']??null)!==false||!is_array($rows)||!array_is_list($rows)||count($rows)>=101||!is_int($data['total_rows']??null)||$data['total_rows']!==count($rows)
+            ||(array_key_exists('total_rows_rounded',$data)&&$data['total_rows_rounded']!==false)
+            ||(array_key_exists('contains_sensitive_data',$data)&&$data['contains_sensitive_data']!==false))return $failed(7,$r);
+        $byClient=array_fill_keys($ids,[]);$seen=[];$floor=(new DateTimeImmutable($from.' 00:00:00',$zone))->getTimestamp();
+        foreach($rows as$row){
+            if(!is_array($row))return $failed(8,$r);$dims=$row['dimensions']??null;$metrics=$row['metrics']??null;
+            $id=is_array($dims)&&is_array($dims[0]??null)?($dims[0]['name']??$dims[0]['id']??null):null;
+            if(!is_string($id)||!in_array($id,$ids,true)||!is_array($dims)||!array_is_list($dims)||count($dims)!==count($dimensions)||!is_array($metrics)||!array_is_list($metrics)||count($metrics)!==1
+                ||(!is_int($metrics[0])&&!is_float($metrics[0]))||!is_finite((float)$metrics[0])||$metrics[0]<0||$metrics[0]>1000000000000
+                ||(float)$metrics[0]!==floor((float)$metrics[0]))return $failed(8,$r);
+            $date=$dims[1]['name']??$dims[1]['id']??null;
+            if(!is_string($date))return $failed(8,$r);$at=DateTimeImmutable::createFromFormat('!Y-m-d H:i:s',$date,$zone);
+            if(!$at||$at->format('Y-m-d H:i:s')!==$date||$at->getTimestamp()<$floor||$at->getTimestamp()>$now)return $failed(8,$r);
+            $key=$id.'|'.$at->getTimestamp();if(!$traffic&&isset($seen[$key]))return $failed(8,$r);$seen[$key]=true;
+            if($metrics[0]>0)$byClient[$id][]=['started_at'=>gmdate('Y-m-d\TH:i:s\Z',$at->getTimestamp()),'visits'=>(int)$metrics[0],
+                'source_class'=>$traffic&&($dims[2]['id']??null)==='ad'&&($dims[3]['id']??null)==='ya_direct'?'yandex_direct':'other_or_unknown'];
+        }
+        return ['status'=>'ok','by_client'=>$byClient];
+    }
+
     private function visitReport(string $clientId,int $activated,int $now,bool $goal,bool $traffic=false,bool $currentWindow=false):array
     {
         $fail=['status'=>'unavailable','visits'=>[]];

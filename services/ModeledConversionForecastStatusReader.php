@@ -15,7 +15,7 @@ require_once __DIR__.'/ModeledConversionDailyReconciliationReader.php';
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_20';
+    public const VERSION='saved_semantic_prediction_status_v1_21';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
@@ -73,6 +73,9 @@ final class ModeledConversionForecastStatusReader
                 $out['confirmation']=$core['confirmation']??'unknown';
                 $out['today_latency']=$this->optionalRead(fn():array=>
                     (new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read($now));
+                $out['backlog']=$this->optionalRead(fn():array=>
+                    (new ModeledConversionDailyReconciliationReader($this->pdo,$this->authorize,null,$this->budget))->readBacklog($now));
+                $out['read_budget']['remaining_ms']['backlog']=$this->budget->remainingMilliseconds();
                 $out['telegram_linkage']=$this->optionalRead(fn():array=>
                     (new ModeledConversionTelegramLinkageReader($this->pdo,$this->authorize,$this->budget))->read($now));
                 $out['visit_delivery_check']=$this->optionalRead(fn():array=>ModeledConversionVisitProof::privateSummary($now,$this->budget));
@@ -109,7 +112,7 @@ final class ModeledConversionForecastStatusReader
                 }
             }
         }
-        foreach(['telegram_linkage','today_latency','visit_delivery_check']as$key){
+        foreach(['telegram_linkage','visit_delivery_check','backlog','today_latency']as$key){
             if($bytes($out)<=28000)break;
             $automatic=$key==='visit_delivery_check'?($out[$key]['automatic']??null):null;
             $out[$key]=['available'=>false,'reason'=>'response_budget'];

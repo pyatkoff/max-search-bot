@@ -28,7 +28,7 @@ final class ModeledConversionValueDeliveryReader
     private string $frontierUnavailable='projection_unavailable';
     private const STATES=['pending','ready','uploading','accepted','processed','unknown','failed','expired','unmatched'];
     private const UPLOADS=['PREPARED','UPLOADED','EXPORTED','MATCHED','PROCESSED','LINKAGE_FAILURE'];
-    private const ERRORS=['identity_not_found','identity_ambiguous','metrika_visit_window','metrika_visit_unverified','wire_key_collision','scope_unavailable','api_rejected','api_row_rejected',
+    private const ERRORS=['identity_not_found','identity_ambiguous','metrika_visit_window','metrika_visit_unverified','metrika_no_prior_visit','wire_key_collision','scope_unavailable','api_rejected','api_row_rejected',
         'upload_outcome_unknown','event_expired','transport_not_sent','rate_limited'];
     private array $boundFiniteRows=[];
     public function __construct(private PDO $pdo,private $authorize,private ModeledConversionStatusBudget $budget){}
@@ -1332,16 +1332,16 @@ final class ModeledConversionValueDeliveryReader
         if(!is_array($saved)||!in_array($saved['v']??null,[1,2],true)||count($saved)!==($saved['v']===2?5:4)
             ||!isset($saved['checked_at_unix'],$saved['attempts'],$saved['reason_counts'])
             ||!is_int($saved['checked_at_unix'])||$saved['checked_at_unix']<$activation||$saved['checked_at_unix']>$now
-            ||!is_int($saved['attempts'])||$saved['attempts']<0||$saved['attempts']>3||!is_array($saved['reason_counts']))return $unknown;
+            ||!is_int($saved['attempts'])||$saved['attempts']<0||$saved['attempts']>18||!is_array($saved['reason_counts']))return $unknown;
         try{if(strlen(json_encode($saved,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>512)return $unknown;}
         catch(JsonException $ignored){return $unknown;}
         $counts=[];foreach(['within_current_window','outside_current_window','no_prior_visit','visit_report_unavailable','unknown']as$reason){
-            $n=$saved['reason_counts'][$reason]??null;if(!is_int($n)||$n<0||$n>3)return $unknown;$counts[$reason]=$n;
+            $n=$saved['reason_counts'][$reason]??null;if(!is_int($n)||$n<0||$n>18)return $unknown;$counts[$reason]=$n;
         }
         if(count($saved['reason_counts'])!==count($counts)||array_sum($counts)!==$saved['attempts'])return $unknown;
         $diagnostics=['available'=>false,'reason'=>'not_recorded_v1'];
         if($saved['v']===2){
-            if(!is_array($saved['failures']??null)||!array_is_list($saved['failures'])||count($saved['failures'])>3)return $unknown;
+            if(!is_array($saved['failures']??null)||!array_is_list($saved['failures'])||count($saved['failures'])>18)return $unknown;
             $stages=[1=>'counter_transport',2=>'counter_http',3=>'counter_metadata',4=>'report_transport',5=>'report_http',
                 6=>'report_scope',7=>'report_shape',8=>'report_row',9=>'internal_unavailable'];
             $flags=[3=>[1=>'counter_object_invalid',2=>'counter_id_invalid',4=>'counter_timezone_type_invalid',8=>'counter_timezone_invalid'],
@@ -1358,7 +1358,7 @@ final class ModeledConversionValueDeliveryReader
                 [$stage,$http,$curl,$mask,$n]=$tuple;
                 if(!is_int($stage)||!isset($stages[$stage])||($http!==null&&(!is_int($http)||$http<100||$http>599))
                     ||($curl!==null&&(!is_int($curl)||$curl<0||$curl>100))||!is_int($mask)||$mask<0||$mask>$limits[$stage]
-                    ||!is_int($n)||$n<1||$n>3||(in_array($stage,[3,6,7],true)&&$mask===0)||($stage===9&&($http!==null||$curl!==null)))return $unknown;
+                    ||!is_int($n)||$n<1||$n>18||(in_array($stage,[3,6,7],true)&&$mask===0)||($stage===9&&($http!==null||$curl!==null)))return $unknown;
                 if($stage===8){
                     $base=$mask&127;$clock=$base&96;
                     if($base===0||(($mask&384)!==0&&$base!==4))return $unknown;

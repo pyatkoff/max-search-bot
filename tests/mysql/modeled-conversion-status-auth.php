@@ -261,7 +261,6 @@ function forecastNativeAuthRegression():void
         $check('all read and fault cases preserve complete fixture state',forecastNativeAuthSnapshot($pdo)===$before);
         $phase='composed_status_budget';
         forecastLatencyAssertions($pdo,$check);
-        $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN target VARCHAR(100)');
         $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN value_reviewed_at_unix BIGINT NULL');
         $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN external_user_id VARCHAR(32)');
         $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD value_ready_at_unix BIGINT NULL,ADD value_api_accepted_at_unix BIGINT NULL,ADD value_processed_at_unix BIGINT NULL,ADD value_receipt_basis VARCHAR(24) NULL');
@@ -401,6 +400,8 @@ function forecastNativeAuthRegression():void
             $data=$rpc['result']['structuredContent']??null;if(!is_array($data))throw new RuntimeException('fixture_receipt_rpc_failed');
             return $data;
         });
+        $phase='complete_backlog';
+        require_once dirname(__DIR__).'/modeled_conversion_backlog_fixture.php';modeledBacklogAssertions($pdo,$check);
         echo 'NATIVE FORECAST AUTH PASSED '.$passed.PHP_EOL;
     }catch(Throwable $error){
         // Fixed phases and sanitized codes only: no tokens, SQL, fixture texts or connection details.
