@@ -421,8 +421,113 @@ function modeledValueReadyCurrentLookupAssertions(PDO $p,callable $check):void
         &&modeledValueFailureJsonEqual($saved['finite_visit_recovery'],$receipt['finite_visit_recovery']));
 }
 
+
+/** Observe actual result copies, rather than trusting a SELECT's intended projection. */
+final class ModeledValueOperationalReceiptStatement extends PDOStatement
+{
+    public static bool $active=false;
+    public static array $copies=[];
+    protected function __construct(){}
+    public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args):array
+    {
+        $rows=parent::fetchAll($mode,...$args);
+        if(self::$active)self::$copies[]=$rows;
+        return $rows;
+    }
+}
+
+/** Real saved operational values; unrelated archived evidence must cost no read bytes. */
+function modeledValueOperationalReceiptProjectionAssertions(PDO $p,callable $check):void
+{
+    require_once dirname(__DIR__).'/services/ModeledConversionValueDeliveryReader.php';
+    $now=1793670000;modeledValueSchema($p);$wire=new ModeledValueTestWire($now-600);$api=$wire->api();
+    $owner=new ModeledConversionValueExport($p);$owner->configure('create-goal',$api,$now-500);$owner->configure('enable',$api,$now-400);
+    modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,17801),$now-120));
+    $lookup=new ModeledValueTestLookup();$lookup->observedAt=$now-900;
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now,static fn(string $chat):bool=>true);
+    $settings=ModeledConversionValueExport::settings($p);
+    $receipt=json_decode($settings['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    $receipt['metrika_report']['synthetic_nullable']=null;
+    $write=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?,history_day_receipt_json=?,history_stats_json=? WHERE project_key='anytour'");
+    $write->execute([json_encode($receipt,JSON_THROW_ON_ERROR),null,null]);
+    $networkBefore=serialize([$wire->gets,$wire->posts,$wire->csv,$wire->receipts]);
+    $canonical=static function(mixed $v)use(&$canonical):mixed{
+        if(!is_array($v))return $v;
+        foreach($v as$key=>$item)$v[$key]=$canonical($item);
+        if(!array_is_list($v))ksort($v);
+        return $v;
+    };
+    $snapshot=static function()use($p):string{
+        $data=[];foreach(['modeled_conversion_value_export_settings','max_channel_conversion_outbox',
+            'modeled_conversion_profile_versions','conversations','customer_channels','advertising_visit_observations','modeled_conversion_price_audit']as$table)
+            $data[$table]=$p->query('SELECT * FROM '.$table.' ORDER BY '.($table==='modeled_conversion_value_export_settings'?'project_key':($table==='modeled_conversion_price_audit'?'outbox_id':'id')))->fetchAll(PDO::FETCH_ASSOC);
+        return hash('sha256',json_encode($data,JSON_THROW_ON_ERROR));
+    };
+    $previous=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ModeledValueOperationalReceiptStatement::class]);
+    $read=static function(?ModeledConversionStatusBudget $budget=null,bool $authorizationCost=false)use($p,$now):array{
+        $budget??=new ModeledConversionStatusBudget();$before=$budget->remainingBytes();$authorizations=0;
+        ModeledValueOperationalReceiptStatement::$copies=[];ModeledValueOperationalReceiptStatement::$active=true;
+        try{
+            $value=(new ModeledConversionValueDeliveryReader($p,static function()use($budget,$authorizationCost,&$authorizations):void{
+                $authorizations++;if($authorizationCost)$budget->consumeBytes(512);
+            },$budget))->read($now,false);
+        }finally{ModeledValueOperationalReceiptStatement::$active=false;}
+        $copies=ModeledValueOperationalReceiptStatement::$copies;$copied=0;
+        foreach($copies as$rows)$copied+=strlen(json_encode($rows,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        return [$value,$copies,$copied,$before-$budget->remainingBytes(),$authorizations];
+    };
+    try{
+        [$baseline,$baseCopies,$baseBytes]=$read();
+        $check('operational receipt projection preserves real saved counters typed visit decisions and the cached report',
+            ($baseline['available']??false)===true&&$baseline['api_accepted_receipts']['events']===1
+            &&$baseline['last_tick_errors']===0&&$baseline['visit_gate_decisions']['available']===true
+            &&$baseline['visit_gate_decisions']['attempts']===1
+            &&$baseline['metrika_goal_report']['status']==='ok'&&$baseline['metrika_goal_report']['sampled']===false);
+        $padded=$receipt;$padded['finite_visit_evidence']=['PRIVATE_UNUSED_FROZEN_FRAME'=>''];
+        $raw=json_encode($padded,JSON_THROW_ON_ERROR);$padding=7600-strlen($raw);
+        if($padding<1)throw new RuntimeException('fixture_operational_receipt_padding');
+        $padded['finite_visit_evidence']['PRIVATE_UNUSED_FROZEN_FRAME']=str_repeat('p',$padding);
+        $paddedRaw=json_encode($padded,JSON_THROW_ON_ERROR);
+        $history=json_encode(['PRIVATE_UNUSED_HISTORY'=>str_repeat('h',6000)],JSON_THROW_ON_ERROR);
+        $write->execute([$paddedRaw,$history,$history]);$before=$snapshot();
+        [$got,$copies,$copied,$charged]=$read();
+        $actual=json_decode($copies[0][0]['receipt_json'],true,32,JSON_THROW_ON_ERROR);
+        $expected=array_intersect_key($receipt,array_flip(['errors','last_recorded_failure','visit_gate_decisions','metrika_report','price_continuity_audit']));
+        $copiedJson=json_encode($copies,JSON_THROW_ON_ERROR);
+        $check('unrequested history and frozen frames never enter operational result copies or change their saved financial meaning',
+            strlen($paddedRaw)===7600&&strlen($paddedRaw)<8192&&$got===$baseline
+            &&$canonical($actual)===$canonical($expected)&&$copied===$baseBytes&&$copied<8192&&$charged===$copied
+            &&!str_contains($copiedJson,'PRIVATE_UNUSED_')&&!array_key_exists('history_day_receipt_json',$copies[0][0])
+            &&!array_key_exists('history_stats_json',$copies[0][0])&&$snapshot()===$before);
+        $low=new ModeledConversionStatusBudget();$low->consumeBytes(ModeledConversionStatusBudget::MAX_BYTES-12288);
+        [$underPressure,$lowCopies,$lowCopied,$lowCharged,$authCalls]=$read($low,true);
+        $check('a real twelve-KiB remaining budget still returns live delivery and retains the four-KiB authorization floor',
+            $underPressure===$baseline&&$lowCopied===$copied&&$authCalls>=2
+            &&$lowCharged===$lowCopied+512*$authCalls&&$low->remainingBytes()>=4096&&$snapshot()===$before);
+        $sparse=['errors'=>null,'metrika_report'=>$receipt['metrika_report'],'price_continuity_audit'=>null,
+            'PRIVATE_UNUSED_FROZEN_FRAME'=>str_repeat('s',1000)];
+        $write->execute([json_encode($sparse,JSON_THROW_ON_ERROR),$history,$history]);$sparseBefore=$snapshot();
+        [$sparseValue,$sparseCopies]=$read();
+        $selected=json_decode($sparseCopies[0][0]['receipt_json'],true,32,JSON_THROW_ON_ERROR);
+        $expectedSparse=array_intersect_key($sparse,array_flip(['errors','last_recorded_failure','visit_gate_decisions','metrika_report','price_continuity_audit']));
+        $check('SQL JSON projection distinguishes missing top-level evidence from explicit null without losing nested JSON types',
+            $canonical($selected)===$canonical($expectedSparse)
+            &&array_key_exists('errors',$selected)&&$selected['errors']===null
+            &&!array_key_exists('last_recorded_failure',$selected)&&!array_key_exists('visit_gate_decisions',$selected)
+            &&array_key_exists('synthetic_nullable',$selected['metrika_report'])&&$selected['metrika_report']['synthetic_nullable']===null
+            &&$selected['metrika_report']['sampled']===false&&$sparseValue['last_tick_errors']===null
+            &&$sparseValue['metrika_goal_report']===$baseline['metrika_goal_report']&&$snapshot()===$sparseBefore);
+        $check('repeated operational receipt reads make no provider calls and mutate none of the saved financial or native rows',
+            serialize([$wire->gets,$wire->posts,$wire->csv,$wire->receipts])===$networkBefore&&$snapshot()===$sparseBefore&&!$p->inTransaction());
+    }finally{
+        ModeledValueOperationalReceiptStatement::$active=false;
+        $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$previous);
+    }
+}
+
 function modeledValueAssertions(PDO $p,callable $check):void
 {
+    modeledValueOperationalReceiptProjectionAssertions($p,$check);
     modeledValueOldCurrentSourceAssertions($p,$check);
     modeledValueReadyCurrentLookupAssertions($p,$check);
     modeledValueMaxAttributionWindowAssertions($p,$check);
