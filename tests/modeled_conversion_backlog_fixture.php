@@ -283,8 +283,8 @@ function modeledBacklogOperationalGrowthAssertions(PDO $p,callable $check):void
         }
     }
     // Both receipts are outside the latest201 suffix; equal values must remain distinguishable.
-    $p->prepare("UPDATE max_channel_conversion_outbox SET state='accepted',upload_id='7700101',upload_status='UPLOADED',claimed_at_unix=?,value_api_accepted_at_unix=?,attempts=1 WHERE id=1")->execute([$now-900,$now-890]);
-    $p->prepare("UPDATE max_channel_conversion_outbox SET state='processed',upload_id='7700102',upload_status='PROCESSED',claimed_at_unix=?,value_api_accepted_at_unix=?,value_processed_at_unix=?,attempts=1 WHERE id=2")->execute([$now-800,$now-790,$now-700]);
+    $p->prepare("UPDATE max_channel_conversion_outbox SET state='accepted',value_receipt_basis='post_response',upload_id='7700101',upload_status='UPLOADED',claimed_at_unix=?,value_api_accepted_at_unix=?,attempts=1 WHERE id=1")->execute([$now-900,$now-890]);
+    $p->prepare("UPDATE max_channel_conversion_outbox SET state='processed',value_receipt_basis='post_response',upload_id='7700102',upload_status='PROCESSED',claimed_at_unix=?,value_api_accepted_at_unix=?,value_processed_at_unix=?,attempts=1 WHERE id=2")->execute([$now-800,$now-790,$now-700]);
     $p->commit();
     $check('composed growth fixture has all 640 valid immutable predictions and large unused saved frames',
         $validCapsules===640&&strlen($receiptJson)>=7000&&strlen($receiptJson)<=8192&&strlen($frameJson)>=7000);

@@ -440,7 +440,10 @@ final class ModeledValueOperationalReceiptStatement extends PDOStatement
 function modeledValueOperationalReceiptProjectionAssertions(PDO $p,callable $check):void
 {
     require_once dirname(__DIR__).'/services/ModeledConversionValueDeliveryReader.php';
-    $now=1793670000;modeledValueSchema($p);$wire=new ModeledValueTestWire($now-600);$api=$wire->api();
+    $now=1793670000;modeledValueSchema($p);
+    $p->exec('CREATE TEMPORARY TABLE customers(id BIGINT PRIMARY KEY)');
+    $p->exec('INSERT INTO customers VALUES(17801)');
+    $wire=new ModeledValueTestWire($now-600);$api=$wire->api();
     $owner=new ModeledConversionValueExport($p);$owner->configure('create-goal',$api,$now-500);$owner->configure('enable',$api,$now-400);
     modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,17801),$now-120));
     $lookup=new ModeledValueTestLookup();$lookup->observedAt=$now-900;
@@ -522,6 +525,7 @@ function modeledValueOperationalReceiptProjectionAssertions(PDO $p,callable $che
     }finally{
         ModeledValueOperationalReceiptStatement::$active=false;
         $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$previous);
+        $p->exec($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'DROP TEMPORARY TABLE customers':'DROP TABLE temp.customers');
     }
 }
 
