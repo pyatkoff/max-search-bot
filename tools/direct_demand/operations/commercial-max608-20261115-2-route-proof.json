@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "kind": "root_authenticated_private_route_extension",
+  "operation": "commercial-max608-private-route-extension-20261115-2-install1",
+  "previous_count": 607,
+  "logical_hotels": 608,
+  "new_hotel_ids": [
+    206
+  ],
+  "publication_summary_sha256": "c85ed9d08feff0950a1b4bd55861dd2f14d139c4510212134bc2e307ca3f0058",
+  "bound_read_sha256": "4cb9646017902f5877f95e5c7e4cf50394c2b63d1e68613d35fb1d72dc0ebc34",
+  "new_binding_tuples_sha256": "dd934c169bba12a23cd8c4bb7d4ec8d7cd2890daca9f329b62f480b6f13aad9e",
+  "route_receipt_sha256": "e0f1e573dbf4e2c26357d041d297963f27fc3c4db1d1e80f72e8caef524dc51f",
+  "route_manifest_projection_sha256": "a30d0bfc0dc8a8b713cc563ad7b3f1cfbeae787a466f6fb2c4d1e0505613bd4f",
+  "original_route_manifest_sha256": "e3321718560e68b7584e91f757fbe311859b598ed59736576861084477dce4b8",
+  "original_route_map_sha256": "e8c5a7cc699e6f4fe6767b7cb4897b9754c27e0daf179473ee6307d12279bbe9",
+  "original_route_module_sha256": "1ed07389fe4a115a88a590b67280c6ee80d31321fa44a98a35868871ef550459",
+  "original_previous_map_sha256": "f22cd1782c8e4c0c058c1d8900ade8048f8ae5b56d501307abf1e96ff0f6674a",
+  "verification": {
+    "full_map_checked": true,
+    "previous_rows_preserved": true,
+    "new_tuples_checked": true
+  },
+  "source": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 43694691594,
+    "run_attempt": 1,
+    "head_sha": "ff6c2188567c397bb9dd0623d41634259e9754ab",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "workflow_path": ".github/workflows/tgmini-identity-readonly.yml",
+    "candidate_artifact": {
+      "id": 14154052313,
+      "name": "commercial-max608-route-extension-candidate",
+      "zip_sha256": "30e2e2f2d496215efc7a6ed43907453f78cf522bd7b1aede965084908c8c2cc4"
+    },
+    "result_artifact": {
+      "id": 14153847916,
+      "name": "commercial-max608-route-extension-install-result",
+      "zip_sha256": "3ae9d1d939994f5957b94000c79a38bbb4015d9adaf019f9f5feacef3683a31b"
+    }
+  }
+}
