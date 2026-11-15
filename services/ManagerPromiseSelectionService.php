@@ -194,7 +194,8 @@ final class ManagerPromiseSelectionService
                 'promise_id'=>$binding['promise_id'],'kind'=>$binding['kind'],'deadline'=>$binding['_deadline'],
                 'source_message_id'=>(int)$binding['source_message_id'],'source_state'=>$sourceState,
                 'trip_id'=>$binding['trip_id'],'profile_version'=>(int)$binding['profile_version']],
-                'stale_reasons'=>$stale,'selection'=>self::emptySelectionProjection($binding['kind']==='send_selection'?'none':'not_applicable')];
+                'stale_reasons'=>$stale,'selection'=>self::emptySelectionProjection($binding['kind']==='send_selection'?'none':'not_applicable'),
+                'calculation'=>self::emptySelectionProjection($binding['kind']==='send_calculation'?'none':'not_applicable')];
             $meta=$intentRows[$binding['promise_id']]??null;
             if($binding['kind']==='send_selection'&&$intentError!==null)$projection['selection']=self::emptySelectionProjection('unavailable',$intentError);
             elseif($meta){
@@ -234,6 +235,12 @@ final class ManagerPromiseSelectionService
                     }
                     $selection['stale_reasons']=array_values(array_unique($selection['stale_reasons']));$projection['selection']=$selection;
                 }catch(Throwable $e){$projection['selection']=self::emptySelectionProjection('unavailable',self::readFailure($e));}
+            }
+            if($binding['kind']==='send_calculation'){
+                // Only the Manager2 task-facts reader needs composer proof.
+                // The sealed selection component retains its existing inputs.
+                require_once __DIR__.'/ManagerPromiseCalculationService.php';
+                $projection['calculation']=ManagerPromiseCalculationService::forTaskProjection($pdo,$c,$binding,$guards[$taskId],$context['boundary'],$stale,$remaining);
             }
             $facts[$taskId]=$projection;
         }
@@ -377,7 +384,7 @@ final class ManagerPromiseSelectionService
         'created_at'=>$row['created_at'],'completed_at'=>$row['completed_at'],'cancelled_at'=>$row['cancelled_at']];}
     private static function emptyPromiseProjection(string $availability,?string $reason=null): array
     {return ['availability'=>$availability,'reason'=>$reason,'binding'=>null,'stale_reasons'=>[],
-        'selection'=>self::emptySelectionProjection('not_applicable')];}
+        'selection'=>self::emptySelectionProjection('not_applicable'),'calculation'=>self::emptySelectionProjection('not_applicable')];}
     private static function emptySelectionProjection(string $availability,?string $reason=null): array
     {return ['availability'=>$availability,'reason'=>$reason,'intent'=>null,'stale_reasons'=>[],'progress'=>null];}
     private static function consumeProjectionBytes(int &$remaining,int $bytes): void

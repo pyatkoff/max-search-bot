@@ -250,13 +250,15 @@ function calculationNativeWorker(string $token): never
         ProjectAccessService::initializeReadOnly();
         echo 'READY:'.$pdo->query('SELECT CONNECTION_ID()')->fetchColumn()."\n"; fflush(STDOUT);
         $input=json_decode((string)fgets(STDIN,4096),true,8,JSON_THROW_ON_ERROR);
-        if (!is_array($input) || !in_array($input['action']??null,['send','finalize','recover'],true)
+        if (!is_array($input) || !in_array($input['action']??null,['send','finalize','recover','plan'],true)
             || preg_match('/\A[a-f0-9]{32}\z/D',(string)($input['intent']??''))!==1
             || preg_match('/\A[a-f0-9]{32}\z/D',(string)($input['operation']??''))!==1) throw new RuntimeException('calculation_native_worker_command');
         $phase=$input['action'];
         if ($input['action']==='send') {
             if (!is_string($input['text']??null) || strlen($input['text'])>512) throw new RuntimeException('calculation_native_worker_text');
             $result=calculationNativeSend($pdo,$input['intent'],$input['operation'],$input['text'],'7001');
+        } elseif($input['action']==='plan') {
+            $result=['result'=>ManagerPromiseSelectionService::forTasks(7,1,[101]),'provider_calls'=>0,'provider_in_transaction'=>false];
         } else {
             if ($input['action']==='finalize') ManagerPromiseCalculationService::finalizeNative(7,1,$input['operation']);
             $result=['result'=>$input['action']==='recover'?ManagerPromiseCalculationService::recover(7,1,$input['intent']):ManagerPromiseCalculationService::status(7,1,$input['intent']),
@@ -282,6 +284,13 @@ function calculationNativeState(PDO $pdo, string $intent): array
     $result=ManagerPromiseCalculationService::status(7,1,$intent);
     if (empty($result['ok'])) throw new RuntimeException('calculation_native_status');
     return $result['intent'];
+}
+
+function calculationNativePlan(): array
+{
+    $result=ManagerPromiseSelectionService::forTasks(7,1,[101]);
+    if(empty($result['ok'])||!isset($result['by_task'][101]['calculation']))throw new RuntimeException('calculation_native_plan');
+    return $result['by_task'][101]['calculation'];
 }
 
 function calculationNativeCompleted(PDO $pdo, string $intent): bool
@@ -327,9 +336,17 @@ try {
     calculationNativeCheck($again['provider_calls']===0 && calculationNativeSnapshot($pdo)===$before,'completed operation replay has zero provider calls and zero canonical writes');
     promiseCalculationSchema($pdo,true);
     calculationNativeCheck(calculationNativeSnapshot($pdo)===$before,'migration retry preserves completed proof transcript receipts and tasks byte exact');
+    $plan=calculationNativePlan();
+    calculationNativeCheck($plan['intent']['state']==='completed' && $plan['progress']['confirmed']===1 && $plan['progress']['total']===1
+        && !in_array('task_changed',$plan['stale_reasons'],true) && calculationNativeSnapshot($pdo)===$before,
+        'plan authenticates complete native proof and completion revision without writes');
 
     $phase='duplicate_recovery'; calculationNativeSeed($pdo); $intent=calculationNativeArm($pdo,$composition); $operation=str_repeat('2',32);
     $sent=calculationNativeSend($pdo,$intent,$operation,$text,'7002',true);
+    $before=calculationNativeSnapshot($pdo);$plan=calculationNativePlan();
+    calculationNativeCheck($plan['intent']['state']==='armed' && $plan['progress']['reason']==='delivery_unverified'
+        && $plan['progress']['confirmed']===0 && calculationNativeSnapshot($pdo)===$before,
+        'plan does not finalize a durable native receipt awaiting canonical local proof');
     $command=['action'=>'recover','intent'=>$intent,'operation'=>$operation];
     $race=calculationNativeRace($pdo,$token,[$command,$command]);
     calculationNativeCheck($sent['provider_calls']===1 && ($sent['result']['attempt']['state']??null)==='unknown'
@@ -342,6 +359,10 @@ try {
     $replay=calculationNativeSend($pdo,$intent,$operation,$text,'7002');
     calculationNativeCheck(promiseSelectionTask($pdo)['status']==='open' && (int)promiseSelectionTask($pdo)['business_revision']===3
         && $replay['provider_calls']===0 && calculationNativeSnapshot($pdo)===$before,'manual reopen after completion survives late status recovery and old send replay');
+    $plan=calculationNativePlan();
+    calculationNativeCheck($plan['intent']['state']==='completed' && $plan['progress']['confirmed']===1
+        && in_array('task_changed',$plan['stale_reasons'],true) && calculationNativeSnapshot($pdo)===$before,
+        'plan retains historical completion beside a manually reopened current task');
 
     $phase='manual_aba'; calculationNativeSeed($pdo); $intent=calculationNativeArm($pdo,$composition); $operation=str_repeat('3',32);
     calculationNativeSend($pdo,$intent,$operation,$text,'7003',true);
@@ -401,6 +422,20 @@ try {
         && $state['state']==='armed' && $state['confirmed']===1 && $state['total']===2 && !$state['can_recover']
         && promiseSelectionTask($pdo)['status']==='open' && $replay['provider_calls']===0 && calculationNativeSnapshot($pdo)===$before,
         'one confirmed file plus unresolved final file cannot complete or authorize an automatic retry');
+    $plan=calculationNativePlan();
+    calculationNativeCheck($plan['intent']['state']==='armed' && $plan['progress']['reason']==='delivery_unknown'
+        && $plan['progress']['confirmed']===1 && $plan['progress']['total']===2 && calculationNativeSnapshot($pdo)===$before,
+        'plan reports partial verified delivery and unknown remaining part with no write or retry');
+    $command=['action'=>'plan','intent'=>$intent,'operation'=>str_repeat('7',32)];
+    $race=calculationNativeRace($pdo,$token,[$command],static function(PDO $locked)use(&$before):void{
+        $locked->exec("UPDATE lead_tasks SET title='Changed while plan read waits',business_revision=business_revision+1 WHERE id=101");
+        $before=calculationNativeSnapshot($locked);
+    });
+    $fact=$race[0]['result']['by_task'][101]['calculation']??[];
+    calculationNativeCheck(!empty($race[0]['result']['ok']) && in_array('task_changed',$fact['stale_reasons']??[],true)
+        && ($fact['progress']['confirmed']??null)===1 && ($fact['progress']['reason']??null)==='delivery_unknown'
+        && $race[0]['provider_calls']===0 && calculationNativeSnapshot($pdo)===$before,
+        'waiting plan reader observes committed manual revision without changing receipt or task');
 
     $phase='context_before_final_part'; calculationNativeSeed($pdo); $intent=calculationNativeArm($pdo,$media);
     calculationNativeSend($pdo,$intent,str_repeat('8',32),$media['text'],'7008',false,$files[0]);

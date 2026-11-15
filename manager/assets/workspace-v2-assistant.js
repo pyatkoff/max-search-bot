@@ -162,6 +162,19 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
     if(p!==null&&(!promiseObject(p)||!['available','unavailable'].includes(p.availability)||p.availability==='available'&&(!Number.isInteger(p.confirmed)||!Number.isInteger(p.total)||p.confirmed<0||p.total<1||p.total>20||p.confirmed>p.total)||p.availability==='unavailable'&&(p.confirmed!==null||p.total!==null&&(!Number.isInteger(p.total)||p.total<1||p.total>20))))return null;
     return value;
   }
+  function calculationFacts(value){
+    const unavailable=()=>({availability:'unavailable',reason:'storage_unavailable',intent:null,stale_reasons:[],progress:null});
+    const reason=value=>value===null||typeof value==='string'&&value.length>0&&value.length<=128;
+    if(!promiseObject(value)||!promiseAvailability.includes(value.availability)||!reason(value.reason)||!promiseCodes(value.stale_reasons))return unavailable();
+    const i=value.intent,p=value.progress;
+    if(i!==null&&(!promiseObject(i)||!promiseHex(i.intent_id,32)||!['armed','completed','cancelled','blocked'].includes(i.state)||!reason(i.reason)))return unavailable();
+    if(value.availability==='available'&&(!i||!p)||value.availability!=='available'&&(i!==null||p!==null))return unavailable();
+    if(p!==null&&(!promiseObject(p)||!['available','unavailable'].includes(p.availability)||!reason(p.reason)
+      ||p.availability==='available'&&(!Number.isInteger(p.confirmed)||!Number.isInteger(p.total)||p.confirmed<0||p.total<1||p.total>10||p.confirmed>p.total)
+      ||p.availability==='unavailable'&&(p.confirmed!==null||p.total!==null&&(!Number.isInteger(p.total)||p.total<1||p.total>10))))return unavailable();
+    return value;
+  }
+  function promiseResult(p){return p.binding.kind==='send_calculation'?calculationFacts(p.calculation):p.selection;}
   function promisedDue(task,binding){
     const deadline=binding.deadline;if(deadline===null)return '';
     const current=window.ManagerTime?.parse(task.due_at_utc);
@@ -172,11 +185,11 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
     return 'Срок обещания: '+time(deadline.value)+':'+String(window.ManagerTime.wallDate(deadline.value).getUTCSeconds()).padStart(2,'0')+' МСК';
   }
   function promiseDeadlinePassed(task,p){
-    const b=p.binding,s=p.selection,i=s.intent,progress=s.progress,changes=['task_changed','context_changed'];
+    const b=p.binding,s=promiseResult(p),i=s.intent,progress=s.progress,changes=['task_changed','context_changed'];
     if(task.status!=='open'||p.availability!=='available'||p.reason!==null||b.deadline===null||b.source_state!=='current'||p.stale_reasons.length||s.reason!==null)return false;
     if(s.availability==='available'){
-      if(b.kind!=='send_selection'||!i||i.state==='completed'||!progress||progress.availability!=='available'||progress.confirmed>=progress.total||s.stale_reasons.some(code=>!changes.includes(code))||i.reason!==null&&!changes.includes(i.reason)||![null,'delivery_unknown','delivery_unverified','delivery_rejected'].includes(progress.reason))return false;
-    }else if(s.availability!==(b.kind==='send_selection'?'none':'not_applicable')||s.stale_reasons.length||i!==null||progress!==null)return false;
+      if(!i||i.state==='completed'||!progress||progress.availability!=='available'||progress.confirmed>=progress.total||s.stale_reasons.some(code=>!changes.includes(code))||i.reason!==null&&!changes.includes(i.reason)||![null,'delivery_unknown','delivery_unverified','delivery_rejected'].includes(progress.reason))return false;
+    }else if(s.availability!=='none'||s.stale_reasons.length||i!==null||progress!==null)return false;
     const now=Date.now();if(!Number.isFinite(now))return false;
     if(b.deadline.kind==='date')return (window.ManagerTime?.toInput?.(new Date(now))||'').slice(0,10)>b.deadline.value;
     const deadline=window.ManagerTime?.parse?.(b.deadline.value);return !!deadline&&now>deadline.getTime();
@@ -186,18 +199,22 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
     if(item.promise_coverage!=='checked')return '';
     const p=promiseFacts(task.promise);if(!p||p.availability==='unavailable')return '<div class="assistantPromiseFacts"><span>Связь с обещанием сейчас недоступна. Обновите план.</span></div>';
     if(p.availability!=='available')return '';
-    const b=p.binding,s=p.selection,i=s.intent,progress=s.progress,lines=['Подтверждённое обещание: '+promiseKinds[b.kind]],due=promisedDue(task,b),deadlineWarning=promiseDeadlinePassed(task,p)?'Срок обещания прошёл — проверьте выполнение.':'';if(due)lines.push(due);if(deadlineWarning)lines.push(deadlineWarning);
-    if(s.availability==='none'&&b.kind==='send_selection')lines.push('Следующий шаг: закрепить состав подборки.');
-    if(s.availability==='unavailable')lines.push('Состояние закреплённой подборки сейчас недоступно.');
+    const b=p.binding,s=promiseResult(p),i=s.intent,progress=s.progress,calculation=b.kind==='send_calculation',lines=['Подтверждённое обещание: '+promiseKinds[b.kind]],due=promisedDue(task,b),deadlineWarning=promiseDeadlinePassed(task,p)?'Срок обещания прошёл — проверьте выполнение.':'';if(due)lines.push(due);if(deadlineWarning)lines.push(deadlineWarning);
+    if(s.availability==='none')lines.push(calculation?'Следующий шаг: подготовить расчёт в диалоге.':'Следующий шаг: закрепить состав подборки.');
+    if(s.availability==='unavailable'||calculation&&s.availability==='not_applicable')lines.push(calculation?'Состояние расчёта сейчас недоступно. Откройте диалог и проверьте отправку.':'Состояние закреплённой подборки сейчас недоступно.');
     if(s.availability==='available'){
-      lines.push(i.state==='armed'?'Автоматическое выполнение ожидает весь закреплённый состав.':i.state==='completed'?'Задача уже завершалась автоматически'+(i.completed_at&&window.ManagerTime.parse(i.completed_at)?' '+time(i.completed_at)+' МСК':'')+'. Сейчас она открыта.':i.state==='cancelled'?'Автоматическое выполнение отменено.':'Автоматическое выполнение остановлено.');
-      if(progress?.availability==='available')lines.push('Подтверждена отправка '+progress.confirmed+' из '+progress.total+' вариантов.');
+      lines.push(i.state==='armed'?(calculation?'Автоматическое выполнение ожидает весь расчёт.':'Автоматическое выполнение ожидает весь закреплённый состав.'):i.state==='completed'?'Задача уже завершалась автоматически'+(i.completed_at&&window.ManagerTime.parse(i.completed_at)?' '+time(i.completed_at)+' МСК':'')+'. Сейчас она открыта.':i.state==='cancelled'?'Автоматическое выполнение отменено.':'Автоматическое выполнение остановлено.');
+      if(progress?.availability==='available'){
+        lines.push('Подтверждена отправка '+progress.confirmed+' из '+progress.total+(calculation?' частей расчёта.':' вариантов.'));
+        if(calculation&&progress.confirmed===progress.total)lines.push(i.state==='completed'?'Предыдущий расчёт отправлен. Задача сейчас открыта.':'Все части расчёта подтверждены. Проверьте открытое состояние задачи в диалоге.');
+      }
       else lines.push('Подтверждение отправки сейчас недоступно.');
     }
     const warnings=[...p.stale_reasons,...s.stale_reasons,...(i?.reason?[i.reason]:[]),...(progress?.reason?[progress.reason]:[])];if(b.source_state!=='current')warnings.push(b.source_state==='changed'?'source_changed':'source_unavailable');
-    for(const message of new Set(warnings.map(code=>promiseReasons[code]||'Проверьте актуальность связи и выполнение вручную.')))lines.push(message);
+    const calculationReasons={delivery_unknown:'Результат отправки пока не подтверждён. Проверьте его в диалоге.',delivery_unverified:'Нужно проверить подтверждение отправки в диалоге.',delivery_rejected:'Часть расчёта не отправлена. Проверьте её в диалоге.',delivery_evidence_changed:'Подтверждение отправки расчёта требует проверки в диалоге.'};
+    for(const message of new Set(warnings.map(code=>calculation&&calculationReasons[code]||promiseReasons[code]||'Проверьте актуальность связи и выполнение вручную.')))lines.push(message);
     const source=b.source_state!=='unavailable'?`<button type="button" data-assistant-promise-source="${Number(task.id)}">Исходное сообщение</button>`:'';
-    const publication=s.availability==='available'&&i?`<button type="button" data-assistant-promise-selection="${Number(task.id)}">Состав и отправка</button>`:'';
+    const publication=!calculation&&s.availability==='available'&&i?`<button type="button" data-assistant-promise-selection="${Number(task.id)}">Состав и отправка</button>`:'';
     return `<div class="assistantPromiseFacts" data-promise-availability="${p.availability}">${lines.map(line=>line===deadlineWarning?`<strong class="assistantWarning">${esc(line)}</strong>`:`<span>${esc(line)}</span>`).join('')}<div class="assistantPromiseActions">${source}${publication}</div></div>`;
   }
   function promiseIdentity(task){const p=promiseFacts(task?.promise),b=p?.binding,i=p?.selection?.intent;return p?.availability==='available'?JSON.stringify([Number(task.id),b.promise_id,b.source_message_id,b.source_state,i?.intent_id||null,i?.publication_id||null]):'';}
