@@ -8,7 +8,8 @@ const authenticated=()=>owner>0&&!S.authExpired&&Number(S.manager?.id)===owner&&
 const context=()=>window.WorkspaceV2Conversation?.captureReplyContext?.()||{conversationId:target,managerId:owner,authGeneration:generation};
 function current(c){const n=context();return authenticated()&&Number(S.current)===target&&c&&Object.keys(n).every(k=>n[k]===c[k])}
 function meta(file){return {name:String(file.name||'Вложение').slice(0,200),size:Number(file.size||0),type:String(file.type||'').slice(0,150),lastModified:Number(file.lastModified||0)}}
-function valid(r,actor=owner){return r?.schema===1&&r.actor===actor&&Number.isSafeInteger(r.conversation_id)&&r.conversation_id>0&&/^[a-f0-9]{32}$/.test(r.operation_id||'')&&/^[a-f0-9]{32}$/.test(r.batch_id||'')&&[...pendingStates,...terminalStates].includes(r.state)&&r.file&&typeof r.file.name==='string'&&r.file.name.length<=200&&Number.isFinite(r.file.size)&&r.file.size>=0&&typeof r.caption==='string'&&r.caption.length<=20000&&Number.isFinite(r.created_at)&&Number.isSafeInteger(r.order)&&r.order>0}
+function calculationValid(r){return r.calculation_intent_id===undefined&&r.calculation_part_index===undefined||typeof r.calculation_intent_id==='string'&&/^[a-f0-9]{32}$/.test(r.calculation_intent_id)&&Number.isInteger(r.calculation_part_index)&&r.calculation_part_index>=0&&r.calculation_part_index<10}
+function valid(r,actor=owner){return r?.schema===1&&r.actor===actor&&Number.isSafeInteger(r.conversation_id)&&r.conversation_id>0&&/^[a-f0-9]{32}$/.test(r.operation_id||'')&&/^[a-f0-9]{32}$/.test(r.batch_id||'')&&[...pendingStates,...terminalStates].includes(r.state)&&r.file&&typeof r.file.name==='string'&&r.file.name.length<=200&&Number.isFinite(r.file.size)&&r.file.size>=0&&typeof r.caption==='string'&&r.caption.length<=20000&&Number.isFinite(r.created_at)&&Number.isSafeInteger(r.order)&&r.order>0&&calculationValid(r)}
 function readRecord(actor,operation){
  const storage=window.localStorage,base=key(actor,operation),raw=storage.getItem(base);if(!raw)return null;
  if(raw.length>100000)throw Error('invalid');const intent=JSON.parse(raw);if(!valid(intent,actor))throw Error('invalid');
@@ -38,7 +39,8 @@ function suspend(){target=0;checking.clear();const box=$('mediaRecovery');if(box
 function configure(conversationId){if(owner!==Number(S.manager?.id)||generation!==Number(S.authGeneration||0))activate(S.manager?.id);target=Number(conversationId||0);render()}
 function blocking(file,conversationId=target){const all=entries();if(!all)return null;const f=meta(file);return all.find(r=>r.conversation_id===conversationId&&pendingStates.includes(r.state)&&r.file.name===f.name&&r.file.size===f.size&&r.file.type===f.type)||null}
 function blocked(file,conversationId=target){return entries()===null||!!blocking(file,conversationId)}
-function begin(file,caption,batch){
+function begin(file,caption,batch,calculation=null){
+ if(calculation!==null&&(!calculationValid(calculation)||calculation.calculation_intent_id===undefined))return null;
  if(!authenticated()||!target)return null;notice='';const all=entries();if(!all||blocked(file))return null;
  // Retain every unresolved fence. Only old terminal display entries are bounded.
  const completed=all.filter(r=>terminalStates.includes(r.state));
@@ -46,7 +48,7 @@ function begin(file,caption,batch){
   const storage=window.localStorage,keys=Array.from({length:storage.length},(_,i)=>storage.key(i));for(const k of keys)if(k?.startsWith(prefix+owner+'.')&&/^[a-f0-9]{32}\.(pending|terminal)$/.test(k.slice((prefix+owner+'.').length))&&!storage.getItem(k.replace(/\.(pending|terminal)$/,'')))storage.removeItem(k);
  }catch(e){return null}
  if(all.length-completed.length>=100){notice='Сначала проверьте незавершённые отправки файлов.';render();return null}
- let r;try{r={schema:1,actor:owner,conversation_id:target,operation_id:id(),batch_id:batch||id(),file:meta(file),caption:String(caption||''),state:'processing',order:Math.max(0,...all.map(r=>r.order))+1,created_at:Date.now(),caption_included:false}}catch(e){notice='Безопасная отправка файлов недоступна в этом браузере.';render();return null}
+ let r;try{r={schema:1,actor:owner,conversation_id:target,operation_id:id(),batch_id:batch||id(),file:meta(file),caption:String(caption||''),state:'processing',order:Math.max(0,...all.map(r=>r.order))+1,created_at:Date.now(),caption_included:false,...(calculation?{calculation_intent_id:calculation.calculation_intent_id,calculation_part_index:calculation.calculation_part_index}:{})}}catch(e){notice='Безопасная отправка файлов недоступна в этом браузере.';render();return null}
  if(r.caption.length>20000||!write(r)){render();return null}render();return r;
 }
 function result(record,response){

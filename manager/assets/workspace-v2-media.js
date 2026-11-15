@@ -74,7 +74,7 @@ function render(noticeFirst=false){
  // Storage progress is independent from the selected File list. Keep it outside
  // that list so saving cannot change the list's content or scroll position.
  renderPersistenceStatus(box);
- if(!rows.length&&!state.notice){box.textContent='';box.classList.add('hidden');return}
+ if(!rows.length&&!state.notice){box.textContent='';box.classList.add('hidden');window.WorkspaceV2PromiseCalculation?.syncContext?.();return}
  const hint='<div class="mediaSelectionHint" role="status"></div>';
  box.innerHTML=(noticeFirst?hint:'')+rows.map((row,index)=>`<div class="mediaSelectedItem"><span class="mediaPreview"></span><span class="mediaFileInfo"><span class="mediaFileName"></span><span class="mediaFileSize"></span></span><button class="mediaRemove" type="button" data-index="${index}" aria-label="Убрать вложение ${index+1}">×</button></div>`).join('')+(noticeFirst?'':hint);
  // querySelector fallback keeps the small non-browser context harness supported.
@@ -96,7 +96,7 @@ function render(noticeFirst=false){
  });
  box.setAttribute?.('aria-label',`Выбрано файлов: ${rows.length} из ${MAX_FILES}. Список можно прокручивать.`);
  box.querySelector('.mediaSelectionHint').textContent=state.notice||`Файлов: ${rows.length} из ${MAX_FILES}. Отправятся отдельно; подпись — к первому.`;box.classList.remove('hidden');if(noticeFirst)box.scrollTop=0;
- window.WorkspaceV2MediaPreflight?.render(rows,box);
+ window.WorkspaceV2MediaPreflight?.render(rows,box);window.WorkspaceV2PromiseCalculation?.syncContext?.();
 }
 function addFiles(incoming){
  const rows=files(),added=Array.from(incoming||[]);let rejected=0;
@@ -121,6 +121,7 @@ function hasFile(){return files().length>0}
 function notDispatched(response,j){return response.status===409&&j.error==='delivery_failed'&&j.failure?.category==='not_dispatched'&&j.failure?.http_code===0&&['file_unavailable','context_changed'].includes(j.failure?.reason)}
 function settleRecovery(record){
  window.WorkspaceV2Conversation?.settleMediaFeedback?.(record);
+ window.WorkspaceV2PromiseCalculation?.nativeResult(record,record.state,record.actor,record.conversation_id);
  const sourceKey=record.actor+':'+record.conversation_id,rows=attachmentDrafts.get(sourceKey);
  if(!rows||record.actor!==account())return;
  const row=rows.find(r=>r.recoveryId===record.operation_id&&r.batchId===record.batch_id);if(!row)return;
@@ -134,8 +135,12 @@ function settleRecovery(record){
  persist(rows,record.conversation_id,record.actor);
  if(state.conversationId===record.conversation_id&&state.restored===rows)render();
 }
-async function send(caption=''){
+async function send(caption='',calculation=null){
  if(state.busy||restoring||!hasFile()||!state.conversationId)return{ok:false,error:'media_not_ready'};
+ const selected=files(),linked=selected.some(row=>row.calculationIntentId!==undefined||row.calculationPartIndex!==undefined);
+ if(linked||calculation){
+  if(!calculation||!matchesSelection(calculation.snapshot)||!/^[a-f0-9]{32}$/.test(calculation.intentId||'')||selected.some(row=>row.calculationIntentId!==calculation.intentId||!Number.isInteger(row.calculationPartIndex)||row.calculationPartIndex<0||row.calculationPartIndex>9)||selected[0].calculationPartIndex>0&&caption.trim()!=='')return{ok:false,error:'calculation_changed',error_message:'Связанный состав изменился. Проверьте расчёт; отправка не начата.'};
+ }
  const recovery=window.WorkspaceV2MediaRecovery;
  if(!recovery)return{ok:false,error:'media_recovery_unavailable',error_message:'Не удалось подготовить безопасную отправку файлов. Текст и файлы сохранены.'};
  const generation=window.WorkspaceV2?.S?.authGeneration,manager=account(),target=state.conversationId,sourceKey=draftKey(target),rows=files(),csrf=state.csrf;
@@ -154,8 +159,9 @@ async function send(caption=''){
   for(const row of snapshot){
    if(!sameSession())return result({ok:false,error:'stale_session'});
    if(state.conversationId!==target||attachmentDrafts.get(sourceKey)!==rows)return result({ok:false,error:'context_changed',error_message:`Отправлено файлов: ${sent}. Остальные сохранены в исходном диалоге.`});
-   const actualCaption=captionConfirmed?'':caption||'';
-   const record=recovery.begin(row.file,actualCaption,row.batchId);
+   const actualCaption=linked?(row.calculationPartIndex===0?caption||'':''):(captionConfirmed?'':caption||'');
+   const link=linked?{calculation_intent_id:row.calculationIntentId,calculation_part_index:row.calculationPartIndex}:null;
+   const record=link?recovery.begin(row.file,actualCaption,row.batchId,link):recovery.begin(row.file,actualCaption,row.batchId);
    if(!record)return result({ok:false,error:'media_recovery_unavailable',error_message:'Отправка файла не начата. Проверьте сохранённые результаты и свободное место в браузере. Текст и файлы сохранены.'});
    row.recoveryId=record.operation_id;lastOperationId=record.operation_id;
    // The reloadable row must name its exact attempt before any bytes leave.
@@ -163,10 +169,12 @@ async function send(caption=''){
    if(store&&!store.checkpoint(manager,target,rows,captionSent.get(sourceKey)||null))return result({ok:false,error:'media_draft_not_saved',error_message:'Отправка файла не начата. Не удалось сохранить связь с попыткой; проверьте сохранённый результат.'});
    state.progress=`${sent+1}/${rows.length+sent}`;state.sendingRow=row;state.notice=`Отправляем файл ${sent+1} из ${rows.length+sent}…`;render();
    const data=new FormData();data.append('csrf',csrf);data.append('conversation_id',String(target));data.append('operation_id',record.operation_id);data.append('expected_manager_id',String(manager));data.append('file',row.file);data.append('caption',actualCaption);
+   if(link){data.append('calculation_intent_id',link.calculation_intent_id);data.append('calculation_part_index',String(link.calculation_part_index))}
    let response,j;
    try{response=await fetch('media-upload.php',{method:'POST',body:data,credentials:'same-origin'});j=await response.json();if(!j||typeof j!=='object'||Array.isArray(j))throw new Error('invalid_media_response')}
-   catch(e){recovery.result(record,null);row.status='unknown';uncertainFiles.add(fileKey(row.file,sourceKey));return result({ok:false,error:'media_unknown',error_message:`Отправлено файлов: ${sent}. Результат следующего файла неизвестен. Проверьте отправку; повтор заблокирован.`})}
+   catch(e){recovery.result(record,null);window.WorkspaceV2PromiseCalculation?.nativeResult(link,'unknown',manager,target);row.status='unknown';uncertainFiles.add(fileKey(row.file,sourceKey));return result({ok:false,error:'media_unknown',error_message:`Отправлено файлов: ${sent}. Результат следующего файла неизвестен. Проверьте отправку; повтор заблокирован.`})}
    const saved=recovery.result(record,response.status===200?j:null),status=saved?.state||'unknown';
+   window.WorkspaceV2PromiseCalculation?.nativeResult(link,status,manager,target);
    if(!sameSession()){
     if(status==='confirmed'&&attachmentDrafts.get(sourceKey)===rows){sent++;if(saved.caption_included){captionConfirmed=true;captionSent.set(sourceKey,{batch:row.batchId,caption:actualCaption})}const index=rows.indexOf(row);if(index>=0)rows.splice(index,1);revoke([row])}
     return result({ok:false,error:'stale_session'});
@@ -195,6 +203,21 @@ function matchesSelection(snapshot){
  const rows=attachmentDrafts.get(draftKey(state.conversationId))||[];
  return !!snapshot&&snapshot.actor===account()&&snapshot.conversationId===state.conversationId&&!state.busy&&!restoring&&rows.length===snapshot.rows.length&&!rows.some((row,i)=>row!==snapshot.rows[i].row||Object.entries(row).length!==snapshot.rows[i].fields.length||snapshot.rows[i].fields.some(([key,value])=>row[key]!==value));
 }
+function hasPendingCalculation(intentId){const all=window.WorkspaceV2MediaRecovery?.entries?.();return all===null||(all||[]).some(r=>r.actor===account()&&r.conversation_id===state.conversationId&&r.calculation_intent_id&&(!intentId||r.calculation_intent_id===intentId)&&['processing','unknown','not_found'].includes(r.state))}
+async function bindCalculation(snapshot,intentId){
+ if(!matchesSelection(snapshot)||!/^[a-f0-9]{32}$/.test(intentId)||!snapshot.rows.length||snapshot.rows.some(({row})=>row.status==='unknown'||row.recoveryId)||hasPendingCalculation())return false;
+ const rows=snapshot.rows.map(({row})=>row),batch=window.WorkspaceV2MediaRecovery.newBatch(),target=state.conversationId,actor=account();
+ rows.forEach((row,index)=>{row.calculationIntentId=intentId;row.calculationPartIndex=index;row.batchId=batch});captionSent.delete(draftKey(target));
+ if(window.WorkspaceV2MediaDrafts&&!(await persist(rows,target,actor)))return false;
+ return actor===account()&&target===state.conversationId&&rows.every((row,index)=>attachmentDrafts.get(draftKey(target))?.[index]===row);
+}
+async function unbindCalculation(intentId){
+ if(state.busy||restoring||hasPendingCalculation(intentId))return false;
+ const target=state.conversationId,actor=account(),rows=attachmentDrafts.get(draftKey(target))||[];
+ if(rows.some(row=>row.calculationIntentId===intentId&&row.status==='unknown'))return false;
+ for(const row of rows)if(row.calculationIntentId===intentId){delete row.calculationIntentId;delete row.calculationPartIndex}
+ return !window.WorkspaceV2MediaDrafts||!!(await persist(rows,target,actor));
+}
 function appendPrepared(files,snapshot,commitText){
  const rows=attachmentDrafts.get(draftKey(state.conversationId))||[];
  if(!matchesSelection(snapshot)||typeof commitText!=='function'||!Array.isArray(files)||!files.length||rows.length+files.length>MAX_FILES)return false;
@@ -204,5 +227,5 @@ function appendPrepared(files,snapshot,commitText){
  if(commitText()!==true)return false;
  save([...rows,...files.map(file=>({file,status:'ready',url:''}))]);state.notice='';render();return true;
 }
-window.WorkspaceV2Media={init,configure,hasFile,send,clear,preserveDraft,restoreDraft,resetDrafts,addFiles,settleRecovery,reconcileDraft,forgetDraft,captureSelection,matchesSelection,appendPrepared,needsRestore:()=>!!window.WorkspaceV2MediaDrafts?.has?.(account(),state.conversationId)&&!attachmentDrafts.has(draftKey(state.conversationId)),isRestoring:()=>restoring};
+window.WorkspaceV2Media={init,configure,hasFile,send,clear,preserveDraft,restoreDraft,resetDrafts,addFiles,settleRecovery,reconcileDraft,forgetDraft,captureSelection,matchesSelection,bindCalculation,unbindCalculation,hasPendingCalculation,appendPrepared,needsRestore:()=>!!window.WorkspaceV2MediaDrafts?.has?.(account(),state.conversationId)&&!attachmentDrafts.has(draftKey(state.conversationId)),isRestoring:()=>restoring};
 })();

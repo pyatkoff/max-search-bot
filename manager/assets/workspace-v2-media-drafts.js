@@ -10,11 +10,12 @@ function current(t){const S=window.WorkspaceV2?.S;return epoch(t.actor)===t.epoc
 function randomId(){const bytes=new Uint8Array(16);window.crypto.getRandomValues(bytes);return Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('')}
 function caption(value){if(value==null)return null;if(!idOK(value.batch)||typeof value.caption!=='string'||value.caption.length>20000)throw Error('invalid_caption');return{batch:value.batch,caption:value.caption}}
 function metadata(file){if(!file||typeof file.slice!=='function'||typeof file.arrayBuffer!=='function'||!Number.isSafeInteger(file.size)||file.size<=0||file.size>MAX_BYTES||typeof file.name!=='string'||file.name.length>1000||typeof file.type!=='string'||file.type.length>200||!Number.isFinite(file.lastModified))throw Error('invalid_file');return{name:file.name,size:file.size,type:file.type,lastModified:file.lastModified}}
+function calculation(row){if(row.calculationIntentId===undefined&&row.calculationPartIndex===undefined)return {};if(!idOK(row.calculationIntentId)||!Number.isInteger(row.calculationPartIndex)||row.calculationPartIndex<0||row.calculationPartIndex>9)throw Error('invalid_calculation');return{calculationIntentId:row.calculationIntentId,calculationPartIndex:row.calculationPartIndex}}
 function rowDescriptor(row,assign=false){
  const meta=metadata(row.file);if(assign){const old=identities.get(row);if(!old||old.file!==row.file||old.id!==row.blobId){row.blobId=randomId();identities.set(row,{file:row.file,id:row.blobId})}}
  if(!idOK(row.blobId)||!['ready','unknown'].includes(row.status||'ready'))throw Error('invalid_row');
  if(row.batchId!=null&&!idOK(row.batchId)||row.recoveryId!=null&&(!idOK(row.recoveryId)||!idOK(row.batchId)))throw Error('invalid_operation');
- return{blobId:row.blobId,...meta,status:row.status||'ready',...(row.batchId?{batchId:row.batchId}:{}),...(row.recoveryId?{recoveryId:row.recoveryId}:{})};
+ return{blobId:row.blobId,...meta,status:row.status||'ready',...(row.batchId?{batchId:row.batchId}:{}),...(row.recoveryId?{recoveryId:row.recoveryId}:{}),...calculation(row)};
 }
 function descriptors(rows,assign=false){if(!Array.isArray(rows)||rows.length>MAX_FILES)throw Error('invalid_selection');const out=rows.map(r=>rowDescriptor(r,assign));if(new Set(out.map(r=>r.blobId)).size!==out.length)throw Error('duplicate_row');if(out.reduce((sum,r)=>sum+r.size,0)>MAX_BYTES)throw Error('selection_capacity');return out}
 function manifest(actor){
@@ -24,7 +25,7 @@ function manifest(actor){
  for(const [cid,d]of Object.entries(m.conversations)){
   if(!/^[1-9][0-9]*$/.test(cid)||!positive(Number(cid))||!d||!Array.isArray(d.rows)||d.rows.length>MAX_FILES||!Number.isFinite(d.updatedAt)||!Number.isFinite(d.expiresAt)||(d.expiresAt<=d.updatedAt||d.expiresAt>d.updatedAt+TTL))throw Error('invalid_manifest');
   caption(d.captionSent);
-  const ids=new Set();for(const r of d.rows){if(!idOK(r.blobId)||ids.has(r.blobId)||typeof r.name!=='string'||r.name.length>1000||!Number.isSafeInteger(r.size)||r.size<=0||r.size>MAX_BYTES||typeof r.type!=='string'||r.type.length>200||!Number.isFinite(r.lastModified)||!['ready','unknown'].includes(r.status)||r.batchId!=null&&!idOK(r.batchId)||r.recoveryId!=null&&(!idOK(r.recoveryId)||!idOK(r.batchId)))throw Error('invalid_manifest');ids.add(r.blobId)}
+  const ids=new Set();for(const r of d.rows){if(!idOK(r.blobId)||ids.has(r.blobId)||typeof r.name!=='string'||r.name.length>1000||!Number.isSafeInteger(r.size)||r.size<=0||r.size>MAX_BYTES||typeof r.type!=='string'||r.type.length>200||!Number.isFinite(r.lastModified)||!['ready','unknown'].includes(r.status)||r.batchId!=null&&!idOK(r.batchId)||r.recoveryId!=null&&(!idOK(r.recoveryId)||!idOK(r.batchId)))throw Error('invalid_manifest');calculation(r);ids.add(r.blobId)}
  }
  return m;
 }
@@ -98,7 +99,7 @@ async function load(actor,cid){
   });
   if(records===null)return null;const byId=new Map(records.map(([r,value])=>[r.blobId,value])),rows=[];let missing=!!d.incomplete;
   for(const r of d.rows){const value=byId.get(r.blobId);if(!identityMatches(value,actor,cid,r)||value.format!=='arraybuffer-v1'||Object.prototype.toString.call(value.bytes)!=='[object ArrayBuffer]'||value.bytes.byteLength!==r.size){missing=true;continue}
-   const FileClass=window.File||File,file=new FileClass([value.bytes],r.name,{type:r.type,lastModified:r.lastModified});const row={file,status:r.status,blobId:r.blobId,...(r.batchId?{batchId:r.batchId}:{}),...(r.recoveryId?{recoveryId:r.recoveryId}:{})};identities.set(row,{file,id:r.blobId});known.set(scope(actor,cid)+':'+r.blobId,value.expiresAt);rows.push(row);
+   const FileClass=window.File||File,file=new FileClass([value.bytes],r.name,{type:r.type,lastModified:r.lastModified});const row={file,status:r.status,blobId:r.blobId,...(r.batchId?{batchId:r.batchId}:{}),...(r.recoveryId?{recoveryId:r.recoveryId}:{}),...calculation(r)};identities.set(row,{file,id:r.blobId});known.set(scope(actor,cid)+':'+r.blobId,value.expiresAt);rows.push(row);
   }
   return{rows,captionSent:caption(d.captionSent),missing};
  }catch(e){return null}

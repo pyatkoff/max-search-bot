@@ -269,6 +269,7 @@ if($action==='media_receipt'||$action==='media_cancel'){
 }
 if($action==='send_receipt'||$action==='cancel_send_attempt'){
     require_once $baseDir . '/services/ManagerSendAttemptService.php';
+    if(array_key_exists('expected_manager_id',$data)&&(!is_int($data['expected_manager_id'])||$data['expected_manager_id']!==(int)$m['id']))out(['ok'=>false,'error'=>'actor_changed'],409);
     $id=$data['operation_id']??null;$conversationId=$data['conversation_id']??null;
     if(!is_string($id)||!is_int($conversationId))out(['ok'=>false,'error'=>'invalid_send_attempt'],400);
     $result=$action==='send_receipt'?ManagerSendAttemptService::receipt((int)$m['id'],$conversationId,$id):ManagerSendAttemptService::cancel((int)$m['id'],$conversationId,$id);
@@ -276,9 +277,17 @@ if($action==='send_receipt'||$action==='cancel_send_attempt'){
 }
 if($action==='send'){
     $draftId=is_string($data['ai_draft_id']??null)?$data['ai_draft_id']:null;
+    $calculation=null;
+    if(array_key_exists('calculation_intent_id',$data)||array_key_exists('calculation_part_index',$data)){
+        if(!is_int($data['expected_manager_id']??null)||$data['expected_manager_id']!==(int)$m['id'])out(['ok'=>false,'error'=>'actor_changed'],409);
+        if(!is_string($data['calculation_intent_id']??null)||!preg_match('/\A[a-f0-9]{32}\z/D',$data['calculation_intent_id'])
+            ||!is_int($data['calculation_part_index']??null)||$data['calculation_part_index']<0||$data['calculation_part_index']>9
+            ||!array_key_exists('operation_id',$data))out(['ok'=>false,'error'=>'invalid_calculation_reference'],400);
+        $calculation=['intent_id'=>$data['calculation_intent_id'],'part_index'=>$data['calculation_part_index']];
+    }
     if(array_key_exists('operation_id',$data)){
         if(!is_string($data['operation_id'])||!is_int($data['conversation_id']??null)||!is_string($data['text']??null))out(['ok'=>false,'error'=>'invalid_send_attempt'],400);
-        $result=ManagerOutboundService::sendAttempt($data['conversation_id'],(int)$m['id'],$data['operation_id'],$data['text'],$draftId);
+        $result=ManagerOutboundService::sendAttempt($data['conversation_id'],(int)$m['id'],$data['operation_id'],$data['text'],$draftId,$calculation);
         out($result,isset($result['attempt'])?200:409);
     }
     $ok=ManagerOutboundService::send((int)($data['conversation_id']??0),(int)$m['id'],(string)($data['text']??''),$draftId);

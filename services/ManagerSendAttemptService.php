@@ -6,15 +6,15 @@ require_once __DIR__.'/ManagerConversationService.php';
 /** Durable execution fence around the existing sender. Never retries transport. */
 final class ManagerSendAttemptService
 {
-    public static function execute(int $actor,int $conversationId,string $operationId,string $text,?string $aiDraftId,callable $send): array
+    public static function execute(int $actor,int $conversationId,string $operationId,string $text,?string $aiDraftId,callable $send,?array $calculation=null): array
     {
         if (!self::valid($operationId)||$conversationId<=0||trim($text)===''||strlen($text)>80000) return self::error('invalid_send_attempt');
         // Keep the installed text hash and its existing UNKNOWN receipts intact.
         $hash=hash('sha256',json_encode([trim($text),$aiDraftId],JSON_THROW_ON_ERROR));
-        return self::executeCommand($actor,$conversationId,$operationId,$hash,'text',[],$send);
+        return self::executeCommand($actor,$conversationId,$operationId,$hash,'text',[],$send,$calculation,['kind'=>'text','text'=>trim($text)]);
     }
 
-    public static function executeMedia(int $actor,int $conversationId,string $operationId,string $path,string $name,string $mime,string $caption,callable $send): array
+    public static function executeMedia(int $actor,int $conversationId,string $operationId,string $path,string $name,string $mime,string $caption,callable $send,?array $calculation=null): array
     {
         if(!self::valid($operationId)||$conversationId<=0||strlen($caption)>80000)return self::error('invalid_send_attempt');
         $size=is_file($path)?filesize($path):false;$digest=$size!==false?hash_file('sha256',$path):false;
@@ -23,31 +23,53 @@ final class ManagerSendAttemptService
         $mime=strtolower(trim($mime));$caption=trim($caption);
         $type=str_starts_with($mime,'image/')?'image':(str_starts_with($mime,'video/')?'video':(str_starts_with($mime,'audio/')?'audio':'file'));
         $hash=hash('sha256',json_encode(['media-v1',$digest,$size,$name,$mime,$caption],JSON_THROW_ON_ERROR));
-        return self::executeCommand($actor,$conversationId,$operationId,$hash,'media',['media_type'=>$type,'caption_included'=>$caption!==''],$send);
+        return self::executeCommand($actor,$conversationId,$operationId,$hash,'media',['media_type'=>$type,'caption_included'=>$caption!==''],$send,$calculation,
+            ['kind'=>'media','file_sha256'=>$digest,'size'=>$size,'name'=>$name,'mime'=>$mime,'caption'=>$caption]);
     }
 
-    private static function executeCommand(int $actor,int $conversationId,string $operationId,string $hash,string $kind,array $descriptor,callable $send): array
+    private static function executeCommand(int $actor,int $conversationId,string $operationId,string $hash,string $kind,array $descriptor,callable $send,?array $calculation=null,array $content=[]): array
     {
+        if($calculation!==null)require_once __DIR__.'/ManagerPromiseCalculationService.php';
         $pdo=ConversationDb::connection();
+        $calculationIdentity=null;
         if ($pdo->inTransaction()) throw new LogicException('Send attempts require their own transaction');
         try {
+            if($calculation!==null&&$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql')$pdo->exec('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
             $pdo->beginTransaction();$scope=self::scope($pdo,$actor,$conversationId,true,$kind);
             if ($scope===null) {$pdo->rollBack();return self::error('forbidden');}
             $context=$scope['context'];$row=self::row($pdo,$actor,$operationId);
-            if ($row!==null) {$pdo->commit();return self::replay($row,$conversationId,$context,$hash,$kind);}
+            if ($row!==null) {
+                if($calculation!==null&&$row['state']!=='cancelled')ManagerPromiseCalculationService::verifyReplay($pdo,$actor,$conversationId,$operationId,$hash,$calculation);
+                $pdo->commit();return self::replay($row,$conversationId,$context,$hash,$kind);
+            }
             if($kind==='media')$descriptor['recipient_hash']=$scope['recipient_hash'];
             self::insert($pdo,$actor,$conversationId,$operationId,$context,$hash,'processing',$kind,$descriptor);
+            if($calculation!==null)$calculationIdentity=ManagerPromiseCalculationService::reserveInTransaction($pdo,$actor,$conversationId,$operationId,$hash,$calculation,$content);
             // The unique fence is committed BEFORE cache/provider work. A crash
             // remains processing/UNKNOWN; no DB lock crosses the network.
             $pdo->commit();
+        } catch (DomainException $e) {
+            if($pdo->inTransaction())$pdo->rollBack();return self::error($e->getMessage());
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
-            try {$scope=self::scope($pdo,$actor,$conversationId,false,$kind);$row=self::row($pdo,$actor,$operationId);if ($scope!==null&&$row!==null) return self::replay($row,$conversationId,$scope['context'],$hash,$kind);}catch(Throwable $ignored){}
+            try {
+                $scope=self::scope($pdo,$actor,$conversationId,false,$kind);$row=self::row($pdo,$actor,$operationId);
+                if($scope!==null&&$row!==null){
+                    if($calculation!==null&&$row['state']!=='cancelled')ManagerPromiseCalculationService::verifyReplay($pdo,$actor,$conversationId,$operationId,$hash,$calculation);
+                    return self::replay($row,$conversationId,$scope['context'],$hash,$kind);
+                }
+            }catch(DomainException $fallback){
+                if($calculation!==null)return self::error($fallback->getMessage());
+            }catch(Throwable $ignored){}
             return self::error('send_attempt_unavailable');
         }
         $state='unknown';$failure=null;
         try {
-            $result=$send($context);
+            $accepted=$calculation===null?null:static function(array $proof)use($actor,$conversationId,$operationId):void{
+                ManagerPromiseCalculationService::acceptNative($actor,$conversationId,$operationId,$proof);
+                ManagerPromiseCalculationService::finalizeNative($actor,$conversationId,$operationId);
+            };
+            $result=$send($context,$accepted,$calculationIdentity);
             if (($result['ok']??false)===true) $state='confirmed';
             else {
                 $raw=$result['failure']??null;
@@ -60,6 +82,12 @@ final class ManagerSendAttemptService
             }
         } catch (Throwable $e) { /* No exception/provider payload in the receipt. */ }
         $saved=$descriptor+['failure'=>$failure];
+        // Linked native finalization has already atomically committed this
+        // receipt, canonical message and any eligible task completion.
+        if($calculation!==null){
+            try{$current=self::row($pdo,$actor,$operationId);if(($current['state']??null)==='confirmed')return self::view($current);}
+            catch(Throwable $e){return self::error('send_attempt_unavailable');}
+        }
         try {
             $q=$pdo->prepare('UPDATE manager_send_attempts SET state=?,result_json=?,updated_at=? WHERE manager_id=? AND operation_id=? AND state=?');
             $q->execute([$state,json_encode($saved,JSON_THROW_ON_ERROR),gmdate('Y-m-d H:i:s'),$actor,$operationId,'processing']);

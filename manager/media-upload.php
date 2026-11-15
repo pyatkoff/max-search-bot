@@ -34,8 +34,15 @@ $tmp=(string)($file['tmp_name']??'');if($tmp===''||!is_uploaded_file($tmp))Manag
 $name=trim(basename((string)($file['name']??'attachment')));$name=preg_replace('/[\x00-\x1F\x7F]+/u','',$name)?:'attachment';
 $mime='application/octet-stream';if(class_exists('finfo')){$finfo=new finfo(FILEINFO_MIME_TYPE);$detected=$finfo->file($tmp);if(is_string($detected)&&$detected!=='')$mime=$detected;}
 $caption=trim((string)($_POST['caption']??''));
+$calculation=null;
+if(array_key_exists('calculation_intent_id',$_POST)||array_key_exists('calculation_part_index',$_POST)){
+    if(!is_string($_POST['calculation_intent_id']??null)||!preg_match('/\A[a-f0-9]{32}\z/D',$_POST['calculation_intent_id'])
+        ||!is_string($_POST['calculation_part_index']??null)||!preg_match('/\A[0-9]\z/D',$_POST['calculation_part_index']))
+        ManagerHttp::respond(['ok'=>false,'error'=>'invalid_calculation_reference'],400);
+    $calculation=['intent_id'=>$_POST['calculation_intent_id'],'part_index'=>(int)$_POST['calculation_part_index']];
+}
 // Authentication/CSRF and actor identity are captured. Release the browser
 // session before the durable reservation/provider so read-only lookup can run.
 if(session_status()===PHP_SESSION_ACTIVE)session_write_close();
-$result=ManagerOutboundService::sendMediaAttempt($conversationId,$managerId,$operationId,$tmp,$name,$mime,$caption);
+$result=ManagerOutboundService::sendMediaAttempt($conversationId,$managerId,$operationId,$tmp,$name,$mime,$caption,$calculation);
 ManagerHttp::respond($result,isset($result['attempt'])?200:409);

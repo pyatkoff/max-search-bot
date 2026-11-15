@@ -100,6 +100,21 @@ blocked. Matching by filename does not consume a new selection. Confirmed batch
 captions stay associated with remaining files so an explicit continuation does not
 repeat them. Restoring, receipt checks and storage writes never send a file.
 
+## An explicitly linked calculation
+
+The optional [calculation association](MANAGER_PROMISE_CALCULATIONS.md) uses these
+same durable upload operations and retained files. Each associated row keeps the
+intent and original part index alongside its ordinary operation ID. A remaining
+file after partial success retains that original index; confirmation of an earlier
+file cannot consume a newly selected file with the same name.
+
+The reviewed calculation covers the complete original batch. Confirmed parts are
+not resent, a confirmed first caption is not repeated, and partial or UNKNOWN
+results do not complete the task. A changed file, caption, actor, recipient or
+task requires explicit review instead of silently changing the association.
+Restoration and receipt reads do not send or complete anything. Explicit local
+recovery can apply only native evidence already saved by the actual sender.
+
 ## Verification and installation
 
 The focused regressions cover durable media outcomes, partial batches, lost

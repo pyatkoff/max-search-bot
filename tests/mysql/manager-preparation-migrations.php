@@ -458,3 +458,9 @@ if($dialogueReadStatus!==0)throw new RuntimeException('native_dialogue_review_re
 $promiseTaskCommand=escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/manager-promise-tasks.php');
 passthru($promiseTaskCommand,$promiseTaskStatus);
 if($promiseTaskStatus!==0)throw new RuntimeException('native_promise_task_failed');
+
+// Calculation completion reuses the ordinary sender and proves native locking
+// only after the existing promise fixture has cleaned its disposable schema.
+$promiseCalculationCommand=escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/manager-promise-calculations.php');
+passthru($promiseCalculationCommand,$promiseCalculationStatus);
+if($promiseCalculationStatus!==0)throw new RuntimeException('native_promise_calculation_failed');

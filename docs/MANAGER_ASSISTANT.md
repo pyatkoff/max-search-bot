@@ -188,7 +188,12 @@ Partial `delivery_unknown`, `delivery_unverified` or rejected delivery with
 available progress retains its existing instruction to inspect the result;
 the elapsed deadline never authorizes a resend or completes the task. A current
 calculation promise or a selection promise without an attached composition can
-also display this reminder; its manual task controls remain the next action.
+also display this reminder. Manual task controls remain available. For a current
+open calculation promise the existing task row also offers **Отправить расчёт**:
+it selects the promise for the ordinary composer, with explicit full-composition
+review and verified completion described in
+[calculation fulfillment](MANAGER_PROMISE_CALCULATIONS.md). Selecting this action
+does not send anything or modify the task, its manual fields or the existing draft.
 
 Selection facts keep the stored intent and observed freshness separate. An
 `armed` association does not prove delivery. Partial progress requires the exact

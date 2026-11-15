@@ -1,0 +1,15 @@
+.promiseCalculation{min-width:0;border:1px solid var(--line,#cbd8d2);border-radius:12px;background:var(--surface-soft,#f3f7f5);padding:10px 12px;margin-bottom:8px;color:var(--text,#24392f)}
+.promiseCalculation[hidden]{display:none}
+.promiseCalculationTitle{display:block;font-size:14px;line-height:1.45;overflow-wrap:anywhere}
+.promiseCalculationStatus{font-size:13px;line-height:1.45;margin-top:4px;overflow-wrap:anywhere}
+.promiseCalculationActions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.promiseCalculationActions .actionBtn,.promiseCalculationTask{min-height:44px;font-size:13px;white-space:normal;text-align:left}
+.promiseCalculationReview{margin-top:8px;border-top:1px solid var(--line,#cbd8d2);padding-top:6px;font-size:13px}
+.promiseCalculationReview summary{cursor:pointer;min-height:36px;padding:7px 0;font-weight:600}
+.promiseCalculationReviewBody{max-height:210px;overflow:auto;overscroll-behavior:contain;overflow-wrap:anywhere;padding-right:6px}
+.promiseCalculationReviewBody p{margin:4px 0}.promiseCalculationReviewBody blockquote{margin:8px 0;padding-left:10px;border-left:3px solid #8da89a}
+.promiseCalculationText{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0;padding:8px;background:var(--surface,#fff);border-radius:6px}
+.promiseCalculationFiles{padding-left:23px;margin:6px 0}.promiseCalculationFiles li{padding:3px 0;overflow-wrap:anywhere}
+.promiseCalculationWarning{display:block;color:var(--warning,#8a5219);line-height:1.4}
+.promiseCalculationTask{align-self:flex-start;margin-top:6px}
+@media(max-width:600px){.promiseCalculation{padding:8px 10px}.promiseCalculationReviewBody{max-height:150px}.promiseCalculationActions{gap:4px}.promiseCalculationActions .actionBtn{padding:7px 9px}}

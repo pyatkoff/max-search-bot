@@ -18,6 +18,12 @@ completion or customer send. The existing task editor and its manual create, edi
 commands retain their behavior. A successful bind means that a relationship was
 recorded; it does not mean that the promised work was performed.
 
+After binding, explicit result association and verified sending can complete the
+same task through the separate existing-task fulfillment paths:
+[selections](MANAGER_PROMISE_SELECTIONS.md) and
+[ordinary composer calculations](MANAGER_PROMISE_CALCULATIONS.md). Neither path
+turns binding itself into completion or infers fulfillment from an unrelated send.
+
 ## Manager2 workflow
 
 The native **⋯** menu of an outgoing manager message contains **Связать с

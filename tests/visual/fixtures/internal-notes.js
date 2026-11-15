@@ -39,6 +39,7 @@ async function setup(page,options={}){
   // Existing unrelated feature fixtures explicitly lack a profile snapshot.
   // Accept only the new optional read; keep all writes/other actions rejected.
   if(url.pathname==='/manager/request-profile-api.php'&&d.action==='get')return reply({ok:false,error:'profile_unavailable'},503);
+  if(url.pathname==='/manager/promise-calculations-api.php'&&d.action==='catalog')return reply({ok:true,viewer_id:owner,conversation_id:d.conversation_id,can_edit:false,entries:[]});
   if(url.pathname==='/manager/api.php'){
    if(d.action==='me'||d.action==='login')return reply({ok:true,manager:clone(manager),csrf:'fixture-csrf',projects:[]});
    if(d.action==='detail'&&[11,12].includes(Number(d.conversation_id)))return reply({ok:true,conversation:conv(d.conversation_id),messages,delivery_failure:null,has_manager_reply:true,history:{has_more:false,before_id:1,page_size:200,mode:'latest'}});
