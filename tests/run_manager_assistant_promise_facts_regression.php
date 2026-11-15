@@ -33,7 +33,7 @@ apfCase('detail-only read projection',static function():void{
     $item=assistantPromiseDetail();$row=assistantPromiseTaskRow($item);$fact=apfFact($item);$task=promiseSelectionTask($pdo);
     apfCheck('detail checks only current visible tasks independently of absent AI',$item['promise_coverage']==='checked'&&$item['recommendation']===null&&$item['analysis_state']==='unavailable'&&array_column($item['tasks'],'id')===[101]&&$fact['availability']==='available');
     apfCheck('task title deadline status and pin remain canonical with separate promise deadline',$row['title']===$task['title']&&$row['due_at_utc']===$task['due_at_utc']&&$row['status']===$task['status']&&$row['is_pinned']===(bool)$task['is_pinned']&&$fact['binding']['deadline']===null);
-    apfCheck('promise DTO contains only finite binding and selection facts',apfKeys($fact,['availability','reason','binding','stale_reasons','selection'])&&apfKeys($fact['binding'],['promise_id','kind','deadline','source_message_id','source_state','trip_id','profile_version'])&&$fact['binding']['source_message_id']===12&&$fact['binding']['source_state']==='current'&&!str_contains(json_encode($fact),'synthetic-promise-12'));
+    apfCheck('promise DTO contains only finite binding and result facts',apfKeys($fact,['availability','reason','binding','stale_reasons','selection','calculation'])&&apfKeys($fact['binding'],['promise_id','kind','deadline','source_message_id','source_state','trip_id','profile_version'])&&$fact['binding']['source_message_id']===12&&$fact['binding']['source_state']==='current'&&$fact['calculation']['availability']==='not_applicable'&&!str_contains(json_encode($fact),'synthetic-promise-12'));
     $direct=ManagerPromiseSelectionService::forTasks(7,1,[101]);
     apfCheck('reader returns canonical internal task guards without changing the task',!empty($direct['ok'])&&$direct['viewer_id']===7&&$direct['conversation_id']===1&&isset($direct['by_task'][101])&&($direct['task_guards'][101]['business_revision']??null)===1&&($direct['task_guards'][101]['title']??null)===$task['title'],$direct);
     apfCheck('list detail and direct facts are business-read-only',assistantPromiseSnapshot($pdo)===$before&&$pdo->writeAttempts===0);
@@ -190,6 +190,99 @@ apfCase('bounded task subset and no binding',static function():void{
     apfCheck('facts stay within the existing fifty-task visible subset',count($item['tasks'])===50&&$item['tasks_truncated']===true&&$none===49&&apfFact($item)['availability']==='available');
     $r=ManagerPromiseSelectionService::forTasks(7,1,range(200,250));apfCheck('direct reader refuses an unbounded task-ID request',($r['error']??null)==='invalid_input',$r);
     apfCheck('bounded hydration never creates new tasks or promises',(int)$pdo->query('SELECT COUNT(*) FROM lead_tasks')->fetchColumn()===63&&(int)$pdo->query('SELECT COUNT(*) FROM manager_task_promises')->fetchColumn()===1&&$pdo->writeAttempts===0);
+});
+apfCase('calculation detail remains bounded and private',static function():void{
+    $pdo=assistantPromiseFixture(null,'telegram',true);$intent=assistantCalculationArm($pdo);$before=assistantPromiseSnapshot($pdo);$pdo->reads=[];
+    $list=ManagerAssistantService::listing(7);$calculationReads=array_filter($pdo->reads,static fn(array $r):bool=>str_contains($r['sql'],'manager_promise_calculation_'));
+    apfCheck('normal assistant listing does not hydrate calculation proof',!empty($list['ok'])&&$calculationReads===[]);
+    $item=assistantPromiseDetail();$fact=apfFact($item);$p=$fact['calculation'];$row=assistantPromiseTaskRow($item);
+    apfCheck('selected task gets exact calculation summary without composer text or operations',
+        $row['status']==='open'&&$row['title']==='Отправить расчёт по поездке'&&$fact['binding']['kind']==='send_calculation'
+        &&$p['availability']==='available'&&$p['intent']['intent_id']===$intent['intent_id']&&$p['progress']['confirmed']===0&&$p['progress']['total']===1
+        &&!str_contains(json_encode($item),'PRIVATE CALCULATION')&&!str_contains(json_encode($p),'operation_id'),$p);
+    apfCheck('calculation detail cannot mutate any sender task or conversation table',assistantPromiseSnapshot($pdo)===$before&&$pdo->writeAttempts===0);
+    $pdo=assistantPromiseFixture();$pdo->reads=[];assistantPromiseDetail();
+    apfCheck('selection-only tasks read no calculation table even when optional schema is absent',
+        array_filter($pdo->reads,static fn(array $r):bool=>str_contains($r['sql'],'manager_promise_calculation_'))===[]&&$pdo->writeAttempts===0);
+});
+
+apfCase('calculation unknown and reopened history',static function():void{
+    $pdo=assistantPromiseFixture(null,'telegram',true);$intent=assistantCalculationArm($pdo);assistantCalculationSend($pdo,$intent,false);
+    $before=assistantPromiseSnapshot($pdo);$p=apfFact(assistantPromiseDetail())['calculation'];
+    apfCheck('assistant preserves unknown delivery as an open task and does not invoke recovery',
+        $p['intent']['state']==='armed'&&$p['progress']['reason']==='delivery_unknown'&&$p['progress']['confirmed']===0
+        &&assistantPromiseSnapshot($pdo)===$before&&$pdo->writeAttempts===0,$p);
+    $pdo=assistantPromiseFixture(null,'telegram',true);$intent=assistantCalculationArm($pdo);assistantCalculationSend($pdo,$intent);
+    $pdo->mutate(static fn()=>LeadTaskService::setCompleted(1,101,false));$before=assistantPromiseSnapshot($pdo);
+    $item=assistantPromiseDetail();$row=assistantPromiseTaskRow($item);$p=apfFact($item)['calculation'];
+    apfCheck('completed calculation is explicitly historical beside the current reopened task',
+        $row['status']==='open'&&$p['intent']['state']==='completed'&&$p['progress']['confirmed']===1
+        &&in_array('task_changed',$p['stale_reasons'],true)&&assistantPromiseSnapshot($pdo)===$before&&$pdo->writeAttempts===0,$p);
+});
+
+apfCase('selection and calculation task coexistence',static function():void{
+    $pdo=assistantPromiseFixture();$selection=assistantPromiseAttach($pdo);assistantCalculationAdd($pdo);$calculation=assistantCalculationArm($pdo,104);
+    $before=assistantPromiseSnapshot($pdo);$item=assistantPromiseDetail();$selectionFact=apfFact($item);$calculationFact=apfFact($item,104);
+    apfCheck('mixed plan keeps each result attached to its original task and kind',
+        $selectionFact['selection']['intent']['intent_id']===$selection['intent_id']&&$selectionFact['calculation']['availability']==='not_applicable'
+        &&$calculationFact['calculation']['intent']['intent_id']===$calculation['intent_id']&&$calculationFact['selection']['availability']==='not_applicable');
+    apfCheck('mixed result hydration leaves both original task and sender records unchanged',
+        assistantPromiseSnapshot($pdo)===$before&&$pdo->writeAttempts===0);
+});
+
+apfCase('calculation history after authorized owner transfer',static function():void{
+    $pdo=assistantPromiseFixture(null,'telegram',true);$intent=assistantCalculationArm($pdo);assistantCalculationSend($pdo,$intent);
+    $pdo->mutate(static fn()=>LeadTaskService::setCompleted(1,101,false));
+    $moved=$pdo->mutate(static fn()=>ManagerConversationService::reassign(1,90,8));
+    if(!$moved)throw new RuntimeException('canonical_calculation_reassign_failed');
+    $before=assistantPromiseSnapshot($pdo);$owner=apfFact(assistantPromiseDetail(8))['calculation'];
+    apfCheck('new authorized owner retains exact same-recipient calculation history without reclosure',
+        $owner['availability']==='available'&&$owner['intent']['intent_id']===$intent['intent_id']&&$owner['intent']['state']==='completed'
+        &&$owner['progress']['confirmed']===1&&$owner['progress']['total']===1
+        &&in_array('scope_changed',$owner['stale_reasons'],true)&&in_array('task_changed',$owner['stale_reasons'],true)
+        &&promiseSelectionTask($pdo)['status']==='open'&&assistantPromiseSnapshot($pdo)===$before&&$pdo->writeAttempts===0,$owner);
+    $closed=$pdo->mutate(static fn()=>ManagerConversationService::closeResult(1,8));
+    if(empty($closed['ok']))throw new RuntimeException('canonical_calculation_close_failed');
+    $before=assistantPromiseSnapshot($pdo);$facts=ManagerPromiseSelectionService::forTasks(90,1,[101]);$history=$facts['by_task'][101]['calculation']??null;
+    apfCheck('authorized administrator retains calculation history after status change',
+        !empty($facts['ok'])&&($history['availability']??null)==='available'&&$history['intent']['intent_id']===$intent['intent_id']
+        &&$history['progress']['confirmed']===1&&in_array('scope_changed',$history['stale_reasons'],true)
+        &&assistantPromiseSnapshot($pdo)===$before&&$pdo->writeAttempts===0,$facts);
+    $pdo->mutate(static fn(PDO $db)=>$db->exec("UPDATE customer_channels SET external_user_id='rebound-recipient' WHERE id=1"));
+    $before=assistantPromiseSnapshot($pdo);$facts=ManagerPromiseSelectionService::forTasks(90,1,[101]);
+    apfCheck('recipient rebinding conceals old intent metadata and all counts even after authorized transfer',
+        !empty($facts['ok'])&&$facts['by_task'][101]['calculation']===['availability'=>'unavailable','reason'=>'scope_changed','intent'=>null,'stale_reasons'=>[],'progress'=>null]
+        &&assistantPromiseSnapshot($pdo)===$before&&$pdo->writeAttempts===0,$facts);
+});
+
+apfCase('calculation optional evidence failure retains ordinary task',static function():void{
+    $pdo=assistantPromiseFixture(null,'telegram',true);assistantCalculationArm($pdo);
+    $pdo->mutate(static fn(PDO $db)=>$db->exec("UPDATE manager_promise_calculation_intents SET composition_json='{}'"));
+    $before=assistantPromiseSnapshot($pdo);$item=assistantPromiseDetail();$fact=apfFact($item);
+    apfCheck('corrupt calculation never hides normal task fields or turns failure into zero sends',
+        assistantPromiseTaskRow($item)['title']==='Отправить расчёт по поездке'&&$fact['availability']==='available'
+        &&$fact['calculation']['availability']==='unavailable'&&$fact['calculation']['progress']===null
+        &&assistantPromiseSnapshot($pdo)===$before&&$pdo->writeAttempts===0,$fact);
+    $pdo=assistantPromiseFixture(null,'telegram',true);$pdo->mutate(static fn(PDO $db)=>$db->exec('DROP TABLE manager_promise_calculation_intents'));
+    $item=assistantPromiseDetail();$fact=apfFact($item);
+    apfCheck('missing optional calculation schema preserves its known promise and manual task',
+        assistantPromiseTaskRow($item)['status']==='open'&&$fact['binding']['kind']==='send_calculation'
+        &&$fact['calculation']['availability']==='unavailable'&&$fact['calculation']['reason']==='storage_unavailable'&&$pdo->writeAttempts===0);
+});
+
+foreach(['project','task','recipient'] as $change)apfCase('calculation read race '.$change,static function()use($change):void{
+    $pdo=assistantPromiseFixture(null,'telegram',true);assistantCalculationArm($pdo);$fired=false;
+    $pdo->readHook=static function(AssistantPromiseFixturePdo $db,string $sql)use(&$fired,$change):void{
+        if(!str_contains($sql,'FROM manager_promise_calculation_intents'))return;$db->readHook=null;$fired=true;
+        $db->mutate(static function(PDO $p)use($change):void{
+            if($change==='project')$p->exec('DELETE FROM manager_projects WHERE manager_id=7');
+            elseif($change==='task')LeadTaskService::update(1,101,'Fresh manual task title','2027-06-01T12:00:00Z');
+            else $p->exec("UPDATE customer_channels SET external_user_id='new-recipient' WHERE id=1");
+        });
+    };
+    $r=ManagerAssistantService::detail(7,1);
+    apfCheck($change.' change during calculation hydration cannot attach stale private facts to the current plan',
+        $fired&&empty($r['ok'])&&!isset($r['item'])&&$pdo->writeAttempts===0,$r);
 });
 }finally{assistantPromiseCleanup();}
 echo 'TOTAL '.($passed+$failed)." | PASS {$passed} | FAIL {$failed} | CASES {$cases}\n";

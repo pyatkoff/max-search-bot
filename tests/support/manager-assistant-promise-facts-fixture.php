@@ -3,7 +3,7 @@ declare(strict_types=1);
 if(!in_array(PHP_SAPI,['cli','cli-server'],true)){http_response_code(404);exit;}
 require_once dirname(__DIR__,2).'/services/ManagerAssistantService.php';
 require_once dirname(__DIR__,2).'/services/ManagerPromiseSelectionService.php';
-if(PHP_SAPI==='cli')require_once __DIR__.'/manager-promise-selection-fixture.php';
+if(PHP_SAPI==='cli')require_once __DIR__.'/manager-promise-calculation-fixture.php';
 
 final class AssistantPromiseFixtureStatement extends PDOStatement
 {
@@ -73,14 +73,15 @@ function assistantPromiseUse(AssistantPromiseFixturePdo $pdo): void
 }
 
 /** Reuses the accepted2.4 fixture unchanged, then adds only Assistant read dependencies. */
-function assistantPromiseFixture(?string $path=null,string $channel='telegram'): AssistantPromiseFixturePdo
+function assistantPromiseFixture(?string $path=null,string $channel='telegram',bool $calculation=false): AssistantPromiseFixturePdo
 {
     if(PHP_SAPI!=='cli')throw new LogicException('fixture_seed_requires_cli');
     if($path===null){
         $path=sys_get_temp_dir().'/assistant-promise-facts-'.bin2hex(random_bytes(8)).'.sqlite';
         $GLOBALS['assistantPromiseOwnedPaths'][]=$path;
     }
-    promiseSelectionFixture($path,$channel);$pdo=new AssistantPromiseFixturePdo($path);assistantPromiseUse($pdo);
+    if($calculation)promiseCalculationFixture($path,$channel);else promiseSelectionFixture($path,$channel);
+    $pdo=new AssistantPromiseFixturePdo($path);assistantPromiseUse($pdo);
     $pdo->exec("ALTER TABLE conversations ADD COLUMN is_test INTEGER NOT NULL DEFAULT 0;
 CREATE TABLE manager_prepared_replies(job_id CHAR(64) PRIMARY KEY,conversation_id INTEGER NOT NULL,manager_id INTEGER NOT NULL,project_key TEXT NOT NULL,context_revision CHAR(64) NOT NULL,instruction_revision CHAR(64) NOT NULL,latest_message_id INTEGER NOT NULL,status TEXT NOT NULL,proposal_json TEXT,proposal_sha256 CHAR(64),created_at TEXT NOT NULL,prepared_at TEXT,expires_at TEXT,customer_input_revision CHAR(64),purpose TEXT NOT NULL DEFAULT 'background',requested_by_manager_id INTEGER,viewer_access_revision CHAR(64));
 CREATE TABLE manager_assistant_decisions(manager_id INTEGER,conversation_id INTEGER,project_key TEXT,recommendation_revision TEXT,context_revision TEXT,instruction_revision TEXT,decision TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,conversation_id,recommendation_revision));
@@ -103,7 +104,45 @@ function assistantPromiseSnapshot(PDO $pdo): array
     $out=[];
     foreach(['conversations','lead_tasks','manager_task_promises','manager_task_promise_operations','manager_request_profiles','messages','manager_conversation_reads','manager_tour_selection_drafts','manager_tour_selection_operations','manager_tour_selection_publications','manager_tour_selection_cards','manager_tour_selection_deliveries','conversation_events','manager_promise_selection_intents','manager_promise_selection_operations','manager_prepared_replies','manager_assistant_decisions'] as $table)
         $out[$table]=$pdo->query('SELECT * FROM '.$table.' ORDER BY rowid')->fetchAll(PDO::FETCH_ASSOC);
+    $tables=$pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('manager_promise_calculation_intents','manager_promise_calculation_operations','manager_promise_calculation_deliveries','manager_send_attempts') ORDER BY name")->fetchAll(PDO::FETCH_COLUMN);
+    foreach($tables as $table)$out[$table]=$pdo->query('SELECT * FROM '.$table.' ORDER BY rowid')->fetchAll(PDO::FETCH_ASSOC);
     return $out;
+}
+
+function assistantCalculationAdd(AssistantPromiseFixturePdo $pdo,int $taskId=104,int $sourceId=40): array
+{
+    return $pdo->mutate(static function(PDO $db)use($taskId,$sourceId):array{
+        promiseCalculationSchema($db);
+        $db->prepare("INSERT INTO lead_tasks(id,conversation_id,title,status,is_pinned,assigned_manager_id,created_by_manager_id,created_at,updated_at) VALUES(?,1,'Отправить расчёт по поездке','open',0,7,7,'2026-11-13 10:00:00','2026-11-13 10:00:00')")->execute([$taskId]);
+        promiseSelectionMessage($db,$sourceId,'manager','Пришлю расчёт по согласованной поездке.');
+        $context=ManagerPromiseTaskService::context(7,1,$taskId,$sourceId,'send_calculation');
+        if(empty($context['ok']))throw new RuntimeException('assistant_calculation_context_failed');
+        $r=ManagerPromiseTaskService::bind(7,1,['operation_id'=>bin2hex(random_bytes(16)),'task_id'=>$taskId,'kind'=>'send_calculation',
+            'trip_id'=>$context['profile']['trip_id'],'profile_version'=>$context['profile']['version'],'profile_sha256'=>$context['profile']['sha256'],
+            'profile_context_sha256'=>$context['profile']['context_sha256'],'source_message_id'=>$sourceId,'source_message_revision'=>$context['source']['revision'],'deadline'=>null]);
+        if(empty($r['ok']))throw new RuntimeException('assistant_calculation_bind_failed');return $r;
+    });
+}
+
+function assistantCalculationArm(AssistantPromiseFixturePdo $pdo,int $taskId=101,string $text='PRIVATE CALCULATION FOR PLAN',array $files=[]): array
+{
+    return $pdo->mutate(static function(PDO $db)use($taskId,$text,$files):array{
+        $q=$db->prepare('SELECT promise_id FROM manager_task_promises WHERE task_id=?');$q->execute([$taskId]);$promise=$q->fetchColumn();$q->closeCursor();
+        if(!is_string($promise))throw new RuntimeException('assistant_calculation_binding_missing');
+        $preview=ManagerPromiseCalculationService::preview(7,1,$taskId,$promise,['text'=>$text,'files'=>$files]);
+        if(empty($preview['ok']))throw new RuntimeException('assistant_calculation_preview_failed');
+        $r=ManagerPromiseCalculationService::arm(7,1,['operation_id'=>bin2hex(random_bytes(16)),'task_id'=>$taskId,'promise_id'=>$promise,
+            'composition'=>['text'=>$text,'files'=>$files],'preview_sha256'=>$preview['preview_sha256']]);
+        if(empty($r['ok']))throw new RuntimeException('assistant_calculation_arm_failed');return $r['intent'];
+    });
+}
+
+function assistantCalculationSend(AssistantPromiseFixturePdo $pdo,array $intent,bool $native=true,string $text='PRIVATE CALCULATION FOR PLAN',string $operation='dddddddddddddddddddddddddddddddd',string $mid='7911'): array
+{
+    return $pdo->mutate(static fn(PDO $db):array=>ManagerSendAttemptService::execute(7,1,$operation,$text,null,
+        static function(string $context,?callable $accepted)use($db,$native,$text,$mid):array{
+            if(!$native)return ['ok'=>false];$accepted(promiseCalculationNative($db,$text,$mid));return ['ok'=>true];
+        },['intent_id'=>$intent['intent_id'],'part_index'=>0]));
 }
 
 function assistantPromiseDetail(int $actor=7,int $cid=1): array

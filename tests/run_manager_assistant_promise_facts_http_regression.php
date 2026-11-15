@@ -30,6 +30,24 @@ function aphSession(string $sid,?int $actor,string $csrf='fixture-assistant-prom
 function aphFixture(string $directory): array
 {
     $root=dirname(__DIR__);$database=$directory.'/fixture.sqlite';$pdo=assistantPromiseFixture($database);$intent=assistantPromiseAttach($pdo);
+    // Seed real local send-owner receipts before HTTP reads. The adapter below
+    // is synthetic; no customer/provider is contacted by this test.
+    assistantCalculationAdd($pdo,104,40);$text='PRIVATE CALCULATION FOR HTTP';$files=[];
+    foreach(['a','b'] as $part){$path=$directory.'/private-calculation-'.$part.'.txt';file_put_contents($path,'Synthetic private part '.$part);$files[]=['sha256'=>hash_file('sha256',$path),'size'=>filesize($path),'name'=>basename($path)];}
+    $calculation=assistantCalculationArm($pdo,104,$text,$files);
+    foreach($files as $index=>$file)$pdo->mutate(static function(PDO $db)use($directory,$file,$index,$text,$calculation):void{
+        $caption=$index===0?$text:'';
+        $result=ManagerSendAttemptService::executeMedia(7,1,str_pad(dechex(300+$index),32,'0',STR_PAD_LEFT),$directory.'/'.$file['name'],$file['name'],'application/octet-stream',$caption,
+            static function(string $context,?callable $accepted)use($db,$index,$caption,$file):array{
+                if($index===1)return ['ok'=>false];
+                $accepted(promiseCalculationNative($db,$caption,'7301',['type'=>'file','name'=>$file['name'],'mime_type'=>'application/octet-stream']));return ['ok'=>true];
+            },['intent_id'=>$calculation['intent_id'],'part_index'=>$index]);
+        if(($result['attempt']['state']??null)!==($index===0?'confirmed':'unknown'))throw new RuntimeException('http_calculation_send_seed_failed: '.json_encode($result,JSON_THROW_ON_ERROR));
+    });
+    assistantCalculationAdd($pdo,105,50);$history=assistantCalculationArm($pdo,105,'PRIVATE COMPLETED HTTP CALCULATION');
+    $completed=assistantCalculationSend($pdo,$history,true,'PRIVATE COMPLETED HTTP CALCULATION',str_repeat('e',32));
+    if(($completed['attempt']['state']??null)!=='confirmed')throw new RuntimeException('http_calculation_completed_seed_failed: '.json_encode($completed,JSON_THROW_ON_ERROR));
+    $pdo->mutate(static fn():bool=>LeadTaskService::setCompleted(1,105,false));
     $web=$directory.'/web';mkdir($web.'/manager/lib',0700,true);mkdir($directory.'/sessions',0700);
     foreach(['manager/assistant-api.php','manager/promise-selections-api.php','manager/lib/ManagerHttp.php'] as $file)
         if(!copy($root.'/'.$file,$web.'/'.$file))throw new RuntimeException('fixture_endpoint_copy_failed');
@@ -42,7 +60,7 @@ function aphFixture(string $directory): array
     session_save_path($directory.'/sessions');session_name('anytour_manager_panel');$sessions=[];
     foreach([7,8,90,91,92] as $actor){$sessions[$actor]=bin2hex(random_bytes(16));aphSession($sessions[$actor],$actor);}
     return ['root'=>$root,'webroot'=>$web,'database'=>$database,'sessions'=>$directory.'/sessions','session_ids'=>$sessions,
-        'race'=>$race,'race_receipt'=>$raceReceipt,'guard'=>$guard,'intent'=>$intent];
+        'race'=>$race,'race_receipt'=>$raceReceipt,'guard'=>$guard,'intent'=>$intent,'calculation'=>$calculation,'calculation_history'=>$history];
 }
 
 function aphRequest(string $address,array $fixture,?int $actor,array $input,string $endpoint='assistant-api.php',string $method='POST'): array
@@ -81,8 +99,23 @@ try{
     aphCheck('private list responses are not cacheable',preg_match('/\bcache-control:\s*no-store\b/i',implode("\n",$headers))===1);
     [$status,$r]=aphRequest($address,$fixture,7,$detail);$row=isset($r['item'])?aphTask($r['item']):null;
     aphCheck('detail returns checked facts for the canonical existing open task',$status===200&&$r['viewer_id']===7&&$r['item']['promise_coverage']==='checked'&&$row['title']==='Отправить согласованную подборку'&&$row['status']==='open'&&$row['promise']['binding']['promise_id']===$fixture['intent']['promise_id']&&$row['promise']['selection']['intent']['intent_id']===$fixture['intent']['intent_id'],$r);
+    $calculation=aphTask($r['item'],104);$facts=$calculation['promise']['calculation']??null;
+    aphCheck('HTTP detail exposes the exact calculation partial UNKNOWN on its existing open task',$calculation['status']==='open'&&$facts['availability']==='available'&&$facts['intent']['intent_id']===$fixture['calculation']['intent_id']&&$facts['progress']===['availability'=>'available','reason'=>'delivery_unknown','confirmed'=>1,'total'=>2],$facts);
+    $history=aphTask($r['item'],105);$historyFacts=$history['promise']['calculation']??null;
+    aphCheck('HTTP keeps historical completed calculation separate from a manually reopened task',$history['status']==='open'&&$historyFacts['intent']['state']==='completed'&&$historyFacts['progress']['confirmed']===1&&$historyFacts['progress']['total']===1&&in_array('task_changed',$historyFacts['stale_reasons'],true),$historyFacts);
+    $private=json_encode([$facts,$historyFacts],JSON_THROW_ON_ERROR);
+    aphCheck('calculation facts disclose no private text filenames recipients operation IDs or native IDs',!preg_match('/PRIVATE|private-calculation|7301|7911|native_mid|external_chat_id|operation_id|composition_json|native_json/',$private));
     [$status,$r]=aphRequest($address,$fixture,90,$detail);
     aphCheck('authorized administrator sees facts without impersonating recommendation decisions',$status===200&&$r['viewer_id']===90&&$r['item']['can_decide']===false&&aphTask($r['item'])['promise']['availability']==='available',$r);
+    aphCheck('authorized administrator reads the same scoped calculation evidence',aphTask($r['item'],104)['promise']['calculation']['progress']===$facts['progress']);
+
+    $proofRead=$db->prepare('SELECT manager_id,operation_id,message_sha256 FROM manager_promise_calculation_deliveries WHERE intent_id=? AND active_part=1 AND part_index=0');
+    $proofRead->execute([$fixture['calculation']['intent_id']]);$proof=$proofRead->fetch(PDO::FETCH_ASSOC);$proofRead->closeCursor();
+    $corrupt=$db->prepare('UPDATE manager_promise_calculation_deliveries SET message_sha256=? WHERE manager_id=? AND operation_id=?');
+    $corrupt->execute([str_repeat('0',64),$proof['manager_id'],$proof['operation_id']]);
+    [$status,$r]=aphRequest($address,$fixture,7,$detail);$damaged=aphTask($r['item'],104);$progress=$damaged['promise']['calculation']['progress']??null;
+    aphCheck('damaged HTTP delivery evidence retains the task with unknown progress and no fabricated zero',$status===200&&$damaged['status']==='open'&&$progress['availability']==='unavailable'&&$progress['confirmed']===null&&$progress['reason']==='delivery_evidence_changed',$progress);
+    $corrupt->execute([$proof['message_sha256'],$proof['manager_id'],$proof['operation_id']]);
 
     $intent=$fixture['intent'];$view=['action'=>'view','conversation_id'=>1,'task_id'=>101,'promise_id'=>$intent['promise_id'],'intent_id'=>$intent['intent_id'],'publication_id'=>$intent['publication_id'],'csrf'=>'fixture-assistant-promise-csrf'];
     [$status,$r]=aphRequest($address,$fixture,7,$view,'promise-selections-api.php');
