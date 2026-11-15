@@ -2,13 +2,13 @@ const {test,expect}=require('@playwright/test');
 const fs=require('node:fs'),path=require('node:path');
 const {setup,root}=require('./fixtures/internal-notes');
 const {settledMediaSelectionText}=require('./fixtures/media-selection');
-const {fixture}=require('../run_manager_promise_plan_behavior_regression');
+const {fixture,calculationFixture}=require('../run_manager_promise_plan_behavior_regression');
 const clone=value=>JSON.parse(JSON.stringify(value));
 
 // Real Manager2 shell and assets; only synthetic read responses. No model,
 // customer send, task mutation or selection write is accepted by this fixture.
-async function setupPlan(page){
- const base=await setup(page,{sourceRoot:root,projectKey:'anytour'}),data=fixture({conversationId:12}),calls=[],held=[];let hold=null;
+async function setupPlan(page,{data=fixture({conversationId:12})}={}){
+ const base=await setup(page,{sourceRoot:root,projectKey:'anytour'}),calls=[],held=[];let hold=null;
  data.binding.source_message_id=205;
  const items=new Map([[12,data.item],[11,{...clone(data.item),conversation_id:11,display_name:'Текущий диалог'}]]);
  await page.route('**/manager/pipeline-api.php',route=>{
@@ -84,4 +84,46 @@ for(const width of [390,430,768,1440])for(const [kind,change] of [['source','act
  else await page.evaluate(()=>WorkspaceV2Assistant.loadDetail(11));
  const dialog=kind==='source'?'messageContextDialog':'promiseSelectionDialog',content=kind==='source'?'messageContextMessages':'promiseSelectionCards';await expect(page.locator('#'+dialog)).toBeHidden();await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await page.locator('[data-m2-nav=tasks]').focus();await expect(page.locator('[data-m2-nav=tasks]')).toBeFocused();await page.evaluate(()=>{window.promisePlanFocus=document.activeElement});
  s.release();await expect.poll(()=>s.base.pending.size).toBe(0);await expect(page.locator('#'+content)).toBeEmpty();expect(await page.evaluate(()=>document.activeElement===window.promisePlanFocus)).toBe(true);await preserved(page,{accountChanged:change==='actor'});clean(s,baseline);
+});
+
+for(const width of [390,430,768,1440])test(`calculation partial UNKNOWN in the plan keeps the Moscow promise and all unsaved work at ${width}px`,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});await page.clock.setFixedTime(new Date('2030-11-20T21:00:01Z'));
+ const data=calculationFixture({conversationId:12}),calculation=data.projection.calculation;
+ data.binding.deadline={kind:'date',value:'2030-11-20',zone:'Europe/Moscow'};data.task.due_at_utc='2030-11-22 12:00:00';
+ calculation.stale_reasons=['task_changed'];calculation.progress.reason='delivery_unknown';
+ const s=await setupPlan(page,{data});await prepare(page);const baseline=s.base.calls.length,task=page.locator('.assistantTask'),facts=task.locator('.assistantPromiseFacts');
+ await expect(task).toHaveCount(1);await expect(task).toContainText(data.task.title);await expect(task).toContainText('Запланировано · 22.11.2030 15:00 МСК');
+ await expect(facts).toContainText('Подтверждённое обещание: Отправить расчёт');await expect(facts).toContainText('Подтверждена отправка 1 из 2 частей расчёта.');
+ await expect(facts).toContainText('Срок обещания: 20.11.2030 · календарный день, Москва');await expect(facts.getByText('Срок обещания прошёл — проверьте выполнение.',{exact:true})).toBeVisible();
+ await expect(facts).toContainText('Результат отправки пока не подтверждён. Проверьте его в диалоге.');await expect(page.locator('#assistantConversation')).toHaveText('Открыть диалог');
+ await expect(task.locator('[data-assistant-task="77"]')).toHaveText('Выполнено');await expect(facts.locator('[data-assistant-promise-selection]')).toHaveCount(0);
+ await task.scrollIntoViewIfNeeded();expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);await capture(page,browserName,width,'calculation-partial');await preserved(page);
+ await page.locator('[data-assistant-snooze="77"]').click();await page.locator('#assistantDue').fill('2031-02-05T17:12');await page.evaluate(()=>{window.calculationPlanDue=document.getElementById('assistantDue')});
+ await page.locator('[data-assistant-promise-source="77"]').click();await expect(page.locator('#messageContextMessages')).toContainText(data.message().messages.find(message=>message.id===data.binding.source_message_id).text);
+ await bounded(page,'messageContextDialog',width);await capture(page,browserName,width,'calculation-source');await preserved(page);
+ await page.locator('#messageContextBack').click();await expect(page.locator('[data-assistant-promise-source="77"]')).toBeFocused();await expect(page.locator('#assistantDue')).toHaveValue('2031-02-05T17:12');
+ expect(await page.evaluate(()=>document.getElementById('assistantDue')===window.calculationPlanDue)).toBe(true);await expect(facts).toContainText('1 из 2 частей расчёта');await preserved(page);clean(s,baseline);
+ expect(s.base.calls.slice(baseline).filter(call=>call.path==='/manager/promise-calculations-api.php')).toEqual([]);
+});
+
+for(const width of [390,430,768,1440])test(`calculation full proof and reopened history stay distinct from unavailable evidence at ${width}px`,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});await page.clock.setFixedTime(new Date('2030-11-20T21:00:01Z'));
+ const data=calculationFixture({conversationId:12}),calculation=data.projection.calculation;
+ data.binding.deadline={kind:'date',value:'2030-11-20',zone:'Europe/Moscow'};data.task.due_at_utc='2030-11-22 12:00:00';
+ calculation.intent.state='blocked';calculation.intent.reason='task_changed';calculation.stale_reasons=['task_changed'];calculation.progress.confirmed=2;calculation.progress.reason=null;
+ const s=await setupPlan(page,{data});await prepare(page);const baseline=s.base.calls.length,task=page.locator('.assistantTask'),facts=task.locator('.assistantPromiseFacts');
+ const stillOpen=async()=>{await expect(task).toHaveCount(1);await expect(task).toContainText(data.task.title);await expect(task).toContainText('Запланировано · 22.11.2030 15:00 МСК');await expect(task.locator('[data-assistant-task="77"]')).toHaveText('Выполнено');await expect(facts.getByText('Срок обещания прошёл — проверьте выполнение.',{exact:true})).toHaveCount(0);await preserved(page)};
+ await expect(facts).toContainText('Подтверждена отправка 2 из 2 частей расчёта.');await expect(facts).toContainText('Все части расчёта подтверждены. Проверьте открытое состояние задачи в диалоге.');await stillOpen();
+ calculation.intent.state='completed';calculation.intent.reason=null;calculation.intent.completed_at='2026-11-15T09:00:00Z';
+ await page.evaluate(()=>WorkspaceV2Assistant.loadDetail(12));await expect(facts).toContainText('Сейчас она открыта.');await expect(facts).toContainText('2 из 2 частей расчёта');await stillOpen();
+ await task.scrollIntoViewIfNeeded();expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);await capture(page,browserName,width,'calculation-history');
+ const unavailable={availability:'unavailable',reason:'storage_unavailable',intent:null,stale_reasons:[],progress:null};
+ for(const variant of ['missing','unavailable','malformed']){
+  if(variant==='missing')delete data.projection.calculation;
+  else if(variant==='unavailable')data.projection.calculation=clone(unavailable);
+  else{data.projection.calculation=clone(calculation);data.projection.calculation.progress.total=0;}
+  await page.evaluate(()=>WorkspaceV2Assistant.loadDetail(12));await expect(facts).toContainText('Состояние расчёта сейчас недоступно.');await expect(facts).not.toContainText('Подтверждена отправка');await expect(facts).not.toContainText('Сейчас она открыта.');await stillOpen();
+ }
+ await task.scrollIntoViewIfNeeded();expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);await capture(page,browserName,width,'calculation-unavailable');clean(s,baseline);
+ expect(s.base.calls.slice(baseline).filter(call=>call.path==='/manager/promise-calculations-api.php')).toEqual([]);
 });

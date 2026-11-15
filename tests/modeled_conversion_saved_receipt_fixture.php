@@ -29,7 +29,7 @@ function forecastSavedReceiptAssertions(PDO $pdo,callable $check,?callable $rpcR
         $before=$snapshot();$auth=0;
         $authorize=static function()use(&$auth):void{++$auth;};
         $read=static function(string $ref)use($pdo,$authorize,$readOnly,$now):array{
-            return $readOnly(static fn():array=>(new ModeledConversionValueDeliveryReader($pdo,$authorize,new ModeledConversionStatusBudget()))->savedReceiptStatus($ref,$now));
+            return $readOnly(static fn():array=>(new ModeledConversionValueDeliveryReader($pdo,$authorize,new ModeledConversionStatusBudget()))->savedReceiptStatus($ref,$now,true));
         };
         $ref=hash('sha256','modeled_value_upload_receipt_v1|770001');$row=$read($ref);
         $check('exact saved receipt reads its own processed row while excluding a differently cased project with the same upload',

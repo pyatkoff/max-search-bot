@@ -35,7 +35,7 @@ final class ModeledConversionValueDeliveryReader
     public function __construct(private PDO $pdo,private $authorize,private ModeledConversionStatusBudget $budget){}
 
     /** One private saved-receipt result. No provider poll, financial operation or source-table read. */
-    public function savedReceiptStatus(string $reference,int $now):array
+    public function savedReceiptStatus(string $reference,int $now,bool $includeVisitEvidence=false):array
     {
         if(preg_match('/\A[a-f0-9]{64}\z/D',$reference)!==1||$now<946684800)throw new InvalidArgumentException('invalid_saved_receipt_reference');
         $base=['goal_id'=>self::GOAL,'counter_id'=>'98615635','receipt_ref'=>$reference,
@@ -43,8 +43,8 @@ final class ModeledConversionValueDeliveryReader
             'per_receipt_visit_linkage'=>'not_checked'];
         $fail=static fn(string $reason):array=>['available'=>false,'reason'=>$reason]+$base;
         try{
-            $fields=['state','upload_status','event_unix','value_api_accepted_at_unix','value_processed_at_unix',
-                'id','conversation_id','platform','transport_target','client_id','value_rub','upload_id'];
+            $fields=['state','upload_status','event_unix','value_api_accepted_at_unix','value_processed_at_unix'];
+            if($includeVisitEvidence)$fields=array_merge($fields,['id','conversation_id','platform','transport_target','client_id','value_rub','upload_id']);
             $columns=['COUNT(*) AS inspected','COALESCE(SUM(is_match),0) AS matched'];
             foreach($fields as$field)$columns[]='MAX(CASE WHEN is_match=1 THEN '.$field.' ELSE NULL END) AS '.$field;
             // The hard bound precedes hashing. No native ID, money, customer identity or unrelated row is returned.
@@ -55,7 +55,7 @@ final class ModeledConversionValueDeliveryReader
                 ." AND CAST(value_contract AS ".$binary.")=CAST(? AS ".$binary.")";
             $sql='SELECT '.implode(',',$columns)
                 ." FROM (SELECT b.*,CASE WHEN SHA2(CONCAT('modeled_value_upload_receipt_v1|',upload_id),256)=? THEN 1 ELSE 0 END AS is_match"
-                ." FROM (SELECT id,conversation_id,platform,transport_target,client_id,value_rub,upload_id,state,upload_status,event_unix,value_api_accepted_at_unix,value_processed_at_unix"
+                ." FROM (SELECT ".($includeVisitEvidence?"id,conversation_id,platform,transport_target,client_id,value_rub,":"")."upload_id,state,upload_status,event_unix,value_api_accepted_at_unix,value_processed_at_unix"
                 ." FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635'"
                 ." AND transport_target=? AND value_contract=?".$exact." ORDER BY id DESC LIMIT 1001) b) scoped";
             $rows=$this->query($sql,[$reference,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION],null,250);
@@ -78,6 +78,8 @@ final class ModeledConversionValueDeliveryReader
                 return $fail('invalid_saved_clock');
             $at=static fn(?int $v):?string=>$v===null?null:gmdate('Y-m-d\TH:i:s\Z',$v);
             ($this->authorize)();$this->budget->check();
+            $extra=[];
+            if($includeVisitEvidence){
             // Exact saved event tuple only. Preserve native decimal serialization for its fingerprint.
             $proof=ModeledConversionVisitProof::savedForEvent([
                 'id'=>$r['id'],'conversation_id'=>$r['conversation_id'],'platform'=>$r['platform'],
@@ -91,8 +93,10 @@ final class ModeledConversionValueDeliveryReader
             }elseif(in_array($proof['reason']??null,['not_recorded','invalid_cache','budget_headroom','event_changed','event_binding_unavailable'],true)){
                 $safe['reason']=$proof['reason'];
             }
+            $extra=['visit_evidence'=>$safe];
+            }
             ($this->authorize)();$this->budget->check();
-            return ['available'=>true,'visit_evidence'=>$safe]+$base+['checked_at'=>$at($now),'coverage_complete'=>true,'inspected_rows'=>$seen,
+            return ['available'=>true]+$base+$extra+['checked_at'=>$at($now),'coverage_complete'=>true,'inspected_rows'=>$seen,
                 'state'=>$r['state'],'upload_status'=>$r['upload_status'],'event_at'=>$at($event),
                 'first_api_observed_at'=>$at($api),'processed_at'=>$at($processed),'first_api_clock_known'=>$api!==null,
                 'terminal_processing'=>in_array($r['state'],['processed','unmatched','failed'],true),
