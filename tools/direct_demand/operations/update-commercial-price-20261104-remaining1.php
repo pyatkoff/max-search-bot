@@ -22,6 +22,45 @@ function priceObservationMetadata(array $metadata,array $payload,?array $price):
     return $metadata;
 }
 
+// BEGIN MONITOR_PRICE_LINK_V1: pure presentation and native readback only.
+function monitorEditorPriceLink(string $text,string $platform,string $buttonUrl):array {
+    $bases=['max'=>'https://max.ru/id9704048781_1_bot','telegram'=>'https://t.me/anyru_bot'];
+    need(isset($bases[$platform])&&preg_match('~\A'.preg_quote($bases[$platform],'~').'\?start=p_[A-Za-z0-9_-]{8,60}\z~D',$buttonUrl)===1,'monitor_price_link_target_invalid');
+    need(preg_match('//u',$text)===1,'monitor_price_link_text_invalid');
+    $count=preg_match_all('/^💰 (От (?:[0-9]{1,3}(?: [0-9]{3})*|[0-9]+)(?:,[0-9]{1,2})? ₽) за двоих$/mu',$text,$matches,PREG_OFFSET_CAPTURE);
+    need($count===1&&substr_count($text,'💰')===1,'monitor_price_link_span_invalid');
+    [$label,$byteOffset]=$matches[1][0];
+    $prefix=substr($text,0,$byteOffset);$suffix=substr($text,$byteOffset+strlen($label));
+    $titleEnd=strpos($prefix,"\n");
+    need($titleEnd!==false&&$titleEnd>0,'monitor_price_link_title_invalid');
+    $escape=static fn(string $v):string=>htmlspecialchars($v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
+    $utf16=static fn(string $v):int=>preg_match_all('/./us',$v)+preg_match_all('/[\x{10000}-\x{10FFFF}]/u',$v);
+    $offset=$utf16($prefix);$length=$utf16($label);
+    return ['url'=>$buttonUrl,'label'=>$label,'offset'=>$offset,'length'=>$length,
+        'telegram_entities'=>[['type'=>'text_link','offset'=>$offset,'length'=>$length,'url'=>$buttonUrl]],
+        'max_html'=>'<b>'.$escape(substr($prefix,0,$titleEnd)).'</b>'.$escape(substr($prefix,$titleEnd))
+            .'<a href="'.$escape($buttonUrl).'">'.$escape($label).'</a>'.$escape($suffix)];
+}
+function monitorEditorPriceLinkVerified(string $platform,array $message,string $text,array $link):bool {
+    if(!in_array($platform,['max','telegram'],true))return false;
+    $actual=$platform==='max'?($message['body']['text']??null):($message['caption']??null);
+    $entities=$platform==='max'?($message['body']['markup']??null):($message['caption_entities']??null);
+    if($actual!==$text||!is_array($entities)||!array_is_list($entities))return false;
+    $seen=0;$start=$link['offset'];$end=$start+$link['length'];
+    foreach($entities as $entity){
+        if(!is_array($entity))return false;
+        if(($entity['type']??null)!==($platform==='max'?'link':'text_link'))continue;
+        $from=$entity[$platform==='max'?'from':'offset']??null;$length=$entity['length']??null;
+        if(!is_int($from)||!is_int($length)||$from<0||$length<1)return false;
+        if($from<$end&&$from+$length>$start){
+            if($from!==$start||$length!==$link['length']||($entity['url']??null)!==$link['url'])return false;
+            $seen++;
+        }
+    }
+    return $seen===1;
+}
+// END MONITOR_PRICE_LINK_V1.
+
 /** Independently re-read the real caption batch before this editor can write. */
 function captionSource(array $row):array {
     $binding=monitor_price_caption_binding($row);$source=$binding['source'];
@@ -166,22 +205,32 @@ try {
             $snap=$p['snapshot'];
             if($platform==='max'){$actual=ChannelPostIncomingAdapter::maxSnapshot(readMax($mid));need(is_array($actual)&&($actual['text']??'')===$snap['text']&&photoSignature($actual)===photoSignature($snap)&&($actual['post_url']??'')===($snap['post_url']??''),'existing_max_readback_changed');}
             $plans[$key]=['platform'=>$platform,'key'=>$r['key'],'logical_id'=>$r['logical_id'],'message_id'=>$mid,'publication_id'=>$id,'old_version_id'=>(int)$p['version_id'],'token'=>$p['start_payload'],'post_url'=>$snap['post_url'],'photo_signature'=>photoSignature($snap),'text'=>$r['new_text'],'update_text'=>$r['update_text']];
-            if($monitorMode)$plans[$key]['monitor_price']=$monitorPrice;
+            if($monitorMode){
+                $plans[$key]['monitor_price']=$monitorPrice;
+                $plans[$key]['price_link']=monitorEditorPriceLink($r['new_text'],$platform,ChannelPostButtonTransport::buttonUrl($p));
+                // New admitted records may share the same plain caption; formatting still needs an edit.
+                // The parent continues to skip every already completed record/operation.
+                $plans[$key]['update_text']=true;
+            }
         }
     }
     $out['preflight_existing_messages']=count($plans);$out['configuration_write_attempts']=0;$out['content_edit_attempts']=0;$out['button_only_edit_attempts']=0;$out['posts']=[];
     foreach($plans as $key=>$plan){
         $out['current']=['platform'=>$plan['platform'],'logical_id'=>$plan['logical_id']];if(isset($state['posts'][$key])){$out['posts'][]=$state['posts'][$key]['receipt'];continue;}
         $platform=$plan['platform'];$t=$targets[$platform];$p=$registry->publication($plan['publication_id']);$c=$channels[$platform];need(is_array($p)&&(int)$p['version_id']===$plan['old_version_id']&&$p['state']==='sent'&&(int)$p['channel']['config_version']===2&&$p['channel']['button_text']===$payload['button_text']&&hash_equals((string)$p['start_payload'],(string)$plan['token']),'target_changed_before_edit');
-        if($monitorMode)monitor_price_observation($payload['monitor_snapshot'],APPROVED_UPDATE_TOURVISOR_ID,time());
+        if($monitorMode){
+            monitor_price_observation($payload['monitor_snapshot'],APPROVED_UPDATE_TOURVISOR_ID,time());
+            need(($plan['price_link']['url']??null)===ChannelPostButtonTransport::buttonUrl($p),'monitor_price_link_target_changed');
+        }
         $state['posts'][$key]=['state'=>'edit_started','plan'=>$plan,'edit_request_start_ms'=>(int)floor(microtime(true)*1000)];durable($lock,$state);$requestStart=$state['posts'][$key]['edit_request_start_ms'];
         if($platform==='telegram'){
             $body=['chat_id'=>$t['channel'],'message_id'=>$plan['message_id'],'reply_markup'=>json_encode(['inline_keyboard'=>[[['text'=>$payload['button_text'],'url'=>ChannelPostButtonTransport::buttonUrl($p)]]]],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)];
-            if($plan['update_text']){$method='editMessageCaption';$body['caption']=$plan['text'];$out['content_edit_attempts']++;$out['post_write_attempts']++;}else{$method='editMessageReplyMarkup';$out['button_only_edit_attempts']++;}
+            if($plan['update_text']){$method='editMessageCaption';$body['caption']=$plan['text'];if($monitorMode)$body['caption_entities']=json_encode($plan['price_link']['telegram_entities'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);$out['content_edit_attempts']++;$out['post_write_attempts']++;}else{$method='editMessageReplyMarkup';$out['button_only_edit_attempts']++;}
             $response=tg($method,$body);$state['posts'][$key]['provider_response']=$response;$state['posts'][$key]['state']='provider_response_recorded';durable($lock,$state);
             need($response['http']===200&&($response['data']['ok']??false)===true&&is_array($response['data']['result']??null),'telegram_edit_not_confirmed_no_retry');$message=$response['data']['result'];
             need((string)($message['chat']['id']??'')===$t['channel']&&(string)($message['message_id']??'')===$plan['message_id']&&($message['chat']['username']??'')==='any_toour','telegram_response_identity_changed');
             $snap=ChannelPostIncomingAdapter::telegramSnapshot($message);need(is_array($snap)&&snapshotMatches($p,$snap,$plan),'telegram_body_photo_button_mismatch');
+            if($monitorMode)need(monitorEditorPriceLinkVerified('telegram',$message,$plan['text'],$plan['price_link']),'telegram_price_link_not_verified_no_retry');
             $snap['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($snap,'',(string)$c['bot_url']);
             $snap['metadata']=array_replace($p['snapshot']['metadata']??[],$snap['metadata']??[]);
             $snap['metadata']['source_event_id']=$payload['operation'].':telegram:'.$plan['message_id'];
@@ -194,10 +243,12 @@ try {
         }else{
             if($plan['update_text']){
                 $parts=explode("\n",$plan['text'],2);$html='<b>'.htmlspecialchars($parts[0],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</b>'.(isset($parts[1])?"\n".htmlspecialchars($parts[1],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'):'');$out['content_edit_attempts']++;$out['post_write_attempts']++;
+                if($monitorMode)$html=$plan['price_link']['max_html'];
                 // No attachments field: exact provider photo and existing keyboard are retained.
                 $response=MaxTransport::request('https://platform-api2.max.ru',MAX_SEARCH_TOKEN,'PUT','/messages',['message_id'=>$plan['message_id']],['text'=>$html,'format'=>'html'],null);
                 $state['posts'][$key]['provider_edit_returned']=is_array($response)||$response===true;$state['posts'][$key]['state']='text_edit_returned';durable($lock,$state);
                 $message=readMax($plan['message_id']);$snap=ChannelPostIncomingAdapter::maxSnapshot($message);need(is_array($snap)&&($snap['text']??'')===$plan['text']&&photoSignature($snap)===$plan['photo_signature']&&($snap['post_url']??'')===$plan['post_url'],'max_content_edit_readback_mismatch');
+                if($monitorMode)need(monitorEditorPriceLinkVerified('max',$message,$plan['text'],$plan['price_link']),'max_price_link_not_verified_no_retry');
                 $snap['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($snap,'',(string)$c['bot_url']);$snap['metadata']=array_replace($p['snapshot']['metadata']??[],$snap['metadata']??[]);$snap['metadata']=priceObservationMetadata($snap['metadata'],$payload,$monitorPrice);$snap['metadata']['source_event_id']=$payload['operation'].':'.$key;$snap['metadata']['observation_kind']='authorized_admin_content_edit';$snap['metadata']['operation_observed_at_ms']=(string)(int)floor(microtime(true)*1000);$snap['metadata']['source_revision_ms']=(string)$requestStart;$snap['metadata']['revision_clock_origin']='authorized_edit_request_start';
                 $p=$registry->registerPublication('anytour','max',$t['bot'],$t['channel'],$plan['message_id'],$snap);
             }else{
@@ -205,11 +256,12 @@ try {
             }
             need(is_array($p)&&(int)$p['publication_id']===$plan['publication_id']&&($p['snapshot']['text']??'')===$plan['text'],'max_registry_version_not_current');
             if($p['state']!=='sent'){$button=$automation->processPublication('anytour','max',$t['bot'],(int)$p['publication_id'],(int)$p['version_id']);$state['posts'][$key]['button_result']=$button;durable($lock,$state);need(($button['state']??'')==='sent','max_button_outcome_not_confirmed');}
-            $p=$registry->publication($plan['publication_id']);$snap=ChannelPostIncomingAdapter::maxSnapshot(readMax($plan['message_id']));need(is_array($snap)&&snapshotMatches($p,$snap,$plan),'max_final_photo_body_button_mismatch');
+            $p=$registry->publication($plan['publication_id']);$message=readMax($plan['message_id']);$snap=ChannelPostIncomingAdapter::maxSnapshot($message);need(is_array($snap)&&snapshotMatches($p,$snap,$plan),'max_final_photo_body_button_mismatch');
+            if($monitorMode)need(monitorEditorPriceLinkVerified('max',$message,$plan['text'],$plan['price_link']),'max_final_price_link_not_verified_no_retry');
         }
         need($p['state']==='sent'&&$p['platform']===$platform&&hash_equals((string)$p['start_payload'],(string)$plan['token'])&&($p['snapshot']['text']??'')===$plan['text']&&photoSignature($p['snapshot'])===$plan['photo_signature']&&($p['snapshot']['post_url']??'')===$plan['post_url'],'final_registry_context_mismatch');
         $resolved=ChannelPostEntryService::resolve($platform,$plan['token'],$registry);need(is_array($resolved)&&(int)$resolved['version_id']===(int)$p['version_id']&&($resolved['snapshot']['text']??'')===$plan['text']&&$resolved['source_key']===$t['source'],'existing_token_new_version_resolution_failed');
-        $receipt=safeResult($p,$plan);$state['posts'][$key]['state']='confirmed';$state['posts'][$key]['receipt']=$receipt;durable($lock,$state);$out['posts'][]=$receipt;$out['price_block_updates']++;
+        $receipt=safeResult($p,$plan);if($monitorMode){$receipt['price_link_verified']=true;$receipt['price_link_url']=$plan['price_link']['url'];}$state['posts'][$key]['state']='confirmed';$state['posts'][$key]['receipt']=$receipt;durable($lock,$state);$out['posts'][]=$receipt;$out['price_block_updates']++;
         echo json_encode(['progress'=>'existing_post_updated','platform'=>$platform,'logical_id'=>$plan['logical_id'],'post_url'=>$plan['post_url'],'content_updated'=>$plan['update_text']],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),PHP_EOL;flush();usleep(3200000);
     }
     $out['ok']=true;$out['new_posts_created']=0;$out['commercial_text_updates']=count(array_filter($out['posts'],static fn($p)=>$p['content_updated']));$out['price_block_updates']=$out['commercial_text_updates'];$out['button_only_updates']=count($out['posts'])-$out['commercial_text_updates'];$out['installed_sha']=EXPECTED_INSTALLED_SHA;unset($out['current']);$state['complete']=true;durable($lock,$state);
