@@ -94,8 +94,10 @@ spCheck('Metrika conversion owner requires real handoff evidence and dedupes by 
     && strpos($metrikaGoals,"'metrika_' . \$target")!==false
     && strpos($metrikaGoals,'SELECT 1 FROM conversation_events WHERE conversation_id=? AND event_type=? LIMIT 1')!==false
 );
-spCheck('successful manager text and media sends trigger manager-reply goal after delivery',
-    substr_count($managerOutbound,'MetrikaConversionGoalService::managerReply($conversationId);')===2
+// Text/media each have mutually exclusive ordinary and calculation proof paths.
+// The actual-send outbound regression verifies one goal call even if local proof fails.
+spCheck('ordinary and calculation text and media paths retain manager-reply goal after delivery',
+    substr_count($managerOutbound,'MetrikaConversionGoalService::managerReply($conversationId);')===4
     && strpos($managerOutbound,"ConversationControlService::event(\$conversationId,'manager_message'")!==false
 );
 spCheck('tourist reply goal is evaluated after attribution sync only for manager-owned non-callback inbound',

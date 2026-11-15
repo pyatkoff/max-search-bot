@@ -30,11 +30,13 @@ final class DraftOutboundFixture
     public static $duringSend=null;
     public static array $trace = [];
     public static int $connections = 0;
+    public static string $nativeId = 'synthetic-delivery-id';
 
     public static function reset(string $channel = 'telegram'): PDO
     {
         self::$configured = self::$visible = self::$delivered = self::$locked = true;
         self::$duplicate = false;
+        self::$nativeId = 'synthetic-delivery-id';
         self::$channel = $channel;self::$recipient='synthetic-chat-42';self::$project='synthetic-project';self::$assigned=7;self::$source=0;self::$afterAcquire=null;self::$duringSend=null;
         self::$feedbackMode = 'available';
         self::$proposal = 'Вариант <b>море</b> & "номер"';
@@ -149,6 +151,16 @@ class RoutingAccessService
 {
     public static function lockConversationVisibilityInputs(int $actor,array $conversation): bool { return true; }
 }
+// Only this outbound-boundary suite doubles the scoped proof owner. Its actual
+// persistence and task effects execute in the calculation service regression.
+class ManagerPromiseCalculationService
+{
+    public static function senderIdentity(array $c): array
+    {
+        return ['conversation_id'=>(int)$c['id'],'project_key'=>$c['project_key'],'source_id'=>(int)$c['source_id'],
+            'channel'=>$c['channel'],'external_chat_id'=>$c['external_chat_id'],'manager_id'=>(int)$c['manager_id'],'status'=>$c['status']];
+    }
+}
 class DiagnosticLogger
 {
     public static function log(...$args): void
@@ -174,7 +186,7 @@ abstract class DraftOutboundAdapter
         if(DraftOutboundFixture::$duringSend){$hook=DraftOutboundFixture::$duringSend;DraftOutboundFixture::$duringSend=null;$hook();}
         return DraftOutboundFixture::$delivered;
     }
-    public function lastExternalMessageId(): string { return 'synthetic-delivery-id'; }
+    public function lastExternalMessageId(): string { return DraftOutboundFixture::$nativeId; }
 }
 class MaxMessengerAdapter extends DraftOutboundAdapter {}
 class TelegramMessengerAdapter extends DraftOutboundAdapter {}
@@ -204,7 +216,7 @@ try {
     foreach ([$tmp,$tmp.'/services',$tmp.'/integrations'] as $directory) mkdir($directory,0700);
     foreach (['ManagerConversationService','ManagerPushService','ManagerSendGuardService',
         'ManagerDeliveryStateService','ConversationDb','ManagerAiDraftFeedbackService',
-        'MetrikaConversionGoalService','ProjectConfig','ProjectMaxMessengerFactory','RoutingAccessService'] as $dependency) {
+        'MetrikaConversionGoalService','ProjectConfig','ProjectMaxMessengerFactory','RoutingAccessService','ManagerPromiseCalculationService'] as $dependency) {
         file_put_contents($tmp.'/services/'.$dependency.'.php', "<?php\n// Dependency supplied by the isolated regression.\n");
     }
     foreach (['MaxMessengerAdapter','TelegramMessengerAdapter','WebsiteMessengerAdapter'] as $adapter) {
@@ -360,6 +372,31 @@ try {
             && $meta === ['project_key'=>'synthetic-project','attachments'=>[['type'=>'file','name'=>'synthetic.txt','mime_type'=>'text/plain']]]
             && $rows[0]['text'] === '&lt;caption&gt;');
     }
+    foreach(['text','media'] as $kind){
+        $pdo=DraftOutboundFixture::reset('telegram');$proofs=[];$raw='Расчёт <240000> & условия';
+        $identity=ManagerPromiseCalculationService::senderIdentity(ManagerConversationService::visibleConversation(42,7));
+        $file=$tmp.'/calculation-proof.txt';file_put_contents($file,'Synthetic calculation bytes');
+        $accepted=static function(array $proof)use(&$proofs):void{$proofs[]=$proof;};
+        $send=static function(callable $hook)use($kind,$raw,$identity,$file):bool{
+            return $kind==='text'?ManagerOutboundService::send(42,7,$raw,null,null,$hook,$identity)
+                :ManagerOutboundService::sendMedia(42,7,$file,'calculation.txt','text/plain',$raw,'',null,$hook,$identity);
+        };
+        $ok=$send($accepted);$proof=$proofs[0]??[];
+        draftOutboundCheck($kind.' actual adapter success alone supplies exact native completion hook',
+            $ok&&count($proofs)===1&&$proof['native_mid']==='synthetic-delivery-id'&&$proof['identity']===$identity
+            &&$proof['text']===htmlspecialchars($raw,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8')
+            &&$proof['metadata'][ManagerReplyQueueService::SEND_BOUNDARY]===['version'=>1,'customer_message_id'=>0,'request_event_id'=>0]
+            &&DraftOutboundFixture::rows()===[]&&count(DraftOutboundFixture::events('reply_goal'))===1);
+        DraftOutboundFixture::reset('telegram');DraftOutboundFixture::$nativeId='';$proofs=[];$ok=$send($accepted);
+        draftOutboundCheck($kind.' accepted bool without native MID never calls completion hook',$ok&&$proofs===[]&&count(DraftOutboundFixture::rows())===1);
+        DraftOutboundFixture::reset('telegram');$thrown=false;
+        try{$send(static function(array $proof):void{throw new RuntimeException('synthetic local completion rollback');});}catch(RuntimeException $e){$thrown=true;}
+        draftOutboundCheck($kind.' local completion failure preserves actual-send goal exactly once',$thrown&&count(DraftOutboundFixture::events('reply_goal'))===1&&count(DraftOutboundFixture::events($kind==='text'?'adapter_send':'adapter_media'))===1);
+    }
+    DraftOutboundFixture::reset('telegram');DraftOutboundFixture::$duplicate=true;$proofs=[];
+    $identity=ManagerPromiseCalculationService::senderIdentity(ManagerConversationService::visibleConversation(42,7));
+    $ok=ManagerOutboundService::send(42,7,'Suppressed calculation',null,null,static function(array $proof)use(&$proofs):void{$proofs[]=$proof;},$identity);
+    draftOutboundCheck('actual suppressed-duplicate branch never supplies native completion proof',$ok&&$proofs===[]&&DraftOutboundFixture::events('adapter_send')===[]&&DraftOutboundFixture::rows()===[]);
     $pdo=DraftOutboundFixture::reset();
     $pdo->exec('CREATE TABLE managers(id INTEGER PRIMARY KEY,is_active INTEGER); INSERT INTO managers VALUES(7,1); CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,operation_kind TEXT NOT NULL DEFAULT \'text\',state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id))');
     $attemptId=str_repeat('b',32);$original=DraftOutboundFixture::$proposal;

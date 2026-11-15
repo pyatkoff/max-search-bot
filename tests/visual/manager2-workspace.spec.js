@@ -64,6 +64,11 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
       if(!authenticated)return reply({ok:false,error:'unauthorized'},401);
       return reply({ok:true,project_key:data.project_key,replies:[],version:'0'.repeat(64),max_replies:100});
     }
+    if(req.method()==='POST'&&url.pathname==='/manager/promise-calculations-api.php'&&data.action==='catalog'){
+      if(!authenticated)return reply({ok:false,error:'unauthorized'},401);
+      expect(data.csrf).toBe('synthetic-csrf');expect(data.expected_manager_id).toBe(manager.id);expect([11,12]).toContain(data.conversation_id);
+      return reply({ok:true,can_edit:true,entries:[]});
+    }
     // These synthetic conversations have no publication entry. Keep the real
     // optional protected read inside the fixture without allowing other actions.
     if(req.method()==='POST'&&url.pathname==='/manager/request-profile-api.php'&&data.action==='get'&&data.csrf==='synthetic-csrf'&&[11,12].includes(data.conversation_id))return reply({ok:true,viewer_id:manager.id,conversation_id:data.conversation_id,profile:{label:'',status:'needs_review',fields:{}}});

@@ -29,18 +29,18 @@ class ManagerOutboundService
         return'file';
     }
 
-    public static function sendAttempt(int $conversationId,int $managerId,string $operationId,string $text,?string $aiDraftId=null): array
+    public static function sendAttempt(int $conversationId,int $managerId,string $operationId,string $text,?string $aiDraftId=null,?array $calculation=null): array
     {
         require_once __DIR__ . '/ManagerSendAttemptService.php';
-        $result=ManagerSendAttemptService::execute($managerId,$conversationId,$operationId,$text,$aiDraftId,static function(string $expectedContext) use($conversationId,$managerId,$text,$aiDraftId): array {
-            $ok=self::send($conversationId,$managerId,$text,$aiDraftId,$expectedContext);
+        $result=ManagerSendAttemptService::execute($managerId,$conversationId,$operationId,$text,$aiDraftId,static function(string $expectedContext,?callable $accepted=null,?array $calculationIdentity=null) use($conversationId,$managerId,$text,$aiDraftId): array {
+            $ok=self::send($conversationId,$managerId,$text,$aiDraftId,$expectedContext,$accepted,$calculationIdentity);
             return ['ok'=>$ok,'failure'=>self::lastFailure()];
-        });
+        },$calculation);
         if(isset($result['failure']))$result['failure']['notice']=self::failureNotice($result['failure']);
         return $result;
     }
 
-    public static function send(int $conversationId, int $managerId, string $text, ?string $aiDraftId = null, ?string $attemptContext = null): bool
+    public static function send(int $conversationId, int $managerId, string $text, ?string $aiDraftId = null, ?string $attemptContext = null, ?callable $accepted = null, ?array $calculationIdentity = null): bool
     {
         self::$lastFailure = null;
         $text = trim($text); if ($text === '') return false;
@@ -80,6 +80,7 @@ class ManagerOutboundService
             else return false;
             if (!$adapter) return self::connectionNotConfigured($channel,$projectKey);
 
+            if($accepted!==null&&!self::calculationDispatchIdentity($c,$calculationIdentity))return false;
             $replyBoundary=ManagerReplyQueueService::captureSendBoundary($conversationId);
             $storedText = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             $ok = $adapter->send($chatId, $storedText);
@@ -92,8 +93,20 @@ class ManagerOutboundService
                 }
                 // Provenance is atomic with the canonical message INSERT.
                 // Suppressed duplicates and failed deliveries never reach it.
-                ConversationRecorder::outboundForConversation($conversationId,$channel,$storedText,'manager',(string)$managerId,$metadata,in_array($channel,['max','telegram'],true)?$adapter->lastExternalMessageId():'',isset($metadata['ai_draft'])?$text:null);
-                ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key']]);
+                $nativeId=in_array($channel,['max','telegram'],true)?$adapter->lastExternalMessageId():'';
+                if($accepted!==null&&$nativeId!==''){
+                    try{$accepted(['channel'=>$channel,'native_mid'=>$nativeId,'identity'=>$calculationIdentity,
+                        'text'=>$storedText,'metadata'=>$metadata,'initial_ai_text'=>isset($metadata['ai_draft'])?$text:null]);}
+                    finally{
+                        // The ordinary actual-send side effect is independent
+                        // of local completion storage and never runs in recovery.
+                        if($projectKey===ProjectConfig::projectId())MetrikaConversionGoalService::managerReply($conversationId);
+                    }
+                    return true;
+                }else{
+                    ConversationRecorder::outboundForConversation($conversationId,$channel,$storedText,'manager',(string)$managerId,$metadata,$nativeId,isset($metadata['ai_draft'])?$text:null);
+                    ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key']]);
+                }
                 if ($projectKey === ProjectConfig::projectId()) MetrikaConversionGoalService::managerReply($conversationId);
                 return true;
             }
@@ -103,24 +116,24 @@ class ManagerOutboundService
         }
     }
 
-    public static function sendMediaAttempt(int $conversationId,int $managerId,string $operationId,string $filePath,string $fileName,string $mimeType,string $caption=''): array
+    public static function sendMediaAttempt(int $conversationId,int $managerId,string $operationId,string $filePath,string $fileName,string $mimeType,string $caption='',?array $calculation=null): array
     {
         require_once __DIR__.'/ManagerSendAttemptService.php';
         require_once __DIR__.'/ManagerMediaCache.php';
         $fileName=preg_replace('/[\x00-\x1F\x7F]+/u','',trim(basename($fileName)))?:'attachment';
         if(is_file($filePath)&&class_exists('finfo')){$detected=(new finfo(FILEINFO_MIME_TYPE))->file($filePath);if(is_string($detected)&&$detected!=='')$mimeType=$detected;}
-        $result=ManagerSendAttemptService::executeMedia($managerId,$conversationId,$operationId,$filePath,$fileName,$mimeType,$caption,static function(string $expectedContext) use($conversationId,$managerId,$filePath,$fileName,$mimeType,$caption): array {
+        $result=ManagerSendAttemptService::executeMedia($managerId,$conversationId,$operationId,$filePath,$fileName,$mimeType,$caption,static function(string $expectedContext,?callable $accepted=null,?array $calculationIdentity=null) use($conversationId,$managerId,$filePath,$fileName,$mimeType,$caption): array {
             $preview=ManagerMediaCache::store($conversationId,$managerId,$filePath,$fileName,$mimeType);
-            $ok=self::sendMedia($conversationId,$managerId,$filePath,$fileName,$mimeType,$caption,(string)($preview['url']??''),$expectedContext);
+            $ok=self::sendMedia($conversationId,$managerId,$filePath,$fileName,$mimeType,$caption,(string)($preview['url']??''),$expectedContext,$accepted,$calculationIdentity);
             $failure=self::lastFailure();
             if(!$ok&&is_array($preview)&&ManagerSendAttemptService::isDefiniteMediaFailure($failure))ManagerMediaCache::remove((string)$preview['id']);
             return ['ok'=>$ok,'failure'=>$failure];
-        });
+        },$calculation);
         if(isset($result['failure']))$result['error_message']=self::failureNotice($result['failure']);
         return $result;
     }
 
-    public static function sendMedia(int $conversationId,int $managerId,string $filePath,string $fileName,string $mimeType,string $caption='',string $previewUrl='',?string $attemptContext=null): bool
+    public static function sendMedia(int $conversationId,int $managerId,string $filePath,string $fileName,string $mimeType,string $caption='',string $previewUrl='',?string $attemptContext=null,?callable $accepted=null,?array $calculationIdentity=null): bool
     {
         self::$lastFailure=null;
         if(!is_file($filePath))return self::mediaNotDispatched('file_unavailable');
@@ -140,6 +153,7 @@ class ManagerOutboundService
         $type=self::attachmentTypeForMime($mimeType);
         $adapter=$channel==='max'?ProjectMaxMessengerFactory::forConversation($c,'manager'):new TelegramMessengerAdapter(null,'manager',false);
         if(!$adapter)return self::connectionNotConfigured($channel,$projectKey);
+        if($accepted!==null&&!self::calculationDispatchIdentity($c,$calculationIdentity))return false;
         $safeCaption=trim($caption)!==''?htmlspecialchars(trim($caption),ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'):'';
         $replyBoundary=ManagerReplyQueueService::captureSendBoundary($conversationId);
         $ok=$adapter->sendMedia($c['external_chat_id'],$type,$filePath,$fileName,$mimeType,$safeCaption,$previewUrl);
@@ -147,8 +161,16 @@ class ManagerOutboundService
             $preview=$safeCaption!==''?$safeCaption:ConversationRecorder::attachmentPreview([['type'=>$type]]);
             $attachment=['type'=>$type,'name'=>$fileName,'mime_type'=>$mimeType];
             if(trim($previewUrl)!=='')$attachment['url']=trim($previewUrl);
-            ConversationRecorder::outboundForConversation($conversationId,$channel,$preview,'manager',(string)$managerId,['project_key'=>$projectKey,'attachments'=>[$attachment],ManagerReplyQueueService::SEND_BOUNDARY=>$replyBoundary],in_array($channel,['max','telegram'],true)?$adapter->lastExternalMessageId():'');
-            ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>$projectKey,'media_type'=>$type]);
+            $metadata=['project_key'=>$projectKey,'attachments'=>[$attachment],ManagerReplyQueueService::SEND_BOUNDARY=>$replyBoundary];$nativeId=in_array($channel,['max','telegram'],true)?$adapter->lastExternalMessageId():'';
+            if($accepted!==null&&$nativeId!==''){
+                try{$accepted(['channel'=>$channel,'native_mid'=>$nativeId,'identity'=>$calculationIdentity,
+                    'text'=>$preview,'metadata'=>$metadata,'initial_ai_text'=>null]);}
+                finally{if($projectKey===ProjectConfig::projectId())MetrikaConversionGoalService::managerReply($conversationId);}
+                return true;
+            }else{
+                ConversationRecorder::outboundForConversation($conversationId,$channel,$preview,'manager',(string)$managerId,$metadata,$nativeId);
+                ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>$projectKey,'media_type'=>$type]);
+            }
             if($projectKey===ProjectConfig::projectId())MetrikaConversionGoalService::managerReply($conversationId);
             return true;
         }
@@ -160,6 +182,14 @@ class ManagerOutboundService
         // These returns precede adapter dispatch; expose no conversation or file data.
         self::$lastFailure=['category'=>'not_dispatched','reason'=>$reason,'http_code'=>0];
         return false;
+    }
+
+    private static function calculationDispatchIdentity(array $conversation,?array $expected): bool
+    {
+        try{$same=$expected!==null&&ManagerPromiseCalculationService::senderIdentity($conversation)===$expected;}
+        catch(Throwable $e){$same=false;}
+        if(!$same)self::$lastFailure=['category'=>'attempt_context_changed','http_code'=>0];
+        return $same;
     }
 
     private static function connectionNotConfigured(string $channel,string $projectKey): bool

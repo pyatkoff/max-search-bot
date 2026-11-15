@@ -41,6 +41,9 @@ let photoViewer=null;
 let handoffView=null;
 function validId(value){return Number.isSafeInteger(value)&&value>0}
 function validAiDraftId(value){return typeof value==='string'&&/^[a-f0-9]{32}$/.test(value)}
+function calculationLink(value){return validAiDraftId(value?.calculationIntentId)&&Number.isInteger(value.calculationPartIndex)&&value.calculationPartIndex>=0&&value.calculationPartIndex<10?{calculation_intent_id:value.calculationIntentId,calculation_part_index:value.calculationPartIndex}:null}
+function calculationAttempt(value){return value&&(value.calculationIntentId!==undefined||value.calculationPartIndex!==undefined||value.calculationInvalid===true)}
+function restoreCalculation(value){const link=calculationLink(value);return link?{calculationIntentId:link.calculation_intent_id,calculationPartIndex:link.calculation_part_index}:calculationAttempt(value)?{calculationInvalid:true}:{}}
 function validAttempt(value){return value&&validAiDraftId(value.id)&&typeof value.text==='string'&&value.text.trim().length>0&&value.text.length<=maxStoredDraftLength&&Number.isSafeInteger(value.version)&&value.version>0}
 function pendingAttempt(id=S.current){return drafts.get(Number(id))?.attempt||null}
 function newAttemptId(){const bytes=new Uint8Array(16);window.crypto.getRandomValues(bytes);return [...bytes].map(b=>b.toString(16).padStart(2,'0')).join('')}
@@ -74,7 +77,7 @@ function activateReplySession(managerId){
       savedSelection=validId(value.selected)?value.selected:0;
       for(const d of value.drafts.slice(0,maxStoredDrafts))if(validId(d?.id)&&typeof d.text==='string'&&d.text.length<=maxStoredDraftLength&&Number.isFinite(d.updatedAt)&&d.updatedAt<=now&&(validAttempt(d.attempt)||(d.text.length>0&&now-d.updatedAt<draftLifetime))){
         const version=Number.isSafeInteger(d.version)&&d.version>0?d.version:++draftSequence;draftSequence=Math.max(draftSequence,version,validAttempt(d.attempt)?d.attempt.version:0);
-        drafts.set(d.id,{text:d.text,updatedAt:d.updatedAt,version,...(validAiDraftId(d.aiDraftId)?{aiDraftId:d.aiDraftId}:{}),...(validAttempt(d.attempt)?{attempt:{id:d.attempt.id,text:d.attempt.text,version:d.attempt.version,...(validAiDraftId(d.attempt.aiDraftId)?{aiDraftId:d.attempt.aiDraftId}:{})}}:{})});
+        drafts.set(d.id,{text:d.text,updatedAt:d.updatedAt,version,...(validAiDraftId(d.aiDraftId)?{aiDraftId:d.aiDraftId}:{}),...(validAttempt(d.attempt)?{attempt:{id:d.attempt.id,text:d.attempt.text,version:d.attempt.version,...(validAiDraftId(d.attempt.aiDraftId)?{aiDraftId:d.attempt.aiDraftId}:{}),...restoreCalculation(d.attempt)}}:{})});
       }
     }
   }catch(e){}
@@ -100,7 +103,7 @@ function setRefreshStatus(text=''){let el=$('conversationRefreshStatus');if(!el&
 function setBusy(value){busy=!!value;if(busy)refreshEpoch++;applyInteractionState();window.WorkspaceV2History?.render();if(!busy)void window.WorkspaceV2History?.recoverGap?.()}
 function lifecycleBlocked(){return !!lifecycleIssue&&!S.authExpired&&lifecycleIssue.target===Number(S.current)&&lifecycleIssue.manager===Number(S.manager?.id)&&lifecycleIssue.auth===S.authGeneration}
 function deliverySuspended(){return String(S.detail?.delivery_failure?.category||'')==='suspended'}
-function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||(suspended&&!pendingAttempt())||!!window.WorkspaceV2Media?.isRestoring?.()||!!opening||accessLost||lifecycleBlocked();send.textContent=busy?(lifecycleFlight||pendingAttempt()?'Подождите…':'Отправляем…'):pendingAttempt()?'Проверить отправку':'Отправить';send.dataset.sendPending=pendingAttempt()?'true':'false';send.setAttribute('aria-label',send.textContent);send.title=send.textContent}if(reply){reply.disabled=busy||suspended||!!opening||accessLost;reply.classList.toggle('aiDraftPreview',!!aiDraftPreview())}if(file)file.disabled=busy||suspended||!!opening||accessLost||!!window.WorkspaceV2Media?.isRestoring?.();document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||!!opening||accessLost});const emoji=$('emojiToggle');if(emoji)emoji.disabled=!canInsertEmoji();if(!canInsertEmoji())closeEmojiPicker();window.WorkspaceV2ReplyEditor?.sync();window.WorkspaceV2QuickReplies?.syncContext?.();window.WorkspaceV2ConversationMaterials?.syncContext?.()}
+function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||(suspended&&!pendingAttempt())||!!window.WorkspaceV2Media?.isRestoring?.()||!!opening||accessLost||lifecycleBlocked();send.textContent=busy?(lifecycleFlight||pendingAttempt()?'Подождите…':'Отправляем…'):pendingAttempt()?'Проверить отправку':'Отправить';send.dataset.sendPending=pendingAttempt()?'true':'false';send.setAttribute('aria-label',send.textContent);send.title=send.textContent}if(reply){reply.disabled=busy||suspended||!!opening||accessLost;reply.classList.toggle('aiDraftPreview',!!aiDraftPreview())}if(file)file.disabled=busy||suspended||!!opening||accessLost||!!window.WorkspaceV2Media?.isRestoring?.();document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||!!opening||accessLost});const emoji=$('emojiToggle');if(emoji)emoji.disabled=!canInsertEmoji();if(!canInsertEmoji())closeEmojiPicker();window.WorkspaceV2ReplyEditor?.sync();window.WorkspaceV2QuickReplies?.syncContext?.();window.WorkspaceV2ConversationMaterials?.syncContext?.();window.WorkspaceV2PromiseCalculation?.syncContext?.()}
 function applyActionState(){document.querySelectorAll('[data-conversation-lifecycle]').forEach(b=>{b.disabled=busy||!!opening||accessLost||lifecycleBlocked()})}
 function applyInteractionState(){applyComposerState();applyActionState();renderLifecycleIssue()}
 // A failed request is not proof that the recipient did not receive the message.
@@ -676,11 +679,15 @@ async function sendReply(reconcileAction='send_receipt'){
   const sameTarget=()=>sameSession()&&Number(S.current)===target;
   const currentAttempt=()=>sameTarget()&&openSeq===generation;
   if(!target||(!text&&!hasFile&&!attempt))return;
-  const reconcile=!!attempt;
+  const reconcile=!!attempt;let calculation=null;
+  if(!attempt&&window.WorkspaceV2PromiseCalculation){
+    calculation=await window.WorkspaceV2PromiseCalculation.beforeSend();
+    if(calculation?.allow!==true||!currentAttempt()||$('replyText').value!==draftText||!!window.WorkspaceV2Media?.hasFile()!==!!hasFile||calculation.matches&&calculation.matches()!==true)return;
+  }
   if(!hasFile&&!attempt){
     if(draftText.length>maxStoredDraftLength){setReplyStatus('Сократите сообщение до 20 000 знаков. Текущий текст сохранён.','error');return}
     if([...drafts.values()].filter(d=>d.attempt).length>=maxStoredDrafts){setReplyStatus('Сначала проверьте незавершённые отправки. Текст сохранён.','error');return}
-    try{attempt={id:newAttemptId(),text:draftText,version:draftVersion,...(validAiDraftId(aiDraftId)?{aiDraftId}:{})}}catch(e){setReplyStatus('Безопасная отправка недоступна в этом браузере. Текст сохранён.','error');return}
+    try{attempt={id:newAttemptId(),text:draftText,version:draftVersion,...(validAiDraftId(aiDraftId)?{aiDraftId}:{}),...(calculation?.link?{calculationIntentId:calculation.link.calculation_intent_id,calculationPartIndex:calculation.link.calculation_part_index}:{})}}catch(e){setReplyStatus('Безопасная отправка недоступна в этом браузере. Текст сохранён.','error');return}
     drafts.get(target).attempt=attempt;
     if(!persistReplySession()){delete drafts.get(target).attempt;setReplyStatus('Не удалось сохранить попытку отправки в этой вкладке. Текст сохранён; отправка не начата.','error');return}
   }
@@ -691,21 +698,24 @@ async function sendReply(reconcileAction='send_receipt'){
   try{
     let j;
     try{
-      if(hasFile)j=await window.WorkspaceV2Media.send(text);
-      else if(reconcile)j=await api(reconcileAction==='cancel_send_attempt'?reconcileAction:'send_receipt',{conversation_id:target,operation_id:attempt.id},{isCurrent:currentAttempt});
-      else j=await api('send',{conversation_id:target,text,operation_id:attempt.id,...(validAiDraftId(aiDraftId)?{ai_draft_id:aiDraftId}:{})},{isCurrent:currentAttempt});
+      if(hasFile)j=await (calculation?.media?window.WorkspaceV2Media.send(text,calculation.media):window.WorkspaceV2Media.send(text));
+      else if(reconcile)j=await api(reconcileAction==='cancel_send_attempt'?reconcileAction:'send_receipt',{conversation_id:target,operation_id:attempt.id,...(calculationAttempt(attempt)?{expected_manager_id:manager}:{})},{isCurrent:currentAttempt});
+      else j=await api('send',{conversation_id:target,text,operation_id:attempt.id,...(validAiDraftId(aiDraftId)?{ai_draft_id:aiDraftId}:{}),...(calculationLink(attempt)?{...calculationLink(attempt),expected_manager_id:manager}:{})},{isCurrent:currentAttempt});
     }catch(e){
       if(currentAttempt()){if(attempt)showPendingAttempt();else setReplyStatus(sendFailureNotice(null),'error');}
       return;
     }
     if(attempt){
-      const state=j?.attempt?.state||(j?.ok===true&&!reconcile?'confirmed':'unknown');
+      // A bound calculation requires the ordinary typed attempt receipt. Generic
+      // ok never releases its fence or claims delivery/task completion.
+      const state=calculationAttempt(attempt)?(j?.attempt?.kind!=='media'&&['confirmed','rejected','cancelled','processing','unknown','not_found'].includes(j?.attempt?.state)?j.attempt.state:'unknown'):j?.attempt?.state||(j?.ok===true&&!reconcile?'confirmed':'unknown');
+      window.WorkspaceV2PromiseCalculation?.nativeResult(calculationLink(attempt),state,manager,target);
       if(state==='rejected'&&j?.failure?.category==='attempt_context_changed'){
         // Zero dispatch is confirmed, but the old UI target is no longer safe.
         // Keep the intent fenced until a fresh authorized detail is shown.
         if(!currentAttempt())return;
         let refreshed=false,refreshGeneration=openSeq;
-        try{const refreshing=open(target,{preserveMessageScroll:true,preserveHistory:true,preserveAttachment:true,mobileHistory:'none'});refreshGeneration=openSeq;refreshed=await refreshing}catch(e){}
+        try{const refreshing=open(target,{preserveMessageScroll:true,preserveHistory:true,preserveAttachment:true,mobileHistory:'none',...(calculation?.media||calculationAttempt(attempt)?{protectTaskDraft:true}:{})});refreshGeneration=openSeq;refreshed=await refreshing}catch(e){}
         if(sameTarget()&&openSeq===refreshGeneration){
           if(refreshed&&owner===replySessionOwner&&pendingAttempt(target)?.id===attempt.id){const d=drafts.get(target);delete d.attempt;if(!d.text)drafts.delete(target);persistReplySession();}
           setReplyStatus(refreshed?'Отправка не начата: диалог изменился. Проверьте обновлённые данные перед новой отправкой.':'Отправка не начата. Переписку не удалось обновить; повтор заблокирован. Проверьте отправку ещё раз.','error');
@@ -729,7 +739,7 @@ async function sendReply(reconcileAction='send_receipt'){
         if(j.failure&&S.detail?.conversation){S.detail.delivery_failure=j.failure;renderDeliveryFailure(j.failure,j.error_message);renderActions(S.detail.conversation)}
         if(consumeCaption&&$('replyText').value===draftText){$('replyText').value='';autoGrow()}
         let refreshGeneration=openSeq;
-        try{const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true,preserveHistory:true});refreshGeneration=openSeq;await refreshing}catch(e){}
+        try{const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true,preserveHistory:true,...(calculation?.media||calculationAttempt(attempt)?{protectTaskDraft:true}:{})});refreshGeneration=openSeq;await refreshing}catch(e){}
         if(sameTarget()&&openSeq===refreshGeneration)setMediaReplyStatus(j.error_message||'Часть файлов отправлена. Проверьте оставшиеся вложения.','error',j.media_operation_id);
       }
       if(sameSession())try{await window.WorkspaceV2Inbox?.load({preserveScroll:true})}catch(e){}
@@ -750,14 +760,14 @@ async function sendReply(reconcileAction='send_receipt'){
       // Sending already succeeded. A later history/render failure cannot reverse that result.
       let refreshed=false,refreshGeneration=openSeq;
       try{
-        const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true,preserveHistory:true});
+        const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true,preserveHistory:true,...(calculation?.media||calculationAttempt(attempt)?{protectTaskDraft:true}:{})});
         refreshGeneration=openSeq;refreshed=await refreshing;
       }catch(e){}
       if(sameTarget()&&openSeq===refreshGeneration)setReplyStatus(refreshed?'Отправлено':'Отправлено. Переписку пока не удалось обновить.','success');
     }
     // Inbox owns its refresh errors; they are not message-delivery failures.
     if(sameSession())try{await window.WorkspaceV2Inbox?.load({preserveScroll:true})}catch(e){}
-  }finally{setBusy(false)}
+  }finally{setBusy(false);window.WorkspaceV2PromiseCalculation?.afterSend(calculationLink(attempt)?.calculation_intent_id||calculation?.media?.intentId,manager,target)}
 }
 function bind(){
   if(bound)return;bound=true;
@@ -782,5 +792,5 @@ function bind(){
   reply.addEventListener('keydown',e=>{if(!e.isComposing&&e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
   document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))
 }
-window.WorkspaceV2Conversation={syncComposer:applyInteractionState,hasReadAccess:()=>!accessLost&&!S.authExpired,renderHandoffContext,invalidateMessageAccess:loseHistoryAccess,renderMessageContext,canNavigateMessages:()=>isCurrentHistory(historyContext()),acceptReadPage,bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,settleMediaFeedback,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,captureQuickReplyReplacement,canReplaceQuickReply,insertQuickReply,insertAiDraft,previewAiDraft,discardAiPreview,aiDraftPreview,openSearch,nextWaiting};
+window.WorkspaceV2Conversation={syncComposer:applyInteractionState,pendingCalculation:intentId=>{const a=pendingAttempt();return !!calculationAttempt(a)&&(!intentId||a.calculationIntentId===intentId)},hasReadAccess:()=>!accessLost&&!S.authExpired,renderHandoffContext,invalidateMessageAccess:loseHistoryAccess,renderMessageContext,canNavigateMessages:()=>isCurrentHistory(historyContext()),acceptReadPage,bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,settleMediaFeedback,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,captureQuickReplyReplacement,canReplaceQuickReply,insertQuickReply,insertAiDraft,previewAiDraft,discardAiPreview,aiDraftPreview,openSearch,nextWaiting};
 })();
