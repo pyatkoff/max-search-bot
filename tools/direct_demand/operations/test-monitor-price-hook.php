@@ -573,6 +573,35 @@ foreach($published607Rows as $row){
     }
 }
 
+// Palace206: append one pair while preserving every accepted607 byte and both disclosures.
+$published608Raw=gzdecode(file_get_contents(__DIR__.'/monitor-price-expanded-roster-20261111.json.gz'));
+hook_test_check(hash('sha256',substr($published608Raw,0,1864379))==='8153a918aeafbb689d8812d1600e51aac34f05c835bdf4f05f6be56a5cdbe8f3','published_palace_old607_bytes_changed');
+$published608TextSha='797080d42216cc6934f46d2c675bea7a172e18498ae4ab3838c90682b67dc9d2';
+$published608Warnings=[
+    'Доступ к соседнему аквапарку не подтверждён.',
+    'Для части номеров на первом этаже заявлен ремонт без даты окончания (описание от сентября 2025 года).',
+];
+$published608Manifest=json_decode(file_get_contents(__DIR__.'/commercial-batch-20261115-2-manifest.json'),true,64,JSON_THROW_ON_ERROR);
+hook_test_check($published608Manifest['operation']==='commercial-hotel-batch-20261115-2-v1'&&array_column($published608Manifest['rows'],'hotel_id')===[206],'published_palace_manifest_scope_changed');
+$published608Rows=array_values(array_filter($expanded['rows'],static fn($row)=>$row['tourvisor_hotel_id']===206));
+hook_test_check(count($published608Rows)===1&&count($expanded['rows'])>=608,'published_palace_roster_scope_changed');
+$published608Accepted=$published608Manifest['rows'][0]['text'];
+$published608Closing="\n\n👇 Узнать стоимость тура";
+$published608Slot="\n\n💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\nУзнать стоимость тура";
+hook_test_check(hash('sha256',$published608Accepted)===$published608TextSha&&str_ends_with($published608Accepted,$published608Closing),'published_palace_accepted_text_changed');
+foreach($published608Warnings as $warning){hook_test_check(substr_count($published608Accepted,$warning)===1,'published_palace_accepted_disclosure_missing');}
+$published608Template=substr($published608Accepted,0,-strlen($published608Closing)).$published608Slot;
+$published608Row=$published608Rows[0];
+$published608Snapshot=$terminalSnapshot;$published608Snapshot['scope']['tourvisorHotelIds']=[206];$published608Snapshot['item']['tourvisorHotelId']=206;
+foreach($published608Snapshot['item']['offers'] as $i=>$offer){$published608Snapshot['item']['offers'][$i]['tourvisorHotelId']=206;$published608Snapshot['item']['offers'][$i]['recordId']=hash('sha256','published-palace-20261115-206-'.$i);}
+$published608Price=monitor_price_observation($published608Snapshot,206,strtotime($published608Snapshot['generatedAt']));
+foreach(['max','telegram'] as $platform){
+    hook_test_check($published608Row['templates'][$platform]===$published608Template&&$published608Row['expected_text_sha256'][$platform]===$published608TextSha,'published_palace_template_changed_accepted_facts');
+    $published608Draft=monitor_hook_draft($published608Row['templates'][$platform],$published608Price);
+    foreach($published608Warnings as $warning){hook_test_check(substr_count($published608Draft,$warning)===1,'published_palace_price_draft_lost_disclosure');}
+    hook_test_check(str_ends_with($published608Draft,"\n\nУзнать стоимость тура"),'published_palace_price_draft_lost_cta');
+}
+
 echo 'MONITOR_PRICE_HOOK_OK cases='.$cases." no_provider_calls=1 no_writes=1\n";
 
 

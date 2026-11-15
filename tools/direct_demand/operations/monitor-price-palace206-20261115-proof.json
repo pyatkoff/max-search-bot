@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "operation": "monitor-price-palace206-accepted-binding-20261115",
+  "state": "LOCAL_ROSTER608_PREPARED_AFTER_CONFIRMED_PUBLICATION_TAIL",
+  "old_source": "7022b7fdfc765309d3f01b5aee318b2b1e4fb413",
+  "source_parent": "3add0e26d517fad5c31b5e182cf37264ccf1dcfd",
+  "source_base_tree": "fa59f687356abc0963910077dda27233b9209589",
+  "previous_count": 607,
+  "new_count": 608,
+  "appended_tourvisor_ids": [
+    206
+  ],
+  "excluded_legacy_hotel_ids": [
+    74036,
+    364,
+    319,
+    496
+  ],
+  "source_registry_version": 481,
+  "accepted_site_sha256": "ced5a11bc847ccb8b7c973c8ea8ab0a61fe157ab3184bdb5a1fcae75e01bbada",
+  "editorial_sha256": "d3558095dc05de1223d11f98c795533a19c2dc7638f7d34efb41264987964570",
+  "previous_gzip_sha256": "d600346fe4010b18945fcb9ea75b3009cb140ce7aa39fc3c3d15e2af8c683f9f",
+  "previous_raw_sha256": "da58172868de0bd8b8f3cd99f5a8feb28a5f57b4df47ccba5a71a9635d76e6d8",
+  "preserved_prefix_bytes": 1864379,
+  "preserved_prefix_sha256": "8153a918aeafbb689d8812d1600e51aac34f05c835bdf4f05f6be56a5cdbe8f3",
+  "all607_rows_byte_exact": true,
+  "all_top_level_metadata_preserved": true,
+  "new_gzip_sha256": "f6d1caba37a837f02f6a0c6a63f6b79dcbb9987d5cbc2864913317c8ceaa59a6",
+  "new_raw_sha256": "d39e21371e9a5f902907af984e050f909c823c21eb313601ddf4a365a9d7c106",
+  "new_gzip_bytes": 263658,
+  "new_raw_bytes": 1867862,
+  "publication": {
+    "run_id": 43694078165,
+    "head_sha": "6a833a0cf12775cede1b41528e8c2be80a712eec",
+    "artifact_id": 14153421873,
+    "metadata_sha256": "43fa0d4cbccfd953a0eb1609b281f3b2655d240146a279a8b1940b344d45304f",
+    "zip_sha256": "515d57d171126cbbe2bb17e0b78d929b5177d81cb4fd60729a0ffbe6da98c59d",
+    "run_sha256": "e266249a58aa6e44a9236b63755d186a3f9373f7a2f25a6bbbf13c25749a6f99",
+    "jobs_sha256": "1da542b8aff7472848efa663062173a93bf1b8a586a46633b1f6eb97cae9e407",
+    "publication_summary_sha256": "c85ed9d08feff0950a1b4bd55861dd2f14d139c4510212134bc2e307ca3f0058",
+    "bound_read_sha256": "4cb9646017902f5877f95e5c7e4cf50394c2b63d1e68613d35fb1d72dc0ebc34"
+  },
+  "native": {
+    "run_id": 43694691594,
+    "head_sha": "ff6c2188567c397bb9dd0623d41634259e9754ab",
+    "candidate_artifact": {
+      "id": 14154052313,
+      "name": "commercial-max608-route-extension-candidate",
+      "zip_sha256": "30e2e2f2d496215efc7a6ed43907453f78cf522bd7b1aede965084908c8c2cc4"
+    },
+    "result_artifact": {
+      "id": 14153847916,
+      "name": "commercial-max608-route-extension-install-result",
+      "zip_sha256": "3ae9d1d939994f5957b94000c79a38bbb4015d9adaf019f9f5feacef3683a31b"
+    },
+    "receipt_sha256": "e0f1e573dbf4e2c26357d041d297963f27fc3c4db1d1e80f72e8caef524dc51f",
+    "private_map_copied": false
+  },
+  "feed": {
+    "run_id": 43694900987,
+    "head_sha": "3add0e26d517fad5c31b5e182cf37264ccf1dcfd",
+    "artifact_id": 14153539118,
+    "metadata_sha256": "639549f24f292860234843efe0c794fccb4179decce2e6cc79d4fb8bdc49ffee",
+    "zip_sha256": "68e01d3cf0716f767ff35bcf1961eec2bcd5d5fc062346a234f89a89ec4db664",
+    "summary_sha256": "46b55efdb13fa75d9329ced0970c7f5703b6dbcad02b9b1cd4b1fc10bf0e11fe",
+    "public_readback_sha256": "c11a4693bac28c35374cc11661ea77353164c76ee7371b8cfda545a774480c8d",
+    "counts": [
+      608,
+      608,
+      1216
+    ]
+  },
+  "prior607": {
+    "run_id": 43665141755,
+    "head_sha": "c2e6dff81d6f75713d6761c5a7d37ae4f24c01e1",
+    "original_conclusion": "failure",
+    "job_id": 132662872145,
+    "job_conclusion": "failure",
+    "job_completed_at": "2026-11-15T02:26:12Z",
+    "callback_ok": true,
+    "updated_pairs": 88,
+    "scanned_pairs": 607,
+    "remaining_unscanned_pairs": 0,
+    "run_sha256": "20203221bf3163a021df7910222ecd10e96784c38254be33b63cc01a796f6990",
+    "jobs_sha256": "9a3391a264de9b5b5636f415c8ad1660080cfd18e1cf10a66bdcc8a17a93b8ea",
+    "callback_receipt_sha256": "cf9a1f9f91ed57224075edfb51c7959ef139576816ac881111f7272b20c6263d",
+    "current_later_pending_state_not_inferred": true,
+    "original_exit2_failure_preserved": true
+  },
+  "tail_loader": {
+    "state": "ACCEPTED_LOCAL_PALACE_TAIL_LOADER_PIN",
+    "path": "/workspace/scratch/c51ee45ff0fe/continuation-20261115b/palace-release-prep/bind-palace-tail.py",
+    "sha256": "a8fff424229784c84c9077b8e02f400776396445c219fa5ecd2a81b12af878bc",
+    "hotel_ids": [
+      206
+    ],
+    "publication_operation": "commercial-hotel-batch-20261115-2-v1",
+    "read_operation": "commercial-channel-hotel-feeds-20261115-read4",
+    "feed_operation": "commercial-channel-hotel-feeds-20261115-update2",
+    "independent_review_path": "/workspace/scratch/c51ee45ff0fe/continuation-20261115b/palace-release-prep/independent-tail-source-review.json",
+    "independent_review_sha256": "729b75fb4cac32487ab80f6f4e7d298975cfa8f41747d58892aa390c693e8833",
+    "source_pins_sha256": "c000115f4a6d51687045673e4e59228e567ac20d6a45ac132b17612dd20faafb",
+    "actual_future_receipts_bound": false,
+    "scope": "Local reviewed loader source only; all real sender/native608/feed608 admission remains mandatory."
+  },
+  "new_rows": [
+    {
+      "tourvisor_hotel_id": 206,
+      "site_revision": 3,
+      "row_sha256": "c8d070ff3d7b8b80d7b70e43cf239fc8c85c1b0388cee5cb767fa8bbfd558be9",
+      "disclosures": [
+        "Доступ к соседнему аквапарку не подтверждён.",
+        "Для части номеров на первом этаже заявлен ремонт без даты окончания (описание от сентября 2025 года)."
+      ]
+    }
+  ],
+  "existing_builder_receipt": {
+    "bytes": 578042,
+    "sha256": "2349b734f0768b78fbd26c22ef12e8ca0a2a4f6adf5f18aedec576e296132ebe",
+    "pairs": 608,
+    "supplier_calls": 0
+  },
+  "runtime_hook_executed": false,
+  "new_fixture_execution": "Required through existing Search3 validation gate; locally syntax checked only",
+  "unchanged_runtime_dependency_git_blobs": {
+    "build-monitor-price-hook.py": "3a2bdccd0e16e68ee1605d966fe644cfac8b54d9",
+    "monitor-price-contract.php": "db21e58062b3a8748d806b81773d70764d0f984e",
+    "monitor-price-hook-contract.php": "2cd564c5466f0f49b9fa7fcf764b409c356b6142",
+    "update-commercial-price-20261104-remaining1.php": "7f18d72cb8f2adbc588598a0e1ae23a871a7c151",
+    "publish-commercial-channel-hotel-feeds-20261103-1.php": "0184b30518ffa3def0b6aa514d6468e119f94e72",
+    "monitor-price-after-collection.php": "405df7f54b616d6dd452aa2a3375d544015aece5",
+    "monitor-price-new-three-20261115-proof.json": "7e10abb2c4624190ed21d52fbbf20b9cf6860e19",
+    "commercial-batch-20261115-1-manifest.json": "32fa6ead859f918636b88ff3487123800429367f"
+  }
+}
