@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "kind": "root_authenticated_private_route_extension",
+  "operation": "commercial-max607-private-route-extension-20261115-1-install1",
+  "previous_count": 604,
+  "logical_hotels": 607,
+  "new_hotel_ids": [
+    59114,
+    475,
+    473
+  ],
+  "publication_summary_sha256": "0a5ee9c549d9bb480376bcbd1455c7676b8a2116714c5b6265088b7b8c515f67",
+  "bound_read_sha256": "b3b2743d920137700b9e9ccd357ae6bc0f6669bcc9192c53ccabd6b9749b26c7",
+  "new_binding_tuples_sha256": "21cf9bb6d4dab74b83109bb926a9769c141b05f9f27f840550775648878ac68b",
+  "route_receipt_sha256": "010cfc1ab9593e5ecfec3e3cbbd646e6a07658e3b817a0f54b375abb5f3acf6b",
+  "route_manifest_projection_sha256": "6fc68710289db379cca5017686869fdbea8d7fe2c6b48ff25883dc3921a17b3f",
+  "original_route_manifest_sha256": "9854a7a466c2baf88a0d703bb4b71a6b0da2d0ae05585a62dd25943a18dc4d24",
+  "original_route_map_sha256": "f22cd1782c8e4c0c058c1d8900ade8048f8ae5b56d501307abf1e96ff0f6674a",
+  "original_route_module_sha256": "01f0af3491278e4aef0cf6fa2811fe5b25e5aeb52bb111cf0103b6f51f8edbb1",
+  "original_previous_map_sha256": "e36cc6312440c484eb93b9976ad94b74ecb93c054e142e9ddd2bb28b070254a4",
+  "verification": {
+    "full_map_checked": true,
+    "previous_rows_preserved": true,
+    "new_tuples_checked": true
+  },
+  "source": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 43659984438,
+    "run_attempt": 1,
+    "head_sha": "e62ff46d5c72603688bd956d87be26108c17c546",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "workflow_path": ".github/workflows/tgmini-identity-readonly.yml",
+    "candidate_artifact": {
+      "id": 14140065410,
+      "name": "commercial-max607-route-extension-candidate",
+      "zip_sha256": "b498c070ca3b15c749910e1b061fada20a497253d0e8db59c2f28f917002465d"
+    },
+    "result_artifact": {
+      "id": 14139034250,
+      "name": "commercial-max607-route-extension-install-result",
+      "zip_sha256": "32cd770be282078f6c7761c05fbae6f420f14694ef6cde6a7407cf2c0c68c378"
+    }
+  }
+}
