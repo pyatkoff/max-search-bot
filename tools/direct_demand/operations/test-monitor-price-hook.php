@@ -542,6 +542,37 @@ hook_test_check($captionCount===3&&$canonicalCount===20,'remaining_provenance_ki
 foreach(['hook_caption_source_incomplete_stop','hook_caption_source_unresolved_stop'] as $error)
     hook_test_check(!monitor_hook_local_preflight_failure(['exit_code'=>2,'error'=>$error]),'caption_unknown_source_auto_released');
 
+// Three newly published pairs: preserve the entire old604 prefix and accepted warnings.
+$published607Raw=gzdecode(file_get_contents(__DIR__.'/monitor-price-expanded-roster-20261111.json.gz'));
+hook_test_check(hash('sha256',substr($published607Raw,0,1855119))==='2c5d5bb35e06b6917f674f5c3550d738495a7d4526f62a4e16375d60c882c53e','published_three_old604_bytes_changed');
+$published607Requirements=[
+    59114=>['text_sha256'=>'dc25b1490c9b7582f4474a1592f6e3edf0ae323cc04b3662b36a9f482c9aa812','warning'=>'Рядом с отелем стройка — возможен шум.'],
+    475=>['text_sha256'=>'fed32eeeb4f9ccf5494191e0ab1ff7ffee41619248bde52a6ffdb9cf1ff8a2d8','warning'=>'В отеле ремонтируют номера — возможен шум.'],
+    473=>['text_sha256'=>'f3544153d6c39f174070029ea8af1ff2bc2f9a848176df9334d18aaac7079e54','warning'=>'В отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.'],
+];
+$published607Manifest=json_decode(file_get_contents(__DIR__.'/commercial-batch-20261115-1-manifest.json'),true,64,JSON_THROW_ON_ERROR);
+hook_test_check(array_column($published607Manifest['rows'],'hotel_id')===[59114,475,473],'published_three_manifest_scope_changed');
+$published607Rows=array_values(array_filter($expanded['rows'],static fn($row)=>array_key_exists($row['tourvisor_hotel_id'],$published607Requirements)));
+hook_test_check(array_column($published607Rows,'tourvisor_hotel_id')===[59114,475,473]&&count($expanded['rows'])>=607,'published_three_roster_scope_changed');
+$published607Slot="\n\n💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\nУзнать стоимость тура";
+$published607Closing="\n\n👇 Узнать стоимость тура";
+foreach($published607Rows as $row){
+    $tv=$row['tourvisor_hotel_id'];$required=$published607Requirements[$tv];
+    $matches=array_values(array_filter($published607Manifest['rows'],static fn($m)=>$m['hotel_id']===$tv));
+    hook_test_check(count($matches)===1&&hash('sha256',$matches[0]['text'])===$required['text_sha256'],'published_three_accepted_text_changed');
+    $accepted=$matches[0]['text'];
+    hook_test_check(str_ends_with($accepted,$published607Closing)&&substr_count($accepted,$required['warning'])===1,'published_three_accepted_warning_missing');
+    $expectedTemplate=substr($accepted,0,-strlen($published607Closing)).$published607Slot;
+    $snapshot=$terminalSnapshot;$snapshot['scope']['tourvisorHotelIds']=[$tv];$snapshot['item']['tourvisorHotelId']=$tv;
+    foreach($snapshot['item']['offers'] as $i=>$offer){$snapshot['item']['offers'][$i]['tourvisorHotelId']=$tv;$snapshot['item']['offers'][$i]['recordId']=hash('sha256','published-three-20261115-'.$tv.'-'.$i);}
+    $price=monitor_price_observation($snapshot,$tv,strtotime($snapshot['generatedAt']));
+    foreach(['max','telegram'] as $platform){
+        hook_test_check($row['templates'][$platform]===$expectedTemplate&&$row['expected_text_sha256'][$platform]===$required['text_sha256'],'published_three_template_changed_accepted_facts');
+        $draft=monitor_hook_draft($row['templates'][$platform],$price);
+        hook_test_check(substr_count($draft,$required['warning'])===1&&str_ends_with($draft,"\n\nУзнать стоимость тура"),'published_three_price_draft_lost_warning_or_cta');
+    }
+}
+
 echo 'MONITOR_PRICE_HOOK_OK cases='.$cases." no_provider_calls=1 no_writes=1\n";
 
 

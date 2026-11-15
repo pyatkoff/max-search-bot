@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "operation": "monitor-price-three-accepted-bindings-20261115",
+  "state": "LOCAL_ROSTER607_PREPARED_AFTER_CONFIRMED_PUBLICATION_TAIL",
+  "old_source": "8cfdf5519730de743b3cf5122a83b652ff45d2dd",
+  "source_parent": "401e409c94a3d9d1a79f07ef5fd97e0e74673bdb",
+  "source_base_tree": "bc606dc3303c35ee30f1b2de164a3af6d1bea86e",
+  "previous_count": 604,
+  "new_count": 607,
+  "appended_tourvisor_ids": [
+    59114,
+    475,
+    473
+  ],
+  "excluded_legacy_hotel_ids": [
+    74036
+  ],
+  "source_registry_version": 476,
+  "previous_gzip_sha256": "fb71f56772b9c31dc1e3f42ea2aaa649952220b9b8b585533b0f7b5aecdede2d",
+  "previous_raw_sha256": "bf4c36ee706705264537866cd14226cbed05e5f8a66e0142ba3118e6d5f42306",
+  "preserved_prefix_bytes": 1855119,
+  "preserved_prefix_sha256": "2c5d5bb35e06b6917f674f5c3550d738495a7d4526f62a4e16375d60c882c53e",
+  "all604_rows_byte_exact": true,
+  "all_top_level_metadata_preserved": true,
+  "new_gzip_sha256": "d600346fe4010b18945fcb9ea75b3009cb140ce7aa39fc3c3d15e2af8c683f9f",
+  "new_raw_sha256": "da58172868de0bd8b8f3cd99f5a8feb28a5f57b4df47ccba5a71a9635d76e6d8",
+  "new_gzip_bytes": 263170,
+  "new_raw_bytes": 1864386,
+  "publication": {
+    "run_id": 43659471745,
+    "head_sha": "219b72274c368664c4701a3a7ba724bab8893f4b",
+    "artifact_id": 14139715513,
+    "metadata_sha256": "2d9c1fdd9f72533305ce2e401d649f88cb2da94a047f63f5e459c5b8fe529c68",
+    "zip_sha256": "3d784204efc0f6af40fbe74626b8ff07508d03564666ce284b56b8013796e38a",
+    "run_sha256": "6f09339c9fcb24e03fa134e06074dd918587c3be133ad17d10d874a4724260a5",
+    "jobs_sha256": "c4793bac9bfe0eeb7631e3bc5cee71393f13cc2ad0705970490ca84944c0da2b",
+    "publication_summary_sha256": "0a5ee9c549d9bb480376bcbd1455c7676b8a2116714c5b6265088b7b8c515f67",
+    "bound_read_sha256": "b3b2743d920137700b9e9ccd357ae6bc0f6669bcc9192c53ccabd6b9749b26c7"
+  },
+  "native": {
+    "run_id": 43659984438,
+    "head_sha": "e62ff46d5c72603688bd956d87be26108c17c546",
+    "candidate_artifact": {
+      "id": 14140065410,
+      "name": "commercial-max607-route-extension-candidate",
+      "zip_sha256": "b498c070ca3b15c749910e1b061fada20a497253d0e8db59c2f28f917002465d"
+    },
+    "result_artifact": {
+      "id": 14139034250,
+      "name": "commercial-max607-route-extension-install-result",
+      "zip_sha256": "32cd770be282078f6c7761c05fbae6f420f14694ef6cde6a7407cf2c0c68c378"
+    },
+    "receipt_sha256": "010cfc1ab9593e5ecfec3e3cbbd646e6a07658e3b817a0f54b375abb5f3acf6b",
+    "private_map_copied": false
+  },
+  "feed": {
+    "run_id": 43660303994,
+    "head_sha": "401e409c94a3d9d1a79f07ef5fd97e0e74673bdb",
+    "artifact_id": 14139832389,
+    "metadata_sha256": "7c490bef6a65590f66685efbad6d032a8cbea93dfcf6b5a57018d4fe038558de",
+    "zip_sha256": "d965fb017db02b128077ff005aeae4eb69bd01d8b4843fcf1af1528a5c4d1633",
+    "summary_sha256": "a71588e096568a2df0146f48701b0ffc890f9f169cee1fe5feb9d46b693a24d1",
+    "public_readback_sha256": "e0338d9b0caa8ead59210a7e8b99026f3e962070b0e662bef713d25d57bb4307",
+    "counts": [
+      607,
+      607,
+      1214
+    ]
+  },
+  "original604": {
+    "run_id": 43658093264,
+    "source": "96a1d286a56505c1a87cfe22c8d7a691a0f3bcaf",
+    "conclusion": "success",
+    "job_id": 132641053432,
+    "job_conclusion": "success",
+    "completed_at": "2026-11-15T00:38:20Z",
+    "run_sha256": "6118fcebed7402dd2f453c2e1d74ae74651a9706c2b6a360ebf603b8e38caa63",
+    "jobs_sha256": "a0085cb96e0f2b596d7c8f9f2f5265424c2eccea1788e91f94199f7e54b7cbce",
+    "no_success_or_zero_effect_inferred_from_terminal_status": true
+  },
+  "new_rows": [
+    {
+      "tourvisor_hotel_id": 59114,
+      "site_revision": 3,
+      "row_sha256": "ea18958dcd725a1a9711482ed6fc50fd05533fce243c6348692a9e3a3625ba00",
+      "disclosure": "Рядом с отелем стройка — возможен шум."
+    },
+    {
+      "tourvisor_hotel_id": 475,
+      "site_revision": 4,
+      "row_sha256": "bee7fac6f75ae0ab1e3e164bc9dd4957f2d893417d4ab0726b66cb8894e4d3d7",
+      "disclosure": "В отеле ремонтируют номера — возможен шум."
+    },
+    {
+      "tourvisor_hotel_id": 473,
+      "site_revision": 4,
+      "row_sha256": "b59de7097758f955f200cc34b4e5ddb8ddb9fec6d0c9574f7d7f1a10a1c3214f",
+      "disclosure": "В отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения."
+    }
+  ],
+  "existing_builder_receipt": {
+    "bytes": 577394,
+    "sha256": "4d7b93b2f95f75033fbb517b166fd03bc6ecf5c37dc33ab27c14dd5b3a3f212d",
+    "pairs": 607,
+    "supplier_calls": 0
+  },
+  "runtime_hook_executed": false,
+  "new_fixture_execution": "Required through existing Search3 validation gate; locally syntax checked only",
+  "unchanged_runtime_dependency_git_blobs": {
+    "build-monitor-price-hook.py": "3a2bdccd0e16e68ee1605d966fe644cfac8b54d9",
+    "monitor-price-contract.php": "db21e58062b3a8748d806b81773d70764d0f984e",
+    "monitor-price-hook-contract.php": "2cd564c5466f0f49b9fa7fcf764b409c356b6142",
+    "update-commercial-price-20261104-remaining1.php": "7f18d72cb8f2adbc588598a0e1ae23a871a7c151",
+    "publish-commercial-channel-hotel-feeds-20261103-1.php": "0184b30518ffa3def0b6aa514d6468e119f94e72",
+    "monitor-price-after-collection.php": "405df7f54b616d6dd452aa2a3375d544015aece5"
+  }
+}
