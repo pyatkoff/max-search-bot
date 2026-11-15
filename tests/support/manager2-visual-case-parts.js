@@ -83,12 +83,32 @@ test('component profile cannot change the four-part full contract or add whole-s
   assert.deepEqual(choose(source(), 0, {profile: 'full'}), choose(source(), 0));
 });
 
+test('the observed full inventory keeps the two busy whole-spec parts below 500 cases', () => {
+  for (const browser of ['chromium', 'webkit']) {
+    const wholeCounts = [browser === 'chromium' ? 318 : 297, 493, 499];
+    const expected = [
+      ...componentSource(438, browser),
+      ...otherSpecs.flatMap((spec, part) => Array.from({length: wholeCounts[part]},
+        (_, i) => row('whole case ' + part + ':' + i, spec, browser))),
+    ];
+    const parts = [0, 1, 2, 3].map(part => choose(expected, part, {browser}));
+    exactCases(parts.flatMap(part => part.cases), expected);
+    assert(Math.max(...parts.map(part => part.cases.length)) < 500,
+      'selection cases must not add work to either busy whole-spec part');
+    for (let part = 0; part < 3; part++) {
+      exactCases(parts[part].cases.filter(item => item.spec !== SELECTION_SPEC),
+        expected.filter(item => item.spec === otherSpecs[part]));
+    }
+  }
+});
+
 test('all 375 constructor cases execute once across four existing parts', () => {
   const expected = source(), parts = [0, 1, 2, 3].map(part => choose(expected, part));
   exactCases(parts.flatMap(part => part.cases), expected);
-  assert.deepEqual(parts.map(part => part.cases.filter(item => item.spec === SELECTION_SPEC).length), [75, 0, 38, 262]);
+  assert.deepEqual(parts.map(part => part.cases.filter(item => item.spec === SELECTION_SPEC).length), [113, 0, 0, 262]);
   for (let part = 0; part < 3; part++) assert(parts[part].cases.some(item => item.spec === otherSpecs[part]));
-  assert(!parts[1].specs.includes(SELECTION_SPEC), 'the busiest whole-spec part receives no extra selection work');
+  assert([1, 2].every(part => !parts[part].specs.includes(SELECTION_SPEC)),
+    'both busy whole-spec parts receive no extra selection work');
 });
 test('WebKit preserves the same complete selection, not a sampled second engine', () => {
   const expected = source(375, 'webkit');
@@ -259,7 +279,7 @@ test('uneven constructor inventories retain exact coverage without loading the b
   for (const count of [128, 129, 374, 375, 376, 1001]) {
     const expected = source(count), parts = [0, 1, 2, 3].map(part => choose(expected, part));
     exactCases(parts.flatMap(part => part.cases), expected);
-    assert(parts[1].cases.every(item => item.spec !== SELECTION_SPEC));
+    assert([1, 2].every(part => parts[part].cases.every(item => item.spec !== SELECTION_SPEC)));
   }
 });
 const {namespaceScreenshots, assertScreenshotNamespace} = caseParts;
