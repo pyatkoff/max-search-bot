@@ -265,17 +265,22 @@
     if(handoff&&!handoff.classList.contains('isError')&&service)service.appendChild(handoff);
     if(owner){const d=disclosure('owner','Передать другому менеджеру');d.className='m2OwnerDetails';d.appendChild(owner);(service||grid).appendChild(d)}
     const route=hero.querySelector('.leadRoute');
-    const tripPanel=document.createElement('section');tripPanel.className='leadPanel m2TripPanel';
-    const trip=p.trip||{},budget=budgetFact(trip),adults=String(trip.adults??'').trim(),children=String(trip.children??'').trim();
-    const pax=[adults?adults+' взр.':'',children&&children!=='0'?children+' дет.':''].filter(Boolean).join(' · ')||'Уточняются';
-    const routeMain=route?.querySelector('.leadRouteMain');if(routeMain)tripPanel.appendChild(routeMain);
-    const facts=document.createElement('div');facts.className='m2TripFacts';
-    facts.innerHTML=`<div class="m2TripFact"><span>Вылет</span><strong>${esc(trip.date||'Дата уточняется')}</strong></div><div class="m2TripFact"><span>Туристы</span><strong>${esc(pax)}</strong></div><div class="m2TripFact m2Budget"><span>${esc(budget.label)}</span><strong>${esc(budget.value)}</strong></div>`;
-    tripPanel.appendChild(facts);route?.remove();
-    const tripDetails=root.querySelector('.leadDetails');
+    const tripDetails=root.querySelector('[data-trip-details]'),requestContext=root.querySelector('.leadRequestContext');
     const readonly=sales.querySelector('.leadReadonly');if(readonly)extra.appendChild(readonly);
-    root.insertBefore(tasks,hero.nextSibling);root.insertBefore(sales,tasks.nextSibling);root.insertBefore(tripPanel,sales.nextSibling);
-    if(tripDetails)root.insertBefore(extra,tripDetails.nextSibling);else root.appendChild(extra);
+    root.insertBefore(tasks,hero.nextSibling);root.insertBefore(sales,tasks.nextSibling);
+    if(window.WorkspaceV2LeadCard?.requestKind(p,c)==='travel'){
+      const tripPanel=document.createElement('section');tripPanel.className='leadPanel m2TripPanel';
+      const trip=p.trip||{},budget=budgetFact(trip),adults=String(trip.adults??'').trim(),children=String(trip.children??'').trim();
+      const pax=[adults?adults+' взр.':'',children&&children!=='0'?children+' дет.':''].filter(Boolean).join(' · ')||'Уточняются';
+      const routeMain=route?.querySelector('.leadRouteMain');if(routeMain)tripPanel.appendChild(routeMain);
+      const facts=document.createElement('div');facts.className='m2TripFacts';
+      facts.innerHTML=`<div class="m2TripFact"><span>Вылет</span><strong>${esc(trip.date||'Дата уточняется')}</strong></div><div class="m2TripFact"><span>Туристы</span><strong>${esc(pax)}</strong></div><div class="m2TripFact m2Budget"><span>${esc(budget.label)}</span><strong>${esc(budget.value)}</strong></div>`;
+      tripPanel.appendChild(facts);root.insertBefore(tripPanel,sales.nextSibling);
+    }
+    route?.remove();
+    if(tripDetails)root.insertBefore(extra,tripDetails.nextSibling);
+    else if(requestContext)root.insertBefore(extra,requestContext.nextSibling);
+    else root.insertBefore(extra,sales.nextSibling);
   }
   function enhanceTasks(root,{tasks=[],conversationId=0}){
     const list=root.querySelector('.taskList'),rows=list?[...list.querySelectorAll(':scope > .taskRow')]:[],done=list?.querySelector('.doneTasks');

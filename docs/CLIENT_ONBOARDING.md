@@ -9,6 +9,20 @@ the same canonical manager handoff. The neutral profile includes no industry
 questionnaire, automatic pricing, AI configuration or publication catalogue;
 specialized profiles for other industries are not presented as ready.
 
+## Manager request card
+
+The shared lead card receives a finite `request_kind` from the authorized
+pipeline-detail read. The configured legacy project keeps its travel card;
+`device_repair` shows only the saved model and service from that conversation.
+A repair with no saved model/service and a neutral or unavailable business
+configuration do not show an empty travel questionnaire. Missing repair facts
+are not inferred from the company name, the offer price or another dialogue.
+
+Contacts, the responsible employee, tasks, sales stage and outcome keep their
+existing controls and permissions in every project. Switching cards does not
+change the conversation, reply draft, attachments or task editor. This read-only
+presentation does not add industry questionnaires, AI configuration or prices.
+
 ## Operator path
 
 Open **Компании** from Manager2's account menu or administration, then **Добавить
