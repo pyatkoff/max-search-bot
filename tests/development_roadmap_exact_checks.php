@@ -82,9 +82,11 @@ function devRoadmapExactPhaseFixture(): array
         $pdo->sqliteCreateFunction('CONCAT',static fn(...$parts)=>in_array(null,$parts,true)?null:implode('',array_map('strval',$parts)),-1);
         $pdo->sqliteCreateFunction('SHA2',static fn($s,$bits)=>$s===null?null:($bits===256?hash('sha256',$s):null),2);
     }
+    // Exact receipt projection now also reads its optional saved event binding.
+    $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN client_id VARCHAR(40) NULL');
     $api=$args['financial_installation']['verified_at_unix']+10;$ref=hash('sha256','modeled_value_upload_receipt_v1|990001');
     $pdo->financial(static function(PDO $db)use($api):void{
-        $db->prepare("INSERT INTO max_channel_conversion_outbox SELECT 9001,project_key,platform,9001,counter_id,
+        $db->prepare("INSERT INTO max_channel_conversion_outbox(id,project_key,platform,conversation_id,counter_id,transport_target,value_contract,target,value_profile_id,value_rub,state,upload_status,upload_id,external_user_id,event_unix,value_stage,last_error,value_ready_at_unix,value_api_accepted_at_unix,value_processed_at_unix) SELECT 9001,project_key,platform,9001,counter_id,
             transport_target,value_contract,'SYNTHETIC_ORDINARY',NULL,118,'accepted','UPLOADED','990001','999',
             ?,'specific_request','',?,?,NULL FROM max_channel_conversion_outbox WHERE id=24")->execute([$api-30,$api-29,$api]);
     });
