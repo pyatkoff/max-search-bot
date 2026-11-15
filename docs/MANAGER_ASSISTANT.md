@@ -156,7 +156,7 @@ detail reports `checked`. `tasks_truncated` remains the coverage signal for task
 outside the returned slice. The full canonical card remains available.
 
 Each returned task has an optional `promise` projection with `availability`,
-`reason`, `binding`, `stale_reasons` and `selection`. Availability distinguishes
+`reason`, `binding`, `stale_reasons`, `selection` and `calculation`. Availability distinguishes
 `available`, confirmed absence (`none`), unavailable evidence (`unavailable`) and
 an inapplicable project (`not_applicable`). An absent migration or failed read is
 never represented as absence of a promise. Ordinary tasks remain visible when
@@ -194,6 +194,32 @@ it selects the promise for the ordinary composer, with explicit full-composition
 review and verified completion described in
 [calculation fulfillment](MANAGER_PROMISE_CALCULATIONS.md). Selecting this action
 does not send anything or modify the task, its manual fields or the existing draft.
+
+The plan reads calculation progress through that same bounded detail projection.
+Only the already selected task IDs are enriched; a list read still loads no
+calculation, profile or delivery evidence. Non-calculation tasks do not read the
+calculation store. The calculation owner verifies the exact composition, native
+proof, ordinary send attempt and canonical outbound message before counting a
+part. An ordinary `confirmed` attempt alone is insufficient. Native evidence that
+still needs its local message/receipt completion remains unverified; reading the
+plan does not recover, cancel, resend or complete anything.
+
+The same task row shows confirmed parts and an instruction to inspect unknown or
+unverified delivery in the existing dialogue. Explicit absence of a calculation
+offers preparation there. A missing store, failed read, corrupt evidence or
+exceeded read budget shows unavailable evidence, never a fabricated zero or an
+invitation to repeat the send. The projection contains no message text, filenames,
+recipient identities, operation IDs or native message IDs. Ordinary task fields
+and manual controls survive an unavailable optional projection.
+
+Historical calculation completion remains separate from the current task. A
+manually reopened task stays open; a previously completed calculation or a fully
+verified composition suppresses the elapsed-promise hint. A current partial or
+unknown calculation retains the original Moscow deadline and the instruction to
+check delivery. Missing calculation fields from an older response are treated as
+unavailable, not as proof that no calculation exists. The existing **Открыть
+диалог** action reaches the installed composer workflow. No additional editor,
+send action, polling timer or automatic navigation is introduced in the plan.
 
 Selection facts keep the stored intent and observed freshness separate. An
 `armed` association does not prove delivery. Partial progress requires the exact

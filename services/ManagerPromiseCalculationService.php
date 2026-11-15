@@ -101,6 +101,134 @@ final class ManagerPromiseCalculationService
         });
     }
 
+    /**
+     * Optional, finite facts for an already-authorized task projection. The
+     * caller owns the surrounding ACL, task/profile snapshot and final fences.
+     * No composition, native identity or operation is returned to the plan.
+     */
+    public static function forTaskProjection(PDO $pdo,array $c,array $binding,array $task,?array $boundary,array $stale,int &$remaining): array
+    {
+        self::requireTransaction($pdo);
+        $empty=static fn(string $availability,?string $reason=null):array=>['availability'=>$availability,'reason'=>$reason,
+            'intent'=>null,'stale_reasons'=>[],'progress'=>null];
+        if(($binding['kind']??null)!=='send_calculation')return $empty('not_applicable');
+        try{
+            $cid=(int)$c['id'];$binary=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'BINARY':'BLOB';
+            $q=$pdo->prepare('SELECT intent_id,LENGTH(CAST(composition_json AS '.$binary.'))+LENGTH(CAST(scope_json AS '.$binary.'))+COALESCE(LENGTH(CAST(evidence_json AS '.$binary.')),0)+2048 AS read_bytes FROM manager_promise_calculation_intents WHERE conversation_id=? AND task_id=? AND promise_id=? ORDER BY CASE WHEN active_promise_id IS NOT NULL THEN 0 ELSE 1 END,created_at DESC,intent_id DESC LIMIT 1'.self::lock($pdo));
+            $q->execute([$cid,(int)$binding['task_id'],$binding['promise_id']]);$meta=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+            if(!$meta)return $empty('none');
+            self::projectionBytes($remaining,(int)$meta['read_bytes']);
+            $intent=self::intent($pdo,$cid,$meta['intent_id']);
+            foreach(['promise_id','trip_id','profile_sha256','source_message_revision'] as $key)
+                if($intent[$key]!==$binding[$key])throw new RuntimeException('calculation_binding_changed');
+            foreach(['task_id','profile_version','source_message_id','source_author_manager_id'] as $key)
+                if((int)$intent[$key]!== (int)$binding[$key])throw new RuntimeException('calculation_binding_changed');
+            if(($intent['state']==='armed')!==($intent['active_promise_id']===$intent['promise_id'])
+                ||($intent['state']!=='armed'&&$intent['active_promise_id']!==null)
+                ||($intent['reason']!==null&&(!is_string($intent['reason'])||strlen($intent['reason'])>40)))throw new RuntimeException('invalid_calculation_state');
+            $issues=$stale;$identity=null;
+            try{$identity=self::senderIdentity($c);}catch(DomainException $e){}
+            $stored=$intent['_scope']['identity'];
+            if($identity!==$stored)$issues[]='scope_changed';
+            $private=$identity!==null&&$binding['_scope']===self::promiseIdentity($c)
+                &&array_diff_key($identity,['manager_id'=>true,'status'=>true])===array_diff_key($stored,['manager_id'=>true,'status'=>true]);
+            if(!$private)return $empty('unavailable','scope_changed');
+            if($boundary===null)$issues[]='context_unavailable';
+            elseif($boundary!==$intent['_scope']['reply_boundary'])$issues[]='context_changed';
+            $expectedRevision=$intent['state']==='completed'?self::projectionCompletionRevision($intent):(int)$intent['task_revision'];
+            if($task['business_revision']!==$expectedRevision)$issues[]='task_changed';
+            if($intent['state']==='armed'&&$task['status']!=='open')$issues[]='task_closed';
+            $result=['availability'=>'available','reason'=>null,'intent'=>array_intersect_key($intent,array_flip(['intent_id','state','reason','created_at','completed_at','cancelled_at'])),
+                'stale_reasons'=>[],'progress'=>['availability'=>'unavailable','reason'=>'scope_changed','confirmed'=>null,'total'=>count(self::parts($intent['_composition']))]];
+            try{$result['progress']=self::projectionProgress($pdo,$intent,$remaining);}
+            catch(Throwable $e){$code=self::projectionFailure($e);$result['progress']=['availability'=>'unavailable','reason'=>$code,'confirmed'=>null,'total'=>count(self::parts($intent['_composition']))];$issues[]=$code;}
+            // The existing outer profile fence also rechecks transport. This
+            // exact identity includes the customer-channel row itself.
+            if($identity!==null&&self::senderIdentity($c)!==$identity)throw new DomainException('scope_changed');
+            $result['stale_reasons']=array_values(array_unique($issues));return $result;
+        }catch(Throwable $e){return $empty('unavailable',self::projectionFailure($e));}
+    }
+
+    private static function projectionProgress(PDO $pdo,array $intent,int &$remaining): array
+    {
+        $binary=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'BINARY':'BLOB';$parts=self::parts($intent['_composition']);
+        $q=$pdo->prepare('SELECT d.manager_id,d.operation_id,d.part_index,LENGTH(CAST(d.content_json AS '.$binary.'))+COALESCE(LENGTH(CAST(d.native_json AS '.$binary.')),0)+1024 AS read_bytes FROM manager_promise_calculation_deliveries d WHERE d.intent_id=? AND d.active_part=1 ORDER BY d.part_index LIMIT 11'.self::lock($pdo));
+        $q->execute([$intent['intent_id']]);$metadata=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
+        if(count($metadata)>count($parts))throw new RuntimeException('calculation_part_inventory_changed');
+        $rows=[];
+        foreach($metadata as $meta){
+            $index=(int)$meta['part_index'];
+            if(!isset($parts[$index])||isset($rows[$index]))throw new RuntimeException('calculation_part_inventory_changed');
+            self::projectionBytes($remaining,(int)$meta['read_bytes']);
+            $row=self::delivery($pdo,(int)$meta['manager_id'],(int)$intent['conversation_id'],$meta['operation_id']);
+            if($row['intent_id']!==$intent['intent_id']||(int)$row['part_index']!==$index||(int)$row['active_part']!==1
+                ||(int)$row['manager_id']!==(int)$intent['created_by_manager_id']||!self::hex($row['operation_id'],32)
+                ||!self::hex($row['request_sha256'],64))throw new RuntimeException('calculation_part_identity_changed');
+            $rows[$index]=$row;
+        }
+        $confirmed=0;$reason=null;$priority=0;$evidence=[];
+        foreach($parts as $part){
+            $row=$rows[$part['index']]??null;if(!$row)continue;
+            $content=json_decode($row['content_json'],true,16,JSON_THROW_ON_ERROR);
+            if(!is_array($content)||!self::contentMatches($part,$content)||$row['operation_kind']!==$part['kind'])throw new RuntimeException('calculation_part_content_changed');
+            $q=$pdo->prepare('SELECT conversation_id,operation_kind,request_hash,state FROM manager_send_attempts WHERE manager_id=? AND operation_id=?'.self::lock($pdo));
+            $q->execute([$row['manager_id'],$row['operation_id']]);$attempt=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+            if(!$attempt||(int)$attempt['conversation_id']!==(int)$intent['conversation_id']||$attempt['operation_kind']!==$row['operation_kind']
+                ||!is_string($attempt['request_hash'])||!hash_equals($row['request_sha256'],$attempt['request_hash'])
+                ||!in_array($attempt['state'],['pending','processing','unknown','confirmed','rejected','cancelled'],true))throw new RuntimeException('calculation_attempt_changed');
+            $rank=0;$code=null;
+            if($row['native_json']!==null){
+                if(!self::hex($row['native_sha256'],64)||!hash_equals($row['native_sha256'],hash('sha256',$row['native_json'])))throw new RuntimeException('calculation_native_changed');
+                $native=json_decode($row['native_json'],true,32,JSON_THROW_ON_ERROR);
+                if(!is_array($native))throw new RuntimeException('calculation_native_changed');
+                self::validateNative($native,$intent,$content,(int)$row['manager_id'],$row['operation_id'],$part['index']);
+                if($row['native_identity_sha256']!==self::hash([$native['channel'],$native['identity']['project_key'],$native['identity']['external_chat_id'],$native['native_mid']]))throw new RuntimeException('calculation_native_changed');
+                if($row['message_id']===null){
+                    if($row['message_sha256']!==null||!in_array($attempt['state'],['processing','unknown'],true))throw new RuntimeException('calculation_message_proof_changed');
+                    [$rank,$code]=[2,'delivery_unverified'];
+                }else{
+                    $q=$pdo->prepare('SELECT LENGTH(CAST(text AS '.$binary.'))+COALESCE(LENGTH(CAST(metadata_json AS '.$binary.')),0)+1024 AS read_bytes FROM messages WHERE id=?'.self::lock($pdo));
+                    $q->execute([$row['message_id']]);$bytes=$q->fetchColumn();$q->closeCursor();
+                    if($bytes===false)throw new RuntimeException('calculation_message_missing');self::projectionBytes($remaining,(int)$bytes);
+                    if($attempt['state']!=='confirmed'||!self::messageMatches($pdo,$row))throw new RuntimeException('calculation_message_proof_changed');
+                    ++$confirmed;$evidence[]=['index'=>$part['index'],'manager_id'=>(int)$row['manager_id'],'operation_id'=>$row['operation_id'],'native_mid'=>$native['native_mid'],
+                        'message_id'=>(int)$row['message_id'],'message_sha256'=>$row['message_sha256'],'content_sha256'=>self::hash($content)];
+                }
+            }else{
+                if($row['message_id']!==null||$row['message_sha256']!==null||$row['native_sha256']!==null||$row['native_identity_sha256']!==null)throw new RuntimeException('calculation_native_missing');
+                [$rank,$code]=match($attempt['state']){'processing','unknown','confirmed'=>[3,'delivery_unknown'],'rejected'=>[1,'delivery_rejected'],default=>[0,null]};
+            }
+            if($rank>$priority){$priority=$rank;$reason=$code;}
+        }
+        if($intent['state']==='completed'){
+            $proof=json_decode($intent['evidence_json']??'null',true,32,JSON_THROW_ON_ERROR);
+            if(!is_array($proof)||!self::keys($proof,['version','manifest_sha256','parts','actor','task_outcome','task_revision'])
+                ||$proof['version']!==1||$proof['manifest_sha256']!==$intent['manifest_sha256']||$proof['parts']!==$evidence
+                ||$proof['actor']!==(int)$intent['created_by_manager_id']||$proof['task_outcome']!=='applied'
+                ||$proof['task_revision']!==(int)$intent['task_revision']+1||$confirmed!==count($parts))throw new RuntimeException('invalid_calculation_completion_proof');
+        }
+        return ['availability'=>'available','reason'=>$reason,'confirmed'=>$confirmed,'total'=>count($parts)];
+    }
+
+    private static function projectionBytes(int &$remaining,int $bytes): void
+    {if($bytes<0||$bytes>$remaining)throw new LengthException('coverage_limit');$remaining-=$bytes;}
+    private static function projectionCompletionRevision(array $intent): int
+    {
+        $proof=json_decode($intent['evidence_json']??'null',true,32,JSON_THROW_ON_ERROR);$parts=self::parts($intent['_composition']);
+        if(!is_array($proof)||!self::keys($proof,['version','manifest_sha256','parts','actor','task_outcome','task_revision'])
+            ||$proof['version']!==1||$proof['manifest_sha256']!==$intent['manifest_sha256']||$proof['actor']!==(int)$intent['created_by_manager_id']
+            ||$proof['task_outcome']!=='applied'||$proof['task_revision']!==(int)$intent['task_revision']+1
+            ||!is_array($proof['parts'])||!array_is_list($proof['parts'])||count($proof['parts'])!==count($parts)
+            ||!is_string($intent['completed_at'])||$intent['completed_at']==='')throw new RuntimeException('invalid_calculation_completion_proof');
+        foreach($proof['parts'] as $index=>$part)if(!is_array($part)||!self::keys($part,['index','manager_id','operation_id','native_mid','message_id','message_sha256','content_sha256'])
+            ||$part['index']!==$index||$part['manager_id']!==(int)$intent['created_by_manager_id']||!self::hex($part['operation_id'],32)
+            ||!is_string($part['native_mid'])||$part['native_mid']===''||!is_int($part['message_id'])||$part['message_id']<=0
+            ||!self::hex($part['message_sha256'],64)||!self::hex($part['content_sha256'],64))throw new RuntimeException('invalid_calculation_completion_proof');
+        return $proof['task_revision'];
+    }
+    private static function projectionFailure(Throwable $e): string
+    {return $e instanceof PDOException?'storage_unavailable':($e instanceof LengthException?'coverage_limit':($e instanceof DomainException&&$e->getMessage()==='scope_changed'?'scope_changed':'delivery_evidence_changed'));}
+
     /** An explicit local recovery command. Status/operation/send receipts never write. */
     public static function recover(int $actor,int $cid,string $id): array
     {

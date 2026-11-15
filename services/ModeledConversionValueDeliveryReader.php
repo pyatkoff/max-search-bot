@@ -4,6 +4,7 @@ require_once __DIR__.'/ModeledConversionStatusBudget.php';
 require_once __DIR__.'/ModeledConversionValueContract.php';
 require_once __DIR__.'/ModeledConversionTickFailure.php';
 require_once __DIR__.'/ModeledConversionProfiles.php';
+require_once __DIR__.'/ModeledConversionDeliveryRegistry.php';
 if(is_file(__DIR__.'/ModeledConversionValueIdentityEvidence.php'))require_once __DIR__.'/ModeledConversionValueIdentityEvidence.php';
 if(is_file(__DIR__.'/ModeledConversionValueVisitEvidence.php'))require_once __DIR__.'/ModeledConversionValueVisitEvidence.php';
 if(is_file(__DIR__.'/ModeledConversionValueVisitRecovery.php'))require_once __DIR__.'/ModeledConversionValueVisitRecovery.php';
@@ -34,7 +35,7 @@ final class ModeledConversionValueDeliveryReader
     public function __construct(private PDO $pdo,private $authorize,private ModeledConversionStatusBudget $budget){}
 
     /** One private saved-receipt result. No provider poll, financial operation or source-table read. */
-    public function savedReceiptStatus(string $reference,int $now):array
+    public function savedReceiptStatus(string $reference,int $now,bool $includeVisitEvidence=false):array
     {
         if(preg_match('/\A[a-f0-9]{64}\z/D',$reference)!==1||$now<946684800)throw new InvalidArgumentException('invalid_saved_receipt_reference');
         $base=['goal_id'=>self::GOAL,'counter_id'=>'98615635','receipt_ref'=>$reference,
@@ -43,6 +44,7 @@ final class ModeledConversionValueDeliveryReader
         $fail=static fn(string $reason):array=>['available'=>false,'reason'=>$reason]+$base;
         try{
             $fields=['state','upload_status','event_unix','value_api_accepted_at_unix','value_processed_at_unix'];
+            if($includeVisitEvidence)$fields=array_merge($fields,['id','conversation_id','platform','target','client_id','value_rub','upload_id']);
             $columns=['COUNT(*) AS inspected','COALESCE(SUM(is_match),0) AS matched'];
             foreach($fields as$field)$columns[]='MAX(CASE WHEN is_match=1 THEN '.$field.' ELSE NULL END) AS '.$field;
             // The hard bound precedes hashing. No native ID, money, customer identity or unrelated row is returned.
@@ -53,7 +55,7 @@ final class ModeledConversionValueDeliveryReader
                 ." AND CAST(value_contract AS ".$binary.")=CAST(? AS ".$binary.")";
             $sql='SELECT '.implode(',',$columns)
                 ." FROM (SELECT b.*,CASE WHEN SHA2(CONCAT('modeled_value_upload_receipt_v1|',upload_id),256)=? THEN 1 ELSE 0 END AS is_match"
-                ." FROM (SELECT upload_id,state,upload_status,event_unix,value_api_accepted_at_unix,value_processed_at_unix"
+                ." FROM (SELECT ".($includeVisitEvidence?"id,conversation_id,platform,target,client_id,value_rub,":"")."upload_id,state,upload_status,event_unix,value_api_accepted_at_unix,value_processed_at_unix"
                 ." FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635'"
                 ." AND transport_target=? AND value_contract=?".$exact." ORDER BY id DESC LIMIT 1001) b) scoped";
             $rows=$this->query($sql,[$reference,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION],null,250);
@@ -76,7 +78,25 @@ final class ModeledConversionValueDeliveryReader
                 return $fail('invalid_saved_clock');
             $at=static fn(?int $v):?string=>$v===null?null:gmdate('Y-m-d\TH:i:s\Z',$v);
             ($this->authorize)();$this->budget->check();
-            return ['available'=>true]+$base+['checked_at'=>$at($now),'coverage_complete'=>true,'inspected_rows'=>$seen,
+            $extra=[];
+            if($includeVisitEvidence){
+            // Exact saved event tuple only. Preserve native decimal serialization for its fingerprint.
+            $proof=ModeledConversionVisitProof::savedForEvent([
+                'id'=>$r['id'],'conversation_id'=>$r['conversation_id'],'platform'=>$r['platform'],
+                'target'=>$r['target'],'client_id'=>$r['client_id'],'value_rub'=>$r['value_rub'],
+                'event_unix'=>$r['event_unix'],'upload_id'=>$r['upload_id']],$now,$this->budget);
+            $safe=['available'=>false,'reason'=>'saved_visit_evidence_unavailable'];
+            if(($proof['available']??false)===true){
+                $safe=array_intersect_key($proof,array_flip(['available','fresh','checked_at','upload_status','linkage',
+                    'visit_started_at','visit_goal_reaches']));
+                $base['per_receipt_visit_linkage']=$proof['linkage'];
+            }elseif(in_array($proof['reason']??null,['not_recorded','invalid_cache','budget_headroom','event_changed','event_binding_unavailable'],true)){
+                $safe['reason']=$proof['reason'];
+            }
+            $extra=['visit_evidence'=>$safe];
+            }
+            ($this->authorize)();$this->budget->check();
+            return ['available'=>true]+$base+$extra+['checked_at'=>$at($now),'coverage_complete'=>true,'inspected_rows'=>$seen,
                 'state'=>$r['state'],'upload_status'=>$r['upload_status'],'event_at'=>$at($event),
                 'first_api_observed_at'=>$at($api),'processed_at'=>$at($processed),'first_api_clock_known'=>$api!==null,
                 'terminal_processing'=>in_array($r['state'],['processed','unmatched','failed'],true),
@@ -146,6 +166,7 @@ final class ModeledConversionValueDeliveryReader
             }
             foreach(self::UPLOADS as$i=>$status)$columns[]="COALESCE(SUM(CASE WHEN upload_status='".$status."' THEN 1 ELSE 0 END),0) AS upload_n".$i;
             foreach(self::ERRORS as$i=>$error)$columns[]="COALESCE(SUM(CASE WHEN last_error='".$error."' THEN 1 ELSE 0 END),0) AS error_n".$i;
+            if(!$includeHistoricalEvidence)$columns[]=$this->recentReceiptSql($mysql).' AS recent_receipts';
             $sql='SELECT '.implode(',',$columns)." FROM (SELECT state,value_stage,value_rub,upload_id,upload_status,last_error,value_origin,platform,conversation_id,client_id FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND transport_target=? AND value_contract=? AND (event_unix>=? OR (value_origin IN ('owner_day_review_v1','owner_fortnight_review_v1') AND value_reviewed_at_unix IS NOT NULL AND event_unix>=1793570400 AND event_unix<1793656800)) ORDER BY id DESC LIMIT ".self::ROW_LIMIT.') bounded_values';
             $r=$this->query($sql,[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$activation])[0];
             $seen=$this->number($r['inspected'],false);
@@ -224,6 +245,7 @@ final class ModeledConversionValueDeliveryReader
                 $out['repair_assessments']=['available'=>false,'reason'=>'not_requested_operational_view'];
                 $out['predictive_v1']=['available'=>false,'reason'=>'not_requested_operational_view'];
             }
+            if(!$includeHistoricalEvidence)$out['recent_receipts']=$this->recentReceipts($r['recent_receipts']??null,$now);
             return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}
         catch(PDOException $ignored){return $this->unavailable('storage_unavailable');}
@@ -1435,6 +1457,67 @@ final class ModeledConversionValueDeliveryReader
         $out['visit_linkage']=$out['fresh']&&$r['status']==='ok'?($out['goal_visits']>0?'observed_in_goal_session_report':'not_observed_in_cached_report'):'unknown';
         return $out;
     }
+
+    /** Six canonical uploaded rows in the existing aggregate SELECT; never a second scan copied into PHP. */
+    private function recentReceiptSql(bool $mysql):string
+    {
+        $fields=['id','platform','value_stage','state','upload_status','value_rub','event_unix',
+            'claimed_at_unix','value_api_accepted_at_unix','value_processed_at_unix','next_attempt_unix','upload_id'];
+        $casts=array_map(static fn(string $f):string=>'CAST(o.'.$f.' AS '.($mysql?'CHAR':'TEXT').') AS '.$f,$fields);
+        $json=($mysql?'JSON_ARRAYAGG(JSON_ARRAY(':'json_group_array(json_array(').implode(',',$fields).'))';
+        return "(SELECT COALESCE(".$json.",'[]') FROM (SELECT ".implode(',',$casts).' '
+            .ModeledConversionDeliveryRegistry::sourceSql($mysql)
+            ." AND HEX(o.counter_id)=HEX('98615635') AND o.upload_id IS NOT NULL AND o.upload_id<>''"
+            ." ORDER BY CASE WHEN o.state IN ('accepted','uploading','unknown') THEN 0 ELSE 1 END,"
+            ." CASE WHEN o.state IN ('accepted','uploading','unknown') THEN COALESCE(o.claimed_at_unix,o.value_api_accepted_at_unix,o.event_unix) ELSE NULL END,"
+            .'o.id DESC LIMIT 6) receipt_rows)';
+    }
+
+    private function recentReceipts(mixed $packet,int $now):array
+    {
+        $base=['basis'=>'oldest_active_then_newest_uploaded_rows','max_rows'=>6,'complete_goal_ledger'=>false,'not_a_daily_total'=>true];
+        try{
+            if(!is_string($packet)||strlen($packet)>4096)throw new UnexpectedValueException();
+            $rows=json_decode($packet,true,4,JSON_THROW_ON_ERROR);
+            if(!is_array($rows)||!array_is_list($rows)||count($rows)>6)throw new UnexpectedValueException();
+            $out=[];
+            $clock=static function(mixed $v,bool $future=false)use($now):?string{
+                if($v===null||$v==='0')return null;
+                if(!is_string($v)||preg_match('/\A[1-9][0-9]{8,10}\z/D',$v)!==1||(int)$v<946684800
+                    ||(int)$v>($future?$now+2592000:$now))throw new UnexpectedValueException();
+                return gmdate('Y-m-d\TH:i:s\Z',(int)$v);
+            };
+            foreach($rows as$r){
+                if(!is_array($r)||!array_is_list($r)||count($r)!==12)throw new UnexpectedValueException();
+                foreach($r as$v)if($v!==null&&!is_string($v))throw new UnexpectedValueException();
+                if(preg_match('/\A[1-9][0-9]{0,19}\z/D',$r[0]??'')!==1
+                    ||preg_match('/\A[1-9][0-9]{0,19}\z/D',$r[11]??'')!==1
+                    ||!in_array($r[1],['max','telegram'],true)||!in_array($r[2],ModeledConversionValueContract::STAGES,true)
+                    ||!in_array($r[3],self::STATES,true)||!in_array($r[4],self::UPLOADS,true))
+                    throw new UnexpectedValueException();
+                $value=$this->number($r[5],true);
+                if($value<=0||$value>ModeledConversionValueContract::MAX_VALUE_RUB)throw new UnexpectedValueException();
+                $event=$clock($r[6]);$claim=$clock($r[7]);$api=$clock($r[8]);$processed=$clock($r[9]);$next=$clock($r[10],true);
+                if($event===null||($api!==null&&strcmp($api,$event)<0)
+                    ||($processed!==null&&strcmp($processed,$api??$event)<0))throw new UnexpectedValueException();
+                $out[]=['_id'=>$r[0],'_active'=>in_array($r[3],['accepted','uploading','unknown'],true),
+                    '_order'=>$claim??$api??$event,'receipt_ref'=>hash('sha256','modeled_value_upload_receipt_v1|'.$r[11]),
+                    'platform'=>$r[1],'stage'=>$r[2],'increment_rub'=>$value,'state'=>$r[3],'upload_status'=>$r[4],
+                    'event_at'=>$event,'last_claim_at'=>$claim,'first_api_observed_at'=>$api,
+                    'processed_at'=>$processed,'next_check_not_before'=>$next];
+            }
+            usort($out,static function(array $a,array $b):int{
+                if($a['_active']!==$b['_active'])return $a['_active']?-1:1;
+                if($a['_active']&&$a['_order']!==$b['_order'])return strcmp($a['_order'],$b['_order']);
+                return strlen($b['_id'])<=>strlen($a['_id'])?:strcmp($b['_id'],$a['_id']);
+            });
+            foreach($out as&$row)unset($row['_id'],$row['_active'],$row['_order']);unset($row);
+            return ['available'=>true]+$base+['selected_rows'=>count($rows),'returned_rows'=>count($out),'rows'=>$out];
+        }catch(JsonException|UnexpectedValueException $ignored){
+            return ['available'=>false,'reason'=>'invalid_saved_receipt_packet']+$base;
+        }
+    }
+
     private function number(mixed $v,bool $money):int|float
     {
         if(!is_int($v)&&!is_float($v)&&!(is_string($v)&&preg_match('/\\A[0-9]+(?:\\.[0-9]{1,2})?\\z/D',$v)===1))throw new UnexpectedValueException('invalid_ledger');

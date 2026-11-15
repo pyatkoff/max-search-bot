@@ -13,11 +13,11 @@ const caseParts = (() => {
 const cp = require('node:child_process');
 const SELECTION_SPEC = 'tests/visual/manager-tour-selection.spec.js';
 const MIN_CASES = 128;
-// Original run 42072803983: non-selection WebKit parts took about 435/593/523s.
-// Equal quarters add work to the already slowest part. Keep its whole specs,
-// and send 20/0/10/70 percent of selection identities to residual capacity.
+// Run 43707209563: WebKit part 2 took 930s and part 0 took 595s.
+// Keep whole-spec ownership and move only part 2's selection share to part 0:
+// 30/0/0/70 leaves both busy whole-spec parts free of extra selection work.
 // This fixed cycle changes ownership only; it never removes a case or runner.
-const CASE_PART_CYCLE = Object.freeze([0, 3, 3, 2, 3, 0, 3, 3, 3, 3]);
+const CASE_PART_CYCLE = Object.freeze([0, 3, 3, 0, 3, 0, 3, 3, 3, 3]);
 // The component runs only the isolated selection spec. Keep its two-way cycle
 // separate from the full panel's four-part ownership and minimum split size.
 const COMPONENT_CASE_CYCLE = Object.freeze([0, 1]);

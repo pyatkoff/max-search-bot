@@ -9,7 +9,7 @@ const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 // Render the actual PHP shell; no copied HTML or production traffic.
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
 const stages=[['new','Новый лид'],['working','В работе'],['selection','Подбираем'],['proposal','Предложение отправлено'],['sold','Продано']].map(([stage_key,display_name],i)=>({id:i+1,stage_key,display_name,sort_order:i,is_terminal:stage_key==='sold'?1:0,is_won:stage_key==='sold'?1:0}));
-async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null,replyAudio=false,tourChoices=null,selectionEditorEntry=null,selectionAssetPackage=null,leadSource={}}={}){
+async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null,replyAudio=false,tourChoices=null,selectionEditorEntry=null,selectionAssetPackage=null,leadSource={},initialFixture=null}={}){
   const pushProtocol=lifecycle(7);
   // Model the existing server admission field, retaining the real shell/assets.
   // This fixture does not claim an installed or authenticated production editor.
@@ -142,10 +142,13 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
     }
     unexpected.push(req.method()+' '+url.pathname+' '+data.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
   });
+  const state={calls,unexpected,errors,sends,tasks,manager,setLead:(id,patch)=>leadOverrides.set(id,{...leadOverrides.get(id),...patch}),setMessages:(id,value)=>messageOverrides.set(id,value),setBookingHandler:fn=>{bookingHandler=fn},setLogoutHandler:fn=>{logoutHandler=fn},setTourChoices:value=>{currentTourChoices=value},setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setInboxRow:(id,patch)=>inboxOverrides.set(id,{...inboxOverrides.get(id),...patch}),setReadHandler:fn=>{readHandler=fn},setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
+    async releaseMetadata(status=200){const pending=pendingMetadata.splice(0);pending.forEach(item=>item.release(status));await Promise.all(pending.map(async item=>{const response=await item.request.response();if(response)await response.finished()}))}};
+  // Project/channel fixtures must be settled before the first inbox and avatar requests.
+  if(initialFixture)await initialFixture(state);
   await page.goto(origin+'/manager2/index.php?qa=1');
   if(!anonymous&&waitForInbox)await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
-  return {calls,unexpected,errors,sends,tasks,manager,setLead:(id,patch)=>leadOverrides.set(id,{...leadOverrides.get(id),...patch}),setMessages:(id,value)=>messageOverrides.set(id,value),setBookingHandler:fn=>{bookingHandler=fn},setLogoutHandler:fn=>{logoutHandler=fn},setTourChoices:value=>{currentTourChoices=value},setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setInboxRow:(id,patch)=>inboxOverrides.set(id,{...inboxOverrides.get(id),...patch}),setReadHandler:fn=>{readHandler=fn},setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
-    async releaseMetadata(status=200){const pending=pendingMetadata.splice(0);pending.forEach(item=>item.release(status));await Promise.all(pending.map(async item=>{const response=await item.request.response();if(response)await response.finished()}))}};
+  return state;
 }
 async function openLead(page,id=11){
   if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();
@@ -189,7 +192,9 @@ async function noTravelRequestFields(page){
   await expect(page.locator('#leadCard .m2TripPanel')).toHaveCount(0);
   await expect(page.locator('#leadCard [data-trip-details]')).toHaveCount(0);
   await expect(page.locator('#leadCard .leadRoute')).toHaveCount(0);
-  await expect(page.locator('#leadCard')).not.toContainText(/Все параметры поездки|Параметры поездки уточняются|Дата уточняется|Возраст детей|Категория отеля|Туристы|Вылет/);
+  await expect(page.locator('#leadOutcomeTripWrap')).toHaveCount(0);
+  await expect(page.locator('#leadOutcomeTrip')).toHaveCount(0);
+  await expect(page.locator('#leadCard')).not.toContainText(/Все параметры поездки|Параметры поездки уточняются|Дата уточняется|Возраст детей|Категория отеля|Туристы|Вылет|Поездка для результата|Привязка поездки сейчас недоступна/);
   await expect(page.locator('#leadTasksSection')).toBeVisible();
   await expect(page.locator('#leadStage')).toBeVisible();
   await expect(page.locator('#leadCard a[href="tel:+79991234567"]')).toBeVisible();
@@ -201,8 +206,7 @@ async function businessCardFits(page,width){
   await noOverflow(page);
 }
 for(const width of [390,430,768,1440])test('Manager2 business request card keeps repair and neutral replies separate at '+width,async({page,browserName})=>{
-  await page.setViewportSize({width,height:900});const s=await setup(page);businessCardFixture(s);
-  await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));
+  await page.setViewportSize({width,height:900});const s=await setup(page,{initialFixture:businessCardFixture});
   await openLead(page,11);await editorReady(page);
   await page.locator('#replyText').fill('Ответ по замене дисплея');
   await page.locator('#replyFile').setInputFiles({name:'repair.txt',mimeType:'text/plain',buffer:Buffer.from('Repair file, never uploaded')});
@@ -234,7 +238,10 @@ for(const width of [390,430,768,1440])test('Manager2 business request card keeps
   expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
 for(const width of [390,1440])test('Manager2 business request card handles unknown context and retains an ordinary task at '+width,async({page,browserName})=>{
-  await page.setViewportSize({width,height:900});const s=await setup(page);businessCardFixture(s);s.setConversation(11,{repair_context:{}});
+  await page.setViewportSize({width,height:900});const s=await setup(page,{initialFixture:s=>{
+    businessCardFixture(s);s.setConversation(11,{repair_context:{}});
+    for(const id of [11,12])s.setLead(id,{pipeline:{stage:stages[1],stage_history:[],tags:[],outcome:{outcome:'open'},outcome_trip:{available:false,reason:'storage_unavailable',revision:null,binding:null,choices:[],choices_truncated:false}}});
+  }});
   await openLead(page,11);await showCard(page);await noTravelRequestFields(page);await expect(page.locator('#leadCard .leadRequestContext')).toHaveCount(0);
   async function renderContext(kind,repair,project='appleservice39'){
     await page.evaluate(({kind,repair,project})=>{const S=WorkspaceV2.S,p={...S.detail.lead,request_kind:kind},c={...S.detail.conversation,project_key:project,repair_context:repair};if(kind==='missing')delete p.request_kind;WorkspaceV2LeadCard.render(p,c)},{kind,repair,project});
@@ -264,6 +271,25 @@ for(const width of [390,1440])test('Manager2 business request card handles unkno
   expect(s.calls.find(call=>call.action==='create_task')).toMatchObject({conversation_id:11,title:'Уточнить стоимость ремонта',due_at:'2026-11-18T12:30:00.000Z',csrf:'synthetic-csrf'});
   await expect(page.locator('#leadTaskTitle')).toHaveValue('');await noTravelRequestFields(page);
   expect(s.sends).toEqual([]);expect(s.calls.filter(call=>/^set_|^save_|^reassign/.test(call.action||''))).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+  // An unavailable travel store must not disable the ordinary result of either business.
+  const beforeOutcomes=s.calls.length;
+  for(const [id,note] of [[11,'Уточнили стоимость ремонта'],[12,'Обсудили условия услуги']]){
+    await showChat(page);await openLead(page,id);await showCard(page);await noTravelRequestFields(page);
+    const saleDetails=page.locator('#leadCard .m2SaleDetails');
+    if(await saleDetails.getAttribute('open')===null)await saleDetails.locator(':scope > summary').click();
+    await expect(saleDetails).toHaveAttribute('open','');
+    await page.locator('#leadOutcomeNote').fill(note);await expect(page.locator('#saveOutcome')).toBeEnabled();
+    await page.locator('#saveOutcome').click();await expect(page.locator('#outcomeSaveStatus')).toContainText('Результат сохранён');
+    await expect(saleDetails).toHaveAttribute('open','');await expect(saleDetails.locator('#outcomeSaveStatus')).toBeVisible();
+    const writes=s.calls.slice(beforeOutcomes).filter(call=>call.action==='set_outcome'&&call.conversation_id===id);
+    expect(writes).toHaveLength(1);expect(writes[0]).toMatchObject({path:'/manager/pipeline-api.php',conversation_id:id,outcome:'open',note,csrf:'synthetic-csrf'});
+    expect(writes[0]).not.toHaveProperty('outcome_trip');expect(writes[0]).not.toHaveProperty('operation_id');
+    await noTravelRequestFields(page);
+  }
+  const mutations=s.calls.slice(beforeOutcomes).filter(call=>/^set_|^create_|^save_|^reassign/.test(call.action||''));
+  expect(mutations.map(call=>[call.action,call.conversation_id])).toEqual([['set_outcome',11],['set_outcome',12]]);
+  expect(s.calls.slice(beforeOutcomes).filter(call=>call.action==='outcome_operation')).toEqual([]);
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
 
 for(const width of [390,430,768,1440])test('Manager2 first advertising region stays readable and separate from departure at '+width,async({page,browserName})=>{

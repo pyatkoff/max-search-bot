@@ -324,7 +324,12 @@ removing package installation does not establish an end-to-end latency SLA.
 
 Full Chromium and WebKit coverage uses four isolated parts, each retaining
 workers=1. Whole-spec allocation follows observed native execution time;
-the isolated selection cases retain the existing fixed 20/0/10/70 cycle.
+the isolated selection cases use a fixed 30/0/0/70 cycle. The ordinary successful
+run 43707209563 measured 930s of native execution in WebKit part 2 and 595s in
+part 0. Moving only the former's selection share to part 0 leaves both busy
+whole-spec parts without extra selection cases. The native 438-case selection
+inventory keeps all identities; its largest full part changes from 543 to 499
+cases. This is workload allocation, not a measured elapsed-time improvement.
 History remains in part zero, alongside its existing layout/CLI and daily-cache
 ownership. No shared fixture is split and the complete spec/case inventory is
 unchanged. Every engine assembly downloads and validates all four original

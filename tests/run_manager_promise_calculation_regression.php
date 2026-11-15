@@ -56,6 +56,12 @@ function pcFiles(callable $run): void
         $files=array_map(static fn(string $p):array=>['sha256'=>hash_file('sha256',$p),'size'=>filesize($p),'name'=>basename($p)],[$a,$b]);$run($a,$b,$files);
     }finally{if(is_file($a))unlink($a);if(is_file($b))unlink($b);}
 }
+function pcPlanFacts(int $actor=7): array
+{
+    $result=ManagerPromiseSelectionService::forTasks($actor,1,[101]);
+    if(empty($result['ok'])||!isset($result['by_task'][101]['calculation']))throw new RuntimeException('calculation_plan_projection_missing');
+    return $result['by_task'][101];
+}
 
 pcCase('read-only preview and explicit arm',static function():void{
     $pdo=promiseCalculationFixture();$ids=promiseCalculationIds($pdo);$composition=['text'=>'Расчёт 240000 ₽','files'=>[]];$before=pcSnapshot($pdo);
@@ -209,6 +215,119 @@ pcCase('cancellation and lost identity',static function():void{
     pcCheck('fresh reviewed composition after unstarted cancel has a new intent',$fresh['intent_id']!==$i['intent_id']);
     $pdo->exec('UPDATE managers SET is_active=0 WHERE id=7');
     pcCheck('current account ACL gates status and operations',(ManagerPromiseCalculationService::status(7,1,$fresh['intent_id'])['error']??null)==='forbidden');
+});
+
+pcCase('plan no intent and finite disclosure',static function():void{
+    $pdo=promiseCalculationFixture();$before=pcSnapshot($pdo);$none=pcPlanFacts();
+    pcCheck('a bound calculation without a reviewed composition is explicitly none and read only',
+        $none['calculation']===['availability'=>'none','reason'=>null,'intent'=>null,'stale_reasons'=>[],'progress'=>null]
+        &&$none['selection']['availability']==='not_applicable'&&pcSnapshot($pdo)===$before);
+    $intent=pcIntent($pdo,['text'=>'PRIVATE EXACT CALCULATION BODY','files'=>[]]);$before=pcSnapshot($pdo);$p=pcPlanFacts()['calculation'];
+    pcCheck('armed calculation summary discloses only finite identity state and exact part counts',
+        $p['availability']==='available'&&$p['intent']['intent_id']===$intent['intent_id']&&$p['intent']['state']==='armed'
+        &&array_keys($p['intent'])===['intent_id','state','reason','created_at','completed_at','cancelled_at']
+        &&$p['progress']===['availability'=>'available','reason'=>null,'confirmed'=>0,'total'=>1]
+        &&!str_contains(json_encode($p),'PRIVATE EXACT')&&!str_contains(json_encode($p),'operation_id')&&pcSnapshot($pdo)===$before);
+});
+
+pcCase('plan partial and unknown native parts',static function():void{
+    pcFiles(static function($a,$b,$files):void{
+        global $calls;$pdo=promiseCalculationFixture();$i=pcIntent($pdo,['text'=>'PRIVATE TWO FILES','files'=>$files]);
+        pcMedia($pdo,$i,0,201,$a,'PRIVATE TWO FILES');pcMedia($pdo,$i,1,202,$b,'','unknown');
+        $before=pcSnapshot($pdo);$n=$calls;$p=pcPlanFacts()['calculation'];
+        pcCheck('plan reports one verified part and an unknown final result without exposing file names',
+            $p['availability']==='available'&&$p['intent']['state']==='armed'
+            &&$p['progress']===['availability'=>'available','reason'=>'delivery_unknown','confirmed'=>1,'total'=>2]
+            &&!str_contains(json_encode($p),basename($a))&&!str_contains(json_encode($p),basename($b)));
+        pcCheck('partial plan reads never recover retry send or complete an open task',pcSnapshot($pdo)===$before&&$calls===$n&&pcTask($pdo)['status']==='open');
+    });
+});
+
+pcCase('plan native proof awaiting local verification and reopened history',static function():void{
+    global $calls;$pdo=promiseCalculationFixture();$i=pcIntent($pdo,['text'=>'Расчёт 240000 ₽','files'=>[]]);
+    $pdo->exec("CREATE TRIGGER calculation_plan_fail BEFORE INSERT ON messages WHEN NEW.direction='outbound' BEGIN SELECT RAISE(FAIL,'synthetic mirror failure'); END");
+    pcText($pdo,$i,203);$before=pcSnapshot($pdo);$n=$calls;$p=pcPlanFacts()['calculation'];
+    pcCheck('durable native proof without a canonical message remains unverified and does not repair on read',
+        $p['progress']===['availability'=>'available','reason'=>'delivery_unverified','confirmed'=>0,'total'=>1]
+        &&pcSnapshot($pdo)===$before&&$calls===$n&&pcTask($pdo)['status']==='open');
+    $pdo->exec('DROP TRIGGER calculation_plan_fail');ManagerPromiseCalculationService::recover(7,1,$i['intent_id']);
+    $done=pcPlanFacts()['calculation'];
+    pcCheck('completed plan proof uses the canonical completion revision',
+        $done['intent']['state']==='completed'&&$done['progress']['confirmed']===1&&$done['progress']['total']===1
+        &&!in_array('task_changed',$done['stale_reasons'],true)&&pcTask($pdo)['business_revision']===2);
+    LeadTaskService::setCompleted(1,101,false);$before=pcSnapshot($pdo);$history=pcPlanFacts()['calculation'];
+    pcCheck('historical completion cannot satisfy or reclose the manually reopened task generation',
+        $history['intent']['state']==='completed'&&$history['progress']['confirmed']===1&&in_array('task_changed',$history['stale_reasons'],true)
+        &&pcTask($pdo)['status']==='open'&&pcSnapshot($pdo)===$before&&$calls===$n);
+    $new=pcIntent($pdo,['text'=>'New explicit composition','files'=>[]]);$current=pcPlanFacts()['calculation'];
+    pcCheck('a new explicitly armed generation takes priority over the old completed history',
+        $current['intent']['intent_id']===$new['intent_id']&&$current['intent']['state']==='armed'&&$current['progress']['confirmed']===0);
+});
+
+pcCase('plan generic success cannot prove a calculation',static function():void{
+    $pdo=promiseCalculationFixture();$i=pcIntent($pdo,['text'=>'Расчёт 240000 ₽','files'=>[]]);pcText($pdo,$i,204,'Расчёт 240000 ₽',null,'legacy');
+    $before=pcSnapshot($pdo);$p=pcPlanFacts()['calculation'];
+    pcCheck('generic successful receipt without native proof remains unknown in plan',
+        $p['progress']===['availability'=>'available','reason'=>'delivery_unknown','confirmed'=>0,'total'=>1]
+        &&pcTask($pdo)['status']==='open'&&pcSnapshot($pdo)===$before);
+});
+
+foreach(['native_hash','native_content','content','attempt','message','completion'] as $corruption)pcCase('plan corrupt '.$corruption,static function()use($corruption):void{
+    $pdo=promiseCalculationFixture();$i=pcIntent($pdo,['text'=>'Расчёт 240000 ₽','files'=>[]]);pcText($pdo,$i,205);
+    if($corruption==='native_hash')$pdo->exec("UPDATE manager_promise_calculation_deliveries SET native_sha256='".str_repeat('0',64)."'");
+    elseif($corruption==='native_content'){
+        $raw=json_decode((string)$pdo->query('SELECT native_json FROM manager_promise_calculation_deliveries')->fetchColumn(),true);$raw['text']='Different native content';$raw=json_encode($raw,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+        $pdo->prepare('UPDATE manager_promise_calculation_deliveries SET native_json=?,native_sha256=?')->execute([$raw,hash('sha256',$raw)]);
+    }elseif($corruption==='content')$pdo->exec("UPDATE manager_promise_calculation_deliveries SET content_json='{}'");
+    elseif($corruption==='attempt')$pdo->exec("UPDATE manager_send_attempts SET request_hash='".str_repeat('0',64)."'");
+    elseif($corruption==='message')$pdo->exec("UPDATE messages SET text='Changed stored message' WHERE id=(SELECT message_id FROM manager_promise_calculation_deliveries)");
+    else $pdo->exec("UPDATE manager_promise_calculation_intents SET evidence_json='{}'");
+    $before=pcSnapshot($pdo);$p=pcPlanFacts()['calculation'];
+    pcCheck($corruption.' cannot turn frozen completed state into verified progress',
+        ($corruption==='completion'?$p['availability']==='unavailable'&&$p['intent']===null&&$p['progress']===null
+            :$p['progress']['availability']==='unavailable'&&$p['progress']['reason']==='delivery_evidence_changed'&&$p['progress']['confirmed']===null)
+        &&pcSnapshot($pdo)===$before);
+});
+
+foreach(['source','profile','trip','task','inbound'] as $change)pcCase('plan stale '.$change,static function()use($change):void{
+    $pdo=promiseCalculationFixture();pcIntent($pdo,['text'=>'Расчёт 240000 ₽','files'=>[]]);
+    if($change==='source')$pdo->exec("UPDATE messages SET text='The promised result changed' WHERE id=12");
+    elseif($change==='profile'||$change==='trip'){
+        $read=ManagerRequestProfileService::read(7,1);$input=['version'=>$read['profile']['version'],'context_sha256'=>$read['context_sha256'],
+            'operation_id'=>bin2hex(random_bytes(16)),'boundary_message_id'=>$read['profile']['boundary_message_id'],
+            'new_trip'=>$change==='trip','label'=>'Changed current profile','fields'=>[]];
+        $saved=ManagerRequestProfileService::save(7,1,$input);if(empty($saved['ok']))throw new RuntimeException('stale_profile_setup');
+    }elseif($change==='task')LeadTaskService::update(1,101,'Changed manual task','2027-06-01T12:00:00Z');
+    else promiseSelectionMessage($pdo,30,'customer','Different conditions after the reviewed calculation');
+    $expected=['source'=>'source_changed','profile'=>'profile_changed','trip'=>'trip_changed','task'=>'task_changed','inbound'=>'context_changed'][$change];
+    $before=pcSnapshot($pdo);$p=pcPlanFacts()['calculation'];
+    pcCheck($change.' remains an explicit stale read fact without mutating the armed intent',
+        in_array($expected,$p['stale_reasons'],true)&&$p['intent']['state']==='armed'&&pcTask($pdo)['status']==='open'&&pcSnapshot($pdo)===$before);
+});
+
+pcCase('plan recipient and owner authorization',static function():void{
+    $pdo=promiseCalculationFixture();pcIntent($pdo,['text'=>'PRIVATE RECIPIENT CONTENT','files'=>[]]);
+    $foreign=ManagerPromiseSelectionService::forTasks(8,1,[101]);$admin=pcPlanFacts(90)['calculation'];
+    pcCheck('plan keeps existing actor visibility while allowing authorized administrator history',
+        (empty($foreign['ok'])||(($foreign['by_task'][101]['availability']??null)==='unavailable'
+            &&($foreign['by_task'][101]['binding']??null)===null&&($foreign['by_task'][101]['calculation']['intent']??null)===null))&&$admin['availability']==='available');
+    $pdo->exec("UPDATE conversations SET external_chat_id='909' WHERE id=1; UPDATE customer_channels SET external_chat_id='909',external_user_id='909' WHERE id=1");
+    $before=pcSnapshot($pdo);$p=pcPlanFacts()['calculation'];
+    pcCheck('recipient rebinding withholds proof counts and all private composition',
+        $p===['availability'=>'unavailable','reason'=>'scope_changed','intent'=>null,'stale_reasons'=>[],'progress'=>null]
+        &&!str_contains(json_encode($p),'PRIVATE RECIPIENT')&&pcSnapshot($pdo)===$before);
+});
+
+pcCase('plan optional storage and bounded proof reads',static function():void{
+    $pdo=promiseCalculationFixture();$i=pcIntent($pdo,['text'=>'Расчёт 240000 ₽','files'=>[]]);
+    $pdo->prepare('UPDATE manager_promise_calculation_intents SET evidence_json=?')->execute([str_repeat(' ',8388609)]);
+    $before=pcSnapshot($pdo);$p=pcPlanFacts()['calculation'];
+    pcCheck('oversized calculation evidence stops at metadata budget before full hydration',
+        $p['availability']==='unavailable'&&$p['reason']==='coverage_limit'&&$p['intent']===null&&pcSnapshot($pdo)===$before);
+    $pdo=promiseCalculationFixture();$pdo->exec('DROP TABLE manager_promise_calculation_intents');$facts=pcPlanFacts();
+    pcCheck('old missing optional calculation storage preserves the ordinary promise and task',
+        $facts['availability']==='available'&&$facts['calculation']['availability']==='unavailable'
+        &&$facts['calculation']['reason']==='storage_unavailable'&&pcTask($pdo)['status']==='open');
 });
 
 echo 'TOTAL '.($passed+$failed)." | PASS {$passed} | FAIL {$failed} | CASES {$cases}\n";

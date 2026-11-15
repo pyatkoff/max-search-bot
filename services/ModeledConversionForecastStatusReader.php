@@ -15,7 +15,7 @@ require_once __DIR__.'/ModeledConversionDailyReconciliationReader.php';
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_23';
+    public const VERSION='saved_semantic_prediction_status_v1_24';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
@@ -122,12 +122,18 @@ final class ModeledConversionForecastStatusReader
                 }
             }
         }
-        foreach(['telegram_linkage','visit_delivery_check','today_latency','backlog']as$key){
+        foreach(['telegram_linkage','visit_delivery_check','today_latency']as$key){
             if($bytes($out)<=28000)break;
             $automatic=$key==='visit_delivery_check'?($out[$key]['automatic']??null):null;
             $out[$key]=['available'=>false,'reason'=>'response_budget'];
             if(is_array($automatic))$out[$key]['automatic']=$automatic;
         }
+        while($bytes($out)>28000&&!empty($out['value_delivery']['recent_receipts']['rows'])){
+            array_pop($out['value_delivery']['recent_receipts']['rows']);
+            $out['value_delivery']['recent_receipts']['returned_rows']=count($out['value_delivery']['recent_receipts']['rows']);
+            $out['value_delivery']['recent_receipts']['rows_omitted_due_to_response_budget']=true;
+        }
+        if($bytes($out)>28000)$out['backlog']=['available'=>false,'reason'=>'response_budget'];
         foreach(['historical_review','price_continuity_audit']as$key)
             if($bytes($out)>28000&&isset($out['value_delivery'][$key]))
                 $out['value_delivery'][$key]=['available'=>false,'reason'=>'response_budget'];
