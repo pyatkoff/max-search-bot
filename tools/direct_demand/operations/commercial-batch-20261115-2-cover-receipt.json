@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "state": "PREPARED_AWAITING_VISUAL_ACCEPTANCE",
+  "input_sha256": "acaf81eec6c607bec7a259697dd3337927311a6a60f0bb565933bdeca1fe8ca8",
+  "logo_asset": ".github/traffic-publish/brand/anytour-logo-white.png",
+  "logo_sha256": "b27cda894047b1ecb4125eea2ecf0db9d1e1674472cad62f70edf1ef1a6c968f",
+  "rows": [
+    {
+      "hotel_id": 206,
+      "title": "PALACE BEACH HOTEL",
+      "photos": [
+        {
+          "role": "hero",
+          "path": "photos/206-0.jpg",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2NhNDY3YzRkOWI5ZDEwMDM5NzEzYmU1MTY5NmZhZmNkX29jcHByb2QuanBn",
+          "final_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2NhNDY3YzRkOWI5ZDEwMDM5NzEzYmU1MTY5NmZhZmNkX29jcHByb2QuanBn",
+          "sha256": "e91f61830550cd948d42f2b8d8639f15aab72ad36e2c96e05ec71ccb59703448",
+          "bytes": 42505,
+          "dimensions": [
+            560,
+            420
+          ],
+          "format": "JPEG",
+          "content_type": "image/jpeg"
+        },
+        {
+          "role": "detail_left",
+          "path": "photos/206-1.jpg",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2MzZjZhZGZmM2U2YzliNzk3N2M4ZjA5YjIwNTQ4NjcwX29jcHByb2QuanBn",
+          "final_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2MzZjZhZGZmM2U2YzliNzk3N2M4ZjA5YjIwNTQ4NjcwX29jcHByb2QuanBn",
+          "sha256": "84d6f66d0b600609b1eee5e1572f1ac2b9336d81fcf7044b913b1994ae2feafe",
+          "bytes": 72010,
+          "dimensions": [
+            560,
+            420
+          ],
+          "format": "JPEG",
+          "content_type": "image/jpeg"
+        },
+        {
+          "role": "detail_right",
+          "path": "photos/206-2.jpg",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS82LzY3ZmFhMjk4ODkxOTcxZDRkYzI5M2JkZGJiYzVmNWUxX29jcHByb2QuanBn",
+          "final_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS82LzY3ZmFhMjk4ODkxOTcxZDRkYzI5M2JkZGJiYzVmNWUxX29jcHByb2QuanBn",
+          "sha256": "7f4bc1dffa5b3c9d3c2af93b68d33b5b4191b34254cd453785f56058ef17b5fe",
+          "bytes": 46385,
+          "dimensions": [
+            560,
+            420
+          ],
+          "format": "JPEG",
+          "content_type": "image/jpeg"
+        }
+      ],
+      "source_page": "https://www.tui.com/hotels/the-palace-beach-hotel-228147/hotelinformation/",
+      "retained_photo_evidence": {
+        "capturedAt": "2026-11-11T07:43:25.729112Z",
+        "sourceUrl": "https://www.tui.com/hotels/the-palace-beach-hotel-228147/hotelinformation/",
+        "proofUrl": "https://www.tui.com/hotels/the-palace-beach-hotel-228147/hotelinformation/",
+        "label": "Три разные фотографии данного отеля открыты и визуально проверены. Дата съёмки неизвестна; фото не подтверждают текущую работу услуг, отсутствие ремонта, конкретный номер или наличие.",
+        "photos": [
+          {
+            "url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2NhNDY3YzRkOWI5ZDEwMDM5NzEzYmU1MTY5NmZhZmNkX29jcHByb2QuanBn",
+            "alt": "Здание Palace Beach ex White Valley у воды, галерея TUI"
+          },
+          {
+            "url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2MzZjZhZGZmM2U2YzliNzk3N2M4ZjA5YjIwNTQ4NjcwX29jcHByb2QuanBn",
+            "alt": "Корпуса и территория Palace Beach с высоты, галерея TUI"
+          },
+          {
+            "url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS82LzY3ZmFhMjk4ODkxOTcxZDRkYzI5M2JkZGJiYzVmNWUxX29jcHByb2QuanBn",
+            "alt": "Лобби Palace Beach из галереи TUI; актуальное состояние не подтверждено"
+          }
+        ]
+      },
+      "caption_room_photo_caveat": "No source photo is asserted to show Standard48m² or current facilities; three actual retained Palace property photos only.",
+      "source_photos": [
+        {
+          "role": "hero",
+          "path": "photos/206-0.jpg",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2NhNDY3YzRkOWI5ZDEwMDM5NzEzYmU1MTY5NmZhZmNkX29jcHByb2QuanBn",
+          "final_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2NhNDY3YzRkOWI5ZDEwMDM5NzEzYmU1MTY5NmZhZmNkX29jcHByb2QuanBn",
+          "sha256": "e91f61830550cd948d42f2b8d8639f15aab72ad36e2c96e05ec71ccb59703448",
+          "bytes": 42505,
+          "dimensions": [
+            560,
+            420
+          ],
+          "format": "JPEG",
+          "content_type": "image/jpeg",
+          "source_bytes": 42505,
+          "source_dimensions": [
+            560,
+            420
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "e91f61830550cd948d42f2b8d8639f15aab72ad36e2c96e05ec71ccb59703448",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_left",
+          "path": "photos/206-1.jpg",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2MzZjZhZGZmM2U2YzliNzk3N2M4ZjA5YjIwNTQ4NjcwX29jcHByb2QuanBn",
+          "final_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2MzZjZhZGZmM2U2YzliNzk3N2M4ZjA5YjIwNTQ4NjcwX29jcHByb2QuanBn",
+          "sha256": "84d6f66d0b600609b1eee5e1572f1ac2b9336d81fcf7044b913b1994ae2feafe",
+          "bytes": 72010,
+          "dimensions": [
+            560,
+            420
+          ],
+          "format": "JPEG",
+          "content_type": "image/jpeg",
+          "source_bytes": 72010,
+          "source_dimensions": [
+            560,
+            420
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "84d6f66d0b600609b1eee5e1572f1ac2b9336d81fcf7044b913b1994ae2feafe",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        },
+        {
+          "role": "detail_right",
+          "path": "photos/206-2.jpg",
+          "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS82LzY3ZmFhMjk4ODkxOTcxZDRkYzI5M2JkZGJiYzVmNWUxX29jcHByb2QuanBn",
+          "final_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS82LzY3ZmFhMjk4ODkxOTcxZDRkYzI5M2JkZGJiYzVmNWUxX29jcHByb2QuanBn",
+          "sha256": "7f4bc1dffa5b3c9d3c2af93b68d33b5b4191b34254cd453785f56058ef17b5fe",
+          "bytes": 46385,
+          "dimensions": [
+            560,
+            420
+          ],
+          "format": "JPEG",
+          "content_type": "image/jpeg",
+          "source_bytes": 46385,
+          "source_dimensions": [
+            560,
+            420
+          ],
+          "source_format": "JPEG",
+          "actual_sha256": "7f4bc1dffa5b3c9d3c2af93b68d33b5b4191b34254cd453785f56058ef17b5fe",
+          "processing": "ordinary EXIF orientation, proportional resize and crop; no generated photo content"
+        }
+      ],
+      "filename": "206.png",
+      "sha256": "58e96b98aa0e8373d80375a7f6880691d106a4b47bbdcb4365236b7e40f63b2d",
+      "bytes": 525007,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner": {
+        "title": "PALACE BEACH HOTEL",
+        "font_size": 28,
+        "text_width": 323.03125,
+        "font": "LiberationSans-Bold.ttf"
+      }
+    }
+  ],
+  "provider_calls": 0,
+  "remote_writes": 0
+}

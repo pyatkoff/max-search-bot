@@ -1,0 +1,63 @@
+{
+  "state": "VISUALLY_REVIEWED_BY_TECHNICAL_PREPARER_ROOT_REVIEW_PENDING",
+  "hotel_id": 206,
+  "cover_sha256": "58e96b98aa0e8373d80375a7f6880691d106a4b47bbdcb4365236b7e40f63b2d",
+  "cover_bytes": 525007,
+  "dimensions": [
+    600,
+    600
+  ],
+  "source_photos": [
+    {
+      "role": "hero",
+      "path": "photos/206-0.jpg",
+      "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2NhNDY3YzRkOWI5ZDEwMDM5NzEzYmU1MTY5NmZhZmNkX29jcHByb2QuanBn",
+      "final_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2NhNDY3YzRkOWI5ZDEwMDM5NzEzYmU1MTY5NmZhZmNkX29jcHByb2QuanBn",
+      "sha256": "e91f61830550cd948d42f2b8d8639f15aab72ad36e2c96e05ec71ccb59703448",
+      "bytes": 42505,
+      "dimensions": [
+        560,
+        420
+      ],
+      "format": "JPEG",
+      "content_type": "image/jpeg"
+    },
+    {
+      "role": "detail_left",
+      "path": "photos/206-1.jpg",
+      "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2MzZjZhZGZmM2U2YzliNzk3N2M4ZjA5YjIwNTQ4NjcwX29jcHByb2QuanBn",
+      "final_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2MzZjZhZGZmM2U2YzliNzk3N2M4ZjA5YjIwNTQ4NjcwX29jcHByb2QuanBn",
+      "sha256": "84d6f66d0b600609b1eee5e1572f1ac2b9336d81fcf7044b913b1994ae2feafe",
+      "bytes": 72010,
+      "dimensions": [
+        560,
+        420
+      ],
+      "format": "JPEG",
+      "content_type": "image/jpeg"
+    },
+    {
+      "role": "detail_right",
+      "path": "photos/206-2.jpg",
+      "source_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS82LzY3ZmFhMjk4ODkxOTcxZDRkYzI5M2JkZGJiYzVmNWUxX29jcHByb2QuanBn",
+      "final_url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS82LzY3ZmFhMjk4ODkxOTcxZDRkYzI5M2JkZGJiYzVmNWUxX29jcHByb2QuanBn",
+      "sha256": "7f4bc1dffa5b3c9d3c2af93b68d33b5b4191b34254cd453785f56058ef17b5fe",
+      "bytes": 46385,
+      "dimensions": [
+        560,
+        420
+      ],
+      "format": "JPEG",
+      "content_type": "image/jpeg"
+    }
+  ],
+  "visual_checks": {
+    "correct_retained_property_photos": true,
+    "three_distinct_views": true,
+    "logo_and_title_legible": true,
+    "crop_no_obvious_defect": true,
+    "no_room_category_or_current_facility_assertion": true
+  },
+  "new_photo_content_generated": false,
+  "remote_writes": 0
+}

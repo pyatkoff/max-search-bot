@@ -1,0 +1,68 @@
+{
+  "state": "READ_ONLY_CANDIDATE_NOT_ADMITTED_FOR_SEND",
+  "registry_version": 477,
+  "registry_sha256": "28bd24afdb9f1cfd76d6139600e9c481acb7c1c79e5ef54191de68317a1caf55",
+  "site_hotel_id": "119dc72a-789b-4023-94e3-9a6a4dc517a3",
+  "revision": 2,
+  "tourvisorId": "206",
+  "anexId": "1351",
+  "acceptedRevision": null,
+  "queued": false,
+  "published": false,
+  "original_release_hold": {
+    "key": "palace-property-scope-conflict-20261111",
+    "reason": "Официальная страница Palace содержит блок Diamond Beach и общие привилегии группы. До выпуска нужны подтверждение номеров и услуг именно Palace, текущего пляжного доступа, работы зон и условий по тарифу; соседние объекты не присваиваются.",
+    "sourceUrl": "https://whitevalleyhotels.com/the-palace-beach-hotel/",
+    "checkedAt": "2026-11-11T07:43:25.729112Z"
+  },
+  "editorial_proposal_sha256": "d3558095dc05de1223d11f98c795533a19c2dc7638f7d34efb41264987964570",
+  "caption_sha256": "797080d42216cc6934f46d2c675bea7a172e18498ae4ab3838c90682b67dc9d2",
+  "caption": "✈️ Туры в Palace Beach Hotel\n📍 Хургада, Египет.\n\nPalace Beach, бывший White Valley Palace, — отель у моря со стандартными номерами 48 м². В Standard есть балкон или терраса. Первая линия, собственный песчаный пляж и питание «всё включено».\n\nДоступ к соседнему аквапарку не подтверждён. Для части номеров на первом этаже заявлен ремонт без даты окончания (описание от сентября 2025 года).\n\n👇 Узнать стоимость тура",
+  "sources": [
+    {
+      "kind": "catalog",
+      "label": "KOMPAS · White Valley Palace · ограниченный состав фактов и предупреждение",
+      "url": "https://kompastour.com/kz/rus/country/egypt/hurgada_village_road/white_valley/",
+      "read_on": "2026-11-15",
+      "source_description_date": "сентябрь 2025",
+      "web_refs": [
+        "turn7view0",
+        "turn10view0"
+      ],
+      "supported_claims": [
+        "Первая линия",
+        "Standard 48 м²",
+        "Балкон или терраса",
+        "Питание AI",
+        "Собственный песчаный пляж"
+      ],
+      "notice": "В текущей странице сохраняется уведомление о полной реновации части номеров первого этажа до уведомления. Дата обновления самого описания — сентябрь 2025.",
+      "limit": "Не подтверждает, что физические работы продолжаются сейчас или завершены. Не доказывает конкретный тариф/наличие/график зон на даты поездки."
+    },
+    {
+      "kind": "official",
+      "label": "White Valley Palace · гостиничный fact sheet",
+      "url": "https://www.icstrvl.ru/data/2025/08/04/6281612745/fact%20sheet.pdf",
+      "read_on": "2026-11-15",
+      "web_refs": [
+        "turn7view1"
+      ],
+      "supported_claims": [
+        "Внутри документа прямо назван White Valley Palace",
+        "Собственный песчаный пляж",
+        "Standard Twin и King 48 м² с балконом или террасой"
+      ],
+      "limit": "Дата в URL не является сроком действительности. Спорные Family и привилегии Diamond/группы не используются."
+    }
+  ],
+  "preserved_source_photos": [
+    "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2NhNDY3YzRkOWI5ZDEwMDM5NzEzYmU1MTY5NmZhZmNkX29jcHByb2QuanBn",
+    "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2MzZjZhZGZmM2U2YzliNzk3N2M4ZjA5YjIwNTQ4NjcwX29jcHByb2QuanBn",
+    "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS82LzY3ZmFhMjk4ODkxOTcxZDRkYzI5M2JkZGJiYzVmNWUxX29jcHByb2QuanBn"
+  ],
+  "planned_publication_operation": "commercial-hotel-batch-20261115-2-v1",
+  "read_operation": "commercial-channel-hotel-feeds-20261115-read3",
+  "photo_url_state": "bind_only_actual_original_clearance_source_commit_after_read",
+  "site_acceptance_required_before_sender": true,
+  "no_fuzzy_identity_binding": true
+}
