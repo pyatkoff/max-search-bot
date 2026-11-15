@@ -1,0 +1,85 @@
+{
+  "state": "PREPARED_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261115-1-v1",
+  "registry_version": 476,
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 604,
+  "expected_new_full_pairs": 3,
+  "rows": [
+    {
+      "hotel_id": 59114,
+      "logical_id": "commercial-hotel-59114-v1",
+      "aliases": [
+        "Akdora Elite Hotel & Spa",
+        "AKDORA ELITE HOTEL & SPA (EX. SEADEN SWEET PARK)",
+        "SEADEN SWEET PARK"
+      ],
+      "text": "✈️ Туры в Akdora Elite Hotel & Spa\n📍 Сиде, Турция.\n\nДо собственного песчаного пляжа примерно 300 м. На территории есть открытые бассейны и спа.\n\nРядом с отелем стройка — возможен шум.\n\n👇 Узнать стоимость тура",
+      "text_sha256": "dc25b1490c9b7582f4474a1592f6e3edf0ae323cc04b3662b36a9f482c9aa812",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d82de385003c9cfd8a785b5d19f018cbe4a3ace9/.github/traffic-publish/commercial-batch-20261115-1/59114.png",
+      "photo_sha256": "f984c8aa5ee56d56e3ab9c48cf9a0b018a8edaea457d5e26402d3783a92ae78a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://chatgpt.com/library?file_id=libfile_e554d6c3171c8191926e5a7ae8bcd1e4&account_id=personal",
+        "https://akdoraelitehotelspa.com/aile-odasi/",
+        "https://akdoraelitehotelspa.com/",
+        "https://akdoraelitehotelspa.com/galeri/",
+        "https://kompastour.com/ua/rus/country/turkey/side/akdora_elite_hotel_spa/",
+        "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php"
+      ],
+      "media_provenance": "Three exact photographs retained from the accepted registry photo set. Official hotel sources for Akdora; retained operator galleries for Rewaya and Sunny Days. Original source URLs and binary hashes retained. The standard AnyTour cover was rendered locally and visually checked at 600x600; photograph dates remain unknown and do not confirm current works, facility access or a specific booked room."
+    },
+    {
+      "hotel_id": 475,
+      "logical_id": "commercial-hotel-475-v1",
+      "aliases": [
+        "Sunny Days Palma De Mirette",
+        "SUNNY DAYS PALMA DE MIRETTE RESORT"
+      ],
+      "text": "✈️ Туры в Sunny Days Palma De Mirette\n📍 Хургада, Египет.\n\nМожно чередовать отдых у моря и бассейна: у отеля есть пляж и лагуна, а для детей — отдельный бассейн и клуб. Для взрослого бассейна предусмотрен подогрев зимой.\n\nВ отеле ремонтируют номера — возможен шум.\n\n👇 Узнать стоимость тура",
+      "text_sha256": "fed32eeeb4f9ccf5494191e0ab1ff7ffee41619248bde52a6ffdb9cf1ff8a2d8",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d82de385003c9cfd8a785b5d19f018cbe4a3ace9/.github/traffic-publish/commercial-batch-20261115-1/475.png",
+      "photo_sha256": "2d3775186a8d8282ed32c980701048f7a5119e466fdd29ca254fd2b0625d11bb",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://sunnydaysegypt.com/palma-de-mirrette/accommodation/",
+        "https://sunnydaysegypt.com/palma-de-mirrette/facilities/",
+        "https://sunnydaysegypt.com/palma-de-mirrette/",
+        "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+        "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/sunny-days-palma-de-mirette-resort-spa",
+        "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+        "https://www.tez-tour.com/hotel.html?id=607"
+      ],
+      "media_provenance": "Three exact photographs retained from the accepted registry photo set. Official hotel sources for Akdora; retained operator galleries for Rewaya and Sunny Days. Original source URLs and binary hashes retained. The standard AnyTour cover was rendered locally and visually checked at 600x600; photograph dates remain unknown and do not confirm current works, facility access or a specific booked room."
+    },
+    {
+      "hotel_id": 473,
+      "logical_id": "commercial-hotel-473-v1",
+      "aliases": [
+        "Sunny Days El Palacio",
+        "SUNNY DAYS EL PALACIO (EX. SUNNY DAYS RESORTS SPA & AQUA PARK)",
+        "SUNNY DAYS RESORTS SPA & AQUA PARK"
+      ],
+      "text": "✈️ Туры в Sunny Days El Palacio\n📍 Хургада, Египет.\n\nУ отеля есть собственный песчаный пляж и лагуна. На территории — взрослый и отдельный детский бассейны; для взрослого предусмотрен зимний подогрев. Услуги спа оплачиваются отдельно.\n\nВ отеле ремонтируют номера и часть общественных зон — возможны шум и временные ограничения.\n\n👇 Узнать стоимость тура",
+      "text_sha256": "f3544153d6c39f174070029ea8af1ff2bc2f9a848176df9334d18aaac7079e54",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d82de385003c9cfd8a785b5d19f018cbe4a3ace9/.github/traffic-publish/commercial-batch-20261115-1/473.png",
+      "photo_sha256": "c78ab3f77345de6286defc4cd3d2b6e25f69f833c5a183b896bf193ced907705",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://sunnydaysegypt.com/el-palacio-resort-spa/accommodation/",
+        "https://sunnydaysegypt.com/el-palacio-resort-spa/facilities/",
+        "https://sunnydaysegypt.com/el-palacio-resort-spa/",
+        "https://www.paks.ru/about/news/egipet-renovatsiya-v-otelyah-seti-sunny-days-resort",
+        "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/sunny-days-el-palacio",
+        "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php"
+      ],
+      "media_provenance": "Three exact photographs retained from the accepted registry photo set. Official hotel sources for Akdora; retained operator galleries for Rewaya and Sunny Days. Original source URLs and binary hashes retained. The standard AnyTour cover was rendered locally and visually checked at 600x600; photograph dates remain unknown and do not confirm current works, facility access or a specific booked room."
+    }
+  ],
+  "registry_export_sha256": "3879dd95ddcfdcd35005fb885a12b45c1ea21a1add0285c0ecc349e254c80815",
+  "canonical_handoff_sha256": "271bff8a06fa2fbeca5f8367869c6ba3458974ad21452cbfe4e4beeb5cbb079f",
+  "accepted_source_sha256": "29ac170a286a5190aa938dfb92366e8da037b06801e20c159276a3eea16f235e"
+}

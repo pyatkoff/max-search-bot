@@ -1,0 +1,102 @@
+{
+  "state": "THREE_CLEAR_SELECTED_INPUTS_BOUND_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261115-1-v1",
+  "hotel_ids": [
+    59114,
+    475,
+    473
+  ],
+  "expected_new_full_pairs": 3,
+  "expected_new_posts": 6,
+  "baseline_accepted_full_pairs": 604,
+  "other_queued_cards_excluded": true,
+  "asset_commit": "d82de385003c9cfd8a785b5d19f018cbe4a3ace9",
+  "asset_tree": "a67559f067d2851d1ceaf791fe52f5e0362e35af",
+  "asset_commit_sole_parent": "f773d5bb8ff7b04273e65e6ef2d781d46b3eafda",
+  "asset_commit_provenance": "Root created exact reviewed 15-entry tree and sole-parent commit; ref not moved at time of this local binding. No remote reads/writes performed by the binder.",
+  "expected_installed_sha": "62fc5cf8cf5cb3e41b370a808c2281d27ae83da7",
+  "root_supplied_read_run": {
+    "id": 43655518261,
+    "run_attempt": 1,
+    "head_sha": "d82de385003c9cfd8a785b5d19f018cbe4a3ace9",
+    "job_id": 132633044988,
+    "conclusion": "success",
+    "artifact_id": 14137753511,
+    "artifact_zip_sha256": "62518f4eaaad2cc21d42e0b0be33c71699c0604514d630e67d9ca2516ce6825d",
+    "clearance_file_sha256": "ae5710861ee11b2259ff94ef76779c00397b4810cfed3eb3246644eb20637166",
+    "selected_clear_hotel_ids": [
+      59114,
+      475,
+      473
+    ],
+    "excluded_hotel_ids": [
+      74036
+    ]
+  },
+  "manifest_sha256": "446bf9af9a92d3e642f047816d9288ab459f4b7754505f6a7e43e8fae01c944e",
+  "approval_sha256": "042d330e554ccd48aa7f16a976323178424256728412a7d7d4be4ec37fa9a3aa",
+  "asset_bound_workflow_template_sha256": "e92a893f5d4d537e675aae53ade9e7edf23e9619d5ad0c29e6d865addfc3d293",
+  "accepted_registry_version": 476,
+  "accepted_registry_sha256": "3879dd95ddcfdcd35005fb885a12b45c1ea21a1add0285c0ecc349e254c80815",
+  "canonical_handoff_sha256": "271bff8a06fa2fbeca5f8367869c6ba3458974ad21452cbfe4e4beeb5cbb079f",
+  "accepted_source_sha256": "29ac170a286a5190aa938dfb92366e8da037b06801e20c159276a3eea16f235e",
+  "original_holds_preserved": 3,
+  "server_owned_resolutions_preserved": 3,
+  "active_release_holds": 0,
+  "exact_change_from_manifest_template": "Original four-card manifest restricted to three unchanged accepted rows [59114,475,473]; expected_new_full_pairs=3. Exact text, warnings, IDs, aliases, sources and immutable d82 cover bytes unchanged.",
+  "root_visual_acceptance": true,
+  "independent_preparation_review": "ACCEPT exact four cards, source revisions and retained histories; cover bytes approved by root.",
+  "original_templates_preserved": true,
+  "local_caption_contract_validation": "PASS all four under existing operation date rules",
+  "native_php_preparation": "Deferred to existing cloud-only preparation in original publisher workflow; no main execution, environment spoofing, provider calls or server actions locally.",
+  "unresolved_workflow_placeholders": [],
+  "native_feed_tail_admission": "Root code review ACCEPT for exact guard19c921… and fixture32274…; native PHP 15-case fixture must pass before credentials. Sender still requires root current continuation/hold classification and prepared native604-to607/three-feed607-tail.",
+  "publication_started": false,
+  "network_calls": 0,
+  "remote_writes": 0,
+  "provider_calls": 0,
+  "server_calls": 0,
+  "feed_guard_source_pins": {
+    "commercial-channel-hotel-feeds-20261113-update10-nightly-guard.php": "19c921720bfc3c1a1ca06e1d43854420e8f4f8c0a44b9fb80c76ed0cefe038fa",
+    "test-commercial-feed-monitor-tail-guard.php": "32274c8eb2d8d8604b709b3cc98b2992ddd9dbb32303432a2b900ccb01a9d287"
+  },
+  "original_read_scope_hotel_ids": [
+    59114,
+    74036,
+    475,
+    473
+  ],
+  "candidate_input_sha256": "9951a3362810d845a7a40d1da4bb507270d0d06c4b02a6aa75c18df91b23b93b",
+  "excluded_candidate": {
+    "native_hotel_id": 74036,
+    "scope": "same_original_four_accepted_cards_20261115_candidate_preflight",
+    "logical_id": "commercial-hotel-74036-v1",
+    "aliases": [
+      "Rewaya Inn Resort",
+      "REWAYA INN RESORT (EX. HAWAII PARADISE AQUA PARK RESORT)",
+      "HAWAII PARADISE AQUA PARK RESORT"
+    ],
+    "matches": [
+      {
+        "publication_id": 60,
+        "platform": "max",
+        "version_id": 72,
+        "state": "sent",
+        "first_line": "REWAYA INN RESORT · ХУРГАДА",
+        "hotel_catalog_id": null,
+        "logical_id": null,
+        "post_url": "https://max.ru/channel_anytour/AaF1Af9VDuA",
+        "text_sha256": "506770800150c3e9b5606b5163b744ad1959eb6d8b81721e2367704fef997a8f",
+        "match_reasons": [
+          "literal_case_folded_alias:Rewaya Inn Resort"
+        ],
+        "same_text_hash": false
+      }
+    ],
+    "clear": false,
+    "limit_reached": false
+  },
+  "scope_decision": "Actual original four-candidate read is preserved byte-for-byte. Only three rows with clear=true, matches=[], limit_reached=false are selected. Rewaya remains accepted+queued in Site and is not sent or changed by this operation.",
+  "publisher_carrier_sole_parent": "96a1d286a56505c1a87cfe22c8d7a691a0f3bcaf",
+  "publisher_carrier_base_tree": "fde9b550d369186d2f8c8a64735aa57ea6d9aeb2"
+}
