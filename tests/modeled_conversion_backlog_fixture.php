@@ -282,6 +282,9 @@ function modeledBacklogOperationalGrowthAssertions(PDO $p,callable $check):void
                 gmdate('Y-m-d H:i:s',$saved+1)]);
         }
     }
+    // Both receipts are outside the latest201 suffix; equal values must remain distinguishable.
+    $p->prepare("UPDATE max_channel_conversion_outbox SET state='accepted',upload_id='7700101',upload_status='UPLOADED',claimed_at_unix=?,value_api_accepted_at_unix=?,attempts=1 WHERE id=1")->execute([$now-900,$now-890]);
+    $p->prepare("UPDATE max_channel_conversion_outbox SET state='processed',upload_id='7700102',upload_status='PROCESSED',claimed_at_unix=?,value_api_accepted_at_unix=?,value_processed_at_unix=?,attempts=1 WHERE id=2")->execute([$now-800,$now-790,$now-700]);
     $p->commit();
     $check('composed growth fixture has all 640 valid immutable predictions and large unused saved frames',
         $validCapsules===640&&strlen($receiptJson)>=7000&&strlen($receiptJson)<=8192&&strlen($frameJson)>=7000);
@@ -332,13 +335,22 @@ function modeledBacklogOperationalGrowthAssertions(PDO $p,callable $check):void
         &&($backlog['coverage']['complete_within_bound']??false)===true
         &&($backlog['total']['events']??null)===640&&($backlog['total']['conversations']??null)===32
         &&($backlog['total']['value_rub']??null)===6400
-        &&($backlog['total']['queue']['waiting']['events']??null)===640
-        &&($backlog['total']['queue']['due']['events']??null)===640
-        &&($backlog['total']['queue']['ready_never_claimed']['events']??null)===320
+        &&($backlog['total']['queue']['waiting']['events']??null)===638
+        &&($backlog['total']['queue']['due']['events']??null)===638
+        &&($backlog['total']['queue']['ready_never_claimed']['events']??null)===319
         &&($backlog['by_platform']['max']['events']??null)===320
         &&($backlog['by_platform']['telegram']['events']??null)===320
-        &&($backlog['by_state']['ready']['events']??null)===320
-        &&($backlog['by_state']['pending']['events']??null)===320);
+        &&($backlog['by_state']['ready']['events']??null)===319
+        &&($backlog['by_state']['pending']['events']??null)===319);
+    $recent=$value['recent_receipts']??[];$refs=array_column($recent['rows']??[],'receipt_ref');
+    $check('operational current receipts precede the suffix and distinguish equal amounts while retaining the full backlog',
+        ($recent['available']??false)&&($recent['max_rows']??null)===6
+        &&($recent['returned_rows']??null)===2&&($recent['complete_goal_ledger']??true)===false
+        &&$refs===[hash('sha256','modeled_value_upload_receipt_v1|7700101'),hash('sha256','modeled_value_upload_receipt_v1|7700102')]
+        &&($recent['rows'][0]['state']??null)==='accepted'&&($recent['rows'][1]['state']??null)==='processed'
+        &&($recent['rows'][0]['increment_rub']??null)===10.0&&($recent['rows'][1]['increment_rub']??null)===10.0
+        &&!str_contains(json_encode($recent,JSON_THROW_ON_ERROR),'7700101')
+        &&($backlog['coverage']['complete_within_bound']??false));
     $check('real operational ValueDelivery remains available and labels its 201-row suffix independently of the complete backlog',
         ($value['available']??false)&&($value['window']['inspected_rows']??null)===201
         &&($value['window']['complete_within_bound']??true)===false
