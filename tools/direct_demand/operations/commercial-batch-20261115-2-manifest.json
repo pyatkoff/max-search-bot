@@ -1,0 +1,34 @@
+{
+  "state": "PREPARED_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261115-2-v1",
+  "registry_version": 481,
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 607,
+  "expected_new_full_pairs": 1,
+  "registry_export_sha256": "ced5a11bc847ccb8b7c973c8ea8ab0a61fe157ab3184bdb5a1fcae75e01bbada",
+  "accepted_source_sha256": "261923d0eb71e9fafc8bfd57b171fdee2c0600e09bf0bd13eb1849bad71990bc",
+  "rows": [
+    {
+      "hotel_id": 206,
+      "logical_id": "commercial-hotel-206-v1",
+      "aliases": [
+        "Palace Beach",
+        "White Valley"
+      ],
+      "text": "✈️ Туры в Palace Beach Hotel\n📍 Хургада, Египет.\n\nPalace Beach, бывший White Valley Palace, — отель у моря со стандартными номерами 48 м². В Standard есть балкон или терраса. Первая линия, собственный песчаный пляж и питание «всё включено».\n\nДоступ к соседнему аквапарку не подтверждён. Для части номеров на первом этаже заявлен ремонт без даты окончания (описание от сентября 2025 года).\n\n👇 Узнать стоимость тура",
+      "text_sha256": "797080d42216cc6934f46d2c675bea7a172e18498ae4ab3838c90682b67dc9d2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/087787923dac9cecc8aa730268bc23d03c44fc55/.github/traffic-publish/commercial-batch-20261115-2/206.png",
+      "photo_sha256": "58e96b98aa0e8373d80375a7f6880691d106a4b47bbdcb4365236b7e40f63b2d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "https://whitevalleyhotels.com/the-palace-beach-hotel/",
+        "https://www.tui.com/hotels/the-palace-beach-hotel-228147/hotelinformation/",
+        "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+        "https://kompastour.com/kz/rus/country/egypt/hurgada_village_road/white_valley/",
+        "https://www.icstrvl.ru/data/2025/08/04/6281612745/fact%20sheet.pdf"
+      ],
+      "media_provenance": "Three unchanged Palace property photographs from its retained TUI gallery. Root reviewed the canonical600x600 cover. Dates of photography and current physical facility status remain unconfirmed; no source photo is asserted to show Standard48m²."
+    }
+  ]
+}

@@ -1,0 +1,231 @@
+{
+  "registry_version": 481,
+  "registry_sha256": "ced5a11bc847ccb8b7c973c8ea8ab0a61fe157ab3184bdb5a1fcae75e01bbada",
+  "hotel": {
+    "sourceRefs": [
+      {
+        "kind": "anex",
+        "label": "ТОП500 ANEX · место 282",
+        "url": "https://chatgpt.com/library?file_id=libfile_1e20e0f42cd0819197b0a289924e5a40&account_id=personal",
+        "at": "2026-10-20T01:28:35+00:00",
+        "note": "Срез 06.11.2026. effective_mapping_in_oct20_snapshot. ANEX ID и catalog_hotels.id хранятся раздельно. 444 связи и 48 позиций без связи — не количество готовых к выпуску отелей."
+      },
+      {
+        "kind": "official",
+        "label": "Palace Beach · официальный раздел",
+        "url": "https://whitevalleyhotels.com/the-palace-beach-hotel/",
+        "at": "2026-11-11T07:43:25.729112Z",
+        "note": "Страница Palace включает абзац At Diamond Beach Hotel и общие разделы группы. Не является достаточным доказательством применимости Family 64 м² и всех услуг именно к Palace."
+      },
+      {
+        "kind": "catalog",
+        "label": "TUI · Palace Beach ex White Valley, услуги и фото",
+        "url": "https://www.tui.com/hotels/the-palace-beach-hotel-228147/hotelinformation/",
+        "at": "2026-11-11T07:43:25.729112Z",
+        "note": "Имя White Valley Palace и адрес El Kora, KM16 Hurghada-Safaga Road. Детская инфраструктура описана отдельно. 3 фото из галереи именно Palace открыты и просмотрены; текущая работа услуг не доказана."
+      },
+      {
+        "kind": "receipt",
+        "label": "Контракт CTA публикатора",
+        "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+        "at": "2026-11-11T07:43:25.729112Z",
+        "note": "Контракт формирования единственной кнопки, не квитанция фактической отправки. ctaMode=publisher, URL CTA пустой."
+      },
+      {
+        "kind": "catalog",
+        "label": "KOMPAS · White Valley Palace · ограниченный состав фактов и предупреждение",
+        "url": "https://kompastour.com/kz/rus/country/egypt/hurgada_village_road/white_valley/",
+        "at": "2026-11-15T08:06:49.082Z",
+        "note": "Дата описания: сентябрь 2025. Первая линия Standard 48 м² Балкон или терраса Питание AI Собственный песчаный пляж В текущей странице сохраняется уведомление о полной реновации части номеров первого этажа до уведомления. Дата обновления самого описания — сентябрь 2025. Не подтверждает, что физические работы продолжаются сейчас или завершены. Не доказывает конкретный тариф/наличие/график зон на даты поездки."
+      },
+      {
+        "kind": "official",
+        "label": "White Valley Palace · гостиничный fact sheet",
+        "url": "https://www.icstrvl.ru/data/2025/08/04/6281612745/fact%20sheet.pdf",
+        "at": "2026-11-15T08:06:49.082Z",
+        "note": "Внутри документа прямо назван White Valley Palace Собственный песчаный пляж Standard Twin и King 48 м² с балконом или террасой Дата в URL не является сроком действительности. Спорные Family и привилегии Diamond/группы не используются."
+      }
+    ],
+    "revision": 3,
+    "versions": [
+      {
+        "revision": 1,
+        "at": "2026-11-11T07:44:43.576Z",
+        "reason": "Сохранено до подготовки по официальным источникам",
+        "content": {
+          "description": "",
+          "advantages": [],
+          "limitations": [],
+          "photos": [],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "",
+          "telegramText": ""
+        }
+      },
+      {
+        "revision": 2,
+        "at": "2026-11-15T08:09:09.055Z",
+        "reason": "Сохранено до подготовки по официальным источникам",
+        "content": {
+          "ctaMode": "publisher",
+          "description": "Palace Beach Hotel, ранее White Valley Palace, расположен в Хургаде. TUI описывает бассейны, детский клуб и площадку. Материалы оставлены на проверке: на официальной странице Palace есть блок Diamond Beach, а применимость описаний номеров и услуг комплекса требует подтверждения.",
+          "advantages": [
+            "Детский бассейн по описанию TUI",
+            "Детский клуб и площадка по карточке оператора",
+            "Зелёная территория и зоны отдыха у бассейнов"
+          ],
+          "limitations": [
+            "На официальной странице Palace размещён текст о Diamond Beach. До выпуска нужно подтвердить, какие номера, пляж, бассейны и рестораны относятся именно к Palace и доступны его гостям. Семейные 64 м² из смешанного шаблона не приняты.",
+            "Доступ к аквапарку и другим объектам комплекса не означает собственные услуги Palace. Первая линия, пляжные привилегии, шаттл и включение соседних ресторанов требуют отдельного подтверждения по конкретному тарифу.",
+            "У источников различаются звёздность, число номеров и условия услуг. Эти параметры не объединены. Фото из операторской галереи могут быть историческими; они не подтверждают текущую работу, ремонт или доступность зон."
+          ],
+          "photos": [
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2NhNDY3YzRkOWI5ZDEwMDM5NzEzYmU1MTY5NmZhZmNkX29jcHByb2QuanBn",
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2MzZjZhZGZmM2U2YzliNzk3N2M4ZjA5YjIwNTQ4NjcwX29jcHByb2QuanBn",
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS82LzY3ZmFhMjk4ODkxOTcxZDRkYzI5M2JkZGJiYzVmNWUxX29jcHByb2QuanBn"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "✈️ Туры в Palace Beach Hotel\n📍 Хургада, Египет\n\nPalace Beach Hotel в Хургаде можно рассматривать после уточнения состава услуг. В операторской карточке TUI описаны бассейны, детский клуб и площадка.\n\nСейчас материалы на проверке: официальная страница Palace содержит блок о другом отеле группы — Diamond Beach. До предложения тура нужно подтвердить конкретный номер, пляжный доступ и рестораны, которыми могут пользоваться гости Palace. Услуги соседних объектов автоматически не включаем.\n\n👇 Узнать стоимость тура",
+          "telegramText": "✈️ Туры в Palace Beach Hotel\n📍 Хургада, Египет\n\nДля семейного отдыха в Хургаде изучается Palace Beach, ранее White Valley Palace. TUI указывает детский бассейн, клуб и площадку, но текущие условия размещения и набор услуг ещё требуют согласования.\n\nВ официальном описании смешаны Palace и Diamond Beach, поэтому не обещаем семейные 64 м², первую линию или общий доступ ко всему комплексу. До выбора тура нужно получить подтверждение именно по Palace и конкретному тарифу.\n\n👇 Узнать стоимость тура"
+        }
+      },
+      {
+        "revision": 3,
+        "at": "2026-11-15T08:09:33.861Z",
+        "reason": "Принято в реестре",
+        "content": {
+          "ctaMode": "publisher",
+          "description": "Palace Beach, бывший White Valley Palace, — отель у моря со стандартными номерами 48 м². В Standard есть балкон или терраса. Первая линия, собственный песчаный пляж и питание «всё включено».\n\nДоступ к соседнему аквапарку не подтверждён. Для части номеров на первом этаже заявлен ремонт без даты окончания (описание от сентября 2025 года).",
+          "advantages": [
+            "Первая линия и собственный песчаный пляж",
+            "Standard 48 м² с балконом или террасой",
+            "Питание «всё включено»"
+          ],
+          "limitations": [
+            "Доступ к соседнему аквапарку не подтверждён.",
+            "Для части номеров на первом этаже заявлен ремонт без даты окончания (описание от сентября 2025 года)."
+          ],
+          "photos": [
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2NhNDY3YzRkOWI5ZDEwMDM5NzEzYmU1MTY5NmZhZmNkX29jcHByb2QuanBn",
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2MzZjZhZGZmM2U2YzliNzk3N2M4ZjA5YjIwNTQ4NjcwX29jcHByb2QuanBn",
+            "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS82LzY3ZmFhMjk4ODkxOTcxZDRkYzI5M2JkZGJiYzVmNWUxX29jcHByb2QuanBn"
+          ],
+          "cta": "Узнать стоимость тура",
+          "ctaUrl": "",
+          "maxText": "✈️ Туры в Palace Beach Hotel\n📍 Хургада, Египет.\n\nPalace Beach, бывший White Valley Palace, — отель у моря со стандартными номерами 48 м². В Standard есть балкон или терраса. Первая линия, собственный песчаный пляж и питание «всё включено».\n\nДоступ к соседнему аквапарку не подтверждён. Для части номеров на первом этаже заявлен ремонт без даты окончания (описание от сентября 2025 года).\n\n👇 Узнать стоимость тура",
+          "telegramText": "✈️ Туры в Palace Beach Hotel\n📍 Хургада, Египет.\n\nPalace Beach, бывший White Valley Palace, — отель у моря со стандартными номерами 48 м². В Standard есть балкон или терраса. Первая линия, собственный песчаный пляж и питание «всё включено».\n\nДоступ к соседнему аквапарку не подтверждён. Для части номеров на первом этаже заявлен ремонт без даты окончания (описание от сентября 2025 года).\n\n👇 Узнать стоимость тура"
+        }
+      }
+    ],
+    "reuse": 1,
+    "name": "PALACE BEACH HOTEL (EX. WHITE VALLEY)",
+    "country": "Египет",
+    "region": "",
+    "stars": 0,
+    "anexId": "1351",
+    "aiId": "",
+    "tourvisorId": "206",
+    "sources": [
+      "anex"
+    ],
+    "description": "Palace Beach, бывший White Valley Palace, — отель у моря со стандартными номерами 48 м². В Standard есть балкон или терраса. Первая линия, собственный песчаный пляж и питание «всё включено».\n\nДоступ к соседнему аквапарку не подтверждён. Для части номеров на первом этаже заявлен ремонт без даты окончания (описание от сентября 2025 года).",
+    "advantages": [
+      "Первая линия и собственный песчаный пляж",
+      "Standard 48 м² с балконом или террасой",
+      "Питание «всё включено»"
+    ],
+    "limitations": [
+      "Доступ к соседнему аквапарку не подтверждён.",
+      "Для части номеров на первом этаже заявлен ремонт без даты окончания (описание от сентября 2025 года)."
+    ],
+    "photos": [
+      "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2NhNDY3YzRkOWI5ZDEwMDM5NzEzYmU1MTY5NmZhZmNkX29jcHByb2QuanBn",
+      "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2MzZjZhZGZmM2U2YzliNzk3N2M4ZjA5YjIwNTQ4NjcwX29jcHByb2QuanBn",
+      "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS82LzY3ZmFhMjk4ODkxOTcxZDRkYzI5M2JkZGJiYzVmNWUxX29jcHByb2QuanBn"
+    ],
+    "cta": "Узнать стоимость тура",
+    "ctaUrl": "",
+    "maxText": "✈️ Туры в Palace Beach Hotel\n📍 Хургада, Египет.\n\nPalace Beach, бывший White Valley Palace, — отель у моря со стандартными номерами 48 м². В Standard есть балкон или терраса. Первая линия, собственный песчаный пляж и питание «всё включено».\n\nДоступ к соседнему аквапарку не подтверждён. Для части номеров на первом этаже заявлен ремонт без даты окончания (описание от сентября 2025 года).\n\n👇 Узнать стоимость тура",
+    "telegramText": "✈️ Туры в Palace Beach Hotel\n📍 Хургада, Египет.\n\nPalace Beach, бывший White Valley Palace, — отель у моря со стандартными номерами 48 м². В Standard есть балкон или терраса. Первая линия, собственный песчаный пляж и питание «всё включено».\n\nДоступ к соседнему аквапарку не подтверждён. Для части номеров на первом этаже заявлен ремонт без даты окончания (описание от сентября 2025 года).\n\n👇 Узнать стоимость тура",
+    "status": "accepted",
+    "published": {},
+    "evidence": "Сохранены ТОП500, ANEX 1351 / Tourvisor 206; исследовательских пакетов нет. Сопоставлены Palace/ex White Valley и адрес KM16 Hurghada-Safaga в TUI. Официальная страница Palace содержит блок Diamond Beach и общие услуги группы; спорные Family 64 м², пляж/аквапарк/шаттл не приняты. 3 фото Palace из TUI открыты и просмотрены. До выпуска нужны точный состав услуг и работа на даты; цена и наличие не подтверждены.\n\nРедакционная проверка 15.11.2026: Исходная блокировка касается смешения Palace/Diamond и прав на общие услуги. Для публикации взят только ограниченный состав сведений именно White Valley Palace: гостиничный fact sheet прямо называет объект и подтверждает собственный песчаный пляж, Standard Twin/King 48 м² с балконом или террасой; карточка KOMPAS с тем же названием дополнительно подтверждает первую линию и AI. Family, Diamond Beach, общие привилегии, аквапарк/шаттл, текущая работа зон, цены и наличие исключены из положительных обещаний. Неизвестное право доступа к соседнему аквапарку прямо раскрыто во всех трёх текстах. Отдельно сохранено датированное предупреждение о заявленном ремонте: оно не является доказательством разрешения property-scope и не подтверждает текущую физическую работу либо её завершение. Старая блокировка и история остаются неизменными; решение относится только к этому ограниченному рекламному описанию, не к тарифу или availability на даты поездки. Источники: https://kompastour.com/kz/rus/country/egypt/hurgada_village_road/white_valley/ ; https://www.icstrvl.ru/data/2025/08/04/6281612745/fact%20sheet.pdf",
+    "id": "119dc72a-789b-4023-94e3-9a6a4dc517a3",
+    "acceptedRevision": 3,
+    "queued": true,
+    "updatedAt": "2026-11-15T08:09:45.925Z",
+    "conflicts": [],
+    "ctaMode": "publisher",
+    "categoryEvidence": [
+      {
+        "need": "family",
+        "text": "В карточке Palace/ex White Valley у TUI перечислены детский бассейн, клуб и площадка; выпуск удерживается до уточнения применимости услуг.",
+        "scope": "hotel",
+        "sourceUrl": "https://www.tui.com/hotels/the-palace-beach-hotel-228147/hotelinformation/",
+        "checkedAt": "2026-11-11T07:43:25.729112Z"
+      }
+    ],
+    "releaseHolds": [
+      {
+        "key": "palace-property-scope-conflict-20261111",
+        "reason": "Официальная страница Palace содержит блок Diamond Beach и общие привилегии группы. До выпуска нужны подтверждение номеров и услуг именно Palace, текущего пляжного доступа, работы зон и условий по тарифу; соседние объекты не присваиваются.",
+        "sourceUrl": "https://whitevalleyhotels.com/the-palace-beach-hotel/",
+        "checkedAt": "2026-11-11T07:43:25.729112Z"
+      }
+    ],
+    "photoSets": [
+      {
+        "capturedAt": "2026-11-11T07:43:25.729112Z",
+        "sourceUrl": "https://www.tui.com/hotels/the-palace-beach-hotel-228147/hotelinformation/",
+        "proofUrl": "https://www.tui.com/hotels/the-palace-beach-hotel-228147/hotelinformation/",
+        "label": "Три разные фотографии данного отеля открыты и визуально проверены. Дата съёмки неизвестна; фото не подтверждают текущую работу услуг, отсутствие ремонта, конкретный номер или наличие.",
+        "photos": [
+          {
+            "url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2NhNDY3YzRkOWI5ZDEwMDM5NzEzYmU1MTY5NmZhZmNkX29jcHByb2QuanBn",
+            "alt": "Здание Palace Beach ex White Valley у воды, галерея TUI"
+          },
+          {
+            "url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS9jL2MzZjZhZGZmM2U2YzliNzk3N2M4ZjA5YjIwNTQ4NjcwX29jcHByb2QuanBn",
+            "alt": "Корпуса и территория Palace Beach с высоты, галерея TUI"
+          },
+          {
+            "url": "https://cloud.tui.com/pics/hotel/resize:fill:560:/aHR0cHM6Ly9waWNzLnR1aS5jb20vcGljcy9waWNzMTYwMHgxMjAwL3R1aS82LzY3ZmFhMjk4ODkxOTcxZDRkYzI5M2JkZGJiYzVmNWUxX29jcHByb2QuanBn",
+            "alt": "Лобби Palace Beach из галереи TUI; актуальное состояние не подтверждено"
+          }
+        ]
+      }
+    ],
+    "releaseHoldResolutions": [
+      {
+        "hotelId": "119dc72a-789b-4023-94e3-9a6a4dc517a3",
+        "hold": {
+          "key": "palace-property-scope-conflict-20261111",
+          "reason": "Официальная страница Palace содержит блок Diamond Beach и общие привилегии группы. До выпуска нужны подтверждение номеров и услуг именно Palace, текущего пляжного доступа, работы зон и условий по тарифу; соседние объекты не присваиваются.",
+          "sourceUrl": "https://whitevalleyhotels.com/the-palace-beach-hotel/",
+          "checkedAt": "2026-11-11T07:43:25.729112Z"
+        },
+        "revision": 3,
+        "at": "2026-11-15T08:09:22.566Z",
+        "decision": "publish_with_disclosure",
+        "reason": "Исходная блокировка касается смешения Palace/Diamond и прав на общие услуги. Для публикации взят только ограниченный состав сведений именно White Valley Palace: гостиничный fact sheet прямо называет объект и подтверждает собственный песчаный пляж, Standard Twin/King 48 м² с балконом или террасой; карточка KOMPAS с тем же названием дополнительно подтверждает первую линию и AI. Family, Diamond Beach, общие привилегии, аквапарк/шаттл, текущая работа зон, цены и наличие исключены из положительных обещаний. Неизвестное право доступа к соседнему аквапарку прямо раскрыто во всех трёх текстах. Отдельно сохранено датированное предупреждение о заявленном ремонте: оно не является доказательством разрешения property-scope и не подтверждает текущую физическую работу либо её завершение. Старая блокировка и история остаются неизменными; решение относится только к этому ограниченному рекламному описанию, не к тарифу или availability на даты поездки.",
+        "disclosure": "Доступ к соседнему аквапарку не подтверждён. Для части номеров на первом этаже заявлен ремонт без даты окончания (описание от сентября 2025 года)."
+      }
+    ]
+  },
+  "root_visual_acceptance": true,
+  "source_photo_receipt_sha256": "125c82ffa97e48fa7cb53a7f4585358fd3a36839261376f4cdedfed48be1e4de",
+  "clearance_run": 43693213301,
+  "clearance_source": "087787923dac9cecc8aa730268bc23d03c44fc55",
+  "read_catalog": {
+    "id": 206,
+    "name": "PALACE BEACH HOTEL (EX. WHITE VALLEY)",
+    "is_active": 1,
+    "country_id": 1,
+    "region_id": 5,
+    "region": "Хургада"
+  },
+  "site_acceptance_and_queue_verified": true,
+  "price_not_asserted": true
+}

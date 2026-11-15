@@ -1,0 +1,37 @@
+{
+  "state": "ONE_CLEAR_ACCEPTED_INPUTS_BOUND_NOT_SENT",
+  "operation": "commercial-hotel-batch-20261115-2-v1",
+  "hotel_ids": [
+    206
+  ],
+  "asset_commit": "087787923dac9cecc8aa730268bc23d03c44fc55",
+  "asset_photo_sha256": "58e96b98aa0e8373d80375a7f6880691d106a4b47bbdcb4365236b7e40f63b2d",
+  "publisher_carrier_sole_parent": "087787923dac9cecc8aa730268bc23d03c44fc55",
+  "publisher_carrier_base_tree": "95e9c1028553eb8a1c0ee4e6d0270d4a2cc7eae4",
+  "manifest_sha256": "46c0914972c879e0c07221e08a877a4698722dba86a01db3145483b3bedb48a7",
+  "approval_sha256": "0748f297318600927bf1677432dd600b0bf7affbc233af0d29ca00356b14a916",
+  "accepted_registry_sha256": "ced5a11bc847ccb8b7c973c8ea8ab0a61fe157ab3184bdb5a1fcae75e01bbada",
+  "accepted_registry_version": 481,
+  "original_holds_preserved": 1,
+  "server_owned_resolutions_preserved": 1,
+  "root_visual_acceptance": true,
+  "clearance_run": 43693213301,
+  "clearance_job": 132748017664,
+  "clearance_artifact": 14153695454,
+  "clearance_artifact_zip_sha256": "d4df6cdd4a93ffa22e81b3c26491f067222bc4468143b99ac1e33d17af80f454",
+  "clearance_file_sha256": "653f1a260abb6819c66ebd639ea6398372e1243341744f1b63caf571f70227d8",
+  "actual_catalog_row": {
+    "id": 206,
+    "name": "PALACE BEACH HOTEL (EX. WHITE VALLEY)",
+    "is_active": 1,
+    "country_id": 1,
+    "region_id": 5,
+    "region": "Хургада"
+  },
+  "native_feed_tail_admission": "Existing608 extension/source review and fresh queue/owner checks required before original sender push. No future result asserted.",
+  "runtime_compiler_invoked": false,
+  "remote_writes": 0,
+  "provider_calls": 0,
+  "server_calls": 0,
+  "publication_started": false
+}
