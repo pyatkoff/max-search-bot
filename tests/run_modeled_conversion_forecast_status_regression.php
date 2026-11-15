@@ -154,7 +154,7 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
     forecastV1Schema($p);forecastV1Append($p,forecastV1Packet());$now=time();$act=$now-3600;
     foreach(['modeled_conversion_value_export_settings','max_channel_conversion_outbox']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
     $p->exec("CREATE TABLE modeled_conversion_value_export_settings(project_key VARCHAR(40) PRIMARY KEY,counter_id VARCHAR(20),mode VARCHAR(16),goal_id VARCHAR(20),goal_intent VARCHAR(20),activated_at_unix BIGINT,last_tick_unix BIGINT,contract_version VARCHAR(64),last_receipt_json TEXT,history_from_unix BIGINT,history_until_unix BIGINT,history_completed_at_unix BIGINT,history_scanned BIGINT,history_collected BIGINT,history_stats_json TEXT,history_cursor BIGINT,history_ceiling BIGINT,history_fortnight_requested_at_unix BIGINT,history_day_receipt_json TEXT,last_report_success_unix BIGINT,last_report_success_json TEXT,report_failure_since_unix BIGINT)");
-    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),event_unix BIGINT,state VARCHAR(24),value_stage VARCHAR(40),value_rub DECIMAL(12,2),upload_id VARCHAR(20),upload_status VARCHAR(32),last_error VARCHAR(64),private_marker TEXT,value_origin VARCHAR(32),value_reviewed_at_unix BIGINT,platform VARCHAR(16),conversation_id BIGINT,client_id VARCHAR(40),claimed_at_unix BIGINT,value_ready_at_unix BIGINT,value_api_accepted_at_unix BIGINT,value_processed_at_unix BIGINT,value_receipt_basis VARCHAR(24),value_profile_id BIGINT,target VARCHAR(100),external_user_id VARCHAR(20))");
+    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),event_unix BIGINT,state VARCHAR(24),value_stage VARCHAR(40),value_rub DECIMAL(12,2),upload_id VARCHAR(20),upload_status VARCHAR(32),last_error VARCHAR(64),private_marker TEXT,value_origin VARCHAR(32),value_reviewed_at_unix BIGINT,platform VARCHAR(16),conversation_id BIGINT,client_id VARCHAR(40),claimed_at_unix BIGINT,value_ready_at_unix BIGINT,value_api_accepted_at_unix BIGINT,value_processed_at_unix BIGINT,value_receipt_basis VARCHAR(24),value_profile_id BIGINT,target VARCHAR(100),external_user_id VARCHAR(20),next_attempt_unix BIGINT)");
     $report=['status'=>'ok','goal_id'=>'678187097','currency'=>'RUB','fetched_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$now),
         'date1'=>gmdate('Y-m-d',$act-21*86400),'date2'=>gmdate('Y-m-d',$now),'goal_reaches'=>2,'goal_visits'=>1,'revenue_rub'=>2083.0,'sampled'=>false,
         'private_marker'=>'PRIVATE_REPORT_MUST_NOT_LEAVE'];
@@ -176,8 +176,16 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
     $oldSummaryClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);
     $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
     ForecastV1ObservedStatement::$observePredictive=true;ForecastV1ObservedStatement::$predictiveStatements=[];
+    // This aggregate-only fixture has no native subjects. Shadow any surrounding native schema.
+    $p->exec('CREATE TEMPORARY TABLE customers(id BIGINT PRIMARY KEY)');
+    $p->exec('CREATE TEMPORARY TABLE customer_channels(id BIGINT,customer_id BIGINT,project_key VARCHAR(40),channel VARCHAR(16),external_user_id VARCHAR(40),external_chat_id VARCHAR(40))');
+    $p->exec('CREATE TEMPORARY TABLE conversations(id BIGINT,customer_id BIGINT,customer_channel_id BIGINT,project_key VARCHAR(40),channel VARCHAR(16),external_chat_id VARCHAR(40),is_test INT)');
     try{$brief=(new ModeledConversionValueDeliveryReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($now,false);}
-    finally{ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldSummaryClass);}
+    finally{
+        ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldSummaryClass);
+        foreach(['conversations','customer_channels','customers']as$table)
+            $p->exec($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'DROP TEMPORARY TABLE '.$table:'DROP TABLE temp.'.$table);
+    }
     $briefQueries=array_column(ForecastV1ObservedStatement::$predictiveStatements,'sql');
     $check('operational value summary keeps all current amounts and does not execute historical profile Native or repair readers',
         $brief['available']&&$brief['by_state']===$d['by_state']&&$brief['api_accepted_receipts']===$d['api_accepted_receipts']

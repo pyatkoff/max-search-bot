@@ -42,7 +42,7 @@ final class ModeledConversionStatusMcpAdapter
         elseif($receipt!==null){
             require_once __DIR__.'/ModeledConversionValueDeliveryReader.php';
             $reader=new ModeledConversionValueDeliveryReader($this->pdo,$authorize,$budget);
-            $result=$reader->savedReceiptStatus($receipt,time());
+            $result=$reader->savedReceiptStatus($receipt,time(),true);
         }else{
             require_once __DIR__.'/ModeledConversionForecastStatusReader.php';
             $reader=$this->store??new ModeledConversionForecastStatusReader($this->pdo,$authorize,$budget);
