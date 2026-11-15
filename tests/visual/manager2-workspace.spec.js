@@ -9,7 +9,7 @@ const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 // Render the actual PHP shell; no copied HTML or production traffic.
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
 const stages=[['new','Новый лид'],['working','В работе'],['selection','Подбираем'],['proposal','Предложение отправлено'],['sold','Продано']].map(([stage_key,display_name],i)=>({id:i+1,stage_key,display_name,sort_order:i,is_terminal:stage_key==='sold'?1:0,is_won:stage_key==='sold'?1:0}));
-async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null,replyAudio=false,tourChoices=null,selectionEditorEntry=null,selectionAssetPackage=null,leadSource={}}={}){
+async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null,replyAudio=false,tourChoices=null,selectionEditorEntry=null,selectionAssetPackage=null,leadSource={},initialFixture=null}={}){
   const pushProtocol=lifecycle(7);
   // Model the existing server admission field, retaining the real shell/assets.
   // This fixture does not claim an installed or authenticated production editor.
@@ -20,14 +20,14 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   }
   const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[],pendingMetadata=[];
   let authenticated=!anonymous,subscribed=false,currentTourChoices=tourChoices;
-  let lifecycleHandler=null,stateHandler=null,readHandler=null,logoutHandler=null,bookingHandler=null;const conversationOverrides=new Map(),inboxOverrides=new Map(),pipelineOverrides=new Map();
+  let lifecycleHandler=null,stateHandler=null,readHandler=null,logoutHandler=null,bookingHandler=null;const conversationOverrides=new Map(),inboxOverrides=new Map(),pipelineOverrides=new Map(),leadOverrides=new Map(),messageOverrides=new Map();
   const manager={id:7,role,display_name:'Мария',is_working:true};
   const tasks=[{id:21,title:'Проверить отели у моря в бюджете',status:'open',due_state:'today',due_at_utc:'2026-10-14 07:00:00',is_pinned:true,assigned_manager_name:'Мария'},{id:22,title:'Отправить подборку клиенту',status:'open',due_state:'overdue',due_at_utc:'2026-10-13 09:00:00',assigned_manager_name:'Мария'},{id:23,title:'Уточнить состав туристов',status:'done',due_state:'done',assigned_manager_name:'Мария'}];
   const conversation=id=>({id,manager_id:otherOwner?8:7,manager_name:otherOwner?'Людмила':'Мария',status:'manager',channel:'telegram',source_id:1,source_name:'AnyTour',display_name:id===11?'Анна Морозова':'Алексей Иванов',...conversationOverrides.get(id)});
   const messages=Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?7:null,text:i===34?'Посмотрите, пожалуйста, варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Подбираем семейный отдых в Турции, обсуждаем отели и даты.',created_at:'2026-10-13 12:00:00'}));
   if(replyAudio)messages[0].attachments=[{type:'audio',name:'Тестовое аудио',url:replyEditorAudio()}];
   if(serviceEvents)messages.push({id:36,direction:'inbound',sender_type:'customer',text:'manager_after_tours',service_action:{type:'callback',label:'Клиент запросил менеджера после подбора туров',raw_payload:'manager_after_tours'},created_at:'2026-10-13 12:01:00'},{id:37,direction:'inbound',sender_type:'customer',text:'manager_after_tours',created_at:'2026-10-13 12:02:00'});
-  const lead=id=>({ok:true,can_edit_pipeline:!otherOwner,pipeline:{stage:stages[1],stage_history:[],tags:[],outcome:{outcome:'open'},...pipelineOverrides.get(id)},tasks:tasks.map(t=>({...t})),trip:{city:'Москва',country:'Турция',date:'24 октября',nights:'7–9',adults:2,children:1,child_ages:'8',meal:'all_inclusive',stars:'4,5',budget:{max:250000,currency:'RUB',basis:'total'}},contact:{phone:'+7 999 123-45-67'},source:{project_label:'AnyTour',origin_label:'TG · реклама',channel:'telegram',...leadSource},handoff:{technical_status:'manager',manager_name:conversation(id).manager_name}});
+  const lead=id=>({ok:true,request_kind:'travel',can_edit_pipeline:!otherOwner,pipeline:{stage:stages[1],stage_history:[],tags:[],outcome:{outcome:'open'},...pipelineOverrides.get(id)},tasks:tasks.map(t=>({...t})),trip:{city:'Москва',country:'Турция',date:'24 октября',nights:'7–9',adults:2,children:1,child_ages:'8',meal:'all_inclusive',stars:'4,5',budget:{max:250000,currency:'RUB',basis:'total'}},contact:{phone:'+7 999 123-45-67'},source:{project_label:'AnyTour',origin_label:'TG · реклама',channel:'telegram',...leadSource},handoff:{technical_status:'manager',manager_name:conversation(id).manager_name},...leadOverrides.get(id)});
   const rows=()=>[11,12].map((id,i)=>({...conversation(id),can_edit_pipeline:!otherOwner,project_label:'AnyTour',origin_label:'TG · реклама',trip_summary:'Москва → Турция · 2 взрослых и ребёнок · 7–9 ночей',lead_stage:stages[1],lead_outcome:'open',unread_count:i?0:2,last_text:'Ждём варианты у моря',last_sender_type:'customer',last_message_at:'2026-10-13 12:00:00',next_task_id:21,next_task_title:tasks.find(t=>t.status==='open')?.title||'',next_task_due_state:'today',operational_task_due_state:'overdue',next_task_due_at_utc:'2026-10-14 07:00:00',next_task_pinned:1,contact_phone:'+7 999 123-45-67',...inboxOverrides.get(id)}));
   await page.addInitScript(savedFilters=>{
     if(!sessionStorage.getItem('manager2-fixture-initialized')){sessionStorage.clear();sessionStorage.setItem('manager2-fixture-initialized','1')}
@@ -89,7 +89,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
       }
       if(data.action==='edit_candidates')return reply({ok:true,messages:[],candidates:[]});
       if(data.action==='counts')return reply({ok:true,counts:{waiting:{count:2,unread:2},mine:{count:2}}});
-      if(data.action==='detail')return reply({ok:true,conversation:conversation(data.conversation_id),messages:messages.map(m=>({...m})),delivery_failure:null,...(currentTourChoices&&Number(data.conversation_id)===11?{tour_choices:currentTourChoices}:{})});
+      if(data.action==='detail')return reply({ok:true,conversation:conversation(data.conversation_id),messages:(messageOverrides.get(data.conversation_id)||messages).map(m=>({...m})),delivery_failure:null,...(currentTourChoices&&Number(data.conversation_id)===11?{tour_choices:currentTourChoices}:{})});
       if((['take','release','close','reopen'].includes(data.action)&&lifecycleHandler)||(data.action==='lifecycle_state'&&stateHandler)){
         expect(data.csrf).toBe('synthetic-csrf');const result=await (data.action==='lifecycle_state'?stateHandler:lifecycleHandler)(data);
         if(result.abort)return route.abort('failed').catch(()=>{});
@@ -142,10 +142,13 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
     }
     unexpected.push(req.method()+' '+url.pathname+' '+data.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
   });
+  const state={calls,unexpected,errors,sends,tasks,manager,setLead:(id,patch)=>leadOverrides.set(id,{...leadOverrides.get(id),...patch}),setMessages:(id,value)=>messageOverrides.set(id,value),setBookingHandler:fn=>{bookingHandler=fn},setLogoutHandler:fn=>{logoutHandler=fn},setTourChoices:value=>{currentTourChoices=value},setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setInboxRow:(id,patch)=>inboxOverrides.set(id,{...inboxOverrides.get(id),...patch}),setReadHandler:fn=>{readHandler=fn},setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
+    async releaseMetadata(status=200){const pending=pendingMetadata.splice(0);pending.forEach(item=>item.release(status));await Promise.all(pending.map(async item=>{const response=await item.request.response();if(response)await response.finished()}))}};
+  // Project/channel fixtures must be settled before the first inbox and avatar requests.
+  if(initialFixture)await initialFixture(state);
   await page.goto(origin+'/manager2/index.php?qa=1');
   if(!anonymous&&waitForInbox)await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
-  return {calls,unexpected,errors,sends,tasks,manager,setBookingHandler:fn=>{bookingHandler=fn},setLogoutHandler:fn=>{logoutHandler=fn},setTourChoices:value=>{currentTourChoices=value},setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setInboxRow:(id,patch)=>inboxOverrides.set(id,{...inboxOverrides.get(id),...patch}),setReadHandler:fn=>{readHandler=fn},setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
-    async releaseMetadata(status=200){const pending=pendingMetadata.splice(0);pending.forEach(item=>item.release(status));await Promise.all(pending.map(async item=>{const response=await item.request.response();if(response)await response.finished()}))}};
+  return state;
 }
 async function openLead(page,id=11){
   if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();
@@ -173,6 +176,121 @@ async function readable(page,selector){
   if(/msgMeta|messageSender/.test(selector))expect(await page.locator(selector).first().evaluate(el=>Number(getComputedStyle(el).opacity))).toBe(1);
 }
 async function capture(page,browser,width,state){fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({animations:'disabled',path:`manager2-artifacts/${browser}-${width}-${state}.png`})}
+
+function businessCardFixture(s){
+  s.setConversation(11,{project_key:'appleservice39',channel:'max',source_name:'Apple Service39',repair_context:{model:'iPhone 16',service:'Замена дисплея'}});
+  s.setLead(11,{request_kind:'device_repair',trip:{},source:{project_label:'Apple Service39',origin_label:'MAX · ремонт',channel:'max'}});
+  s.setConversation(12,{project_key:'client_neutral',channel:'max',source_name:'Сервисная компания'});
+  s.setLead(12,{request_kind:'general',trip:{},source:{project_label:'Сервисная компания',origin_label:'MAX · обращение',channel:'max'}});
+  for(const [i,id] of [11,12].entries()){
+    s.setInboxRow(id,{project_label:i?'Сервисная компания':'Apple Service39',origin_label:'MAX',trip_summary:'',last_text:i?'Хочу уточнить условия услуги':'Нужно заменить дисплей iPhone 16'});
+    s.setMessages(id,[{id:101+id,direction:'inbound',sender_type:'customer',text:i?'Здравствуйте! Подскажите, какие условия услуги?':'Здравствуйте! Нужно заменить дисплей iPhone 16.',created_at:'2026-11-15 10:00:00'}]);
+  }
+  s.tasks.forEach((task,i)=>{task.title=['Ответить клиенту','Уточнить условия','Проверить сведения'][i]});
+}
+async function noTravelRequestFields(page){
+  await expect(page.locator('#leadCard .m2TripPanel')).toHaveCount(0);
+  await expect(page.locator('#leadCard [data-trip-details]')).toHaveCount(0);
+  await expect(page.locator('#leadCard .leadRoute')).toHaveCount(0);
+  await expect(page.locator('#leadOutcomeTripWrap')).toHaveCount(0);
+  await expect(page.locator('#leadOutcomeTrip')).toHaveCount(0);
+  await expect(page.locator('#leadCard')).not.toContainText(/Все параметры поездки|Параметры поездки уточняются|Дата уточняется|Возраст детей|Категория отеля|Туристы|Вылет|Поездка для результата|Привязка поездки сейчас недоступна/);
+  await expect(page.locator('#leadTasksSection')).toBeVisible();
+  await expect(page.locator('#leadStage')).toBeVisible();
+  await expect(page.locator('#leadCard a[href="tel:+79991234567"]')).toBeVisible();
+}
+async function businessCardFits(page,width){
+  await page.locator('#leadZone').evaluate(el=>{el.scrollTop=0});
+  await expect.poll(async()=>{const box=await page.locator('#leadCard').boundingBox();return box?box.x+box.width:Infinity}).toBeLessThanOrEqual(width+1);
+  expect(await page.locator('#leadCard').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+  await noOverflow(page);
+}
+for(const width of [390,430,768,1440])test('Manager2 business request card keeps repair and neutral replies separate at '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const s=await setup(page,{initialFixture:businessCardFixture});
+  await openLead(page,11);await editorReady(page);
+  await page.locator('#replyText').fill('Ответ по замене дисплея');
+  await page.locator('#replyFile').setInputFiles({name:'repair.txt',mimeType:'text/plain',buffer:Buffer.from('Repair file, never uploaded')});
+  await expect(page.locator('#mediaSelection')).toContainText('repair.txt');
+  await page.evaluate(()=>{window.businessFiles={repair:WorkspaceV2Media.captureSelection().rows[0].row.file}});
+  await showCard(page);
+  const repair=page.locator('#leadCard .leadRequestContext[data-request-kind="device_repair"]');
+  await expect(repair.locator('.leadPanelTitle')).toHaveText('Контекст ремонта');
+  await expect(repair.locator('.leadDetailRow .label')).toHaveText(['Модель','Услуга']);
+  await expect(repair.locator('.leadDetailRow .value')).toHaveText(['iPhone 16','Замена дисплея']);
+  await noTravelRequestFields(page);await businessCardFits(page,width);await capture(page,browserName,width,'business-card-repair');
+  await showChat(page);await openLead(page,12);await editorReady(page);
+  await expect(page.locator('#replyText')).toHaveValue('');expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(false);
+  await page.locator('#replyText').fill('Ответ по условиям услуги');
+  await page.locator('#replyFile').setInputFiles({name:'general.txt',mimeType:'text/plain',buffer:Buffer.from('General file, never uploaded')});
+  await expect(page.locator('#mediaSelection')).toContainText('general.txt');
+  await page.evaluate(()=>{businessFiles.general=WorkspaceV2Media.captureSelection().rows[0].row.file});
+  await showCard(page);await expect(page.locator('#leadCard .leadRequestContext')).toHaveCount(0);
+  await expect(page.locator('#leadCard')).not.toContainText('iPhone 16');
+  await noTravelRequestFields(page);await businessCardFits(page,width);await capture(page,browserName,width,'business-card-general');
+  for(const [id,text,file,key] of [[11,'Ответ по замене дисплея','repair.txt','repair'],[12,'Ответ по условиям услуги','general.txt','general']]){
+    await showChat(page);await openLead(page,id);await editorReady(page);
+    await expect(page.locator('#replyText')).toHaveValue(text);await expect(page.locator('#mediaSelection')).toContainText(file);
+    expect(await page.evaluate(key=>WorkspaceV2Media.captureSelection().rows[0].row.file===businessFiles[key],key)).toBe(true);
+    await showCard(page);await noTravelRequestFields(page);
+    if(id===11)await expect(repair).toContainText('iPhone 16');else await expect(page.locator('#leadCard .leadRequestContext')).toHaveCount(0);
+  }
+  expect(s.sends).toEqual([]);expect(s.calls.filter(call=>/^set_|^create_|^save_|^reassign/.test(call.action||''))).toEqual([]);
+  expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+for(const width of [390,1440])test('Manager2 business request card handles unknown context and retains an ordinary task at '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const s=await setup(page,{initialFixture:s=>{
+    businessCardFixture(s);s.setConversation(11,{repair_context:{}});
+    for(const id of [11,12])s.setLead(id,{pipeline:{stage:stages[1],stage_history:[],tags:[],outcome:{outcome:'open'},outcome_trip:{available:false,reason:'storage_unavailable',revision:null,binding:null,choices:[],choices_truncated:false}}});
+  }});
+  await openLead(page,11);await showCard(page);await noTravelRequestFields(page);await expect(page.locator('#leadCard .leadRequestContext')).toHaveCount(0);
+  async function renderContext(kind,repair,project='appleservice39'){
+    await page.evaluate(({kind,repair,project})=>{const S=WorkspaceV2.S,p={...S.detail.lead,request_kind:kind},c={...S.detail.conversation,project_key:project,repair_context:repair};if(kind==='missing')delete p.request_kind;WorkspaceV2LeadCard.render(p,c)},{kind,repair,project});
+  }
+  const literal='iPhone <img src=x onerror="window.businessMarkupRan=true">';
+  await renderContext('device_repair',{model:literal,service:''});
+  const repair=page.locator('#leadCard .leadRequestContext');
+  await expect(repair.locator('.leadDetailRow')).toHaveCount(1);await expect(repair.locator('.value')).toHaveText(literal);
+  await expect(repair.locator('img,script')).toHaveCount(0);expect(await page.evaluate(()=>window.businessMarkupRan)).toBeUndefined();
+  await noTravelRequestFields(page);await businessCardFits(page,width);await capture(page,browserName,width,'business-card-partial');
+  await renderContext('device_repair',{model:123,service:['Not a service']});await expect(repair).toHaveCount(0);
+  for(const kind of ['general','unexpected_profile','missing']){
+    await renderContext(kind,{model:'Do not show this unrelated model',service:'Do not infer repair'});
+    await expect(repair).toHaveCount(0);await noTravelRequestFields(page);await expect(page.locator('#leadCard')).not.toContainText('Do not show');
+  }
+  // The explicit trusted travel projection also supports a configured legacy key
+  // other than "anytour". It remains separate from repair metadata.
+  await renderContext('travel',{model:'Unrelated repair'},'configured_travel_project');
+  await expect(page.locator('#leadCard .m2TripPanel')).toHaveCount(1);await expect(page.locator('#leadCard [data-trip-details]')).toHaveCount(1);await expect(repair).toHaveCount(0);
+  await renderContext('device_repair',{model:'iPhone 16',service:'Замена дисплея'});
+  await page.locator('.m2TaskCreate>summary').click();await page.locator('#leadTaskTitle').fill('Уточнить стоимость ремонта');await page.locator('#leadTaskDue').fill('2026-11-18T15:30');await page.locator('#leadTaskDue').press('Tab');
+  expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshLeadData({conversationId:11}))).toBe(true);
+  await expect(page.locator('#leadTaskTitle')).toHaveValue('Уточнить стоимость ремонта');await expect(page.locator('#leadTaskDue')).toHaveValue('2026-11-18T15:30');
+  await showChat(page);if(width<=1100)await page.locator('#mobileBack').click();await page.locator('#inboxList [data-conversation-id="12"] .m2RowOpen').click();
+  await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');await expect(page.locator('#leadTaskTitle')).toBeVisible();await expect(page.locator('#leadTaskTitle')).toHaveValue('Уточнить стоимость ремонта');
+  await page.locator('#leadTaskAdd').click();await expect.poll(()=>s.calls.filter(call=>call.action==='create_task').length).toBe(1);
+  expect(s.calls.find(call=>call.action==='create_task')).toMatchObject({conversation_id:11,title:'Уточнить стоимость ремонта',due_at:'2026-11-18T12:30:00.000Z',csrf:'synthetic-csrf'});
+  await expect(page.locator('#leadTaskTitle')).toHaveValue('');await noTravelRequestFields(page);
+  expect(s.sends).toEqual([]);expect(s.calls.filter(call=>/^set_|^save_|^reassign/.test(call.action||''))).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+  // An unavailable travel store must not disable the ordinary result of either business.
+  const beforeOutcomes=s.calls.length;
+  for(const [id,note] of [[11,'Уточнили стоимость ремонта'],[12,'Обсудили условия услуги']]){
+    await showChat(page);await openLead(page,id);await showCard(page);await noTravelRequestFields(page);
+    const saleDetails=page.locator('#leadCard .m2SaleDetails');
+    if(await saleDetails.getAttribute('open')===null)await saleDetails.locator(':scope > summary').click();
+    await expect(saleDetails).toHaveAttribute('open','');
+    await page.locator('#leadOutcomeNote').fill(note);await expect(page.locator('#saveOutcome')).toBeEnabled();
+    await page.locator('#saveOutcome').click();await expect(page.locator('#outcomeSaveStatus')).toContainText('Результат сохранён');
+    await expect(saleDetails).toHaveAttribute('open','');await expect(saleDetails.locator('#outcomeSaveStatus')).toBeVisible();
+    const writes=s.calls.slice(beforeOutcomes).filter(call=>call.action==='set_outcome'&&call.conversation_id===id);
+    expect(writes).toHaveLength(1);expect(writes[0]).toMatchObject({path:'/manager/pipeline-api.php',conversation_id:id,outcome:'open',note,csrf:'synthetic-csrf'});
+    expect(writes[0]).not.toHaveProperty('outcome_trip');expect(writes[0]).not.toHaveProperty('operation_id');
+    await noTravelRequestFields(page);
+  }
+  const mutations=s.calls.slice(beforeOutcomes).filter(call=>/^set_|^create_|^save_|^reassign/.test(call.action||''));
+  expect(mutations.map(call=>[call.action,call.conversation_id])).toEqual([['set_outcome',11],['set_outcome',12]]);
+  expect(s.calls.slice(beforeOutcomes).filter(call=>call.action==='outcome_operation')).toEqual([]);
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
 
 for(const width of [390,430,768,1440])test('Manager2 first advertising region stays readable and separate from departure at '+width,async({page,browserName})=>{
   const receipt=(id,name,label)=>({yandex_region_id:id,name,label,hierarchy:[name,'Россия'],known:true});

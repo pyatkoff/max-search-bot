@@ -52,6 +52,21 @@ ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'Synthetic legac
 ProjectMaxConnection::resetForTests(['appleservice39'=>[
     'project'=>['id'=>'appleservice39','brand'=>['name'=>'Synthetic repair'],'business'=>['kind'=>'device_repair']],
     'max'=>['bot_key'=>'synthetic_repair_bot','token'=>'synthetic-repair-token','webhook_secret'=>str_repeat('a',32)],
+], 'neutral_company'=>[
+    'project'=>['id'=>'neutral_company','brand'=>['name'=>'Synthetic neutral'],'business'=>['kind'=>'manager_inbox']],
+    'max'=>['bot_key'=>'synthetic_neutral_bot','token'=>'synthetic-neutral-token','webhook_secret'=>str_repeat('b',32)],
+], 'repair_alias'=>[
+    'project'=>['id'=>'repair_alias','business'=>['profile'=>'device_repair']],
+    'max'=>['bot_key'=>'synthetic_alias_bot','token'=>'synthetic-alias-token','webhook_secret'=>str_repeat('c',32)],
+], 'conflicting_company'=>[
+    'project'=>['id'=>'conflicting_company','business'=>['kind'=>'device_repair','profile'=>'manager_inbox']],
+    'max'=>['bot_key'=>'synthetic_conflicting_bot','token'=>'synthetic-conflicting-token','webhook_secret'=>str_repeat('e',32)],
+], 'unsupported_company'=>[
+    'project'=>['id'=>'unsupported_company','business'=>['kind'=>'unreviewed_industry']],
+    'max'=>['bot_key'=>'synthetic_unsupported_bot','token'=>'synthetic-unsupported-token','webhook_secret'=>str_repeat('f',32)],
+], 'invalid_company'=>[
+    'project'=>['id'=>'invalid_company','business'=>['kind'=>['device_repair']]],
+    'max'=>['bot_key'=>'synthetic_invalid_bot','token'=>'synthetic-invalid-token','webhook_secret'=>str_repeat('g',32)],
 ]]);
 ProjectMaxMessengerFactory::resetForTests(static function(ProjectMaxConnection $connection,string $sender)use(&$calls,&$created):MaxMessengerAdapter{
     $project=$connection->projectKey();$token=$connection->token();$created[]=[$project,$sender];
@@ -73,6 +88,12 @@ INSERT INTO conversations(id,customer_id,project_key,source_id,channel,status,ma
 (301,1,'unknown_project',1,'max','manager',7,'same-max-user');
 UPDATE conversations SET external_chat_id='same-max-user' WHERE id=101;
 INSERT INTO conversation_events(conversation_id,event_type,actor_type) VALUES(101,'waiting_manager','customer'),(201,'waiting_manager','customer')");
+$projectInsert=$pdo->prepare('INSERT INTO projects VALUES(?,?,?,1)');
+$membershipInsert=$pdo->prepare('INSERT INTO manager_projects VALUES(7,?)');
+$conversationInsert=$pdo->prepare("INSERT INTO conversations(id,customer_id,project_key,source_id,channel,status,manager_id,external_chat_id) VALUES(?,1,?,1,'max','manager',7,'same-max-user')");
+foreach(['neutral_company','repair_alias','conflicting_company','unsupported_company','invalid_company'] as $index=>$project){
+    $projectInsert->execute([5+$index,$project,'Synthetic company']);$membershipInsert->execute([5+$index]);$conversationInsert->execute([401+$index,$project]);
+}
 $repairMetadata=['max_bot_key'=>'synthetic_repair_bot','repair_context'=>['model'=>'iPhone X','service'=>'Замена аккумулятора','entry_code'=>'as39_x_battery','private_token'=>'must-not-project'],'other_private'=>'must-not-project'];
 $pdo->prepare('UPDATE conversations SET metadata_json=? WHERE id=201')->execute([json_encode($repairMetadata)]);
 $pdo->prepare('UPDATE conversations SET metadata_json=? WHERE id=202')->execute([json_encode(['max_bot_key'=>'synthetic_repair_bot'])]);
@@ -84,6 +105,19 @@ try{
     projectManagerCheck('authorized repair detail projects only its model service and entry code',($detail['conversation']['repair_context']??null)===['model'=>'iPhone X','service'=>'Замена аккумулятора','entry_code'=>'as39_x_battery']&&!str_contains(json_encode($detail),'must-not-project'));
     projectManagerCheck('manager without project membership cannot read repair detail',ManagerConversationService::detail(201,8)===null);
     projectManagerCheck('legacy detail has no repair context',!isset(ManagerConversationService::detail(101,7)['conversation']['repair_context']));
+
+    foreach([101=>'travel',201=>'device_repair',202=>'device_repair',301=>'general',401=>'general',402=>'device_repair',403=>'general',404=>'general',405=>'general'] as $id=>$kind){
+        $visible=ManagerConversationService::visibleConversation($id,7);
+        projectManagerCheck('authorized company '.$id.' exposes only its finite request kind',$visible!==null&&ManagerConversationService::requestKind($visible)===$kind);
+    }
+    $repairVisible=ManagerConversationService::visibleConversation(201,7);
+    projectManagerCheck('card kind ignores display names supplied hints and absent trip fields',ManagerConversationService::requestKind(array_merge($repairVisible,['display_name'=>'AnyTour','request_kind'=>'travel','trip'=>[]]))==='device_repair');
+    projectManagerCheck('denied company never supplies a visible row to the card projection',ManagerConversationService::visibleConversation(201,8)===null&&ManagerConversationService::visibleConversation(401,8)===null);
+    projectManagerCheck('missing and malformed project keys stay general',ManagerConversationService::requestKind([])==='general'&&ManagerConversationService::requestKind(['project_key'=>'../anytour'])==='general');
+    ProjectConfig::resetForTests(['id'=>'configured_travel','brand'=>['name'=>'Synthetic configured travel']]);
+    projectManagerCheck('travel card follows the configured legacy ID instead of a hardcoded brand',ManagerConversationService::requestKind(['project_key'=>'configured_travel'])==='travel'&&ManagerConversationService::requestKind(['project_key'=>'anytour'])==='general');
+    ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'Synthetic legacy']]);
+    projectManagerCheck('request kind reads dispatch no provider and preserve stored conversation data',$calls===[]&&$created===[]&&$pdo->query('SELECT COUNT(*) FROM messages')->fetchColumn()===0);
 
     projectManagerCheck('legacy text still succeeds through the shared outbound owner',ManagerOutboundService::send(101,7,'Legacy reply'));
     projectManagerCheck('repair text succeeds through its own connection',ManagerOutboundService::send(201,7,'Repair <reply>'));
