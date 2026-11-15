@@ -52,7 +52,20 @@ try {
     foreach(['manager/pipeline-api.php','manager/api.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php','services/ManagerConversationService.php',
         'services/ManagerLeadInboxService.php','services/ManagerAiInboxStatusService.php','services/ManagerQueueProjectionService.php','services/ManagerWorkspaceFilterService.php',
         'services/SalesPipelineCatalogAdminService.php','services/LeadTaskService.php']as$dependency)cardCopy($dependency);
-    file_put_contents($tmp.'/config.php',"<?php require_once __DIR__.'/services/ProjectConfig.php';ProjectConfig::resetForTests(['id'=>'fixture','brand'=>['name'=>'Fixture']]);\n");
+    file_put_contents($tmp.'/config.php', <<<'PHP'
+<?php
+require_once __DIR__.'/services/ProjectConfig.php';
+require_once __DIR__.'/services/ProjectMaxConnection.php';
+ProjectConfig::resetForTests(['id'=>'fixture','brand'=>['name'=>'Fixture']]);
+define('MAX_SEARCH_PROJECT_CONNECTIONS',[
+    'repair_fixture'=>['project'=>['id'=>'repair_fixture','business'=>['kind'=>'device_repair']],
+        'max'=>['bot_key'=>'synthetic_repair_bot','token'=>'synthetic-repair-token','webhook_secret'=>str_repeat('a',32)]],
+    'general_fixture'=>['project'=>['id'=>'general_fixture','business'=>['kind'=>'manager_inbox']],
+        'max'=>['bot_key'=>'synthetic_general_bot','token'=>'synthetic-general-token','webhook_secret'=>str_repeat('b',32)]],
+    'invalid_fixture'=>['project'=>['id'=>'invalid_fixture','business'=>['kind'=>'device_repair','profile'=>'manager_inbox']],
+        'max'=>['bot_key'=>'synthetic_invalid_bot','token'=>'synthetic-invalid-token','webhook_secret'=>str_repeat('c',32)]],
+]);
+PHP);
     file_put_contents($tmp.'/maxsearchclass.php', <<<'PHP'
 <?php
 class MaxSearchApi {
@@ -101,7 +114,7 @@ class CardSessionStatement extends PDOStatement {
             $this->rows=[['needed'=>in_array((int)$args[0],[46,47,48],true)?1:0,'reply_wait_started_unix'=>null]];return true;
         }
         if(str_starts_with($sql,'SELECT p.id,p.project_key,p.display_name,COALESCE(ra.regional_scope_required,0) AS regional_scope_required FROM projects p JOIN manager_projects ')){$this->rows=[['id'=>1,'project_key'=>'fixture','display_name'=>'Fixture','regional_scope_required'=>0]];return true;}
-        if(str_starts_with($sql,'SELECT 1 FROM manager_projects mp JOIN projects ')){$this->rows=in_array($args[1],['fixture','repair_fixture'],true)?[[1]]:[];return true;}
+        if(str_starts_with($sql,'SELECT 1 FROM manager_projects mp JOIN projects ')){$this->rows=in_array($args[1],['fixture','repair_fixture','general_fixture','unconfigured_fixture','invalid_fixture'],true)?[[1]]:[];return true;}
         if(str_contains($sql,' AS unread_count ')){cardFixtureGate(($GLOBALS['action']??'')==='counts'?'counts':'list');return true;}
         if(str_starts_with($sql,'SELECT id,direction,sender_type,text,created_at,sender_id FROM messages ')){$customer=in_array((int)$args[0],[46,47,48],true);$this->rows=[['id'=>101,'direction'=>$customer?'inbound':'outbound','sender_type'=>$customer?'customer':'manager','text'=>'Synthetic transcript &amp; retained','created_at'=>'2026-10-25 10:00:00','sender_id'=>null]];return true;}
         if(str_starts_with($sql,'SELECT EXISTS(SELECT 1 FROM messages ')){$this->rows=[[in_array((int)$args[0],[46,47,48],true)?0:1]];return true;}
@@ -113,7 +126,7 @@ class CardSessionStatement extends PDOStatement {
         if(str_starts_with($sql,'SELECT last_read_message_id FROM manager_conversation_reads ')){$this->rows=[[0]];return true;}
         if(str_starts_with($sql,'SELECT MIN(id) AS first_id,COUNT(*) AS unread_count FROM messages ')){$this->rows=[['first_id'=>null,'unread_count'=>0]];return true;}
         if(str_starts_with($sql,'SELECT c.id,c.project_key,c.source_id,c.channel,')){
-            $id=(int)$args[0];if(in_array($id,[42,43,44,45,46,47,48],true))$this->rows=[['id'=>$id,'project_key'=>$id===43?'denied':($id===46?'repair_fixture':'fixture'),'source_id'=>$id===44?99:0,'channel'=>$id===47?'telegram':($id===48?'website':'max'),'status'=>'manager','manager_id'=>$id===45?9:7,'external_chat_id'=>$id===47?'7001':($id===48?'8001':'-7001'),'phone'=>null,'email'=>null]];return true;
+            $id=(int)$args[0];if(in_array($id,[42,43,44,45,46,47,48,49,50,51],true))$this->rows=[['id'=>$id,'project_key'=>match($id){43=>'denied',46=>'repair_fixture',49=>'general_fixture',50=>'unconfigured_fixture',51=>'invalid_fixture',default=>'fixture'},'source_id'=>$id===44?99:0,'channel'=>$id===47?'telegram':($id===48?'website':'max'),'status'=>'manager','manager_id'=>$id===45?9:7,'external_chat_id'=>$id===47?'7001':($id===48?'8001':'-7001'),'phone'=>null,'email'=>null]];return true;
         }
         if(str_starts_with($sql,'SELECT id,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes FROM conversation_sources ')){$this->rows=[['id'=>99,'primary_group_id'=>123,'fallback_mode'=>'none','fallback_group_id'=>0]];return true;}
         if(str_starts_with($sql,'SELECT group_id FROM manager_group_members '))return true;
@@ -185,9 +198,17 @@ PHP);
     $legacyContextFile=$tmp.'/legacy-context-reads.jsonl';
     $legacyCard=cardRequest($second,'/manager/pipeline-api.php',$data,$cookies['own']);
     cardCheck('default project MAX card retains its own legacy trip',$legacyCard['status']===200&&$legacyCard['body']['trip']===['country'=>'Synthetic MAX trip']);
+    cardCheck('default project card identifies the configured travel profile',($legacyCard['body']['request_kind']??null)==='travel');
     $legacyReadCount=count(file($legacyContextFile));
     $isolated=cardRequest($second,'/manager/pipeline-api.php',['action'=>'detail','conversation_id'=>46,'csrf'=>'fixture-csrf'],$cookies['own']);
     cardCheck('another project with the same MAX user cannot read the legacy trip',$isolated['status']===200&&!empty($isolated['body']['ok'])&&$isolated['body']['trip']===[]&&count(file($legacyContextFile))===$legacyReadCount);
+    cardCheck('repair card uses its configured business profile',($isolated['body']['request_kind']??null)==='device_repair');
+    foreach([49,50,51] as $id){
+        $otherCard=cardRequest($second,'/manager/pipeline-api.php',['action'=>'detail','conversation_id'=>$id,'csrf'=>'fixture-csrf','request_kind'=>'travel','project_key'=>'fixture'],$cookies['own']);
+        cardCheck('nontravel card '.$id.' remains general despite a client-supplied travel hint',$otherCard['status']===200&&($otherCard['body']['request_kind']??null)==='general'&&$otherCard['body']['trip']===[]&&count(file($legacyContextFile))===$legacyReadCount);
+    }
+    $repairHint=cardRequest($second,'/manager/pipeline-api.php',['action'=>'detail','conversation_id'=>46,'csrf'=>'fixture-csrf','request_kind'=>'travel','project_key'=>'fixture'],$cookies['own']);
+    cardCheck('repair kind comes from the authorized saved project without exposing its connection',($repairHint['body']['request_kind']??null)==='device_repair'&&!str_contains(json_encode($repairHint['body']),'synthetic-repair-token')&&!str_contains(json_encode($repairHint['body']),'synthetic_repair_bot'));
     $isolated=cardRequest($second,'/manager/api.php',['action'=>'detail','conversation_id'=>46,'csrf'=>'fixture-csrf'],$cookies['own']);
     cardCheck('another project with the same MAX user cannot read legacy handoff context',$isolated['status']===200&&!empty($isolated['body']['ok'])&&$isolated['body']['handoff_context']===null&&count(file($legacyContextFile))===$legacyReadCount);
     foreach([47=>['7001','Synthetic Telegram trip'],48=>['8001','Synthetic website trip']] as $id=>[$chatId,$country]){
@@ -240,7 +261,7 @@ PHP);
         ['bad CSRF',$cookies['own'],42,'wrong',403],['denied project',$cookies['own'],43,'fixture-csrf',404],
         ['denied routing group',$cookies['own'],44,'fixture-csrf',404],['missing conversation',$cookies['own'],999,'fixture-csrf',404]]as[$label,$cookie,$id,$csrf,$status]){
         $response=cardRequest($second,'/manager/pipeline-api.php',['action'=>'detail','conversation_id'=>$id,'csrf'=>$csrf],$cookie);
-        cardCheck($label.' stays denied without card payload',$response['status']===$status&&!isset($response['body']['pipeline']));
+        cardCheck($label.' stays denied without card payload',$response['status']===$status&&!isset($response['body']['pipeline'])&&!isset($response['body']['request_kind']));
     }
     $degraded=cardStart($second,'/manager/pipeline-api.php',$data,$cookies['own'],'degraded');$degraded=cardFinish($degraded);
     cardCheck('secondary failure preserves degraded read-only card',$degraded['status']===200&&$degraded['body']['degraded_components']===['tasks']&&!$degraded['body']['can_edit_pipeline']);

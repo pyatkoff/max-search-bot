@@ -295,6 +295,23 @@ class ManagerConversationService
         return$conversation;
     }
 
+    /** Display projection for an already-authorized conversation, never request input. */
+    public static function requestKind(array $conversation): string
+    {
+        $project=(string)($conversation['project_key']??'');
+        if(ProjectMaxConnection::isLegacyProject($project))return 'travel';
+        try{
+            $connection=ProjectMaxConnection::resolve($project);
+            if($connection!==null){
+                require_once __DIR__.'/RepairProjectSettings.php';
+                if(RepairProjectSettings::businessKind($connection->settings())==='device_repair')return 'device_repair';
+            }
+        }catch(Throwable $ignored){
+            // Unavailable or unsupported company settings do not make it a trip.
+        }
+        return 'general';
+    }
+
     /** A bounded projection from this already-authorized conversation only. */
     private static function repairContext(array $conversation): ?array
     {
