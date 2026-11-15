@@ -69,7 +69,7 @@ function render(){
  const message=r.notice||(r.pending?'Сохранение связи не подтверждено. Проверьте эту операцию; отправка остановлена.':!r.verified&&i?'Проверьте сохранённую связь перед отправкой.':completed?completionMessage(i):i?.state==='armed'?'Подтверждена отправка '+i.confirmed+' из '+i.total+' частей расчёта.'+(i.parts.some(p=>['processing','unknown'].includes(p.state))?' Подтверждение неполное. Проверьте результат отправки.':''):i&&i.state!=='armed'?'Автоматическое выполнение '+(i.state==='cancelled'?'отменено.':'остановлено.'):'Подготовьте текст или прикрепите файл здесь. «Отправить» сначала покажет состав для проверки.');
  const status=element('div','promiseCalculationStatus',message);status.id='promiseCalculationStatus';status.setAttribute('role','status');status.setAttribute('aria-live','polite');box.appendChild(status);
  if(r.preview){
-  const p=r.preview.value,details=element('details','promiseCalculationReview');details.open=wasOpen!==false;details.appendChild(element('summary','','Проверенный состав: '+(p.composition.files.length?p.composition.files.length+' файлов':'сообщение')));
+  const p=r.preview.value,details=element('details','promiseCalculationReview');details.open=wasOpen!==false;details.appendChild(element('summary','','Проверенный состав'+(p.composition.files.length?' (файлов: '+p.composition.files.length+')':': сообщение')));
   const body=element('div','promiseCalculationReviewBody');
   body.appendChild(element('p','','Задача: '+String(p.task.title||r.title)));
   if(p.source?.text)body.appendChild(element('blockquote','',p.source.text));
