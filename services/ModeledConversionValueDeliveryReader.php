@@ -44,7 +44,7 @@ final class ModeledConversionValueDeliveryReader
         $fail=static fn(string $reason):array=>['available'=>false,'reason'=>$reason]+$base;
         try{
             $fields=['state','upload_status','event_unix','value_api_accepted_at_unix','value_processed_at_unix'];
-            if($includeVisitEvidence)$fields=array_merge($fields,['id','conversation_id','platform','transport_target','client_id','value_rub','upload_id']);
+            if($includeVisitEvidence)$fields=array_merge($fields,['id','conversation_id','platform','target','client_id','value_rub','upload_id']);
             $columns=['COUNT(*) AS inspected','COALESCE(SUM(is_match),0) AS matched'];
             foreach($fields as$field)$columns[]='MAX(CASE WHEN is_match=1 THEN '.$field.' ELSE NULL END) AS '.$field;
             // The hard bound precedes hashing. No native ID, money, customer identity or unrelated row is returned.
@@ -55,7 +55,7 @@ final class ModeledConversionValueDeliveryReader
                 ." AND CAST(value_contract AS ".$binary.")=CAST(? AS ".$binary.")";
             $sql='SELECT '.implode(',',$columns)
                 ." FROM (SELECT b.*,CASE WHEN SHA2(CONCAT('modeled_value_upload_receipt_v1|',upload_id),256)=? THEN 1 ELSE 0 END AS is_match"
-                ." FROM (SELECT ".($includeVisitEvidence?"id,conversation_id,platform,transport_target,client_id,value_rub,":"")."upload_id,state,upload_status,event_unix,value_api_accepted_at_unix,value_processed_at_unix"
+                ." FROM (SELECT ".($includeVisitEvidence?"id,conversation_id,platform,target,client_id,value_rub,":"")."upload_id,state,upload_status,event_unix,value_api_accepted_at_unix,value_processed_at_unix"
                 ." FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635'"
                 ." AND transport_target=? AND value_contract=?".$exact." ORDER BY id DESC LIMIT 1001) b) scoped";
             $rows=$this->query($sql,[$reference,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION],null,250);
@@ -83,7 +83,7 @@ final class ModeledConversionValueDeliveryReader
             // Exact saved event tuple only. Preserve native decimal serialization for its fingerprint.
             $proof=ModeledConversionVisitProof::savedForEvent([
                 'id'=>$r['id'],'conversation_id'=>$r['conversation_id'],'platform'=>$r['platform'],
-                'target'=>$r['transport_target'],'client_id'=>$r['client_id'],'value_rub'=>$r['value_rub'],
+                'target'=>$r['target'],'client_id'=>$r['client_id'],'value_rub'=>$r['value_rub'],
                 'event_unix'=>$r['event_unix'],'upload_id'=>$r['upload_id']],$now,$this->budget);
             $safe=['available'=>false,'reason'=>'saved_visit_evidence_unavailable'];
             if(($proof['available']??false)===true){

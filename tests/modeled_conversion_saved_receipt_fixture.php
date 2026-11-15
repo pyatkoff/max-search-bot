@@ -14,7 +14,7 @@ function forecastSavedReceiptAssertions(PDO $pdo,callable $check,?callable $rpcR
         id INTEGER PRIMARY KEY,project_key VARCHAR(40),counter_id VARCHAR(40),transport_target VARCHAR(80),value_contract VARCHAR(80),
         upload_id VARCHAR(40),state VARCHAR(20),upload_status VARCHAR(24),event_unix BIGINT,
         value_api_accepted_at_unix BIGINT NULL,value_processed_at_unix BIGINT NULL,
-        conversation_id BIGINT NULL,platform VARCHAR(16) NULL,client_id VARCHAR(40) NULL,value_rub DECIMAL(12,2) NULL)");
+        target VARCHAR(100) NULL,conversation_id BIGINT NULL,platform VARCHAR(16) NULL,client_id VARCHAR(40) NULL,value_rub DECIMAL(12,2) NULL)");
     $readOnly=static function(callable $f)use($pdo,$mysql):mixed{
         if($mysql)$pdo->exec('SET SESSION TRANSACTION READ ONLY');
         try{return $f();}finally{if($mysql)$pdo->exec('SET SESSION TRANSACTION READ WRITE');}
@@ -75,8 +75,8 @@ function forecastSavedReceiptAssertions(PDO $pdo,callable $check,?callable $rpcR
         });}catch(DomainException $expected){$denied=true;}
         $check('revocation after the saved SELECT suppresses its private result',$denied&&$denialCalls===2);
         // Exact primary receipt and its persisted event proof are independently reported.
-        $pdo->exec("UPDATE max_channel_conversion_outbox SET conversation_id=810001,platform='max',client_id='880001',value_rub=833 WHERE id=1");
-        $raw=$pdo->query("SELECT id,conversation_id,platform,transport_target AS target,client_id,value_rub,event_unix,upload_id FROM max_channel_conversion_outbox WHERE id=1")->fetch(PDO::FETCH_ASSOC);
+        $pdo->prepare("UPDATE max_channel_conversion_outbox SET target=?,conversation_id=810001,platform='max',client_id='880001',value_rub=833 WHERE id=1")->execute([ModeledConversionValueContract::predictionKey('1')]);
+        $raw=$pdo->query("SELECT id,conversation_id,platform,target,client_id,value_rub,event_unix,upload_id FROM max_channel_conversion_outbox WHERE id=1")->fetch(PDO::FETCH_ASSOC);
         $path=(new ReflectionMethod(ModeledConversionVisitProof::class,'eventPath'))->invoke(null,$raw);
         $events=dirname($path);$cache=dirname($events);$newCache=!is_dir($cache);$newEvents=!is_dir($events);
         if($newCache&&!mkdir($cache,0700))throw new RuntimeException('fixture_receipt_cache');
