@@ -31,9 +31,11 @@ count ceiling is 1,024 bindings, subject to every shard's unchanged byte ceiling
 At most 32 bounded manifest files are read, never unbounded directory discovery.
 Only one decoded shard, the uniqueness sets and a selected entry need to be
 retained. The selected hotel bundle and final reference remain limited to
-16,384 bytes. Existing country scope (Egypt and Turkey), source/record caveats,
-selector authorization, applicability and encoded model-request limits remain
-unchanged. Indexing does not authorize Thailand/Vietnam or any new data.
+16,384 bytes. Supported country consistency covers Egypt, Turkey, Thailand, Maldives,
+United Arab Emirates, Sri Lanka, Vietnam and Oman. This is a finite comparison
+allowlist, not permission to import facts. Source/record caveats, selector
+authorization, applicability and encoded model-request limits remain unchanged.
+Indexing and country support do not admit any new hotel data.
 
 ## Native Library admission references
 
@@ -65,7 +67,7 @@ The resolved request-country name must agree with the accepted country and any
 supplied candidate-country name. It is never reinterpreted as a Tourvisor
 country number. Accepted source-name checks, complete catalogue validation,
 independent admissions, bundle/record hashes and validity checks still apply.
-This consumer does not widen the Egypt/Turkey admission boundary. A missing room
+This consumer uses the same finite supported-country checks. A missing room
 label stays null; property facts do not establish a booked room category or its
 inclusions. Every exact stay keeps its own room label and projection binding.
 
@@ -83,6 +85,23 @@ absent reference as unknown. Held, omitted and absent references are never proof
 that the hotel lacks a service. This read-only attachment does not choose or
 refresh a tour, mutate a selection, call a model, or demonstrate natural use by
 an AI assistant.
+
+## Country compatibility is not hotel admission
+
+Tourvisor snapshot country keys are explicit: Egypt 1, Turkey 4, Thailand 2,
+Maldives 8, United Arab Emirates 9, Sri Lanka 12, Vietnam 16 and Oman 64.
+Retained candidates use explicit English/Russian country names, never numeric
+country IDs, regions or arbitrary country codes. Candidate and request countries
+must agree with the independently admitted identity anchor.
+
+The full accepted legacy-catalog → AnyTour → local-tv chain, real Library
+admission reference, accepted source names and every integrity/validity check
+remain mandatory. A native Tourvisor ID or a published channel post is not a
+substitute for that chain. No new country automatically creates AnyTour IDs,
+identity proofs, facts or approvals. Existing hotel bundles and catalogue pins
+are unchanged by this compatibility extension. Tests use synthetic memory-only
+records and compare every existing captured reference and fingerprint before
+and after; they are not production admissions or hotel coverage.
 
 ## One ordinary data release
 

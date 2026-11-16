@@ -9,7 +9,8 @@ final class ManagerHotelKnowledge
     private const MAX_MANIFEST_BYTES = 65536;
     private const MAX_CATALOGUE_BYTES = 16384;
     private const MAX_MANIFEST_SHARDS = 32;
-    private const SOURCE_COUNTRIES = ['1'=>'Egypt', '4'=>'Turkey'];
+    private const SOURCE_COUNTRIES = ['1'=>'Egypt', '4'=>'Turkey', '2'=>'Thailand', '8'=>'Maldives',
+        '9'=>'United Arab Emirates', '12'=>'Sri Lanka', '16'=>'Vietnam', '64'=>'Oman'];
     private const RETAINED_KIND = 'retained_search3_candidate';
 
     /** Shared by generation and the captured per-hotel policy revision. */
@@ -398,7 +399,13 @@ HOTEL;
     /** Explicit country names only; Search3 numeric IDs are a different namespace. */
     private static function retainedCountry(string $name): ?string
     {
-        return ['EGYPT'=>'Egypt','ЕГИПЕТ'=>'Egypt','TURKEY'=>'Turkey','ТУРЦИЯ'=>'Turkey'][self::foldName($name)] ?? null;
+        return ['EGYPT'=>'Egypt','ЕГИПЕТ'=>'Egypt','TURKEY'=>'Turkey','ТУРЦИЯ'=>'Turkey',
+            'THAILAND'=>'Thailand','ТАИЛАНД'=>'Thailand','ТАЙЛАНД'=>'Thailand',
+            'MALDIVES'=>'Maldives','МАЛЬДИВЫ'=>'Maldives',
+            'UNITED ARAB EMIRATES'=>'United Arab Emirates','UAE'=>'United Arab Emirates','ОАЭ'=>'United Arab Emirates',
+            'ОБЪЕДИНЕННЫЕ АРАБСКИЕ ЭМИРАТЫ'=>'United Arab Emirates','ОБЪЕДИНЁННЫЕ АРАБСКИЕ ЭМИРАТЫ'=>'United Arab Emirates',
+            'SRI LANKA'=>'Sri Lanka','ШРИ-ЛАНКА'=>'Sri Lanka','ШРИ ЛАНКА'=>'Sri Lanka',
+            'VIETNAM'=>'Vietnam','ВЬЕТНАМ'=>'Vietnam','OMAN'=>'Oman','ОМАН'=>'Oman'][self::foldName($name)] ?? null;
     }
 
     private static function validSelector(array $selector): bool
