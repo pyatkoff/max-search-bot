@@ -252,8 +252,7 @@ try {
         foreach(['same','other'] as $choiceIndex=>$choice){
             $user=88878100+$index*10+$choiceIndex;$chat=$platform==='max'?-$user:$user;
             $needs=['city'=>'Казань','adults'=>2,'children'=>0,'nights'=>'9','date'=>'10.01.2027','budget'=>['max'=>200000,'currency'=>'RUB']];
-            if($choice==='same')$needs['country']='Турция';
-            MaxSearchApi::$needContexts[$chat]=$needs;MaxSearchApi::$missingNeeds[$chat]=$choice==='same'?['date']:['country'];
+            MaxSearchApi::$needContexts[$chat]=$needs;MaxSearchApi::$missingNeeds[$chat]=$choice==='same'?['country','date']:['country'];
             $sentBefore=count($sent);
             if($platform==='max')cpeStartMax($user,$post['start_payload'],8900+$index*10+$choiceIndex);
             else cpeStartTelegram($user,$post['start_payload'],$dispatcher,$messenger,8900+$index*10+$choiceIndex);
@@ -264,6 +263,8 @@ try {
             $transportButtons=$sent[$sentBefore]['payload']['buttons']??$markup['inline_keyboard']??[];
             cpeCheck('two actual transport choices: '.$platform.'/'.$choice,array_column(array_merge(...$transportButtons),'text'),['В этот отель','Подобрать другой']);
             cpeCheck('entry remains unconfirmed: '.$platform.'/'.$choice,SourceHotelIntentService::projection($id)['status']??null,'unconfirmed');
+            cpeCheck('publication alone does not satisfy destination intent: '.$platform.'/'.$choice,
+                in_array('country',MaxSearchApi::getAiMissingFields($chat),true),true);
             $payload=$buttons[$choice==='same'?0:1][0]['callback_data'];
             cpeCheck('choice fits Telegram payload limit: '.$platform.'/'.$choice,strlen($payload)<=64,true);
             $incoming=['platform'=>$platform,'type'=>'callback','callback_data'=>$payload,'callback_id'=>'intent.callback.'.$user,
@@ -274,6 +275,10 @@ try {
             cpeCheck('choice asks just the next useful question: '.$platform.'/'.$choice,
                 $choice==='same'?str_contains($sent[$before]['payload']['text']??'','Когда планируете отдых?'):($sent[$before]['payload']['text']??'')==='Куда хотите поехать?',true);
             cpeCheck('choice creates no premature manager request: '.$platform.'/'.$choice,cpeEventCount($id,'manager_request'),0);
+            cpeCheck('only an explicit same-hotel choice supplies destination intent: '.$platform.'/'.$choice,
+                in_array('country',MaxSearchApi::getAiMissingFields($chat),true),$choice!=='same');
+            cpeCheck('site search still requires an actual country: '.$platform.'/'.$choice,
+                in_array('country',MaxSearchApi::getAiMissingFields($chat,true),true),true);
             $before=count($sent);$dispatcher->dispatch($incoming);
             cpeCheck('duplicate button neither repeats question nor changes intent: '.$platform.'/'.$choice,[count($sent),SourceHotelIntentService::projection($id)['status']??null],[$before,$choice==='same'?'post_hotel':'custom_request']);
             $label=ManagerCallbackPresentationService::fromMessage(['direction'=>'inbound','sender_type'=>'customer','text'=>$payload],['type'=>'callback']);
@@ -295,6 +300,8 @@ try {
             else cpeStartTelegram($user,$post['start_payload'],$dispatcher,$messenger,8940+$index*10+$choiceIndex);
             cpeCheck('confirmed source reentry is quiet: '.$platform.'/'.$choice,count($sent),$before);
             $pdo->prepare("UPDATE conversations SET status='waiting_manager' WHERE id=?")->execute([$id]);
+            cpeCheck('handoff owner invalidates the earlier qualification projection: '.$platform.'/'.$choice,
+                in_array('country',MaxSearchApi::getAiMissingFields($chat),true),true);
             $dispatcher->dispatch($incoming);
             cpeCheck('manager ownership blocks old buttons: '.$platform.'/'.$choice,[count($sent),cpeConversation($platform,$user)['status']],[$before,'waiting_manager']);
         }
@@ -322,7 +329,10 @@ try {
         cpeCheck('free text switches selection without extra click: '.$platform,SourceHotelIntentService::projection($id)['status']??null,'custom_request');
         cpeCheck('free-text choice invalidates earlier question buttons: '.$platform,SourceHotelIntentService::choose($id,['choice'=>'same','token'=>$pending['token']]),[]);
         cpeCheck('declining another field cannot silently change selection: '.$platform,SourceHotelIntentService::fromText($id,'да'),[]);
-        MaxSearchApi::$missingNeeds[$chat]=['country'];
+        // Keep this request incomplete while checking changes/replays of intent.
+        // A confirmed hotel now supplies destination intent for a complete handoff.
+        unset(MaxSearchApi::$needContexts[$chat]['date']);
+        MaxSearchApi::$missingNeeds[$chat]=['country','date'];
         $first=$input;$first['message_id'].='.first';$first['text']='Хочу в этот отель';
         ConversationRecorder::inbound($first);SourceHandlingService::handle($first);
         $second=$first;$second['message_id'].='.second';$second['text']='Подберите другой отель';
@@ -363,9 +373,11 @@ try {
                 $dispatcher->dispatch($input);
             }
             if($kind==='button_country'){
-                cpeCheck('hotel button asks the sole missing country instead of FAQ: '.$platform,
+                cpeCheck('confirmed hotel completes qualified needs without asking its country again: '.$platform,
                     [cpeConversation($platform,$user)['status'],cpeEventCount($id,'manager_request'),
-                        str_contains($sent[$beforeChoice]['payload']['text']??'','Уточните страну поездки')],['ai',0,true]);
+                        str_contains($sent[$beforeChoice]['payload']['text']??'','Уточните страну поездки')],['waiting_manager',1,false]);
+                cpeCheck('hotel confirmation never invents a canonical country: '.$platform,
+                    MaxSearchApi::$needContexts[$chat]['country']??null,null);
             }else{
                 cpeCheck('finished request does not restart questionnaire after hotel choice: '.$platform.'/'.$kind,
                     [cpeConversation($platform,$user)['status'],cpeEventCount($id,'manager_request')],['waiting_manager',1]);

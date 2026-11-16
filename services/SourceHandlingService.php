@@ -228,12 +228,12 @@ class SourceHandlingService
     {
         $chatId=$incoming['user']['chat_id'];
         require_once __DIR__.'/DialogueView.php';
+        self::$qualificationTurn=['incoming'=>$incoming,'conversation_id'=>(int)$row['id'],
+            'project_key'=>ProjectConfig::projectId(),'source_id'=>(int)$row['source_id'],
+            'before'=>self::needContext($chatId),'hotel_choice_applied'=>true];
+        self::$postContextTurn=self::$qualificationTurn;
         $missing=self::missing($chatId);
         if(!empty($selected['needs_progressed'])&&$missing===[]){
-            self::$qualificationTurn=['incoming'=>$incoming,'conversation_id'=>(int)$row['id'],
-                'project_key'=>ProjectConfig::projectId(),'source_id'=>(int)$row['source_id'],
-                'before'=>self::needContext($chatId),'hotel_choice_applied'=>true];
-            self::$postContextTurn=self::$qualificationTurn;
             require_once __DIR__.'/NeedProgressionService.php';
             NeedProgressionService::advance($chatId,['source_need_applied'=>true]);
             return;
@@ -267,6 +267,26 @@ class SourceHandlingService
         return self::$qualificationTurn!==null
             &&(string)(self::$qualificationTurn['incoming']['user']['chat_id']??'')===(string)$chatId
             &&self::$qualificationTurn['project_key']===ProjectConfig::projectId();
+    }
+
+    /** A confirmed current hotel supplies handoff intent, never a search country ID. */
+    public static function qualificationMissingFields($chatId,array $missing): array
+    {
+        if(!in_array('country',$missing,true)||!self::qualifyingTurn($chatId))return $missing;
+        try{
+            $turn=self::$qualificationTurn;
+            $incoming=$turn['incoming'];
+            if(($incoming['type']??'')!=='message'&&empty($turn['hotel_choice_applied']))return $missing;
+            $platform=(string)($incoming['platform']??'');
+            $row=self::conversation($platform,$chatId);
+            if(!$row||(int)$row['id']!==$turn['conversation_id']||(string)$row['status']!=='ai'
+                ||(int)($row['manager_id']??0)!==0||(int)$row['source_id']!==$turn['source_id']
+                ||!self::qualificationSource($row,$platform)
+                ||!self::isQualificationChoice(self::latestChoiceData((int)$row['id']),$row))return $missing;
+            $intent=SourceHotelIntentService::current((int)$row['id']);
+            if(($intent['choice']??'')!=='same'||(int)($intent['source_id']??0)!==(int)$row['source_id'])return $missing;
+            return array_values(array_diff($missing,['country']));
+        }catch(Throwable $ignored){return $missing;}
     }
 
     /** Preserve entered needs, then resolve the outstanding hotel choice before another question. */

@@ -69,6 +69,17 @@ class DialogueController
         }
 
         $status = MaxSearchApi::getCurentStatus($chatId);
+        // Inserting a need makes its value row the newest runtime status while
+        // an earlier collector is still in flight. That is not a wizard prompt.
+        // A real prompt has an empty value; explicit edits retain their owner.
+        if (SourceHandlingService::qualifyingTurn($chatId) && MaxSearchApi::getEditMode($chatId) === ''
+            && in_array((int)$status, [MaxSearchApi::$statusCityChoose, MaxSearchApi::$statusContryChoose,
+                MaxSearchApi::$statusAdults, MaxSearchApi::$statusChild, MaxSearchApi::$statusAge,
+                MaxSearchApi::$statusStars, MaxSearchApi::$statusMeal, MaxSearchApi::$statusNights,
+                MaxSearchApi::$statusDate], true)) {
+            $value = MaxSearchApi::getLastValue($chatId, $status);
+            if ($value !== false && $value !== null && $value !== '') $status = MaxSearchApi::$statusAi;
+        }
         // Explicit human help can interrupt a wizard or its completed check.
         // Keep the existing classifier, feature gate and canonical executor;
         // ordinary field answers and other V2 actions retain their current route.

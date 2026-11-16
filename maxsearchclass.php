@@ -20,6 +20,7 @@ require_once(__DIR__ . '/services/DialogueView.php');
 require_once(__DIR__ . '/services/TourResultsService.php');
 require_once(__DIR__ . '/services/NativeDateService.php');
 require_once(__DIR__ . '/services/PendingMonthStore.php');
+require_once(__DIR__ . '/services/SourceHandlingService.php');
 
 class MaxSearchApi extends MaxSearchBase
 {
@@ -70,7 +71,7 @@ class MaxSearchApi extends MaxSearchBase
     public static function showAgeButtons($chatID,$child=1){ return DialogueView::childAges($chatID,(int)$child); }
     public static function showStarsButtons($chatID){ return DialogueView::stars($chatID); }
     public static function showToursChoice($chatID,$name=''){
-        $missing = static::getAiMissingFields($chatID);
+        $missing = static::getAiMissingFields($chatID,true);
         if ($missing !== []) {
             MissingFieldQuestionService::sendForMissing($chatID, $missing);
             return '';
@@ -110,7 +111,10 @@ class MaxSearchApi extends MaxSearchBase
     public static function getAiSearchContext($chatID){
         return AiSearchContextService::contextFromSaved((array)static::getSavedData($chatID),static::statusMap(),function($id){return static::getCityByID($id);},function($id){return static::getCountryByID($id);},PendingMonthStore::requiresClarification($chatID));
     }
-    public static function getAiMissingFields($chatID){ return AiSearchContextService::missingForCurrentSearch((array)static::getSavedData($chatID),static::statusMap(),null,PendingMonthStore::requiresClarification($chatID)); }
+    public static function getAiMissingFields($chatID,bool $forSearch=false){
+        $missing=AiSearchContextService::missingForCurrentSearch((array)static::getSavedData($chatID),static::statusMap(),null,PendingMonthStore::requiresClarification($chatID));
+        return $forSearch?$missing:SourceHandlingService::qualificationMissingFields($chatID,$missing);
+    }
     public static function applyAiParameters($chatID,array $params){
         $normalized=AiSearchContextService::normalizeParameters($params,function($name){$r=static::getCityByName($name);return $r?($r['ID']??null):null;},function($name){$r=static::getCountryByName($name);return $r?($r['ID']??null):null;},function($date){return NativeDateService::isTodayOrFuture((string)$date);});
         $storageMap=AiSearchContextService::storageMap(static::statusMap()); $applied=[];
