@@ -560,10 +560,59 @@ function modeledAcquisitionAssertions(PDO $pdo):int
         &&$m($r)['excluded']['identity_ambiguous']===1&&!$pdo->inTransaction(),'reused reader rebuilds latest access admission without resurrecting denied cross-batch history');
 
     $tg();$pdo->beginTransaction();
-    for($id=1;$id<=50001;$id++)$visit($id,$now-7200);
-    $pdo->commit();$capStarted=microtime(true);$r=$read();
+    $entryCapSeedStarted=microtime(true);$entryCapBatches=0;$entryCapMaxBatch=0;
+    $entryCapColumns='project_key,source_key,platform,counter_id,source_cursor,visit_id,visit_at_unix,observed_at_unix,external_user_id,identity_status,client_id,yclid,campaign_id,region_id,payload_sha256,received_at_unix';
+    // This fixed cap fixture has exactly the legacy $visit values and order.
+    // Only these 50,001 disposable rows use batching; the general helper stays unchanged.
+    for($first=1;$first<=50001;$first+=200){
+        $size=min(200,50002-$first);$parts=[];$args=[];
+        for($offset=0;$offset<$size;$offset++){
+            $id=$first+$offset;$parts[]='(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
+            array_push($args,'anytour','tgmini','telegram','98615635',(string)$id,'entry-'.$id,
+                $now-7200,$now-7199,'90071992547411','verified','17929400001234567890',
+                '18446744073709551614','12','213',str_repeat('a',64),$now-5);
+        }
+        $exec('INSERT INTO advertising_visit_observations('.$entryCapColumns.') VALUES '.implode(',',$parts),$args);
+        $entryCapBatches++;$entryCapMaxBatch=max($entryCapMaxBatch,$size);
+    }
+    $entryCapSeedMs=(int)round((microtime(true)-$entryCapSeedStarted)*1000);
+    $entryCapCommitStarted=microtime(true);$pdo->commit();
+    $entryCapCommitMs=(int)round((microtime(true)-$entryCapCommitStarted)*1000);
+    $entryCapValidationStarted=microtime(true);$entryCapHash=hash_init('sha256');
+    $entryCapRows=0;$entryCapOrdered=true;$entryCapTypes=true;$entryCapFirstRowId=null;
+    $entryCapStatement=$pdo->query('SELECT id,'.$entryCapColumns.' FROM advertising_visit_observations ORDER BY id');
+    while($row=$entryCapStatement->fetch(PDO::FETCH_ASSOC)){
+        $entryCapRows++;
+        $entryCapFirstRowId??=(int)$row['id'];
+        $entryCapOrdered=$entryCapOrdered&&$row['source_cursor']===(string)$entryCapRows
+            &&$row['visit_id']==='entry-'.$entryCapRows
+            &&(int)$row['id']===$entryCapFirstRowId+$entryCapRows-1;
+        foreach($row as$field=>$value){
+            $clock=in_array($field,['id','visit_at_unix','observed_at_unix','received_at_unix'],true);
+            $entryCapTypes=$entryCapTypes&&($clock
+                ?is_int($value)||($mysql&&is_string($value)&&preg_match('/\A[1-9][0-9]*\z/D',$value)===1)
+                :is_string($value));
+        }
+        // PDO may expose native MySQL integer columns as decimal strings.
+        // Normalize only that representation; every identity remains a string.
+        unset($row['id']);
+        $entryCapFrame=[(string)$entryCapRows,...array_map(static fn($value)=>$value===null?null:(string)$value,array_values($row))];
+        hash_update($entryCapHash,json_encode($entryCapFrame,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES)."\n");
+    }
+    $entryCapStatement->closeCursor();$entryCapDigest=hash_final($entryCapHash);
+    // Frozen from the original per-row $visit fixture, not computed from this seed.
+    // Earlier fixture allocations may differ; retain relative PK order in both drivers.
+    $check($entryCapRows===50001&&$entryCapOrdered&&$entryCapTypes
+        &&$entryCapBatches===251&&$entryCapMaxBatch===200&&$size===1
+        &&$entryCapDigest==='17c83493a8611eb814144dfd99aba7cff9d0dc05caef1ffacc05cf7d73f576a2',
+        'bounded observation-cap batches preserve every ordered legacy value and scalar type');
+    $entryCapValidationMs=(int)round((microtime(true)-$entryCapValidationStarted)*1000);
+    $capStarted=microtime(true);$r=$read();$entryCapReadMs=(int)round((microtime(true)-$capStarted)*1000);
+    echo 'ACQUISITION_ENTRY_CAP_SEED_TECHNICAL '.json_encode(['rows'=>$entryCapRows,'batches'=>$entryCapBatches,
+        'max_batch_rows'=>$entryCapMaxBatch,'seed_ms'=>$entryCapSeedMs,'commit_ms'=>$entryCapCommitMs,
+        'validation_ms'=>$entryCapValidationMs,'reader_ms'=>$entryCapReadMs,'dataset_sha256'=>$entryCapDigest],JSON_THROW_ON_ERROR).PHP_EOL;
     echo 'ACQUISITION_ENTRY_CAP_FIXTURE_TECHNICAL '.json_encode(['reason'=>$r['reason'],
-        'query_count'=>$r['query_count'],'elapsed_ms'=>(int)round((microtime(true)-$capStarted)*1000)],JSON_THROW_ON_ERROR).PHP_EOL;
+        'query_count'=>$r['query_count'],'elapsed_ms'=>$entryCapReadMs],JSON_THROW_ON_ERROR).PHP_EOL;
     $check(!$r['available']&&in_array($r['reason'],['record_limit','byte_limit','time_limit'],true)&&$r['platforms']===null,
         'capped observation history cannot publish a partial prior-entry or zero-data partition');
 
