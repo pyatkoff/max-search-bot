@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '72a12caa1ebcd8230c37dc08a28e6c8b4bc69a13' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == 'a6dd23d845616e2ac96913495996e4f6e4ef46a2' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
@@ -27,10 +27,10 @@ jobs:
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = 72a12caa1ebcd8230c37dc08a28e6c8b4bc69a13
+          test "$(git rev-parse HEAD^)" = a6dd23d845616e2ac96913495996e4f6e4ef46a2
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
           p=tools/direct_demand/operations
-          test "$(git hash-object "$p/install-accepted-monitor660-reliability-20261117.php")" = b889ace2755724c2a21273e1028e7384f8187c3d
+          test "$(git hash-object "$p/install-accepted-monitor660-reliability-20261117.php")" = 40cc9df259a1a0d959f9a6d1d3ea4be3c7fd0087
           test "$(git hash-object "$p/inspect-monitor660-reliability-20261117.php")" = c47b51d5fc8597c387155efd9b900de3d44a1837
           php -l "$p/install-accepted-monitor660-reliability-20261117.php"
           php "$p/install-accepted-monitor660-reliability-20261117.php" --self-test
@@ -48,11 +48,22 @@ jobs:
           for protected in ['Prepare unchanged server connection and host pin','Fresh unchanged source and no competing collector or application deployment','Replace only the admitted module once under existing journal lock','Independent readback without executing the installed module']:
             assert steps[protected]=='skipped',('ORIGINAL_PROTECTED_STEP_WAS_EXECUTED',protected)
           assert previous_artifacts['total_count']==0, 'ORIGINAL_PREWRITE_ARTIFACT_UNEXPECTED'
+          second=api('max-search-bot','actions/runs/43972194096');second_jobs=api('max-search-bot','actions/runs/43972194096/jobs?per_page=100');second_artifacts=api('max-search-bot','actions/runs/43972194096/artifacts')
+          assert second['head_sha']=='082bf4d47452fb29458e97d334d5d3a6f536e951' and second['run_attempt']==1 and second['status']=='completed' and second['conclusion']=='failure'
+          assert len(second_jobs['jobs'])==1 and second_jobs['jobs'][0]['id']==133666940850
+          second_steps={st['name']:st['conclusion'] for st in second_jobs['jobs'][0]['steps']}
+          assert second_steps['Authenticate accepted source and immutable module; test only installation guards']=='success'
+          assert second_steps['Fresh unchanged source and no competing collector or application deployment']=='failure'
+          assert second_steps['Replace only the admitted module once under existing journal lock']=='skipped'
+          assert second_steps['Independent readback without executing the installed module']=='skipped'
+          assert second_artifacts['total_count']==2 and {a['id'] for a in second_artifacts['artifacts']}=={14278702647,14279156733}
+          release=api('max-search-bot','issues/comments/6682640708')
+          assert release['body']=='PR1583: установлено, выпуск свободен' and release['updated_at']=='2026-11-16T22:52:54Z'
           s=api('max-search-bot','pulls/1574');c=api('poisk-turov-test','pulls/5059')
           assert s['merged'] and s['head']['sha']=='a1dc3f6712dc74d97bf90ab46a747ed3b2db4e68'
           assert c['merged'] and c['merge_commit_sha']=='45ad1616caa1f7f96afb879439c8a21e9d345027'
           runs=[]
-          for repo,rid,head in [('max-search-bot',43952617050,'f4d4cb32bd962054dae3e65e1ffd69322cd1ad16'),('poisk-turov-test',43967512962,'45ad1616caa1f7f96afb879439c8a21e9d345027'),('poisk-turov-test',43967512983,'45ad1616caa1f7f96afb879439c8a21e9d345027'),('max-search-bot',43964804292,'4ce3d164bdf04e859389df1879a6d55e58e9a6aa')]:
+          for repo,rid,head in [('max-search-bot',43952617050,'f4d4cb32bd962054dae3e65e1ffd69322cd1ad16'),('poisk-turov-test',43967512962,'45ad1616caa1f7f96afb879439c8a21e9d345027'),('poisk-turov-test',43967512983,'45ad1616caa1f7f96afb879439c8a21e9d345027'),('max-search-bot',43964804292,'4ce3d164bdf04e859389df1879a6d55e58e9a6aa'),('max-search-bot',43971922470,'b13fd0d624308ef747df077cba79bad91ee91c21'),('max-search-bot',43973941457,'b13fd0d624308ef747df077cba79bad91ee91c21')]:
             r=api(repo,'actions/runs/'+str(rid));assert r['head_sha']==head and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success';runs.append({'repo':repo,'run_id':rid,'head':head,'conclusion':r['conclusion']})
           a=api('max-search-bot','actions/artifacts/14268746215');assert not a['expired'] and a['workflow_run']['id']==43952617050 and a['digest']=='sha256:aa742bf4ee787e5a9cee6695b4c937f9c8e2c9a5d801b75cd2c2cc54ed8921b0'
           raw=subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/max-search-bot/actions/artifacts/14268746215/zip'],timeout=60);assert hashlib.sha256(raw).hexdigest()==a['digest'].split(':')[1]
@@ -107,13 +118,13 @@ jobs:
           import json,pathlib,subprocess,os,datetime
           def api(repo,path):return json.loads(subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/'+repo+'/'+path],timeout=30))
           assert api('poisk-turov-test','git/ref/heads/main')['object']['sha']=='45ad1616caa1f7f96afb879439c8a21e9d345027'
-          assert api('max-search-bot','git/ref/heads/main')['object']['sha']=='4ce3d164bdf04e859389df1879a6d55e58e9a6aa'
+          assert api('max-search-bot','git/ref/heads/main')['object']['sha']=='b13fd0d624308ef747df077cba79bad91ee91c21'
           assert api('max-search-bot','git/ref/heads/audit/content100-bot-publication-20261101')['object']['sha']==os.environ['GITHUB_SHA']
           reads=[]
           for state in ['in_progress','queued','waiting']:
             d=api('poisk-turov-test','actions/workflows/346454799/runs?status='+state+'&per_page=100');assert d['total_count']==0 and not d['workflow_runs'],('COLLECTOR_BUSY',state)
             reads.append({'workflow_id':346454799,'status':state,'total_count':0})
-          d=api('max-search-bot','actions/runs?head_sha=4ce3d164bdf04e859389df1879a6d55e58e9a6aa&per_page=100');assert d['total_count']<=100 and len(d['workflow_runs'])==d['total_count']
+          d=api('max-search-bot','actions/runs?head_sha=b13fd0d624308ef747df077cba79bad91ee91c21&per_page=100');assert d['total_count']<=100 and len(d['workflow_runs'])==d['total_count']
           assert all(r['status']=='completed' for r in d['workflow_runs']),'APPLICATION_RELEASE_STILL_ACTIVE'
           p=pathlib.Path(os.environ['RUNNER_TEMP'])/'module660/prewrite-read.json';p.write_text(json.dumps({'at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'current_source_verified':True,'collector_status_reads':reads,'app_exact_source_runs_all_completed':True,'mutation_requests':0},indent=2)+'\n')
           print('FRESH_CODE_DELIVERY_ADMISSION_OK')
@@ -148,7 +159,7 @@ jobs:
           assert r['ok'] and r['code_replacements']==1 and r['new_count']==660 and r['bytes']==613581 and r['installed_sha256']=='41e9f0151f97691f91258ebb37714090ba0798c76db18c3870ff93bcc23d0c9a' and r['module_executions']==0
           assert all(r[k]==0 for k in ['collector_runs','post_writes','feed_writes','supplier_calls','global_journal_writes'])
           assert v['ok'] and v['installed_hook']['matches_accepted660'] and v['installed_hook']['roster_count']==660 and not v['installed_hook']['runtime_pin_mismatches']
-          assert v['journal']['pending_is_null'] and v['journal']['bytes']>=339101253 and v['app']['head']=='4ce3d164bdf04e859389df1879a6d55e58e9a6aa' and v['app']['tracked_clean']
+          assert v['journal']['pending_is_null'] and v['journal']['bytes']>=339101253 and v['app']['head']=='b13fd0d624308ef747df077cba79bad91ee91c21' and v['app']['tracked_clean']
           print('RELIABILITY660_INSTALLED_AND_INDEPENDENTLY_READ_BACK NO_PRICE_OR_COLLECTOR_EXECUTION')
           PY
       - name: Retain exact delivery outcome
