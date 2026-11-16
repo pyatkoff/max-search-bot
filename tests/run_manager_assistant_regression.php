@@ -173,6 +173,40 @@ try {
         assistantCheck($name.' hides old analysis retains tasks and rejects stale decision',!empty($fresh['ok']) && $fresh['item']['analysis_state']==='unavailable' && $fresh['item']['recommendation']===null && count($fresh['item']['tasks'])===2 && (ManagerAssistantService::decide(1,1,$old,'done')['error']??'')==='stale_context' && (int)$pdo->query('SELECT COUNT(*) FROM manager_assistant_decisions')->fetchColumn()===0);
     }
 
+    $pdo=assistantFixture(); assistantPrepare();
+    $original=ManagerAssistantService::detail(1,1)['item']['recommendation'];
+    $dismiss=ManagerAssistantService::decide(1,1,$original['revision'],'irrelevant');
+    $stored=$pdo->query("SELECT proposal_json FROM manager_prepared_replies WHERE status='ready'")->fetchColumn();
+    $changed=json_decode($stored,true,32,JSON_THROW_ON_ERROR);
+    $changed['reason']='Переформулирована проверка того же запроса клиента.';
+    $changed['draft']='Подскажите, пожалуйста, город вылета и подходящие даты поездки?';
+    $changed['checks']=['Проверить те же варианты ещё раз.'];
+    $json=ManagerAiDraftProposal::json($changed);
+    if($json===null)throw new RuntimeException('FAIL canonical regenerated proposal');
+    $stmt=$pdo->prepare("UPDATE manager_prepared_replies SET job_id=?,proposal_json=?,proposal_sha256=? WHERE status='ready'");
+    $stmt->execute([str_repeat('b',64),$json,hash('sha256',$json)]);
+    $renewed=ManagerAssistantService::detail(1,1)['item']['recommendation'];
+    assistantCheck('same canonical source and next action retains manager refusal across regenerated wording and job id',
+        !empty($dismiss['ok']) && $renewed['revision']!==$original['revision']
+        && $renewed['decision']==='irrelevant'
+        && (ManagerAssistantService::decide(1,1,$original['revision'],'open','irrelevant')['error']??'')==='stale_context');
+    $reopen=ManagerAssistantService::decide(1,1,$renewed['revision'],'open','irrelevant');
+    assistantCheck('current revision can undo a source-stable dismissal without touching tasks',
+        !empty($reopen['ok']) && ManagerAssistantService::detail(1,1)['item']['recommendation']['decision']==='open'
+        && $pdo->businessWriteAttempts===0);
+    $pdo=assistantFixture(); assistantPrepare();
+    $first=ManagerAssistantService::detail(1,1)['item']['recommendation'];
+    $pdo->prepare("INSERT INTO manager_assistant_decisions VALUES(?,?,?,?,?,?,?,?,?)")->execute([
+        1,1,'anytour',$first['revision'],str_repeat('0',64),str_repeat('1',64),'irrelevant',
+        gmdate('Y-m-d H:i:s'),gmdate('Y-m-d H:i:s')]);
+    $legacy=ManagerAssistantService::detail(1,1)['item']['recommendation'];
+    $migrate=ManagerAssistantService::decide(1,1,$legacy['revision'],'open','irrelevant');
+    assistantCheck('legacy exact-revision refusal remains visible and migrates on explicit undo',
+        $legacy['decision']==='irrelevant' && !empty($migrate['ok'])
+        && ManagerAssistantService::detail(1,1)['item']['recommendation']['decision']==='open'
+        && (int)$pdo->query("SELECT COUNT(*) FROM manager_assistant_decisions")->fetchColumn()===2
+        && $pdo->businessWriteAttempts===0);
+
     $pdo=assistantFixture(); assistantPrepare(); $old=ManagerAssistantService::detail(1,1)['item']['recommendation']['revision'];
     ManagerAssistantService::decide(1,1,$old,'done');
     $pdo->mutate("UPDATE messages SET text='Подберите тур в Турцию на двоих, бюджет 250000 рублей.' WHERE id=2"); assistantPrepare();

@@ -112,17 +112,27 @@ final class ManagerAssistantService
             if (self::ownConversation($conversationId, $actor) === null) return self::failure('not_found');
             $suffix = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql' ? ' FOR UPDATE' : '';
             $q = $pdo->prepare('SELECT decision FROM manager_assistant_decisions WHERE manager_id=? AND conversation_id=? AND recommendation_revision=? AND project_key=?'.$suffix);
-            $key = [$actor, $conversationId, $revision, ProjectConfig::projectId()];
+            $key = [$actor, $conversationId, $current['decision_key'], ProjectConfig::projectId()];
             $q->execute($key);
             $stored = $q->fetchColumn();
             $previous = $stored === false ? null : (string)$stored;
-            if ($previous === $decision) {
+            // Legacy rows were keyed by the generated text revision. Preserve
+            // an existing manager refusal until their next explicit action.
+            // The first such action copies the decision into the stable key.
+            $legacyOnly = false;
+            if ($stored === false && !hash_equals($current['decision_key'], $revision)) {
+                $q->execute([$actor, $conversationId, $revision, ProjectConfig::projectId()]);
+                $legacy = $q->fetchColumn();
+                if ($legacy !== false) { $previous = (string)$legacy; $legacyOnly = true; }
+            }
+            if ($previous === $decision && !$legacyOnly) {
                 $pdo->commit(); $started = false;
                 return self::decisionResult($actor,$conversationId,$revision,$decision,true);
             }
-            if ($previous !== $expectedDecision) return self::failure('decision_conflict');
+            if ($previous !== $expectedDecision && $previous !== $decision) return self::failure('decision_conflict');
+            $idempotent = $previous === $decision;
             $now = gmdate('Y-m-d H:i:s');
-            if ($previous === null) {
+            if ($stored === false) {
                 $q = $pdo->prepare('INSERT INTO manager_assistant_decisions (manager_id,conversation_id,project_key,recommendation_revision,context_revision,instruction_revision,decision,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)');
                 $q->execute([$actor,$conversationId,ProjectConfig::projectId(),$revision,$current['context_revision'],$current['instruction_revision'],$decision,$now,$now]);
             } else {
@@ -131,7 +141,7 @@ final class ManagerAssistantService
                 if ($q->rowCount() !== 1) return self::failure('decision_conflict');
             }
             $pdo->commit(); $started = false;
-            return self::decisionResult($actor,$conversationId,$revision,$decision,false);
+            return self::decisionResult($actor,$conversationId,$revision,$decision,$idempotent);
         } catch (Throwable $ignored) { return self::failure('assistant_unavailable'); }
         finally { if ($started && $pdo instanceof PDO && $pdo->inTransaction()) $pdo->rollBack(); }
     }
@@ -177,10 +187,14 @@ final class ManagerAssistantService
         $recommendation = $suspended?null:self::currentRecommendation($id, $actor,(string)$conversation['project_key']);
         if ($recommendation !== null) {
             $q = ConversationDb::connection()->prepare('SELECT decision FROM manager_assistant_decisions WHERE manager_id=? AND conversation_id=? AND recommendation_revision=? AND project_key=?');
-            $q->execute([$actualOwner,$id,$recommendation['revision'],$conversation['project_key']]);
+            $q->execute([$actualOwner,$id,$recommendation['decision_key'],$conversation['project_key']]);
             $decision = $q->fetchColumn();
+            if ($decision === false && !hash_equals($recommendation['decision_key'], $recommendation['revision'])) {
+                $q->execute([$actualOwner,$id,$recommendation['revision'],$conversation['project_key']]);
+                $decision = $q->fetchColumn();
+            }
             $recommendation['decision'] = $decision === false ? null : (string)$decision;
-            unset($recommendation['context_revision'], $recommendation['instruction_revision']);
+            unset($recommendation['decision_key'], $recommendation['context_revision'], $recommendation['instruction_revision']);
         }
         $taskRows = [];
         foreach (LeadTaskService::listForConversation($id) as $task) {
@@ -254,7 +268,17 @@ final class ManagerAssistantService
         $proposal = $prepared['proposal'];
         // Context alone does not include instruction/proposal identity. Bind both.
         $revision = hash('sha256', json_encode(['manager_assistant_recommendation_v1',$prepared['job_id'],$prepared['revision'],$proposal],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
-        return ['revision'=>$revision, 'context_revision'=>$prepared['revision'], 'instruction_revision'=>$instruction,
+        // Exact revision is still the UI/CAS fence. The private decision key
+        // instead binds to the canonical, current customer input and action.
+        // AI wording, job_id, instruction changes or TTL cannot resurrect
+        // a dismissed suggestion for precisely the same source and action.
+        // If no current input can be proven, retain the old exact behavior.
+        $source = ManagerPreparationEligibility::input(ConversationDb::connection(),$id);
+        $decisionKey = $source === null ? $revision : hash('sha256', json_encode([
+            'manager_assistant_decision_source_v1',(string)($snapshot['project_key'] ?? $project ?? ProjectConfig::projectId()),
+            $id,$source,$proposal['next_action'],
+        ],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        return ['revision'=>$revision, 'decision_key'=>$decisionKey, 'context_revision'=>$prepared['revision'], 'instruction_revision'=>$instruction,
             'latest_message_id'=>(int)$prepared['latest_message_id'], 'prepared_at'=>$prepared['prepared_at'], 'expires_at'=>$prepared['expires_at'],
             'next_action'=>$proposal['next_action'], 'reason'=>$proposal['reason'], 'checks'=>$proposal['checks'],
             // Display-only preview. The composer still obtains and validates the

@@ -267,3 +267,22 @@ native PHP server and PDO SQLite. The prepared visual spec is
 `tests/visual/manager-promise-plan.spec.js`; the existing release owner must add
 it to the explicit Manager2 visual inventory and run the required browsers.
 Test discovery or PHP syntax checks are not those native/browser gates.
+
+
+### Same-source refusal identity (draft PR1576; not a release admission)
+
+The active assistant uses the exact generated recommendation revision for the
+current UI/CAS check. A separate private decision source key can preserve
+“Убрать” and “Вернуть” when the **canonical current customer input and
+next-action code** remain the same but the saved model wording, job ID, prompt
+version or expiry changes. No new task or customer message is written. An old
+exact-revision decision remains readable and can be adopted on the next explicit
+manager decision; context and permission checks still precede the decision.
+
+This intentionally is **not** a full semantic-identity guarantee. A new
+customer message, even a courtesy message, can change the canonical input
+receipt, while a same-source profile update may require a distinct request
+boundary not represented by this key. An unavailable input retains the old
+exact-revision behavior. We must not claim that an AI rewording hash alone solves
+these cases or deploy this draft as a complete plan. The stable request/trip
+anchor and verified post-manager action remain separate acceptance gates.

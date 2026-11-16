@@ -111,6 +111,24 @@ class AiMessageHandler
                     return;
                 }
 
+                // An unsupported named departure must never be replaced by
+                // the implicit Moscow default in ordinary (non-hotel) intake.
+                // Let recognized trip facts, resort hints and questions retain
+                // their existing parser/AI routes.
+                if (($missingNow[0] ?? '') === 'city' && !$departure
+                    && DepartureCityResolver::isUnresolvedCityLikeAnswer($userText)
+                    // A recognized active city may have lost a concurrent write;
+                    // leave that case on its original overlap/recovery path.
+                    && DepartureCityResolver::resolveFieldValue($userText) === false
+                    && DestinationHintService::countryFromText($userText) === '') {
+                    $otherFacts = LocalAiFallbackService::parameters($userText, $current);
+                    unset($otherFacts['city']);
+                    if ($otherFacts === []) {
+                        MissingFieldQuestionService::send($chat_id, 'city', ['unresolved_city'=>true]);
+                        return;
+                    }
+                }
+
                 // Сначала классифицируем сообщение. Полноценные запросы по-прежнему
                 // проходят через AI, но явные факты из текста применяем до внешнего вызова.
                 // Это сохраняет прогресс и позволяет задать следующий вопрос даже при timeout/error AI.
