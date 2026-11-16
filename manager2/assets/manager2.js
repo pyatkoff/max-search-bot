@@ -30,9 +30,13 @@
     const entry=document.querySelector('meta[name="selection-editor-entry"]')?.content;
     return entry==='https://tours.anytoour.ru/editor.php'?entry:'';
   }
+  function selectionAvailable(c=S.detail?.conversation){
+    const conversation=S.detail?.conversation,id=Number(S.current),manager=Number(S.manager?.id||0);
+    return !S.authExpired&&Number.isSafeInteger(manager)&&manager>0&&Number.isSafeInteger(id)&&id>0&&Number(c?.id)===id&&Number(conversation?.id)===id&&conversation.request_kind==='travel'&&window.WorkspaceV2Conversation?.hasReadAccess?.()===true;
+  }
   function selectionNavigationContext(){
     const owner=window.WorkspaceV2Conversation;
-    if(S.authExpired||!owner?.canNavigateMessages?.())return null;
+    if(!selectionAvailable()||owner?.canNavigateMessages?.()!==true)return null;
     const target=owner.captureReplyContext?.(),conversation=S.detail?.conversation;
     if(!target||!Number.isSafeInteger(target.managerId)||target.managerId<=0||!Number.isSafeInteger(target.conversationId)||target.conversationId<=0)return null;
     if(target.managerId!==Number(S.manager?.id)||target.conversationId!==Number(S.current)||target.conversationId!==Number(conversation?.id)||target.authGeneration!==S.authGeneration||target.openGeneration!==owner.getOpenGeneration?.())return null;
@@ -40,7 +44,7 @@
   }
   function installSelectionLoader(){
     // The workspace owns only a lightweight launcher. Data, recovery and writes
-    // remain in the unchanged, sealed editor and its canonical host adapter.
+    // remain in the sealed editor and its canonical host adapter.
     if(window.WorkspaceV2TourSelection)return;
     const names=['script','host','style'];
     const refs=names.map(name=>document.querySelector('meta[name="m2-selection-'+name+'"]')?.content||'');
@@ -50,8 +54,8 @@
     let intent=(()=>{const u=new URL(location.href),value=u.searchParams.get('selection'),owner=u.searchParams.get('collector_actor');if(u.searchParams.getAll('selection').length!==1||u.searchParams.getAll('collector_actor').length!==1||!/^\d+$/.test(value||'')||!/^\d+$/.test(owner||''))return null;const conversation=Number(value),manager=Number(owner);return Number.isSafeInteger(conversation)&&conversation>0&&String(conversation)===value&&Number.isSafeInteger(manager)&&manager>0&&String(manager)===owner&&u.hash==='#conversation='+value?{conversation,manager}:null})();
     const actor=()=>S.authExpired?0:Number(S.manager?.id||0);
     const capture=(c=S.detail?.conversation)=>({actor:actor(),conversation:Number(c?.id||0),auth:Number(S.authGeneration||0),open:Number(window.WorkspaceV2Conversation?.getOpenGeneration?.()||0)});
-    const current=target=>{const now=capture();return !!target&&target.actor>0&&target.conversation>0&&target.actor===now.actor&&target.conversation===now.conversation&&target.conversation===Number(S.current)&&target.auth===now.auth&&target.open===now.open};
-    const canOpen=c=>!!actor()&&Number(c?.id)===Number(S.current);
+    const current=target=>{const now=capture();return selectionAvailable()&&!!target&&target.actor>0&&target.conversation>0&&target.actor===now.actor&&target.conversation===now.conversation&&target.conversation===Number(S.current)&&target.auth===now.auth&&target.open===now.open};
+    const canOpen=selectionAvailable,canStart=c=>canOpen(c)&&window.WorkspaceV2Conversation?.canNavigateMessages?.()===true;
     const launcher=()=>document.querySelector(window.matchMedia('(max-width:740px)').matches?'.m2ConversationMenu>div':'.conversationTitleRow');
     function clearIntent(){intent=null;const u=new URL(location.href);u.searchParams.delete('selection');u.searchParams.delete('collector_actor');history.replaceState(history.state,'',u.pathname+u.search+u.hash)}
     function assetUrls(){
@@ -116,9 +120,9 @@
       if(!prompt.open)prompt.showModal();
     }
     async function open(c){
-      const target=capture(c);if(!canOpen(c)||!current(target))return;
+      const target=capture(c);if(!canStart(c)||!current(target))return;
       const token=++generation;
-      if(editor){closePrompt();return editor.open(c)}
+      if(editor){closePrompt();return editor.open(S.detail.conversation)}
       showPrompt(c,target);
       let timeout;
       try{
@@ -127,16 +131,20 @@
         // only the missing asset after that explicit action.
         const value=await Promise.race([ensureEditor(),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('selection_load_timeout')),15000)})]);
         if(token!==generation||!current(target))return;
-        closePrompt();value.sync(c);return value.open(c);
+        if(!canStart(c)){closePrompt();return}
+        closePrompt();value.sync(S.detail.conversation);return value.open(S.detail.conversation);
       }catch(error){
         if(token!==generation||!current(target))return;
+        if(!canStart(c)){closePrompt();return}
         $('m2SelectionLoadingStatus').textContent='Не удалось открыть подборку. Можно закрыть это окно и продолжить переписку.';
         $('m2SelectionRetry').hidden=!['selection_asset_network','selection_load_timeout'].includes(error.message);
       }finally{clearTimeout(timeout);if(token===generation&&!current(target))closePrompt()}
     }
     function sync(c){
       if(prompt?.open&&!current(promptTarget))cancel();
-      if(editor){editor.sync(c);return}
+      // Consume an unsupported return only after its canonical detail arrives.
+      if(intent&&Number(S.current)>0&&Number(c?.id)===Number(S.current)&&Number(S.detail?.conversation?.id)===Number(S.current)&&S.detail.conversation.request_kind!=='travel')clearIntent();
+      if(editor){editor.sync(c);syncSelectionLauncher();return}
       const root=launcher();if(!root)return;
       let button=$('tourSelectionOpen');
       if(!canOpen(c)){button?.remove();syncSelectionLauncher();return}
@@ -157,6 +165,7 @@
   }
   function syncSelectionLauncher(){
     const entry=selectionEditorEntry(),button=$('tourSelectionOpen');
+    if(!selectionAvailable()){button?.remove();$('m2SelectionInPanel')?.remove();syncPromiseSelectionLauncher();return}
     if(button){
       if(entry){
         button.removeAttribute('aria-haspopup');button.removeAttribute('aria-controls');
@@ -167,14 +176,14 @@
       }
     }
     let local=$('m2SelectionInPanel');
-    if(entry&&!local&&conversationMenuActions){
+    if(entry&&button&&!local&&conversationMenuActions){
       // Existing unsaved or uncertain editor work belongs to this tab. Keep an
       // explicit route to its canonical recovery without reading/copying it.
       local=document.createElement('button');local.id='m2SelectionInPanel';local.type='button';local.className='actionBtn';
       local.textContent='Открыть подборку в панели';local.setAttribute('aria-haspopup','dialog');local.setAttribute('aria-controls','tourSelectionDialog');
       conversationMenuActions.before(local);
     }
-    if(local)local.hidden=!entry||!button||!S.manager||S.authExpired||Number(S.current)!==Number(S.detail?.conversation?.id);
+    if(local)local.hidden=!entry||!button;
     syncPromiseSelectionLauncher();
   }
   const promiseSelectionAssets=new Map();
@@ -220,7 +229,7 @@
     if(!conversationMenuActions)return;
     let button=$('m2PromiseSelectionOpen');
     if(!button){button=document.createElement('button');button.id='m2PromiseSelectionOpen';button.type='button';button.className='actionBtn';button.textContent='Связать подборку с обещанием';button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','promiseSelectionDialog');button.onclick=()=>openPromiseSelection(button);registerConversationTool(button)}
-    button.hidden=!S.manager||S.authExpired||S.detail?.conversation?.project_key!=='anytour'||Number(S.current)!==Number(S.detail?.conversation?.id);
+    button.hidden=!selectionAvailable()||S.detail?.conversation?.project_key!=='anytour';
   }
   document.addEventListener('click',event=>{
     const button=event.target?.closest?.('#tourSelectionOpen, #m2SelectionInPanel');

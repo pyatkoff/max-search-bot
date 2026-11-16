@@ -92,7 +92,7 @@ global.AnyTourHotelKnowledgeView=Object.freeze({mount});
 const contract='tour-selection-editor-host-v1';
 let mounted=null;
 function mount(host){
-if(!host||host.contract!==contract||!['capture','isCurrent','canOpen','canEdit','launcher','request','formatTime','openCollector','takeCollectorIntent','activate'].every(k=>typeof host[k]==='function')||typeof host.origin!=='string')throw new TypeError('Invalid selection editor host');
+if(!host||host.contract!==contract||!['capture','isCurrent','canOpen','canEdit','launcher','request','formatTime','openCollector','takeCollectorIntent','activate'].every(k=>typeof host[k]==='function')||typeof host.origin!=='string'||host.canStart!==undefined&&typeof host.canStart!=='function')throw new TypeError('Invalid selection editor host');
 if(mounted)throw new Error('Selection editor already mounted');
 const $=id=>document.getElementById(id),esc=value=>{const node=document.createElement('div');node.textContent=value??'';return node.innerHTML};
 const endpoint='tour-selections-api.php';
@@ -321,7 +321,8 @@ function ensure(){
   });
 }
 async function open(c){
-  if(!host.canOpen(c))return;
+  // Readiness gates a new open, never the receipt of an existing save or send.
+  if(!host.canOpen(c)||typeof host.canStart==='function'&&host.canStart(c)!==true)return;
   close();tripPanel=null;previewIssues=[];epoch++;context=capture(c);version=0;draft=empty();selected='';dirty=false;busy=false;pending=null;conflict=null;comparison=null;rawAges={};canEdit=false;publication=null;preview=false;sending=false;sharing=false;interestLoading=false;offerDetailsOpen=false;photoEditOffer='';restore();offerDetailsOpen=dirty||!!pending||!!conflict;ensure();returnFocus=$('tourSelectionOpen')?.closest('details')?.querySelector('summary')||$('tourSelectionOpen');
   $('tsTitle').textContent=c.display_name||'Турист';$('tsRecipient').textContent=(c.channel==='telegram'?'Telegram':c.channel==='max'?'MAX':String(c.channel||''))+' · '+(host.notice||'Сначала предпросмотр, затем отправка');
   render();if(!dialog.open)dialog.showModal();await load();
