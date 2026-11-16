@@ -124,6 +124,9 @@ if($action==='detail'){
     }catch(Throwable $e){out(['ok'=>false,'error'=>'conversation_load_failed'],500);}
     if(!$d) out(['ok'=>false,'error'=>'not_found'],404);
 
+    // Project the existing business resolver only from the authorized detail.
+    $d['conversation']['request_kind']=ManagerConversationService::requestKind($d['conversation']);
+
     // This is panel context, not a stored or delivered bot message. Older
     // history pages must not replace the context from the latest detail.
     if ($beforeId===0) $d['handoff_context']=null;

@@ -70,7 +70,7 @@ async function setup(options={}){
   };
   h.setHook(async(url,request)=>{
     if(intercept){const result=await intercept(url,request);if(result!==undefined&&result!==null)return result;}
-    if(url==='api.php'&&request.action==='detail')return response({ok:true,conversation:{...h.conversation,id:request.conversation_id,project_key:'anytour'},messages:sourceMessages()});
+    if(url==='api.php'&&request.action==='detail')return response({ok:true,conversation:{...h.conversation,id:request.conversation_id,project_key:'anytour',request_kind:'travel'},messages:sourceMessages()});
     if(url!=='pipeline-api.php')return null;
     if(request.action==='detail')return response(lead(request.conversation_id));
     if(request.action==='promise_context')return response(context(request));

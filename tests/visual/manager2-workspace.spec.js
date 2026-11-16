@@ -20,10 +20,10 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   }
   const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[],pendingMetadata=[];
   let authenticated=!anonymous,subscribed=false,currentTourChoices=tourChoices;
-  let lifecycleHandler=null,stateHandler=null,readHandler=null,logoutHandler=null,bookingHandler=null;const conversationOverrides=new Map(),inboxOverrides=new Map(),pipelineOverrides=new Map(),leadOverrides=new Map(),messageOverrides=new Map();
+  let lifecycleHandler=null,stateHandler=null,readHandler=null,logoutHandler=null,bookingHandler=null,sendHandler=null;const conversationOverrides=new Map(),inboxOverrides=new Map(),pipelineOverrides=new Map(),leadOverrides=new Map(),messageOverrides=new Map();
   const manager={id:7,role,display_name:'Мария',is_working:true};
   const tasks=[{id:21,title:'Проверить отели у моря в бюджете',status:'open',due_state:'today',due_at_utc:'2026-10-14 07:00:00',is_pinned:true,assigned_manager_name:'Мария'},{id:22,title:'Отправить подборку клиенту',status:'open',due_state:'overdue',due_at_utc:'2026-10-13 09:00:00',assigned_manager_name:'Мария'},{id:23,title:'Уточнить состав туристов',status:'done',due_state:'done',assigned_manager_name:'Мария'}];
-  const conversation=id=>({id,manager_id:otherOwner?8:7,manager_name:otherOwner?'Людмила':'Мария',status:'manager',channel:'telegram',source_id:1,source_name:'AnyTour',display_name:id===11?'Анна Морозова':'Алексей Иванов',...conversationOverrides.get(id)});
+  const conversation=id=>({id,request_kind:'travel',manager_id:otherOwner?8:7,manager_name:otherOwner?'Людмила':'Мария',status:'manager',channel:'telegram',source_id:1,source_name:'AnyTour',display_name:id===11?'Анна Морозова':'Алексей Иванов',...conversationOverrides.get(id)});
   const messages=Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?7:null,text:i===34?'Посмотрите, пожалуйста, варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Подбираем семейный отдых в Турции, обсуждаем отели и даты.',created_at:'2026-10-13 12:00:00'}));
   if(replyAudio)messages[0].attachments=[{type:'audio',name:'Тестовое аудио',url:replyEditorAudio()}];
   if(serviceEvents)messages.push({id:36,direction:'inbound',sender_type:'customer',text:'manager_after_tours',service_action:{type:'callback',label:'Клиент запросил менеджера после подбора туров',raw_payload:'manager_after_tours'},created_at:'2026-10-13 12:01:00'},{id:37,direction:'inbound',sender_type:'customer',text:'manager_after_tours',created_at:'2026-10-13 12:02:00'});
@@ -96,7 +96,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
         if(result.raw!==undefined)return route.fulfill({status:result.status||200,contentType:'application/json',body:result.raw});
         return reply(result.body,result.status||200);
       }
-      if(data.action==='send'){sends.push(data);messages.push({id:100+sends.length,sender_type:'manager',manager_id:7,text:data.text,created_at:'2026-10-13 12:01:00'});return reply({ok:true})}
+      if(data.action==='send'){if(sendHandler)await sendHandler(data);sends.push(data);messages.push({id:100+sends.length,sender_type:'manager',manager_id:7,text:data.text,created_at:'2026-10-13 12:01:00'});return reply({ok:true})}
       if(data.action==='set_working'){manager.is_working=data.working;return reply({ok:true,manager})}
     }
   if(url.pathname==='/manager/personal-workspace-api.php'&&data.action==='snapshot')return reply(require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot());
@@ -142,7 +142,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
     }
     unexpected.push(req.method()+' '+url.pathname+' '+data.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
   });
-  const state={calls,unexpected,errors,sends,tasks,manager,setLead:(id,patch)=>leadOverrides.set(id,{...leadOverrides.get(id),...patch}),setMessages:(id,value)=>messageOverrides.set(id,value),setBookingHandler:fn=>{bookingHandler=fn},setLogoutHandler:fn=>{logoutHandler=fn},setTourChoices:value=>{currentTourChoices=value},setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setInboxRow:(id,patch)=>inboxOverrides.set(id,{...inboxOverrides.get(id),...patch}),setReadHandler:fn=>{readHandler=fn},setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
+  const state={calls,unexpected,errors,sends,tasks,manager,setLead:(id,patch)=>leadOverrides.set(id,{...leadOverrides.get(id),...patch}),setMessages:(id,value)=>messageOverrides.set(id,value),setBookingHandler:fn=>{bookingHandler=fn},setLogoutHandler:fn=>{logoutHandler=fn},setTourChoices:value=>{currentTourChoices=value},setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setInboxRow:(id,patch)=>inboxOverrides.set(id,{...inboxOverrides.get(id),...patch}),setReadHandler:fn=>{readHandler=fn},setSendHandler:fn=>{sendHandler=fn},setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
     async releaseMetadata(status=200){const pending=pendingMetadata.splice(0);pending.forEach(item=>item.release(status));await Promise.all(pending.map(async item=>{const response=await item.request.response();if(response)await response.finished()}))}};
   // Project/channel fixtures must be settled before the first inbox and avatar requests.
   if(initialFixture)await initialFixture(state);
@@ -178,9 +178,9 @@ async function readable(page,selector){
 async function capture(page,browser,width,state){fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({animations:'disabled',path:`manager2-artifacts/${browser}-${width}-${state}.png`})}
 
 function businessCardFixture(s){
-  s.setConversation(11,{project_key:'appleservice39',channel:'max',source_name:'Apple Service39',repair_context:{model:'iPhone 16',service:'Замена дисплея'}});
+  s.setConversation(11,{request_kind:'device_repair',project_key:'appleservice39',channel:'max',source_name:'Apple Service39',repair_context:{model:'iPhone 16',service:'Замена дисплея'}});
   s.setLead(11,{request_kind:'device_repair',trip:{},source:{project_label:'Apple Service39',origin_label:'MAX · ремонт',channel:'max'}});
-  s.setConversation(12,{project_key:'client_neutral',channel:'max',source_name:'Сервисная компания'});
+  s.setConversation(12,{request_kind:'general',project_key:'client_neutral',channel:'max',source_name:'Сервисная компания'});
   s.setLead(12,{request_kind:'general',trip:{},source:{project_label:'Сервисная компания',origin_label:'MAX · обращение',channel:'max'}});
   for(const [i,id] of [11,12].entries()){
     s.setInboxRow(id,{project_label:i?'Сервисная компания':'Apple Service39',origin_label:'MAX',trip_summary:'',last_text:i?'Хочу уточнить условия услуги':'Нужно заменить дисплей iPhone 16'});
@@ -199,6 +199,14 @@ async function noTravelRequestFields(page){
   await expect(page.locator('#leadStage')).toBeVisible();
   await expect(page.locator('#leadCard a[href="tel:+79991234567"]')).toBeVisible();
 }
+async function noTravelTools(page){
+  await expect(page.locator('#tourSelectionOpen')).toHaveCount(0);
+  await expect(page.locator('#m2SelectionInPanel')).toHaveCount(0);
+  await expect(page.locator('#m2PromiseSelectionOpen')).not.toBeVisible();
+  await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();
+  await expect(page.locator('#m2SelectionLoading')).not.toBeVisible();
+  await expect(page.locator('#replyText')).toHaveAttribute('placeholder','Напишите клиенту…');
+}
 async function businessCardFits(page,width){
   await page.locator('#leadZone').evaluate(el=>{el.scrollTop=0});
   await expect.poll(async()=>{const box=await page.locator('#leadCard').boundingBox();return box?box.x+box.width:Infinity}).toBeLessThanOrEqual(width+1);
@@ -206,35 +214,38 @@ async function businessCardFits(page,width){
   await noOverflow(page);
 }
 for(const width of [390,430,768,1440])test('Manager2 business request card keeps repair and neutral replies separate at '+width,async({page,browserName})=>{
+  const assets=selectionAssetRequests(page);
   await page.setViewportSize({width,height:900});const s=await setup(page,{initialFixture:businessCardFixture});
-  await openLead(page,11);await editorReady(page);
+  await openLead(page,11);await editorReady(page);await noTravelTools(page);
   await page.locator('#replyText').fill('Ответ по замене дисплея');
   await page.locator('#replyFile').setInputFiles({name:'repair.txt',mimeType:'text/plain',buffer:Buffer.from('Repair file, never uploaded')});
   await expect(page.locator('#mediaSelection')).toContainText('repair.txt');
   await page.evaluate(()=>{window.businessFiles={repair:WorkspaceV2Media.captureSelection().rows[0].row.file}});
+  await noOverflow(page);await capture(page,browserName,width,'business-shell-repair');
   await showCard(page);
   const repair=page.locator('#leadCard .leadRequestContext[data-request-kind="device_repair"]');
   await expect(repair.locator('.leadPanelTitle')).toHaveText('Контекст ремонта');
   await expect(repair.locator('.leadDetailRow .label')).toHaveText(['Модель','Услуга']);
   await expect(repair.locator('.leadDetailRow .value')).toHaveText(['iPhone 16','Замена дисплея']);
   await noTravelRequestFields(page);await businessCardFits(page,width);await capture(page,browserName,width,'business-card-repair');
-  await showChat(page);await openLead(page,12);await editorReady(page);
+  await showChat(page);await openLead(page,12);await editorReady(page);await noTravelTools(page);
   await expect(page.locator('#replyText')).toHaveValue('');expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(false);
   await page.locator('#replyText').fill('Ответ по условиям услуги');
   await page.locator('#replyFile').setInputFiles({name:'general.txt',mimeType:'text/plain',buffer:Buffer.from('General file, never uploaded')});
   await expect(page.locator('#mediaSelection')).toContainText('general.txt');
   await page.evaluate(()=>{businessFiles.general=WorkspaceV2Media.captureSelection().rows[0].row.file});
+  await noOverflow(page);await capture(page,browserName,width,'business-shell-general');
   await showCard(page);await expect(page.locator('#leadCard .leadRequestContext')).toHaveCount(0);
   await expect(page.locator('#leadCard')).not.toContainText('iPhone 16');
   await noTravelRequestFields(page);await businessCardFits(page,width);await capture(page,browserName,width,'business-card-general');
   for(const [id,text,file,key] of [[11,'Ответ по замене дисплея','repair.txt','repair'],[12,'Ответ по условиям услуги','general.txt','general']]){
-    await showChat(page);await openLead(page,id);await editorReady(page);
+    await showChat(page);await openLead(page,id);await editorReady(page);await noTravelTools(page);
     await expect(page.locator('#replyText')).toHaveValue(text);await expect(page.locator('#mediaSelection')).toContainText(file);
     expect(await page.evaluate(key=>WorkspaceV2Media.captureSelection().rows[0].row.file===businessFiles[key],key)).toBe(true);
     await showCard(page);await noTravelRequestFields(page);
     if(id===11)await expect(repair).toContainText('iPhone 16');else await expect(page.locator('#leadCard .leadRequestContext')).toHaveCount(0);
   }
-  expect(s.sends).toEqual([]);expect(s.calls.filter(call=>/^set_|^create_|^save_|^reassign/.test(call.action||''))).toEqual([]);
+  expect(assets).toEqual([]);expect(s.sends).toEqual([]);expect(s.calls.filter(call=>/^set_|^create_|^save_|^reassign/.test(call.action||''))).toEqual([]);
   expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
 for(const width of [390,1440])test('Manager2 business request card handles unknown context and retains an ordinary task at '+width,async({page,browserName})=>{
@@ -385,6 +396,26 @@ async function retainedSelectionEntryDraft(page){
   });
   expect(retained).toEqual({reply:true,form:true,input:true,file:true,preview:true,selection:[3,11,'backward'],anchor:true,current:true,auth:true,open:true});
 }
+for(const width of [390,1440])test('Manager2 business shell uses only the authorized request kind at '+width,async({page,browserName})=>{
+  const assets=selectionAssetRequests(page);
+  await page.setViewportSize({width,height:900});const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php',initialFixture:s=>s.setConversation(11,{request_kind:undefined,project_key:'anytour'})});
+  await openLead(page);await editorReady(page);await selectionEntryDraft(page);await noTravelTools(page);
+  // The positive trip in the secondary card and the familiar project name are
+  // deliberately insufficient without the authorized conversation projection.
+  await noOverflow(page);await capture(page,browserName,width,'business-shell-unknown');
+  for(const kind of [null,'Travel',{kind:'travel'},'unexpected_profile','general','device_repair']){
+    s.setConversation(11,{request_kind:kind});
+    expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);
+    await noTravelTools(page);await retainedSelectionEntryDraft(page);
+  }
+  s.setConversation(11,{request_kind:'travel',project_key:'configured_travel_project'});
+  expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);
+  await expect(page.locator('#tourSelectionOpen')).toHaveCount(1);await expect(page.locator('#m2SelectionInPanel')).toHaveCount(1);
+  await retainedSelectionEntryDraft(page);expect(assets).toEqual([]);
+  expect(s.sends).toEqual([]);expect(s.calls.filter(call=>/^set_|^create_|^save_|^reassign/.test(call.action||''))).toEqual([]);
+  expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
 for(const width of [390,1440])test('Manager2 standalone selection entry preserves the original conversation at '+width,async({page})=>{
   const assets=selectionAssetRequests(page),admitted='https://tours.anytoour.ru/editor.php',navigations=[],unexpected=[];
   // Intercept the first popup request at context level. Only navigation is under
@@ -409,7 +440,7 @@ for(const width of [390,1440])test('Manager2 standalone selection entry preserve
 });
 for(const packageId of [null,'a'.repeat(64)])test('Manager2 loads the same-tab editor on demand and reuses its '+(packageId?'sealed':'workspace')+' assets',async({page})=>{
   const assets=selectionAssetRequests(page);
-  await page.setViewportSize({width:390,height:900});const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php',selectionAssetPackage:packageId});await openLead(page);await selectionEntryDraft(page);
+  await page.setViewportSize({width:390,height:900});const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php',selectionAssetPackage:packageId,initialFixture:s=>{s.setConversation(12,{request_kind:'device_repair',project_key:'appleservice39'});s.setLead(12,{request_kind:'device_repair',trip:{}})}});await openLead(page);await selectionEntryDraft(page);
   expect(assets).toEqual([]);const editorReads=await selectionReadFixture(page);
   await page.evaluate(()=>{
     const core=window.WorkspaceV2TourSelection;window.selectionEntryCore=core;window.selectionPanelCalls=[];
@@ -427,7 +458,42 @@ for(const packageId of [null,'a'.repeat(64)])test('Manager2 loads the same-tab e
   await openSelectionInPanel(page);await expect(page.locator('#tsStatus')).toContainText('загружен');await expect(page.locator('#tourSelectionDialog')).toBeVisible();
   expect(editorReads).toHaveLength(2);expect(assets.slice().sort()).toEqual(['host','script','style']);
   await page.locator('#tsClose').click();await retainedSelectionEntryDraft(page);
+  // Exercise the real mounted host after a canonical business switch. Its
+  // resize listener must not restore either selection action for this client.
+  await openLead(page,12);await editorReady(page);await noTravelTools(page);
+  await page.locator('#replyText').fill('Ответ клиенту по ремонту');
+  await page.setViewportSize({width:430,height:900});await noTravelTools(page);
+  await page.evaluate(()=>WorkspaceV2TourSelection.open(WorkspaceV2.S.detail.conversation));
+  await noTravelTools(page);expect(editorReads).toHaveLength(2);expect(assets.slice().sort()).toEqual(['host','script','style']);
+  s.setConversation(12,{request_kind:'general',project_key:'client_neutral'});s.setLead(12,{request_kind:'general',trip:{}});
+  expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);
+  await page.setViewportSize({width:768,height:900});await noTravelTools(page);await expect(page.locator('#replyText')).toHaveValue('Ответ клиенту по ремонту');
+  await page.evaluate(()=>WorkspaceV2TourSelection.open(WorkspaceV2.S.detail.conversation));
+  await noTravelTools(page);expect(editorReads).toHaveLength(2);expect(assets.slice().sort()).toEqual(['host','script','style']);
+  await page.setViewportSize({width:390,height:900});await openLead(page,11);await editorReady(page);
+  await expect(page.locator('#replyText')).toHaveValue('Ответ клиенту остаётся в переписке');await expect(page.locator('#mediaSelection')).toContainText('selection-entry.png');
+  expect(await page.evaluate(()=>WorkspaceV2Media.captureSelection().rows[0].row.file===selectionEntryProof.file)).toBe(true);
+  await openSelectionInPanel(page);await expect(page.locator('#tsStatus')).toContainText('загружен');expect(editorReads).toHaveLength(3);
+  await page.locator('#tsClose').click();expect(assets.slice().sort()).toEqual(['host','script','style']);
   expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+for(const width of [390,1440])test('Manager2 keeps the travel launcher after an ordinary reply without resize at '+width,async({page,browserName})=>{
+  const assets=selectionAssetRequests(page);
+  await page.setViewportSize({width,height:900});const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php',selectionAssetPackage:width===1440?'b'.repeat(64):null});
+  await openLead(page);await editorReady(page);const reads=await selectionReadFixture(page);
+  await openSelectionInPanel(page);await expect(page.locator('#tsStatus')).toContainText('загружен');await page.locator('#tsClose').click();
+  await page.evaluate(()=>{window.businessReplyNodes={reply:document.querySelector('#replyText'),form:document.querySelector('#composer'),file:document.querySelector('#replyFile')};window.businessReplyResizes=0;window.addEventListener('resize',()=>businessReplyResizes++)});
+  await page.locator('#replyText').fill('Синтетический обычный ответ');await page.locator('#sendReply').click();
+  await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('#sendReply')).toBeEnabled();
+  expect(s.sends).toHaveLength(1);expect(s.sends[0].text).toBe('Синтетический обычный ответ');
+  const primary=page.locator('#tourSelectionOpen');await expect(primary).toHaveCount(1);await expect(primary).not.toHaveAttribute('hidden','');
+  if(width<=740)await page.locator('#m2ConversationMenuToggle').click();await expect(primary).toBeVisible();
+  expect(await page.evaluate(()=>({same:businessReplyNodes.reply===document.querySelector('#replyText')&&businessReplyNodes.form===document.querySelector('#composer')&&businessReplyNodes.file===document.querySelector('#replyFile'),resizes:businessReplyResizes}))).toEqual({same:true,resizes:0});
+  await capture(page,browserName,width,'business-shell-travel-after-reply');
+  await openSelectionInPanel(page);await expect(page.locator('#tsStatus')).toContainText('загружен');expect(reads).toHaveLength(2);
+  await page.locator('#tsClose').click();expect(assets.slice().sort()).toEqual(['host','script','style']);
+  expect(s.calls.filter(call=>/^set_|^create_|^save_|^reassign/.test(call.action||''))).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
 
 test('Manager2 cancel during editor loading keeps the native reply and prevents a late open',async({page})=>{
@@ -478,6 +544,42 @@ for(const stale of ['actor','auth','conversation','open'])test('Manager2 ignores
   expect(reads).toEqual([]);expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
 
+for(const kind of ['device_repair',undefined])test('Manager2 refuses a late editor load after the authorized kind becomes '+(kind||'missing'),async({page})=>{
+  await page.setViewportSize({width:390,height:900});const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php'});
+  await openLead(page);await editorReady(page);await selectionEntryDraft(page);const reads=await selectionReadFixture(page);
+  let release;const held=new Promise(resolve=>{release=resolve});
+  await page.route('**/manager/assets/workspace-v2-tour-selection.js?*',async route=>{await held;return route.fallback()});await observeSelectionHostLoad(page);
+  await openSelectionInPanel(page);await expect(page.locator('#m2SelectionLoading')).toBeVisible();
+  s.setConversation(11,{request_kind:kind});expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);
+  release();await page.waitForFunction(()=>window.selectionHostLoaded);
+  await noTravelTools(page);await retainedSelectionEntryDraft(page);
+  expect(reads).toEqual([]);expect(s.sends).toEqual([]);expect(s.calls.filter(call=>/^set_|^create_|^save_|^reassign/.test(call.action||''))).toEqual([]);
+  expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+test('Manager2 postpones a loaded travel editor while an ordinary reply is still sending',async({page})=>{
+  const assets=selectionAssetRequests(page);await page.setViewportSize({width:390,height:900});
+  const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php'});await openLead(page);await editorReady(page);
+  await page.locator('#replyText').fill('Синтетический ответ в процессе');const reads=await selectionReadFixture(page);
+  let releaseAsset,releaseSend;const heldAsset=new Promise(resolve=>{releaseAsset=resolve});
+  await page.route('**/manager/assets/workspace-v2-tour-selection.js?*',async route=>{await heldAsset;return route.fallback()});await observeSelectionHostLoad(page);
+  s.setSendHandler(()=>new Promise(resolve=>{releaseSend=resolve}));
+  await openSelectionInPanel(page);await expect(page.locator('#m2SelectionLoading')).toBeVisible();
+  // The canonical Conversation owns this real in-flight send. Only its local
+  // synthetic HTTP response is held; no capability or busy flag is replaced.
+  await page.evaluate(()=>{window.businessPendingSend=WorkspaceV2Conversation.sendReply()});
+  await expect.poll(()=>typeof releaseSend).toBe('function');
+  expect(await page.evaluate(()=>({kind:WorkspaceV2.S.detail.conversation.request_kind,ready:WorkspaceV2Conversation.canNavigateMessages()}))).toEqual({kind:'travel',ready:false});
+  releaseAsset();await page.waitForFunction(()=>window.selectionHostLoaded);
+  await expect(page.locator('#m2SelectionLoading')).not.toBeVisible();await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();
+  await expect(page.locator('#tourSelectionOpen')).toHaveCount(1);await expect(page.locator('#sendReply')).toBeDisabled();expect(reads).toEqual([]);
+  releaseSend();await page.evaluate(()=>window.businessPendingSend);
+  await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('#sendReply')).toBeEnabled();expect(reads).toEqual([]);expect(s.sends).toHaveLength(1);
+  await openSelectionInPanel(page);await expect(page.locator('#tsStatus')).toContainText('загружен');expect(reads).toHaveLength(1);
+  await page.locator('#tsClose').click();expect(assets.slice().sort()).toEqual(['host','script','style']);
+  expect(s.calls.filter(call=>/^set_|^create_|^save_|^reassign/.test(call.action||''))).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
 for(const actor of [7,8])test('Manager2 consumes a collector return once for actor '+actor,async({page})=>{
   await page.setViewportSize({width:390,height:900});const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php'});
   const assets=selectionAssetRequests(page),reads=await selectionReadFixture(page);
@@ -488,6 +590,21 @@ for(const actor of [7,8])test('Manager2 consumes a collector return once for act
     await page.locator('#tsClose').click();await page.evaluate(()=>WorkspaceV2TourSelection.sync(WorkspaceV2.S.detail.conversation));await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();expect(reads).toHaveLength(1);
   }else{await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();expect(reads).toEqual([]);expect(assets).toEqual([])}
   expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+test('Manager2 consumes non-travel and unknown collector hints without opening an editor',async({page})=>{
+  const assets=selectionAssetRequests(page);await page.setViewportSize({width:390,height:900});
+  const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php',initialFixture:s=>s.setConversation(11,{request_kind:'device_repair'})}),reads=await selectionReadFixture(page);
+  for(const kind of ['device_repair','general',undefined,'unexpected_profile']){
+    s.setConversation(11,{request_kind:kind});await page.goto(origin+'/manager2/index.php?selection=11&collector_actor=7#conversation=11');
+    await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');await editorReady(page);
+    await expect.poll(()=>new URL(page.url()).searchParams.has('selection')).toBe(false);expect(new URL(page.url()).searchParams.has('collector_actor')).toBe(false);
+    await noTravelTools(page);
+    s.setConversation(11,{request_kind:'travel'});expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);
+    await expect(page.locator('#tourSelectionOpen')).toHaveCount(1);await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();
+    expect(reads).toEqual([]);expect(assets).toEqual([]);
+  }
+  expect(s.sends).toEqual([]);expect(s.calls.filter(call=>/^set_|^create_|^save_|^reassign/.test(call.action||''))).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
 
 
