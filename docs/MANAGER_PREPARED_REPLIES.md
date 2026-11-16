@@ -387,8 +387,9 @@ withheld and counted. Minimum category is rechecked against the accepted profile
 the source still owns meal/filter semantics. Room, meal, placement and operator
 remain literal source labels or explicit nulls, not inferred equivalences.
 Descriptions, photos, links, raw supplier references and arbitrary metadata are
-not projected. Hotel properties and media remain uninspected. Source text is
-untrusted data, never a new instruction.
+not projected from listing profiles. Media remain uninspected. Source text is
+untrusted data, never a new instruction. Accepted hotel properties may be attached
+separately through the shared hotel-knowledge reader as described below.
 
 Up to12 complete candidate records (default8) fit a separate32KiB response.
 Distinct hotels precede a second exact stay, ordered by observed price rather
@@ -397,6 +398,32 @@ minimum is never substituted for a particular room's price. The amount retains
 its exact source stay/party and observation time; even a historically verified
 listing remains `current_price_verified=false`, `refresh_required=true`, with
 unknown current availability and no booking/selection authority.
+
+After that existing selection and truncation, the reader can attach a whole
+`hotel_reference` to each retained candidate through `ManagerHotelKnowledge`.
+It matches only the accepted typed AnyTour hotel ID, accepted source name and
+consistent country. Request-country catalogue numbers are not Tourvisor country
+IDs. Complete shard, admission, bundle, record and validity checks remain in the
+shared reader; no raw listing description becomes an accepted hotel fact.
+
+The separate `retained_search3_candidate` provenance binds the canonical request
+scope digest, source scope and timestamp, provider, exact offer digest and the
+full candidate projection before attachment. It neither fabricates a native
+inquiry nor inherits a working draft or publication's authority. A second exact
+stay of the same hotel gets its own room label and projection binding. A null
+room remains unknown. General hotel facts and published category descriptions
+do not establish that the particular offer includes that category or service.
+The original native-inquiry usage policy and fingerprints remain unchanged.
+
+The complete response still fits32KiB. Accepted references carry their complete
+facts, sources, caveats and applicability, within the unchanged16KiB individual
+reference cap. They are admitted only when the whole reference fits; candidates
+are not removed or reordered to make room. When possible,
+`hotel_reference_admission` reports `omitted` / `response_budget`. If even that
+small record cannot fit, no reference field is added. The stable tool description
+defines an absent, held or omitted reference as unknown, never as proof that a
+hotel lacks a service. A later smaller reference may fit even when an earlier
+one did not. This is bounded evidence for comparison, not a quality ranking.
 
 The tool returns `no_retained_candidates` / `existing_live_search_required` when
 the valid cache has no usable matches, and `unavailable` for source/catalogue

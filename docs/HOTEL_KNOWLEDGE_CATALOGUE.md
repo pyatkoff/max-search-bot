@@ -51,6 +51,39 @@ The existing owner must obtain and review that evidence before a data release.
 No file fetch, identity discovery, approval synthesis or automatic data activation
 is added to the reader.
 
+## Retained search candidates
+
+The existing `ManagerSearch3CandidateReader` can attach accepted references to
+its already validated and selected candidates. It calls the same
+`ManagerHotelKnowledge` reader; it does not maintain a second fact reader or
+reuse a native-inquiry selector. The new `retained_search3_candidate` provenance
+binds the request scope, source scope, exact offer, source timestamp and canonical
+candidate projection. Identity uses the accepted `{catalog: "anytour", id: ...}`
+binding. A numerically equal Tourvisor/local ID is not an AnyTour identity.
+
+The resolved request-country name must agree with the accepted country and any
+supplied candidate-country name. It is never reinterpreted as a Tourvisor
+country number. Accepted source-name checks, complete catalogue validation,
+independent admissions, bundle/record hashes and validity checks still apply.
+This consumer does not widen the Egypt/Turkey admission boundary. A missing room
+label stays null; property facts do not establish a booked room category or its
+inclusions. Every exact stay keeps its own room label and projection binding.
+
+Candidate references have a separate usage policy. The existing native-inquiry,
+working-draft and publication policy and their knowledge revisions are unchanged.
+Only a whole reference may be attached after the existing candidate selection
+and response truncation. Its facts, sources, qualifications and validity travel
+together. The separate 32KiB candidate-response limit does not enlarge the
+16KiB per-reference limit or the private draft request budget. References never
+remove or reorder an otherwise retained candidate to make room for facts.
+
+An explicit `hotel_reference_admission` can report a budget omission when that
+small record fits. If even it does not fit, the stable tool contract treats an
+absent reference as unknown. Held, omitted and absent references are never proof
+that the hotel lacks a service. This read-only attachment does not choose or
+refresh a tour, mutate a selection, call a model, or demonstrate natural use by
+an AI assistant.
+
 ## One ordinary data release
 
 Use the existing HOTEL owner and independent content/identity admissions. Add
@@ -82,3 +115,9 @@ The existing source manifest's first exact reference and fingerprint are compare
 through the production capture path; the prior data and native-context suites
 remain in the normal required suite. Synthetic approval strings stay in test
 memory and never become production admission or hotel coverage.
+
+`tests/hotel_candidate_reference_checks.php` runs from the existing manager
+preparation MCP regression. It exercises the production candidate reader with
+accepted catalogue references, exact-stay bindings, identity/country rejection
+and whole-reference response budgets. The same suite preserves the MCP
+administrator/project/connection checks around the source read.
