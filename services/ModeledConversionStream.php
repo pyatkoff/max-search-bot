@@ -240,6 +240,14 @@ final class ModeledConversionStream
         foreach(['deleted','scope_excluded']as$status)if(($snapshot['source_status']??'')===$status)$receipt[$status]++;
     }
 
+    /** Canonical native payload fingerprint shared with SELECT-only intake reconciliation. */
+    public static function payloadHashSql(bool $mysql,string $kind):string
+    {
+        if(!in_array($kind,['message','event'],true))throw new InvalidArgumentException('modeled_stream_kind');
+        $fields=$kind==='message'?'s.direction,s.sender_type,s.text,s.metadata_json':'s.event_type,s.actor_type,s.payload_json';
+        return $mysql?'SHA2(JSON_ARRAY('.$fields.'),256)':'modeled_hash(json_array('.$fields.'))';
+    }
+
     private function metadataPage(string $kind,string $after,?string $ceiling,int $limit,?string $exact=null): array
     {
         [$from,$where,$bind]=$this->scopeSql($kind);
@@ -247,9 +255,7 @@ final class ModeledConversionStream
         if($ceiling!==null){$clauses.=' AND s.id<=?';$bind[]=$ceiling;}
         if($kind==='visit')$select="s.id,s.platform,'' AS conversation_id,'' AS customer_key,s.received_at_unix AS created_at,s.received_at_unix AS created_at_unix,2048 AS payload_bytes,s.payload_sha256 AS payload_hash";
         else {
-            $fields=$kind==='message'?'s.direction,s.sender_type,s.text,s.metadata_json':'s.event_type,s.actor_type,s.payload_json';
-            $raw='JSON_ARRAY('.$fields.')';
-            $hash=$this->mysql?'SHA2('.$raw.',256)':'modeled_hash(json_array('.$fields.'))';
+            $hash=self::payloadHashSql($this->mysql,$kind);
             $length=$this->mysql?'OCTET_LENGTH':'LENGTH';
             $bytes=$kind==='message'?"COALESCE($length(s.text),0)+COALESCE($length(s.metadata_json),0)":"COALESCE($length(s.payload_json),0)";
             $legacyClock=$this->mysql?'UNIX_TIMESTAMP(s.created_at)':"CAST(strftime('%s',s.created_at) AS INTEGER)";

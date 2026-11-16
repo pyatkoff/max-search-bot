@@ -11,11 +11,12 @@ require_once __DIR__.'/ModeledConversionDeliveryHealth.php';
 require_once __DIR__.'/ModeledConversionDealValue.php';
 require_once __DIR__.'/ModeledConversionVisitProof.php';
 require_once __DIR__.'/ModeledConversionDailyReconciliationReader.php';
+require_once __DIR__.'/ModeledConversionIntakeCoverageReader.php';
 
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_24';
+    public const VERSION='saved_semantic_prediction_status_v1_25';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
@@ -65,6 +66,8 @@ final class ModeledConversionForecastStatusReader
                 $out['backlog']=$this->optionalRead(fn():array=>
                     (new ModeledConversionDailyReconciliationReader($this->pdo,$this->authorize,null,$this->budget))->readBacklog($now));
                 $out['read_budget']['remaining_ms']['backlog']=$this->budget->remainingMilliseconds();
+                $out['intake_coverage']=$this->optionalRead(fn():array=>
+                    (new ModeledConversionIntakeCoverageReader($this->pdo,$this->authorize,$this->budget))->read($now),1000,12288);
                 // Full financial scope precedes optional timing; reserve enough for its bounded metadata reads.
                 $out['today_latency']=$this->optionalRead(fn():array=>
                     (new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read($now),0,24576);
@@ -122,7 +125,7 @@ final class ModeledConversionForecastStatusReader
                 }
             }
         }
-        foreach(['telegram_linkage','visit_delivery_check','today_latency']as$key){
+        foreach(['telegram_linkage','visit_delivery_check','today_latency','intake_coverage']as$key){
             if($bytes($out)<=28000)break;
             $automatic=$key==='visit_delivery_check'?($out[$key]['automatic']??null):null;
             $out[$key]=['available'=>false,'reason'=>'response_budget'];
