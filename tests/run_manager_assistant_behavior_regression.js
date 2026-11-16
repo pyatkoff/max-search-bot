@@ -85,7 +85,10 @@ test('My Plan opens an existing no-contact task without manufacturing a client d
   const h=harness();h.data.set(101,h.item(101,{recommendation:{...h.item().recommendation,next_action:'no_contact',should_draft:false,draft:null},tasks:[{id:31,title:'Проверить актуальность расчёта',status:'open',due_state:'unscheduled'}]}));
   h.A.activate(7);await h.A.openPlan();
   const button=h.$('assistantList').querySelector('[data-assistant-direct="101"]');assert.ok(button);assert.equal(button.textContent,'Открыть');
-  assert.equal(h.$('assistantList').querySelector('.assistantPlanDraft'),null);
+  const client101=h.$('assistantList').querySelector('[data-assistant-client="101"]').parentElement;
+  const client102=h.$('assistantList').querySelector('[data-assistant-client="102"]').parentElement;
+  assert.equal(client101.querySelector('.assistantPlanDraft'),null,'A no-contact client must not get a draft');
+  assert.ok(client102.querySelector('.assistantPlanDraft'),'Another client keeps its legitimate prepared draft');
   await h.click('[data-assistant-direct="101"]');assert.equal(h.opened.length,1);assert.equal(h.prepared.length,0);
   assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
 });
@@ -94,6 +97,13 @@ test('team-viewer cannot dismiss or reply to another manager from the plan list'
   assert.equal(h.$('assistantList').querySelector('[data-assistant-list-decision="101"]'),null);
   const action=h.$('assistantList').querySelector('[data-assistant-direct="101"]');assert.ok(action);assert.equal(action.textContent,'Открыть');
   await h.click('[data-assistant-direct="101"]');assert.equal(h.prepared.length,0);h.onlyReads();
+});
+test('optional client detail exposes existing task controls without requiring a second expand',async()=>{
+  const h=harness();h.A.activate(7);await h.A.openPlan();await h.A.loadDetail(101);
+  const detail=h.$('assistantDetail').querySelector('.assistantTasks');
+  assert.ok(detail);assert.equal(detail.getAttribute('open'),'');
+  assert.ok(detail.querySelector('#assistantPlan'));assert.equal(h.$('assistantList').querySelector('.assistantTasks'),null);
+  assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
 });
 test('unanswered work stays visible without AI and fresh no-contact remains separate',async()=>{
   const h=harness();h.data.clear();h.data.set(101,h.item(101,{recommendation:null,operational:{awaiting_manager_reply:true,due_task:false}}));h.A.activate(7);await h.A.open();await h.click('[data-assistant-filter="actions"]');assert.ok(h.body.querySelector('[data-assistant-client="101"]'));await h.A.loadDetail(101);assert.match(h.$('assistantDetail').textContent,/Обращение без записанного ответа/);assert.match(h.$('assistantDetail').textContent,/Нет свежего разбора/);assert.equal(h.$('assistantPlan').textContent,'Запланировать');assert.ok(h.$('assistantDetail').querySelector('.assistantTasks').contains(h.$('assistantPlan')));
