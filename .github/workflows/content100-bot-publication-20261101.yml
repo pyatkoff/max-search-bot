@@ -1,4 +1,4 @@
-name: Prepare exact660 price roster without production operations
+name: Validate corrected660 price roster without production operations
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == 'fc98c2901fb8637fc40c04e0c372d3634c096ff1' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '2bd06daaeed85325df1571291bdda53613cf4c71' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -32,8 +32,9 @@ jobs:
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = fc98c2901fb8637fc40c04e0c372d3634c096ff1
+          test "$(git rev-parse HEAD^)" = 2bd06daaeed85325df1571291bdda53613cf4c71
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
+          test "$(git hash-object tools/direct_demand/operations/prepare-remaining32-monitor-20261116.py)" = 1e54a7a5a12a1c5a3b6dc6acaf05d217beb3d717
           umask 077
           mkdir "$RUNNER_TEMP/monitor660"
           python3 - <<'PY'
@@ -41,6 +42,10 @@ jobs:
           p=pathlib.Path('tools/direct_demand/operations');old=pathlib.Path('previous-publisher')/p
           for name in ['monitor-price-contract.php','monitor-price-hook-contract.php','monitor-price-after-collection.php','update-commercial-price-20261104-remaining1.php','publish-commercial-channel-hotel-feeds-20261103-1.php','build-monitor-price-hook.py','monitor-price-expanded-roster-20261111.json.gz','test-monitor-price-hook.php','test-monitor-price-expansion20.php']:
             assert (p/name).read_bytes()==(old/name).read_bytes(),('CURRENT_CALLBACK_CHANGED',name)
+          original=(p/'test-monitor-price-expansion20.php').read_text()
+          bad="'monitor-price-expansion20-proof-20261116.json'";good="'/monitor-price-expansion20-proof-20261116.json'"
+          assert original.count(bad)==0 and original.count(good)==1
+          print('ORIGINAL_PATH_ANCHOR_FAILURE_REPRODUCED; CORRECT_SLASH_ANCHOR_UNIQUE')
           w=pathlib.Path(os.environ['RUNNER_TEMP'])/'monitor660'
           for tag,run_id,head,aid,digest in [('bound',43927951309,'785416481e95c39cf790a539fdd00d28cfc5da3b',14255918310,'7d1ae9812083058edf9ce65f8e63af28b98f2dabc1f44b878d4718aaf507960b'),('feed',43929964963,'116eebd0bdb09f16e340a9b13a60dc16f280697c',14257044679,'bb54b091d782b38e52395f43cba52a532119500c5cf3cb88ab473774cabbce34')]:
             def api(s):return subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+s],timeout=90)
@@ -73,13 +78,28 @@ jobs:
             php -l "$w/monitor-price-hook.php"
             git diff --check
           } | tee "$w/native-validation.txt"
+      - name: Verify all compiled source pins against actual repository trees
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
           python3 - <<'PY'
-          import json,re,base64,pathlib,os
+          import json,re,base64,pathlib,os,subprocess
           w=pathlib.Path(os.environ['RUNNER_TEMP'])/'monitor660';s=(w/'monitor-price-hook.php').read_text()
           assert 'const HOOK_ROSTER_COUNT=660;' in s
-          pins=json.loads(base64.b64decode(re.search(r'const HOOK_RUNTIME_PINS_B64="([^"]+)";',s)[1]));assert len(pins)==22
+          pins=json.loads(base64.b64decode(re.search(r'const HOOK_RUNTIME_PINS_B64="([^"]+)";',s)[1]));assert len(pins)==23
           assert pins['services/ChannelPostEntryService.php']=='1982ff7368763edf8b7238c3142e3cc28579e991' and pins['services/ChannelPostRegistryService.php']=='7304af19cc19666f00ca4ead1b04c2bdce719646'
-          print('EXACT660_BUNDLE_AND_REVIEWED_MONITOR_ONLY_PINS_VERIFIED')
+          assert pins['services/ConversationRecordClock.php']=='8f1d5b9a4888174a0867408594a164fc776ddbe4'
+          def api(s):return json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+s],timeout=60))
+          current=api('git/ref/heads/main')['object']['sha'];proof=[]
+          for source in dict.fromkeys(['ec72fcffa24ace22a997b642c33ea7fb6fb251d9',current]):
+            commit=api('git/commits/'+source);tree=api('git/trees/'+commit['tree']['sha']+'?recursive=1');assert not tree.get('truncated')
+            blobs={r['path']:r['sha'] for r in tree['tree'] if r['type']=='blob'}
+            mismatches=[p for p,b in pins.items() if blobs.get(p)!=b];assert not mismatches,('RUNTIME_PIN_DRIFT',source,mismatches)
+            proof.append({'source':source,'pins_verified':len(pins),'mismatches':mismatches})
+          (w/'runtime-pin-proof.json').write_text(json.dumps({'ok':True,'tree_reads_only':True,'runtime_installation_claimed':False,'proof':proof},indent=2)+'\n')
+          print('EXACT660_BUNDLE_AND_ALL23_RUNTIME_PINS_VERIFIED '+json.dumps(proof))
           PY
       - name: Retain generated immutable blobs without branch or server mutation
         env:
@@ -94,7 +114,7 @@ jobs:
             raw=(w/'generated'/name).read_bytes();blob=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
             result=json.loads(subprocess.check_output(['gh','api','--method','POST','repos/pyatkoff/max-search-bot/git/blobs','--input','-'],input=json.dumps({'content':base64.b64encode(raw).decode(),'encoding':'base64'}).encode(),timeout=60));assert result['sha']==blob
             records.append({'path':'tools/direct_demand/operations/'+name,'sha':blob,'mode':'100644','type':'blob','sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)})
-          output={'source_head':os.environ['GITHUB_SHA'],'base_callback':'db99af43e8ab11b3675fdbf7875da6e8ea6849ee','rows':660,'previous_rows_preserved':628,'new_pairs':32,'reviewed_runtime_pin_changes':2,'blobs':records,'branch_updates':0,'production_connections':0,'supplier_calls':0,'post_writes':0,'feed_writes':0}
+          output={'source_head':os.environ['GITHUB_SHA'],'base_callback':'db99af43e8ab11b3675fdbf7875da6e8ea6849ee','rows':660,'previous_rows_preserved':628,'new_pairs':32,'reviewed_runtime_pin_changes':2,'added_dependency_pins':1,'blobs':records,'branch_updates':0,'production_connections':0,'supplier_calls':0,'post_writes':0,'feed_writes':0}
           (w/'git-blobs.json').write_text(json.dumps(output,ensure_ascii=False,indent=2)+'\n');print('MONITOR660_SOURCE_READY='+json.dumps(output,separators=(',',':')))
           PY
       - name: Retain original evidence and tested candidate
