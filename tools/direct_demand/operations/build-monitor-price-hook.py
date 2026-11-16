@@ -15,6 +15,7 @@ driver = source('monitor-price-after-collection.php').replace("require_once __DI
 pins_source = editor.split('$accepted=[', 1)[1].split('foreach($accepted as', 1)[0]
 pins = dict(re.findall(r'''["']([^"']+\.php|migrations/[^"']+\.sql)["']\s*=>\s*["']([a-f0-9]{40})["']''', pins_source))
 assert len(pins) == 23
+assert pins['services/ConversationRecordClock.php'] == '8f1d5b9a4888174a0867408594a164fc776ddbe4'
 packed_roster = (root / 'monitor-price-expanded-roster-20261111.json.gz').read_bytes()
 roster = gzip.decompress(packed_roster)
 rows = json.loads(roster)['rows']

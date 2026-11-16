@@ -112,12 +112,11 @@ try {
         "services/ProjectConfig.php"=>"538b596981f2c61fbf524e18756bf672578948f6",
     ];
     if($monitorMode)$accepted=array_replace($accepted,[
-        // Reviewed main ec72fcf / PR1572 changes customer entry recording only.
-        // Publication, native readback and button identity methods remain unchanged.
+        // Reviewed PR1572 entry annotations and Registry's direct clock dependency.
         'services/ChannelPostEntryService.php'=>'1982ff7368763edf8b7238c3142e3cc28579e991',
+        'services/ConversationRecordClock.php'=>'8f1d5b9a4888174a0867408594a164fc776ddbe4',
         'services/ChannelPostButtonTransport.php'=>'7b6711f1de63000346d8e5789f2dbb7f725535b8',
         'services/ChannelPostRegistryService.php'=>'7304af19cc19666f00ca4ead1b04c2bdce719646',
-        'services/ConversationRecordClock.php'=>'8f1d5b9a4888174a0867408594a164fc776ddbe4',
         'services/ChannelPostReconciliationService.php'=>'43133f576845c14446102dedfffb7f0de2d4ba1c',
         'services/MaxTransport.php'=>'2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159',
         'services/ProjectConfig.php'=>'63c17c8103412f8cff8cdcc4bbb062e744106af9',

@@ -1,184 +1,74 @@
-name: Publish the approved remaining32 through the existing paired sender
+name: Complete exact reliability660 source checks without production
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
     paths: ['.github/workflows/content100-bot-publication-20261101.yml']
 permissions:
-  contents: read
+  contents: write
   actions: read
+  pull-requests: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '95f074fff6ac071522a05d59e6f00f99c2da7aa0' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == 'f5aec3bcdb823d04b8e8f9556648413ecf93868c' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-    env:
-      EXPECTED_SOURCE: 372823d98e580e708169bc8ac9367245376a803b
-      GIT_OPTIONAL_LOCKS: '0'
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 2
-      - name: Authenticate exact reviewed32 and their immutable images
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: c6e6b7fc57d599ae7fcf8bba4aed1ed3315a00b0
+          path: source-pr
+          persist-credentials: false
+          fetch-depth: 5
+      - name: Complete original source integration with all eight original suites and expansion32
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = 95f074fff6ac071522a05d59e6f00f99c2da7aa0
-          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
-          p=tools/direct_demand/operations
-          test "$(git hash-object "$p/prepare-remaining32-approved-release-20261116.py")" = 299f8c282308e815f74bc20aaac5aca30af4c140
-          test "$(git hash-object "$p/prepare-commercial-batch.py")" = 8df7a35474b138364b6e6c010af4fa484e350ddb
-          test "$(git hash-object "$p/commercial-batch-template-20261102.php")" = 353d5125d212df7584d24fd04d0f692d90176edb
-          test "$(git hash-object "$p/commercial-channel-hotel-feeds-20261113-update10-nightly-guard.php")" = 0a58b592fe20c50c19838bd83d015dfeb0d1d4ad
-          test "$(git hash-object "$p/verify-commercial-source.py")" = d79228dacc35d09af8ad838d34febd8413dbd7b2
-          umask 077
-          mkdir "$RUNNER_TEMP/release32" "$RUNNER_TEMP/release32/input" "$RUNNER_TEMP/release32/source-evidence"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/43922173900 > "$RUNNER_TEMP/release32/assets-run.json"
-          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14253362790/zip > "$RUNNER_TEMP/release32/prepared.zip"
-          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14254935957/zip > "$RUNNER_TEMP/release32/assets-result.zip"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/assets/hotel-expansion33-20261116 > "$RUNNER_TEMP/release32/asset-ref.json"
+          test "$(git rev-parse HEAD^)" = f5aec3bcdb823d04b8e8f9556648413ecf93868c
           python3 - <<'PY'
-          import os,pathlib,json,hashlib,zipfile
-          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'release32';r=json.loads((p/'assets-run.json').read_bytes())
-          assert r['id']==43922173900 and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success' and r['head_sha']=='a7f5021ad4f3b5bb07834c3a04db87842fa5eed6'
-          assert json.loads((p/'asset-ref.json').read_bytes())['object']['sha']=='70164f5b41aa7e7719fa212a0742f11390b55c1f'
-          for filename,digest in [('prepared.zip','3ded6f36973acc239104fa7f4f66d39b9e2347559c5e08c43790b34e9dfff150'),('assets-result.zip','18c200b9406b7b96e04da34a02a0a13dbdbbd9d43c9ad5a8e44a52f666dbb1c2')]:
-            assert hashlib.sha256((p/filename).read_bytes()).hexdigest()==digest
-            with zipfile.ZipFile(p/filename) as z:
-              assert z.testzip() is None and all(not n.startswith('/') and '..' not in pathlib.PurePosixPath(n).parts for n in z.namelist());z.extractall(p/'input')
+          import subprocess,pathlib,hashlib,os
+          original=subprocess.check_output(['git','show','f5aec3bcdb823d04b8e8f9556648413ecf93868c:.github/workflows/content100-bot-publication-20261101.yml'])
+          assert hashlib.sha1(b'blob '+str(len(original)).encode()+b'\0'+original).hexdigest()=='c44acc7e7bad0cd1bc2596c89e2ac2bdd66b697f'
+          steps={}
+          for chunk in original.decode().split('      - name: ')[1:]:
+            name=chunk.split('\n',1)[0]
+            marker='        run: |\n'
+            if marker not in chunk:continue
+            lines=[]
+            for line in chunk.split(marker,1)[1].splitlines():
+              if line and not line.startswith('          '):break
+              lines.append(line[10:] if line.startswith('          ') else '')
+            steps[name]='\n'.join(lines)+'\n'
+          names=['Integrate only the original reliability scope and preserve current660','Run original reliability checks and both admitted expansion cohorts','Retain tested source tree without moving branches or installing code']
+          assert set(steps)==set(names)
+          first=steps[names[0]]
+          assert first.count('fbcec3b211c0b0910fd41ff1678d609d402baa18')==1
+          first=first.replace('fbcec3b211c0b0910fd41ff1678d609d402baa18','f5aec3bcdb823d04b8e8f9556648413ecf93868c',1)
+          old=r'(test-monitor-price-[a-z0-9-]+\.php)';new=r'((?:test-monitor-price-[a-z0-9-]+|test-reconcile-stale-feed-20261116)\.php)'
+          assert first.count(old)==1 and first.count('assert len(tests)>=8')==1
+          first=first.replace(old,new,1).replace('assert len(tests)>=8','assert len(tests)==8',1)
+          steps[names[0]]=first
+          for index,name in enumerate(names,1):
+            path=pathlib.Path(os.environ['RUNNER_TEMP'])/('reliability660-step-'+str(index)+'.sh')
+            path.write_text(steps[name]);subprocess.run(['bash','-n',str(path)],check=True)
+            print('BEGIN_EXACT_SOURCE_STAGE '+name,flush=True)
+            subprocess.run(['bash',str(path)],check=True,timeout=360)
           PY
-          python3 "$p/prepare-remaining32-approved-release-20261116.py" "$RUNNER_TEMP/release32/input" "$RUNNER_TEMP/release32/prepared"
-          for batch in 22 23 24 25; do php -l "$RUNNER_TEMP/release32/prepared/$batch/send.php"; done
-          python3 "$p/verify-commercial-source.py" --self-test
-      - name: Prove original installed source and all mandatory health gates
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          e="$RUNNER_TEMP/release32/source-evidence"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$e/main.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs?head_sha=$EXPECTED_SOURCE&per_page=100" > "$e/runs.json"
-          python3 - <<'PY'
-          import os,pathlib,json
-          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'release32/source-evidence';sha=os.environ['EXPECTED_SOURCE'];assert json.loads((p/'main.json').read_bytes())['object']['sha']==sha
-          runs=json.loads((p/'runs.json').read_bytes());assert runs['total_count']<=100
-          paths=['deploy.yml','max-tls-preflight.yml','modeled-conversion-value-export.yml','max-production-health.yml','telegram-production-health.yml','live-session-diagnostics.yml','modeled-conversion-monitor.yml','tour-selection-host.yml','publish-conversation-diagnostics.yml'];selected={}
-          for name in paths:
-            eligible=[r for r in runs['workflow_runs'] if r['head_sha']==sha and r['head_branch']=='main' and r['path']=='.github/workflows/'+name and r['run_attempt']==1 and r['event'] in ['push','workflow_run']]
-            assert len(eligible)==1,'original gate not unique: '+name
-            r=eligible[0];assert r['status']=='completed' and r['conclusion']=='success','gate not successful: '+name
-            (p/('verify_run.json' if name=='deploy.yml' else 'tls_run.json' if name=='max-tls-preflight.yml' else 'gate-'+name+'.json')).write_text(json.dumps(r))
-            selected[name]={'run_id':r['id'],'head_sha':sha,'run_attempt':1,'conclusion':r['conclusion']}
-          (p/'deploy-id.txt').write_text(str(selected['deploy.yml']['run_id']))
-          (p/'gate-receipts.json').write_text(json.dumps(selected,indent=2)+'\n')
-          PY
-          deploy="$(cat "$e/deploy-id.txt")"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/$deploy/jobs?per_page=100" > "$e/verify_jobs.json"
-          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_SOURCE" > "$e/source_commit.json"
-          tree="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$e/source_commit.json")"
-          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree?recursive=1" > "$e/source_tree.json"
-          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_SOURCE" --evidence-dir "$e"
-      - name: Retain exact four manifests and proof before any channel write
+      - name: Preserve exact integration and native evidence
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: remaining32-publication-intent-${{ github.run_id }}
-          path: |
-            ${{ runner.temp }}/release32/prepared/
-            ${{ runner.temp }}/release32/source-evidence/
-            ${{ runner.temp }}/release32/input/clearance.json
-            ${{ runner.temp }}/release32/input/clearance-input.json
-            ${{ runner.temp }}/release32/input/asset-result.json
+          name: reliability660-compatible-source-${{ github.run_id }}
+          path: ${{ runner.temp }}/reliability660/
+          retention-days: 30
           if-no-files-found: error
-          retention-days: 30
-      - name: Prepare existing server connection
-        env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          raw="$DEPLOY_SSH_KEY_VALUE"
-          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else
-            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
-          fi
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-      - name: Pin existing server identity
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re,subprocess,base64,hashlib,pathlib
-          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER'];assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-');assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35);matches=[]
-          for line in scan.stdout.splitlines():
-            f=line.split()
-            if len(f)<3 or f[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(f[2])).digest()).decode().rstrip('=')
-            except Exception:continue
-            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP';pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
-          PY
-      - name: Execute each new bounded batch once and verify every pair
-        env:
-          GH_TOKEN: ${{ github.token }}
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          mkdir "$RUNNER_TEMP/release32/outcome"
-          for batch in 22 23 24 25; do
-            test "$GITHUB_RUN_ATTEMPT" = 1
-            test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_SOURCE"
-            test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
-            script="$RUNNER_TEMP/release32/prepared/$batch/send.php"
-            python3 - "$script" "$RUNNER_TEMP/release32/prepared/release-intent.json" "$batch" <<'PY'
-          import json,hashlib,pathlib,sys
-          record=json.loads(pathlib.Path(sys.argv[2]).read_bytes())['batches'][int(sys.argv[3])-22]
-          assert hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest()==record['script_sha256']
-          PY
-            printf 'original_attempt_started\n' > "$RUNNER_TEMP/release32/outcome/$batch-attempt.txt"
-            status=0
-            ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && GIT_OPTIONAL_LOCKS=0 php' < "$script" > "$RUNNER_TEMP/release32/outcome/$batch-stdout.jsonl" || status=$?
-            printf '%s\n' "$status" > "$RUNNER_TEMP/release32/outcome/$batch-exit.txt"
-            cat "$RUNNER_TEMP/release32/outcome/$batch-stdout.jsonl"
-            test "$status" = 0
-            python3 - "$RUNNER_TEMP/release32/outcome/$batch-stdout.jsonl" "$RUNNER_TEMP/release32/prepared/$batch/manifest.json" "$RUNNER_TEMP/release32/outcome/$batch-summary.json" <<'PY'
-          import json,pathlib,sys
-          s=json.loads(pathlib.Path(sys.argv[1]).read_text().splitlines()[-1]);m=json.loads(pathlib.Path(sys.argv[2]).read_bytes());expected={r['hotel_id']:r for r in m['rows']}
-          assert s['ok'] is True and s['operation']==m['operation'] and s['mode']=='publish_approved_commercial_batch'
-          assert s['new_posts']==s['post_write_attempts']==len(s['posts'])==2*len(expected) and s['reused']==0
-          assert {(r['hotel_id'],r['platform']) for r in s['posts']}=={(i,p) for i in expected for p in ['max','telegram']}
-          for r in s['posts']:
-            e=expected[r['hotel_id']];assert r['state']=='sent' and r['body_photo_button_verified'] is True and r['text_sha256']==e['text_sha256'] and r['photo_sha256']==e['photo_sha256'] and r['button_text']=='✈️ Узнать стоимость тура'
-          pathlib.Path(sys.argv[3]).write_text(json.dumps(s,ensure_ascii=False,indent=2)+'\n')
-          print('ORIGINAL_BATCH_CONFIRMED '+m['operation']+' pairs='+str(len(expected)))
-          PY
-          done
-      - name: Retain original outcome including partial or unknown without replay
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: remaining32-publication-result-${{ github.run_id }}
-          path: ${{ runner.temp }}/release32/outcome/
-          if-no-files-found: ignore
-          retention-days: 30
-      - name: Remove runner-only connection files
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
