@@ -224,6 +224,12 @@ final class ModeledConversionSemanticPrediction
         return $anchored||$answer||$question;
     }
 
+    /** A subscription observation is neutral bookkeeping, never a new request or a renewed clock. */
+    public function canPreserveSubscriptionContext(int $occurred):bool
+    {
+        return $this->anchor!==null&&$this->canPreserveCustomerContext($occurred);
+    }
+
     /**
      * Called only after the adapter validates an original native AI source and
      * its recording receipt. AI supplies question context, never a criterion.
