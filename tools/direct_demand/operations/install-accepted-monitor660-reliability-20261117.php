@@ -4,7 +4,7 @@ declare(strict_types=1);
 const BUNDLE_B64='__BUNDLE__';
 const OLD_SHA='dd85c064745f77f2b72b637fa4b572562ffcc2a318c2f35578c016e6f5e88e72';
 const NEW_SHA='41e9f0151f97691f91258ebb37714090ba0798c76db18c3870ff93bcc23d0c9a';
-const APP_SHA='4ce3d164bdf04e859389df1879a6d55e58e9a6aa';
+const APP_SHA='b13fd0d624308ef747df077cba79bad91ee91c21';
 // Preserve the live journal under an exclusive lock; do not pin a stale last line from a consumed price pass.
 function must(bool $ok,string $why):void{if(!$ok)throw new RuntimeException($why);}
 function admission(array $s):void{
