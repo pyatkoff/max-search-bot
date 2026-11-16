@@ -16,7 +16,7 @@ final class MonthlyReplyQualityReadService
     private float $deadline=0;
     private bool $mysql;
 
-    public function __construct(private PDO $pdo,private $clock,private $keyProvider,private $archiveKeyProvider=null)
+    public function __construct(private PDO $pdo,private $clock,private $keyProvider,private $archiveKeyProvider=null,private bool $forecastReview=false)
     {
         $driver=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
         if(!in_array($driver,['mysql','sqlite'],true))self::fail('unavailable');
@@ -45,7 +45,7 @@ final class MonthlyReplyQualityReadService
                 $from=$previous->setDate((int)$previous->format('Y'),(int)$previous->format('m'),min((int)$date->format('d'),(int)$previous->format('t')))->getTimestamp();
                 $s=['k'=>'inventory','l'=>$m[1],'f'=>$from,'t'=>$until];
             }else{$s=$this->decode($cursor,$key,$admin,$connection);if($s['k']!=='inventory')self::fail('stale_cursor');}
-            $lane=$s['l'];$limit=min($limit,25);
+            $lane=$s['l'];if($this->forecastReview&&$lane!=='native')self::fail('invalid_arguments');$limit=min($limit,25);
             if(in_array($lane,['native','archive'],true)){
                 $delegate=$this->delegate($lane,$admin,$connection);
                 $a=['limit'=>$limit];if(isset($s['x']))$a['cursor']=$s['x'];
@@ -57,6 +57,7 @@ final class MonthlyReplyQualityReadService
                 }
                 unset($r[$field],$r['feature_scan'],$r['semantic_scan'],$r['historical_prefix_study']);
                 $r['records']=$records;$r['quality_period']=$this->period($s);
+                if(is_string($r['newest_retained']['start_cursor']??null))$r['newest_retained']['start_cursor']=$this->encode(['k'=>'inventory','l'=>$lane,'f'=>$s['f'],'t'=>$s['t'],'x'=>$r['newest_retained']['start_cursor']],$key,$admin,$connection);
                 if(is_string($r['next_cursor']??null))$r['next_cursor']=$this->encode(['k'=>'inventory','l'=>$lane,'f'=>$s['f'],'t'=>$s['t'],'x'=>$r['next_cursor']],$key,$admin,$connection);
                 return$r;
             }
@@ -90,7 +91,7 @@ final class MonthlyReplyQualityReadService
             if($s['k']!=='record')self::fail('stale_cursor');
             $c=isset($args['cursor'])?$this->decode($args['cursor'],$key,$admin,$connection):null;
             if($c!==null&&($c['k']!=='context'||($c['reference']??null)!==hash('sha256',$ref)||$c['l']!==$s['l']))self::fail('stale_cursor');
-            $lane=$s['l'];
+            $lane=$s['l'];if($this->forecastReview&&$lane!=='native')self::fail('invalid_arguments');
             if(in_array($lane,['native','archive'],true)){
                 $a=[$lane==='native'?'dialogue_ref':'chat_ref'=>$s['x'],'limit'=>$args['limit']??100];if($c!==null)$a['cursor']=$c['x'];
                 $delegate=$this->delegate($lane,$admin,$connection);$method=$lane==='native'?'context':'history';
@@ -238,7 +239,7 @@ final class MonthlyReplyQualityReadService
     private function delegate(string $lane,int $admin,string $connection): object
     {
         $provider=fn(int $a,string $c):string=>$this->authorizedKey($a,$c);
-        if($lane==='native')return new DialogueReviewReadService($this->pdo,$this->clock,$provider,null,true);
+        if($lane==='native')return new DialogueReviewReadService($this->pdo,$this->clock,$provider,null,true,$this->forecastReview);
         if($this->archiveKeyProvider===null)self::fail('forbidden');
         $archiveKey=($this->archiveKeyProvider)($admin,$connection);
         $provider=function(int $a,string $c)use($archiveKey):string{

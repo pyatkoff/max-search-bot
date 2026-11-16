@@ -182,7 +182,7 @@ try{
     $before=dialogueMcpCredentialRows($pdo);$changes=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
     $dialogueTools=$list($connection,[$dialogueScope]);
     dialogueMcpCheck('dialogue-only discovery exposes two readers and separate aggregate forecast consent',
-        array_column($dialogueTools,'name')===array_merge([ModeledConversionStatusMcpAdapter::NAME],DialogueReviewMcpAdapter::NAMES,ManagerTourSelectionMcpAdapter::NAMES)
+        array_column($dialogueTools,'name')===array_merge([ModeledConversionStatusMcpAdapter::NAME],DialogueReviewMcpAdapter::allNames(),ManagerTourSelectionMcpAdapter::NAMES)
         &&$calls===[]&&$ordinaryCalls===0);
     foreach($dialogueTools as $tool){
         if(!in_array($tool['name'],DialogueReviewMcpAdapter::NAMES,true))continue;
@@ -193,6 +193,27 @@ try{
             &&$tool['securitySchemes']===[['type'=>'oauth2','scopes'=>[$dialogueScope]]]
             &&$tool['_meta']['securitySchemes']===$tool['securitySchemes']);
     }
+
+    foreach(DialogueReviewMcpAdapter::RETAINED_NAMES as$name){
+        $tool=array_column($dialogueTools,null,'name')[$name]??[];
+        dialogueMcpCheck('retained tool advertises both exact read permissions '.$name,
+            ($tool['securitySchemes']??null)===[['type'=>'oauth2','scopes'=>[$qualityScope,$forecastScope]]]
+            &&$tool['_meta']['securitySchemes']===$tool['securitySchemes']
+            &&$tool['annotations']['readOnlyHint']===true&&$tool['annotations']['destructiveHint']===false
+            &&$tool['inputSchema']['additionalProperties']===false);
+    }
+    $retainedBefore=dialogueMcpCredentialRows($pdo);$retainedCalls=count($calls);
+    foreach([$dialogueScope,$forecastScope,$qualityScope,$legacyScope]as$scope){
+        $family=$contexts[$scope]['connection_id'];$scopes=explode(' ',$scope);
+        $response=$invoke('list_retained_dialogues',[],1,$family,$scopes);
+        $wanted=implode(' ',array_values(array_intersect(ManagerPreparationOAuth::SUPPORTED_SCOPES,
+            array_unique([...$scopes,$qualityScope,$forecastScope]))));
+        $challenge=dialogueMcpChallenge($response);
+        dialogueMcpCheck('retained step-up requests the missing permission and preserves existing rights '.$scope,
+            str_contains($challenge,'scope="'.$wanted.'"')&&str_contains($challenge,'error="insufficient_scope"')
+            &&count($calls)===$retainedCalls&&dialogueMcpCredentialRows($pdo)===$retainedBefore);
+    }
+
     $byName=array_column($dialogueTools,null,'name');
     dialogueMcpCheck('metadata and transcript have independent bounded pages and opaque references',
         $byName['list_current_dialogues']['inputSchema']['properties']['limit']['maximum']===50
