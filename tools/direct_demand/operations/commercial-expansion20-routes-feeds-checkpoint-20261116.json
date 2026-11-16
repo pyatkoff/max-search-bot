@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-16",
+  "state": "ROUTES_AND_FEEDS_VERIFIED_MONITOR_EXTENSION_PENDING",
+  "published_pairs": 628,
+  "published_messages": 1256,
+  "previous_pairs": 608,
+  "new_pairs_from_original_publication": 20,
+  "original_publication": {"run_id": 43860879803, "source": "d5091653179ac0460ed0129ae32cc52495abfbdd", "operation_groups": [20, 21], "replayed": false},
+  "current_read": {"run_id": 43871777544, "job_id": 133314520880, "source": "729bd1cf40567b2072f2471af283954cd9989cd1", "pairs_verified": 20, "native_max_bindings_verified": 20, "artifact_id": 14228391968, "archive_sha256": "a809657d638cfafb122e0faaebf50e40088325ade6491890574f3c0770ae6c93"},
+  "routes": {"run_id": 43872922554, "head_sha": "3e17be29ef0e309fb88a32fb0b9dd5dffeffdee1", "state": "INSTALLED_AND_NATIVE_VERIFIED", "installed_count": 628, "new_routes": 20, "previous608_preserved": true, "private_projection_http_status": 404, "natural_signed_user_launch_verified": false, "artifact_id": 14229310033, "archive_sha256": "19b7a71ae347755ab94e004067ad8f68d9e44367dab15e13ada7cd50a6d90770"},
+  "feeds": {"run_id": 43874344520, "job_id": 133323343525, "head_sha": "c83efec040638ea421a505e24f9aff722dcf6fd3", "installed_source": "729bd1cf40567b2072f2471af283954cd9989cd1", "operations": ["commercial-channel-hotel-feeds-20261116-update20", "commercial-channel-hotel-feeds-20261116-update21"], "artifact_id": 14229960161, "archive_sha256": "7d1d7d468c604840193980689354fd339effc3a6d8d1a0e4622ac52f5fb9bbe5", "public_readback_http": 200, "previous_offer_blocks_byte_identical": true, "previous_prices_preserved": true, "new_offers_unpriced": true, "files": [
+    {"name": "hotel-posts-telegram.xml", "rows": 628, "bytes": 800743, "sha256": "16b25de3b0c85c64b195443b2c22ad6306b3cbd57959fd42681b6e257626ebd4"},
+    {"name": "hotel-posts-max.xml", "rows": 628, "bytes": 902416, "sha256": "4c0b2367eb18b4da05f36834d17897977b1bbec32dbdf17ad5f923ed0fe08920"},
+    {"name": "hotel-posts-all.xml", "rows": 1256, "bytes": 1702786, "sha256": "66e65ca20729ffe322be841d5f6b9f22b4108b036c7a6bf5e3cfcedfb573d0f1"}
+  ]},
+  "boundaries": {"new_messages_this_continuation": 0, "post_edits_this_continuation": 0, "supplier_offer_queries": 0, "collector_reruns": 0, "journal_recovery_replays": 0, "new20_monitor_roster_admitted": false, "canonical_ai_knowledge_admitted": false, "site_write_performed": false, "yandex_direct_feed_ingestion_verified": false},
+  "remaining": ["Append exactly these20 admitted publication and feed bindings to the existing price-publisher roster and collection cohorts; validate and activate through the existing process, no second collector.", "Canonical AI knowledge admission is separate from post publication and is not completed by these receipts."],
+  "safe_delivery": {"filename": "AnyTour_628_routes_feeds_verified_2026-11-16.zip", "bytes": 369276, "sha256": "64e31cfed8c2ae06ae082291f26a1fd6dcff0b2a71dfb3c1bf39041c4219f603", "private_route_maps_included": false}
+}
