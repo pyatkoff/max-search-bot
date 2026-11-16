@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '51fa9f0927dadca7e6949eb581af7dc20494d02c' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '72a12caa1ebcd8230c37dc08a28e6c8b4bc69a13' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
@@ -27,7 +27,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = 51fa9f0927dadca7e6949eb581af7dc20494d02c
+          test "$(git rev-parse HEAD^)" = 72a12caa1ebcd8230c37dc08a28e6c8b4bc69a13
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
           p=tools/direct_demand/operations
           test "$(git hash-object "$p/install-accepted-monitor660-reliability-20261117.php")" = b889ace2755724c2a21273e1028e7384f8187c3d
@@ -40,6 +40,14 @@ jobs:
           import json,pathlib,subprocess,hashlib,base64,zipfile,io,os
           w=pathlib.Path(os.environ['RUNNER_TEMP'])/'module660'
           def api(repo,path):return json.loads(subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/'+repo+'/'+path],timeout=40))
+          previous=api('max-search-bot','actions/runs/43971857016');previous_jobs=api('max-search-bot','actions/runs/43971857016/jobs?per_page=100');previous_artifacts=api('max-search-bot','actions/runs/43971857016/artifacts')
+          assert previous['head_sha']=='72a12caa1ebcd8230c37dc08a28e6c8b4bc69a13' and previous['run_attempt']==1 and previous['status']=='completed' and previous['conclusion']=='failure'
+          assert len(previous_jobs['jobs'])==1 and previous_jobs['jobs'][0]['id']==133665746652
+          steps={st['name']:st['conclusion'] for st in previous_jobs['jobs'][0]['steps']}
+          assert steps['Authenticate accepted source and immutable module; test only installation guards']=='failure'
+          for protected in ['Prepare unchanged server connection and host pin','Fresh unchanged source and no competing collector or application deployment','Replace only the admitted module once under existing journal lock','Independent readback without executing the installed module']:
+            assert steps[protected]=='skipped',('ORIGINAL_PROTECTED_STEP_WAS_EXECUTED',protected)
+          assert previous_artifacts['total_count']==0, 'ORIGINAL_PREWRITE_ARTIFACT_UNEXPECTED'
           s=api('max-search-bot','pulls/1574');c=api('poisk-turov-test','pulls/5059')
           assert s['merged'] and s['head']['sha']=='a1dc3f6712dc74d97bf90ab46a747ed3b2db4e68'
           assert c['merged'] and c['merge_commit_sha']=='45ad1616caa1f7f96afb879439c8a21e9d345027'
@@ -50,7 +58,7 @@ jobs:
           raw=subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/max-search-bot/actions/artifacts/14268746215/zip'],timeout=60);assert hashlib.sha256(raw).hexdigest()==a['digest'].split(':')[1]
           with zipfile.ZipFile(io.BytesIO(raw)) as z:
             assert z.testzip() is None;bundle=z.read('monitor-price-hook.php')
-          assert len(bundle)==613581 and hashlib.sha256(bundle).hexdigest()=='41e9f0151f97691f91258ebb37714090ba0798c76db18c3870ff93bcc23d0c9a''
+          assert len(bundle)==613581 and hashlib.sha256(bundle).hexdigest()=='41e9f0151f97691f91258ebb37714090ba0798c76db18c3870ff93bcc23d0c9a'
           source=pathlib.Path('tools/direct_demand/operations/install-accepted-monitor660-reliability-20261117.php').read_text();assert source.count('__BUNDLE__')==1
           (w/'install.php').write_text(source.replace('__BUNDLE__',base64.b64encode(bundle).decode()))
           (w/'intent.json').write_text(json.dumps({'kind':'accepted_code_delivery_only','source_pr':1574,'consumer_pr':5059,'source_artifact':a['id'],'artifact_sha256':a['digest'],'module_sha256':hashlib.sha256(bundle).hexdigest(),'module_bytes':len(bundle),'module_count':660,'original_gates':runs,'collector_dispatches':0,'module_execution':False},indent=2)+'\n')
