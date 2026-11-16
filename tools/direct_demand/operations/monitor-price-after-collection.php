@@ -19,7 +19,7 @@ function hook_runtime():string {
         &&hook_git(['status','--porcelain','--untracked-files=no'],'hook_runtime_git_failed')==='','hook_runtime_changed');
     hook_git(['merge-base','--is-ancestor',HOOK_ACCEPTED_BASE,'HEAD'],'hook_runtime_not_accepted_descendant');
     $pins=json_decode(base64_decode(HOOK_RUNTIME_PINS_B64,true),true,32,JSON_THROW_ON_ERROR);
-    hook_need(is_array($pins)&&count($pins)===22,'hook_publishing_surface_changed');
+    hook_need(is_array($pins)&&count($pins)===23,'hook_publishing_surface_changed');
     $hashes=explode("\n",hook_git(array_merge(['hash-object','--'],array_keys($pins)),'hook_publishing_surface_changed'));
     hook_need($hashes===array_values($pins),'hook_publishing_surface_changed');
     return $head;

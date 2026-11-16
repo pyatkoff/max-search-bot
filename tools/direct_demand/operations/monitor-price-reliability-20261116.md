@@ -34,8 +34,8 @@ The separate runtime receipt at 17:08:52 UTC confirms app HEAD
 `ff8adc4a22fca3d1305648688a72fac23dfaa203a917fe4eb29d49f09a9827e1`.
 Source preparations and newer GitHub heads are not evidence of a server install.
 
-The new bridge assembled from this source is 599113 bytes, 628 pairs, SHA256
-`420264aed77b93957b235c80d9aeb07b2b5414796045a4e7df4769ae738e4cf9`.
+The new bridge assembled from this source is 599693 bytes, 628 pairs, SHA256
+`ffe4760f552926fee3fbd2128f2bb6e1a404a7f3bbed0b7ff55fb6dd24b6bfc9`.
 Rebuild and compare after any publisher source or roster change. Concurrent
 content work owns additional publications; integrate its current admitted roster
 before activation and never replace a larger installed roster with this older one.
@@ -48,7 +48,7 @@ before activation and never replace a larger installed roster with this older on
   fails before resetting if the lock is unavailable or its file is replaced.
   This serializes checkout changes, not every later deploy configuration/DB step.
 * The publisher revalidates the installed HEAD, tracked cleanliness and all
-  22 exact source pins after acquiring its own journal lock and before appending
+  23 exact source pins after acquiring its own journal lock and before appending
   any state. Git failure cannot be interpreted as a clean status. Source hashes
   are checked in one ordered Git invocation with exact output cardinality.
 * The global journal is read a line at a time. Every prior collector ID remains
@@ -69,6 +69,30 @@ The result adds `result_status` (`completed`, `partial`, `blocked`, `skipped`,
 `no_fresh_observation_pairs`. A full scan with missing observations or holds is
 partial. A successful bounded process exit is not proof that all prices are
 current. Legacy `ok` and journal cycle states retain their existing meaning.
+
+### Compatibility with concurrent main PR1572
+
+Main advanced to `ec72fcffa24ace22a997b642c33ea7fb6fb251d9` during preparation.
+[PR1572](https://github.com/pyatkoff/max-search-bot/pull/1572) changed two pinned
+files. The monitor-only pin set now includes these reviewed versions:
+
+| File | Git blob |
+| --- | --- |
+| `services/ChannelPostEntryService.php` | `1982ff7368763edf8b7238c3142e3cc28579e991` |
+| `services/ChannelPostRegistryService.php` | `7304af19cc19666f00ca4ead1b04c2bdce719646` |
+| `services/ConversationRecordClock.php` | `8f1d5b9a4888174a0867408594a164fc776ddbe4` |
+
+The changed methods record a customer's entry/context receipt, which the price
+editor does not call. Publication, version, provider observation, token, snapshot
+and receipt methods used by price publication are unchanged. The Registry now
+directly requires ConversationRecordClock; its class-only file has no load-time
+I/O and is explicitly pinned as the 23rd dependency. The other 20 old pins and
+legacy non-monitor pin set retain their exact values. This does not authorize
+customer-entry or financial operations.
+
+The bridge deliberately requires this reviewed app source set; it must not be
+installed assuming the old server receipt for `f7672e0` proves compatibility.
+Verify the deployed app source after the approved app rollout and before Phase A.
 
 ## Activation order
 

@@ -82,7 +82,7 @@ function hook_child(string $source,array $constants,?array &$failure=null):array
     $failure=['exit_code'=>2,'error'=>'fixture_failure'];throw new RuntimeException('hook_child_failed_read_original_journal');
 }
 
-$pins=[];foreach(range(1,22) as $id)$pins['fixture-'.$id.'.php']=sha1('fixture-'.$id);
+$pins=[];foreach(range(1,23) as $id)$pins['fixture-'.$id.'.php']=sha1('fixture-'.$id);
 define(__NAMESPACE__.'\HOOK_ACCEPTED_BASE',str_repeat('a',40));
 define(__NAMESPACE__.'\HOOK_RUNTIME_PINS_B64',base64_encode(json_encode($pins,JSON_THROW_ON_ERROR)));
 define(__NAMESPACE__.'\HOOK_WRITER_B64',base64_encode('fixture-writer'));
@@ -98,10 +98,10 @@ function runtime_replies(string $head):array {
 }
 
 // Git failure with empty output cannot become a clean runtime. Batch comparison
-// must retain all 22 pins in their original order and propagate process errors.
+// must retain all 23 pins in their original order and propagate process errors.
 $head=str_repeat('d',40);reset_fixture(runtime_replies($head));
 check(hook_runtime()===$head&&$fixture['replies']===[],'runtime_success_changed');
-check(str_contains(end($fixture['events']),"'fixture-1.php'")&&str_contains(end($fixture['events']),"'fixture-22.php'"),'pin_arguments_missing');
+check(str_contains(end($fixture['events']),"'fixture-1.php'")&&str_contains(end($fixture['events']),"'fixture-23.php'"),'pin_arguments_missing');
 foreach(['empty_failure','dirty','ancestor','hash_failure','hash_missing','hash_reordered','hash_changed'] as $bad){
     $replies=runtime_replies($head);$reason='hook_publishing_surface_changed';
     if($bad==='empty_failure'){$replies[1]['status']=128;$reason='hook_runtime_git_failed';}
