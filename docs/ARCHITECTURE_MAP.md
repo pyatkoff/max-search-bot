@@ -5,7 +5,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 ## KEEP — canonical owners / forward paths
 
 - `services/ManagerHotelReferenceContext.php` — read-only current native inquiry → immutable publication/source selector inside the existing authorized AI snapshot; no names, anonymous interest or UI-ID matching.
-- `services/ManagerHotelKnowledge.php` + `knowledge/hotels/` — bounded sealed accepted hotel declarations, source scopes and explicit validity; separate from company facts. The existing draft service admits whole groups last and the reference fingerprint owns stale validation.
+- `services/ManagerHotelKnowledge.php` + `knowledge/hotels/` — bounded sealed accepted hotel declarations, source scopes and explicit validity; separate from company facts. The existing draft service admits whole groups last and the reference fingerprint owns stale validation. `ManagerSearch3CandidateReader` uses the same reader after its existing candidate selection, with typed AnyTour identity, distinct retained-candidate provenance and whole-reference response admission; native-inquiry policy stays unchanged.
 
 - `services/DialogueStateMachine.php` — dialogue transition validity.
 - `services/NeedValueResolver.php` — deterministic need interpretation boundary.

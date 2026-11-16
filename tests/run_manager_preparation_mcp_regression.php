@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once dirname(__DIR__).'/services/ManagerPreparationMcpService.php';
 require_once dirname(__DIR__).'/services/ManagerPreparationMcpDiagnostics.php';
 require_once __DIR__.'/hotel_demand_inventory_checks.php';
+require_once __DIR__.'/hotel_candidate_reference_checks.php';
 
 $passed=0;
 function preparationMcpCheck(string $name,bool $ok): void
@@ -719,6 +720,11 @@ function preparationMcpConnectionChecks(): void
     }
 }
 
+if(in_array('--hotel-candidate-reference',$argv??[],true)){
+    try{hotelCandidateReferenceChecks();echo "OK hotel candidate reference checks: $passed\n";exit(0);}
+    catch(Throwable $error){fwrite(STDERR,$error->getMessage()."\n");exit(1);}
+}
+
 if(in_array('--hotel-demand-inventory',$argv??[],true)){
     try{hotelDemandInventoryChecks();echo "OK hotel demand inventory checks: $passed\n";exit(0);}
     catch(Throwable $error){fwrite(STDERR,$error->getMessage()."\n");exit(1);}
@@ -730,6 +736,8 @@ try {
     hotelDemandInventoryChecks();
     preparationMcpConnectionChecks();
     preparationCandidateChecks();
+    hotelCandidateReferenceChecks();
+    hotelCandidateReferenceMcpChecks();
     preparationMealChecks();
     preparationMcpDiagnosticChecks();
     foreach (['admin','project','connection'] as $revocation) {
