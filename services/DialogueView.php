@@ -250,7 +250,7 @@ class DialogueView
 
     public static function check($chatId): bool
     {
-        $missing = MaxSearchApi::getAiMissingFields($chatId);
+        $missing = MaxSearchApi::getAiMissingFields($chatId,true);
         if ($missing !== []) {
             MissingFieldQuestionService::sendForMissing($chatId, $missing);
             return false;
