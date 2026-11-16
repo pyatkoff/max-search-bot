@@ -6,9 +6,9 @@ require_once __DIR__.'/ManagerPreparationOAuth.php';
 /** Existing stored conversations, through an explicit read-only review grant. */
 final class DialogueReviewMcpAdapter
 {
-    public const NAMES=['list_current_dialogues','get_dialogue_review_context'];
+    public const NAMES=['list_current_dialogues','get_dialogue_review_context','list_retained_dialogues','get_retained_dialogue_context'];
     public const RETAINED_NAMES=['list_retained_dialogues','get_retained_dialogue_context'];
-    public static function allNames():array{return [...self::NAMES,...self::RETAINED_NAMES];}
+    public static function allNames():array{return self::NAMES;}
     public const MAX_OUTPUT_BYTES=65536;
     /** Only explicit server-returned history descriptors select the new capability. */
     public static function isHistory(array $args): bool

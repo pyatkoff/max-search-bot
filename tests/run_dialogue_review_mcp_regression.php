@@ -185,7 +185,7 @@ try{
         array_column($dialogueTools,'name')===array_merge([ModeledConversionStatusMcpAdapter::NAME],DialogueReviewMcpAdapter::allNames(),ManagerTourSelectionMcpAdapter::NAMES)
         &&$calls===[]&&$ordinaryCalls===0);
     foreach($dialogueTools as $tool){
-        if(!in_array($tool['name'],DialogueReviewMcpAdapter::NAMES,true))continue;
+        if(!in_array($tool['name'],DialogueReviewMcpAdapter::NAMES,true)||in_array($tool['name'],DialogueReviewMcpAdapter::RETAINED_NAMES,true))continue;
         dialogueMcpCheck('review tool declares bounded readonly explicit dialogue permission '.$tool['name'],
             $tool['inputSchema']['additionalProperties']===false&&$tool['annotations']['readOnlyHint']===true
             &&$tool['annotations']['destructiveHint']===false&&$tool['annotations']['idempotentHint']===true
