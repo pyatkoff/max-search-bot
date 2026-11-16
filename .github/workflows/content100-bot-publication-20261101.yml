@@ -1,4 +1,4 @@
-name: Read existing32 publication bindings for routes and feeds
+name: Complete existing32 binding read without repeating the proved first10
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '8059484b47906cf01f890bdbabacd827c886f494' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '7ee4b8f3118f385c1fe3dfce174107d3486bddba' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -23,44 +23,35 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 2
-      - name: Authenticate original receipts and complete current source evidence
+      - name: Recover original successful first group and exact unexecuted readers
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = 8059484b47906cf01f890bdbabacd827c886f494
+          test "$(git rev-parse HEAD^)" = 7ee4b8f3118f385c1fe3dfce174107d3486bddba
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_SOURCE"
           umask 077
-          w="$RUNNER_TEMP/bindings32";e="$w/source-evidence";mkdir -p "$e"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/43922854551 > "$w/publication-run.json"
-          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14254468446/zip > "$w/publication-intent.zip"
-          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14253254475/zip > "$w/publication-result.zip"
-          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14228391968/zip > "$w/old-reader.zip"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$e/main.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs?head_sha=$EXPECTED_SOURCE&per_page=100" > "$e/runs.json"
+          w="$RUNNER_TEMP/bindings32";mkdir -p "$w"
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14257152517/zip > "$RUNNER_TEMP/original-read.zip"
           python3 - <<'PY'
-          import os,json,pathlib
-          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'bindings32';e=w/'source-evidence';sha=os.environ['EXPECTED_SOURCE']
-          p=json.loads((w/'publication-run.json').read_bytes());assert p['id']==43922854551 and p['run_attempt']==1 and p['head_sha']=='0b340cafc6125cfa9967cb6597d03029462261dd' and p['conclusion']=='success' and p['status']=='completed'
-          assert json.loads((e/'main.json').read_bytes())['object']['sha']==sha
-          runs=json.loads((e/'runs.json').read_bytes());assert runs['total_count']<=100
-          paths=['deploy.yml','max-tls-preflight.yml','modeled-conversion-value-export.yml','max-production-health.yml','telegram-production-health.yml','live-session-diagnostics.yml','modeled-conversion-monitor.yml','tour-selection-host.yml','publish-conversation-diagnostics.yml'];selected={}
-          for name in paths:
-            eligible=[r for r in runs['workflow_runs'] if r['head_sha']==sha and r['head_branch']=='main' and r['path']=='.github/workflows/'+name and r['run_attempt']==1 and r['event'] in ['push','workflow_run']]
-            assert len(eligible)==1,'original gate not unique: '+name
-            r=eligible[0];assert r['status']=='completed' and r['conclusion']=='success','gate not successful: '+name
-            (e/('verify_run.json' if name=='deploy.yml' else 'tls_run.json' if name=='max-tls-preflight.yml' else 'gate-'+name+'.json')).write_text(json.dumps(r))
-            selected[name]={'run_id':r['id'],'head_sha':sha,'run_attempt':1,'conclusion':r['conclusion']}
-          (e/'deploy-id.txt').write_text(str(selected['deploy.yml']['run_id']));(e/'gate-receipts.json').write_text(json.dumps(selected,indent=2)+'\n')
+          import os,pathlib,json,hashlib,zipfile,re
+          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'bindings32';p=pathlib.Path(os.environ['RUNNER_TEMP'])/'original-read.zip'
+          assert hashlib.sha256(p.read_bytes()).hexdigest()=='6a367c25e54100d569a90fc46bca447fdeea4cb64b056c342ec6f0fee4bf965c'
+          with zipfile.ZipFile(p) as z:
+            assert z.testzip() is None and sum(i.file_size for i in z.infolist())<40000000 and all(not n.startswith('/') and '..' not in pathlib.PurePosixPath(n).parts for n in z.namelist());z.extractall(w)
+          r=json.loads((w/'22/bound-read.json').read_bytes());assert (w/'22/read-exit.txt').read_text().strip()=='0' and r['ok'] and r['scope_hotels']==10
+          pub=json.loads((w/'22/publication.json').read_bytes());known={x['hotel_id']:x for x in pub['posts'] if x['platform']=='max'}
+          for b in r['private_max_bindings']:
+            p=known[b['hotel_id']];assert isinstance(b['publication_id'],str) and re.fullmatch('[1-9][0-9]*',b['publication_id']) and type(p['publication_id']) is int
+            assert b['publication_id']==str(p['publication_id']) and b['version_id']==p['version_id'] and b['post_url']==p['post_url']
+          for g in (23,24,25):assert not (w/str(g)/'bound-read.json').exists() and not (w/str(g)/'read-exit.txt').exists()
+          intent=json.loads((w/'reader-intent.json').read_bytes());assert intent['source']==os.environ['EXPECTED_SOURCE'] and [g['group'] for g in intent['groups']]==[22,23,24,25]
+          for g in intent['groups']:assert hashlib.sha256((w/str(g['group'])/'read.php').read_bytes()).hexdigest()==g['script_sha256']
+          print('ORIGINAL_FIRST10_READ_RETAINED no_repeat=1 remaining_groups=3')
           PY
-          deploy="$(cat "$e/deploy-id.txt")"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/$deploy/jobs?per_page=100" > "$e/verify_jobs.json"
-          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_SOURCE" > "$e/source_commit.json"
-          tree="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$e/source_commit.json")"
-          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree?recursive=1" > "$e/source_tree.json"
-          python3 tools/direct_demand/operations/prepare-remaining32-current-bindings-20261116.py "$w"
       - name: Prepare existing pinned server connection
         env:
           KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -86,7 +77,7 @@ jobs:
             if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP';pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Read only four bounded existing-publication groups
+      - name: Read only groups23to25 and verify all original identities
         env:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -95,32 +86,38 @@ jobs:
         run: |
           set -euo pipefail
           w="$RUNNER_TEMP/bindings32"
-          for group in 22 23 24 25; do
+          for group in 23 24 25; do
             test "$GITHUB_RUN_ATTEMPT" = 1
             test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_SOURCE"
+            test ! -e "$w/$group/bound-read.json"
             status=0
             ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && GIT_OPTIONAL_LOCKS=0 php' < "$w/$group/read.php" > "$w/$group/bound-read.json" || status=$?
             printf '%s\n' "$status" > "$w/$group/read-exit.txt"
             cat "$w/$group/bound-read.json"
             test "$status" = 0
-            GROUP="$group" python3 - <<'PY'
-          import os,json,pathlib
-          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'bindings32'/os.environ['GROUP'];r=json.loads((p/'bound-read.json').read_bytes());a=json.loads((p/'approval.json').read_bytes());pub=json.loads((p/'publication.json').read_bytes());ids=a['hotel_ids']
-          assert r['ok'] and r['installed_sha']==os.environ['EXPECTED_SOURCE'] and r['scope_hotels']==r['feed_rows']==r['private_binding_count']==len(ids) and r['deferred_count']==0
-          assert all(r[k]==0 for k in ['db_writes','provider_calls','message_sends'])
-          assert [x['hotel_id'] for x in r['rows']]==[x['hotel_id'] for x in r['private_max_bindings']]==ids
-          for row,b in zip(r['rows'],r['private_max_bindings']):
-            posts={x['platform']:x for x in pub['posts'] if x['hotel_id']==row['hotel_id']}
-            assert row['max_post_url']==b['post_url']==posts['max']['post_url'] and row['telegram_post_url']==posts['telegram']['post_url']
-            assert b['publication_id']==posts['max']['publication_id'] and b['version_id']==posts['max']['version_id']
-          print('CURRENT_BINDINGS_CONFIRMED group='+os.environ['GROUP']+' pairs='+str(len(ids)))
-          PY
           done
-      - name: Retain all original read evidence without replay
+          python3 - <<'PY'
+          import os,json,pathlib,re,hashlib
+          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'bindings32';summary=[]
+          for group in (22,23,24,25):
+            p=w/str(group);raw=(p/'bound-read.json').read_bytes();r=json.loads(raw);a=json.loads((p/'approval.json').read_bytes());pub=json.loads((p/'publication.json').read_bytes());ids=a['hotel_ids']
+            assert r['ok'] and r['installed_sha']==os.environ['EXPECTED_SOURCE'] and r['scope_hotels']==r['feed_rows']==r['private_binding_count']==len(ids) and r['deferred_count']==0
+            assert all(r[k]==0 for k in ['db_writes','provider_calls','message_sends']) and (p/'read-exit.txt').read_text().strip()=='0'
+            assert [x['hotel_id'] for x in r['rows']]==[x['hotel_id'] for x in r['private_max_bindings']]==ids
+            for row,b in zip(r['rows'],r['private_max_bindings']):
+              posts={x['platform']:x for x in pub['posts'] if x['hotel_id']==row['hotel_id']}
+              assert row['max_post_url']==b['post_url']==posts['max']['post_url'] and row['telegram_post_url']==posts['telegram']['post_url']
+              assert isinstance(b['publication_id'],str) and re.fullmatch('[1-9][0-9]*',b['publication_id']) and type(posts['max']['publication_id']) is int
+              assert b['publication_id']==str(posts['max']['publication_id']) and b['version_id']==posts['max']['version_id']
+            summary.append({'group':group,'hotel_ids':ids,'read_sha256':hashlib.sha256(raw).hexdigest(),'read_at_utc':r['read_at_utc']})
+          result={'ok':True,'hotels':32,'original_first10_run':43927604117,'groups':summary,'new_post_sends':0,'db_writes':0,'feed_writes':0,'supplier_calls':0}
+          (w/'summary.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');print('ALL32_BINDINGS_CONFIRMED='+json.dumps(result))
+          PY
+      - name: Retain completed bounded evidence without replay
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: remaining32-current-bindings-${{ github.run_id }}
+          name: remaining32-complete-bindings-${{ github.run_id }}
           path: ${{ runner.temp }}/bindings32/
           retention-days: 30
           if-no-files-found: error
