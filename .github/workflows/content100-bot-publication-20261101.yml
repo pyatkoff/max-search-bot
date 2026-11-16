@@ -1,79 +1,60 @@
-name: Retain existing catalogue evidence for six published hotels without writes
+name: Materialize all remaining 33 hotel dossiers and saved photographs
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
     paths: ['.github/workflows/content100-bot-publication-20261101.yml']
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '84383f46f45f8c6e234c4ee4499a0650c17fc795' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '1bd415315a77ebc45c38e6d50b5588a57c7ef6b5' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 12
     steps:
-      - name: Read only the two existing public preview readers with exact known namespaces
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Authenticate existing source and exclude the published twenty
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$(git rev-parse HEAD^)" = 1bd415315a77ebc45c38e6d50b5588a57c7ef6b5
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
+          script=tools/direct_demand/operations/materialize-expansion33-photos-20261116.py
+          test "$(git hash-object "$script")" = e6bb3f1ab923d2ac8362c412f653dd72cba39da2
+          python3 -m py_compile "$script"
           umask 077
-          mkdir "$RUNNER_TEMP/hotel-six-evidence"
+          mkdir "$RUNNER_TEMP/remaining33"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/43845928034 > "$RUNNER_TEMP/remaining33/source-run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14214743619 > "$RUNNER_TEMP/remaining33/source-artifact.json"
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14214743619/zip > "$RUNNER_TEMP/source.zip"
           python3 - <<'PY'
-          import urllib.request,urllib.parse,hashlib,json,datetime,time,pathlib,os
-          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'hotel-six-evidence'
-          # These pairs were already returned by the retained 16Nov14:11 review.
-          # They are expected source consistency only, NOT new identity admission.
-          pairs=[(12125,1663),(57335,2651),(2480,1022),(15774,1734),(547,249),(88169,7041)]
-          legacy=[p[0] for p in pairs];canonical=[p[1] for p in pairs]
-          base='https://anytoour.ru/_preview/'
-          queries=[('canonical','search3-local-candidate/data/hotel-details-read-v1.php',[('catalog','anytour')]+[('legacyHotelIds[]',str(x)) for x in legacy]),
-            ('local-tv','search3-next-candidate/data/local-tv-catalog-read-v1.php',[('oldLocalHotelIds[]',str(x)) for x in canonical])]
-          class NoRedirect(urllib.request.HTTPRedirectHandler):
-            def redirect_request(self,*args,**kwargs): return None
-          result={'schema':'six_published_hotel_public_evidence_v1','ok':False,'scope_pairs':pairs,'writes':0,'supplier_queries':0,'post_writes':0,'fact_admissions':0,'http_attempts':0,'reads':[],
-            'limitations':['Public preview projections, not a production admission.','Retained source dates are not guarantees of present services or tariffs.','Canonical and local-tv IDs are separate namespaces.','Current independent identity/content acceptance and real Library approval remain required.']}
-          start=time.monotonic()
-          try:
-            for tag,path,args in queries:
-              if time.monotonic()-start>45: raise RuntimeError('global_read_budget')
-              url=base+path+'?'+urllib.parse.urlencode(args)
-              record={'tag':tag,'url':url,'requested_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'status':None}
-              result['reads'].append(record);result['http_attempts']+=1
-              request=urllib.request.Request(url,headers={'User-Agent':'AnyTour-Saved-Catalogue-Read/1.0','Accept':'application/json'})
-              with urllib.request.build_opener(NoRedirect()).open(request,timeout=20) as response:
-                record['status']=response.status;record['http_date']=response.headers.get('Date');record['content_type']=response.headers.get_content_type()
-                if response.status!=200 or response.headers.get_content_type()!='application/json': raise RuntimeError('unexpected_response')
-                raw=response.read(2*1024*1024+1)
-              if len(raw)>2*1024*1024: raise RuntimeError('response_bound')
-              record['bytes']=len(raw);record['sha256']=hashlib.sha256(raw).hexdigest()
-              (out/(tag+'.json')).write_bytes(raw)
-              data=json.loads(raw)
-              if not isinstance(data,dict) or data.get('ok') is not True or not isinstance(data.get('items'),list) or not isinstance(data.get('links'),list): raise RuntimeError('invalid_catalogue_response')
-              if tag=='canonical':
-                if data.get('source')!='anytour-canonical-catalog' or data.get('catalog')!='anytour' or data.get('requestedLegacyIds')!=legacy: raise RuntimeError('canonical_scope_changed')
-                got=[(x.get('legacyHotelId'),x.get('anytourHotelId')) for x in data['links']]
-                if got!=pairs or data.get('missingLegacyIds')!=[]: raise RuntimeError('retained_identity_changed')
-                if {x.get('id') for x in data['items']}!=set(canonical): raise RuntimeError('canonical_items_changed')
-              else:
-                if data.get('source')!='anytour-local-tv-catalog-v1' or data.get('catalog')!='local-tv': raise RuntimeError('local_source_changed')
-              record['items']=len(data['items']);record['links']=len(data['links']);record['response_keys']=sorted(data)
-            result['ok']=True
-          except Exception as error:
-            result['error_type']=type(error).__name__
-            if isinstance(error,RuntimeError):result['error']=str(error)
-            if hasattr(error,'code'):result['http_error']=error.code
-          result['duration_seconds']=round(time.monotonic()-start,3)
-          (out/'receipt.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
-          print('SIX_CATALOGUE_READ='+json.dumps(result,ensure_ascii=False,separators=(',',':')))
-          raise SystemExit(0 if result['ok'] else 2)
+          import pathlib,json,os
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'remaining33';r=json.loads((p/'source-run.json').read_bytes());a=json.loads((p/'source-artifact.json').read_bytes())
+          assert r['id']==43845928034 and r['run_attempt']==1 and r['conclusion']=='success' and r['head_sha']=='6c158a34792b6d28109473ed892784895ee3fa82'
+          assert a['id']==14214743619 and not a['expired'] and a['workflow_run']['id']==43845928034
+          assert a['digest']=='sha256:e3f02fb97b0e9080b26f9a91b0ad58f1fbad410764140e7355d7f6319c2086a0'
           PY
-      - name: Retain original response bytes and bounded receipt
+          python3 "$script" --plan-only "$RUNNER_TEMP/source.zip" "$RUNNER_TEMP/remaining33"
+      - name: Download the finite saved image set without SSH or supplier searches
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/direct_demand/operations/materialize-expansion33-photos-20261116.py --fetch "$RUNNER_TEMP/source.zip" "$RUNNER_TEMP/remaining33"
+      - name: Retain every result without retrying completed downloads
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: six-hotel-catalogue-evidence-${{ github.run_id }}
-          path: ${{ runner.temp }}/hotel-six-evidence/
+          name: expansion33-existing-media-${{ github.run_id }}
+          path: ${{ runner.temp }}/remaining33/
           if-no-files-found: error
           retention-days: 14
