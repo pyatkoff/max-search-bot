@@ -194,6 +194,12 @@ final class AppleService39PilotCatalog
         foreach (self::SEARCH_ENTRIES as $candidate) {
             if ($candidate['service'] !== '') $services[] = $candidate['service'];
         }
+        require_once __DIR__.'/AppleService39CoverageRevision.php';
+        foreach ((new AppleService39CoverageRevision())->posts() as $candidate) {
+            if ($candidate['kind'] === 'service' && $candidate['service'] !== '') {
+                $services[] = $candidate['service'];
+            }
+        }
         $service = is_string($known['service'] ?? null) && in_array($known['service'], $services, true)
             ? $known['service'] : '';
         $knownFamily = $model === 'Серия iPhone 17' && ($known['model_family'] ?? '') === 'iphone-17';

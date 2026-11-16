@@ -104,10 +104,14 @@ final class ProjectFunnelConversions
             $metadata=json_decode((string)$c['metadata_json'],true);if(($metadata['max_bot_key']??null)!==$connection->botKey())continue;
             $q=$pdo->prepare("SELECT id,payload_json FROM conversation_events WHERE conversation_id=? AND event_type='project_funnel_entry' ORDER BY id LIMIT 101");$q->execute([$c['id']]);$entries=$q->fetchAll(PDO::FETCH_ASSOC);
             if(count($entries)>=101)continue;
-            $anchor=null;$since=null;
+            $anchor=null;$since=null;$anchorId=0;
             foreach($entries as$e){$data=json_decode($e['payload_json'],true);$at=ConversationRecordClock::read($e['payload_json']);
                 if(is_array($data)&&($data['attribution_state']??null)==='matched'&&($data['advertising_scope']??null)===ProjectFunnelEntry::scope($settings)
-                    &&($data['external_user_id']??null)===(string)$c['external_user_id']&&($data['bot_key']??null)===$connection->botKey()&&$at!==null&&$at>=$now-21*86400&&$at<=$now){$anchor=$data;$since=$at;break;}}
+                    &&($data['external_user_id']??null)===(string)$c['external_user_id']&&($data['bot_key']??null)===$connection->botKey()){
+                    // An unreadable first acquisition cannot be silently replaced by its later priced entry.
+                    if(($policy['prediction']['basis']??null)==='owner_assumption'&&($at===null||$at>$now))break;
+                    if($at!==null&&$at>=$now-21*86400&&$at<=$now){$anchor=$data;$since=$at;$anchorId=(int)$e['id'];break;}
+                }}
             if(!$anchor)continue;
             // Explicit recording clocks only; bare historical DATETIMEs never supply a conversion time.
             $q=$pdo->prepare('SELECT id,direction,sender_type,metadata_json FROM messages WHERE conversation_id=? ORDER BY id LIMIT 501');$q->execute([$c['id']]);$messages=$q->fetchAll(PDO::FETCH_ASSOC);if(count($messages)>=501)continue;
@@ -126,8 +130,13 @@ final class ProjectFunnelConversions
                 elseif(($data['project_key']??null)===$policy['project_key']&&($data['bot_key']??null)===$connection->botKey()&&in_array($data['stage']??'', ['working','offer_sent','booking','won'],true))$stages[$data['stage']]=$stages[$data['stage']]??$at;
             }
             foreach($stages as$stage=>$at)if(isset($policy['goals'][$stage])&&$repo->captureProject($policy,$c,$stage,$at,$anchor))$count++;
-            $priceContext=$stages&&!isset($stages['won'])&&($policy['prediction']['basis']??null)==='owner_assumption'
-                ?self::repairContext($pdo,$connection,$c,$settings,$anchor,$since,$now):null;
+            $priceContext=null;
+            if($stages&&!isset($stages['won'])&&($policy['prediction']['basis']??null)==='owner_assumption'){
+                // Any prior outcome owns this conversation's one forecast, including failed/unknown history.
+                $q=$pdo->prepare("SELECT id FROM max_channel_conversion_outbox WHERE project_key=? AND conversation_id=? AND target='funnel_predictive_value' LIMIT 1");
+                $q->execute([$policy['project_key'],$c['id']]);
+                if(!$q->fetchColumn())$priceContext=self::repairContext($pdo,$connection,$c,$settings,$anchor,$since,$anchorId,$entries,$now);
+            }
             $estimate=self::estimate($policy,$stages,$now,$priceContext);
             if($estimate!==null&&isset($policy['goals']['predictive_value'])&&$repo->captureProject($policy,$c,'predictive_value',$estimate['event_unix'],$anchor+['estimate'=>$estimate],$estimate['value_rub']))$count++;
         }
@@ -136,11 +145,72 @@ final class ProjectFunnelConversions
         return $count;
     }
 
-    /** The saved entry owns the price context; later mutable conversation labels cannot rewrite it. */
-    private static function repairContext(PDO $pdo,ProjectMaxConnection $connection,array $conversation,array $settings,array $anchor,int $anchorAt,int $now): ?array
+    /** Refine only a valid incomplete model entry; the original acquisition always remains the anchor. */
+    private static function repairContext(PDO $pdo,ProjectMaxConnection $connection,array $conversation,array $settings,array $anchor,int $anchorAt,int $anchorId,array $entries,int $now): ?array
+    {
+        $keys=[];
+        foreach($entries as$row){$data=json_decode($row['payload_json'],true,16);$key=is_array($data)?($data['entry_key']??null):null;
+            if(is_string($key))$keys[$key]=($keys[$key]??0)+1;}
+        $key=$anchor['entry_key']??null;
+        if(!is_string($key)||($keys[$key]??0)!==1)return null;
+        $original=self::recordedRepairEntry($pdo,$connection,$conversation,$settings,$anchor,$anchorAt,$anchorId,$now);
+        if($original===null)return null;
+        $context=$original['context'];
+        if($context['model']!==''&&$context['service']!=='')return $context;
+        if($connection->projectKey()!==AppleService39PilotCatalog::PROJECT||$original['scope']!=='model'
+            ||$context['model']===''||$context['service']!=='')return null;
+        $visit=self::singleVisit($anchor);if($visit===null)return null;$seenBots=[];
+        foreach($entries as$row){
+            $id=(int)$row['id'];if($id<=$anchorId)continue;
+            $next=json_decode($row['payload_json'],true,16);if(!is_array($next))return null;
+            $key=$next['entry_key']??null;if(!is_string($key)||($keys[$key]??0)!==1)return null;
+            $at=ConversationRecordClock::read($row['payload_json']);if($at===null||$at<$anchorAt)return null;
+            $selected=self::recordedRepairEntry($pdo,$connection,$conversation,$settings,$next,$at,$id,$now);
+            if($selected===null)return null;
+            $priced=$selected['context'];$botId=(int)$priced['source_event_id'];
+            if($botId<=$anchorId||$priced['recorded_at_unix']<$anchorAt||($seenBots&&$botId<=max(array_keys($seenBots))))return null;
+            $seenBots[$botId]=true;
+            // An ordinary menu is neutral; another attributed request or visit ends this chain.
+            if($selected['scope']==='menu'&&($next['attribution_state']??null)==='unattributed')continue;
+            foreach(['project_key','bot_key','source_key','external_user_id','advertising_scope','post_id','offer_id']as$field)
+                if(($next[$field]??null)!==($anchor[$field]??null))return null;
+            if(self::singleVisit($next)!==$visit||$priced['model']!==$context['model'])return null;
+            if($selected['scope']==='model'&&$priced['service']==='')continue;
+            if($selected['scope']!=='model_service'||$priced['service']==='')return null;
+            // Attribution is optional at write time. An earlier native request without its receipt
+            // must hold refinement, never let a later, conveniently priced service replace it.
+            $q=$pdo->prepare("SELECT id FROM conversation_events WHERE conversation_id=? AND event_type='bot_started' AND id>? AND id<=? ORDER BY id LIMIT 101");
+            $q->execute([$conversation['id'],$anchorId,$botId]);$native=$q->fetchAll(PDO::FETCH_COLUMN);
+            if(count($native)>=101||count($native)!==count($seenBots))return null;
+            foreach($native as$nativeId)if(!isset($seenBots[(int)$nativeId]))return null;
+            // Resolve only the original visit. Its immutable CID enrichment may have a newer cursor.
+            if(self::identity($pdo,['funnel_context_json'=>json_encode($anchor,JSON_THROW_ON_ERROR),
+                'external_user_id'=>(string)$conversation['external_user_id'],'event_unix'=>$priced['recorded_at_unix']],$settings,$now)===null)return null;
+            $priced['refinement']=['version'=>1,'basis'=>'same_original_visit_explicit_model_service',
+                'original'=>['funnel_event_id'=>(string)$anchorId,'entry_key'=>$anchor['entry_key'],'funnel_recorded_at_unix'=>$anchorAt,
+                    'bot_event_id'=>$context['source_event_id'],'bot_recorded_at_unix'=>$context['recorded_at_unix']],
+                'selected'=>['funnel_event_id'=>(string)$id,'entry_key'=>$next['entry_key'],'funnel_recorded_at_unix'=>$at,
+                    'bot_event_id'=>$priced['source_event_id'],'bot_recorded_at_unix'=>$priced['recorded_at_unix']]];
+            // The first explicit selection owns resolution; an unpriced choice cannot fall through to another repair.
+            return $priced;
+        }
+        return null;
+    }
+
+    private static function singleVisit(array $entry): ?string
+    {
+        $observations=$entry['observations']??null;
+        if(($entry['attribution_state']??null)!=='matched'||!is_array($observations)||!array_is_list($observations)||count($observations)!==1||!is_array($observations[0]))return null;
+        $visit=$observations[0]['visit_id']??null;
+        return is_string($visit)&&$visit!==''&&strlen($visit)<=191?$visit:null;
+    }
+
+    /** Shared scope, duplicate and clock checks distinguish invalid records from valid empty labels. */
+    private static function recordedRepairEntry(PDO $pdo,ProjectMaxConnection $connection,array $conversation,array $settings,array $anchor,int $anchorAt,int $anchorId,int $now): ?array
     {
         $key=$anchor['entry_key']??null;
-        if(!is_string($key)||!preg_match('/\A[a-f0-9]{64}\z/D',$key)
+        if($anchorId<=0||$anchorAt>$now||$anchorAt<$now-21*86400||($anchor['version']??null)!==1
+            ||!is_string($key)||!preg_match('/\A[a-f0-9]{64}\z/D',$key)
             ||($anchor['project_key']??null)!==$connection->projectKey()||($anchor['bot_key']??null)!==$connection->botKey()
             ||($anchor['source_key']??null)!==$settings['source_key']||($anchor['external_user_id']??null)!==(string)$conversation['external_user_id']
             ||$conversation['project_key']!==$connection->projectKey()||$conversation['channel']!=='max'
@@ -149,7 +219,7 @@ final class ProjectFunnelConversions
         $q->execute([$conversation['id'],'%"delivery_key":"'.$key.'"%']);$rows=$q->fetchAll(PDO::FETCH_ASSOC);
         if(count($rows)!==1||!is_string($rows[0]['payload_json']))return null;
         $row=$rows[0];$at=ConversationRecordClock::read($row['payload_json']);
-        if($at===null||$at>$now||$at>$anchorAt||$at<$now-21*86400)return null;
+        if($at===null||$at>$now||$at>$anchorAt||$at<$now-21*86400||(int)$row['id']>=$anchorId)return null;
         $payload=json_decode($row['payload_json'],true,16);$context=is_array($payload)?($payload['repair_context']??null):null;
         $intent=is_array($payload)?($payload['repair_entry_reply']??null):null;
         if(!is_array($context)||!is_array($intent)||($payload['delivery_key']??null)!==$key
@@ -161,7 +231,7 @@ final class ProjectFunnelConversions
             ||!in_array($intent['state']??null,['pending','attempted','delivered','unknown','suppressed'],true)
             ||!is_string($intent['entry_code']??null)||!preg_match('/\A[A-Za-z0-9_-]{1,128}\z/D',$intent['entry_code'])
             ||($context['entry_code']??null)!==$intent['entry_code'])return null;
-        foreach(['model'=>160,'service'=>240]as$field=>$limit)if(!is_string($context[$field]??null)||$context[$field]===''
+        foreach(['model'=>160,'service'=>240]as$field=>$limit)if(!is_string($context[$field]??null)
             ||strlen($context[$field])>$limit||preg_match('/[\p{C}<>&]/u',$context[$field])!==0)return null;
         try{
             $entry=RepairProjectSettings::entry($connection,$intent['entry_code']);
@@ -171,8 +241,8 @@ final class ProjectFunnelConversions
                 :['model'=>$entry['model'],'service'=>$entry['service'],'entry_code'=>$intent['entry_code']];
             if($expected!==$context)return null;
         }catch(Throwable $ignored){return null;}
-        return ['model'=>$context['model'],'service'=>$context['service'],'entry_code'=>$intent['entry_code'],
-            'post_id'=>$anchor['post_id'],'entry_key'=>$key,'recorded_at_unix'=>$at,'source_event_id'=>(string)$row['id']];
+        return ['scope'=>$entry['scope']??'repair','context'=>['model'=>$context['model'],'service'=>$context['service'],'entry_code'=>$intent['entry_code'],
+            'post_id'=>$anchor['post_id'],'entry_key'=>$key,'recorded_at_unix'=>$at,'source_event_id'=>(string)$row['id']]];
     }
 
     /** Versioned company values: calibrated policy or an explicitly approved owner assumption. */
