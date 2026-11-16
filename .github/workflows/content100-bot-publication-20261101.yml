@@ -1,17 +1,17 @@
-name: Finish validated660 bundle without replay or production access
+name: Read existing price scheduler and installed module
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
     paths: ['.github/workflows/content100-bot-publication-20261101.yml']
 permissions:
-  contents: write
+  contents: read
   actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '7df29b29d7e4f0a440ebfbb14592d86b189a9045' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '94442c26b6cbbd9120bbbf8e33aba7bb96de05f1' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -19,93 +19,93 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-          fetch-depth: 3
-      - name: Reuse exact generated660 and its six successful unchanged-source tests
+          fetch-depth: 2
+      - name: Validate bounded read-only source
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = 7df29b29d7e4f0a440ebfbb14592d86b189a9045
-          test "$(git rev-parse HEAD^^)" = d24afcafed1c5bb37180b04692f85ce6476c5d8e
+          test "$(git rev-parse HEAD^)" = 94442c26b6cbbd9120bbbf8e33aba7bb96de05f1
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
-          test "$(git hash-object tools/direct_demand/operations/build-monitor-price-hook.py)" = 1821d805916230e8e64100f1f34cb537df1dacd6
+          echo '09a497d9e816b574ca0868f75c0512fef0d5cf8355ec480b1005ef0772ea38eb  tools/direct_demand/operations/inspect-monitor660-readiness-20261116.php' | sha256sum --check
+          php -l tools/direct_demand/operations/inspect-monitor660-readiness-20261116.php
           umask 077
-          mkdir "$RUNNER_TEMP/monitor660"
-          python3 - <<'PY'
-          import pathlib,subprocess,json,hashlib,os,zipfile,io,shutil
-          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'monitor660';p=pathlib.Path('tools/direct_demand/operations')
-          changed=subprocess.check_output(['git','diff','--name-only','d24afcafed1c5bb37180b04692f85ce6476c5d8e','HEAD'],text=True).splitlines()
-          assert set(changed)=={'.github/workflows/content100-bot-publication-20261101.yml',str(p/'build-monitor-price-hook.py')}
-          def api(s):return subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+s],timeout=60)
-          run=json.loads(api('actions/runs/43936091910'));meta=json.loads(api('actions/artifacts/14260855311'))
-          assert run['head_sha']=='d24afcafed1c5bb37180b04692f85ce6476c5d8e' and run['run_attempt']==1 and run['status']=='completed' and run['conclusion']=='failure'
-          assert meta['workflow_run']['id']==run['id'] and not meta['expired'] and meta['digest']=='sha256:99aae602d81e916aa632ba7c97506a360cb866be3a04a259060e572b059c1d31'
-          raw=api('actions/artifacts/14260855311/zip');assert hashlib.sha256(raw).hexdigest()==meta['digest'].split(':')[1]
-          with zipfile.ZipFile(io.BytesIO(raw)) as z:
-            assert z.testzip() is None and sum(i.file_size for i in z.infolist())<5000000
-            assert all(not pathlib.PurePosixPath(n).is_absolute() and '..' not in pathlib.PurePosixPath(n).parts for n in z.namelist());z.extractall(w)
-          lines=(w/'native-validation.txt').read_text().splitlines();assert len(lines)==6
-          assert json.loads(lines[0])=={'ok':True,'cases':513,'supplier_calls':0,'post_writes':0,'feed_writes':0}
-          assert lines[1]=='MONITOR_PRICE_HOOK_OK cases=843 no_provider_calls=1 no_writes=1'
-          assert json.loads(lines[2])=={'ok':True,'nightly_policy_cases':102,'supplier_calls':0,'post_writes':0,'journal_writes':0}
-          assert lines[3]=='MONITOR_PRICE_LINK_OK checks=195 supplier_calls=0 provider_calls=0 production_writes=0'
-          assert lines[4]=='MONITOR_EXPANSION20_OK checks=326 roster=628 old608_preserved=1 new20=20 provider_calls=0 supplier_calls=0 writes=0'
-          assert lines[5]=='MONITOR_EXPANSION32_OK checks=518 roster=660 old628_preserved=1 new32=32 provider_calls=0 supplier_calls=0 writes=0'
-          builder=(p/'build-monitor-price-hook.py').read_text();old=builder.replace("assert len(pins) == 23\nassert pins['services/ConversationRecordClock.php'] == '8f1d5b9a4888174a0867408594a164fc776ddbe4'",'assert len(pins) == 22')
-          b=old.encode();assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()=='3a2bdccd0e16e68ee1605d966fe644cfac8b54d9'
-          for file in (w/'generated').iterdir():shutil.copyfile(file,p/file.name)
-          shutil.copyfile(p/'build-monitor-price-hook.py',w/'generated/build-monitor-price-hook.py')
-          (w/'reused-validation.json').write_text(json.dumps({'original_run':run['id'],'original_conclusion':'failure','failed_stage':'bundle expected22; generated files and all six native suites succeeded','artifact':meta['id'],'artifact_sha256':hashlib.sha256(raw).hexdigest(),'unchanged_tests_reused':6,'new_production_calls':0},indent=2)+'\n')
-          print('EXACT660_GENERATED_INPUTS_AND_SIX_SUITE_RESULTS_REUSED')
-          PY
-      - name: Compile final bundle and verify every runtime pin
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          w="$RUNNER_TEMP/monitor660"
-          python3 tools/direct_demand/operations/build-monitor-price-hook.py "$w/monitor-price-hook.php" | tee "$w/bundle-build.txt"
-          php -l "$w/monitor-price-hook.php"
-          git diff --check
-          python3 - <<'PY'
-          import json,re,base64,pathlib,os,subprocess,hashlib
-          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'monitor660';s=(w/'monitor-price-hook.php').read_text();assert 'const HOOK_ROSTER_COUNT=660;' in s
-          pins=json.loads(base64.b64decode(re.search(r'const HOOK_RUNTIME_PINS_B64="([^"]+)";',s)[1]));assert len(pins)==23
-          assert pins['services/ConversationRecordClock.php']=='8f1d5b9a4888174a0867408594a164fc776ddbe4'
-          def api(s):return json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+s],timeout=60))
-          current=api('git/ref/heads/main')['object']['sha'];proof=[]
-          for source in dict.fromkeys(['ec72fcffa24ace22a997b642c33ea7fb6fb251d9',current]):
-            commit=api('git/commits/'+source);tree=api('git/trees/'+commit['tree']['sha']+'?recursive=1');assert not tree.get('truncated')
-            blobs={r['path']:r['sha'] for r in tree['tree'] if r['type']=='blob'}
-            mismatches=[p for p,b in pins.items() if blobs.get(p)!=b];assert not mismatches,('RUNTIME_PIN_DRIFT',source,mismatches)
-            proof.append({'source':source,'pins_verified':len(pins),'mismatches':mismatches})
-          (w/'runtime-pin-proof.json').write_text(json.dumps({'ok':True,'tree_reads_only':True,'runtime_installation_claimed':False,'proof':proof},indent=2)+'\n')
-          print('EXACT660_BUNDLE_AND_ALL23_RUNTIME_PINS_VERIFIED '+json.dumps(proof))
-          PY
-      - name: Retain tested immutable source blobs without moving any branch
+          mkdir "$RUNNER_TEMP/monitor660-readiness"
+      - name: Read existing workflow status and actual recent runs without dispatch
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import pathlib,subprocess,json,hashlib,base64,os
-          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'monitor660';records=[]
-          for name in ['monitor-price-expanded-roster-20261111.json.gz','monitor-price-expansion32-proof-20261116.json','update-commercial-price-20261104-remaining1.php','test-monitor-price-expansion20.php','test-monitor-price-expansion32.php','build-monitor-price-hook.py']:
-            raw=(w/'generated'/name).read_bytes();blob=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
-            result=json.loads(subprocess.check_output(['gh','api','--method','POST','repos/pyatkoff/max-search-bot/git/blobs','--input','-'],input=json.dumps({'content':base64.b64encode(raw).decode(),'encoding':'base64'}).encode(),timeout=60));assert result['sha']==blob
-            records.append({'path':'tools/direct_demand/operations/'+name,'sha':blob,'mode':'100644','type':'blob','sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)})
-          output={'source_head':os.environ['GITHUB_SHA'],'base_callback':'db99af43e8ab11b3675fdbf7875da6e8ea6849ee','rows':660,'previous_rows_preserved':628,'new_pairs':32,'reviewed_runtime_pin_changes':2,'added_dependency_pins':1,'blobs':records,'branch_updates':0,'production_connections':0,'supplier_calls':0,'post_writes':0,'feed_writes':0}
-          (w/'git-blobs.json').write_text(json.dumps(output,ensure_ascii=False,indent=2)+'\n');print('MONITOR660_SOURCE_READY='+json.dumps(output,separators=(',',':')))
+          import datetime,json,os,pathlib,subprocess
+          root='repos/pyatkoff/poisk-turov-test/'
+          requests={'workflow':root+'actions/workflows/346454799','scheduled':root+'actions/workflows/346454799/runs?event=schedule&per_page=8','latest':root+'actions/workflows/346454799/runs?per_page=8','main':root+'git/ref/heads/main'}
+          report={'checked_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'mode':'GET_only_existing_workflow','requests':0,'workflow_mutations':0,'dispatches':0,'results':{}}
+          for label,url in requests.items():
+            result=subprocess.run(['gh','api','--method','GET',url],capture_output=True,text=True,timeout=30);report['requests']+=1
+            if result.returncode!=0:
+              report['results'][label]={'read_ok':False,'exit_code':result.returncode};continue
+            data=json.loads(result.stdout)
+            if label=='workflow':value={k:data.get(k) for k in ['id','name','path','state','created_at','updated_at']}
+            elif label=='main':value={'ref':data.get('ref'),'sha':data.get('object',{}).get('sha')}
+            else:value={'total_count':data.get('total_count'),'runs':[{k:r.get(k) for k in ['id','head_sha','head_branch','event','status','conclusion','created_at','run_started_at','updated_at','run_attempt']} for r in data.get('workflow_runs',[])]}
+            report['results'][label]={'read_ok':True,**value}
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'monitor660-readiness/scheduler.json';out.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+          print('EXISTING_SCHEDULER_READ='+json.dumps(report,separators=(',',':')))
           PY
-      - name: Retain exact source, reused proofs and final compilation
+      - name: Prepare existing server connection with retained host pin
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35);matches=[]
+          for line in scan.stdout.splitlines():
+            fields=line.split()
+            if len(fields)<3 or fields[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+            except Exception:continue
+            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          PY
+      - name: Inspect installed bundle and final journal state once
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          result="$RUNNER_TEMP/monitor660-readiness/runtime.json"
+          status=0
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; GIT_OPTIONAL_LOCKS=0 php' < tools/direct_demand/operations/inspect-monitor660-readiness-20261116.php > "$result" || status=$?
+          printf '%s\n' "$status" > "$RUNNER_TEMP/monitor660-readiness/exit-code.txt"
+          cat "$result"
+          exit "$status"
+      - name: Retain bounded observation
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: remaining32-monitor660-final-${{ github.run_id }}
-          path: ${{ runner.temp }}/monitor660/
+          name: monitor660-readiness-${{ github.run_id }}
+          path: ${{ runner.temp }}/monitor660-readiness/
+          retention-days: 14
           if-no-files-found: error
-          retention-days: 30
+      - name: Remove runner-only connection files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
