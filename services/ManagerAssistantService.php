@@ -134,7 +134,7 @@ final class ManagerAssistantService
             $now = gmdate('Y-m-d H:i:s');
             if ($stored === false) {
                 $q = $pdo->prepare('INSERT INTO manager_assistant_decisions (manager_id,conversation_id,project_key,recommendation_revision,context_revision,instruction_revision,decision,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)');
-                $q->execute([$actor,$conversationId,ProjectConfig::projectId(),$revision,$current['context_revision'],$current['instruction_revision'],$decision,$now,$now]);
+                $q->execute([$actor,$conversationId,ProjectConfig::projectId(),$current['decision_key'],$current['context_revision'],$current['instruction_revision'],$decision,$now,$now]);
             } else {
                 $q = $pdo->prepare('UPDATE manager_assistant_decisions SET decision=?,updated_at=? WHERE manager_id=? AND conversation_id=? AND recommendation_revision=? AND project_key=? AND decision=?');
                 $q->execute(array_merge([$decision,$now],$key,[$previous]));
