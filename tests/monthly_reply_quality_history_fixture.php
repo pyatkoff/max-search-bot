@@ -146,7 +146,7 @@ function monthlyReplyQualityReadRegression(PDO $pdo): int
         $revokedReview=new MonthlyReplyQualityReadService($pdo,$clock,static function()use(&$revokedCalls,$key):string{
             if(++$revokedCalls===3)throw new DomainException();return$key;
         },null,true);
-        $reject(fn()=>$revokedReview->context(1,$connection,['dialogue_ref'=>$record['record_ref']]),'forbidden');
+        $reject(fn()=>$revokedReview->context(1,$connection,['dialogue_ref'=>$record['record_ref']]),'permission_changed');
 
         $reject(fn()=>$service->context(2,$connection,['dialogue_ref'=>$records[0]['record_ref']]),'forbidden');
         $reject(fn()=>$service->context(1,str_repeat('d',32),['dialogue_ref'=>$records[0]['record_ref']]),'stale_cursor');
