@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/ConversationDb.php';
+require_once __DIR__ . '/ConversationRecordClock.php';
 require_once __DIR__ . '/ChannelPostReconciliationState.php';
 require_once __DIR__ . '/ChannelPostTelegramAlbum.php';
 require_once __DIR__ . '/ChannelPostMemberDeliveryService.php';
@@ -538,13 +539,13 @@ final class ChannelPostRegistryService
 
 
     /** Entry and event pointer commit together; existing dialogue ownership is untouched. */
-    public function recordEntry(int $conversationId, array $resolved, string $eventKey = '', bool $joinTransaction = false): ?array
+    public function recordEntry(int $conversationId, array $resolved, string $eventKey = '', bool $joinTransaction = false, ?array $preservedEntry = null): ?array
     {
         if ($conversationId <= 0) return null;
         $publicationId = (int)($resolved['publication_id'] ?? 0);
         $versionId = (int)($resolved['version_id'] ?? 0);
         if ($publicationId <= 0 || $versionId <= 0) return null;
-        return $this->transaction(function () use ($conversationId, $resolved, $eventKey, $publicationId, $versionId): ?array {
+        return $this->transaction(function () use ($conversationId, $resolved, $eventKey, $publicationId, $versionId, $preservedEntry): ?array {
             $publication = $this->publication($publicationId);
             if (!$publication || !hash_equals((string)$publication['start_payload'], (string)($resolved['start_payload'] ?? '')) || $publication['project_key'] !== ($resolved['project_key'] ?? '') || $publication['platform'] !== ($resolved['platform'] ?? '') || $publication['bot_key'] !== ($resolved['bot_key'] ?? '')) return null;
             $version = $this->fetch('SELECT id FROM post_versions WHERE id=? AND publication_id=?', [$versionId, $publicationId]);
@@ -561,9 +562,33 @@ final class ChannelPostRegistryService
             $now = self::now();
             $this->execute('INSERT INTO post_entries (conversation_id,publication_id,version_id,entry_key,created_at) VALUES (?,?,?,?,?)', [$conversationId, $publicationId, $versionId, $entryKey, $now]);
             $entryId = (int)$this->pdo->lastInsertId();
-            $this->execute('INSERT INTO conversation_events (conversation_id,event_type,actor_type,payload_json,created_at) VALUES (?,?,?,?,?)', [$conversationId, 'channel_post_entry', 'customer', self::json(['entry_id' => $entryId, 'publication_id' => $publicationId, 'version_id' => $versionId, 'source_key' => $publication['source_key']]), $now]);
+            $payload=['entry_id' => $entryId, 'publication_id' => $publicationId, 'version_id' => $versionId, 'source_key' => $publication['source_key']];
+            $preserved=self::preservedEntry($preservedEntry,$conversation,$publication);
+            if($preserved!==null){
+                $payload['context_preserved']=['version'=>1,'origin'=>'max_start_source_policy',
+                    'reason'=>'existing_handoff_without_reset','conversation_id'=>$preserved['conversation_id'],
+                    'start_event_id'=>$preserved['start_event_id']];
+                $payload=ConversationRecordClock::stamp($payload);
+            }
+            $this->execute('INSERT INTO conversation_events (conversation_id,event_type,actor_type,payload_json,created_at) VALUES (?,?,?,?,?)', [$conversationId, 'channel_post_entry', 'customer', self::json($payload), $now]);
             return ['entry_id' => $entryId, 'version_id' => $versionId, 'duplicate' => false];
         }, $joinTransaction);
+    }
+
+    /** A receipt annotates only a new entry in the same AnyTour MAX subject and source. */
+    private static function preservedEntry(?array $receipt,array $conversation,array $publication): ?array
+    {
+        if(($conversation['project_key']??null)!=='anytour'||($conversation['channel']??null)!=='max'
+            ||($publication['project_key']??null)!=='anytour'||($publication['platform']??null)!=='max'
+            ||$receipt===null||count($receipt)!==4
+            ||array_diff(array_keys($receipt),['version','conversation_id','start_event_id','source_key'])!==[]
+            ||($receipt['version']??null)!==1||!is_string($receipt['conversation_id']??null)
+            ||preg_match('/\A[1-9][0-9]{0,19}\z/D',$receipt['conversation_id'])!==1
+            ||$receipt['conversation_id']!==(string)($conversation['id']??'')
+            ||!is_string($receipt['start_event_id']??null)||preg_match('/\A[1-9][0-9]{0,19}\z/D',$receipt['start_event_id'])!==1
+            ||!is_string($receipt['source_key']??null)||preg_match('/\A[A-Za-z0-9_.:\/-]{1,191}\z/D',$receipt['source_key'])!==1
+            ||$receipt['source_key']!==($publication['source_key']??null))return null;
+        return $receipt;
     }
 
     /** Do not leave an earlier post looking current after an unknown p_ entry. */
