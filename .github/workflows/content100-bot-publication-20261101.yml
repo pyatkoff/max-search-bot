@@ -1,130 +1,106 @@
-name: Read current expansion20 release clearance without writes
+name: Retain reviewed expansion20 covers under immutable URLs
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
     paths: ['.github/workflows/content100-bot-publication-20261101.yml']
 permissions:
-  contents: read
+  contents: write
   actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '66b2d7e2fd675a341c9a11d9e5733b969381456d' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '457b666e71395f44d141adade11b801128945521' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 2
-      - name: Verify source and exact existing twenty-hotel input
+      - name: Authenticate retained source and successful current clearance
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = 66b2d7e2fd675a341c9a11d9e5733b969381456d
+          test "$(git rev-parse HEAD^)" = 457b666e71395f44d141adade11b801128945521
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
           p=tools/direct_demand/operations
-          echo "3a667b93edaf771bddba5e1911cc8aa65314d6fbe71197c16303b18a5f6aee86  $p/read-expansion20-release-clearance-20261116.php" | sha256sum --check
-          test "$(git hash-object "$p/commercial-expansion100-catalogue-candidates-20261116.json")" = 728ce08a9eed7745cfcba015ecd42c20431ef9bf
-          test "$(git hash-object "$p/commercial-batch-template-20261102.php")" = 353d5125d212df7584d24fd04d0f692d90176edb
-          gh api "repos/pyatkoff/max-search-bot/contents/$p/commercial-expansion20-prepared-copy-media-20261116.json?ref=38a758dfcf8f71d5eb4e171a61a7516053cb149b" --jq .sha > "$RUNNER_TEMP/c20-input-blob"
-          test "$(git hash-object "$p/commercial-expansion20-prepared-copy-media-20261116.json")" = "$(cat "$RUNNER_TEMP/c20-input-blob")"
-          php -l "$p/read-expansion20-release-clearance-20261116.php"
-          php "$p/read-expansion20-release-clearance-20261116.php" --self-test
+          echo "30e2b7cac571266684346a37f1da6497ecc09021fc176f2d9afa1997e8b7480e  $p/reproduce-expansion20-covers-20261116.py" | sha256sum --check
+          python3 -m pip install --quiet 'Pillow==12.3.0'
           umask 077
-          mkdir "$RUNNER_TEMP/expansion20-clearance"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/expansion20-clearance/main-at-read.json"
+          mkdir "$RUNNER_TEMP/expansion20-assets"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/43857847149 > "$RUNNER_TEMP/expansion20-assets/clearance-run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14221119066/zip > "$RUNNER_TEMP/clearance20.zip"
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14218025386/zip > "$RUNNER_TEMP/media20.zip"
           python3 - <<'PY'
-          import base64,hashlib,json,os,pathlib,re
-          p=pathlib.Path('tools/direct_demand/operations');out=pathlib.Path(os.environ['RUNNER_TEMP'])/'expansion20-clearance'
-          prepared=json.loads((p/'commercial-expansion20-prepared-copy-media-20261116.json').read_bytes())
-          catalog=json.loads((p/'commercial-expansion100-catalogue-candidates-20261116.json').read_bytes())
-          identities={r[1]:r for r in catalog['rows'] if r[1] is not None}
-          ids=[88169,547,15774,12125,57335,2480,2417,2418,2468,12127,27481,23289,50262,72939,2489,85417,2466,2460,99713,43676]
-          assert [r[1] for r in prepared['rows']]==ids
-          aliases={88169:['Anantara Koh Yao Yai','Анантара Ко Яо Яй','Koh Yao Yai'],547:['Anantara Mai Khao','Анантара Май Кхао','Anantara Phuket Villas'],15774:['Anantara The Palm','Anantara Dubai The Palm','Анантара Палм'],12125:['Bolifushi','Болифуши','Jumeirah Vittaveli'],57335:['St. Regis','St Regis','Vommuli','Воммули'],2480:['Soneva Fushi','Сонева Фуши'],2417:['Anantara Dhigu','Анантара Дигу'],2418:['Anantara Veli','Анантара Вели'],2468:['Naladhu','Наладху'],12127:['Niyama','Нияма'],27481:['Al Sahel','Аль Сахель','Ал Сахел'],23289:['Anantara Downtown','The Oberoi Dubai','Оберой Дубай'],50262:['Hurawalhi','Хуравали','Хуравалхи'],72939:['Kagi','Каги'],2489:['Veligandu','Велиганду'],85417:['Jawakara','Джавакара'],2466:['Meeru','Миру'],2460:['Kuredu','Куреду'],99713:['Anantara Mina','Anantara Ras Al Khaimah','Анантара Рас'],43676:['Anantara Kalutara','Анантара Калутара']}
-          rows=[]
-          for work,tv,text,photos,sources in prepared['rows']:
-            identity=identities[tv];assert identity[0]==work
-            display=text.split('\n',1)[0].removeprefix('✈️ Туры в ')
-            if tv==27481:text='✈️ Туры в Anantara Sir Bani Yas Al Sahel\n'+text.split('\n',1)[1]
-            rows.append({'hotel_id':tv,'name':identity[2],'country_id':identity[3],'region_id':identity[4],'logical_id':f'commercial-hotel-{tv}-v1','text_sha256':hashlib.sha256(text.encode()).hexdigest(),'aliases':list(dict.fromkeys([display,identity[2],*aliases[tv]]))})
-          source=(p/'commercial-batch-template-20261102.php').read_text()
-          pins=dict(re.findall(r'"([^"]+)"=>"([a-f0-9]{40})"',source.split('$accepted=[',1)[1].split('];',1)[0]));assert len(pins)==22
-          raw=json.dumps(rows,ensure_ascii=False,separators=(',',':')).encode();(out/'input.json').write_bytes(raw)
-          prefix='<?php\ndeclare(strict_types=1);\n';body=(p/'read-expansion20-release-clearance-20261116.php').read_text();assert body.startswith(prefix)
-          enc=lambda value:base64.b64encode(value).decode()
-          program=prefix+"const C20_INPUT_B64='"+enc(raw)+"';\nconst C20_PINS_B64='"+enc(json.dumps(pins).encode())+"';\n"+body[len(prefix):]
-          (out/'read.php').write_text(program);(out/'source-proof.json').write_text(json.dumps({'intake_sha256':hashlib.sha256(raw).hexdigest(),'program_sha256':hashlib.sha256(program.encode()).hexdigest(),'source_commit':os.environ['GITHUB_SHA'],'publication_allowed':False},indent=2)+'\n')
-          print('EXACT_EXPANSION20_INPUT_READY hotels=20 writes=0')
+          import os,pathlib,json,hashlib,zipfile
+          p=pathlib.Path(os.environ['RUNNER_TEMP']);r=json.loads((p/'expansion20-assets/clearance-run.json').read_bytes())
+          assert r['id']==43857847149 and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success' and r['head_sha']=='dda3c966ba4c0bff39afec2edef3a9f8a92c7977'
+          assert hashlib.sha256((p/'clearance20.zip').read_bytes()).hexdigest()=='09b492fe35bfbaa42cb96fbc4f5196cfffb2ece475890ce8769ab4c6840bb78a'
+          with zipfile.ZipFile(p/'clearance20.zip') as z:
+            raw=z.read('result.json');d=json.loads(raw);assert d['ok'] and d['clear_count']==20 and d['blocked_count']==0
+            assert d['runtime']['tracked_clean'] and d['runtime']['component_mismatches']==[] and d['runtime']['head']=='d5091653179ac0460ed0129ae32cc52495abfbdd'
+            (p/'expansion20-assets/clearance.json').write_bytes(raw)
+            (p/'expansion20-assets/clearance-input.json').write_bytes(z.read('input.json'))
           PY
-          php -l "$RUNNER_TEMP/expansion20-clearance/read.php"
-      - name: Prepare existing server connection
+          python3 "$p/reproduce-expansion20-covers-20261116.py" "$RUNNER_TEMP/media20.zip" "$p/commercial-expansion20-prepared-copy-media-20261116.json" "$RUNNER_TEMP/expansion20-assets/covers"
+      - name: Retain asset intent before repository publication
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: expansion20-assets-intent-${{ github.run_id }}
+          path: ${{ runner.temp }}/expansion20-assets/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Create one image-only asset commit and read it back; no retry
         env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          umask 077
-          raw="$DEPLOY_SSH_KEY_VALUE"
-          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else
-            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
-          fi
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-      - name: Pin existing host-key continuity
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
           python3 - <<'PY'
-          import os,re,subprocess,base64,hashlib,pathlib
-          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
-          matches=[]
-          for line in scan.stdout.splitlines():
-            fields=line.split()
-            if len(fields)<3 or fields[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
-            except Exception:continue
-            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          import os,pathlib,json,hashlib,base64,urllib.request,urllib.error
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'expansion20-assets';manifest=json.loads((p/'covers/asset-manifest.json').read_bytes())
+          repo='pyatkoff/max-search-bot';branch='assets/hotel-expansion20-20261116';base=os.environ['GITHUB_SHA'];result={'ok':False,'branch':branch,'parent':base,'channel_writes':0,'server_connections':0,'blobs':[],'ref_write_attempted':False}
+          def save(): (p/'publication-result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
+          def api(method,path,value=None):
+            raw=None if value is None else json.dumps(value,separators=(',',':')).encode()
+            req=urllib.request.Request('https://api.github.com/repos/'+repo+'/'+path,data=raw,method=method,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+            with urllib.request.urlopen(req,timeout=60) as response:return json.load(response)
+          save()
+          try:
+            try: api('GET','git/ref/heads/'+branch)
+            except urllib.error.HTTPError as e: assert e.code==404,'asset_ref_read_failed'
+            else: raise RuntimeError('asset_ref_already_exists_no_replay')
+            assert api('GET','git/ref/heads/audit/content100-bot-publication-20261101')['object']['sha']==base,'carrier_changed'
+            commit=api('GET','git/commits/'+base);tree=[]
+            for r in manifest['rows']:
+              raw=(p/'covers'/r['photo_file']).read_bytes();assert hashlib.sha256(raw).hexdigest()==r['photo_sha256']
+              path='.github/traffic-publish/commercial-expansion20-20261116/'+r['photo_file']
+              expected=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              b=api('POST','git/blobs',{'content':base64.b64encode(raw).decode(),'encoding':'base64'});assert b['sha']==expected
+              tree.append({'path':path,'mode':'100644','type':'blob','sha':b['sha']});result['blobs'].append({'hotel_id':r['hotel_id'],'path':path,'git_blob':b['sha'],'sha256':r['photo_sha256']});save()
+            assert len(tree)==20 and len({r['sha'] for r in tree})==20
+            t=api('POST','git/trees',{'base_tree':commit['tree']['sha'],'tree':tree})
+            c=api('POST','git/commits',{'message':'assets: twenty reviewed hotel covers, exact pixels; no channel sends','tree':t['sha'],'parents':[base]});result['asset_commit']=c['sha'];save()
+            result['ref_write_attempted']=True;save()
+            api('POST','git/refs',{'ref':'refs/heads/'+branch,'sha':c['sha']})
+            assert api('GET','git/ref/heads/'+branch)['object']['sha']==c['sha']
+            diff=api('GET','compare/'+base+'...'+c['sha']);assert len(diff['files'])==20 and {f['filename'] for f in diff['files']}=={r['path'] for r in tree}
+            assert all(f['status']=='added' for f in diff['files'])
+            for r in result['blobs']:r['url']='https://raw.githubusercontent.com/'+repo+'/'+c['sha']+'/'+r['path']
+            result['ok']=True;save();print('IMMUTABLE_ASSETS_READY='+json.dumps({'commit':c['sha'],'covers':20,'channel_writes':0,'server_connections':0}))
+          except Exception as e:
+            result['error_type']=type(e).__name__;save();raise
           PY
-      - name: Read native identities and original publication records without writes
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          status=0
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" php < "$RUNNER_TEMP/expansion20-clearance/read.php" > "$RUNNER_TEMP/expansion20-clearance/result.json" || status=$?
-          printf '%s\n' "$status" > "$RUNNER_TEMP/expansion20-clearance/exit-code.txt"
-          cat "$RUNNER_TEMP/expansion20-clearance/result.json"
-          exit "$status"
-      - name: Retain original read outcome
+      - name: Retain actual publication outcome including unknown
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: expansion20-current-clearance-${{ github.run_id }}
-          path: ${{ runner.temp }}/expansion20-clearance/
+          name: expansion20-assets-result-${{ github.run_id }}
+          path: ${{ runner.temp }}/expansion20-assets/publication-result.json
           if-no-files-found: ignore
           retention-days: 14
-      - name: Remove runner-only connection files
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
