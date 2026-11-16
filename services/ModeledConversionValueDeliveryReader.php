@@ -3,6 +3,7 @@ declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionStatusBudget.php';
 require_once __DIR__.'/ModeledConversionValueContract.php';
 require_once __DIR__.'/ModeledConversionTickFailure.php';
+require_once __DIR__.'/ModeledConversionReadySelectionEvidence.php';
 require_once __DIR__.'/ModeledConversionProfiles.php';
 require_once __DIR__.'/ModeledConversionDeliveryRegistry.php';
 if(is_file(__DIR__.'/ModeledConversionValueIdentityEvidence.php'))require_once __DIR__.'/ModeledConversionValueIdentityEvidence.php';
@@ -114,11 +115,11 @@ final class ModeledConversionValueDeliveryReader
             if($includeHistoricalEvidence){
                 $rows=$this->query("SELECT mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,history_from_unix,history_until_unix,history_cursor,history_ceiling,history_fortnight_requested_at_unix,history_day_receipt_json,history_completed_at_unix,history_scanned,history_collected,history_stats_json,CASE WHEN ".$len."<=8192 THEN last_receipt_json ELSE NULL END AS receipt_json,last_report_success_unix,CASE WHEN ".($mysql?'OCTET_LENGTH(last_report_success_json)':'LENGTH(CAST(last_report_success_json AS BLOB))')."<=8192 THEN last_report_success_json ELSE NULL END AS last_success_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1",[]);
             }else{
-                // Operational delivery uses only these five saved receipt fields.
+                // Operational delivery copies only the named saved scalar receipt fields.
                 // Do not copy history documents or protected repair/source frames that
                 // this view never executes. Preserve each selected native JSON type.
                 $doc="CASE WHEN JSON_VALID(last_receipt_json) AND ".$len."<=8192 THEN last_receipt_json ELSE '{}' END";
-                $keys=['errors','last_recorded_failure','visit_gate_decisions','metrika_report','price_continuity_audit'];
+                $keys=['errors','last_recorded_failure','visit_gate_decisions','metrika_report','price_continuity_audit',ModeledConversionReadySelectionEvidence::KEY];
                 $pairs=[];$missing=[];
                 foreach($keys as$key){
                     $path="'$.".$key."'";
@@ -199,6 +200,7 @@ final class ModeledConversionValueDeliveryReader
                 if($failure!==null)$out['last_recorded_failure']=['tick_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$failure['tick_at_unix']),
                     'phase'=>$failure['phase'],'category'=>$failure['category']];
             }
+            $out['ready_selection']=ModeledConversionReadySelectionEvidence::projection($receipt[ModeledConversionReadySelectionEvidence::KEY]??null,$tick,$activation,$now);
             $out['visit_gate_decisions']=$this->visitGateDecisions($receipt['visit_gate_decisions']??null,$activation,$now);
             $out['metrika_goal_report']=$this->report($receipt['metrika_report']??null,$activation,$now);
             if(!in_array($out['metrika_goal_report']['status']??null,['ok','sampled'],true)){
