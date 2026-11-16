@@ -913,6 +913,45 @@ PHP
                     in_array($recovery, array_column(array_slice($sent, $sentBefore), 'text'), true), false);
                 TravelDirectoryRepository::$includeMinsk = false;
             }
+            // Organic (non-hotel-source) intake must not turn a named unsupported
+            // departure into Moscow when the bot is collecting the departure.
+            foreach (['max', 'telegram'] as $index => $platform) {
+                $user = $chatBase + 680 + $index;
+                $chat = $platform === 'max' ? -$user : $user;
+                $chats[] = $chat;
+                $enter($platform, $user);
+                MaxSearchApi::$needs[$chat] = [
+                    66=>'4', 67=>'2', 68=>'0', 70=>'4', 71=>'7', 72=>'9-10', 73=>'05.04.'.$year,
+                ];
+                MaxSearchApi::$statuses[$chat] = MaxSearchApi::$statusAi;
+                TravelDirectoryRepository::$includeMinsk = false;
+                AiInvocationService::$answer = ['intent'=>'search', 'parameters'=>[]];
+                AiInvocationService::$calls = [];
+                $before = MaxSearchApi::getAiSearchContext($chat);
+                $beforeSent = count($sent);
+                $native($platform, $user, 920000 + $index * 100, 'Минск');
+                $check($platform.' ordinary unresolved city tells the customer how to recover',
+                    array_column(array_slice($sent, $beforeSent), 'text'), [$recovery]);
+                $check($platform.' ordinary unresolved city never becomes Moscow',
+                    MaxSearchApi::getAiSearchContext($chat), $before);
+                $check($platform.' ordinary unresolved city stays the only missing field',
+                    MaxSearchApi::getAiMissingFields($chat), ['city']);
+                $check($platform.' ordinary unresolved city does not invoke the model',
+                    count(AiInvocationService::$calls), 0);
+                $beforeSent = count($sent);
+                $native($platform, $user, 920001 + $index * 100, 'Самара');
+                $check($platform.' subsequently confirmed active departure is used',
+                    MaxSearchApi::getAiSearchContext($chat)['city'] ?? null, 'Самара');
+                $check($platform.' confirmed departure avoids unsupported-city warning',
+                    in_array($recovery, array_column(array_slice($sent, $beforeSent), 'text'), true), false);
+                $check($platform.' simple city answers never invoke the model',
+                    count(AiInvocationService::$calls), 0);
+            }
+            $check('bare city-like answer recognized', DepartureCityResolver::isUnresolvedCityLikeAnswer('Минск'), true);
+            $check('unsupported explicit departure recognized', DepartureCityResolver::isUnresolvedCityLikeAnswer('из Минска'), true);
+            $check('greeting is not a city answer', DepartureCityResolver::isUnresolvedCityLikeAnswer('Здравствуйте'), false);
+            $check('month is not a city answer', DepartureCityResolver::isUnresolvedCityLikeAnswer('Февраль'), false);
+            $check('compound trip is not a bare city', DepartureCityResolver::isUnresolvedCityLikeAnswer('Минск на 7 ночей'), false);
         } elseif ($jointHandoff) {
             require_once $tmp . '/tests/fixtures/channel_post_entry_fixture.php';
             require_once $tmp . '/services/ManagerHandoffContextService.php';
