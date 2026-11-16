@@ -838,7 +838,7 @@ function modeledValueFailureRetentionAssertions(PDO $p,callable $check):void
                 $entered=true;ModeledConversionValueExport::tick($p,$lookup,$newWire->api(),$now+200,$gate,null,$steady);
                 if($pressure){
                     $current=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
-                    unset($current['last_recorded_failure'],$current['visit_gate_decisions'],$current['receipt_poll_evidence'],$current[ModeledConversionFixedPairDecisionEvidence::RECEIPT_KEY]);$current['padding']='';
+                    unset($current['last_recorded_failure'],$current['visit_gate_decisions'],$current['receipt_poll_evidence'],$current[ModeledConversionFixedPairDecisionEvidence::RECEIPT_KEY],$current[ModeledConversionReadySelectionEvidence::KEY]);$current['padding']='';
                     $expanded=$current;$expanded['last_recorded_failure']=['tick_at_unix'=>$now+100,'phase'=>'collect_profiles','category'=>'storage_failed'];
                     $limit=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?8190:8193;
                     $current['padding']=str_repeat('x',$limit-strlen(json_encode($expanded,JSON_THROW_ON_ERROR)));
@@ -863,6 +863,8 @@ function modeledValueFailureRetentionAssertions(PDO $p,callable $check):void
         }else{
             $expected=json_decode($winning['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
             $expected['last_recorded_failure']=['tick_at_unix'=>$now+100,'phase'=>'collect_profiles','category'=>'storage_failed'];
+            // New lowest-priority selection yields to a delayed real failure; finance/proof assertions remain exact.
+            unset($expected[ModeledConversionReadySelectionEvidence::KEY]);
             $actual=json_decode($after['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
             unset($after['last_receipt_json'],$winning['last_receipt_json']);
             $check('a delayed failed tick enriches a newer healthy receipt without changing its counts or report clocks',
