@@ -20,3 +20,7 @@
 .assistantTask>.assistantPromiseFacts{display:flex;flex-direction:column;gap:5px;padding:9px 11px;border-left:3px solid var(--as-accent);background:var(--as-surface);min-width:0;overflow-wrap:anywhere}
 .assistantPromiseFacts>span{line-height:1.45}.assistantPromiseActions{display:flex;flex-wrap:wrap;gap:7px;margin-top:3px}.assistantPromiseActions:empty{display:none}.assistantPromiseActions button{min-height:44px;text-align:left;white-space:normal}
 @media(max-width:767px){.assistantPromiseActions button{flex:1 1 150px}.assistantTask>div{flex-wrap:wrap}}
+
+/* Compact recommendation: prepared text is a preview, never a composer value. */
+.assistantDraftPreview{margin:10px 0;padding:10px 12px;border-left:3px solid var(--accent,#377dff);background:rgba(55,125,255,.07);white-space:pre-wrap}
+.assistantTasks>summary{cursor:pointer;font-weight:700;padding:10px 0}

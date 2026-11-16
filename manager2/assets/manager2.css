@@ -325,6 +325,13 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .m2SectionHint{font-size:11px;margin:0 0 3px}
 }
 
+/* Keep primary sections within reach without covering the reply composer. */
+@media(max-width:740px) and (min-height:541px){
+.manager2.workspaceMobileDetail:has(.workspace[data-mobile-screen="conversation"]):not(:has(.conversationZone.m2ReplyViewport)) .m2App{grid-template-rows:minmax(0,1fr) calc(62px + env(safe-area-inset-bottom))}
+.manager2.workspaceMobileDetail:has(.workspace[data-mobile-screen="conversation"]):not(:has(.conversationZone.m2ReplyViewport)) .m2Rail{display:grid}
+.manager2 .workspace[data-mobile-screen="conversation"] .conversationZone:not(.m2ReplyViewport){bottom:calc(62px + env(safe-area-inset-bottom))!important;height:calc(100vh - 62px - env(safe-area-inset-bottom));height:calc(100dvh - 62px - env(safe-area-inset-bottom))}
+}
+
 /* Current-trip context and the existing protected profile form stay in the dialogue. */
 .manager2 .m2CurrentTrip[hidden]{display:none!important}
 .manager2 .m2CurrentTrip{display:flex;align-items:center;gap:12px;flex:0 0 auto;padding:10px 22px;border-bottom:1px solid var(--m2-line);background:#f7f9f8}

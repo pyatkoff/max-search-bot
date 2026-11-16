@@ -1034,6 +1034,64 @@ $tests['bot questions cannot renew old customer criteria across a day']=static f
 };
 
 
+$tests['destination only replies retain one family without inventing purchase intent']=static function():void{
+    foreach(['ОАЭ','Дубай','Тунис','Кипр','Греция','Испания','Италия','Вьетнам','Индонезия',
+        'Бали','Куба','Шри-Ланка','Гоа','Сочи','Абхазия']as$text){
+        $p=semanticPredictionRun([['text'=>$text]]);
+        semanticPredictionAssert($p['stage']==='substantive_dialogue'&&$p['base_probability']===0.05
+            &&$p['current_request_anchor']==='journal:1'
+            &&$p['features']['criteria_families']===['destination']
+            &&$p['outcome_observations']===[],'country-only promoted beyond interest: '.$text);
+    }
+};
+$tests['destination survives a fresh explicit reply after unread content without bridging old criteria']=static function():void{
+    $p=semanticPredictionRun([
+        ['text'=>'С 12.02 по 19.02'],['barrier'=>true],['text'=>'ОАЭ'],['text'=>'Отель'],
+        ['text'=>'2 взрослых'],['text'=>'На 7 ночей']]);
+    semanticPredictionAssert($p['stage']==='concrete_request'&&$p['base_probability']===0.083333
+        &&$p['current_request_anchor']==='journal:3'
+        &&$p['features']['criteria_families']===['dates','destination','party']
+        &&$p['outcome_observations']===[],'fresh country reply lost or became purchase');
+    $destination=array_values(array_filter($p['evidence'],static fn(array $e):bool=>$e['feature']==='criteria_destination'));
+    semanticPredictionAssert(count($destination)===1&&$destination[0]['source_ref']==='journal:3',
+        'destination evidence did not point to the fresh country reply');
+    foreach($p['evidence']as$e)semanticPredictionAssert($e['source_ref']!=='journal:1',
+        'criteria before unread content were reused');
+    $p=semanticPredictionRun([['text'=>'2 взрослых, 7 ночей'],['barrier'=>true],['text'=>'ОАЭ']]);
+    semanticPredictionAssert($p['stage']==='substantive_dialogue'&&$p['current_request_anchor']==='journal:3'
+        &&$p['features']['criteria_families']===['destination'],'country bridged old party or dates');
+    $p=semanticPredictionRun([['text'=>'ОАЭ'],['barrier'=>true],['text'=>'Да']]);
+    semanticPredictionAssert($p['estimated_probability']===null&&$p['current_request_anchor']===null,
+        'unknown entry barrier preserved old destination through an acknowledgment');
+};
+$tests['new destination lexicon preserves word clause actor and clock admission guards']=static function():void{
+    foreach(['Мы колебались.','Пришлите сочинение.','Это многоаспектный вопрос.',
+        'ОАЭ не рассматриваю.','Не ОАЭ.','«ОАЭ»','> Дубай',
+        'В прошлом году были в ОАЭ.','Если выберем ОАЭ.']as$text){
+        $p=semanticPredictionRun([['text'=>$text]]);
+        semanticPredictionAssert($p['estimated_probability']===null&&$p['current_request_anchor']===null,
+            'destination guard promoted: '.$text);
+    }
+    $p=semanticPredictionRun([['role'=>'manager','text'=>'ОАЭ']]);
+    semanticPredictionAssert($p['estimated_probability']===null&&$p['current_request_anchor']===null,
+        'manager destination promoted');
+    $at=strtotime('2026-11-01T00:00:00Z');
+    foreach([['forwarded'=>true],['forwarded'=>null],['role_verified'=>false],
+        ['direction'=>'outbound'],['created_at'=>null]]as$override){
+        $p=semanticPredictionNew();
+        $r=ArchiveResearchSemanticExtractor::step(array_replace([
+            'source_ref'=>'journal:1','created_at'=>$at,'read_status'=>'available','text'=>'ОАЭ',
+            'role'=>'customer','direction'=>'inbound','role_verified'=>true,'text_minimized'=>true,
+            'forwarded'=>false,'media'=>[],'media_contents_read'=>false,
+            'selection_links_unread'=>false,'links_redacted'=>false],$override),
+            ArchiveResearchSemanticExtractor::initialState());
+        $p->observeMessage('customer','ОАЭ','journal:1',$at,$at+1,1,$r);
+        $v=$p->finish(semanticPredictionLegacy());
+        semanticPredictionAssert($v['estimated_probability']===null&&$v['current_request_anchor']===null,
+            'destination source/clock guard promoted: '.json_encode($override,JSON_THROW_ON_ERROR));
+    }
+};
+
 $failures=0;
 set_error_handler(static function(int $severity,string $message,string $file,int $line):never{
     throw new ErrorException($message,0,$severity,$file,$line);

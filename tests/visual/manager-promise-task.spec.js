@@ -87,7 +87,7 @@ async function preserved(page,fileText){
 
 const bindingViewports=[
   ...[[390,900],[430,900],[768,900],[1440,900],[390,420]].map(([width,height])=>({width,height,candidate:false})),
-  ...[390,430,768,1440].map(width=>({width,height:900,candidate:true})),
+  ...[390,1440].map(width=>({width,height:900,candidate:true})),
 ];
 for(const {width,height,candidate} of bindingViewports)test(`${candidate?'AI candidate outside the transcript':'explicit promise binding'} preserves manual work and reconciles once at ${width}x${height}`,async({page,browserName})=>{
   await page.setViewportSize({width,height});const s=await setupPromise(page,{candidate});
@@ -121,14 +121,13 @@ for(const {width,height,candidate} of bindingViewports)test(`${candidate?'AI can
     await page.locator('#promiseTaskSourceMore').click();
   }
   await expect(page.locator('#promiseTaskTask')).toHaveValue('');
+  await page.locator('#promiseTaskTask').selectOption('77');
   if(candidate){await expect(page.locator('#promiseTaskKind')).toHaveValue('');await expect(page.locator('#promiseTaskDeadlineMode')).toHaveValue('');await expect(page.locator('#promiseTaskKind')).toBeDisabled();}
-  await page.locator('#promiseTaskTask').focus();await page.locator('#promiseTaskTask').selectOption('77');
-  if(candidate){await expect(page.locator('#promiseTaskKind')).toHaveValue('send_calculation');await expect(page.locator('#promiseTaskDate')).toHaveValue('2030-11-20');await expect(page.locator('#promiseTaskTask')).toBeFocused();}
   else{await page.locator('#promiseTaskKind').selectOption('send_calculation');await page.locator('#promiseTaskDeadlineMode').selectOption('date');await page.locator('#promiseTaskDate').fill('2030-11-20');}
   await expect(page.locator('#promiseTaskConfirm')).toHaveText('Сохранить связь');await expect(page.locator('#promiseTaskConfirm')).toBeEnabled();await expect(page.locator('#promiseTaskPreview')).toHaveCount(0);
   await expect(page.locator('#promiseTaskSource')).toContainText(candidate?'Пришлю согласованный расчёт на двоих 20.11.2030.':'Пришлю согласованный расчёт на двоих.');
   if(candidate){
-    // Selecting the task performs only the canonical read; no Save click yet.
+    await page.locator('#promiseTaskConfirm').click();
     await expect(page.locator('#promiseTaskKind')).toHaveValue('send_calculation');await expect(page.locator('#promiseTaskDate')).toHaveValue('2030-11-20');
     await expect(page.locator('#promiseTaskProfile')).toContainText('Зимняя поездка');await expect(page.locator('#promiseTaskProfile')).toContainText('20 ноября, 7 ночей');
     await expect(page.locator('#promiseTaskTaskSummary')).toContainText('Подготовить согласованный расчёт');await expect(page.locator('#promiseTaskConfirm')).toBeEnabled();

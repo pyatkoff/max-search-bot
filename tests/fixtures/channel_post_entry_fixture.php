@@ -13,7 +13,10 @@ final class MaxSearchApi
     public static function getLastClaimForChat($chat): array { return ['CODE' => 'fixture-existing-claim']; }
     public static function getSavedData($chat): array { return ['NAME' => 'Fixture Tourist', 'ADULTS' => '2']; }
     public static function getAiSearchContext($chat): array { return self::$needContexts[$chat] ?? []; }
-    public static function getAiMissingFields($chat): array { return self::$missingNeeds[$chat] ?? ['city','country','adults','children','nights','date']; }
+    public static function getAiMissingFields($chat,bool $forSearch=false): array {
+        $missing=self::$missingNeeds[$chat] ?? ['city','country','adults','children','nights','date'];
+        return $forSearch?$missing:SourceHandlingService::qualificationMissingFields($chat,$missing);
+    }
     public static function applyAiParameters($chat,array $params): array {
         self::$needApplications[]=[$chat,$params];
         if(!empty(self::$rejectNeedApplication[$chat]))return [];

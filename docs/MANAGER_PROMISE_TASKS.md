@@ -46,21 +46,18 @@ The dialog never renders the canonical task editor or creates a task. An empty
 task list shows **Пока нет задач** and **Запланировать**, without an unusable task
 selector. Planning closes this dialog and calls the canonical task module.
 
-In an AI suggestion, a committed task choice reads `promise_context` and shows
-the checked source, task and current request without writing or moving focus.
-One final **Сохранить связь** click reads the context again and accepts only
-the exact summary already shown. Profile and source hashes remain opaque pins.
-A changed task or context after the preview first displays the new summary and
-requires another explicit click; another changed version requires another review.
-An incompatible source, trip or profile pin rejects the stale suggestion instead
-of rebasing it. A `needs_review` profile remains visibly marked for human review.
-The ordinary message-menu path retains its existing fresh preview/confirm behavior.
-Changing a choice or deadline invalidates the summary; in the AI path a committed
-valid change starts another read-only preview. An input event only invalidates it.
-A newer choice cancels the older read, and a late result cannot replace the current
-choice or reopen a closed dialog. Manual deadline choices are not overwritten.
-Existing read-only and completed bindings remain inspectable without a write.
-There is no automatic conflict recovery, blind pin replacement or save on selection.
+One **Сохранить связь** button reads `promise_context`, validates the checked
+source, task, current request and canonical field values, then confirms a fresh
+unchanged context. Profile and source hashes remain opaque command pins. A
+`needs_review` profile, changed source text, changed displayed task title/deadline/status,
+or a definite context/source/profile
+rejection first displays the checked summary and an explicit instruction to
+review it and press **Сохранить связь** again. No write occurs on that first
+review. The next click reads the context again and accepts only the exact
+summary already shown; another changed version requires another review.
+Changing a choice or deadline invalidates the summary. Existing read-only and
+completed bindings remain inspectable without a write. There is no automatic
+conflict recovery or blind pin replacement.
 
 The conversation's existing **⋯** menu has one **Запланировать** entry. It calls
 `WorkspaceV2Tasks.openPlanner`: that module reads fresh pipeline detail, checks
@@ -309,9 +306,7 @@ single-button fresh preview/confirm path, explicit review of changed sources and
 `needs_review` profiles, read failures, an existing completed binding, Moscow date/instant forms,
 pending storage and receipt lookup without automatic writes, account/navigation
 fences, and preservation of the real task edit form, reply text and selected
-file. AI candidate tests also cover read-only choice previews, superseded reads,
-no focus theft, input versus committed change, retained manual deadlines and
-successive context changes before the single final save. Empty tasks and both planner entry points must use the same canonical
+file. Empty tasks and both planner entry points must use the same canonical
 two-field editor, preserve dirty drafts before and during a read, honor fresh ACL
 and navigation, and never create a task just by opening. The current request view and a binding's older profile version must remain
 visibly distinct. Browser and production verification are separate release gates.
@@ -378,11 +373,10 @@ and deadline phrase. It appears in the current AI panel even without a customer
 draft, and opens the same explicit promise dialog. A valid AI source need not be
 in the browser's shorter current message window. The original source/trip/profile
 pins must still match the fresh promise_context before any suggested values are
-used. Task choice and final confirmation remain explicit. Choosing an existing
-task now reads that fresh context and shows the verified candidate values without
-a Save click or write. One subsequent **Сохранить связь** click rechecks the exact
-displayed values and saves only if they still match. Changed evidence is displayed
-first and requires a new explicit confirmation; there is no separate preview button.
+used. Task choice and final confirmation remain explicit. After the manager
+chooses a task, the first **Сохранить связь** reads that fresh context and shows
+the verified candidate values for review without writing. The same button then
+rechecks the displayed values and saves; there is no separate preview button.
 A missing or unresolved deadline requires the manager's explicit selection.
 The ordinary message-menu path retains its current one-click save behavior for
 unchanged, already reviewed values. Existing MyPlan facts, planning, drafts,

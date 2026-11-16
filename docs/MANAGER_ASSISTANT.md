@@ -79,6 +79,19 @@ The read endpoint is `manager/assistant-api.php`, using ManagerHttp authenticati
 
 Verification covers own-manager authorization, revoked sources, expiry and edits, more than200 clients, revision-bound decision conflicts, read-only behavior, browser account/navigation races, and the actual Manager2 shell at390/430/768/1440px. CI browser evidence and natural manager use are separate acceptance facts; a passing fixture is not production-use evidence.
 
+The personal plan presents a current prepared recommendation as one compact card:
+client, supported next action, short reason and the already prepared reply preview.
+`Ответить` opens the canonical conversation and asks the existing AI-draft owner
+to read `prepared_preview`; the displayed projection is never copied directly
+into the composer. `Открыть` handles recommendations without an outgoing reply.
+Manual reply text, the real File input, selection, focus and task drafts remain
+owned by their existing components. `Убрать` and `Вернуть` use the existing exact
+recommendation revision and change assistant metadata only. A rephrased proposal
+is intentionally a new revision in this bounded slice: durable semantic dismissal
+across regenerated wording and follow-through after a manager response remain
+release blockers. Existing tasks are secondary disclosure content and are never
+required to accept a recommendation.
+
 
 ## Operational facts and stable continuation
 

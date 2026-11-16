@@ -7,10 +7,20 @@ require_once dirname(__DIR__).'/services/MaxChannelConversionWorker.php';
 
 try{
     $args=array_slice($argv,1);$action=$args[0]??'status';
-    if($action==='project-probe'){
+    if(in_array($action,['project-probe','project-status'],true)){
         if(count($args)!==2||!preg_match('/\A[a-z][a-z0-9_]{0,39}\z/D',$args[1]))throw new RuntimeException('invalid_operation');
+        if($action==='project-status'&&$args[1]!=='appleservice39')throw new RuntimeException('invalid_operation');
         $connection=ProjectMaxConnection::resolve($args[1]);$settings=$connection?ProjectFunnelSettings::load($connection):null;
-        $result=$settings?ProjectFunnelConversions::probe($settings):['ok'=>false,'status'=>'project_unavailable','conversion_requests'=>0];
+        $result=$action==='project-probe'?($settings?ProjectFunnelConversions::probe($settings):['ok'=>false,'status'=>'project_unavailable','conversion_requests'=>0]):null;
+        if($args[1]==='appleservice39'){
+            require_once dirname(__DIR__).'/services/ProjectFunnelStatusReader.php';
+            try{$stored=(new ProjectFunnelStatusReader(ConversationDb::connection()))->read($connection,$settings,time());}
+            catch(Throwable $ignored){$stored=ProjectFunnelStatusReader::unavailable();}
+            if($action==='project-status'){
+                echo json_encode($stored,JSON_UNESCAPED_SLASHES)."\n";exit($stored['available']&&$stored['complete']?0:1);
+            }
+            $result['stored_funnel']=$stored;
+        }
         echo json_encode($result,JSON_UNESCAPED_SLASHES)."\n";exit($result['ok']?0:1);
     }
     if(count($args)>1||!in_array($action,['status','probe','collect','shared','send','off'],true))throw new RuntimeException('invalid_operation');

@@ -257,7 +257,10 @@ final class ManagerAssistantService
         return ['revision'=>$revision, 'context_revision'=>$prepared['revision'], 'instruction_revision'=>$instruction,
             'latest_message_id'=>(int)$prepared['latest_message_id'], 'prepared_at'=>$prepared['prepared_at'], 'expires_at'=>$prepared['expires_at'],
             'next_action'=>$proposal['next_action'], 'reason'=>$proposal['reason'], 'checks'=>$proposal['checks'],
-            'should_draft'=>$proposal['should_draft'], 'history_incomplete'=>$proposal['history_incomplete'],
+            // Display-only preview. The composer still obtains and validates the
+            // body through prepared_preview before it may offer insertion.
+            'should_draft'=>$proposal['should_draft'], 'draft'=>$proposal['should_draft'] ? $proposal['draft'] : null,
+            'history_incomplete'=>$proposal['history_incomplete'],
             'evidence_message_ids'=>$proposal['evidence_message_ids']];
     }
 
