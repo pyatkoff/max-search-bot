@@ -123,8 +123,9 @@ function monthlyReplyQualityReadRegression(PDO $pdo): int
         $rp=$review->inventory(1,$connection,['cursor'=>'qh.native.start','limit'=>25]);
         $check(is_string($rp['newest_retained']['start_cursor']??null)
             &&str_starts_with($rp['newest_retained']['start_cursor'],'qh.'),'retained_newest_descriptor_is_wrapped_in_the_quality_family');
-        $latest=$review->inventory(1,$connection,['cursor'=>$rp['newest_retained']['start_cursor'],'limit'=>1]);
-        $record=$latest['records'][0]??[];
+        $latest=$review->inventory(1,$connection,['cursor'=>$rp['newest_retained']['start_cursor'],'limit'=>2]);
+        // The parent reader fixture retains a valid maximum-BIGINT subject above9002.
+        $record=array_values(array_filter($latest['records'],static fn(array $r):bool=>($r['dialogue_id']??null)==='9002'))[0]??[];
         $check(($record['dialogue_id']??null)==='9002'&&$record['status']==='closed'
             &&$record['saved_profile_ref']===hash('sha256','intake_profile_v1:9002'),
             'retained_review_joins_exact_closed_subject_to_anonymous_saved_profile_reference');
