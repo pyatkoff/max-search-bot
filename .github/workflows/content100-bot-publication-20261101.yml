@@ -1,4 +1,4 @@
-name: Read retained expansion96 hotel content without writes
+name: Materialize saved expansion20 photographs without production writes
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
@@ -11,16 +11,16 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == 'c80f46bfd1a9c1188856a47d0948a2b6d912e085' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '3081eb0c61e984a7c461e88a3624800b2b8b5551' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 2
-      - name: Verify exact intake and read-only source
+      - name: Verify exact source and authenticate existing retained artifact
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -28,108 +28,36 @@ jobs:
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
           test "$GITHUB_REF" = refs/heads/audit/content100-bot-publication-20261101
-          test "$(git rev-parse HEAD^)" = c80f46bfd1a9c1188856a47d0948a2b6d912e085
+          test "$(git rev-parse HEAD^)" = 3081eb0c61e984a7c461e88a3624800b2b8b5551
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
           p=tools/direct_demand/operations
-          echo "4bdf5a990146a38c73f2e1ee4e4e79751389f9fb9a6cdd3dcf7b3722a2aa6818  $p/read-expansion96-retained-content-20261116.php" | sha256sum --check
-          test "$(git hash-object "$p/commercial-expansion100-catalogue-candidates-20261116.json")" = 728ce08a9eed7745cfcba015ecd42c20431ef9bf
-          php -l "$p/read-expansion96-retained-content-20261116.php"
-          php "$p/read-expansion96-retained-content-20261116.php" --self-test
+          echo "4eba37e0660541799029cf9b73daf1b912d282e5dd16095236c3e9aba12dc5e3  $p/materialize-expansion20-photos-20261116.py" | sha256sum --check
+          python3 -m py_compile "$p/materialize-expansion20-photos-20261116.py"
           umask 077
-          mkdir "$RUNNER_TEMP/expansion96-content"
-          gh api 'repos/pyatkoff/max-search-bot/contents/tools/direct_demand/operations/monitor-price-expanded-roster-20261111.json.gz?ref=69e55ac744c6127c83bfe59865b36d2d12a6f3f3' --jq .sha > "$RUNNER_TEMP/expansion96-content/roster-blob.txt"
-          test "$(git hash-object "$p/monitor-price-expanded-roster-20261111.json.gz")" = "$(cat "$RUNNER_TEMP/expansion96-content/roster-blob.txt")"
+          mkdir "$RUNNER_TEMP/expansion20-media"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/43845928034 > "$RUNNER_TEMP/expansion20-media/source-run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14214743619 > "$RUNNER_TEMP/expansion20-media/source-artifact.json"
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14214743619/zip > "$RUNNER_TEMP/retained-content.zip"
           python3 - <<'PY'
-          import base64,gzip,json,pathlib,os,hashlib
-          base=pathlib.Path('tools/direct_demand/operations');out=pathlib.Path(os.environ['RUNNER_TEMP'])/'expansion96-content'
-          raw=(base/'commercial-expansion100-catalogue-candidates-20261116.json').read_bytes();data=json.loads(raw)
-          selected=[r for r in data['rows'] if r[1] is not None]
-          assert len(selected)==96 and len({r[1] for r in selected})==96
-          req=[{'work_id':r[0],'tourvisor_id':r[1],'name':r[2],'country_id':r[3]} for r in selected]
-          roster=json.loads(gzip.decompress((base/'monitor-price-expanded-roster-20261111.json.gz').read_bytes()))['rows']
-          assert len(roster)==608 and len({r['tourvisor_hotel_id'] for r in roster})==608
-          published={r['tourvisor_hotel_id']:r for r in roster}
-          screen=[{'work_id':r['work_id'],'tourvisor_id':r['tourvisor_id'],'published_native_id_match':r['tourvisor_id'] in published,'matching_posts':published[r['tourvisor_id']]['posts'] if r['tourvisor_id'] in published else None} for r in req]
-          proof={'publisher_source':'69e55ac744c6127c83bfe59865b36d2d12a6f3f3','roster_pairs':608,'native_matches':sum(r['published_native_id_match'] for r in screen),'current_site_registry_read':False,'rows':screen}
-          (out/'native-dedup.json').write_text(json.dumps(proof,ensure_ascii=False,indent=2)+'\n')
-          (out/'intake.json').write_bytes(raw)
-          (out/'requests.json').write_text(json.dumps(req,ensure_ascii=False,indent=2)+'\n')
-          prefix='<?php\ndeclare(strict_types=1);\n';src=(base/'read-expansion96-retained-content-20261116.php').read_text();assert src.startswith(prefix)
-          encoded=base64.b64encode(json.dumps(req,ensure_ascii=False,separators=(',',':')).encode()).decode()
-          program=prefix+"const EXPANSION96_REQUESTS_B64='"+encoded+"';\n"+src[len(prefix):]
-          (out/'read.php').write_text(program)
-          print(json.dumps({'candidate_ids':96,'native_matches':proof['native_matches'],'source_roster':608,'read_program_sha256':hashlib.sha256(program.encode()).hexdigest(),'writes':0}))
+          import json,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'expansion20-media'
+          r=json.loads((p/'source-run.json').read_bytes());a=json.loads((p/'source-artifact.json').read_bytes())
+          assert r['id']==43845928034 and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success'
+          assert r['head_sha']=='6c158a34792b6d28109473ed892784895ee3fa82'
+          assert a['id']==14214743619 and not a['expired'] and a['workflow_run']['id']==43845928034
+          assert a['digest']=='sha256:e3f02fb97b0e9080b26f9a91b0ad58f1fbad410764140e7355d7f6319c2086a0'
           PY
-          php -l "$RUNNER_TEMP/expansion96-content/read.php"
-      - name: Prepare existing server connection
-        env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          python3 "$p/materialize-expansion20-photos-20261116.py" --plan-only "$RUNNER_TEMP/retained-content.zip" "$RUNNER_TEMP/expansion20-media"
+      - name: Fetch only saved public images once with no production connection
         shell: bash
         run: |
           set -euo pipefail
-          umask 077
-          raw="$DEPLOY_SSH_KEY_VALUE"
-          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else
-            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
-          fi
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-      - name: Pin existing server host-key continuity
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re,subprocess,base64,hashlib,pathlib
-          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
-          matches=[]
-          for line in scan.stdout.splitlines():
-            f=line.split()
-            if len(f)<3 or f[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(f[2])).digest()).decode().rstrip('=')
-            except Exception:continue
-            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
-          PY
-      - name: Read saved hotel profiles once in a read-only transaction
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          status=0
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" php < "$RUNNER_TEMP/expansion96-content/read.php" > "$RUNNER_TEMP/expansion96-content/result.json" || status=$?
-          printf '%s\n' "$status" > "$RUNNER_TEMP/expansion96-content/exit-code.txt"
-          python3 - <<'PY'
-          import json,pathlib,os,hashlib
-          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'expansion96-content';raw=(p/'result.json').read_bytes();d=json.loads(raw)
-          rows=d.pop('rows',[]);d['result_sha256']=hashlib.sha256(raw).hexdigest()
-          print('EXPANSION96_CONTENT_RESULT='+json.dumps(d,ensure_ascii=False,separators=(',',':')))
-          for r in rows:
-            s=r['retained_source'] or {}
-            print('HOTEL_CONTENT='+json.dumps({'work_id':r['work_id'],'tourvisor_id':r['tourvisor_id'],'local_summary':r['local_summary'],'retained_found':bool(s),'retained_valid':s.get('valid_source',False),'retained_at':s.get('fetched_at')},ensure_ascii=False,separators=(',',':')))
-          (p/'summary.json').write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
-          PY
-          exit "$status"
-      - name: Retain exact saved content and identity screen
+          python3 tools/direct_demand/operations/materialize-expansion20-photos-20261116.py --fetch "$RUNNER_TEMP/retained-content.zip" "$RUNNER_TEMP/expansion20-media"
+      - name: Retain images and exact per-file download evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: expansion96-retained-content-${{ github.run_id }}
-          path: ${{ runner.temp }}/expansion96-content/
-          if-no-files-found: ignore
+          name: expansion20-saved-media-${{ github.run_id }}
+          path: ${{ runner.temp }}/expansion20-media/
+          if-no-files-found: error
           retention-days: 14
-      - name: Remove runner-only connection files
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
