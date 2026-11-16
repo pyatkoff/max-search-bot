@@ -1,4 +1,4 @@
-name: Prepare published expansion20 monitor roster without production writes
+name: Prepare bounded hotel knowledge country support
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
@@ -11,9 +11,9 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '12bd8359cf8eed1f57c8ae58d5f6267cb2fdb989' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == 'e2f85284c3eeb98ca562ba72230e6142dbc95cff' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
@@ -22,76 +22,36 @@ jobs:
           fetch-depth: 2
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
-          ref: 5873fe24ef5f0d6251f1c6bbf0b245ced28fc980
-          path: previous-publisher
+          ref: 3c76952bd3b6f7e3d04b0f6aae876816188f906f
+          path: knowledge-source
           persist-credentials: false
-      - name: Authenticate source and original publication-feed evidence
+      - name: Check exact source and the one-time preparation boundary
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = 12bd8359cf8eed1f57c8ae58d5f6267cb2fdb989
+          test "$(git rev-parse HEAD^)" = e2f85284c3eeb98ca562ba72230e6142dbc95cff
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = 3c76952bd3b6f7e3d04b0f6aae876816188f906f
+          test "$(git hash-object tools/direct_demand/operations/prepare-knowledge-country-scope-20261116.py)" = b2054cac5c31be7cb29dc3fd22e2d1daa75dc8eb
+          python3 -m py_compile tools/direct_demand/operations/prepare-knowledge-country-scope-20261116.py
+          php -r 'foreach(["mbstring","pdo_sqlite"] as $x)if(!extension_loaded($x))throw new RuntimeException("missing_".$x);'
           umask 077
-          mkdir "$RUNNER_TEMP/monitor628"
-          python3 - <<'PY'
-          import pathlib,subprocess,json,hashlib,os
-          p=pathlib.Path('tools/direct_demand/operations');old=pathlib.Path('previous-publisher')/p
-          names=['monitor-price-contract.php','monitor-price-hook-contract.php','monitor-price-after-collection.php','update-commercial-price-20261104-remaining1.php','publish-commercial-channel-hotel-feeds-20261103-1.php','build-monitor-price-hook.py','monitor-price-expanded-roster-20261111.json.gz','test-monitor-price-hook.php']
-          for name in names:assert (p/name).read_bytes()==(old/name).read_bytes(),('CURRENT_CALLBACK_CHANGED',name)
-          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'monitor628'
-          for tag,run_id,head,aid,digest in [('bound',43871777544,'6aacd0e37f52011edfdfb28f948272001dcb81ef',14228391968,'a809657d638cfafb122e0faaebf50e40088325ade6491890574f3c0770ae6c93'),('feed',43874344520,'c83efec040638ea421a505e24f9aff722dcf6fd3',14229960161,'7d1d7d468c604840193980689354fd339effc3a6d8d1a0e4622ac52f5fb9bbe5')]:
-            def api(s):return subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+s],timeout=60)
-            run=api('actions/runs/'+str(run_id));r=json.loads(run)
-            assert r['id']==run_id and r['head_sha']==head and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success'
-            meta=api('actions/artifacts/'+str(aid));a=json.loads(meta)
-            assert a['id']==aid and not a['expired'] and a['workflow_run']['id']==run_id and a['digest']=='sha256:'+digest
-            raw=api('actions/artifacts/'+str(aid)+'/zip');assert hashlib.sha256(raw).hexdigest()==digest
-            (w/(tag+'.zip')).write_bytes(raw);(w/(tag+'-run.json')).write_bytes(run);(w/(tag+'-artifact.json')).write_bytes(meta)
-          print('EXACT608_CALLBACK_AND_ORIGINAL20_EVIDENCE_ACCEPTED')
-          PY
-      - name: Append exact published twenty and run existing native tests
-        shell: bash
-        run: |
-          set -euo pipefail
-          p=tools/direct_demand/operations
-          w="$RUNNER_TEMP/monitor628"
-          python3 "$p/prepare-expansion20-monitor-20261116.py" --root "$p" --bound "$w/bound.zip" --feed "$w/feed.zip" --out "$w/generated"
-          cp "$w/generated/monitor-price-expanded-roster-20261111.json.gz" "$p/"
-          cp "$w/generated/monitor-price-expansion20-proof-20261116.json" "$p/"
-          php "$p/test-monitor-price-contract.php"
-          php "$p/test-monitor-price-hook.php"
-          php "$p/test-monitor-price-nightly-policy.php"
-          php "$p/test-monitor-price-link.php"
-          php "$p/test-monitor-price-expansion20.php"
-          python3 "$p/build-monitor-price-hook.py" "$w/monitor-price-hook.php"
-          php -l "$w/monitor-price-hook.php"
-          git diff --check
-      - name: Retain immutable generated blobs only; do not change any branch or runtime
+          mkdir "$RUNNER_TEMP/knowledge-countries"
+      - name: Prove RED and GREEN, unchanged references, and existing regressions
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          import pathlib,subprocess,json,hashlib,base64,os
-          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'monitor628';records=[]
-          for name in ['monitor-price-expanded-roster-20261111.json.gz','monitor-price-expansion20-proof-20261116.json']:
-            raw=(w/'generated'/name).read_bytes();blob=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
-            payload=json.dumps({'content':base64.b64encode(raw).decode(),'encoding':'base64'}).encode()
-            result=json.loads(subprocess.check_output(['gh','api','--method','POST','repos/pyatkoff/max-search-bot/git/blobs','--input','-'],input=payload,timeout=60))
-            assert result['sha']==blob
-            records.append({'path':'tools/direct_demand/operations/'+name,'sha':blob,'mode':'100644','type':'blob','sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)})
-          output={'source_head':os.environ['GITHUB_SHA'],'base_callback':'5873fe24ef5f0d6251f1c6bbf0b245ced28fc980','rows':628,'previous_rows_preserved':608,'new_pairs':20,'blobs':records,'branch_updates':0,'production_connections':0,'supplier_calls':0,'post_writes':0,'feed_writes':0}
-          (w/'git-blobs.json').write_text(json.dumps(output,ensure_ascii=False,indent=2)+'\n');print('MONITOR628_SOURCE_READY='+json.dumps(output,separators=(',',':')))
-          PY
-      - name: Retain original evidence and generated candidate
+          python3 tools/direct_demand/operations/prepare-knowledge-country-scope-20261116.py knowledge-source "$RUNNER_TEMP/knowledge-countries"
+      - name: Retain exact source proposal and all test outcomes
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: expansion20-monitor628-prepared-${{ github.run_id }}
-          path: ${{ runner.temp }}/monitor628/
-          if-no-files-found: error
-          retention-days: 30
+          name: hotel-knowledge-country-source-${{ github.run_id }}
+          path: ${{ runner.temp }}/knowledge-countries/
+          if-no-files-found: warn
+          retention-days: 14
