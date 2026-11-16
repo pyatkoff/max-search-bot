@@ -248,6 +248,13 @@ $testTerminalPrefix=$terminalPrefix;$testTerminalAppends=0;
 function hook_abandon_failed_preflight(string $operation,array $failure):array {
     global $testTerminalPrefix,$testTerminalAppends,$testReadJournal,$testAppendedStates;
     $saved=end($testAppendedStates);
+    if(monitor_hook_local_preflight_failure($failure)){
+        hook_test_check(is_array($saved)&&($saved['pending']['child_failure']??null)===$failure,
+            'driver_did_not_persist_local_failure_before_terminal');
+        $line=monitor_hook_terminal_line($testTerminalPrefix,$operation,gmdate('c'),'child_preflight_failed_before_write',
+            ['preflight_error'=>$failure['error'],'child_exit_code'=>$failure['exit_code']]);
+        $testReadJournal=monitor_hook_parse_journal($testTerminalPrefix.$line,$operation);$testTerminalAppends++;return $testReadJournal;
+    }
     hook_test_check(is_array($saved)&&($saved['pending']['child_failure']??null)===$failure
         &&monitor_hook_preflight_progress_valid($saved['pending']['preflight_progress']??[]),'driver_did_not_persist_progress_before_terminal');
     $line=monitor_hook_terminal_line($testTerminalPrefix,$operation,gmdate('c'),'channel_preflight_blocked_before_write',
@@ -600,6 +607,83 @@ foreach(['max','telegram'] as $platform){
     $published608Draft=monitor_hook_draft($published608Row['templates'][$platform],$published608Price);
     foreach($published608Warnings as $warning){hook_test_check(substr_count($published608Draft,$warning)===1,'published_palace_price_draft_lost_disclosure');}
     hook_test_check(str_ends_with($published608Draft,"\n\nУзнать стоимость тура"),'published_palace_price_draft_lost_cta');
+}
+
+// A confirmed MAX edit followed by a Telegram failure must stop the whole pass.
+// Execute the actual parent catch and the following feed call; use the real
+// no-write terminal validator, so an allowlisted error cannot erase that receipt.
+$partialMaxReceipt=['platform'=>'max','publication_id'=>7,'version_id'=>9,'message_id'=>'mid.pacing-fixture',
+    'state'=>'sent','body_photo_button_verified'=>true,'price_link_verified'=>true];
+$partialMax=$terminalOriginal;$partialMax['posts']=['max:pacing-fixture'=>['state'=>'confirmed','receipt'=>$partialMaxReceipt]];
+$partialPrefix=$terminalPrefix.hook_test_json_line($partialMax);
+$feedCallEnd=strpos($driver,"\n",$editEnd);
+hook_test_check($feedCallEnd!==false,'driver_post_edit_feed_boundary_missing');
+$editThroughFeed=substr($driver,$editStart,$feedCallEnd-$editStart);
+foreach(['telegram_edit_not_confirmed_no_retry','telegram_price_link_not_verified_no_retry',
+    'target_changed_before_edit','monitor_price_expired'] as $partialError){
+    $testTerminalPrefix=$partialPrefix;$testReadJournal=$partialMax;
+    $partialFailure=['exit_code'=>2,'error'=>$partialError];
+    $run=hook_test_channel_driver($partialFailure,$editThroughFeed,$terminalGlobal,$terminalOperation,$terminalTv);
+    $expectedError=monitor_hook_local_preflight_failure($partialFailure)
+        ?'hook_no_write_prefix_has_intent_stop':'hook_child_failed_read_original_journal';
+    hook_test_check($run['error']===$expectedError&&$run['calls']['child']===1&&$run['visited']===[]
+        &&$run['calls']['feed']===0&&$run['calls']['read']===0&&$run['out']['updated_pairs']===1,
+        'partial_max_started_next_pair_or_feed_'.$partialError);
+    hook_test_check($run['state']['pending']===array_replace($run['before']['pending'],['child_failure'=>$partialFailure])
+        &&$run['state']['completed']===$run['before']['completed']&&$run['state']['holds']===$run['before']['holds']
+        &&$run['state']['nightly_cycle']===$run['before']['nightly_cycle']&&$run['calls']['append']===1
+        &&$run['terminal_appends']===0,'partial_max_cleared_pending_or_completed_'.$partialError);
+    hook_test_check($testTerminalPrefix===$partialPrefix&&$testReadJournal===$partialMax
+        &&$testReadJournal['posts']['max:pacing-fixture']['receipt']===$partialMaxReceipt,
+        'partial_max_changed_confirmed_receipt_'.$partialError);
+}
+
+// Run the editor's actual pacing control flow against a virtual clock. Only
+// usleep is replaced; zero-duration provider work exercises the tightest channel
+// spacing across three successive pairs without provider calls or real waits.
+function hook_test_editor_sleep(int $microseconds):void {
+    global $testPacingClockUs,$testPacingWaits,$testPacingContext;
+    hook_test_check($microseconds===3200000,'editor_changed_channel_cooldown');
+    $testPacingWaits[]=$testPacingContext+['at_us'=>$testPacingClockUs,'duration_us'=>$microseconds];
+    $testPacingClockUs+=$microseconds;
+}
+function hook_test_editor_pacing(string $source,bool $monitorMode,int $pairCount):array {
+    global $testPacingClockUs,$testPacingWaits,$testPacingContext;
+    $testPacingClockUs=0;$testPacingWaits=[];$testPacingContext=[];$writes=[];
+    for($pair=0;$pair<$pairCount;$pair++){
+        foreach(['max','telegram'] as $platform){
+            $testPacingContext=['pair'=>$pair,'platform'=>$platform];
+            $writes[]=$testPacingContext+['at_us'=>$testPacingClockUs];
+            eval($source);
+        }
+    }
+    return ['writes'=>$writes,'waits'=>$testPacingWaits,'elapsed_us'=>$testPacingClockUs];
+}
+$progressStart=strpos($editorSource,"echo json_encode(['progress'=>'existing_post_updated'");
+$flushAt=$progressStart===false?false:strpos($editorSource,'flush();',$progressStart);
+$pacingEnd=$flushAt===false?false:strpos($editorSource,"\n    }\n    ".'$out[\'ok\']=true;',$flushAt);
+hook_test_check($progressStart!==false&&$flushAt!==false&&$pacingEnd!==false,'editor_pacing_boundary_missing');
+$pacingStart=$flushAt+strlen('flush();');
+$pacingSource=substr($editorSource,$pacingStart,$pacingEnd-$pacingStart);
+$pacingSource=str_replace('usleep(','hook_test_editor_sleep(',$pacingSource,$sleepDependencies);
+hook_test_check($sleepDependencies===1,'editor_pacing_sleep_dependency_missing');
+$pacingPairCount=3;$monitorPacing=hook_test_editor_pacing($pacingSource,true,$pacingPairCount);
+hook_test_check(count($monitorPacing['waits'])===$pacingPairCount&&$monitorPacing['elapsed_us']===$pacingPairCount*3200000,
+    'monitor_pair_repeats_cooldown_waits_'.count($monitorPacing['waits']).'_elapsed_us_'.$monitorPacing['elapsed_us']);
+hook_test_check(array_column($monitorPacing['waits'],'platform')===array_fill(0,$pacingPairCount,'telegram'),
+    'monitor_pair_did_not_retain_final_channel_cooldown');
+$ordinaryPacing=hook_test_editor_pacing($pacingSource,false,$pacingPairCount);
+hook_test_check(count($ordinaryPacing['waits'])===2*$pacingPairCount&&$ordinaryPacing['elapsed_us']===2*$pacingPairCount*3200000
+    &&array_column($ordinaryPacing['waits'],'platform')===['max','telegram','max','telegram','max','telegram'],
+    'ordinary_editor_cooldown_changed');
+foreach(['monitor'=>$monitorPacing,'ordinary'=>$ordinaryPacing] as $mode=>$pacing){
+    $previous=[];
+    foreach($pacing['writes'] as $write){
+        $platform=$write['platform'];
+        if(isset($previous[$platform]))hook_test_check($write['at_us']-$previous[$platform]>=3200000,
+            'editor_channel_interval_shortened_'.$mode.'_'.$platform);
+        $previous[$platform]=$write['at_us'];
+    }
 }
 
 echo 'MONITOR_PRICE_HOOK_OK cases='.$cases." no_provider_calls=1 no_writes=1\n";
