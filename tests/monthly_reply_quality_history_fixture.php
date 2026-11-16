@@ -9,7 +9,7 @@ function monthlyReplyQualityReadRegression(PDO $pdo): int
     $mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
     if($mysql&&preg_match('/\Amaxbot_prepared_test(?:_[A-Za-z0-9_]+)?\z/D',(string)$pdo->query('SELECT DATABASE()')->fetchColumn())!==1)
         throw new RuntimeException('monthly_quality_fixture_database_rejected');
-    $tables=['manager_prepared_reply_input_links','manager_prepared_reply_inputs','manager_ai_draft_inputs',
+    $tables=['modeled_conversion_profile_versions','manager_prepared_reply_input_links','manager_prepared_reply_inputs','manager_ai_draft_inputs',
         'manager_ai_drafts','manager_prepared_replies','virtual_reply_sampling_claims','virtual_reply_case_sampling',
         'virtual_reply_sampling_aliases','virtual_reply_sampling_groups','virtual_reply_jobs','virtual_reply_cases'];
     $drop=static function()use($pdo,$tables):void{foreach($tables as $table)$pdo->exec('DROP TABLE IF EXISTS '.$table);};
@@ -56,9 +56,28 @@ function monthlyReplyQualityReadRegression(PDO $pdo): int
             $pdo->prepare('INSERT INTO virtual_reply_sampling_groups VALUES(?,?)')->execute([$group,$cohort]);
             $pdo->prepare('INSERT INTO virtual_reply_case_sampling VALUES(?,?)')->execute([$case,$group]);
         }
+
+        $ascii=$mysql?' CHARACTER SET ascii COLLATE ascii_bin':'';
+        $pdo->exec("CREATE TABLE modeled_conversion_profile_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40)$ascii,platform VARCHAR(16)$ascii,customer_key VARCHAR(40)$ascii,conversation_id VARCHAR(40)$ascii,observed_at_unix BIGINT,profile_json $long)$engine");
+        $pdo->exec("ALTER TABLE conversation_events ADD COLUMN actor_type VARCHAR(16)");
+        $pdo->exec("ALTER TABLE conversation_events ADD COLUMN payload_json $long");
+        $subject=['project_key'=>'anytour','platform'=>'max','customer_key'=>'10002','conversation_id'=>'9002'];
+        $at='2026-11-01T10:00:00Z';
+        $prediction=(new ModeledConversionSemanticPrediction($subject,$at,$at,$at,'1','1'))->finish([]);
+        $wrapper=['subject'=>$subject,'access_status'=>'allowed','profile'=>['prediction_at'=>$at],
+            'semantic_prediction'=>$prediction,'contextual_signals'=>['coverage'=>['window_limited'=>true,
+                'prediction_source_continuity'=>['unavailable_event_barriers'=>2]]]];
+        $pdo->prepare('INSERT INTO modeled_conversion_profile_versions VALUES(?,?,?,?,?,?,?)')
+            ->execute([9002,'anytour','max','10002','9002',1793527200,$json($wrapper)]);
+        for($i=0;$i<52;$i++)$pdo->prepare('INSERT INTO conversation_events(id,conversation_id,event_type,actor_type,payload_json) VALUES(?,?,?,?,?)')
+            ->execute([9000001+$i,9002,'synthetic_service_event','system',$json(ConversationRecordClock::stamp(
+                ['credential'=>'SYNTHETIC_EVENT_PAYLOAD_MUST_NOT_COPY'],1793527200+$i))]);
+        $pdo->prepare('INSERT INTO conversation_events(id,conversation_id,event_type,actor_type,payload_json) VALUES(?,?,?,?,?)')
+            ->execute([9999999,9001,'foreign_native_event','customer','{}']);
+
         $now=1793793600;$clock=static fn():int=>$now;$key=str_repeat('q',32);$connection=str_repeat('c',32);
         $service=new MonthlyReplyQualityReadService($pdo,$clock,static fn():string=>$key);
-        $fingerprint=static function()use($pdo,$tables):string{$rows=[];foreach([...$tables,'messages','conversations','customer_channels'] as $table)$rows[$table]=$pdo->query('SELECT * FROM '.$table)->fetchAll(PDO::FETCH_ASSOC);return hash('sha256',serialize($rows));};
+        $fingerprint=static function()use($pdo,$tables):string{$rows=[];foreach([...$tables,'messages','conversations','customer_channels','conversation_events','manager_conversation_reads'] as $table)$rows[$table]=$pdo->query('SELECT * FROM '.$table)->fetchAll(PDO::FETCH_ASSOC);return hash('sha256',serialize($rows));};
         $before=$fingerprint();$first=$service->inventory(1,$connection,['cursor'=>'qh.manual.start','limit'=>1]);
         $check(count($first['records'])===1&&$first['has_more']===true&&$first['quality_period']['timezone']==='Europe/Moscow','manual_keyset_starts_bounded_moscow_month');
         $records=$first['records'];$page=$first;
@@ -99,6 +118,37 @@ function monthlyReplyQualityReadRegression(PDO $pdo): int
         $check(count($closedNative)===1,'separate_history_mode_includes_closed_native_dialogue');
         $nr=$service->context(1,$connection,['dialogue_ref'=>$closedNative[0]['record_ref']]);
         $check(($nr['saved_profile']['availability']??null)==='not_requested','historical_reply_review_does_not_disclose_unrequested_forecast');
+
+        $review=new MonthlyReplyQualityReadService($pdo,$clock,static fn():string=>$key,null,true);
+        $rp=$review->inventory(1,$connection,['cursor'=>'qh.native.start','limit'=>25]);
+        $check(is_string($rp['newest_retained']['start_cursor']??null)
+            &&str_starts_with($rp['newest_retained']['start_cursor'],'qh.'),'retained_newest_descriptor_is_wrapped_in_the_quality_family');
+        $latest=$review->inventory(1,$connection,['cursor'=>$rp['newest_retained']['start_cursor'],'limit'=>2]);
+        // The parent reader fixture retains a valid maximum-BIGINT subject above9002.
+        $record=array_values(array_filter($latest['records'],static fn(array $r):bool=>($r['dialogue_id']??null)==='9002'))[0]??[];
+        $check(($record['dialogue_id']??null)==='9002'&&$record['status']==='closed'
+            &&$record['saved_profile_ref']===hash('sha256','intake_profile_v1:9002'),
+            'retained_review_joins_exact_closed_subject_to_anonymous_saved_profile_reference');
+        $context=$review->context(1,$connection,['dialogue_ref'=>$record['record_ref']]);
+        $check(($context['saved_profile']['availability']??null)==='available'
+            &&($context['saved_profile']['input_diagnostics']['continuity']['unavailable_event_barriers']??null)===2,
+            'dual_read_mode_returns_only_the_valid_bound_saved_forecast_and_fixed_coverage');
+        $events=$context['source_event_diagnostics']??[];
+        $check(count($events['events']??[])===50&&$events['complete_within_bound']===false
+            &&$events['payloads_copied']===false&&!str_contains(json_encode($context),'SYNTHETIC_EVENT_PAYLOAD_MUST_NOT_COPY')
+            &&!str_contains(json_encode($events),'foreign_native_event'),
+            'bounded_event_metadata_keeps_scope_clock_and_omissions_without_payloads');
+        $ordinary=$service->context(1,$connection,['dialogue_ref'=>$record['record_ref']]);
+        $check(!isset($ordinary['source_event_diagnostics'])&&$ordinary['saved_profile']['availability']==='not_requested',
+            'existing_quality_only_context_does_not_gain_forecast_or_event_diagnostics');
+        $reject(fn()=>$review->inventory(1,$connection,['cursor'=>'qh.manual.start']),'invalid_arguments');
+        $reject(fn()=>$review->context(1,$connection,['dialogue_ref'=>$records[0]['record_ref']]),'invalid_arguments');
+        $revokedCalls=0;
+        $revokedReview=new MonthlyReplyQualityReadService($pdo,$clock,static function()use(&$revokedCalls,$key):string{
+            if(++$revokedCalls===3)throw new DomainException();return$key;
+        },null,true);
+        $reject(fn()=>$revokedReview->context(1,$connection,['dialogue_ref'=>$record['record_ref']]),'permission_changed');
+
         $reject(fn()=>$service->context(2,$connection,['dialogue_ref'=>$records[0]['record_ref']]),'forbidden');
         $reject(fn()=>$service->context(1,str_repeat('d',32),['dialogue_ref'=>$records[0]['record_ref']]),'stale_cursor');
         $bad=$records[0]['record_ref'];$bad[strlen($bad)-1]=$bad[strlen($bad)-1]==='0'?'1':'0';
@@ -116,6 +166,7 @@ function monthlyReplyQualityReadRegression(PDO $pdo): int
         if($pdo->inTransaction())$pdo->rollBack();
         $drop();
         $pdo->exec('DELETE FROM messages WHERE id=9000000');
+        $pdo->exec('DELETE FROM conversation_events WHERE id>=9000001');
         $pdo->exec('DELETE FROM conversations WHERE id IN (9001,9002)');
         $pdo->exec('DELETE FROM customer_channels WHERE id IN (9001,9002)');
         ProjectConfig::resetForTests(null);
