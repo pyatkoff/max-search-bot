@@ -33,6 +33,13 @@ $future=$caption($observed(-3600));
 stale_rejected(fn()=>monitor_stale_caption_plan($future,hash('sha256',$future),$now,$now+3600),'stale_caption_future_observation');
 $broken=str_replace('Цена найдена мониторингом','Проверка цены', $original);
 stale_rejected(fn()=>monitor_stale_caption_plan($broken,hash('sha256',$broken),$now,$confirmedAt),'stale_caption_shape_changed');
+// A copied public 17 Nov hotel-feed caption, without touching the real publication.
+$publicText="✈️ Туры в Pickalbatros Makadi Resort\n📍 Макади-Бей, Египет.\n🏖 Свой пляж и лагуна с морской водой.\n🐠 К рифу ведёт понтон.\n💦 Аквапарки для взрослых и детей.\n🧸 Есть детский клуб и отдельные зоны для спокойного отдыха.\n💰 От 111 171 ₽ за двоих\n✈️ Вылет из Москвы 20.12.2026 · 5 ночей\n👥 2 взрослых\n🛏 room deluxe poolview\n🍽 Всё включено\nЦена найдена мониторингом 15.11.2026, 01:56 МСК. Стоимость и наличие могут измениться.\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты.";
+$publicEpoch=(new DateTimeImmutable('2026-11-15 01:56:21',new DateTimeZone('Europe/Moscow')))->getTimestamp();
+$publicPlan=monitor_stale_caption_plan($publicText,hash('sha256',$publicText),$now,$publicEpoch);
+stale_test($publicPlan['state']==='ready' && !str_contains($publicPlan['new_text'],'111 171')
+    && str_contains($publicPlan['new_text'],'🏖 Свой пляж')
+    && str_contains($publicPlan['new_text'],'✈️ Подберём подходящий номер'), 'real public caption syntax');
 $url='https://t.me/example/25';
 $block = static function(string $id,string $url,string $desc):string {
     return "<offer id=\"$id\">\n        <url>".htmlspecialchars($url,ENT_QUOTES|ENT_XML1,'UTF-8')."</url>\n        <price>123400</price>\n        <currencyId>RUB</currencyId>\n        <description>".htmlspecialchars($desc,ENT_QUOTES|ENT_XML1,'UTF-8')."</description>\n        <picture>https://example.com/pic.jpg</picture>\n    </offer>";
@@ -47,6 +54,12 @@ stale_test(str_contains($feed['new_xml'],$sibling),'sibling byte-identical');
 stale_test(str_contains($feed['new_xml'],'Стоимость тура — по запросу'),'safe fallback shown');
 $fakePlan=$plan;$fakePlan['new_text']='💰 1 ₽';
 stale_rejected(fn()=>monitor_stale_feed_plan($xml,hash('sha256',$xml),'tg_example',$url,$original,$fakePlan,$now,$confirmedAt),'stale_feed_caption_unconfirmed');
+$maxUrl='https://max.ru/id9704048781_2_bot?startapp=abc&region=1';
+$maxXml='<?xml version="1.0" encoding="UTF-8"?><yml_catalog date="2026-11-16 01:11"><shop><offers>'
+    .$block('max_example',$maxUrl,$original).'</offers></shop></yml_catalog>';
+$maxFeed=monitor_stale_feed_plan($maxXml,hash('sha256',$maxXml),'max_example',$maxUrl,$original,$plan,$now,$confirmedAt);
+stale_test(str_contains($maxXml,'&amp;region=1') && !str_contains($maxFeed['new_xml'],'<price>123400</price>')
+    && str_contains($maxFeed['new_xml'],'&amp;region=1'), 'max query and escaping preserved');
 stale_rejected(fn()=>monitor_stale_feed_plan($xml,str_repeat('0',64),'tg_example',$url,$original,$plan,$now,$confirmedAt),'stale_feed_cas_mismatch');
 stale_rejected(fn()=>monitor_stale_feed_plan($xml,hash('sha256',$xml),'tg_example',$url.'x',$original,$plan,$now,$confirmedAt),'stale_feed_current_offer_mismatch');
 stale_rejected(fn()=>monitor_stale_feed_plan($xml,hash('sha256',$xml),'tg_example',$url,$original,['state'=>'not_expired'],$now,$confirmedAt),'stale_feed_caption_unconfirmed');
