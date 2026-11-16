@@ -97,11 +97,23 @@ final class ModeledConversionSemanticPrediction
             $this->barrier();return;
         }
         $flags=$r['flags'];
-        $reset=($r['episode_boundary']??null)!==null;
+        $question=$this->questionnaireQuestion;
+        $questionnaireAnswer=$role==='customer'&&$sourceVersion===1&&$question!==null
+            &&self::moment($question['occurred_at'])<=$occurred
+            &&self::moment($question['available_at'])<=$available
+            &&$occurred-self::moment($question['occurred_at'])<=86400
+            &&($flags['quoted_or_relayed']??false)!==true&&($flags['past_trip']??false)!==true
+            &&($flags['conditional']??false)!==true
+            &&ModeledConversionQuestionnaireContext::accepts($question['field'],$redactedText);
+        // The canonical text extractor can discover its first episode later
+        // than the recorded questionnaire. A verified answer continues that
+        // same context; every actual boundary and unsafe flag still resets.
+        $reset=($r['episode_boundary']??null)!==null
+            &&!(($r['episode_boundary']??null)==='first_trip_conditions_candidate'&&$questionnaireAnswer);
         foreach(['long_observation_gap','unresolved_trip_boundary','party_change_unresolved',
             'product_changed_or_alternative','source_namespace_barrier','context_barrier','reversed_clock','unknown_time']as$key)
             if(($flags[$key]??false)===true)$reset=true;
-        if($reset)$this->barrier();
+        if($reset){$this->barrier();$questionnaireAnswer=false;}
         if(($flags['reversed_clock']??false)===true||($flags['unknown_time']??false)===true
             ||($flags['context_barrier']??false)===true)return;
         if(isset($this->messages[$ref]))self::fail('duplicate_message');
@@ -110,14 +122,7 @@ final class ModeledConversionSemanticPrediction
         if($role==='customer')$this->customerTurns++;
         // Any admitted human turn consumes the pending question, including an
         // unrecognised reply or an intervening manager message.
-        $question=$this->questionnaireQuestion;$this->questionnaireQuestion=null;
-        $questionnaireAnswer=$role==='customer'&&$sourceVersion===1&&$question!==null
-            &&self::moment($question['occurred_at'])<=$occurred
-            &&self::moment($question['available_at'])<=$available
-            &&$occurred-self::moment($question['occurred_at'])<=86400
-            &&($flags['quoted_or_relayed']??false)!==true&&($flags['past_trip']??false)!==true
-            &&($flags['conditional']??false)!==true
-            &&ModeledConversionQuestionnaireContext::accepts($question['field'],$redactedText);
+        $this->questionnaireQuestion=null;
         if($questionnaireAnswer)$this->questionnaireAnswer($question['field'],$meta);
         $unsafe=false;
         foreach(['quoted_or_relayed','past_trip','conditional','negation']as$key)
