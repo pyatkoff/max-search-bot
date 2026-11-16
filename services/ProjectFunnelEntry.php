@@ -76,7 +76,8 @@ final class ProjectFunnelEntry
         foreach($this->settings['posts']as$post=>$item){
             try{$this->destination((string)$post,$item['offer_id']);}
             catch(ProjectFunnelPublicationPending $pending){if(($item['withhold_until_verified']??false)===true)continue;throw $pending;}
-            fputcsv($stream,[$item['offer_id'],ProjectFunnelLaunch::feedUrl($this->connection->botKey(),(string)$post,$item['offer_id']),$item['image_url'],$item['title'],$item['description'],'','',...($item['labels']??array_fill(0,5,''))]);
+            $presentation=$this->settings['feed_presentation'][$post]??$item;
+            fputcsv($stream,[$item['offer_id'],ProjectFunnelLaunch::feedUrl($this->connection->botKey(),(string)$post,$item['offer_id']),$presentation['image_url'],$presentation['title'],$presentation['description'],'','',...($item['labels']??array_fill(0,5,''))]);
         }
         rewind($stream);$csv=stream_get_contents($stream);fclose($stream);return $csv;
     }
