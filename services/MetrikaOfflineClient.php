@@ -108,7 +108,7 @@ final class MetrikaOfflineClient
         try{
             $access=$this->request('GET','');$counter=$this->decode($access)['counter']??null;
             if((int)($access['error']??0)!==0||(int)($access['http']??0)!==200||!is_array($counter)
-                ||(string)($counter['id']??'')!==$this->counter||!in_array($counter['permission']??null,['own','edit'],true))return 'goal_access_unavailable';
+                ||(string)($counter['id']??'')!==$this->counter||!$this->projectCounterPermission($counter))return 'goal_access_unavailable';
             $goals=$this->readGoals();
             foreach($this->projectPolicy['goals']as$event=>$target){
                 $id=$this->projectPolicy['goal_ids'][$event]??null;$match=$this->projectPolicy['goal_match'][$event]??'exact';
@@ -129,6 +129,20 @@ final class MetrikaOfflineClient
             }
             return 'ready';
         }catch(Throwable $e){return 'goal_access_unavailable';}
+    }
+
+    /** CounterFull may omit permission; an explicit denial must never use the collection fallback. */
+    private function projectCounterPermission(array $counter): bool
+    {
+        if(array_key_exists('permission',$counter))return in_array($counter['permission'],['own','edit'],true);
+        $response=$this->requestUrl('GET','https://api-metrika.yandex.net/management/v1/counters?counter_ids='.$this->counter.'&permission=own%2Cedit&offset=1&per_page=1');
+        if((int)($response['error']??0)!==0||(int)($response['http']??0)!==200)return false;
+        $data=json_decode((string)($response['body']??''),false,32,JSON_BIGINT_AS_STRING);$counters=$data->counters??null;
+        if(!$data instanceof stdClass||($data->rows??null)!==1||!is_array($counters)||count($counters)!==1)return false;
+        $selected=$counters[0];
+        // A filtered HTTP 200 alone proves neither identity nor write permission.
+        return $selected instanceof stdClass&&(is_int($selected->id??null)||is_string($selected->id??null))
+            &&(string)$selected->id===$this->counter&&in_array($selected->permission??null,['own','edit'],true);
     }
 
     public function poll(string $uploadId): ?array
@@ -713,8 +727,13 @@ final class MetrikaOfflineClient
 
     private function request(string $method,string $path,?string $csv=null,?array $json=null,bool $statistics=false,bool $ordinaryValueReport=false): array
     {
-        if($method==='GET'&&$this->readDeadline!==null&&microtime(true)>=$this->readDeadline)throw new RuntimeException('verification_deadline');
         $url='https://api-metrika.yandex.net/'.($statistics?'stat/v1/':'management/v1/counter/'.$this->counter.($path===''?'':'/')).$path;
+        return $this->requestUrl($method,$url,$csv,$json,$statistics,$ordinaryValueReport);
+    }
+
+    private function requestUrl(string $method,string $url,?string $csv=null,?array $json=null,bool $statistics=false,bool $ordinaryValueReport=false): array
+    {
+        if($method==='GET'&&$this->readDeadline!==null&&microtime(true)>=$this->readDeadline)throw new RuntimeException('verification_deadline');
         if($this->transport)return ($this->transport)($method,$url,$json!==null?json_encode($json,JSON_THROW_ON_ERROR):$csv);
         $temp=null;$ch=null;
         try{

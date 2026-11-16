@@ -999,5 +999,342 @@
       ],
       "withhold_until_verified": true
     }
+  },
+  "feed_presentation": {
+    "menu": {
+      "title": "Ремонт iPhone в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/general-repair.png"
+    },
+    "model-iphone-17": {
+      "title": "Ремонт iPhone 17 в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/model-iphone-17.png"
+    },
+    "service-display": {
+      "title": "Замена дисплея iPhone в Калининграде",
+      "description": "Полосы или пятна на экране? Узнайте цену замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/service-display.png"
+    },
+    "repair-iphone-16-display": {
+      "title": "Замена дисплея iPhone 16 в Калининграде",
+      "description": "Полосы или пятна на экране? Узнайте цену замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/repair-iphone-16-display.png"
+    },
+    "service-rear-glass-replacement": {
+      "title": "Замена заднего стекла iPhone в Калининграде",
+      "description": "Треснуло заднее стекло? Узнайте цену замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/service-rear-glass-replacement.png"
+    },
+    "symptom-not-charging": {
+      "title": "iPhone не заряжается — ремонт в Калининграде",
+      "description": "iPhone не заряжается? Опишите проблему в MAX — уточним стоимость ремонта.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/symptom-not-charging.png"
+    },
+    "service-rear-camera-replacement": {
+      "title": "Замена основной камеры iPhone в Калининграде",
+      "description": "Камера не фокусируется? Узнайте цену ремонта в MAX. Гарантия 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/service-rear-camera-replacement.png"
+    },
+    "service-earpiece-replacement": {
+      "title": "Ремонт разговорного динамика iPhone в Калининграде",
+      "description": "Плохо слышно собеседника? Цена ремонта динамика в MAX. Гарантия 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/search-intent-v1/service-earpiece-replacement.png"
+    },
+    "repair-iphone-x-battery-replacement": {
+      "title": "Замена аккумулятора iPhone X в Калининграде",
+      "description": "Быстро садится батарея? Узнайте цену замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-x-battery-replacement.png"
+    },
+    "repair-iphone-x-front-glass-replacement": {
+      "title": "Замена стекла iPhone X в Калининграде",
+      "description": "Разбито стекло, а экран работает? Цена замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-x-front-glass-replacement.png"
+    },
+    "repair-iphone-x-display": {
+      "title": "Замена дисплея iPhone X в Калининграде",
+      "description": "Полосы или пятна на экране? Узнайте цену замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-x-display.png"
+    },
+    "repair-iphone-15-battery-replacement": {
+      "title": "Замена аккумулятора iPhone 15 в Калининграде",
+      "description": "Быстро садится батарея? Узнайте цену замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-battery-replacement.png"
+    },
+    "repair-iphone-15-front-glass-replacement": {
+      "title": "Замена стекла iPhone 15 в Калининграде",
+      "description": "Разбито стекло, а экран работает? Цена замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-front-glass-replacement.png"
+    },
+    "repair-iphone-15-display": {
+      "title": "Замена дисплея iPhone 15 в Калининграде",
+      "description": "Полосы или пятна на экране? Узнайте цену замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-display.png"
+    },
+    "repair-iphone-15-plus-battery-replacement": {
+      "title": "Замена аккумулятора iPhone 15 Plus в Калининграде",
+      "description": "Быстро садится батарея? Узнайте цену замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-plus-battery-replacement.png"
+    },
+    "repair-iphone-15-plus-front-glass-replacement": {
+      "title": "Замена стекла iPhone 15 Plus в Калининграде",
+      "description": "Разбито стекло, а экран работает? Цена замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-plus-front-glass-replacement.png"
+    },
+    "repair-iphone-15-plus-display": {
+      "title": "Замена дисплея iPhone 15 Plus в Калининграде",
+      "description": "Полосы или пятна на экране? Узнайте цену замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-plus-display.png"
+    },
+    "repair-iphone-15-pro-battery-replacement": {
+      "title": "Замена аккумулятора iPhone 15 Pro в Калининграде",
+      "description": "Быстро садится батарея? Узнайте цену замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-pro-battery-replacement.png"
+    },
+    "repair-iphone-15-pro-front-glass-replacement": {
+      "title": "Замена стекла iPhone 15 Pro в Калининграде",
+      "description": "Разбито стекло, а экран работает? Цена замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-pro-front-glass-replacement.png"
+    },
+    "repair-iphone-15-pro-display": {
+      "title": "Замена дисплея iPhone 15 Pro в Калининграде",
+      "description": "Полосы или пятна на экране? Узнайте цену замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-pro-display.png"
+    },
+    "repair-iphone-15-pro-max-battery-replacement": {
+      "title": "Замена аккумулятора iPhone 15 Pro Max в Калининграде",
+      "description": "Быстро садится батарея? Узнайте цену замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-pro-max-battery-replacement.png"
+    },
+    "repair-iphone-15-pro-max-front-glass-replacement": {
+      "title": "Замена стекла iPhone 15 Pro Max в Калининграде",
+      "description": "Разбито стекло, а экран работает? Цена замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-pro-max-front-glass-replacement.png"
+    },
+    "repair-iphone-15-pro-max-display": {
+      "title": "Замена дисплея iPhone 15 Pro Max в Калининграде",
+      "description": "Полосы или пятна на экране? Узнайте цену замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/landing-v2/artwork/covers/repair-iphone-15-pro-max-display.png"
+    },
+    "model-iphone-x": {
+      "title": "Ремонт iPhone X в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/pilot/covers/model-iphone-x.png"
+    },
+    "model-iphone-15": {
+      "title": "Ремонт iPhone 15 в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/pilot/covers/model-iphone-15.png"
+    },
+    "model-iphone-15-plus": {
+      "title": "Ремонт iPhone 15 Plus в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/pilot/covers/model-iphone-15-plus.png"
+    },
+    "model-iphone-15-pro": {
+      "title": "Ремонт iPhone 15 Pro в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/pilot/covers/model-iphone-15-pro.png"
+    },
+    "model-iphone-15-pro-max": {
+      "title": "Ремонт iPhone 15 Pro Max в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/pilot/covers/model-iphone-15-pro-max.png"
+    },
+    "service-front-glass-replacement": {
+      "title": "Замена стекла iPhone: цены по моделям в Калининграде",
+      "description": "Разбито стекло, а экран работает? Цена замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/pilot/covers/service-front-glass-replacement.png"
+    },
+    "service-battery-replacement": {
+      "title": "Замена аккумулятора iPhone в Калининграде",
+      "description": "Быстро садится батарея? Узнайте цену замены в MAX. Гарантия 3 месяца.",
+      "image_url": "https://app.anytoour.ru/resources/appleservice39/pilot/covers/service-battery-replacement.png"
+    },
+    "model-iphone-8": {
+      "title": "Ремонт iPhone 8 в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-8-family.png"
+    },
+    "model-iphone-8-plus": {
+      "title": "Ремонт iPhone 8 Plus в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-8-family.png"
+    },
+    "model-iphone-xr": {
+      "title": "Ремонт iPhone XR в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-x-family.png"
+    },
+    "model-iphone-xs": {
+      "title": "Ремонт iPhone XS в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-x-family.png"
+    },
+    "model-iphone-xs-max": {
+      "title": "Ремонт iPhone XS Max в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-x-family.png"
+    },
+    "model-iphone-11": {
+      "title": "Ремонт iPhone 11 в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-11-family.png"
+    },
+    "model-iphone-11-pro": {
+      "title": "Ремонт iPhone 11 Pro в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-11-family.png"
+    },
+    "model-iphone-11-pro-max": {
+      "title": "Ремонт iPhone 11 Pro Max в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-11-family.png"
+    },
+    "model-iphone-12": {
+      "title": "Ремонт iPhone 12 в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-12-family.png"
+    },
+    "model-iphone-12-mini": {
+      "title": "Ремонт iPhone 12 mini в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-12-family.png"
+    },
+    "model-iphone-12-pro": {
+      "title": "Ремонт iPhone 12 Pro в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-12-family.png"
+    },
+    "model-iphone-12-pro-max": {
+      "title": "Ремонт iPhone 12 Pro Max в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-12-family.png"
+    },
+    "model-iphone-13": {
+      "title": "Ремонт iPhone 13 в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-13-family.png"
+    },
+    "model-iphone-13-mini": {
+      "title": "Ремонт iPhone 13 mini в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-13-family.png"
+    },
+    "model-iphone-13-pro": {
+      "title": "Ремонт iPhone 13 Pro в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-13-family.png"
+    },
+    "model-iphone-13-pro-max": {
+      "title": "Ремонт iPhone 13 Pro Max в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-13-family.png"
+    },
+    "model-iphone-14": {
+      "title": "Ремонт iPhone 14 в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-14-family.png"
+    },
+    "model-iphone-14-plus": {
+      "title": "Ремонт iPhone 14 Plus в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-14-family.png"
+    },
+    "model-iphone-14-pro": {
+      "title": "Ремонт iPhone 14 Pro в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-14-family.png"
+    },
+    "model-iphone-14-pro-max": {
+      "title": "Ремонт iPhone 14 Pro Max в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-14-family.png"
+    },
+    "model-iphone-16": {
+      "title": "Ремонт iPhone 16 в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-16-family.png"
+    },
+    "model-iphone-16-plus": {
+      "title": "Ремонт iPhone 16 Plus в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-16-family.png"
+    },
+    "model-iphone-16-pro": {
+      "title": "Ремонт iPhone 16 Pro в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-16-family.png"
+    },
+    "model-iphone-16-pro-max": {
+      "title": "Ремонт iPhone 16 Pro Max в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-16-family.png"
+    },
+    "model-iphone-17-pro": {
+      "title": "Ремонт iPhone 17 Pro в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-17-pro-family.png"
+    },
+    "model-iphone-17-pro-max": {
+      "title": "Ремонт iPhone 17 Pro Max в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-17-pro-family.png"
+    },
+    "model-iphone-air": {
+      "title": "Ремонт iPhone Air в Калининграде",
+      "description": "Узнайте стоимость ремонта в MAX. Гарантия 3 месяца. 300+ оценок клиентов.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/iphone-air.png"
+    },
+    "service-charging-port-replacement": {
+      "title": "Замена разъёма зарядки iPhone в Калининграде",
+      "description": "Кабель отходит или зарядка прерывается? Узнайте цену замены разъёма в MAX.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/charging-port.png"
+    },
+    "service-microphone-replacement": {
+      "title": "Ремонт микрофона iPhone в Калининграде",
+      "description": "Вас плохо слышно при звонке? Узнайте цену ремонта в MAX. Гарантия 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/microphone.png"
+    },
+    "service-loudspeaker-replacement": {
+      "title": "Ремонт внешнего динамика iPhone в Калининграде",
+      "description": "Динамик хрипит или пропал звук? Узнайте цену ремонта в MAX. Гарантия 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/loudspeaker.png"
+    },
+    "service-front-camera-replacement": {
+      "title": "Ремонт передней камеры iPhone в Калининграде",
+      "description": "Не работает селфи-камера? Узнайте цену ремонта в MAX. Гарантия 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/front-camera.png"
+    },
+    "service-home-button-repair": {
+      "title": "Ремонт кнопки Home iPhone в Калининграде",
+      "description": "Не работает кнопка Home? Узнайте цену ремонта в MAX. Гарантия 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/home-button.png"
+    },
+    "service-power-button-repair": {
+      "title": "Ремонт кнопки включения iPhone в Калининграде",
+      "description": "Не срабатывает кнопка питания? Цена ремонта в MAX. Гарантия 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/power-button.png"
+    },
+    "service-antenna-repair": {
+      "title": "Ремонт антенн и связи iPhone в Калининграде",
+      "description": "iPhone теряет сеть? Узнайте стоимость ремонта связи в MAX. Гарантия 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/antenna.png"
+    },
+    "service-software-recovery": {
+      "title": "Восстановление ПО iPhone в Калининграде",
+      "description": "iPhone зависает или не включается? Узнайте цену восстановления системы в MAX.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/software.png"
+    },
+    "service-diagnostics": {
+      "title": "Диагностика iPhone в Калининграде",
+      "description": "Неясна причина поломки? Обсудите диагностику и стоимость ремонта в MAX.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/diagnostics.png"
+    },
+    "service-housing-repair": {
+      "title": "Ремонт и замена корпуса iPhone в Калининграде",
+      "description": "Погнут или повреждён корпус? Узнайте цену ремонта в MAX. Гарантия 3 месяца.",
+      "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/housing.png"
+    }
   }
 }

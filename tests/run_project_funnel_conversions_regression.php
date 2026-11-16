@@ -70,6 +70,100 @@ $goalPermission='view';funnelCheck('view-only counter access cannot pass upload 
 $goalResponse['id']='680570233';funnelCheck('same identifier on another goal cannot satisfy pinned admission',!ProjectFunnelConversions::probe($selectedSettings,$goalFactory)['ok']);
 $goalResponse['id']='680570232';$goalResponse['conditions'][0]['type']='contain';funnelCheck('changing the live goal back to contains blocks delivery again',ProjectFunnelConversions::probe($selectedSettings,$goalFactory)['status']==='goal_condition_unsupported');
 $bad=$base;$bad['metrika']['goal_match']['predictive_value']='contain';$bad['metrika']['goal_ids']=[];funnelCheck('contains requires an explicit pinned owner goal ID',funnelReject(fn()=>ProjectFunnelSettings::validate($bad,'appleservice39','id390521129062_bot')));
+
+// A real CounterFull response may omit permission. Only exact positive collection evidence may fill it.
+$accessWire=static fn($data,int $http=200,int $error=0):array=>['http'=>$http,'error'=>$error,'body'=>json_encode($data,JSON_THROW_ON_ERROR)];
+$accessProbe=static function(array $counterRead,array $collectionRead,?array $settings=null,?array $goalsRead=null,?float $deadline=null)use($selectedSettings,$accessWire):array{
+    $settings=$settings??$selectedSettings;$calls=[];
+    $result=ProjectFunnelConversions::probe($settings,static function(array $policy)use($counterRead,$collectionRead,$goalsRead,$deadline,&$calls,$accessWire){
+        return new MetrikaOfflineClient($policy['counter_id'],'synthetic-private-permission',static function($method,$url,$body)use($policy,$counterRead,$collectionRead,$goalsRead,&$calls,$accessWire):array{
+            $calls[]=[$method,$url,$body];
+            if($method!=='GET'||$body!==null)throw new RuntimeException('permission_probe_must_not_write');
+            $counterUrl='https://api-metrika.yandex.net/management/v1/counter/'.$policy['counter_id'];
+            if($url===$counterUrl)return $counterRead;
+            if($url==='https://api-metrika.yandex.net/management/v1/counters?counter_ids='.$policy['counter_id'].'&permission=own%2Cedit&offset=1&per_page=1')return $collectionRead;
+            if($url===$counterUrl.'/goals'){
+                if($goalsRead!==null)return $goalsRead;
+                $goals=[];foreach($policy['goals']as$stage=>$target)$goals[]=['id'=>$policy['goal_ids'][$stage],'type'=>'action','conditions'=>[['type'=>'exact','url'=>$target]]];
+                return $accessWire(['goals'=>$goals]);
+            }
+            throw new RuntimeException('unexpected_permission_probe_request');
+        },$deadline,$policy);
+    });
+    return ['result'=>$result,'calls'=>$calls];
+};
+$counterGet=['GET','https://api-metrika.yandex.net/management/v1/counter/42611469',null];
+$collectionGet=['GET','https://api-metrika.yandex.net/management/v1/counters?counter_ids=42611469&permission=own%2Cedit&offset=1&per_page=1',null];
+$goalsGet=['GET','https://api-metrika.yandex.net/management/v1/counter/42611469/goals',null];
+$accessReady=['ok'=>true,'status'=>'ready','conversion_requests'=>0];
+$accessDenied=['ok'=>false,'status'=>'goal_access_unavailable','conversion_requests'=>0];
+$counterWithoutPermission=$accessWire(['counter'=>['id'=>42611469]]);
+$collectionData=['rows'=>1,'counters'=>[['id'=>42611469,'permission'=>'edit']]];
+foreach(['own','edit']as$permission){
+    $normal=$accessProbe($accessWire(['counter'=>['id'=>42611469,'permission'=>$permission]]),$accessWire([]));
+    funnelCheck('explicit '.$permission.' keeps the original two GET admission',$normal['result']===$accessReady&&$normal['calls']===[$counterGet,$goalsGet]);
+    $list=$collectionData;$list['counters'][0]['permission']=$permission;
+    $missing=$accessProbe($counterWithoutPermission,$accessWire($list));
+    funnelCheck('missing counter permission requires exact filtered '.$permission.' evidence',$missing['result']===$accessReady&&$missing['calls']===[$counterGet,$collectionGet,$goalsGet]);
+}
+foreach(['view','analyst','view_access_filter','analyst_access_filter',null,'','owner',7,['edit']]as$i=>$permission){
+    $denied=$accessProbe($accessWire(['counter'=>['id'=>42611469,'permission'=>$permission]]),$accessWire($collectionData));
+    funnelCheck('explicit denied or malformed permission never falls back '.$i,$denied['result']===$accessDenied&&$denied['calls']===[$counterGet]);
+}
+$counterFailures=[
+    'wrong identity'=>$accessWire(['counter'=>['id'=>42611470]]),
+    'HTTP error'=>$accessWire(['counter'=>['id'=>42611469]],403),
+    'transport error'=>$accessWire(['counter'=>['id'=>42611469]],200,60),
+    'invalid JSON'=>['http'=>200,'error'=>0,'body'=>'PRIVATE-CANARY'],
+    'missing counter'=>$accessWire([]),
+];
+foreach($counterFailures as$name=>$wire){
+    $denied=$accessProbe($wire,$accessWire($collectionData));
+    funnelCheck('counter '.$name.' is rejected before collection lookup',$denied['result']===$accessDenied&&$denied['calls']===[$counterGet]);
+}
+$collectionFailures=[
+    'empty result'=>['rows'=>0,'counters'=>[]],
+    'string count'=>['rows'=>'1','counters'=>$collectionData['counters']],
+    'multiple matching rows'=>['rows'=>2,'counters'=>$collectionData['counters']],
+    'duplicate entries'=>['rows'=>1,'counters'=>[$collectionData['counters'][0],$collectionData['counters'][0]]],
+    'non-list'=>['rows'=>1,'counters'=>['named'=>$collectionData['counters'][0]]],
+    'numeric-key object'=>['rows'=>1,'counters'=>(object)$collectionData['counters']],
+    'missing entries'=>['rows'=>1],
+    'wrong identity'=>['rows'=>1,'counters'=>[['id'=>42611470,'permission'=>'edit']]],
+    'float identity'=>['rows'=>1,'counters'=>[['id'=>42611469.5,'permission'=>'edit']]],
+    'missing permission'=>['rows'=>1,'counters'=>[['id'=>42611469]]],
+];
+foreach(['view','analyst',null,'PRIVATE-CANARY',true]as$i=>$permission)$collectionFailures['denied permission '.$i]=['rows'=>1,'counters'=>[['id'=>42611469,'permission'=>$permission]]];
+foreach($collectionFailures as$name=>$data){
+    $denied=$accessProbe($counterWithoutPermission,$accessWire($data));
+    funnelCheck('collection '.$name.' cannot authorize goals or upload',$denied['result']===$accessDenied&&$denied['calls']===[$counterGet,$collectionGet]);
+}
+foreach(['HTTP error'=>$accessWire($collectionData,403),'transport error'=>$accessWire($collectionData,200,60),
+    'float count'=>['http'=>200,'error'=>0,'body'=>'{"rows":1.0,"counters":[{"id":42611469,"permission":"edit"}]}'],
+    'invalid JSON'=>['http'=>200,'error'=>0,'body'=>'PRIVATE-CANARY']]as$name=>$wire){
+    $denied=$accessProbe($counterWithoutPermission,$wire);
+    funnelCheck('collection '.$name.' fails closed without retry',$denied['result']===$accessDenied&&$denied['calls']===[$counterGet,$collectionGet]);
+}
+$exactGoal=['id'=>'680570232','type'=>'action','conditions'=>[['type'=>'exact','url'=>'predict']]];
+$otherGoal=$exactGoal;$otherGoal['id']='680570233';
+$conflict=$accessProbe($counterWithoutPermission,$accessWire($collectionData),null,$accessWire(['goals'=>[$exactGoal,$otherGoal]]));
+funnelCheck('permission fallback preserves conflicting goal rejection',$conflict['result']===$accessDenied&&$conflict['calls']===[$counterGet,$collectionGet,$goalsGet]);
+$contains=$exactGoal;$contains['conditions'][0]['type']='contain';
+$unsupported=$accessProbe($counterWithoutPermission,$accessWire($collectionData),null,$accessWire(['goals'=>[$contains]]));
+funnelCheck('permission fallback never admits a non-exact pinned goal',$unsupported['result']===['ok'=>false,'status'=>'goal_condition_unsupported','conversion_requests'=>0]&&$unsupported['calls']===[$counterGet,$collectionGet,$goalsGet]);
+$otherSettings=$selectedSettings;$otherSettings['project_key']='repair_two';$otherSettings['bot_key']='id999999999002_bot';
+$otherSettings['metrika']=array_replace($selectedPolicy,['counter_id'=>'99900012','goals'=>['manager_request'=>'clinic_request'],'goal_ids'=>['manager_request'=>'70701'],'goal_match'=>['manager_request'=>'exact']]);
+$other=$accessProbe($accessWire(['counter'=>['id'=>'99900012']]),$accessWire(['rows'=>1,'counters'=>[['id'=>'99900012','permission'=>'own']]]),$otherSettings);
+funnelCheck('another company resolves only its own counter and goal through the shared fallback',$other['result']===$accessReady&&$other['calls']===[
+    ['GET','https://api-metrika.yandex.net/management/v1/counter/99900012',null],
+    ['GET','https://api-metrika.yandex.net/management/v1/counters?counter_ids=99900012&permission=own%2Cedit&offset=1&per_page=1',null],
+    ['GET','https://api-metrika.yandex.net/management/v1/counter/99900012/goals',null]]);
+$expired=$accessProbe($counterWithoutPermission,$accessWire($collectionData),null,null,microtime(true)-1);
+funnelCheck('the shared request executor preserves an expired read deadline',$expired['result']===$accessDenied&&$expired['calls']===[]);
+$legacyCalls=0;$legacy=new MetrikaOfflineClient('98615635','synthetic-private-permission',static function()use(&$legacyCalls):array{$legacyCalls++;return [];});
+funnelCheck('legacy admission never uses the project permission fallback',$legacy->projectGoalAdmission()==='goal_access_unavailable'&&$legacyCalls===0);
+funnelCheck('permission checks preserve collect policy and stored queue history',$selectedSettings['metrika']['mode']==='collect'&&$base['metrika']['mode']==='collect'
+    &&$before===$pdo->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll());
 require_once __DIR__.'/fixtures/project_funnel_advertising_assertions.php';
 projectFunnelNativeAssertions($pdo,'funnelCheck');
 echo 'PROJECT FUNNEL CONVERSIONS REGRESSION PASSED '.$passed.PHP_EOL;

@@ -40,6 +40,19 @@ final class ProjectFunnelSettings
             if(isset($post['labels'])){if(!is_array($post['labels'])||!array_is_list($post['labels'])||count($post['labels'])!==5)$fail();foreach($post['labels']as$label)if(!is_string($label)||strlen($label)>320||preg_match('/[\x00-\x1f<>]/',$label))$fail();}
             $url=parse_url($post['image_url']);if(!$url||($url['scheme']??'')!=='https'||empty($url['host'])||isset($url['user'])||isset($url['pass'])||isset($url['fragment'])||isset($url['query']))$fail();
         }
+        // Advertising copy may change without changing a saved publication/launch profile.
+        // It cannot supply routing, attribution, price or publication-owner fields.
+        if(array_key_exists('feed_presentation',$data)){
+            if(!is_array($data['feed_presentation'])||array_diff_key($data['feed_presentation'],$data['posts']))$fail();
+            foreach($data['feed_presentation']as$presentation){
+                if(!is_array($presentation)||count($presentation)!==3||array_diff(array_keys($presentation),['title','description','image_url']))$fail();
+                foreach(['title'=>56,'description'=>81]as$field=>$limit){
+                    if(!is_string($presentation[$field]??null)||preg_match('/\A[^\x00-\x1f<>]{1,'.$limit.'}\z/uD',$presentation[$field])!==1)$fail();
+                }
+                if(!is_string($presentation['image_url']??null)||$presentation['image_url']===''||strlen($presentation['image_url'])>4000||preg_match('/[\x00-\x1f<>]/',$presentation['image_url']))$fail();
+                $url=parse_url($presentation['image_url']);if(!$url||($url['scheme']??'')!=='https'||empty($url['host'])||isset($url['user'])||isset($url['pass'])||isset($url['fragment'])||isset($url['query']))$fail();
+            }
+        }
         $metric=$data['metrika']??null;
         if(!is_array($metric)||!is_string($metric['counter_id']??null)||($metric['counter_id']!==''&&!preg_match('/\A[1-9][0-9]{0,19}\z/D',$metric['counter_id']))||!in_array($metric['mode']??null,['off','collect','send'],true))$fail();
         if($metric['mode']!=='off'&&$metric['counter_id']==='')$fail();
