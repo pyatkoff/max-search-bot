@@ -38,7 +38,7 @@ final class ManagerPreparationMcpService
     {
         $id = $rpc['id'] ?? null;
         $dialogueReview=($rpc['method']??null)==='tools/call'&&is_array($rpc['params']??null)
-            &&in_array($rpc['params']['name']??null,DialogueReviewMcpAdapter::NAMES,true);
+            &&in_array($rpc['params']['name']??null,DialogueReviewMcpAdapter::allNames(),true);
         if($dialogueReview&&is_string($id)&&strlen($id)>128)return self::error(null,-32600,'Invalid Request');
         $forecastStatus=($rpc['method']??null)==='tools/call'&&is_array($rpc['params']??null)
             &&($rpc['params']['name']??null)===ModeledConversionStatusMcpAdapter::NAME;
@@ -91,7 +91,7 @@ final class ManagerPreparationMcpService
                 || in_array($params['name']??null,VirtualReplyMcpAdapter::NAMES,true)
                 || in_array($params['name']??null,HotelWorkMcpAdapter::NAMES,true)
                 || in_array($params['name']??null,ArchiveResearchMcpAdapter::NAMES,true)
-                || in_array($params['name']??null,DialogueReviewMcpAdapter::NAMES,true)
+                || in_array($params['name']??null,DialogueReviewMcpAdapter::allNames(),true)
                 || in_array($params['name']??null,DevelopmentWorkMcpAdapter::NAMES,true)
                 || ($params['name']??null)===ModeledConversionStatusMcpAdapter::NAME
                 || ($params['name']??null)===ManagerHotelKnowledgeMcpAdapter::NAME)) {
@@ -225,7 +225,7 @@ final class ManagerPreparationMcpService
         $forecast=$name===ModeledConversionStatusMcpAdapter::NAME;
         $hotel=in_array($name,HotelWorkMcpAdapter::NAMES,true);
         $archive=in_array($name,ArchiveResearchMcpAdapter::NAMES,true);
-        $dialogue=in_array($name,DialogueReviewMcpAdapter::NAMES,true);
+        $dialogue=in_array($name,DialogueReviewMcpAdapter::allNames(),true);
         $selection=in_array($name,ManagerTourSelectionMcpAdapter::NAMES,true);
         if($selection)ManagerTourSelectionMcpAdapter::validateBookingArguments($name,$args);
         $development=in_array($name,DevelopmentWorkMcpAdapter::NAMES,true);
@@ -234,6 +234,8 @@ final class ManagerPreparationMcpService
         if($name==='development_work_roadmap_admit')$required=[ManagerPreparationOAuth::DEVELOPMENT_SCOPE,ManagerPreparationOAuth::FORECAST_SCOPE];
         if($selection)$required=[ManagerTourSelectionMcpAdapter::scopeFor($name)];
         if($dialogue&&DialogueReviewMcpAdapter::isHistory($args))$required=[ManagerPreparationOAuth::QUALITY_SCOPE];
+        $retainedDialogue=in_array($name,DialogueReviewMcpAdapter::RETAINED_NAMES,true);
+        if($retainedDialogue)$required=[ManagerPreparationOAuth::QUALITY_SCOPE,ManagerPreparationOAuth::FORECAST_SCOPE];
         $stepUp=$selection||$dialogue||$forecast||$archive||($hotel&&($legacy||in_array(ManagerPreparationOAuth::ARCHIVE_SCOPE,$scopes,true)))
             ||($development&&($legacy||in_array(ManagerPreparationOAuth::HOTEL_SCOPE,$scopes,true)||in_array(ManagerPreparationOAuth::DEVELOPMENT_SCOPE,$scopes,true)));
         if ($stepUp&&!ManagerPreparationOAuth::hasScopes($scopes,$required)&&$connection!==null
@@ -247,7 +249,7 @@ final class ManagerPreparationMcpService
                 if ($metadata!==$oauth->currentAuthorizationMetadata($connection,$admin,$scopes)) throw new DomainException();
                 return $challenge;
             }
-            if($name==='development_work_roadmap_admit'){
+            if($name==='development_work_roadmap_admit'||$retainedDialogue){
                 $missing=array_values(array_diff($required,$scopes));
                 return self::capabilityScopeChallenge($scopes,$missing[0],$required);
             }

@@ -244,6 +244,12 @@ PHP);
                 $r['status']===401&&$r['challenge']==='Bearer resource_metadata="https://app.anytoour.ru/manager/ai-oauth.php?action=resource", scope="forecasts:read"'
                 &&($r['body']['error']['code']??null)===-32001&&!isset($r['body']['result']));
         }
+        foreach(['list_retained_dialogues','get_retained_dialogue_context']as$name){
+            $r=$request(['jsonrpc'=>'2.0','id'=>1,'method'=>'tools/call','params'=>['name'=>$name,'arguments'=>[]]],[],'');
+            forecastMcpCheck('retained HTTP entry point asks both read capabilities without loading authenticated adapters '.$name,
+                $r['status']===401&&$r['challenge']==='Bearer resource_metadata="https://app.anytoour.ru/manager/ai-oauth.php?action=resource", scope="quality:read forecasts:read"'
+                &&($r['body']['error']['code']??null)===-32001&&!isset($r['body']['result']));
+        }
         $r=$request(['jsonrpc'=>'2.0','id'=>1,'method'=>'tools/list'],[],'');
         forecastMcpCheck('ordinary legacy bootstrap challenge is unchanged',$r['status']===401
             &&$r['challenge']==='Bearer resource_metadata="https://app.anytoour.ru/manager/ai-oauth.php?action=resource", scope="queue:read prepared:write"');
