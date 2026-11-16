@@ -1,4 +1,4 @@
-name: Validate existing reliability draft against admitted660 without production
+name: Complete exact reliability660 source checks without production
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == 'fbcec3b211c0b0910fd41ff1678d609d402baa18' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == 'f5aec3bcdb823d04b8e8f9556648413ecf93868c' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -27,130 +27,42 @@ jobs:
           path: source-pr
           persist-credentials: false
           fetch-depth: 5
-      - name: Integrate only the original reliability scope and preserve current660
+      - name: Complete original source integration with all eight original suites and expansion32
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = fbcec3b211c0b0910fd41ff1678d609d402baa18
-          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
-          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/fix/anytour-price-reliability-36h-20261116 --jq .object.sha)" = c6e6b7fc57d599ae7fcf8bba4aed1ed3315a00b0
-          umask 077
-          mkdir "$RUNNER_TEMP/reliability660"
+          test "$(git rev-parse HEAD^)" = f5aec3bcdb823d04b8e8f9556648413ecf93868c
           python3 - <<'PY'
-          import pathlib,subprocess,json,hashlib,gzip,re,os,base64
-          p=pathlib.Path('tools/direct_demand/operations');source=pathlib.Path('source-pr');out=pathlib.Path(os.environ['RUNNER_TEMP'])/'reliability660'
-          old='0b340cafc6125cfa9967cb6597d03029462261dd';head='c6e6b7fc57d599ae7fcf8bba4aed1ed3315a00b0'
-          names=['build-monitor-price-hook.py','inspect-monitor-price-pending-20261116.php','monitor-price-after-collection.php','monitor-price-contract.php','monitor-price-hook-contract.php','monitor-price-reliability-20261116.md','test-monitor-price-contract.php','test-monitor-price-driver-reliability.php','test-monitor-price-hook.php','test-monitor-price-reliability.php','update-commercial-price-20261104-remaining1.php']
-          expected={str(p/n) for n in names}
-          changed=set(subprocess.check_output(['git','-C',str(source),'diff','--name-only',old,head],text=True).splitlines())
-          assert changed==expected,('ORIGINAL_SCOPE_CHANGED',changed^expected)
-          def prior(path):
-            r=subprocess.run(['git','-C',str(source),'show',old+':'+path],capture_output=True)
-            if r.returncode==0:return r.stdout
-            assert "does not exist" in r.stderr.decode() or "exists on disk, but not in" in r.stderr.decode(),r.stderr.decode()
-            return None
-          roster=(p/'monitor-price-expanded-roster-20261111.json.gz').read_bytes()
-          assert hashlib.sha256(roster).hexdigest()=='26cc8d0d7cb6515d4c4fd43aa967053cc00740ce14daab17c950804db70bfd07'
-          rows=json.loads(gzip.decompress(roster))['rows'];assert len(rows)==660
-          assert len({r['tourvisor_hotel_id'] for r in rows})==660
-          proof=json.loads((p/'monitor-price-expansion32-proof-20261116.json').read_bytes())
-          assert proof['previous_count']==628 and proof['next_count']==660
-          before_tests={n:hashlib.sha256((p/n).read_bytes()).hexdigest() for n in ['test-monitor-price-expansion20.php','test-monitor-price-expansion32.php']}
-          def pins(text):
-            block=text.split('$accepted=[',1)[1].split('foreach($accepted as',1)[0]
-            return dict(re.findall(r'''["']([^"']+\.php|migrations/[^"']+\.sql)["']\s*=>\s*["']([a-f0-9]{40})["']''',block))
-          resolution=[]
-          for n in names:
-            path=str(p/n);incoming=(source/path).read_bytes();base=prior(path);current=pathlib.Path(path).read_bytes() if pathlib.Path(path).exists() else None
-            if current==base:
-              pathlib.Path(path).write_bytes(incoming);resolution.append({'path':path,'resolution':'exact_original_reliability_bytes'})
-            elif n=='build-monitor-price-hook.py':
-              extra=b"assert pins['services/ConversationRecordClock.php'] == '8f1d5b9a4888174a0867408594a164fc776ddbe4'\n"
-              assert current.count(extra)==1 and current.replace(extra,b'',1)==incoming,'UNEXPECTED_BUILDER_CONFLICT'
-              resolution.append({'path':path,'resolution':'keep_current_stricter_clock_assertion'})
-            elif n=='update-commercial-price-20261104-remaining1.php':
-              a=current.decode();b=incoming.decode()
-              pattern=r'    if\(\$monitorMode\)\$accepted=array_replace\(\$accepted,\[.*?\n    \]\);'
-              aa=re.findall(pattern,a,re.S);bb=re.findall(pattern,b,re.S)
-              assert len(aa)==len(bb)==1
-              assert a.replace(aa[0],'MONITOR_PINS')==b.replace(bb[0],'MONITOR_PINS'),'UNEXPECTED_EDITOR_BEHAVIOR_CONFLICT'
-              assert pins(a)==pins(b) and len(pins(a))==23,'EDITOR_PIN_CONFLICT'
-              resolution.append({'path':path,'resolution':'keep_exact_current_editor_equivalent23pins'})
-            else:raise AssertionError('UNEXPECTED_CONCURRENT_CHANGE:'+path)
-          assert (p/'monitor-price-expanded-roster-20261111.json.gz').read_bytes()==roster
-          assert all(hashlib.sha256((p/n).read_bytes()).hexdigest()==digest for n,digest in before_tests.items())
-          (out/'integration.json').write_text(json.dumps({'old_draft':head,'original_base':old,'current_base':os.environ['GITHUB_SHA'],'roster':660,'roster_sha256':hashlib.sha256(roster).hexdigest(),'resolutions':resolution,'preserved_cohort_tests':before_tests,'runtime_changed':False},indent=2)+'\n')
-          endpoint='repos/pyatkoff/poisk-turov-test/contents/.github/workflows/collect-anytour-tours.yml?ref=761794711c76d0cba222af79af794ec8c71f6f96'
-          original=json.loads(subprocess.check_output(['gh','api',endpoint],timeout=60))
-          workflow=base64.b64decode(original['content']).decode()
-          tests=re.findall(r'^          php hotel-price-publisher/tools/direct_demand/operations/(test-monitor-price-[a-z0-9-]+\.php)$',workflow,re.M)
-          assert len(tests)>=8 and len(tests)==len(set(tests))
-          tests.append('test-monitor-price-expansion32.php');assert len(tests)==len(set(tests))
-          assert all((p/n).is_file() for n in tests)
-          (out/'tests.json').write_text(json.dumps(tests)+'\n')
-          print('RELIABILITY660_SOURCE_INTEGRATED_ONLY '+json.dumps({'roster':660,'original_scope':len(names),'preserved_old628':True,'native_test_files':tests,'production_connections':0,'supplier_calls':0}))
-          PY
-      - name: Run original reliability checks and both admitted expansion cohorts
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import pathlib,subprocess,json,os,hashlib,re,base64,gzip
-          p=pathlib.Path('tools/direct_demand/operations');out=pathlib.Path(os.environ['RUNNER_TEMP'])/'reliability660';results=[]
-          for name in json.loads((out/'tests.json').read_text()):
-            result=subprocess.run(['php',str(p/name)],capture_output=True,text=True,timeout=120)
-            (out/(name+'.txt')).write_text(result.stdout+result.stderr)
-            print(name,result.stdout.strip(),flush=True)
-            assert result.returncode==0 and result.stdout.strip() and 'Fatal error' not in result.stdout+result.stderr,('NATIVE_TEST_FAILED',name,result.returncode,result.stderr)
-            results.append({'test':name,'exit':result.returncode,'stdout':result.stdout,'sha256':hashlib.sha256((p/name).read_bytes()).hexdigest()})
-          (out/'native-tests.json').write_text(json.dumps(results,indent=2)+'\n')
-          target=out/'monitor-price-hook.php'
-          built=subprocess.run(['python3',str(p/'build-monitor-price-hook.py'),str(target)],capture_output=True,text=True,timeout=60);assert built.returncode==0,built.stderr
-          meta=json.loads(built.stdout);assert meta['pairs']==660
-          subprocess.run(['php','-l',str(target)],check=True,timeout=60)
-          subprocess.run(['php','-l',str(p/'inspect-monitor-price-pending-20261116.php')],check=True,timeout=60)
-          subprocess.run(['git','diff','--check'],check=True)
-          compiled=target.read_text()
-          pins=json.loads(base64.b64decode(re.search(r'const HOOK_RUNTIME_PINS_B64="([^"]+)";',compiled)[1]));assert len(pins)==23
-          assert pins['services/ConversationRecordClock.php']=='8f1d5b9a4888174a0867408594a164fc776ddbe4'
-          packed=base64.b64decode(re.search(r'const HOOK_ROSTER_GZIP_B64="([^"]+)";',compiled)[1])
-          assert packed==(p/'monitor-price-expanded-roster-20261111.json.gz').read_bytes()
-          (out/'bundle.json').write_text(json.dumps({**meta,'pins':pins,'roster_sha256':hashlib.sha256(packed).hexdigest(),'module_executions':0},indent=2)+'\n')
-          (out/'source.patch').write_bytes(subprocess.check_output(['git','diff','--binary']))
-          print('RELIABILITY660_NATIVE_ACCEPTED '+json.dumps(meta))
-          PY
-      - name: Retain tested source tree without moving branches or installing code
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import pathlib,subprocess,json,hashlib,base64,os
-          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'reliability660';evidence=json.loads((out/'integration.json').read_text())
-          allowed={r['path'] for r in evidence['resolutions']}
-          changed=set(subprocess.check_output(['git','diff','--name-only'],text=True).splitlines())
-          for path in allowed:
-            if subprocess.run(['git','ls-files','--error-unmatch',path],capture_output=True).returncode!=0:changed.add(path)
-          assert changed<=allowed and 1<=len(changed)<=11
-          def api(path,data=None):
-            args=['gh','api','repos/pyatkoff/max-search-bot/'+path]
-            if data is not None:args+=['--method','POST','--input','-']
-            return json.loads(subprocess.check_output(args,input=None if data is None else json.dumps(data).encode(),timeout=60))
-          assert api('git/ref/heads/fix/anytour-price-reliability-36h-20261116')['object']['sha']==evidence['old_draft']
-          assert api('git/ref/heads/audit/content100-bot-publication-20261101')['object']['sha']==os.environ['GITHUB_SHA']
-          entries=[]
-          for path in sorted(changed):
-            raw=pathlib.Path(path).read_bytes();blob=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
-            saved=api('git/blobs',{'content':base64.b64encode(raw).decode(),'encoding':'base64'});assert saved['sha']==blob
-            entries.append({'path':path,'mode':'100644','type':'blob','sha':blob})
-            dest=out/'files'/path;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(raw)
-          parent=api('git/commits/'+os.environ['GITHUB_SHA']);tree=api('git/trees',{'base_tree':parent['tree']['sha'],'tree':entries})
-          record={'tree_sha':tree['sha'],'first_parent':evidence['old_draft'],'additional_parent':os.environ['GITHUB_SHA'],'changed_files':entries,'roster':660,'branch_updates':0,'production_connections':0,'supplier_calls':0,'post_writes':0,'feed_writes':0}
-          (out/'tested-tree.json').write_text(json.dumps(record,indent=2)+'\n');print('RELIABILITY660_TESTED_TREE='+json.dumps(record,separators=(',',':')))
+          import subprocess,pathlib,hashlib,os
+          original=subprocess.check_output(['git','show','f5aec3bcdb823d04b8e8f9556648413ecf93868c:.github/workflows/content100-bot-publication-20261101.yml'])
+          assert hashlib.sha1(b'blob '+str(len(original)).encode()+b'\0'+original).hexdigest()=='c44acc7e7bad0cd1bc2596c89e2ac2bdd66b697f'
+          steps={}
+          for chunk in original.decode().split('      - name: ')[1:]:
+            name=chunk.split('\n',1)[0]
+            marker='        run: |\n'
+            if marker not in chunk:continue
+            lines=[]
+            for line in chunk.split(marker,1)[1].splitlines():
+              if line and not line.startswith('          '):break
+              lines.append(line[10:] if line.startswith('          ') else '')
+            steps[name]='\n'.join(lines)+'\n'
+          names=['Integrate only the original reliability scope and preserve current660','Run original reliability checks and both admitted expansion cohorts','Retain tested source tree without moving branches or installing code']
+          assert set(steps)==set(names)
+          first=steps[names[0]]
+          assert first.count('fbcec3b211c0b0910fd41ff1678d609d402baa18')==1
+          first=first.replace('fbcec3b211c0b0910fd41ff1678d609d402baa18','f5aec3bcdb823d04b8e8f9556648413ecf93868c',1)
+          old=r'(test-monitor-price-[a-z0-9-]+\.php)';new=r'((?:test-monitor-price-[a-z0-9-]+|test-reconcile-stale-feed-20261116)\.php)'
+          assert first.count(old)==1 and first.count('assert len(tests)>=8')==1
+          first=first.replace(old,new,1).replace('assert len(tests)>=8','assert len(tests)==8',1)
+          steps[names[0]]=first
+          for index,name in enumerate(names,1):
+            path=pathlib.Path(os.environ['RUNNER_TEMP'])/('reliability660-step-'+str(index)+'.sh')
+            path.write_text(steps[name]);subprocess.run(['bash','-n',str(path)],check=True)
+            print('BEGIN_EXACT_SOURCE_STAGE '+name,flush=True)
+            subprocess.run(['bash',str(path)],check=True,timeout=360)
           PY
       - name: Preserve exact integration and native evidence
         if: always()
