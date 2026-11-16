@@ -480,10 +480,18 @@ final class ModeledConversionValueExport
                     $stats=self::withVisitGateDecisions($stats,$decisions,$storedBytes,$now);
                     // Last priority: selection observations cannot evict any receipt, proof or failure.
                     // Equal-second overlapping ticks have no unique selection observation.
-                    if($lastTick<$now&&ModeledConversionReadySelectionEvidence::normalize($selection,$now)!==null){
-                        $candidate=$stats;$candidate[ModeledConversionReadySelectionEvidence::KEY]=$selection;$selectionBytes=0;
-                        if($this->receiptFits(json_encode($candidate,JSON_THROW_ON_ERROR),$mysql,$selectionBytes))$stats=$candidate;
-                    }
+                    try{
+                        if($lastTick<$now&&ModeledConversionReadySelectionEvidence::normalize($selection,$now)!==null){
+                            $selectionGrowth=2*strlen(json_encode([ModeledConversionReadySelectionEvidence::KEY=>$selection],JSON_THROW_ON_ERROR))+4;
+                            // storedBytes precedes the existing optional visit-decision attachment.
+                            $visitGrowth=isset($stats['visit_gate_decisions'])?
+                                2*strlen(json_encode(['visit_gate_decisions'=>$stats['visit_gate_decisions']],JSON_THROW_ON_ERROR))+4:0;
+                            // Closed ASCII enums/integers need at most one native space per separator.
+                            // Keep the conservative existing measurement; no extra SQL or retry for metadata.
+                            if($storedBytes>=0&&$storedBytes+$visitGrowth+$selectionGrowth<=8192)
+                                $stats[ModeledConversionReadySelectionEvidence::KEY]=$selection;
+                        }
+                    }catch(Throwable $ignoredSelection){ /* Optional observation can never stop core receipt persistence. */ }
                     $encoded=json_encode($stats,JSON_THROW_ON_ERROR);
                 }
                 $report=$stats['metrika_report'];$reportOk=in_array($report['status']??null,['ok','sampled'],true);

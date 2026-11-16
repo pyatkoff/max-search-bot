@@ -3196,6 +3196,17 @@ function modeledValueOrdinaryObservationAssertions(PDO $p,callable $check):void
 }
 
 
+/** Count only the existing native JSON-size queries; never fail or alter their execution. */
+class ModeledValueSelectionMeasureStatement extends PDOStatement
+{
+    public static int $measurements=0;
+    public function execute(?array $params=null):bool
+    {
+        if($this->queryString==='SELECT OCTET_LENGTH(CAST(? AS JSON))')++self::$measurements;
+        return parent::execute($params);
+    }
+}
+
 /** Same ordinary decisions, strict read-only projection and lowest-priority persistence. */
 function modeledValueReadySelectionAssertions(PDO $p,callable $check):void
 {
@@ -3242,15 +3253,24 @@ function modeledValueReadySelectionAssertions(PDO $p,callable $check):void
         'metrika_report'=>['status'=>'unavailable','fetched_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$now)],
         'last_recorded_failure'=>null,'identity_resolution_evidence_incomplete'=>true,
         'finite_visit_evidence'=>$old,'finite_visit_recovery'=>$forward,'padding'=>''];
-    $base['padding']=str_repeat('x',8050-$measure($base));$write($base,$now-1);
+    $base['padding']=str_repeat('x',8150-$measure($base));$write($base,$now-1);
     $incoming=$base;$incoming[$key]=$good;$beforeNetwork=serialize([$wire->gets,$wire->posts,$lookup->calls]);
     $persist->invoke($owner,$incoming,null,$now);$capped=$read();
     $check('selection yields before existing finance failure and immutable proof at the actual native cap',
         !array_key_exists($key,$capped)&&$measure($capped)<=8192&&$capped['accepted']===1&&$capped['processed']===3
         &&modeledValueFailureJsonEqual($capped['finite_visit_evidence'],$old)
         &&modeledValueFailureJsonEqual($capped['finite_visit_recovery'],$forward));
-    $base['padding']='';$write($base,$now-1);$incoming=$base;$incoming[$key]=$good;
-    $persist->invoke($owner,$incoming,null,$now);$winner=ModeledConversionValueExport::settings($p);
+    $base['padding']='';$incoming=$base;$incoming[$key]=$good;
+    $statementClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ModeledValueSelectionMeasureStatement::class]);
+    try{
+        $write($base,$now-1);ModeledValueSelectionMeasureStatement::$measurements=0;
+        $persist->invoke($owner,$base,null,$now);$withoutSelection=ModeledValueSelectionMeasureStatement::$measurements;
+        $write($base,$now-1);ModeledValueSelectionMeasureStatement::$measurements=0;
+        $persist->invoke($owner,$incoming,null,$now);$withSelection=ModeledValueSelectionMeasureStatement::$measurements;
+    }finally{$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$statementClass);}
+    $winner=ModeledConversionValueExport::settings($p);
+    $check('optional selection adds no native size query or read failure opportunity',$withSelection===$withoutSelection);
     $check('a genuine completed tick saves bounded selection after existing proof',modeledValueFailureJsonEqual($read()[$key]??null,$good));
     $older=$good;$older['at']=$now-1;$incoming[$key]=$older;$persist->invoke($owner,$incoming,null,$now-1);
     $check('a delayed healthy writer preserves the winning selection and all receipt bytes',ModeledConversionValueExport::settings($p)===$winner);
