@@ -597,6 +597,7 @@ function modeledValueAssertions(PDO $p,callable $check):void
 
     modeledValuePredictionAssertions($p,$check);
     modeledValuePolicyTransitionAssertions($p,$check);
+    modeledValueMonetaryV3CompatibilityAssertions($p,$check);
     modeledPriceLossAssertions($p,$check);
     modeledValueCatchUpAssertions($p,$check);
     modeledValueFailureRetentionAssertions($p,$check);
@@ -1512,7 +1513,7 @@ function modeledValuePolicyTransitionAssertions(PDO $p,callable $check):void
     $original=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
     $profileBefore=$p->query('SELECT profile_json FROM modeled_conversion_profile_versions ORDER BY id LIMIT 1')->fetchColumn();
     $check('unknown price reserves probability times the new 10000 provisional commission base',
-        $unknown['deal_value_prediction']['version']==='early_deal_commission_7pct_v2'
+        $unknown['deal_value_prediction']['version']==='early_deal_commission_7pct_v3'
         &&$unknown['deal_value_prediction']['deal_amount_rub']['point']===null
         &&$unknown['deal_value_prediction']['commission_estimate_rub']===null
         &&$unknown['deal_value_prediction']['full_value_base_rub']===10000
@@ -1578,6 +1579,73 @@ function modeledValuePolicyTransitionAssertions(PDO $p,callable $check):void
         &&$rows[0]['state']==='unknown'&&$wire->posts===$posts&&$wire->gets===$gets);
 }
 
+
+/** Construct synthetic V2 capsules before their first save; never rewrite an existing forecast. */
+function modeledValueFrozenV2Fixture(array $wrapper):array
+{
+    $value=$wrapper['deal_value_prediction'];
+    $value['version']='early_deal_commission_7pct_v2';
+    $value['rules_sha256']='8a35e248d8237b9042d6aa94eca975c00aae8ae2dc6b3ef42c61b50ee4273669';
+    unset($value['deal_digest']);$value['deal_digest']=ModeledConversionSemanticPrediction::digest($value);
+    $wrapper['deal_value_prediction']=$value;return$wrapper;
+}
+function modeledValueMonetaryV3CompatibilityAssertions(PDO $p,callable $check):void
+{
+    $now=1793671000;$gate=static fn(string $chat):bool=>true;
+    $rows=static fn():array=>$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $sum=static fn():int=>(int)$p->query('SELECT COALESCE(SUM(value_rub),0) FROM max_channel_conversion_outbox')->fetchColumn();
+    $profile=static fn():string=>(string)$p->query('SELECT profile_json FROM modeled_conversion_profile_versions ORDER BY id LIMIT 1')->fetchColumn();
+    modeledValueSchema($p);$scope=modeledValueBinding($p,753);
+    $wire=new ModeledValueTestWire($now-86400);$wire->visitAt=$now-60;$api=$wire->api();
+    $lookup=new ModeledValueTestLookup();$lookup->observedAt=$now-60;
+    $control=new ModeledConversionValueExport($p);
+    $control->configure('create-goal',$api,$now-500);$control->configure('enable',$api,$now-500);
+    $old=modeledValueFrozenV2Fixture(modeledExpertWrapper($scope,$now,200000));modeledValueSave($p,$old);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);$before=$rows();$oldProfile=$profile();
+    $check('the ordinary sender still reads a pinned frozen V2 capsule at its original value',
+        ModeledConversionDealValue::saved($old)===$old['deal_value_prediction']
+        &&$wire->posts===1&&$sum()===1167&&count($before)===1&&$before[0]['state']==='accepted'
+        &&(int)$before[0]['value_rub']===1167&&str_contains($wire->csv[0],',1167,RUB'));
+    $fresh=modeledExpertWrapper($scope,$now+1,200000);modeledValueSave($p,$fresh);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+1,$gate);
+    $check('a new V3 snapshot at the same target value cannot re-award or resend the reserved V2 amount',
+        $fresh['deal_value_prediction']['version']==='early_deal_commission_7pct_v3'
+        &&$wire->posts===1&&$sum()===1167&&$rows()===$before&&$profile()===$oldProfile);
+    modeledValueSave($p,$fresh);ModeledConversionValueExport::tick($p,$lookup,$api,$now+2,$gate);
+    $check('a repeated V3 snapshot leaves both the V2 ledger row and frozen profile byte-exact',
+        $wire->posts===1&&$rows()===$before&&$profile()===$oldProfile);
+    $bad=$old;$bad['deal_value_prediction']['rules_sha256']=hash_file('sha256',dirname(__DIR__).'/services/ModeledConversionDealValue.php');
+    unset($bad['deal_value_prediction']['deal_digest']);
+    $bad['deal_value_prediction']['deal_digest']=ModeledConversionSemanticPrediction::digest($bad['deal_value_prediction']);
+    $check('a V2 capsule with a different source hash cannot fall back to another positive financial contract',
+        ModeledConversionValueContract::candidate($bad,$scope,$now-500,$now+2)===null);
+
+    // V2 priced references must still cap a later V3 unknown-price estimate.
+    modeledValueSchema($p);$scope=modeledValueBinding($p,754);
+    $wire=new ModeledValueTestWire($now-86400);$wire->visitAt=$now-60;$api=$wire->api();
+    $lookup=new ModeledValueTestLookup();$lookup->observedAt=$now-60;
+    $control=new ModeledConversionValueExport($p);
+    $control->configure('create-goal',$api,$now-500);$control->configure('enable',$api,$now-500);
+    $old=modeledValueFrozenV2Fixture(modeledExpertWrapper($scope,$now,100000));modeledValueSave($p,$old);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);$before=$rows();$oldProfile=$profile();
+    $stronger=modeledUnknownPriceWrapper(modeledExpertWrapper($scope,$now+1,100000,true));
+    $expected=(int)round($stronger['semantic_prediction']['estimated_probability']*7000);
+    modeledValueSave($p,$stronger);ModeledConversionValueExport::tick($p,$lookup,$api,$now+1,$gate);
+    $after=$rows();$audit=$p->query("SELECT basis_json FROM modeled_conversion_price_audit WHERE action='rebased' ORDER BY outbox_id DESC LIMIT 1")->fetchColumn();
+    $basis=is_string($audit)?json_decode($audit,true,32,JSON_THROW_ON_ERROR):null;
+    $check('price continuity uses the unchanged V2 priced base for a genuinely stronger V3 forecast',
+        count($before)===1&&(int)$before[0]['value_rub']===583
+        &&$expected>583&&$sum()===$expected&&$wire->posts===2&&count($after)===2
+        &&$after[0]===$before[0]&&(int)$after[1]['value_rub']===$expected-583
+        &&str_contains(end($wire->csv),','.($expected-583).',RUB')
+        &&$stronger['deal_value_prediction']['full_value_base_rub']===10000
+        &&$stronger['deal_value_prediction']['deal_amount_rub']['point']===null
+        &&is_array($basis)&&$basis['reference_deal_rub']===100000&&$basis['reference_base_rub']===7000
+        &&$basis['applied_base_rub']===7000&&$profile()===$oldProfile);
+    modeledValueSave($p,$stronger);ModeledConversionValueExport::tick($p,$lookup,$api,$now+2,$gate);
+    $check('the later V3 replay preserves the V2 price and all reserved amounts without duplicate sending',
+        $wire->posts===2&&$rows()===$after&&$profile()===$oldProfile);
+}
 
 function modeledPriceLossAssertions(PDO $p,callable $check):void
 {

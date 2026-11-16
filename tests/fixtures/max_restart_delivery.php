@@ -16,6 +16,11 @@ class ConversationRecorder {
         $pdo=ConversationDb::connection();$q=$pdo->prepare("SELECT id FROM conversations WHERE project_key=? AND channel=? AND external_chat_id=? AND status<>'closed' ORDER BY id DESC LIMIT 1");$q->execute([ProjectConfig::projectId(),$channel,(string)$chat]);$id=(int)$q->fetchColumn();if(!$id)return false;
         $q=$pdo->prepare('INSERT INTO conversation_events(conversation_id,event_type,actor_type,payload_json) VALUES(?,?,?,?)');return $q->execute([$id,$type,$actor,json_encode($payload)]);
     }
+    public static function eventForConversation(int $id,string $type,array $payload=[],string $actor='system'):bool{
+        if($id<=0)return false;
+        $q=ConversationDb::connection()->prepare('INSERT INTO conversation_events(conversation_id,event_type,actor_type,payload_json) VALUES(?,?,?,?)');
+        return $q->execute([$id,$type,$actor,json_encode($payload)]);
+    }
     public static function outboundForConversation($id,$channel,$text,$sender,$senderId,$meta,$external=''){
         $q=ConversationDb::connection()->prepare("INSERT INTO messages(conversation_id,direction,sender_type,text) VALUES(?,'outbound',?,?)");return $q->execute([$id,$sender,$text]);
     }
