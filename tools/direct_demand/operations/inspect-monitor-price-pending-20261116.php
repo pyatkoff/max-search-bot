@@ -53,7 +53,7 @@ function tail_snapshot(string $path, int $maximum, array &$handles, array &$evid
 }
 function projection(array $record): array {
     $out = [];
-    foreach (['operation','event','type','state','phase','at','reason','error','complete','tourvisor_hotel_id','hotel_id','platform','publication_id','version_id','message_id','manifest_hash','manifest_sha256','text_sha256','old_text_sha256','new_text_sha256','photo_sha256','body_photo_button_verified','post_write_attempts','db_writes','message_sends','exit_code','child_exit_code'] as $key) {
+    foreach (['operation','feed_operation','event','type','state','phase','at','reason','error','complete','tourvisor_hotel_id','hotel_id','platform','publication_id','version_id','message_id','manifest_hash','manifest_sha256','text_sha256','old_text_sha256','new_text_sha256','photo_sha256','body_photo_button_verified','post_write_attempts','db_writes','message_sends','exit_code','child_exit_code'] as $key) {
         if (!array_key_exists($key, $record)) continue;
         $v = $record[$key];
         if (is_int($v) || is_bool($v) || $v === null) $out[$key] = $v;
@@ -83,6 +83,8 @@ try {
     need($pending === null || is_array($pending), 'pending_invalid');
     $out['pending'] = $pending === null ? null : projection($pending);
     $out['pending_keys'] = $pending === null ? [] : array_keys($pending);
+    $out['cycle_tuple_sha256'] = hash('sha256',json_encode($cycle,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    $out['completed_tuple_sha256'] = hash('sha256',json_encode($state['completed'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
     if (is_array($pending)) {
         $op = $pending['operation'] ?? null;
         need(is_string($op) && preg_match('/\Acommercial-monitor-price-h[1-9][0-9]*-[a-f0-9]{64}\z/D', $op) === 1, 'pending_operation_invalid');
@@ -98,19 +100,62 @@ try {
             $out['child_journal']['entries'][] = $entry;
         }
         $out['pending_feed_files'] = [];
+        $out['saved_monitor'] = ['generatedAt'=>$record['monitor_snapshot']['generatedAt'] ?? null, 'offers'=>$record['monitor_snapshot']['item']['offers'] ?? [], 'feed_binding'=>$record['feed_binding'] ?? null];
+        $out['post_urls'] = [];
+        foreach (($record['posts'] ?? []) as $post) $out['post_urls'][] = ['platform'=>$post['receipt']['platform'] ?? null,'post_url'=>$post['receipt']['post_url'] ?? null];
         foreach (($pending['files'] ?? []) as $file) {
             need(is_array($file), 'pending_feed_file_invalid');
             $name = $file['name'] ?? null;
             need(in_array($name, ['hotel-posts-telegram.xml','hotel-posts-max.xml','hotel-posts-all.xml'],true), 'pending_feed_name_invalid');
             $actual = snapshot('/var/www/anytoour/data/www/app.anytoour.ru/feed/'.$name, 4000000, $handles);
-            $out['pending_feed_files'][] = ['name'=>$name,'actual_sha256'=>$actual['sha256'],'expected_sha256'=>$file['sha256'] ?? null,'matches_expected'=>($file['sha256'] ?? null) === $actual['sha256']];
+            $out['pending_feed_files'][] = ['name'=>$name,'actual_sha256'=>$actual['sha256'],'expected_sha256'=>$file['sha256'] ?? null,'matches_expected'=>($file['sha256'] ?? null) === $actual['sha256'],'expected_previous_sha256'=>$file['expected_previous_sha256'] ?? null,'matches_previous'=>($file['expected_previous_sha256'] ?? null) === $actual['sha256']];
         }
     }
+    $app='/var/www/anytoour/data/www/app.anytoour.ru';
+    need(realpath($app)===$app && chdir($app),'app_root_invalid');
+    $out['runtime']=['head'=>trim((string)shell_exec('git rev-parse HEAD')),'tracked_clean'=>trim((string)shell_exec('git status --porcelain --untracked-files=no'))===''];
     $out['ok'] = true;
 } catch (Throwable $e) {
     $out['error'] = preg_match('/\A[a-z_]+\z/D',$e->getMessage()) === 1 ? $e->getMessage() : 'read_failed';
 } finally {
     foreach (array_reverse($handles) as $f) { flock($f, LOCK_UN); fclose($f); }
+}
+if (defined('CATALOGUE_REQUESTS_B64')) {
+    $catalogue=['ok'=>false,'mode'=>'existing_stored_catalogue_endpoint','supplier_calls'=>0,'writes'=>0,'queries'=>0,'rows'=>[]];
+    try {
+        $requests=json_decode(base64_decode(CATALOGUE_REQUESTS_B64,true),true,16,JSON_THROW_ON_ERROR);
+        need(is_array($requests)&&array_is_list($requests)&&count($requests)===100,'catalogue_intake_scope_invalid');
+        $root='/var/www/anytoour/data/www/anytoour.ru'; $endpoint=$root.'/data/hotel-search-v1.php';
+        foreach ([$endpoint=>'e7c7cf9656feea4913a2d0d064462856deeec3c4',$root.'/data/db-v1.php'=>'c7e13f41be4a317087fc063da0db6f5dcf769e29'] as $file=>$blob) {
+            need(!is_link($file)&&is_file($file)&&realpath($file)===$file&&filesize($file)<=100000,'catalogue_source_unavailable');
+            $bytes=file_get_contents($file);need(is_string($bytes)&&hash('sha1','blob '.strlen($bytes)."\0".$bytes)===$blob,'catalogue_source_changed');
+        }
+        $deadline=microtime(true)+120;
+        foreach ($requests as $request) {
+            need(is_array($request)&&preg_match('/\AEXP[0-9]{3}\z/D',(string)($request['work_id']??''))===1,'catalogue_request_invalid');
+            $result=['work_id'=>$request['work_id'],'country'=>$request['country'],'official_listing_label'=>$request['label'],'attempts'=>[]];
+            foreach (array_unique([$request['q'],$request['fallback']]) as $q) {
+                need(is_string($q)&&mb_strlen($q,'UTF-8')>=2&&mb_strlen($q,'UTF-8')<=100,'catalogue_query_invalid');
+                need(microtime(true)<$deadline,'catalogue_read_budget_reached');
+                $args=['q'=>$q,'limit'=>20];
+                $code='$_SERVER["DOCUMENT_ROOT"]='.var_export($root,true).';$_GET='.var_export($args,true).';require '.var_export($endpoint,true).';';
+                $process=proc_open([PHP_BINARY,'-d','max_execution_time=10','-r',$code],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+                need(is_resource($process),'catalogue_process_failed');fclose($pipes[0]);
+                $response=stream_get_contents($pipes[1],262145);fclose($pipes[1]);$errors=stream_get_contents($pipes[2],4096);fclose($pipes[2]);$status=proc_close($process);
+                $catalogue['queries']++;
+                need($status===0&&is_string($response)&&strlen($response)<262145,'catalogue_response_invalid');
+                $payload=json_decode($response,true,32,JSON_THROW_ON_ERROR);
+                need(is_array($payload)&&($payload['ok']??false)===true&&($payload['source']??null)==='anytour-catalog'&&is_array($payload['items']??null),'catalogue_read_failed');
+                $result['attempts'][]=['query'=>$q,'count'=>count($payload['items']),'items'=>$payload['items']];
+                if(count($payload['items'])>0)break;
+            }
+            $catalogue['rows'][]=$result;
+        }
+        $catalogue['ok']=true;
+    } catch(Throwable $e) {
+        $catalogue['error']=preg_match('/\A[a-z_]+\z/D',$e->getMessage())===1?$e->getMessage():'catalogue_read_failed';
+    }
+    $out['catalogue']=$catalogue;
 }
 echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),"\n";
 exit($out['ok'] ? 0 : 2);
