@@ -483,7 +483,8 @@ function modeledValueOperationalReceiptProjectionAssertions(PDO $p,callable $che
         [$baseline,$baseCopies,$baseBytes]=$read();
         $check('operational receipt projection preserves real saved counters typed visit decisions and the cached report',
             ($baseline['available']??false)===true&&$baseline['api_accepted_receipts']['events']===1
-            &&$baseline['last_tick_errors']===0&&$baseline['visit_gate_decisions']['available']===true
+            &&$baseline['ready_selection']['available']===true&&$baseline['ready_selection']['selected_mode']==='legacy'
+            &&$baseline['ready_selection']['selected_rows']===1&&$baseline['last_tick_errors']===0&&$baseline['visit_gate_decisions']['available']===true
             &&$baseline['visit_gate_decisions']['attempts']===1
             &&$baseline['metrika_goal_report']['status']==='ok'&&$baseline['metrika_goal_report']['sampled']===false);
         $padded=$receipt;$padded['finite_visit_evidence']=['PRIVATE_UNUSED_FROZEN_FRAME'=>''];
@@ -495,7 +496,7 @@ function modeledValueOperationalReceiptProjectionAssertions(PDO $p,callable $che
         $write->execute([$paddedRaw,$history,$history]);$before=$snapshot();
         [$got,$copies,$copied,$charged]=$read();
         $actual=json_decode($copies[0][0]['receipt_json'],true,32,JSON_THROW_ON_ERROR);
-        $expected=array_intersect_key($receipt,array_flip(['errors','last_recorded_failure','visit_gate_decisions','metrika_report','price_continuity_audit']));
+        $expected=array_intersect_key($receipt,array_flip(['errors','last_recorded_failure','visit_gate_decisions','metrika_report','price_continuity_audit','ready_selection']));
         $copiedJson=json_encode($copies,JSON_THROW_ON_ERROR);
         $check('unrequested history and frozen frames never enter operational result copies or change their saved financial meaning',
             strlen($paddedRaw)===7600&&strlen($paddedRaw)<8192&&$got===$baseline
@@ -539,6 +540,7 @@ function modeledValueAssertions(PDO $p,callable $check):void
     modeledValueCurrentVisitLookbackAssertions($check);
     modeledValueBatchVisitAssertions($check);
     modeledValueBatchWorkerAssertions($p,$check);
+    modeledValueReadySelectionAssertions($p,$check);
     modeledValueReportTimeoutAssertions($check);
     modeledValueAttributionFailureAssertions($check);
     foreach([
@@ -2344,6 +2346,11 @@ function modeledValueBatchWorkerAssertions(PDO $p,callable $check):void
     if(!$ok)echo 'SYNTHETIC_BATCH_TICK '.json_encode(['status'=>$result['status'],'posts'=>$wire->posts,'reports'=>$wire->visitReads,'same_fields'=>$same,
         'lookup_subjects'=>count($lookup->batches[0]??[]),'decisions'=>$receipt['visit_gate_decisions']['attempts']??null,'states'=>array_count_values(array_column($after,'state'))],JSON_THROW_ON_ERROR).PHP_EOL;
     $check('an actual ordinary tick crosses three negative heads checks at most eighteen and sends exactly three unchanged native events',$ok);
+    $selection=ModeledConversionReadySelectionEvidence::projection($receipt['ready_selection']??null,$now,$now-8*3600,$now);
+    $check('saved selection describes the actual bounded batch without extra lookup report or POST traffic',
+        $selection['available']&&$selection['selected_mode']==='batch'&&$selection['selected_rows']===18
+        &&$selection['lookup']['reason']==='expanded'&&$selection['lookup']['candidate_count']===19
+        &&$selection['dispatch']['returned_count']===18&&$selection['dispatch']['prefix_examined']===3);
     ModeledConversionValueExport::tick($p,$lookup,$api,$now+301,$gate);$keys=[];
     foreach($wire->csv as$csv){$r=str_getcsv(explode("\n",trim($csv))[1]);$keys[]=$r[0].'|'.$r[1].'|'.$r[2];}
     $check('the next natural pass does not resend an accepted native event or duplicate a CID target second wire key',count($keys)===count(array_unique($keys))&&(int)$saved()[3]['attempts']===1);
@@ -2361,8 +2368,23 @@ function modeledValueBatchWorkerAssertions(PDO $p,callable $check):void
         $wire->posts===3&&$wire->visitReads===3&&count($lookup->batches[0])===4);
     [$wire,$lookup,$before]=modeledValueBatchWorkerFixture($p,$now);$owner=new ModeledConversionValueExport($p);
     $protected=new ReflectionProperty($owner,'ordinaryProtectedIds');$select=new ReflectionMethod($owner,'ordinaryBatchReadyRows');$gets=$wire->gets;
-    $protected->setValue($owner,null);$unbound=$select->invoke($owner,$now,[],null,$gate);
-    $protected->setValue($owner,[(string)$before[0]['id']=>true]);$frozen=$select->invoke($owner,$now,[],null,$gate);
+    $diagnosis=new ReflectionProperty($owner,'ordinaryBatchSelection');
+    $protected->setValue($owner,null);$unbound=$select->invoke($owner,$now,[],null,$gate);$unknownSelection=$diagnosis->getValue($owner);
+    $protected->setValue($owner,[(string)$before[0]['id']=>true]);$frozen=$select->invoke($owner,$now,[],null,$gate);$protectedSelection=$diagnosis->getValue($owner);
+    $check('unknown membership and protected prefix have distinct saved scalar reasons without new admission',
+        $unknownSelection===['unknown_membership',0,0,0,null]
+        &&$protectedSelection===['nonordinary_prefix',19,1,0,'protected_original']);
+    $protected->setValue($owner,[]);
+    $p->exec("UPDATE max_channel_conversion_outbox SET value_origin='owner_day_review_v1' WHERE id=1");
+    $select->invoke($owner,$now,[],null,$gate);$historical=$diagnosis->getValue($owner);
+    $p->exec("UPDATE max_channel_conversion_outbox SET value_origin='unknown' WHERE id=1");
+    $select->invoke($owner,$now,[],null,$gate);$unknownOrigin=$diagnosis->getValue($owner);
+    $check('only canonical history origins are labelled historical; unknown origins remain unsupported shape',
+        $historical[4]==='historical_origin'&&$unknownOrigin[4]==='nonordinary_shape');
+    $p->exec("UPDATE max_channel_conversion_outbox SET value_origin=NULL WHERE id=1");
+    $p->exec("UPDATE max_channel_conversion_outbox SET next_attempt_unix=".($now+1)." WHERE id>3");
+    $select->invoke($owner,$now,[],null,$gate);
+    $check('a small prefix is counted without invented prefix examinations',$diagnosis->getValue($owner)===['small_prefix',3,0,0,null]);
     $check('unknown original membership and a protected original prefix cannot expand the lookup or report lane',$unbound===[]&&$frozen===[]&&$wire->gets===$gets&&$lookup->calls===0);
 
     [$wire,$lookup,$before]=modeledValueBatchWorkerFixture($p,$now);$wire->postMode='unknown';
@@ -3171,6 +3193,78 @@ function modeledValueOrdinaryObservationAssertions(PDO $p,callable $check):void
                 !array_key_exists('receipt_poll_evidence',$after)&&$wire->posts===3);
         }
     }
+}
+
+
+/** Same ordinary decisions, strict read-only projection and lowest-priority persistence. */
+function modeledValueReadySelectionAssertions(PDO $p,callable $check):void
+{
+    $now=1793665000;$key=ModeledConversionReadySelectionEvidence::KEY;
+    $good=['v'=>1,'at'=>$now,'lookup'=>['expanded',19,3,18,null],
+        'dispatch'=>['expanded',19,3,18,null],'mode'=>'batch','selected'=>18];
+    $view=static fn(mixed $v,int $tick=1793665000,int $clock=1793665000):array=>
+        ModeledConversionReadySelectionEvidence::projection($v,$tick,$now-8*3600,$clock);
+    $reordered=array_reverse($good,true);
+    $check('native JSON object key normalization does not invalidate genuine saved selection',
+        $view($good)===$view($reordered)&&$view($good)['available']);
+    $legacy=$good;$legacy['mode']='legacy';$legacy['selected']=3;$legacy['dispatch'][3]=3;
+    $check('prepared candidates and final dispatch mode remain distinct after bounded filtering',
+        $view($legacy)['available']&&$view($legacy)['selected_mode']==='legacy'&&$view($legacy)['selected_rows']===3);
+    $bad=[null,false,[],array_merge($good,['private_payload'=>'PRIVATE_SELECTION_PAYLOAD'])];
+    foreach([['v',2],['at',$now-1],['selected','18'],['selected',19],['mode','unknown']]as[$field,$value]){
+        $v=$good;$v[$field]=$value;$bad[]=$v;
+    }
+    foreach([[0,'unknown'],[1,20],[2,4],[3,-1],[4,'PRIVATE_BLOCKER']]as[$field,$value]){
+        $v=$good;$v['lookup'][$field]=$value;$bad[]=$v;
+    }
+    $v=$good;$v['mode']='legacy';$bad[]=$v;
+    $v=$good;$v['dispatch']=['not_run',0,0,0,null];$bad[]=$v;
+    $v=$good;$v['lookup']=['small_prefix',3,3,0,null];$bad[]=$v;
+    foreach($bad as$i=>$v)$check('invalid optional selection remains unknown without exposing arbitrary fields '.$i,
+        $view($v)===['available'=>false,'reason'=>'not_recorded_or_invalid']);
+    $check('saved selection cannot be attributed to another tick or a future clock',
+        !$view($good,$now+1,$now+1)['available']&&!$view($good,$now,$now-1)['available']);
+
+    [$wire,$lookup,$rows]=modeledValueBatchWorkerFixture($p,$now);
+    $owner=new ModeledConversionValueExport($p);$persist=new ReflectionMethod($owner,'persistTickReceipt');
+    $read=static fn():array=>json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    $write=static function(array $receipt,int $tick)use($p):void{
+        $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=?,last_receipt_json=? WHERE project_key='anytour'")
+            ->execute([$tick,json_encode($receipt,JSON_THROW_ON_ERROR)]);
+    };
+    $measure=static function(array $v)use($p):int{
+        $json=json_encode($v,JSON_THROW_ON_ERROR);if($p->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql')return strlen($json);
+        $q=$p->prepare('SELECT OCTET_LENGTH(CAST(? AS JSON))');$q->execute([$json]);return(int)$q->fetchColumn();
+    };
+    $old=['v'=>'immutable_saved_fixture','r'=>[['original','preserved']]];
+    $forward=['v'=>'independent_saved_fixture','r'=>[['forward','preserved']]];
+    $base=['collected'=>4,'resolved'=>2,'accepted'=>1,'processed'=>3,'unknown'=>0,'errors'=>1,
+        'metrika_report'=>['status'=>'unavailable','fetched_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$now)],
+        'last_recorded_failure'=>null,'identity_resolution_evidence_incomplete'=>true,
+        'finite_visit_evidence'=>$old,'finite_visit_recovery'=>$forward,'padding'=>''];
+    $base['padding']=str_repeat('x',8050-$measure($base));$write($base,$now-1);
+    $incoming=$base;$incoming[$key]=$good;$beforeNetwork=serialize([$wire->gets,$wire->posts,$lookup->calls]);
+    $persist->invoke($owner,$incoming,null,$now);$capped=$read();
+    $check('selection yields before existing finance failure and immutable proof at the actual native cap',
+        !array_key_exists($key,$capped)&&$measure($capped)<=8192&&$capped['accepted']===1&&$capped['processed']===3
+        &&modeledValueFailureJsonEqual($capped['finite_visit_evidence'],$old)
+        &&modeledValueFailureJsonEqual($capped['finite_visit_recovery'],$forward));
+    $base['padding']='';$write($base,$now-1);$incoming=$base;$incoming[$key]=$good;
+    $persist->invoke($owner,$incoming,null,$now);$winner=ModeledConversionValueExport::settings($p);
+    $check('a genuine completed tick saves bounded selection after existing proof',modeledValueFailureJsonEqual($read()[$key]??null,$good));
+    $older=$good;$older['at']=$now-1;$incoming[$key]=$older;$persist->invoke($owner,$incoming,null,$now-1);
+    $check('a delayed healthy writer preserves the winning selection and all receipt bytes',ModeledConversionValueExport::settings($p)===$winner);
+    $incoming[$key]=$good;$persist->invoke($owner,$incoming,null,$now);
+    $check('equal-second overlapping writers do not claim a uniquely attributable selection',!array_key_exists($key,$read()));
+    $write(array_merge($base,[$key=>$good]),$now);
+    $failure=['tick_at_unix'=>$now-1,'phase'=>'collect_profiles','category'=>'processing_failed'];
+    $persist->invoke($owner,['errors'=>99,$key=>$older],$failure,$now-1);$after=$read();
+    $check('a delayed actual failure retains winning finance and proof while discarding optional selection',
+        !array_key_exists($key,$after)&&$after['accepted']===1&&$after['processed']===3
+        &&modeledValueFailureJsonEqual($after['finite_visit_evidence'],$old)
+        &&modeledValueFailureJsonEqual($after['last_recorded_failure'],$failure));
+    $check('selection persistence and projection never call tracker or Metrika',
+        serialize([$wire->gets,$wire->posts,$lookup->calls])===$beforeNetwork);
 }
 
 if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){
