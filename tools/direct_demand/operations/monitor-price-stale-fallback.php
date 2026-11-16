@@ -8,7 +8,7 @@ function monitor_stale_need(bool $ok, string $reason): void
 }
 
 /** Preserve the exact old caption outside the one original monitored-price block. */
-function monitor_stale_caption_plan(string $currentText, string $expectedTextSha256, int $now): array
+function monitor_stale_caption_plan(string $currentText, string $expectedTextSha256, int $now, int $confirmedObservedAt): array
 {
     monitor_stale_need(preg_match('/\A[a-f0-9]{64}\z/D', $expectedTextSha256) === 1
         && hash_equals($expectedTextSha256, hash('sha256', $currentText)), 'stale_caption_cas_mismatch');
@@ -24,10 +24,15 @@ function monitor_stale_caption_plan(string $currentText, string $expectedTextSha
     $observed = DateTimeImmutable::createFromFormat('!d.m.Y, H:i', $stamp, new DateTimeZone('Europe/Moscow'));
     monitor_stale_need($observed instanceof DateTimeImmutable && $observed->format('d.m.Y, H:i') === $stamp,
         'stale_caption_timestamp_invalid');
-    $age = $now - $observed->getTimestamp();
+    // The published label omits seconds. Admission uses the exact observedAt from
+    // the accepted price journal, not the displayed minute rounded down.
+    monitor_stale_need($confirmedObservedAt > 0, 'stale_caption_proof_missing');
+    $verified = (new DateTimeImmutable('@'.$confirmedObservedAt))->setTimezone(new DateTimeZone('Europe/Moscow'));
+    monitor_stale_need($verified->format('d.m.Y, H:i') === $stamp, 'stale_caption_proof_mismatch');
+    $age = $now - $confirmedObservedAt;
     monitor_stale_need($age >= 0, 'stale_caption_future_observation');
     if ($age < 36 * 3600) return [
-        'state' => 'not_expired', 'age_seconds' => $age, 'observed_at' => $observed->format(DateTimeInterface::ATOM),
+        'state' => 'not_expired', 'age_seconds' => $age, 'observed_at' => $verified->format(DateTimeInterface::ATOM),
     ];
     $oldBlock = $matches[0][0][0];
     $position = $matches[0][0][1];
@@ -35,7 +40,7 @@ function monitor_stale_caption_plan(string $currentText, string $expectedTextSha
     monitor_stale_need(!str_contains($newText, 'Цена найдена мониторингом ')
         && !str_contains($newText, '💰 От '), 'stale_caption_price_remains');
     return [
-        'state' => 'ready', 'age_seconds' => $age, 'observed_at' => $observed->format(DateTimeInterface::ATOM),
+        'state' => 'ready', 'age_seconds' => $age, 'observed_at' => $verified->format(DateTimeInterface::ATOM),
         'old_text_sha256' => $expectedTextSha256, 'new_text' => $newText,
         'new_text_sha256' => hash('sha256', $newText),
     ];
@@ -43,11 +48,10 @@ function monitor_stale_caption_plan(string $currentText, string $expectedTextSha
 
 /** Prepare one exact YML offer for the existing feed writer; never write the returned XML directly. */
 function monitor_stale_feed_plan(string $originalXml, string $expectedXmlSha256, string $offerId,
-    string $expectedUrl, string $oldText, array $captionPlan, int $now): array
+    string $expectedUrl, string $oldText, array $captionPlan, int $now, int $confirmedObservedAt): array
 {
-    monitor_stale_need(($captionPlan['state'] ?? null) === 'ready'
-        && ($captionPlan['old_text_sha256'] ?? null) === hash('sha256', $oldText)
-        && ($captionPlan['new_text_sha256'] ?? null) === hash('sha256', (string)($captionPlan['new_text'] ?? '')),
+    $verifiedPlan = monitor_stale_caption_plan($oldText, hash('sha256', $oldText), $now, $confirmedObservedAt);
+    monitor_stale_need(($verifiedPlan['state'] ?? null) === 'ready' && $captionPlan === $verifiedPlan,
         'stale_feed_caption_unconfirmed');
     monitor_stale_need(preg_match('/\A[a-f0-9]{64}\z/D', $expectedXmlSha256) === 1
         && hash_equals($expectedXmlSha256, hash('sha256', $originalXml)), 'stale_feed_cas_mismatch');
