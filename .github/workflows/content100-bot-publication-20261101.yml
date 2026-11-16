@@ -1,17 +1,17 @@
-name: Complete remaining33 preparation with isolated image dependency
+name: Publish immutable assets for the eligible remaining32 hotels
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
     paths: ['.github/workflows/content100-bot-publication-20261101.yml']
 permissions:
-  contents: read
+  contents: write
   actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == 'da4d2ef93ddf7701ced6021ad3bc95255430a5f8' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == 'd29252c9991aebb6f3c658e1deff6f2833db1889' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -20,103 +20,96 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 2
-      - name: Verify exact unchanged preparation and original no-server failure
+      - name: Authenticate the original successful clearance and actual reviewed covers
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = da4d2ef93ddf7701ced6021ad3bc95255430a5f8
+          test "$(git rev-parse HEAD^)" = d29252c9991aebb6f3c658e1deff6f2833db1889
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
-          test "$(git rev-parse HEAD^:.github/workflows/content100-bot-publication-20261101.yml)" = 22c1d32070ab4f5223ad7f977ae077cdaef3a7c9
-          p=tools/direct_demand/operations
-          test "$(git hash-object "$p/commercial-expansion33-authored-20261116.json")" = fd421a0ea1c5f2cfe6476f49aaf6708b561a8436
-          test "$(git hash-object "$p/read-expansion20-release-clearance-20261116.php")" = 90eb8a24b7b38e7cdf065256a50a4d3ed201cbb7
-          test "$(git hash-object "$p/commercial-batch-template-20261102.php")" = 353d5125d212df7584d24fd04d0f692d90176edb
-          test "$(git hash-object "$p/commercial-expansion100-catalogue-candidates-20261116.json")" = 728ce08a9eed7745cfcba015ecd42c20431ef9bf
           umask 077
-          mkdir "$RUNNER_TEMP/remaining33-release"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/43920622217/jobs?per_page=100 > "$RUNNER_TEMP/remaining33-release/original-failed-jobs.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/43918096119 > "$RUNNER_TEMP/remaining33-release/media-run.json"
-          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14250287562 > "$RUNNER_TEMP/remaining33-release/media-artifact.json"
-          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14250287562/zip > "$RUNNER_TEMP/media33.zip"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/remaining33-release/main-at-read.json"
+          mkdir "$RUNNER_TEMP/remaining32-assets"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/43921478505 > "$RUNNER_TEMP/remaining32-assets/clearance-run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14253362790/zip > "$RUNNER_TEMP/prepared33.zip"
           python3 - <<'PY'
-          import json,pathlib,hashlib,zipfile,os,subprocess
-          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'remaining33-release'
-          j=json.loads((out/'original-failed-jobs.json').read_bytes());assert j['total_count']==1
-          job=j['jobs'][0];assert job['id']==133486609853 and job['conclusion']=='failure'
-          steps={s['name']:s for s in job['steps']}
-          assert steps['Build exact captions, source-photo covers and read-only clearance input']['conclusion']=='failure'
-          for name in ['Prepare existing server connection','Pin existing server identity','Read current identities and publication duplicates for all33 without mutation']:assert steps[name]['conclusion']=='skipped'
-          r=json.loads((out/'media-run.json').read_bytes());a=json.loads((out/'media-artifact.json').read_bytes())
-          assert r['id']==43918096119 and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='failure' and r['head_sha']=='a897e401243fa809541434cd0872f64a26a5554b'
-          assert a['id']==14250287562 and not a['expired'] and a['workflow_run']['id']==43918096119
-          raw=(out.parent/'media33.zip').read_bytes();assert hashlib.sha256(raw).hexdigest()=='3dc72e0e5005c20a0832cd927ca627196869e7764f519f9aa37ad75ccae3f8fe' and a['digest']=='sha256:'+hashlib.sha256(raw).hexdigest()
-          with zipfile.ZipFile(out.parent/'media33.zip') as z:
-            assert z.testzip() is None and all(not n.startswith('/') and '..' not in pathlib.PurePosixPath(n).parts for n in z.namelist());z.extractall(out/'media')
-          m=json.loads((out/'media/manifest.json').read_text());assert m['hotels']==33 and m['downloaded']==196 and m['failed']==2
-          assert {(x['tourvisor_id'],x['source_image_index']) for x in m['rows'] if not x['downloaded']}=={(43569,26),(2470,14)}
-          # Retain the already-reviewed exact commands. Only the missing dependency changes.
-          original=subprocess.check_output(['git','show','da4d2ef93ddf7701ced6021ad3bc95255430a5f8:.github/workflows/content100-bot-publication-20261101.yml']).decode()
-          names=['Build exact captions, source-photo covers and read-only clearance input','Prepare existing server connection','Pin existing server identity','Read current identities and publication duplicates for all33 without mutation']
-          commands=[]
-          for i,name in enumerate(names):
-            marker='      - name: '+name+'\n';assert original.count(marker)==1
-            part=original.split(marker,1)[1].split('\n      - ',1)[0];assert part.count('        run: |\n')==1
-            lines=part.split('        run: |\n',1)[1].splitlines();assert all(not line or line.startswith('          ') for line in lines)
-            body='\n'.join(line[10:] if line else '' for line in lines)+'\n'
-            target=out/f'step-{i}.sh';target.write_text(body);commands.append({'name':name,'sha256':hashlib.sha256(body.encode()).hexdigest()})
-          (out/'reused-command-proof.json').write_text(json.dumps({'original_workflow_blob':'22c1d32070ab4f5223ad7f977ae077cdaef3a7c9','commands':commands,'prior_server_steps':'skipped','new_supplier_image_gets':0},indent=2)+'\n')
-          print('ORIGINAL_MEDIA_REUSED new_image_downloads=0 prior_server_steps=skipped')
+          import os,pathlib,json,hashlib,zipfile
+          p=pathlib.Path(os.environ['RUNNER_TEMP']);out=p/'remaining32-assets';r=json.loads((out/'clearance-run.json').read_bytes())
+          assert r['id']==43921478505 and r['run_attempt']==1 and r['conclusion']=='success' and r['head_sha']=='d29252c9991aebb6f3c658e1deff6f2833db1889'
+          raw=(p/'prepared33.zip').read_bytes();assert hashlib.sha256(raw).hexdigest()=='3ded6f36973acc239104fa7f4f66d39b9e2347559c5e08c43790b34e9dfff150'
+          with zipfile.ZipFile(p/'prepared33.zip') as z:
+            assert z.testzip() is None and all(not n.startswith('/') and '..' not in pathlib.PurePosixPath(n).parts for n in z.namelist());z.extractall(out/'prepared')
+          def load(name,digest):
+            b=(out/'prepared'/name).read_bytes();assert hashlib.sha256(b).hexdigest()==digest;return json.loads(b)
+          prepared=load('prepared33.json','f5ad1989883965879f2d2f5882beaf8988b5a627d46e3c4ecfb720a3e828a934')
+          clearance=load('clearance.json','4200a8e56e53dc264ddadf1a6e090e1957c50c6133da75b386568ccf1d513384')
+          assert clearance['ok'] and clearance['clear_count']==33 and clearance['blocked_count']==0
+          assert clearance['runtime']=={'head':'372823d98e580e708169bc8ac9367245376a803b','tracked_clean':True,'component_mismatches':[]}
+          assert clearance['monitor']['pending'] is None and clearance['monitor']['cycle']['state']=='budget_exhausted'
+          assert len(prepared['rows'])==33 and prepared['media_hold']==[108165]
+          rows=[]
+          for row in prepared['rows']:
+            if row['hotel_id']==108165:
+              assert row['media_hold'] and row['cover'] is None;continue
+            assert not row['media_hold'] and row['cover'] and row['new_price'] is None
+            raw=(out/'prepared'/row['cover']['path']).read_bytes();assert hashlib.sha256(raw).hexdigest()==row['cover']['sha256'] and raw.startswith(b'\x89PNG\r\n\x1a\n')
+            assert hashlib.sha256(row['text'].encode()).hexdigest()==row['text_sha256'] and len(row['text'].encode('utf-16-le'))//2<=1024
+            rows.append(row)
+          assert len(rows)==32 and len({r['hotel_id'] for r in rows})==32 and len({r['cover']['sha256'] for r in rows})==32
+          review={'schema':'remaining32_channel_editorial_review_v1','scope_issue':1142,'scope_comment':6923781196,'prepared_sha256':'f5ad1989883965879f2d2f5882beaf8988b5a627d46e3c4ecfb720a3e828a934','clearance_run':43921478505,'all32_actual_rendered_covers_reviewed':True,'review_basis':'Four actual contact sheets built from the downloaded and checksum-verified artifact14253362790; legible headings, scene variety and no blank/corrupt chosen frames. The uncertain Soneva Secret media is excluded.','content_basis':'Retained exact hotel dossiers with primary-source checks recorded in the authored input. No price, tariff availability or free-service entitlement inferred.','new_copyright_permission_claimed':False,'knowledge_admission_claimed':False,'new_channel_messages':0,'held_ids':[108165],'rows':rows}
+          (out/'reviewed32.json').write_text(json.dumps(review,ensure_ascii=False,indent=2)+'\n')
+          print('REVIEWED_ASSET_SCOPE hotels=32 held=1 old_published_excluded=20')
           PY
-      - name: Install the missing image library only into the ephemeral runner
+      - name: Retain original inputs before publishing image-only repository objects
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: remaining32-assets-intent-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/remaining32-assets/reviewed32.json
+            ${{ runner.temp }}/remaining32-assets/clearance-run.json
+            ${{ runner.temp }}/remaining32-assets/prepared/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Create immutable image assets once with exact readback
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          python3 -m pip install --disable-pip-version-check --no-deps --only-binary=:all: --target "$RUNNER_TEMP/remaining33-python" Pillow==12.0.0
-          echo "PYTHONPATH=$RUNNER_TEMP/remaining33-python" >> "$GITHUB_ENV"
-          test -r /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
-          test -r /usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf
-      - name: Build exact captions and original-source photo covers
-        shell: bash
-        run: bash --noprofile --norc -e -o pipefail "$RUNNER_TEMP/remaining33-release/step-0.sh"
-      - name: Prepare the existing server connection
-        env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: bash --noprofile --norc -e -o pipefail "$RUNNER_TEMP/remaining33-release/step-1.sh"
-      - name: Verify unchanged server identity
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: bash --noprofile --norc -e -o pipefail "$RUNNER_TEMP/remaining33-release/step-2.sh"
-      - name: Perform the previously unstarted native33 read without writes
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: bash --noprofile --norc -e -o pipefail "$RUNNER_TEMP/remaining33-release/step-3.sh"
-      - name: Retain exact prepared inputs and original read evidence
+          python3 - <<'PY'
+          import os,pathlib,json,hashlib,base64,urllib.request,urllib.error
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'remaining32-assets';review=json.loads((p/'reviewed32.json').read_bytes());repo='pyatkoff/max-search-bot';branch='assets/hotel-expansion33-20261116';base=os.environ['GITHUB_SHA']
+          result={'ok':False,'branch':branch,'parent':base,'channel_writes':0,'server_connections':0,'held_ids':[108165],'blobs':[],'ref_write_attempted':False}
+          def save():(p/'asset-result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
+          def api(method,path,value=None):
+            raw=None if value is None else json.dumps(value,separators=(',',':')).encode();req=urllib.request.Request('https://api.github.com/repos/'+repo+'/'+path,data=raw,method=method,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+            with urllib.request.urlopen(req,timeout=60) as response:return json.load(response)
+          save()
+          try:
+            try:api('GET','git/ref/heads/'+branch)
+            except urllib.error.HTTPError as e:assert e.code==404
+            else:raise RuntimeError('asset_ref_exists_no_replay')
+            assert api('GET','git/ref/heads/audit/content100-bot-publication-20261101')['object']['sha']==base
+            parent=api('GET','git/commits/'+base);tree=[]
+            for r in review['rows']:
+              raw=(p/'prepared'/r['cover']['path']).read_bytes();assert hashlib.sha256(raw).hexdigest()==r['cover']['sha256'];path='.github/traffic-publish/commercial-expansion33-20261116/'+str(r['hotel_id'])+'.png'
+              expected=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest();b=api('POST','git/blobs',{'content':base64.b64encode(raw).decode(),'encoding':'base64'});assert b['sha']==expected
+              tree.append({'path':path,'mode':'100644','type':'blob','sha':b['sha']});result['blobs'].append({'hotel_id':r['hotel_id'],'path':path,'git_blob':b['sha'],'sha256':r['cover']['sha256']});save()
+            assert len(tree)==32 and len({r['sha'] for r in tree})==32
+            t=api('POST','git/trees',{'base_tree':parent['tree']['sha'],'tree':tree});c=api('POST','git/commits',{'message':'assets: thirty-two reviewed remaining hotel covers; Soneva Secret held','tree':t['sha'],'parents':[base]});result['asset_commit']=c['sha'];save()
+            result['ref_write_attempted']=True;save();api('POST','git/refs',{'ref':'refs/heads/'+branch,'sha':c['sha']})
+            assert api('GET','git/ref/heads/'+branch)['object']['sha']==c['sha']
+            diff=api('GET','compare/'+base+'...'+c['sha']);assert len(diff['files'])==32 and {r['filename'] for r in diff['files']}=={r['path'] for r in tree} and all(r['status']=='added' for r in diff['files'])
+            for row in result['blobs']:row['url']='https://raw.githubusercontent.com/'+repo+'/'+c['sha']+'/'+row['path']
+            result['ok']=True;save();print('IMMUTABLE_ASSETS_READY='+json.dumps({'asset_commit':c['sha'],'covers':32,'post_writes':0,'held':1}))
+          except Exception as e:result['error_type']=type(e).__name__;save();raise
+          PY
+      - name: Retain every actual asset outcome without automatic retry
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: remaining33-prepared-clearance-${{ github.run_id }}
-          path: |
-            ${{ runner.temp }}/remaining33-release/prepared33.json
-            ${{ runner.temp }}/remaining33-release/clearance-input.json
-            ${{ runner.temp }}/remaining33-release/clearance.json
-            ${{ runner.temp }}/remaining33-release/source-proof.json
-            ${{ runner.temp }}/remaining33-release/main-at-read.json
-            ${{ runner.temp }}/remaining33-release/exit-code.txt
-            ${{ runner.temp }}/remaining33-release/reused-command-proof.json
-            ${{ runner.temp }}/remaining33-release/original-failed-jobs.json
-            ${{ runner.temp }}/remaining33-release/covers/
-          if-no-files-found: error
-          retention-days: 14
-      - name: Remove runner-only connection files
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
+          name: remaining32-assets-result-${{ github.run_id }}
+          path: ${{ runner.temp }}/remaining32-assets/asset-result.json
+          if-no-files-found: ignore
+          retention-days: 30
