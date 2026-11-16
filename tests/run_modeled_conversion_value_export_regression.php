@@ -1119,13 +1119,21 @@ function modeledValueOrdinaryExpiryAssertions(PDO $p,callable $check):void
         return[$wire,$lookup];
     };
     $rows=static fn():array=>$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
-    $immutable=static function(array $row):array{unset($row['state'],$row['last_error']);return$row;};
+    // Native MySQL updates this audit clock on a state change; business fields and created_at stay immutable.
+    $immutable=static function(array $row):array{unset($row['state'],$row['last_error'],$row['updated_at']);return$row;};
 
-    [$wire,$lookup]=$setup([$old,$old,$old,$old]);$before=$rows();
+    [$wire,$lookup]=$setup([$old,$old,$old,$old]);
+    $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';$auditBefore='2000-01-01 00:00:00';
+    // Force the native audit transition instead of depending on whether the runner crosses a wall-clock second.
+    if($mysql)$p->exec("UPDATE max_channel_conversion_outbox SET updated_at='2000-01-01 00:00:00'");
+    $before=$rows();
     ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate);$after=$rows();
     $check('strictly expired ordinary READY keeps immutable values and uses only the existing three-row pass without visitor reads',
         count(array_filter($after,static fn(array $r):bool=>$r['state']==='expired'&&$r['last_error']==='event_expired'))===3
         &&$after[3]['state']==='ready'&&array_map($immutable,$after)===array_map($immutable,$before)
+        &&(!$mysql||(count(array_filter($before,static fn(array $r):bool=>$r['updated_at']===$auditBefore))===4
+            &&count(array_filter($after,static fn(array $r):bool=>$r['state']==='expired'&&$r['updated_at']!==$auditBefore))===3
+            &&$after[3]['updated_at']===$before[3]['updated_at']))
         &&$wire->visitReads===0&&$wire->posts===0&&$lookup->calls===0);
     ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+300,$gate);
     ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+600,$gate);
