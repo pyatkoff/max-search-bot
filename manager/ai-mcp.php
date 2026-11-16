@@ -16,6 +16,7 @@ $preparationMcpStage='origin';
 $preparationMcpForecastBudget=null;
 $preparationMcpDialogueRead=false;
 $preparationMcpQualityRead=false;
+$preparationMcpRetainedRead=false;
 $preparationMcpRaw=null;
 $preparationMcpSelection=false;
 
@@ -77,8 +78,10 @@ try {
                 $preparationMcpRpc=['method'=>'tools/call'];
             }
             if(is_array($probe)&&($probe['method']??null)==='tools/call'&&is_array($probe['params']??null)
-                &&in_array($probe['params']['name']??null,['list_current_dialogues','get_dialogue_review_context'],true)){
+                &&in_array($probe['params']['name']??null,['list_current_dialogues','get_dialogue_review_context','list_retained_dialogues','get_retained_dialogue_context'],true)){
                 $preparationMcpDialogueRead=true;
+                $preparationMcpRetainedRead=in_array($probe['params']['name'],['list_retained_dialogues','get_retained_dialogue_context'],true);
+                if($preparationMcpRetainedRead)$preparationMcpQualityRead=true;
                 // Fixed wire classification only; the authenticated service enforces the actual grant.
                 $historyArgs=$probe['params']['arguments']??null;
                 if(is_array($historyArgs))foreach(['cursor','dialogue_ref']as$field)
@@ -94,7 +97,7 @@ try {
     $actor=$authorization['admin_id']??null;
     $connection=$authorization['connection_id']??null;
     if ($actor===null||$connection===null) {
-        $requestedScope=$preparationMcpQualityRead?ManagerPreparationOAuth::QUALITY_SCOPE:($preparationMcpDialogueRead?ManagerPreparationOAuth::DIALOGUE_SCOPE
+        $requestedScope=$preparationMcpQualityRead?($preparationMcpRetainedRead?'quality:read forecasts:read':'quality:read'):($preparationMcpDialogueRead?ManagerPreparationOAuth::DIALOGUE_SCOPE
             :($preparationMcpForecastBudget!==null?'forecasts:read':'queue:read prepared:write'));
         if($preparationMcpSelection)$requestedScope=ManagerPreparationOAuth::SELECTION_SCOPE;
         header('WWW-Authenticate: Bearer resource_metadata="https://app.anytoour.ru/manager/ai-oauth.php?action=resource", scope="'.$requestedScope.'"');

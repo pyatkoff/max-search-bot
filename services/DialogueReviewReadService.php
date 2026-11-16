@@ -24,7 +24,7 @@ final class DialogueReviewReadService
     private int $sourceBytes=0;
     private int $selectionReferenceCount=0;
 
-    public function __construct(private PDO $pdo,private $clock=null,private $keyProvider=null,private $selectionSourceAuthorize=null,private bool $historyAudit=false)
+    public function __construct(private PDO $pdo,private $clock=null,private $keyProvider=null,private $selectionSourceAuthorize=null,private bool $historyAudit=false,private bool $forecastReview=false)
     {
         $driver=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
         if(!in_array($driver,['mysql','sqlite'],true))throw new InvalidArgumentException('dialogue_review_driver');
@@ -64,6 +64,7 @@ final class DialogueReviewReadService
                     'change_hint'=>hash('sha256',self::json([$identity,$row['status'],$row['manager_id'],$row['source_id'],
                         $row['updated_at'],$mark['latest_message_id'],$mark['latest_event_id'],$mark['recorded_at_unix']])),
                 ];
+                if($this->forecastReview)$dialogues[count($dialogues)-1]['saved_profile_ref']=isset($row['review_profile_id'])?hash('sha256','intake_profile_v1:'.$row['review_profile_id']):null;
                 $after=$id;
             }
             $result=$this->base('inventory',$now)+[
@@ -76,9 +77,9 @@ final class DialogueReviewReadService
                     'change_hint_is_complete_edit_revision'=>false,'deduplicate_using_returned_message_revisions'=>true,
                     'transcripts_read'=>false,'semantic_review_complete'=>false],
             ];
-            if(!$this->historyAudit){
+            if(!$this->historyAudit||$this->forecastReview){
                 // A fresh start is distinct from next_cursor, which continues this pass.
-                $result['newest_open']=[
+                $result[$this->historyAudit?'newest_retained':'newest_open']=[
                     'start_cursor'=>$this->encode(['v'=>1,'k'=>'inventory_newest','f'=>(string)$summary['upper_id'],
                         'a'=>'0','t'=>$now,'e'=>$now+self::CURSOR_TTL],$key,$admin,$connection),
                     'order'=>'conversation_id_desc','latest_activity_inventory'=>false,'all_today_coverage'=>false,
@@ -146,8 +147,9 @@ final class DialogueReviewReadService
                 $messages[]=$this->projectMessage($meta,$raw,$selectionSources);
             }
             $this->sourceBytes+=$payloadBytes;
+            $eventDiagnostics=$this->forecastReview?$this->eventDiagnostics($row):null;
             $readCount=count($messages);$returned=$messages;
-            $make=function(array $page,bool $hasMore,array $saved)use($now,$row,$ref,$identity,$fence,$before,$started,$profileId,$key,$admin,$connection,$readCount):array{
+            $make=function(array $page,bool $hasMore,array $saved)use($now,$row,$ref,$identity,$fence,$before,$started,$profileId,$key,$admin,$connection,$readCount,$eventDiagnostics):array{
                 $last=$page?(string)$page[count($page)-1]['message_id']:$before;
                 $next=$hasMore&&$page?$this->encode(['v'=>1,'k'=>'context','d'=>$ref['d'],'r'=>$identity,'m'=>$fence,'b'=>$last,
                     'p'=>$profileId,'t'=>$started,'e'=>$now+self::CURSOR_TTL],$key,$admin,$connection):null;
@@ -157,9 +159,9 @@ final class DialogueReviewReadService
                     'platform'=>$row['channel'],'status'=>$row['status'],'assigned'=>$row['manager_id']!==null,
                     'snapshot'=>['started_at'=>gmdate('Y-m-d\TH:i:s\Z',$started),'message_id_fence'=>$fence,
                         'mutable_rows_may_change_between_pages'=>true,'clock_basis'=>'validated_recording_receipt_or_unknown'],
-                    'messages'=>$ordered,'saved_profile'=>$saved,
-                    'context_revision'=>hash('sha256',self::json([$identity,$row['status'],$row['manager_id'],$row['source_id'],$fence,$revisions,$saved])),
-                    'revision_scope'=>'returned_message_page_and_selected_saved_profile_not_whole_dialogue',
+                    'messages'=>$ordered,'saved_profile'=>$saved,...($eventDiagnostics===null?[]:['source_event_diagnostics'=>$eventDiagnostics]),
+                    'context_revision'=>hash('sha256',self::json([$identity,$row['status'],$row['manager_id'],$row['source_id'],$fence,$revisions,$saved,...($eventDiagnostics===null?[]:[$eventDiagnostics])])),
+                    'revision_scope'=>$eventDiagnostics===null?'returned_message_page_and_selected_saved_profile_not_whole_dialogue':'returned_message_page_saved_profile_and_current_event_metadata',
                     'returned'=>count($page),'read_but_not_returned_records'=>$readCount-count($page),'page_source_bytes'=>$this->sourceBytes,
                     'has_more'=>$hasMore,'next_cursor'=>$next,
                     'coverage'=>['older_messages_remaining'=>$hasMore,'history_traversal_exhausted_within_id_fence'=>!$hasMore,
@@ -249,8 +251,20 @@ final class DialogueReviewReadService
     private function nativeRows(string $extra,array $bindings,int $limit,bool $descending=false):array
     {
         [$from,$where]=$this->nativeScope();
+        $profile='';
+        if($this->forecastReview){
+            $cast=$this->mysql?'CHAR':'TEXT';
+            $platform=$this->mysql?'CAST(c.channel AS BINARY)':'c.channel';
+            $customer=$this->mysql?'CAST(c.customer_id AS BINARY)':'CAST(c.customer_id AS TEXT)';
+            $conversation=$this->mysql?'CAST(c.id AS BINARY)':'CAST(c.id AS TEXT)';
+            $profile=", (SELECT p.id FROM modeled_conversion_profile_versions p WHERE p.project_key='anytour' AND p.platform=".$platform
+                ." AND p.customer_key=".$customer." AND p.conversation_id=".$conversation
+                ." AND HEX(p.project_key)=HEX(c.project_key) AND HEX(p.platform)=HEX(c.channel)"
+                ." AND HEX(p.customer_key)=HEX(CAST(c.customer_id AS ".$cast.")) AND HEX(p.conversation_id)=HEX(CAST(c.id AS ".$cast."))"
+                ." ORDER BY p.id DESC LIMIT 1) AS review_profile_id";
+        }
         $rows=$this->q('SELECT c.id,c.project_key,c.channel,c.customer_id,c.customer_channel_id,c.external_chat_id,c.status,c.manager_id,c.source_id,'
-            .'c.started_at,c.last_message_at,c.updated_at,cc.external_user_id,cc.external_chat_id AS channel_chat_id FROM '.$from.' WHERE '.$where.$extra
+            .'c.started_at,c.last_message_at,c.updated_at,cc.external_user_id,cc.external_chat_id AS channel_chat_id'.$profile.' FROM '.$from.' WHERE '.$where.$extra
             .' ORDER BY c.id'.($descending?' DESC':'').' LIMIT '.$limit,['anytour',...$bindings])->fetchAll(PDO::FETCH_ASSOC);
         foreach($rows as$row)foreach(['id','customer_id','customer_channel_id']as$field)if(!self::decimal((string)$row[$field],false))self::fail('unavailable');
         return$rows;
@@ -284,7 +298,7 @@ final class DialogueReviewReadService
     /** Read the latest exact scope only. An unusable latest record never falls back to an older positive. */
     private function profile(array $row,mixed $selected,int $cutoff):array
     {
-        if($this->historyAudit)return['availability'=>'not_requested','reason'=>'quality_history_not_a_forecast_review'];
+        if($this->historyAudit&&!$this->forecastReview)return['availability'=>'not_requested','reason'=>'quality_history_not_a_forecast_review'];
         if($selected===null)return['availability'=>'unavailable','reason'=>'previous_profile_unavailable','profile_id'=>null];
         if($selected==='0')return['availability'=>'not_saved','profile_id'=>null];
         try{
@@ -306,13 +320,42 @@ final class DialogueReviewReadService
             require_once __DIR__.'/ModeledConversionValueRegistry.php';
             $projection=ModeledConversionValueRegistry::predictionFields($wrapper);
             if(($projection['semantic_prediction']['availability']??null)!=='available')return$unavailable;
-            return['availability'=>'available','profile_id'=>$id,'observed_at'=>gmdate('Y-m-d\TH:i:s\Z',(int)$saved['observed_at_unix']),
-                'projection'=>$projection,'meaning'=>'saved_untrained_prediction_not_current_trip_truth_or_reply_quality'];
+            $diagnostics=[];
+            if($this->forecastReview){
+                $c=$wrapper['contextual_signals']['coverage']??[];
+                foreach(['window_limited','context_linking_disabled','source_revision_chronology_unresolved']as$k)
+                    if(is_bool($c[$k]??null))$diagnostics[$k]=$c[$k];
+                foreach(['preserved_ai_replies','preserved_handoff_receipts','unresolved_clock_barriers','long_gap_barriers',
+                    'unavailable_message_barriers','unavailable_event_barriers','other_source_barriers']as$k){
+                    $n=$c['prediction_source_continuity'][$k]??null;
+                    if(is_int($n)&&$n>=0&&$n<=1000)$diagnostics['continuity'][$k]=$n;
+                }
+            }
+            return['availability'=>'available','profile_id'=>$id,'observed_at'=>gmdate('Y-m-d\\TH:i:s\\Z',(int)$saved['observed_at_unix']),
+                'projection'=>$projection,...($this->forecastReview?['input_diagnostics'=>$diagnostics]:[]),
+                'meaning'=>'saved_untrained_prediction_not_current_trip_truth_or_reply_quality'];
         }catch(PDOException $e){
             if(in_array((int)($e->errorInfo[1]??0),[3024,1969],true))throw self::databaseError($e);
             return['availability'=>'unavailable','reason'=>'profile_storage_unavailable','profile_id'=>null];
         }catch(DialogueReviewReadException $e){throw$e;}
         catch(Throwable $e){return['availability'=>'unavailable','reason'=>'saved_profile_unusable','profile_id'=>isset($id)?$id:null];}
+    }
+
+    /** Current native metadata only: never a reconstruction of the immutable prediction prefix. */
+    private function eventDiagnostics(array $row):array
+    {
+        $clock=ConversationRecordClock::sql('s.payload_json',$this->mysql);
+        $rows=$this->q('SELECT s.id,s.event_type,s.actor_type,'.$clock.' AS recorded_at FROM conversation_events s'
+            .' WHERE s.conversation_id=? ORDER BY s.id DESC LIMIT 51',[$row['id']])->fetchAll(PDO::FETCH_ASSOC);
+        $more=count($rows)>50;$out=[];
+        foreach(array_slice($rows,0,50)as$e){
+            $type=is_string($e['event_type'])&&preg_match('/\\A[a-z][a-z0-9_]{0,63}\\z/D',$e['event_type'])===1?$e['event_type']:'unknown';
+            $actor=in_array($e['actor_type'],['customer','manager','system','ai'],true)?$e['actor_type']:'unknown';
+            $at=$this->recordedClock($e['recorded_at'],null);
+            $out[]=['source_ref'=>'event:'.$e['id'],'event_type'=>$type,'actor_type'=>$actor,'clock'=>$at];
+        }
+        return['basis'=>'current_native_event_metadata_not_immutable_prediction_input','max_rows'=>50,
+            'complete_within_bound'=>!$more,'events'=>$out,'payloads_copied'=>false];
     }
 
     private function projectMessage(array $meta,?array $raw,bool $selectionSources=false):array
@@ -424,7 +467,7 @@ final class DialogueReviewReadService
         $body=base64_decode(strtr($m[1],'-_','+/').str_repeat('=',(4-strlen($m[1])%4)%4),true);
         try{$v=json_decode((string)$body,true,16,JSON_THROW_ON_ERROR);}catch(Throwable $e){self::fail('stale_cursor');}
         $keys=match($kind){'inventory'=>['v','k','f','a','t','e'],'dialogue'=>['v','k','d','r','e'],'context'=>['v','k','d','r','m','b','p','t','e'],default=>[]};
-        $kinds=$kind==='inventory'&&!$this->historyAudit?['inventory','inventory_newest']:[$kind];
+        $kinds=$kind==='inventory'&&(!$this->historyAudit||$this->forecastReview)?['inventory','inventory_newest']:[$kind];
         $now=$this->now();
         if(!is_array($v)||count($v)!==count($keys)||array_diff(array_keys($v),$keys)||($v['v']??null)!==1||!in_array($v['k']??null,$kinds,true)
             ||!is_int($v['e'])||$v['e']<$now||$v['e']>$now+self::CURSOR_TTL)self::fail('stale_cursor');
