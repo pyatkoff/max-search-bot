@@ -27,15 +27,15 @@ function harness(){
 }
 function selectionEntryHarness(entry='https://tours.anytoour.ru/editor.php'){
   const h=harness(),opens=[],panelOpens=[];
-  const state={canNavigate:true,openGeneration:5,context:{conversationId:11,managerId:7,authGeneration:1,openGeneration:5},duringClick:false,openResult:null,onFocus:null,canNavigateCalls:0,captureCalls:0,fallbackCalls:0};
-  h.S.detail={conversation:{id:11,manager_id:7,status:'manager'}};
+  const state={canNavigate:true,readAccess:true,openGeneration:5,context:{conversationId:11,managerId:7,authGeneration:1,openGeneration:5},duringClick:false,openResult:null,onFocus:null,canNavigateCalls:0,captureCalls:0,fallbackCalls:0};
+  h.S.detail={conversation:{id:11,manager_id:7,status:'manager',request_kind:'travel'}};
   h.documentQueries.set('meta[name="selection-editor-entry"]',entry===null?null:{content:entry});
   const summary={focused:false,focus(options){assert.deepEqual(JSON.parse(JSON.stringify(options)),{preventScroll:true});this.focused=true;state.onFocus?.()}};
   const menu={open:true,querySelector:selector=>selector==='summary'?summary:null};
   const button=id=>({id,disabled:false,hidden:false,isConnected:true,attrs:{},closest(selector){return selector==='details'?menu:selector.split(',').some(part=>part.trim()==='#'+id)?this:null},setAttribute(key,value){this.attrs[key]=value},removeAttribute(key){delete this.attrs[key];if(key==='title')delete this.title},getAttribute(key){return this.attrs[key]??null}});
   const primary=button('tourSelectionOpen'),secondary=button('m2SelectionInPanel');
   h.elements.tourSelectionOpen=primary;h.elements.m2SelectionInPanel=secondary;
-  h.window.WorkspaceV2Conversation={canNavigateMessages(){state.canNavigateCalls++;return state.canNavigate},captureReplyContext(){state.captureCalls++;return state.context?{...state.context}:null},getOpenGeneration:()=>state.openGeneration};
+  h.window.WorkspaceV2Conversation={hasReadAccess:()=>state.readAccess,canNavigateMessages(){state.canNavigateCalls++;return state.canNavigate},captureReplyContext(){state.captureCalls++;return state.context?{...state.context}:null},getOpenGeneration:()=>state.openGeneration};
   h.window.WorkspaceV2TourSelection={open:conversation=>panelOpens.push(conversation)};
   h.window.open=(...args)=>{opens.push({args,synchronous:state.duringClick});return state.openResult};
   function click(target=primary){
@@ -77,7 +77,8 @@ function selectionEntryChecks(){
     ['expired authentication',h=>h.S.authExpired=true],['missing manager',h=>h.S.manager=null],['changed actor',h=>h.S.manager.id=8],
     ['changed current conversation',h=>h.S.current=12],['changed conversation detail',h=>h.S.detail.conversation.id=12],
     ['changed auth generation',h=>h.S.authGeneration++],['changed open generation',h=>h.state.openGeneration++],
-    ['missing canonical context',h=>h.state.context=null],['canonical navigation refused',h=>h.state.canNavigate=false]
+    ['missing canonical context',h=>h.state.context=null],['canonical navigation refused',h=>h.state.canNavigate=false],
+    ['nontravel business',h=>h.S.detail.conversation.request_kind='device_repair'],['missing business kind',h=>delete h.S.detail.conversation.request_kind],['read access lost',h=>h.state.readAccess=false]
   ]){
     const h=selectionEntryHarness();change(h);const event=h.click();
     check('selection refuses '+name+' without a modal fallback',()=>{assert.deepEqual(h.opens,[]);assert.deepEqual(h.panelOpens,[]);assert.equal(event.stopped,true);assert.equal(h.state.fallbackCalls,0)});
