@@ -163,7 +163,7 @@ final class ModeledConversionStream
         return $result;
     }
 
-    /** Continue committed FIFO work; never retry a failed/busy batch or restart intake. */
+    /** Continue committed profile work; never retry a failed/busy batch or restart intake. */
     public static function profileCatchUp(ModeledConversionProfiles $profiles,?callable $clock=null,?callable $monotonicClock=null,?callable $beforeCommit=null):array
     {
         $clock??=static fn():int=>time();
@@ -173,8 +173,13 @@ final class ModeledConversionStream
             // This is a soft start deadline, not an interruption of an active transaction.
             if($batch>0&&$monotonicClock()>=$deadline)break;
             $receipt=$profiles->tick($clock(),$beforeCommit);
-            if(($receipt['status']??null)!=='profiled'||($receipt['processed_revisions']??0)<=0
-                ||($receipt['pending_revisions']??0)<=0)break;
+            $freshPending=($receipt['processed_revisions']??0)>0&&($receipt['pending_revisions']??0)>0;
+            // A saturated or resource-deferred repair batch may use the remaining phase budget.
+            // The next tick still indexes fresh inputs before any further reassessment.
+            $repairPending=($receipt['reassessment']['written']??0)>0
+                &&(($receipt['profiles_written']??0)===ModeledConversionProfiles::MAX_SCOPES
+                    ||($receipt['reassessment']['deferred_budget']??0)>0);
+            if(($receipt['status']??null)!=='profiled'||(!$freshPending&&!$repairPending))break;
         }
         // Keep the existing last-batch receipt shape and private forecast suppression.
         return $receipt;
