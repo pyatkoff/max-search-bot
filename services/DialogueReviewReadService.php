@@ -344,9 +344,9 @@ final class DialogueReviewReadService
     /** Current native metadata only: never a reconstruction of the immutable prediction prefix. */
     private function eventDiagnostics(array $row):array
     {
-        $clock=ConversationRecordClock::sql('e.payload_json',$this->mysql);
-        $rows=$this->q('SELECT e.id,e.event_type,e.actor_type,'.$clock.' AS recorded_at FROM conversation_events e'
-            .' WHERE e.conversation_id=? ORDER BY e.id DESC LIMIT 51',[$row['id']])->fetchAll(PDO::FETCH_ASSOC);
+        $clock=ConversationRecordClock::sql('s.payload_json',$this->mysql);
+        $rows=$this->q('SELECT s.id,s.event_type,s.actor_type,'.$clock.' AS recorded_at FROM conversation_events s'
+            .' WHERE s.conversation_id=? ORDER BY s.id DESC LIMIT 51',[$row['id']])->fetchAll(PDO::FETCH_ASSOC);
         $more=count($rows)>50;$out=[];
         foreach(array_slice($rows,0,50)as$e){
             $type=is_string($e['event_type'])&&preg_match('/\\A[a-z][a-z0-9_]{0,63}\\z/D',$e['event_type'])===1?$e['event_type']:'unknown';
