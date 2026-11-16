@@ -1,4 +1,4 @@
-name: Prepare bounded hotel knowledge country support
+name: Verify corrected hotel-country fixtures and unchanged references
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == 'e2f85284c3eeb98ca562ba72230e6142dbc95cff' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '53abf0da6fd73f524d91b0c846ebd62717d36664' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -32,21 +32,22 @@ jobs:
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = e2f85284c3eeb98ca562ba72230e6142dbc95cff
+          test "$(git rev-parse HEAD^)" = 53abf0da6fd73f524d91b0c846ebd62717d36664
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = 3c76952bd3b6f7e3d04b0f6aae876816188f906f
           test "$(git hash-object tools/direct_demand/operations/prepare-knowledge-country-scope-20261116.py)" = b2054cac5c31be7cb29dc3fd22e2d1daa75dc8eb
-          python3 -m py_compile tools/direct_demand/operations/prepare-knowledge-country-scope-20261116.py
+          git diff --exit-code HEAD^ HEAD -- tools/direct_demand/operations/prepare-knowledge-country-fixtures-20261116.py
+          python3 -m py_compile tools/direct_demand/operations/prepare-knowledge-country-fixtures-20261116.py
           php -r 'foreach(["mbstring","pdo_sqlite"] as $x)if(!extension_loaded($x))throw new RuntimeException("missing_".$x);'
           umask 077
           mkdir "$RUNNER_TEMP/knowledge-countries"
-      - name: Prove RED and GREEN, unchanged references, and existing regressions
+      - name: Prove RED and GREEN, available unchanged references, and existing regressions
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/direct_demand/operations/prepare-knowledge-country-scope-20261116.py knowledge-source "$RUNNER_TEMP/knowledge-countries"
+          python3 tools/direct_demand/operations/prepare-knowledge-country-fixtures-20261116.py knowledge-source "$RUNNER_TEMP/knowledge-countries"
       - name: Retain exact source proposal and all test outcomes
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
