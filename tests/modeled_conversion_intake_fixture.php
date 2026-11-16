@@ -120,6 +120,11 @@ function modeledIntakeCoverageAssertions(PDO $p,callable $check):void
             $a['goal_events']===3&&$a['goal_value_rub']===1533.0&&$a['goal_processed']===1&&$a['goal_pending']===2
             &&$a['stored_identity_conversations']===1&&$r['by_platform']['telegram']['tg_unique']===1
             &&$r['by_platform']['telegram']['tg_ambiguous']===1&&$r['provider_requests']===0&&$r['conversion_uploads']===0);
+        $review=$r['no_increment_review']??[];
+        $check('private no-increment review returns bounded anonymous saved-profile references only',
+            ($review['complete_within_bound']??false)&&count($review['profile_refs']??[])===1
+            &&preg_match('/\\A[a-f0-9]{64}\\z/D',$review['profile_refs'][0])===1
+            &&$review['not_a_financial_permission']===true);
         $safe=json_encode($r,JSON_THROW_ON_ERROR);
         $check('intake returns no native IDs source text private documents or query and leaves the whole source snapshot unchanged',
             !str_contains($safe,'PRIVATE_')&&!str_contains($safe,'41001')&&!str_contains($safe,'88008')

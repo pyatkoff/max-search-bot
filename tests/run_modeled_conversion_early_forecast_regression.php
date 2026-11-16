@@ -951,10 +951,105 @@ function modeledAssignedValueAssertions(callable $check):void
     $check('registry reads do not add award or profile rows',(int)$pdo->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn()===2);
 }
 
+
+/** Synthetic complete wizard, including the existing applied-input receipts. */
+function modeledCompleteQuestionnaireFixture(string $nights='На 8 – 10',string $navigation='g1_1234abcd_show_tours'):array
+{
+    $seq=[
+        ['q'=>'Из какого города планируете вылет?'],['a'=>'Казань','field'=>'city'],
+        ['q'=>'Куда хотите поехать?'],['a'=>'Малайзия','field'=>'country'],
+        ['q'=>'Сколько будет взрослых туристов?'],['a'=>'2','field'=>'adults'],
+        ['q'=>'Будут дети? Если да — сколько?'],['a'=>'Нет','field'=>'children'],
+        ['q'=>'На сколько ночей планируете поездку?'],['a'=>$nights,'field'=>'nights'],
+        ['navigation'=>$navigation],['q'=>'Поиск по вашим параметрам готов.'],
+    ];
+    $messages=[];$shape=[];
+    foreach($seq as$item){
+        $messages[]=['text'=>$item['q']??$item['a']??$item['navigation'],
+            'role'=>isset($item['q'])?'manager':'customer','admitted'=>isset($item['a'])];
+        $shape[count($messages)]=$item;
+        if(isset($item['a'])){$messages[]=['text'=>'synthetic applied receipt','admitted'=>false];$shape[count($messages)]=['receipt'=>$item,'input'=>(string)(count($messages)-1)];}
+    }
+    $parts=modeledEarlyFixture($messages);$bindings=[];
+    foreach($parts[0]['rows']as&$row){
+        $id=(int)$row['journal_id'];$item=$shape[$id];$at=$row['snapshot']['source_created_at_unix'];
+        $row['snapshot']['source_timestamp_basis']='canonical_recording_unix_v1';
+        if(isset($item['receipt'])){
+            $row['source_kind']=$row['snapshot']['source_kind']='event';
+            $data=['version'=>1,'origin'=>'existing_wizard_step_application','input_message_id'=>$item['input'],
+                'input_kind'=>'message','input_text_sha256'=>hash('sha256',$item['receipt']['a']),
+                'field'=>$item['receipt']['field'],'storage_value'=>$item['receipt']['a']];
+            $row['snapshot']['payload']=['event_type'=>'wizard_value_applied','actor_type'=>'system',
+                'payload_json'=>json_encode(ConversationRecordClock::stamp($data,$at),JSON_THROW_ON_ERROR)];
+            $bindings[]=['receipt_ref'=>'journal:'.$id,'input_ref'=>'journal:'.$item['input']];
+        }else{
+            $row['snapshot']['payload']=['direction'=>isset($item['q'])?'outbound':'inbound',
+                'sender_type'=>isset($item['q'])?'ai':'customer','text'=>$item['q']??$item['a']??$item['navigation'],
+                'metadata_json'=>json_encode(ConversationRecordClock::stamp(['type'=>isset($item['navigation'])?'callback':'message'],$at),JSON_THROW_ON_ERROR)];
+        }
+    }unset($row);
+    $parts[1]['wizard_applications']=['version'=>'admitted_wizard_applications_v1','receipts'=>$bindings];
+    return $parts;
+}
+function modeledCompleteQuestionnaireAssertions(callable $check):void
+{
+    foreach(['На 8 – 10','8-10','на 8 — 10 ночей','10']as$nights){
+        $parts=modeledCompleteQuestionnaireFixture($nights);$before=json_encode($parts,JSON_THROW_ON_ERROR);
+        $packet=ModeledConversionEarlyForecast::freeze(...$parts);$p=$packet['semantic_prediction'];
+        $check('complete literal questionnaire retains its request through normal search navigation '.$nights,
+            $p['status']==='predicted'&&$p['stage']==='concrete_request'
+            &&$p['features']['criteria_families']===['dates','destination','party']
+            &&$p['features']['meaningful_customer_turns']===0&&$p['estimated_probability']===0.083333
+            &&$p['outcome_observations']===[]&&$p['current_customer_turn_count']===5
+            &&json_encode($parts,JSON_THROW_ON_ERROR)===$before);
+        $check('questionnaire and navigation do not infer agency choice or payment '.$nights,
+            $packet['contextual_signals']['goal_counts']['agency_purchase_intent']===0
+            &&$packet['contextual_signals']['goal_counts']['payment_self_report']===0);
+    }
+    foreach(['show_tours','g1_1234abcd_show_tours']as$nav){
+        $parts=modeledCompleteQuestionnaireFixture('10',$nav);
+        $check('both actual search payload formats preserve only the current request '.$nav,
+            ModeledConversionEarlyForecast::freeze(...$parts)['semantic_prediction']['stage']==='concrete_request');
+    }
+    foreach(['unknown_callback','restart','show_tours_extra','g1_BADTOKEN_show_tours']as$nav){
+        $parts=modeledCompleteQuestionnaireFixture('10',$nav);
+        $check('unknown or new-trip navigation still breaks context '.$nav,
+            ModeledConversionEarlyForecast::freeze(...$parts)['semantic_prediction']['status']==='insufficient_context');
+    }
+    foreach(['source_revision','scope','sender','clock','forward','not_callback']as$kind){
+        $parts=modeledCompleteQuestionnaireFixture();
+        foreach($parts[0]['rows']as&$row)if(($row['snapshot']['payload']['text']??null)==='g1_1234abcd_show_tours'){
+            if($kind==='source_revision')$row['source_version_no']=2;
+            elseif($kind==='scope')$row['snapshot']['customer_key']='99';
+            elseif($kind==='sender')$row['snapshot']['payload']['sender_type']='manager';
+            else{
+                $data=['type'=>$kind==='not_callback'?'message':'callback'];
+                if($kind==='forward')$data['linked_message']=['type'=>'forward'];
+                $row['snapshot']['payload']['metadata_json']=json_encode(
+                    ConversationRecordClock::stamp($data,$row['snapshot']['source_created_at_unix']+($kind==='clock'?1:0)),JSON_THROW_ON_ERROR);
+            }
+        }unset($row);
+        $check('navigation continuity preserves native guards '.$kind,
+            ModeledConversionEarlyForecast::freeze(...$parts)['semantic_prediction']['status']==='insufficient_context');
+    }
+    foreach(['Да','Нет','Не знаю','Рассматриваю варианты','Как оплатить?','+79990000000','https://example.test']as$answer){
+        $check('location question does not manufacture destination for '.$answer,
+            !ModeledConversionQuestionnaireContext::accepts('country',$answer));
+    }
+    foreach(['На 0','На 10-8','На 29','Если на 8','На 8?']as$answer)
+        $check('invalid nights remain unknown '.$answer,!ModeledConversionQuestionnaireContext::accepts('nights',$answer));
+    $check('departure alone is not a destination or a concrete purchase request',
+        ModeledConversionQuestionnaireContext::field('Из какого города планируете вылет?')==='city'
+        &&ModeledConversionQuestionnaireContext::field('В какую страну хотите поехать?')==='country'
+        &&ModeledConversionQuestionnaireContext::field('Тур оплачен. Куда хотите поехать?')===null);
+}
+
+
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $passed=0;$check=static function(string $name,bool $ok)use(&$passed){if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
     modeledEarlyAssertions($check);
     modeledQuestionContextAssertions($check);
+    modeledCompleteQuestionnaireAssertions($check);
     modeledAssignedValueAssertions($check);echo 'MODELED EARLY FORECAST PASSED '.$passed.PHP_EOL;
 }
 
