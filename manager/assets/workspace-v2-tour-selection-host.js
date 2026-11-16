@@ -7,21 +7,27 @@ let intent=(()=>{const u=new URL(location.href),value=u.searchParams.get('select
 function clearIntent(){intent=null;const u=new URL(location.href);u.searchParams.delete('selection');u.searchParams.delete('collector_actor');history.replaceState(history.state,'',u.pathname+u.search+u.hash)}
 function actor(){return S.authExpired?0:Number(S.manager?.id||0)}
 function capture(c=S.detail?.conversation){return {actor:actor(),conversation:Number(c?.id||0),auth:Number(S.authGeneration||0),open:Number(window.WorkspaceV2Conversation?.getOpenGeneration?.()||0)}}
-function isCurrent(target){const now=capture();return !!target&&target.actor>0&&target.conversation>0&&target.actor===now.actor&&target.conversation===now.conversation&&target.conversation===Number(S.current)&&target.auth===now.auth&&target.open===now.open}
+function canOpen(c=S.detail?.conversation){
+  const conversation=S.detail?.conversation,id=Number(S.current),manager=actor(),selected=Number.isSafeInteger(id)&&id>0&&Number(c?.id)===id&&Number(conversation?.id)===id;
+  // A rejected collector return must not revive after a later profile refresh.
+  if(intent&&selected&&conversation.request_kind!=='travel')clearIntent();
+  return selected&&Number.isSafeInteger(manager)&&manager>0&&conversation.request_kind==='travel'&&window.WorkspaceV2Conversation?.hasReadAccess?.()===true;
+}
+function canStart(c){return canOpen(c)&&window.WorkspaceV2Conversation?.canNavigateMessages?.()===true}
+function isCurrent(target){const now=capture();return canOpen()&&!!target&&target.actor>0&&target.conversation>0&&target.actor===now.actor&&target.conversation===now.conversation&&target.conversation===Number(S.current)&&target.auth===now.auth&&target.open===now.open}
 const host={
-  contract,origin:location.origin,capture,isCurrent,
-  canOpen:c=>!!actor()&&Number(c?.id)===Number(S.current),
+  contract,origin:location.origin,capture,isCurrent,canOpen,canStart,
   canEdit:c=>c.status!=='closed'&&(S.manager?.role==='admin'||Number(c.manager_id)===actor()),
   launcher:()=>document.querySelector(window.matchMedia('(max-width:740px)').matches?'.m2ConversationMenu>div':'.conversationTitleRow'),
   request:(resource,action,data,options)=>W.request(resource,action,data,options),
   formatTime:(value,options)=>window.ManagerTime.format(value,options),
-  openCollector:conversation=>window.open('tour-selection-collector.php?conversation_id='+conversation,'_blank','noopener'),
-  takeCollectorIntent:target=>{if(!intent)return false;const previous=intent;clearIntent();return previous.manager===target.actor&&previous.conversation===target.conversation},
+  openCollector:conversation=>{const target=capture();if(canStart(S.detail?.conversation)&&isCurrent(target)&&target.conversation===conversation)window.open('tour-selection-collector.php?conversation_id='+conversation,'_blank','noopener')},
+  takeCollectorIntent:target=>{if(!intent)return false;const previous=intent;clearIntent();return canStart(S.detail?.conversation)&&isCurrent(target)&&previous.manager===target.actor&&previous.conversation===target.conversation},
   activate:()=>{if(intent&&actor()&&intent.manager!==actor())clearIntent()}
 };
 const standalone=document.querySelector('meta[name="selection-editor-entry"]')?.content;
 if(standalone==='https://tours.anytoour.ru/editor.php')host.openStandalone=conversation=>{
-  const target=capture();if(isCurrent(target)&&target.conversation===conversation)window.open(standalone+'?conversation_id='+conversation+'&editor_actor='+target.actor,'_blank','noopener');
+  const target=capture();if(canStart(S.detail?.conversation)&&isCurrent(target)&&target.conversation===conversation)window.open(standalone+'?conversation_id='+conversation+'&editor_actor='+target.actor,'_blank','noopener');
 };
 const editor=window.AnyTourSelectionEditor.mount(Object.freeze(host));
 // Preserve the existing workspace lifecycle caller contract.

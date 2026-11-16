@@ -76,7 +76,7 @@ function biblioFixture(){
  return JSON.parse(execFileSync('php',['-r',`require getcwd().'/tests/support/manager-tour-collector.php';require getcwd().'/services/ManagerTourSelectionBiblioSource.php';$f=biblioPublicFixture(true);$o=ManagerTourSelectionBiblioSource::parse($f['html'],$f['url'])[0];$o['photos']=$f['photos'];$n=ManagerTourSelectionImportDraft::normalize($o);$offer=$n['offer'];$offer['id']=str_repeat('b',32);$offer['import_source']=ManagerTourSelectionImportDraft::source($n);echo json_encode(['url'=>$f['url'],'offer'=>$o['offer'],'raw'=>$o['raw'],'photos'=>$f['photos'],'saved'=>$offer],JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);`],{cwd:root,encoding:'utf8'}));
 }
 async function fixture(page,options={}){
-  const base=await setup(page),calls=[],drafts=new Map(),receipts=new Map();let fail=options.fail||'',held=null;
+  const base=await setup(page,{requestKind:'travel'}),calls=[],drafts=new Map(),receipts=new Map();let fail=options.fail||'',held=null;
   const snapshot=id=>({conversation_id:id,version:drafts.get(id)?.version||0,draft:copy(drafts.get(id)?.draft||{title:'Подборка туров',intro:'',offers:[]}),can_edit:!options.readOnly,updated_at:null,updated_by_manager_id:7});
   if(options.draft)drafts.set(11,{version:1,draft:copy(options.draft)});
   let publication=null,creations=0,share={version:0,active:false,publication_id:null,path:null};const heldPhotos=[];

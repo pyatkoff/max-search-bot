@@ -209,8 +209,13 @@ PHP);
     }
     $repairHint=cardRequest($second,'/manager/pipeline-api.php',['action'=>'detail','conversation_id'=>46,'csrf'=>'fixture-csrf','request_kind'=>'travel','project_key'=>'fixture'],$cookies['own']);
     cardCheck('repair kind comes from the authorized saved project without exposing its connection',($repairHint['body']['request_kind']??null)==='device_repair'&&!str_contains(json_encode($repairHint['body']),'synthetic-repair-token')&&!str_contains(json_encode($repairHint['body']),'synthetic_repair_bot'));
-    $isolated=cardRequest($second,'/manager/api.php',['action'=>'detail','conversation_id'=>46,'csrf'=>'fixture-csrf'],$cookies['own']);
+    $isolated=cardRequest($second,'/manager/api.php',['action'=>'detail','conversation_id'=>46,'csrf'=>'fixture-csrf','request_kind'=>'travel','project_key'=>'fixture'],$cookies['own']);
     cardCheck('another project with the same MAX user cannot read legacy handoff context',$isolated['status']===200&&!empty($isolated['body']['ok'])&&$isolated['body']['handoff_context']===null&&count(file($legacyContextFile))===$legacyReadCount);
+    cardCheck('authorized repair transcript projects the saved business kind without its connection',($isolated['body']['conversation']['request_kind']??null)==='device_repair'&&!str_contains(json_encode($isolated['body']),'synthetic-repair-token')&&!str_contains(json_encode($isolated['body']),'synthetic_repair_bot'));
+    foreach([49,50,51] as $id){
+        $otherDetail=cardRequest($second,'/manager/api.php',['action'=>'detail','conversation_id'=>$id,'csrf'=>'fixture-csrf','request_kind'=>'travel','project_key'=>'fixture'],$cookies['own']);
+        cardCheck('neutral or unavailable transcript profile '.$id.' ignores a client-supplied travel hint',$otherDetail['status']===200&&($otherDetail['body']['conversation']['request_kind']??null)==='general'&&$otherDetail['body']['conversation']['id']===$id&&$otherDetail['body']['handoff_context']===null&&count(file($legacyContextFile))===$legacyReadCount);
+    }
     foreach([47=>['7001','Synthetic Telegram trip'],48=>['8001','Synthetic website trip']] as $id=>[$chatId,$country]){
         $card=cardRequest($second,'/manager/pipeline-api.php',['action'=>'detail','conversation_id'=>$id,'csrf'=>'fixture-csrf'],$cookies['own']);
         cardCheck($country.' retains its normalized legacy trip key',$card['status']===200&&$card['body']['trip']===['country'=>$country]);
@@ -218,6 +223,7 @@ PHP);
         $summary=(string)($detail['body']['handoff_context']['summary']??'');
         $reads=array_map(static fn($line)=>json_decode($line,true),file($legacyContextFile,FILE_IGNORE_NEW_LINES));
         cardCheck($country.' keeps first-reply context without borrowing the MAX key',$detail['status']===200&&!empty($detail['body']['ok'])&&str_contains($summary,$country)&&!str_contains($summary,'Synthetic MAX trip')&&end($reads)===['chat'=>$chatId]);
+        cardCheck($country.' transcript uses the configured legacy business kind',($detail['body']['conversation']['request_kind']??null)==='travel');
     }
     $listSamples=[];
     for($cycle=0;$cycle<3;$cycle++){
@@ -300,6 +306,7 @@ PHP);
         elseif($label==='search-context')$valid=$valid&&$body['available']===true&&$body['target_message_id']===101;
         else $valid=$valid&&$body['can_edit_pipeline']===true&&$body['degraded_components']===[];
         cardCheck($label.' actual HTTP read retains its payload',$valid);
+        if(in_array($label,['latest','older'],true))cardCheck($label.' transcript projects the authorized travel kind',($body['conversation']['request_kind']??null)==='travel');
         cardCheck($label.' uses one project lookup and zero project writes',$observed['project_writes']===0&&$observed['bootstrap_queries']===1&&file_get_contents($projectFile)===$before);
         if(in_array($label,['search','search-context'],true))cardCheck($label.' releases the real HTTP session before message reads',array_filter($observed['queries'],static fn($row)=>str_contains($row['sql'],'FROM messages')&&$row['active'])===[]);
         $profiles[]=['read'=>$label,'project_writes'=>$observed['project_writes'],'project_bootstrap_queries'=>$observed['bootstrap_queries']];
@@ -312,7 +319,7 @@ PHP);
     }
     foreach([['anonymous','',42,'fixture-csrf',401],['inactive',$cookies['inactive'],42,'fixture-csrf',401],['bad CSRF',$cookies['own'],42,'wrong',403],['denied project',$cookies['own'],43,'fixture-csrf',404],['denied group',$cookies['own'],44,'fixture-csrf',404],['missing',$cookies['own'],999,'fixture-csrf',404]]as[$label,$cookie,$id,$csrf,$status]){
         $observed=cardObservedRequest($second,'/manager/api.php',['action'=>'detail','conversation_id'=>$id,'csrf'=>$csrf],$cookie);$result=$observed['response'];
-        cardCheck($label.' transcript stays denied without project writes',$result['status']===$status&&!isset($result['body']['messages'])&&$observed['project_writes']===0&&($label!=='anonymous'||$observed['queries']===[]));
+        cardCheck($label.' transcript stays denied without project writes',$result['status']===$status&&!isset($result['body']['messages'])&&!isset($result['body']['conversation'])&&!isset($result['body']['request_kind'])&&$observed['project_writes']===0&&($label!=='anonymous'||$observed['queries']===[]));
     }
     foreach(['wrong_name','inactive','missing','lookup_failure']as$state){
         $project=$state==='missing'?null:$readyProject;if($state==='wrong_name')$project['display_name']='Operator-owned name';if($state==='inactive')$project['is_active']=0;if($state==='lookup_failure')$project['read_error']=true;

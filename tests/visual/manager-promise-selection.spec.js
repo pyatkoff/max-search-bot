@@ -9,7 +9,7 @@ const pendingPrefix='workspaceV2.promiseSelection.pending.v1.';
 // Actual Manager2 shell, lazy launcher and feature assets. The fixture records
 // synthetic receipts only; it never sends a customer message or updates a task.
 async function setupSelection(page){
- const base=await setup(page,{sourceRoot:root,projectKey:'anytour'}),service=fixtureService({conversationId:11,actor:7}),calls=[];
+ const base=await setup(page,{sourceRoot:root,projectKey:'anytour',requestKind:'travel'}),service=fixtureService({conversationId:11,actor:7}),calls=[];
  let loseAttach=true,holdOperation=false,releaseOperation=null;
  await page.route('**/manager/pipeline-api.php',route=>{
   const d=route.request().postDataJSON();if(d.action!=='detail')return route.fallback();expect(d.csrf).toBe('fixture-csrf');

@@ -23,6 +23,21 @@ existing controls and permissions in every project. Switching cards does not
 change the conversation, reply draft, attachments or task editor. This read-only
 presentation does not add industry questionnaires, AI configuration or prices.
 
+## Conversation tools
+
+The authorized transcript detail projects the same finite `request_kind` from
+the existing business resolver. Manager2 offers the tour-selection editor only
+for the current confirmed `travel` conversation. Repair, general, missing and
+unrecognized kinds do not expose its in-panel or standalone launcher, including
+after the editor assets have loaded or a collector return link is opened. The
+browser does not infer the business from a company name, a URL or an older card.
+
+The ordinary reply field says **Напишите клиенту…** for every company. Business
+presentation keeps the existing reply draft, attachments and conversation access
+controls. Starting a selection still requires the conversation to be ready;
+an ordinary reply in progress does not remove the travel launcher or invalidate
+an already pending editor operation. Existing travel read-only access remains.
+
 ## Operator path
 
 Open **Компании** from Manager2's account menu or administration, then **Добавить
