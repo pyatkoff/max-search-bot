@@ -2,11 +2,13 @@
 declare(strict_types=1);
 require_once __DIR__.'/run_project_funnel_regression.php';
 require_once dirname(__DIR__).'/services/MaxChannelConversionWorker.php';
-$pdo=repairFixture();funnelSchema($pdo);$now=time();
-$pdo->exec("ALTER TABLE conversations ADD COLUMN is_test INTEGER DEFAULT 0;ALTER TABLE conversations ADD COLUMN lead_stage_key TEXT DEFAULT 'new';
+function funnelConversionSchema(PDO $pdo):void{
+    $pdo->exec("ALTER TABLE conversations ADD COLUMN is_test INTEGER DEFAULT 0;ALTER TABLE conversations ADD COLUMN lead_stage_key TEXT DEFAULT 'new';
 CREATE TABLE lead_stage_history(id INTEGER PRIMARY KEY AUTOINCREMENT,conversation_id INTEGER,to_stage_key TEXT);
 CREATE TABLE max_channel_attribution_settings(project_key TEXT PRIMARY KEY,mode TEXT,counter_id TEXT,activated_at_unix INTEGER,message_cursor INTEGER DEFAULT 0);
 CREATE TABLE max_channel_conversion_outbox(id INTEGER PRIMARY KEY AUTOINCREMENT,project_key TEXT,platform TEXT DEFAULT 'max',conversation_id INTEGER,external_user_id TEXT,counter_id TEXT,target TEXT,transport_target TEXT,event_unix INTEGER,client_id TEXT,tracker_record_id TEXT,tracker_observed_unix INTEGER,state TEXT DEFAULT 'pending',next_attempt_unix INTEGER DEFAULT 0,claim_token TEXT,claimed_at_unix INTEGER,attempts INTEGER DEFAULT 0,upload_id TEXT,upload_status TEXT,last_error TEXT DEFAULT '',funnel_context_json TEXT,funnel_policy_sha256 TEXT,value_rub TEXT,UNIQUE(project_key,conversation_id,target));");
+}
+$pdo=repairFixture();funnelSchema($pdo);funnelConversionSchema($pdo);$now=time();
 $base=ProjectFunnelSettings::load(ProjectMaxConnection::resolve('appleservice39'));
 $s=$base;$s['metrika']=['counter_id'=>'99900011','mode'=>'collect','goals'=>['customer_activity'=>'repair_activity','manager_request'=>'repair_request','customer_reply'=>'repair_reply','working'=>'repair_working','offer_sent'=>'repair_offer','booking'=>'repair_booking','won'=>'repair_won','predictive_value'=>'repair_expected_value']];
 $s['prediction']=['version'=>1,'model_id'=>'fixture-calibration-v1','evidence_sha256'=>str_repeat('c',64),'validated_at_unix'=>$now-60,'valid_until_unix'=>$now+86400,'base_value_rub'=>'4000.00','stage_probability'=>['manager_request'=>0.1,'working'=>0.25,'offer_sent'=>0.4]];
@@ -162,8 +164,162 @@ $expired=$accessProbe($counterWithoutPermission,$accessWire($collectionData),nul
 funnelCheck('the shared request executor preserves an expired read deadline',$expired['result']===$accessDenied&&$expired['calls']===[]);
 $legacyCalls=0;$legacy=new MetrikaOfflineClient('98615635','synthetic-private-permission',static function()use(&$legacyCalls):array{$legacyCalls++;return [];});
 funnelCheck('legacy admission never uses the project permission fallback',$legacy->projectGoalAdmission()==='goal_access_unavailable'&&$legacyCalls===0);
-funnelCheck('permission checks preserve collect policy and stored queue history',$selectedSettings['metrika']['mode']==='collect'&&$base['metrika']['mode']==='collect'
+funnelCheck('permission checks preserve fixture collect policy and stored queue history',$selectedSettings['metrika']['mode']==='collect'&&$base['metrika']['mode']==='send'
     &&$before===$pdo->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll());
 require_once __DIR__.'/fixtures/project_funnel_advertising_assertions.php';
 projectFunnelNativeAssertions($pdo,'funnelCheck');
+
+// Exercise the actual signed launch, saved bot entry, shared outbox and provider receipt path.
+function funnelOwnerFixture(string $payload='as39_pair_model-iphone-13_battery'):array{
+    $pdo=repairFixture();funnelSchema($pdo);funnelConversionSchema($pdo);$now=time();
+    $settings=ProjectFunnelSettings::load(ProjectMaxConnection::resolve('appleservice39'));
+    $settings['metrika']['mode']='collect';
+    $evidence=['decision'=>'Synthetic owner fixture: listed service price times twenty percent.','source'=>'Synthetic exact price fixture.'];
+    $settings['prediction']=['basis'=>'owner_assumption','model_id'=>'fixture-owner-value','version'=>1,'approved_at_unix'=>$now-60,
+        'evidence_sha256'=>hash('sha256',json_encode($evidence,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)),'evidence'=>$evidence,
+        'probability'=>0.2,'price_basis'=>'listed_service_price','prices'=>[
+            ['model'=>'iPhone 13','service'=>'Замена аккумулятора','amount_rub'=>'5000.00','source_id'=>'fixture-battery'],
+            ['model'=>'iPhone 13','service'=>'Замена дисплея','amount_rub'=>'15000.00','source_id'=>'fixture-display']]];
+    $settings=ProjectFunnelSettings::validate($settings,'appleservice39','id390521129062_bot');
+    $registry=repairFixtureRegistry();$registry['appleservice39']['project']['sales_funnel']=$settings;ProjectMaxConnection::resetForTests($registry);
+    $pdo->exec("INSERT INTO appleservice39_pilot_operations VALUES('model-iphone-13','appleservice39-pilot-v1','create','verified',1,'fixture_model_iphone_13','https://max.ru/channel_appleservice39ru/fixture_model_iphone_13')");
+    $connection=ProjectMaxConnection::resolve('appleservice39');$repairEntry=RepairProjectSettings::entry($connection,$payload);$post=$repairEntry['post_id'];
+    $start='123456789_region_213_campaign_123_ctx1_'.ProjectFunnelLaunch::context($post,$settings['posts'][$post]['offer_id']);
+    (new ProjectFunnelEntry($pdo,$connection,$settings))->capture(['init_data'=>funnelSigned($start,$now-5,'synthetic-apple-token','7101'),
+        'start_param'=>$start,'client_id'=>'17929400001234567890'],$now-5);
+    $factory=static fn(ProjectMaxConnection $c)=>new MaxMessengerAdapter(static fn($chat,$text)=>'synthetic-owner-reply',null,'system',null,false);
+    RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),repairStart(7101,$payload),$factory,static function(){});
+    $conversation=repairConversation($pdo,'appleservice39',7101);
+    return [$pdo,$settings,$conversation,time()+1,$factory];
+}
+
+[$ownerDb,$ownerSettings,$ownerConversation,$ownerNow,$ownerMessenger]=funnelOwnerFixture();
+$ownerPolicy=ProjectFunnelConversions::policy($ownerSettings);
+$source=$ownerDb->query("SELECT id,payload_json FROM conversation_events WHERE event_type='bot_started' ORDER BY id LIMIT 1")->fetch();
+$sourcePayload=json_decode($source['payload_json'],true);$sourceClock=ConversationRecordClock::read($source['payload_json']);
+// Later real re-entry selects another service; the first attributed entry still owns this forecast.
+RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),repairStart(7101,'as39_pair_model-iphone-13_display',1800000000001),$ownerMessenger,static function(){});
+$metadata=json_decode(repairConversation($ownerDb,'appleservice39',7101)['metadata_json'],true);
+$metadata['repair_context']=['model'=>'iPhone 13','service'=>'Замена дисплея','entry_code'=>'as39_pair_model-iphone-13_display'];
+$ownerDb->prepare('UPDATE conversations SET metadata_json=? WHERE id=?')->execute([json_encode($metadata),$ownerConversation['id']]);
+$stats=ProjectFunnelConversions::tick($ownerDb,$ownerNow,$never);
+$ownerRow=$ownerDb->query('SELECT * FROM max_channel_conversion_outbox')->fetch();
+$frozen=json_decode($ownerRow['funnel_context_json'],true)['estimate'];
+funnelCheck('owner estimate uses original exact service price times twenty percent without AnyTour commission',
+    $stats['errors']===0&&$stats['collected']===1&&$stats['resolved']===1&&$ownerRow['state']==='ready'&&$ownerRow['value_rub']==='1000.00'
+    &&$ownerRow['counter_id']==='42611469'&&$ownerRow['transport_target']==='predict'&&$frozen['price']['amount_rub']==='5000.00');
+funnelCheck('original entry freezes selected price source probability and record receipt despite later context',
+    $frozen['basis']==='owner_assumed_probability_not_payment'&&$frozen['probability']===0.2&&$frozen['model_version']===1
+    &&$frozen['price']['source_id']==='fixture-battery'&&$frozen['price_context']['source_event_id']===(string)$source['id']
+    &&$frozen['price_context']['entry_key']===$sourcePayload['delivery_key']&&$frozen['price_context']['recorded_at_unix']===$sourceClock
+    &&$frozen['event_unix']>=$sourceClock&&!isset($frozen['prices'])&&strlen($ownerRow['funnel_context_json'])<16384);
+funnelCheck('owner collection does not create AnyTour conversions',(int)$ownerDb->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE project_key='anytour'")->fetchColumn()===0);
+
+$ownerContext=$frozen['price_context'];
+foreach(['customer_activity','manager_request','customer_reply','working','offer_sent','booking']as$stage){
+    $estimate=ProjectFunnelConversions::estimate($ownerPolicy,[$stage=>$ownerNow-2],$ownerNow,$ownerContext);
+    funnelCheck('owner twenty percent remains explicit at observed '.$stage,$estimate['value_rub']==='1000.00'&&$estimate['stage']===$stage&&$estimate['event_unix']>=$sourceClock);
+}
+$oldAssumption=$ownerPolicy;$oldAssumption['prediction']['approved_at_unix']=$ownerNow-120*86400;
+funnelCheck('owner assumption does not acquire a fabricated ninety day calibration expiry',ProjectFunnelConversions::estimate($oldAssumption,['working'=>$ownerNow],$ownerNow,$ownerContext)['value_rub']==='1000.00');
+$futureAssumption=$ownerPolicy;$futureAssumption['prediction']['approved_at_unix']=$ownerNow+1;
+$ambiguousPrices=$ownerPolicy;$ambiguousPrices['prediction']['prices'][]=$ownerPolicy['prediction']['prices'][0];
+funnelCheck('unapproved future model won missing context or ambiguous price creates no estimate',
+    ProjectFunnelConversions::estimate($futureAssumption,['working'=>$ownerNow],$ownerNow,$ownerContext)===null
+    &&ProjectFunnelConversions::estimate($ownerPolicy,['working'=>$ownerNow,'won'=>$ownerNow],$ownerNow,$ownerContext)===null
+    &&ProjectFunnelConversions::estimate($ownerPolicy,['working'=>$ownerNow],$ownerNow)===null
+    &&ProjectFunnelConversions::estimate($ambiguousPrices,['working'=>$ownerNow],$ownerNow,$ownerContext)===null);
+funnelCheck('visit alone future activity and stale price context create no estimate',
+    ProjectFunnelConversions::estimate($ownerPolicy,[],$ownerNow,$ownerContext)===null
+    &&ProjectFunnelConversions::estimate($ownerPolicy,['working'=>$ownerNow+1],$ownerNow,$ownerContext)===null
+    &&ProjectFunnelConversions::estimate($ownerPolicy,['working'=>$ownerNow],$ownerNow,array_replace($ownerContext,['recorded_at_unix'=>$ownerNow-21*86400-1]))===null);
+
+$invalidModels=[
+    'string probability'=>static function(array &$p):void{$p['probability']='0.2';},
+    'probability one'=>static function(array &$p):void{$p['probability']=1;},
+    'nonfinite probability'=>static function(array &$p):void{$p['probability']=NAN;},
+    'mismatched evidence'=>static function(array &$p):void{$p['evidence']['decision']='Different assumption';},
+    'duplicate exact pair'=>static function(array &$p):void{$p['prices'][]=$p['prices'][0];},
+    'unconfirmed price basis'=>static function(array &$p):void{$p['price_basis']='from_or_inquiry';},
+    'noncanonical amount'=>static function(array &$p):void{$p['prices'][0]['amount_rub']='5000';},
+    'nonpositive amount'=>static function(array &$p):void{$p['prices'][0]['amount_rub']='0.00';},
+    'arbitrary source path'=>static function(array &$p):void{$p['prices'][0]['source_id']='../../private';},
+    'fake calibration field'=>static function(array &$p):void{$p['validated_at_unix']=time();},
+];
+foreach($invalidModels as$name=>$mutate){$invalid=$ownerSettings;$mutate($invalid['prediction']);funnelCheck('owner model rejects '.$name,funnelReject(fn()=>ProjectFunnelSettings::validate($invalid,'appleservice39','id390521129062_bot')));}
+$sharedSource=$ownerSettings;$sharedSource['prediction']['prices'][1]['source_id']='fixture-battery';
+funnelCheck('one explicit price source may support distinct model service pairs',ProjectFunnelSettings::validate($sharedSource,'appleservice39','id390521129062_bot')===$sharedSource);
+
+$ownerPosts=[];$ownerReads=[];$unknownOwnerUpload=false;
+$ownerTransport=static function(string $method,string $url,$body)use(&$ownerPosts,&$ownerReads,&$unknownOwnerUpload):array{
+    if($method==='POST'){$ownerPosts[]=[$url,$body];if($unknownOwnerUpload)throw new RuntimeException('synthetic_response_lost');$data=['uploading'=>['id'=>'74001','status'=>'UPLOADED']];}
+    else{
+        $ownerReads[]=$url;
+        if(str_ends_with($url,'/counter/42611469'))$data=['counter'=>['id'=>'42611469','permission'=>'edit']];
+        elseif(str_ends_with($url,'/goals'))$data=['goals'=>[['id'=>'680570232','type'=>'action','conditions'=>[['type'=>'exact','url'=>'predict']]]]];
+        elseif(str_ends_with($url,'/74001'))$data=['uploading'=>['id'=>'74001','status'=>'PROCESSED','source_quantity'=>1,'line_quantity'=>1]];
+        else $data=['uploadings'=>[]];
+    }
+    return ['http'=>200,'error'=>0,'body'=>json_encode($data)];
+};
+$ownerApi=static fn(array $p)=>new MetrikaOfflineClient($p['counter_id'],'synthetic-owner-token',$ownerTransport,null,$p);
+$ownerSettings['metrika']['mode']='send';$set($ownerSettings);
+funnelCheck('mode change alone preserves the frozen owner policy hash',ProjectFunnelConversions::policy($ownerSettings)['sha256']===$ownerPolicy['sha256']);
+$stats=ProjectFunnelConversions::tick($ownerDb,$ownerNow+1,$ownerApi);
+funnelCheck('owner forecast sends once through pinned exact predict goal and existing queue',
+    $stats['accepted']===1&&$stats['errors']===0&&count($ownerPosts)===1&&str_contains($ownerPosts[0][0],'/counter/42611469/')
+    &&str_contains($ownerPosts[0][1],',predict,')&&str_contains($ownerPosts[0][1],',1000.00,RUB')
+    &&$ownerDb->query('SELECT state FROM max_channel_conversion_outbox')->fetchColumn()==='accepted');
+ProjectFunnelConversions::tick($ownerDb,$ownerNow+1901,$ownerApi);ProjectFunnelConversions::tick($ownerDb,$ownerNow+3901,$ownerApi);
+funnelCheck('processed owner receipt never sends a second conversion',count($ownerPosts)===1&&$ownerDb->query('SELECT state FROM max_channel_conversion_outbox')->fetchColumn()==='processed');
+
+[$heldDb,$heldSettings,$heldConversation,$heldNow]=funnelOwnerFixture();ProjectFunnelConversions::tick($heldDb,$heldNow,$never);
+$heldBefore=$heldDb->query('SELECT * FROM max_channel_conversion_outbox')->fetchAll();$postsBefore=count($ownerPosts);
+$heldSettings['prediction']['version']=2;$heldSettings['prediction']['probability']=0.25;$heldSettings['prediction']['prices'][0]['amount_rub']='6000.00';$heldSettings['metrika']['mode']='send';$set($heldSettings);
+$stats=ProjectFunnelConversions::tick($heldDb,$heldNow+1,$ownerApi);
+funnelCheck('new assumption version cannot reprice or replace the original queued forecast',
+    $stats['held']===1&&$stats['accepted']===0&&$stats['collected']===0&&count($ownerPosts)===$postsBefore
+    &&$heldBefore===$heldDb->query('SELECT * FROM max_channel_conversion_outbox')->fetchAll());
+
+[$unknownDb,$unknownSettings,$unknownConversation,$unknownNow]=funnelOwnerFixture();
+$unknownSettings['metrika']['mode']='send';$set($unknownSettings);$unknownOwnerUpload=true;$postsBefore=count($ownerPosts);
+$stats=ProjectFunnelConversions::tick($unknownDb,$unknownNow,$ownerApi);
+funnelCheck('lost owner upload response is retained as unknown',$stats['unknown']===1&&count($ownerPosts)===$postsBefore+1&&$unknownDb->query('SELECT state FROM max_channel_conversion_outbox')->fetchColumn()==='unknown');
+ProjectFunnelConversions::tick($unknownDb,$unknownNow+1900,$ownerApi);
+funnelCheck('unknown owner outcome uses receipt reads without another POST',count($ownerPosts)===$postsBefore+1&&$unknownDb->query('SELECT state FROM max_channel_conversion_outbox')->fetchColumn()==='unknown');
+
+foreach(['as39_model-iphone-13','as39_pair_model-iphone-13_glass']as$payload){
+    [$missingDb,$missingSettings,$missingConversation,$missingNow]=funnelOwnerFixture($payload);
+    $stats=ProjectFunnelConversions::tick($missingDb,$missingNow,$never);
+    funnelCheck('unknown or unpriced precise service has no substitute value '.$payload,$stats['errors']===0&&$stats['collected']===0&&(int)$missingDb->query('SELECT COUNT(*) FROM max_channel_conversion_outbox')->fetchColumn()===0);
+}
+$invalidContexts=[
+    'foreign customer'=>static function(array &$p):void{$p['repair_entry_reply']['customer_id']++;},
+    'foreign customer channel'=>static function(array &$p):void{$p['repair_entry_reply']['customer_channel_id']++;},
+    'foreign user'=>static function(array &$p):void{$p['repair_entry_reply']['external_user_id']='7102';},
+    'foreign project'=>static function(array &$p):void{$p['repair_entry_reply']['project_key']='repair_two';},
+    'foreign source'=>static function(array &$p):void{$p['source_key']='max:repair_two';},
+    'foreign conversation'=>static function(array &$p):void{$p['repair_entry_reply']['conversation_id']++;},
+    'foreign publication'=>static function(array &$p):void{$p['repair_entry_reply']['post_id']='menu';},
+    'changed entry code'=>static function(array &$p):void{$p['repair_entry_reply']['entry_code']='as39_pair_model-iphone-13_display';},
+    'noncanonical model'=>static function(array &$p):void{$p['repair_context']['model']='iPhone 14';},
+    'missing clock'=>static function(array &$p):void{unset($p['_recorded_clock']);},
+    'string clock'=>static function(array &$p):void{$p['_recorded_clock']['unix']=(string)$p['_recorded_clock']['unix'];},
+    'post-anchor clock'=>static function(array &$p,int $anchorAt):void{$p['_recorded_clock']['unix']=$anchorAt+1;},
+    'future clock'=>static function(array &$p):void{$p['_recorded_clock']['unix']=time()+3600;},
+    'stale clock'=>static function(array &$p):void{$p['_recorded_clock']['unix']=time()-22*86400;},
+];
+foreach($invalidContexts as$name=>$mutate){
+    [$invalidDb,$invalidSettings,$invalidConversation,$invalidNow]=funnelOwnerFixture();
+    $record=$invalidDb->query("SELECT id,payload_json FROM conversation_events WHERE event_type='bot_started' ORDER BY id LIMIT 1")->fetch();
+    $anchorAt=ConversationRecordClock::read($invalidDb->query("SELECT payload_json FROM conversation_events WHERE event_type='project_funnel_entry' ORDER BY id LIMIT 1")->fetchColumn());
+    $payload=json_decode($record['payload_json'],true);$mutate($payload,$anchorAt);$invalidNow+=5;
+    $invalidDb->prepare('UPDATE conversation_events SET payload_json=? WHERE id=?')->execute([json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),$record['id']]);
+    $stats=ProjectFunnelConversions::tick($invalidDb,$invalidNow,$never);
+    funnelCheck('saved price context rejects '.$name,$stats['errors']===0&&$stats['collected']===0&&(int)$invalidDb->query('SELECT COUNT(*) FROM max_channel_conversion_outbox')->fetchColumn()===0);
+}
+[$duplicateDb,$duplicateSettings,$duplicateConversation,$duplicateNow]=funnelOwnerFixture();
+$duplicateDb->exec("INSERT INTO conversation_events(conversation_id,event_type,actor_type,actor_id,payload_json,created_at) SELECT conversation_id,event_type,actor_type,actor_id,payload_json,created_at FROM conversation_events WHERE event_type='bot_started'");
+$stats=ProjectFunnelConversions::tick($duplicateDb,$duplicateNow,$never);
+funnelCheck('ambiguous original entry receipts never choose an arbitrary service price',$stats['errors']===0&&$stats['collected']===0&&(int)$duplicateDb->query('SELECT COUNT(*) FROM max_channel_conversion_outbox')->fetchColumn()===0);
 echo 'PROJECT FUNNEL CONVERSIONS REGRESSION PASSED '.$passed.PHP_EOL;

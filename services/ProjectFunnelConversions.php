@@ -3,6 +3,7 @@ declare(strict_types=1);
 require_once __DIR__.'/ProjectFunnelConversation.php';
 require_once __DIR__.'/MaxChannelConversionOutbox.php';
 require_once __DIR__.'/MetrikaOfflineClient.php';
+require_once __DIR__.'/RepairProjectSettings.php';
 
 /** Company adapter for the existing outbox and worker. No second queue or schedule. */
 final class ProjectFunnelConversions
@@ -95,7 +96,7 @@ final class ProjectFunnelConversions
         $pdo->prepare($insert.' INTO max_channel_attribution_settings(project_key,mode,counter_id,activated_at_unix,message_cursor) VALUES(?,?,?,?,0)')->execute([$policy['project_key'],$policy['mode'],$policy['counter_id'],$now]);
         $q=$pdo->prepare('SELECT counter_id,message_cursor FROM max_channel_attribution_settings WHERE project_key=?');$q->execute([$policy['project_key']]);$cursor=$q->fetch(PDO::FETCH_ASSOC);
         if(!$cursor||$cursor['counter_id']!==$policy['counter_id'])throw new RuntimeException('project_counter_changed');
-        $sql="SELECT c.id,c.project_key,c.channel,c.metadata_json,cc.external_user_id FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id AND cc.project_key=c.project_key AND cc.channel=c.channel AND cc.external_chat_id=c.external_chat_id WHERE c.project_key=? AND c.channel='max' AND c.is_test=0 AND c.id>? AND EXISTS(SELECT 1 FROM conversation_events e WHERE e.conversation_id=c.id AND e.event_type='project_funnel_entry') ORDER BY c.id LIMIT 25";
+        $sql="SELECT c.id,c.project_key,c.channel,c.customer_id,c.customer_channel_id,c.external_chat_id,c.metadata_json,cc.external_user_id FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id AND cc.project_key=c.project_key AND cc.channel=c.channel AND cc.external_chat_id=c.external_chat_id WHERE c.project_key=? AND c.channel='max' AND c.is_test=0 AND c.id>? AND EXISTS(SELECT 1 FROM conversation_events e WHERE e.conversation_id=c.id AND e.event_type='project_funnel_entry') ORDER BY c.id LIMIT 25";
         $q=$pdo->prepare($sql);$q->execute([$policy['project_key'],(int)$cursor['message_cursor']]);$conversations=$q->fetchAll(PDO::FETCH_ASSOC);
         if(!$conversations&&(int)$cursor['message_cursor']>0){$q->execute([$policy['project_key'],0]);$conversations=$q->fetchAll(PDO::FETCH_ASSOC);}
         $count=0;
@@ -125,7 +126,9 @@ final class ProjectFunnelConversions
                 elseif(($data['project_key']??null)===$policy['project_key']&&($data['bot_key']??null)===$connection->botKey()&&in_array($data['stage']??'', ['working','offer_sent','booking','won'],true))$stages[$data['stage']]=$stages[$data['stage']]??$at;
             }
             foreach($stages as$stage=>$at)if(isset($policy['goals'][$stage])&&$repo->captureProject($policy,$c,$stage,$at,$anchor))$count++;
-            $estimate=self::estimate($policy,$stages,$now);
+            $priceContext=$stages&&!isset($stages['won'])&&($policy['prediction']['basis']??null)==='owner_assumption'
+                ?self::repairContext($pdo,$connection,$c,$settings,$anchor,$since,$now):null;
+            $estimate=self::estimate($policy,$stages,$now,$priceContext);
             if($estimate!==null&&isset($policy['goals']['predictive_value'])&&$repo->captureProject($policy,$c,'predictive_value',$estimate['event_unix'],$anchor+['estimate'=>$estimate],$estimate['value_rub']))$count++;
         }
         $next=$conversations?(int)end($conversations)['id']:0;
@@ -133,16 +136,81 @@ final class ProjectFunnelConversions
         return $count;
     }
 
-    /** Versioned, company-calibrated policy only. No inherited travel priors or assumed revenue. */
-    public static function estimate(array $policy,array $stages,int $now): ?array
+    /** The saved entry owns the price context; later mutable conversation labels cannot rewrite it. */
+    private static function repairContext(PDO $pdo,ProjectMaxConnection $connection,array $conversation,array $settings,array $anchor,int $anchorAt,int $now): ?array
     {
-        $model=$policy['prediction']??null;if(!is_array($model)||$model['valid_until_unix']<$now||$model['validated_at_unix']>$now)return null;
+        $key=$anchor['entry_key']??null;
+        if(!is_string($key)||!preg_match('/\A[a-f0-9]{64}\z/D',$key)
+            ||($anchor['project_key']??null)!==$connection->projectKey()||($anchor['bot_key']??null)!==$connection->botKey()
+            ||($anchor['source_key']??null)!==$settings['source_key']||($anchor['external_user_id']??null)!==(string)$conversation['external_user_id']
+            ||$conversation['project_key']!==$connection->projectKey()||$conversation['channel']!=='max'
+            ||$conversation['external_chat_id']!=='-'.(string)$conversation['external_user_id'])return null;
+        $q=$pdo->prepare("SELECT id,CASE WHEN LENGTH(payload_json)<=65536 THEN payload_json ELSE NULL END AS payload_json FROM conversation_events WHERE conversation_id=? AND event_type='bot_started' AND payload_json LIKE ? ORDER BY id LIMIT 2");
+        $q->execute([$conversation['id'],'%"delivery_key":"'.$key.'"%']);$rows=$q->fetchAll(PDO::FETCH_ASSOC);
+        if(count($rows)!==1||!is_string($rows[0]['payload_json']))return null;
+        $row=$rows[0];$at=ConversationRecordClock::read($row['payload_json']);
+        if($at===null||$at>$now||$at>$anchorAt||$at<$now-21*86400)return null;
+        $payload=json_decode($row['payload_json'],true,16);$context=is_array($payload)?($payload['repair_context']??null):null;
+        $intent=is_array($payload)?($payload['repair_entry_reply']??null):null;
+        if(!is_array($context)||!is_array($intent)||($payload['delivery_key']??null)!==$key
+            ||($payload['bot_key']??null)!==$connection->botKey()||($payload['source_key']??null)!==$settings['source_key']
+            ||($intent['delivery_key']??null)!==$key||($intent['project_key']??null)!==$connection->projectKey()
+            ||($intent['bot_key']??null)!==$connection->botKey()||($intent['conversation_id']??null)!==(int)$conversation['id']
+            ||($intent['customer_id']??null)!==(int)$conversation['customer_id']||($intent['customer_channel_id']??null)!==(int)$conversation['customer_channel_id']
+            ||($intent['external_user_id']??null)!==(string)$conversation['external_user_id']||($intent['post_id']??null)!==($anchor['post_id']??null)
+            ||!in_array($intent['state']??null,['pending','attempted','delivered','unknown','suppressed'],true)
+            ||!is_string($intent['entry_code']??null)||!preg_match('/\A[A-Za-z0-9_-]{1,128}\z/D',$intent['entry_code'])
+            ||($context['entry_code']??null)!==$intent['entry_code'])return null;
+        foreach(['model'=>160,'service'=>240]as$field=>$limit)if(!is_string($context[$field]??null)||$context[$field]===''
+            ||strlen($context[$field])>$limit||preg_match('/[\p{C}<>&]/u',$context[$field])!==0)return null;
+        try{
+            $entry=RepairProjectSettings::entry($connection,$intent['entry_code']);
+            if(!$entry||$entry['post_id']!==$anchor['post_id'])return null;
+            $expected=$connection->projectKey()===AppleService39PilotCatalog::PROJECT
+                ?AppleService39PilotCatalog::entryContext($entry,$context,$intent['entry_code'])
+                :['model'=>$entry['model'],'service'=>$entry['service'],'entry_code'=>$intent['entry_code']];
+            if($expected!==$context)return null;
+        }catch(Throwable $ignored){return null;}
+        return ['model'=>$context['model'],'service'=>$context['service'],'entry_code'=>$intent['entry_code'],
+            'post_id'=>$anchor['post_id'],'entry_key'=>$key,'recorded_at_unix'=>$at,'source_event_id'=>(string)$row['id']];
+    }
+
+    /** Versioned company values: calibrated policy or an explicitly approved owner assumption. */
+    public static function estimate(array $policy,array $stages,int $now,?array $priceContext=null): ?array
+    {
+        $model=$policy['prediction']??null;if(!is_array($model))return null;
+        if(($model['basis']??null)==='owner_assumption')return self::ownerEstimate($model,$stages,$now,$priceContext);
+        if($model['valid_until_unix']<$now||$model['validated_at_unix']>$now)return null;
         foreach(['won','booking','offer_sent','working','customer_reply','manager_request','customer_activity']as$stage)if(isset($stages[$stage],$model['stage_probability'][$stage])){
             // A factual CRM sale has its own observed goal; do not also call it a prediction.
             if(isset($stages['won']))return null;
             return ['model_id'=>$model['model_id'],'model_version'=>$model['version'],'evidence_sha256'=>$model['evidence_sha256'],
                 'basis'=>'configured_conditional_probability_not_payment','stage'=>$stage,'probability'=>$model['stage_probability'][$stage],
                 'event_unix'=>$stages[$stage],'value_rub'=>number_format((float)$model['base_value_rub']*$model['stage_probability'][$stage],2,'.','')];
+        }
+        return null;
+    }
+
+    private static function ownerEstimate(array $model,array $stages,int $now,?array $context): ?array
+    {
+        if($model['approved_at_unix']>$now||isset($stages['won'])||$context===null
+            ||!is_int($context['recorded_at_unix']??null)||$context['recorded_at_unix']>$now
+            ||$context['recorded_at_unix']<$now-21*86400)return null;
+        $matches=[];
+        foreach($model['prices']as$price)if($price['model']===($context['model']??null)&&$price['service']===($context['service']??null))$matches[]=$price;
+        if(count($matches)!==1)return null;
+        $price=$matches[0];
+        foreach(['booking','offer_sent','working','customer_reply','manager_request','customer_activity']as$stage){
+            $at=$stages[$stage]??null;
+            if(!is_int($at)||$at>$now||$at<$now-21*86400)continue;
+            $value=number_format((float)$price['amount_rub']*$model['probability'],2,'.','');
+            if((float)$value<=0)return null;
+            return ['model_id'=>$model['model_id'],'model_version'=>$model['version'],'evidence_sha256'=>$model['evidence_sha256'],
+                'basis'=>'owner_assumed_probability_not_payment','approved_at_unix'=>$model['approved_at_unix'],
+                'stage'=>$stage,'probability'=>$model['probability'],'price_basis'=>$model['price_basis'],
+                'price'=>['model'=>$price['model'],'service'=>$price['service'],'amount_rub'=>$price['amount_rub'],
+                    'currency'=>'RUB','source_id'=>$price['source_id']],
+                'price_context'=>$context,'event_unix'=>max($at,$context['recorded_at_unix']),'value_rub'=>$value];
         }
         return null;
     }

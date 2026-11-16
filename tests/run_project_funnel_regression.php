@@ -20,7 +20,8 @@ function funnelSchema(PDO $pdo):void{
 }
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')!==__FILE__)return;
 $pdo=repairFixture();funnelSchema($pdo);$now=time();$connection=ProjectMaxConnection::resolve('appleservice39');$s=ProjectFunnelSettings::load($connection);
-funnelCheck('owner-supplied AppleService counter enables collection without exports',$s['metrika']['counter_id']==='42611469'&&$s['metrika']['mode']==='collect');
+funnelCheck('owner-approved AppleService price assumption enables its own sender',$s['metrika']['counter_id']==='42611469'&&$s['metrika']['mode']==='send'
+    &&($s['prediction']['basis']??null)==='owner_assumption'&&$s['prediction']['probability']===0.2&&$s['prediction']['price_basis']==='listed_service_price');
 funnelCheck('owner-selected predict goal keeps its exact ID with the required offline condition',$s['metrika']['goals']===['predictive_value'=>'predict']&&$s['metrika']['goal_ids']===['predictive_value'=>'680570232']&&$s['metrika']['goal_match']===['predictive_value'=>'exact']&&$s['metrika']['credential_source']==='platform');
 $expandedSettings=$s;
 funnelCheck('coverage source contains67 offers and preserves previously published batteries and front glass',
