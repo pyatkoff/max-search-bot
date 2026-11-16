@@ -235,12 +235,20 @@ final class ModeledConversionSemanticPrediction
         return true;
     }
 
+    /** Navigation preserves an established request, but consumes any unanswered question. */
+    public function preserveNavigationContext(int $occurred):bool
+    {
+        if($this->anchor===null||!$this->canPreserveCustomerContext($occurred))return false;
+        $this->questionnaireQuestion=null;
+        return true;
+    }
+
     private function questionnaireAnswer(string $field,array $meta):void
     {
-        $family=$field==='nights'?'dates':'party';
+        $family=match($field){'nights'=>'dates','country'=>'destination','city'=>null,default=>'party'};
         $this->questionnaireAnswers[$meta['source_ref']]=$meta;
         $this->lastQuestionnaireAt=self::moment($meta['occurred_at']);
-        $this->criteria[$family]=true;$this->evidence('criteria_'.$family,$meta);
+        if($family!==null){$this->criteria[$family]=true;$this->evidence('criteria_'.$family,$meta);}
         if($this->anchor===null&&count($this->criteria)>=2){
             $first=array_values($this->questionnaireAnswers)[0];
             $this->anchor=$first['source_ref'];$this->anchorVersion=$first['source_version_no'];

@@ -74,6 +74,13 @@ final class ModeledConversionIntakeCoverageReader
                 $v['oldest_unfinished_seconds']=$r['oldest']===null?null:$now-(int)$r['oldest'];
                 if($v['oldest_unfinished_seconds']!==null&&($v['oldest_unfinished_seconds']<0||$v['oldest_unfinished_seconds']>86400))return $this->fail('invalid_projection');
                 if($platform==='all'){
+                    $refs=json_decode($r['review_refs']??'[]',true,8,JSON_THROW_ON_ERROR);
+                    if(!is_array($refs)||!array_is_list($refs)||count($refs)>65)throw new UnexpectedValueException();
+                    foreach($refs as$ref)if(!is_string($ref)||preg_match('/\\A[a-f0-9]{64}\\z/D',$ref)!==1)throw new UnexpectedValueException();
+                    if(count(array_unique($refs))!==count($refs))throw new UnexpectedValueException();
+                    $out['no_increment_review']=['basis'=>'sha256_intake_profile_v1_colon_saved_profile_id',
+                        'max_profiles'=>64,'complete_within_bound'=>count($refs)<=64,
+                        'profile_refs'=>array_slice($refs,0,64),'not_a_financial_permission'=>true];
                     $out['all']=$v;
                     $out['coverage']=['max_native_inputs'=>self::LIMIT,'inspected_native_inputs'=>$native,
                         'native_clock_scope_complete'=>$native<self::LIMIT,'max_goal_rows'=>self::LIMIT,'inspected_goal_rows'=>$goals,
@@ -168,7 +175,8 @@ final class ModeledConversionIntakeCoverageReader
             ." WHEN NOT ".$exists($obs)." THEN 0 WHEN NOT ".$exists($verified)." THEN 1 WHEN NOT ".$exists($client)." THEN 2"
             ." WHEN NOT ".$exists($prior)." THEN 3 WHEN NOT ".$exists($eligible)." THEN 4"
             ." WHEN (SELECT COUNT(DISTINCT o.client_id) FROM advertising_visit_observations o WHERE ".$eligible.")=1 THEN 5 ELSE 6 END AS tg_reason"
-            ." FROM profiled n),cohort_groups AS (SELECT 'all' AS platform UNION ALL SELECT 'max' UNION ALL SELECT 'telegram') ";
+            ." FROM profiled n),review_profiles AS (SELECT profile_id FROM identified WHERE step=4 AND goal_events=0 ORDER BY profile_id DESC LIMIT 65),"
+            ."cohort_groups AS (SELECT 'all' AS platform UNION ALL SELECT 'max' UNION ALL SELECT 'telegram') ";
         $columns=["g.platform","COUNT(n.conversation_id) AS conversations","COALESCE(SUM(n.inputs),0) AS inputs",
             "(SELECT COUNT(*) FROM native) AS native_rows","(SELECT COUNT(*) FROM goal_rows) AS goal_rows"];
         $conditions=['captured'=>'step>=1','indexed'=>'step>=2','profiled'=>'step>=3','current_model_profiles'=>'step>=3 AND current_model_profile=1','collected'=>'step=4','wait_capture'=>'step=0',
@@ -180,6 +188,9 @@ final class ModeledConversionIntakeCoverageReader
         foreach(['tg_no_observation','tg_unverified','tg_no_client','tg_later','tg_unavailable','tg_unique','tg_ambiguous']as$i=>$k)$conditions[$k]='tg_reason='.$i;
         foreach($conditions as$k=>$c)$columns[]='COALESCE(SUM(CASE WHEN n.conversation_id IS NOT NULL AND ('.$c.') THEN 1 ELSE 0 END),0) AS '.$k;
         foreach(['goal_events','goal_value_rub','goal_pending','goal_ready','goal_accepted','goal_processed','goal_other']as$k)$columns[]='COALESCE(SUM(n.'.$k.'),0) AS '.$k;
+        $token=$this->mysql?"SHA2(CONCAT('intake_profile_v1:',profile_id),256)":"modeled_hash('intake_profile_v1:'||profile_id)";
+        $aggregate=$this->mysql?'JSON_ARRAYAGG':'json_group_array';
+        $columns[]="CASE WHEN g.platform='all' THEN (SELECT ".$aggregate.'('.$token.") FROM review_profiles) ELSE NULL END AS review_refs";
         $columns[]='MIN(CASE WHEN step=0 THEN missing_capture_at WHEN step=1 THEN missing_index_at WHEN step=2 THEN last_capture WHEN step=3 THEN profile_at ELSE NULL END) AS oldest';
         return 'SELECT result.* FROM ('.$base.'SELECT '.implode(',',$columns).' FROM cohort_groups g LEFT JOIN identified n ON g.platform=\'all\' OR g.platform=n.platform GROUP BY g.platform) result';
     }

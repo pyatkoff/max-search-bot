@@ -103,7 +103,7 @@ final class ModeledConversionEarlyForecast
                 $predictive->knownOperationalOutcome($ref,(int)$item['at'],(int)$row['observed_at_unix'],(int)$row['source_version_no']);
             if($permit===null||$clockUnresolved){
                 $longGap=ArchiveResearchSemanticExtractor::hasLongObservationGap($state['last'],$item['at']);
-                $serviceKind=null;$observationalBridge=false;$applicationBridge=false;$questionBridge=false;
+                $serviceKind=null;$observationalBridge=false;$applicationBridge=false;$questionBridge=false;$navigationBridge=false;
                 if(!$denied&&!$clockUnresolved){
                     if(self::knownServiceReply($row,$subject,$requested)){
                         $serviceKind='preserved_ai_replies';
@@ -115,6 +115,8 @@ final class ModeledConversionEarlyForecast
                             (int)$item['at'],(int)$row['observed_at_unix'],(int)$row['source_version_no']);
                     }elseif(!$longGap&&self::knownServiceEvent($row,$subject,$requested))$serviceKind='preserved_handoff_receipts';
                     if(!$longGap){
+                        $navigationBridge=self::knownTourNavigation($row,$subject,$requested)
+                            &&$predictive->preserveNavigationContext((int)$item['at']);
                         $observationalBridge=self::knownObservationalEvent($row,$subject,$requested)
                             &&$predictive->canPreserveCustomerContext((int)$item['at']);
                         $inputRef=$wizardApplications[$ref]??null;
@@ -124,7 +126,7 @@ final class ModeledConversionEarlyForecast
                 }
                 $serviceBridge=$serviceKind!==null&&($questionBridge
                     ||(!$longGap&&$predictive->canPreserveCustomerContext((int)$item['at'])));
-                if($clockUnresolved||(!$operationalKnown&&!$serviceBridge&&!$observationalBridge&&!$applicationBridge&&!$offerReaction->bridgesUnavailable($ref,$longGap))){
+                if($clockUnresolved||(!$operationalKnown&&!$serviceBridge&&!$observationalBridge&&!$applicationBridge&&!$navigationBridge&&!$offerReaction->bridgesUnavailable($ref,$longGap))){
                     $predictive->barrier();
                     $reason=$clockUnresolved?'unresolved_clock_barriers':($longGap?'long_gap_barriers':
                         match($row['source_kind']??null){'message'=>'unavailable_message_barriers','event'=>'unavailable_event_barriers',default=>'other_source_barriers'});
@@ -324,6 +326,29 @@ final class ModeledConversionEarlyForecast
             $bindings[$ref]=$inputRef;
         }
         return $bindings;
+    }
+
+    /** Exact recorded search navigation is not a new trip or customer statement. */
+    private static function knownTourNavigation(array $row,array $subject,int $cutoff):bool
+    {
+        $s=$row['snapshot']??null;
+        if(($row['source_kind']??null)!=='message'||($row['source_version_no']??null)!==1||!is_array($s)
+            ||($s['source_kind']??null)!=='message'||($s['source_status']??null)!=='present'
+            ||($s['payload_status']??null)!=='copied'||!self::sameSubject($s,$subject)
+            ||(string)($s['source_id']??'')!==(string)($row['source_id']??'')
+            ||($s['source_timestamp_basis']??null)!=='canonical_recording_unix_v1')return false;
+        $p=$s['payload']??null;$raw=is_array($p)?($p['metadata_json']??null):null;
+        if(!is_array($p)||($p['direction']??null)!=='inbound'||($p['sender_type']??null)!=='customer'
+            ||!is_string($p['text']??null)||preg_match('/\\A(?:g1_[a-f0-9]{8}_)?show_tours\\z/D',$p['text'])!==1
+            ||!is_string($raw)||strlen($raw)>32768)return false;
+        try{
+            $meta=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
+            if(!is_array($meta)||($meta['type']??null)!=='callback'||isset($meta['linked_message']))return false;
+            $at=ConversationRecordClock::read($raw);
+        }catch(Throwable $ignored){return false;}
+        $available=$row['observed_at_unix']??null;
+        return is_int($at)&&is_int($available)&&$at>=946684800&&$at<=$available&&$available<=$cutoff
+            &&($s['source_created_at_unix']??null)===$at;
     }
 
     /** Canonical AI output is not a customer omission and never supplies customer evidence. */
