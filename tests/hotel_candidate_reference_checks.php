@@ -116,14 +116,50 @@ function hotelCandidateReferenceChecks(): void
             &&$reference['future_operation_verified']===false&&$reference['price_authority']==='none'
             &&$reference['coverage']['complete']===false&&$read['selection_authority']===false);
     }
-    $first=$read['candidates'][0]['hotel_reference'];$second=$read['candidates'][2]['hotel_reference']??[];
+    $first=$read['candidates'][0]['hotel_reference'];
+    $thirdReference=ManagerHotelKnowledge::captureRetainedCandidate($expected[2],
+        $read['request']['scope_digest'],$read['source_generated_at'],$read['request']['country'],$now);
+    $overflow=$read;unset($overflow['candidates'][2]['hotel_reference_admission']);
+    $overflow['candidates'][2]['hotel_reference']=$thirdReference;
+    preparationMcpCheck('larger accepted groups preserve the third exact stay while omitting only its whole reference at the response budget',
+        !isset($read['candidates'][2]['hotel_reference'])
+        &&($read['candidates'][2]['hotel_reference_admission']??null)===['status'=>'omitted','reason'=>'response_budget']
+        &&$baseline['candidates'][2]===$expected[2]&&$read['candidates'][2]['room_raw']===null
+        &&$read['omitted_candidate_count']===0&&$read['truncated']===false
+        &&($thirdReference['status']??null)==='available'&&$thirdReference['facts']===$first['facts']
+        &&strlen(json_encode($read,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=32768
+        &&strlen(json_encode($overflow,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))>32768);
+
+    // Keep both original stays of one hotel to prove distinct provenance and
+    // the genuinely unknown room without relying on a third full reference fitting.
+    $pairRequests=[];
+    $pair=hotelCandidateReader($now,$pairRequests,static function(array $source): array {
+        $source['data']['hotels']=[$source['data']['hotels'][0]];
+        $source['data']['hotelCount']=1;$source['data']['offerCount']=2;$source['data']['storedOfferCount']=2;
+        return $source;
+    })->read($args+['limit'=>2]);
+    $pairExpected=[$expected[0],$expected[2]];
+    $pairFirst=$pair['candidates'][0]['hotel_reference']??[];
+    $pairSecond=$pair['candidates'][1]['hotel_reference']??[];
+    [$pairEntry,$pairBundle]=hotelCandidateAccepted(417);$pairWhole=true;
+    foreach ([$pairFirst,$pairSecond] as $index=>$reference) {
+        $pairWhole=$pairWhole&&($reference['status']??null)==='available'
+            &&$reference['binding_revision']===$pairEntry['binding_revision']
+            &&$reference['selector_provenance']['offer_digest']===$pairExpected[$index]['offer_digest']
+            &&$reference['selector_provenance']['candidate_sha256']===ManagerHotelOfferReference::hash($pairExpected[$index]);
+        foreach (['facts','sources','record_hashes','material_limits','coverage'] as $field) {
+            $pairWhole=$pairWhole&&($reference[$field]??null)===$pairBundle[$field];
+        }
+    }
     preparationMcpCheck('two exact stays of one accepted hotel retain separate provenance and a genuinely null room',
-        ($second['status']??null)==='available'&&$first['selected_room']===$expected[0]['room_raw']
-        &&array_key_exists('selected_room',$second)&&$second['selected_room']===null
-        &&$first['facts']===$second['facts']&&$first['sources']===$second['sources']
-        &&$first['selector_provenance']['offer_digest']!==$second['selector_provenance']['offer_digest']
-        &&$first['selector_provenance']['candidate_sha256']!==$second['selector_provenance']['candidate_sha256']
-        &&$first['knowledge_revision']!==$second['knowledge_revision']);
+        $pairWhole&&hotelCandidateWithoutReferences($pair)['candidates']===$pairExpected
+        &&count($pairRequests)===1&&$pair['omitted_candidate_count']===0&&$pair['truncated']===false
+        &&$pairFirst['selected_room']===$expected[0]['room_raw']
+        &&array_key_exists('selected_room',$pairSecond)&&$pairSecond['selected_room']===null
+        &&$pairFirst['selector_provenance']['offer_digest']!==$pairSecond['selector_provenance']['offer_digest']
+        &&$pairFirst['selector_provenance']['candidate_sha256']!==$pairSecond['selector_provenance']['candidate_sha256']
+        &&$pairFirst['knowledge_revision']!==$pairSecond['knowledge_revision']
+        &&strlen(json_encode($pair,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=32768);
     $limited=$reader->read($args+['limit'=>1]);
     preparationMcpCheck('hotel knowledge neither widens candidate limit nor rewrites omission counts',
         hotelCandidateWithoutReferences($limited)['candidates']===[$expected[0]]
@@ -232,7 +268,7 @@ function hotelCandidateBudgetSource(array $source): array
 function hotelCandidateBudgetChecks(int $now): void
 {
     $smallRequests=[];
-    $small=hotelCandidateReader($now,$smallRequests,'hotelCandidateBudgetSource')->read(hotelCandidateArgs()+['limit'=>4]);
+    $small=hotelCandidateReader($now,$smallRequests,'hotelCandidateBudgetSource')->read(hotelCandidateArgs()+['limit'=>3]);
     $plain=hotelCandidateWithoutReferences($small);$first=$small['candidates'][0];
     $complete=ManagerHotelKnowledge::captureRetainedCandidate($plain['candidates'][0],
         $small['request']['scope_digest'],$small['source_generated_at'],$small['request']['country'],$now);
@@ -240,8 +276,8 @@ function hotelCandidateBudgetChecks(int $now): void
         ($first['hotel_reference']['status']??null)==='available'&&$first['hotel_reference']===$complete
         &&!isset($small['candidates'][1]['hotel_reference'])
         &&$small['candidates'][1]['hotel_reference_admission']===['status'=>'omitted','reason'=>'response_budget']
-        &&array_column(array_column($small['candidates'],'hotel'),'anytour_hotel_id')===[417,741,990002,990003]
-        &&$small['omitted_candidate_count']===8&&strlen(json_encode($small,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=32768);
+        &&array_column(array_column($small['candidates'],'hotel'),'anytour_hotel_id')===[417,741,990002]
+        &&$small['omitted_candidate_count']===9&&strlen(json_encode($small,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=32768);
     $requests=[];$args=hotelCandidateArgs()+['limit'=>12];
     $read=hotelCandidateReader($now,$requests,'hotelCandidateBudgetSource')->read($args);
     $baseline=hotelCandidateWithoutReferences($read);$present=0;$omitted=0;
