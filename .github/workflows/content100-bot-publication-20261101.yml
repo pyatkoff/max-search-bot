@@ -1,5 +1,4 @@
-name: Read original feed failure and expansion100 catalogue
-
+name: Read expansion100 country-scoped catalogue variants
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
@@ -12,16 +11,16 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '97bcbf20d38456a8a2d89a0f85844d0ce71e31b3' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '7687c165d6bcbc18a6cab8df8b565887e0ab6e25' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 2
-      - name: Verify source and retain the unchanged hundred-hotel intake
+      - name: Verify exact source and one-time lease
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -30,36 +29,12 @@ jobs:
           test "$GITHUB_RUN_ATTEMPT" = 1
           test "$GITHUB_REF" = refs/heads/audit/content100-bot-publication-20261101
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          test "$(git rev-parse HEAD^)" = 97bcbf20d38456a8a2d89a0f85844d0ce71e31b3
+          test "$(git rev-parse HEAD^)" = 7687c165d6bcbc18a6cab8df8b565887e0ab6e25
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
-          echo '84d4593a09e8af05fe831f92882b2dd9ba884bbbebaaf6b2c766e4fe1564fe77  tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php' | sha256sum --check
-          test "$(git hash-object tools/direct_demand/operations/commercial-expansion100-intake-20261115.json)" = 2818a09cc0b56ab592e5060240c63bcd74432052
+          echo 'd416fe4f7f1133b974f2fe9cd62720b8085e8265e6a2f1b0d80437e778700838  tools/direct_demand/operations/read-expansion100-name-variants-20261116.php' | sha256sum --check
+          php -l tools/direct_demand/operations/read-expansion100-name-variants-20261116.php
           umask 077
-          mkdir "$RUNNER_TEMP/price-pending-read"
-          python3 - <<'PY'
-          import base64,json,pathlib,re,os,hashlib
-          base=pathlib.Path('tools/direct_demand/operations');work=pathlib.Path(os.environ['RUNNER_TEMP'])/'price-pending-read'
-          raw=(base/'commercial-expansion100-intake-20261115.json').read_bytes();packet=json.loads(raw)
-          assert packet['summary']['selected']==100 and len(packet['rows'])==100
-          stop=set('the and by at a of in al en resort resorts hotel hotels island islands private spa villas villa maldives vietnam thailand dubai anantara jumeirah four seasons marriott hilton collection design member waldorf astoria sun siyam atmosphere life reserve beach palace united arab emirates golden'.split())
-          overrides={'EXP002':'Kihavah','EXP032':'Kudadoo','EXP042':'Bolifushi','EXP058':'Ritz Carlton','EXP064':'Vommuli','EXP069':'Ithaafushi','EXP071':'Soneva Fushi','EXP072':'Soneva Jani','EXP091':'Burj Al Arab','EXP092':'Marsa Al Arab','EXP095':'Al Naseem','EXP022':'Anantara The Palm','EXP023':'Qasr Al Sarab','EXP083':'Four Seasons','EXP015':'Layan','EXP016':'Mai Khao','EXP080':'Four Seasons','EXP014':'Koh Yao Yai','EXP081':'Nam Hai','EXP026':'Quy Nhon'}
-          requests=[]
-          for work_id,batch,country,source,label in packet['rows']:
-            q=('Four Seasons '+label) if source=='FS' else label
-            tokens=[t for t in re.findall(r'[^\W_]+',label,flags=re.UNICODE) if t.casefold() not in stop and len(t)>2]
-            fallback=overrides.get(work_id,max(tokens,key=len) if tokens else q)
-            requests.append({'work_id':work_id,'country':country,'label':label,'q':q[:100],'fallback':fallback[:100]})
-          assert len({r['work_id'] for r in requests})==100
-          encoded=base64.b64encode(json.dumps(requests,ensure_ascii=False,separators=(',',':')).encode()).decode()
-          source=(base/'inspect-monitor-price-pending-20261116.php').read_text();prefix='<?php\ndeclare(strict_types=1);\n'
-          assert source.startswith(prefix)
-          program=prefix+"const CATALOGUE_REQUESTS_B64='"+encoded+"';\n"+source[len(prefix):]
-          (work/'read.php').write_text(program)
-          (work/'intake.json').write_bytes(raw)
-          (work/'requests.json').write_text(json.dumps(requests,ensure_ascii=False,indent=2)+'\n')
-          print(json.dumps({'rows':100,'source_blob':'2818a09cc0b56ab592e5060240c63bcd74432052','program_sha256':hashlib.sha256(program.encode()).hexdigest(),'writes':0,'supplier_calls':0}))
-          PY
-          php -l "$RUNNER_TEMP/price-pending-read/read.php"
+          mkdir "$RUNNER_TEMP/catalogue-variants"
       - name: Prepare existing server connection
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -98,7 +73,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Read original feed preimages and invoke the unchanged local catalogue endpoint
+      - name: Read eleven existing catalogue queries without writes
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -108,30 +83,22 @@ jobs:
           test "$GITHUB_RUN_ATTEMPT" = 1
           umask 077
           status=0
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" php < "$RUNNER_TEMP/price-pending-read/read.php" > "$RUNNER_TEMP/price-pending-read/result.json" || status=$?
-          printf '%s\n' "$status" > "$RUNNER_TEMP/price-pending-read/exit-code.txt"
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" php < tools/direct_demand/operations/read-expansion100-name-variants-20261116.php > "$RUNNER_TEMP/catalogue-variants/result.json" || status=$?
+          printf '%s\n' "$status" > "$RUNNER_TEMP/catalogue-variants/exit-code.txt"
           python3 - <<'PY'
           import json,pathlib,os
-          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'price-pending-read';d=json.loads((p/'result.json').read_text())
-          c=d.pop('catalogue',{});child=d.pop('child_journal',{})
-          d['child_journal']={k:v for k,v in child.items() if k!='entries'}
-          d['original_post_terminal']=(child.get('entries') or [{}])[-1]
-          print('PENDING_FEED_PROOF='+json.dumps(d,ensure_ascii=False,separators=(',',':')))
-          rows=c.pop('rows',[]);matched=[r for r in rows if r['attempts'] and r['attempts'][-1]['count']>0]
-          c['processed_candidates']=len(rows);c['candidates_with_search_results']=len(matched)
-          c['unmatched_work_ids']=[r['work_id'] for r in rows if not r['attempts'] or r['attempts'][-1]['count']==0]
-          c['native_bindings_accepted']=0;c['site_writes']=0;c['new_posts']=0
-          print('EXPANSION100_CATALOGUE_SUMMARY='+json.dumps(c,ensure_ascii=False,separators=(',',':')))
-          for row in rows[:20]:print('EXPANSION100_FIRST20='+json.dumps(row,ensure_ascii=False,separators=(',',':')))
-          (p/'summary.json').write_text(json.dumps(c,ensure_ascii=False,indent=2)+'\n')
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'catalogue-variants';d=json.loads((p/'result.json').read_text())
+          queries=d.pop('queries',[]);d['query_count']=len(queries)
+          print('CATALOGUE_VARIANTS_SUMMARY='+json.dumps(d,ensure_ascii=False,separators=(',',':')))
+          for row in queries:print('CATALOGUE_VARIANTS='+json.dumps(row,ensure_ascii=False,separators=(',',':')))
           PY
           exit "$status"
-      - name: Retain bounded evidence and exact catalogue results
+      - name: Retain exact catalogue responses
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: hotel-price-and-catalogue100-read-20261116-${{ github.run_id }}
-          path: ${{ runner.temp }}/price-pending-read/
+          name: expansion100-country-variants-20261116-${{ github.run_id }}
+          path: ${{ runner.temp }}/catalogue-variants/
           if-no-files-found: ignore
           retention-days: 7
       - name: Remove runner-only connection files
