@@ -1,4 +1,4 @@
-name: Prepare remaining33 covers and read current publication clearance
+name: Complete remaining33 preparation with isolated image dependency
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == 'd6a3160c12d82cdffadb2a0fc2d2f8923e2826e1' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == 'da4d2ef93ddf7701ced6021ad3bc95255430a5f8' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -20,15 +20,16 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 2
-      - name: Authenticate retained media and exact authored remainder
+      - name: Verify exact unchanged preparation and original no-server failure
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = d6a3160c12d82cdffadb2a0fc2d2f8923e2826e1
+          test "$(git rev-parse HEAD^)" = da4d2ef93ddf7701ced6021ad3bc95255430a5f8
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD^:.github/workflows/content100-bot-publication-20261101.yml)" = 22c1d32070ab4f5223ad7f977ae077cdaef3a7c9
           p=tools/direct_demand/operations
           test "$(git hash-object "$p/commercial-expansion33-authored-20261116.json")" = fd421a0ea1c5f2cfe6476f49aaf6708b561a8436
           test "$(git hash-object "$p/read-expansion20-release-clearance-20261116.php")" = 90eb8a24b7b38e7cdf065256a50a4d3ed201cbb7
@@ -36,136 +37,69 @@ jobs:
           test "$(git hash-object "$p/commercial-expansion100-catalogue-candidates-20261116.json")" = 728ce08a9eed7745cfcba015ecd42c20431ef9bf
           umask 077
           mkdir "$RUNNER_TEMP/remaining33-release"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/43920622217/jobs?per_page=100 > "$RUNNER_TEMP/remaining33-release/original-failed-jobs.json"
           gh api repos/pyatkoff/max-search-bot/actions/runs/43918096119 > "$RUNNER_TEMP/remaining33-release/media-run.json"
           gh api repos/pyatkoff/max-search-bot/actions/artifacts/14250287562 > "$RUNNER_TEMP/remaining33-release/media-artifact.json"
           gh api repos/pyatkoff/max-search-bot/actions/artifacts/14250287562/zip > "$RUNNER_TEMP/media33.zip"
           gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/remaining33-release/main-at-read.json"
           python3 - <<'PY'
-          import json,pathlib,hashlib,zipfile,os
-          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'remaining33-release';r=json.loads((out/'media-run.json').read_bytes());a=json.loads((out/'media-artifact.json').read_bytes())
+          import json,pathlib,hashlib,zipfile,os,subprocess
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'remaining33-release'
+          j=json.loads((out/'original-failed-jobs.json').read_bytes());assert j['total_count']==1
+          job=j['jobs'][0];assert job['id']==133486609853 and job['conclusion']=='failure'
+          steps={s['name']:s for s in job['steps']}
+          assert steps['Build exact captions, source-photo covers and read-only clearance input']['conclusion']=='failure'
+          for name in ['Prepare existing server connection','Pin existing server identity','Read current identities and publication duplicates for all33 without mutation']:assert steps[name]['conclusion']=='skipped'
+          r=json.loads((out/'media-run.json').read_bytes());a=json.loads((out/'media-artifact.json').read_bytes())
           assert r['id']==43918096119 and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='failure' and r['head_sha']=='a897e401243fa809541434cd0872f64a26a5554b'
           assert a['id']==14250287562 and not a['expired'] and a['workflow_run']['id']==43918096119
-          raw=(out.parent/'media33.zip').read_bytes();assert hashlib.sha256(raw).hexdigest()=='3dc72e0e5005c20a0832cd927ca627196869e7764f519f9aa37ad75ccae3f8fe'
-          assert a['digest']=='sha256:'+hashlib.sha256(raw).hexdigest()
+          raw=(out.parent/'media33.zip').read_bytes();assert hashlib.sha256(raw).hexdigest()=='3dc72e0e5005c20a0832cd927ca627196869e7764f519f9aa37ad75ccae3f8fe' and a['digest']=='sha256:'+hashlib.sha256(raw).hexdigest()
           with zipfile.ZipFile(out.parent/'media33.zip') as z:
             assert z.testzip() is None and all(not n.startswith('/') and '..' not in pathlib.PurePosixPath(n).parts for n in z.namelist());z.extractall(out/'media')
           m=json.loads((out/'media/manifest.json').read_text());assert m['hotels']==33 and m['downloaded']==196 and m['failed']==2
           assert {(x['tourvisor_id'],x['source_image_index']) for x in m['rows'] if not x['downloaded']}=={(43569,26),(2470,14)}
-          print('ORIGINAL_PARTIAL_MEDIA_REUSED downloads=0 preserved_original_failure=true')
+          # Retain the already-reviewed exact commands. Only the missing dependency changes.
+          original=subprocess.check_output(['git','show','da4d2ef93ddf7701ced6021ad3bc95255430a5f8:.github/workflows/content100-bot-publication-20261101.yml']).decode()
+          names=['Build exact captions, source-photo covers and read-only clearance input','Prepare existing server connection','Pin existing server identity','Read current identities and publication duplicates for all33 without mutation']
+          commands=[]
+          for i,name in enumerate(names):
+            marker='      - name: '+name+'\n';assert original.count(marker)==1
+            part=original.split(marker,1)[1].split('\n      - ',1)[0];assert part.count('        run: |\n')==1
+            lines=part.split('        run: |\n',1)[1].splitlines();assert all(not line or line.startswith('          ') for line in lines)
+            body='\n'.join(line[10:] if line else '' for line in lines)+'\n'
+            target=out/f'step-{i}.sh';target.write_text(body);commands.append({'name':name,'sha256':hashlib.sha256(body.encode()).hexdigest()})
+          (out/'reused-command-proof.json').write_text(json.dumps({'original_workflow_blob':'22c1d32070ab4f5223ad7f977ae077cdaef3a7c9','commands':commands,'prior_server_steps':'skipped','new_supplier_image_gets':0},indent=2)+'\n')
+          print('ORIGINAL_MEDIA_REUSED new_image_downloads=0 prior_server_steps=skipped')
           PY
-      - name: Build exact captions, source-photo covers and read-only clearance input
+      - name: Install the missing image library only into the ephemeral runner
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          import json,pathlib,hashlib,base64,re,os
-          from PIL import Image,ImageOps,ImageFont,ImageDraw
-          p=pathlib.Path('tools/direct_demand/operations');out=pathlib.Path(os.environ['RUNNER_TEMP'])/'remaining33-release';covers=out/'covers';covers.mkdir()
-          authored=json.loads((p/'commercial-expansion33-authored-20261116.json').read_bytes());catalog=json.loads((p/'commercial-expansion100-catalogue-candidates-20261116.json').read_bytes());ident={x[1]:x for x in catalog['rows'] if x[1] is not None}
-          media=json.loads((out/'media/manifest.json').read_text());images={(x['tourvisor_id'],x['source_image_index']):x for x in media['rows'] if x['downloaded']}
-          profiles={x['tourvisor_id']:x for x in json.loads((out/'media/source-dossiers33.json').read_text())}
-          ids=[x[0] for x in authored['rows']];assert len(ids)==len(set(ids))==33 and set(ids)==set(profiles)
-          aliases={548:['Anantara Bo Phut','Анантара Бопхут'],2947:['Anantara Lawana','Анантара Лавана'],4032:['Anantara Muine','Анантара Муйне'],43675:['Anantara Tangalle','Анантара Тангалле'],48263:['Maadhoo','Маадху'],82790:['Raaya','Раая'],24743:['Kanifushi','Канифуши'],66547:['Varu by Atmosphere','Вару'],60232:['Sangeli','Сангели'],78033:['Lobigili','Лобигили'],43569:['Helengeli','Хеленгели'],78002:['Ailafushi','Айлафуши'],2451:['Iru Fushi','Irufushi','Иру Фуши'],63208:['Iru Veli','Iruveli','Иру Вели'],2491:['Vilu Reef','Вилу Риф'],2470:['Olhuveli','Олувели'],64954:['JW Marriott Maldives','Vagaru','Вагару'],2479:['Sheraton Maldives','Full Moon','Фул Мун'],2493:['W Maldives'],76318:['Le Meridien Maldives','Le Méridien Maldives'],53617:['Finolhu','Финолху'],12124:['Halcyon','Raffles Maldives','Meradhoo','Мерадху'],76011:['Patina Maldives','Патина'],65108:['Westin Maldives','Miriandhoo','Мирианду'],123308:['JW Marriott Kaafu','Джей Дабл Ю Марриотт Каафу'],65938:['SAii Lagoon','Саи Лагун'],80008:['Amingiri','Амингири'],2436:['Conrad Maldives','Rangali Island','Рангали'],108165:['Soneva Secret','Сонева Сикрет'],2444:['Kuda Huraa','Куда Хура'],2445:['Landaa Giraavaru','Landaa Giravaru','Ланда Гиравару'],218:['Four Seasons Sharm','Four Seasons Resort SSH','Фор Сизонс Шарм'],63191:['Jumeirah Saadiyat','Джумейра Саадият']}
-          def sha(b):return hashlib.sha256(b).hexdigest()
-          def font(n,b=False):return ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans'+('-Bold' if b else '')+'.ttf',n)
-          def wrap(draw,t,f):
-            lines=[];line=''
-            for word in t.split():
-              q=(line+' '+word).strip()
-              if line and draw.textlength(q,font=f)>940:lines.append(line);line=word
-              else:line=q
-            return lines+[line]
-          prepared=[];checks=[];input_rows=[]
-          for tv,name,place,body,indices,url in authored['rows']:
-            correction=False
-            if tv==78033:
-              assert body.count('с видом на океана.')==1;body=body.replace('с видом на океана.','с видом на океан.');correction=True
-            text=authored['caption_prefix']+name+'\n'+authored['location_prefix']+place+'\n\n'+body+'\n\n'+authored['caption_suffix']
-            assert 0<len(text.encode('utf-16-le'))//2<=1024 and len('Путевки в '+name.replace('-',' '))<=56
-            assert re.fullmatch(r'📍 \S(?:.*\S)?, [^\W\d_]+(?:[ -][^\W\d_]+)*\.',text.splitlines()[1])
-            identity=ident[tv];profile=profiles[tv];assert identity[0]==profile['work_id'] and profile['country_id']==identity[3]
-            pics=[];source_photos=[]
-            for idx in indices:
-              row=images[tv,idx];raw=(out/'media'/row['path']).read_bytes();assert sha(raw)==row['sha256']
-              from io import BytesIO
-              im=Image.open(BytesIO(raw));im.load();assert im.format=='JPEG' and min(im.size)>=450
-              pics.append(im.convert('RGB'));source_photos.append({**row,'width':im.width,'height':im.height})
-            assert len(pics)==3 and len({x['sha256'] for x in source_photos})==3
-            held=tv in authored['media_hold_ids'];cover=None
-            if not held:
-              im=Image.new('RGB',(1000,1000),'white');draw=ImageDraw.Draw(im);f=font(34,True);lines=wrap(draw,name,f)
-              if len(lines)>2:f=font(30,True);lines=wrap(draw,name,f)
-              assert len(lines)<=2
-              top=30 if len(lines)==2 else 49
-              for j,line in enumerate(lines):draw.text((500,top+j*42),line,font=f,fill='#132D3C',anchor='mt')
-              draw.text((500,124),place.rstrip('.'),font=font(22),fill='#52626B',anchor='mt')
-              for pic,(x,y,w,h) in zip(pics,[(18,170,964,460),(18,646,474,276),(508,646,474,276)]):im.paste(ImageOps.fit(pic,(w,h),method=Image.Resampling.LANCZOS),(x,y))
-              draw.text((22,949),'AnyTour',font=font(30,True),fill='#132D3C');draw.text((978,957),'Тур на ваши даты',font=font(21),fill='#52626B',anchor='rt')
-              rel=f'covers/{tv}.png';im.save(out/rel,optimize=True);raw=(out/rel).read_bytes();cover={'path':rel,'sha256':sha(raw),'bytes':len(raw),'width':1000,'height':1000,'rendered_cover_visual_review':False,'immutable_url':None}
-            row={'hotel_id':tv,'work_id':identity[0],'name':identity[2],'display_name':name,'country_id':identity[3],'region_id':identity[4],'logical_id':f'commercial-hotel-{tv}-v1','aliases':list(dict.fromkeys([name,identity[2],*aliases[tv]])),'text':text,'text_sha256':sha(text.encode()),'sources':[url],'source_fetched_at':profile['source_fetched_at'],'source_mode':profile['source_mode'],'selected_photos':source_photos,'cover':cover,'media_hold':held,'publication_allowed':False,'knowledge_admitted':False,'new_price':None,'spelling_correction':correction}
-            prepared.append(row);input_rows.append({k:row[k] for k in ['hotel_id','name','country_id','region_id','logical_id','aliases','text_sha256']})
-          (out/'prepared33.json').write_text(json.dumps({'schema':'remaining33_existing_sender_inputs_v1','source_scope':6923781196,'rows':prepared,'new_publications':0,'media_hold':[108165],'rendered_covers':32,'historical_sources_preserved':True},ensure_ascii=False,indent=2)+'\n')
-          raw=json.dumps(input_rows,ensure_ascii=False,separators=(',',':')).encode();(out/'clearance-input.json').write_bytes(raw)
-          template=(p/'commercial-batch-template-20261102.php').read_text();pins=dict(re.findall(r'"([^"]+)"=>"([a-f0-9]{40})"',template.split('$accepted=[',1)[1].split('];',1)[0]));assert len(pins)==22
-          body=(p/'read-expansion20-release-clearance-20261116.php').read_text();old='$ids=[88169,547,15774,12125,57335,2480,2417,2418,2468,12127,27481,23289,50262,72939,2489,85417,2466,2460,99713,43676];';assert body.count(old)==1
-          body=body.replace(old,'$ids='+json.dumps(ids,separators=(',',':'))+';')
-          for old,new in [("array_fill(0,20,'?')","array_fill(0,33,'?')"),("$out['candidate_count']=20","$out['candidate_count']=33"),("$out['blocked_count']=20-","$out['blocked_count']=33-"),("'mode'=>'expansion20_current_read_only'","'mode'=>'expansion33_current_read_only'")]:
-            assert body.count(old)==1;body=body.replace(old,new)
-          prefix='<?php\ndeclare(strict_types=1);\n';assert body.startswith(prefix);enc=lambda b:base64.b64encode(b).decode()
-          program=prefix+"putenv('GIT_OPTIONAL_LOCKS=0');\nconst C20_INPUT_B64='"+enc(raw)+"';\nconst C20_PINS_B64='"+enc(json.dumps(pins).encode())+"';\n"+body[len(prefix):]
-          (out/'read.php').write_text(program);(out/'source-proof.json').write_text(json.dumps({'reader_base_blob':'90eb8a24b7b38e7cdf065256a50a4d3ed201cbb7','substitution':'exact roster/count33 and read-only git process environment only','program_sha256':sha(program.encode()),'input_sha256':sha(raw),'rendered_covers':32,'media_hold':108165,'post_writes':0,'feed_writes':0},indent=2)+'\n')
-          print('REMAINING33_PREPARED captions=33 rendered_covers=32 media_hold=1 writes=0')
-          PY
-          php -l "$RUNNER_TEMP/remaining33-release/read.php"
-          php "$RUNNER_TEMP/remaining33-release/read.php" --self-test
-      - name: Prepare existing server connection
+          python3 -m pip install --disable-pip-version-check --no-deps --only-binary=:all: --target "$RUNNER_TEMP/remaining33-python" Pillow==12.0.0
+          echo "PYTHONPATH=$RUNNER_TEMP/remaining33-python" >> "$GITHUB_ENV"
+          test -r /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
+          test -r /usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf
+      - name: Build exact captions and original-source photo covers
+        shell: bash
+        run: bash --noprofile --norc -e -o pipefail "$RUNNER_TEMP/remaining33-release/step-0.sh"
+      - name: Prepare the existing server connection
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
         shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          raw="$DEPLOY_SSH_KEY_VALUE"
-          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else
-            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
-          fi
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-      - name: Pin existing server identity
+        run: bash --noprofile --norc -e -o pipefail "$RUNNER_TEMP/remaining33-release/step-1.sh"
+      - name: Verify unchanged server identity
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re,subprocess,base64,hashlib,pathlib
-          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER'];assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-');assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
-          result=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35);matches=[]
-          for line in result.stdout.splitlines():
-            f=line.split()
-            if len(f)<3 or f[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(f[2])).digest()).decode().rstrip('=')
-            except Exception:continue
-            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP';pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
-          PY
-      - name: Read current identities and publication duplicates for all33 without mutation
+        run: bash --noprofile --norc -e -o pipefail "$RUNNER_TEMP/remaining33-release/step-2.sh"
+      - name: Perform the previously unstarted native33 read without writes
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          status=0
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" php < "$RUNNER_TEMP/remaining33-release/read.php" > "$RUNNER_TEMP/remaining33-release/clearance.json" || status=$?
-          printf '%s\n' "$status" > "$RUNNER_TEMP/remaining33-release/exit-code.txt"
-          cat "$RUNNER_TEMP/remaining33-release/clearance.json"
-          exit "$status"
-      - name: Retain exact prepared inputs and original read result
+        run: bash --noprofile --norc -e -o pipefail "$RUNNER_TEMP/remaining33-release/step-3.sh"
+      - name: Retain exact prepared inputs and original read evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -177,6 +111,8 @@ jobs:
             ${{ runner.temp }}/remaining33-release/source-proof.json
             ${{ runner.temp }}/remaining33-release/main-at-read.json
             ${{ runner.temp }}/remaining33-release/exit-code.txt
+            ${{ runner.temp }}/remaining33-release/reused-command-proof.json
+            ${{ runner.temp }}/remaining33-release/original-failed-jobs.json
             ${{ runner.temp }}/remaining33-release/covers/
           if-no-files-found: error
           retention-days: 14
