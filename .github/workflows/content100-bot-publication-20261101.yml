@@ -1,4 +1,4 @@
-name: Read the blocked hotel price operation without replay
+name: Read bounded final hotel-price state without replay
 
 on:
   push:
@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '08ce8f9fa51de70f9ee5eb2c97603f594af822d9' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '30d71a0deda479ce44eef8ee1e682cae9d30bc37' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
@@ -32,9 +32,9 @@ jobs:
           test "$GITHUB_RUN_ATTEMPT" = 1
           test "$GITHUB_REF" = refs/heads/audit/content100-bot-publication-20261101
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          test "$(git rev-parse HEAD^)" = 08ce8f9fa51de70f9ee5eb2c97603f594af822d9
+          test "$(git rev-parse HEAD^)" = 30d71a0deda479ce44eef8ee1e682cae9d30bc37
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
-          echo 'e01575a7b1c5d6f9f452340b6229a3feefe122046ecef90ab89a960892fe6d76  tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php' | sha256sum --check
+          echo 'baf38b115f4fcc0c646f90f7e8f9860384ede1920d6a8f402c92de676dba849f  tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php' | sha256sum --check
           php -l tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php
           umask 077
           mkdir "$RUNNER_TEMP/price-pending-read"
@@ -76,7 +76,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Read only the current pending operation and its original receipts
+      - name: Read only the final pending state and its original receipts
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -92,9 +92,9 @@ jobs:
           exit "$status"
       - name: Retain the bounded read-only receipt
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: hotel-price-pending-read-20261116-${{ github.run_id }}
+          name: hotel-price-pending-tail-20261116-${{ github.run_id }}
           path: ${{ runner.temp }}/price-pending-read/
           if-no-files-found: ignore
           retention-days: 7
