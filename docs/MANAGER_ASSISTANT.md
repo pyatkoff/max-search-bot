@@ -302,3 +302,12 @@ collection, task, AI run or manager form is introduced.
 This is deliberately bounded source/request identity, not full language-level
 semantic equivalence. It cannot decide whether two independently written
 messages imply the same request without authoritative evidence.
+
+### Neutral no-contact state in the compact plan
+
+An ordinary `no_contact` result is a neutral instruction not to message the
+client. It is not in itself an action or an established obligation, so neither
+the list nor the detail asks the manager to dismiss it. Existing manual tasks
+remain accessible. A verified actionable internal next step is still a separate
+future contract, not inferred from `no_contact` wording. The visual test must
+not expect “Выполнено” after a real irrelevant (“Убрать”) decision.
