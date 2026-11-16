@@ -277,8 +277,10 @@ function monitor_price_time($value):int {
 function monitor_price_observation(array $snapshot,int $tourvisorId,int $now,bool $requireExportFresh=true):array {
     monitor_price_require(($snapshot['format']??null)==='anytour-hotel-monitor-prices-v1'
         &&($snapshot['identityNamespace']??null)==='tourvisor'&&($snapshot['source']??null)==='scheduled_monitor'
-        &&($snapshot['observationWindowHours']??null)===24&&($snapshot['supplierRequests']??null)===0&&($snapshot['writes']??null)===0
+        &&in_array($snapshot['observationWindowHours']??null,[24,36],true)&&($snapshot['supplierRequests']??null)===0&&($snapshot['writes']??null)===0
         &&($snapshot['timeBasis']??null)==='database-relative; stored observation timezone is not asserted','monitor_source_invalid');
+    // Keep the window recorded with each snapshot; new policy never extends an old receipt.
+    $maximumAge=$snapshot['observationWindowHours']*3600;
     $source=parse_url((string)($snapshot['sourceUrl']??''));
     monitor_price_require(is_array($source)&&($source['scheme']??'')==='https'&&($source['host']??'')==='anytoour.ru'
         &&($source['path']??'')==='/data/hotel-monitor-prices-read-v1.php'&&!isset($source['user'])&&!isset($source['pass'])&&!isset($source['port'])&&!isset($source['fragment']),'monitor_source_url_invalid');
@@ -305,8 +307,8 @@ function monitor_price_observation(array $snapshot,int $tourvisorId,int $now,boo
         monitor_price_require(array_key_exists('fuelIncluded',$offer)&&$offer['fuelIncluded']===null
             &&($offer['source']??null)==='scheduled_monitor'&&($offer['priceKind']??null)==='listing_observation','monitor_price_basis_invalid');
         $age=$offer['ageSecondsAtExport']??null;$expiry=monitor_price_time($offer['expiresAt']??null);
-        monitor_price_require(is_int($age)&&$age>=0&&$age<86400&&$generated<=$now+60&&$age+max(0,$now-$generated)<86400
-            &&$expiry>=$generated&&$expiry-$generated<=min(900,86400-$age)&&(!$requireExportFresh||$expiry>$now),'monitor_price_expired');
+        monitor_price_require(is_int($age)&&$age>=0&&$age<$maximumAge&&$generated<=$now+60&&$age+max(0,$now-$generated)<$maximumAge
+            &&$expiry>=$generated&&$expiry-$generated<=min(900,$maximumAge-$age)&&(!$requireExportFresh||$expiry>$now),'monitor_price_expired');
     }
     $minimum=$offers[0];
     return ['record_id'=>$minimum['recordId'],'tourvisor_hotel_id'=>$tourvisorId,'tour_id'=>$minimum['tourId'],'price'=>$minimum['price'],'currency'=>'RUB',

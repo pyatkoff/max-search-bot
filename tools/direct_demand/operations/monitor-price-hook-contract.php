@@ -413,6 +413,38 @@ function monitor_hook_attempted_collector_runs(array $journalLines):array {
     }
     return $runs;
 }
+/** Read the original prefix once. The caller owns its lock and closes the stream. */
+function monitor_hook_read_history($stream):array {
+    monitor_price_require(is_resource($stream)&&get_resource_type($stream)==='stream'&&rewind($stream),'hook_journal_read_failed');
+    $hash=hash_init('sha256');$bytes=0;$lines=0;$last=null;$trailingBlankLines=0;$attempted=[];
+    while(($line=fgets($stream))!==false){
+        monitor_price_require(str_ends_with($line,"\n"),'hook_journal_incomplete_stop');
+        hash_update($hash,$line);$bytes+=strlen($line);$lines++;
+        if($line==="\n"){
+            monitor_price_require($last!==null,'hook_nightly_history_invalid');$trailingBlankLines++;continue;
+        }
+        monitor_price_require($trailingBlankLines===0,'hook_nightly_history_invalid');
+        $attempted+=monitor_hook_attempted_collector_runs([$line]);$last=$line;
+    }
+    monitor_price_require(feof($stream),'hook_journal_read_failed');
+    return ['state'=>$last===null?null:json_decode($last,true,64,JSON_THROW_ON_ERROR),'attempted_runs'=>$attempted,
+        'pin'=>['sha256'=>hash_final($hash),'bytes'=>$bytes,'lines'=>$lines],'trailing_blank_lines'=>$trailingBlankLines];
+}
+/** Describe this pass without relabelling the legacy process/cycle outcome or public price freshness. */
+function monitor_hook_result_summary(array $out):array {
+    $inspect=($out['mode']??null)==='read_only_hook_inspection';$skipped=isset($out['skipped']);
+    $roster=$out['roster_pairs']??null;$scanned=$out['scanned_pairs']??null;$remaining=$out['remaining_unscanned_pairs']??null;
+    $knownScope=is_int($roster)&&$roster>0;
+    $scanComplete=!$skipped&&$knownScope&&is_int($scanned)&&is_int($remaining)?$scanned===$roster&&$remaining===0:null;
+    $updated=$out['updated_pairs']??null;$unchanged=$out['unchanged_pairs']??null;
+    $deferred=$out['deferred']??null;$held=$out['held_pairs']??null;
+    $allApplied=($out['ok']??null)===true&&$scanComplete===true&&is_int($updated)&&$updated>=0
+        &&is_int($unchanged)&&$unchanged>=0&&$updated+$unchanged===$roster&&$held===0&&$deferred===[];
+    $noFresh=0;foreach(is_array($deferred)?$deferred:[] as $item)if(is_array($item)&&($item['reason']??null)==='no_fresh_observation')$noFresh++;
+    $status=($out['ok']??null)!==true?'blocked':($skipped?'skipped':($inspect?'inspected':($allApplied?'completed':'partial')));
+    return ['result_status'=>$status,'scan_complete'=>$scanComplete,
+        'all_pairs_applied_or_unchanged'=>$inspect||$skipped?null:$allApplied,'no_fresh_observation_pairs'=>$noFresh];
+}
 /** Legacy name/state retained; maintenance follows each original successful collector at any hour. */
 function monitor_hook_nightly_gate(array $state,int $now,?string $collectionStartedAt,?string $collectorRunId,array $attemptedRuns=[]):array {
     monitor_price_require(is_string($collectorRunId)&&preg_match('/\A[1-9][0-9]{0,19}\z/D',$collectorRunId)===1,'hook_nightly_collector_run_invalid');
