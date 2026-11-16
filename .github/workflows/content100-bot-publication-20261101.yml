@@ -1,180 +1,97 @@
-name: Append routed expansion20 to three existing feeds
+name: Prepare published expansion20 monitor roster without production writes
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
     paths: ['.github/workflows/content100-bot-publication-20261101.yml']
 permissions:
-  contents: read
+  contents: write
   actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '668e11c783fc4c8f74e4426377a39135ef2cebab' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '12bd8359cf8eed1f57c8ae58d5f6267cb2fdb989' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 12
-    env:
-      EXPECTED_SOURCE: 729bd1cf40567b2072f2471af283954cd9989cd1
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 2
-      - name: Authenticate unchanged sources and exact original current read
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: 5873fe24ef5f0d6251f1c6bbf0b245ced28fc980
+          path: previous-publisher
+          persist-credentials: false
+      - name: Authenticate source and original publication-feed evidence
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = 668e11c783fc4c8f74e4426377a39135ef2cebab
+          test "$(git rev-parse HEAD^)" = 12bd8359cf8eed1f57c8ae58d5f6267cb2fdb989
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
-          p=tools/direct_demand/operations
-          test "$(git hash-object "$p/prepare-expansion20-feed-tail-20261116.py")" = 8f9ef8ee1aa492a67a67f581f8b57e5923bd4861
-          test "$(git hash-object "$p/verify-commercial-source.py")" = d79228dacc35d09af8ad838d34febd8413dbd7b2
-          echo "96f87f6680081aa9299aed080e93e90ebd1c1c9a0b23ff97537618b01526daaa  $p/expansion20-native-route-proofs-20261116.json" | sha256sum --check
-          python3 -m py_compile "$p/prepare-expansion20-feed-tail-20261116.py"
           umask 077
-          mkdir -p "$RUNNER_TEMP/feed20/evidence" "$RUNNER_TEMP/feed20/bound" "$RUNNER_TEMP/feed20/preimages"
-          e="$RUNNER_TEMP/feed20/evidence"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/43871777544 > "$e/read-run.json"
-          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14228391968 > "$e/read-artifact.json"
-          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14228391968/zip > "$e/read.zip"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$e/main.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs?head_sha=$EXPECTED_SOURCE&per_page=100" > "$e/current-runs.json"
-          gh api repos/pyatkoff/max-search-bot/issues/comments/6917110892 > "$e/owner-scope.json"
+          mkdir "$RUNNER_TEMP/monitor628"
           python3 - <<'PY'
-          import os,pathlib,json,hashlib,zipfile
-          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'feed20';e=w/'evidence';load=lambda n:json.loads((e/n).read_bytes())
-          r=load('read-run.json');a=load('read-artifact.json');raw=(e/'read.zip').read_bytes()
-          assert r['id']==43871777544 and r['run_attempt']==1 and r['head_sha']=='6aacd0e37f52011edfdfb28f948272001dcb81ef' and r['status']=='completed' and r['conclusion']=='success'
-          assert a['id']==14228391968 and not a['expired'] and a['workflow_run']['id']==r['id'] and a['digest']=='sha256:a809657d638cfafb122e0faaebf50e40088325ade6491890574f3c0770ae6c93'
-          assert hashlib.sha256(raw).hexdigest()==a['digest'].split(':')[1]
-          with zipfile.ZipFile(e/'read.zip') as z:
-            assert sum(x.file_size for x in z.infolist())<20000000
-            assert all(not pathlib.PurePosixPath(n).is_absolute() and '..' not in pathlib.PurePosixPath(n).parts for n in z.namelist());z.extractall(w/'bound')
-          current=os.environ['EXPECTED_SOURCE'];assert load('main.json')['object']['sha']==current
-          gates=json.loads((w/'bound/source-evidence/gate-receipts.json').read_bytes());runs=load('current-runs.json')
-          assert len(gates)==9 and runs['total_count']<=100
-          for name,g in gates.items():
-            matched=[r for r in runs['workflow_runs'] if r['id']==g['run_id']];assert len(matched)==1
-            r=matched[0];assert r['head_sha']==current and r['head_branch']=='main' and r['path']=='.github/workflows/'+name and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success'
-            if name!='deploy.yml':assert r['display_title']=='deploy-proof:v1:43865306562:1'
-          c=load('owner-scope.json');assert c['id']==6917110892 and c['user']['id']==226193297 and 'FEED SCOPE:' in c['body']
-          (e/'owner-pin.json').write_text(json.dumps({'id':c['id'],'updated_at':c['updated_at'],'body_sha256':hashlib.sha256(c['body'].encode()).hexdigest()}))
+          import pathlib,subprocess,json,hashlib,os
+          p=pathlib.Path('tools/direct_demand/operations');old=pathlib.Path('previous-publisher')/p
+          names=['monitor-price-contract.php','monitor-price-hook-contract.php','monitor-price-after-collection.php','update-commercial-price-20261104-remaining1.php','publish-commercial-channel-hotel-feeds-20261103-1.php','build-monitor-price-hook.py','monitor-price-expanded-roster-20261111.json.gz','test-monitor-price-hook.php']
+          for name in names:assert (p/name).read_bytes()==(old/name).read_bytes(),('CURRENT_CALLBACK_CHANGED',name)
+          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'monitor628'
+          for tag,run_id,head,aid,digest in [('bound',43871777544,'6aacd0e37f52011edfdfb28f948272001dcb81ef',14228391968,'a809657d638cfafb122e0faaebf50e40088325ade6491890574f3c0770ae6c93'),('feed',43874344520,'c83efec040638ea421a505e24f9aff722dcf6fd3',14229960161,'7d1d7d468c604840193980689354fd339effc3a6d8d1a0e4622ac52f5fb9bbe5')]:
+            def api(s):return subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+s],timeout=60)
+            run=api('actions/runs/'+str(run_id));r=json.loads(run)
+            assert r['id']==run_id and r['head_sha']==head and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success'
+            meta=api('actions/artifacts/'+str(aid));a=json.loads(meta)
+            assert a['id']==aid and not a['expired'] and a['workflow_run']['id']==run_id and a['digest']=='sha256:'+digest
+            raw=api('actions/artifacts/'+str(aid)+'/zip');assert hashlib.sha256(raw).hexdigest()==digest
+            (w/(tag+'.zip')).write_bytes(raw);(w/(tag+'-run.json')).write_bytes(run);(w/(tag+'-artifact.json')).write_bytes(meta)
+          print('EXACT608_CALLBACK_AND_ORIGINAL20_EVIDENCE_ACCEPTED')
           PY
-          python3 "$p/verify-commercial-source.py" --expected-source "$EXPECTED_SOURCE" --evidence-dir "$RUNNER_TEMP/feed20/bound/source-evidence"
-      - name: Read fresh public preimages and prepare both guarded additions without writes
+      - name: Append exact published twenty and run existing native tests
         shell: bash
         run: |
           set -euo pipefail
-          w="$RUNNER_TEMP/feed20";p=tools/direct_demand/operations
-          python3 - <<'PY'
-          import os,pathlib,urllib.request,json,hashlib,datetime
-          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'feed20';evidence=[]
-          class NoRedirect(urllib.request.HTTPRedirectHandler):
-            def redirect_request(self,*a,**k):return None
-          opener=urllib.request.build_opener(NoRedirect())
-          for name in ['hotel-posts-telegram.xml','hotel-posts-max.xml','hotel-posts-all.xml']:
-            url='https://app.anytoour.ru/feed/'+name
-            with opener.open(urllib.request.Request(url,headers={'User-Agent':'AnyTour existing confirmed feed extension','Cache-Control':'no-cache','Pragma':'no-cache'}),timeout=25) as response:
-              assert response.status==200 and response.geturl()==url
-              raw=response.read(4000001);assert 1000<len(raw)<4000000 and raw.startswith(b'<?xml version="1.0" encoding="UTF-8"?>')
-              (w/'preimages'/name).write_bytes(raw)
-              evidence.append({'name':name,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw),'read_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'http':200})
-          (w/'evidence/preimage-read.json').write_text(json.dumps(evidence,indent=2)+'\n')
-          PY
-          python3 "$p/prepare-expansion20-feed-tail-20261116.py" "$w/bound" "$p/expansion20-native-route-proofs-20261116.json" "$w/preimages" "$w/bound/source-evidence" "$w/prepared"
-      - name: Retain exact fresh intent before feed writes
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: expansion20-feed-intent-${{ github.run_id }}
-          path: ${{ runner.temp }}/feed20/
-          retention-days: 30
-          if-no-files-found: error
-      - name: Recheck source and scope then prepare existing pinned connection
+          p=tools/direct_demand/operations
+          w="$RUNNER_TEMP/monitor628"
+          python3 "$p/prepare-expansion20-monitor-20261116.py" --root "$p" --bound "$w/bound.zip" --feed "$w/feed.zip" --out "$w/generated"
+          cp "$w/generated/monitor-price-expanded-roster-20261111.json.gz" "$p/"
+          cp "$w/generated/monitor-price-expansion20-proof-20261116.json" "$p/"
+          php "$p/test-monitor-price-contract.php"
+          php "$p/test-monitor-price-hook.php"
+          php "$p/test-monitor-price-nightly-policy.php"
+          php "$p/test-monitor-price-link.php"
+          php "$p/test-monitor-price-expansion20.php"
+          python3 "$p/build-monitor-price-hook.py" "$w/monitor-price-hook.php"
+          php -l "$w/monitor-price-hook.php"
+          git diff --check
+      - name: Retain immutable generated blobs only; do not change any branch or runtime
         env:
           GH_TOKEN: ${{ github.token }}
-          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
-          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_SOURCE"
-          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
-          gh api repos/pyatkoff/max-search-bot/issues/comments/6917110892 > "$RUNNER_TEMP/feed20/evidence/owner-before-write.json"
           python3 - <<'PY'
-          import os,pathlib,json,hashlib
-          e=pathlib.Path(os.environ['RUNNER_TEMP'])/'feed20/evidence';c=json.loads((e/'owner-before-write.json').read_bytes());p=json.loads((e/'owner-pin.json').read_bytes())
-          assert c['id']==p['id'] and c['user']['id']==226193297 and c['updated_at']==p['updated_at'] and hashlib.sha256(c['body'].encode()).hexdigest()==p['body_sha256']
+          import pathlib,subprocess,json,hashlib,base64,os
+          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'monitor628';records=[]
+          for name in ['monitor-price-expanded-roster-20261111.json.gz','monitor-price-expansion20-proof-20261116.json']:
+            raw=(w/'generated'/name).read_bytes();blob=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+            payload=json.dumps({'content':base64.b64encode(raw).decode(),'encoding':'base64'}).encode()
+            result=json.loads(subprocess.check_output(['gh','api','--method','POST','repos/pyatkoff/max-search-bot/git/blobs','--input','-'],input=payload,timeout=60))
+            assert result['sha']==blob
+            records.append({'path':'tools/direct_demand/operations/'+name,'sha':blob,'mode':'100644','type':'blob','sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)})
+          output={'source_head':os.environ['GITHUB_SHA'],'base_callback':'5873fe24ef5f0d6251f1c6bbf0b245ced28fc980','rows':628,'previous_rows_preserved':608,'new_pairs':20,'blobs':records,'branch_updates':0,'production_connections':0,'supplier_calls':0,'post_writes':0,'feed_writes':0}
+          (w/'git-blobs.json').write_text(json.dumps(output,ensure_ascii=False,indent=2)+'\n');print('MONITOR628_SOURCE_READY='+json.dumps(output,separators=(',',':')))
           PY
-          umask 077
-          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
-            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-          python3 - <<'PY'
-          import os,re,subprocess,base64,hashlib,pathlib
-          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER'];assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',user)
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35);matches=[]
-          for line in scan.stdout.splitlines():
-            f=line.split()
-            if len(f)<3 or f[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(f[2])).digest()).decode().rstrip('=')
-            except Exception:continue
-            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
-          PY
-      - name: Write each exact feed addition once and verify public bytes before next
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          w="$RUNNER_TEMP/feed20/prepared"
-          for g in 20 21; do
-            test ! -e "$w/$g/execution-started.txt"
-            date -u +%Y-%m-%dT%H:%M:%SZ > "$w/$g/execution-started.txt"
-            status=0
-            ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php' < "$w/$g/write.php" > "$w/$g/result.json" || status=$?
-            printf '%s\n' "$status" > "$w/$g/exit-code.txt"
-            cat "$w/$g/result.json"
-            if [ "$status" -ne 0 ]; then exit "$status"; fi
-            GROUP="$g" python3 - <<'PY'
-          import os,pathlib,json,hashlib,urllib.request
-          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'feed20/prepared';g=int(os.environ['GROUP']);p=root/str(g)
-          result=json.loads((p/'result.json').read_bytes().splitlines()[-1]);intent=next(x for x in json.loads((root/'intent.json').read_bytes())['groups'] if x['group']==g)
-          assert result['ok'] and result['operation']==intent['operation'] and all(result[k]==0 for k in ['db_writes','provider_calls','message_sends'])
-          assert len(result['files'])==3
-          class NoRedirect(urllib.request.HTTPRedirectHandler):
-            def redirect_request(self,*a,**k):return None
-          opener=urllib.request.build_opener(NoRedirect());verified=[]
-          for actual,expected in zip(result['files'],intent['files']):
-            assert all(actual[k]==expected[k] for k in ['name','sha256','bytes','rows']) and actual['write_action']=='replace'
-            url='https://app.anytoour.ru/feed/'+actual['name']
-            with opener.open(urllib.request.Request(url,headers={'Cache-Control':'no-cache','Pragma':'no-cache'}),timeout=25) as response:
-              assert response.status==200 and response.geturl()==url;raw=response.read(4000001)
-            assert hashlib.sha256(raw).hexdigest()==actual['sha256']
-            (p/('public-'+actual['name'])).write_bytes(raw);verified.append({'name':actual['name'],'http':200,'sha256':actual['sha256'],'rows':actual['rows']})
-          (p/'public-readback.json').write_text(json.dumps({'ok':True,'operation':result['operation'],'files':verified},indent=2)+'\n')
-          print('THREE_PUBLIC_FEEDS_VERIFIED '+json.dumps(verified))
-          PY
-          done
-      - name: Retain every exact result without replay
+      - name: Retain original evidence and generated candidate
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: expansion20-feed-outcome-${{ github.run_id }}
-          path: ${{ runner.temp }}/feed20/
-          retention-days: 30
+          name: expansion20-monitor628-prepared-${{ github.run_id }}
+          path: ${{ runner.temp }}/monitor628/
           if-no-files-found: error
-      - name: Remove runner-only connection files
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
+          retention-days: 30
