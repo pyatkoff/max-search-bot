@@ -1,24 +1,24 @@
 {
     "ok": true,
-    "generated_at": "2026-11-16T18:14:45+00:00",
+    "generated_at": "2026-11-16T19:00:48+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 93,
-        "raw_sessions": 93,
+        "sessions": 97,
+        "raw_sessions": 97,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 91,
+            "resolved": 95,
             "unresolved": 2
         },
-        "started": 74,
-        "needs_collected": 11,
-        "tours_opened": 10,
+        "started": 76,
+        "needs_collected": 12,
+        "tours_opened": 11,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 58,
+        "manager_requested": 59,
         "manager_replied": 47,
         "customer_replied_after_manager": 23,
         "phone_received": 1,
@@ -33,9 +33,9 @@
         "drop_points": {
             "manager_replied": 24,
             "customer_replied_after_manager": 23,
-            "started_only": 19,
-            "collecting_needs": 16,
-            "manager_requested": 11
+            "started_only": 21,
+            "collecting_needs": 17,
+            "manager_requested": 12
         },
         "flags": {
             "repeated_same_input": 3,
@@ -44,18 +44,18 @@
             "manager_requested_no_reply": 1
         },
         "calendar_day": {
-            "conversations_started": 76,
-            "needs_collected_from_started": 6,
-            "tours_opened_from_started": 5,
+            "conversations_started": 79,
+            "needs_collected_from_started": 7,
+            "tours_opened_from_started": 6,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
-            "manager_requested": 46,
+            "manager_requested": 47,
             "manager_replied": 38,
             "customer_replied_after_manager": 16
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-16T18:14:45Z",
+        "sampled_at": "2026-11-16T19:00:48Z",
         "available": true,
         "error": null,
         "mode": "send",
