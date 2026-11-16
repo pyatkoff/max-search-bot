@@ -131,6 +131,21 @@ function assistantBusinessState(AssistantFixturePdo $pdo): array
 }
 
 try {
+    $profilePin = new ReflectionMethod(ManagerAssistantService::class,'typedProfileDecisionPin');
+    $same=['status'=>'fresh','trip_id'=>str_repeat('a',32),'profile_sha256'=>str_repeat('b',64),'boundary_message_id'=>2,'version'=>1];
+    $pin=$profilePin->invoke(null,$same);
+    assistantCheck('stable request identity uses canonical trip/profile/source boundary, never a model rewording',
+        $pin===['saved_profile',str_repeat('a',32),str_repeat('b',64),2]
+        && $profilePin->invoke(null,array_replace($same,['version'=>2,'status'=>'needs_review']))===$pin);
+    assistantCheck('independent new trip or changed confirmed conditions cannot inherit a dismissed recommendation',
+        $profilePin->invoke(null,array_replace($same,['trip_id'=>str_repeat('c',32)]))!==$pin
+        && $profilePin->invoke(null,array_replace($same,['profile_sha256'=>str_repeat('d',64)]))!==$pin
+        && $profilePin->invoke(null,array_replace($same,['boundary_message_id'=>3]))!==$pin);
+    assistantCheck('unavailable/stale request profile fails to exact-revision dismissal rather than guessing identity',
+        $profilePin->invoke(null,['status'=>'unavailable','version'=>1])===null
+        && $profilePin->invoke(null,array_replace($same,['status'=>'source_changed']))===null
+        && $profilePin->invoke(null,null)===['no_saved_profile']);
+
     $pdo=assistantFixture(); [, $proposal]=assistantPrepare();
     $before=assistantBusinessState($pdo); $writes=$pdo->privateWrites;
     $detail=ManagerAssistantService::detail(1,1); $item=$detail['item']??[]; $recommendation=$item['recommendation']??[];

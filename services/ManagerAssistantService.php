@@ -274,9 +274,10 @@ final class ManagerAssistantService
         // a dismissed suggestion for precisely the same source and action.
         // If no current input can be proven, retain the old exact behavior.
         $source = ManagerPreparationEligibility::input(ConversationDb::connection(),$id);
-        $decisionKey = $source === null ? $revision : hash('sha256', json_encode([
-            'manager_assistant_decision_source_v1',(string)($snapshot['project_key'] ?? $project ?? ProjectConfig::projectId()),
-            $id,$source,$proposal['next_action'],
+        $profilePin = self::profileDecisionPin($snapshot);
+        $decisionKey = $source === null || $profilePin === null ? $revision : hash('sha256', json_encode([
+            'manager_assistant_decision_source_v2',(string)($snapshot['project_key'] ?? $project ?? ProjectConfig::projectId()),
+            $id,$source,$profilePin,$proposal['next_action'],
         ],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
         return ['revision'=>$revision, 'decision_key'=>$decisionKey, 'context_revision'=>$prepared['revision'], 'instruction_revision'=>$instruction,
             'latest_message_id'=>(int)$prepared['latest_message_id'], 'prepared_at'=>$prepared['prepared_at'], 'expires_at'=>$prepared['expires_at'],
@@ -286,6 +287,34 @@ final class ManagerAssistantService
             'should_draft'=>$proposal['should_draft'], 'draft'=>$proposal['should_draft'] ? $proposal['draft'] : null,
             'history_incomplete'=>$proposal['history_incomplete'],
             'evidence_message_ids'=>$proposal['evidence_message_ids']];
+    }
+
+    /**
+     * Persist a dismissal only across the same verified customer input and
+     * saved-request identity. A changed/unknown profile cannot silently inherit
+     * the previous decision; absence of a saved profile is explicit.
+     * Never use the model's reason/checks or job id as semantic identity.
+     */
+    private static function profileDecisionPin(array $snapshot): ?array
+    {
+        $reference = $snapshot['reference_context'] ?? null;
+        if (!$reference instanceof ManagerAiDraftReferenceContext || !is_array($snapshot['context'] ?? null)) return null;
+        $facts = $reference->forContext($snapshot['context']);
+        if (!is_array($facts)) return null;
+        return self::typedProfileDecisionPin($facts['request_profile'] ?? null);
+    }
+
+    /** Pure, bounded typed pin used only by the private decision key. */
+    private static function typedProfileDecisionPin(mixed $profile): ?array
+    {
+        if ($profile === null) return ['no_saved_profile'];
+        if (!is_array($profile) || !in_array($profile['status'] ?? null,['fresh','needs_review'],true)
+            || !is_string($profile['trip_id'] ?? null) || preg_match('/\A[a-f0-9]{32}\z/D',$profile['trip_id'])!==1
+            || !is_string($profile['profile_sha256'] ?? null) || !self::revision($profile['profile_sha256'])
+            || !is_int($profile['boundary_message_id'] ?? null) || $profile['boundary_message_id']<=0) return null;
+        // Version is omitted intentionally: re-saving unchanged curated data
+        // must not re-show dismissed advice; changed facts/trip/term do.
+        return ['saved_profile',$profile['trip_id'],$profile['profile_sha256'],$profile['boundary_message_id']];
     }
 
     private static function revision(string $value): bool { return preg_match('/\A[a-f0-9]{64}\z/D',$value) === 1; }

@@ -286,3 +286,19 @@ boundary not represented by this key. An unavailable input retains the old
 exact-revision behavior. We must not claim that an AI rewording hash alone solves
 these cases or deploy this draft as a complete plan. The stable request/trip
 anchor and verified post-manager action remain separate acceptance gates.
+
+
+### Curated request boundary on source-stable dismissals
+
+Where a canonical manager-curated request profile is available and verified as
+fresh or needing review, the private dismissal identity additionally includes
+the exact trip ID, saved profile-content SHA and customer-message boundary.
+Re-saving identical conditions under a new profile version does not resurrect
+a dismissal; a genuinely changed saved profile or trip is distinct. If profile
+evidence is unavailable or source-changed, the decision conservatively falls
+back to the exact generated-recommendation revision. No new customer-input
+collection, task, AI run or manager form is introduced.
+
+This is deliberately bounded source/request identity, not full language-level
+semantic equivalence. It cannot decide whether two independently written
+messages imply the same request without authoritative evidence.
