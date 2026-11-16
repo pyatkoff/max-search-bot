@@ -116,9 +116,9 @@ final class ModeledConversionIntakeCoverageReader
             .' AND HEX('.$get('conversation_id').')=HEX(CAST(n.conversation_id AS '.$cast.'))'
             .' AND HEX('.$get('customer_key').')=HEX(CAST(n.customer_id AS '.$cast.'))'
             .' AND HEX('.$get('payload_sha256').')=HEX(n.payload_hash)';
-        $profilePlatform=$this->mysql?'CONVERT(n.platform USING ascii) COLLATE ascii_bin':'n.platform';
-        $profileCustomer=$this->mysql?'CONVERT(CAST(n.customer_id AS CHAR) USING ascii) COLLATE ascii_bin':'CAST(n.customer_id AS TEXT)';
-        $profileConversation=$this->mysql?'CONVERT(CAST(n.conversation_id AS CHAR) USING ascii) COLLATE ascii_bin':'CAST(n.conversation_id AS TEXT)';
+        $profilePlatform=$this->mysql?'CAST(n.platform AS BINARY)':'n.platform';
+        $profileCustomer=$this->mysql?'CAST(n.customer_id AS BINARY)':'CAST(n.customer_id AS TEXT)';
+        $profileConversation=$this->mysql?'CAST(n.conversation_id AS BINARY)':'CAST(n.conversation_id AS TEXT)';
         $base="WITH native AS (SELECT * FROM (".$native.") native_both ORDER BY persisted DESC,kind,id DESC LIMIT ".self::LIMIT."),"
             ."captured AS (SELECT n.*,j.observed_at_unix AS j_witness,CASE WHEN ".$bound." THEN j.id ELSE NULL END AS jid,"
             ."CASE WHEN ".$bound." THEN j.observed_at_unix ELSE NULL END AS captured_at,"
