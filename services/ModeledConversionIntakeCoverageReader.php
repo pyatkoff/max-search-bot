@@ -21,7 +21,11 @@ final class ModeledConversionIntakeCoverageReader
         $this->auth();
         if($now<946684800)return $this->fail('invalid_clock');
         if($this->budget->remainingBytes()<12288||$this->budget->remainingMilliseconds()<1000)return $this->fail('budget_headroom');
+        if($this->pdo->inTransaction())return $this->fail('outer_transaction');
+        $owned=false;
         try{
+            if($this->mysql){$this->pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');$this->pdo->exec('SET TRANSACTION READ ONLY');}
+            $this->pdo->beginTransaction();$owned=true;
             $doc="CASE WHEN JSON_VALID(s.state_json) AND ".($this->mysql?'OCTET_LENGTH':'LENGTH')."(s.state_json)<=8192 THEN s.state_json ELSE '{}' END";
             $meta=$this->query("SELECT s.enabled AS se,".$this->scalar($doc,'message.floor')." AS mf,"
                 .$this->scalar($doc,'event.floor')." AS ef,p.enabled AS pe,p.journal_cursor AS pc,v.profile_cursor AS vc,v.mode AS vm,v.goal_id AS vg,v.contract_version AS ver"
@@ -77,10 +81,12 @@ final class ModeledConversionIntakeCoverageReader
                 }else $out['by_platform'][$platform]=$v;
             }
             foreach($keys as$k)if($out['all'][$k]!==$out['by_platform']['max'][$k]+$out['by_platform']['telegram'][$k])return $this->fail('invalid_projection');
+            $this->pdo->rollBack();$owned=false;
             $this->auth();return $out;
         }catch(ModeledConversionStatusLimit|DomainException $e){throw $e;}
         catch(PDOException $ignored){return $this->fail('storage_unavailable');}
         catch(UnexpectedValueException $ignored){return $this->fail('invalid_projection');}
+        finally{if($owned&&$this->pdo->inTransaction())$this->pdo->rollBack();}
     }
     private function sql(int $from,int $now,array $m):string
     {

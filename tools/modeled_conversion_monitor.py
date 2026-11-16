@@ -21,6 +21,7 @@ STATUSES = {"ok", "off", "degraded", "unavailable"}
 FLAGS = {
     "delivery_tick_stale", "profile_tick_stale", "delivery_tick_errors",
     "profile_tick_errors", "profile_disabled", "ready_queue_stale",
+    "intake_capture_stale", "intake_profile_stale", "intake_value_collection_stale",
     "upload_outcome_unknown", "api_row_rejected", "report_unavailable",
     "storage_unavailable", "configuration_unavailable", "invalid_clock",
     "health_metadata_unavailable", "monitor_transport_unavailable", "monitor_source_mismatch",
@@ -271,6 +272,9 @@ def message_for(pending, role=None):
             return "AnyTour: внешний контроль — работа восстановлена."
         return "AnyTour: технический мониторинг — работа восстановлена."
     descriptions = {
+        "intake_capture_stale": "Новые записи туристов ожидают захвата более 15 минут.",
+        "intake_profile_stale": "Новые записи туристов ожидают профиля более 15 минут.",
+        "intake_value_collection_stale": "Сохранённые профили ожидают проверки прироста ценности более 15 минут.",
         "visit_proof_stale": "Сверка начислений с визитами не обновлялась более 15 минут.",
         "visit_proof_refresh_failed": "Не удалось обновить сверку начислений с визитами.",
         "delivery_tick_stale": "Обработка конверсий не обновлялась более 15 минут.",

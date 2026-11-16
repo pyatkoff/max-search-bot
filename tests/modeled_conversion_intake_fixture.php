@@ -109,6 +109,15 @@ function modeledIntakeCoverageAssertions(PDO $p,callable $check):void
         try{(new ModeledConversionIntakeCoverageReader($p,static function()use(&$calls):void{if(++$calls===5)throw new DomainException('revoked');},new ModeledConversionStatusBudget()))->read($now);}
         catch(DomainException $expected){$denied=true;}
         $check('revocation after aggregate copy suppresses the complete native intake result',$denied&&$calls===5&&$snapshot()===$before);
+        $p->beginTransaction();
+        $outer=(new ModeledConversionIntakeCoverageReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($now);
+        $check('intake does not adopt or roll back a caller transaction',!$outer['available']&&$outer['reason']==='outer_transaction'&&$p->inTransaction());
+        $p->rollBack();
+        $p->exec("UPDATE modeled_conversion_value_export_settings SET mode='off'");
+        $off=(new ModeledConversionIntakeCoverageReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($now);
+        $check('an intentionally disabled sender never creates a value-collector incident',
+            $off['available']&&ModeledConversionDeliveryHealth::intakeFlags($off)===['intake_capture_stale','intake_profile_stale']);
+        $p->exec("UPDATE modeled_conversion_value_export_settings SET mode='send'");
         $small=new ModeledConversionStatusBudget();$small->consumeBytes(60000);
         $none=(new ModeledConversionIntakeCoverageReader($p,static function():void{},$small))->read($now);
         $check('intake low headroom stays unavailable rather than reporting successful zero coverage',

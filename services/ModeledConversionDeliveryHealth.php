@@ -30,7 +30,8 @@ final class ModeledConversionDeliveryHealth
         if(($intake['available']??false)===true&&($intake['state']['capture_enabled']??false)
             &&($intake['state']['profiles_enabled']??false)&&($intake['coverage']['native_clock_scope_complete']??false)){
             foreach(['late_capture'=>'intake_capture_stale','late_profile'=>'intake_profile_stale','late_collector'=>'intake_value_collection_stale']as$key=>$flag)
-                if(is_int($intake['all'][$key]??null)&&$intake['all'][$key]>0)$flags[]=$flag;
+                if(($key!=='late_collector'||($intake['state']['delivery_mode']??null)==='send')
+                    &&is_int($intake['all'][$key]??null)&&$intake['all'][$key]>0)$flags[]=$flag;
         }
         return $flags;
     }
@@ -140,7 +141,10 @@ final class ModeledConversionDeliveryHealth
             // A saved heartbeat alone does not establish completeness for individual current inputs.
             require_once __DIR__.'/ModeledConversionIntakeCoverageReader.php';
             $intake=(new ModeledConversionIntakeCoverageReader($pdo,$guard,$budget??new ModeledConversionStatusBudget()))->read($now);
-            $out['intake_coverage']=$intake;
+            // Public technical telemetry must not acquire cohort amounts, input counts or customer metadata.
+            $out['intake_coverage']=['available'=>($intake['available']??false)===true,
+                'native_clock_scope_complete'=>$intake['coverage']['native_clock_scope_complete']??null];
+            if(($intake['available']??false)!==true)$out['intake_coverage']['reason']=$intake['reason']??'not_evaluated';
             $flags=array_merge($flags,self::intakeFlags($intake));
             $out['flags']=array_values(array_unique($flags));$out['status']=$out['flags']===[]?'ok':'degraded';$guard();return$out;
         }catch(PDOException|JsonException $ignored){$guard();$out['status']='unavailable';$out['flags']=['storage_unavailable'];return$out;}
