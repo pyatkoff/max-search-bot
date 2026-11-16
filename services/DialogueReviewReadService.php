@@ -467,7 +467,7 @@ final class DialogueReviewReadService
         $body=base64_decode(strtr($m[1],'-_','+/').str_repeat('=',(4-strlen($m[1])%4)%4),true);
         try{$v=json_decode((string)$body,true,16,JSON_THROW_ON_ERROR);}catch(Throwable $e){self::fail('stale_cursor');}
         $keys=match($kind){'inventory'=>['v','k','f','a','t','e'],'dialogue'=>['v','k','d','r','e'],'context'=>['v','k','d','r','m','b','p','t','e'],default=>[]};
-        $kinds=$kind==='inventory'&&!$this->historyAudit?['inventory','inventory_newest']:[$kind];
+        $kinds=$kind==='inventory'&&(!$this->historyAudit||$this->forecastReview)?['inventory','inventory_newest']:[$kind];
         $now=$this->now();
         if(!is_array($v)||count($v)!==count($keys)||array_diff(array_keys($v),$keys)||($v['v']??null)!==1||!in_array($v['k']??null,$kinds,true)
             ||!is_int($v['e'])||$v['e']<$now||$v['e']>$now+self::CURSOR_TTL)self::fail('stale_cursor');
