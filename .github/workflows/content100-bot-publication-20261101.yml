@@ -1,4 +1,4 @@
-name: Read existing price scheduler and installed module
+name: Deliver accepted660 module only without collection
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
@@ -11,52 +11,60 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '94442c26b6cbbd9120bbbf8e33aba7bb96de05f1' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '85cef545cd49d9ed457ef54d6eeecb72bc4b9e7f' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 2
-      - name: Validate bounded read-only source
+      - name: Authenticate accepted source and immutable module; test only installation guards
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = 94442c26b6cbbd9120bbbf8e33aba7bb96de05f1
+          test "$(git rev-parse HEAD^)" = 85cef545cd49d9ed457ef54d6eeecb72bc4b9e7f
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
-          echo '09a497d9e816b574ca0868f75c0512fef0d5cf8355ec480b1005ef0772ea38eb  tools/direct_demand/operations/inspect-monitor660-readiness-20261116.php' | sha256sum --check
-          php -l tools/direct_demand/operations/inspect-monitor660-readiness-20261116.php
+          p=tools/direct_demand/operations
+          echo "fc65036ed9477c27b4695df7e58fb3a95c9298cf88c52722e3a87d20331735a5  $p/install-accepted-monitor660-module-20261116.php" | sha256sum --check
+          echo "09a497d9e816b574ca0868f75c0512fef0d5cf8355ec480b1005ef0772ea38eb  $p/inspect-monitor660-readiness-20261116.php" | sha256sum --check
+          php -l "$p/install-accepted-monitor660-module-20261116.php"
+          php "$p/install-accepted-monitor660-module-20261116.php" --self-test
           umask 077
-          mkdir "$RUNNER_TEMP/monitor660-readiness"
-      - name: Read existing workflow status and actual recent runs without dispatch
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
+          mkdir "$RUNNER_TEMP/module660"
           python3 - <<'PY'
-          import datetime,json,os,pathlib,subprocess
-          root='repos/pyatkoff/poisk-turov-test/'
-          requests={'workflow':root+'actions/workflows/346454799','scheduled':root+'actions/workflows/346454799/runs?event=schedule&per_page=8','latest':root+'actions/workflows/346454799/runs?per_page=8','main':root+'git/ref/heads/main'}
-          report={'checked_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'mode':'GET_only_existing_workflow','requests':0,'workflow_mutations':0,'dispatches':0,'results':{}}
-          for label,url in requests.items():
-            result=subprocess.run(['gh','api','--method','GET',url],capture_output=True,text=True,timeout=30);report['requests']+=1
-            if result.returncode!=0:
-              report['results'][label]={'read_ok':False,'exit_code':result.returncode};continue
-            data=json.loads(result.stdout)
-            if label=='workflow':value={k:data.get(k) for k in ['id','name','path','state','created_at','updated_at']}
-            elif label=='main':value={'ref':data.get('ref'),'sha':data.get('object',{}).get('sha')}
-            else:value={'total_count':data.get('total_count'),'runs':[{k:r.get(k) for k in ['id','head_sha','head_branch','event','status','conclusion','created_at','run_started_at','updated_at','run_attempt']} for r in data.get('workflow_runs',[])]}
-            report['results'][label]={'read_ok':True,**value}
-          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'monitor660-readiness/scheduler.json';out.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
-          print('EXISTING_SCHEDULER_READ='+json.dumps(report,separators=(',',':')))
+          import json,pathlib,subprocess,hashlib,base64,zipfile,io,os
+          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'module660'
+          def api(repo,path):return json.loads(subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/'+repo+'/'+path],timeout=40))
+          s=api('max-search-bot','pulls/1578');c=api('poisk-turov-test','pulls/5062')
+          assert s['merged'] and s['head']['sha']=='b3d5dca2a7c8cecee88db1404cb2a8c28d26841e'
+          assert c['merged'] and c['merge_commit_sha']=='e1b510bffc3c7f4214023a43528efbfe4915aaa3'
+          runs=[]
+          for repo,rid,head in [('max-search-bot',43936775116,'814b7e7801f85da716cbb2af002e3b0e0b352b19'),('poisk-turov-test',43939512605,'e1b510bffc3c7f4214023a43528efbfe4915aaa3'),('poisk-turov-test',43939512770,'e1b510bffc3c7f4214023a43528efbfe4915aaa3')]:
+            r=api(repo,'actions/runs/'+str(rid));assert r['head_sha']==head and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success';runs.append({'repo':repo,'run_id':rid,'head':head,'conclusion':r['conclusion']})
+          a=api('max-search-bot','actions/artifacts/14260164994');assert not a['expired'] and a['workflow_run']['id']==43936775116 and a['digest']=='sha256:d9bc590d5ddd7788e93eda1a15e5e768d45cf21f0e17a258d3853ebc5a18d799'
+          raw=subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/max-search-bot/actions/artifacts/14260164994/zip'],timeout=60);assert hashlib.sha256(raw).hexdigest()==a['digest'].split(':')[1]
+          with zipfile.ZipFile(io.BytesIO(raw)) as z:
+            assert z.testzip() is None;bundle=z.read('monitor-price-hook.php')
+          assert len(bundle)==608018 and hashlib.sha256(bundle).hexdigest()=='dd85c064745f77f2b72b637fa4b572562ffcc2a318c2f35578c016e6f5e88e72'
+          source=pathlib.Path('tools/direct_demand/operations/install-accepted-monitor660-module-20261116.php').read_text();assert source.count('__BUNDLE__')==1
+          (w/'install.php').write_text(source.replace('__BUNDLE__',base64.b64encode(bundle).decode()))
+          (w/'intent.json').write_text(json.dumps({'kind':'accepted_code_delivery_only','source_pr':1578,'consumer_pr':5062,'source_artifact':a['id'],'artifact_sha256':a['digest'],'module_sha256':hashlib.sha256(bundle).hexdigest(),'module_bytes':len(bundle),'module_count':660,'original_gates':runs,'collector_dispatches':0,'module_execution':False},indent=2)+'\n')
+          print('ACCEPTED660_CODE_ONLY_INTENT_VERIFIED')
           PY
-      - name: Prepare existing server connection with retained host pin
+          php -l "$RUNNER_TEMP/module660/install.php"
+      - name: Retain original delivery intent
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: accepted660-module-intent-${{ github.run_id }}
+          path: ${{ runner.temp }}/module660/intent.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Prepare unchanged server connection and host pin
         env:
           KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -71,19 +79,38 @@ jobs:
           ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
           python3 - <<'PY'
           import os,re,subprocess,base64,hashlib,pathlib
-          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER'];assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',user)
           scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35);matches=[]
           for line in scan.stdout.splitlines():
-            fields=line.split()
-            if len(fields)<3 or fields[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+            f=line.split()
+            if len(f)<3 or f[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(f[2])).digest()).decode().rstrip('=')
             except Exception:continue
             if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP';pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Inspect installed bundle and final journal state once
+      - name: Fresh unchanged source and no competing collector or application deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,pathlib,subprocess,os,datetime
+          def api(repo,path):return json.loads(subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/'+repo+'/'+path],timeout=30))
+          assert api('poisk-turov-test','git/ref/heads/main')['object']['sha']=='e1b510bffc3c7f4214023a43528efbfe4915aaa3'
+          assert api('max-search-bot','git/ref/heads/main')['object']['sha']=='a4bab4c0a2ed48773fe159c40ada982b88c7af40'
+          assert api('max-search-bot','git/ref/heads/audit/content100-bot-publication-20261101')['object']['sha']==os.environ['GITHUB_SHA']
+          reads=[]
+          for state in ['in_progress','queued','waiting']:
+            d=api('poisk-turov-test','actions/workflows/346454799/runs?status='+state+'&per_page=100');assert d['total_count']==0 and not d['workflow_runs'],('COLLECTOR_BUSY',state)
+            reads.append({'workflow_id':346454799,'status':state,'total_count':0})
+          d=api('max-search-bot','actions/runs?head_sha=a4bab4c0a2ed48773fe159c40ada982b88c7af40&per_page=100');assert d['total_count']<=100 and len(d['workflow_runs'])==d['total_count']
+          assert all(r['status']=='completed' for r in d['workflow_runs']),'APPLICATION_RELEASE_STILL_ACTIVE'
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'module660/prewrite-read.json';p.write_text(json.dumps({'at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'current_source_verified':True,'collector_status_reads':reads,'app_exact_source_runs_all_completed':True,'mutation_requests':0},indent=2)+'\n')
+          print('FRESH_CODE_DELIVERY_ADMISSION_OK')
+          PY
+      - name: Replace only the admitted module once under existing journal lock
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -91,21 +118,42 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          result="$RUNNER_TEMP/monitor660-readiness/runtime.json"
+          w="$RUNNER_TEMP/module660"
           status=0
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; GIT_OPTIONAL_LOCKS=0 php' < tools/direct_demand/operations/inspect-monitor660-readiness-20261116.php > "$result" || status=$?
-          printf '%s\n' "$status" > "$RUNNER_TEMP/monitor660-readiness/exit-code.txt"
-          cat "$result"
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; GIT_OPTIONAL_LOCKS=0 php' < "$w/install.php" > "$w/result.json" || status=$?
+          printf '%s\n' "$status" > "$w/exit-code.txt"
+          cat "$w/result.json"
           exit "$status"
-      - name: Retain bounded observation
+      - name: Independent readback without executing the installed module
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          w="$RUNNER_TEMP/module660"
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; GIT_OPTIONAL_LOCKS=0 php' < tools/direct_demand/operations/inspect-monitor660-readiness-20261116.php > "$w/readback.json"
+          cat "$w/readback.json"
+          python3 - <<'PY'
+          import pathlib,json,os
+          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'module660';r=json.loads((w/'result.json').read_bytes());v=json.loads((w/'readback.json').read_bytes())
+          assert r['ok'] and r['code_replacements']==1 and r['new_count']==660 and r['module_executions']==0
+          assert all(r[k]==0 for k in ['collector_runs','post_writes','feed_writes','supplier_calls','global_journal_writes'])
+          assert v['ok'] and v['installed_hook']['matches_accepted660'] and v['installed_hook']['roster_count']==660 and not v['installed_hook']['runtime_pin_mismatches']
+          assert v['journal']['pending_is_null'] and v['journal']['bytes']==339101253 and v['journal']['last_line_sha256']=='918ad5f627d274c8f6793a59eeae54984b2293cc78deddf60bf0fcc882e34b5a'
+          print('ACCEPTED660_INSTALLED_AND_INDEPENDENTLY_READ_BACK NO_PRICE_OR_COLLECTOR_EXECUTION')
+          PY
+      - name: Retain exact delivery outcome
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: monitor660-readiness-${{ github.run_id }}
-          path: ${{ runner.temp }}/monitor660-readiness/
-          retention-days: 14
+          name: accepted660-module-outcome-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/module660/*.json
+            ${{ runner.temp }}/module660/*.txt
+          retention-days: 30
           if-no-files-found: error
       - name: Remove runner-only connection files
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/module660/install.php"
