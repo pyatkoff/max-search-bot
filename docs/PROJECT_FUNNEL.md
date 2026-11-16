@@ -108,6 +108,9 @@ An existing contains condition is never rewritten by admission; it blocks offlin
 No goal is created, renamed or changed. New businesses cannot borrow AnyTour's
 counter. `tools/max_channel_attribution.php project-probe <project_key>` is a
 GET-only admission check and returns only fixed result enums, never a credential.
+For AppleService39 it also includes the bounded `stored_funnel` read described
+below. The original top-level `ok`, `status`, `conversion_requests` and exit status
+remain the result of goal admission, independently of the stored-data read.
 
 An optional `prediction` provides a model ID/version and evidence SHA-256.
 The existing calibrated form keeps its validation/expiry instants (maximum
@@ -197,6 +200,78 @@ No test visit, dialogue or synthetic conversion is created to demonstrate it.
 
 No existing native post is recreated, republished or reconciled by this change.
 No feed is imported into Direct and no ad spend is started by these endpoints.
+
+## Reading saved Apple funnel evidence
+
+`tools/max_channel_attribution.php project-status appleservice39` reads the saved
+Apple/MAX funnel without provider requests. The existing Apple `project-probe`
+adds the same report as `stored_funnel` after its existing GET-only goal check,
+so ordinary installation diagnostics can expose it without a new operation or
+workflow. Other projects retain their original probe result. Neither reader
+collects candidates, resolves identity, enriches visits, reconciles an upload,
+runs a worker or sends a conversion. `conversion_requests: 0` records that this
+diagnostic sent nothing; it is not evidence of historical conversion delivery.
+
+The report is safe for the existing public diagnostic log. Its fixed keys and
+allowlisted reasons expose no ClientID, native/customer/conversation/visit/upload
+identifier, message text, service price, expected revenue, raw context or private
+configuration value. `approved_public_policy_matches` compares the loaded
+effective configuration with the approved public Apple profile, including
+`send`, the 20% assumption, exact prices, bot, counter, target and offer mappings.
+It reports only a boolean; missing settings and a policy mismatch have separate
+fixed reasons. The reader does not inspect or publish the source of an override.
+
+`outbox` separates allowlisted saved states under the approved policy from other
+historical policies. Its population includes marked-test rows, before receipt
+validation. `intake` reports marked and unmarked conversations separately;
+`is_test = 0` means only that no test mark is present. `observations` counts scoped
+observation rows and recorded ClientID presence, not distinct visitors or
+send-eligible forecasts. None of these counts proves organic traffic or a sale.
+
+`first_saved_forecast` selects the earliest saved Apple predictive row by ID
+before checking policy, conversation scope, test marks or outcome. An orphan,
+test-marked, historical, ambiguous or invalid first row stays unconfirmed; the
+reader never substitutes a later convenient success. Verification follows its
+original project/bot/customer/channel/user/visit/ClientID binding, native bot and
+funnel receipts, immutable estimate, and any frozen refinement receipt. It
+checks the stored price times the stored 20% probability in integer kopecks and
+the saved event time against the recorded stage and selected bot clock. It does
+not reprice the row or use today's sending window to invalidate an older receipt.
+A refinement funnel receipt may have been saved just after the selected bot and
+forecast clock; those distinct clocks are preserved.
+
+`retained_api_receipt` and `retained_processed_receipt` describe stored worker
+evidence, without a fresh provider poll. A saved upload ID and coherent accepted
+status establish the former. Only `state = processed` with `upload_status =
+PROCESSED` and no saved error establishes the latter. An accepted upload already
+reporting `PROCESSED` or `LINKAGE_FAILURE` remains accepted until the normal
+worker polls it. A failed row reporting `PROCESSED` after quantity rejection
+remains failed. The worker originally requires one source and one accepted row,
+but the generic outbox does not retain those quantities or a provider processing
+timestamp; this reader cannot independently reauthenticate them. `observed_at`
+is the diagnostic read time, and processing time is explicitly not observed.
+Manager-path flags describe saved requests, assignment, outbound messages and
+events, without claiming fresh delivery or actual manager acceptance.
+
+All database reads use one read-only repeatable snapshot. A caller's existing
+transaction is refused without changing it. MySQL 5.7.8+ uses the SELECT execution
+timeout hint; supported MariaDB 10/11 uses a per-statement time limit. Unsupported
+timeout capability fails closed. Each statement is limited to at most two
+seconds within a five-second reader budget; this does not bound establishing the
+PDO connection or guarantee a hard network wall-clock deadline. Queries cap row
+counts and text fields in SQL. The largest event result is 201 rows times 64 KiB
+of payload, about 12.6 MiB plus fixed columns. The separate 128 KiB cumulative
+budget counts processed row JSON; it is not a hard buffered-PDO or network-memory
+limit. SQLite fixtures enforce query-only mode and restore the caller's mode.
+
+Each aggregate slice has `available` and `complete` flags. A 101st aggregate row,
+missing table, invalid evidence, row-byte limit or deadline produces an explicit
+incomplete/unavailable result and unknown counts or receipt flags, never a
+fabricated zero. The standalone status exits successfully only when its read is
+available and complete. A nested read failure does not change the goal probe's
+top-level admission result or exit status. Successful synthetic regressions
+prove this contract; a first natural processed forecast remains unobserved until
+the corresponding saved evidence exists and is read after installation.
 
 ## Verification
 

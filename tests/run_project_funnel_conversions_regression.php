@@ -8,6 +8,7 @@ CREATE TABLE lead_stage_history(id INTEGER PRIMARY KEY AUTOINCREMENT,conversatio
 CREATE TABLE max_channel_attribution_settings(project_key TEXT PRIMARY KEY,mode TEXT,counter_id TEXT,activated_at_unix INTEGER,message_cursor INTEGER DEFAULT 0);
 CREATE TABLE max_channel_conversion_outbox(id INTEGER PRIMARY KEY AUTOINCREMENT,project_key TEXT,platform TEXT DEFAULT 'max',conversation_id INTEGER,external_user_id TEXT,counter_id TEXT,target TEXT,transport_target TEXT,event_unix INTEGER,client_id TEXT,tracker_record_id TEXT,tracker_observed_unix INTEGER,state TEXT DEFAULT 'pending',next_attempt_unix INTEGER DEFAULT 0,claim_token TEXT,claimed_at_unix INTEGER,attempts INTEGER DEFAULT 0,upload_id TEXT,upload_status TEXT,last_error TEXT DEFAULT '',funnel_context_json TEXT,funnel_policy_sha256 TEXT,value_rub TEXT,UNIQUE(project_key,conversation_id,target));");
 }
+if(defined('PROJECT_FUNNEL_STATUS_FIXTURE_ONLY'))return;
 $pdo=repairFixture();funnelSchema($pdo);funnelConversionSchema($pdo);$now=time();
 $base=ProjectFunnelSettings::load(ProjectMaxConnection::resolve('appleservice39'));
 $s=$base;$s['metrika']=['counter_id'=>'99900011','mode'=>'collect','goals'=>['customer_activity'=>'repair_activity','manager_request'=>'repair_request','customer_reply'=>'repair_reply','working'=>'repair_working','offer_sent'=>'repair_offer','booking'=>'repair_booking','won'=>'repair_won','predictive_value'=>'repair_expected_value']];
@@ -472,4 +473,172 @@ $wonDb->prepare('INSERT INTO conversation_events(conversation_id,event_type,acto
     $wonConversation['id'],'project_funnel_stage','manager',json_encode(ConversationRecordClock::stamp([
         'project_key'=>'appleservice39','bot_key'=>'id390521129062_bot','stage'=>'won'],$wonSelected['now']))]);
 funnelCheck('observed won stage suppresses an otherwise valid refinement',funnelRefinementHeld($wonDb,$wonSelected['now']));
+
+function funnelStatusCli(string $action,string $project='appleservice39',bool $broken=false):array{
+    $root=dirname(__DIR__);$tmp=sys_get_temp_dir().'/funnel-status-'.bin2hex(random_bytes(6));
+    mkdir($tmp,0700);mkdir($tmp.'/tools',0700);
+    try{
+        symlink($root.'/services',$tmp.'/services');copy($root.'/tools/max_channel_attribution.php',$tmp.'/tools/max_channel_attribution.php');
+        file_put_contents($tmp.'/config.php','<?php define("PROJECT_FUNNEL_STATUS_FIXTURE_ONLY",true);require '.var_export(__FILE__,true).';'
+            .'$fixture=funnelOwnerFixture("as39_model-iphone-13");ProjectMaxConnection::resetForTests(repairFixtureRegistry());'
+            .($broken?'$fixture[0]->exec("DROP TABLE max_channel_conversion_outbox");':'')
+            .($action==='project-status'?'define("METRIKA_OAUTH_TOKEN","PRIVATE_PROVIDER_CANARY");function curl_init($url=null){file_put_contents('.var_export($tmp.'/provider-called',true).',"called");throw new RuntimeException("provider_forbidden");}':''));
+        $process=proc_open([PHP_BINARY,'-d','allow_url_fopen=0','-d','disable_functions=curl_init,curl_exec,curl_multi_exec,fsockopen,pfsockopen,stream_socket_client',
+            $tmp.'/tools/max_channel_attribution.php',$action,$project],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+        if(!is_resource($process))throw new RuntimeException('status_fixture_process');fclose($pipes[0]);
+        $out=stream_get_contents($pipes[1]);fclose($pipes[1]);$errors=stream_get_contents($pipes[2]);fclose($pipes[2]);$code=proc_close($process);
+        return ['code'=>$code,'data'=>json_decode($out,true),'output'=>$out,'errors'=>$errors,'provider_called'=>is_file($tmp.'/provider-called')];
+    }finally{foreach(['/tools/max_channel_attribution.php','/config.php','/services','/provider-called']as$file)if(is_file($tmp.$file)||is_link($tmp.$file))unlink($tmp.$file);rmdir($tmp.'/tools');rmdir($tmp);}
+}
+$statusCli=funnelStatusCli('project-status');
+funnelCheck('actual provider-disabled CLI reads the Apple stored funnel without running delivery',
+    $statusCli['code']===0&&($statusCli['data']['scope']??null)==='appleservice39_stored_funnel'
+    &&($statusCli['data']['approved_public_policy_matches']??null)===true&&($statusCli['data']['outbox']['examined']??null)===0&&!$statusCli['provider_called']);
+
+require_once dirname(__DIR__).'/services/ProjectFunnelStatusReader.php';
+function funnelStatusFixture(string $entry='as39_pair_model-iphone-13_battery',?callable $beforeCollect=null):array{
+    [$pdo,$ignored,$conversation,$now,$messenger]=funnelOwnerFixture($entry);
+    ProjectMaxConnection::resetForTests(repairFixtureRegistry());$connection=ProjectMaxConnection::resolve('appleservice39');$settings=ProjectFunnelSettings::load($connection);
+    if($entry==='as39_model-iphone-13')$now=funnelRefine($pdo,$messenger)['now'];
+    if($beforeCollect!==null)$beforeCollect($pdo,$conversation,$now);
+    $collect=$settings;$collect['metrika']['mode']='collect';$registry=repairFixtureRegistry();$registry['appleservice39']['project']['sales_funnel']=$collect;ProjectMaxConnection::resetForTests($registry);
+    ProjectFunnelConversions::tick($pdo,$now,static function(){throw new RuntimeException('fixture_provider_forbidden');});
+    ProjectMaxConnection::resetForTests(repairFixtureRegistry());
+    $row=$pdo->query('SELECT * FROM max_channel_conversion_outbox')->fetch();$repo=new MaxChannelConversionOutbox($pdo);$token=$repo->claimProject($row,$now);
+    $repo->finish((string)$row['id'],$token,['outcome'=>'accepted','upload_id'=>'987654321987654321','status'=>'UPLOADED'],$now);
+    $repo->status($row,['id'=>'987654321987654321','status'=>'PROCESSED','source_quantity'=>1,'line_quantity'=>1],$now+1);
+    return [$pdo,$settings,$conversation,$now+2];
+}
+function funnelStatusRead(PDO $pdo,array $settings,int $now,?float $deadline=null):array{
+    return (new ProjectFunnelStatusReader($pdo,$deadline))->read(ProjectMaxConnection::resolve('appleservice39'),$settings,$now);
+}
+function funnelStatusDatabase(PDO $pdo):string{
+    $snapshot=[];foreach($pdo->query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")->fetchAll(PDO::FETCH_COLUMN)as$table)
+        $snapshot[$table]=$pdo->query('SELECT * FROM "'.str_replace('"','""',$table).'" ORDER BY rowid')->fetchAll();
+    return hash('sha256',json_encode($snapshot,JSON_THROW_ON_ERROR));
+}
+[$statusDb,$statusSettings,$statusConversation,$statusNow]=funnelStatusFixture();
+$statusBefore=funnelStatusDatabase($statusDb);$read=funnelStatusRead($statusDb,$statusSettings,$statusNow);
+funnelCheck('stored reader confirms original visit frozen price and retained processed worker receipt',
+    $read['available']&&$read['complete']&&$read['approved_public_policy_matches']&&$read['outbox']['approved_policy_states']['processed']===1
+    &&$read['first_saved_forecast']['verified']&&$read['first_saved_forecast']['retained_api_receipt']===true
+    &&$read['first_saved_forecast']['retained_processed_receipt']===true&&$read['first_saved_forecast']['manager_path']['request_recorded']===true
+    &&$read['observations']['counts']['verified_with_client_rows']===1);
+foreach($statusDb->query("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")->fetchAll(PDO::FETCH_COLUMN)as$table){
+    foreach(['INSERT','UPDATE','DELETE']as$operation)$statusDb->exec('CREATE TRIGGER "reader_guard_'.$table.'_'.$operation.'" BEFORE '.$operation.' ON "'.$table.'" BEGIN SELECT RAISE(ABORT,\'reader_write_forbidden\'); END');
+}
+$again=funnelStatusRead($statusDb,$statusSettings,$statusNow);
+funnelCheck('repeated status is side effect free under write traps and restores caller query mode',
+    $again===$read&&funnelStatusDatabase($statusDb)===$statusBefore&&!$statusDb->inTransaction()&&(int)$statusDb->query('PRAGMA query_only')->fetchColumn()===0);
+$public=json_encode($read,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+$canaries=['17929400001234567890','987654321987654321','1000.00','5000.00','Замена аккумулятора','iPhone 13','fixture-battery','PRIVATE_PROVIDER_CANARY'];
+$privateKeys=['client_id','external_user_id','conversation_id','customer_id','customer_channel_id','upload_id','visit_id','entry_key','funnel_context_json','value_rub','amount_rub','text','model_id','source_id','policy_sha256'];
+$scan=static function(array $data)use(&$scan,$privateKeys):bool{foreach($data as$key=>$value){if(is_string($key)&&in_array($key,$privateKeys,true))return false;if(is_array($value)&&!$scan($value))return false;}return true;};
+funnelCheck('public stored evidence has no native identifiers money texts or arbitrary settings',
+    strlen($public)<8192&&$scan($read)&&!array_filter($canaries,static fn(string $value):bool=>str_contains($public,$value))
+    &&$read['basis']['processing_time']==='not_observed'&&str_contains($read['basis']['population'],'not_organic'));
+$aged=funnelStatusRead($statusDb,$statusSettings,$statusNow+40*86400);
+funnelCheck('historical processed evidence does not expire with the current sending window',$aged['first_saved_forecast']['verified']&&$aged['first_saved_forecast']['retained_processed_receipt']===true);
+$changed=$statusSettings;$changed['metrika']['mode']='collect';$changed['prediction']['probability']=0.25;$changed['prediction']['model_id']='PRIVATE_MODEL_CANARY';
+$changedRead=funnelStatusRead($statusDb,$changed,$statusNow);
+funnelCheck('effective private changes produce only an approved policy mismatch boolean',
+    $changedRead['approved_public_policy_matches']===false&&$changedRead['reason']==='approved_policy_mismatch'
+    &&$changedRead['first_saved_forecast']['verified']&&!str_contains(json_encode($changedRead),'PRIVATE_MODEL_CANARY'));
+$statusDb->beginTransaction();$outer=funnelStatusRead($statusDb,$statusSettings,$statusNow);
+funnelCheck('reader refuses but never rolls back a caller transaction',!$outer['available']&&$outer['reason']==='outer_transaction'&&$statusDb->inTransaction());$statusDb->rollBack();
+$expiredRead=funnelStatusRead($statusDb,$statusSettings,$statusNow,microtime(true)-1);
+funnelCheck('expired read budget is unavailable rather than an empty successful funnel',!$expiredRead['available']&&$expiredRead['reason']==='read_deadline'&&$expiredRead['outbox']===null);
+
+[$statusRefineDb,$statusRefineSettings,$statusRefineConversation,$statusRefineNow]=funnelStatusFixture('as39_model-iphone-13');
+$refineRead=funnelStatusRead($statusRefineDb,$statusRefineSettings,$statusRefineNow);
+funnelCheck('stored reader verifies both frozen refinement receipts without collecting again',$refineRead['first_saved_forecast']['verified']&&$refineRead['first_saved_forecast']['retained_processed_receipt']===true);
+foreach(['callback'=>false,'contact'=>false,'contact_reply'=>true]as$activity=>$reply){
+    [$activityDb,$activitySettings,$activityConversation,$activityNow]=funnelStatusFixture('as39_pair_model-iphone-13_battery',static function(PDO $pdo,array $conversation,int $at)use($activity,$reply):void{
+        $pdo->prepare("DELETE FROM conversation_events WHERE conversation_id=? AND event_type IN ('waiting_manager','project_funnel_stage')")->execute([$conversation['id']]);
+        $pdo->prepare('DELETE FROM messages WHERE conversation_id=?')->execute([$conversation['id']]);
+        $insert=$pdo->prepare('INSERT INTO messages(conversation_id,direction,sender_type,channel,metadata_json) VALUES(?,?,?,?,?)');
+        if($reply)$insert->execute([$conversation['id'],'outbound','manager','max',json_encode(ConversationRecordClock::stamp(['type'=>'message'],$at))]);
+        $insert->execute([$conversation['id'],'inbound','customer','max',json_encode(ConversationRecordClock::stamp(['type'=>$reply?'contact':$activity],$at))]);
+    });
+    $activityRow=$activityDb->query('SELECT funnel_context_json FROM max_channel_conversion_outbox')->fetchColumn();
+    $activityRead=funnelStatusRead($activityDb,$activitySettings,$activityNow);
+    funnelCheck('stored proof accepts canonical '.$activity.' stage including same-second reply order',
+        json_decode($activityRow,true)['estimate']['stage']===($reply?'customer_reply':'customer_activity')&&$activityRead['first_saved_forecast']['verified']);
+}
+
+$statusMutations=[
+    'foreign counter'=>["UPDATE max_channel_conversion_outbox SET counter_id='98615635'",'scope_unconfirmed'],
+    'foreign platform'=>["UPDATE max_channel_conversion_outbox SET platform='telegram'",'scope_unconfirmed'],
+    'foreign goal'=>["UPDATE max_channel_conversion_outbox SET transport_target='private_other_goal'",'scope_unconfirmed'],
+    'foreign conversation user'=>["UPDATE customer_channels SET external_user_id='7102' WHERE project_key='appleservice39'",'scope_unconfirmed'],
+    'marked test'=>["UPDATE conversations SET is_test=1 WHERE project_key='appleservice39'",'marked_test'],
+    'historical policy'=>["UPDATE max_channel_conversion_outbox SET funnel_policy_sha256='old_policy'",'historical_policy'],
+    'missing original visit'=>["DELETE FROM advertising_visit_observations",'identity_unconfirmed'],
+    'conflicting original CID'=>["UPDATE advertising_visit_observations SET client_id='123456789123456789'",'identity_unconfirmed'],
+    'inconsistent processed status'=>["UPDATE max_channel_conversion_outbox SET upload_status='UPLOADED'",'api_receipt_inconsistent'],
+    'missing retained upload'=>["UPDATE max_channel_conversion_outbox SET upload_id=NULL",'api_receipt_inconsistent'],
+    'oversized saved context'=>["UPDATE max_channel_conversion_outbox SET funnel_context_json='PRIVATE_CONTEXT_CANARY'||hex(zeroblob(10000))",'record_invalid'],
+];
+foreach($statusMutations as$name=>[$sql,$reason]){
+    [$badStatusDb,$badStatusSettings,$badStatusConversation,$badStatusNow]=funnelStatusFixture();$badStatusDb->exec($sql);
+    $beforeStatus=funnelStatusDatabase($badStatusDb);$badRead=funnelStatusRead($badStatusDb,$badStatusSettings,$badStatusNow);
+    funnelCheck('stored proof holds '.$name,!$badRead['first_saved_forecast']['verified']&&$badRead['first_saved_forecast']['reason']===$reason
+        &&$badRead['first_saved_forecast']['retained_processed_receipt']===null&&funnelStatusDatabase($badStatusDb)===$beforeStatus
+        &&!str_contains(json_encode($badRead),'PRIVATE_CONTEXT_CANARY'));
+}
+[$equationDb,$equationSettings,$equationConversation,$equationNow]=funnelStatusFixture();
+$equationRow=$equationDb->query('SELECT * FROM max_channel_conversion_outbox')->fetch();$equationContext=json_decode($equationRow['funnel_context_json'],true);$equationContext['estimate']['value_rub']='1001.00';
+$equationDb->prepare('UPDATE max_channel_conversion_outbox SET value_rub=?,funnel_context_json=?')->execute(['1001.00',json_encode($equationContext)]);
+$equationRead=funnelStatusRead($equationDb,$equationSettings,$equationNow);
+funnelCheck('matching corrupted ledger values do not satisfy the frozen twenty percent equation',$equationRead['first_saved_forecast']['reason']==='estimate_unconfirmed');
+[$clockDb,$clockSettings,$clockConversation,$clockNow]=funnelStatusFixture();
+$clockRow=$clockDb->query('SELECT * FROM max_channel_conversion_outbox')->fetch();$clockContext=json_decode($clockRow['funnel_context_json'],true);$clockContext['estimate']['event_unix']+=5;
+$clockDb->prepare('UPDATE max_channel_conversion_outbox SET event_unix=?,funnel_context_json=?')->execute([$clockContext['estimate']['event_unix'],json_encode($clockContext)]);
+$clockRead=funnelStatusRead($clockDb,$clockSettings,$clockNow+10);
+funnelCheck('matching shifted ledger clocks cannot replace the saved stage and selected bot clock',
+    $clockRead['first_saved_forecast']['reason']==='stage_unconfirmed'&&$clockRead['first_saved_forecast']['retained_processed_receipt']===null);
+[$receiptDb,$receiptSettings,$receiptConversation,$receiptNow]=funnelStatusFixture();
+foreach(['PROCESSED','LINKAGE_FAILURE']as$acceptedStatus){
+    $receiptDb->prepare("UPDATE max_channel_conversion_outbox SET state='accepted',upload_status=?,last_error=''")->execute([$acceptedStatus]);
+    $acceptedRead=funnelStatusRead($receiptDb,$receiptSettings,$receiptNow);
+    funnelCheck('direct accepted '.$acceptedStatus.' receipt does not claim final worker processing',
+        $acceptedRead['first_saved_forecast']['verified']&&$acceptedRead['first_saved_forecast']['retained_api_receipt']===true&&$acceptedRead['first_saved_forecast']['retained_processed_receipt']===false);
+}
+$receiptDb->exec("UPDATE max_channel_conversion_outbox SET state='failed',upload_status='PROCESSED',last_error='api_row_rejected'");$receiptRead=funnelStatusRead($receiptDb,$receiptSettings,$receiptNow);
+funnelCheck('PROCESSED API status with rejected row quantities is retained failure not processed success',
+    $receiptRead['outbox']['approved_policy_states']['failed']===1&&$receiptRead['first_saved_forecast']['retained_api_receipt']===true&&$receiptRead['first_saved_forecast']['retained_processed_receipt']===false);
+$receiptDb->exec("UPDATE max_channel_conversion_outbox SET state='unknown',upload_id=NULL,upload_status=NULL,last_error='upload_outcome_unknown'");$unknownRead=funnelStatusRead($receiptDb,$receiptSettings,$receiptNow);
+funnelCheck('unknown upload remains unknown with no invented retained receipt',$unknownRead['outbox']['approved_policy_states']['unknown']===1
+    &&$unknownRead['first_saved_forecast']['retained_api_receipt']===false&&$unknownRead['first_saved_forecast']['retained_processed_receipt']===false);
+[$cidDb,$cidSettings,$cidConversation,$cidNow]=funnelStatusFixture();
+$longCid='1234567890123456789012345678901234567890';$cidDb->prepare('UPDATE max_channel_conversion_outbox SET client_id=?')->execute([$longCid]);$cidDb->prepare('UPDATE advertising_visit_observations SET client_id=?')->execute([$longCid]);
+funnelCheck('canonical forty digit ClientID is checked privately without truncation',funnelStatusRead($cidDb,$cidSettings,$cidNow)['first_saved_forecast']['verified']);
+[$firstDb,$firstSettings,$firstConversation,$firstNow]=funnelStatusFixture();$firstRow=$firstDb->query('SELECT * FROM max_channel_conversion_outbox')->fetch();
+$firstDb->exec('UPDATE max_channel_conversion_outbox SET conversation_id=999999');unset($firstRow['id']);
+$firstDb->prepare('INSERT INTO max_channel_conversion_outbox('.implode(',',array_keys($firstRow)).') VALUES('.implode(',',array_fill(0,count($firstRow),'?')).')')->execute(array_values($firstRow));
+$firstRead=funnelStatusRead($firstDb,$firstSettings,$firstNow);
+funnelCheck('orphan earliest forecast is not hidden by a later valid processed row',$firstRead['first_saved_forecast']['reason']==='scope_unconfirmed'&&$firstRead['first_saved_forecast']['retained_processed_receipt']===null);
+$firstDb->exec('DELETE FROM max_channel_conversion_outbox WHERE id=1');
+funnelCheck('later receipt in the preceding fixture is independently valid',funnelStatusRead($firstDb,$firstSettings,$firstNow)['first_saved_forecast']['retained_processed_receipt']===true);
+[$limitDb,$limitSettings,$limitConversation,$limitNow]=funnelStatusFixture();
+for($i=0;$i<100;$i++)$limitDb->exec("INSERT INTO max_channel_conversion_outbox(project_key,platform,conversation_id,counter_id,target,transport_target,state,funnel_policy_sha256) VALUES('appleservice39','max',".(900000+$i).",'42611469','funnel_predictive_value','predict','pending','historical')");
+$limitRead=funnelStatusRead($limitDb,$limitSettings,$limitNow);
+funnelCheck('bounded outbox sentinel reports incomplete coverage without fabricated zero totals',!$limitRead['complete']&&!$limitRead['outbox']['complete']
+    &&$limitRead['outbox']['reason']==='row_limit'&&$limitRead['outbox']['approved_policy_states']===null&&$limitRead['outbox']['other_policy_states']===null);
+[$bytesDb,$bytesSettings,$bytesConversation,$bytesNow]=funnelStatusFixture();
+$bytesInsert=$bytesDb->prepare("INSERT INTO conversation_events(conversation_id,event_type,actor_type,payload_json) VALUES(?,'waiting_manager','system',?)");
+for($i=0;$i<4;$i++)$bytesInsert->execute([$bytesConversation['id'],json_encode(ConversationRecordClock::stamp(['private_note'=>'PRIVATE_BYTES_CANARY'.str_repeat('x',40000)],$bytesNow))]);
+$bytesRead=funnelStatusRead($bytesDb,$bytesSettings,$bytesNow);
+funnelCheck('processed row byte budget holds private oversized history without leaking its payload',
+    !$bytesRead['complete']&&$bytesRead['first_saved_forecast']['reason']==='byte_limit'&&$bytesRead['first_saved_forecast']['retained_processed_receipt']===null
+    &&!str_contains(json_encode($bytesRead),'PRIVATE_BYTES_CANARY'));
+[$missingDb,$missingSettings,$missingConversation,$missingNow]=funnelStatusFixture();$missingDb->exec('DROP TABLE advertising_visit_observations');
+$missingRead=funnelStatusRead($missingDb,$missingSettings,$missingNow);
+funnelCheck('missing slice storage is explicit unknown while independent counts remain qualified',!$missingRead['complete']&&!$missingRead['observations']['available']
+    &&$missingRead['observations']['counts']===null&&$missingRead['outbox']['approved_policy_states']['processed']===1
+    &&$missingRead['first_saved_forecast']['retained_processed_receipt']===null);
+$probeCli=funnelStatusCli('project-probe');$probeBroken=funnelStatusCli('project-probe','appleservice39',true);$otherProbe=funnelStatusCli('project-probe','repair_two');
+foreach([$probeCli,$probeBroken]as$probe){$goal=$probe['data'];unset($goal['stored_funnel']);funnelCheck('CLI preserves original goal result and exit independently of stored status',
+    $probe['code']===1&&$goal===['ok'=>false,'status'=>'credential_unavailable','conversion_requests'=>0]&&isset($probe['data']['stored_funnel']));}
+funnelCheck('other project probe keeps its exact original three-field contract',$otherProbe['code']===1&&$otherProbe['data']===['ok'=>false,'status'=>'project_unavailable','conversion_requests'=>0]);
 echo 'PROJECT FUNNEL CONVERSIONS REGRESSION PASSED '.$passed.PHP_EOL;
