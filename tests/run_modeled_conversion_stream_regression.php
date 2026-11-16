@@ -658,6 +658,130 @@ function modeledProfileReassessmentAssertions(PDO $p,callable $check):void
         $deniedReceipt['reassessment']['written']===1&&$deniedNow['access_status']==='denied'
         &&$deniedNow['semantic_prediction']['status']==='access_denied'
         &&ModeledConversionValueContract::candidate($deniedNow,$deniedNow['subject'],$since,time())===null);
+    // This existing entry point also runs on native MySQL without another runner.
+    modeledProfileReassessmentCatchUpAssertions($p,$check);
+}
+
+/** Reuse the same finite scheduled phase for saturated current-generation repairs. */
+function modeledProfileReassessmentCatchUpAssertions(PDO $p,callable $check):void
+{
+    $now=time()-120;
+    $setup=static function(int $count=40,int $refs=1)use($p,$now):array{
+        modeledStreamSchema($p);modeledProfileSchema($p);
+        $source=new ModeledConversionStream($p);$profiles=new ModeledConversionProfiles($p);
+        modeledStreamMessage($p,10,11);$source->start($now);
+        modeledStreamMessage($p,11,11,'Подберите тур в Турцию на 7 ночей, 2 взрослых');
+        $source->tick($now+1);$profiles->start();
+        $snap=json_decode($p->query("SELECT snapshot_json FROM modeled_conversion_stream_versions WHERE source_kind='message' AND source_id=11 ORDER BY id DESC LIMIT 1")->fetchColumn(),true,64,JSON_THROW_ON_ERROR);
+        for($i=0;$i<$count;$i++)for($j=0;$j<$refs;$j++){
+            if($i===0&&$j===0)continue;
+            $x=$snap;$x['source_id']=(string)(400000+$i*50+$j);
+            $x['customer_key']=$x['conversation_id']=$i===0?'11':(string)(6999+$i);
+            if($refs>1)$x['payload']['text'].=str_repeat(' ',6000);
+            modeledProfileAppend($p,$x,$now+2);
+        }
+        do{$receipt=$profiles->tick($now+3);}while($receipt['pending_revisions']>0);
+        // Coherent fixture-only old source generation; semantic model itself is unchanged.
+        foreach($p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)as$row){
+            $v=json_decode($row['profile_json'],true,128,JSON_THROW_ON_ERROR);
+            $v['processing']['assessment_namespace']=str_repeat('0',64);$v['processing']['assessment_kind']='legacy';
+            $p->prepare('UPDATE modeled_conversion_profile_versions SET profile_json=?,assessment_namespace=?,assessment_kind=?,observed_at_unix=? WHERE id=?')
+                ->execute([json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),str_repeat('0',64),'legacy',$now+3,$row['id']]);
+        }
+        return [$profiles,$snap];
+    };
+    $rows=static fn():array=>$p->query('SELECT id,observed_at_unix,journal_cursor,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $repairs=static fn():int=>(int)$p->query("SELECT COUNT(*) FROM modeled_conversion_profile_versions WHERE assessment_kind='repair'")->fetchColumn();
+    $journal=static fn():array=>$p->query('SELECT id,revision_hash,snapshot_json FROM modeled_conversion_stream_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $cursor=static fn():string=>(string)$p->query("SELECT journal_cursor FROM modeled_conversion_profiles_state WHERE project_key='anytour'")->fetchColumn();
+    $clockCalls=0;$clock=static function()use(&$clockCalls,$now):int{$clockCalls++;return $now+5;};
+    $monotonic=static fn():int=>0;
+    [$profiles,$snap]=$setup();$old=$rows();$sourceRows=$journal();$beforeCursor=$cursor();$receipts=[];
+    $r=ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic,
+        static function(array $receipt)use(&$receipts):void{$receipts[]=$receipt;});
+    $bounded=count($receipts)===4;
+    foreach($receipts as$receipt)$bounded=$bounded&&$receipt['processed_revisions']===0
+        &&$receipt['profiles_written']===8&&$receipt['reassessment']['written']===8
+        &&$receipt['pending_revisions']===0&&$receipt['journal_rows_read']<=500&&$receipt['payload_bytes']<=1048576;
+    $check('one ordinary phase reassesses thirty two of forty stale-namespace scopes without a fifth batch',
+        $clockCalls===4&&count($rows())===72&&$repairs()===32&&$bounded&&$cursor()===$beforeCursor);
+    $check('scheduled reassessment preserves every early packet and captured source revision',
+        $old===array_slice($rows(),0,40)&&$sourceRows===$journal());
+    $first=$rows();$clockCalls=0;
+    ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic);
+    $check('the next ordinary phase finishes the old cohort once and stops on empty work',
+        $clockCalls===2&&count($rows())===80&&$repairs()===40&&$first===array_slice($rows(),0,72));
+    $complete=$rows();$clockCalls=0;
+    $r=ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic);
+    $check('completed scheduled reassessment performs one idle check without new versions or source work',
+        $clockCalls===1&&$r['status']==='idle'&&$rows()===$complete&&$sourceRows===$journal());
+
+    // Real admitted-size messages make each fifty-source scope fit alone, but not all four together.
+    [$profiles,$snap]=$setup(4,50);$old=$rows();$sourceRows=$journal();$receipts=[];$clockCalls=0;
+    ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic,
+        static function(array $receipt)use(&$receipts):void{$receipts[]=$receipt;});
+    $check('positive partial repair continues after shared byte admission defers another eligible scope',
+        $clockCalls===2&&count($receipts)===2&&$receipts[0]['profiles_written']<8
+        &&$receipts[0]['reassessment']['written']>0&&$receipts[0]['reassessment']['deferred_budget']>0
+        &&$receipts[1]['reassessment']['written']>0&&$repairs()===4
+        &&count($rows())===count($old)+4&&$old===array_slice($rows(),0,count($old))
+        &&$sourceRows===$journal());
+    $bounded=true;foreach($receipts as$receipt)$bounded=$bounded&&$receipt['profiles_written']<=8
+        &&$receipt['journal_rows_read']<=500&&$receipt['payload_bytes']<=1048576;
+    $check('partial resource repair keeps the same per-batch bounds without rereading native sources',$bounded);
+
+    // Fresh captured inputs appearing between repair batches retain the existing FIFO priority.
+    [$profiles,$snap]=$setup();$old=$rows();$sourceRows=$journal();$receipts=[];$clockCalls=0;
+    ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic,
+        static function(array $receipt)use($p,$snap,$now,&$receipts):void{
+            $receipts[]=$receipt;
+            if(count($receipts)!==1)return;
+            for($i=0;$i<9;$i++){
+                $x=$snap;$x['source_id']=(string)(500000+$i);
+                $x['customer_key']=$x['conversation_id']=$i===0?'7000':(string)(8000+$i);
+                if($i===0)$x['payload']['text']='Я оплатил тур';
+                modeledProfileAppend($p,$x,$now+4);
+            }
+        });
+    $paid=modeledProfileLatest($p,'7000');
+    $check('fresh input between repair batches is indexed first and spare reassessment resumes only at its fence',
+        $clockCalls===4&&count($receipts)===4&&count($rows())===72
+        &&$receipts[0]['reassessment']['written']===8
+        &&$receipts[1]['processed_revisions']===8&&$receipts[1]['pending_revisions']===1
+        &&$receipts[1]['reassessment']['written']===0&&$receipts[1]['reassessment']['awaiting_fresh_cursor']===true
+        &&$receipts[2]['processed_revisions']===1&&$receipts[2]['pending_revisions']===0
+        &&$receipts[2]['reassessment']['written']===7&&$receipts[2]['reassessment']['awaiting_fresh_cursor']===false
+        &&$receipts[3]['processed_revisions']===0&&$receipts[3]['reassessment']['written']===8);
+    $check('continued reassessment uses the new captured payment instead of restoring an old positive prefix',
+        $paid['semantic_prediction']['status']==='known_outcome'
+        &&$paid['semantic_prediction']['estimated_probability']===null
+        &&$old===array_slice($rows(),0,40)&&$sourceRows===array_slice($journal(),0,40));
+    $bounded=true;foreach($receipts as$receipt)$bounded=$bounded&&$receipt['profiles_written']<=8
+        &&$receipt['journal_rows_read']<=500&&$receipt['payload_bytes']<=1048576;
+    $check('mixed fresh and repair continuation retains every per-batch scope row and byte bound',$bounded);
+
+    [$profiles,$snap]=$setup();$old=$rows();$sourceRows=$journal();$clockCalls=0;$attempts=0;
+    try{
+        ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic,
+            static function()use(&$attempts):void{if(++$attempts===2)throw new RuntimeException('second_reassessment_rollback');});
+        $failed=false;
+    }catch(Throwable $e){$failed=$e->getMessage()==='second_reassessment_rollback';}
+    $check('a failed second repair batch retains the first commit and starts no retry or third batch',
+        $failed&&$attempts===2&&$clockCalls===2&&count($rows())===48&&$repairs()===8
+        &&$old===array_slice($rows(),0,40)&&$sourceRows===$journal());
+    $first=$rows();$clockCalls=0;$monotonicCalls=0;
+    $deadline=static function()use(&$monotonicCalls):int{
+        return [0,4000000000,5000000000][min($monotonicCalls++,2)];
+    };
+    ModeledConversionStream::profileCatchUp($profiles,$clock,$deadline);
+    $check('repair continuation shares the existing five second soft deadline before another transaction',
+        $clockCalls===2&&$monotonicCalls===3&&count($rows())===64&&$repairs()===24
+        &&$first===array_slice($rows(),0,48));
+    $committed=$rows();$clockCalls=0;
+    ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic);
+    $check('the next ordinary phase completes rollback and deadline work without replaying committed repairs',
+        count($rows())===80&&$repairs()===40&&$clockCalls===3
+        &&$committed===array_slice($rows(),0,64)&&$sourceRows===$journal());
 }
 
 /** The actual admitted PHP/Python writer must retain a genuine request across canonical AI output. */
