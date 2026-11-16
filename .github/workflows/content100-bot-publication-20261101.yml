@@ -1,4 +1,4 @@
-name: Publish approved expansion20 through existing paired sender
+name: Read completed expansion20 bindings and original price result
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
@@ -11,176 +11,181 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '4940789ec1c6d667f1e93c2be50cecd5402ff522' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '586384a472f9feb767090ddec3b3d194f283adde' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-    env:
-      EXPECTED_SOURCE: d5091653179ac0460ed0129ae32cc52495abfbdd
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 2
-      - name: Authenticate exact source and reviewed immutable covers
+      - name: Authenticate completed publication and prepare unchanged bounded readers
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = 4940789ec1c6d667f1e93c2be50cecd5402ff522
+          test "$(git rev-parse HEAD^)" = 586384a472f9feb767090ddec3b3d194f283adde
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
           p=tools/direct_demand/operations
-          echo "9bb28ee2d25e31b6c8ed2470ae2bdb8af4eb3bee1c56785d52695d56ca498825  $p/prepare-expansion20-approved-release-20261116.py" | sha256sum --check
-          test "$(git hash-object "$p/prepare-commercial-batch.py")" = 8df7a35474b138364b6e6c010af4fa484e350ddb
-          test "$(git hash-object "$p/commercial-batch-template-20261102.php")" = 353d5125d212df7584d24fd04d0f692d90176edb
-          test "$(git hash-object "$p/commercial-channel-hotel-feeds-20261113-update10-nightly-guard.php")" = 0a58b592fe20c50c19838bd83d015dfeb0d1d4ad
-          test "$(git hash-object "$p/verify-commercial-source.py")" = d79228dacc35d09af8ad838d34febd8413dbd7b2
+          test "$(git hash-object "$p/prepare-publication-tail.py")" = 83af97a1a54e3ee3f2319301bc0897ab42d928ba
+          echo "4b066afc72cd60cbda911cb0dd91db0a06209731685f0cd7231f647a92a0500c  $p/read-commercial-channel-hotel-feeds-20261108-48.php" | sha256sum --check
+          ANYTOUR_CHANNEL_FEED_FIXTURE=1 php "$p/read-commercial-channel-hotel-feeds-20261108-48.php"
+          ANYTOUR_CHANNEL_FEED_IMAGE_FIXTURE=1 php "$p/read-commercial-channel-hotel-feeds-20261108-48.php"
           umask 077
-          mkdir "$RUNNER_TEMP/release20" "$RUNNER_TEMP/release20/assets" "$RUNNER_TEMP/release20/source-evidence"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/43859315417 > "$RUNNER_TEMP/release20/assets-run.json"
-          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14223135633/zip > "$RUNNER_TEMP/release20/assets-intent.zip"
-          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14222867014/zip > "$RUNNER_TEMP/release20/assets-result.zip"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/assets/hotel-expansion20-20261116 > "$RUNNER_TEMP/release20/asset-ref.json"
+          mkdir "$RUNNER_TEMP/expansion20-tail"
+          w="$RUNNER_TEMP/expansion20-tail"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/43860879803 > "$w/publication-run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14223605441 > "$w/result-artifact.json"
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14222609527 > "$w/intent-artifact.json"
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14223605441/zip > "$w/publication-result.zip"
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14222609527/zip > "$w/publication-intent.zip"
+          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$w/current-main.json"
           python3 - <<'PY'
-          import os,pathlib,json,hashlib,zipfile
-          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'release20'
-          r=json.loads((p/'assets-run.json').read_bytes());assert r['id']==43859315417 and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success' and r['head_sha']=='6dfe569acc9bd7e0a4e0de1ceac609fd0c871aed'
-          assert json.loads((p/'asset-ref.json').read_bytes())['object']['sha']=='a10f69ed7790cda97f3dee0162fd6d0bdd2fe890'
-          for filename,digest in [('assets-intent.zip','1f72eff3c59970c4a353aef870ac604e1467860cae021bd1c4e7abfaa0bee20d'),('assets-result.zip','2cd388805e7fc34c42be04cf651b6bcecc7b5323fc6380167dfe822470ecdf8f')]:
-            raw=(p/filename).read_bytes();assert hashlib.sha256(raw).hexdigest()==digest
-            with zipfile.ZipFile(p/filename) as z:
-              assert all(not n.startswith('/') and '..' not in pathlib.PurePosixPath(n).parts for n in z.namelist());z.extractall(p/'assets')
+          import json,os,pathlib,hashlib,zipfile
+          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'expansion20-tail'
+          load=lambda name:json.loads((w/name).read_bytes())
+          r=load('publication-run.json')
+          assert r['id']==43860879803 and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success'
+          assert r['head_sha']=='586384a472f9feb767090ddec3b3d194f283adde'
+          specs=[('result',14223605441,'0b53a97f5c4ce7028fe80786cb7ceac067d3b7b5619f54456436fbc295691258'),('intent',14222609527,'b97111ee424e0283dba0267d473f55c644200e093a93f1f4fb53cfc7d0919eba')]
+          for kind,aid,digest in specs:
+            a=load(kind+'-artifact.json');assert a['id']==aid and not a['expired'] and a['workflow_run']['id']==43860879803 and a['digest']=='sha256:'+digest
+            path=w/('publication-'+kind+'.zip');assert hashlib.sha256(path.read_bytes()).hexdigest()==digest
+          main=load('current-main.json')['object']['sha'];assert main=='d5091653179ac0460ed0129ae32cc52495abfbdd','SOURCE_CHANGED_STOP'
+          urls=set();ids=[]
+          with zipfile.ZipFile(w/'publication-intent.zip') as intent,zipfile.ZipFile(w/'publication-result.zip') as result:
+            for group in (20,21):
+              dest=w/str(group);dest.mkdir()
+              for name in ('manifest.json','approval.json'):
+                member=next(n for n in intent.namelist() if n.endswith(f'prepared/{group}/{name}'))
+                (dest/name).write_bytes(intent.read(member))
+              member=next(n for n in result.namelist() if n.endswith(f'{group}-summary.json'))
+              raw=result.read(member);(dest/'publication.json').write_bytes(raw)
+              m=json.loads((dest/'manifest.json').read_bytes());a=json.loads((dest/'approval.json').read_bytes());s=json.loads(raw)
+              assert a['manifest_sha256']==hashlib.sha256((dest/'manifest.json').read_bytes()).hexdigest()
+              assert a['expected_installed_sha']==s['installed_sha']==main
+              assert s['operation']==m['operation']==a['operation']==f'commercial-hotel-batch-20261116-{group}-v1'
+              assert s['ok'] and s['new_posts']==s['post_write_attempts']==len(s['posts'])==20 and s['reused']==0
+              assert len(m['rows'])==10
+              for row in m['rows']:
+                ids.append(row['hotel_id']);posts=[p for p in s['posts'] if p['hotel_id']==row['hotel_id']]
+                assert len(posts)==2 and {p['platform'] for p in posts}=={'max','telegram'}
+                for post in posts:
+                  assert post['state']=='sent' and post['body_photo_button_verified'] and post['reused'] is False
+                  assert post['text_sha256']==row['text_sha256'] and post['photo_sha256']==row['photo_sha256'] and post['photo_url']==row['photo_url']
+                  assert post['post_url'] not in urls;urls.add(post['post_url'])
+          assert len(ids)==len(set(ids))==20 and len(urls)==40
+          print('ORIGINAL_PUBLICATION_AUTHENTICATED hotels=20 messages=40 new_sends=0')
           PY
-          python3 "$p/prepare-expansion20-approved-release-20261116.py" "$RUNNER_TEMP/release20/assets" "$RUNNER_TEMP/release20/prepared"
-          php -l "$RUNNER_TEMP/release20/prepared/20/send.php"
-          php -l "$RUNNER_TEMP/release20/prepared/21/send.php"
-          python3 "$p/verify-commercial-source.py" --self-test
-      - name: Authenticate original current-source deployment and mandatory health gates
+          for g in 20 21; do
+            python3 "$p/prepare-publication-tail.py" reader --manifest "$w/$g/manifest.json" --approval "$w/$g/approval.json" --reader-template "$p/read-commercial-channel-hotel-feeds-20261108-48.php" --reader-operation "commercial-channel-hotel-feeds-20261116-read$g" --output "$w/$g/read.php"
+            php -l "$w/$g/read.php"
+          done
+      - name: Retain and classify the original natural price log without rerunning it
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          e="$RUNNER_TEMP/release20/source-evidence"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$e/main.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs?head_sha=$EXPECTED_SOURCE&per_page=100" > "$e/runs.json"
-          python3 - <<'PY'
-          import os,pathlib,json
-          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'release20/source-evidence';sha=os.environ['EXPECTED_SOURCE']
-          assert json.loads((p/'main.json').read_bytes())['object']['sha']==sha
-          runs=json.loads((p/'runs.json').read_bytes());assert runs['total_count']<=100
-          paths=['deploy.yml','max-tls-preflight.yml','modeled-conversion-value-export.yml','max-production-health.yml','telegram-production-health.yml','live-session-diagnostics.yml','modeled-conversion-monitor.yml','tour-selection-host.yml','publish-conversation-diagnostics.yml'];selected={}
-          for name in paths:
-            eligible=[r for r in runs['workflow_runs'] if r['head_sha']==sha and r['head_branch']=='main' and r['path']=='.github/workflows/'+name and r['run_attempt']==1 and r['event'] in ['push','workflow_run']]
-            assert len(eligible)==1,'original gate not unique: '+name
-            r=eligible[0];assert r['status']=='completed' and r['conclusion']=='success','gate not successful: '+name
-            (p/('verify_run.json' if name=='deploy.yml' else 'tls_run.json' if name=='max-tls-preflight.yml' else 'gate-'+name+'.json')).write_text(json.dumps(r))
-            selected[name]={'run_id':r['id'],'head_sha':sha,'run_attempt':1,'conclusion':r['conclusion']}
-          assert selected['deploy.yml']['run_id']==43853931353
-          (p/'gate-receipts.json').write_text(json.dumps(selected,indent=2)+'\n')
+          w="$RUNNER_TEMP/expansion20-tail"
+          gh api repos/pyatkoff/poisk-turov-test/actions/runs/43841494167 > "$w/price-run.json"
+          status=0
+          gh api repos/pyatkoff/poisk-turov-test/actions/jobs/133211456666/logs > "$w/price-job.log" || status=$?
+          printf '%s\n' "$status" > "$w/price-log-read-exit.txt"
+          PRICE_LOG_STATUS="$status" python3 - <<'PY'
+          import json,os,pathlib,re,hashlib,collections,datetime
+          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'expansion20-tail'
+          r=json.loads((w/'price-run.json').read_bytes())
+          assert r['id']==43841494167 and r['event']=='schedule' and r['run_attempt']==1 and r['conclusion']=='success'
+          if os.environ['PRICE_LOG_STATUS']!='0':
+            (w/'price-summary.json').write_text(json.dumps({'original_run':43841494167,'log_read_succeeded':False,'collector_reruns':0})+'\n')
+          else:
+            raw=(w/'price-job.log').read_bytes();lines=raw.decode('utf-8-sig').splitlines()
+            hook=[json.loads(line.split('MONITOR_POST_FEED_RESULT=',1)[1]) for line in lines if re.match(r'^\d{4}-\d{2}-\d{2}T\S+ MONITOR_POST_FEED_RESULT=\{',line)]
+            collected=[json.loads(line.split('TOP500_MONTHLY_DONE ',1)[1]) for line in lines if re.match(r'^\d{4}-\d{2}-\d{2}T\S+ TOP500_MONTHLY_DONE \{',line)]
+            assert len(hook)==len(collected)==1
+            h=hook[0];c=collected[0]
+            assert h['ok'] and h['nightly_cycle_completed'] and h['nightly_cycle']['collector_run_id']=='43841494167'
+            assert h['scanned_pairs']==h['roster_pairs']==608 and h['remaining_unscanned_pairs']==0
+            assert h['updated_pairs']==len(h['updates'])==167 and h['unchanged_pairs']==101 and h['held_pairs']==1
+            reasons=dict(collections.Counter(x['reason'] for x in h['deferred']))
+            summary={'original_run':43841494167,'original_job':133211456666,'run_attempt':1,'event':'schedule','run_created_at':r['created_at'],'log_sha256':hashlib.sha256(raw).hexdigest(),'log_read_succeeded':True,'observations_written':c['observations_written'],'collection_failed_batches':c['failed'],'roster_pairs':608,'updated_pairs':h['updated_pairs'],'updated_messages':2*h['updated_pairs'],'unchanged_pairs':h['unchanged_pairs'],'held_pairs':h['held_pairs'],'deferred_reasons':reasons,'duration_seconds':h['duration_seconds'],'nightly_cycle':h['nightly_cycle'],'new_posts':h['new_posts'],'collector_reruns':0}
+            (w/'price-summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n')
+            (w/'original-price-hook-result.json').write_text(json.dumps(h,ensure_ascii=False,indent=2)+'\n')
+            print('ORIGINAL_PRICE_RESULT='+json.dumps(summary,ensure_ascii=False,separators=(',',':')))
           PY
-          gh api repos/pyatkoff/max-search-bot/actions/runs/43853931353/jobs?per_page=100 > "$e/verify_jobs.json"
-          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_SOURCE" > "$e/source_commit.json"
-          tree="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$e/source_commit.json")"
-          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree?recursive=1" > "$e/source_tree.json"
-          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_SOURCE" --evidence-dir "$e"
-      - name: Retain exact approved manifests and source evidence before any send
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: expansion20-publication-intent-${{ github.run_id }}
-          path: |
-            ${{ runner.temp }}/release20/prepared/
-            ${{ runner.temp }}/release20/source-evidence/
-            ${{ runner.temp }}/release20/assets/clearance.json
-            ${{ runner.temp }}/release20/assets/clearance-input.json
-            ${{ runner.temp }}/release20/assets/covers/asset-manifest.json
-            ${{ runner.temp }}/release20/assets/publication-result.json
-          if-no-files-found: error
-          retention-days: 30
-      - name: Prepare existing server connection
+      - name: Prepare existing server connection and pinned host continuity
         env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          raw="$DEPLOY_SSH_KEY_VALUE"
-          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else
-            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
-          fi
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-      - name: Pin existing server host-key continuity
-        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
           python3 - <<'PY'
           import os,re,subprocess,base64,hashlib,pathlib
           host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-');assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35);matches=[]
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          matches=[]
           for line in scan.stdout.splitlines():
-            fields=line.split()
-            if len(fields)<3 or fields[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+            f=line.split()
+            if len(f)<3 or f[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(f[2])).digest()).decode().rstrip('=')
             except Exception:continue
             if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP';pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Execute exact original batches once; unknown or partial result stops the release
+      - name: Read the two completed groups through the existing reader with no server writes
         env:
-          GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          mkdir "$RUNNER_TEMP/release20/outcome"
-          for batch in 20 21; do
-            test "$GITHUB_RUN_ATTEMPT" = 1
-            test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_SOURCE"
-            test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
-            script="$RUNNER_TEMP/release20/prepared/$batch/send.php"
-            python3 - "$script" "$RUNNER_TEMP/release20/prepared/release-intent.json" "$batch" <<'PY'
-          import json,hashlib,pathlib,sys
-          records=json.loads(pathlib.Path(sys.argv[2]).read_bytes())['batches'];entry=records[int(sys.argv[3])-20]
-          assert hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest()==entry['script_sha256']
-          PY
-            printf 'original_attempt_started\n' > "$RUNNER_TEMP/release20/outcome/$batch-attempt.txt"
+          w="$RUNNER_TEMP/expansion20-tail"
+          for g in 20 21; do
             status=0
-            ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php' < "$script" > "$RUNNER_TEMP/release20/outcome/$batch-stdout.jsonl" || status=$?
-            printf '%s\n' "$status" > "$RUNNER_TEMP/release20/outcome/$batch-exit.txt"
-            cat "$RUNNER_TEMP/release20/outcome/$batch-stdout.jsonl"
-            test "$status" = 0
-            python3 - "$RUNNER_TEMP/release20/outcome/$batch-stdout.jsonl" "$RUNNER_TEMP/release20/prepared/$batch/manifest.json" "$RUNNER_TEMP/release20/outcome/$batch-summary.json" <<'PY'
-          import json,pathlib,sys
-          lines=pathlib.Path(sys.argv[1]).read_text().splitlines();s=json.loads(lines[-1]);m=json.loads(pathlib.Path(sys.argv[2]).read_bytes())
-          assert s['ok'] is True and s['operation']==m['operation'] and s['mode']=='publish_approved_commercial_batch'
-          assert s['new_posts']==s['post_write_attempts']==len(s['posts'])==20 and s['reused']==0
-          wanted={(r['hotel_id'],p) for r in m['rows'] for p in ['max','telegram']};assert {(r['hotel_id'],r['platform']) for r in s['posts']}==wanted
-          expected={r['hotel_id']:r for r in m['rows']}
-          for r in s['posts']:
-            e=expected[r['hotel_id']];assert r['state']=='sent' and r['body_photo_button_verified'] is True and r['text_sha256']==e['text_sha256'] and r['photo_sha256']==e['photo_sha256'] and r['button_text']=='✈️ Узнать стоимость тура'
-          pathlib.Path(sys.argv[3]).write_text(json.dumps(s,ensure_ascii=False,indent=2)+'\n')
-          print('ORIGINAL_BATCH_CONFIRMED '+m['operation']+' pairs=10 messages=20')
-          PY
+            ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php' < "$w/$g/read.php" > "$w/$g/bound-read.json" || status=$?
+            printf '%s\n' "$status" > "$w/$g/read-exit.txt"
+            if [ "$status" -ne 0 ]; then exit "$status"; fi
           done
-      - name: Retain every original outcome without rerunning sends
+          python3 - <<'PY'
+          import json,os,pathlib,hashlib
+          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'expansion20-tail';rows=[]
+          for g in (20,21):
+            p=w/str(g);raw=(p/'bound-read.json').read_bytes();d=json.loads(raw.splitlines()[-1]);s=json.loads((p/'publication.json').read_bytes())
+            assert d['ok'] and d['scope_hotels']==d['feed_rows']==d['private_binding_count']==10 and d['deferred_count']==0
+            assert d['installed_sha']==s['installed_sha'] and all(d[k]==0 for k in ('db_writes','provider_calls','message_sends'))
+            for row,b in zip(d['rows'],d['private_max_bindings']):
+              posts={x['platform']:x for x in s['posts'] if x['hotel_id']==row['hotel_id']}
+              assert row['hotel_id']==b['hotel_id'] and row['max_post_url']==b['post_url']==posts['max']['post_url']
+              assert row['telegram_post_url']==posts['telegram']['post_url'] and int(b['publication_id'])==posts['max']['publication_id'] and b['version_id']==posts['max']['version_id']
+              rows.append(row)
+          assert len(rows)==len({r['hotel_id'] for r in rows})==20
+          summary={'ok':True,'completed_publication_run':43860879803,'hotels':20,'new_original_messages':40,'server_registry_pairs_verified':20,'native_max_bindings_verified':20,'new_messages_sent_this_read':0,'db_writes':0,'feed_writes':0,'route_writes':0,'supplier_calls':0,'rows':rows}
+          (w/'publication-tail-read-summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n')
+          print('PUBLICATION_TAIL_READ='+json.dumps({k:v for k,v in summary.items() if k!='rows'}))
+          PY
+      - name: Retain original evidence and exact read outcomes
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: expansion20-publication-result-${{ github.run_id }}
-          path: ${{ runner.temp }}/release20/outcome/
-          if-no-files-found: ignore
-          retention-days: 30
+          name: expansion20-bound-tail-read-${{ github.run_id }}
+          path: ${{ runner.temp }}/expansion20-tail/
+          if-no-files-found: error
+          retention-days: 14
       - name: Remove runner-only connection files
         if: always()
         shell: bash
