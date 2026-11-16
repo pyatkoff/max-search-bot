@@ -162,10 +162,34 @@ The collector resolves the price from the recorded `bot_started` belonging to
 the exact attributed entry, using its `delivery_key`, recorded clock and scoped
 repair reply context. Model-card service selections retain their original
 advertising post/offer. Later mutable conversation metadata cannot supply an
-earlier price or retarget the original visit. A later independent entry does not
-silently fill an incomplete original entry; free-text repair extraction is not
-part of this model. An observed dialogue stage is still required, and the
-prediction clock cannot precede the recorded priced context.
+earlier price or retarget the original visit.
+
+When the original entry is a valid model card with no service and no forecast
+row exists, the first explicit `model_service` selection may refine that entry.
+Both recorded bot and funnel receipts must have the same project, bot, user,
+source, advertising scope, model, post, offer and original visit. The original
+visit must resolve to one verified ClientID before refinement; later enrichment
+may have a new observation cursor without changing that visit. The original
+acquisition is retained exactly, with a separate frozen `price_context.refinement`
+receipt containing both pairs of event IDs, delivery keys and recording clocks.
+The selected bot event follows the original funnel event and precedes its own
+funnel event by ID, even within one second; its recording clock falls between
+the original anchor clock and its own funnel clock, neither in the future.
+
+The collector selects the first explicit service before looking up its price.
+An unpriced first choice, an invalid or missing receipt, ambiguous attribution,
+a different request or an intervening matched advertising visit holds the
+forecast. A canonical unattributed menu with valid receipts is a neutral step.
+A bounded native-event check also holds when optional funnel recording failed,
+so a later priced service cannot hide an earlier explicit choice without an
+attribution receipt. An already complete but unpriced original entry does not
+use this fallback. Free-text repair extraction is not part of this model.
+
+An observed dialogue stage is still required; a recorded won stage suppresses
+the forecast. Prediction time is the later of the observed stage and selected
+priced-context clock. Any existing forecast row, in any state, preserves its
+original value, evidence and anchor; the unchanged unique outbox insert remains
+the final concurrent-capture guard. No old row is repriced or replaced.
 
 The existing cron, outbox and reconciliation perform delivery. Enabling `send`
 is distinct from a natural first candidate, API acceptance and final processing.

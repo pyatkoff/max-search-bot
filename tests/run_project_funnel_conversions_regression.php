@@ -170,7 +170,7 @@ require_once __DIR__.'/fixtures/project_funnel_advertising_assertions.php';
 projectFunnelNativeAssertions($pdo,'funnelCheck');
 
 // Exercise the actual signed launch, saved bot entry, shared outbox and provider receipt path.
-function funnelOwnerFixture(string $payload='as39_pair_model-iphone-13_battery'):array{
+function funnelOwnerFixture(string $payload='as39_pair_model-iphone-13_battery',string $clientId='17929400001234567890'):array{
     $pdo=repairFixture();funnelSchema($pdo);funnelConversionSchema($pdo);$now=time();
     $settings=ProjectFunnelSettings::load(ProjectMaxConnection::resolve('appleservice39'));
     $settings['metrika']['mode']='collect';
@@ -186,7 +186,7 @@ function funnelOwnerFixture(string $payload='as39_pair_model-iphone-13_battery')
     $connection=ProjectMaxConnection::resolve('appleservice39');$repairEntry=RepairProjectSettings::entry($connection,$payload);$post=$repairEntry['post_id'];
     $start='123456789_region_213_campaign_123_ctx1_'.ProjectFunnelLaunch::context($post,$settings['posts'][$post]['offer_id']);
     (new ProjectFunnelEntry($pdo,$connection,$settings))->capture(['init_data'=>funnelSigned($start,$now-5,'synthetic-apple-token','7101'),
-        'start_param'=>$start,'client_id'=>'17929400001234567890'],$now-5);
+        'start_param'=>$start,'client_id'=>$clientId],$now-5);
     $factory=static fn(ProjectMaxConnection $c)=>new MaxMessengerAdapter(static fn($chat,$text)=>'synthetic-owner-reply',null,'system',null,false);
     RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),repairStart(7101,$payload),$factory,static function(){});
     $conversation=repairConversation($pdo,'appleservice39',7101);
@@ -322,4 +322,154 @@ foreach($invalidContexts as$name=>$mutate){
 $duplicateDb->exec("INSERT INTO conversation_events(conversation_id,event_type,actor_type,actor_id,payload_json,created_at) SELECT conversation_id,event_type,actor_type,actor_id,payload_json,created_at FROM conversation_events WHERE event_type='bot_started'");
 $stats=ProjectFunnelConversions::tick($duplicateDb,$duplicateNow,$never);
 funnelCheck('ambiguous original entry receipts never choose an arbitrary service price',$stats['errors']===0&&$stats['collected']===0&&(int)$duplicateDb->query('SELECT COUNT(*) FROM max_channel_conversion_outbox')->fetchColumn()===0);
+
+function funnelStoredEntry(PDO $pdo,string $type,bool $latest=true):array{
+    $q=$pdo->prepare('SELECT id,payload_json FROM conversation_events WHERE event_type=? ORDER BY id '.($latest?'DESC':'ASC').' LIMIT 1');
+    $q->execute([$type]);$row=$q->fetch();$row['data']=json_decode($row['payload_json'],true);return $row;
+}
+function funnelRefine(PDO $pdo,callable $messenger,string $payload='as39_pair_model-iphone-13_battery',int $timestamp=1800000000001):array{
+    RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),repairStart(7101,$payload,$timestamp),$messenger,static function(){});
+    $at=time();foreach($pdo->query("SELECT payload_json FROM conversation_events WHERE event_type='project_funnel_entry'")->fetchAll(PDO::FETCH_COLUMN)as$json)$at=max($at,ConversationRecordClock::read($json)??0);
+    $at+=10;$rows=[];
+    foreach(['bot_started'=>$at,'project_funnel_entry'=>$at+1]as$type=>$clock){
+        $row=funnelStoredEntry($pdo,$type);$row['data']=ConversationRecordClock::stamp($row['data'],$clock);
+        $row['payload_json']=json_encode($row['data'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+        $pdo->prepare('UPDATE conversation_events SET payload_json=? WHERE id=?')->execute([$row['payload_json'],$row['id']]);$rows[$type]=$row;
+    }
+    return $rows+['now'=>$at+2];
+}
+function funnelReplaceEntry(PDO $pdo,array $row,array $data):void{
+    $pdo->prepare('UPDATE conversation_events SET payload_json=? WHERE id=?')->execute([json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),$row['id']]);
+}
+function funnelRefinementHeld(PDO $pdo,int $now):bool{
+    $stats=ProjectFunnelConversions::tick($pdo,$now,static function(){throw new RuntimeException('refinement_must_not_call_provider');});
+    return $stats['errors']===0&&$stats['collected']===0&&(int)$pdo->query('SELECT COUNT(*) FROM max_channel_conversion_outbox')->fetchColumn()===0;
+}
+function funnelEnrichOriginalVisit(PDO $pdo,array $settings):void{
+    $visit=$pdo->query('SELECT * FROM advertising_visit_observations ORDER BY id LIMIT 1')->fetch();
+    $start='123456789_region_213_campaign_123_ctx1_'.ProjectFunnelLaunch::context($visit['post_ref'],$visit['offer_ref']);
+    (new ProjectFunnelEntry($pdo,ProjectMaxConnection::resolve('appleservice39'),$settings))->capture([
+        'init_data'=>funnelSigned($start,(int)$visit['visit_at_unix'],'synthetic-apple-token','7101'),
+        'start_param'=>$start,'client_id'=>'17929400001234567890'],time());
+}
+
+[$refineDb,$refineSettings,$refineConversation,$refineNow,$refineMessenger]=funnelOwnerFixture('as39_model-iphone-13');
+$originalEntry=funnelStoredEntry($refineDb,'project_funnel_entry');$originalBot=funnelStoredEntry($refineDb,'bot_started');
+$stats=ProjectFunnelConversions::tick($refineDb,$refineNow,$never);
+funnelCheck('generic model has no fabricated value before explicit refinement',$stats['collected']===0&&$stats['errors']===0);
+$refined=funnelRefine($refineDb,$refineMessenger);$refineNow=$refined['now'];
+$stats=ProjectFunnelConversions::tick($refineDb,$refineNow,$never);$refineRow=$refineDb->query('SELECT * FROM max_channel_conversion_outbox')->fetch();
+funnelCheck('same original model post and visit admit the first explicit service refinement',
+    $stats['collected']===1&&$stats['resolved']===1&&$stats['errors']===0&&$refineRow['state']==='ready'&&$refineRow['value_rub']==='1000.00');
+$refineContext=json_decode($refineRow['funnel_context_json'],true);$refineEstimate=$refineContext['estimate'];unset($refineContext['estimate']);
+$receipt=$refineEstimate['price_context']['refinement'];
+funnelCheck('refinement freezes both recording receipts while preserving the original acquisition exactly',
+    $refineContext===$originalEntry['data']&&$receipt['version']===1&&$receipt['basis']==='same_original_visit_explicit_model_service'
+    &&$receipt['original']===['funnel_event_id'=>(string)$originalEntry['id'],'entry_key'=>$originalEntry['data']['entry_key'],
+        'funnel_recorded_at_unix'=>ConversationRecordClock::read($originalEntry['payload_json']),'bot_event_id'=>(string)$originalBot['id'],
+        'bot_recorded_at_unix'=>ConversationRecordClock::read($originalBot['payload_json'])]
+    &&$receipt['selected']===['funnel_event_id'=>(string)$refined['project_funnel_entry']['id'],'entry_key'=>$refined['project_funnel_entry']['data']['entry_key'],
+        'funnel_recorded_at_unix'=>ConversationRecordClock::read($refined['project_funnel_entry']['payload_json']),'bot_event_id'=>(string)$refined['bot_started']['id'],
+        'bot_recorded_at_unix'=>ConversationRecordClock::read($refined['bot_started']['payload_json'])]
+    &&$refineEstimate['event_unix']===ConversationRecordClock::read($refined['bot_started']['payload_json'])
+    &&strlen($refineRow['funnel_context_json'])<16384
+    &&funnelStoredEntry($refineDb,'project_funnel_entry',false)['payload_json']===$originalEntry['payload_json']
+    &&funnelStoredEntry($refineDb,'bot_started',false)['payload_json']===$originalBot['payload_json']);
+
+$later=funnelRefine($refineDb,$refineMessenger,'as39_pair_model-iphone-13_display',1800000000002);$refineNow=$later['now'];$allFrozen=true;
+foreach(['pending','ready','uploading','accepted','unknown','processed','failed','expired']as$state){
+    $refineDb->prepare('UPDATE max_channel_conversion_outbox SET state=?')->execute([$state]);
+    $beforeRow=$refineDb->query('SELECT * FROM max_channel_conversion_outbox')->fetch();
+    $collected=ProjectFunnelConversions::collect($refineDb,ProjectMaxConnection::resolve('appleservice39'),$refineSettings,ProjectFunnelConversions::policy($refineSettings),$refineNow);
+    $allFrozen=$allFrozen&&$collected===0&&$beforeRow===$refineDb->query('SELECT * FROM max_channel_conversion_outbox')->fetch();
+}
+funnelCheck('later service cannot replace an existing refinement in any forecast state',$allFrozen);
+$refineDb->exec("UPDATE max_channel_conversion_outbox SET state='ready'");$refineSettings['metrika']['mode']='send';$set($refineSettings);
+$ownerPosts=[];$ownerReads=[];$unknownOwnerUpload=false;
+$stats=ProjectFunnelConversions::tick($refineDb,$refineNow,$ownerApi);
+ProjectFunnelConversions::tick($refineDb,$refineNow+1900,$ownerApi);ProjectFunnelConversions::tick($refineDb,$refineNow+3900,$ownerApi);
+funnelCheck('refined forecast uses the same single upload and processed receipt path',
+    $stats['accepted']===1&&$stats['errors']===0&&count($ownerPosts)===1&&str_contains($ownerPosts[0][1],',predict,')
+    &&str_contains($ownerPosts[0][1],',1000.00,RUB')&&$refineDb->query('SELECT state FROM max_channel_conversion_outbox')->fetchColumn()==='processed'
+    &&$refineDb->query('SELECT funnel_context_json FROM max_channel_conversion_outbox')->fetchColumn()===$refineRow['funnel_context_json']);
+
+[$noCidDb,$noCidSettings,$noCidConversation,$noCidNow,$noCidMessenger]=funnelOwnerFixture('as39_model-iphone-13','');
+$noCidSelection=funnelRefine($noCidDb,$noCidMessenger);
+funnelCheck('incomplete acquisition cannot create a refinement before original visit identity resolves',funnelRefinementHeld($noCidDb,$noCidSelection['now']));
+funnelEnrichOriginalVisit($noCidDb,$noCidSettings);$stats=ProjectFunnelConversions::tick($noCidDb,$noCidSelection['now']+1,$never);
+funnelCheck('late CID on that original visit admits the saved first refinement',$stats['collected']===1&&$stats['resolved']===1&&$stats['errors']===0);
+[$cursorDb,$cursorSettings,$cursorConversation,$cursorNow,$cursorMessenger]=funnelOwnerFixture('as39_model-iphone-13','');
+$cursorOriginal=funnelStoredEntry($cursorDb,'project_funnel_entry');funnelEnrichOriginalVisit($cursorDb,$cursorSettings);$cursorSelected=funnelRefine($cursorDb,$cursorMessenger);
+$stats=ProjectFunnelConversions::tick($cursorDb,$cursorSelected['now'],$never);
+$cursorSaved=json_decode($cursorDb->query('SELECT funnel_context_json FROM max_channel_conversion_outbox')->fetchColumn(),true);
+funnelCheck('new observation cursor on the same visit does not change the original anchor',
+    $stats['collected']===1&&$stats['errors']===0&&$cursorOriginal['data']['observations'][0]['source_cursor']==='1'
+    &&$cursorSelected['project_funnel_entry']['data']['observations'][0]['source_cursor']==='2'
+    &&$cursorSaved['observations']===$cursorOriginal['data']['observations']);
+
+foreach(['as39_model-iphone-13','as39_pair_model-iphone-13_glass']as$first){
+    [$unpricedDb,$unpricedSettings,$unpricedConversation,$unpricedNow,$unpricedMessenger]=funnelOwnerFixture($first);
+    if($first==='as39_model-iphone-13')funnelRefine($unpricedDb,$unpricedMessenger,'as39_pair_model-iphone-13_glass');
+    $pricedLater=funnelRefine($unpricedDb,$unpricedMessenger,'as39_pair_model-iphone-13_battery',1800000000002);
+    funnelCheck('first unpriced exact choice cannot fall through to a later priced repair '.$first,funnelRefinementHeld($unpricedDb,$pricedLater['now']));
+}
+[$orphanDb,$orphanSettings,$orphanConversation,$orphanNow,$orphanMessenger]=funnelOwnerFixture('as39_model-iphone-13');
+$orphanDb->exec("CREATE TRIGGER fixture_optional_receipt_failure BEFORE INSERT ON conversation_events WHEN NEW.event_type='project_funnel_entry' BEGIN SELECT RAISE(ABORT,'synthetic_optional_receipt_failure'); END");
+RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),repairStart(7101,'as39_pair_model-iphone-13_glass',1800000000001),$orphanMessenger,static function(){});
+$orphanDb->exec('DROP TRIGGER fixture_optional_receipt_failure');$pricedLater=funnelRefine($orphanDb,$orphanMessenger,'as39_pair_model-iphone-13_battery',1800000000002);
+funnelCheck('first explicit native entry without optional attribution receipt holds later pricing',
+    (int)$orphanDb->query("SELECT COUNT(*) FROM conversation_events WHERE event_type='bot_started'")->fetchColumn()===3
+    &&(int)$orphanDb->query("SELECT COUNT(*) FROM conversation_events WHERE event_type='project_funnel_entry'")->fetchColumn()===2
+    &&funnelRefinementHeld($orphanDb,$pricedLater['now']));
+
+[$menuDb,$menuSettings,$menuConversation,$menuNow,$menuMessenger]=funnelOwnerFixture('as39_model-iphone-13');
+$neutral=funnelRefine($menuDb,$menuMessenger,'as39_menu');$menuSelected=funnelRefine($menuDb,$menuMessenger,'as39_pair_model-iphone-13_battery',1800000000002);
+$stats=ProjectFunnelConversions::tick($menuDb,$menuSelected['now'],$never);
+funnelCheck('canonical unattributed menu remains a neutral step on the original visit',
+    $neutral['project_funnel_entry']['data']['attribution_state']==='unattributed'&&$stats['collected']===1&&$stats['errors']===0);
+
+[$boundaryDb,$boundarySettings,$boundaryConversation,$boundaryNow,$boundaryMessenger]=funnelOwnerFixture('as39_model-iphone-13');
+$foreignPost='model-iphone-17';$foreignStart='123456790_region_213_campaign_123_ctx1_'.ProjectFunnelLaunch::context($foreignPost,$boundarySettings['posts'][$foreignPost]['offer_id']);
+(new ProjectFunnelEntry($boundaryDb,ProjectMaxConnection::resolve('appleservice39'),$boundarySettings))->capture([
+    'init_data'=>funnelSigned($foreignStart,time()-1,'synthetic-apple-token','7101'),'start_param'=>$foreignStart,'client_id'=>'17929400001234567890'],time());
+$foreign=funnelRefine($boundaryDb,$boundaryMessenger,'as39_model-iphone-17');$returned=funnelRefine($boundaryDb,$boundaryMessenger,'as39_pair_model-iphone-13_battery',1800000000002);
+funnelCheck('intervening matched advertising visit prevents return to an earlier acquisition',
+    $foreign['project_funnel_entry']['data']['attribution_state']==='matched'&&funnelRefinementHeld($boundaryDb,$returned['now']));
+
+$invalidRefinements=[
+    'invalid original customer'=>['bot_started',false,static function(array &$p):void{$p['repair_entry_reply']['customer_id']++;}],
+    'missing original funnel clock'=>['project_funnel_entry',false,static function(array &$p):void{unset($p['_recorded_clock']);}],
+    'missing selected bot clock'=>['bot_started',true,static function(array &$p):void{unset($p['_recorded_clock']);}],
+    'string selected bot clock'=>['bot_started',true,static function(array &$p):void{$p['_recorded_clock']['unix']=(string)$p['_recorded_clock']['unix'];}],
+    'selected clock before original anchor'=>['bot_started',true,static function(array &$p,int $anchorAt):void{$p['_recorded_clock']['unix']=$anchorAt-1;}],
+    'selected clock after its funnel receipt'=>['bot_started',true,static function(array &$p,int $anchorAt,int $selectedAt):void{$p['_recorded_clock']['unix']=$selectedAt+1;}],
+    'future selected funnel clock'=>['project_funnel_entry',true,static function(array &$p,int $anchorAt,int $selectedAt,int $now):void{$p['_recorded_clock']['unix']=$now+1;}],
+    'selected foreign visit'=>['project_funnel_entry',true,static function(array &$p):void{$p['observations'][0]['visit_id']='another-visit';}],
+    'selected missing visit'=>['project_funnel_entry',true,static function(array &$p):void{unset($p['observations'][0]['visit_id']);}],
+    'selected ambiguous attribution'=>['project_funnel_entry',true,static function(array &$p):void{$p['attribution_state']='ambiguous';}],
+];
+foreach($invalidRefinements as$name=>[$type,$latest,$mutate]){
+    [$badDb,$badSettings,$badConversation,$badNow,$badMessenger]=funnelOwnerFixture('as39_model-iphone-13');
+    $badOriginal=funnelStoredEntry($badDb,'project_funnel_entry');$badSelected=funnelRefine($badDb,$badMessenger);$row=funnelStoredEntry($badDb,$type,$latest);$data=$row['data'];
+    $mutate($data,ConversationRecordClock::read($badOriginal['payload_json']),ConversationRecordClock::read($badSelected['project_funnel_entry']['payload_json']),$badSelected['now']);
+    funnelReplaceEntry($badDb,$row,$data);funnelCheck('refinement holds '.$name,funnelRefinementHeld($badDb,$badSelected['now']));
+}
+foreach(['bot_started','project_funnel_entry']as$type){
+    [$dupDb,$dupSettings,$dupConversation,$dupNow,$dupMessenger]=funnelOwnerFixture('as39_model-iphone-13');$dupSelected=funnelRefine($dupDb,$dupMessenger);
+    $dupDb->prepare('INSERT INTO conversation_events(conversation_id,event_type,actor_type,actor_id,payload_json,created_at) SELECT conversation_id,event_type,actor_type,actor_id,payload_json,created_at FROM conversation_events WHERE id=?')->execute([$dupSelected[$type]['id']]);
+    funnelCheck('refinement rejects duplicate selected '.$type.' receipt',funnelRefinementHeld($dupDb,$dupSelected['now']));
+}
+[$orderDb,$orderSettings,$orderConversation,$orderNow,$orderMessenger]=funnelOwnerFixture('as39_model-iphone-13');$orderSelected=funnelRefine($orderDb,$orderMessenger);
+$orderDb->prepare('UPDATE conversation_events SET id=100000 WHERE id=?')->execute([$orderSelected['bot_started']['id']]);
+funnelCheck('refinement rejects native event ordered after its funnel receipt',funnelRefinementHeld($orderDb,$orderSelected['now']));
+[$secondDb,$secondSettings,$secondConversation,$secondNow,$secondMessenger]=funnelOwnerFixture('as39_model-iphone-13');
+$sameSecond=funnelStoredEntry($secondDb,'project_funnel_entry');$secondSelected=funnelRefine($secondDb,$secondMessenger);$sameClock=ConversationRecordClock::read($sameSecond['payload_json']);
+foreach(['bot_started','project_funnel_entry']as$type)funnelReplaceEntry($secondDb,$secondSelected[$type],ConversationRecordClock::stamp($secondSelected[$type]['data'],$sameClock));
+$stats=ProjectFunnelConversions::tick($secondDb,$secondSelected['now'],$never);
+funnelCheck('same-second refinement uses strict event IDs without inventing a later clock',$stats['collected']===1&&$stats['errors']===0);
+[$wonDb,$wonSettings,$wonConversation,$wonNow,$wonMessenger]=funnelOwnerFixture('as39_model-iphone-13');$wonSelected=funnelRefine($wonDb,$wonMessenger);
+$wonDb->prepare('INSERT INTO conversation_events(conversation_id,event_type,actor_type,payload_json) VALUES(?,?,?,?)')->execute([
+    $wonConversation['id'],'project_funnel_stage','manager',json_encode(ConversationRecordClock::stamp([
+        'project_key'=>'appleservice39','bot_key'=>'id390521129062_bot','stage'=>'won'],$wonSelected['now']))]);
+funnelCheck('observed won stage suppresses an otherwise valid refinement',funnelRefinementHeld($wonDb,$wonSelected['now']));
 echo 'PROJECT FUNNEL CONVERSIONS REGRESSION PASSED '.$passed.PHP_EOL;
