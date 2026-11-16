@@ -2,6 +2,11 @@
 declare(strict_types=1);
 require_once __DIR__.'/monitor-price-hook-contract.php';
 $raw=gzdecode(file_get_contents(__DIR__.'/monitor-price-expanded-roster-20261111.json.gz'));
+// Later append-only rosters must reconstruct the exact accepted628 bytes before this original cohort test.
+$extension=json_decode(file_get_contents(__DIR__.'/monitor-price-expansion32-proof-20261116.json'),true,64,JSON_THROW_ON_ERROR);
+if(hash('sha256',$raw)!==$extension['new_decompressed_sha256']||$extension['previous_count']!==628||$extension['next_count']!==660)throw new RuntimeException('expanded_roster_proof_changed');
+$raw=substr($raw,0,$extension['old_rows_prefix_bytes']).substr($raw,$extension['old_rows_prefix_bytes']+$extension['appended_bytes']);
+if(strlen($raw)!==$extension['old_decompressed_bytes']||hash('sha256',$raw)!==$extension['old_decompressed_sha256'])throw new RuntimeException('old628_bytes_changed');
 $all=json_decode($raw,true,64,JSON_THROW_ON_ERROR);
 $proof=json_decode(file_get_contents(__DIR__.'/monitor-price-expansion20-proof-20261116.json'),true,64,JSON_THROW_ON_ERROR);
 $ids=[88169,547,15774,12125,57335,2480,2417,2418,2468,12127,27481,23289,50262,72939,2489,85417,2466,2460,99713,43676];
