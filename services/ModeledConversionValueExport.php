@@ -18,6 +18,7 @@ require_once __DIR__.'/ModeledConversionReceiptPollEvidence.php';
 require_once __DIR__.'/ModeledConversionRetainedAppIdentityEvidence.php';
 require_once __DIR__.'/ModeledConversionRetainedTrackerIdentityEvidence.php';
 require_once __DIR__.'/ModeledConversionKnownYclidRelation.php';
+require_once __DIR__.'/ModeledConversionReadySelectionEvidence.php';
 
 /** One bounded addition to the existing cron process and durable conversion outbox. */
 final class ModeledConversionValueExport
@@ -41,6 +42,7 @@ final class ModeledConversionValueExport
     private array $fixedPairCases=[];
     private array $ordinaryLookupUsers=[];
     private ?array $ordinaryProtectedIds=[];
+    private ?array $ordinaryBatchSelection=null;
     private bool $retainedTrackerConsumed=false;
     private bool $retainedTrackerSourceUnsupported=false;
     private ?array $retainedTrackerReservation=null;
@@ -195,6 +197,9 @@ final class ModeledConversionValueExport
             $carried=$self->ordinaryReadyLookupRows($now,$gate,$reserved,$freshRetry);
             $batchCapable=$api===null?method_exists(MetrikaOfflineClient::class,'modeledAttributionVisitsBatch'):method_exists($api,'modeledAttributionVisitsBatch');
             $batchLookahead=$batchCapable?$self->ordinaryBatchReadyRows($now,[],$freshRetry,$gate):[];
+            $readySelection=['v'=>1,'at'=>$now,'lookup'=>$batchCapable?$self->ordinaryBatchSelection:
+                ModeledConversionReadySelectionEvidence::stage('batch_unavailable'),
+                'dispatch'=>ModeledConversionReadySelectionEvidence::stage('not_run'),'mode'=>'legacy','selected'=>0];
             // Carried rows and frozen reservations share 25 subjects, leaving at least three pending rows.
             foreach($batchLookahead as$row){
                 if(count($carried)>=MaxTrackerLookupProtocol::MAX_USERS-count($reserved)-3)break;
@@ -237,8 +242,11 @@ final class ModeledConversionValueExport
             if($batchLookahead){
                 $allowed=array_fill_keys(array_map('strval',array_column(array_merge($batchLookahead,$pending),'id')),true);
                 $expanded=array_values(array_filter($self->ordinaryBatchReadyRows($now,$readyExcluded,$freshRetry,$gate),static fn(array $r):bool=>isset($allowed[(string)$r['id']])));
+                $readySelection['dispatch']=$self->ordinaryBatchSelection;
                 if(count($expanded)>3){$ready=$expanded;$batchMode=true;}
             }
+            $readySelection['mode']=$batchMode?'batch':'legacy';$readySelection['selected']=count($ready);
+            $stats[ModeledConversionReadySelectionEvidence::KEY]=$readySelection;
             $receipts=array_merge($self->rows('accepted',$now,2),$self->rows('unknown',$now,2));
             if($ready||$receipts){
                 $phase='goal_check';
@@ -389,6 +397,8 @@ final class ModeledConversionValueExport
     /** Merge after all network work, so overlapping healthy ticks cannot erase failure evidence. */
     private function persistTickReceipt(array $stats,?array $failure,int $now):bool
     {
+        $selection=$stats[ModeledConversionReadySelectionEvidence::KEY]??null;
+        unset($stats[ModeledConversionReadySelectionEvidence::KEY]);
         $decisions=$stats['visit_gate_decisions']??null;
         // New optional counters must never consume space reserved for existing proof or failures.
         unset($stats['visit_gate_decisions'],$stats[ModeledConversionFixedPairDecisionEvidence::RECEIPT_KEY],$stats['receipt_poll_evidence'],$stats[ModeledConversionMaxCounterScopeEvidence::RECEIPT_KEY]);
@@ -418,7 +428,7 @@ final class ModeledConversionValueExport
                     $updated=$receipt;
                     if($retained!==null&&$retained!==$previous){
                         $updated['last_recorded_failure']=$retained;
-                        unset($updated['visit_gate_decisions'],$updated[ModeledConversionFixedPairDecisionEvidence::RECEIPT_KEY],$updated['receipt_poll_evidence'],$updated[ModeledConversionMaxCounterScopeEvidence::RECEIPT_KEY],$updated[ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY],$updated[ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY],$updated[ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS[0]],$updated[ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS[1]]);
+                        unset($updated[ModeledConversionReadySelectionEvidence::KEY],$updated['visit_gate_decisions'],$updated[ModeledConversionFixedPairDecisionEvidence::RECEIPT_KEY],$updated['receipt_poll_evidence'],$updated[ModeledConversionMaxCounterScopeEvidence::RECEIPT_KEY],$updated[ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY],$updated[ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY],$updated[ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS[0]],$updated[ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS[1]]);
                         // The new forward journal yields before immutable original evidence or failure history.
                         unset($updated['finite_visit_recovery']);
                         // Only the winning saved audit may yield space to a newly retained failure.
@@ -468,6 +478,20 @@ final class ModeledConversionValueExport
                     [$stats,$storedBytes]=$this->withFixedPairDecisions($stats,is_array($receipt)?$receipt:[],$storedBytes,$now,true);
                     [$stats,$storedBytes]=$this->withReceiptPollEvidence($stats,$this->receiptPollEvidence,$storedBytes,$now);
                     $stats=self::withVisitGateDecisions($stats,$decisions,$storedBytes,$now);
+                    // Last priority: selection observations cannot evict any receipt, proof or failure.
+                    // Equal-second overlapping ticks have no unique selection observation.
+                    try{
+                        if($lastTick<$now&&ModeledConversionReadySelectionEvidence::normalize($selection,$now)!==null){
+                            $selectionGrowth=2*strlen(json_encode([ModeledConversionReadySelectionEvidence::KEY=>$selection],JSON_THROW_ON_ERROR))+4;
+                            // storedBytes precedes the existing optional visit-decision attachment.
+                            $visitGrowth=isset($stats['visit_gate_decisions'])?
+                                2*strlen(json_encode(['visit_gate_decisions'=>$stats['visit_gate_decisions']],JSON_THROW_ON_ERROR))+4:0;
+                            // Closed ASCII enums/integers need at most one native space per separator.
+                            // Keep the conservative existing measurement; no extra SQL or retry for metadata.
+                            if($storedBytes>=0&&$storedBytes+$visitGrowth+$selectionGrowth<=8192)
+                                $stats[ModeledConversionReadySelectionEvidence::KEY]=$selection;
+                        }
+                    }catch(Throwable $ignoredSelection){ /* Optional observation can never stop core receipt persistence. */ }
                     $encoded=json_encode($stats,JSON_THROW_ON_ERROR);
                 }
                 $report=$stats['metrika_report'];$reportOk=in_array($report['status']??null,['ok','sampled'],true);
@@ -1259,13 +1283,34 @@ final class ModeledConversionValueExport
     }
     private function ordinaryBatchReadyRows(int $now,array $excluded,?array $freshRetry,callable $gate):array
     {
+        $this->ordinaryBatchSelection=ModeledConversionReadySelectionEvidence::stage('unknown_membership');
         if($this->ordinaryProtectedIds===null)return [];
         try{
             $rows=$this->rows('ready',$now,19,$excluded,$freshRetry===null?null:(string)$freshRetry['id']);
-            if(count($rows)<=3)return [];
-            foreach(array_slice($rows,0,3)as$row)if(!$this->ordinaryBatchRow($row,$now)||!$this->eligible($row,$gate))return [];
-            return array_slice(array_values(array_filter($rows,fn(array $r):bool=>$this->ordinaryBatchRow($r,$now)&&$this->eligible($r,$gate))),0,18);
-        }catch(Throwable $ignored){return [];}
+            $count=count($rows);
+            if($count<=3){$this->ordinaryBatchSelection=ModeledConversionReadySelectionEvidence::stage('small_prefix',$count);return [];}
+            $examined=0;
+            foreach(array_slice($rows,0,3)as$row){
+                ++$examined;
+                if(!$this->ordinaryBatchRow($row,$now)){
+                    // Classify only the already rejected row; never perform another admission or lookup.
+                    $event=$row['event_unix']??null;
+                    $eventValid=(is_int($event)||is_string($event))&&preg_match('/\\A[0-9]{1,12}\\z/D',(string)$event)===1;
+                    $class=isset($this->ordinaryProtectedIds[(string)$row['id']])?'protected_original':
+                        (in_array($row['value_origin']??null,['owner_day_review_v1','owner_fortnight_review_v1'],true)?'historical_origin':
+                        ($eventValid&&((int)$event<max(946684800,$now-ModeledConversionAttributionWindow::MAX_SECONDS)
+                            ||(int)$event>$now)?'event_outside_window':'nonordinary_shape'));
+                    foreach($this->finiteFrame['r']??[]as$old)if((string)$old[1]===(string)$row['id']){$class='finite_reserved';break;}
+                    $this->ordinaryBatchSelection=ModeledConversionReadySelectionEvidence::stage('nonordinary_prefix',$count,$examined,0,$class);return [];
+                }
+                if(!$this->eligible($row,$gate)){
+                    $this->ordinaryBatchSelection=ModeledConversionReadySelectionEvidence::stage('ineligible_prefix',$count,$examined);return [];
+                }
+            }
+            $selected=array_slice(array_values(array_filter($rows,fn(array $r):bool=>$this->ordinaryBatchRow($r,$now)&&$this->eligible($r,$gate))),0,18);
+            $this->ordinaryBatchSelection=ModeledConversionReadySelectionEvidence::stage('expanded',$count,$examined,count($selected));
+            return $selected;
+        }catch(Throwable $ignored){$this->ordinaryBatchSelection=ModeledConversionReadySelectionEvidence::stage('error');return [];}
     }
     /** Current local admission is repeated before the financial claim; no identity or visit is invented. */
     private function ordinaryBatchAdmission(array $r,array $s,array $identities,bool $returned,int $now,callable $gate):bool
