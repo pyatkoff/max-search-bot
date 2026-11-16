@@ -1,74 +1,159 @@
-name: Complete exact reliability660 source checks without production
+name: Deliver accepted reliability660 bridge without price collection
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
     paths: ['.github/workflows/content100-bot-publication-20261101.yml']
 permissions:
-  contents: write
+  contents: read
   actions: read
-  pull-requests: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == 'f5aec3bcdb823d04b8e8f9556648413ecf93868c' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '51fa9f0927dadca7e6949eb581af7dc20494d02c' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 2
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
-        with:
-          ref: c6e6b7fc57d599ae7fcf8bba4aed1ed3315a00b0
-          path: source-pr
-          persist-credentials: false
-          fetch-depth: 5
-      - name: Complete original source integration with all eight original suites and expansion32
+      - name: Authenticate accepted source and immutable module; test only installation guards
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = f5aec3bcdb823d04b8e8f9556648413ecf93868c
+          test "$(git rev-parse HEAD^)" = 51fa9f0927dadca7e6949eb581af7dc20494d02c
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
+          p=tools/direct_demand/operations
+          test "$(git hash-object "$p/install-accepted-monitor660-reliability-20261117.php")" = b889ace2755724c2a21273e1028e7384f8187c3d
+          test "$(git hash-object "$p/inspect-monitor660-reliability-20261117.php")" = c47b51d5fc8597c387155efd9b900de3d44a1837
+          php -l "$p/install-accepted-monitor660-reliability-20261117.php"
+          php "$p/install-accepted-monitor660-reliability-20261117.php" --self-test
+          umask 077
+          mkdir "$RUNNER_TEMP/module660"
           python3 - <<'PY'
-          import subprocess,pathlib,hashlib,os
-          original=subprocess.check_output(['git','show','f5aec3bcdb823d04b8e8f9556648413ecf93868c:.github/workflows/content100-bot-publication-20261101.yml'])
-          assert hashlib.sha1(b'blob '+str(len(original)).encode()+b'\0'+original).hexdigest()=='c44acc7e7bad0cd1bc2596c89e2ac2bdd66b697f'
-          steps={}
-          for chunk in original.decode().split('      - name: ')[1:]:
-            name=chunk.split('\n',1)[0]
-            marker='        run: |\n'
-            if marker not in chunk:continue
-            lines=[]
-            for line in chunk.split(marker,1)[1].splitlines():
-              if line and not line.startswith('          '):break
-              lines.append(line[10:] if line.startswith('          ') else '')
-            steps[name]='\n'.join(lines)+'\n'
-          names=['Integrate only the original reliability scope and preserve current660','Run original reliability checks and both admitted expansion cohorts','Retain tested source tree without moving branches or installing code']
-          assert set(steps)==set(names)
-          first=steps[names[0]]
-          assert first.count('fbcec3b211c0b0910fd41ff1678d609d402baa18')==1
-          first=first.replace('fbcec3b211c0b0910fd41ff1678d609d402baa18','f5aec3bcdb823d04b8e8f9556648413ecf93868c',1)
-          old=r'(test-monitor-price-[a-z0-9-]+\.php)';new=r'((?:test-monitor-price-[a-z0-9-]+|test-reconcile-stale-feed-20261116)\.php)'
-          assert first.count(old)==1 and first.count('assert len(tests)>=8')==1
-          first=first.replace(old,new,1).replace('assert len(tests)>=8','assert len(tests)==8',1)
-          steps[names[0]]=first
-          for index,name in enumerate(names,1):
-            path=pathlib.Path(os.environ['RUNNER_TEMP'])/('reliability660-step-'+str(index)+'.sh')
-            path.write_text(steps[name]);subprocess.run(['bash','-n',str(path)],check=True)
-            print('BEGIN_EXACT_SOURCE_STAGE '+name,flush=True)
-            subprocess.run(['bash',str(path)],check=True,timeout=360)
+          import json,pathlib,subprocess,hashlib,base64,zipfile,io,os
+          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'module660'
+          def api(repo,path):return json.loads(subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/'+repo+'/'+path],timeout=40))
+          s=api('max-search-bot','pulls/1574');c=api('poisk-turov-test','pulls/5059')
+          assert s['merged'] and s['head']['sha']=='a1dc3f6712dc74d97bf90ab46a747ed3b2db4e68'
+          assert c['merged'] and c['merge_commit_sha']=='45ad1616caa1f7f96afb879439c8a21e9d345027'
+          runs=[]
+          for repo,rid,head in [('max-search-bot',43952617050,'f4d4cb32bd962054dae3e65e1ffd69322cd1ad16'),('poisk-turov-test',43967512962,'45ad1616caa1f7f96afb879439c8a21e9d345027'),('poisk-turov-test',43967512983,'45ad1616caa1f7f96afb879439c8a21e9d345027'),('max-search-bot',43964804292,'4ce3d164bdf04e859389df1879a6d55e58e9a6aa')]:
+            r=api(repo,'actions/runs/'+str(rid));assert r['head_sha']==head and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success';runs.append({'repo':repo,'run_id':rid,'head':head,'conclusion':r['conclusion']})
+          a=api('max-search-bot','actions/artifacts/14268746215');assert not a['expired'] and a['workflow_run']['id']==43952617050 and a['digest']=='sha256:aa742bf4ee787e5a9cee6695b4c937f9c8e2c9a5d801b75cd2c2cc54ed8921b0'
+          raw=subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/max-search-bot/actions/artifacts/14268746215/zip'],timeout=60);assert hashlib.sha256(raw).hexdigest()==a['digest'].split(':')[1]
+          with zipfile.ZipFile(io.BytesIO(raw)) as z:
+            assert z.testzip() is None;bundle=z.read('monitor-price-hook.php')
+          assert len(bundle)==613581 and hashlib.sha256(bundle).hexdigest()=='41e9f0151f97691f91258ebb37714090ba0798c76db18c3870ff93bcc23d0c9a''
+          source=pathlib.Path('tools/direct_demand/operations/install-accepted-monitor660-reliability-20261117.php').read_text();assert source.count('__BUNDLE__')==1
+          (w/'install.php').write_text(source.replace('__BUNDLE__',base64.b64encode(bundle).decode()))
+          (w/'intent.json').write_text(json.dumps({'kind':'accepted_code_delivery_only','source_pr':1574,'consumer_pr':5059,'source_artifact':a['id'],'artifact_sha256':a['digest'],'module_sha256':hashlib.sha256(bundle).hexdigest(),'module_bytes':len(bundle),'module_count':660,'original_gates':runs,'collector_dispatches':0,'module_execution':False},indent=2)+'\n')
+          print('ACCEPTED_RELIABILITY660_CODE_ONLY_INTENT_VERIFIED')
           PY
-      - name: Preserve exact integration and native evidence
+          php -l "$RUNNER_TEMP/module660/install.php"
+      - name: Retain original delivery intent
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: reliability660-bridge-intent-${{ github.run_id }}
+          path: ${{ runner.temp }}/module660/intent.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Prepare unchanged server connection and host pin
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER'];assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35);matches=[]
+          for line in scan.stdout.splitlines():
+            f=line.split()
+            if len(f)<3 or f[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(f[2])).digest()).decode().rstrip('=')
+            except Exception:continue
+            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP';pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          PY
+      - name: Fresh unchanged source and no competing collector or application deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,pathlib,subprocess,os,datetime
+          def api(repo,path):return json.loads(subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/'+repo+'/'+path],timeout=30))
+          assert api('poisk-turov-test','git/ref/heads/main')['object']['sha']=='45ad1616caa1f7f96afb879439c8a21e9d345027'
+          assert api('max-search-bot','git/ref/heads/main')['object']['sha']=='4ce3d164bdf04e859389df1879a6d55e58e9a6aa'
+          assert api('max-search-bot','git/ref/heads/audit/content100-bot-publication-20261101')['object']['sha']==os.environ['GITHUB_SHA']
+          reads=[]
+          for state in ['in_progress','queued','waiting']:
+            d=api('poisk-turov-test','actions/workflows/346454799/runs?status='+state+'&per_page=100');assert d['total_count']==0 and not d['workflow_runs'],('COLLECTOR_BUSY',state)
+            reads.append({'workflow_id':346454799,'status':state,'total_count':0})
+          d=api('max-search-bot','actions/runs?head_sha=4ce3d164bdf04e859389df1879a6d55e58e9a6aa&per_page=100');assert d['total_count']<=100 and len(d['workflow_runs'])==d['total_count']
+          assert all(r['status']=='completed' for r in d['workflow_runs']),'APPLICATION_RELEASE_STILL_ACTIVE'
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'module660/prewrite-read.json';p.write_text(json.dumps({'at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'current_source_verified':True,'collector_status_reads':reads,'app_exact_source_runs_all_completed':True,'mutation_requests':0},indent=2)+'\n')
+          print('FRESH_CODE_DELIVERY_ADMISSION_OK')
+          PY
+      - name: Replace only the admitted module once under existing journal lock
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          w="$RUNNER_TEMP/module660"
+          status=0
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; GIT_OPTIONAL_LOCKS=0 php' < "$w/install.php" > "$w/result.json" || status=$?
+          printf '%s\n' "$status" > "$w/exit-code.txt"
+          cat "$w/result.json"
+          exit "$status"
+      - name: Independent readback without executing the installed module
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          w="$RUNNER_TEMP/module660"
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; GIT_OPTIONAL_LOCKS=0 php' < tools/direct_demand/operations/inspect-monitor660-reliability-20261117.php > "$w/readback.json"
+          cat "$w/readback.json"
+          python3 - <<'PY'
+          import pathlib,json,os
+          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'module660';r=json.loads((w/'result.json').read_bytes());v=json.loads((w/'readback.json').read_bytes())
+          assert r['ok'] and r['code_replacements']==1 and r['new_count']==660 and r['bytes']==613581 and r['installed_sha256']=='41e9f0151f97691f91258ebb37714090ba0798c76db18c3870ff93bcc23d0c9a' and r['module_executions']==0
+          assert all(r[k]==0 for k in ['collector_runs','post_writes','feed_writes','supplier_calls','global_journal_writes'])
+          assert v['ok'] and v['installed_hook']['matches_accepted660'] and v['installed_hook']['roster_count']==660 and not v['installed_hook']['runtime_pin_mismatches']
+          assert v['journal']['pending_is_null'] and v['journal']['bytes']>=339101253 and v['app']['head']=='4ce3d164bdf04e859389df1879a6d55e58e9a6aa' and v['app']['tracked_clean']
+          print('RELIABILITY660_INSTALLED_AND_INDEPENDENTLY_READ_BACK NO_PRICE_OR_COLLECTOR_EXECUTION')
+          PY
+      - name: Retain exact delivery outcome
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: reliability660-compatible-source-${{ github.run_id }}
-          path: ${{ runner.temp }}/reliability660/
+          name: reliability660-bridge-outcome-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/module660/*.json
+            ${{ runner.temp }}/module660/*.txt
           retention-days: 30
           if-no-files-found: error
+      - name: Remove runner-only connection files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/module660/install.php"
