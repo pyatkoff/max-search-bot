@@ -1,4 +1,4 @@
-name: Retain reviewed expansion20 covers under immutable URLs
+name: Prepare same-source expansion20 cover assets for visual review
 on:
   push:
     branches: ['audit/content100-bot-publication-20261101']
@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '457b666e71395f44d141adade11b801128945521' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == 'e9e0ba9476371ce434d308275ff5c5a5868855dd' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -20,35 +20,37 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 2
-      - name: Authenticate retained source and successful current clearance
+      - name: Authenticate source and unchanged successful clearance
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = 457b666e71395f44d141adade11b801128945521
+          test "$(git rev-parse HEAD^)" = e9e0ba9476371ce434d308275ff5c5a5868855dd
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
           p=tools/direct_demand/operations
-          echo "30e2b7cac571266684346a37f1da6497ecc09021fc176f2d9afa1997e8b7480e  $p/reproduce-expansion20-covers-20261116.py" | sha256sum --check
+          echo "b48bc7eeb71ee8e1c4eaa1bcdf3d8b435709bd5f832ceabcadadef774133bfdc  $p/reproduce-expansion20-covers-20261116.py" | sha256sum --check
           python3 -m pip install --quiet 'Pillow==12.3.0'
           umask 077
           mkdir "$RUNNER_TEMP/expansion20-assets"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/43858572013/jobs > "$RUNNER_TEMP/expansion20-assets/original-preparation-jobs.json"
           gh api repos/pyatkoff/max-search-bot/actions/runs/43857847149 > "$RUNNER_TEMP/expansion20-assets/clearance-run.json"
           gh api repos/pyatkoff/max-search-bot/actions/artifacts/14221119066/zip > "$RUNNER_TEMP/clearance20.zip"
           gh api repos/pyatkoff/max-search-bot/actions/artifacts/14218025386/zip > "$RUNNER_TEMP/media20.zip"
           python3 - <<'PY'
           import os,pathlib,json,hashlib,zipfile
-          p=pathlib.Path(os.environ['RUNNER_TEMP']);r=json.loads((p/'expansion20-assets/clearance-run.json').read_bytes())
-          assert r['id']==43857847149 and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success' and r['head_sha']=='dda3c966ba4c0bff39afec2edef3a9f8a92c7977'
+          p=pathlib.Path(os.environ['RUNNER_TEMP']);work=p/'expansion20-assets'
+          jobs=json.loads((work/'original-preparation-jobs.json').read_bytes())['jobs'];assert len(jobs)==1 and jobs[0]['id']==133269103465 and jobs[0]['conclusion']=='failure'
+          writes=[s for s in jobs[0]['steps'] if s['name']=='Create one image-only asset commit and read it back; no retry'];assert len(writes)==1 and writes[0]['conclusion']=='skipped'
+          r=json.loads((work/'clearance-run.json').read_bytes());assert r['id']==43857847149 and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success' and r['head_sha']=='dda3c966ba4c0bff39afec2edef3a9f8a92c7977'
           assert hashlib.sha256((p/'clearance20.zip').read_bytes()).hexdigest()=='09b492fe35bfbaa42cb96fbc4f5196cfffb2ece475890ce8769ab4c6840bb78a'
           with zipfile.ZipFile(p/'clearance20.zip') as z:
             raw=z.read('result.json');d=json.loads(raw);assert d['ok'] and d['clear_count']==20 and d['blocked_count']==0
             assert d['runtime']['tracked_clean'] and d['runtime']['component_mismatches']==[] and d['runtime']['head']=='d5091653179ac0460ed0129ae32cc52495abfbdd'
-            (p/'expansion20-assets/clearance.json').write_bytes(raw)
-            (p/'expansion20-assets/clearance-input.json').write_bytes(z.read('input.json'))
+            (work/'clearance.json').write_bytes(raw);(work/'clearance-input.json').write_bytes(z.read('input.json'))
           PY
           python3 "$p/reproduce-expansion20-covers-20261116.py" "$RUNNER_TEMP/media20.zip" "$p/commercial-expansion20-prepared-copy-media-20261116.json" "$RUNNER_TEMP/expansion20-assets/covers"
-      - name: Retain asset intent before repository publication
+      - name: Retain candidate images before repository publication
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: expansion20-assets-intent-${{ github.run_id }}
@@ -64,7 +66,7 @@ jobs:
           python3 - <<'PY'
           import os,pathlib,json,hashlib,base64,urllib.request,urllib.error
           p=pathlib.Path(os.environ['RUNNER_TEMP'])/'expansion20-assets';manifest=json.loads((p/'covers/asset-manifest.json').read_bytes())
-          repo='pyatkoff/max-search-bot';branch='assets/hotel-expansion20-20261116';base=os.environ['GITHUB_SHA'];result={'ok':False,'branch':branch,'parent':base,'channel_writes':0,'server_connections':0,'blobs':[],'ref_write_attempted':False}
+          repo='pyatkoff/max-search-bot';branch='assets/hotel-expansion20-20261116';base=os.environ['GITHUB_SHA'];result={'ok':False,'branch':branch,'parent':base,'channel_writes':0,'server_connections':0,'visual_acceptance_pending':True,'blobs':[],'ref_write_attempted':False}
           def save(): (p/'publication-result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
           def api(method,path,value=None):
             raw=None if value is None else json.dumps(value,separators=(',',':')).encode()
@@ -79,20 +81,16 @@ jobs:
             commit=api('GET','git/commits/'+base);tree=[]
             for r in manifest['rows']:
               raw=(p/'covers'/r['photo_file']).read_bytes();assert hashlib.sha256(raw).hexdigest()==r['photo_sha256']
-              path='.github/traffic-publish/commercial-expansion20-20261116/'+r['photo_file']
-              expected=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              path='.github/traffic-publish/commercial-expansion20-20261116/'+r['photo_file'];expected=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
               b=api('POST','git/blobs',{'content':base64.b64encode(raw).decode(),'encoding':'base64'});assert b['sha']==expected
               tree.append({'path':path,'mode':'100644','type':'blob','sha':b['sha']});result['blobs'].append({'hotel_id':r['hotel_id'],'path':path,'git_blob':b['sha'],'sha256':r['photo_sha256']});save()
             assert len(tree)==20 and len({r['sha'] for r in tree})==20
-            t=api('POST','git/trees',{'base_tree':commit['tree']['sha'],'tree':tree})
-            c=api('POST','git/commits',{'message':'assets: twenty reviewed hotel covers, exact pixels; no channel sends','tree':t['sha'],'parents':[base]});result['asset_commit']=c['sha'];save()
-            result['ref_write_attempted']=True;save()
-            api('POST','git/refs',{'ref':'refs/heads/'+branch,'sha':c['sha']})
+            t=api('POST','git/trees',{'base_tree':commit['tree']['sha'],'tree':tree});c=api('POST','git/commits',{'message':'assets: twenty same-source hotel cover candidates; channel release still unapproved','tree':t['sha'],'parents':[base]});result['asset_commit']=c['sha'];save()
+            result['ref_write_attempted']=True;save();api('POST','git/refs',{'ref':'refs/heads/'+branch,'sha':c['sha']})
             assert api('GET','git/ref/heads/'+branch)['object']['sha']==c['sha']
-            diff=api('GET','compare/'+base+'...'+c['sha']);assert len(diff['files'])==20 and {f['filename'] for f in diff['files']}=={r['path'] for r in tree}
-            assert all(f['status']=='added' for f in diff['files'])
+            diff=api('GET','compare/'+base+'...'+c['sha']);assert len(diff['files'])==20 and {f['filename'] for f in diff['files']}=={r['path'] for r in tree};assert all(f['status']=='added' for f in diff['files'])
             for r in result['blobs']:r['url']='https://raw.githubusercontent.com/'+repo+'/'+c['sha']+'/'+r['path']
-            result['ok']=True;save();print('IMMUTABLE_ASSETS_READY='+json.dumps({'commit':c['sha'],'covers':20,'channel_writes':0,'server_connections':0}))
+            result['ok']=True;save();print('IMMUTABLE_ASSET_CANDIDATES_READY='+json.dumps({'commit':c['sha'],'covers':20,'visual_acceptance_pending':True,'channel_writes':0,'server_connections':0}))
           except Exception as e:
             result['error_type']=type(e).__name__;save();raise
           PY
