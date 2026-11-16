@@ -73,6 +73,21 @@ class DepartureCityResolver
         }
     }
 
+    /**
+     * Syntax-only clue: an unresolved bare place-like answer is not consent
+     * to the implicit Moscow departure. The caller must first check the
+     * active departure directory and exclude recognized non-city trip facts.
+     */
+    public static function isUnresolvedCityLikeAnswer(string $text): bool
+    {
+        $text = trim($text);
+        if ($text === '' || strlen($text) > 96 || preg_match('/[0-9?？\/@]/u', $text)) return false;
+        if (preg_match('/\A(?:привет|здравствуйте|здрасьте|добрый\s+(?:день|вечер|утро)|не\s+знаю|пока\s+не\s+знаю|да|нет|хочу(?:\s+.*)?|надо(?:\s+.*)?|нужно(?:\s+.*)?|подберите(?:\s+.*)?|ищу(?:\s+.*)?|можно(?:\s+.*)?)\s*[.!]?\z/ui', $text)) return false;
+        if (preg_match('/\A(?:январ[ья]|феврал[ья]|март[а]?|апрел[ья]|ма[йя]|июн[ья]|июл[ья]|август[а]?|сентябр[ья]|октябр[ья]|ноябр[ья]|декабр[ья])\s*[.!]?\z/ui', $text)) return false;
+        return preg_match('/\A(?:(?:с\s+вылетом\s+из|вылет(?:ом)?\s+из|из)\s+)?[\p{L}][\p{L}-]*[.!]?\z/ui', $text) === 1
+            || preg_match('/\A(?:с\s+вылетом\s+из|вылет(?:ом)?\s+из|из)\s+[\p{L}][\p{L}-]*(?:\s+[\p{L}][\p{L}-]*){1,2}[.!]?\z/ui', $text) === 1;
+    }
+
     /** Only two whole, distinct active-departure answers qualify. */
     public static function bestFieldAlternatives(string $text, array $rows): array
     {
