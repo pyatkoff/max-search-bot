@@ -7,6 +7,30 @@ ini_set('display_errors','0');ini_set('log_errors','0');
 require_once __DIR__.'/monitor-price-hook-contract.php';
 
 function hook_need(bool $ok,string $why):void{monitor_price_require($ok,$why);}
+/** Git failures must never look like an empty, clean status. */
+function hook_git(array $args,string $error):string {
+    $lines=[];$status=0;
+    exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false -c core.untrackedCache=false '.implode(' ',array_map('escapeshellarg',$args)).' 2>/dev/null',$lines,$status);
+    hook_need($status===0,$error);return implode("\n",$lines);
+}
+function hook_runtime():string {
+    $head=hook_git(['rev-parse','HEAD'],'hook_runtime_git_failed');
+    hook_need(preg_match('/\A[a-f0-9]{40}\z/D',$head)===1
+        &&hook_git(['status','--porcelain','--untracked-files=no'],'hook_runtime_git_failed')==='','hook_runtime_changed');
+    hook_git(['merge-base','--is-ancestor',HOOK_ACCEPTED_BASE,'HEAD'],'hook_runtime_not_accepted_descendant');
+    $pins=json_decode(base64_decode(HOOK_RUNTIME_PINS_B64,true),true,32,JSON_THROW_ON_ERROR);
+    hook_need(is_array($pins)&&count($pins)===22,'hook_publishing_surface_changed');
+    $hashes=explode("\n",hook_git(array_merge(['hash-object','--'],array_keys($pins)),'hook_publishing_surface_changed'));
+    hook_need($hashes===array_values($pins),'hook_publishing_surface_changed');
+    return $head;
+}
+/** Aggregate elapsed stage time, including a stage that fails. No extra I/O. */
+function hook_measure(array &$out,string $stage,callable $action):mixed {
+    $start=hrtime(true);
+    try{return $action();}finally{
+        $out['timings_ms'][$stage]=($out['timings_ms'][$stage]??0)+(int)round((hrtime(true)-$start)/1000000);
+    }
+}
 function hook_read(string $path,int $max=10000000):string {
     hook_need(!is_link($path)&&is_file($path)&&realpath($path)===$path&&filesize($path)<=$max,'hook_receipt_path_invalid');
     $raw=file_get_contents($path);hook_need(is_string($raw),'hook_read_failed');return $raw;
@@ -160,12 +184,13 @@ function hook_snapshots(array $roster,DateTimeImmutable $today):array {
     return $snapshots;
 }
 function hook_output_and_exit(array $out,$lock=null):void {
+    $out=array_replace($out,monitor_hook_result_summary($out));
     if(is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}
     echo 'MONITOR_POST_FEED_RESULT='.json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)."\n";
     exit($out['ok']?0:2);
 }
 
-function hook_finish_feed(array &$state,$lock,string $installed):string {
+function hook_finish_feed(array &$state,$lock,string $installed,array &$out):string {
     $pending=$state['pending'];$journal=hook_journal($pending['operation']);
     if(is_array($journal)){
         $held=monitor_hook_apply_abandonment($state,$journal);
@@ -173,18 +198,20 @@ function hook_finish_feed(array &$state,$lock,string $installed):string {
     }
     hook_need(is_array($journal)&&($journal['complete']??false)===true,'hook_post_outcome_unresolved_stop');
     if($pending['phase']==='post_started'){
-        $input=hook_prepare_feed($journal,$installed);$raw=json_encode($input,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+        $input=hook_measure($out,'feed_prepare',fn()=>hook_prepare_feed($journal,$installed));$raw=json_encode($input,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
         $state['pending']['phase']='feed_started';$state['pending']['feed_operation']=$input['operation'];
         $state['pending']['files']=array_map(static fn($r)=>array_intersect_key($r,array_flip(['name','sha256','bytes','rows','expected_previous_sha256'])),$input['files']);hook_append($lock,$state);
         $failure=null;
-        try{hook_child(base64_decode(HOOK_WRITER_B64,true),['EXPECTED_INSTALLED_SHA'=>$installed,'PUBLIC_STATIC_FEED_OPERATION'=>$input['operation'],'PUBLIC_STATIC_FEED_INPUT_SHA256'=>hash('sha256',$raw),'PUBLIC_STATIC_FEED_INPUT_B64'=>base64_encode($raw)],$failure);}
+        try{hook_measure($out,'feed_write',function()use($installed,$input,$raw,&$failure){return hook_child(base64_decode(HOOK_WRITER_B64,true),['EXPECTED_INSTALLED_SHA'=>$installed,'PUBLIC_STATIC_FEED_OPERATION'=>$input['operation'],'PUBLIC_STATIC_FEED_INPUT_SHA256'=>hash('sha256',$raw),'PUBLIC_STATIC_FEED_INPUT_B64'=>base64_encode($raw)],$failure);});}
         catch(Throwable $e){if($failure!==null){$state['pending']['child_failure']=$failure;hook_append($lock,$state);}throw $e;}
     }
     // Unknown feed outcome is reconciled by exact local + public hashes only, never replayed.
-    foreach($state['pending']['files'] as $file){
-        hook_need(hash('sha256',hook_read(getcwd().'/feed/'.$file['name'],4000000))===$file['sha256'],'hook_feed_outcome_unresolved_stop');
-        hook_need(hash('sha256',hook_get('https://app.anytoour.ru/feed/'.$file['name']))===$file['sha256'],'hook_public_feed_readback_pending');
-    }
+    hook_measure($out,'feed_readback',function()use($state):void{
+        foreach($state['pending']['files'] as $file){
+            hook_need(hash('sha256',hook_read(getcwd().'/feed/'.$file['name'],4000000))===$file['sha256'],'hook_feed_outcome_unresolved_stop');
+            hook_need(hash('sha256',hook_get('https://app.anytoour.ru/feed/'.$file['name']))===$file['sha256'],'hook_public_feed_readback_pending');
+        }
+    });
     $state['completed'][$pending['tourvisor_hotel_id']]=['operation'=>$pending['operation'],'at'=>gmdate('c'),'feed_operation'=>$state['pending']['feed_operation']];
     $state['pending']=null;hook_append($lock,$state);
     return 'feed_completed';
@@ -206,21 +233,32 @@ try{
     }
     hook_need(defined('HOOK_ROSTER_GZIP_B64')&&defined('HOOK_RUNTIME_PINS_B64'),'hook_bundle_required');
     $root='/var/www/anytoour/data/www/app.anytoour.ru';hook_need(realpath($root)===$root&&chdir($root),'hook_bot_root_unavailable');
-    $installed=trim((string)shell_exec('git rev-parse HEAD'));hook_need(preg_match('/\A[a-f0-9]{40}\z/D',$installed)===1&&trim((string)shell_exec('git status --porcelain --untracked-files=no'))==='','hook_runtime_changed');
-    exec('git merge-base --is-ancestor '.escapeshellarg(HOOK_ACCEPTED_BASE).' HEAD',$unused,$ancestor);hook_need($ancestor===0,'hook_runtime_not_accepted_descendant');
-    foreach(json_decode(base64_decode(HOOK_RUNTIME_PINS_B64,true),true,32,JSON_THROW_ON_ERROR) as $file=>$hash)hook_need(trim((string)shell_exec('git hash-object -- '.escapeshellarg($file)))===$hash,'hook_publishing_surface_changed');
+    $installed=hook_measure($out,'runtime_validation',fn()=>hook_runtime());
     $private='/var/www/anytoour/data/channel-post-operations';hook_need(!is_link($private)&&realpath($private)===$private,'hook_private_root_changed');
     $path=$private.'/monitor-price-after-collection-v1.jsonl';hook_need(!is_link($path),'hook_journal_symlink');$existed=is_file($path);umask(0077);
-    if($inspect){$raw=$existed?hook_read($path,100000000):'';}
-    else{$lock=fopen($path,'c+');hook_need($lock!==false&&flock($lock,LOCK_EX|LOCK_NB),'hook_already_running');$raw=stream_get_contents($lock);}
-    hook_need(is_string($raw)&&(!$existed||$raw!=='')&&($raw===''||str_ends_with($raw,"\n")),'hook_journal_incomplete_stop');
-    $state=['schema'=>1,'pending'=>null,'completed'=>[]];if($raw!==''){$lines=explode("\n",rtrim($raw,"\n"));$state=json_decode(end($lines),true,64,JSON_THROW_ON_ERROR);}elseif(!$inspect)hook_append($lock,$state);
+    $history=['state'=>null,'attempted_runs'=>[],'pin'=>['sha256'=>hash('sha256',''),'bytes'=>0,'lines'=>0],'trailing_blank_lines'=>0];
+    if(!$inspect||$existed){
+        $lock=fopen($path,$inspect?'rb':'c+');hook_need(is_resource($lock)&&flock($lock,($inspect?LOCK_SH:LOCK_EX)|LOCK_NB),'hook_already_running');
+        clearstatcache(true,$path);$opened=fstat($lock);$named=lstat($path);
+        hook_need(!is_link($path)&&is_array($opened)&&is_array($named)&&$opened['dev']===$named['dev']&&$opened['ino']===$named['ino'],'hook_journal_identity_changed_stop');
+        // A deploy may have completed between the first check and our lock. No state is appended until this check passes.
+        hook_need(hook_measure($out,'runtime_validation',fn()=>hook_runtime())===$installed,'hook_runtime_changed');
+        $history=hook_measure($out,'journal_read',fn()=>monitor_hook_read_history($lock));
+        clearstatcache(true,$path);$after=fstat($lock);$named=lstat($path);
+        foreach(['dev','ino','size','mtime','ctime'] as $key)hook_need(($after[$key]??null)===$opened[$key]&&($named[$key]??null)===$opened[$key],'hook_journal_changed_stop');
+        if($inspect){flock($lock,LOCK_UN);fclose($lock);$lock=null;}
+    }
+    hook_need(!$existed||$history['pin']['bytes']>0,'hook_journal_incomplete_stop');
+    hook_need($inspect||$history['trailing_blank_lines']===0,'hook_journal_trailing_blank_stop');
+    $out['journal_read']=$history['pin'];
+    $state=$history['state']??['schema'=>1,'pending'=>null,'completed'=>[]];
+    if($history['state']===null&&!$inspect)hook_append($lock,$state);
     if(!$inspect)hook_reconcile_channel_preflight($state,$lock,$out);
     if(!$inspect){
         $expiredRecovery=monitor_hook_expired_cycle_recovery_proof();
         if(($state['nightly_cycle']['collector_run_id']??null)===$expiredRecovery['collector_run_id']&&($state['nightly_cycle']['state']??null)==='started'){
             $childRaw=hook_read($private.'/'.$expiredRecovery['operation'].'/receipt.jsonl');
-            $closed=monitor_hook_close_expired_reconciled_cycle($state,monitor_hook_cycle_journal_pin($raw),monitor_hook_cycle_journal_pin($childRaw),
+            $closed=monitor_hook_close_expired_reconciled_cycle($state,$history['pin'],monitor_hook_cycle_journal_pin($childRaw),
                 monitor_hook_parse_journal($childRaw,$expiredRecovery['operation']),$startedAt);
             hook_need($closed!==null,'hook_expired_cycle_recovery_terminal_missing');hook_append($lock,$closed);$state=$closed;
             $out['reconciled_prior_collector']=['collector_run_id'=>$expiredRecovery['collector_run_id'],'recovery_run_id'=>$expiredRecovery['recovery_run_id'],
@@ -231,13 +269,13 @@ try{
         $cycleRecovery=monitor_hook_cycle_recovery_proof();
         if(($state['nightly_cycle']['collector_run_id']??null)===$cycleRecovery['collector_run_id']&&($state['nightly_cycle']['state']??null)==='started'){
             $childRaw=hook_read($private.'/'.$cycleRecovery['operation'].'/receipt.jsonl');
-            $closed=monitor_hook_close_reconciled_cycle($state,monitor_hook_cycle_journal_pin($raw),monitor_hook_cycle_journal_pin($childRaw),
+            $closed=monitor_hook_close_reconciled_cycle($state,$history['pin'],monitor_hook_cycle_journal_pin($childRaw),
                 monitor_hook_parse_journal($childRaw,$cycleRecovery['operation']),$startedAt);
             hook_need($closed!==null,'hook_cycle_recovery_terminal_missing');
             hook_append($lock,$closed);$state=$closed;
             $out['reconciled_prior_collector']=['collector_run_id'=>$cycleRecovery['collector_run_id'],'state'=>'interrupted_reconciled','post_writes'=>0,'feed_writes'=>0];
         }
-        $attemptedRuns=$raw===''?[]:monitor_hook_attempted_collector_runs($lines);
+        $attemptedRuns=$history['attempted_runs'];
         $nightGate=monitor_hook_nightly_gate($state,$startedAt,getenv('ANYTOUR_MONITOR_COLLECTION_STARTED_AT')?:null,getenv('ANYTOUR_MONITOR_COLLECTOR_RUN_ID')?:null,$attemptedRuns);
         if(!$nightGate['due']){
             $out['ok']=!$nightGate['blocked'];$out['skipped']=$nightGate['reason'];$out['nightly_cycle_completed']=false;
@@ -247,7 +285,7 @@ try{
         }
         $state['nightly_cycle']=$nightGate['cycle'];hook_append($lock,$state);
     }
-    if($state['pending']!==null){hook_need(!$inspect,'hook_pending_operation_inspect_journal');$reconciled=hook_finish_feed($state,$lock,$installed);$out[$reconciled==='held_before_write'?'reconciled_prior_hold':'reconciled_prior_feed']=true;}
+    if($state['pending']!==null){hook_need(!$inspect,'hook_pending_operation_inspect_journal');$reconciled=hook_finish_feed($state,$lock,$installed,$out);$out[$reconciled==='held_before_write'?'reconciled_prior_hold':'reconciled_prior_feed']=true;}
     hook_need(!isset($state['holds'])||is_array($state['holds']),'hook_hold_state_invalid');
     ob_start();try{require $root.'/config.php';require_once $root.'/services/ChannelPostRuntime.php';require_once $root.'/services/ChannelPostAdminService.php';}finally{ob_end_clean();}
     $registry=new ChannelPostRegistryService(ConversationDb::connection());$roster=json_decode(gzdecode(base64_decode(HOOK_ROSTER_GZIP_B64,true)),true,64,JSON_THROW_ON_ERROR)['rows'];
@@ -255,11 +293,12 @@ try{
     $roster=monitor_hook_order($roster,$state['completed']);$policy=monitor_hook_pass_policy($nightly,count($roster),$nightly?$startedAt:time());
     $out['budget_seconds']=$policy['budget_seconds'];$out['finish_reserve_seconds']=$policy['finish_reserve_seconds'];
     $today=new DateTimeImmutable('today',new DateTimeZone('Europe/Moscow'));
-    $snapshotsFetchedAt=time();$snapshots=hook_snapshots($roster,$today);$out['snapshot_reads']=1;
-    foreach($roster as $row){
+    $out['roster_pairs']=count($roster);
+    $snapshotsFetchedAt=time();$snapshots=hook_measure($out,'monitor_read',fn()=>hook_snapshots($roster,$today));$out['snapshot_reads']=1;
+    foreach($roster as $rosterIndex=>$row){
         if(!$inspect&&!monitor_hook_can_start_pair($policy,time(),$out['updated_pairs'])){$out['bounded_pass_stopped']=true;break;}
         if($nightly&&monitor_hook_snapshot_refresh_due($snapshotsFetchedAt,time())){
-            $snapshotsFetchedAt=time();$snapshots=hook_snapshots($roster,$today);$out['snapshot_reads']++;
+            $snapshotsFetchedAt=time();$snapshots=hook_measure($out,'monitor_read',fn()=>hook_snapshots(array_slice($roster,$rosterIndex),$today));$out['snapshot_reads']++;
             if(!monitor_hook_can_start_pair($policy,time(),$out['updated_pairs'])){$out['bounded_pass_stopped']=true;break;}
         }
         $out['scanned_pairs']++;
@@ -270,7 +309,7 @@ try{
             $out['held_pairs']++;$out['held_ids'][]=$tv;$out['deferred'][]=['tourvisor_hotel_id'=>$tv,'reason'=>$reason];continue;
         }
         try{
-            $context=$inspect?hook_context($row,$registry):null;
+            $context=$inspect?hook_measure($out,'post_context',fn()=>hook_context($row,$registry)):null;
             if($inspect)$out['verified_ids'][]=$tv;
             $snapshot=$snapshots[$tv];
             if(($snapshot['item']['state']??'')==='no_fresh_observation'){$out['deferred'][]=['tourvisor_hotel_id'=>$tv,'reason'=>'no_fresh_observation'];continue;}
@@ -281,7 +320,7 @@ try{
                     &&($prior['posts']??null)===[]&&($prior['configs']??null)===[]&&($prior['complete']??false)===false,'hook_record_terminal_invalid_stop');
                 $out['deferred'][]=['tourvisor_hotel_id'=>$tv,'reason'=>'abandoned_before_write_record'];continue;
             }
-            $context=$context??hook_context($row,$registry);
+            $context=$context??hook_measure($out,'post_context',fn()=>hook_context($row,$registry));
             if(!$inspect)$out['verified_ids'][]=$tv;
             $knownFailure=monitor_hook_known_failure($row,$price);hook_need($knownFailure===null,$knownFailure??'hook_known_failure');
             if($prior!==null){
@@ -306,7 +345,7 @@ try{
         $state['pending']=['tourvisor_hotel_id'=>$tv,'operation'=>$op,'phase'=>'post_started','at'=>gmdate('c'),
             'collector_cycle'=>$nightly?monitor_hook_preflight_cycle_identity($state['nightly_cycle']):null];hook_append($lock,$state);
         $failure=null;
-        try{hook_child(base64_decode(HOOK_EDITOR_B64,true),['EXPECTED_INSTALLED_SHA'=>$installed,'APPROVED_UPDATE_OPERATION'=>$op,'APPROVED_UPDATE_TOURVISOR_ID'=>$tv,'APPROVED_UPDATE_HOTEL_ID'=>$row['hotel_id'],'APPROVED_UPDATE_KEY_B64'=>base64_encode($row['key']),'APPROVED_UPDATE_LOGICAL_B64'=>base64_encode($row['logical_id']),'APPROVED_MANIFEST_SHA256'=>hash('sha256',$raw),'MANIFEST_BASE64'=>base64_encode($raw)],$failure);}
+        try{hook_measure($out,'post_edit',function()use($installed,$op,$tv,$row,$raw,&$failure){return hook_child(base64_decode(HOOK_EDITOR_B64,true),['EXPECTED_INSTALLED_SHA'=>$installed,'APPROVED_UPDATE_OPERATION'=>$op,'APPROVED_UPDATE_TOURVISOR_ID'=>$tv,'APPROVED_UPDATE_HOTEL_ID'=>$row['hotel_id'],'APPROVED_UPDATE_KEY_B64'=>base64_encode($row['key']),'APPROVED_UPDATE_LOGICAL_B64'=>base64_encode($row['logical_id']),'APPROVED_MANIFEST_SHA256'=>hash('sha256',$raw),'MANIFEST_BASE64'=>base64_encode($raw)],$failure);});}
         catch(Throwable $e){
             if($failure!==null){
                 $state['pending']['child_failure']=$failure;
@@ -323,7 +362,7 @@ try{
                 }
             }throw $e;
         }
-        hook_finish_feed($state,$lock,$installed);$out['updated_pairs']++;
+        hook_finish_feed($state,$lock,$installed,$out);$out['updated_pairs']++;
         $confirmed=hook_journal($op);$postReceipts=[];
         foreach($confirmed['posts'] as $post)$postReceipts[]=$post['receipt'];
         $out['updates'][]=['tourvisor_hotel_id'=>$tv,'operation'=>$op,'price'=>$price['price'],'record_id'=>$price['record_id'],'posts'=>$postReceipts,'feed_operation'=>$state['completed'][$tv]['feed_operation']];

@@ -211,6 +211,9 @@ function hook_prepare_feed(array $journal,string $installed):array { global $tes
 function hook_read(string $path,int $max=10000000):string { global $testDriverCalls;$testDriverCalls['read']++;throw new RuntimeException('test_unexpected_read'); }
 function hook_get(string $url,int $max=4000000):string { global $testDriverCalls;$testDriverCalls['read']++;throw new RuntimeException('test_unexpected_read'); }
 $driver=file_get_contents(__DIR__.'/monitor-price-after-collection.php');
+$measureStart=strpos($driver,'function hook_measure(');$measureEnd=strpos($driver,'function hook_read(',$measureStart===false?0:$measureStart);
+hook_test_check($measureStart!==false&&$measureEnd!==false,'driver_measure_fixture_missing');
+eval(substr($driver,$measureStart,$measureEnd-$measureStart));
 $childFailureStart=strpos($driver,"    if(".'$exit!==0||($result[\'ok\']??false)!==true){');
 $childFailureEnd=strpos($driver,'    }return $result;',$childFailureStart===false?0:$childFailureStart);
 hook_test_check($childFailureStart!==false&&$childFailureEnd!==false,'driver_child_failure_gate_missing');
@@ -224,12 +227,12 @@ hook_test_check($childStopped&&$failure===monitor_hook_child_failure(2,$result),
 $start=strpos($driver,'function hook_finish_feed(');$end=strpos($driver,"\n\n".'$inspect=',$start);
 hook_test_check($start!==false&&$end!==false,'driver_reconciliation_fixture_missing');
 eval(substr($driver,$start,$end-$start));
-$testGlobal=$terminalGlobal;
-hook_test_check(hook_finish_feed($testGlobal,null,str_repeat('e',40))==='held_before_write'
+$testGlobal=$terminalGlobal;$testMetrics=[];
+hook_test_check(hook_finish_feed($testGlobal,null,str_repeat('e',40),$testMetrics)==='held_before_write'
     &&$testGlobal===$terminalNext&&$testDriverCalls===['append'=>1,'child'=>0,'feed'=>0,'read'=>0],'driver_replayed_terminal_before_feed');
 $testReadJournal=$terminalOriginal;$testReadJournal['posts']=['max:fixture'=>['state'=>'edit_started']];
 $beforeCalls=$testDriverCalls;$testGlobal=$terminalGlobal;
-$unresolvedStopped=false;try{hook_finish_feed($testGlobal,null,str_repeat('e',40));}catch(Throwable $e){$unresolvedStopped=$e->getMessage()==='hook_post_outcome_unresolved_stop';}
+$unresolvedStopped=false;try{hook_finish_feed($testGlobal,null,str_repeat('e',40),$testMetrics);}catch(Throwable $e){$unresolvedStopped=$e->getMessage()==='hook_post_outcome_unresolved_stop';}
 hook_test_check($unresolvedStopped&&$testGlobal===$terminalGlobal&&$testDriverCalls===$beforeCalls,'driver_reconciled_unknown_or_partial');
 
 // Use the actual loop gate: old/new observations of the held hotel both skip,
@@ -265,8 +268,8 @@ $stopStart=strpos($driver,'function hook_stop_channel_preflight(');
 $stopEnd=strpos($driver,'/** Original completed caption batches',$stopStart);
 hook_test_check($stopStart!==false&&$stopEnd!==false,'driver_global_preflight_functions_missing');
 eval(substr($driver,$stopStart,$stopEnd-$stopStart));
-$editStart=strpos($driver,"        try{hook_child(base64_decode(HOOK_EDITOR_B64,true)");
-$editEnd=strpos($driver,"        ".'hook_finish_feed($state,$lock,$installed);$out[\'updated_pairs\']++;',$editStart);
+$editStart=strpos($driver,"        try{hook_measure(".'$out,\'post_edit\',');
+$editEnd=strpos($driver,"        ".'hook_finish_feed($state,$lock,$installed,$out);$out[\'updated_pairs\']++;',$editStart===false?0:$editStart);
 hook_test_check($editStart!==false&&$editEnd!==false,'driver_editor_failure_fixture_missing');
 $editCatch=substr($driver,$editStart,$editEnd-$editStart);
 if(!defined('HOOK_EDITOR_B64'))define('HOOK_EDITOR_B64','');
@@ -368,7 +371,7 @@ hook_test_check($reconcileAt!==false&&$storedGateAt!==false&&$reconcileAt<$store
 
 // The actual record gate skips only this validated operation; a new record keeps the normal path.
 $recordStart=strpos($driver,"            if(is_array(".'$prior)&&array_key_exists(\'terminal\',$prior)){');
-$recordEnd=strpos($driver,"            ".'$context=$context??hook_context($row,$registry);',$recordStart);
+$recordEnd=strpos($driver,"            ".'$context=$context??',$recordStart);
 hook_test_check($recordStart!==false&&$recordEnd!==false,'driver_record_terminal_gate_missing');
 $recordGate=substr($driver,$recordStart,$recordEnd-$recordStart);
 foreach([$terminalParsed,$crashJournal] as $parsed){
@@ -377,6 +380,38 @@ foreach([$terminalParsed,$crashJournal] as $parsed){
     eval('foreach($records as [$op,$prior]){'.$recordGate.'$visited[]=$op;}');
     hook_test_check($visited===[$newOperation]&&$out['deferred']===[['tourvisor_hotel_id'=>$tv,'reason'=>'abandoned_before_write_record']],'record_terminal_held_new_observation');
 }
+
+// A wider reader window keeps the same source identity and cannot replay a completed pair.
+$sameRecord36=$terminalSnapshot;$sameRecord36['observationWindowHours']=36;
+$samePrice36=monitor_price_observation($sameRecord36,$terminalTv,strtotime($sameRecord36['generatedAt']));
+hook_test_check($samePrice36===$terminalPrice&&monitor_price_operation($samePrice36)===$terminalOperation,'window_change_created_new_price_operation');
+$completedStart=strpos($driver,'            if($prior!==null){');
+$completedEnd=strpos($driver,'            $r=array_intersect_key(',$completedStart===false?0:$completedStart);
+hook_test_check($completedStart!==false&&$completedEnd!==false,'driver_completed_record_gate_missing');
+$completedGate=substr($driver,$completedStart,$completedEnd-$completedStart);
+$completedPrior=$terminalOriginal;$completedPrior['complete']=true;$sameContext=[];
+foreach(['max','telegram'] as $platform){
+    $completedPrior['posts'][$platform]=['state'=>'confirmed','receipt'=>['platform'=>$platform,'monitor_price'=>$terminalPrice]];
+    $sameContext[$platform]=['snapshot'=>['metadata'=>['monitor_price_record_id'=>$terminalPrice['record_id']]]];
+}
+$repeatCompleted=static function(array $prior,array $context)use($sameRecord36,$terminalTv,$completedGate):array{
+    $tv=$terminalTv;$price=monitor_price_observation($sameRecord36,$tv,strtotime($sameRecord36['generatedAt']));
+    $out=['unchanged_pairs'=>0,'unchanged_ids'=>[]];
+    // These recording stubs throw if the actual continue ever reaches a writer.
+    eval('foreach([1] as $ignored){'.$completedGate.'hook_child("fixture_only",[]);hook_prepare_feed($prior,"fixture_only");}');
+    return $out;
+};
+$beforeCalls=$testDriverCalls;$beforeCompleted=$completedPrior;
+hook_test_check($repeatCompleted($completedPrior,$sameContext)===['unchanged_pairs'=>1,'unchanged_ids'=>[$terminalTv]]
+    &&$testDriverCalls===$beforeCalls&&$completedPrior===$beforeCompleted,'wider_window_replayed_completed_pair');
+$changedContext=$sameContext;$changedContext['telegram']['snapshot']['metadata']['monitor_price_record_id']=str_repeat('f',64);
+$changedError=null;try{$repeatCompleted($completedPrior,$changedContext);}catch(Throwable $e){$changedError=$e->getMessage();}
+hook_test_check($changedError==='hook_completed_record_no_longer_current'&&$testDriverCalls===$beforeCalls,'wider_window_bypassed_native_record_guard');
+$op=monitor_price_operation($samePrice36);$prior=$terminalParsed;$out=['deferred'=>[]];$visited=[];$tv=$terminalTv;
+eval('foreach([1] as $ignored){'.$recordGate.'$visited[]=$op;}');
+hook_test_check($visited===[]&&$out['deferred']===[['tourvisor_hotel_id'=>$tv,'reason'=>'abandoned_before_write_record']]
+    &&monitor_hook_parse_journal($terminalPrefix.$terminalLine,$terminalOperation)===$terminalParsed
+    &&$terminalParsed['monitor_snapshot']['observationWindowHours']===24,'wider_window_reinterpreted_historical_terminal');
 // Parser failures must reach the outer stop, even if the original code has no unresolved/incomplete suffix.
 $parseStart=strpos($driver,'    try{return monitor_hook_parse_journal($raw,$op);}');
 $parseEnd=strpos($driver,"\n}",$parseStart);

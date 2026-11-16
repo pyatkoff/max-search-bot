@@ -5,6 +5,11 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 ini_set('display_errors', '0');
 $handles = [];
 function need(bool $ok, string $code): void { if (!$ok) throw new RuntimeException($code); }
+function read_git(array $args): string {
+    $lines=[];$status=0;
+    exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false -c core.untrackedCache=false '.implode(' ',array_map('escapeshellarg',$args)).' 2>/dev/null',$lines,$status);
+    need($status===0,'runtime_git_failed');return implode("\n",$lines);
+}
 function snapshot(string $path, int $maximum, array &$handles): array {
     need(!is_link($path) && is_file($path) && realpath($path) === $path, 'read_path_invalid');
     $f = fopen($path, 'rb'); need(is_resource($f), 'read_open_failed');
@@ -113,7 +118,12 @@ try {
     }
     $app='/var/www/anytoour/data/www/app.anytoour.ru';
     need(realpath($app)===$app && chdir($app),'app_root_invalid');
-    $out['runtime']=['head'=>trim((string)shell_exec('git rev-parse HEAD')),'tracked_clean'=>trim((string)shell_exec('git status --porcelain --untracked-files=no'))===''];
+    $out['runtime']=['head'=>null,'tracked_clean'=>null,'git_checked'=>false];
+    $head=read_git(['rev-parse','HEAD']);
+    need(preg_match('/\A[a-f0-9]{40}\z/D',$head)===1,'runtime_head_invalid');
+    $status=read_git(['status','--porcelain','--untracked-files=no']);
+    need(read_git(['rev-parse','HEAD'])===$head,'runtime_head_changed');
+    $out['runtime']=['head'=>$head,'tracked_clean'=>$status==='','git_checked'=>true];
     $out['ok'] = true;
 } catch (Throwable $e) {
     $out['error'] = preg_match('/\A[a-z_]+\z/D',$e->getMessage()) === 1 ? $e->getMessage() : 'read_failed';

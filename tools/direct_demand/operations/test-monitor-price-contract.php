@@ -25,6 +25,42 @@ $bad=$snapshot;$bad['item']['offers'][]=array_replace($offer,['recordId'=>str_re
 rejects(fn()=>monitor_price_observation($snapshot,1183,$now+901),'monitor_price_expired');
 check(monitor_price_observation($snapshot,1183,$now+901,false)['price']===148090,'confirmed_receipt_survives_transport_expiry');
 rejects(fn()=>monitor_price_observation($snapshot,1183,$now+86400,false),'monitor_price_expired');
+
+// The new observation window does not rewrite old receipts or extend export freshness.
+$snapshot36=$snapshot;$snapshot36['observationWindowHours']=36;
+check(monitor_price_observation($snapshot36,1183,$now)===$price,'window_change_preserves_price_shape_and_identity');
+foreach([0,25,48,'36',36.0,null] as $window){
+    $bad=$snapshot36;$bad['observationWindowHours']=$window;
+    rejects(fn()=>monitor_price_observation($bad,1183,$now),'monitor_source_invalid');
+}
+$thirtyHours=$snapshot36;$thirtyHours['item']['offers'][0]['ageSecondsAtExport']=108000;
+check(monitor_price_observation($thirtyHours,1183,$now)['observed_at']===$iso($now-108000),'new_window_accepts_thirty_hour_observation');
+$legacyThirtyHours=$thirtyHours;$legacyThirtyHours['observationWindowHours']=24;
+rejects(fn()=>monitor_price_observation($legacyThirtyHours,1183,$now,false),'monitor_price_expired');
+foreach([[24,86399],[36,129599]] as [$window,$lastValidAge]){
+    $edge=$snapshot;$edge['observationWindowHours']=$window;
+    $edge['item']['offers'][0]['ageSecondsAtExport']=$lastValidAge;
+    $edge['item']['offers'][0]['expiresAt']=$iso($now+1);
+    check(monitor_price_observation($edge,1183,$now)['observed_at']===$iso($now-$lastValidAge),'last_valid_second_'.$window);
+    rejects(fn()=>monitor_price_observation($edge,1183,$now+1,false),'monitor_price_expired');
+    $tooLong=$edge;$tooLong['item']['offers'][0]['expiresAt']=$iso($now+2);
+    rejects(fn()=>monitor_price_observation($tooLong,1183,$now),'monitor_price_expired');
+    foreach([$lastValidAge+1,$lastValidAge+2] as $expiredAge){
+        $expired=$edge;$expired['item']['offers'][0]['ageSecondsAtExport']=$expiredAge;
+        $expired['item']['offers'][0]['expiresAt']=$iso($now);
+        rejects(fn()=>monitor_price_observation($expired,1183,$now,false),'monitor_price_expired');
+    }
+}
+check(monitor_price_observation($snapshot36,1183,$now+899)===$price,'new_window_export_last_valid_second');
+rejects(fn()=>monitor_price_observation($snapshot36,1183,$now+900),'monitor_price_expired');
+check(monitor_price_observation($snapshot36,1183,$now+900,false)===$price,'confirmed_receipt_keeps_existing_transport_exception');
+$tooLong=$snapshot36;$tooLong['item']['offers'][0]['expiresAt']=$iso($now+901);
+rejects(fn()=>monitor_price_observation($tooLong,1183,$now),'monitor_price_expired');
+$reexported=$snapshot36;$reexported['generatedAt']=$iso($now+1200);
+$reexported['item']['offers'][0]['ageSecondsAtExport']=8400;$reexported['item']['offers'][0]['expiresAt']=$iso($now+2100);
+$reexportedPrice=monitor_price_observation($reexported,1183,$now+1200);
+check($reexportedPrice['observed_at']===$price['observed_at']&&monitor_price_operation($reexportedPrice)===monitor_price_operation($price),'reexport_preserves_source_time_and_operation');
+rejects(fn()=>monitor_price_observation($snapshot36,1183,$now+1200),'monitor_price_expired');
 foreach(['148 090'=>'149 090','5 ночей'=>'7 ночей','Всё включено'=>'Завтраки'] as $old=>$new)rejects(fn()=>monitor_price_validate_text(str_replace($old,$new,$text),$price),'monitor_text_conditions_mismatch');
 rejects(fn()=>monitor_price_validate_text($text."\nУзнать стоимость тура",$price),'monitor_text_conditions_mismatch');
 rejects(fn()=>monitor_price_validate_text($text.str_repeat('я',1100),$price),'monitor_caption_too_long');
@@ -33,6 +69,11 @@ $journal=['complete'=>true,'operation'=>monitor_price_operation($price),'manifes
 foreach(['max','telegram'] as $platform){$t=$text.($platform==='telegram'?"\nФото и особенности отеля.":'');$journal['posts'][$platform]=['state'=>'confirmed','receipt'=>['platform'=>$platform,'state'=>'sent','existing_message_reused'=>true,'body_photo_button_verified'=>true,'monitor_price'=>$price,'text'=>$t,'text_sha256'=>hash('sha256',$t),'post_url'=>$binding['posts'][$platform]]];}
 $binding['operation']=$journal['operation'];$binding['manifest_hash']=$journal['manifest_hash'];
 $update=monitor_price_confirmed_journal($journal,$binding,$now);check(count($update['receipts'])===2,'both_platform_receipts');
+check(monitor_price_confirmed_journal($journal,$binding,$now+79199)===$update,'legacy_confirmed_journal_before_original_expiry');
+rejects(fn()=>monitor_price_confirmed_journal($journal,$binding,$now+79200),'monitor_price_expired');
+$journal36=$journal;$journal36['monitor_snapshot']=$snapshot36;
+check(monitor_price_confirmed_journal($journal36,$binding,$now+122399)===$update,'new_window_keeps_exact_confirmed_receipt_shape');
+rejects(fn()=>monitor_price_confirmed_journal($journal36,$binding,$now+122400),'monitor_price_expired');
 $bad=$journal;$bad['complete']=false;rejects(fn()=>monitor_price_confirmed_journal($bad,$binding,$now),'monitor_posts_not_confirmed');
 $bad=$journal;unset($bad['posts']['telegram']);rejects(fn()=>monitor_price_confirmed_journal($bad,$binding,$now),'monitor_posts_not_confirmed');
 $bad=$journal;$bad['posts']['max']['state']='edit_started';rejects(fn()=>monitor_price_confirmed_journal($bad,$binding,$now),'monitor_receipt_mismatch');
