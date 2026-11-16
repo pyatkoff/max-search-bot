@@ -2,6 +2,25 @@
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/ModeledConversionIntakeCoverageReader.php';
 
+/** Errors below can contain only this isolated synthetic schema, never production data or credentials. */
+final class ModeledIntakeFixtureStatement extends PDOStatement
+{
+    protected function __construct(){}
+    public function execute(?array $params=null):bool
+    {
+        try{return parent::execute($params);}
+        catch(PDOException $e){fwrite(STDERR,'SYNTHETIC_INTAKE_SQL '.json_encode($e->errorInfo,JSON_THROW_ON_ERROR).PHP_EOL);throw $e;}
+    }
+}
+final class ModeledIntakeFixturePdo extends PDO
+{
+    public function prepare(string $query,array $options=[]):PDOStatement|false
+    {
+        try{return parent::prepare($query,$options);}
+        catch(PDOException $e){fwrite(STDERR,'SYNTHETIC_INTAKE_SQL '.json_encode($e->errorInfo,JSON_THROW_ON_ERROR).PHP_EOL);throw $e;}
+    }
+}
+
 /** Disposable synthetic schemas only: real canonical capture and independent pipeline counterexamples. */
 function modeledIntakeCoverageAssertions(PDO $p,callable $check):void
 {
@@ -22,7 +41,8 @@ function modeledIntakeCoverageAssertions(PDO $p,callable $check):void
             if($admin->query('SELECT DATABASE()')->fetchColumn()!=='maxbot_prepared_test')throw new RuntimeException('unsafe_intake_fixture_database');
             $database='maxbot_intake_coverage_test_'.bin2hex(random_bytes(6));
             $admin->exec('CREATE DATABASE '.$database.' CHARACTER SET utf8mb4');$createdDatabase=$database;
-            $p=new PDO(str_replace('dbname=maxbot_prepared_test;','dbname='.$database.';',$dsn),$user,$pass,$options);
+            $options[PDO::ATTR_STATEMENT_CLASS]=[ModeledIntakeFixtureStatement::class];
+            $p=new ModeledIntakeFixturePdo(str_replace('dbname=maxbot_prepared_test;','dbname='.$database.';',$dsn),$user,$pass,$options);
         }
         $create('customers','id BIGINT PRIMARY KEY');
         $create('customer_channels','id BIGINT PRIMARY KEY,customer_id BIGINT,project_key VARCHAR(40),channel VARCHAR(16),external_user_id VARCHAR(40),external_chat_id VARCHAR(40)');
