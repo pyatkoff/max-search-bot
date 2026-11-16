@@ -1,5 +1,11 @@
-name: Read expansion100 country-scoped catalogue variants
+name: Reconcile one proved stale feed interruption without replay
 on:
+  pull_request:
+    branches: ['audit/content100-bot-publication-20261101']
+    paths:
+      - '.github/workflows/content100-bot-publication-20261101.yml'
+      - 'tools/direct_demand/operations/reconcile-stale-feed-20261116.php'
+      - 'tools/direct_demand/operations/test-reconcile-stale-feed-20261116.php'
   push:
     branches: ['audit/content100-bot-publication-20261101']
     paths: ['.github/workflows/content100-bot-publication-20261101.yml']
@@ -11,16 +17,34 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '7687c165d6bcbc18a6cab8df8b565887e0ab6e25' && github.run_attempt == 1
+    if: github.event_name == 'pull_request' || (github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == '586313554d03fd6fc96516ce0f1376988cd33819' && github.run_attempt == 1)
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
-          ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 2
-      - name: Verify exact source and one-time lease
+      - name: Test exact reconciliation and unchanged canonical publisher contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          p=tools/direct_demand/operations
+          echo "691b7e5a95a59f8d1b6fea6e65acbe9bb8bc1c1cf06dc6b34abfe5c8a0eb012e  $p/reconcile-stale-feed-20261116.php" | sha256sum --check
+          echo "48ac3ed3a6b0012f2597ba4507757641cb7303df4f1e9338c85af276e683095a  $p/test-reconcile-stale-feed-20261116.php" | sha256sum --check
+          test "$(git hash-object "$p/monitor-price-contract.php")" = db21e58062b3a8748d806b81773d70764d0f984e
+          test "$(git hash-object "$p/monitor-price-hook-contract.php")" = 2cd564c5466f0f49b9fa7fcf764b409c356b6142
+          test "$(git hash-object "$p/publish-commercial-channel-hotel-feeds-20261103-1.php")" = 0184b30518ffa3def0b6aa514d6468e119f94e72
+          php -l "$p/reconcile-stale-feed-20261116.php"
+          php "$p/test-reconcile-stale-feed-20261116.php" --native
+          php "$p/test-monitor-price-contract.php"
+          php "$p/test-monitor-price-hook.php"
+          php "$p/test-monitor-price-nightly-policy.php"
+          php "$p/test-monitor-price-link.php"
+          python3 "$p/build-monitor-price-hook.py" "$RUNNER_TEMP/unchanged-hook.php"
+          php -l "$RUNNER_TEMP/unchanged-hook.php"
+      - name: Authenticate original failure and retained readback before connection
+        if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -29,13 +53,59 @@ jobs:
           test "$GITHUB_RUN_ATTEMPT" = 1
           test "$GITHUB_REF" = refs/heads/audit/content100-bot-publication-20261101
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          test "$(git rev-parse HEAD^)" = 7687c165d6bcbc18a6cab8df8b565887e0ab6e25
+          test "$(git rev-parse HEAD^1)" = 586313554d03fd6fc96516ce0f1376988cd33819
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
-          echo 'd416fe4f7f1133b974f2fe9cd62720b8085e8265e6a2f1b0d80437e778700838  tools/direct_demand/operations/read-expansion100-name-variants-20261116.php' | sha256sum --check
-          php -l tools/direct_demand/operations/read-expansion100-name-variants-20261116.php
           umask 077
-          mkdir "$RUNNER_TEMP/catalogue-variants"
+          mkdir "$RUNNER_TEMP/stale-feed-reconcile"
+          gh api repos/pyatkoff/poisk-turov-test/actions/runs/43698862104 > "$RUNNER_TEMP/stale-feed-reconcile/original-run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/43801917345 > "$RUNNER_TEMP/stale-feed-reconcile/read-run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14197116176 > "$RUNNER_TEMP/stale-feed-reconcile/read-artifact.json"
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14197116176/zip > "$RUNNER_TEMP/stale-feed-reconcile/read-original.zip"
+          gh api repos/pyatkoff/max-search-bot/issues/comments/6912917877 > "$RUNNER_TEMP/stale-feed-reconcile/owner-scope.json"
+          python3 - <<'PY'
+          import os,pathlib,json,hashlib,zipfile
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'stale-feed-reconcile'
+          get=lambda n:json.loads((p/n).read_bytes())
+          r=get('original-run.json')
+          assert r['id']==43698862104 and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='failure'
+          assert r['event']=='schedule' and r['head_sha']=='7d1ae59cf13ae19a1cc5907bffe92c550530fdb1'
+          assert r['path']=='.github/workflows/collect-anytour-tours.yml'
+          r=get('read-run.json')
+          assert r['id']==43801917345 and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success'
+          assert r['head_sha']=='e8255bf6b60b2e396b12e042e3f52197883e5412'
+          a=get('read-artifact.json');digest='5576225ea6772946a6e28d23d78c1c0961a1e0aeda29ba765ef191f0a34adf9c'
+          assert a['id']==14197116176 and not a['expired'] and a['workflow_run']['id']==43801917345 and a['digest']=='sha256:'+digest
+          archive=(p/'read-original.zip').read_bytes();assert hashlib.sha256(archive).hexdigest()==digest
+          with zipfile.ZipFile(p/'read-original.zip') as z:
+            raw=z.read('result.json');assert hashlib.sha256(raw).hexdigest()=='327213459d5326770a3145720e2e9820b4732733d215bba6538ff5947bc7b674'
+            d=json.loads(raw)
+          assert d['ok'] and d['pending']['child_failure']=={'error':'installed_source_changed','exit_code':2}
+          assert d['pending']['tourvisor_hotel_id']==1236 and d['pending']['phase']=='feed_started'
+          assert len(d['pending_feed_files'])==3 and all(x['matches_previous'] and not x['matches_expected'] for x in d['pending_feed_files'])
+          assert d['child_journal']['sha256']=='68fa3911da24e1f0169c471b8c8ad6cb100ee00ebac01622e334e2fda9d6b2a5'
+          owner=get('owner-scope.json');assert owner['id']==6912917877 and owner['user']['id']==226193297
+          assert owner['body'].startswith('SOURCE / one exact metadata reconciliation')
+          prefix='<?php\ndeclare(strict_types=1);\n';base=pathlib.Path('tools/direct_demand/operations')
+          parts=[]
+          for name in ['monitor-price-contract.php','monitor-price-hook-contract.php','reconcile-stale-feed-20261116.php']:
+            body=(base/name).read_text();assert body.startswith(prefix)
+            parts.append(body[len(prefix):].replace("require_once __DIR__.'/monitor-price-contract.php';",''))
+          header="const ANYTOUR_STALE_FEED_RECOVERY_EXECUTE=true;\nconst ANYTOUR_STALE_FEED_RECOVERY_RUN_ID='"+os.environ['GITHUB_RUN_ID']+"';\n"
+          program=prefix+header+'\n'.join(parts);(p/'reconcile.php').write_text(program)
+          (p/'intent.json').write_text(json.dumps({'operation':'retire-stale-feed-43698862104','actual_recovery_run':os.environ['GITHUB_RUN_ID'],'source_sha':os.environ['GITHUB_SHA'],'program_sha256':hashlib.sha256(program.encode()).hexdigest(),'post_writes':0,'feed_writes':0,'journal_append_ceiling':1},indent=2)+'\n')
+          print('ORIGINAL_FAILURE_AND_READBACK_AUTHENTICATED no_collector_dispatch=1')
+          PY
+          php -l "$RUNNER_TEMP/stale-feed-reconcile/reconcile.php"
+      - name: Preserve prepared reconciliation intent before any server write
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: stale-feed-reconciliation-intent-${{ github.run_id }}
+          path: ${{ runner.temp }}/stale-feed-reconcile/
+          if-no-files-found: error
+          retention-days: 14
       - name: Prepare existing server connection
+        if: github.event_name == 'push'
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
         shell: bash
@@ -50,6 +120,7 @@ jobs:
           fi
           ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
       - name: Pin existing server host-key continuity
+        if: github.event_name == 'push'
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -60,48 +131,47 @@ jobs:
           python3 - <<'PY'
           import os,re,subprocess,base64,hashlib,pathlib
           host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',user)
           scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
           matches=[]
           for line in scan.stdout.splitlines():
-            fields=line.split()
-            if len(fields)<3 or fields[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+            f=line.split()
+            if len(f)<3 or f[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(f[2])).digest()).decode().rstrip('=')
             except Exception:continue
             if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Read eleven existing catalogue queries without writes
+      - name: Append the exact metadata reconciliation once, preserving post and feed bytes
+        if: github.event_name == 'push'
         env:
+          GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
           umask 077
           status=0
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" php < tools/direct_demand/operations/read-expansion100-name-variants-20261116.php > "$RUNNER_TEMP/catalogue-variants/result.json" || status=$?
-          printf '%s\n' "$status" > "$RUNNER_TEMP/catalogue-variants/exit-code.txt"
-          python3 - <<'PY'
-          import json,pathlib,os
-          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'catalogue-variants';d=json.loads((p/'result.json').read_text())
-          queries=d.pop('queries',[]);d['query_count']=len(queries)
-          print('CATALOGUE_VARIANTS_SUMMARY='+json.dumps(d,ensure_ascii=False,separators=(',',':')))
-          for row in queries:print('CATALOGUE_VARIANTS='+json.dumps(row,ensure_ascii=False,separators=(',',':')))
-          PY
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" php < "$RUNNER_TEMP/stale-feed-reconcile/reconcile.php" > "$RUNNER_TEMP/stale-feed-reconcile/result.jsonl" || status=$?
+          cat "$RUNNER_TEMP/stale-feed-reconcile/result.jsonl"
+          printf '%s\n' "$status" > "$RUNNER_TEMP/stale-feed-reconcile/exit-code.txt"
           exit "$status"
-      - name: Retain exact catalogue responses
-        if: always()
+      - name: Retain original execution outcome, including refusal or UNKNOWN
+        if: always() && github.event_name == 'push'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: expansion100-country-variants-20261116-${{ github.run_id }}
-          path: ${{ runner.temp }}/catalogue-variants/
+          name: stale-feed-reconciliation-result-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/stale-feed-reconcile/result.jsonl
+            ${{ runner.temp }}/stale-feed-reconcile/exit-code.txt
+            ${{ runner.temp }}/stale-feed-reconcile/intent.json
           if-no-files-found: ignore
-          retention-days: 7
+          retention-days: 14
       - name: Remove runner-only connection files
-        if: always()
+        if: always() && github.event_name == 'push'
         shell: bash
         run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
