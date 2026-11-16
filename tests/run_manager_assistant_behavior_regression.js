@@ -64,6 +64,37 @@ function harness(){
 const deferred=()=>{let resolve;return{promise:new Promise(r=>resolve=r),resolve}};
 const tests=[];function test(name,run){tests.push({name,run})}
 
+test('My Plan opens the canonical prepared reply directly from the list, retaining typed text and File',async()=>{
+  const h=harness();h.A.activate(7);await h.A.openPlan();
+  assert.ok(h.$('assistantList').querySelector('.assistantPlanCard'));
+  assert.match(h.$('assistantList').textContent,/Готовый безопасный ответ клиенту/);
+  const action=h.$('assistantList').querySelector('[data-assistant-direct="101"]');assert.ok(action);assert.equal(action.textContent,'Ответить');
+  await h.click('[data-assistant-direct="101"]');assert.equal(h.opened.length,1);assert.equal(h.opened[0].id,101);assert.equal(h.prepared.length,1);
+  assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
+});
+test('My Plan removes and restores a suggestion without a secondary task or replay',async()=>{
+  const h=harness();h.A.activate(7);await h.A.openPlan();
+  await h.click('[data-assistant-list-decision="101"]');assert.equal(h.data.get(101).recommendation.decision,'irrelevant');
+  assert.equal(h.$('assistantList').querySelector('[data-assistant-direct="101"]'),null);
+  await h.click('[data-assistant-filter="done"]');
+  const undo=h.$('assistantList').querySelector('[data-assistant-list-decision="101"]');assert.ok(undo);assert.equal(undo.textContent,'Вернуть');
+  await h.click('[data-assistant-list-decision="101"]');assert.equal(h.data.get(101).recommendation.decision,'open');
+  assert.equal(h.calls.filter(x=>x.action==='decision').length,2);assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);
+});
+test('My Plan opens an existing no-contact task without manufacturing a client draft',async()=>{
+  const h=harness();h.data.set(101,h.item(101,{recommendation:{...h.item().recommendation,next_action:'no_contact',should_draft:false,draft:null},tasks:[{id:31,title:'Проверить актуальность расчёта',status:'open',due_state:'unscheduled'}]}));
+  h.A.activate(7);await h.A.openPlan();
+  const button=h.$('assistantList').querySelector('[data-assistant-direct="101"]');assert.ok(button);assert.equal(button.textContent,'Открыть');
+  assert.equal(h.$('assistantList').querySelector('.assistantPlanDraft'),null);
+  await h.click('[data-assistant-direct="101"]');assert.equal(h.opened.length,1);assert.equal(h.prepared.length,0);
+  assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
+});
+test('team-viewer cannot dismiss or reply to another manager from the plan list',async()=>{
+  const h=harness();h.S.manager.role='admin';h.data.set(101,h.item(101,{can_decide:false,manager_id:9,manager_name:'Other manager'}));h.A.activate(7);await h.A.openPlan();
+  assert.equal(h.$('assistantList').querySelector('[data-assistant-list-decision="101"]'),null);
+  const action=h.$('assistantList').querySelector('[data-assistant-direct="101"]');assert.ok(action);assert.equal(action.textContent,'Открыть');
+  await h.click('[data-assistant-direct="101"]');assert.equal(h.prepared.length,0);h.onlyReads();
+});
 test('unanswered work stays visible without AI and fresh no-contact remains separate',async()=>{
   const h=harness();h.data.clear();h.data.set(101,h.item(101,{recommendation:null,operational:{awaiting_manager_reply:true,due_task:false}}));h.A.activate(7);await h.A.open();await h.click('[data-assistant-filter="actions"]');assert.ok(h.body.querySelector('[data-assistant-client="101"]'));await h.A.loadDetail(101);assert.match(h.$('assistantDetail').textContent,/Обращение без записанного ответа/);assert.match(h.$('assistantDetail').textContent,/Нет свежего разбора/);assert.equal(h.$('assistantPlan').textContent,'Запланировать');assert.ok(h.$('assistantDetail').querySelector('.assistantTasks').contains(h.$('assistantPlan')));
   h.data.set(101,h.item(101,{operational:{awaiting_manager_reply:true,due_task:false},recommendation:{...h.item().recommendation,next_action:'no_contact'}}));await h.A.loadDetail(101);assert.equal(h.$('assistantDetail').querySelector('.assistantOperational'),null);neutralNoContact(h);assert.equal(h.body.querySelector('[data-assistant-client="101"]'),null);

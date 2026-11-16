@@ -133,9 +133,36 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
     const team=S.manager?.role==='admin'&&(!planMode||workScope==='team');$('assistantTitle').textContent=planMode?'Мой план':team?'Обзор работы владельца':'Обзор работы менеджера';$('assistantSubtitle').textContent=planMode?(team?'Действия по клиентам команды в доступных проектах':'Обращения, обещания и следующие шаги по моим клиентам'):(team?'Клиенты всей команды во всех доступных проектах':'Следующие шаги и существующие задачи по моим активным клиентам');$('assistantClose').textContent=planMode?'К диалогам':'Закрыть';$('assistantScope').parentElement.hidden=!planMode||S.manager?.role!=='admin';$('assistantScope').value=workScope;
     const items=[...rows.values()].filter(matches).sort((a,b)=>rank(a)-rank(b)||Number(b.conversation_id)-Number(a.conversation_id));
     const list=$('assistantList'),focus=document.activeElement,focusedClient=list.contains(focus)?Number(focus.dataset?.assistantClient||0):0;
-    const listChanged=renderMarkup(list,items.length?items.map(item=>{const id=Number(item.conversation_id),r=fresh(item)?item.recommendation:null,context=cardContext(item);return`<button class="assistantClient${id===selected?' isSelected':''}" type="button" data-assistant-client="${id}" aria-pressed="${id===selected}"><strong>${esc(item.display_name||'Клиент')}</strong>${team?`<small>${esc(item.project_name||item.project_key||'')} · ${esc(item.manager_name||'Без назначения')}</small>`:''}<span>${esc(title(item))}</span>${planMode?`<small class="assistantCardReason">${esc(context.reason)}</small><small>${esc(context.deadline)}</small>`:""}<small${planMode&&reviewNeeded(item)&&!r?' hidden':''}>${esc(workStatus(item,r))}</small></button>`}).join(''):'<p class="assistantEmpty">В загруженной части списка таких клиентов нет.</p>');
-    $('assistantList').querySelectorAll('[data-assistant-client]').forEach(button=>button.onclick=async()=>{const id=Number(button.dataset.assistantClient),loaded=await loadDetail(id);if(loaded&&dialog?.open&&selected===id)$(window.matchMedia?.('(max-width:767px)')?.matches?'assistantBack':'assistantConversation')?.focus()});
-    if(listChanged&&focusedClient&&!focus.isConnected)(list.querySelector(`[data-assistant-client="${focusedClient}"]`)||$('assistantRefresh'))?.focus({preventScroll:true});
+    const focusedDecision=list.contains(focus)?Number(focus.dataset?.assistantListDecision||0):0,focusedDirect=list.contains(focus)?Number(focus.dataset?.assistantDirect||0):0;
+    const listChanged=renderMarkup(list,items.length?items.map(item=>{
+      const id=Number(item.conversation_id),r=fresh(item)?item.recommendation:null,context=cardContext(item);
+      const client=`<button class="assistantClient${id===selected?' isSelected':''}" type="button" data-assistant-client="${id}" aria-pressed="${id===selected}"><strong>${esc(item.display_name||'Клиент')}</strong>${team?`<small>${esc(item.project_name||item.project_key||'')} · ${esc(item.manager_name||'Без назначения')}</small>`:''}<span>${esc(title(item))}</span>${planMode?`<small class="assistantCardReason">${esc(context.reason)}</small><small>${esc(context.deadline)}</small>`:""}<small${planMode&&reviewNeeded(item)&&!r?' hidden':''}>${esc(workStatus(item,r))}</small></button>`;
+      if(!planMode)return client;
+      const dismissed=r&&['done','irrelevant'].includes(r.decision),work=rank(item)<4&&!item.delivery_suspended&&!dismissed;
+      const reply=work&&r&&r.next_action!=='no_contact'&&r.should_draft===true&&typeof r.draft==='string'&&r.draft.trim()!==''&&item.can_decide!==false;
+      const preview=reply?`<blockquote class="assistantPlanDraft" aria-label="Предлагаемый текст">${esc(r.draft)}</blockquote>`:'';
+      const primary=work?`<button type="button" class="assistantPlanPrimary" data-assistant-direct="${id}"${pending.has(id)?' disabled':''}>${reply?'Ответить':'Открыть'}</button>`:'';
+      const refusal=r&&item.can_decide!==false?`<button type="button" class="assistantPlanRefuse" data-assistant-list-decision="${id}" data-assistant-decision-value="${dismissed?'open':'irrelevant'}"${pending.has(id)?' disabled':''}>${dismissed?'Вернуть':'Убрать'}</button>`:'';
+      return `<article class="assistantPlanCard">${client}${preview}${primary||refusal?`<div class="assistantPlanControls">${primary}${refusal}</div>`:''}</article>`;
+    }).join(''):'<p class="assistantEmpty">В загруженной части списка таких клиентов нет.</p>');
+    list.querySelectorAll('[data-assistant-client]').forEach(button=>button.onclick=async()=>{const id=Number(button.dataset.assistantClient),loaded=await loadDetail(id);if(loaded&&dialog?.open&&selected===id)$(window.matchMedia?.('(max-width:767px)')?.matches?'assistantBack':'assistantConversation')?.focus()});
+    list.querySelectorAll('[data-assistant-direct]').forEach(button=>button.onclick=()=>{
+      const id=Number(button.dataset.assistantDirect),item=rows.get(id);
+      if(!item||!authenticated()||pending.has(id)||!matches(item)||rank(item)>=4)return false;
+      const r=fresh(item)?item.recommendation:null;
+      const reply=!item.delivery_suspended&&item.can_decide!==false&&r&&!['done','irrelevant'].includes(r.decision)&&r.next_action!=='no_contact'&&r.should_draft===true&&typeof r.draft==='string'&&r.draft.trim()!=='';
+      return reply?openAdvice(id):openConversation(id);
+    });
+    list.querySelectorAll('[data-assistant-list-decision]').forEach(button=>button.onclick=()=>{
+      const item=rows.get(Number(button.dataset.assistantListDecision));
+      return item?decideFromList(item,button.dataset.assistantDecisionValue):false;
+    });
+    if(listChanged&&!focus?.isConnected){
+      const next=(focusedDecision?list.querySelector(`[data-assistant-list-decision="${focusedDecision}"]`):null)
+        ||(focusedDirect?list.querySelector(`[data-assistant-direct="${focusedDirect}"]`):null)
+        ||(focusedClient?list.querySelector(`[data-assistant-client="${focusedClient}"]`):null)||$('assistantRefresh');
+      next?.focus({preventScroll:true});
+    }
     $('assistantCoverage').textContent=`Показано клиентов: ${rows.size}${hasMore?' · есть ещё':''}.${checkedAt?' Обновлено '+time(checkedAt)+' МСК.':''}`;
     $('assistantMore').hidden=!hasMore;dialog.querySelectorAll('[data-assistant-filter]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.assistantFilter===filter)));
     dialog.classList.toggle('hasSelection',selected>0);renderDetail();renderBusy();status(statusText,statusError);
@@ -268,6 +295,25 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
     if(!dialog?.open||modal!==opened||selected!==id)return !!result.ok;
     await loadDetail(id);if(!result.ok&&dialog?.open&&modal===opened&&selected===id)status(result.error==='network_error'?'Исход отметки не подтверждён. Показано доступное текущее состояние; запись не повторялась.':errorText(result),true);
     return !!result.ok;
+  }
+  async function decideFromList(item,decision){
+    const id=Number(item?.conversation_id),r=item?.recommendation,scope=epoch,opened=modal;
+    if(!id||pending.has(id)||!fresh(item)||item.can_decide===false||!['irrelevant','open'].includes(decision)||!rows.has(id))return false;
+    if(!canLeaveTaskEditor())return false;
+    pending.add(id);
+    const button=$('assistantList')?.querySelector(`[data-assistant-list-decision="${id}"]`);if(button)button.disabled=true;
+    status('Сохраняем отметку…');
+    const result=await request('decision',{conversation_id:id,revision:r.revision,expected_decision:r.decision??null,decision},scope);
+    if(!valid(scope))return false;
+    pending.delete(id);
+    if(!dialog?.open||modal!==opened)return !!result.ok;
+    // UNKNOWN is reconciled by read-only detail. Never replay the write.
+    const current=await request('detail',{conversation_id:id},scope);
+    if(!valid(scope)||!dialog?.open||modal!==opened)return !!result.ok;
+    if(current.ok&&current.item)rows.set(id,current.item);
+    else if(['forbidden','not_found'].includes(current.error))rows.delete(id);
+    status(!result.ok?(result.error==='network_error'?'Исход отметки неизвестен. Проверено доступное текущее состояние; запись не повторялась.':errorText(result)):current.ok?'':errorText(current),!result.ok||!current.ok);
+    render();return !!result.ok;
   }
   async function openConversation(id){
     if(!authenticated())return false;
