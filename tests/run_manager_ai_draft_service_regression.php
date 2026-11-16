@@ -533,7 +533,7 @@ $cohort=[
     '268'=>[99,'jaz_makadi_saraya','JAZ MAKADI SARAYA RESORT (EX. IBEROTEL MAKADI SARAYA RESORT)',6,'1'],
     '1981'=>[877,'jaz_neo_naama','JAZ NEO NAAMA BAY (EX. SOLYMAR NAAMA BAY)',7,'1'],
     '12111'=>[1654,'movenpick_sharm','MOVENPICK RESORT SHARM EL SHEIKH NAAMA BAY',6,'1'],
-    '498'=>[228,'titanic_beach','TITANIC BEACH SPA & AQUA PARK',8,'1'],
+    '498'=>[228,'titanic_beach','TITANIC BEACH SPA & AQUA PARK',9,'1'],
     '78898'=>[3417,'official_pickalbatros_blu_spa_hurghada','PICKALBATROS BLU SPA RESORT HURGHADA ADULTS ONLY 16+',4,'1'],
     '157359'=>[4101,'avia_resort','AVIA RESORT & SPA',6,'4'],
     '1077'=>[477,'club_aqua_plaza','CLUB AQUA PLAZA (EX. SUNEOCLUB AQUA PLAZA)',7,'4'],
@@ -542,7 +542,7 @@ $cohort=[
     '46672'=>[2432,'jadore_deluxe','JADORE DELUXE HOTEL & SPA',9,'4'],
     '111129'=>[3742,'side_moon_palace','SIDE MOON PALACE HOTEL',9,'4'],
     '111045'=>[3737,'vox_maris','VOX MARIS RESORT ADULTS ONLY 16+',7,'4'],
-    '1146'=>[516,'akra_antalya','AKRA ANTALYA',4,'4'],
+    '1146'=>[516,'akra_antalya','AKRA ANTALYA',6,'4'],
 ];
 foreach ($cohort as $sourceId=>[$anytourId,$researchKey,$sourceName,$factCount,$sourceCountry]) {
     $cohortLabel=($sourceCountry==='4'?'Turkey':'Egypt').' cohort '.$sourceId;
