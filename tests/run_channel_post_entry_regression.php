@@ -481,6 +481,124 @@ try {
     cpeStartMax(98778100,$publications['max']['start_payload'],452);
     cpeCheck('successful recovered question is not repeated',count($sent),$sendBefore+1);
 
+    // Only an actual quiet existing MAX handoff can prove preserved request context.
+    $proofUser=98779111;$proofChat=-$proofUser;$proofBefore=cpeSeed('max',$proofUser,'manager',7);
+    $proofId=(int)$proofBefore['id'];$proofPost=ChannelPostEntryService::resolve('max',$publications['max']['start_payload']);
+    $proofNeeds=['city'=>'Казань','country'=>'Египет','date'=>'10.12.2026','adults'=>2,'children'=>0,'nights'=>'7'];
+    MaxSearchApi::$needContexts[$proofChat]=$proofNeeds;
+    $proofMessages=cpeMessages($proofId);$proofSent=count($sent);$proofResets=count(MaxSearchApi::$resets);$proofApps=count($applicationMessages);
+    $proofRequests=[cpeEventCount($proofId,'waiting_manager'),cpeEventCount($proofId,'manager_request')];
+    $proofStarts=cpeEventCount($proofId,'bot_started');$proofEntries=cpeEventCount($proofId,'channel_post_entry');
+    cpeStartMax($proofUser,$publications['max']['start_payload'],8501);
+    $proofReceipt=MaxStartSourcePolicy::preservedEntryReceipt();
+    $proofStart=$pdo->query("SELECT id,actor_type,payload_json FROM conversation_events WHERE conversation_id=".$proofId." AND event_type='bot_started' ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+    $proofEntry=$pdo->query("SELECT id,actor_type,payload_json FROM conversation_events WHERE conversation_id=".$proofId." AND event_type='channel_post_entry' ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+    $proofStartPayload=json_decode((string)$proofStart['payload_json'],true,32,JSON_THROW_ON_ERROR);
+    $proofEntryPayload=json_decode((string)$proofEntry['payload_json'],true,32,JSON_THROW_ON_ERROR);
+    $proofMarker=['version'=>1,'origin'=>'max_start_source_policy','reason'=>'existing_handoff_without_reset','conversation_id'=>(string)$proofId];
+    cpeCheck('quiet MAX policy returns only the exact successfully inserted native start receipt',$proofReceipt,
+        ['version'=>1,'conversation_id'=>(string)$proofId,'start_event_id'=>(string)$proofStart['id'],'source_key'=>$proofPost['source_key']]);
+    cpeCheck('quiet MAX start marker proves the same existing handoff without a new request',
+        [$proofStart['actor_type'],$proofStartPayload['source_key']??null,$proofStartPayload['context_preserved']??null],
+        ['system',$proofPost['source_key'],$proofMarker]);
+    cpeCheck('matching post capsule points to that exact native start with canonical recording clocks',
+        [$proofEntry['actor_type'],$proofEntryPayload['context_preserved']??null,
+            is_int(ConversationRecordClock::read((string)$proofStart['payload_json'])),
+            is_int(ConversationRecordClock::read((string)$proofEntry['payload_json']))],
+        ['customer',$proofMarker+['start_event_id'=>(string)$proofStart['id']],true,true]);
+    $proofAfter=cpeConversation('max',$proofUser);
+    cpeCheck('preservation proof leaves owner needs transcript and client sends untouched',
+        [[$proofAfter['manager_id'],$proofAfter['status'],$proofAfter['source_id']],MaxSearchApi::$needContexts[$proofChat],
+            cpeMessages($proofId),count($sent),count(MaxSearchApi::$resets),count($applicationMessages),
+            [cpeEventCount($proofId,'waiting_manager'),cpeEventCount($proofId,'manager_request')],
+            [cpeEventCount($proofId,'bot_started'),cpeEventCount($proofId,'channel_post_entry')]],
+        [[$proofBefore['manager_id'],$proofBefore['status'],$proofBefore['source_id']],$proofNeeds,
+            $proofMessages,$proofSent,$proofResets,$proofApps,$proofRequests,[$proofStarts+1,$proofEntries+1]]);
+    $proofPostRows=static fn():array=>$pdo->query("SELECT id,payload_json FROM conversation_events WHERE conversation_id=".$proofId." AND event_type='channel_post_entry' ORDER BY id")->fetchAll(PDO::FETCH_ASSOC);
+    $proofPostBeforeDuplicate=$proofPostRows();
+    cpeStartMax($proofUser,$publications['max']['start_payload'],8501);
+    cpeCheck('a duplicate native post entry never relabels its existing capsule',$proofPostRows(),$proofPostBeforeDuplicate);
+
+    // A prior unmarked entry stays byte-identical even if a later valid receipt is supplied.
+    $oldEntry=$registry->recordEntry($proofId,$proofPost,'proof.unmarked.existing');
+    $oldEntryEvent=$pdo->query("SELECT id,payload_json FROM conversation_events WHERE conversation_id=".$proofId." AND event_type='channel_post_entry' ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+    $oldEntryPayload=json_decode((string)$oldEntryEvent['payload_json'],true,32,JSON_THROW_ON_ERROR);
+    cpeCheck('ordinary entry payload keeps the original four keys and bytes',
+        (string)$oldEntryEvent['payload_json'],
+        json_encode(['entry_id'=>$oldEntry['entry_id'],'publication_id'=>(int)$proofPost['publication_id'],
+            'version_id'=>(int)$proofPost['version_id'],'source_key'=>$proofPost['source_key']],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    $oldEntryDuplicate=ChannelPostEntryService::record('max',$proofChat,$proofPost,'proof.unmarked.existing',MaxStartSourcePolicy::preservedEntryReceipt());
+    $oldEntryRead=$pdo->query("SELECT id,payload_json FROM conversation_events WHERE id=".(int)$oldEntryEvent['id'])->fetch(PDO::FETCH_ASSOC);
+    cpeCheck('later preservation proof neither mutates nor marks an old duplicate entry',
+        [$oldEntryDuplicate['entry_id']??null,$oldEntryRead],[$oldEntry['entry_id'],$oldEntryEvent]);
+
+    foreach(['missing','conversation','source','version','event_id','extra']as$invalidProofKind){
+        $invalidProof=$proofReceipt;
+        if($invalidProofKind==='missing')$invalidProof=null;
+        elseif($invalidProofKind==='conversation')$invalidProof['conversation_id']=(string)($proofId+100000);
+        elseif($invalidProofKind==='source')$invalidProof['source_key']='max:foreign';
+        elseif($invalidProofKind==='version')$invalidProof['version']=2;
+        elseif($invalidProofKind==='event_id')$invalidProof['start_event_id']='0';
+        else $invalidProof['foreign_project']='other';
+        $ordinaryEntry=ChannelPostEntryService::record('max',$proofChat,$proofPost,'proof.invalid.'.$invalidProofKind,$invalidProof);
+        $ordinaryPayload=(string)$pdo->query("SELECT payload_json FROM conversation_events WHERE conversation_id=".$proofId." AND event_type='channel_post_entry' ORDER BY id DESC LIMIT 1")->fetchColumn();
+        $ordinaryData=json_decode($ordinaryPayload,true,32,JSON_THROW_ON_ERROR);
+        cpeCheck('invalid or absent request-local proof keeps ordinary post recording '.$invalidProofKind,
+            [is_array($ordinaryEntry),count($ordinaryData),isset($ordinaryData['context_preserved']),ConversationRecordClock::read($ordinaryPayload)],
+            [true,4,false,null]);
+        if($invalidProof!==null){
+            $directEntry=$registry->recordEntry($proofId,$proofPost,'proof.registry.invalid.'.$invalidProofKind,false,$invalidProof);
+            $directRaw=(string)$pdo->query("SELECT payload_json FROM conversation_events WHERE conversation_id=".$proofId." AND event_type='channel_post_entry' ORDER BY id DESC LIMIT 1")->fetchColumn();
+            $directData=json_decode($directRaw,true,32,JSON_THROW_ON_ERROR);
+            cpeCheck('registry independently refuses a mismatched preservation receipt '.$invalidProofKind,
+                [is_array($directEntry),count($directData),isset($directData['context_preserved']),ConversationRecordClock::read($directRaw)],
+                [true,4,false,null]);
+        }
+    }
+    MaxStartSourcePolicy::apply(['platform'=>'telegram'],'max_anytour_msk1');
+    cpeCheck('every policy application clears the previous request-local receipt',MaxStartSourcePolicy::preservedEntryReceipt(),null);
+    cpeStartMax($proofUser,$publications['max']['start_payload'],8506);
+    cpeCheck('ordinary-start reset fixture has a previous successful receipt',is_array(MaxStartSourcePolicy::preservedEntryReceipt()),true);
+    cpeStartMax(98779112,$publications['max']['start_payload'],8502);
+    $ordinaryStartConversation=cpeConversation('max',98779112);$ordinaryId=(int)$ordinaryStartConversation['id'];
+    $ordinaryStartRaw=(string)$pdo->query("SELECT payload_json FROM conversation_events WHERE conversation_id=".$ordinaryId." AND event_type='bot_started' ORDER BY id DESC LIMIT 1")->fetchColumn();
+    $ordinaryPostRaw=(string)$pdo->query("SELECT payload_json FROM conversation_events WHERE conversation_id=".$ordinaryId." AND event_type='channel_post_entry' ORDER BY id DESC LIMIT 1")->fetchColumn();
+    cpeCheck('a new start cannot inherit a prior quiet preservation proof',
+        [MaxStartSourcePolicy::preservedEntryReceipt(),isset(json_decode($ordinaryStartRaw,true)['context_preserved']),
+            isset(json_decode($ordinaryPostRaw,true)['context_preserved']),ConversationRecordClock::read($ordinaryPostRaw)],
+        [null,false,false,null]);
+
+    // A failed start insert cannot lend an older successful receipt to its post entry.
+    cpeStartMax($proofUser,$publications['max']['start_payload'],8504);
+    cpeCheck('failed-start reset fixture has a previous successful receipt',is_array(MaxStartSourcePolicy::preservedEntryReceipt()),true);
+    $failureSent=count($sent);$failureStarts=cpeEventCount($proofId,'bot_started');
+    $pdo->exec("CREATE TEMP TRIGGER cpe_preserved_start_failure BEFORE INSERT ON conversation_events WHEN NEW.conversation_id=".$proofId." AND NEW.event_type='bot_started' BEGIN SELECT RAISE(FAIL,'synthetic_start_insert_failure'); END");
+    try{cpeStartMax($proofUser,$publications['max']['start_payload'],8503);}
+    finally{$pdo->exec('DROP TRIGGER cpe_preserved_start_failure');}
+    $failedProofPostRaw=(string)$pdo->query("SELECT payload_json FROM conversation_events WHERE conversation_id=".$proofId." AND event_type='channel_post_entry' ORDER BY id DESC LIMIT 1")->fetchColumn();
+    cpeCheck('a failed native start insert supplies no preservation proof but ordinary post recording continues',
+        [MaxStartSourcePolicy::preservedEntryReceipt(),isset(json_decode($failedProofPostRaw,true)['context_preserved']),
+            ConversationRecordClock::read($failedProofPostRaw),count($sent),cpeMessages($proofId),cpeEventCount($proofId,'bot_started')],
+        [null,false,null,$failureSent,$proofMessages,$failureStarts]);
+
+    // Other projects retain their existing quiet start event without AnyTour metadata.
+    cpeStartMax($proofUser,$publications['max']['start_payload'],8505);
+    cpeCheck('foreign-project reset fixture has a previous successful receipt',is_array(MaxStartSourcePolicy::preservedEntryReceipt()),true);
+    $proofConfig=ProjectConfig::all();$foreignProofConfig=$proofConfig;$foreignProofConfig['id']='other';
+    ProjectConfig::resetForTests($foreignProofConfig);
+    try{
+        $foreignInput=['platform'=>'max','type'=>'message','source_key'=>'other_max','message_id'=>'foreign.proof.seed',
+            'text'=>'Existing foreign dialogue','user'=>['chat_id'=>-98779113,'external_user_id'=>'98779113']];
+        ConversationRecorder::inbound($foreignInput);
+        $foreignId=(int)$pdo->query("SELECT id FROM conversations WHERE project_key='other' AND external_chat_id='-98779113' ORDER BY id DESC LIMIT 1")->fetchColumn();
+        cpeCheck('foreign proof fixture owns a distinct project conversation',$foreignId>0,true);
+        $pdo->prepare("UPDATE conversations SET status='manager',manager_id=7,source_id=8 WHERE id=?")->execute([$foreignId]);
+        $foreignInput['type']='bot_started';MaxStartSourcePolicy::apply($foreignInput,'other_max');
+        $foreignRaw=(string)$pdo->query("SELECT payload_json FROM conversation_events WHERE conversation_id=".$foreignId." AND event_type='bot_started' ORDER BY id DESC LIMIT 1")->fetchColumn();
+        cpeCheck('a foreign quiet handoff never receives an AnyTour preservation receipt or marker',
+            [MaxStartSourcePolicy::preservedEntryReceipt(),isset(json_decode($foreignRaw,true)['context_preserved'])],[null,false]);
+    }finally{ProjectConfig::resetForTests($proofConfig);}
+
     $event = 20;
     foreach (['max', 'telegram'] as $platform) foreach (['manager', 'waiting_manager', 'ai'] as $status) {
         $user = 98773200 + $event++; $before = cpeSeed($platform, $user, $status, $status === 'waiting_manager' ? null : 7);

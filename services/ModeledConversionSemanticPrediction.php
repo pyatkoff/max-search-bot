@@ -247,6 +247,13 @@ final class ModeledConversionSemanticPrediction
         return true;
     }
 
+    /** A proved no-reset entry keeps an established request, never its clock or a same-second price. */
+    public function canPreserveEntryContext(int $occurred):bool
+    {
+        return $this->anchor!==null&&$this->lastMeaningfulAt!==null
+            &&$occurred>$this->lastMeaningfulAt&&$occurred-$this->lastMeaningfulAt<=86400;
+    }
+
     /** Navigation preserves an established request, but consumes any unanswered question. */
     public function preserveNavigationContext(int $occurred):bool
     {

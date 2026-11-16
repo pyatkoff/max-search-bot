@@ -160,7 +160,7 @@ class MaxUpdateHandler
         }
         ConversationRecorder::captureEntryRegion($incoming);
         if (MaxStartSourcePolicy::apply($incoming,$entry)) {
-            if ($post) ChannelPostEntryService::record('max',$internalId,$post,ChannelPostEntryService::eventKey('max',$update));
+            if ($post) ChannelPostEntryService::record('max',$internalId,$post,ChannelPostEntryService::eventKey('max',$update),MaxStartSourcePolicy::preservedEntryReceipt());
             return;
         }
 
