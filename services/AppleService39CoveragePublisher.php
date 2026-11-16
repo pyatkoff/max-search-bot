@@ -16,10 +16,6 @@ final class AppleService39CoveragePublisher
 
     private function call(string $name, ...$args) { return ($this->hooks[$name])(...$args); }
     private static function check(bool $ok, string $reason): void { if (!$ok) throw new RuntimeException($reason); }
-    private static function hash(array $value): string
-    {
-        return hash('sha256', json_encode($value, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
-    }
     private function request(string $post, string $operation): array { return $this->store->coverageRequest($post, $operation); }
 
     private function receipt(array $row, string $photo, string $kind): array
@@ -81,13 +77,7 @@ final class AppleService39CoveragePublisher
         $parent = $this->call('parents', $override);
         self::check(count($parent['addresses']) === 30 && $parent['verified'] === 8, 'coverage_parent_incomplete');
         $addresses = $parent['addresses']; $mids = $parent['mids']; $verified = 0;
-        foreach ($this->store->rows() as $row) {
-            if (!AppleService39CoverageRevision::isOperation($row['post_key'], $row['operation'], $row['request'])) continue;
-            self::check(in_array($row['state'], ['prepared','write_started','unknown','verified'], true)
-                && (int)$row['write_attempts'] === ($row['state'] === 'prepared' ? 0 : 1)
-                && $row['request'] === $this->request($row['post_key'], $row['operation'])
-                && $row['payload_sha256'] === self::hash($row['request']), 'coverage_revision_changed');
-        }
+        $this->store->validateCoverageSnapshotRequests();
         foreach ($this->revision->order() as $id) {
             $row = $this->store->operation($id, 'create');
             if ($row === null || $row['state'] === 'prepared') continue;
