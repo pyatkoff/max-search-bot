@@ -1139,6 +1139,23 @@ function modeledSubscriptionObservationAssertions(callable $check):void
     $parts[1]['profile']['early_signals']['subscription']['available_at']=gmdate('Y-m-d\TH:i:s\Z',$available);
     $check('a subscription cannot renew day-old customer meaning',
         ModeledConversionEarlyForecast::freeze(...$parts)['semantic_prediction']['status']==='insufficient_context');
+    $customerAt=1793002000;$questionAt=$customerAt+86401;
+    $cutoff=gmdate('Y-m-d\TH:i:s\Z',$questionAt+3);
+    $subject=['project_key'=>'anytour','platform'=>'max','customer_key'=>'7','conversation_id'=>'9'];
+    $model=new ModeledConversionSemanticPrediction($subject,$cutoff,$cutoff,$cutoff,'3','3');
+    $text='Подберите тур в Турцию на 7 ночей, 2 взрослых.';
+    $semantic=ArchiveResearchSemanticExtractor::step(['source_ref'=>'journal:1','created_at'=>$customerAt,
+        'read_status'=>'available','text'=>$text,'role'=>'customer','direction'=>'inbound',
+        'role_verified'=>true,'text_minimized'=>true,'forwarded'=>false,'media'=>[],
+        'media_contents_read'=>false,'selection_links_unread'=>false,'links_redacted'=>false],ArchiveResearchSemanticExtractor::initialState());
+    $model->observeMessage('customer',$text,'journal:1',$customerAt,$customerAt+1,1,$semantic);
+    $asked=$model->observeServiceQuestion('В какую страну хотите поехать?','journal:2',$questionAt,$questionAt+1,1);
+    $before=$model->finish(['early_forecast'=>['status'=>'early_assessment']]);
+    $preserved=$model->canPreserveSubscriptionContext($questionAt+1);
+    $check('a fresh AI question cannot renew day-old customer meaning for a subscription',
+        $asked&&$before['current_request_anchor']==='journal:1'&&!$preserved
+        &&$model->finish(['early_forecast'=>['status'=>'early_assessment']])===$before);
+
 }
 
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){

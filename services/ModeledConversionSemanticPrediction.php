@@ -227,7 +227,8 @@ final class ModeledConversionSemanticPrediction
     /** A subscription observation is neutral bookkeeping, never a new request or a renewed clock. */
     public function canPreserveSubscriptionContext(int $occurred):bool
     {
-        return $this->anchor!==null&&$this->canPreserveCustomerContext($occurred);
+        return $this->anchor!==null&&$this->lastMeaningfulAt!==null
+            &&$occurred>=$this->lastMeaningfulAt&&$occurred-$this->lastMeaningfulAt<=86400;
     }
 
     /**
