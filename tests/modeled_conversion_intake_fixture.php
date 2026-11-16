@@ -2,14 +2,28 @@
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/ModeledConversionIntakeCoverageReader.php';
 
-/** Temporary tables only: canonical source capture, independent counterexamples and native MySQL. */
+/** Disposable synthetic schemas only: real canonical capture and independent pipeline counterexamples. */
 function modeledIntakeCoverageAssertions(PDO $p,callable $check):void
 {
-    $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';$tables=[];
-    $create=static function(string $name,string $columns)use($p,&$tables):void{
-        $p->exec('CREATE TEMPORARY TABLE '.$name.'('.$columns.')');$tables[]=$name;
+    $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';$tables=[];$admin=null;$createdDatabase=null;
+    $create=static function(string $name,string $columns)use(&$p,&$tables,$mysql):void{
+        $p->exec(($mysql?'CREATE TABLE ':'CREATE TEMPORARY TABLE ').$name.'('.$columns.')');$tables[]=$name;
     };
     try{
+        if($mysql){
+            // MySQL temporary tables cannot be reopened across branches of the same query.
+            // Use a fresh owned disposable schema, with the same guard as native OAuth tests.
+            $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
+            if(preg_match('/\Amysql:host=127\.0\.0\.1;port=[0-9]+;dbname=maxbot_prepared_test;charset=utf8mb4\z/D',$dsn)!==1)
+                throw new RuntimeException('unsafe_intake_fixture_dsn');
+            $user=getenv('PREPARED_REPLY_MYSQL_USER')?:null;$pass=getenv('PREPARED_REPLY_MYSQL_PASS')?:null;
+            $options=[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false];
+            $admin=new PDO($dsn,$user,$pass,$options);
+            if($admin->query('SELECT DATABASE()')->fetchColumn()!=='maxbot_prepared_test')throw new RuntimeException('unsafe_intake_fixture_database');
+            $database='maxbot_intake_coverage_test_'.bin2hex(random_bytes(6));
+            $admin->exec('CREATE DATABASE '.$database.' CHARACTER SET utf8mb4');$createdDatabase=$database;
+            $p=new PDO(str_replace('dbname=maxbot_prepared_test;','dbname='.$database.';',$dsn),$user,$pass,$options);
+        }
         $create('customers','id BIGINT PRIMARY KEY');
         $create('customer_channels','id BIGINT PRIMARY KEY,customer_id BIGINT,project_key VARCHAR(40),channel VARCHAR(16),external_user_id VARCHAR(40),external_chat_id VARCHAR(40)');
         $create('conversations','id BIGINT PRIMARY KEY,customer_id BIGINT,customer_channel_id BIGINT,project_key VARCHAR(40),channel VARCHAR(16),external_chat_id VARCHAR(40),is_test INT');
@@ -73,6 +87,8 @@ function modeledIntakeCoverageAssertions(PDO $p,callable $check):void
         try{$r=(new ModeledConversionIntakeCoverageReader($p,$authorize,$budget))->read($now);}
         finally{if($mysql)$p->exec('SET SESSION TRANSACTION READ WRITE');else$p->exec('PRAGMA query_only=OFF');}
         $a=$r['all']??[];
+        if(($r['available']??false)!==true||($a['inputs']??null)!==9||($a['profiled']??null)!==5)
+            fwrite(STDERR,'SYNTHETIC_INTAKE_RESULT '.json_encode($r,JSON_THROW_ON_ERROR).PHP_EOL);
         $check('full native intake includes messages and customer events and detects the four independent pipeline gaps',
             ($r['available']??false)&&($r['coverage']['native_clock_scope_complete']??false)&&$a['inputs']===9&&$a['conversations']===8
             &&$a['wait_capture']===1&&$a['wait_index']===1&&$a['wait_profile']===1&&$a['wait_collector']===1
@@ -112,6 +128,7 @@ function modeledIntakeCoverageAssertions(PDO $p,callable $check):void
             $roles['available']&&$roles['all']['inputs']===8&&$roles['all']['conversations']===8);
     }finally{
         if($mysql)$p->exec('SET SESSION TRANSACTION READ WRITE');else$p->exec('PRAGMA query_only=OFF');
-        foreach(array_reverse($tables)as$table)$p->exec($mysql?'DROP TEMPORARY TABLE '.$table:'DROP TABLE temp.'.$table);
+        foreach(array_reverse($tables)as$table)$p->exec($mysql?'DROP TABLE '.$table:'DROP TABLE temp.'.$table);
+        if($createdDatabase!==null&&$admin instanceof PDO)$admin->exec('DROP DATABASE '.$createdDatabase);
     }
 }

@@ -1,6 +1,5 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__.'/ModeledConversionIntakeCoverageReader.php';
 require_once __DIR__.'/ModeledConversionStatusBudget.php';
 require_once __DIR__.'/ModeledConversionPipelineMonitorStatus.php';
 
@@ -139,6 +138,7 @@ final class ModeledConversionDeliveryHealth
                 if($now-($automatic['success_unix']?:$automatic['attempt_unix'])>900)$flags[]='visit_proof_stale';
             }
             // A saved heartbeat alone does not establish completeness for individual current inputs.
+            require_once __DIR__.'/ModeledConversionIntakeCoverageReader.php';
             $intake=(new ModeledConversionIntakeCoverageReader($pdo,$guard,$budget??new ModeledConversionStatusBudget()))->read($now);
             $out['intake_coverage']=$intake;
             $flags=array_merge($flags,self::intakeFlags($intake));
