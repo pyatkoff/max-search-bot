@@ -20,7 +20,8 @@ function funnelSchema(PDO $pdo):void{
 }
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')!==__FILE__)return;
 $pdo=repairFixture();funnelSchema($pdo);$now=time();$connection=ProjectMaxConnection::resolve('appleservice39');$s=ProjectFunnelSettings::load($connection);
-funnelCheck('owner-supplied AppleService counter enables collection without exports',$s['metrika']['counter_id']==='42611469'&&$s['metrika']['mode']==='collect');
+funnelCheck('owner-approved AppleService price assumption enables its own sender',$s['metrika']['counter_id']==='42611469'&&$s['metrika']['mode']==='send'
+    &&($s['prediction']['basis']??null)==='owner_assumption'&&$s['prediction']['probability']===0.2&&$s['prediction']['price_basis']==='listed_service_price');
 funnelCheck('owner-selected predict goal keeps its exact ID with the required offline condition',$s['metrika']['goals']===['predictive_value'=>'predict']&&$s['metrika']['goal_ids']===['predictive_value'=>'680570232']&&$s['metrika']['goal_match']===['predictive_value'=>'exact']&&$s['metrika']['credential_source']==='platform');
 $expandedSettings=$s;
 funnelCheck('coverage source contains67 offers and preserves previously published batteries and front glass',
@@ -29,6 +30,7 @@ funnelCheck('coverage source contains67 offers and preserves previously publishe
     &&!isset($s['posts']['models-index'],$s['posts']['services-index']));
 $oldOfferIds=['menu','model-iphone-17','service-display','repair-iphone-16-display','service-rear-glass-replacement','symptom-not-charging','service-rear-camera-replacement','service-earpiece-replacement'];
 $s['posts']=array_intersect_key($s['posts'],array_flip($oldOfferIds));
+$s['feed_presentation']=array_intersect_key($s['feed_presentation']??[],$s['posts']);
 $s['metrika']=['counter_id'=>'','mode'=>'off','goals'=>[]];$fixtureRegistry=repairFixtureRegistry();$fixtureRegistry['appleservice39']['project']['sales_funnel']=$s;ProjectMaxConnection::resetForTests($fixtureRegistry);$connection=ProjectMaxConnection::resolve('appleservice39');$entry=new ProjectFunnelEntry($pdo,$connection,$s);
 funnelCheck('eight approved offers keep their established feed IDs',count($s['posts'])===8&&$s['posts']['menu']['offer_id']==='as39-search-v1-menu');
 funnelCheck('missing company analytics stays explicitly off',$s['metrika']===['counter_id'=>'','mode'=>'off','goals'=>[]]&&ProjectFunnelSettings::publicClient($s)['counter_id']==='');
@@ -38,9 +40,20 @@ funnelCheck('signature preserves large click and opaque post IDs',$launch['exter
 funnelCheck('reordered signed pairs preserve one visit',$launch['visit_id']===ProjectFunnelLaunch::verify(implode('&',array_reverse(explode('&',$raw))),'synthetic-apple-token',$now)['visit_id']);
 foreach(['wrong token'=>fn()=>ProjectFunnelLaunch::verify($raw,'other-token',$now),'tampered identity'=>fn()=>ProjectFunnelLaunch::verify(str_replace('7001','7002',$raw),'synthetic-apple-token',$now),'expired signature'=>fn()=>ProjectFunnelLaunch::verify($raw,'synthetic-apple-token',$now+3601),'future signature'=>fn()=>ProjectFunnelLaunch::verify($raw,'synthetic-apple-token',$now-61),'duplicate key'=>fn()=>ProjectFunnelLaunch::verify($raw.'&auth_date='.$now,'synthetic-apple-token',$now),'conflicting signed starts'=>fn()=>ProjectFunnelLaunch::verify(funnelSigned($start,$now,'synthetic-apple-token','7001',['startapp'=>'post1_menu']),'synthetic-apple-token',$now)]as$name=>$call)funnelCheck($name.' rejected',funnelReject($call));
 foreach(['{yclid}_region_213_campaign_123_ctx1_abc','0_region_213_campaign_123_ctx1_abc','post1_https://evil.test','1_region_1_campaign_1_ctx1_eyJwb3N0X2lkIjoiYSJ9',str_repeat('a',513)]as$bad)funnelCheck('invalid or unexpanded start rejected '.substr($bad,0,24),funnelReject(fn()=>ProjectFunnelLaunch::parse($bad)));
-$input=['init_data'=>$raw,'start_param'=>$start,'client_id'=>''];$capture=$entry->capture($input,$now);
+$input=['init_data'=>$raw,'start_param'=>$start,'client_id'=>''];
+$legacySettings=$s;unset($legacySettings['feed_presentation']);
+$capture=(new ProjectFunnelEntry($pdo,$connection,$legacySettings))->capture($input,$now);
 funnelCheck('redirect acknowledges a durable exact post observation',$capture['saved']===true&&$capture['mode']==='advertising'&&$capture['redirect_url']==='https://max.ru/channel_appleservice39ru/AaG9bRUxHcg'&&!$capture['analytics_bound']&&(int)$pdo->query('SELECT COUNT(*) FROM advertising_visit_observations')->fetchColumn()===1);
 $again=$entry->capture($input,$now+1);funnelCheck('retry and missing CID reuse committed observation',$again['receipt']['reused']===true&&$again['receipt']['cursor']===$capture['receipt']['cursor']);
+$savedContext=$pdo->query('SELECT context_json FROM advertising_visit_observations ORDER BY id LIMIT 1')->fetchColumn();
+$changedPresentation=$s;$changedPresentation['feed_presentation'][$post]=['title'=>'Короткое название','description'=>'Проверенное рекламное описание.','image_url'=>'https://example.test/reviewed-ad.png'];
+$changedPresentation=ProjectFunnelSettings::validate($changedPresentation,'appleservice39','id390521129062_bot');
+funnelCheck('advertising copy and image changes keep the original launch receipt and profile',
+    (new ProjectFunnelEntry($pdo,$connection,$changedPresentation))->capture($input,$now+1)['receipt']['reused']===true
+    &&$pdo->query('SELECT context_json FROM advertising_visit_observations ORDER BY id LIMIT 1')->fetchColumn()===$savedContext
+    &&(int)$pdo->query('SELECT COUNT(*) FROM advertising_visit_observations')->fetchColumn()===1);
+$changedIdentity=$s;$changedIdentity['posts'][$post]['title']='Changed publication identity';
+funnelCheck('publication identity changes still reject an old launch retry',funnelReject(fn()=>(new ProjectFunnelEntry($pdo,$connection,$changedIdentity))->capture($input,$now+1)));
 $changedSettings=$s;$changedSettings['metrika']['goals']=['working'=>'future_company_goal'];
 funnelCheck('unrelated conversion settings cannot break a saved redirect retry',(new ProjectFunnelEntry($pdo,$connection,$changedSettings))->capture($input,$now+1)['receipt']['reused']===true);
 $enriched=$entry->capture(array_replace($input,['client_id'=>'17929400001234567890']),$now+2);
@@ -56,7 +69,7 @@ $default=$entry->capture(['init_data'=>funnelSigned('',$now),'start_param'=>'','
 funnelCheck('normal miniapp launch resolves configured menu',$default['post_id']==='menu'&&$default['saved']===false);
 $csv=$entry->feed();$lines=array_map('str_getcsv',explode("\n",trim($csv)));
 funnelCheck('feed has eight stable unique offers and literal Direct macros',count($lines)===9&&count(array_unique(array_column(array_slice($lines,1),0)))===8&&substr_count($csv,'?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_')===8);
-funnelCheck('feed keeps approved images and no invented price',$lines[1][0]==='as39-search-v1-menu'&&$lines[1][2]===$s['posts']['menu']['image_url']&&$lines[1][5]===''&&$lines[1][6]==='');
+funnelCheck('feed keeps approved advertising images and no invented price',$lines[1][0]==='as39-search-v1-menu'&&$lines[1][2]===$s['feed_presentation']['menu']['image_url']&&$lines[1][5]===''&&$lines[1][6]==='');
 $pdo->exec("UPDATE appleservice39_pilot_operations SET state='unknown' WHERE post_key='menu'");
 funnelCheck('unverified publication prevents feed and redirect',funnelReject(fn()=>$entry->feed())&&funnelReject(fn()=>$entry->destination('menu')));$pdo->exec("UPDATE appleservice39_pilot_operations SET state='verified' WHERE post_key='menu'");
 // Pending new cards are withheld; invalid verified evidence and DB errors still fail closed.
@@ -83,6 +96,11 @@ funnelCheck('all67 own verified offers use unique miniapp contexts and literal D
     count($fullRows)===68&&count(array_unique(array_column(array_slice($fullRows,1),0)))===67
     &&substr_count($full,'https://max.ru/id390521129062_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_')===67
     &&count(array_filter(array_slice($fullRows,1),static fn($r)=>$r[5]!==''||$r[6]!==''))===0);
+// Accepted tour-max CSV ef25b04a.../Git blob096c5e89, read back on16Nov2026.
+// Compare parsed rows so ordinary CSV enclosure choices cannot conceal content drift.
+funnelCheck('all67 upstream advertising rows exactly match the accepted public feed',
+    hash('sha256',json_encode($fullRows,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))
+    ==='52c30732dcf4a0f7283c3585c0fe20ba9cb5a1fd967557eebe7895c725065aab');
 $pdo->exec("UPDATE appleservice39_pilot_operations SET public_url='https://max.ru/foreign/borrowed' WHERE post_key='model-iphone-8'");
 funnelCheck('withholding never conceals a corrupt verified publication',funnelReject(fn()=>$expandedEntry->feed()));
 $pdo->exec("UPDATE appleservice39_pilot_operations SET public_url='https://max.ru/channel_appleservice39ru/fixture_model-iphone-8' WHERE post_key='model-iphone-8'");
@@ -94,6 +112,17 @@ foreach($added as$id)$deletePublication->execute([$id]);
 $badWithholding=$expandedSettings;$badWithholding['posts']['model-iphone-8']['withhold_until_verified']='yes';
 funnelCheck('withholding requires an explicit typed configuration flag',
     funnelReject(fn()=>ProjectFunnelSettings::validate($badWithholding,'appleservice39','id390521129062_bot')));
+$presentationFaults=[
+    'non-map'=>static function(array &$v):void{$v['feed_presentation']='invalid';},
+    'unregistered post'=>static function(array &$v):void{$v['feed_presentation']['foreign']=$v['feed_presentation']['menu'];},
+    'routing override'=>static function(array &$v):void{$v['feed_presentation']['menu']['offer_id']='another-offer';},
+    'missing field'=>static function(array &$v):void{unset($v['feed_presentation']['menu']['description']);},
+    'long title'=>static function(array &$v):void{$v['feed_presentation']['menu']['title']=str_repeat('Я',57);},
+    'long description'=>static function(array &$v):void{$v['feed_presentation']['menu']['description']=str_repeat('Я',82);},
+    'markup'=>static function(array &$v):void{$v['feed_presentation']['menu']['description']='<b>Ad</b>';},
+    'unsafe image'=>static function(array &$v):void{$v['feed_presentation']['menu']['image_url']='https://user:pass@example.test/image.png';},
+];
+foreach($presentationFaults as$name=>$mutate){$bad=$expandedSettings;$mutate($bad);funnelCheck('invalid feed presentation rejected: '.$name,funnelReject(fn()=>ProjectFunnelSettings::validate($bad,'appleservice39','id390521129062_bot')));}
 
 $before=$pdo->query("SELECT * FROM conversations WHERE id=100")->fetch();
 $sent=[];$factory=static function(ProjectMaxConnection $c)use(&$sent){return new MaxMessengerAdapter(static function($chat,$text)use(&$sent){$sent[]=$text;return 'synthetic-funnel-'.count($sent);},null,'system',null,false);};
@@ -117,8 +146,16 @@ $registry=new ChannelPostRegistryService($pdo);$config=['project_key'=>'repair_t
 $pub=$registry->registerPublication('repair_two','max','id999999999002_bot','-12345678','SyntheticPost',['text'=>'Reviewed service','title'=>'Another service','post_url'=>'https://max.ru/another_business/SyntheticPost']);
 $registry->confirmObservedButton($pub['publication_id'],$pub['version_id'],['button_verified'=>true,'content_preserved'=>true]);
 $other=array_replace($s,['project_key'=>'repair_two','bot_key'=>'id999999999002_bot','source_key'=>'max:repair_two-main','channel_id'=>'-12345678','channel_url'=>'https://max.ru/another_business','default_post'=>'service','posts'=>['service'=>['owner'=>'channel_post_registry','publication_id'=>$pub['publication_id'],'offer_id'=>'another-offer','title'=>'Another service','description'=>'Reviewed description','image_url'=>'https://example.test/image.png']]]);
+unset($other['feed_presentation']);
 $other=ProjectFunnelSettings::validate($other,'repair_two','id999999999002_bot');$shared=new ProjectFunnelEntry($pdo,ProjectMaxConnection::resolve('repair_two'),$other);
 funnelCheck('second business launches by configuration without copying logic',$shared->destination('service')['url']==='https://max.ru/another_business/SyntheticPost'&&str_contains($shared->feed(),'https://max.ru/id999999999002_bot?startapp='));
+$otherPresentation=$other;$otherPresentation['feed_presentation']=['service'=>['title'=>'Another ad','description'=>'Approved ad copy.','image_url'=>'https://example.test/ad.png']];
+$otherPresentation=ProjectFunnelSettings::validate($otherPresentation,'repair_two','id999999999002_bot');
+$otherFeed=array_map('str_getcsv',explode("\n",trim((new ProjectFunnelEntry($pdo,ProjectMaxConnection::resolve('repair_two'),$otherPresentation))->feed())));
+funnelCheck('another business uses the same presentation contract with its own routing',
+    $otherFeed[1][0]==='another-offer'&&$otherFeed[1][2]==='https://example.test/ad.png'&&$otherFeed[1][3]==='Another ad'
+    &&$otherFeed[1][4]==='Approved ad copy.'&&str_contains($otherFeed[1][1],'https://max.ru/id999999999002_bot?startapp=')
+    &&$shared->destination('service')['title']==='Another service');
 funnelCheck('second bot cannot validate first company launch',funnelReject(fn()=>$shared->capture($input,$now)));
 $other['handoff_mode']='manager_first';$other['brand']='Стоматология — тест';$r=repairFixtureRegistry();$r['repair_two']['project']['business']=['kind'=>'dental_clinic'];$r['repair_two']['project']['brand']['name']=$other['brand'];$r['repair_two']['project']['sales_funnel']=$other;$r['repair_two']['project']['messenger']['max']['webhook_url']='https://app.anytoour.ru/project_max_webhook.php?project=repair_two';ProjectMaxConnection::resetForTests($r);
 $genericSent=[];$genericFactory=static function(ProjectMaxConnection $c)use(&$genericSent){return new MaxMessengerAdapter(static function($chat,$text)use(&$genericSent){$genericSent[]=$text;return 'synthetic-clinic-reply';},null,'system',null,false);};

@@ -137,6 +137,7 @@ trCheck('MAX wire button retains website origin and all parameters',$wire[0][0][
 // Extract whole adjacent methods verbatim; no copy of their readiness logic.
 require_once __DIR__ . '/../services/AiSearchContextService.php';
 require_once __DIR__ . '/../services/PendingMonthStore.php';
+require_once __DIR__ . '/../services/SourceHandlingService.php';
 require_once __DIR__ . '/../services/DialogueView.php';
 $apiSource = (string)file_get_contents(__DIR__ . '/../maxsearchclass.php');
 function trMethods(string $source, string $first, string $next): string {
@@ -158,6 +159,7 @@ $readinessMessenger = new MaxMessengerAdapter($captureReadiness, $captureReadine
 IntegrationRegistry::useMessenger($readinessMessenger);
 foreach ([
     'empty'=>[],
+    'missing_country'=>array_diff_key($ready,[66=>true]),
     'past'=>array_replace($ready,[73=>date('d.m.Y',strtotime('-1 day'))]),
     'invalid'=>array_replace($ready,[73=>'31.02.2030']),
     'unanswered_children'=>array_replace($ready,[68=>null]),

@@ -224,6 +224,13 @@ final class ModeledConversionSemanticPrediction
         return $anchored||$answer||$question;
     }
 
+    /** A subscription observation is neutral bookkeeping, never a new request or a renewed clock. */
+    public function canPreserveSubscriptionContext(int $occurred):bool
+    {
+        return $this->anchor!==null&&$this->lastMeaningfulAt!==null
+            &&$occurred>=$this->lastMeaningfulAt&&$occurred-$this->lastMeaningfulAt<=86400;
+    }
+
     /**
      * Called only after the adapter validates an original native AI source and
      * its recording receipt. AI supplies question context, never a criterion.
@@ -238,6 +245,13 @@ final class ModeledConversionSemanticPrediction
             ||$occurred-$this->lastQuestionnaireAt>86400))$this->barrier();
         $this->questionnaireQuestion=['field'=>$field,...$meta];
         return true;
+    }
+
+    /** A proved no-reset entry keeps an established request, never its clock or a same-second price. */
+    public function canPreserveEntryContext(int $occurred):bool
+    {
+        return $this->anchor!==null&&$this->lastMeaningfulAt!==null
+            &&$occurred>$this->lastMeaningfulAt&&$occurred-$this->lastMeaningfulAt<=86400;
     }
 
     /** Navigation preserves an established request, but consumes any unanswered question. */

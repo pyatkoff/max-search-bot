@@ -8,8 +8,17 @@ require_once __DIR__.'/DiagnosticLogger.php';
 /** MAX entry adapter only; SourceHandlingService remains the handoff owner. */
 final class MaxStartSourcePolicy
 {
+    private static ?array $preservedEntry = null;
+
+    /** Request-local proof of the exact successful quiet start; never a caller-supplied claim. */
+    public static function preservedEntryReceipt(): ?array
+    {
+        return self::$preservedEntry;
+    }
+
     public static function apply(array $incoming,string $sourceKey): bool
     {
+        self::$preservedEntry = null;
         $policyOwned=false;
         $locked=false;
         $lockKey='';
@@ -47,7 +56,22 @@ final class MaxStartSourcePolicy
                 // The authenticated webhook start is activity, not a customer message.
                 // Preserve restart recovery without repeating the initial handoff greeting.
                 if(($incoming['type']??'')==='bot_started'){
-                    ConversationRecorder::eventByChat('max',$chat,'bot_started',['source_key'=>$sourceKey],'system');
+                    if($project==='anytour'){
+                        $conversationId=(string)$existing['id'];
+                        $payload=['source_key'=>$sourceKey];
+                        $preserved=preg_match('/\A[1-9][0-9]{0,19}\z/D',$conversationId)===1
+                            &&(string)(int)$existing['id']===$conversationId
+                            &&preg_match('/\A[A-Za-z0-9_.:\/-]{1,191}\z/D',$sourceKey)===1;
+                        if($preserved)$payload['context_preserved']=['version'=>1,'origin'=>'max_start_source_policy',
+                            'reason'=>'existing_handoff_without_reset','conversation_id'=>$conversationId];
+                        if(ConversationRecorder::eventForConversation((int)$existing['id'],'bot_started',$payload,'system')&&$preserved){
+                            $eventId=(string)$pdo->lastInsertId();
+                            if(preg_match('/\A[1-9][0-9]{0,19}\z/D',$eventId)===1)self::$preservedEntry=[
+                                'version'=>1,'conversation_id'=>$conversationId,'start_event_id'=>$eventId,'source_key'=>$sourceKey];
+                        }
+                    }else{
+                        ConversationRecorder::eventByChat('max',$chat,'bot_started',['source_key'=>$sourceKey],'system');
+                    }
                 }
                 return true;
             }

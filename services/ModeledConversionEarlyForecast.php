@@ -65,6 +65,7 @@ final class ModeledConversionEarlyForecast
         // Match the canonical Python chronological tie-break; omitted rows remain barriers.
         usort($rows,static fn(array $a,array $b):int=>($a['at']??0)<=>($b['at']??0)?:strcmp($a['ref'],$b['ref']));
         $wizardApplications=$denied||$clockUnresolved?[]:self::admittedWizardApplications($rows,$wrapper,$admitted,$subject,$requested);
+        $preservedEntries=$denied||$clockUnresolved?[]:self::admittedPreservedEntries($rows,$subject,$requested);
         $state=ArchiveResearchSemanticExtractor::initialState();$events=[];$current=[];$boundaries=[];
         $flags=['episode_identity_unverified'=>true,'source_history_incomplete'=>true];
         $offerReaction=new ModeledConversionOfferReaction($case,$wrapper,$requested,$denied||$clockUnresolved);
@@ -103,7 +104,7 @@ final class ModeledConversionEarlyForecast
                 $predictive->knownOperationalOutcome($ref,(int)$item['at'],(int)$row['observed_at_unix'],(int)$row['source_version_no']);
             if($permit===null||$clockUnresolved){
                 $longGap=ArchiveResearchSemanticExtractor::hasLongObservationGap($state['last'],$item['at']);
-                $serviceKind=null;$observationalBridge=false;$applicationBridge=false;$questionBridge=false;$navigationBridge=false;
+                $serviceKind=null;$observationalBridge=false;$subscriptionBridge=false;$applicationBridge=false;$questionBridge=false;$navigationBridge=false;$entryBridge=false;
                 if(!$denied&&!$clockUnresolved){
                     if(self::knownServiceReply($row,$subject,$requested)){
                         $serviceKind='preserved_ai_replies';
@@ -119,6 +120,9 @@ final class ModeledConversionEarlyForecast
                             &&$predictive->preserveNavigationContext((int)$item['at']);
                         $observationalBridge=self::knownObservationalEvent($row,$subject,$requested)
                             &&$predictive->canPreserveCustomerContext((int)$item['at']);
+                        $subscriptionBridge=self::knownSubscriptionObservation($row,$wrapper,$subject,$requested)
+                            &&$predictive->canPreserveSubscriptionContext((int)$item['at']);
+                        $entryBridge=isset($preservedEntries[$ref])&&$predictive->canPreserveEntryContext((int)$item['at']);
                         $inputRef=$wizardApplications[$ref]??null;
                         $applicationBridge=$inputRef!==null
                             &&$predictive->canPreserveCustomerContext((int)$item['at'],$inputRef);
@@ -126,7 +130,7 @@ final class ModeledConversionEarlyForecast
                 }
                 $serviceBridge=$serviceKind!==null&&($questionBridge
                     ||(!$longGap&&$predictive->canPreserveCustomerContext((int)$item['at'])));
-                if($clockUnresolved||(!$operationalKnown&&!$serviceBridge&&!$observationalBridge&&!$applicationBridge&&!$navigationBridge&&!$offerReaction->bridgesUnavailable($ref,$longGap))){
+                if($clockUnresolved||(!$operationalKnown&&!$serviceBridge&&!$observationalBridge&&!$subscriptionBridge&&!$applicationBridge&&!$navigationBridge&&!$entryBridge&&!$offerReaction->bridgesUnavailable($ref,$longGap))){
                     $predictive->barrier();
                     $reason=$clockUnresolved?'unresolved_clock_barriers':($longGap?'long_gap_barriers':
                         match($row['source_kind']??null){'message'=>'unavailable_message_barriers','event'=>'unavailable_event_barriers',default=>'other_source_barriers'});
@@ -328,6 +332,66 @@ final class ModeledConversionEarlyForecast
         return $bindings;
     }
 
+    /** Only positive receipts from the actual no-reset MAX entry branch preserve customer meaning. */
+    private static function admittedPreservedEntries(array $rows,array $subject,int $cutoff):array
+    {
+        if($subject['platform']!=='max')return [];
+        $counts=[];$entries=[];$allowed=[];
+        foreach($rows as$item){
+            $row=$item['row'];$id=$row['source_id']??null;
+            if(($row['source_kind']??null)==='event'&&is_string($id))$counts[$id]=($counts[$id]??0)+1;
+        }
+        foreach($rows as$item){
+            $row=$item['row'];$s=$row['snapshot']??null;$id=$row['source_id']??null;
+            if(($row['source_kind']??null)!=='event'||($row['source_version_no']??null)!==1
+                ||!is_string($id)||$id==='0'||!self::decimal($id)||($counts[$id]??0)!==1
+                ||!is_array($s)||($s['source_kind']??null)!=='event'||($s['source_id']??null)!==$id
+                ||($s['source_status']??null)!=='present'||($s['payload_status']??null)!=='copied'
+                ||!self::sameSubject($s,$subject)||($s['source_timestamp_basis']??null)!=='canonical_recording_unix_v1')continue;
+            $payload=$s['payload']??null;$raw=is_array($payload)?($payload['payload_json']??null):null;
+            $type=is_array($payload)?($payload['event_type']??null):null;
+            if(!in_array($type,['bot_started','channel_post_entry'],true)||!is_string($raw)||strlen($raw)>32768
+                ||($payload['actor_type']??null)!==($type==='bot_started'?'system':'customer'))continue;
+            try{
+                $p=json_decode($raw,true,32,JSON_THROW_ON_ERROR);$at=ConversationRecordClock::read($raw);
+                if(!is_array($p)||array_is_list($p)
+                    ||json_encode($p,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)!==$raw)continue;
+                unset($p['_recorded_clock']);ksort($p);
+                $keys=$type==='bot_started'?['context_preserved','source_key']:
+                    ['context_preserved','entry_id','publication_id','source_key','version_id'];
+                if(array_keys($p)!==$keys||!is_string($p['source_key'])
+                    ||preg_match('/\A[A-Za-z0-9_.:\/-]{1,191}\z/D',$p['source_key'])!==1)continue;
+                $proof=$p['context_preserved'];
+                if(!is_array($proof)||array_is_list($proof))continue;
+                ksort($proof);$proofKeys=$type==='bot_started'?['conversation_id','origin','reason','version']:
+                    ['conversation_id','origin','reason','start_event_id','version'];
+                if(array_keys($proof)!==$proofKeys||$proof['version']!==1
+                    ||$proof['origin']!=='max_start_source_policy'||$proof['reason']!=='existing_handoff_without_reset'
+                    ||$proof['conversation_id']!==$subject['conversation_id'])continue;
+                if($type==='channel_post_entry'){
+                    foreach(['entry_id','publication_id','version_id']as$key)if(!is_int($p[$key])||$p[$key]<=0)continue 2;
+                    if(!is_string($proof['start_event_id'])||$proof['start_event_id']==='0'
+                        ||!self::decimal($proof['start_event_id']))continue;
+                }
+            }catch(Throwable $ignored){continue;}
+            $available=$row['observed_at_unix']??null;
+            if(!is_int($at)||!is_int($available)||$at<946684800||$at>$available||$available>$cutoff
+                ||($s['source_created_at_unix']??null)!==$at)continue;
+            $entries[$id]=['type'=>$type,'ref'=>$item['ref'],'at'=>$at,'available'=>$available,
+                'source_key'=>$p['source_key'],'start_event_id'=>$proof['start_event_id']??null];
+            if($type==='bot_started')$allowed[$item['ref']]=true;
+        }
+        foreach($entries as$id=>$entry){
+            if($entry['type']!=='channel_post_entry')continue;
+            $start=$entries[$entry['start_event_id']]??null;
+            if(!is_array($start)||$start['type']!=='bot_started'||$start['source_key']!==$entry['source_key']
+                ||!self::greater((string)$id,$entry['start_event_id'])
+                ||$start['at']>$entry['at']||$start['available']>$entry['available'])continue;
+            $allowed[$entry['ref']]=true;
+        }
+        return $allowed;
+    }
+
     /** Exact recorded search navigation is not a new trip or customer statement. */
     private static function knownTourNavigation(array $row,array $subject,int $cutoff):bool
     {
@@ -412,6 +476,48 @@ final class ModeledConversionEarlyForecast
         $available=$row['observed_at_unix']??null;
         return is_int($at)&&is_int($available)&&$at>=946684800&&$at<=$available&&$available<=$cutoff
             &&($s['source_created_at_unix']??null)===$at;
+    }
+
+    /** Only the selected, canonically admitted MAX subscription may preserve an existing request. */
+    private static function knownSubscriptionObservation(array $row,array $wrapper,array $subject,int $cutoff):bool
+    {
+        $s=$row['snapshot']??null;
+        if($subject['platform']!=='max'||($row['source_kind']??null)!=='event'
+            ||($row['source_version_no']??null)!==1||!is_array($s)
+            ||($s['source_kind']??null)!=='event'||($s['source_status']??null)!=='present'
+            ||($s['payload_status']??null)!=='copied'||!self::sameSubject($s,$subject)
+            ||!is_string($row['source_id']??null)||$row['source_id']==='0'||!self::decimal($row['source_id'])
+            ||(string)($s['source_id']??'')!==$row['source_id']
+            ||($s['source_timestamp_basis']??null)!=='canonical_recording_unix_v1')return false;
+        $payload=$s['payload']??null;$raw=is_array($payload)?($payload['payload_json']??null):null;
+        if(!is_array($payload)||($payload['event_type']??null)!=='channel_subscription_observed'
+            ||($payload['actor_type']??null)!=='system'||!is_string($raw)||strlen($raw)>32768)return false;
+        try{
+            $p=json_decode($raw,true,32,JSON_THROW_ON_ERROR);$at=ConversationRecordClock::read($raw);
+            if(!is_array($p)||array_is_list($p)
+                ||json_encode($p,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)!==$raw)return false;
+            unset($p['_recorded_clock']);ksort($p);
+            if(array_keys($p)!==['identity_scope','occurred_at_unix','origin','source','state','version']
+                ||$p['version']!==1||$p['origin']!=='existing_membership_producer'
+                ||$p['source']!=='max_membership_history'||$p['identity_scope']!=='same_chat_and_source'
+                ||$p['state']!=='subscribed'||!is_int($p['occurred_at_unix'])
+                ||$p['occurred_at_unix']<946684800)return false;
+        }catch(Throwable $ignored){return false;}
+        $available=$row['observed_at_unix']??null;
+        if(!is_int($at)||!is_int($available)||$p['occurred_at_unix']>$at||$at>$available
+            ||$available>$cutoff||($s['source_created_at_unix']??null)!==$at)return false;
+        $profile=$wrapper['profile']??null;$signals=is_array($profile)?($profile['early_signals']??null):null;
+        $receipt=is_array($signals)?($signals['subscription']??null):null;
+        return is_array($profile)&&self::sameSubject($profile['subject']??null,$subject)
+            &&is_array($signals)&&($signals['version']??null)==='membership_early_signals_v1'
+            &&($signals['prediction_at']??null)===($profile['prediction_at']??null)
+            &&is_array($receipt)&&count($receipt)===7
+            &&($receipt['status']??null)==='known'&&($receipt['state']??null)==='subscribed'
+            &&($receipt['source']??null)==='max_membership_history'
+            &&($receipt['receipt_id']??null)==='journal:'.$row['journal_id']
+            &&self::moment($receipt['at']??null)===$p['occurred_at_unix']
+            &&self::moment($receipt['recorded_at']??null)===$at
+            &&self::moment($receipt['available_at']??null)===$available;
     }
 
     /** Exact bookkeeping receipts from MetrikaConversionGoalService::emitOnce contain no customer meaning. */

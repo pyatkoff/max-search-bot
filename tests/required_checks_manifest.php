@@ -55,6 +55,7 @@ return [
         'node tests/run_deployment_release_regression.js',
         'php tests/run_deployment_runtime_fingerprint_regression.php',
         'bash tests/run_deploy_main_provenance_regression.sh',
+        'python3 tests/run_deploy_monitor_lock_regression.py',
         'python3 tests/run_production_gate_sequence_regression.py',
         'php tests/run_dialogue_mutation_inventory_regression.php',
     ],

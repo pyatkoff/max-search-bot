@@ -207,13 +207,13 @@ final class ModeledConversionProfiles
         $sql='SELECT p.project_key,p.platform,p.customer_key,p.conversation_id,'.$extract('model_sha256').' AS model_sha256'
             .' FROM modeled_conversion_profile_versions p WHERE p.project_key=? AND p.platform IN (\'max\',\'telegram\')'
             .' AND p.observed_at_unix>=? AND p.observed_at_unix<=? AND p.assessment_namespace<>?'
-            .' AND '.$extract('version').'=? AND '.$validModel.' AND '.$model.'<>?'
+            .' AND '.$extract('version').'=? AND '.$validModel
             .' AND NOT EXISTS(SELECT 1 FROM modeled_conversion_profile_versions newer WHERE newer.project_key=p.project_key'
             .' AND newer.platform=p.platform AND newer.customer_key=p.customer_key AND newer.conversation_id=p.conversation_id AND newer.id>p.id)'
             .' AND '.$sourceCount.' BETWEEN 1 AND '.min(50,max(0,498-$this->rowsRead)).' AND '.$sourceBytes.'<='.max(0,1048576-$this->bytesRead)
             .' ORDER BY p.id DESC LIMIT '.self::REASSESSMENT_CANDIDATES;
         $rows=$this->q($sql,['anytour',$now-self::REASSESSMENT_SECONDS,$now,$namespace,
-            ModeledConversionSemanticPrediction::VERSION,hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php')])->fetchAll(PDO::FETCH_ASSOC);
+            ModeledConversionSemanticPrediction::VERSION])->fetchAll(PDO::FETCH_ASSOC);
         $scopes=[];
         foreach($rows as$row){
             if(!is_string($row['model_sha256'])||preg_match('/\\A[a-f0-9]{64}\\z/D',$row['model_sha256'])!==1)continue;

@@ -215,4 +215,93 @@ function hotelCatalogueChecks(): void
     $limited = $selectEntry->invoke(null,$entries[0],str_repeat('x',16385),$first,$now);
     draftContextCheck('catalogue growth cannot expand the 16KiB selected bundle',
         $limited['status'] === 'held' && $limited['reason'] === 'bundle_integrity_failed' && $limited['facts'] === []);
+
+    // Country expansion is only compatibility for separately admitted data.
+    // All identities, approvals, facts and sources below are memory-only fixtures.
+    $countryName = new ReflectionMethod(ManagerHotelKnowledge::class, 'retainedCountry');
+    $retainedSelectorCheck = new ReflectionMethod(ManagerHotelKnowledge::class, 'validRetainedSelector');
+    $supported = [
+        '2'=>['Thailand',['THAILAND','ТАИЛАНД','ТАЙЛАНД']],
+        '8'=>['Maldives',['MALDIVES','МАЛЬДИВЫ']],
+        '9'=>['United Arab Emirates',['UNITED ARAB EMIRATES','UAE','ОАЭ','ОБЪЕДИНЕННЫЕ АРАБСКИЕ ЭМИРАТЫ','ОБЪЕДИНЁННЫЕ АРАБСКИЕ ЭМИРАТЫ']],
+        '12'=>['Sri Lanka',['SRI LANKA','ШРИ-ЛАНКА','ШРИ ЛАНКА']],
+        '16'=>['Vietnam',['VIETNAM','ВЬЕТНАМ']],
+        '64'=>['Oman',['OMAN','ОМАН']],
+    ];
+    foreach ($supported as $countryId=>[$country,$aliases]) {
+        $fixture = $makeEntry(8000+(int)$countryId);
+        $fixture['source_identity']['country'] = (string)$countryId;
+        $fixture['accepted_binding']['identity_anchor']['country'] = $country;
+        $fixture['binding_revision'] = hash('sha256',$canonical($fixture['accepted_binding']));
+        $core = $fixture['accepted_binding']; $key = $core['research_hotel_key'];
+        $sourceRecord = ['id'=>'country_fixture_source','hotel_key'=>$key,'kind'=>'official',
+            'url'=>'https://example.test/synthetic-country','read_scope'=>'Synthetic source record, never admitted.',
+            'limitations'=>'','publication_date'=>null,'retrieved_on'=>'2026-11-16'];
+        $fact = ['id'=>'country_fixture_fact','hotel_key'=>$key,'text'=>'Synthetic category declaration.',
+            'aspect'=>'room','kind'=>'official_declared','valid_at_travel'=>'unverified','declared'=>true,
+            'scope'=>['kind'=>'room_category','key'=>'synthetic-suite'],'source_ids'=>[$sourceRecord['id']]];
+        $bundle = ['schema_version'=>'hotel_reference_v1','status'=>'SEALED_AUTHORING_DATA_ONLY',
+            'project_key'=>'anytour','hotel_ref'=>$core['hotel_ref'],'research_hotel_key'=>$key,
+            'binding_revision'=>$fixture['binding_revision'],'price_authority'=>'none',
+            'trusted_selector_required'=>true,'runtime_admission_verified'=>false,
+            'facts'=>[$fact],'sources'=>[$sourceRecord],'material_limits'=>['Synthetic test only.'],
+            'coverage'=>['complete'=>false,'selected_claim_count'=>1],
+            'record_hashes'=>['claims'=>[$fact['id']=>hash('sha256',$canonical($fact))],
+                'sources'=>[$sourceRecord['id']=>hash('sha256',$canonical($sourceRecord))]]];
+        $bytes = $canonical($bundle); $fixture['bundle_sha256'] = hash('sha256',$bytes);
+        $native = $selectorFor($fixture); $manifest = $manifestFor([$fixture]);
+        $reference = $select->invoke(null,$manifest,$bytes,$native,$now);
+        draftContextCheck('expanded country '.$countryId.' uses full existing admission pipeline',
+            $reference['status']==='available' && $canonical($reference['facts'])===$canonical([$fact])
+            && $canonical($reference['sources'])===$canonical([$sourceRecord]) && $reference['price_authority']==='none'
+            && $reference['room_tariff_equivalence_verified']===false && $reference['future_operation_verified']===false);
+        foreach ($aliases as $alias) {
+            draftContextCheck('explicit country name '.$alias.' only', $countryName->invoke(null,'  '.$alias.'  ')===$country);
+        }
+        $retained = ['project_key'=>'anytour','hotel_ref'=>$core['hotel_ref'],
+            'selected_hotel'=>$fixture['accepted_source_names'][0],'selected_room'=>null,
+            'provenance'=>['kind'=>'retained_search3_candidate','request_scope_digest'=>str_repeat('a',64),
+                'source_scope_digest'=>str_repeat('b',64),'provider'=>'tourvisor','offer_digest'=>str_repeat('c',64),
+                'candidate_sha256'=>str_repeat('d',64),'source_generated_at'=>'2026-11-10T23:59:30Z',
+                'request_country'=>$aliases[0],'candidate_country'=>end($aliases)]];
+        draftContextCheck('expanded retained country '.$countryId.' keeps request and candidate agreement',
+            $retainedSelectorCheck->invoke(null,$retained)===true
+            && $binding->invoke(null,$manifest,$retained)===[$fixture,'available']);
+        $retainedRef = $selectEntry->invoke(null,$fixture,$bytes,$retained,$now);
+        draftContextCheck('expanded retained reference '.$countryId.' preserves whole category and tariff limits',
+            $canonical($retainedRef['facts'])===$canonical([$fact]) && $canonical($retainedRef['sources'])===$canonical([$sourceRecord])
+            && $retainedRef['selected_room']===null && $retainedRef['current_trip_binding']===false
+            && $retainedRef['customer_agreement_verified']===false && $retainedRef['current_price_verified']===false
+            && $retainedRef['availability_verified']===false && $retainedRef['meal_plan_equivalence_verified']===false);
+        $mismatch=$retained;$mismatch['provenance']['candidate_country']='Egypt';
+        draftContextCheck('expanded country '.$countryId.' rejects contradictory candidate country',
+            $retainedSelectorCheck->invoke(null,$mismatch)===false);
+        $mismatch=$retained;$mismatch['provenance']['request_country']='Egypt';$mismatch['provenance']['candidate_country']='Egypt';
+        draftContextCheck('expanded country '.$countryId.' rejects wrong request country',
+            $binding->invoke(null,$manifest,$mismatch)===[null,'source_country_mismatch']);
+        foreach (['approval','country','namespace','core','chain'] as $fault) {
+            $badEntry=$fixture;
+            if($fault==='approval')unset($badEntry['approval']);
+            if($fault==='country')$badEntry['source_identity']['country']='1';
+            if($fault==='namespace')$badEntry['accepted_binding']['hotel_ref']['catalog']='tourvisor';
+            if($fault==='core')$badEntry['binding_revision']=str_repeat('0',64);
+            if($fault==='chain')array_pop($badEntry['accepted_binding']['accepted_chain']);
+            draftContextCheck('expanded country '.$countryId.' retains '.$fault.' gate',
+                $binding->invoke(null,$manifestFor([$badEntry]),$native)===[null,'manifest_invalid']);
+        }
+        $wrong=$native;$wrong['source_identity']['hotel']=(string)((int)$wrong['source_identity']['hotel']+1);
+        draftContextCheck('expanded country '.$countryId.' never resolves by name alone',
+            $binding->invoke(null,$manifest,$wrong)===[null,'binding_unresolved']);
+        draftContextCheck('expanded country '.$countryId.' never admits modified facts',
+            $select->invoke(null,$manifest,$bytes.' ',$native,$now)['reason']==='bundle_integrity_failed');
+        $expired=$bundle;$expired['valid_until']='2026-11-10T00:00:00Z';$expiredBytes=$canonical($expired);
+        $expiredEntry=$fixture;$expiredEntry['bundle_sha256']=hash('sha256',$expiredBytes);
+        draftContextCheck('expanded country '.$countryId.' retains explicit validity',
+            $select->invoke(null,$manifestFor([$expiredEntry]),$expiredBytes,$native,$now)['reason']==='outside_explicit_validity');
+    }
+    foreach (['2','8','9','12','16','64','EG','TR','TH','MV','AE','LK','VN','OM','Atlantis','France','Dubai','Turkey or Oman'] as $unknown) {
+        draftContextCheck('country names do not infer numeric IDs, codes or regions '.$unknown,
+            $countryName->invoke(null,$unknown)===null);
+    }
+
 }

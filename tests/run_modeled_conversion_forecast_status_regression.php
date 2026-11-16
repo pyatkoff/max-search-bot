@@ -766,8 +766,8 @@ function forecastV1Assertions(PDO $p,callable $check):void
     $unpricedPolicy=['versions'=>1,'value_cap_rub'=>100000,'unknown_price_base_rub'=>10000,
         'unknown_price_versions'=>1,'estimated_value_versions'=>0,
         'full_value_base_range_rub'=>['minimum'=>10000,'maximum'=>10000]];
-    $check('a validated V2 monetary policy is visible without manufacturing a probability or value',
-        ($moneyRead['saved']['deal_value']['by_monetary_policy']??null)===['early_deal_commission_7pct_v2'=>$unpricedPolicy]
+    $check('a validated fresh V3 monetary policy is visible without manufacturing a probability or value',
+        ($moneyRead['saved']['deal_value']['by_monetary_policy']??null)===['early_deal_commission_7pct_v3'=>$unpricedPolicy]
         &&$moneyRead['saved']['prospective_estimates']===0&&$moneyRead['saved']['status_counts']['insufficient_context']===1
         &&$moneyRead['saved']['estimated_probability_range']===['minimum'=>null,'maximum'=>null]
         &&$moneyRead['saved']['deal_value']['value_range_rub']===['minimum'=>null,'maximum'=>null]);
@@ -789,8 +789,8 @@ function forecastV1Assertions(PDO $p,callable $check):void
             'value'=>['minimum'=>$price,'maximum'=>$price,'currency'=>'RUB','unit'=>'party_total'],'references'=>[$ref]];
         $moneyKnown['deal_value_prediction']=ModeledConversionDealValue::freeze($moneyKnown,[]);
         forecastV1Append($p,$moneyKnown);$moneyRows=forecastV1Rows($p);$moneyRead=forecastV1Read($p);
-        $check('saved priced V2 base is distinct from its unknown-price assumption '.$price,
-            ($moneyRead['saved']['deal_value']['by_monetary_policy']['early_deal_commission_7pct_v2']??null)===
+        $check('saved fresh V3 priced base is distinct from its unknown-price assumption '.$price,
+            ($moneyRead['saved']['deal_value']['by_monetary_policy']['early_deal_commission_7pct_v3']??null)===
                 ['versions'=>1,'value_cap_rub'=>100000,'unknown_price_base_rub'=>10000,'unknown_price_versions'=>0,
                     'estimated_value_versions'=>1,'full_value_base_range_rub'=>['minimum'=>$base,'maximum'=>$base]]
             &&$moneyRead['saved']['deal_value']['estimated_deal_versions']===1
@@ -805,16 +805,25 @@ function forecastV1Assertions(PDO $p,callable $check):void
     $legacyMoney['full_value_base_rub']=25000;$legacyMoney['base_basis']='existing_25000_fallback';
     $legacyMoney['reason']='deal_price_unknown_existing_base';$legacyMoney['value_rub']=2083;
     unset($legacyMoney['deal_digest']);$legacyMoney['deal_digest']=ModeledConversionSemanticPrediction::digest($legacyMoney);unset($legacyMoney);
-    forecastV1Schema($p);forecastV1Append($p,$moneyLegacy);forecastV1Append($p,$moneyUnknown);
+    // Construct a separate synthetic V2 capsule before its first save; the read never re-freezes it.
+    $moneyV2=forecastV1Packet('74','94',[['text'=>'Здравствуйте!']]);
+    $moneyV2['deal_value_prediction']=ModeledConversionDealValue::freeze($moneyV2,[]);
+    $v2Money=&$moneyV2['deal_value_prediction'];$v2Money['version']='early_deal_commission_7pct_v2';
+    $v2Money['rules_sha256']='8a35e248d8237b9042d6aa94eca975c00aae8ae2dc6b3ef42c61b50ee4273669';
+    unset($v2Money['deal_digest']);$v2Money['deal_digest']=ModeledConversionSemanticPrediction::digest($v2Money);unset($v2Money);
+    $v2Frozen=json_encode($moneyV2,JSON_THROW_ON_ERROR);
+    forecastV1Schema($p);forecastV1Append($p,$moneyLegacy);forecastV1Append($p,$moneyV2);forecastV1Append($p,$moneyUnknown);
     $moneyRows=forecastV1Rows($p);$moneyRead=forecastV1Read($p);
     $policies=$moneyRead['saved']['deal_value']['by_monetary_policy']??[];
-    $check('mixed monetary capsules retain their own policy parameters and frozen values',
-        count($policies)===2&&($policies['early_deal_commission_7pct_v2']??null)===$unpricedPolicy
+    $check('mixed V1 V2 and V3 capsules retain their own policy parameters and frozen values',
+        count($policies)===3&&($policies['early_deal_commission_7pct_v3']??null)===$unpricedPolicy
+        &&($policies['early_deal_commission_7pct_v2']??null)===$unpricedPolicy
         &&($policies['early_deal_commission_7pct_v1']??null)===
             ['versions'=>1,'value_cap_rub'=>25000,'unknown_price_base_rub'=>25000,'unknown_price_versions'=>1,
                 'estimated_value_versions'=>1,'full_value_base_range_rub'=>['minimum'=>25000,'maximum'=>25000]]
         &&$moneyRead['saved']['deal_value']['value_range_rub']===['minimum'=>2083,'maximum'=>2083]
-        &&forecastV1Rows($p)===$moneyRows);
+        &&ModeledConversionDealValue::saved($moneyV2)===$moneyV2['deal_value_prediction']
+        &&json_encode($moneyV2,JSON_THROW_ON_ERROR)===$v2Frozen&&forecastV1Rows($p)===$moneyRows);
 
     foreach(['digest','wrong_base','unknown_policy']as$failure){
         $badMoney=$moneyUnknown;
@@ -1441,7 +1450,7 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
     $put(33,'max',133,0.2,null,2000,2000,'pending','PREPARED',['full_value_base_rub'=>10000]);
     $put(34,'max',134,0.12,null,3000,3000,'pending','PREPARED',$v2);
     $put(35,'max',135,0.4,1000000,28000,28000,'pending','PREPARED',['full_value_base_rub'=>70000]);
-    $put(36,'max',136,0.3,200000,4200,4200,'pending','PREPARED',['version'=>'early_deal_commission_7pct_v3']);
+    $put(36,'max',136,0.3,200000,4200,4200,'pending','PREPARED',['version'=>'early_deal_commission_7pct_v4']);
     $r=$read();$byDelta=[];foreach($r['examples']as$e)$byDelta[$e['increment_rub']]=$e;
     $check('wrong version-specific bases and an unknown policy retain ledger totals but no invented explanation',
         $r['events']===12&&$r['value_rub']===205850&&$r['calculation_unavailable_rows']===5);
@@ -1619,7 +1628,7 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
         'present probability'=>['semantic'=>['estimated_probability'=>0.05]],
         'present frozen estimate'=>['money'=>['value_rub'=>500]],
         'wrong unknown base'=>['money'=>['full_value_base_rub'=>25000]],
-        'unsupported monetary policy'=>['money'=>['version'=>'early_deal_commission_7pct_v3']],
+        'unsupported monetary policy'=>['money'=>['version'=>'early_deal_commission_7pct_v4']],
         'wrong commission rate'=>['money'=>['commission_rate'=>0.08]],
         'mismatched increment'=>['delta'=>499],
         'fractional stored increment'=>['delta'=>500.50],
