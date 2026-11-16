@@ -597,6 +597,7 @@ function modeledProfileReassessmentAssertions(PDO $p,callable $check):void
         &&($namespaceOnlyNow['processing']['assessment_kind']??null)==='repair'
         &&(string)$p->query("SELECT MAX(id) FROM modeled_conversion_profile_versions WHERE conversation_id='11'")->fetchColumn()===$namespaceOnlyId
         &&(int)$p->query("SELECT COUNT(*) FROM modeled_conversion_profile_versions WHERE conversation_id='11'")->fetchColumn()===2);
+    $namespaceOnlySaved->closeCursor();
     $unchanged=$p->query('SELECT id,observed_at_unix,profile_json FROM modeled_conversion_profile_versions ORDER BY id LIMIT 10')->fetchAll(PDO::FETCH_ASSOC);
     $check('repair preserves every old forecast JSON, id, timestamp and captured source revision',
         $old===$unchanged&&$journal===array_slice($p->query('SELECT id,revision_hash,snapshot_json FROM modeled_conversion_stream_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),0,count($journal)));
@@ -677,7 +678,11 @@ function modeledProfileReassessmentCatchUpAssertions(PDO $p,callable $check):voi
             if($i===0&&$j===0)continue;
             $x=$snap;$x['source_id']=(string)(400000+$i*50+$j);
             $x['customer_key']=$x['conversation_id']=$i===0?'11':(string)(6999+$i);
-            if($refs>1)$x['payload']['text'].=str_repeat(' ',6000);
+            if($refs>1){
+                $metadata=json_decode($x['payload']['metadata_json']??'{}',true,512,JSON_THROW_ON_ERROR);
+                $metadata['fixture_padding']=str_repeat('x',6000);
+                $x['payload']['metadata_json']=json_encode($metadata,JSON_THROW_ON_ERROR);
+            }
             modeledProfileAppend($p,$x,$now+2);
         }
         do{$receipt=$profiles->tick($now+3);}while($receipt['pending_revisions']>0);
