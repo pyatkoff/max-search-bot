@@ -21,6 +21,36 @@ function snapshot(string $path, int $maximum, array &$handles): array {
     }
     return ['raw' => $raw, 'bytes' => strlen($raw), 'sha256' => hash('sha256', $raw)];
 }
+/** Read only one complete final state, regardless of total historical journal size. */
+function tail_snapshot(string $path, int $maximum, array &$handles, array &$evidence): string {
+    need(!is_link($path) && is_file($path) && realpath($path) === $path, 'global_path_invalid');
+    $f = fopen($path, 'rb'); need(is_resource($f), 'global_open_failed'); $handles[] = $f;
+    need(flock($f, LOCK_SH | LOCK_NB), 'global_busy_no_retry');
+    $before = fstat($f); $named = lstat($path);
+    need(is_array($before) && is_array($named), 'global_stat_failed');
+    $evidence = array_intersect_key($before, array_flip(['size','ino','dev','mtime','ctime']));
+    $evidence['hash_scope'] = 'last_complete_line_only_not_entire_journal';
+    need($before['ino'] === $named['ino'] && $before['dev'] === $named['dev'], 'global_identity_changed');
+    need($before['size'] > 0, 'global_empty_stop');
+    $offset = max(0, $before['size'] - $maximum);
+    need(fseek($f, $offset, SEEK_SET) === 0, 'global_seek_failed');
+    $raw = stream_get_contents($f, $maximum + 1);
+    need(is_string($raw) && strlen($raw) === $before['size'] - $offset, 'global_tail_size_changed');
+    need(str_ends_with($raw, "\n"), 'global_journal_incomplete');
+    $body = substr($raw, 0, -1); $separator = strrpos($body, "\n");
+    need($offset === 0 || $separator !== false, 'global_last_line_exceeds_bound');
+    $last = $separator === false ? $body : substr($body, $separator + 1);
+    need($last !== '', 'global_last_line_empty');
+    clearstatcache(true, $path); $after = fstat($f); $named = lstat($path);
+    foreach (['ino','dev','size','mtime','ctime'] as $key) {
+        need(($after[$key] ?? null) === $before[$key] && ($named[$key] ?? null) === $before[$key], 'global_changed');
+    }
+    $evidence['tail_offset'] = $offset; $evidence['tail_bytes_read'] = strlen($raw);
+    $evidence['last_line_offset'] = $before['size'] - strlen($last) - 1;
+    $evidence['last_line_bytes'] = strlen($last) + 1;
+    $evidence['last_line_sha256'] = hash('sha256', $last . "\n");
+    return $last;
+}
 function projection(array $record): array {
     $out = [];
     foreach (['operation','event','type','state','phase','at','reason','error','complete','tourvisor_hotel_id','hotel_id','platform','publication_id','version_id','message_id','manifest_hash','manifest_sha256','text_sha256','old_text_sha256','new_text_sha256','photo_sha256','body_photo_button_verified','post_write_attempts','db_writes','message_sends','exit_code','child_exit_code'] as $key) {
@@ -30,18 +60,21 @@ function projection(array $record): array {
         elseif (is_string($v) && strlen($v) <= 200 && preg_match('/\A[A-Za-z0-9_:.+\/-]*\z/D', $v) === 1) $out[$key] = $v;
     }
     foreach (['receipt','child_failure','terminal'] as $key) if (is_array($record[$key] ?? null)) $out[$key] = projection($record[$key]);
+    foreach (['posts','configs'] as $key) if (is_array($record[$key] ?? null)) {
+        $out[$key . '_count'] = count($record[$key]);
+        $out[$key] = [];
+        foreach (array_slice($record[$key],0,8) as $item) if (is_array($item)) $out[$key][] = projection($item);
+    }
     return $out;
 }
 $out = ['ok'=>false,'mode'=>'read_only_pending_price_operation','checked_at'=>gmdate('c'),'server_writes'=>0,'post_writes'=>0,'feed_writes'=>0,'supplier_calls'=>0,'customer_messages'=>0];
 try {
     $root = '/var/www/anytoour/data/channel-post-operations';
     need(!is_link($root) && realpath($root) === $root, 'private_root_changed');
-    $global = snapshot($root.'/monitor-price-after-collection-v1.jsonl', 134217728, $handles);
-    need(str_ends_with($global['raw'], "\n"), 'global_journal_incomplete');
-    $lines = explode("\n", substr($global['raw'],0,-1));
-    $state = json_decode(end($lines), true, 64, JSON_THROW_ON_ERROR);
+    $out['global_journal'] = [];
+    $last = tail_snapshot($root.'/monitor-price-after-collection-v1.jsonl', 4194304, $handles, $out['global_journal']);
+    $state = json_decode($last, true, 64, JSON_THROW_ON_ERROR);
     need(is_array($state) && array_key_exists('pending', $state), 'global_state_invalid');
-    $out['global_journal'] = ['sha256'=>$global['sha256'],'bytes'=>$global['bytes'],'records'=>count($lines)];
     $out['completed_hotels'] = is_array($state['completed'] ?? null) ? count($state['completed']) : null;
     $out['held_hotels'] = is_array($state['holds'] ?? null) ? count($state['holds']) : null;
     $cycle = $state['nightly_cycle'] ?? null;
@@ -49,6 +82,7 @@ try {
     $pending = $state['pending'];
     need($pending === null || is_array($pending), 'pending_invalid');
     $out['pending'] = $pending === null ? null : projection($pending);
+    $out['pending_keys'] = $pending === null ? [] : array_keys($pending);
     if (is_array($pending)) {
         $op = $pending['operation'] ?? null;
         need(is_string($op) && preg_match('/\Acommercial-monitor-price-h[1-9][0-9]*-[a-f0-9]{64}\z/D', $op) === 1, 'pending_operation_invalid');
