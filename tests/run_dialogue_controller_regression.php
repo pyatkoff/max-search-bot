@@ -168,6 +168,7 @@ PHP
             public static function answerCallback(...$args): void {}
 
             public static bool $canonicalStorage=false;
+            public static bool $exposeInsertedNeedStatus=false;
             public static ?string $nextPartyFailure=null;
             public static array $lastValues=[];
             public static function statusMap(): array {
@@ -201,9 +202,11 @@ PHP
                 return self::$aiContexts[$chat] ?? [];
             }
             public static function getCityByName($text) { return false; }
-            public static function getAiMissingFields($chat): array {
-                if (self::$canonicalStorage) return AiSearchContextService::missingForCurrentSearch(self::getSavedData($chat),self::statusMap());
-                return self::$missingFields[$chat] ?? ['city'];
+            public static function getAiMissingFields($chat,bool $forSearch=false): array {
+                $missing=self::$canonicalStorage
+                    ? AiSearchContextService::missingForCurrentSearch(self::getSavedData($chat),self::statusMap())
+                    : (self::$missingFields[$chat] ?? ['city']);
+                return $forSearch?$missing:SourceHandlingService::qualificationMissingFields($chat,$missing);
             }
             public static function applyAiParameters($chat, array $params): array {
                 self::$parameterWrites[] = [$chat, $params];
@@ -218,7 +221,14 @@ PHP
                     $writeValues = $partyFailure !== null ? array_diff_key($normalized,$partyKeys) : $normalized;
                     if (!self::$staleParameterReadback) {
                         foreach (AiSearchContextService::storageMap(self::statusMap()) as $field=>$status) {
-                            if (array_key_exists($field,$writeValues)) self::$needs[$chat][$status]=$writeValues[$field];
+                            if (array_key_exists($field,$writeValues)) {
+                                // A newly inserted value row becomes currentStatus in the real repository.
+                                if (self::$exposeInsertedNeedStatus && !array_key_exists($status,self::$needs[$chat] ?? [])) {
+                                    self::$statuses[$chat]=$status;
+                                }
+                                if (self::$exposeInsertedNeedStatus) self::$lastValues[$chat][$status]=$writeValues[$field];
+                                self::$needs[$chat][$status]=$writeValues[$field];
+                            }
                         }
                     }
                     return array_fill_keys(array_keys($partyFailure === 'reject' ? $writeValues : $normalized),true);
@@ -495,8 +505,8 @@ PHP
                 $native($mid + 1, 'Декабря');
                 $check($platform.' delayed redundant date invokes only the old model boundary',
                     array_map(static fn(array $call): array => [$call[2], $call[3]['date'] ?? null], AiInvocationService::$calls), [['Декабря', $date]]);
-                $check($platform.' delayed redundant date does not repeat the newer country question',
-                    array_column(array_slice($sent, $sentBefore), 'text'), [MissingFieldQuestionService::question('country')]);
+                $check($platform.' delayed redundant date does not repeat the newer adults question',
+                    array_column(array_slice($sent, $sentBefore), 'text'), [MissingFieldQuestionService::question('adults')]);
                 $expected = $seedNeeds;
                 $expected[65] = 4;
                 $check($platform.' delayed redundant date preserves the new city and independent needs', MaxSearchApi::getSavedData($chat), $expected);
@@ -527,7 +537,7 @@ PHP
                 };
                 $check($platform.' redundant correction has the same overlap guard',
                     $run('Декабря', ['intent'=>'correction', 'parameters'=>['date'=>$date]]),
-                    [MissingFieldQuestionService::question('country')]);
+                    [MissingFieldQuestionService::question('adults')]);
                 $check($platform.' redundant correction also writes only the newer city',
                     MaxSearchApi::$parameterWrites, [[$chat, ['city'=>'Самара']]]);
 
@@ -552,13 +562,13 @@ PHP
                 ] as [$intentName, $text, $reply]) {
                     $check($platform.' nonempty delayed '.$intentName.' retains its reply',
                         $run($text, ['intent'=>$intentName, 'parameters'=>['date'=>$date], 'reply'=>$reply]),
-                        [MissingFieldQuestionService::question('country'), $reply]);
+                        [MissingFieldQuestionService::question('adults'), $reply]);
                     $check($platform.' delayed '.$intentName.' preserves independent needs and newer city',
                         MaxSearchApi::getSavedData($chat), $expected);
                 }
                 $check($platform.' delayed error remains on its existing error path',
                     $run('Декабря', ['_error'=>'synthetic timeout', 'intent'=>'search', 'parameters'=>['date'=>$date]]),
-                    [MissingFieldQuestionService::question('country'), MissingFieldQuestionService::question('country')]);
+                    [MissingFieldQuestionService::question('adults'), MissingFieldQuestionService::question('adults')]);
                 $check($platform.' delayed error preserves all saved needs', MaxSearchApi::getSavedData($chat), $expected);
             }
         } elseif ($overlapOnly) {
@@ -619,6 +629,67 @@ PHP
                 AiInvocationService::$duringInvoke=static function()use($native,$mid):void { $native($mid+7,'3'); };
                 $native($mid+6,'Есть ли бассейн?');
                 $check($platform.' delayed FAQ remains outside the no-fact search guard',array_column(array_slice($sent,$sentBefore),'text'),[MissingFieldQuestionService::question('children'),'Описание бассейна можно уточнить у менеджера.']);
+
+                // Two native messages can overlap after the first inserts a value
+                // row and before its collector restores the free-text boundary.
+                MaxSearchApi::$exposeInsertedNeedStatus=true;
+                $date='07.03.'.((int)date('Y')+1);
+                MaxSearchApi::$needs[$chat]=$seedNeeds;
+                MaxSearchApi::$statuses[$chat]=MaxSearchApi::$statusDate;
+                MaxSearchApi::$lastValues[$chat][MaxSearchApi::$statusDate]='';
+                AiInvocationService::$calls=[]; $sentBefore=count($sent);
+                $native($mid+10,'Одна');
+                $check($platform.' an actual empty date prompt keeps its wizard owner',
+                    [MaxSearchApi::getSavedData($chat),count(AiInvocationService::$calls),
+                        str_contains(implode("\n",array_column(array_slice($sent,$sentBefore),'text')),'Не получилось распознать дату')],
+                    [$seedNeeds,0,true]);
+                $editNeeds=[66=>1,67=>2,68=>0,72=>'8',73=>$date];
+                MaxSearchApi::$needs[$chat]=$editNeeds;
+                MaxSearchApi::$statuses[$chat]=MaxSearchApi::$statusAdults;
+                MaxSearchApi::$lastValues[$chat][MaxSearchApi::$statusAdults]=2;
+                MaxSearchApi::setEditMode($chat,'adults');
+                $native($mid+11,'Самара');
+                $check($platform.' explicit editing keeps its strict field owner',MaxSearchApi::getSavedData($chat),$editNeeds);
+                MaxSearchApi::setEditMode($chat,'');
+                foreach ([
+                    ['seed'=>[66=>'1',70=>'4',71=>'7',72=>'6'],
+                        'first'=>'С 7 марта из Самары, хочу спокойный отдых','second'=>'Одна',
+                        'transient'=>MaxSearchApi::$statusDate,'adults'=>1,'children'=>null],
+                    ['seed'=>[66=>'1',68=>0,70=>'4',71=>'7',72=>'9',73=>$date],
+                        'first'=>'3 взрослых','second'=>'Самара',
+                        'transient'=>MaxSearchApi::$statusAdults,'adults'=>3,'children'=>0],
+                ] as $caseIndex=>$case) {
+                    $caseMid=$mid+20+$caseIndex*10;
+                    MaxSearchApi::$needs[$chat]=$case['seed'];
+                    MaxSearchApi::$statuses[$chat]=MaxSearchApi::$statusAi;
+                    PendingMonthStore::clear($chat);
+                    AiInvocationService::$calls=[];
+                    AiInvocationService::$answer=['intent'=>'search','parameters'=>[]];
+                    $observedStatus=null;
+                    AiInvocationService::$duringInvoke=static function()use($native,$caseMid,$case,$chat,&$observedStatus):void {
+                        $observedStatus=MaxSearchApi::getCurentStatus($chat);
+                        $native($caseMid+1,$case['second']);
+                    };
+                    $sentBefore=count($sent);
+                    $native($caseMid,$case['first']);
+                    $label=$platform.' split source input '.$caseIndex;
+                    $check($label.' exposes the inserted field while the first model call is pending',$observedStatus,$case['transient']);
+                    $context=MaxSearchApi::getAiSearchContext($chat);
+                    $check($label.' retains both messages as current trip facts',
+                        [$context['city']??null,$context['date']??null,$context['adults']??null,$context['children']??null],
+                        ['Самара',$date,$case['adults'],$case['children']]);
+                    $texts=array_column(array_slice($sent,$sentBefore),'text');
+                    $check($label.' never treats the second fact as a wizard format error',
+                        preg_match('/Не получилось распознать|Введите количество|Укажите количество/ui',implode("\n",$texts)),0);
+                    $check($label.' needs no second model call',count(AiInvocationService::$calls),1);
+                    $q=$pdo->prepare("SELECT COUNT(*) FROM messages WHERE conversation_id=? AND direction='inbound' AND external_message_id IN (?,?)");
+                    $q->execute([$id,(string)$caseMid,(string)($caseMid+1)]);
+                    $check($label.' records both distinct native messages',(int)$q->fetchColumn(),2);
+                    $q=$pdo->prepare("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=? AND event_type='manager_request'");
+                    $q->execute([$id]);
+                    $check($label.' hands off once only when all essential needs are known',(int)$q->fetchColumn(),$caseIndex);
+                }
+                MaxSearchApi::$exposeInsertedNeedStatus=false;
             }
         } elseif ($clarificationOnly) {
             require_once $tmp . '/tests/fixtures/channel_post_entry_fixture.php';
@@ -650,7 +721,7 @@ PHP
                 $id = (int)$q->fetchColumn();
                 $intent = SourceHotelIntentService::current($id);
                 (new IncomingUpdateDispatcher())->dispatch(['platform'=>$platform, 'type'=>'callback',
-                    'callback_data'=>'hotel_intent_same:'.($intent['token'] ?? ''), 'callback_id'=>'country-help.'.$user,
+                    'callback_data'=>'hotel_intent_other:'.($intent['token'] ?? ''), 'callback_id'=>'country-help.'.$user,
                     'user'=>['chat_id'=>$chat, 'external_user_id'=>$user]]);
                 MaxSearchApi::$needs[$chat] = [65=>'4', 67=>'2', 68=>'1', 69=>'6', 70=>'4', 71=>'7', 72=>'8'];
                 MaxSearchApi::$statuses[$chat] = MaxSearchApi::$statusAi;
