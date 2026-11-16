@@ -43,12 +43,15 @@ function hotelRubiKnowledgeChecks(): void
         'top500_dca4e4a0c9ae44ca_c03'=>'d1260e48e515507fca7627b1d8f51e2379f64d7f5df694f92ab1746ae9c1eef3',
         'top500_dca4e4a0c9ae44ca_c04'=>'1f3c65d034a3c53405574e67fe96ffda83d64179d2019b599fc1642ba3bb909d',
         'top500_dca4e4a0c9ae44ca_c05'=>'dad3c529f067b9248fdd0c6bf17843c1edc165bbbd8b7b00894754f88b25cfb3',
+        // Whole original retained record, independently reviewed 16 November.
+        'top500_dca4e4a0c9ae44ca_run12_c01'=>'a531dc64ff1fa3e9b8b582b628c9db42e9c0188e4210cb64e2e5a5c38d5806cc',
     ];
     $expectedSources = [
+        'top500_dca4e4a0c9ae44ca_run12_s01'=>'8a326874113cf35401c7bca5c58548e31bb77369d912e0a5084b0e30f5942eaf',
         'top500_dca4e4a0c9ae44ca_s01'=>'0af4a455b35fc3c12651d0815a3bf9ebc1c663165576eb435c1591f35be8dd3d',
     ];
-    draftContextCheck('Rubi preserves all five original declarations and the complete ANEX source record',
-        count($bundle['facts'] ?? []) === 5 && count($bundle['sources'] ?? []) === 1
+    draftContextCheck('Rubi preserves the earlier five declarations and ANEX source alongside the whole official Jacuzzi room addition',
+        count($bundle['facts'] ?? []) === 6 && count($bundle['sources'] ?? []) === 2
         && $hashRecords($bundle['facts']) === $expectedClaims
         && $hashRecords($bundle['sources']) === $expectedSources
         && ($bundle['record_hashes'] ?? null) == ['claims'=>$expectedClaims, 'sources'=>$expectedSources]);
@@ -75,6 +78,9 @@ function hotelRubiKnowledgeChecks(): void
         && ($reference['material_limits'] ?? null) === $bundle['material_limits']
         && ($reference['coverage'] ?? null) === $bundle['coverage']
         && ($reference['coverage']['complete'] ?? null) === false
+        && ($reference['material_limits']['supplement_20261116']['added_claim_ids'] ?? null) === ['top500_dca4e4a0c9ae44ca_run12_c01']
+        && ($reference['material_limits']['supplement_20261116']['classification'] ?? null) === 'inherited-baseline'
+        && ($reference['material_limits']['supplement_20261116']['new_acceptance_credit'] ?? null) === 0
         && ($reference['price_authority'] ?? null) === 'none'
         && ($reference['applicability'] ?? null) === 'conditional_published_information'
         && ($reference['current_trip_binding'] ?? null) === false
