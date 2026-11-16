@@ -1440,7 +1440,10 @@ final class ModeledConversionValueExport
             if(!is_string($raw)||strlen($raw)>8192||!str_starts_with(ltrim($raw),'{'))return null;
             $saved=json_decode($raw,true,32,JSON_THROW_ON_ERROR);if(!is_array($saved))return null;
             if(!array_key_exists('finite_visit_evidence',$saved))return $now<ModeledConversionValueVisitEvidence::CHECKPOINT?[]:null;
-            $frame=ModeledConversionValueVisitEvidence::decode($saved['finite_visit_evidence'],$this->identityNamespace??ModeledConversionProfiles::assessmentNamespace(),$now);
+            // Historical membership is exclusion-only; financial proof still requires the current generation.
+            $stored=$saved['finite_visit_evidence'];$namespace=is_array($stored)?($stored['n']??null):null;
+            if(!is_string($namespace))return null;
+            $frame=ModeledConversionValueVisitEvidence::decode($stored,$namespace,$now);
             if($frame===null)return null;$ids=[];foreach($frame['r']as$row)$ids[(string)$row[1]]=true;return $ids;
         }catch(Throwable $ignored){return null;}
     }

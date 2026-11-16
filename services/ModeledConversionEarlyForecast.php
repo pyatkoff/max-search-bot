@@ -103,7 +103,7 @@ final class ModeledConversionEarlyForecast
                 $predictive->knownOperationalOutcome($ref,(int)$item['at'],(int)$row['observed_at_unix'],(int)$row['source_version_no']);
             if($permit===null||$clockUnresolved){
                 $longGap=ArchiveResearchSemanticExtractor::hasLongObservationGap($state['last'],$item['at']);
-                $serviceKind=null;$observationalBridge=false;$applicationBridge=false;$questionBridge=false;$navigationBridge=false;
+                $serviceKind=null;$observationalBridge=false;$subscriptionBridge=false;$applicationBridge=false;$questionBridge=false;$navigationBridge=false;
                 if(!$denied&&!$clockUnresolved){
                     if(self::knownServiceReply($row,$subject,$requested)){
                         $serviceKind='preserved_ai_replies';
@@ -119,6 +119,8 @@ final class ModeledConversionEarlyForecast
                             &&$predictive->preserveNavigationContext((int)$item['at']);
                         $observationalBridge=self::knownObservationalEvent($row,$subject,$requested)
                             &&$predictive->canPreserveCustomerContext((int)$item['at']);
+                        $subscriptionBridge=self::knownSubscriptionObservation($row,$wrapper,$subject,$requested)
+                            &&$predictive->canPreserveSubscriptionContext((int)$item['at']);
                         $inputRef=$wizardApplications[$ref]??null;
                         $applicationBridge=$inputRef!==null
                             &&$predictive->canPreserveCustomerContext((int)$item['at'],$inputRef);
@@ -126,7 +128,7 @@ final class ModeledConversionEarlyForecast
                 }
                 $serviceBridge=$serviceKind!==null&&($questionBridge
                     ||(!$longGap&&$predictive->canPreserveCustomerContext((int)$item['at'])));
-                if($clockUnresolved||(!$operationalKnown&&!$serviceBridge&&!$observationalBridge&&!$applicationBridge&&!$navigationBridge&&!$offerReaction->bridgesUnavailable($ref,$longGap))){
+                if($clockUnresolved||(!$operationalKnown&&!$serviceBridge&&!$observationalBridge&&!$subscriptionBridge&&!$applicationBridge&&!$navigationBridge&&!$offerReaction->bridgesUnavailable($ref,$longGap))){
                     $predictive->barrier();
                     $reason=$clockUnresolved?'unresolved_clock_barriers':($longGap?'long_gap_barriers':
                         match($row['source_kind']??null){'message'=>'unavailable_message_barriers','event'=>'unavailable_event_barriers',default=>'other_source_barriers'});
@@ -412,6 +414,48 @@ final class ModeledConversionEarlyForecast
         $available=$row['observed_at_unix']??null;
         return is_int($at)&&is_int($available)&&$at>=946684800&&$at<=$available&&$available<=$cutoff
             &&($s['source_created_at_unix']??null)===$at;
+    }
+
+    /** Only the selected, canonically admitted MAX subscription may preserve an existing request. */
+    private static function knownSubscriptionObservation(array $row,array $wrapper,array $subject,int $cutoff):bool
+    {
+        $s=$row['snapshot']??null;
+        if($subject['platform']!=='max'||($row['source_kind']??null)!=='event'
+            ||($row['source_version_no']??null)!==1||!is_array($s)
+            ||($s['source_kind']??null)!=='event'||($s['source_status']??null)!=='present'
+            ||($s['payload_status']??null)!=='copied'||!self::sameSubject($s,$subject)
+            ||!is_string($row['source_id']??null)||$row['source_id']==='0'||!self::decimal($row['source_id'])
+            ||(string)($s['source_id']??'')!==$row['source_id']
+            ||($s['source_timestamp_basis']??null)!=='canonical_recording_unix_v1')return false;
+        $payload=$s['payload']??null;$raw=is_array($payload)?($payload['payload_json']??null):null;
+        if(!is_array($payload)||($payload['event_type']??null)!=='channel_subscription_observed'
+            ||($payload['actor_type']??null)!=='system'||!is_string($raw)||strlen($raw)>32768)return false;
+        try{
+            $p=json_decode($raw,true,32,JSON_THROW_ON_ERROR);$at=ConversationRecordClock::read($raw);
+            if(!is_array($p)||array_is_list($p)
+                ||json_encode($p,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)!==$raw)return false;
+            unset($p['_recorded_clock']);ksort($p);
+            if(array_keys($p)!==['identity_scope','occurred_at_unix','origin','source','state','version']
+                ||$p['version']!==1||$p['origin']!=='existing_membership_producer'
+                ||$p['source']!=='max_membership_history'||$p['identity_scope']!=='same_chat_and_source'
+                ||$p['state']!=='subscribed'||!is_int($p['occurred_at_unix'])
+                ||$p['occurred_at_unix']<946684800)return false;
+        }catch(Throwable $ignored){return false;}
+        $available=$row['observed_at_unix']??null;
+        if(!is_int($at)||!is_int($available)||$p['occurred_at_unix']>$at||$at>$available
+            ||$available>$cutoff||($s['source_created_at_unix']??null)!==$at)return false;
+        $profile=$wrapper['profile']??null;$signals=is_array($profile)?($profile['early_signals']??null):null;
+        $receipt=is_array($signals)?($signals['subscription']??null):null;
+        return is_array($profile)&&self::sameSubject($profile['subject']??null,$subject)
+            &&is_array($signals)&&($signals['version']??null)==='membership_early_signals_v1'
+            &&($signals['prediction_at']??null)===($profile['prediction_at']??null)
+            &&is_array($receipt)&&count($receipt)===7
+            &&($receipt['status']??null)==='known'&&($receipt['state']??null)==='subscribed'
+            &&($receipt['source']??null)==='max_membership_history'
+            &&($receipt['receipt_id']??null)==='journal:'.$row['journal_id']
+            &&self::moment($receipt['at']??null)===$p['occurred_at_unix']
+            &&self::moment($receipt['recorded_at']??null)===$at
+            &&self::moment($receipt['available_at']??null)===$available;
     }
 
     /** Exact bookkeeping receipts from MetrikaConversionGoalService::emitOnce contain no customer meaning. */

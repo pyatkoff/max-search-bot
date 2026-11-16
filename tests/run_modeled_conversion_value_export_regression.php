@@ -298,22 +298,53 @@ function modeledValueOldCurrentSourceAssertions(PDO $p,callable $check):void
             &&(int)$r['attempts']===0&&empty($r['claim_token'])&&empty($r['upload_id'])&&$r['value_api_accepted_at_unix']===null);
     }
     $event=ModeledConversionValueVisitEvidence::CHECKPOINT-100;$current=ModeledConversionValueVisitEvidence::CHECKPOINT+20000;
-    $ns=ModeledConversionProfiles::assessmentNamespace();[$originals,$unused,$wire]=modeledValueFiniteCaseFixture($p,$event,$current,$ns,$gate);
-    $p->prepare('UPDATE max_channel_conversion_outbox SET next_attempt_unix=?')->execute([$current+10000]);
-    $receipt=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
-    foreach([ModeledConversionMaxCounterScopeEvidence::RECEIPT_KEY,ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY,
-        ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY,...ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS]as$key)$receipt[$key]=false;
-    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
-    modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,915),$current));
-    $lookup=new ModeledValueTestLookup();$lookup->observedAt=$current-30*86400;$wire->visitAt=$current-60;
-    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$current,$gate);
-    $r=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE conversation_id=915')->fetch(PDO::FETCH_ASSOC);
-    $saved=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
-    $check('after the checkpoint an ordinary non-original old source can send beside a valid unchanged frozen frame',
-        $lookup->calls===1&&$wire->visitReads===1&&$wire->posts===1&&$r['state']==='accepted'
-        &&modeledValueFailureJsonEqual($saved['finite_visit_evidence'],$receipt['finite_visit_evidence'])
-        &&modeledValueFailureJsonEqual($saved['finite_visit_recovery'],$receipt['finite_visit_recovery'])
-        &&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE id<=3 AND state='pending' AND attempts=0")->fetchColumn()===3);
+    $ns=ModeledConversionProfiles::assessmentNamespace();
+    foreach([$ns,hash('sha256',$ns.':previous-generation')]as$originalNamespace){
+        $generation=$originalNamespace===$ns?'current':'historical';
+        [$originals,$unused,$wire]=modeledValueFiniteCaseFixture($p,$event,$current,$originalNamespace,$gate);
+        $p->prepare('UPDATE max_channel_conversion_outbox SET next_attempt_unix=?')->execute([$current+10000]);
+        $originalRows=static fn():array=>$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id<=3 ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        $originalBefore=$originalRows();
+        $receipt=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+        $consumedKeys=[ModeledConversionMaxCounterScopeEvidence::RECEIPT_KEY,ModeledConversionRetainedAppIdentityEvidence::RECEIPT_KEY,
+            ModeledConversionRetainedTrackerIdentityEvidence::RECEIPT_KEY,...ModeledConversionRetainedTrackerIdentityEvidence::KNOWN_KEYS];
+        foreach($consumedKeys as$key)$receipt[$key]=false;
+        $consumedUnchanged=static fn(array $value):bool=>modeledValueFailureJsonEqual(array_intersect_key($value,array_fill_keys($consumedKeys,true)),array_fill_keys($consumedKeys,false));
+        $raw=json_encode($receipt,JSON_THROW_ON_ERROR);
+        $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([$raw]);
+        $exclusionOwner=new ModeledConversionValueExport($p);$readMembership=new ReflectionMethod($exclusionOwner,'protectedOriginalSourceIds');
+        $check('a complete '.$generation.' frame protects exactly the same three IDs without granting financial proof',
+            $readMembership->invoke($exclusionOwner,$raw,$current)===array_fill_keys(array_map('strval',array_column($originals,'id')),true)
+            &&ModeledConversionValueVisitEvidence::decode($receipt['finite_visit_evidence'],$originalNamespace,$current)!==null
+            &&(ModeledConversionValueVisitEvidence::decode($receipt['finite_visit_evidence'],$ns,$current)!==null)===($generation==='current'));
+        modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,915),$current));
+        $lookup=new ModeledValueTestLookup();$lookup->observedAt=$current-30*86400;$wire->visitAt=$current-60;
+        ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$current,$gate);
+        $r=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE conversation_id=915')->fetch(PDO::FETCH_ASSOC);
+        $saved=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+        $check('after the checkpoint an ordinary non-original old source sends beside an unchanged '.$generation.' frozen frame',
+            $lookup->calls===1&&$wire->visitReads===1&&$wire->posts===1&&$r['state']==='accepted'
+            &&modeledValueFailureJsonEqual($saved['finite_visit_evidence'],$receipt['finite_visit_evidence'])
+            &&modeledValueFailureJsonEqual($saved['finite_visit_recovery'],$receipt['finite_visit_recovery'])
+            &&$consumedUnchanged($saved)&&$originalRows()===$originalBefore
+            &&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE id<=3 AND state='pending' AND attempts=0")->fetchColumn()===3);
+        ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$current+301,$gate);
+        $later=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+        $check('a later ordinary tick keeps '.$generation.' exclusions and consumed attempts without a duplicate send',
+            $wire->posts===1&&$originalRows()===$originalBefore&&$consumedUnchanged($later)
+            &&modeledValueFailureJsonEqual($later['finite_visit_evidence'],$receipt['finite_visit_evidence'])
+            &&modeledValueFailureJsonEqual($later['finite_visit_recovery'],$receipt['finite_visit_recovery']));
+    }
+    $invalid=[];$invalid['false']=false;$invalid['scalar']='not_a_frame';
+    foreach(['missing_namespace'=>null,'numeric_namespace'=>1,'malformed_namespace'=>'not_a_namespace']as$reason=>$value){
+        $invalid[$reason]=$receipt['finite_visit_evidence'];
+        if($value===null)unset($invalid[$reason]['n']);else $invalid[$reason]['n']=$value;
+    }
+    $invalid['incomplete']=$receipt['finite_visit_evidence'];array_pop($invalid['incomplete']['r']);
+    foreach($invalid as$reason=>$frame){
+        $bad=json_encode(['finite_visit_evidence'=>$frame],JSON_THROW_ON_ERROR);
+        $check('historical exclusion parsing keeps '.$reason.' membership unknown',$readMembership->invoke($exclusionOwner,$bad,$current)===null);
+    }
 }
  
 function modeledValueReadyCurrentLookupAssertions(PDO $p,callable $check):void

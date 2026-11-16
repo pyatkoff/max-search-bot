@@ -1045,11 +1045,125 @@ function modeledCompleteQuestionnaireAssertions(callable $check):void
 }
 
 
+/** Canonical selected MAX subscription after a complete questionnaire; no customer meaning in the event. */
+function modeledSubscriptionObservationFixture():array
+{
+    $parts=modeledCompleteQuestionnaireFixture();$subject=$parts[0]['subject'];$subject['platform']='max';
+    $parts[0]['subject']=$parts[1]['subject']=$subject;$parts[1]['profile']['subject']=$subject;
+    $parts[1]['profile']['observation_input']['subject']['platform']='max';
+    foreach($parts[1]['profile']['observation_input']['evidence']as&$e)$e['subject']['platform']='max';
+    unset($e);
+    $recorded=0;$id=0;
+    foreach($parts[0]['rows']as&$row){
+        $row['snapshot']['platform']='max';$recorded=max($recorded,$row['snapshot']['source_created_at_unix']);$id=max($id,(int)$row['journal_id']);
+    }unset($row);
+    $id=(string)($id+1);$recorded+=10;$available=$recorded+1;$occurred=$recorded-60;
+    $payload=['version'=>1,'origin'=>'existing_membership_producer','source'=>'max_membership_history',
+        'identity_scope'=>'same_chat_and_source','state'=>'subscribed','occurred_at_unix'=>$occurred];
+    $parts[0]['rows'][]=['journal_id'=>$id,'source_kind'=>'event','source_id'=>$id,'source_version_no'=>1,
+        'observed_at_unix'=>$available,'snapshot'=>['source_kind'=>'event','source_id'=>$id,'source_status'=>'present',
+            'payload_status'=>'copied','source_created_at_unix'=>$recorded,'source_timestamp_basis'=>'canonical_recording_unix_v1',
+            'payload'=>['event_type'=>'channel_subscription_observed','actor_type'=>'system',
+                'payload_json'=>json_encode(ConversationRecordClock::stamp($payload,$recorded),JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)]]+$subject];
+    $parts[1]['profile']['early_signals']=['version'=>'membership_early_signals_v1',
+        'prediction_at'=>$parts[1]['profile']['prediction_at'],
+        'subscription'=>['status'=>'known','state'=>'subscribed','source'=>'max_membership_history',
+            'at'=>gmdate('Y-m-d\TH:i:s\Z',$occurred),'recorded_at'=>gmdate('Y-m-d\TH:i:s\Z',$recorded),
+            'available_at'=>gmdate('Y-m-d\TH:i:s\Z',$available),'receipt_id'=>'journal:'.$id],
+        'retention_30m'=>['status'=>'unknown','reason'=>'retention_receipt_missing']];
+    $parts[1]['journal_cursor']=$parts[1]['source_fence_journal_id']=$parts[2]['journal_cursor']=$parts[2]['source_fence_journal_id']=$id;
+    return $parts;
+}
+
+function modeledSubscriptionObservationAssertions(callable $check):void
+{
+    $parts=modeledSubscriptionObservationFixture();$before=json_encode($parts,JSON_THROW_ON_ERROR);
+    $p=ModeledConversionEarlyForecast::freeze(...$parts);$v=$p['semantic_prediction'];
+    $check('a selected canonical subscription preserves the established request without adding meaning',
+        $v['status']==='predicted'&&$v['stage']==='concrete_request'&&$v['estimated_probability']===0.083333
+        &&$v['features']['criteria_families']===['dates','destination','party']
+        &&$v['features']['meaningful_customer_turns']===0&&$v['current_customer_turn_count']===5
+        &&$v['outcome_observations']===[]&&$v['model_calls']===0&&$v['conversion_uploads']===0
+        &&$p['contextual_signals']['coverage']['prediction_source_continuity']['unavailable_event_barriers']===0
+        &&$p['contextual_signals']['goal_counts']['general_purchase_intent']===0
+        &&$p['contextual_signals']['goal_counts']['agency_purchase_intent']===0
+        &&$p['contextual_signals']['goal_counts']['payment_self_report']===0
+        &&json_encode($parts,JSON_THROW_ON_ERROR)===$before);
+    foreach(['actor','revision','scope','source_id','recording_basis','malformed','extra_payload','duplicate_payload',
+        'version','origin','source','identity_scope','state','future_occurrence','recorded_mismatch',
+        'unadmitted','receipt_ref','receipt_clock','profile_scope']as$kind){
+        $bad=modeledSubscriptionObservationFixture();$last=count($bad[0]['rows'])-1;$row=&$bad[0]['rows'][$last];
+        $raw=$row['snapshot']['payload']['payload_json'];$data=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
+        if($kind==='actor')$row['snapshot']['payload']['actor_type']='customer';
+        elseif($kind==='revision')$row['source_version_no']=2;
+        elseif($kind==='scope')$row['snapshot']['customer_key']='8';
+        elseif($kind==='source_id')$row['snapshot']['source_id']='999';
+        elseif($kind==='recording_basis')$row['snapshot']['source_timestamp_basis']='database_session_timezone_to_unix';
+        elseif($kind==='malformed')$row['snapshot']['payload']['payload_json']='{';
+        elseif($kind==='duplicate_payload')$row['snapshot']['payload']['payload_json']='{"version":1,'.substr($raw,1);
+        elseif($kind==='unadmitted')$bad[1]['profile']['early_signals']['subscription']=['status'=>'unknown','reason'=>'identity_scope_unverified'];
+        elseif($kind==='receipt_ref')$bad[1]['profile']['early_signals']['subscription']['receipt_id']='journal:999';
+        elseif($kind==='receipt_clock')$bad[1]['profile']['early_signals']['subscription']['available_at']='2000-01-01T00:00:00Z';
+        elseif($kind==='profile_scope')$bad[1]['profile']['subject']['customer_key']='8';
+        else{
+            if($kind==='extra_payload')$data['extra']=true;
+            elseif($kind==='version')$data['version']=2;
+            elseif($kind==='origin')$data['origin']='unverified';
+            elseif($kind==='source')$data['source']='telegram_membership_history';
+            elseif($kind==='identity_scope')$data['identity_scope']='source_only';
+            elseif($kind==='state')$data['state']='unsubscribed';
+            elseif($kind==='future_occurrence')$data['occurred_at_unix']=$row['snapshot']['source_created_at_unix']+1;
+            elseif($kind==='recorded_mismatch')$data['_recorded_clock']['unix']++;
+            $row['snapshot']['payload']['payload_json']=json_encode($data,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+        }
+        unset($row);$v=ModeledConversionEarlyForecast::freeze(...$bad)['semantic_prediction'];
+        $check('unverified subscription remains a context barrier '.$kind,
+            $v['status']==='insufficient_context'&&$v['current_request_anchor']===null);
+    }
+    $parts=modeledSubscriptionObservationFixture();$parts[0]['rows']=[end($parts[0]['rows'])];
+    $parts[1]['profile']['observation_input']['evidence']=[];
+    $p=ModeledConversionEarlyForecast::freeze(...$parts);$v=$p['semantic_prediction'];
+    $check('a subscription by itself cannot create a request probability or payment',
+        $v['status']==='insufficient_context'&&$v['stage']===null&&$v['estimated_probability']===null
+        &&$v['current_request_anchor']===null&&$v['features']['criteria_families']===[]
+        &&array_sum($p['contextual_signals']['goal_counts'])===0);
+    $parts=modeledSubscriptionObservationFixture();$last=count($parts[0]['rows'])-1;$row=&$parts[0]['rows'][$last];
+    $recorded=$row['snapshot']['source_created_at_unix']+86401;$available=$recorded+1;
+    $data=json_decode($row['snapshot']['payload']['payload_json'],true,32,JSON_THROW_ON_ERROR);
+    $data['_recorded_clock']['unix']=$recorded;$row['snapshot']['source_created_at_unix']=$recorded;$row['observed_at_unix']=$available;
+    $row['snapshot']['payload']['payload_json']=json_encode($data,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);unset($row);
+    $cutoff=gmdate('Y-m-d\TH:i:s\Z',$available+1);
+    $parts[1]['profile']['prediction_at']=$parts[1]['profile']['observation_input']['prediction_at']=$parts[2]['requested_at']=$cutoff;
+    $parts[1]['profile']['early_signals']['prediction_at']=$cutoff;
+    $parts[1]['profile']['early_signals']['subscription']['recorded_at']=gmdate('Y-m-d\TH:i:s\Z',$recorded);
+    $parts[1]['profile']['early_signals']['subscription']['available_at']=gmdate('Y-m-d\TH:i:s\Z',$available);
+    $check('a subscription cannot renew day-old customer meaning',
+        ModeledConversionEarlyForecast::freeze(...$parts)['semantic_prediction']['status']==='insufficient_context');
+    $customerAt=1793002000;$questionAt=$customerAt+86401;
+    $cutoff=gmdate('Y-m-d\TH:i:s\Z',$questionAt+3);
+    $subject=['project_key'=>'anytour','platform'=>'max','customer_key'=>'7','conversation_id'=>'9'];
+    $model=new ModeledConversionSemanticPrediction($subject,$cutoff,$cutoff,$cutoff,'3','3');
+    $text='Подберите тур в Турцию на 7 ночей, 2 взрослых.';
+    $semantic=ArchiveResearchSemanticExtractor::step(['source_ref'=>'journal:1','created_at'=>$customerAt,
+        'read_status'=>'available','text'=>$text,'role'=>'customer','direction'=>'inbound',
+        'role_verified'=>true,'text_minimized'=>true,'forwarded'=>false,'media'=>[],
+        'media_contents_read'=>false,'selection_links_unread'=>false,'links_redacted'=>false],ArchiveResearchSemanticExtractor::initialState());
+    $model->observeMessage('customer',$text,'journal:1',$customerAt,$customerAt+1,1,$semantic);
+    $asked=$model->observeServiceQuestion('В какую страну хотите поехать?','journal:2',$questionAt,$questionAt+1,1);
+    $before=$model->finish(['early_forecast'=>['status'=>'early_assessment']]);
+    $preserved=$model->canPreserveSubscriptionContext($questionAt+1);
+    $check('a fresh AI question cannot renew day-old customer meaning for a subscription',
+        $asked&&$before['current_request_anchor']==='journal:1'&&!$preserved
+        &&$model->finish(['early_forecast'=>['status'=>'early_assessment']])===$before);
+
+}
+
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $passed=0;$check=static function(string $name,bool $ok)use(&$passed){if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
     modeledEarlyAssertions($check);
     modeledQuestionContextAssertions($check);
     modeledCompleteQuestionnaireAssertions($check);
+    modeledSubscriptionObservationAssertions($check);
     modeledAssignedValueAssertions($check);echo 'MODELED EARLY FORECAST PASSED '.$passed.PHP_EOL;
 }
 
