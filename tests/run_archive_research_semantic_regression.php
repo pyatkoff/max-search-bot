@@ -373,4 +373,28 @@ for($split=0;$split<=count($revisionFlow);$split++){
         'revision3_split_invariance_'.$split);
 }
 
+// Synthetic destination-only replies are interest, never purchase or payment.
+foreach(['ОАЭ','Дубай','Дубаи','Тунис','Кипр','Греция','Испания','Италия','Вьетнам','Индонезия',
+    'Бали','Куба','Кубу','Кубе','Шри-Ланка','Шри Ланка','Гоа','Сочи','Абхазия']as$destination){
+    $r=single('customer',$destination);
+    check(goals($r)===['substantive_interest']&&$r['state']['e']===1
+        &&$r['outputs'][0]['episode_boundary']==='first_trip_conditions_candidate',
+        'direct_destination_only_interest_'.$destination);
+}
+foreach(['Мы колебались.','Пришлите сочинение.','Это многоаспектный вопрос.',
+    'ОАЭ не рассматриваю.','«ОАЭ»','> Дубай','В прошлом году были в ОАЭ.']as$text){
+    $r=single('customer',$text);
+    check(!has($r,'substantive_interest')&&!has($r,'general_purchase_intent')
+        &&!has($r,'agency_purchase_intent'),'destination_guards_'.$text);
+}
+check(goals(single('manager','ОАЭ'))===[],'manager_destination_not_customer_interest');
+foreach([['forwarded'=>true],['forwarded'=>null],['role_verified'=>false],['direction'=>'outbound']]as$override){
+    $r=single('customer','ОАЭ',$override);
+    check(goals($r)===[]&&($r['outputs'][0]['flags']['context_barrier']??false)===true,
+        'destination_source_admission_'.json_encode($override,JSON_THROW_ON_ERROR));
+}
+$r=single('customer','ОАЭ',['created_at'=>null]);
+check(($r['outputs'][0]['flags']['unknown_time']??false)===true,
+    'destination_unknown_clock_keeps_unsafe_flag');
+
 echo "Archive semantic extractor: ".$checks." checks passed\n";
