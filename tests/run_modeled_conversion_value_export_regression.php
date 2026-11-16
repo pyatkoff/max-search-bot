@@ -1726,7 +1726,7 @@ function modeledValueIdentityEvidenceAssertions(PDO $p,callable $check):void
         &&$settingsBefore['last_tick_unix']===$settingsAfter['last_tick_unix']
         &&$settingsBefore['last_report_success_unix']===$settingsAfter['last_report_success_unix']
         &&modeledValueFailureJsonEqual($settingsBefore['last_report_success_json'],$settingsAfter['last_report_success_json']));
-    $near=$receiptAfter;unset($near['visit_gate_decisions'],$near['receipt_poll_evidence'],$near[ModeledConversionFixedPairDecisionEvidence::RECEIPT_KEY]);
+    $near=$receiptAfter;unset($near['visit_gate_decisions'],$near['receipt_poll_evidence'],$near[ModeledConversionFixedPairDecisionEvidence::RECEIPT_KEY],$near[ModeledConversionReadySelectionEvidence::KEY]);
     $near['last_recorded_failure']=['tick_at_unix'=>$now+100,'phase'=>'upload','category'=>'api_rejected'];
     $newFailure=['tick_at_unix'=>$now+500,'phase'=>'collect_profiles','category'=>'processing_failed'];
     $measure=static function(array $value)use($p):int{
@@ -2132,7 +2132,7 @@ function modeledValueVisitRecoveryAssertions(PDO $p,callable $check):void
     }
 
     // A delayed writer must not replace a newer journal with its old in-memory pending membership.
-    $winner=$saved();unset($winner['visit_gate_decisions'],$winner['receipt_poll_evidence'],$winner[ModeledConversionFixedPairDecisionEvidence::RECEIPT_KEY]);$winner['last_recorded_failure']=['tick_at_unix'=>$now+10,'phase'=>'upload','category'=>'api_rejected'];
+    $winner=$saved();unset($winner['visit_gate_decisions'],$winner['receipt_poll_evidence'],$winner[ModeledConversionFixedPairDecisionEvidence::RECEIPT_KEY],$winner[ModeledConversionReadySelectionEvidence::KEY]);$winner['last_recorded_failure']=['tick_at_unix'=>$now+10,'phase'=>'upload','category'=>'api_rejected'];
     $newFailure=['tick_at_unix'=>$now+300,'phase'=>'collect_profiles','category'=>'processing_failed'];
     $winner['padding']='';$expanded=$winner;$expanded['last_recorded_failure']=$newFailure;
     $winner['padding']=str_repeat('x',8193-$measure($expanded));
