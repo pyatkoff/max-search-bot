@@ -1,0 +1,350 @@
+<?php
+declare(strict_types=1);
+
+function as39GoalAuditPermission($permission, bool $present): array
+{
+    $enums = ['own','edit','view','analyst','view_access_filter','analyst_access_filter'];
+    return ['permission_present'=>$present, 'permission_type'=>$present ? get_debug_type($permission) : 'missing',
+        'permission'=>in_array($permission, $enums, true) ? $permission
+            : (!$present ? 'missing' : (is_string($permission) ? 'unrecognized' : 'non_string'))];
+}
+
+/** Documented error types only: https://yandex.ru/dev/metrika/ru/intro/errors */
+function as39GoalAuditErrors($data): array
+{
+    $types = ['backend_error','invalid_parameter','not_found','missing_parameter','filter_limits','access_denied',
+        'counter_in_connect','invalid_token','unauthorized','quota_requests_by_uid','quota_delegate_requests',
+        'quota_grants_requests','quota_requests_by_ip','quota_parallel_requests','quota_requests_by_counter_id',
+        'query_error','too_much_rows','conflict','not_acceptable','timeout','invalid_uploading','invalid_json','limit_exceeded'];
+    $codePresent = is_array($data) && array_key_exists('code', $data);
+    $code = is_array($data) ? ($data['code'] ?? null) : null;
+    $errorsPresent = is_array($data) && array_key_exists('errors', $data);
+    $errors = is_array($data) ? ($data['errors'] ?? null) : null;
+    $observed = [];
+    foreach (is_array($errors) ? array_slice($errors, 0, 8) : [] as $error) {
+        $type = is_array($error) ? ($error['error_type'] ?? null) : null;
+        $observed[] = in_array($type, $types, true) ? $type : 'other';
+    }
+    return ['code_present'=>$codePresent, 'code_type'=>$codePresent ? get_debug_type($code) : 'missing',
+        'code'=>is_int($code) && $code >= 100 && $code <= 599 ? $code : null,
+        'errors_present'=>$errorsPresent, 'errors_type'=>$errorsPresent ? get_debug_type($errors) : 'missing',
+        'error_count'=>is_array($errors) ? count($errors) : null,
+        'error_types'=>array_values(array_unique($observed)),
+        'error_types_truncated'=>is_array($errors) && count($errors) > 8];
+}
+
+/** Finite GET-only observation. No configuration, goal, outbox or message write. */
+function as39GoalAuditObservation(string $stage, array $response): array
+{
+    $body = (string)($response['body'] ?? '');
+    $data = json_decode($body, true, 32, JSON_BIGINT_AS_STRING);
+    $out = ['stage'=>$stage, 'http'=>(int)($response['http'] ?? 0),
+        'curl_errno'=>(int)($response['error'] ?? 0),
+        'ssl_verify_result'=>isset($response['ssl_verify_result']) ? (int)$response['ssl_verify_result'] : null,
+        'response_bytes'=>strlen($body), 'json_valid'=>json_last_error() === JSON_ERROR_NONE,
+        'provider_error'=>as39GoalAuditErrors($data)];
+    if ($stage === 'counter') {
+        $counter = is_array($data) ? ($data['counter'] ?? null) : null;
+        $permissionPresent = is_array($counter) && array_key_exists('permission', $counter);
+        $permission = is_array($counter) ? ($counter['permission'] ?? null) : null;
+        return $out + ['counter_shape_ok'=>is_array($counter),
+            'counter_id_matches'=>is_array($counter) && (string)($counter['id'] ?? '') === '42611469']
+            + as39GoalAuditPermission($permission, $permissionPresent);
+    }
+    if ($stage === 'collection') {
+        // Preserve JSON array/object and numeric types exactly as the installed admission does.
+        $document = json_decode($body, false, 32, JSON_BIGINT_AS_STRING);
+        $shape = $document instanceof stdClass;
+        $rowsPresent = $shape && property_exists($document, 'rows');
+        $rows = $shape ? ($document->rows ?? null) : null;
+        $countersPresent = $shape && property_exists($document, 'counters');
+        $counters = $shape ? ($document->counters ?? null) : null;
+        $selected = is_array($counters) && count($counters) === 1 ? $counters[0] : null;
+        $entryShape = $selected instanceof stdClass;
+        $idPresent = $entryShape && property_exists($selected, 'id');
+        $id = $entryShape ? ($selected->id ?? null) : null;
+        return $out + ['collection_shape_ok'=>$shape,
+            'rows_present'=>$rowsPresent, 'rows_type'=>$rowsPresent ? get_debug_type($rows) : 'missing',
+            'rows_count'=>is_int($rows) ? $rows : null,
+            'counters_present'=>$countersPresent, 'counters_type'=>$countersPresent ? get_debug_type($counters) : 'missing',
+            'counters_is_list'=>is_array($counters), 'counters_count'=>is_array($counters) ? count($counters) : null,
+            'entry_shape_ok'=>$entryShape, 'counter_id_present'=>$idPresent,
+            'counter_id_type'=>$idPresent ? get_debug_type($id) : 'missing',
+            'counter_id_matches'=>(is_int($id) || is_string($id)) && (string)$id === '42611469']
+            + as39GoalAuditPermission($entryShape ? ($selected->permission ?? null) : null,
+                $entryShape && property_exists($selected, 'permission'));
+    }
+    $goals = is_array($data) ? ($data['goals'] ?? null) : null;
+    if (!is_array($goals)) return $out + ['goals_shape_ok'=>false];
+    $selected = array_values(array_filter($goals, static fn($g)=>is_array($g) && (string)($g['id'] ?? '') === '680570232'));
+    $goal = count($selected) === 1 ? $selected[0] : null;
+    $conditions = is_array($goal) ? ($goal['conditions'] ?? null) : null;
+    $first = is_array($conditions) && count($conditions) === 1 ? ($conditions[0] ?? null) : null;
+    $type = is_array($first) ? ($first['type'] ?? null) : null;
+    $overlap = ['empty_identifier'=>0,'same_exact_identifier'=>0,'contains_identifier'=>0,
+        'prefix_identifier'=>0,'regexp_not_proven_disjoint'=>0];
+    foreach ($goals as $other) {
+        if (!is_array($other) || ($other['type'] ?? '') !== 'action' || (string)($other['id'] ?? '') === '680570232') continue;
+        if (!is_array($other['conditions'] ?? null)) continue;
+        foreach ($other['conditions'] as $condition) {
+            $value = is_array($condition) ? ($condition['url'] ?? null) : null;
+            $kind = is_array($condition) ? ($condition['type'] ?? '') : '';
+            if (!is_string($value) || $value === '') { $overlap['empty_identifier']++; continue; }
+            if (in_array($kind, ['exact','action'], true) && $value === 'predict') $overlap['same_exact_identifier']++;
+            if ($kind === 'contain' && str_contains('predict', $value)) $overlap['contains_identifier']++;
+            if ($kind === 'start' && str_starts_with('predict', $value)) $overlap['prefix_identifier']++;
+            if ($kind === 'regexp') $overlap['regexp_not_proven_disjoint']++;
+        }
+    }
+    return $out + ['goals_shape_ok'=>true, 'goal_count'=>count($goals),
+        'selected_goal_count'=>count($selected), 'selected_type_is_action'=>is_array($goal) && ($goal['type'] ?? '') === 'action',
+        'selected_condition_count'=>is_array($conditions) ? count($conditions) : null,
+        'selected_identifier_matches'=>is_array($first) && ($first['url'] ?? '') === 'predict',
+        'selected_condition_type'=>in_array($type, ['exact','contain','start','regexp','action'], true) ? $type : 'missing_or_other',
+        'other_goal_overlap_counts'=>$overlap];
+}
+
+function as39GoalAuditReason(string $nativeStatus, array $observations, ?string $transportStop): string
+{
+    if ($nativeStatus === 'ready') return 'ready';
+    if ($transportStop !== null) return $transportStop;
+    $stages = []; foreach ($observations as $observation) $stages[$observation['stage']] = $observation;
+    $counter = $stages['counter'] ?? null;
+    if (!$counter) return 'counter_not_observed';
+    if ($counter['curl_errno'] !== 0) return 'counter_transport_failed';
+    if ($counter['http'] !== 200) return 'counter_http_not_200';
+    if (!$counter['json_valid'] || !$counter['counter_shape_ok']) return 'counter_payload_invalid';
+    if (!$counter['counter_id_matches']) return 'counter_identity_mismatch';
+    if ($counter['permission_present']) {
+        if ($counter['permission_type'] !== 'string') return 'counter_permission_invalid_type';
+        if ($counter['permission'] === 'unrecognized') return 'counter_permission_unrecognized';
+        if (!in_array($counter['permission'], ['own','edit'], true)) return 'counter_permission_not_own_or_edit';
+    } else {
+        $collection = $stages['collection'] ?? null;
+        if (!$collection) return 'collection_not_observed';
+        if ($collection['curl_errno'] !== 0) return 'collection_transport_failed';
+        if ($collection['http'] !== 200) return 'collection_http_not_200';
+        if (!$collection['json_valid'] || !$collection['collection_shape_ok']) return 'collection_payload_invalid';
+        if (!$collection['rows_present']) return 'collection_rows_missing';
+        if ($collection['rows_type'] !== 'int') return 'collection_rows_invalid_type';
+        if ($collection['rows_count'] !== 1) return 'collection_rows_not_one';
+        if (!$collection['counters_present']) return 'collection_counters_missing';
+        if (!$collection['counters_is_list']) return 'collection_counters_not_list';
+        if ($collection['counters_count'] !== 1) return 'collection_counter_count_not_one';
+        if (!$collection['entry_shape_ok']) return 'collection_counter_payload_invalid';
+        if (!$collection['counter_id_present']) return 'collection_counter_id_missing';
+        if (!in_array($collection['counter_id_type'], ['int','string'], true)) return 'collection_counter_id_invalid_type';
+        if (!$collection['counter_id_matches']) return 'collection_counter_identity_mismatch';
+        if (!$collection['permission_present']) return 'collection_permission_missing';
+        if ($collection['permission_type'] !== 'string') return 'collection_permission_invalid_type';
+        if ($collection['permission'] === 'unrecognized') return 'collection_permission_unrecognized';
+        if (!in_array($collection['permission'], ['own','edit'], true)) return 'collection_permission_not_own_or_edit';
+    }
+    $goals = $stages['goals'] ?? null;
+    if (!$goals) return 'goals_not_observed';
+    if ($goals['curl_errno'] !== 0) return 'goals_transport_failed';
+    if ($goals['http'] !== 200) return 'goals_http_not_200';
+    if (!$goals['json_valid'] || !$goals['goals_shape_ok']) return 'goals_payload_invalid';
+    if ($goals['selected_goal_count'] !== 1) return 'selected_goal_missing_or_duplicated';
+    if (!$goals['selected_type_is_action']) return 'selected_goal_not_action';
+    if ($goals['selected_condition_count'] !== 1) return 'selected_goal_not_one_condition';
+    if (!$goals['selected_identifier_matches']) return 'selected_goal_identifier_mismatch';
+    if ($goals['selected_condition_type'] !== 'exact') return 'selected_goal_condition_not_exact';
+    foreach ($goals['other_goal_overlap_counts'] as $reason=>$count) if ($count > 0) return 'other_goal_'.$reason;
+    return 'native_admission_unclassified';
+}
+
+/** The operator supplied this exact account; its raw login never leaves server memory. */
+const AS39_GOAL_AUDIT_EXPECTED_LOGIN_SHA256 = 'c756edf692de2fc77440eb2c865bbad0eab2a5cc25c2aeb407d3e0ab841ae3b5';
+const AS39_GOAL_AUDIT_LOGIN_SEAL_PUBLIC_HEX = 'd99f72be67d714006f1b2f1fe580dc68bb446bb968c28b77216889487893177b';
+
+/** Standard Yandex ID fields are available to an existing token for any Yandex service. */
+function as39GoalAuditIdentityObservation(array $response, string $expectedLoginDigest, string $sealPublicKey): array
+{
+    $body = $response['body'];
+    $document = json_decode($body, false, 32, JSON_BIGINT_AS_STRING);
+    $jsonValid = json_last_error() === JSON_ERROR_NONE;
+    $shape = $document instanceof stdClass;
+    $present = $shape && property_exists($document, 'login');
+    $login = $present ? $document->login : null;
+    $valid = is_string($login) && strlen($login) >= 1 && strlen($login) <= 128
+        && preg_match('/\A[^\x00-\x20\x7f]+\z/D', $login) === 1;
+    $http = is_int($response['http'] ?? null) ? $response['http'] : null;
+    $error = is_int($response['error'] ?? null) ? $response['error'] : null;
+    $ssl = is_int($response['ssl_verify_result'] ?? null) ? $response['ssl_verify_result'] : null;
+    $wireAccepted = $http === 200 && $error === 0 && $ssl === 0;
+    $matches = $wireAccepted && $jsonValid && $shape && $valid
+        ? hash_equals($expectedLoginDigest, hash('sha256', $login)) : null;
+    $sealed = null;
+    if ($matches === false) {
+        try { $sealed = base64_encode(sodium_crypto_box_seal($login, $sealPublicKey)); }
+        catch (Throwable $ignored) { throw new RuntimeException('identity_sealing_failed'); }
+        if (strlen($sealed) > 384) throw new RuntimeException('identity_sealing_failed');
+    }
+    return ['stage'=>'identity', 'http'=>$http, 'curl_errno'=>$error, 'ssl_verify_result'=>$ssl,
+        'response_bytes'=>strlen($body), 'json_valid'=>$jsonValid, 'identity_shape_ok'=>$shape,
+        'login_present'=>$present, 'login_type'=>$present ? get_debug_type($login) : 'missing',
+        'login_valid'=>$valid, 'login_matches_expected'=>$matches, 'mismatch_login_sealed'=>$sealed];
+}
+
+/** Identity selects the named account; only the installed native probe can admit its counter. */
+function as39GoalAuditProbe(array $settings, string $token, callable $transport,
+    string $expectedLoginDigest = AS39_GOAL_AUDIT_EXPECTED_LOGIN_SHA256,
+    string $sealPublicHex = AS39_GOAL_AUDIT_LOGIN_SEAL_PUBLIC_HEX): array
+{
+    $metric = $settings['metrika'] ?? [];
+    if (($settings['project_key'] ?? '') !== 'appleservice39' || ($settings['bot_key'] ?? '') !== 'id390521129062_bot'
+        || ($metric['counter_id'] ?? '') !== '42611469' || ($metric['mode'] ?? '') !== 'collect'
+        || ($metric['credential_source'] ?? '') !== 'platform' || ($metric['goals'] ?? []) !== ['predictive_value'=>'predict']
+        || ($metric['goal_ids'] ?? []) !== ['predictive_value'=>'680570232']
+        || ($metric['goal_match'] ?? []) !== ['predictive_value'=>'exact']) throw new RuntimeException('policy_changed');
+    if (preg_match('/\A[a-f0-9]{64}\z/D', $expectedLoginDigest) !== 1) throw new RuntimeException('expected_identity_invalid');
+    if (!function_exists('sodium_crypto_box_seal') || preg_match('/\A[a-f0-9]{64}\z/D', $sealPublicHex) !== 1)
+        throw new RuntimeException('identity_sealer_unavailable');
+    $sealPublicKey = hex2bin($sealPublicHex);
+    if (!is_string($sealPublicKey) || strlen($sealPublicKey) !== SODIUM_CRYPTO_BOX_PUBLICKEYBYTES)
+        throw new RuntimeException('identity_sealer_unavailable');
+    $report = ['ok'=>true, 'scope'=>'appleservice39_goal_admission_readonly',
+        'purpose'=>'account_identity_and_admission', 'diagnostic_version'=>5, 'mode'=>'collect',
+        'identity'=>null, 'native_probe_calls'=>0, 'native_admission'=>null, 'reason'=>'identity_not_observed',
+        'native_http_attempts'=>0, 'native_transport_stop_stage'=>null,
+        'collection_read_source'=>'not_requested', 'goal_read_source'=>'not_requested',
+        'observations'=>[], 'http_attempts'=>1, 'provider_mutations'=>0,
+        'database_writes'=>0, 'conversion_requests'=>0, 'customer_messages'=>0];
+    try { $identityResponse = $transport('GET', 'https://login.yandex.ru/info?format=json', null); }
+    catch (Throwable $ignored) { $report['reason']='identity_transport_exception'; return $report; }
+    if (!is_array($identityResponse) || !is_string($identityResponse['body'] ?? null)
+        || strlen($identityResponse['body']) > 1048576) {
+        $report['reason']='identity_response_invalid'; return $report;
+    }
+    try { $identity = as39GoalAuditIdentityObservation($identityResponse, $expectedLoginDigest, $sealPublicKey); }
+    catch (Throwable $ignored) { $report['reason']='identity_sealing_failed'; return $report; }
+    $report['identity'] = $identity;
+    if ($identity['curl_errno'] !== 0) $report['reason']='identity_transport_failed';
+    elseif ($identity['http'] !== 200) $report['reason']='identity_http_not_200';
+    elseif ($identity['ssl_verify_result'] !== 0) $report['reason']='identity_tls_unconfirmed';
+    elseif (!$identity['json_valid'] || !$identity['identity_shape_ok']) $report['reason']='identity_payload_invalid';
+    elseif (!$identity['login_valid']) $report['reason']='identity_login_invalid';
+    elseif ($identity['login_matches_expected'] !== true) $report['reason']='identity_account_mismatch';
+    if ($identity['login_matches_expected'] !== true) return $report;
+
+    $urls = ['https://api-metrika.yandex.net/management/v1/counter/42611469'=>'counter',
+        'https://api-metrika.yandex.net/management/v1/counters?counter_ids=42611469&permission=own%2Cedit&offset=1&per_page=1'=>'collection',
+        'https://api-metrika.yandex.net/management/v1/counter/42611469/goals'=>'goals'];
+    $observations = []; $seen = []; $transportStop = null; $transportStopStage = null;
+    $guarded = static function(string $method, string $url, $payload) use ($transport,$urls,&$observations,&$seen,&$transportStop,&$transportStopStage): array {
+        $stage = $urls[$url] ?? 'unlisted';
+        if ($method !== 'GET' || $payload !== null || !isset($urls[$url]) || isset($seen[$url]) || count($seen) >= 3) {
+            $transportStopStage = $stage;
+            $transportStop = 'unexpected_native_request'; throw new RuntimeException($transportStop);
+        }
+        if (($stage === 'counter') !== (count($seen) === 0)) {
+            $transportStopStage = $stage;
+            $transportStop = 'unexpected_native_request_order'; throw new RuntimeException($transportStop);
+        }
+        if ($stage === 'collection') {
+            $counter = $observations[0] ?? [];
+            if (count($seen) !== 1 || ($counter['stage'] ?? '') !== 'counter'
+                || $counter['curl_errno'] !== 0 || $counter['http'] !== 200 || !$counter['json_valid']
+                || !$counter['counter_shape_ok'] || !$counter['counter_id_matches'] || $counter['permission_present']) {
+                $transportStopStage = $stage;
+                $transportStop = 'unexpected_native_collection_request'; throw new RuntimeException($transportStop);
+            }
+        }
+        $seen[$url] = true;
+        try { $response = $transport($method, $url, $payload); }
+        catch (Throwable $ignored) { $transportStopStage = $stage; $transportStop = 'bounded_transport_exception'; throw new RuntimeException($transportStop); }
+        if (!is_array($response) || !is_string($response['body'] ?? null) || strlen($response['body']) > 1048576) {
+            $transportStopStage = $stage;
+            $transportStop = 'bounded_response_invalid'; throw new RuntimeException($transportStop);
+        }
+        $observations[] = as39GoalAuditObservation($stage, $response);
+        return $response;
+    };
+    $result = ProjectFunnelConversions::probe($settings,
+        static fn(array $policy)=>new MetrikaOfflineClient('42611469', $token, $guarded, null, $policy));
+    $collectionUrl = 'https://api-metrika.yandex.net/management/v1/counters?counter_ids=42611469&permission=own%2Cedit&offset=1&per_page=1';
+    $goalsUrl = 'https://api-metrika.yandex.net/management/v1/counter/42611469/goals';
+    $report['native_probe_calls']=1;
+    $report['native_admission']=$result;
+    $report['reason']=as39GoalAuditReason((string)$result['status'], $observations, $transportStop);
+    $report['native_http_attempts']=count($seen);
+    $report['native_transport_stop_stage']=$transportStopStage;
+    $report['collection_read_source']=isset($seen[$collectionUrl]) ? 'native_admission' : 'not_requested';
+    $report['goal_read_source']=isset($seen[$goalsUrl]) ? 'native_admission' : 'not_requested';
+    $report['observations']=$observations;
+    $report['http_attempts']=1+count($seen);
+    return $report;
+}
+
+function as39GoalAuditMain(array $argv): int
+{
+    $root = '/var/www/anytoour/data/www/app.anytoour.ru';
+    $expected = $argv[1] ?? '';
+    $pdo = null;
+    try {
+        if (PHP_SAPI !== 'cli' || count($argv) !== 2 || !preg_match('/\A[a-f0-9]{40}\z/D', $expected)) throw new RuntimeException('invalid_operation');
+        $readGit = static function(array $arguments) use ($root): string {
+            $process = proc_open(['git','-C',$root,...$arguments], [['pipe','r'],['pipe','w'],['pipe','w']], $pipes);
+            if (!is_resource($process)) throw new RuntimeException('checkout_unavailable');
+            fclose($pipes[0]); $out = stream_get_contents($pipes[1], 16385); fclose($pipes[1]); fclose($pipes[2]);
+            if (proc_close($process) !== 0 || !is_string($out) || strlen($out) > 16384) throw new RuntimeException('checkout_unavailable');
+            return trim($out);
+        };
+        if ($readGit(['rev-parse','HEAD']) !== $expected || $readGit(['status','--porcelain','--untracked-files=no']) !== '') throw new RuntimeException('checkout_changed');
+        require_once $root.'/config.php';
+        require_once $root.'/services/ConversationDb.php';
+        $pdo = ConversationDb::connection();
+        if ($pdo->inTransaction()) throw new RuntimeException('storage_busy');
+        $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+        $pdo->beginTransaction();
+        require_once $root.'/services/ProjectFunnelConversions.php';
+        $connection = ProjectMaxConnection::resolve('appleservice39');
+        $settings = $connection ? ProjectFunnelSettings::load($connection) : null;
+        if (!$settings) throw new RuntimeException('project_unavailable');
+        if (!defined('METRIKA_OAUTH_TOKEN') || !is_string(METRIKA_OAUTH_TOKEN) || trim(METRIKA_OAUTH_TOKEN) === '') throw new RuntimeException('credential_unavailable');
+        $token = METRIKA_OAUTH_TOKEN;
+        $deadline = microtime(true) + 25;
+        $transport = static function(string $method, string $url, $payload) use ($token,$deadline): array {
+            $remaining = (int)floor(($deadline-microtime(true))*1000);
+            if ($remaining < 1) throw new RuntimeException('read_deadline');
+            $body = ''; $tooLarge = false; $ch = curl_init($url);
+            if ($ch === false) throw new RuntimeException('transport_unavailable');
+            try {
+                curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>false, CURLOPT_FOLLOWLOCATION=>false,
+                    CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS, CURLOPT_CONNECTTIMEOUT_MS=>min(5000,$remaining),
+                    CURLOPT_TIMEOUT_MS=>$remaining, CURLOPT_SSL_VERIFYPEER=>true, CURLOPT_SSL_VERIFYHOST=>2,
+                    CURLOPT_HTTPHEADER=>['Authorization: OAuth '.$token,'Accept: application/json'],
+                    CURLOPT_WRITEFUNCTION=>static function($handle,string $chunk) use (&$body,&$tooLarge): int {
+                        if (strlen($body)+strlen($chunk)>1048576) { $tooLarge=true; return 0; }
+                        $body.=$chunk; return strlen($chunk);
+                    }]);
+                curl_exec($ch);
+                return ['http'=>(int)curl_getinfo($ch,CURLINFO_HTTP_CODE), 'error'=>$tooLarge?23:curl_errno($ch),
+                    'ssl_verify_result'=>(int)curl_getinfo($ch,CURLINFO_SSL_VERIFYRESULT), 'body'=>$body];
+            } finally { curl_close($ch); }
+        };
+        $result = as39GoalAuditProbe($settings, $token, $transport,
+            AS39_GOAL_AUDIT_EXPECTED_LOGIN_SHA256, AS39_GOAL_AUDIT_LOGIN_SEAL_PUBLIC_HEX);
+        $pdo->rollBack();
+        if ($readGit(['rev-parse','HEAD']) !== $expected || $readGit(['status','--porcelain','--untracked-files=no']) !== '') throw new RuntimeException('checkout_changed_after_read');
+        $result['application_sha']=$expected; $result['observed_at']=gmdate('c');
+        echo json_encode($result, JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL;
+        return 0;
+    } catch (Throwable $error) {
+        if ($pdo instanceof PDO && $pdo->inTransaction()) $pdo->rollBack();
+        $safe = ['invalid_operation','checkout_unavailable','checkout_changed','checkout_changed_after_read',
+            'storage_busy','project_unavailable','credential_unavailable','policy_changed','expected_identity_invalid',
+            'identity_sealer_unavailable'];
+        echo json_encode(['ok'=>false, 'scope'=>'appleservice39_goal_admission_readonly',
+            'purpose'=>'account_identity_and_admission', 'diagnostic_version'=>5,
+            'reason'=>in_array($error->getMessage(),$safe,true)?$error->getMessage():'read_unavailable',
+            'database_writes'=>0,'provider_mutations'=>0,'conversion_requests'=>0,'customer_messages'=>0], JSON_UNESCAPED_SLASHES).PHP_EOL;
+        return 1;
+    }
+}
+
+if (!defined('AS39_GOAL_AUDIT_LIBRARY_ONLY')) {
+    ini_set('display_errors','0'); ini_set('log_errors','0');
+    exit(as39GoalAuditMain($argv));
+}
