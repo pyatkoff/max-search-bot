@@ -109,31 +109,67 @@ No goal is created, renamed or changed. New businesses cannot borrow AnyTour's
 counter. `tools/max_channel_attribution.php project-probe <project_key>` is a
 GET-only admission check and returns only fixed result enums, never a credential.
 
-An optional `prediction` provides a model ID/version, evidence SHA-256,
-validation/expiry instants (maximum 90 days), base value and conditional
-probabilities for observed stages. There are no default travel weights or
-assumed repair revenue. The first eligible estimate goes to a distinct
-`predictive_value` goal with expected RUB value, not the factual sale goal.
-Missing, expired or invalid calibration produces no predictive export. Retraining
-and validation evidence remain an explicit input; this adapter does not claim to
-train a new model from an unvalidated sample or replace the existing MODEL owner.
+An optional `prediction` provides a model ID/version and evidence SHA-256.
+The existing calibrated form keeps its validation/expiry instants (maximum
+90 days), base value and conditional probabilities for observed stages.
+Missing, expired or invalid calibration produces no export from that form.
+Retraining and validation evidence remain an explicit input; this adapter does
+not claim to train a new model from an unvalidated sample or replace the existing
+MODEL owner.
+
+An explicitly approved `basis: owner_assumption` instead records the owner's
+decision, approval instant, probability and exact model/service price list. Its
+evidence is an instruction and dated price sources, not an empirical calibration.
+The assumption remains selected until the owner changes its version or disables
+it. It does not acquire a fabricated validation date or silently inherit the
+calibrated model's expiry. The embedded prices and evidence participate in the
+existing conversion policy hash. Unknown or ambiguous repairs have no value.
+
+Both forms use the existing `predictive_value` goal with expected RUB value;
+neither asserts payment. A recorded `won` stage suppresses a new prediction.
+There are no default travel weights, commission multipliers or inferred prices.
+The original acquisition, event clock, durable value and one-row-per-conversation
+uniqueness remain frozen. A later policy version does not rewrite an old row or
+authorize another upload of it.
 
 ## AppleService39 activation checkpoint
 
-The profile preserves the eight accepted public covers/offers and their existing
-IDs. The owner supplied its own counter42611469. Its profile enables collection:
-real native visits can obtain this counter's ClientID. The owner-created goal is
-680570232, reported with the identifier condition contains `predict`. This ID and
-target are pinned for `predictive_value`, with the required offline condition
-`exact`. [Yandex requires an exact action condition for offline uploads](https://yandex.ru/dev/metrika/ru/management/offline-conv).
+The profile keeps the existing 67 advertising offers and their publication IDs.
+The owner supplied counter 42611469 and goal 680570232. The target `predict` is
+pinned for `predictive_value`, with the required offline condition `exact`.
+[Yandex requires an exact action condition for offline uploads](https://yandex.ru/dev/metrika/ru/management/offline-conv).
 A live contains condition returns `goal_condition_unsupported`, never a ready
-status; no goal is rewritten by this code. Changing that existing goal requires
-the owner's separate authorization. The selected private credential source is
-the platform account. Its access is not assumed: the normal installation
-diagnostics run the GET-only API admission. Recorded activity/manager/CRM stages remain in the core
-history. A calibrated repair model has not been supplied, so no synthetic/default
-forecast is exported and collection remains selected. First real conversion
-delivery and natural acceptance are separate from access admission.
+status; no goal is rewritten by this code. The selected private credential source
+is the platform account. Normal installation diagnostics still run the GET-only
+admission; its successful original observation on 16 November 2026 established
+counter and goal access separately from conversion delivery.
+
+On 16 November 2026 the owner explicitly chose the available service prices and a
+20% dialogue-to-sale probability as a starting assumption, to revise later from
+actual results. The Apple profile therefore selects `send` with an explicitly
+versioned owner assumption: **listed service price × 0.20**, in RUB. For example,
+the accepted 5000 RUB iPhone 13 battery price gives 1000 RUB of expected revenue.
+This is neither a paid repair nor profit, and it does not use AnyTour's 7% factor.
+
+The initial price list contains 123 reviewed fixed model/service pairs, including
+the six accepted battery-price corrections. The dated source files and their
+digests are retained in the prediction evidence. Display variants without a
+selected part, prices "from", prices on request, missing prices and the
+unconfirmed iPhone 14 Pro Max front-glass amount are excluded. No average price is
+substituted for a generic model, generic service or symptom.
+
+The collector resolves the price from the recorded `bot_started` belonging to
+the exact attributed entry, using its `delivery_key`, recorded clock and scoped
+repair reply context. Model-card service selections retain their original
+advertising post/offer. Later mutable conversation metadata cannot supply an
+earlier price or retarget the original visit. A later independent entry does not
+silently fill an incomplete original entry; free-text repair extraction is not
+part of this model. An observed dialogue stage is still required, and the
+prediction clock cannot precede the recorded priced context.
+
+The existing cron, outbox and reconciliation perform delivery. Enabling `send`
+is distinct from a natural first candidate, API acceptance and final processing.
+No test visit, dialogue or synthetic conversion is created to demonstrate it.
 
 No existing native post is recreated, republished or reconciled by this change.
 No feed is imported into Direct and no ad spend is started by these endpoints.
