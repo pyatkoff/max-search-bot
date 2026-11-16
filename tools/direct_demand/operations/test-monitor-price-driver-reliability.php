@@ -6,6 +6,7 @@ use DateTimeImmutable;
 use RuntimeException;
 use Throwable;
 
+if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 // Exercise source-extracted driver functions/blocks. Never include its main,
 // application config, transport, child process, database or production paths.
 $driver=(string)file_get_contents(__DIR__.'/monitor-price-after-collection.php');

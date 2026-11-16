@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 // Pure contracts and temporary local streams; no driver, runtime or provider is loaded.
 require_once __DIR__.'/monitor-price-hook-contract.php';
 $checks=0;
