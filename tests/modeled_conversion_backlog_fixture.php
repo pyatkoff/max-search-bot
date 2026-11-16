@@ -167,6 +167,7 @@ function modeledBacklogAssertions(PDO $p,callable $check):void
         &&($overflow['coverage']['complete_within_bound']??true)===false
         &&($overflow['interpretation']['incomplete_bound_is_not_the_whole_backlog']??false));
     modeledBacklogOperationalGrowthAssertions($p,$check);
+    require_once __DIR__.'/modeled_conversion_intake_fixture.php';modeledIntakeCoverageAssertions($p,$check);
 }
 
 

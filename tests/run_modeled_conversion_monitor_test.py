@@ -937,5 +937,19 @@ class VisitProofRefreshTests(unittest.TestCase):
         self.assertTrue(set(flags).isdisjoint(monitor.ROLE_FLAGS["external"]))
         self.assertEqual(monitor.clean_flags(flags), sorted(flags))
 
+    def test_intake_gap_flags_use_the_existing_private_pipeline_notification_path(self):
+        flags = ["intake_capture_stale", "intake_profile_stale", "intake_value_collection_stale"]
+        self.assertTrue(set(flags).issubset(monitor.ROLE_FLAGS["pipeline"]))
+        self.assertTrue(set(flags).isdisjoint(monitor.ROLE_FLAGS["external"]))
+        for flag in flags:
+            status, parsed = monitor.health_view(health("degraded", [flag]))
+            self.assertEqual((status, parsed), ("degraded", [flag]))
+            text = monitor.message_for({"kind": "incident", "flags": [flag]}, "pipeline")
+            self.assertIn("15 минут", text)
+            self.assertNotIn("₽", text)
+            self.assertNotIn(RECIPIENT, text)
+            with self.assertRaises(ValueError):
+                monitor.role_guard(None, "external", [flag])
+
 if __name__ == "__main__":
     unittest.main()
