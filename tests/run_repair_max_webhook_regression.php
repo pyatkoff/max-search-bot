@@ -892,5 +892,122 @@ foreach(['service-battery-replacement'=>'Замена аккумулятора',
 repairCheck('unreviewed iPhone17 service remains unavailable',
     AppleService39PilotCatalog::modelServicePayload('model-iphone-17','service-home-button-repair')===null);
 
+// An existing coverage service must survive navigation within the same device.
+// These expected labels are fixed independently of the catalogue implementation.
+$coverageContextServices = [
+    'service-charging-port-replacement'=>'Замена разъёма зарядки',
+    'service-microphone-replacement'=>'Ремонт микрофона',
+    'service-loudspeaker-replacement'=>'Ремонт внешнего динамика',
+    'service-front-camera-replacement'=>'Ремонт передней камеры',
+    'service-home-button-repair'=>'Ремонт кнопки Home',
+    'service-power-button-repair'=>'Ремонт кнопки включения',
+    'service-antenna-repair'=>'Ремонт антенн и связи',
+    'service-software-recovery'=>'Восстановление ПО iPhone',
+    'service-diagnostics'=>'Диагностика iPhone',
+    'service-housing-repair'=>'Ремонт и замена корпуса',
+];
+$coverageContextPdo = repairFixture(); $coverageContextSent = []; $coverageContextNotices = [];
+$coverageContextFactory = static function () use (&$coverageContextSent): MaxMessengerAdapter {
+    return new MaxMessengerAdapter(static function ($chat, string $text) use (&$coverageContextSent): string {
+        $coverageContextSent[] = $text;
+        return 'isolated_coverage_context_'.count($coverageContextSent);
+    },null,'system',null,false);
+};
+$coverageContextHandle = static function (array $update) use ($coverageContextFactory,&$coverageContextNotices): array {
+    return RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),$update,$coverageContextFactory,
+        static function (int $id) use (&$coverageContextNotices): void { $coverageContextNotices[] = $id; });
+};
+$coverageContextEvents = static function (int $id) use ($coverageContextPdo): array {
+    return $coverageContextPdo->query("SELECT id,payload_json FROM conversation_events WHERE conversation_id=$id AND event_type='bot_started' ORDER BY id")->fetchAll();
+};
+$coverageContextUser = 9700; $coverageContextTime = 1800000300000;
+foreach ($coverageContextServices as $post=>$service) {
+    $user = ++$coverageContextUser; $time = ($coverageContextTime += 10);
+    $sentBefore = count($coverageContextSent); $noticesBefore = count($coverageContextNotices);
+    $coverageContextHandle(repairStart($user,'as39_model-iphone-8',$time));
+    $conversation = repairConversation($coverageContextPdo,'appleservice39',$user);
+    $id = (int)$conversation['id'];
+    $coverageContextPdo->exec("UPDATE conversations SET status='manager',manager_id=88 WHERE id=$id");
+    $result = $coverageContextHandle(repairStart($user,'as39_'.$post,$time+1));
+    $conversation = repairConversation($coverageContextPdo,'appleservice39',$user);
+    $selected = ['model'=>'iPhone 8','service'=>$service,'entry_code'=>'as39_'.$post];
+    repairCheck('coverage service entry captures the selected device and canonical service '.$post,
+        $result['status'] === 200 && json_decode($conversation['metadata_json'],true)['repair_context'] === $selected
+        && repairEntryPayload($coverageContextPdo,$id)['repair_context'] === $selected
+        && str_contains(end($coverageContextSent),'iPhone 8') && str_contains(end($coverageContextSent),$service)
+        && !str_contains(end($coverageContextSent),'Какая у вас модель'));
+    $oldEvents = $coverageContextEvents($id);
+
+    $menuStart = repairStart($user,'as39_menu',$time+2);
+    $result = $coverageContextHandle($menuStart);
+    $menuContext = ['model'=>'iPhone 8','service'=>$service,'entry_code'=>'as39_menu'];
+    repairCheck('menu keeps the selected coverage service in its captured reply '.$post,
+        $result['status'] === 200
+        && json_decode(repairConversation($coverageContextPdo,'appleservice39',$user)['metadata_json'],true)['repair_context'] === $selected
+        && repairEntryPayload($coverageContextPdo,$id)['repair_context'] === $menuContext
+        && str_contains(end($coverageContextSent),'iPhone 8') && str_contains(end($coverageContextSent),$service)
+        && !str_contains(end($coverageContextSent),'Какая у вас модель'));
+
+    $sameStart = repairStart($user,'as39_model-iphone-8',$time+3);
+    $result = $coverageContextHandle($sameStart);
+    $sameContext = ['model'=>'iPhone 8','service'=>$service,'entry_code'=>'as39_model-iphone-8'];
+    repairCheck('same model reentry retains the selected coverage service '.$post,
+        $result['status'] === 200
+        && json_decode(repairConversation($coverageContextPdo,'appleservice39',$user)['metadata_json'],true)['repair_context'] === $sameContext
+        && repairEntryPayload($coverageContextPdo,$id)['repair_context'] === $sameContext
+        && str_contains(end($coverageContextSent),$service)
+        && !str_contains(end($coverageContextSent),'Расскажите, что произошло'));
+
+    $result = $coverageContextHandle(repairStart($user,'as39_model-iphone-11',$time+4));
+    $differentContext = ['model'=>'iPhone 11','service'=>'','entry_code'=>'as39_model-iphone-11'];
+    $conversation = repairConversation($coverageContextPdo,'appleservice39',$user);
+    repairCheck('another model does not inherit the old coverage repair '.$post,
+        $result['status'] === 200 && json_decode($conversation['metadata_json'],true)['repair_context'] === $differentContext
+        && repairEntryPayload($coverageContextPdo,$id)['repair_context'] === $differentContext
+        && str_contains(end($coverageContextSent),'iPhone 11') && !str_contains(end($coverageContextSent),$service));
+    $events = $coverageContextEvents($id);
+    repairCheck('coverage navigation preserves historical answers and the existing manager '.$post,
+        array_slice($events,0,count($oldEvents)) === $oldEvents
+        && count($events) === 5 && count($coverageContextSent) === $sentBefore+5
+        && $conversation['status'] === 'manager' && (int)$conversation['manager_id'] === 88
+        && (int)$conversation['source_id'] === 21 && count($coverageContextNotices) === $noticesBefore+1
+        && (int)$coverageContextPdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=$id AND event_type='waiting_manager'")->fetchColumn() === 1);
+    $menuReplay = $coverageContextHandle($menuStart); $sameReplay = $coverageContextHandle($sameStart);
+    repairCheck('historical coverage entry replay is quiet after the device changes '.$post,
+        $menuReplay['result'] === 'duplicate' && $sameReplay['result'] === 'duplicate'
+        && count($coverageContextSent) === $sentBefore+5 && count($coverageContextNotices) === $noticesBefore+1
+        && $coverageContextEvents($id) === $events
+        && repairConversation($coverageContextPdo,'appleservice39',$user)['metadata_json'] === $conversation['metadata_json']);
+}
+
+$coverageContextHandle(repairStart(9720,'as39_service-microphone-replacement',1800000300200));
+$partialConversation = repairConversation($coverageContextPdo,'appleservice39',9720);
+$coverageContextHandle(repairStart(9720,'as39_menu',1800000300201));
+repairCheck('service-only menu entry retains its known service without inventing a model',
+    repairEntryPayload($coverageContextPdo,(int)$partialConversation['id'])['repair_context']
+        === ['model'=>'','service'=>'Ремонт микрофона','entry_code'=>'as39_menu']
+    && repairConversation($coverageContextPdo,'appleservice39',9720)['metadata_json'] === $partialConversation['metadata_json']);
+
+foreach (['Ремонт микрофона','Ремонт микрофона ','Непроверенная услуга'] as $index=>$storedService) {
+    $user = 9730+$index; $time = 1800000300300+$index*10;
+    $coverageContextHandle(repairStart($user,'as39_model-iphone-8',$time));
+    $conversation = repairConversation($coverageContextPdo,'appleservice39',$user);
+    $id = (int)$conversation['id']; $metadata = json_decode($conversation['metadata_json'],true);
+    $metadata['repair_context'] += ['price'=>'999999','price_text'=>'invented-price','post_url'=>'https://invalid.example/forged'];
+    $metadata['repair_context']['service'] = $storedService;
+    $coverageContextPdo->prepare('UPDATE conversations SET metadata_json=? WHERE id=?')
+        ->execute([json_encode($metadata,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$id]);
+    $expectedService = $index === 0 ? 'Ремонт микрофона' : '';
+    foreach (['as39_menu','as39_model-iphone-8'] as $step=>$payload) {
+        $coverageContextHandle(repairStart($user,$payload,$time+$step+1));
+        $event = repairEntryPayload($coverageContextPdo,$id);
+        repairCheck('coverage context accepts exact labels only and never carries mutable prices '.$index.' '.$payload,
+            $event['repair_context'] === ['model'=>'iPhone 8','service'=>$expectedService,'entry_code'=>$payload]
+            && !str_contains(end($coverageContextSent),'999999') && !str_contains(end($coverageContextSent),'invented-price')
+            && !str_contains(end($coverageContextSent),'invalid.example')
+            && !str_contains(end($coverageContextSent),'Непроверенная услуга'));
+    }
+}
+
 echo 'TOTAL '.$passed.' passed'.PHP_EOL;
 
