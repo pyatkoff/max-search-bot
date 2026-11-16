@@ -952,6 +952,7 @@ PHP
             $check('greeting is not a city answer', DepartureCityResolver::isUnresolvedCityLikeAnswer('Здравствуйте'), false);
             $check('month is not a city answer', DepartureCityResolver::isUnresolvedCityLikeAnswer('Февраль'), false);
             $check('inflected month is not a city answer', DepartureCityResolver::isUnresolvedCityLikeAnswer('Декабря'), false);
+            $check('free-form correction is not a city answer', DepartureCityResolver::isUnresolvedCityLikeAnswer('Перенесём поездку'), false);
             $check('compound trip is not a bare city', DepartureCityResolver::isUnresolvedCityLikeAnswer('Минск на 7 ночей'), false);
         } elseif ($jointHandoff) {
             require_once $tmp . '/tests/fixtures/channel_post_entry_fixture.php';
