@@ -33,12 +33,14 @@ function modeledIntakeCoverageAssertions(PDO $p,callable $check):void
             $p->prepare('INSERT INTO customers VALUES(?)')->execute([$id]);
             $p->prepare("INSERT INTO customer_channels VALUES(?,?,'anytour',?,?,?)")->execute([$id,$id,$platform,$peer,$chat]);
             $p->prepare("INSERT INTO conversations VALUES(?,?,?,'anytour',?,?,0)")->execute([$id,$id,$id,$platform,$chat]);
+            if($i===2)continue;
             $message->execute([1000+$i,$id,$platform,'inbound','customer','PRIVATE_NATIVE_INTAKE_TEXT_'.$i,$stamp,gmdate('Y-m-d H:i:s',$now-1800)]);
         }
         $p->prepare("INSERT INTO conversation_events VALUES(1001,41001,'customer_need','customer',?,?)")->execute([$stamp,gmdate('Y-m-d H:i:s',$now-1800)]);
         $message->execute([2001,41001,'max','inbound','manager','PRIVATE_OPERATOR_NOT_CUSTOMER',$stamp,gmdate('Y-m-d H:i:s',$now-1800)]);
         $message->execute([2002,41001,'max','inbound','customer','PRIVATE_CLOCKLESS_NATIVE','{}',gmdate('Y-m-d H:i:s',$now-1800)]);
         $captured=$stream->tick($now-1200);
+        $message->execute([1002,41002,'max','inbound','customer','PRIVATE_FIRST_UNCAPTURED_INPUT',$stamp,gmdate('Y-m-d H:i:s',$now-1800)]);
         $check('intake fixture uses real canonical native capture and both source kinds',($captured['new_revisions']??0)>=9);
         $p->exec("INSERT INTO modeled_conversion_profiles_state VALUES('anytour',1,100000,NULL,NULL,NULL)");
         $p->prepare("INSERT INTO modeled_conversion_value_export_settings VALUES('anytour','98615635',4,'send','678187097',?)")->execute([ModeledConversionValueContract::VERSION]);
@@ -52,10 +54,9 @@ function modeledIntakeCoverageAssertions(PDO $p,callable $check):void
         $namespace=ModeledConversionProfiles::assessmentNamespace();
         foreach([1=>41001,2=>41008,3=>41006,4=>41007,5=>41005,6=>41004]as$id=>$conversation){
             $platform=$conversation>=41007?'telegram':'max';
-            $p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour',?,?,?,100000,?,?,?)")
-                ->execute([$id,$platform,(string)$conversation,(string)$conversation,$now-1000,$id===6?str_repeat('f',64):$namespace,'{"private":"PRIVATE_PROFILE_NOT_COPIED"}']);
+            $p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour',?,?,?,?,?,?,?)")
+                ->execute([$id,$platform,(string)$conversation,(string)$conversation,$id===6?0:100000,$now-1000,in_array($id,[3,6],true)?str_repeat('f',64):$namespace,'{"private":"PRIVATE_PROFILE_NOT_COPIED"}']);
         }
-        $p->exec("UPDATE messages SET text='PRIVATE_EDIT_AFTER_CAPTURE' WHERE id=1002");
         foreach([[1,41001,'max','71001','processed',333,'88001'],[2,41007,'telegram','71007','pending',500,null],[3,41008,'telegram','71008','pending',700,null]]as$r)
             $p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,'anytour','98615635',?,?,?,'anytour_modeled_value_v1',?,? ,?,?,?)")
                 ->execute([$r[0],$r[2],$r[1],$r[3],ModeledConversionValueContract::VERSION,$now-900,$r[4],$r[5],$r[6]]);
@@ -76,8 +77,8 @@ function modeledIntakeCoverageAssertions(PDO $p,callable $check):void
             ($r['available']??false)&&($r['coverage']['native_clock_scope_complete']??false)&&$a['inputs']===9&&$a['conversations']===8
             &&$a['wait_capture']===1&&$a['wait_index']===1&&$a['wait_profile']===1&&$a['wait_collector']===1
             &&$a['profiled']===5&&$a['collected']===4&&$a['late_capture']===1&&$a['late_profile']===2&&$a['late_collector']===1);
-        $check('current native content changes cannot inherit an older captured hash or a different model generation',
-            $a['captured']===7&&$a['indexed']===6&&$a['no_increment']===1
+        $check('source indexing and fresh-profile coverage distinguish a missing snapshot from an older saved model',
+            $a['captured']===7&&$a['indexed']===6&&$a['no_increment']===1&&$a['current_model_profiles']===4
             &&ModeledConversionDeliveryHealth::intakeFlags($r)===['intake_capture_stale','intake_profile_stale','intake_value_collection_stale']);
         $check('cohort value and Telegram identity coverage preserve native bindings and distinct ClientIDs without financial permission',
             $a['goal_events']===3&&$a['goal_value_rub']===1533.0&&$a['goal_processed']===1&&$a['goal_pending']===2
@@ -101,6 +102,10 @@ function modeledIntakeCoverageAssertions(PDO $p,callable $check):void
         $fresh=(new ModeledConversionIntakeCoverageReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($now);
         $check('fresh uncaptured input is visible immediately without a premature technical alarm',
             $fresh['available']&&$fresh['all']['wait_capture']===1&&$fresh['all']['late_capture']===0);
+        $p->exec("UPDATE messages SET text='PRIVATE_EDIT_AFTER_CAPTURE' WHERE id=1006");
+        $edited=(new ModeledConversionIntakeCoverageReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($now);
+        $check('an edited old input with no new recording clock is visible without aging the edit from its original creation',
+            $edited['available']&&$edited['all']['wait_capture']===2&&$edited['all']['late_capture']===0);
         $p->prepare("UPDATE conversation_events SET actor_type='manager' WHERE id=1001")->execute();
         $roles=(new ModeledConversionIntakeCoverageReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($now);
         $check('manager events and unmarked legacy clocks never enter the current customer-clock denominator',

@@ -44,11 +44,12 @@ final class ModeledConversionIntakeCoverageReader
                 'state'=>['capture_enabled'=>(string)$m['se']==='1','profiles_enabled'=>(string)$m['pe']==='1','delivery_mode'=>$m['vm']],
                 'coverage'=>null,'all'=>null,'by_platform'=>[],
                 'interpretation'=>['all_inputs_are_checked_not_only_accruals'=>true,'clockless_inputs_not_assigned_to_a_day'=>true,
-                    'source_hash_and_current_native_binding_are_checked'=>true,'saved_profile_metadata_is_not_semantic_validation'=>true,
+                    'source_hash_and_current_native_binding_are_checked'=>true,'saved_profile_metadata_is_not_semantic_validation'=>true,'old_model_alone_is_not_a_missing_profile'=>true,
+                    'changed_payload_without_new_recording_clock_has_unknown_capture_age'=>true,
                     'no_increment_does_not_prove_a_missed_conversion'=>true,'stored_identity_candidate_is_not_attribution_permission'=>true,
                     'messages_and_events_do_not_establish_trip_boundaries'=>true,'no_ids_text_provider_requests_or_source_writes'=>true],
                 'provider_requests'=>0,'model_calls'=>0,'conversion_uploads'=>0];
-            $keys=['inputs','conversations','captured','indexed','profiled','collected','wait_capture','wait_index','wait_profile','wait_collector','no_increment',
+            $keys=['inputs','conversations','captured','indexed','profiled','current_model_profiles','collected','wait_capture','wait_index','wait_profile','wait_collector','no_increment',
                 'late_capture','late_profile','late_collector','goal_conversations','goal_events','goal_pending','goal_ready','goal_accepted','goal_processed','goal_other',
                 'stored_identity_conversations','tg_no_observation','tg_unverified','tg_no_client','tg_later','tg_unavailable','tg_unique','tg_ambiguous'];
             $seen=[];
@@ -113,7 +114,7 @@ final class ModeledConversionIntakeCoverageReader
         $profileCustomer=$this->mysql?'CONVERT(CAST(n.customer_id AS CHAR) USING ascii) COLLATE ascii_bin':'CAST(n.customer_id AS TEXT)';
         $profileConversation=$this->mysql?'CONVERT(CAST(n.conversation_id AS CHAR) USING ascii) COLLATE ascii_bin':'CAST(n.conversation_id AS TEXT)';
         $base="WITH native AS (SELECT * FROM (".$native.") native_both ORDER BY persisted DESC,kind,id DESC LIMIT ".self::LIMIT."),"
-            ."captured AS (SELECT n.*,CASE WHEN ".$bound." THEN j.id ELSE NULL END AS jid,"
+            ."captured AS (SELECT n.*,j.observed_at_unix AS j_witness,CASE WHEN ".$bound." THEN j.id ELSE NULL END AS jid,"
             ."CASE WHEN ".$bound." THEN j.observed_at_unix ELSE NULL END AS captured_at,"
             ."CASE WHEN ".$bound." AND i.journal_id=j.id AND HEX(i.source_status)=HEX('present')"
             ." AND HEX(i.platform)=HEX(n.platform) AND HEX(i.customer_key)=HEX(CAST(n.customer_id AS ".$cast."))"
@@ -123,12 +124,12 @@ final class ModeledConversionIntakeCoverageReader
             ." LEFT JOIN modeled_conversion_profile_sources i ON i.project_key=s.project_key AND i.source_kind=s.source_kind AND i.source_id=s.source_id),"
             ."scopes AS (SELECT platform,conversation_id,customer_id,external_user_id,COUNT(*) AS inputs,MIN(persisted) AS first_at,MAX(persisted) AS last_at,"
             ."SUM(CASE WHEN jid IS NOT NULL THEN 1 ELSE 0 END) AS captures,SUM(indexed_ok) AS indexed_count,MAX(jid) AS last_jid,MAX(captured_at) AS last_capture,"
-            ."MIN(CASE WHEN jid IS NULL THEN persisted ELSE NULL END) AS missing_capture_at,"
-            ."MIN(CASE WHEN jid IS NOT NULL AND indexed_ok=0 THEN persisted ELSE NULL END) AS missing_index_at"
+            ."MIN(CASE WHEN jid IS NULL AND (j_witness IS NULL OR persisted>j_witness) THEN persisted ELSE NULL END) AS missing_capture_at,"
+            ."MIN(CASE WHEN jid IS NOT NULL AND indexed_ok=0 THEN captured_at ELSE NULL END) AS missing_index_at"
             ." FROM captured GROUP BY platform,conversation_id,customer_id,external_user_id),"
             ."selected AS (SELECT n.*,(SELECT p.id FROM modeled_conversion_profile_versions p WHERE p.project_key='anytour' AND HEX(p.project_key)=HEX('anytour')"
             ." AND p.platform=".$profilePlatform." AND p.customer_key=".$profileCustomer." AND p.conversation_id=".$profileConversation
-            ." AND HEX(p.assessment_namespace)=HEX(?) AND p.journal_cursor>=n.last_jid AND p.observed_at_unix>=n.last_capture"
+            ." AND p.journal_cursor>=n.last_jid AND p.observed_at_unix>=n.last_capture"
             ." AND p.observed_at_unix<=".$now." ORDER BY p.id DESC LIMIT 1) AS profile_id FROM scopes n),"
             ."goal_rows AS (SELECT o.id,o.platform,o.conversation_id,o.state,o.value_rub,o.client_id FROM max_channel_conversion_outbox o JOIN scopes n"
             ." ON n.platform=o.platform AND n.conversation_id=o.conversation_id AND HEX(o.external_user_id)=HEX(n.external_user_id)"
@@ -143,7 +144,7 @@ final class ModeledConversionIntakeCoverageReader
             ."SUM(CASE WHEN state IN ('accepted','uploading') THEN 1 ELSE 0 END) AS accepted,SUM(CASE WHEN state='processed' THEN 1 ELSE 0 END) AS processed,"
             ."SUM(CASE WHEN state NOT IN ('pending','ready','accepted','uploading','processed') OR state IS NULL THEN 1 ELSE 0 END) AS other"
             ." FROM goal_rows GROUP BY platform,conversation_id),"
-            ."profiled AS (SELECT n.*,p.observed_at_unix AS profile_at,COALESCE(g.events,0) AS goal_events,COALESCE(g.value_rub,0) AS goal_value_rub,"
+            ."profiled AS (SELECT n.*,CASE WHEN HEX(p.assessment_namespace)=HEX(?) THEN 1 ELSE 0 END AS current_model_profile,p.observed_at_unix AS profile_at,COALESCE(g.events,0) AS goal_events,COALESCE(g.value_rub,0) AS goal_value_rub,"
             ."COALESCE(g.identities,0) AS identities,COALESCE(g.pending,0) AS goal_pending,COALESCE(g.ready,0) AS goal_ready,"
             ."COALESCE(g.accepted,0) AS goal_accepted,COALESCE(g.processed,0) AS goal_processed,COALESCE(g.other,0) AS goal_other,"
             ."CASE WHEN n.captures<n.inputs THEN 0 WHEN n.indexed_count<n.inputs THEN 1 WHEN n.profile_id IS NULL THEN 2"
@@ -164,7 +165,7 @@ final class ModeledConversionIntakeCoverageReader
             ." FROM profiled n),cohort_groups AS (SELECT 'all' AS platform UNION ALL SELECT 'max' UNION ALL SELECT 'telegram') ";
         $columns=["g.platform","COUNT(n.conversation_id) AS conversations","COALESCE(SUM(n.inputs),0) AS inputs",
             "(SELECT COUNT(*) FROM native) AS native_rows","(SELECT COUNT(*) FROM goal_rows) AS goal_rows"];
-        $conditions=['captured'=>'step>=1','indexed'=>'step>=2','profiled'=>'step>=3','collected'=>'step=4','wait_capture'=>'step=0',
+        $conditions=['captured'=>'step>=1','indexed'=>'step>=2','profiled'=>'step>=3','current_model_profiles'=>'step>=3 AND current_model_profile=1','collected'=>'step=4','wait_capture'=>'step=0',
             'wait_index'=>'step=1','wait_profile'=>'step=2','wait_collector'=>'step=3','no_increment'=>'step=4 AND goal_events=0',
             'late_capture'=>'step=0 AND missing_capture_at<='.($now-self::GRACE_SECONDS),
             'late_profile'=>'(step=1 AND missing_index_at<='.($now-self::GRACE_SECONDS).') OR (step=2 AND last_capture<='.($now-self::GRACE_SECONDS).')',
