@@ -135,7 +135,9 @@ function deadlineText(d){if(d===null)return 'Срок обещания не ук
 function selection(){return JSON.stringify([$('promiseTaskKind').value,$('promiseTaskTask').value,$('promiseTaskDeadlineMode').value,$('promiseTaskDate').value,$('promiseTaskInstant').value]);}
 function controls(){
  const v=view;if(!v||!dialog?.open)return;
- const locked=!!v.busy||!!v.pending||!!v.confirmed;
+ // A read-only choice preview may be superseded by another choice. Saving
+ // and receipt reconciliation retain their existing form locks.
+ const locked=(!!v.busy&&!(v.busy==='preview'&&v.selectionPreview))||!!v.pending||!!v.confirmed;
  for(const id of ['promiseTaskKind','promiseTaskTask','promiseTaskDeadlineMode','promiseTaskDate','promiseTaskInstant'])$(id).disabled=locked||!v.loaded;
  if(v.proposal&&!v.proposalVerified&&!v.pending)for(const id of ['promiseTaskKind','promiseTaskDeadlineMode','promiseTaskDate','promiseTaskInstant'])$(id).disabled=true;
  $('promiseTaskDateWrap').hidden=$('promiseTaskDeadlineMode').value!=='date';
@@ -157,7 +159,21 @@ function controls(){
 }
 function edit(){
  const v=view;if(!v||v.pending||v.confirmed)return;
- abortRead();v.busy='';v.ready=null;v.profileRequired=false;$('promiseTaskReview').hidden=true;status('');controls();
+ abortRead();v.busy='';v.selectionPreview=false;v.ready=null;v.profileRequired=false;$('promiseTaskReview').hidden=true;status('');controls();
+}
+// Only a committed field change in an AI suggestion starts this read. An
+// input event invalidates an older read; its following change starts one new
+// request. This path never calls save, confirm, dispatch or a task writer.
+async function previewChoice(){
+ const v=view;
+ if(!v?.proposal||!current(v)||v.busy||v.pending||v.confirmed||!v.loaded||v.storageBlocked)return false;
+ const taskId=Number($('promiseTaskTask').value);
+ if(!positive(taskId)||!v.tasks.some(task=>Number(task.id)===taskId))return false;
+ if(v.proposalVerified){
+  if(!Object.hasOwn(kinds,$('promiseTaskKind').value))return false;
+  try{deadline();}catch(e){status(e.message);return false;}
+ }
+ return preview({fromSelection:true});
 }
 function renderProfile(p,binding){
  const root=$('promiseTaskProfile');root.replaceChildren();root.appendChild(node('h3',p.label||'Текущая поездка'));
@@ -198,7 +214,10 @@ function ensureDialog(){
  $('promiseTaskSourceMore').onclick=()=>{const expanded=$('promiseTaskSourceMore').getAttribute('aria-expanded')!=='true';$('promiseTaskSource').classList.toggle('expanded',expanded);$('promiseTaskSourceMore').setAttribute('aria-expanded',String(expanded));$('promiseTaskSourceMore').textContent=expanded?'Свернуть':'Показать полностью';};
  $('promiseTaskPlan').onclick=()=>{const v=view;if(!v||!current(v)||v.busy||v.pending)return;close({restoreFocus:false});void window.WorkspaceV2Tasks?.openPlanner();};
  $('promiseTaskProfileOpen').onclick=()=>{const v=view;if(!v||!current(v))return;const opener=v.opener;close({restoreFocus:false});void window.WorkspaceV2RequestProfile?.open(opener);};
- for(const id of ['promiseTaskKind','promiseTaskTask','promiseTaskDeadlineMode','promiseTaskDate','promiseTaskInstant']){ $(id).addEventListener('input',edit);$(id).addEventListener('change',edit); }
+ for(const id of ['promiseTaskKind','promiseTaskTask','promiseTaskDeadlineMode','promiseTaskDate','promiseTaskInstant']){
+  $(id).addEventListener('input',edit);
+  $(id).addEventListener('change',()=>{edit();void previewChoice();});
+ }
  dialog.addEventListener('cancel',event=>{event.preventDefault();close();});
  dialog.addEventListener('keydown',event=>event.stopPropagation());
  dialog.addEventListener('close',()=>{if(view&&!dialog.open)close();});
@@ -253,7 +272,7 @@ async function loadTasks(v){
  else if(v.storageBlocked)status('Не удалось прочитать сведения о незавершённых попытках. Сохранение пока недоступно.',true);
  else if(!v.tasks.length)status(v.canEdit?'Сначала запланируйте задачу. Сообщение можно связать с ней позже.':'В этом диалоге пока нет задач. Их добавляет ответственный менеджер или администратор.');
  else if(!v.canEdit)status('Доступен просмотр существующей связи. Новую связь сейчас сохранить нельзя.');
- else if(v.proposal&&!v.proposalVerified)status('Выберите существующую задачу и нажмите «Сохранить связь», чтобы проверить предложение. Ничего не сохраняется до просмотра проверенных условий.');
+ else if(v.proposal&&!v.proposalVerified)status('Выберите существующую задачу — проверим обещание и условия. Связь сохранится только после нажатия «Сохранить связь».');
  else status('Укажите, что обещали отправить, выберите задачу и исходный срок.');
  controls();return true;
 }
@@ -265,7 +284,7 @@ async function openSource(sourceId,opener,proposal=null,proposalCurrent=null){
  close({restoreFocus:false});ensureDialog();
  const v={scope,sourceId:pending?.input.source_message_id||sourceId,opener,epoch:++epoch,overlay:false,
   originalStamp:messageStamp(candidate(pending?.input.source_message_id||sourceId)),loaded:false,tasks:[],canEdit:false,busy:'',ready:null,confirmed:null,
-  pending,notFound:false,storageBlocked:saved.blocked,profileRequired:false,reviewRequired:false,
+  pending,notFound:false,storageBlocked:saved.blocked,profileRequired:false,reviewRequired:false,selectionPreview:false,
   proposal:pending?null:proposal,proposalCurrent,proposalVerified:false};view=v;
  const overlay=window.WorkspaceV2Mobile?.openOverlay('promise-task',()=>close({fromHistory:true}));
  if(overlay===false){view=null;return false;}v.overlay=!!overlay;
@@ -289,16 +308,16 @@ const errors={profile_required:'Сначала сохраните запрос �
  source_changed:'Выбранное сообщение изменилось. Проверьте связь заново.',source_unavailable:'Это сообщение нельзя использовать как основание связи. Выберите исходящее сообщение менеджера текущей поездки.',
  binding_conflict:'Для обещания или задачи уже сохранена другая связь. Проверьте существующую связь.',task_closed:'Для новой связи нужна открытая задача.',task_not_found:'Задача больше недоступна. Загрузите список задач заново.',
  invalid_binding:'Данные привязки не приняты. Проверьте связь заново.',invalid_deadline:'Проверьте дату и время обещания.',operation_mismatch:'Данные сохранённой попытки не совпали. Повторное сохранение заблокировано.'};
-async function preview(){
+async function preview({fromSelection=false}={}){
  const v=view;if(!v||!current(v)||v.busy||v.pending||v.confirmed||!v.loaded||v.storageBlocked)return false;
  const firstCandidate=!!v.proposal&&!v.proposalVerified;
  const taskId=Number($('promiseTaskTask').value),kind=firstCandidate?v.proposal.kind:$('promiseTaskKind').value;let declared=null;
  if(!Object.hasOwn(kinds,kind)||!positive(taskId)||!v.tasks.some(t=>Number(t.id)===taskId)){status('Выберите результат и существующую задачу.',true);return false;}
  if(!firstCandidate)try{declared=deadline();}catch(e){status(e.message,true);return false;}
- abortRead();const run=ticket,signature=selection();read=new AbortController();v.busy='preview';v.ready=null;v.profileRequired=false;$('promiseTaskReview').hidden=true;status('Проверяем обещание и условия поездки…');controls();
+ abortRead();const run=ticket,signature=selection();read=new AbortController();v.busy='preview';v.selectionPreview=fromSelection;v.ready=null;v.profileRequired=false;$('promiseTaskReview').hidden=true;status('Проверяем обещание и условия поездки…');controls();
  const valid=()=>current(v)&&run===ticket&&selection()===signature;let result;
  try{result=await request('promise_context',{conversation_id:v.scope.conversationId,task_id:taskId,source_message_id:v.sourceId,kind},{controller:read,isCurrent:valid});}catch(e){result=null;}
- if(!valid())return false;read=null;v.busy='';
+ if(!valid())return false;read=null;v.busy='';v.selectionPreview=false;
  if(result?.error==='forbidden'||result?.http_status===403){refuse(v);return false;}
  if(!validContext(result,v,taskId,kind)){v.profileRequired=result?.error==='profile_required';if(definiteRejections.has(result?.error))v.reviewRequired=true;status(errors[result?.error]||'Не удалось проверить связь. Ничего не сохранено.',true);controls();return false;}
  if(v.proposal&&!candidateMatches(v.proposal,result)){
@@ -310,21 +329,26 @@ async function preview(){
   if(v.proposal.deadline!==null){setDeadline(v.proposal.deadline);declared=clone(v.proposal.deadline);v.reviewRequired=true;}
   else if(!result.binding){
    v.ready=null;renderPreview(v,result,null);$('promiseTaskDeclaredDeadline').textContent=v.proposal.deadline_text?'Срок из реплики: «'+v.proposal.deadline_text+'». Укажите дату, точное время или явно выберите «Срок не указан».':'Срок в предложении не определён. Укажите его явно либо выберите «Срок не указан».';
-   status('Источник проверен. Выберите срок явно, затем нажмите «Сохранить связь».');controls();$('promiseTaskDeadlineMode').focus({preventScroll:true});return true;
+   status('Источник проверен. Выберите срок явно, затем нажмите «Сохранить связь».');controls();
+   if(!fromSelection)$('promiseTaskDeadlineMode').focus({preventScroll:true});return true;
   }
  }
  v.ready={result,deadline:declared,signature:selection()};renderPreview(v,result,declared);
+ // Record the exact displayed summary, not permission to write. Save still
+ // rereads and compares it; any difference needs a new explicit confirmation.
+ if(fromSelection){v.ready.needsReview=true;v.reviewRequired=true;}
  if(result.binding)status('Связь уже сохранена. Задача показана в её текущем состоянии.');
  else if(!result.can_bind||!v.canEdit)status(result.task.status==='done'?'Для новой связи нужна открытая задача.':'Новую связь для этой задачи сейчас сохранить нельзя.',true);
- else status('Сообщение, задача и условия поездки проверены.');
+ else status(fromSelection?'Проверьте обещание, задачу и срок. Чтобы сохранить связь, нажмите «Сохранить связь».':'Сообщение, задача и условия поездки проверены.');
  controls();return true;
 }
 function reviewStamp(result){return JSON.stringify([result.profile,result.source,result.task,result.can_bind,result.binding]);}
 function taskReviewStamp(task){return JSON.stringify([Number(task?.id),task?.title,task?.due_at_utc,task?.status]);}
 async function save(){
  const v=view;if(!v||!current(v)||v.busy||v.pending||v.confirmed)return false;
- // Every click reads the current verified context. A second explicit click can
- // acknowledge only the exact summary already shown, never a changed version.
+ // Every click reads the current verified context. The choice preview (or a
+ // previous explicit review) authorizes only the exact summary already shown.
+ // Changed evidence is displayed first and requires a new explicit click.
  const firstCandidateReview=!!v.proposal&&!v.proposalVerified&&!v.reviewRequired;
  const reviewed=v.ready?.needsReview&&v.ready.signature===selection()?reviewStamp(v.ready.result):null;
  if(!await preview()||!current(v))return false;
