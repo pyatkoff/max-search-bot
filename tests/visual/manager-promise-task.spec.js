@@ -121,13 +121,13 @@ for(const {width,height,candidate} of bindingViewports)test(`${candidate?'AI can
     await page.locator('#promiseTaskSourceMore').click();
   }
   await expect(page.locator('#promiseTaskTask')).toHaveValue('');
-  await page.locator('#promiseTaskTask').selectOption('77');
   if(candidate){await expect(page.locator('#promiseTaskKind')).toHaveValue('');await expect(page.locator('#promiseTaskDeadlineMode')).toHaveValue('');await expect(page.locator('#promiseTaskKind')).toBeDisabled();}
-  else{await page.locator('#promiseTaskKind').selectOption('send_calculation');await page.locator('#promiseTaskDeadlineMode').selectOption('date');await page.locator('#promiseTaskDate').fill('2030-11-20');}
+  await page.locator('#promiseTaskTask').selectOption('77');
+  if(!candidate){await page.locator('#promiseTaskKind').selectOption('send_calculation');await page.locator('#promiseTaskDeadlineMode').selectOption('date');await page.locator('#promiseTaskDate').fill('2030-11-20');}
   await expect(page.locator('#promiseTaskConfirm')).toHaveText('Сохранить связь');await expect(page.locator('#promiseTaskConfirm')).toBeEnabled();await expect(page.locator('#promiseTaskPreview')).toHaveCount(0);
   await expect(page.locator('#promiseTaskSource')).toContainText(candidate?'Пришлю согласованный расчёт на двоих 20.11.2030.':'Пришлю согласованный расчёт на двоих.');
   if(candidate){
-    await page.locator('#promiseTaskConfirm').click();
+    // Task choice performs the read; there has been no Save click yet.
     await expect(page.locator('#promiseTaskKind')).toHaveValue('send_calculation');await expect(page.locator('#promiseTaskDate')).toHaveValue('2030-11-20');
     await expect(page.locator('#promiseTaskProfile')).toContainText('Зимняя поездка');await expect(page.locator('#promiseTaskProfile')).toContainText('20 ноября, 7 ночей');
     await expect(page.locator('#promiseTaskTaskSummary')).toContainText('Подготовить согласованный расчёт');await expect(page.locator('#promiseTaskConfirm')).toBeEnabled();

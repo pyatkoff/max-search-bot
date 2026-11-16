@@ -46,9 +46,9 @@ async function harness({candidate={},envelope={},outside=true,storage,server}={}
     aiCalls:()=>h.calls.filter(call=>call.url==='ai-draft.php'),contexts:()=>h.calls.filter(call=>call.action==='promise_context'),
     async show(){assert.equal(await ai.openPrepared(),true)},async open(){await h.actions()[0].click();await tick();assert.equal(h.$('promiseTaskDialog')?.open,true)}});
 }
-async function checked(h){await h.open();await field(h,'promiseTaskTask','77');assert.equal(await h.P.save(),false);assert.equal(h.writes().length,0);}
+async function checked(h){await h.open();await field(h,'promiseTaskTask','77');assert.equal(h.contexts().length,1);assert.equal(h.writes().length,0);}
 
-test('no-contact candidate outside the transcript uses one Save control and verifies before seeding or writing',async()=>{
+test('task choice previews a no-contact candidate outside the transcript before one final Save',async()=>{
   const h=await harness(),before=h.snapshot();await h.show();
   assert.equal(h.aiCalls().length,1);assert.equal(h.aiCalls()[0].action,'prepared_preview');assert.equal(h.contexts().length,0);assert.equal(h.writes().length,0);
   assert.equal(h.cards().length,1);assert.match(h.$('aiDraftPanel').textContent,/Предложение по обещанию менеджера/);
@@ -56,7 +56,7 @@ test('no-contact candidate outside the transcript uses one Save control and veri
   assert.equal(h.W.S.detail.messages.some(message=>message.id===12),false);assert.equal(h.$('aiDraftInsert').hidden,true);
   await h.open();assert.equal(h.$('promiseTaskKind').value,'');assert.equal(h.$('promiseTaskDeadlineMode').value,'');assert.equal(h.$('promiseTaskKind').disabled,true);
   assert.equal(await h.P.save(),false);assert.equal(h.contexts().length,0);
-  await field(h,'promiseTaskTask','77');assert.equal(await h.P.save(),false);
+  await field(h,'promiseTaskTask','77');assert.equal(h.writes().length,0);
   assert.equal(h.contexts()[0].source_message_id,12);assert.equal(h.$('promiseTaskKind').value,'send_calculation');assert.equal(h.$('promiseTaskDeadlineMode').value,'date');assert.equal(h.$('promiseTaskDate').value,'2026-11-14');
   assert.equal(h.$('promiseTaskConfirm').hidden,false);assert.equal(h.$('promiseTaskConfirm').textContent,'Сохранить связь');assert.equal(h.document.querySelector('#promiseTaskPreview'),null);
   assert.equal(h.$('promiseTaskStatus').textContent,'Проверьте обещание, задачу и срок. Чтобы сохранить связь, нажмите «Сохранить связь».');
@@ -85,7 +85,7 @@ test('unknown or absent deadline text never silently means the manager selected 
     assert.match(h.$('promiseTaskStatus').textContent,/Выберите срок явно/);assert.equal(h.$('promiseTaskConfirm').hidden,false);assert.equal(h.$('promiseTaskConfirm').textContent,'Сохранить связь');
     assert.equal(await h.P.save(),false);assert.equal(h.contexts().length,1);assert.equal(h.writes().length,0);
     await field(h,'promiseTaskDeadlineMode','none');assert.equal(await h.P.save(),true);
-    assert.equal(h.writes()[0].deadline,null);assert.equal(h.contexts().length,2);h.preserved(before);
+    assert.equal(h.writes()[0].deadline,null);assert.equal(h.contexts().length,3);h.preserved(before);
   }
 });
 
@@ -102,7 +102,7 @@ test('changed source, trip or profile pins reject seeding without rebasing the o
 test('fresh canonical needs-review status is shown without replacing immutable candidate pins',async()=>{
   const h=await harness();await h.show();h.server.profile.status='needs_review';await checked(h);
   assert.match(h.$('promiseTaskProfile').textContent,/Сверьте текущие условия/);assert.equal(h.$('promiseTaskConfirm').hidden,false);assert.equal(h.promise.profile_status,'fresh');
-  assert.match(h.$('promiseTaskStatus').textContent,/Задача, сообщение или условия изменились/);assert.equal(h.$('promiseTaskStatus').classList.contains('error'),true);
+  assert.match(h.$('promiseTaskStatus').textContent,/Задача или условия требуют проверки/);assert.equal(h.$('promiseTaskStatus').classList.contains('error'),true);
   assert.equal(await h.P.save(),true);assert.equal(h.writes()[0].profile_sha256,h.promise.profile_sha256);
 });
 
@@ -111,7 +111,7 @@ test('a suggested instant keeps its seconds through a second task preview and re
   Object.assign(h.promise,{quote:h.server.sources[12].text,deadline_text:instant,deadline:{kind:'instant',value:instant}});
   await h.show();assert.match(h.cards()[0].textContent,/20\.11\.2030 15:45:42 МСК/);await checked(h);
   assert.equal(h.$('promiseTaskInstant').value,'2030-11-20T15:45:42');assert.match(h.$('promiseTaskDeclaredDeadline').textContent,/15:45:42 МСК/);
-  await field(h,'promiseTaskTask','78');assert.equal(await h.P.save(),false);assert.equal(h.writes().length,0);assert.equal(await h.P.save(),true);
+  await field(h,'promiseTaskTask','78');assert.equal(h.writes().length,0);assert.equal(await h.P.save(),true);
   assert.deepEqual(h.writes()[0].deadline,{kind:'instant',value:'2030-11-20T12:45:42Z'});assert.equal(h.writes()[0].task_id,78);
 });
 
@@ -142,10 +142,10 @@ test('snapshot, identity and expiry changes fence captured candidate actions bef
 
 test('closing or invalidating an in-flight canonical preview cannot seed a new workspace or reopen the modal',async()=>{
   for(const change of [h=>h.P.close(),h=>{h.ai.resetSession()},h=>{h.W.S.authGeneration++;h.P.reset(true)},h=>{h.W.S.manager={...h.W.S.manager,id:8};h.P.reset(true)}]){
-    const h=await harness(),wait=deferred();await h.show();await h.open();await field(h,'promiseTaskTask','77');
-    h.intercept((url,request)=>request.action==='promise_context'?wait.promise:null);const reading=h.P.save();await tick();const request=h.contexts()[0];change(h);
+    const h=await harness(),wait=deferred();await h.show();await h.open();
+    h.intercept((url,request)=>request.action==='promise_context'?wait.promise:null);const reading=field(h,'promiseTaskTask','77');await tick();const request=h.contexts()[0];change(h);
     await h.draft('Новый ручной ответ во время проверки');const file={name:'new-current.pdf'};h.setFile(file);const before=h.snapshot(),focused=h.document.activeElement;
-    wait.resolve(response(h.contextResponse(request)));assert.equal(await reading,false);assert.equal(h.$('promiseTaskKind').value,'');assert.equal(h.$('promiseTaskDeadlineMode').value,'');assert.equal(await h.P.save(),false);
+    wait.resolve(response(h.contextResponse(request)));await reading;assert.equal(h.$('promiseTaskKind').value,'');assert.equal(h.$('promiseTaskDeadlineMode').value,'');assert.equal(await h.P.save(),false);
     assert.equal(h.document.activeElement,focused);assert.equal(h.writes().length,0);h.preserved(before);
   }
 });
@@ -199,6 +199,71 @@ test('a durable UNKNOWN operation takes precedence over a different new candidat
   const next=await harness({storage:h.storage,server:h.server,candidate:{kind:'send_selection',source_message_id:13,source_message_revision:h.server.sources[13].revision,quote:h.server.sources[13].text,deadline_text:null,deadline:null,deadline_state:'manual_required'}});
   await next.show();await next.open();assert.equal(next.$('promiseTaskKind').value,'send_calculation');assert.equal(next.$('promiseTaskCheck').hidden,false);assert.equal(next.contexts().length,0);
   assert.equal(await next.P.check(),false);assert.equal(next.writes().length,0);assert.equal(await next.P.retry(),true);assert.deepEqual(next.writes()[0],original);
+});
+
+
+test('automatic preview preserves focus while an absent deadline still needs an explicit choice',async()=>{
+  const h=await harness({candidate:{deadline_text:null,deadline:null,deadline_state:'manual_required'}}),before=h.snapshot();
+  await h.show();await h.open();h.$('promiseTaskTask').focus();await field(h,'promiseTaskTask','77');
+  assert.equal(h.document.activeElement,h.$('promiseTaskTask'));assert.equal(h.$('promiseTaskDeadlineMode').value,'');
+  assert.equal(h.contexts().length,1);assert.equal(h.writes().length,0);h.preserved(before);
+  await field(h,'promiseTaskDeadlineMode','none');assert.equal(h.writes().length,0);assert.equal(await h.P.save(),true);
+  assert.equal(h.writes()[0].deadline,null);h.preserved(before);
+});
+
+test('rapid task choices ignore the old automatic preview even if its response arrives last',async()=>{
+  const h=await harness(),before=h.snapshot(),first=deferred(),second=deferred();await h.show();await h.open();
+  h.intercept((url,request)=>request.action==='promise_context'?(request.task_id===77?first.promise:second.promise):null);
+  h.$('promiseTaskTask').focus();const old=field(h,'promiseTaskTask','77');await tick();
+  const oldRequest=h.contexts()[0];assert.equal(h.$('promiseTaskTask').disabled,false);assert.equal(h.$('promiseTaskConfirm').disabled,true);
+  assert.equal(await h.P.save(),false);assert.equal(h.writes().length,0);
+  const latest=field(h,'promiseTaskTask','78');await tick();const latestRequest=h.contexts()[1];
+  second.resolve(response(h.contextResponse(latestRequest)));await latest;
+  first.resolve(response(h.contextResponse(oldRequest)));await old;
+  assert.equal(h.$('promiseTaskTask').value,'78');assert.match(h.$('promiseTaskTaskSummary').textContent,/Подготовить подборку/);
+  assert.equal(h.document.activeElement,h.$('promiseTaskTask'));assert.equal(h.writes().length,0);h.preserved(before);
+  h.intercept(null);assert.equal(await h.P.save(),true);assert.equal(h.writes()[0].task_id,78);h.preserved(before);
+});
+
+test('every changed displayed field or context stamp still needs renewed explicit confirmation',async()=>{
+  for(const change of [h=>{h.server.tasks[0].due_at_utc='2032-11-20 15:00:00'},h=>{h.server.profile.context_sha256='9'.repeat(64)},
+    h=>{h.server.profile.fields.dates.value='Уточнённые даты'},h=>{h.server.sources[12].recorded_at_utc='2026-11-13T10:00:00Z'}]){
+    const h=await harness(),before=h.snapshot();await h.show();await checked(h);change(h);
+    assert.equal(await h.P.save(),false);assert.equal(h.writes().length,0);
+    assert.match(h.$('promiseTaskStatus').textContent,/Задача, сообщение или условия изменились/);
+    assert.equal(await h.P.save(),true);assert.equal(h.contexts().length,3);assert.equal(h.writes().length,1);h.preserved(before);
+  }
+});
+
+test('manual deadline changes are previewed without reverting them on a different task choice',async()=>{
+  const h=await harness(),before=h.snapshot();await h.show();await checked(h);
+  await field(h,'promiseTaskDate','2031-02-05');assert.equal(h.writes().length,0);
+  await field(h,'promiseTaskTask','78');assert.equal(h.$('promiseTaskDate').value,'2031-02-05');assert.equal(h.writes().length,0);
+  assert.equal(await h.P.save(),true);assert.deepEqual(h.writes()[0].deadline,{kind:'date',value:'2031-02-05',zone:'Europe/Moscow'});
+  assert.equal(h.writes()[0].task_id,78);h.preserved(before);
+});
+
+test('a failed automatic read cannot turn its first recovery Save into an unseen write',async()=>{
+  const h=await harness(),before=h.snapshot();await h.show();await h.open();
+  h.intercept((url,request)=>request.action==='promise_context'?response({ok:false,error:'unavailable'},500):null);
+  await field(h,'promiseTaskTask','77');assert.equal(h.writes().length,0);assert.equal(h.$('promiseTaskKind').value,'');
+  assert.match(h.$('promiseTaskStatus').textContent,/Не удалось проверить связь/);h.intercept(null);
+  assert.equal(await h.P.save(),false);assert.equal(h.writes().length,0);assert.equal(await h.P.save(),true);h.preserved(before);
+});
+
+test('a completed task is inspectable but automatic preview cannot bind or reopen it',async()=>{
+  const h=await harness(),before=h.snapshot();h.server.tasks[0].status='done';await h.show();await checked(h);
+  assert.match(h.$('promiseTaskStatus').textContent,/нужна открытая задача/);assert.equal(await h.P.save(),false);
+  assert.equal(h.writes().length,0);assert.equal(h.server.tasks[0].status,'done');h.preserved(before);
+});
+
+test('clearing a task cancels the pending preview without seeding fields or writing',async()=>{
+  const h=await harness(),before=h.snapshot(),wait=deferred();await h.show();await h.open();
+  h.intercept((url,request)=>request.action==='promise_context'?wait.promise:null);
+  const reading=field(h,'promiseTaskTask','77');await tick();const request=h.contexts()[0];
+  await field(h,'promiseTaskTask','');wait.resolve(response(h.contextResponse(request)));await reading;
+  assert.equal(h.$('promiseTaskTask').value,'');assert.equal(h.$('promiseTaskKind').value,'');assert.equal(h.$('promiseTaskReview').hidden,true);
+  assert.equal(h.contexts().length,1);assert.equal(h.writes().length,0);assert.equal(await h.P.save(),false);h.preserved(before);
 });
 
 if(require.main===module)(async()=>{const match=process.argv.find(arg=>arg.startsWith('--match='))?.slice(8),selected=cases.filter(item=>!match||new RegExp(match).test(item.name));assert.ok(selected.length,'at least one requested case');let failed=0;for(const item of selected){try{await item.run();console.log('PASS '+item.name)}catch(error){failed++;console.error('FAIL '+item.name+'\n'+error.stack)}}console.log(`TOTAL ${selected.length} | PASS ${selected.length-failed} | FAIL ${failed}`);process.exitCode=failed?1:0})();
