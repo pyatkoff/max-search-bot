@@ -6,6 +6,34 @@ Roadmap/checkpoint thread: GitHub issue [#55](https://github.com/pyatkoff/max-se
 
 Primary language with the user: Russian.
 
+## Owner-transferred PR1596/1597 metadata recovery — 2026-11-17
+
+Pavel moved this work out of the full Manager2 conversation and requested recovery
+here. Preserve PR1600's existing source branch and independently accepted native
+nine-child classifier; do not start another installer or change either held record
+by hand. The current application remains fd9b28dab2147f13f3b0d0f7f856b14392b141d2.
+
+After exact-source required CI and independent review, one genuine initial push of
+`ops/recover-pr1597-terminal-20261117` at that checked source may enter only the
+existing serialized metadata recovery job. It authenticates original PR1597
+installation 44079440323, failed closer 44081722753/job134033721866 and the immutable
+pending record af7ee5c9aad44951cda9fd6b3f61f7947c232d44. All original gates, nine
+old skipped/zero-step children, both original PR bindings and same-owner versions
+must be proved. PR1596 Deploy44077678956/verify134026179047 remains failed
+`main_changed`; later PR1597 is a successor, not a successful old verification.
+
+The new `prior_failed_wave_v1` lineage records this distinction. The last native
+step first reconciles PR1596 as superseded, reads it back, then releases PR1597
+and reads it back. This is ordered, not atomic: any uncertain or partial write
+stops without retry and cannot produce an accepted current terminal. Main, live
+configuration, financial sends, customer messages and server installation are
+untouched. Optional runtime remains unobserved. Both original failures remain.
+
+Do not report closure from a JSON record alone: require the new original native
+proof upload and successful terminal step, canonical reader acceptance and both
+publisher readbacks. After this, ordinary admission of the prospective protocol
+correction is still separate; old consumers do not understand the new lineage.
+
 ## Owner-authorised PR1529 terminal publication recovery — 2026-11-13
 
 The owner explicitly approved a one-time recovery of PR1529's technical

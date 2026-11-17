@@ -254,6 +254,33 @@ const UNPUBLISHED_TERMINAL_RECOVERY=Object.freeze({
   owner_id:226193297,updated_at:'2026-11-13T15:47:04Z',
   original_code:'5b81f5e8f4e2d98aff760fc5d093f2d8f7d8ea88'
 });
+// Owner-transferred one-time metadata reconciliation of the 1596/1597 overlap.
+// Installation and failed original executions remain immutable.
+const PRIOR_WAVE_RECOVERY=Object.freeze({
+  branch:'ops/recover-pr1597-terminal-20261117',sha:'fd9b28dab2147f13f3b0d0f7f856b14392b141d2',
+  deploy:'44079440323',run_id:'44081722753',job_id:134033721866,
+  commit:'af7ee5c9aad44951cda9fd6b3f61f7947c232d44',blob:'dfc7eef713d4b6ab7f606420002f96c544e9e937',
+  record_digest:'3ffb405894009e90885b68cb3db652240d4a587c0547674d8ca6cc1c9ada65c3',
+  pr:1597,head_sha:'46f2ab2c01fcf1da5cea2d2f0c042fbbc0a676ff',comment_id:6928374515,
+  owner_id:226193297,updated_at:'2026-11-17T12:01:41Z',original_code:'39efce1e243ce68b2170a3f3a645b12f03496cd3',
+  old_children:Object.freeze([44079622025,44079621974,44079622090,44079622065,44079621931,44079621993,44079622033,44079622034,44079634544]),
+  previous:Object.freeze({sha:'c45b29452f8909eb190a04c6a54645400bb87c11',deploy:'44077678956',
+    verify_job_id:134026179047,pr:1596,head_sha:'96fd2b5ef87a8592cfc324308a72232b39e2a545',
+    comment_id:6682640708,owner_id:226193297,updated_at:'2026-11-17T11:49:29Z',
+    terminal:'PR1596: замещено PR1597; исходная проверка не завершена, выпуск свободен'})
+});
+function priorWaveRecovery(r){
+  const x=r.closure?.recovery,p=PRIOR_WAVE_RECOVERY;
+  requireValue(keys(x,['kind','source_sha','original_commit','original_blob','original_record_digest',
+    'original_run_id','original_job_id','superseded'])&&x.kind==='prior_failed_wave_v1'
+    &&sha(x.source_sha)&&x.source_sha!==p.sha&&r.repository_sha===p.sha&&r.kind==='installed'
+    &&r.release.run_id===p.deploy&&r.release.run_attempt===1&&r.closure.job==='release-slot-recovery'
+    &&r.closure.run_id!==p.run_id&&x.original_commit===p.commit&&x.original_blob===p.blob
+    &&x.original_record_digest===p.record_digest&&x.original_run_id===p.run_id&&x.original_job_id===p.job_id
+    &&same(x.superseded,p.previous)&&same(r.closure.binding,{pr:p.pr,head_sha:p.head_sha,
+      comment_id:p.comment_id,owner_id:p.owner_id,updated_at:p.updated_at}),
+    'invalid_prior_wave_recovery');return x;
+}
 function unpublishedTerminalRecovery(r){
   const x=r.closure?.recovery,p=UNPUBLISHED_TERMINAL_RECOVERY;
   requireValue(keys(x,['kind','source_sha','original_commit','original_blob','original_record_digest',
@@ -266,6 +293,7 @@ function unpublishedTerminalRecovery(r){
       owner_id:p.owner_id,updated_at:p.updated_at}),'invalid_unpublished_terminal_recovery');return x;
 }
 function recoveryBranch(r){
+  if(r.closure?.recovery?.kind==='prior_failed_wave_v1')return PRIOR_WAVE_RECOVERY.branch;
   return r.closure?.recovery?.kind==='unpublished_terminal_v1'?UNPUBLISHED_TERMINAL_RECOVERY.branch:TERMINAL_RECOVERY.branch;
 }
 function gateRecovery(r){
@@ -281,6 +309,7 @@ function gateRecovery(r){
       owner_id:p.owner_id,updated_at:p.updated_at}),'invalid_gate_recovery');return x;
 }
 function terminalRecovery(r){
+  if(r.closure?.recovery?.kind==='prior_failed_wave_v1')return priorWaveRecovery(r);
   if(r.closure?.recovery?.kind==='unpublished_terminal_v1')return unpublishedTerminalRecovery(r);
   if(r.closure?.recovery?.kind==='unstarted_tls_v1')return gateRecovery(r);
   const x=r.closure?.recovery,p=TERMINAL_RECOVERY;
@@ -534,6 +563,14 @@ async function authenticatePublication(api,location,{closed=false,diagnosticsHea
     producer_run_id:producer.run_id,producer_run_attempt:producer.run_attempt};
 }
 async function authenticateFailedTerminal(api,record){
+  if(record.repository_release?.closure?.recovery?.kind==='prior_failed_wave_v1'){
+    const r=validateRelease(record).release;priorWaveRecovery(r);
+    const proof=await failedPriorWaveTerminal(api),restored=clone(record);
+    restored.repository_release.phase='pending_closure';restored.repository_release.closure=null;
+    requireValue(same(restored,proof.original.record),'original_prior_wave_record_changed');
+    const C=require('./release_slot_close');
+    requireValue(same(C.gateReferences(proof.snapshot),r.closure.gates),'gates_changed');return proof;
+  }
   if(record.repository_release?.closure?.recovery?.kind==='unpublished_terminal_v1'){
     const r=validateRelease(record).release,p=UNPUBLISHED_TERMINAL_RECOVERY;
     unpublishedTerminalRecovery(r);
@@ -600,6 +637,71 @@ function failedGateJobs(tlsJobs,closeJobs){
     &&prepare.number<upload[0].number&&upload[0].number<terminal.number
     &&closer.steps.every(s=>s===prepare||['success','skipped'].includes(s.conclusion)),'failed_terminal_executed');
   return {tls,closer};
+}
+async function failedPriorWaveTerminal(api){
+  const p=PRIOR_WAVE_RECOVERY,q=p.previous,get=path=>api('GET',API_ROOT+path),C=require('./release_slot_close');
+  const original=await readRecord(api,p.commit);
+  requireValue(original.blob===p.blob&&original.record_digest===p.record_digest,'original_prior_wave_record_changed');
+  const r=validateRelease(original.record).release;
+  requireValue(r.repository_sha===p.sha&&r.phase==='pending_closure'&&r.kind==='installed'
+    &&r.release.run_id===p.deploy&&r.release.run_attempt===1,'original_prior_wave_record_changed');
+  await authenticatePublication(api,original);await deploymentProof(api,installationReceipt(original.record));
+  const run=await get('/actions/runs/'+p.run_id);
+  runIdentity(run,{id:p.run_id,attempt:1,head:p.sha,workflow:CLOSER,event:'workflow_run',conclusion:'failure'});
+  requireValue(run.display_title==='deploy-proof:v1:'+p.deploy+':1','failed_terminal_origin_changed');
+  const raw=await get('/actions/runs/'+p.run_id+'/attempts/1/jobs?per_page=100');
+  const jobs=boundedList(raw,'jobs','incomplete_failed_terminal_jobs'),rows=jobs.filter(j=>j.id===p.job_id&&j.name==='release-slot');
+  requireValue(jobs.length===3&&rows.length===1&&rows[0].run_id===Number(p.run_id)&&rows[0].run_attempt===1
+    &&rows[0].head_sha===p.sha&&rows[0].status==='completed'&&rows[0].conclusion==='failure'
+    &&Array.isArray(rows[0].steps),'failed_terminal_not_original');
+  const own=rows[0],one=(name,result)=>{const ss=own.steps.filter(s=>s.name===name);
+    requireValue(ss.length===1&&ss[0].status==='completed'&&ss[0].conclusion===result,'failed_terminal_executed');return ss[0];};
+  const prepare=one('Prepare the exact release proof before terminal publication','failure');
+  const upload=one(TERMINAL_BINDING_STEP,'skipped'),terminal=one(TERMINAL_STEP,'skipped');
+  requireValue(prepare.number<upload.number&&upload.number<terminal.number
+    &&own.steps.every(s=>s===prepare||['success','skipped'].includes(s.conclusion)),'failed_terminal_executed');
+  requireValue(['configure','release-slot-recovery'].every(name=>{
+    const ss=jobs.filter(j=>j.name===name);return ss.length===1&&ss[0].run_id===Number(p.run_id)
+      &&ss[0].head_sha===p.sha&&ss[0].run_attempt===1&&ss[0].status==='completed'
+      &&ss[0].conclusion==='skipped'&&Array.isArray(ss[0].steps)&&ss[0].steps.length===0;
+  }),'configuration_executed');
+  requireValue(boundedList(await get('/actions/runs/'+p.run_id+'/artifacts?per_page=100'),
+    'artifacts','incomplete_failed_terminal_artifacts').length===0,'original_terminal_already_published');
+  requireValue((await get('/contents/tools/release_slot_close.js?ref='+p.sha))?.sha===p.original_code,'original_terminal_source_changed');
+  requireValue(typeof api.jobLog==='function','original_terminal_log_unavailable');
+  const exactLog=async(job,reason)=>{
+    const bytes=await api.jobLog(job);
+    requireValue(Buffer.isBuffer(bytes)&&bytes.length>0&&bytes.length<=2*1024*1024
+      &&Buffer.from(bytes.toString('utf8')).equals(bytes),'original_terminal_log_unavailable');
+    const lines=bytes.toString('utf8').split(/\r?\n/).filter(l=>/^\d{4}-\d\d-\d\dT[0-9:.]+Z release_slot=/.test(l));
+    requireValue(lines.length===1&&lines[0].endsWith('Z release_slot=held reason='+reason),'failed_terminal_reason_changed');
+  };
+  await exactLog(p.job_id,'ambiguous_run');await exactLog(q.verify_job_id,'main_changed');
+  const previous=await get('/actions/runs/'+q.deploy);
+  runIdentity(previous,{id:q.deploy,attempt:1,head:q.sha,workflow:DEPLOY,event:'push',conclusion:'failure'});
+  const priorJobs=boundedList(await get('/actions/runs/'+q.deploy+'/attempts/1/jobs?per_page=100'),
+    'jobs','previous_deploy_jobs_incomplete');
+  requireValue(priorJobs.filter(j=>j.name==='verify'&&j.id===q.verify_job_id&&j.run_id===Number(q.deploy)
+    &&j.head_sha===q.sha&&j.run_attempt===1&&j.status==='completed'&&j.conclusion==='failure').length===1,
+    'previous_deploy_jobs_untrusted');
+  const previousBinding=C.binding(await get('/pulls/'+q.pr),q.sha);
+  requireValue(previousBinding&&same(C.bindingSnapshot(previousBinding),{pr:q.pr,head_sha:q.head_sha,
+    comment_id:q.comment_id,owner_id:q.owner_id,updated_at:q.updated_at}),'previous_binding_changed');
+  const c={sha:p.sha,deploy:Number(p.deploy),run:Number(p.run_id),configure:'skipped',activation:false,
+    terminalRecovery:true,priorWaveRecovery:true};
+  const rawSnapshot=await get('/actions/runs?head_sha='+p.sha+'&per_page=100');
+  const withoutOld=await C.selectPreviousFailedWave(rawSnapshot,c,get);
+  const removed=rawSnapshot.workflow_runs.filter(x=>!withoutOld.workflow_runs.some(y=>y.id===x.id)).map(x=>x.id).sort((a,b)=>a-b);
+  requireValue(same(removed,[...p.old_children].sort((a,b)=>a-b)),'original_previous_wave_missing');
+  const snapshot=await C.selectReleaseRuns(withoutOld,c,get);
+  // The classifier positively authenticates all nine exact old children and failed parent.
+  requireValue(!snapshot.waiting&&C.gateState(snapshot.runs,c)==='ready','gates_changed');
+  C.verifyConfigure(raw,c);
+  const a=snapshot.runs.workflow_runs.find(x=>x.path===PREFIX+C.ACTIVATION.file&&x.event==='workflow_run');
+  const aj=await get('/actions/runs/'+a.id+'/attempts/1/jobs?per_page=100');
+  C.verifyActivation(aj,a,c,snapshot.runs.workflow_runs.find(x=>x.path===PREFIX+'modeled-conversion-monitor.yml'&&x.event==='workflow_run')?.id);
+  requireValue(aj.jobs[0].steps.length===0,'activation_executed');
+  return {original,snapshot:snapshot.runs,previousBinding};
 }
 async function failedUnpublishedTerminal(api){
   const p=UNPUBLISHED_TERMINAL_RECOVERY,get=path=>api('GET',API_ROOT+path),C=require('./release_slot_close');
@@ -798,7 +900,8 @@ function makeReadApi(token,fetchImpl=globalThis.fetch,{sleep=waitForRetry}={}) {
   };
   api.jobLog=async job=>{
     requireValue([TERMINAL_RECOVERY.job_id,TERMINAL_RECOVERY.continuation_job_id,TERMINAL_RECOVERY.observation_job_id,
-      TERMINAL_RECOVERY.read_failure_job_id,GATE_RECOVERY.tls_job_id,UNPUBLISHED_TERMINAL_RECOVERY.job_id].includes(job),'untrusted_terminal_log');
+      TERMINAL_RECOVERY.read_failure_job_id,GATE_RECOVERY.tls_job_id,UNPUBLISHED_TERMINAL_RECOVERY.job_id,
+      PRIOR_WAVE_RECOVERY.job_id,PRIOR_WAVE_RECOVERY.previous.verify_job_id].includes(job),'untrusted_terminal_log');
     const response=await request('https://api.github.com'+API_ROOT+'/actions/jobs/'+job+'/logs',headers(false),'manual',2*1024*1024);
     if(Buffer.isBuffer(response))return response;
     let url;try{url=new URL(response.headers.get('location'));}catch{throw new Refusal('invalid_log_redirect');}
@@ -1292,7 +1395,8 @@ function argumentsOf(argv,commands) {
 function outputs(value){for(const [key,v]of Object.entries(value)){
   requireValue(/^[a-z_]+$/.test(key)&&!/[\r\n]/.test(String(v)),'invalid_output');process.stdout.write(key+'='+String(v)+'\n');}}
 module.exports={REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
-  TERMINAL_RECOVERY,GATE_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY,terminalRecovery,gateRecovery,
+  TERMINAL_RECOVERY,GATE_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY,PRIOR_WAVE_RECOVERY,
+  priorWaveRecovery,failedPriorWaveTerminal,terminalRecovery,gateRecovery,
   unpublishedTerminalRecovery,recoveryBranch,failedUnpublishedTerminal,authenticateFailedTerminal,
   failedGateJobs,failedGateEvidence,gateContinuationContext,continuationTls,
   CONTENT_POLICY,FINGERPRINT_PROTOCOL,RESOLVER_STEP,TERMINAL_STEP,MAX_RECORD,MAX_API,MAX_ARCHIVE,INSTALL_STAGES,OPS_STAGES,
