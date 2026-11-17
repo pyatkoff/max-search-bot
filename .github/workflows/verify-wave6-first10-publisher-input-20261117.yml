@@ -1,0 +1,196 @@
+name: Validate first ten publication inputs and freeze approved photos
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/verify-wave6-first10-publisher-input-20261117.yml']
+permissions:
+  actions: read
+  contents: write
+jobs:
+  accept-first-ten:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '070731020fb569d84ff4a9097b4cc5a2e37c108d' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          sparse-checkout: tools/direct_demand/operations
+      - name: Validate immutable sources and assemble the original sender input
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import hashlib
+          import io
+          import json
+          import os
+          from pathlib import Path
+          import re
+          import runpy
+          import subprocess
+          import zipfile
+          
+          REPO = 'pyatkoff/max-search-bot'
+          HEAD = os.environ['GITHUB_SHA']
+          BRANCH = 'audit/content100-bot-publication-20261101'
+          APP = 'f8c9a48625c599090c826c25e1480864e136f4e7'
+          IDS = [108317,11836,11746,11842,11882,8987,2685,8859,2335,58744]
+          LOCATIONS = {int(key): value for key, value in json.loads(r'''{"2335":"Нуса-Дуа, Индонезия","2685":"Дубай, ОАЭ","8859":"Рас-эль-Хайма, ОАЭ","8987":"Дубай, ОАЭ","11746":"восточное побережье, Маврикий","11836":"остров Дерош, Сейшелы","11842":"остров Маэ, Сейшелы","11882":"остров Праслин, Сейшелы","58744":"атолл Северный Мале, Мальдивы","108317":"остров Платт, Сейшелы"}''').items()}
+          KNOWN_PIN_CHANGES = [["f5975ab95de5f45e087eb7a0f768f566c5bca648","c6386e155d42bc83970edc95f35b3ebeb5140533"],["f0e04e9b4e0ed6859ced96279cbf0619931596e6","1982ff7368763edf8b7238c3142e3cc28579e991"],["db8181426091a685a79ee55991cde22671f0d9dd","94fb1988ac8caf90dc5103aa23c58e7aad6ea691"]]
+          PREFIX = '.github/traffic-publish/commercial-wave6-first10-20261117'
+          OPERATION = 'commercial-hotel-batch-20261117-42-v1'
+          
+          
+          def api(path, method='GET', body=None, timeout=120):
+              cmd = ['gh', 'api', '--method', method, f'repos/{REPO}/{path}']
+              stdin = None
+              if body is not None:
+                  cmd.extend(['--input', '-'])
+                  stdin = json.dumps(body).encode()
+              return subprocess.check_output(cmd, input=stdin, timeout=timeout)
+          
+          
+          def info(path, method='GET', body=None):
+              return json.loads(api(path, method, body))
+          
+          
+          def digest(content):
+              return hashlib.sha256(content).hexdigest()
+          
+          
+          def get_artifact(run, artifact, expected):
+              item = info(f'actions/artifacts/{artifact}')
+              if item['workflow_run']['id'] != run or item['digest'] != 'sha256:' + expected or item['expired']:
+                  raise ValueError('artifact lineage changed')
+              run_info = info(f'actions/runs/{run}')
+              if run_info.get('conclusion') != 'success' or run_info.get('run_attempt') != 1:
+                  raise ValueError('source workflow did not finish successfully')
+              raw = api(f'actions/artifacts/{artifact}/zip', timeout=130)
+              if digest(raw) != expected:
+                  raise ValueError('artifact archive checksum differs')
+              return zipfile.ZipFile(io.BytesIO(raw))
+          
+          
+          source = Path('tools/direct_demand/operations')
+          intake = Path('tools/direct_demand/operations/commercial-expansion-wave6-100-native-candidates-20261117.json').read_bytes()
+          drafts = json.loads(intake)
+          assert drafts['editorial_batch']['order'] == IDS
+          by_id = {row['native_tourvisor_id']: row for row in drafts['rows']}
+          registry_zip = get_artifact(44180890584, 14371762403, 'b0cff80d071712d29b9bfc236e7c481a52217f915f909909b51f65c18ffb88e3')
+          registry_bytes = registry_zip.read('registry-receipt.json')
+          registry = json.loads(registry_bytes)
+          assert set(IDS) <= set(registry['native_hotel_ids'])
+          assert registry['installed_sha'] == APP and set(registry['channels']) == {'telegram', 'max'}
+          assert not set(IDS) & {row['requested_id'] for row in registry['matches']}
+          
+          review_zip = get_artifact(44179714212, 14372210778, '9d80583d7f1d0e8bb2d10840457395600454546c5adf244d0388ddd718a69870')
+          cover_receipt_bytes = review_zip.read('receipt.json')
+          cover_receipt = json.loads(cover_receipt_bytes)
+          assert cover_receipt['input_sha256'] == digest(intake)
+          reviewed = {row['native_tourvisor_id']: row for row in cover_receipt['rows']}
+          photos = get_artifact(44179714212, 14372685196, '309598a906c0cc704afcd3068993524135d3fb7de9b3c36cc366fc23f629d28c')
+          
+          main = info('git/ref/heads/main')['object']['sha']
+          assert main == APP
+          d = json.loads(base64.b64decode(info('contents/deploy_status.json?ref=diagnostics')['content']))
+          release = d['repository_release']
+          assert release['kind'] == 'installed' and d['sha'] == release['application_sha'] == release['repository_sha'] == APP
+          assert str(release['release']['run_id']) == '44177455495'
+          assert all(stage['result']=='success' for stage in release['stages'].values())
+          gates = {gate['path'].rsplit('/',1)[-1]: gate for gate in release['closure']['gates']}
+          required = {'deploy.yml', 'retired-domain-guard.yml', 'max-tls-preflight.yml', 'max-production-health.yml',
+                      'telegram-production-health.yml', 'publish-conversation-diagnostics.yml', 'live-session-diagnostics.yml',
+                      'tour-selection-host.yml', 'modeled-conversion-monitor.yml'}
+          assert required <= gates.keys()
+          assert all(gates[name]['conclusion']=='success' and gates[name]['head_sha']==APP and gates[name]['run_attempt']==1 for name in required)
+          app_tree = info('git/trees/' + APP + '?recursive=1')
+          assert not app_tree['truncated']
+          live_pins = {entry['path']:entry['sha'] for entry in app_tree['tree']}
+          template_path = source / 'commercial-batch-template-20261102.php'
+          template = template_path.read_text(encoding='utf-8')
+          original_pins = re.findall(r'"([^"]+)"=>"([a-f0-9]{40})"',template)
+          assert len(original_pins) == 22
+          for name, original in original_pins:
+              assert live_pins[name] == dict(KNOWN_PIN_CHANGES).get(original, original)
+          assert subprocess.check_output(['git','hash-object',str(source/'prepare-commercial-batch.py')],text=True).strip()=='8df7a35474b138364b6e6c010af4fa484e350ddb'
+          
+          repo_entries = []
+          manifest = {'schema_version':1,'operation':OPERATION,'state':'PREPARED_NOT_SENT',
+                      'button_text':'✈️ Узнать стоимость тура','expected_new_full_pairs':len(IDS),'rows':[]}
+          for hotel_id in IDS:
+              row, evidence = by_id[hotel_id], reviewed[hotel_id]
+              assert row['editorial']['status'] == 'copy_reviewed'
+              assert evidence['status'] == 'preview_ready' and evidence['publication_allowed'] is False
+              path = f'{PREFIX}/{hotel_id}.png'
+              original = photos.read(f'{hotel_id}.png')
+              assert original.startswith(b'\x89PNG\r\n\x1a\n') and digest(original) == evidence['png_sha256']
+              assert len(evidence['photo_sources']) == 3
+              assert all(photo['source_url'] in row['source_photo_samples'] for photo in evidence['photo_sources'])
+              blob = info('git/blobs','POST',{'content':base64.b64encode(original).decode(),'encoding':'base64'})
+              git_digest=hashlib.sha1(b'blob '+str(len(original)).encode()+b'\0'+original).hexdigest()
+              assert blob['sha'] == git_digest
+              repo_entries.append({'path':path,'mode':'100644','type':'blob','sha':git_digest})
+              edit = row['editorial']
+              caption = f"✈️ Туры в {edit['display_name']}\n📍 {LOCATIONS[hotel_id]}.\n\n{edit['body']}\n\nПодберём тур на ваши даты."
+              manifest['rows'].append({'hotel_id':hotel_id,'logical_id':f'commercial-hotel-{hotel_id}-v1',
+                        'aliases':row['aliases_to_check'], 'text':caption,
+                        'text_sha256':digest(caption.encode()), 'photo_path':path, 'photo_sha256':digest(original),
+                        'media_state':'REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED',
+                        'sources':edit['official_sources']+[row['profile_url']]+[p['source_url'] for p in evidence['photo_sources']]})
+          
+          assert info('git/ref/heads/' + BRANCH)['object']['sha'] == HEAD
+          parent = info('git/commits/' + HEAD)
+          tree = info('git/trees','POST',{'base_tree':parent['tree']['sha'],'tree':repo_entries})
+          frozen = info('git/commits','POST',{'message':'HOTEL CONTENT: freeze visually checked covers for ten hotels', 'tree':tree['sha'],'parents':[HEAD]})['sha']
+          manifest['photo_freeze_commit'] = frozen
+          manifest['native_id_namespace'] = 'Tourvisor'
+          for row in manifest['rows']:
+              row['photo_url'] = f"https://raw.githubusercontent.com/{REPO}/{frozen}/{row.pop('photo_path')}"
+          
+          raw=(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n').encode()
+          approval={'schema_version':1,'operation':OPERATION,'expected_installed_sha':APP,'hotel_ids':IDS,'manifest_sha256':digest(raw)}
+          prepare=runpy.run_path(str(source/'prepare-commercial-batch.py'))['prepare']
+          php, _=prepare(template,raw,approval)
+          for previous, current in KNOWN_PIN_CHANGES:
+              assert php.count(previous) == 1 and php.count(current) == 0
+              php=php.replace(previous,current)
+          
+          output=Path('accepted-source')
+          output.mkdir()
+          package={'manifest.json':raw,'approval.json':(json.dumps(approval,ensure_ascii=False,indent=2)+'\n').encode(),
+                   'publisher-unexecuted.php':php.encode(),'registry-receipt.json':registry_bytes,
+                   'image-receipt.json':cover_receipt_bytes}
+          for name, content in package.items():
+              (output / name).write_bytes(content)
+          
+          assert info('git/ref/heads/' + BRANCH)['object']['sha'] == HEAD
+          assert info('git/ref/heads/main')['object']['sha'] == APP
+          ref=info('git/refs/heads/' + BRANCH,'PATCH',{'sha':frozen,'force':False})
+          assert ref['object']['sha']==frozen
+          for row in manifest['rows']:
+              fetch=subprocess.check_output(['curl','--fail','--silent','--show-error','--max-time','15','--retry','1',row['photo_url']],timeout=38)
+              assert digest(fetch)==row['photo_sha256']
+          
+          receipt={'state':'FIRST_TEN_SOURCE_VERIFIED', 'operation':OPERATION, 'native_hotel_ids':IDS,
+                    'installed_app_sha':APP,'cover_commit':frozen,'poster_calls':0,'feed_writes':0,
+                    'source_sha256':{name:digest(content) for name,content in package.items()}}
+          (output/'source-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps(receipt))
+          PY
+          php -l accepted-source/publisher-unexecuted.php
+      - name: Preserve the verified source package
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: commercial-wave6-first10-accepted-source
+          path: accepted-source/
+          retention-days: 30
+          if-no-files-found: warn
