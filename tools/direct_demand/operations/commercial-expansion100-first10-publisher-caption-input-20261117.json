@@ -1,0 +1,334 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-17",
+  "operation": "commercial-expansion100-first10-caption-cover-input-only",
+  "state": "EDITORIAL_AND_TOURVISOR_PHOTO_SOURCES_REVIEWABLE_NOT_SENT",
+  "publisher_template": "tools/direct_demand/operations/prepare-commercial-batch.py and commercial-batch-template-20261102.php",
+  "source_blob": "911b3c6d59ef8b319a7a323385b03325a08863ff",
+  "button_text": "✈️ Узнать стоимость тура",
+  "destination": [
+    "main MAX AnyTour",
+    "main Telegram AnyTour"
+  ],
+  "summary": {
+    "rows": 10,
+    "linked_to_anytour": 10,
+    "vendor_photo_source_rows": 10,
+    "real_png_frozen": 0,
+    "posts_sent": 0,
+    "feed_rows_new": 0
+  },
+  "guard": "Do not pass as approved publish manifest. Publisher requires actual verified immutable branded PNG cover and exact content hash. Unlinked EXP023 and other holders are not included; no new price claims.",
+  "rows": [
+    {
+      "work_id": "EXP002",
+      "hotel_id": 12120,
+      "anytour_canonical_id": 5371,
+      "hotel": "Anantara Kihavah Maldives Villas",
+      "logical_id": "commercial-hotel-12120-v1",
+      "text": "✈️ Туры в Anantara Kihavah Maldives Villas\n📍 Атолл Баа, Мальдивы.\n\nУединённый остров с виллами у пляжа и над лагуной, каждая с собственным бассейном.\n🐠 Красивый домашний риф для снорклинга.\n🍽 Подводный ресторан SEA и обсерватория над океаном.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "current commercial-batch caption, human-editorial confirmation pending",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=12120",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/12120-30165207.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/12120-30165000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/12120-30165101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/12120-30165102.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_12120",
+        "telegram": "tg_12120"
+      },
+      "publisher_gates_remaining": [
+        "Visual approve exact photo/cover",
+        "Freeze actual PNG to immutable GitHub URL with SHA256",
+        "Current Site-native hotel identity and dedup",
+        "Existing publisher PREPARED_NOT_SENT immutable manifest and owner approval",
+        "Confirmed original MAX/TG receipts, bot and three feed XML"
+      ]
+    },
+    {
+      "work_id": "EXP032",
+      "hotel_id": 64957,
+      "anytour_canonical_id": 6014,
+      "hotel": "Kudadoo Maldives Private Island",
+      "logical_id": "commercial-hotel-64957-v1",
+      "text": "✈️ Туры в Kudadoo Maldives Private Island\n📍 Атолл Лавиани, Мальдивы.\n\nКамерный частный остров всего с 15 виллами над водой и собственными бассейнами.\n✨ Персональный батлер и отдых с максимумом приватности.\n🌊 Снорклинг, водные развлечения и спа-программы.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "current commercial-batch caption, human-editorial confirmation pending",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64957",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64957-1208500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64957-1208501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64957-1208502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64957-1208503.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_64957",
+        "telegram": "tg_64957"
+      },
+      "publisher_gates_remaining": [
+        "Visual approve exact photo/cover",
+        "Freeze actual PNG to immutable GitHub URL with SHA256",
+        "Current Site-native hotel identity and dedup",
+        "Existing publisher PREPARED_NOT_SENT immutable manifest and owner approval",
+        "Confirmed original MAX/TG receipts, bot and three feed XML"
+      ]
+    },
+    {
+      "work_id": "EXP058",
+      "hotel_id": 76029,
+      "anytour_canonical_id": 6202,
+      "hotel": "The Ritz-Carlton Maldives, Fari Islands",
+      "logical_id": "commercial-hotel-76029-v1",
+      "text": "✈️ Туры в The Ritz-Carlton Maldives, Fari Islands\n📍 Атолл Северный Мале, Мальдивы.\n\nДизайнерские виллы с приватными бассейнами над лагуной или у пляжа.\n👨‍👩‍👧 Ritz Kids для семейного отдыха.\n🧘 Спа-центр над водой и сервис персонального батлера.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "current commercial-batch caption, human-editorial confirmation pending",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76029",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/76029-13278620.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/76029-13278100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/76029-13278201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/76029-13278202.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_76029",
+        "telegram": "tg_76029"
+      },
+      "publisher_gates_remaining": [
+        "Visual approve exact photo/cover",
+        "Freeze actual PNG to immutable GitHub URL with SHA256",
+        "Current Site-native hotel identity and dedup",
+        "Existing publisher PREPARED_NOT_SENT immutable manifest and owner approval",
+        "Confirmed original MAX/TG receipts, bot and three feed XML"
+      ]
+    },
+    {
+      "work_id": "EXP069",
+      "hotel_id": 66198,
+      "anytour_canonical_id": 5160,
+      "hotel": "Waldorf Astoria Maldives Ithaafushi",
+      "logical_id": "commercial-hotel-66198-v1",
+      "text": "✈️ Туры в Waldorf Astoria Maldives Ithaafushi\n📍 Итаафуши, Мальдивы.\n\nПросторные виллы у пляжа, на рифе и над водой, каждая с частным бассейном.\n🐠 Снорклинг у островного рифа.\n🍽 Одиннадцать ресторанов и красивые площадки для ужинов у океана.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "current commercial-batch caption, human-editorial confirmation pending",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66198",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/66198-38326805.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/66198-38326700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/66198-38326701.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/66198-38326802.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_66198",
+        "telegram": "tg_66198"
+      },
+      "publisher_gates_remaining": [
+        "Visual approve exact photo/cover",
+        "Freeze actual PNG to immutable GitHub URL with SHA256",
+        "Current Site-native hotel identity and dedup",
+        "Existing publisher PREPARED_NOT_SENT immutable manifest and owner approval",
+        "Confirmed original MAX/TG receipts, bot and three feed XML"
+      ]
+    },
+    {
+      "work_id": "EXP072",
+      "hotel_id": 49750,
+      "anytour_canonical_id": 5794,
+      "hotel": "Soneva Jani",
+      "logical_id": "commercial-hotel-49750-v1",
+      "text": "✈️ Туры в Soneva Jani\n📍 Атолл Нуну, Мальдивы.\n\nВиллы над просторной бирюзовой лагуной с собственными бассейнами.\n💦 В отдельных категориях есть горки прямо в воду.\n🧸 Детское пространство The Den и отдых для всей семьи.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "current commercial-batch caption, human-editorial confirmation pending",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=49750",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/soneva-jani-resort-102407365.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/soneva-jani-resort-102407350.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/soneva-jani-resort-102407351.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/soneva-jani-resort-102407352.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_49750",
+        "telegram": "tg_49750"
+      },
+      "publisher_gates_remaining": [
+        "Visual approve exact photo/cover",
+        "Freeze actual PNG to immutable GitHub URL with SHA256",
+        "Current Site-native hotel identity and dedup",
+        "Existing publisher PREPARED_NOT_SENT immutable manifest and owner approval",
+        "Confirmed original MAX/TG receipts, bot and three feed XML"
+      ]
+    },
+    {
+      "work_id": "EXP092",
+      "hotel_id": 123247,
+      "anytour_canonical_id": 7218,
+      "hotel": "Jumeirah Marsa Al Arab",
+      "logical_id": "commercial-hotel-123247-v1",
+      "text": "✈️ Туры в Jumeirah Marsa Al Arab\n📍 Дубай, ОАЭ.\n\nСовременный курорт на берегу моря с собственным пляжем и четырьмя бассейнами.\n👨‍👩‍👧 Есть семейный клуб для детей.\n🧘 Просторный спа-центр на трёх этажах и рестораны у воды.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "current commercial-batch caption, human-editorial confirmation pending",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=123247",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-marsa-al-arab-2113213.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-marsa-al-arab-2113201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-marsa-al-arab-2113202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-marsa-al-arab-2113203.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_123247",
+        "telegram": "tg_123247"
+      },
+      "publisher_gates_remaining": [
+        "Visual approve exact photo/cover",
+        "Freeze actual PNG to immutable GitHub URL with SHA256",
+        "Current Site-native hotel identity and dedup",
+        "Existing publisher PREPARED_NOT_SENT immutable manifest and owner approval",
+        "Confirmed original MAX/TG receipts, bot and three feed XML"
+      ]
+    },
+    {
+      "work_id": "EXP095",
+      "hotel_id": 48184,
+      "anytour_canonical_id": 12008,
+      "hotel": "Jumeirah Al Naseem",
+      "logical_id": "commercial-hotel-48184-v1",
+      "text": "✈️ Туры в Jumeirah Al Naseem\n📍 Дубай, ОАЭ.\n\nЭлегантный пляжный отель Madinat Jumeirah с видами на знаменитый Burj Al Arab.\n🏖 Собственный пляж и несколько бассейнов.\n👨‍👩‍👧 Детский клуб и комфортный семейный отдых.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "current commercial-batch caption, human-editorial confirmation pending",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=48184",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/madinat-jumeirah-al-naseem-102406331.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/madinat-jumeirah-al-naseem-102406330.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/madinat-jumeirah-al-naseem-102406342.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/madinat-jumeirah-al-naseem-102406343.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_48184",
+        "telegram": "tg_48184"
+      },
+      "publisher_gates_remaining": [
+        "Visual approve exact photo/cover",
+        "Freeze actual PNG to immutable GitHub URL with SHA256",
+        "Current Site-native hotel identity and dedup",
+        "Existing publisher PREPARED_NOT_SENT immutable manifest and owner approval",
+        "Confirmed original MAX/TG receipts, bot and three feed XML"
+      ]
+    },
+    {
+      "work_id": "EXP083",
+      "hotel_id": 32322,
+      "anytour_canonical_id": 5598,
+      "hotel": "Four Seasons Resort Dubai at Jumeirah Beach",
+      "logical_id": "commercial-hotel-32322-v1",
+      "text": "✈️ Туры в Four Seasons Resort Dubai at Jumeirah Beach\n📍 Дубай, ОАЭ.\n\nПляжный курорт с бассейнами и ресторанами у моря.\n🧸 Детская программа Kids For All Seasons.\n🍽 Рестораны на берегу и атмосфера спокойного премиального отдыха.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "current commercial-batch caption, human-editorial confirmation pending",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=32322",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-resort-dubai-at-jumeirah-beach-313100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-resort-dubai-at-jumeirah-beach-313101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-resort-dubai-at-jumeirah-beach-313102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-resort-dubai-at-jumeirah-beach-313103.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_32322",
+        "telegram": "tg_32322"
+      },
+      "publisher_gates_remaining": [
+        "Visual approve exact photo/cover",
+        "Freeze actual PNG to immutable GitHub URL with SHA256",
+        "Current Site-native hotel identity and dedup",
+        "Existing publisher PREPARED_NOT_SENT immutable manifest and owner approval",
+        "Confirmed original MAX/TG receipts, bot and three feed XML"
+      ]
+    },
+    {
+      "work_id": "EXP015",
+      "hotel_id": 28272,
+      "anytour_canonical_id": 10771,
+      "hotel": "Anantara Layan Phuket Resort",
+      "logical_id": "commercial-hotel-28272-v1",
+      "text": "✈️ Туры в Anantara Layan Phuket Resort\n📍 Пхукет, Таиланд.\n\nТихая бухта Лайан, зелёные холмы и роскошные виллы с бассейнами.\n🏖 Пляжный отдых у Андаманского моря.\n🧸 Детский клуб Chang и семейные развлечения.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "current commercial-batch caption, human-editorial confirmation pending",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=28272",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-phuket-layan-resort-spa-1013402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-phuket-layan-resort-spa-1013400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-phuket-layan-resort-spa-1013403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-phuket-layan-resort-spa-1013404.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_28272",
+        "telegram": "tg_28272"
+      },
+      "publisher_gates_remaining": [
+        "Visual approve exact photo/cover",
+        "Freeze actual PNG to immutable GitHub URL with SHA256",
+        "Current Site-native hotel identity and dedup",
+        "Existing publisher PREPARED_NOT_SENT immutable manifest and owner approval",
+        "Confirmed original MAX/TG receipts, bot and three feed XML"
+      ]
+    },
+    {
+      "work_id": "EXP081",
+      "hotel_id": 7458,
+      "anytour_canonical_id": 8689,
+      "hotel": "Four Seasons Resort The Nam Hai, Hoi An",
+      "logical_id": "commercial-hotel-7458-v1",
+      "text": "✈️ Туры в Four Seasons Resort The Nam Hai, Hoi An\n📍 Хойан, Вьетнам.\n\nУединённые виллы у широкого песчаного пляжа Ха Ми.\n🏊 Три бассейна, включая семейный.\n🏮 Вьетнамская кухня, кулинарные занятия и красивые маршруты по окрестностям Хойана.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "current commercial-batch caption, human-editorial confirmation pending",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=7458",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/nam-hai-hoi-an-412102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/nam-hai-hoi-an-412100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/nam-hai-hoi-an-412101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/nam-hai-hoi-an-412103.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_7458",
+        "telegram": "tg_7458"
+      },
+      "publisher_gates_remaining": [
+        "Visual approve exact photo/cover",
+        "Freeze actual PNG to immutable GitHub URL with SHA256",
+        "Current Site-native hotel identity and dedup",
+        "Existing publisher PREPARED_NOT_SENT immutable manifest and owner approval",
+        "Confirmed original MAX/TG receipts, bot and three feed XML"
+      ]
+    }
+  ]
+}
