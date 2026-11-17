@@ -16,7 +16,9 @@ require_once dirname(__DIR__).'/services/ManagerOutboundService.php';
 
 function isTranscriptPageQuery(string $sql): bool
 {
-    return preg_match('/^SELECT id,direction,sender_type,text,created_at,sender_id(?:,channel,metadata_json)? FROM messages /',$sql)===1;
+    return str_starts_with($sql,'SELECT id,direction,sender_type,text,created_at,sender_id FROM messages ')
+        ||(str_starts_with($sql,'SELECT id,direction,sender_type,text,created_at,sender_id,channel,CASE WHEN ')
+            &&str_contains($sql,' AS metadata_loaded FROM messages '));
 }
 
 final class HistoryFixtureStatement extends PDOStatement
@@ -26,7 +28,7 @@ final class HistoryFixtureStatement extends PDOStatement
     {
         $this->owner->executed[]=['sql'=>$this->queryString,'args'=>$params??[]];
         if(str_starts_with($this->queryString,'SELECT EXISTS(SELECT 1 FROM messages')&&$this->owner->beforeReplyCheck){$callback=$this->owner->beforeReplyCheck;$this->owner->beforeReplyCheck=null;$callback($this->owner);}
-        if((str_starts_with($this->queryString,'SELECT id,channel,direction,metadata_json')||(isTranscriptPageQuery($this->queryString)&&str_contains($this->queryString,',channel,metadata_json FROM messages')))&&$this->owner->failHydration)throw new RuntimeException('synthetic_hydration_failure');
+        if((str_starts_with($this->queryString,'SELECT id,channel,direction,metadata_json')||(isTranscriptPageQuery($this->queryString)&&str_contains($this->queryString,' AS metadata_loaded FROM messages ')))&&$this->owner->failHydration)throw new RuntimeException('synthetic_hydration_failure');
         if(str_starts_with($this->queryString,'INSERT INTO manager_conversation_reads')){
             $this->owner->readWrites++;
             if($this->owner->beforeReadWrite){$callback=$this->owner->beforeReadWrite;$this->owner->beforeReadWrite=null;$callback($this->owner);}
@@ -185,7 +187,7 @@ $pdo=fixture(750);$page=ManagerConversationService::detail(1,1,0,200,false);chec
 $pdo=fixture(501);$denied=ManagerConversationService::detail(1,2);$messageQueries=array_filter($pdo->executed,static fn($query)=>str_contains($query['sql'],'FROM messages'));check('denied service access neither reads messages nor writes read state',$denied===null&&$messageQueries===[]&&$pdo->readWrites===0);
 $pdo=fixture(501);$response=apiDetail(['conversation_id'=>1]);check('actual API returns latest page and suppresses false first-reply summary outside tail',$response['status']===200&&$response['body']['has_manager_reply']&&ids($response['body'])===range(302,501)&&cursor($pdo)===0);
 check('latest replied detail explicitly clears panel-only context',array_key_exists('handoff_context',$response['body'])&&$response['body']['handoff_context']===null);
-$pageQueries=transcriptPageQueries($pdo);$hydrateQueries=array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,channel,direction,metadata_json'));check('API fetches metadata in its one bounded page without a second hydration query',count($pageQueries)===1&&str_contains($pageQueries[0]['sql'],',channel,metadata_json FROM messages')&&$hydrateQueries===[]);
+$pageQueries=transcriptPageQueries($pdo);$hydrateQueries=array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,channel,direction,metadata_json'));check('API fetches metadata in its one bounded page without a second hydration query',count($pageQueries)===1&&str_contains($pageQueries[0]['sql'],' AS metadata_loaded FROM messages ')&&$hydrateQueries===[]);
 
 // The same server receipt must display the same instant despite mixed DB wall clocks.
 $pdo=fixture(6);
@@ -366,12 +368,31 @@ check('metadata sidecar includes exactly the final unread prefix and latest tail
 $actualHydrated=ManagerMessageMediaService::hydrate($captured['messages'],$selected);
 check('captured unread metadata preserves the complete canonical projection',$actualHydrated===$expectedHydrated);
 check('captured unread metadata has no fallback query or read write',count(transcriptPageQueries($pdo))===3&&array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,channel,direction,metadata_json'))===[]&&cursor($pdo)===200&&$pdo->readWrites===0);
-check('raw metadata and channel remain outside both direct and public message DTOs',array_filter($captured['messages'],static fn($row)=>array_key_exists('metadata_json',$row)||array_key_exists('channel',$row))===[]&&!str_contains(json_encode($actualHydrated,JSON_THROW_ON_ERROR),'private-'));
+check('raw metadata and channel remain outside both direct and public message DTOs',array_filter($captured['messages'],static fn($row)=>array_key_exists('metadata_json',$row)||array_key_exists('channel',$row)||array_key_exists('metadata_loaded',$row))===[]&&!str_contains(json_encode($actualHydrated,JSON_THROW_ON_ERROR),'private-'));
 $pdo->executed=[];$selected=[['id'=>1,'metadata_json'=>'stale-private-sidecar']];
 $denied=ManagerConversationService::detail(1,2,0,200,false,false,$selected);
 check('denied detail clears stale metadata before any message read',$denied===null&&$selected===[]&&array_filter($pdo->executed,static fn($query)=>str_contains($query['sql'],'FROM messages'))===[]&&$pdo->readWrites===0);
 $pdo=fixture(0,false);$selected=[['id'=>1]];$empty=ManagerConversationService::detail(1,1,0,200,false,false,$selected);
 check('empty detail clears metadata and never falls back to hydration',$selected===[]&&ManagerMessageMediaService::hydrate($empty['messages'],$selected)===[]&&array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,channel,direction,metadata_json'))===[]&&$pdo->readWrites===0);
+// Byte-size boundaries must defer large metadata, including UTF-8 documents
+// whose character count is below the byte cap. Only displayed missing IDs load.
+$pdo=fixture(501);$update=$pdo->prepare('UPDATE messages SET metadata_json=? WHERE id=?');
+foreach([302=>[4096,false],303=>[4097,false],304=>[4097,true]] as $id=>[$bytes,$unicode]){
+    $metadata=['type'=>'message','attachments'=>[['type'=>'image','provider'=>'telegram','file_id'=>'private-deferred-file','name'=>'Фото']],'private_padding'=>''];
+    $flags=JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE;$paddingBytes=$bytes-strlen(json_encode($metadata,$flags));
+    $metadata['private_padding']=$unicode?str_repeat('Я',intdiv($paddingBytes,2)).str_repeat('x',$paddingBytes%2):str_repeat('x',$paddingBytes);
+    $json=json_encode($metadata,$flags);
+    check('metadata boundary fixture has exact UTF-8 bytes #'.$id,strlen($json)===$bytes);
+    $update->execute([$json,$id]);
+}
+$legacy=ManagerConversationService::detail(1,1);$expectedHydrated=ManagerMessageMediaService::hydrate($legacy['messages']);
+$pdo->executed=[];$selected=[];$captured=ManagerConversationService::detail(1,1,0,200,false,false,$selected);
+check('bounded preload keeps the exact direct DTO',$captured===$legacy);
+check('byte cap preloads 4096 bytes and defers both 4097-byte documents',array_map('intval',array_column($selected,'id'))===array_values(array_diff(range(302,501),[303,304])));
+$actualHydrated=ManagerMessageMediaService::hydrate($captured['messages'],$selected);
+$missingQueries=array_values(array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,channel,direction,metadata_json')));
+check('mixed metadata hydrates only the missing displayed IDs',count($missingQueries)===1&&$missingQueries[0]['args']===[303,304]&&$actualHydrated===$expectedHydrated);
+check('bounded metadata never exposes raw flags or private padding',array_filter($actualHydrated,static fn($row)=>array_key_exists('metadata_json',$row)||array_key_exists('metadata_loaded',$row)||array_key_exists('channel',$row))===[]&&!str_contains(json_encode($actualHydrated,JSON_THROW_ON_ERROR),'private-')&&!str_contains(json_encode($actualHydrated,JSON_THROW_ON_ERROR),'private_padding')&&cursor($pdo)===0&&$pdo->readWrites===0);
 $pdo=fixture(10001);$pdo->exec('INSERT INTO manager_conversation_reads VALUES(1,1,9801,CURRENT_TIMESTAMP)');$opened=apiDetail(['conversation_id'=>1,'open_unread'=>true])['body'];
 check('first unread at previous latest boundary receives preceding context',array_slice(ids($opened),0,21)===range(9782,9802)&&$opened['history']['initial_unread_id']===9802);
 $pdo=fixture(600);$pdo->exec('UPDATE messages SET id=-id');$pdo->exec('UPDATE messages SET id=-id*10');$pdo->exec('INSERT INTO manager_conversation_reads VALUES(1,1,2000,CURRENT_TIMESTAMP)');$opened=apiDetail(['conversation_id'=>1,'open_unread'=>true])['body'];
