@@ -13,8 +13,8 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event_name == 'push' &&
-      github.event.before == '0e6503764f3deac8c76c65867af464c3ed2f93dc' &&
-      github.event.head_commit.message == 'diagnostics(anytour): readonly registry receipt 27316' &&
+      github.event.before == '8b285aef0e45866892ae0143528271822778cb98' &&
+      github.event.head_commit.message == 'diagnostics(anytour): readonly registry receipt 27316 fixed-preflight' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = c74753f8b5042734a2820c47cff00c994296fdb1
+          test "$(git rev-parse HEAD^)" = 8b285aef0e45866892ae0143528271822778cb98
           test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
           echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
       - name: Pinned existing SSH host and private runner-only key
