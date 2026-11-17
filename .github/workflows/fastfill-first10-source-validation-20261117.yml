@@ -1,0 +1,77 @@
+name: One-shot AnyTour FASTFILL approved first10 source validation only
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths:
+      - '.github/workflows/fastfill-first10-source-validation-20261117.yml'
+permissions:
+  contents: read
+concurrency:
+  group: anytour-fastfill-first10-source-validation-20261117
+  cancel-in-progress: false
+jobs:
+  prepare-only:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event_name == 'push' &&
+      github.event.before == '2f0d1dbafc626210020b03feb0b64b2c61aa7299' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Reconcile exact source and frozen media pin without a channel send
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = 2f0d1dbafc626210020b03feb0b64b2c61aa7299
+          d=tools/direct_demand/operations
+          test "$(git hash-object "$d/commercial-batch-20261117-1-manifest.json")" = 63ab9f3586a85124d249e599a65ed44bd845c123
+          test "$(git hash-object "$d/prepare-commercial-batch.py")" = "$(git hash-object "$d/prepare-commercial-batch.py")"
+          python3 - <<'PY'
+          import hashlib,json,pathlib
+          p=pathlib.Path('tools/direct_demand/operations/commercial-batch-20261117-1-manifest.json')
+          r=pathlib.Path('tools/direct_demand/operations/commercial-batch-20261117-1-approval.json')
+          j=json.loads(p.read_text());a=json.loads(r.read_text())
+          assert a['manifest_sha256']==hashlib.sha256(p.read_bytes()).hexdigest()
+          assert a['operation']==j['operation']=='commercial-hotel-batch-20261117-1-v1'
+          assert a['hotel_ids']==[x['hotel_id'] for x in j['rows']]
+          assert a['expected_installed_sha']=='02f8267f39e6435c298fe75f646ce06da694dd7a'
+          assert j['state']=='PREPARED_NOT_SENT' and len(j['rows'])==10
+          assert j['photo_freeze_commit']=='15529b48fb9a14f61b474d53234cd94f716fad86'
+          assert all(r['media_state']=='REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED' for r in j['rows'])
+          print('FIRST10_SOURCE_MANIFEST_APPROVAL_PINS_OK_NO_POSTS')
+          PY
+      - name: Test existing publisher preparer and build source-only exact PHP
+        shell: bash
+        run: |
+          set -euo pipefail
+          d=tools/direct_demand/operations
+          python3 "$d/check-commercial-batch-preparation.py"
+          python3 "$d/prepare-commercial-batch.py" \
+            --manifest "$d/commercial-batch-20261117-1-manifest.json" \
+            --approval "$d/commercial-batch-20261117-1-approval.json" \
+            --output "$RUNNER_TEMP/first10-publisher-unexecuted.php"
+          php -l "$RUNNER_TEMP/first10-publisher-unexecuted.php"
+          mkdir -p source-receipt
+          python3 - "$RUNNER_TEMP/first10-publisher-unexecuted.php" <<'PY'
+          import hashlib,json,pathlib,sys
+          p=pathlib.Path(sys.argv[1]);b=p.read_bytes()
+          assert b'commercial-hotel-batch-20261117-1-v1' in b
+          assert b'EXPECTED_INSTALLED_SHA' in b and b'02f8267f39e6435c298fe75f646ce06da694dd7a' in b
+          r={'state':'SOURCE_ONLY_PUBLISHER_PREPARED_NOT_EXECUTED','generated_script_sha256':hashlib.sha256(b).hexdigest(),'bytes':len(b),'hotel_rows':10,'provider_writes':0,'bot_sends':0,'feeds':0,'runtime_sha_pin':'02f8267f39e6435c298fe75f646ce06da694dd7a'}
+          pathlib.Path('source-receipt/result.json').write_text(json.dumps(r,indent=2)+'\n')
+          print('FIRST10_EXISTING_PUBLISHER_SOURCE_ONLY_PASS '+r['generated_script_sha256'])
+          PY
+      - name: Save source-only validation receipt (no runnable publication artifact)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-first10-publisher-source-only-20261117
+          path: source-receipt/result.json
+          retention-days: 30
+          if-no-files-found: warn
