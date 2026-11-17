@@ -13,8 +13,8 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event_name == 'push' &&
-      github.event.before == 'ebc871db3a48c585a0be3fd7b35097d18aad4e6d' &&
-      github.event.head_commit.message == 'diagnostics(anytour): inspect original MAX button receipt without writes' &&
+      github.event.before == '226e869c84998e74faa203c0c04e55cf3cb6c64a' &&
+      github.event.head_commit.message == 'diagnostics(anytour): inspect exact original logical id and token length' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = ebc871db3a48c585a0be3fd7b35097d18aad4e6d
+          test "$(git rev-parse HEAD^)" = 226e869c84998e74faa203c0c04e55cf3cb6c64a
           test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
           echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
       - name: Pinned existing SSH host and private runner-only key
@@ -162,10 +162,11 @@ jobs:
               ]:null,
               'request_start_ms'=>$p['edit_request_start_ms'],
               'original_post_url'=>$plan['post_url'],
+              'key'=>$plan['key'],'logical_id'=>$plan['logical_id'],'token_length'=>strlen((string)($plan['token']??'')),
               'publication_id'=>$plan['publication_id'],'old_version_id'=>$plan['old_version_id'],'message_id'=>$plan['message_id'],
               'photo_signature'=>$plan['photo_signature'],'text_sha256'=>hash('sha256',(string)$plan['text']),
               'monitor_record_id'=>$plan['monitor_price']['record_id']??null];
-            $out['row']=['logical_key'=>$row['key'],'site_hotel_id'=>$row['site_hotel_id']??null,
+            $out['row']=['logical_key'=>$row['key'],'logical_id'=>$row['logical_id'],'site_hotel_id'=>$row['site_hotel_id']??null,
               'hotel_id'=>$row['hotel_id']??null,'original_publication_operation'=>$row['original_publication_operation']??null,
               'original_text_sha256'=>$row['original_text_sha256']??null,'cover_sha256'=>$row['cover_sha256']??null,
               'row_sha256'=>hash('sha256',json_encode($row,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),
