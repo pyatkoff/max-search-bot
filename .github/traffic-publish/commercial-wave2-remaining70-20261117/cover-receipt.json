@@ -1,0 +1,2556 @@
+{
+  "state": "REMAINING70_CLASSIFIED_SOURCE_ONLY_NO_SEND",
+  "rows": [
+    {
+      "id": 59118,
+      "work_id": "W2_001",
+      "name": "RIXOS PREMIUM BODRUM VILLAS",
+      "aliases": [
+        "RIXOS PREMIUM BODRUM VILLAS"
+      ],
+      "region": "Бодрум",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=59118",
+      "status": "held",
+      "reason": "parent_or_related_property_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 56002,
+      "work_id": "W2_005",
+      "name": "CLUB PRIVE BY RIXOS GOCEK",
+      "aliases": [
+        "CLUB PRIVE BY RIXOS GOCEK"
+      ],
+      "region": "Фетхие",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=56002",
+      "status": "held",
+      "reason": "parent_or_related_property_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 55750,
+      "work_id": "W2_006",
+      "name": "CLUB PRIVE BY RIXOS BELEK",
+      "aliases": [
+        "CLUB PRIVE BY RIXOS BELEK"
+      ],
+      "region": "Белек",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=55750",
+      "status": "held",
+      "reason": "parent_or_related_property_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 165997,
+      "work_id": "W2_008",
+      "name": "BAYOU ANDA SUITES & VILLAS BY BARUT",
+      "aliases": [
+        "BAYOU ANDA SUITES & VILLAS BY BARUT"
+      ],
+      "region": "Дидим",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=165997",
+      "status": "held",
+      "reason": "no_paid_tourvisor_photo_source",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 1595,
+      "work_id": "W2_011",
+      "name": "VOYAGE GOLTURKBUKU",
+      "aliases": [
+        "VOYAGE GOLTURKBUKU",
+        "HILTON BODRUM TURKBUKU RESORT & SPA"
+      ],
+      "region": "Бодрум",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1595",
+      "status": "held",
+      "reason": "current_brand_or_opening_requires_primary_commercial_confirmation",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 1028,
+      "work_id": "W2_013",
+      "name": "Selectum Colours Resort Side",
+      "aliases": [
+        "Selectum Colours Resort Side",
+        "SELECTUM COLOURS RESORT SIDE",
+        "EUPHORIA BARBAROSS BEACH RESORT"
+      ],
+      "region": "Сиде",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1028",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 4,
+      "png_sha256": "e7b6eb123043cb50a5b1b90df6604b62069123dbcb438cb9c5a5ebc5dee28f5c",
+      "bytes": 496233,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/barbaross-pashas-beach-club-976800.jpg",
+          "bytes": 344848,
+          "sha256": "5ae9763653756452a7d2845eb808386df2e494f544737b422d9c52bbd64f5cda",
+          "width": 1200,
+          "height": 674,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/barbaross-pashas-beach-club-985400.jpg",
+          "bytes": 274576,
+          "sha256": "2d19827adb5848c363fce9528b202ab077db77e1ef999641af8c313e6211b89a",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/barbaross-pashas-beach-club-993600.jpg",
+          "bytes": 243010,
+          "sha256": "34a762aaf571c8b1b04cff291deaba7bb8900902590443d6ed1910b41e9a7db6",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 1071,
+      "work_id": "W2_014",
+      "name": "Selectum Noa Belek",
+      "aliases": [
+        "Selectum Noa Belek",
+        "SELECTUM NOA BELEK",
+        "CESARS BELEK"
+      ],
+      "region": "Белек",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1071",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 4,
+      "png_sha256": "e028bd62cd68a5d8e04b38f92ff532a0406b734b45db228640ddc77009722433",
+      "bytes": 438323,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/cesars-temple-belek-99256603.jpg",
+          "bytes": 183141,
+          "sha256": "f2304f91679fb8871282bcf075e50db35731253ac85d1f170a1a14ae2347ccb9",
+          "width": 1024,
+          "height": 576,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/cesars-temple-belek-99256600.jpg",
+          "bytes": 164950,
+          "sha256": "d2c7e9ffe4cbccbbc280f948ff9a7e00bca1b549d871fbe1317e4b7ed4ad7f5f",
+          "width": 1024,
+          "height": 519,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/cesars-temple-belek-99256601.jpg",
+          "bytes": 98809,
+          "sha256": "33349f78dc62b48462024cb3be17e70b29d4673ac2f8221685a137703b66bf3e",
+          "width": 1022,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 76393,
+      "work_id": "W2_015",
+      "name": "FORTUNE BARUT SIDE",
+      "aliases": [
+        "FORTUNE BARUT SIDE"
+      ],
+      "region": "Сиде",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76393",
+      "status": "held",
+      "reason": "fortune_product_does_not_identify_one_actual_hotel",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 1149,
+      "work_id": "W2_017",
+      "name": "Qvor Kirman Premium",
+      "aliases": [
+        "Qvor Kirman Premium",
+        "QVOR KIRMAN PREMIUM"
+      ],
+      "region": "Аланья",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1149",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 4,
+      "png_sha256": "0d7df69687e459687e66755a2601282ce5df4dc4d8a36ecd1f1e9874f8dfaa4a",
+      "bytes": 526552,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/1149-29355300.jpg",
+          "bytes": 269303,
+          "sha256": "21f3080c2ae425e6d3b61420db01550fc8bfede548a43e231b5c1d1227b98f0e",
+          "width": 1024,
+          "height": 682,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/1149-29222900.jpg",
+          "bytes": 306731,
+          "sha256": "d32c611d2eceb95617740e8d67c06484df5e4ca861ee7efb7f5c6247b00f0b90",
+          "width": 1024,
+          "height": 682,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/1149-29225700.jpg",
+          "bytes": 291010,
+          "sha256": "e72dce293b33186e760a8c13f9e63e5d232261db6ebe6be4d321a36208e65fec",
+          "width": 1023,
+          "height": 682,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 1563,
+      "work_id": "W2_019",
+      "name": "Rixos Beldibi 16+",
+      "aliases": [
+        "Rixos Beldibi 16+",
+        "RIXOS BELDIBI ADULTS ONLY 16+",
+        "TUI MAGIC LIFE RIXOS BELDIBI",
+        "Rixos Beldibi"
+      ],
+      "region": "Кемер",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1563",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 4,
+      "png_sha256": "423f67da5629d251bb78cb979caca69c44142ca3a0ee2ae5eb756e611d80d9a4",
+      "bytes": 653032,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/turkiz-resort-beldibi-spa-87532101.jpg",
+          "bytes": 569869,
+          "sha256": "2a81331c221c4464b507eaac0da96f896b7ee845ef0925b5be18d3e3e8e8faf1",
+          "width": 1200,
+          "height": 897,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/turkiz-resort-beldibi-spa-87544600.jpg",
+          "bytes": 177278,
+          "sha256": "0b281fe15a82ea5ee3ee623e395ba9f59470c921582fb015fe314634118ca9a1",
+          "width": 1200,
+          "height": 793,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/turkiz-resort-beldibi-spa-87532100.jpg",
+          "bytes": 358069,
+          "sha256": "86094b34778f42c1e0d27abd260c2451f9dda8b3a99a53a600dad306f9b65bf6",
+          "width": 1200,
+          "height": 799,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 1633,
+      "work_id": "W2_020",
+      "name": "VOYAGE TURKBUKU",
+      "aliases": [
+        "VOYAGE TURKBUKU"
+      ],
+      "region": "Бодрум",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1633",
+      "status": "held",
+      "reason": "current_brand_or_opening_requires_primary_commercial_confirmation",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 81233,
+      "work_id": "W2_022",
+      "name": "RIXOS SUNGATE CLUB DIAMOND",
+      "aliases": [
+        "RIXOS SUNGATE CLUB DIAMOND"
+      ],
+      "region": "Кемер",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=81233",
+      "status": "held",
+      "reason": "parent_or_related_property_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 28460,
+      "work_id": "W2_023",
+      "name": "Akra V",
+      "aliases": [
+        "Akra V",
+        "AKRA V",
+        "BARUT AKRA PARK"
+      ],
+      "region": "Анталья",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=28460",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 4,
+      "png_sha256": "32edcd85ee733a9fa98694e0ed1033fe645984a08967de7efe1fb40cd478adbe",
+      "bytes": 586447,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/akra-park-barut-25539600.jpg",
+          "bytes": 294102,
+          "sha256": "29b3a414cb4473df03d4d72aa0d5fe4950637c95b7d90080853ffd1110d16b4c",
+          "width": 1024,
+          "height": 682,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/akra-park-barut-25539601.jpg",
+          "bytes": 138429,
+          "sha256": "2980d8ce1de3ca70d26a3def7aaf7c9cd3d8cd1cd907c46207bac53a36d7b070",
+          "width": 1024,
+          "height": 576,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/akra-park-barut-25539602.jpg",
+          "bytes": 237848,
+          "sha256": "08303f91fae67087997c60e308bfcc8acedebc0e4daca0bfbe4378b984b78937",
+          "width": 1024,
+          "height": 707,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 112391,
+      "work_id": "W2_024",
+      "name": "Rixos Tersane Istanbul",
+      "aliases": [
+        "Rixos Tersane Istanbul",
+        "RIXOS TERSANE ISTANBUL HOTEL"
+      ],
+      "region": "Стамбул",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=112391",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 4,
+      "png_sha256": "5253eb189338c11cba5e9ff65f932cc64986d5884c75ea59dffe39077e099a55",
+      "bytes": 428435,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-tersane-istanbul-hotel-3111500.jpg",
+          "bytes": 145229,
+          "sha256": "30166f36c4d2a338aad4527d74d125ce54df4e5fed461f2524880f194047c362",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-tersane-istanbul-hotel-3111501.jpg",
+          "bytes": 223580,
+          "sha256": "5ef6fd2f8bc01fe9ff0389a970bfc31670370df8dfce583a36f7f5fe67323014",
+          "width": 1024,
+          "height": 707,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-tersane-istanbul-hotel-3111502.jpg",
+          "bytes": 133240,
+          "sha256": "5c69308b64f34d5b2ad63333cccaf7add8e099da829557584a9e7d70ca45917a",
+          "width": 1024,
+          "height": 576,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 114913,
+      "work_id": "W2_025",
+      "name": "THE NIRVANAS",
+      "aliases": [
+        "THE NIRVANAS"
+      ],
+      "region": "Стамбул",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=114913",
+      "status": "held",
+      "reason": "no_paid_tourvisor_photo_source",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 127009,
+      "work_id": "W2_026",
+      "name": "Chakra Special Caves",
+      "aliases": [
+        "Chakra Special Caves",
+        "CHAKRA SPECIAL CAVES"
+      ],
+      "region": "Каппадокия",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=127009",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 4,
+      "png_sha256": "5035d5025a7ebd31d0b8e7e4de41f0d8661760d59361e333ea0a58b49980e063",
+      "bytes": 520121,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/chakra-special-caves-86122700.jpg",
+          "bytes": 277207,
+          "sha256": "9dd9918a68d5eb85853f1efe348e3a61fcfd07fc9cc2dca9a47beacbcdad204e",
+          "width": 1200,
+          "height": 801,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/chakra-special-caves-86122701.jpg",
+          "bytes": 407628,
+          "sha256": "714a17b0eae5c80e35902f334732566147523d7de2e00cfde423a82fafb3817e",
+          "width": 973,
+          "height": 1200,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/chakra-special-caves-86122702.jpg",
+          "bytes": 189073,
+          "sha256": "0ab0a0c539565b44d482f11bdda2bb7be01d30536c1699388331495e10fbd177",
+          "width": 1160,
+          "height": 653,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 17603,
+      "work_id": "W2_027",
+      "name": "Rixos Pera Istanbul",
+      "aliases": [
+        "Rixos Pera Istanbul",
+        "RIXOS PERA HOTEL"
+      ],
+      "region": "Стамбул",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17603",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 4,
+      "png_sha256": "8079ba5492ff7117ba0c419d9fcf02ece1443c314a711675d73417b3a3d8f424",
+      "bytes": 516567,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-pera-hotel-2313007.jpg",
+          "bytes": 124217,
+          "sha256": "9d994ffcd8ff460ef5af61577bde1150b66fc6b8365a931d47f4242a03877165",
+          "width": 548,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-pera-hotel-2313000.jpg",
+          "bytes": 211887,
+          "sha256": "e0f7d120b25a5c361604f99ae23cda5ab8473cfef72b4301575d6ee636b83577",
+          "width": 779,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-pera-hotel-2313001.jpg",
+          "bytes": 192960,
+          "sha256": "0d8aec5145c5f7ce1ca5d889790aa809f30aed6d99cae307b07e2bcca550e3b6",
+          "width": 1024,
+          "height": 741,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 17682,
+      "work_id": "W2_028",
+      "name": "Titanic City Taksim",
+      "aliases": [
+        "Titanic City Taksim",
+        "TITANIC CITY HOTEL TAKSIM"
+      ],
+      "region": "Стамбул",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17682",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 4,
+      "png_sha256": "be60431dd7728fba7c665c170fb69fcd90ddcd7009e915723eec01a00da233c4",
+      "bytes": 486399,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-city-hotel-taksim-2415300.jpg",
+          "bytes": 181934,
+          "sha256": "89b16f99c92c5494e5d897a82c0554e394a10237617de8e151ded02d95f3b837",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-city-hotel-taksim-2415302.jpg",
+          "bytes": 150255,
+          "sha256": "41703d1898d82f6d373e0bbeb49927a36dfb3f7e75c24fdeda35241177b44c83",
+          "width": 1024,
+          "height": 680,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-city-hotel-taksim-2415303.jpg",
+          "bytes": 197582,
+          "sha256": "b5f679dd694b9878d6afbfdebdbf9cba7054c95e43c1a8c8311f712b27c09018",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 66450,
+      "work_id": "W2_029",
+      "name": "Chakra Suites Levent",
+      "aliases": [
+        "Chakra Suites Levent",
+        "CHAKRA SUITES LEVENT HOTEL"
+      ],
+      "region": "Стамбул",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66450",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 4,
+      "png_sha256": "7bd3d575fe62b3c516f71a36a9ab0248a3cb340281178eeaa1ad3562699293bf",
+      "bytes": 548952,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/chakra-suites-levent-hotel-313405.jpg",
+          "bytes": 68819,
+          "sha256": "50834c23cd129311a6f6af64c7fdaadab9aa0da3484b2298c59412a5cf655c46",
+          "width": 618,
+          "height": 464,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/chakra-suites-levent-hotel-313400.jpg",
+          "bytes": 88135,
+          "sha256": "28aed6cce2f69b80b109b652da44354e6687a1f1ed304b3391192a60c6b58cbe",
+          "width": 695,
+          "height": 464,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/chakra-suites-levent-hotel-313401.jpg",
+          "bytes": 45841,
+          "sha256": "9ac2d269b26d38954cba5171255bb3c1cfdf9083ab55969ef49f60523619c814",
+          "width": 695,
+          "height": 464,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 37470,
+      "work_id": "W2_030",
+      "name": "Gloria Sports Arena",
+      "aliases": [
+        "Gloria Sports Arena",
+        "GLORIA SPORTS ARENA"
+      ],
+      "region": "Белек",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=37470",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 4,
+      "png_sha256": "9d77d793d518562a0e2ab26c91f8b27e6c321b55dac021193d82fcece32cc81a",
+      "bytes": 593864,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/gloria-sports-arena-110.jpg",
+          "bytes": 98049,
+          "sha256": "1bb3fe400dd5d4c2aaabe711300cd3257e6cc6d6811410a9601fbd58011f43c2",
+          "width": 800,
+          "height": 450,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/gloria-sports-arena-100.jpg",
+          "bytes": 75188,
+          "sha256": "163147472b0555bea9b76d9d07b5328dcd44a778f84f21345ce60b296a02c653",
+          "width": 800,
+          "height": 450,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/gloria-sports-arena-101.jpg",
+          "bytes": 69882,
+          "sha256": "c80e41e6fcd6bee300a43a99b4a240c784f46f371bb6d552926744850991afa1",
+          "width": 800,
+          "height": 450,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 99608,
+      "work_id": "W2_031",
+      "name": "Gloria Tibi Hotel Gumbet",
+      "aliases": [
+        "Gloria Tibi Hotel Gumbet",
+        "GLORIA TIBI HOTEL GUMBET"
+      ],
+      "region": "Бодрум",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=99608",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 4,
+      "png_sha256": "a5fedc11b05c62bcccf3a715bab3a45fd9e854c2d897de1789ae16eec102648e",
+      "bytes": 395477,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/phpV9bVH2.jpg",
+          "bytes": 86417,
+          "sha256": "6b0d05b4e6e7b40af93ba8714bb836243724718684b34f0545fef3fb06ff0bee",
+          "width": 800,
+          "height": 600,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/phpuhYq43.jpg",
+          "bytes": 25823,
+          "sha256": "5880d2bc6100547289a9d3a15d360fbeadf473958ff5e530bb99e221d2a28565",
+          "width": 800,
+          "height": 438,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/phpgRiPy5.jpg",
+          "bytes": 56455,
+          "sha256": "90ab1e3a9ec143654f49019bc92e8b019cb77ec217339fc146184a5988151a47",
+          "width": 800,
+          "height": 600,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 102321,
+      "work_id": "W2_032",
+      "name": "Chakra Beach Kabak",
+      "aliases": [
+        "Chakra Beach Kabak",
+        "CHAKRA BEACH KABAK"
+      ],
+      "region": "Фетхие",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=102321",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 4,
+      "png_sha256": "73f975ff866b55f8ef338b90f437b5d1a082adafb6cfacd656abc0f5a666db98",
+      "bytes": 439392,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/php8M4Os8.jpg",
+          "bytes": 71472,
+          "sha256": "5903bb2be102dfb4e0674c2a31230326bc9b0341cf66b4bb47c35030058cf675",
+          "width": 800,
+          "height": 600,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/phpWDPKfd.jpg",
+          "bytes": 27653,
+          "sha256": "7e9918b13d6f3c97a5da0de732e9bce2ec9df03969b9dd228c09887959263762",
+          "width": 800,
+          "height": 448,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/phpMHwZRj.jpg",
+          "bytes": 67537,
+          "sha256": "b0a6a1c1026983ee942ea3dd7747dfd7501eff0a361deb3499d4aea6e464faa0",
+          "width": 800,
+          "height": 533,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 165597,
+      "work_id": "W2_033",
+      "name": "GLORIA TIBI BIZIMTEPE AKYARLAR",
+      "aliases": [
+        "GLORIA TIBI BIZIMTEPE AKYARLAR"
+      ],
+      "region": "Бодрум",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=165597",
+      "status": "held",
+      "reason": "no_paid_tourvisor_photo_source",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 37165,
+      "work_id": "W2_034",
+      "name": "Titanic Comfort Sisli",
+      "aliases": [
+        "Titanic Comfort Sisli",
+        "TITANIC COMFORT SISLI"
+      ],
+      "region": "Стамбул",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=37165",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 4,
+      "png_sha256": "7f97368ac7471bbc4636cd37a84fb9a741566015e1e8c4e98c35dd9dab98f856",
+      "bytes": 503667,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-comfort-sisli-102.jpg",
+          "bytes": 109355,
+          "sha256": "b1244321033cdd22d0fac4ba8546515d9b3e573119751cd76668dc6e9eb42966",
+          "width": 800,
+          "height": 600,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-comfort-sisli-103.jpg",
+          "bytes": 98283,
+          "sha256": "c48f09a554ccb1c3aa19e14de8dae9607f35a63dca28168906ebf1e59da7bdc3",
+          "width": 800,
+          "height": 600,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-comfort-sisli-104.jpg",
+          "bytes": 61463,
+          "sha256": "3b37525474cbf4f7f3504a4dd9a6fdc7390ab1641bbf1ca7fccdfe73f1f7fdfe",
+          "width": 800,
+          "height": 600,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 72910,
+      "work_id": "W2_035",
+      "name": "Delphin Apart Hotel",
+      "aliases": [
+        "Delphin Apart Hotel",
+        "DELPHIN APART HOTEL"
+      ],
+      "region": "Сиде",
+      "country": "TR",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=72910",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 4,
+      "png_sha256": "6cb98d3b45895b7cfd0a2e6b0815c144710aaf98918a427eacb4d277c3571869",
+      "bytes": 384401,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/delphin-apart-hotel-307313.jpg",
+          "bytes": 67434,
+          "sha256": "90dae13901df9930f595b48bb49ebadc47bb051e0e332a8324af8df3f6491e79",
+          "width": 800,
+          "height": 450,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/delphin-apart-hotel-307300.jpg",
+          "bytes": 64315,
+          "sha256": "d5e0c18a4295790a0ee830cf74a4dc136fd63809bc99a40ea6502e8a94d3a69f",
+          "width": 800,
+          "height": 530,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/delphin-apart-hotel-307301.jpg",
+          "bytes": 30957,
+          "sha256": "3d12a28d8ee1c9d6d9717ab782e57d7f8c670c80326678745a0636200a613c3e",
+          "width": 800,
+          "height": 409,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 82106,
+      "work_id": "W2_036",
+      "name": "Rixos Premium Alamein",
+      "aliases": [
+        "Rixos Premium Alamein",
+        "RIXOS PREMIUM ALAMEIN",
+        "REGAL HEIGHTS"
+      ],
+      "region": "Матрух",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82106",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 1,
+      "png_sha256": "0fcc66b6a2f46b61308a94834ebee6095a77ba4b921e86f2a218fd60fc6ac3eb",
+      "bytes": 373037,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/regal-heights-810201.jpg",
+          "bytes": 69039,
+          "sha256": "a5f29300fc243e2a228a53b834aa632d25a729299838a559e6ba45ca245e7dd8",
+          "width": 800,
+          "height": 613,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/regal-heights-810200.jpg",
+          "bytes": 71618,
+          "sha256": "37e2d4172e863019fda64bd510e4fa14cb6ddcdad39c05f17e11e738ae96b3a5",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/regal-heights-810202.jpg",
+          "bytes": 71282,
+          "sha256": "de881c47e11458d528f4143073090d573b6f57db7c17f174f2de3a13e1585d3b",
+          "width": 800,
+          "height": 599,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 75593,
+      "work_id": "W2_039",
+      "name": "RIXOS MAKADI BAY",
+      "aliases": [
+        "RIXOS MAKADI BAY"
+      ],
+      "region": "Хургада",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75593",
+      "status": "held",
+      "reason": "current_brand_or_opening_requires_primary_commercial_confirmation",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 110287,
+      "work_id": "W2_040",
+      "name": "RIXOS RADAMIS BLUE PLANET HOTEL",
+      "aliases": [
+        "RIXOS RADAMIS BLUE PLANET HOTEL"
+      ],
+      "region": "Шарм-эль-Шейх",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=110287",
+      "status": "held",
+      "reason": "parent_or_related_property_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 110288,
+      "work_id": "W2_041",
+      "name": "RIXOS RADAMIS TIRANA HOTEL",
+      "aliases": [
+        "RIXOS RADAMIS TIRANA HOTEL"
+      ],
+      "region": "Шарм-эль-Шейх",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=110288",
+      "status": "held",
+      "reason": "parent_or_related_property_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 131935,
+      "work_id": "W2_042",
+      "name": "RIXOS PREMIUM ALAMEIN ADULTS ONLY",
+      "aliases": [
+        "RIXOS PREMIUM ALAMEIN ADULTS ONLY"
+      ],
+      "region": "Матрух",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=131935",
+      "status": "held",
+      "reason": "parent_or_related_property_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 152750,
+      "work_id": "W2_043",
+      "name": "RIXOS PREMIUM MAGAWISH BAY VIEW",
+      "aliases": [
+        "RIXOS PREMIUM MAGAWISH BAY VIEW"
+      ],
+      "region": "Хургада",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=152750",
+      "status": "held",
+      "reason": "parent_or_related_property_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 133426,
+      "work_id": "W2_047",
+      "name": "RIXOS RADAMIS BEACH HOTEL",
+      "aliases": [
+        "RIXOS RADAMIS BEACH HOTEL"
+      ],
+      "region": "Шарм-эль-Шейх",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=133426",
+      "status": "held",
+      "reason": "parent_or_related_property_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 103273,
+      "work_id": "W2_048",
+      "name": "Steigenberger Resort Achti",
+      "aliases": [
+        "Steigenberger Resort Achti",
+        "STEIGENBERGER RESORT ACHTI LUXOR"
+      ],
+      "region": "Люксор",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=103273",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 1,
+      "png_sha256": "8981e006dae2df2cf9723e475b8aa80de103f3f4c5dc9bae5215b43a4235a718",
+      "bytes": 437494,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-resort-achti-luxor-910206.jpg",
+          "bytes": 234281,
+          "sha256": "b3ededc330eb0f3433daf11c0b12b3acbcd13c9ac7431d89ffdfdd7e67529824",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-resort-achti-luxor-910200.jpg",
+          "bytes": 206625,
+          "sha256": "37ba925430de19c133d5ecf4d6e633736b5a5c4af7ebe49d18fa2d16025abb93",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-resort-achti-luxor-910201.jpg",
+          "bytes": 208282,
+          "sha256": "b928e827452fbfdf9eab7da68b154e972d67b4ac574cf996dda67f390d1485b4",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 496,
+      "work_id": "W2_050",
+      "name": "SUNRISE REMAL RESORT",
+      "aliases": [
+        "SUNRISE REMAL RESORT",
+        "MELTON TIRAN RESORT"
+      ],
+      "region": "Шарм-эль-Шейх",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=496",
+      "status": "held",
+      "reason": "existing_native_or_alias_publication",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 1980,
+      "work_id": "W2_051",
+      "name": "Royal Savoy Adults Only",
+      "aliases": [
+        "Royal Savoy Adults Only",
+        "ROYAL SAVOY ADULTS ONLY"
+      ],
+      "region": "Шарм-эль-Шейх",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1980",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 1,
+      "png_sha256": "9276d296d45db71c0667eb87e84e13c3d09c3beee1042a92f83681957f29fa39",
+      "bytes": 393485,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/royal-savoy-suites-villas-1009209.jpg",
+          "bytes": 180266,
+          "sha256": "6bbd50fd9c7c4a1f84a28582f8240d682604f8e4b9319ab43233dcda9c34ec8d",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/royal-savoy-suites-villas-1009200.jpg",
+          "bytes": 220998,
+          "sha256": "74abd472d82d94e64318fe03fcdac2319f5e0a01ef39b9c9761e000b57355121",
+          "width": 1024,
+          "height": 706,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/royal-savoy-suites-villas-1009201.jpg",
+          "bytes": 196214,
+          "sha256": "cf846ed134959177a1a07a66708dbab188213235908b46698586f5b018692596",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 76638,
+      "work_id": "W2_052",
+      "name": "ROYAL SAVOY VILLAS",
+      "aliases": [
+        "ROYAL SAVOY VILLAS"
+      ],
+      "region": "Шарм-эль-Шейх",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76638",
+      "status": "held",
+      "reason": "parent_or_related_property_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 266,
+      "work_id": "W2_054",
+      "name": "Lido Sharm",
+      "aliases": [
+        "Lido Sharm",
+        "LIDO SHARM",
+        "IBEROTEL LIDO"
+      ],
+      "region": "Шарм-эль-Шейх",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=266",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 1,
+      "png_sha256": "b6d185e5ec17ae52d6570913db0b4bedfbae054ff77437b07368904fd105021d",
+      "bytes": 555524,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/iberotel-lido-80250217.jpg",
+          "bytes": 246749,
+          "sha256": "3a3b14bb7949fb45a4fd0622bf255a86f06b79ab240cb479a832ce051e3e1494",
+          "width": 1024,
+          "height": 641,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/iberotel-lido-80250200.jpg",
+          "bytes": 155716,
+          "sha256": "c3516ecf9b5ac500be8042090af2477534ce4b80772b67ae29637b3d02f0f0ff",
+          "width": 1024,
+          "height": 677,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/iberotel-lido-80250201.jpg",
+          "bytes": 141106,
+          "sha256": "2198b321877cb2620bead7e001fbd873f8a3a78fc4072573c7b2a1dc0bd0ba93",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 159,
+      "work_id": "W2_055",
+      "name": "Sunrise Juman",
+      "aliases": [
+        "Sunrise Juman",
+        "SUNRISE JUMAN HOTEL",
+        "CORAL BEACH RESORT (MANAGED BY SUNRISE"
+      ],
+      "region": "Хургада",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=159",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 1,
+      "png_sha256": "a01bc4229710babddde28179bd7716a14aab0ad7579c6586cc40be689c636326",
+      "bytes": 510759,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/159-88512500.jpg",
+          "bytes": 157973,
+          "sha256": "440216fda5da00c03765b22bf022c6e92ebabe218e21316dc427cbb3b83cbcfc",
+          "width": 720,
+          "height": 720,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/159-88512501.jpg",
+          "bytes": 340907,
+          "sha256": "74119fb752be1350480bd810c484670421c617c39de382fc86f457f7a13e9a73",
+          "width": 959,
+          "height": 719,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/159-88512602.jpg",
+          "bytes": 196434,
+          "sha256": "da9bcf69adac43485352a53b1ef03a274273120804f3672385aee94f185b98fe",
+          "width": 1200,
+          "height": 712,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 344,
+      "work_id": "W2_056",
+      "name": "Sunrise Cardina Resort",
+      "aliases": [
+        "Sunrise Cardina Resort",
+        "SUNRISE CARDINA RESORT",
+        "AURORA BAY"
+      ],
+      "region": "Марса Алам",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=344",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 1,
+      "png_sha256": "a417c4a19919656644b77ca58b15e95669ff425270e2cbbeb2d681e69080fe6a",
+      "bytes": 402033,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/oriental-bay-resort-414313.jpg",
+          "bytes": 182031,
+          "sha256": "820dc3d8469f79681cf0110c1ee4f2510f3ebae213720b798151aa00f187196b",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/oriental-bay-resort-414312.jpg",
+          "bytes": 88187,
+          "sha256": "59b28046254b2ab2d2111598434ac3bbc718d5368649fb5e56e57a8f57f9fb16",
+          "width": 1024,
+          "height": 419,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/oriental-bay-resort-414314.jpg",
+          "bytes": 223028,
+          "sha256": "c886e7f7e5762ea7cd6847016b6ede21c0769738f5f7bf8306b1268c8d1eb074",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 116691,
+      "work_id": "W2_057",
+      "name": "RIXOS PREMIUM ALAMEIN RESIDENCE TOWERS",
+      "aliases": [
+        "RIXOS PREMIUM ALAMEIN RESIDENCE TOWERS"
+      ],
+      "region": "Матрух",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=116691",
+      "status": "held",
+      "reason": "parent_or_related_property_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 125550,
+      "work_id": "W2_061",
+      "name": "Rixos Montaza Alexandria 18+",
+      "aliases": [
+        "Rixos Montaza Alexandria 18+",
+        "RIXOS MONTAZA ALEXANDRIA ADULTS ONLY 18+"
+      ],
+      "region": "Александрия",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=125550",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 1,
+      "png_sha256": "2f3d879cedfe91f7a7d088a2919c868fbfed086418b7fb60ea9c800b3d72982f",
+      "bytes": 659609,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/rixos-montaza-alexandria-adults-only-18-13666600.jpg",
+          "bytes": 324812,
+          "sha256": "51e50ca6dc6466ce69388606b90294761e1bbea60a469398644964d8ec52f634",
+          "width": 1000,
+          "height": 649,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/rixos-montaza-alexandria-adults-only-18-13666601.jpg",
+          "bytes": 399861,
+          "sha256": "b8b6ae5c2d7f76f0010df3600e9998e991cadd85841f480aa378efb4d3b9674c",
+          "width": 1000,
+          "height": 667,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/rixos-montaza-alexandria-adults-only-18-13666602.jpg",
+          "bytes": 407474,
+          "sha256": "ecee8596f6b09aab4aae3bf42b26242bf1619a5188599c64286cddfb288b4f74",
+          "width": 1000,
+          "height": 667,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 143790,
+      "work_id": "W2_062",
+      "name": "JAZ Viva Casa Maza",
+      "aliases": [
+        "JAZ Viva Casa Maza",
+        "JAZ VIVA CASA MAZA",
+        "JAZ NEO CASA MAZA"
+      ],
+      "region": "Матрух",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=143790",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 1,
+      "png_sha256": "87637d2a272d2a68627cdc2f07321904704392dcb47e782f17747969b2091fd7",
+      "bytes": 517575,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/143790-71706915.jpg",
+          "bytes": 261601,
+          "sha256": "8a002ed5cdee71fa3a3ba8c3a15ffa88ee88558633a6f9f7c578c1f16c616fae",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/143790-71706600.jpg",
+          "bytes": 241309,
+          "sha256": "48c83f9b40272b6c9e5e677ae6c11028db094a0005c937196b3da889d16c84cb",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/143790-71706701.jpg",
+          "bytes": 152250,
+          "sha256": "ba580bf084ebdf9ffc91dd2a3dd2d5ede0c1b1b43ef48fe0fa276af465e275f2",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 76208,
+      "work_id": "W2_063",
+      "name": "Baron Heliopolis",
+      "aliases": [
+        "Baron Heliopolis",
+        "BARON HOTEL HELIOPOLIS"
+      ],
+      "region": "Каир",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76208",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 1,
+      "png_sha256": "cd9565217e026bb1a6b537833de87d9d63c0ab3adaf468411124c4fae51b1ccc",
+      "bytes": 414686,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/baron-hotel-heliopolis-95971800.jpg",
+          "bytes": 139465,
+          "sha256": "792e319ad8e458b91c6f71aca57e149c7fcbd52d4ccf9b0eb302756ae1a7fe41",
+          "width": 1024,
+          "height": 632,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/baron-hotel-heliopolis-95985400.jpg",
+          "bytes": 154782,
+          "sha256": "3bdce38b5063a47b6e3139f4058e263b8c5ca71b2e4f412435d5adf4fe5b8cf8",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/baron-hotel-heliopolis-95971801.jpg",
+          "bytes": 136884,
+          "sha256": "71957c61e17894bdfb32da4f4f608d8e7ad04731485db20f3a51eba48d7e7cca",
+          "width": 1024,
+          "height": 610,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 169957,
+      "work_id": "W2_064",
+      "name": "BARON CASCADES",
+      "aliases": [
+        "BARON CASCADES"
+      ],
+      "region": "Шарм-эль-Шейх",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=169957",
+      "status": "held",
+      "reason": "no_paid_tourvisor_photo_source",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 104626,
+      "work_id": "W2_065",
+      "name": "Sunrise Alex Avenue",
+      "aliases": [
+        "Sunrise Alex Avenue",
+        "SUNRISE ALEX AVENUE HOTEL ALEXANDRIA"
+      ],
+      "region": "Александрия",
+      "country": "EG",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=104626",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 1,
+      "png_sha256": "c2fddc207986a68dd77fdbbf9acfefadd424eb3366e722818c7ff3ae38242f51",
+      "bytes": 597254,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/104626-74222921.jpg",
+          "bytes": 361322,
+          "sha256": "13c748f3f78a77011168cd74ab0507248c1bfd23b196c6a56f639b096367eaa7",
+          "width": 1200,
+          "height": 667,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/104626-74222000.jpg",
+          "bytes": 310173,
+          "sha256": "d311480a107f363e2e9472fdf6676023fc50b778b1b197599b3207fd93a808aa",
+          "width": 1200,
+          "height": 667,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/104626-74222101.jpg",
+          "bytes": 239977,
+          "sha256": "dc275a39ef034cde7c9b2c116c306e0ee5ce426956a8fc5a8f3a8cd6749319ff",
+          "width": 1200,
+          "height": 667,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 2523,
+      "work_id": "W2_066",
+      "name": "BEIT AL BAHAR VILLAS THE JUMEIRAH BEACH HOTEL",
+      "aliases": [
+        "BEIT AL BAHAR VILLAS THE JUMEIRAH BEACH HOTEL"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2523",
+      "status": "held",
+      "reason": "parent_or_related_property_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 4498,
+      "work_id": "W2_067",
+      "name": "JUMEIRAH ZABEEL SARAY ROYAL RESIDENCE",
+      "aliases": [
+        "JUMEIRAH ZABEEL SARAY ROYAL RESIDENCE"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4498",
+      "status": "held",
+      "reason": "parent_or_related_property_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 77792,
+      "work_id": "W2_068",
+      "name": "CLUB PRIVE BY RIXOS SAADIYAT ISLAND",
+      "aliases": [
+        "CLUB PRIVE BY RIXOS SAADIYAT ISLAND"
+      ],
+      "region": "Абу-Даби",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77792",
+      "status": "held",
+      "reason": "parent_or_related_property_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 2554,
+      "work_id": "W2_069",
+      "name": "Fairmont Dubai",
+      "aliases": [
+        "Fairmont Dubai",
+        "FAIRMONT HOTEL DUBAI"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2554",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "d2b1f57fbc6fdd988f074885a76081ccc5c9c1dfda1463aefbda48133bf3aa1f",
+      "bytes": 526890,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/2554-47055700.jpg",
+          "bytes": 235673,
+          "sha256": "8c7a177324c912806e20b1d3a322c039c3581906d30306259e34b93ef3144245",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/2554-47055701.jpg",
+          "bytes": 238488,
+          "sha256": "d795d3a9c33587ae7c643efb249640af6b914478d2a70da88dc8530e9d0f51f1",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/2554-47055702.jpg",
+          "bytes": 166555,
+          "sha256": "39eabcf581029f77084df84100513e6e9ad6b22f1fb488c18819d529aab3a16d",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 2632,
+      "work_id": "W2_070",
+      "name": "ONE & ONLY ROYAL MIRAGE THE PALACE",
+      "aliases": [
+        "ONE & ONLY ROYAL MIRAGE THE PALACE"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2632",
+      "status": "held",
+      "reason": "parent_or_related_property_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 65170,
+      "work_id": "W2_071",
+      "name": "Mandarin Oriental Jumeira Dubai",
+      "aliases": [
+        "Mandarin Oriental Jumeira Dubai",
+        "MANDARIN ORIENTAL JUMEIRA DUBAI"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=65170",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "7bc722e959336313b1ad5dd9cf7205cd4f30469000ed5979bbdb6e918ab43367",
+      "bytes": 445633,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/mandarin-oriental-jumeira-dubai-112109.jpg",
+          "bytes": 187948,
+          "sha256": "1a0a4189c0b7004f84ac6e98739dea99b32253cce161d94e90aae68ecf2da8f9",
+          "width": 1024,
+          "height": 682,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/mandarin-oriental-jumeira-dubai-112100.jpg",
+          "bytes": 259344,
+          "sha256": "04567f9b5d85566f413b358036fedfcc6f0710ae16f153b35e2d7748c2ccc349",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/mandarin-oriental-jumeira-dubai-112101.jpg",
+          "bytes": 170769,
+          "sha256": "dd952f7067091ae715f241f5a4ec0253eb1026939c430c9c672b37800a1e5d66",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 80397,
+      "work_id": "W2_072",
+      "name": "Marriott Resort Palm Jumeirah",
+      "aliases": [
+        "Marriott Resort Palm Jumeirah",
+        "MARRIOTT RESORT PALM JUMEIRAH"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=80397",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "c955ac865be54f1e1a94947d08c4bd36374f7423c38b0b5987c762df86dcb8e9",
+      "bytes": 519271,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/marriott-resort-palm-jumeirah-86380100.jpg",
+          "bytes": 212689,
+          "sha256": "3c10a56b9563f2bc3de70a82568a3a2812e89feb10fbea8fd8a4a029d89ebbf4",
+          "width": 1024,
+          "height": 575,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/marriott-resort-palm-jumeirah-86380101.jpg",
+          "bytes": 249840,
+          "sha256": "acd84d536b37e876bfdcfd4b31044f232e27fca57e5336c91478cb2b105cb6e2",
+          "width": 1024,
+          "height": 767,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/marriott-resort-palm-jumeirah-86380102.jpg",
+          "bytes": 142508,
+          "sha256": "62b2cee885ff66dafb3312eae7c187fb0dcf5b988f22da505252fda51737aee1",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 82023,
+      "work_id": "W2_073",
+      "name": "Atlantis The Royal",
+      "aliases": [
+        "Atlantis The Royal",
+        "ATLANTIS THE ROYAL"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82023",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "42fac252370505b0cd5b2ff991592cd9ee4155b69f999889eeab02a42ab8fe71",
+      "bytes": 484243,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/the-royal-atlantis-resort-residences-102508000.jpg",
+          "bytes": 316041,
+          "sha256": "d98fe05263c144ed8f8001b4200833aa918c47fc92713c7d51439a8accb77364",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/the-royal-atlantis-resort-residences-102508001.jpg",
+          "bytes": 294000,
+          "sha256": "61e8adf38d0f2b49d813c4c4070b2838b1539ba3aad073f69990c01625f13809",
+          "width": 1200,
+          "height": 726,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/the-royal-atlantis-resort-residences-102508012.jpg",
+          "bytes": 368892,
+          "sha256": "64ac9329cb19173f311bfa22980ee87cfad42f6935e81db0e0c406aa8ff25e71",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 2549,
+      "work_id": "W2_074",
+      "name": "Emirates Palace Mandarin Oriental",
+      "aliases": [
+        "Emirates Palace Mandarin Oriental",
+        "EMIRATES PALACE MANDARIN ORIENTAL ABU DHABI"
+      ],
+      "region": "Абу-Даби",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2549",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "b165c40365ecb7e97bd265b2cc4eb1cc1c21267eb959718d37c573b8cd53cb23",
+      "bytes": 425475,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/emirates-palace-102204090.jpg",
+          "bytes": 203631,
+          "sha256": "47ebb8bd767cfaef8c206c86f209c6158fdf89901b33ff1eac272a7eb1bde4e9",
+          "width": 1200,
+          "height": 675,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/emirates-palace-102204091.jpg",
+          "bytes": 277355,
+          "sha256": "c0c241a113c70c681a48ca3de1b82f4a7682a57a2f8143e37cdd00a882068067",
+          "width": 1200,
+          "height": 675,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/emirates-palace-102204092.jpg",
+          "bytes": 392690,
+          "sha256": "040d7d4e9874b6e0c2578e1b4560010cdb287f16e1e6ba84d49dd76f71899e93",
+          "width": 1200,
+          "height": 675,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 2553,
+      "work_id": "W2_075",
+      "name": "Fairmont Bab Al Bahr",
+      "aliases": [
+        "Fairmont Bab Al Bahr",
+        "FAIRMONT BAB AL BAHR"
+      ],
+      "region": "Абу-Даби",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2553",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "2598ca6250eb6026ee7417699285b80e3f62c0655e80713aabc4cd6d48578bef",
+      "bytes": 357999,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-bab-al-bahr-102204100.jpg",
+          "bytes": 161846,
+          "sha256": "bda54ca57d7b3ce8bd188e32e096927df5ebf9ddb63ce34ea8bd61ecc9b3ba51",
+          "width": 1200,
+          "height": 661,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-bab-al-bahr-102204101.jpg",
+          "bytes": 459998,
+          "sha256": "5efc47e9de45fd10c09c89fe08ea9b5b624437663fdce075c3462b8366d424d3",
+          "width": 1200,
+          "height": 953,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-bab-al-bahr-102204102.jpg",
+          "bytes": 244621,
+          "sha256": "9e1a23cac24651d726f36ef48af068289a92d65cceb071819d9761ae916b070a",
+          "width": 1200,
+          "height": 901,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 2631,
+      "work_id": "W2_076",
+      "name": "ONE & ONLY ROYAL MIRAGE ARABIAN COURT",
+      "aliases": [
+        "ONE & ONLY ROYAL MIRAGE ARABIAN COURT"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2631",
+      "status": "held",
+      "reason": "parent_or_related_property_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 8917,
+      "work_id": "W2_077",
+      "name": "Jumeirah Emirates Towers",
+      "aliases": [
+        "Jumeirah Emirates Towers",
+        "JUMEIRAH EMIRATES TOWERS"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8917",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "d67bfc734ac49bb2547fb0138e4891fcc6a1bb8de34d1851fbe6af909ad5acab",
+      "bytes": 498423,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/8917-48002500.jpg",
+          "bytes": 219837,
+          "sha256": "4880fd5a8a49fd22fed653cbe24e0705b76e2404a819cb22300ddcbe2459c921",
+          "width": 940,
+          "height": 705,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/8917-48002501.jpg",
+          "bytes": 269838,
+          "sha256": "219b889f4b63d73a26387e10fac04cc3a1463190043a5cf0c7e98c828cbe1ef8",
+          "width": 940,
+          "height": 705,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/8917-48002602.jpg",
+          "bytes": 125159,
+          "sha256": "ef27b573b320fb7370442854d6b5b4433aaa2bc4ac226b695014f1b0290fe384",
+          "width": 940,
+          "height": 705,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 8999,
+      "work_id": "W2_078",
+      "name": "Waldorf Astoria Ras Al Khaimah",
+      "aliases": [
+        "Waldorf Astoria Ras Al Khaimah",
+        "WALDORF ASTORIA RAS AL KHAIMAH"
+      ],
+      "region": "Рас-эль-Хайма",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8999",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "ca7703d04223b7b64596f12c0309360f5a35b0fe46068b29ea716e6b6a2802b9",
+      "bytes": 439821,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/waldorf-astoria-ras-al-khaimah-102302580.jpg",
+          "bytes": 285216,
+          "sha256": "953c24c2d95d251f0fa4e32cad90a17954f6b4b782dbefd9316e91bbbdb01179",
+          "width": 1200,
+          "height": 801,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/waldorf-astoria-ras-al-khaimah-102302581.jpg",
+          "bytes": 344965,
+          "sha256": "6dccf9dae723d49a2312864473f9b7c666ef2ed1e8f32397e13466d9743a89cf",
+          "width": 1200,
+          "height": 801,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/waldorf-astoria-ras-al-khaimah-102302582.jpg",
+          "bytes": 357979,
+          "sha256": "d08281cc1e8d24b2515aed9c46dac6fa5e7d9c895ad31f3c0969a9bb289e3d90",
+          "width": 1200,
+          "height": 801,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 13835,
+      "work_id": "W2_079",
+      "name": "EASTERN MANGROVES HOTEL & SPA BY ANANTARA",
+      "aliases": [
+        "EASTERN MANGROVES HOTEL & SPA BY ANANTARA"
+      ],
+      "region": "Абу-Даби",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=13835",
+      "status": "held",
+      "reason": "current_brand_or_opening_requires_primary_commercial_confirmation",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 56236,
+      "work_id": "W2_080",
+      "name": "Rixos Premium Dubai",
+      "aliases": [
+        "Rixos Premium Dubai",
+        "RIXOS PREMIUM DUBAI"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=56236",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "fc175224fa61d068ab1b17b8bea634175bb7875e6087f6f6dec4731613ecfb48",
+      "bytes": 404076,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-premium-dubai-102411470.jpg",
+          "bytes": 276435,
+          "sha256": "739dbf3b484030b63a3d46ffb2a0433764fd230f059eb042ce3796747651182c",
+          "width": 1200,
+          "height": 923,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-premium-dubai-102411471.jpg",
+          "bytes": 313620,
+          "sha256": "f5d049e8f89480a9417ec04108ebeb214995e7a8867b62022c28804d51118dd0",
+          "width": 1200,
+          "height": 949,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-premium-dubai-102411472.jpg",
+          "bytes": 332210,
+          "sha256": "a3cba5b2039ea0fef8a20de78a25e63ad16b8575d3b9b4cffd56d87e063b3370",
+          "width": 1200,
+          "height": 643,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 110597,
+      "work_id": "W2_081",
+      "name": "One&Only One Zaabeel",
+      "aliases": [
+        "One&Only One Zaabeel",
+        "ONE & ONLY ONE ZA ABEEL"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=110597",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "1d1bfcf2c46a85625a94fdbb384369c69506985e131cc59e1ccd0e8f2a80df7e",
+      "bytes": 319577,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/one-only-one-za-abeel-2210200.jpg",
+          "bytes": 88879,
+          "sha256": "ce70015f78d06b92ad18c597370a9f7b157f81ada4d1d4d4a6710f3239b14e41",
+          "width": 1024,
+          "height": 618,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/one-only-one-za-abeel-2210201.jpg",
+          "bytes": 107603,
+          "sha256": "b5733ab1b686e99a5185cf9784ef6194ee9484dc32c2f2e29764ab77677bc5a5",
+          "width": 548,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/one-only-one-za-abeel-2210202.jpg",
+          "bytes": 168604,
+          "sha256": "3c52775ca884bbcd62208085214f673f49bb2247fbdf20aa66ceb931f3c29adc",
+          "width": 1024,
+          "height": 661,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 2519,
+      "work_id": "W2_082",
+      "name": "Atlantis The Palm",
+      "aliases": [
+        "Atlantis The Palm",
+        "ATLANTIS THE PALM"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2519",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "439ecdfca71300f38f05acd409b0ba6fa85740089cafcbd1d78adf2b6ed718d1",
+      "bytes": 398923,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/atlantis-the-palm-102203494.jpg",
+          "bytes": 291429,
+          "sha256": "472cef87f98bb140b95ba20390405ae61bfff3e198987de35d00cba3a4730f36",
+          "width": 1200,
+          "height": 773,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/atlantis-the-palm-102203490.jpg",
+          "bytes": 284490,
+          "sha256": "ed0b9267a28620ef28232723b40a3a8bb6e43fd1608fa8d93a31f253acd82ba9",
+          "width": 1200,
+          "height": 781,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/atlantis-the-palm-102203491.jpg",
+          "bytes": 233695,
+          "sha256": "6463c027324d6025855f31678eb51830c58801f06637ed1a1013bc1b11541baf",
+          "width": 1200,
+          "height": 828,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 2591,
+      "work_id": "W2_083",
+      "name": "Kempinski Hotel & Residences Palm Jumeirah",
+      "aliases": [
+        "Kempinski Hotel & Residences Palm Jumeirah",
+        "KEMPINSKI HOTEL & RESIDENCES PALM JUMEIRAH"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2591",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "d73c31575caca09b19999799d1567dafe1995b90b5298f731d9f50035b969ab7",
+      "bytes": 429580,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-hotel-residences-palm-jumeirah-2214200.jpg",
+          "bytes": 160208,
+          "sha256": "1dbd8afddbc1b310be8d333b50bc9dbfddc47ff044130eb07df3dbef2fb8c611",
+          "width": 1024,
+          "height": 575,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-hotel-residences-palm-jumeirah-2214201.jpg",
+          "bytes": 159277,
+          "sha256": "452f3f0252555f1e902902ed0bab2021dfdd1b634ffd2513ab6d08a3039fd73a",
+          "width": 1024,
+          "height": 575,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-hotel-residences-palm-jumeirah-2214202.jpg",
+          "bytes": 198473,
+          "sha256": "75afd3a1d877415e6819b3213ecb8953bdea0c837dce53bc4445b178794b78e8",
+          "width": 1024,
+          "height": 575,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 2936,
+      "work_id": "W2_084",
+      "name": "One&Only The Palm",
+      "aliases": [
+        "One&Only The Palm",
+        "ONE & ONLY THE PALM"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2936",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "8402ebcec8997cc31e02219c7d5ac443862fe3fa70fff6548203556f29ed4c1f",
+      "bytes": 596241,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/one-only-the-palm-315500.jpg",
+          "bytes": 333164,
+          "sha256": "a4bf02e144bfc63365fd350e8c2f013842427283ca91df881fd3a604dcbd85d9",
+          "width": 1024,
+          "height": 731,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/one-only-the-palm-315503.jpg",
+          "bytes": 137562,
+          "sha256": "dba2fbfd4316c8e888436c80c8f6680962bf2b2d4a9970025eb9c23b36c4cfde",
+          "width": 1024,
+          "height": 679,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/one-only-the-palm-315505.jpg",
+          "bytes": 139628,
+          "sha256": "f974b0443ae3bce9bed690e6ed7a595ddbdf94f6a6e3a55408a562901bbed10d",
+          "width": 548,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 8945,
+      "work_id": "W2_085",
+      "name": "One&Only Royal Mirage",
+      "aliases": [
+        "One&Only Royal Mirage",
+        "ONE & ONLY ROYAL MIRAGE"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8945",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "0e3bc1a57ca21eb72ade45bb7b098e015ec919717f0fa9e3b65c91c7bd57bee3",
+      "bytes": 524022,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/one-only-royal-mirage3-914200.jpg",
+          "bytes": 78532,
+          "sha256": "0bc15cb7d7238d21e50e04095c89d06f728a9466c8d76c9979599d80473d2aa0",
+          "width": 800,
+          "height": 535,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/one-only-royal-mirage3-914201.jpg",
+          "bytes": 107413,
+          "sha256": "286801f8c598c106b263b87fefc532ddaa4786a3a5db0d4c3b306e823006ed74",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/one-only-royal-mirage3-914202.jpg",
+          "bytes": 114584,
+          "sha256": "da631efbcafa874c7aebdb0545665ecc7ef11921128e4458f6f89c968ed5cc8b",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 13837,
+      "work_id": "W2_086",
+      "name": "Fairmont The Palm",
+      "aliases": [
+        "Fairmont The Palm",
+        "FAIRMONT THE PALM"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=13837",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "8bb19fd73016850392d957563e1d76fcf5fce52384c561ef236cc7ee567dd937",
+      "bytes": 500713,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-the-palm-102307150.jpg",
+          "bytes": 229006,
+          "sha256": "f13fb6c8cf780d2e86e5d21a8939deb9c6188c02cfa9b2156f1f1e9f6c489e79",
+          "width": 1024,
+          "height": 673,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-the-palm-102307151.jpg",
+          "bytes": 257405,
+          "sha256": "879bada2d88587332721becbe2b4925d523da4d64576522e6ceaac41a608e641",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-the-palm-102307152.jpg",
+          "bytes": 555753,
+          "sha256": "f043c8e4d28e3d0e702bf7111904206d08179390a02438dd20eec109a7eabfc1",
+          "width": 1200,
+          "height": 801,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 77684,
+      "work_id": "W2_087",
+      "name": "Anantara World Islands Dubai Resort",
+      "aliases": [
+        "Anantara World Islands Dubai Resort",
+        "ANANTARA WORLD ISLANDS DUBAI RESORT"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77684",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "825ee41523121f0f987bb07ea4e7027dfb72015b32c4e3bdfd1b7de7ab2076aa",
+      "bytes": 478114,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/anantara-world-islands-dubai-resort-4505303.jpg",
+          "bytes": 270075,
+          "sha256": "9d52a6b605a2a0cb986ff60e8ccbdd3a25787d04df19b8a8edf6e8f6482d4316",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/anantara-world-islands-dubai-resort-4505300.jpg",
+          "bytes": 168335,
+          "sha256": "7be4f5e0071039c2cda79e0e754dff4ec6307e1f4047a8778c73f0a5d7bbe177",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/anantara-world-islands-dubai-resort-4505301.jpg",
+          "bytes": 184413,
+          "sha256": "2b34197df40428ce56aca7513aeec1f75ca105c3a91d07d96969a9b29f6689a2",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 80431,
+      "work_id": "W2_088",
+      "name": "Rixos Marina Abu Dhabi",
+      "aliases": [
+        "Rixos Marina Abu Dhabi",
+        "RIXOS MARINA ABU DHABI"
+      ],
+      "region": "Абу-Даби",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=80431",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "c081ffc69a43a06c68022e7143ead3bd579ef6870603683282b8d8884908817f",
+      "bytes": 523762,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-marina-abu-dhabi-102507110.jpg",
+          "bytes": 356354,
+          "sha256": "0538bb10682b9e5187a8bc64c7f04ada900b36208853a30533d74982a00e3f6e",
+          "width": 1200,
+          "height": 675,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-marina-abu-dhabi-102507121.jpg",
+          "bytes": 387220,
+          "sha256": "64a056fd257ef7e217217d3bf75812b8208b3d3dbcdb2701c04f47752c33b778",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-marina-abu-dhabi-102507122.jpg",
+          "bytes": 330365,
+          "sha256": "058b97c123b9b6644e38b16d1d9f1aa9eab3d879080a23de7e1b73306b1ff9a4",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 78845,
+      "work_id": "W2_089",
+      "name": "Jumeirah Living Marina Gate",
+      "aliases": [
+        "Jumeirah Living Marina Gate",
+        "JUMEIRAH LIVING MARINA GATE"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78845",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "ffcfed0028c237a5a5b8bb6f1152e90b37af0bcd4f30c96a06b4fc8d242a07fa",
+      "bytes": 447642,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/78845-13028454.jpg",
+          "bytes": 168553,
+          "sha256": "c4085d5ff2bb3d067ef3adbc7d0bae6c2785d1f96b6c113331e5ea8f31ff1ef4",
+          "width": 940,
+          "height": 705,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/78845-13026600.jpg",
+          "bytes": 205982,
+          "sha256": "5c4b0c9cc47095ea4bdcbe30c0f790aa0228aa8c3cec88dbe1933cb824b1f647",
+          "width": 940,
+          "height": 705,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/78845-13026701.jpg",
+          "bytes": 117834,
+          "sha256": "083d274157200e16d9c8b8d057b157748e1581eecd635ae3f040508374bb7410",
+          "width": 940,
+          "height": 705,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 8918,
+      "work_id": "W2_090",
+      "name": "Jumeirah Living World Trade Centre Residence",
+      "aliases": [
+        "Jumeirah Living World Trade Centre Residence",
+        "JUMEIRAH LIVING WORLD TRADE CENTRE RESIDENCE"
+      ],
+      "region": "Дубай",
+      "country": "AE",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8918",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 9,
+      "png_sha256": "83826966fd3f095bec54396a3217f98f98956f38b3677af2486148623af5239c",
+      "bytes": 421228,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-living-world-trade-centre-resid-2108400.jpg",
+          "bytes": 48882,
+          "sha256": "33542311990e85557ca8f6d8e3870c731b4a8df26124442811a1f8255556054e",
+          "width": 600,
+          "height": 411,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-living-world-trade-centre-resid-2108401.jpg",
+          "bytes": 55397,
+          "sha256": "31689e9a3358413a19dd309c953a6c76bbc77aff5dc2374c860c62fb8182b03b",
+          "width": 550,
+          "height": 447,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-living-world-trade-centre-resid-2108403.jpg",
+          "bytes": 47739,
+          "sha256": "5f0b22d7d644112f036f93c97d96e24425b66bbff048165f465e9956525a601b",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        }
+      ]
+    }
+  ],
+  "prepared_count": 44,
+  "held_count": 26,
+  "sender_calls": 0,
+  "feed_writes": 0,
+  "qa_sheets": [
+    {
+      "path": ".github/traffic-publish/commercial-wave2-remaining70-20261117/qa-sheet-1.jpg",
+      "ids": [
+        1028,
+        1071,
+        1149,
+        1563,
+        28460,
+        112391,
+        127009,
+        17603,
+        17682,
+        66450,
+        37470,
+        99608
+      ]
+    },
+    {
+      "path": ".github/traffic-publish/commercial-wave2-remaining70-20261117/qa-sheet-2.jpg",
+      "ids": [
+        102321,
+        37165,
+        72910,
+        82106,
+        103273,
+        1980,
+        266,
+        159,
+        344,
+        125550,
+        143790,
+        76208
+      ]
+    },
+    {
+      "path": ".github/traffic-publish/commercial-wave2-remaining70-20261117/qa-sheet-3.jpg",
+      "ids": [
+        104626,
+        2554,
+        65170,
+        80397,
+        82023,
+        2549,
+        2553,
+        8917,
+        8999,
+        56236,
+        110597,
+        2519
+      ]
+    },
+    {
+      "path": ".github/traffic-publish/commercial-wave2-remaining70-20261117/qa-sheet-4.jpg",
+      "ids": [
+        2591,
+        2936,
+        8945,
+        13837,
+        77684,
+        80431,
+        78845,
+        8918
+      ]
+    }
+  ],
+  "native_screen": {
+    "mode": "READ_ONLY_REMAINING70_EXISTING_PUBLICATION_SCREEN",
+    "db_writes": 0,
+    "provider_calls": 0,
+    "sender_calls": 0,
+    "inspected_hotel_ids": [
+      59118,
+      56002,
+      55750,
+      165997,
+      1595,
+      1028,
+      1071,
+      76393,
+      1149,
+      1563,
+      1633,
+      81233,
+      28460,
+      112391,
+      114913,
+      127009,
+      17603,
+      17682,
+      66450,
+      37470,
+      99608,
+      102321,
+      165597,
+      37165,
+      72910,
+      82106,
+      75593,
+      110287,
+      110288,
+      131935,
+      152750,
+      133426,
+      103273,
+      496,
+      1980,
+      76638,
+      266,
+      159,
+      344,
+      116691,
+      125550,
+      143790,
+      76208,
+      169957,
+      104626,
+      2523,
+      4498,
+      77792,
+      2554,
+      2632,
+      65170,
+      80397,
+      82023,
+      2549,
+      2553,
+      2631,
+      8917,
+      8999,
+      13835,
+      56236,
+      110597,
+      2519,
+      2591,
+      2936,
+      8945,
+      13837,
+      77684,
+      80431,
+      78845,
+      8918
+    ],
+    "matches": [
+      {
+        "hotel_id": 496,
+        "platform": "max",
+        "publication_id": 59,
+        "version_id": 71,
+        "source_native_hotel_id": null,
+        "first_lines": "SUNRISE REMAL RESORT · ШАРМ-ЭЛЬ-ШЕЙХ\n\nБассейн, пальмы и отдых на территории — здесь можно проводить день у воды, заходить в рестораны, а детям предложить занятия в клубе. Вариант для семейной поездки, если первая линия не обязательна.\n\nГлавная особенность: пляж находится у соседнего отеля, к нему предусмотрен шаттл. Это стоит учитывать, если вы любите несколько раз в день возвращаться с моря в номер.\n\nДля семей есть категории с двухъярусными кроватями. Подберём размещение под ваш состав, чтобы название Family не заменяло проверку реальной плани",
+        "post_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0",
+        "matched_by": [
+          "alias"
+        ],
+        "matched_aliases": [
+          "SUNRISE REMAL RESORT"
+        ]
+      }
+    ],
+    "matched_hotel_ids": [
+      496
+    ],
+    "ok": true
+  }
+}
