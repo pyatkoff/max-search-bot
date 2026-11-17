@@ -1,0 +1,92 @@
+name: One-shot FASTFILL TR EG20 editorial and publisher source check
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-tr-eg20-source-check-20261117.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  source-only:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '7ac9efbcc0f0455eb2e9d81e257cba04b2d80d37' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+          sparse-checkout: |
+            tools/direct_demand/operations
+            .github/traffic-publish/commercial-wave2-tr-eg20-20261117
+      - name: Reuse original publisher preparation controls for unchanged implementation
+        run: python3 tools/direct_demand/operations/check-commercial-batch-preparation.py
+      - name: Validate all reviewed bytes, exact provider facts, captions and original source without sending
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = 7ac9efbcc0f0455eb2e9d81e257cba04b2d80d37
+          python3 - <<'PY'
+          import base64,hashlib,json,pathlib,re,runpy,subprocess
+          APP='fd9b28dab2147f13f3b0d0f7f856b14392b141d2'
+          BASE='7ac9efbcc0f0455eb2e9d81e257cba04b2d80d37'
+          PREFIX='.github/traffic-publish/commercial-wave2-tr-eg20-20261117/'
+          INPUT=json.loads(r'''[{"hotel_id":65341,"hotel":"Akra Fethiye The Residence","aliases":["Akra Fethiye The Residence","The Residence at TUI Sensatori Barut Fethiye"],"text":"✈️ Туры в Akra Fethiye The Residence\n📍 Фетхие, Турция.\n\nСпокойный отдых для взрослых 16+ в окружении бассейнов и зелени. Рестораны, спа и номера с выходом к бассейну для тех, кто хочет провести отпуск вдвоём.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=65341","photo_blob_sha":"aa031d26aa544f200fe6e34018e3018a4beed1fa"},{"hotel_id":49084,"hotel":"Titanic Luxury Collection Bodrum","aliases":["Titanic Luxury Collection Bodrum","Titanic Deluxe Bodrum"],"text":"✈️ Туры в Titanic Luxury Collection Bodrum\n📍 Бодрум, Турция.\n\nОтдых в красивой бухте Эгейского моря: собственный пляж, бассейны и рестораны разных кухонь. Для семей есть детский клуб, водные горки и развлечения для маленьких гостей.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=49084","photo_blob_sha":"c020b6eea832c7e25fc499c9f77df7e78c548427"},{"hotel_id":75538,"hotel":"The Norm Collection Doora","aliases":["The Norm Collection Doora","Selectum Doora Bodrum"],"text":"✈️ Туры в The Norm Collection Doora\n📍 Бодрум, Турция.\n\nБунгало и виллы на берегу бухты Торба, собственный пляж и пирсы для отдыха у моря. Бассейны, аквапарк и детский клуб делают курорт удобным для семейного отпуска.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75538","photo_blob_sha":"c896f6e637d9fead732fb48f9649d5d11e20a990"},{"hotel_id":82649,"hotel":"Rixos Park Belek","aliases":["Rixos Park Belek"],"text":"✈️ Туры в Rixos Park Belek\n📍 Белек, Турция.\n\nСобственный песчаный пляж, зелёная территория и бассейны для неспешного отдыха. Детей ждёт Rixy Kids Club, а всей семьёй можно отправиться в The Land of Legends.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82649","photo_blob_sha":"5a44082506f2a5ddc8dad905669db993cae505d0"},{"hotel_id":37376,"hotel":"Akra Fethiye TUI Blue Sensatori","aliases":["Akra Fethiye TUI Blue Sensatori","TUI Blue Sensatori Barut Fethiye"],"text":"✈️ Туры в Akra Fethiye TUI Blue Sensatori\n📍 Фетхие, Турция.\n\nКурорт у Эгейского моря для отдыха всей семьёй. Собственный пляж, бассейны, водные горки и детский клуб: можно чередовать спокойные дни у воды с развлечениями.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=37376","photo_blob_sha":"b653cd83d279cfd8702a8e9beb73fe97e348790a"},{"hotel_id":1148,"hotel":"Botanik Hotel & Resort","aliases":["Botanik Hotel & Resort","Delphin Botanik World of Paradise"],"text":"✈️ Туры в Botanik Hotel & Resort\n📍 Аланья, Турция.\n\nЗелёный курорт у моря с бассейнами и собственным пляжем. Детский клуб, водные горки и луна-парк помогут наполнить семейный отпуск яркими впечатлениями.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1148","photo_blob_sha":"26dc7f2b73e5eb58441652252fe85990a7ea5070"},{"hotel_id":75100,"hotel":"Barut Goia","aliases":["Barut Goia","Barut Sunwing Side Beach"],"text":"✈️ Туры в Barut Goia\n📍 Сиде, Турция.\n\nСемейный отдых с бассейнами, детскими клубами и летним аквапарком. Для малышей предусмотрена концепция Baby Star, а до собственного песчаного пляжа ходит шаттл.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75100","photo_blob_sha":"7f5f9dd26c71d2d2dfceecd7260dbfafc1845d23"},{"hotel_id":80478,"hotel":"CAJA by Maxx Royal","aliases":["CAJA by Maxx Royal"],"text":"✈️ Туры в CAJA by Maxx Royal\n📍 Бодрум, Турция.\n\nКамерный отдых в резиденциях у частного залива в Тюркбюкю. Собственный песчаный пляж, спа и бассейн для тех, кто ценит пространство, спокойствие и красивый Эгейский берег.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=80478","photo_blob_sha":"b53fc692f20f88a4aa846306da9ad228aa6b571b"},{"hotel_id":27646,"hotel":"Botanik Platinum","aliases":["Botanik Platinum","Delphin Botanik Platinum"],"text":"✈️ Туры в Botanik Platinum\n📍 Аланья, Турция.\n\nСемейный курорт на первой линии с собственным пляжем и бассейнами. Водные горки, детский клуб и луна-парк дополняют дни у моря, а рестораны порадуют разнообразием кухонь.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=27646","photo_blob_sha":"bbc95f6ab2c4dd33386ca6b25db8e6cc2c3bb8fe"},{"hotel_id":1150,"hotel":"Delphin Diva Premiere","aliases":["Delphin Diva Premiere"],"text":"✈️ Туры в Delphin Diva Premiere\n📍 Лара, Анталья, Турция.\n\nОтдых у моря в районе Лара с собственным пляжем, бассейнами и водными горками. Детские клубы, рестораны разных кухонь и развлечения для семейного отпуска.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1150","photo_blob_sha":"c0b68c0250cb6f33f3506f5fb7db0d6d4c7bfbe8"},{"hotel_id":319,"hotel":"Sunrise Remal Beach","aliases":["Sunrise Remal Beach"],"text":"✈️ Туры в Sunrise Remal Beach\n📍 Шарм-эль-Шейх, Египет.\n\nКрасное море и коралловый риф прямо у собственного пляжа, со спуском в воду с пирса. Бассейны, детский клуб и рестораны дополняют отдых и знакомство с подводным миром.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=319","photo_blob_sha":"8e66f25ff9fac7ec2d273a00332cdcc6fef2e84e"},{"hotel_id":40222,"hotel":"JAZ Aquaviva","aliases":["JAZ Aquaviva"],"text":"✈️ Туры в JAZ Aquaviva\n📍 Макади-Бэй, Египет.\n\nСемейный отпуск с аквапарком Makadi Water World, бассейнами и детским клубом. До собственного песчаного пляжа ходит бесплатный автобус: дни можно делить между морем и водными развлечениями.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=40222","photo_blob_sha":"8831a8afbf1abc19dcdeba20558f248fcbe4fad3"},{"hotel_id":306,"hotel":"TUI Magic Life Redsina","aliases":["TUI Magic Life Redsina","Iberotel Redsina"],"text":"✈️ Туры в TUI Magic Life Redsina\n📍 Шарм-эль-Шейх, Египет.\n\nПесчаный пляж, коралловый риф и пирс для знакомства с Красным морем. Бассейны, аквапарк и детский клуб подойдут для активного семейного отпуска.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=306","photo_blob_sha":"9f6f22f5896253ec31a808bf6345ba4659603094"},{"hotel_id":83106,"hotel":"Pickalbatros Villaggio Resort Portofino","aliases":["Pickalbatros Villaggio Resort Portofino"],"text":"✈️ Туры в Pickalbatros Villaggio Resort Portofino\n📍 Марса Алам, Египет.\n\nЯркий курорт на первой линии с собственным песчаным пляжем. Бассейны, большой аквапарк, спортивные площадки и мини-клуб для отдыха всей семьёй.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=83106","photo_blob_sha":"19a32c0fa3b5ce51b24d3fbd0aa429ef3e901f47"},{"hotel_id":113,"hotel":"Pickalbatros Alf Leila Wa Leila","aliases":["Pickalbatros Alf Leila Wa Leila"],"text":"✈️ Туры в Pickalbatros Alf Leila Wa Leila\n📍 Хургада, Египет.\n\nВосточная атмосфера, бассейны и доступ к развлечениям комплекса Neverland. Аквапарк и парк аттракционов порадуют детей, а до песчаного пляжа ходит шаттл.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=113","photo_blob_sha":"b18420cdf9fcc1af059868743bf49f3a5b0624c8"},{"hotel_id":108,"hotel":"Pickalbatros Aqua Blu Hurghada","aliases":["Pickalbatros Aqua Blu Hurghada","Pickalbatros Sea World"],"text":"✈️ Туры в Pickalbatros Aqua Blu Hurghada\n📍 Хургада, Египет.\n\nСемейный отдых среди бассейнов с доступом к аквапарку комплекса Pickalbatros. Детский клуб и водные развлечения дополняет собственный песчаный пляж, до которого ходит шаттл.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=108","photo_blob_sha":"bba2a8975a7c81905ed9e5f43fa1680b7424ab95"},{"hotel_id":133,"hotel":"Pickalbatros Aqua Park Hurghada","aliases":["Pickalbatros Aqua Park Hurghada","Beach Albatros Garden"],"text":"✈️ Туры в Pickalbatros Aqua Park Hurghada\n📍 Хургада, Египет.\n\nАквапарк, бассейн с искусственной волной и развлечения для всей семьи. Детей ждут мини-клуб и игровые площадки, а до собственного песчаного пляжа ходит шаттл.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=133","photo_blob_sha":"27ca4d8d79f0db5649667bbc9537623e2e7dd234"},{"hotel_id":123365,"hotel":"JAZ Elite Riviera","aliases":["JAZ Elite Riviera"],"text":"✈️ Туры в JAZ Elite Riviera\n📍 Марса Алам, Египет.\n\nСовременный курорт с собственным песчаным пляжем и домашним рифом. Бассейны, рестораны разных кухонь и детский клуб Jazy для красивого семейного отдыха у Красного моря.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=123365","photo_blob_sha":"e2f869440cf7191ffb92cc49bb73a31ef341eb5e"},{"hotel_id":76125,"hotel":"JAZ Tamerina","aliases":["JAZ Tamerina"],"text":"✈️ Туры в JAZ Tamerina\n📍 Мерса-Матрух, Египет.\n\nСпокойный семейный отдых на Средиземноморском побережье Египта. Песчаный пляж неподалёку, бассейны, детский клуб и спортивные развлечения для насыщенных каникул.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76125","photo_blob_sha":"7b8536e601dc0c29b5fe8e181459b31c8fb9e272"},{"hotel_id":76121,"hotel":"JAZ Crystal","aliases":["JAZ Crystal"],"text":"✈️ Туры в JAZ Crystal\n📍 Мерса-Матрух, Египет.\n\nСобственный песчаный пляж и бирюзовая вода Средиземного моря. Бассейны, детский клуб и развлечения для семьи, которая мечтает о неспешном отдыхе у красивого побережья.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76121","photo_blob_sha":"a2c032bc16ce1186badcceaad78cfb56ca7b9ba1"}]''')
+          def api(p):return json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+p],timeout=60))
+          assert api('git/ref/heads/main')['object']['sha']==APP
+          r=api('actions/runs/44092629507');assert r['head_sha']=='9142ab90a4b4153c3ff286c7d77b6359bc80078a' and r['conclusion']=='success' and r['run_attempt']==1
+          root=pathlib.Path('tr-eg20-accepted-source');root.mkdir()
+          receipt=json.loads(pathlib.Path(PREFIX+'cover-receipt.json').read_bytes())
+          facts=json.loads(pathlib.Path(PREFIX+'provider-facts.json').read_bytes())
+          assert receipt['sender_calls']==receipt['feed_writes']==0 and len(receipt['rows'])==20
+          source=pathlib.Path('tools/direct_demand/operations')
+          template=(source/'commercial-batch-template-20261102.php').read_text()
+          assert hashlib.sha256(template.encode()).hexdigest()=='4c4aaa2e50155a69e8bd8b9f460777026735b0c51c3b2fc253cf0b7556e53ed5'
+          pairs=[('f0e04e9b4e0ed6859ced96279cbf0619931596e6','1982ff7368763edf8b7238c3142e3cc28579e991'),('db8181426091a685a79ee55991cde22671f0d9dd','7304af19cc19666f00ca4ead1b04c2bdce719646')]
+          protected=re.findall(r'"([^"]+)"=>"([a-f0-9]{40})"',template);assert len(protected)==22
+          tree=api('git/trees/'+APP+'?recursive=1');assert not tree['truncated']
+          actual={e['path']:e['sha'] for e in tree['tree']}
+          for path,sha in protected:assert actual[path]==dict(pairs).get(sha,sha),('publisher_surface_drift',path)
+          prepare=runpy.run_path(str(source/'prepare-commercial-batch.py'))['prepare']
+          files={};batch_receipts=[]
+          for batch,items,country in [(6,INPUT[:10],4),(7,INPUT[10:],1)]:
+              manifest={'schema_version':1,'operation':'commercial-hotel-batch-20261117-'+str(batch)+'-v1','state':'PREPARED_NOT_SENT','button_text':'✈️ Узнать стоимость тура','expected_new_full_pairs':10,'photo_freeze_commit':BASE,'native_id_namespace':'Tourvisor','rows':[]}
+              for row in items:
+                  hid=row['hotel_id'];f=next(x for x in facts if x['id']==hid);rec=next(x for x in receipt['rows'] if x['id']==hid)
+                  assert f['data']['id']==hid and f['data']['country']['id']==country and rec['country_id']==country
+                  path=PREFIX+str(hid)+'.png';b=pathlib.Path(path).read_bytes()
+                  assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==row['photo_blob_sha']
+                  assert hashlib.sha256(b).hexdigest()==rec['png_sha256']
+                  manifest['rows'].append({'hotel_id':hid,'logical_id':'commercial-hotel-'+str(hid)+'-v1','aliases':row['aliases'],'text':row['text'],'text_sha256':hashlib.sha256(row['text'].encode()).hexdigest(),'photo_url':'https://raw.githubusercontent.com/pyatkoff/max-search-bot/'+BASE+'/'+path,'photo_sha256':rec['png_sha256'],'media_state':'REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED','sources':[row['source']]})
+              raw=(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n').encode()
+              approval={'schema_version':1,'operation':manifest['operation'],'expected_installed_sha':APP,'hotel_ids':[r['hotel_id'] for r in items],'manifest_sha256':hashlib.sha256(raw).hexdigest()}
+              php,report=prepare(template,raw,approval)
+              for old,new in pairs:
+                  assert php.count(old)==1 and php.count(new)==0
+                  php=php.replace(old,new)
+              files['p'+str(batch)+'-manifest.json']=raw
+              files['p'+str(batch)+'-approval.json']=(json.dumps(approval,ensure_ascii=False,indent=2)+'\n').encode()
+              files['p'+str(batch)+'-publisher-unexecuted.php']=php.encode()
+              batch_receipts.append({'batch':batch,'operation':manifest['operation'],'ids':approval['hotel_ids'],'rows':10,'publisher_sha256':hashlib.sha256(php.encode()).hexdigest()})
+          files['provider-facts.json']=pathlib.Path(PREFIX+'provider-facts.json').read_bytes()
+          for name,b in files.items():(root/name).write_bytes(b)
+          rec={'state':'TWENTY_EDITORIAL_ACCEPTED_EXISTING_PUBLISHER_SOURCE_ONLY','runtime_sha':APP,'cover_commit':BASE,'protected_surfaces':22,'modified_hash_pins':2,'send_attempts':0,'feed_writes':0,'batches':batch_receipts,'files':{n:hashlib.sha256(b).hexdigest() for n,b in files.items()}}
+          (root/'receipt.json').write_text(json.dumps(rec,indent=2)+'\n')
+          print('TWENTY_ACCEPTED_SOURCE_RECEIPT_JSON '+json.dumps(rec,separators=(',',':')))
+          PY
+          php -l tr-eg20-accepted-source/p6-publisher-unexecuted.php
+          php -l tr-eg20-accepted-source/p7-publisher-unexecuted.php
+      - name: Preserve exact accepted inputs and unexecuted publisher files
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-tr-eg20-accepted-source-20261117
+          path: tr-eg20-accepted-source/*
+          retention-days: 30
+          if-no-files-found: warn
