@@ -126,15 +126,23 @@ window.WorkspaceV2InternalNotes?.activate(S.manager?.id);
 function filterScope(){return JSON.stringify([S.queue,S.leadProjectFilter,S.leadSourceFilter,S.leadManagerFilter,S.leadStageFilter,S.leadTagFilter,S.leadOutcomeFilter,S.leadTaskFilter,S.leadSearch])}
 async function loadCatalog(){
   const generation=S.authGeneration;
-  const [cat,filterOptions]=await Promise.all([pipe('catalog').catch(()=>null),pipe('filter_options').catch(()=>null)]);
-  if(generation!==S.authGeneration||S.authExpired)return;
-  if(cat?.ok)S.pipeline={stages:cat.stages||[],tags:cat.tags||[],outcomes:cat.outcomes||{},closeReasons:cat.close_reasons||{}};
-  if(filterOptions?.ok&&filterOptions.filters){const f=filterOptions.filters;S.projects=Array.isArray(f.projects)?f.projects:S.projects;S.filterSources=Array.isArray(f.sources)?f.sources:[];S.filterManagers=Array.isArray(f.managers)?f.managers:[];S.filterOptionsReady=true}else{S.filterSources=[];S.filterManagers=[];S.filterOptionsReady=false}
-  const previousScope=filterScope();
-  window.WorkspaceV2Filters?.render();
-  // Only a removed/invalid saved criterion needs a new list. Metadata arriving
-  // late must not reopen the conversation or replace the reply editor.
-  if(previousScope!==filterScope())void window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
+  // Card editors need the catalog, independently of the Inbox directories.
+  const ready=pipe('catalog').catch(()=>null).then(cat=>{
+    if(generation!==S.authGeneration||S.authExpired)return;
+    if(cat?.ok)S.pipeline={stages:cat.stages||[],tags:cat.tags||[],outcomes:cat.outcomes||{},closeReasons:cat.close_reasons||{}};
+  });
+  const filters=pipe('filter_options').catch(()=>null);
+  // Reconcile saved list criteria once both metadata reads have settled.
+  void Promise.all([ready,filters]).then(([,filterOptions])=>{
+    if(generation!==S.authGeneration||S.authExpired)return;
+    if(filterOptions?.ok&&filterOptions.filters){const f=filterOptions.filters;S.projects=Array.isArray(f.projects)?f.projects:S.projects;S.filterSources=Array.isArray(f.sources)?f.sources:[];S.filterManagers=Array.isArray(f.managers)?f.managers:[];S.filterOptionsReady=true}else{S.filterSources=[];S.filterManagers=[];S.filterOptionsReady=false}
+    const previousScope=filterScope();
+    window.WorkspaceV2Filters?.render();
+    // Only a removed/invalid saved criterion needs a new list. Metadata arriving
+    // late must not reopen the conversation or replace the reply editor.
+    if(previousScope!==filterScope())void window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
+  }).catch(()=>{});
+  return ready;
 }
 async function applyCustomerName(name,context){
   const current=window.WorkspaceV2Conversation?.captureReplyContext?.();

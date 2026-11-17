@@ -698,10 +698,21 @@ for(const width of [390,1440])test('Manager2 saved tour choice stays in the clie
 });
 
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}]){
-  for(const action of ['catalog','filter_options'])test(`Manager2 startup metadata ${action} does not hold reply readiness at ${viewport.width}x${viewport.height}`,async({page})=>{
+  for(const action of ['catalog','filter_options'])test(`Manager2 startup metadata ${action} does not hold reply readiness at ${viewport.width}x${viewport.height}`,async({page,browserName})=>{
     await page.setViewportSize(viewport);
     const s=await setup(page,{holdMetadata:action,waitForInbox:false});await readyBeforeMetadata(page,s,action);
     if(action==='catalog')await expect(page.locator('#leadStage')).toHaveCount(0);
+    const note='Ручная заметка до загрузки фильтров';
+    if(action==='filter_options'){
+      await expect(page.locator('#leadStage option')).toHaveCount(stages.length);
+      await expect(page.locator('#leadStage')).toHaveValue('working');
+      await showCard(page);
+      const saleDetails=page.locator('#leadCard .m2SaleDetails');
+      if(await saleDetails.getAttribute('open')===null)await saleDetails.locator(':scope > summary').click();
+      await expect(saleDetails).toHaveAttribute('open','');await page.locator('#leadOutcomeNote').fill(note);
+      expect(s.metadataPending()).toBe(1);await noOverflow(page);
+      await capture(page,browserName,viewport.width,'card-before-filters-'+viewport.height);await showChat(page);
+    }
     const draft='Черновик до загрузки справочника';await page.locator('#replyText').fill(draft);
     await page.locator('#replyFile').setInputFiles({name:'held-metadata.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment, never uploaded or sent')});
     await expect(page.locator('#mediaSelection')).toContainText('held-metadata.txt');
@@ -717,6 +728,7 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
       await expect(page.locator('#leadOutcome option')).toHaveCount(3);await expect(page.locator('#leadOutcome')).toHaveValue('open');
     }
     await expect(page.locator('#replyText')).toHaveValue(draft);await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+    if(action==='filter_options')await expect(page.locator('#leadOutcomeNote')).toHaveValue(note);
     await expect(page.locator('#replyText')).toBeFocused();await expect(page.locator('#replyText')).toBeEnabled();
     expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(11);
     expect(s.calls.filter(call=>call.action==='list')).toHaveLength(before.lists);
