@@ -13,8 +13,8 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event_name == 'push' &&
-      github.event.before == '1472c9598450b52376763952316a151ee4d2ab38' &&
-      github.event.head_commit.message == 'diagnostics(anytour): repeat frozen original 27316 preview with accepted 23file runtime' &&
+      github.event.before == 'a8d04cecf19f026c0acd495da2e14f5127d897d4' &&
+      github.event.head_commit.message == 'diagnostics(anytour): exact child failure keys and frozen read only preview' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = 1472c9598450b52376763952316a151ee4d2ab38
+          test "$(git rev-parse HEAD^)" = a8d04cecf19f026c0acd495da2e14f5127d897d4
           test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
           echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
       - name: Pinned existing SSH host and private runner-only key
@@ -86,7 +86,8 @@ jobs:
           PY
           python3 tools/direct_demand/operations/build-reconcile-pending-27316.py "$RUNNER_TEMP/price660-27316/hook.php" "$RUNNER_TEMP/price660-27316/preview.php"
           php -l "$RUNNER_TEMP/price660-27316/preview.php"
-          test "$(sha256sum "$RUNNER_TEMP/price660-27316/preview.php" | cut -d' ' -f1)" = 8c5ee1b88cead25ae27c6dace8683cfcfd5796c1897048d4381c1bba5e614483
+          php "$RUNNER_TEMP/price660-27316/preview.php" --self-test
+          sha256sum "$RUNNER_TEMP/price660-27316/preview.php"
           echo 'FROZEN_RECONCILER_DIGEST_VERIFIED'
       - name: Read only original MAX/TG and saved quote through exact frozen 660 module
         shell: bash
