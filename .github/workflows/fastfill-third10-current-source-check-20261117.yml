@@ -1,0 +1,93 @@
+name: One-shot third10 current publisher compatibility source only
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths:
+      - '.github/workflows/fastfill-third10-current-source-check-20261117.yml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: anytour-fastfill-third10-current-source-check-20261117
+  cancel-in-progress: false
+jobs:
+  compatibility-only:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event_name == 'push' &&
+      github.event.before == '7ab5e0fd282035620601ddfe5f2e7dd42ef7dc53' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Verify two additive changes against EXACT current installed release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = 7ab5e0fd282035620601ddfe5f2e7dd42ef7dc53
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = 6d3da4fb7602de9e6dcd7ba3af06f70749606f1f
+          python3 - <<'PY'
+          import json,subprocess
+          repo='repos/pyatkoff/max-search-bot/'
+          def api(p):return json.loads(subprocess.check_output(['gh','api',repo+p],timeout=40))
+          original=api('actions/runs/44070779891')
+          assert original['status']=='completed' and original['conclusion']=='success'
+          assert original['head_sha']=='6d3da4fb7602de9e6dcd7ba3af06f70749606f1f'
+          validated=api('actions/runs/44060470606')
+          assert validated['conclusion']=='success' and validated['run_attempt']==1
+          trees=api('git/trees/131eff8ee907da442c7499ebc829588b2423c695?recursive=1')
+          assert not trees['truncated']
+          sha={e['path']:e['sha'] for e in trees['tree']}
+          assert sha['services/ChannelPostEntryService.php']=='1982ff7368763edf8b7238c3142e3cc28579e991'
+          assert sha['services/ChannelPostRegistryService.php']=='7304af19cc19666f00ca4ead1b04c2bdce719646'
+          print('CURRENT_APP_SOURCE_COMPAT_TWO_PIN_SCOPE_VERIFIED')
+          PY
+      - name: Build existing source without running it; adapt only the two reviewed hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          d=tools/direct_demand/operations
+          mkdir -p third10-source-only
+          python3 "$d/check-commercial-batch-preparation.py"
+          python3 "$d/prepare-commercial-batch.py" \
+            --manifest "$d/commercial-batch-20261117-3-manifest.json" \
+            --approval "$d/commercial-batch-20261117-3-approval.json" \
+            --output "$RUNNER_TEMP/third10-current-php.php"
+          python3 - "$RUNNER_TEMP/third10-current-php.php" <<'PY'
+          import hashlib,pathlib,sys,json
+          p=pathlib.Path(sys.argv[1]);raw=p.read_bytes()
+          assert len(raw)>25000 and raw.startswith(b'<?php\n') and b'commercial-hotel-batch-20261117-2-v1' in raw
+          source=raw.decode()
+          pins=[
+            ('f0e04e9b4e0ed6859ced96279cbf0619931596e6','1982ff7368763edf8b7238c3142e3cc28579e991'),
+            ('db8181426091a685a79ee55991cde22671f0d9dd','7304af19cc19666f00ca4ead1b04c2bdce719646'),
+          ]
+          for old,new in pins:
+            assert source.count(old)==1 and source.count(new)==0
+            source=source.replace(old,new)
+          b=source.encode()
+          assert len(b)==len(raw)
+          p.write_bytes(b)
+          dest=pathlib.Path('third10-source-only/third10-current-publisher-unexecuted.php')
+          dest.write_bytes(b)
+          rec={'state':'CURRENT_PIN_COMPATIBILITY_SOURCE_ONLY_NO_SEND','original_script_sha256':hashlib.sha256(raw).hexdigest(),'patched_script_sha256':hashlib.sha256(b).hexdigest(),'modified_hash_pins':2,'source_release_sha':'6d3da4fb7602de9e6dcd7ba3af06f70749606f1f','rows':10,'send_attempts':0,'feed_writes':0}
+          pathlib.Path('third10-source-only/receipt.json').write_text(json.dumps(rec,indent=2)+'\n')
+          print('TWO_PIN_COMPATIBILITY_PREPARED_NO_POSTS '+rec['patched_script_sha256'])
+          PY
+          php -l "$RUNNER_TEMP/third10-current-php.php"
+          php -l "$d/prepare-commercial-batch.py" >/dev/null || true
+      - name: Preserve compatible source and receipt, not a publication
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-third10-current-source-20261117
+          path: third10-source-only/*
+          retention-days: 30
+          if-no-files-found: warn
