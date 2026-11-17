@@ -13,8 +13,8 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event_name == 'push' &&
-      github.event.before == 'a8d04cecf19f026c0acd495da2e14f5127d897d4' &&
-      github.event.head_commit.message == 'diagnostics(anytour): exact child failure keys and frozen read only preview' &&
+      github.event.before == '933c4ce93d8840fa460c9adbcc037a478c8df92a' &&
+      github.event.head_commit.message == 'diagnostics(anytour): verify prior completed 27316 pinned before recovery' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = a8d04cecf19f026c0acd495da2e14f5127d897d4
+          test "$(git rev-parse HEAD^)" = 933c4ce93d8840fa460c9adbcc037a478c8df92a
           test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
           echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
       - name: Pinned existing SSH host and private runner-only key
