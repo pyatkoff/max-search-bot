@@ -1,0 +1,137 @@
+name: Exact original Cape Fahn source and PR1612 publisher compatibility
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/cape-fahn-p41-source-check-20261117.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  source-only-no-server:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' &&
+      github.event.before == '8c66156e697c5049a3a42d17309833fee5d39f5d' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Prepare exact old input through unchanged builder and reviewed current runtime pins
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import base64,hashlib,io,json,pathlib,re,runpy,subprocess,zipfile
+          APP='96765e518d7cdc0d7db95a49628994de28f01c4d'
+          OLD='8281b387f258932601439eb789560f6b2cbabd4d'
+          HEAD='8734fbfd029dd9541c57b742636025aa35a5100c'
+          CONTENT='8c66156e697c5049a3a42d17309833fee5d39f5d'
+          def api(path):
+              return json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+path],timeout=30))
+          def file(path,ref):
+              obj=api('contents/'+path+'?ref='+ref)
+              assert obj['type']=='file' and obj['encoding']=='base64' and obj['path']==path
+              raw=base64.b64decode(obj['content'])
+              assert len(raw)==obj['size'] and hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==obj['sha']
+              return raw,obj['sha']
+          for rid in [44153793124,44153793160,44153793289]:
+              r=api('actions/runs/'+str(rid))
+              assert r['head_sha']==HEAD and r['run_attempt']==1 and r['conclusion']=='success'
+          pr=api('pulls/1612')
+          assert pr['merged'] and pr['head']['sha']==HEAD and pr['merge_commit_sha']==APP
+          commit=api('git/commits/'+APP)
+          assert [p['sha'] for p in commit['parents']]==[OLD,HEAD]
+          assert commit['tree']['sha']=='8691f8cac59c0057256f4115bfd8c3da02fb6a2c'
+          original=api('actions/runs/44133344446')
+          assert original['head_sha']=='a3f210d03fd23f3db28337250143381385e9eeae'
+          assert original['run_attempt']==1 and original['conclusion']=='success'
+          meta=api('actions/artifacts/14349679332')
+          assert meta['workflow_run']['id']==44133344446 and meta['workflow_run']['head_sha']==original['head_sha']
+          assert not meta['expired'] and meta['digest']=='sha256:113735f980b7c216e3d826d1b490ff82be1e82a50aa63344fe82302703287609'
+          archive=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/14349679332/zip'],timeout=60)
+          assert hashlib.sha256(archive).hexdigest()==meta['digest'][7:] and len(archive)==meta['size_in_bytes']
+          with zipfile.ZipFile(io.BytesIO(archive)) as z:
+              assert z.testzip() is None
+              names=[n for n in z.namelist() if pathlib.PurePosixPath(n).name=='p27-manifest.json']
+              assert len(names)==1
+              original_manifest=z.read(names[0])
+          assert hashlib.sha256(original_manifest).hexdigest()=='0582a2a09439fae97b810f1a6ba3317e54facf0632cbc95a84633494d79f37fb'
+          original_manifest_json=json.loads(original_manifest)
+          assert original_manifest_json['operation']=='commercial-hotel-batch-20261117-27-v1'
+          matches=[r for r in original_manifest_json['rows'] if r['hotel_id']==66375]
+          assert len(matches)==1
+          row=matches[0]
+          assert row['logical_id']=='commercial-hotel-66375-v1'
+          assert row['text_sha256']=='b2caf990b6bdcdb7ab0dc0e5d7f1951d9d677aba806ad4f0e3b5022431929599'
+          assert hashlib.sha256(row['text'].encode()).hexdigest()==row['text_sha256']
+          assert row['photo_sha256']=='68d923a5d5e8709d747ea2da78a60dea0f9c8e4269d2c048144a79d98adb4046'
+          photo_path='.github/traffic-publish/commercial-wave4-100-20261117/66375.png'
+          PHOTO='e53eede2df5dbc5da5f72b04c0ac8777819cd8dc'
+          assert row['photo_url']=='https://raw.githubusercontent.com/pyatkoff/max-search-bot/'+PHOTO+'/'+photo_path
+          photo,photo_blob=file(photo_path,PHOTO)
+          assert photo_blob=='7bfe3c853c009b19e950e171d78f7d5b83a289b6'
+          assert hashlib.sha256(photo).hexdigest()==row['photo_sha256']
+          source=pathlib.Path('original-preparer');source.mkdir()
+          template,_=file('tools/direct_demand/operations/commercial-batch-template-20261102.php',CONTENT)
+          assert hashlib.sha256(template).hexdigest()=='4c4aaa2e50155a69e8bd8b9f460777026735b0c51c3b2fc253cf0b7556e53ed5'
+          prepare_bytes,prepare_blob=file('tools/direct_demand/operations/prepare-commercial-batch.py',CONTENT)
+          assert prepare_blob=='8df7a35474b138364b6e6c010af4fa484e350ddb'
+          (source/'prepare.py').write_bytes(prepare_bytes)
+          protected=re.findall(r'"([^"]+)"=>"([a-f0-9]{40})"',template.decode())
+          assert len(protected)==22
+          trees={}
+          for sha in [OLD,APP]:
+              t=api('git/trees/'+sha+'?recursive=1');assert not t['truncated']
+              trees[sha]={e['path']:e['sha'] for e in t['tree'] if e['type']=='blob' and e['mode']=='100644'}
+          prior={'f0e04e9b4e0ed6859ced96279cbf0619931596e6':'1982ff7368763edf8b7238c3142e3cc28579e991',
+              'db8181426091a685a79ee55991cde22671f0d9dd':'7304af19cc19666f00ca4ead1b04c2bdce719646'}
+          for path,sha in protected:assert trees[OLD][path]==prior.get(sha,sha),(path,'prior_surface_changed')
+          changed=[p for p,h in protected if trees[OLD][p]!=trees[APP][p]]
+          assert set(changed)=={'services/ChannelPostRegistryService.php','services/ChannelPostAutomationService.php'}
+          assert trees[APP]['services/ChannelPostRegistryService.php']=='94fb1988ac8caf90dc5103aa23c58e7aad6ea691'
+          assert trees[APP]['services/ChannelPostAutomationService.php']=='c6386e155d42bc83970edc95f35b3ebeb5140533'
+          replacements={h:trees[APP][p] for p,h in protected if h!=trees[APP][p]}
+          assert len(replacements)==3
+          new=json.loads(original_manifest)
+          new.update(operation='commercial-hotel-batch-20261117-41-v1',expected_new_full_pairs=1,rows=[row])
+          raw=(json.dumps(new,ensure_ascii=False,indent=2)+'\n').encode()
+          approval={'schema_version':1,'operation':new['operation'],'expected_installed_sha':APP,
+              'hotel_ids':[66375],'manifest_sha256':hashlib.sha256(raw).hexdigest()}
+          prepare=runpy.run_path(str(source/'prepare.py'))['prepare']
+          php,report=prepare(template.decode(),raw,approval)
+          assert report['provider_calls']==report['db_writes']==report['post_write_attempts']==0
+          for old,newhash in replacements.items():
+              assert php.count(old)==1 and php.count(newhash)==0
+              php=php.replace(old,newhash)
+          actual=dict(re.findall(r'"([^"]+)"=>"([a-f0-9]{40})"',php))
+          assert len(actual)==22 and all(actual[p]==trees[APP][p] for p,h in protected)
+          out=pathlib.Path('cape-fahn-p41-accepted-source');out.mkdir()
+          files={'manifest.json':raw,'approval.json':(json.dumps(approval,indent=2)+'\n').encode(),
+              'publisher-unexecuted.php':php.encode(),'original-p27-manifest.json':original_manifest,
+              'protected-pins.json':(json.dumps({'before':{p:trees[OLD][p] for p,h in protected},
+                  'after':actual,'runtime_changed_paths':changed},indent=2)+'\n').encode()}
+          for name,content in files.items():(out/name).write_bytes(content)
+          receipt={'state':'CAPE_FAHN_ORIGINAL_SOURCE_ACCEPTED_NO_WRITES','runtime_sha':APP,
+              'hotel_id':66375,'logical_id':row['logical_id'],'new_operation':new['operation'],
+              'expected_reused_telegram_message':'901','expected_first_max_posts':1,
+              'source_run':44133344446,'source_artifact':14349679332,'source_archive_sha256':meta['digest'][7:],
+              'original_failed_run':44133796626,'original_p27_not_replayed':True,
+              'template_sha256':hashlib.sha256(template).hexdigest(),'preparer_git_blob':prepare_blob,
+              'protected_surfaces':22,'template_pin_changes':3,'runtime_pin_changes':changed,
+              'runtime_compatibility_review':'PR1612 exact source8734; full canonical registry/automation regression and native MySQL89 passed; normal pending/unknown callers retain the same admission and write transport.',
+              'source_checks':[44153793124,44153793160,44153793289],
+              'provider_calls':0,'sender_calls':0,'database_writes':0,
+              'files':{n:hashlib.sha256(b).hexdigest() for n,b in files.items()}}
+          (out/'receipt.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n')
+          print('CAPE_SOURCE_RECEIPT_JSON '+json.dumps(receipt,separators=(',',':')))
+          PY
+          php -l cape-fahn-p41-accepted-source/publisher-unexecuted.php
+      - name: Retain exact unexecuted original publisher and immutable input lineage
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: cape-fahn-p41-accepted-source-20261117
+          path: cape-fahn-p41-accepted-source/*
+          retention-days: 30
+          if-no-files-found: warn
