@@ -1,0 +1,129 @@
+name: One-shot W4 originalP27 native outcome readback; no writes
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-wave4-p27-outcome-read-20261117.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-p27-read-only:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' &&
+      github.event.before == '7971139fa1c6b10dfee2fe8afea5b528dd7a30d0' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Authenticate exact failed original and skipped untouched operations
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,hashlib,io,json,pathlib,subprocess,zipfile
+          def api(p):return json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+p],timeout=60))
+          r=api('actions/runs/44133796626');assert r['conclusion']=='failure' and r['run_attempt']==1 and r['head_sha']=='7971139fa1c6b10dfee2fe8afea5b528dd7a30d0'
+          jobs=api('actions/runs/44133796626/jobs')['jobs'];j=next(x for x in jobs if x['id']==134217715600)
+          assert j['conclusion']=='failure'
+          for n in range(28,35):
+              st=next(x for x in j['steps'] if x['name']=='P'+str(n)+' invoke original bounded publisher ONCE; no retry');assert st['conclusion']=='skipped'
+          raw=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/14349939695/zip'],timeout=90)
+          assert hashlib.sha256(raw).hexdigest()=='e7b6c0146b84715133a34f53b2aeadd45070c073e60c1c1a6ef6f1c67ee4bffb'
+          with zipfile.ZipFile(io.BytesIO(raw)) as z:
+              assert z.testzip() is None
+              names=z.namelist();manifest=z.read(next(n for n in names if n.endswith('manifest.json')))
+              output=z.read(next(n for n in names if n.endswith('original-native-output.jsonl')))
+          assert hashlib.sha256(manifest).hexdigest()=='0582a2a09439fae97b810f1a6ba3317e54facf0632cbc95a84633494d79f37fb'
+          last=[json.loads(l) for l in output.decode().splitlines() if l.startswith('{')][-1]
+          assert last['operation']=='commercial-hotel-batch-20261117-27-v1' and not last['ok'] and last['new_posts']==9 and last['post_write_attempts']==10 and len(last['posts'])==9 and all(p['platform']=='telegram' and p['body_photo_button_verified'] for p in last['posts'])
+          p=pathlib.Path('probe');p.mkdir();(p/'original-output.jsonl').write_bytes(output);(p/'manifest.json').write_bytes(manifest)
+          body=r'''<?php
+          declare(strict_types=1);
+          ini_set('display_errors','0');ini_set('log_errors','0');
+          if(PHP_SAPI!=='cli'||trim((string)shell_exec('git rev-parse HEAD'))!=='3ffab7f2e2d01c8cd35144fba621897e4ad75e5d')exit(2);
+          $pins=['integrations/ChannelPostApiTransport.php'=>'300634d77cb9fddf51adf9869974f956cca6e3f9','migrations/033_channel_post_context.sql'=>'0530458030a4bfe6b6cc55d1e5e441745c29b947','migrations/036_channel_post_member_delivery.sql'=>'1bda463e52b33130ad12752ddef4ee5c92699c05','migrations/040_channel_post_reconciliation.sql'=>'0f24b838eacd45333c5ade9a2991d060488c6035','services/ChannelPostAdminService.php'=>'b80eefc801054bfe6fdb58ec345ecdf687b2e89a','services/ChannelPostAutomationService.php'=>'f5975ab95de5f45e087eb7a0f768f566c5bca648','services/ChannelPostButtonTransport.php'=>'7b6711f1de63000346d8e5789f2dbb7f725535b8','services/ChannelPostEntryService.php'=>'1982ff7368763edf8b7238c3142e3cc28579e991','services/ChannelPostMaxAlbumRecovery.php'=>'de266cd068587cc3b2ff83f308a966ea66887a04','services/ChannelPostMediaService.php'=>'f794efd0f6f24df916e18909ff6281b0bc928433','services/ChannelPostMemberDeliveryService.php'=>'20c1d7984898b2a5996a5f9e20e4d2d8c20b4778','services/ChannelPostReconciliationService.php'=>'43133f576845c14446102dedfffb7f0de2d4ba1c','services/ChannelPostReconciliationState.php'=>'d9583ceca80d1424a44ade3561c21282a23a52f0','services/ChannelPostRegistryService.php'=>'7304af19cc19666f00ca4ead1b04c2bdce719646','services/ChannelPostRuntime.php'=>'2f1dd9b77474fdbaa92f0402f3b0aa170c595474','services/ChannelPostTelegramAlbum.php'=>'faa1a14bc279a4af33936282126bf0d46e343040','services/ChannelPostWebhookConfigService.php'=>'d5fdcb056088f1e3a541b4046325d97eef6417d9','services/ConversationDb.php'=>'bb6281faf55aca7beeae7f8a57389d19751936f7','services/MaxTlsConfig.php'=>'032c0211ee3f39c6f0d27c669abd5b467e321dea','services/MaxTransport.php'=>'2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159','services/ProjectConfig.php'=>'63c17c8103412f8cff8cdcc4bbb062e744106af9','services/ProjectConfiguration.php'=>'07019d473c588e3386ace42977db93092e8112e3'];foreach($pins as $path=>$sha)if(trim((string)shell_exec('git hash-object -- '.escapeshellarg($path)))!==$sha)exit(2);
+          ob_start();require getcwd().'/config.php';require_once getcwd().'/services/ChannelPostRuntime.php';require_once getcwd().'/services/ChannelPostEntryService.php';ob_end_clean();
+          $manifest=json_decode(base64_decode(INPUT_B64,true),true,64,JSON_THROW_ON_ERROR);$rows=$manifest['rows'];if(count($rows)!==10)exit(2);
+          $dir='/var/www/anytoour/data/channel-post-operations/commercial-hotel-batch-20261117-27-v1';
+          if(!is_dir($dir)||is_link($dir))exit(2);
+          $out=['mode'=>'READ_ONLY_ORIGINAL_P27_OUTCOME','installed_sha'=>trim((string)shell_exec('git rev-parse HEAD')),'db_writes'=>0,'provider_calls'=>0,'sender_calls'=>0,'operation_files'=>[],'publications'=>[]];
+          foreach(scandir($dir) as $n){if($n==='.'||$n==='..')continue;$p=$dir.'/'.$n;if(is_link($p)||!is_file($p))exit(2);$out['operation_files'][]=['name'=>$n,'sha256'=>hash_file('sha256',$p),'bytes'=>filesize($p)];}
+          $summary=json_decode(file_get_contents($dir.'/publication-summary.json'),true,64,JSON_THROW_ON_ERROR);$out['original_summary']=$summary;
+          $pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();$registry=new ChannelPostRegistryService($pdo);
+          try{foreach(['telegram','max'] as $platform)foreach($rows as $row){
+           $path=$dir.'/'.$platform.'-'.$row['logical_id'].'-approved.json';
+           $entry=['hotel_id'=>$row['hotel_id'],'logical_id'=>$row['logical_id'],'platform'=>$platform,'file_exists'=>is_file($path)];
+           if(is_file($path)){
+            $s=json_decode(file_get_contents($path),true,64,JSON_THROW_ON_ERROR);
+            $entry['saved_state']=$s['state']??null;$entry['saved_text_sha256']=$s['text_sha256']??null;$entry['saved_photo_sha256']=$s['photo_sha256']??null;
+            $entry['saved_publication_id']=$s['publication_id']??null;$entry['saved_version_id']=$s['version_id']??null;$entry['saved_receipt']=$s['receipt']??null;$entry['button_result']=$s['button_result']??null;
+            if(isset($s['message'])){$m=$s['message'];$entry['original_message']=['message_id'=>$m['message_id']??($m['body']['mid']??null),'chat_id'=>$m['chat']['id']??($m['recipient']['chat_id']??null),'caption'=>$m['caption']??($m['body']['text']??null),'photo_present'=>!empty($m['photo']),'date'=>$m['date']??null,'edit_date'=>$m['edit_date']??null,'reply_markup'=>$m['reply_markup']??null];}
+            $pid=(int)($s['publication_id']??$s['receipt']['publication_id']??0);
+            if($pid>0){$p=$registry->publication($pid);if(!is_array($p))exit(2);$selected=[];foreach(['publication_id','version_id','project_key','platform','bot_key','channel_id','external_message_id','state','source_key','start_payload','write_attempted','write_attempts','attempt_count','error_reason','claim_token','claimed_at','receipt'] as $k)$selected[$k]=$p[$k]??null;
+              $selected['text_sha256']=hash('sha256',(string)($p['snapshot']['text']??''));$selected['text']=$p['snapshot']['text']??null;$selected['snapshot_metadata']=$p['snapshot']['metadata']??null;$selected['snapshot_keyboard']=$p['snapshot']['keyboard']??null;$selected['snapshot_media']=$p['snapshot']['media']??null;$entry['current_publication']=$selected;
+            }
+           }
+           $out['publications'][]=$entry;
+          }}finally{$pdo->rollBack();}
+          $out['ok']=true;echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          '''
+          body=body.replace('declare(strict_types=1);',"declare(strict_types=1);\nconst INPUT_B64='"+base64.b64encode(manifest).decode()+"';",1)
+          (p/'readonly.php').write_text(body)
+          print('ORIGINAL_P27_FAILED_9_TG_VERIFIED_10TH_BUTTON_UNKNOWN_FOLLOWING7_SKIPPED')
+          PY
+          php -l probe/readonly.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read original operation files and exact saved publications without provider calls
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; test -z "$(git status --porcelain --untracked-files=no)"; php' < probe/readonly.php > probe/result.json
+          cat probe/result.json
+      - name: Preserve exact read-only evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-wave4-p27-original-outcome-read-20261117
+          path: |
+            probe/result.json
+            probe/original-output.jsonl
+            probe/manifest.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Remove runner-only authentication
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" probe/readonly.php
