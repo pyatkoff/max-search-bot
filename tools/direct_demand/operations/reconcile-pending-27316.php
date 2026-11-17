@@ -60,7 +60,21 @@ function reconcile_original_state(array $state): array {
     $post = $posts['max:' . RECONCILE_KEY]; $plan = $post['plan'] ?? null;
     reconcile_need(($post['state'] ?? null) === 'text_edit_returned' && ($post['provider_edit_returned'] ?? null) === true
         && ($post['edit_request_start_ms'] ?? null) === RECONCILE_REQUEST_START_MS
-        && !isset($post['receipt']) && !isset($post['button_result']) && is_array($plan), 'reconcile_max_intent_changed');
+        && !isset($post['receipt']) && is_array($plan) && is_array($post['button_result']??null)
+        && array_keys($post['button_result'])===['publication_id','version_id','state','reason','reconcile_only','receipt']
+        && ($post['button_result']['publication_id']??null)===400
+        && ($post['button_result']['version_id']??null)===7024
+        && ($post['button_result']['state']??null)==='requires_attention'
+        && ($post['button_result']['reason']??null)==='provider_read_failed'
+        && ($post['button_result']['reconcile_only']??null)===false
+        && ($post['button_result']['receipt']['request_count']??null)===3
+        && ($post['button_result']['receipt']['write_attempts']??null)===0
+        && array_map(static fn($h)=>array_intersect_key($h,array_flip(['operation','http','transport_error'])),
+            (array)($post['button_result']['receipt']['http_results']??[]))===[
+              ['operation'=>'bot_identity','http'=>200,'transport_error'=>false],
+              ['operation'=>'channel_rights','http'=>200,'transport_error'=>false],
+              ['operation'=>'current_post','http'=>0,'transport_error'=>true],
+            ], 'reconcile_max_intent_changed');
     reconcile_need(($plan['platform'] ?? null) === 'max' && ($plan['key'] ?? null) === RECONCILE_KEY
         && ($plan['logical_id'] ?? null) === RECONCILE_KEY && ($plan['publication_id'] ?? null) === RECONCILE_MAX_ID
         && ($plan['old_version_id'] ?? null) === RECONCILE_MAX_OLD_VERSION && ($plan['message_id'] ?? null) === RECONCILE_MAX_MID
@@ -429,11 +443,24 @@ function reconcile_self_test(): void {
     $state=['operation'=>RECONCILE_OPERATION,'manifest_hash'=>RECONCILE_MANIFEST,
         'configs'=>[],'posts'=>['max:'.RECONCILE_KEY=>[
             'state'=>'text_edit_returned','provider_edit_returned'=>true,
-            'edit_request_start_ms'=>RECONCILE_REQUEST_START_MS,'plan'=>$plan]]];
+            'edit_request_start_ms'=>RECONCILE_REQUEST_START_MS,'plan'=>$plan,
+            'button_result'=>[
+              'publication_id'=>400,'version_id'=>7024,'state'=>'requires_attention',
+              'reason'=>'provider_read_failed','reconcile_only'=>false,
+              'receipt'=>['request_count'=>3,'write_attempts'=>0,'http_results'=>[
+                ['operation'=>'bot_identity','http'=>200,'transport_error'=>false],
+                ['operation'=>'channel_rights','http'=>200,'transport_error'=>false],
+                ['operation'=>'current_post','http'=>0,'transport_error'=>true],
+              ]],
+            ],
+        ]]];
     $ok(reconcile_original_state($state)===$plan,'exact_original_max_intent');
     $mutations=[
         ['stage',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['state']='unknown';return $state;}],
         ['provider',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['provider_edit_returned']=false;return $state;}],
+        ['wrong_button_reason',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['button_result']['reason']='provider_rejected';return $state;}],
+        ['button_was_written',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['button_result']['receipt']['write_attempts']=1;return $state;}],
+        ['provider_read_succeeded',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['button_result']['receipt']['http_results'][2]['http']=200;return $state;}],
         ['time',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['edit_request_start_ms']++;return $state;}],
         ['new_version',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['plan']['old_version_id']=7024;return $state;}],
         ['new_message',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['plan']['message_id']='mid.unexpected';return $state;}],
