@@ -1,0 +1,392 @@
+{
+  "schema_version": "anytour_content_first11_premium_briefs_v1",
+  "prepared_date": "2026-11-17",
+  "purpose": "Source-backed concise hotel posts for existing HOTEL/CONTENT owner, NOT permission to publish",
+  "source_task": "https://github.com/pyatkoff/max-search-bot/issues/1566",
+  "rules": [
+    "Do not infer a package price, meal plan, room inclusions, transfers or availability from property descriptions.",
+    "Do not interpret villa/category-specific features as present in every booked room or every rate.",
+    "No image download or licensing permission is asserted by an official hotel marketing page.",
+    "Keep the same native identity, one bot CTA button, source verification, editor approved image, photo-button preservation, exact channel pair and 3 feed readback.",
+    "The 'Anything Anytime Anywhere' concept at Kudadoo may exclude premium-owner cellar and other services; do not promise unrestricted inclusions.",
+    "These are private editorial drafts only, not admitted hotel facts, Site cards, prices, or public sends."
+  ],
+  "summary": {
+    "drafts": 11,
+    "photo_sets_ready": 0,
+    "native_bindings_admitted": 0,
+    "public_post_pairs": 0,
+    "supplier_price_calls": 0
+  },
+  "items": [
+    {
+      "work_id": "EXP002",
+      "native_tourvisor_id_candidate": 12120,
+      "hotel_title": "Anantara Kihavah Maldives Villas",
+      "country": "MV",
+      "location": "Мальдивы, Баа-атолл",
+      "source_supported_claims": [
+        {
+          "claim": "Частный остров в биосферном заповеднике ЮНЕСКО",
+          "official_source_url": "https://www.anantara.com/en/kihavah-maldives",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Виллы на берегу и над водой с бассейнами",
+          "official_source_url": "https://www.anantara.com/en/kihavah-maldives",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Домашний риф, подводный ресторан SEA и обсерватория над водой",
+          "official_source_url": "https://www.anantara.com/en/kihavah-maldives",
+          "review_kind": "official_site_current_page"
+        }
+      ],
+      "caption_draft": "✈️ Anantara Kihavah Maldives Villas\n📍 Мальдивы, Баа-атолл\n🏝 Частный остров в биосферном заповеднике ЮНЕСКО\n🌊 Виллы на берегу и над лагуной с бассейнами\n🐠 Домашний риф, подводный ресторан SEA и обсерватория над водой",
+      "single_button_cta": "В этот отель",
+      "state": "editorial_draft_not_admitted",
+      "release_guards": {
+        "canonical_identity_and_alias_verified": false,
+        "source_claims_independently_accepted": false,
+        "photo_license_and_content_verified": false,
+        "site_current_revision_checked": false,
+        "sender_release_allowed": false
+      }
+    },
+    {
+      "work_id": "EXP032",
+      "native_tourvisor_id_candidate": 64957,
+      "hotel_title": "Kudadoo Maldives Private Island",
+      "country": "MV",
+      "location": "Мальдивы, Лавиани-атолл",
+      "source_supported_claims": [
+        {
+          "claim": "15 резиденций над водой с собственными небольшими бассейнами",
+          "official_source_url": "https://www.kudadoo.com/residences/",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Личный дворецкий в резиденции",
+          "official_source_url": "https://www.kudadoo.com/residences/",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Фирменная концепция Anything Anytime Anywhere с оговорёнными исключениями",
+          "official_source_url": "https://www.kudadoo.com/all-inclusive/",
+          "review_kind": "official_site_current_page"
+        }
+      ],
+      "caption_draft": "✈️ Kudadoo Maldives Private Island\n📍 Мальдивы, Лавиани-атолл\n🌊 Всего 15 резиденций над лагуной с приватными бассейнами\n🤍 Личный дворецкий и максимум уединения\n✨ Фирменная концепция Anything Anytime Anywhere",
+      "single_button_cta": "В этот отель",
+      "state": "editorial_draft_not_admitted",
+      "release_guards": {
+        "canonical_identity_and_alias_verified": false,
+        "source_claims_independently_accepted": false,
+        "photo_license_and_content_verified": false,
+        "site_current_revision_checked": false,
+        "sender_release_allowed": false
+      }
+    },
+    {
+      "work_id": "EXP058",
+      "native_tourvisor_id_candidate": 76029,
+      "hotel_title": "The Ritz-Carlton Maldives, Fari Islands",
+      "country": "MV",
+      "location": "Мальдивы, острова Фари",
+      "source_supported_claims": [
+        {
+          "claim": "Виллы у пляжа и над водой, каждая с infinity pool",
+          "official_source_url": "https://www.ritzcarlton.com/en/hotels/mlera-the-ritz-carlton-maldives-fari-islands/rooms/",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Личный островной дворецкий Aris Meeha",
+          "official_source_url": "https://www.ritzcarlton.com/en/hotels/mlera-the-ritz-carlton-maldives-fari-islands/overview/",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Семь ресторанов и баров, включая Fari Marina Village",
+          "official_source_url": "https://www.ritzcarlton.com/en/hotels/mlera-the-ritz-carlton-maldives-fari-islands/overview/",
+          "review_kind": "official_site_current_page"
+        }
+      ],
+      "caption_draft": "✈️ The Ritz-Carlton Maldives, Fari Islands\n📍 Мальдивы, острова Фари\n🌊 Пляжные и надводные виллы с собственными бассейнами\n🤍 Персональный островной дворецкий Aris Meeha\n🍽 Семь ресторанов и баров, в том числе у Fari Marina Village",
+      "single_button_cta": "В этот отель",
+      "state": "editorial_draft_not_admitted",
+      "release_guards": {
+        "canonical_identity_and_alias_verified": false,
+        "source_claims_independently_accepted": false,
+        "photo_license_and_content_verified": false,
+        "site_current_revision_checked": false,
+        "sender_release_allowed": false
+      }
+    },
+    {
+      "work_id": "EXP069",
+      "native_tourvisor_id_candidate": 66198,
+      "hotel_title": "Waldorf Astoria Maldives Ithaafushi",
+      "country": "MV",
+      "location": "Мальдивы, Итаафуши",
+      "source_supported_claims": [
+        {
+          "claim": "Каждая вилла с приватным бассейном и видом на океан",
+          "official_source_url": "https://www.hilton.com/en/hotels/mleonwa-waldorf-astoria-maldives-ithaafushi/rooms/",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Множество ресторанов и спа",
+          "official_source_url": "https://www.waldorfastoriamaldives.com/resort/",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Отдельный частный остров Ithaafushi Private Island с резиденциями",
+          "official_source_url": "https://www.hilton.com/en/hotels/mleonwa-waldorf-astoria-maldives-ithaafushi/rooms/",
+          "review_kind": "official_site_current_page"
+        }
+      ],
+      "caption_draft": "✈️ Waldorf Astoria Maldives Ithaafushi\n📍 Мальдивы, Итаафуши\n🏝 Уединённые виллы с личными бассейнами и видом на океан\n🍽 Разнообразные рестораны и пространства для отдыха\n✨ Особая приватность, вплоть до отдельного острова Ithaafushi",
+      "single_button_cta": "В этот отель",
+      "state": "editorial_draft_not_admitted",
+      "release_guards": {
+        "canonical_identity_and_alias_verified": false,
+        "source_claims_independently_accepted": false,
+        "photo_license_and_content_verified": false,
+        "site_current_revision_checked": false,
+        "sender_release_allowed": false
+      }
+    },
+    {
+      "work_id": "EXP072",
+      "native_tourvisor_id_candidate": 49750,
+      "hotel_title": "Soneva Jani",
+      "country": "MV",
+      "location": "Мальдивы, атолл Нуну",
+      "source_supported_claims": [
+        {
+          "claim": "В отдельных надводных виллах есть водные горки в лагуну",
+          "official_source_url": "https://soneva.com/resorts/soneva-jani/villas/",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Некоторые виллы оборудованы раздвижной крышей над спальней",
+          "official_source_url": "https://soneva.com/villa/soneva-jani-1-bedroom-water-reserve-with-slide/",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Собственные бассейны и большие террасы на воде",
+          "official_source_url": "https://soneva.com/resorts/soneva-jani/villas/",
+          "review_kind": "official_site_current_page"
+        }
+      ],
+      "caption_draft": "✈️ Soneva Jani\n📍 Мальдивы, атолл Нуну\n🌊 Надводные виллы с большими террасами и бассейнами\n💦 В некоторых категориях — горки прямо в лагуну\n✨ Есть виллы с открывающейся крышей для отдыха под звёздами",
+      "single_button_cta": "В этот отель",
+      "state": "editorial_draft_not_admitted",
+      "release_guards": {
+        "canonical_identity_and_alias_verified": false,
+        "source_claims_independently_accepted": false,
+        "photo_license_and_content_verified": false,
+        "site_current_revision_checked": false,
+        "sender_release_allowed": false
+      }
+    },
+    {
+      "work_id": "EXP092",
+      "native_tourvisor_id_candidate": 123247,
+      "hotel_title": "Jumeirah Marsa Al Arab",
+      "country": "AE",
+      "location": "ОАЭ, Дубай",
+      "source_supported_claims": [
+        {
+          "claim": "Частный пляж и яхтенная марина",
+          "official_source_url": "https://www.jumeirah.com/ru/stay/dubai/jumeirah-marsa-al-arab",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "11 ресторанов и разные бары",
+          "official_source_url": "https://www.jumeirah.com/ru/stay/dubai/jumeirah-marsa-al-arab",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Бассейны и многоуровневый спа-комплекс Talise",
+          "official_source_url": "https://www.jumeirah.com/ru/stay/dubai/jumeirah-marsa-al-arab",
+          "review_kind": "official_site_current_page"
+        }
+      ],
+      "caption_draft": "✈️ Jumeirah Marsa Al Arab\n📍 ОАЭ, Дубай\n🌊 Частный пляж и собственная яхтенная марина\n🍽 11 ресторанов для разных гастрономических впечатлений\n💆 Бассейны и многоуровневый спа-комплекс Talise",
+      "single_button_cta": "В этот отель",
+      "state": "editorial_draft_not_admitted",
+      "release_guards": {
+        "canonical_identity_and_alias_verified": false,
+        "source_claims_independently_accepted": false,
+        "photo_license_and_content_verified": false,
+        "site_current_revision_checked": false,
+        "sender_release_allowed": false
+      }
+    },
+    {
+      "work_id": "EXP095",
+      "native_tourvisor_id_candidate": 48184,
+      "hotel_title": "Jumeirah Al Naseem",
+      "country": "AE",
+      "location": "ОАЭ, Дубай, Джумейра",
+      "source_supported_claims": [
+        {
+          "claim": "Частный пляж с видом на Burj Al Arab",
+          "official_source_url": "https://www.jumeirah.com/en/stay/dubai/jumeirah-al-naseem/experiences/pool-and-beach",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Бассейны и кабаны у пляжа",
+          "official_source_url": "https://www.jumeirah.com/en/stay/dubai/jumeirah-al-naseem/experiences/pool-and-beach",
+          "review_kind": "official_site_current_page"
+        }
+      ],
+      "caption_draft": "✈️ Jumeirah Al Naseem\n📍 ОАЭ, Дубай, Джумейра\n🏖 Частный пляж с видом на знаменитый Burj Al Arab\n🏊 Бассейны и уютные зоны отдыха у воды\n🌅 Дубайский пляжный отдых с красивой морской панорамой",
+      "single_button_cta": "В этот отель",
+      "state": "editorial_draft_not_admitted",
+      "release_guards": {
+        "canonical_identity_and_alias_verified": false,
+        "source_claims_independently_accepted": false,
+        "photo_license_and_content_verified": false,
+        "site_current_revision_checked": false,
+        "sender_release_allowed": false
+      }
+    },
+    {
+      "work_id": "EXP023",
+      "native_tourvisor_id_candidate": 8951,
+      "hotel_title": "Qasr Al Sarab Desert Resort by Anantara",
+      "country": "AE",
+      "location": "ОАЭ, пустыня Лива",
+      "source_supported_claims": [
+        {
+          "claim": "Расположен среди дюн пустыни Лива",
+          "official_source_url": "https://www.anantara.com/en/qasr-al-sarab-abu-dhabi",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Прогулки по пустыне и сафари на подготовленных автомобилях",
+          "official_source_url": "https://www.anantara.com/en/qasr-al-sarab-abu-dhabi/leisure",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Наблюдение за звёздами и другие пустынные впечатления",
+          "official_source_url": "https://www.anantara.com/en/qasr-al-sarab-abu-dhabi/leisure",
+          "review_kind": "official_site_current_page"
+        }
+      ],
+      "caption_draft": "✈️ Qasr Al Sarab Desert Resort by Anantara\n📍 ОАЭ, пустыня Лива\n🏜 Курорт посреди величественных дюн пустыни Лива\n🚙 Путешествия по пустыне и необычные впечатления\n✨ Звёздное небо вдали от огней города",
+      "single_button_cta": "В этот отель",
+      "state": "editorial_draft_not_admitted",
+      "release_guards": {
+        "canonical_identity_and_alias_verified": false,
+        "source_claims_independently_accepted": false,
+        "photo_license_and_content_verified": false,
+        "site_current_revision_checked": false,
+        "sender_release_allowed": false
+      }
+    },
+    {
+      "work_id": "EXP083",
+      "native_tourvisor_id_candidate": 32322,
+      "hotel_title": "Four Seasons Resort Dubai at Jumeirah Beach",
+      "country": "AE",
+      "location": "ОАЭ, Дубай, Джумейра-Бич",
+      "source_supported_claims": [
+        {
+          "claim": "Частный пляж у Персидского залива",
+          "official_source_url": "https://www.fourseasons.com/dubaijb/services-and-amenities/pools-and-beach/",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Отдельные открытые бассейны для семей и взрослых",
+          "official_source_url": "https://www.fourseasons.com/dubaijb/services-and-amenities/pools-and-beach/",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Водные виды спорта и пляжные кабаны",
+          "official_source_url": "https://www.fourseasons.com/dubaijb/services-and-amenities/pools-and-beach/",
+          "review_kind": "official_site_current_page"
+        }
+      ],
+      "caption_draft": "✈️ Four Seasons Resort Dubai at Jumeirah Beach\n📍 ОАЭ, Дубай, Джумейра-Бич\n🏖 Собственный пляж на Джумейра-Бич\n🏊 Отдельные бассейны для семейного и спокойного взрослого отдыха\n🌊 Водные развлечения и удобные зоны у моря",
+      "single_button_cta": "В этот отель",
+      "state": "editorial_draft_not_admitted",
+      "release_guards": {
+        "canonical_identity_and_alias_verified": false,
+        "source_claims_independently_accepted": false,
+        "photo_license_and_content_verified": false,
+        "site_current_revision_checked": false,
+        "sender_release_allowed": false
+      }
+    },
+    {
+      "work_id": "EXP015",
+      "native_tourvisor_id_candidate": 28272,
+      "hotel_title": "Anantara Layan Phuket Resort",
+      "country": "TH",
+      "location": "Таиланд, Пхукет, бухта Лайан",
+      "source_supported_claims": [
+        {
+          "claim": "Бухта Лайан и пляжные виллы с прямым доступом к морю",
+          "official_source_url": "https://www.anantara.com/ru/layan-phuket/rooms/beach-access-pool-villa",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "В отдельных категориях есть собственные бассейны",
+          "official_source_url": "https://www.anantara.com/ru/layan-phuket/rooms/beach-access-pool-villa",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Для некоторых вилл предусмотрены услуги дворецкого",
+          "official_source_url": "https://www.anantara.com/ru/layan-phuket/rooms/beach-access-pool-villa",
+          "review_kind": "official_site_current_page"
+        }
+      ],
+      "caption_draft": "✈️ Anantara Layan Phuket Resort\n📍 Таиланд, Пхукет, бухта Лайан\n🌴 Курорт у спокойной бухты Лайан на Пхукете\n🏖 Есть пляжные виллы с выходом к морю\n💦 В отдельных виллах — собственный бассейн и просторная терраса",
+      "single_button_cta": "В этот отель",
+      "state": "editorial_draft_not_admitted",
+      "release_guards": {
+        "canonical_identity_and_alias_verified": false,
+        "source_claims_independently_accepted": false,
+        "photo_license_and_content_verified": false,
+        "site_current_revision_checked": false,
+        "sender_release_allowed": false
+      }
+    },
+    {
+      "work_id": "EXP081",
+      "native_tourvisor_id_candidate": 7458,
+      "hotel_title": "Four Seasons Resort The Nam Hai, Hoi An",
+      "country": "VN",
+      "location": "Вьетнам, Хойан, пляж Ха Ми",
+      "source_supported_claims": [
+        {
+          "claim": "Курорт из 100 приватных вилл на пляже Ха Ми",
+          "official_source_url": "https://www.fourseasons.com/hoian/",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Спа Heart of the Earth",
+          "official_source_url": "https://www.fourseasons.com/hoian/",
+          "review_kind": "official_site_current_page"
+        },
+        {
+          "claim": "Удобная отправная точка для посещения исторического Хойана и памятников ЮНЕСКО",
+          "official_source_url": "https://www.fourseasons.com/hoian/",
+          "review_kind": "official_site_current_page"
+        }
+      ],
+      "caption_draft": "✈️ Four Seasons Resort The Nam Hai, Hoi An\n📍 Вьетнам, Хойан, пляж Ха Ми\n🏖 Виллы среди садов рядом с пляжем Ха Ми\n🌿 Спа Heart of the Earth и отдых у моря\n🏛 Неподалёку от древнего Хойана и исторических достопримечательностей",
+      "single_button_cta": "В этот отель",
+      "state": "editorial_draft_not_admitted",
+      "release_guards": {
+        "canonical_identity_and_alias_verified": false,
+        "source_claims_independently_accepted": false,
+        "photo_license_and_content_verified": false,
+        "site_current_revision_checked": false,
+        "sender_release_allowed": false
+      }
+    }
+  ]
+}
