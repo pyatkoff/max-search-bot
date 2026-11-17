@@ -46,6 +46,7 @@ final class ModeledConversionSemanticPrediction
     private array $criteria=[];
     private array $evidence=[];
     private array $messages=[];
+    private ?array $pendingManagerQuote=null;
     private ?array $questionnaireQuestion=null;
     private array $questionnaireAnswers=[];
     private ?int $lastQuestionnaireAt=null;
@@ -128,6 +129,15 @@ final class ModeledConversionSemanticPrediction
         foreach(['quoted_or_relayed','past_trip','conditional','negation']as$key)
             if(($flags[$key]??false)===true)$unsafe=true;
         $directCustomer=$role==='customer'&&!$unsafe;
+        // An original human quote can explain the next customer's comparison.
+        // The quote alone never supplies criteria, price, or an offer identity.
+        $previousQuote=$this->pendingManagerQuote;
+        $this->pendingManagerQuote=null;
+        if($this->advertisingV1&&$role==='manager'&&$sourceVersion===1&&!$unsafe
+            &&$this->anchor!==null&&$this->canPreserveCustomerContext($occurred)
+            &&self::isManagerPackageQuote($redactedText)){
+            $this->pendingManagerQuote=['occurred'=>$occurred,'available'=>$available];
+        }
         $goals=[];
         foreach($r['events']as$event){
             if(!is_array($event)||($event['source_ref']??null)!==$ref||!is_string($event['goal']??null))continue;
@@ -152,7 +162,12 @@ final class ModeledConversionSemanticPrediction
         $families=$directCustomer?$textSignals['criteria_families']:[];
         $comp=$directCustomer&&$textSignals['explicit_comparison'];
         $modify=$directCustomer&&$textSignals['explicit_modification'];
-        $cheaper=$directCustomer&&$textSignals['price_alternative_continued_search'];
+        $packageFollowup=$directCustomer&&$previousQuote!==null&&$sourceVersion===1
+            &&($flags['other_payment_product']??false)!==true
+            &&$occurred>$previousQuote['occurred']&&$occurred-$previousQuote['occurred']<=86400
+            &&$previousQuote['available']<=$available&&$this->canPreserveCustomerContext($occurred)
+            &&self::asksForCheaperSameTrip($redactedText);
+        $cheaper=$directCustomer&&($textSignals['price_alternative_continued_search']||$packageFollowup);
         $this->messages[$ref]['price_alternative']=$cheaper;
         // Bare logistics and greetings do not establish a trip or seller choice.
         $meaningful=$role==='customer'&&!$questionnaireAnswer&&($goals!==[]||($directCustomer&&(count($families)>=2
@@ -195,12 +210,36 @@ final class ModeledConversionSemanticPrediction
         }
     }
 
+    private static function isManagerPackageQuote(string $text):bool
+    {
+        // Bound the recognizable tour row; prices are never read into the value model here.
+        $date='(?<!\d)(?:0?[1-9]|[12]\d|3[01])[.\/](?:0?[1-9]|1[0-2])(?!\d)';
+        $nights='(?<!\d)\d{1,2}\s*(?:н\.?|ночь|ночи|ночей)(?!\pL)';
+        $category='[1-5]\s*[*★⭐]';
+        $meal='(?<![\pL\pN])(?:UAI|AI|FB|HB|BB|RO)(?![\pL\pN])';
+        $price='(?<![\pL\pN])(?:\d{1,3}(?:[ \x{00A0}\x{202F}]\d{3})+|\d{4,8})\s*(?:RUB|руб\pL*|₽)(?!\pL)';
+        return self::hit('→|↔|⇄|➜|➡|->',$text)
+            &&self::hit($date.'[^\r\n]{0,35}?'.$nights.'[^\r\n]{0,180}?'.$category
+                .'[^\r\n]{0,90}?'.$meal.'[^\r\n]{0,60}?'.$price,$text);
+    }
+
+    private static function asksForCheaperSameTrip(string $text):bool
+    {
+        if(strlen($text)>600||!self::hit('\A[^.!?？\r\n]+[?？]\s*\z',$text)
+            ||self::hit('(?<!\pL)(?:авиа)?билет\pL*|(?<!\pL)перел[её]т\pL*|(?<!\pL)номер\pL*',$text))return false;
+        $sameDestination='(?<!\pL)(?:туда\s+же|в\s+(?:то\s+же\s+направление|ту\s+же\s+страну)|по\s+тому\s+же\s+направлению)(?!\pL)';
+        $sameDuration='(?<!\pL)(?:столько\s+же\s+(?:дней|суток|ночей)|(?:тот|такой)\s+же\s+срок|(?:ту|такую)\s+же\s+продолжительность|то\s+же\s+количество\s+(?:ночей|дней))(?!\pL)';
+        return self::hit('(?<!\pL)(?:есть|найд[её]тся|можно\s+(?:ли\s+)?(?:найти|подобрать|посмотреть))(?!\pL)',$text)
+            &&self::hit($sameDestination,$text)&&self::hit($sameDuration,$text)
+            &&self::hit('(?<!\pL)(?:подешевле|дешевле|бюджетнее)(?!\pL)',$text);
+    }
+
     /** Unknown or unavailable source content cannot preserve current positive context. */
     public function barrier():void
     {
         $this->anchor=null;$this->anchorVersion=null;$this->anchorEvidence=null;
         $this->customerTurns=0;$this->meaningfulTurns=0;$this->lastMeaningfulAt=null;$this->positives=[];$this->criteria=[];
-        $this->evidence=[];$this->messages=[];$this->currentOutcome=false;
+        $this->evidence=[];$this->messages=[];$this->pendingManagerQuote=null;$this->currentOutcome=false;
         $this->questionnaireQuestion=null;$this->questionnaireAnswers=[];$this->lastQuestionnaireAt=null;
         $this->urgency=false;$this->longRange=false;$this->deferred=false;$this->declined=false;
         $this->comparison=false;$this->modification=false;$this->priceAlternative=false;
@@ -239,6 +278,7 @@ final class ModeledConversionSemanticPrediction
     {
         $meta=$this->metadata($ref,$occurred,$available,$sourceVersion);
         $this->questionnaireQuestion=null;
+        $this->pendingManagerQuote=null;
         $field=ModeledConversionQuestionnaireContext::field($text);
         if($sourceVersion!==1||$field===null)return false;
         if($this->lastQuestionnaireAt!==null&&($occurred<$this->lastQuestionnaireAt
@@ -258,6 +298,7 @@ final class ModeledConversionSemanticPrediction
     public function preserveNavigationContext(int $occurred):bool
     {
         if($this->anchor===null||!$this->canPreserveCustomerContext($occurred))return false;
+        $this->pendingManagerQuote=null;
         $this->questionnaireQuestion=null;
         return true;
     }
