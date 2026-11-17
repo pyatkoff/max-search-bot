@@ -472,11 +472,227 @@ function forecastPrimarySourceArgumentAssertions():void
         ($r['error']['code']??null)===-32001&&!str_contains(json_encode($r),'PRIMARY_SOURCE_MUST_NOT_ESCAPE'));
 }
 
+
+/** One exact calendar selector on the existing status capability; no new permission. */
+function forecastDailyArgumentAssertions():void
+{
+    [$pdo,$oauth,$client]=forecastMcpFixture();
+    [, $family]=forecastMcpGrant($oauth,$client,'forecasts:read');
+    $calls=0;$seen=null;$payload=['available'=>true,'fixture'=>'SYNTHETIC_SAVED_AGGREGATE'];
+    $service=forecastMcpService($pdo,static function(int $admin,string $connection,ModeledConversionStatusBudget $budget,array $args)use(&$calls,&$seen,$payload):array{
+        ++$calls;$seen=$args;return$payload;
+    });
+    $tool=ModeledConversionStatusMcpAdapter::tools()[0];
+    forecastMcpCheck('selected day extends the same read-only forecast capability without an arbitrary query',
+        $tool['securitySchemes']===[['type'=>'oauth2','scopes'=>['forecasts:read']]]
+        &&$tool['annotations']['readOnlyHint']&&!$tool['annotations']['destructiveHint']
+        &&$tool['inputSchema']['properties']['date']['pattern']==='^20[0-9]{2}-[0-9]{2}-[0-9]{2}$'
+        &&$tool['inputSchema']['properties']['platform']['enum']===['all','max','telegram']
+        &&$tool['inputSchema']['additionalProperties']===false);
+    $old=$service->handle(forecastMcpRpc(),1,$family,['forecasts:read']);
+    foreach([['date'=>'2001-01-02'],['date'=>'2000-02-29','platform'=>'all'],
+        ['date'=>'2001-01-02','platform'=>'max'],['platform'=>'telegram','date'=>'2001-01-02']]as$args){
+        $before=$calls;
+        $r=$service->handle(forecastMcpRpc('tools/call',['name'=>ModeledConversionStatusMcpAdapter::NAME,'arguments'=>$args]),1,$family,['forecasts:read']);
+        forecastMcpCheck('date and optional platform reach the existing authorized store exactly '.json_encode($args),
+            ($r['result']['structuredContent']??null)===$payload&&$seen===$args&&$calls===$before+1);
+    }
+    $again=$service->handle(forecastMcpRpc(),1,$family,['forecasts:read']);
+    forecastMcpCheck('the no-argument response and argument shape stay byte-identical after date reads',
+        json_encode($again,JSON_THROW_ON_ERROR)===json_encode($old,JSON_THROW_ON_ERROR)&&$seen===[]);
+    $tomorrow=(new DateTimeImmutable('now',new DateTimeZone('Europe/Moscow')))->modify('+1 day')->format('Y-m-d');
+    foreach([['date'=>null],['date'=>20010102],['date'=>true],['date'=>[]],['date'=>'2001-1-02'],
+        ['date'=>'2001-01-02T00:00:00Z'],['date'=>'2001-02-29'],['date'=>'2000-02-30'],['date'=>'2001-13-01'],
+        ['date'=>$tomorrow],['platform'=>'max'],['date'=>'2001-01-02','platform'=>null],
+        ['date'=>'2001-01-02','platform'=>'MAX'],['date'=>'2001-01-02','platform'=>[]],
+        ['date'=>'2001-01-02','receipt_ref'=>str_repeat('a',64)],
+        ['date'=>'2001-01-02','primary_source_review'=>true],['date'=>'2001-01-02','visit_reconciliation'=>true],
+        ['date'=>'2001-01-02','query'=>'private'],['date'=>'2001-01-02','limit'=>1]]as$args){
+        $before=$calls;
+        $r=$service->handle(forecastMcpRpc('tools/call',['name'=>ModeledConversionStatusMcpAdapter::NAME,'arguments'=>$args]),1,$family,['forecasts:read']);
+        forecastMcpCheck('invalid or mixed selected-day arguments refuse before private access '.json_encode($args),
+            ($r['error']['code']??null)===-32602&&$calls===$before);
+    }
+    $rpc=forecastMcpRpc('tools/call',['name'=>ModeledConversionStatusMcpAdapter::NAME,'arguments'=>['date'=>'2001-01-02']]);
+    [, $legacy]=forecastMcpGrant($oauth,$client,'archive:read');$before=$calls;
+    $r=$service->handle($rpc,1,$legacy,['archive:read']);
+    forecastMcpCheck('a date cannot add forecast consent to an archive grant',
+        ($r['result']['isError']??false)&&$calls===$before);
+    $r=$service->handle($rpc,1,$legacy,['forecasts:read']);
+    forecastMcpCheck('caller-supplied forecast scopes cannot elevate the selected-day read',
+        ($r['error']['code']??null)===-32001&&$calls===$before);
+    foreach([0,2,3,4]as$actor){
+        $before=$calls;$r=$service->handle($rpc,$actor,$family,['forecasts:read']);
+        forecastMcpCheck('a selected day retains the current active AnyTour administrator requirement '.$actor,
+            ($r['error']['code']??null)===-32001&&$calls===$before);
+    }
+    foreach(['admin','project','grant']as$kind){
+        [$p,$o,$c]=forecastMcpFixture();[, $g]=forecastMcpGrant($o,$c,'forecasts:read');
+        $s=forecastMcpService($p,static function()use($p,$g,$kind):array{
+            if($kind==='admin')$p->exec('UPDATE managers SET is_active=0 WHERE id=1');
+            elseif($kind==='project')$p->exec('DELETE FROM manager_projects WHERE manager_id=1');
+            else $p->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([time(),$g]);
+            return ['available'=>true,'private'=>'DATE_RESULT_MUST_NOT_ESCAPE'];
+        });
+        $r=$s->handle($rpc,1,$g,['forecasts:read']);
+        forecastMcpCheck('selected-day access is rechecked after its private store '.$kind,
+            ($r['error']['code']??null)===-32001&&!str_contains(json_encode($r),'DATE_RESULT_MUST_NOT_ESCAPE'));
+    }
+    [$p,$o,$c]=forecastMcpFixture();[, $g]=forecastMcpGrant($o,$c,'forecasts:read');
+    $time=1.0;$b=new ModeledConversionStatusBudget(1.0,static function()use(&$time):float{return$time;});
+    $s=forecastMcpService($p,static function()use(&$time):array{$time=6.1;return['private'=>'LATE_DATE_RESULT'];});
+    $r=$s->handle($rpc,1,$g,['forecasts:read'],$b);
+    forecastMcpCheck('the selected-day branch shares the original five-second deadline through its final authorization',
+        ($r['error']['data']['reason']??null)==='time_limit'&&!str_contains(json_encode($r),'LATE_DATE_RESULT'));
+    $calls=0;$s=forecastMcpService($p,static function()use(&$calls):array{++$calls;return['available'=>true];});
+    $b=new ModeledConversionStatusBudget();$b->consumeBytes(65536);
+    $r=$s->handle($rpc,1,$g,['forecasts:read'],$b);
+    forecastMcpCheck('a selected day cannot reset an exhausted shared read budget',
+        ($r['error']['data']['reason']??null)==='byte_limit'&&$calls===0);
+    $s=forecastMcpService($p,static fn():array=>['private'=>str_repeat('OVERSIZE_DATE_RESULT',3000)]);
+    $r=$s->handle($rpc,1,$g,['forecasts:read']);
+    forecastMcpCheck('a selected day retains the original aggregate response byte limit',
+        ($r['error']['data']['reason']??null)==='byte_limit'&&!str_contains(json_encode($r),'OVERSIZE_DATE_RESULT'));
+}
+
+/** Observe the real fixed daily aggregate, without replacing its SQL or result. */
+final class ForecastDailyObservedStatement extends PDOStatement
+{
+    public static int $dailyQueries=0;
+    public static $afterDailyQuery=null;
+    protected function __construct(){}
+    public function execute(?array $params=null):bool
+    {
+        $ok=parent::execute($params);
+        if(str_contains($this->queryString,'FROM max_channel_conversion_outbox o')&&str_contains($this->queryString,' AS cohort,')){
+            ++self::$dailyQueries;
+            if(is_callable(self::$afterDailyQuery)){
+                $callback=self::$afterDailyQuery;self::$afterDailyQuery=null;$callback();
+            }
+        }
+        return$ok;
+    }
+}
+
+/** Real OAuth -> dispatcher -> adapter -> canonical SELECT-only day reader on one PDO. */
+function forecastDailyActualReaderAssertions():void
+{
+    [$pdo,$oauth,$client]=forecastMcpFixture();[$tokens,$family]=forecastMcpGrant($oauth,$client,'forecasts:read');
+    $pdo->exec('CREATE TABLE customers(id INTEGER PRIMARY KEY,display_name TEXT);
+        CREATE TABLE customer_channels(id INTEGER PRIMARY KEY,customer_id INTEGER,project_key TEXT,channel TEXT,external_user_id TEXT,external_chat_id TEXT);
+        CREATE TABLE conversations(id INTEGER PRIMARY KEY,customer_id INTEGER,customer_channel_id INTEGER,project_key TEXT,channel TEXT,external_chat_id TEXT,is_test INTEGER);
+        CREATE TABLE max_channel_conversion_outbox(id INTEGER PRIMARY KEY,project_key TEXT,counter_id TEXT,transport_target TEXT,value_contract TEXT,
+            conversation_id INTEGER,platform TEXT,external_user_id TEXT,client_id TEXT,target TEXT,value_stage TEXT,value_rub NUMERIC,state TEXT,value_origin TEXT,
+            value_profile_id INTEGER,event_unix INTEGER,upload_id TEXT,claimed_at_unix INTEGER,value_api_accepted_at_unix INTEGER,value_processed_at_unix INTEGER,
+            value_receipt_basis TEXT,last_error TEXT)');
+    $from=strtotime('2001-01-01T21:00:00Z');$until=$from+86400;
+    $seed=static function(int $id,string $platform,int $at,int $value,string $state,?int $api=null,?int $processed=null,bool $legacy=false,int $test=0)use($pdo):void{
+        $conversation=100+$id;$peer=(string)(700000+$id);$chat=$platform==='max'?'-'.$peer:$peer;
+        $pdo->prepare('INSERT INTO customers VALUES(?,?)')->execute([$conversation,'SYNTHETIC_PRIVATE_NAME_'.$id]);
+        $pdo->prepare('INSERT INTO customer_channels VALUES(?,?,?,?,?,?)')->execute([$conversation,$conversation,'anytour',$platform,$peer,$chat]);
+        $pdo->prepare('INSERT INTO conversations VALUES(?,?,?,?,?,?,?)')->execute([$conversation,$conversation,$conversation,'anytour',$platform,$chat,$test]);
+        $receipt=in_array($state,['accepted','processed'],true);
+        $pdo->prepare('INSERT INTO max_channel_conversion_outbox VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')->execute([
+            $id,'anytour','98615635',ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,
+            $conversation,$platform,$peer,$receipt?'SYNTHETIC_PRIVATE_CLIENT_'.$id:null,
+            ModeledConversionValueContract::key(1),ModeledConversionValueContract::STAGES[1],$value,$state,null,null,$at,
+            $receipt?'SYNTHETIC_PRIVATE_UPLOAD_'.$id:null,$receipt?$at:null,$api,$processed,
+            $receipt&&!$legacy?'post_response':null,null]);
+    };
+    $seed(1,'max',$from-1,10,'pending');
+    $seed(2,'max',$from,100,'processed',$until+2,$until+3);
+    $seed(3,'telegram',$until-1,200,'accepted',$until-1);
+    $seed(4,'max',$until,300,'processed',$until+1,$until+4);
+    $seed(5,'max',$from+50,50,'pending');
+    $seed(6,'telegram',$from+60,25,'processed',null,null,true);
+    $seed(7,'max',$from+100,1000,'pending',null,null,false,1);
+    $seed(8,'max',$from+100,1000,'pending');
+    $pdo->exec("UPDATE customer_channels SET external_user_id='SYNTHETIC_MISMATCH' WHERE id=108");
+    $tables=$pdo->query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")->fetchAll(PDO::FETCH_COLUMN);
+    $snapshot=static function()use($pdo,$tables):array{
+        $rows=[];foreach($tables as$table)$rows[$table]=$pdo->query('SELECT * FROM '.$table.' ORDER BY rowid')->fetchAll(PDO::FETCH_ASSOC);return$rows;
+    };
+    $before=$snapshot();$changes=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+    $statementClass=$pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastDailyObservedStatement::class]);
+    ForecastDailyObservedStatement::$dailyQueries=0;ForecastDailyObservedStatement::$afterDailyQuery=null;
+    $pdo->exec('PRAGMA query_only=ON');
+    try{
+        $service=new ManagerPreparationMcpService($pdo);
+        $read=static function(array $args,?ModeledConversionStatusBudget $budget=null)use($service,$tokens):array{
+            $budget??=new ModeledConversionStatusBudget();
+            $context=ManagerPreparationOAuth::bearerContext('Bearer '.$tokens['access_token'],$budget);
+            return$service->handle(forecastMcpRpc('tools/call',['name'=>ModeledConversionStatusMcpAdapter::NAME,'arguments'=>$args]),
+                $context['admin_id'],$context['connection_id'],$context['scopes'],$budget);
+        };
+        $r=$read(['date'=>'2001-01-02']);$day=$r['result']['structuredContent']??[];
+        forecastMcpCheck('the real OAuth date branch reaches only the canonical saved daily reader',
+            ($day['available']??false)&&$day['version']===ModeledConversionDailyReconciliationReader::VERSION
+            &&$day['date']==='2001-01-02'&&$day['timezone']==='Europe/Moscow'&&$day['platform']==='all'
+            &&$day['limits']['seconds']===5&&$day['limits']['read_bytes']===65536&&$day['limits']['shared_status_budget']
+            &&!isset($day['value_delivery'])&&!isset($day['saved'])&&ForecastDailyObservedStatement::$dailyQueries===1);
+        forecastMcpCheck('the real selected-day query uses exact Moscow midnight and excludes native test or mismatched bindings',
+            $day['window']===['from'=>'2001-01-01T21:00:00Z','until_exclusive'=>'2001-01-02T21:00:00Z']
+            &&$day['calendar']['accruals']['events']===4&&$day['calendar']['accruals']['value_rub']===375
+            &&$day['calendar']['accruals']['by_platform']['max']['value_rub']===150
+            &&$day['calendar']['accruals']['by_platform']['telegram']['value_rub']===225);
+        forecastMcpCheck('saved API and processing clocks remain separate from the selected accrual day and current row states',
+            $day['calendar']['api_receipts']['events']===1&&$day['calendar']['api_receipts']['value_rub']===200
+            &&$day['calendar']['processed']['events']===0
+            &&$day['current_statuses']['by_state']['processed']['events']===2
+            &&$day['current_statuses']['by_state']['processed']['value_rub']===125
+            &&$day['current_statuses']['waiting']['value_rub']===50
+            &&$day['interpretation']['states_are_current_not_end_of_selected_day']);
+        forecastMcpCheck('legacy unknown observation clocks and individual visit linkage remain explicitly unknown',
+            $day['coverage']['api_receipts_without_observed_clock']['events']===1
+            &&$day['coverage']['processed_without_observed_clock']['value_rub']===25
+            &&$day['coverage']['per_event_visit_match']['status']==='unavailable'
+            &&$day['interpretation']['receipt_and_processing_are_not_individual_visit_linkage']);
+        foreach(['max'=>150,'telegram'=>225]as$platform=>$value){
+            $r=$read(['platform'=>$platform,'date'=>'2001-01-02']);$filtered=$r['result']['structuredContent']??[];
+            forecastMcpCheck('the actual saved-day reader honors only the requested platform '.$platform,
+                ($filtered['available']??false)&&$filtered['platform']===$platform
+                &&$filtered['calendar']['accruals']['events']===2&&$filtered['calendar']['accruals']['value_rub']===$value);
+        }
+        $r=$read(['date'=>'2001-01-03']);$next=$r['result']['structuredContent']??[];
+        forecastMcpCheck('later API and processing observations belong to their own Moscow calendar day',
+            ($next['available']??false)&&$next['calendar']['accruals']['value_rub']===300
+            &&$next['calendar']['api_receipts']['value_rub']===400&&$next['calendar']['processed']['value_rub']===400);
+        $r=$read(['date'=>'2001-01-02']);$repeat=$r['result']['structuredContent']??[];
+        forecastMcpCheck('repeated actual day reads preserve the same aggregate without native IDs or private text',
+            ($repeat['available']??false)&&$repeat['calendar']===$day['calendar']
+            &&!str_contains(json_encode($r),'SYNTHETIC_PRIVATE_')
+            &&!$pdo->inTransaction()&&$snapshot()===$before
+            &&(int)$pdo->query('SELECT total_changes()')->fetchColumn()===$changes);
+    }finally{$pdo->exec('PRAGMA query_only=OFF');ForecastDailyObservedStatement::$afterDailyQuery=null;}
+    $rpc=forecastMcpRpc('tools/call',['name'=>ModeledConversionStatusMcpAdapter::NAME,'arguments'=>['date'=>'2001-01-02']]);
+    $beforeQueries=ForecastDailyObservedStatement::$dailyQueries;
+    $pdo->exec('UPDATE managers SET is_active=0 WHERE id=1');
+    $r=$service->handle($rpc,1,$family,['forecasts:read']);
+    forecastMcpCheck('revocation before an actual saved-day read prevents its financial aggregate query',
+        ($r['error']['code']??null)===-32001&&ForecastDailyObservedStatement::$dailyQueries===$beforeQueries);
+    $pdo->exec('UPDATE managers SET is_active=1 WHERE id=1');
+    $revoked=false;
+    ForecastDailyObservedStatement::$afterDailyQuery=static function()use($pdo,$family,&$revoked):void{
+        $revoked=true;$pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([time(),$family]);
+    };
+    try{
+        $r=$service->handle($rpc,1,$family,['forecasts:read']);
+        forecastMcpCheck('revocation immediately after the actual daily SQL withholds every private aggregate and rolls back',
+            $revoked&&($r['error']['code']??null)===-32001&&!str_contains(json_encode($r),'"calendar"')&&!$pdo->inTransaction());
+    }finally{
+        ForecastDailyObservedStatement::$afterDailyQuery=null;
+        $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,$statementClass);
+    }
+}
+
 require_once __DIR__.'/modeled_conversion_saved_receipt_fixture.php';
 forecastMcpAssertions();
 forecastMcpHttpAssertions();
 forecastReceiptArgumentAssertions();
 forecastPrimarySourceArgumentAssertions();
 forecastVisitReconciliationAssertions();
+forecastDailyArgumentAssertions();
+forecastDailyActualReaderAssertions();
 forecastSavedReceiptAssertions(new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]),'forecastMcpCheck');
 echo 'FORECAST STATUS MCP PASSED '.$passed.PHP_EOL;
