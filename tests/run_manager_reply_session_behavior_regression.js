@@ -15,6 +15,18 @@ const snapshot=saved=>JSON.parse([...saved.values.values()][0]);
 const tick=()=>new Promise(setImmediate);
 const cases=[];function test(name,run){cases.push({name,run})}
 
+// Taking an unassigned dialogue is independent of notification shift state.
+// Keep this contract when integrating assistant post-send refresh into the composer.
+test('unassigned dialogue can be taken while the manager shift is off',async()=>{
+  const h=createHarness();await h.start();
+  h.W.S.manager.role='manager';h.W.S.manager.is_working=false;
+  h.W.S.detail={...h.W.S.detail,conversation:{...h.conversation,status:'waiting_manager',manager_id:null}};
+  const source=require('node:fs').readFileSync(require('node:path').join(__dirname,'../manager/assets/workspace-v2-conversation.js'),'utf8');
+  assert.match(source,/canTake=\(c\.status==='waiting_manager'\|\|c\.status==='ai'\)&&!c\.manager_id\s*[,;]/);
+  assert.doesNotMatch(source,/canTake=[^;\n]*S\.manager\.is_working/);
+  assertNoMutations(h);
+});
+
 function quickReplies(h){
   const buttons=[{dataset:{reply:'Synthetic greeting'}},{dataset:{reply:'Synthetic budget question'}}];
   const query=h.document.querySelectorAll;
