@@ -9,7 +9,7 @@ from route_read_lineage import rebind
 import reconstruct_inventory217 as reconstruct
 import nonwriting_queued217_guard as nonwriting
 from immutable_source_cache import cached_api
-REVIEWED_CONFIG_SHA256='7b86cd90ef406893129b752b71d8f5683f493296c79c43b6284832228a4ea54e'
+REVIEWED_CONFIG_SHA256='d2cb9a6c8aaed34f4e8921f1ff680d580c2ba3cc9c0a15100c64bd469210758c'
 MAX_WAIT_SECONDS=120
 MAX_POLLS_PER_STEP=12
 MAX_CHAIN_POLL_READS=144
@@ -28,12 +28,16 @@ def rate_snapshot():
 
 def public_exclusive(c):
  execution=e.origin(c);current=int(os.environ['GITHUB_RUN_ID'])
- e.pin(pathlib.Path(__file__).with_name('nonwriting_queued217_guard.py'),'5e7297ed8107e2343b0c43a293466aea826acd33a3b0dc0e89e4b6a431973b03')
+ e.pin(pathlib.Path(__file__).with_name('nonwriting_queued217_guard.py'),'166d6956afade54ec3aab86e4161f46ab89de25693decbcd22d694f8e52e2341')
  for status in gate.STATUSES:
   for repo,path in [('pyatkoff/max-search-bot','actions/runs?'),('pyatkoff/poisk-turov-test','actions/workflows/346454799/runs?')]:
    d=e.api(repo,path+'status='+status+'&per_page=100');e.need(d['total_count']==len(d['workflow_runs']) and d['total_count']<=100,'ambiguous_public_runs')
    for r in d['workflow_runs']:
     allowed=repo=='pyatkoff/max-search-bot' and (r['id']==current or e.stale_deploy.allowed(r,c['runtime_acceptance']['head_sha'],lambda short,path:e.api('pyatkoff/'+short,path)) or nonwriting.allowed(r,c['runtime_acceptance']['head_sha'],lambda short,path:e.api('pyatkoff/'+short,path)))
+    if not allowed:
+     # Bounded scalar metadata only. No logs, credentials, arbitrary titles or messages.
+     diagnostic={'reason':'competing_public_writer_or_collector','observed_at':e.now(),'repository':repo,'queried_status':status,'total_count':d['total_count'],'blocked_runs':[{'id':r.get('id'),'workflow_id':r.get('workflow_id'),'status':r.get('status'),'run_attempt':r.get('run_attempt'),'head_sha':r.get('head_sha'),'path':str(r.get('path',''))[:300],'event':str(r.get('event',''))[:40]}]}
+     diagnostic_root=pathlib.Path(os.environ['RUNNER_TEMP'])/'feed217';diagnostic_root.mkdir(mode=0o700,parents=True,exist_ok=True);e.save(diagnostic_root/'blocked-guard.json',diagnostic)
     e.need(allowed,'competing_public_writer_or_collector')
  return execution
  # Private coordination is deliberately NOT represented as clear here. EACH write
@@ -86,7 +90,7 @@ def prepare(c,raw):
 def step(c,index):
  root=pathlib.Path(os.environ['RUNNER_TEMP'])/'feed217';state=json.loads((root/'state.json').read_bytes());e.need(index==state['next_index'],'step_replay_or_order_changed');plan=json.loads(e.pin(root/'compiled'/'intent.json',state['plan_sha256']));g=plan['groups'][index];execution=json.loads((root/'execution-context.json').read_bytes());e.need(execution['repository']==os.environ['GITHUB_REPOSITORY'] and str(execution['run_id'])==os.environ['GITHUB_RUN_ID'] and execution['head_sha']==os.environ['GITHUB_SHA'] and os.environ['GITHUB_RUN_ATTEMPT']=='1','local_execution_context_changed')
  if index==0 and not state['first_writer_budget_checked']:
-  budget=rate_snapshot();e.need(budget['remaining']>=FIRST_WRITER_REQUIRED_REMAINING,'insufficient_api_budget_before_first_writer');e.save(root/'first-writer-rate-budget.json',budget);state['first_writer_budget_checked']=True;e.save(root/'state.json',state)
+  budget=rate_snapshot();e.save(root/'first-writer-rate-budget.json',{k:budget[k] for k in ('remaining','used','reset')});e.need(budget['remaining']>=FIRST_WRITER_REQUIRED_REMAINING,'insufficient_api_budget_before_first_writer');state['first_writer_budget_checked']=True;e.save(root/'state.json',state)
  try:e.compiler.fresh(state['read_started_at'])
  except ValueError:
   e.need(state['read_refreshes']<MAX_REFRESHES,'bounded_read_refresh_budget_exhausted');state['read_refreshes']+=1;e.save(root/'state.json',state)
@@ -136,5 +140,10 @@ if __name__=='__main__':
  try:main()
  except Exception as ex:
   root=pathlib.Path(os.environ.get('RUNNER_TEMP','/tmp'))/'feed217'
-  if root.is_dir():e.save(root/'failure.json',{'ok':False,'state':'STOP_NO_RETRY','mode':sys.argv[2] if len(sys.argv)>2 else None,'step':sys.argv[3] if len(sys.argv)>3 else None,'error_class':type(ex).__name__})
+  if root.is_dir():
+   failure={'ok':False,'state':'STOP_NO_RETRY','mode':sys.argv[2] if len(sys.argv)>2 else None,'step':sys.argv[3] if len(sys.argv)>3 else None,'error_class':type(ex).__name__}
+   if (root/'blocked-guard.json').is_file():failure['guard_diagnostic']=json.loads((root/'blocked-guard.json').read_bytes())
+   if (root/'first-writer-rate-budget.json').is_file():
+    budget=json.loads((root/'first-writer-rate-budget.json').read_bytes());failure['first_writer_rate_budget']={k:budget[k] for k in ('remaining','used','reset') if type(budget.get(k)) is int}
+   e.save(root/'failure.json',failure)
   code=str(ex) if isinstance(ex,ValueError) and re.fullmatch('[a-z0-9_]{1,100}',str(ex)) else type(ex).__name__;print('FINITE_FEED_STOP '+code);sys.exit(2)
