@@ -1092,6 +1092,83 @@ $tests['new destination lexicon preserves word clause actor and clock admission 
     }
 };
 
+
+$tests['canonical source date questions add context only and reject surrounding prose']=static function():void{
+    require_once dirname(__DIR__).'/services/SourceQualificationPrompt.php';
+    foreach([false,true]as$greet)foreach(['','VINPEARL RESORT NHA TRANG']as$hotel){
+        $text=SourceQualificationPrompt::text(['date','adults','children'],$hotel,$greet);
+        semanticPredictionAssert(ModeledConversionQuestionnaireContext::field($text)==='date','actual source date prompt not recognized');
+    }
+    semanticPredictionAssert(ModeledConversionQuestionnaireContext::field(MissingFieldQuestionService::question('date'))==='date','ordinary date prompt not recognized');
+    foreach(['Цитата: Когда планируете отдых? Можно указать примерные даты.',
+        'Оплачено. Когда планируете отдых? Можно указать примерные даты.',
+        'Когда планируете отдых? Можно указать примерные даты. Сколько человек?',
+        "Помогу подобрать тур в Отель.\nКогда планируете отдых? Можно указать примерные даты."]as$text)
+        semanticPredictionAssert(ModeledConversionQuestionnaireContext::field($text)===null,'arbitrary date-question wrapper admitted');
+};
+$tests['literal date answers validate the calendar using the recorded clock only']=static function():void{
+    $at=strtotime('2026-11-01T00:00:00Z');
+    foreach(['5 декабря на 8 дней','17.02.27 - 03.03.27','20.11.2026','С 18.04.27 по 02.05.27',
+        '20/11/2026','5 ДЕКАБРЯ на 8 ночей','29 февраля']as$text)
+        semanticPredictionAssert(ModeledConversionQuestionnaireContext::accepts('date',$text,$at),'literal date rejected: '.$text);
+    foreach(['31 февраля','32 декабря','20.13.2026','29.02.2027','20.10.2026','03.03.27 - 17.02.27',
+        '20.11 - 25.11.2026','5 декабря на 29 дней','5 декабря на 0 дней','8 дней',
+        'Если получится, 5 декабря на 8 дней','В прошлом году 5 декабря на 8 дней',
+        'Не 5 декабря','5 декабря?','5 декабря или 7 декабря','20.07..2027','https://example.test/20.11.2026']as$text)
+        semanticPredictionAssert(!ModeledConversionQuestionnaireContext::accepts('date',$text,$at),'ambiguous or invalid date admitted: '.$text);
+    semanticPredictionAssert(!ModeledConversionQuestionnaireContext::accepts('date','20.11.2026')
+        &&!ModeledConversionQuestionnaireContext::accepts('date','20.11.2026',0),'unknown customer clock accepted');
+    semanticPredictionAssert(ModeledConversionQuestionnaireContext::accepts('date','20.11.2026',strtotime('2026-11-19T20:59:59Z'))
+        &&!ModeledConversionQuestionnaireContext::accepts('date','20.11.2026',strtotime('2026-11-20T21:00:00Z')),
+        'explicit past-date comparison did not use the recorded Moscow day');
+};
+$tests['date then party establishes one concrete request without engagement inflation']=static function():void{
+    require_once dirname(__DIR__).'/services/SourceQualificationPrompt.php';
+    $at=strtotime('2026-11-01T00:00:00Z');
+    foreach(['5 декабря на 8 дней','17.02.27 - 03.03.27','20.11.2026']as$text){
+        $p=semanticPredictionNew();$state=ArchiveResearchSemanticExtractor::initialState();
+        $answer=static function(string $text,string $ref,int $time)use($p,&$state):void{
+            $r=semanticPredictionResult($text,'customer',$ref,$time,$state);
+            $p->observeMessage('customer',$text,$ref,$time,$time+1,1,$r);
+        };
+        $p->observeServiceQuestion(SourceQualificationPrompt::text(['date','adults'],'VINPEARL RESORT NHA TRANG',false),'journal:1',$at,$at+1,1);
+        semanticPredictionAssert($p->finish(semanticPredictionLegacy())['features']['criteria_families']===[],'date question invented customer criteria');
+        $answer($text,'journal:2',$at+10);
+        $one=$p->finish(semanticPredictionLegacy());
+        semanticPredictionAssert($one['status']==='insufficient_context'&&$one['current_request_anchor']===null
+            &&$one['features']['criteria_families']===['dates'],'one date or duration became two independent families');
+        $p->observeServiceQuestion('Из какого города планируете вылет?','journal:3',$at+20,$at+21,1);
+        $answer('Москва','journal:4',$at+30);
+        $p->observeServiceQuestion('Сколько будет взрослых туристов?','journal:5',$at+40,$at+41,1);
+        $answer('2','journal:6',$at+50);
+        $p->observeServiceQuestion('Будут дети? Если да — сколько?','journal:7',$at+60,$at+61,1);
+        $answer('Нет','journal:8',$at+70);
+        $v=$p->finish(semanticPredictionLegacy());
+        semanticPredictionAssert($v['stage']==='concrete_request'&&$v['current_request_anchor']==='journal:2'
+            &&$v['features']['criteria_families']===['dates','party']
+            &&$v['estimated_probability']===0.083333&&$v['hypothesis_odds_multiplier']===1.0
+            &&$v['features']['meaningful_customer_turns']===0&&$v['outcome_observations']===[]
+            &&$v['features']['explicit_decline']===false,'date-conditioned answer changed intent or weights');
+    }
+};
+$tests['date question cannot bypass actor time or unsafe context guards']=static function():void{
+    $at=strtotime('2026-11-01T00:00:00Z');
+    foreach(['quoted_or_relayed','past_trip','conditional','context_barrier','unknown_time','reversed_clock','manager','barrier','revised_question']as$kind){
+        $p=semanticPredictionNew();$state=ArchiveResearchSemanticExtractor::initialState();
+        $p->observeServiceQuestion('Какая ориентировочная дата вылета?','journal:1',$at,$at+1,$kind==='revised_question'?2:1);
+        if($kind==='barrier')$p->barrier();
+        $role=$kind==='manager'?'manager':'customer';
+        $r=semanticPredictionResult('5 декабря на 8 дней',$role,'journal:2',$at+10,$state);
+        if(!in_array($kind,['manager','barrier','revised_question'],true))$r['flags'][$kind]=true;
+        $p->observeMessage($role,'5 декабря на 8 дней','journal:2',$at+10,$at+11,1,$r);
+        $p->observeServiceQuestion('Сколько будет взрослых туристов?','journal:3',$at+20,$at+21,1);
+        $r=semanticPredictionResult('2','customer','journal:4',$at+30,$state);
+        $p->observeMessage('customer','2','journal:4',$at+30,$at+31,1,$r);
+        $v=$p->finish(semanticPredictionLegacy());
+        semanticPredictionAssert($v['status']==='insufficient_context'&&$v['current_request_anchor']===null,'unsafe date crossed a guard: '.$kind);
+    }
+};
+
 $failures=0;
 set_error_handler(static function(int $severity,string $message,string $file,int $line):never{
     throw new ErrorException($message,0,$severity,$file,$line);
