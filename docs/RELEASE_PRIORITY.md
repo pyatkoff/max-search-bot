@@ -120,6 +120,27 @@ publisher or status loop is needed. After admission, retain the fresh shared
 publisher lease, branch protection, head CAS and all release gates. Revalidate
 main if it changed before the operation; do not force a merge.
 
+### Authenticate the previous technical release before another merge
+
+Final `--admit` runs the existing canonical deployment resolver for the exact
+current base after its priority/publisher decision allows the candidate.
+Ordinary PR source CI retains its existing priority-only decision.
+
+The read-only fence requires one original successful main-push Deploy, its
+matching diagnostics receipt, the authenticated digest-bound terminal execution,
+and the exact merged PR binding with its released issue1122 publisher. It reuses
+the canonical installation and terminal-recovery validation, including already
+supported typed continuations; an original failed run is never relabelled.
+A pending record, active or failed original, ambiguous/incomplete history,
+missing publication, held or changed publisher, changed diagnostics/main, or
+an unavailable API stops admission. A different project's free record cannot
+substitute. No installer, closer, check, business operation or write is started.
+
+The final readback pins the same installation record and publisher version,
+then refreshes main. Existing publisher serialization and expected-head merge
+remain mandatory; these read-only snapshots do not claim atomic GitHub exclusion.
+This preventive fence cannot recover the already-held releases in issue1599.
+
 ### Continuing an already admitted publisher
 
 A reservation created after the existing publisher was acquired must not make

@@ -82,13 +82,13 @@ function decidePriority(pulls, context) {
   };
 }
 
-async function readJson(repository, resource, token, fetchImpl) {
+async function readJson(repository, resource, token, fetchImpl, raw = false) {
   if (!token || typeof fetchImpl !== 'function') refusal('missing_read_capability');
   const controller = new AbortController();
   const deadline = setTimeout(() => controller.abort(), 10000);
   try {
     const response = await fetchImpl('https://api.github.com/repos/' + repository + '/' + resource, {
-      headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + token,
+      headers: { Accept: raw ? 'application/vnd.github.raw+json' : 'application/vnd.github+json', Authorization: 'Bearer ' + token,
         'X-GitHub-Api-Version': '2022-11-28' },
       redirect: 'error', signal: controller.signal
     });
@@ -173,6 +173,54 @@ async function continuePublisher(pulls, context, expected, token, fetchImpl) {
     publisher_comment: expected.comment_id, publisher_acquired_at: expected.updated_at };
 }
 
+// Final admission alone authenticates the previous technical release. Ordinary
+// source CI must remain independent of an unrelated production wait.
+async function verifyPreviousRelease(context, token, fetchImpl) {
+  const R = require('./deployment_release');
+  const C = require('./release_slot_close');
+  if (context.repository !== R.REPOSITORY) refusal('unsupported_release_repository');
+  const api = async (method, resource, body, raw = false) => {
+    if (method !== 'GET' || body !== undefined || !resource.startsWith(R.API_ROOT + '/'))
+      refusal('invalid_release_read');
+    return readJson(context.repository, resource.slice(R.API_ROOT.length + 1), token, fetchImpl, raw);
+  };
+  const runs = R.boundedList(await api('GET', R.API_ROOT +
+    '/actions/workflows/deploy.yml/runs?head_sha=' + context.baseSha + '&branch=main&per_page=100'),
+    'workflow_runs', 'incomplete_previous_deployments');
+  if (runs.length !== 1) refusal('ambiguous_previous_deployment');
+  const native = runs[0];
+  R.runIdentity(native, { id: native.id, attempt: native.run_attempt, head: context.baseSha,
+    workflow: R.DEPLOY, event: 'push' });
+  if (![1, 2].includes(native.run_attempt)) refusal('untrusted_previous_deployment');
+  const location = await R.readRecord(api);
+  const r = R.validateRelease(location.record).release;
+  if (r.repository_sha !== context.baseSha || r.release.run_id !== String(native.id) ||
+      r.release.run_attempt !== native.run_attempt || r.release.event !== 'push')
+    refusal('previous_release_source_changed');
+  if (r.phase !== 'pending_terminal') refusal('previous_release_unclosed');
+  // The canonical resolver authenticates actual installation, exact digest-bound
+  // terminal job, and any already supported, explicitly typed recovery lineage.
+  const resolved = await R.resolveCurrent(api, { sha: context.baseSha }, location);
+  if (resolved.ready !== true || resolved.repository_sha !== context.baseSha ||
+      resolved.application_sha !== r.application_sha) refusal('previous_release_unconfirmed');
+  const binding = await R.currentBinding(api, context.baseSha);
+  const bound = binding && Object.fromEntries(['pr', 'head_sha', 'comment_id', 'owner_id', 'updated_at']
+    .map(key => [key, binding[key]]));
+  if (!binding || !R.same(bound, r.closure.binding)) refusal('previous_binding_changed');
+  const path = R.API_ROOT + '/issues/comments/' + binding.comment_id;
+  const record = await api('GET', path);
+  if (C.recordState(record, binding) !== 'released' ||
+      record.body !== r.closure.expected_terminal) refusal('previous_publisher_unclosed');
+  const fresh = await R.readRecord(api);
+  if (fresh.blob !== location.blob || fresh.record_digest !== location.record_digest)
+    refusal('previous_release_changed');
+  const last = await api('GET', path);
+  if (C.recordState(last, binding) !== 'released' || last.body !== record.body ||
+      last.updated_at !== record.updated_at) refusal('previous_publisher_changed');
+  if ((await api('GET', R.API_ROOT + '/git/ref/heads/main'))?.object?.sha !== context.baseSha)
+    refusal('base_changed');
+}
+
 async function runGuard({ env, readEvent, fetchImpl, admission, now = Date.now() }) {
   // Manual validation remains full validation, but cannot grant a merge.
   if (!admission && env.GITHUB_EVENT_NAME === 'workflow_dispatch') {
@@ -199,11 +247,13 @@ async function runGuard({ env, readEvent, fetchImpl, admission, now = Date.now()
   const main = await readJson(context.repository, 'git/ref/heads/main', env.GITHUB_TOKEN, fetchImpl);
   if (main?.object?.sha !== context.baseSha) refusal('base_changed');
   const pulls = await readOpenPulls(context.repository, env.GITHUB_TOKEN, fetchImpl);
-  return continuing ? continuePublisher(pulls, context, admission.publisher, env.GITHUB_TOKEN, fetchImpl) :
+  const decision = continuing ? await continuePublisher(pulls, context, admission.publisher, env.GITHUB_TOKEN, fetchImpl) :
     decidePriority(pulls, context);
+  if (admission && decision.allowed) await verifyPreviousRelease(context, env.GITHUB_TOKEN, fetchImpl);
+  return decision;
 }
 
-module.exports = { claimFor, decidePriority, readOpenPulls, runGuard, MAX_WINDOW_MS };
+module.exports = { claimFor, decidePriority, readOpenPulls, runGuard, verifyPreviousRelease, MAX_WINDOW_MS };
 if (typeof require === 'function' && require.main === module) {
   // --admit is the read-only last check before the existing publisher/CAS merge.
   // It has no merge permission and does not acquire a deployment lease.

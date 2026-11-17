@@ -3,6 +3,9 @@
 const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
 const path = require('node:path');
+const R = require('../tools/deployment_release');
+const C = require('../tools/release_slot_close');
+const { fixture } = require('./run_deployment_release_regression');
 const { runGuard } = require('../tools/release_priority');
 
 module.exports = async function verifyPublisherAdmission(check = assert.equal) {
@@ -22,10 +25,19 @@ module.exports = async function verifyPublisherAdmission(check = assert.equal) {
     created_at: '2026-10-28T00:00:00Z', body: 'PR1438: выпуск занят',
     issue_url: 'https://api.github.com/repos/' + repository + '/issues/1122' };
   const copy = value => JSON.parse(JSON.stringify(value));
-  let target, other, comment, freshTarget, mainReads, calls;
+  let target, other, comment, freshTarget, mainReads, calls, previous;
+  const acceptedPrevious = async () => {
+    const f = fixture(base);
+    const proof = await C.closeRelease({ ...f.options(), prepare: true });
+    f.bindTerminal(proof.record_digest);
+    await C.closeRelease(f.options());
+    f.complete();
+    f.calls.length = 0;
+    return f;
+  };
   const reset = () => {
     target = pr(1438, slot(binding)); other = pr(1441, reservation('2026-11-10T10:27:10Z'));
-    comment = copy(record); freshTarget = null; mainReads = 0; calls = [];
+    comment = copy(record); freshTarget = null; mainReads = 0; calls = []; previous = null;
   };
   reset();
   const response = (value, status = 200) => ({ ok: status === 200, status, json: async () => copy(value) });
@@ -37,7 +49,9 @@ module.exports = async function verifyPublisherAdmission(check = assert.equal) {
     if (url.includes('/pulls?')) return response([target, other]);
     if (url.endsWith('/issues/comments/648')) return response(comment);
     if (url.endsWith('/pulls/1438')) return response(freshTarget || target);
-    throw Error('Unexpected proof request');
+    if (!previous) previous = await acceptedPrevious();
+    return response(await previous.api('GET', url.replace('https://api.github.com', ''), undefined,
+      options.headers.Accept === 'application/vnd.github.raw+json'));
   };
   const env = { GITHUB_REPOSITORY: repository, GITHUB_TOKEN: 'synthetic-read-token' };
   const admission = { repository, prNumber: 1438, headSha: head, baseSha: base };
@@ -60,7 +74,9 @@ module.exports = async function verifyPublisherAdmission(check = assert.equal) {
   check(continuation.allowed, true, 'the same admitted publisher survives a strictly later reservation');
   check(continuation.reason, 'active_publisher', 'continuation names its actual authority');
   check(continuation.ignored_later_reservations, 1, 'the late reservation is reported explicitly');
-  check(calls.length, 6, 'continuation uses a finite sequence of read-only proof requests');
+  check(calls.length > 6 && calls.length < 60, true, 'continuation authenticates previous terminal with bounded read-only requests');
+  check(calls.some(url => url.includes('/actions/workflows/deploy.yml/runs?')), true,
+    'a different free publisher cannot bypass original deployment evidence');
 
   for (const started of ['2026-11-10T10:26:26Z', acquired]) {
     reset(); other.body = reservation(started);
@@ -138,6 +154,84 @@ module.exports = async function verifyPublisherAdmission(check = assert.equal) {
   const ciEnv = { ...env, GITHUB_EVENT_NAME: 'pull_request', GITHUB_EVENT_PATH: 'event.json' };
   check((await runGuard({ env: ciEnv, readEvent: () => JSON.stringify({ pull_request: target }), fetchImpl, now })).allowed,
     false, 'ordinary required CI retains its original priority decision');
+
+  // Reproduce1596→1597: source/priority and a different publisher are valid,
+  // but the current main's original release has no accepted terminal.
+  const plain = () => runGuard({ env, admission, fetchImpl, now });
+  reset(); other.body = ''; previous = fixture(base);
+  await rejects(plain, 'previous_release_unclosed',
+    'an installed base still awaiting technical closure cannot admit another merge');
+  check(previous.calls.every(c => c.method === 'GET'), true, 'pending release admission never mutates');
+
+  for (const [description, change, code] of [
+    ['active Deploy', f => { f.wave.parent.status = 'in_progress'; f.wave.parent.conclusion = null; }, 'producer_not_successful'],
+    ['failed Deploy', f => { f.wave.parent.conclusion = 'failure'; }, 'producer_not_successful'],
+    ['foreign Deploy source', f => { f.hook = c => c.path.includes('/actions/workflows/deploy.yml/runs?')
+      ? { total_count: 1, workflow_runs: [{ ...copy(f.wave.parent), head_sha: 'c'.repeat(40) }] } : undefined; }, 'untrusted_workflow_run'],
+    ['manual Deploy', f => { f.wave.parent.event = 'workflow_dispatch'; }, 'untrusted_workflow_run'],
+    ['missing terminal step', f => { const j = f.jobs.get(f.wave.own.id).find(j => j.name === 'release-slot');
+      j.steps = j.steps.filter(s => s.name !== R.TERMINAL_STEP); }, 'terminal_step_unconfirmed'],
+    ['unbound terminal digest', f => { const j = f.jobs.get(f.wave.own.id).find(j => j.name === 'release-slot');
+      j.steps = j.steps.filter(s => !s.name.startsWith(R.TERMINAL_BINDING_STEP)); }, 'publication_step_unconfirmed'],
+    ['failed original closer', f => { f.wave.own.conclusion = 'failure'; }, 'producer_not_active'],
+    ['active original closer', f => { f.wave.own.status = 'in_progress'; f.wave.own.conclusion = null; }, 'release_pending'],
+    ['held earlier publisher', f => { f.comment = { ...f.comment, body: 'PR55: выпуск занят' }; }, 'previous_publisher_unclosed'],
+    ['foreign earlier publisher owner', f => { f.comment = { ...f.comment, user: { id: 801 } }; }, 'foreign_record'],
+    ['removed previous binding', f => { f.pr = { ...f.pr, body: '' }; }, 'previous_binding_changed']
+  ]) {
+    reset(); other.body = ''; previous = await acceptedPrevious(); change(previous);
+    await rejects(plain, code, description + ' refuses even with a valid candidate publisher');
+    check(previous.calls.every(c => c.method === 'GET'), true, description + ' is read-only');
+  }
+  for (const [description, value, code] of [
+    ['missing native deployment', { total_count: 0, workflow_runs: [] }, 'ambiguous_previous_deployment'],
+    ['incomplete native deployment list', { total_count: 1, workflow_runs: [] }, 'incomplete_previous_deployments']
+  ]) {
+    reset(); other.body = ''; previous = await acceptedPrevious();
+    previous.hook = c => c.path.includes('/actions/workflows/deploy.yml/runs?') ? value : undefined;
+    await rejects(plain, code, description + ' cannot authorize a merge');
+  }
+  reset(); other.body = ''; previous = await acceptedPrevious();
+  previous.hook = c => c.path.includes('/actions/workflows/deploy.yml/runs?')
+    ? { total_count: 2, workflow_runs: [copy(previous.wave.parent),
+      { ...copy(previous.wave.parent), id: 1001 }] } : undefined;
+  await rejects(plain, 'ambiguous_previous_deployment', 'two native deployment origins refuse');
+
+  reset(); other.body = ''; previous = await acceptedPrevious();
+  let diagnosticReads = 0;
+  previous.hook = c => {
+    if (c.path.endsWith('/git/ref/heads/diagnostics') && ++diagnosticReads === 2)
+      previous.putRecord({ ...copy(previous.record), reported_at: '2026-11-06T06:00:01Z' }, previous.head);
+  };
+  await rejects(plain, 'previous_release_changed', 'changed diagnostic proof refuses final admission');
+
+  reset(); other.body = ''; previous = await acceptedPrevious();
+  let previousPublisherReads = 0;
+  previous.hook = c => {
+    if (c.path.endsWith('/issues/comments/900') && ++previousPublisherReads === 2)
+      previous.comment = { ...previous.comment, updated_at: '2026-11-06T06:00:01Z' };
+  };
+  await rejects(plain, 'previous_publisher_changed', 'changed previous publisher version refuses');
+
+  reset(); other.body = ''; previous = await acceptedPrevious();
+  await rejects(() => runGuard({ env, admission, now, fetchImpl: async (url, options) =>
+    url.endsWith('/git/ref/heads/main') && mainReads ? response({ object: { sha: 'c'.repeat(40) } })
+      : fetchImpl(url, options) }), 'base_changed', 'main moving after terminal verification refuses');
+
+  reset(); other.body = ''; previous = await acceptedPrevious();
+  let deploymentReads = 0;
+  await rejects(() => runGuard({ env, admission, now, fetchImpl: async (url, options) => {
+    if (url.includes('/actions/workflows/deploy.yml/runs?')) { deploymentReads++; return response({}, 503); }
+    return fetchImpl(url, options);
+  } }), 'api_http_503', 'previous deployment metadata API refusal cannot bypass the fence');
+  check(deploymentReads, 1, 'final admission never retries a failed metadata read');
+
+  reset(); other.body = ''; previous = fixture(base);
+  check((await runGuard({ env: { ...env, GITHUB_EVENT_NAME: 'pull_request' }, now,
+    readEvent: () => JSON.stringify({ pull_request: target }), fetchImpl })).allowed, true,
+    'ordinary source CI remains independent of a pending production release');
+  check(calls.length, 2, 'source CI still reads only main and priority metadata');
+
   const tool = path.resolve(__dirname, '../tools/release_priority.js');
   const cli = spawnSync(process.execPath, [tool, '--admit', '1438', head, base, '--publisher',
     '648', '17', acquired], { encoding: 'utf8', env: { GITHUB_REPOSITORY: repository } });
