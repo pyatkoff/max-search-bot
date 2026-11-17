@@ -191,6 +191,10 @@ $monthOnly = DateContextResolver::resolveFromText($chatId, 'в декабре 20
 dcrCheck('month-only text is recognized without inventing a day', empty($monthOnly['date']) && ($monthOnly['month'] ?? null) === 12 && ($monthOnly['year'] ?? null) === 2026);
 $pending = PendingMonthStore::get($chatId);
 dcrCheck('month-only recognition stores pending context', ($pending['month'] ?? null) === 12 && ($pending['year'] ?? null) === 2026);
+$flexibleLiteral = DateParser::resolveDate('февраль 2030, любой день');
+dcrCheck('explicit flexibility does not invent any calendar day', empty($flexibleLiteral['date']) && $flexibleLiteral['month'] === 2 && $flexibleLiteral['year'] === 2030);
+$shortRange = DateParser::resolveDate('28–29 ноября 2030');
+dcrCheck('named short range requires a choice, not a guessed midpoint', !empty($shortRange['ambiguous_range']) && empty($shortRange['date']));
 
 dcrCheck('pending short day resolves against remembered month', DateContextResolver::resolvePendingShortDate($chatId, '14') === '14.12.2026');
 dcrCheck('successful short day clears pending context', PendingMonthStore::get($chatId) === []);
