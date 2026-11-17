@@ -15,7 +15,7 @@ const RECONCILE_KEY = 'regnum-carya-belek';
 const RECONCILE_MAX_ID = 400;
 const RECONCILE_MAX_OLD_VERSION = 4199;
 const RECONCILE_MAX_MID = 'mid.ffffb6caf0606fed01a1a3b88da95daa';
-const RECONCILE_MAX_OLD_TEXT_SHA = '565ba5d258f5d9f215bf7082b38e3e4e24fd120072234ff4586d1a551bf260a0';
+const RECONCILE_MAX_CURRENT_TEXT_SHA = '057223c8a1d3bbfb76a1ad69b141a356d174f420ecc6d9f1716e95a18b5237a6';
 const RECONCILE_REQUEST_START_MS = 1794888551018;
 
 function reconcile_need(bool $ok, string $reason): void {
@@ -119,7 +119,7 @@ function reconcile_capability_admission(array $rights): void {
     reconcile_need(($rights['state'] ?? null) === 'ready' && ($rights['reason'] ?? null) === 'capability_verified',
         'reconcile_telegram_channel_rights_changed');
 }
-function reconcile_open(string $path, int $cap, bool $apply, array &$locks): array {
+function reconcile_open(string $path, int $cap, bool $apply, array &$locks, bool $streamOnly=false): array {
     reconcile_need(!is_link(dirname($path)) && realpath(dirname($path)) === dirname($path)
         && !is_link($path) && is_file($path) && realpath($path) === $path, 'reconcile_journal_path_invalid');
     $f = fopen($path, $apply ? 'r+b' : 'rb');
@@ -128,10 +128,41 @@ function reconcile_open(string $path, int $cap, bool $apply, array &$locks): arr
     $stat = fstat($f); $named = lstat($path);
     reconcile_need(is_array($stat) && is_array($named) && $stat['ino'] === $named['ino'] && $stat['dev'] === $named['dev']
         && $stat['size'] > 0 && $stat['size'] <= $cap, 'reconcile_journal_identity_changed');
+    if ($streamOnly) return [$f,null];
     $raw = stream_get_contents($f, $cap + 1);
     reconcile_need(is_string($raw) && strlen($raw) === $stat['size'], 'reconcile_journal_read_failed');
     return [$f, $raw];
 }
+
+/** Stream the 443MB original journal under the existing nonblocking lock. */
+function reconcile_global_state($stream):array {
+    reconcile_need(is_resource($stream)&&rewind($stream),'reconcile_global_rewind_failed');
+    $hash=hash_init('sha256');$bytes=0;$lines=0;$last='';
+    while(($line=fgets($stream))!==false) {
+        reconcile_need(str_ends_with($line,"\n"),'reconcile_global_incomplete_line');
+        hash_update($hash,$line);$bytes+=strlen($line);$lines++;$last=$line;
+        reconcile_need($bytes<=443818242,'reconcile_global_grew');
+    }
+    reconcile_need(feof($stream)&&$bytes===443818242&&$lines===4352
+        &&hash_final($hash)===RECONCILE_GLOBAL_SHA
+        &&hash('sha256',$last)==='5660cc6dad9e6a19900dd251da2cd0d8470182f114ac2dc98a2cccf2e38314b5',
+        'reconcile_global_prefix_changed');
+    $state=json_decode($last,true,64,JSON_THROW_ON_ERROR);
+    reconcile_need(is_array($state),'reconcile_global_state_invalid');
+    return $state;
+}
+/** Once an append occurs, verify that the entire preexisting prefix still matches. */
+function reconcile_assert_global_prefix($stream):void {
+    reconcile_need(is_resource($stream)&&rewind($stream),'reconcile_global_rewind_failed');
+    $hash=hash_init('sha256');$remaining=443818242;
+    while($remaining>0){
+        $chunk=fread($stream,min($remaining,1048576));
+        reconcile_need(is_string($chunk)&&$chunk!=='','reconcile_global_prefix_short');
+        hash_update($hash,$chunk);$remaining-=strlen($chunk);
+    }
+    reconcile_need(hash_final($hash)===RECONCILE_GLOBAL_SHA,'reconcile_global_prefix_changed');
+}
+
 function reconcile_assert_prefix($stream, string $prefix): void {
     reconcile_need(rewind($stream), 'reconcile_journal_rewind_failed');
     $read = stream_get_contents($stream, strlen($prefix));
@@ -298,6 +329,9 @@ function reconcile_read_max(array $plan, array $publication, array &$out): array
     $snapshot = ChannelPostIncomingAdapter::maxSnapshot($raw);
     reconcile_need(is_array($snapshot) && ($snapshot['metadata']['capability'] ?? null) === 'supported'
         && snapshotMatches($publication, $snapshot, $plan), 'reconcile_max_target_not_proven');
+    $priceLink=monitorEditorPriceLink($plan['text'],'max',ChannelPostButtonTransport::buttonUrl($publication));
+    reconcile_need(monitorEditorPriceLinkVerified('max',$raw,$plan['text'],$priceLink),
+        'reconcile_max_inline_price_not_verified');
     $out['max_target_readback'] = ['http' => 200, 'message_id' => RECONCILE_MAX_MID, 'text_sha256' => hash('sha256', $snapshot['text']),
         'photo_signature' => photoSignature($snapshot), 'post_url' => $snapshot['post_url'], 'only_expected_button' => true,
         'response_sha256' => hash('sha256', reconcile_json($raw)), 'captured_at' => gmdate('c')];
@@ -361,7 +395,11 @@ function reconcile_final_receipt(ChannelPostRegistryService $registry, array $p,
     $resolved = ChannelPostEntryService::resolve($plan['platform'], $plan['token'], $registry);
     reconcile_need(is_array($resolved) && (int)$resolved['version_id'] === (int)$current['version_id']
         && ($resolved['snapshot']['text'] ?? null) === $plan['text'] && $resolved['source_key'] === $current['source_key'], 'reconcile_token_resolution_failed');
-    return safeResult($current, $plan);
+    $receipt=safeResult($current,$plan);
+    $link=monitorEditorPriceLink($plan['text'],$plan['platform'],ChannelPostButtonTransport::buttonUrl($current));
+    $receipt['price_link_verified']=true;
+    $receipt['price_link_url']=$link['url'];
+    return $receipt;
 }
 
 function reconcile_self_test(): void {
@@ -384,8 +422,8 @@ try {
     reconcile_need(count($argv) === 1 && in_array(getenv('ANYTOUR_MONITOR_27316_APPLY'), [false,'','1'], true), 'reconcile_arguments_invalid');
     reconcile_runtime(); $out['runtime_sha'] = RECONCILE_RUNTIME_SHA;
     reconcile_need(!is_link(RECONCILE_ROOT) && realpath(RECONCILE_ROOT) === RECONCILE_ROOT, 'reconcile_private_root_changed');
-    [$globalLock,$globalRaw] = reconcile_open(RECONCILE_ROOT.'/monitor-price-after-collection-v1.jsonl',100000000,$apply,$locks);
-    $global = reconcile_prefix_guard($globalRaw,RECONCILE_GLOBAL_SHA,443818242,4352);
+    [$globalLock] = reconcile_open(RECONCILE_ROOT.'/monitor-price-after-collection-v1.jsonl',500000000,$apply,$locks,true);
+    $global = reconcile_global_state($globalLock);
     reconcile_need(($global['schema']??null)===1 && count($global['completed']??[])===589
         && ($global['pending']['tourvisor_hotel_id']??null)===RECONCILE_TV && ($global['pending']['operation']??null)===RECONCILE_OPERATION
         && ($global['pending']['phase']??null)==='post_started' && ($global['pending']['child_failure']??null)===['exit_code'=>2,'error'=>'max_button_outcome_not_confirmed']
@@ -438,7 +476,7 @@ try {
         reconcile_runtime();
         $maxBefore=$registry->publication(RECONCILE_MAX_ID);
         reconcile_need(is_array($maxBefore)&&(int)$maxBefore['version_id']===RECONCILE_MAX_OLD_VERSION&&$maxBefore['state']==='sent'
-            &&hash('sha256',$maxBefore['snapshot']['text'])===RECONCILE_MAX_OLD_TEXT_SHA&&hash_equals($maxPlan['token'],$maxBefore['start_payload']), 'reconcile_max_changed_before_adoption');
+            &&hash('sha256',$maxBefore['snapshot']['text'])===RECONCILE_MAX_CURRENT_TEXT_SHA&&hash_equals($maxPlan['token'],$maxBefore['start_payload']), 'reconcile_max_changed_before_adoption');
         reconcile_identity($maxBefore,'max',$context['proofs']['max'],$context['row']);
         reconcile_need(snapshotMatches($maxBefore,$maxSnapshot,$maxPlan),'reconcile_max_context_changed_before_adoption');
         reconcile_price_admission($state['monitor_snapshot'],$fresh,time());
@@ -505,12 +543,12 @@ try {
         durable($journalLock,$state); $out['journal_appends']++;
         $state['posts']['max:'.RECONCILE_KEY]['receipt']=reconcile_final_receipt($registry,$maxCurrent,$maxPlan);
         $state['complete']=true; durable($journalLock,$state); $out['journal_appends']++;
-        reconcile_assert_prefix($journalLock,$journalRaw); reconcile_assert_prefix($globalLock,$globalRaw);
+        reconcile_assert_prefix($journalLock,$journalRaw); reconcile_assert_global_prefix($globalLock);
         $binding=$state['feed_binding']+['operation'=>RECONCILE_OPERATION,'manifest_hash'=>RECONCILE_MANIFEST];
         monitor_price_confirmed_journal($state,$binding,time());
         $out['feed_resume_calls']++;
         reconcile_need(hook_finish_feed($global,$globalLock,RECONCILE_RUNTIME_SHA)==='feed_completed', 'reconcile_original_feed_not_completed');
-        reconcile_need(fseek($globalLock,strlen($globalRaw),SEEK_SET)===0,'reconcile_feed_evidence_seek_failed');
+        reconcile_need(fseek($globalLock,443818242,SEEK_SET)===0,'reconcile_feed_evidence_seek_failed');
         $appended=stream_get_contents($globalLock,1000001);
         reconcile_need(is_string($appended)&&strlen($appended)<=1000000&&str_ends_with($appended,"\n"),'reconcile_feed_evidence_read_failed');
         $feedFiles=null; $feedOperation=null;
@@ -529,7 +567,7 @@ try {
         $remaining=$global['completed']; unset($remaining[RECONCILE_TV]);
         reconcile_need($global['pending']===null&&$remaining===$initialCompleted&&($global['holds']??[])===$initialHolds
             &&($global['completed'][RECONCILE_TV]['operation']??null)===RECONCILE_OPERATION, 'reconcile_unrelated_global_state_changed');
-        reconcile_assert_prefix($journalLock,$journalRaw); reconcile_assert_prefix($globalLock,$globalRaw);
+        reconcile_assert_prefix($journalLock,$journalRaw); reconcile_assert_global_prefix($globalLock);
         $completedJournal=hook_journal(RECONCILE_OPERATION);
         reconcile_need(is_array($completedJournal)&&($completedJournal['complete']??null)===true&&$completedJournal['manifest_hash']===RECONCILE_MANIFEST
             &&$completedJournal['monitor_snapshot']===$originalSnapshot,'reconcile_original_source_not_preserved');
