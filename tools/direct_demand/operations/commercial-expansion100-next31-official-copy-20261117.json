@@ -1,0 +1,795 @@
+{
+  "schema_version": "anytour_expansion100_next31_official_copy_review_v1",
+  "date": "2026-11-17",
+  "purpose": "Prepare remainder of 42 non-title-collision candidates rapidly on existing HOTEL/CONTENT lane, not to publish",
+  "source_triage": "tools/direct_demand/operations/commercial-expansion100-fastfill-triage-20261117.json",
+  "prior_first11": "tools/direct_demand/operations/commercial-expansion100-first11-official-copy-20261117.json",
+  "total_42_prepared_drafts": 42,
+  "additional_drafts": 31,
+  "rights": "Product copy is original paraphrase of hotel-official sources. Hotel identity/claims, image selection and usage rights need independent admission.",
+  "publication_policy": "Use existing paired publisher with exact native Site identity, approved original photo, concise caption, 1 CTA; price optional, no invented tours; no duplicate or bulk notification bursts",
+  "no_send": true,
+  "no_supplier_request": true,
+  "rows": [
+    {
+      "work_id": "EXP037",
+      "batch": 2,
+      "tourvisor_candidate_id": 128957,
+      "official_listing_label": "Nala Maldives By Jawakara",
+      "country": "MV",
+      "title": "Nala Maldives by Jawakara",
+      "sources": [
+        "https://nalamaldives.com/"
+      ],
+      "facts": [
+        "Курорт в атолле Лавиани",
+        "Формат отдыха только для взрослых",
+        "Виллы над лагуной, снорклинг и спокойный островной отдых"
+      ],
+      "draft": "🏝 Nala Maldives by Jawakara\n📍 Атолл Лавиани, Мальдивы\nКамерный отдых только для взрослых среди бирюзовой лагуны.\n🌊 Виллы над водой и возможность исследовать подводный мир.\n✨ Уединение и расслабленная островная атмосфера.",
+      "cautions": [
+        "Adults only: do not market as family resort"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP039",
+      "batch": 2,
+      "tourvisor_candidate_id": 2490,
+      "official_listing_label": "Vilamendhoo Maldives Resort Island",
+      "country": "MV",
+      "title": "Vilamendhoo Maldives Resort Island",
+      "sources": [
+        "https://www.vilamendhoo.com/",
+        "https://www.vilamendhoo.com/renovation-reopening.html"
+      ],
+      "facts": [
+        "Курорт в атолле Южный Ари",
+        "Риф для снорклинга",
+        "Остров проводил масштабное обновление с объявленной датой возобновления работы 15 ноября 2026"
+      ],
+      "draft": "🐠 Vilamendhoo Maldives Resort Island\n📍 Атолл Южный Ари, Мальдивы\nОстровной курорт, известный домашним рифом и красивым снорклингом.\n🏝 Песчаные пляжи и виллы рядом с лагуной.\n✨ Подойдёт любителям моря и подводных открытий.",
+      "cautions": [
+        "Reopening after renovation must be independently checked at commercial release",
+        "Some accommodation areas have adults-only restrictions"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP019",
+      "batch": 2,
+      "tourvisor_candidate_id": 2925,
+      "official_listing_label": "Desert Islands Resort & Spa by Anantara",
+      "country": "AE",
+      "title": "Desert Islands Resort & Spa by Anantara",
+      "sources": [
+        "https://www.anantara.com/en/desert-islands-sir-bani-yas"
+      ],
+      "facts": [
+        "Расположен на острове Сир-Бани-Яс",
+        "Природный заповедник Arabian Wildlife Park",
+        "Семейный островной отдых, пляж и бассейн"
+      ],
+      "draft": "🌿 Desert Islands Resort & Spa by Anantara\n📍 Сир-Бани-Яс, Абу-Даби, ОАЭ\nОстровной отдых рядом с природным заповедником Arabian Wildlife Park.\n🦒 Возможность увидеть диких животных во время организованных экскурсий.\n🏖 Пляж, бассейн и размеренный отпуск вдали от города.",
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP006",
+      "batch": 2,
+      "tourvisor_candidate_id": 7831,
+      "official_listing_label": "Anantara Riverside Bangkok Resort",
+      "country": "TH",
+      "title": "Anantara Riverside Bangkok Resort",
+      "sources": [
+        "https://www.anantara.com/en/riverside-bangkok"
+      ],
+      "facts": [
+        "Курорт на берегу реки Чаупхрая",
+        "Тропический сад и большой бассейн",
+        "Лодочные трансферы и семейные удобства"
+      ],
+      "draft": "🌿 Anantara Riverside Bangkok Resort\n📍 Бангкок, Таиланд\nЗелёный курорт прямо у реки Чаупхрая — ощущение тропического отдыха посреди большого города.\n🚤 Прогулки и лодочные маршруты по реке.\n🏊 Бассейн, сад и семейный отдых.",
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP007",
+      "batch": 2,
+      "tourvisor_candidate_id": 4283,
+      "official_listing_label": "Anantara Siam Bangkok Hotel",
+      "country": "TH",
+      "title": "Anantara Siam Bangkok Hotel",
+      "sources": [
+        "https://www.anantara.com/en/siam-bangkok"
+      ],
+      "facts": [
+        "Центральный Бангкок",
+        "Спа и открытый бассейн",
+        "Удобное расположение для прогулок и шопинга"
+      ],
+      "draft": "✨ Anantara Siam Bangkok Hotel\n📍 Центр Бангкока, Таиланд\nЭлегантный городской отель для знакомства со столицей.\n🏊 Открытый бассейн и спа для отдыха после прогулок.\n🛍 Рядом торговые кварталы и городские достопримечательности.",
+      "cautions": [
+        "City hotel, not beachfront property"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP085",
+      "batch": 2,
+      "tourvisor_candidate_id": 97001,
+      "official_listing_label": "Alexandria",
+      "country": "EG",
+      "title": "Four Seasons Hotel Alexandria at San Stefano",
+      "sources": [
+        "https://www.fourseasons.com/alexandria/",
+        "https://www.fourseasons.com/alexandria/services-and-amenities/"
+      ],
+      "facts": [
+        "Расположен на побережье Средиземного моря в Александрии",
+        "Виды на море и городской отдых",
+        "Пляжные зоны имеют сезонные ограничения"
+      ],
+      "draft": "🌊 Four Seasons Hotel Alexandria at San Stefano\n📍 Александрия, Египет\nЭлегантный отель у Средиземного моря с морскими панорамами.\n🍽 Рестораны и прогулки по Александрии.\n✨ Комфортный городской отдых с атмосферой курорта.",
+      "cautions": [
+        "Private beach and some outdoor pools have seasonal closure November–April; do not advertise available-now"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP086",
+      "batch": 2,
+      "tourvisor_candidate_id": 74509,
+      "official_listing_label": "Cairo at Nile Plaza",
+      "country": "EG",
+      "title": "Four Seasons Hotel Cairo at Nile Plaza",
+      "sources": [
+        "https://press.fourseasons.com/caironp/hotel-facts/"
+      ],
+      "facts": [
+        "Расположен в Garden City на берегу Нила",
+        "Панорамные виды на реку из отдельных категорий",
+        "Спа и бассейны"
+      ],
+      "draft": "🌆 Four Seasons Hotel Cairo at Nile Plaza\n📍 Каир, Египет\nПремиальный городской отель на берегу Нила.\n🌅 В отдельных номерах открываются панорамы реки.\n🧘 Бассейны и спа для отдыха после насыщенного дня.",
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP041",
+      "batch": 3,
+      "tourvisor_candidate_id": 2458,
+      "official_listing_label": "Komandoo Island Resort & Spa",
+      "country": "MV",
+      "title": "Komandoo Island Resort & Spa",
+      "sources": [
+        "https://www.komandoo.com/"
+      ],
+      "facts": [
+        "Курорт для гостей от 18 лет",
+        "Атолл Лавиани",
+        "Пляжи, риф, снорклинг и спа"
+      ],
+      "draft": "🏝 Komandoo Island Resort & Spa\n📍 Атолл Лавиани, Мальдивы\nРомантический островной курорт для взрослых 18+.\n🐠 Домашний риф и снорклинг у острова.\n✨ Песчаный пляж, уединение и спа.",
+      "cautions": [
+        "Adults only 18+"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP024",
+      "batch": 3,
+      "tourvisor_candidate_id": 113544,
+      "official_listing_label": "Anantara Retreat Santorini Abu Dhabi",
+      "country": "AE",
+      "title": "Anantara Santorini Abu Dhabi Retreat",
+      "sources": [
+        "https://www.anantara.com/en/santorini-abu-dhabi"
+      ],
+      "facts": [
+        "Камерный отель на побережье Абу-Даби",
+        "Средиземноморская архитектура",
+        "Формат отдыха для взрослых"
+      ],
+      "draft": "🤍 Anantara Santorini Abu Dhabi Retreat\n📍 Абу-Даби, ОАЭ\nКамерный пляжный отель в белоснежной средиземноморской стилистике.\n🌊 Спокойный отдых у моря.\n✨ Просторные номера, бассейн и атмосфера приватности.",
+      "cautions": [
+        "Adults-only retreat; not a family hotel"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP082",
+      "batch": 3,
+      "tourvisor_candidate_id": 52337,
+      "official_listing_label": "Abu Dhabi",
+      "country": "AE",
+      "title": "Four Seasons Hotel Abu Dhabi at Al Maryah Island",
+      "sources": [
+        "https://www.fourseasons.com/abudhabi/"
+      ],
+      "facts": [
+        "Городской отель на острове Аль-Марья",
+        "Рядом The Galleria",
+        "Бассейн и wellness-пространство"
+      ],
+      "draft": "🌆 Four Seasons Hotel Abu Dhabi at Al Maryah Island\n📍 Абу-Даби, ОАЭ\nСтильный городской отель на набережной острова Аль-Марья.\n🛍 Рядом торговые галереи и рестораны.\n🏊 Бассейн и wellness-пространство для отдыха.",
+      "cautions": [
+        "Not a traditional beach resort"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP008",
+      "batch": 3,
+      "tourvisor_candidate_id": 47217,
+      "official_listing_label": "Anantara Chiang Mai Resort",
+      "country": "TH",
+      "title": "Anantara Chiang Mai Resort",
+      "sources": [
+        "https://www.anantara.com/en/chiang-mai"
+      ],
+      "facts": [
+        "Берег реки Мэпинг",
+        "Бассейн и сады",
+        "Городские культурные маршруты"
+      ],
+      "draft": "🌿 Anantara Chiang Mai Resort\n📍 Чиангмай, Таиланд\nСпокойный курорт у реки Мэпинг с зелёной территорией.\n🏊 Бассейн и спа после прогулок по городу.\n🚤 Речные и культурные маршруты по северу Таиланда.",
+      "cautions": [
+        "Do not claim a kids club: official FAQ does not list one"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP010",
+      "batch": 3,
+      "tourvisor_candidate_id": 2948,
+      "official_listing_label": "Anantara Hua Hin Resort",
+      "country": "TH",
+      "title": "Anantara Hua Hin Resort",
+      "sources": [
+        "https://www.anantara.com/en/hua-hin"
+      ],
+      "facts": [
+        "Курорт на побережье Хуахина",
+        "Тропический сад, бассейны и лагуны",
+        "Возможности для семейного отдыха"
+      ],
+      "draft": "🌴 Anantara Hua Hin Resort\n📍 Хуахин, Таиланд\nПляжный курорт среди тропических садов.\n🏊 Бассейны и зелёные зоны для отдыха.\n👨‍👩‍👧 Подходит для спокойного семейного отпуска.",
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP028",
+      "batch": 3,
+      "tourvisor_candidate_id": 57536,
+      "official_listing_label": "Al Baleed Resort Salalah by Anantara",
+      "country": "OM",
+      "title": "Al Baleed Resort Salalah by Anantara",
+      "sources": [
+        "https://www.anantara.com/en/al-baleed-salalah"
+      ],
+      "facts": [
+        "Курорт у пляжа в Салале",
+        "Лагуна и виллы с частными бассейнами",
+        "Неподалёку археологический парк Аль-Балид"
+      ],
+      "draft": "🌴 Al Baleed Resort Salalah by Anantara\n📍 Салала, Оман\nКурорт между песчаным пляжем и пресноводной лагуной.\n🏡 Виллы с собственными бассейнами.\n🌿 Природа Омана и исторические достопримечательности неподалёку.",
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP029",
+      "batch": 3,
+      "tourvisor_candidate_id": 61241,
+      "official_listing_label": "Anantara Al Jabal Al Akhdar Resort",
+      "country": "OM",
+      "title": "Anantara Al Jabal Al Akhdar Resort",
+      "sources": [
+        "https://www.anantara.com/en/jabal-akhdar"
+      ],
+      "facts": [
+        "Высокогорный курорт в Омане",
+        "Панорамы каньона",
+        "Виллы с бассейнами, спа и прогулки"
+      ],
+      "draft": "⛰ Anantara Al Jabal Al Akhdar Resort\n📍 Джебель-Ахдар, Оман\nПремиальный горный курорт над величественным каньоном.\n🌄 Панорамные виды и горные маршруты.\n🏡 Виллы с бассейнами, спа и отдых вдали от жары побережья.",
+      "cautions": [
+        "Mountain hotel, not beachfront"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP054",
+      "batch": 4,
+      "tourvisor_candidate_id": 73477,
+      "official_listing_label": "Siyam World Maldives",
+      "country": "MV",
+      "title": "Siyam World Maldives",
+      "sources": [
+        "https://www.sunsiyam.com/siyam-world/"
+      ],
+      "facts": [
+        "Островной курорт в атолле Нуну",
+        "Плавучий аквапарк",
+        "Семейные занятия, разнообразные рестораны"
+      ],
+      "draft": "💦 Siyam World Maldives\n📍 Атолл Нуну, Мальдивы\nБольшой островной курорт с развлечениями для всей семьи.\n🌊 Плавучий аквапарк и пляжи.\n🍽 Много ресторанов и разных вариантов отдыха.",
+      "cautions": [
+        "Included dining/activities depend on booked package"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP084",
+      "batch": 4,
+      "tourvisor_candidate_id": 64648,
+      "official_listing_label": "Dubai International Financial Centre",
+      "country": "AE",
+      "title": "Four Seasons Hotel Dubai International Financial Centre",
+      "sources": [
+        "https://www.fourseasons.com/dubaidifc/services-and-amenities/rooftop-pool/"
+      ],
+      "facts": [
+        "Городской отель в финансовом центре DIFC",
+        "Открытый бассейн на крыше",
+        "Рестораны и городской досуг"
+      ],
+      "draft": "✨ Four Seasons Hotel Dubai International Financial Centre\n📍 DIFC, Дубай, ОАЭ\nКамерный городской отель в деловом и ресторанном квартале Дубая.\n🏙 Бассейн на крыше с видом на город.\n🍽 Рестораны и удобный доступ к центру.",
+      "cautions": [
+        "Must not conflate with Four Seasons Jumeirah Beach; not a beach resort"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP093",
+      "batch": 4,
+      "tourvisor_candidate_id": 2588,
+      "official_listing_label": "Jumeirah Beach Hotel",
+      "country": "AE",
+      "title": "Jumeirah Beach Hotel",
+      "sources": [
+        "https://www.jumeirah.com/en/stay/dubai/jumeirah-beach-hotel"
+      ],
+      "facts": [
+        "Отель на пляже Дубая",
+        "Знаменитые виды на Burj Al Arab",
+        "Бассейны и детские занятия"
+      ],
+      "draft": "🏖 Jumeirah Beach Hotel\n📍 Дубай, ОАЭ\nПляжный отдых с видом на Burj Al Arab.\n🏊 Бассейны и водные развлечения.\n👨‍👩‍👧 Детские программы и семейная атмосфера.",
+      "cautions": [
+        "Do not claim a specific pool is open without current check"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP094",
+      "batch": 4,
+      "tourvisor_candidate_id": 2611,
+      "official_listing_label": "Jumeirah Al Qasr",
+      "country": "AE",
+      "title": "Jumeirah Al Qasr",
+      "sources": [
+        "https://www.jumeirah.com/ru/stay/dubai/jumeirah-al-qasr"
+      ],
+      "facts": [
+        "Часть курортного комплекса Madinat Jumeirah",
+        "Арабская дворцовая архитектура",
+        "Пляж, бассейны, каналы"
+      ],
+      "draft": "🏰 Jumeirah Al Qasr\n📍 Дубай, ОАЭ\nКурорт в стиле арабского дворца среди садов и каналов Madinat Jumeirah.\n🏖 Пляжный отдых и бассейны.\n✨ Красивые прогулки по водным каналам.",
+      "cautions": [
+        "Not Al Naseem/Mina Al Salam/Dar Al Masyaf"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP013",
+      "batch": 4,
+      "tourvisor_candidate_id": 4210,
+      "official_listing_label": "Anantara Rasananda Koh Phangan Villas",
+      "country": "TH",
+      "title": "Anantara Rasananda Koh Phangan Villas",
+      "sources": [
+        "https://www.anantara.com/en/rasananda-koh-phangan"
+      ],
+      "facts": [
+        "Курорт на острове Ко Панган",
+        "Виллы и люксы с бассейнами",
+        "Пляж, тропическая природа и спа"
+      ],
+      "draft": "🌴 Anantara Rasananda Koh Phangan Villas\n📍 Ко Панган, Таиланд\nУединённый пляжный курорт в окружении тропических садов.\n🏡 Виллы и люксы с бассейнами.\n🧘 Спа и спокойный отдых у моря.",
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP089",
+      "batch": 4,
+      "tourvisor_candidate_id": 17424,
+      "official_listing_label": "Istanbul at the Bosphorus",
+      "country": "TR",
+      "title": "Four Seasons Hotel Istanbul at the Bosphorus",
+      "sources": [
+        "https://www.fourseasons.com/ru/bosphorus/"
+      ],
+      "facts": [
+        "Исторический дворец на берегу Босфора",
+        "Виды на пролив из части номеров",
+        "Спа, хаммам, бассейны"
+      ],
+      "draft": "✨ Four Seasons Hotel Istanbul at the Bosphorus\n📍 Стамбул, Турция\nИсторический дворец на берегу Босфора.\n🌊 Прогулки у пролива и роскошные интерьеры.\n🧘 Спа, турецкий хаммам и бассейны.",
+      "cautions": [
+        "Not Four Seasons Sultanahmet"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP090",
+      "batch": 4,
+      "tourvisor_candidate_id": 17423,
+      "official_listing_label": "Istanbul at Sultanahmet",
+      "country": "TR",
+      "title": "Four Seasons Hotel Istanbul at Sultanahmet",
+      "sources": [
+        "https://www.fourseasons.com/istanbul/"
+      ],
+      "facts": [
+        "Отель в историческом центре Стамбула",
+        "Рядом Айя-София и Голубая мечеть",
+        "Внутренний двор и рестораны"
+      ],
+      "draft": "🏛 Four Seasons Hotel Istanbul at Sultanahmet\n📍 Султанахмет, Стамбул, Турция\nАтмосферный отель в самом сердце исторического города.\n🕌 Рядом Айя-София и Голубая мечеть.\n🌿 Уютный внутренний двор и рестораны.",
+      "cautions": [
+        "City hotel, not Bosphorus property"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP025",
+      "batch": 4,
+      "tourvisor_candidate_id": 23718,
+      "official_listing_label": "Anantara Hoi An Resort",
+      "country": "VN",
+      "title": "Anantara Hoi An Resort",
+      "sources": [
+        "https://www.anantara.com/en/hoi-an"
+      ],
+      "facts": [
+        "Отель у реки Тхубон",
+        "Рядом старый город Хойана",
+        "Бассейн и речные прогулки"
+      ],
+      "draft": "🌺 Anantara Hoi An Resort\n📍 Хойан, Вьетнам\nЗелёный бутик-курорт у реки Тхубон недалеко от старого города.\n🏮 Прогулки по историческим улочкам Хойана.\n🏊 Бассейн и речные экскурсии.",
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP073",
+      "batch": 5,
+      "tourvisor_candidate_id": 108165,
+      "official_listing_label": "Soneva Secret",
+      "country": "MV",
+      "title": "Soneva Secret",
+      "sources": [
+        "https://soneva.com/resorts/soneva-secret/"
+      ],
+      "facts": [
+        "Уединённый остров в атолле Хаа-Дхаалу",
+        "13 вилл разного типа",
+        "Приватность и лагуна"
+      ],
+      "draft": "🏝 Soneva Secret\n📍 Атолл Хаа-Дхаалу, Мальдивы\nОчень камерный курорт всего с 13 виллами на уединённом острове.\n🌊 Виллы на пляже и над водой.\n✨ Максимум приватности и бирюзовая лагуна.",
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP076",
+      "batch": 5,
+      "tourvisor_candidate_id": 121382,
+      "official_listing_label": "Maldives Private Island Voavah at Baa Atoll",
+      "country": "MV",
+      "title": "Four Seasons Private Island Maldives at Voavah",
+      "sources": [
+        "https://press.fourseasons.com/maldivesvoavah/hotel-facts/"
+      ],
+      "facts": [
+        "Частный остров целиком под эксклюзивную аренду",
+        "Семь спален",
+        "Яхта и приватные пляжи"
+      ],
+      "draft": "🏝 Four Seasons Private Island Maldives at Voavah\n📍 Атолл Баа, Мальдивы\nОтдельный частный остров для эксклюзивного отдыха одной компании.\n🛥 Приватная яхта и пляжи.\n✨ Семь спален и персонализированный сервис.",
+      "cautions": [
+        "Not a normal per-room hotel package; require separate commercial approval for exclusive island charter"
+      ],
+      "commercial_review_required": true,
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP096",
+      "batch": 5,
+      "tourvisor_candidate_id": 2612,
+      "official_listing_label": "Jumeirah Mina Al Salam",
+      "country": "AE",
+      "title": "Jumeirah Mina Al Salam",
+      "sources": [
+        "https://www.jumeirah.com/en/stay/dubai/jumeirah-mina-al-salam/accommodation"
+      ],
+      "facts": [
+        "Часть комплекса Madinat Jumeirah",
+        "Пляж и лодочные прогулки по каналам",
+        "Номера с арабскими мотивами"
+      ],
+      "draft": "🌴 Jumeirah Mina Al Salam\n📍 Дубай, ОАЭ\nПляжный отель в сердце Madinat Jumeirah с атмосферой арабского курорта.\n🚤 Каналы и прогулки на традиционных лодках.\n🏖 Пляж, рестораны и семейный отдых.",
+      "cautions": [
+        "Not Jumeirah Al Qasr/Al Naseem"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP097",
+      "batch": 5,
+      "tourvisor_candidate_id": 2610,
+      "official_listing_label": "Jumeirah Dar Al Masyaf",
+      "country": "AE",
+      "title": "Jumeirah Dar Al Masyaf",
+      "sources": [
+        "https://www.jumeirah.com/en/stay/dubai/jumeirah-dar-al-masyaf"
+      ],
+      "facts": [
+        "Традиционные арабские домики среди садов",
+        "Каналы Madinat Jumeirah",
+        "Пляж и приватные зоны отдыха"
+      ],
+      "draft": "🌿 Jumeirah Dar Al Masyaf\n📍 Дубай, ОАЭ\nУединённые арабские домики среди садов и каналов Madinat Jumeirah.\n🏖 Отдых у пляжа.\n✨ Приватная атмосфера и красивая территория.",
+      "cautions": [
+        "Not Jumeirah Al Qasr"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP098",
+      "batch": 5,
+      "tourvisor_candidate_id": 2931,
+      "official_listing_label": "Jumeirah Zabeel Saray",
+      "country": "AE",
+      "title": "Jumeirah Zabeel Saray",
+      "sources": [
+        "https://www.jumeirah.com/ru/stay/dubai/jumeirah-zabeel-saray"
+      ],
+      "facts": [
+        "Курорт на острове Palm Jumeirah",
+        "Интерьеры в османском стиле",
+        "Пляж, бассейны, спа-хаммам"
+      ],
+      "draft": "✨ Jumeirah Zabeel Saray\n📍 Пальма Джумейра, Дубай, ОАЭ\nРоскошный пляжный отель в османском стиле.\n🏖 Пляж и бассейны.\n🧘 Просторный спа-комплекс и хаммам.",
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP077",
+      "batch": 5,
+      "tourvisor_candidate_id": 78669,
+      "official_listing_label": "Bangkok at Chao Phraya River",
+      "country": "TH",
+      "title": "Four Seasons Hotel Bangkok at Chao Phraya River",
+      "sources": [
+        "https://www.fourseasons.com/bangkok/"
+      ],
+      "facts": [
+        "Городской отель у реки Чаупхрая",
+        "Бассейны и набережная",
+        "Рестораны и спа"
+      ],
+      "draft": "🌆 Four Seasons Hotel Bangkok at Chao Phraya River\n📍 Бангкок, Таиланд\nСовременный премиальный отель на берегу Чаупхрая.\n🏊 Бассейны с видом на реку.\n🍽 Рестораны и прогулки вдоль набережной.",
+      "cautions": [
+        "Urban riverfront, not beach resort"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP078",
+      "batch": 5,
+      "tourvisor_candidate_id": 45845,
+      "official_listing_label": "Chiang Mai",
+      "country": "TH",
+      "title": "Four Seasons Resort Chiang Mai",
+      "sources": [
+        "https://www.fourseasons.com/chiangmai/accommodations/"
+      ],
+      "facts": [
+        "Зелёная долина близ Чиангмая",
+        "Рисовые поля и северотаиландская архитектура",
+        "Павильоны и виллы с бассейнами"
+      ],
+      "draft": "🌾 Four Seasons Resort Chiang Mai\n📍 Маэрим, Таиланд\nКурорт среди рисовых полей и горных пейзажей севера Таиланда.\n🌿 Прогулки по зелёной территории.\n🏡 Традиционные павильоны и виллы, включая варианты с бассейном.",
+      "cautions": [
+        "Not Anantara Chiang Mai"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP087",
+      "batch": 5,
+      "tourvisor_candidate_id": 60788,
+      "official_listing_label": "Cairo at The First Residence",
+      "country": "EG",
+      "title": "Four Seasons Hotel Cairo at The First Residence",
+      "sources": [
+        "https://www.fourseasons.com/cairofr/"
+      ],
+      "facts": [
+        "Городской отель на западном берегу Нила",
+        "Виды на Нил или пирамиды из отдельных категорий",
+        "Рестораны и бассейн"
+      ],
+      "draft": "🌅 Four Seasons Hotel Cairo at The First Residence\n📍 Гиза, Каир, Египет\nЭлегантный городской отель на западном берегу Нила.\n🌆 В отдельных категориях — виды на реку или пирамиды.\n🍽 Рестораны и бассейн для отдыха.",
+      "cautions": [
+        "Views depend on room category; not Four Seasons Nile Plaza"
+      ],
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP100",
+      "batch": 5,
+      "tourvisor_candidate_id": 78456,
+      "official_listing_label": "Jumeirah Muscat Bay",
+      "country": "OM",
+      "title": "Jumeirah Muscat Bay",
+      "sources": [
+        "https://www.jumeirah.com/ru/Stay/Oman/Jumeirah-Muscat-Bay"
+      ],
+      "facts": [
+        "Курорт в бухте у Маската",
+        "Море и горные пейзажи",
+        "Бассейны и семейные удобства"
+      ],
+      "draft": "🌊 Jumeirah Muscat Bay\n📍 Маскат, Оман\nПляжный курорт в тихой бухте между морем и горами.\n🏖 Отдых на берегу и бассейны.\n👨‍👩‍👧 Удобства для семейного отпуска.",
+      "source_review_status": "official_public_source_draft_not_independently_accepted",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    }
+  ]
+}
