@@ -1,0 +1,62 @@
+name: One-shot W4 same-gallery visual review for2 rows; no sends
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-wave4-gallery-review-20261117.yml']
+permissions:
+  contents: write
+jobs:
+  source-gallery-review:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' &&
+      github.event.before == 'd865a543817ee5806c4565fbcb53fab5f69dad23' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          sparse-checkout: tools/direct_demand/operations
+      - run: python3 -m pip install --disable-pip-version-check --no-cache-dir pillow==11.3.0 requests==2.32.5
+      - name: Inspect already-bound gallery frames without paid profile or publisher calls
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,concurrent.futures,hashlib,io,json,math,os,pathlib,runpy,subprocess
+          from PIL import Image,ImageDraw
+          ROWS=json.loads(r'''[{"work_id":"W4_001","tourvisor_id":22718,"native_tourvisor_id":22718,"expected_name":"AVANI+ MAI KHAO PHUKET SUITES & VILLAS","provider_name":"AVANI+ MAI KHAO PHUKET SUITES & VILLAS","provider_country":"Таиланд","country":"TH","country_id":2,"region":"Пхукет","region_id":8,"category":5,"rating":4.9,"source_catalogue_url":"https://anytoour.ru/data/hotel-search-v1.php?q=Avani&countryId=2&limit=20","source_api_url":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22718","hotel":"Avani+ Mai Khao Phuket Suites & Villas","aliases":["Avani+ Mai Khao Phuket Suites & Villas","AVANI+ MAI KHAO PHUKET SUITES & VILLAS"],"editorial_hold":null,"first_photo_urls":["https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601550.jpg","https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601551.jpg","https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601552.jpg","https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601553.jpg","https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601554.jpg","https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601555.jpg","https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601556.jpg","https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601557.jpg"]},{"work_id":"W4_053","tourvisor_id":47213,"native_tourvisor_id":47213,"expected_name":"CHIANG MAI MARRIOTT (EX. LE MERIDIEN CHIANG MAI)","provider_name":"CHIANG MAI MARRIOTT (EX. LE MERIDIEN CHIANG MAI)","provider_country":"Таиланд","country":"TH","country_id":2,"region":"Чианг Май","region_id":519,"category":5,"rating":0,"source_catalogue_url":"https://anytoour.ru/data/hotel-search-v1.php?q=Le+Meridien&countryId=2&limit=20","source_api_url":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=47213","hotel":"Chiang Mai Marriott Hotel","aliases":["Chiang Mai Marriott Hotel","CHIANG MAI MARRIOTT","LE MERIDIEN CHIANG MAI"],"editorial_hold":null,"first_photo_urls":["https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-8.jpg","https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-0.jpg","https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-1.jpg","https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-2.jpg","https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-3.jpg","https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-4.jpg","https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-5.jpg","https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-6.jpg"]}]''')
+          HEAD=os.environ['GITHUB_SHA'];REPO='pyatkoff/max-search-bot';PREFIX='.github/traffic-publish/commercial-wave4-100-20261117/'
+          def api(method,path,obj=None):
+              c=['gh','api','--method',method,'repos/'+REPO+'/'+path]
+              if obj is not None:c+=['--input','-']
+              return json.loads(subprocess.check_output(c,input=None if obj is None else json.dumps(obj).encode(),timeout=60))
+          source='tools/direct_demand/operations/prepare-wave2-native-tourvisor-covers-20261117.py'
+          assert subprocess.check_output(['git','hash-object',source],text=True).strip()=='1d084059cd9ed24783fa7355acde9fddba992559'
+          m=runpy.run_path(source);canvas=Image.new('RGB',(1440,776*len(ROWS)),'white');draw=ImageDraw.Draw(canvas);recs=[]
+          def get(p):
+              ri,j,r,u=p
+              assert m['check_photo_url'](u)==r['country_id']
+              try:
+                  im,receipt=m['download_photo'](u);return ri,j,r,u,im,receipt,None
+              except Exception as e:return ri,j,r,u,None,None,str(e)[:160]
+          jobs=[(ri,j,r,u) for ri,r in enumerate(ROWS) for j,u in enumerate(r['first_photo_urls'])]
+          with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:out=list(pool.map(get,jobs))
+          for ri,j,r,u,im,receipt,error in out:
+              x=(j%4)*360;y=ri*776+(j//4)*388
+              draw.text((x+7,y+5),'TV'+str(r['tourvisor_id'])+' image '+str(j),font=m['font'](15),fill='black')
+              if im is not None:
+                  thumb=Image.new('RGB',(360,360),'#eeeeee');im=im.convert('RGB');im.thumbnail((360,360))
+                  thumb.paste(im,((360-im.width)//2,(360-im.height)//2));canvas.paste(thumb,(x,y+28))
+              else:draw.text((x+7,y+50),'unavailable',font=m['font'](18),fill='red')
+              recs.append({'id':r['tourvisor_id'],'index':j,'url':u,'receipt':receipt,'error':error})
+          root=pathlib.Path('gallery-review');root.mkdir();canvas.save(root/'gallery-review-22718-47213.jpg',quality=94)
+          (root/'gallery-review-receipt.json').write_text(json.dumps({'mode':'EXACT_PREVIOUSLY_BOUND_GALLERY_REVIEW_ONLY','profile_freeze':'d865a543817ee5806c4565fbcb53fab5f69dad23','rows':recs,'sender_calls':0,'provider_profile_calls':0},ensure_ascii=False,indent=2)+'\n')
+          parent=api('GET','git/commits/'+HEAD);entries=[]
+          for f in root.iterdir():
+              b=f.read_bytes();blob=api('POST','git/blobs',{'content':base64.b64encode(b).decode(),'encoding':'base64'});entries.append({'path':PREFIX+f.name,'mode':'100644','type':'blob','sha':blob['sha']})
+          tree=api('POST','git/trees',{'base_tree':parent['tree']['sha'],'tree':entries})
+          commit=api('POST','git/commits',{'message':'HOTEL W4: review exact same-provider gallery alternatives for2 held visual issues; no posts','tree':tree['sha'],'parents':[HEAD]})
+          print('W4_GALLERY_STAGE_JSON '+json.dumps({'source_commit':HEAD,'staged_commit':commit['sha'],'files':entries,'native_sends':0},separators=(',',':')))
+          PY
