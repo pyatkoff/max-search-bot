@@ -14,7 +14,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'ad1c3e08e53b0310239e7cd6a6e2cba93ac2f31c' &&
+      github.event.before == 'e018caf3f701677e006630541f39b9627f042879' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 35
@@ -557,7 +557,7 @@ jobs:
           PY
       - name: Preserve final logical batch receipt
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b48100f50607fa02
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: fastfill-all50-native-receipt-20261118
           path: |
