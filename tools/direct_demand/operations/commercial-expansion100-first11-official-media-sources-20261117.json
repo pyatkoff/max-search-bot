@@ -1,0 +1,148 @@
+{
+  "schema_version": "anytour_first11_official_media_provenance_v1",
+  "prepared_date": "2026-11-17",
+  "purpose": "Sources for an existing hotel publication reviewer, not licensed image payloads",
+  "original_editorial_source": {
+    "path": "tools/direct_demand/operations/commercial-expansion100-first11-official-copy-20261117.json",
+    "blob_sha": "d2bd15b32f3470fb02204644df925d31e5e18d0e"
+  },
+  "summary": {
+    "properties": 11,
+    "official_visual_sources": 11,
+    "downloadable_press_assets_mentioned": 4,
+    "hotel_photo_downloads": 0,
+    "approved_licenses": 0,
+    "images_sent": 0
+  },
+  "legal_release_boundary": [
+    "Official marketing or media hub availability alone does not give rights to use the actual image in advertising. Confirm terms, attribution and sublicensing requirements before download/publication.",
+    "Soneva explicitly restricts the partner media gallery by password; request access through the hotel sales director, do not bypass.",
+    "Use exact matched property/gallery, avoid unrelated hotel or generic stock photos, and keep room-specific photos labeled as such.",
+    "Before publication: freeze source asset URL/file hash, rights proof, accepted native hotel identity, approved caption and current TG/MAX message photo/button/readback. No additional customer/supplier messages."
+  ],
+  "items": [
+    {
+      "work_id": "EXP002",
+      "id": 12120,
+      "title": "Anantara Kihavah Maldives Villas",
+      "url": "https://media.minorhotels.com/en-GLO/assets/232192/",
+      "type": "official_minor_press_media_kit",
+      "photo_examples": [
+        "Over Water Villas Sunset aerial",
+        "Exterior View",
+        "Restaurant SEA Wide Interior"
+      ],
+      "status": "official_downloadable_media_kit_found_license_not_confirmed"
+    },
+    {
+      "work_id": "EXP032",
+      "id": 64957,
+      "title": "Kudadoo Maldives Private Island",
+      "url": "https://www.kudadoo.com/",
+      "type": "official_property_site_gallery",
+      "photo_examples": [],
+      "status": "property_visual_source_found_no_confirmed_press_license"
+    },
+    {
+      "work_id": "EXP058",
+      "id": 76029,
+      "title": "The Ritz-Carlton Maldives, Fari Islands",
+      "url": "https://www.marriott.com/luxury/explore-luxury-suites/ritz-carlton-maldives",
+      "type": "official_marriott_property_gallery",
+      "photo_examples": [
+        "Ritz-Carlton Estate property visuals"
+      ],
+      "status": "official_visual_page_found_commercial_rights_unconfirmed"
+    },
+    {
+      "work_id": "EXP069",
+      "id": 66198,
+      "title": "Waldorf Astoria Maldives Ithaafushi",
+      "url": "https://stories.hilton.com/media-library/waldorf-astoria-maldives-ithaafushi-villa",
+      "type": "official_hilton_media_asset",
+      "photo_examples": [
+        "Waldorf Astoria Maldives Ithaafushi Villa 4899x3062"
+      ],
+      "status": "official_downloadable_media_asset_found_license_not_confirmed"
+    },
+    {
+      "work_id": "EXP072",
+      "id": 49750,
+      "title": "Soneva Jani",
+      "url": "https://soneva.com/newsroom/partners/",
+      "type": "official_soneva_travel_trade_media_library",
+      "photo_examples": [],
+      "status": "official_media_library_password_required_contact_country_sales_director"
+    },
+    {
+      "work_id": "EXP092",
+      "id": 123247,
+      "title": "Jumeirah Marsa Al Arab",
+      "url": "https://mediahub.jumeirah.com/section/our-destinations/middle-east/dubai/jumeirah-marsa-al-arab/?filter=image-filter&lang=eng",
+      "type": "official_jumeirah_media_hub",
+      "photo_examples": [
+        "Jumeirah Marsa Al Arab property image assets"
+      ],
+      "status": "official_media_hub_found_rights_unconfirmed"
+    },
+    {
+      "work_id": "EXP095",
+      "id": 48184,
+      "title": "Jumeirah Al Naseem",
+      "url": "https://mediahub.jumeirah.com/section/our-destinations/middle-east/dubai/jumeirah-al-naseem/?lang=eng",
+      "type": "official_jumeirah_media_hub",
+      "photo_examples": [
+        "Jumeirah Al Naseem property image assets"
+      ],
+      "status": "official_media_hub_found_rights_unconfirmed"
+    },
+    {
+      "work_id": "EXP023",
+      "id": 8951,
+      "title": "Qasr Al Sarab Desert Resort by Anantara",
+      "url": "https://media.minorhotels.com/en-GLO/assets/232222/",
+      "type": "official_minor_press_media_kit",
+      "photo_examples": [
+        "Exterior View",
+        "One Bedroom Villa",
+        "Pool View"
+      ],
+      "status": "official_downloadable_media_kit_found_license_not_confirmed"
+    },
+    {
+      "work_id": "EXP083",
+      "id": 32322,
+      "title": "Four Seasons Resort Dubai at Jumeirah Beach",
+      "url": "https://press.fourseasons.com/dubaijb/l/",
+      "type": "official_four_seasons_press_library",
+      "photo_examples": [
+        "Images for Four Seasons Resort Dubai at Jumeirah Beach"
+      ],
+      "status": "official_press_image_library_found_rights_unconfirmed"
+    },
+    {
+      "work_id": "EXP015",
+      "id": 28272,
+      "title": "Anantara Layan Phuket Resort",
+      "url": "https://media.minorhotels.com/en-GLO/assets/232171/",
+      "type": "official_minor_press_media_kit",
+      "photo_examples": [
+        "Layan Residences",
+        "Grand Seaview Pool Suite",
+        "Rooftop Bar"
+      ],
+      "status": "official_downloadable_media_kit_found_license_not_confirmed"
+    },
+    {
+      "work_id": "EXP081",
+      "id": 7458,
+      "title": "Four Seasons Resort The Nam Hai, Hoi An",
+      "url": "https://press.fourseasons.com/hoian/offers/",
+      "type": "official_four_seasons_press_library",
+      "photo_examples": [
+        "Images for Four Seasons Resort The Nam Hai"
+      ],
+      "status": "official_press_image_library_found_rights_unconfirmed"
+    }
+  ]
+}
