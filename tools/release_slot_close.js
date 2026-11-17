@@ -184,7 +184,7 @@ async function selectReleaseRuns(snapshot,c,get) {
   return {runs:await selectRecoveryRuns(scoped,c,get),waiting,pending};
 }
 
-// Filter a previous failed deployment's seven *unexecuted* workflow_run gates.
+// Filter a previous failed deployment's nine strictly authenticated zero-step children.
 // GitHub attributes workflow_run children to the current main SHA, even when
 // their triggering Deploy came from an older main SHA. A title mismatch alone
 // never authorizes exclusion: authenticate the older parent, source ancestry,
@@ -207,6 +207,18 @@ async function selectPreviousFailedWave(snapshot,c,get) {
   requireValue(id(oldId)&&oldId!==c.deploy,'untrusted_previous_wave');
   requireValue(foreign.length===gates.length
     &&new Set(foreign.map(r=>r.path)).size===gates.length,'incomplete_previous_wave');
+  // An old failed deploy has two more zero-step children: the skipped closer
+  // and an activation bound to its skipped monitor. Require both exact origins.
+  const oldTitle=[...titles][0];
+  const oldMonitor=foreign.find(r=>r.path===PREFIX+'modeled-conversion-monitor.yml');
+  requireValue(id(oldMonitor?.id),'incomplete_previous_wave');
+  const oldCloser=runs.filter(r=>r.path===CLOSER&&r.event==='workflow_run'
+    &&r.display_title===oldTitle);
+  const oldActivationTitle='monitor-proof:v1:'+oldMonitor.id+':1';
+  const oldActivation=runs.filter(r=>r.path===PREFIX+ACTIVATION.file&&r.event==='workflow_run'
+    &&r.display_title===oldActivationTitle);
+  requireValue(oldCloser.length===1,'incomplete_previous_closer');
+  requireValue(oldActivation.length===1,'incomplete_previous_activation');
   const currentDeploy=runs.filter(r=>r.path===PREFIX+'deploy.yml'&&r.event==='push');
   requireValue(currentDeploy.length===1,'ambiguous_run');
   validRun(currentDeploy[0],c,PREFIX+'deploy.yml','push','Deploy production');
@@ -277,6 +289,32 @@ async function selectPreviousFailedWave(snapshot,c,get) {
       &&j.head_sha===c.sha&&j.status==='completed'&&j.conclusion==='skipped'
       &&Array.isArray(j.steps)&&j.steps.length===0),'previous_wave_executed');
     ignored.add(child.id);
+  }
+  // Never discard the older closer or activation without their own native
+  // completed/skipped jobs proving no step ran and no protected mutation began.
+  const additional=[
+    {run:oldCloser[0],path:CLOSER,origin:oldTitle,name:'Configure AnyTour modeled value goal',
+      names:['configure','release-slot','release-slot-recovery'],
+      kind:'previous_closer',parentTime:Date.parse(old.updated_at)},
+    {run:oldActivation[0],path:PREFIX+ACTIVATION.file,origin:oldActivationTitle,
+      name:ACTIVATION.name,names:['activate'],
+      kind:'previous_activation',parentTime:Date.parse(oldMonitor.updated_at)}
+  ];
+  for(const proof of additional){
+    validRun(proof.run,c,proof.path,'workflow_run',proof.name,proof.origin);
+    requireValue(proof.run.status==='completed'&&proof.run.conclusion==='skipped'
+      &&proof.run.head_commit?.id===c.sha&&Number.isFinite(proof.parentTime)
+      &&Date.parse(proof.run.created_at)>=proof.parentTime,proof.kind+'_executed');
+    const receipt=await get('/actions/runs/'+proof.run.id+'/attempts/1/jobs?per_page=100');
+    requireValue(Array.isArray(receipt?.jobs)&&receipt.total_count===proof.names.length
+      &&receipt.jobs.length===proof.names.length
+      &&new Set(receipt.jobs.map(j=>j.name)).size===proof.names.length
+      &&proof.names.every(name=>receipt.jobs.some(j=>j.name===name)),
+      proof.kind+'_jobs_incomplete');
+    requireValue(receipt.jobs.every(j=>id(j.id)&&j.run_id===proof.run.id&&j.run_attempt===1
+      &&j.head_sha===c.sha&&j.status==='completed'&&j.conclusion==='skipped'
+      &&Array.isArray(j.steps)&&j.steps.length===0),proof.kind+'_executed');
+    ignored.add(proof.run.id);
   }
   const selected=runs.filter(r=>!ignored.has(r.id));
   return {...snapshot,total_count:selected.length,workflow_runs:selected};
