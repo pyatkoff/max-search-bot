@@ -401,8 +401,11 @@ class ManagerConversationService
             'post_url'=>$url ?? '', 'reply'=>['state'=>$intent['state'],'text'=>$intent['text']]];
     }
 
-    public static function detail(int $conversationId,int $managerId,int $beforeId=0,int $limit=200,bool $markRead=false,bool $openUnread=false): ?array
+    /** Optional non-null sidecar reuses page metadata without changing the direct detail DTO. */
+    public static function detail(int $conversationId,int $managerId,int $beforeId=0,int $limit=200,bool $markRead=false,bool $openUnread=false,?array &$messageMediaRows=null): ?array
     {
+        $captureMedia=$messageMediaRows!==null;
+        if($captureMedia)$messageMediaRows=[];
         if($beforeId<0)throw new InvalidArgumentException('invalid_history_cursor');
         $limit=max(1,min(200,$limit));
         ManagerReadService::ensureSchema();
@@ -412,7 +415,8 @@ class ManagerConversationService
         $replyQueue=$beforeId===0?ManagerReplyQueueService::snapshot($managerId,$conversationId):null;
         $supervisorRead=(int)($conversation['manager_id']??0)!==$managerId&&ManagerSupervisorAccessService::canRead($managerId,$conversation);
         $pdo=ConversationDb::connection();
-        $sql='SELECT id,direction,sender_type,text,created_at,sender_id FROM messages WHERE conversation_id=?'.($beforeId>0?' AND id<?':'').' ORDER BY id DESC LIMIT '.($limit+1);
+        $messageColumns='id,direction,sender_type,text,created_at,sender_id'.($captureMedia?',channel,metadata_json':'');
+        $sql='SELECT '.$messageColumns.' FROM messages WHERE conversation_id=?'.($beforeId>0?' AND id<?':'').' ORDER BY id DESC LIMIT '.($limit+1);
         $q=$pdo->prepare($sql);$q->execute($beforeId>0?[$conversationId,$beforeId]:[$conversationId]);$messages=$q->fetchAll();
         $hasMore=count($messages)>$limit;if($hasMore)array_pop($messages);$messages=array_reverse($messages);
         $opening=[];
@@ -423,8 +427,8 @@ class ManagerConversationService
                 if($hasMore&&$target<=(int)$messages[min(19,count($messages)-1)]['id']){
                     // Two bounded, indexed windows: context around the unread
                     // prefix plus the actual latest tail, never a history drain.
-                    $q=$pdo->prepare('SELECT id,direction,sender_type,text,created_at,sender_id FROM messages WHERE conversation_id=? AND id<? ORDER BY id DESC LIMIT 20');$q->execute([$conversationId,$target]);$prior=$q->fetchAll();
-                    $q=$pdo->prepare('SELECT id,direction,sender_type,text,created_at,sender_id FROM messages WHERE conversation_id=? AND id>=? ORDER BY id ASC LIMIT 100');$q->execute([$conversationId,$target]);$after=$q->fetchAll();
+                    $q=$pdo->prepare('SELECT '.$messageColumns.' FROM messages WHERE conversation_id=? AND id<? ORDER BY id DESC LIMIT 20');$q->execute([$conversationId,$target]);$prior=$q->fetchAll();
+                    $q=$pdo->prepare('SELECT '.$messageColumns.' FROM messages WHERE conversation_id=? AND id>=? ORDER BY id ASC LIMIT 100');$q->execute([$conversationId,$target]);$after=$q->fetchAll();
                     if($after&&(int)$after[0]['id']===$target){
                         $context=array_merge(array_reverse($prior),$after);$tail=array_slice($messages,-80);
                         $frontier=(int)$context[count($context)-1]['id'];$tailBefore=(int)$tail[0]['id'];
@@ -435,6 +439,14 @@ class ManagerConversationService
                     }
                 }else if(in_array($target,array_map('intval',array_column($messages,'id')),true))$opening=['initial_unread_id'=>$target];
             }
+        }
+        $selectedMediaRows=[];
+        if($captureMedia){
+            foreach($messages as &$message){
+                $selectedMediaRows[]=['id'=>$message['id'],'channel'=>$message['channel'],'direction'=>$message['direction'],'metadata_json'=>$message['metadata_json']];
+                unset($message['channel'],$message['metadata_json']);
+            }
+            unset($message);
         }
         $messages=self::messageAuthors($messages);
         foreach($messages as &$message){if(($message['sender_type']??'')==='manager')$message['text']=html_entity_decode((string)$message['text'],ENT_QUOTES|ENT_HTML5,'UTF-8');}unset($message);
@@ -459,6 +471,7 @@ class ManagerConversationService
         $supervisor=(int)($conversation['manager_id']??0)!==$managerId&&ManagerSupervisorAccessService::canRead($managerId,$conversation);
         $detail['supervisor_read']=$supervisor;
         $detail['owner_read']=ManagerAuthService::isAdmin(ManagerAuthService::byId($managerId))&&((int)($conversation['manager_id']??0)!==$managerId||$conversation['status']!=='manager');
+        if($captureMedia)$messageMediaRows=$selectedMediaRows;
         return$detail;
     }
 

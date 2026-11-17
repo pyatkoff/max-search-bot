@@ -6,20 +6,25 @@ require_once __DIR__ . '/ManagerCallbackPresentationService.php';
 
 class ManagerMessageMediaService
 {
-    public static function hydrate(array $messages): array
+    /** Selected metadata must belong to the caller's already-authorized message page. */
+    public static function hydrate(array $messages, ?array $selectedMediaRows = null): array
     {
         $ids = array_values(array_filter(array_map(static function ($message) {
             return (int)($message['id'] ?? 0);
         }, $messages)));
-        if (!$ids || !ConversationDb::isConfigured()) return $messages;
+        if (!$ids) return $messages;
 
-        $pdo = ConversationDb::connection();
-        $sql = 'SELECT id,channel,direction,metadata_json FROM messages WHERE id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')';
-        $q = $pdo->prepare($sql);
-        $q->execute($ids);
+        if ($selectedMediaRows === null) {
+            if (!ConversationDb::isConfigured()) return $messages;
+            $pdo = ConversationDb::connection();
+            $sql = 'SELECT id,channel,direction,metadata_json FROM messages WHERE id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')';
+            $q = $pdo->prepare($sql);
+            $q->execute($ids);
+            $selectedMediaRows = $q->fetchAll();
+        }
         $mediaById = [];
         $recordedById = [];
-        foreach ($q->fetchAll() as $row) {
+        foreach ($selectedMediaRows as $row) {
             // Bare DB wall times have mixed origins; only the server receipt identifies an instant.
             $recorded = ConversationRecordClock::read($row['metadata_json'] ?? null);
             if ($recorded !== null) $recordedById[(int)$row['id']] = $recorded;

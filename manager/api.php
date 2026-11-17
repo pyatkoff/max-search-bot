@@ -113,9 +113,10 @@ if($action==='detail'){
     // card, newer transcript or reply requests behind SQL/media hydration.
     session_write_close();
     try{
-        $d=ManagerConversationService::detail($conversationId,(int)$m['id'],$beforeId,200,false,$openUnread);
+        $messageMediaRows=[];
+        $d=ManagerConversationService::detail($conversationId,(int)$m['id'],$beforeId,200,false,$openUnread,$messageMediaRows);
         if($d){
-            $d['messages']=ManagerMessageMediaService::hydrate((array)($d['messages']??[]));
+            $d['messages']=ManagerMessageMediaService::hydrate((array)($d['messages']??[]),$messageMediaRows);
         }
     }catch(Throwable $e){out(['ok'=>false,'error'=>'conversation_load_failed'],500);}
     if(!$d) out(['ok'=>false,'error'=>'not_found'],404);
