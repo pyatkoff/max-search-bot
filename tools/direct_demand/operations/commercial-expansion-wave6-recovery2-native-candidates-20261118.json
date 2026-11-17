@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "stage": "catalogue_and_provider_profile_screened",
+  "selection": {
+    "note": "Correct two previously held covers using their existing approved supplier galleries."
+  },
+  "rows": [
+    {
+      "work_id": "W6_076",
+      "native_tourvisor_id": 16318,
+      "name": "AMARTERRA MGALLERY BALI NUSA DUA",
+      "country": "Индонезия",
+      "country_id": 7,
+      "region": "Бали",
+      "category": 5,
+      "aliases_to_check": [
+        "AMARTERRA MGALLERY BALI NUSA DUA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Nusa%20Dua&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=16318",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 39,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245306.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245307.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Amarterra Villas Resort Bali Nusa Dua, Autograph Collection"
+      }
+    },
+    {
+      "work_id": "W6_088",
+      "native_tourvisor_id": 2763,
+      "name": "IBEROSTAR WAVES PUNTA CANA",
+      "country": "Доминикана",
+      "country_id": 11,
+      "region": "Пунта Кана",
+      "category": 5,
+      "aliases_to_check": [
+        "IBEROSTAR WAVES PUNTA CANA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Punta%20Cana&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2763",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 44,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610106.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610107.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Iberostar Waves Punta Cana"
+      }
+    }
+  ]
+}
