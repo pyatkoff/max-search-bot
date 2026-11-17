@@ -1,0 +1,102 @@
+name: One-shot W5 actual43 terminal and public feed readback
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-wave5-43-terminal-readback-20261117.yml']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  preserve-native43-without-business-writes:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' &&
+      github.event.before == 'b10b54e3dcc3c056463e281866b45e5d98fb5d0a' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+          sparse-checkout: tools/direct_demand/operations
+      - name: Prepare bounded read-only current TG901 observation
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = b10b54e3dcc3c056463e281866b45e5d98fb5d0a
+          mkdir -p probe
+          cat > probe/held-readonly.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors','0');ini_set('log_errors','0');
+          if(PHP_SAPI!=='cli'||trim((string)shell_exec('git rev-parse HEAD'))!=='8281b387f258932601439eb789560f6b2cbabd4d')exit(2);
+          $pins=['integrations/ChannelPostApiTransport.php'=>'300634d77cb9fddf51adf9869974f956cca6e3f9','migrations/033_channel_post_context.sql'=>'0530458030a4bfe6b6cc55d1e5e441745c29b947','migrations/036_channel_post_member_delivery.sql'=>'1bda463e52b33130ad12752ddef4ee5c92699c05','migrations/040_channel_post_reconciliation.sql'=>'0f24b838eacd45333c5ade9a2991d060488c6035','services/ChannelPostAdminService.php'=>'b80eefc801054bfe6fdb58ec345ecdf687b2e89a','services/ChannelPostAutomationService.php'=>'f5975ab95de5f45e087eb7a0f768f566c5bca648','services/ChannelPostButtonTransport.php'=>'7b6711f1de63000346d8e5789f2dbb7f725535b8','services/ChannelPostEntryService.php'=>'1982ff7368763edf8b7238c3142e3cc28579e991','services/ChannelPostMaxAlbumRecovery.php'=>'de266cd068587cc3b2ff83f308a966ea66887a04','services/ChannelPostMediaService.php'=>'f794efd0f6f24df916e18909ff6281b0bc928433','services/ChannelPostMemberDeliveryService.php'=>'20c1d7984898b2a5996a5f9e20e4d2d8c20b4778','services/ChannelPostReconciliationService.php'=>'43133f576845c14446102dedfffb7f0de2d4ba1c','services/ChannelPostReconciliationState.php'=>'d9583ceca80d1424a44ade3561c21282a23a52f0','services/ChannelPostRegistryService.php'=>'7304af19cc19666f00ca4ead1b04c2bdce719646','services/ChannelPostRuntime.php'=>'2f1dd9b77474fdbaa92f0402f3b0aa170c595474','services/ChannelPostTelegramAlbum.php'=>'faa1a14bc279a4af33936282126bf0d46e343040','services/ChannelPostWebhookConfigService.php'=>'d5fdcb056088f1e3a541b4046325d97eef6417d9','services/ConversationDb.php'=>'bb6281faf55aca7beeae7f8a57389d19751936f7','services/MaxTlsConfig.php'=>'032c0211ee3f39c6f0d27c669abd5b467e321dea','services/MaxTransport.php'=>'2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159','services/ProjectConfig.php'=>'63c17c8103412f8cff8cdcc4bbb062e744106af9','services/ProjectConfiguration.php'=>'07019d473c588e3386ace42977db93092e8112e3'];foreach($pins as $path=>$sha)if(trim((string)shell_exec('git hash-object -- '.escapeshellarg($path)))!==$sha)exit(2);
+          ob_start();require getcwd().'/config.php';require_once getcwd().'/services/ChannelPostRuntime.php';require_once getcwd().'/services/ChannelPostEntryService.php';ob_end_clean();
+          $pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();$registry=new ChannelPostRegistryService($pdo);
+          try{
+           $p=$registry->publication(1947);
+           if(!is_array($p)||(int)$p['version_id']!==7476||$p['platform']!=='telegram'||$p['project_key']!=='anytour'||$p['source_key']!=='tg_anytour_msk'||(string)$p['channel_id']!=='-1002262666616'||(string)$p['external_message_id']!=='901'||$p['state']!=='requires_attention'||$p['error_reason']!=='provider_read_failed'||!empty($p['write_attempted'])||(int)$p['write_attempts']!==0||!empty($p['claim_token']))exit(2);
+           if(hash('sha256',(string)($p['snapshot']['text']??''))!=='b2caf990b6bdcdb7ab0dc0e5d7f1951d9d677aba806ad4f0e3b5022431929599'||(int)($p['snapshot']['metadata']['hotel_catalog_id']??0)!==66375)exit(2);
+           $picked=[];foreach(['publication_id','version_id','platform','project_key','source_key','channel_id','external_message_id','state','error_reason','write_attempted','write_attempts','claim_token','receipt'] as $k)$picked[$k]=$p[$k]??null;
+           $out=['ok'=>true,'mode'=>'READ_ONLY_CURRENT_HELD_TG901','observed_at'=>gmdate('c'),'installed_sha'=>trim((string)shell_exec('git rev-parse HEAD')),'db_writes'=>0,'provider_calls'=>0,'sender_calls'=>0,'publication'=>$picked];
+          }finally{$pdo->rollBack();}
+          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          PHP
+          php -l probe/held-readonly.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read exact held publication without provider or database writes
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; test -z "$(git status --porcelain --untracked-files=no)"; php' < probe/held-readonly.php > probe/held-current.json
+          cat probe/held-current.json
+      - name: Authenticate all actual native posts and three public XML files; stage only git receipt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/direct_demand/operations/fastfill-wave5-43-terminal-readback-20261117.py
+      - name: Preserve exact terminal observation including original failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-wave5-43-terminal-readback-20261117
+          path: |
+            terminal/*
+            probe/held-current.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Remove runner-only authentication
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" probe/held-readonly.php
