@@ -17,15 +17,15 @@ const cases=[];function test(name,run){cases.push({name,run})}
 
 // Taking an unassigned dialogue is independent of notification shift state.
 // Keep this contract when integrating assistant post-send refresh into the composer.
-test('unassigned dialogue can be taken while the manager shift is off',async()=>{
+for(const status of ['waiting_manager','ai'])test('unassigned '+status+' can be taken with shift off but never exposes composer',async()=>{
   const h=createHarness();await h.start();
   h.W.S.manager.role='manager';h.W.S.manager.is_working=false;
-  const waiting={...h.conversation,id:102,status:'waiting_manager',manager_id:null};
+  const waiting={...h.conversation,id:102,status,manager_id:null};
   h.setHook((url,request)=>url==='api.php'&&request.action==='detail'&&request.conversation_id===102?
     response({ok:true,conversation:waiting,messages:[]}):null);
   assert.equal(await h.C.open(102),true);
   const actions=h.ids.get('conversationActions').children;
-  assert.equal(actions.some(button=>button.textContent==='Взять'&&!button.disabled),true);
+  assert.equal(actions.filter(button=>button.textContent==='Взять'&&!button.disabled).length,1);
   assert.equal(h.ids.get('composer').classList.contains('hidden'),true);
   assertNoMutations(h);
 });
