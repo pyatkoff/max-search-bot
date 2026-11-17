@@ -85,6 +85,12 @@ final class RepairMaxWebhookService
                     'first_name'=>(string)($user['first_name'] ?? $name[0] ?? ''),
                     'last_name'=>(string)($user['last_name'] ?? $name[1] ?? ''),
                     'username'=>(string)($user['username'] ?? '')], 'repair_context'=>$context];
+                if ($projectKey === AppleService39PilotCatalog::PROJECT) {
+                    // Store only an allowlisted four-way class, never a native start value.
+                    $incoming['repair_start_class'] = $entry !== null ? 'recognized'
+                        : ($payload === '' ? 'empty'
+                            : (str_starts_with($payload, 'as39_') ? 'unrecognized_apple' : 'other'));
+                }
             } else {
                 $incoming = MaxIncomingAdapter::fromUpdate($update);
                 if ($incoming === null) return self::response(400, 'invalid_update');
@@ -124,14 +130,21 @@ final class RepairMaxWebhookService
                 if ($resolved !== null && $registry->recordEntry($conversationId, $resolved, $deliveryKey, true) === null) throw new RuntimeException('entry_not_persisted');
                 if ($resolved === null && str_starts_with($payload, 'p_') && $registry->recordUnavailableEntry($conversationId, $projectKey, 'max', $deliveryKey, true) === null) throw new RuntimeException('entry_not_persisted');
                 // Optional advertising context cannot obstruct the existing lead/manager path.
+                // A finite result is retained only with an already recognized Apple reply.
+                $funnelAttempt = 'not_recorded';
                 try {
                     $funnelPost=(string)($entry['post_id']??'');
                     if($resolved!==null){
                         $funnelSettings=ProjectFunnelSettings::load($connection);
                         foreach(($funnelSettings['posts']??[])as$key=>$item)if(($item['publication_id']??null)===$resolved['publication_id'])$funnelPost=(string)$key;
                     }
-                    ProjectFunnelConversation::entry($pdo,$connection,$conversationId,$externalUser,$sourceKey,$funnelPost,$deliveryKey,time());
-                } catch(Throwable $ignoredFunnel) {}
+                    $linked = ProjectFunnelConversation::entry($pdo,$connection,$conversationId,$externalUser,$sourceKey,$funnelPost,$deliveryKey,time());
+                    $funnelAttempt = $linked === null ? 'not_recorded' : 'recorded';
+                } catch(ProjectFunnelPublicationPending $ignoredFunnel) {
+                    $funnelAttempt = 'publication_pending';
+                } catch(Throwable $ignoredFunnel) {
+                    $funnelAttempt = 'writer_error';
+                }
             }
             if ($entry !== null) {
                 $brand = trim((string)$connection->settings()->get('brand.name', $projectKey));
@@ -139,7 +152,7 @@ final class RepairMaxWebhookService
                     ? AppleService39PilotCatalog::contextResponseText($entry, $brand, $replyContext)
                     : RepairProjectSettings::responseText($entry, $brand);
                 self::captureEntryReply($pdo, $connection, $conversationId, $externalUser, $deliveryKey, $conversation,
-                    $entry, $context, $text, $replyContext);
+                    $entry, $context, $text, $replyContext, $funnelAttempt);
             }
             $created = false;
             $handoff = ['source'=>'repair_max','source_key'=>$sourceKey];
@@ -223,7 +236,7 @@ final class RepairMaxWebhookService
     }
 
     /** Add the immutable answer to the native entry event in the core transaction. */
-    private static function captureEntryReply(PDO $pdo, ProjectMaxConnection $connection, int $conversationId, string $externalUser, string $deliveryKey, array $conversation, array $entry, array $context, string $text, array $replyContext): void
+    private static function captureEntryReply(PDO $pdo, ProjectMaxConnection $connection, int $conversationId, string $externalUser, string $deliveryKey, array $conversation, array $entry, array $context, string $text, array $replyContext, string $funnelAttempt): void
     {
         if (!$pdo->inTransaction() || $text === '' || strlen($text) > 8192) throw new RuntimeException('entry_reply_not_persisted');
         $q = $pdo->prepare("SELECT id,payload_json FROM conversation_events WHERE conversation_id=? AND event_type='bot_started' AND payload_json LIKE ? ORDER BY id DESC LIMIT 2");
@@ -246,6 +259,14 @@ final class RepairMaxWebhookService
             'entry_code'=>$context['entry_code'],'post_id'=>$entry['post_id'],'state'=>'pending','text'=>$text,
         ];
         if (isset($entry['config_sha256'])) $payload['repair_entry_reply']['config_sha256'] = $entry['config_sha256'];
+        if ($connection->projectKey() === AppleService39PilotCatalog::PROJECT) {
+            if (!in_array($funnelAttempt, ['recorded','not_recorded','publication_pending','writer_error'], true)) {
+                throw new RuntimeException('entry_reply_not_persisted');
+            }
+            // The existing transactional CAS also captures this status. No new
+            // event, separate writer, customer message or exception payload.
+            $payload['repair_funnel_attempt'] = $funnelAttempt;
+        }
         $next = json_encode($payload, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
         $q = $pdo->prepare('UPDATE conversation_events SET payload_json=? WHERE id=? AND payload_json=?');
         $q->execute([$next,(int)$event['id'],(string)$event['payload_json']]);
