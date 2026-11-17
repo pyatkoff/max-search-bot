@@ -1,0 +1,155 @@
+name: Price 660 27316 saved observation equivalence read only
+on:
+  push:
+    branches: ['audit/price660-27316-readonly-20261117']
+    paths: ['.github/workflows/price660-27316-saved-price-proof-once.yml']
+permissions:
+  contents: read
+concurrency:
+  group: anytour-price660-confirm-current-27316-20261117
+  cancel-in-progress: false
+jobs:
+  bounded-max-get:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.event_name == 'push' &&
+      github.event.before == 'fbe7877ed23715ea8487b95eaccb56cbd036bcdd' &&
+      github.event.head_commit.message == 'diagnostics(anytour): saved source equivalence read once' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Check one-time parent and no mutations in code
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = fbe7877ed23715ea8487b95eaccb56cbd036bcdd
+          test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
+          echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
+      - name: Pinned existing SSH host and private runner-only key
+        shell: bash
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test -n "$KEY_VALUE" && test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER"
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/price660-key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/price660-key"; fi
+          else
+            printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/price660-key"
+          fi
+          chmod 600 "$RUNNER_TEMP/price660-key"
+          ssh-keygen -y -f "$RUNNER_TEMP/price660-key" >/dev/null
+          python3 - <<'PY'
+          import os,re,hashlib,base64,subprocess,pathlib
+          h=os.environ['DEPLOY_HOST'];u=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',h) and not h.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',u)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',h],capture_output=True,text=True,timeout=35)
+          lines=[]
+          for x in scan.stdout.splitlines():
+              t=x.split()
+              if len(t)<3 or t[0].startswith('#'):continue
+              try: fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(t[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':lines.append(x)
+          assert lines,'HOST_PIN_CHANGED_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/price660-known-hosts').write_text('\n'.join(lines)+'\n')
+          print('HOST_PIN_OK')
+          PY
+      - name: Compare original saved monitor offers with current saved export, no supplier search
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/price660-key" -o BatchMode=yes -o ConnectTimeout=12 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/price660-known-hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'php' > "$RUNNER_TEMP/price660-saved-proof.json" <<'REMOTE_PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors','0');ini_set('log_errors','0');
+          $out=['ok'=>false,'mode'=>'compare_saved_monitor_for_27316_read_only','checked_at'=>gmdate('c'),'writes'=>0,'post_writes'=>0,'feed_writes'=>0,'db_writes'=>0,'provider_puts'=>0,'supplier_calls'=>0,'saved_price_gets'=>0];
+          function stop_if(bool $ok,string $reason):void{if(!$ok)throw new RuntimeException($reason);}
+          function stable(array $offer):array{unset($offer['ageSecondsAtExport'],$offer['expiresAt']);ksort($offer);return $offer;}
+          function pinned_file(string $path,int $size,string $sha):array{
+            stop_if(!is_link($path)&&is_file($path)&&realpath($path)===$path,'path_changed');
+            $f=fopen($path,'rb');stop_if(is_resource($f)&&flock($f,LOCK_SH|LOCK_NB),'lock_busy_stop');
+            try{
+              $st=fstat($f);$named=lstat($path);stop_if(is_array($st)&&is_array($named)&&$st['size']===$size&&$st['dev']===$named['dev']&&$st['ino']===$named['ino'],'file_identity_changed');
+              $raw=stream_get_contents($f,$size+1);stop_if(is_string($raw)&&strlen($raw)===$size&&hash('sha256',$raw)===$sha&&str_ends_with($raw,"\n"),'journal_hash_changed');
+              clearstatcache(true,$path);$end=fstat($f);$named=lstat($path);
+              foreach(['dev','ino','size','mtime','ctime'] as $key)stop_if(($end[$key]??null)===($st[$key]??null)&&($named[$key]??null)===($st[$key]??null),'journal_changed_during_read');
+              $arr=explode("\n",substr($raw,0,-1));return ['last'=>json_decode(end($arr),true,64,JSON_THROW_ON_ERROR),'count'=>count($arr)];
+            }finally{flock($f,LOCK_UN);fclose($f);}
+          }
+          try{
+            $root='/var/www/anytoour/data/channel-post-operations';
+            stop_if(realpath($root)===$root,'private_root_changed');
+            $op='commercial-monitor-price-h27316-7627b206ea11237db2e1fb365e98be5c1ff11a439b3939637fee633dee1b83d4';
+            $entry=pinned_file($root.'/'.$op.'/receipt.jsonl',40405,'010c6ecfbdae1156a772160bbadb5fec4cbd84555e14acf10baa791c36da2988');
+            stop_if($entry['count']===4,'journal_record_count_changed');
+            $child=$entry['last'];
+            stop_if(($child['operation']??null)===$op&&($child['manifest_hash']??null)==='94ca6dd9be5c0fb66f0bf3ee6a09ca4e7d8319bb1cd1e3ae2f8a7f7390f89a78'
+               &&($child['complete']??false)===false&&count($child['posts']??[])===1,'child_changed');
+            $original=$child['monitor_snapshot'];
+            stop_if(is_array($original)&&($original['item']['tourvisorHotelId']??null)===27316&&is_array($original['item']['offers']??null),'saved_original_missing');
+            $scope=$original['scope'];
+            $ids=$scope['tourvisorHotelIds']??[];
+            stop_if($ids===[27316]&&($scope['departureId']??null)===1,'original_scope_changed');
+            $q=['tourvisorHotelIds'=>[27316],'departureId'=>1,'dateFrom'=>$scope['dateFrom'],'dateTo'=>$scope['dateTo']];
+            $url='https://anytoour.ru/data/hotel-monitor-prices-read-v1.php?'.http_build_query($q,'','&',PHP_QUERY_RFC3986);
+            $curl=curl_init($url);curl_setopt_array($curl,[CURLOPT_RETURNTRANSFER=>true,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>20,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2]);
+            $raw=curl_exec($curl);$http=(int)curl_getinfo($curl,CURLINFO_HTTP_CODE);curl_close($curl);$out['saved_price_gets']=1;
+            stop_if(is_string($raw)&&strlen($raw)>0&&strlen($raw)<2000000&&$http===200,'saved_api_failed');
+            $live=json_decode($raw,true,64,JSON_THROW_ON_ERROR);
+            stop_if(($live['ok']??null)===true&&($live['supplierRequests']??null)===0&&($live['writes']??null)===0
+                &&($live['automaticDispatch']??null)===false&&($live['observationWindowHours']??null)===36
+                &&($live['source']??null)==='scheduled_monitor'&&count($live['items']??[])===1,'saved_api_scope_changed');
+            $item=$live['items'][0];$liveScope=$live['scope'];
+            stop_if(($item['tourvisorHotelId']??null)===27316,'saved_item_changed');
+            foreach(['departureId','dateFrom','dateTo','nightsFrom','nightsTo','adults','childrenCount','currency'] as $key)stop_if(($scope[$key]??null)===($liveScope[$key]??null),'price_scope_changed');
+            $o=$original['item']['offers'];$l=$item['offers']??[];
+            stop_if(is_array($l)&&count($l)>0,'saved_offers_missing');
+            $target='7627b206ea11237db2e1fb365e98be5c1ff11a439b3939637fee633dee1b83d4';
+            $oldMatches=array_values(array_filter($o,static fn($x)=>($x['recordId']??null)===$target));
+            $newMatches=array_values(array_filter($l,static fn($x)=>($x['recordId']??null)===$target));
+            $oldSorted=array_map('stable',$o);$newSorted=array_map('stable',$l);
+            $out['comparison']=[
+              'same_record_unique'=>count($oldMatches)===1&&count($newMatches)===1,
+              'selected_offer_immutable'=>count($oldMatches)===1&&count($newMatches)===1&&stable($oldMatches[0])===stable($newMatches[0]),
+              'all_offers_immutable'=>$oldSorted===$newSorted,
+              'scope_immutable'=>true,
+              'original_offer_count'=>count($o),'current_offer_count'=>count($l),
+              'record_in_current_selection'=>count($newMatches)===1,
+              'current_offer_age_seconds'=>count($newMatches)===1?($newMatches[0]['ageSecondsAtExport']??null):null,
+              'current_record_expires_at'=>count($newMatches)===1?($newMatches[0]['expiresAt']??null):null,
+              'live_export_generated_at'=>$live['generatedAt']??null,
+              'original_export_generated_at'=>$original['generatedAt']??null,
+              'scope_from'=>$scope['dateFrom'],'scope_to'=>$scope['dateTo'],
+              'server_time'=>gmdate('c'),
+            ];
+            $out['equal_for_single_record']=$out['comparison']['same_record_unique']&&$out['comparison']['selected_offer_immutable']&&$out['comparison']['all_offers_immutable'];
+            $out['ok']=true;
+          }catch(Throwable $e){$out['error']=preg_match('/\A[a-z0-9_]+\z/D',$e->getMessage())?$e->getMessage():'read_failed';}
+          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),"\n";
+          exit($out['ok']?0:2);
+          REMOTE_PHP
+          python3 - <<'PY'
+          import json,pathlib,os
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'price660-saved-proof.json'
+          a=json.loads(p.read_text())
+          assert a.get('mode')=='compare_saved_monitor_for_27316_read_only'
+          assert all(a.get(k)==0 for k in ['writes','post_writes','feed_writes','db_writes','provider_puts','supplier_calls'])
+          print('PRICE660_SAVED_SOURCE_COMPARISON='+json.dumps(a,ensure_ascii=False,separators=(',',':')))
+          assert a.get('ok') is True,'COMPARE_SOURCE_NOT_VERIFIED'
+          PY
+      - name: Erase runner-only SSH materials and private result
+        if: always()
+        run: rm -f "$RUNNER_TEMP/price660-key" "$RUNNER_TEMP/price660-known-hosts" "$RUNNER_TEMP/price660-saved-proof.json"
