@@ -1,0 +1,1462 @@
+{
+  "state": "P27_FAILURE_PRESERVED_REMAINING70_ADMITTED_FOR_FIRST_EXECUTION",
+  "owner": "same HOTEL/CONTENT in issue1566",
+  "paired_confirmed_before": 877,
+  "original_failed_run": 44133796626,
+  "original_failed_job": 134217715600,
+  "original_failed_head": "7971139fa1c6b10dfee2fe8afea5b528dd7a30d0",
+  "readonly_run": 44135479839,
+  "readonly_job": 134223718813,
+  "readonly_artifact": 14352400936,
+  "readonly_zip_sha256": "68b6b7b15b785452bff436893c754d2434e574d2686188e2c8cc02364c9c3ce9",
+  "partial": {
+    "mode": "READ_ONLY_ORIGINAL_P27_OUTCOME",
+    "installed_sha": "3ffab7f2e2d01c8cd35144fba621897e4ad75e5d",
+    "db_writes": 0,
+    "provider_calls": 0,
+    "sender_calls": 0,
+    "operation_files": [
+      {
+        "name": "media-0c1d2a5f97d65819489d3ec8d07d9bd5c909c56b7bd5e3a8235aaea20c3f93e8",
+        "sha256": "0c1d2a5f97d65819489d3ec8d07d9bd5c909c56b7bd5e3a8235aaea20c3f93e8",
+        "bytes": 547080
+      },
+      {
+        "name": "media-178a18c65b23403db663ea61fa2bc6239f4e198d6ea8c93e4cd4b822ae3a0e87",
+        "sha256": "178a18c65b23403db663ea61fa2bc6239f4e198d6ea8c93e4cd4b822ae3a0e87",
+        "bytes": 517924
+      },
+      {
+        "name": "media-51d62263f6822153e12f1d51035cd7722865c1e69658912931120ca4d9b017ed",
+        "sha256": "51d62263f6822153e12f1d51035cd7722865c1e69658912931120ca4d9b017ed",
+        "bytes": 557164
+      },
+      {
+        "name": "media-68d923a5d5e8709d747ea2da78a60dea0f9c8e4269d2c048144a79d98adb4046",
+        "sha256": "68d923a5d5e8709d747ea2da78a60dea0f9c8e4269d2c048144a79d98adb4046",
+        "bytes": 437071
+      },
+      {
+        "name": "media-997026ed476d437801d4b9fb787c935bc3e81e9b63c63194bcacf864807d539e",
+        "sha256": "997026ed476d437801d4b9fb787c935bc3e81e9b63c63194bcacf864807d539e",
+        "bytes": 460205
+      },
+      {
+        "name": "media-9f1597ff438e109a5533496cf378fe756c1544091dbcf8a263c7dea3780c9b0e",
+        "sha256": "9f1597ff438e109a5533496cf378fe756c1544091dbcf8a263c7dea3780c9b0e",
+        "bytes": 415787
+      },
+      {
+        "name": "media-affb677aa1f489fcbcc8fda965ddcfa635ec8aa019bf9b33043538942ffd1e6e",
+        "sha256": "affb677aa1f489fcbcc8fda965ddcfa635ec8aa019bf9b33043538942ffd1e6e",
+        "bytes": 545812
+      },
+      {
+        "name": "media-cbf6d5ebb29174f59c4e8f8c157406918e9ccb532ee3df06d9966863399c16e3",
+        "sha256": "cbf6d5ebb29174f59c4e8f8c157406918e9ccb532ee3df06d9966863399c16e3",
+        "bytes": 622047
+      },
+      {
+        "name": "media-d1dc5f43b42a7358d7c4bafc34975cb26d5e9654d9666cb7c4926ad8a2a1e4ed",
+        "sha256": "d1dc5f43b42a7358d7c4bafc34975cb26d5e9654d9666cb7c4926ad8a2a1e4ed",
+        "bytes": 478897
+      },
+      {
+        "name": "media-e8cf353aaaae00849067d7f92b1092e431953bb886ee0a9be936f5888425a0b7",
+        "sha256": "e8cf353aaaae00849067d7f92b1092e431953bb886ee0a9be936f5888425a0b7",
+        "bytes": 403393
+      },
+      {
+        "name": "publication-summary.json",
+        "sha256": "a9c2ae84e475270b6accf341edac3d7d6a7c91f375f615586dc37c1cae4da09a",
+        "bytes": 7306
+      },
+      {
+        "name": "telegram-commercial-hotel-2006-v1-approved.json",
+        "sha256": "ba904b5e0b005939cca903774a6700b0d39d30f0e9ea1b37d49aedbf4e8d2aaf",
+        "bytes": 3061
+      },
+      {
+        "name": "telegram-commercial-hotel-22718-v1-approved.json",
+        "sha256": "b9259f191082d2af42f42beff51e103042c21311f7d0b388e4e0cbcaf7592713",
+        "bytes": 3072
+      },
+      {
+        "name": "telegram-commercial-hotel-3006-v1-approved.json",
+        "sha256": "ee11e4bbc3dd6a8343b98aac99ee61fdf84b94fa4c4aab0cf2dbe34bd76acdad",
+        "bytes": 3090
+      },
+      {
+        "name": "telegram-commercial-hotel-51931-v1-approved.json",
+        "sha256": "b2d4bb389c1a4ce78ce7e9e3737429fbef9cb1041fc3f75ea2590f077b6cb540",
+        "bytes": 3050
+      },
+      {
+        "name": "telegram-commercial-hotel-541-v1-approved.json",
+        "sha256": "73a4030005287c57ef0073e9d6bf2806099ed76b1d1205aad8e02ee1d45fcbff",
+        "bytes": 3066
+      },
+      {
+        "name": "telegram-commercial-hotel-66375-v1-approved.json",
+        "sha256": "67cec32a35e6b702b568d6ab3df96457e21bd81ea07cde11809c24c84845037c",
+        "bytes": 2193
+      },
+      {
+        "name": "telegram-commercial-hotel-8020-v1-approved.json",
+        "sha256": "0a962ef00b5eecbb1230c4b35068530133508604b10bae28cccec57cb5539487",
+        "bytes": 3020
+      },
+      {
+        "name": "telegram-commercial-hotel-81140-v1-approved.json",
+        "sha256": "34d931ba6b1dc19f3d5fadadc2d7e09fbb43ae26a6c521644c8c9ebca6a123a5",
+        "bytes": 3017
+      },
+      {
+        "name": "telegram-commercial-hotel-82422-v1-approved.json",
+        "sha256": "0515eec734c69b0553f1c7bb123733e7ea63b70cb1c1d5d1b4ba9fd71137b7ee",
+        "bytes": 3062
+      },
+      {
+        "name": "telegram-commercial-hotel-9385-v1-approved.json",
+        "sha256": "88a44a522be132b1a77625b9b9c6f38c3ab5ed7b15d862d7eec6a227ec598f10",
+        "bytes": 3038
+      },
+      {
+        "name": "three-hotels.lock",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    ],
+    "publications": [
+      {
+        "hotel_id": 22718,
+        "logical_id": "commercial-hotel-22718-v1",
+        "platform": "telegram",
+        "file_exists": true,
+        "saved_state": "confirmed",
+        "saved_text_sha256": "c6a5d974a86e699243e9b31da8261598c7d5b09c358df689918da314e08f3a84",
+        "saved_photo_sha256": "51d62263f6822153e12f1d51035cd7722865c1e69658912931120ca4d9b017ed",
+        "saved_publication_id": 1938,
+        "saved_version_id": 7467,
+        "saved_receipt": {
+          "logical_id": "commercial-hotel-22718-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "892",
+          "post_url": "https://t.me/any_toour/892",
+          "publication_id": 1938,
+          "version_id": 7467,
+          "button_url": "https://t.me/anyru_bot?start=p_478sS9Ecp-NzH0o3O8RDbasy",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "c6a5d974a86e699243e9b31da8261598c7d5b09c358df689918da314e08f3a84",
+          "photo_sha256": "51d62263f6822153e12f1d51035cd7722865c1e69658912931120ca4d9b017ed",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 22718,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/22718.png"
+        },
+        "button_result": {
+          "publication_id": 1938,
+          "version_id": 7467,
+          "state": "sent",
+          "reason": "verified",
+          "reconcile_only": false,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "http_results": [
+              {
+                "operation": "bot_identity",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "channel_rights",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "append_button",
+                "http": 200,
+                "transport_error": false
+              }
+            ],
+            "content_preserved": true,
+            "button_verified": true
+          }
+        },
+        "original_message": {
+          "message_id": 892,
+          "chat_id": -1002262666616,
+          "caption": "✈️ Туры в Avani+ Mai Khao Phuket Suites & Villas\n📍 Пхукет, Таиланд.\n\nПросторные сьюты и виллы для семейного Пхукета: бассейн среди зелени, детский клуб и рестораны. В сьютах есть оборудованная кухня, а до песчаного Май Као около 300 метров через дорогу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "photo_present": true,
+          "date": 1794935378,
+          "edit_date": null,
+          "reply_markup": null
+        },
+        "current_publication": {
+          "publication_id": 1938,
+          "version_id": 7467,
+          "project_key": "anytour",
+          "platform": "telegram",
+          "bot_key": "anyru_bot",
+          "channel_id": "-1002262666616",
+          "external_message_id": "892",
+          "state": "sent",
+          "source_key": "tg_anytour_msk",
+          "start_payload": "p_478sS9Ecp-NzH0o3O8RDbasy",
+          "write_attempted": true,
+          "write_attempts": 1,
+          "attempt_count": 1,
+          "error_reason": "verified",
+          "claim_token": null,
+          "claimed_at": null,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "content_preserved": true,
+            "button_verified": true,
+            "http_results": []
+          },
+          "text_sha256": "c6a5d974a86e699243e9b31da8261598c7d5b09c358df689918da314e08f3a84",
+          "text": "✈️ Туры в Avani+ Mai Khao Phuket Suites & Villas\n📍 Пхукет, Таиланд.\n\nПросторные сьюты и виллы для семейного Пхукета: бассейн среди зелени, детский клуб и рестораны. В сьютах есть оборудованная кухня, а до песчаного Май Као около 300 метров через дорогу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "snapshot_metadata": {
+            "capability": "supported",
+            "capability_reason": "",
+            "media_group_id": "",
+            "actual_message_id": "892",
+            "observation_kind": "provider_send_response",
+            "logical_id": "commercial-hotel-22718-v1",
+            "hotel_catalog_id": 22718,
+            "source_event_id": "commercial-hotel-batch-20261117-27-v1:telegram:commercial-hotel-22718-v1:892"
+          },
+          "snapshot_keyboard": [],
+          "snapshot_media": null
+        }
+      },
+      {
+        "hotel_id": 541,
+        "logical_id": "commercial-hotel-541-v1",
+        "platform": "telegram",
+        "file_exists": true,
+        "saved_state": "confirmed",
+        "saved_text_sha256": "72135fce292d71a2e2cc628141fd081b3cd5c77e50ff3675828edd9a6e6d6950",
+        "saved_photo_sha256": "0c1d2a5f97d65819489d3ec8d07d9bd5c909c56b7bd5e3a8235aaea20c3f93e8",
+        "saved_publication_id": 1939,
+        "saved_version_id": 7468,
+        "saved_receipt": {
+          "logical_id": "commercial-hotel-541-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "893",
+          "post_url": "https://t.me/any_toour/893",
+          "publication_id": 1939,
+          "version_id": 7468,
+          "button_url": "https://t.me/anyru_bot?start=p_Q9YoDt0S0xyn7mpVZcLUu_2B",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "72135fce292d71a2e2cc628141fd081b3cd5c77e50ff3675828edd9a6e6d6950",
+          "photo_sha256": "0c1d2a5f97d65819489d3ec8d07d9bd5c909c56b7bd5e3a8235aaea20c3f93e8",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 541,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/541.png"
+        },
+        "button_result": {
+          "publication_id": 1939,
+          "version_id": 7468,
+          "state": "sent",
+          "reason": "verified",
+          "reconcile_only": false,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "http_results": [
+              {
+                "operation": "bot_identity",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "channel_rights",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "append_button",
+                "http": 200,
+                "transport_error": false
+              }
+            ],
+            "content_preserved": true,
+            "button_verified": true
+          }
+        },
+        "original_message": {
+          "message_id": 893,
+          "chat_id": -1002262666616,
+          "caption": "✈️ Туры в Amari Pattaya\n📍 Паттайя, Таиланд.\n\nСемейная Паттайя с бассейнами, водными развлечениями и детским клубом. Рестораны и спа помогут отдохнуть между прогулками, а городской песчаный пляж находится примерно в 150 метрах через дорогу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "photo_present": true,
+          "date": 1794935382,
+          "edit_date": null,
+          "reply_markup": null
+        },
+        "current_publication": {
+          "publication_id": 1939,
+          "version_id": 7468,
+          "project_key": "anytour",
+          "platform": "telegram",
+          "bot_key": "anyru_bot",
+          "channel_id": "-1002262666616",
+          "external_message_id": "893",
+          "state": "sent",
+          "source_key": "tg_anytour_msk",
+          "start_payload": "p_Q9YoDt0S0xyn7mpVZcLUu_2B",
+          "write_attempted": true,
+          "write_attempts": 1,
+          "attempt_count": 1,
+          "error_reason": "verified",
+          "claim_token": null,
+          "claimed_at": null,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "content_preserved": true,
+            "button_verified": true,
+            "http_results": []
+          },
+          "text_sha256": "72135fce292d71a2e2cc628141fd081b3cd5c77e50ff3675828edd9a6e6d6950",
+          "text": "✈️ Туры в Amari Pattaya\n📍 Паттайя, Таиланд.\n\nСемейная Паттайя с бассейнами, водными развлечениями и детским клубом. Рестораны и спа помогут отдохнуть между прогулками, а городской песчаный пляж находится примерно в 150 метрах через дорогу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "snapshot_metadata": {
+            "capability": "supported",
+            "capability_reason": "",
+            "media_group_id": "",
+            "actual_message_id": "893",
+            "observation_kind": "provider_send_response",
+            "logical_id": "commercial-hotel-541-v1",
+            "hotel_catalog_id": 541,
+            "source_event_id": "commercial-hotel-batch-20261117-27-v1:telegram:commercial-hotel-541-v1:893"
+          },
+          "snapshot_keyboard": [],
+          "snapshot_media": null
+        }
+      },
+      {
+        "hotel_id": 2006,
+        "logical_id": "commercial-hotel-2006-v1",
+        "platform": "telegram",
+        "file_exists": true,
+        "saved_state": "confirmed",
+        "saved_text_sha256": "c26626e04686f95cf2e63985cb188ccc04536cfece44b30fa078cb0182486619",
+        "saved_photo_sha256": "e8cf353aaaae00849067d7f92b1092e431953bb886ee0a9be936f5888425a0b7",
+        "saved_publication_id": 1940,
+        "saved_version_id": 7469,
+        "saved_receipt": {
+          "logical_id": "commercial-hotel-2006-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "894",
+          "post_url": "https://t.me/any_toour/894",
+          "publication_id": 1940,
+          "version_id": 7469,
+          "button_url": "https://t.me/anyru_bot?start=p_3Qke917uyX-xnKiP3nHbe4Xp",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "c26626e04686f95cf2e63985cb188ccc04536cfece44b30fa078cb0182486619",
+          "photo_sha256": "e8cf353aaaae00849067d7f92b1092e431953bb886ee0a9be936f5888425a0b7",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2006,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/2006.png"
+        },
+        "button_result": {
+          "publication_id": 1940,
+          "version_id": 7469,
+          "state": "sent",
+          "reason": "verified",
+          "reconcile_only": false,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "http_results": [
+              {
+                "operation": "bot_identity",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "channel_rights",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "append_button",
+                "http": 200,
+                "transport_error": false
+              }
+            ],
+            "content_preserved": true,
+            "button_verified": true
+          }
+        },
+        "original_message": {
+          "message_id": 894,
+          "chat_id": -1002262666616,
+          "caption": "✈️ Туры в Centara Grand Beach Resort Phuket\n📍 Пхукет, Таиланд.\n\nКарон для ярких семейных каникул: пляж перед отелем, бассейны и аквапарк с ленивой рекой. Пока дети заняты в клубе и на игровых площадках, взрослые могут выбрать спа или ужин у моря.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "photo_present": true,
+          "date": 1794935387,
+          "edit_date": null,
+          "reply_markup": null
+        },
+        "current_publication": {
+          "publication_id": 1940,
+          "version_id": 7469,
+          "project_key": "anytour",
+          "platform": "telegram",
+          "bot_key": "anyru_bot",
+          "channel_id": "-1002262666616",
+          "external_message_id": "894",
+          "state": "sent",
+          "source_key": "tg_anytour_msk",
+          "start_payload": "p_3Qke917uyX-xnKiP3nHbe4Xp",
+          "write_attempted": true,
+          "write_attempts": 1,
+          "attempt_count": 1,
+          "error_reason": "verified",
+          "claim_token": null,
+          "claimed_at": null,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "content_preserved": true,
+            "button_verified": true,
+            "http_results": []
+          },
+          "text_sha256": "c26626e04686f95cf2e63985cb188ccc04536cfece44b30fa078cb0182486619",
+          "text": "✈️ Туры в Centara Grand Beach Resort Phuket\n📍 Пхукет, Таиланд.\n\nКарон для ярких семейных каникул: пляж перед отелем, бассейны и аквапарк с ленивой рекой. Пока дети заняты в клубе и на игровых площадках, взрослые могут выбрать спа или ужин у моря.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "snapshot_metadata": {
+            "capability": "supported",
+            "capability_reason": "",
+            "media_group_id": "",
+            "actual_message_id": "894",
+            "observation_kind": "provider_send_response",
+            "logical_id": "commercial-hotel-2006-v1",
+            "hotel_catalog_id": 2006,
+            "source_event_id": "commercial-hotel-batch-20261117-27-v1:telegram:commercial-hotel-2006-v1:894"
+          },
+          "snapshot_keyboard": [],
+          "snapshot_media": null
+        }
+      },
+      {
+        "hotel_id": 9385,
+        "logical_id": "commercial-hotel-9385-v1",
+        "platform": "telegram",
+        "file_exists": true,
+        "saved_state": "confirmed",
+        "saved_text_sha256": "b42b46e2bcd5d05796f830723b5ca03213d84a7e715cfeb7e329764e6e8731ae",
+        "saved_photo_sha256": "9f1597ff438e109a5533496cf378fe756c1544091dbcf8a263c7dea3780c9b0e",
+        "saved_publication_id": 1941,
+        "saved_version_id": 7470,
+        "saved_receipt": {
+          "logical_id": "commercial-hotel-9385-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "895",
+          "post_url": "https://t.me/any_toour/895",
+          "publication_id": 1941,
+          "version_id": 7470,
+          "button_url": "https://t.me/anyru_bot?start=p_IId2PXv2qQ5eHnQq7omXS13Z",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "b42b46e2bcd5d05796f830723b5ca03213d84a7e715cfeb7e329764e6e8731ae",
+          "photo_sha256": "9f1597ff438e109a5533496cf378fe756c1544091dbcf8a263c7dea3780c9b0e",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 9385,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/9385.png"
+        },
+        "button_result": {
+          "publication_id": 1941,
+          "version_id": 7470,
+          "state": "sent",
+          "reason": "verified",
+          "reconcile_only": false,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "http_results": [
+              {
+                "operation": "bot_identity",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "channel_rights",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "append_button",
+                "http": 200,
+                "transport_error": false
+              }
+            ],
+            "content_preserved": true,
+            "button_verified": true
+          }
+        },
+        "original_message": {
+          "message_id": 895,
+          "chat_id": -1002262666616,
+          "caption": "✈️ Туры в Cape Dara Resort\n📍 Паттайя, Таиланд.\n\nМорские панорамы северной Паттайи, два бассейна и рестораны для красивого отпуска. Есть детский клуб и спа-процедуры. У отеля галечный берег, поэтому бассейны особенно кстати.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "photo_present": true,
+          "date": 1794935391,
+          "edit_date": null,
+          "reply_markup": null
+        },
+        "current_publication": {
+          "publication_id": 1941,
+          "version_id": 7470,
+          "project_key": "anytour",
+          "platform": "telegram",
+          "bot_key": "anyru_bot",
+          "channel_id": "-1002262666616",
+          "external_message_id": "895",
+          "state": "sent",
+          "source_key": "tg_anytour_msk",
+          "start_payload": "p_IId2PXv2qQ5eHnQq7omXS13Z",
+          "write_attempted": true,
+          "write_attempts": 1,
+          "attempt_count": 1,
+          "error_reason": "verified",
+          "claim_token": null,
+          "claimed_at": null,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "content_preserved": true,
+            "button_verified": true,
+            "http_results": []
+          },
+          "text_sha256": "b42b46e2bcd5d05796f830723b5ca03213d84a7e715cfeb7e329764e6e8731ae",
+          "text": "✈️ Туры в Cape Dara Resort\n📍 Паттайя, Таиланд.\n\nМорские панорамы северной Паттайи, два бассейна и рестораны для красивого отпуска. Есть детский клуб и спа-процедуры. У отеля галечный берег, поэтому бассейны особенно кстати.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "snapshot_metadata": {
+            "capability": "supported",
+            "capability_reason": "",
+            "media_group_id": "",
+            "actual_message_id": "895",
+            "observation_kind": "provider_send_response",
+            "logical_id": "commercial-hotel-9385-v1",
+            "hotel_catalog_id": 9385,
+            "source_event_id": "commercial-hotel-batch-20261117-27-v1:telegram:commercial-hotel-9385-v1:895"
+          },
+          "snapshot_keyboard": [],
+          "snapshot_media": null
+        }
+      },
+      {
+        "hotel_id": 3006,
+        "logical_id": "commercial-hotel-3006-v1",
+        "platform": "telegram",
+        "file_exists": true,
+        "saved_state": "confirmed",
+        "saved_text_sha256": "e64eb0d0668792e7da6e12c0b60556bae9032ddc61d85da4052746a1169d60ab",
+        "saved_photo_sha256": "affb677aa1f489fcbcc8fda965ddcfa635ec8aa019bf9b33043538942ffd1e6e",
+        "saved_publication_id": 1942,
+        "saved_version_id": 7471,
+        "saved_receipt": {
+          "logical_id": "commercial-hotel-3006-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "896",
+          "post_url": "https://t.me/any_toour/896",
+          "publication_id": 1942,
+          "version_id": 7471,
+          "button_url": "https://t.me/anyru_bot?start=p_fnM2dXdgQJmmsIEjKeMXz9y7",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "e64eb0d0668792e7da6e12c0b60556bae9032ddc61d85da4052746a1169d60ab",
+          "photo_sha256": "affb677aa1f489fcbcc8fda965ddcfa635ec8aa019bf9b33043538942ffd1e6e",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 3006,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/3006.png"
+        },
+        "button_result": {
+          "publication_id": 1942,
+          "version_id": 7471,
+          "state": "sent",
+          "reason": "verified",
+          "reconcile_only": false,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "http_results": [
+              {
+                "operation": "bot_identity",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "channel_rights",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "append_button",
+                "http": 200,
+                "transport_error": false
+              }
+            ],
+            "content_preserved": true,
+            "button_verified": true
+          }
+        },
+        "original_message": {
+          "message_id": 896,
+          "chat_id": -1002262666616,
+          "caption": "✈️ Туры в Angsana Villas Resort Phuket\n📍 Пхукет, Таиланд.\n\nПросторные сьюты и виллы в районе Лагуна для отдыха семьёй или своей компанией. Два бассейна, детский клуб и возможность пользоваться шаттлом по комплексу помогут провести отпуск в спокойном ритме.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "photo_present": true,
+          "date": 1794935395,
+          "edit_date": null,
+          "reply_markup": null
+        },
+        "current_publication": {
+          "publication_id": 1942,
+          "version_id": 7471,
+          "project_key": "anytour",
+          "platform": "telegram",
+          "bot_key": "anyru_bot",
+          "channel_id": "-1002262666616",
+          "external_message_id": "896",
+          "state": "sent",
+          "source_key": "tg_anytour_msk",
+          "start_payload": "p_fnM2dXdgQJmmsIEjKeMXz9y7",
+          "write_attempted": true,
+          "write_attempts": 1,
+          "attempt_count": 1,
+          "error_reason": "verified",
+          "claim_token": null,
+          "claimed_at": null,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "content_preserved": true,
+            "button_verified": true,
+            "http_results": []
+          },
+          "text_sha256": "e64eb0d0668792e7da6e12c0b60556bae9032ddc61d85da4052746a1169d60ab",
+          "text": "✈️ Туры в Angsana Villas Resort Phuket\n📍 Пхукет, Таиланд.\n\nПросторные сьюты и виллы в районе Лагуна для отдыха семьёй или своей компанией. Два бассейна, детский клуб и возможность пользоваться шаттлом по комплексу помогут провести отпуск в спокойном ритме.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "snapshot_metadata": {
+            "capability": "supported",
+            "capability_reason": "",
+            "media_group_id": "",
+            "actual_message_id": "896",
+            "observation_kind": "provider_send_response",
+            "logical_id": "commercial-hotel-3006-v1",
+            "hotel_catalog_id": 3006,
+            "source_event_id": "commercial-hotel-batch-20261117-27-v1:telegram:commercial-hotel-3006-v1:896"
+          },
+          "snapshot_keyboard": [],
+          "snapshot_media": null
+        }
+      },
+      {
+        "hotel_id": 82422,
+        "logical_id": "commercial-hotel-82422-v1",
+        "platform": "telegram",
+        "file_exists": true,
+        "saved_state": "confirmed",
+        "saved_text_sha256": "4549cd5a7d59239ed1ffb9c33d2033b18bea49737710fa057b790e6b19a5bfab",
+        "saved_photo_sha256": "997026ed476d437801d4b9fb787c935bc3e81e9b63c63194bcacf864807d539e",
+        "saved_publication_id": 1943,
+        "saved_version_id": 7472,
+        "saved_receipt": {
+          "logical_id": "commercial-hotel-82422-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "897",
+          "post_url": "https://t.me/any_toour/897",
+          "publication_id": 1943,
+          "version_id": 7472,
+          "button_url": "https://t.me/anyru_bot?start=p_ks6RWVUIIH8c3wF0awUe2KPv",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "4549cd5a7d59239ed1ffb9c33d2033b18bea49737710fa057b790e6b19a5bfab",
+          "photo_sha256": "997026ed476d437801d4b9fb787c935bc3e81e9b63c63194bcacf864807d539e",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 82422,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/82422.png"
+        },
+        "button_result": {
+          "publication_id": 1943,
+          "version_id": 7472,
+          "state": "sent",
+          "reason": "verified",
+          "reconcile_only": false,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "http_results": [
+              {
+                "operation": "bot_identity",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "channel_rights",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "append_button",
+                "http": 200,
+                "transport_error": false
+              }
+            ],
+            "content_preserved": true,
+            "button_verified": true
+          }
+        },
+        "original_message": {
+          "message_id": 897,
+          "chat_id": -1002262666616,
+          "caption": "✈️ Туры в Avani Chaweng Samui Hotel & Beach Club\n📍 Самуи, Таиланд.\n\nСамуи для гостей от 18 лет: бассейн, пляжный клуб SEEN и песчаный Чавенг. Подойдёт для отпуска вдвоём или с друзьями, когда хочется совместить море и оживлённую курортную атмосферу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "photo_present": true,
+          "date": 1794935400,
+          "edit_date": null,
+          "reply_markup": null
+        },
+        "current_publication": {
+          "publication_id": 1943,
+          "version_id": 7472,
+          "project_key": "anytour",
+          "platform": "telegram",
+          "bot_key": "anyru_bot",
+          "channel_id": "-1002262666616",
+          "external_message_id": "897",
+          "state": "sent",
+          "source_key": "tg_anytour_msk",
+          "start_payload": "p_ks6RWVUIIH8c3wF0awUe2KPv",
+          "write_attempted": true,
+          "write_attempts": 1,
+          "attempt_count": 1,
+          "error_reason": "verified",
+          "claim_token": null,
+          "claimed_at": null,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "content_preserved": true,
+            "button_verified": true,
+            "http_results": []
+          },
+          "text_sha256": "4549cd5a7d59239ed1ffb9c33d2033b18bea49737710fa057b790e6b19a5bfab",
+          "text": "✈️ Туры в Avani Chaweng Samui Hotel & Beach Club\n📍 Самуи, Таиланд.\n\nСамуи для гостей от 18 лет: бассейн, пляжный клуб SEEN и песчаный Чавенг. Подойдёт для отпуска вдвоём или с друзьями, когда хочется совместить море и оживлённую курортную атмосферу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "snapshot_metadata": {
+            "capability": "supported",
+            "capability_reason": "",
+            "media_group_id": "",
+            "actual_message_id": "897",
+            "observation_kind": "provider_send_response",
+            "logical_id": "commercial-hotel-82422-v1",
+            "hotel_catalog_id": 82422,
+            "source_event_id": "commercial-hotel-batch-20261117-27-v1:telegram:commercial-hotel-82422-v1:897"
+          },
+          "snapshot_keyboard": [],
+          "snapshot_media": null
+        }
+      },
+      {
+        "hotel_id": 81140,
+        "logical_id": "commercial-hotel-81140-v1",
+        "platform": "telegram",
+        "file_exists": true,
+        "saved_state": "confirmed",
+        "saved_text_sha256": "71437534b9d5ea2f054bfcc1c61a5d60ab5c58a351a9205041754318dc76cbeb",
+        "saved_photo_sha256": "178a18c65b23403db663ea61fa2bc6239f4e198d6ea8c93e4cd4b822ae3a0e87",
+        "saved_publication_id": 1944,
+        "saved_version_id": 7473,
+        "saved_receipt": {
+          "logical_id": "commercial-hotel-81140-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "898",
+          "post_url": "https://t.me/any_toour/898",
+          "publication_id": 1944,
+          "version_id": 7473,
+          "button_url": "https://t.me/anyru_bot?start=p_TrBJea7WQYVvPA6q1n6WMKbd",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "71437534b9d5ea2f054bfcc1c61a5d60ab5c58a351a9205041754318dc76cbeb",
+          "photo_sha256": "178a18c65b23403db663ea61fa2bc6239f4e198d6ea8c93e4cd4b822ae3a0e87",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 81140,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/81140.png"
+        },
+        "button_result": {
+          "publication_id": 1944,
+          "version_id": 7473,
+          "state": "sent",
+          "reason": "verified",
+          "reconcile_only": false,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "http_results": [
+              {
+                "operation": "bot_identity",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "channel_rights",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "append_button",
+                "http": 200,
+                "transport_error": false
+              }
+            ],
+            "content_preserved": true,
+            "button_verified": true
+          }
+        },
+        "original_message": {
+          "message_id": 898,
+          "chat_id": -1002262666616,
+          "caption": "✈️ Туры в SAii Koh Samui Villas 12+\n📍 Самуи, Таиланд.\n\nВиллы с собственными бассейнами и тропический сад для гостей от 12 лет. Спокойный Самуи, спа и пляжный клуб у бассейна; на природном пляже каменистый вход в море.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "photo_present": true,
+          "date": 1794935404,
+          "edit_date": null,
+          "reply_markup": null
+        },
+        "current_publication": {
+          "publication_id": 1944,
+          "version_id": 7473,
+          "project_key": "anytour",
+          "platform": "telegram",
+          "bot_key": "anyru_bot",
+          "channel_id": "-1002262666616",
+          "external_message_id": "898",
+          "state": "sent",
+          "source_key": "tg_anytour_msk",
+          "start_payload": "p_TrBJea7WQYVvPA6q1n6WMKbd",
+          "write_attempted": true,
+          "write_attempts": 1,
+          "attempt_count": 1,
+          "error_reason": "verified",
+          "claim_token": null,
+          "claimed_at": null,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "content_preserved": true,
+            "button_verified": true,
+            "http_results": []
+          },
+          "text_sha256": "71437534b9d5ea2f054bfcc1c61a5d60ab5c58a351a9205041754318dc76cbeb",
+          "text": "✈️ Туры в SAii Koh Samui Villas 12+\n📍 Самуи, Таиланд.\n\nВиллы с собственными бассейнами и тропический сад для гостей от 12 лет. Спокойный Самуи, спа и пляжный клуб у бассейна; на природном пляже каменистый вход в море.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "snapshot_metadata": {
+            "capability": "supported",
+            "capability_reason": "",
+            "media_group_id": "",
+            "actual_message_id": "898",
+            "observation_kind": "provider_send_response",
+            "logical_id": "commercial-hotel-81140-v1",
+            "hotel_catalog_id": 81140,
+            "source_event_id": "commercial-hotel-batch-20261117-27-v1:telegram:commercial-hotel-81140-v1:898"
+          },
+          "snapshot_keyboard": [],
+          "snapshot_media": null
+        }
+      },
+      {
+        "hotel_id": 8020,
+        "logical_id": "commercial-hotel-8020-v1",
+        "platform": "telegram",
+        "file_exists": true,
+        "saved_state": "confirmed",
+        "saved_text_sha256": "ee9b6cc5ec50518d38efbf59fb4b4be184cbb2807341c6de4ab542a4e535dcec",
+        "saved_photo_sha256": "cbf6d5ebb29174f59c4e8f8c157406918e9ccb532ee3df06d9966863399c16e3",
+        "saved_publication_id": 1945,
+        "saved_version_id": 7474,
+        "saved_receipt": {
+          "logical_id": "commercial-hotel-8020-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "899",
+          "post_url": "https://t.me/any_toour/899",
+          "publication_id": 1945,
+          "version_id": 7474,
+          "button_url": "https://t.me/anyru_bot?start=p_SDzjoKbUsYa00Er--rLHP1de",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "ee9b6cc5ec50518d38efbf59fb4b4be184cbb2807341c6de4ab542a4e535dcec",
+          "photo_sha256": "cbf6d5ebb29174f59c4e8f8c157406918e9ccb532ee3df06d9966863399c16e3",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 8020,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/8020.png"
+        },
+        "button_result": {
+          "publication_id": 1945,
+          "version_id": 7474,
+          "state": "sent",
+          "reason": "verified",
+          "reconcile_only": false,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "http_results": [
+              {
+                "operation": "bot_identity",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "channel_rights",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "append_button",
+                "http": 200,
+                "transport_error": false
+              }
+            ],
+            "content_preserved": true,
+            "button_verified": true
+          }
+        },
+        "original_message": {
+          "message_id": 899,
+          "chat_id": -1002262666616,
+          "caption": "✈️ Туры в The Lamai Samui\n📍 Самуи, Таиланд.\n\nТропический сад у пляжа Ламай, бассейн, рестораны и спа для спокойного Самуи. Можно выбрать сьют или виллу и проводить дни между морем, отдыхом у воды и тайскими ужинами.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "photo_present": true,
+          "date": 1794935408,
+          "edit_date": null,
+          "reply_markup": null
+        },
+        "current_publication": {
+          "publication_id": 1945,
+          "version_id": 7474,
+          "project_key": "anytour",
+          "platform": "telegram",
+          "bot_key": "anyru_bot",
+          "channel_id": "-1002262666616",
+          "external_message_id": "899",
+          "state": "sent",
+          "source_key": "tg_anytour_msk",
+          "start_payload": "p_SDzjoKbUsYa00Er--rLHP1de",
+          "write_attempted": true,
+          "write_attempts": 1,
+          "attempt_count": 1,
+          "error_reason": "verified",
+          "claim_token": null,
+          "claimed_at": null,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "content_preserved": true,
+            "button_verified": true,
+            "http_results": []
+          },
+          "text_sha256": "ee9b6cc5ec50518d38efbf59fb4b4be184cbb2807341c6de4ab542a4e535dcec",
+          "text": "✈️ Туры в The Lamai Samui\n📍 Самуи, Таиланд.\n\nТропический сад у пляжа Ламай, бассейн, рестораны и спа для спокойного Самуи. Можно выбрать сьют или виллу и проводить дни между морем, отдыхом у воды и тайскими ужинами.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "snapshot_metadata": {
+            "capability": "supported",
+            "capability_reason": "",
+            "media_group_id": "",
+            "actual_message_id": "899",
+            "observation_kind": "provider_send_response",
+            "logical_id": "commercial-hotel-8020-v1",
+            "hotel_catalog_id": 8020,
+            "source_event_id": "commercial-hotel-batch-20261117-27-v1:telegram:commercial-hotel-8020-v1:899"
+          },
+          "snapshot_keyboard": [],
+          "snapshot_media": null
+        }
+      },
+      {
+        "hotel_id": 51931,
+        "logical_id": "commercial-hotel-51931-v1",
+        "platform": "telegram",
+        "file_exists": true,
+        "saved_state": "confirmed",
+        "saved_text_sha256": "f0a3acc59eb97aadaf56ee314b958514df508cff03ece28e088bbfb7b0e804f2",
+        "saved_photo_sha256": "d1dc5f43b42a7358d7c4bafc34975cb26d5e9654d9666cb7c4926ad8a2a1e4ed",
+        "saved_publication_id": 1946,
+        "saved_version_id": 7475,
+        "saved_receipt": {
+          "logical_id": "commercial-hotel-51931-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "900",
+          "post_url": "https://t.me/any_toour/900",
+          "publication_id": 1946,
+          "version_id": 7475,
+          "button_url": "https://t.me/anyru_bot?start=p_eWrj2rV0awyaRSoBhdO0mj_L",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "f0a3acc59eb97aadaf56ee314b958514df508cff03ece28e088bbfb7b0e804f2",
+          "photo_sha256": "d1dc5f43b42a7358d7c4bafc34975cb26d5e9654d9666cb7c4926ad8a2a1e4ed",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 51931,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/51931.png"
+        },
+        "button_result": {
+          "publication_id": 1946,
+          "version_id": 7475,
+          "state": "sent",
+          "reason": "verified",
+          "reconcile_only": false,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "http_results": [
+              {
+                "operation": "bot_identity",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "channel_rights",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "append_button",
+                "http": 200,
+                "transport_error": false
+              }
+            ],
+            "content_preserved": true,
+            "button_verified": true
+          }
+        },
+        "original_message": {
+          "message_id": 900,
+          "chat_id": -1002262666616,
+          "caption": "✈️ Туры в Amari Bangsaen\n📍 Банг Саен, Таиланд.\n\nБанг Саен для спокойных дней у моря и прогулок по местным кафе. Отель расположен напротив пляжа; бассейн, спа и детский клуб помогут устроить короткий отпуск или семейные каникулы.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "photo_present": true,
+          "date": 1794935413,
+          "edit_date": null,
+          "reply_markup": null
+        },
+        "current_publication": {
+          "publication_id": 1946,
+          "version_id": 7475,
+          "project_key": "anytour",
+          "platform": "telegram",
+          "bot_key": "anyru_bot",
+          "channel_id": "-1002262666616",
+          "external_message_id": "900",
+          "state": "sent",
+          "source_key": "tg_anytour_msk",
+          "start_payload": "p_eWrj2rV0awyaRSoBhdO0mj_L",
+          "write_attempted": true,
+          "write_attempts": 1,
+          "attempt_count": 1,
+          "error_reason": "verified",
+          "claim_token": null,
+          "claimed_at": null,
+          "receipt": {
+            "request_count": 3,
+            "write_attempts": 1,
+            "content_preserved": true,
+            "button_verified": true,
+            "http_results": []
+          },
+          "text_sha256": "f0a3acc59eb97aadaf56ee314b958514df508cff03ece28e088bbfb7b0e804f2",
+          "text": "✈️ Туры в Amari Bangsaen\n📍 Банг Саен, Таиланд.\n\nБанг Саен для спокойных дней у моря и прогулок по местным кафе. Отель расположен напротив пляжа; бассейн, спа и детский клуб помогут устроить короткий отпуск или семейные каникулы.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "snapshot_metadata": {
+            "capability": "supported",
+            "capability_reason": "",
+            "media_group_id": "",
+            "actual_message_id": "900",
+            "observation_kind": "provider_send_response",
+            "logical_id": "commercial-hotel-51931-v1",
+            "hotel_catalog_id": 51931,
+            "source_event_id": "commercial-hotel-batch-20261117-27-v1:telegram:commercial-hotel-51931-v1:900"
+          },
+          "snapshot_keyboard": [],
+          "snapshot_media": null
+        }
+      },
+      {
+        "hotel_id": 66375,
+        "logical_id": "commercial-hotel-66375-v1",
+        "platform": "telegram",
+        "file_exists": true,
+        "saved_state": "button_attempted",
+        "saved_text_sha256": "b2caf990b6bdcdb7ab0dc0e5d7f1951d9d677aba806ad4f0e3b5022431929599",
+        "saved_photo_sha256": "68d923a5d5e8709d747ea2da78a60dea0f9c8e4269d2c048144a79d98adb4046",
+        "saved_publication_id": 1947,
+        "saved_version_id": 7476,
+        "saved_receipt": null,
+        "button_result": {
+          "publication_id": 1947,
+          "version_id": 7476,
+          "state": "requires_attention",
+          "reason": "provider_read_failed",
+          "reconcile_only": false,
+          "receipt": {
+            "request_count": 2,
+            "write_attempts": 0,
+            "http_results": [
+              {
+                "operation": "bot_identity",
+                "http": 200,
+                "transport_error": false
+              },
+              {
+                "operation": "channel_rights",
+                "http": 0,
+                "transport_error": true
+              }
+            ]
+          }
+        },
+        "original_message": {
+          "message_id": 901,
+          "chat_id": -1002262666616,
+          "caption": "✈️ Туры в Cape Fahn Hotel\n📍 Самуи, Таиланд.\n\nНебольшой остров рядом с Самуи для особенного отпуска: виллы с бассейнами, морские панорамы и песчаный берег. Рестораны и спа дополняют отдых, когда хочется уединения и тропической природы.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "photo_present": true,
+          "date": 1794935417,
+          "edit_date": null,
+          "reply_markup": null
+        },
+        "current_publication": {
+          "publication_id": 1947,
+          "version_id": 7476,
+          "project_key": "anytour",
+          "platform": "telegram",
+          "bot_key": "anyru_bot",
+          "channel_id": "-1002262666616",
+          "external_message_id": "901",
+          "state": "requires_attention",
+          "source_key": "tg_anytour_msk",
+          "start_payload": "p_ZXyPh7w6VuMFgizi5sicRM-c",
+          "write_attempted": false,
+          "write_attempts": 0,
+          "attempt_count": 1,
+          "error_reason": "provider_read_failed",
+          "claim_token": null,
+          "claimed_at": null,
+          "receipt": {
+            "request_count": 2,
+            "write_attempts": 0,
+            "http_results": [
+              {
+                "operation": "channel_rights",
+                "http": 0,
+                "transport_error": 1
+              }
+            ]
+          },
+          "text_sha256": "b2caf990b6bdcdb7ab0dc0e5d7f1951d9d677aba806ad4f0e3b5022431929599",
+          "text": "✈️ Туры в Cape Fahn Hotel\n📍 Самуи, Таиланд.\n\nНебольшой остров рядом с Самуи для особенного отпуска: виллы с бассейнами, морские панорамы и песчаный берег. Рестораны и спа дополняют отдых, когда хочется уединения и тропической природы.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+          "snapshot_metadata": {
+            "capability": "supported",
+            "capability_reason": "",
+            "media_group_id": "",
+            "actual_message_id": "901",
+            "observation_kind": "provider_send_response",
+            "logical_id": "commercial-hotel-66375-v1",
+            "hotel_catalog_id": 66375,
+            "source_event_id": "commercial-hotel-batch-20261117-27-v1:telegram:commercial-hotel-66375-v1:901"
+          },
+          "snapshot_keyboard": [],
+          "snapshot_media": null
+        }
+      },
+      {
+        "hotel_id": 22718,
+        "logical_id": "commercial-hotel-22718-v1",
+        "platform": "max",
+        "file_exists": false
+      },
+      {
+        "hotel_id": 541,
+        "logical_id": "commercial-hotel-541-v1",
+        "platform": "max",
+        "file_exists": false
+      },
+      {
+        "hotel_id": 2006,
+        "logical_id": "commercial-hotel-2006-v1",
+        "platform": "max",
+        "file_exists": false
+      },
+      {
+        "hotel_id": 9385,
+        "logical_id": "commercial-hotel-9385-v1",
+        "platform": "max",
+        "file_exists": false
+      },
+      {
+        "hotel_id": 3006,
+        "logical_id": "commercial-hotel-3006-v1",
+        "platform": "max",
+        "file_exists": false
+      },
+      {
+        "hotel_id": 82422,
+        "logical_id": "commercial-hotel-82422-v1",
+        "platform": "max",
+        "file_exists": false
+      },
+      {
+        "hotel_id": 81140,
+        "logical_id": "commercial-hotel-81140-v1",
+        "platform": "max",
+        "file_exists": false
+      },
+      {
+        "hotel_id": 8020,
+        "logical_id": "commercial-hotel-8020-v1",
+        "platform": "max",
+        "file_exists": false
+      },
+      {
+        "hotel_id": 51931,
+        "logical_id": "commercial-hotel-51931-v1",
+        "platform": "max",
+        "file_exists": false
+      },
+      {
+        "hotel_id": 66375,
+        "logical_id": "commercial-hotel-66375-v1",
+        "platform": "max",
+        "file_exists": false
+      }
+    ],
+    "original_summary": {
+      "operation": "commercial-hotel-batch-20261117-27-v1",
+      "mode": "publish_approved_commercial_batch",
+      "ok": false,
+      "post_write_attempts": 10,
+      "channels": [],
+      "posts": [
+        {
+          "logical_id": "commercial-hotel-22718-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "892",
+          "post_url": "https://t.me/any_toour/892",
+          "publication_id": 1938,
+          "version_id": 7467,
+          "button_url": "https://t.me/anyru_bot?start=p_478sS9Ecp-NzH0o3O8RDbasy",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "c6a5d974a86e699243e9b31da8261598c7d5b09c358df689918da314e08f3a84",
+          "photo_sha256": "51d62263f6822153e12f1d51035cd7722865c1e69658912931120ca4d9b017ed",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 22718,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/22718.png"
+        },
+        {
+          "logical_id": "commercial-hotel-541-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "893",
+          "post_url": "https://t.me/any_toour/893",
+          "publication_id": 1939,
+          "version_id": 7468,
+          "button_url": "https://t.me/anyru_bot?start=p_Q9YoDt0S0xyn7mpVZcLUu_2B",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "72135fce292d71a2e2cc628141fd081b3cd5c77e50ff3675828edd9a6e6d6950",
+          "photo_sha256": "0c1d2a5f97d65819489d3ec8d07d9bd5c909c56b7bd5e3a8235aaea20c3f93e8",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 541,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/541.png"
+        },
+        {
+          "logical_id": "commercial-hotel-2006-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "894",
+          "post_url": "https://t.me/any_toour/894",
+          "publication_id": 1940,
+          "version_id": 7469,
+          "button_url": "https://t.me/anyru_bot?start=p_3Qke917uyX-xnKiP3nHbe4Xp",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "c26626e04686f95cf2e63985cb188ccc04536cfece44b30fa078cb0182486619",
+          "photo_sha256": "e8cf353aaaae00849067d7f92b1092e431953bb886ee0a9be936f5888425a0b7",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2006,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/2006.png"
+        },
+        {
+          "logical_id": "commercial-hotel-9385-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "895",
+          "post_url": "https://t.me/any_toour/895",
+          "publication_id": 1941,
+          "version_id": 7470,
+          "button_url": "https://t.me/anyru_bot?start=p_IId2PXv2qQ5eHnQq7omXS13Z",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "b42b46e2bcd5d05796f830723b5ca03213d84a7e715cfeb7e329764e6e8731ae",
+          "photo_sha256": "9f1597ff438e109a5533496cf378fe756c1544091dbcf8a263c7dea3780c9b0e",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 9385,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/9385.png"
+        },
+        {
+          "logical_id": "commercial-hotel-3006-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "896",
+          "post_url": "https://t.me/any_toour/896",
+          "publication_id": 1942,
+          "version_id": 7471,
+          "button_url": "https://t.me/anyru_bot?start=p_fnM2dXdgQJmmsIEjKeMXz9y7",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "e64eb0d0668792e7da6e12c0b60556bae9032ddc61d85da4052746a1169d60ab",
+          "photo_sha256": "affb677aa1f489fcbcc8fda965ddcfa635ec8aa019bf9b33043538942ffd1e6e",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 3006,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/3006.png"
+        },
+        {
+          "logical_id": "commercial-hotel-82422-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "897",
+          "post_url": "https://t.me/any_toour/897",
+          "publication_id": 1943,
+          "version_id": 7472,
+          "button_url": "https://t.me/anyru_bot?start=p_ks6RWVUIIH8c3wF0awUe2KPv",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "4549cd5a7d59239ed1ffb9c33d2033b18bea49737710fa057b790e6b19a5bfab",
+          "photo_sha256": "997026ed476d437801d4b9fb787c935bc3e81e9b63c63194bcacf864807d539e",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 82422,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/82422.png"
+        },
+        {
+          "logical_id": "commercial-hotel-81140-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "898",
+          "post_url": "https://t.me/any_toour/898",
+          "publication_id": 1944,
+          "version_id": 7473,
+          "button_url": "https://t.me/anyru_bot?start=p_TrBJea7WQYVvPA6q1n6WMKbd",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "71437534b9d5ea2f054bfcc1c61a5d60ab5c58a351a9205041754318dc76cbeb",
+          "photo_sha256": "178a18c65b23403db663ea61fa2bc6239f4e198d6ea8c93e4cd4b822ae3a0e87",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 81140,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/81140.png"
+        },
+        {
+          "logical_id": "commercial-hotel-8020-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "899",
+          "post_url": "https://t.me/any_toour/899",
+          "publication_id": 1945,
+          "version_id": 7474,
+          "button_url": "https://t.me/anyru_bot?start=p_SDzjoKbUsYa00Er--rLHP1de",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "ee9b6cc5ec50518d38efbf59fb4b4be184cbb2807341c6de4ab542a4e535dcec",
+          "photo_sha256": "cbf6d5ebb29174f59c4e8f8c157406918e9ccb532ee3df06d9966863399c16e3",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 8020,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/8020.png"
+        },
+        {
+          "logical_id": "commercial-hotel-51931-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "900",
+          "post_url": "https://t.me/any_toour/900",
+          "publication_id": 1946,
+          "version_id": 7475,
+          "button_url": "https://t.me/anyru_bot?start=p_eWrj2rV0awyaRSoBhdO0mj_L",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "f0a3acc59eb97aadaf56ee314b958514df508cff03ece28e088bbfb7b0e804f2",
+          "photo_sha256": "d1dc5f43b42a7358d7c4bafc34975cb26d5e9654d9666cb7c4926ad8a2a1e4ed",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 51931,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/51931.png"
+        }
+      ],
+      "reused": 0,
+      "new_posts": 9,
+      "current": {
+        "platform": "telegram",
+        "logical_id": "commercial-hotel-66375-v1"
+      },
+      "error": "button_outcome_not_confirmed_no_retry"
+    },
+    "ok": true
+  },
+  "scope": {
+    "first_execution_operations": [
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34
+    ],
+    "hotels": 70,
+    "source_artifact": 14349679332,
+    "source_unchanged": true,
+    "p27_not_replayed": true
+  },
+  "recovery_10": {
+    "state": "HELD_NO_BLIND_REPLAY",
+    "reason": "TG901 button never written; requires_attention cannot be retried by installed registry; proper admitted recovery needed",
+    "max_posts": 0
+  },
+  "feed_writes": 0,
+  "app_installs": 0
+}
