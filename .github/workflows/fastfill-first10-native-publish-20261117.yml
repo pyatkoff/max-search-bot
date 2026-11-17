@@ -16,7 +16,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
       github.event_name == 'push' &&
-      github.event.before == '108b2f4662f36b7076a137922e549bef441d17a2' &&
+      github.event.before == 'a455e5197fcc5cdbe6e124c036a0f0e29e6083e4' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -31,7 +31,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = 108b2f4662f36b7076a137922e549bef441d17a2
+          test "$(git rev-parse HEAD^)" = a455e5197fcc5cdbe6e124c036a0f0e29e6083e4
           test "$(git hash-object tools/direct_demand/operations/commercial-batch-20261117-1-manifest.json)" = 63ab9f3586a85124d249e599a65ed44bd845c123
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = 02f8267f39e6435c298fe75f646ce06da694dd7a
           python3 - <<'PY'
@@ -111,7 +111,7 @@ jobs:
           set -euo pipefail
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = 02f8267f39e6435c298fe75f646ce06da694dd7a
           options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
-          ssh "${{options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; app=/var/www/anytoour/data/www/app.anytoour.ru; test -d "$app/.git" && test ! -L "$app"; cd "$app"; test "$(git rev-parse HEAD)" = 02f8267f39e6435c298fe75f646ce06da694dd7a; test -z "$(git status --porcelain --untracked-files=no)"; command -v php >/dev/null; printf "CURRENT_PRODUCTION_SOURCE_VERIFIED\\n"' > pub/preflight.txt
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; app=/var/www/anytoour/data/www/app.anytoour.ru; test -d "$app/.git" && test ! -L "$app"; cd "$app"; test "$(git rev-parse HEAD)" = 02f8267f39e6435c298fe75f646ce06da694dd7a; test -z "$(git status --porcelain --untracked-files=no)"; command -v php >/dev/null; printf "CURRENT_PRODUCTION_SOURCE_VERIFIED\\n"' > pub/preflight.txt
           grep -Fx 'CURRENT_PRODUCTION_SOURCE_VERIFIED' pub/preflight.txt
       - name: Invoke the original bounded telegram and MAX publisher ONCE
         env:
@@ -122,7 +122,7 @@ jobs:
           set -euo pipefail
           options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
           rc=0
-          ssh "${{options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/first10-once.php > pub/original-native-output.jsonl || rc=$?
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/first10-once.php > pub/original-native-output.jsonl || rc=$?
           printf '%s\n' "$rc" > pub/original-exit.txt
           cat pub/original-native-output.jsonl
           exit "$rc"
