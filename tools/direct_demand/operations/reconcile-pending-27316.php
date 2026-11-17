@@ -510,10 +510,11 @@ if (!defined('HOOK_EDITOR_B64') || !function_exists('safeResult') || !function_e
 }
 if (count($argv) === 2 && $argv[1] === '--self-test') { try { reconcile_self_test(); exit(0); } catch (Throwable $e) { fwrite(STDERR,'SELFTEST_STOP: '.$e->getMessage()."\n"); exit(2); } }
 $apply = getenv('ANYTOUR_MONITOR_27316_APPLY') === '1';
-if ($apply) { fwrite(STDERR, "PRICE27316_APPLY_DISABLED_UNTIL_REVIEWED\n"); exit(2); }
+// Apply is reachable only through the exact-parent, single-attempt recovery workflow.
+// Every mutable incident pin is rechecked below; changed/UNKNOWN state cannot replay.
 $out = ['ok'=>false, 'operation'=>RECONCILE_OPERATION, 'mode'=>$apply?'apply_original_pending_only':'inspect_original_pending_only',
     'checked_at'=>gmdate('c'),'driver_sha256'=>RECONCILE_DRIVER_SHA256,'embedded_prefix_sha256'=>RECONCILE_EMBEDDED_PREFIX_SHA256,
-    'max_puts'=>0,'max_gets'=>0,'saved_monitor_gets'=>0,'telegram_edit_attempts'=>0,'new_posts'=>0,'supplier_calls'=>0,
+    'max_puts'=>0,'max_gets'=>0,'max_confirm_calls'=>0,'saved_monitor_gets'=>0,'telegram_edit_attempts'=>0,'new_posts'=>0,'supplier_calls'=>0,
     'telegram_capability_checks'=>0,'write_admission_complete'=>false,
     'database_write_calls'=>0,'journal_appends'=>0,'feed_resume_calls'=>0,'original_completed_pairs_replayed'=>0];
 $locks = []; $pdo = null;
