@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "state": "REVIEWED_FINITE_FEED217_EXACT_ROOT_PERMIT_CHAIN",
-  "parent_sha": "76bfa1517818af8d458e9e227fd18ab45e3ff6fc",
+  "parent_sha": "54ad74a14163b2e62804798de768ac683c6414e4",
   "claim_id": 6955394658,
   "claim_body_sha256": "51cc2d3531118e2aba6146515946dc2efad9a78130864d5fd45a03789ce6c37a",
   "permit_comment_id": 6957283506,
@@ -337,11 +337,11 @@
     "head_sha": "bbef3101f8c8f6eae15355c0d6fa4b8c1848dfa2"
   },
   "source_sha256": {
-    ".github/workflows/price27316-feed217.yml": "61fc9f760bd624556d1d54ae93aa4a61b497b895d4bf3d69e366289deb922713",
+    ".github/workflows/price27316-feed217.yml": "875fd3ec4e12cdec3bb0df652351c4c41fab7f0502b6348bd8a7da35ecc92a70",
     "tools/direct_demand/operations/execute_feed217.py": "933c792565e843724a0e99ff06a8deb4d0b542ea5689dc514e6b5eac20b64564",
     "tools/direct_demand/operations/immutable_source_cache.py": "4fb4c879469877c612d2d101eba89214806563a026c9e2e38905875dd95a99f0",
     "tools/direct_demand/operations/inventory217-provenance.json": "69d6813bd7a3a06ad7f62f6a13baa33c8f13ab62f12ca5d57899fb329609fb88",
-    "tools/direct_demand/operations/nonwriting_queued217_guard.py": "c05802074eea620d8b1a6337b5e9dd1aff053a0863b83b252cabec10aec9cefe",
+    "tools/direct_demand/operations/nonwriting_queued217_guard.py": "3182833f9db0cdd994d099fa5aaa7a339b6b7b7d54af037ca7d1c9b1af2581ca",
     "tools/direct_demand/operations/original_acceptance217.py": "dfb560453ed9cd56218cd3ad80594012485f35551abf308266cd582e861808d3",
     "tools/direct_demand/operations/owner_permit_gate.py": "dc17ee04783f0198f2c6887432b3367e58a2bd270b9906a3ebbf1cba821a1f3c",
     "tools/direct_demand/operations/prepare_feed217.py": "5a2144916be7af58c23dd62453276976f3151c21c775d993b44a42b7bf8de74b",
@@ -360,7 +360,7 @@
     "path": "tools/direct_demand/operations/runtime71d5-transition.json",
     "sha256": "5eb201e5ad482424bf60faba794956f85ca19dc758245adb3e3b0f6ffdb8c206"
   },
-  "execution_mode": "PREPARE_ONLY",
+  "execution_mode": "WRITE_SUFFIX",
   "prefix_resume": {
     "path": "tools/direct_demand/operations/prefix207-checkpoint.json",
     "sha256": "a9b483bb76b7d07d1ad727ea12c9c5d7749b6030329f6a381ee14e3905eaca4b"
