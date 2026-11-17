@@ -487,7 +487,11 @@ try {
     $global = reconcile_global_state($globalLock);
     reconcile_need(($global['schema']??null)===1 && count($global['completed']??[])===589
         && ($global['pending']['tourvisor_hotel_id']??null)===RECONCILE_TV && ($global['pending']['operation']??null)===RECONCILE_OPERATION
-        && ($global['pending']['phase']??null)==='post_started' && ($global['pending']['child_failure']??null)===['exit_code'=>2,'error'=>'max_button_outcome_not_confirmed']
+        && ($global['pending']['phase']??null)==='post_started'
+        && is_array($global['pending']['child_failure']??null)
+        && count($global['pending']['child_failure'])===2
+        && ($global['pending']['child_failure']['exit_code']??null)===2
+        && ($global['pending']['child_failure']['error']??null)==='max_button_outcome_not_confirmed'
         && !isset($global['completed'][RECONCILE_TV]), 'reconcile_original_pending_changed');
     [$journalLock,$journalRaw] = reconcile_open(RECONCILE_ROOT.'/'.RECONCILE_OPERATION.'/receipt.jsonl',10000000,$apply,$locks);
     $state = reconcile_prefix_guard($journalRaw,RECONCILE_ORIGINAL_SHA,40405,4); $maxPlan = reconcile_original_state($state);
