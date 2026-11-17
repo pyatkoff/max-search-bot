@@ -113,7 +113,7 @@ if($action==='detail'){
     // card, newer transcript or reply requests behind SQL/media hydration.
     session_write_close();
     try{
-        $messageMediaRows=[];
+        $messageMediaRows=$beforeId===0?[]:null;
         $d=ManagerConversationService::detail($conversationId,(int)$m['id'],$beforeId,200,false,$openUnread,$messageMediaRows);
         if($d){
             $d['messages']=ManagerMessageMediaService::hydrate((array)($d['messages']??[]),$messageMediaRows);
