@@ -140,3 +140,27 @@ when available; historical bare DATETIME values have mixed bases and must not be
 bulk-shifted or silently declared UTC. Preserve stored values and the original
 physical working interval, now expressed as 11:00–21:00 Moscow time. This does not
 change operator shifts, runtime server clocks or local travel departure/arrival times.
+
+
+## Owner correction — paid miniapp URL attribution (2026-11-17)
+
+For paid MAX miniapp entries, preserve the original `yclid` from `startapp`,
+with its existing region/campaign context, in the actual miniapp page URL
+**before** initializing Yandex Metrika. URL normalization must retain these
+advertising parameters. Use ordinary pageview tracking; do not replace the
+established flow with `defer:true` and manual hits as incidental cleanup.
+Changes to this contract, counters, goals, campaign bindings or another project's
+runtime require explicit owner direction and relevant regression checks.
+
+Keep raw MAX initData, user identity and signature in the existing launch memory
+and authenticated server request, outside analytics URLs. Removing those raw
+fields must not remove the original paid click. Preserve the existing verified
+post/offer and durable-save receipt before redirecting to the exact native post.
+AnyTour's separate `/new/max2/` route remains unchanged by AppleService39 work.
+
+Regression coverage must prove the real URL at counter initialization, original
+YCLID string preservation, signature privacy and exact saved-post redirect,
+including blocked analytics and conflicting launch data. Report Metrika goal
+counts and Direct-attributed goal counts separately. A stored ClientID or visit
+row is not proof of a Direct conversion; do not claim live attribution from
+source tests or fabricate a production advertising click to obtain acceptance.
