@@ -48,7 +48,16 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-atlantis-icon-76582006.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Royal Atlantis Icon",
+        "location": "Сиде, Турция",
+        "body": "В Гюндогду можно начать день в аквапарке, а после обеда отправиться на песчаный пляж. До моря ходит шаттл. Для семей, которым важно чередовать пляж и бассейны.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=121821",
+        "official_sources": [
+          "https://royalatlantis.com.tr/EN/icon/pool-beach"
+        ]
+      }
     },
     {
       "work_id": "W7_021",
@@ -85,7 +94,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/1/sataya-resort-marsa-alam-1109506.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Sataya Resort Marsa Alam",
+        "location": "Марса-Алам, Египет",
+        "body": "У Sataya несколько бассейнов и аквапарк для детей. У моря два варианта входа, с берега и с понтона. Пляж песчано-каменистый, пригодится обувь для воды.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76226"
+      }
     },
     {
       "work_id": "W7_041",
@@ -122,7 +137,16 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/9/caesars-resort-bluewaters-dubai-50839307.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Banyan Tree Dubai",
+        "location": "Дубай, ОАЭ",
+        "body": "Полкилометра частного пляжа на острове Bluewaters. Днём можно гулять вдоль моря с видом на Ain Dubai, вечером отправиться на набережную Dubai Marina.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64998",
+        "official_sources": [
+          "https://www.banyantree.com/united-arab-emirates/dubai"
+        ]
+      }
     },
     {
       "work_id": "W7_002",
@@ -157,7 +181,16 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-taj-mahal-hotel-24636406.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Royal Taj Mahal Hotel",
+        "location": "Сиде, Турция",
+        "body": "Дворец в индийском стиле стоит прямо у песчаного пляжа. Дети могут менять морские купания на аквапарк, а родители отдыхать у открытого бассейна среди пальм.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=37209",
+        "official_sources": [
+          "https://www.royaltajmahal.com/en"
+        ]
+      }
     },
     {
       "work_id": "W7_022",
@@ -192,7 +225,16 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/1/xanadu-makadi-bay-102308077.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Xanadu Makadi Bay",
+        "location": "Макади-Бей, Египет",
+        "body": "После утра у моря дети могут переместиться в аквапарк или Fancyland. В клубе выделены отдельные зоны для малышей, школьников и подростков, поэтому у каждого свой способ провести день.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78964",
+        "official_sources": [
+          "https://www.xanaduhotels.com.tr/en/xanadu-makadi-bay/kids"
+        ]
+      }
     },
     {
       "work_id": "W7_042",
@@ -227,7 +269,16 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/9/46323-87197806.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Al Habtoor Palace",
+        "location": "Дубай, ОАЭ",
+        "body": "Дворцовый отель в Al Habtoor City подойдёт для поездки с планами на город. Днём можно отдохнуть у бассейна на крыше, вечером сходить на водное шоу La Perle поблизости.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=46323",
+        "official_sources": [
+          "https://www.habtoorpalace.com/"
+        ]
+      }
     },
     {
       "work_id": "W7_003",
@@ -240,7 +291,8 @@
       "aliases_to_check": [
         "SWANDOR HOTELS & RESORTS TOPKAPI PALACE (EX. WOW TOPKAPI PALACE)",
         "SWANDOR HOTELS & RESORTS TOPKAPI PALACE",
-        "WOW TOPKAPI PALACE"
+        "WOW TOPKAPI PALACE",
+        "Swandor Topkapi Palace"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Swandor&countryId=4&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1589",
@@ -264,7 +316,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/4/wow-topkapi-palace-62278006.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Swandor Topkapi Palace",
+        "location": "Анталья, Турция",
+        "body": "Курорт напоминает османский дворец. За его корпусами песчаный берег с пирсами, просторные бассейны и аквапарк. Большая территория удобна для отдыха с детьми.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1589"
+      }
     },
     {
       "work_id": "W7_023",
@@ -275,7 +333,8 @@
       "region": "Эль Гуна",
       "category": 5,
       "aliases_to_check": [
-        "DOUBLETREE BY HILTON MANGROOVY EL GOUNA RESORT"
+        "DOUBLETREE BY HILTON MANGROOVY EL GOUNA RESORT",
+        "DoubleTree Mangroovy El Gouna"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hilton&countryId=1&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=127349",
@@ -299,7 +358,16 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/1/doubletree-by-hilton-mangroovy-el-gouna-resort-26230506.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "DoubleTree Mangroovy El Gouna",
+        "location": "Эль-Гуна, Египет",
+        "body": "Утро у бассейна или на собственном песчаном пляже, вечером прогулка по Эль-Гуне. Отель даёт спокойную базу для отдыха на Красном море и выездов на набережную.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=127349",
+        "official_sources": [
+          "https://www.hilton.com/en/hotels/hrgegdi-doubletree-mangroovy-el-gouna-resort/"
+        ]
+      }
     },
     {
       "work_id": "W7_043",
@@ -333,7 +401,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/9/palace-dubai-creek-harbour-2810407.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Palace Dubai Creek Harbour",
+        "location": "Дубай, ОАЭ",
+        "body": "Искупаться в панорамном бассейне, а к закату выйти гулять по набережной Dubai Creek Harbour. Для поездки вдвоём, когда хочется вида на воду и вечеров в городе.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=115677"
+      }
     },
     {
       "work_id": "W7_004",
@@ -346,7 +420,8 @@
       "aliases_to_check": [
         "TUI MAGIC LIFE BODRUM ADULT ONLY 16+ (EX. ERSAN EXCLUSIVE RESORT & SPA)",
         "TUI MAGIC LIFE BODRUM ADULT ONLY 16+",
-        "ERSAN EXCLUSIVE RESORT & SPA"
+        "ERSAN EXCLUSIVE RESORT & SPA",
+        "TUI Magic Life Bodrum"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=TUI+Magic&countryId=4&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2161",
@@ -369,7 +444,16 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/4/ersan-resort-spa-102211086.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "TUI Magic Life Bodrum",
+        "location": "Бодрум, Турция",
+        "body": "На берегу бухты можно попробовать каяк, провести день на собственном пляже или сыграть в теннис. Клуб принимает гостей от 16 лет. Подойдёт для активной поездки вдвоём.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2161",
+        "official_sources": [
+          "https://www.tthotels.com/en/hotel/tui-magic-life-bodrum/hotel-facilities"
+        ]
+      }
     },
     {
       "work_id": "W7_024",
@@ -395,16 +479,22 @@
       "photo_urls_in_bound_gallery": 51,
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-rotana-102011170.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-rotana-102011183.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-rotana-102011185.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-rotana-102011181.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-rotana-102011182.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-rotana-102011183.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-rotana-102011184.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-rotana-102011185.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-rotana-102011186.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-rotana-102011197.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Grand Rotana Resort & Spa",
+        "location": "Шарм-эль-Шейх, Египет",
+        "body": "С пирсов можно выйти к коралловому рифу, а для купания у берега есть песчаные лагуны. В центре курорта большой бассейн среди пальм. Удобно чередовать плавание с маской и отдых у бассейна.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=236"
+      }
     },
     {
       "work_id": "W7_044",
@@ -441,7 +531,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ajman-palace-102307247.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Bahi Ajman Palace",
+        "location": "Аджман, ОАЭ",
+        "body": "Песчаный пляж перед отелем и открытый бассейн во дворе. Здесь удобно устроить несколько дней у моря в Аджмане и оставить городские выезды на свободные вечера.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=13853"
+      }
     },
     {
       "work_id": "W7_005",
@@ -476,7 +572,16 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/4/side-star-beach-102407017.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Side Star Beach",
+        "location": "Сиде, Турция",
+        "body": "Песчаный пляж рядом с отелем. После купания можно выйти на променад и продолжить прогулку в исторической части Сиде. Выбор для тех, кто любит пляж и город в одной поездке.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=48795",
+        "official_sources": [
+          "https://www.sidestarhotels.com/beach/en"
+        ]
+      }
     },
     {
       "work_id": "W7_025",
@@ -487,7 +592,8 @@
       "region": "Марса Алам",
       "category": 5,
       "aliases_to_check": [
-        "CONCORDE MOREEN BEACH RESORT & SPA MARSA ALAM"
+        "CONCORDE MOREEN BEACH RESORT & SPA MARSA ALAM",
+        "Concorde Moreen Beach"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marsa+Alam&countryId=1&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=12104",
@@ -502,16 +608,22 @@
       "photo_urls_in_bound_gallery": 26,
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/1/concorde-moreen-beach-resort-spa-marsa-alam-102208156.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/concorde-moreen-beach-resort-spa-marsa-alam-102208152.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/concorde-moreen-beach-resort-spa-marsa-alam-102208154.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/concorde-moreen-beach-resort-spa-marsa-alam-102208150.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/concorde-moreen-beach-resort-spa-marsa-alam-102208151.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/1/concorde-moreen-beach-resort-spa-marsa-alam-102208152.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/concorde-moreen-beach-resort-spa-marsa-alam-102208153.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/1/concorde-moreen-beach-resort-spa-marsa-alam-102208154.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/concorde-moreen-beach-resort-spa-marsa-alam-102208155.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/concorde-moreen-beach-resort-spa-marsa-alam-102208157.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Concorde Moreen Beach",
+        "location": "Марса-Алам, Египет",
+        "body": "Невысокие корпуса стоят среди садов, за ними собственный песчаный пляж. В Марса-Аламе можно чередовать спокойные дни у воды с выездами на дайвинг.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=12104"
+      }
     },
     {
       "work_id": "W7_045",
@@ -522,7 +634,8 @@
       "region": "Дубай",
       "category": 5,
       "aliases_to_check": [
-        "THE WESTIN DUBAI MINA SEYAHI BEACH RESORT & MARINA"
+        "THE WESTIN DUBAI MINA SEYAHI BEACH RESORT & MARINA",
+        "The Westin Dubai Mina Seyahi"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Westin&countryId=9&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2686",
@@ -546,7 +659,16 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-westin-dubai-mina-seyahi-beach-resort-spa-714407.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "The Westin Dubai Mina Seyahi",
+        "location": "Дубай, ОАЭ",
+        "body": "День начинается на песчаном пляже у Dubai Marina, а у детей есть аквапарк Jungle Bay. Подходит семьям, которые хотят проводить время у моря и выбираться в город.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2686",
+        "official_sources": [
+          "https://www.marriott.com/en-us/hotels/dxbmb-the-westin-dubai-mina-seyahi-beach-resort-and-marina/overview/"
+        ]
+      }
     },
     {
       "work_id": "W7_006",
@@ -557,7 +679,8 @@
       "region": "Сиде",
       "category": 5,
       "aliases_to_check": [
-        "SUENO HOTELS BEACH"
+        "SUENO HOTELS BEACH",
+        "Sueno Hotels Beach Side"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sueno&countryId=4&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1518",
@@ -581,7 +704,16 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/4/sueno-hotels-beach-side-62744807.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Sueno Hotels Beach Side",
+        "location": "Сиде, Турция",
+        "body": "У отеля длинный песчаный пляж и пирс, откуда на закате видно старый Сиде. Днём вся семья может плавать в бассейнах, вечером стоит задержаться у моря ради этого вида.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1518",
+        "official_sources": [
+          "https://beach.sueno.com.tr/en/plaj-havuz-en/"
+        ]
+      }
     },
     {
       "work_id": "W7_026",
@@ -592,7 +724,8 @@
       "region": "Марса Алам",
       "category": 5,
       "aliases_to_check": [
-        "PICKALBATROS SEA WORLD RESORT MARSA ALAM"
+        "PICKALBATROS SEA WORLD RESORT MARSA ALAM",
+        "Pickalbatros Sea World Marsa Alam"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marsa+Alam&countryId=1&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64330",
@@ -606,7 +739,6 @@
       ],
       "photo_urls_in_bound_gallery": 61,
       "source_photo_samples": [
-        "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-sea-world-marsa-alam-102305190.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-sea-world-marsa-alam-102305191.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-sea-world-marsa-alam-102305193.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-sea-world-marsa-alam-102305194.jpg",
@@ -616,7 +748,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-sea-world-marsa-alam-102305198.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Pickalbatros Sea World Marsa Alam",
+        "location": "Марса-Алам, Египет",
+        "body": "Семейный курорт с целым каскадом бассейнов и аквапарком. У берега длинный песчаный пляж с понтоном. На каждый день можно выбрать новое место для купания.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64330"
+      }
     },
     {
       "work_id": "W7_046",
@@ -651,7 +789,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-fujairah-resort-102401097.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "InterContinental Fujairah Resort",
+        "location": "Фуджейра, ОАЭ",
+        "body": "Пляж Аль-Ака с видом на Хаджарские горы. Утро можно провести у воды, а после обеда отдохнуть у бассейна или в спа. Вариант для спокойного отдыха на восточном побережье.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57682"
+      }
     },
     {
       "work_id": "W7_007",
@@ -662,7 +806,8 @@
       "region": "Сиде",
       "category": 5,
       "aliases_to_check": [
-        "SIDE ROYAL PALACE HOTEL & SPA"
+        "SIDE ROYAL PALACE HOTEL & SPA",
+        "Side Royal Palace"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Side&countryId=4&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=47023",
@@ -686,7 +831,16 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/4/side-royal-palace-hotel-spa-54022406.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Side Royal Palace",
+        "location": "Сиде, Турция",
+        "body": "Дворцовый фасад, открытый бассейн и собственный песчаный пляж в Эвренсеки. Хороший вариант для дней, когда утром хочется к морю, а после обеда остаться у бассейна.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=47023",
+        "official_sources": [
+          "https://www.sideroyalhotels.com/palace"
+        ]
+      }
     },
     {
       "work_id": "W7_027",
@@ -723,7 +877,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/1/coral-sea-imperial-resort-102010107.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Coral Sea Imperial Sensatori",
+        "location": "Шарм-эль-Шейх, Египет",
+        "body": "Коралловый риф у песчаного пляжа, к воде ведёт понтон. На территории есть семейный бассейн и отдельный бассейн с панорамным краем. Можно совместить снорклинг и отдых всей семьёй.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=164"
+      }
     },
     {
       "work_id": "W7_047",
@@ -758,7 +918,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/9/vida-umm-al-quwain-413207.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Vida Beach Resort Umm Al Quwain",
+        "location": "Умм-эль-Кайвайн, ОАЭ",
+        "body": "Невысокий пляжный курорт с шале у песчаного берега. Можно провести день у моря или сменить пляж на бассейн. Подойдёт для спокойных выходных у воды.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=73893"
+      }
     },
     {
       "work_id": "W7_008",
@@ -784,16 +950,25 @@
       "photo_urls_in_bound_gallery": 52,
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/4/bodrum-holiday-resort-spa-82962300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/bodrum-holiday-resort-spa-82962302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/bodrum-holiday-resort-spa-82962304.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/4/bodrum-holiday-resort-spa-82973400.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/4/bodrum-holiday-resort-spa-82962301.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/4/bodrum-holiday-resort-spa-82962302.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/4/bodrum-holiday-resort-spa-82962303.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/4/bodrum-holiday-resort-spa-82962304.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/4/bodrum-holiday-resort-spa-82962305.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/4/bodrum-holiday-resort-spa-82962306.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Bodrum Holiday Resort & Spa",
+        "location": "Бодрум, Турция",
+        "body": "Корпуса спускаются по зелёному склону к бухте Ичмелер. С террас открывается вид на море, внизу пляж. Для семьи, которой нравится отдых на природе и купание в бухте.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1615",
+        "official_sources": [
+          "https://bodrumholidayresort.com/en/"
+        ]
+      }
     },
     {
       "work_id": "W7_028",
@@ -830,7 +1005,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/1/lti-akassia-beach-resort-96471507.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Sentido Akassia Beach",
+        "location": "Марса-Алам, Египет",
+        "body": "У курорта коралловый риф и два пирса. Семьям пригодятся бассейны и аквапарк, а любители плавания с маской могут проводить часть дня у моря.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=13875"
+      }
     },
     {
       "work_id": "W7_048",
@@ -865,7 +1046,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/9/palace-fujairah-beach-resort-2315007.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Palace Beach Resort Fujairah",
+        "location": "Фуджейра, ОАЭ",
+        "body": "У отеля свой песчаный пляж и бассейн с террасой на первой линии. Можно чередовать купание и обед у воды без поездок по городу.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=73509"
+      }
     },
     {
       "work_id": "W7_009",
@@ -876,7 +1063,8 @@
       "region": "Мармарис",
       "category": 5,
       "aliases_to_check": [
-        "MARMARIS BAY RESORT BY MP HOTELS ADULTS ONLY 16+"
+        "MARMARIS BAY RESORT BY MP HOTELS ADULTS ONLY 16+",
+        "Marmaris Bay Resort"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marmaris&countryId=4&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=16943",
@@ -899,7 +1087,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/4/suntopia-marmaris-imperial-4646906.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Marmaris Bay Resort",
+        "location": "Мармарис, Турция",
+        "body": "Невысокие корпуса спрятаны в соснах у бухты. У моря песчаный пляж с пирсом, среди деревьев бассейны. Вариант для тихого отдыха вдвоём. Отель принимает гостей от 16 лет.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=16943"
+      }
     },
     {
       "work_id": "W7_029",
@@ -910,7 +1104,8 @@
       "region": "Марса Алам",
       "category": 5,
       "aliases_to_check": [
-        "SENTIDO REEF OASIS SUAKIN RESORT & SPA"
+        "SENTIDO REEF OASIS SUAKIN RESORT & SPA",
+        "Sentido Reef Oasis Suakin"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sentido&countryId=1&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=118906",
@@ -934,7 +1129,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/1/reef-oasis-suakin-resort-spa-49801708.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Sentido Reef Oasis Suakin",
+        "location": "Марса-Алам, Египет",
+        "body": "Пляж на Красном море и отдельный бассейн для дайвинга на территории. Подойдёт тем, кто хочет совместить отдых у воды с первыми занятиями по погружению.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=118906"
+      }
     },
     {
       "work_id": "W7_049",
@@ -969,7 +1170,16 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-st-regis-saadiyat-island-resort-1113206.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "The St. Regis Saadiyat Island Resort",
+        "location": "Абу-Даби, ОАЭ",
+        "body": "Белый песок острова Саадият и культурный район Абу-Даби неподалёку. Утро можно отдать пляжу, а после обеда выбраться в Лувр Абу-Даби.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8988",
+        "official_sources": [
+          "https://www.marriott.com/en-us/hotels/auhxr-the-st-regis-saadiyat-island-resort-abu-dhabi/overview/"
+        ]
+      }
     },
     {
       "work_id": "W7_010",
@@ -1004,7 +1214,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/4/sueno-golf-belek-12176306.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Sueno Hotels Golf Belek",
+        "location": "Белек, Турция",
+        "body": "Отель для поездки за гольфом, с полями рядом с корпусом. После игры можно отдохнуть у бассейна или сходить на песчаный пляж соседнего Sueno Deluxe.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1517"
+      }
     },
     {
       "work_id": "W7_030",
@@ -1039,7 +1255,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/1/shores-fantazia-77079308.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Fantazia Resort Marsa Alam",
+        "location": "Марса-Алам, Египет",
+        "body": "Семьям здесь доступны аквапарк и песчаный пляж, а для взрослых выделена отдельная часть берега. Удобно, если в одной поездке важны и активные дни, и отдых у воды.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=438"
+      }
     },
     {
       "work_id": "W7_050",
@@ -1050,7 +1272,8 @@
       "region": "Аджман",
       "category": 5,
       "aliases_to_check": [
-        "AJMAN SARAY A LUXURY COLLECTION RESORT"
+        "AJMAN SARAY A LUXURY COLLECTION RESORT",
+        "Ajman Saray"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Ajman&countryId=9&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=27478",
@@ -1074,7 +1297,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/9/ajman-saray-510207.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Ajman Saray",
+        "location": "Аджман, ОАЭ",
+        "body": "После купания на собственном песчаном пляже можно остаться у одного из бассейнов или провести время в спа. Спокойный отдых у залива в Аджмане.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=27478"
+      }
     },
     {
       "work_id": "W7_011",
@@ -1111,7 +1340,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/4/hotel-riu-kaya-belek-10035907.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Kaya Belek",
+        "location": "Белек, Турция",
+        "body": "Курорт для семейных дней у моря. На территории есть бассейны и водные горки, к которым удобно вернуться после песчано-галечного пляжа.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1253"
+      }
     },
     {
       "work_id": "W7_031",
@@ -1148,7 +1383,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/1/caribbean-world-resort-313309.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Sentido Caribbean Soma Bay",
+        "location": "Сома-Бей, Египет",
+        "body": "Длинная полоса песка на берегу Сома-Бей. Семья может провести утро у моря, а потом перейти к бассейнам и водным горкам. За пляжным днём не нужно никуда ехать.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=143"
+      }
     },
     {
       "work_id": "W7_051",
@@ -1159,7 +1400,8 @@
       "region": "Дубай",
       "category": 5,
       "aliases_to_check": [
-        "NIKKI BEACH RESORT & SPA"
+        "NIKKI BEACH RESORT & SPA",
+        "Nikki Beach Resort & Spa Dubai"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Nikki+Beach&countryId=9&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=46727",
@@ -1183,7 +1425,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/9/nikki-beach-resort-spa176-2012007.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Nikki Beach Resort & Spa Dubai",
+        "location": "Дубай, ОАЭ",
+        "body": "Дубай с другой стороны, у песчаного пляжа на Pearl Jumeira. Можно провести день в пляжном клубе или выбрать виллу с собственным бассейном для отдыха в своём кругу.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=46727"
+      }
     },
     {
       "work_id": "W7_012",
@@ -1220,7 +1468,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/4/maritim-hotel-grand-azur-32760606.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "TUI Blue Grand Azur",
+        "location": "Мармарис, Турция",
+        "body": "Утром можно искупаться в бухте, а вечером выйти на променад вдоль моря. Песчано-галечный пляж напротив отеля, вход через пешеходную набережную.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1683"
+      }
     },
     {
       "work_id": "W7_032",
@@ -1255,7 +1509,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-plaza-resort-sharm-30975606.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Sharm Grand Plaza Resort",
+        "location": "Шарм-эль-Шейх, Египет",
+        "body": "Рядом с кораллами есть лагуна с песчаным дном, а с пирса можно выйти на глубину. Когда хочется поплавать без маски, на территории есть олимпийский бассейн.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=234"
+      }
     },
     {
       "work_id": "W7_052",
@@ -1266,7 +1526,8 @@
       "region": "Рас-эль-Хайма",
       "category": 5,
       "aliases_to_check": [
-        "INTERCONTINENTAL RAS AL KHAIMAH MINA AL ARAB RESORT & SPA"
+        "INTERCONTINENTAL RAS AL KHAIMAH MINA AL ARAB RESORT & SPA",
+        "InterContinental Mina Al Arab"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Ras+Al+Khaimah&countryId=9&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76940",
@@ -1290,7 +1551,16 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-ras-al-khaimah-mina-al-arab-resort-spa-102504427.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "InterContinental Mina Al Arab",
+        "location": "Рас-эль-Хайма, ОАЭ",
+        "body": "Отель на полуострове Мина-аль-Араб, с собственным песчаным пляжем. Днём можно остаться у моря, а ближе к вечеру перейти на террасу или в спа.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76940",
+        "official_sources": [
+          "https://www.ihg.com/intercontinental/hotels/us/en/ras-al-khaimah/rktha/hoteldetail"
+        ]
+      }
     },
     {
       "work_id": "W7_013",
@@ -1301,7 +1571,8 @@
       "region": "Кемер",
       "category": 5,
       "aliases_to_check": [
-        "SWANDOR HOTELS & RESORTS KEMER"
+        "SWANDOR HOTELS & RESORTS KEMER",
+        "Swandor Kemer"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Swandor&countryId=4&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1428",
@@ -1325,7 +1596,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/4/pgs-hotels-kiris-resortexjoy-kiris-resort-102410246.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Swandor Kemer",
+        "location": "Кемер, Турция",
+        "body": "Семейный курорт между морем и горами. После купания на песчано-галечном пляже дети могут вернуться в аквапарк, а у взрослых есть выбор бассейнов.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1428"
+      }
     },
     {
       "work_id": "W7_033",
@@ -1360,7 +1637,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/1/makadi-palace-91387407.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Makadi Palace",
+        "location": "Макади-Бей, Египет",
+        "body": "Коралловый риф у берега для плавания с маской и четыре бассейна для спокойного купания. Территория с арками и внутренними двориками подойдёт для неспешных прогулок.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=307"
+      }
     },
     {
       "work_id": "W7_058",
@@ -1371,7 +1654,8 @@
       "region": "Дубай",
       "category": 5,
       "aliases_to_check": [
-        "THE RETREAT PALM DUBAI MGALLERY BY SOFITEL"
+        "THE RETREAT PALM DUBAI MGALLERY BY SOFITEL",
+        "The Retreat Palm Dubai MGallery"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sofitel&countryId=9&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57476",
@@ -1386,16 +1670,22 @@
       "photo_urls_in_bound_gallery": 44,
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-retreat-palm-dubai-mgallery-by-sofitel-102412481.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-retreat-palm-dubai-mgallery-by-sofitel-102412483.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-retreat-palm-dubai-mgallery-by-sofitel-102412485.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-retreat-palm-dubai-mgallery-by-sofitel-102412480.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-retreat-palm-dubai-mgallery-by-sofitel-102412482.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-retreat-palm-dubai-mgallery-by-sofitel-102412483.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-retreat-palm-dubai-mgallery-by-sofitel-102412484.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-retreat-palm-dubai-mgallery-by-sofitel-102412485.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-retreat-palm-dubai-mgallery-by-sofitel-102412486.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-retreat-palm-dubai-mgallery-by-sofitel-102412497.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "The Retreat Palm Dubai MGallery",
+        "location": "Дубай, ОАЭ",
+        "body": "Песчаный пляж на Пальме и велнес-центр в одном отеле. Здесь можно провести короткий отдых с плаванием и спа. В отеле действует безалкогольная концепция.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57476"
+      }
     },
     {
       "work_id": "W7_014",
@@ -1406,7 +1696,8 @@
       "region": "Мармарис",
       "category": 5,
       "aliases_to_check": [
-        "ANGELS MARMARIS"
+        "ANGELS MARMARIS",
+        "Angel’s Marmaris"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marmaris&countryId=4&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=56424",
@@ -1430,7 +1721,16 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/4/angels-marmaris-913007.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Angel’s Marmaris",
+        "location": "Мармарис, Турция",
+        "body": "Курорт в сосновой бухте с отдельным женским пляжем Hidden Sea. Отель без алкоголя. На общих пляжах и у бассейнов для женщин действует закрытый купальный дресс-код.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=56424",
+        "official_sources": [
+          "https://angelsmarmaris.com/angels-marmaris-hotel-hidden-sea"
+        ]
+      }
     },
     {
       "work_id": "W7_034",
@@ -1466,7 +1766,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/1/premier-romance-hotel-78430107.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "KaiSol Romance Sahl Hasheesh",
+        "location": "Сахль-Хашиш, Египет",
+        "body": "Песчаный берег рядом с променадом Сахль-Хашиша. Отель подходит для поездки вдвоём, когда в планах дни у моря и вечерние прогулки. Формат отдыха для взрослых.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=357"
+      }
     },
     {
       "work_id": "W7_054",
@@ -1477,7 +1783,8 @@
       "region": "Дубай",
       "category": 5,
       "aliases_to_check": [
-        "SOFITEL DUBAI THE PALM RESORT & SPA"
+        "SOFITEL DUBAI THE PALM RESORT & SPA",
+        "Sofitel Dubai The Palm"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sofitel&countryId=9&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22676",
@@ -1501,7 +1808,16 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-dubai-the-palm-resort-spa-18391707.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Sofitel Dubai The Palm",
+        "location": "Дубай, ОАЭ",
+        "body": "На восточном краю Пальмы есть песчаный пляж и бассейны среди тропической зелени. Для семьи можно выбрать апартаменты, а для уединённого отдыха есть виллы.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22676",
+        "official_sources": [
+          "https://sofitel.accor.com/en/hotels/6541.html"
+        ]
+      }
     },
     {
       "work_id": "W7_015",
@@ -1536,7 +1852,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/4/tui-magic-life-sarigerme-97237507.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "TUI Magic Life Sarigerme",
+        "location": "Сарыгерме, Турция",
+        "body": "Бунгало среди зелени и длинный песчаный пляж у бирюзовой бухты. Можно отвлечься от моря ради активностей клуба и снова вернуться на берег к вечеру.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=59084"
+      }
     },
     {
       "work_id": "W7_035",
@@ -1547,7 +1869,8 @@
       "region": "Хургада",
       "category": 5,
       "aliases_to_check": [
-        "GRAVITY HOTEL & AQUA PARK SAHL HASHEESH"
+        "GRAVITY HOTEL & AQUA PARK SAHL HASHEESH",
+        "Gravity Hotel & Aqua Park"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sahl+Hasheesh&countryId=1&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66161",
@@ -1571,7 +1894,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/1/gravity-sahl-hasheesh-83175406.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Gravity Hotel & Aqua Park",
+        "location": "Сахль-Хашиш, Египет",
+        "body": "Семейный день здесь легко разделить между аквапарком и песчаным пляжем. Между территорией и берегом проходит променад для вечерней прогулки.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66161"
+      }
     },
     {
       "work_id": "W7_055",
@@ -1582,7 +1911,8 @@
       "region": "Фуджейра",
       "category": 5,
       "aliases_to_check": [
-        "THE RADISSON BLU RESORT FUJAIRAH"
+        "THE RADISSON BLU RESORT FUJAIRAH",
+        "Radisson Blu Resort Fujairah"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Fujairah&countryId=9&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4518",
@@ -1606,7 +1936,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/9/radisson-blu-resort-fujairah-102502247.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Radisson Blu Resort Fujairah",
+        "location": "Фуджейра, ОАЭ",
+        "body": "Протяжённый пляж у подножия гор и открытые бассейны. Подходит для дней без городских поездок, когда хочется гулять по берегу и плавать в своё удовольствие.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4518"
+      }
     },
     {
       "work_id": "W7_016",
@@ -1641,7 +1977,16 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/4/65342-82259607.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Side Royal Style Hotel",
+        "location": "Сиде, Турция",
+        "body": "Днём можно отдыхать на песчаном пляже или у открытого бассейна. Гостям Style доступны водные горки соседнего Side Royal Palace.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=65342",
+        "official_sources": [
+          "https://sideroyalhotels.com/style-en/our-hotel"
+        ]
+      }
     },
     {
       "work_id": "W7_036",
@@ -1676,7 +2021,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/1/lazuli-hotel-marsa-alam-10666007.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Lazuli Hotel Marsa Alam",
+        "location": "Марса-Алам, Египет",
+        "body": "Невысокие корпуса вокруг бассейнов и собственный песчаный пляж. После купания в море можно сменить обстановку и отдохнуть в бассейне с джакузи.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76109"
+      }
     },
     {
       "work_id": "W7_056",
@@ -1711,7 +2062,16 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/9/so-ras-al-khaimah-97402308.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "SO/ Ras Al Khaimah",
+        "location": "Рас-эль-Хайма, ОАЭ",
+        "body": "На острове Аль-Марджан можно провести день на собственном пляже, остаться у бассейна или сходить в пляжный клуб. Курорт работает в формате «всё включено».",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=135442",
+        "official_sources": [
+          "https://all.accor.com/hotel/C4R3/index.en.shtml"
+        ]
+      }
     },
     {
       "work_id": "W7_017",
@@ -1746,7 +2106,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/4/club-magic-life-jacaranda-imperial-91165607.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "TUI Magic Life Jacaranda",
+        "location": "Сиде, Турция",
+        "body": "Семейные бассейны, водные горки и песчаный пляж. Для тех, кому важен бассейн поближе к номеру, есть отдельные категории в корпусах Lake House.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=28470"
+      }
     },
     {
       "work_id": "W7_037",
@@ -1781,7 +2147,13 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/1/359-1009508.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Prima Life Makadi",
+        "location": "Макади-Бей, Египет",
+        "body": "Коралловый риф виден у берега, а в море есть песчаный заход. После плавания с маской всей семьёй можно перейти к бассейнам и водным горкам.",
+        "supplier_evidence": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=359"
+      }
     }
   ],
   "reserve_unselected": [
