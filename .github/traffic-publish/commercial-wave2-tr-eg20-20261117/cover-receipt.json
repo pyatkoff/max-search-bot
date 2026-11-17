@@ -1,0 +1,747 @@
+{
+  "state": "SOURCE_ONLY_PREVIEW_NOT_APPROVED",
+  "rows": [
+    {
+      "id": 65341,
+      "work_id": "W2_002",
+      "name": "Akra Fethiye The Residence",
+      "country_id": 4,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=65341",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/the-residence-at-tui-sensatori-barut-fethiye-72490500.jpg",
+          "bytes": 201382,
+          "sha256": "05ae343632bd3ad7828f724e97fa07679ff3602ff4b03e8ec19976fae613be4a",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/the-residence-at-tui-sensatori-barut-fethiye-72490501.jpg",
+          "bytes": 272690,
+          "sha256": "6f2593b8092cb0e4904401f60f35b50a248883e88e6c4001406e97100dd2670a",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/the-residence-at-tui-sensatori-barut-fethiye-72490502.jpg",
+          "bytes": 191985,
+          "sha256": "1bae9e2d947e9e76cba9f9530442a846b7a19a9dda59f10f6c92e5048d9e4e7d",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "4b60394b7cded1cc5f942dfa4536f4434854715704604d2ccad89ebb58fbb0aa",
+      "bytes": 448067,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 49084,
+      "work_id": "W2_003",
+      "name": "Titanic Luxury Collection Bodrum",
+      "country_id": 4,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=49084",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-deluxe-bodrum-102407190.jpg",
+          "bytes": 381540,
+          "sha256": "3a1955e03c967139bbc7a0b1792b4e32ddb939c24a2fb270077f6b87d83b67a4",
+          "width": 1200,
+          "height": 799,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-deluxe-bodrum-102407191.jpg",
+          "bytes": 373673,
+          "sha256": "6e034093eacf361c0e78df5b05047763131f00612dce2cd897b2fd63d18c02f6",
+          "width": 1200,
+          "height": 799,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-deluxe-bodrum-102407202.jpg",
+          "bytes": 356315,
+          "sha256": "04212c415808a3c8ea66b4033cddcb49f042e7289e8cdf5b26523ef116ab57c4",
+          "width": 1200,
+          "height": 675,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "9efd737c156b3749ae8ffd5caa9a8fb74b57c879e791e5f8a164acad6e6d3d39",
+      "bytes": 609441,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 75538,
+      "work_id": "W2_004",
+      "name": "The Norm Collection Doora",
+      "country_id": 4,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75538",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/75538-91775500.jpg",
+          "bytes": 317654,
+          "sha256": "8835c8cec9d72fdd4ae4dd42f95fff6b0363eba16d579e7d50a6c12d6638c7b7",
+          "width": 796,
+          "height": 796,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/75538-91775601.jpg",
+          "bytes": 353117,
+          "sha256": "967ac10e5364ff7e3d7a6962674377d211b14148485813da2c1f5424eda7c7d9",
+          "width": 1104,
+          "height": 1104,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/75538-91775602.jpg",
+          "bytes": 190119,
+          "sha256": "ea57f36c0e207db26c3a7655682c6e637f3c2bc7d65344a0d0e341046b73a15d",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "712ce254a1748baa5134a777959f2eeee888de49d29cc82ef07d0f6a8c3764b4",
+      "bytes": 585553,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 82649,
+      "work_id": "W2_007",
+      "name": "Rixos Park Belek",
+      "country_id": 4,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82649",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-park-belek-69161103.jpg",
+          "bytes": 228982,
+          "sha256": "21ca6409942c0178fd037f1412bd463b89cd34b7888aa968ec91e596ec8a04cc",
+          "width": 1024,
+          "height": 682,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-park-belek-69161100.jpg",
+          "bytes": 171513,
+          "sha256": "fdb26c49aa0bbfdf23a2d1654181dccdfe7d74195ea1a9babd16cdc49936a79a",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-park-belek-69161101.jpg",
+          "bytes": 166052,
+          "sha256": "dbeb76f5f23e8e23c39538f79070c23a6fa4e115218724ca1b7931b45b96442b",
+          "width": 1024,
+          "height": 684,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "bf419196693184e1d112566e6ee5b21a0eb98715dc5f1f46827c019588dd6c1a",
+      "bytes": 463911,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 37376,
+      "work_id": "W2_009",
+      "name": "Akra Fethiye TUI Blue Sensatori",
+      "country_id": 4,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=37376",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/37376-16365000.jpg",
+          "bytes": 229828,
+          "sha256": "9e2e89b26cf6d44f7a91d01b14fec992507b8051044597a19246a7e41a2f7e0d",
+          "width": 1024,
+          "height": 711,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/37376-16365001.jpg",
+          "bytes": 193936,
+          "sha256": "d7f2c02f445f80fc53538568d3b42148dd67b18771cad1ab8b12d10c788b3e7c",
+          "width": 1024,
+          "height": 518,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/37376-16365102.jpg",
+          "bytes": 264276,
+          "sha256": "8094284b1d9b0bacafdbaf0eec8682a323c4c835f664469d90c20d672c66753d",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "c3d8c86dcea7e204993675f1dd3cc7d8059345a50b75e6af8439c1529f4d8e0d",
+      "bytes": 550319,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 1148,
+      "work_id": "W2_010",
+      "name": "Botanik Hotel & Resort",
+      "country_id": 4,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1148",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/1148-82049922.jpg",
+          "bytes": 478821,
+          "sha256": "5ba9a43e4462bc8b666809fcc30f09c1e080fc9610af22ac71c51c476c60df59",
+          "width": 1024,
+          "height": 680,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/1148-82049300.jpg",
+          "bytes": 303983,
+          "sha256": "3838c7e6450b560270db603e1e94e8473ea6c77c017443a2c948e25e63723b88",
+          "width": 1024,
+          "height": 684,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/1148-82049301.jpg",
+          "bytes": 235700,
+          "sha256": "b58ccd866e0f08536aafabda7e3dd8c4daa08ca3d150e6867b76b8e73ccd84a1",
+          "width": 1024,
+          "height": 684,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "3d8397c96b5c946c57b233d4eb3502ea2aa9fba8d6a8e28285a6c81e5ae16625",
+      "bytes": 688466,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 75100,
+      "work_id": "W2_012",
+      "name": "Barut Goia",
+      "country_id": 4,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75100",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/barut-sunwing-side-beach-68188600.jpg",
+          "bytes": 307176,
+          "sha256": "e214ef40a441fb69b49875965d38c06510d4301e310924da055e7bb3e132db8f",
+          "width": 991,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/barut-sunwing-side-beach-68213600.jpg",
+          "bytes": 151939,
+          "sha256": "0b8e1cfe0c281ecf197ab1fd559afbd6fb43522b849df059bdd0c737e494c0c7",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/barut-sunwing-side-beach-68188601.jpg",
+          "bytes": 167764,
+          "sha256": "12838fff5627fea5f67087228be5c7ecbcebd6140d859ddb7cf9927c2d0ae6e7",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "b5d5ec193be6a6ddd7561fc18b5013e62189a95da6e7718c92ea18bf6b766c82",
+      "bytes": 601791,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 80478,
+      "work_id": "W2_016",
+      "name": "CAJA by Maxx Royal",
+      "country_id": 4,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=80478",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/caja-by-maxx-royal-4469207.jpg",
+          "bytes": 184617,
+          "sha256": "5e8abf90fe0bd84832a20f216942010aa9c1fcee1da384fda57230856df35e1d",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/caja-by-maxx-royal-4469200.jpg",
+          "bytes": 176147,
+          "sha256": "3584ba7769fc2916ed61b6e3c6b197f8f547d3ac7bdcc3ecd5854ea32ab8ecea",
+          "width": 761,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/caja-by-maxx-royal-4469201.jpg",
+          "bytes": 167440,
+          "sha256": "8773372ad7eb31a5948a3694c14af7951ce17b00b00d59f76424909527e4214d",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "7ba1e22ce8ad21e4862c583d844af69e6582f7bcbc924c071d12a35c938ee56a",
+      "bytes": 475414,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 27646,
+      "work_id": "W2_018",
+      "name": "Botanik Platinum",
+      "country_id": 4,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=27646",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/delphin-botanik-platinum-31884703.jpg",
+          "bytes": 238863,
+          "sha256": "f52846c19b1054143c4b3679c677b75af20055deb6864dfc6895252386a0bd0f",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/delphin-botanik-platinum-31884700.jpg",
+          "bytes": 297316,
+          "sha256": "9f83d083e2d09c80d080c57b4a5877e812c4953dc3b2f4006fabb4fc499945e3",
+          "width": 1024,
+          "height": 682,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/delphin-botanik-platinum-31884701.jpg",
+          "bytes": 123410,
+          "sha256": "80074f100011a8d87882970892869e443ee62e4df3cbcfa4bfa84e0359d7a087",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "5947a1faa01403d52a130872106d5a5896af0d543c21c3d7af75c859e3d89ed7",
+      "bytes": 485528,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 1150,
+      "work_id": "W2_021",
+      "name": "Delphin Diva Premiere",
+      "country_id": 4,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1150",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/delphin-diva-primiere-82463100.jpg",
+          "bytes": 373433,
+          "sha256": "2d9a5544fc3f378276dd6bca085c80497eaf5f4a4de3dfde54f522c71b5270af",
+          "width": 1200,
+          "height": 799,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/delphin-diva-primiere-82470300.jpg",
+          "bytes": 276696,
+          "sha256": "89dcea2a16ef664f2a127746fec2b740b4fb0b8286da3ed6ba55742b221d6707",
+          "width": 1200,
+          "height": 600,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/delphin-diva-primiere-82480900.jpg",
+          "bytes": 111615,
+          "sha256": "64845c3e0a3a571767f05afa0e5dfd74013b82cd805e7d0c0745af522e2d77f6",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "565a64b7fc15243559e6e11c728c35289b85ee92b5b6b093284bab3445f4a397",
+      "bytes": 459782,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 319,
+      "work_id": "W2_037",
+      "name": "Sunrise Remal Beach",
+      "country_id": 1,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=319",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/319-19367743.jpg",
+          "bytes": 228634,
+          "sha256": "6dce172f5cb8f63b601daa64362bb8ef712db110faf2098471e30a9e5172f3df",
+          "width": 1200,
+          "height": 672,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/319-19366000.jpg",
+          "bytes": 241420,
+          "sha256": "67c743bb3d93d28856a0a167e3ec1470a6bea5ee4493bcd91c65baa07c3a2758",
+          "width": 1121,
+          "height": 1121,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/319-19366101.jpg",
+          "bytes": 202376,
+          "sha256": "65376d311738212c9abf4e074588011e73b9833df8202f1bd6b3732f78e4307e",
+          "width": 1200,
+          "height": 672,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "39f09359a4e9cbf37d24bfc4474caafc6e66e03c2c25f6541af96449ee4144cd",
+      "bytes": 426238,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 40222,
+      "work_id": "W2_038",
+      "name": "JAZ Aquaviva",
+      "country_id": 1,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=40222",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/jaz-aquaviva-makadi-bay-102312500.jpg",
+          "bytes": 204031,
+          "sha256": "3ee6656d1278d23f12718f093d280c56febe05c33bf47cfb52a961d79ac95248",
+          "width": 1200,
+          "height": 739,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/jaz-aquaviva-makadi-bay-102312501.jpg",
+          "bytes": 179302,
+          "sha256": "18a90b4bd6905998164f159abc8cc5ecfc60c2e5880ac1699ece3a4df256eafa",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/jaz-aquaviva-makadi-bay-102312502.jpg",
+          "bytes": 205103,
+          "sha256": "69487a7c3b14f0e22eae99ab8d08cd396733bba57ca7dc95bbb6495e74278b22",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "4ee0eda8a98195aa2d634e0972bf4f880f61ca4499aec4f245852a6dcc6154d3",
+      "bytes": 416370,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 306,
+      "work_id": "W2_044",
+      "name": "TUI Magic Life Redsina",
+      "country_id": 1,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=306",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/306-89258800.jpg",
+          "bytes": 291591,
+          "sha256": "febfeae73455b644b28aae730009bcfbaa08f1dbb8746909988101d1554e110c",
+          "width": 940,
+          "height": 705,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/306-89258901.jpg",
+          "bytes": 180849,
+          "sha256": "e2cb046912c8cf13b2b870fb550cde2bf6d83de85d615ef668d94e0019c7c5fa",
+          "width": 940,
+          "height": 705,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/306-89258902.jpg",
+          "bytes": 206206,
+          "sha256": "3c9022a441f00262f3555acedf7a408bcef797e56f439fe8f8167f61c072f016",
+          "width": 940,
+          "height": 705,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "e8f49d0afdb5d1741eef7e1f8e9b54513903e9be39ac8c92668576f8bcae15fd",
+      "bytes": 452545,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 83106,
+      "work_id": "W2_045",
+      "name": "Pickalbatros Villaggio Resort Portofino",
+      "country_id": 1,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=83106",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-portofino-villagio-82804104.jpg",
+          "bytes": 493236,
+          "sha256": "68bf6a29387629d63628b7522e5e1205809ac92cfd72991fd91b13c714a5882b",
+          "width": 1200,
+          "height": 675,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-portofino-villagio-82835800.jpg",
+          "bytes": 274585,
+          "sha256": "2209c31ed4cd5c6e4f26690f2e356f95ff74ace228f1aeb7612e70ea7e2229e4",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-portofino-villagio-82804100.jpg",
+          "bytes": 381334,
+          "sha256": "c7c2ad49a67b44885b300ab3e5e8cf53e7df74e901a8b94e9177069d434eb6d5",
+          "width": 1200,
+          "height": 675,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "3e4c3e0aab4763747aa0b76bc6ca655228921c8f2705fc8b5c315785089411ac",
+      "bytes": 646220,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 113,
+      "work_id": "W2_046",
+      "name": "Pickalbatros Alf Leila Wa Leila",
+      "country_id": 1,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=113",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/alf-leila-wa-leila-2713516.jpg",
+          "bytes": 277398,
+          "sha256": "b8fdc1cd2e885e0f017bfd8bc38527d0807fa027006bf0b65dcaa6696f7d60f5",
+          "width": 1024,
+          "height": 576,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/alf-leila-wa-leila-2713500.jpg",
+          "bytes": 233543,
+          "sha256": "f2ef24b36b65131190eb7aeda7b7a85a69c4c037333eeead2c999cf2f518962d",
+          "width": 1024,
+          "height": 576,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/alf-leila-wa-leila-2713501.jpg",
+          "bytes": 248232,
+          "sha256": "5e92aa28c27b15fca5204d895d93835af9e85fc5aba411565293262b245762f8",
+          "width": 768,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "5ff4dea924f196b7cbcf2d7bd0ddfac788af11a438ed0ab51a1dc2c352bcfdfa",
+      "bytes": 528410,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 108,
+      "work_id": "W2_049",
+      "name": "Pickalbatros Aqua Blu Hurghada",
+      "country_id": 1,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=108",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-aqua-blue-resort-82092800.jpg",
+          "bytes": 310216,
+          "sha256": "1923b7648bad04fd3e5bd74d46b1f347d6460433965538fbb62846a13c07923f",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-aqua-blue-resort-82092801.jpg",
+          "bytes": 271011,
+          "sha256": "e86c4403262d350e48399bc4421479b3770bd752b2afbd89221b64ebd32c9470",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-aqua-blue-resort-82092802.jpg",
+          "bytes": 250998,
+          "sha256": "1f9533f4785100ca1a5f31aa731a7797ec8ce6aa7b63aafa80732c1e2914e5d8",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "fdcceba2c998b53ebf9233c5de44442bc28e8ff96df25ad6eb265669ea88c3cc",
+      "bytes": 418244,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 133,
+      "work_id": "W2_053",
+      "name": "Pickalbatros Aqua Park Hurghada",
+      "country_id": 1,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=133",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/beach-albatros-garden-82431600.jpg",
+          "bytes": 335614,
+          "sha256": "596d93334e88c6fe106b6a346c0726e7bfe3c58042cc7511a3370570fdf45ee6",
+          "width": 1200,
+          "height": 675,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/beach-albatros-garden-82374600.jpg",
+          "bytes": 278981,
+          "sha256": "224168cf57c6ae6f977a04a0434a3e7eab17d9f5163d17c114b862140a678213",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/beach-albatros-garden-82374601.jpg",
+          "bytes": 242612,
+          "sha256": "8e704ba139046d2f76a8c3ecce9e2f61c99089d44f50f537101d310bbecba29e",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "92258ddf3f2c75fb7b5836735abc78b69b53f71a6e2bc8a5a58df2f77ce82b20",
+      "bytes": 477781,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 123365,
+      "work_id": "W2_058",
+      "name": "JAZ Elite Riviera",
+      "country_id": 1,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=123365",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/jaz-riviera-84017205.jpg",
+          "bytes": 175184,
+          "sha256": "0dfb78c2be05325fd408e8207d54115ef089386a459063d3a1914ba6885ed587",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/jaz-riviera-84017200.jpg",
+          "bytes": 246760,
+          "sha256": "f3a3ba8173081f93d2cabd058567ba8b46e482f250c1128e58388aa59f66cad0",
+          "width": 1024,
+          "height": 681,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/jaz-riviera-84017201.jpg",
+          "bytes": 139781,
+          "sha256": "454ea2a006d92deeeb40c0f2af636acce7c9f029860b32184cd3361dde62608e",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "3bd47cac1faef7bd8d8f5395f9ebc3a0109d60f91605abdc3d22ad304ddb26f7",
+      "bytes": 433894,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 76125,
+      "work_id": "W2_059",
+      "name": "JAZ Tamerina",
+      "country_id": 1,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76125",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/jaz-tamerina-70693100.jpg",
+          "bytes": 217456,
+          "sha256": "2a78016399053656166ae8649e09f2712120d83cf56d7550c21163cac6827807",
+          "width": 1024,
+          "height": 682,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/jaz-tamerina-70693101.jpg",
+          "bytes": 140649,
+          "sha256": "c5d46aa8427218788ffbf4974adb465bde2527b8b4cfe6de7f77efbdfeb26ef9",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/jaz-tamerina-70693102.jpg",
+          "bytes": 196419,
+          "sha256": "5da669373c3960c8d84263df7c6c451939f774e72235a8691ff968ce2da20293",
+          "width": 1024,
+          "height": 682,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "d21c772d3b0fd80a80374b38322205ba05c5c437cd974215d13ccc4270965c53",
+      "bytes": 496435,
+      "visual_approval": false,
+      "send_allowed": false
+    },
+    {
+      "id": 76121,
+      "work_id": "W2_060",
+      "name": "JAZ Crystal",
+      "country_id": 1,
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76121",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/76121-91024100.jpg",
+          "bytes": 259780,
+          "sha256": "df711fc07823cffe9aa1a4844efd01eaac04f63cbd57f6c3149e39c9c2941b33",
+          "width": 1024,
+          "height": 682,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/76121-91024101.jpg",
+          "bytes": 149732,
+          "sha256": "0986d45c358667c7adffd9fceb4d23d01f28a259fc05e2ffc6d28e8204ce21f2",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/76121-91024102.jpg",
+          "bytes": 211689,
+          "sha256": "b39585bd6eb7cba623ef94ee1eacbee28d7dc97a1fb76043b87acf2539e7b72d",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ],
+      "png_sha256": "f634351cd7772ce1458c21e84efe91d29f3704f367ab038f4695128de8e983e1",
+      "bytes": 606089,
+      "visual_approval": false,
+      "send_allowed": false
+    }
+  ],
+  "sender_calls": 0,
+  "feed_writes": 0
+}
