@@ -246,21 +246,79 @@
   ],
   "rows": [
     {
-      "native_tourvisor_id": 37172,
-      "name": "TITANIC BUSINESS KARTAL",
+      "native_tourvisor_id": 59118,
+      "name": "RIXOS PREMIUM BODRUM VILLAS",
       "country": "TR",
       "country_id": 4,
-      "region_id": 277,
-      "region_name": "Стамбул",
+      "region_id": 24,
+      "region_name": "Бодрум",
       "category": 5,
       "rating": 5,
       "queries": [
-        "Titanic"
+        "Rixos"
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 52,
       "batch": 1,
       "work_id": "W2_001",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 65341,
+      "name": "AKRA FETHIYE THE RESIDENCE TUI BLUE SENSATORI ADULTS ONLY 16+",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 27,
+      "region_name": "Фетхие",
+      "category": 5,
+      "rating": 4.6,
+      "queries": [
+        "Akra"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 51.4,
+      "batch": 1,
+      "work_id": "W2_002",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 49084,
+      "name": "TITANIC LUXURY COLLECTION BODRUM (EX. TITANIC DELUXE BODRUM)",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 24,
+      "region_name": "Бодрум",
+      "category": 5,
+      "rating": 4.5,
+      "queries": [
+        "Titanic"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 48.2,
+      "batch": 1,
+      "work_id": "W2_003",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 75538,
+      "name": "THE NORM COLLECTION DOORA (EX. SELECTUM DOORA BODRUM)",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 24,
+      "region_name": "Бодрум",
+      "category": 5,
+      "rating": 4.4,
+      "queries": [
+        "Selectum"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 48,
+      "batch": 1,
+      "work_id": "W2_004",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -277,44 +335,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 46,
       "batch": 1,
-      "work_id": "W2_002",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 59118,
-      "name": "RIXOS PREMIUM BODRUM VILLAS",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 24,
-      "region_name": "Бодрум",
-      "category": 5,
-      "rating": 5,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_003",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 80478,
-      "name": "CAJA BY MAXX ROYAL",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 24,
-      "region_name": "Бодрум",
-      "category": 5,
-      "rating": 5,
-      "queries": [
-        "Maxx Royal"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_004",
+      "work_id": "W2_005",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -331,44 +354,47 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_005",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 1149,
-      "name": "QVOR KIRMAN PREMIUM",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 19,
-      "region_name": "Аланья",
-      "category": 5,
-      "rating": 4.8,
-      "queries": [
-        "Delphin"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
+      "priority_score": 45.8,
       "batch": 1,
       "work_id": "W2_006",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
-      "native_tourvisor_id": 27646,
-      "name": "BOTANIK PLATINUM (EX. DELPHIN BOTANIK PLATINUM)",
+      "native_tourvisor_id": 82649,
+      "name": "RIXOS PARK BELEK THE LAND OF LEGENDS FREE ACCESS",
       "country": "TR",
       "country_id": 4,
-      "region_id": 19,
-      "region_name": "Аланья",
+      "region_id": 21,
+      "region_name": "Белек",
       "category": 5,
-      "rating": 4.8,
+      "rating": 4.5,
       "queries": [
-        "Delphin"
+        "Rixos"
       ],
-      "old_brand_alias_risk": true,
+      "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 45.2,
       "batch": 1,
       "work_id": "W2_007",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 165997,
+      "name": "BAYOU ANDA SUITES & VILLAS BY BARUT",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 155,
+      "region_name": "Дидим",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "Barut"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 44,
+      "batch": 1,
+      "work_id": "W2_008",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -386,8 +412,9 @@
       ],
       "old_brand_alias_risk": true,
       "weak_brand_match": false,
+      "priority_score": 42.7,
       "batch": 1,
-      "work_id": "W2_008",
+      "work_id": "W2_009",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -404,8 +431,9 @@
       ],
       "old_brand_alias_risk": true,
       "weak_brand_match": false,
+      "priority_score": 42.5,
       "batch": 1,
-      "work_id": "W2_009",
+      "work_id": "W2_010",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -422,62 +450,9 @@
       ],
       "old_brand_alias_risk": true,
       "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_010",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 1633,
-      "name": "VOYAGE TURKBUKU",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 24,
-      "region_name": "Бодрум",
-      "category": 5,
-      "rating": 4.7,
-      "queries": [
-        "Voyage"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
+      "priority_score": 42.5,
       "batch": 1,
       "work_id": "W2_011",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 17683,
-      "name": "TITANIC PORT HOTEL BAKIRKOY",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 277,
-      "region_name": "Стамбул",
-      "category": 5,
-      "rating": 4.7,
-      "queries": [
-        "Titanic"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_012",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 28662,
-      "name": "TITANIC BUSINESS GOLDEN HORN (EX. TITANIC BUSINESS BAYRAMPASA)",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 277,
-      "region_name": "Стамбул",
-      "category": 5,
-      "rating": 4.7,
-      "queries": [
-        "Titanic"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_013",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -494,170 +469,9 @@
       ],
       "old_brand_alias_risk": true,
       "weak_brand_match": false,
+      "priority_score": 42.5,
       "batch": 1,
-      "work_id": "W2_014",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 112391,
-      "name": "RIXOS TERSANE ISTANBUL HOTEL",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 277,
-      "region_name": "Стамбул",
-      "category": 5,
-      "rating": 4.7,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_015",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 1563,
-      "name": "RIXOS BELDIBI ADULTS ONLY 16+ (EX. TUI MAGIC LIFE RIXOS BELDIBI)",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 22,
-      "region_name": "Кемер",
-      "category": 5,
-      "rating": 4.6,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_016",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 65341,
-      "name": "AKRA FETHIYE THE RESIDENCE TUI BLUE SENSATORI ADULTS ONLY 16+",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 27,
-      "region_name": "Фетхие",
-      "category": 5,
-      "rating": 4.6,
-      "queries": [
-        "Akra"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_017",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 1150,
-      "name": "DELPHIN DIVA PREMIERE",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 20,
-      "region_name": "Анталья",
-      "category": 5,
-      "rating": 4.5,
-      "queries": [
-        "Delphin"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_018",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 49084,
-      "name": "TITANIC LUXURY COLLECTION BODRUM (EX. TITANIC DELUXE BODRUM)",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 24,
-      "region_name": "Бодрум",
-      "category": 5,
-      "rating": 4.5,
-      "queries": [
-        "Titanic"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_019",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 82649,
-      "name": "RIXOS PARK BELEK THE LAND OF LEGENDS FREE ACCESS",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 21,
-      "region_name": "Белек",
-      "category": 5,
-      "rating": 4.5,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_020",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 75538,
-      "name": "THE NORM COLLECTION DOORA (EX. SELECTUM DOORA BODRUM)",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 24,
-      "region_name": "Бодрум",
-      "category": 5,
-      "rating": 4.4,
-      "queries": [
-        "Selectum"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_021",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 17603,
-      "name": "RIXOS PERA HOTEL",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 277,
-      "region_name": "Стамбул",
-      "category": 5,
-      "rating": 4.3,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_022",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 81233,
-      "name": "RIXOS SUNGATE CLUB DIAMOND",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 22,
-      "region_name": "Кемер",
-      "category": 5,
-      "rating": 4.3,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_023",
+      "work_id": "W2_012",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -674,8 +488,9 @@
       ],
       "old_brand_alias_risk": true,
       "weak_brand_match": false,
+      "priority_score": 41.7,
       "batch": 1,
-      "work_id": "W2_024",
+      "work_id": "W2_013",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -692,80 +507,9 @@
       ],
       "old_brand_alias_risk": true,
       "weak_brand_match": false,
+      "priority_score": 41.7,
       "batch": 1,
-      "work_id": "W2_025",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 83059,
-      "name": "SELECTUM CITY ATASEHIR",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 277,
-      "region_name": "Стамбул",
-      "category": 5,
-      "rating": 4,
-      "queries": [
-        "Selectum"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_026",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 17681,
-      "name": "TITANIC BUSINESS HOTEL ISTANBUL EUROPE",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 277,
-      "region_name": "Стамбул",
-      "category": 5,
-      "rating": 0,
-      "queries": [
-        "Titanic"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_027",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 37470,
-      "name": "GLORIA SPORTS ARENA",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 21,
-      "region_name": "Белек",
-      "category": 5,
-      "rating": 0,
-      "queries": [
-        "Gloria"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_028",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 70452,
-      "name": "MEDWORLD CLINIC HEALTH & HOLIDAY RIXOS",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 20,
-      "region_name": "Анталья",
-      "category": 5,
-      "rating": 0,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_029",
+      "work_id": "W2_014",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -782,62 +526,142 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 38,
       "batch": 1,
-      "work_id": "W2_030",
+      "work_id": "W2_015",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
-      "native_tourvisor_id": 136702,
-      "name": "COSMOS CLINIC HEALTH & HOLIDAY NIRVANA",
+      "native_tourvisor_id": 80478,
+      "name": "CAJA BY MAXX ROYAL",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 24,
+      "region_name": "Бодрум",
+      "category": 5,
+      "rating": 5,
+      "queries": [
+        "Maxx Royal"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 34,
+      "batch": 1,
+      "work_id": "W2_016",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 1149,
+      "name": "QVOR KIRMAN PREMIUM",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 19,
+      "region_name": "Аланья",
+      "category": 5,
+      "rating": 4.8,
+      "queries": [
+        "Delphin"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 33.7,
+      "batch": 1,
+      "work_id": "W2_017",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 27646,
+      "name": "BOTANIK PLATINUM (EX. DELPHIN BOTANIK PLATINUM)",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 19,
+      "region_name": "Аланья",
+      "category": 5,
+      "rating": 4.8,
+      "queries": [
+        "Delphin"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 30.7,
+      "batch": 1,
+      "work_id": "W2_018",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 1563,
+      "name": "RIXOS BELDIBI ADULTS ONLY 16+ (EX. TUI MAGIC LIFE RIXOS BELDIBI)",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 22,
+      "region_name": "Кемер",
+      "category": 5,
+      "rating": 4.6,
+      "queries": [
+        "Rixos"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 30.4,
+      "batch": 1,
+      "work_id": "W2_019",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 1633,
+      "name": "VOYAGE TURKBUKU",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 24,
+      "region_name": "Бодрум",
+      "category": 5,
+      "rating": 4.7,
+      "queries": [
+        "Voyage"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 27.5,
+      "batch": 1,
+      "work_id": "W2_020",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 1150,
+      "name": "DELPHIN DIVA PREMIERE",
       "country": "TR",
       "country_id": 4,
       "region_id": 20,
       "region_name": "Анталья",
       "category": 5,
-      "rating": 0,
+      "rating": 4.5,
       "queries": [
-        "Nirvana"
+        "Delphin"
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 27.2,
       "batch": 1,
-      "work_id": "W2_031",
+      "work_id": "W2_021",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
-      "native_tourvisor_id": 165997,
-      "name": "BAYOU ANDA SUITES & VILLAS BY BARUT",
+      "native_tourvisor_id": 81233,
+      "name": "RIXOS SUNGATE CLUB DIAMOND",
       "country": "TR",
       "country_id": 4,
-      "region_id": 155,
-      "region_name": "Дидим",
+      "region_id": 22,
+      "region_name": "Кемер",
       "category": 5,
-      "rating": 0,
+      "rating": 4.3,
       "queries": [
-        "Barut"
+        "Rixos"
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 26.9,
       "batch": 1,
-      "work_id": "W2_032",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 17682,
-      "name": "TITANIC CITY HOTEL TAKSIM",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 277,
-      "region_name": "Стамбул",
-      "category": 4,
-      "rating": 4.8,
-      "queries": [
-        "Titanic"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_033",
+      "work_id": "W2_022",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -855,8 +679,104 @@
       ],
       "old_brand_alias_risk": true,
       "weak_brand_match": false,
+      "priority_score": 17.2,
       "batch": 1,
-      "work_id": "W2_034",
+      "work_id": "W2_023",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 112391,
+      "name": "RIXOS TERSANE ISTANBUL HOTEL",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 277,
+      "region_name": "Стамбул",
+      "category": 5,
+      "rating": 4.7,
+      "queries": [
+        "Rixos"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 13.5,
+      "batch": 1,
+      "work_id": "W2_024",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 114913,
+      "name": "THE NIRVANAS",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 277,
+      "region_name": "Стамбул",
+      "category": 4,
+      "rating": 0,
+      "queries": [
+        "Nirvana"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 13,
+      "batch": 1,
+      "work_id": "W2_025",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 127009,
+      "name": "CHAKRA SPECIAL CAVES",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 599,
+      "region_name": "Каппадокия",
+      "category": 4,
+      "rating": 0,
+      "queries": [
+        "Akra"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 13,
+      "batch": 1,
+      "work_id": "W2_026",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 17603,
+      "name": "RIXOS PERA HOTEL",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 277,
+      "region_name": "Стамбул",
+      "category": 5,
+      "rating": 4.3,
+      "queries": [
+        "Rixos"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 12.9,
+      "batch": 1,
+      "work_id": "W2_027",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 17682,
+      "name": "TITANIC CITY HOTEL TAKSIM",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 277,
+      "region_name": "Стамбул",
+      "category": 4,
+      "rating": 4.8,
+      "queries": [
+        "Titanic"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 6.7,
+      "batch": 1,
+      "work_id": "W2_028",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -873,278 +793,123 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 6.2,
+      "batch": 1,
+      "work_id": "W2_029",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 37470,
+      "name": "GLORIA SPORTS ARENA",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 21,
+      "region_name": "Белек",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "Gloria"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 6,
+      "batch": 1,
+      "work_id": "W2_030",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 99608,
+      "name": "GLORIA TIBI HOTEL GUMBET",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 24,
+      "region_name": "Бодрум",
+      "category": 2,
+      "rating": 0,
+      "queries": [
+        "Gloria"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 5,
+      "batch": 1,
+      "work_id": "W2_031",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 102321,
+      "name": "CHAKRA BEACH KABAK",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 27,
+      "region_name": "Фетхие",
+      "category": 2,
+      "rating": 0,
+      "queries": [
+        "Akra"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 5,
+      "batch": 1,
+      "work_id": "W2_032",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 165597,
+      "name": "GLORIA TIBI BIZIMTEPE AKYARLAR",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 24,
+      "region_name": "Бодрум",
+      "category": 2,
+      "rating": 0,
+      "queries": [
+        "Gloria"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 5,
+      "batch": 1,
+      "work_id": "W2_033",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 37165,
+      "name": "TITANIC COMFORT SISLI",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 277,
+      "region_name": "Стамбул",
+      "category": 3,
+      "rating": 3.4,
+      "queries": [
+        "Titanic"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 2.4,
+      "batch": 1,
+      "work_id": "W2_034",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 72910,
+      "name": "DELPHIN APART HOTEL",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 23,
+      "region_name": "Сиде",
+      "category": 1,
+      "rating": 0,
+      "queries": [
+        "Delphin"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": -3,
       "batch": 1,
       "work_id": "W2_035",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 123365,
-      "name": "JAZ ELITE RIVIERA",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 11,
-      "region_name": "Марса Алам",
-      "category": 5,
-      "rating": 5,
-      "queries": [
-        "Jaz"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_036",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 125550,
-      "name": "RIXOS MONTAZA ALEXANDRIA ADULTS ONLY 18+",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 702,
-      "region_name": "Александрия",
-      "category": 5,
-      "rating": 5,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_037",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 104626,
-      "name": "SUNRISE ALEX AVENUE HOTEL ALEXANDRIA",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 702,
-      "region_name": "Александрия",
-      "category": 5,
-      "rating": 4.9,
-      "queries": [
-        "Sunrise"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_038",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 124513,
-      "name": "RIXOS MONTAZA ALEXANDRIA",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 702,
-      "region_name": "Александрия",
-      "category": 5,
-      "rating": 4.9,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_039",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 143790,
-      "name": "JAZ VIVA CASA MAZA (EX. JAZ NEO CASA MAZA)",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 673,
-      "region_name": "Матрух",
-      "category": 5,
-      "rating": 4.9,
-      "queries": [
-        "Jaz"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_040",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 319,
-      "name": "SUNRISE REMAL BEACH RESORT",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 6,
-      "region_name": "Шарм-эль-Шейх",
-      "category": 5,
-      "rating": 4.8,
-      "queries": [
-        "Sunrise"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_041",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 1980,
-      "name": "ROYAL SAVOY ADULTS ONLY",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 6,
-      "region_name": "Шарм-эль-Шейх",
-      "category": 5,
-      "rating": 4.8,
-      "queries": [
-        "Savoy"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_042",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 40222,
-      "name": "JAZ AQUAVIVA MAKADI BAY",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 5,
-      "region_name": "Хургада",
-      "category": 5,
-      "rating": 4.8,
-      "queries": [
-        "Jaz"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_043",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 76125,
-      "name": "JAZ TAMERINA",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 673,
-      "region_name": "Матрух",
-      "category": 5,
-      "rating": 4.8,
-      "queries": [
-        "Jaz"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_044",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 76638,
-      "name": "ROYAL SAVOY VILLAS",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 6,
-      "region_name": "Шарм-эль-Шейх",
-      "category": 5,
-      "rating": 4.8,
-      "queries": [
-        "Savoy"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_045",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 103273,
-      "name": "STEIGENBERGER RESORT ACHTI LUXOR",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 721,
-      "region_name": "Люксор",
-      "category": 5,
-      "rating": 4.8,
-      "queries": [
-        "Steigenberger"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_046",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 75658,
-      "name": "STEIGENBERGER PYRAMIDS CAIRO",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 611,
-      "region_name": "Каир",
-      "category": 5,
-      "rating": 4.7,
-      "queries": [
-        "Steigenberger"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_047",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 76121,
-      "name": "JAZ CRYSTAL",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 673,
-      "region_name": "Матрух",
-      "category": 5,
-      "rating": 4.7,
-      "queries": [
-        "Jaz"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_048",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 306,
-      "name": "TUI MAGIC LIFE REDSINA SHARM EL SHEIKH (EX. IBEROTEL REDSINA)",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 6,
-      "region_name": "Шарм-эль-Шейх",
-      "category": 5,
-      "rating": 4.6,
-      "queries": [
-        "Iberotel"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_049",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 75593,
-      "name": "RIXOS MAKADI BAY",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 5,
-      "region_name": "Хургада",
-      "category": 5,
-      "rating": 4.5,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 1,
-      "work_id": "W2_050",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1161,8 +926,66 @@
       ],
       "old_brand_alias_risk": true,
       "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_051",
+      "priority_score": 44,
+      "batch": 1,
+      "work_id": "W2_036",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 319,
+      "name": "SUNRISE REMAL BEACH RESORT",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 6,
+      "region_name": "Шарм-эль-Шейх",
+      "category": 5,
+      "rating": 4.8,
+      "queries": [
+        "Sunrise"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 42.7,
+      "batch": 1,
+      "work_id": "W2_037",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 40222,
+      "name": "JAZ AQUAVIVA MAKADI BAY",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 5,
+      "region_name": "Хургада",
+      "category": 5,
+      "rating": 4.8,
+      "queries": [
+        "Jaz"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 42.7,
+      "batch": 1,
+      "work_id": "W2_038",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 75593,
+      "name": "RIXOS MAKADI BAY",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 5,
+      "region_name": "Хургада",
+      "category": 5,
+      "rating": 4.5,
+      "queries": [
+        "Rixos"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 42.2,
+      "batch": 1,
+      "work_id": "W2_039",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1179,8 +1002,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_052",
+      "priority_score": 41.9,
+      "batch": 1,
+      "work_id": "W2_040",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1197,98 +1021,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_053",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 116691,
-      "name": "RIXOS PREMIUM ALAMEIN RESIDENCE TOWERS",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 673,
-      "region_name": "Матрух",
-      "category": 5,
-      "rating": 0,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_054",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 126001,
-      "name": "RIXOS MONTAZA NARIMAN",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 702,
-      "region_name": "Александрия",
-      "category": 5,
-      "rating": 0,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_055",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 126002,
-      "name": "RIXOS MONTAZA SALAMLEK PALACE",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 702,
-      "region_name": "Александрия",
-      "category": 5,
-      "rating": 0,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_056",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 126004,
-      "name": "RIXOS MONTAZA KING FOUAD LODGES (ADULTS ONLY 18+)",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 702,
-      "region_name": "Александрия",
-      "category": 5,
-      "rating": 0,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_057",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 126005,
-      "name": "RIXOS MONTAZA CLEOPATRA FOREST",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 702,
-      "region_name": "Александрия",
-      "category": 5,
-      "rating": 0,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_058",
+      "priority_score": 41.9,
+      "batch": 1,
+      "work_id": "W2_041",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1305,44 +1040,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_059",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 133370,
-      "name": "RIXOS MONTAZA PARADISE HOTEL",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 702,
-      "region_name": "Александрия",
-      "category": 5,
-      "rating": 0,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_060",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 133426,
-      "name": "RIXOS RADAMIS BEACH HOTEL",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 6,
-      "region_name": "Шарм-эль-Шейх",
-      "category": 5,
-      "rating": 0,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_061",
+      "priority_score": 40,
+      "batch": 1,
+      "work_id": "W2_042",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1359,44 +1059,28 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_062",
+      "priority_score": 40,
+      "batch": 1,
+      "work_id": "W2_043",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
-      "native_tourvisor_id": 169957,
-      "name": "BARON CASCADES",
+      "native_tourvisor_id": 306,
+      "name": "TUI MAGIC LIFE REDSINA SHARM EL SHEIKH (EX. IBEROTEL REDSINA)",
       "country": "EG",
       "country_id": 1,
       "region_id": 6,
       "region_name": "Шарм-эль-Шейх",
       "category": 5,
-      "rating": 0,
+      "rating": 4.6,
       "queries": [
-        "Baron"
+        "Iberotel"
       ],
-      "old_brand_alias_risk": false,
+      "old_brand_alias_risk": true,
       "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_063",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 60787,
-      "name": "STEIGENBERGER TAHRIR",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 611,
-      "region_name": "Каир",
-      "category": 4,
-      "rating": 4.9,
-      "queries": [
-        "Steigenberger"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_064",
+      "priority_score": 39.4,
+      "batch": 1,
+      "work_id": "W2_044",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1413,6 +1097,387 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 35.8,
+      "batch": 1,
+      "work_id": "W2_045",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 113,
+      "name": "PICKALBATROS ALF LEILA WA LEILA RESORT NEVERLAND HURGHADA",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 5,
+      "region_name": "Хургада",
+      "category": 4,
+      "rating": 4.7,
+      "queries": [
+        "Pickalbatros"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 35.5,
+      "batch": 1,
+      "work_id": "W2_046",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 133426,
+      "name": "RIXOS RADAMIS BEACH HOTEL",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 6,
+      "region_name": "Шарм-эль-Шейх",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "Rixos"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 35,
+      "batch": 1,
+      "work_id": "W2_047",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 103273,
+      "name": "STEIGENBERGER RESORT ACHTI LUXOR",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 721,
+      "region_name": "Люксор",
+      "category": 5,
+      "rating": 4.8,
+      "queries": [
+        "Steigenberger"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 34.7,
+      "batch": 1,
+      "work_id": "W2_048",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 108,
+      "name": "PICKALBATROS AQUA BLU RESORT (EX. PICKALBATROS SEA WORLD)",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 5,
+      "region_name": "Хургада",
+      "category": 4,
+      "rating": 4.8,
+      "queries": [
+        "Pickalbatros"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 32.7,
+      "batch": 1,
+      "work_id": "W2_049",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 496,
+      "name": "SUNRISE REMAL RESORT (EX. MELTON TIRAN RESORT)",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 6,
+      "region_name": "Шарм-эль-Шейх",
+      "category": 4,
+      "rating": 4.8,
+      "queries": [
+        "Sunrise"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 32.7,
+      "batch": 1,
+      "work_id": "W2_050",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 1980,
+      "name": "ROYAL SAVOY ADULTS ONLY",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 6,
+      "region_name": "Шарм-эль-Шейх",
+      "category": 5,
+      "rating": 4.8,
+      "queries": [
+        "Savoy"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 32.7,
+      "batch": 2,
+      "work_id": "W2_051",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 76638,
+      "name": "ROYAL SAVOY VILLAS",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 6,
+      "region_name": "Шарм-эль-Шейх",
+      "category": 5,
+      "rating": 4.8,
+      "queries": [
+        "Savoy"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 32.7,
+      "batch": 2,
+      "work_id": "W2_052",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 133,
+      "name": "PICKALBATROS AQUA PARK RESORT (EX. BEACH ALBATROS GARDEN)",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 5,
+      "region_name": "Хургада",
+      "category": 4,
+      "rating": 4.7,
+      "queries": [
+        "Pickalbatros"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 32.5,
+      "batch": 2,
+      "work_id": "W2_053",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 266,
+      "name": "LIDO SHARM (EX. IBEROTEL LIDO)",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 6,
+      "region_name": "Шарм-эль-Шейх",
+      "category": 4,
+      "rating": 4.3,
+      "queries": [
+        "Iberotel"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 31.9,
+      "batch": 2,
+      "work_id": "W2_054",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 159,
+      "name": "SUNRISE JUMAN HOTEL (EX. CORAL BEACH RESORT (MANAGED BY SUNRISE))",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 5,
+      "region_name": "Хургада",
+      "category": 4,
+      "rating": 4.2,
+      "queries": [
+        "Sunrise"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 31.7,
+      "batch": 2,
+      "work_id": "W2_055",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 344,
+      "name": "SUNRISE CARDINA RESORT (EX. AURORA BAY)",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 11,
+      "region_name": "Марса Алам",
+      "category": 4,
+      "rating": 4.2,
+      "queries": [
+        "Sunrise"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 31.7,
+      "batch": 2,
+      "work_id": "W2_056",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 116691,
+      "name": "RIXOS PREMIUM ALAMEIN RESIDENCE TOWERS",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 673,
+      "region_name": "Матрух",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "Rixos"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 30,
+      "batch": 2,
+      "work_id": "W2_057",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 123365,
+      "name": "JAZ ELITE RIVIERA",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 11,
+      "region_name": "Марса Алам",
+      "category": 5,
+      "rating": 5,
+      "queries": [
+        "Jaz"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 28,
+      "batch": 2,
+      "work_id": "W2_058",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 76125,
+      "name": "JAZ TAMERINA",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 673,
+      "region_name": "Матрух",
+      "category": 5,
+      "rating": 4.8,
+      "queries": [
+        "Jaz"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 27.7,
+      "batch": 2,
+      "work_id": "W2_059",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 76121,
+      "name": "JAZ CRYSTAL",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 673,
+      "region_name": "Матрух",
+      "category": 5,
+      "rating": 4.7,
+      "queries": [
+        "Jaz"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 27.5,
+      "batch": 2,
+      "work_id": "W2_060",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 125550,
+      "name": "RIXOS MONTAZA ALEXANDRIA ADULTS ONLY 18+",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 702,
+      "region_name": "Александрия",
+      "category": 5,
+      "rating": 5,
+      "queries": [
+        "Rixos"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 25,
+      "batch": 2,
+      "work_id": "W2_061",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 143790,
+      "name": "JAZ VIVA CASA MAZA (EX. JAZ NEO CASA MAZA)",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 673,
+      "region_name": "Матрух",
+      "category": 5,
+      "rating": 4.9,
+      "queries": [
+        "Jaz"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 24.8,
+      "batch": 2,
+      "work_id": "W2_062",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 76208,
+      "name": "BARON HOTEL HELIOPOLIS",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 611,
+      "region_name": "Каир",
+      "category": 4,
+      "rating": 4.6,
+      "queries": [
+        "Baron"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 20.4,
+      "batch": 2,
+      "work_id": "W2_063",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 169957,
+      "name": "BARON CASCADES",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 6,
+      "region_name": "Шарм-эль-Шейх",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "Baron"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 20,
+      "batch": 2,
+      "work_id": "W2_064",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 104626,
+      "name": "SUNRISE ALEX AVENUE HOTEL ALEXANDRIA",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 702,
+      "region_name": "Александрия",
+      "category": 5,
+      "rating": 4.9,
+      "queries": [
+        "Sunrise"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 19.8,
       "batch": 2,
       "work_id": "W2_065",
       "status": "research_needed_current_site_alias_fact_photo"
@@ -1431,6 +1496,7 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 36,
       "batch": 2,
       "work_id": "W2_066",
       "status": "research_needed_current_site_alias_fact_photo"
@@ -1449,6 +1515,7 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 36,
       "batch": 2,
       "work_id": "W2_067",
       "status": "research_needed_current_site_alias_fact_photo"
@@ -1467,6 +1534,7 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 36,
       "batch": 2,
       "work_id": "W2_068",
       "status": "research_needed_current_site_alias_fact_photo"
@@ -1485,26 +1553,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 35.8,
       "batch": 2,
       "work_id": "W2_069",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 2592,
-      "name": "KEMPINSKI MALL OF THE EMIRATES",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 4.9,
-      "queries": [
-        "Kempinski"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_070",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1521,62 +1572,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 35.8,
       "batch": 2,
-      "work_id": "W2_071",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 2681,
-      "name": "KEMPINSKI CENTRAL AVENUE DUBAI (EX. THE ADDRESS DUBAI MALL)",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 4.9,
-      "queries": [
-        "Kempinski"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_072",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 49850,
-      "name": "KEMPINSKI THE BOULEVARD DUBAI (EX. THE ADDRESS BOULEVARD DUBAI)",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 4.9,
-      "queries": [
-        "Kempinski"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_073",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 65031,
-      "name": "RAFFLES THE PALM DUBAI (EX. EMERALD PALACE KEMPINSKI DUBAI)",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 4.9,
-      "queries": [
-        "Kempinski"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_074",
+      "work_id": "W2_070",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1593,8 +1591,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 35.8,
       "batch": 2,
-      "work_id": "W2_075",
+      "work_id": "W2_071",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1611,8 +1610,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 35.8,
       "batch": 2,
-      "work_id": "W2_076",
+      "work_id": "W2_072",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1629,8 +1629,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 35.8,
       "batch": 2,
-      "work_id": "W2_077",
+      "work_id": "W2_073",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1647,8 +1648,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 35.7,
       "batch": 2,
-      "work_id": "W2_078",
+      "work_id": "W2_074",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1665,8 +1667,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 35.7,
       "batch": 2,
-      "work_id": "W2_079",
+      "work_id": "W2_075",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1683,44 +1686,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 35.7,
       "batch": 2,
-      "work_id": "W2_080",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 4522,
-      "name": "CROWNE PLAZA DUBAI JUMEIRAH (EX. RAMADA BY WYNDHAM JUMEIRAH)",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 4.8,
-      "queries": [
-        "Jumeirah"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_081",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 8916,
-      "name": "CONRAD ABU DHABI ETIHAD TOWERS (EX. JUMEIRAH AT ETIHAD TOWERS ABU DHABI)",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 43,
-      "region_name": "Абу-Даби",
-      "category": 5,
-      "rating": 4.8,
-      "queries": [
-        "Jumeirah"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_082",
+      "work_id": "W2_076",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1737,8 +1705,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 35.7,
       "batch": 2,
-      "work_id": "W2_083",
+      "work_id": "W2_077",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1755,8 +1724,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 35.7,
       "batch": 2,
-      "work_id": "W2_084",
+      "work_id": "W2_078",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1773,26 +1743,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 35.7,
       "batch": 2,
-      "work_id": "W2_085",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 13840,
-      "name": "THE CREEKSIDE HOTEL DUBAI AN ACCOR HOTEL (EX. JUMEIRAH CREEKSIDE)",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 4.8,
-      "queries": [
-        "Jumeirah"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_086",
+      "work_id": "W2_079",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1809,8 +1762,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 35.7,
       "batch": 2,
-      "work_id": "W2_087",
+      "work_id": "W2_080",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1827,8 +1781,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 35.7,
       "batch": 2,
-      "work_id": "W2_088",
+      "work_id": "W2_081",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1845,8 +1800,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 35.5,
       "batch": 2,
-      "work_id": "W2_089",
+      "work_id": "W2_082",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1863,6 +1819,140 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 35.5,
+      "batch": 2,
+      "work_id": "W2_083",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 2936,
+      "name": "ONE & ONLY THE PALM",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 4.7,
+      "queries": [
+        "One"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 35.5,
+      "batch": 2,
+      "work_id": "W2_084",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 8945,
+      "name": "ONE & ONLY ROYAL MIRAGE",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 4.7,
+      "queries": [
+        "One"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 35.5,
+      "batch": 2,
+      "work_id": "W2_085",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 13837,
+      "name": "FAIRMONT THE PALM",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 4.7,
+      "queries": [
+        "Fairmont"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 35.5,
+      "batch": 2,
+      "work_id": "W2_086",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 77684,
+      "name": "ANANTARA WORLD ISLANDS DUBAI RESORT",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 4.7,
+      "queries": [
+        "Anantara"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 35.5,
+      "batch": 2,
+      "work_id": "W2_087",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 80431,
+      "name": "RIXOS MARINA ABU DHABI",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 43,
+      "region_name": "Абу-Даби",
+      "category": 5,
+      "rating": 4.7,
+      "queries": [
+        "Rixos"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 35.5,
+      "batch": 2,
+      "work_id": "W2_088",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 78845,
+      "name": "JUMEIRAH LIVING MARINA GATE",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 4.6,
+      "queries": [
+        "Jumeirah"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 35.4,
+      "batch": 2,
+      "work_id": "W2_089",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 8918,
+      "name": "JUMEIRAH LIVING WORLD TRADE CENTRE RESIDENCE",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 4.5,
+      "queries": [
+        "Jumeirah"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 35.2,
       "batch": 2,
       "work_id": "W2_090",
       "status": "research_needed_current_site_alias_fact_photo"
@@ -1881,6 +1971,7 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 48,
       "batch": 2,
       "work_id": "W2_091",
       "status": "research_needed_current_site_alias_fact_photo"
@@ -1899,6 +1990,7 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 48,
       "batch": 2,
       "work_id": "W2_092",
       "status": "research_needed_current_site_alias_fact_photo"
@@ -1917,44 +2009,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 48,
       "batch": 2,
       "work_id": "W2_093",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 42647,
-      "name": "AMILLA MALDIVES RESORT & RESIDENCES (EX. AMILLA FUSHI)",
-      "country": "MV",
-      "country_id": 8,
-      "region_id": 42,
-      "region_name": "Мальдивы",
-      "category": 5,
-      "rating": 5,
-      "queries": [
-        "Amilla"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_094",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 43564,
-      "name": "LOAMA MAAMIGILI RESORT & SPA",
-      "country": "MV",
-      "country_id": 8,
-      "region_id": 42,
-      "region_name": "Мальдивы",
-      "category": 5,
-      "rating": 5,
-      "queries": [
-        "Gili"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_095",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1971,8 +2028,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 48,
       "batch": 2,
-      "work_id": "W2_096",
+      "work_id": "W2_094",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -1989,26 +2047,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 48,
       "batch": 2,
-      "work_id": "W2_097",
-      "status": "research_needed_current_site_alias_fact_photo"
-    },
-    {
-      "native_tourvisor_id": 2457,
-      "name": "SIX SENSES KANUHURA (EX. KANUHURA MALDIVES)",
-      "country": "MV",
-      "country_id": 8,
-      "region_id": 42,
-      "region_name": "Мальдивы",
-      "category": 5,
-      "rating": 4.9,
-      "queries": [
-        "Six Senses"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false,
-      "batch": 2,
-      "work_id": "W2_098",
+      "work_id": "W2_095",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -2025,8 +2066,9 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 47.8,
       "batch": 2,
-      "work_id": "W2_099",
+      "work_id": "W2_096",
       "status": "research_needed_current_site_alias_fact_photo"
     },
     {
@@ -2043,866 +2085,10 @@
       ],
       "old_brand_alias_risk": false,
       "weak_brand_match": false,
+      "priority_score": 47.7,
       "batch": 2,
-      "work_id": "W2_100",
+      "work_id": "W2_097",
       "status": "research_needed_current_site_alias_fact_photo"
-    }
-  ],
-  "reserve_unselected": [
-    {
-      "native_tourvisor_id": 99319,
-      "name": "REGNUM ESCANA BOUTIQUE HOTEL",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 24,
-      "region_name": "Бодрум",
-      "category": 2,
-      "rating": 0,
-      "queries": [
-        "Regnum"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 110940,
-      "name": "GLORIA AIRPORT HOTEL",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 277,
-      "region_name": "Стамбул",
-      "category": 2,
-      "rating": 0,
-      "queries": [
-        "Gloria"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 165596,
-      "name": "GLORIA SUITES OLD CITY",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 277,
-      "region_name": "Стамбул",
-      "category": 3,
-      "rating": 0,
-      "queries": [
-        "Gloria"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 165597,
-      "name": "GLORIA TIBI BIZIMTEPE AKYARLAR",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 24,
-      "region_name": "Бодрум",
-      "category": 2,
-      "rating": 0,
-      "queries": [
-        "Gloria"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 99608,
-      "name": "GLORIA TIBI HOTEL GUMBET",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 24,
-      "region_name": "Бодрум",
-      "category": 2,
-      "rating": 0,
-      "queries": [
-        "Gloria"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 72910,
-      "name": "DELPHIN APART HOTEL",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 23,
-      "region_name": "Сиде",
-      "category": 1,
-      "rating": 0,
-      "queries": [
-        "Delphin"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 37165,
-      "name": "TITANIC COMFORT SISLI",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 277,
-      "region_name": "Стамбул",
-      "category": 3,
-      "rating": 3.4,
-      "queries": [
-        "Titanic"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 102527,
-      "name": "NIRVANA APART HOTEL",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 26,
-      "region_name": "Мармарис",
-      "category": 0,
-      "rating": 0,
-      "queries": [
-        "Nirvana"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 100396,
-      "name": "NIRVANA BOUTIQUE HOUSE",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 586,
-      "region_name": "Кайсери",
-      "category": 2,
-      "rating": 0,
-      "queries": [
-        "Nirvana"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 114913,
-      "name": "THE NIRVANAS",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 277,
-      "region_name": "Стамбул",
-      "category": 4,
-      "rating": 0,
-      "queries": [
-        "Nirvana"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 102321,
-      "name": "CHAKRA BEACH KABAK",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 27,
-      "region_name": "Фетхие",
-      "category": 2,
-      "rating": 0,
-      "queries": [
-        "Akra"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 127009,
-      "name": "CHAKRA SPECIAL CAVES",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 599,
-      "region_name": "Каппадокия",
-      "category": 4,
-      "rating": 0,
-      "queries": [
-        "Akra"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 115347,
-      "name": "CHAKRA SUITES BESIKTAS",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 277,
-      "region_name": "Стамбул",
-      "category": 3,
-      "rating": 0,
-      "queries": [
-        "Akra"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 142368,
-      "name": "SAKRAN",
-      "country": "TR",
-      "country_id": 4,
-      "region_id": 306,
-      "region_name": "Измир",
-      "category": 0,
-      "rating": 0,
-      "queries": [
-        "Akra"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": true
-    },
-    {
-      "native_tourvisor_id": 128133,
-      "name": "RIXOS TOWER PYRAMIDS VIEW",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 611,
-      "region_name": "Каир",
-      "category": 3,
-      "rating": 0,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 496,
-      "name": "SUNRISE REMAL RESORT (EX. MELTON TIRAN RESORT)",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 6,
-      "region_name": "Шарм-эль-Шейх",
-      "category": 4,
-      "rating": 4.8,
-      "queries": [
-        "Sunrise"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 344,
-      "name": "SUNRISE CARDINA RESORT (EX. AURORA BAY)",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 11,
-      "region_name": "Марса Алам",
-      "category": 4,
-      "rating": 4.2,
-      "queries": [
-        "Sunrise"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 159,
-      "name": "SUNRISE JUMAN HOTEL (EX. CORAL BEACH RESORT (MANAGED BY SUNRISE))",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 5,
-      "region_name": "Хургада",
-      "category": 4,
-      "rating": 4.2,
-      "queries": [
-        "Sunrise"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 108,
-      "name": "PICKALBATROS AQUA BLU RESORT (EX. PICKALBATROS SEA WORLD)",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 5,
-      "region_name": "Хургада",
-      "category": 4,
-      "rating": 4.8,
-      "queries": [
-        "Pickalbatros"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 113,
-      "name": "PICKALBATROS ALF LEILA WA LEILA RESORT NEVERLAND HURGHADA",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 5,
-      "region_name": "Хургада",
-      "category": 4,
-      "rating": 4.7,
-      "queries": [
-        "Pickalbatros"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 133,
-      "name": "PICKALBATROS AQUA PARK RESORT (EX. BEACH ALBATROS GARDEN)",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 5,
-      "region_name": "Хургада",
-      "category": 4,
-      "rating": 4.7,
-      "queries": [
-        "Pickalbatros"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 103272,
-      "name": "STEIGENBERGER CECIL HOTEL",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 702,
-      "region_name": "Александрия",
-      "category": 4,
-      "rating": 0,
-      "queries": [
-        "Steigenberger"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 76208,
-      "name": "BARON HOTEL HELIOPOLIS",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 611,
-      "region_name": "Каир",
-      "category": 4,
-      "rating": 4.6,
-      "queries": [
-        "Baron"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 266,
-      "name": "LIDO SHARM (EX. IBEROTEL LIDO)",
-      "country": "EG",
-      "country_id": 1,
-      "region_id": 6,
-      "region_name": "Шарм-эль-Шейх",
-      "category": 4,
-      "rating": 4.3,
-      "queries": [
-        "Iberotel"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 8945,
-      "name": "ONE & ONLY ROYAL MIRAGE",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 4.7,
-      "queries": [
-        "One"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 2936,
-      "name": "ONE & ONLY THE PALM",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 4.7,
-      "queries": [
-        "One"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 2633,
-      "name": "ONE & ONLY ROYAL MIRAGE RESIDENCE & SPA",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 0,
-      "queries": [
-        "One"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 81730,
-      "name": "ONE TO ONE CLOVER HOTEL & SUITES",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 46,
-      "region_name": "Рас-эль-Хайма",
-      "category": 3,
-      "rating": 0,
-      "queries": [
-        "One"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": true
-    },
-    {
-      "native_tourvisor_id": 32226,
-      "name": "ONE TO ONE HOTEL & RESORT AIN AL FAIDA",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 43,
-      "region_name": "Абу-Даби",
-      "category": 4,
-      "rating": 0,
-      "queries": [
-        "One"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": true
-    },
-    {
-      "native_tourvisor_id": 69179,
-      "name": "STUDIO ONE HOTEL",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 4,
-      "rating": 5,
-      "queries": [
-        "One"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": true
-    },
-    {
-      "native_tourvisor_id": 112603,
-      "name": "SIRO ONE ZA ABEEL",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 4.8,
-      "queries": [
-        "One"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": true
-    },
-    {
-      "native_tourvisor_id": 77942,
-      "name": "25HOURS DUBAI ONE CENTRAL",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 4.7,
-      "queries": [
-        "One"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": true
-    },
-    {
-      "native_tourvisor_id": 46724,
-      "name": "IBIS ONE CENTRAL",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 3,
-      "rating": 4.6,
-      "queries": [
-        "One"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": true
-    },
-    {
-      "native_tourvisor_id": 13996,
-      "name": "MEDIA ONE HOTEL",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 4,
-      "rating": 4.6,
-      "queries": [
-        "One"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": true
-    },
-    {
-      "native_tourvisor_id": 63901,
-      "name": "MUGHAL SUITES (EX. ONE TO ONE MUGHAL SUITES)",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 46,
-      "region_name": "Рас-эль-Хайма",
-      "category": 4,
-      "rating": 4.3,
-      "queries": [
-        "One"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": true
-    },
-    {
-      "native_tourvisor_id": 13845,
-      "name": "VILLAGGIO HOTEL ABU DHABI (EX. ONE TO ONE HOTEL THE VILLAGE)",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 43,
-      "region_name": "Абу-Даби",
-      "category": 4,
-      "rating": 4.3,
-      "queries": [
-        "One"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": true
-    },
-    {
-      "native_tourvisor_id": 45287,
-      "name": "NUMBER ONE TOWER SUITES",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 4,
-      "rating": 4.1,
-      "queries": [
-        "One"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": true
-    },
-    {
-      "native_tourvisor_id": 44984,
-      "name": "MILESTONE APARTMENT",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 3,
-      "rating": 4,
-      "queries": [
-        "One"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": true
-    },
-    {
-      "native_tourvisor_id": 23290,
-      "name": "WESCOTT PLAZA HOTEL APARTMENTS (EX. WEST ZONE)",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 4,
-      "rating": 4,
-      "queries": [
-        "One"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": true
-    },
-    {
-      "native_tourvisor_id": 38640,
-      "name": "PEARL SWISS HOTEL (EX. BLACK STONE HOTEL)",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 4,
-      "rating": 3.8,
-      "queries": [
-        "One"
-      ],
-      "old_brand_alias_risk": true,
-      "weak_brand_match": true
-    },
-    {
-      "native_tourvisor_id": 113312,
-      "name": "BLACKSTONE BLUBAY HOTEL",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 1,
-      "rating": 0,
-      "queries": [
-        "One"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": true
-    },
-    {
-      "native_tourvisor_id": 128487,
-      "name": "MANDARIN ORIENTAL DOWNTOWN",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 0,
-      "queries": [
-        "Mandarin"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 78845,
-      "name": "JUMEIRAH LIVING MARINA GATE",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 4.6,
-      "queries": [
-        "Jumeirah"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 8918,
-      "name": "JUMEIRAH LIVING WORLD TRADE CENTRE RESIDENCE",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 4.5,
-      "queries": [
-        "Jumeirah"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 126277,
-      "name": "JUMEIRAH RESIDENCES MARSA AL ARAB",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 0,
-      "queries": [
-        "Jumeirah"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 68939,
-      "name": "HYATT PLACE DUBAI JUMEIRAH",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 4,
-      "rating": 4.9,
-      "queries": [
-        "Jumeirah"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 77515,
-      "name": "THE FIRST COLLECTION AT JUMEIRAH VILLAGE CIRCLE",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 4,
-      "rating": 4.9,
-      "queries": [
-        "Jumeirah"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 69774,
-      "name": "WALDORF ASTORIA DUBAI INTERNATIONAL FINANCIAL CENTRE",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 0,
-      "queries": [
-        "Waldorf"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 13837,
-      "name": "FAIRMONT THE PALM",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 4.7,
-      "queries": [
-        "Fairmont"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 143734,
-      "name": "FAIRMONT HERITAGE PLACE THE PALM",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 0,
-      "rating": 0,
-      "queries": [
-        "Fairmont"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 129002,
-      "name": "FAIRMONT MARINA RESIDENCES ABU DHABI",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 43,
-      "region_name": "Абу-Даби",
-      "category": 5,
-      "rating": 0,
-      "queries": [
-        "Fairmont"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 80431,
-      "name": "RIXOS MARINA ABU DHABI",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 43,
-      "region_name": "Абу-Даби",
-      "category": 5,
-      "rating": 4.7,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 23283,
-      "name": "RIXOS BAB AL BAHR",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 46,
-      "region_name": "Рас-эль-Хайма",
-      "category": 5,
-      "rating": 4.5,
-      "queries": [
-        "Rixos"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 77684,
-      "name": "ANANTARA WORLD ISLANDS DUBAI RESORT",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 5,
-      "rating": 4.7,
-      "queries": [
-        "Anantara"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 126830,
-      "name": "ANANTARA AL JABAL",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 4,
-      "rating": 0,
-      "queries": [
-        "Anantara"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 112016,
-      "name": "ANANTARA RESIDENCES BEACHFRONT PRIVATE BEACH AND LAGOON POOL",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 1,
-      "rating": 0,
-      "queries": [
-        "Anantara"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
-    },
-    {
-      "native_tourvisor_id": 127815,
-      "name": "EDENS DUBAI ANANTARA THE PALM RESIDENCES",
-      "country": "AE",
-      "country_id": 9,
-      "region_id": 45,
-      "region_name": "Дубай",
-      "category": 4,
-      "rating": 0,
-      "queries": [
-        "Anantara"
-      ],
-      "old_brand_alias_risk": false,
-      "weak_brand_match": false
     },
     {
       "native_tourvisor_id": 64130,
@@ -2917,7 +2103,979 @@
         "Joali"
       ],
       "old_brand_alias_risk": false,
-      "weak_brand_match": false
+      "weak_brand_match": false,
+      "priority_score": 46.2,
+      "batch": 2,
+      "work_id": "W2_098",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 42647,
+      "name": "AMILLA MALDIVES RESORT & RESIDENCES (EX. AMILLA FUSHI)",
+      "country": "MV",
+      "country_id": 8,
+      "region_id": 42,
+      "region_name": "Мальдивы",
+      "category": 5,
+      "rating": 5,
+      "queries": [
+        "Amilla"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 45,
+      "batch": 2,
+      "work_id": "W2_099",
+      "status": "research_needed_current_site_alias_fact_photo"
+    },
+    {
+      "native_tourvisor_id": 2457,
+      "name": "SIX SENSES KANUHURA (EX. KANUHURA MALDIVES)",
+      "country": "MV",
+      "country_id": 8,
+      "region_id": 42,
+      "region_name": "Мальдивы",
+      "category": 5,
+      "rating": 4.9,
+      "queries": [
+        "Six Senses"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 44.8,
+      "batch": 2,
+      "work_id": "W2_100",
+      "status": "research_needed_current_site_alias_fact_photo"
+    }
+  ],
+  "reserve_unselected": [
+    {
+      "native_tourvisor_id": 37172,
+      "name": "TITANIC BUSINESS KARTAL",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 277,
+      "region_name": "Стамбул",
+      "category": 5,
+      "rating": 5,
+      "queries": [
+        "Titanic"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": -7
+    },
+    {
+      "native_tourvisor_id": 17683,
+      "name": "TITANIC PORT HOTEL BAKIRKOY",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 277,
+      "region_name": "Стамбул",
+      "category": 5,
+      "rating": 4.7,
+      "queries": [
+        "Titanic"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": -7.5
+    },
+    {
+      "native_tourvisor_id": 28662,
+      "name": "TITANIC BUSINESS GOLDEN HORN (EX. TITANIC BUSINESS BAYRAMPASA)",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 277,
+      "region_name": "Стамбул",
+      "category": 5,
+      "rating": 4.7,
+      "queries": [
+        "Titanic"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": -10.5
+    },
+    {
+      "native_tourvisor_id": 83059,
+      "name": "SELECTUM CITY ATASEHIR",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 277,
+      "region_name": "Стамбул",
+      "category": 5,
+      "rating": 4,
+      "queries": [
+        "Selectum"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": -8.6
+    },
+    {
+      "native_tourvisor_id": 17681,
+      "name": "TITANIC BUSINESS HOTEL ISTANBUL EUROPE",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 277,
+      "region_name": "Стамбул",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "Titanic"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": -29
+    },
+    {
+      "native_tourvisor_id": 70452,
+      "name": "MEDWORLD CLINIC HEALTH & HOLIDAY RIXOS",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 20,
+      "region_name": "Анталья",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "Rixos"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": -15
+    },
+    {
+      "native_tourvisor_id": 136702,
+      "name": "COSMOS CLINIC HEALTH & HOLIDAY NIRVANA",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 20,
+      "region_name": "Анталья",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "Nirvana"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": -15
+    },
+    {
+      "native_tourvisor_id": 124513,
+      "name": "RIXOS MONTAZA ALEXANDRIA",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 702,
+      "region_name": "Александрия",
+      "category": 5,
+      "rating": 4.9,
+      "queries": [
+        "Rixos"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 19.8
+    },
+    {
+      "native_tourvisor_id": 75658,
+      "name": "STEIGENBERGER PYRAMIDS CAIRO",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 611,
+      "region_name": "Каир",
+      "category": 5,
+      "rating": 4.7,
+      "queries": [
+        "Steigenberger"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 19.5
+    },
+    {
+      "native_tourvisor_id": 126001,
+      "name": "RIXOS MONTAZA NARIMAN",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 702,
+      "region_name": "Александрия",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "Rixos"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 10
+    },
+    {
+      "native_tourvisor_id": 126002,
+      "name": "RIXOS MONTAZA SALAMLEK PALACE",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 702,
+      "region_name": "Александрия",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "Rixos"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 10
+    },
+    {
+      "native_tourvisor_id": 126004,
+      "name": "RIXOS MONTAZA KING FOUAD LODGES (ADULTS ONLY 18+)",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 702,
+      "region_name": "Александрия",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "Rixos"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 15
+    },
+    {
+      "native_tourvisor_id": 126005,
+      "name": "RIXOS MONTAZA CLEOPATRA FOREST",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 702,
+      "region_name": "Александрия",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "Rixos"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 10
+    },
+    {
+      "native_tourvisor_id": 133370,
+      "name": "RIXOS MONTAZA PARADISE HOTEL",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 702,
+      "region_name": "Александрия",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "Rixos"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 10
+    },
+    {
+      "native_tourvisor_id": 60787,
+      "name": "STEIGENBERGER TAHRIR",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 611,
+      "region_name": "Каир",
+      "category": 4,
+      "rating": 4.9,
+      "queries": [
+        "Steigenberger"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 12.8
+    },
+    {
+      "native_tourvisor_id": 2592,
+      "name": "KEMPINSKI MALL OF THE EMIRATES",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 4.9,
+      "queries": [
+        "Kempinski"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 27.8
+    },
+    {
+      "native_tourvisor_id": 2681,
+      "name": "KEMPINSKI CENTRAL AVENUE DUBAI (EX. THE ADDRESS DUBAI MALL)",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 4.9,
+      "queries": [
+        "Kempinski"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 24.8
+    },
+    {
+      "native_tourvisor_id": 49850,
+      "name": "KEMPINSKI THE BOULEVARD DUBAI (EX. THE ADDRESS BOULEVARD DUBAI)",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 4.9,
+      "queries": [
+        "Kempinski"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 24.8
+    },
+    {
+      "native_tourvisor_id": 65031,
+      "name": "RAFFLES THE PALM DUBAI (EX. EMERALD PALACE KEMPINSKI DUBAI)",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 4.9,
+      "queries": [
+        "Kempinski"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 32.8
+    },
+    {
+      "native_tourvisor_id": 4522,
+      "name": "CROWNE PLAZA DUBAI JUMEIRAH (EX. RAMADA BY WYNDHAM JUMEIRAH)",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 4.8,
+      "queries": [
+        "Jumeirah"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 32.7
+    },
+    {
+      "native_tourvisor_id": 8916,
+      "name": "CONRAD ABU DHABI ETIHAD TOWERS (EX. JUMEIRAH AT ETIHAD TOWERS ABU DHABI)",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 43,
+      "region_name": "Абу-Даби",
+      "category": 5,
+      "rating": 4.8,
+      "queries": [
+        "Jumeirah"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 32.7
+    },
+    {
+      "native_tourvisor_id": 13840,
+      "name": "THE CREEKSIDE HOTEL DUBAI AN ACCOR HOTEL (EX. JUMEIRAH CREEKSIDE)",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 4.8,
+      "queries": [
+        "Jumeirah"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": false,
+      "priority_score": 32.7
+    },
+    {
+      "native_tourvisor_id": 43564,
+      "name": "LOAMA MAAMIGILI RESORT & SPA",
+      "country": "MV",
+      "country_id": 8,
+      "region_id": 42,
+      "region_name": "Мальдивы",
+      "category": 5,
+      "rating": 5,
+      "queries": [
+        "Gili"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 3
+    },
+    {
+      "native_tourvisor_id": 99319,
+      "name": "REGNUM ESCANA BOUTIQUE HOTEL",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 24,
+      "region_name": "Бодрум",
+      "category": 2,
+      "rating": 0,
+      "queries": [
+        "Regnum"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": -3
+    },
+    {
+      "native_tourvisor_id": 110940,
+      "name": "GLORIA AIRPORT HOTEL",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 277,
+      "region_name": "Стамбул",
+      "category": 2,
+      "rating": 0,
+      "queries": [
+        "Gloria"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": -30
+    },
+    {
+      "native_tourvisor_id": 165596,
+      "name": "GLORIA SUITES OLD CITY",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 277,
+      "region_name": "Стамбул",
+      "category": 3,
+      "rating": 0,
+      "queries": [
+        "Gloria"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": -9
+    },
+    {
+      "native_tourvisor_id": 102527,
+      "name": "NIRVANA APART HOTEL",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 26,
+      "region_name": "Мармарис",
+      "category": 0,
+      "rating": 0,
+      "queries": [
+        "Nirvana"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": -3
+    },
+    {
+      "native_tourvisor_id": 100396,
+      "name": "NIRVANA BOUTIQUE HOUSE",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 586,
+      "region_name": "Кайсери",
+      "category": 2,
+      "rating": 0,
+      "queries": [
+        "Nirvana"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": -3
+    },
+    {
+      "native_tourvisor_id": 115347,
+      "name": "CHAKRA SUITES BESIKTAS",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 277,
+      "region_name": "Стамбул",
+      "category": 3,
+      "rating": 0,
+      "queries": [
+        "Akra"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": -9
+    },
+    {
+      "native_tourvisor_id": 142368,
+      "name": "SAKRAN",
+      "country": "TR",
+      "country_id": 4,
+      "region_id": 306,
+      "region_name": "Измир",
+      "category": 0,
+      "rating": 0,
+      "queries": [
+        "Akra"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": true,
+      "priority_score": -55
+    },
+    {
+      "native_tourvisor_id": 128133,
+      "name": "RIXOS TOWER PYRAMIDS VIEW",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 611,
+      "region_name": "Каир",
+      "category": 3,
+      "rating": 0,
+      "queries": [
+        "Rixos"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": -3
+    },
+    {
+      "native_tourvisor_id": 103272,
+      "name": "STEIGENBERGER CECIL HOTEL",
+      "country": "EG",
+      "country_id": 1,
+      "region_id": 702,
+      "region_name": "Александрия",
+      "category": 4,
+      "rating": 0,
+      "queries": [
+        "Steigenberger"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 13
+    },
+    {
+      "native_tourvisor_id": 2633,
+      "name": "ONE & ONLY ROYAL MIRAGE RESIDENCE & SPA",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "One"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 28
+    },
+    {
+      "native_tourvisor_id": 81730,
+      "name": "ONE TO ONE CLOVER HOTEL & SUITES",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 46,
+      "region_name": "Рас-эль-Хайма",
+      "category": 3,
+      "rating": 0,
+      "queries": [
+        "One"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": true,
+      "priority_score": -55
+    },
+    {
+      "native_tourvisor_id": 32226,
+      "name": "ONE TO ONE HOTEL & RESORT AIN AL FAIDA",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 43,
+      "region_name": "Абу-Даби",
+      "category": 4,
+      "rating": 0,
+      "queries": [
+        "One"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": true,
+      "priority_score": -47
+    },
+    {
+      "native_tourvisor_id": 69179,
+      "name": "STUDIO ONE HOTEL",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 4,
+      "rating": 5,
+      "queries": [
+        "One"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": true,
+      "priority_score": -39
+    },
+    {
+      "native_tourvisor_id": 112603,
+      "name": "SIRO ONE ZA ABEEL",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 4.8,
+      "queries": [
+        "One"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": true,
+      "priority_score": -24.3
+    },
+    {
+      "native_tourvisor_id": 77942,
+      "name": "25HOURS DUBAI ONE CENTRAL",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 4.7,
+      "queries": [
+        "One"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": true,
+      "priority_score": -32.5
+    },
+    {
+      "native_tourvisor_id": 46724,
+      "name": "IBIS ONE CENTRAL",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 3,
+      "rating": 4.6,
+      "queries": [
+        "One"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": true,
+      "priority_score": -47.6
+    },
+    {
+      "native_tourvisor_id": 13996,
+      "name": "MEDIA ONE HOTEL",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 4,
+      "rating": 4.6,
+      "queries": [
+        "One"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": true,
+      "priority_score": -39.6
+    },
+    {
+      "native_tourvisor_id": 63901,
+      "name": "MUGHAL SUITES (EX. ONE TO ONE MUGHAL SUITES)",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 46,
+      "region_name": "Рас-эль-Хайма",
+      "category": 4,
+      "rating": 4.3,
+      "queries": [
+        "One"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": true,
+      "priority_score": -43.1
+    },
+    {
+      "native_tourvisor_id": 13845,
+      "name": "VILLAGGIO HOTEL ABU DHABI (EX. ONE TO ONE HOTEL THE VILLAGE)",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 43,
+      "region_name": "Абу-Даби",
+      "category": 4,
+      "rating": 4.3,
+      "queries": [
+        "One"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": true,
+      "priority_score": -43.1
+    },
+    {
+      "native_tourvisor_id": 45287,
+      "name": "NUMBER ONE TOWER SUITES",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 4,
+      "rating": 4.1,
+      "queries": [
+        "One"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": true,
+      "priority_score": -40.4
+    },
+    {
+      "native_tourvisor_id": 44984,
+      "name": "MILESTONE APARTMENT",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 3,
+      "rating": 4,
+      "queries": [
+        "One"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": true,
+      "priority_score": -48.6
+    },
+    {
+      "native_tourvisor_id": 23290,
+      "name": "WESCOTT PLAZA HOTEL APARTMENTS (EX. WEST ZONE)",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 4,
+      "rating": 4,
+      "queries": [
+        "One"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": true,
+      "priority_score": -43.6
+    },
+    {
+      "native_tourvisor_id": 38640,
+      "name": "PEARL SWISS HOTEL (EX. BLACK STONE HOTEL)",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 4,
+      "rating": 3.8,
+      "queries": [
+        "One"
+      ],
+      "old_brand_alias_risk": true,
+      "weak_brand_match": true,
+      "priority_score": -43.9
+    },
+    {
+      "native_tourvisor_id": 113312,
+      "name": "BLACKSTONE BLUBAY HOTEL",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 1,
+      "rating": 0,
+      "queries": [
+        "One"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": true,
+      "priority_score": -55
+    },
+    {
+      "native_tourvisor_id": 128487,
+      "name": "MANDARIN ORIENTAL DOWNTOWN",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "Mandarin"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 28
+    },
+    {
+      "native_tourvisor_id": 126277,
+      "name": "JUMEIRAH RESIDENCES MARSA AL ARAB",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "Jumeirah"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 28
+    },
+    {
+      "native_tourvisor_id": 68939,
+      "name": "HYATT PLACE DUBAI JUMEIRAH",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 4,
+      "rating": 4.9,
+      "queries": [
+        "Jumeirah"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 28.8
+    },
+    {
+      "native_tourvisor_id": 77515,
+      "name": "THE FIRST COLLECTION AT JUMEIRAH VILLAGE CIRCLE",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 4,
+      "rating": 4.9,
+      "queries": [
+        "Jumeirah"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 28.8
+    },
+    {
+      "native_tourvisor_id": 69774,
+      "name": "WALDORF ASTORIA DUBAI INTERNATIONAL FINANCIAL CENTRE",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "Waldorf"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 28
+    },
+    {
+      "native_tourvisor_id": 143734,
+      "name": "FAIRMONT HERITAGE PLACE THE PALM",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 0,
+      "rating": 0,
+      "queries": [
+        "Fairmont"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 13
+    },
+    {
+      "native_tourvisor_id": 129002,
+      "name": "FAIRMONT MARINA RESIDENCES ABU DHABI",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 43,
+      "region_name": "Абу-Даби",
+      "category": 5,
+      "rating": 0,
+      "queries": [
+        "Fairmont"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 28
+    },
+    {
+      "native_tourvisor_id": 23283,
+      "name": "RIXOS BAB AL BAHR",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 46,
+      "region_name": "Рас-эль-Хайма",
+      "category": 5,
+      "rating": 4.5,
+      "queries": [
+        "Rixos"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 35.2
+    },
+    {
+      "native_tourvisor_id": 126830,
+      "name": "ANANTARA AL JABAL",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 4,
+      "rating": 0,
+      "queries": [
+        "Anantara"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 21
+    },
+    {
+      "native_tourvisor_id": 112016,
+      "name": "ANANTARA RESIDENCES BEACHFRONT PRIVATE BEACH AND LAGOON POOL",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 1,
+      "rating": 0,
+      "queries": [
+        "Anantara"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 13
+    },
+    {
+      "native_tourvisor_id": 127815,
+      "name": "EDENS DUBAI ANANTARA THE PALM RESIDENCES",
+      "country": "AE",
+      "country_id": 9,
+      "region_id": 45,
+      "region_name": "Дубай",
+      "category": 4,
+      "rating": 0,
+      "queries": [
+        "Anantara"
+      ],
+      "old_brand_alias_risk": false,
+      "weak_brand_match": false,
+      "priority_score": 21
     },
     {
       "native_tourvisor_id": 76032,
@@ -2932,7 +3090,8 @@
         "Gili"
       ],
       "old_brand_alias_risk": false,
-      "weak_brand_match": false
+      "weak_brand_match": false,
+      "priority_score": 27.4
     },
     {
       "native_tourvisor_id": 2478,
@@ -2947,7 +3106,8 @@
         "Gili"
       ],
       "old_brand_alias_risk": false,
-      "weak_brand_match": false
+      "weak_brand_match": false,
+      "priority_score": 27.2
     },
     {
       "native_tourvisor_id": 74197,
@@ -2962,7 +3122,8 @@
         "Gili"
       ],
       "old_brand_alias_risk": false,
-      "weak_brand_match": false
+      "weak_brand_match": false,
+      "priority_score": 26.9
     },
     {
       "native_tourvisor_id": 132068,
@@ -2977,7 +3138,8 @@
         "Gili"
       ],
       "old_brand_alias_risk": false,
-      "weak_brand_match": false
+      "weak_brand_match": false,
+      "priority_score": 24.8
     },
     {
       "native_tourvisor_id": 160353,
@@ -2992,7 +3154,8 @@
         "Gili"
       ],
       "old_brand_alias_risk": false,
-      "weak_brand_match": false
+      "weak_brand_match": false,
+      "priority_score": 5
     },
     {
       "native_tourvisor_id": 149890,
@@ -3007,7 +3170,8 @@
         "Gili"
       ],
       "old_brand_alias_risk": false,
-      "weak_brand_match": false
+      "weak_brand_match": false,
+      "priority_score": 13
     },
     {
       "native_tourvisor_id": 158417,
@@ -3022,7 +3186,9 @@
         "Como"
       ],
       "old_brand_alias_risk": false,
-      "weak_brand_match": false
+      "weak_brand_match": false,
+      "priority_score": 33
     }
-  ]
+  ],
+  "selection_policy": "Review priority only, NOT measured demand: accepted active local catalogue IDs, category, saved rating and lexical resort/luxury/family vs business/clinic/city signals, with country quotas TR35 EG30 AE25 MV10. True popularity, offer availability, photo licensing, alias identity and post admission NOT measured."
 }
