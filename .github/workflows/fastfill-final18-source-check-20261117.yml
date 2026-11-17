@@ -1,0 +1,98 @@
+name: One-shot final18 source acceptance after proved P16 no-send capability stop
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-final18-source-check-20261117.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  source-only:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '1dd2c1c9c81e57a93114b644a048a566120e592a' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+          sparse-checkout: tools/direct_demand/operations
+      - name: Accept exact P16 zero-send proof and fresh capabilities; preserve sender unchanged
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = 1dd2c1c9c81e57a93114b644a048a566120e592a
+          python3 - <<'PY'
+          import base64,hashlib,io,json,pathlib,re,runpy,subprocess,zipfile
+          APP='cece6e7bd9b1d1b8984a14df2910c8a1d36e900f'
+          def api(p):return json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+p],timeout=60))
+          def artifact(aid,digest,run):
+              a=api('actions/artifacts/'+str(aid))
+              assert not a['expired'] and a['workflow_run']['id']==run and a['digest']=='sha256:'+digest
+              raw=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/'+str(aid)+'/zip'],timeout=90)
+              assert hashlib.sha256(raw).hexdigest()==digest
+              z=zipfile.ZipFile(io.BytesIO(raw));assert z.testzip() is None
+              return {n:z.read(n) for n in z.namelist()}
+          assert api('git/ref/heads/main')['object']['sha']==APP
+          old=api('actions/runs/44111926970');assert old['conclusion']=='failure' and old['head_sha']=='994b6a590102cbb8e04e5c1ed8cef19980eb410d' and old['run_attempt']==1
+          jobs=api('actions/runs/44111926970/attempts/1/jobs?per_page=100')['jobs'];assert len(jobs)==1 and jobs[0]['id']==134139560654
+          steps={s['name']:s for s in jobs[0]['steps']}
+          assert steps['P16 invoke original bounded publisher ONCE; no retry']['conclusion']=='failure'
+          assert steps['P17 invoke original bounded publisher ONCE; no retry']['conclusion']=='skipped'
+          stopped=artifact(14340937388,'42551efce88d89a562cbf301dd2ec07886f52dc87f6a0f1b2ce60df91efdd41a',44111926970)
+          native=[json.loads(l) for l in stopped['original-native-output.jsonl'].decode().splitlines() if l.startswith('{')][-1]
+          assert native['operation']=='commercial-hotel-batch-20261117-16-v1' and not native['ok'] and native['post_write_attempts']==0 and native['error']=='channel_rights_not_ready'
+          probe=api('actions/runs/44112478651');assert probe['conclusion']=='success' and probe['run_attempt']==1 and probe['head_sha']=='1dd2c1c9c81e57a93114b644a048a566120e592a'
+          diag=artifact(14341462021,'8de5d954f25964b70905b037da2ce6f3939a424e608def87708ff09dec427e8d',44112478651)
+          d=json.loads(diag['result.json'])
+          assert d['ok'] and d['all_ready'] and d['db_writes']==d['sender_calls']==d['provider_write_attempts']==0
+          assert d['original_operation_files']==['publication-summary.json','three-hotels.lock']
+          assert d['original_summary']['post_write_attempts']==0 and d['original_summary']['posts_count']==0
+          assert all(c['state']=='ready' and c['receipt']['write_attempts']==0 for c in d['channels'])
+          blobs=artifact(14341751706,'08d24c7feb4c5fd7c411ec7b5438d2db3a01e70aff0ce3d84bb37706e2718944',44111525794)
+          oldrec=json.loads(blobs['receipt.json']);assert oldrec['total_rows']==18 and oldrec['runtime_sha']==APP
+          assert all(hashlib.sha256(blobs[n]).hexdigest()==h for n,h in oldrec['files'].items())
+          m=json.loads(blobs['p16-manifest.json']);assert m['operation']=='commercial-hotel-batch-20261117-16-v1' and len(m['rows'])==10
+          m['operation']='commercial-hotel-batch-20261117-18-v1'
+          raw=(json.dumps(m,ensure_ascii=False,indent=2)+'\n').encode()
+          approval={'schema_version':1,'operation':m['operation'],'expected_installed_sha':APP,'hotel_ids':[r['hotel_id'] for r in m['rows']],'manifest_sha256':hashlib.sha256(raw).hexdigest()}
+          source=pathlib.Path('tools/direct_demand/operations')
+          template=(source/'commercial-batch-template-20261102.php').read_text()
+          assert hashlib.sha256(template.encode()).hexdigest()=='4c4aaa2e50155a69e8bd8b9f460777026735b0c51c3b2fc253cf0b7556e53ed5'
+          pairs=[('f0e04e9b4e0ed6859ced96279cbf0619931596e6','1982ff7368763edf8b7238c3142e3cc28579e991'),('db8181426091a685a79ee55991cde22671f0d9dd','7304af19cc19666f00ca4ead1b04c2bdce719646')]
+          pins=re.findall(r'"([^"]+)"=>"([a-f0-9]{40})"',template);assert len(pins)==22
+          tree=api('git/trees/'+APP+'?recursive=1');assert not tree['truncated'];actual={x['path']:x['sha'] for x in tree['tree']}
+          for p,h in pins:assert actual[p]==dict(pairs).get(h,h)
+          prepare=runpy.run_path(str(source/'prepare-commercial-batch.py'))['prepare']
+          php,report=prepare(template,raw,approval)
+          for old,new in pairs:
+              assert php.count(old)==1 and php.count(new)==0
+              php=php.replace(old,new)
+          files={'p18-manifest.json':raw,'p18-approval.json':(json.dumps(approval,ensure_ascii=False,indent=2)+'\n').encode(),'p18-publisher-unexecuted.php':php.encode()}
+          for name in ['p17-manifest.json','p17-approval.json','p17-publisher-unexecuted.php','provider-facts.json','cover-receipt-original.json','runtime-readonly.txt']:files[name]=blobs[name]
+          files['p16-no-send-capabilities-proof.json']=diag['result.json']
+          batches=[{'batch':18,'operation':m['operation'],'ids':approval['hotel_ids'],'rows':10,'publisher_sha256':hashlib.sha256(php.encode()).hexdigest()},oldrec['batches'][1]]
+          assert batches[1]['batch']==17 and batches[1]['rows']==8
+          out=pathlib.Path('reserve-final18-accepted-source');out.mkdir()
+          for n,b in files.items():(out/n).write_bytes(b)
+          rec={'state':'EIGHTEEN_EDITORIAL_ACCEPTED_EXISTING_PUBLISHER_SOURCE_ONLY','runtime_sha':APP,'main_sha':APP,'cover_commit':'13d8ee014dd3d59aca038ec50cfde340b2ee062a','total_rows':18,'send_attempts':0,'feed_writes':0,'protected_surfaces':22,'modified_hash_pins':2,'batches':batches,'p16_stopped_before_any_upload_or_send':True,'old_operation_retained_not_replayed':True,'files':{n:hashlib.sha256(b).hexdigest() for n,b in files.items()}}
+          (out/'receipt.json').write_text(json.dumps(rec,ensure_ascii=False,indent=2)+'\n')
+          print('FINAL18_ACCEPTED_SOURCE_RECEIPT_JSON '+json.dumps(rec,separators=(',',':')))
+          
+          PY
+          php -l reserve-final18-accepted-source/p18-publisher-unexecuted.php
+          php -l reserve-final18-accepted-source/p17-publisher-unexecuted.php
+      - name: Preserve accepted source and immutable stop proof
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-final18-accepted-source-20261117
+          path: reserve-final18-accepted-source/*
+          retention-days: 30
+          if-no-files-found: warn
