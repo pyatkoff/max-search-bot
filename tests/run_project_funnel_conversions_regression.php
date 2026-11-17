@@ -524,6 +524,39 @@ funnelCheck('stored reader confirms original visit frozen price and retained pro
     &&$read['first_saved_forecast']['verified']&&$read['first_saved_forecast']['retained_api_receipt']===true
     &&$read['first_saved_forecast']['retained_processed_receipt']===true&&$read['first_saved_forecast']['manager_path']['request_recorded']===true
     &&$read['observations']['counts']['verified_with_client_rows']===1);
+funnelCheck('Apple saved start joins an existing funnel entry without a false diagnostic gap',
+    $read['intake']['counts']['bot_start_recorded']===1
+    &&$read['intake']['counts']['reviewed_start_recorded']===1
+    &&$read['intake']['counts']['reviewed_start_without_entry']===0
+    &&$read['intake']['counts']['no_saved_bot_start']===0);
+
+[$missingEntryDb,$missingEntrySettings,$missingEntryConversation,$missingEntryNow]=funnelStatusFixture();
+$missingEntryDb->exec("DELETE FROM conversation_events WHERE event_type='project_funnel_entry'");
+$missingEntryBefore=funnelStatusDatabase($missingEntryDb);
+$missingEntryRead=funnelStatusRead($missingEntryDb,$missingEntrySettings,$missingEntryNow);
+funnelCheck('a saved reviewed bot start without its funnel event is reported, not treated as paid conversion',
+    $missingEntryRead['intake']['complete']===true
+    &&$missingEntryRead['intake']['counts']['reviewed_start_recorded']===1
+    &&$missingEntryRead['intake']['counts']['reviewed_start_without_entry']===1
+    &&$missingEntryRead['intake']['counts']['entry_recorded']===0
+    &&funnelStatusDatabase($missingEntryDb)===$missingEntryBefore);
+
+[$directOnlyDb,$directOnlySettings,$directOnlyConversation,$directOnlyNow]=funnelStatusFixture();
+$directOnlyDb->exec("DELETE FROM conversation_events WHERE event_type IN ('bot_started','project_funnel_entry')");
+$directOnlyRead=funnelStatusRead($directOnlyDb,$directOnlySettings,$directOnlyNow);
+funnelCheck('no recorded bot start is distinct from lost reviewed attribution',
+    $directOnlyRead['intake']['counts']['no_saved_bot_start']===1
+    &&$directOnlyRead['intake']['counts']['bot_start_recorded']===0
+    &&$directOnlyRead['intake']['counts']['reviewed_start_recorded']===0
+    &&$directOnlyRead['intake']['counts']['reviewed_start_without_entry']===0);
+
+[$replyOnlyDb,$replyOnlySettings,$replyOnlyConversation,$replyOnlyNow]=funnelStatusFixture();
+$replyOnlyDb->prepare("INSERT INTO messages(conversation_id,direction,sender_type,channel,metadata_json) VALUES(?,'outbound','manager','max','{}')")->execute([$replyOnlyConversation['id']]);
+$replyOnlyRead=funnelStatusRead($replyOnlyDb,$replyOnlySettings,$replyOnlyNow);
+funnelCheck('stored manager reply is counted independently of source attribution or revenue',
+    $replyOnlyRead['intake']['counts']['manager_reply_recorded']===1
+    &&$replyOnlyRead['intake']['counts']['reviewed_start_without_entry']===0);
+
 foreach($statusDb->query("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")->fetchAll(PDO::FETCH_COLUMN)as$table){
     foreach(['INSERT','UPDATE','DELETE']as$operation)$statusDb->exec('CREATE TRIGGER "reader_guard_'.$table.'_'.$operation.'" BEFORE '.$operation.' ON "'.$table.'" BEGIN SELECT RAISE(ABORT,\'reader_write_forbidden\'); END');
 }
