@@ -1,0 +1,706 @@
+{
+  "schema_version": 1,
+  "state": "TAIL13_PAIRED_HOTELS_26_POSTS_NATIVE_VERIFIED",
+  "native_id_namespace": "Tourvisor",
+  "baseline_unique_pairs": 1070,
+  "added_unique_pairs": 13,
+  "total_unique_pairs": 1083,
+  "native_run_id": 44199620572,
+  "native_job_id": 134450032561,
+  "native_run_attempt": 1,
+  "actual_verified_at_utc": "2026-11-17T23:30:05Z",
+  "native_artifact_id": 14379843475,
+  "native_archive_digest": "sha256:4e589eb0a77fce45db560877548c335bdd7c96538450d622224d0ac0562d7d8f",
+  "native_verified_file_sha256": "08e92494cbe3806379acf5087383af6675659d070addf880d16dfbcbd287ebe1",
+  "app_sha": "cc017ee5bb669f4c7c13efc91d5c5812a50e55f2",
+  "cover_freeze_commit": "7192edb919d18210cef523f17a45c40eddbb66b2",
+  "groups": [
+    {
+      "number": 49,
+      "operation": "commercial-hotel-batch-20261118-49-v1",
+      "hotel_ids": [
+        33574,
+        2511,
+        2357,
+        135441,
+        2495,
+        2497,
+        2600,
+        2765,
+        4542,
+        50834
+      ],
+      "verified_at_utc": "2026-11-17T23:29:36Z",
+      "native_output_sha256": "749714b63a81e4def05d1be6ce30c8ccd71d8163c9123775bec0a5f4d87fc1b5"
+    },
+    {
+      "number": 50,
+      "operation": "commercial-hotel-batch-20261118-50-v1",
+      "hotel_ids": [
+        4533,
+        113978,
+        80748
+      ],
+      "verified_at_utc": "2026-11-17T23:30:04Z",
+      "native_output_sha256": "d6ad9079ed908a80e0ec46c169cc1777c85f5d9da78cbce1b268158b46fdf6fb"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 33574,
+      "name": "The Westin Puntacana Resort",
+      "verified_at_utc": "2026-11-17T23:29:36Z",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-33574-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1085",
+          "post_url": "https://t.me/any_toour/1085",
+          "publication_id": 2324,
+          "version_id": 7853,
+          "button_url": "https://t.me/anyru_bot?start=p_zQ7DOaFUyz_HkI5KnWcoVMJl",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "b6e7b129ab0563539f92c61b6faf21677b15fb770418acc1356a7299bb7af6f2",
+          "photo_sha256": "470a88d36ca8b15f445a4eecbef5b67fe4d87fbd6e7f93d3671f44046aa4dd7d",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 33574,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/33574.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-33574-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebd7d57b49ca",
+          "post_url": "https://max.ru/channel_anytour/AaHr19V7Sco",
+          "publication_id": 2334,
+          "version_id": 7863,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_HI0GJVPMmSjaD33qdeLqMFb-",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "b6e7b129ab0563539f92c61b6faf21677b15fb770418acc1356a7299bb7af6f2",
+          "photo_sha256": "470a88d36ca8b15f445a4eecbef5b67fe4d87fbd6e7f93d3671f44046aa4dd7d",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 33574,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/33574.png"
+        }
+      }
+    },
+    {
+      "hotel_id": 2511,
+      "name": "Al Raha Beach Resort & Spa",
+      "verified_at_utc": "2026-11-17T23:29:36Z",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-2511-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1086",
+          "post_url": "https://t.me/any_toour/1086",
+          "publication_id": 2325,
+          "version_id": 7854,
+          "button_url": "https://t.me/anyru_bot?start=p_TauuaMtqOfsYLGVLg4TpwVb1",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "16f0963e9a1e21f0ab5a66940373dce546f856fc1b6f209e6b9cfce6981bc799",
+          "photo_sha256": "0c7a7e16b8257c77ea13633497313ce78fe3421f3620836e1b080e2b6667c8de",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2511,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/2511.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-2511-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebd7deba07f7",
+          "post_url": "https://max.ru/channel_anytour/AaHr1966B_c",
+          "publication_id": 2335,
+          "version_id": 7864,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_nIfWJe-BWVQlVkZSA9X79F9z",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "16f0963e9a1e21f0ab5a66940373dce546f856fc1b6f209e6b9cfce6981bc799",
+          "photo_sha256": "0c7a7e16b8257c77ea13633497313ce78fe3421f3620836e1b080e2b6667c8de",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2511,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/2511.png"
+        }
+      }
+    },
+    {
+      "hotel_id": 2357,
+      "name": "Nusa Dua Beach Hotel & Spa",
+      "verified_at_utc": "2026-11-17T23:29:36Z",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-2357-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1087",
+          "post_url": "https://t.me/any_toour/1087",
+          "publication_id": 2326,
+          "version_id": 7855,
+          "button_url": "https://t.me/anyru_bot?start=p_xUzdOBJIbNFxgqFxRDcwjHwK",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "4d8d18dd08d69ab0446fbc01135948db6197261bd9f64eef55211746ab51249a",
+          "photo_sha256": "e62ee504865d12f3f337334683b03114218d4cb5d19fbfaad8a94818bbbfcefe",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2357,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/2357.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-2357-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebd7e7af0bd0",
+          "post_url": "https://max.ru/channel_anytour/AaHr1-evC9A",
+          "publication_id": 2336,
+          "version_id": 7865,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_7wemJg6ZghJd0Ea01dsaRo5p",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "4d8d18dd08d69ab0446fbc01135948db6197261bd9f64eef55211746ab51249a",
+          "photo_sha256": "e62ee504865d12f3f337334683b03114218d4cb5d19fbfaad8a94818bbbfcefe",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2357,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/2357.png"
+        }
+      }
+    },
+    {
+      "hotel_id": 135441,
+      "name": "Beach Rotana All Suites",
+      "verified_at_utc": "2026-11-17T23:29:36Z",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-135441-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1088",
+          "post_url": "https://t.me/any_toour/1088",
+          "publication_id": 2327,
+          "version_id": 7856,
+          "button_url": "https://t.me/anyru_bot?start=p_V9Dhl7LI__0fLkLMlDXv9t5H",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "a1249ac7f4e9a57bdc74633493e3b12565c5f20322f34a45f28a83313c43f80b",
+          "photo_sha256": "d6dccbe539c78524e1aafcc739cbb6fbc28d2c2ce2955df425356153f52d593f",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 135441,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/135441.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-135441-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebd7f12f5e9b",
+          "post_url": "https://max.ru/channel_anytour/AaHr1_EvXps",
+          "publication_id": 2337,
+          "version_id": 7866,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_JSqgJZSgwsAR769XAy7SYW3G",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "a1249ac7f4e9a57bdc74633493e3b12565c5f20322f34a45f28a83313c43f80b",
+          "photo_sha256": "d6dccbe539c78524e1aafcc739cbb6fbc28d2c2ce2955df425356153f52d593f",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 135441,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/135441.png"
+        }
+      }
+    },
+    {
+      "hotel_id": 2495,
+      "name": "JA Manafaru",
+      "verified_at_utc": "2026-11-17T23:29:36Z",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-2495-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1089",
+          "post_url": "https://t.me/any_toour/1089",
+          "publication_id": 2328,
+          "version_id": 7857,
+          "button_url": "https://t.me/anyru_bot?start=p_chLFQ2ZeV_sNvcDodqLpdIKf",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "12fce1e1d9972f307ae55cb3c2989b1f2cc4d02129ac71524b88b91fa39f5ce3",
+          "photo_sha256": "81739c8a02eb37b84a9462629f4246f95ae5fe1b87684b9a6d0be72f386a9655",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2495,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/2495.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-2495-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebd7face3020",
+          "post_url": "https://max.ru/channel_anytour/AaHr1_rOMCA",
+          "publication_id": 2338,
+          "version_id": 7867,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_xgT57Yvf9Qls-8vJV0pLtY_r",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "12fce1e1d9972f307ae55cb3c2989b1f2cc4d02129ac71524b88b91fa39f5ce3",
+          "photo_sha256": "81739c8a02eb37b84a9462629f4246f95ae5fe1b87684b9a6d0be72f386a9655",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2495,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/2495.png"
+        }
+      }
+    },
+    {
+      "hotel_id": 2497,
+      "name": "Al Ain Rotana",
+      "verified_at_utc": "2026-11-17T23:29:36Z",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-2497-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1090",
+          "post_url": "https://t.me/any_toour/1090",
+          "publication_id": 2329,
+          "version_id": 7858,
+          "button_url": "https://t.me/anyru_bot?start=p_fT8OUCYawzLeQYj_P0fHrk5d",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "f97fcd0f16924d2672a6d3499822800fee549ac03b12a2bcff46189abf6b330b",
+          "photo_sha256": "e2988665fda5e1d452d5acd94f1dee7b5fa7f5c648a78640be2fa5809df17a29",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2497,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/2497.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-2497-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebd80386040b",
+          "post_url": "https://max.ru/channel_anytour/AaHr2AOGBAs",
+          "publication_id": 2339,
+          "version_id": 7868,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_Vl5A9C6hsyzeRywqdMYBBhUp",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "f97fcd0f16924d2672a6d3499822800fee549ac03b12a2bcff46189abf6b330b",
+          "photo_sha256": "e2988665fda5e1d452d5acd94f1dee7b5fa7f5c648a78640be2fa5809df17a29",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2497,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/2497.png"
+        }
+      }
+    },
+    {
+      "hotel_id": 2600,
+      "name": "Le Méridien Abu Dhabi Resort",
+      "verified_at_utc": "2026-11-17T23:29:36Z",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-2600-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1091",
+          "post_url": "https://t.me/any_toour/1091",
+          "publication_id": 2330,
+          "version_id": 7859,
+          "button_url": "https://t.me/anyru_bot?start=p_oEwnv21lNBSzwDq1_gUOJx4C",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "c0236a8fbc8e9e5e2d4b7a5dc493d6aea41535021db7daee5be2b9f9577208f5",
+          "photo_sha256": "7ff5f7f22b79f08db0c499ceb9b8d8bb1d026791e804fb8e0c99f2fa7e5c3361",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2600,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/2600.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-2600-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebd80d1e38e9",
+          "post_url": "https://max.ru/channel_anytour/AaHr2A0eOOk",
+          "publication_id": 2340,
+          "version_id": 7869,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_s7g_CYHGznQrsRDu--I4byCY",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "c0236a8fbc8e9e5e2d4b7a5dc493d6aea41535021db7daee5be2b9f9577208f5",
+          "photo_sha256": "7ff5f7f22b79f08db0c499ceb9b8d8bb1d026791e804fb8e0c99f2fa7e5c3361",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2600,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/2600.png"
+        }
+      }
+    },
+    {
+      "hotel_id": 2765,
+      "name": "Majestic Colonial Punta Cana",
+      "verified_at_utc": "2026-11-17T23:29:36Z",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-2765-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1092",
+          "post_url": "https://t.me/any_toour/1092",
+          "publication_id": 2331,
+          "version_id": 7860,
+          "button_url": "https://t.me/anyru_bot?start=p_LpXzJAuejLGvKcvz5AoqCnCZ",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "d3d189ed0a593d70e503a61b12159000fee416f1b66e1d30a1ae5c74df4f7c47",
+          "photo_sha256": "d93ae382edd86f16bb646843e2ab91027375fe90275d043c8c484259cf4789d5",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2765,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/2765.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-2765-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebd816fe23b7",
+          "post_url": "https://max.ru/channel_anytour/AaHr2Bb-I7c",
+          "publication_id": 2341,
+          "version_id": 7870,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_tdKp7_F-5a_WKOYCCipEBLEI",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "d3d189ed0a593d70e503a61b12159000fee416f1b66e1d30a1ae5c74df4f7c47",
+          "photo_sha256": "d93ae382edd86f16bb646843e2ab91027375fe90275d043c8c484259cf4789d5",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2765,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/2765.png"
+        }
+      }
+    },
+    {
+      "hotel_id": 4542,
+      "name": "Hard Rock Hotel & Casino Punta Cana",
+      "verified_at_utc": "2026-11-17T23:29:36Z",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-4542-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1093",
+          "post_url": "https://t.me/any_toour/1093",
+          "publication_id": 2332,
+          "version_id": 7861,
+          "button_url": "https://t.me/anyru_bot?start=p_rydGsyv8euUN3zoFX3rTOV5l",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "3ff01176859cbb570707ce79dfb714bd4f22d24c2fe3ada853194fffbfc92c8c",
+          "photo_sha256": "61acce3291f6dc276b80e8d997f61e2fb3abd38b995a99cad771db1b43c33b07",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 4542,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/4542.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-4542-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebd8203b6717",
+          "post_url": "https://max.ru/channel_anytour/AaHr2CA7Zxc",
+          "publication_id": 2342,
+          "version_id": 7871,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_1Fx1g13N14EbQaAY_m1WamXp",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "3ff01176859cbb570707ce79dfb714bd4f22d24c2fe3ada853194fffbfc92c8c",
+          "photo_sha256": "61acce3291f6dc276b80e8d997f61e2fb3abd38b995a99cad771db1b43c33b07",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 4542,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/4542.png"
+        }
+      }
+    },
+    {
+      "hotel_id": 50834,
+      "name": "Hilton Dubai Al Habtoor City",
+      "verified_at_utc": "2026-11-17T23:29:36Z",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-50834-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1094",
+          "post_url": "https://t.me/any_toour/1094",
+          "publication_id": 2333,
+          "version_id": 7862,
+          "button_url": "https://t.me/anyru_bot?start=p_Q7ZsQg5Dr_qHwfybG5Pca0-X",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "e2b24adc444ae074b14ff79d38a43a1213b2a90bed95c82b5e5eed28cec897f8",
+          "photo_sha256": "2f0da9e394118a12d6b2af44f8658fc2f0080ac1ad44f3a05f754dbe540ab788",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 50834,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/50834.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-50834-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebd8299044df",
+          "post_url": "https://max.ru/channel_anytour/AaHr2CmQRN8",
+          "publication_id": 2343,
+          "version_id": 7872,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_XMCEpNUUDGK26SANw-dHdjSh",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "e2b24adc444ae074b14ff79d38a43a1213b2a90bed95c82b5e5eed28cec897f8",
+          "photo_sha256": "2f0da9e394118a12d6b2af44f8658fc2f0080ac1ad44f3a05f754dbe540ab788",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 50834,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/50834.png"
+        }
+      }
+    },
+    {
+      "hotel_id": 4533,
+      "name": "Address Montgomerie",
+      "verified_at_utc": "2026-11-17T23:30:04Z",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-4533-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1095",
+          "post_url": "https://t.me/any_toour/1095",
+          "publication_id": 2344,
+          "version_id": 7873,
+          "button_url": "https://t.me/anyru_bot?start=p_lSlKyImMDjXgpyHoF6b2MpmA",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "f2a98a31e91ac84d3341b4718f118b34fb94c0636a5de72e424387dc9ebddc20",
+          "photo_sha256": "6d694ac83fe514b163c393d5a0817af309b66620e42258703b0e53a0e7ed2a14",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 4533,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/4533.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-4533-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebd883f07453",
+          "post_url": "https://max.ru/channel_anytour/AaHr2IPwdFM",
+          "publication_id": 2347,
+          "version_id": 7876,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_n9TGwnhiSxWLBH-r8PE_GJNh",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "f2a98a31e91ac84d3341b4718f118b34fb94c0636a5de72e424387dc9ebddc20",
+          "photo_sha256": "6d694ac83fe514b163c393d5a0817af309b66620e42258703b0e53a0e7ed2a14",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 4533,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/4533.png"
+        }
+      }
+    },
+    {
+      "hotel_id": 113978,
+      "name": "TUI BLUE Olhuveli Romance",
+      "verified_at_utc": "2026-11-17T23:30:04Z",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-113978-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1096",
+          "post_url": "https://t.me/any_toour/1096",
+          "publication_id": 2345,
+          "version_id": 7874,
+          "button_url": "https://t.me/anyru_bot?start=p_q2hmlPmn_-TAmGTcm_YBSTuC",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "1a93a8b765ea14c030f5acb023ea042a28e17e59e71ce9eb6e018139802245fe",
+          "photo_sha256": "58d4db4d710960f8e085a93ca7b4850ddae9c909e1b83a4b24f0c9974bbc5699",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 113978,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/113978.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-113978-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebd88daf57b6",
+          "post_url": "https://max.ru/channel_anytour/AaHr2I2vV7Y",
+          "publication_id": 2348,
+          "version_id": 7877,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_ho5FWfJvocj94w4oXL1tO0Ei",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "1a93a8b765ea14c030f5acb023ea042a28e17e59e71ce9eb6e018139802245fe",
+          "photo_sha256": "58d4db4d710960f8e085a93ca7b4850ddae9c909e1b83a4b24f0c9974bbc5699",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 113978,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/113978.png"
+        }
+      }
+    },
+    {
+      "hotel_id": 80748,
+      "name": "Mövenpick Hotel Cairo-Media City",
+      "verified_at_utc": "2026-11-17T23:30:04Z",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-80748-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1097",
+          "post_url": "https://t.me/any_toour/1097",
+          "publication_id": 2346,
+          "version_id": 7875,
+          "button_url": "https://t.me/anyru_bot?start=p_aRR3r9jVkpbBQFwiTt6lU8v3",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "629ffa98b35f285059b0cbff3d3756c5755edb48569d1af06af178c18b40bbfc",
+          "photo_sha256": "23dd105f6ec797b80c7ab584e0845775fae537432aaf5750a8d9068149b8b0f7",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 80748,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/80748.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-80748-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebd897a14c9b",
+          "post_url": "https://max.ru/channel_anytour/AaHr2JehTJs",
+          "publication_id": 2349,
+          "version_id": 7878,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_lnXFmDt7Y49EeOi7CjETeH3R",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "629ffa98b35f285059b0cbff3d3756c5755edb48569d1af06af178c18b40bbfc",
+          "photo_sha256": "23dd105f6ec797b80c7ab584e0845775fae537432aaf5750a8d9068149b8b0f7",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 80748,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7192edb919d18210cef523f17a45c40eddbb66b2/.github/traffic-publish/commercial-wave6-tail13-20261118/80748.png"
+        }
+      }
+    }
+  ],
+  "deferred_from_origin_100": [
+    {
+      "hotel_id": 15773,
+      "reason": "Beach works. Reopen after the hotel confirms normal access."
+    },
+    {
+      "hotel_id": 329,
+      "reason": "The licensed gallery is insufficient for the approved cover."
+    },
+    {
+      "hotel_id": 2573,
+      "reason": "Legacy Hilton name. Verify current trading status."
+    },
+    {
+      "hotel_id": 82626,
+      "reason": "The Selectum management contract ended. Confirm current operation and the new name."
+    },
+    {
+      "hotel_id": 76955,
+      "reason": "The chain lists the villas as part of Mövenpick Sharm El Sheikh. Separate product identity is unverified."
+    },
+    {
+      "hotel_id": 123125,
+      "reason": "The authorized supplier gallery is empty."
+    },
+    {
+      "hotel_id": 2502,
+      "reason": "The catalogue still uses an old Hilton name. Confirm current identity."
+    },
+    {
+      "hotel_id": 60808,
+      "reason": "Resolve the common Long Beach Alanya / Harmony registration before publishing."
+    },
+    {
+      "hotel_id": 1343,
+      "reason": "Resolve Long Beach Alanya / Harmony and other generic Long Beach title matches."
+    },
+    {
+      "hotel_id": 102032,
+      "reason": "The chain page remains unavailable after a reported renovation. Verify reopening."
+    },
+    {
+      "hotel_id": 121805,
+      "reason": "The authorized supplier gallery is empty."
+    },
+    {
+      "hotel_id": 16318,
+      "reason": "Autograph Collection is the current brand. The available cover still has MGallery."
+    },
+    {
+      "hotel_id": 157001,
+      "reason": "The chain describes Albatros Makadi Resort. A separate Club identity is unconfirmed."
+    },
+    {
+      "hotel_id": 4913,
+      "reason": "The legacy Hilton Al Ain name needs re-identification."
+    },
+    {
+      "hotel_id": 2763,
+      "reason": "The current gallery includes a resort map in the branded cover. Select a clean photo set."
+    },
+    {
+      "hotel_id": 83785,
+      "reason": "Archipelago ended Cuban hotel operations. Confirm the new operator and operating status."
+    },
+    {
+      "hotel_id": 45868,
+      "reason": "Recheck the current registration, operator and lodging category."
+    }
+  ],
+  "feed_rows_added_by_this_operation": 0
+}
