@@ -81,10 +81,10 @@ if ($action === 'catalog' || $action === 'filter_options') {
     session_write_close();
     if ($action === 'catalog') {
         $directory = [
-            'stages' => SalesPipelineService::stages(true),
-            'tags' => SalesPipelineService::tags(true),
-            'outcomes' => SalesPipelineService::outcomeOptions(),
-            'close_reasons' => SalesPipelineService::closeReasonOptions(true),
+            'stages'=>SalesPipelineService::stages(true),
+            'tags'=>SalesPipelineService::tags(true),
+            'outcomes'=>SalesPipelineService::outcomeOptions(),
+            'close_reasons'=>SalesPipelineService::closeReasonOptions(true),
         ];
     } else {
         $directory = ['filters' => ManagerWorkspaceFilterService::snapshot($actor)];
