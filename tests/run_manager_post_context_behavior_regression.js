@@ -94,7 +94,7 @@ test('Apple manager2 keeps recognized repair context but refuses an unverified p
   assert.equal(h.host.querySelector('.postContextQuickLink').hidden,true);assert.equal(h.host.dataset.hasQuickLink,'false');
   assert.equal(h.host.querySelector('.postContextOriginal'),null);
 });
-test('Apple manager2 never leaks an earlier client's source or quick link after a switch',async()=>{
+test('Apple manager2 never leaks a previous client source or quick link after a switch',async()=>{
   const h=harness();h.body.className='manager2';h.S.detail.conversation.project_key='appleservice39';h.init();
   h.resolve(0,repairResult());await h.settle();assert.equal(h.host.querySelector('.postContextQuickLink').hidden,false);
   h.select(102);h.S.detail.conversation.project_key='appleservice39';
