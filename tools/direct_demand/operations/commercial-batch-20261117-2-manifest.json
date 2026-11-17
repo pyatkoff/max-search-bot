@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261117-2-v1",
+  "state": "PREPARED_NOT_SENT",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_public_full_pairs_last_known": 670,
+  "expected_new_full_pairs": 10,
+  "photo_freeze_commit": "fc305bfec124b556de4c2338317c20ede32a628a",
+  "source_photo_artifact": 14317798412,
+  "preparation_note": "Native second10 Tourvisor premium/resort branded actual PNGs, ready for current source + no-replay preflight. Does not publish or change XML feeds.",
+  "rows": [
+    {
+      "hotel_id": 2490,
+      "logical_id": "commercial-hotel-2490-v1",
+      "aliases": [
+        "Vilamendhoo Maldives Resort Island"
+      ],
+      "text": "✈️ Туры в Vilamendhoo Maldives Resort Island\n📍 Атолл Южный Ари, Мальдивы.\n\nОстровной курорт, известный домашним рифом и красивым снорклингом.\n🏝 Песчаные пляжи и виллы рядом с лагуной.\n✨ Подойдёт любителям моря и подводных открытий.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "3686a37c6dee20585abd8f5b23577a00825b2a2f98f0d52ed132de06a1d0922b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fc305bfec124b556de4c2338317c20ede32a628a/.github/traffic-publish/commercial-expansion100-20261117-second10/2490.png",
+      "photo_sha256": "8cc3594f5ee611007b3feb28b38e326338d6daed96cab10b6d8a6f5f22132a95",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2490",
+        "https://www.vilamendhoo.com/",
+        "https://www.vilamendhoo.com/renovation-reopening.html"
+      ]
+    },
+    {
+      "hotel_id": 2458,
+      "logical_id": "commercial-hotel-2458-v1",
+      "aliases": [
+        "Komandoo Island Resort & Spa"
+      ],
+      "text": "✈️ Туры в Komandoo Island Resort & Spa\n📍 Атолл Лавиани, Мальдивы.\n\nРомантический островной курорт для взрослых 18+.\n🐠 Домашний риф и снорклинг у острова.\n✨ Песчаный пляж, уединение и спа.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "ff2cd3b55280c81950d6a6cf3512166f980d6e016c657ffaf3030bfbd72d9e2d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fc305bfec124b556de4c2338317c20ede32a628a/.github/traffic-publish/commercial-expansion100-20261117-second10/2458.png",
+      "photo_sha256": "1195ed4a30b0969d1e88f1ef464089809c4c6f8e2e3e981303915d50f24972e9",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2458",
+        "https://www.komandoo.com/"
+      ]
+    },
+    {
+      "hotel_id": 113544,
+      "logical_id": "commercial-hotel-113544-v1",
+      "aliases": [
+        "Anantara Santorini Abu Dhabi Retreat"
+      ],
+      "text": "✈️ Туры в Anantara Santorini Abu Dhabi Retreat\n📍 Абу-Даби, ОАЭ.\n\nКамерный пляжный отель только для взрослых в средиземноморском стиле.\n🌊 Спокойный отдых у моря.\n✨ Просторные номера, бассейн и атмосфера приватности.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "a99dde307e59159316782a6683749aecd0de4e0f532f74dd898884e081e837cf",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fc305bfec124b556de4c2338317c20ede32a628a/.github/traffic-publish/commercial-expansion100-20261117-second10/113544.png",
+      "photo_sha256": "cb190991e0d87fbb7181c68c613d578444357c47a1f14d71d5e8f87d0e16326d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=113544",
+        "https://www.anantara.com/en/santorini-abu-dhabi"
+      ]
+    },
+    {
+      "hotel_id": 73477,
+      "logical_id": "commercial-hotel-73477-v1",
+      "aliases": [
+        "Siyam World Maldives"
+      ],
+      "text": "✈️ Туры в Siyam World Maldives\n📍 Атолл Нуну, Мальдивы.\n\nБольшой островной курорт с развлечениями для всей семьи.\n🌊 Плавучий аквапарк и пляжи.\n🍽 Много ресторанов и разных вариантов отдыха.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "a3dd50cb2121d4a558c877211d2d0381e09ac9e7fce145d51fc95d5fedd133cd",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fc305bfec124b556de4c2338317c20ede32a628a/.github/traffic-publish/commercial-expansion100-20261117-second10/73477.png",
+      "photo_sha256": "58e9760a0f7c4e7a9c41fcae0bedb1c742e3dbfae12ebf9547edf293db06c893",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=73477",
+        "https://www.sunsiyam.com/siyam-world/"
+      ]
+    },
+    {
+      "hotel_id": 2588,
+      "logical_id": "commercial-hotel-2588-v1",
+      "aliases": [
+        "Jumeirah Beach Hotel"
+      ],
+      "text": "✈️ Туры в Jumeirah Beach Hotel\n📍 Дубай, ОАЭ.\n\nПляжный отдых с видом на Burj Al Arab.\n🏊 Бассейны и водные развлечения.\n👨‍👩‍👧 Детские программы и семейная атмосфера.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "6309807d192d83372e38c59d6227d4ba45470e445db242d074ad58bccbd15f6f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fc305bfec124b556de4c2338317c20ede32a628a/.github/traffic-publish/commercial-expansion100-20261117-second10/2588.png",
+      "photo_sha256": "fc62235a5ae9b335bfa0b771f69ef3a442b7be135dbfc791324e0dc583e2fe50",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2588",
+        "https://www.jumeirah.com/en/stay/dubai/jumeirah-beach-hotel"
+      ]
+    },
+    {
+      "hotel_id": 2611,
+      "logical_id": "commercial-hotel-2611-v1",
+      "aliases": [
+        "Jumeirah Al Qasr"
+      ],
+      "text": "✈️ Туры в Jumeirah Al Qasr\n📍 Дубай, ОАЭ.\n\nКурорт в стиле арабского дворца среди садов и каналов Madinat Jumeirah.\n🏖 Пляжный отдых и бассейны.\n✨ Красивые прогулки по водным каналам.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "cc4008f0eb423243a4dac81f6dbc494022702f46edede8fca1cc1dcd95f4ad4b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fc305bfec124b556de4c2338317c20ede32a628a/.github/traffic-publish/commercial-expansion100-20261117-second10/2611.png",
+      "photo_sha256": "988d51a1ed249fb7b5960ac32140dd3ae7167448df3e3bf57d55cff48f0fd59f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2611",
+        "https://www.jumeirah.com/ru/stay/dubai/jumeirah-al-qasr"
+      ]
+    },
+    {
+      "hotel_id": 2612,
+      "logical_id": "commercial-hotel-2612-v1",
+      "aliases": [
+        "Jumeirah Mina Al Salam"
+      ],
+      "text": "✈️ Туры в Jumeirah Mina Al Salam\n📍 Дубай, ОАЭ.\n\nПляжный отель в сердце Madinat Jumeirah с атмосферой арабского курорта.\n🚤 Каналы и прогулки на традиционных лодках.\n🏖 Пляж, рестораны и семейный отдых.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "02bb5875069e375b22a8282fb06d3412482130424b9de521f986e0bc992bef99",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fc305bfec124b556de4c2338317c20ede32a628a/.github/traffic-publish/commercial-expansion100-20261117-second10/2612.png",
+      "photo_sha256": "fc46b60b67c7798388147f300a6388b1deb79c8cc84be96457268bd75a81459f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2612",
+        "https://www.jumeirah.com/en/stay/dubai/jumeirah-mina-al-salam/accommodation"
+      ]
+    },
+    {
+      "hotel_id": 2610,
+      "logical_id": "commercial-hotel-2610-v1",
+      "aliases": [
+        "Jumeirah Dar Al Masyaf"
+      ],
+      "text": "✈️ Туры в Jumeirah Dar Al Masyaf\n📍 Дубай, ОАЭ.\n\nУединённые арабские домики среди садов и каналов Madinat Jumeirah.\n🏖 Отдых у пляжа.\n✨ Приватная атмосфера и красивая территория.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "92c23e95e79793025815c81a5666b21c07765896b2b9b0148c776704b0a213c9",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fc305bfec124b556de4c2338317c20ede32a628a/.github/traffic-publish/commercial-expansion100-20261117-second10/2610.png",
+      "photo_sha256": "9c775a34b2deb9c8bd6a6d44d4adf909d4b02a44acad64d2450215bf41073138",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2610",
+        "https://www.jumeirah.com/en/stay/dubai/jumeirah-dar-al-masyaf"
+      ]
+    },
+    {
+      "hotel_id": 2931,
+      "logical_id": "commercial-hotel-2931-v1",
+      "aliases": [
+        "Jumeirah Zabeel Saray"
+      ],
+      "text": "✈️ Туры в Jumeirah Zabeel Saray\n📍 Пальма Джумейра, Дубай, ОАЭ.\n\nРоскошный пляжный отель в османском стиле.\n🏖 Пляж и бассейны.\n🧘 Просторный спа-комплекс и хаммам.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "4648182f973b20fa5d166c0f7cbbb4478485c872a5be53cf461a67ee308914d2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fc305bfec124b556de4c2338317c20ede32a628a/.github/traffic-publish/commercial-expansion100-20261117-second10/2931.png",
+      "photo_sha256": "aa1c973a8b43ca58906db24202e7cf3823b1948b133d29dc13dbdfdf0fff6b70",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2931",
+        "https://www.jumeirah.com/ru/stay/dubai/jumeirah-zabeel-saray"
+      ]
+    },
+    {
+      "hotel_id": 78456,
+      "logical_id": "commercial-hotel-78456-v1",
+      "aliases": [
+        "Jumeirah Muscat Bay"
+      ],
+      "text": "✈️ Туры в Jumeirah Muscat Bay\n📍 Маскат, Оман.\n\nПляжный курорт в тихой бухте между морем и горами.\n🏖 Отдых на берегу и бассейны.\n👨‍👩‍👧 Удобства для семейного отпуска.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "8bc7d0c7f4f1be89df3dded2de551f7cee2c673aa48b8a54a63d988958156696",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fc305bfec124b556de4c2338317c20ede32a628a/.github/traffic-publish/commercial-expansion100-20261117-second10/78456.png",
+      "photo_sha256": "3895594062e737deb5b5e2b7b3c2d8083c5a5a1b12a84f98d6282a381f683f49",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78456",
+        "https://www.jumeirah.com/ru/Stay/Oman/Jumeirah-Muscat-Bay"
+      ]
+    }
+  ]
+}
