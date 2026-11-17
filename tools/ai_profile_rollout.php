@@ -17,7 +17,7 @@ function aiProfileVerify(string $config): array
     $out=[];
     foreach ($requests as $name=>$body) {
         $out[$name]=['model'=>$body['model']??null,'reasoning'=>$body['reasoning']['effort']??null,'service_tier'=>$body['service_tier']??null];
-        if ($out[$name]!==['model'=>'gpt-6.1-sol','reasoning'=>'low','service_tier'=>'default']) throw new RuntimeException('profile_mismatch');
+        if ($out[$name]!==['model'=>'gpt-6.2-sol','reasoning'=>'medium','service_tier'=>'default']) throw new RuntimeException('profile_mismatch');
     }
     return $out;
 }
@@ -53,7 +53,7 @@ try {
                 $lint=[];$code=1;
                 exec(escapeshellarg(PHP_BINARY).' -l '.escapeshellarg($plan['tmp']).' 2>&1',$lint,$code);
                 if ($code!==0) throw new RuntimeException('candidate_invalid');
-                $backup=dirname($external).'/ai-profile-before-sol-61.'.$name.'.php';
+                $backup=dirname($external).'/ai-profile-before-sol-62-medium.'.$name.'.php';
                 $handle=fopen($backup,'x');
                 if ($handle===false) throw new RuntimeException('backup_exists');
                 try {if (!chmod($backup,0600) || fwrite($handle,$plan['source'])!==strlen($plan['source']) || !fflush($handle)) throw new RuntimeException('backup_failed');}

@@ -29,7 +29,7 @@ final class ManagerDraftClient
         catch(Throwable $ignored){return ['_error'=>'provider_unavailable'];}
     }
 
-    /** DEV uses the same configured profile and one HTTPS send, never HOTEL policy/budget. */
+    /** DEV uses the shared HTTPS transport with its separately approved worker profile. */
     public static function developmentTransportAvailable(): bool
     {return self::hasConfiguredKey()&&function_exists('curl_init');}
 
@@ -37,7 +37,7 @@ final class ManagerDraftClient
     {
         if(!in_array($role,['producer','reviewer'],true)||($schema['type']??null)!=='object')
             throw new InvalidArgumentException('invalid_development_schema');
-        $body=self::requestBody($instructions,$payload);
+        $body=self::workerRequestBody($instructions,$payload);
         $body['text']['format']=['type'=>'json_schema','name'=>'development_server_'.$role.($v2?'_v2':''),'strict'=>true,'schema'=>$schema];
         if($v2){$body['max_output_tokens']=4096;$body['text']['verbosity']='low';}
         return $body;
@@ -96,16 +96,27 @@ final class ManagerDraftClient
             &&!preg_match('/[\\x00-\\x20\\x7F]/',OPENAI_API_KEY);
     }
 
-    /** Existing configured profile only; no key, network or settings write. */
+    /** HOTEL and DEV budgets and receipts bind the profile of the actual worker request. */
+    public static function workerRuntimeProfile(): array
+    {
+        return array_intersect_key(self::workerRequestBody('',[]),
+            array_flip(['model','reasoning','service_tier','max_output_tokens','store']));
+    }
+
     public static function hotelRuntimeProfile(): array
-    { return array_intersect_key(self::requestBody('',[]),array_flip(['model','reasoning','service_tier','max_output_tokens','store'])); }
+    { return self::workerRuntimeProfile(); }
+
+    private static function workerRequestBody(string $instructions,array $payload): array
+    {
+        return self::buildRequestBody($instructions,$payload,[],'gpt-6.1-sol','low','default');
+    }
 
     /** Pure, role-specific schema projection; no tools, images, retries or new model settings. */
     public static function hotelRequestBody(string $role,string $instructions,array $payload,array $schema): array
     {
         if(!in_array($role,['producer','reviewer'],true)||($schema['type']??null)!=='object'
             ||strlen(json_encode($schema,JSON_THROW_ON_ERROR))>32768)throw new InvalidArgumentException('invalid_hotel_schema');
-        $body=self::requestBody($instructions,$payload);
+        $body=self::workerRequestBody($instructions,$payload);
         $body['text']['format']=['type'=>'json_schema','name'=>'hotel_server_'.$role,'strict'=>true,'schema'=>$schema];
         if(strlen(json_encode($body,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>self::MAX_REQUEST_BYTES)
             throw new InvalidArgumentException('hotel_request_budget');
@@ -198,6 +209,14 @@ final class ManagerDraftClient
     /** No credentials in this pure request projection; usable by offline regression/evaluation. */
     public static function requestBody(string $instructions,array $payload,array $images=[]): array
     {
+        $model=defined('MANAGER_AI_DRAFT_MODEL') ? MANAGER_AI_DRAFT_MODEL : 'gpt-6.2-sol';
+        $effort=defined('MANAGER_AI_DRAFT_REASONING') ? MANAGER_AI_DRAFT_REASONING : 'medium';
+        $tier=defined('MANAGER_AI_DRAFT_SERVICE_TIER') ? MANAGER_AI_DRAFT_SERVICE_TIER : 'default';
+        return self::buildRequestBody($instructions,$payload,$images,$model,$effort,$tier);
+    }
+
+    private static function buildRequestBody(string $instructions,array $payload,array $images,mixed $model,mixed $effort,mixed $tier): array
+    {
         if (count($images)>4) throw new InvalidArgumentException('invalid_image_input');
         $imageBytes=0;
         foreach ($images as $image) {
@@ -207,9 +226,6 @@ final class ManagerDraftClient
             $imageBytes+=strlen($image['image_url']);
         }
         if ($imageBytes>self::MAX_IMAGE_REQUEST_BYTES) throw new InvalidArgumentException('invalid_image_input');
-        $model=defined('MANAGER_AI_DRAFT_MODEL') ? MANAGER_AI_DRAFT_MODEL : 'gpt-6.1-sol';
-        $effort=defined('MANAGER_AI_DRAFT_REASONING') ? MANAGER_AI_DRAFT_REASONING : 'low';
-        $tier=defined('MANAGER_AI_DRAFT_SERVICE_TIER') ? MANAGER_AI_DRAFT_SERVICE_TIER : 'default';
         if (!is_string($model) || preg_match('/\A[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\z/D',$model)!==1) {
             throw new InvalidArgumentException('invalid_draft_model');
         }

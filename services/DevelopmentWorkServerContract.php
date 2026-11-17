@@ -32,8 +32,7 @@ final class DevelopmentWorkServerContract
     public static function hash(array $v): string {return hash('sha256',self::json($v));}
     public static function profile(): array
     {
-        return array_intersect_key(ManagerDraftClient::requestBody('',[]),
-            array_flip(['model','reasoning','service_tier','max_output_tokens','store']));
+        return ManagerDraftClient::workerRuntimeProfile();
     }
     public static function checks(string $kind): array
     {
