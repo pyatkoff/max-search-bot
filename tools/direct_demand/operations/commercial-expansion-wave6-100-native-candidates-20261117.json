@@ -1,0 +1,3286 @@
+{
+  "schema_version": 1,
+  "stage": "catalogue_and_provider_profile_screened",
+  "observed_at_utc": "2026-11-17T21:05:01.704Z",
+  "owner_issue": "https://github.com/pyatkoff/max-search-bot/issues/1566",
+  "publication_baseline": {
+    "unique_pairs": 1000,
+    "receipt": "https://github.com/pyatkoff/max-search-bot/issues/1566#issuecomment-6959122543",
+    "known_published_ids_compared": 1000,
+    "known_published_ids_with_name_or_alias": 1000,
+    "total_ids_excluded_including_prior_candidates": 1114,
+    "exact_normalized_name_or_saved_alias_matches_in_selected": 0,
+    "prior_classified_w4_w5_included": 0
+  },
+  "selection": {
+    "unique_new_catalogue_ids_examined": 150,
+    "objective": "Editorial priority for premium resort and leisure properties. No assumption about measured demand, price, rights clearance on external sources or sellable inventory.",
+    "criteria": "Five stars as listed in the catalogue. Exclude published and previously screened IDs. Defer renamed or scope-ambiguous records for individual review. Prioritize premium brands and resort/holiday characteristics, using catalogue rating and ID as tiebreakers.",
+    "selected": 100,
+    "reserve": 4,
+    "deferred": 46,
+    "by_country": {
+      "Сейшелы": 10,
+      "Маврикий": 8,
+      "ОАЭ": 30,
+      "Индонезия": 7,
+      "Мальдивы": 10,
+      "Доминикана": 13,
+      "Египет": 8,
+      "Турция": 9,
+      "Куба": 3,
+      "Шри-Ланка": 2
+    }
+  },
+  "profile_screen": {
+    "compared_native_id_name_country_and_category": 100,
+    "source": "Existing AnyTour Tourvisor hotel_details records. Gallery counts refer to distinct URLs listed by the exact hotel profile with the accepted Tourvisor host, country path and file format.",
+    "stage_counts": {
+      "editorial_and_visual_review": 98,
+      "needs_authorized_photos": 2
+    },
+    "visual_acceptances": 0,
+    "published_here": 0,
+    "default_next_step": "Review current name and aliases in the live registry, verify one distinctive selling point and commercial provenance, prepare and review the branded cover. Release eligible rows via the existing pair sender."
+  },
+  "rows": [
+    {
+      "work_id": "W6_001",
+      "native_tourvisor_id": 108317,
+      "name": "WALDORF ASTORIA SEYCHELLES PLATTE ISLAND",
+      "country": "Сейшелы",
+      "country_id": 28,
+      "region": "Сейшелы",
+      "category": 5,
+      "aliases_to_check": [
+        "WALDORF ASTORIA SEYCHELLES PLATTE ISLAND"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Seychelles&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=108317",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/108317-1602401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/108317-1602300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/108317-1602402.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_002",
+      "native_tourvisor_id": 11836,
+      "name": "FOUR SEASONS RESORT SEYCHELLES AT DESROCHES ISLAND",
+      "country": "Сейшелы",
+      "country_id": 28,
+      "region": "Сейшелы",
+      "category": 5,
+      "aliases_to_check": [
+        "FOUR SEASONS RESORT SEYCHELLES AT DESROCHES ISLAND"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Seychelles&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11836",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11836-92377505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11836-92377400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11836-92377401.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_003",
+      "native_tourvisor_id": 11746,
+      "name": "FOUR SEASONS RESORT MAURITIUS AT ANAHITA",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "FOUR SEASONS RESORT MAURITIUS AT ANAHITA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Mauritius&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11746",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11746-7164134.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11746-7162600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11746-7162701.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_004",
+      "native_tourvisor_id": 11842,
+      "name": "FOUR SEASONS RESORT SEYCHELLES",
+      "country": "Сейшелы",
+      "country_id": 28,
+      "region": "Маэ о.",
+      "category": 5,
+      "aliases_to_check": [
+        "FOUR SEASONS RESORT SEYCHELLES"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Seychelles&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11842",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 72,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/four-seasons-resort-seychelles-22874404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/four-seasons-resort-seychelles-22874400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/four-seasons-resort-seychelles-22874401.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_005",
+      "native_tourvisor_id": 11882,
+      "name": "RAFFLES SEYCHELLES",
+      "country": "Сейшелы",
+      "country_id": 28,
+      "region": "Праслин о.",
+      "category": 5,
+      "aliases_to_check": [
+        "RAFFLES SEYCHELLES"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Seychelles&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11882",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 43,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/raffles-praslin-seychelles-2114327.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/raffles-praslin-seychelles-2114300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/raffles-praslin-seychelles-2114301.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_006",
+      "native_tourvisor_id": 8987,
+      "name": "THE RITZ-CARLTON DIFC DOWNTOWN",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "THE RITZ-CARLTON DIFC DOWNTOWN"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Ritz&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8987",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 37,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8987-62343100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8987-62343203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8987-62343304.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_007",
+      "native_tourvisor_id": 15773,
+      "name": "THE RITZ-CARLTON ABU DHABI GRAND CANAL",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Абу-Даби",
+      "category": 5,
+      "aliases_to_check": [
+        "THE RITZ-CARLTON ABU DHABI GRAND CANAL"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Ritz&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=15773",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 52,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-abu-dhabi-grand-canal-2513512.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-abu-dhabi-grand-canal-2513514.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-abu-dhabi-grand-canal-2513515.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_008",
+      "native_tourvisor_id": 2685,
+      "name": "THE RITZ CARLTON DUBAI",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "THE RITZ CARLTON DUBAI"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Ritz&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2685",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 49,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-dubai-102206031.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-dubai-102206020.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-dubai-102206032.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_009",
+      "native_tourvisor_id": 8859,
+      "name": "THE RITZ-CARLTON RAS AL KHAIMAH AL WADI DESERT",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Рас-эль-Хайма",
+      "category": 5,
+      "aliases_to_check": [
+        "THE RITZ-CARLTON RAS AL KHAIMAH AL WADI DESERT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Ritz&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8859",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 75,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8859-23365027.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8859-23364400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8859-23364501.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_010",
+      "native_tourvisor_id": 2335,
+      "name": "KAYUMANIS NUSA DUA PRIVATE VILLA & SPA",
+      "country": "Индонезия",
+      "country_id": 7,
+      "region": "Бали",
+      "category": 5,
+      "aliases_to_check": [
+        "KAYUMANIS NUSA DUA PRIVATE VILLA & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Nusa%20Dua&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2335",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 66,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/kayumanis-private-villa-spa-0.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/kayumanis-private-villa-spa-1.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/kayumanis-private-villa-spa-2.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_011",
+      "native_tourvisor_id": 58744,
+      "name": "JUMEIRAH MALDIVES OLHAHALI ISLAND",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "JUMEIRAH MALDIVES OLHAHALI ISLAND"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Island&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=58744",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 51,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/58744-37886400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/58744-37886401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/58744-37886402.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_012",
+      "native_tourvisor_id": 82504,
+      "name": "MADIFUSHI PRIVATE ISLAND",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "MADIFUSHI PRIVATE ISLAND"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Island&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82504",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 43,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/madifushi-private-island-85890300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/madifushi-private-island-85890301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/madifushi-private-island-85890302.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_013",
+      "native_tourvisor_id": 64918,
+      "name": "YOU & ME BY COCOON MALDIVES (ADULTS ONLY 16+)",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "YOU & ME BY COCOON MALDIVES (ADULTS ONLY 16+"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cocoon&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64918",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location"
+      ],
+      "photo_urls_in_bound_gallery": 111,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64918-19263336.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64918-19259600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64918-19259701.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_014",
+      "native_tourvisor_id": 73082,
+      "name": "HILTON ABU DHABI YAS ISLAND",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Абу-Даби",
+      "category": 5,
+      "aliases_to_check": [
+        "HILTON ABU DHABI YAS ISLAND"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hilton&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=73082",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 52,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-abu-dhabi-yas-island-102502060.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-abu-dhabi-yas-island-102502061.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-abu-dhabi-yas-island-102502062.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_015",
+      "native_tourvisor_id": 2603,
+      "name": "LE ROYAL MERIDIEN BEACH RESORT & SPA",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "LE ROYAL MERIDIEN BEACH RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Beach&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2603",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 55,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-royal-meridien-beach-resort-spa-102204540.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-royal-meridien-beach-resort-spa-102204541.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-royal-meridien-beach-resort-spa-102204542.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_016",
+      "native_tourvisor_id": 33574,
+      "name": "THE WESTIN PUNTA CANA RESORT & CLUB",
+      "country": "Доминикана",
+      "country_id": 11,
+      "region": "Пунта Кана",
+      "category": 5,
+      "aliases_to_check": [
+        "THE WESTIN PUNTA CANA RESORT & CLUB"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Punta%20Cana&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=33574",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 30,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/the-westin-punta-cana-resort-club-102311190.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/the-westin-punta-cana-resort-club-102311201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/the-westin-punta-cana-resort-club-102311202.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_017",
+      "native_tourvisor_id": 78834,
+      "name": "CLUB MED SEYCHELLES",
+      "country": "Сейшелы",
+      "country_id": 28,
+      "region": "Сейшелы",
+      "category": 5,
+      "aliases_to_check": [
+        "CLUB MED SEYCHELLES"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Seychelles&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78834",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 17,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/club-med-seychelles-35902800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/club-med-seychelles-708208.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/club-med-seychelles-708209.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_018",
+      "native_tourvisor_id": 79460,
+      "name": "RENAISSANCE BALI NUSA DUA RESORT",
+      "country": "Индонезия",
+      "country_id": 7,
+      "region": "Бали",
+      "category": 5,
+      "aliases_to_check": [
+        "RENAISSANCE BALI NUSA DUA RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Nusa%20Dua&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=79460",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 56,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/renaissance-bali-nusa-dua-resort-408306.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/renaissance-bali-nusa-dua-resort-408300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/renaissance-bali-nusa-dua-resort-408302.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_019",
+      "native_tourvisor_id": 109586,
+      "name": "VIDA CREEK BEACH",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "VIDA CREEK BEACH"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Beach&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=109586",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 37,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/vida-creek-beach-412200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/vida-creek-beach-412201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/vida-creek-beach-412202.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_020",
+      "native_tourvisor_id": 2404,
+      "name": "THE WESTIN RESORT NUSA DUA",
+      "country": "Индонезия",
+      "country_id": 7,
+      "region": "Бали",
+      "category": 5,
+      "aliases_to_check": [
+        "THE WESTIN RESORT NUSA DUA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Nusa%20Dua&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2404",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 48,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/the-westin-resort-nusa-dua-2612332.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/the-westin-resort-nusa-dua-2612300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/the-westin-resort-nusa-dua-2612301.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_021",
+      "native_tourvisor_id": 2511,
+      "name": "AL RAHA BEACH HOTEL",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Абу-Даби",
+      "category": 5,
+      "aliases_to_check": [
+        "AL RAHA BEACH HOTEL"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Beach&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2511",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 42,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-raha-beach-hotel-102203410.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-raha-beach-hotel-102203411.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-raha-beach-hotel-102203412.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_022",
+      "native_tourvisor_id": 2602,
+      "name": "LE MERIDIEN MINA SEYAHI BEACH RESORT & WATERPARK",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "LE MERIDIEN MINA SEYAHI BEACH RESORT & WATERPARK"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Le%20Meridien&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2602",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2602-40089800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2602-40089901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2602-40089902.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_023",
+      "native_tourvisor_id": 11751,
+      "name": "HILTON MAURITIUS RESORT & SPA",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "HILTON MAURITIUS RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Mauritius&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11751",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 42,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11751-1811000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11751-1811001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11751-1811002.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_024",
+      "native_tourvisor_id": 11775,
+      "name": "MARITIM RESORT & SPA MAURITIUS",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "MARITIM RESORT & SPA MAURITIUS"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Mauritius&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11775",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 33,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/maritim-hotel-mauritius-200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/maritim-hotel-mauritius-202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/maritim-hotel-mauritius-203.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_025",
+      "native_tourvisor_id": 12126,
+      "name": "LUX* SOUTH ARI ATOLL RESORTS & VILLAS",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "LUX* SOUTH ARI ATOLL RESORTS & VILLAS"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=LUX&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=12126",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 56,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/12126-97338509.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/12126-97338300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/12126-97338401.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_026",
+      "native_tourvisor_id": 52409,
+      "name": "COCOON MALDIVES",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "COCOON MALDIVES"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cocoon&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=52409",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 68,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/52409-98266703.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/52409-98266600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/52409-98266601.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_027",
+      "native_tourvisor_id": 76458,
+      "name": "CORA CORA MALDIVES",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "CORA CORA MALDIVES"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cora%20Cora&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76458",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 61,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/76458-85626509.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/76458-85626200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/76458-85626301.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_028",
+      "native_tourvisor_id": 82538,
+      "name": "AVANI+ FARES MALDIVES RESORT",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "AVANI+ FARES MALDIVES RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Avani&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82538",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 113,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/avani-fares-maldives-resort-85764029.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/avani-fares-maldives-resort-85750800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/avani-fares-maldives-resort-85750801.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_029",
+      "native_tourvisor_id": 329,
+      "name": "MOVENPICK RESORT & SPA NABQ",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Шарм-эль-Шейх",
+      "category": 5,
+      "aliases_to_check": [
+        "MOVENPICK RESORT & SPA NABQ"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Movenpick&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=329",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "location",
+        "beach"
+      ],
+      "photo_urls_in_bound_gallery": 13,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-spa-nabq-0.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-spa-nabq-1.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-spa-nabq-2.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_030",
+      "native_tourvisor_id": 2357,
+      "name": "NUSA DUA BEACH HOTEL & SPA",
+      "country": "Индонезия",
+      "country_id": 7,
+      "region": "Бали",
+      "category": 5,
+      "aliases_to_check": [
+        "NUSA DUA BEACH HOTEL & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Nusa%20Dua&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2357",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 85,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/nusa-dua-beach-hotel-spa-102411294.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/nusa-dua-beach-hotel-spa-102411290.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/nusa-dua-beach-hotel-spa-102411291.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_031",
+      "native_tourvisor_id": 2572,
+      "name": "HILTON DUBAI JUMEIRAH BEACH",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "HILTON DUBAI JUMEIRAH BEACH"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hilton&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2572",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 53,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-dubai-jumeirah-102204250.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-dubai-jumeirah-102204251.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-dubai-jumeirah-102204252.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_032",
+      "native_tourvisor_id": 2593,
+      "name": "KHALIDIYA PALACE RAYHAAN BY ROTANA",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Абу-Даби",
+      "category": 5,
+      "aliases_to_check": [
+        "KHALIDIYA PALACE RAYHAAN BY ROTANA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Rotana&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2593",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 44,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/khalidiya-palace-rayhaan-29369200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/khalidiya-palace-rayhaan-29369202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/khalidiya-palace-rayhaan-29369203.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_033",
+      "native_tourvisor_id": 2601,
+      "name": "LE MERIDIEN AL AQAH BEACH RESORT",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Фуджейра",
+      "category": 5,
+      "aliases_to_check": [
+        "LE MERIDIEN AL AQAH BEACH RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Le%20Meridien&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2601",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 44,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-al-aqah-beach-resort-14487606.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-al-aqah-beach-resort-14487600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-al-aqah-beach-resort-14487601.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_034",
+      "native_tourvisor_id": 4546,
+      "name": "SECRETS ROYAL BEACH PUNTA CANA",
+      "country": "Доминикана",
+      "country_id": 11,
+      "region": "Пунта Кана",
+      "category": 5,
+      "aliases_to_check": [
+        "SECRETS ROYAL BEACH PUNTA CANA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Punta%20Cana&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4546",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "location",
+        "territory",
+        "beach"
+      ],
+      "photo_urls_in_bound_gallery": 29,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/secrets-royal-beach-punta-cana-102312100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/secrets-royal-beach-punta-cana-102312101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/secrets-royal-beach-punta-cana-102312102.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_035",
+      "native_tourvisor_id": 13890,
+      "name": "COURTYARD BY MARRIOTT BALI NUSA DUA RESORT",
+      "country": "Индонезия",
+      "country_id": 7,
+      "region": "Бали",
+      "category": 5,
+      "aliases_to_check": [
+        "COURTYARD BY MARRIOTT BALI NUSA DUA RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Nusa%20Dua&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=13890",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 39,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/courtyard-bali-nusa-dua-2612000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/courtyard-bali-nusa-dua-2612001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/courtyard-bali-nusa-dua-2612002.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_036",
+      "native_tourvisor_id": 28400,
+      "name": "SOFITEL BALI NUSA DUA BEACH RESORT",
+      "country": "Индонезия",
+      "country_id": 7,
+      "region": "Бали",
+      "category": 5,
+      "aliases_to_check": [
+        "SOFITEL BALI NUSA DUA BEACH RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Nusa%20Dua&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=28400",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 57,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/sofitel-bali-nusa-dua-beach-resort-2911314.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/sofitel-bali-nusa-dua-beach-resort-2911300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/sofitel-bali-nusa-dua-beach-resort-2911301.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_037",
+      "native_tourvisor_id": 2573,
+      "name": "HILTON FUJAIRAH RESORT",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Фуджейра",
+      "category": 5,
+      "aliases_to_check": [
+        "HILTON FUJAIRAH RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hilton&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2573",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "location",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 22,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-fujairah-resort-102204284.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-fujairah-resort-102204280.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-fujairah-resort-102204281.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_038",
+      "native_tourvisor_id": 2776,
+      "name": "PUNTA CANA PRINCESS ALL SUITES RESORT & SPA ADULTS ONLY",
+      "country": "Доминикана",
+      "country_id": 11,
+      "region": "Пунта Кана",
+      "category": 5,
+      "aliases_to_check": [
+        "PUNTA CANA PRINCESS ALL SUITES RESORT & SPA ADULTS ONLY"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Punta%20Cana&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2776",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach"
+      ],
+      "photo_urls_in_bound_gallery": 40,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-princess-all-suites-resort-spa-915200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-princess-all-suites-resort-spa-915201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-princess-all-suites-resort-spa-915202.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_039",
+      "native_tourvisor_id": 11791,
+      "name": "SOFITEL MAURITIUS L IMPERIAL RESORT & SPA",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "SOFITEL MAURITIUS L IMPERIAL RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Mauritius&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11791",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 57,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11791-2209500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11791-2209501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11791-2209502.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_040",
+      "native_tourvisor_id": 26844,
+      "name": "OUTRIGGER MAURITIUS RESORT & SPA",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "OUTRIGGER MAURITIUS RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Mauritius&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=26844",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 36,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/outrigger-mauritius-resort-spa-102311540.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/outrigger-mauritius-resort-spa-102311551.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/outrigger-mauritius-resort-spa-102311552.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_041",
+      "native_tourvisor_id": 2522,
+      "name": "BEACH ROTANA",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Абу-Даби",
+      "category": 5,
+      "aliases_to_check": [
+        "BEACH ROTANA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Beach&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2522",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 47,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/beach-rotana-102203520.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/beach-rotana-102203523.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/beach-rotana-102203524.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_042",
+      "native_tourvisor_id": 1703,
+      "name": "ROYAL ASARLIK BEACH & SPA",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Бодрум",
+      "category": 5,
+      "aliases_to_check": [
+        "ROYAL ASARLIK BEACH & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Royal&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1703",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 64,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-asarlik-beach-62884504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-asarlik-beach-62884500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-asarlik-beach-62884501.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_043",
+      "native_tourvisor_id": 11753,
+      "name": "INTERCONTINENTAL MAURITIUS RESORT BALACLAVA",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "INTERCONTINENTAL MAURITIUS RESORT BALACLAVA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Mauritius&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11753",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 45,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/intercontinental-mauritius-resort-3008500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/intercontinental-mauritius-resort-3008501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/intercontinental-mauritius-resort-3008502.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_044",
+      "native_tourvisor_id": 2721,
+      "name": "PARADISUS VARADERO RESORT & SPA",
+      "country": "Куба",
+      "country_id": 10,
+      "region": "Варадеро",
+      "category": 5,
+      "aliases_to_check": [
+        "PARADISUS VARADERO RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Varadero&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2721",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/2721-1811526.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/2721-1811500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/2721-1811501.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_045",
+      "native_tourvisor_id": 82626,
+      "name": "SELECTUM FAMILY RESORT VARADERO",
+      "country": "Куба",
+      "country_id": 10,
+      "region": "Варадеро",
+      "category": 5,
+      "aliases_to_check": [
+        "SELECTUM FAMILY RESORT VARADERO"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Varadero&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82626",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 49,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/selectum-family-resort-varadero-102508270.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/selectum-family-resort-varadero-102508271.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/selectum-family-resort-varadero-102508272.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_046",
+      "native_tourvisor_id": 76955,
+      "name": "MOVENPICK RESORT VILLAS",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Шарм-эль-Шейх",
+      "category": 5,
+      "aliases_to_check": [
+        "MOVENPICK RESORT VILLAS"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Movenpick&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76955",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "territory",
+        "beach"
+      ],
+      "photo_urls_in_bound_gallery": 18,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-villas-914401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-villas-914400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-villas-914402.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_047",
+      "native_tourvisor_id": 123125,
+      "name": "ASTOVE ATOLL BLUE SAFARI SEYCHELLES",
+      "country": "Сейшелы",
+      "country_id": 28,
+      "region": "Сейшелы",
+      "category": 5,
+      "aliases_to_check": [
+        "ASTOVE ATOLL BLUE SAFARI SEYCHELLES"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Seychelles&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=123125",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [],
+      "photo_urls_in_bound_gallery": 0,
+      "source_photo_samples": [],
+      "stage": "needs_authorized_photos",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_048",
+      "native_tourvisor_id": 135441,
+      "name": "BEACH ROTANA ALL SUITES",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Абу-Даби",
+      "category": 5,
+      "aliases_to_check": [
+        "BEACH ROTANA ALL SUITES"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Beach&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=135441",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 26,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/135441-81726100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/135441-81726201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/135441-81726202.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_049",
+      "native_tourvisor_id": 15910,
+      "name": "CORNELIA AZURE VILLAS",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Белек",
+      "category": 5,
+      "aliases_to_check": [
+        "CORNELIA AZURE VILLAS"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cornelia&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=15910",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 19,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/azure-villas-by-cornelia-102309250.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/azure-villas-by-cornelia-102309251.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/azure-villas-by-cornelia-102309252.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_050",
+      "native_tourvisor_id": 331,
+      "name": "MOVENPICK RESORT EL QUSEIR",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Марса Алам",
+      "category": 5,
+      "aliases_to_check": [
+        "MOVENPICK RESORT EL QUSEIR"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Movenpick&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=331",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 44,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movienpick-el-quseir-102101520.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movienpick-el-quseir-102101521.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movienpick-el-quseir-102101522.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_051",
+      "native_tourvisor_id": 2794,
+      "name": "CINNAMON BENTOTA BEACH",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Бентота",
+      "category": 5,
+      "aliases_to_check": [
+        "CINNAMON BENTOTA BEACH"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Bentota&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2794",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 44,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/bentota-beach-2909200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/bentota-beach-2909201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/bentota-beach-2909202.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_052",
+      "native_tourvisor_id": 33531,
+      "name": "SAVOY SEYCHELLES RESORT & SPA",
+      "country": "Сейшелы",
+      "country_id": 28,
+      "region": "Маэ о.",
+      "category": 5,
+      "aliases_to_check": [
+        "SAVOY SEYCHELLES RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Seychelles&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=33531",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 63,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/savoy-resort-spa-102312320.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/savoy-resort-spa-102312321.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/savoy-resort-spa-102312322.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_053",
+      "native_tourvisor_id": 330,
+      "name": "MOVENPICK RESORT TABA",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Таба",
+      "category": 5,
+      "aliases_to_check": [
+        "MOVENPICK RESORT TABA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Movenpick&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=330",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 32,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-taba-102409252.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-taba-102409250.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-taba-102409251.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_054",
+      "native_tourvisor_id": 2502,
+      "name": "HILTON AL HAMRA BEACH & GOLF RESORT",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Рас-эль-Хайма",
+      "category": 5,
+      "aliases_to_check": [
+        "HILTON AL HAMRA BEACH & GOLF RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hilton&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2502",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 29,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-hamra-fort-beach-resort-spa-102203370.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-hamra-fort-beach-resort-spa-102203371.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-hamra-fort-beach-resort-spa-102203372.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_055",
+      "native_tourvisor_id": 11847,
+      "name": "HILTON SEYCHELLES NORTHOLME RESORT & SPA",
+      "country": "Сейшелы",
+      "country_id": 28,
+      "region": "Маэ о.",
+      "category": 5,
+      "aliases_to_check": [
+        "HILTON SEYCHELLES NORTHOLME RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Seychelles&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11847",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach"
+      ],
+      "photo_urls_in_bound_gallery": 59,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11847-84183400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11847-84183401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11847-84183502.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_056",
+      "native_tourvisor_id": 11851,
+      "name": "KEMPINSKI SEYCHELLES RESORT",
+      "country": "Сейшелы",
+      "country_id": 28,
+      "region": "Маэ о.",
+      "category": 5,
+      "aliases_to_check": [
+        "KEMPINSKI SEYCHELLES RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Seychelles&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11851",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11851-76883100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11851-76883201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11851-76883202.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_057",
+      "native_tourvisor_id": 17608,
+      "name": "ROYAL ATLANTIS SPA & RESORT",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Сиде",
+      "category": 5,
+      "aliases_to_check": [
+        "ROYAL ATLANTIS SPA & RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Royal&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17608",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 26,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-atlantis-spa-resort-62087800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-atlantis-spa-resort-62087801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-atlantis-spa-resort-62087802.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_058",
+      "native_tourvisor_id": 43743,
+      "name": "THE VILLA BENTOTA BY KK COLLECTION",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Бентота",
+      "category": 5,
+      "aliases_to_check": [
+        "THE VILLA BENTOTA BY KK COLLECTION"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Bentota&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43743",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 40,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/paradise-road-the-villa-bentota-1707500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/paradise-road-the-villa-bentota-1707501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/paradise-road-the-villa-bentota-1707502.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_059",
+      "native_tourvisor_id": 76288,
+      "name": "MANGO HOUSE SEYCHELLES",
+      "country": "Сейшелы",
+      "country_id": 28,
+      "region": "Маэ о.",
+      "category": 5,
+      "aliases_to_check": [
+        "MANGO HOUSE SEYCHELLES"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Seychelles&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76288",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach"
+      ],
+      "photo_urls_in_bound_gallery": 58,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/mango-house-seychelles-1023093627.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/mango-house-seychelles-102309350.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/mango-house-seychelles-102309351.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_060",
+      "native_tourvisor_id": 77810,
+      "name": "MOVENPICK RESORT EL SOKHNA",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Айн-эль-Сохна",
+      "category": 5,
+      "aliases_to_check": [
+        "MOVENPICK RESORT EL SOKHNA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Movenpick&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77810",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 41,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-el-sokhna-1208000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-el-sokhna-1208001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-el-sokhna-1208002.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_061",
+      "native_tourvisor_id": 60808,
+      "name": "LONG BEACH HARMONY HOTEL",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Аланья",
+      "category": 5,
+      "aliases_to_check": [
+        "LONG BEACH HARMONY HOTEL"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Long%20Beach&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=60808",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 45,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-harmony-hotel-102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-harmony-hotel-100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-harmony-hotel-101.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_062",
+      "native_tourvisor_id": 1343,
+      "name": "LONG BEACH",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Аланья",
+      "category": 5,
+      "aliases_to_check": [
+        "LONG BEACH"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Long%20Beach&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1343",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 171,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-resort-67576849.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-resort-67571100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-resort-67571101.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_063",
+      "native_tourvisor_id": 5545,
+      "name": "ROYAL ALHAMBRA PALACE",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Сиде",
+      "category": 5,
+      "aliases_to_check": [
+        "ROYAL ALHAMBRA PALACE"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Royal&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=5545",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 51,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-alhambra-palace-102301290.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-alhambra-palace-102301291.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-alhambra-palace-102301292.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_064",
+      "native_tourvisor_id": 102032,
+      "name": "MOVENPICK RESORT ASWAN",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Асуан",
+      "category": 5,
+      "aliases_to_check": [
+        "MOVENPICK RESORT ASWAN"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Movenpick&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=102032",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 45,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-aswan-1912138.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-aswan-1912100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-aswan-1912101.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_065",
+      "native_tourvisor_id": 64110,
+      "name": "C MAURITIUS",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "C MAURITIUS"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Mauritius&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64110",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 32,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-c-mauritius-3112200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-c-mauritius-3112201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-c-mauritius-3112202.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_066",
+      "native_tourvisor_id": 69424,
+      "name": "SELECTUM HACIENDA PUNTA CANA",
+      "country": "Доминикана",
+      "country_id": 11,
+      "region": "Пунта Кана",
+      "category": 5,
+      "aliases_to_check": [
+        "SELECTUM HACIENDA PUNTA CANA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Punta%20Cana&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=69424",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach"
+      ],
+      "photo_urls_in_bound_gallery": 27,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/selectum-hacienda-punta-cana-102411582.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/selectum-hacienda-punta-cana-102411580.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/selectum-hacienda-punta-cana-102411581.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_067",
+      "native_tourvisor_id": 121805,
+      "name": "SUNSCAPE COCO PUNTA CANA",
+      "country": "Доминикана",
+      "country_id": 11,
+      "region": "Пунта Кана",
+      "category": 5,
+      "aliases_to_check": [
+        "SUNSCAPE COCO PUNTA CANA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Punta%20Cana&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=121805",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [],
+      "photo_urls_in_bound_gallery": 0,
+      "source_photo_samples": [],
+      "stage": "needs_authorized_photos",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_068",
+      "native_tourvisor_id": 2635,
+      "name": "PARK ROTANA",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Абу-Даби",
+      "category": 5,
+      "aliases_to_check": [
+        "PARK ROTANA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Rotana&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2635",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 41,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2635-56318800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2635-56318801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2635-56318902.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_069",
+      "native_tourvisor_id": 8923,
+      "name": "LE MERIDIEN DUBAI HOTEL & CONFERENCE CENTRE",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "LE MERIDIEN DUBAI HOTEL & CONFERENCE CENTRE"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Le%20Meridien&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8923",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 45,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-dubai-98719600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-dubai-98719601.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-dubai-98719602.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_070",
+      "native_tourvisor_id": 11792,
+      "name": "SOFITEL SO MAURITIUS BEL OMBRE",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "SOFITEL SO MAURITIUS BEL OMBRE"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Mauritius&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11792",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 71,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/sofitel-so-mauritius-bel-ombre-102310130.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/sofitel-so-mauritius-bel-ombre-102310131.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/sofitel-so-mauritius-bel-ombre-102310132.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_071",
+      "native_tourvisor_id": 59548,
+      "name": "AL BANDAR ARJAAN BY ROTANA",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "AL BANDAR ARJAAN BY ROTANA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Rotana&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=59548",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 64,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/59548-94780309.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/59548-94780100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/59548-94780201.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_072",
+      "native_tourvisor_id": 73995,
+      "name": "AL JADDAF ROTANA",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "AL JADDAF ROTANA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Rotana&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=73995",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 33,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-jaddaf-rotana-102502370.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-jaddaf-rotana-102502371.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-jaddaf-rotana-102502372.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_073",
+      "native_tourvisor_id": 78210,
+      "name": "THE WB ABU DHABI CURIO COLLECTION BY HILTON",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Абу-Даби",
+      "category": 5,
+      "aliases_to_check": [
+        "THE WB ABU DHABI CURIO COLLECTION BY HILTON"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hilton&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78210",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 53,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-wb-abu-dhabi-curio-collection-by-hilton-92854100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-wb-abu-dhabi-curio-collection-by-hilton-92872600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-wb-abu-dhabi-curio-collection-by-hilton-92878300.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_074",
+      "native_tourvisor_id": 2495,
+      "name": "JA MANAFARU DELUXE",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "JA MANAFARU DELUXE"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=LUX&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2495",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 120,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/beach-house-the-waldorf-astoria-collection-29517602.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/beach-house-the-waldorf-astoria-collection-29521700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/beach-house-the-waldorf-astoria-collection-29517600.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_075",
+      "native_tourvisor_id": 2680,
+      "name": "THE ADDRESS DOWNTOWN DUBAI",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "THE ADDRESS DOWNTOWN DUBAI"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Address&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2680",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 45,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-burj-dubai-down-town-114200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-burj-dubai-down-town-114201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-burj-dubai-down-town-114202.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_076",
+      "native_tourvisor_id": 16318,
+      "name": "AMARTERRA MGALLERY BALI NUSA DUA",
+      "country": "Индонезия",
+      "country_id": 7,
+      "region": "Бали",
+      "category": 5,
+      "aliases_to_check": [
+        "AMARTERRA MGALLERY BALI NUSA DUA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Nusa%20Dua&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=16318",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 39,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245302.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_077",
+      "native_tourvisor_id": 17513,
+      "name": "LIBERTY HOTELS LYKIA ADULTS ONLY 16+",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Фетхие",
+      "category": 5,
+      "aliases_to_check": [
+        "LIBERTY HOTELS LYKIA ADULTS ONLY 16+"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Liberty&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17513",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach"
+      ],
+      "photo_urls_in_bound_gallery": 71,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/17513-17015324.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/17513-17014800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/17513-17014901.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_078",
+      "native_tourvisor_id": 74644,
+      "name": "AL BANDAR ROTANA",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "AL BANDAR ROTANA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Rotana&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74644",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 53,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-bandar-rotana134-1155702.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-bandar-rotana134-1155700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-bandar-rotana134-1155701.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_079",
+      "native_tourvisor_id": 1321,
+      "name": "LIBERTY HOTELS LARA",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Анталья",
+      "category": 5,
+      "aliases_to_check": [
+        "LIBERTY HOTELS LARA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Liberty&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1321",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 83,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lara-beach-2325500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lara-beach-2328100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lara-beach-2325501.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_080",
+      "native_tourvisor_id": 2750,
+      "name": "EXCELLENCE PUNTA CANA ADULTS ONLY",
+      "country": "Доминикана",
+      "country_id": 11,
+      "region": "Пунта Кана",
+      "category": 5,
+      "aliases_to_check": [
+        "EXCELLENCE PUNTA CANA ADULTS ONLY"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Punta%20Cana&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2750",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "location",
+        "territory",
+        "beach"
+      ],
+      "photo_urls_in_bound_gallery": 37,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2750-1307529.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2750-1307500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2750-1307501.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_081",
+      "native_tourvisor_id": 8420,
+      "name": "PUNTA CANA TORTUGA BAY",
+      "country": "Доминикана",
+      "country_id": 11,
+      "region": "Пунта Кана",
+      "category": 5,
+      "aliases_to_check": [
+        "PUNTA CANA TORTUGA BAY"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Punta%20Cana&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8420",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 22,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-tortuga-bay-102302010.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-tortuga-bay-102302011.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-tortuga-bay-102302012.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_082",
+      "native_tourvisor_id": 33549,
+      "name": "ROYALTON CHIC PUNTA CANA",
+      "country": "Доминикана",
+      "country_id": 11,
+      "region": "Пунта Кана",
+      "category": 5,
+      "aliases_to_check": [
+        "ROYALTON CHIC PUNTA CANA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Punta%20Cana&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=33549",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach"
+      ],
+      "photo_urls_in_bound_gallery": 22,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/chic-punta-cana-102311180.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/chic-punta-cana-102311181.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/chic-punta-cana-102311182.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_083",
+      "native_tourvisor_id": 77595,
+      "name": "SUNDIA EXCLUSIVE BY LIBERTY FETHIYE ADULTS ONLY 16+",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Фетхие",
+      "category": 5,
+      "aliases_to_check": [
+        "SUNDIA EXCLUSIVE BY LIBERTY FETHIYE ADULTS ONLY 16+"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Liberty&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77595",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach"
+      ],
+      "photo_urls_in_bound_gallery": 40,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sundia-by-liberty-exclusive-fethiye-1511504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sundia-by-liberty-exclusive-fethiye-1511500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sundia-by-liberty-exclusive-fethiye-1511501.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_084",
+      "native_tourvisor_id": 157001,
+      "name": "ALBATROS MAKADI CLUB",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Хургада",
+      "category": 5,
+      "aliases_to_check": [
+        "ALBATROS MAKADI CLUB"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Albatros&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=157001",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 48,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-makadi-club-8514202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-makadi-club-8514200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-makadi-club-8514201.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_085",
+      "native_tourvisor_id": 4913,
+      "name": "HILTON AL AIN",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Абу-Даби",
+      "category": 5,
+      "aliases_to_check": [
+        "HILTON AL AIN"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hilton&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4913",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 6,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-al-ain-101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-al-ain-100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-al-ain-102.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_086",
+      "native_tourvisor_id": 2497,
+      "name": "AL AIN ROTANA HOTEL",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Абу-Даби",
+      "category": 5,
+      "aliases_to_check": [
+        "AL AIN ROTANA HOTEL"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Rotana&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2497",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 45,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-ain-rotana-hotel-2212200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-ain-rotana-hotel-2212201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-ain-rotana-hotel-2212202.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_087",
+      "native_tourvisor_id": 2600,
+      "name": "LE MERIDIEN ABU DHABI HOTEL",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Абу-Даби",
+      "category": 5,
+      "aliases_to_check": [
+        "LE MERIDIEN ABU DHABI HOTEL"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Le%20Meridien&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2600",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 50,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-abu-dhabi-hotel-102204500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-abu-dhabi-hotel-102204501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-abu-dhabi-hotel-102204502.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_088",
+      "native_tourvisor_id": 2763,
+      "name": "IBEROSTAR WAVES PUNTA CANA",
+      "country": "Доминикана",
+      "country_id": 11,
+      "region": "Пунта Кана",
+      "category": 5,
+      "aliases_to_check": [
+        "IBEROSTAR WAVES PUNTA CANA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Punta%20Cana&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2763",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 44,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610102.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_089",
+      "native_tourvisor_id": 2765,
+      "name": "MAJESTIC COLONIAL PUNTA CANA",
+      "country": "Доминикана",
+      "country_id": 11,
+      "region": "Пунта Кана",
+      "category": 5,
+      "aliases_to_check": [
+        "MAJESTIC COLONIAL PUNTA CANA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Punta%20Cana&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2765",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2765-914311.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2765-914300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2765-914301.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_090",
+      "native_tourvisor_id": 2766,
+      "name": "MAJESTIC ELEGANCE PUNTA CANA",
+      "country": "Доминикана",
+      "country_id": 11,
+      "region": "Пунта Кана",
+      "category": 5,
+      "aliases_to_check": [
+        "MAJESTIC ELEGANCE PUNTA CANA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Punta%20Cana&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2766",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 32,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/majestic-elegance-punta-cana-102207400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/majestic-elegance-punta-cana-102207401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/majestic-elegance-punta-cana-102207402.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_091",
+      "native_tourvisor_id": 4542,
+      "name": "HARD ROCK HOTEL & CASINO PUNTA CANA",
+      "country": "Доминикана",
+      "country_id": 11,
+      "region": "Пунта Кана",
+      "category": 5,
+      "aliases_to_check": [
+        "HARD ROCK HOTEL & CASINO PUNTA CANA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Punta%20Cana&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4542",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 55,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/hard-rock-hotel-casino-102312050.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/hard-rock-hotel-casino-102312051.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/hard-rock-hotel-casino-102312052.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_092",
+      "native_tourvisor_id": 4549,
+      "name": "ZOETRY AQUA PUNTA CANA",
+      "country": "Доминикана",
+      "country_id": 11,
+      "region": "Пунта Кана",
+      "category": 5,
+      "aliases_to_check": [
+        "ZOETRY AQUA PUNTA CANA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Punta%20Cana&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4549",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "location",
+        "territory",
+        "beach"
+      ],
+      "photo_urls_in_bound_gallery": 48,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/zoetry-aqua-punta-cana-102312120.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/zoetry-aqua-punta-cana-102312121.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/zoetry-aqua-punta-cana-102312122.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_093",
+      "native_tourvisor_id": 50834,
+      "name": "HILTON DUBAI AL HABTOOR CITY",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "HILTON DUBAI AL HABTOOR CITY"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hilton&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=50834",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 45,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-westin-dubai-al-habtoor-city-43547604.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-westin-dubai-al-habtoor-city-43547600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-westin-dubai-al-habtoor-city-43547601.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_094",
+      "native_tourvisor_id": 77685,
+      "name": "HILTON DUBAI PALM JUMEIRAH",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "HILTON DUBAI PALM JUMEIRAH"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hilton&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77685",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 69,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/77685-2712300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/77685-2712301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/77685-2712302.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_095",
+      "native_tourvisor_id": 83785,
+      "name": "GRAND ASTON VARADERO",
+      "country": "Куба",
+      "country_id": 10,
+      "region": "Варадеро",
+      "category": 5,
+      "aliases_to_check": [
+        "GRAND ASTON VARADERO"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Varadero&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=83785",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach"
+      ],
+      "photo_urls_in_bound_gallery": 26,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/83785-62705100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/83785-62705101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/83785-62705102.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_096",
+      "native_tourvisor_id": 66299,
+      "name": "ADDRESS SKY VIEW",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "ADDRESS SKY VIEW"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Address&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66299",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 59,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/address-sky-view-2013206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/address-sky-view-2013200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/address-sky-view-2013201.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_097",
+      "native_tourvisor_id": 4533,
+      "name": "THE ADDRESS MONTGOMERIE DUBAI",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "THE ADDRESS MONTGOMERIE DUBAI"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Address&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4533",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 12,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-montgomerie-club-200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-montgomerie-club-201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-montgomerie-club-204.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_098",
+      "native_tourvisor_id": 45868,
+      "name": "VILUXER VEYLI & DIVING",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "VILUXER VEYLI & DIVING"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=LUX&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=45868",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "territory"
+      ],
+      "photo_urls_in_bound_gallery": 35,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/viluxer-veyli-diving-100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/viluxer-veyli-diving-101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/viluxer-veyli-diving-102.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_099",
+      "native_tourvisor_id": 113978,
+      "name": "SUN SIYAM OLHUVELI ROMANCE ADULTS ONLY 16+",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "SUN SIYAM OLHUVELI ROMANCE ADULTS ONLY 16+"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sun%20Siyam&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=113978",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach"
+      ],
+      "photo_urls_in_bound_gallery": 50,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/113978-61382410.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/113978-61352000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/113978-61353200.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W6_100",
+      "native_tourvisor_id": 80748,
+      "name": "MOVENPICK CAIRO MEDIA CITY",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Каир",
+      "category": 5,
+      "aliases_to_check": [
+        "MOVENPICK CAIRO MEDIA CITY"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Movenpick&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=80748",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "location",
+        "territory",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 49,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-cairo-media-city-208000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-cairo-media-city-208003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-cairo-media-city-208004.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    }
+  ],
+  "reserve_unselected": [
+    {
+      "native_tourvisor_id": 121821,
+      "name": "ROYAL ATLANTIS ICON",
+      "country_id": 4,
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Royal&countryId=4&limit=20"
+    },
+    {
+      "native_tourvisor_id": 37209,
+      "name": "ROYAL TAJ MAHAL HOTEL",
+      "country_id": 4,
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Royal&countryId=4&limit=20"
+    },
+    {
+      "native_tourvisor_id": 148294,
+      "name": "ROTANA RAS AL KHAIMAH THE MANGROVES",
+      "country_id": 9,
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Rotana&countryId=9&limit=20"
+    },
+    {
+      "native_tourvisor_id": 165871,
+      "name": "PALOMA CLUB SULTAN OZDERE",
+      "country_id": 4,
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Paloma&countryId=4&limit=20"
+    }
+  ],
+  "deferred": [
+    {
+      "hotel_id": 15884,
+      "name": "ROYAL TEOS THERMAL RESORT CLINIC & SPA (EX.EUPHORIA AEGEAN RESORT & SPA)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 67445,
+      "name": "BEACH ROTANA RESIDENCES",
+      "reason": "building_or_product_scope_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 55928,
+      "name": "AL ZORAH BEACH RESORT (EX. THE OBEROI BEACH RESORT AL ZORAH)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 116690,
+      "name": "DELANO DUBAI (EX. BLUEWATERS BEACH HOTEL)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 2568,
+      "name": "GROSVENOR HOUSE (EX. GROSVENOR HOUSE WEST MARINA BEACH)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 13825,
+      "name": "THE RITZ-CARLTON AL HAMRA BEACH (EX. BANYAN TREE)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 2629,
+      "name": "BLUE BEACH TOWER THE WALK JBR (EX. JA OASIS BEACH TOWER)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 1423,
+      "name": "PALOMA PARADISE BEACH (EX. PARADISE SIDE BEACH)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 1136,
+      "name": "PALOMA SENCIA (EX. CORNELIA DE LUXE)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 1418,
+      "name": "BALMY FORESTA (EX. PALOMA FORESTA)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 39190,
+      "name": "LIBERTY GOLF & RESORT KUSADASI (EX. SEVEN SEAS SEALIGHT ELITE)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 40858,
+      "name": "LONG BEACH CLUB NATURE (EX. ASTERIA EROS DIDIM, THE ROXY LUXURY NATURE)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 76780,
+      "name": "ALBATROS EXPRESS",
+      "reason": "building_or_product_scope_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 78564,
+      "name": "ALBATROS EXPRESS AQUA",
+      "reason": "building_or_product_scope_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 120860,
+      "name": "HILTON DUBAI CREEK HOTEL & RESIDENCES",
+      "reason": "building_or_product_scope_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 82563,
+      "name": "ADDRESS CREEK HARBOUR (EX. ADDRESS GRAND CREEK HARBOUR)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 66300,
+      "name": "ADDRESS DUBAI MALL (EX. ADDRESS FOUNTAIN VIEWS)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 73349,
+      "name": "ADDRESS BEACH RESORT (EX. ADDRESS JUMEIRAH RESORT)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 2682,
+      "name": "JW MARRIOTT HOTEL MARINA (EX. THE ADDRESS DUBAI MARINA)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 13998,
+      "name": "THE ADDRESS DOWNTOWN DUBAI RESIDENCES",
+      "reason": "building_or_product_scope_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 13999,
+      "name": "THE ADDRESS DUBAI MALL RESIDENCES",
+      "reason": "building_or_product_scope_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 23753,
+      "name": "THE RITZ-CARLTON EXECUTIVE RESIDENCES DIFC",
+      "reason": "building_or_product_scope_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 11799,
+      "name": "THE RESIDENCE MAURITIUS",
+      "reason": "building_or_product_scope_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 11793,
+      "name": "THE ST. REGIS LE MORNE RESORT MAURITIUS (EX. JW MARRIOTT MAURITIUS RESORT)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 11737,
+      "name": "LE JADIS BEACH RESORT & WELLNESS MAURITIUS (EX. ANGSANA BALACLAVA)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 11874,
+      "name": "ANANTARA MAIA SEYCHELLES VILLAS (EX. MAIA LUXURY RESORT & SPA)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 44408,
+      "name": "STORY SEYCHELLES (EX. THE H RESORT BEAU VALLON BEACH)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 131124,
+      "name": "CHEVAL BLANC SEYCHELLES (EX. BANYAN TREE SEYCHELLES)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 11846,
+      "name": "NIVA LABRIZ SEYCHELLES (EX. LABRIZ SILHOUETTE SEYCHELLES)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 22931,
+      "name": "AWARTA NUSA DUA LUXURY VILLAS & SPA (EX. CENTARA GRAND NUSA DUA RESORT & VILLAS)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 24701,
+      "name": "NUNAMKHALU PRIVATE VILLAS & SPA (EX. NUSA DUA RETREAT VILLA RESORT & SPA)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 24676,
+      "name": "AMAN VILLAS AT NUSA DUA (EX. AMANUSA)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 42141,
+      "name": "MERUSAKA NUSA DUA (EX. INAYA PUTRI BALI RESORT)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 2854,
+      "name": "TAJ BENTOTA RESORT & SPA (EX. VIVANTA BY TAJ BENTOTA, TAJ EXOTICA)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 66601,
+      "name": "LIVE AQUA BEACH RESORT PUNTA CANA (EX. INFINITI)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 4543,
+      "name": "DREAMS ROYAL BEACH PUNTA CANA (EX. NOW LARIMAR)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 2749,
+      "name": "JEWEL PALM BEACH RESORT & SPA (EX. DREAMS PALM BEACH PUNTA CANA)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 13857,
+      "name": "JEWEL PUNTA CANA BEACH RESORT (EX. DREAMS PUNTA CANA)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 2712,
+      "name": "IBEROSTAR SELECTION VARADERO (EX. IBEROSTAR VARADERO)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 2716,
+      "name": "LOS PETALOS VARADERO (EX. MELIA VARADERO)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 64190,
+      "name": "INTERNACIONAL VARADERO (EX. MELIA INTERNACIONAL)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 22850,
+      "name": "DOMINA MARINA VARADERO (EX. MELIA MARINA VARADERO)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 2723,
+      "name": "GRAND MEMORIES VARADERO (EX. RIU VARADERO)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 49747,
+      "name": "IBEROSTAR ORIGIN BELLA VISTA VARADERO (EX. IBEROSTAR BELLA VISTA VARADERO)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 76367,
+      "name": "MARINA VARADERO APARTMENT",
+      "reason": "building_or_product_scope_requires_confirmation",
+      "possible_published_ids": []
+    },
+    {
+      "hotel_id": 2727,
+      "name": "PENINSULA VARADERO (EX. MELIA PENINSULA)",
+      "reason": "previous_name_requires_confirmation",
+      "possible_published_ids": []
+    }
+  ]
+}
