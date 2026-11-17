@@ -1,0 +1,111 @@
+name: One-shot FASTFILL wave2 Maldives10 source check, no sends
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-wave2-maldives10-source-check-20261117.yml']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: anytour-fastfill-wave2-maldives10-source-check
+  cancel-in-progress: false
+jobs:
+  source-only:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event_name == 'push' &&
+      github.event.before == 'a4204d223b56421cf6d3f9c184166902c6fb5e61' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Check the existing publisher preparation controls
+        run: python3 tools/direct_demand/operations/check-commercial-batch-preparation.py
+      - name: Verify exact paid native identity and visually reviewed media; build existing publisher WITHOUT execution
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = a4204d223b56421cf6d3f9c184166902c6fb5e61
+          python3 - <<'PY'
+          import base64,hashlib,json,pathlib,re,runpy,subprocess,urllib.request
+          BASE='a4204d223b56421cf6d3f9c184166902c6fb5e61'
+          APP='fd9b28dab2147f13f3b0d0f7f856b14392b141d2'
+          IDS=[2435,2481,24744,50261,78006,26043,2922,64130,42647,2457]
+          PROPOSED=json.loads(r'''[{"hotel_id":2435,"logical_id":"commercial-hotel-2435-v1","hotel":"COMO Cocoa Island","aliases":["COMO Cocoa Island"],"text":"✈️ Туры в COMO Cocoa Island\n📍 Атолл Южный Мале, Мальдивы.\n\nНадводные виллы в форме мальдивской лодки дони, белый песок и бирюзовая лагуна. Камерный остров для спокойного отдыха вдвоём, снорклинга и восстановления в COMO Shambhala.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source_url":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2435","source_photos":["https://static.tourvisor.ru/hotel_pics/verybig/8/cocoa-island-45870600.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/cocoa-island-45870601.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/cocoa-island-45870602.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/cocoa-island-45870603.jpg"],"photo_blob_sha":"e592f2af4740a38438ee2f1930e33a1891705757"},{"hotel_id":2481,"logical_id":"commercial-hotel-2481-v1","hotel":"Gili Lankanfushi","aliases":["Gili Lankanfushi","Soneva Gili","Gili Lankanfushi Maldives"],"text":"✈️ Туры в Gili Lankanfushi\n📍 Атолл Северный Мале, Мальдивы.\n\nПросторные надводные виллы среди бирюзовой лагуны. Песчаные дорожки, тропическая зелень и ощущение уединения: здесь легко забыть о городской суете и проводить дни у океана.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source_url":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2481","source_photos":["https://static.tourvisor.ru/hotel_pics/verybig/8/soneva-gili-resort-spa-1210405.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/soneva-gili-resort-spa-1210400.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/soneva-gili-resort-spa-1210401.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/soneva-gili-resort-spa-1210402.jpg"],"photo_blob_sha":"d3b9edac7e0c5b389a575732e02b8c3de6f1ac42"},{"hotel_id":24744,"logical_id":"commercial-hotel-24744-v1","hotel":"Cheval Blanc Randheli","aliases":["Cheval Blanc Randheli"],"text":"✈️ Туры в Cheval Blanc Randheli\n📍 Атолл Нуну, Мальдивы.\n\nПросторные виллы с бассейнами, белоснежный пляж и спа на отдельном острове. Красивый выбор для особенной поездки вдвоём и неспешного отдыха у океана.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source_url":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=24744","source_photos":["https://static.tourvisor.ru/hotel_pics/verybig/8/cheval-blanc-randheli-102305430.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/cheval-blanc-randheli-102305431.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/cheval-blanc-randheli-102305432.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/cheval-blanc-randheli-102305433.jpg"],"photo_blob_sha":"d860eab5a989c28684b576bd5d0556f091feb5d9"},{"hotel_id":50261,"logical_id":"commercial-hotel-50261-v1","hotel":"Milaidhoo Island Maldives","aliases":["Milaidhoo Island Maldives"],"text":"✈️ Туры в Milaidhoo Island Maldives\n📍 Атолл Баа, Мальдивы.\n\nКамерный остров для спокойного отдыха среди бирюзовой воды. Пляжные и надводные виллы с бассейнами, домашний риф и ужины с видом на океан.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source_url":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=50261","source_photos":["https://static.tourvisor.ru/hotel_pics/verybig/8/50261-1111200.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/50261-1111201.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/50261-1111202.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/50261-1111203.jpg"],"photo_blob_sha":"afb4c5ff2cfa6e3b9f18eca485eb8560031dd945"},{"hotel_id":78006,"logical_id":"commercial-hotel-78006-v1","hotel":"JOALI BEING","aliases":["JOALI BEING"],"text":"✈️ Туры в JOALI BEING\n📍 Атолл Раа, Мальдивы.\n\nОстров для отдыха и восстановления: пляжные и надводные виллы, спа и пространства для оздоровительных практик. Тропическая зелень и океан помогают переключиться на себя.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source_url":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78006","source_photos":["https://static.tourvisor.ru/hotel_pics/verybig/8/78006-69750103.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/78006-69750000.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/78006-69750101.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/78006-69750102.jpg"],"photo_blob_sha":"3ce8a84dfcf2b8d6356c3a143fe8911d35e8b456"},{"hotel_id":26043,"logical_id":"commercial-hotel-26043-v1","hotel":"COMO Maalifushi","aliases":["COMO Maalifushi","Maalifushi by COMO","COMO Maaliufshi"],"text":"✈️ Туры в COMO Maalifushi\n📍 Атолл Таа, Мальдивы.\n\nТропическая зелень, белый песок и виллы у пляжа или над водой. Дни у океана можно дополнить спа-ритуалами, а маленьких гостей ждёт детский клуб.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source_url":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=26043","source_photos":["https://static.tourvisor.ru/hotel_pics/verybig/8/maalifushi-by-como-82785400.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/maalifushi-by-como-82785401.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/maalifushi-by-como-82785402.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/maalifushi-by-como-82785403.jpg"],"photo_blob_sha":"b936b6e273c57340502d347140152ed8f588d99f"},{"hotel_id":2922,"logical_id":"commercial-hotel-2922-v1","hotel":"Six Senses Laamu","aliases":["Six Senses Laamu"],"text":"✈️ Туры в Six Senses Laamu\n📍 Атолл Лааму, Мальдивы.\n\nПесчаный остров с пляжными и надводными виллами среди тропической зелени. Снорклинг, отдых у океана и детский клуб для семейного путешествия на Мальдивы.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source_url":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2922","source_photos":["https://static.tourvisor.ru/hotel_pics/verybig/8/six-senses-laamu-102209300.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/six-senses-laamu-102209301.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/six-senses-laamu-102209302.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/six-senses-laamu-102209303.jpg"],"photo_blob_sha":"c400f34013887aab8b19b0309810f4aac70d7a9c"},{"hotel_id":64130,"logical_id":"commercial-hotel-64130-v1","hotel":"JOALI Maldives","aliases":["JOALI Maldives"],"text":"✈️ Туры в JOALI Maldives\n📍 Атолл Раа, Мальдивы.\n\nОстров искусства и дизайна: виллы с частными бассейнами, арт-тропы и инсталляции среди тропической природы. Для семей предусмотрены детский клуб и бассейн.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source_url":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64130","source_photos":["https://static.tourvisor.ru/hotel_pics/verybig/8/64130-21290612.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/64130-21290300.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/64130-21290401.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/64130-21290402.jpg"],"photo_blob_sha":"a1bd4da7a4a38074c58488e32130df1ac0d0fa6c"},{"hotel_id":42647,"logical_id":"commercial-hotel-42647-v1","hotel":"Amilla Maldives","aliases":["Amilla Maldives","Amilla Fushi"],"text":"✈️ Туры в Amilla Maldives\n📍 Атолл Баа, Мальдивы.\n\nПросторные виллы и резиденции с бассейнами, песчаный пляж и домашний риф. Для тех, кто ценит личное пространство и хочет познакомиться с подводным миром Мальдив.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source_url":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=42647","source_photos":["https://static.tourvisor.ru/hotel_pics/verybig/8/42647-58448907.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/42647-58448700.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/42647-58448701.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/42647-58448802.jpg"],"photo_blob_sha":"abd34250293c9b75e1591aada5c157be7a6b2b0e"},{"hotel_id":2457,"logical_id":"commercial-hotel-2457-v1","hotel":"Six Senses Kanuhura","aliases":["Six Senses Kanuhura","Kanuhura Maldives"],"text":"✈️ Туры в Six Senses Kanuhura\n📍 Остров Канухура, Мальдивы.\n\nДлинный песчаный пляж, тропическая зелень и виллы у океана. Уединённые острова для отдыха и детский клуб дополняют спокойные мальдивские каникулы.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source_url":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2457","source_photos":["https://static.tourvisor.ru/hotel_pics/verybig/8/2457-21402600.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/2457-21402601.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/2457-21402602.jpg","https://static.tourvisor.ru/hotel_pics/verybig/8/2457-21402603.jpg"],"photo_blob_sha":"93a85b78333cf8b85e17b5ba0239d195e2e99c17"}]''')
+          def api(p):return json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+p],timeout=60))
+          def get(u):
+              with urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'AnyTour-approved-hotel-editorial-read/1.0'}),timeout=50) as h:
+                  assert h.status==200
+                  return h.read()
+          assert api('git/ref/heads/main')['object']['sha']==APP,'main_drift'
+          dep=api('actions/runs/44079440323')
+          assert dep['head_sha']==APP and dep['conclusion']=='success' and dep['run_attempt']==1,'installed_release_not_accepted'
+          tree=api('git/trees/'+APP+'?recursive=1')
+          assert not tree['truncated']
+          actual={x['path']:x['sha'] for x in tree['tree']}
+          root=pathlib.Path('wave2-source-only');root.mkdir()
+          source_dir=pathlib.Path('tools/direct_demand/operations')
+          template=(source_dir/'commercial-batch-template-20261102.php').read_text()
+          assert hashlib.sha256(template.encode()).hexdigest()=='4c4aaa2e50155a69e8bd8b9f460777026735b0c51c3b2fc253cf0b7556e53ed5'
+          pairs=[('f0e04e9b4e0ed6859ced96279cbf0619931596e6','1982ff7368763edf8b7238c3142e3cc28579e991'),('db8181426091a685a79ee55991cde22671f0d9dd','7304af19cc19666f00ca4ead1b04c2bdce719646')]
+          protected=re.findall(r'"([^"]+)"=>"([a-f0-9]{40})"',template)
+          assert len(protected)==22
+          for path,sha in protected:
+              expected=dict(pairs).get(sha,sha)
+              assert actual.get(path)==expected,('protected_source_drift',path)
+          manifest={'schema_version':1,'operation':'commercial-hotel-batch-20261117-5-v1','state':'PREPARED_NOT_SENT','button_text':'✈️ Узнать стоимость тура','expected_new_full_pairs':10,'photo_freeze_commit':BASE,'source_photo_run':44077303546,'source_freeze_run':44077706205,'canonical_id_namespace':'native_tourvisor_only_no_anytour_id_invented','rows':[]}
+          facts=[]
+          def walk(v):
+              yield v
+              if isinstance(v,dict):
+                  for x in v.values():yield from walk(x)
+              if isinstance(v,list):
+                  for x in v:yield from walk(x)
+          for r in PROPOSED:
+              hid=r['hotel_id'];url='https://raw.githubusercontent.com/pyatkoff/max-search-bot/'+BASE+'/.github/traffic-publish/commercial-wave2-maldives10-20261117/'+str(hid)+'.png'
+              b=get(url)
+              assert b[:8]==b'\x89PNG\r\n\x1a\n' and 10000<len(b)<1600000,'png_invalid'
+              assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==r['photo_blob_sha'],'reviewed_png_changed'
+              data=json.loads(get(r['source_url']))
+              dictionaries=[v for v in walk(data) if isinstance(v,dict) and str(v.get('id',''))==str(hid)]
+              assert len(dictionaries)==1,('native_identity_ambiguous',hid)
+              d=dictionaries[0]
+              serialized=json.dumps(d,ensure_ascii=False)
+              assert all(u in serialized for u in r['source_photos'][:3]),('paid_source_photo_identity_changed',hid)
+              assert 'verybig/8/' in r['source_photos'][0]
+              info={k:v for k,v in d.items() if k!='images'}
+              facts.append({'hotel_id':hid,'source':r['source_url'],'native_name':d.get('name'),'exact_native_id_verified':True,'source_fields':info})
+              manifest['rows'].append({'hotel_id':hid,'logical_id':r['logical_id'],'aliases':r['aliases'],'text':r['text'],'text_sha256':hashlib.sha256(r['text'].encode()).hexdigest(),'photo_url':url,'photo_sha256':hashlib.sha256(b).hexdigest(),'media_state':'REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED','sources':[r['source_url']]})
+              print('PAID_NATIVE_IDENTITY_AND_REVIEWED_PNG_PASS',hid)
+          assert [r['hotel_id'] for r in manifest['rows']]==IDS
+          raw=(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n').encode()
+          approval={'schema_version':1,'operation':manifest['operation'],'expected_installed_sha':APP,'hotel_ids':IDS,'manifest_sha256':hashlib.sha256(raw).hexdigest()}
+          module=runpy.run_path(str(source_dir/'prepare-commercial-batch.py'))
+          php,report=module['prepare'](template,raw,approval)
+          for old,new in pairs:
+              assert php.count(old)==1 and php.count(new)==0
+              php=php.replace(old,new)
+          paths={'manifest.json':raw,'approval.json':(json.dumps(approval,ensure_ascii=False,indent=2)+'\n').encode(),'publisher-unexecuted.php':php.encode(),'provider-facts.json':(json.dumps(facts,ensure_ascii=False,indent=2)+'\n').encode()}
+          for name,value in paths.items():(root/name).write_bytes(value)
+          rec={'state':'SOURCE_CHECKED_NO_SEND','operation':manifest['operation'],'runtime_sha':APP,'protected_surfaces':len(protected),'modified_hash_pins':2,'rows':10,'send_attempts':0,'feed_writes':0,'files':{n:hashlib.sha256(v).hexdigest() for n,v in paths.items()},'expected_ids':IDS}
+          (root/'receipt.json').write_text(json.dumps(rec,indent=2)+'\n')
+          print('SOURCE_RECEIPT_JSON '+json.dumps(rec,separators=(',',':')))
+          print('APPROVED_MANIFEST_JSON '+json.dumps(manifest,ensure_ascii=False,separators=(',',':')))
+          print('SOURCE_FACTS_JSON '+json.dumps(facts,ensure_ascii=False,separators=(',',':')))
+          PY
+          php -l wave2-source-only/publisher-unexecuted.php
+      - name: Preserve exact source for separate editorial acceptance, never posting evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-wave2-maldives10-source-20261117
+          path: wave2-source-only/*
+          retention-days: 30
+          if-no-files-found: warn
