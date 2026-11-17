@@ -1,0 +1,173 @@
+name: One-shot AnyTour FASTFILL second10 paired sender, current6d
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths:
+      - '.github/workflows/fastfill-second10-current6d-native-publish-20261117.yml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+jobs:
+  publish-second10:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event_name == 'push' &&
+      github.event.before == '064448f8af3be8bd2965b97163332e26c8ea87f4' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Pin original media, current source and one use of the accepted publisher
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = 064448f8af3be8bd2965b97163332e26c8ea87f4
+          test "$(git hash-object tools/direct_demand/operations/commercial-batch-20261117-2-manifest.json)" = caf308fed9f05eb1d8775fda5009878be65b4053
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = 6d3da4fb7602de9e6dcd7ba3af06f70749606f1f
+          python3 - <<'PY'
+          import json,subprocess
+          def api(path):return json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+path],timeout=35))
+          checks=[(44070779891,'6d3da4fb7602de9e6dcd7ba3af06f70749606f1f'),(44061526356,'99ef96c557d41b7efc5beaa8b42164ba6d0593fd'),(44062703648,'b7474fbe34ab5d4943284c49fe68dcc66225a228'),(44060470606,'e8b73262592459f6bab249f1ca41f87888c72749')]
+          for rid,head in checks:
+              r=api('actions/runs/'+str(rid))
+              assert r['head_sha']==head and r['conclusion']=='success' and r['run_attempt']==1,(rid,r['status'])
+          j=json.loads(open('tools/direct_demand/operations/commercial-batch-20261117-2-manifest.json').read())
+          assert [x['hotel_id'] for x in j['rows']]==[2490,2458,113544,73477,2588,2611,2612,2610,2931,78456]
+          assert all(x['photo_url'].startswith('https://raw.githubusercontent.com/pyatkoff/max-search-bot/fc305bfec124b556de4c2338317c20ede32a628a/.github/traffic-publish/commercial-expansion100-20261117-second10/') for x in j['rows'])
+          print('SECOND10_PINNED_ISSUE_SOURCE_AND_APPROVED_COVER_BYTES')
+          PY
+      - name: Download exactly the accepted source-only PHP, no regeneration
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p pub
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/14318033755/zip > pub/source.zip
+          python3 - <<'PY'
+          import hashlib,zipfile,json,pathlib
+          raw=pathlib.Path('pub/source.zip').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=='e65833a91229ec05a74fef3eb43de7e24337a4b6e3bdf713cf69926c176b4225'
+          with zipfile.ZipFile('pub/source.zip') as z:
+              assert z.testzip() is None and set(z.namelist())=={'second10-current-publisher-unexecuted.php','receipt.json'}
+              php=z.read('second10-current-publisher-unexecuted.php');rec=json.loads(z.read('receipt.json'))
+          assert hashlib.sha256(php).hexdigest()=='9d96fe89fb858454913487cfea8edcc29fe2cd5de5f0ca628da653b36e09c381'
+          assert rec['state']=='CURRENT_PIN_COMPATIBILITY_SOURCE_ONLY_NO_SEND' and rec['modified_hash_pins']==2
+          assert rec['rows']==10 and rec['send_attempts']==0
+          # Pin only the installed release HEAD to the newer unrelated Manager2 release.
+          # All 22 protected publisher surfaces are byte-identical after the two prior reviewed hash updates.
+          old_pin=b"const EXPECTED_INSTALLED_SHA='02f8267f39e6435c298fe75f646ce06da694dd7a';"
+          new_pin=b"const EXPECTED_INSTALLED_SHA='6d3da4fb7602de9e6dcd7ba3af06f70749606f1f';"
+          assert php.count(old_pin)==1 and php.count(new_pin)==0
+          current_php=php.replace(old_pin,new_pin,1)
+          assert len(current_php)==len(php) and current_php.replace(new_pin,old_pin,1)==php
+          p=pathlib.Path('pub/second10-once.php');p.write_bytes(current_php);p.chmod(0o600)
+          print('EXACT_PHP_VERIFIED_UNEXECUTED')
+          PY
+          php -l pub/second10-once.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read-only current production application HEAD and clean tracked files
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = 6d3da4fb7602de9e6dcd7ba3af06f70749606f1f
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; app=/var/www/anytoour/data/www/app.anytoour.ru; test -d "$app/.git" && test ! -L "$app"; cd "$app"; test "$(git rev-parse HEAD)" = 6d3da4fb7602de9e6dcd7ba3af06f70749606f1f; test -z "$(git status --porcelain --untracked-files=no)"; command -v php >/dev/null; printf "CURRENT_PRODUCTION_SOURCE_VERIFIED\\n"' > pub/preflight.txt
+          grep -Fx 'CURRENT_PRODUCTION_SOURCE_VERIFIED' pub/preflight.txt
+      - name: Invoke the original bounded telegram and MAX publisher ONCE
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
+          rc=0
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/second10-once.php > pub/original-native-output.jsonl || rc=$?
+          printf '%s\n' "$rc" > pub/original-exit.txt
+          cat pub/original-native-output.jsonl
+          exit "$rc"
+      - name: Independently confirm 20 native receipts and hotel bot CTA
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import collections,json,pathlib
+          lines=[json.loads(x) for x in pathlib.Path('pub/original-native-output.jsonl').read_text().splitlines() if x.strip().startswith('{')]
+          assert lines and pathlib.Path('pub/original-exit.txt').read_text().strip()=='0'
+          r=lines[-1]
+          assert r['ok'] is True and r['operation']=='commercial-hotel-batch-20261117-2-v1'
+          assert r['installed_sha']=='6d3da4fb7602de9e6dcd7ba3af06f70749606f1f'
+          assert r['new_posts']==20 and r['post_write_attempts']==20 and r['reused']==0
+          ps=r['posts'];assert len(ps)==20
+          expected={12120,64957,76029,66198,49750,123247,48184,32322,28272,7458};by=collections.defaultdict(set)
+          for p in ps:
+              assert p['state']=='sent' and p['body_photo_button_verified'] is True
+              assert p['platform'] in ('telegram','max') and p['button_url'].startswith('https://')
+              by[p['platform']].add(p['hotel_id'])
+          assert by['telegram']==by['max']==expected and len(set(p['post_url'] for p in ps))==20
+          pathlib.Path('pub/terminal-verified.json').write_text(json.dumps({'state':'TWENTY_NATIVE_POSTS_VERIFIED','unique_new_hotels':10,'telegram':10,'max':10,'feed_rows_added':0,'operation':r['operation']},indent=2)+'\n')
+          print('SECOND10_TWENTY_NATIVE_MESSAGES_AND_BOT_BUTTONS_VERIFIED')
+          PY
+      - name: Retain exact one-attempt receipt including UNKNOWN, NEVER re-send
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-second10-native-one-attempt-current6d-20261117
+          path: |
+            pub/preflight.txt
+            pub/original-native-output.jsonl
+            pub/original-exit.txt
+            pub/terminal-verified.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Remove runner-only key and executable script
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/second10-once.php pub/source.zip
