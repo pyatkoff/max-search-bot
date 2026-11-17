@@ -1,0 +1,232 @@
+{
+  "mode": "EXACT_PREVIOUSLY_BOUND_GALLERY_REVIEW_ONLY",
+  "profile_freeze": "d865a543817ee5806c4565fbcb53fab5f69dad23",
+  "rows": [
+    {
+      "id": 22718,
+      "index": 0,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601550.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601550.jpg",
+        "bytes": 510609,
+        "sha256": "f3bd0063bfacb6ec1ea1abf768c0de66336076544454ee547846a63c8da11994",
+        "width": 1200,
+        "height": 900,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 22718,
+      "index": 1,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601551.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601551.jpg",
+        "bytes": 204611,
+        "sha256": "1927c527097e07a7dc42c040cc8d87721e5fb2263e6fc9654ab11b952a77ae5a",
+        "width": 1200,
+        "height": 800,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 22718,
+      "index": 2,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601552.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601552.jpg",
+        "bytes": 254197,
+        "sha256": "41813b56cbb95038af4cafa4d6b5dca437699f505317482a8d52a002053be476",
+        "width": 1200,
+        "height": 800,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 22718,
+      "index": 3,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601553.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601553.jpg",
+        "bytes": 310708,
+        "sha256": "80eaff08d4f499e34ee847f4ea4a6c98b7636c6b384f2c61dc48531850753cd2",
+        "width": 1200,
+        "height": 800,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 22718,
+      "index": 4,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601554.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601554.jpg",
+        "bytes": 243600,
+        "sha256": "bafc3a76b0199a35ba62ddd5a4a821a5fb1efe796aeb9efd8b725cc6002c4fdd",
+        "width": 1200,
+        "height": 800,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 22718,
+      "index": 5,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601555.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601555.jpg",
+        "bytes": 210258,
+        "sha256": "6b5f255e0039dfdc04599e806011e3e928c61458f66155eac2852c83302f82f2",
+        "width": 1200,
+        "height": 734,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 22718,
+      "index": 6,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601556.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601556.jpg",
+        "bytes": 236236,
+        "sha256": "716884325a40002dd3b2de45dd5507209075658c5a813ebf9049a50efdd59eb8",
+        "width": 800,
+        "height": 1200,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 22718,
+      "index": 7,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601557.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601557.jpg",
+        "bytes": 173123,
+        "sha256": "09d3e92deeeca5d27da71fe0a8f7dad6666adffd924cee08c2ae0726f361de6e",
+        "width": 1200,
+        "height": 777,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 47213,
+      "index": 0,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-8.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-8.jpg",
+        "bytes": 183966,
+        "sha256": "7751f16394b5f6c24d9a43f7455bdec2b219378974b87647b62ba7f6121770d8",
+        "width": 840,
+        "height": 460,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 47213,
+      "index": 1,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-0.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-0.jpg",
+        "bytes": 193830,
+        "sha256": "7b17eca9a2ac22e3f7e3c018fc63d43bc9f546ead050fb698a081329ae9abb20",
+        "width": 840,
+        "height": 460,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 47213,
+      "index": 2,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-1.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-1.jpg",
+        "bytes": 175111,
+        "sha256": "a55b16e4e689b4302e226b1cdb159a8c85a917e7c64cee7362f4888e00c16dd6",
+        "width": 840,
+        "height": 460,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 47213,
+      "index": 3,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-2.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-2.jpg",
+        "bytes": 157420,
+        "sha256": "6c75fad2d359a614787fd3f1c19acfad7a0fab46485d5d843593fd6f8af62078",
+        "width": 840,
+        "height": 460,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 47213,
+      "index": 4,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-3.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-3.jpg",
+        "bytes": 121725,
+        "sha256": "db957dacf56101f3bfcc06b70a3ed0fd6d272ab25987820de7fb2747935b3fcf",
+        "width": 840,
+        "height": 460,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 47213,
+      "index": 5,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-4.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-4.jpg",
+        "bytes": 127955,
+        "sha256": "edde14ee30e08bada0b445f3a7fdf142d9247572d376fd7cd710250a8360a3d3",
+        "width": 840,
+        "height": 460,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 47213,
+      "index": 6,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-5.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-5.jpg",
+        "bytes": 141606,
+        "sha256": "29270265da23d08fa7a2c20473ae8f734dc1aecffe24c27069dc304f92a50be9",
+        "width": 840,
+        "height": 460,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 47213,
+      "index": 7,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-6.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-6.jpg",
+        "bytes": 189791,
+        "sha256": "f5bcc447e63fe030c1b03940404f6d313e73778c4b3aeaca67474bf848bd009e",
+        "width": 840,
+        "height": 460,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    }
+  ],
+  "sender_calls": 0,
+  "provider_profile_calls": 0
+}
