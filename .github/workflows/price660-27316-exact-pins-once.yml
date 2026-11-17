@@ -13,8 +13,8 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event_name == 'push' &&
-      github.event.before == '3736196657667a30a65f4c271151455cf7798316' &&
-      github.event.head_commit.message == 'diagnostics(anytour): identify existing per-hotel completion in frozen global' &&
+      github.event.before == 'ebc871db3a48c585a0be3fd7b35097d18aad4e6d' &&
+      github.event.head_commit.message == 'diagnostics(anytour): inspect original MAX button receipt without writes' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = 3736196657667a30a65f4c271151455cf7798316
+          test "$(git rev-parse HEAD^)" = ebc871db3a48c585a0be3fd7b35097d18aad4e6d
           test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
           echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
       - name: Pinned existing SSH host and private runner-only key
@@ -145,6 +145,21 @@ jobs:
             $out['original_child']=['sha256'=>hash('sha256',$raw),'bytes'=>strlen($raw),'lines'=>substr_count($raw,"\n"),
               'manifest_hash'=>$lastChild['manifest_hash'],'post_key'=>$key,
               'phase'=>$p['state'],'provider_edit_returned'=>$p['provider_edit_returned'],
+              'post_member_keys'=>array_keys($p),
+              'button_result'=>is_array($p['button_result']??null)?[
+                'keys'=>array_keys($p['button_result']),
+                'state'=>$p['button_result']['state']??null,
+                'reason'=>$p['button_result']['reason']??null,
+                'publication_id'=>$p['button_result']['publication_id']??null,
+                'version_id'=>$p['button_result']['version_id']??null,
+                'reconcile_only'=>$p['button_result']['reconcile_only']??null,
+                'receipt'=>is_array($p['button_result']['receipt']??null)?[
+                  'request_count'=>$p['button_result']['receipt']['request_count']??null,
+                  'write_attempts'=>$p['button_result']['receipt']['write_attempts']??null,
+                  'http_operations'=>array_map(static fn($r)=>['operation'=>$r['operation']??null,'http'=>$r['http']??null,
+                       'transport_error'=>$r['transport_error']??null],(array)($p['button_result']['receipt']['http_results']??[])),
+                ]:null,
+              ]:null,
               'request_start_ms'=>$p['edit_request_start_ms'],
               'original_post_url'=>$plan['post_url'],
               'publication_id'=>$plan['publication_id'],'old_version_id'=>$plan['old_version_id'],'message_id'=>$plan['message_id'],
