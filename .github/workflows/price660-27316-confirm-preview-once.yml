@@ -1,0 +1,217 @@
+name: Price 660 27316 existing MAX confirmation preview only
+on:
+  push:
+    branches: ['audit/price660-27316-readonly-20261117']
+    paths: ['.github/workflows/price660-27316-confirm-preview-once.yml']
+permissions:
+  contents: read
+concurrency:
+  group: anytour-price660-confirm-preview-27316-20261117
+  cancel-in-progress: false
+jobs:
+  bounded-max-get:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.event_name == 'push' &&
+      github.event.before == 'ac288ce2cb9443ffc9393f90d97d352c9c8008da' &&
+      github.event.head_commit.message == 'diagnostics(anytour): existing max confirmation preview no writes' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Check one-time parent and no mutations in code
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = ac288ce2cb9443ffc9393f90d97d352c9c8008da
+          test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
+          echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
+      - name: Pinned existing SSH host and private runner-only key
+        shell: bash
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test -n "$KEY_VALUE" && test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER"
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/price660-key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/price660-key"; fi
+          else
+            printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/price660-key"
+          fi
+          chmod 600 "$RUNNER_TEMP/price660-key"
+          ssh-keygen -y -f "$RUNNER_TEMP/price660-key" >/dev/null
+          python3 - <<'PY'
+          import os,re,hashlib,base64,subprocess,pathlib
+          h=os.environ['DEPLOY_HOST'];u=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',h) and not h.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',u)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',h],capture_output=True,text=True,timeout=35)
+          lines=[]
+          for x in scan.stdout.splitlines():
+              t=x.split()
+              if len(t)<3 or t[0].startswith('#'):continue
+              try: fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(t[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':lines.append(x)
+          assert lines,'HOST_PIN_CHANGED_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/price660-known-hosts').write_text('\n'.join(lines)+'\n')
+          print('HOST_PIN_OK')
+          PY
+      - name: Preview exact existing MAX confirmation with 3 GET and zero writes
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/price660-key" -o BatchMode=yes -o ConnectTimeout=12 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/price660-known-hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; GIT_OPTIONAL_LOCKS=0 php' > "$RUNNER_TEMP/price660-preview.json" <<'REMOTE_PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors','0'); ini_set('log_errors','0');
+          $out=['ok'=>false,'mode'=>'price660_max_confirmation_preview_readonly','checked_at'=>gmdate('c'),
+                'server_writes'=>0,'db_writes'=>0,'post_writes'=>0,'feed_writes'=>0,'supplier_calls'=>0,'provider_get_calls'=>0];
+          function verify(bool $ok,string $code):void{if(!$ok)throw new RuntimeException($code);}
+          function pin(string $path,int $cap,bool $tail):array{
+              verify(!is_link($path)&&is_file($path)&&realpath($path)===$path,'path_invalid');
+              $f=fopen($path,'rb');verify(is_resource($f)&&flock($f,LOCK_SH|LOCK_NB),'read_busy_stop');
+              try{
+                  $st=fstat($f);$nm=lstat($path);
+                  verify(is_array($st)&&is_array($nm)&&$st['ino']===$nm['ino']&&$st['dev']===$nm['dev'],'inode_changed');
+                  $size=$st['size'];verify($size>0&&($tail||$size<=$cap),'size_invalid');
+                  $pos=$tail?max(0,$size-$cap):0;verify(fseek($f,$pos,SEEK_SET)===0,'seek_failed');
+                  $raw=stream_get_contents($f,$cap+1);verify(is_string($raw)&&strlen($raw)===$size-$pos,'read_short');
+                  clearstatcache(true,$path);$end=fstat($f);$named=lstat($path);
+                  foreach(['ino','dev','size','mtime','ctime'] as $k)verify(($end[$k]??null)===($st[$k]??null)&&($named[$k]??null)===($st[$k]??null),'read_changed');
+                  verify(str_ends_with($raw,"\n"),'truncated_journal');
+                  $body=substr($raw,0,-1);$idx=strrpos($body,"\n");
+                  verify($pos===0||$idx!==false,'lastline_over_bound');
+                  $last=$idx===false?$body:substr($body,$idx+1);
+                  verify($last!=='','empty_state');
+                  return ['last'=>$last,'size'=>$size,'sha256'=>hash('sha256',$last."\n"),'full_sha256'=>$tail?null:hash('sha256',$raw)];
+              }finally{flock($f,LOCK_UN);fclose($f);}
+          }
+          try{
+              $home='/var/www/anytoour/data/channel-post-operations';
+              verify(realpath($home)===$home,'private_root_changed');
+              $global=$home.'/monitor-price-after-collection-v1.jsonl';
+              $g=pin($global,4194304,true);
+              verify($g['size']===443818242&&$g['sha256']==='5660cc6dad9e6a19900dd251da2cd0d8470182f114ac2dc98a2cccf2e38314b5','global_state_moved_stop');
+              $state=json_decode($g['last'],true,64,JSON_THROW_ON_ERROR);
+              $operation='commercial-monitor-price-h27316-7627b206ea11237db2e1fb365e98be5c1ff11a439b3939637fee633dee1b83d4';
+              $pending=$state['pending']??null;
+              verify(is_array($pending)&&($pending['operation']??null)===$operation&&($pending['tourvisor_hotel_id']??null)===27316
+                &&($pending['phase']??null)==='post_started'&&($pending['child_failure']['error']??null)==='max_button_outcome_not_confirmed'
+                &&($state['nightly_cycle']['collector_run_id']??null)==='44012967294','pending_changed_stop');
+              $childPath=$home.'/'.$operation.'/receipt.jsonl';
+              $c=pin($childPath,10000000,false);
+              verify($c['size']===40405&&$c['full_sha256']==='010c6ecfbdae1156a772160bbadb5fec4cbd84555e14acf10baa791c36da2988','child_changed_stop');
+              $last=json_decode($c['last'],true,64,JSON_THROW_ON_ERROR);
+              $posts=$last['posts']??null;
+              verify(is_array($posts)&&count($posts)===1,'post_count_changed');
+              $post=$posts[array_key_first($posts)]??null;
+              verify(is_array($post)&&($post['state']??null)==='text_edit_returned'
+                &&($post['plan']['publication_id']??null)===400,'post_changed_stop');
+              $app='/var/www/anytoour/data/www/app.anytoour.ru';
+              verify(realpath($app)===$app&&chdir($app),'app_unavailable');
+              $git=[];$rc=0;
+              exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false rev-parse HEAD 2>/dev/null',$git,$rc);
+              verify($rc===0&&count($git)===1&&$git[0]==='1a530050ddb50f315990d654c8c84e9fb4791143','app_head_changed_stop');
+              ob_start();try{require $app.'/config.php';require_once $app.'/services/ChannelPostRuntime.php';}finally{ob_end_clean();}
+              $pdo=ConversationDb::connection();
+              $registry=new ChannelPostRegistryService($pdo);
+              $current=$registry->publication(400);
+              verify(is_array($current)&&($current['project_key']??null)==='anytour'&&($current['platform']??null)==='max'
+                &&($current['version_id']??null)===7024&&($current['state']??null)==='requires_attention'
+                &&($current['snapshot']['text']??null)===($post['plan']['text']??null),'registry_changed_stop');
+              $query=$pdo->prepare('SELECT id,publication_id,state,error_reason,write_attempts,attempt_count,claim_token,claimed_at,receipt_json FROM post_versions WHERE publication_id=? AND id IN (?,?) ORDER BY id ASC');
+              verify($query->execute([400,4199,7024]),'version_select_failed');
+              $records=$query->fetchAll(PDO::FETCH_ASSOC);
+              verify(is_array($records)&&count($records)===2,'version_rows_changed_stop');
+              $versions=[];
+              foreach($records as $v){
+                  $receipt=json_decode((string)$v['receipt_json'],true,64);
+                  verify(is_array($receipt),'stored_receipt_invalid');
+                  $reads=$receipt['http_results']??null;
+                  $versions[]=[
+                    'version_id'=>(int)$v['id'],
+                    'state'=>(string)$v['state'],
+                    'error_reason'=>(string)$v['error_reason'],
+                    'write_attempts'=>(int)$v['write_attempts'],
+                    'attempt_count'=>(int)$v['attempt_count'],
+                    'claim_token_is_null'=>$v['claim_token']===null,
+                    'claimed_at_is_null'=>$v['claimed_at']===null,
+                    'receipt_sha256'=>hash('sha256',(string)$v['receipt_json']),
+                    'receipt_fields'=>array_keys($receipt),
+                    'receipt_request_count'=>$receipt['request_count']??null,
+                    'receipt_write_attempts'=>$receipt['write_attempts']??null,
+                    'receipt_content_preserved'=>$receipt['content_preserved']??null,
+                    'receipt_button_verified'=>$receipt['button_verified']??null,
+                    'receipt_verification_reason'=>$receipt['verification_reason']??null,
+                    'receipt_http_operations'=>is_array($reads)?array_map(static fn($x)=>(string)($x['operation']??''),$reads):null,
+                  ];
+              }
+
+              require_once $app.'/services/ChannelPostReconciliationService.php';
+              $identity=ChannelPostRuntime::identity('max');
+              verify(is_array($identity)&&($identity['project_key']??null)==='anytour'
+                &&($identity['bot_key']??null)==='id9704048781_1_bot','identity_changed_before_preview_stop');
+              $channel=(array)($current['channel']??[]);
+              $expectedConfig=(int)($channel['config_version']??0);
+              verify($expectedConfig===2&&(string)($current['channel_id']??'')==='-80492244209683'
+                &&($current['bot_key']??null)===$identity['bot_key'],'channel_changed_before_preview_stop');
+              verify(ChannelPostRegistryService::maxReadFailureConfirmationEligible($current),'current_registry_not_eligible');
+              $expectedHash=ChannelPostIncomingAdapter::contentFingerprint($current['snapshot']);
+              verify(is_string($expectedHash)&&preg_match('/\A[a-f0-9]{64}\z/D',$expectedHash)===1,'content_hash_invalid');
+              $service=new ChannelPostReconciliationService($pdo);
+              $preview=$service->confirmReadFailure($identity,'-80492244209683',400,7024,$expectedConfig,$expectedHash,false);
+              $out['preview']=[
+                 'ok'=>$preview['ok']??false,
+                 'state'=>$preview['state']??null,
+                 'reason'=>$preview['reason']??null,
+                 'publication_id'=>$preview['publication_id']??null,
+                 'version_id'=>$preview['version_id']??null,
+                 'config_version'=>$preview['config_version']??null,
+                 'content_hash'=>$preview['content_hash']??null,
+                 'database_writes'=>$preview['database_writes']??null,
+                 'provider_writes'=>$preview['provider_writes']??null,
+                 'provider_read_count'=>$preview['receipt']['request_count']??null,
+                 'provider_read_operations'=>is_array($preview['receipt']['http_results']??null)?
+                   array_map(static fn($x)=>(string)($x['operation']??''),$preview['receipt']['http_results']):null,
+                 'button_write_attempts'=>$preview['receipt']['write_attempts']??null,
+              ];
+              verify(($preview['ok']??false)===true&&($preview['state']??null)==='preview'
+                &&($preview['reason']??null)==='already_present'
+                &&($preview['database_writes']??null)===0&&($preview['provider_writes']??null)===0
+                &&($preview['receipt']['request_count']??null)===3
+                &&($preview['receipt']['write_attempts']??null)===0
+                &&($preview['content_hash']??null)===$expectedHash,'existing_confirmation_preview_not_proven');
+              $out['provider_get_calls']=3;
+              $g2=pin($global,4194304,true);$c2=pin($childPath,10000000,false);
+              verify($g2['size']===$g['size']&&$g2['sha256']===$g['sha256']
+                &&$c2['size']===$c['size']&&$c2['full_sha256']===$c['full_sha256'],'journal_changed_during_read_stop');
+              $out['versions']=$versions;
+              $out['app_sha']=$git[0];$out['global_lastline_sha256']=$g['sha256'];$out['child_journal_sha256']=$c['full_sha256'];
+              $out['ok']=true;
+          }catch(Throwable $e){$out['error']=preg_match('/\A[a-z0-9_]+\z/D',$e->getMessage())?$e->getMessage():'read_failed';}
+          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),"\n";
+          exit($out['ok']?0:2);
+          REMOTE_PHP
+          python3 - <<'PY'
+          import json,pathlib,os
+          obj=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'price660-preview.json').read_text())
+          assert obj.get('mode')=='price660_exact_registry_receipt_readonly'
+          assert all(obj.get(k)==0 for k in ['server_writes','db_writes','post_writes','feed_writes','supplier_calls'])
+          if obj.get('ok'): assert obj.get('provider_get_calls')==3 and obj.get('preview',{}).get('provider_writes')==0
+          print('PRICE660_CONFIRM_PREVIEW='+json.dumps(obj,ensure_ascii=False,separators=(',',':')))
+          assert obj.get('ok') is True,'REGISTRY_READ_STOPPED_SAFELY'
+          PY
+      - name: Remove runner-only SSH credentials and private result
+        if: always()
+        run: rm -f "$RUNNER_TEMP/price660-key" "$RUNNER_TEMP/price660-known-hosts" "$RUNNER_TEMP/price660-preview.json"
