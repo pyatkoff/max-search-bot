@@ -48,8 +48,9 @@
     "actual_paid_feed_rows_added": 0
   },
   "requirements": [
-    "Existing first-party Tourvisor exact-ID media precedes external photo banks",
-    "Review source property against ID/name/aliases and choose an accurate Tourvisor image; verify media bytes/format",
+    "Use already obtained Tourvisor galleries and if verified use existing ANEX photo galleries; no Wikimedia search as a prerequisite",
+    "ANEX photos require exact ANEX hotelCode and accepted ID association with the Tourvisor/AnyTour hotel; where unavailable, skip ANEX without blocking Tourvisor.",
+    "Review exact primary or alternate vendor photo visually/bytes and choose the best cover, then proceed to existing main MAX/TG paired sender.",
     "Use reviewed short selling copy, no invented price, only one CTA to hotel-aware bot",
     "Main MAX and Telegram paired sender only, <=10 pairs per bounded operation, observed message receipts and no replay",
     "One canonical/native Tourvisor ID per advertising platform feed, verify MAX/TG posts, 3 XML, and bot routing",
@@ -1578,5 +1579,27 @@
         "main Telegram channel"
       ]
     }
-  ]
+  ],
+  "media_source_policy": {
+    "priority": "Use retained paid Tourvisor exact-id photos and any already observed/saved ANEX hotel galleries; select the best validated visual promptly, not an external Wikimedia source. Tourvisor is currently photo-present for 43/43 and needs no ANEX dependency.",
+    "tourvisor_actual_source_status": {
+      "hotel_count": 43,
+      "with_images": 43,
+      "actual_vendor_img_urls_in_source": true,
+      "description_count": 37
+    },
+    "anex_existing_code_contract": {
+      "extractor": "extensions/selection-collector/anex.js: photos(doc,hotel)",
+      "gallery_transport": "extensions/selection-collector/anex-content.js: AnyTourCollectorClient.gallery",
+      "normalized_import": "services/ManagerTourSelectionImportDraft.php: withPhotos",
+      "source_origin": "https://files.anextour.ru",
+      "photo_path": "/hotel/hotels/<origin-specific-path>/o<photo-index>?hotelCode=<EXACT_ANEX_ID>",
+      "max_source_images_in_selection_import": 3,
+      "map_precaution": "ANEX hotelCode is independent from Tourvisor hotel ID; reuse exact existing accepted ANEX/TV or source-specific catalog mapping, never numeric/name guessing.",
+      "candidate_rows_with_current_verified_anex_media_links": 0,
+      "why_zero": "No current 43-row ANEX source-gallery/verified native hotelCode readback has been performed. Do not fabricate URLs, external IDs, or assign ANEX media to candidates.",
+      "production_policy": "Prefer correctly mapped and already saved ANEX photo when it improves cover quality; no need to wait for ANEX if Tourvisor photo is valid."
+    },
+    "additional_review": "Check first-party image bytes/identity and already-used business photo rights. Do not introduce global manual photo-bank-license approval that delays known vendor sources."
+  }
 }
