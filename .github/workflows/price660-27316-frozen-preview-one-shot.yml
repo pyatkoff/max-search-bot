@@ -13,8 +13,8 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event_name == 'push' &&
-      github.event.before == '60ecb2a43efe337ab9fc0537339b1d410b639855' &&
-      github.event.head_commit.message == 'diagnostics(anytour): strict failed MAX button read receipt no replay preview' &&
+      github.event.before == 'a939184959fff1cd1ebb7a117d9004264776bc63' &&
+      github.event.head_commit.message == 'diagnostics(anytour): pinpoint exact MAX plan field using read only preview' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = 60ecb2a43efe337ab9fc0537339b1d410b639855
+          test "$(git rev-parse HEAD^)" = a939184959fff1cd1ebb7a117d9004264776bc63
           test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
           echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
       - name: Pinned existing SSH host and private runner-only key
