@@ -1,0 +1,143 @@
+name: Price 660 27316 exact Telegram registry state read only
+on:
+  push:
+    branches: ['audit/price660-27316-readonly-20261117']
+    paths: ['.github/workflows/price660-27316-telegram-registry-once.yml']
+permissions:
+  contents: read
+concurrency:
+  group: anytour-price660-confirm-current-27316-20261117
+  cancel-in-progress: false
+jobs:
+  bounded-max-get:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.event_name == 'push' &&
+      github.event.before == 'f5ade8724550d61be535449669bd84905b54b151' &&
+      github.event.head_commit.message == 'diagnostics(anytour): exact telegram registry read once' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Check one-time parent and no mutations in code
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = f5ade8724550d61be535449669bd84905b54b151
+          test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
+          echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
+      - name: Pinned existing SSH host and private runner-only key
+        shell: bash
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test -n "$KEY_VALUE" && test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER"
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/price660-key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/price660-key"; fi
+          else
+            printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/price660-key"
+          fi
+          chmod 600 "$RUNNER_TEMP/price660-key"
+          ssh-keygen -y -f "$RUNNER_TEMP/price660-key" >/dev/null
+          python3 - <<'PY'
+          import os,re,hashlib,base64,subprocess,pathlib
+          h=os.environ['DEPLOY_HOST'];u=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',h) and not h.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',u)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',h],capture_output=True,text=True,timeout=35)
+          lines=[]
+          for x in scan.stdout.splitlines():
+              t=x.split()
+              if len(t)<3 or t[0].startswith('#'):continue
+              try: fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(t[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':lines.append(x)
+          assert lines,'HOST_PIN_CHANGED_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/price660-known-hosts').write_text('\n'.join(lines)+'\n')
+          print('HOST_PIN_OK')
+          PY
+      - name: Read exact Telegram original message state under readonly database transaction
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/price660-key" -o BatchMode=yes -o ConnectTimeout=12 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/price660-known-hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'php' > "$RUNNER_TEMP/price660-tg.json" <<'REMOTE_PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors','0');ini_set('log_errors','0');
+          $out=['ok'=>false,'mode'=>'price660_27316_telegram_registry_readonly','checked_at'=>gmdate('c'),
+            'db_session_read_only'=>false,'db_writes'=>0,'post_writes'=>0,'feed_writes'=>0,'provider_gets'=>0,'supplier_calls'=>0];
+          function need(bool $v,string $why):void{if(!$v)throw new RuntimeException($why);}
+          try{
+            $app='/var/www/anytoour/data/www/app.anytoour.ru';
+            need(realpath($app)===$app&&chdir($app),'app_path_invalid');
+            $status=[];$rc=0;exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false rev-parse HEAD 2>/dev/null',$status,$rc);
+            need($rc===0&&count($status)===1&&preg_match('/\A[a-f0-9]{40}\z/D',$status[0])===1,'git_unavailable');
+            $out['app_head']=$status[0];
+            $critical=['services/ChannelPostRegistryService.php'=>'7304af19cc19666f00ca4ead1b04c2bdce719646',
+                       'services/ChannelPostRuntime.php'=>'2f1dd9b77474fdbaa92f0402f3b0aa170c595474'];
+            foreach($critical as $path=>$blob){
+              need(!is_link($path)&&is_file($path),'source_missing');
+              need(hash('sha1','blob '.filesize($path)."\0".file_get_contents($path))===$blob,'source_blob_changed');
+            }
+            ob_start();try{require $app.'/config.php';require_once $app.'/services/ChannelPostRuntime.php';}finally{ob_end_clean();}
+            $pdo=ConversationDb::connection();
+            need($pdo->exec('SET SESSION TRANSACTION READ ONLY')!==false,'read_only_session_failed');
+            need($pdo->beginTransaction(),'read_only_transaction_failed');$out['db_session_read_only']=true;
+            $stmt=$pdo->prepare('SELECT pp.id FROM post_publications pp JOIN post_channels pc ON pp.post_channel_id=pc.id JOIN projects p ON pc.project_id=p.id JOIN post_versions v ON v.id=pp.current_version_id WHERE p.project_key=? AND pc.platform=? AND pc.bot_key=? AND pc.channel_id=? AND pp.external_message_id=?');
+            need($stmt->execute(['anytour','telegram','anyru_bot','-1002262666616','156']),'lookup_failed');
+            $ids=$stmt->fetchAll(PDO::FETCH_COLUMN);
+            need(count($ids)===1,'tg_target_not_unique');
+            $registry=new ChannelPostRegistryService($pdo);$pub=$registry->publication((int)$ids[0]);
+            need(is_array($pub)&&$pub['platform']==='telegram'&&$pub['project_key']==='anytour'&&$pub['bot_key']==='anyru_bot'
+              &&$pub['channel_id']==='-1002262666616'&&$pub['external_message_id']==='156','tg_identity_changed');
+            $media=$pub['snapshot']['attachments']??[];
+            need(is_array($media)&&count($media)===1&&($media[0]['type']??null)==='image','tg_image_context_changed');
+            $photo=$media[0]['file_unique_id']??$media[0]['photo_id']??null;
+            $out['telegram']=[
+              'publication_id'=>(int)$pub['publication_id'],
+              'version_id'=>(int)$pub['version_id'],
+              'state'=>$pub['state'],'error_reason'=>$pub['error_reason']??null,
+              'write_attempts'=>$pub['write_attempts'],
+              'claimed'=>!empty($pub['claim_token'])||!empty($pub['claimed_at']),
+              'source_key'=>$pub['source_key'],
+              'channel_config_version'=>(int)($pub['channel']['config_version']??0),
+              'post_url'=>$pub['snapshot']['post_url']??null,
+              'text_sha256'=>hash('sha256',(string)($pub['snapshot']['text']??'')),
+              'photo_signature'=>is_string($photo)?(string)$media[0]['provider'].':'.$photo:null,
+              'monitor_record_present'=>isset($pub['snapshot']['metadata']['monitor_price_record_id']),
+              'monitor_record_id'=>$pub['snapshot']['metadata']['monitor_price_record_id']??null,
+              'token_exists'=>is_string($pub['start_payload']??null)&&preg_match('/\Ap_[A-Za-z0-9_-]{24}\z/D',$pub['start_payload'])===1,
+            ];
+            need($out['telegram']['post_url']==='https://t.me/any_toour/156'
+               &&$out['telegram']['state']==='sent'&&$out['telegram']['channel_config_version']===2
+               &&$out['telegram']['source_key']==='tg_anytour_msk'
+               &&$out['telegram']['token_exists']===true,'tg_current_not_accepted');
+            $pdo->rollBack();$out['ok']=true;
+          }catch(Throwable $e){if(isset($pdo)&&$pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();
+            $out['error']=preg_match('/\A[a-z0-9_]+\z/D',$e->getMessage())?$e->getMessage():'read_failed';}
+          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),"\n";
+          exit($out['ok']?0:2);
+          REMOTE_PHP
+          python3 - <<'PY'
+          import json,pathlib,os
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'price660-tg.json'
+          d=json.loads(p.read_text())
+          assert d.get('mode')=='price660_27316_telegram_registry_readonly'
+          assert all(d.get(k)==0 for k in ['db_writes','post_writes','feed_writes','provider_gets','supplier_calls'])
+          print('PRICE660_TG_REGISTRY='+json.dumps(d,ensure_ascii=False,separators=(',',':')))
+          assert d.get('ok') is True,'TG_REGISTRY_NOT_VERIFIED'
+          PY
+      - name: Erase runner-only credentials and context
+        if: always()
+        run: rm -f "$RUNNER_TEMP/price660-key" "$RUNNER_TEMP/price660-known-hosts" "$RUNNER_TEMP/price660-tg.json"
