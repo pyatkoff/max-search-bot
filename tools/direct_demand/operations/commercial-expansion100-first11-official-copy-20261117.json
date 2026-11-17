@@ -1,0 +1,262 @@
+{
+  "schema_version": "anytour_expansion100_first11_official_copy_review_v1",
+  "date": "2026-11-17",
+  "purpose": "Speed up existing HOTEL/CONTENT preparation, not autonomous publication",
+  "source_manifest": "tools/direct_demand/operations/commercial-expansion100-fastfill-triage-20261117.json",
+  "candidate_count": 11,
+  "preparation_state": "official_source_fact_and_copy_drafts_not_admitted",
+  "publisher": "existing MAX/TG paired post sender only; max 10 pairs per original operation",
+  "rights": "Official site text paraphrased; real-photo reuse rights NOT verified. Do not scrape/repost gallery photos until cleared.",
+  "price_policy": "No invented prices or itinerary; current price not prerequisite for approved nonpriced card",
+  "cta": {
+    "one_button_only": true,
+    "button_label": "✈️ Подобрать тур",
+    "destination": "existing hotel-aware bot route; not yet bound"
+  },
+  "global_guards": [
+    "Identity TV ID is a candidate only until accepted native/Site readback",
+    "Exactly one real official hotel photo with verified rights for public release",
+    "Short descriptive text; no source claims of included meals, free services or final package price",
+    "Do not issue to subscribed MAX or TG before independent identity, source, media and current post/feed CAS approval",
+    "Keep existing six confirmed publications; do not recreate older posts"
+  ],
+  "rows": [
+    {
+      "work_id": "EXP002",
+      "tourvisor_candidate_id": 12120,
+      "title": "Anantara Kihavah Maldives Villas",
+      "country": "Мальдивы",
+      "sources": [
+        "https://www.anantara.com/en/kihavah-maldives"
+      ],
+      "facts": [
+        "Частный остров в атолле Баа",
+        "Виллы у пляжа и над водой с бассейнами",
+        "Домашний риф, подводный ресторан SEA, обсерватория над водой"
+      ],
+      "draft": "🏝 Anantara Kihavah Maldives Villas\n📍 Атолл Баа, Мальдивы\nУединённый остров с виллами у пляжа и над лагуной, каждая с собственным бассейном.\n🐠 Красивый домашний риф для снорклинга.\n🍽 Подводный ресторан SEA и обсерватория над океаном.",
+      "source_review_status": "official_public_source_read",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP032",
+      "tourvisor_candidate_id": 64957,
+      "title": "Kudadoo Maldives Private Island",
+      "country": "Мальдивы",
+      "sources": [
+        "https://www.kudadoo.com/",
+        "https://www.kudadoo.com/residences/"
+      ],
+      "facts": [
+        "15 вилл над водой с индивидуальными бассейнами",
+        "Личный батлер",
+        "Особая концепция включённых услуг с исключениями"
+      ],
+      "draft": "🏝 Kudadoo Maldives Private Island\n📍 Атолл Лавиани, Мальдивы\nКамерный частный остров всего с 15 виллами над водой и собственными бассейнами.\n✨ Персональный батлер и отдых с максимумом приватности.\n🌊 Снорклинг, водные развлечения и спа-программы.",
+      "source_review_status": "official_public_source_read",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP058",
+      "tourvisor_candidate_id": 76029,
+      "title": "The Ritz-Carlton Maldives, Fari Islands",
+      "country": "Мальдивы",
+      "sources": [
+        "https://www.ritzcarlton.com/en/hotels/mlera-the-ritz-carlton-maldives-fari-islands/overview/"
+      ],
+      "facts": [
+        "Виллы над лагуной и у пляжа с бассейнами",
+        "Персональный островной батлер Aris Meeha",
+        "Клуб Ritz Kids и спа-центр над водой"
+      ],
+      "draft": "🏝 The Ritz-Carlton Maldives, Fari Islands\n📍 Атолл Северный Мале, Мальдивы\nДизайнерские виллы с приватными бассейнами над лагуной или у пляжа.\n👨‍👩‍👧 Ritz Kids для семейного отдыха.\n🧘 Спа-центр над водой и сервис персонального батлера.",
+      "source_review_status": "official_public_source_read",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP069",
+      "tourvisor_candidate_id": 66198,
+      "title": "Waldorf Astoria Maldives Ithaafushi",
+      "country": "Мальдивы",
+      "sources": [
+        "https://www.waldorfastoriamaldives.com/villas/",
+        "https://www.waldorfastoriamaldives.com/resort/"
+      ],
+      "facts": [
+        "Пляжные, рифовые и надводные виллы с собственными бассейнами",
+        "11 ресторанов и баров",
+        "Доступ к рифу, спа"
+      ],
+      "draft": "🌴 Waldorf Astoria Maldives Ithaafushi\n📍 Мальдивы\nПросторные виллы у пляжа, на рифе и над водой, каждая с частным бассейном.\n🐠 Снорклинг у островного рифа.\n🍽 Одиннадцать ресторанов и красивые площадки для ужинов у океана.",
+      "source_review_status": "official_public_source_read",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP072",
+      "tourvisor_candidate_id": 49750,
+      "title": "Soneva Jani",
+      "country": "Мальдивы",
+      "sources": [
+        "https://soneva.com/resorts/soneva-jani/",
+        "https://soneva.com/resorts/soneva-jani/villas/"
+      ],
+      "facts": [
+        "Просторные виллы над лагуной",
+        "У некоторых вилл горки в воду, раздвижные крыши",
+        "The Den для детей"
+      ],
+      "draft": "🏝 Soneva Jani\n📍 Атолл Нуну, Мальдивы\nВиллы над просторной бирюзовой лагуной с собственными бассейнами.\n💦 В отдельных категориях есть горки прямо в воду.\n🧸 Детское пространство The Den и отдых для всей семьи.",
+      "source_review_status": "official_public_source_read",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP092",
+      "tourvisor_candidate_id": 123247,
+      "title": "Jumeirah Marsa Al Arab",
+      "country": "ОАЭ",
+      "sources": [
+        "https://www.jumeirah.com/ru/stay/dubai/jumeirah-marsa-al-arab"
+      ],
+      "facts": [
+        "Собственный пляж и четыре бассейна",
+        "Трёхэтажный спа-центр",
+        "Семейный клуб и рестораны"
+      ],
+      "draft": "✨ Jumeirah Marsa Al Arab\n📍 Дубай, ОАЭ\nСовременный курорт на берегу моря с собственным пляжем и четырьмя бассейнами.\n👨‍👩‍👧 Есть семейный клуб для детей.\n🧘 Просторный спа-центр на трёх этажах и рестораны у воды.",
+      "source_review_status": "official_public_source_read",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP095",
+      "tourvisor_candidate_id": 48184,
+      "title": "Jumeirah Al Naseem",
+      "country": "ОАЭ",
+      "sources": [
+        "https://www.jumeirah.com/en/stay/dubai/jumeirah-al-naseem"
+      ],
+      "facts": [
+        "Пляж на территории Madinat Jumeirah",
+        "Несколько бассейнов и детский клуб",
+        "Виды на Burj Al Arab"
+      ],
+      "draft": "🌴 Jumeirah Al Naseem\n📍 Дубай, ОАЭ\nЭлегантный пляжный отель Madinat Jumeirah с видами на знаменитый Burj Al Arab.\n🏖 Собственный пляж и несколько бассейнов.\n👨‍👩‍👧 Детский клуб и комфортный семейный отдых.",
+      "source_review_status": "official_public_source_read",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP023",
+      "tourvisor_candidate_id": 8951,
+      "title": "Qasr Al Sarab Desert Resort by Anantara",
+      "country": "ОАЭ",
+      "sources": [
+        "https://www.anantara.com/en/qasr-al-sarab-abu-dhabi"
+      ],
+      "facts": [
+        "Курорт среди дюн пустыни Руб-эль-Хали",
+        "Отдельные виллы с бассейном",
+        "Пустынные развлечения и хаммам"
+      ],
+      "draft": "🏜 Qasr Al Sarab Desert Resort by Anantara\n📍 Пустыня Руб-эль-Хали, Абу-Даби, ОАЭ\nАтмосферный дворец среди золотистых дюн вдали от городской суеты.\n🐪 Прогулки и приключения в пустыне.\n✨ Виллы с собственными бассейнами и спа-ритуалы с хаммамом.",
+      "source_review_status": "official_public_source_read",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP083",
+      "tourvisor_candidate_id": 32322,
+      "title": "Four Seasons Resort Dubai at Jumeirah Beach",
+      "country": "ОАЭ",
+      "sources": [
+        "https://www.fourseasons.com/dubaijb/services-and-amenities/family/",
+        "https://www.fourseasons.com/dubaijb/dining/"
+      ],
+      "facts": [
+        "Пляжный курорт у Персидского залива",
+        "Семейный бассейн и Kids For All Seasons",
+        "Рестораны у пляжа"
+      ],
+      "draft": "☀️ Four Seasons Resort Dubai at Jumeirah Beach\n📍 Дубай, ОАЭ\nПляжный курорт с бассейнами и ресторанами у моря.\n🧸 Детская программа Kids For All Seasons.\n🍽 Рестораны на берегу и атмосфера спокойного премиального отдыха.",
+      "source_review_status": "official_public_source_read",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP015",
+      "tourvisor_candidate_id": 28272,
+      "title": "Anantara Layan Phuket Resort",
+      "country": "Таиланд",
+      "sources": [
+        "https://www.anantara.com/en/layan-phuket",
+        "https://www.anantara.com/en/layan-phuket/family"
+      ],
+      "facts": [
+        "Курорт в бухте Лайан у Андаманского моря",
+        "Люксы и виллы с бассейнами",
+        "Детский клуб Chang, семейные активности"
+      ],
+      "draft": "🌴 Anantara Layan Phuket Resort\n📍 Пхукет, Таиланд\nТихая бухта Лайан, зелёные холмы и роскошные виллы с бассейнами.\n🏖 Пляжный отдых у Андаманского моря.\n🧸 Детский клуб Chang и семейные развлечения.",
+      "source_review_status": "official_public_source_read",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    },
+    {
+      "work_id": "EXP081",
+      "tourvisor_candidate_id": 7458,
+      "title": "Four Seasons Resort The Nam Hai, Hoi An",
+      "country": "Вьетнам",
+      "sources": [
+        "https://www.fourseasons.com/hoian/",
+        "https://www.fourseasons.com/hoian/services-and-amenities/"
+      ],
+      "facts": [
+        "Виллы у пляжа Ха Ми",
+        "Три бассейна, включая семейный",
+        "Кулинарная школа и близость к Хойану"
+      ],
+      "draft": "🌿 Four Seasons Resort The Nam Hai, Hoi An\n📍 Хойан, Вьетнам\nУединённые виллы у широкого песчаного пляжа Ха Ми.\n🏊 Три бассейна, включая семейный.\n🏮 Вьетнамская кухня, кулинарные занятия и красивые маршруты по окрестностям Хойана.",
+      "source_review_status": "official_public_source_read",
+      "identity_accepted": false,
+      "photo_ready": false,
+      "photo_rights_verified": false,
+      "caption_approved": false,
+      "public_post_sent": false
+    }
+  ]
+}
