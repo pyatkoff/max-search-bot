@@ -85,9 +85,9 @@ $forged=regionalRoutingStored($pdo,101);$forged['project_key']='other';
 regionalCheck('A caller cannot substitute a project on a valid regional row',RegionalRoutingScopeService::visibleRows(7,[$forged])===[]);
 
 $pdo->exec('UPDATE managers SET is_working=0 WHERE id=7');
-regionalCheck('Regional access does not bypass the existing off-shift waiting gate',!regionalVisible($pdo,7,101)&&regionalVisible($pdo,7,109));
+regionalCheck('Off-shift inbox still respects the regional scope',regionalVisible($pdo,7,101)&&regionalVisible($pdo,7,109));
 $pdo->exec('UPDATE managers SET is_working=1 WHERE id=7');
-regionalCheck('Returning on shift uses fresh availability',regionalVisible($pdo,7,101));
+regionalCheck('Returning on shift preserves already-authorized visibility',regionalVisible($pdo,7,101));
 
 $first=ConversationEntryRegionService::firstReceipt(regionalRoutingStored($pdo,101)['metadata_json'],'max');
 $entry=['platform'=>'max','type'=>'bot_started','delivery_key'=>'synthetic-later-samara','start_payload'=>'123456_region_51_campaign_99'];

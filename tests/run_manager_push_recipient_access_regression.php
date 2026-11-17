@@ -89,7 +89,7 @@ PUBLIC_KEY);
     $pdo->exec('INSERT INTO manager_projects VALUES(7,1);UPDATE managers SET is_working=0 WHERE id=7');
     pushAccessCheck('Own assigned notifications remain available off shift',$expected(101)===[7]&&$notify()===['https://synthetic-push.invalid/7']);
     $closed=$target(103);pushAccessCheck('An accessible own closed task still notifies its off-shift manager',$closed[0]===['https://synthetic-push.invalid/7']&&$closed[1]['delivered']===1);
-    pushAccessCheck('A waiting unassigned sales task remains eligible off shift while ordinary queue push stays off',!RoutingAccessService::canSeeConversation(7,$waiting)&&$target(102)[0]===['https://synthetic-push.invalid/7']&&!in_array('https://synthetic-push.invalid/7',$notify(102),true));
+    pushAccessCheck('Off-shift waiting stays visible and eligible for reminders while new-queue push stays off',RoutingAccessService::canSeeConversation(7,$waiting)&&$target(102)[0]===['https://synthetic-push.invalid/7']&&!in_array('https://synthetic-push.invalid/7',$notify(102),true));
     pushAccessCheck('An accessible AI unassigned sales task remains eligible off shift',$target(104)[0]===['https://synthetic-push.invalid/7']);
     $pdo->exec('UPDATE conversations SET source_id=2 WHERE id=101;DELETE FROM manager_group_members WHERE manager_id=7 AND group_id=10');
     pushAccessCheck('Own assignment and reminder purpose cannot bypass revoked source membership',$expected(101)===[]&&$notify()===[]&&$target()[0]===[]);
