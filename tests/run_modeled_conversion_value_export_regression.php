@@ -598,6 +598,7 @@ function modeledValueAssertions(PDO $p,callable $check):void
     modeledValuePredictionAssertions($p,$check);
     modeledValuePolicyTransitionAssertions($p,$check);
     modeledValueMonetaryV3CompatibilityAssertions($p,$check);
+    modeledValueProducerTransitionAssertions($p,$check);
     modeledPriceLossAssertions($p,$check);
     modeledValueCatchUpAssertions($p,$check);
     modeledValueFailureRetentionAssertions($p,$check);
@@ -1645,6 +1646,72 @@ function modeledValueMonetaryV3CompatibilityAssertions(PDO $p,callable $check):v
     modeledValueSave($p,$stronger);ModeledConversionValueExport::tick($p,$lookup,$api,$now+2,$gate);
     $check('the later V3 replay preserves the V2 price and all reserved amounts without duplicate sending',
         $wire->posts===2&&$rows()===$after&&$profile()===$oldProfile);
+}
+
+/** Exercise the last installed producer from immutable fixture rows through ordinary collection. */
+function modeledValueProducerTransitionAssertions(PDO $p,callable $check):void
+{
+    modeledValueSchema($p);$now=1793672000;$scope=modeledValueBinding($p,755);
+    $wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    $control->configure('create-goal',$api,$now-500);$control->configure('enable',$api,$now-500);
+    $collect=static fn():int=>$control->collect(ModeledConversionValueExport::settings($p),$now+10,static fn(string $chat):bool=>true);
+    $rows=static fn():array=>$p->query('SELECT id,value_rub,value_stage,target,event_unix FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $profiles=static fn():array=>$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $adapter='a4345e27853b63d30313485134a7a2b2ce92ec11eec860fdc2f79f804f4d46e5';
+    $model='a5f3a1500da36dc34ad05a7961928ad237687930c1f8322bffe298bf5dcf17e6';
+    $seal=static function(array $w,string $adapterHash,string $modelHash):array{
+        $w['contextual_signals']['adapter_sha256']=$adapterHash;
+        $pred=&$w['semantic_prediction'];$pred['model_sha256']=$modelHash;
+        $pred['prediction_digest']=ModeledConversionSemanticPrediction::digest($pred);
+        $money=&$w['deal_value_prediction'];$money['semantic_prediction_digest']=$pred['prediction_digest'];
+        unset($money['deal_digest']);$money['deal_digest']=ModeledConversionSemanticPrediction::digest($money);
+        return$w;
+    };
+    $forecast=modeledExpertWrapper($scope,$now,200000);
+    $paid=modeledExpertWrapper($scope,$now+1,200000,false,true,null,true);
+    $currentAdapter=$forecast['contextual_signals']['adapter_sha256'];$currentModel=$forecast['semantic_prediction']['model_sha256'];
+    $unknown=str_repeat('f',64);
+    foreach([[$unknown,$model],[$adapter,$unknown],[$adapter,$currentModel]]as[$a,$m]){
+        // A valid seal by itself permits neither a prediction nor a direct payment fallback.
+        modeledValueSave($p,$seal($forecast,$a,$m));modeledValueSave($p,$seal($paid,$a,$m));
+        $check('unknown or mixed producer never reserves a financial row',$collect()===0&&$rows()===[]);
+    }
+    $previous=$seal($forecast,$adapter,$model);
+    $broken=$previous;$broken['deal_value_prediction']['value_rub']++;modeledValueSave($p,$broken);
+    $withoutMoney=$previous;unset($withoutMoney['deal_value_prediction']);modeledValueSave($p,$withoutMoney);
+    $badPayment=$seal($paid,$adapter,$model);$badPayment['semantic_prediction']['prediction_digest']=str_repeat('f',64);modeledValueSave($p,$badPayment);
+    $held=$seal(modeledExpertWrapper($scope,$now+1,200000,false,true),$adapter,$model);modeledValueSave($p,$held);
+    $check('pinned previous producer requires valid frozen money and preserves the hold guard',$collect()===0&&$rows()===[]);
+    modeledValueSave($p,$previous);$forecastId=(string)$p->lastInsertId();
+    $before=$profiles();$created=$collect();$first=$rows();
+    $savedValue=$previous['deal_value_prediction']['value_rub'];
+    $check('previous advertising forecast reaches the ledger once at the original value and clock',
+        $created===1&&count($first)===1&&(int)$first[0]['value_rub']===$savedValue
+        &&$first[0]['value_stage']==='specific_request'&&(int)$first[0]['event_unix']===$now
+        &&$first[0]['target']===ModeledConversionValueContract::predictionKey($forecastId)&&$before===$profiles());
+    $previousPayment=$seal($paid,$adapter,$model);modeledValueSave($p,$previousPayment);$paidId=(string)$p->lastInsertId();
+    $before=$profiles();$created=$collect();$both=$rows();
+    $check('previous posted payment adds only its original commission above the existing reservation',
+        $created===1&&count($both)===2&&$both[0]===$first[0]&&$both[1]['value_stage']==='payment_report'
+        &&$both[1]['target']===ModeledConversionValueContract::predictionKey($paidId)
+        &&(int)$both[1]['event_unix']===$now+1&&(int)$both[1]['value_rub']===$previousPayment['deal_value_prediction']['full_value_base_rub']-$savedValue
+        &&$before===$profiles());
+    foreach([$previous,$previousPayment,$paid]as$repeat)modeledValueSave($p,$repeat);
+    $before=$profiles();
+    $check('repeated old and current versions do not duplicate reservations or alter frozen snapshots',
+        $collect()===0&&$collect()===0&&$rows()===$both&&$profiles()===$before&&$wire->posts===0);
+
+    // A current adapter previously admitted validated saved money from an earlier model.
+    $other=modeledValueBinding($p,756);
+    $storedForecast=$seal(modeledExpertWrapper($other,$now+3,350000),$currentAdapter,$model);
+    $storedPayment=$seal(modeledExpertWrapper($other,$now+4,350000,false,true,null,true),$currentAdapter,$model);
+    modeledValueSave($p,$storedForecast);modeledValueSave($p,$storedPayment);$frozen=$profiles();
+    $created=$collect();$after=$rows();$v=$storedForecast['deal_value_prediction']['value_rub'];
+    $check('a current adapter keeps validated earlier model forecasts and their genuine payment delta',
+        $created===2&&count($after)===4&&array_slice($after,0,2)===$both
+        &&$after[2]['value_stage']==='specific_request'&&(int)$after[2]['value_rub']===$v
+        &&$after[3]['value_stage']==='payment_report'&&(int)$after[3]['value_rub']===$storedPayment['deal_value_prediction']['full_value_base_rub']-$v
+        &&$collect()===0&&$profiles()===$frozen&&$rows()===$after);
 }
 
 function modeledPriceLossAssertions(PDO $p,callable $check):void
