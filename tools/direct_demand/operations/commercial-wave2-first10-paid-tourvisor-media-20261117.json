@@ -6,12 +6,13 @@
   "source_media_service": "existing AnyTour paid Tourvisor hotel_details API; exact native ID and country checked",
   "summary": {
     "count": 10,
-    "source_read": 9,
+    "source_read": 10,
     "photos_found": 9,
     "with_descriptions": 8,
     "provider_calls": 10,
     "posts_sent": 0,
-    "feed_updates": 0
+    "feed_updates": 0,
+    "without_photos": 1
   },
   "rule": "No publication until name, brand alias, canonical AnyTour id, 3 photos, selling facts and exact CTA verified. These are research and source candidates, not approved post cards.",
   "rows": [
@@ -212,8 +213,18 @@
       "region": "Дидим",
       "old_brand_alias_risk": false,
       "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=165997",
-      "status": "parse_failed",
-      "reason": "SyntaxError: \"undefined\" is not valid JSON"
+      "status": "source_read_no_media",
+      "provider_name": "BAYOU ANDA SUITES &amp; VILLAS BY BARUT",
+      "provider_country": "Турция",
+      "provider_region": "Дидим",
+      "official_site": "",
+      "images_reported": 0,
+      "images_matching_host_country": 0,
+      "first_photo_urls": [],
+      "description_present": false,
+      "description_length": 0,
+      "photo_selection_status": "no_tourvisor_photos_hold_for_anex_or_official",
+      "caption_status": "research_needed"
     },
     {
       "work_id": "W2_009",
