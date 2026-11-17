@@ -42,7 +42,7 @@
     function status(title,text,loading=false){el('status-title').textContent=title;el('status-copy').textContent=text;doc.querySelector('main').setAttribute('aria-busy',String(loading));}
     async function cid(){
       if(!cfg.counter_id||ctx.payload.kind!=='advertising')return'';
-      if(!metric){metric=true;win.ym=win.ym||function(){(win.ym.a=win.ym.a||[]).push(arguments);};win.ym.l=Date.now();win.ym(cfg.counter_id,'init',{defer:true,clickmap:false,trackLinks:false,webvisor:false});win.ym(cfg.counter_id,'hit',ctx.metric,{referrer:''});load('https://mc.yandex.ru/metrika/tag.js');}
+      if(!metric){metric=true;win.ym=win.ym||function(){(win.ym.a=win.ym.a||[]).push(arguments);};win.ym.l=Date.now();win.ym(cfg.counter_id,'init',{clickmap:false,trackLinks:false,webvisor:false});load('https://mc.yandex.ru/metrika/tag.js');}
       return await new Promise(resolve=>{let done=false;const end=v=>{if(!done){done=true;resolve(typeof v==='string'&&/^[1-9][0-9]{0,39}$/.test(v)?v:'');}};win.setTimeout(()=>end(''),3000);win.ym(cfg.counter_id,'getClientID',end);});
     }
     async function run(){
@@ -50,7 +50,10 @@
       try{
         if(!win.WebApp&&!bridgeScript){bridgeScript=load('https://st.max.ru/js/max-web-app.js');bridgeScript.onload=()=>{try{win.WebApp?.ready?.();}catch(_){}};bridgeScript.onerror=()=>{bridgeScript?.remove();bridgeScript=null;};}
         if(!ctx){const until=Date.now()+2000;let next;do{next=context(win.location.href,win.WebApp);if(next.init_data)break;await pause(100);}while(Date.now()<until);
-          if(!next.init_data)throw Error('open_in_max');ctx=next;win.history.replaceState(null,'',ctx.clean+win.location.hash);}
+          if(!next.init_data)throw Error('open_in_max');ctx=next;
+          // Keep the original paid click in the real page URL before Metrika starts.
+          // MAX identity/signature stay in memory and the validated server POST only.
+          win.history.replaceState(null,'',ctx.payload.kind==='advertising'?ctx.metric:ctx.clean+win.location.hash);}
         try{win.WebApp?.ready?.();}catch(_){}
         const client_id=await cid(),controller=new AbortController(),timer=win.setTimeout(()=>controller.abort(),10000);
         let data;try{const res=await win.fetch(ctx.clean,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({init_data:ctx.init_data,start_param:ctx.start_param,client_id}),signal:controller.signal});data=await res.json();if(!res.ok||!receipt(data,ctx,cfg))throw Error('save_failed');}finally{win.clearTimeout(timer);}

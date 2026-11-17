@@ -155,6 +155,7 @@ function fixture(source,record=installed(source)){
       assert.equal(body.force,false);assert.ok(isAncestor(head,body.sha));head=body.sha;return {object:{sha:head}};
     }
     if(p.startsWith(R.API_ROOT+'/commits/')&&p.endsWith('/pulls?per_page=100'))return [copy(currentPr)];
+    if(p.startsWith(R.API_ROOT+'/commits/')&&!p.includes('/pulls')){const sha=p.split('/').at(-1);return copy(commits.get(sha)||{sha,parents:[{sha:H('unrelated source parent')}]});}
     if(p===R.API_ROOT+'/pulls/'+currentPr.number)return copy(currentPr);
     if(p===R.API_ROOT+'/issues/comments/900'){
       if(method==='PATCH')comment={...comment,body:body.body};return copy(comment);
@@ -1692,7 +1693,218 @@ async function priorWaveCases(){
   }
 }
 
-async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();
+
+function unstartedFixture(){
+  const p=R.UNSTARTED_FORWARD,head=H('checked forward source'),source=H('forward merge');
+  const native={id:Number(p.deploy),path:R.DEPLOY,event:'push',name:'Deploy production',head_sha:p.sha,
+    head_branch:'main',head_repository:{full_name:R.REPOSITORY},head_commit:{id:p.sha},run_attempt:1,
+    status:'completed',conclusion:'failure',created_at:T,run_started_at:T,updated_at:T};
+  const jobs=p.jobs.map(expected=>({...job(expected.name,native,expected.steps.map(([n,c])=>step(n,c)),expected.conclusion),id:expected.id}));
+  const names={'max-tls-preflight.yml':['strict-tls-preflight'],'max-production-health.yml':['inspect'],
+    'telegram-production-health.yml':['inspect'],'publish-conversation-diagnostics.yml':['publish'],
+    'live-session-diagnostics.yml':['publish'],'tour-selection-host.yml':['host','independent-editor'],
+    'modeled-conversion-monitor.yml':['monitor'],'modeled-pipeline-monitor-activation.yml':['activate'],
+    'modeled-conversion-value-export.yml':['configure','release-slot','release-slot-recovery']};
+  const children=p.children.map(c=>({...copy(native),id:c.id,path:c.path,event:'workflow_run',conclusion:'skipped',display_title:c.title}));
+  const childJobs=new Map(children.map(c=>[c.id,names[c.path.slice(R.PREFIX.length)].map(n=>job(n,c,[],'skipped'))]));
+  const marker={previous_pr:p.pr,previous_sha:p.sha,previous_run_id:p.deploy,head_sha:head};
+  const original={number:p.pr,merged:true,state:'closed',merge_commit_sha:p.sha,
+    head:{sha:p.head_sha,repo:{full_name:R.REPOSITORY}},base:{ref:'main',sha:p.sha,repo:{full_name:R.REPOSITORY}},
+    body:'<!-- release-slot-close:v1 '+JSON.stringify({comment_id:p.comment_id,head_sha:p.head_sha,owner_id:p.owner_id,updated_at:p.updated_at})+' -->'};
+  const target={...copy(original),number:1700,state:'open',merged:false,draft:false,
+    head:{sha:head,repo:{full_name:R.REPOSITORY}},body:'<!-- release-forward-unstarted:v1 '+JSON.stringify(marker)+' -->'};
+  const x={p,head,source,native,jobs,children,childJobs,original,target,marker,runs:[native,...children],artifacts:[],
+    main:p.sha,calls:[],workflow:p.workflow_blob,comment:{id:p.comment_id,user:{id:p.owner_id},updated_at:p.updated_at,
+      author_association:'OWNER',issue_url:'https://api.github.com'+R.API_ROOT+'/issues/1122',body:'PR1600: выпуск занят'}};
+  x.api=async(method,u)=>{
+    x.calls.push({method,u});assert.equal(method,'GET','bounded forward proof never writes');
+    if(x.hook){const result=await x.hook(u);if(result!==undefined)return result;}
+    const route=u.slice(R.API_ROOT.length);
+    if(route==='/git/ref/heads/main')return {object:{sha:x.main}};
+    if(route==='/pulls/'+p.pr)return copy(original);
+    if(route==='/pulls/'+target.number)return copy(target);
+    if(route==='/issues/comments/'+p.comment_id)return copy(x.comment);
+    if(route==='/actions/runs/'+p.deploy)return copy(native);
+    if(route==='/contents/'+R.DEPLOY+'?ref='+p.sha)return {sha:x.workflow};
+    if(route==='/actions/runs/'+p.deploy+'/jobs?filter=all&per_page=100')return {total_count:jobs.length,jobs:copy(jobs)};
+    if(route==='/actions/runs/'+p.deploy+'/artifacts?per_page=100')return {total_count:x.artifacts.length,artifacts:copy(x.artifacts)};
+    if(route==='/actions/runs?head_sha='+p.sha+'&per_page=100')return {total_count:x.runs.length,workflow_runs:copy(x.runs)};
+    if(route==='/commits/'+source)return {sha:source,parents:[{sha:p.sha},{sha:head}]};
+    const m=/^\/actions\/runs\/(\d+)\/attempts\/1\/jobs\?per_page=100$/.exec(route);
+    if(m&&childJobs.has(Number(m[1]))){const js=childJobs.get(Number(m[1]));return {total_count:js.length,jobs:copy(js)};}
+    if(x.fallback)return x.fallback(method,u);
+    if(route==='/git/ref/heads/diagnostics')throw new R.Refusal('fixture_reached_accepted_record');
+    throw Error('Unexpected forward fixture route '+route);
+  };
+  x.handoff=()=>{const updated='2026-11-17T15:00:00Z';x.comment.updated_at=updated;x.comment.body='PR1700: выпуск занят';
+    target.body+='\n<!-- release-slot-close:v1 '+JSON.stringify({comment_id:p.comment_id,head_sha:head,owner_id:p.owner_id,updated_at:updated})+' -->';};
+  x.options=phase=>({api:x.api,pr:target.number,head,phase,source});
+  return x;
+}
+function acceptedForwardFixture(){
+  const x=unstartedFixture(),a=priorWaveFixture(),f=a.f;
+  const accepted={"bundle":"success","diagnostics":"success","diagnostics_attempt":1,"install_attempt":1,"install_checks":"success","key":"success","max_webhook":"success","metrika_cron":"success","migration":"success","provenance":"success","reported_at":"2026-11-17T12:17:04Z","repository_release":{"application_sha":"fd9b28dab2147f13f3b0d0f7f856b14392b141d2","baseline":null,"baseline_eligible":false,"closure":{"binding":{"comment_id":6928374515,"head_sha":"46f2ab2c01fcf1da5cea2d2f0c042fbbc0a676ff","owner_id":226193297,"pr":1597,"updated_at":"2026-11-17T12:01:41Z"},"expected_terminal":"PR1597: установлено, выпуск свободен","gates":[{"conclusion":"success","head_sha":"fd9b28dab2147f13f3b0d0f7f856b14392b141d2","path":".github/workflows/deploy.yml","run_attempt":1,"run_id":"44079440323"},{"conclusion":"success","head_sha":"fd9b28dab2147f13f3b0d0f7f856b14392b141d2","path":".github/workflows/retired-domain-guard.yml","run_attempt":1,"run_id":"44079440259"},{"conclusion":"success","head_sha":"fd9b28dab2147f13f3b0d0f7f856b14392b141d2","path":".github/workflows/max-tls-preflight.yml","run_attempt":1,"run_id":"44081722763"},{"conclusion":"success","head_sha":"fd9b28dab2147f13f3b0d0f7f856b14392b141d2","path":".github/workflows/max-production-health.yml","run_attempt":1,"run_id":"44081722860"},{"conclusion":"success","head_sha":"fd9b28dab2147f13f3b0d0f7f856b14392b141d2","path":".github/workflows/telegram-production-health.yml","run_attempt":1,"run_id":"44081722748"},{"conclusion":"success","head_sha":"fd9b28dab2147f13f3b0d0f7f856b14392b141d2","path":".github/workflows/publish-conversation-diagnostics.yml","run_attempt":1,"run_id":"44081722897"},{"conclusion":"success","head_sha":"fd9b28dab2147f13f3b0d0f7f856b14392b141d2","path":".github/workflows/live-session-diagnostics.yml","run_attempt":1,"run_id":"44081722731"},{"conclusion":"success","head_sha":"fd9b28dab2147f13f3b0d0f7f856b14392b141d2","path":".github/workflows/tour-selection-host.yml","run_attempt":1,"run_id":"44081722792"},{"conclusion":"success","head_sha":"fd9b28dab2147f13f3b0d0f7f856b14392b141d2","path":".github/workflows/modeled-conversion-monitor.yml","run_attempt":1,"run_id":"44081722695"},{"conclusion":"skipped","head_sha":"fd9b28dab2147f13f3b0d0f7f856b14392b141d2","path":".github/workflows/modeled-pipeline-monitor-activation.yml","run_attempt":1,"run_id":"44081882142"}],"job":"release-slot-recovery","recovery":{"kind":"prior_failed_wave_v1","original_blob":"dfc7eef713d4b6ab7f606420002f96c544e9e937","original_commit":"af7ee5c9aad44951cda9fd6b3f61f7947c232d44","original_job_id":134033721866,"original_record_digest":"3ffb405894009e90885b68cb3db652240d4a587c0547674d8ca6cc1c9ada65c3","original_run_id":"44081722753","source_sha":"c1d34ae37aca71377c4b63541f0f92e137b3e296","superseded":{"comment_id":6682640708,"deploy":"44077678956","head_sha":"96fd2b5ef87a8592cfc324308a72232b39e2a545","owner_id":226193297,"pr":1596,"sha":"c45b29452f8909eb190a04c6a54645400bb87c11","terminal":"PR1596: замещено PR1597; исходная проверка не завершена, выпуск свободен","updated_at":"2026-11-17T11:49:29Z","verify_job_id":134026179047}},"run_attempt":1,"run_id":"44099272903","terminal_step":"Release only the admitted publisher after all original mandatory gates"},"content":{"candidate_sha":"fd9b28dab2147f13f3b0d0f7f856b14392b141d2","classification":"unconfirmed","installed_sha":"6d3da4fb7602de9e6dcd7ba3af06f70749606f1f","policy":"anytour-development-content-v1","release_path":"full_required","runtime_fingerprint":null},"intent_scan":{"checked_commits":9,"coverage":"registered_markers_and_reserved_families","matched_commits":[],"status":"no_registered_intent"},"kind":"installed","observation":null,"observation_producer":null,"phase":"pending_terminal","release":{"event":"push","run_attempt":1,"run_id":"44079440323"},"repository_sha":"fd9b28dab2147f13f3b0d0f7f856b14392b141d2","schema":1,"stages":{"bundle":{"execution":"performed","result":"success"},"diagnostics":{"execution":"performed","result":"success"},"install_checks":{"execution":"performed","result":"success"},"key":{"execution":"performed","result":"success"},"max_webhook":{"execution":"performed","result":"success"},"metrika_cron":{"execution":"performed","result":"success"},"migration":{"execution":"performed","result":"success"},"provenance":{"execution":"performed","result":"success"},"smoke":{"execution":"performed","result":"success"},"sync":{"execution":"performed","result":"success"}}},"run_id":"44079440323","schema":2,"sha":"fd9b28dab2147f13f3b0d0f7f856b14392b141d2","smoke":"success","smoke_attempt":1,"sync":"success"};
+  equal(R.digest(accepted),x.p.record_digest,'actual accepted digest reproduced');
+  equal(R.gitBlob(Buffer.from(R.wire(accepted))),x.p.blob,'actual accepted blob reproduced');
+  for(const gate of accepted.repository_release.closure.gates){
+    const run=f.wave.wave.find(r=>r.path===gate.path),old=run.id,newId=Number(gate.run_id);
+    const jobs=f.jobs.get(old);f.runs.delete(old);f.jobs.delete(old);run.id=newId;run.conclusion=gate.conclusion;f.runs.set(newId,run);
+    if(jobs){for(const j of jobs)j.run_id=newId;f.jobs.set(newId,jobs);}
+  }
+  const monitor=f.wave.wave.find(r=>r.path.endsWith('modeled-conversion-monitor.yml'));
+  a.activation.display_title='monitor-proof:v1:'+monitor.id+':1';
+  const oldNative=a.native.id,ownJobs=f.jobs.get(oldNative),closure=accepted.repository_release.closure;
+  f.runs.delete(oldNative);f.jobs.delete(oldNative);a.native.id=Number(closure.run_id);
+  a.native.head_sha=closure.recovery.source_sha;a.native.head_commit.id=a.native.head_sha;
+  a.native.status='completed';a.native.conclusion='success';f.runs.set(a.native.id,a.native);
+  for(const j of ownJobs){j.run_id=a.native.id;j.head_sha=a.native.head_sha;}
+  a.own.status='completed';a.own.conclusion='success';
+  a.own.steps=[step(R.TERMINAL_BINDING_STEP+x.p.record_digest),step(R.TERMINAL_STEP)];
+  f.jobs.set(a.native.id,ownJobs);
+  const commit=f.putRecord(accepted,a.p.commit),location=f.records.get(commit),metadata=f.commits.get(commit);
+  f.records.set(x.p.commit,location);f.commits.set(x.p.commit,{...copy(metadata),sha:x.p.commit});f.head=x.p.commit;
+  f.hook=async call=>{
+    if(call.path===R.API_ROOT+'/compare/'+a.p.sha+'...'+a.native.head_sha+'?per_page=1')return {status:'ahead',merge_base_commit:{sha:a.p.sha}};
+    return a.originalHook(call);
+  };
+  x.api.jobLog=f.api.jobLog;x.fallback=(method,u)=>f.api(method,u);x.accepted=a;
+  return x;
+}
+async function unstartedForwardCases(){
+  {
+    const x=acceptedForwardFixture();
+    const before=await R.proveUnstartedForward(x.options('before_handoff'));
+    equal(before.application_sha,x.p.application_sha,'full real canonical acceptance precedes ownership transfer');
+    x.handoff();equal((await R.proveUnstartedForward(x.options('after_handoff'))).binding.pr,1700);
+    x.main=x.source;x.target.merged=true;x.target.state='closed';x.target.merge_commit_sha=x.source;
+    equal((await R.proveUnstartedForward(x.options('installation'))).phase,'installation');
+    equal(x.calls.every(c=>c.method==='GET'),true,'all three phases perform no external mutation');
+    const newRun={...copy(x.native),id:90000,head_sha:x.source,head_commit:{id:x.source},status:'in_progress',conclusion:null};
+    x.hook=u=>{
+      if(u===R.API_ROOT+'/commits/'+x.source+'/pulls?per_page=100')return [copy(x.target)];
+      if(u===R.API_ROOT+'/actions/runs?head_sha='+x.source+'&per_page=100')return {total_count:1,workflow_runs:[copy(newRun)]};
+      if(u===R.API_ROOT+'/actions/runs/90000')return copy(newRun);
+    };
+    const event={repository:{full_name:R.REPOSITORY},ref:'refs/heads/main',before:x.p.sha,after:x.source,forced:false};
+    equal((await R.admitForwardInstallation(x.api,{sha:x.source,id:'90000',event:'push',attempt:1},event)).installation,'not_started');
+    const env=consumerEnv(newRun,R.DEPLOY,'push','deploy');
+    const planned=await R.planDeployment({api:x.api,env,event,compare:()=>({decision:'no_install_candidate'})});
+    equal([planned.plan,planned.application_sha],['install',x.source],
+      'real plan keeps ordinary install: original recovered baseline was never optimization-eligible');
+    // The real plan entry point must not reach credentials/comparison after an ownership change.
+    x.comment.user.id++;
+    await refuses(()=>R.planDeployment({api:x.api,env,event,compare:()=>{throw Error('must not compare or install');}}),'foreign_record');
+
+  }
+
+  {
+    const x=unstartedFixture();equal(R.forwardMarker(x.target,x.head),x.marker);
+    equal(await R.proveUnstartedDeployment(x.api),{previous_pr:1600,previous_sha:x.p.sha,previous_run_id:x.p.deploy,installation:'not_started'});
+    equal(x.calls.every(c=>c.method==='GET'),true,'unstarted proof is read-only');
+    await refuses(()=>R.proveUnstartedForward(x.options('before_handoff')),'fixture_reached_accepted_record');
+    x.handoff();await refuses(()=>R.proveUnstartedForward(x.options('after_handoff')),'fixture_reached_accepted_record');
+    x.main=x.source;x.target.merged=true;x.target.state='closed';x.target.merge_commit_sha=x.source;
+    await refuses(()=>R.proveUnstartedForward(x.options('installation')),'fixture_reached_accepted_record');
+  }
+
+  for(const [change,code]of [
+    [x=>x.accepted.native.conclusion='failure','producer_not_active'],
+    [x=>x.accepted.own.steps.pop(),'terminal_step_unconfirmed'],
+    [x=>x.accepted.failure.conclusion='success','failed_terminal_not_original'],
+  ]){
+    const x=acceptedForwardFixture();change(x);await refuses(()=>R.proveUnstartedForward(x.options('before_handoff')),code);
+  }
+  {
+    const x=acceptedForwardFixture();let reads=0;
+    x.hook=u=>{if(u===R.API_ROOT+'/pulls/'+x.target.number&&++reads===2)return {...copy(x.target),head:{sha:H('changed while proving')}};};
+    await refuses(()=>R.proveUnstartedForward(x.options('before_handoff')),'forward_pull_changed');
+  }
+  {
+    const x=acceptedForwardFixture();x.hook=u=>u===R.API_ROOT+'/contents/ops_status.json?ref=diagnostics'
+      ?{sha:H('other application'),...Object.fromEntries(R.OPS_STAGES.map(s=>[s,'success']))}:undefined;
+    await refuses(()=>R.proveUnstartedForward(x.options('before_handoff')),'diagnostics_unconfirmed');
+  }
+  for(const mutate of [x=>x.target.body='',x=>x.target.body+='\n'+x.target.body,x=>x.target.body=x.target.body.replace('1600','1597'),
+    x=>x.target.body=x.target.body.replace(x.head,H('wrong head')),x=>x.target.body=x.target.body.replace('"previous_pr":','"extra":1,"previous_pr":')]){
+    const x=unstartedFixture();mutate(x);await refuses(async()=>R.forwardMarker(x.target,x.head),'invalid_forward_marker');
+  }
+  for(const [mutate,code]of [
+    [x=>x.native.run_attempt=2,'untrusted_workflow_run'],[x=>x.workflow=H('wrong source'),'forward_source_changed'],
+    [x=>x.jobs.pop(),'forward_jobs_incomplete'],[x=>x.jobs.push(copy(x.jobs[0])),'forward_jobs_incomplete'],
+    [x=>x.jobs[0].run_attempt=2,'forward_installation_not_unstarted'],
+    [x=>x.jobs[3].conclusion='success','forward_installation_not_unstarted'],
+    [x=>x.jobs[4].steps[2].conclusion='success','forward_installation_not_unstarted'],
+    [x=>x.jobs[4].steps.push(step('Unclassified operation')),'forward_installation_not_unstarted'],
+    [x=>x.jobs[5].steps.push(step('Unexpected verification')),'forward_installation_not_unstarted'],
+    [x=>x.artifacts.push({id:100}),'forward_original_published'],
+    [x=>x.runs.push({...copy(x.native),id:300,event:'workflow_dispatch'}),'forward_deploy_replayed'],
+    [x=>x.runs=x.runs.filter(r=>r.id!==x.children[0].id),'forward_tail_incomplete'],
+    [x=>x.runs.push({...copy(x.children[0]),id:300}),'forward_tail_incomplete'],
+    [x=>x.children[0].head_sha=H('later main'),'untrusted_workflow_run'],
+    [x=>x.children[0].conclusion=null,'producer_not_successful'],
+    [x=>x.children[0].display_title='deploy-proof:v1:123:1','forward_tail_changed'],
+    [x=>x.childJobs.get(x.children[0].id)[0].steps.push(step('Mutation')),'forward_tail_executed'],
+    [x=>x.childJobs.get(x.children[0].id)[0].run_attempt=2,'forward_tail_executed']]){
+    const x=unstartedFixture();mutate(x);await refuses(()=>R.proveUnstartedDeployment(x.api),code);
+    equal(x.calls.every(c=>c.method==='GET'),true);
+  }
+  for(const [mutate,code]of [
+    [x=>x.main=H('new main'),'main_changed'],[x=>x.target.head.sha=H('new head'),'forward_pull_changed'],
+    [x=>x.target.draft=true,'forward_pull_changed'],[x=>x.comment.body='PR1600: установлено, выпуск свободен','forward_publisher_changed'],
+    [x=>x.comment.user.id++,'foreign_record'],[x=>x.comment.updated_at='2026-11-17T15:00:00Z','record_changed']]){
+    const x=unstartedFixture();mutate(x);await refuses(()=>R.proveUnstartedForward(x.options('before_handoff')),code);
+  }
+  {
+    const x=unstartedFixture();x.handoff();x.comment.body='PR1600: выпуск занят';
+    await refuses(()=>R.proveUnstartedForward(x.options('after_handoff')),'record_changed');
+  }
+  {
+    const x=unstartedFixture();x.handoff();x.main=x.source;x.target.merged=true;x.target.state='closed';x.target.merge_commit_sha=x.source;
+    x.hook=u=>u===R.API_ROOT+'/commits/'+x.source?{sha:x.source,parents:[{sha:H('wrong base')},{sha:x.head}]}:undefined;
+    await refuses(()=>R.proveUnstartedForward(x.options('installation')),'forward_not_direct_successor');
+  }
+
+
+  {
+    const x=acceptedForwardFixture();let reads=0;
+    x.hook=u=>u===R.API_ROOT+'/pulls/'+x.target.number&&++reads===2
+      ?{...copy(x.target),body:x.target.body.replace('"previous_pr":1600','"previous_pr":1597')}:undefined;
+    await refuses(()=>R.proveUnstartedForward(x.options('before_handoff')),'invalid_forward_marker');
+  }
+  {
+    const x=acceptedForwardFixture();
+    x.hook=u=>{
+      if(u===R.API_ROOT+'/contents/ops_status.json?ref=diagnostics'){
+        const f=x.accepted.f;f.putRecord({...copy(f.record),reported_at:T},f.head);
+        return {sha:x.p.application_sha,...Object.fromEntries(R.OPS_STAGES.map(s=>[s,'success']))};
+      }
+    };
+    await refuses(()=>R.proveUnstartedForward(x.options('before_handoff')),'forward_accepted_record_changed');
+  }
+  for(const commit of [null,{}, {sha:H('wrong'),parents:[{sha:R.UNSTARTED_FORWARD.sha}]},
+    {sha:H('forward merge')}, {sha:H('forward merge'),parents:[]},
+    {sha:H('forward merge'),parents:[{}]}]){
+    const x=unstartedFixture();x.hook=u=>u===R.API_ROOT+'/commits/'+x.source?commit:undefined;
+    await refuses(()=>R.admitForwardInstallation(x.api,{sha:x.source,id:'90000',attempt:1,event:'push'},
+      {before:x.p.sha,after:x.source,forced:false}),'forward_source_unconfirmed');
+  }
+  {
+    const x=unstartedFixture();x.hook=u=>u===R.API_ROOT+'/commits/'+x.source?{sha:x.source,parents:[{sha:H('other') }]}:undefined;
+    await refuses(()=>R.admitForwardInstallation(x.api,{sha:x.source,id:'90000',attempt:1,event:'push'},
+      {before:x.p.sha,after:x.source,forced:false}),'forward_not_direct_successor');
+  }
+  {
+    const x=acceptedForwardFixture();let reads=0;
+    x.hook=u=>u===R.API_ROOT+'/actions/runs/'+x.p.deploy&&++reads===2?{...copy(x.native),run_attempt:2}:undefined;
+    await refuses(()=>R.proveUnstartedForward(x.options('before_handoff')),'untrusted_workflow_run');
+  }
+  for(const mutate of [x=>x.c.attempt=2,x=>x.c.event='workflow_dispatch',x=>x.event.forced=true,x=>x.event.before=H('other base')]){
+    const x=unstartedFixture();x.c={sha:x.source,id:'90000',attempt:1,event:'push'};x.event={before:x.p.sha,after:x.source,forced:false};mutate(x);
+    await refuses(()=>R.admitForwardInstallation(x.api,x.c,x.event),'untrusted_forward_installation');
+  }
+}
+
+async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await unstartedForwardCases();
   process.stdout.write('Deployment release regression: '+assertions+' assertions passed\n');}
 module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases};
 if(require.main===module)main().catch(e=>{process.stderr.write(String(e.stack||e)+'\n');process.exitCode=1;});
