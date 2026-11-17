@@ -1,0 +1,3769 @@
+{
+  "state": "CATALOGUE_ONLY_UNADMITTED_NOT_PUBLISHED",
+  "source": "anytour-catalog",
+  "source_date": "2026-11-17T15:40:02.073Z",
+  "feed_base_ids": [
+    241,
+    240,
+    268,
+    12111,
+    1981,
+    28666,
+    46672,
+    109900,
+    111129,
+    111045,
+    1077,
+    1146,
+    9374,
+    498,
+    157359,
+    482,
+    476,
+    81173,
+    9373,
+    32577,
+    4191,
+    416,
+    12112,
+    478,
+    77914,
+    237,
+    32575,
+    112914,
+    64895,
+    262,
+    12117,
+    12119,
+    26044,
+    66150,
+    232,
+    233,
+    13872,
+    13873,
+    280,
+    456,
+    265,
+    454,
+    21475,
+    1963,
+    358,
+    37668,
+    174,
+    55574,
+    383,
+    108090,
+    150,
+    172,
+    275,
+    173,
+    110,
+    57028,
+    125,
+    132,
+    178,
+    371,
+    389,
+    109,
+    293,
+    107965,
+    393,
+    78898,
+    83105,
+    69155,
+    69409,
+    263,
+    43204,
+    13870,
+    1983,
+    111801,
+    287,
+    435,
+    109149,
+    79059,
+    56092,
+    115918,
+    269,
+    80964,
+    264,
+    73342,
+    278,
+    246,
+    245,
+    13869,
+    267,
+    12114,
+    384,
+    281,
+    75725,
+    249,
+    315,
+    465,
+    272,
+    260,
+    273,
+    469,
+    381,
+    408,
+    441,
+    21477,
+    60589,
+    328,
+    282,
+    235,
+    382,
+    250,
+    464,
+    103021,
+    129,
+    165,
+    12116,
+    111,
+    163,
+    310,
+    67910,
+    68323,
+    1971,
+    56091,
+    103124,
+    488,
+    98723,
+    139,
+    342,
+    1291,
+    15869,
+    253,
+    75377,
+    74503,
+    1582,
+    1449,
+    1453,
+    9432,
+    1451,
+    1151,
+    1583,
+    1379,
+    1133,
+    27316,
+    1559,
+    3405,
+    1417,
+    1348,
+    1199,
+    1464,
+    9322,
+    1672,
+    1659,
+    21695,
+    28668,
+    55205,
+    1334,
+    1715,
+    1543,
+    17480,
+    1100,
+    1422,
+    78251,
+    27426,
+    1216,
+    1095,
+    24462,
+    43236,
+    101694,
+    2469,
+    1352,
+    37360,
+    1035,
+    45199,
+    613,
+    24909,
+    1074,
+    108146,
+    1362,
+    68984,
+    703,
+    118475,
+    462,
+    2050,
+    1354,
+    128087,
+    969,
+    55647,
+    120117,
+    1065,
+    1960,
+    116932,
+    748,
+    247,
+    73974,
+    54193,
+    140,
+    8053,
+    58987,
+    1033,
+    386,
+    33313,
+    66555,
+    110289,
+    513,
+    103731,
+    800,
+    3452,
+    21847,
+    302,
+    512,
+    107938,
+    15871,
+    129161,
+    65877,
+    20971,
+    1653,
+    501,
+    502,
+    95165,
+    50659,
+    79071,
+    1143,
+    41495,
+    69261,
+    1221,
+    32342,
+    64670,
+    4095,
+    13941,
+    4071,
+    41149,
+    54592,
+    57217,
+    4432,
+    82606,
+    1337,
+    380,
+    1257,
+    82567,
+    1294,
+    975,
+    26530,
+    69116,
+    1588,
+    3415,
+    964,
+    57066,
+    2015,
+    21817,
+    1026,
+    4091,
+    1350,
+    1140,
+    1203,
+    55828,
+    108167,
+    63674,
+    47025,
+    1353,
+    1067,
+    14135,
+    90236,
+    47470,
+    27647,
+    1512,
+    75041,
+    1258,
+    66496,
+    981,
+    128508,
+    45516,
+    1429,
+    15905,
+    50624,
+    58473,
+    4060,
+    2219,
+    1507,
+    65020,
+    83189,
+    95159,
+    55721,
+    16750,
+    713,
+    341,
+    340,
+    1439,
+    28325,
+    1096,
+    1486,
+    37527,
+    48863,
+    15889,
+    27642,
+    76588,
+    1145,
+    37364,
+    17669,
+    1402,
+    1346,
+    120209,
+    27652,
+    1183,
+    76515,
+    1684,
+    1614,
+    1228,
+    1134,
+    47027,
+    1101,
+    70233,
+    996,
+    28581,
+    1287,
+    16794,
+    1313,
+    1293,
+    37168,
+    69184,
+    9303,
+    59563,
+    74032,
+    1521,
+    123374,
+    15879,
+    1501,
+    1139,
+    15872,
+    1141,
+    1142,
+    28159,
+    1014,
+    352,
+    28326,
+    961,
+    1105,
+    1433,
+    1246,
+    1070,
+    28512,
+    78905,
+    1273,
+    88750,
+    28779,
+    37396,
+    9419,
+    365,
+    1494,
+    1456,
+    990,
+    3434,
+    1474,
+    1292,
+    1465,
+    1015,
+    1649,
+    28448,
+    1716,
+    7985,
+    61760,
+    30095,
+    28327,
+    1236,
+    1029,
+    1331,
+    81578,
+    1591,
+    24898,
+    77625,
+    2810,
+    1585,
+    70289,
+    123757,
+    1032,
+    21673,
+    1126,
+    61591,
+    1972,
+    955,
+    954,
+    1469,
+    1186,
+    9354,
+    1440,
+    1459,
+    1173,
+    65712,
+    27349,
+    15904,
+    1198,
+    1201,
+    1165,
+    109786,
+    1452,
+    46670,
+    956,
+    64371,
+    1344,
+    45496,
+    2222,
+    1042,
+    15917,
+    1493,
+    1154,
+    970,
+    1055,
+    75040,
+    1124,
+    63833,
+    8964,
+    2651,
+    2673,
+    64914,
+    2688,
+    61159,
+    2514,
+    42662,
+    54605,
+    80713,
+    82716,
+    4499,
+    2791,
+    24492,
+    1380,
+    949,
+    1483,
+    1196,
+    1051,
+    53514,
+    15873,
+    28754,
+    1189,
+    1410,
+    1339,
+    1586,
+    55925,
+    113292,
+    1436,
+    53578,
+    1336,
+    1004,
+    17595,
+    54621,
+    1579,
+    1218,
+    52925,
+    49083,
+    42928,
+    1712,
+    1647,
+    109655,
+    108942,
+    59116,
+    9260,
+    106,
+    114,
+    1959,
+    288,
+    415,
+    466,
+    124,
+    1962,
+    91404,
+    134,
+    71147,
+    71259,
+    117935,
+    81154,
+    36451,
+    36453,
+    70032,
+    28509,
+    57082,
+    64672,
+    80605,
+    70033,
+    57652,
+    57650,
+    23766,
+    4078,
+    24778,
+    4054,
+    14133,
+    4074,
+    4079,
+    80915,
+    22791,
+    57064,
+    57039,
+    65266,
+    116934,
+    681,
+    8008,
+    119046,
+    817,
+    2559,
+    73055,
+    43060,
+    2536,
+    50869,
+    51238,
+    1702,
+    5389,
+    70030,
+    1555,
+    1690,
+    28704,
+    1699,
+    82545,
+    70048,
+    132002,
+    1137,
+    2144,
+    3469,
+    1031,
+    74258,
+    9321,
+    15913,
+    15693,
+    1217,
+    35313,
+    66564,
+    68907,
+    65782,
+    65895,
+    2175,
+    1420,
+    1338,
+    49345,
+    49365,
+    49342,
+    102031,
+    102774,
+    22660,
+    1260,
+    67897,
+    132016,
+    83563,
+    1421,
+    1416,
+    1491,
+    4181,
+    12107,
+    1551,
+    1368,
+    1370,
+    129406,
+    62505,
+    73343,
+    46770,
+    63673,
+    973,
+    418,
+    1335,
+    1212,
+    13844,
+    21476,
+    1569,
+    65779,
+    1369,
+    932,
+    483,
+    212,
+    62504,
+    1255,
+    55511,
+    9434,
+    30158,
+    948,
+    213,
+    7938,
+    1530,
+    818,
+    2569,
+    68661,
+    1112,
+    9287,
+    1013,
+    4185,
+    14140,
+    468,
+    1330,
+    983,
+    497,
+    231,
+    325,
+    4184,
+    62515,
+    68810,
+    254,
+    967,
+    968,
+    1531,
+    2575,
+    32232,
+    32339,
+    81358,
+    343,
+    432,
+    65254,
+    443,
+    107940,
+    32356,
+    195,
+    20288,
+    59114,
+    475,
+    473,
+    206,
+    88169,
+    547,
+    15774,
+    12125,
+    57335,
+    2480,
+    2417,
+    2418,
+    2468,
+    12127,
+    27481,
+    23289,
+    50262,
+    72939,
+    2489,
+    85417,
+    2466,
+    2460,
+    99713,
+    43676,
+    548,
+    2947,
+    4032,
+    43675,
+    48263,
+    82790,
+    24743,
+    66547,
+    60232,
+    78033,
+    43569,
+    78002,
+    2451,
+    63208,
+    2491,
+    2470,
+    64954,
+    2479,
+    2493,
+    76318,
+    53617,
+    12124,
+    76011,
+    65108,
+    123308,
+    65938,
+    80008,
+    2436,
+    2444,
+    2445,
+    218,
+    63191
+  ],
+  "prior_exclusion_ids": [
+    12120,
+    64957,
+    12125,
+    76029,
+    57335,
+    66198,
+    2480,
+    49750,
+    2526,
+    123247,
+    48184,
+    15774,
+    8951,
+    32322,
+    28272,
+    547,
+    88169,
+    7458,
+    2417,
+    2418,
+    2468,
+    12127,
+    50262,
+    72939,
+    2489,
+    85417,
+    128957,
+    2466,
+    2490,
+    2460,
+    22940,
+    27481,
+    2925,
+    23289,
+    7831,
+    4283,
+    97001,
+    74509,
+    2458,
+    48263,
+    82790,
+    24743,
+    66547,
+    60232,
+    78033,
+    43569,
+    78002,
+    2451,
+    99713,
+    113544,
+    52337,
+    47217,
+    2948,
+    57536,
+    61241,
+    43676,
+    43675,
+    63208,
+    2491,
+    73477,
+    2470,
+    64954,
+    2479,
+    2493,
+    76318,
+    53617,
+    12124,
+    64648,
+    2588,
+    2611,
+    548,
+    2947,
+    4210,
+    17424,
+    17423,
+    23718,
+    4032,
+    76011,
+    65108,
+    123308,
+    65938,
+    80008,
+    2436,
+    108165,
+    2444,
+    2445,
+    121382,
+    2612,
+    2610,
+    2931,
+    63191,
+    78669,
+    45845,
+    60788,
+    218,
+    78456,
+    59118,
+    65341,
+    49084,
+    75538,
+    56002,
+    55750,
+    82649,
+    165997,
+    37376,
+    1148,
+    1595,
+    75100,
+    1028,
+    1071,
+    76393,
+    80478,
+    1149,
+    27646,
+    1563,
+    1633,
+    1150,
+    81233,
+    28460,
+    112391,
+    114913,
+    127009,
+    17603,
+    17682,
+    66450,
+    37470,
+    99608,
+    102321,
+    165597,
+    37165,
+    72910,
+    82106,
+    319,
+    40222,
+    75593,
+    110287,
+    110288,
+    131935,
+    152750,
+    306,
+    83106,
+    113,
+    133426,
+    103273,
+    108,
+    496,
+    1980,
+    76638,
+    133,
+    266,
+    159,
+    344,
+    116691,
+    123365,
+    76125,
+    76121,
+    125550,
+    143790,
+    76208,
+    169957,
+    104626,
+    2523,
+    4498,
+    77792,
+    2554,
+    2632,
+    65170,
+    80397,
+    82023,
+    2549,
+    2553,
+    2631,
+    8917,
+    8999,
+    13835,
+    56236,
+    110597,
+    2519,
+    2591,
+    2936,
+    8945,
+    13837,
+    77684,
+    80431,
+    78845,
+    8918,
+    2435,
+    2481,
+    24744,
+    50261,
+    78006,
+    26043,
+    2922,
+    64130,
+    42647,
+    2457,
+    37172,
+    17683,
+    28662,
+    83059,
+    17681,
+    70452,
+    136702,
+    124513,
+    75658,
+    126001,
+    126002,
+    126004,
+    126005,
+    133370,
+    60787,
+    2592,
+    2681,
+    49850,
+    65031,
+    4522,
+    8916,
+    13840,
+    43564,
+    99319,
+    110940,
+    165596,
+    102527,
+    100396,
+    115347,
+    142368,
+    128133,
+    103272,
+    2633,
+    81730,
+    32226,
+    69179,
+    112603,
+    77942,
+    46724,
+    13996,
+    63901,
+    13845,
+    45287,
+    44984,
+    23290,
+    38640,
+    113312,
+    128487,
+    126277,
+    68939,
+    77515,
+    69774,
+    143734,
+    129002,
+    23283,
+    126830,
+    112016,
+    127815,
+    76032,
+    2478,
+    74197,
+    132068,
+    160353,
+    149890,
+    158417,
+    241,
+    240,
+    268,
+    12111,
+    1981,
+    28666,
+    46672,
+    109900,
+    111129,
+    111045,
+    1077,
+    1146,
+    9374,
+    498,
+    157359,
+    482,
+    476,
+    81173,
+    9373,
+    32577,
+    4191,
+    416,
+    12112,
+    478,
+    77914,
+    237,
+    32575,
+    112914,
+    64895,
+    262,
+    12117,
+    12119,
+    26044,
+    66150,
+    232,
+    233,
+    13872,
+    13873,
+    280,
+    456,
+    265,
+    454,
+    21475,
+    1963,
+    358,
+    37668,
+    174,
+    55574,
+    383,
+    108090,
+    150,
+    172,
+    275,
+    173,
+    110,
+    57028,
+    125,
+    132,
+    178,
+    371,
+    389,
+    109,
+    293,
+    107965,
+    393,
+    78898,
+    83105,
+    69155,
+    69409,
+    263,
+    43204,
+    13870,
+    1983,
+    111801,
+    287,
+    435,
+    109149,
+    79059,
+    56092,
+    115918,
+    269,
+    80964,
+    264,
+    73342,
+    278,
+    246,
+    245,
+    13869,
+    267,
+    12114,
+    384,
+    281,
+    75725,
+    249,
+    315,
+    465,
+    272,
+    260,
+    273,
+    469,
+    381,
+    408,
+    441,
+    21477,
+    60589,
+    328,
+    282,
+    235,
+    382,
+    250,
+    464,
+    103021,
+    129,
+    165,
+    12116,
+    111,
+    163,
+    310,
+    67910,
+    68323,
+    1971,
+    56091,
+    103124,
+    488,
+    98723,
+    139,
+    342,
+    1291,
+    15869,
+    253,
+    75377,
+    74503,
+    1582,
+    1449,
+    1453,
+    9432,
+    1451,
+    1151,
+    1583,
+    1379,
+    1133,
+    27316,
+    1559,
+    3405,
+    1417,
+    1348,
+    1199,
+    1464,
+    9322,
+    1672,
+    1659,
+    21695,
+    28668,
+    55205,
+    1334,
+    1715,
+    1543,
+    17480,
+    1100,
+    1422,
+    78251,
+    27426,
+    1216,
+    1095,
+    24462,
+    43236,
+    101694,
+    2469,
+    1352,
+    37360,
+    1035,
+    45199,
+    613,
+    24909,
+    1074,
+    108146,
+    1362,
+    68984,
+    703,
+    118475,
+    462,
+    2050,
+    1354,
+    128087,
+    969,
+    55647,
+    120117,
+    1065,
+    1960,
+    116932,
+    748,
+    247,
+    73974,
+    54193,
+    140,
+    8053,
+    58987,
+    1033,
+    386,
+    33313,
+    66555,
+    110289,
+    513,
+    103731,
+    800,
+    3452,
+    21847,
+    302,
+    512,
+    107938,
+    15871,
+    129161,
+    65877,
+    20971,
+    1653,
+    501,
+    502,
+    95165,
+    50659,
+    79071,
+    1143,
+    41495,
+    69261,
+    1221,
+    32342,
+    64670,
+    4095,
+    13941,
+    4071,
+    41149,
+    54592,
+    57217,
+    4432,
+    82606,
+    1337,
+    380,
+    1257,
+    82567,
+    1294,
+    975,
+    26530,
+    69116,
+    1588,
+    3415,
+    964,
+    57066,
+    2015,
+    21817,
+    1026,
+    4091,
+    1350,
+    1140,
+    1203,
+    55828,
+    108167,
+    63674,
+    47025,
+    1353,
+    1067,
+    14135,
+    90236,
+    47470,
+    27647,
+    1512,
+    75041,
+    1258,
+    66496,
+    981,
+    128508,
+    45516,
+    1429,
+    15905,
+    50624,
+    58473,
+    4060,
+    2219,
+    1507,
+    65020,
+    83189,
+    95159,
+    55721,
+    16750,
+    713,
+    341,
+    340,
+    1439,
+    28325,
+    1096,
+    1486,
+    37527,
+    48863,
+    15889,
+    27642,
+    76588,
+    1145,
+    37364,
+    17669,
+    1402,
+    1346,
+    120209,
+    27652,
+    1183,
+    76515,
+    1684,
+    1614,
+    1228,
+    1134,
+    47027,
+    1101,
+    70233,
+    996,
+    28581,
+    1287,
+    16794,
+    1313,
+    1293,
+    37168,
+    69184,
+    9303,
+    59563,
+    74032,
+    1521,
+    123374,
+    15879,
+    1501,
+    1139,
+    15872,
+    1141,
+    1142,
+    28159,
+    1014,
+    352,
+    28326,
+    961,
+    1105,
+    1433,
+    1246,
+    1070,
+    28512,
+    78905,
+    1273,
+    88750,
+    28779,
+    37396,
+    9419,
+    365,
+    1494,
+    1456,
+    990,
+    3434,
+    1474,
+    1292,
+    1465,
+    1015,
+    1649,
+    28448,
+    1716,
+    7985,
+    61760,
+    30095,
+    28327,
+    1236,
+    1029,
+    1331,
+    81578,
+    1591,
+    24898,
+    77625,
+    2810,
+    1585,
+    70289,
+    123757,
+    1032,
+    21673,
+    1126,
+    61591,
+    1972,
+    955,
+    954,
+    1469,
+    1186,
+    9354,
+    1440,
+    1459,
+    1173,
+    65712,
+    27349,
+    15904,
+    1198,
+    1201,
+    1165,
+    109786,
+    1452,
+    46670,
+    956,
+    64371,
+    1344,
+    45496,
+    2222,
+    1042,
+    15917,
+    1493,
+    1154,
+    970,
+    1055,
+    75040,
+    1124,
+    63833,
+    8964,
+    2651,
+    2673,
+    64914,
+    2688,
+    61159,
+    2514,
+    42662,
+    54605,
+    80713,
+    82716,
+    4499,
+    2791,
+    24492,
+    1380,
+    949,
+    1483,
+    1196,
+    1051,
+    53514,
+    15873,
+    28754,
+    1189,
+    1410,
+    1339,
+    1586,
+    55925,
+    113292,
+    1436,
+    53578,
+    1336,
+    1004,
+    17595,
+    54621,
+    1579,
+    1218,
+    52925,
+    49083,
+    42928,
+    1712,
+    1647,
+    109655,
+    108942,
+    59116,
+    9260,
+    106,
+    114,
+    1959,
+    288,
+    415,
+    466,
+    124,
+    1962,
+    91404,
+    134,
+    71147,
+    71259,
+    117935,
+    81154,
+    36451,
+    36453,
+    70032,
+    28509,
+    57082,
+    64672,
+    80605,
+    70033,
+    57652,
+    57650,
+    23766,
+    4078,
+    24778,
+    4054,
+    14133,
+    4074,
+    4079,
+    80915,
+    22791,
+    57064,
+    57039,
+    65266,
+    116934,
+    681,
+    8008,
+    119046,
+    817,
+    2559,
+    73055,
+    43060,
+    2536,
+    50869,
+    51238,
+    1702,
+    5389,
+    70030,
+    1555,
+    1690,
+    28704,
+    1699,
+    82545,
+    70048,
+    132002,
+    1137,
+    2144,
+    3469,
+    1031,
+    74258,
+    9321,
+    15913,
+    15693,
+    1217,
+    35313,
+    66564,
+    68907,
+    65782,
+    65895,
+    2175,
+    1420,
+    1338,
+    49345,
+    49365,
+    49342,
+    102031,
+    102774,
+    22660,
+    1260,
+    67897,
+    132016,
+    83563,
+    1421,
+    1416,
+    1491,
+    4181,
+    12107,
+    1551,
+    1368,
+    1370,
+    129406,
+    62505,
+    73343,
+    46770,
+    63673,
+    973,
+    418,
+    1335,
+    1212,
+    13844,
+    21476,
+    1569,
+    65779,
+    1369,
+    932,
+    483,
+    212,
+    62504,
+    1255,
+    55511,
+    9434,
+    30158,
+    948,
+    213,
+    7938,
+    1530,
+    818,
+    2569,
+    68661,
+    1112,
+    9287,
+    1013,
+    4185,
+    14140,
+    468,
+    1330,
+    983,
+    497,
+    231,
+    325,
+    4184,
+    62515,
+    68810,
+    254,
+    967,
+    968,
+    1531,
+    2575,
+    32232,
+    32339,
+    81358,
+    343,
+    432,
+    65254,
+    443,
+    107940,
+    32356,
+    195,
+    20288,
+    59114,
+    475,
+    473,
+    206
+  ],
+  "queries": [
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Centara",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Centara&countryId=2&limit=20",
+      "count": 20,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Avani",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Avani&countryId=2&limit=20",
+      "count": 12,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Amari",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Amari&countryId=2&limit=20",
+      "count": 20,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Dusit",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Dusit&countryId=2&limit=20",
+      "count": 20,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Marriott",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=2&limit=20",
+      "count": 20,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Anantara",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Anantara&countryId=2&limit=20",
+      "count": 16,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Intercontinental",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Intercontinental&countryId=2&limit=20",
+      "count": 8,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Sofitel",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sofitel&countryId=2&limit=20",
+      "count": 8,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Pullman",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Pullman&countryId=2&limit=20",
+      "count": 8,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Movenpick",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Movenpick&countryId=2&limit=20",
+      "count": 10,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Hyatt",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hyatt&countryId=2&limit=20",
+      "count": 9,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Banyan Tree",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Banyan%20Tree&countryId=2&limit=20",
+      "count": 6,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Angsana",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Angsana&countryId=2&limit=20",
+      "count": 2,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Sheraton",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sheraton&countryId=2&limit=20",
+      "count": 11,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Kimpton",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Kimpton&countryId=2&limit=20",
+      "count": 2,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Le Meridien",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Le%20Meridien&countryId=2&limit=20",
+      "count": 7,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "SAii",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=SAii&countryId=2&limit=20",
+      "count": 3,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Six Senses",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Six%20Senses&countryId=2&limit=20",
+      "count": 3,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Ritz",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Ritz&countryId=2&limit=20",
+      "count": 5,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Conrad",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Conrad&countryId=2&limit=20",
+      "count": 2,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Four Seasons",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Four%20Seasons&countryId=2&limit=20",
+      "count": 4,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Melia",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Melia&countryId=2&limit=20",
+      "count": 5,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Cape",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cape&countryId=2&limit=20",
+      "count": 20,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "The Shore",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=The%20Shore&countryId=2&limit=20",
+      "count": 2,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Rayavadee",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Rayavadee&countryId=2&limit=20",
+      "count": 1,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Racha",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Racha&countryId=2&limit=20",
+      "count": 20,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Rosewood",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Rosewood&countryId=2&limit=20",
+      "count": 2,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Keemala",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Keemala&countryId=2&limit=20",
+      "count": 1,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Trisara",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Trisara&countryId=2&limit=20",
+      "count": 1,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Melia",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Melia&countryId=16&limit=20",
+      "count": 16,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Marriott",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=16&limit=20",
+      "count": 9,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Hyatt",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hyatt&countryId=16&limit=20",
+      "count": 6,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Anantara",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Anantara&countryId=16&limit=20",
+      "count": 2,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Fusion",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Fusion&countryId=16&limit=20",
+      "count": 11,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Vinpearl",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Vinpearl&countryId=16&limit=20",
+      "count": 20,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Alma",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Alma&countryId=16&limit=20",
+      "count": 5,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Anam",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Anam&countryId=16&limit=20",
+      "count": 6,
+      "status": "ok"
+    },
+    {
+      "country_id": 2,
+      "country": "TH",
+      "q": "Royal Cliff",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Royal%20Cliff&countryId=2&limit=20",
+      "count": 5,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Movenpick",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Movenpick&countryId=16&limit=20",
+      "count": 7,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Intercontinental",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Intercontinental&countryId=16&limit=20",
+      "count": 11,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Radisson",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Radisson&countryId=16&limit=20",
+      "count": 8,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Sheraton",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sheraton&countryId=16&limit=20",
+      "count": 9,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Pullman",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Pullman&countryId=16&limit=20",
+      "count": 7,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Regent",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Regent&countryId=16&limit=20",
+      "count": 1,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Amanoi",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Amanoi&countryId=16&limit=20",
+      "count": 1,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Dusit",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Dusit&countryId=16&limit=20",
+      "count": 2,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Six Senses",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Six%20Senses&countryId=16&limit=20",
+      "count": 2,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Banyan Tree",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Banyan%20Tree&countryId=16&limit=20",
+      "count": 1,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Angsana",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Angsana&countryId=16&limit=20",
+      "count": 2,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Premier",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Premier&countryId=16&limit=20",
+      "count": 20,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Salinda",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Salinda&countryId=16&limit=20",
+      "count": 1,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "La Veranda",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=La%20Veranda&countryId=16&limit=20",
+      "count": 1,
+      "status": "ok"
+    },
+    {
+      "country_id": 16,
+      "country": "VN",
+      "q": "Furama",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=Furama&countryId=16&limit=20",
+      "count": 2,
+      "status": "ok"
+    }
+  ],
+  "net_eligible_count": 308,
+  "rows": [
+    {
+      "id": 15722,
+      "name": "MARRIOTT PHUKET BEACH CLUB",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 5,
+      "country_code": "TH",
+      "queries": [
+        "Marriott"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=2&limit=20",
+      "priority_score": 70
+    },
+    {
+      "id": 22740,
+      "name": "AVANI PLUS SAMUI (EX.ELEMENTS BOUTIQUE RESORT & SPA)",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 9,
+        "name": "Самуи"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.9,
+      "country_code": "TH",
+      "queries": [
+        "Avani"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Avani&countryId=2&limit=20",
+      "priority_score": 69.7
+    },
+    {
+      "id": 78200,
+      "name": "AVANI+ KHAO LAK RESORT",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 90,
+        "name": "Као Лак"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.9,
+      "country_code": "TH",
+      "queries": [
+        "Avani"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Avani&countryId=2&limit=20",
+      "priority_score": 69.7
+    },
+    {
+      "id": 538,
+      "name": "AMARI PHUKET (EX. AMARI CORAL BEACH PHUKET)",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 75,
+        "name": "Патонг"
+      },
+      "category": 5,
+      "rating": 4.8,
+      "country_code": "TH",
+      "queries": [
+        "Amari"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Amari&countryId=2&limit=20",
+      "priority_score": 69.4
+    },
+    {
+      "id": 792,
+      "name": "INTERCONTINENTAL PATTAYA RESORT (EX. SHERATON PATTAYA RESORT)",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 7,
+        "name": "Паттайя"
+      },
+      "subRegion": {
+        "id": 440,
+        "name": "Пратамнак Хилл"
+      },
+      "category": 5,
+      "rating": 4.8,
+      "country_code": "TH",
+      "queries": [
+        "Intercontinental",
+        "Sheraton"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Intercontinental&countryId=2&limit=20",
+      "priority_score": 69.4
+    },
+    {
+      "id": 2984,
+      "name": "HUA HIN MARRIOTT RESORT & SPA",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 63,
+        "name": "Хуа Хин"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.8,
+      "country_code": "TH",
+      "queries": [
+        "Marriott"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=2&limit=20",
+      "priority_score": 69.4
+    },
+    {
+      "id": 4202,
+      "name": "AMARI VOGUE RESORT",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 60,
+        "name": "Краби"
+      },
+      "subRegion": {
+        "id": 83,
+        "name": "Краби"
+      },
+      "category": 5,
+      "rating": 4.8,
+      "country_code": "TH",
+      "queries": [
+        "Amari"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Amari&countryId=2&limit=20",
+      "priority_score": 69.4
+    },
+    {
+      "id": 7898,
+      "name": "CENTARA GRAND BEACH RESORT & VILLA HUA HIN",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 63,
+        "name": "Хуа Хин"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.8,
+      "country_code": "TH",
+      "queries": [
+        "Centara"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Centara&countryId=2&limit=20",
+      "priority_score": 69.4
+    },
+    {
+      "id": 66860,
+      "name": "INTERCONTINENTAL PHUKET RESORT",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 71,
+        "name": "Камала"
+      },
+      "category": 5,
+      "rating": 4.8,
+      "country_code": "TH",
+      "queries": [
+        "Intercontinental"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Intercontinental&countryId=2&limit=20",
+      "priority_score": 69.4
+    },
+    {
+      "id": 598,
+      "name": "CENTARA RESERVE SAMUI (EX. CENTARA GRAND BEACH RESORT)",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 9,
+        "name": "Самуи"
+      },
+      "subRegion": {
+        "id": 82,
+        "name": "Чавенг"
+      },
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "TH",
+      "queries": [
+        "Centara"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Centara&countryId=2&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 669,
+      "name": "JW MARRIOTT PHUKET RESORT & SPA",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 166,
+        "name": "Май Кхао"
+      },
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "TH",
+      "queries": [
+        "Marriott"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=2&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 3022,
+      "name": "DUSIT THANI KRABI BEACH RESORT (EX. SHERATON KRABI BEACH RESORT)",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 60,
+        "name": "Краби"
+      },
+      "subRegion": {
+        "id": 83,
+        "name": "Краби"
+      },
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "TH",
+      "queries": [
+        "Dusit",
+        "Sheraton"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Dusit&countryId=2&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 4294,
+      "name": "LE MERIDIEN PHUKET MAI KHAO BEACH RESORT",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 166,
+        "name": "Май Кхао"
+      },
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "TH",
+      "queries": [
+        "Le Meridien"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Le%20Meridien&countryId=2&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 4309,
+      "name": "JW MARRIOTT KHAO LAK RESORT & SPA",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 90,
+        "name": "Као Лак"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "TH",
+      "queries": [
+        "Marriott"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=2&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 4343,
+      "name": "MOVENPICK RESORT BANGTAO BEACH",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 70,
+        "name": "Банг Тао"
+      },
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "TH",
+      "queries": [
+        "Movenpick"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Movenpick&countryId=2&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 7856,
+      "name": "MOVENPICK ASARA RESORT & SPA HUA HIN",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 63,
+        "name": "Хуа Хин"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "TH",
+      "queries": [
+        "Movenpick"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Movenpick&countryId=2&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 8171,
+      "name": "SOFITEL KRABI PHOKEETHRA GOLF & SPA RESORT",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 60,
+        "name": "Краби"
+      },
+      "subRegion": {
+        "id": 83,
+        "name": "Краби"
+      },
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "TH",
+      "queries": [
+        "Sofitel"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sofitel&countryId=2&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 9395,
+      "name": "INTERCONTINENTAL KOH SAMUI RESORT",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 9,
+        "name": "Самуи"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "TH",
+      "queries": [
+        "Intercontinental"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Intercontinental&countryId=2&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 12159,
+      "name": "ANANTARA SI KAO RESORT & SPA",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 60,
+        "name": "Краби"
+      },
+      "subRegion": {
+        "id": 83,
+        "name": "Краби"
+      },
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "TH",
+      "queries": [
+        "Anantara"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Anantara&countryId=2&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 12170,
+      "name": "INTERCONTINENTAL HUA HIN RESORT",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 63,
+        "name": "Хуа Хин"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "TH",
+      "queries": [
+        "Intercontinental"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Intercontinental&countryId=2&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 12194,
+      "name": "DOUBLEPOOL VILLAS BANYAN TREE",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 70,
+        "name": "Банг Тао"
+      },
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "TH",
+      "queries": [
+        "Banyan Tree"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Banyan%20Tree&countryId=2&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 22757,
+      "name": "MARRIOTT MAI KHAO BEACH",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 166,
+        "name": "Май Кхао"
+      },
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "TH",
+      "queries": [
+        "Marriott"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=2&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 526,
+      "name": "PHUKET MARRIOTT RESORT AND SPA NAI YANG BEACH",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 561,
+        "name": "Най Янг"
+      },
+      "category": 5,
+      "rating": 4.6,
+      "country_code": "TH",
+      "queries": [
+        "Marriott"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=2&limit=20",
+      "priority_score": 68.8
+    },
+    {
+      "id": 599,
+      "name": "CENTARA GRAND MIRAGE BEACH RESORT PATTAYA",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 7,
+        "name": "Паттайя"
+      },
+      "subRegion": {
+        "id": 439,
+        "name": "Вонгамат"
+      },
+      "category": 5,
+      "rating": 4.6,
+      "country_code": "TH",
+      "queries": [
+        "Centara"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Centara&countryId=2&limit=20",
+      "priority_score": 68.8
+    },
+    {
+      "id": 685,
+      "name": "SAII LAGUNA PHUKET (EX. OUTRIGGER LAGUNA PHUKET BEACH RESORT)",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 70,
+        "name": "Банг Тао"
+      },
+      "category": 5,
+      "rating": 4.6,
+      "country_code": "TH",
+      "queries": [
+        "SAii"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=SAii&countryId=2&limit=20",
+      "priority_score": 68.8
+    },
+    {
+      "id": 689,
+      "name": "LE MERIDIEN PHUKET BEACH RESORT",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 72,
+        "name": "Карон"
+      },
+      "category": 5,
+      "rating": 4.6,
+      "country_code": "TH",
+      "queries": [
+        "Le Meridien"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Le%20Meridien&countryId=2&limit=20",
+      "priority_score": 68.8
+    },
+    {
+      "id": 697,
+      "name": "AVANI PATTAYA RESORT & SPA (EX. PATTAYA MARRIOTT RESORT & SPA)",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 7,
+        "name": "Паттайя"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.6,
+      "country_code": "TH",
+      "queries": [
+        "Avani",
+        "Marriott"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Avani&countryId=2&limit=20",
+      "priority_score": 68.8
+    },
+    {
+      "id": 761,
+      "name": "PULLMAN PHUKET PANWA BEACH RESORT (EX. RADISSON PLAZA RESORT PANWA BEACH)",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 74,
+        "name": "Панва"
+      },
+      "category": 5,
+      "rating": 4.6,
+      "country_code": "TH",
+      "queries": [
+        "Pullman"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Pullman&countryId=2&limit=20",
+      "priority_score": 68.8
+    },
+    {
+      "id": 791,
+      "name": "ANGSANA LAGUNA PHUKET",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 70,
+        "name": "Банг Тао"
+      },
+      "category": 5,
+      "rating": 4.6,
+      "country_code": "TH",
+      "queries": [
+        "Angsana"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Angsana&countryId=2&limit=20",
+      "priority_score": 68.8
+    },
+    {
+      "id": 3021,
+      "name": "SHERATON HUA HIN RESORT & SPA",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 63,
+        "name": "Хуа Хин"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.6,
+      "country_code": "TH",
+      "queries": [
+        "Sheraton"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sheraton&countryId=2&limit=20",
+      "priority_score": 68.8
+    },
+    {
+      "id": 22836,
+      "name": "RAYONG MARRIOTT RESORT & SPA",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 89,
+        "name": "Районг"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.6,
+      "country_code": "TH",
+      "queries": [
+        "Marriott"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=2&limit=20",
+      "priority_score": 68.8
+    },
+    {
+      "id": 33310,
+      "name": "HYATT REGENCY PHUKET RESORT",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 71,
+        "name": "Камала"
+      },
+      "category": 5,
+      "rating": 4.6,
+      "country_code": "TH",
+      "queries": [
+        "Hyatt"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hyatt&countryId=2&limit=20",
+      "priority_score": 68.8
+    },
+    {
+      "id": 57466,
+      "name": "AVANI+ HUA HIN RESORT (EX. ANANDA HUA HIN RESORT & SPA)",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 63,
+        "name": "Хуа Хин"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.6,
+      "country_code": "TH",
+      "queries": [
+        "Avani"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Avani&countryId=2&limit=20",
+      "priority_score": 68.8
+    },
+    {
+      "id": 70051,
+      "name": "ISLAND ESCAPE BY BURASARI",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.6,
+      "country_code": "TH",
+      "queries": [
+        "Cape"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cape&countryId=2&limit=20",
+      "priority_score": 68.8
+    },
+    {
+      "id": 542,
+      "name": "AMARI KOH SAMUI (EX. AMARI PALM REEF RESORT)",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 9,
+        "name": "Самуи"
+      },
+      "subRegion": {
+        "id": 82,
+        "name": "Чавенг"
+      },
+      "category": 5,
+      "rating": 4.5,
+      "country_code": "TH",
+      "queries": [
+        "Amari"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Amari&countryId=2&limit=20",
+      "priority_score": 68.5
+    },
+    {
+      "id": 596,
+      "name": "CAPE SIENNA GOURMET HOTEL & VILLAS",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 71,
+        "name": "Камала"
+      },
+      "category": 5,
+      "rating": 4.5,
+      "country_code": "TH",
+      "queries": [
+        "Cape"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cape&countryId=2&limit=20",
+      "priority_score": 68.5
+    },
+    {
+      "id": 649,
+      "name": "PULLMAN PHUKET KARON BEACH RESORT (EX. HILTON PHUKET ARCADIA RESORT & SPA)",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 72,
+        "name": "Карон"
+      },
+      "category": 5,
+      "rating": 4.5,
+      "country_code": "TH",
+      "queries": [
+        "Pullman"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Pullman&countryId=2&limit=20",
+      "priority_score": 68.5
+    },
+    {
+      "id": 706,
+      "name": "PARADOX RESORT PHUKET (EX. MOVENPICK RESORT & SPA KARON BEACH)",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 72,
+        "name": "Карон"
+      },
+      "category": 5,
+      "rating": 4.5,
+      "country_code": "TH",
+      "queries": [
+        "Movenpick"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Movenpick&countryId=2&limit=20",
+      "priority_score": 68.5
+    },
+    {
+      "id": 765,
+      "name": "ROYAL CLIFF BEACH",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 7,
+        "name": "Паттайя"
+      },
+      "subRegion": {
+        "id": 440,
+        "name": "Пратамнак Хилл"
+      },
+      "category": 5,
+      "rating": 4.5,
+      "country_code": "TH",
+      "queries": [
+        "Royal Cliff"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Royal%20Cliff&countryId=2&limit=20",
+      "priority_score": 68.5
+    },
+    {
+      "id": 768,
+      "name": "ROYAL CLIFF BEACH TERRACE",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 7,
+        "name": "Паттайя"
+      },
+      "subRegion": {
+        "id": 440,
+        "name": "Пратамнак Хилл"
+      },
+      "category": 5,
+      "rating": 4.5,
+      "country_code": "TH",
+      "queries": [
+        "Royal Cliff"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Royal%20Cliff&countryId=2&limit=20",
+      "priority_score": 68.5
+    },
+    {
+      "id": 825,
+      "name": "SHERATON SAMUI RESORT (EX. IMPERIAL SAMUI)",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 9,
+        "name": "Самуи"
+      },
+      "subRegion": {
+        "id": 82,
+        "name": "Чавенг"
+      },
+      "category": 5,
+      "rating": 4.5,
+      "country_code": "TH",
+      "queries": [
+        "Sheraton"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sheraton&countryId=2&limit=20",
+      "priority_score": 68.5
+    },
+    {
+      "id": 4270,
+      "name": "DUSIT THANI LAGUNA PHUKET",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 70,
+        "name": "Банг Тао"
+      },
+      "category": 5,
+      "rating": 4.5,
+      "country_code": "TH",
+      "queries": [
+        "Dusit"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Dusit&countryId=2&limit=20",
+      "priority_score": 68.5
+    },
+    {
+      "id": 9404,
+      "name": "PULLMAN PHUKET ARCADIA NAITHON BEACH",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 8,
+        "name": "Пхукет"
+      },
+      "subRegion": {
+        "id": 168,
+        "name": "Най Тхон"
+      },
+      "category": 5,
+      "rating": 4.5,
+      "country_code": "TH",
+      "queries": [
+        "Pullman"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Pullman&countryId=2&limit=20",
+      "priority_score": 68.5
+    },
+    {
+      "id": 35036,
+      "name": "SHERATON HUA HIN PRANBURI VILLAS",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 63,
+        "name": "Хуа Хин"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.5,
+      "country_code": "TH",
+      "queries": [
+        "Sheraton"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sheraton&countryId=2&limit=20",
+      "priority_score": 68.5
+    },
+    {
+      "id": 77358,
+      "name": "PULLMAN KHAO LAK RESORT",
+      "country": {
+        "id": 2,
+        "name": "Таиланд"
+      },
+      "region": {
+        "id": 90,
+        "name": "Као Лак"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.5,
+      "country_code": "TH",
+      "queries": [
+        "Pullman"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Pullman&countryId=2&limit=20",
+      "priority_score": 68.5
+    },
+    {
+      "id": 60433,
+      "name": "PREMIER VILLAGE PHU QUOC RESORT",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 104,
+        "name": "Фукуок"
+      },
+      "subRegion": {
+        "id": 578,
+        "name": "Юг"
+      },
+      "category": 5,
+      "rating": 5,
+      "country_code": "VN",
+      "queries": [
+        "Premier"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Premier&countryId=16&limit=20",
+      "priority_score": 70
+    },
+    {
+      "id": 61611,
+      "name": "VINPEARL RESORT & GOLF NAM HOI AN",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 105,
+        "name": "Хой Ан"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 5,
+      "country_code": "VN",
+      "queries": [
+        "Vinpearl"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Vinpearl&countryId=16&limit=20",
+      "priority_score": 70
+    },
+    {
+      "id": 126119,
+      "name": "FUSION RESORT & VILLAS DA NANG",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 103,
+        "name": "Дананг"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 5,
+      "country_code": "VN",
+      "queries": [
+        "Fusion"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Fusion&countryId=16&limit=20",
+      "priority_score": 70
+    },
+    {
+      "id": 126601,
+      "name": "DANANG MARRIOTT RESORT & SPA NON NUOC BEACH VILLAS",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 103,
+        "name": "Дананг"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 5,
+      "country_code": "VN",
+      "queries": [
+        "Marriott"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=16&limit=20",
+      "priority_score": 70
+    },
+    {
+      "id": 9230,
+      "name": "PULLMAN DANANG BEACH RESORT",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 103,
+        "name": "Дананг"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.9,
+      "country_code": "VN",
+      "queries": [
+        "Pullman"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Pullman&countryId=16&limit=20",
+      "priority_score": 69.7
+    },
+    {
+      "id": 32341,
+      "name": "SALINDA RESORT PHU QUOC ISLAND",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 104,
+        "name": "Фукуок"
+      },
+      "subRegion": {
+        "id": 577,
+        "name": "Центр"
+      },
+      "category": 5,
+      "rating": 4.9,
+      "country_code": "VN",
+      "queries": [
+        "Salinda"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Salinda&countryId=16&limit=20",
+      "priority_score": 69.7
+    },
+    {
+      "id": 32412,
+      "name": "PREMIER VILLAGE DANANG RESORT",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 103,
+        "name": "Дананг"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.9,
+      "country_code": "VN",
+      "queries": [
+        "Premier"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Premier&countryId=16&limit=20",
+      "priority_score": 69.7
+    },
+    {
+      "id": 36437,
+      "name": "FURAMA VILLAS DANANG",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 103,
+        "name": "Дананг"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.9,
+      "country_code": "VN",
+      "queries": [
+        "Furama"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Furama&countryId=16&limit=20",
+      "priority_score": 69.7
+    },
+    {
+      "id": 41498,
+      "name": "ALMANITY HOI AN RESORT & SPA (EX. ALMA COURTYARD HOI AN)",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 105,
+        "name": "Хой Ан"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.9,
+      "country_code": "VN",
+      "queries": [
+        "Alma"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Alma&countryId=16&limit=20",
+      "priority_score": 69.7
+    },
+    {
+      "id": 52251,
+      "name": "FUSION RESORT",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 104,
+        "name": "Фукуок"
+      },
+      "subRegion": {
+        "id": 576,
+        "name": "Север"
+      },
+      "category": 5,
+      "rating": 4.9,
+      "country_code": "VN",
+      "queries": [
+        "Fusion"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Fusion&countryId=16&limit=20",
+      "priority_score": 69.7
+    },
+    {
+      "id": 57025,
+      "name": "MELIA VINPEARL CAM RANH BEACH RESORT (EX. VINPEARL RESORT & SPA LONG BEACH NHA TRANG)",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 700,
+        "name": "Камрань"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.9,
+      "country_code": "VN",
+      "queries": [
+        "Melia",
+        "Vinpearl"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Melia&countryId=16&limit=20",
+      "priority_score": 69.7
+    },
+    {
+      "id": 61623,
+      "name": "INTERCONTINENTAL PHU QUOC LONG BEACH RESORT",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 104,
+        "name": "Фукуок"
+      },
+      "subRegion": {
+        "id": 577,
+        "name": "Центр"
+      },
+      "category": 5,
+      "rating": 4.9,
+      "country_code": "VN",
+      "queries": [
+        "Intercontinental"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Intercontinental&countryId=16&limit=20",
+      "priority_score": 69.7
+    },
+    {
+      "id": 73257,
+      "name": "PULLMAN PHU QUOC BEACH RESORT",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 104,
+        "name": "Фукуок"
+      },
+      "subRegion": {
+        "id": 577,
+        "name": "Центр"
+      },
+      "category": 5,
+      "rating": 4.9,
+      "country_code": "VN",
+      "queries": [
+        "Pullman"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Pullman&countryId=16&limit=20",
+      "priority_score": 69.7
+    },
+    {
+      "id": 4966,
+      "name": "LA VERANDA RESORT PHU QUOC MGALLERY COLLECTION",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 104,
+        "name": "Фукуок"
+      },
+      "subRegion": {
+        "id": 577,
+        "name": "Центр"
+      },
+      "category": 5,
+      "rating": 4.8,
+      "country_code": "VN",
+      "queries": [
+        "La Veranda"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=La%20Veranda&countryId=16&limit=20",
+      "priority_score": 69.4
+    },
+    {
+      "id": 61615,
+      "name": "SHERATON GRAND DANANG RESORT",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 103,
+        "name": "Дананг"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.8,
+      "country_code": "VN",
+      "queries": [
+        "Sheraton"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sheraton&countryId=16&limit=20",
+      "priority_score": 69.4
+    },
+    {
+      "id": 65164,
+      "name": "VINPEARL BEACHFRONT NHA TRANG",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 87,
+        "name": "Нячанг"
+      },
+      "subRegion": {
+        "id": 570,
+        "name": "Нячанг - центр"
+      },
+      "category": 5,
+      "rating": 4.8,
+      "country_code": "VN",
+      "queries": [
+        "Vinpearl"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Vinpearl&countryId=16&limit=20",
+      "priority_score": 69.4
+    },
+    {
+      "id": 132294,
+      "name": "JW MARRIOTT CAM RANH BAY RESORT & SPA",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 700,
+        "name": "Камрань"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.8,
+      "country_code": "VN",
+      "queries": [
+        "Marriott"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=16&limit=20",
+      "priority_score": 69.4
+    },
+    {
+      "id": 7443,
+      "name": "TIA WELLNESS RESORT (EX. FUSION MAIA DANANG RESORT)",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 103,
+        "name": "Дананг"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "VN",
+      "queries": [
+        "Fusion"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Fusion&countryId=16&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 43689,
+      "name": "FUSION RESORT CAM RANH",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 700,
+        "name": "Камрань"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "VN",
+      "queries": [
+        "Fusion"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Fusion&countryId=16&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 54914,
+      "name": "THE ANAM RESORT",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 700,
+        "name": "Камрань"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "VN",
+      "queries": [
+        "Anam"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Anam&countryId=16&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 57672,
+      "name": "JW MARRIOTT PHU QUOC EMERALD BAY RESORT & SPA",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 104,
+        "name": "Фукуок"
+      },
+      "subRegion": {
+        "id": 578,
+        "name": "Юг"
+      },
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "VN",
+      "queries": [
+        "Marriott"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=16&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 61583,
+      "name": "DUSIT PRINCESS MOONRISE BEACH RESORT",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 104,
+        "name": "Фукуок"
+      },
+      "subRegion": {
+        "id": 577,
+        "name": "Центр"
+      },
+      "category": 5,
+      "rating": 4.7,
+      "country_code": "VN",
+      "queries": [
+        "Dusit"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Dusit&countryId=16&limit=20",
+      "priority_score": 69.1
+    },
+    {
+      "id": 14130,
+      "name": "INTERCONTINENTAL DANANG SUN PENINSULA RESORT (EX. INTERCONTINENTAL DANANG)",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 103,
+        "name": "Дананг"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.6,
+      "country_code": "VN",
+      "queries": [
+        "Intercontinental"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Intercontinental&countryId=16&limit=20",
+      "priority_score": 68.8
+    },
+    {
+      "id": 46747,
+      "name": "MELIA DANANG BEACH RESORT",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 103,
+        "name": "Дананг"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.6,
+      "country_code": "VN",
+      "queries": [
+        "Melia"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Melia&countryId=16&limit=20",
+      "priority_score": 68.8
+    },
+    {
+      "id": 71241,
+      "name": "MOVENPICK RESORT WAVERLY PHU QUOC",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 104,
+        "name": "Фукуок"
+      },
+      "subRegion": {
+        "id": 577,
+        "name": "Центр"
+      },
+      "category": 5,
+      "rating": 4.5,
+      "country_code": "VN",
+      "queries": [
+        "Movenpick"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Movenpick&countryId=16&limit=20",
+      "priority_score": 68.5
+    },
+    {
+      "id": 108234,
+      "name": "NHA TRANG MARRIOTT RESORT & SPA HON TRE ISLAND",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 87,
+        "name": "Нячанг"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.5,
+      "country_code": "VN",
+      "queries": [
+        "Marriott"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=16&limit=20",
+      "priority_score": 68.5
+    },
+    {
+      "id": 4919,
+      "name": "FURAMA RESORT",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 103,
+        "name": "Дананг"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.4,
+      "country_code": "VN",
+      "queries": [
+        "Furama"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Furama&countryId=16&limit=20",
+      "priority_score": 68.2
+    },
+    {
+      "id": 82212,
+      "name": "MOVENPICK RESORT PHAN THIET",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 88,
+        "name": "Фантьет"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.4,
+      "country_code": "VN",
+      "queries": [
+        "Movenpick"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Movenpick&countryId=16&limit=20",
+      "priority_score": 68.2
+    },
+    {
+      "id": 7449,
+      "name": "HYATT REGENCY DANANG RESORT & SPA",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 103,
+        "name": "Дананг"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.3,
+      "country_code": "VN",
+      "queries": [
+        "Hyatt"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hyatt&countryId=16&limit=20",
+      "priority_score": 67.9
+    },
+    {
+      "id": 69260,
+      "name": "RADISSON BLU RESORT CAM RANH",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 700,
+        "name": "Камрань"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.3,
+      "country_code": "VN",
+      "queries": [
+        "Radisson"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Radisson&countryId=16&limit=20",
+      "priority_score": 67.9
+    },
+    {
+      "id": 104035,
+      "name": "DANANG MARRIOTT RESORT & SPA (EX. VINPEARL LUXURY DA NANG)",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 103,
+        "name": "Дананг"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 4.3,
+      "country_code": "VN",
+      "queries": [
+        "Marriott"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=16&limit=20",
+      "priority_score": 67.9
+    },
+    {
+      "id": 47460,
+      "name": "VINPEARL RESORT & SPA HA LONG",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 269,
+        "name": "Ханой"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 3,
+      "country_code": "VN",
+      "queries": [
+        "Vinpearl"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Vinpearl&countryId=16&limit=20",
+      "priority_score": 64
+    },
+    {
+      "id": 56537,
+      "name": "VINPEARL HOI AN RESORT & VILLAS",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 105,
+        "name": "Хой Ан"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 0,
+      "country_code": "VN",
+      "queries": [
+        "Vinpearl"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Vinpearl&countryId=16&limit=20",
+      "priority_score": 55
+    },
+    {
+      "id": 57060,
+      "name": "VINPEARL DANANG OCEAN RESORT & VILLAS",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 103,
+        "name": "Дананг"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 0,
+      "country_code": "VN",
+      "queries": [
+        "Vinpearl"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Vinpearl&countryId=16&limit=20",
+      "priority_score": 55
+    },
+    {
+      "id": 64775,
+      "name": "OCEANAMI VILLAS & BEACH CLUB",
+      "country": {
+        "id": 16,
+        "name": "Вьетнам"
+      },
+      "region": {
+        "id": 134,
+        "name": "Вунг Тау"
+      },
+      "subRegion": null,
+      "category": 5,
+      "rating": 0,
+      "country_code": "VN",
+      "queries": [
+        "Anam"
+      ],
+      "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Anam&countryId=16&limit=20",
+      "priority_score": 55
+    }
+  ],
+  "remaining_reserve_count": 228
+}

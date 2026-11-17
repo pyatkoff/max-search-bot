@@ -1,0 +1,3546 @@
+{
+  "state": "WAVE3_80_CLASSIFIED_SOURCE_ONLY_NO_SEND",
+  "rows": [
+    {
+      "id": 15722,
+      "work_id": "W3_001",
+      "name": "Marriott's Phuket Beach Club",
+      "aliases": [
+        "Marriott's Phuket Beach Club",
+        "MARRIOTT PHUKET BEACH CLUB"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=15722",
+      "status": "held",
+      "reason": "related_vacation_club_requires_separate_property_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 22740,
+      "work_id": "W3_002",
+      "name": "Avani+ Samui",
+      "aliases": [
+        "Avani+ Samui",
+        "AVANI PLUS SAMUI",
+        "ELEMENTS BOUTIQUE RESORT & SPA"
+      ],
+      "region": "Самуи",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22740",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "00038caa9270724adab9f87f72fcd73b8fb455669940afdbe8c04ce294fd199f",
+      "bytes": 619364,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/elements-boutique-resort-spa-42013300.jpg",
+          "bytes": 294820,
+          "sha256": "dc305f2d9cfa616fcf9861abc89802de1bb44493f14df1a0097da42edd2a0bbf",
+          "width": 960,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/elements-boutique-resort-spa-42013301.jpg",
+          "bytes": 211542,
+          "sha256": "b6c3b2663fbcdedf80e3f9706393154a2f52484ce663e2ef7a4b5c8c7203f8cc",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/elements-boutique-resort-spa-42013302.jpg",
+          "bytes": 168209,
+          "sha256": "27134498f1d05fa01d2f89ec09e2986864bf6b6353a54e0bc57f2540b8fb5d76",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 78200,
+      "work_id": "W3_003",
+      "name": "Avani+ Khao Lak Resort",
+      "aliases": [
+        "Avani+ Khao Lak Resort",
+        "AVANI+ KHAO LAK RESORT"
+      ],
+      "region": "Као Лак",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78200",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "a867980516ab4677bc397afa8c083a8d7fc0cb1ade8c54f8f68b6ed5c159d256",
+      "bytes": 851983,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/avani-khao-lak-102307570.jpg",
+          "bytes": 529594,
+          "sha256": "6184bdb56a921cd6a63f9f196eda550fb8875f7e4f7b7e143e9307ab84e207fe",
+          "width": 1200,
+          "height": 799,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/avani-khao-lak-102307571.jpg",
+          "bytes": 371845,
+          "sha256": "20877595beb252b0e448d7bae1008f06cbcbd388237fd7fe3166907957cf0ef3",
+          "width": 1200,
+          "height": 674,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/avani-khao-lak-102307572.jpg",
+          "bytes": 537798,
+          "sha256": "f69811462852c34d754be9e9f871b8cad9fa11500cd86ff7b83c016edcd2e54c",
+          "width": 1200,
+          "height": 900,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 538,
+      "work_id": "W3_004",
+      "name": "Amari Phuket",
+      "aliases": [
+        "Amari Phuket",
+        "AMARI PHUKET",
+        "AMARI CORAL BEACH PHUKET"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=538",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "bdebc89d30761e5dc87f9960e46d54dbb49fab8d9fb0a6dc2f05f4763d311203",
+      "bytes": 434561,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/538-56106100.jpg",
+          "bytes": 330285,
+          "sha256": "0a88fe9746960bc38b10f38f6ed9a5bc6fc8091689099435182678d4e4b98951",
+          "width": 1200,
+          "height": 769,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/538-56106201.jpg",
+          "bytes": 134890,
+          "sha256": "b8f7c2da703637813010bd138d5f465cbd9dae500d0214d5630302db7556a1a3",
+          "width": 920,
+          "height": 613,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/538-56106202.jpg",
+          "bytes": 119278,
+          "sha256": "4e7109331745cce50b5426a41602fafadb4d2bced548b5dd2daa07386081012a",
+          "width": 1024,
+          "height": 576,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 792,
+      "work_id": "W3_005",
+      "name": "InterContinental Pattaya Resort",
+      "aliases": [
+        "InterContinental Pattaya Resort",
+        "INTERCONTINENTAL PATTAYA RESORT",
+        "SHERATON PATTAYA RESORT"
+      ],
+      "region": "Паттайя",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=792",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "a67656908c150ec4831c9b235e3319947161ae92402039dc8d6d7155ad12e543",
+      "bytes": 685973,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-pattaya-resort-2314144.jpg",
+          "bytes": 317018,
+          "sha256": "9892e8370dc7e946fcbd9c159a969603a1e6197d527f4ded1310dbd3b9fc51f5",
+          "width": 1024,
+          "height": 576,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-pattaya-resort-2314100.jpg",
+          "bytes": 163414,
+          "sha256": "5c06a2250db9c7c7b5df196e475e9ea01cc6b53f3012df448f9ed65ec0337d99",
+          "width": 1024,
+          "height": 576,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-pattaya-resort-2314101.jpg",
+          "bytes": 328697,
+          "sha256": "c4a4b425daed4d6f79b3271006c449210fd90bf4d864bb281783b918adff81f7",
+          "width": 1024,
+          "height": 576,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 2984,
+      "work_id": "W3_006",
+      "name": "Hua Hin Marriott Resort & Spa",
+      "aliases": [
+        "Hua Hin Marriott Resort & Spa",
+        "HUA HIN MARRIOTT RESORT & SPA"
+      ],
+      "region": "Хуа Хин",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2984",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "64ac6244a354a3074a12d12998965343bc36c50702112523162f858a02bf84ec",
+      "bytes": 465931,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/hua-hin-marriott-resort-spa-102201310.jpg",
+          "bytes": 279502,
+          "sha256": "b9367b1f5550852e7b6da12df4492ca263e0183500e0bba2d1c55c46e435ce38",
+          "width": 1200,
+          "height": 670,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/hua-hin-marriott-resort-spa-102201321.jpg",
+          "bytes": 319540,
+          "sha256": "8137151c288afff0366e6dd4506a2b73b529a7a7df40df2e136e3b616cb52720",
+          "width": 800,
+          "height": 1200,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/hua-hin-marriott-resort-spa-102201322.jpg",
+          "bytes": 449144,
+          "sha256": "06a705246e9c311f25135eee1765b8344aaf447f7e6e56a384160f279b379347",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 4202,
+      "work_id": "W3_007",
+      "name": "Amari Vogue Krabi",
+      "aliases": [
+        "Amari Vogue Krabi",
+        "AMARI VOGUE RESORT"
+      ],
+      "region": "Краби",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4202",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "1fee6dcd3cdb4999ba975c9f523c12fb393682450414b0ffca070b5dbad7572a",
+      "bytes": 568294,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/amari-vogue-resort-32232600.jpg",
+          "bytes": 366841,
+          "sha256": "f03ebc32289dacf28125dee332ff1f1429765e00885d530ac0862bed6208b26a",
+          "width": 1024,
+          "height": 706,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/amari-vogue-resort-32232601.jpg",
+          "bytes": 106707,
+          "sha256": "45872a8c0ef672c9733182d16d5e211b36f4e346a166210742839cf483010b5c",
+          "width": 1024,
+          "height": 576,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/amari-vogue-resort-32232602.jpg",
+          "bytes": 103147,
+          "sha256": "aa9a0766fe18c1734e2653c5047b801ca9fbbc894a1800ff027f8325948b37ce",
+          "width": 1024,
+          "height": 701,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 7898,
+      "work_id": "W3_008",
+      "name": "Centara Grand Beach Resort & Villas Hua Hin",
+      "aliases": [
+        "Centara Grand Beach Resort & Villas Hua Hin",
+        "CENTARA GRAND BEACH RESORT & VILLA HUA HIN"
+      ],
+      "region": "Хуа Хин",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=7898",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "7183f7c68ff080452c1b2222f927d1e6bffe7aa88778e0467e1a2dfb156573f8",
+      "bytes": 461857,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/centara-grand-beach-resort-villa-hua-hin-1811000.jpg",
+          "bytes": 84417,
+          "sha256": "21fe25948432237d027d72ccc39405020cd32466371929e140f4c9e08463f061",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/centara-grand-beach-resort-villa-hua-hin-1811001.jpg",
+          "bytes": 98235,
+          "sha256": "6528ae1739a89609060e9d79731f74b0d355ca954f9ebe2ce2c4f933c4115a26",
+          "width": 800,
+          "height": 513,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/centara-grand-beach-resort-villa-hua-hin-1811002.jpg",
+          "bytes": 92661,
+          "sha256": "318f1b98fe161a1ba4aabd85ccf4e211c50d3556110f5fde9bbc71553fa5d60c",
+          "width": 800,
+          "height": 573,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 66860,
+      "work_id": "W3_009",
+      "name": "InterContinental Phuket Resort",
+      "aliases": [
+        "InterContinental Phuket Resort",
+        "INTERCONTINENTAL PHUKET RESORT"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66860",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "af07880f1b5dd2e3679bccb62520e5dda562827df3d707fb66e55b06b82a78e3",
+      "bytes": 624470,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/66860-34481900.jpg",
+          "bytes": 267609,
+          "sha256": "14e912442d0c577762a86c4c4159e2bc5710b006cd380801c06e8ec85cf723cf",
+          "width": 920,
+          "height": 689,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/66860-34482001.jpg",
+          "bytes": 167225,
+          "sha256": "fd15fecdc03e007035fa7b7a3427241cb25b817a1c5325a17da65fe0adc31af9",
+          "width": 920,
+          "height": 690,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/66860-34482002.jpg",
+          "bytes": 237600,
+          "sha256": "c212ea52b7733ba0d8f4adc44ae74530da397042edf86871b7b2f0cb161f39df",
+          "width": 1024,
+          "height": 693,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 598,
+      "work_id": "W3_010",
+      "name": "Centara Reserve Samui",
+      "aliases": [
+        "Centara Reserve Samui",
+        "CENTARA RESERVE SAMUI",
+        "Centara Grand Beach Resort Samui",
+        "Centara Grand Beach Samui"
+      ],
+      "region": "Самуи",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=598",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "9577ccc24ae58b2dfa5876b29d0ed6e0dad27e8dce3f1a6e5cd596b4882ded30",
+      "bytes": 519361,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/598-91130215.jpg",
+          "bytes": 205569,
+          "sha256": "9e5817f568c9e57613d4a8348eb7c676dcab860ce7767f977ad64e9ca0cbf38a",
+          "width": 1024,
+          "height": 576,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/598-91130000.jpg",
+          "bytes": 144640,
+          "sha256": "07f38d505d99ed5dcf4ed0dd4bb78887c0e7cf241777f76da4e120ceebf51a54",
+          "width": 688,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/598-91130001.jpg",
+          "bytes": 133739,
+          "sha256": "10430bb3504eaccb6edae7439778f3389e36bed171c8ae09c78b7b79b6fa7ebc",
+          "width": 1024,
+          "height": 446,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 669,
+      "work_id": "W3_011",
+      "name": "JW Marriott Phuket Resort & Spa",
+      "aliases": [
+        "JW Marriott Phuket Resort & Spa",
+        "JW MARRIOTT PHUKET RESORT & SPA"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=669",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "c3f983df4fdb3f13c4957df479b6adb5d365f0fed1e92b92454c6931997f1c40",
+      "bytes": 543276,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/669-71370700.jpg",
+          "bytes": 306295,
+          "sha256": "e6c32a2baa763b6296760c4cdd6ca477678e5029e1809339971ffbf76ba9bf83",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/669-71370801.jpg",
+          "bytes": 130201,
+          "sha256": "b8038c63c1a200169742f8069fdffee79524cf011aa7452fdde4d7fd4dae4acb",
+          "width": 1024,
+          "height": 572,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/669-71370802.jpg",
+          "bytes": 166938,
+          "sha256": "4e969b96eab8e9c6958b0af023f760ea9e760562ba4472d6668eed0a4240ff1d",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 3022,
+      "work_id": "W3_012",
+      "name": "Dusit Thani Krabi Beach Resort",
+      "aliases": [
+        "Dusit Thani Krabi Beach Resort",
+        "DUSIT THANI KRABI BEACH RESORT",
+        "SHERATON KRABI BEACH RESORT"
+      ],
+      "region": "Краби",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=3022",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "f6e21453c077b921da04adf62dd0263812d62e99d8bee3c31421d551d917973c",
+      "bytes": 543213,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-krabi-beach-resort-49037905.jpg",
+          "bytes": 223159,
+          "sha256": "fec31ef96a8151ddf1254176c2bdb63c938960ca3e0364ec210220c636059f44",
+          "width": 1024,
+          "height": 672,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-krabi-beach-resort-49037900.jpg",
+          "bytes": 188429,
+          "sha256": "ec3036a21843bb9c259eed3a9df7da3b272e53a438881acafb6f1deb135500cd",
+          "width": 768,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-krabi-beach-resort-49037902.jpg",
+          "bytes": 190941,
+          "sha256": "2fc0d6b2764170ee485edc3f802dcfcb3917941cdff4c6c5e0bb9316647af232",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 4294,
+      "work_id": "W3_013",
+      "name": "Le Méridien Phuket Mai Khao Beach Resort",
+      "aliases": [
+        "Le Méridien Phuket Mai Khao Beach Resort",
+        "LE MERIDIEN PHUKET MAI KHAO BEACH RESORT"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4294",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "27a781241ece3cd1b3136c6312c5b7bdcf949d54609bb9b03d9f4e65cc8b2ca4",
+      "bytes": 765063,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/4294-12395228.jpg",
+          "bytes": 343962,
+          "sha256": "8887b20c8917f59cc0a2cfdcf1fb43ea1fe40697ec828bb4166bc6797cac87e2",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/4294-12394700.jpg",
+          "bytes": 326342,
+          "sha256": "3a24d79e27179d1b423eeedd3761261ab5ad0dcda64de8d941cc9f4e8be87a0a",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/4294-12394801.jpg",
+          "bytes": 286081,
+          "sha256": "eba2a5f145c3d5013fcceed543105580ff93b0a1c0387c8eb757acda2374a225",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 4309,
+      "work_id": "W3_014",
+      "name": "JW Marriott Khao Lak Resort & Spa",
+      "aliases": [
+        "JW Marriott Khao Lak Resort & Spa",
+        "JW MARRIOTT KHAO LAK RESORT & SPA"
+      ],
+      "region": "Као Лак",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4309",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "258c7d863b124884a106d3599591b8ed01569300a2dd8fb2537815c62b8b2e34",
+      "bytes": 586149,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/4309-47213000.jpg",
+          "bytes": 308048,
+          "sha256": "10679a665849c3fb03c30e844b95d36301351a5231dba50bc26932a192525cf4",
+          "width": 1040,
+          "height": 1040,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/4309-47213101.jpg",
+          "bytes": 286523,
+          "sha256": "dd4a87e3e475cc223144357f5d65d92955f68a139054ae480e56c920d2022395",
+          "width": 1018,
+          "height": 569,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/4309-47213202.jpg",
+          "bytes": 290175,
+          "sha256": "dd1f1d98d9fb1762fecf6d70112e2a4f112c14d7bbbea3b8319f23c225df2796",
+          "width": 1071,
+          "height": 714,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 4343,
+      "work_id": "W3_015",
+      "name": "Mövenpick Resort Bangtao Beach Phuket",
+      "aliases": [
+        "Mövenpick Resort Bangtao Beach Phuket",
+        "MOVENPICK RESORT BANGTAO BEACH"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4343",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "5b0055d6cf8af75481369aa098cd79afe214c81375aa810763a73a1bbcf2ca28",
+      "bytes": 596376,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/movenpick-resort-bangtao-beach-79832900.jpg",
+          "bytes": 283062,
+          "sha256": "2c3507f411f835921dad679e4b2a6fa4f1e153a72a0f757e742245f90c1305e0",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/movenpick-resort-bangtao-beach-79832901.jpg",
+          "bytes": 262067,
+          "sha256": "7f476aabc7dddc903dd8b0834a2fbefa888576dc3bc956f5da7f99446e22ef2a",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/movenpick-resort-bangtao-beach-79832902.jpg",
+          "bytes": 340253,
+          "sha256": "dd2a28ab9d4d503347cf645b91900c31e86d26b6702dd5aac25e62085769c325",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 7856,
+      "work_id": "W3_016",
+      "name": "Mövenpick Asara Resort & Spa Hua Hin",
+      "aliases": [
+        "Mövenpick Asara Resort & Spa Hua Hin",
+        "MOVENPICK ASARA RESORT & SPA HUA HIN"
+      ],
+      "region": "Хуа Хин",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=7856",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "1867e50cec05c736e6545c7916a16461137fd1bbddd2dc12d6453c6bfeddd4cf",
+      "bytes": 625339,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/asara-villa-suite-550044.jpg",
+          "bytes": 371990,
+          "sha256": "7bed5bb1f49664a277ca7ea2c6eb2d958407041a58497bb2dea275633d3d3fb1",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/asara-villa-suite-550000.jpg",
+          "bytes": 295688,
+          "sha256": "10132a90050a2888882b8cd23b671f425e8683803addf51671ba21b1e7d3fe0b",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/asara-villa-suite-550001.jpg",
+          "bytes": 332396,
+          "sha256": "a64a4803ea29b186396d2717f65d45b713ce7129000d329d991ccf644c30e257",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 8171,
+      "work_id": "W3_017",
+      "name": "Sofitel Krabi Phokeethra Golf & Spa Resort",
+      "aliases": [
+        "Sofitel Krabi Phokeethra Golf & Spa Resort",
+        "SOFITEL KRABI PHOKEETHRA GOLF & SPA RESORT"
+      ],
+      "region": "Краби",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8171",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "acf0aa11c66e0254e166d50323dd892c7f7e2a7dd5bfbc9899ccb3255e496ceb",
+      "bytes": 520758,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/8171-99290302.jpg",
+          "bytes": 268069,
+          "sha256": "eafad2cc33755ed5ed0186b499c091e0597b61929e6f654b336d3969eea236b4",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/8171-99290200.jpg",
+          "bytes": 249443,
+          "sha256": "3f8b21f9cb80dd7fbb85b86223a854047d5d05b96fef2fca4b0cdba20e652738",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/8171-99290301.jpg",
+          "bytes": 245290,
+          "sha256": "024e98ff3badbf7726c5b133cda2a1086de2b240427b57bcd249ca8fe2c97c59",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 9395,
+      "work_id": "W3_018",
+      "name": "InterContinental Koh Samui Resort",
+      "aliases": [
+        "InterContinental Koh Samui Resort",
+        "INTERCONTINENTAL KOH SAMUI RESORT"
+      ],
+      "region": "Самуи",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=9395",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "997cc21fcd569201bb273580e4f123d3a8d5073e3f0df6a4509ab11bad339965",
+      "bytes": 541820,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/intercontinental-samui-baan-taling-ngam-resort-102208020.jpg",
+          "bytes": 338320,
+          "sha256": "ed0fd69717a9821437ca49aa837bcd89dca231802bb34ba5a8be6e588643ef16",
+          "width": 1200,
+          "height": 674,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/intercontinental-samui-baan-taling-ngam-resort-102208021.jpg",
+          "bytes": 277871,
+          "sha256": "587455a7b9c668ecb1fe87ad15fddd69f90eabf8ef9ca07e28ee27e388191d04",
+          "width": 1200,
+          "height": 801,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/intercontinental-samui-baan-taling-ngam-resort-102208022.jpg",
+          "bytes": 400519,
+          "sha256": "5cd5284b618b19554be88b16f2535dfa82345d639a7fb661c5eb59612ebdd047",
+          "width": 1200,
+          "height": 777,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 12159,
+      "work_id": "W3_019",
+      "name": "Anantara Si Kao Resort & Spa",
+      "aliases": [
+        "Anantara Si Kao Resort & Spa",
+        "ANANTARA SI KAO RESORT & SPA"
+      ],
+      "region": "Краби",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=12159",
+      "status": "held",
+      "reason": "operating_status_requires_current_primary_confirmation",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 12170,
+      "work_id": "W3_020",
+      "name": "InterContinental Hua Hin Resort",
+      "aliases": [
+        "InterContinental Hua Hin Resort",
+        "INTERCONTINENTAL HUA HIN RESORT"
+      ],
+      "region": "Хуа Хин",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=12170",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "3dd2ad1983c77393e85bd6546410b8261e73c5abed085823e1df6a88463f8c3c",
+      "bytes": 493457,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/intercontinental-hua-hin-resort-48310304.jpg",
+          "bytes": 124596,
+          "sha256": "9e361a61f22e4ea7b92ee7c389f0f11e39640c2ad825ddeb2f2ee52033713a43",
+          "width": 512,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/intercontinental-hua-hin-resort-48326800.jpg",
+          "bytes": 99815,
+          "sha256": "2591675002eda7ebf0152de2c5929d21052bef3f3f4af3e341dcbf131319c841",
+          "width": 1024,
+          "height": 681,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/intercontinental-hua-hin-resort-48310300.jpg",
+          "bytes": 212125,
+          "sha256": "002223a3193115ae76e8736c8e75d601fa024725ef8121ae40bdb710546fa137",
+          "width": 1024,
+          "height": 576,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 12194,
+      "work_id": "W3_021",
+      "name": "DoublePool Villas by Banyan Tree",
+      "aliases": [
+        "DoublePool Villas by Banyan Tree",
+        "DOUBLEPOOL VILLAS BANYAN TREE"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=12194",
+      "status": "held",
+      "reason": "related_villas_require_separate_property_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 22757,
+      "work_id": "W3_022",
+      "name": "Marriott's Mai Khao Beach",
+      "aliases": [
+        "Marriott's Mai Khao Beach",
+        "MARRIOTT MAI KHAO BEACH"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22757",
+      "status": "held",
+      "reason": "vacation_club_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 526,
+      "work_id": "W3_023",
+      "name": "Phuket Marriott Resort & Spa Nai Yang Beach",
+      "aliases": [
+        "Phuket Marriott Resort & Spa Nai Yang Beach",
+        "PHUKET MARRIOTT RESORT AND SPA NAI YANG BEACH"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=526",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "a38ba4add3e9fee235af8ac32841a78d7438d1a8d786d484e6d9c5b9dedf3fa7",
+      "bytes": 611350,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/adamas-resort-spa-102106250.jpg",
+          "bytes": 459311,
+          "sha256": "964024b455d44a43b9caa1e722fcced825ad9f2c18abf1de61b9058c2c788ee1",
+          "width": 1200,
+          "height": 900,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/adamas-resort-spa-102106251.jpg",
+          "bytes": 132517,
+          "sha256": "d00493f45a364b5b9f5ebbd1528c52bdccb55228f2279f60d4854b8cab29a49f",
+          "width": 1200,
+          "height": 675,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/adamas-resort-spa-102106252.jpg",
+          "bytes": 361900,
+          "sha256": "e3f4657db0c801f6c805228a0c2282ac5d626b5a97cdf1f22140ec63aa789e01",
+          "width": 1200,
+          "height": 675,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 599,
+      "work_id": "W3_024",
+      "name": "Centara Grand Mirage Beach Resort Pattaya",
+      "aliases": [
+        "Centara Grand Mirage Beach Resort Pattaya",
+        "CENTARA GRAND MIRAGE BEACH RESORT PATTAYA"
+      ],
+      "region": "Паттайя",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=599",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "3e91d9b193ae94cb9a716a92cbc2efef4f13d2b3cc2b5f2bcf7d480b697635ed",
+      "bytes": 510748,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/centara-grand-mirage-beach-31779800.jpg",
+          "bytes": 260687,
+          "sha256": "bd0bce44edd75c4cd4d4251367e62b33b52dc8a756960b6e428dc86e1df234bc",
+          "width": 1024,
+          "height": 699,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/centara-grand-mirage-beach-31779801.jpg",
+          "bytes": 139925,
+          "sha256": "8088278738a6f288a0d5bf0a980e788a0274d7e1f3ba2055f6a213535abdbfb4",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/centara-grand-mirage-beach-31779802.jpg",
+          "bytes": 307523,
+          "sha256": "3aafc198218a1c2ae23078ed2d29a6493fd8c84df141eee01075cbdc8f947e29",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 685,
+      "work_id": "W3_025",
+      "name": "SAii Laguna Phuket",
+      "aliases": [
+        "SAii Laguna Phuket",
+        "SAII LAGUNA PHUKET",
+        "OUTRIGGER LAGUNA PHUKET BEACH RESORT"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=685",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "d3ee6a26539d8885591c34c62f8bd1127ff8456adaaa0ff355dd396a6d210dd6",
+      "bytes": 631258,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/laguna-beach-39138600.jpg",
+          "bytes": 272413,
+          "sha256": "a43b9bcc8119f4bb949d6d08e91c071331491d269ceb18e4b05367b3a2d197ca",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/laguna-beach-39138601.jpg",
+          "bytes": 309420,
+          "sha256": "f4acba8bce5d9dcc7c70b12ec7506786fce2586259b1d46e4e131a03017b3943",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/laguna-beach-39138602.jpg",
+          "bytes": 266381,
+          "sha256": "42554d00ae546633b24d67aafc215b9fd0fcab527f56c29c2f139dc866153bd6",
+          "width": 1024,
+          "height": 626,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 689,
+      "work_id": "W3_026",
+      "name": "Le Méridien Phuket Beach Resort",
+      "aliases": [
+        "Le Méridien Phuket Beach Resort",
+        "LE MERIDIEN PHUKET BEACH RESORT"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=689",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "68f982446f3c58ddd92db38fec7a98de91acc14b7d7c5be85c086edea92a3a89",
+      "bytes": 556852,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-phuket-beach-resort-39226803.jpg",
+          "bytes": 203998,
+          "sha256": "2763a0fa981e55b2799ad9e3b518aa68fc4542769d90dcdf0cd6e9977ebb8a46",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-phuket-beach-resort-39226800.jpg",
+          "bytes": 264267,
+          "sha256": "a91682ab04a0cb7bc0b09878f1498c88eff9996d7654a2f776773398b79b5215",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-phuket-beach-resort-39226801.jpg",
+          "bytes": 303693,
+          "sha256": "eb7aaadeff504ce38a62f3eb86d4ca3b9a27110b1b7570d1920489f597813a33",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 697,
+      "work_id": "W3_027",
+      "name": "Avani Pattaya Resort",
+      "aliases": [
+        "Avani Pattaya Resort",
+        "AVANI PATTAYA RESORT & SPA",
+        "PATTAYA MARRIOTT RESORT & SPA"
+      ],
+      "region": "Паттайя",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=697",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "d72ede1e62beb1fc8c103be2d13d1940e53ca3da05d5f707829d568d4de9a4f0",
+      "bytes": 512076,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/marriott-resort-spa-pattaya-94482402.jpg",
+          "bytes": 214684,
+          "sha256": "a8cb41cea84bbc0c31cee3c135c528166ce9aabdb63741347485a62af6e3e9e2",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/marriott-resort-spa-pattaya-94482400.jpg",
+          "bytes": 162726,
+          "sha256": "5dd3b2daa950cbff52c3a45872e0a5dc132a6f25503186768db4f4b106123b91",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/marriott-resort-spa-pattaya-94482401.jpg",
+          "bytes": 248132,
+          "sha256": "79306907201904cd3dff73063afe75996e87581d9f957d4447cfa0513ea1ce0e",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 761,
+      "work_id": "W3_028",
+      "name": "Pullman Phuket Panwa Beach Resort",
+      "aliases": [
+        "Pullman Phuket Panwa Beach Resort",
+        "PULLMAN PHUKET PANWA BEACH RESORT",
+        "RADISSON PLAZA RESORT PANWA BEACH"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=761",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "c4b7eaf24d9b8561a1b126fae2ab92b29971c8b66298695af95315deac978691",
+      "bytes": 519470,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/radisson-plaza-resort-panwa-beach-102104580.jpg",
+          "bytes": 382311,
+          "sha256": "b3ff455b6043020a6afd02a8641c75b272969ad5ec4c7914a9448212a8deb625",
+          "width": 1200,
+          "height": 838,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/radisson-plaza-resort-panwa-beach-102104581.jpg",
+          "bytes": 418780,
+          "sha256": "7e955a4107a209533ad1681d8119d83de270077750e21056106a04eac093916e",
+          "width": 1200,
+          "height": 801,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/radisson-plaza-resort-panwa-beach-102104592.jpg",
+          "bytes": 375207,
+          "sha256": "3b08e528398dcc6788d3782ca2622a2214cecba651911e9e784124eeb42d8905",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 791,
+      "work_id": "W3_029",
+      "name": "Angsana Laguna Phuket",
+      "aliases": [
+        "Angsana Laguna Phuket",
+        "ANGSANA LAGUNA PHUKET"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=791",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "c65220fcd8e7bc8fc49d3e37cb2fd0c3e8bdbc1b17fd1214c4adf67cdc33a20b",
+      "bytes": 571779,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-grand-laguna-102106190.jpg",
+          "bytes": 364851,
+          "sha256": "2ffedea7dfb8d18ed758e9c08584792a3137b7696de22c356a83348c1d503a3f",
+          "width": 1200,
+          "height": 801,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-grand-laguna-102106191.jpg",
+          "bytes": 369680,
+          "sha256": "f626e4b6d90d18e1068b1c7c4c0c10734719def79a6995cfb1a0d9593cfdffbe",
+          "width": 1200,
+          "height": 801,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-grand-laguna-102106192.jpg",
+          "bytes": 354071,
+          "sha256": "e5093f1707b92f9fdd9654a8b02cead6af073d6f1d5d80367e290fd9baf111c0",
+          "width": 1200,
+          "height": 801,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 3021,
+      "work_id": "W3_030",
+      "name": "Sheraton Hua Hin Resort & Spa",
+      "aliases": [
+        "Sheraton Hua Hin Resort & Spa",
+        "SHERATON HUA HIN RESORT & SPA"
+      ],
+      "region": "Хуа Хин",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=3021",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "e877f98dececd670b2c9df7a4fb1fd46499e1726c3107ca67b874ec2b8f5c969",
+      "bytes": 484237,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-hua-hin-resort-spa-102202110.jpg",
+          "bytes": 250345,
+          "sha256": "c8e9ecda6b1e00a10fe55cd680f320ba6095cb497e504c248678a2397a601632",
+          "width": 1200,
+          "height": 543,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-hua-hin-resort-spa-102202111.jpg",
+          "bytes": 322519,
+          "sha256": "2cf11c80dba2776a77af5724285d193f55c6293b2370f98451b6c56e95681095",
+          "width": 1200,
+          "height": 779,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-hua-hin-resort-spa-102202112.jpg",
+          "bytes": 534100,
+          "sha256": "131c4c60b4262c84d01bd1814462fb265147c998a12c1a0d3224862310b1ee38",
+          "width": 1200,
+          "height": 913,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 22836,
+      "work_id": "W3_031",
+      "name": "Rayong Marriott Resort & Spa",
+      "aliases": [
+        "Rayong Marriott Resort & Spa",
+        "RAYONG MARRIOTT RESORT & SPA"
+      ],
+      "region": "Районг",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22836",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "36dfc27c61c5b3eca3fff99adbd79f9bffbf478bfe0573a672000ab39c085d89",
+      "bytes": 464350,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/rayong-marriott-resort-spa-1016010.jpg",
+          "bytes": 224522,
+          "sha256": "2d1c3ecba25b3359e22023a3ba6bca6ef1d8305b1222f4e09c7934fc1b66739f",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/rayong-marriott-resort-spa-1016000.jpg",
+          "bytes": 231349,
+          "sha256": "01a2ff34d86353cee14d0bdfead40788bdae6ad873f6182dc2d2c535895f9ac5",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/rayong-marriott-resort-spa-1016001.jpg",
+          "bytes": 108663,
+          "sha256": "82252201b7b44dc5bdc9c05be7fe94b56504d8cb57061a1ad7a64d6d9287f99f",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 33310,
+      "work_id": "W3_032",
+      "name": "Hyatt Regency Phuket Resort",
+      "aliases": [
+        "Hyatt Regency Phuket Resort",
+        "HYATT REGENCY PHUKET RESORT"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=33310",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "6da38fe5ac6777afff78276e0c433defafdde59b62408339737d7027f9ec37f2",
+      "bytes": 540392,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/hyatt-regency-phuket-resort-43644800.jpg",
+          "bytes": 298781,
+          "sha256": "715be5caeb25a853bd12c3f1fe6714101aa09bd151cf123d2f9883e89f77b79e",
+          "width": 928,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/hyatt-regency-phuket-resort-43644801.jpg",
+          "bytes": 141442,
+          "sha256": "4c4bdf67bcbef43c776275da93334daf6eb3492049ad65aa83cf1e7b846e09ca",
+          "width": 1024,
+          "height": 674,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/hyatt-regency-phuket-resort-43644802.jpg",
+          "bytes": 171608,
+          "sha256": "cf1d9606118907ef59f35c7cfec2a50bf84cbcc845625663b2d094e6b8920760",
+          "width": 1024,
+          "height": 640,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 57466,
+      "work_id": "W3_033",
+      "name": "Avani+ Hua Hin Resort",
+      "aliases": [
+        "Avani+ Hua Hin Resort",
+        "AVANI+ HUA HIN RESORT",
+        "ANANDA HUA HIN RESORT & SPA"
+      ],
+      "region": "Хуа Хин",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57466",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "a46bebe9ff4fc8b93f59204575da45ca9783aa076299d53ec157befcb7fa0df8",
+      "bytes": 529218,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/ananda-hua-hin-resort-spa-7542001.jpg",
+          "bytes": 244479,
+          "sha256": "dab1996f9ce01bb10389ba8a2fd32f802eadfcb8d7674e03fca38cf94080d5fc",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/ananda-hua-hin-resort-spa-7542000.jpg",
+          "bytes": 246657,
+          "sha256": "3e2b4ac3e6ada716637d10ba5efa89ac726f5d9270d161b0c5febbbaf3859b3c",
+          "width": 768,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/ananda-hua-hin-resort-spa-7542002.jpg",
+          "bytes": 206464,
+          "sha256": "0796e44feeb6659034d04222a655b418f71cbc82aea4d80550803458c65f891d",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 70051,
+      "work_id": "W3_034",
+      "name": "Island Escape by Burasari",
+      "aliases": [
+        "Island Escape by Burasari",
+        "ISLAND ESCAPE BY BURASARI"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=70051",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "76046666a33c29fcceda04861672ac57a05afa95b09df4d939a3d468337d774b",
+      "bytes": 504793,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/island-escape-by-burasari-97767500.jpg",
+          "bytes": 194912,
+          "sha256": "aafe47482e90d9a20e80aa262e8f51450ff2b0998f25cad8e0ffe6f76d6ac158",
+          "width": 1024,
+          "height": 576,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/island-escape-by-burasari-97767501.jpg",
+          "bytes": 168371,
+          "sha256": "61704f3295ac9ae51f9d1bf75a73898ac6099cabcc4e40f7719aa26d2354dfd3",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/island-escape-by-burasari-97767502.jpg",
+          "bytes": 174132,
+          "sha256": "4283d6b4d0da3cdd72733a37d03c6803406eb13a219ef16bfbeeda316e8dcd24",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 542,
+      "work_id": "W3_035",
+      "name": "Amari Koh Samui",
+      "aliases": [
+        "Amari Koh Samui",
+        "AMARI KOH SAMUI",
+        "AMARI PALM REEF RESORT"
+      ],
+      "region": "Самуи",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=542",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "ad2d1cb44dcc072b6975e90b5019828c70de8ae94297a73475e78b596cbd2fc8",
+      "bytes": 620791,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/amari-palm-reef-resort-3013508.jpg",
+          "bytes": 320335,
+          "sha256": "96615ef7874aa7748852c971dc31a4c1962dbdbe7dac97140c37389ae28238a2",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/amari-palm-reef-resort-3013500.jpg",
+          "bytes": 180417,
+          "sha256": "e39eba589f3cfc2f06ef4a64bea13a6e772dcf4d00216783ec74ec1a316fda20",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/amari-palm-reef-resort-3013501.jpg",
+          "bytes": 263657,
+          "sha256": "c9ecc04365e8df18fdaa47ec95400ba5534b9b6b4ccfb5bef1d92b6c6e17b30d",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 596,
+      "work_id": "W3_036",
+      "name": "Cape Sienna Gourmet Hotel & Villas",
+      "aliases": [
+        "Cape Sienna Gourmet Hotel & Villas",
+        "CAPE SIENNA GOURMET HOTEL & VILLAS"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=596",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "5dd0f390945e223774c6eae481b02ba2bcb051379527035abffb472eaa4cdb41",
+      "bytes": 577838,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/596-59371002.jpg",
+          "bytes": 304469,
+          "sha256": "ee6a8f4d284bda7ce761883750e3c742b3cbf000d58a9f21648692c958a1f181",
+          "width": 1024,
+          "height": 666,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/596-59355300.jpg",
+          "bytes": 158414,
+          "sha256": "e1aaab21ba1d05a27dd395923dd24d93b7249ca7fef70b4fccbe941429a28119",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/596-59355401.jpg",
+          "bytes": 106302,
+          "sha256": "a4feea89fe729589e2b1d82e4fd0faf9f338376781d964ecd2967643b1c176b0",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 649,
+      "work_id": "W3_037",
+      "name": "Pullman Phuket Karon Beach Resort",
+      "aliases": [
+        "Pullman Phuket Karon Beach Resort",
+        "PULLMAN PHUKET KARON BEACH RESORT",
+        "HILTON PHUKET ARCADIA RESORT & SPA"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=649",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "961523bca2a8c6b9fec1f75e037ea7009583eeb586862a883c0cc217fb0f64ce",
+      "bytes": 491217,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/649-54127238.jpg",
+          "bytes": 235923,
+          "sha256": "e80944057b13da4a31ee44de5777a8a11118e3bf40e1cd23c1f1985a1a751f11",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/649-54126300.jpg",
+          "bytes": 231051,
+          "sha256": "5156fa5b87165c247d9107736e27b5c26bc26706859ecba79c25d6471765f6b7",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/649-54126401.jpg",
+          "bytes": 288324,
+          "sha256": "b268333c189d5c213038799e2dd7ddf58a6723c727f8f58aef25e74ee47b2beb",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 706,
+      "work_id": "W3_038",
+      "name": "Paradox Resort Phuket",
+      "aliases": [
+        "Paradox Resort Phuket",
+        "PARADOX RESORT PHUKET",
+        "MOVENPICK RESORT & SPA KARON BEACH"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=706",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "50c6b55b86dfb8c1ee61088c0a99776837c7be95e57c5ee4907fb6758f68656f",
+      "bytes": 533185,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/706-14890901.jpg",
+          "bytes": 278073,
+          "sha256": "24e017cfeb91bef25ddc239017ba53bcc7265f14ff4af7eaaa4cdfcc5ce6b0f8",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/706-14890900.jpg",
+          "bytes": 199818,
+          "sha256": "537df240649aebc374fb7aa41267f916d18e90596f06c2951d4a6c8f9ad23ed5",
+          "width": 1024,
+          "height": 752,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/706-14890902.jpg",
+          "bytes": 242983,
+          "sha256": "4550e3cd5702db473ba8460c1234b2cc632dd86ea115009a2f99f101018ecc6d",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 765,
+      "work_id": "W3_039",
+      "name": "Royal Cliff Beach Hotel",
+      "aliases": [
+        "Royal Cliff Beach Hotel",
+        "ROYAL CLIFF BEACH"
+      ],
+      "region": "Паттайя",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=765",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "6b581cbd6b206306d94833afef2e465cb737daf91dc79a046d0dc0012f5379c3",
+      "bytes": 496051,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/royal-cliff-beach-102105100.jpg",
+          "bytes": 381649,
+          "sha256": "7edcb76533fd505a9dd7bec012b0fc5ffb38034d020a971b92a6c6e8d9f0aa0c",
+          "width": 1200,
+          "height": 801,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/royal-cliff-beach-102105101.jpg",
+          "bytes": 471293,
+          "sha256": "5947340e906b5cd22d6e35f8f2992fddbc5044d88fb6f08f0921b55669e323dc",
+          "width": 1200,
+          "height": 812,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/royal-cliff-beach-102105102.jpg",
+          "bytes": 217503,
+          "sha256": "a3195fe411997db175dd21bfe282d914f8a2e94f1a9cecb0dd5d951a53b8dd80",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 768,
+      "work_id": "W3_040",
+      "name": "Royal Cliff Beach Terrace",
+      "aliases": [
+        "Royal Cliff Beach Terrace",
+        "ROYAL CLIFF BEACH TERRACE"
+      ],
+      "region": "Паттайя",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=768",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "7fec48d978c367c03b7b9cd115aa3c1ef49462d925330e6900bdca60db58b752",
+      "bytes": 594514,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/royal-cliff-terrace-102105182.jpg",
+          "bytes": 264158,
+          "sha256": "79d7ac5beebdcef2371f5570b7ad6d660fd358a80f72d44d23a06088cecd25c7",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/royal-cliff-terrace-102105180.jpg",
+          "bytes": 372086,
+          "sha256": "7b4e86e5ae214cc9cab28fb516306264d3dfe6f61e39871dc7f04c4cbddf9b54",
+          "width": 1200,
+          "height": 801,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/royal-cliff-terrace-102105181.jpg",
+          "bytes": 470258,
+          "sha256": "84b286804b8525b088567199bb2d7dc72dd309610046b785f16954dfadb41612",
+          "width": 1200,
+          "height": 812,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 825,
+      "work_id": "W3_041",
+      "name": "Sheraton Samui Resort",
+      "aliases": [
+        "Sheraton Samui Resort",
+        "SHERATON SAMUI RESORT",
+        "IMPERIAL SAMUI"
+      ],
+      "region": "Самуи",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=825",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "244f151a4cd824b175a9d4334dc1094356144385b87d6d67c1e43b6d13a719cb",
+      "bytes": 571922,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/the-imperial-samui-hotel-102107280.jpg",
+          "bytes": 414622,
+          "sha256": "54ee7c36cad8c7e2326faaec5cadca6ebd003337c60fce9332060da36c6932d2",
+          "width": 1200,
+          "height": 799,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/the-imperial-samui-hotel-102107281.jpg",
+          "bytes": 318764,
+          "sha256": "025deeb302dff24f9d6b99f34c6f1ebbfe3a28558d9ebfedbed3ac8a4c81c365",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/the-imperial-samui-hotel-102107282.jpg",
+          "bytes": 308616,
+          "sha256": "0c54e07b6e06c99c63a174385f53cc50fe34cea25d9fffc41cfa95a9ee221587",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 4270,
+      "work_id": "W3_042",
+      "name": "Dusit Thani Laguna Phuket",
+      "aliases": [
+        "Dusit Thani Laguna Phuket",
+        "DUSIT THANI LAGUNA PHUKET"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4270",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "e30e5dbc755695c8535d27dd4296198418464d02749b2e33246412d7a9e95cc4",
+      "bytes": 528617,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/4270-70953300.jpg",
+          "bytes": 263279,
+          "sha256": "97e7d2507f27cf7aa19d4d7b5e389f7794306aa70e113d8ff7cd15cf1ac86525",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/4270-70953401.jpg",
+          "bytes": 81483,
+          "sha256": "9a3ba0086cb6f55678bfb3f67034b1613437025af86c7cd155581881c466f3b6",
+          "width": 800,
+          "height": 600,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/4270-70953402.jpg",
+          "bytes": 255979,
+          "sha256": "c6ee431169932cb2c6ea4f563ff8ca4e6d23d9fb6c0801611000699136894f54",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 9404,
+      "work_id": "W3_043",
+      "name": "Pullman Phuket Arcadia Naithon Beach",
+      "aliases": [
+        "Pullman Phuket Arcadia Naithon Beach",
+        "PULLMAN PHUKET ARCADIA NAITHON BEACH"
+      ],
+      "region": "Пхукет",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=9404",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "4cc55fa693a4f75ebeab4e38332ee872c9dcd64556f90ffc31cf75ba1d2d796a",
+      "bytes": 627759,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/pullman-phuket-arcadia-38948700.jpg",
+          "bytes": 340878,
+          "sha256": "ab69afee0e869f2716273312a9a3d52f2efff92a5291f4e70ed5ee47649959f3",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/pullman-phuket-arcadia-38948701.jpg",
+          "bytes": 246283,
+          "sha256": "ca8f03710d270d4f97e1f9b948d14d4304ada438273cc8001af40abecc001378",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/pullman-phuket-arcadia-38948702.jpg",
+          "bytes": 210778,
+          "sha256": "a455687936b8b3ec2321a25fb971539221d69ce6030f66f0dca4ccd065703d8b",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 35036,
+      "work_id": "W3_044",
+      "name": "Sheraton Hua Hin Pranburi Villas",
+      "aliases": [
+        "Sheraton Hua Hin Pranburi Villas",
+        "SHERATON HUA HIN PRANBURI VILLAS"
+      ],
+      "region": "Хуа Хин",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=35036",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "44509c87183ead0d19544f45c135263aa88becd45dbd3313a9f953f0615158c7",
+      "bytes": 357088,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-hua-hin-pranburi-villas-0.jpg",
+          "bytes": 75359,
+          "sha256": "474ab4a9adf541a3121e2d3f309222a1c082e756959147e9969d448ee0bc4f73",
+          "width": 723,
+          "height": 549,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-hua-hin-pranburi-villas-1.jpg",
+          "bytes": 178282,
+          "sha256": "ea3424f4cea7b93ccb96c2f9c601f5dfdbb177709e22260200fc7a06f9b44414",
+          "width": 800,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-hua-hin-pranburi-villas-2.jpg",
+          "bytes": 110000,
+          "sha256": "a0dbb6f897ebbee5944fa053f088a27ac9704d1b330187fba3b426ef26a68b1e",
+          "width": 800,
+          "height": 606,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 77358,
+      "work_id": "W3_045",
+      "name": "Pullman Khao Lak Resort",
+      "aliases": [
+        "Pullman Khao Lak Resort",
+        "PULLMAN KHAO LAK RESORT"
+      ],
+      "region": "Као Лак",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77358",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "eb1e1ff208a78aa9725734b89e894f52328aba8c4b43358d268d2a6cd7719288",
+      "bytes": 492994,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/77358-4008400.jpg",
+          "bytes": 218451,
+          "sha256": "06bebbda76d2b5accbf47388f13e9220b2900fa08685bbd249a8cab40af067e8",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/77358-4008501.jpg",
+          "bytes": 327959,
+          "sha256": "ee57142a22163f9da5321bb1881de9afcbd7e38285649df2cd2112ccdadc59ed",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/77358-4008502.jpg",
+          "bytes": 312217,
+          "sha256": "efc926e651d3df1c5728fde97981e2dc9f1151ec80e616553b78488345d0d5ec",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 60433,
+      "work_id": "W3_046",
+      "name": "Premier Village Phu Quoc Resort",
+      "aliases": [
+        "Premier Village Phu Quoc Resort",
+        "PREMIER VILLAGE PHU QUOC RESORT"
+      ],
+      "region": "Фукуок",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=60433",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "b5f75e477aa6b40dea394f5513c9aca462423de123dad983a332723a09abd006",
+      "bytes": 607922,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/premier-village-102311092.jpg",
+          "bytes": 378881,
+          "sha256": "4f6e1a86da0d879738bc0496395b1c1402eb583d0e38c9331390683b47deb7c2",
+          "width": 1200,
+          "height": 674,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/premier-village-102311090.jpg",
+          "bytes": 223310,
+          "sha256": "c2f176878c7a5346643071cce3e419529758bac5c6267348cb391794d796f7c2",
+          "width": 1200,
+          "height": 646,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/premier-village-102311091.jpg",
+          "bytes": 371067,
+          "sha256": "bc78af5d22f6634fb4df33f3254b87c1908ebb5443b4cb1c8fc686fa54d0dc94",
+          "width": 1200,
+          "height": 674,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 61611,
+      "work_id": "W3_047",
+      "name": "Vinpearl Resort & Golf Nam Hoi An",
+      "aliases": [
+        "Vinpearl Resort & Golf Nam Hoi An",
+        "VINPEARL RESORT & GOLF NAM HOI AN"
+      ],
+      "region": "Хой Ан",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=61611",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "2bc5f399843060e2cd5d3904ff1cde199e0825e621923eb3dc70b3411f35bc8c",
+      "bytes": 586520,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-nam-hoi-an-resort-villa-72287000.jpg",
+          "bytes": 277066,
+          "sha256": "1a1f9953c8b184f66220f6a999ed9a5f9ea98a3e3d78ea53cbcdd2a6d159c9bd",
+          "width": 1024,
+          "height": 767,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-nam-hoi-an-resort-villa-72287001.jpg",
+          "bytes": 189927,
+          "sha256": "bfd76310d873532b9e5a7b90fa9788dbad847646b9dc5904e0ef00dc61ee67fc",
+          "width": 1024,
+          "height": 575,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-nam-hoi-an-resort-villa-72287002.jpg",
+          "bytes": 186570,
+          "sha256": "493abf96c4aa75c2eb72689e1218787c4075539ec8a2a2bcd844e454de26e21a",
+          "width": 1024,
+          "height": 646,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 126119,
+      "work_id": "W3_048",
+      "name": "Fusion Resort & Villas Da Nang",
+      "aliases": [
+        "Fusion Resort & Villas Da Nang",
+        "FUSION RESORT & VILLAS DA NANG"
+      ],
+      "region": "Дананг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126119",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "4ae89861a0504af1198300eab67e38802c014195ae1870325746515e627fff1b",
+      "bytes": 605757,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/fusion-resort-villas-da-nang-879500.jpg",
+          "bytes": 254585,
+          "sha256": "679e0d9db8a0af256430905b1dcb51480f7d0099be4eb512f574adb4d93f071d",
+          "width": 1024,
+          "height": 575,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/fusion-resort-villas-da-nang-1614100.jpg",
+          "bytes": 222912,
+          "sha256": "9bfad848910a033bf381dbeb5ba0b2d00b167b06752b48d523516e30314cac74",
+          "width": 1024,
+          "height": 575,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/fusion-resort-villas-da-nang-1614101.jpg",
+          "bytes": 171330,
+          "sha256": "df43e5c85c4b7ca6b23d04000e5afc56dc7a3cffc03bf9553f1809081db3f377",
+          "width": 1024,
+          "height": 687,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 126601,
+      "work_id": "W3_049",
+      "name": "Danang Marriott Resort & Spa Non Nuoc Beach Villas",
+      "aliases": [
+        "Danang Marriott Resort & Spa Non Nuoc Beach Villas",
+        "DANANG MARRIOTT RESORT & SPA NON NUOC BEACH VILLAS",
+        "Vinpearl Danang Ocean Resort & Villas"
+      ],
+      "region": "Дананг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126601",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "29e45f23dac910d32ebb45a7ee8f390cab772ce83ef16427188b751de97dbb22",
+      "bytes": 510897,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/danang-marriott-resort-spa-non-nuoc-beach-villas-51647605.jpg",
+          "bytes": 240481,
+          "sha256": "28264e8a4a6254ab76c3b3f03fe0847fdc893cb875c1cc3fafb47d5cd1768eda",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/danang-marriott-resort-spa-non-nuoc-beach-villas-51647600.jpg",
+          "bytes": 189897,
+          "sha256": "3d59be02741bb8d60685a7136a3558120f9e45507a06a7446c890f463a23ce10",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/danang-marriott-resort-spa-non-nuoc-beach-villas-51647601.jpg",
+          "bytes": 115338,
+          "sha256": "5855db59926990458e5ce25c10780fd1c67e044a5d067c5d4211c1af9bf7a4b4",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 9230,
+      "work_id": "W3_050",
+      "name": "Pullman Danang Beach Resort",
+      "aliases": [
+        "Pullman Danang Beach Resort",
+        "PULLMAN DANANG BEACH RESORT"
+      ],
+      "region": "Дананг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=9230",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "a34bc2b5282a715cd6883782e9e306c24fe91f509cad27822c3bb2651db432fe",
+      "bytes": 414971,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/lifestyle-resort-da-nang-60633000.jpg",
+          "bytes": 211798,
+          "sha256": "81434ebb6aaa01059ff92dea2010a6afe396d79d66e75ae002f0dc4156840176",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/lifestyle-resort-da-nang-60633001.jpg",
+          "bytes": 170763,
+          "sha256": "22113e0a1bf70505c8fe00aec11ce3b194f7702b078cbb0ea349e321a8d8225f",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/lifestyle-resort-da-nang-60633002.jpg",
+          "bytes": 228281,
+          "sha256": "b2770ee4f83560ed86b5a8dc7a552621ca33b6230e00624d6058c36004e49e61",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 32341,
+      "work_id": "W3_051",
+      "name": "Salinda Resort Phu Quoc",
+      "aliases": [
+        "Salinda Resort Phu Quoc",
+        "SALINDA RESORT PHU QUOC ISLAND"
+      ],
+      "region": "Фукуок",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=32341",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "51478793a1c6cc16df61f284e270e581ecd3457a76d07b9c75992e5210bdfa67",
+      "bytes": 647867,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/salinda-premium-resort-spa-7220000.jpg",
+          "bytes": 394335,
+          "sha256": "32b7fec9d80691266afd13001dac59e6c6f79cd632e466de12d7772056cee059",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/32341-7214400.jpg",
+          "bytes": 329394,
+          "sha256": "40e1eb8b79d431153d6c05d19ee6618dcffea72fea76cb91d0d07c35bd567300",
+          "width": 1009,
+          "height": 673,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/32341-7214501.jpg",
+          "bytes": 356152,
+          "sha256": "2ee9daf34583132ef22903ccd6606ed7a0c73439c1cb9da55f8c30d3d82401c5",
+          "width": 1200,
+          "height": 744,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 32412,
+      "work_id": "W3_052",
+      "name": "Premier Village Danang Resort",
+      "aliases": [
+        "Premier Village Danang Resort",
+        "PREMIER VILLAGE DANANG RESORT"
+      ],
+      "region": "Дананг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=32412",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "1c13711c7c179fdf26c26d802bae53b795d97b6bc72a40ab3500e5aae140da81",
+      "bytes": 589359,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/premier-village-danang-resort-21622400.jpg",
+          "bytes": 283583,
+          "sha256": "9855e9f85cb6807acd6d65c50cc4ef3949381149cd1e861618b675be936a7e27",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/premier-village-danang-resort-21622401.jpg",
+          "bytes": 353388,
+          "sha256": "03cab2f3b4a4ad38c2621419fca5c2ee76861ec175f987ce8f902bd9e066f6e1",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/premier-village-danang-resort-21622402.jpg",
+          "bytes": 249771,
+          "sha256": "4094b29a8c95e7f8d499a205401555ad299596c10fc1d477185dd607d3f837b5",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 36437,
+      "work_id": "W3_053",
+      "name": "Furama Villas Danang",
+      "aliases": [
+        "Furama Villas Danang",
+        "FURAMA VILLAS DANANG"
+      ],
+      "region": "Дананг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=36437",
+      "status": "held",
+      "reason": "related_villas_require_separate_property_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 41498,
+      "work_id": "W3_054",
+      "name": "Almanity Hoi An Resort & Spa",
+      "aliases": [
+        "Almanity Hoi An Resort & Spa",
+        "ALMANITY HOI AN RESORT & SPA",
+        "ALMA COURTYARD HOI AN"
+      ],
+      "region": "Хой Ан",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=41498",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "80b6fc019f4a0b95ef038049edd9eef163c98008553bd8a38bdd6c33a6606faa",
+      "bytes": 503263,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/alma-courtyard-hoi-an-2.jpg",
+          "bytes": 182525,
+          "sha256": "7a2b429b1699942e0deb57f80f4eb18a6b5829388c9b56493edfbe18a4811060",
+          "width": 900,
+          "height": 600,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/alma-courtyard-hoi-an-1.jpg",
+          "bytes": 159621,
+          "sha256": "749052f815d3aa92a93615982951fb58bf0888cea0ab8e94256386b3c3657dd3",
+          "width": 900,
+          "height": 484,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/alma-courtyard-hoi-an-3.jpg",
+          "bytes": 123839,
+          "sha256": "135c688c762f37ce9e46471d9bb449273fe4c87a9deb7c62a86282294d336b4c",
+          "width": 900,
+          "height": 600,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 52251,
+      "work_id": "W3_055",
+      "name": "Fusion Resort Phu Quoc",
+      "aliases": [
+        "Fusion Resort Phu Quoc",
+        "FUSION RESORT"
+      ],
+      "region": "Фукуок",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=52251",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "e2b0295d842a5f70ecd9cde2cb91265b446c0c63ec7ac3de73a09d5cb4a04a87",
+      "bytes": 504376,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/fusion-resort-102308560.jpg",
+          "bytes": 197859,
+          "sha256": "290392f9012f949dde13028d60e9cbd213e71b56bf2865dc2011ff92602bcee9",
+          "width": 1200,
+          "height": 569,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/fusion-resort-102308561.jpg",
+          "bytes": 409809,
+          "sha256": "581bafcd91df6b758f23aa30a52aa7f4ad20c84a3277ff2355d1927c1f7373f3",
+          "width": 1200,
+          "height": 674,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/fusion-resort-102308562.jpg",
+          "bytes": 443478,
+          "sha256": "a4ff5c2dc57649f40b94a3bc3a6dc9780e05735b64eac41b56b697d730f9f50a",
+          "width": 1200,
+          "height": 674,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 57025,
+      "work_id": "W3_056",
+      "name": "Meliá Vinpearl Cam Ranh Beach Resort",
+      "aliases": [
+        "Meliá Vinpearl Cam Ranh Beach Resort",
+        "MELIA VINPEARL CAM RANH BEACH RESORT",
+        "VINPEARL RESORT & SPA LONG BEACH NHA TRANG"
+      ],
+      "region": "Камрань",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57025",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "13b4b172c7a6a08df9d7081f8d05f4b5f16f829c518b77195bb4ab15e7c16c7b",
+      "bytes": 466473,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-nha-trang-long-beach-villas-1413300.jpg",
+          "bytes": 190188,
+          "sha256": "2ca8d5716d02e5bf83d5a742b5f6bbc065a4ac357bdc676e15d4f1dc2accde57",
+          "width": 1024,
+          "height": 682,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-nha-trang-long-beach-villas-1413301.jpg",
+          "bytes": 127413,
+          "sha256": "e6f357b9ec58ef4b668713428dd8bb983d74b009b8eb5e04368fd2f48045bd79",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-nha-trang-long-beach-villas-1413302.jpg",
+          "bytes": 238909,
+          "sha256": "87d5399b85a8e8bd05f5a391e9fabe31446f68ee71ea7d7edd76e0f4d1f3f146",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 61623,
+      "work_id": "W3_057",
+      "name": "InterContinental Phu Quoc Long Beach Resort",
+      "aliases": [
+        "InterContinental Phu Quoc Long Beach Resort",
+        "INTERCONTINENTAL PHU QUOC LONG BEACH RESORT"
+      ],
+      "region": "Фукуок",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=61623",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "ec12a7e63ddad10630e5407ff5995ac4af8e34053cbc734297150e4d793118c9",
+      "bytes": 463924,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/intercontinental-phu-quoc-long-beach-resort-95461601.jpg",
+          "bytes": 213892,
+          "sha256": "81c88ebba01250ffad40681cc15a217585e84f8ab61220b49bfd51609640eea1",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/intercontinental-phu-quoc-long-beach-resort-95459201.jpg",
+          "bytes": 142183,
+          "sha256": "aac4f18b836add1ce293b9f24cbdf7c649d618f5946bf58fc72145aff7089752",
+          "width": 1000,
+          "height": 651,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/intercontinental-phu-quoc-long-beach-resort-95459202.jpg",
+          "bytes": 175314,
+          "sha256": "cc963584334e836f5e39b5e57e24711c097ef218f2af0105a9d318986316dfd3",
+          "width": 1000,
+          "height": 667,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 73257,
+      "work_id": "W3_058",
+      "name": "Pullman Phu Quoc Beach Resort",
+      "aliases": [
+        "Pullman Phu Quoc Beach Resort",
+        "PULLMAN PHU QUOC BEACH RESORT"
+      ],
+      "region": "Фукуок",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=73257",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "91db3760edc0e22c708b8bce1317822377a98cc88701ce15fa33e4bf132275f5",
+      "bytes": 647419,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/pullman-phu-quoc-beach-resort-102303261.jpg",
+          "bytes": 478746,
+          "sha256": "b7c016bec565e7b64f54519c57d9a5c8e884a503a66a874458a2540ccd532c05",
+          "width": 1200,
+          "height": 675,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/pullman-phu-quoc-beach-resort-102303260.jpg",
+          "bytes": 321799,
+          "sha256": "832a9ee8d7f521ef966debfae02a086e4e382e5aac991ad669015a91f26183ab",
+          "width": 1200,
+          "height": 899,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/pullman-phu-quoc-beach-resort-102303262.jpg",
+          "bytes": 278433,
+          "sha256": "5ccef7f82d194fc985a16178830af08891a040793e367e5fa2fd5ba30ee95dc1",
+          "width": 1200,
+          "height": 735,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 4966,
+      "work_id": "W3_059",
+      "name": "La Veranda Resort Phu Quoc MGallery",
+      "aliases": [
+        "La Veranda Resort Phu Quoc MGallery",
+        "LA VERANDA RESORT PHU QUOC MGALLERY COLLECTION"
+      ],
+      "region": "Фукуок",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4966",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "8feb58d3630e4602aab9c4a5d4693da5b812bab11a6dc70686c66290ad6030cb",
+      "bytes": 433300,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/la-veranda-resort-54392700.jpg",
+          "bytes": 231024,
+          "sha256": "8697d029dafa1eb674970c0b57e7ec5b79a08ce9065a4000fcf5de99f04b2e1c",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/la-veranda-resort-54392701.jpg",
+          "bytes": 195106,
+          "sha256": "2e36876279d346cf5278efb7f4d0c0a7c608a6fc5731553689a79614eec9dea9",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/la-veranda-resort-54392702.jpg",
+          "bytes": 239272,
+          "sha256": "18b8ab78b54289b3130c682c4c3ca3789a498d881d08e3633a93210ca99bd4a5",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 61615,
+      "work_id": "W3_060",
+      "name": "Sheraton Grand Danang Resort",
+      "aliases": [
+        "Sheraton Grand Danang Resort",
+        "SHERATON GRAND DANANG RESORT"
+      ],
+      "region": "Дананг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=61615",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "6ff8f3435aa9c2e8db1434fbc91dc7867dd1bc9cf6103e072cb9b5c791d51cbc",
+      "bytes": 443009,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/61615-38306101.jpg",
+          "bytes": 182223,
+          "sha256": "44cd138d04495d6b07853ad6e4d0288130941c9c3155e9b19634469c7d843f01",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/61615-38306100.jpg",
+          "bytes": 201807,
+          "sha256": "757a9bf8e207ce0551fdedfb541a11cbdf968671d81179ce56f68d415b015b3e",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/61615-38306202.jpg",
+          "bytes": 233093,
+          "sha256": "6555f0c48d1aa9f7cfa070161106eb486c997c16003f728d07c3a0367bf2b0eb",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 65164,
+      "work_id": "W3_061",
+      "name": "Vinpearl Beachfront Nha Trang",
+      "aliases": [
+        "Vinpearl Beachfront Nha Trang",
+        "VINPEARL BEACHFRONT NHA TRANG"
+      ],
+      "region": "Нячанг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=65164",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "637e7e24a558bbc27a9e15c6c8e47ccbe0474a1eca14e6492d54dd66c3765a5b",
+      "bytes": 411349,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-condotel-beachfront-nha-trang-86804700.jpg",
+          "bytes": 179610,
+          "sha256": "143f21a204e8bb1ab197ba0498e7434942631edbea93740c5374a4a477fa7017",
+          "width": 1024,
+          "height": 767,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-condotel-beachfront-nha-trang-86804701.jpg",
+          "bytes": 195427,
+          "sha256": "c4a73b6d3788f220d6c90d1675a3576c1452d53a39f0fd0e41e1865a9da37c8f",
+          "width": 1024,
+          "height": 685,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-condotel-beachfront-nha-trang-86804702.jpg",
+          "bytes": 226079,
+          "sha256": "3ae8c6722ae400dd878fe6829a2047ae5c7cb2d82e1ab159c15a368f937b5747",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 132294,
+      "work_id": "W3_062",
+      "name": "JW Marriott Cam Ranh Bay Resort & Spa",
+      "aliases": [
+        "JW Marriott Cam Ranh Bay Resort & Spa",
+        "JW MARRIOTT CAM RANH BAY RESORT & SPA"
+      ],
+      "region": "Камрань",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=132294",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "f187731a517d240b91398b4d623e5694d5ccb3ab7c00e06b16b8b5d4de5c3e8c",
+      "bytes": 503463,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/132294-40854201.jpg",
+          "bytes": 384122,
+          "sha256": "a89e8c89a5d1e38dda5233738c94ce27e15b6a6cfd822ea9aaa1450b4f9ab344",
+          "width": 1200,
+          "height": 899,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/jw-marriott-cam-ranh-bay-resort-spa-40885700.jpg",
+          "bytes": 228409,
+          "sha256": "ffaaa143213219da8c9fa27e6f4ff20755ee444e22f5421643e2a58e1e3fc49f",
+          "width": 1140,
+          "height": 761,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/132294-40854302.jpg",
+          "bytes": 310926,
+          "sha256": "418c5c7bfeabfb66a91303de0b1733c11cf7595ceadccd0d3f82dfc3cd483fdf",
+          "width": 1200,
+          "height": 801,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 7443,
+      "work_id": "W3_063",
+      "name": "TIA Wellness Resort",
+      "aliases": [
+        "TIA Wellness Resort",
+        "TIA WELLNESS RESORT",
+        "FUSION MAIA DANANG RESORT"
+      ],
+      "region": "Дананг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=7443",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "5d34d0d8e915157d64a6f25febc8216ef28265b7d2c479906cbefe56af5845d2",
+      "bytes": 606221,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/7443-87706600.jpg",
+          "bytes": 236457,
+          "sha256": "8a909efadcc0342a6ecd0d4d9d7a53efdf2e0606b0bc9af0210162eff642242a",
+          "width": 1024,
+          "height": 576,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/7443-87706601.jpg",
+          "bytes": 143867,
+          "sha256": "ce2da70768971578142fba3986ab86a1bc7920a8b811f8a3f35d58d4211c8113",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/7443-87706602.jpg",
+          "bytes": 163416,
+          "sha256": "023766cdb0657f602c48f1d53522ac9eb54b368700af3696e39907f2dca06c97",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 43689,
+      "work_id": "W3_064",
+      "name": "Fusion Resort Cam Ranh",
+      "aliases": [
+        "Fusion Resort Cam Ranh",
+        "FUSION RESORT CAM RANH"
+      ],
+      "region": "Камрань",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43689",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "da80a994fead8b041f1bd6ad376bb3b558a106207de709c380901a4ba89e6738",
+      "bytes": 523263,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/fusion-resort-nha-trang-78830600.jpg",
+          "bytes": 342248,
+          "sha256": "5b770f0b1987354403b0bcec1c11b8df3d76e3f7377e781dc9fe4c7d25453ab0",
+          "width": 1200,
+          "height": 799,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/fusion-resort-nha-trang-313100.jpg",
+          "bytes": 211414,
+          "sha256": "60c8b92a0e5e0413a127224b5726c36f3acea7bf18cb6448fcd3383a15f01dd1",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/fusion-resort-nha-trang-313101.jpg",
+          "bytes": 223900,
+          "sha256": "db49de7855f7929066c23dd2a7f8d9dcd053fb3069d90b804c2e69a1f7432c1d",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 54914,
+      "work_id": "W3_065",
+      "name": "The Anam Cam Ranh",
+      "aliases": [
+        "The Anam Cam Ranh",
+        "THE ANAM RESORT"
+      ],
+      "region": "Камрань",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=54914",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "87206a400cf55c28c7d4681d663d05fc14e8b50fdd337707dda4768af4334311",
+      "bytes": 469952,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/the-anam-resort-92785400.jpg",
+          "bytes": 200706,
+          "sha256": "9c254c1bbd28560ebaa55e3808be7047b98de06cecb8e7f3f679bad8bedccafd",
+          "width": 1024,
+          "height": 576,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/the-anam-resort-92835700.jpg",
+          "bytes": 179163,
+          "sha256": "26dca5b6c045cd5e573f4fefcdf8d5f29eb8259fbc394d91834d9714c8dd73c0",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/the-anam-resort-92785401.jpg",
+          "bytes": 221702,
+          "sha256": "0779ba17345a22dd78956e7ff7781b401b01504b31452bebdc14e743b7ac4279",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 57672,
+      "work_id": "W3_066",
+      "name": "JW Marriott Phu Quoc Emerald Bay Resort & Spa",
+      "aliases": [
+        "JW Marriott Phu Quoc Emerald Bay Resort & Spa",
+        "JW MARRIOTT PHU QUOC EMERALD BAY RESORT & SPA"
+      ],
+      "region": "Фукуок",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57672",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "b85ff3d863182835fd63a979443f4069f30240b5cb87a6dfc58f737e50d65963",
+      "bytes": 672160,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/jw-marriott-emerald-bay-resort-spa-4339404.jpg",
+          "bytes": 297534,
+          "sha256": "3a7c375335c32785088d3e539fb00eaa3bf47547d415f8a905803597198497a6",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/jw-marriott-emerald-bay-resort-spa-4339400.jpg",
+          "bytes": 307173,
+          "sha256": "4541d2e3bc05910db0c21649c313a3c2f7273edd7f05497e2a6c8a5d7fe33ab3",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/jw-marriott-emerald-bay-resort-spa-4339401.jpg",
+          "bytes": 192820,
+          "sha256": "a5fc79aabe2a39e7a9d0cf93480c8203aacccb713d3932f6da13387fdba9e48a",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 61583,
+      "work_id": "W3_067",
+      "name": "Dusit Princess Moonrise Beach Resort",
+      "aliases": [
+        "Dusit Princess Moonrise Beach Resort",
+        "DUSIT PRINCESS MOONRISE BEACH RESORT"
+      ],
+      "region": "Фукуок",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=61583",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "8203024b60b1f65d9655f6dc9e3071d6ac99a7cf602b2cc13b94ae7d59638bac",
+      "bytes": 625210,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/dusit-princess-moonrise-beach-resort-94033306.jpg",
+          "bytes": 333940,
+          "sha256": "470f0dd1eae1575b99c3aeadb50c29471e4bc1ab04cfda37e8e0334739e4f8cc",
+          "width": 1024,
+          "height": 682,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/dusit-princess-moonrise-beach-resort-94033300.jpg",
+          "bytes": 223850,
+          "sha256": "fc6fcc93c14fafd95d91883ac1cc112cde471550547c65a8fde41af32417815b",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/dusit-princess-moonrise-beach-resort-94033301.jpg",
+          "bytes": 198263,
+          "sha256": "bdfc81c13f0f5214004de2971a141f3c6eb409cf80fc096f07318a8d56a032e9",
+          "width": 1024,
+          "height": 720,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 14130,
+      "work_id": "W3_068",
+      "name": "InterContinental Danang Sun Peninsula Resort",
+      "aliases": [
+        "InterContinental Danang Sun Peninsula Resort",
+        "INTERCONTINENTAL DANANG SUN PENINSULA RESORT",
+        "INTERCONTINENTAL DANANG"
+      ],
+      "region": "Дананг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=14130",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "126f990270202dcd8a885b487968bd1ddb2b908fb814a59aa2e12a79ccbe7acd",
+      "bytes": 676134,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/intercontinental-danang-3658700.jpg",
+          "bytes": 374258,
+          "sha256": "7c3037bc973736b451714aefad8fe4caf31def0f400221eda185f6cd3e95e9ca",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/intercontinental-danang-3658701.jpg",
+          "bytes": 210811,
+          "sha256": "51b16191d431e901cb04b5b79a0b31f2bf2859e770162ff86829dc97682e58df",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/intercontinental-danang-3658702.jpg",
+          "bytes": 197457,
+          "sha256": "1bd53e217d7297aeb13c1669c0c6c3576af3fed0245a211c466ebc1567b70060",
+          "width": 1024,
+          "height": 613,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 46747,
+      "work_id": "W3_069",
+      "name": "Meliá Danang Beach Resort",
+      "aliases": [
+        "Meliá Danang Beach Resort",
+        "MELIA DANANG BEACH RESORT"
+      ],
+      "region": "Дананг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=46747",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "04e07c8db981f2247099b6f06501130aa6dcb42b738171c976aabb6b6da5c6b4",
+      "bytes": 584836,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/melia-danang-44937200.jpg",
+          "bytes": 311326,
+          "sha256": "f924e414a1bda704867009dcd9ed9a3b9933481a28912d49964d205005f2d5c9",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/melia-danang-44937201.jpg",
+          "bytes": 135957,
+          "sha256": "25c243616ca43a5c8319ee6b0b96604597292a263c7c45b5d2b6b46b626c4390",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/melia-danang-44937202.jpg",
+          "bytes": 222398,
+          "sha256": "54414a9c1167ee96e99348ac36910866feaefa8a6c46609275005d5781300b89",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 71241,
+      "work_id": "W3_070",
+      "name": "Mövenpick Resort Waverly Phu Quoc",
+      "aliases": [
+        "Mövenpick Resort Waverly Phu Quoc",
+        "MOVENPICK RESORT WAVERLY PHU QUOC"
+      ],
+      "region": "Фукуок",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=71241",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "bde4dfcbfb8ea0a64c31c92106fd936657204d5c400c6231fa0da08fbf4dd31b",
+      "bytes": 464147,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/movenpick-resort-waverly-phu-quoc-3016000.jpg",
+          "bytes": 230658,
+          "sha256": "96e9dac08d31739eb079e017dcb879dea1bea0a4585492927bf972168e66fe00",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/movenpick-resort-waverly-phu-quoc-3016002.jpg",
+          "bytes": 264339,
+          "sha256": "f4bf16004fe691e5ab07d7c10ea1b2f4e9e43f785f08d265794fd0c85f09af5e",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/movenpick-resort-waverly-phu-quoc-3016003.jpg",
+          "bytes": 260903,
+          "sha256": "f5d8d3f18f787856b6c81258aa284dfcc63a2e7938e905a6b5693144404439a2",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 108234,
+      "work_id": "W3_071",
+      "name": "Nha Trang Marriott Resort & Spa Hon Tre Island",
+      "aliases": [
+        "Nha Trang Marriott Resort & Spa Hon Tre Island",
+        "NHA TRANG MARRIOTT RESORT & SPA HON TRE ISLAND",
+        "Vinpearl Discovery Rockside Nha Trang"
+      ],
+      "region": "Нячанг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=108234",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "48541e84055d38563fcbe2d10a688b1bac85db49248abea87c51fff0d2bb664d",
+      "bytes": 464089,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/nha-trang-marriott-resort-spa-hon-tre-island-3112502.jpg",
+          "bytes": 192857,
+          "sha256": "034ca8c7778232006ff89db9f8daa5aea19725b9c71756ceb47d55ba044a00f2",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/nha-trang-marriott-resort-spa-hon-tre-island-3112500.jpg",
+          "bytes": 179122,
+          "sha256": "85a56abb87acc3e61ad0232e749b4881387f2503e52f47b58963c05779cd3f6e",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/nha-trang-marriott-resort-spa-hon-tre-island-3112501.jpg",
+          "bytes": 185058,
+          "sha256": "fc0e3de41c5c1b0cc0dbbb2b2b96c22d88da02249a3cde8728c71f6898073a8b",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 4919,
+      "work_id": "W3_072",
+      "name": "Furama Resort Danang",
+      "aliases": [
+        "Furama Resort Danang",
+        "FURAMA RESORT"
+      ],
+      "region": "Дананг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4919",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "1773d8b71e21b9537e740c48c3961e5de8022769521805398961035963b20dff",
+      "bytes": 387968,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/furama-resort-72372100.jpg",
+          "bytes": 229074,
+          "sha256": "bd1980da43d40485ea73119810d7173d6651bdb030f89aaeccc60fadc70e8d30",
+          "width": 1024,
+          "height": 680,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/furama-resort-72395500.jpg",
+          "bytes": 119990,
+          "sha256": "aafa57cdbfa988e366cf897280b825de46477ad8d3192b60d9f2d62dc496566d",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/furama-resort-72372101.jpg",
+          "bytes": 141955,
+          "sha256": "c86613233a22f969f2962468ed95f22533ff43639f8bde0aeabc39fd7bd0f35e",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 82212,
+      "work_id": "W3_073",
+      "name": "Mövenpick Resort Phan Thiet",
+      "aliases": [
+        "Mövenpick Resort Phan Thiet",
+        "MOVENPICK RESORT PHAN THIET"
+      ],
+      "region": "Фантьет",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82212",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "3fdc3d99fa370e0e21afcbe29de9cc9b022f45f5051f6ea354de53fbb54de1bd",
+      "bytes": 486946,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/movenpick-resort-phan-thiet-78944400.jpg",
+          "bytes": 303544,
+          "sha256": "a8a706fa48b96013e935a99bf2b090960ea1f80aeefa095c74435d5d5e6079e4",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/movenpick-resort-phan-thiet-78966500.jpg",
+          "bytes": 166170,
+          "sha256": "7c3a4900425934e8606cd36f05b982648757d0dc644deb5e9877da0d14c7eea0",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/movenpick-resort-phan-thiet-78944401.jpg",
+          "bytes": 278267,
+          "sha256": "9ced16c2d56d1dbcc51a9244f631af3b253c0979c9a45735acd85723539e1510",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 7449,
+      "work_id": "W3_074",
+      "name": "Hyatt Regency Danang Resort & Spa",
+      "aliases": [
+        "Hyatt Regency Danang Resort & Spa",
+        "HYATT REGENCY DANANG RESORT & SPA"
+      ],
+      "region": "Дананг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=7449",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "b7467b30695a524126802c7674e544ec37d8479201adffb7c241374b188971d4",
+      "bytes": 580448,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/hyatt-regency-danang-resort-spa-1115000.jpg",
+          "bytes": 236713,
+          "sha256": "01eafae9ed561fc79b67558d5f0393c068191fffe1aec3b63342a296b6236847",
+          "width": 1024,
+          "height": 740,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/hyatt-regency-danang-resort-spa-1115001.jpg",
+          "bytes": 272181,
+          "sha256": "d27693671438a3c1a37469b1ea8983a64fcfc0239d8ab2e82bdec3537986b8f9",
+          "width": 1024,
+          "height": 682,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/hyatt-regency-danang-resort-spa-1115002.jpg",
+          "bytes": 232430,
+          "sha256": "d8249f8a3d5ba57961b4469ba9c878e62db9e97352afb31ca8849d9d1e20e97c",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 69260,
+      "work_id": "W3_075",
+      "name": "Radisson Blu Resort Cam Ranh",
+      "aliases": [
+        "Radisson Blu Resort Cam Ranh",
+        "RADISSON BLU RESORT CAM RANH"
+      ],
+      "region": "Камрань",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=69260",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "60ab8034bc6489c70a954ef4853f4812efcd1f0a6467ccede265a7ebab1ad3fc",
+      "bytes": 505305,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/radisson-blu-resort-cam-ranh-102302280.jpg",
+          "bytes": 371693,
+          "sha256": "b38120e6c1ac2f750650fe4ca7cb946cdc8a172f3d76e726b99b19b634873429",
+          "width": 1200,
+          "height": 784,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/radisson-blu-resort-cam-ranh-102302281.jpg",
+          "bytes": 304997,
+          "sha256": "0a8021637c26864e8adb21cf9466629a3ea84176ac10eeb2330aa79cfd92edcd",
+          "width": 1200,
+          "height": 793,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/radisson-blu-resort-cam-ranh-102302282.jpg",
+          "bytes": 350517,
+          "sha256": "5d70ddf27468afdf2adc3e7c6829bfd155c196b19550bc79f4cbbcf0c67e5e5d",
+          "width": 1200,
+          "height": 775,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 104035,
+      "work_id": "W3_076",
+      "name": "Danang Marriott Resort & Spa",
+      "aliases": [
+        "Danang Marriott Resort & Spa",
+        "DANANG MARRIOTT RESORT & SPA",
+        "VINPEARL LUXURY DA NANG"
+      ],
+      "region": "Дананг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=104035",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "54cd90f052a58afc772563fa406a74f8f60e78552e898559506fa24e9770267d",
+      "bytes": 554934,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/danang-marriott-resort-spa-51511300.jpg",
+          "bytes": 384845,
+          "sha256": "1966df6aeb61e49e28e6c3c0284ea43164156bbbea1f4764986a1ef140ca789a",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/danang-marriott-resort-spa-51511301.jpg",
+          "bytes": 241128,
+          "sha256": "1d5cba8f5376036ba26c017f58f85394a8864eab8d955dde346fcbf16a5143de",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/danang-marriott-resort-spa-51511302.jpg",
+          "bytes": 345384,
+          "sha256": "be8ce8ffc6d81e19aff37f9680689f89adb29a2b8f832fd35179f1b240bf2d0c",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 47460,
+      "work_id": "W3_077",
+      "name": "Vinpearl Resort & Spa Ha Long",
+      "aliases": [
+        "Vinpearl Resort & Spa Ha Long",
+        "VINPEARL RESORT & SPA HA LONG"
+      ],
+      "region": "Ханой",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=47460",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "8a689c716f7941a6d230e60b1e1140070bf08afe828a7f4855a8524ef0a631d2",
+      "bytes": 412553,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-ha-long-bay-resort-614101.jpg",
+          "bytes": 168916,
+          "sha256": "8e9ac65f2df60bd590ef4c808df0afc02b9e102a3eae7ac016587869c3549624",
+          "width": 1024,
+          "height": 580,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-ha-long-bay-resort-614100.jpg",
+          "bytes": 128459,
+          "sha256": "aba6830bd37d801c8a1a9ccb3b1a69a7f7eda36aa5ace627b1fcc7fcb87f439c",
+          "width": 1024,
+          "height": 540,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-ha-long-bay-resort-614102.jpg",
+          "bytes": 272504,
+          "sha256": "e5be8ed3ced31886a67dc327cf1df98ba2396f948377b852db26ea724608c423",
+          "width": 1024,
+          "height": 682,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 56537,
+      "work_id": "W3_078",
+      "name": "Vinpearl Hoi An Resort & Villas",
+      "aliases": [
+        "Vinpearl Hoi An Resort & Villas",
+        "VINPEARL HOI AN RESORT & VILLAS"
+      ],
+      "region": "Хой Ан",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=56537",
+      "status": "held",
+      "reason": "old_brand_rename_requires_current_native_reuse_crosscheck",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 57060,
+      "work_id": "W3_079",
+      "name": "Vinpearl Danang Ocean Resort & Villas",
+      "aliases": [
+        "Vinpearl Danang Ocean Resort & Villas",
+        "VINPEARL DANANG OCEAN RESORT & VILLAS"
+      ],
+      "region": "Дананг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57060",
+      "status": "held",
+      "reason": "old_brand_matches_current_non_nuoc_villas_requires_reuse",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 64775,
+      "work_id": "W3_080",
+      "name": "Oceanami Villas & Beach Club",
+      "aliases": [
+        "Oceanami Villas & Beach Club",
+        "OCEANAMI VILLAS & BEACH CLUB"
+      ],
+      "region": "Вунг Тау",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64775",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "5ec94716f6347bdb61450514bbfcc12176defb91a7117b617ae273cf7f8daaa9",
+      "bytes": 499444,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/oceanami-villas-beach-club-813524.jpg",
+          "bytes": 114020,
+          "sha256": "18452051b4dc0fbe90e753594eebc7a8a02ecc731b835321474d78822f09578e",
+          "width": 800,
+          "height": 599,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/oceanami-villas-beach-club-813501.jpg",
+          "bytes": 68766,
+          "sha256": "805311ce0882e14b7955c27b4b4c46ad6c038099e82744f331405d223feff7e9",
+          "width": 800,
+          "height": 563,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/oceanami-villas-beach-club-813502.jpg",
+          "bytes": 61771,
+          "sha256": "9a88508b4e31d7e68b7ccd19dcd7798fb9116b8aca1bd076acdc3226bb3749cd",
+          "width": 800,
+          "height": 563,
+          "mime": "image/jpeg"
+        }
+      ]
+    }
+  ],
+  "prepared_count": 73,
+  "held_count": 7,
+  "sender_calls": 0,
+  "feed_writes": 0,
+  "qa_sheets": [
+    {
+      "path": ".github/traffic-publish/commercial-wave3-80-20261117/qa-sheet-1.jpg",
+      "ids": [
+        22740,
+        78200,
+        538,
+        792,
+        2984,
+        4202,
+        7898,
+        66860,
+        598,
+        669,
+        3022,
+        4294
+      ]
+    },
+    {
+      "path": ".github/traffic-publish/commercial-wave3-80-20261117/qa-sheet-2.jpg",
+      "ids": [
+        4309,
+        4343,
+        7856,
+        8171,
+        9395,
+        12170,
+        526,
+        599,
+        685,
+        689,
+        697,
+        761
+      ]
+    },
+    {
+      "path": ".github/traffic-publish/commercial-wave3-80-20261117/qa-sheet-3.jpg",
+      "ids": [
+        791,
+        3021,
+        22836,
+        33310,
+        57466,
+        70051,
+        542,
+        596,
+        649,
+        706,
+        765,
+        768
+      ]
+    },
+    {
+      "path": ".github/traffic-publish/commercial-wave3-80-20261117/qa-sheet-4.jpg",
+      "ids": [
+        825,
+        4270,
+        9404,
+        35036,
+        77358,
+        60433,
+        61611,
+        126119,
+        126601,
+        9230,
+        32341,
+        32412
+      ]
+    },
+    {
+      "path": ".github/traffic-publish/commercial-wave3-80-20261117/qa-sheet-5.jpg",
+      "ids": [
+        41498,
+        52251,
+        57025,
+        61623,
+        73257,
+        4966,
+        61615,
+        65164,
+        132294,
+        7443,
+        43689,
+        54914
+      ]
+    },
+    {
+      "path": ".github/traffic-publish/commercial-wave3-80-20261117/qa-sheet-6.jpg",
+      "ids": [
+        57672,
+        61583,
+        14130,
+        46747,
+        71241,
+        108234,
+        4919,
+        82212,
+        7449,
+        69260,
+        104035,
+        47460
+      ]
+    },
+    {
+      "path": ".github/traffic-publish/commercial-wave3-80-20261117/qa-sheet-7.jpg",
+      "ids": [
+        64775
+      ]
+    }
+  ],
+  "native_screen": {
+    "mode": "NATIVE_ALIAS_SCREEN_PENDING_BEFORE_PUBLICATION",
+    "ok": false,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "sender_calls": 0,
+    "inspected_hotel_ids": [],
+    "matched_hotel_ids": []
+  }
+}
