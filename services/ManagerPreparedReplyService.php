@@ -205,7 +205,14 @@ final class ManagerPreparedReplyService
                     $q->execute([$page['next_cursor'],$project,$lane,$old['version']]);
                 }
             }
-            return ['ok'=>true,'candidate_count'=>$candidates,'exported_count'=>count($unique),'queue'=>$queued,'reconciliation'=>$reconciliation];
+            $postReply=['ok'=>true,'state'=>'disabled','provider_calls'=>0];
+            if (getenv('MANAGER_POST_REPLY_PREPARATION')==='1') {
+                require_once __DIR__.'/ManagerPostReplyPreparation.php';
+                $postReply=ManagerPostReplyPreparation::collect($pdo,$project,$managerIds,$capturedAtUtc);
+                if (empty($postReply['ok'])) return self::failure('queue_unavailable')+['stage'=>'post_reply','post_reply'=>$postReply];
+            }
+            return ['ok'=>true,'candidate_count'=>$candidates,'exported_count'=>count($unique),
+                'queue'=>$queued,'reconciliation'=>$reconciliation,'post_reply'=>$postReply];
         } catch (Throwable $ignored) { return self::failure('queue_unavailable'); }
     }
 
