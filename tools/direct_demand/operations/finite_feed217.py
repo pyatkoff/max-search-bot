@@ -9,7 +9,7 @@ from route_read_lineage import rebind
 import reconstruct_inventory217 as reconstruct
 import nonwriting_queued217_guard as nonwriting
 from immutable_source_cache import cached_api
-REVIEWED_CONFIG_SHA256='2d1566d09f026aab1f6d6cc75ba88b5b5d945e2891caf763b07ae4e90ab94a19'
+REVIEWED_CONFIG_SHA256='7ceb17bc764c4b33feae7de3d4a941787f1651c540cd453712096657c6034896'
 MAX_WAIT_SECONDS=120
 MAX_POLLS_PER_STEP=12
 MAX_CHAIN_POLL_READS=144
@@ -28,7 +28,7 @@ def rate_snapshot():
 
 def public_exclusive(c):
  execution=e.origin(c);current=int(os.environ['GITHUB_RUN_ID'])
- e.pin(pathlib.Path(__file__).with_name('nonwriting_queued217_guard.py'),'166d6956afade54ec3aab86e4161f46ab89de25693decbcd22d694f8e52e2341')
+ e.pin(pathlib.Path(__file__).with_name('nonwriting_queued217_guard.py'),'593727bb767afab6f25109ab4f7a35fc87701bbd7c8a708069dec3fa8dd48d91')
  for status in gate.STATUSES:
   for repo,path in [('pyatkoff/max-search-bot','actions/runs?'),('pyatkoff/poisk-turov-test','actions/workflows/346454799/runs?')]:
    d=e.api(repo,path+'status='+status+'&per_page=100');e.need(d['total_count']==len(d['workflow_runs']) and d['total_count']<=100,'ambiguous_public_runs')

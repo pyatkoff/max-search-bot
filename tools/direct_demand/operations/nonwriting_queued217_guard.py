@@ -16,6 +16,9 @@ MERGE_REFERENCES_BY_RUN[44152559835]=[{'path':'pyatkoff/max-search-bot/.github/w
 # Same already-reviewed visual workflow; ef237->71a33 changes only collapsed test UI opening.
 NEW_REVIEWED[44154342422]={'id':44154342422,'head_sha':'71a33c3579e08957fd9d7402244b5f5ebbbae544','path':'.github/workflows/workspace-v2-visual-qa.yml','event':'pull_request','workflow_id':343986842,'head_branch':'perf/manager-card-ready-20261117-6957202417','workflow_sha256':'2a3d3613ccc558314cdd1b532533657557dea417da6609eaae931c62fb0004c9'}
 MERGE_REFERENCES_BY_RUN[44154342422]=[{'path':'pyatkoff/max-search-bot/.github/workflows/ci-change-scope.yml@ff569f628642fd252f9401bc3976c6117f3ed352','sha':'ff569f628642fd252f9401bc3976c6117f3ed352','ref':'refs/pull/1611/merge'}]
+# Independently reviewed PR1613 regression: exact immutable run/source, no production capabilities.
+NEW_REVIEWED[44170196448]={'id': 44170196448, 'head_sha': 'e07bbb67103fa638178f9b22d28336ea351bbe32', 'path': '.github/workflows/regression-tests.yml', 'event': 'pull_request', 'workflow_id': 340550044, 'head_branch': 'fix/modeled-quoted-package-price-followup-20261117', 'workflow_sha256': '317c2cbd9f597414a3207d7181beb8661cb881c98e1f85aaa32a793166e43b2e'}
+MERGE_REFERENCES_BY_RUN[44170196448]=[{'path': 'pyatkoff/max-search-bot/.github/workflows/ci-change-scope.yml@a33d72e8f3e7b489514b9729764cd920c4f442e5', 'sha': 'a33d72e8f3e7b489514b9729764cd920c4f442e5', 'ref': 'refs/pull/1613/merge'}]
 def allowed(run,current_main,api):
  fresh_ci=run.get('id') in NEW_REVIEWED
  expected=NEW_REVIEWED.get(run.get('id')) if fresh_ci else next((x for x in REVIEWED if x['id']==run.get('id')),None)

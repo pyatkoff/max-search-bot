@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "state": "REVIEWED_FINITE_FEED217_EXACT_ROOT_PERMIT_CHAIN",
-  "parent_sha": "0a20dd24cef02d35e21adb1c97e0f2628eef3a9b",
+  "parent_sha": "ff6b461aa5161ea0941629350e7ff70b7f587ce7",
   "claim_id": 6955394658,
   "claim_body_sha256": "51cc2d3531118e2aba6146515946dc2efad9a78130864d5fd45a03789ce6c37a",
   "permit_comment_id": 6957283506,
@@ -336,11 +336,11 @@
     "head_sha": "bbef3101f8c8f6eae15355c0d6fa4b8c1848dfa2"
   },
   "source_sha256": {
-    ".github/workflows/price27316-feed217.yml": "9af969132a543a06a9d2d5e34d501941a9a44d671a2abd907fe4a074768de112",
+    ".github/workflows/price27316-feed217.yml": "74176372ecb7227356df78b4d2736e649ba1a2c8d5eec1066afeb96a107a648a",
     "tools/direct_demand/operations/execute_feed217.py": "27ba3ab06c13bc692c0bc7c4327ae4b61946ee39f8c268fe515f022387e77ae7",
     "tools/direct_demand/operations/immutable_source_cache.py": "4fb4c879469877c612d2d101eba89214806563a026c9e2e38905875dd95a99f0",
     "tools/direct_demand/operations/inventory217-provenance.json": "69d6813bd7a3a06ad7f62f6a13baa33c8f13ab62f12ca5d57899fb329609fb88",
-    "tools/direct_demand/operations/nonwriting_queued217_guard.py": "166d6956afade54ec3aab86e4161f46ab89de25693decbcd22d694f8e52e2341",
+    "tools/direct_demand/operations/nonwriting_queued217_guard.py": "593727bb767afab6f25109ab4f7a35fc87701bbd7c8a708069dec3fa8dd48d91",
     "tools/direct_demand/operations/original_acceptance217.py": "dfb560453ed9cd56218cd3ad80594012485f35551abf308266cd582e861808d3",
     "tools/direct_demand/operations/owner_permit_gate.py": "dc17ee04783f0198f2c6887432b3367e58a2bd270b9906a3ebbf1cba821a1f3c",
     "tools/direct_demand/operations/prepare_feed217.py": "5a2144916be7af58c23dd62453276976f3151c21c775d993b44a42b7bf8de74b",
