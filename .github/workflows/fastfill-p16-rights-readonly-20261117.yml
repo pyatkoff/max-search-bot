@@ -1,0 +1,109 @@
+name: One-shot P16 stopped operation and channel capability read-only diagnosis
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-p16-rights-readonly-20261117.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  read-only:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '994b6a590102cbb8e04e5c1ed8cef19980eb410d' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Prepare bounded read-only diagnosis; no sender
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir pub
+          cat > pub/read-only.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors','0');ini_set('log_errors','0');
+          if(PHP_SAPI!=='cli'||trim((string)shell_exec('git rev-parse HEAD'))!=='cece6e7bd9b1d1b8984a14df2910c8a1d36e900f')exit(2);
+          ob_start();require getcwd().'/config.php';require_once getcwd().'/services/ChannelPostRuntime.php';ob_end_clean();
+          $pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();
+          $out=['mode'=>'P16_STOP_AND_CHANNEL_CAPABILITY_READ_ONLY','installed_sha'=>'cece6e7bd9b1d1b8984a14df2910c8a1d36e900f','db_writes'=>0,'sender_calls'=>0,'provider_write_attempts'=>0,'channels'=>[]];
+          try{
+          $dir='/var/www/anytoour/data/channel-post-operations/commercial-hotel-batch-20261117-16-v1';
+          if(!is_dir($dir)||is_link($dir)||is_link($dir.'/publication-summary.json'))throw new RuntimeException('unexpected_operation_path');
+          $lock=fopen($dir.'/three-hotels.lock','r');if(!$lock||!flock($lock,LOCK_SH|LOCK_NB))throw new RuntimeException('operation_still_busy');
+          $files=array_map('basename',glob($dir.'/*'));sort($files);$summary=json_decode(file_get_contents($dir.'/publication-summary.json'),true,64,JSON_THROW_ON_ERROR);
+          $out['original_operation_files']=$files;
+          $out['original_summary']=['operation'=>$summary['operation']??null,'ok'=>$summary['ok']??null,'error'=>$summary['error']??null,'post_write_attempts'=>$summary['post_write_attempts']??null,'posts_count'=>count($summary['posts']??[])];
+          if($files!==['publication-summary.json','three-hotels.lock']||($summary['post_write_attempts']??null)!==0||($summary['ok']??null)!==false||($summary['error']??null)!=='channel_rights_not_ready'||count($summary['posts']??[])!==0)throw new RuntimeException('unexpected_original_operation_state');
+          flock($lock,LOCK_UN);fclose($lock);
+          $registry=new ChannelPostRegistryService($pdo);
+          foreach(['telegram'=>['anyru_bot','-1002262666616',10],'max'=>['id9704048781_1_bot','-80492244209683',9]] as $platform=>$t){
+              $c=$registry->channel('anytour',$platform,$t[0],$t[1]);if(!$c||(int)$c['id']!==$t[2]||(int)$c['config_version']!==2)throw new RuntimeException('channel_config_changed');
+              $r=(new ChannelPostButtonTransport())->verifyChannel($c);
+              $out['channels'][]=['platform'=>$platform,'channel_id'=>$t[1],'state'=>$r['state'],'reason'=>$r['reason'],'receipt'=>$r['receipt']];
+              $out['provider_write_attempts']+=(int)($r['receipt']['write_attempts']??999);
+          }
+          $out['all_ready']=count($out['channels'])===2&&count(array_filter($out['channels'],fn($x)=>$x['state']==='ready'))===2;
+          $out['ok']=true;
+          }finally{$pdo->rollBack();}
+          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          
+          PHP
+          php -l pub/read-only.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read original operation and current provider capabilities without writes
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = cece6e7bd9b1d1b8984a14df2910c8a1d36e900f
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; test -z "$(git status --porcelain --untracked-files=no)"; php' < pub/read-only.php > pub/result.json
+          cat pub/result.json
+      - name: Preserve original diagnosis
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-p16-rights-readonly-20261117
+          path: pub/result.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Remove runner-only authentication
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
