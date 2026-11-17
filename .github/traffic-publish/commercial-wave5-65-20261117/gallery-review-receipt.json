@@ -1,0 +1,449 @@
+{
+  "mode": "EXACT_PREVIOUSLY_BOUND_GALLERY_REVIEW_ONLY",
+  "profile_freeze": "5386a79f00f2b7ead9380e436bc69351ceced2b7",
+  "rows": [
+    {
+      "id": 115812,
+      "index": 0,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009027.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009027.jpg",
+        "bytes": 136060,
+        "sha256": "beba42b7a923099e80476c010a5a1efa004354aeee5823f3a62cfc0a5fc4d98a",
+        "width": 1024,
+        "height": 683,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 115812,
+      "index": 1,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009000.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009000.jpg",
+        "bytes": 112831,
+        "sha256": "728a68ae21e1319aac36fcf23aec5afb84d89be5a4d5c39ccbac29823b141a1c",
+        "width": 512,
+        "height": 768,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 115812,
+      "index": 2,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009001.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009001.jpg",
+        "bytes": 128703,
+        "sha256": "3ceffbf1efe26637c1e4da09630432ce9f69e7d21929d1fce3080af839e5fa3e",
+        "width": 1024,
+        "height": 679,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 115812,
+      "index": 3,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009002.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009002.jpg",
+        "bytes": 232609,
+        "sha256": "f19f2a5b29b294dc6bfc6ce947ab67069628637f74db7b9016f80b94481b8695",
+        "width": 1024,
+        "height": 634,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 115812,
+      "index": 4,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009003.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009003.jpg",
+        "bytes": 201313,
+        "sha256": "ef95130a5f3354de35a251394eca945e80032777a4f608213c504b1fdbb705fd",
+        "width": 1024,
+        "height": 634,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 115812,
+      "index": 5,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009004.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009004.jpg",
+        "bytes": 111063,
+        "sha256": "dd50b60e0cd197cd3aae404f9e5a07d3191cf6656c99f76a23bb6a535a44e8eb",
+        "width": 1024,
+        "height": 683,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 115812,
+      "index": 6,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009005.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009005.jpg",
+        "bytes": 117973,
+        "sha256": "93d120496d4eaf802d92505f0c0221ef72edf2885633f336b3387b9ec1d64bf0",
+        "width": 1024,
+        "height": 631,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 115812,
+      "index": 7,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009006.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009006.jpg",
+        "bytes": 125163,
+        "sha256": "30b5e9f289b986bcd232154f9fa9e9af2b5d38bc8a2a40308db58287c7d3272b",
+        "width": 1024,
+        "height": 650,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 4235,
+      "index": 0,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502070.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502070.jpg",
+        "bytes": 227277,
+        "sha256": "f69d71634f9eac56fe469904128f25e122b8e8dbc22af40cfe9b88aa4126019a",
+        "width": 901,
+        "height": 1200,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 4235,
+      "index": 1,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502071.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502071.jpg",
+        "bytes": 241328,
+        "sha256": "0f3310e57cbf4906561427501940146b1f17400e90e7ece23ccb207c419befc0",
+        "width": 1200,
+        "height": 821,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 4235,
+      "index": 2,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502072.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502072.jpg",
+        "bytes": 333781,
+        "sha256": "136c4c20b403e8535e1ef5bff2a2b169b9f040d9e28f3396dae9f6b2036b4a39",
+        "width": 1200,
+        "height": 800,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 4235,
+      "index": 3,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502073.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502073.jpg",
+        "bytes": 307151,
+        "sha256": "3c3d367cf412c9b1608992364395a4cd392cd2e58d4cb6f3ada3754bd6ea0e24",
+        "width": 1200,
+        "height": 800,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 4235,
+      "index": 4,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502074.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502074.jpg",
+        "bytes": 379761,
+        "sha256": "62ac3e6f3087ea47b698b37adfcec8e7ed6427624cebf74448299ece2013345a",
+        "width": 897,
+        "height": 1200,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 4235,
+      "index": 5,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502075.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502075.jpg",
+        "bytes": 334232,
+        "sha256": "6ef6b5505892dc9e7da4a06c45b00c497fc62457b23617255f9a99af780fc84c",
+        "width": 1200,
+        "height": 800,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 4235,
+      "index": 6,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502076.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502076.jpg",
+        "bytes": 478810,
+        "sha256": "055da6c39e591d34e2d0c929022f0ebce3ce72b96ed62cfeef4411d60522151c",
+        "width": 1200,
+        "height": 801,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 4235,
+      "index": 7,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502077.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502077.jpg",
+        "bytes": 359180,
+        "sha256": "3b39b7bed729b524ccea1707e2870c650e09c3e3f214a2182648be44705ad82f",
+        "width": 1200,
+        "height": 800,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 43494,
+      "index": 0,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-0.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-0.jpg",
+        "bytes": 143949,
+        "sha256": "c44aa1573b2b308492153497785475c36fd0f8e3cf47985fdbda554436f80f5a",
+        "width": 800,
+        "height": 532,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 43494,
+      "index": 1,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-1.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-1.jpg",
+        "bytes": 53889,
+        "sha256": "2e5f4270cbb208c308527f98c07363ea3d0e8e5b9f7a97a9ff7e845d11457331",
+        "width": 550,
+        "height": 365,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 43494,
+      "index": 2,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-2.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-2.jpg",
+        "bytes": 82919,
+        "sha256": "69ab1286e59f370affc608ab0a2458c209400fe36988429be4e8376b0f669ddc",
+        "width": 550,
+        "height": 365,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 43494,
+      "index": 3,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-3.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-3.jpg",
+        "bytes": 33666,
+        "sha256": "baa8d26462a7f54cdcb416b1b4d6a4a395aa72f2e5248d04e6b3a95286a2c2d2",
+        "width": 550,
+        "height": 365,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 43494,
+      "index": 4,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-4.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-4.jpg",
+        "bytes": 52885,
+        "sha256": "1fdbae59da22bb376579a7f178554c8d01978bd0c1fb82cdb9a6b4e5cdfe8b7f",
+        "width": 550,
+        "height": 365,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 43494,
+      "index": 5,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-5.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-5.jpg",
+        "bytes": 101410,
+        "sha256": "734e2c19718f3fb83c7310f6e9468f123dc6d2f34fa3dadac9788fbe7e81bcc1",
+        "width": 800,
+        "height": 532,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 43494,
+      "index": 6,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-6.jpg",
+      "receipt": null,
+      "error": "photo_dimensions_invalid"
+    },
+    {
+      "id": 43494,
+      "index": 7,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-7.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-7.jpg",
+        "bytes": 77101,
+        "sha256": "d318986d3bc5580fabedb3f9d2ed31ad31ba815ee1d861b60834f46135fa6412",
+        "width": 550,
+        "height": 365,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 110848,
+      "index": 0,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpK74S46.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpK74S46.jpg",
+        "bytes": 30268,
+        "sha256": "dda8563255a67774be2da93d21ace9e41a244fec9683a2e329fcda01a5294578",
+        "width": 800,
+        "height": 533,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 110848,
+      "index": 1,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpGv3er8.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpGv3er8.jpg",
+        "bytes": 42153,
+        "sha256": "f2a69dd88ac360ac3596c242c6f609c80c0e936b0c153d7828f9c7b279505c61",
+        "width": 800,
+        "height": 533,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 110848,
+      "index": 2,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpUf15H9.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpUf15H9.jpg",
+        "bytes": 46787,
+        "sha256": "70a618d6ec58f7d84abdacc0f6a80ebe3a7566d06e1d50e2313445b5f1601b53",
+        "width": 800,
+        "height": 533,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 110848,
+      "index": 3,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpZjbH4a.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpZjbH4a.jpg",
+        "bytes": 46467,
+        "sha256": "5cbe73966620a2b6d2695f879e3729a0bc540ed8d31ff863a8799a82b59fac63",
+        "width": 800,
+        "height": 533,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 110848,
+      "index": 4,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpWz73jc.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpWz73jc.jpg",
+        "bytes": 61269,
+        "sha256": "b2400582ea8f6cf83fc46406e083b72661e662d42a47c4f9b283fcc8fa969d33",
+        "width": 800,
+        "height": 479,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 110848,
+      "index": 5,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpInS5Ed.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpInS5Ed.jpg",
+        "bytes": 37637,
+        "sha256": "90f8f5dc8a43c71dc1ee2d3f28cdcfd00cb04b369df175cab6dab07bd7dc8c97",
+        "width": 800,
+        "height": 533,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 110848,
+      "index": 6,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpZ7s8Te.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpZ7s8Te.jpg",
+        "bytes": 48543,
+        "sha256": "89b566c507fad22d8321a858afa8db71193cd2243a4e85d3fb6f3fb332c8cc64",
+        "width": 800,
+        "height": 533,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    },
+    {
+      "id": 110848,
+      "index": 7,
+      "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpzkU1mg.jpg",
+      "receipt": {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpzkU1mg.jpg",
+        "bytes": 56330,
+        "sha256": "f4d2e74e3ea6c707180b814520dcb889cd8e6ade08f7fbd15141790341acbfff",
+        "width": 800,
+        "height": 533,
+        "mime": "image/jpeg"
+      },
+      "error": null
+    }
+  ],
+  "sender_calls": 0,
+  "provider_profile_calls": 0
+}
