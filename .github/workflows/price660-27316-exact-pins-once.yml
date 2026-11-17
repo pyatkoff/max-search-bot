@@ -13,8 +13,8 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event_name == 'push' &&
-      github.event.before == 'fa8db4a3fadb042aedbac7ea405138d3a7726372' &&
-      github.event.head_commit.message == 'diagnostics(anytour): exact original 27316 pins read once' &&
+      github.event.before == '3736196657667a30a65f4c271151455cf7798316' &&
+      github.event.head_commit.message == 'diagnostics(anytour): identify existing per-hotel completion in frozen global' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = fa8db4a3fadb042aedbac7ea405138d3a7726372
+          test "$(git rev-parse HEAD^)" = 3736196657667a30a65f4c271151455cf7798316
           test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
           echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
       - name: Pinned existing SSH host and private runner-only key
@@ -137,6 +137,9 @@ jobs:
             $out['roster_count']=count($rows);
             $out['original_global']=['sha256'=>$fullSha,'bytes'=>$bytes,'lines'=>$lines,'lastline_sha256'=>$lastSHA,
                'completed_count'=>count($last['completed']??[]),
+               'completed_27316'=>($last['completed'][27316]??null),
+               'pending_child_failure'=>($last['pending']['child_failure']??null),
+               'pending_shape_keys'=>array_keys($last['pending']??[]),
                'completed_canonical_sha256'=>hash('sha256',json_encode($last['completed'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),
                'cycle'=>$last['nightly_cycle']];
             $out['original_child']=['sha256'=>hash('sha256',$raw),'bytes'=>strlen($raw),'lines'=>substr_count($raw,"\n"),
