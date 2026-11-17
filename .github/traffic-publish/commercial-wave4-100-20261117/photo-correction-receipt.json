@@ -1,0 +1,136 @@
+{
+  "state": "TWO_RECOMPOSED_COVERS_PENDING_FINAL_VISUAL_ACCEPTANCE",
+  "original_profile_cover_commit": "d865a543817ee5806c4565fbcb53fab5f69dad23",
+  "original_cover_receipt_git_blob": "7b54b837d565823c9b8fe4d2e0dd3f7c777d3033",
+  "gallery_review_run": 44130549530,
+  "changes": [
+    {
+      "id": 22718,
+      "original_png_sha256": "e576c65a3f69dc89b177306d54cf592704c9614e6156e1bffce5bbc48dc02dc7",
+      "selected_original_gallery_indices": [
+        0,
+        7,
+        2
+      ],
+      "original_photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601551.jpg",
+          "bytes": 204611,
+          "sha256": "1927c527097e07a7dc42c040cc8d87721e5fb2263e6fc9654ab11b952a77ae5a",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601552.jpg",
+          "bytes": 254197,
+          "sha256": "41813b56cbb95038af4cafa4d6b5dca437699f505317482a8d52a002053be476",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601553.jpg",
+          "bytes": 310708,
+          "sha256": "80eaff08d4f499e34ee847f4ea4a6c98b7636c6b384f2c61dc48531850753cd2",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        }
+      ],
+      "corrected_png_sha256": "51d62263f6822153e12f1d51035cd7722865c1e69658912931120ca4d9b017ed",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601550.jpg",
+          "bytes": 510609,
+          "sha256": "f3bd0063bfacb6ec1ea1abf768c0de66336076544454ee547846a63c8da11994",
+          "width": 1200,
+          "height": 900,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601557.jpg",
+          "bytes": 173123,
+          "sha256": "09d3e92deeeca5d27da71fe0a8f7dad6666adffd924cee08c2ae0726f361de6e",
+          "width": 1200,
+          "height": 777,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-vacation-club-102601552.jpg",
+          "bytes": 254197,
+          "sha256": "41813b56cbb95038af4cafa4d6b5dca437699f505317482a8d52a002053be476",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        }
+      ],
+      "reason": "same_property_non_generic_current_brand_neutral_images_after_visual_review"
+    },
+    {
+      "id": 47213,
+      "original_png_sha256": "b05c632c02fbca024d62b8fd99e1c52cad1cbc1c5d2628312222fdd41b9d9e14",
+      "selected_original_gallery_indices": [
+        4,
+        6,
+        7
+      ],
+      "original_photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-8.jpg",
+          "bytes": 183966,
+          "sha256": "7751f16394b5f6c24d9a43f7455bdec2b219378974b87647b62ba7f6121770d8",
+          "width": 840,
+          "height": 460,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-0.jpg",
+          "bytes": 193830,
+          "sha256": "7b17eca9a2ac22e3f7e3c018fc63d43bc9f546ead050fb698a081329ae9abb20",
+          "width": 840,
+          "height": 460,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-1.jpg",
+          "bytes": 175111,
+          "sha256": "a55b16e4e689b4302e226b1cdb159a8c85a917e7c64cee7362f4888e00c16dd6",
+          "width": 840,
+          "height": 460,
+          "mime": "image/jpeg"
+        }
+      ],
+      "corrected_png_sha256": "692f21399bf7d7f5d86bd768c5f513efc910e88769a354bf3270695bc114230c",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-3.jpg",
+          "bytes": 121725,
+          "sha256": "db957dacf56101f3bfcc06b70a3ed0fd6d272ab25987820de7fb2747935b3fcf",
+          "width": 840,
+          "height": 460,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-5.jpg",
+          "bytes": 141606,
+          "sha256": "29270265da23d08fa7a2c20473ae8f734dc1aecffe24c27069dc304f92a50be9",
+          "width": 840,
+          "height": 460,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-chiang-mai-6.jpg",
+          "bytes": 189791,
+          "sha256": "f5bcc447e63fe030c1b03940404f6d313e73778c4b3aeaca67474bf848bd009e",
+          "width": 840,
+          "height": 460,
+          "mime": "image/jpeg"
+        }
+      ],
+      "reason": "same_property_non_generic_current_brand_neutral_images_after_visual_review"
+    }
+  ],
+  "provider_profile_calls": 0,
+  "native_sends": 0
+}
