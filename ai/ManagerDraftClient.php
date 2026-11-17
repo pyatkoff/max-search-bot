@@ -207,8 +207,8 @@ final class ManagerDraftClient
             $imageBytes+=strlen($image['image_url']);
         }
         if ($imageBytes>self::MAX_IMAGE_REQUEST_BYTES) throw new InvalidArgumentException('invalid_image_input');
-        $model=defined('MANAGER_AI_DRAFT_MODEL') ? MANAGER_AI_DRAFT_MODEL : 'gpt-6.1-sol';
-        $effort=defined('MANAGER_AI_DRAFT_REASONING') ? MANAGER_AI_DRAFT_REASONING : 'low';
+        $model=defined('MANAGER_AI_DRAFT_MODEL') ? MANAGER_AI_DRAFT_MODEL : 'gpt-6.2-sol';
+        $effort=defined('MANAGER_AI_DRAFT_REASONING') ? MANAGER_AI_DRAFT_REASONING : 'medium';
         $tier=defined('MANAGER_AI_DRAFT_SERVICE_TIER') ? MANAGER_AI_DRAFT_SERVICE_TIER : 'default';
         if (!is_string($model) || preg_match('/\A[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\z/D',$model)!==1) {
             throw new InvalidArgumentException('invalid_draft_model');

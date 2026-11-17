@@ -1,16 +1,14 @@
 # AI model profile
 
-Owner decision, 19 October 2026: use GPT-6.1 Sol throughout this application,
-including MAX Search. The selected profile is `gpt-6.1-sol`, `low` reasoning,
-Standard (`service_tier: default`), matching the comparison. No instruction,
-state policy, routing or automatic-send behavior changes with this rollout.
+The 17 November 2026 owner decision selects `gpt-6.2-sol` with `medium`
+reasoning and Standard processing (`service_tier: default`) for the customer bot
+and manager reply drafts. The previous profile was `gpt-6.1-sol` with `low` reasoning.
 
 Runtime caller inventory:
 
 - MAX, Telegram and website: `AiRouter` and `TouristExtractorV2` use `AiClient`.
 - Explicit manager reply draft: `ManagerAiDraftService` uses `ManagerDraftClient`.
-- These are the only OpenAI HTTP transports in this repository. External research
-  tools, archived comparisons and neighbouring projects are not runtime callers.
+- The private virtual reply author and critic use separate evaluation profiles.
 
 The common bot uses `OPENAI_MODEL`; drafts independently use
 `MANAGER_AI_DRAFT_MODEL`, `MANAGER_AI_DRAFT_REASONING` and
@@ -26,7 +24,7 @@ literals, preserves existing literal ownership and unrelated bytes, and adds
 truly missing settings only to external config. This avoids duplicate definitions
 when a legacy wrapper already owns a key. It rejects ambiguous/dynamic definitions,
 stages/lints candidates outside the document root, retains owner-only
-`ai-profile-before-sol-61.runtime.php` / `.external.php` backups beside external
+`ai-profile-before-sol-62-medium.runtime.php` / `.external.php` backups beside external
 config, and installs each changed file atomically on the same filesystem. If the effective profile check fails immediately after an
 install, it attempts to restore only its own unchanged candidate. Existing backup
 or concurrent drift prevents another non-idempotent apply; investigate instead
@@ -43,12 +41,11 @@ Bot deadline remains 12 seconds/1200 output tokens; manager deadline remains
 20 seconds/2200 output tokens. The bounded old webhook deadline is intentional;
 switching models does not authorize extending it or adding retries.
 
-Rollback requires reverting the source/profile rollout through a green PR and
-the normal exact-main deploy. If runtime configuration must also be restored,
-restore only the four previous profile values from the private backup after
-checking current config drift; do not copy an old whole configuration over newer
-secrets or unrelated settings. Remove or update the rollout in that same revert
-so a later deploy does not reapply it. No database rollback is involved.
+To return to the previous profile, prepare a forward PR restoring the previous
+client defaults, config targets, smoke and regression expectations. Give that
+rollout a fresh backup basename, because the original 6.1 backup can already
+exist. Use the normal verified deployment so only the four owned profile
+values are reconciled and all other current settings are preserved.
 
 Offline instruction candidates and corpus-review claims remain independent.
 Historical Luna outputs, sealed ledgers and A/B labels are not rewritten. Future
