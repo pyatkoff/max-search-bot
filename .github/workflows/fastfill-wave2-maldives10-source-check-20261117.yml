@@ -15,7 +15,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
       github.event_name == 'push' &&
-      github.event.before == 'a4204d223b56421cf6d3f9c184166902c6fb5e61' &&
+      github.event.before == '4c52ce72ef4ea41352084b4b316b0cfa4222b047' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -32,7 +32,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = a4204d223b56421cf6d3f9c184166902c6fb5e61
+          test "$(git rev-parse HEAD^)" = 4c52ce72ef4ea41352084b4b316b0cfa4222b047
           python3 - <<'PY'
           import base64,hashlib,json,pathlib,re,runpy,subprocess,urllib.request
           BASE='a4204d223b56421cf6d3f9c184166902c6fb5e61'
@@ -77,8 +77,11 @@ jobs:
               dictionaries=[v for v in walk(data) if isinstance(v,dict) and str(v.get('id',''))==str(hid)]
               assert len(dictionaries)==1,('native_identity_ambiguous',hid)
               d=dictionaries[0]
-              serialized=json.dumps(d,ensure_ascii=False)
-              assert all(u in serialized for u in r['source_photos'][:3]),('paid_source_photo_identity_changed',hid)
+              serialized=json.dumps(data,ensure_ascii=False)
+              source_images=[v['images'] for v in walk(data) if isinstance(v,dict) and isinstance(v.get('images'),list)]
+              assert source_images,('source_images_missing',hid)
+              image_text=json.dumps(source_images,ensure_ascii=False)
+              assert all(u.rsplit('/',1)[1] in image_text for u in r['source_photos'][:3]),('paid_source_photo_filename_changed',hid)
               assert 'verybig/8/' in r['source_photos'][0]
               info={k:v for k,v in d.items() if k!='images'}
               facts.append({'hotel_id':hid,'source':r['source_url'],'native_name':d.get('name'),'exact_native_id_verified':True,'source_fields':info})
