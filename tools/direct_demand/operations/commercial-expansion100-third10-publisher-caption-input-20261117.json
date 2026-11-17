@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-17",
+  "operation": "commercial-expansion100-third10-caption-cover-input-only",
+  "state": "EDITORIAL_AND_TOURVISOR_PHOTO_SOURCES_REVIEWABLE_NOT_SENT",
+  "source_blob": "911b3c6d59ef8b319a7a323385b03325a08863ff",
+  "button_text": "✈️ Узнать стоимость тура",
+  "destination": [
+    "main MAX AnyTour",
+    "main Telegram AnyTour"
+  ],
+  "summary": {
+    "rows": 10,
+    "linked_to_anytour": 10,
+    "vendor_photo_source_rows": 10,
+    "real_png_frozen": 0,
+    "posts_sent": 0,
+    "feed_rows_new": 0
+  },
+  "guard": "Only prepublication input for existing sender, exclusion of previous 20 and Soneva Secret commercial hold; require exact current source, covers, native receipts, bot, no duplicate on publication.",
+  "rows": [
+    {
+      "work_id": "EXP006",
+      "hotel_id": 7831,
+      "anytour_canonical_id": 8751,
+      "hotel": "Anantara Riverside Bangkok Resort",
+      "logical_id": "commercial-hotel-7831-v1",
+      "text": "✈️ Туры в Anantara Riverside Bangkok Resort\n📍 Бангкок, Таиланд.\n\nЗелёный курорт прямо у реки Чаупхрая — ощущение тропического отдыха посреди большого города.\n🚤 Прогулки и лодочные маршруты по реке.\n🏊 Бассейн, сад и семейный отдых.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "existing commercial-batch capsule",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=7831",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-bangkok-riverside-resort-spa-609500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-bangkok-riverside-resort-spa-609501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-bangkok-riverside-resort-spa-609502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-bangkok-riverside-resort-spa-609503.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_7831",
+        "telegram": "tg_7831"
+      }
+    },
+    {
+      "work_id": "EXP010",
+      "hotel_id": 2948,
+      "anytour_canonical_id": 4609,
+      "hotel": "Anantara Hua Hin Resort",
+      "logical_id": "commercial-hotel-2948-v1",
+      "text": "✈️ Туры в Anantara Hua Hin Resort\n📍 Хуахин, Таиланд.\n\nПляжный курорт среди тропических садов.\n🏊 Бассейны и зелёные зоны для отдыха.\n👨‍👩‍👧 Подходит для спокойного семейного отпуска.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "existing commercial-batch capsule",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2948",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-resort-spa-hua-hin-7046200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-resort-spa-hua-hin-7046201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-resort-spa-hua-hin-7046202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-resort-spa-hua-hin-7046203.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_2948",
+        "telegram": "tg_2948"
+      }
+    },
+    {
+      "work_id": "EXP028",
+      "hotel_id": 57536,
+      "anytour_canonical_id": 12520,
+      "hotel": "Al Baleed Resort Salalah by Anantara",
+      "logical_id": "commercial-hotel-57536-v1",
+      "text": "✈️ Туры в Al Baleed Resort Salalah by Anantara\n📍 Салала, Оман.\n\nКурорт между песчаным пляжем и пресноводной лагуной.\n🏡 Есть виллы с собственными бассейнами.\n🌿 Природа Омана и исторические достопримечательности неподалёку.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "existing commercial-batch capsule",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57536",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/64/al-baleed-resort-salalah-by-anantara-49524511.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/64/al-baleed-resort-salalah-by-anantara-49524500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/64/al-baleed-resort-salalah-by-anantara-49524501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/64/al-baleed-resort-salalah-by-anantara-49524502.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_57536",
+        "telegram": "tg_57536"
+      }
+    },
+    {
+      "work_id": "EXP029",
+      "hotel_id": 61241,
+      "anytour_canonical_id": 12839,
+      "hotel": "Anantara Al Jabal Al Akhdar Resort",
+      "logical_id": "commercial-hotel-61241-v1",
+      "text": "✈️ Туры в Anantara Al Jabal Al Akhdar Resort\n📍 Джебель-Ахдар, Оман.\n\nПремиальный горный курорт над величественным каньоном.\n🌄 Панорамные виды и горные маршруты.\n🏡 Есть виллы с бассейнами, спа и спокойная горная атмосфера.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "existing commercial-batch capsule",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=61241",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/64/anantara-al-jabal-al-akhdar-resort-48237600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/64/anantara-al-jabal-al-akhdar-resort-48225700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/64/anantara-al-jabal-al-akhdar-resort-48225701.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/64/anantara-al-jabal-al-akhdar-resort-48225702.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_61241",
+        "telegram": "tg_61241"
+      }
+    },
+    {
+      "work_id": "EXP089",
+      "hotel_id": 17424,
+      "anytour_canonical_id": 9843,
+      "hotel": "Four Seasons Hotel Istanbul at the Bosphorus",
+      "logical_id": "commercial-hotel-17424-v1",
+      "text": "✈️ Туры в Four Seasons Hotel Istanbul at the Bosphorus\n📍 Босфор, Стамбул, Турция.\n\nИсторический дворец на берегу Босфора.\n🌊 Прогулки у пролива и роскошные интерьеры.\n🧘 Спа, турецкий хаммам и бассейны.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "existing commercial-batch capsule",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17424",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/17424-3862401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/17424-3862300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/17424-3862402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/17424-3862403.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_17424",
+        "telegram": "tg_17424"
+      }
+    },
+    {
+      "work_id": "EXP090",
+      "hotel_id": 17423,
+      "anytour_canonical_id": 9842,
+      "hotel": "Four Seasons Hotel Istanbul at Sultanahmet",
+      "logical_id": "commercial-hotel-17423-v1",
+      "text": "✈️ Туры в Four Seasons Hotel Istanbul at Sultanahmet\n📍 Султанахмет, Стамбул, Турция.\n\nАтмосферный отель в самом сердце исторического города.\n🕌 Рядом Айя-София и Голубая мечеть.\n🌿 Уютный внутренний двор и рестораны.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "existing commercial-batch capsule",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17423",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/four-seasons-at-sultanahmet-63935005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/four-seasons-at-sultanahmet-63935000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/four-seasons-at-sultanahmet-63935001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/four-seasons-at-sultanahmet-63935002.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_17423",
+        "telegram": "tg_17423"
+      }
+    },
+    {
+      "work_id": "EXP025",
+      "hotel_id": 23718,
+      "anytour_canonical_id": 10377,
+      "hotel": "Anantara Hoi An Resort",
+      "logical_id": "commercial-hotel-23718-v1",
+      "text": "✈️ Туры в Anantara Hoi An Resort\n📍 Хойан, Вьетнам.\n\nЗелёный бутик-курорт у реки Тхубон недалеко от старого города.\n🏮 Прогулки по историческим улочкам Хойана.\n🏊 Бассейн и речные экскурсии.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "existing commercial-batch capsule",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23718",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/23718-42888111.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/23718-42887900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/23718-42887902.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/23718-42888003.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_23718",
+        "telegram": "tg_23718"
+      }
+    },
+    {
+      "work_id": "EXP017",
+      "hotel_id": 22940,
+      "anytour_canonical_id": 10334,
+      "hotel": "Anantara Sir Bani Yas Island Al Yamm Villa Resort",
+      "logical_id": "commercial-hotel-22940-v1",
+      "text": "✈️ Туры в Anantara Sir Bani Yas Island Al Yamm Villa Resort\n📍 Остров Сир-Бани-Яс, ОАЭ.\n\nУединённый пляжный курорт с 30 виллами в стиле традиционной эмиратской деревни.\n🌊 Море и мангровая лагуна рядом\n💦 Виллы с приватными бассейнами и просторными террасами\n✨ Спокойный отдых вдали от городской суеты\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "existing commercial-batch capsule",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22940",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/22940-52086900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/22940-52087001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/22940-52087002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/22940-52087003.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_22940",
+        "telegram": "tg_22940"
+      }
+    },
+    {
+      "work_id": "EXP085",
+      "hotel_id": 97001,
+      "anytour_canonical_id": 14397,
+      "hotel": "Four Seasons Hotel Alexandria at San Stefano",
+      "logical_id": "commercial-hotel-97001-v1",
+      "text": "✈️ Туры в Four Seasons Hotel Alexandria at San Stefano\n📍 Александрия, Египет.\n\nЭлегантный отель у Средиземного моря с морскими панорамами.\n🍽 Рестораны и прогулки по Александрии.\n✨ Комфортный городской отдых с атмосферой курорта.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "existing commercial-batch capsule",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=97001",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/four-seasons-hotel-alexandria-at-san-stefano-1413000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/four-seasons-hotel-alexandria-at-san-stefano-1413002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/four-seasons-hotel-alexandria-at-san-stefano-1413003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/four-seasons-hotel-alexandria-at-san-stefano-1413004.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_97001",
+        "telegram": "tg_97001"
+      }
+    },
+    {
+      "work_id": "EXP086",
+      "hotel_id": 74509,
+      "anytour_canonical_id": 13766,
+      "hotel": "Four Seasons Hotel Cairo at Nile Plaza",
+      "logical_id": "commercial-hotel-74509-v1",
+      "text": "✈️ Туры в Four Seasons Hotel Cairo at Nile Plaza\n📍 Каир, Египет.\n\nПремиальный городской отель на берегу Нила.\n🌅 В отдельных номерах открываются панорамы реки.\n🧘 Бассейны и спа для отдыха после насыщенного дня.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "caption_format": "existing commercial-batch capsule",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74509",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/four-seasons-hotel-cairo-at-nile-plaza-814400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/four-seasons-hotel-cairo-at-nile-plaza-814401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/four-seasons-hotel-cairo-at-nile-plaza-814402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/four-seasons-hotel-cairo-at-nile-plaza-814403.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура",
+      "feed_identity": {
+        "max": "max_74509",
+        "telegram": "tg_74509"
+      }
+    }
+  ]
+}
