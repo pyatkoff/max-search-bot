@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261117-1-v1",
+  "state": "PREPARED_NOT_SENT",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_public_full_pairs_last_known": 660,
+  "expected_new_full_pairs": 10,
+  "photo_freeze_commit": "15529b48fb9a14f61b474d53234cd94f716fad86",
+  "source_photo_artifact": 14316702034,
+  "preparation_note": "Real visually reviewed Tourvisor images; no outgoing posts yet. Current production HEAD/rights/dedup and existing sender source pins must be reverified before live send.",
+  "rows": [
+    {
+      "hotel_id": 12120,
+      "hotel": "Anantara Kihavah Maldives Villas",
+      "logical_id": "commercial-hotel-12120-v1",
+      "aliases": [
+        "Anantara Kihavah Maldives Villas"
+      ],
+      "text": "✈️ Туры в Anantara Kihavah Maldives Villas\n📍 Атолл Баа, Мальдивы.\n\nУединённый остров с виллами у пляжа и над лагуной, каждая с собственным бассейном.\n🐠 Красивый домашний риф для снорклинга.\n🍽 Подводный ресторан SEA и обсерватория над океаном.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "3b70fc8cae91d0e2bf6d43273df481addb4c83b7610d7581f05858537ae64f8f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15529b48fb9a14f61b474d53234cd94f716fad86/.github/traffic-publish/commercial-expansion100-20261117-first10/12120.png",
+      "photo_sha256": "433d75ae46c98551f34ad5aed16bb42bb0df5e7c90e77322b2421f923acac568",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=12120",
+        "https://www.anantara.com/en/kihavah-maldives"
+      ]
+    },
+    {
+      "hotel_id": 64957,
+      "hotel": "Kudadoo Maldives Private Island",
+      "logical_id": "commercial-hotel-64957-v1",
+      "aliases": [
+        "Kudadoo Maldives Private Island"
+      ],
+      "text": "✈️ Туры в Kudadoo Maldives Private Island\n📍 Атолл Лавиани, Мальдивы.\n\nКамерный частный остров всего с 15 виллами над водой и собственными бассейнами.\n✨ Персональный батлер и отдых с максимумом приватности.\n🌊 Снорклинг, водные развлечения и спа-программы.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "460bde9198ef6bcce6dca3d48a4fe471ab13b09bf66814546d18b003843fb22d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15529b48fb9a14f61b474d53234cd94f716fad86/.github/traffic-publish/commercial-expansion100-20261117-first10/64957.png",
+      "photo_sha256": "4b863bf92a999fc4fdd40a8f92ae27adf3b71c4f3047b559b201b46b2135906f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64957",
+        "https://www.kudadoo.com/",
+        "https://www.kudadoo.com/residences/"
+      ]
+    },
+    {
+      "hotel_id": 76029,
+      "hotel": "The Ritz-Carlton Maldives, Fari Islands",
+      "logical_id": "commercial-hotel-76029-v1",
+      "aliases": [
+        "The Ritz-Carlton Maldives, Fari Islands"
+      ],
+      "text": "✈️ Туры в The Ritz-Carlton Maldives, Fari Islands\n📍 Атолл Северный Мале, Мальдивы.\n\nДизайнерские виллы с приватными бассейнами над лагуной или у пляжа.\n👨‍👩‍👧 Ritz Kids для семейного отдыха.\n🧘 Спа-центр над водой и сервис персонального батлера.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "bfdae5d6fca3907d64b51ebbe3d85639f3fae33a29f12a615af07af392ce5546",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15529b48fb9a14f61b474d53234cd94f716fad86/.github/traffic-publish/commercial-expansion100-20261117-first10/76029.png",
+      "photo_sha256": "33a969433cc02cf2a2431a8e1707e2f008d7c39db2bce2e5482b9c5132ef9619",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76029",
+        "https://www.ritzcarlton.com/en/hotels/mlera-the-ritz-carlton-maldives-fari-islands/overview/"
+      ]
+    },
+    {
+      "hotel_id": 66198,
+      "hotel": "Waldorf Astoria Maldives Ithaafushi",
+      "logical_id": "commercial-hotel-66198-v1",
+      "aliases": [
+        "Waldorf Astoria Maldives Ithaafushi"
+      ],
+      "text": "✈️ Туры в Waldorf Astoria Maldives Ithaafushi\n📍 Итаафуши, Мальдивы.\n\nПросторные виллы у пляжа, на рифе и над водой, каждая с частным бассейном.\n🐠 Снорклинг у островного рифа.\n🍽 Одиннадцать ресторанов и красивые площадки для ужинов у океана.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "8203be9565e6f13a4af88a1356112e1844299b1fb24d29750288956340cb85b6",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15529b48fb9a14f61b474d53234cd94f716fad86/.github/traffic-publish/commercial-expansion100-20261117-first10/66198.png",
+      "photo_sha256": "d0a3659c0a8e49a8ac07b666d24744a010d5abfd1053cd906a79e9ddf7b432a2",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66198",
+        "https://www.waldorfastoriamaldives.com/villas/",
+        "https://www.waldorfastoriamaldives.com/resort/"
+      ]
+    },
+    {
+      "hotel_id": 49750,
+      "hotel": "Soneva Jani",
+      "logical_id": "commercial-hotel-49750-v1",
+      "aliases": [
+        "Soneva Jani"
+      ],
+      "text": "✈️ Туры в Soneva Jani\n📍 Атолл Нуну, Мальдивы.\n\nВиллы над просторной бирюзовой лагуной с собственными бассейнами.\n💦 В отдельных категориях есть горки прямо в воду.\n🧸 Детское пространство The Den и отдых для всей семьи.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "bbd647aee78a31bd7f4d85d2e204066bfeca2eb9a0245485059ab2a68dac061b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15529b48fb9a14f61b474d53234cd94f716fad86/.github/traffic-publish/commercial-expansion100-20261117-first10/49750.png",
+      "photo_sha256": "e7ebaf292b0f6bc5b47712a363ffd6195f4a3eebaf870099cc2f469111d9cb8f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=49750",
+        "https://soneva.com/resorts/soneva-jani/",
+        "https://soneva.com/resorts/soneva-jani/villas/"
+      ]
+    },
+    {
+      "hotel_id": 123247,
+      "hotel": "Jumeirah Marsa Al Arab",
+      "logical_id": "commercial-hotel-123247-v1",
+      "aliases": [
+        "Jumeirah Marsa Al Arab"
+      ],
+      "text": "✈️ Туры в Jumeirah Marsa Al Arab\n📍 Дубай, ОАЭ.\n\nСовременный курорт на берегу моря с собственным пляжем и четырьмя бассейнами.\n👨‍👩‍👧 Есть семейный клуб для детей.\n🧘 Просторный спа-центр на трёх этажах и рестораны у воды.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "b0c2efde4b3d84f5454e6b59586c28d622330f5572749f632c358540f61bc1ff",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15529b48fb9a14f61b474d53234cd94f716fad86/.github/traffic-publish/commercial-expansion100-20261117-first10/123247.png",
+      "photo_sha256": "93303e9b241c5ff6a720aeaac81c246ebd605005b1eb7621e4341db25f045df4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=123247",
+        "https://www.jumeirah.com/ru/stay/dubai/jumeirah-marsa-al-arab"
+      ]
+    },
+    {
+      "hotel_id": 48184,
+      "hotel": "Jumeirah Al Naseem",
+      "logical_id": "commercial-hotel-48184-v1",
+      "aliases": [
+        "Jumeirah Al Naseem"
+      ],
+      "text": "✈️ Туры в Jumeirah Al Naseem\n📍 Дубай, ОАЭ.\n\nЭлегантный пляжный отель Madinat Jumeirah с видами на знаменитый Burj Al Arab.\n🏖 Собственный пляж и несколько бассейнов.\n👨‍👩‍👧 Детский клуб и комфортный семейный отдых.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "c39887ded596750d09d02b27271258fc9a13a7233f0fa69a091cb4d642e127cd",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15529b48fb9a14f61b474d53234cd94f716fad86/.github/traffic-publish/commercial-expansion100-20261117-first10/48184.png",
+      "photo_sha256": "b3e7f97a893765f4e5df2f0d198e83af45014fecc16799cd39853fe6d0c976d4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=48184",
+        "https://www.jumeirah.com/en/stay/dubai/jumeirah-al-naseem"
+      ]
+    },
+    {
+      "hotel_id": 32322,
+      "hotel": "Four Seasons Resort Dubai at Jumeirah Beach",
+      "logical_id": "commercial-hotel-32322-v1",
+      "aliases": [
+        "Four Seasons Resort Dubai at Jumeirah Beach"
+      ],
+      "text": "✈️ Туры в Four Seasons Resort Dubai at Jumeirah Beach\n📍 Дубай, ОАЭ.\n\nПляжный курорт с бассейнами и ресторанами у моря.\n🧸 Детская программа Kids For All Seasons.\n🍽 Рестораны на берегу и атмосфера спокойного премиального отдыха.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "e3b857d55df09b8d69d495ed39ff721be9175ae088dca4eefa84393b638cc1fa",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15529b48fb9a14f61b474d53234cd94f716fad86/.github/traffic-publish/commercial-expansion100-20261117-first10/32322.png",
+      "photo_sha256": "4be65e9f41485d41c2f6faf45599a283f3e769bec085a35e3028769956dd6800",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=32322",
+        "https://www.fourseasons.com/dubaijb/services-and-amenities/family/",
+        "https://www.fourseasons.com/dubaijb/dining/"
+      ]
+    },
+    {
+      "hotel_id": 28272,
+      "hotel": "Anantara Layan Phuket Resort",
+      "logical_id": "commercial-hotel-28272-v1",
+      "aliases": [
+        "Anantara Layan Phuket Resort"
+      ],
+      "text": "✈️ Туры в Anantara Layan Phuket Resort\n📍 Пхукет, Таиланд.\n\nТихая бухта Лайан, зелёные холмы и роскошные виллы с бассейнами.\n🏖 Пляжный отдых у Андаманского моря.\n🧸 Детский клуб Chang и семейные развлечения.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "3ef8de61ae3dfdbb677423298e39a84bb89579b220efb7d0d4d180f91b7ad3c3",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15529b48fb9a14f61b474d53234cd94f716fad86/.github/traffic-publish/commercial-expansion100-20261117-first10/28272.png",
+      "photo_sha256": "ef139918557fca9376874f19ee11b1a011029d14446c5d94b508992a4968c2a5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=28272",
+        "https://www.anantara.com/en/layan-phuket",
+        "https://www.anantara.com/en/layan-phuket/family"
+      ]
+    },
+    {
+      "hotel_id": 7458,
+      "hotel": "Four Seasons Resort The Nam Hai, Hoi An",
+      "logical_id": "commercial-hotel-7458-v1",
+      "aliases": [
+        "Four Seasons Resort The Nam Hai, Hoi An"
+      ],
+      "text": "✈️ Туры в Four Seasons Resort The Nam Hai, Hoi An\n📍 Хойан, Вьетнам.\n\nУединённые виллы у широкого песчаного пляжа Ха Ми.\n🏊 Три бассейна, включая семейный.\n🏮 Вьетнамская кухня, кулинарные занятия и красивые маршруты по окрестностям Хойана.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "5265b79396bf59c02bd4de8eba7d9c6d4726fce416c139f7ef4ee17c98355a5c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15529b48fb9a14f61b474d53234cd94f716fad86/.github/traffic-publish/commercial-expansion100-20261117-first10/7458.png",
+      "photo_sha256": "ba56ba696341d28e3dfbbc29acc6a86213081d0d3cd18efb4aebede7534b2954",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=7458",
+        "https://www.fourseasons.com/hoian/",
+        "https://www.fourseasons.com/hoian/services-and-amenities/"
+      ]
+    }
+  ]
+}
