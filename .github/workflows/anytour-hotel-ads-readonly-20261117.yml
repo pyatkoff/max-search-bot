@@ -1,0 +1,40 @@
+name: Read AnyTour hotel advertising statistics
+on:
+  push:
+    branches: [audit/anytour-hotel-ads-20261117]
+    paths:
+      - .github/workflows/anytour-hotel-ads-readonly-20261117.yml
+      - audit/anytour-hotel-ads-readonly-20261117.py
+      - audit/anytour-hotel-ads-runner-20261117.py
+permissions:
+  contents: read
+concurrency:
+  group: anytour-hotel-ads-owner-20261117
+  cancel-in-progress: false
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Read fixed 10–16 November statistics; retain encrypted result
+        env:
+          SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          READER_SHA256: 4f586b4912205f2a572f52f797c4f61c6e24c43932ca9099f3f4a64f4b5ee335
+          REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUEwQ1hCcWJEc0tWamR3OSs5eHlrUApucG85VHVOenc5OXJrUS9TY1V0TWVCc3VLUFZsY3c0SHcyYUU4dG9KNzl2d0w1bGFLZXlMUjRHb2FnVHFrU1NpCllKRlM3RVVtdzhOaW5vS2NYKzN2WE1yWERiRjVwWnpzL0JSQ3Y1MmdpWHB3dGxTc25tQzV3MW93WHVTWlBDS3oKQVh1c2cwekZiSHdyc1VFM1U2ZTZlaS9ueC80aWZzd1VtN0NpTk52NWdGTmFVcDYybDRiM1RFd2dtSkV1YnVYSApPZXVGMDV3OHZDRE5aUHJYa1lMNFZXNGlCYXNTQlk0SlNtMitWSTNaTXdTWE9QWEVwRXYvbUpMMXpaMGtUWEVtClFHOFIrMTZJd2dzOUJVTWVVcHBBN2M0Tm9tQk1WVE5CY0R6bnA0NG1qbE11dDl4NWVJVFNTWk1tQ1pmUDYvK1EKTjhWUFA5ZXJVZzI3TFVBSTA3OWRFRzU2cEpWK2daazBGdkhQbStqR0FPekZCcXJxVDlIZE1uZlE4SHJZeVVIZwp3TVQ0TjN2V3FWVDg2WEljWlNFd0hTK2J2SHVlNmV2WFFYeWdSV2xvekgvdGtrOXNqZk5GdnV6b29Eb2hlaGhuCitzSXBBTGY0dEJzSnNYbHM5OGd0RWt3Ukd2TVorTUxnb2ZLblVtUldzLzJuQWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+        run: python3 audit/anytour-hotel-ads-runner-20261117.py
+      - name: Retain ciphertext only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: anytour-hotel-ads-20261117
+          path: encrypted-hotel-ads/*.enc.json
+          retention-days: 7
+          if-no-files-found: error
+
+
