@@ -24,19 +24,48 @@ if(!is_file($config)){
     $config=$directory.'/openssl.cnf';file_put_contents($config,"[req]\ndefault_bits=3072\ndistinguished_name=synthetic_dn\nprompt=no\n[synthetic_dn]\nCN=synthetic.invalid\n");
 }
 $GLOBALS['push_access_config']=$config;
+
+// Deliberately public synthetic keys: scalar43 from the reviewed reproduction
+// and RFC8291 section5 sender. Never production credentials. Signing and ECDH
+// use different keys, as required by RFC8292 section3.2.
+$fixedShortPem=<<<'SHORT_KEY'
+-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAACuhRANCAASYauJQbx/xBNBCMIYdj0tJj0vExtAJ
+sw91RNwSm4LSjQA8zMCmRg4K4yik2X08e2HYb8YonBifJSURDEQbsH6X
+-----END PRIVATE KEY-----
+SHORT_KEY;
+$fixedNormalPem=<<<'NORMAL_KEY'
+-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgyfWPiYE+n46HLnH0
+KqZOF1fJJU3MYrct3AELtAQ+oRyhRANCAAT+M/SrDepxkU21WCP3O1SUj0EwbZIH
+Mtu5pZpTKGSCIA5Zent7wmC6HCJ5mFgJkuk5cwAvMBKiiujwa7t45ewP
+-----END PRIVATE KEY-----
+NORMAL_KEY;
+$GLOBALS['push_access_key_queue']=[];
+$GLOBALS['push_access_default_key']=$fixedShortPem;
+$wireRequests=[];
+
 eval(<<<'FIXTURE'
 namespace PushRecipientFixture;
 use \ConversationDb;use \RoutingAccessService;use \ManagerPriorityService;
 use \ManagerPushConnectionService;use \ManagerPushPresentation;use \ManagerPushContext;
 use \RuntimeException;use \Throwable;
-function openssl_pkey_new(array$options){return \openssl_pkey_new($options+['config'=>$GLOBALS['push_access_config']]);}
+function openssl_pkey_new(array$options){
+    if(($options['private_key_type']??null)!==OPENSSL_KEYTYPE_EC||($options['curve_name']??null)!=='prime256v1')
+        throw new RuntimeException('unexpected_fixture_key_request');
+    $pem=$GLOBALS['push_access_key_queue']!==[]?array_shift($GLOBALS['push_access_key_queue']):$GLOBALS['push_access_default_key'];
+    $key=\openssl_pkey_get_private($pem);
+    if($key===false)throw new RuntimeException('invalid_public_fixture_key');
+    return$key;
+}
 function openssl_pkey_export($key,&$output,?string$passphrase=null,array$options=[]):bool{return \openssl_pkey_export($key,$output,$passphrase,$options+['config'=>$GLOBALS['push_access_config']]);}
 function openssl_sign(string$data,&$signature,$key,$algorithm):bool{
     if($GLOBALS['beforeProvider']!==null){$callback=$GLOBALS['beforeProvider'];$GLOBALS['beforeProvider']=null;$callback();}
     return \openssl_sign($data,$signature,$key,$algorithm);
 }
 function curl_init(string$endpoint){return$endpoint;}
-function curl_setopt_array($handle,array$options):bool{return true;}
+function curl_setopt_array($handle,array$options):bool{$GLOBALS['wireRequests'][$handle]=$options;return true;}
 function curl_exec($handle){$GLOBALS['requests'][]=$handle;return '';}
 function curl_getinfo($handle,int$option){return 201;}
 function curl_error($handle):string{return '';}
@@ -79,6 +108,58 @@ PUBLIC_KEY);
     $notify=static function(int$id=101)use(&$requests):array{$requests=[];\PushRecipientFixture\ManagerPushService::notifyConversation($id,'Synthetic notice');return$requests;};
     $target=static function(int$id=101,int$manager=7)use(&$requests):array{$requests=[];$result=\PushRecipientFixture\ManagerPushService::notifyManager($manager,$id,'Synthetic task','Synthetic reminder');return[$requests,$result];};
     $expected=static fn(int$id):array=>ManagerPriorityService::notificationSelectionForConversation($id)['selected_manager_ids'];
+
+    // Both valid private keys and all SQL/crypto are real; only key selection
+    // and provider I/O use the existing namespace seam.
+    $shortKey=openssl_pkey_get_private($fixedShortPem);$normalKey=openssl_pkey_get_private($fixedNormalPem);
+    $shortDetails=openssl_pkey_get_details($shortKey);$normalDetails=openssl_pkey_get_details($normalKey);
+    $shortPoint=hex2bin('04986ae2506f1ff104d04230861d8f4b498f4bc4c6d009b30f7544dc129b82d28d003cccc0a6460e0ae328a4d97d3c7b61d86fc6289c189f2525110c441bb07e97');$normalPoint=hex2bin('04fe33f4ab0dea71914db55823f73b54948f41306d920732dbb9a59a53286482200e597a7b7bc260ba1c227998580992e93973002f3012a28ae8f06bbb78e5ec0f');
+    pushAccessCheck('Public deterministic keys retain a valid short Y and a distinct full-width signing peer',
+        strlen($shortDetails['ec']['x'])===32&&strlen($shortDetails['ec']['y'])===31
+        &&("\x04".str_pad($shortDetails['ec']['x'],32,"\0",STR_PAD_LEFT).str_pad($shortDetails['ec']['y'],32,"\0",STR_PAD_LEFT))===$shortPoint
+        &&strlen($normalDetails['ec']['x'])===32&&strlen($normalDetails['ec']['y'])===32
+        &&("\x04".$normalDetails['ec']['x'].$normalDetails['ec']['y'])===$normalPoint&&$shortPoint!==$normalPoint);
+    $decode=static function(string$value):string{
+        $value=strtr($value,'-_','+/');return(string)base64_decode($value.str_repeat('=',(4-strlen($value)%4)%4),true);
+    };
+    $wirePoint=static function(array$options,string$expectedEcdh,string$expectedVapid)use($decode):bool{
+        $body=$options[CURLOPT_POSTFIELDS]??null;$headers=$options[CURLOPT_HTTPHEADER]??[];
+        if(!is_string($body)||strlen($body)<86||!is_array($headers)||ord($body[20])!==65)return false;
+        $point=substr($body,21,65);$header=implode("\n",$headers);
+        if($point!==$expectedEcdh||$point[0]!=="\x04"
+            ||preg_match('/Authorization: vapid t=[^,\s]+, k=([A-Za-z0-9_-]+)/',$header,$m)!==1
+            ||$decode($m[1])!==$expectedVapid||$expectedEcdh===$expectedVapid)return false;
+        $pem="-----BEGIN PUBLIC KEY-----\n".chunk_split(base64_encode(hex2bin('3059301306072A8648CE3D020106082A8648CE3D030107034200').$point),64,"\n")."-----END PUBLIC KEY-----\n";
+        return openssl_pkey_get_public($pem)!==false;
+    };
+    $requests=[];$wireRequests=[];$GLOBALS['push_access_key_queue']=[$fixedShortPem];
+    $fixedConfig=null;$fixedFailure=null;
+    try{$fixedConfig=\PushRecipientFixture\ManagerPushService::vapid();}
+    catch(Throwable$error){$fixedFailure=$error->getMessage();}
+    echo 'Fixed short-coordinate VAPID generation: '.($fixedFailure===null?'success':($fixedFailure==='invalid_vapid_key'?'invalid_vapid_key':'unexpected_failure'))."\n";
+    pushAccessCheck('Fresh valid short-coordinate VAPID generation retains its exact 65-byte public point without a provider call',
+        $fixedFailure===null&&is_array($fixedConfig)&&$decode($fixedConfig['public_key'])===$shortPoint&&$requests===[]);
+    $GLOBALS['push_access_key_queue']=[$fixedNormalPem];
+    $freshRequest=$fixedConfig!==null?$notify():[];
+    pushAccessCheck('Fresh short-coordinate VAPID signs an intercepted message using a distinct full-width ECDH key',
+        $freshRequest===['https://synthetic-push.invalid/7']
+        &&$wirePoint($wireRequests['https://synthetic-push.invalid/7']??[],$normalPoint,$shortPoint));
+    // Seed an existing, different, public fixture configuration. Its exact
+    // bytes must survive the ephemeral short-coordinate path and all ACL tests.
+    $fixedPath=$directory.'/.runtime/manager_push_vapid.php';
+    if(!is_dir(dirname($fixedPath)))mkdir(dirname($fixedPath),0700,true);
+    $savedConfig=['private_pem'=>$fixedNormalPem,'public_key'=>$encode($normalPoint),'subject'=>'mailto:synthetic@invalid.example'];
+    $savedConfigBytes="<?php\nreturn ".var_export($savedConfig,true).";\n";
+    file_put_contents($fixedPath,$savedConfigBytes);
+    if(function_exists('opcache_invalidate'))opcache_invalidate($fixedPath,true);
+    $requests=[];$wireRequests=[];$GLOBALS['push_access_key_queue']=[$fixedShortPem];
+    $existingRequest=$notify();
+    pushAccessCheck('An existing VAPID key is unchanged while a valid short-coordinate ephemeral key keeps its full SEC1 wire point',
+        $existingRequest===['https://synthetic-push.invalid/7']
+        &&$wirePoint($wireRequests['https://synthetic-push.invalid/7']??[],$shortPoint,$normalPoint)
+        &&file_get_contents($fixedPath)===$savedConfigBytes
+        &&\PushRecipientFixture\ManagerPushService::vapid()===$savedConfig);
+    $GLOBALS['push_access_key_queue']=[];
     pushAccessCheck('Active assigned manager remains canonical in singleton batch diagnostics and push',RoutingAccessService::canSeeConversation(7,$assigned)&&count(RoutingAccessService::visibleConversations(7,[$assigned]))===1&&$expected(101)===[7]&&$notify()===['https://synthetic-push.invalid/7']);
     $pdo->exec('UPDATE managers SET is_active=0 WHERE id=7');
     pushAccessCheck('Disabled assigned account cannot pass singleton receiving or batch ACL',!RoutingAccessService::canSeeConversation(7,$assigned)&&!RoutingAccessService::canReceiveConversation(7,$assigned)&&RoutingAccessService::visibleConversations(7,[$assigned])===[]);
