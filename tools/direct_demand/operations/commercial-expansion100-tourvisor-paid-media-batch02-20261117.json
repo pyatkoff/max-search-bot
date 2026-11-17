@@ -92,8 +92,23 @@
       "country": "AE",
       "anytour_canonical_id": null,
       "source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2925",
-      "status": "parse_failed",
-      "reason": "SyntaxError: Unexpected token '<', \"\n    <pre>{\"id\"\"... is not valid JSON"
+      "status": "source_read",
+      "provider_name": "DESERT ISLAND RESORT &amp; SPA BY ANANTARA",
+      "provider_country_id": 9,
+      "provider_country_name": "ОАЭ",
+      "description_present": true,
+      "description_length": 35,
+      "images_reported": 44,
+      "images_matching_host_country": 44,
+      "first_images": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/anantara-desert-island-resort-spa-213400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/anantara-desert-island-resort-spa-213401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/anantara-desert-island-resort-spa-213402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/anantara-desert-island-resort-spa-213403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/anantara-desert-island-resort-spa-213404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/anantara-desert-island-resort-spa-213405.jpg"
+      ],
+      "approval_status": "candidate_not_published"
     },
     {
       "work_id": "EXP006",
