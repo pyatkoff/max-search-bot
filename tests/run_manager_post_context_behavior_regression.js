@@ -64,6 +64,52 @@ test('shared funnel shows the exact source and ambiguous attribution without adv
 function repairResult(id=101,extra={}){
   return {ok:true,conversation_id:id,context:{current:null,history:[],repair:{event_id:51,model:'iPhone 15 Pro Max',service:'Замена аккумулятора',post_url:'https://max.ru/channel_appleservice39ru/AaRepairFixture',reply:{state:'delivered',text:'Сохранённый ответ: 6 500 ₽. <b>Текст</b>'},...extra}}};
 }
+test('Apple manager2 always explains a missing source without inventing a post or paid visit',async()=>{
+  const h=harness();h.body.className='manager2';h.S.detail.conversation.project_key='appleservice39';h.init();
+  h.resolve(0,{ok:true,conversation_id:101,context:{current:null,history:[]}});await h.settle();
+  assert.equal(h.host.hidden,false);assert.equal(h.host.dataset.state,'unknown');
+  assert.equal(h.host.querySelector('.postContextTeaser').textContent,'Источник обращения не определён');
+  assert.equal(h.host.querySelector('.postContextQuickLink').hidden,true);
+  assert.equal(h.host.dataset.hasQuickLink,'false');assert.equal(h.host.querySelector('.postContextOverlay').hidden,true);
+  assert.equal(h.requests.length,1);assert.equal(h.draft.value,'Не потерять черновик');
+  h.host.querySelector('.postContextToggle').listeners.click();
+  assert.match(h.host.textContent,/Исходный пост этого обращения не подтверждён/);
+  assert.doesNotMatch(h.host.textContent,/Открыть публикацию в MAX|Найден связанный рекламный визит/);
+});
+test('Apple manager2 shows a verified post shortcut and keeps advertising status separate',async()=>{
+  const h=harness();h.body.className='manager2';h.S.detail.conversation.project_key='appleservice39';h.init();
+  h.resolve(0,repairResult());await h.settle();
+  assert.equal(h.host.dataset.hasQuickLink,'true');
+  assert.match(h.host.querySelector('.postContextTeaser').textContent,/^Источник: iPhone 15 Pro Max · Замена аккумулятора$/);
+  assert.equal(h.host.querySelector('.postContextQuickLink').href,'https://max.ru/channel_appleservice39ru/AaRepairFixture');
+  assert.equal(h.host.querySelector('.postContextQuickLink').target,'_blank');
+  assert.equal(h.host.querySelector('.postContextQuickLink').rel,'noopener noreferrer');
+  assert.equal(h.host.querySelector('.postContextOverlay').hidden,true);
+  assert.doesNotMatch(h.host.querySelector('.postContextTeaser').textContent,/платн|рекламный визит/);
+});
+test('Apple manager2 keeps recognized repair context but refuses an unverified post shortcut',async()=>{
+  const h=harness();h.body.className='manager2';h.S.detail.conversation.project_key='appleservice39';h.init();
+  h.resolve(0,repairResult(101,{post_url:'https://evil.example/secret'}));await h.settle();
+  assert.match(h.host.querySelector('.postContextTeaser').textContent,/^Контекст входа:/);
+  assert.equal(h.host.querySelector('.postContextQuickLink').hidden,true);assert.equal(h.host.dataset.hasQuickLink,'false');
+  assert.equal(h.host.querySelector('.postContextOriginal'),null);
+});
+test('Apple manager2 never leaks an earlier client's source or quick link after a switch',async()=>{
+  const h=harness();h.body.className='manager2';h.S.detail.conversation.project_key='appleservice39';h.init();
+  h.resolve(0,repairResult());await h.settle();assert.equal(h.host.querySelector('.postContextQuickLink').hidden,false);
+  h.select(102);h.S.detail.conversation.project_key='appleservice39';
+  const pending=h.module.sync();h.resolve(1,{ok:true,conversation_id:102,context:{current:null,history:[]}});await pending;
+  assert.equal(h.host.dataset.state,'unknown');assert.equal(h.host.querySelector('.postContextQuickLink').hidden,true);
+  assert.doesNotMatch(h.host.textContent,/iPhone 15 Pro Max|AaRepairFixture/);assert.equal(h.messages.scrollTop,240);
+});
+test('failed Apple protected source read clears previous shortcut instead of reporting an unknown attribution',async()=>{
+  const h=harness();h.body.className='manager2';h.S.detail.conversation.project_key='appleservice39';h.init();
+  h.resolve(0,repairResult());await h.settle();assert.equal(h.host.querySelector('.postContextQuickLink').hidden,false);
+  h.nextGeneration();const pending=h.module.sync();assert.equal(h.host.querySelector('.postContextQuickLink').hidden,true);
+  h.resolve(1,{ok:false,error:'post_context_unavailable'},503);await pending;
+  assert.equal(h.host.dataset.state,'error');assert.match(h.host.textContent,/Не удалось загрузить исходный пост/);
+  assert.doesNotMatch(h.host.textContent,/AaRepairFixture|Источник обращения не определён/);
+});
 test('repair entry shows the real source link and captured reply without fabricating a publication snapshot or media',async()=>{
   const h=harness();h.init();h.resolve(0,repairResult());await h.settle();
   assert.equal(h.host.hidden,false);assert.match(h.host.querySelector('.postContextTeaser').textContent,/iPhone 15 Pro Max.*Замена аккумулятора/);
