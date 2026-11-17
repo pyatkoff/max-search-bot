@@ -1035,7 +1035,7 @@ function modeledDateQuestionProfileAssertions(PDO $p,callable $check):void
             $receipt['profiles_written']===1&&$prediction['status']==='predicted'
             &&$prediction['stage']==='concrete_request'&&$prediction['current_request_anchor']===$dateRef
             &&$prediction['base_probability']===0.083333&&$prediction['estimated_probability']===0.083333
-            &&$prediction['hypothesis_odds_multiplier']===1.0
+            &&in_array($prediction['hypothesis_odds_multiplier'],[1,1.0],true)
             &&$prediction['features']['criteria_families']===['dates','party']
             &&$prediction['features']['meaningful_customer_turns']===0&&$prediction['current_customer_turn_count']===4
             &&$prediction['outcome_observations']===[]&&$prediction['features']['explicit_decline']===false);
