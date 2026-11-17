@@ -1,0 +1,766 @@
+{
+  "schema_version": "anytour_content42_live_catalogue_exact_identity_readback_v1",
+  "evidence_date": "2026-11-17",
+  "kind": "read_only_source_to_current_stored_catalogue_not_site_admission",
+  "original_content_files": [
+    {
+      "path": "tools/direct_demand/operations/commercial-expansion100-first11-official-copy-20261117.json",
+      "git_blob_sha": "d2bd15b32f3470fb02204644df925d31e5e18d0e",
+      "rows": 11
+    },
+    {
+      "path": "tools/direct_demand/operations/commercial-expansion100-next31-official-copy-20261117.json",
+      "git_blob_sha": "ad4d196a314cfdd8005e68ef22a3d949f4de1425",
+      "rows": 31
+    }
+  ],
+  "original_candidates": {
+    "path": "tools/direct_demand/operations/commercial-expansion100-catalogue-candidates-20261116.json",
+    "blob_sha": "728ce08a9eed7745cfcba015ecd42c20431ef9bf"
+  },
+  "original_triage": {
+    "path": "tools/direct_demand/operations/commercial-expansion100-fastfill-triage-20261117.json",
+    "blob_sha": "1370c6e65e8a9e42f0aff59352eb7439e659f893"
+  },
+  "validation": {
+    "requests": 42,
+    "success": 42,
+    "matched_country": 42,
+    "matched_unique_ids": 42,
+    "failed": 0,
+    "supplier_queries": 0,
+    "site_writes": 0,
+    "post_sends": 0,
+    "photo_license_acceptances": 0
+  },
+  "scope_limits": [
+    "Confirms exact stored Tourvisor catalog ID and country for each editorial draft with a current GET read. Does not establish accepted AnyTour Site/oldLocal native mapping, legal photo permission, official claim acceptance, availability or public publisher readiness.",
+    "Do not compare native IDs across different namespaces without the accepted bridge.",
+    "Retain existing 660 paid feed unique per platform; prevent duplicates.",
+    "No new appointments, collector runs, customer messages, sender or feed writes."
+  ],
+  "rows": [
+    {
+      "work_id": "EXP002",
+      "tv": 12120,
+      "country_id": 8,
+      "region_id": 42,
+      "catalogue_name": "ANANTARA KIHAVAH VILLAS",
+      "draft_source": "EXP002",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=ANANTARA%20KIHAVAH%20VILLAS&countryId=8&limit=20",
+      "official_sources": [
+        "https://www.anantara.com/en/kihavah-maldives"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "ANANTARA KIHAVAH VILLAS",
+      "verified_region_id": 42,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP032",
+      "tv": 64957,
+      "country_id": 8,
+      "region_id": 42,
+      "catalogue_name": "KUDADOO MALDIVES PRIVATE ISLAND",
+      "draft_source": "EXP032",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=KUDADOO%20MALDIVES%20PRIVATE%20ISLAND&countryId=8&limit=20",
+      "official_sources": [
+        "https://www.kudadoo.com/",
+        "https://www.kudadoo.com/residences/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "KUDADOO MALDIVES PRIVATE ISLAND",
+      "verified_region_id": 42,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP058",
+      "tv": 76029,
+      "country_id": 8,
+      "region_id": 42,
+      "catalogue_name": "THE RITZ CARLTON MALDIVES FARI ISLANDS",
+      "draft_source": "EXP058",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=THE%20RITZ%20CARLTON%20MALDIVES%20FARI%20ISLANDS&countryId=8&limit=20",
+      "official_sources": [
+        "https://www.ritzcarlton.com/en/hotels/mlera-the-ritz-carlton-maldives-fari-islands/overview/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "THE RITZ CARLTON MALDIVES FARI ISLANDS",
+      "verified_region_id": 42,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP069",
+      "tv": 66198,
+      "country_id": 8,
+      "region_id": 42,
+      "catalogue_name": "WALDORF ASTORIA MALDIVES ITHAAFUSHI",
+      "draft_source": "EXP069",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=WALDORF%20ASTORIA%20MALDIVES%20ITHAAFUSHI&countryId=8&limit=20",
+      "official_sources": [
+        "https://www.waldorfastoriamaldives.com/villas/",
+        "https://www.waldorfastoriamaldives.com/resort/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "WALDORF ASTORIA MALDIVES ITHAAFUSHI",
+      "verified_region_id": 42,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP072",
+      "tv": 49750,
+      "country_id": 8,
+      "region_id": 42,
+      "catalogue_name": "SONEVA JANI RESORT",
+      "draft_source": "EXP072",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=SONEVA%20JANI%20RESORT&countryId=8&limit=20",
+      "official_sources": [
+        "https://soneva.com/resorts/soneva-jani/",
+        "https://soneva.com/resorts/soneva-jani/villas/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "SONEVA JANI RESORT",
+      "verified_region_id": 42,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP092",
+      "tv": 123247,
+      "country_id": 9,
+      "region_id": 45,
+      "catalogue_name": "JUMEIRAH MARSA AL ARAB",
+      "draft_source": "EXP092",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=JUMEIRAH%20MARSA%20AL%20ARAB&countryId=9&limit=20",
+      "official_sources": [
+        "https://www.jumeirah.com/ru/stay/dubai/jumeirah-marsa-al-arab"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "JUMEIRAH MARSA AL ARAB",
+      "verified_region_id": 45,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP095",
+      "tv": 48184,
+      "country_id": 9,
+      "region_id": 45,
+      "catalogue_name": "JUMEIRAH AL NASEEM (EX. MADINAT JUMEIRAH AL NASEEM)",
+      "draft_source": "EXP095",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=JUMEIRAH%20AL%20NASEEM%20(EX.%20MADINAT%20JUMEIRAH%20AL%20NASEEM)&countryId=9&limit=20",
+      "official_sources": [
+        "https://www.jumeirah.com/en/stay/dubai/jumeirah-al-naseem"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "JUMEIRAH AL NASEEM (EX. MADINAT JUMEIRAH AL NASEEM)",
+      "verified_region_id": 45,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP023",
+      "tv": 8951,
+      "country_id": 9,
+      "region_id": 43,
+      "catalogue_name": "QASR AL SARAB DESERT RESORT BY ANANTARA",
+      "draft_source": "EXP023",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=QASR%20AL%20SARAB%20DESERT%20RESORT%20BY%20ANANTARA&countryId=9&limit=20",
+      "official_sources": [
+        "https://www.anantara.com/en/qasr-al-sarab-abu-dhabi"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "QASR AL SARAB DESERT RESORT BY ANANTARA",
+      "verified_region_id": 43,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP083",
+      "tv": 32322,
+      "country_id": 9,
+      "region_id": 45,
+      "catalogue_name": "FOUR SEASONS RESORT DUBAI AT JUMEIRAH BEACH",
+      "draft_source": "EXP083",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=FOUR%20SEASONS%20RESORT%20DUBAI%20AT%20JUMEIRAH%20BEACH&countryId=9&limit=20",
+      "official_sources": [
+        "https://www.fourseasons.com/dubaijb/services-and-amenities/family/",
+        "https://www.fourseasons.com/dubaijb/dining/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "FOUR SEASONS RESORT DUBAI AT JUMEIRAH BEACH",
+      "verified_region_id": 45,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP015",
+      "tv": 28272,
+      "country_id": 2,
+      "region_id": 8,
+      "catalogue_name": "ANANTARA PHUKET LAYAN RESORT & SPA",
+      "draft_source": "EXP015",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=ANANTARA%20PHUKET%20LAYAN%20RESORT%20%26%20SPA&countryId=2&limit=20",
+      "official_sources": [
+        "https://www.anantara.com/en/layan-phuket",
+        "https://www.anantara.com/en/layan-phuket/family"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "ANANTARA PHUKET LAYAN RESORT & SPA",
+      "verified_region_id": 8,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP081",
+      "tv": 7458,
+      "country_id": 16,
+      "region_id": 105,
+      "catalogue_name": "FOUR SEASONS THE NAM HAI",
+      "draft_source": "EXP081",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=FOUR%20SEASONS%20THE%20NAM%20HAI&countryId=16&limit=20",
+      "official_sources": [
+        "https://www.fourseasons.com/hoian/",
+        "https://www.fourseasons.com/hoian/services-and-amenities/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "FOUR SEASONS THE NAM HAI",
+      "verified_region_id": 105,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP037",
+      "tv": 128957,
+      "country_id": 8,
+      "region_id": 42,
+      "catalogue_name": "NALA MALDIVES BY JAWAKARA (ADULTS ONLY 12+)",
+      "draft_source": "EXP037",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=NALA%20MALDIVES%20BY%20JAWAKARA%20(ADULTS%20ONLY%2012%2B)&countryId=8&limit=20",
+      "official_sources": [
+        "https://nalamaldives.com/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "NALA MALDIVES BY JAWAKARA (ADULTS ONLY 12+)",
+      "verified_region_id": 42,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP039",
+      "tv": 2490,
+      "country_id": 8,
+      "region_id": 42,
+      "catalogue_name": "VILAMENDHOO ISLAND RESORT",
+      "draft_source": "EXP039",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=VILAMENDHOO%20ISLAND%20RESORT&countryId=8&limit=20",
+      "official_sources": [
+        "https://www.vilamendhoo.com/",
+        "https://www.vilamendhoo.com/renovation-reopening.html"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "VILAMENDHOO ISLAND RESORT",
+      "verified_region_id": 42,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP019",
+      "tv": 2925,
+      "country_id": 9,
+      "region_id": 43,
+      "catalogue_name": "DESERT ISLAND RESORT & SPA BY ANANTARA",
+      "draft_source": "EXP019",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=DESERT%20ISLAND%20RESORT%20%26%20SPA%20BY%20ANANTARA&countryId=9&limit=20",
+      "official_sources": [
+        "https://www.anantara.com/en/desert-islands-sir-bani-yas"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "DESERT ISLAND RESORT & SPA BY ANANTARA",
+      "verified_region_id": 43,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP006",
+      "tv": 7831,
+      "country_id": 2,
+      "region_id": 62,
+      "catalogue_name": "ANANTARA BANGKOK RIVERSIDE RESORT & SPA",
+      "draft_source": "EXP006",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=ANANTARA%20BANGKOK%20RIVERSIDE%20RESORT%20%26%20SPA&countryId=2&limit=20",
+      "official_sources": [
+        "https://www.anantara.com/en/riverside-bangkok"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "ANANTARA BANGKOK RIVERSIDE RESORT & SPA",
+      "verified_region_id": 62,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP007",
+      "tv": 4283,
+      "country_id": 2,
+      "region_id": 62,
+      "catalogue_name": "ANANTARA SIAM BANGKOK (EX. FOUR SEASONS HOTEL BANGKOK)",
+      "draft_source": "EXP007",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=ANANTARA%20SIAM%20BANGKOK%20(EX.%20FOUR%20SEASONS%20HOTEL%20BANGKOK)&countryId=2&limit=20",
+      "official_sources": [
+        "https://www.anantara.com/en/siam-bangkok"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "ANANTARA SIAM BANGKOK (EX. FOUR SEASONS HOTEL BANGKOK)",
+      "verified_region_id": 62,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP085",
+      "tv": 97001,
+      "country_id": 1,
+      "region_id": 702,
+      "catalogue_name": "FOUR SEASONS HOTEL ALEXANDRIA AT SAN STEFANO",
+      "draft_source": "EXP085",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=FOUR%20SEASONS%20HOTEL%20ALEXANDRIA%20AT%20SAN%20STEFANO&countryId=1&limit=20",
+      "official_sources": [
+        "https://www.fourseasons.com/alexandria/",
+        "https://www.fourseasons.com/alexandria/services-and-amenities/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "FOUR SEASONS HOTEL ALEXANDRIA AT SAN STEFANO",
+      "verified_region_id": 702,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP086",
+      "tv": 74509,
+      "country_id": 1,
+      "region_id": 611,
+      "catalogue_name": "FOUR SEASONS HOTEL CAIRO AT NILE PLAZA",
+      "draft_source": "EXP086",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=FOUR%20SEASONS%20HOTEL%20CAIRO%20AT%20NILE%20PLAZA&countryId=1&limit=20",
+      "official_sources": [
+        "https://press.fourseasons.com/caironp/hotel-facts/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "FOUR SEASONS HOTEL CAIRO AT NILE PLAZA",
+      "verified_region_id": 611,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP041",
+      "tv": 2458,
+      "country_id": 8,
+      "region_id": 42,
+      "catalogue_name": "KOMANDOO ISLAND RESORT",
+      "draft_source": "EXP041",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=KOMANDOO%20ISLAND%20RESORT&countryId=8&limit=20",
+      "official_sources": [
+        "https://www.komandoo.com/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "KOMANDOO ISLAND RESORT",
+      "verified_region_id": 42,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP024",
+      "tv": 113544,
+      "country_id": 9,
+      "region_id": 43,
+      "catalogue_name": "ANANTARA SANTORINI ABU DHABI RETREAT",
+      "draft_source": "EXP024",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=ANANTARA%20SANTORINI%20ABU%20DHABI%20RETREAT&countryId=9&limit=20",
+      "official_sources": [
+        "https://www.anantara.com/en/santorini-abu-dhabi"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "ANANTARA SANTORINI ABU DHABI RETREAT",
+      "verified_region_id": 43,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP082",
+      "tv": 52337,
+      "country_id": 9,
+      "region_id": 43,
+      "catalogue_name": "FOUR SEASONS HOTEL ABU DHABI AT AL MARYAH ISLAND",
+      "draft_source": "EXP082",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=FOUR%20SEASONS%20HOTEL%20ABU%20DHABI%20AT%20AL%20MARYAH%20ISLAND&countryId=9&limit=20",
+      "official_sources": [
+        "https://www.fourseasons.com/abudhabi/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "FOUR SEASONS HOTEL ABU DHABI AT AL MARYAH ISLAND",
+      "verified_region_id": 43,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP008",
+      "tv": 47217,
+      "country_id": 2,
+      "region_id": 519,
+      "catalogue_name": "ANANTARA CHIANG MAI RESORT & SPA",
+      "draft_source": "EXP008",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=ANANTARA%20CHIANG%20MAI%20RESORT%20%26%20SPA&countryId=2&limit=20",
+      "official_sources": [
+        "https://www.anantara.com/en/chiang-mai"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "ANANTARA CHIANG MAI RESORT & SPA",
+      "verified_region_id": 519,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP010",
+      "tv": 2948,
+      "country_id": 2,
+      "region_id": 63,
+      "catalogue_name": "ANANTARA RESORT & SPA HUA HIN",
+      "draft_source": "EXP010",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=ANANTARA%20RESORT%20%26%20SPA%20HUA%20HIN&countryId=2&limit=20",
+      "official_sources": [
+        "https://www.anantara.com/en/hua-hin"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "ANANTARA RESORT & SPA HUA HIN",
+      "verified_region_id": 63,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP028",
+      "tv": 57536,
+      "country_id": 64,
+      "region_id": 539,
+      "catalogue_name": "AL BALEED RESORT SALALAH BY ANANTARA",
+      "draft_source": "EXP028",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=AL%20BALEED%20RESORT%20SALALAH%20BY%20ANANTARA&countryId=64&limit=20",
+      "official_sources": [
+        "https://www.anantara.com/en/al-baleed-salalah"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "AL BALEED RESORT SALALAH BY ANANTARA",
+      "verified_region_id": 539,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP029",
+      "tv": 61241,
+      "country_id": 64,
+      "region_id": 538,
+      "catalogue_name": "ANANTARA AL JABAL AL AKHDAR RESORT",
+      "draft_source": "EXP029",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=ANANTARA%20AL%20JABAL%20AL%20AKHDAR%20RESORT&countryId=64&limit=20",
+      "official_sources": [
+        "https://www.anantara.com/en/jabal-akhdar"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "ANANTARA AL JABAL AL AKHDAR RESORT",
+      "verified_region_id": 538,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP054",
+      "tv": 73477,
+      "country_id": 8,
+      "region_id": 42,
+      "catalogue_name": "SIYAM WORLD",
+      "draft_source": "EXP054",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=SIYAM%20WORLD&countryId=8&limit=20",
+      "official_sources": [
+        "https://www.sunsiyam.com/siyam-world/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "SIYAM WORLD",
+      "verified_region_id": 42,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP084",
+      "tv": 64648,
+      "country_id": 9,
+      "region_id": 45,
+      "catalogue_name": "FOUR SEASONS DUBAI INTERNATIONAL FINANCIAL CENTRE",
+      "draft_source": "EXP084",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=FOUR%20SEASONS%20DUBAI%20INTERNATIONAL%20FINANCIAL%20CENTRE&countryId=9&limit=20",
+      "official_sources": [
+        "https://www.fourseasons.com/dubaidifc/services-and-amenities/rooftop-pool/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "FOUR SEASONS DUBAI INTERNATIONAL FINANCIAL CENTRE",
+      "verified_region_id": 45,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP093",
+      "tv": 2588,
+      "country_id": 9,
+      "region_id": 45,
+      "catalogue_name": "JUMEIRAH BEACH HOTEL",
+      "draft_source": "EXP093",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=JUMEIRAH%20BEACH%20HOTEL&countryId=9&limit=20",
+      "official_sources": [
+        "https://www.jumeirah.com/en/stay/dubai/jumeirah-beach-hotel"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 2,
+      "verified_catalogue_name": "JUMEIRAH BEACH HOTEL",
+      "verified_region_id": 45,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP094",
+      "tv": 2611,
+      "country_id": 9,
+      "region_id": 45,
+      "catalogue_name": "JUMEIRAH AL QASR (EX. MADINAT JUMEIRAH AL QASR)",
+      "draft_source": "EXP094",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=JUMEIRAH%20AL%20QASR%20(EX.%20MADINAT%20JUMEIRAH%20AL%20QASR)&countryId=9&limit=20",
+      "official_sources": [
+        "https://www.jumeirah.com/ru/stay/dubai/jumeirah-al-qasr"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "JUMEIRAH AL QASR (EX. MADINAT JUMEIRAH AL QASR)",
+      "verified_region_id": 45,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP013",
+      "tv": 4210,
+      "country_id": 2,
+      "region_id": 9,
+      "catalogue_name": "ANANTARA PHANGAN RASANANDA RESORT & SPA",
+      "draft_source": "EXP013",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=ANANTARA%20PHANGAN%20RASANANDA%20RESORT%20%26%20SPA&countryId=2&limit=20",
+      "official_sources": [
+        "https://www.anantara.com/en/rasananda-koh-phangan"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "ANANTARA PHANGAN RASANANDA RESORT & SPA",
+      "verified_region_id": 9,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP089",
+      "tv": 17424,
+      "country_id": 4,
+      "region_id": 277,
+      "catalogue_name": "FOUR SEASONS HOTEL ISTANBUL AT THE BOSPHORUS",
+      "draft_source": "EXP089",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=FOUR%20SEASONS%20HOTEL%20ISTANBUL%20AT%20THE%20BOSPHORUS&countryId=4&limit=20",
+      "official_sources": [
+        "https://www.fourseasons.com/ru/bosphorus/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "FOUR SEASONS HOTEL ISTANBUL AT THE BOSPHORUS",
+      "verified_region_id": 277,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP090",
+      "tv": 17423,
+      "country_id": 4,
+      "region_id": 277,
+      "catalogue_name": "FOUR SEASONS AT SULTANAHMET",
+      "draft_source": "EXP090",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=FOUR%20SEASONS%20AT%20SULTANAHMET&countryId=4&limit=20",
+      "official_sources": [
+        "https://www.fourseasons.com/istanbul/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "FOUR SEASONS AT SULTANAHMET",
+      "verified_region_id": 277,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP025",
+      "tv": 23718,
+      "country_id": 16,
+      "region_id": 105,
+      "catalogue_name": "ANANTARA HOI AN RESORT (EX. LIFE HERITAGE RESORT)",
+      "draft_source": "EXP025",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=ANANTARA%20HOI%20AN%20RESORT%20(EX.%20LIFE%20HERITAGE%20RESORT)&countryId=16&limit=20",
+      "official_sources": [
+        "https://www.anantara.com/en/hoi-an"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "ANANTARA HOI AN RESORT (EX. LIFE HERITAGE RESORT)",
+      "verified_region_id": 105,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP073",
+      "tv": 108165,
+      "country_id": 8,
+      "region_id": 42,
+      "catalogue_name": "SONEVA SECRET",
+      "draft_source": "EXP073",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=SONEVA%20SECRET&countryId=8&limit=20",
+      "official_sources": [
+        "https://soneva.com/resorts/soneva-secret/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "SONEVA SECRET",
+      "verified_region_id": 42,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP076",
+      "tv": 121382,
+      "country_id": 8,
+      "region_id": 42,
+      "catalogue_name": "FOUR SEASONS PRIVATE ISLAND AT VOAVAH",
+      "draft_source": "EXP076",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=FOUR%20SEASONS%20PRIVATE%20ISLAND%20AT%20VOAVAH&countryId=8&limit=20",
+      "official_sources": [
+        "https://press.fourseasons.com/maldivesvoavah/hotel-facts/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "FOUR SEASONS PRIVATE ISLAND AT VOAVAH",
+      "verified_region_id": 42,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP096",
+      "tv": 2612,
+      "country_id": 9,
+      "region_id": 45,
+      "catalogue_name": "JUMEIRAH MINA AL SALAM (EX. MADINAT JUMEIRAH MINA A SALAM HOTEL)",
+      "draft_source": "EXP096",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=JUMEIRAH%20MINA%20AL%20SALAM%20(EX.%20MADINAT%20JUMEIRAH%20MINA%20A%20SALAM%20HOTEL)&countryId=9&limit=20",
+      "official_sources": [
+        "https://www.jumeirah.com/en/stay/dubai/jumeirah-mina-al-salam/accommodation"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "JUMEIRAH MINA AL SALAM (EX. MADINAT JUMEIRAH MINA A SALAM HOTEL)",
+      "verified_region_id": 45,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP097",
+      "tv": 2610,
+      "country_id": 9,
+      "region_id": 45,
+      "catalogue_name": "JUMEIRAH DAR AL MASYAF",
+      "draft_source": "EXP097",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=JUMEIRAH%20DAR%20AL%20MASYAF&countryId=9&limit=20",
+      "official_sources": [
+        "https://www.jumeirah.com/en/stay/dubai/jumeirah-dar-al-masyaf"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "JUMEIRAH DAR AL MASYAF",
+      "verified_region_id": 45,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP098",
+      "tv": 2931,
+      "country_id": 9,
+      "region_id": 45,
+      "catalogue_name": "JUMEIRAH ZABEEL SARAY",
+      "draft_source": "EXP098",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=JUMEIRAH%20ZABEEL%20SARAY&countryId=9&limit=20",
+      "official_sources": [
+        "https://www.jumeirah.com/ru/stay/dubai/jumeirah-zabeel-saray"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 2,
+      "verified_catalogue_name": "JUMEIRAH ZABEEL SARAY",
+      "verified_region_id": 45,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP077",
+      "tv": 78669,
+      "country_id": 2,
+      "region_id": 62,
+      "catalogue_name": "FOUR SEASONS HOTEL BANGKOK AT CHAO PHRAYA RIVER",
+      "draft_source": "EXP077",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=FOUR%20SEASONS%20HOTEL%20BANGKOK%20AT%20CHAO%20PHRAYA%20RIVER&countryId=2&limit=20",
+      "official_sources": [
+        "https://www.fourseasons.com/bangkok/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "FOUR SEASONS HOTEL BANGKOK AT CHAO PHRAYA RIVER",
+      "verified_region_id": 62,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP078",
+      "tv": 45845,
+      "country_id": 2,
+      "region_id": 519,
+      "catalogue_name": "FOUR SEASONS RESORT",
+      "draft_source": "EXP078",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=FOUR%20SEASONS%20RESORT&countryId=2&limit=20",
+      "official_sources": [
+        "https://www.fourseasons.com/chiangmai/accommodations/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "FOUR SEASONS RESORT",
+      "verified_region_id": 519,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP087",
+      "tv": 60788,
+      "country_id": 1,
+      "region_id": 611,
+      "catalogue_name": "FOUR SEASONS HOTEL CAIRO AT THE FIRST RESIDENCE",
+      "draft_source": "EXP087",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=FOUR%20SEASONS%20HOTEL%20CAIRO%20AT%20THE%20FIRST%20RESIDENCE&countryId=1&limit=20",
+      "official_sources": [
+        "https://www.fourseasons.com/cairofr/"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "FOUR SEASONS HOTEL CAIRO AT THE FIRST RESIDENCE",
+      "verified_region_id": 611,
+      "catalogue_source": "anytour-catalog"
+    },
+    {
+      "work_id": "EXP100",
+      "tv": 78456,
+      "country_id": 64,
+      "region_id": 538,
+      "catalogue_name": "JUMEIRAH MUSCAT BAY",
+      "draft_source": "EXP100",
+      "url": "https://anytoour.ru/data/hotel-search-v1.php?q=JUMEIRAH%20MUSCAT%20BAY&countryId=64&limit=20",
+      "official_sources": [
+        "https://www.jumeirah.com/ru/Stay/Oman/Jumeirah-Muscat-Bay"
+      ],
+      "status": "exact_stored_catalogue_match",
+      "result_count": 1,
+      "verified_catalogue_name": "JUMEIRAH MUSCAT BAY",
+      "verified_region_id": 538,
+      "catalogue_source": "anytour-catalog"
+    }
+  ]
+}
