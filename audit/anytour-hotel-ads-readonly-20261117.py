@@ -23,9 +23,9 @@ from pathlib import Path
 
 ROOT = Path('/var/www/anytoour/data/www/d.anytoour.ru')
 CLIENT_LOGIN = 'anytour2024tp'
-PROBE_ID = 'anytour-hotel-ads-20261117'
+PROBE_ID = 'anytour-hotel-ads-details-20261117'
 DATE_FROM, DATE_TO = '2026-11-10', '2026-11-16'
-TOTAL_SECONDS, MAX_CALLS = 180, 20
+TOTAL_SECONDS, MAX_CALLS = 60, 2
 MAX_RESPONSE_BYTES, MAX_STDOUT_BYTES = 4 * 1024 * 1024, 12_000_000
 MAX_SAVED_BYTES = MAX_STDOUT_BYTES - 512 * 1024
 CAMPAIGN_FIELDS = ['Id', 'Name', 'State', 'Status', 'Type', 'DailyBudget']
@@ -232,7 +232,7 @@ def make_reader(token, deadline):
         return len(RESULT['responses']) - 1
 
     def read(endpoint, payload, label, report=False):
-        if endpoint not in ('campaigns', 'ads', 'reports', 'feeds'):
+        if endpoint not in ('campaigns', 'ads'):
             raise Stop('ENDPOINT_NOT_ALLOWED')
         if report:
             params = payload.get('params', {})
@@ -482,6 +482,47 @@ def finish():
     sys.stdout.buffer.write(output + b'\n')
 
 
+
+def collect_hotel_details(read):
+    ids = [715778593, 715826656, 715826790, 715826855]
+    RESULT['linked_original_run_id'] = 44127808056
+    RESULT['diagnostic_scope'] = 'Only two first-time get calls for four candidate hotel campaigns; original Reports are not requested again'
+    RESULT['period_reference_only'] = True
+    for key in ('inventory', 'feeds', 'campaign_performance', 'ad_performance', 'ad_details'):
+        RESULT[key] = {'status': 'not_requested_in_followup'}
+    RESULT['details'] = {}
+    cases = [
+      ('campaign_configuration', 'campaigns', {'method':'get','params':{
+        'SelectionCriteria':{'Ids':ids}, 'FieldNames':CAMPAIGN_FIELDS,
+        'UnifiedCampaignFieldNames':['CounterIds','BiddingStrategy','PriorityGoals','AttributionModel','PackageBiddingStrategy'],
+        'Page':{'Limit':100,'Offset':0}}}, 'Campaigns'),
+      ('hotel_ad_details', 'ads', {'method':'get','params':{
+        'SelectionCriteria':{'CampaignIds':ids}, 'FieldNames':AD_FIELDS,
+        'TextAdFieldNames':TEXT_FIELDS, 'ResponsiveAdFieldNames':RESPONSIVE_FIELDS,
+        'ShoppingAdFieldNames':FEED_FIELDS,'ListingAdFieldNames':FEED_FIELDS,
+        'Page':{'Limit':1000,'Offset':0}}}, 'Ads')]
+    for label, endpoint, payload, field in cases:
+        try:
+            body = read(endpoint,payload,label)
+            block = body.get('result')
+            rows = block.get(field) if isinstance(block,dict) else None
+            if not isinstance(rows,list):
+                raise Stop('DETAIL_LIST_NOT_RETURNED')
+            seen=set()
+            for row in rows:
+                if not isinstance(row,dict): raise Stop('DETAIL_ROW_INVALID')
+                identity=positive_id(row.get('Id'))
+                campaign=identity if field=='Campaigns' else positive_id(row.get('CampaignId'))
+                if campaign not in ids or identity in seen: raise Stop('DETAIL_SCOPE_INVALID')
+                seen.add(identity)
+            complete=block.get('LimitedBy') is None
+            if field=='Campaigns': complete=complete and seen==set(ids)
+            RESULT['details'][label]={'rows':len(rows),'complete':complete}
+            if not complete: raise Stop('DETAIL_PAGE_INCOMPLETE')
+        except Stop as error:
+            RESULT['errors'].append({'stage':label,**error.info})
+    RESULT['status']='COLLECTED' if not RESULT['errors'] else 'PARTIAL'
+
 if __name__ == '__main__':
     def timeout(*_):
         raise Stop('TIME_BUDGET')
@@ -489,7 +530,7 @@ if __name__ == '__main__':
     deadline = time.monotonic() + TOTAL_SECONDS
     signal.alarm(TOTAL_SECONDS)
     try:
-        collect(make_reader(load_local_config(), deadline))
+        collect_hotel_details(make_reader(load_local_config(), deadline))
     except Stop as error:
         RESULT['errors'].append(error.info)
         RESULT['status'] = 'PARTIAL'
