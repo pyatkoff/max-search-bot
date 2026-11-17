@@ -1,0 +1,112 @@
+name: One-shot AnyTour FASTFILL stage third10 reviewed PNG Git commit
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths:
+      - '.github/workflows/fastfill-third10-stage-20261117.yml'
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: anytour-fastfill-freeze-batch03-20261117
+  cancel-in-progress: false
+jobs:
+  freeze-reviewed-binary-assets:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event_name == 'push' &&
+      github.event.before == '5f2ebf606d23cbece5e607dad893acff064729d1' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Authenticate exact non-publishing source and GitHub artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = 5f2ebf606d23cbece5e607dad893acff064729d1
+          test "$(git hash-object tools/direct_demand/operations/prepare-paid-tourvisor-cover-batch-20261117.py)" = 7e6a25519abcf5c796b8e59f700043f98257a5b3
+          test "$(git hash-object tools/direct_demand/operations/commercial-expansion100-third10-publisher-caption-input-20261117.json)" = 84c4a3837587fdfdb18c29db406c4b2104d535b2
+          gh api --method GET repos/pyatkoff/max-search-bot/actions/runs/44071339037 --jq '.conclusion+" "+.head_sha+" "+(.run_attempt|tostring)' | grep -Fx 'success 5f2ebf606d23cbece5e607dad893acff064729d1 1'
+      - name: Freeze the TEN original reviewed PNG bytes in GitHub source only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p freeze-receipt
+          python3 - <<'PY'
+          import base64,hashlib,io,json,os,pathlib,struct,subprocess,zipfile
+          REPO='pyatkoff/max-search-bot'
+          BRANCH='audit/content100-bot-publication-20261101'
+          HEAD=os.environ['GITHUB_SHA']
+          ARTIFACT=14321779168
+          EXPECTED_ZIP='ebc6e29ee24b1e64957e499e8529e193b3bd73115b427b95ba28a8975ebdef34'
+          EXPECTED_RECEIPT=None
+          IDS=[7831,2948,57536,61241,17424,17423,23718,22940,97001,74509]
+          PREFIX='.github/traffic-publish/commercial-expansion100-20261117-third10/'
+          def need(v,why):
+              if not v:raise RuntimeError(why)
+          def api(method,path,obj=None):
+              cmd=['gh','api','--method',method,'repos/'+REPO+'/'+path]
+              if obj is not None:cmd+=['--input','-']
+              b=subprocess.check_output(cmd,input=None if obj is None else json.dumps(obj,separators=(',',':')).encode(),stderr=subprocess.PIPE,timeout=120)
+              return json.loads(b)
+          ref=api('GET','git/ref/heads/'+BRANCH)
+          need(ref['object']['sha']==HEAD,'branch_source_changed')
+          run=api('GET','actions/runs/44071339037')
+          need(run['head_sha']=='5f2ebf606d23cbece5e607dad893acff064729d1' and run['conclusion']=='success' and run['run_attempt']==1,'original_run_mismatch')
+          artifact=api('GET','actions/artifacts/'+str(ARTIFACT))
+          need(artifact['workflow_run']['id']==44071339037 and not artifact['expired'],'artifact_wrong_or_expired')
+          need(artifact['digest']=='sha256:'+EXPECTED_ZIP,'artifact_digest_not_original')
+          raw=subprocess.check_output(['gh','api','--method','GET','repos/'+REPO+'/actions/artifacts/'+str(ARTIFACT)+'/zip'],timeout=90)
+          need(hashlib.sha256(raw).hexdigest()==EXPECTED_ZIP,'artifact_zip_content_changed')
+          with zipfile.ZipFile(io.BytesIO(raw)) as z:
+              need(z.testzip() is None,'artifact_zip_crc')
+              need(set(z.namelist())=={str(i)+'.png' for i in IDS}|{'cover-preparation-receipt.json'},'unreviewed_artifact_content')
+              receipt_bytes=z.read('cover-preparation-receipt.json')
+              need(len(receipt_bytes)>100 and rr.get('prepared')==10,'source_receipt_invalid')
+              receipt=json.loads(receipt_bytes)
+              need(receipt['prepared']==10 and receipt['actual_posts']==receipt['sender_calls']==receipt['feed_writes']==0,'source_not_preparation_only')
+              need([x['hotel_id'] for x in receipt['rows']]==IDS,'different_hotel_order')
+              images=[]
+              for item in receipt['rows']:
+                  hid=item['hotel_id'];b=z.read(str(hid)+'.png')
+                  need(item['status']=='prepared_needs_visual_acceptance' and item['publication_allowed'] is False,'preliminary_photo_status_changed')
+                  need(10_000<len(b)<1_600_000 and len(b)==item['png_bytes'],'png_length_mismatch')
+                  need(hashlib.sha256(b).hexdigest()==item['png_sha256'],'png_sha_mismatch')
+                  need(b[:8]==b'\x89PNG\r\n\x1a\n' and struct.unpack('>II',b[16:24])==(1080,1080),'png_header_mismatch')
+                  images.append((hid,b,item['png_sha256']))
+          # No other publisher/production writes. Refuse replacing an existing frozen directory.
+          prior=subprocess.run(['gh','api','repos/'+REPO+'/contents/'+PREFIX[:-1]+'?ref='+HEAD],capture_output=True)
+          need(prior.returncode!=0 and b'HTTP 404' in prior.stderr,'destination_already_exists_or_unknown')
+          parent=api('GET','git/commits/'+HEAD)
+          entries=[]
+          for hid,b,digest in images:
+              blob=api('POST','git/blobs',{'content':base64.b64encode(b).decode(),'encoding':'base64'})
+              need(isinstance(blob.get('sha'),str) and len(blob['sha'])==40,'blob_write_unverified')
+              entries.append({'path':PREFIX+str(hid)+'.png','mode':'100644','type':'blob','sha':blob['sha']})
+          tree=api('POST','git/trees',{'base_tree':parent['tree']['sha'],'tree':entries})
+          commit=api('POST','git/commits',{'message':'HOTEL FASTFILL: freeze 10 visually reviewed Tourvisor hotel PNGs without sending','tree':tree['sha'],'parents':[HEAD]})
+          need(api('GET','git/ref/heads/'+BRANCH)['object']['sha']==HEAD,'source_branch_changed_before_commit')
+          # Deliberately leave the branch ref unchanged. The connector will CAS-update it after receipt verification.
+          result={'state':'UNREFERENCED_VERIFIED_COVER_COMMIT_NO_POSTS','source_run_id':44071339037,'source_artifact_id':ARTIFACT,'zip_sha256':EXPECTED_ZIP,'receipt_sha256':hashlib.sha256(receipt_bytes).hexdigest(),'source_commit':HEAD,'staged_commit_sha':commit['sha'],'files':[{'id':id,'path':PREFIX+str(id)+'.png','sha256':sha} for id,_,sha in images],'frozen_count':10,'post_sends':0,'feed_writes':0,'publisher_approved':False,'parent_sha':HEAD,'readback_paths':[entries[0]['path'],entries[-1]['path']]}
+          pathlib.Path('freeze-receipt/result.json').write_text(json.dumps(result,indent=2)+'\n')
+          print('THIRD10_VERIFIED_BINARY_PNGS_STAGED_UNREFERENCED '+commit['sha'])
+          PY
+      - name: Preserve freeze provenance (never sender evidence)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-third10-staged-cover-commit-20261117
+          path: freeze-receipt/result.json
+          retention-days: 30
+          if-no-files-found: warn
