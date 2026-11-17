@@ -695,6 +695,9 @@ async function sendReply(reconcileAction='send_receipt'){
   // The existing suspended-recipient guard above is unchanged.
   renderDeliveryFailure(null);
   setBusy(true);setReplyStatus(reconcile?'Проверяем результат отправки…':'Отправляем сообщение…');
+  // Only a verified send followed by a fresh authorized read may request
+  // existing AI preparation. Unknown, partial and stale-session sends never do.
+  let confirmedReadGeneration=0;
   try{
     let j;
     try{
@@ -763,11 +766,22 @@ async function sendReply(reconcileAction='send_receipt'){
         const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true,preserveHistory:true,...(calculation?.media||calculationAttempt(attempt)?{protectTaskDraft:true}:{})});
         refreshGeneration=openSeq;refreshed=await refreshing;
       }catch(e){}
-      if(sameTarget()&&openSeq===refreshGeneration)setReplyStatus(refreshed?'Отправлено':'Отправлено. Переписку пока не удалось обновить.','success');
+      if(sameTarget()&&openSeq===refreshGeneration){
+        setReplyStatus(refreshed?'Отправлено':'Отправлено. Переписку пока не удалось обновить.','success');
+        if(refreshed&&Number(S.detail?.conversation?.manager_id)===manager&&S.detail?.conversation?.status==='manager')confirmedReadGeneration=refreshGeneration;
+      }
     }
     // Inbox owns its refresh errors; they are not message-delivery failures.
     if(sameSession())try{await window.WorkspaceV2Inbox?.load({preserveScroll:true})}catch(e){}
-  }finally{setBusy(false);window.WorkspaceV2PromiseCalculation?.afterSend(calculationLink(attempt)?.calculation_intent_id||calculation?.media?.intentId,manager,target)}
+  }finally{
+    setBusy(false);
+    window.WorkspaceV2PromiseCalculation?.afterSend(calculationLink(attempt)?.calculation_intent_id||calculation?.media?.intentId,manager,target)
+    if(confirmedReadGeneration&&openSeq===confirmedReadGeneration&&sameTarget()){
+      // The pre-existing calculation owner is notified first. This only wakes
+      // the current prepared-reply observer, never a second sender or model.
+      try{window.WorkspaceV2AiDraft?.sync?.()}catch(_ignored){}
+    }
+  }
 }
 function bind(){
   if(bound)return;bound=true;

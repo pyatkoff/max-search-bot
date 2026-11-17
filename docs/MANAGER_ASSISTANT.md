@@ -332,3 +332,22 @@ No AI run is initiated by reading My Plan; no cron/backfill/budget changes are
 introduced. This only covers conversations with an existing current prepared
 open-chat result; automatic proactive coverage after every manager reply is
 **not implemented**.
+
+### Wake existing AI preparation after a confirmed manager reply
+
+When the manager sends from the already open Manager2 conversation, a **confirmed**
+transport result and a successful authorized refresh of that same conversation
+allow the composer owner to wake the **existing** AI preparation observer once
+its busy guard is released. The observer uses its own current-context/CAS,
+project, access, user preference, subscription and queue limits. This is not a
+new model call inside the send handler, and it never inserts or sends a reply.
+
+An unknown/rejected/partial result, failed refresh, changed manager/account,
+closed conversation or navigation to another client must not wake the observer.
+The existing send receipt and attachment guards remain independent. A later
+prepared no-contact promise review, when properly source-validated, may appear
+in My Plan without another explicit chat-open interaction.
+
+This is *foreground coverage of an active manager send*, not durable background
+monitoring of outbound messages sent from other devices, sessions or providers.
+No broad retrospective scan, task creation or new scheduled queue is implied.

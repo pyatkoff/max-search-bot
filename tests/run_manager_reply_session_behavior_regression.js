@@ -152,6 +152,22 @@ for(const success of [true,false])test('explicit '+(success?'successful':'failed
   const next=createHarness({storage:saved});await next.start({open:false});assert.equal(next.ids.get('replyText').value,success?'':'Unsent synthetic draft');assert.equal(h.calls.filter(r=>r.action==='send').length,1);assertNoMutations(next);
 });
 
+test('confirmed manager send wakes existing AI preparation after authorized refreshed conversation',async()=>{
+  const h=createHarness();await h.start();await h.draft('Confirmed manager reply');
+  let wakeups=0;h.window.WorkspaceV2AiDraft={sync:()=>{wakeups++;assert.equal(h.ids.get('replyText').disabled,false);assert.equal(h.W.S.current,101)}};
+  h.setHook((url,r)=>r.action==='send'?response({ok:true}):null);
+  await h.C.sendReply();assert.equal(wakeups,1);
+  assert.equal(h.calls.filter(x=>x.action==='send').length,1);assert.equal(h.calls.filter(x=>x.action==='ensure_prepared').length,0);
+  assert.equal(h.ids.get('replyText').value,'');
+});
+for(const outcome of ['rejected','unknown','unreadable'])test('post-send AI wakeup is blocked for '+outcome,async()=>{
+  const h=createHarness();await h.start();await h.draft('Unsent manager reply');let wakeups=0;
+  h.window.WorkspaceV2AiDraft={sync:()=>{wakeups++}};
+  if(outcome==='rejected')h.setHook((url,r)=>r.action==='send'?response({ok:false},409):null);
+  else if(outcome==='unknown')h.setHook((url,r)=>r.action==='send'?response({ok:false,attempt:{state:'unknown'}}):null);
+  else h.setHook((url,r)=>r.action==='send'?response({ok:true}):url==='api.php'&&r.action==='detail'?response({ok:false},500):null);
+  await h.C.sendReply();assert.equal(wakeups,0);assert.equal(h.calls.filter(x=>x.action==='send').length,1);
+});
 test('successful send followed by quota failure removes the old persisted text',async()=>{
   const {saved,h}=await seeded();saved.denyWrite=true;h.setHook((url,r)=>r.action==='send'?response({ok:true}):null);await h.C.sendReply();assert.equal(saved.values.size,0);
   saved.denyWrite=false;const next=createHarness({storage:saved});await next.start();assert.equal(next.ids.get('replyText').value,'');
