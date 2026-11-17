@@ -20,8 +20,10 @@ const cases=[];function test(name,run){cases.push({name,run})}
 test('unassigned dialogue can be taken while the manager shift is off',async()=>{
   const h=createHarness();await h.start();
   h.W.S.manager.role='manager';h.W.S.manager.is_working=false;
-  const waiting={...h.conversation,status:'waiting_manager',manager_id:null};
-  h.C.renderHeader(waiting);
+  const waiting={...h.conversation,id:102,status:'waiting_manager',manager_id:null};
+  h.setHook((url,request)=>url==='api.php'&&request.action==='detail'&&request.conversation_id===102?
+    response({ok:true,conversation:waiting,messages:[]}):null);
+  assert.equal(await h.C.open(102),true);
   const actions=h.ids.get('conversationActions').children;
   assert.equal(actions.some(button=>button.textContent==='Взять'&&!button.disabled),true);
   assert.equal(h.ids.get('composer').classList.contains('hidden'),true);
