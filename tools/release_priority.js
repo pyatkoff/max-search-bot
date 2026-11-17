@@ -184,6 +184,11 @@ async function verifyPreviousRelease(context, token, fetchImpl) {
       refusal('invalid_release_read');
     return readJson(context.repository, resource.slice(R.API_ROOT.length + 1), token, fetchImpl, raw);
   };
+  // Reuse the canonical pinned-log reader and its bounded signed-URL policy.
+  // Final admission is a single fresh read: it never retries temporary failures.
+  const logReader = R.makeReadApi(token, fetchImpl);
+  logReader.transientReads = false;
+  api.jobLog = logReader.jobLog;
   const runs = R.boundedList(await api('GET', R.API_ROOT +
     '/actions/workflows/deploy.yml/runs?head_sha=' + context.baseSha + '&branch=main&per_page=100'),
     'workflow_runs', 'incomplete_previous_deployments');
@@ -235,11 +240,19 @@ async function verifyPreviousRelease(context, token, fetchImpl) {
   if (last.body !== record.body || last.updated_at !== record.updated_at)
     refusal('previous_publisher_changed');
   await verifyAcquisition();
+  // A different candidate record can also change during the long old-release proof.
+  if (context.publisher) {
+    pinnedPublisher(context.publisher, context.now);
+    verifyPublisherBinding(await api('GET', R.API_ROOT + '/pulls/' + context.prNumber),
+      context, context.publisher);
+    verifyPublisherRecord(await api('GET', R.API_ROOT + '/issues/comments/' + context.publisher.comment_id),
+      context, context.publisher);
+  }
   if ((await api('GET', R.API_ROOT + '/git/ref/heads/main'))?.object?.sha !== context.baseSha)
     refusal('base_changed');
 }
 
-async function runGuard({ env, readEvent, fetchImpl, admission, now = Date.now() }) {
+async function runGuard({ env, readEvent, fetchImpl, admission, now = Date.now(), clock = () => performance.now() }) {
   // Manual validation remains full validation, but cannot grant a merge.
   if (!admission && env.GITHUB_EVENT_NAME === 'workflow_dispatch') {
     return { allowed: true, reason: 'manual_checks_only', holder_pr: null, expires_at: null };
@@ -260,6 +273,9 @@ async function runGuard({ env, readEvent, fetchImpl, admission, now = Date.now()
   if (!validRepository(context.repository) ||
       !Number.isSafeInteger(context.prNumber) || !SHA.test(context.headSha || '') ||
       !SHA.test(context.baseSha || '')) refusal('invalid_context');
+  if (typeof clock !== 'function') refusal('invalid_clock');
+  const started = clock();
+  if (!Number.isFinite(started)) refusal('invalid_clock');
   const continuing = admission && Object.prototype.hasOwnProperty.call(admission, 'publisher');
   if (continuing) pinnedPublisher(admission.publisher, now);
   const main = await readJson(context.repository, 'git/ref/heads/main', env.GITHUB_TOKEN, fetchImpl);
@@ -267,7 +283,22 @@ async function runGuard({ env, readEvent, fetchImpl, admission, now = Date.now()
   const pulls = await readOpenPulls(context.repository, env.GITHUB_TOKEN, fetchImpl);
   const decision = continuing ? await continuePublisher(pulls, context, admission.publisher, env.GITHUB_TOKEN, fetchImpl) :
     decidePriority(pulls, context);
-  if (admission && decision.allowed) await verifyPreviousRelease(context, env.GITHUB_TOKEN, fetchImpl);
+  if (admission && decision.allowed) {
+    await verifyPreviousRelease(context, env.GITHUB_TOKEN, fetchImpl);
+    // The predecessor proof can take time. Refresh the existing priority rules
+    // rather than admitting a superseded target or ignoring a new reservation.
+    const fresh = await readOpenPulls(context.repository, env.GITHUB_TOKEN, fetchImpl);
+    const elapsed = clock() - started;
+    if (!Number.isFinite(elapsed) || elapsed < 0 || !Number.isFinite(context.now + elapsed)) refusal('invalid_clock');
+    // Keep the supplied absolute clock, advancing it only by monotonic elapsed
+    // time so proof latency cannot preserve an expired or reject a fresh claim.
+    const finalContext = { ...context, now: context.now + elapsed };
+    const final = continuing ? await continuePublisher(fresh, finalContext, admission.publisher, env.GITHUB_TOKEN, fetchImpl) :
+      decidePriority(fresh, finalContext);
+    if ((await readJson(context.repository, 'git/ref/heads/main', env.GITHUB_TOKEN, fetchImpl))?.object?.sha !== context.baseSha)
+      refusal('base_changed');
+    return final;
+  }
   return decision;
 }
 
