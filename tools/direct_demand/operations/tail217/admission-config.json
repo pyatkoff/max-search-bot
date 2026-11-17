@@ -1,32 +1,32 @@
 {
   "schema_version": 1,
-  "parent_sha": "659660b0e810a86c128d0e7626f3d16836483b75",
+  "parent_sha": "47c30f7126d8ed7dbee1d5df472b17b06fcfa13c",
   "claim_id": 6955557921,
   "claim_body_sha256": "2bf2b31ac05eeb249d9f173b03575b473cd2cd0b41b42950cd66288a2b067f82",
-  "runtime_sha": "8281b387f258932601439eb789560f6b2cbabd4d",
+  "runtime_sha": "96765e518d7cdc0d7db95a49628994de28f01c4d",
   "accepted_runs": [
     {
-      "run_id": 44139041068,
-      "head_sha": "8281b387f258932601439eb789560f6b2cbabd4d",
+      "run_id": 44157731738,
+      "head_sha": "96765e518d7cdc0d7db95a49628994de28f01c4d",
       "kind": "deployment"
     },
     {
-      "run_id": 44141549562,
-      "head_sha": "8281b387f258932601439eb789560f6b2cbabd4d",
+      "run_id": 44160338409,
+      "head_sha": "96765e518d7cdc0d7db95a49628994de28f01c4d",
       "kind": "native"
     },
     {
-      "run_id": 44141549551,
-      "head_sha": "8281b387f258932601439eb789560f6b2cbabd4d",
+      "run_id": 44160338530,
+      "head_sha": "96765e518d7cdc0d7db95a49628994de28f01c4d",
       "kind": "native"
     },
     {
-      "run_id": 44141549666,
-      "head_sha": "8281b387f258932601439eb789560f6b2cbabd4d",
+      "run_id": 44160338438,
+      "head_sha": "96765e518d7cdc0d7db95a49628994de28f01c4d",
       "kind": "native"
     }
   ],
-  "intent_sha256": "014f77384b3561941e04e8784c3a3ebe08db30580c5135f53e9255565dd000ae",
+  "intent_sha256": "3b8bc9d53d089c18012be308387ad684c0a2cba2d4ee2695626e29c2a2b55bda",
   "source_sha256": {
     "run217.py": "275db813c0117d6376302410e887cc72e7dad0b4d8b5cc4bdb370d588c908ef3",
     "admit217.py": "9a8e16bb43bc00c9f77ecb878762d9344ffd2d8471609fc3d6e37f5e6a0618f0",
@@ -36,32 +36,30 @@
   "takeover_claim_body_sha256": "51cc2d3531118e2aba6146515946dc2efad9a78130864d5fd45a03789ce6c37a",
   "accepted_jobs": [
     {
-      "run_id": 44139041068,
-      "job_id": 134243075953
+      "run_id": 44157731738,
+      "job_id": 134309836750
     },
     {
-      "run_id": 44139041068,
-      "job_id": 134244566651
+      "run_id": 44157731738,
+      "job_id": 134311447056
     },
     {
-      "run_id": 44141549562,
-      "job_id": 134245373589
+      "run_id": 44160338409,
+      "job_id": 134312106849
     },
     {
-      "run_id": 44141549551,
-      "job_id": 134245374239
+      "run_id": 44160338530,
+      "job_id": 134312109218
     },
     {
-      "run_id": 44141549666,
-      "job_id": 134245373763
+      "run_id": 44160338438,
+      "job_id": 134312107619
     }
   ],
   "external_route_coordination": {
     "kind": "root_connector_read_only_coordination",
     "repository": "pyatkoff/tour-max",
     "branch": "audit/anytour-hotel-feed-routing-20261104",
-    "route_head_sha": "0a905f1e04ab5f534d5359e15dd1c9dd03df7ef9",
-    "observed_at": "2026-11-17T17:59:03.784Z",
     "claim_id": 6955557921,
     "claim_body_sha256": "2bf2b31ac05eeb249d9f173b03575b473cd2cd0b41b42950cd66288a2b067f82",
     "nonterminal_counts": {
@@ -70,6 +68,8 @@
       "waiting": 0,
       "pending": 0,
       "requested": 0
-    }
+    },
+    "observed_at": "2026-11-17T19:40:33.493Z",
+    "route_head_sha": "bbef3101f8c8f6eae15355c0d6fa4b8c1848dfa2"
   }
 }

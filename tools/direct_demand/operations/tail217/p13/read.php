@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-const EXPECTED_INSTALLED_SHA='8281b387f258932601439eb789560f6b2cbabd4d';
+const EXPECTED_INSTALLED_SHA='96765e518d7cdc0d7db95a49628994de28f01c4d';
 const FEED_EXPORT_INPUT_B64='W3siaG90ZWxfaWQiOjgwNDMxLCJuYW1lIjoiUml4b3MgTWFyaW5hIEFidSBEaGFiaSIsImFjY2VwdGVkX2ZpcnN0X2xpbmUiOiLinIjvuI8g0KLRg9GA0Ysg0LIgUml4b3MgTWFyaW5hIEFidSBEaGFiaSIsImltYWdlX3VybCI6Imh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9weWF0a29mZi9tYXgtc2VhcmNoLWJvdC80NDIwYWNmNGJkMWRkYzAyOTBkMWRlZTcxM2RlMDVmZTkyMDY2NGQ5Ly5naXRodWIvdHJhZmZpYy1wdWJsaXNoL2NvbW1lcmNpYWwtd2F2ZTItcmVtYWluaW5nNzAtMjAyNjExMTcvODA0MzEucG5nIiwiaW1hZ2Vfc2hhMjU2IjoiYzA4MWZmYzY5YTQzYTA2YzY4MDIyZTcxNDNlYWQzYmQ1NzllZjY4NzA2MDM2ODMyODJiOGQ4ODg0OTA4ODE3ZiJ9LHsiaG90ZWxfaWQiOjc4ODQ1LCJuYW1lIjoiSnVtZWlyYWggTGl2aW5nIE1hcmluYSBHYXRlIiwiYWNjZXB0ZWRfZmlyc3RfbGluZSI6IuKciO+4jyDQotGD0YDRiyDQsiBKdW1laXJhaCBMaXZpbmcgTWFyaW5hIEdhdGUiLCJpbWFnZV91cmwiOiJodHRwczovL3Jhdy5naXRodWJ1c2VyY29udGVudC5jb20vcHlhdGtvZmYvbWF4LXNlYXJjaC1ib3QvNDQyMGFjZjRiZDFkZGMwMjkwZDFkZWU3MTNkZTA1ZmU5MjA2NjRkOS8uZ2l0aHViL3RyYWZmaWMtcHVibGlzaC9jb21tZXJjaWFsLXdhdmUyLXJlbWFpbmluZzcwLTIwMjYxMTE3Lzc4ODQ1LnBuZyIsImltYWdlX3NoYTI1NiI6ImZmY2ZlZDAwMjhjMjM3YTVhNWI4YmI2ZjExNTJlOTBiMzdhZjBiY2Q0ZjMwYzk2YTA2YjRmYzhkMjQyYTA3ZmEifSx7ImhvdGVsX2lkIjo4OTE4LCJuYW1lIjoiSnVtZWlyYWggTGl2aW5nIFdvcmxkIFRyYWRlIENlbnRyZSBSZXNpZGVuY2UiLCJhY2NlcHRlZF9maXJzdF9saW5lIjoi4pyI77iPINCi0YPRgNGLINCyIEp1bWVpcmFoIExpdmluZyBXb3JsZCBUcmFkZSBDZW50cmUgUmVzaWRlbmNlIiwiaW1hZ2VfdXJsIjoiaHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3B5YXRrb2ZmL21heC1zZWFyY2gtYm90LzQ0MjBhY2Y0YmQxZGRjMDI5MGQxZGVlNzEzZGUwNWZlOTIwNjY0ZDkvLmdpdGh1Yi90cmFmZmljLXB1Ymxpc2gvY29tbWVyY2lhbC13YXZlMi1yZW1haW5pbmc3MC0yMDI2MTExNy84OTE4LnBuZyIsImltYWdlX3NoYTI1NiI6IjgzODI2OTY2ZmQzZjA5NWJlYzU0Mzk2YTMyMTdmOThmOTg5NTZmMzhiMzY3N2FmMjQ4NjE0ODYyM2FmNTIzOWMifV0=';
 const FEED_EXPORT_INPUT_SHA256='494e7a5ca2800cc0f115ee63e2c8d2665a9294033d23311248891a1ca48b3007';
 const CANDIDATE_INPUT_B64='W10=';
@@ -142,7 +142,7 @@ try {
         "migrations/036_channel_post_member_delivery.sql"=>"1bda463e52b33130ad12752ddef4ee5c92699c05",
         "migrations/040_channel_post_reconciliation.sql"=>"0f24b838eacd45333c5ade9a2991d060488c6035",
         "services/ChannelPostAdminService.php"=>"b80eefc801054bfe6fdb58ec345ecdf687b2e89a",
-        "services/ChannelPostAutomationService.php"=>"f5975ab95de5f45e087eb7a0f768f566c5bca648",
+        "services/ChannelPostAutomationService.php"=>"c6386e155d42bc83970edc95f35b3ebeb5140533",
         "services/ChannelPostButtonTransport.php"=>"7b6711f1de63000346d8e5789f2dbb7f725535b8",
         "services/ChannelPostEntryService.php"=>"1982ff7368763edf8b7238c3142e3cc28579e991",
         "services/ChannelPostMaxAlbumRecovery.php"=>"de266cd068587cc3b2ff83f308a966ea66887a04",
@@ -150,7 +150,7 @@ try {
         "services/ChannelPostMemberDeliveryService.php"=>"20c1d7984898b2a5996a5f9e20e4d2d8c20b4778",
         "services/ChannelPostReconciliationService.php"=>"43133f576845c14446102dedfffb7f0de2d4ba1c",
         "services/ChannelPostReconciliationState.php"=>"d9583ceca80d1424a44ade3561c21282a23a52f0",
-        "services/ChannelPostRegistryService.php"=>"7304af19cc19666f00ca4ead1b04c2bdce719646",
+        "services/ChannelPostRegistryService.php"=>"94fb1988ac8caf90dc5103aa23c58e7aad6ea691",
         "services/ChannelPostRuntime.php"=>"2f1dd9b77474fdbaa92f0402f3b0aa170c595474",
         "services/ChannelPostTelegramAlbum.php"=>"faa1a14bc279a4af33936282126bf0d46e343040",
         "services/ChannelPostWebhookConfigService.php"=>"d5fdcb056088f1e3a541b4046325d97eef6417d9",
