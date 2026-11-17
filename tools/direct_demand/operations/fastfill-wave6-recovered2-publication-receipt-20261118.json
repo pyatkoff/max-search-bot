@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "state": "RECOVERY2_PAIRED_HOTELS_4_POSTS_NATIVE_VERIFIED",
+  "native_id_namespace": "Tourvisor",
+  "baseline_unique_pairs": 1083,
+  "added_unique_pairs": 2,
+  "total_unique_pairs": 1085,
+  "native_run_id": 44201317134,
+  "native_job_id": 134455837004,
+  "native_run_attempt": 1,
+  "actual_verified_at_utc": "2026-11-17T23:39:56Z",
+  "native_artifact_id": 14382220033,
+  "native_archive_digest": "sha256:3116b41359178736dbb15e78246581f152b8764ec3d42e861b02e9ad242338c3",
+  "native_verified_file_sha256": "f5b5bb53c009e50d7e58b9f13a1f13459f20959c7dea25fbb2d02e7e03a0d1fe",
+  "expected_app_sha": "cc017ee5bb669f4c7c13efc91d5c5812a50e55f2",
+  "cover_freeze_commit": "e857b7aafd1c4f2a60086d03a722cdc016eb4ca1",
+  "cover_review_run": 44200705356,
+  "feed_rows_added_by_this_operation": 0,
+  "rows": [
+    {
+      "hotel_id": 16318,
+      "name": "Amarterra Villas Resort Bali Nusa Dua, Autograph Collection",
+      "verified_at_utc": "2026-11-17T23:40:20Z",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-16318-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1098",
+          "post_url": "https://t.me/any_toour/1098",
+          "publication_id": 2350,
+          "version_id": 7939,
+          "button_url": "https://t.me/anyru_bot?start=p_E7f6HWwMvwRmgFP7eluXJ53r",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "c1672399f9597d702d9e27aab8e82ee91ee558306d1bb92bc2e933a6ddb06ea0",
+          "photo_sha256": "cdf617f65df355f4591e012830c56b74791723eab58b38a97380ac8d7a8968e3",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 16318,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e857b7aafd1c4f2a60086d03a722cdc016eb4ca1/.github/traffic-publish/commercial-wave6-recovery2-20261118/16318.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-16318-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebe1f3311e8a",
+          "post_url": "https://max.ru/channel_anytour/AaHr4fMxHoo",
+          "publication_id": 2352,
+          "version_id": 7941,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_x_SpMnMFKX9sbNjwua_-biRP",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "c1672399f9597d702d9e27aab8e82ee91ee558306d1bb92bc2e933a6ddb06ea0",
+          "photo_sha256": "cdf617f65df355f4591e012830c56b74791723eab58b38a97380ac8d7a8968e3",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 16318,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e857b7aafd1c4f2a60086d03a722cdc016eb4ca1/.github/traffic-publish/commercial-wave6-recovery2-20261118/16318.png"
+        }
+      }
+    },
+    {
+      "hotel_id": 2763,
+      "name": "Iberostar Waves Punta Cana",
+      "verified_at_utc": "2026-11-17T23:40:20Z",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-2763-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1099",
+          "post_url": "https://t.me/any_toour/1099",
+          "publication_id": 2351,
+          "version_id": 7940,
+          "button_url": "https://t.me/anyru_bot?start=p_XplPdFRpeeXGy8F7mPtirj6f",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "16507f8078ef955e1adc4ac05090d8cd71f6b1504ca66dc974f80f53b02de865",
+          "photo_sha256": "52186718bfa7b4d79943643890284e153c22cc67aae195771d9992683b6421e3",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2763,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e857b7aafd1c4f2a60086d03a722cdc016eb4ca1/.github/traffic-publish/commercial-wave6-recovery2-20261118/2763.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-2763-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebe1fc8d0252",
+          "post_url": "https://max.ru/channel_anytour/AaHr4fyNAlI",
+          "publication_id": 2353,
+          "version_id": 7942,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_LHlMUpyhK_GCnzMe5LNUHyoi",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "16507f8078ef955e1adc4ac05090d8cd71f6b1504ca66dc974f80f53b02de865",
+          "photo_sha256": "52186718bfa7b4d79943643890284e153c22cc67aae195771d9992683b6421e3",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2763,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e857b7aafd1c4f2a60086d03a722cdc016eb4ca1/.github/traffic-publish/commercial-wave6-recovery2-20261118/2763.png"
+        }
+      }
+    }
+  ],
+  "remaining_origin_candidates": 15,
+  "further_identity_review": [
+    {
+      "hotel_id": 2573,
+      "outcome": "The original Hilton Fujairah resort closed. Hilton currently lists a different city property.",
+      "sources": [
+        "https://www.thenationalnews.com/business/travel-and-tourism/end-of-an-era-as-fujairah-hilton-hotel-checks-out-1.53124",
+        "https://www.hilton.com/en/locations/uae/fujairah/"
+      ]
+    },
+    {
+      "hotel_id": 2502,
+      "outcome": "Current property brand is Sofitel Ras Al Khaimah Al Hamra Beach Resort. Provider identification and approved current photos remain to be verified.",
+      "sources": [
+        "https://ahcd.alhamra.ae/projects/",
+        "https://sofitel.accor.com/en/hotels/B9F8/wellness-pool.html"
+      ]
+    },
+    {
+      "hotel_id": 4913,
+      "outcome": "Former Hilton Al Ain is now Radisson Blu Hotel & Resort, Al Ain. Provider identification and approved current photos remain to be verified.",
+      "sources": [
+        "https://radissonbluislamabad.com/wp-content/uploads/2024/05/RHG-Presentation_Q3-2022-1.pdf",
+        "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-al-ain"
+      ]
+    }
+  ]
+}
