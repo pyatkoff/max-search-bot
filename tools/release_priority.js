@@ -208,15 +208,33 @@ async function verifyPreviousRelease(context, token, fetchImpl) {
     .map(key => [key, binding[key]]));
   if (!binding || !R.same(bound, r.closure.binding)) refusal('previous_binding_changed');
   const path = R.API_ROOT + '/issues/comments/' + binding.comment_id;
+  // A completed shared publisher can already belong to this exact next PR.
+  // Its old native terminal remains authoritative; validate the new acquisition
+  // against the current PR rather than demanding the old free text reappear.
+  const shared = context.publisher?.comment_id === binding.comment_id;
+  if (shared && context.publisher.owner_id !== binding.owner_id) refusal('previous_publisher_changed');
+  const verifyAcquisition = async () => {
+    if (!shared) return;
+    pinnedPublisher(context.publisher, context.now);
+    verifyPublisherBinding(await api('GET', R.API_ROOT + '/pulls/' + context.prNumber),
+      context, context.publisher);
+  };
+  const verifyRecord = value => {
+    if (shared) verifyPublisherRecord(value, context, context.publisher);
+    else if (C.recordState(value, binding) !== 'released' ||
+        value.body !== r.closure.expected_terminal) refusal('previous_publisher_unclosed');
+  };
+  await verifyAcquisition();
   const record = await api('GET', path);
-  if (C.recordState(record, binding) !== 'released' ||
-      record.body !== r.closure.expected_terminal) refusal('previous_publisher_unclosed');
+  verifyRecord(record);
   const fresh = await R.readRecord(api);
   if (fresh.blob !== location.blob || fresh.record_digest !== location.record_digest)
     refusal('previous_release_changed');
   const last = await api('GET', path);
-  if (C.recordState(last, binding) !== 'released' || last.body !== record.body ||
-      last.updated_at !== record.updated_at) refusal('previous_publisher_changed');
+  verifyRecord(last);
+  if (last.body !== record.body || last.updated_at !== record.updated_at)
+    refusal('previous_publisher_changed');
+  await verifyAcquisition();
   if ((await api('GET', R.API_ROOT + '/git/ref/heads/main'))?.object?.sha !== context.baseSha)
     refusal('base_changed');
 }

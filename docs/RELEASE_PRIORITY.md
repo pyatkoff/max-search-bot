@@ -155,6 +155,12 @@ missing publication, held or changed publisher, changed diagnostics/main, or
 an unavailable API stops admission. A different project's free record cannot
 substitute. No installer, closer, check, business operation or write is started.
 
+When the same completed publisher has already been acquired by this exact next
+PR, admission authenticates its new pinned owner/version and current PR binding
+in addition to the previous native terminal. It never requires the old free text
+to replace the valid current acquisition. A different owner, changed binding or
+version still refuses. Before acquisition the previous publisher must be free.
+
 The final readback pins the same installation record and publisher version,
 then refreshes main. Existing publisher serialization and expected-head merge
 remain mandatory; these read-only snapshots do not claim atomic GitHub exclusion.

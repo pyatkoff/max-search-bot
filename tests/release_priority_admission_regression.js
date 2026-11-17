@@ -232,6 +232,34 @@ module.exports = async function verifyPublisherAdmission(check = assert.equal) {
     'ordinary source CI remains independent of a pending production release');
   check(calls.length, 2, 'source CI still reads only main and priority metadata');
 
+
+  // The ordinary next release reuses the SAME issue1122 publisher, after the
+  // original native terminal succeeded. Its current busy text belongs to us.
+  for (const [mode, expected] of [
+    ['accepted', null], ['foreign_previous_owner', 'previous_publisher_changed'],
+    ['late_target_binding', 'invalid_publisher_binding'], ['late_acquisition', 'publisher_changed']
+  ]) {
+    reset(); other.body = ''; previous = await acceptedPrevious();
+    const shared = { comment_id: 900, owner_id: mode === 'foreign_previous_owner' ? 801 : 800, updated_at: acquired };
+    target.body = slot({ ...shared, head_sha: head });
+    previous.comment = { ...previous.comment, body: 'PR1438: выпуск занят',
+      user: { id: shared.owner_id }, updated_at: acquired };
+    const sharedRun = () => runGuard({ env, admission: { ...admission, publisher: shared }, now,
+      fetchImpl: async (url, options) => {
+        const result = await fetchImpl(url, options);
+        if (url.includes('/commits/' + base + '/pulls?')) {
+          if (mode === 'late_target_binding') target.body = slot({ ...shared, head_sha: 'c'.repeat(40) });
+          if (mode === 'late_acquisition') previous.comment.updated_at = '2026-11-10T10:26:28Z';
+        }
+        return result;
+      } });
+    if (expected) await rejects(sharedRun, expected, 'shared publisher ' + mode + ' refuses');
+    else check((await sharedRun()).allowed, true,
+      'same completed publisher reacquired by this exact next PR remains admissible');
+    check(previous.calls.every(c => c.method === 'GET'), true,
+      'shared publisher proof never acquires or releases a record');
+  }
+
   const tool = path.resolve(__dirname, '../tools/release_priority.js');
   const cli = spawnSync(process.execPath, [tool, '--admit', '1438', head, base, '--publisher',
     '648', '17', acquired], { encoding: 'utf8', env: { GITHUB_REPOSITORY: repository } });
