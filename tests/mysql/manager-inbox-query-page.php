@@ -26,6 +26,7 @@ final class InboxPageNativePdo extends PDO
     public float $listExecuteMs = 0.0;
     public array $listWork = [];
     public bool $detailProfile = false;
+    public int $detailVisibilityCount = 0;
     public float $detailExecuteMs = 0.0;
     public float $detailFetchMs = 0.0;
     public array $detailWork = [];
@@ -36,6 +37,7 @@ final class InboxPageNativePdo extends PDO
         $this->listSql = null; $this->listArgs = null; $this->listExecuteMs = 0.0;
         $this->listWork = [];
         $this->detailExecuteMs = $this->detailFetchMs = 0.0;
+        $this->detailVisibilityCount = 0;
         $this->detailWork = [];
     }
 
@@ -55,6 +57,7 @@ final class InboxPageNativeStatement extends PDOStatement
         ++$this->database->executeCount;
         $isList = str_starts_with($this->queryString, 'SELECT c.id,c.project_key');
         if ($isList) { $this->database->listSql = $this->queryString; $this->database->listArgs = $params; }
+        if ($isList && $this->database->detailProfile) ++$this->database->detailVisibilityCount;
         $started = hrtime(true);
         try { return parent::execute($params); }
         finally {
@@ -255,18 +258,16 @@ function inboxNativeMedian(array $values): float
     return $n % 2 ? $values[intdiv($n, 2)] : ($values[$n / 2 - 1] + $values[$n / 2]) / 2;
 }
 
-/** Same current detail policy, comparing only its two metadata-loading paths. */
-function inboxNativeDetailRun(InboxPageNativePdo $pdo,int $conversationId,int $beforeId,bool $openUnread,bool $preselected): array
+/** Same metadata/history policy, comparing only request-local queue-context reuse. */
+function inboxNativeDetailRun(InboxPageNativePdo $pdo,int $conversationId,int $beforeId,bool $openUnread,bool $reuseQueueContext): array
 {
-    $pdo->resetEvidence();$pdo->detailProfile=true;$sidecar=$preselected&&$beforeId===0?[]:null;$started=hrtime(true);
+    $pdo->resetEvidence();$pdo->detailProfile=true;$started=hrtime(true);
     try{
-        $detail=$preselected
-            ?ManagerConversationService::detail($conversationId,7,$beforeId,200,false,$openUnread,$sidecar)
+        $detail=$reuseQueueContext
+            ?ManagerConversationService::detail($conversationId,7,$beforeId,200,false,$openUnread,$beforeId===0)
             :ManagerConversationService::detail($conversationId,7,$beforeId,200,false,$openUnread);
         if($detail===null)throw new RuntimeException('FAIL native detail benchmark visibility');
-        $detail['messages']=$preselected
-            ?ManagerMessageMediaService::hydrate($detail['messages'],$sidecar)
-            :ManagerMessageMediaService::hydrate($detail['messages']);
+        $detail['messages']=ManagerMessageMediaService::hydrate($detail['messages']);
         $elapsed=(hrtime(true)-$started)/1e6;
     }finally{$pdo->detailProfile=false;}
     $work=['message_fetch_rows'=>0,'value_bytes'=>0,'metadata_slots'=>0,'metadata_rows'=>0,'metadata_bytes'=>0,'page_queries'=>0,'hydration_queries'=>0];
@@ -275,7 +276,7 @@ function inboxNativeDetailRun(InboxPageNativePdo $pdo,int $conversationId,int $b
         $work['metadata_slots']+=$query['metadata_slots'];$work['metadata_rows']+=$query['metadata_rows'];$work['metadata_bytes']+=$query['metadata_bytes'];
         if($query['kind']==='metadata')$work['hydration_queries']++;else$work['page_queries']++;
     }
-    return ['detail'=>$detail,'sidecar_ids'=>array_map('intval',array_column($sidecar??[],'id')),
+    return ['detail'=>$detail,'visibility_count'=>$pdo->detailVisibilityCount,
         'ms'=>$elapsed,'execute_ms'=>$pdo->detailExecuteMs,'fetch_all_ms'=>$pdo->detailFetchMs,
         'sql_count'=>$pdo->executeCount+$pdo->queryCount,'work'=>$work];
 }
@@ -646,34 +647,25 @@ try {
             'split_unread'=>['before'=>0,'open_unread'=>true,'read_through'=>200,'ids'=>array_merge(range(181,300),range(922,1001)),'page_queries'=>3],
         ] as $detailCaseLabel=>$detailCase){
             $detailLabel=$detailMetadataLabel.'/'.$detailCaseLabel;
-            $detailOversized=strlen($detailMetadataJson)>4096;
-            $detailUsesPreload=$detailCase['before']===0;
-            $detailExpectsSidecar=$detailUsesPreload&&!$detailOversized;
+            $detailUsesReuse=$detailCase['before']===0;
             $detailExpectedIds=array_map(static fn(int $id):int=>$detailMessageBase+$id,$detailCase['ids']);
             $detailCursor->execute([$detailConversationId,$detailMessageBase+$detailCase['read_through']]);
             $detailStateBefore=$detailSnapshot();
             // Two warmups per path; their work and durations are not samples.
-            for($detailWarm=0;$detailWarm<2;$detailWarm++)foreach([false,true] as $detailPreselected){
-                inboxNativeDetailRun($pdo,$detailConversationId,$detailCase['before'],$detailCase['open_unread'],$detailPreselected);
+            for($detailWarm=0;$detailWarm<2;$detailWarm++)foreach([false,true] as $detailReuse){
+                inboxNativeDetailRun($pdo,$detailConversationId,$detailCase['before'],$detailCase['open_unread'],$detailReuse);
             }
             $detailBefore=inboxNativeDetailRun($pdo,$detailConversationId,$detailCase['before'],$detailCase['open_unread'],false);
             $detailAfter=inboxNativeDetailRun($pdo,$detailConversationId,$detailCase['before'],$detailCase['open_unread'],true);
             inboxNativeCheck('native detail complete DTO equality '.$detailLabel,$detailBefore['detail']===$detailAfter['detail']
-                &&array_map('intval',array_column($detailAfter['detail']['messages'],'id'))===$detailExpectedIds
-                &&$detailAfter['sidecar_ids']===($detailExpectsSidecar?$detailExpectedIds:[]));
-            inboxNativeCheck('native detail bounded metadata query count '.$detailLabel,$detailBefore['sql_count']===$detailAfter['sql_count']+($detailExpectsSidecar?1:0)
-                &&$detailBefore['work']['hydration_queries']===1&&$detailAfter['work']['hydration_queries']===($detailExpectsSidecar?0:1));
-            $detailPrimaryRows=$detailCaseLabel==='split_unread'?321:201;
-            inboxNativeCheck('native detail distinguishes metadata slots from payload '.$detailLabel,$detailBefore['work']['metadata_slots']===200
-                &&$detailBefore['work']['metadata_rows']===200
-                &&$detailAfter['work']['metadata_slots']===($detailUsesPreload?$detailPrimaryRows+($detailOversized?200:0):200)
-                &&$detailAfter['work']['metadata_rows']===($detailExpectsSidecar?$detailPrimaryRows:200)
-                &&$detailBefore['work']['page_queries']===$detailCase['page_queries']&&$detailAfter['work']['page_queries']===$detailCase['page_queries']
-                &&$detailBefore['work']['message_fetch_rows']===$detailAfter['work']['message_fetch_rows']+($detailExpectsSidecar?200:0));
-            if(!$detailUsesPreload)inboxNativeCheck('native older page retains the exact legacy metadata path '.$detailLabel,
-                $detailAfter['sql_count']===$detailBefore['sql_count']&&$detailAfter['work']===$detailBefore['work']);
-            if($detailOversized)inboxNativeCheck('native detail never transfers extra large metadata '.$detailLabel,
-                $detailAfter['work']['metadata_bytes']===$detailBefore['work']['metadata_bytes']);
+                &&array_map('intval',array_column($detailAfter['detail']['messages'],'id'))===$detailExpectedIds);
+            inboxNativeCheck('native detail reuses one already-validated conversation '.$detailLabel,
+                $detailBefore['visibility_count']===($detailUsesReuse?3:1)&&$detailAfter['visibility_count']===($detailUsesReuse?2:1)
+                &&($detailUsesReuse?$detailAfter['sql_count']<$detailBefore['sql_count']:$detailAfter['sql_count']===$detailBefore['sql_count']));
+            inboxNativeCheck('native detail preserves exact transcript and metadata work '.$detailLabel,
+                $detailAfter['work']===$detailBefore['work']&&$detailAfter['work']['metadata_slots']===200
+                &&$detailAfter['work']['metadata_rows']===200&&$detailAfter['work']['metadata_bytes']===200*strlen($detailMetadataJson)
+                &&$detailAfter['work']['hydration_queries']===1&&$detailAfter['work']['page_queries']===$detailCase['page_queries']);
             inboxNativeCheck('native detail never exposes private metadata '.$detailLabel,!str_contains(json_encode($detailAfter['detail'],JSON_THROW_ON_ERROR),'private_detail_benchmark_padding'));
             $detailSamples=['before'=>[],'after'=>[]];$detailExecuteSamples=$detailSamples;$detailFetchSamples=$detailSamples;$detailPairedDelta=[];
             for($detailSample=0;$detailSample<20;$detailSample++){
@@ -682,7 +674,7 @@ try {
                     $detailResult=inboxNativeDetailRun($pdo,$detailConversationId,$detailCase['before'],$detailCase['open_unread'],$detailVariant==='after');
                     $detailExpectedRun=$detailVariant==='before'?$detailBefore:$detailAfter;
                     if($detailResult['detail']!==$detailBefore['detail']||$detailResult['sql_count']!==$detailExpectedRun['sql_count']
-                        ||$detailResult['work']!==$detailExpectedRun['work']||$detailResult['sidecar_ids']!==$detailExpectedRun['sidecar_ids']){
+                        ||$detailResult['work']!==$detailExpectedRun['work']||$detailResult['visibility_count']!==$detailExpectedRun['visibility_count']){
                         throw new RuntimeException('FAIL native detail timed sample preserves complete DTO and exact work '.$detailLabel);
                     }
                     $detailSamples[$detailVariant][]=round($detailResult['ms'],3);
@@ -695,9 +687,9 @@ try {
             $detailMedians=array_map('inboxNativeMedian',$detailSamples);
             inboxNativeCheck('native detail all40 samples preserve DTO and fixture state '.$detailLabel,count($detailSamples['before'])===20
                 &&count($detailSamples['after'])===20&&$detailSnapshot()===$detailStateBefore);
-            echo 'DETAIL_METADATA_BENCHMARK '.json_encode(['scope'=>'synthetic_native_detail_same_policy','case'=>$detailLabel,
-                'messages_available'=>1001,'messages_returned'=>200,'metadata_bytes_each'=>strlen($detailMetadataJson),'preload_cap_bytes'=>4096,
-                'metadata_loading'=>$detailUsesPreload?($detailOversized?'bounded_fallback':'preloaded'):'legacy_older',
+            echo 'DETAIL_METADATA_BENCHMARK '.json_encode(['scope'=>'synthetic_native_detail_queue_context_reuse','case'=>$detailLabel,
+                'messages_available'=>1001,'messages_returned'=>200,'metadata_bytes_each'=>strlen($detailMetadataJson),
+                'optimization'=>$detailUsesReuse?'latest_queue_context_reuse':'legacy_older',
                 'sample_count_each'=>20,'warmups_each'=>2,'order'=>'alternating','cache_state'=>'uncontrolled_same_server_and_connection',
                 'full_detail_ms'=>$detailSamples,'execute_ms'=>$detailExecuteSamples,'fetch_all_ms'=>$detailFetchSamples,
                 'median_full_detail_ms'=>$detailMedians,'median_execute_ms'=>array_map('inboxNativeMedian',$detailExecuteSamples),
@@ -705,6 +697,7 @@ try {
                 'median_paired_after_minus_before_ms'=>inboxNativeMedian($detailPairedDelta),
                 'candidate_median_slower'=>$detailMedians['after']>$detailMedians['before'],
                 'sql_count'=>['before'=>$detailBefore['sql_count'],'after'=>$detailAfter['sql_count']],
+                'visibility_count'=>['before'=>$detailBefore['visibility_count'],'after'=>$detailAfter['visibility_count']],
                 'message_fetch_work'=>['before'=>$detailBefore['work'],'after'=>$detailAfter['work']],
                 'result_sha256'=>hash('sha256',json_encode($detailAfter['detail'],JSON_THROW_ON_ERROR)),
                 'production_latency'=>null,'absolute_latency_gate'=>false,'production_speedup_claimed'=>false],JSON_THROW_ON_ERROR)."\n";
