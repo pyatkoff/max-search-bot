@@ -1,0 +1,67 @@
+name: PRICE27316 frozen original 660 hook recovery offline verification
+on:
+  push:
+    branches: ['audit/price660-27316-resume-readiness-20261117']
+    paths: ['.github/workflows/price660-27316-frozen-offline-tests-once.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  isolated-php:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.event_name == 'push' &&
+      github.event.before == '7f2659f8f0c9a2efade1c0df598f120919be3593' &&
+      github.event.head_commit.message == 'test(price660): offline frozen original 660 recovery syntax and rejection' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 2
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring
+          coverage: none
+      - name: Verify unique source and frozen hook byte-identity
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = 7f2659f8f0c9a2efade1c0df598f120919be3593
+          umask 077
+          mkdir -p "$RUNNER_TEMP/price27316"
+          python3 - <<'PY'
+          import subprocess,hashlib,json,zipfile,io,os,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'price27316'
+          raw=subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/max-search-bot/actions/artifacts/14268746215/zip'],timeout=65)
+          assert hashlib.sha256(raw).hexdigest()=='aa742bf4ee787e5a9cee6695b4c937f9c8e2c9a5d801b75cd2c2cc54ed8921b0','FROZEN_ORIGINAL_ARTIFACT_ZIP_CHANGED'
+          with zipfile.ZipFile(io.BytesIO(raw)) as z:
+              assert z.testzip() is None
+              bundle=z.read('monitor-price-hook.php')
+          assert len(bundle)==613581 and hashlib.sha256(bundle).hexdigest()=='41e9f0151f97691f91258ebb37714090ba0798c76db18c3870ff93bcc23d0c9a'
+          (root/'frozen-660.php').write_bytes(bundle)
+          print('FROZEN_ORIGINAL_660_HOOK_VERIFIED')
+          PY
+      - name: Build and verify full isolated recovery selftest and deny live apply
+        shell: bash
+        run: |
+          set -euo pipefail
+          p=tools/direct_demand/operations
+          python3 "$p/build-reconcile-pending-27316.py" "$RUNNER_TEMP/price27316/frozen-660.php" "$RUNNER_TEMP/price27316/reconcile-27316.php"
+          php -l "$p/reconcile-pending-27316.php"
+          php -l "$RUNNER_TEMP/price27316/reconcile-27316.php"
+          php "$RUNNER_TEMP/price27316/reconcile-27316.php" --self-test
+          if ANYTOUR_MONITOR_27316_APPLY=1 php "$RUNNER_TEMP/price27316/reconcile-27316.php" > "$RUNNER_TEMP/price27316/should-refuse.log" 2>&1; then
+            echo 'UNREVIEWED_APPLY_WRONGLY_ALLOWED'; exit 2
+          fi
+          grep -q 'PRICE27316_APPLY_DISABLED_UNTIL_REVIEWED' "$RUNNER_TEMP/price27316/should-refuse.log"
+          echo 'PRICE27316_FROZEN_660_OFFLINE_ONLY_PASS'
+      - name: Clean local frozen files
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/price27316"
